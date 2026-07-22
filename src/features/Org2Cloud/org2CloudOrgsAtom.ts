@@ -11,21 +11,19 @@
  * `useDeepLinkHandler`). Cleared to `[]` on sign-out. Offline / fetch
  * failure degrades to `[]` (no crash, no stale cache).
  */
-import { atom, createStore, useAtom, useSetAtom, useStore } from "jotai";
-import { useCallback, useEffect, useRef } from "react";
+import { atom, createStore, useAtom, useStore } from "jotai";
+import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 
 import { createLogger } from "@src/hooks/logger";
-import { COLLAB_SESSION_ACCESS_MODE } from "@src/store/collaboration/types";
-import type { CollabSessionAccessMode } from "@src/store/collaboration/types";
 
 import { enrichOrg2CloudProfile } from "./completeSignIn";
-import { org2CloudSharingFloorAtom } from "./org2CloudAccessSettings";
-import { commitRefreshedAuth, org2CloudAuthAtom } from "./org2CloudAuthAtom";
 import {
-  ensureFreshSession,
-  getEntitlementState,
-  listMyOrgs,
-} from "./org2CloudClient";
+  commitRefreshedAuth,
+  org2CloudAuthAtom,
+  org2CloudAuthIdentityKey,
+} from "./org2CloudAuthAtom";
+import { ensureFreshSession, listMyOrgs } from "./org2CloudClient";
+import { refreshOrgEntitlement } from "./org2CloudEntitlementCoordinator";
 
 const log = createLogger("Org2CloudOrgs");
 
@@ -143,8 +141,8 @@ export function commitOrg2CloudOrgsRequest(
  * `org_memberships` subscription (useOrg2CloudRealtime). Consumers that
  * display the member list (CloudOrgPanelView) put their org's counter in a
  * fetch-effect dependency so a teammate joining/leaving/changing role
- * refreshes the list live — without this the members section only updated
- * on panel re-open.
+ * refreshes the list live. The open panel also performs a low-frequency
+ * authoritative fallback for deployments where the channel is unavailable.
  */
 export const org2CloudRosterVersionAtom = atom<Record<string, number>>({});
 org2CloudRosterVersionAtom.debugLabel = "org2CloudRosterVersionAtom";
@@ -180,26 +178,31 @@ export function parseCloudOrgSelectorValue(value: string): string | null {
 
 /**
  * Populate `org2CloudOrgsAtom` whenever a cloud user is signed in; clear it
- * on sign-out. Keyed on `userId` (not the whole auth object) so the
- * token-refresh write inside the effect does not retrigger the fetch.
+ * on sign-out. Keyed on endpoint + `userId` (not the whole auth object) so a
+ * token-refresh write does not retrigger the fetch while an endpoint/account
+ * switch can never retain the previous deployment's roster.
  */
 export function useOrg2CloudOrgs(): void {
   const [auth, setAuth] = useAtom(org2CloudAuthAtom);
   const store = useStore();
-  const setFloorByOrg = useSetAtom(org2CloudSharingFloorAtom);
   const authRef = useRef(auth);
   useEffect(() => {
     authRef.current = auth;
   }, [auth]);
-  const userId = auth?.userId ?? null;
+  const authIdentityKey = auth ? org2CloudAuthIdentityKey(auth) : null;
+
+  useLayoutEffect(() => {
+    // Identity changes are a hard visibility boundary. Clear the prior
+    // deployment/account roster before paint; otherwise the selector and
+    // Realtime manager can briefly treat old org ids as belonging to the new
+    // account while the first token refresh/list request is pending.
+    beginOrg2CloudOrgsRequest(store);
+    store.set(org2CloudOrgsAtom, []);
+    store.set(org2CloudOrgsLoadedAtom, false);
+  }, [authIdentityKey, store]);
 
   useEffect(() => {
-    if (!userId) {
-      beginOrg2CloudOrgsRequest(store);
-      store.set(org2CloudOrgsAtom, []);
-      store.set(org2CloudOrgsLoadedAtom, false);
-      return;
-    }
+    if (!authIdentityKey) return;
     let cancelled = false;
     let retryTimer: ReturnType<typeof setTimeout> | null = null;
     // Bounded auto-retry with backoff. A TRANSIENT token-refresh /
@@ -208,8 +211,8 @@ export function useOrg2CloudOrgs(): void {
     // selector AND the sidebar "Team sessions" section (they fall back to
     // plain local-alias entries, no cloud badge), and stay gone until the
     // NEXT sign-in / app start. Retrying lets a blip self-heal on its own.
-    // A persistent failure (e.g. an expired refresh token) still ends
-    // degraded after the last attempt — re-sign-in is the real remedy there.
+    // An explicitly rejected refresh credential signs out immediately;
+    // transient transport/server failures remain degraded and retry here.
     const RETRY_DELAYS_MS = [2000, 5000, 10000, 20000];
     const runAttempt = async (attempt: number): Promise<void> => {
       const current = authRef.current;
@@ -221,13 +224,22 @@ export function useOrg2CloudOrgs(): void {
           void runAttempt(attempt + 1);
         }, RETRY_DELAYS_MS[attempt]);
       };
-      const fresh = await ensureFreshSession(current);
+      let refreshRejected = false;
+      const fresh = await ensureFreshSession(current, {
+        onRefreshRejected: () => {
+          refreshRejected = true;
+          // Compare-and-set: never sign out a newer OAuth callback or a
+          // concurrently refreshed token chain because an older request
+          // finished late.
+          setAuth((latest) => (latest === current ? null : latest));
+        },
+      });
       if (cancelled || !isCurrentOrg2CloudOrgsRequest(store, requestEpoch)) {
         return;
       }
       if (!fresh) {
         log.warn("cloud org fetch skipped: token refresh failed");
-        retry();
+        if (!refreshRejected) retry();
         return;
       }
       commitRefreshedAuth(setAuth, current, fresh);
@@ -258,38 +270,20 @@ export function useOrg2CloudOrgs(): void {
       // context menu, without ever visiting the org panel — can gate its
       // options against the floor. Non-blocking; per-org failures (null) just
       // leave that org's persisted mirror untouched (server still enforces).
-      void (async () => {
-        const entries = await Promise.all(
-          orgs.map(async (o) => {
-            const ent = await getEntitlementState(fresh.accessToken, o.orgId);
-            return ent
-              ? ([
-                  o.orgId,
-                  ent.orgSharingFloor ?? COLLAB_SESSION_ACCESS_MODE.OFF,
-                ] as const)
-              : null;
-          })
-        );
-        if (cancelled || !isCurrentOrg2CloudOrgsRequest(store, requestEpoch)) {
-          return;
-        }
-        const known = entries.filter(
-          (e): e is readonly [string, CollabSessionAccessMode] => e !== null
-        );
-        if (known.length === 0) return;
-        setFloorByOrg((prev) => {
-          const next = { ...prev };
-          for (const [orgId, floor] of known) next[orgId] = floor;
-          return next;
-        });
-      })();
+      // Reads go through the shared entitlement coordinator (single-flight +
+      // TTL per org) — never a second cache owner.
+      void Promise.all(
+        orgs.map((o) =>
+          refreshOrgEntitlement(store, o.orgId, async () => fresh.accessToken)
+        )
+      );
     };
     void runAttempt(0);
     return () => {
       cancelled = true;
       if (retryTimer) clearTimeout(retryTimer);
     };
-  }, [userId, setAuth, setFloorByOrg, store]);
+  }, [authIdentityKey, setAuth, store]);
 }
 
 /**
@@ -305,7 +299,6 @@ export function useRefetchOrg2CloudOrgs(): (
 ) => Promise<Org2CloudOrg[]> {
   const [auth, setAuth] = useAtom(org2CloudAuthAtom);
   const store = useStore();
-  const setFloorByOrg = useSetAtom(org2CloudSharingFloorAtom);
   const authRef = useRef(auth);
   useEffect(() => {
     authRef.current = auth;
@@ -343,33 +336,17 @@ export function useRefetchOrg2CloudOrgs(): (
             } else if (commitOrg2CloudOrgsRequest(store, requestEpoch, orgs)) {
               latest = orgs;
               // Entitlement hydration is enrichment, not part of roster
-              // convergence. Do it in the background so a connection rebuild
-              // cannot make a successful mutation await unrelated floor RPCs.
-              void (async () => {
-                const floorEntries = await Promise.all(
-                  orgs.map(async (org) => {
-                    const entitlement = await getEntitlementState(
-                      fresh.accessToken,
-                      org.orgId
-                    );
-                    return entitlement
-                      ? ([
-                          org.orgId,
-                          entitlement.orgSharingFloor ??
-                            COLLAB_SESSION_ACCESS_MODE.OFF,
-                        ] as const)
-                      : null;
-                  })
-                );
-                if (!isCurrentOrg2CloudOrgsRequest(store, requestEpoch)) return;
-                setFloorByOrg((previous) => {
-                  const next = { ...previous };
-                  for (const entry of floorEntries) {
-                    if (entry) next[entry[0]] = entry[1];
-                  }
-                  return next;
-                });
-              })();
+              // convergence. Background per-org reads through the shared
+              // coordinator: single-flight + TTL, no second cache owner.
+              void Promise.all(
+                orgs.map((org) =>
+                  refreshOrgEntitlement(
+                    store,
+                    org.orgId,
+                    async () => fresh.accessToken
+                  )
+                )
+              );
             } else {
               latest = store.get(org2CloudOrgsAtom);
             }
@@ -401,6 +378,6 @@ export function useRefetchOrg2CloudOrgs(): (
       }
       return queueOrg2CloudOrgsConvergence(store, run);
     },
-    [setAuth, setFloorByOrg, store]
+    [setAuth, store]
   );
 }

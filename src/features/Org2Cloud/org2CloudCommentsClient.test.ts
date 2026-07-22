@@ -94,6 +94,54 @@ describe("addSessionComment", () => {
     expect(lastBody().p_kind).toBe("agent_report");
   });
 
+  it("sends the additive origin argument only when set", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ comment: WIRE_COMMENT }));
+    await addSessionComment("jwt-1", {
+      orgId: "org-1",
+      sessionId: "sess-1",
+      body: "from a fork",
+      originSessionId: "fork-local-1",
+    });
+    expect(lastBody().p_origin_session_id).toBe("fork-local-1");
+
+    fetchMock.mockResolvedValueOnce(jsonResponse({ comment: WIRE_COMMENT }));
+    await addSessionComment("jwt-1", {
+      orgId: "org-1",
+      sessionId: "sess-1",
+      body: "from the source",
+    });
+    expect(lastBody()).not.toHaveProperty("p_origin_session_id");
+  });
+
+  it("retries without the origin arg against a pre-origin backend", async () => {
+    fetchMock
+      .mockResolvedValueOnce(
+        jsonResponse({ message: "Could not find the function" }, 404)
+      )
+      .mockResolvedValueOnce(jsonResponse({ comment: WIRE_COMMENT }));
+    const comment = await addSessionComment("jwt-1", {
+      orgId: "org-1",
+      sessionId: "sess-1",
+      body: "from a fork",
+      originSessionId: "fork-local-1",
+    });
+    expect(comment.id).toBe("comment-1");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(lastBody()).not.toHaveProperty("p_origin_session_id");
+  });
+
+  it("does not retry a 404 when no origin arg was sent", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ message: "nope" }, 404));
+    await expect(
+      addSessionComment("jwt-1", {
+        orgId: "org-1",
+        sessionId: "sess-1",
+        body: "plain",
+      })
+    ).rejects.toThrow();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it("sends the turn anchor when provided", async () => {
     fetchMock.mockResolvedValueOnce(
       jsonResponse({ comment: { ...WIRE_COMMENT, eventId: "evt-9" } })
@@ -299,6 +347,7 @@ describe("listSessionComments", () => {
   it("parses entries and normalizes nullish fields", async () => {
     fetchMock.mockResolvedValueOnce(
       jsonResponse({
+        viewerOwnsSession: true,
         comments: [
           WIRE_COMMENT,
           {
@@ -317,7 +366,12 @@ describe("listSessionComments", () => {
         ],
       })
     );
-    const { comments } = await listSessionComments("jwt-1", "org-1", "sess-1");
+    const { comments, viewerOwnsSession } = await listSessionComments(
+      "jwt-1",
+      "org-1",
+      "sess-1"
+    );
+    expect(viewerOwnsSession).toBe(true);
     expect(lastBody()).toEqual({ p_org_id: "org-1", p_session_id: "sess-1" });
     expect(comments).toHaveLength(2);
     expect(comments[0].authorDisplayName).toBe("Alice");
@@ -348,55 +402,24 @@ describe("listSessionComments", () => {
     expect(comments[0].resolution).toBe("wont_fix");
   });
 
-  it("defaults absent comments AND tasks arrays (pre-0002 backend)", async () => {
+  it("defaults absent additive fields closed", async () => {
     fetchMock.mockResolvedValueOnce(jsonResponse({}));
     await expect(
       listSessionComments("jwt-1", "org-1", "sess-1")
-    ).resolves.toEqual({ comments: [], tasks: [] });
+    ).resolves.toEqual({ comments: [], viewerOwnsSession: false });
   });
 
-  it("parses the 0002 tasks embed and per-comment kind", async () => {
+  it("parses per-comment agent attribution and ignores unknown fields", async () => {
     fetchMock.mockResolvedValueOnce(
       jsonResponse({
         comments: [{ ...WIRE_COMMENT, kind: "agent_report" }],
-        tasks: [
-          {
-            id: "task-1",
-            sessionId: "sess-1",
-            commentId: "comment-1",
-            state: "claimed",
-            leaseExpired: false,
-            claimedByUserId: "user-b",
-            claimedByDisplayName: null,
-            createdByUserId: "user-a",
-            attempt: 1,
-            forkSessionId: null,
-            instruction: null,
-            progress: null,
-            result: null,
-            errorCode: null,
-            createdAt: "2026-07-07T10:00:00.000Z",
-            updatedAt: "2026-07-07T10:01:00.000Z",
-            // The embed never carries it (invariant 1) — but even a
-            // misbehaving backend gets stripped structurally by zod.
-            lease_token: "must-never-surface",
-          },
-        ],
+        unknownLegacyField: [{ secret: "must-never-surface" }],
       })
     );
-    const { comments, tasks } = await listSessionComments(
-      "jwt-1",
-      "org-1",
-      "sess-1"
-    );
+    const result = await listSessionComments("jwt-1", "org-1", "sess-1");
+    const { comments } = result;
     expect(comments[0].kind).toBe("agent_report");
-    expect(tasks).toHaveLength(1);
-    expect(tasks[0].commentId).toBe("comment-1");
-    expect(tasks[0].state).toBe("claimed");
-    expect(tasks[0].claimedByDisplayName).toBeUndefined();
-    // Structural lease-token strip: no key survives parsing.
-    expect(Object.keys(tasks[0])).not.toContain("lease_token");
-    expect(Object.keys(tasks[0])).not.toContain("leaseToken");
+    expect(result).not.toHaveProperty("unknownLegacyField");
   });
 
   it("maps ORG2_RETENTION_EXPIRED into a coded error", async () => {

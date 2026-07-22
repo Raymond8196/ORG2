@@ -1127,7 +1127,10 @@ mod mcp_instructions_tests {
 
     fn entries() -> Vec<(String, String)> {
         vec![
-            ("brick".to_string(), "Call explain first.".to_string()),
+            (
+                "code graph".to_string(),
+                "Inspect relationships first.".to_string(),
+            ),
             ("chrome dev".to_string(), "Batch tool loads.".to_string()),
         ]
     }
@@ -1135,10 +1138,10 @@ mod mcp_instructions_tests {
     #[test]
     fn renders_only_servers_with_registered_tools() {
         let body =
-            build_mcp_instructions_section(&entries(), &["read_file", "mcp__brick__explain"])
-                .expect("brick has a registered tool");
+            build_mcp_instructions_section(&entries(), &["read_file", "mcp__code_graph__explore"])
+                .expect("code graph has a registered tool");
         assert!(body.starts_with("# MCP Server Instructions"));
-        assert!(body.contains("## brick\nCall explain first."));
+        assert!(body.contains("## code graph\nInspect relationships first."));
         assert!(
             !body.contains("chrome dev"),
             "server without registered tools must not leak instructions"
@@ -1156,6 +1159,6 @@ mod mcp_instructions_tests {
     #[test]
     fn returns_none_without_matching_tools() {
         assert!(build_mcp_instructions_section(&entries(), &["read_file"]).is_none());
-        assert!(build_mcp_instructions_section(&[], &["mcp__brick__explain"]).is_none());
+        assert!(build_mcp_instructions_section(&[], &["mcp__code_graph__explore"]).is_none());
     }
 }

@@ -69,25 +69,38 @@ export function segmentCanonicalJson(value: unknown): string {
   return JSON.stringify(value);
 }
 
-/** sha256 hex of the canonical segment bytes — the wire `segment_hash`. */
-export async function computeSegmentHash(value: unknown): Promise<string> {
-  const digest = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(segmentCanonicalJson(value))
-  );
+/** Canonical UTF-8 bytes of a segment payload — feeds gzip AND the hash. */
+export function segmentCanonicalBytes(value: unknown): Uint8Array {
+  return new TextEncoder().encode(segmentCanonicalJson(value));
+}
+
+/** sha256 hex over already-encoded canonical bytes (single-encode path). */
+export async function computeSegmentHashFromBytes(
+  bytes: Uint8Array
+): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new Uint8Array(bytes));
   return Array.from(new Uint8Array(digest), (byte) =>
     byte.toString(16).padStart(2, "0")
   ).join("");
 }
 
-/** JSON → gzip → base64 (the client half of `payload_gz`). */
-export async function gzipJsonToBase64(value: unknown): Promise<string> {
-  const bytes = new TextEncoder().encode(segmentCanonicalJson(value));
+/** sha256 hex of the canonical segment bytes — the wire `segment_hash`. */
+export async function computeSegmentHash(value: unknown): Promise<string> {
+  return computeSegmentHashFromBytes(segmentCanonicalBytes(value));
+}
+
+/** gzip → base64 over already-encoded canonical bytes. */
+export async function gzipBytesToBase64(bytes: Uint8Array): Promise<string> {
   const compressed = await pipeThroughStream(
     bytes,
     new CompressionStream("gzip")
   );
   return bytesToBase64(compressed);
+}
+
+/** JSON → gzip → base64 (the client half of `payload_gz`). */
+export async function gzipJsonToBase64(value: unknown): Promise<string> {
+  return gzipBytesToBase64(segmentCanonicalBytes(value));
 }
 
 /** base64 → gunzip → JSON (the client half of reading `payload_gz`). */

@@ -12,11 +12,13 @@ import { processChunksRust } from "@src/engines/SessionCore/ingestion/rustBridge
 import type { RemoteTeammateSessionMetadata } from "@src/store/collaboration/types";
 import { sessionsAtom } from "@src/store/session/sessionAtom/atoms";
 import type { Session } from "@src/store/session/sessionAtom/types";
+import { chatPanelSelectedCloudOrgAtom } from "@src/store/ui/chatPanelAtom";
 import { createInstrumentedStore } from "@src/util/core/state/instrumentedStore";
 
 import {
   peekShareableScopeKeys,
   primeShareableScopeKey,
+  resolveMatchingOrgRepoScope,
 } from "../TeamCollaboration/repoScopeResolver";
 import {
   PERSONAL_EXCLUDED_TOKEN,
@@ -28,22 +30,21 @@ import {
   ORG2_CLOUD_EXPECTED_SCHEMA_VERSION,
   ORG2_CLOUD_OFFICIAL_SUPABASE_URL,
 } from "./config";
-import { org2CloudAccessSettingsAtom } from "./org2CloudAccessSettings";
+import {
+  org2CloudAccessSettingsAtom,
+  org2CloudSharingFloorAtom,
+} from "./org2CloudAccessSettings";
 import type { Org2CloudAuthState } from "./org2CloudAuthAtom";
 import { org2CloudAuthAtom } from "./org2CloudAuthAtom";
-import { org2CloudCommentTasksAtom } from "./org2CloudCommentTasksAtom";
-import type {
-  CloudCommentTask,
-  ListCommentTasksResult,
-} from "./org2CloudCommentTasksClient";
-import { Org2CloudTaskError } from "./org2CloudCommentTasksClient";
-import { org2CloudOrgsAtom } from "./org2CloudOrgsAtom";
+import {
+  org2CloudOrgsAtom,
+  sidebarActiveCloudOrgIdAtom,
+} from "./org2CloudOrgsAtom";
 import { ensureProjectOrgForCloudOrg } from "./org2CloudProjectOrgAlias";
 import type { CloudOrgCollabState } from "./org2CloudProjectsClient";
 import { Org2CloudProjectsError } from "./org2CloudProjectsClient";
 import {
   org2CloudCollabStateCursorsAtom,
-  org2CloudCommentTaskCursorsAtom,
   org2CloudPushCursorsAtom,
   org2CloudPushedMetadataAtom,
   org2CloudRepoScopesAtom,
@@ -59,6 +60,7 @@ import { Org2CloudSyncError } from "./org2CloudSyncClient";
 import {
   DATA_CHANGED_DEBOUNCE_MS,
   HIDDEN_PASS_INTERVAL_MS,
+  INACTIVE_ORG_BACKOFF_COOLDOWN_MS,
   ORG_BACKOFF_COOLDOWN_MS,
   Org2CloudSyncEngine,
   PASS_INTERVAL_MS,
@@ -101,6 +103,10 @@ vi.mock("@src/engines/SessionCore/ingestion/rustBridge", () => ({
 vi.mock("../TeamCollaboration/repoScopeResolver", () => ({
   peekShareableScopeKeys: vi.fn(),
   primeShareableScopeKey: vi.fn(),
+  resolveMatchingOrgRepoScope: vi.fn(
+    async (keys: string[] | null, scopes: string[] | undefined) =>
+      scopes?.find((scope) => keys?.includes(scope)) ?? null
+  ),
 }));
 
 vi.mock("@src/components/Message", () => ({
@@ -128,6 +134,7 @@ export const eventStoreMock = vi.mocked(eventStoreProxy);
 export const processChunksRustMock = vi.mocked(processChunksRust);
 export const peekMock = vi.mocked(peekShareableScopeKeys);
 export const primeMock = vi.mocked(primeShareableScopeKey);
+export const resolveMatchingScopeMock = vi.mocked(resolveMatchingOrgRepoScope);
 export const messageMock = vi.mocked(Message);
 
 /** Minimal visibility stub for the engine's browser-only cadence paths. */
@@ -248,38 +255,6 @@ export function makeProjectsClient() {
   };
 }
 
-export function makeTasksClient() {
-  return {
-    listCommentTasks: vi.fn(
-      async (
-        _token: string,
-        _orgId: string,
-        _since: string | null
-      ): Promise<ListCommentTasksResult> => ({
-        serverTime: "2026-07-01T12:00:00.000Z",
-        tasks: [],
-      })
-    ),
-  };
-}
-
-export function makeTask(
-  id: string,
-  overrides: Partial<CloudCommentTask> = {}
-): CloudCommentTask {
-  return {
-    id,
-    sessionId: "session-1",
-    commentId: `comment-${id}`,
-    state: "open",
-    leaseExpired: false,
-    attempt: 0,
-    createdAt: "2026-07-01T10:00:00.000Z",
-    updatedAt: "2026-07-01T10:00:00.000Z",
-    ...overrides,
-  };
-}
-
 export function makeBridge() {
   return {
     drainOutbox: vi.fn(async () => [] as CollabOutboxPushItem[]),
@@ -309,35 +284,29 @@ export function createEngineFixture() {
   const store = createInstrumentedStore();
   const client = makeClient();
   const projectsClient = makeProjectsClient();
-  const tasksClient = makeTasksClient();
   const bridge = makeBridge();
-  const engine = new Org2CloudSyncEngine(
-    client,
-    projectsClient,
-    tasksClient,
-    bridge
-  );
+  const engine = new Org2CloudSyncEngine(client, projectsClient, bridge);
 
   tauriEventListeners.clear();
   store.set(org2CloudAuthAtom, AUTH);
   store.set(org2CloudOrgsAtom, [
     { orgId: "corg-1", name: "Cloud Team", role: "member" },
   ]);
+  store.set(chatPanelSelectedCloudOrgAtom, null);
+  store.set(sidebarActiveCloudOrgIdAtom, null);
   store.set(org2CloudRepoScopesAtom, { "corg-1": [SCOPE_KEY] });
   store.set(org2CloudSyncEnabledAtom, {});
   store.set(org2CloudPushCursorsAtom, {});
   store.set(org2CloudPushedMetadataAtom, {});
   store.set(org2CloudCollabStateCursorsAtom, {});
-  store.set(org2CloudCommentTaskCursorsAtom, {});
-  store.set(org2CloudCommentTasksAtom, {});
   store.set(sessionOrgTagsAtom, {});
   store.set(org2CloudAccessSettingsAtom, {
     "corg-1": {
-      defaultMode: "full_replay",
       sessionModes: {},
       sessionVisibility: {},
     },
   });
+  store.set(org2CloudSharingFloorAtom, { "corg-1": "full_replay" });
   store.set(sessionsAtom, [SESSION]);
   peekMock.mockImplementation((path: string) =>
     path === REPO_PATH ? [SCOPE_KEY] : null
@@ -359,11 +328,10 @@ export function createEngineFixture() {
   vi.useFakeTimers();
   engine.start(store);
 
-  return { store, client, projectsClient, tasksClient, bridge, engine };
+  return { store, client, projectsClient, bridge, engine };
 }
 
 export type EngineFixture = ReturnType<typeof createEngineFixture>;
-export type { ListCommentTasksResult };
 
 export function cleanupEngineFixture(engine: Org2CloudSyncEngine): void {
   engine.stop();
@@ -379,30 +347,31 @@ export function cleanupEngineFixture(engine: Org2CloudSyncEngine): void {
  */
 export const engineTestDeps = {
   DATA_CHANGED_DEBOUNCE_MS,
+  chatPanelSelectedCloudOrgAtom,
   ensureProjectOrgForCloudOrg,
   getImportedHistorySourceBySessionId,
   HIDDEN_PASS_INTERVAL_MS,
+  INACTIVE_ORG_BACKOFF_COOLDOWN_MS,
   ORG2_CLOUD_ENDPOINT_OVERRIDE_STORAGE_KEY,
   ORG2_CLOUD_EXPECTED_SCHEMA_VERSION,
   ORG_BACKOFF_COOLDOWN_MS,
   Org2CloudProjectsError,
   Org2CloudSyncEngine,
   Org2CloudSyncError,
-  Org2CloudTaskError,
   PASS_INTERVAL_MS,
   PERSONAL_EXCLUDED_TOKEN,
   PROJECT_PUSH_RETRY_DELAY_MS,
   cloudOrgToken,
   org2CloudAccessSettingsAtom,
+  org2CloudSharingFloorAtom,
   org2CloudAuthAtom,
   org2CloudCollabStateCursorsAtom,
-  org2CloudCommentTaskCursorsAtom,
-  org2CloudCommentTasksAtom,
   org2CloudOrgsAtom,
   org2CloudPushCursorsAtom,
   org2CloudPushedMetadataAtom,
   org2CloudRepoScopesAtom,
   org2CloudSyncEnabledAtom,
+  sidebarActiveCloudOrgIdAtom,
   sessionOrgTagsAtom,
   sessionsAtom,
 };

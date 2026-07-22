@@ -9,9 +9,8 @@
  * access; the factories only mint fresh tabs.
  */
 import type {
-  ChatPanelSelectedCloudOrg,
+  ChatPanelSelectedOrganization,
   ChatPanelSelectedProject,
-  ChatPanelSelectedProjectOrg,
   ChatPanelSelectedWorkItem,
   ChatPanelSelectedWorkspace,
 } from "@src/store/ui/chatPanelAtom";
@@ -21,15 +20,16 @@ import { defineChatPanelTabFactory } from "./chatPanelTabFactory";
 import {
   type ChatPanelTab,
   type ChatPanelTabsState,
+  ORGANIZATION_TAB_ID,
   getWorkManagementFallbackTitle,
 } from "./chatPanelTabsModel";
 
 /** Fixed id of the singleton default Launchpad seeded on empty / restart. */
 export const DEFAULT_LAUNCHPAD_TAB_ID = "launchpad-default";
-/** Fixed id of the singleton Kanban / Work Management tab. */
-export const WORK_MANAGEMENT_TAB_ID = "chat-work-management";
-/** Fixed id of the singleton managed-cloud-org management tab. */
-export const CLOUD_ORG_TAB_ID = "chat-cloud-org-management";
+/** Prefix for section-keyed Work Management tabs. */
+export const WORK_MANAGEMENT_TAB_ID_PREFIX = "chat-work-management";
+/** Fixed id of the singleton Runtime tab. */
+export const RUNTIME_TAB_ID = "chat-runtime";
 
 // ---------------------------------------------------------------------------
 // start-page (Launchpad)
@@ -52,7 +52,7 @@ export const createLaunchpadTab = defineChatPanelTabFactory<{ title?: string }>(
 );
 
 // ---------------------------------------------------------------------------
-// work-management (Kanban) — singleton
+// work-management — one tab per sidebar section
 // ---------------------------------------------------------------------------
 
 export const createWorkManagementTab = defineChatPanelTabFactory<{
@@ -60,10 +60,24 @@ export const createWorkManagementTab = defineChatPanelTabFactory<{
   title?: string;
 }>({
   tabType: "work-management",
-  idStrategy: { type: "fixed", id: WORK_MANAGEMENT_TAB_ID },
+  idStrategy: {
+    type: "keyed",
+    prefix: WORK_MANAGEMENT_TAB_ID_PREFIX,
+    getKey: (data) => data.section,
+  },
   getTitle: (data) =>
     data.title ?? getWorkManagementFallbackTitle(data.section),
   toPayload: (data) => ({ managementSection: data.section }),
+});
+
+// ---------------------------------------------------------------------------
+// runtime — singleton
+// ---------------------------------------------------------------------------
+
+export const createRuntimeTab = defineChatPanelTabFactory<{ title?: string }>({
+  tabType: "runtime",
+  idStrategy: { type: "fixed", id: RUNTIME_TAB_ID },
+  getTitle: (data) => data.title ?? "Runtime",
 });
 
 // ---------------------------------------------------------------------------
@@ -80,17 +94,17 @@ export const createWorkspaceTab = defineChatPanelTabFactory<{
 });
 
 // ---------------------------------------------------------------------------
-// cloud-org (managed org management) — singleton
+// organization (cloud/local management and hub) — singleton
 // ---------------------------------------------------------------------------
 
-export const createCloudOrgTab = defineChatPanelTabFactory<{
-  cloudOrg: ChatPanelSelectedCloudOrg;
+export const createOrganizationTab = defineChatPanelTabFactory<{
+  organization: ChatPanelSelectedOrganization;
   title?: string;
 }>({
-  tabType: "cloud-org",
-  idStrategy: { type: "fixed", id: CLOUD_ORG_TAB_ID },
+  tabType: "organization",
+  idStrategy: { type: "fixed", id: ORGANIZATION_TAB_ID },
   getTitle: (data) => data.title ?? "Manage ORG",
-  toPayload: (data) => ({ cloudOrg: data.cloudOrg }),
+  toPayload: (data) => ({ organization: data.organization }),
 });
 
 // ---------------------------------------------------------------------------
@@ -157,23 +171,6 @@ export const createProjectTab = defineChatPanelTabFactory<{
   },
   getTitle: (data) => data.project.project.name || "Project",
   toPayload: (data) => ({ project: data.project }),
-});
-
-// ---------------------------------------------------------------------------
-// project-org — one pill per org hub, deduped by orgId
-// ---------------------------------------------------------------------------
-
-export const createProjectOrgTab = defineChatPanelTabFactory<{
-  projectOrg: ChatPanelSelectedProjectOrg;
-}>({
-  tabType: "project-org",
-  idStrategy: {
-    type: "keyed",
-    prefix: "project-org",
-    getKey: (data) => data.projectOrg.orgId,
-  },
-  getTitle: (data) => data.projectOrg.orgName,
-  toPayload: (data) => ({ projectOrg: data.projectOrg }),
 });
 
 // ---------------------------------------------------------------------------

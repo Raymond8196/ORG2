@@ -7,7 +7,7 @@ use rusqlite::Connection;
 use orgtrack_core::session_usage;
 use orgtrack_core::sources::registry;
 use orgtrack_core::usage_dashboard::{
-    self, TrendBucket, UsageFilter, UsageSessionRow, UsageSummary,
+    self, TrendBucket, UsageFilter, UsageRoundQuery, UsageSessionRow, UsageSummary,
 };
 
 use crate::output::{
@@ -476,7 +476,15 @@ pub(crate) fn cmd_usage(
     let sessions = usage_dashboard::usage_sessions(&conn, &filter, sort, 0, limit)?;
     // Trend series (daily) is computed for JSON consumers; the table view
     // shows the headline + per-session rows.
-    let overview = usage_dashboard::usage_overview(&conn, &filter, sort, 0, limit, TrendBucket::Day)?;
+    let overview = usage_dashboard::usage_overview(
+        &conn,
+        &filter,
+        &UsageRoundQuery::default(),
+        sort,
+        0,
+        limit,
+        TrendBucket::Day,
+    )?;
 
     if let Some(formatter) = formatter_for(opts, formatters) {
         let context = serde_json::json!({

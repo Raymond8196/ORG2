@@ -5,8 +5,8 @@
  * agent status inside Workstation.
  *
  * Two host contexts:
- *   - Chat pane (default): renders its own 40px header row (view-switch pill +
- *     the `workManagement` header slots).
+ *   - Chat pane (default): republishes its controls into the chat shell's
+ *     shared 40px published-header row.
  *   - WorkStation tab (`embedded`): the WorkStation already renders the shared
  *     40px `WorkstationTabHeader`, so we suppress our own header row and instead
  *     republish the same controls into the `code` host slot — avoiding a
@@ -18,13 +18,13 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
+import { usePublishChatPanelHeader } from "@src/engines/ChatPanel/header";
 import TaskKanban from "@src/features/TaskKanban";
 import FactoryViewPill from "@src/features/TaskKanban/components/FactoryViewPill";
+import { useElementDimensions } from "@src/hooks/ui/layout";
 import { usePublishWorkstationTabHeader } from "@src/hooks/workStation";
 import {
-  NoDragRegion,
   WorkstationHeaderSectionSeparator,
-  WorkstationTabHeaderSlotsView,
   WorkstationToolbarTooltip,
 } from "@src/modules/WorkStation/shared";
 import { activeWorkManagementSectionAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
@@ -33,6 +33,7 @@ import {
   workstationTabHeaderAtomByHost,
 } from "@src/store/workstation";
 
+import { shouldUseSingleRowGitHubWorkItemsHeader } from "./GitHubWorkItemList";
 import GitHubWorkItemsSurface from "./GitHubWorkItemsSurface";
 import WorkManagementProjectsSurface from "./WorkManagementProjectsSurface";
 import WorkManagementTaskCreator from "./WorkManagementTaskCreator";
@@ -51,6 +52,12 @@ const WorkManagementPage: React.FC<WorkManagementPageProps> = ({
   embedded = false,
 }) => {
   const { t } = useTranslation("common");
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const containerWidth = useElementDimensions(containerRef, {
+    dimension: "width",
+  });
+  const singleRowGitHubHeader =
+    shouldUseSingleRowGitHubWorkItemsHeader(containerWidth);
   const activeHomeTab = useAtomValue(activeWorkManagementSectionAtom);
   const headerSlots = useAtomValue(
     workstationTabHeaderAtomByHost.workManagement
@@ -73,8 +80,7 @@ const WorkManagementPage: React.FC<WorkManagementPageProps> = ({
     activeHomeTab === WORK_MANAGEMENT_SECTION.KANBAN && !githubDetailActive;
 
   // Leading header control: GitHub detail "back" button, else the view-switch
-  // pill. Shared by both the inline header (chat pane) and the republished
-  // slot (WorkStation).
+  // pill. Shared by the chat-pane and WorkStation published-header slots.
   const headerLeading = React.useMemo(() => {
     if (githubDetailActive) {
       return (
@@ -105,6 +111,7 @@ const WorkManagementPage: React.FC<WorkManagementPageProps> = ({
       content: headerSlots?.content ?? null,
       trailing: headerSlots?.trailing ?? null,
       sidebarToggleDisabled: true,
+      joinWithFollowingRow: headerSlots?.joinWithFollowingRow ?? false,
     }),
     [headerLeading, headerSlots]
   );
@@ -112,6 +119,25 @@ const WorkManagementPage: React.FC<WorkManagementPageProps> = ({
     host: "code",
     content: embeddedHeaderContent,
     enabled: embedded,
+  });
+
+  const chatHeaderContent = React.useMemo(
+    () => ({
+      leading: headerLeading ? (
+        <div className="flex shrink-0 items-center gap-2">
+          {headerLeading}
+          <WorkstationHeaderSectionSeparator />
+        </div>
+      ) : null,
+      content: headerSlots?.content ?? null,
+      trailing: headerSlots?.trailing ?? null,
+      joinWithFollowingRow: headerSlots?.joinWithFollowingRow ?? false,
+    }),
+    [headerLeading, headerSlots]
+  );
+  usePublishChatPanelHeader({
+    content: chatHeaderContent,
+    enabled: !embedded,
   });
 
   const mainContent = (
@@ -122,11 +148,13 @@ const WorkManagementPage: React.FC<WorkManagementPageProps> = ({
         ) : activeHomeTab === WORK_MANAGEMENT_SECTION.GITHUB_ISSUES ? (
           <GitHubWorkItemsSurface
             scope="issue"
+            singleRowHeader={singleRowGitHubHeader}
             onDetailViewChange={handleGitHubDetailViewChange}
           />
         ) : activeHomeTab === WORK_MANAGEMENT_SECTION.GITHUB_PRS ? (
           <GitHubWorkItemsSurface
             scope="pr"
+            singleRowHeader={singleRowGitHubHeader}
             onDetailViewChange={handleGitHubDetailViewChange}
           />
         ) : (
@@ -140,22 +168,8 @@ const WorkManagementPage: React.FC<WorkManagementPageProps> = ({
   );
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-col">
-      {!embedded && (
-        <div
-          className="flex h-10 shrink-0 items-center gap-2 border-b border-border-2 pl-1.5 pr-2"
-          data-testid="work-management-header"
-        >
-          {headerLeading && (
-            <NoDragRegion className="flex shrink-0 items-center gap-px">
-              {headerLeading}
-            </NoDragRegion>
-          )}
-          {headerLeading && <WorkstationHeaderSectionSeparator />}
-          <WorkstationTabHeaderSlotsView slots={headerSlots} />
-        </div>
-      )}
-      <div className="min-h-0 flex-1">{mainContent}</div>
+    <div ref={containerRef} className="h-full min-h-0 w-full">
+      {mainContent}
     </div>
   );
 };

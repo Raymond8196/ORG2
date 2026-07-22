@@ -17,12 +17,14 @@ import { RepoSettingsTabContent } from "@src/modules/ProjectManager/ProjectManag
 import type { ActiveRepoView } from "@src/modules/ProjectManager/ProjectManagerLayout/types";
 import ProjectsPage from "@src/modules/ProjectManager/Projects";
 import WorkItemsPage from "@src/modules/ProjectManager/WorkItems";
-import { openWorkItemInChatPanelTabAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
+import {
+  openCreateTargetInChatPanelStartPageAtom,
+  openWorkItemInChatPanelTabAtom,
+} from "@src/store/chatPanel/chatPanelTabsAtom";
 import { projectListRefreshAtom } from "@src/store/project/projectAtom";
 import {
-  CHAT_PANEL_SURFACE_KIND,
+  CHAT_PANEL_CREATE_TARGET,
   activeStationChatVisibleAtom,
-  chatPanelNavigateAtom,
 } from "@src/store/ui/chatPanelAtom";
 import { stationModeAtom } from "@src/store/ui/simulatorAtom";
 import {
@@ -73,7 +75,9 @@ const WorkManagementProjectsSurface: React.FC = memo(() => {
   const setStationMode = useSetAtom(stationModeAtom);
   const setStationChatVisible = useSetAtom(activeStationChatVisibleAtom);
   const openWorkItemTab = useSetAtom(openWorkItemInChatPanelTabAtom);
-  const navigateChatPanel = useSetAtom(chatPanelNavigateAtom);
+  const openCreateTargetInStartPage = useSetAtom(
+    openCreateTargetInChatPanelStartPageAtom
+  );
 
   const activeOrgScope =
     view.kind === "repo" ? (view.orgScope ?? STORY_ORG_SCOPE.ALL) : null;
@@ -110,15 +114,6 @@ const WorkManagementProjectsSurface: React.FC = memo(() => {
     []
   );
 
-  const handleOpenProjects = useCallback(() => {
-    setWorkManagementProjectsView(WORK_MANAGEMENT_PROJECTS_VIEW.PROJECTS);
-    setView({
-      kind: "repo",
-      view: WORK_MANAGEMENT_PROJECTS_VIEW.PROJECTS,
-      orgScope: STORY_ORG_SCOPE.ALL,
-    });
-  }, [setWorkManagementProjectsView]);
-
   const handleOpenLinearProjects = useCallback(
     (selection?: LinearProjectSelection) => {
       setView({
@@ -152,8 +147,8 @@ const WorkManagementProjectsSurface: React.FC = memo(() => {
   }, [bumpProjectListRefresh, setWorkManagementProjectsView]);
 
   const handleCreateProject = useCallback(() => {
-    navigateChatPanel({
-      kind: CHAT_PANEL_SURFACE_KIND.NEW_PROJECT,
+    openCreateTargetInStartPage({
+      target: CHAT_PANEL_CREATE_TARGET.PROJECT,
       createProjectContext: {
         orgId: STORY_PERSONAL_ORG_FILTER_ID,
         scopeBreadcrumbLabel: t("orgs.personalOrg"),
@@ -161,13 +156,15 @@ const WorkManagementProjectsSurface: React.FC = memo(() => {
     });
     setStationMode("my-station");
     setStationChatVisible("my-station", true);
-  }, [navigateChatPanel, setStationChatVisible, setStationMode, t]);
+  }, [openCreateTargetInStartPage, setStationChatVisible, setStationMode, t]);
 
   const handleCreateWorkItem = useCallback(() => {
-    navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.NEW_WORK_ITEM });
+    openCreateTargetInStartPage({
+      target: CHAT_PANEL_CREATE_TARGET.WORK_ITEM,
+    });
     setStationMode("my-station");
     setStationChatVisible("my-station", true);
-  }, [navigateChatPanel, setStationChatVisible, setStationMode]);
+  }, [openCreateTargetInStartPage, setStationChatVisible, setStationMode]);
 
   const content = useMemo(() => {
     if (view.kind === "project") {
@@ -180,7 +177,6 @@ const WorkManagementProjectsSurface: React.FC = memo(() => {
           workStationTabId="work-management-projects"
           workstationHeaderHost="workManagement"
           onProjectSlugResolved={setSelectedProjectSlug}
-          onOpenProjects={handleOpenProjects}
           onCreateProject={handleCreateProject}
           onCreateWorkItem={handleCreateWorkItem}
           onProjectDeleted={handleProjectDeleted}
@@ -261,7 +257,6 @@ const WorkManagementProjectsSurface: React.FC = memo(() => {
     handleOpenLinearProjects,
     handleOpenLinearWorkItems,
     handleOpenSettings,
-    handleOpenProjects,
     handleSelectProject,
     handleProjectDeleted,
     handleCreateProject,

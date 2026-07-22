@@ -1,5 +1,6 @@
-use rusqlite::{params, Connection, OptionalExtension};
+use rusqlite::{params, OptionalExtension};
 
+use super::support::with_file_resource_savepoint;
 use super::SqliteRecordStore;
 use crate::canonical::{
     ActivityRecord, CommitLinkRecord, FileChangeRecord, FileResourceRecord,
@@ -8,37 +9,6 @@ use crate::canonical::{
     SessionEditArtifactRecord, SessionFinalDiffRecord, SessionRecord,
 };
 use crate::store::{FileResourceInteractionPage, RecordStore};
-
-/// Run the two-table file-resource write atomically without assuming whether
-/// the caller already owns a transaction. SQLite savepoints work both inside
-/// an existing transaction and in autocommit mode, so this hot-path upsert is
-/// safely composable in larger reconciliation transactions.
-fn with_file_resource_savepoint<T>(
-    conn: &Connection,
-    operation: impl FnOnce() -> Result<T, String>,
-) -> Result<T, String> {
-    const BEGIN: &str = "SAVEPOINT orgtrack_file_resource_write";
-    const COMMIT: &str = "RELEASE SAVEPOINT orgtrack_file_resource_write";
-    const ROLLBACK: &str = "ROLLBACK TO SAVEPOINT orgtrack_file_resource_write;
-                            RELEASE SAVEPOINT orgtrack_file_resource_write";
-    conn.execute_batch(BEGIN).map_err(|err| err.to_string())?;
-
-    match operation() {
-        Ok(value) => {
-            conn.execute_batch(COMMIT).map_err(|err| err.to_string())?;
-            Ok(value)
-        }
-        Err(operation_error) => {
-            let rollback = conn.execute_batch(ROLLBACK);
-            match rollback {
-                Ok(()) => Err(operation_error),
-                Err(rollback_error) => Err(format!(
-                    "{operation_error}; failed to roll back store savepoint: {rollback_error}"
-                )),
-            }
-        }
-    }
-}
 
 impl RecordStore for SqliteRecordStore<'_> {
     fn upsert_session(&self, record: &SessionRecord) -> Result<(), String> {

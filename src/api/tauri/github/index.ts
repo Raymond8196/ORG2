@@ -52,6 +52,11 @@ export interface LocalGitHubRepo {
   updated_at: string;
 }
 
+export interface GitHubRepoNetworkIdentity {
+  full_name: string;
+  source_full_name: string;
+}
+
 export interface LocalGitHubBranch {
   name: string;
   sha: string;
@@ -185,6 +190,15 @@ export async function searchReposLocal(
     page: opts?.page ?? null,
     perPage: opts?.perPage ?? null,
   });
+}
+
+export async function resolveGitHubRepoNetworkIdentityLocal(
+  repoFullName: string
+): Promise<GitHubRepoNetworkIdentity> {
+  return invoke<GitHubRepoNetworkIdentity>(
+    "github_resolve_repo_network_identity",
+    { repoFullName }
+  );
 }
 
 export async function listBranchesLocal(
@@ -642,6 +656,8 @@ export interface GitHubIssue {
   labels: GitHubIssueLabel[];
   assignees: GitHubIssueUser[];
   comments: number;
+  /** Number of open or closed PRs linked through GitHub's issue development metadata. */
+  linked_pull_requests_count?: number;
   milestone: string | null;
 }
 
@@ -652,6 +668,41 @@ export interface GitHubIssueComment {
   created_at: string;
   updated_at: string;
   html_url: string;
+}
+
+export interface GitHubIssueTimelineLabel {
+  name: string;
+  color: string;
+}
+
+export interface GitHubIssueTimelineRename {
+  from: string;
+  to: string;
+}
+
+export interface GitHubIssueTimelineSource {
+  number: number;
+  title: string;
+  html_url: string;
+  state: string;
+  is_pull_request: boolean;
+}
+
+/** Stable frontend shape for GitHub's event-specific issue timeline payloads. */
+export interface GitHubIssueTimelineItem {
+  id: number | null;
+  event: string;
+  created_at: string | null;
+  actor: GitHubIssueUser | null;
+  body: string | null;
+  html_url: string | null;
+  assignee: GitHubIssueUser | null;
+  label: GitHubIssueTimelineLabel | null;
+  milestone: string | null;
+  rename: GitHubIssueTimelineRename | null;
+  source: GitHubIssueTimelineSource | null;
+  commit_id: string | null;
+  lock_reason: string | null;
 }
 
 export interface GitHubIssueListResponse {
@@ -741,6 +792,19 @@ export async function listIssueCommentsLocal(
     repoFullName,
     issueNumber,
   });
+}
+
+export async function listIssueTimelineLocal(
+  repoFullName: string,
+  issueNumber: number
+): Promise<GitHubIssueTimelineItem[]> {
+  return invokeWithAuth<GitHubIssueTimelineItem[]>(
+    "github_list_issue_timeline",
+    {
+      repoFullName,
+      issueNumber,
+    }
+  );
 }
 
 export async function createIssueCommentLocal(

@@ -1,3 +1,4 @@
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { ChevronLeft, Search } from "lucide-react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -7,6 +8,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { ROUTES } from "@src/config/routes";
 import { useCloudSessionShareDialog } from "@src/features/Org2Cloud/CloudSessionShareDialog/useCloudSessionShareDialog";
 import { useCloudSyncLevelDialog } from "@src/features/Org2Cloud/CloudSyncLevelDialog/useCloudSyncLevelDialog";
+import { buildOrg2CloudLoginUrl } from "@src/features/Org2Cloud/config";
+import { org2CloudAuthAtom } from "@src/features/Org2Cloud/org2CloudAuthAtom";
 import { useMoveToOrgDialog } from "@src/features/TeamCollaboration/components/MoveToOrgDialog/useMoveToOrgDialog";
 import { createLogger } from "@src/hooks/logger";
 import { useAppNavigation } from "@src/hooks/navigation/useAppNavigation";
@@ -18,11 +21,13 @@ import {
   activeChatPanelTabAtom,
   activeWorkManagementSectionAtom,
   closeAndDestroyChatPanelTabAtom,
-  openCloudOrgManagementInChatPanelTabAtom,
-  openKanbanChatPanelTabAtom,
+  openCreateTargetInChatPanelStartPageAtom,
   openOrFocusChatPanelStartPageTabAtom,
   openOrReplaceSessionInChatPanelTabAtom,
+  openOrganizationInChatPanelTabAtom,
+  openRuntimeInChatPanelTabAtom,
   openSessionInNewChatTabAtom,
+  openWorkManagementChatPanelTabAtom,
 } from "@src/store/chatPanel/chatPanelTabsAtom";
 import { repoMapAtom } from "@src/store/repo";
 import {
@@ -40,6 +45,7 @@ import {
 } from "@src/store/session";
 import { openSessionInWorkstationAtom } from "@src/store/session/sessionTabPlacementAtom";
 import {
+  CHAT_PANEL_CREATE_TARGET,
   CHAT_PANEL_SURFACE_KIND,
   activeStationChatVisibleAtom,
   chatPanelContentModeAtom,
@@ -56,6 +62,8 @@ import {
 import { type StationMode, stationModeAtom } from "@src/store/ui/simulatorAtom";
 import { spotlightOpenAtom } from "@src/store/ui/uiAtom";
 import {
+  PROJECT_ORG_SURFACE_VIEW,
+  STORY_ORG_SCOPE,
   WORK_MANAGEMENT_PROJECTS_VIEW,
   WORK_MANAGEMENT_SECTION,
   type WorkManagementSection,
@@ -75,6 +83,7 @@ import {
   COLLAB_ADD_ORG_MENU_ITEM_ID,
   KANBAN_MENU_ITEM_ID,
   NEW_SESSION_MENU_ITEM_ID,
+  RUNTIME_MENU_ITEM_ID,
   WORK_ITEMS_GITHUB_ISSUES_MENU_ITEM_ID,
   WORK_ITEMS_GITHUB_PRS_MENU_ITEM_ID,
   WORK_ITEMS_MENU_ITEM_ID,
@@ -178,10 +187,8 @@ export const WorkstationSidebarConnector: React.FC = () => {
   const [workManagementProjectsView, setWorkManagementProjectsView] = useAtom(
     workManagementProjectsViewAtom
   );
-  const openKanbanTab = useSetAtom(openKanbanChatPanelTabAtom);
-  const openCloudOrgManagementTab = useSetAtom(
-    openCloudOrgManagementInChatPanelTabAtom
-  );
+  const openWorkManagementTab = useSetAtom(openWorkManagementChatPanelTabAtom);
+  const openOrganizationTab = useSetAtom(openOrganizationInChatPanelTabAtom);
   const openSessionInNewChatTab = useSetAtom(openSessionInNewChatTabAtom);
   const openSessionInWorkstation = useSetAtom(openSessionInWorkstationAtom);
   const openOrReplaceSessionInChatPanelTab = useSetAtom(
@@ -189,6 +196,10 @@ export const WorkstationSidebarConnector: React.FC = () => {
   );
   const activateChatPanelTab = useSetAtom(activateChatPanelTabAtom);
   const openStartPageTab = useSetAtom(openOrFocusChatPanelStartPageTabAtom);
+  const openCreateTargetInStartPage = useSetAtom(
+    openCreateTargetInChatPanelStartPageAtom
+  );
+  const openRuntimeTab = useSetAtom(openRuntimeInChatPanelTabAtom);
   const closeAndDestroyChatPanelTab = useSetAtom(
     closeAndDestroyChatPanelTabAtom
   );
@@ -197,6 +208,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
   const { goToNewSession, navigateTo } = useAppNavigation();
   const [activeSidebarKey, setActiveSidebarKey] =
     useState<WorkstationSidebarKey>("workstation");
+  const localOrgManagementRequestIdRef = React.useRef(0);
   const [activeSessionMoreMenuId, setActiveSessionMoreMenuId] = useState("");
   const [projectsSelectedMenuItemId, setProjectsSelectedMenuItemId] =
     useState("");
@@ -243,6 +255,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     cloudTaggedSessionIds,
     handleCloudSessionFilterChange,
     manageableCloudOrg,
+    manageableLocalOrg,
     orgSelectorOptions,
     personalHiddenCloudTaggedIds,
     sessionFilterOrgIds,
@@ -255,6 +268,17 @@ export const WorkstationSidebarConnector: React.FC = () => {
   const [includeExternal, setIncludeExternal] = useAtom(
     sidebarIncludeExternalAtom
   );
+  const cloudAuth = useAtomValue(org2CloudAuthAtom);
+  const cloudSignedInIdentity = cloudAuth
+    ? (cloudAuth.profile?.displayName ??
+      cloudAuth.profile?.primaryEmail ??
+      cloudAuth.userId)
+    : null;
+  const handleCloudSignIn = useCallback(() => {
+    openUrl(buildOrg2CloudLoginUrl()).catch((error: unknown) => {
+      logger.error("failed to open ORG2 Cloud login in system browser", error);
+    });
+  }, []);
   const [groupVisibleCounts, setGroupVisibleCounts] = useState<
     Map<string, number>
   >(new Map());
@@ -310,6 +334,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
   const createProjectLabel = tProjects("projects.createProject");
   const createWorkItemLabel = tProjects("workItems.createWorkItem");
   const workItemsLabel = t("labels.workItems");
+  const runtimeLabel = tSessions("chat.startPage.tabs.runtime");
   const importGithubIssuesLabel = tProjects("githubIssuesImport.menuLabel");
   const addOrgLabel = t("collaboration.addOrg");
   const manageOrgLabel = t("collaboration.manageOrg");
@@ -381,6 +406,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     localOrgMap: projectsLocalOrgMap,
     linearOrgMap: projectsLinearOrgMap,
     loading: projectsWorkItemsLoading,
+    linkedSessionIds: projectsLinkedSessionIds,
     getLoadMoreGroupId: getProjectsLoadMoreGroupId,
     loadLinearOrgWorkItems: loadProjectsLinearOrgWorkItems,
     toChatPanelProject,
@@ -426,6 +452,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     importGithubIssuesLabel,
     kanbanLabel: tSessions("simulator.tabs.kanban"),
     newSessionLabel,
+    runtimeLabel,
     workItemDestinations: workItemsSidebarMenuItems,
     t,
   });
@@ -643,6 +670,26 @@ export const WorkstationSidebarConnector: React.FC = () => {
     ]
   );
 
+  const handleOpenLinkedWorkItemSession = useCallback(
+    (item: NavigationMenuItem) => {
+      if (sessionMap.has(item.id)) {
+        handleMenuItemClick(item.key, item);
+        return;
+      }
+      activateMyStationRouteForProjectTabContent();
+      openSessionInWorkstation({
+        sessionId: item.id,
+        title: item.label,
+      });
+    },
+    [
+      activateMyStationRouteForProjectTabContent,
+      handleMenuItemClick,
+      openSessionInWorkstation,
+      sessionMap,
+    ]
+  );
+
   const handleToggleSubagentExpansion = useCallback((sessionId: string) => {
     setExpandedSubagentParentIds((previousIds) => {
       const nextIds = new Set(previousIds);
@@ -714,7 +761,6 @@ export const WorkstationSidebarConnector: React.FC = () => {
     activateMyStationRouteForProjectsContent,
     getProjectsLoadMoreGroupId,
     loadProjectsLinearOrgWorkItems,
-    navigateChatPanel,
     openProjectsLinearOrg,
     openProjectsLinearWorkItem: openProjectsLinearWorkItem,
     projectsLinearOrgMap,
@@ -722,6 +768,8 @@ export const WorkstationSidebarConnector: React.FC = () => {
     projectsLocalOrgMap,
     projectsProjectMap,
     projectsWorkItemMap,
+    linkedSessionIds: projectsLinkedSessionIds,
+    openLinkedSession: handleOpenLinkedWorkItemSession,
     resetWorkManagementStateForProjectsContent,
     setProjectsGroupVisibleCounts,
     setProjectsSelectedMenuItemId,
@@ -734,8 +782,16 @@ export const WorkstationSidebarConnector: React.FC = () => {
   const handleAddOrgFromSelector = useCallback(() => {
     resetWorkManagementStateForProjectsContent();
     setProjectsSelectedMenuItemId(COLLAB_ADD_ORG_MENU_ITEM_ID);
-    navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.NEW_COLLAB_ORG });
-  }, [navigateChatPanel, resetWorkManagementStateForProjectsContent]);
+    openCreateTargetInStartPage({
+      target: CHAT_PANEL_CREATE_TARGET.COLLAB_ORG,
+      title: t("routes.launchpad"),
+    });
+  }, [
+    openCreateTargetInStartPage,
+    resetWorkManagementStateForProjectsContent,
+    setProjectsSelectedMenuItemId,
+    t,
+  ]);
   // UX decision (scope vs. panel): picking an org in the selector ONLY
   // switches the sidebar scope — it never navigates the chat panel. The
   // dropdown's explicit management action remains available from any scope.
@@ -749,15 +805,52 @@ export const WorkstationSidebarConnector: React.FC = () => {
     [setSelectedOrgId]
   );
   const handleManageOrg = useCallback(() => {
-    if (!manageableCloudOrg) return;
     resetWorkManagementStateForProjectsContent();
-    openCloudOrgManagementTab({
-      cloudOrg: { orgId: manageableCloudOrg.orgId },
-      title: t("collaboration.manageOrg"),
-    });
+    if (activeCloudOrgId && manageableCloudOrg) {
+      openOrganizationTab({
+        organization: {
+          kind: "cloud",
+          cloudOrg: { orgId: manageableCloudOrg.orgId },
+        },
+        title: t("collaboration.manageOrg"),
+      });
+      return;
+    }
+    if (manageableLocalOrg) {
+      localOrgManagementRequestIdRef.current += 1;
+      openOrganizationTab({
+        organization: {
+          kind: "local",
+          projectOrg: {
+            orgId: manageableLocalOrg.id,
+            orgName: manageableLocalOrg.name,
+            orgScope: STORY_ORG_SCOPE.PROJECT_ORG,
+            orgSyncProvider: manageableLocalOrg.sync_provider,
+            initialView: PROJECT_ORG_SURFACE_VIEW.SETTINGS,
+            initialViewRequestId: localOrgManagementRequestIdRef.current,
+          },
+        },
+        title: t("collaboration.manageOrg"),
+      });
+      return;
+    }
+    if (manageableCloudOrg) {
+      openOrganizationTab({
+        organization: {
+          kind: "cloud",
+          cloudOrg: { orgId: manageableCloudOrg.orgId },
+        },
+        title: t("collaboration.manageOrg"),
+      });
+      return;
+    }
+    handleAddOrgFromSelector();
   }, [
+    activeCloudOrgId,
+    handleAddOrgFromSelector,
     manageableCloudOrg,
-    openCloudOrgManagementTab,
+    manageableLocalOrg,
+    openOrganizationTab,
     resetWorkManagementStateForProjectsContent,
     t,
   ]);
@@ -790,15 +883,19 @@ export const WorkstationSidebarConnector: React.FC = () => {
       } else if (item.id !== KANBAN_MENU_ITEM_ID) {
         return;
       }
-      openKanbanTab({ section, title });
+      openWorkManagementTab({ section, title });
     },
-    [openKanbanTab, setWorkManagementProjectsView, t, tSessions]
+    [openWorkManagementTab, setWorkManagementProjectsView, t, tSessions]
   );
 
   const handleSessionMenuItemClick = useCallback(
     (key: string, item: NavigationMenuItem, event: React.MouseEvent) => {
       if (isWorkManagementMenuItemId(item.id)) {
         handleWorkManagementMenuItemClick(key, item);
+        return;
+      }
+      if (item.id === RUNTIME_MENU_ITEM_ID) {
+        openRuntimeTab(runtimeLabel);
         return;
       }
       if (isChatTerminalSidebarItem(item.id)) {
@@ -832,6 +929,8 @@ export const WorkstationSidebarConnector: React.FC = () => {
       handleWorkManagementMenuItemClick,
       handleProjectsMenuItemClick,
       handleOpenInNewTab,
+      openRuntimeTab,
+      runtimeLabel,
       sessionMap,
       workItemsContentVisible,
     ]
@@ -961,10 +1060,12 @@ export const WorkstationSidebarConnector: React.FC = () => {
                 value={activeOrgId}
                 options={orgSelectorOptions}
                 addOrgLabel={addOrgLabel}
+                cloudSignedInIdentity={cloudSignedInIdentity}
                 manageLabel={manageOrgLabel}
                 onChange={handleOrgSelectorChange}
                 onAddOrg={handleAddOrgFromSelector}
-                onManageOrg={manageableCloudOrg ? handleManageOrg : undefined}
+                onCloudSignIn={handleCloudSignIn}
+                onManageOrg={handleManageOrg}
               />
             }
             rightActions={sidebarBottomRightActions}

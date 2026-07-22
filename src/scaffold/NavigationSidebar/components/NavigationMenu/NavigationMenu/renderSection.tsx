@@ -67,6 +67,7 @@ export function renderNavigationMenuItem({
       onRowMouseEnter={onRowMouseEnter}
       onRowActionClick={onRowActionClick}
       onToggleSubmenu={onToggleSubmenu}
+      onMenuItemClick={onMenuItemClick}
       compactRows={compactRows}
     />
   ) : (

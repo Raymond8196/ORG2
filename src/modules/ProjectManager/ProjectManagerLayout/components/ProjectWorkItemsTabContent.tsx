@@ -28,16 +28,19 @@ import type { LinearProjectSelection } from "@src/modules/ProjectManager/Panels/
 import { MultiSelectBar } from "@src/modules/ProjectManager/WorkItems/components/WorkItemsFooterBars";
 import WorkItemsListSurface from "@src/modules/ProjectManager/WorkItems/components/WorkItemsListSurface";
 import WorkItemsPageHeader from "@src/modules/ProjectManager/WorkItems/components/WorkItemsPageHeader";
-import type { StatusCounts } from "@src/modules/ProjectManager/WorkItems/components/WorkItemsPageHeader";
-import type { StatusFilterType } from "@src/modules/ProjectManager/WorkItems/types";
+import type {
+  StatusCounts,
+  StatusFilterType,
+} from "@src/modules/ProjectManager/WorkItems/types";
 import {
   WORK_ITEMS_KANBAN_GROUP,
   type WorkItemsKanbanGroup,
-  countWorkItemsByStatus,
-  filterWorkItemsByStatus,
-  getStatusFilterKeysForWorkItems,
+  countWorkspaceWorkItemsByStatus,
+  filterWorkspaceWorkItemsByStatus,
   getWorkItemsKanbanColumns,
-  groupWorkItemsForStatusFilter,
+  getWorkspaceStatusFilterKeysForWorkItems,
+  groupWorkspaceWorkItemsForStatusFilter,
+  isWorkspaceCompletedWorkItem,
   workItemsToKanbanTasks,
 } from "@src/modules/ProjectManager/WorkItems/workItemsViewModel";
 import { useProjectManagerWorkItemsTabBarRegistration } from "@src/modules/ProjectManager/hooks/useProjectManagerWorkItemsTabBarRegistration";
@@ -94,6 +97,99 @@ type WorkspaceSourceMode = "local_only" | "include_external";
 type ProjectWorkItemsViewTab = "List" | "Kanban";
 
 const STORY_WORK_ITEMS_VISIBLE_TABS = ["List", "Kanban"] as const;
+const WORKSPACE_ACTIVE_READ_BUCKET = "active";
+const WORKSPACE_COMPLETED_READ_BUCKET = "completed";
+const WORKSPACE_DEFAULT_COLLAPSED_STATUSES = ["completed"] as const;
+
+type WorkspaceProjectRecord = Awaited<
+  ReturnType<typeof projectApi.readProjects>
+>[number];
+
+interface ReadWorkspaceBucketOptions {
+  projects: WorkspaceProjectRecord[];
+  orgNameById: Map<string, string>;
+  orgId?: string;
+  readBucket:
+    | typeof WORKSPACE_ACTIVE_READ_BUCKET
+    | typeof WORKSPACE_COMPLETED_READ_BUCKET;
+  linearWorkItems: WorkspaceWorkItem[];
+}
+
+async function readWorkspaceBucket({
+  projects,
+  orgNameById,
+  orgId,
+  readBucket,
+  linearWorkItems,
+}: ReadWorkspaceBucketOptions): Promise<AggregatedWorkItem[]> {
+  const [localEntryGroups, standaloneWorkItems] = await Promise.all([
+    Promise.all(
+      projects.map(async (project) => {
+        const projectWorkItems = await projectApi.readWorkItemsEnriched(
+          project.slug,
+          { orgId, readBucket }
+        );
+        return projectWorkItems.map((workItem) => ({
+          project,
+          shortId: workItem.shortId,
+          orgId: project.meta.org_id,
+          orgName: orgNameById.get(project.meta.org_id),
+          item: {
+            ...enrichedWorkItemToUI(workItem),
+            project: {
+              id: project.meta.id,
+              name: project.meta.name,
+            },
+          },
+        }));
+      })
+    ),
+    projectApi.readStandaloneWorkItems({ orgId, readBucket }),
+  ]);
+  const standaloneOrgId = orgId ?? "personal-org";
+  const standaloneEntries = standaloneWorkItems.map((workItem) => ({
+    shortId: workItem.frontmatter.short_id ?? workItem.frontmatter.id,
+    orgId: standaloneOrgId,
+    orgName: orgNameById.get(standaloneOrgId),
+    item: workItemDataToUI(workItem, {
+      labelMap: new Map(),
+      memberMap: new Map(),
+      projectNameMap: new Map(),
+    }),
+  }));
+  const isCompletedBucket = readBucket === WORKSPACE_COMPLETED_READ_BUCKET;
+  const linearEntries = linearWorkItems
+    .filter(
+      (workItem) => isWorkspaceCompletedWorkItem(workItem) === isCompletedBucket
+    )
+    .map((workItem) => ({
+      project: {
+        meta: {
+          id: workItem.workspaceSource?.projectId ?? "linear",
+          name: workItem.workspaceSource?.projectName ?? "Linear",
+        },
+        slug: workItem.workspaceSource?.projectId ?? "linear",
+      },
+      shortId: workItem.session_id,
+      orgId: "",
+      item: workItem,
+    }));
+
+  return [...localEntryGroups.flat(), ...standaloneEntries, ...linearEntries];
+}
+
+function mergeWorkspaceEntries(
+  currentEntries: AggregatedWorkItem[],
+  nextEntries: AggregatedWorkItem[]
+): AggregatedWorkItem[] {
+  const entriesById = new Map(
+    currentEntries.map((entry) => [entry.item.session_id, entry])
+  );
+  for (const entry of nextEntries) {
+    entriesById.set(entry.item.session_id, entry);
+  }
+  return [...entriesById.values()];
+}
 
 export const ProjectWorkItemsTabContent: React.FC<
   ProjectWorkItemsTabContentProps
@@ -125,6 +221,14 @@ export const ProjectWorkItemsTabContent: React.FC<
   const [loading, setLoading] = useState(true);
   const [loaded, setLoaded] = useState(false);
   const loadedRef = useRef(false);
+  const completedItemsLoadedRef = useRef(false);
+  const completedSectionExpandedRef = useRef(false);
+  const [completedItemsLoading, setCompletedItemsLoading] = useState(false);
+  const completedItemsLoadingRef = useRef(false);
+  const completedLoadGenerationRef = useRef(0);
+  const [completedItemsError, setCompletedItemsError] = useState<string | null>(
+    null
+  );
   const [error, setError] = useState<string | null>(null);
   const [activeViewTab, setActiveViewTab] =
     useState<ProjectWorkItemsViewTab>("List");
@@ -149,42 +253,46 @@ export const ProjectWorkItemsTabContent: React.FC<
     }
   }, [allowExternalSources]);
 
+  useEffect(() => {
+    completedLoadGenerationRef.current += 1;
+    completedItemsLoadedRef.current = false;
+    completedItemsLoadingRef.current = false;
+    setCompletedItemsLoading(false);
+    setCompletedItemsError(null);
+  }, [includeExternalSources, orgId]);
+
   const loadWorkItems = useCallback(
     async (cancelled?: () => boolean) => {
       setLoading(true);
       setError(null);
       try {
-        const [projects, orgs] = await Promise.all([
+        const [projects, orgs, linearWorkItems] = await Promise.all([
           projectApi.readProjects({ orgId }),
           projectApi.readOrgs(),
+          includeExternalSources ? loadWorkspaceLinearWorkItems() : [],
         ]);
         const orgNameById = new Map(orgs.map((org) => [org.id, org.name]));
-        const [localEntryGroups, standaloneWorkItems, linearWorkItems] =
-          await Promise.all([
-            Promise.all(
-              projects.map(async (project) => {
-                const projectWorkItems = await projectApi.readWorkItemsEnriched(
-                  project.slug,
-                  { orgId }
-                );
-                return projectWorkItems.map((workItem) => ({
-                  project,
-                  shortId: workItem.shortId,
-                  orgId: project.meta.org_id,
-                  orgName: orgNameById.get(project.meta.org_id),
-                  item: {
-                    ...enrichedWorkItemToUI(workItem),
-                    project: {
-                      id: project.meta.id,
-                      name: project.meta.name,
-                    },
-                  },
-                }));
+        const shouldLoadCompleted =
+          completedItemsLoadedRef.current ||
+          completedSectionExpandedRef.current;
+        const [activeEntries, completedEntries] = await Promise.all([
+          readWorkspaceBucket({
+            projects,
+            orgNameById,
+            orgId,
+            readBucket: WORKSPACE_ACTIVE_READ_BUCKET,
+            linearWorkItems,
+          }),
+          shouldLoadCompleted
+            ? readWorkspaceBucket({
+                projects,
+                orgNameById,
+                orgId,
+                readBucket: WORKSPACE_COMPLETED_READ_BUCKET,
+                linearWorkItems,
               })
-            ),
-            projectApi.readStandaloneWorkItems({ orgId }),
-            includeExternalSources ? loadWorkspaceLinearWorkItems() : [],
-          ]);
+            : Promise.resolve([]),
+        ]);
         if (cancelled?.()) return;
         setProjectOptions(
           projects.map((project) => ({
@@ -195,34 +303,20 @@ export const ProjectWorkItemsTabContent: React.FC<
             orgName: orgNameById.get(project.meta.org_id),
           }))
         );
-        const standaloneOrgId = orgId ?? "personal-org";
-        const standaloneEntries = standaloneWorkItems.map((workItem) => ({
-          shortId: workItem.frontmatter.short_id ?? workItem.frontmatter.id,
-          orgId: standaloneOrgId,
-          orgName: orgNameById.get(standaloneOrgId),
-          item: workItemDataToUI(workItem, {
-            labelMap: new Map(),
-            memberMap: new Map(),
-            projectNameMap: new Map(),
-          }),
-        }));
-        const linearEntries = linearWorkItems.map((workItem) => ({
-          project: {
-            meta: {
-              id: workItem.workspaceSource?.projectId ?? "linear",
-              name: workItem.workspaceSource?.projectName ?? "Linear",
-            },
-            slug: workItem.workspaceSource?.projectId ?? "linear",
-          },
-          shortId: workItem.session_id,
-          orgId: "",
-          item: workItem,
-        }));
-        setWorkItemsByProject([
-          ...localEntryGroups.flat(),
-          ...standaloneEntries,
-          ...linearEntries,
-        ]);
+        setWorkItemsByProject((currentEntries) => {
+          if (shouldLoadCompleted) {
+            return [...activeEntries, ...completedEntries];
+          }
+          const completedEntriesToPreserve = completedItemsLoadedRef.current
+            ? currentEntries.filter((entry) =>
+                isWorkspaceCompletedWorkItem(entry.item)
+              )
+            : [];
+          return [...activeEntries, ...completedEntriesToPreserve];
+        });
+        if (shouldLoadCompleted) {
+          completedItemsLoadedRef.current = true;
+        }
         loadedRef.current = true;
         setLoaded(true);
       } catch (err) {
@@ -254,6 +348,55 @@ export const ProjectWorkItemsTabContent: React.FC<
     }, [loadWorkItems])
   );
 
+  const loadCompletedWorkItems = useCallback(async () => {
+    if (completedItemsLoadedRef.current || completedItemsLoadingRef.current) {
+      return;
+    }
+
+    completedItemsLoadingRef.current = true;
+    const loadGeneration = completedLoadGenerationRef.current + 1;
+    completedLoadGenerationRef.current = loadGeneration;
+    setCompletedItemsLoading(true);
+    setCompletedItemsError(null);
+    try {
+      const [projects, orgs, linearWorkItems] = await Promise.all([
+        projectApi.readProjects({ orgId }),
+        projectApi.readOrgs(),
+        includeExternalSources ? loadWorkspaceLinearWorkItems() : [],
+      ]);
+      const orgNameById = new Map(orgs.map((org) => [org.id, org.name]));
+      const completedEntries = await readWorkspaceBucket({
+        projects,
+        orgNameById,
+        orgId,
+        readBucket: WORKSPACE_COMPLETED_READ_BUCKET,
+        linearWorkItems,
+      });
+      if (completedLoadGenerationRef.current !== loadGeneration) return;
+      setWorkItemsByProject((currentEntries) =>
+        mergeWorkspaceEntries(currentEntries, completedEntries)
+      );
+      completedItemsLoadedRef.current = true;
+    } catch (err) {
+      if (completedLoadGenerationRef.current === loadGeneration) {
+        setCompletedItemsError(
+          err instanceof Error ? err.message : t("projects.loadProjectsFailed")
+        );
+      }
+    } finally {
+      if (completedLoadGenerationRef.current === loadGeneration) {
+        completedItemsLoadingRef.current = false;
+        setCompletedItemsLoading(false);
+      }
+    }
+  }, [includeExternalSources, orgId, t]);
+
+  useEffect(() => {
+    if (statusFilter === "done" || statusFilter === "closed") {
+      void loadCompletedWorkItems();
+    }
+  }, [loadCompletedWorkItems, statusFilter]);
+
   const workItems = useMemo(
     () => workItemsByProject.map((entry) => entry.item),
     [workItemsByProject]
@@ -265,12 +408,12 @@ export const ProjectWorkItemsTabContent: React.FC<
   );
 
   const statusCounts = useMemo<StatusCounts>(
-    () => countWorkItemsByStatus(workItems),
+    () => countWorkspaceWorkItemsByStatus(workItems),
     [workItems]
   );
 
   const statusFilterKeys = useMemo(
-    () => getStatusFilterKeysForWorkItems(workItems),
+    () => getWorkspaceStatusFilterKeysForWorkItems(workItems),
     [workItems]
   );
   useEffect(() => {
@@ -280,13 +423,13 @@ export const ProjectWorkItemsTabContent: React.FC<
   }, [statusFilter, statusFilterKeys]);
 
   const filteredWorkItems = useMemo(
-    () => filterWorkItemsByStatus(workItems, statusFilter),
+    () => filterWorkspaceWorkItemsByStatus(workItems, statusFilter),
     [statusFilter, workItems]
   );
 
   const groupedWorkItems = useMemo(
-    () => groupWorkItemsForStatusFilter(filteredWorkItems, statusFilter),
-    [filteredWorkItems, statusFilter]
+    () => groupWorkspaceWorkItemsForStatusFilter(workItems, statusFilter),
+    [statusFilter, workItems]
   );
 
   const workItemPeople = useMemo<MemberEntry[]>(() => {
@@ -546,6 +689,43 @@ export const ProjectWorkItemsTabContent: React.FC<
     setCollapseAllSignal((currentSignal) => currentSignal + 1);
   }, []);
 
+  const handleSectionExpandedChange = useCallback(
+    (sectionStatus: string, expanded: boolean) => {
+      if (sectionStatus !== "completed") return;
+      completedSectionExpandedRef.current = expanded;
+      if (expanded) void loadCompletedWorkItems();
+    },
+    [loadCompletedWorkItems]
+  );
+
+  const renderSectionPlaceholder = useCallback(
+    (sectionStatus: string) => {
+      if (sectionStatus !== "completed") return undefined;
+      if (completedItemsLoading) {
+        return (
+          <Placeholder
+            variant="loading"
+            placement="sidebar"
+            className="min-h-16"
+          />
+        );
+      }
+      if (completedItemsError) {
+        return (
+          <Placeholder
+            variant="error"
+            placement="sidebar"
+            title={completedItemsError}
+            onRetry={() => void loadCompletedWorkItems()}
+            className="min-h-16"
+          />
+        );
+      }
+      return undefined;
+    },
+    [completedItemsError, completedItemsLoading, loadCompletedWorkItems]
+  );
+
   const workspaceSourceTabs = useMemo<TabPillItem[]>(
     () => [
       { key: "local_only", label: t("projects.source.localOnly") },
@@ -696,6 +876,7 @@ export const ProjectWorkItemsTabContent: React.FC<
         variant="error"
         placement={PROJECT_MANAGER_PLACEHOLDER_PLACEMENT}
         title={error}
+        onRetry={handleRefresh}
         fillParentHeight
       />
     );
@@ -707,11 +888,6 @@ export const ProjectWorkItemsTabContent: React.FC<
         projectName={t("projects.columns.workItems")}
         breadcrumbSegments={breadcrumbSegments}
         activeTab={activeViewTab}
-        onTabChange={(tab) => {
-          if (tab === "List" || tab === "Kanban") {
-            setActiveViewTab(tab);
-          }
-        }}
         statusFilter={statusFilter}
         onStatusFilterChange={(value) =>
           setStatusFilter(value as StatusFilterType)
@@ -723,7 +899,6 @@ export const ProjectWorkItemsTabContent: React.FC<
         onAddWorkItem={onCreateWorkItem}
         onRefresh={handleRefresh}
         refreshLoading={loading}
-        visibleTabs={STORY_WORK_ITEMS_VISIBLE_TABS}
         leadingControls={headerLeadingControls}
         publishToWorkstationHeader={!!workStationTabId}
         workstationHeaderHost={workstationHeaderHost}
@@ -761,6 +936,10 @@ export const ProjectWorkItemsTabContent: React.FC<
             onSelectWorkItem={handleSelectWorkItem}
             onUpdateWorkItem={handleUpdateWorkItem}
             collapseAllSignal={collapseAllSignal}
+            showEmptySections
+            defaultCollapsedStatuses={WORKSPACE_DEFAULT_COLLAPSED_STATUSES}
+            renderSectionPlaceholder={renderSectionPlaceholder}
+            onSectionExpandedChange={handleSectionExpandedChange}
             emptyListPlaceholder={
               <Placeholder
                 variant="empty"

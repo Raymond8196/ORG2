@@ -1,3 +1,5 @@
+//! Patch/impact extraction from Codex events and tool calls.
+
 use std::collections::BTreeSet;
 
 use serde_json::Value;
@@ -8,7 +10,7 @@ use crate::sources::imported_history::{self, metadata::ImportedHistoryImpactStat
 /// of a successfully applied patch. `changes` maps each touched path to a
 /// `{ type, unified_diff }` object; the diff's `+`/`-` lines give exact
 /// add/remove counts regardless of how the edit was requested.
-pub(crate) fn collect_codex_impact_from_patch_apply_end(
+pub(super) fn collect_codex_impact_from_patch_apply_end(
     payload: &Value,
     impact: &mut ImportedHistoryImpactStats,
     touched_files: &mut BTreeSet<String>,
@@ -41,7 +43,7 @@ pub(crate) fn collect_codex_impact_from_patch_apply_end(
     }
 }
 
-pub(crate) fn collect_codex_impact_from_payload(
+pub(super) fn collect_codex_impact_from_payload(
     payload: &Value,
     impact: &mut ImportedHistoryImpactStats,
     touched_files: &mut BTreeSet<String>,
@@ -72,14 +74,14 @@ pub(crate) fn collect_codex_impact_from_payload(
     }
 }
 
-pub(crate) fn patch_from_codex_args(args: &Value) -> Option<String> {
+fn patch_from_codex_args(args: &Value) -> Option<String> {
     args.get("patch")
         .and_then(Value::as_str)
         .or_else(|| args.get("input").and_then(Value::as_str))
         .map(str::to_string)
 }
 
-pub(crate) fn accumulate_patch_impact(
+fn accumulate_patch_impact(
     patch: &str,
     impact: &mut ImportedHistoryImpactStats,
     touched_files: &mut BTreeSet<String>,
@@ -96,7 +98,7 @@ pub(crate) fn accumulate_patch_impact(
     }
 }
 
-pub(crate) fn patch_file_path_from_line(line: &str) -> Option<String> {
+pub(super) fn patch_file_path_from_line(line: &str) -> Option<String> {
     for prefix in [
         "*** Add File:",
         "*** Update File:",
@@ -120,7 +122,7 @@ pub(crate) fn patch_file_path_from_line(line: &str) -> Option<String> {
         .filter(|path| path != "/dev/null")
 }
 
-pub(crate) fn normalize_patch_path(path: &str) -> Option<String> {
+fn normalize_patch_path(path: &str) -> Option<String> {
     let normalized = path
         .strip_prefix("b/")
         .or_else(|| path.strip_prefix("a/"))
@@ -131,15 +133,4 @@ pub(crate) fn normalize_patch_path(path: &str) -> Option<String> {
     } else {
         Some(normalized.to_string())
     }
-}
-
-pub(crate) fn first_apply_patch_file_path(patch: &str) -> Option<String> {
-    for line in patch.lines() {
-        if let Some(path) = patch_file_path_from_line(line) {
-            if path != "/dev/null" {
-                return Some(path);
-            }
-        }
-    }
-    None
 }

@@ -22,9 +22,12 @@ import {
 import type { EngineFixture } from "./org2CloudSyncEngine.testUtils";
 
 const {
+  INACTIVE_ORG_BACKOFF_COOLDOWN_MS,
+  ORG_BACKOFF_COOLDOWN_MS,
   PERSONAL_EXCLUDED_TOKEN,
   Org2CloudSyncEngine,
   Org2CloudSyncError,
+  chatPanelSelectedCloudOrgAtom,
   cloudOrgToken,
   getImportedHistorySourceBySessionId,
   org2CloudAccessSettingsAtom,
@@ -32,7 +35,9 @@ const {
   org2CloudPushCursorsAtom,
   org2CloudPushedMetadataAtom,
   org2CloudRepoScopesAtom,
+  org2CloudSharingFloorAtom,
   org2CloudSyncEnabledAtom,
+  sidebarActiveCloudOrgIdAtom,
   sessionOrgTagsAtom,
   sessionsAtom,
 } = engineTestDeps;
@@ -42,13 +47,12 @@ describe("Org2CloudSyncEngine session publishing", () => {
   let store: EngineFixture["store"];
   let client: EngineFixture["client"];
   let projectsClient: EngineFixture["projectsClient"];
-  let tasksClient: EngineFixture["tasksClient"];
   let bridge: EngineFixture["bridge"];
   let engine: EngineFixture["engine"];
 
   beforeEach(() => {
     fixture = createEngineFixture();
-    ({ store, client, projectsClient, tasksClient, bridge, engine } = fixture);
+    ({ store, client, projectsClient, bridge, engine } = fixture);
   });
 
   afterEach(() => {
@@ -191,15 +195,17 @@ describe("Org2CloudSyncEngine session publishing", () => {
     });
     store.set(org2CloudAccessSettingsAtom, {
       "corg-personal": {
-        defaultMode: "full_replay",
         sessionModes: {},
         sessionVisibility: {},
       },
       "corg-team": {
-        defaultMode: "full_replay",
         sessionModes: {},
         sessionVisibility: {},
       },
+    });
+    store.set(org2CloudSharingFloorAtom, {
+      "corg-personal": "full_replay",
+      "corg-team": "full_replay",
     });
 
     await engine.runSyncPass();
@@ -362,6 +368,12 @@ describe("Org2CloudSyncEngine session publishing", () => {
 
     await engine.runSyncPass();
 
+    expect(client.getSessionEvents).toHaveBeenCalledWith(
+      "jwt-1",
+      "corg-1",
+      "session-1",
+      { afterSeq: 2_147_483_647 }
+    );
     expect(client.rewriteSessionEvents).toHaveBeenCalledTimes(2);
     const [, reanchor] = client.rewriteSessionEvents.mock.calls[1];
     expect(reanchor.newEpoch).toBe(6);
@@ -373,6 +385,7 @@ describe("Org2CloudSyncEngine session publishing", () => {
   });
 
   it("backs off the org and toasts once on ORG2_QUOTA_EXCEEDED", async () => {
+    store.set(sidebarActiveCloudOrgIdAtom, "corg-1");
     client.rewriteSessionEvents.mockRejectedValue(
       new Org2CloudSyncError("ORG2_QUOTA_EXCEEDED", 403)
     );
@@ -389,6 +402,107 @@ describe("Org2CloudSyncEngine session publishing", () => {
     expect(client.upsertSessionMetadata).not.toHaveBeenCalled();
     expect(client.rewriteSessionEvents).not.toHaveBeenCalled();
     expect(messageMock.warning).toHaveBeenCalledTimes(1);
+  });
+
+  it("silently slows quota retries for an inactive org", async () => {
+    store.set(sidebarActiveCloudOrgIdAtom, null);
+    client.upsertSessionMetadata.mockRejectedValue(
+      new Org2CloudSyncError("ORG2_QUOTA_EXCEEDED", 403)
+    );
+    const failedAt = Date.now();
+
+    await engine.runSyncPass();
+    expect(messageMock.warning).not.toHaveBeenCalled();
+
+    client.upsertSessionMetadata.mockClear();
+    vi.setSystemTime(failedAt + ORG_BACKOFF_COOLDOWN_MS + 1);
+    await engine.runSyncPass();
+    expect(client.upsertSessionMetadata).not.toHaveBeenCalled();
+
+    vi.setSystemTime(failedAt + INACTIVE_ORG_BACKOFF_COOLDOWN_MS + 1);
+    await engine.runSyncPass();
+    expect(client.upsertSessionMetadata).toHaveBeenCalledTimes(1);
+    expect(messageMock.warning).not.toHaveBeenCalled();
+  });
+
+  it("treats the visible management org as active for retry and toast policy", async () => {
+    store.set(sidebarActiveCloudOrgIdAtom, null);
+    store.set(chatPanelSelectedCloudOrgAtom, { orgId: "corg-1" });
+    client.upsertSessionMetadata.mockRejectedValue(
+      new Org2CloudSyncError("ORG2_QUOTA_EXCEEDED", 403)
+    );
+
+    await engine.runSyncPass();
+
+    expect(messageMock.warning).toHaveBeenCalledTimes(1);
+    expect(messageMock.warning).toHaveBeenCalledWith(
+      "navigation:cloud.sync.quotaExceededToast"
+    );
+  });
+
+  it("resumes and warns once when a backed-off inactive org becomes active", async () => {
+    store.set(sidebarActiveCloudOrgIdAtom, null);
+    client.upsertSessionMetadata.mockRejectedValue(
+      new Org2CloudSyncError("ORG2_QUOTA_EXCEEDED", 403)
+    );
+
+    await engine.runSyncPass();
+    expect(messageMock.warning).not.toHaveBeenCalled();
+
+    client.upsertSessionMetadata.mockClear();
+    store.set(sidebarActiveCloudOrgIdAtom, "corg-1");
+    await engine.runSyncPass();
+    expect(client.upsertSessionMetadata).toHaveBeenCalledTimes(1);
+    expect(messageMock.warning).toHaveBeenCalledTimes(1);
+
+    vi.setSystemTime(Date.now() + ORG_BACKOFF_COOLDOWN_MS + 1);
+    await engine.runSyncPass();
+    expect(messageMock.warning).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not repeat the active-org toast on automatic cooldown retries", async () => {
+    store.set(sidebarActiveCloudOrgIdAtom, "corg-1");
+    client.upsertSessionMetadata.mockRejectedValue(
+      new Org2CloudSyncError("ORG2_QUOTA_EXCEEDED", 403)
+    );
+
+    await engine.runSyncPass();
+    vi.setSystemTime(Date.now() + ORG_BACKOFF_COOLDOWN_MS + 1);
+    await engine.runSyncPass();
+    expect(messageMock.warning).toHaveBeenCalledTimes(1);
+
+    await engine.resumeOrgAndWait("corg-1");
+    expect(messageMock.warning).toHaveBeenCalledTimes(2);
+  });
+
+  it("evicts the backoff episode when an org membership is removed", async () => {
+    store.set(sidebarActiveCloudOrgIdAtom, "corg-1");
+    client.upsertSessionMetadata.mockRejectedValue(
+      new Org2CloudSyncError("ORG2_QUOTA_EXCEEDED", 403)
+    );
+    const originalOrgs = store.get(org2CloudOrgsAtom);
+
+    await engine.runSyncPass();
+    expect(messageMock.warning).toHaveBeenCalledTimes(1);
+
+    store.set(org2CloudOrgsAtom, []);
+    await engine.runSyncPass();
+    store.set(org2CloudOrgsAtom, originalOrgs);
+    await engine.runSyncPass();
+
+    expect(messageMock.warning).toHaveBeenCalledTimes(2);
+  });
+
+  it("evicts per-session acceleration state when a local session disappears", async () => {
+    await engine.runSyncPass();
+    client.upsertSessionMetadata.mockClear();
+
+    store.set(sessionsAtom, []);
+    await engine.runSyncPass();
+    store.set(sessionsAtom, [SESSION]);
+    await engine.runSyncPass();
+
+    expect(client.upsertSessionMetadata).toHaveBeenCalledTimes(1);
   });
 
   it("skips orgs without local scopes or with sync disabled", async () => {
@@ -444,7 +558,7 @@ describe("Org2CloudSyncEngine session publishing", () => {
   });
 
   it("retracts a previously-pushed session whose tag fell out of scope", async () => {
-    // Push in scope first (default-ladder full_replay via the org default).
+    // Push in scope first via the org's full-replay minimum.
     await engine.runSyncPass();
     expect(client.upsertSessionMetadata).toHaveBeenCalledTimes(1);
 
@@ -511,18 +625,64 @@ describe("Org2CloudSyncEngine session publishing", () => {
 
   // --- Access ladder (§13.4) ------------------------------------------------
 
-  it("BEHAVIOR CHANGE: a scope-matched session is NOT uploaded under the default-off ladder", async () => {
-    // No access settings at all ⇒ org default OFF (privacy-first §13.4):
+  it("a scope-matched session is NOT uploaded with no org minimum or session override", async () => {
+    // No minimum and no per-session access ⇒ local mode OFF:
     // repo-scope match makes the session a candidate, nothing more.
     store.set(org2CloudAccessSettingsAtom, {});
+    store.set(org2CloudSharingFloorAtom, {});
     await engine.runSyncPass();
     expect(client.upsertSessionMetadata).not.toHaveBeenCalled();
     expect(client.rewriteSessionEvents).not.toHaveBeenCalled();
     expect(client.appendSessionEvents).not.toHaveBeenCalled();
   });
 
+  it("applies the admin floor to scope-matched imported history", async () => {
+    const source = getImportedHistorySourceBySessionId("cursoride-thread-1");
+    const loadFullTranscriptChunks = vi
+      .spyOn(source!, "loadFullTranscriptChunks")
+      .mockResolvedValue([] as never);
+    store.set(org2CloudAccessSettingsAtom, {});
+    store.set(org2CloudSharingFloorAtom, { "corg-1": "full_replay" });
+    store.set(sessionsAtom, [
+      { ...SESSION, session_id: "cursoride-thread-1", orgId: "personal-org" },
+    ]);
+
+    await engine.runSyncPass();
+
+    expect(client.upsertSessionMetadata).toHaveBeenCalledTimes(1);
+    expect(client.upsertSessionMetadata.mock.calls[0][3].accessMode).toBe(
+      "full_replay"
+    );
+    expect(loadFullTranscriptChunks).toHaveBeenCalledWith("cursoride-thread-1");
+  });
+
+  it("the floor still lifts imported history the user explicitly shared", async () => {
+    const source = getImportedHistorySourceBySessionId("cursoride-thread-1");
+    vi.spyOn(source!, "loadFullTranscriptChunks").mockResolvedValue(
+      [] as never
+    );
+    store.set(org2CloudAccessSettingsAtom, {
+      "corg-1": {
+        sessionModes: { "cursoride-thread-1": "metadata_only" },
+        sessionVisibility: {},
+      },
+    });
+    store.set(org2CloudSharingFloorAtom, { "corg-1": "full_replay" });
+    store.set(sessionsAtom, [
+      { ...SESSION, session_id: "cursoride-thread-1", orgId: "personal-org" },
+    ]);
+
+    await engine.runSyncPass();
+
+    expect(client.upsertSessionMetadata).toHaveBeenCalledTimes(1);
+    expect(client.upsertSessionMetadata.mock.calls[0][3].accessMode).toBe(
+      "full_replay"
+    );
+  });
+
   it("floors a tagged effective-off session to metadata_only (never 'off' on the wire, no segments)", async () => {
-    store.set(org2CloudAccessSettingsAtom, {}); // default OFF
+    store.set(org2CloudAccessSettingsAtom, {});
+    store.set(org2CloudSharingFloorAtom, {});
     // Scope stays matched (tags only work WITHIN scope); the tag is what
     // overrides the effective-off ladder default.
     store.set(sessionOrgTagsAtom, { "session-1": [cloudOrgToken("corg-1")] });
@@ -537,16 +697,14 @@ describe("Org2CloudSyncEngine session publishing", () => {
     expect(client.appendSessionEvents).not.toHaveBeenCalled();
   });
 
-  it("honors a per-session override over the org default (ratchet) incl. restricted visibility", async () => {
-    // Org default full_replay, but THIS session is persisted as
-    // metadata_only + restricted — the override must win on every push.
+  it("honors a per-session mode and restricted visibility on every push", async () => {
     store.set(org2CloudAccessSettingsAtom, {
       "corg-1": {
-        defaultMode: "full_replay",
         sessionModes: { "session-1": "metadata_only" },
         sessionVisibility: { "session-1": "restricted" },
       },
     });
+    store.set(org2CloudSharingFloorAtom, {});
     await engine.runSyncPass();
 
     expect(client.upsertSessionMetadata).toHaveBeenCalledTimes(1);
@@ -556,17 +714,19 @@ describe("Org2CloudSyncEngine session publishing", () => {
     expect(client.rewriteSessionEvents).not.toHaveBeenCalled();
   });
 
-  it("skips a session whose per-session override is off even when the default is full_replay", async () => {
+  it("a full-replay minimum lifts a stale per-session off value", async () => {
     store.set(org2CloudAccessSettingsAtom, {
       "corg-1": {
-        defaultMode: "full_replay",
         sessionModes: { "session-1": "off" },
         sessionVisibility: {},
       },
     });
     await engine.runSyncPass();
-    expect(client.upsertSessionMetadata).not.toHaveBeenCalled();
-    expect(client.rewriteSessionEvents).not.toHaveBeenCalled();
+    expect(client.upsertSessionMetadata).toHaveBeenCalledTimes(1);
+    expect(client.upsertSessionMetadata.mock.calls[0][3].accessMode).toBe(
+      "full_replay"
+    );
+    expect(client.rewriteSessionEvents).toHaveBeenCalledTimes(1);
   });
 
   it("publishes full_replay metadata with the ladder outcome (org visibility)", async () => {
@@ -591,6 +751,39 @@ describe("Org2CloudSyncEngine session publishing", () => {
     expect(store.get(org2CloudPushedMetadataAtom)).toEqual({
       "corg-1:session-1": true,
     });
+  });
+
+  it("prepares a multi-org session once per pass (single read + hash)", async () => {
+    store.set(org2CloudOrgsAtom, [
+      { orgId: "corg-1", name: "Cloud Team", role: "member" },
+      { orgId: "corg-2", name: "Other Team", role: "member" },
+    ]);
+    store.set(org2CloudRepoScopesAtom, {
+      "corg-1": [SCOPE_KEY],
+      "corg-2": [SCOPE_KEY],
+    });
+    store.set(org2CloudAccessSettingsAtom, {
+      "corg-1": {
+        sessionModes: {},
+        sessionVisibility: {},
+      },
+      "corg-2": {
+        sessionModes: {},
+        sessionVisibility: {},
+      },
+    });
+    store.set(org2CloudSharingFloorAtom, {
+      "corg-1": "full_replay",
+      "corg-2": "full_replay",
+    });
+    store.set(sessionOrgTagsAtom, {
+      "session-1": [cloudOrgToken("corg-1"), cloudOrgToken("corg-2")],
+    });
+
+    await engine.runSyncPass();
+
+    expect(client.rewriteSessionEvents).toHaveBeenCalledTimes(2);
+    expect(eventStoreMock.getPersistedEvents).toHaveBeenCalledTimes(1);
   });
 
   // --- deleteSession resurrection-hash fix ----------------------------------
@@ -674,11 +867,11 @@ describe("Org2CloudSyncEngine session publishing", () => {
     // cursor so teammates lose both the listing and replay.
     store.set(org2CloudAccessSettingsAtom, {
       "corg-1": {
-        defaultMode: "full_replay",
         sessionModes: { "session-1": "off" },
         sessionVisibility: {},
       },
     });
+    store.set(org2CloudSharingFloorAtom, {});
     await engine.runSyncPass();
 
     expect(client.deleteSession).toHaveBeenCalledTimes(1);
@@ -699,9 +892,10 @@ describe("Org2CloudSyncEngine session publishing", () => {
   });
 
   it("does NOT delete a never-pushed session that is set to off", async () => {
-    // Default-off ladder, session never published: an 'off' selection is a
+    // No minimum and no override: an Off session is a
     // pure skip — no spurious server delete.
     store.set(org2CloudAccessSettingsAtom, {});
+    store.set(org2CloudSharingFloorAtom, {});
     await engine.runSyncPass();
     expect(client.upsertSessionMetadata).not.toHaveBeenCalled();
     expect(client.deleteSession).not.toHaveBeenCalled();
@@ -710,13 +904,8 @@ describe("Org2CloudSyncEngine session publishing", () => {
   it("retracts a metadata_only session dropped to Off in a LATER run (persisted marker)", async () => {
     // Run 1: metadata_only push leaves NO segments cursor — only the
     // persisted push marker records that a live row exists.
-    store.set(org2CloudAccessSettingsAtom, {
-      "corg-1": {
-        defaultMode: "metadata_only",
-        sessionModes: {},
-        sessionVisibility: {},
-      },
-    });
+    store.set(org2CloudAccessSettingsAtom, {});
+    store.set(org2CloudSharingFloorAtom, { "corg-1": "metadata_only" });
     await engine.runSyncPass();
     expect(client.upsertSessionMetadata).toHaveBeenCalledTimes(1);
     expect(client.rewriteSessionEvents).not.toHaveBeenCalled();
@@ -730,17 +919,13 @@ describe("Org2CloudSyncEngine session publishing", () => {
     // Simulate an app restart: a fresh engine has an EMPTY in-memory
     // wasCloudPushed cache. Only the persisted marker survives.
     engine.stop();
-    engine = new Org2CloudSyncEngine(
-      client,
-      projectsClient,
-      tasksClient,
-      bridge
-    );
+    engine = new Org2CloudSyncEngine(client, projectsClient, bridge);
     engine.start(store);
 
-    // Downgrade to Off (default off, no tag). The retract must fire off the
+    // Admin lowers the minimum to Off. The retract must fire off the
     // persisted marker even though nothing was pushed in THIS run.
     store.set(org2CloudAccessSettingsAtom, {});
+    store.set(org2CloudSharingFloorAtom, {});
     await engine.runSyncPass();
 
     expect(client.deleteSession).toHaveBeenCalledTimes(1);
@@ -766,6 +951,7 @@ describe("Org2CloudSyncEngine session publishing", () => {
     // retract must treat it as done: clear the marker, don't loop the delete.
     store.set(org2CloudPushedMetadataAtom, { "corg-1:session-1": true });
     store.set(org2CloudAccessSettingsAtom, {});
+    store.set(org2CloudSharingFloorAtom, {});
     client.deleteSession.mockRejectedValueOnce(
       new Org2CloudSyncError("ORG2_SESSION_NOT_FOUND", 404)
     );

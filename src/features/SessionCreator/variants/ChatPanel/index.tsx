@@ -22,6 +22,10 @@ import type {
   SessionLaunchWorkItemContext,
 } from "@src/engines/SessionCore/hooks/session/useSessionCreator/useSessionLaunch/types";
 import {
+  org2CloudOrgsAtom,
+  sidebarActiveCloudOrgIdAtom,
+} from "@src/features/Org2Cloud/org2CloudOrgsAtom";
+import {
   SYSTEM_HOME_SOURCE_ID,
   getSystemHomeSourceLabel,
   isSystemPathSourceId,
@@ -94,6 +98,7 @@ const SessionCreatorChatPanelSingle: React.FC<
 > = ({
   centerFullScreenContent = false,
   className = "",
+  composerHeaderContent,
   innerClassName,
   footerSlot,
   leadingActionSlot,
@@ -151,14 +156,26 @@ const SessionCreatorChatPanelSingle: React.FC<
   );
   const selectedProjectContext = useAtomValue(chatPanelSelectedProjectAtom);
   const selectedWorkItemContext = useAtomValue(chatPanelSelectedWorkItemAtom);
+  const activeCloudOrgId = useAtomValue(sidebarActiveCloudOrgIdAtom);
+  const cloudOrgs = useAtomValue(org2CloudOrgsAtom);
+  const activeCloudOrg = useMemo(
+    () => cloudOrgs.find((org) => org.orgId === activeCloudOrgId) ?? null,
+    [activeCloudOrgId, cloudOrgs]
+  );
   const chatPanelLaunchContext = useMemo(
     () =>
       deriveChatPanelLaunchContext({
+        activeCloudOrg,
         selectedProjectContext,
         selectedProjectOrgContext,
         selectedWorkItemContext,
       }),
-    [selectedProjectContext, selectedProjectOrgContext, selectedWorkItemContext]
+    [
+      activeCloudOrg,
+      selectedProjectContext,
+      selectedProjectOrgContext,
+      selectedWorkItemContext,
+    ]
   );
   const store = useStore();
 
@@ -448,6 +465,7 @@ const SessionCreatorChatPanelSingle: React.FC<
             isolate: worktreeFields.isolate,
             branch: worktreeFields.branch,
             worktreePath: worktreeFields.worktreePath,
+            orgId: chatPanelLaunchContext.orgId,
           });
           agentSessionId = created.sessionId;
           cwd = created.worktreePath || repoPath;
@@ -473,6 +491,7 @@ const SessionCreatorChatPanelSingle: React.FC<
     return originalHandleLaunch();
   }, [
     cliAgentType,
+    chatPanelLaunchContext.orgId,
     effectiveSource?.repoPath,
     isCliTuiMode,
     onOpenCliTerminal,
@@ -587,6 +606,7 @@ const SessionCreatorChatPanelSingle: React.FC<
           : undefined
       }
       compactHeaderIcon={compactHeaderIcon}
+      composerHeaderContent={composerHeaderContent}
       composerInputRef={composerInputRef}
       editorAreaProps={{
         variant: "chatPanelFullScreen",

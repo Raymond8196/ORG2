@@ -14,15 +14,18 @@
  * - teammate rows get `cloudremote-<orgId>|<rowId>` ids, resolved in
  *   useWorkstationSidebarHandlers BEFORE the sessionMap fallback.
  *
- * Parent-row choice: NavigationMenuParentRow already forwards label clicks
- * to onMenuItemClick, so thread roots stay natively clickable (replay/open).
+ * Parent-row choice: a thread root sets `navigableParent`, so a body/label
+ * click OPENS the source session (replay/open) while the dedicated chevron
+ * toggles the fork thread — without the flag the primitive treats a
+ * children-bearing row as a group header whose whole body only toggles,
+ * which stranded fork sources as unclickable once a fork added a child row.
  * The primitive renders hover rowActions on LEAF rows only, so Replay/Fork
  * hover buttons appear on descendants and on single-row threads (rendered
  * as leaves); a multi-row thread's root keeps click-to-replay but has no
  * hover fork button — no self-duplicate child row is injected.
  */
 import { MenuItem, Menu as TauriMenu } from "@tauri-apps/api/menu";
-import { useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useStore } from "jotai";
 import {
   Bot,
   GitFork,
@@ -53,21 +56,24 @@ import {
 } from "@src/features/Org2Cloud/cloudRemoteItemId";
 import {
   type CloudSessionFilter,
+  buildCloudSessionMemberFilterOptions,
   filterCloudSessionRows,
 } from "@src/features/Org2Cloud/cloudSessionFilter";
-import { resolveSessionTaskCounts } from "@src/features/Org2Cloud/cloudSessionTaskCounts";
 import {
   type CloudSessionThreadRow,
   buildCloudSessionThreads,
   collectThreadedLocalSessionIds,
   isCloudThreadRowDisabled,
 } from "@src/features/Org2Cloud/cloudSessionThreads";
-import { org2CloudAuthAtom } from "@src/features/Org2Cloud/org2CloudAuthAtom";
-import { cloudSessionIdFromRowId } from "@src/features/Org2Cloud/org2CloudBackendAdapter";
 import {
-  org2CloudCommentTasksAtom,
-  tasksForSession,
-} from "@src/features/Org2Cloud/org2CloudCommentTasksAtom";
+  commitRefreshedAuth,
+  org2CloudAuthAtom,
+  org2CloudAuthIdentityKey,
+} from "@src/features/Org2Cloud/org2CloudAuthAtom";
+import { cloudSessionIdFromRowId } from "@src/features/Org2Cloud/org2CloudBackendAdapter";
+import { type CloudOrgMember } from "@src/features/Org2Cloud/org2CloudClient";
+import { loadCloudOrgMembers } from "@src/features/Org2Cloud/org2CloudMembersCoordinator";
+import { org2CloudRosterVersionAtom } from "@src/features/Org2Cloud/org2CloudOrgsAtom";
 import {
   type Org2CloudPresenceEntry,
   org2CloudPresenceAtom,
@@ -156,16 +162,62 @@ export function useCloudSessionsSection({
 }: UseCloudSessionsSectionParams): UseCloudSessionsSectionResult {
   const { t } = useTranslation("navigation");
   const { t: tCommon } = useTranslation("common");
+  const store = useStore();
   const { rows, state, refresh } = useCloudOrgRemoteSessions(orgId);
   const { replaySession, forkSession, busySessionRowId } =
     useCloudSessionActions(orgId);
   const openBilling = useOpenCloudBilling();
-  // Engine-fed task map (agent-pickup design §4): read-only here — the
-  // section renders whatever the atoms already hold; the 60s sync pass is
-  // the only thing that refreshes it. No fetches, no timers.
-  const commentTaskMap = useAtomValue(org2CloudCommentTasksAtom);
   const presenceMap = useAtomValue(org2CloudPresenceAtom);
-  const selfUserId = useAtomValue(org2CloudAuthAtom)?.userId ?? null;
+  const [auth, setAuth] = useAtom(org2CloudAuthAtom);
+  const selfUserId = auth?.userId ?? null;
+  const authIdentityKey = auth ? org2CloudAuthIdentityKey(auth) : null;
+  const rosterVersionByOrg = useAtomValue(org2CloudRosterVersionAtom);
+  const rosterVersion = orgId ? (rosterVersionByOrg[orgId] ?? 0) : 0;
+  const [rosterSnapshot, setRosterSnapshot] = useState<{
+    identityKey: string;
+    orgId: string;
+    members: CloudOrgMember[];
+  } | null>(null);
+  const signedIn = Boolean(auth);
+  const rosterMembers =
+    signedIn &&
+    rosterSnapshot?.identityKey === authIdentityKey &&
+    rosterSnapshot.orgId === orgId
+      ? rosterSnapshot.members
+      : null;
+  const authRef = React.useRef(auth);
+  useEffect(() => {
+    authRef.current = auth;
+  }, [auth]);
+  useEffect(() => {
+    if (!orgId || !signedIn) return;
+    let cancelled = false;
+    void (async () => {
+      const current = authRef.current;
+      if (!current) return;
+      const requestIdentityKey = org2CloudAuthIdentityKey(current);
+      const loaded = await loadCloudOrgMembers(
+        store,
+        current,
+        orgId,
+        rosterVersion
+      );
+      if (!loaded || cancelled) return;
+      const latest = authRef.current;
+      if (!latest || org2CloudAuthIdentityKey(latest) !== requestIdentityKey) {
+        return;
+      }
+      commitRefreshedAuth(setAuth, current, loaded.auth);
+      setRosterSnapshot({
+        identityKey: requestIdentityKey,
+        orgId,
+        members: loaded.members,
+      });
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [authIdentityKey, orgId, rosterVersion, setAuth, signedIn, store]);
   const [memberMenu, setMemberMenu] = useState<MemberFilterMenuState | null>(
     null
   );
@@ -417,54 +469,6 @@ export function useCloudSessionsSection({
             {unresolvedComments}
           </span>
         ) : undefined;
-      // Agent-task dual chips (0002 listing counters; agent-pickup design
-      // §4 UI item 6) next to the comments badge. Per-row server counters
-      // are primary; the engine-fed task map is the cross-scope fallback
-      // for pre-0002 backends that omit both keys. Both chips share the
-      // `session-tasks-badge` testid, split by `data-variant`.
-      const taskCounts = resolveSessionTaskCounts(
-        row,
-        tasksForSession(commentTaskMap, row.orgId, bareSessionId)
-      );
-      const openTasksLabel = t("cloud.comments.task.openBadge", {
-        count: taskCounts.open,
-        defaultValue_one: "{{count}} agent task awaiting pickup",
-        defaultValue_other: "{{count}} agent tasks awaiting pickup",
-      });
-      const openTasksChip =
-        taskCounts.open > 0 ? (
-          <span
-            data-testid="session-tasks-badge"
-            data-variant="attention"
-            data-count={taskCounts.open}
-            aria-label={openTasksLabel}
-            title={openTasksLabel}
-            className="inline-flex h-3.5 min-w-3.5 items-center justify-center gap-0.5 rounded-full bg-warning-6 px-1 text-[9px] font-medium leading-none text-white"
-          >
-            <Bot size={9} strokeWidth={2.5} />
-            {taskCounts.open}
-          </span>
-        ) : undefined;
-      const activeTasksLabel = t("cloud.comments.task.activeBadge", {
-        count: taskCounts.active,
-        defaultValue_one: "an agent is working on this session",
-        defaultValue_other: "{{count}} agents are working on this session",
-      });
-      // Subtle pulse, no number: "an agent is working" is presence, not a
-      // count the viewer must act on (the attention chip carries counts).
-      const activeTasksChip =
-        taskCounts.active > 0 ? (
-          <span
-            data-testid="session-tasks-badge"
-            data-variant="active"
-            data-count={taskCounts.active}
-            aria-label={activeTasksLabel}
-            title={activeTasksLabel}
-            className="inline-flex h-3.5 items-center justify-center text-primary-6 motion-safe:animate-pulse motion-reduce:opacity-80"
-          >
-            <Bot size={11} strokeWidth={2} />
-          </span>
-        ) : undefined;
       // Live viewers: other org members currently viewing this session.
       const viewers = viewersForSession(
         presenceMap,
@@ -507,12 +511,10 @@ export function useCloudSessionsSection({
           </span>
         ) : undefined;
       const trailingElement =
-        viewerChips || commentsBadge || openTasksChip || activeTasksChip ? (
+        viewerChips || commentsBadge ? (
           <span className="inline-flex items-center gap-1">
             {viewerChips}
             {commentsBadge}
-            {openTasksChip}
-            {activeTasksChip}
           </span>
         ) : undefined;
       // Strip fork glyph(s) baked into pushed titles; the GitFork icon carries provenance.
@@ -540,6 +542,10 @@ export function useCloudSessionsSection({
               iconType: "session",
             }
           : undefined,
+        // A thread root is a real session, not just a group header: keep it
+        // openable after a fork adds child rows (the chevron toggles the
+        // thread). Only meaningful when it actually has children.
+        navigableParent: asParentOf !== undefined && !disabled,
       };
       if (!disabled) {
         item.showMoreActions = true;
@@ -570,15 +576,7 @@ export function useCloudSessionsSection({
       }
       return item;
     },
-    [
-      commentTaskMap,
-      hideRemoteSession,
-      presenceMap,
-      runFork,
-      selfUserId,
-      t,
-      tCommon,
-    ]
+    [hideRemoteSession, presenceMap, runFork, selfUserId, t, tCommon]
   );
 
   const cloudMenuItems = useMemo<NavigationMenuItem[]>(() => {
@@ -679,20 +677,12 @@ export function useCloudSessionsSection({
     return map;
   }, [presenceMap, selfUserId, threads]);
 
-  // Everyone + distinct owners of the CURRENT rows (value = ownerUserId).
+  // Everyone + the active roster. Current rows are only a loading/legacy
+  // fallback; a teammate does not need to publish a Session before they can
+  // be selected as a filter.
   const memberOptions = useMemo(() => {
-    const byUserId = new Map<string, string>();
-    for (const row of rows) {
-      if (row.deletedAt) continue;
-      if (!byUserId.has(row.ownerUserId)) {
-        byUserId.set(row.ownerUserId, row.ownerDisplayName);
-      }
-    }
-    return [...byUserId.entries()].map(([userId, displayName]) => ({
-      userId,
-      displayName,
-    }));
-  }, [rows]);
+    return buildCloudSessionMemberFilterOptions(rows, rosterMembers);
+  }, [rosterMembers, rows]);
 
   const closeMemberMenu = useCallback(() => setMemberMenu(null), []);
   // Escape dismisses the member-filter panel. Document-level because the

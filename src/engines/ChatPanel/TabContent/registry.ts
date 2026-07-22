@@ -13,10 +13,10 @@
  * a dedicated, self-sufficient component that reads its tab payload directly.
  */
 import {
-  CloudOrgSurfaceRenderer,
   ExploreSurfaceRenderer,
-  ProjectOrgSurfaceRenderer,
+  OrganizationSurfaceRenderer,
   ProjectSurfaceRenderer,
+  RuntimeSurfaceRenderer,
   WorkItemSurfaceRenderer,
   WorkspaceSurfaceRenderer,
 } from "./surfaceRenderers";
@@ -28,6 +28,11 @@ import type {
 export const CHAT_PANEL_TAB_SURFACE_REGISTRY: ChatPanelTabSurfaceRegistry = {
   session: { render: "chat-column", debugLabel: "session" },
   "start-page": { render: "chat-column", debugLabel: "start-page" },
+  runtime: {
+    render: "component",
+    Component: RuntimeSurfaceRenderer,
+    debugLabel: "runtime",
+  },
   "work-management": {
     render: "work-management",
     debugLabel: "work-management",
@@ -38,10 +43,10 @@ export const CHAT_PANEL_TAB_SURFACE_REGISTRY: ChatPanelTabSurfaceRegistry = {
     Component: WorkspaceSurfaceRenderer,
     debugLabel: "workspace",
   },
-  "cloud-org": {
+  organization: {
     render: "component",
-    Component: CloudOrgSurfaceRenderer,
-    debugLabel: "cloud-org",
+    Component: OrganizationSurfaceRenderer,
+    debugLabel: "organization",
   },
   "work-item": {
     render: "component",
@@ -52,11 +57,6 @@ export const CHAT_PANEL_TAB_SURFACE_REGISTRY: ChatPanelTabSurfaceRegistry = {
     render: "component",
     Component: ProjectSurfaceRenderer,
     debugLabel: "project",
-  },
-  "project-org": {
-    render: "component",
-    Component: ProjectOrgSurfaceRenderer,
-    debugLabel: "project-org",
   },
   explore: {
     render: "component",

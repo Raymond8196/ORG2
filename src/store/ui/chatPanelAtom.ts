@@ -10,6 +10,7 @@ import {
   settingsAtom,
   updateSettingAtom,
 } from "@src/store/settings/settingsAtom";
+import type { ProjectOrgSurfaceView } from "@src/store/workstation/tabs";
 import type { Project } from "@src/types/core/project";
 import type { WorkItem } from "@src/types/core/workItem";
 import { createZodJsonStorage } from "@src/util/core/storage/zodStorage";
@@ -212,15 +213,6 @@ export const chatTokenUsageVisibleAtom = atomWithStorage<boolean>(
 );
 chatTokenUsageVisibleAtom.debugLabel = "chatTokenUsageVisibleAtom";
 
-/** Whether the chat pane's bottom status bar (repo · branch · context) shows. */
-export const chatStatusBarVisibleAtom = atomWithStorage<boolean>(
-  "orgii:chatStatusBarVisible",
-  false,
-  undefined,
-  { getOnInit: true }
-);
-chatStatusBarVisibleAtom.debugLabel = "chatStatusBarVisibleAtom";
-
 /** Presentation style for the chat panel model picker. */
 export type ModelPickerStyle = "spotlight" | "dropdown";
 
@@ -282,20 +274,6 @@ chatPanelCreateTargetAtom.debugLabel = "chatPanelCreateTargetAtom";
 export const chatPanelStartPageOpenAtom = atom<boolean>(true);
 chatPanelStartPageOpenAtom.debugLabel = "chatPanelStartPageOpenAtom";
 
-export const CHAT_PANEL_START_PAGE_TAB = {
-  WORK: "work",
-  MANAGE: "manage",
-  RUNTIME: "runtime",
-} as const;
-
-export type ChatPanelStartPageTab =
-  (typeof CHAT_PANEL_START_PAGE_TAB)[keyof typeof CHAT_PANEL_START_PAGE_TAB];
-
-export const chatPanelStartPageTabAtom = atom<ChatPanelStartPageTab>(
-  CHAT_PANEL_START_PAGE_TAB.WORK
-);
-chatPanelStartPageTabAtom.debugLabel = "chatPanelStartPageTabAtom";
-
 export interface ChatPanelCreateProjectContext {
   orgId: string;
   scopeBreadcrumbLabel?: string;
@@ -343,6 +321,7 @@ chatPanelSelectedWorkItemAtom.debugLabel = "chatPanelSelectedWorkItemAtom";
 export interface ChatPanelSelectedProject {
   project: Project;
   projectSlug: string;
+  projectSyncAdapterId?: string | null;
   orgId: string;
   orgName?: string;
 }
@@ -356,6 +335,10 @@ export interface ChatPanelSelectedProjectOrg {
   orgName: string;
   orgScope: "personal_org" | "project_org";
   orgSyncProvider?: string | null;
+  /** Optional surface requested by the action opening/focusing this ORG. */
+  initialView?: ProjectOrgSurfaceView;
+  /** Changes when an opener explicitly requests `initialView` again. */
+  initialViewRequestId?: number;
 }
 
 export const chatPanelSelectedProjectOrgAtom =
@@ -383,6 +366,17 @@ export interface ChatPanelSelectedCloudOrg {
   orgId: string;
 }
 
+/** The explicit provider variant owned by the shared organization tab. */
+export type ChatPanelSelectedOrganization =
+  | {
+      kind: "cloud";
+      cloudOrg: ChatPanelSelectedCloudOrg;
+    }
+  | {
+      kind: "local";
+      projectOrg: ChatPanelSelectedProjectOrg;
+    };
+
 export const chatPanelSelectedCloudOrgAtom =
   atom<ChatPanelSelectedCloudOrg | null>(null);
 chatPanelSelectedCloudOrgAtom.debugLabel = "chatPanelSelectedCloudOrgAtom";
@@ -396,10 +390,6 @@ chatPanelSelectedCloudOrgAtom.debugLabel = "chatPanelSelectedCloudOrgAtom";
  */
 export const chatPanelExploreOpenAtom = atom<boolean>(false);
 chatPanelExploreOpenAtom.debugLabel = "chatPanelExploreOpenAtom";
-
-export const chatPanelExploreAgentSearchEnabledAtom = atom<boolean>(false);
-chatPanelExploreAgentSearchEnabledAtom.debugLabel =
-  "chatPanelExploreAgentSearchEnabledAtom";
 
 /**
  * Selected tab on the chat-panel workspace overview surface
@@ -436,7 +426,6 @@ export const CHAT_PANEL_SURFACE_KIND = {
   PROJECT: "project",
   PROJECT_ORG: "projectOrg",
   WORK_ITEM: "workItem",
-  WORKSPACE_DASHBOARD: "workspaceDashboard",
   WORKSPACE_EXPLORE: "workspaceExplore",
   WORKSPACE_OVERVIEW: "workspaceOverview",
   CLOUD_ORG: "cloudOrg",
@@ -503,7 +492,6 @@ export type ChatPanelNavigateCommand =
       kind: typeof CHAT_PANEL_SURFACE_KIND.WORK_ITEM;
       workItem: ChatPanelSelectedWorkItem;
     }
-  | { kind: typeof CHAT_PANEL_SURFACE_KIND.WORKSPACE_DASHBOARD }
   | { kind: typeof CHAT_PANEL_SURFACE_KIND.WORKSPACE_EXPLORE }
   | {
       kind: typeof CHAT_PANEL_SURFACE_KIND.WORKSPACE_OVERVIEW;
@@ -591,12 +579,6 @@ export const chatPanelNavigateAtom = atom(
       case CHAT_PANEL_SURFACE_KIND.WORK_ITEM:
         set(chatPanelContentModeAtom, CHAT_PANEL_CONTENT_MODE.NON_SESSION);
         set(chatPanelSelectedWorkItemAtom, command.workItem);
-        return;
-      case CHAT_PANEL_SURFACE_KIND.WORKSPACE_DASHBOARD:
-        // Legacy dashboard navigation now lands on Launchpad's Manage tab.
-        set(chatPanelContentModeAtom, CHAT_PANEL_CONTENT_MODE.SESSION);
-        set(chatPanelStartPageTabAtom, CHAT_PANEL_START_PAGE_TAB.MANAGE);
-        set(chatPanelStartPageOpenAtom, true);
         return;
       case CHAT_PANEL_SURFACE_KIND.WORKSPACE_EXPLORE:
         set(chatPanelContentModeAtom, CHAT_PANEL_CONTENT_MODE.NON_SESSION);

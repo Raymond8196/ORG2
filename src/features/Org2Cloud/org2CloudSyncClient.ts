@@ -25,10 +25,15 @@ import type {
 import type { SessionEventsSegmentInput } from "../TeamCollaboration/sync/CollabSyncBackend";
 import {
   type SegmentWirePayload,
+  mapSegmentsBounded,
   toFrozenSegmentWire,
   toTailWire,
 } from "../TeamCollaboration/sync/segmentCodec";
-import { ORG2_CLOUD_POSTGREST_SCHEMA, getCloudEndpoint } from "./config";
+import {
+  type CloudEndpoint,
+  ORG2_CLOUD_POSTGREST_SCHEMA,
+  getCloudEndpoint,
+} from "./config";
 
 // ---------------------------------------------------------------------------
 // Error model
@@ -77,15 +82,18 @@ export function isOrg2SyncErrorCode(
 // RPC plumbing (throwing variant of the org2CloudClient idiom)
 // ---------------------------------------------------------------------------
 
-function rpcUrl(functionName: string): string {
-  return `${getCloudEndpoint().supabaseUrl}/rest/v1/rpc/${functionName}`;
+function rpcUrl(functionName: string, endpoint: CloudEndpoint): string {
+  return `${endpoint.supabaseUrl}/rest/v1/rpc/${functionName}`;
 }
 
-function rpcHeaders(accessToken: string | null): Record<string, string> {
-  const { anonKey } = getCloudEndpoint();
+function rpcHeaders(
+  accessToken: string,
+  endpoint: CloudEndpoint
+): Record<string, string> {
+  const { anonKey } = endpoint;
   return {
     apikey: anonKey,
-    authorization: `Bearer ${accessToken ?? anonKey}`,
+    authorization: `Bearer ${accessToken}`,
     "content-type": "application/json",
     "content-profile": ORG2_CLOUD_POSTGREST_SCHEMA,
   };
@@ -93,14 +101,16 @@ function rpcHeaders(accessToken: string | null): Record<string, string> {
 
 async function callSyncRpc(
   functionName: string,
-  // null ⇒ TICKET tier: anon key as bearer (guest share-token reads only).
-  accessToken: string | null,
-  body: Record<string, unknown>
+  accessToken: string,
+  body: Record<string, unknown>,
+  endpoint: CloudEndpoint = getCloudEndpoint(),
+  signal?: AbortSignal
 ): Promise<unknown> {
-  const response = await fetch(rpcUrl(functionName), {
+  const response = await fetch(rpcUrl(functionName, endpoint), {
     method: "POST",
-    headers: rpcHeaders(accessToken),
+    headers: rpcHeaders(accessToken, endpoint),
     body: JSON.stringify(body),
+    signal,
   });
   const text = await response.text();
   let payload: unknown = null;
@@ -286,8 +296,11 @@ export async function rewriteSessionEvents(
     p_org_id: input.orgId,
     p_session_id: input.sessionId,
     new_epoch: input.newEpoch,
-    frozen_segments: await Promise.all(
-      input.frozenSegments.map(toFrozenSegmentWire)
+    // Bounded encode: `Promise.all` over every segment materializes all
+    // canonical/gzip/base64 buffers simultaneously and multiplies RSS.
+    frozen_segments: await mapSegmentsBounded(
+      input.frozenSegments,
+      toFrozenSegmentWire
     ),
     tail: await toTailWire(input.tail),
     total_count: input.totalCount,
@@ -317,8 +330,9 @@ export async function appendSessionEvents(
     expected_epoch: input.expectedEpoch,
     expected_frozen_seq: input.expectedFrozenSeq,
     expected_tail_hash: input.expectedTailHash,
-    new_frozen_segments: await Promise.all(
-      input.newFrozenSegments.map(toFrozenSegmentWire)
+    new_frozen_segments: await mapSegmentsBounded(
+      input.newFrozenSegments,
+      toFrozenSegmentWire
     ),
     tail: await toTailWire(input.tail),
     total_count: input.totalCount,
@@ -361,13 +375,17 @@ export async function listOrgSessions(
 
 export interface GetSessionEventsOptions {
   /**
-   * Link-share ticket (0012): when set, the request rides the guest token
-   * branch — `accessToken` may be null (anon bearer) and the caller is
-   * typically not an org member at all.
+   * Link-share capability (0012): when set, a registered non-member can read
+   * the shared session. The user JWT proves registration; this token grants
+   * access to the one session.
    */
   shareToken?: string;
   /** Server-side incremental fetch (frozen past the cursor + tail always). */
   afterSeq?: number;
+  /** Endpoint snapshot shared with a preceding share-token resolve. */
+  endpoint?: CloudEndpoint;
+  /** Cancels the network read (dialog close / attempt supersession). */
+  signal?: AbortSignal;
 }
 
 /**
@@ -376,27 +394,33 @@ export interface GetSessionEventsOptions {
  * are returned as WIRE payloads (gzipped base64) — decode with the shared
  * `decodeSegmentEvents` when replay lands in a later cut.
  *
- * With `options.shareToken` this becomes the TICKET-tier guest read
- * (opaque ORG2_UNAUTHORIZED on every failure). The optional params are only
- * put on the wire when set, so member calls stay byte-identical to the
- * pre-0012 shape.
+ * With `options.shareToken` this becomes a registered-link read that does not
+ * require org membership (opaque ORG2_UNAUTHORIZED on every capability
+ * failure). The optional params are only put on the wire when set, so member
+ * calls stay byte-identical to the pre-0012 shape.
  */
 export async function getSessionEvents(
-  accessToken: string | null,
+  accessToken: string,
   orgId: string,
   sessionId: string,
   options?: GetSessionEventsOptions
 ): Promise<CloudSessionEventsSnapshot> {
-  const payload = await callSyncRpc("cloud_get_session_events", accessToken, {
-    p_org_id: orgId,
-    p_session_id: sessionId,
-    ...(options?.shareToken !== undefined
-      ? { p_share_token: options.shareToken }
-      : {}),
-    ...(options?.afterSeq !== undefined
-      ? { p_after_seq: options.afterSeq }
-      : {}),
-  });
+  const payload = await callSyncRpc(
+    "cloud_get_session_events",
+    accessToken,
+    {
+      p_org_id: orgId,
+      p_session_id: sessionId,
+      ...(options?.shareToken !== undefined
+        ? { p_share_token: options.shareToken }
+        : {}),
+      ...(options?.afterSeq !== undefined
+        ? { p_after_seq: options.afterSeq }
+        : {}),
+    },
+    options?.endpoint,
+    options?.signal
+  );
   const parsed = CloudSessionEventsSchema.parse(payload);
   return {
     epoch: parsed.epoch,

@@ -1,25 +1,63 @@
 import { describe, expect, it } from "vitest";
 
-import type { CloudCommentTask } from "./org2CloudCommentTasksClient";
 import { sessionCommentsKey } from "./org2CloudCommentsBus";
 import { Org2CloudCommentError } from "./org2CloudCommentsClient";
 import type { CloudSessionComment } from "./org2CloudCommentsClient";
 import {
   type CloudSessionCommentsEntry,
+  MAX_SESSION_COMMENT_CACHE_ENTRIES,
   countLiveComments,
   decideSessionCommentsFetch,
-  findNewerEngineTaskSignature,
-  findTaskForThread,
   getThreadResolution,
   groupCommentThreads,
   insertComment,
   isThreadResolved,
   mergePresentEventIdEntries,
   patchComment,
+  sessionCommentsEntryForIdentity,
   shouldEvictSessionCommentsOnError,
+  writeSessionCommentsEntry,
 } from "./org2CloudSessionCommentsAtom";
 
 let sequence = 0;
+
+describe("session comment identity isolation", () => {
+  const entry: CloudSessionCommentsEntry = {
+    identityKey: "https://cloud.example.com|user-1",
+    comments: [],
+    viewerOwnsSession: true,
+    state: "ready",
+    fetchedAt: 1,
+  };
+
+  it("exposes cached bodies only to the endpoint/account that loaded them", () => {
+    expect(
+      sessionCommentsEntryForIdentity(entry, "https://cloud.example.com|user-1")
+    ).toBe(entry);
+    expect(
+      sessionCommentsEntryForIdentity(entry, "https://cloud.example.com|user-2")
+    ).toBeUndefined();
+    expect(sessionCommentsEntryForIdentity(entry, null)).toBeUndefined();
+  });
+
+  it("bounds cached threads with least-recent eviction", () => {
+    let entries: Record<string, CloudSessionCommentsEntry> = {};
+    for (
+      let index = 0;
+      index <= MAX_SESSION_COMMENT_CACHE_ENTRIES;
+      index += 1
+    ) {
+      entries = writeSessionCommentsEntry(entries, `org|session-${index}`, {
+        ...entry,
+        fetchedAt: index,
+      });
+    }
+    expect(Object.keys(entries)).toHaveLength(
+      MAX_SESSION_COMMENT_CACHE_ENTRIES
+    );
+    expect(entries["org|session-0"]).toBeUndefined();
+  });
+});
 
 function comment(
   overrides: Partial<CloudSessionComment> & { id: string }
@@ -300,39 +338,6 @@ describe("insertComment / patchComment", () => {
   });
 });
 
-describe("findTaskForThread", () => {
-  function task(
-    overrides: Partial<CloudCommentTask> & { id: string; commentId: string }
-  ): CloudCommentTask {
-    return {
-      sessionId: "sess-1",
-      state: "open",
-      leaseExpired: false,
-      attempt: 0,
-      createdAt: "2026-07-07T09:00:00.000Z",
-      updatedAt: "2026-07-07T09:00:00.000Z",
-      ...overrides,
-    };
-  }
-
-  it("matches the thread head's task by commentId", () => {
-    const tasks = [
-      task({ id: "t1", commentId: "c1" }),
-      task({ id: "t2", commentId: "c2", state: "running" }),
-    ];
-    expect(findTaskForThread(tasks, "c2")?.id).toBe("t2");
-    expect(findTaskForThread(tasks, "c1")?.state).toBe("open");
-  });
-
-  it("returns undefined for never-promoted threads and empty lists", () => {
-    expect(
-      findTaskForThread([task({ id: "t1", commentId: "c1" })], "zzz")
-    ).toBeUndefined();
-    // Pre-0002 backends: the entry's tasks are always [].
-    expect(findTaskForThread([], "c1")).toBeUndefined();
-  });
-});
-
 describe("sessionCommentsKey", () => {
   it("namespaces org and session", () => {
     expect(sessionCommentsKey("org-1", "sess-1")).toBe("org-1|sess-1");
@@ -350,7 +355,7 @@ describe("decideSessionCommentsFetch — force is queued, never dropped", () => 
   ): CloudSessionCommentsEntry {
     return {
       comments: [],
-      tasks: [],
+      viewerOwnsSession: false,
       state: "ready",
       fetchedAt: NOW,
       ...overrides,
@@ -372,6 +377,16 @@ describe("decideSessionCommentsFetch — force is queued, never dropped", () => 
 
   it("a force bypasses the TTL", () => {
     expect(decideSessionCommentsFetch(entry(), true, NOW + 1_000)).toBe(
+      "claim"
+    );
+  });
+
+  it("an error entry becomes re-claimable after the short retry window", () => {
+    const errored = entry({ state: "error" });
+    expect(decideSessionCommentsFetch(errored, false, NOW + 1_000)).toBe(
+      "skip"
+    );
+    expect(decideSessionCommentsFetch(errored, false, NOW + 11_000)).toBe(
       "claim"
     );
   });
@@ -413,74 +428,6 @@ describe("shouldEvictSessionCommentsOnError — visibility revocation evicts", (
       )
     ).toBe(false);
     expect(shouldEvictSessionCommentsOnError(undefined)).toBe(false);
-  });
-});
-
-describe("findNewerEngineTaskSignature — engine-poll reconciliation probe", () => {
-  function task(
-    overrides: Partial<CloudCommentTask> & { id: string }
-  ): CloudCommentTask {
-    return {
-      sessionId: "sess-1",
-      commentId: `c-${overrides.id}`,
-      state: "open",
-      leaseExpired: false,
-      attempt: 0,
-      createdAt: "2026-07-08T09:00:00+00:00",
-      updatedAt: "2026-07-08T09:00:00+00:00",
-      ...overrides,
-    };
-  }
-
-  it("null when the engine map has nothing new", () => {
-    const embed = [task({ id: "t1" })];
-    expect(findNewerEngineTaskSignature(embed, [])).toBeNull();
-    expect(
-      findNewerEngineTaskSignature(embed, [task({ id: "t1" })])
-    ).toBeNull();
-  });
-
-  it("flags an engine row unknown to the embed (task created elsewhere)", () => {
-    expect(findNewerEngineTaskSignature([], [task({ id: "t1" })])).toBe(
-      "t1:2026-07-08T09:00:00+00:00"
-    );
-  });
-
-  it("flags a strictly newer engine copy, numerically (timestamptz forms)", () => {
-    const embed = [task({ id: "t1", updatedAt: "2026-07-08T09:00:00+00:00" })];
-    // Fractional-second form of a LATER instant — lexicographic compare
-    // would mis-order; Date.parse must win.
-    const newer = [
-      task({
-        id: "t1",
-        state: "done",
-        updatedAt: "2026-07-08T09:00:00.5+00:00",
-      }),
-    ];
-    expect(findNewerEngineTaskSignature(embed, newer)).toBe(
-      "t1:2026-07-08T09:00:00.5+00:00"
-    );
-    // Equal instants are NOT newer — no refetch churn on overlap re-delivery.
-    expect(
-      findNewerEngineTaskSignature(embed, [task({ id: "t1" })])
-    ).toBeNull();
-  });
-
-  it("ignores embed rows missing from the engine map (lingering-ghost rule)", () => {
-    expect(
-      findNewerEngineTaskSignature(
-        [task({ id: "t1" }), task({ id: "t2" })],
-        [task({ id: "t1" })]
-      )
-    ).toBeNull();
-  });
-
-  it("is deterministic across engine row order (stable latch key)", () => {
-    const a = task({ id: "a", updatedAt: "2026-07-08T10:00:00+00:00" });
-    const b = task({ id: "b", updatedAt: "2026-07-08T11:00:00+00:00" });
-    expect(findNewerEngineTaskSignature([], [a, b])).toBe(
-      findNewerEngineTaskSignature([], [b, a])
-    );
   });
 });
 
