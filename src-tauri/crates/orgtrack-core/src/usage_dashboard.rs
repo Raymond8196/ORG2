@@ -58,6 +58,11 @@ pub struct UsageFilter {
     pub end_ms: Option<i64>,
     /// Restrict to a single session (for the request-log session filter).
     pub session_id: Option<String>,
+    /// When `true` and no `bucket` is set, include every source — the long-tail
+    /// providers and plugin sources that map to the `other` bucket — instead of
+    /// only the four [`SCOPED_BUCKETS`]. The desktop dashboard leaves this
+    /// `false` (its default); the CLI opts in so `usage` covers all tools.
+    pub all_sources: bool,
 }
 
 impl UsageFilter {
@@ -335,10 +340,14 @@ fn iso_to_ms(value: &str) -> Option<i64> {
 fn fetch_scoped_sessions(
     conn: &Connection,
     bucket: Option<&str>,
+    all_sources: bool,
 ) -> Result<Vec<ScopedSession>, String> {
     // The bucket predicate is the only structural difference, so build it once.
     let bucket_predicate = if bucket.is_some() {
         "outer_bucket = ?1".to_string()
+    } else if all_sources {
+        // Every source, including the `other` bucket (long-tail + plugins).
+        "1 = 1".to_string()
     } else {
         // Default "all" = the four scoped buckets (never `other`).
         let list = SCOPED_BUCKETS
@@ -515,7 +524,7 @@ pub fn usage_sessions(
     offset: usize,
     limit: usize,
 ) -> Result<Vec<UsageSessionRow>, String> {
-    let sessions = fetch_scoped_sessions(conn, filter.bucket.as_deref())?;
+    let sessions = fetch_scoped_sessions(conn, filter.bucket.as_deref(), filter.all_sources)?;
     let mut rows: Vec<UsageSessionRow> = sessions
         .into_iter()
         .filter(|session| filter.contains(session.last_active_ms))
@@ -743,7 +752,7 @@ fn build_round_row(
 /// round from the session totals for imported sources that have none
 /// (cursor/opencode/…). Rounds outside the time window are dropped.
 fn collect_rounds(conn: &Connection, filter: &UsageFilter) -> Result<Vec<UsageRoundRow>, String> {
-    let mut sessions = fetch_scoped_sessions(conn, filter.bucket.as_deref())?;
+    let mut sessions = fetch_scoped_sessions(conn, filter.bucket.as_deref(), filter.all_sources)?;
     if let Some(session_id) = filter.session_id.as_deref() {
         sessions.retain(|session| session.session_id == session_id);
     }
@@ -1433,6 +1442,37 @@ mod tests {
         assert_eq!(summary.session_count, 1);
         assert_eq!(summary.input_tokens, 1_500_000);
         assert_eq!(summary.request_count, 2);
+    }
+
+    #[test]
+    fn all_sources_includes_other_bucket() {
+        let conn = seeded_conn();
+        insert_imported(
+            &conn,
+            "opencode",
+            "ext-opencode",
+            "gpt-5",
+            (50_000, 5_000),
+            ms("2026-07-18T06:00:00Z"),
+            1,
+        );
+        recompute_session_usage(&conn, "ext-opencode")
+            .unwrap()
+            .expect("opencode projected");
+
+        let scoped = usage_summary(&conn, &UsageFilter::default()).expect("scoped summary");
+        assert_eq!(scoped.session_count, 3);
+
+        let all = usage_summary(
+            &conn,
+            &UsageFilter {
+                all_sources: true,
+                ..UsageFilter::default()
+            },
+        )
+        .expect("all-sources summary");
+        assert_eq!(all.session_count, 4);
+        assert!(all.by_bucket.iter().any(|bucket| bucket.bucket == "other"));
     }
 
     #[test]
