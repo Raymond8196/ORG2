@@ -2,6 +2,7 @@ import { useAtomValue, useSetAtom, useStore } from "jotai";
 import React, {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -48,8 +49,10 @@ import {
   agentNameAtom,
   cliAgentTypeAtom,
   dispatchCategoryAtom,
+  normalizeAgentOnlySessionCreatorState,
   selectedAgentDefinitionIdAtom,
   selectedAgentOrgIdAtom,
+  sessionCreatorStateAtom,
   sessionSourceAtom,
   sessionTargetKindAtom,
   worktreeLaunchSourceAtom,
@@ -99,7 +102,7 @@ function isCliAgentType(
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
-const SessionCreatorChatPanelSingle: React.FC<
+const SessionCreatorChatPanelContent: React.FC<
   SessionCreatorChatPanelSingleProps
 > = ({
   centerFullScreenContent = false,
@@ -110,6 +113,7 @@ const SessionCreatorChatPanelSingle: React.FC<
   leadingActionSlot,
   headerLayout = "hero",
   hideRepoLine = false,
+  includeHumanSession = true,
   initialContent,
   dropdownDirection = "down",
   onOpenCliTerminal,
@@ -775,6 +779,7 @@ const SessionCreatorChatPanelSingle: React.FC<
           : undefined
       }
       categoryPickerProps={{
+        includeHumanSession,
         modelPickerStyle,
         onClose: () => setIsCategorySelectorOpen(false),
         onSelect: handleAgentPickerSelect,
@@ -821,6 +826,28 @@ const SessionCreatorChatPanelSingle: React.FC<
       workItemPanelHostRef={workItemPanelHostRef}
     />
   );
+};
+
+const SessionCreatorChatPanelSingle: React.FC<
+  SessionCreatorChatPanelSingleProps
+> = (props) => {
+  const creatorState = useAtomValue(sessionCreatorStateAtom);
+  const setCreatorState = useSetAtom(sessionCreatorStateAtom);
+  const shouldResetHumanSelection =
+    props.includeHumanSession === false &&
+    (creatorState.dispatchCategory === "human_session" ||
+      creatorState.targetKind === SESSION_TARGET_KIND.HUMAN);
+
+  useLayoutEffect(() => {
+    if (!shouldResetHumanSelection) return;
+    setCreatorState((previous) =>
+      normalizeAgentOnlySessionCreatorState(previous)
+    );
+  }, [setCreatorState, shouldResetHumanSelection]);
+
+  if (shouldResetHumanSelection) return null;
+
+  return <SessionCreatorChatPanelContent {...props} />;
 };
 
 SessionCreatorChatPanelSingle.displayName = "SessionCreatorChatPanelSingle";

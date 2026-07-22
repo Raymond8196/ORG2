@@ -11,6 +11,7 @@
 - Enter one non-empty note and submit it; a `humansession-…` row appears in the Human sidebar group and opens like any other session.
 - The explicit or derived session title remains stable as more notes are appended.
 - An empty initial note cannot be submitted.
+- Open **Create Work item** after leaving the regular session creator on **Work log**; the embedded composer starts with **SDE Agent**, and Work log is not offered in its agent picker.
 
 ## Appending notes
 
