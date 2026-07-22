@@ -5,6 +5,7 @@ import { type Dispatch, type SetStateAction, useCallback } from "react";
 
 import { deleteSession } from "@src/api/tauri/agent";
 import { benchmarkApi } from "@src/api/tauri/benchmark";
+import { deleteHumanSession } from "@src/api/tauri/humanSession";
 import { rpc } from "@src/api/tauri/rpc";
 import Message from "@src/components/Message";
 import {
@@ -51,7 +52,10 @@ import {
   chatPanelNavigateAtom,
 } from "@src/store/ui/chatPanelAtom";
 import { invokeTauri } from "@src/util/platform/tauri/init";
-import { isCliSession } from "@src/util/session/sessionDispatch";
+import {
+  isCliSession,
+  isHumanSession,
+} from "@src/util/session/sessionDispatch";
 import { getSessionListDisplayName } from "@src/util/session/sessionSidebarRow";
 import {
   getChatPanelTabIdFromTuiSessionId,
@@ -187,6 +191,8 @@ export function useWorkstationSidebarHandlers({
         }
         if (isCliSession(sessionId)) {
           await invokeTauri("cli_agent_delete", { sessionId });
+        } else if (isHumanSession(sessionId)) {
+          await deleteHumanSession(sessionId);
         } else {
           await deleteSession(sessionId);
         }

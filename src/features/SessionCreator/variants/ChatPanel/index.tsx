@@ -12,7 +12,12 @@ import {
   cliAgentCreateTuiSession,
   resolveCliTuiCommand,
 } from "@src/api/tauri/agent/cliTerminalSession";
+import { createHumanSession } from "@src/api/tauri/humanSession";
+import { HUMAN_SESSION_TITLE_MAX_LENGTH } from "@src/api/tauri/rpc/schemas/humanSession";
 import type { CliAgentType } from "@src/api/types/keys";
+import Input from "@src/components/Input";
+import { GHOST_INPUT_PLACEHOLDER_CLASS } from "@src/components/Input/tokens";
+import Message from "@src/components/Message";
 import type { ScrollNavState } from "@src/engines/ChatPanel/ChatHistory";
 import { useBrowserAddToConversationAction } from "@src/engines/ChatPanel/hooks/useBrowserAddToConversationAction";
 import { useSessionCreator } from "@src/engines/SessionCore/hooks/session/useSessionCreator";
@@ -33,7 +38,7 @@ import {
 import { useRepoSelection } from "@src/hooks/git/useRepoSelection";
 import { createLogger } from "@src/hooks/logger";
 import { useAgentOrgs } from "@src/modules/MainApp/AgentOrgs/hooks/useAgentOrgs";
-import type { AgentSelection } from "@src/scaffold/GlobalSpotlight/palettes/DispatchCategoryPalette";
+import { type AgentSelection } from "@src/scaffold/GlobalSpotlight/palettes/DispatchCategoryPalette";
 import { gitDependencyInstalledAtom } from "@src/store/platform/gitDependencyAtom";
 import { REPO_KIND } from "@src/store/repo/types";
 import {
@@ -53,6 +58,7 @@ import { restoreToInputAtom } from "@src/store/session/cliSessionStatusAtom";
 import { openCategoryPickerSignalAtom } from "@src/store/session/openCategoryPickerAtom";
 import { runningLocationAtom } from "@src/store/session/runningLocationAtom";
 import { selectedWorktreePathAtom } from "@src/store/session/selectedWorktreePathAtom";
+import { loadSessions } from "@src/store/session/sessionAtom/loaders";
 import { tuiModeAtom } from "@src/store/session/tuiModeAtom";
 import {
   type ChatImageAttachment,
@@ -123,6 +129,13 @@ const SessionCreatorChatPanelSingle: React.FC<
   const dispatchCategory = useAtomValue(dispatchCategoryAtom);
   const cliAgentType = useAtomValue(cliAgentTypeAtom);
   const isCliMode = dispatchCategory === "cli_agent";
+  const isHumanMode = dispatchCategory === "human_session";
+  const [humanNoteHasContent, setHumanNoteHasContent] = useState(
+    Boolean(initialContent?.trim())
+  );
+  const [humanTitle, setHumanTitle] = useState("");
+  const humanCreatingRef = useRef(false);
+  const [humanCreating, setHumanCreating] = useState(false);
   const {
     cliComposerEnabled,
     cliLaunchMode,
@@ -182,12 +195,18 @@ const SessionCreatorChatPanelSingle: React.FC<
   const handleSessionStart = useCallback(
     (info: SessionLaunchSuccessInfo) => {
       setAttachedWorkItemContext(null);
-      if (defaultTuiMode) {
+      if (defaultTuiMode && !isHumanMode) {
         store.set(tuiModeAtom(info.sessionId), true);
       }
       onSessionStart?.(info);
     },
-    [onSessionStart, defaultTuiMode, setAttachedWorkItemContext, store]
+    [
+      onSessionStart,
+      defaultTuiMode,
+      isHumanMode,
+      setAttachedWorkItemContext,
+      store,
+    ]
   );
 
   const {
@@ -387,6 +406,7 @@ const SessionCreatorChatPanelSingle: React.FC<
   const handleContentChangeWithTracking = useCallback(
     (text: string) => {
       setDraftHasContent(text.trim().length > 0);
+      setHumanNoteHasContent(text.trim().length > 0);
       handleContentChange?.(text);
     },
     [handleContentChange, setDraftHasContent]
@@ -434,6 +454,35 @@ const SessionCreatorChatPanelSingle: React.FC<
   // ── Launch ────────────────────────────────────────────────────────────────
 
   const handleLaunch = useCallback(async () => {
+    if (isHumanMode) {
+      const note = composerInputRef.current?.getTextWithPills().trim() ?? "";
+      if (!note || humanCreatingRef.current) return;
+      humanCreatingRef.current = true;
+      setHumanCreating(true);
+      try {
+        const humanSession = await createHumanSession({
+          body: note,
+          title: humanTitle.trim() || undefined,
+          workspacePath: effectiveSource?.repoPath,
+        });
+        composerInputRef.current?.clear();
+        setHumanTitle("");
+        handleContentChangeWithTracking("");
+        await loadSessions({ forceRefresh: true }).catch(() => undefined);
+        handleSessionStart({ sessionId: humanSession.sessionId });
+      } catch (error) {
+        Message.error(
+          error instanceof Error
+            ? error.message
+            : t("humanSession.createFailed")
+        );
+      } finally {
+        humanCreatingRef.current = false;
+        setHumanCreating(false);
+      }
+      return;
+    }
+
     if (
       isCliTuiMode &&
       onOpenCliTerminal &&
@@ -491,8 +540,13 @@ const SessionCreatorChatPanelSingle: React.FC<
     return originalHandleLaunch();
   }, [
     cliAgentType,
+    composerInputRef,
     chatPanelLaunchContext.orgId,
     effectiveSource?.repoPath,
+    handleContentChangeWithTracking,
+    handleSessionStart,
+    humanTitle,
+    isHumanMode,
     isCliTuiMode,
     onOpenCliTerminal,
     originalHandleLaunch,
@@ -501,6 +555,7 @@ const SessionCreatorChatPanelSingle: React.FC<
     selectedWorktreePath,
     setAttachedWorkItemContext,
     worktreeLaunchSource,
+    t,
   ]);
 
   useEffect(() => {
@@ -578,7 +633,7 @@ const SessionCreatorChatPanelSingle: React.FC<
     <SessionCreatorChatPanelView
       agentHeroRef={agentHeroRef}
       browserElementScrollNav={browserElementScrollNav}
-      canLaunch={canLaunch}
+      canLaunch={isHumanMode ? humanNoteHasContent : canLaunch}
       centerFullScreenContent={centerFullScreenContent}
       className={className}
       cliLaunchModeSwitch={
@@ -606,11 +661,34 @@ const SessionCreatorChatPanelSingle: React.FC<
           : undefined
       }
       compactHeaderIcon={compactHeaderIcon}
-      composerHeaderContent={composerHeaderContent}
+      composerHeaderContent={
+        isHumanMode ? (
+          <div className="px-1" data-testid="create-human-session-header">
+            <div className="flex h-10 items-center py-0">
+              <Input
+                type="text"
+                value={humanTitle}
+                onChange={setHumanTitle}
+                placeholder={t("humanSession.titlePlaceholder")}
+                maxLength={HUMAN_SESSION_TITLE_MAX_LENGTH}
+                autoFocus
+                disabled={humanCreating}
+                fieldVariant="ghost"
+                size="small"
+                className="flex-1"
+                inputClassName={GHOST_INPUT_PLACEHOLDER_CLASS}
+                data-testid="create-human-session-title-input"
+              />
+            </div>
+          </div>
+        ) : (
+          composerHeaderContent
+        )
+      }
       composerInputRef={composerInputRef}
       editorAreaProps={{
         variant: "chatPanelFullScreen",
-        uploadedFiles,
+        uploadedFiles: isHumanMode ? [] : uploadedFiles,
         onRemoveFile: handleRemoveFile,
         composerInputRef,
         onContentChange: handleContentChangeWithTracking,
@@ -624,8 +702,8 @@ const SessionCreatorChatPanelSingle: React.FC<
         onAtSelect: handleAtSelect,
         repoPath: currentRepoPath,
         onAtMentionClick: handleAtMentionClick,
-        onUploadClick: handleUploadClick,
-        isLoading,
+        onUploadClick: isHumanMode ? () => undefined : handleUploadClick,
+        isLoading: isHumanMode ? humanCreating : isLoading,
         onLaunch: handleLaunch,
         advancedConfig,
         onAdvancedConfigChange: handleAdvancedConfigChange,
@@ -636,15 +714,22 @@ const SessionCreatorChatPanelSingle: React.FC<
         branchName:
           isOSMode && !sessionRepoId ? undefined : effectiveBranchName,
         onBranchChange: handleBranchChange,
-        onImagePaste: handleImagePaste,
-        attachedImages,
-        onRemoveImage: removeImage,
-        launchDisabled: !canLaunch,
-        requestModelOpen,
+        onImagePaste: isHumanMode ? undefined : handleImagePaste,
+        attachedImages: isHumanMode ? [] : attachedImages,
+        onRemoveImage: isHumanMode ? undefined : removeImage,
+        launchDisabled: isHumanMode ? !humanNoteHasContent : !canLaunch,
+        launchAriaLabel: isHumanMode
+          ? t("humanSession.createAction")
+          : undefined,
+        hideModelSourcePill: isHumanMode,
+        editorPlaceholder: isHumanMode
+          ? t("humanSession.createPlaceholder")
+          : undefined,
+        requestModelOpen: isHumanMode ? false : requestModelOpen,
         onModelOpenHandled: () => setRequestModelOpen(false),
         shellClassName: "session-creator-chat-panel-fullscreen-input-shell",
         initialContent: initialRestoreText || initialContent || undefined,
-        autoFocus: true,
+        autoFocus: !isHumanMode,
         showSlashMenu,
         slashQuery,
         slashCommandKeyboardHandlerRef,
@@ -663,12 +748,12 @@ const SessionCreatorChatPanelSingle: React.FC<
       heroContent={heroContent}
       heroIcon={heroIcon}
       hidePresenceButton={hidePresenceButton}
-      hideRepoLine={hideRepoLine}
+      hideRepoLine={isHumanMode || hideRepoLine}
       innerClassName={innerClassName}
       isCategorySelectorOpen={isCategorySelectorOpen}
       isCliTuiMode={isCliTuiMode}
       isFullScreenVariant={isFullScreenVariant}
-      isLoading={isLoading}
+      isLoading={isHumanMode ? humanCreating : isLoading}
       isOrgMembersPanelOpen={isOrgMembersPanelOpen}
       isWingmanMode={isWingmanMode}
       leadingActionSlot={leadingActionSlot}
@@ -730,7 +815,8 @@ const SessionCreatorChatPanelSingle: React.FC<
         fullWidth: true,
         pillVariant: headerLayout === "compact" ? "ghost" : undefined,
       }}
-      showMissingGitAlert={showMissingGitAlert}
+      showMissingGitAlert={!isHumanMode && showMissingGitAlert}
+      hideSessionSetupControls={isHumanMode}
       workItemContext={attachedWorkItemContext}
       workItemPanelHostRef={workItemPanelHostRef}
     />

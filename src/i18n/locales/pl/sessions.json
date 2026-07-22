@@ -5,6 +5,9 @@
     "decision": "{{tokenCount}} Token decyzji",
     "tooltip": "Szacowana atrybucja narzędzia. Metoda: {{method}}. Wejście: {{inputBytes}} bytes. Wyjście: {{outputBytes}} bytes. Decyzja: {{decisionTokens}} Token. Kontekst: {{contextTokens}} Token. Follow-up: {{followupTokens}} Token. Powiązany LLM cache read: {{cacheReadTokens}} Token. Powiązany LLM cache write: {{cacheWriteTokens}} Token."
   },
+  "humanSession": {
+    "titlePlaceholder": "Tytuł (opcjonalnie)"
+  },
   "history": {
     "untitledSession": "Sesja bez tytułu",
     "prStatus": {
@@ -2143,7 +2146,10 @@
     "categoryLabel": "Kategoria sesji",
     "categoryTemplate": "Wybierz {category}",
     "categoryPlaceholder": "Agent",
-    "builtInAgents": "Wbudowane Agenty",
+    "builtIns": "Wbudowane",
+    "humanSession": {
+      "name": "Dziennik pracy"
+    },
     "cliAgents": "CLI Agenty",
     "customAgents": "Niestandardowe Agenty",
     "agentOrgs": "Zespoły Agent",

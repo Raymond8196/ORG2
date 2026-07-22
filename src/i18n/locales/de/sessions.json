@@ -5,6 +5,9 @@
     "decision": "{{tokenCount}} Token Entscheidung",
     "tooltip": "Geschätzte Tool-Zuordnung. Methode: {{method}}. Eingabe: {{inputBytes}} bytes. Ausgabe: {{outputBytes}} bytes. Entscheidung: {{decisionTokens}} Token. Kontext: {{contextTokens}} Token. Follow-up: {{followupTokens}} Token. Zugehöriger LLM cache read: {{cacheReadTokens}} Token. Zugehöriger LLM cache write: {{cacheWriteTokens}} Token."
   },
+  "humanSession": {
+    "titlePlaceholder": "Titel (optional)"
+  },
   "history": {
     "untitledSession": "Unbenannte Session",
     "prStatus": {
@@ -2090,7 +2093,10 @@
     "categoryLabel": "Sitzungskategorie",
     "categoryTemplate": "{category} auswählen",
     "categoryPlaceholder": "Agent",
-    "builtInAgents": "Integrierte Agents",
+    "builtIns": "Integriert",
+    "humanSession": {
+      "name": "Arbeitsprotokoll"
+    },
     "cliAgents": "CLI Agents",
     "customAgents": "Benutzerdefinierte Agents",
     "agentOrgs": "Agent-Teams",

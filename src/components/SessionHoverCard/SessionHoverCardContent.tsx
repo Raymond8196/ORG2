@@ -551,9 +551,7 @@ export const SessionHoverCardContent: React.FC<SessionHoverCardContentProps> =
                 {t("history.detail.sessionId")}
               </span>
               <span className="mx-1 text-text-4">·</span>
-              <span className="font-mono">
-                {formatCompactSessionId(underlyingSessionId)}
-              </span>
+              <span>{formatCompactSessionId(underlyingSessionId)}</span>
               {copiedForSessionId === sessionId && (
                 <Check
                   size={12}
