@@ -91,8 +91,10 @@ import { separator } from "../useSessionMenuItems/menuItemBuilders";
 import {
   CLOUD_SESSION_SECTION_PAGE_SIZE,
   CLOUD_TEAM_SESSIONS_LOAD_MORE_ID,
+  CLOUD_TEAM_SESSIONS_SECTION_ID,
   buildCloudSectionLoadMoreItem,
 } from "./cloudScopedMenuItems";
+import { resetScopedSectionPagination } from "./sectionPagination";
 
 interface UseCloudSessionsSectionParams {
   /** Active cloud org id (bare, not `cloud:`-prefixed); null ⇒ no section. */
@@ -116,6 +118,8 @@ interface UseCloudSessionsSectionResult {
   selectedCloudMenuItemId: string | null;
   /** Click resolver for Team rows and the Team section's pagination row. */
   handleCloudSessionItemClick: (item: NavigationMenuItem) => boolean;
+  /** Forget any extra Team rows revealed with Load more. */
+  resetCloudTeamPagination: () => void;
   /** Locally hide a teammate cloud row and discard its replay cache. */
   handleCloudRemoteItemRemove: (item: NavigationMenuItem) => boolean;
   /** Member-filter dropdown portal — render once next to the sidebar. */
@@ -298,6 +302,11 @@ export function useCloudSessionsSection({
     () => threads.slice(0, teamVisibleCount),
     [teamVisibleCount, threads]
   );
+  const resetCloudTeamPagination = useCallback(() => {
+    setTeamPagination((current) =>
+      resetScopedSectionPagination(current, CLOUD_SESSION_SECTION_PAGE_SIZE)
+    );
+  }, []);
 
   // Local sessions that already render at their threaded position — hidden
   // from the flat local list so they never appear twice. Invariant: a session
@@ -612,7 +621,7 @@ export function useCloudSessionsSection({
   const cloudMenuItems = useMemo<NavigationMenuItem[]>(() => {
     if (!orgId) return [];
     const header = separator(
-      "cloud-team-sessions",
+      CLOUD_TEAM_SESSIONS_SECTION_ID,
       t("cloud.sidebar.teamSessions")
     );
     header.rowActions = [
@@ -913,6 +922,7 @@ export function useCloudSessionsSection({
     cloudThreadedLocalSessionIds,
     selectedCloudMenuItemId,
     handleCloudSessionItemClick,
+    resetCloudTeamPagination,
     handleCloudRemoteItemRemove,
     cloudMemberFilterDropdown,
     cloudRemoteRowMap,
