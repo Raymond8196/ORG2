@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, createElement } from "react";
+import { StrictMode, act, createElement } from "react";
 import { type Root, createRoot } from "react-dom/client";
 import {
   afterAll,
@@ -90,12 +90,16 @@ describe("NavigationMenu selected-child expansion", () => {
 
     await act(async () => {
       root.render(
-        createElement(NavigationMenu, {
-          items,
-          selectedKeys: [],
-          onMenuItemClick: vi.fn(),
-          onSubmenuOpenChange,
-        })
+        createElement(
+          StrictMode,
+          null,
+          createElement(NavigationMenu, {
+            items,
+            selectedKeys: [],
+            onMenuItemClick: vi.fn(),
+            onSubmenuOpenChange,
+          })
+        )
       );
     });
 
