@@ -44,7 +44,7 @@ import { WorkspacePalette } from "@src/scaffold/GlobalSpotlight/palettes/Workspa
 import { WorkspaceDropdown } from "@src/scaffold/GlobalSpotlight/palettes/WorkspacePalette/WorkspaceDropdown";
 import { runGuardedCheckout } from "@src/services/git/operations/guardedCheckout";
 import { REPO_KIND, type RepoKind } from "@src/store/repo/types";
-import type { WorktreeLaunchSource } from "@src/store/session/worktreeLaunchSourceAtom";
+import type { WorktreeLaunchSelection } from "@src/store/session/worktreeLaunchSourceAtom";
 import { modelPickerStyleAtom } from "@src/store/ui/chatPanelAtom";
 import {
   branchSelectorOpenAtom,
@@ -127,7 +127,7 @@ export interface SessionInfoLineProps {
   selectedWorktreePath?: string | null;
   worktreeSourceLabel?: string;
   onWorktreeLocationChange?: (location: RunningLocation) => void;
-  onWorktreeSourceSelect?: (source: WorktreeLaunchSource) => void;
+  onWorktreeSourceSelect?: (selection: WorktreeLaunchSelection) => void;
 }
 
 const LOCATION_ROWS: LocationRow[] = RUNNING_LOCATIONS.map((entry) => ({
@@ -530,8 +530,8 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
   }, []);
 
   const handleWorktreeSourceSelect = useCallback(
-    (source: WorktreeLaunchSource) => {
-      onWorktreeSourceSelect?.(source);
+    (selection: WorktreeLaunchSelection) => {
+      onWorktreeSourceSelect?.(selection);
       setIsWorktreeSourceModalOpen(false);
     },
     [onWorktreeSourceSelect]

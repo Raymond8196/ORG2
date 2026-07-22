@@ -56,7 +56,7 @@ import { REPO_KIND } from "@src/store/repo/types";
 import {
   CLI_LAUNCH_MODE,
   SESSION_TARGET_KIND,
-  type WorktreeLaunchSource,
+  type WorktreeLaunchSelection,
   agentIconIdAtom,
   agentNameAtom,
   cliAgentTypeAtom,
@@ -64,18 +64,18 @@ import {
   cliLaunchModeAtom,
   dispatchCategoryAtom,
   isCliAgentEnabled,
+  resolveWorktreeSelectionRepoKey,
   selectedAgentDefinitionIdAtom,
   selectedAgentOrgIdAtom,
   sessionCreatorStateAtom,
   sessionSourceAtom,
   sessionTargetKindAtom,
-  worktreeLaunchSourceAtom,
+  worktreeLaunchSelectionAtom,
 } from "@src/store/session";
 import { restoreToInputAtom } from "@src/store/session/cliSessionStatusAtom";
 import { creatorDefaultTuiModeAtom } from "@src/store/session/creatorDefaultTuiModeAtom";
 import { openCategoryPickerSignalAtom } from "@src/store/session/openCategoryPickerAtom";
 import { runningLocationAtom } from "@src/store/session/runningLocationAtom";
-import { selectedWorktreePathAtom } from "@src/store/session/selectedWorktreePathAtom";
 import { tuiModeAtom } from "@src/store/session/tuiModeAtom";
 import {
   type ChatImageAttachment,
@@ -306,35 +306,53 @@ const SessionCreatorChatPanelSingle: React.FC<
 
   const runningLocation = useAtomValue(runningLocationAtom);
   const setRunningLocation = useSetAtom(runningLocationAtom);
-  const setSelectedWorktreePath = useSetAtom(selectedWorktreePathAtom);
-  const worktreeLaunchSource = useAtomValue(worktreeLaunchSourceAtom);
-  const setWorktreeLaunchSource = useSetAtom(worktreeLaunchSourceAtom);
+  const worktreeLaunchSelection = useAtomValue(worktreeLaunchSelectionAtom);
+  const setWorktreeLaunchSelection = useSetAtom(worktreeLaunchSelectionAtom);
+  const currentWorktreeRepoKey = resolveWorktreeSelectionRepoKey(
+    effectiveSource?.repoId,
+    effectiveSource?.repoPath
+  );
+  const activeWorktreeSelection =
+    worktreeLaunchSelection?.repoKey === currentWorktreeRepoKey
+      ? worktreeLaunchSelection
+      : null;
+  const clearWorktreeLaunchSelection = useCallback(
+    () => setWorktreeLaunchSelection(null),
+    [setWorktreeLaunchSelection]
+  );
 
   const handleWorktreeLocationChange = useCallback(
     (location: Parameters<typeof setRunningLocation>[0]) => {
-      setSelectedWorktreePath(null);
       if (location !== "worktree") {
-        setWorktreeLaunchSource(null);
+        setWorktreeLaunchSelection(null);
       }
       setRunningLocation(location);
     },
-    [setRunningLocation, setSelectedWorktreePath, setWorktreeLaunchSource]
+    [setRunningLocation, setWorktreeLaunchSelection]
   );
 
   const handleWorktreeSourceSelect = useCallback(
-    (source: WorktreeLaunchSource) => {
-      setSelectedWorktreePath(null);
-      setWorktreeLaunchSource(source);
+    (selection: WorktreeLaunchSelection) => {
+      // A PR-base resolution may finish after the user switches repositories.
+      // Ignore that late result before it can overwrite the new repo's branch
+      // draft or put the creator back into worktree mode.
+      if (
+        !currentWorktreeRepoKey ||
+        selection.repoKey !== currentWorktreeRepoKey
+      ) {
+        return;
+      }
+      setWorktreeLaunchSelection(selection);
       setRunningLocation("worktree");
-      if (source.baseBranch) {
-        handleBranchChange(source.baseBranch);
+      if (selection.source.baseBranch) {
+        handleBranchChange(selection.source.baseBranch);
       }
     },
     [
+      currentWorktreeRepoKey,
       handleBranchChange,
       setRunningLocation,
-      setSelectedWorktreePath,
-      setWorktreeLaunchSource,
+      setWorktreeLaunchSelection,
     ]
   );
 
@@ -389,6 +407,7 @@ const SessionCreatorChatPanelSingle: React.FC<
     setAdvancedConfig,
     selectRepo,
     forceRefreshRepos,
+    onRepoScopeChange: clearWorktreeLaunchSelection,
   });
 
   const handleAgentPickerSelect = useCallback(
@@ -750,7 +769,12 @@ const SessionCreatorChatPanelSingle: React.FC<
       onBranchChange={handleBranchChange}
       worktreeLocation={isDisplayedSystemPath ? undefined : runningLocation}
       worktreeSourceLabel={
-        runningLocation === "worktree" ? worktreeLaunchSource?.label : undefined
+        runningLocation === "worktree"
+          ? activeWorktreeSelection?.source.label
+          : undefined
+      }
+      selectedWorktreePath={
+        activeWorktreeSelection?.source.existingWorktreePath ?? null
       }
       onWorktreeLocationChange={handleWorktreeLocationChange}
       onWorktreeSourceSelect={handleWorktreeSourceSelect}

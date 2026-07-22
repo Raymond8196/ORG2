@@ -30,8 +30,10 @@ import { useWorktreeMap } from "@src/scaffold/GlobalSpotlight/palettes/BranchPal
 import Modal from "@src/scaffold/ModalSystem";
 import type {
   WorktreeCreateSourceKind,
+  WorktreeLaunchSelection,
   WorktreeLaunchSource,
 } from "@src/store/session/worktreeLaunchSourceAtom";
+import { resolveWorktreeSelectionRepoKey } from "@src/store/session/worktreeLaunchSourceAtom";
 
 import { useWorktreeSourceData } from "./useWorktreeSourceData";
 import {
@@ -66,7 +68,7 @@ interface WorktreeSourceModalProps {
   repoPath?: string;
   branchName?: string;
   onClose: () => void;
-  onSelect: (source: WorktreeLaunchSource) => void;
+  onSelect: (selection: WorktreeLaunchSelection) => void;
 }
 
 interface GitHubWorktreeItem {
@@ -276,6 +278,7 @@ const WorktreeSourceModal: React.FC<WorktreeSourceModalProps> = ({
   onSelect,
 }) => {
   const { t } = useTranslation("sessions");
+  const selectionRepoKey = resolveWorktreeSelectionRepoKey(repoId, repoPath);
   const [activeTab, setActiveTab] = useState<WorktreeCreateSourceKind>("smart");
   const [selectedSource, setSelectedSource] =
     useState<WorktreeLaunchSource | null>(null);
@@ -485,6 +488,11 @@ const WorktreeSourceModal: React.FC<WorktreeSourceModalProps> = ({
     if (!fallbackSource || isResolving) return;
     setResolveError(null);
 
+    if (!selectionRepoKey) {
+      setResolveError("Select a repository before choosing a worktree source.");
+      return;
+    }
+
     // PR sources must be resolved to a concrete, git-resolvable base ref
     // (the PR head SHA) before launch — the synthetic `pr:<n>` ref and the
     // head branch name alone cannot create a worktree for fork PRs.
@@ -503,7 +511,10 @@ const WorktreeSourceModal: React.FC<WorktreeSourceModalProps> = ({
           headBranch: meta.headBranch,
           baseBranch: meta.baseBranch,
         });
-        onSelect(mergeResolvedPrBase(fallbackSource, resolution));
+        onSelect({
+          repoKey: selectionRepoKey,
+          source: mergeResolvedPrBase(fallbackSource, resolution),
+        });
       } catch (error) {
         setResolveError(error instanceof Error ? error.message : String(error));
         return;
@@ -513,7 +524,7 @@ const WorktreeSourceModal: React.FC<WorktreeSourceModalProps> = ({
       return;
     }
 
-    onSelect(fallbackSource);
+    onSelect({ repoKey: selectionRepoKey, source: fallbackSource });
   };
 
   const renderSmartTab = () => {

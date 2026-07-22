@@ -110,6 +110,9 @@ export async function forkCodexAppHistoryIntoOrgiiSession(params: {
     name: `Continue ${params.sourceSession?.name || "Codex history"}`,
     repoPath:
       params.sourceSession?.repoPath || params.sourceSession?.worktreePath,
+    worktreePath: params.sourceSession?.repoPath
+      ? params.sourceSession.worktreePath
+      : undefined,
     model: params.sourceSession?.model,
     accountId: params.sourceSession?.accountId,
     keySource: params.sourceSession?.keySource,
