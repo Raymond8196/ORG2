@@ -9,6 +9,7 @@ import {
   orgIdOfCompositeKey,
   pruneOrgKeyedRecord,
   reconcileOrg2CloudPersistedState,
+  rosterReconcileKey,
   shouldReconcileRoster,
 } from "./org2CloudRosterReconcile";
 import {
@@ -64,6 +65,25 @@ describe("shouldReconcileRoster", () => {
 
   it("prunes when loaded with a non-empty roster", () => {
     expect(shouldReconcileRoster(true, 1)).toBe(true);
+  });
+});
+
+describe("rosterReconcileKey", () => {
+  it("changes when membership changes under the same identity", () => {
+    const first = rosterReconcileKey("cloud|user-1", true, [LIVE, ZOMBIE]);
+    const afterLeave = rosterReconcileKey("cloud|user-1", true, [LIVE]);
+
+    expect(first).not.toBe(afterLeave);
+  });
+
+  it("is stable across roster order and duplicate rows", () => {
+    expect(rosterReconcileKey("cloud|user-1", true, [ZOMBIE, LIVE, LIVE])).toBe(
+      rosterReconcileKey("cloud|user-1", true, [LIVE, ZOMBIE])
+    );
+  });
+
+  it("does not authorize pruning before a successful load", () => {
+    expect(rosterReconcileKey("cloud|user-1", false, [LIVE])).toBeNull();
   });
 });
 

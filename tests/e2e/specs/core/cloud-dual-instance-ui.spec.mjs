@@ -276,7 +276,7 @@ async function completeForkSetupOn(client, label, options = {}) {
               (node.textContent ?? '').includes(${JSON.stringify(options.agentName)})
             );
             if (!target) return false;
-            target.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+            target.setAttribute('data-e2e-fork-agent-option', 'true');
             return true;
           `
         ),
@@ -285,6 +285,11 @@ async function completeForkSetupOn(client, label, options = {}) {
         interval: 250,
         timeoutMsg: `${label} non-default agent option never rendered`,
       }
+    );
+    await clickRenderedOn(
+      client,
+      '[data-e2e-fork-agent-option="true"]',
+      `${label} non-default agent option`
     );
     await client.waitUntil(
       async () =>
@@ -665,23 +670,14 @@ async function openCloudOrgPanelOn(client, orgId, label) {
 }
 
 async function openProjectContextMenuOn(client, projectId, label) {
-  const opened = await executeOn(
+  const rowSelector = `[data-testid="project-row-${projectId}"]`;
+  await waitForRenderedOn(
     client,
-    `
-      const row = document.querySelector(arguments[0]);
-      if (!row) return false;
-      const rect = row.getBoundingClientRect();
-      row.dispatchEvent(new MouseEvent('contextmenu', {
-        bubbles: true,
-        cancelable: true,
-        clientX: rect.left + 24,
-        clientY: rect.top + 20,
-      }));
-      return true;
-    `,
-    [`[data-testid="project-row-${projectId}"]`]
+    rowSelector,
+    `${label} Project row`,
+    CLOUD_FETCH_TIMEOUT_MS
   );
-  if (!opened) throw new Error(`${label} Project row was not rendered`);
+  await client.$(rowSelector).click({ button: "right" });
   await waitForRenderedOn(
     client,
     '[data-testid="context-menu-item-open"]',
@@ -753,33 +749,31 @@ async function postCommentOn(client, body) {
     "secondary comment body"
   );
   await client.waitUntil(
-    async () => {
-      const result = await executeOn(
+    async () =>
+      executeOn(
         client,
         `
-          const textareas = Array.from(
-            document.querySelectorAll('[data-testid="session-comment-composer"] textarea')
+          const buttons = Array.from(
+            document.querySelectorAll('[data-testid="session-comment-composer-submit"]')
           );
-          const visibleTextareas = textareas.filter((textarea) => {
-            const rect = textarea.getBoundingClientRect();
-            const style = window.getComputedStyle(textarea);
-            return rect.width > 0 && rect.height > 0 && style.display !== "none" && style.visibility !== "hidden";
+          return buttons.some((button) => {
+            const rect = button.getBoundingClientRect();
+            const style = window.getComputedStyle(button);
+            return !button.disabled && rect.width > 0 && rect.height > 0 &&
+              style.display !== "none" && style.visibility !== "hidden";
           });
-          const textarea = visibleTextareas[visibleTextareas.length - 1] ?? null;
-          const composer = textarea?.closest('[data-testid="session-comment-composer"]') ?? null;
-          const button = composer?.querySelector('[data-testid="session-comment-composer-submit"]') ?? null;
-          if (!button || button.disabled) return false;
-          button.click();
-          return true;
         `
-      );
-      return result === true;
-    },
+      ),
     {
       timeout: 30_000,
       interval: 250,
       timeoutMsg: "secondary comment submit never enabled",
     }
+  );
+  await clickRenderedOn(
+    client,
+    '[data-testid="session-comment-composer-submit"]',
+    "secondary comment submit"
   );
   await waitForRenderedOn(
     client,
@@ -790,16 +784,17 @@ async function postCommentOn(client, body) {
 }
 
 async function selectAddressCommentsForBatch() {
-  const selected = await execJS(`
-    const click = (node) => {
-      if (!node) return false;
-      node.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true, button: 0 }));
-      node.dispatchEvent(new MouseEvent('mouseup', { bubbles: true, cancelable: true, button: 0 }));
-      node.click();
-      return true;
-    };
+  const selectAllWasChecked = await execJS(`
     const all = document.querySelector('[data-testid="address-comments-select-all"]');
-    if (all?.getAttribute('aria-checked') === 'true') click(all);
+    return all?.getAttribute('aria-checked') === 'true';
+  `);
+  if (selectAllWasChecked) {
+    await clickRendered(
+      '[data-testid="address-comments-select-all"]',
+      "clear Address Comments select all"
+    );
+  }
+  const selected = await execJS(`
     const options = Array.from(document.querySelectorAll('[data-testid="address-comments-thread-option"]'));
     const session = options.find((option) =>
       option.getAttribute('data-comment-scope') === 'session' &&
@@ -809,9 +804,11 @@ async function selectAddressCommentsForBatch() {
       option.getAttribute('data-comment-scope') === 'round' &&
       option.textContent?.includes(${JSON.stringify(COMMENT_BODY.slice(0, 40))})
     );
+    session?.setAttribute('data-e2e-address-target', 'session');
+    round?.setAttribute('data-e2e-address-target', 'round');
     return {
-      session: click(session),
-      round: click(round),
+      session: Boolean(session),
+      round: Boolean(round),
       sessionText: session?.textContent ?? '',
       roundText: round?.textContent ?? '',
     };
@@ -821,6 +818,14 @@ async function selectAddressCommentsForBatch() {
       `Address Comments did not expose the intended session + round pair: ${JSON.stringify(selected)}`
     );
   }
+  await clickRendered(
+    '[data-e2e-address-target="session"]',
+    "select session-level Address Comment"
+  );
+  await clickRendered(
+    '[data-e2e-address-target="round"]',
+    "select round-level Address Comment"
+  );
   await browser.waitUntil(
     async () =>
       execJS(`
@@ -1394,12 +1399,20 @@ describe("Cloud collaboration with two independent rendered app instances", func
         timeoutMsg: "primary repo scope option never became available",
       }
     );
-    await execJS(`
+    const scopeOptionMarked = await execJS(`
       const expected = ${JSON.stringify(repoScopeKey)};
       const labels = [...document.querySelectorAll('[data-testid="cloud-org-repo-scope"] button span[title]')];
-      labels.find((label) => label.getAttribute('title') === expected)?.closest('button')?.click();
-      return true;
+      const button = labels.find((label) => label.getAttribute('title') === expected)?.closest('button');
+      button?.setAttribute('data-e2e-repo-scope-target', 'true');
+      return Boolean(button);
     `);
+    if (!scopeOptionMarked) {
+      throw new Error(`primary repo scope option disappeared: ${repoScopeKey}`);
+    }
+    await clickRendered(
+      '[data-e2e-repo-scope-target="true"]',
+      "primary select team repo scope"
+    );
     await browser.waitUntil(
       async () =>
         execJS(
@@ -2429,15 +2442,17 @@ describe("Cloud collaboration with two independent rendered app instances", func
       async () =>
         execJS(`
           const button = document.querySelector('[data-testid="session-comment-reply-composer-submit"]');
-          if (!button || button.disabled) return false;
-          button.click();
-          return true;
+          return !!button && !button.disabled;
         `),
       {
         timeout: 30_000,
         interval: 250,
         timeoutMsg: "owner reply submit never enabled",
       }
+    );
+    await clickRendered(
+      '[data-testid="session-comment-reply-composer-submit"]',
+      "owner submit reply"
     );
     await browser.waitUntil(
       async () =>

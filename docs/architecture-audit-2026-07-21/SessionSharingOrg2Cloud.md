@@ -1,140 +1,120 @@
-# Architecture Audit — Org2Cloud Session Sharing (branch + local changes)
+# Architecture Audit — PR #482 Org2Cloud Session Sharing
 
 Date: 2026-07-21
-Scope: the entire session-sharing surface (`src/features/Org2Cloud/**`, its UI consumers, the Rust
-runtime-instance isolation changes, and the dual-instance E2E suite) plus every uncommitted local
-change on this branch (38 files).
 
-## Layers covered
+Base: `origin/develop` (`311320f82`)
 
-| Layer                     | Covered                 | Result                                                                                                                                                                |
-| ------------------------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1 Compilation             | yes                     | `tsc --noEmit` clean; `cargo check` clean; 550/550 Org2Cloud unit tests pass                                                                                          |
-| 2 Dead code / duplication | yes                     | one duplicate found and removed pre-branch (`cloudMemberNamesIdentityKey` folded into `org2CloudAuthIdentityKey`); roster reads unified through `loadCloudOrgMembers` |
-| 3 Naming consistency      | yes                     | `org2CloudAuthIdentityKey` is the single identity-key constructor (verified by sweep: exactly one `${supabaseUrl}                                                     |
-| 4 Semantic overloading    | yes                     | "identityKey", "rosterVersion", "force", "signal" each have one meaning; see term table below                                                                         |
-| 5 Default branch analysis | yes                     | fail-open defaults documented at each site (`canAnchorTurns`, guest-share transient errors)                                                                           |
-| 6 Cross-domain leakage    | yes                     | E2E helpers read-only (`cloudInspectMemberRoster` never mutates); prod paths never import e2e helpers                                                                 |
-| 7 New-developer confusion | yes                     | in-file contracts documented (force-token queue, merge-not-replace comments fetch)                                                                                    |
-| 8 Wire protocol           | partial (intentionally) | no serialization format changed on this branch; RPC payload shapes untouched                                                                                          |
-| 9 Init parity             | yes                     | primary vs. WebDriver-secondary Rust identity parity test added (`webdriver_secondary_identifier_keeps_the_same_isolation_profile`)                                   |
-| 10 Resolver symmetry      | yes                     | remote-sessions reads audited for identity-filter symmetry; two asymmetric readers fixed (below)                                                                      |
+Scope: all 78 files in PR #482 after rebase, including Org2Cloud sharing/realtime/presence,
+comments, import/fork, external-session turn paging, dual-instance runtime isolation, rendered
+E2E support, and the audit fixes made in this pass.
 
-## Term table (Layer 4)
+## Verdict
 
-| Term            | Usage                                                                                                                                  | Verdict                                                                                  |
-| --------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `identityKey`   | `org2CloudAuthIdentityKey(auth)` = normalized `supabaseUrl                                                                             | userId`; keys caches, in-flight maps, snapshot guards                                    |
-| `rosterVersion` | per-org Realtime invalidation counter (`org2CloudRosterVersionAtom`), consumed by panel/sidebar/member-names fetch effects             | single meaning — OK                                                                      |
-| `force`         | "ignore completed TTL entry, still join an equal/newer in-flight request" (`LoadCloudOrgMembersOptions.force`, comments `queue_force`) | consistent, documented at both sites — OK                                                |
-| `signal`        | (a) Realtime `org_change_signals` table, (b) comments-bus counters, (c) `AbortSignal` in guest-share flights                           | contexts are disjoint (table name / atom / DOM API); no rename needed — keep with reason |
+**Pass.** No unresolved merge-blocking architecture finding remains. This pass found and fixed
+six lifecycle/correctness gaps and removed one false-path E2E pattern class. The remaining
+items are explicitly bounded or pre-existing sweep candidates and are listed below.
 
-## Findings and fixes made in this pass
+## Ten-layer coverage
 
-### F1 (fixed) — `SessionViewersIndicator` read the remote-sessions atom asymmetrically
+| Layer                      | Covered | Result                                                                                                                                                                                                                                            |
+| -------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. Compilation             | yes     | `tsc --noEmit` and `cargo check` pass; changed TS/JS lint/format and changed Rust format pass.                                                                                                                                                    |
+| 2. Dead code / duplication | yes     | Production call chains traced from root hooks, share/import UI, Tauri commands, and E2E entry points. New coordinators and helpers are wired; no definition/re-export/test-only abstraction found.                                                |
+| 3. Naming consistency      | yes     | `org2CloudAuthIdentityKey` remains the sole auth identity constructor. New `pruneRemovedOrgState` accurately names its wider responsibility.                                                                                                      |
+| 4. Semantic overloading    | yes     | Identity, roster version, force token, active org, and session turn terms were swept; term table below.                                                                                                                                           |
+| 5. Default branches        | yes     | Guest-share transient failure and comment anchor defaults remain fail-open only where the server re-authorizes. Imported `user` is now explicitly handled alongside `user_message`.                                                               |
+| 6. Cross-domain leakage    | yes     | Production never imports E2E helpers. Runtime-instance isolation remains in Rust; cloud state remains in Org2Cloud/TeamCollaboration.                                                                                                             |
+| 7. New-developer clarity   | yes     | Presence-topic, force-token, merge-not-replace, active-org, and cache-pruning contracts are documented at their owners.                                                                                                                           |
+| 8. Wire / storage protocol | yes     | No incompatible Supabase RPC shape changed. Local turn-index v11 intentionally rebuilds its materialized cache and accepts both native `user_message` and imported `user`. OAuth-live E2E credentials preserve file version and write atomically. |
+| 9. Initialization parity   | yes     | Primary, production secondary, and WebDriver secondary use the same instance isolation profile. Sync-engine start/stop is identity-keyed in every rendered entry path.                                                                            |
+| 10. Resolver symmetry      | yes     | Remote-session identity filtering, visible active-org selection, parent navigation, imported repo grouping, and turn-user resolution were compared; asymmetries were fixed or retained with reason.                                               |
 
-`useOrg2CloudRealtime` Slice C resolves presence refs from
-`remoteSessionsEntryForIdentity(remoteSessions[activeRealtimeOrgId], authIdentityKey)?.rows`,
-but `SessionViewersIndicator` flattened **all orgs' rows without an identity filter**
-(`Object.values(remoteSessions).flatMap((entry) => entry.rows)`). Resolver-symmetry violation
-(Layer 10): two resolvers of the same concept ("which cloud refs does this session map to")
-walked different source chains. Exposure was small (the `useLayoutEffect` in
-`useOrg2CloudRealtime` clears the atom before paint on identity change, and refs are re-filtered
-by `ref.orgId !== activeCloudOrgId`) but the asymmetry invited drift, and the flatMap allocated
-O(total cached rows) on every presence/session change.
-**Fix:** the indicator now reads the identical identity-filtered active-org entry as Slice C.
+## Term table
 
-### F2 (fixed) — `useSessionCommentViewer` decided `canAnchorTurns` from an unfiltered row
+| Term                    | Meaning                                                                            | Verdict                                                                    |
+| ----------------------- | ---------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `identityKey`           | normalized endpoint plus user id, used for cache ownership and async commit guards | one meaning; keep                                                          |
+| `active org`            | management surface selection first, sidebar selection as fallback                  | unified for Realtime demand and entitlement backoff in this pass           |
+| `rosterVersion`         | per-org Realtime invalidation counter                                              | one meaning; keep                                                          |
+| `force`                 | bypass completed-TTL reuse while still joining an equal/newer in-flight request    | consistent in roster/comments loaders                                      |
+| `user` / `user_message` | imported normalized user event / native user event                                 | two wire aliases for the same turn-boundary concept; explicitly normalized |
 
-`SessionCommentsContext.useSessionCommentViewer` read `remoteEntries[target.orgId]?.rows` raw.
-Every other remote-sessions consumer goes through `remoteSessionsEntryForIdentity`. A stale row
-from a previous account could decide anchor capability during a switch commit.
-**Fix:** the read is now identity-filtered; a filtered-out row falls into the documented
-fail-open default (`canAnchorTurns: true`, server enforces regardless).
+## Findings fixed
 
-### F3 (fixed) — unstable empty-array reference in `useCloudOrgPanelState`
+| ID  | Finding                                                                                                                                                                               | Fix                                                                                                                                          |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| F1  | `SessionViewersIndicator` scanned every org's remote rows without the active identity filter.                                                                                         | Reused the identity-filtered active-org resolver chain.                                                                                      |
+| F2  | Comment viewer capability could be decided from an unfiltered stale remote row.                                                                                                       | Applied `remoteSessionsEntryForIdentity`; documented the server-authorized fail-open fallback.                                               |
+| F3  | Identity-mismatch panel renders allocated a fresh empty member array.                                                                                                                 | Hoisted a stable empty constant.                                                                                                             |
+| F4  | Sync-engine timers and per-identity maps survived sign-out/account switch.                                                                                                            | Keyed start/stop to endpoint + user identity; `stop()` drains timers/waiters and resets state.                                               |
+| F5  | Presence heartbeats rewrote semantically identical roster objects and rebuilt broad UI consumers.                                                                                     | Added semantic equality that ignores heartbeat-only `updatedAt`.                                                                             |
+| F6  | Share refresh could call `setState` after unmount.                                                                                                                                    | Added unmount plus identity commit gates.                                                                                                    |
+| F7  | Comment signal counters grew per `(org, session)` without a cap.                                                                                                                      | Routed all writers through a 256-key LRU bump helper.                                                                                        |
+| F8  | Presence track/broadcast failures retried forever at 1 Hz.                                                                                                                            | Added 1s-to-30s capped exponential backoff with success/re-subscribe reset.                                                                  |
+| F9  | Presence topics had an undocumented no-sequence-suffix contract.                                                                                                                      | Documented the peer/RLS invariant at `joinPresence`.                                                                                         |
+| F10 | Switching from a heavy Worker-projected session to a small main-thread session retained the previous event/projection graph.                                                          | Clear Worker state and previous Worker input whenever the current input no longer uses the Worker; regression covers Worker → main → Worker. |
+| F11 | Org removal pruned only four backoff maps; hydration, alias, inbound, pending, full-state, and session-sync caches survived. Deleted local sessions also stayed in session-sync maps. | Replaced the partial helper with `pruneRemovedOrgState` and added `Org2CloudSessionSync.prune(liveOrgIds, liveSessionIds)` on every pass.    |
+| F12 | Persisted roster reconciliation ran once per identity, so same-account leave/delete could retain backend-owned per-org state.                                                         | Reconcile key now includes the sorted authoritative membership set and reruns when that set changes.                                         |
+| F13 | Inactive-org backoff only considered the sidebar, while Realtime considered an open management surface active.                                                                        | Unified the visible-org fallback chain: management selection, then sidebar.                                                                  |
+| F14 | Turn indexing accepted imported `function_name = "user"`, but placeholder preview stripped only `user_message`.                                                                       | Normalized both aliases and added Rust coverage.                                                                                             |
+| F15 | Six rendered E2E actions used page-script `.click()`/`dispatchEvent()` for behavior under assertion.                                                                                  | JavaScript now only locates/marks/checks; WebDriver performs the actual click, right-click, selection, and submit.                           |
+| F16 | Adding direct `webdriverio` rewrote thousands of unrelated lockfile lines.                                                                                                            | Restored the develop lock representation and kept only the three required importer lines; frozen-lock install passes.                        |
 
-`visibleMembers` returned a fresh `[]` on every render during an identity-mismatch window,
-invalidating downstream memos each render. Hoisted a module-level `NO_VISIBLE_MEMBERS` constant.
+## Resolver and initialization matrices
 
-### F4 (fixed) — sync engine ignored identity boundaries
+| Concept                     | Primary chain                                             | Secondary chain                               | Result                                                                                 |
+| --------------------------- | --------------------------------------------------------- | --------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Session cloud refs          | auth identity → active org entry → rows                   | indicator/comments/parent navigation          | indicator and comments fixed; parent navigation is event-time and server re-authorized |
+| Visible active org          | management panel org → sidebar org                        | Realtime scope and entitlement retry audience | unified in F13                                                                         |
+| External-session repo scope | explicit repo metadata → normalized cwd/upstream resolver | personal or cloud import/fork                 | symmetric; fork becomes an ordinary local continuation                                 |
+| User turn boundary          | native `user_message`                                     | imported normalized `user`                    | symmetric in index and placeholder rendering after F14                                 |
 
-`useOrg2CloudSyncEngine` started the engine once on mount and never stopped it: the recurring
-pass timer kept ticking while signed out, and every per-identity engine `Map` (push hashes,
-activity stamps, inbound cursors, backoff, schema gate) survived an account/endpoint switch.
-**Fix:** the hook is now keyed to `org2CloudAuthIdentityKey` — `stop()` (which drains waiters,
-bumps the generation, and calls `resetSyncState()`) on every identity change, `start()` only
-while an identity exists. Signed out ⇒ zero engine timers.
+| Entry point          | Data home                                          | External history home      | Cloud engine lifecycle                         |
+| -------------------- | -------------------------------------------------- | -------------------------- | ---------------------------------------------- |
+| Primary Tauri        | primary profile                                    | primary profile            | starts only with auth identity                 |
+| Production secondary | `instance{N}` profile                              | matching secondary profile | independent Jotai/Tauri process                |
+| WebDriver secondary  | `e2e.instance{N}` mapped to same isolation profile | matching secondary profile | independent seeded auth; no shared OAuth chain |
 
-### F5 (fixed) — presence `onSync` wrote semantically identical rosters
+## Kept with reason / non-blocking sweep candidates
 
-Every Supabase presence sync frame (including heartbeats where nothing changed) produced a new
-roster object in `org2CloudPresenceAtom`, re-rendering every presence consumer — including the
-sidebar section that rebuilds its menu tree. **Fix:** `org2CloudPresenceRosterEquals` compares
-by `userId`/`displayName`/`viewingSessionId` (deliberately ignoring `updatedAt`, which changes
-on every heartbeat) and `setPresence` keeps the previous object when equal.
+| Site                                                      | Verdict            | Reason                                                                                                                                    |
+| --------------------------------------------------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `SessionForkHeaderExtras.handleOpenParent` raw entry read | keep               | Event-handler-time lookup; server call re-authorizes and identity-owned atoms are cleared before paint on account switch.                 |
+| Member roster 30s fallback interval                       | keep               | Hidden ticks skip fetch; push invalidation is primary; effect tears down on org/identity/unmount.                                         |
+| Guest-validation overlap after abort                      | keep               | Commit/evict is abort-gated; at most one obsolete HTTP request can finish.                                                                |
+| Project push retry while hidden                           | keep               | Durable-outbox exception; one-shot, single-flight, and bounded.                                                                           |
+| Native `TauriMenu.new(...).popup()` disposal              | follow-up sweep    | Click-driven, not idle growth, and repeated at 12+ unrelated call sites. If handles leak, fix once with a shared popup-and-close helper.  |
+| Member-filter row keyboard focus                          | follow-up UI sweep | Pre-existing `DropdownItem`/`role=option` pattern outside this PR's added lines; not a regression and should be fixed design-system-wide. |
 
-### F6 (fixed) — `refreshShares` could set state after unmount
+## Systematic sweeps
 
-`useCloudShareOrgSectionModel.refreshShares` awaited a token refresh + list RPC and then wrote
-state guarded only by an identity check. **Fix:** an `unmountedRef` guard added to the same
-commit gate (identity check unchanged).
-
-### F7 (fixed) — comments-signal atom grew without bound
-
-`org2CloudCommentsSignalAtom` gained one counter per (org, session) ever nudged and was only
-cleared on identity change. **Fix:** all three writers (local bump, org-signal bump, peer
-broadcast handler) now route through `bumpCommentsSignalKey`, a pure LRU-bounded bump capped at
-`MAX_COMMENTS_SIGNAL_KEYS = 256` (unit-tested: cap, eviction order, recency refresh,
-non-mutation).
-
-### F8 (fixed) — presence track/broadcast retried at 1 Hz forever on persistent failure
-
-A persistently rejected `track()` or broadcast `send()` (bad policy, revoked token) re-armed a
-fixed 1-second retry for the channel's lifetime. **Fix:** capped exponential backoff (1s base,
-30s ceiling) with the failure streak reset on success and on every fresh `SUBSCRIBED` edge, so
-transient blips still retry fast (unit-tested: backoff cadence, ceiling, reset-on-success).
-
-### F9 (documented) — presence topic reuse contract
-
-Presence topics cannot carry the connection-local sequence suffix postgres channels use (peers
-must join the identical topic string and RLS authorizes exactly it). A contract comment on
-`joinPresence` now states the invariant; the one production caller satisfies it by rebuilding
-the whole connection on every user/endpoint/org change.
-
-### Kept with reason
-
-| Site                                             | Element                                                         | Reason kept                                                                                                                                                                                                   |
-| ------------------------------------------------ | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `SessionForkHeaderExtras.handleOpenParent`       | raw `remoteEntries[orgId]` lookup                               | event-handler-time read (not render state); result feeds `openRemoteParent` whose server call re-authorizes; identity clear runs before user can click post-switch                                            |
-| `useCloudOrgPanelState` member fallback          | 30s `setInterval` kept ticking while hidden                     | tick body checks `document.visibilityState` and skips the fetch; interval itself is cheap and guarantees an immediate refresh on the first visible tick; teardown on org/identity/sign-out change verified    |
-| `org2CloudRosterReconcile.shouldReconcileRoster` | prunes on an authoritatively EMPTY roster                       | deliberate change on this branch: an empty roster is valid evidence (account left all orgs / backend wiped) and must prune backend-owned per-org maps; transient failures keep `loaded=false` and never prune |
-| `useRefetchOrg2CloudOrgs` `until` loop           | up to 4 back-to-back `list_my_orgs` with no inter-attempt delay | each attempt is gated by real network round-trips; postcondition normally converges by attempt 2; bounded and only used by mutation flows                                                                     |
-
-## Local-change verdict (per file class)
-
-- **Identity keying (`org2CloudAuthAtom`, members coordinator, member names, remote sessions, comments, panel/dialog/sidebar consumers):** correct and uniform. Every async commit re-checks `org2CloudAuthIdentityKey(authRef.current) === requestIdentityKey` before writing; snapshot state carries the identity it was fetched under.
-- **LRU bounds:** `MAX_ROSTER_CACHE_ENTRIES=64`, `MAX_CLOUD_MEMBER_NAME_ORGS=64`, `MAX_REMOTE_SESSION_CACHE_ENTRIES=64`, `MAX_REMOTE_SESSIONS_VERSION_KEYS=64`, `MAX_SESSION_COMMENT_CACHE_ENTRIES=128`, `COMPLETED_FORCE_TOKEN_CACHE_MAX=500` — all insert-order LRU with recency refresh on hit.
-- **Per-store state:** members coordinator and member-names in-flight maps moved to `WeakMap<JotaiStore, …>`; store disposal cannot leak across rendered instances.
-- **Realtime scoping (`resolveActiveRealtimeOrgId` + `useOrg2CloudRealtime`):** channels exist only for the active cloud org; identity-owned caches cleared in one `useLayoutEffect` on identity change; roster refetch on `org_change_signals` is TTL-gated (10s) with a trailing timer so a gated signal is deferred, never dropped, and the trailing timer is cleared on unsubscribe.
-- **Rust (`runtime_instance.rs`, `lib.rs`):** `yorg.orgii.e2e.instance{N}` now parses to the same isolation profile as `yorg.orgii.instance{N}` (ports, data home, external-history home); covered by a unit test. `lib.rs` change is formatting only.
-- **E2E (`cloud-dual-instance-ui.spec.mjs`, `dualCloudHarness.mjs`, `agentOrgUiDriver.mjs`):** oauth-live mode seeds ONLY the explicitly selected secondary account from the already-isolated primary home (never the user's real credentials file), refuses to share one OAuth chain across two live apps, atomically writes credentials, and merges token rotations back on stop. Diagnostics were added to failure paths (`cloudInspectMemberRoster`, presence dumps) without weakening assertions — timeouts still throw.
-- `**ChatHistoryView` → published header move for `SessionViewersIndicator`:\*\* the indicator now renders in the published session header (ChatPanel) and the workstation tab header — the two surfaces are mutually exclusive homes for a session, so no double-render/double-subscription exists; the E2E asserts the published-header placement.
-
-## Sweeps run (Systematic Sweep Discipline)
-
-| Pattern class                                        | Sweep                                           | Result                                                                                                                                                                                   |
-| ---------------------------------------------------- | ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Unfiltered remote-sessions reads                     | grep all `remoteSessions[`/`.rows` consumers    | F1, F2 fixed; `SessionForkHeaderExtras` kept with reason (table above)                                                                                                                   |
-| Unbounded `Record<string, number>` version counters  | grep `atom<Record<string, number>>`             | comments-signal fixed (F7); roster + remote-sessions versions are per-org (bounded by membership, cleared on identity change); remote-sessions fetched-versions already LRU-capped at 64 |
-| Fixed-cadence retry timers                           | grep `RETRY_MS`/`setTimeout` in realtime client | track + broadcast both fixed (F8); `PRESENCE_CALL_WINDOW` scheduler is a rate limiter, not a retry — kept                                                                                |
-| Post-async `setState` without unmount/identity guard | grep async commits in Org2Cloud hooks           | F6 fixed; all other commits already carry identity re-check + epoch guards                                                                                                               |
-| Per-instance registries keyed under a shared slot    | `sessionCommentPresentEventIdsAtom`             | keyed session → provider-instance → set with symmetric unmount cleanup deleting the session slot when the last instance leaves — bounded by mounted panes, OK                            |
+| Pattern class                          | Scope                                                          | Result                                                                                                        |
+| -------------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| Unfiltered remote-session reads        | all `.rows` consumers                                          | F1/F2 fixed; event-time parent path kept with reason.                                                         |
+| Per-identity/org/session maps and sets | sync engine, session sync, atoms, coordinators                 | identity reset plus live roster/session pruning now bounds every app-lifetime cache.                          |
+| Fixed retry/timer chains               | realtime, sync, guest validation, panel fallback               | F8 fixed; remaining chains bounded with lifecycle owners.                                                     |
+| Async UI commits                       | Org2Cloud hooks/models                                         | F6 fixed; other commits have identity/epoch/abort guards.                                                     |
+| Worker/session retained graphs         | projection hook and turn-window path                           | F10 fixed; turn bodies page by turn and unload on close.                                                      |
+| E2E false behavior paths               | all `execute`/`dispatchEvent`/script clicks in cloud dual spec | production user actions now go through WebDriver. Seed/inspect/sync helpers remain setup or observation only. |
+| Lockfile/package churn                 | E2E package diff                                               | F16 fixed; final lock diff is 3 additions.                                                                    |
 
 ## Verification
 
-- `tsc --noEmit`: clean (after all fixes F1–F9).
-- `pnpm vitest run src/features/Org2Cloud`: 51 files, 557 tests, all pass (includes new
-  `org2CloudCommentsBus.test.ts` and the four new realtime-client backoff tests).
-- Wider sweep `pnpm vitest run src/features/Org2Cloud src/features/TeamCollaboration src/engines/ChatPanel`: 151 files, 1476 tests, all pass.
-- `cargo check`: clean. `git diff --check`: clean. ESLint + Prettier on changed files: clean.
+- `pnpm exec tsc --noEmit`: pass.
+- Changed TS/JS ESLint, Prettier, `node --check`, and `git diff --check`: pass.
+- Targeted regressions: 4 files / 83 tests pass.
+- Wider Org2Cloud + TeamCollaboration + ChatPanel sweep: 153 files / 1,496 tests pass.
+- Full repository Vitest run (the same command as CI): 592 files / 5,727 tests pass.
+- Full repository ESLint and `cargo clippy --workspace` (the same commands as CI): pass;
+  Clippy reports only the develop baseline's advisory warnings.
+- `cargo check`: pass. Changed Rust file `rustfmt --check`: pass.
+- `cargo test -p session_persistence imported_user_alias_starts_turn`: 1/1 pass.
+- Full-workspace `cargo fmt --all -- --check` reports three pre-existing develop formatting
+  differences outside this PR. Root-crate unit execution on this Windows host exits before tests
+  with `STATUS_ENTRYPOINT_NOT_FOUND`; the changed root helper is covered by compile and
+  formatting, while the independently runnable turn-index test covers the imported alias.
+- E2E dependency install with `--frozen-lockfile --ignore-scripts`: pass.
+- `tauri:build:fast:dual`: both final-head executables compiled successfully in parallel and
+  copied with matching source/destination hashes. Windows Smart App Control then rejected the
+  newly unsigned binaries at process creation (Code Integrity event 3077), so this final head was
+  not represented as a successful rendered run.

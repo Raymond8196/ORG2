@@ -43,13 +43,18 @@ pub struct SessionInitialTurnWindow {
 // Turn Window Helpers
 // ============================================================================
 
-fn turn_user_preview_text(turn: &sqlite_cache::CachedTurnSummary) -> String {
-    let preview = turn.user_preview.trim();
+fn normalize_turn_user_preview(preview: &str) -> String {
+    let preview = preview.trim();
     preview
         .strip_prefix("user_message ")
+        .or_else(|| preview.strip_prefix("user "))
         .unwrap_or(preview)
         .trim()
         .to_string()
+}
+
+fn turn_user_preview_text(turn: &sqlite_cache::CachedTurnSummary) -> String {
+    normalize_turn_user_preview(&turn.user_preview)
 }
 
 fn turn_has_user_header(
@@ -296,4 +301,18 @@ pub async fn es_unload_turn_body(
         schedule_notify(&app, &state, &session_id);
     }
     Ok(removed)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::normalize_turn_user_preview;
+
+    #[test]
+    fn imported_user_alias_is_removed_from_placeholder_preview() {
+        assert_eq!(normalize_turn_user_preview("user hello"), "hello");
+        assert_eq!(
+            normalize_turn_user_preview("user_message native hello"),
+            "native hello"
+        );
+    }
 }

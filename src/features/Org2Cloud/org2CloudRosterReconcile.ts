@@ -1,6 +1,6 @@
 /**
- * One-shot roster reconciliation sweep: after the FIRST successful
- * `list_my_orgs` load of an app run, prune entries keyed by cloud org ids
+ * Roster reconciliation sweep: after every authoritative `list_my_orgs`
+ * membership-set change, prune entries keyed by cloud org ids
  * that are no longer in the roster from the BACKEND-COUPLED
  * `orgii:org2-cloud-v1:*` persisted per-org maps. A wiped/rebuilt managed
  * backend otherwise leaves zombie org ids in these caches forever (there is
@@ -146,29 +146,42 @@ export function shouldReconcileRoster(
   return loaded;
 }
 
+/** Stable effect key: role/name/order-only roster changes do not need a GC
+ * sweep, while a join/leave/delete under the same identity always does. */
+export function rosterReconcileKey(
+  authIdentityKey: string | null,
+  loaded: boolean,
+  orgIds: readonly string[]
+): string | null {
+  if (!authIdentityKey || !shouldReconcileRoster(loaded, orgIds.length)) {
+    return null;
+  }
+  return JSON.stringify([authIdentityKey, [...new Set(orgIds)].sort()]);
+}
+
 export function useOrg2CloudRosterReconcile(): void {
   const store = useStore();
   const auth = useAtomValue(org2CloudAuthAtom);
   const authIdentityKey = auth ? org2CloudAuthIdentityKey(auth) : null;
   const loaded = useAtomValue(org2CloudOrgsLoadedAtom);
   const orgs = useAtomValue(org2CloudOrgsAtom);
-  const reconciledIdentityRef = useRef<string | null>(null);
+  const reconciledRosterRef = useRef<string | null>(null);
+  const reconcileKey = rosterReconcileKey(
+    authIdentityKey,
+    loaded,
+    orgs.map((org) => org.orgId)
+  );
 
   useEffect(() => {
-    if (!authIdentityKey) {
-      reconciledIdentityRef.current = null;
+    if (!reconcileKey) {
+      if (!authIdentityKey) reconciledRosterRef.current = null;
       return;
     }
-    if (
-      reconciledIdentityRef.current === authIdentityKey ||
-      !shouldReconcileRoster(loaded, orgs.length)
-    ) {
-      return;
-    }
-    reconciledIdentityRef.current = authIdentityKey;
+    if (reconciledRosterRef.current === reconcileKey) return;
+    reconciledRosterRef.current = reconcileKey;
     reconcileOrg2CloudPersistedState(
       store,
       new Set(orgs.map((org) => org.orgId))
     );
-  }, [authIdentityKey, loaded, orgs, store]);
+  }, [authIdentityKey, orgs, reconcileKey, store]);
 }

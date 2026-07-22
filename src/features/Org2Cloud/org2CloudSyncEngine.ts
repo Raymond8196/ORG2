@@ -50,6 +50,7 @@ import { createLogger } from "@src/hooks/logger";
 import i18n from "@src/i18n";
 import { sessionsAtom } from "@src/store/session/sessionAtom/atoms";
 import type { Session } from "@src/store/session/sessionAtom/types";
+import { chatPanelSelectedCloudOrgAtom } from "@src/store/ui/chatPanelAtom";
 
 import { ProjectSyncChannel } from "../TeamCollaboration/engine/ProjectSyncChannel";
 import type { ProjectSyncBridge } from "../TeamCollaboration/engine/projectSyncBridge";
@@ -255,7 +256,8 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
     const auth = store.get(org2CloudAuthAtom);
     if (!auth) return;
     const orgs = store.get(org2CloudOrgsAtom);
-    this.pruneRemovedOrgBackoffs(orgs);
+    const sessionsAtPassStart = store.get(sessionsAtom);
+    this.pruneRemovedOrgState(orgs, sessionsAtPassStart);
     if (orgs.length === 0) return;
     for (const org of orgs) {
       if (this.generation !== generation) return;
@@ -866,7 +868,7 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
   }
 
   private backOffOrg(orgId: string, error: unknown): void {
-    const isActiveOrg = this.store?.get(sidebarActiveCloudOrgIdAtom) === orgId;
+    const isActiveOrg = this.isActiveOrg(orgId);
     const cooldownMs = isActiveOrg
       ? ORG_BACKOFF_COOLDOWN_MS
       : INACTIVE_ORG_BACKOFF_COOLDOWN_MS;
@@ -913,8 +915,12 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
   }
 
   /** The engine singleton outlives individual memberships. Keep every
-   * app-lifetime backoff structure bounded by the current cloud-org roster. */
-  private pruneRemovedOrgBackoffs(orgs: readonly Org2CloudOrg[]): void {
+   * app-lifetime org/session cache bounded by the authoritative live roster
+   * and current local session list. */
+  private pruneRemovedOrgState(
+    orgs: readonly Org2CloudOrg[],
+    sessions: readonly Session[]
+  ): void {
     const currentOrgIds = new Set(orgs.map((org) => org.orgId));
     for (const orgId of this.orgBackoffUntilMs.keys()) {
       if (!currentOrgIds.has(orgId)) this.orgBackoffUntilMs.delete(orgId);
@@ -930,13 +936,48 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
         this.reportedBackoffAudiences.delete(orgId);
       }
     }
+    for (const orgId of this.scopeHydratedAtMs.keys()) {
+      if (!currentOrgIds.has(orgId)) this.scopeHydratedAtMs.delete(orgId);
+    }
+    for (const orgId of this.projectOrgAliasIds.keys()) {
+      if (!currentOrgIds.has(orgId)) this.projectOrgAliasIds.delete(orgId);
+    }
+    for (const orgId of this.fullCollabStateOrgIds) {
+      if (!currentOrgIds.has(orgId)) this.fullCollabStateOrgIds.delete(orgId);
+    }
+    for (const orgId of this.lastInboundPassAtMs.keys()) {
+      if (!currentOrgIds.has(orgId)) this.lastInboundPassAtMs.delete(orgId);
+    }
+    for (const orgId of this.pendingInboundOrgIds) {
+      if (!currentOrgIds.has(orgId)) this.pendingInboundOrgIds.delete(orgId);
+    }
+    for (const orgId of this.pendingFullInboundOrgIds) {
+      if (!currentOrgIds.has(orgId)) {
+        this.pendingFullInboundOrgIds.delete(orgId);
+      }
+    }
+    this.sessionSync.prune(
+      currentOrgIds,
+      new Set(sessions.map((session) => session.session_id))
+    );
+  }
+
+  /** Match the Realtime demand rule: an open management surface is the
+   * strongest visible-org signal, otherwise the sidebar scope is active. */
+  private isActiveOrg(orgId: string): boolean {
+    const store = this.store;
+    if (!store) return false;
+    const managementOrgId = store.get(chatPanelSelectedCloudOrgAtom)?.orgId;
+    return (
+      (managementOrgId ?? store.get(sidebarActiveCloudOrgIdAtom)) === orgId
+    );
   }
 
   private isOrgBackedOff(orgId: string): boolean {
     const untilMs = this.orgBackoffUntilMs.get(orgId);
     if (untilMs === undefined) return false;
     if (
-      this.store?.get(sidebarActiveCloudOrgIdAtom) === orgId &&
+      this.isActiveOrg(orgId) &&
       this.orgBackoffAudiences.get(orgId) === "inactive"
     ) {
       this.expireOrgBackoff(orgId);
