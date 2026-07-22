@@ -50,6 +50,11 @@ import {
   CHAT_PANEL_SURFACE_KIND,
   chatPanelNavigateAtom,
 } from "@src/store/ui/chatPanelAtom";
+import {
+  clearPendingFileOpensForSession,
+  disposeWorkstationWorkspaceAtom,
+} from "@src/store/workstation/tabs";
+import { clearPendingCodeEditorTabForSession } from "@src/store/workstation/tabs/pendingCodeEditorTab";
 import { invokeTauri } from "@src/util/platform/tauri/init";
 import { isCliSession } from "@src/util/session/sessionDispatch";
 import { getSessionListDisplayName } from "@src/util/session/sessionSidebarRow";
@@ -132,6 +137,9 @@ export function useWorkstationSidebarHandlers({
   const setBenchmarkActiveBatchTaskId = useSetAtom(
     benchmarkActiveBatchTaskIdAtom
   );
+  const disposeWorkstationWorkspace = useSetAtom(
+    disposeWorkstationWorkspaceAtom
+  );
   const pagination = useAtomValue(sessionPaginationAtom);
   const cloudAuth = useAtomValue(org2CloudAuthAtom);
   const setCloudAuth = useSetAtom(org2CloudAuthAtom);
@@ -192,6 +200,9 @@ export function useWorkstationSidebarHandlers({
         }
         removeSession(sessionId);
         removeForkRelayEntry(sessionId);
+        disposeWorkstationWorkspace(sessionId);
+        clearPendingFileOpensForSession(sessionId);
+        clearPendingCodeEditorTabForSession(sessionId);
 
         if (sessionId === activeSessionId) {
           goToNewSession();
@@ -206,6 +217,7 @@ export function useWorkstationSidebarHandlers({
       cloudAuth,
       setCloudAuth,
       cloudOrgs,
+      disposeWorkstationWorkspace,
       goToNewSession,
       onCloseChatPanelTab,
       sessionMap,
