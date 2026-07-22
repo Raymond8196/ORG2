@@ -646,7 +646,7 @@ export function useCloudSessionsSection({
       {
         icon: ListFilter,
         label: t("cloud.sidebar.sessionFilter"),
-        active: filter.kind !== "all",
+        active: memberMenu !== null || filter.kind !== "all",
         dataTestId: "cloud-team-sessions-filter",
         onClick: (event) => {
           const rect = event.currentTarget.getBoundingClientRect();
@@ -704,6 +704,7 @@ export function useCloudSessionsSection({
     visibleThreads,
     state,
     filter.kind,
+    memberMenu,
     refresh,
     buildRowItem,
     t,

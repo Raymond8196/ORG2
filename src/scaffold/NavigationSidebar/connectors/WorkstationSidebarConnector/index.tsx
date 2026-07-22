@@ -77,7 +77,11 @@ import {
   toChatPanelTuiSessionId,
 } from "@src/util/ui/terminal/chatPanelTuiSessionId";
 
-import { SidebarBottomBar, SidebarHeaderNavButton } from "../../blocks";
+import {
+  SidebarBottomBar,
+  SidebarHeaderNavButton,
+  SidebarMenuSearchInput,
+} from "../../blocks";
 import SidebarSettingsMenuButton from "../../blocks/SidebarSettingsMenuButton";
 import NavigationSidebar from "../../variants/NavigationSidebar";
 import SidebarOrgSelector from "../SidebarOrgSelector";
@@ -363,10 +367,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
   const importGithubIssuesLabel = tProjects("githubIssuesImport.menuLabel");
   const addOrgLabel = t("collaboration.addOrg");
   const manageOrgLabel = t("collaboration.manageOrg");
-  const searchPlaceholder =
-    activeSidebarKey === "projects" || workItemsContentVisible
-      ? t("sidebar.search.projects")
-      : t("sidebar.search.sessions");
+  const searchPlaceholder = tCommon("common.searchPlaceholder", "Search...");
   const noSearchResultsTitle = t("sidebar.empty.noSearchResults");
   const {
     cloudMenuItems,
@@ -1026,6 +1027,20 @@ export const WorkstationSidebarConnector: React.FC = () => {
     </div>
   );
 
+  const sidebarOrgSelector = (
+    <SidebarOrgSelector
+      value={activeOrgId}
+      options={orgSelectorOptions}
+      addOrgLabel={addOrgLabel}
+      cloudSignedInIdentity={cloudSignedInIdentity}
+      manageLabel={manageOrgLabel}
+      onChange={handleOrgSelectorChange}
+      onAddOrg={handleAddOrgFromSelector}
+      onCloudSignIn={handleCloudSignIn}
+      onManageOrg={handleManageOrg}
+    />
+  );
+
   const resolvedMenuItemClick =
     activeSidebarKey === "projects"
       ? handleProjectsMenuItemClick
@@ -1099,7 +1114,12 @@ export const WorkstationSidebarConnector: React.FC = () => {
         onSubmenuOpenChange={handleSubmenuOpenChange}
         onMenuItemContextMenu={resolvedMenuItemContextMenu}
         renderMenuItemWrapper={resolvedRenderMenuItemWrapper}
-        preListContent={sidebarLayerHeader}
+        preListContent={
+          <>
+            {sidebarLayerHeader}
+            <div className="shrink-0 px-3 pt-1">{sidebarOrgSelector}</div>
+          </>
+        }
         compactRows
         onAddNew={handleOpenSpotlight}
         addIcon={Search}
@@ -1118,21 +1138,17 @@ export const WorkstationSidebarConnector: React.FC = () => {
           onChange: handleSidebarSearchChange,
           placeholder: searchPlaceholder,
           noResultsTitle: noSearchResultsTitle,
+          showInput: false,
         }}
         listTopPadding={!workItemsContentVisible}
         bottomContent={
           <SidebarBottomBar
             leftContent={
-              <SidebarOrgSelector
-                value={activeOrgId}
-                options={orgSelectorOptions}
-                addOrgLabel={addOrgLabel}
-                cloudSignedInIdentity={cloudSignedInIdentity}
-                manageLabel={manageOrgLabel}
-                onChange={handleOrgSelectorChange}
-                onAddOrg={handleAddOrgFromSelector}
-                onCloudSignIn={handleCloudSignIn}
-                onManageOrg={handleManageOrg}
+              <SidebarMenuSearchInput
+                value={sidebarSearchQueries[activeSidebarSearchKey]}
+                onChange={handleSidebarSearchChange}
+                placeholder={searchPlaceholder}
+                compact
               />
             }
             rightActions={sidebarBottomRightActions}
