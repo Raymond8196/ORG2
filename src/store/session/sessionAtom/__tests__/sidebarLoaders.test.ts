@@ -7,6 +7,7 @@ import { dataSourceConfigAtom } from "../../dataSourceConfigAtom";
 import { sessionsAtom } from "../atoms";
 import {
   __TESTS_ONLY,
+  loadExternalHistorySidebarSessions,
   loadMoreCategory,
   loadSidebarSessionById,
   loadSidebarSessions,
@@ -149,6 +150,50 @@ describe("loadSidebarSessions", () => {
           ?.yesterday
       ).toEqual({ loaded: 1, hasMore: false });
     }
+  });
+
+  it("refreshes external history without querying or resetting native categories", async () => {
+    const nativeSession = {
+      session_id: "native-cli-session",
+      name: "Native CLI session",
+      status: "completed" as const,
+      created_at: "2026-07-12T12:00:00Z",
+      updated_at: "2026-07-12T12:00:00Z",
+      category: "cli_agent" as const,
+    };
+    mocks.store?.set(sessionsAtom, [nativeSession]);
+    mocks.store?.set(sessionPaginationAtom, (previous) => ({
+      ...previous,
+      cli_agent: { loaded: 7, hasMore: true, loading: false },
+    }));
+    mocks.externalHistorySidebarList.mockImplementation(
+      async (request: {
+        requests: Array<{
+          source: string;
+          buckets: Array<{ bucket: string }>;
+        }>;
+      }) => ({
+        sources: request.requests.map((sourceRequest) => ({
+          source: sourceRequest.source,
+          buckets: sourceRequest.buckets.map(({ bucket }) => ({
+            bucket,
+            sessions: [],
+            hasMore: false,
+          })),
+        })),
+      })
+    );
+
+    await loadExternalHistorySidebarSessions({ pageSize: 10 });
+
+    expect(mocks.externalHistorySidebarList).toHaveBeenCalledOnce();
+    expect(mocks.sessionAggregateList).not.toHaveBeenCalled();
+    expect(mocks.store?.get(sessionsAtom)).toContainEqual(nativeSession);
+    expect(mocks.store?.get(sessionPaginationAtom).cli_agent).toEqual({
+      loaded: 7,
+      hasMore: true,
+      loading: false,
+    });
   });
 
   it("continues each external date bucket from its own offset", async () => {

@@ -61,7 +61,7 @@ import {
   InternalHeader,
   ScrollPreservation,
 } from "@src/modules/shared/layouts/blocks";
-import { loadSidebarSessions } from "@src/store/session";
+import { loadExternalHistorySidebarSessions } from "@src/store/session";
 import {
   ACTIVE_EXTERNAL_SESSION_REFRESH_FREQUENCIES,
   type ActiveExternalSessionRefreshFrequency,
@@ -328,7 +328,7 @@ const RuntimeDataSourcePanel: React.FC<RuntimeDataSourcePanelProps> = ({
       try {
         if (row.importable && isImportableId(sourceId)) {
           await externalHistoryRescanSource(sourceId, { clear });
-          await loadSidebarSessions({ forceRefresh: true });
+          await loadExternalHistorySidebarSessions();
           await loadStats(sourceId);
         }
         await reprobe(sourceId);
@@ -361,7 +361,7 @@ const RuntimeDataSourcePanel: React.FC<RuntimeDataSourcePanelProps> = ({
     try {
       await externalHistoryRescanSources(importables);
       if (importables.length > 0) {
-        await loadSidebarSessions({ forceRefresh: true });
+        await loadExternalHistorySidebarSessions();
       }
       const probes = await externalCliSourcesDetect();
       const byId = new Map(probes.map((p) => [p.sourceId, p]));
@@ -399,7 +399,7 @@ const RuntimeDataSourcePanel: React.FC<RuntimeDataSourcePanelProps> = ({
       updateConfig(sourceId, { enabled });
       // Config write is synchronous in the shared store, so the reload below
       // already respects the new enabled state.
-      await loadSidebarSessions({ forceRefresh: true });
+      await loadExternalHistorySidebarSessions();
       if (enabled) {
         if (row.importable && isImportableId(sourceId)) {
           await loadStats(sourceId);

@@ -35,7 +35,7 @@ import {
   externalSessionsEnabledAtom,
   getSourceConfig,
 } from "./dataSourceConfigAtom";
-import { loadSidebarSessions } from "./sessionAtom/loaders";
+import { loadExternalHistorySidebarSessions } from "./sessionAtom/loaders";
 
 // Base cadence of the scheduler's own tick. The shortest source cadence is 60s,
 // so a 30s tick keeps drift small without frequent wakeups.
@@ -149,7 +149,7 @@ async function performDataSourceAutoScan(force: boolean): Promise<void> {
 
   if (dueSourceIds.length === 0) return;
   await externalHistoryRescanSources(dueSourceIds);
-  await loadSidebarSessions({ forceRefresh: true });
+  await loadExternalHistorySidebarSessions();
 
   const scannedAt = Date.now();
   store.set(dataSourceConfigAtom, (prev) => {
