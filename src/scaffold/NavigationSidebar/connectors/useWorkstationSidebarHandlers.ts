@@ -102,11 +102,10 @@ interface UseWorkstationSidebarHandlersParams {
   }) => void;
   onCloseChatPanelTab: (tabId: string) => Promise<void>;
   /**
-   * Cloud-org remote session rows (`cloudremote-<orgId>|<rowId>` ids, built
-   * by cloudSessionsSection). Consulted BEFORE the sessionMap fallback —
-   * these rows have no local Session yet. Returns true when handled.
+   * Cloud-org sidebar rows that are not ordinary local session rows (remote
+   * sessions and top-level section pagers). Consulted before sessionMap.
    */
-  onCloudRemoteItemClick?: (item: NavigationMenuItem) => boolean;
+  onCloudSidebarItemClick?: (item: NavigationMenuItem) => boolean;
 }
 
 interface UseWorkstationSidebarHandlersResult {
@@ -131,7 +130,7 @@ export function useWorkstationSidebarHandlers({
   onOpenChatPanelTab,
   onOpenSessionChatPanelTab,
   onCloseChatPanelTab,
-  onCloudRemoteItemClick,
+  onCloudSidebarItemClick,
 }: UseWorkstationSidebarHandlersParams): UseWorkstationSidebarHandlersResult {
   const navigateChatPanel = useSetAtom(chatPanelNavigateAtom);
   const setBenchmarkAgentBatchStatus = useSetAtom(
@@ -316,9 +315,9 @@ export function useWorkstationSidebarHandlers({
         return;
       }
 
-      // Teammate rows in the cloud "Team sessions" section import remotely —
-      // resolve them before the local sessionMap fallback.
-      if (onCloudRemoteItemClick?.(item)) return;
+      // Cloud remote rows and top-level section pagers do not resolve through
+      // the local sessionMap, so give their owner the first chance to handle.
+      if (onCloudSidebarItemClick?.(item)) return;
 
       const originalSession = sessionMap.get(item.id);
       if (!originalSession) return;
@@ -366,7 +365,7 @@ export function useWorkstationSidebarHandlers({
       goToNewSession,
       navigateChatPanel,
       navigateTo,
-      onCloudRemoteItemClick,
+      onCloudSidebarItemClick,
       onOpenChatPanelTab,
       onOpenSessionChatPanelTab,
       promoteActiveSessionCreatorDraft,

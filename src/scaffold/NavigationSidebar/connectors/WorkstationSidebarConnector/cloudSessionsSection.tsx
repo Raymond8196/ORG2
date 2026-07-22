@@ -90,6 +90,11 @@ import { resolveSessionRowIcon } from "@src/util/session/sessionSidebarRow";
 import { formatRelativeTime } from "@src/util/time/formatRelativeTime";
 
 import { separator } from "../useSessionMenuItems/menuItemBuilders";
+import {
+  CLOUD_SESSION_SECTION_PAGE_SIZE,
+  CLOUD_TEAM_SESSIONS_LOAD_MORE_ID,
+  buildCloudSectionLoadMoreItem,
+} from "./cloudScopedMenuItems";
 
 interface UseCloudSessionsSectionParams {
   /** Active cloud org id (bare, not `cloud:`-prefixed); null ⇒ no section. */
@@ -111,8 +116,8 @@ interface UseCloudSessionsSectionResult {
   cloudThreadedLocalSessionIds: ReadonlySet<string>;
   /** Cloud row key corresponding to the active local replay/import session. */
   selectedCloudMenuItemId: string | null;
-  /** Click resolver for `cloudremote-` rows (wired into the handlers hook). */
-  handleCloudRemoteItemClick: (item: NavigationMenuItem) => boolean;
+  /** Click resolver for Team rows and the Team section's pagination row. */
+  handleCloudSessionItemClick: (item: NavigationMenuItem) => boolean;
   /** Locally hide a teammate cloud row and discard its replay cache. */
   handleCloudRemoteItemRemove: (item: NavigationMenuItem) => boolean;
   /** Member-filter dropdown portal — render once next to the sidebar. */
@@ -264,6 +269,38 @@ export function useCloudSessionsSection({
         : [],
     [orgId, visibleRows, localOwnSessionIds, selfUserId]
   );
+  const teamPaginationScopeKey = useMemo(() => {
+    if (!orgId) return "";
+    const memberKey = filter.kind === "member" ? filter.ownerUserId : "";
+    return `${orgId}\u001f${filter.kind}\u001f${memberKey}`;
+  }, [filter, orgId]);
+  const [teamPagination, setTeamPagination] = useState({
+    scopeKey: "",
+    visibleCount: CLOUD_SESSION_SECTION_PAGE_SIZE,
+  });
+  const requestedTeamVisibleCount =
+    teamPagination.scopeKey === teamPaginationScopeKey
+      ? teamPagination.visibleCount
+      : CLOUD_SESSION_SECTION_PAGE_SIZE;
+  const revealedThreadIndex = useMemo(() => {
+    if (!revealedMenuItemId) return -1;
+    return threads.findIndex((thread) =>
+      [thread.root, ...thread.descendants].some((threadRow) => {
+        const itemId = threadRow.isMine
+          ? threadRow.bareSessionId
+          : buildCloudRemoteItemId(threadRow.row.orgId, threadRow.row.id);
+        return itemId === revealedMenuItemId;
+      })
+    );
+  }, [revealedMenuItemId, threads]);
+  const teamVisibleCount = Math.max(
+    requestedTeamVisibleCount,
+    revealedThreadIndex + 1
+  );
+  const visibleThreads = useMemo(
+    () => threads.slice(0, teamVisibleCount),
+    [teamVisibleCount, threads]
+  );
 
   // Local sessions that already render at their threaded position — hidden
   // from the flat local list so they never appear twice. Invariant: a session
@@ -282,9 +319,9 @@ export function useCloudSessionsSection({
   //    duplicated" effect without losing anything.
   const cloudThreadedLocalSessionIds = useMemo(() => {
     if (!orgId) return new Set<string>();
-    const ids = collectThreadedLocalSessionIds(threads);
+    const ids = collectThreadedLocalSessionIds(visibleThreads);
     const visibleBareIds = new Set<string>();
-    for (const thread of threads) {
+    for (const thread of visibleThreads) {
       for (const threadRow of [thread.root, ...thread.descendants]) {
         visibleBareIds.add(threadRow.bareSessionId);
       }
@@ -300,7 +337,7 @@ export function useCloudSessionsSection({
       }
     }
     return ids;
-  }, [orgId, threads, sessions]);
+  }, [orgId, sessions, visibleThreads]);
 
   const selectedCloudMenuItemId = useMemo(() => {
     if (!orgId || !activeSessionId) return null;
@@ -309,13 +346,16 @@ export function useCloudSessionsSection({
     );
     const imported = active?.importedFrom;
     if (!imported || imported.orgId !== orgId) return null;
-    const sourceRow = visibleRows.find(
-      (row) =>
-        !row.deletedAt &&
-        cloudSessionIdFromRowId(row.id) === imported.sourceSessionId
-    );
+    const sourceRow = visibleThreads
+      .flatMap((thread) => [thread.root, ...thread.descendants])
+      .map((threadRow) => threadRow.row)
+      .find(
+        (row) =>
+          !row.deletedAt &&
+          cloudSessionIdFromRowId(row.id) === imported.sourceSessionId
+      );
     return sourceRow ? buildCloudRemoteItemId(orgId, sourceRow.id) : null;
-  }, [activeSessionId, orgId, sessions, visibleRows]);
+  }, [activeSessionId, orgId, sessions, visibleThreads]);
 
   const findRow = useCallback(
     (rowId: string): RemoteTeammateSessionMetadata | undefined =>
@@ -355,8 +395,19 @@ export function useCloudSessionsSection({
     [forkSession, t, openBilling]
   );
 
-  const handleCloudRemoteItemClick = useCallback(
+  const handleCloudSessionItemClick = useCallback(
     (item: NavigationMenuItem): boolean => {
+      if (item.id === CLOUD_TEAM_SESSIONS_LOAD_MORE_ID) {
+        setTeamPagination((current) => ({
+          scopeKey: teamPaginationScopeKey,
+          visibleCount:
+            (current.scopeKey === teamPaginationScopeKey
+              ? current.visibleCount
+              : CLOUD_SESSION_SECTION_PAGE_SIZE) +
+            CLOUD_SESSION_SECTION_PAGE_SIZE,
+        }));
+        return true;
+      }
       const parsed = parseCloudRemoteItemId(item.id);
       if (!parsed) return false;
       const row = findRow(parsed.rowId);
@@ -367,7 +418,7 @@ export function useCloudSessionsSection({
       runReplay(row);
       return true;
     },
-    [busySessionRowId, findRow, runReplay]
+    [busySessionRowId, findRow, runReplay, teamPaginationScopeKey]
   );
 
   const hideRemoteSession = useCallback(
@@ -606,7 +657,7 @@ export function useCloudSessionsSection({
       },
     ];
     const items: NavigationMenuItem[] = [header];
-    for (const thread of threads) {
+    for (const thread of visibleThreads) {
       if (thread.descendants.length === 0) {
         items.push(buildRowItem(thread.root));
       } else {
@@ -617,6 +668,14 @@ export function useCloudSessionsSection({
           )
         );
       }
+    }
+    if (visibleThreads.length < threads.length) {
+      items.push(
+        buildCloudSectionLoadMoreItem({
+          id: CLOUD_TEAM_SESSIONS_LOAD_MORE_ID,
+          label: tCommon("actions.loadMore"),
+        })
+      );
     }
     if (threads.length === 0) {
       const emptyLabel =
@@ -639,14 +698,24 @@ export function useCloudSessionsSection({
       });
     }
     return items;
-  }, [orgId, threads, state, filter.kind, refresh, buildRowItem, t, tCommon]);
+  }, [
+    orgId,
+    threads.length,
+    visibleThreads,
+    state,
+    filter.kind,
+    refresh,
+    buildRowItem,
+    t,
+    tCommon,
+  ]);
 
   // Hover-card lookup: every VISIBLE teammate thread row, keyed by the same
   // `cloudremote-` id the menu item carries. Mine rows are intentionally
   // absent — they resolve through the local session store.
   const cloudRemoteRowMap = useMemo(() => {
     const map = new Map<string, RemoteTeammateSessionMetadata>();
-    for (const thread of threads) {
+    for (const thread of visibleThreads) {
       for (const threadRow of [thread.root, ...thread.descendants]) {
         if (threadRow.isMine) continue;
         map.set(
@@ -656,11 +725,11 @@ export function useCloudSessionsSection({
       }
     }
     return map;
-  }, [threads]);
+  }, [visibleThreads]);
 
   const cloudRemoteViewerMap = useMemo(() => {
     const map = new Map<string, readonly Org2CloudPresenceEntry[]>();
-    for (const thread of threads) {
+    for (const thread of visibleThreads) {
       for (const threadRow of [thread.root, ...thread.descendants]) {
         if (threadRow.isMine) continue;
         map.set(
@@ -675,7 +744,7 @@ export function useCloudSessionsSection({
       }
     }
     return map;
-  }, [presenceMap, selfUserId, threads]);
+  }, [presenceMap, selfUserId, visibleThreads]);
 
   // Everyone + the active roster. Current rows are only a loading/legacy
   // fallback; a teammate does not need to publish a Session before they can
@@ -863,7 +932,7 @@ export function useCloudSessionsSection({
     cloudMenuItems,
     cloudThreadedLocalSessionIds,
     selectedCloudMenuItemId,
-    handleCloudRemoteItemClick,
+    handleCloudSessionItemClick,
     handleCloudRemoteItemRemove,
     cloudMemberFilterDropdown,
     cloudRemoteRowMap,
