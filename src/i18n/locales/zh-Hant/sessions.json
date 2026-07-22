@@ -1332,6 +1332,8 @@
     "terminalSummary": {
       "command_one": "{{count}} 個命令",
       "command_other": "{{count}} 個命令",
+      "mcp_one": "{{count}} 次 MCP 呼叫",
+      "mcp_other": "{{count}} 次 MCP 呼叫",
       "wait_one": "{{count}} 次等待",
       "wait_other": "{{count}} 次等待",
       "check_one": "{{count}} 次檢查",

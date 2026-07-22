@@ -1318,6 +1318,8 @@
     "terminalSummary": {
       "command_one": "{{count}} commande",
       "command_other": "{{count}} commandes",
+      "mcp_one": "{{count}} appel MCP",
+      "mcp_other": "{{count}} appels MCP",
       "wait_one": "{{count}} attente",
       "wait_other": "{{count}} attentes",
       "check_one": "{{count}} vérification",

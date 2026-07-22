@@ -1318,6 +1318,8 @@
     "terminalSummary": {
       "command_one": "{{count}} komut",
       "command_other": "{{count}} komut",
+      "mcp_one": "{{count}} MCP çağrısı",
+      "mcp_other": "{{count}} MCP çağrısı",
       "wait_one": "{{count}} bekleme",
       "wait_other": "{{count}} bekleme",
       "check_one": "{{count}} kontrol",

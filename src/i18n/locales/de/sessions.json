@@ -1316,6 +1316,8 @@
     "terminalSummary": {
       "command_one": "{{count}} Befehl",
       "command_other": "{{count}} Befehle",
+      "mcp_one": "{{count}} MCP-Aufruf",
+      "mcp_other": "{{count}} MCP-Aufrufe",
       "wait_one": "{{count}} Wartevorgang",
       "wait_other": "{{count}} Wartevorgänge",
       "check_one": "{{count}} Prüfung",

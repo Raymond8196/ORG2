@@ -1363,6 +1363,8 @@
     "terminalSummary": {
       "command_one": "{{count}} 个命令",
       "command_other": "{{count}} 个命令",
+      "mcp_one": "{{count}} 次 MCP 调用",
+      "mcp_other": "{{count}} 次 MCP 调用",
       "wait_one": "{{count}} 次等待",
       "wait_other": "{{count}} 次等待",
       "check_one": "{{count}} 次检查",

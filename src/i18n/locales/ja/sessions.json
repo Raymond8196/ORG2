@@ -1317,6 +1317,8 @@
     "terminalSummary": {
       "command_one": "{{count}} 件のコマンド",
       "command_other": "{{count}} 件のコマンド",
+      "mcp_one": "{{count}} 件の MCP 呼び出し",
+      "mcp_other": "{{count}} 件の MCP 呼び出し",
       "wait_one": "{{count}} 件の待機",
       "wait_other": "{{count}} 件の待機",
       "check_one": "{{count}} 件の確認",
