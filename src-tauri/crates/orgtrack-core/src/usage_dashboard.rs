@@ -885,10 +885,9 @@ pub fn usage_trends(
     Ok(bucket_rounds(&collect_rounds(conn, filter)?, bucket_unit))
 }
 
-/// Everything the dashboard needs in one shot: summary + trends + the request
-/// log page, all from a SINGLE `collect_rounds` pass. The frontend calls this
-/// instead of three separate commands, so a refresh scans the round store once
-/// (not three times).
+/// Optional headline aggregates and request-log page from a single
+/// `collect_rounds` pass. Callers can request only the part of the dashboard
+/// they are updating without retaining the raw round set between calls.
 #[derive(Debug, Clone, Default, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UsageOverview {
@@ -910,21 +909,33 @@ pub fn usage_overview(
     offset: usize,
     limit: usize,
     bucket_unit: TrendBucket,
+    include_headline: bool,
+    include_rounds: bool,
 ) -> Result<UsageOverview, String> {
     let mut all = collect_rounds(conn, filter)?;
-    let summary = summarize_rounds(&all);
-    let trends = bucket_rounds(&all, bucket_unit);
-    let round_models = all
-        .iter()
-        .filter_map(|row| row.model.clone())
-        .collect::<BTreeSet<_>>()
-        .into_iter()
-        .collect();
-    let has_unknown_round_model = all.iter().any(|row| row.model.is_none());
-    all.retain(|row| round_query.matches(row));
-    let round_total = all.len();
-    sort_rounds(&mut all, sort);
-    let rounds = all.into_iter().skip(offset).take(limit).collect();
+    let (summary, trends) = if include_headline {
+        (summarize_rounds(&all), bucket_rounds(&all, bucket_unit))
+    } else {
+        (UsageSummary::default(), Vec::new())
+    };
+    let (rounds, round_total, round_models, has_unknown_round_model) = if include_rounds {
+        let round_models = all
+            .iter()
+            .filter_map(|row| row.model.clone())
+            .collect::<BTreeSet<_>>()
+            .into_iter()
+            .collect();
+        let has_unknown_round_model = all.iter().any(|row| row.model.is_none());
+        all.retain(|row| round_query.matches(row));
+        let round_total = all.len();
+        sort_rounds(&mut all, sort);
+        let rounds = all.into_iter().skip(offset).take(limit).collect();
+        (rounds, round_total, round_models, has_unknown_round_model)
+    } else {
+        // Headline-only loads deliberately avoid request-table facets, sort,
+        // pagination, and row transfer until the collapsed table is opened.
+        (Vec::new(), 0, Vec::new(), false)
+    };
     Ok(UsageOverview {
         summary,
         trends,
@@ -1170,6 +1181,8 @@ mod tests {
             0,
             1,
             TrendBucket::Hour,
+            true,
+            true,
         )
         .expect("overview");
 
@@ -1197,11 +1210,60 @@ mod tests {
             1,
             1,
             TrendBucket::Hour,
+            true,
+            true,
         )
         .expect("second page");
         assert_eq!(second.round_total, 2);
         assert_eq!(second.rounds.len(), 1);
         assert_ne!(first.rounds[0].round_id, second.rounds[0].round_id);
+    }
+
+    #[test]
+    fn overview_skips_request_page_work_when_rounds_are_not_requested() {
+        let conn = seeded_conn();
+        let overview = usage_overview(
+            &conn,
+            &UsageFilter::default(),
+            &UsageRoundQuery::default(),
+            SessionSort::Recent,
+            0,
+            10,
+            TrendBucket::Hour,
+            true,
+            false,
+        )
+        .expect("headline overview");
+
+        assert_eq!(overview.summary.request_count, 4);
+        assert!(!overview.trends.is_empty());
+        assert!(overview.rounds.is_empty());
+        assert_eq!(overview.round_total, 0);
+        assert!(overview.round_models.is_empty());
+        assert!(!overview.has_unknown_round_model);
+    }
+
+    #[test]
+    fn overview_skips_headline_work_for_a_request_page_load() {
+        let conn = seeded_conn();
+        let overview = usage_overview(
+            &conn,
+            &UsageFilter::default(),
+            &UsageRoundQuery::default(),
+            SessionSort::Recent,
+            0,
+            10,
+            TrendBucket::Hour,
+            false,
+            true,
+        )
+        .expect("request-page overview");
+
+        assert_eq!(overview.summary, UsageSummary::default());
+        assert!(overview.trends.is_empty());
+        assert_eq!(overview.round_total, 4);
+        assert_eq!(overview.rounds.len(), 4);
+        assert!(!overview.round_models.is_empty());
     }
 
     #[test]

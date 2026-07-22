@@ -1,4 +1,4 @@
-import { RefreshCw, X } from "lucide-react";
+import { X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -12,11 +12,9 @@ import {
   type UsageTrendPoint,
   usageDashboardOverview,
 } from "@src/api/tauri/usageDashboard";
-import Button from "@src/components/Button";
 import Select from "@src/components/Select";
 import TabPill, { type TabPillItem } from "@src/components/TabPill";
 import { DEBOUNCE_DELAYS, useDebouncedCallback } from "@src/hooks/perf";
-import { useRefreshSpin } from "@src/hooks/ui";
 import {
   SECTION_GAP_CLASSES,
   SECTION_SUBHEADING_CLASSES,
@@ -52,7 +50,6 @@ export default function SessionUsagePanel() {
   const [bucket, setBucket] = useState<UsageBucket | null>(null);
   const [range, setRange] = useState<UsageRangePreset>("today");
   const [sort, setSort] = useState<UsageSessionSort>("recent");
-  const [refreshTick, setRefreshTick] = useState(0);
   const [session, setSession] = useState<SelectedSession | null>(null);
 
   const [summary, setSummary] = useState<UsageSummary | null>(null);
@@ -71,8 +68,14 @@ export default function SessionUsagePanel() {
   const [roundPageSize, setRoundPageSize] = useState(
     USAGE_ROUNDS_DEFAULT_PAGE_SIZE
   );
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [roundsOpen, setRoundsOpen] = useState(false);
+  const [loadedRoundQueryKey, setLoadedRoundQueryKey] = useState<string | null>(
+    null
+  );
+  const [headlineLoading, setHeadlineLoading] = useState(true);
+  const [roundLoading, setRoundLoading] = useState(false);
+  const [headlineError, setHeadlineError] = useState<string | null>(null);
+  const [roundError, setRoundError] = useState<string | null>(null);
 
   const scope = useMemo<UsageScope>(() => {
     const { startMs, endMs } = resolveUsageRange(range);
@@ -95,12 +98,18 @@ export default function SessionUsagePanel() {
   // Monotonic request token so a slow response from a stale scope/sort can't
   // overwrite a newer one. setState lives in this callback (not the effect
   // body) to satisfy react-hooks/set-state-in-effect.
-  const requestRef = useRef(0);
+  const headlineRequestRef = useRef(0);
+  const roundRequestRef = useRef(0);
+  const roundInFlightRef = useRef<{
+    queryKey: string;
+    request: ReturnType<typeof usageDashboardOverview>;
+  } | null>(null);
   useEffect(
     () => () => {
       // Tauri invokes are not abortable, so invalidate their generation. Late
       // completions cannot apply state after this tab unmounts.
-      requestRef.current += 1;
+      headlineRequestRef.current += 1;
+      roundRequestRef.current += 1;
     },
     []
   );
@@ -118,27 +127,76 @@ export default function SessionUsagePanel() {
     [applyRoundSearch]
   );
 
-  const load = useCallback(async () => {
-    const requestId = ++requestRef.current;
-    setLoading(true);
-    setError(null);
+  const roundQueryKey = JSON.stringify({
+    appliedRoundSearchQuery,
+    bucket: scope.bucket ?? null,
+    endMs: scope.endMs ?? null,
+    modelFilter:
+      roundModelFilter === undefined
+        ? { kind: "all" }
+        : roundModelFilter === null
+          ? { kind: "unknown" }
+          : { kind: "model", value: roundModelFilter },
+    pageIndex: roundPageIndex,
+    pageSize: roundPageSize,
+    sessionId: scope.sessionId ?? null,
+    sort,
+    startMs: scope.startMs ?? null,
+  });
+  const roundDataLoaded = loadedRoundQueryKey === roundQueryKey;
+
+  const loadHeadline = useCallback(async () => {
+    const requestId = ++headlineRequestRef.current;
+    setHeadlineLoading(true);
+    setHeadlineError(null);
     try {
-      // One backend call → one round-store scan (summary + trends + log).
+      // Headline-only mode skips request-table facets, sorting, pagination,
+      // and row transfer until the collapsed Requests section is opened.
       const overview = await usageDashboardOverview(scope, {
-        sort,
-        offset: roundPageIndex * roundPageSize,
-        limit: roundPageSize,
-        model:
-          typeof roundModelFilter === "string" ? roundModelFilter : undefined,
-        unknownModel: roundModelFilter === null,
-        search: appliedRoundSearchQuery.trim() || undefined,
+        includeRounds: false,
       });
-      if (requestId !== requestRef.current) return;
+      if (requestId !== headlineRequestRef.current) return;
       setSummary(overview.summary);
       setTrends(overview.trends);
+    } catch (err) {
+      if (requestId === headlineRequestRef.current) {
+        setHeadlineError(String(err));
+      }
+    } finally {
+      if (requestId === headlineRequestRef.current) setHeadlineLoading(false);
+    }
+  }, [scope]);
+
+  const loadRounds = useCallback(async () => {
+    const requestId = ++roundRequestRef.current;
+    const requestedQueryKey = roundQueryKey;
+    setRoundLoading(true);
+    setRoundError(null);
+    let inFlight = roundInFlightRef.current;
+    if (!inFlight || inFlight.queryKey !== requestedQueryKey) {
+      inFlight = {
+        queryKey: requestedQueryKey,
+        request: usageDashboardOverview(scope, {
+          sort,
+          offset: roundPageIndex * roundPageSize,
+          limit: roundPageSize,
+          model:
+            typeof roundModelFilter === "string" ? roundModelFilter : undefined,
+          unknownModel: roundModelFilter === null,
+          search: appliedRoundSearchQuery.trim() || undefined,
+          includeHeadline: false,
+          includeRounds: true,
+        }),
+      };
+      roundInFlightRef.current = inFlight;
+    }
+    try {
+      const overview = await inFlight.request;
+      if (requestId !== roundRequestRef.current) return;
       setRoundTotal(overview.roundTotal);
       setRoundModels(overview.roundModels);
       setHasUnknownRoundModel(overview.hasUnknownRoundModel);
+      setLoadedRoundQueryKey(requestedQueryKey);
 
       const lastPageIndex = Math.max(
         0,
@@ -151,9 +209,12 @@ export default function SessionUsagePanel() {
         setRows(overview.rounds);
       }
     } catch (err) {
-      if (requestId === requestRef.current) setError(String(err));
+      if (requestId === roundRequestRef.current) setRoundError(String(err));
     } finally {
-      if (requestId === requestRef.current) setLoading(false);
+      if (roundInFlightRef.current === inFlight) {
+        roundInFlightRef.current = null;
+      }
+      if (requestId === roundRequestRef.current) setRoundLoading(false);
     }
   }, [
     appliedRoundSearchQuery,
@@ -162,17 +223,37 @@ export default function SessionUsagePanel() {
     roundPageSize,
     scope,
     sort,
+    roundQueryKey,
   ]);
 
   useEffect(() => {
-    void load();
-  }, [load, refreshTick]);
+    void loadHeadline();
+  }, [loadHeadline]);
 
-  const handleRefresh = useCallback(() => {
-    setRefreshTick((tick) => tick + 1);
+  useEffect(() => {
+    if (roundsOpen && !roundDataLoaded) void loadRounds();
+  }, [loadRounds, roundDataLoaded, roundsOpen]);
+
+  const handleRoundsOpenChange = useCallback((open: boolean) => {
+    setRoundsOpen(open);
+    if (open) return;
+
+    // A collapsed request log retains no rows/facets and ignores any late IPC
+    // completion. Reopening performs one fresh, bounded page load.
+    roundRequestRef.current += 1;
+    setRows([]);
+    setRoundTotal(0);
+    setRoundModels([]);
+    setHasUnknownRoundModel(false);
+    setLoadedRoundQueryKey(null);
+    setRoundLoading(false);
+    setRoundError(null);
   }, []);
-  const { spinClass: refreshSpinClass, handleClick: handleRefreshClick } =
-    useRefreshSpin(handleRefresh, loading);
+
+  const handleRoundsRefresh = useCallback(
+    () => void loadRounds(),
+    [loadRounds]
+  );
 
   const sourceTabs = useMemo<TabPillItem[]>(
     () => [
@@ -194,7 +275,8 @@ export default function SessionUsagePanel() {
     [t]
   );
 
-  const isEmpty = !loading && !error && (summary?.sessionCount ?? 0) === 0;
+  const isEmpty =
+    !headlineLoading && !headlineError && (summary?.sessionCount ?? 0) === 0;
 
   return (
     <div className={SECTION_GAP_CLASSES}>
@@ -202,7 +284,7 @@ export default function SessionUsagePanel() {
         className="sticky top-0 z-20 -mx-4 bg-chat-pane px-4 pb-1"
         data-testid="usage-source-controls"
       >
-        <div className="flex min-h-9 flex-wrap items-center justify-between gap-2">
+        <div className="flex min-h-9 flex-wrap items-center gap-2">
           <div
             className="flex min-w-0 items-center gap-2"
             data-testid="usage-source-range-controls"
@@ -236,16 +318,6 @@ export default function SessionUsagePanel() {
               size="small"
             />
           </div>
-          <Button
-            variant="tertiary"
-            appearance="ghost"
-            size="small"
-            icon={<RefreshCw size={14} className={refreshSpinClass} />}
-            disabled={loading}
-            onClick={handleRefreshClick}
-          >
-            {t("usage.refresh")}
-          </Button>
         </div>
       </div>
 
@@ -265,12 +337,12 @@ export default function SessionUsagePanel() {
         </button>
       )}
 
-      {error ? (
+      {headlineError ? (
         <Placeholder
           variant="error"
           placement="detail-panel"
           title={t("usage.loadError")}
-          subtitle={error}
+          subtitle={headlineError}
         />
       ) : isEmpty ? (
         <Placeholder
@@ -279,7 +351,7 @@ export default function SessionUsagePanel() {
           title={t("usage.empty.title")}
           subtitle={t("usage.empty.subtitle")}
         />
-      ) : loading && !summary ? (
+      ) : headlineLoading && !summary ? (
         <Placeholder variant="loading" placement="detail-panel" />
       ) : summary ? (
         <>
@@ -319,7 +391,11 @@ export default function SessionUsagePanel() {
               setRoundPageSize(pageSize);
               setRoundPageIndex(0);
             }}
-            loading={loading}
+            loaded={roundDataLoaded}
+            error={roundError}
+            onOpenChange={handleRoundsOpenChange}
+            onRefresh={handleRoundsRefresh}
+            loading={roundLoading}
             onSelectSession={(sessionId) => {
               const row = rows.find((item) => item.sessionId === sessionId);
               setSession({
