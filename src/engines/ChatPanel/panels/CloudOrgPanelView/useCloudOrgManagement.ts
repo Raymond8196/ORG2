@@ -24,6 +24,7 @@ import {
   type CloudOrgMember,
   ensureFreshSession,
 } from "@src/features/Org2Cloud/org2CloudClient";
+import { broadcastOrgControlChangedToPeers } from "@src/features/Org2Cloud/org2CloudControlBus";
 import {
   type CreatedCloudInvite,
   createCloudInvite,
@@ -417,6 +418,7 @@ export function useCloudOrgManagement({
       try {
         const token = await getFreshToken();
         await renameCloudOrg(token, orgId, name);
+        broadcastOrgControlChangedToPeers(orgId, "roster");
         // Selector + panel header read from org2CloudOrgsAtom.
         await refetchOrgs({
           until: (orgs) =>

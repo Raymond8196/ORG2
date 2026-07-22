@@ -17,9 +17,13 @@ import {
   ensureFreshSession,
   getEntitlementState,
 } from "@src/features/Org2Cloud/org2CloudClient";
+import { broadcastOrgControlChangedToPeers } from "@src/features/Org2Cloud/org2CloudControlBus";
 import { isFetchTransportError } from "@src/features/Org2Cloud/org2CloudFetchRetry";
 import { loadCloudOrgMembers } from "@src/features/Org2Cloud/org2CloudMembersCoordinator";
-import { org2CloudRosterVersionAtom } from "@src/features/Org2Cloud/org2CloudOrgsAtom";
+import {
+  org2CloudRosterRealtimeConnectedAtom,
+  org2CloudRosterVersionAtom,
+} from "@src/features/Org2Cloud/org2CloudOrgsAtom";
 import {
   deriveScopeQuotaView,
   parseScopeCooldownFreesAt,
@@ -44,7 +48,8 @@ import { isTauriReady } from "@src/util/platform/tauri/init";
 import type { SelectValue } from "./cloudOrgPanelTypes";
 
 const log = createLogger("CloudOrgPanelView");
-const MEMBER_ROSTER_FALLBACK_MS = 30_000;
+/** Safety pull only while the roster Realtime channel is unavailable. */
+const MEMBER_ROSTER_FALLBACK_MS = 5 * 60_000;
 /** Stable reference for the identity-mismatch window (no re-render churn). */
 const NO_VISIBLE_MEMBERS: CloudOrgMember[] = [];
 
@@ -59,6 +64,9 @@ export function useCloudOrgPanelState(orgId: string) {
   const store = useStore();
   const [auth, setAuth] = useAtom(org2CloudAuthAtom);
   const rosterVersionByOrg = useAtomValue(org2CloudRosterVersionAtom);
+  const rosterRealtimeConnectedByOrg = useAtomValue(
+    org2CloudRosterRealtimeConnectedAtom
+  );
   const [entitlement, setEntitlement] = useState<CloudEntitlementState | null>(
     null
   );
@@ -80,6 +88,7 @@ export function useCloudOrgPanelState(orgId: string) {
   const [scopesError, setScopesError] = useState<string | null>(null);
   const [refreshNonce, setRefreshNonce] = useState(0);
   const [membersFallbackVersion, setMembersFallbackVersion] = useState(0);
+  const [membersVisibilityVersion, setMembersVisibilityVersion] = useState(0);
 
   useTauriListen(
     "org2-cloud-billing-complete",
@@ -91,6 +100,7 @@ export function useCloudOrgPanelState(orgId: string) {
   );
 
   const rosterVersion = rosterVersionByOrg[orgId] ?? 0;
+  const rosterRealtimeConnected = rosterRealtimeConnectedByOrg[orgId] === true;
   const rosterVersionRef = useRef(rosterVersion);
   rosterVersionRef.current = rosterVersion;
   const signedIn = Boolean(auth);
@@ -142,16 +152,22 @@ export function useCloudOrgPanelState(orgId: string) {
     if (!signedIn) return undefined;
     const refreshWhenVisible = () => {
       if (document.visibilityState !== "hidden") {
-        setMembersFallbackVersion((version) => version + 1);
+        setMembersVisibilityVersion((version) => version + 1);
       }
     };
-    const timer = setInterval(refreshWhenVisible, MEMBER_ROSTER_FALLBACK_MS);
+    const timer = rosterRealtimeConnected
+      ? null
+      : setInterval(() => {
+          if (document.visibilityState !== "hidden") {
+            setMembersFallbackVersion((version) => version + 1);
+          }
+        }, MEMBER_ROSTER_FALLBACK_MS);
     document.addEventListener("visibilitychange", refreshWhenVisible);
     return () => {
-      clearInterval(timer);
+      if (timer) clearInterval(timer);
       document.removeEventListener("visibilitychange", refreshWhenVisible);
     };
-  }, [signedIn, authIdentityKey, orgId]);
+  }, [signedIn, authIdentityKey, orgId, rosterRealtimeConnected]);
 
   useEffect(() => {
     if (!signedIn) return;
@@ -242,6 +258,7 @@ export function useCloudOrgPanelState(orgId: string) {
   }, [orgId]);
   useEffect(() => {
     if (!signedIn) return;
+    if (document.visibilityState === "hidden") return;
     const rosterChanged = observedRosterVersionRef.current !== rosterVersion;
     const fallbackChanged =
       observedMembersFallbackVersionRef.current !== membersFallbackVersion;
@@ -285,6 +302,7 @@ export function useCloudOrgPanelState(orgId: string) {
     authIdentityKey,
     rosterVersion,
     membersFallbackVersion,
+    membersVisibilityVersion,
     setAuth,
     store,
   ]);
@@ -320,6 +338,7 @@ export function useCloudOrgPanelState(orgId: string) {
         [orgId]: draftScopes,
       }));
       setScopesSaved(true);
+      broadcastOrgControlChangedToPeers(orgId, "scopes");
       await refreshScopeState(fresh.accessToken);
     } catch (error) {
       if (isOrg2SyncErrorCode(error, "ORG2_SCOPE_COOLDOWN")) {
@@ -366,6 +385,7 @@ export function useCloudOrgPanelState(orgId: string) {
       if (!fresh) throw new Error(t("cloud.orgPanel.loadError"));
       commitRefreshedAuth(setAuth, current, fresh);
       await setOrgSharingFloor(fresh.accessToken, orgId, next);
+      broadcastOrgControlChangedToPeers(orgId, "entitlement");
       await org2CloudSyncEngine.runSyncPassAndWaitForDrain();
     } catch (error) {
       setFloorByOrg((currentFloors) => ({
