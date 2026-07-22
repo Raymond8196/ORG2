@@ -1,3 +1,4 @@
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { ChevronLeft, Search } from "lucide-react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -7,6 +8,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { ROUTES } from "@src/config/routes";
 import { useCloudSessionShareDialog } from "@src/features/Org2Cloud/CloudSessionShareDialog/useCloudSessionShareDialog";
 import { useCloudSyncLevelDialog } from "@src/features/Org2Cloud/CloudSyncLevelDialog/useCloudSyncLevelDialog";
+import { buildOrg2CloudLoginUrl } from "@src/features/Org2Cloud/config";
+import { org2CloudAuthAtom } from "@src/features/Org2Cloud/org2CloudAuthAtom";
 import { useMoveToOrgDialog } from "@src/features/TeamCollaboration/components/MoveToOrgDialog/useMoveToOrgDialog";
 import { createLogger } from "@src/hooks/logger";
 import { useAppNavigation } from "@src/hooks/navigation/useAppNavigation";
@@ -263,6 +266,17 @@ export const WorkstationSidebarConnector: React.FC = () => {
   const [includeExternal, setIncludeExternal] = useAtom(
     sidebarIncludeExternalAtom
   );
+  const cloudAuth = useAtomValue(org2CloudAuthAtom);
+  const cloudSignedInIdentity = cloudAuth
+    ? (cloudAuth.profile?.displayName ??
+      cloudAuth.profile?.primaryEmail ??
+      cloudAuth.userId)
+    : null;
+  const handleCloudSignIn = useCallback(() => {
+    openUrl(buildOrg2CloudLoginUrl()).catch((error: unknown) => {
+      logger.error("failed to open ORG2 Cloud login in system browser", error);
+    });
+  }, []);
   const [groupVisibleCounts, setGroupVisibleCounts] = useState<
     Map<string, number>
   >(new Map());
@@ -1007,9 +1021,11 @@ export const WorkstationSidebarConnector: React.FC = () => {
                 value={activeOrgId}
                 options={orgSelectorOptions}
                 addOrgLabel={addOrgLabel}
+                cloudSignedInIdentity={cloudSignedInIdentity}
                 manageLabel={manageOrgLabel}
                 onChange={handleOrgSelectorChange}
                 onAddOrg={handleAddOrgFromSelector}
+                onCloudSignIn={handleCloudSignIn}
                 onManageOrg={manageableCloudOrg ? handleManageOrg : undefined}
               />
             }

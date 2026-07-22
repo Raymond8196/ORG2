@@ -436,6 +436,7 @@
     "title": "ORG2 Cloud",
     "signIn": "Iniciar sesión",
     "signOut": "Cerrar sesión",
+    "signedInAs": "Sesión iniciada como {{name}}",
     "signedInToast": "Sesión iniciada en ORG2 Cloud",
     "recommendedBadge": "Recomendado",
     "recommendedDesc": "Compartición de sesiones gestionada, almacenamiento de repeticiones, permisos de equipo y enlaces seguros. Sin configuración de Supabase. ORG2 gestiona por ti Auth, migraciones de base de datos, políticas RLS, facturación, retención, cuotas y actualizaciones del backend",
