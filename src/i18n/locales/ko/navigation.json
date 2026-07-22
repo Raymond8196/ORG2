@@ -434,6 +434,7 @@
     "title": "ORG2 클라우드",
     "signIn": "로그인",
     "signOut": "로그아웃",
+    "signedInAs": "로그인 계정: {{name}}",
     "signedInToast": "ORG2 클라우드에 로그인했습니다",
     "recommendedBadge": "추천",
     "recommendedDesc": "관리형 세션 공유, 리플레이 저장, 팀 권한, 안전한 공유 링크를 제공합니다. Supabase 설정이 필요 없습니다. Auth, 데이터베이스 마이그레이션, RLS 정책, 결제, 보존 기간, 할당량, 백엔드 업그레이드는 ORG2가 관리합니다",

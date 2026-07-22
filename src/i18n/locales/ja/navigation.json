@@ -434,6 +434,7 @@
     "title": "ORG2 クラウド",
     "signIn": "ログイン",
     "signOut": "ログアウト",
+    "signedInAs": "{{name}} としてログイン中",
     "signedInToast": "ORG2 クラウドにサインインしました",
     "recommendedBadge": "おすすめ",
     "recommendedDesc": "マネージドなセッション共有、リプレイ保存、チーム権限、安全な共有リンク。Supabase のセットアップは不要です。Auth、データベースマイグレーション、RLS ポリシー、課金、保持期間、クォータ、バックエンドのアップグレードは ORG2 が管理します",

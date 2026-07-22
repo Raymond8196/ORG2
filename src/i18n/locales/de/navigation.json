@@ -436,6 +436,7 @@
     "title": "ORG2 Cloud",
     "signIn": "Anmelden",
     "signOut": "Abmelden",
+    "signedInAs": "Angemeldet als {{name}}",
     "signedInToast": "Bei ORG2 Cloud angemeldet",
     "recommendedBadge": "Empfohlen",
     "recommendedDesc": "Verwaltetes Session-Sharing, Replay-Speicher, Team-Berechtigungen und sichere Share-Links. Kein Supabase-Setup nötig. ORG2 übernimmt Auth, Datenbank-Migrationen, RLS-Richtlinien, Abrechnung, Aufbewahrung, Kontingente und Backend-Upgrades für dich",
