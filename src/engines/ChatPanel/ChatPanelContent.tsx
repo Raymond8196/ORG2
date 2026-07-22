@@ -27,7 +27,7 @@ interface ChatPanelContentProps {
 /**
  * The shared "chat column": session transcript, the benchmark run-list (still
  * contentMode-driven), and the Launchpad / creator surfaces (`emptyChatContent`).
- * The workspace / cloud-org / work-item / project / project-org / explore
+ * The workspace / organization / work-item / project / explore
  * surfaces are no longer rendered here — they are dedicated tab-typed renderers
  * dispatched by `UnifiedChatPanelTabContent`.
  */

@@ -10,6 +10,7 @@ import {
   settingsAtom,
   updateSettingAtom,
 } from "@src/store/settings/settingsAtom";
+import type { ProjectOrgSurfaceView } from "@src/store/workstation/tabs";
 import type { Project } from "@src/types/core/project";
 import type { WorkItem } from "@src/types/core/workItem";
 import { createZodJsonStorage } from "@src/util/core/storage/zodStorage";
@@ -334,6 +335,10 @@ export interface ChatPanelSelectedProjectOrg {
   orgName: string;
   orgScope: "personal_org" | "project_org";
   orgSyncProvider?: string | null;
+  /** Optional surface requested by the action opening/focusing this ORG. */
+  initialView?: ProjectOrgSurfaceView;
+  /** Changes when an opener explicitly requests `initialView` again. */
+  initialViewRequestId?: number;
 }
 
 export const chatPanelSelectedProjectOrgAtom =
@@ -360,6 +365,17 @@ chatPanelSelectedWorkspaceAtom.debugLabel = "chatPanelSelectedWorkspaceAtom";
 export interface ChatPanelSelectedCloudOrg {
   orgId: string;
 }
+
+/** The explicit provider variant owned by the shared organization tab. */
+export type ChatPanelSelectedOrganization =
+  | {
+      kind: "cloud";
+      cloudOrg: ChatPanelSelectedCloudOrg;
+    }
+  | {
+      kind: "local";
+      projectOrg: ChatPanelSelectedProjectOrg;
+    };
 
 export const chatPanelSelectedCloudOrgAtom =
   atom<ChatPanelSelectedCloudOrg | null>(null);

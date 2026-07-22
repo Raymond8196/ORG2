@@ -50,7 +50,7 @@ import {
 } from "@src/features/Org2Cloud/org2CloudOrgsAtom";
 import { setMemberSharingFloor } from "@src/features/Org2Cloud/org2CloudSyncClient";
 import { createLogger } from "@src/hooks/logger";
-import { closeCloudOrgManagementChatPanelTabAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
+import { closeOrganizationChatPanelTabAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
 import { getInviteExpiresAt } from "@src/store/collaboration/inviteDefaults";
 import {
   COLLAB_SESSION_ACCESS_MODE,
@@ -87,7 +87,7 @@ export function useCloudOrgManagement({
   const { t } = useTranslation("navigation");
   const [auth, setAuth] = useAtom(org2CloudAuthAtom);
   const closeCloudOrgManagementTab = useSetAtom(
-    closeCloudOrgManagementChatPanelTabAtom
+    closeOrganizationChatPanelTabAtom
   );
   const refetchOrgs = useRefetchOrg2CloudOrgs();
   const rosterVersionByOrg = useAtomValue(org2CloudRosterVersionAtom);

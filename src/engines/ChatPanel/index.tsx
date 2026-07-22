@@ -28,7 +28,7 @@ import { allAgentDefsAtom } from "@src/modules/MainApp/AgentOrgs/store/builtInAg
 import { getChatPanelBackgroundStyle } from "@src/modules/shared/layouts/viewContainerTokens";
 import { installAvailableAppUpdate } from "@src/scaffold/AppUpdater";
 import {
-  closeCloudOrgManagementChatPanelTabAtom,
+  closeOrganizationChatPanelTabAtom,
   closeProjectOrgChatPanelTabsAtom,
   openRuntimeInChatPanelTabAtom,
   openSessionInNewChatTabAtom,
@@ -127,9 +127,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
     const selectedCloudOrg = useAtomValue(chatPanelSelectedCloudOrgAtom);
     const cloudOrgs = useAtomValue(org2CloudOrgsAtom);
     const cloudOrgsLoaded = useAtomValue(org2CloudOrgsLoadedAtom);
-    const closeCloudOrgManagementTab = useSetAtom(
-      closeCloudOrgManagementChatPanelTabAtom
-    );
+    const closeOrganizationTab = useSetAtom(closeOrganizationChatPanelTabAtom);
     const closeProjectOrgTabs = useSetAtom(closeProjectOrgChatPanelTabsAtom);
     const exploreOpen = useAtomValue(chatPanelExploreOpenAtom);
     const createProjectContext = useAtomValue(
@@ -172,14 +170,9 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
         cloudOrgsLoaded &&
         !cloudOrgs.some((org) => org.orgId === selectedCloudOrg.orgId)
       ) {
-        closeCloudOrgManagementTab();
+        closeOrganizationTab();
       }
-    }, [
-      closeCloudOrgManagementTab,
-      cloudOrgs,
-      cloudOrgsLoaded,
-      selectedCloudOrg,
-    ]);
+    }, [closeOrganizationTab, cloudOrgs, cloudOrgsLoaded, selectedCloudOrg]);
 
     // `project_orgs` is a durable local mirror, not an authorization source.
     // Once the managed-cloud roster is authoritative, close any cached detail

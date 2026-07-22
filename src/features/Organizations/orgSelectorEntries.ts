@@ -31,12 +31,7 @@ export interface BuildOrgSelectorEntriesInput {
   localSuffix: string;
 }
 
-/**
- * Translate a privacy-scoped sidebar value into the local project-org id used
- * by the Project API. Cloud selector values are deliberately namespaced, while
- * project rows belong to the durable local alias and therefore need an
- * explicit boundary mapping before filtering.
- */
+/** Resolve a namespaced picker value to the local project-org backing id. */
 export function resolveProjectOrgScopeId(
   selectorValue: string,
   localOrgs: readonly OrgSelectorLocalOrg[]
@@ -51,21 +46,8 @@ export function resolveProjectOrgScopeId(
 }
 
 /**
- * Scope-selector entry list. Cloud scopes come ONLY from the live roster
- * (`cloudOrgs`); local project-orgs are a separate feature and render as
- * their own group.
- *
- * A local project-org row is hidden when it is merely the local backing row
- * for a cloud org (`external_org_id` set, or its OWN id is a roster org id —
- * the pre-alias era stored the cloud org id as the local id). Once the
- * roster HAS loaded, an aliased row absent from it means the cloud org no
- * longer exists — hidden too, so dead cloud-era orgs never linger as
- * selectable scopes. Aliased rows are never selector entries themselves:
- * while signed out / offline / mid-fetch, showing one as a local org would
- * leak a stale cloud workspace and grant it the wrong local semantics.
- *
- * Name collisions are disambiguated: a local org sharing a name with a cloud
- * org gets the local suffix; duplicate cloud names get a short org-id suffix.
+ * Canonical cloud/local organization picker entries. Local cloud aliases are
+ * hidden, personal scope is emitted once, and duplicate labels are qualified.
  */
 export function buildOrgSelectorEntries({
   personalOrgId,

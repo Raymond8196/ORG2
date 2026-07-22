@@ -186,7 +186,7 @@ const TabPill = memo(function TabPill({
   const displayTitle = resolveChatPanelTabDisplayTitle(tab, session, {
     launchpad: t("navigation:routes.launchpad"),
     runtime: t("sessions:chat.startPage.tabs.runtime"),
-    cloudOrg: t("navigation:collaboration.manageOrg"),
+    organization: t("navigation:collaboration.manageOrg"),
     workManagement: {
       kanban: t("sessions:simulator.tabs.kanban"),
       projects: t("navigation:labels.projects"),
@@ -236,7 +236,7 @@ const TabPill = memo(function TabPill({
         className={`shrink-0 ${iconColorClass}`}
       />
     );
-  } else if (tab.type === "cloud-org") {
+  } else if (tab.type === "organization") {
     icon = (
       <Settings2
         size={16}

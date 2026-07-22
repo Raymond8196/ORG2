@@ -21,10 +21,10 @@ import {
   activeChatPanelTabAtom,
   activeWorkManagementSectionAtom,
   closeAndDestroyChatPanelTabAtom,
-  openCloudOrgManagementInChatPanelTabAtom,
   openCreateTargetInChatPanelStartPageAtom,
   openOrFocusChatPanelStartPageTabAtom,
   openOrReplaceSessionInChatPanelTabAtom,
+  openOrganizationInChatPanelTabAtom,
   openRuntimeInChatPanelTabAtom,
   openSessionInNewChatTabAtom,
   openWorkManagementChatPanelTabAtom,
@@ -62,6 +62,8 @@ import {
 import { type StationMode, stationModeAtom } from "@src/store/ui/simulatorAtom";
 import { spotlightOpenAtom } from "@src/store/ui/uiAtom";
 import {
+  PROJECT_ORG_SURFACE_VIEW,
+  STORY_ORG_SCOPE,
   WORK_MANAGEMENT_PROJECTS_VIEW,
   WORK_MANAGEMENT_SECTION,
   type WorkManagementSection,
@@ -186,9 +188,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     workManagementProjectsViewAtom
   );
   const openWorkManagementTab = useSetAtom(openWorkManagementChatPanelTabAtom);
-  const openCloudOrgManagementTab = useSetAtom(
-    openCloudOrgManagementInChatPanelTabAtom
-  );
+  const openOrganizationTab = useSetAtom(openOrganizationInChatPanelTabAtom);
   const openSessionInNewChatTab = useSetAtom(openSessionInNewChatTabAtom);
   const openSessionInWorkstation = useSetAtom(openSessionInWorkstationAtom);
   const openOrReplaceSessionInChatPanelTab = useSetAtom(
@@ -208,6 +208,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
   const { goToNewSession, navigateTo } = useAppNavigation();
   const [activeSidebarKey, setActiveSidebarKey] =
     useState<WorkstationSidebarKey>("workstation");
+  const localOrgManagementRequestIdRef = React.useRef(0);
   const [activeSessionMoreMenuId, setActiveSessionMoreMenuId] = useState("");
   const [projectsSelectedMenuItemId, setProjectsSelectedMenuItemId] =
     useState("");
@@ -254,6 +255,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     cloudTaggedSessionIds,
     handleCloudSessionFilterChange,
     manageableCloudOrg,
+    manageableLocalOrg,
     orgSelectorOptions,
     personalHiddenCloudTaggedIds,
     sessionFilterOrgIds,
@@ -803,15 +805,52 @@ export const WorkstationSidebarConnector: React.FC = () => {
     [setSelectedOrgId]
   );
   const handleManageOrg = useCallback(() => {
-    if (!manageableCloudOrg) return;
     resetWorkManagementStateForProjectsContent();
-    openCloudOrgManagementTab({
-      cloudOrg: { orgId: manageableCloudOrg.orgId },
-      title: t("collaboration.manageOrg"),
-    });
+    if (activeCloudOrgId && manageableCloudOrg) {
+      openOrganizationTab({
+        organization: {
+          kind: "cloud",
+          cloudOrg: { orgId: manageableCloudOrg.orgId },
+        },
+        title: t("collaboration.manageOrg"),
+      });
+      return;
+    }
+    if (manageableLocalOrg) {
+      localOrgManagementRequestIdRef.current += 1;
+      openOrganizationTab({
+        organization: {
+          kind: "local",
+          projectOrg: {
+            orgId: manageableLocalOrg.id,
+            orgName: manageableLocalOrg.name,
+            orgScope: STORY_ORG_SCOPE.PROJECT_ORG,
+            orgSyncProvider: manageableLocalOrg.sync_provider,
+            initialView: PROJECT_ORG_SURFACE_VIEW.SETTINGS,
+            initialViewRequestId: localOrgManagementRequestIdRef.current,
+          },
+        },
+        title: t("collaboration.manageOrg"),
+      });
+      return;
+    }
+    if (manageableCloudOrg) {
+      openOrganizationTab({
+        organization: {
+          kind: "cloud",
+          cloudOrg: { orgId: manageableCloudOrg.orgId },
+        },
+        title: t("collaboration.manageOrg"),
+      });
+      return;
+    }
+    handleAddOrgFromSelector();
   }, [
+    activeCloudOrgId,
+    handleAddOrgFromSelector,
     manageableCloudOrg,
-    openCloudOrgManagementTab,
+    manageableLocalOrg,
+    openOrganizationTab,
     resetWorkManagementStateForProjectsContent,
     t,
   ]);
@@ -1026,7 +1065,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
                 onChange={handleOrgSelectorChange}
                 onAddOrg={handleAddOrgFromSelector}
                 onCloudSignIn={handleCloudSignIn}
-                onManageOrg={manageableCloudOrg ? handleManageOrg : undefined}
+                onManageOrg={handleManageOrg}
               />
             }
             rightActions={sidebarBottomRightActions}
