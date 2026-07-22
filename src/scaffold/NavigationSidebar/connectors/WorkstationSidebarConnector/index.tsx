@@ -384,7 +384,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
   const noSearchResultsTitle = t("sidebar.empty.noSearchResults");
   const {
     cloudMenuItems,
-    cloudThreadedLocalSessionIds,
+    cloudFlatListExcludedSessionIds,
     selectedCloudMenuItemId,
     handleCloudSessionItemClick,
     resetCloudTeamPagination,
@@ -405,17 +405,18 @@ export const WorkstationSidebarConnector: React.FC = () => {
   });
 
   // Threaded position wins: mine-rows shown inside a fork thread leave the
-  // flat local list (sessionMap keeps them for click routing).
+  // flat local list, and imported teammate caches never count as "mine"
+  // (sessionMap keeps every excluded row available for click routing).
   const sessionListExcludedIds = useMemo(() => {
-    if (!personalHiddenCloudTaggedIds) return cloudThreadedLocalSessionIds;
-    if (cloudThreadedLocalSessionIds.size === 0) {
+    if (!personalHiddenCloudTaggedIds) return cloudFlatListExcludedSessionIds;
+    if (cloudFlatListExcludedSessionIds.size === 0) {
       return personalHiddenCloudTaggedIds;
     }
     return new Set([
-      ...cloudThreadedLocalSessionIds,
+      ...cloudFlatListExcludedSessionIds,
       ...personalHiddenCloudTaggedIds,
     ]);
-  }, [cloudThreadedLocalSessionIds, personalHiddenCloudTaggedIds]);
+  }, [cloudFlatListExcludedSessionIds, personalHiddenCloudTaggedIds]);
 
   const {
     menuItems,

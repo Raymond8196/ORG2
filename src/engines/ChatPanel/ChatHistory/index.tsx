@@ -121,6 +121,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
     virtualListRef: historyState.virtualListRef,
   });
   const emptyState = useChatEmptyState({
+    activeSessionId: activeId,
     sessionLoadStatus: historyState.sessionLoadStatus,
     optimizedLen: historyState.chatHistory.length,
   });
