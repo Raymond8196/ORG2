@@ -19,7 +19,7 @@ import { getEventIcon } from "@src/config/toolIcons";
 import AgentChatItemDefault from "@src/engines/ChatPanel/ChatItems/AgentChatItemDefault";
 import { AgentMessageBlock } from "@src/engines/ChatPanel/blocks";
 import CanvasInlineCard from "@src/engines/ChatPanel/blocks/CanvasInlineCard";
-import { useCanvasPreviewForSession } from "@src/engines/ChatPanel/blocks/CanvasInlineCard/useCanvasPreviewForSession";
+import { useCanvasForTurn } from "@src/engines/ChatPanel/blocks/CanvasInlineCard/useCanvasForTurn";
 import MessageReferenceCards from "@src/engines/ChatPanel/blocks/MessageReferenceCards";
 import LlmUsageBadge from "@src/engines/ChatPanel/blocks/ToolCallBlock/LlmUsageBadge";
 import {
@@ -34,8 +34,8 @@ import {
   getEventBlockContentClasses,
   useEventBlockHeader,
 } from "@src/engines/ChatPanel/blocks/primitives";
-import { streamingDeltaContentAtom } from "@src/engines/SessionCore";
-import { eventsAtom, sessionIdAtom } from "@src/engines/SessionCore/core/atoms";
+import { useStreamingDeltaForSession } from "@src/engines/SessionCore";
+import { sessionIdAtom } from "@src/engines/SessionCore/core/atoms";
 import {
   type RawEventInput,
   useNormalizedEventProps,
@@ -155,10 +155,10 @@ interface ChatVariantProps {
   itemIndex?: number;
   isStreaming?: boolean;
   sessionId?: string | null;
-  canvasUrls?: ReadonlySet<string>;
   llmUsage?: UniversalEventProps["llmUsage"];
   /** Event id used by AgentMessageBlock's locate-in-simulator arrow. */
   eventId?: string;
+  timestamp?: string;
 }
 
 const ChatVariant: React.FC<ChatVariantProps> = ({
@@ -167,9 +167,9 @@ const ChatVariant: React.FC<ChatVariantProps> = ({
   itemIndex = 0,
   isStreaming = false,
   sessionId,
-  canvasUrls,
   llmUsage,
   eventId,
+  timestamp,
 }) => {
   // Canvas preview from the global atom is only relevant for the live
   // streaming message. Historical (non-streaming) messages already have
@@ -177,9 +177,10 @@ const ChatVariant: React.FC<ChatVariantProps> = ({
   // Reading the global atom unconditionally caused re-shows: any time a new
   // round started and openInSimulatorCanvas cleared cardDismissed, every
   // historical ChatVariant instance would briefly re-render the old canvas.
-  const { payload: streamingCanvasPayload } = useCanvasPreviewForSession(
+  const { snapshot: streamingCanvas } = useCanvasForTurn(
     isStreaming ? sessionId : null
   );
+  const streamingCanvasPayload = streamingCanvas.payload;
   const canvasPayload = isStreaming ? streamingCanvasPayload : null;
 
   if (!content && !thinkingContent && !isStreaming && !canvasPayload)
@@ -199,6 +200,9 @@ const ChatVariant: React.FC<ChatVariantProps> = ({
         <AgentMessageBlock
           eventId={eventId}
           isStreaming={isStreaming}
+          itemIndex={itemIndex}
+          messageContent={content}
+          messageTimestamp={timestamp}
           rightContent={
             llmUsage ? <LlmUsageBadge usage={llmUsage} /> : undefined
           }
@@ -208,12 +212,12 @@ const ChatVariant: React.FC<ChatVariantProps> = ({
             expand={true}
             finish={!isStreaming}
             streamHtml={isStreaming}
+            showCopyButton={false}
             appendedContent={
               <>
                 <MessageReferenceCards
                   content={content || ""}
                   enabled={!isStreaming}
-                  excludeUrls={canvasUrls}
                   sessionId={sessionId}
                 />
                 {!isStreaming && content && (
@@ -295,65 +299,10 @@ function hasUnloadedTurnPayload(value: RawEventInput | undefined): boolean {
   return typeof turnId === "string" && turnId.length > 0;
 }
 
-/**
- * Collects URLs used by canvas_inline events within the same agent turn as
- * the given agent_message event id. "Same turn" = all non-user events between
- * the preceding user event and the next user event.
- *
- * Used to suppress MessageReferenceCards from showing a URL card for a URL
- * that is already rendered by a CanvasInlineAdapter in the same turn.
- */
-function useAdjacentCanvasUrls(
-  eventId: string | undefined
-): ReadonlySet<string> {
-  const events = useAtomValue(eventsAtom);
-  return useMemo(() => {
-    if (!eventId) return new Set<string>();
-
-    const idx = events.findIndex((e) => e.id === eventId);
-    if (idx === -1) return new Set<string>();
-
-    // Walk backward to the preceding user event boundary
-    let start = 0;
-    for (let i = idx - 1; i >= 0; i--) {
-      if (events[i].source === "user") {
-        start = i + 1;
-        break;
-      }
-    }
-
-    // Walk forward to the next user event boundary
-    let end = events.length;
-    for (let i = idx + 1; i < events.length; i++) {
-      if (events[i].source === "user") {
-        end = i;
-        break;
-      }
-    }
-
-    const urls = new Set<string>();
-    for (let i = start; i < end; i++) {
-      const evt = events[i];
-      if (evt.uiCanonical === "canvas_inline") {
-        const url = evt.args?.url;
-        if (typeof url === "string" && url) {
-          try {
-            urls.add(new URL(url).toString());
-          } catch {
-            urls.add(url);
-          }
-        }
-      }
-    }
-    return urls;
-  }, [events, eventId]);
-}
-
 export const AgentMessageEvent: React.FC<AgentMessageEventProps> = (props) => {
   const normalizedProps = useNormalizedEventProps(props, "agent_message");
   const sessionId = useAtomValue(sessionIdAtom);
-  const streamingMap = useAtomValue(streamingDeltaContentAtom);
-  const liveDelta = sessionId ? (streamingMap.get(sessionId) ?? null) : null;
+  const liveDelta = useStreamingDeltaForSession(sessionId);
   const directStreamContent =
     liveDelta?.kind === "message" ? liveDelta.content : null;
 
@@ -392,8 +341,6 @@ export const AgentMessageEvent: React.FC<AgentMessageEventProps> = (props) => {
     [rawContent]
   );
 
-  const canvasUrls = useAdjacentCanvasUrls(normalizedProps?.eventId);
-
   const variant = normalizedProps?.variant ?? props.variant;
 
   if (!normalizedProps && variant !== "chat") return null;
@@ -408,9 +355,9 @@ export const AgentMessageEvent: React.FC<AgentMessageEventProps> = (props) => {
         itemIndex={props.itemIndex}
         isStreaming={props.isStreaming}
         sessionId={sessionId}
-        canvasUrls={canvasUrls}
         llmUsage={normalizedProps?.llmUsage}
         eventId={normalizedProps?.eventId}
+        timestamp={normalizedProps?.timestamp ?? props.event?.createdAt}
       />
     );
   }

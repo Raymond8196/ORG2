@@ -19,6 +19,7 @@ import type { DispatchCategory } from "@src/api/tauri/session";
  * 1. Dispatch category (transport/routing):
  *    - "cli_agent": CLI Agent session (external CLI process via Tauri)
  *    - "rust_agent": Rust-native agent session (OS Agent, SDE Agent, Custom)
+ *    - "human_session": User-authored proof-of-work session
  *
  * 2. Key source (billing / own key vs hosted key):
  *    - "own_key": User's own API keys (BYOK)
@@ -71,6 +72,11 @@ export interface SessionPrefixConfig {
  * Order matters: first match wins for prefix detection.
  */
 export const SESSION_PREFIX_REGISTRY: readonly SessionPrefixConfig[] = [
+  {
+    prefix: "humansession-",
+    category: "human_session",
+    iconId: "clipboard-list",
+  },
   {
     prefix: "osagent-",
     category: "rust_agent",
@@ -129,6 +135,9 @@ export const SDE_AGENT_SESSION_PREFIX = "sdeagent-";
 /** Prefix for CLI Agent session IDs */
 export const CLI_SESSION_PREFIX = "cliagent-";
 
+/** Prefix for user-authored Human sessions. */
+export const HUMAN_SESSION_PREFIX = "humansession-";
+
 /**
  * Prefix for Cursor IDE history session IDs. The bare composer UUID from
  * Cursor's `state.vscdb` is wrapped as `${CURSOR_IDE_SESSION_PREFIX}${uuid}`
@@ -151,6 +160,9 @@ export const WINDSURF_HISTORY_SESSION_PREFIX = "windsurfapp-";
 
 /** Prefix for imported WorkBuddy event session IDs. */
 export const WORKBUDDY_HISTORY_SESSION_PREFIX = "workbuddyapp-";
+
+/** Prefix for imported Warp event session IDs. */
+export const WARP_HISTORY_SESSION_PREFIX = "warpapp-";
 
 /** Prefix for Wingman Agent session IDs */
 export const WINGMAN_SESSION_PREFIX = "wingman-";
@@ -193,6 +205,11 @@ function findPrefixConfig(
 export function isCliSession(sessionId: string | null | undefined): boolean {
   const config = findPrefixConfig(sessionId);
   return config?.category === "cli_agent";
+}
+
+/** Check if a session is a user-authored proof-of-work log. */
+export function isHumanSession(sessionId: string | null | undefined): boolean {
+  return findPrefixConfig(sessionId)?.category === "human_session";
 }
 
 /**
@@ -256,6 +273,12 @@ export function isWorkBuddyHistorySession(
   sessionId: string | null | undefined
 ): boolean {
   return getExternalHistorySourceId(sessionId) === "workbuddy";
+}
+
+export function isWarpHistorySession(
+  sessionId: string | null | undefined
+): boolean {
+  return getExternalHistorySourceId(sessionId) === "warp";
 }
 
 /**

@@ -42,10 +42,6 @@ export const tabRegistryAtom = atom<TabRegistryEntry[]>((get) => {
 });
 tabRegistryAtom.debugLabel = "tabRegistryAtom";
 
-function isClosableTab(entry: TabRegistryEntry): boolean {
-  return entry.tab.closable !== false && entry.tab.pinned !== true;
-}
-
 // ============================================
 // Writers
 // ============================================
@@ -80,7 +76,7 @@ closeTabAtom.debugLabel = "closeTabAtom";
 
 /**
  * Close the currently active tab. Returns `true` when a tab was closed,
- * `false` otherwise (e.g. when the active tab is pinned / non-closable).
+ * `false` otherwise (e.g. when there is no active tab).
  */
 export const closeActiveWorkStationTabAtom = atom(null, (get, set) => {
   const layout = get(workstationLayoutAtom);
@@ -89,11 +85,31 @@ export const closeActiveWorkStationTabAtom = atom(null, (get, set) => {
   if (!activeTabId) return false;
   const active = tabs.find((tab) => tab.id === activeTabId);
   if (!active) return false;
-  if (!isClosableTab({ tab: active, isActive: true })) return false;
   set(closeTabAtom, { tabId: active.id });
   return true;
 });
 closeActiveWorkStationTabAtom.debugLabel = "closeActiveWorkStationTabAtom";
+
+/** Close every WorkStation surface whose durable payload belongs to an org. */
+export const closeProjectOrgWorkStationTabsAtom = atom(
+  null,
+  (get, set, orgId: string) => {
+    const layout = get(workstationLayoutAtom);
+    if (!layout) return;
+    const tabIds = layout.mainPane.tabs
+      .filter((tab) => tab.data.orgId === orgId)
+      .map((tab) => tab.id);
+    if (tabIds.length === 0) return;
+
+    let nextPane = layout.mainPane;
+    for (const tabId of tabIds) {
+      nextPane = closeTabMutation(nextPane, tabId);
+    }
+    set(workstationLayoutAtom, setMainPane(layout, nextPane));
+  }
+);
+closeProjectOrgWorkStationTabsAtom.debugLabel =
+  "closeProjectOrgWorkStationTabsAtom";
 
 export const reorderTabAtom = atom(
   null,

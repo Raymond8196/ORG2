@@ -115,14 +115,6 @@ const appGoToBrowser = defineRouteNavigationAction(
   ["open the browser", "switch to browser"]
 );
 
-const appGoToDatabase = defineRouteNavigationAction(
-  ACTION_ID.APP_GO_TO_DATABASE,
-  "Switch to the Database Manager (Workstation)",
-  ROUTES.workStation.database.path,
-  "Switched to Database Manager",
-  ["open the database manager", "switch to database"]
-);
-
 const appGoToChat = defineRouteNavigationAction(
   ACTION_ID.APP_GO_TO_CHAT,
   "Switch to Chat (Workstation)",
@@ -271,7 +263,6 @@ export const appNavigationZodActions = [
   appGoToSettings,
   appGoToEditor,
   appGoToBrowser,
-  appGoToDatabase,
   appGoToChat,
   appGoToMarket,
   appGoToStartPage,

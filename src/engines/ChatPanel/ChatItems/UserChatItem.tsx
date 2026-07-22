@@ -28,6 +28,10 @@ import {
   type SessionLinkCardData,
 } from "@src/engines/ChatPanel/blocks/ToolCallBlock/cards";
 import { imageRefToRustPath } from "@src/engines/SessionCore/ingestion/agentMessageAdapters";
+import {
+  formatSmartDateTime,
+  toIntlLocaleTag,
+} from "@src/util/data/formatters/date";
 
 import UserMessageContent from "../ChatHistory/components/UserMessageContent";
 import InputArea from "../InputArea";
@@ -169,9 +173,16 @@ CachedFileChip.displayName = "CachedFileChip";
 // Styles
 // ============================================
 
-/** Layout-only; border/hover/focus ring added per-row below */
+/**
+ * Layout-only; border/hover/focus ring added per-row below.
+ *
+ * Uses a NAMED group (`group/msg`) so the hover toolbar reveals only when its
+ * own bubble is hovered. An unnamed `group` here would also match any ancestor
+ * carrying a bare `group` class (e.g. the WorkStation AppShell), which made
+ * every message's toolbar reveal whenever the mouse was anywhere in the pane.
+ */
 const DISPLAY_CONTAINER_BASE =
-  "group relative w-fit max-w-[min(600px,100%)] rounded-2xl bg-fill-2 px-3 py-2 transition-colors hover:bg-fill-3";
+  "group/msg relative w-fit max-w-[min(600px,100%)] rounded-2xl bg-fill-2 px-3 py-2 transition-colors hover:bg-fill-3";
 
 // ============================================
 // Component
@@ -182,7 +193,7 @@ const UserChatItem = ({
   onEditSubmit,
   onRestoreCheckpoint,
 }: UserChatItemProps) => {
-  const { t } = useTranslation("sessions");
+  const { t, i18n } = useTranslation("sessions");
   const [isEditing, setIsEditing] = useState(false);
 
   const [isExpanded, setIsExpanded] = useState(false);
@@ -256,6 +267,20 @@ const UserChatItem = ({
     () => extractPrPillCards(fullContent),
     [fullContent]
   );
+
+  // Per-message timestamp shown beneath the bubble. Same smart-format used by
+  // the other chat surfaces (Group chat, Org task, email): today → 24h time,
+  // yesterday → "Yesterday HH:mm", older → "Jun 13, HH:mm".
+  const timestampLabel = useMemo(() => {
+    const createdAt = event?.createdAt;
+    if (!createdAt) return "";
+    return formatSmartDateTime(createdAt, {
+      yesterdayLabel: t("common:relativeDate.yesterday", {
+        defaultValue: "Yesterday",
+      }),
+      locale: toIntlLocaleTag(i18n.resolvedLanguage),
+    });
+  }, [event?.createdAt, t, i18n.resolvedLanguage]);
 
   const handleToggleTruncation = useCallback(
     (event: SyntheticEvent) => {
@@ -358,7 +383,7 @@ const UserChatItem = ({
         onClick={isEditableDisplay ? handleEditClick : undefined}
       >
         {fullContent && (
-          <div className="absolute right-full top-1/2 z-10 mr-1 -translate-y-1/2 translate-x-2 opacity-0 transition-[opacity,transform] duration-150 ease-out focus-within:translate-x-0 focus-within:opacity-100 group-hover:translate-x-0 group-hover:opacity-100 motion-reduce:translate-x-0 motion-reduce:transition-none">
+          <div className="absolute right-full top-1/2 z-10 mr-1 -translate-y-1/2 translate-x-2 opacity-0 transition-[opacity,transform] duration-150 ease-out focus-within:translate-x-0 focus-within:opacity-100 group-hover/msg:translate-x-0 group-hover/msg:opacity-100 motion-reduce:translate-x-0 motion-reduce:transition-none">
             <div className="flex items-center gap-1 px-1 py-0.5">
               <ChatBubbleCopyButton content={fullContent} placement="toolbar" />
               {isEditableDisplay && onRestoreCheckpoint && (
@@ -475,6 +500,11 @@ const UserChatItem = ({
           )}
         </div>
       </div>
+      {timestampLabel && (
+        <div className="mt-1 px-1 text-[11px] leading-none text-text-3">
+          {timestampLabel}
+        </div>
+      )}
       {prPillCards.length > 0 && (
         <div className="mt-1 flex w-full max-w-2xl flex-col">
           {prPillCards.map((card) => (

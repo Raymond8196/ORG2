@@ -2,9 +2,11 @@ import {
   CLAUDE_CODE_HISTORY_SESSION_PREFIX,
   CLI_SESSION_PREFIX,
   CODEX_APP_SESSION_PREFIX,
+  HUMAN_SESSION_PREFIX,
   OPENCODE_HISTORY_SESSION_PREFIX,
   OS_AGENT_SESSION_PREFIX,
   SDE_AGENT_SESSION_PREFIX,
+  WARP_HISTORY_SESSION_PREFIX,
   WINDSURF_HISTORY_SESSION_PREFIX,
   getDispatchCategory,
   getExternalHistorySourceId,
@@ -14,7 +16,9 @@ import {
   isCliSession,
   isCodexAppSession,
   isExternalHistorySession,
+  isHumanSession,
   isOpenCodeHistorySession,
+  isWarpHistorySession,
   isWindsurfHistorySession,
 } from "../sessionDispatch";
 
@@ -23,10 +27,19 @@ describe("sessionDispatch constants", () => {
     expect(OS_AGENT_SESSION_PREFIX).toBe("osagent-");
     expect(SDE_AGENT_SESSION_PREFIX).toBe("sdeagent-");
     expect(CLI_SESSION_PREFIX).toBe("cliagent-");
+    expect(HUMAN_SESSION_PREFIX).toBe("humansession-");
     expect(CODEX_APP_SESSION_PREFIX).toBe("codexapp-");
     expect(CLAUDE_CODE_HISTORY_SESSION_PREFIX).toBe("claudecodeapp-");
     expect(OPENCODE_HISTORY_SESSION_PREFIX).toBe("opencodeapp-");
     expect(WINDSURF_HISTORY_SESSION_PREFIX).toBe("windsurfapp-");
+    expect(WARP_HISTORY_SESSION_PREFIX).toBe("warpapp-");
+  });
+});
+
+describe("isHumanSession", () => {
+  it("recognizes Human proof-of-work sessions", () => {
+    expect(isHumanSession("humansession-abc")).toBe(true);
+    expect(isHumanSession("sdeagent-abc")).toBe(false);
   });
 });
 
@@ -69,11 +82,13 @@ describe("getDispatchCategory", () => {
     expect(getDispatchCategory("osagent-x")).toBe("rust_agent");
     expect(getDispatchCategory("sdeagent-x")).toBe("rust_agent");
     expect(getDispatchCategory("cliagent-x")).toBe("cli_agent");
+    expect(getDispatchCategory("humansession-x")).toBe("human_session");
     expect(getDispatchCategory("cursoride-x")).toBe("cursor_ide");
     expect(getDispatchCategory("codexapp-x")).toBe("external_history");
     expect(getDispatchCategory("claudecodeapp-x")).toBe("external_history");
     expect(getDispatchCategory("opencodeapp-x")).toBe("external_history");
     expect(getDispatchCategory("windsurfapp-x")).toBe("external_history");
+    expect(getDispatchCategory("warpapp-x")).toBe("external_history");
   });
 
   it("returns rust_agent for unknown id (default)", () => {
@@ -112,6 +127,12 @@ describe("external history source detection", () => {
     expect(getExternalHistorySourceId("windsurfapp-session-1")).toBe(
       "windsurf"
     );
+  });
+
+  it("recognizes Warp imported history sessions", () => {
+    expect(isExternalHistorySession("warpapp-session-1")).toBe(true);
+    expect(isWarpHistorySession("warpapp-session-1")).toBe(true);
+    expect(getExternalHistorySourceId("warpapp-session-1")).toBe("warp");
   });
 
   it("routes Cursor App history through the Cursor IDE category", () => {

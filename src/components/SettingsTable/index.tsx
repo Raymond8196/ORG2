@@ -123,10 +123,7 @@ export interface SettingsTablePaginationContext {
   onPageSizeChange: (pageSize: number) => void;
 }
 
-export type SettingsTableSurfaceVariant =
-  | "default"
-  | "chatPanel"
-  | "transparent";
+export type SettingsTableSurfaceVariant = "default" | "transparent";
 
 export interface SettingsTableProps<RowData> {
   columns: SettingsTableColumn<RowData>[];
@@ -185,7 +182,7 @@ export interface SettingsTableProps<RowData> {
    *  (e.g. a scope TabPill). Renders only when this prop or `selectFilters`
    *  has content. */
   selectFiltersExtra?: ReactNode;
-  /** When true, filters/pills and search share one 32px row (search fixed-width on the right). Default: false. */
+  /** When true, filters/pills and search share one 32px row when space allows, then split into search/actions above filters. Default: false. */
   inlineHeaderToolbar?: boolean;
   /** When false, disables sticky table header. Default: true */
   stickyHeader?: boolean;
@@ -273,8 +270,8 @@ function SettingsTableToolbar({
   ) : undefined;
 
   return (
-    <div className="flex min-w-0 items-center gap-8 pb-2 pt-2">
-      <div className="min-w-0 flex-1 overflow-x-auto overflow-y-hidden">
+    <div className="flex min-w-0 flex-col gap-2 pb-2 pt-2 @[640px]:flex-row @[640px]:items-center @[640px]:gap-8">
+      <div className="order-2 w-full min-w-0 overflow-x-auto overflow-y-hidden @[640px]:order-1 @[640px]:flex-1">
         <div className="flex w-max min-w-full items-center gap-2">
           {searchBar?.leftContent}
           {effectiveTabPills ? (
@@ -326,10 +323,11 @@ function SettingsTableToolbar({
         </div>
       </div>
       {hasInlineSearch && searchBar ? (
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="order-1 flex w-full shrink-0 items-center gap-2 @[640px]:order-2 @[640px]:w-auto">
           <Input
             type="search"
-            className="w-52"
+            size={searchBar.searchInputSize ?? "small"}
+            className="min-w-0 flex-1 @[640px]:w-52 @[640px]:flex-none"
             value={searchBar.searchValue ?? ""}
             placeholder={searchBar.searchPlaceholder}
             prefix={<Search size={14} className="text-text-3" aria-hidden />}
@@ -547,11 +545,9 @@ export default function SettingsTable<RowData>({
 
   const hasHeader = !!searchBar || hasSelectFilterRow;
   const surfaceClassName =
-    surfaceVariant === "chatPanel"
-      ? "settings-table-root-chat-panel bg-chat-panel-info-container"
-      : surfaceVariant === "transparent"
-        ? "settings-table-root-transparent"
-        : "settings-table-root-default bg-surface-container";
+    surfaceVariant === "transparent"
+      ? "settings-table-root-transparent"
+      : "settings-table-root-default bg-primary-container";
   // Standalone tables get an outer border. Tables flagged `noPx` are embedded
   // inside a SectionContainer that already draws the border — skip it there to
   // avoid a double border.
@@ -569,8 +565,8 @@ export default function SettingsTable<RowData>({
     surfaceVariant !== "transparent" && "rounded-xl",
     hasOuterBorder &&
       (stickyBordered
-        ? "border-x border-b border-border-2"
-        : "border border-border-2"),
+        ? "border-x border-b border-border-1"
+        : "border border-border-1"),
     fillHeight && "flex h-full min-h-0 flex-col overflow-hidden",
     maxHeight != null && "flex min-h-0 flex-col overflow-hidden",
     surfaceClassName,
@@ -592,10 +588,10 @@ export default function SettingsTable<RowData>({
       {hasHeader && (
         <div
           ref={searchRef}
-          className={`${containedScroll ? "shrink-0" : "sticky top-0 z-[21]"} ${stickyBordered ? "settings-table-sticky-mask bg-bg-2" : ""}`.trim()}
+          className={`${containedScroll ? "shrink-0" : "settings-table-sticky-toolbar"} ${stickyBordered ? "settings-table-sticky-mask bg-bg-2" : ""}`.trim()}
         >
           <div
-            className={`${stickyBordered ? "settings-table-sticky-surface -mx-px border-x border-t border-border-2" : ""} border-b border-border-2 px-4 ${surfaceVariant !== "transparent" ? "rounded-t-xl" : ""} ${surfaceClassName} ${searchHeaderClassName}`.trim()}
+            className={`${stickyBordered ? "settings-table-sticky-surface -mx-px border-x border-t border-border-1" : ""} border-b border-border-1 px-4 ${surfaceVariant !== "transparent" ? "rounded-t-xl" : ""} ${surfaceClassName} ${searchHeaderClassName}`.trim()}
           >
             {inlineHeaderToolbar ? (
               <SettingsTableToolbar

@@ -5,6 +5,20 @@
     "decision": "{{tokenCount}} Token decision",
     "tooltip": "Estimated tool attribution. Method: {{method}}. Input: {{inputBytes}} bytes. Output: {{outputBytes}} bytes. Decision: {{decisionTokens}} Token. Context: {{contextTokens}} Token. Follow-up: {{followupTokens}} Token. Related LLM cache read: {{cacheReadTokens}} Token. Related LLM cache write: {{cacheWriteTokens}} Token."
   },
+  "humanSession": {
+    "titlePlaceholder": "Title (optional)",
+    "createPlaceholder": "Add the first note… Type / for skills or @ to mention a session.",
+    "createAction": "Create work log",
+    "appendLabel": "New note",
+    "entryLabel": "Work log entry",
+    "appendPlaceholder": "Append a note… Type / for skills, @ to mention a session, or drag one here.",
+    "appendAction": "Append note",
+    "loading": "Loading work log",
+    "updated": "Updated {{date}}",
+    "createFailed": "Could not create the work log",
+    "loadFailed": "Could not load the work log",
+    "appendFailed": "Could not append the note"
+  },
   "history": {
     "untitledSession": "Untitled Session",
     "prStatus": {
@@ -23,6 +37,8 @@
       "roundCount_one": "{{count}} round",
       "roundCount_other": "{{count}} rounds",
       "agentWorked": "Agent worked",
+      "cliNativeStore": "CLI native store",
+      "sessionId": "Session ID",
       "reasoningModel": "Reasoning Model",
       "codingModel": "Coding Model",
       "sessionMode": "Session Mode",
@@ -80,6 +96,10 @@
   },
   "kanban": {
     "sessions": "Sessions",
+    "fileSearch": {
+      "placeholder": "Search sessions by file path",
+      "noResults": "No sessions touched a matching file"
+    },
     "replayBarAriaLabel": "Kanban replay timeline",
     "followLabel": "Current Kanban",
     "view": {
@@ -102,8 +122,18 @@
       "lastScan": "Last scan {{time}}",
       "neverScanned": "Never scanned",
       "frequencyTitle": "Auto-scan frequency",
-      "globalFrequency": "Auto-scan",
-      "globalFrequencyDesc": "Default cadence for sources set to Default.",
+      "externalSessionsToggle": "External sessions",
+      "externalSessionsToggleDesc": "When off, no external source is scanned or its sessions loaded",
+      "globalFrequency": "External source auto-scan",
+      "globalFrequencyDesc": "Default scan frequency for external sources set to Default",
+      "activeSessionRefresh": "Open external session refresh",
+      "activeSessionRefreshDesc": "Refresh frequency for the external session currently open in the chat pane",
+      "activeSessionFreq": {
+        "3s": "Every 3 seconds",
+        "5s": "Every 5 seconds",
+        "10s": "Every 10 seconds",
+        "1m": "Every minute"
+      },
       "col": {
         "source": "Source",
         "sessions": "Sessions",
@@ -123,6 +153,105 @@
         "all": "All",
         "apps": "Apps",
         "clis": "CLIs"
+      },
+      "views": {
+        "scanning": "Scanning",
+        "hooks": "Hooks",
+        "usage": "Usage",
+        "quota": "Quota",
+        "assets": "Assets"
+      },
+      "usage": {
+        "title": "Usage & cost",
+        "subtitle": "Tokens and estimated cost across your scanned coding sessions. Read from the local database — no data leaves your machine.",
+        "allSources": "All sources",
+        "refresh": "Refresh",
+        "estimatedNote": "Cost is a list-price estimate for subscription / own-key routes; metered spend is shown when recorded.",
+        "range": {
+          "today": "Today",
+          "24h": "24h",
+          "7d": "7 days",
+          "30d": "30 days",
+          "all": "All time"
+        },
+        "bucket": {
+          "claude": "Claude",
+          "codex": "Codex",
+          "cursor": "Cursor",
+          "org2": "ORG2",
+          "other": "Other"
+        },
+        "cards": {
+          "realTokens": "Total tokens",
+          "cost": "Total cost (est.)",
+          "sessions": "Sessions",
+          "requests": "Requests",
+          "cacheHit": "Cache hit rate",
+          "input": "Input",
+          "output": "Output",
+          "cacheCreate": "Cache write",
+          "cacheRead": "Cache read"
+        },
+        "trends": {
+          "title": "Usage trends",
+          "input": "Input",
+          "output": "Output",
+          "cacheCreate": "Cache write",
+          "cacheRead": "Cache read",
+          "cost": "Cost"
+        },
+        "table": {
+          "title": "Sessions",
+          "name": "Session",
+          "agent": "Agent",
+          "model": "Model",
+          "tokens": "Tokens",
+          "cost": "Cost",
+          "cacheHit": "Cache hit",
+          "turns": "Turns",
+          "lastActive": "Last active",
+          "sort": {
+            "recent": "Most recent",
+            "cost": "Highest cost",
+            "tokens": "Most tokens"
+          }
+        },
+        "roundsTable": {
+          "title": "Requests",
+          "time": "Time",
+          "session": "Session",
+          "agent": "Agent",
+          "model": "Model",
+          "input": "Input",
+          "output": "Output",
+          "cache": "Cache read",
+          "cost": "Cost",
+          "filterBySession": "Filter to this session"
+        },
+        "pricing": {
+          "input": "Input",
+          "cache": "Cache",
+          "output": "Output",
+          "total": "Total",
+          "estimate": "List-price estimate",
+          "hint": "Hover a request's cost for its breakdown.",
+          "loading": "Calculating…"
+        },
+        "detail": {
+          "title": "Per-call breakdown",
+          "perTurn": "LLM calls",
+          "perTool": "Tool calls",
+          "close": "Close",
+          "noData": "This session has session-level totals only — per-call attribution is recorded for ORGII's own agent runs.",
+          "turnHeader": "Turn {{turn}}",
+          "promptTokens": "Prompt",
+          "completionTokens": "Completion"
+        },
+        "empty": {
+          "title": "No usage yet",
+          "subtitle": "Run or scan some coding sessions and their token usage will show up here."
+        },
+        "loadError": "Failed to load usage data"
       },
       "sessions_one": "{{count}} session",
       "sessions_other": "{{count}} sessions",
@@ -256,6 +385,11 @@
     },
     "replay": {
       "replaySession": "Replay"
+    },
+    "detailView": {
+      "trajectory": "Trajectory",
+      "touchedFiles": "Touched files",
+      "noTouchedFiles": "No files touched"
     },
     "diary": {
       "title": "Diary",
@@ -526,6 +660,12 @@
           "smartDateYesterday": "Yesterday",
           "senderTitle": {
             "taskCreated": "{{subject}} created task",
+            "taskCreateRunning": "{{subject}} is creating a task",
+            "taskCreateRejected": "{{subject}}'s task creation needs correction",
+            "taskCreateFailed": "{{subject}} couldn't create task",
+            "taskOperationRunning": "{{subject}} is running a task operation",
+            "taskOperationRejected": "{{subject}}'s task operation needs correction",
+            "taskOperationFailed": "{{subject}}'s task operation failed",
             "taskUpdated": "{{subject}} updated task",
             "taskDeleted": "{{subject}} deleted task",
             "taskViewed": "{{subject}} viewed task details",
@@ -801,16 +941,13 @@
         "title": "Agents"
       },
       "tabs": {
+        "session": "Session",
+        "workItem": "Work Item",
+        "more": "More",
         "work": "Work",
         "manage": "Manage",
-        "heatmap": "Trends"
-      },
-      "heatmap": {
-        "loading": "Loading activity trends…",
-        "empty": "No session activity yet.",
-        "sessions": "Sessions",
-        "tokens": "Tokens",
-        "cost": "Cost"
+        "heatmap": "Trends",
+        "runtime": "Runtime"
       },
       "quota": {
         "empty": "No quota data yet. Refresh usage from Key Vault.",
@@ -862,16 +999,6 @@
     "replay": {
       "follow": "Follow"
     },
-    "turnFiles": {
-      "filesChangedCount_one": "{{count}} file changed this round",
-      "filesChangedCount_other": "{{count}} files changed this round",
-      "historicalRoundDiffFiles_one": "Earlier round diff · {{count}} file",
-      "historicalRoundDiffFiles_other": "Earlier round diff · {{count}} files",
-      "review": "Review",
-      "showLess": "Show less",
-      "showMore_one": "Show {{count}} more",
-      "showMore_other": "Show {{count}} more"
-    },
     "readOnlyBannerCursorIde": "Read-only Cursor IDE history. Open Cursor to continue this chat.",
     "cursorControl": {
       "enableButton": "Enable sending",
@@ -913,6 +1040,28 @@
     "copyEventJson": "Copy event JSON",
     "copyEventJsonCopied": "Copied!",
     "copyEventJsonFailed": "Copy failed",
+    "moveToWorkstation": "Move to My Workstation",
+    "moveToChatPanel": "Move to Chat Panel",
+    "rawTranscript": {
+      "title": "Raw session transcript",
+      "menuItem": "View raw transcript",
+      "guiTab": "GUI",
+      "rawTab": "Raw",
+      "entryCount_one": "{{count}} entry",
+      "entryCount_other": "{{count}} entries",
+      "copySuccess": "Raw transcript copied",
+      "copyFailed": "Could not copy the raw transcript"
+    },
+    "linkWorkItem": {
+      "menuItem": "Link to Work Item…",
+      "title": "Link session to Work Item",
+      "description": "Select the Work Item that should show this session.",
+      "searchPlaceholder": "Search by Work Item ID, title, status, or project",
+      "loading": "Loading Work Items…",
+      "empty": "No Work Items found.",
+      "linking": "Linking…",
+      "link": "Link"
+    },
     "historyTitle": "History",
     "historyEmpty": "No sessions yet",
     "historyGroupTime": "Time",
@@ -1038,6 +1187,27 @@
         "importReadFailed": "Failed to read the JSON file.",
         "importFailed": "Failed to import Session JSON."
       }
+    },
+    "turnMetadata": {
+      "noChanges": "No file changes this round",
+      "earlierRound": "Earlier round",
+      "editsTab": "Edits",
+      "readsTab": "Reads",
+      "files_one": "{{count}} file",
+      "files_other": "{{count}} files",
+      "reads_one": "{{count}} read",
+      "reads_other": "{{count}} reads",
+      "searches_one": "{{count}} search",
+      "searches_other": "{{count}} searches",
+      "failed": "Failed",
+      "commits_one": "{{count}} commit",
+      "commits_other": "{{count}} commits",
+      "pullRequests_one": "{{count}} PR",
+      "pullRequests_other": "{{count}} PRs",
+      "review": "Review",
+      "showLess": "Show less",
+      "showMore_one": "Show {{count}} more",
+      "showMore_other": "Show {{count}} more"
     },
     "manageIssues": {
       "title": "Manage issues",
@@ -1309,45 +1479,6 @@
     "searchSymbolsRunning": "Searching symbols",
     "searchSymbolsDone": "Searched symbols",
     "searchSymbolsFailed": "Symbol search failed",
-    "codeMapStatusRunning": "Checking Code Map",
-    "codeMapStatusDone": "Checked Code Map",
-    "codeMapStatusFailed": "Code Map check failed",
-    "codeMapSearchRunning": "Searching Code Map",
-    "codeMapSearchDone": "Searched Code Map",
-    "codeMapSearchFailed": "Code Map search failed",
-    "codeMapNodeRunning": "Inspecting Code Map node",
-    "codeMapNodeDone": "Inspected Code Map node",
-    "codeMapNodeFailed": "Code Map node inspection failed",
-    "codeMapCallersRunning": "Finding Code Map callers",
-    "codeMapCallersDone": "Found Code Map callers",
-    "codeMapCallersFailed": "Code Map callers failed",
-    "codeMapCalleesRunning": "Finding Code Map callees",
-    "codeMapCalleesDone": "Found Code Map callees",
-    "codeMapCalleesFailed": "Code Map callees failed",
-    "codeMapImpactRunning": "Analyzing Code Map impact",
-    "codeMapImpactDone": "Analyzed Code Map impact",
-    "codeMapImpactFailed": "Code Map impact failed",
-    "codeMapExploreRunning": "Exploring Code Map",
-    "codeMapExploreDone": "Explored Code Map",
-    "codeMapExploreFailed": "Code Map exploration failed",
-    "manageCodeMapRunning": "Managing Code Map",
-    "manageCodeMapDone": "Managed Code Map",
-    "manageCodeMapFailed": "Code Map management failed",
-    "manageCodeMapStatusRunning": "Checking Code Map index",
-    "manageCodeMapStatusDone": "Checked Code Map index",
-    "manageCodeMapStatusFailed": "Code Map index check failed",
-    "manageCodeMapIndexRunning": "Indexing Code Map",
-    "manageCodeMapIndexDone": "Indexed Code Map",
-    "manageCodeMapIndexFailed": "Code Map indexing failed",
-    "manageCodeMapReindexRunning": "Re-indexing Code Map",
-    "manageCodeMapReindexDone": "Re-indexed Code Map",
-    "manageCodeMapReindexFailed": "Code Map re-index failed",
-    "manageCodeMapCancelRunning": "Cancelling Code Map index",
-    "manageCodeMapCancelDone": "Cancelled Code Map index",
-    "manageCodeMapCancelFailed": "Code Map cancel failed",
-    "manageCodeMapClearRunning": "Clearing Code Map index",
-    "manageCodeMapClearDone": "Cleared Code Map index",
-    "manageCodeMapClearFailed": "Code Map clear failed",
     "searchCheckStatusRunning": "Checking index status",
     "searchCheckStatusDone": "Checked index status",
     "searchCheckStatusFailed": "Index status check failed",
@@ -1981,6 +2112,11 @@
       "title": "Git is missing",
       "body": "Git is not installed or could not be found. Ask ADE Manager or SDE Agent to install Git for this machine, then restart ORGII."
     },
+    "cliVersionOutdated": {
+      "title": "{{cli}} CLI needs an upgrade",
+      "body": "Installed version: {{installed}}. Latest version: {{latest}}. Upgrade the CLI, then scan it again before using newer models",
+      "unknownVersion": "unknown"
+    },
     "noProvidersAvailable": "No providers available",
     "enterPublicRepoUrl": "Enter a public repo URL",
     "repoUrlPlaceholder": "https://github.com/owner/repo",
@@ -1990,6 +2126,15 @@
     "model": "Model",
     "source": "Account",
     "addContext": "Add Context",
+    "contextMenu": {
+      "filesAndFolders": "Files & Folders",
+      "agentSession": "Agent Session",
+      "session": "Session",
+      "workItems": "Work Items",
+      "back": "Back",
+      "recent": "Recent",
+      "showMore": "Show {{remaining}} more"
+    },
     "slashSearchPlaceholder": "Search commands…",
     "slashMenu": {
       "image": "Image",
@@ -2019,7 +2164,10 @@
     "categoryLabel": "Session category",
     "categoryTemplate": "Select {category}",
     "categoryPlaceholder": "Agent",
-    "builtInAgents": "Built-in Agents",
+    "builtIns": "Built-ins",
+    "humanSession": {
+      "name": "Work log"
+    },
     "cliAgents": "CLI Agents",
     "customAgents": "Custom Agents",
     "agentOrgs": "Agent Teams",
@@ -2288,6 +2436,7 @@
       "loadFailed": "Team overview failed to load",
       "tasks": "Tasks",
       "doneOf": "{{done}} / {{total}} done",
+      "taskWindowTruncated": "Showing the first {{visible}} of {{total}} tasks. Open task detail for full results.",
       "members": "Members",
       "activeOf": "{{active}} / {{total}} active",
       "inbox": "Inbox",
@@ -2301,7 +2450,34 @@
       "memberSessions": "Member sessions",
       "pauseRun": "Pause run",
       "resumeRun": "Resume run",
-      "viewCoordinatorHistory": "View coordinator chat history"
+      "viewCoordinatorHistory": "View coordinator chat history",
+      "planApproval": {
+        "title": "Plan ready for approval",
+        "from": "Submitted by {{member}}",
+        "approve": "Approve plan",
+        "approveEdits": "Approve edits",
+        "requestChanges": "Request changes",
+        "sendFeedback": "Send feedback",
+        "editLabel": "Edit submitted plan",
+        "feedbackLabel": "Plan revision feedback",
+        "feedbackPlaceholder": "Tell the Planner exactly what must change…",
+        "paused": "Resume the run before responding to this plan.",
+        "staleError": "This plan was already resolved or replaced. Refresh to see the latest revision.",
+        "submitFailed": "The plan response could not be saved. Please try again."
+      },
+      "phase": {
+        "coordinating": "Coordinating",
+        "dispatching": "Dispatching",
+        "members_working": "Members working",
+        "waiting": "Waiting for work",
+        "awaiting_plan_approval": "Awaiting plan approval",
+        "finalizing": "Finalizing",
+        "paused": "Paused",
+        "completed": "Completed",
+        "failed": "Failed",
+        "cancelled": "Cancelled",
+        "abandoned": "Abandoned"
+      }
     },
     "agentOrgInbox": {
       "title": "Agent messages",
@@ -2421,67 +2597,6 @@
     "myApiKeys": "My {{count}} Keys",
     "addApiKey": "Add API key",
     "noRepoSelected": "No repository selected",
-    "codeMap": {
-      "title": "Code Map",
-      "statusAria": "Code Map status: {{status}}",
-      "neverIndexed": "Never indexed",
-      "lastIndexed": "Last indexed {{time}}",
-      "progressFiles": "{{processed}} / {{total}} files",
-      "errorTitle": "Code Map error",
-      "status": {
-        "notIndexed": "Not indexed",
-        "indexing": "Indexing",
-        "ready": "Ready",
-        "stale": "Stale",
-        "failed": "Failed",
-        "cancelled": "Cancelled"
-      },
-      "phase": {
-        "queued": "Queued",
-        "scanning": "Scanning",
-        "extracting": "Extracting",
-        "storing": "Storing",
-        "resolving": "Resolving",
-        "complete": "Complete",
-        "failed": "Failed",
-        "cancelled": "Cancelled"
-      },
-      "stats": {
-        "files": "Files",
-        "symbols": "Symbols",
-        "relationships": "Relationships",
-        "indexSize": "Index size",
-        "unresolved": "Unresolved",
-        "staleFiles": "Stale files"
-      },
-      "actions": {
-        "index": "Index",
-        "reindex": "Re-index",
-        "cancel": "Cancel",
-        "stop": "Stop",
-        "clear": "Clear",
-        "refresh": "Refresh"
-      },
-      "progressChanges": "Added {{added}} · Modified {{modified}} · Deleted {{deleted}}",
-      "browser": {
-        "title": "Code Map browser",
-        "searchTitle": "Search Code Map",
-        "searchPlaceholder": "Search symbols, files, or signatures",
-        "search": "Search",
-        "resultSummary": "{{count}} results · {{unresolved}} unresolved · {{stale}} stale",
-        "noResults": "No Code Map results matched.",
-        "selectNode": "Select a result to inspect source and relationships.",
-        "loadingDetails": "Loading Code Map details…",
-        "noRelationships": "No relationships found.",
-        "incoming": "Incoming",
-        "outgoing": "Outgoing",
-        "source": "Source",
-        "confidence": "Confidence: {{value}}",
-        "extraction": "Extraction: {{value}}",
-        "resolution": "Resolution: {{value}}",
-        "relationshipCounts": "{{incoming}} incoming · {{outgoing}} outgoing"
-      }
-    },
     "diff": {
       "untitledSession": "Untitled session",
       "singleFile": "Single file",
@@ -2549,6 +2664,8 @@
     }
   },
   "groupChat": {
+    "loadOlder": "Load older messages",
+    "historyLoadFailed": "History unavailable",
     "senderTitle": {
       "message": "{{sender}} sent a message",
       "said": "{{sender}} said"
@@ -2556,8 +2673,14 @@
     "taskHeader": {
       "createWithOwner": "{{sender}} assigned task to {{ownerName}}",
       "create": "{{sender}} assigned task",
+      "createRunning": "{{sender}} is creating a task",
+      "createRejected": "{{sender}}'s task creation needs correction",
+      "createFailed": "{{sender}} couldn't create task",
       "updateStatus": "{{sender}} updated task status",
       "updateDetail": "{{sender}} updated task detail",
+      "updateRunning": "{{sender}} is updating a task",
+      "updateRejected": "{{sender}}'s task update needs correction",
+      "updateFailed": "{{sender}} couldn't update task",
       "get": "{{sender}} viewed task details",
       "list": "{{sender}} viewed task list"
     },
@@ -2595,12 +2718,18 @@
   "orgTask": {
     "create": {
       "title": "Assigned task",
-      "titleWithOwner": "Assign task to {{ownerName}}"
+      "titleWithOwner": "Assign task to {{ownerName}}",
+      "runningTitle": "Creating task",
+      "rejectedTitle": "Task creation needs correction",
+      "failedTitle": "Task creation failed"
     },
     "update": {
       "titleStatus": "Update task status",
       "titleDetail": "Update task detail",
-      "markedAs": "Marked as {{status}}"
+      "markedAs": "Marked as {{status}}",
+      "runningTitle": "Updating task",
+      "rejectedTitle": "Task update needs correction",
+      "failedTitle": "Task update failed"
     },
     "get": {
       "title": "View task details"
@@ -2615,6 +2744,11 @@
     "assignedBadge": "Assigned",
     "assignedToLabel": "Assigned to",
     "updatedAtLabel": "Updated at",
+    "outcome": {
+      "pending": "In progress",
+      "rejected": "Needs correction",
+      "failed": "Failed"
+    },
     "status": {
       "pending": "Pending",
       "in_progress": "In Progress",

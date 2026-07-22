@@ -12,12 +12,12 @@
 //! list). Each call is expanded into one canonical single-op chunk per operation
 //! so it renders as its own typed card; see [`expand_cline_tool_call`].
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::path::{Path, PathBuf};
 
 use core_types::activity::ActivityChunk;
-use rusqlite::Connection;
+use rusqlite::{Connection, OpenFlags};
 use serde::Deserialize;
 use serde_json::{json, Value};
 
@@ -25,15 +25,17 @@ use crate::sources::imported_history::{
     self, cache as imported_cache,
     metadata::{
         ImportedHistoryCacheInput, ImportedHistoryDiscoveredRecord, ImportedHistoryImpactStats,
-        SOURCE_CLINE,
+        ImportedHistoryRecordSignature, SOURCE_CLINE,
     },
     paths as imported_paths, ImportedHistoryRecentPath, ImportedHistorySessionPage,
     ImportedHistorySessionRow, ImportedToolCall,
 };
 
-const CLINE_SESSION_PREFIX: &str = "clineapp-";
+pub const CLINE_SESSION_PREFIX: &str = "clineapp-";
 const CLINE_PROVIDER_SLUG: &str = "cline";
-const CLINE_METADATA_PARSER_VERSION: i64 = 1;
+// Version 2 uses Cline's session index for child hierarchy and derives impact
+// independently from each root/agent transcript.
+const CLINE_METADATA_PARSER_VERSION: i64 = 2;
 const MESSAGES_SUFFIX: &str = ".messages.json";
 /// Cap a single tool-result body so a runaway command output can't bloat the
 /// cache/replay payload. The replay UI virtualizes long text anyway.
@@ -51,6 +53,7 @@ struct ClineHistoryMeta {
     source_record_key: String,
     source_mtime_ms: i64,
     source_size_bytes: i64,
+    source_fingerprint: String,
     name: String,
     created_at_ms: i64,
     updated_at_ms: i64,
@@ -58,6 +61,36 @@ struct ClineHistoryMeta {
     repo_path: Option<String>,
     input_tokens: i64,
     output_tokens: i64,
+    impact: ImportedHistoryImpactStats,
+    parent_session_id: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+struct ClineDiscoveredRecord {
+    record: ImportedHistoryDiscoveredRecord,
+    db_meta: Option<ClineDbSessionMeta>,
+}
+
+impl ClineDiscoveredRecord {
+    fn signature(&self) -> ImportedHistoryRecordSignature {
+        self.record.signature()
+    }
+}
+
+#[derive(Debug, Clone, Default)]
+struct ClineDbSessionMeta {
+    session_id: String,
+    started_at: String,
+    updated_at: String,
+    provider: Option<String>,
+    model: Option<String>,
+    cwd: Option<String>,
+    workspace_root: Option<String>,
+    parent_session_id: Option<String>,
+    is_subagent: bool,
+    prompt: Option<String>,
+    metadata_json: Option<String>,
+    messages_path: String,
 }
 
 /// `<id>.json` — session metadata sidecar.
@@ -142,7 +175,7 @@ fn sync_cline_history_cache(conn: &mut Connection) -> Result<(), String> {
     let discovered = discover_cline_history_records()?;
     let signatures = discovered
         .iter()
-        .map(ImportedHistoryDiscoveredRecord::signature)
+        .map(ClineDiscoveredRecord::signature)
         .collect::<Vec<_>>();
     let changed =
         imported_cache::changed_records_from_conn(conn, SOURCE_CLINE, &discovered, |record| {
@@ -162,8 +195,20 @@ fn sync_cline_history_cache(conn: &mut Connection) -> Result<(), String> {
     )
 }
 
-fn discover_cline_history_records() -> Result<Vec<ImportedHistoryDiscoveredRecord>, String> {
+fn discover_cline_history_records() -> Result<Vec<ClineDiscoveredRecord>, String> {
     let mut records = Vec::new();
+    let mut discovered_ids = HashSet::new();
+    for db_path in cline_db_paths()? {
+        if !db_path.is_file() {
+            continue;
+        }
+        if let Ok(db_records) = discover_cline_db_records(&db_path) {
+            for record in db_records {
+                discovered_ids.insert(record.record.source_session_id.clone());
+                records.push(record);
+            }
+        }
+    }
     for sessions_dir in cline_sessions_dirs()? {
         if !sessions_dir.is_dir() {
             continue;
@@ -181,28 +226,117 @@ fn discover_cline_history_records() -> Result<Vec<ImportedHistoryDiscoveredRecor
                 continue;
             };
             let messages_path = dir.join(format!("{id}{MESSAGES_SUFFIX}"));
-            if !messages_path.is_file() {
+            if !messages_path.is_file() || discovered_ids.contains(id) {
                 continue;
             }
             let (source_mtime_ms, source_size_bytes) =
                 imported_paths::file_metadata_signature(&messages_path, "Cline")?;
-            records.push(ImportedHistoryDiscoveredRecord {
-                source_session_id: id.to_string(),
-                source_path: messages_path,
-                source_record_key: id.to_string(),
-                source_mtime_ms,
-                source_size_bytes,
-                source_fingerprint: String::new(),
-                parser_version: CLINE_METADATA_PARSER_VERSION,
+            records.push(ClineDiscoveredRecord {
+                record: ImportedHistoryDiscoveredRecord {
+                    source_session_id: id.to_string(),
+                    source_path: messages_path,
+                    source_record_key: id.to_string(),
+                    source_mtime_ms,
+                    source_size_bytes,
+                    source_fingerprint: String::new(),
+                    parser_version: CLINE_METADATA_PARSER_VERSION,
+                },
+                db_meta: None,
             });
         }
     }
     Ok(records)
 }
 
+fn discover_cline_db_records(db_path: &Path) -> Result<Vec<ClineDiscoveredRecord>, String> {
+    let conn =
+        Connection::open_with_flags(db_path, OpenFlags::SQLITE_OPEN_READ_ONLY).map_err(|err| {
+            format!(
+                "Failed to open Cline session index {}: {err}",
+                db_path.display()
+            )
+        })?;
+    let mut stmt = conn
+        .prepare(
+            "SELECT session_id, started_at, updated_at, provider, model, cwd, workspace_root, \
+                    parent_session_id, is_subagent, prompt, metadata_json, messages_path \
+             FROM sessions WHERE messages_path IS NOT NULL AND messages_path != ''",
+        )
+        .map_err(|err| format!("Failed to prepare Cline session-index query: {err}"))?;
+    let rows = stmt
+        .query_map([], |row| {
+            Ok(ClineDbSessionMeta {
+                session_id: row.get::<_, Option<String>>(0)?.unwrap_or_default(),
+                started_at: row.get::<_, Option<String>>(1)?.unwrap_or_default(),
+                updated_at: row.get::<_, Option<String>>(2)?.unwrap_or_default(),
+                provider: row.get(3)?,
+                model: row.get(4)?,
+                cwd: row.get(5)?,
+                workspace_root: row.get(6)?,
+                parent_session_id: row
+                    .get::<_, Option<String>>(7)?
+                    .map(|value| value.trim().to_string())
+                    .filter(|value| !value.is_empty()),
+                is_subagent: row.get::<_, Option<i64>>(8)?.unwrap_or_default() != 0,
+                prompt: row.get(9)?,
+                metadata_json: row.get(10)?,
+                messages_path: row.get::<_, Option<String>>(11)?.unwrap_or_default(),
+            })
+        })
+        .map_err(|err| format!("Failed to query Cline session index: {err}"))?;
+
+    let mut records = Vec::new();
+    for row in rows {
+        let meta = row.map_err(|err| format!("Failed to read Cline session-index row: {err}"))?;
+        if meta.session_id.trim().is_empty() || meta.messages_path.trim().is_empty() {
+            continue;
+        }
+        let messages_path = PathBuf::from(&meta.messages_path);
+        if !messages_path.is_file() {
+            continue;
+        }
+        let (source_mtime_ms, source_size_bytes) =
+            imported_paths::file_metadata_signature(&messages_path, "Cline")?;
+        let source_fingerprint = cline_db_source_fingerprint(&meta);
+        records.push(ClineDiscoveredRecord {
+            record: ImportedHistoryDiscoveredRecord {
+                source_session_id: meta.session_id.clone(),
+                source_path: messages_path,
+                source_record_key: meta.session_id.clone(),
+                source_mtime_ms,
+                source_size_bytes,
+                source_fingerprint,
+                parser_version: CLINE_METADATA_PARSER_VERSION,
+            },
+            db_meta: Some(meta),
+        });
+    }
+    Ok(records)
+}
+
+fn cline_db_source_fingerprint(meta: &ClineDbSessionMeta) -> String {
+    [
+        meta.session_id.as_str(),
+        meta.started_at.as_str(),
+        meta.updated_at.as_str(),
+        meta.provider.as_deref().unwrap_or_default(),
+        meta.model.as_deref().unwrap_or_default(),
+        meta.cwd.as_deref().unwrap_or_default(),
+        meta.workspace_root.as_deref().unwrap_or_default(),
+        meta.parent_session_id.as_deref().unwrap_or_default(),
+        if meta.is_subagent { "1" } else { "0" },
+        meta.prompt.as_deref().unwrap_or_default(),
+        meta.metadata_json.as_deref().unwrap_or_default(),
+        meta.messages_path.as_str(),
+    ]
+    .join("|")
+}
+
 fn parse_cline_session_meta(
-    record: &ImportedHistoryDiscoveredRecord,
+    discovered: &ClineDiscoveredRecord,
 ) -> Result<Option<ClineHistoryMeta>, String> {
+    let record = &discovered.record;
+    let db_meta = discovered.db_meta.as_ref();
     let messages_path = &record.source_path;
     let sidecar = sidecar_json_path(messages_path, &record.source_session_id);
     let session_json: ClineSessionJson = sidecar
@@ -212,11 +346,20 @@ fn parse_cline_session_meta(
         .unwrap_or_default();
 
     let transcript = read_transcript(messages_path).unwrap_or_default();
+    let db_metadata = db_meta
+        .and_then(|meta| meta.metadata_json.as_deref())
+        .and_then(|raw| serde_json::from_str::<Value>(raw).ok())
+        .unwrap_or(Value::Null);
 
     let created_at_ms = session_json
         .started_at
         .as_deref()
         .and_then(imported_history::parse_iso_to_epoch_ms_opt)
+        .or_else(|| {
+            db_meta
+                .map(|meta| meta.started_at.as_str())
+                .and_then(imported_history::parse_iso_to_epoch_ms_opt)
+        })
         .or_else(|| transcript.messages.iter().find_map(|m| m.ts))
         .filter(|ms| *ms > 0)
         .unwrap_or(record.source_mtime_ms);
@@ -227,6 +370,11 @@ fn parse_cline_session_meta(
         .rev()
         .find_map(|m| m.ts)
         .filter(|ms| *ms > 0)
+        .or_else(|| {
+            db_meta
+                .map(|meta| meta.updated_at.as_str())
+                .and_then(imported_history::parse_iso_to_epoch_ms_opt)
+        })
         .unwrap_or(record.source_mtime_ms);
 
     let title = session_json
@@ -235,7 +383,8 @@ fn parse_cline_session_meta(
         .and_then(|meta| meta.title.as_deref())
         .map(str::trim)
         .filter(|value| !value.is_empty())
-        .map(str::to_string);
+        .map(str::to_string)
+        .or_else(|| json_nonempty_string(&db_metadata, &["title"]));
     let name = title
         .or_else(|| {
             session_json
@@ -245,6 +394,14 @@ fn parse_cline_session_meta(
                 .map(|value| value.trim().to_string())
                 .filter(|value| !value.is_empty())
         })
+        .or_else(|| {
+            db_meta
+                .and_then(|meta| meta.prompt.as_deref())
+                .map(strip_user_input_wrapper)
+                .map(str::trim)
+                .filter(|value| !value.is_empty())
+                .map(str::to_string)
+        })
         .or_else(|| first_user_text(&transcript))
         .map(|value| imported_history::truncate_name(&value, 200))
         .unwrap_or_else(|| record.source_record_key.clone());
@@ -253,6 +410,8 @@ fn parse_cline_session_meta(
         .workspace_root
         .as_deref()
         .or(session_json.cwd.as_deref())
+        .or_else(|| db_meta.and_then(|meta| meta.workspace_root.as_deref()))
+        .or_else(|| db_meta.and_then(|meta| meta.cwd.as_deref()))
         .map(str::trim)
         .filter(|value| !value.is_empty())
         .map(str::to_string);
@@ -260,7 +419,9 @@ fn parse_cline_session_meta(
     let model = session_json
         .model
         .as_deref()
+        .or_else(|| db_meta.and_then(|meta| meta.model.as_deref()))
         .or(session_json.provider.as_deref())
+        .or_else(|| db_meta.and_then(|meta| meta.provider.as_deref()))
         .map(str::trim)
         .filter(|value| !value.is_empty())
         .map(str::to_string);
@@ -269,16 +430,44 @@ fn parse_cline_session_meta(
         .metadata
         .as_ref()
         .and_then(|m| m.usage.as_ref());
-    let input_tokens = usage.and_then(|u| u.input_tokens).unwrap_or(0);
-    let output_tokens = usage.and_then(|u| u.output_tokens).unwrap_or(0);
+    let input_tokens = usage.and_then(|u| u.input_tokens).unwrap_or_else(|| {
+        json_i64_at_paths(
+            &db_metadata,
+            &[
+                &["aggregateUsage", "inputTokens"],
+                &["usage", "inputTokens"],
+            ],
+        )
+        .unwrap_or_default()
+    });
+    let output_tokens = usage.and_then(|u| u.output_tokens).unwrap_or_else(|| {
+        json_i64_at_paths(
+            &db_metadata,
+            &[
+                &["aggregateUsage", "outputTokens"],
+                &["usage", "outputTokens"],
+            ],
+        )
+        .unwrap_or_default()
+    });
+    let session_id = format!("{CLINE_SESSION_PREFIX}{}", record.source_session_id);
+    let impact =
+        imported_history::impact_from_edit_chunks(&transcript_to_chunks(&session_id, &transcript));
+    let parent_session_id = db_meta
+        .filter(|meta| meta.is_subagent)
+        .and_then(|meta| meta.parent_session_id.as_deref())
+        .map(str::trim)
+        .filter(|parent_id| !parent_id.is_empty() && *parent_id != record.source_session_id)
+        .map(|parent_id| format!("{CLINE_SESSION_PREFIX}{parent_id}"));
 
     Ok(Some(ClineHistoryMeta {
         source_session_id: record.source_session_id.clone(),
-        session_id: format!("{CLINE_SESSION_PREFIX}{}", record.source_session_id),
+        session_id,
         source_path: messages_path.to_string_lossy().to_string(),
         source_record_key: record.source_record_key.clone(),
         source_mtime_ms: record.source_mtime_ms,
         source_size_bytes: record.source_size_bytes,
+        source_fingerprint: record.source_fingerprint.clone(),
         name,
         created_at_ms,
         updated_at_ms,
@@ -286,6 +475,8 @@ fn parse_cline_session_meta(
         repo_path,
         input_tokens,
         output_tokens,
+        impact,
+        parent_session_id,
     }))
 }
 
@@ -298,7 +489,7 @@ fn session_meta_to_cache_input(meta: ClineHistoryMeta) -> ImportedHistoryCacheIn
         source_record_key: meta.source_record_key,
         source_mtime_ms: meta.source_mtime_ms,
         source_size_bytes: meta.source_size_bytes,
-        source_fingerprint: String::new(),
+        source_fingerprint: meta.source_fingerprint,
         parser_version: CLINE_METADATA_PARSER_VERSION,
         name: meta.name,
         created_at_ms: meta.created_at_ms,
@@ -306,12 +497,14 @@ fn session_meta_to_cache_input(meta: ClineHistoryMeta) -> ImportedHistoryCacheIn
         model: meta.model,
         input_tokens: meta.input_tokens,
         output_tokens: meta.output_tokens,
+        cache_read_tokens: 0,
+        cache_write_tokens: 0,
         repo_path: meta.repo_path,
         branch: None,
-        impact: ImportedHistoryImpactStats::default(),
+        impact: meta.impact,
         listable: true,
         source_metadata_json: None,
-        parent_session_id: None,
+        parent_session_id: meta.parent_session_id,
     }
 }
 
@@ -328,6 +521,7 @@ fn transcript_to_chunks(session_id: &str, transcript: &ClineTranscript) -> Vec<A
     // text) so a batched call can pair each sub-operation with its own entry in
     // the parallel result list, regardless of which later user turn carried it.
     let mut tool_outputs: HashMap<String, Value> = HashMap::new();
+    let mut tool_failures: HashMap<String, bool> = HashMap::new();
     for message in &transcript.messages {
         for block in content_blocks(&message.content) {
             if block_type(block) == "tool_result" {
@@ -336,6 +530,11 @@ fn transcript_to_chunks(session_id: &str, transcript: &ClineTranscript) -> Vec<A
                     .and_then(Value::as_str)
                     .filter(|id| !id.is_empty())
                 {
+                    tool_failures.insert(
+                        id.to_string(),
+                        block.get("is_error").and_then(Value::as_bool) == Some(true)
+                            || block.get("success").and_then(Value::as_bool) == Some(false),
+                    );
                     tool_outputs.insert(
                         id.to_string(),
                         block.get("content").cloned().unwrap_or(Value::Null),
@@ -418,13 +617,25 @@ fn transcript_to_chunks(session_id: &str, transcript: &ClineTranscript) -> Vec<A
                             args,
                             created_at: created_at.clone(),
                         };
-                        chunks.push(imported_history::tool_call_chunk(
+                        let mut chunk = imported_history::tool_call_chunk(
                             session_id,
                             CLINE_PROVIDER_SLUG,
                             sequence,
                             &call,
                             &output,
-                        ));
+                        );
+                        if tool_failures.get(&call_id).copied().unwrap_or_default()
+                            || cline_sub_success(results, index, batched) == Some(false)
+                        {
+                            if let Some(result) = chunk.result.as_object_mut() {
+                                result.insert("success".to_string(), Value::Bool(false));
+                                result.insert(
+                                    "status".to_string(),
+                                    Value::String("failed".to_string()),
+                                );
+                            }
+                        }
+                        chunks.push(chunk);
                         sequence += 1;
                     }
                 }
@@ -528,6 +739,17 @@ fn cline_sub_output(results: Option<&Value>, index: usize, batched: bool) -> Str
     value_to_text(results)
 }
 
+fn cline_sub_success(results: Option<&Value>, index: usize, batched: bool) -> Option<bool> {
+    let result = if batched {
+        results?.as_array()?.get(index)?
+    } else if let Some(first) = results?.as_array().and_then(|items| items.first()) {
+        first
+    } else {
+        results?
+    };
+    result.get("success").and_then(Value::as_bool)
+}
+
 /// Strip Cline's `<n> | ` read-file gutter so the read card shows clean file
 /// content (the code viewer renders its own line numbers). Only strips when the
 /// first non-empty line is gutter-prefixed, so command output that merely
@@ -597,6 +819,26 @@ fn first_user_text(transcript: &ClineTranscript) -> Option<String> {
         }
     }
     None
+}
+
+fn json_nonempty_string(value: &Value, path: &[&str]) -> Option<String> {
+    let value = path
+        .iter()
+        .try_fold(value, |current, key| current.get(*key))?;
+    let text = value.as_str()?.trim();
+    (!text.is_empty()).then(|| text.to_string())
+}
+
+fn json_i64_at_paths(value: &Value, paths: &[&[&str]]) -> Option<i64> {
+    paths.iter().find_map(|path| {
+        let value = path
+            .iter()
+            .try_fold(value, |current, key| current.get(*key))?;
+        value
+            .as_i64()
+            .or_else(|| value.as_u64().and_then(|number| i64::try_from(number).ok()))
+            .or_else(|| value.as_f64().map(|number| number.round() as i64))
+    })
 }
 
 /// Cline wraps user prompts as `<user_input mode="act">…</user_input>`; unwrap to
@@ -708,9 +950,22 @@ fn cline_sessions_dirs() -> Result<Vec<PathBuf>, String> {
     Ok(cline_sessions_dir_candidates(&home))
 }
 
+fn cline_db_paths() -> Result<Vec<PathBuf>, String> {
+    let home = dirs::home_dir().ok_or_else(|| "Home directory not found".to_string())?;
+    Ok(cline_db_path_candidates(&home))
+}
+
 /// `~/.cline/data/sessions` — the CLI's per-session store root.
 fn cline_sessions_dir_candidates(home: &Path) -> Vec<PathBuf> {
     vec![home.join(".cline").join("data").join("sessions")]
+}
+
+fn cline_db_path_candidates(home: &Path) -> Vec<PathBuf> {
+    vec![home
+        .join(".cline")
+        .join("data")
+        .join("db")
+        .join("sessions.db")]
 }
 
 #[cfg(test)]

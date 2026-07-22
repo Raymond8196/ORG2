@@ -54,6 +54,23 @@ const fn app_data_config(
         secret_bearing,
     }
 }
+
+fn goose_config(
+    id: &'static str,
+    label: &'static str,
+    _xdg_relative_path: &'static str,
+    _windows_relative_path: &'static str,
+    format: CliConfigFormat,
+    secret_bearing: bool,
+) -> CliConfigFileEntry {
+    #[cfg(target_os = "windows")]
+    let config = app_data_config(id, label, _windows_relative_path, format, secret_bearing);
+
+    #[cfg(not(target_os = "windows"))]
+    let config = xdg_config(id, label, _xdg_relative_path, format, secret_bearing);
+
+    config
+}
 pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
     vec![
         CliAgentEntry {
@@ -278,7 +295,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
                 "longcat_api",
                 "vllm_api",
             ],
-            config_files: vec![xdg_config("config", "Config", "goose/config.yaml", CliConfigFormat::Yaml, false), xdg_config("permissions", "Permissions", "goose/permission.yaml", CliConfigFormat::Yaml, false)],
+            config_files: vec![goose_config("config", "Config", "goose/config.yaml", "Block/goose/config/config.yaml", CliConfigFormat::Yaml, false), goose_config("secrets", "Secrets", "goose/secrets.yaml", "Block/goose/config/secrets.yaml", CliConfigFormat::Yaml, true), goose_config("permissions", "Permissions", "goose/permission.yaml", "Block/goose/config/permission.yaml", CliConfigFormat::Yaml, false)],
             is_complex_setup: false,
             default_setup_method: None,
             popular: false,
@@ -427,7 +444,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
                 "longcat_api",
                 "vllm_api",
             ],
-            config_files: vec![home_config("config", "Config", ".hermes/config.yaml", CliConfigFormat::Yaml, false), home_config("soul", "SOUL", ".hermes/SOUL.md", CliConfigFormat::Text, false)],
+            config_files: vec![home_config("config", "Config", ".hermes/config.yaml", CliConfigFormat::Yaml, true), home_config("soul", "SOUL", ".hermes/SOUL.md", CliConfigFormat::Text, false)],
             is_complex_setup: false,
             default_setup_method: None,
             popular: false,
@@ -456,7 +473,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
                 "longcat_api",
                 "vllm_api",
             ],
-            config_files: vec![home_config("config", "Config", ".openclaw/openclaw.json", CliConfigFormat::Json, true)],
+            config_files: vec![home_config("config", "Config", ".openclaw/openclaw.json", CliConfigFormat::Jsonc, true)],
             is_complex_setup: false,
             default_setup_method: None,
             popular: false,
@@ -503,7 +520,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
                 "minimax_api",
                 "zhipu_api",
             ],
-            config_files: vec![home_config("settings", "Settings", ".qwen/settings.json", CliConfigFormat::Json, false)],
+            config_files: vec![home_config("settings", "Settings", ".qwen/settings.json", CliConfigFormat::Json, true)],
             is_complex_setup: false,
             default_setup_method: None,
             popular: false,
@@ -643,7 +660,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             docs_url: "https://docs.mistral.ai/vibe/code/cli/install-setup",
             has_subscription_plan: true,
             compatible_api_providers: &["openai_api", "openrouter_api"],
-            config_files: vec![home_config("config", "Config", ".vibe/config.toml", CliConfigFormat::Toml, true)],
+            config_files: vec![home_config("config", "Config", ".vibe/config.toml", CliConfigFormat::Toml, false), home_config("env", "Environment", ".vibe/.env", CliConfigFormat::Text, true)],
             is_complex_setup: false,
             default_setup_method: None,
             popular: false,
@@ -695,7 +712,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
                 "xai_api",
                 "vllm_api",
             ],
-            config_files: vec![home_config("models", "Models", ".omp/agent/models.yml", CliConfigFormat::Yaml, true)],
+            config_files: vec![home_config("models", "Models", ".oh-omp/agent/models.yml", CliConfigFormat::Yaml, true), home_config("settings", "Settings", ".oh-omp/agent/config.yml", CliConfigFormat::Yaml, false)],
             is_complex_setup: true,
             default_setup_method: None,
             popular: false,
@@ -734,6 +751,56 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             acp_support: AcpSupport::Native,
             supports_gui: false,
         },
+        CliAgentEntry {
+            name: "qoder_cli",
+            display_name: "Qoder CLI",
+            binary: "qodercli",
+            description: "Qoder's interactive terminal coding agent",
+            brand_color: "#7C3AED",
+            docs_url: "https://docs.qoder.com/en/cli/quick-start",
+            has_subscription_plan: true,
+            compatible_api_providers: &[],
+            config_files: vec![home_config(
+                "settings",
+                "Settings",
+                ".qoder/settings.json",
+                CliConfigFormat::Json,
+                false,
+            )],
+            is_complex_setup: false,
+            default_setup_method: None,
+            popular: false,
+            icon_provider: "qoder",
+            paired_api_provider: None,
+            supports_rust_agents: false,
+            acp_support: AcpSupport::Unavailable,
+            supports_gui: false,
+        },
+        CliAgentEntry {
+            name: "trae_cli",
+            display_name: "Trae Agent",
+            binary: "trae-cli",
+            description: "ByteDance's open-source interactive coding agent",
+            brand_color: "#2563EB",
+            docs_url: "https://github.com/bytedance/trae-agent",
+            has_subscription_plan: false,
+            compatible_api_providers: &[
+                "openai_api",
+                "anthropic_api",
+                "gemini_api",
+                "openrouter_api",
+                "deepseek_api",
+            ],
+            config_files: vec![],
+            is_complex_setup: true,
+            default_setup_method: None,
+            popular: false,
+            icon_provider: "trae",
+            paired_api_provider: None,
+            supports_rust_agents: false,
+            acp_support: AcpSupport::Unavailable,
+            supports_gui: false,
+        },
     ]
 }
 
@@ -765,5 +832,23 @@ mod tests {
                 ".gemini/config/mcp_config.json",
             ]
         );
+    }
+
+    #[test]
+    fn qoder_and_trae_are_pure_tui_agents() {
+        let agents = cli_agent_registry();
+        let qoder = agents
+            .iter()
+            .find(|entry| entry.name == "qoder_cli")
+            .expect("Qoder CLI registry entry");
+        let trae = agents
+            .iter()
+            .find(|entry| entry.name == "trae_cli")
+            .expect("Trae CLI registry entry");
+
+        assert_eq!(qoder.binary, "qodercli");
+        assert_eq!(trae.binary, "trae-cli");
+        assert!(!qoder.supports_gui);
+        assert!(!trae.supports_gui);
     }
 }

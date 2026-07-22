@@ -22,7 +22,7 @@ export const WorkStationShellFallback: React.FC<WorkStationShellFallbackProps> =
   memo(() => {
     return (
       <div
-        className="group relative flex h-full w-full min-w-0 flex-col overflow-hidden bg-workstation-bg"
+        className="relative flex h-full w-full min-w-0 flex-col overflow-hidden bg-workstation-bg"
         aria-busy="true"
         aria-label="Loading WorkStation"
       >

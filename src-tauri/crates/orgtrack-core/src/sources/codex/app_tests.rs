@@ -77,6 +77,51 @@ fn parses_codex_jsonl_into_replay_chunks() {
 }
 
 #[test]
+fn codex_task_lifecycle_projects_only_finished_turns_as_completed() {
+    let temp_dir = std::env::temp_dir().join(format!(
+        "orgii-codex-history-lifecycle-test-{}",
+        std::process::id()
+    ));
+    std::fs::create_dir_all(&temp_dir).expect("create temp dir");
+    let path = temp_dir.join("rollout-lifecycle.jsonl");
+    let active_content = r#"{"timestamp":"2026-07-21T01:00:00.000Z","type":"event_msg","payload":{"type":"task_started","turn_id":"turn-1"}}
+{"timestamp":"2026-07-21T01:00:00.100Z","type":"event_msg","payload":{"type":"user_message","message":"inspect this"}}
+{"timestamp":"2026-07-21T01:00:01.000Z","type":"event_msg","payload":{"type":"agent_message","message":"working"}}
+"#;
+    std::fs::write(&path, active_content).expect("write active fixture");
+
+    let active_chunks =
+        load_codex_app_from_path("codexapp-lifecycle", &path).expect("parse active turn");
+    assert_eq!(
+        active_chunks[1].action_type,
+        imported_history::ACTION_TYPE_TASK_START
+    );
+    let active_rounds = crate::projectors::turn_metadata::project_activity_chunks(&active_chunks);
+    assert_eq!(active_rounds.len(), 1);
+    assert_eq!(active_rounds[0].status, "pending");
+
+    let completed_content = format!(
+        "{active_content}{}\n",
+        r#"{"timestamp":"2026-07-21T01:00:02.000Z","type":"event_msg","payload":{"type":"task_complete","turn_id":"turn-1"}}"#
+    );
+    std::fs::write(&path, completed_content).expect("write completed fixture");
+    let completed_chunks =
+        load_codex_app_from_path("codexapp-lifecycle", &path).expect("parse completed turn");
+    assert_eq!(
+        completed_chunks
+            .last()
+            .map(|chunk| chunk.action_type.as_str()),
+        Some(imported_history::ACTION_TYPE_TASK_COMPLETED)
+    );
+    let completed_rounds =
+        crate::projectors::turn_metadata::project_activity_chunks(&completed_chunks);
+    assert_eq!(completed_rounds[0].status, "completed");
+
+    std::fs::remove_file(&path).expect("remove fixture");
+    std::fs::remove_dir(&temp_dir).expect("remove temp dir");
+}
+
+#[test]
 fn codex_desktop_exec_decomposes_exploration_chain_and_typed_output() {
     let temp_dir = std::env::temp_dir().join(format!(
         "orgii-codex-desktop-exec-test-{}",
@@ -306,6 +351,257 @@ fn codex_desktop_exec_unwraps_parallel_shell_commands() {
 }
 
 #[test]
+fn codex_desktop_exec_unwraps_exec_command_arguments() {
+    let script = r#"const results = await Promise.all([
+  tools.exec_command({cmd:"git status --short --branch",workdir:"/Users/laptop-h/Documents/GitHub/ORGII",yield_time_ms:10000,max_output_tokens:3000}),
+  tools.exec_command({cmd:"git remote -v",workdir:"/Users/laptop-h/Documents/GitHub/ORGII",yield_time_ms:10000,max_output_tokens:3000})
+]); results.forEach((result) => text(result));"#;
+    let payload = json!({
+        "name": "exec",
+        "call_id": "call_exec_command",
+        "input": script,
+    });
+
+    let (_, calls) = pending_custom_tool_calls_from_payload(&payload, "2026-07-18T01:00:00Z")
+        .expect("parse custom tool call");
+
+    assert_eq!(calls.len(), 2);
+    assert!(calls
+        .iter()
+        .all(|call| { call.canonical_name == imported_history::FUNCTION_RUN_COMMAND_LINE }));
+    assert_eq!(calls[0].args["command"], "git status --short --branch");
+    assert_eq!(calls[1].args["command"], "git remote -v");
+    assert!(calls
+        .iter()
+        .all(|call| { call.args["cwd"] == "/Users/laptop-h/Documents/GitHub/ORGII" }));
+    assert!(calls.iter().all(|call| {
+        !call.args["command"]
+            .as_str()
+            .is_some_and(|command| command.contains("yield_time_ms"))
+    }));
+}
+
+#[test]
+fn codex_desktop_exec_maps_write_stdin_to_await_output() {
+    let payload = json!({
+        "name": "exec",
+        "call_id": "call_write_stdin",
+        "input": r#"const r = await tools.write_stdin({session_id:82118,chars:"",yield_time_ms:30000,max_output_tokens:16000}); text(r)"#,
+    });
+
+    let (_, calls) = pending_custom_tool_calls_from_payload(&payload, "2026-07-18T01:00:00Z")
+        .expect("parse custom tool call");
+
+    assert_eq!(calls.len(), 1);
+    assert_eq!(
+        calls[0].canonical_name,
+        imported_history::FUNCTION_AWAIT_OUTPUT
+    );
+    assert_eq!(calls[0].args["command"], "wait_for");
+    assert_eq!(calls[0].args["handle"], "82118");
+    assert_eq!(calls[0].args["handles"], json!(["82118"]));
+    assert_eq!(calls[0].args["block_until_ms"], 30000);
+    assert_eq!(calls[0].args["chars"], "");
+}
+
+#[test]
+fn codex_write_stdin_polls_merge_into_originating_exec_command() {
+    let temp_dir = std::env::temp_dir().join(format!(
+        "orgii-codex-write-stdin-test-{}",
+        std::process::id()
+    ));
+    std::fs::create_dir_all(&temp_dir).expect("create temp dir");
+    let path = temp_dir.join("rollout-write-stdin.jsonl");
+    let content = [
+        json!({
+            "timestamp": "2026-07-18T01:00:00Z",
+            "type": "response_item",
+            "payload": {
+                "type": "custom_tool_call",
+                "name": "exec",
+                "call_id": "call_shell",
+                "input": r#"const r = await tools.exec_command({cmd:"cargo test",workdir:"/tmp/project",yield_time_ms:10000,max_output_tokens:3000}); text(r)"#,
+            }
+        }),
+        json!({
+            "timestamp": "2026-07-18T01:00:10Z",
+            "type": "response_item",
+            "payload": {
+                "type": "custom_tool_call_output",
+                "call_id": "call_shell",
+                "output": [
+                    { "type": "input_text", "text": "Script completed\nWall time 10.0 seconds\nOutput:\n" },
+                    { "type": "input_text", "text": r#"{"session_id":82118,"output":"Compiling\n"}"# },
+                ],
+            }
+        }),
+        json!({
+            "timestamp": "2026-07-18T01:00:11Z",
+            "type": "response_item",
+            "payload": {
+                "type": "custom_tool_call",
+                "name": "exec",
+                "call_id": "call_poll",
+                "input": r#"const r = await tools.write_stdin({session_id:82118,chars:"",yield_time_ms:30000,max_output_tokens:3000}); text(r)"#,
+            }
+        }),
+        json!({
+            "timestamp": "2026-07-18T01:00:41Z",
+            "type": "response_item",
+            "payload": {
+                "type": "custom_tool_call_output",
+                "call_id": "call_poll",
+                "output": [
+                    { "type": "input_text", "text": "Script completed\nWall time 30.0 seconds\nOutput:\n" },
+                    { "type": "input_text", "text": r#"{"session_id":82118,"output":"Running tests\n"}"# },
+                ],
+            }
+        }),
+        json!({
+            "timestamp": "2026-07-18T01:00:42Z",
+            "type": "response_item",
+            "payload": {
+                "type": "custom_tool_call",
+                "name": "exec",
+                "call_id": "call_interrupt",
+                "input": r#"const r = await tools.write_stdin({session_id:82118,chars:"\u0003",yield_time_ms:1000,max_output_tokens:3000}); text(r)"#,
+            }
+        }),
+        json!({
+            "timestamp": "2026-07-18T01:00:43Z",
+            "type": "response_item",
+            "payload": {
+                "type": "custom_tool_call_output",
+                "call_id": "call_interrupt",
+                "output": [
+                    { "type": "input_text", "text": "Script completed\nWall time 0.1 seconds\nOutput:\n" },
+                    { "type": "input_text", "text": r#"{"exit_code":130,"output":"Interrupted\n"}"# },
+                ],
+            }
+        }),
+    ]
+    .into_iter()
+    .map(|line| line.to_string())
+    .collect::<Vec<_>>()
+    .join("\n");
+    std::fs::write(&path, content).expect("write fixture");
+
+    let chunks = load_codex_app_from_path("codexapp-write-stdin", &path).expect("parse");
+
+    assert_eq!(chunks.len(), 1);
+    assert_eq!(
+        chunks[0].function,
+        imported_history::FUNCTION_RUN_COMMAND_LINE
+    );
+    assert_eq!(chunks[0].args["command"], "cargo test");
+    assert_eq!(
+        chunks[0].result["output"],
+        "Compiling\nRunning tests\nInterrupted\n"
+    );
+    assert_eq!(chunks[0].result["exit_code"], 130);
+    assert_eq!(chunks[0].result["success"], false);
+    assert_eq!(chunks[0].args["stdin_events"][0]["kind"], "interrupt");
+    assert_eq!(chunks[0].args["stdin_events"][0]["chars"], "\u{3}");
+
+    std::fs::remove_file(&path).expect("remove fixture");
+    std::fs::remove_dir(&temp_dir).expect("remove temp dir");
+}
+
+#[test]
+fn codex_write_stdin_cell_wait_still_merges_into_originating_command() {
+    let temp_dir = std::env::temp_dir().join(format!(
+        "orgii-codex-write-stdin-cell-test-{}",
+        std::process::id()
+    ));
+    std::fs::create_dir_all(&temp_dir).expect("create temp dir");
+    let path = temp_dir.join("rollout-write-stdin-cell.jsonl");
+    let content = [
+        json!({
+            "timestamp": "2026-07-18T01:00:00Z",
+            "type": "response_item",
+            "payload": {
+                "type": "custom_tool_call",
+                "name": "exec",
+                "call_id": "call_shell",
+                "input": r#"const r = await tools.exec_command({cmd:"pnpm test",workdir:"/tmp/project",yield_time_ms:10000,max_output_tokens:3000}); text(r)"#,
+            }
+        }),
+        json!({
+            "timestamp": "2026-07-18T01:00:10Z",
+            "type": "response_item",
+            "payload": {
+                "type": "custom_tool_call_output",
+                "call_id": "call_shell",
+                "output": [{
+                    "type": "input_text",
+                    "text": r#"{"session_id":42,"output":"Starting\n"}"#,
+                }],
+            }
+        }),
+        json!({
+            "timestamp": "2026-07-18T01:00:11Z",
+            "type": "response_item",
+            "payload": {
+                "type": "custom_tool_call",
+                "name": "exec",
+                "call_id": "call_poll",
+                "input": r#"const r = await tools.write_stdin({session_id:42,chars:"",yield_time_ms:30000,max_output_tokens:3000}); text(r)"#,
+            }
+        }),
+        json!({
+            "timestamp": "2026-07-18T01:00:21Z",
+            "type": "response_item",
+            "payload": {
+                "type": "custom_tool_call_output",
+                "call_id": "call_poll",
+                "output": "Script running with cell ID 9\nWall time 10.0 seconds\nOutput:\n",
+            }
+        }),
+        json!({
+            "timestamp": "2026-07-18T01:00:22Z",
+            "type": "response_item",
+            "payload": {
+                "type": "function_call",
+                "name": "wait",
+                "call_id": "call_wait",
+                "arguments": r#"{"cell_id":"9","yield_time_ms":30000,"max_tokens":3000}"#,
+            }
+        }),
+        json!({
+            "timestamp": "2026-07-18T01:00:23Z",
+            "type": "response_item",
+            "payload": {
+                "type": "function_call_output",
+                "call_id": "call_wait",
+                "output": [{
+                    "type": "input_text",
+                    "text": r#"{"exit_code":0,"output":"Passed\n"}"#,
+                }],
+            }
+        }),
+    ]
+    .into_iter()
+    .map(|line| line.to_string())
+    .collect::<Vec<_>>()
+    .join("\n");
+    std::fs::write(&path, content).expect("write fixture");
+
+    let chunks = load_codex_app_from_path("codexapp-write-stdin-cell", &path).expect("parse");
+
+    assert_eq!(chunks.len(), 1);
+    assert_eq!(
+        chunks[0].function,
+        imported_history::FUNCTION_RUN_COMMAND_LINE
+    );
+    assert_eq!(chunks[0].args["command"], "pnpm test");
+    assert_eq!(chunks[0].result["output"], "Starting\nPassed\n");
+    assert_eq!(chunks[0].result["exit_code"], 0);
+
+    std::fs::remove_file(&path).expect("remove fixture");
+    std::fs::remove_dir(&temp_dir).expect("remove temp dir");
+}
+
+#[test]
 fn codex_desktop_exec_preserves_multiline_shell_script() {
     let command = "sed -n '1,180p' src/scaffold/NavigationSidebar/connectors/useSessionMenuItems/menuItemBuilders.tsx\nsed -n '250,370p' src/scaffold/NavigationSidebar/connectors/useSessionMenuItems/index.tsx\nsed -n '1,180p' src/config/agentIcons.tsx\nrg -n \"interface.*MenuItem|type.*MenuItem|renderStatusDot|agentIconId\" src/scaffold/NavigationSidebar src/scaffold -g '*.tsx' -g '*.ts' | head -200";
     let script = format!(
@@ -428,6 +724,55 @@ fn codex_desktop_exec_unwraps_apply_patch_variable() {
     );
     assert_eq!(calls[0].args["file_path"], "src/app.ts");
     assert_eq!(calls[0].args["patch_text"], patch);
+}
+
+#[test]
+fn codex_rollout_without_session_start_still_recovers_exec_apply_patch() {
+    let temp_dir = std::env::temp_dir().join(format!(
+        "orgii-codex-missing-session-start-test-{}",
+        std::process::id()
+    ));
+    std::fs::create_dir_all(&temp_dir).expect("create temp dir");
+    let path = temp_dir.join("rollout-missing-session-start.jsonl");
+    let patch = "*** Begin Patch\n*** Update File: src/app.ts\n@@\n-old\n+new\n*** End Patch";
+    let script = format!(
+        "const patch = {}; const r = await tools.apply_patch(patch); text(r)",
+        serde_json::to_string(patch).expect("encode patch")
+    );
+    let content = format!(
+        "{}\n{}\n",
+        json!({
+            "timestamp": "2026-07-20T12:49:00.000Z",
+            "type": "response_item",
+            "payload": {
+                "type": "custom_tool_call",
+                "name": "exec",
+                "call_id": "call_missed_hook_patch",
+                "input": script,
+            }
+        }),
+        json!({
+            "timestamp": "2026-07-20T12:49:00.100Z",
+            "type": "response_item",
+            "payload": {
+                "type": "custom_tool_call_output",
+                "call_id": "call_missed_hook_patch",
+                "output": "Success",
+            }
+        })
+    );
+    std::fs::write(&path, content).expect("write fixture");
+
+    let chunks = load_codex_app_from_path("codexapp-missing-session-start", &path)
+        .expect("parse rollout without lifecycle hooks");
+
+    assert_eq!(chunks.len(), 1);
+    assert_eq!(chunks[0].function, imported_history::FUNCTION_EDIT_FILE);
+    assert_eq!(chunks[0].args["file_path"], "src/app.ts");
+    assert_eq!(chunks[0].args["patch_text"], patch);
+
+    std::fs::remove_file(&path).expect("remove fixture");
+    std::fs::remove_dir(&temp_dir).expect("remove temp dir");
 }
 
 #[test]
@@ -1215,4 +1560,73 @@ fn prefers_codex_session_meta_title_as_name() {
 
     std::fs::remove_file(&path).expect("remove fixture");
     std::fs::remove_dir(&temp_dir).expect("remove temp dir");
+}
+
+#[test]
+fn strips_orgii_exec_mode_bridge_from_codex_user_text() {
+    // Bridge prefix followed by the real user text → only the user text.
+    let with_bridge = "<orgii_cli_exec_mode_bridge>\ninternal briefing\n</orgii_cli_exec_mode_bridge>\n\nfix the login bug";
+    assert_eq!(
+        strip_orgii_exec_mode_bridge(with_bridge),
+        "fix the login bug"
+    );
+
+    // Bridge-only message → empty.
+    let bridge_only =
+        "<orgii_cli_exec_mode_bridge>\ninternal briefing\n</orgii_cli_exec_mode_bridge>";
+    assert_eq!(strip_orgii_exec_mode_bridge(bridge_only), "");
+
+    // No bridge → unchanged.
+    let plain = "just a normal prompt";
+    assert_eq!(strip_orgii_exec_mode_bridge(plain), plain);
+
+    // Payload plumbing: bridge-only user_message is skipped entirely
+    // (no replay chunk, no title candidate); prefixed one is stripped.
+    let bridge_only_payload = serde_json::json!({
+        "type": "user_message",
+        "message": bridge_only,
+    });
+    assert_eq!(user_message_from_payload(&bridge_only_payload), None);
+
+    let prefixed_payload = serde_json::json!({
+        "type": "user_message",
+        "message": with_bridge,
+    });
+    assert_eq!(
+        user_message_from_payload(&prefixed_payload).as_deref(),
+        Some("fix the login bug")
+    );
+}
+
+#[test]
+fn strips_ide_context_from_codex_user_text() {
+    // Bridge + ide_context prefixes followed by the real user text → only
+    // the user text.
+    let with_both = "<orgii_cli_exec_mode_bridge>\ninternal briefing\n</orgii_cli_exec_mode_bridge>\n\n<ide_context>\nopen file: src/app.ts\n</ide_context>\n\nfix the login bug";
+    assert_eq!(strip_orgii_exec_mode_bridge(with_both), "fix the login bug");
+
+    // ide_context-only message → empty.
+    let ide_only = "<ide_context>\nopen file: src/app.ts\n</ide_context>";
+    assert_eq!(strip_orgii_exec_mode_bridge(ide_only), "");
+
+    // Unclosed known tag → the whole remainder is internal.
+    let unclosed = "<ide_context>\ntruncated without close";
+    assert_eq!(strip_orgii_exec_mode_bridge(unclosed), "");
+
+    // Payload plumbing: ide_context-only user_message is skipped entirely
+    // (no replay chunk, no title candidate); prefixed one is stripped.
+    let ide_only_payload = serde_json::json!({
+        "type": "user_message",
+        "message": ide_only,
+    });
+    assert_eq!(user_message_from_payload(&ide_only_payload), None);
+
+    let both_payload = serde_json::json!({
+        "type": "user_message",
+        "message": with_both,
+    });
+    assert_eq!(
+        user_message_from_payload(&both_payload).as_deref(),
+        Some("fix the login bug")
+    );
 }

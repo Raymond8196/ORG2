@@ -12,7 +12,6 @@ import { stationModeAtom } from "@src/store/ui/simulatorAtom";
 import {
   sessionChatPositionAtom,
   workStationChatPositionAtom,
-  workStationDockAutoHidePersistAtom,
   workStationLayoutModePersistAtom,
 } from "@src/store/ui/workStationAtom";
 import { getInstrumentedStore } from "@src/util/core/state/instrumentedStore";
@@ -172,30 +171,6 @@ const workstationSetSidebarRight = defineEmptyAction(
   }
 );
 
-const workstationEnableDockAutoHide = defineEmptyAction(
-  ACTION_ID.WORKSTATION_ENABLE_DOCK_AUTO_HIDE,
-  "view",
-  "Enable Workstation dock auto-hide",
-  "Dock auto-hide enabled",
-  ["enable dock auto hide", "auto hide dock"],
-  () => {
-    const store = getInstrumentedStore();
-    store.set(workStationDockAutoHidePersistAtom, true);
-  }
-);
-
-const workstationDisableDockAutoHide = defineEmptyAction(
-  ACTION_ID.WORKSTATION_DISABLE_DOCK_AUTO_HIDE,
-  "view",
-  "Disable Workstation dock auto-hide",
-  "Dock auto-hide disabled",
-  ["disable dock auto hide", "keep dock visible"],
-  () => {
-    const store = getInstrumentedStore();
-    store.set(workStationDockAutoHidePersistAtom, false);
-  }
-);
-
 export const chatPanelZodActions = [
   chatPanelSetMyStationLeft,
   chatPanelSetMyStationRight,
@@ -207,8 +182,6 @@ export const chatPanelZodActions = [
   chatPanelUseModelPickerDropdown,
   workstationSetSidebarLeft,
   workstationSetSidebarRight,
-  workstationEnableDockAutoHide,
-  workstationDisableDockAutoHide,
 ];
 
 export const chatPanelActionRegistration =

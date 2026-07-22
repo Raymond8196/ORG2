@@ -2,7 +2,9 @@
 
 use super::*;
 use crate::projects::io::projects::write_project;
-use crate::projects::types::{LabelEntry, LabelsFile, ProjectMeta, WorkItemHistoryAction};
+use crate::projects::types::{
+    LabelEntry, LabelsFile, ProjectMeta, WorkItemHistoryAction, WorkItemReadBucket,
+};
 use test_helpers::test_env;
 
 fn project_fixture(id: &str, _slug: &str, name: &str) -> ProjectMeta {
@@ -93,6 +95,74 @@ fn write_then_read_round_trips_core_fields() {
     assert_eq!(back.body, "## Body\n\nhello");
     assert_eq!(back.frontmatter.project.as_deref(), Some("p1"));
     assert_eq!(back.filename, "AAA-0001");
+}
+
+#[test]
+fn bucketed_reads_defer_native_completed_and_github_closed_items() {
+    let _sandbox = test_env::sandbox();
+    seed_project("demo", "p1");
+
+    for (index, status) in ["open", "in_progress", "completed", "closed"]
+        .into_iter()
+        .enumerate()
+    {
+        let short_id = format!("AAA-{:04}", index + 1);
+        let mut fm = work_item_fixture(&format!("w{}", index + 1), &short_id, status);
+        fm.status = status.to_string();
+        write_work_item("demo", &short_id, &fm, "").expect("write fixture");
+    }
+
+    let active =
+        read_all_work_items_scoped_filtered("demo", None, Some(WorkItemReadBucket::Active))
+            .expect("active bucket");
+    let completed =
+        read_all_work_items_scoped_filtered("demo", None, Some(WorkItemReadBucket::Completed))
+            .expect("completed bucket");
+
+    let mut active_statuses = active
+        .iter()
+        .map(|item| item.frontmatter.status.as_str())
+        .collect::<Vec<_>>();
+    active_statuses.sort_unstable();
+    let mut completed_statuses = completed
+        .iter()
+        .map(|item| item.frontmatter.status.as_str())
+        .collect::<Vec<_>>();
+    completed_statuses.sort_unstable();
+
+    assert_eq!(active_statuses, ["in_progress", "open"]);
+    assert_eq!(completed_statuses, ["closed", "completed"]);
+}
+
+#[test]
+fn standalone_bucketed_reads_use_the_same_terminal_partition() {
+    let _sandbox = test_env::sandbox();
+
+    for (index, status) in ["open", "completed", "closed"].into_iter().enumerate() {
+        let short_id = format!("ORG-{:04}", index + 1);
+        let mut fm = work_item_fixture(&format!("w{}", index + 1), &short_id, status);
+        fm.status = status.to_string();
+        write_standalone_work_item(Some("personal-org"), &short_id, &fm, "")
+            .expect("write standalone fixture");
+    }
+
+    let active =
+        read_standalone_work_items_filtered(Some("personal-org"), Some(WorkItemReadBucket::Active))
+            .expect("active standalone bucket");
+    let completed = read_standalone_work_items_filtered(
+        Some("personal-org"),
+        Some(WorkItemReadBucket::Completed),
+    )
+    .expect("completed standalone bucket");
+
+    assert_eq!(active.len(), 1);
+    assert_eq!(active[0].frontmatter.status, "open");
+    let mut completed_statuses = completed
+        .iter()
+        .map(|item| item.frontmatter.status.as_str())
+        .collect::<Vec<_>>();
+    completed_statuses.sort_unstable();
+    assert_eq!(completed_statuses, ["closed", "completed"]);
 }
 
 #[test]
@@ -405,4 +475,88 @@ fn upsert_preserves_created_at_on_second_write() {
         back.frontmatter.created_at
     );
     assert_eq!(back.body, "v2");
+}
+
+/// Whole-row writes (create / delete / restore / batch /
+/// git-folder-sync) must not wipe the sync-side metadata that only the
+/// atomic RMW path used to preserve — and a local whole-row edit must
+/// stamp the fields it actually changed so peers' per-field resolvers
+/// see it as newer.
+#[test]
+fn whole_row_write_preserves_sync_metadata_and_stamps_changed_fields() {
+    use crate::projects::io::{apply_remote_merge, read_sync_metadata, FieldRevision};
+
+    let _sandbox = test_env::sandbox();
+    seed_project("demo", "p1");
+    write_work_item(
+        "demo",
+        "AAA-0001",
+        &work_item_fixture("w1", "AAA-0001", "Task"),
+        "body",
+    )
+    .expect("create");
+
+    // Simulate a prior sync: adapter watermark + external ref.
+    let mut revisions = std::collections::HashMap::new();
+    revisions.insert(
+        "title".to_string(),
+        FieldRevision {
+            mtime: 1_111,
+            source: "linear".to_string(),
+        },
+    );
+    apply_remote_merge(
+        "demo",
+        "AAA-0001",
+        revisions,
+        Some(("linear".to_string(), "EXT-9".to_string())),
+    )
+    .expect("stamp");
+
+    // Whole-row rewrite that changes ONLY status.
+    let mut item = read_work_item("demo", "AAA-0001").expect("read");
+    item.frontmatter.status = "in_progress".to_string();
+    write_work_item("demo", "AAA-0001", &item.frontmatter, &item.body).expect("whole-row write");
+
+    let metadata = read_sync_metadata("demo", "AAA-0001")
+        .expect("metadata read")
+        .expect("item exists");
+    assert_eq!(
+        metadata.field_revisions.get("title"),
+        Some(&FieldRevision {
+            mtime: 1_111,
+            source: "linear".to_string(),
+        }),
+        "untouched field keeps its pre-write watermark"
+    );
+    let status_revision = metadata
+        .field_revisions
+        .get("status")
+        .expect("changed field stamped");
+    assert_eq!(status_revision.source, "local");
+    assert!(status_revision.mtime > 1_111);
+    assert_eq!(
+        metadata.external_refs.get("linear").map(String::as_str),
+        Some("EXT-9"),
+        "external refs survive the whole-row write"
+    );
+
+    // The delete-bin round trip is the original data-loss path.
+    delete_work_item("demo", "AAA-0001").expect("delete");
+    restore_work_item("demo", "AAA-0001").expect("restore");
+    let metadata = read_sync_metadata("demo", "AAA-0001")
+        .expect("metadata read")
+        .expect("item exists");
+    assert_eq!(
+        metadata.field_revisions.get("title"),
+        Some(&FieldRevision {
+            mtime: 1_111,
+            source: "linear".to_string(),
+        }),
+        "delete + restore must not wipe watermarks"
+    );
+    assert_eq!(
+        metadata.external_refs.get("linear").map(String::as_str),
+        Some("EXT-9")
+    );
 }

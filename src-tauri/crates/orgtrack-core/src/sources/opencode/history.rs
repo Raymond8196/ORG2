@@ -13,18 +13,20 @@ use serde_json::{json, Value};
 
 use crate::sources::imported_history::{
     self, cache as imported_cache,
-    metadata::{ImportedHistoryCacheInput, ImportedHistoryImpactStats, SOURCE_OPENCODE},
+    metadata::{
+        ImportedHistoryCacheInput, ImportedHistoryImpactStats, ImportedHistoryRecordSignature,
+        SOURCE_OPENCODE,
+    },
     paths as imported_paths, ImportedHistoryRecentPath, ImportedHistorySessionPage,
     ImportedHistorySessionRow, ImportedToolCall,
 };
 
-const OPENCODE_SESSION_PREFIX: &str = "opencodeapp-";
+pub const OPENCODE_SESSION_PREFIX: &str = "opencodeapp-";
 const OPENCODE_PROVIDER_SLUG: &str = "opencode";
 const OPENCODE_DB_FILENAME: &str = "opencode.db";
-// Bumped to 3 when the fingerprint moved from a bare mtime string to a
-// content-aware (session fields + WAL/`-shm` sidecar) signature so existing
-// caches rebuild once.
-const OPENCODE_METADATA_PARSER_VERSION: i64 = 3;
+// Version 4 adds per-session file-impact extraction from normalized edit parts.
+// v5: capture cache_read/cache_write tokens separately (input stays cache-inclusive).
+const OPENCODE_METADATA_PARSER_VERSION: i64 = 5;
 
 pub type OpenCodeHistorySessionRow = ImportedHistorySessionRow;
 pub type OpenCodeHistorySessionPage = ImportedHistorySessionPage;
@@ -43,9 +45,12 @@ struct OpenCodeSessionMeta {
     model: Option<String>,
     input_tokens: i64,
     output_tokens: i64,
+    cache_read_tokens: i64,
+    cache_write_tokens: i64,
     time_created: i64,
     time_updated: i64,
     parent_id: Option<String>,
+    impact: ImportedHistoryImpactStats,
 }
 
 #[derive(Debug, Clone)]
@@ -128,7 +133,12 @@ pub fn load_opencode_history_for_session(session_id: &str) -> Result<Vec<Activit
     let Some((conn, _db_path)) = open_opencode_db()? else {
         return Ok(Vec::new());
     };
-    load_opencode_history_from_conn(&conn, session_id, source_session_id)
+    load_opencode_compatible_history_from_conn(
+        &conn,
+        session_id,
+        source_session_id,
+        OPENCODE_PROVIDER_SLUG,
+    )
 }
 
 fn sync_opencode_history_cache(cache_conn: &mut Connection) -> Result<(), String> {
@@ -143,62 +153,79 @@ fn sync_opencode_history_cache(cache_conn: &mut Connection) -> Result<(), String
     };
     let (source_mtime_ms, source_size_bytes) =
         imported_paths::file_metadata_signature(&db_path, "OpenCode")?;
-    let metas = list_all_opencode_session_meta_from_conn(
+    let mut metas = list_all_opencode_session_meta_from_conn(
         &conn,
         &db_path,
         source_mtime_ms,
         source_size_bytes,
     )?;
     let managed_source_session_ids = managed_opencode_source_session_ids_from_conn(cache_conn)?;
+    for meta in &mut metas {
+        meta.source_fingerprint.push_str(
+            if managed_source_session_ids.contains(&meta.source_session_id) {
+                "|managed=1"
+            } else {
+                "|managed=0"
+            },
+        );
+    }
     let container_parent_ids = container_parent_ids_from_metas(&metas);
     let live_ids = metas
         .iter()
         .map(|meta| meta.source_session_id.clone())
         .collect::<Vec<_>>();
-    let inputs = metas
+    let changed_ids = imported_cache::changed_records_from_conn(
+        cache_conn,
+        SOURCE_OPENCODE,
+        &metas,
+        opencode_meta_signature,
+    )?
+    .into_iter()
+    .map(|meta| meta.source_session_id.clone())
+    .collect::<HashSet<_>>();
+    let mut inputs = Vec::with_capacity(changed_ids.len());
+    for mut meta in metas
         .into_iter()
-        .map(|meta| {
-            session_meta_to_cache_input(meta, &container_parent_ids, &managed_source_session_ids)
-        })
-        .collect::<Vec<_>>();
+        .filter(|meta| changed_ids.contains(&meta.source_session_id))
+    {
+        let session_id = format!("{OPENCODE_SESSION_PREFIX}{}", meta.source_session_id);
+        let chunks = load_opencode_compatible_history_from_conn(
+            &conn,
+            &session_id,
+            &meta.source_session_id,
+            OPENCODE_PROVIDER_SLUG,
+        )?;
+        meta.impact = imported_history::impact_from_edit_chunks(&chunks);
+        inputs.push(session_meta_to_cache_input(
+            meta,
+            &container_parent_ids,
+            &managed_source_session_ids,
+        ));
+    }
     imported_cache::sync_source_cache_from_conn(cache_conn, SOURCE_OPENCODE, live_ids, inputs)
+}
+
+fn opencode_meta_signature(meta: &OpenCodeSessionMeta) -> ImportedHistoryRecordSignature {
+    ImportedHistoryRecordSignature {
+        source_session_id: meta.source_session_id.clone(),
+        source_path: meta.source_path.clone(),
+        source_mtime_ms: meta.source_mtime_ms,
+        source_size_bytes: meta.source_size_bytes,
+        source_fingerprint: meta.source_fingerprint.clone(),
+        parser_version: OPENCODE_METADATA_PARSER_VERSION,
+    }
 }
 
 fn managed_opencode_source_session_ids_from_conn(
     conn: &Connection,
 ) -> Result<HashSet<String>, String> {
-    let has_code_sessions = conn
-        .query_row(
-            "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'code_sessions'",
-            [],
-            |_| Ok(()),
-        )
-        .is_ok();
-    if !has_code_sessions {
-        return Ok(HashSet::new());
-    }
-
-    let mut stmt = conn
-        .prepare(
-            "SELECT cli_session_id FROM code_sessions \
-             WHERE cli_agent_type = 'opencode' AND cli_session_id IS NOT NULL AND cli_session_id != ''",
-        )
-        .map_err(|err| format!("Failed to prepare managed OpenCode session query: {err}"))?;
-    let rows = stmt
-        .query_map([], |row| row.get::<_, String>(0))
-        .map_err(|err| format!("Failed to query managed OpenCode sessions: {err}"))?;
-
-    let mut ids = HashSet::new();
-    for row in rows {
-        let id = row
-            .map_err(|err| format!("Failed to read managed OpenCode session row: {err}"))?
-            .trim()
-            .to_string();
-        if !id.is_empty() {
-            ids.insert(id);
-        }
-    }
-    Ok(ids)
+    // Shared helper unions the live `code_sessions.cli_session_id` binding
+    // with the append-only native-transcript ledger (superseded forks).
+    crate::sources::imported_history::managed_mirror::managed_source_session_ids_from_conn(
+        conn,
+        "opencode",
+        crate::sources::imported_history::metadata::SOURCE_OPENCODE,
+    )
 }
 
 fn container_parent_ids_from_metas(metas: &[OpenCodeSessionMeta]) -> HashSet<String> {
@@ -247,9 +274,12 @@ fn list_all_opencode_session_meta_from_conn(
         .map_err(|err| format!("Failed to prepare OpenCode session query: {err}"))?;
     let rows = stmt
         .query_map([], |row| {
+            let cache_read_tokens = row.get::<_, Option<i64>>(7)?.unwrap_or_default();
+            let cache_write_tokens = row.get::<_, Option<i64>>(8)?.unwrap_or_default();
+            // input_tokens is cache-inclusive (fresh input + both cache kinds).
             let input_tokens = row.get::<_, Option<i64>>(4)?.unwrap_or_default()
-                + row.get::<_, Option<i64>>(7)?.unwrap_or_default()
-                + row.get::<_, Option<i64>>(8)?.unwrap_or_default();
+                + cache_read_tokens
+                + cache_write_tokens;
             let output_tokens = row.get::<_, Option<i64>>(5)?.unwrap_or_default()
                 + row.get::<_, Option<i64>>(6)?.unwrap_or_default();
             Ok(OpenCodeSessionMeta {
@@ -264,12 +294,15 @@ fn list_all_opencode_session_meta_from_conn(
                 model: row.get(3)?,
                 input_tokens,
                 output_tokens,
+                cache_read_tokens,
+                cache_write_tokens,
                 time_created: row.get::<_, Option<i64>>(9)?.unwrap_or_default(),
                 time_updated: row.get::<_, Option<i64>>(10)?.unwrap_or_default(),
                 parent_id: row
                     .get::<_, Option<String>>(11)?
                     .map(|s| s.trim().to_string())
                     .filter(|s| !s.is_empty()),
+                impact: ImportedHistoryImpactStats::default(),
             })
         })
         .map_err(|err| format!("Failed to query OpenCode sessions: {err}"))?;
@@ -342,15 +375,22 @@ fn session_meta_to_cache_input(
         source_size_bytes: meta.source_size_bytes,
         source_fingerprint: meta.source_fingerprint,
         parser_version: OPENCODE_METADATA_PARSER_VERSION,
-        name: imported_history::truncate_name(&meta.title, 200),
+        // OpenCode may default the title to the first message text, which for
+        // GUI-launched runs starts with the exec-mode briefing — strip it.
+        name: imported_history::truncate_name(
+            imported_history::strip_orgii_exec_mode_bridge(&meta.title),
+            200,
+        ),
         created_at_ms: meta.time_created,
         updated_at_ms,
         model,
         input_tokens: meta.input_tokens,
         output_tokens: meta.output_tokens,
+        cache_read_tokens: meta.cache_read_tokens,
+        cache_write_tokens: meta.cache_write_tokens,
         repo_path: (!meta.directory.trim().is_empty()).then_some(meta.directory),
         branch: None,
-        impact: ImportedHistoryImpactStats::default(),
+        impact: meta.impact,
         listable,
         source_metadata_json: None,
         parent_session_id,
@@ -376,19 +416,39 @@ fn parse_model_name(raw_model: &str) -> Option<String> {
     }
 }
 
+/// Parse the message/part schema shared by OpenCode-compatible stores.
+///
+/// Mimo Code persists the same normalized part records in its own SQLite
+/// database, so its importer supplies a distinct provider slug while sharing
+/// this conversion path.
+pub(crate) fn load_opencode_compatible_history_from_conn(
+    conn: &Connection,
+    session_id: &str,
+    source_session_id: &str,
+    provider_slug: &str,
+) -> Result<Vec<ActivityChunk>, String> {
+    let parts = load_ordered_parts(conn, source_session_id)?;
+    let mut chunks = Vec::new();
+    for (sequence, row) in parts.iter().enumerate() {
+        if let Some(chunk) = part_row_to_chunk(session_id, provider_slug, sequence, row) {
+            chunks.push(chunk);
+        }
+    }
+    Ok(chunks)
+}
+
+#[cfg(test)]
 fn load_opencode_history_from_conn(
     conn: &Connection,
     session_id: &str,
     source_session_id: &str,
 ) -> Result<Vec<ActivityChunk>, String> {
-    let parts = load_ordered_parts(conn, source_session_id)?;
-    let mut chunks = Vec::new();
-    for (sequence, row) in parts.iter().enumerate() {
-        if let Some(chunk) = part_row_to_chunk(session_id, sequence, row) {
-            chunks.push(chunk);
-        }
-    }
-    Ok(chunks)
+    load_opencode_compatible_history_from_conn(
+        conn,
+        session_id,
+        source_session_id,
+        OPENCODE_PROVIDER_SLUG,
+    )
 }
 
 fn load_ordered_parts(
@@ -439,38 +499,54 @@ fn load_ordered_parts(
 
 fn part_row_to_chunk(
     session_id: &str,
+    provider_slug: &str,
     sequence: usize,
     row: &OpenCodePartRow,
 ) -> Option<ActivityChunk> {
     match row.part.part_type.as_str() {
-        "text" if row.role == "user" => text_to_user_chunk(session_id, sequence, row),
-        "text" => text_to_assistant_chunk(session_id, sequence, row),
-        "reasoning" => reasoning_to_chunk(session_id, sequence, row),
-        "tool" => tool_to_chunk(session_id, sequence, row),
+        "text" if row.role == "user" => {
+            text_to_user_chunk_with_provider(session_id, provider_slug, sequence, row)
+        }
+        "text" => text_to_assistant_chunk(session_id, provider_slug, sequence, row),
+        "reasoning" => reasoning_to_chunk(session_id, provider_slug, sequence, row),
+        "tool" => tool_to_chunk(session_id, provider_slug, sequence, row),
         _ => None,
     }
 }
 
-fn text_to_user_chunk(
+fn text_to_user_chunk_with_provider(
     session_id: &str,
+    provider_slug: &str,
     sequence: usize,
     row: &OpenCodePartRow,
 ) -> Option<ActivityChunk> {
-    let text = row.part.text.trim();
-    if text.is_empty() {
+    // Strip the GUI exec-mode briefing; a bridge-only part carries no
+    // user-authored text, so emit no bubble.
+    let text = imported_history::strip_orgii_exec_mode_bridge(row.part.text.trim());
+    if text.trim().is_empty() {
         return None;
     }
     Some(imported_history::user_message_chunk(
         session_id,
-        OPENCODE_PROVIDER_SLUG,
+        provider_slug,
         sequence,
         &row_created_at(row),
         text,
     ))
 }
 
+#[cfg(test)]
+fn text_to_user_chunk(
+    session_id: &str,
+    sequence: usize,
+    row: &OpenCodePartRow,
+) -> Option<ActivityChunk> {
+    text_to_user_chunk_with_provider(session_id, OPENCODE_PROVIDER_SLUG, sequence, row)
+}
+
 fn text_to_assistant_chunk(
     session_id: &str,
+    provider_slug: &str,
     sequence: usize,
     row: &OpenCodePartRow,
 ) -> Option<ActivityChunk> {
@@ -480,7 +556,7 @@ fn text_to_assistant_chunk(
     }
     Some(imported_history::assistant_message_chunk(
         session_id,
-        OPENCODE_PROVIDER_SLUG,
+        provider_slug,
         sequence,
         &row_created_at(row),
         text,
@@ -489,6 +565,7 @@ fn text_to_assistant_chunk(
 
 fn reasoning_to_chunk(
     session_id: &str,
+    provider_slug: &str,
     sequence: usize,
     row: &OpenCodePartRow,
 ) -> Option<ActivityChunk> {
@@ -498,7 +575,7 @@ fn reasoning_to_chunk(
     }
     Some(imported_history::thinking_chunk(
         session_id,
-        OPENCODE_PROVIDER_SLUG,
+        provider_slug,
         sequence,
         &row_created_at(row),
         text,
@@ -507,6 +584,7 @@ fn reasoning_to_chunk(
 
 fn tool_to_chunk(
     session_id: &str,
+    provider_slug: &str,
     sequence: usize,
     row: &OpenCodePartRow,
 ) -> Option<ActivityChunk> {
@@ -530,13 +608,8 @@ fn tool_to_chunk(
         created_at: row_created_at(row),
     };
     let output = tool_output_text(state);
-    let mut chunk = imported_history::tool_call_chunk(
-        session_id,
-        OPENCODE_PROVIDER_SLUG,
-        sequence,
-        &call,
-        &output,
-    );
+    let mut chunk =
+        imported_history::tool_call_chunk(session_id, provider_slug, sequence, &call, &output);
     if let Some(result_obj) = chunk.result.as_object_mut() {
         if !state.status.trim().is_empty() {
             result_obj.insert("status".to_string(), Value::String(state.status.clone()));
@@ -653,7 +726,18 @@ fn opencode_db_candidate_paths() -> Vec<PathBuf> {
     let Some(home_dir) = dirs::home_dir() else {
         return Vec::new();
     };
-    opencode_db_candidate_paths_for_home(&home_dir)
+    let mut paths = opencode_db_candidate_paths_for_home(&home_dir);
+    // ORGII-managed OpenCode runs override HOME/XDG into per-account profile
+    // dirs whose data lands under `<profile>/.local/share/opencode`.
+    paths.extend(
+        crate::sources::imported_history::managed_roots::profile_root_children(
+            &app_paths::opencode_cli_profile_root(),
+            &[".local", "share", "opencode"],
+        )
+        .into_iter()
+        .map(|dir| dir.join(OPENCODE_DB_FILENAME)),
+    );
+    paths
 }
 
 fn opencode_db_candidate_paths_for_home(home_dir: &Path) -> Vec<PathBuf> {

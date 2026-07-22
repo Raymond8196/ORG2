@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
   IMPORTED_HISTORY_SOURCES,
@@ -7,28 +7,76 @@ import {
   isImportedHistoryListCategory,
 } from "@src/api/tauri/externalHistory";
 
+const cursorLoaders = vi.hoisted(() => ({
+  preview: vi.fn(),
+  full: vi.fn(),
+}));
+
+vi.mock("../../cursorIde", () => ({
+  cursorIdeInitialWindow: cursorLoaders.preview,
+  cursorIdeChunks: cursorLoaders.full,
+}));
+
 describe("imported history source registry", () => {
+  it("keeps Cursor's local preview window separate from cloud's full transcript", async () => {
+    cursorLoaders.preview.mockResolvedValue({ chunks: [{ id: "preview" }] });
+    cursorLoaders.full.mockResolvedValue([{ id: "full" }]);
+    const cursor = getImportedHistorySourceBySessionId("cursoride-session-1");
+
+    await expect(
+      cursor?.loadPreviewChunks("cursoride-session-1")
+    ).resolves.toEqual([{ id: "preview" }]);
+    await expect(
+      cursor?.loadFullTranscriptChunks("cursoride-session-1")
+    ).resolves.toEqual([{ id: "full" }]);
+    expect(cursorLoaders.preview).toHaveBeenCalledWith({
+      sessionId: "cursoride-session-1",
+      recentLimit: 100,
+    });
+    expect(cursorLoaders.full).toHaveBeenCalledWith("cursoride-session-1");
+  });
+
   it("registers source-specific external history providers", () => {
     expect(IMPORTED_HISTORY_SOURCES.map((source) => source.sourceId)).toEqual([
       "cursor_ide",
+      "cursor_cli",
       "codex_app",
       "claude_code",
       "opencode",
       "windsurf",
       "workbuddy",
       "trae",
+      "cline",
+      "warp",
+      "zcode",
+      "qoder",
+      "mimo_code",
+      "omp",
+      "qoder_cli",
     ]);
     expect(
       IMPORTED_HISTORY_SOURCES.map((source) => source.listCategory)
     ).toEqual([
       "external_history:cursor_ide",
+      "external_history:cursor_cli",
       "external_history:codex_app",
       "external_history:claude_code",
       "external_history:opencode",
       "external_history:windsurf",
       "external_history:workbuddy",
       "external_history:trae",
+      "external_history:cline",
+      "external_history:warp",
+      "external_history:zcode",
+      "external_history:qoder",
+      "external_history:mimo_code",
+      "external_history:omp",
+      "external_history:qoder_cli",
     ]);
+    for (const source of IMPORTED_HISTORY_SOURCES) {
+      expect(source.loadPreviewChunks).toBeTypeOf("function");
+      expect(source.loadFullTranscriptChunks).toBeTypeOf("function");
+    }
   });
 
   it("resolves source metadata by session id prefix", () => {
@@ -50,6 +98,18 @@ describe("imported history source registry", () => {
     expect(
       getImportedHistorySourceBySessionId("workbuddyapp-session-1")?.sourceId
     ).toBe("workbuddy");
+    expect(
+      getImportedHistorySourceBySessionId("warpapp-session-1")?.sourceId
+    ).toBe("warp");
+    expect(
+      getImportedHistorySourceBySessionId("mimocodeapp-session-1")?.sourceId
+    ).toBe("mimo_code");
+    expect(
+      getImportedHistorySourceBySessionId("ompapp-session-1")?.sourceId
+    ).toBe("omp");
+    expect(
+      getImportedHistorySourceBySessionId("qodercliapp-session-1")?.sourceId
+    ).toBe("qoder_cli");
   });
 
   it("resolves source metadata by list category", () => {
@@ -77,6 +137,10 @@ describe("imported history source registry", () => {
       getImportedHistorySourceByListCategory("external_history:workbuddy")
         ?.groupLabel
     ).toBe("WorkBuddy");
+    expect(
+      getImportedHistorySourceByListCategory("external_history:warp")
+        ?.groupLabel
+    ).toBe("Warp");
   });
 
   it("narrows source-aware list categories", () => {
@@ -98,6 +162,7 @@ describe("imported history source registry", () => {
     expect(isImportedHistoryListCategory("external_history:workbuddy")).toBe(
       true
     );
+    expect(isImportedHistoryListCategory("external_history:warp")).toBe(true);
     expect(isImportedHistoryListCategory("external_history")).toBe(false);
   });
 });

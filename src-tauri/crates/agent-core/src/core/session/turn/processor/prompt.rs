@@ -16,8 +16,28 @@ use tracing::{info, warn};
 
 use super::UnifiedMessageProcessor;
 use crate::core::session::prompt::cache::SkillListingCacheKey;
-use crate::core::session::prompt::sections::build_agent_org_context_section;
+use crate::core::session::prompt::sections::build_agent_org_context_section_with_task_snapshot;
 use crate::core::session::types::{SystemPromptConfig, ToolSummary};
+
+fn render_linked_work_item_context(work_item_id: &str, project_slug: Option<&str>) -> String {
+    let scope_instruction = match project_slug {
+        Some(project_slug) => format!(
+            "Set `project_slug` to {} on every `manage_work_item` call for this item.",
+            serde_json::to_string(project_slug).expect("project slug is JSON serializable")
+        ),
+        None => "Omit `project_slug` on every `manage_work_item` call for this standalone item."
+            .to_string(),
+    };
+
+    format!(
+        "## Linked Work Item\n\n\
+         This planning session is already linked to Work Item `short_id` {}. \
+         {} Update this linked draft instead of creating a duplicate unless the user explicitly asks for multiple Work Items. \
+         Keep the current session linked after every update.",
+        serde_json::to_string(work_item_id).expect("work item id is JSON serializable"),
+        scope_instruction,
+    )
+}
 
 impl UnifiedMessageProcessor {
     /// Builds the system prompt split into `(stable, volatile)` bodies.
@@ -89,8 +109,9 @@ impl UnifiedMessageProcessor {
         session_id: &str,
         memory_prefetch_section: Option<&str>,
         user_message: Option<&str>,
-    ) -> Vec<String> {
+    ) -> (Vec<String>, Option<i64>) {
         let mut dynamic_sections: Vec<String> = Vec::new();
+        let mut coordinator_presented_work_revision = None;
 
         if let Some(user_message) = user_message {
             if let Some(section) = crate::core::session::prompt::gui_control_retrieval::build_gui_control_relevant_controls_section(
@@ -115,11 +136,83 @@ impl UnifiedMessageProcessor {
         }
 
         if let Some(context) = self.runtime.agent_org_context.as_ref() {
-            dynamic_sections.push(build_agent_org_context_section(
-                context,
-                &self.agent_id,
-                self.runtime.agent_org_current_member_id.as_deref(),
-            ));
+            let context_snapshot = context.clone();
+            let current_agent_id = self.agent_id.clone();
+            let current_member_id = self.runtime.agent_org_current_member_id.clone();
+            let coordinator_prompt = current_member_id.as_deref()
+                == Some(crate::coordination::agent_org_runs::COORDINATOR_MEMBER_ID);
+            match tokio::task::spawn_blocking(move || {
+                let (task_snapshot, presented_revision) = if coordinator_prompt {
+                    match crate::coordination::agent_org_runs::AgentOrgRunStore::stage_coordinator_work_revision_and_load_tasks(
+                        &context_snapshot.run_id,
+                    ) {
+                        Ok((revision, tasks)) => (Ok(tasks), revision),
+                        Err(error) => (Err(error), None),
+                    }
+                } else {
+                    (
+                        crate::coordination::agent_org_tasks::AgentOrgTaskStore::list_operational(
+                            &context_snapshot.run_id,
+                        ),
+                        None,
+                    )
+                };
+                (
+                    build_agent_org_context_section_with_task_snapshot(
+                        &context_snapshot,
+                        &current_agent_id,
+                        current_member_id.as_deref(),
+                        task_snapshot,
+                    ),
+                    presented_revision,
+                )
+            })
+            .await
+            {
+                Ok((section, revision)) => {
+                    dynamic_sections.push(section);
+                    coordinator_presented_work_revision = revision;
+                }
+                Err(error) => {
+                    warn!(
+                        run_id = %context.run_id,
+                        error = %error,
+                        "[unified_processor] Agent Org task snapshot construction failed"
+                    );
+                    dynamic_sections.push(format!(
+                        "## Agent Org Run\n\n- Task board snapshot unavailable: background snapshot task failed ({error}). Call `task_list` before changing task state."
+                    ));
+                }
+            }
+        }
+
+        // The ChatPanel "Create with AI" flow persists a draft before launch
+        // so the planning session has a durable Work Item target. The generic
+        // session runtime carries that linkage, but it was not previously
+        // visible to Work Item Manager; the model could therefore create a
+        // second item and strand the original "AI Work Item Draft". Keep this
+        // volatile (session-specific) and narrowly scoped to the manager.
+        if self.runtime.agent_definition_id.as_deref()
+            == Some(crate::core::definitions::WORK_ITEM_MANAGER_AGENT_ID)
+        {
+            let linked_session =
+                tokio::task::block_in_place(|| super::unified_persistence::get_session(session_id));
+            match linked_session {
+                Ok(Some(session)) => {
+                    if let Some(work_item_id) = session.work_item_id.as_deref() {
+                        dynamic_sections.push(render_linked_work_item_context(
+                            work_item_id,
+                            session.project_slug.as_deref(),
+                        ));
+                    }
+                }
+                Ok(None) => {}
+                Err(error) => warn!(
+                    session_id,
+                    error = %error,
+                    "[unified_processor] Failed to load linked Work Item prompt context"
+                ),
+            }
         }
 
         // Skill listing attachment (per-turn name+description summary). Full SKILL.md
@@ -342,7 +435,7 @@ impl UnifiedMessageProcessor {
             }
         }
 
-        dynamic_sections
+        (dynamic_sections, coordinator_presented_work_revision)
     }
 
     /// Read a lazy transcript-backed reminder counter. `None` (fresh
@@ -381,5 +474,28 @@ impl UnifiedMessageProcessor {
             .into_iter()
             .map(|(name, description)| ToolSummary { name, description })
             .collect()
+    }
+}
+
+#[cfg(test)]
+mod linked_work_item_context_tests {
+    use super::render_linked_work_item_context;
+
+    #[test]
+    fn renders_project_scope_without_ambiguous_discovery() {
+        let prompt = render_linked_work_item_context("AUTH-0042", Some("auth-core"));
+
+        assert!(prompt.contains("`short_id` \"AUTH-0042\""));
+        assert!(prompt.contains("Set `project_slug` to \"auth-core\""));
+        assert!(prompt.contains("instead of creating a duplicate"));
+    }
+
+    #[test]
+    fn renders_standalone_scope_without_fake_project() {
+        let prompt = render_linked_work_item_context("ORG-0042", None);
+
+        assert!(prompt.contains("`short_id` \"ORG-0042\""));
+        assert!(prompt.contains("Omit `project_slug`"));
+        assert!(!prompt.contains("personal-org"));
     }
 }

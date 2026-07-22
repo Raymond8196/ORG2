@@ -57,7 +57,7 @@ on‑hover fetch — every field below rides in the session row.
 | `originalFileStates` (keys with an edit marker) + newly‑created                | `touched_files`                     | Files the session edited.                                      |
 | `trackedGitRepos[0].repoPath` (fallback `workspaceIdentifier.uri.fsPath`)      | `repo_path` (+ derived `repo_name`) | The repo the chat ran in. Populated ~66/80 of recent sessions. |
 | `trackedGitRepos[0].branches[0].branchName`                                    | `branch`                            | Branch at the time.                                            |
-| `subagentInfo` present → not listable                                          | `listable`                          | Sub‑agent composers are hidden from the top‑level list.        |
+| parent `subagentComposerIds` + child `subagentInfo.parentComposerId`           | `parent_session_id` / `listable`    | Child is nested under its parent in the sidebar.               |
 
 ### Present but not captured
 

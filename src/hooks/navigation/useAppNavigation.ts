@@ -18,7 +18,7 @@
  * goToSettings();
  *
  * // Navigate to WorkStation with specific app
- * goToEditor(); // or goToBrowser(), goToDatabase()
+ * goToEditor(); // or goToBrowser()
  *
  * // Navigate to session creator (clears active session)
  * goToNewSession(); // or goToNewSession({ projectId, workflowId })
@@ -39,8 +39,10 @@ import { useNavigate } from "react-router-dom";
 import {
   type ExternalSkillsetsTab,
   type IntegrationsCategorySegment,
+  type SettingsPathOptions,
   buildExternalSkillsetsPath,
   buildIntegrationsPath,
+  buildSettingsPath,
 } from "@src/config/mainAppPaths";
 import { ROUTES } from "@src/config/routes";
 import { clearSessionAtom } from "@src/engines/SessionCore/core/atoms";
@@ -62,7 +64,7 @@ import {
 // ============================================
 
 /** Workstation app modes */
-export type WorkStationApp = "code" | "database" | "browser";
+export type WorkStationApp = "code" | "browser";
 
 /** Navigation options */
 export interface NavigateOptions {
@@ -92,7 +94,6 @@ export interface GoToNewSessionOptions {
 
 const WORK_STATION_ROUTES: Record<WorkStationApp, string> = {
   code: ROUTES.workStation.code.path,
-  database: ROUTES.workStation.database.path,
   browser: ROUTES.workStation.browser.path,
 };
 
@@ -119,7 +120,7 @@ export interface UseAppNavigationReturn {
 
   // Convenience methods
   goToStartPage: () => void;
-  goToSettings: () => void;
+  goToSettings: (options?: SettingsPathOptions) => void;
   goToProjects: () => void;
   goToMarket: () => void;
   goToIntegrations: (options?: {
@@ -131,7 +132,6 @@ export interface UseAppNavigationReturn {
   goToAgentOrgs: () => void;
   goToEditor: () => void;
   goToBrowser: () => void;
-  goToDatabase: () => void;
   goToNewSession: (options?: GoToNewSessionOptions) => void;
 }
 
@@ -211,12 +211,15 @@ export function useAppNavigation(): UseAppNavigationReturn {
     });
   }, [navigateToMainApp]);
 
-  const goToSettings = useCallback(() => {
-    navigateToMainApp(ROUTES.app.settings.path, {
-      title: "Settings",
-      icon: "settings",
-    });
-  }, [navigateToMainApp]);
+  const goToSettings = useCallback(
+    (options?: SettingsPathOptions) => {
+      navigateToMainApp(buildSettingsPath(options), {
+        title: "Settings",
+        icon: "settings",
+      });
+    },
+    [navigateToMainApp]
+  );
 
   const goToProjects = useCallback(() => {
     promoteActiveSessionCreatorDraft();
@@ -284,10 +287,6 @@ export function useAppNavigation(): UseAppNavigationReturn {
     navigateToWorkStation("browser");
   }, [navigateToWorkStation]);
 
-  const goToDatabase = useCallback(() => {
-    navigateToWorkStation("database");
-  }, [navigateToWorkStation]);
-
   const goToNewSession = useCallback(
     (options?: GoToNewSessionOptions) => {
       dispatchClearSession();
@@ -350,7 +349,6 @@ export function useAppNavigation(): UseAppNavigationReturn {
     goToAgentOrgs,
     goToEditor,
     goToBrowser,
-    goToDatabase,
     goToNewSession,
   };
 }

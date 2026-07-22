@@ -105,10 +105,12 @@ fn apply_linux_webkit_cpu_guards() {}
 // Workstation (IDE functionality and development tools)
 pub mod agent_sessions; // Agent session management (CLI, event pipeline, persistence, aggregation)
 pub mod api;
+pub mod app_update; // Channel-aware (stable/beta) app update checks
 pub mod benchmark;
 pub mod cli_managed_proxy;
 pub mod infrastructure; // In-tree-only cross-cutting infrastructure (paths, platform, archive, index_manager, jsonrpc, housekeeping). Leaf pieces live in their own workspace crates.
 pub mod orgtrack;
+mod runtime_instance;
 pub(crate) mod setup;
 pub mod usage_diagnostics;
 
@@ -151,6 +153,29 @@ use infrastructure::index_manager::IndexManager;
 /// app_lib::run();
 /// ```
 pub fn run() {
+    // Resolve the embedded Tauri identity before ANY app-path consumer runs.
+    // Secondary development binaries are commonly launched directly, so a
+    // launcher-provided ORGII_HOME cannot be required for isolation. Preserve
+    // an explicit override for tests/portable installs; otherwise derive the
+    // secondary data root from the same identity that owns its WebView profile
+    // and service ports.
+    let context = tauri::generate_context!();
+    let runtime_profile =
+        runtime_instance::RuntimeInstanceProfile::from_identifier(&context.config().identifier);
+    if std::env::var_os("ORGII_HOME").is_none() {
+        if let Some(data_home) = runtime_profile.default_orgii_home(&app_paths::home_dir()) {
+            std::env::set_var("ORGII_HOME", data_home);
+        }
+    }
+    if std::env::var_os("ORGII_EXTERNAL_HISTORY_HOME").is_none() {
+        let resolved_orgii_home = app_paths::orgii_root();
+        if let Some(external_history_home) =
+            runtime_profile.default_external_history_home(&resolved_orgii_home)
+        {
+            std::env::set_var("ORGII_EXTERNAL_HISTORY_HOME", external_history_home);
+        }
+    }
+
     apply_linux_webkit_cpu_guards();
 
     // Augment $PATH from the user's login shell so binary probes (`which npm`,
@@ -198,6 +223,24 @@ pub fn run() {
     // child sessions, flush streaming) without depending on
     // `agent_sessions::event_pipeline::commands`.
     register_event_pipeline_bridge();
+
+    // A process crash can leave the last append-only shell frame torn and
+    // its manifest marked `running`. Repair indexes before any Session can be
+    // replayed, and make every such artifact explicitly incomplete.
+    match agent_core::tools::impls::coding::exec::shell_replay::recover_incomplete_replays() {
+        Ok(0) => {}
+        Ok(count) => tracing::info!(count, "recovered incomplete shell replay artifacts"),
+        Err(err) => tracing::warn!(error = %err, "shell replay startup recovery failed"),
+    }
+    match agent_core::tools::impls::coding::exec::shell_replay::retry_pending_replay_cleanups() {
+        Ok((0, 0)) => {}
+        Ok((completed, failed)) => tracing::info!(
+            completed,
+            failed,
+            "processed pending shell replay cleanup jobs"
+        ),
+        Err(err) => tracing::warn!(error = %err, "shell replay cleanup recovery failed"),
+    }
 
     // Wire the persistence bridge so `agent_core` (memory, consolidation,
     // reflection, learnings) can open SQLite connections without
@@ -331,7 +374,8 @@ pub fn run() {
     #[cfg(target_os = "macos")]
     let builder = builder.plugin(tauri_plugin_liquid_glass::init());
 
-    builder
+    let initial_webview_observation = perf_utils::begin_webview_ownership_observation("main");
+    let application = builder
         .on_window_event(|_window, _event| {
             #[cfg(target_os = "macos")]
             match _event {
@@ -355,6 +399,30 @@ pub fn run() {
         )))
         .setup(|app| {
             // Python sidecar removed — all backend logic now in Rust.
+
+            // The Tauri identifier is embedded in each built binary and is
+            // therefore available even when the executable is launched
+            // directly. Use it as the runtime source of truth for ports;
+            // launcher env vars remain optional overrides for diagnostics.
+            let runtime_profile =
+                runtime_instance::RuntimeInstanceProfile::from_identifier(
+                    &app.config().identifier,
+                );
+            if !agent_cli::managed_config::set_managed_proxy_port_default(
+                runtime_profile.cli_proxy_port,
+            ) {
+                tracing::warn!(
+                    requested_port = runtime_profile.cli_proxy_port,
+                    "[Runtime Instance] CLI proxy default was already configured"
+                );
+            }
+            tracing::info!(
+                instance_id = runtime_profile.instance_id,
+                identifier = %app.config().identifier,
+                ide_server_port = runtime_profile.ide_server_port,
+                cli_proxy_port = runtime_profile.cli_proxy_port,
+                "[Runtime Instance] resolved isolated service defaults"
+            );
 
             #[cfg(all(debug_assertions, feature = "webdriver"))]
             {
@@ -461,6 +529,29 @@ pub fn run() {
             // ad-hoc tokio runtime.
             agent_core::specialization::memory::consolidation::spawn_consolidation_tick();
 
+            // Mirror Rust-agent session writes (status, name, model, …) into
+            // orgtrack's canonical session store. Registered once here so the
+            // agent-core persistence layer stays orgtrack-agnostic; CLI
+            // sessions mirror through their own persistence write path.
+            agent_core::session::persistence::register_session_mirror_hook(|session_id| {
+                if let Err(err) = crate::agent_sessions::session_directory::orgtrack_adapter::upsert_rust_agent_session(session_id) {
+                    tracing::warn!(session_id, error = %err, "[session-mirror] orgtrack session mirror failed");
+                }
+            });
+            agent_core::session::persistence::register_session_delete_mirror_hook(|session_id| {
+                if let Err(err) = crate::agent_sessions::session_directory::orgtrack_adapter::remove_mirrored_session(session_id) {
+                    tracing::warn!(session_id, error = %err, "[session-mirror] orgtrack delete mirror failed");
+                }
+            });
+            // Repair mirror rows from before the write-path hooks existed
+            // (stale/mislabeled rows, cold titles). One bounded pass off the
+            // main thread; the hooks keep it fresh from here on.
+            tauri::async_runtime::spawn_blocking(|| {
+                if let Err(err) = crate::agent_sessions::session_directory::orgtrack_adapter::reconcile_native_session_mirror() {
+                    tracing::warn!(error = %err, "[session-mirror] startup reconcile failed");
+                }
+            });
+
 
             // Create WebSocket broadcast channel for real-time events
             let (ws_tx, _ws_rx) = tokio::sync::broadcast::channel::<String>(1000);
@@ -472,11 +563,18 @@ pub fn run() {
             #[cfg(debug_assertions)]
             api::init_app_handle(app.handle().clone());
 
-            // Start unified IDE server (Git API + Search API + WebSocket) in background thread
-            std::thread::spawn(move || match tokio::runtime::Runtime::new() {
+            // Start unified IDE server (Git API + Search API + WebSocket) in background
+            // thread. Local single-user server: a small worker cap serves it fine and
+            // avoids a full core-count worker pool (the app spawns several runtimes).
+            let ide_server_port = runtime_profile.ide_server_port;
+            std::thread::spawn(move || match tokio::runtime::Builder::new_multi_thread()
+                .worker_threads(4)
+                .enable_all()
+                .build()
+            {
                 Ok(rt) => {
                     rt.block_on(async {
-                        match api::start_server(ws_tx).await {
+                        match api::start_server(ws_tx, ide_server_port).await {
                             Ok(_) => tracing::info!("[IDE Server] Server stopped"),
                             Err(err) => {
                                 tracing::error!(error = %err, "[IDE Server] Failed to start unified server")
@@ -490,6 +588,26 @@ pub fn run() {
             // Start the local managed-config proxy used by supported CLI agents.
             // It stays idle until a CLI points at 127.0.0.1:17888.
             cli_managed_proxy::start_cli_managed_proxy_thread();
+
+            // First launch defaults session-provenance capture on for supported
+            // external agents. Later launches reconcile the platform hook
+            // files with the user's per-platform preferences.
+            tauri::async_runtime::spawn_blocking(|| {
+                if let Err(err) = agent_cli::session_provenance::ensure_hooks_from_preferences() {
+                    tracing::warn!(error = %err, "[SessionProvenance] Failed to reconcile agent hooks");
+                }
+            });
+            orgtrack::session_provenance::spawn_hook_inbox_drain_loop(app.handle().clone());
+            orgtrack::session_provenance::spawn_codex_write_reconciliation_loop(
+                app.handle().clone(),
+            );
+
+            // Live agent-status registry: frontend fanout handle + restart
+            // continuity from the last-status cache (TTL-filtered).
+            orgtrack::agent_live_status::init_app_handle(app.handle().clone());
+            tauri::async_runtime::spawn_blocking(|| {
+                orgtrack::agent_live_status::hydrate_from_disk();
+            });
 
             // Initialize Rust EventStore state
             app.manage(agent_sessions::event_pipeline::commands::EventStoreState::new());
@@ -665,6 +783,17 @@ pub fn run() {
             // `orgii-project-sync-status` events to the frontend.
             project_management::sync::start_worker(app.handle().clone());
             tracing::info!("[sync::worker] Sync worker started");
+
+            let data_changed_handle = app.handle().clone();
+            project_management::projects::events::register_data_changed_notifier(Box::new(
+                move || {
+                    use tauri::Emitter;
+                    let _ = data_changed_handle.emit(
+                        project_management::projects::events::DATA_CHANGED_EVENT,
+                        serde_json::json!({ "source": "rust" }),
+                    );
+                },
+            ));
 
             // Restore previously-enabled channels (e.g. feishu was toggled on last run)
             let app_handle_for_restore = app.handle().clone();
@@ -909,56 +1038,85 @@ pub fn run() {
                 }
             }
         })
-        .build(tauri::generate_context!())
+        .build(context)
         .unwrap_or_else(|err| {
             tracing::error!(error = %err, "error while building tauri application");
             std::process::exit(1);
-        })
-        .run(|app_handle, event| {
-            #[cfg(not(target_os = "macos"))]
-            let _ = &app_handle;
+    });
+    initial_webview_observation.commit();
+    application.run(|app_handle, event| {
+        #[cfg(not(target_os = "macos"))]
+        let _ = &app_handle;
 
-            match event {
-                #[cfg(target_os = "macos")]
-                tauri::RunEvent::Opened { urls } => {
-                    tracing::info!(count = urls.len(), "[OpenedFiles] Ignoring native macOS open event");
+        match event {
+            #[cfg(target_os = "macos")]
+            tauri::RunEvent::Opened { urls } => {
+                tracing::info!(
+                    count = urls.len(),
+                    "[OpenedFiles] Ignoring native macOS open event"
+                );
+            }
+            // macOS: clicking the dock icon when all windows are closed should reopen the main window
+            #[cfg(target_os = "macos")]
+            tauri::RunEvent::Reopen {
+                has_visible_windows,
+                ..
+            } => {
+                if !has_visible_windows {
+                    if let Err(err) = app_window::recreate_main_window(app_handle) {
+                        tracing::error!(error = %err, "[Reopen] Failed to recreate main window");
+                    }
                 }
-                // macOS: clicking the dock icon when all windows are closed should reopen the main window
-                #[cfg(target_os = "macos")]
-                tauri::RunEvent::Reopen {
-                    has_visible_windows,
-                    ..
-                } => {
-                    if !has_visible_windows {
-                        if let Err(err) = app_window::recreate_main_window(app_handle) {
-                            tracing::error!(error = %err, "[Reopen] Failed to recreate main window");
+            }
+            // Release keeps the process alive when all windows are hidden.
+            // Debug Linux/Windows exits normally when the last window closes.
+            // code.is_none() means it's an automatic exit (last window closed), not an explicit exit(0).
+            tauri::RunEvent::ExitRequested {
+                api: _api,
+                code: _code,
+                ..
+            } => {
+                #[cfg(any(target_os = "macos", not(debug_assertions)))]
+                if _code.is_none() {
+                    _api.prevent_exit();
+                    return;
+                }
+
+                match agent_cli::managed_config::restore_managed_configs_for_shutdown() {
+                    Ok(report) => {
+                        if !report.restored_agents.is_empty() {
+                            tracing::info!(
+                                agents = ?report.restored_agents,
+                                "[CLI Managed Config] restored Default configs before exit"
+                            );
+                        }
+                        for (agent, error) in report.failed_agents {
+                            tracing::warn!(
+                                agent,
+                                error = %error,
+                                "[CLI Managed Config] left config unchanged during exit"
+                            );
                         }
                     }
+                    Err(error) => tracing::warn!(
+                        error = %error,
+                        "[CLI Managed Config] failed to run shutdown restoration"
+                    ),
                 }
-                // Release keeps the process alive when all windows are hidden.
-                // Debug Linux/Windows exits normally when the last window closes.
-                // code.is_none() means it's an automatic exit (last window closed), not an explicit exit(0).
-                tauri::RunEvent::ExitRequested {
-                    api: _api, code, ..
-                } => {
-                    #[cfg(any(target_os = "macos", not(debug_assertions)))]
-                    if code.is_none() {
-                        _api.prevent_exit();
-                        return;
-                    }
-
-                    if code.is_some()
-                        || cfg!(all(debug_assertions, not(target_os = "macos")))
-                    {
-                        // Explicit exit — mark active orchestrator workflows as interrupted
-                        agent_core::coordination::work_item_recovery::mark_all_interrupted_sync();
-                        // Release computer-use lock if held
-                        integrations::computer_use_lock::force_release_on_exit();
-                    }
-                }
-                _ => {}
+                // Explicit exit — mark active orchestrator workflows as interrupted
+                agent_core::coordination::work_item_recovery::mark_all_interrupted_sync();
+                // Release computer-use lock if held
+                integrations::computer_use_lock::force_release_on_exit();
+                // Kill all PTY shells and (on Unix) their whole process
+                // sessions — HUP-immune descendants would otherwise leak
+                // past app exit.
+                app_handle
+                    .state::<::terminal::pty_commands::pty::PtyState>()
+                    .shutdown_kill_all();
             }
-        });
+            _ => {}
+        }
+    });
 }
 
 #[cfg(all(test, target_os = "linux"))]

@@ -33,6 +33,7 @@ import {
 } from "../GroupChatView/groupChatUtils";
 import type { OptimizedChatItem } from "../chatItemPipeline/types";
 import { NewEventDivider } from "../components/NewEventDivider";
+import TurnMetadataFooterSlot from "../components/TurnMetadataFooterSlot";
 import { CHAT_FOOTER_SPACER } from "../config/chatFooterSpacer";
 import { getUnloadedTurnMeta } from "../hooks/useChatGroups";
 import { ChatItemRenderer } from "./ChatItemRenderer";
@@ -152,7 +153,6 @@ function sameChatItem(
     left.type === right.type &&
     left.structuralOnly === right.structuralOnly &&
     left.consolidatedParts === right.consolidatedParts &&
-    left.repeatedErrorCount === right.repeatedErrorCount &&
     left.actionSummaryClosedByBoundary ===
       right.actionSummaryClosedByBoundary &&
     sameEventSummary(left.event, right.event) &&
@@ -175,6 +175,7 @@ function areGroupItemRendererPropsEqual(
   return (
     previous.flatIndex === next.flatIndex &&
     previous.groupIndex === next.groupIndex &&
+    previous.turnId === next.turnId &&
     sameChatItem(previous.chatItem, next.chatItem) &&
     // previousChatItem affects group-chat continuation window only (createdAt
     // comparison). Shallow-compare the event rather than the full item — the
@@ -282,6 +283,7 @@ const InboxTranscriptCard: React.FC<{
 export interface GroupItemRendererProps {
   flatIndex: number;
   groupIndex: number;
+  turnId: string | null;
   /** The item at `flatIndex`. Passed directly to avoid the full array reference. */
   chatItem: OptimizedChatItem | undefined;
   /**
@@ -338,6 +340,7 @@ export const GroupItemRenderer: React.FC<GroupItemRendererProps> = memo(
   ({
     flatIndex,
     groupIndex,
+    turnId,
     chatItem,
     previousChatItem,
     lastAssistantFlatIndex,
@@ -516,6 +519,18 @@ export const GroupItemRenderer: React.FC<GroupItemRendererProps> = memo(
             <NewEventDivider label={newEventDividerLabel as string} />
           )}
           {renderedItem}
+          {isLastItemInGroup &&
+            renderedItem !== null &&
+            !groupChat?.enabled &&
+            !isStructuralUnloadedTurnItem &&
+            !isStructuralOnlyItem &&
+            turnId && (
+              <TurnMetadataFooterSlot
+                sessionId={event?.sessionId ?? null}
+                turnId={turnId}
+                isLastGroup={isLastGroup}
+              />
+            )}
         </div>
       </AgentTurnContext.Provider>
     );

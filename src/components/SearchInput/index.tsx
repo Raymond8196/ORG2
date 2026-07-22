@@ -45,7 +45,7 @@ import {
 
 export type SearchInputVariant = "panel" | "sidebar";
 export type SearchInputSize = "sm" | "md";
-export type SearchInputSurface = "default" | "pane";
+export type SearchInputSurface = "default" | "pane" | "transparent";
 
 export interface SearchInputProps {
   /** Current search query value */
@@ -54,6 +54,8 @@ export interface SearchInputProps {
   onChange: (value: string) => void;
   /** Placeholder text */
   placeholder?: string;
+  /** Accessible name when the surrounding surface has no visible label. */
+  ariaLabel?: string;
   /** Visual variant: "panel" (editor search) or "sidebar" (global search) */
   variant?: SearchInputVariant;
   /** Height size — both map to 28px (tree row standard). Kept for API compatibility. */
@@ -105,6 +107,7 @@ export const SearchInput: React.FC<SearchInputProps> = memo(
     value,
     onChange,
     placeholder = "Find",
+    ariaLabel,
     variant = "panel",
     size: _size = "sm",
     surface = "default",
@@ -189,7 +192,9 @@ export const SearchInput: React.FC<SearchInputProps> = memo(
     const inputWrapperSurfaceClass =
       surface === "pane"
         ? `${inputWrapperClass} ${SEARCH_WRAPPER_PANE_INPUT}`
-        : inputWrapperClass;
+        : surface === "transparent"
+          ? `${inputWrapperClass} !bg-transparent`
+          : inputWrapperClass;
     const inputWrapperMultilineClass = multiline
       ? searchWrapperMultiline(inputWrapperSurfaceClass)
       : inputWrapperSurfaceClass;
@@ -226,6 +231,7 @@ export const SearchInput: React.FC<SearchInputProps> = memo(
               onChange={handleChange}
               onKeyDown={handleKeyDown}
               placeholder={placeholder}
+              aria-label={ariaLabel}
               style={{
                 ...searchControlSingleLineInputStyle(14),
                 height: "auto",
@@ -250,6 +256,7 @@ export const SearchInput: React.FC<SearchInputProps> = memo(
               onChange={handleChange}
               onKeyDown={handleKeyDown}
               placeholder={placeholder}
+              aria-label={ariaLabel}
               style={searchControlSingleLineInputStyle(14)}
               className="min-w-0 flex-1 text-text-1 placeholder:text-text-3"
               autoComplete="off"

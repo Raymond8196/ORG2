@@ -15,6 +15,8 @@ import type { MenuItemId } from "@src/scaffold/ContextMenu/config";
 import type { ChatImageAttachment } from "@src/store/ui/chatImageAtom";
 import type { SlashItem } from "@src/types/extensions/types";
 
+import type { AddressCommentsFlyoutData } from "./useSlashCommand";
+
 // ============================================
 // Options
 // ============================================
@@ -42,6 +44,7 @@ export interface UseInputAreaOptions {
   sessionId?: string;
   sessionScope?: "active" | "none";
   submitDisabled?: boolean;
+  enableAgentInterceptors?: boolean;
   onSubmitOverride?: (input: SubmitOverrideInput) => Promise<boolean>;
   customMentionOptions?: ReadonlyArray<CustomMentionOption>;
 }
@@ -207,6 +210,7 @@ export interface UseInputAreaReturn {
   filteredSlashItems: SlashItem[];
   slashLoading: boolean;
   prefetchSlashItems: (query: string) => void;
+  addressCommentsFlyout?: AddressCommentsFlyoutData;
 
   // File selection
   handleSelectFile: (file: string) => void;

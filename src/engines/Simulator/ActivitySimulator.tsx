@@ -17,6 +17,7 @@ import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { EDITOR_TAB_CANVAS_BG_CLASS } from "@src/config/workstation/tokens";
 import { RecentFilesProvider } from "@src/contexts/session";
 import { replayModeAtom } from "@src/engines/SessionCore";
 import type { ReplayMode } from "@src/engines/SessionCore/core/types";
@@ -176,10 +177,9 @@ const ActivitySimulator: React.FC = memo(() => {
       }
       // Manually opening the Diff app from the dock is the "whole-session
       // diff" entry point — clear any per-round scope left over from a chat
-      // `TurnFilesFooter` "Review" click (which only the composer files-pill
+      // `TurnMetadataFooter` "Review" click (which only the composer files-pill
       // otherwise clears) and refresh so the full view reflects the latest
-      // working tree. Without this the file list stays narrowed to the
-      // reviewed round while the tab badge shows the full session count.
+      // working tree without re-applying a stale file-focus request.
       if ((appId as AppType) === AppType.DIFF) {
         setDiffScope(null);
         refreshDiff();
@@ -251,7 +251,9 @@ const ActivitySimulator: React.FC = memo(() => {
 
   if (!hasSession) {
     return (
-      <div className="flex h-full w-full items-center justify-center bg-[var(--cm-editor-background)] p-4">
+      <div
+        className={`flex h-full w-full items-center justify-center p-4 ${EDITOR_TAB_CANVAS_BG_CLASS}`}
+      >
         <span className="text-sm text-text-3">
           {t("simulator.noActiveSession")}
         </span>

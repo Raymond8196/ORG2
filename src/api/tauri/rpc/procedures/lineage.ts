@@ -18,21 +18,6 @@ export const lineage = {
     .output(schemas.lineage.OrgtrackExportResultSchema)
     .build(),
 
-  orgtrackScanStart: defineProcedure("orgtrack_scan_start")
-    .input(schemas.lineage.OrgtrackScanStartInput)
-    .output(schemas.lineage.OrgtrackScanProgressSchema)
-    .build(),
-
-  orgtrackScanStatus: defineProcedure("orgtrack_scan_status")
-    .input(schemas.lineage.OrgtrackScanStatusInput)
-    .output(schemas.lineage.OrgtrackScanProgressSchema.nullable())
-    .build(),
-
-  orgtrackScanCancel: defineProcedure("orgtrack_scan_cancel")
-    .input(schemas.lineage.OrgtrackScanCancelInput)
-    .output(schemas.lineage.OrgtrackScanProgressSchema)
-    .build(),
-
   orgtrackSyncCoreRepo: defineProcedure("orgtrack_sync_core_repo")
     .input(schemas.lineage.OrgtrackIndexInput)
     .output(schemas.lineage.OrgtrackIndexSchema)
@@ -43,14 +28,30 @@ export const lineage = {
     .output(schemas.lineage.OrgtrackExportResultSchema)
     .build(),
 
-  orgtrackGetIndex: defineProcedure("orgtrack_get_index")
-    .input(schemas.lineage.OrgtrackIndexInput)
-    .output(schemas.lineage.OrgtrackIndexSchema.nullable())
-    .build(),
-
   orgtrackGetFileTimeline: defineProcedure("orgtrack_get_file_timeline")
     .input(schemas.lineage.OrgtrackFileTimelineInput)
     .output(schemas.lineage.OrgtrackFileTimelineSchema.nullable())
+    .build(),
+
+  orgtrackGetFileSessionHistory: defineProcedure(
+    "orgtrack_get_file_session_history"
+  )
+    .input(schemas.lineage.OrgtrackFileSessionHistoryInput)
+    .output(schemas.lineage.OrgtrackFileSessionHistorySchema)
+    .build(),
+
+  orgtrackIndexCollaborationSession: defineProcedure(
+    "orgtrack_index_collaboration_session"
+  )
+    .input(schemas.lineage.OrgtrackIndexCollaborationSessionInput)
+    .output(z.number().int().nonnegative())
+    .build(),
+
+  orgtrackDeleteCollaborationSession: defineProcedure(
+    "orgtrack_delete_collaboration_session"
+  )
+    .input(schemas.lineage.OrgtrackDeleteCollaborationSessionInput)
+    .output(z.void())
     .build(),
 
   orgtrackGetSessionSummaries: defineProcedure("orgtrack_get_session_summaries")
@@ -68,11 +69,6 @@ export const lineage = {
   )
     .input(schemas.lineage.OrgtrackDeleteSessionArtifactsInput)
     .output(z.void())
-    .build(),
-
-  orgtrackLookupFileSessions: defineProcedure("orgtrack_lookup_file_sessions")
-    .input(schemas.lineage.OrgtrackFileSessionLookupInput)
-    .output(schemas.lineage.OrgtrackFileSessionLookupSchema.nullable())
     .build(),
 
   orgtrackGetSourceTierPolicy: defineProcedure(

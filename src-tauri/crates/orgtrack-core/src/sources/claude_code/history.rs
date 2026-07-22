@@ -15,20 +15,24 @@ use serde::Deserialize;
 use serde_json::{json, Value};
 
 use crate::sources::imported_history::{
-    self, cache as imported_cache,
+    self, cache as imported_cache, managed_mirror,
     metadata::{
         ImportedHistoryCacheInput, ImportedHistoryDiscoveredRecord, ImportedHistoryImpactStats,
-        SOURCE_CLAUDE_CODE,
+        RoundUsage, SOURCE_CLAUDE_CODE,
     },
     paths as imported_paths, ImportedHistoryRecentPath, ImportedHistorySessionPage,
     ImportedHistorySessionRow, ImportedToolCall,
 };
 
-const CLAUDE_CODE_SESSION_PREFIX: &str = "claudecodeapp-";
+use super::SESSION_PREFIX as CLAUDE_CODE_SESSION_PREFIX;
 const CLAUDE_CODE_PROVIDER_SLUG: &str = "claudecode";
 // v4: read ai-title/custom-title records for the name, and derive diff stats
 // from tool_use_result.structuredPatch instead of the old_string/new_string heuristic.
-const CLAUDE_CODE_METADATA_PARSER_VERSION: i64 = 5;
+// v6: capture first-user-message uuid as the continuation dedupe group key.
+// v7: capture cache_read/cache_write tokens separately (input stays cache-inclusive).
+// v8: emit per-round usage rows (imported_history_round_usage).
+// v9: dedup usage by message.id (one API response spans repeated JSONL lines).
+const CLAUDE_CODE_METADATA_PARSER_VERSION: i64 = 9;
 
 pub type ClaudeCodeHistorySessionRow = ImportedHistorySessionRow;
 pub type ClaudeCodeHistorySessionPage = ImportedHistorySessionPage;
@@ -51,11 +55,19 @@ struct ClaudeCodeHistoryMeta {
     branch: Option<String>,
     input_tokens: i64,
     output_tokens: i64,
+    cache_read_tokens: i64,
+    cache_write_tokens: i64,
+    rounds: Vec<RoundUsage>,
     impact: ImportedHistoryImpactStats,
     /// Set for Task-tool subagent transcripts: the parent session's frontend
     /// id (`claudecodeapp-<parent-uuid>`). `None` for ordinary top-level
     /// sessions. Non-empty values are subsumed out of the sidebar/kanban.
     parent_session_id: Option<String>,
+    /// `uuid` of the first `type == "user"` line. Context-window continuation
+    /// rewrites copy the conversation into a NEW session file with no link
+    /// field, but message uuids are preserved — so this is a stable group key
+    /// uniting a conversation's continuation siblings for dedupe.
+    first_user_uuid: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -93,10 +105,18 @@ struct ClaudeJsonlLine {
     /// which is exactly the parent linkage we need.
     #[serde(default)]
     session_id: String,
+    /// Per-message uuid, preserved verbatim across continuation rewrites.
+    #[serde(default)]
+    uuid: String,
 }
 
 #[derive(Debug, Deserialize)]
 struct ClaudeMessage {
+    /// Assistant API-response id (`msg_…`). One response is written across
+    /// several JSONL lines that each repeat the cumulative `usage`, so tokens
+    /// are counted once per unique id.
+    #[serde(default)]
+    id: String,
     #[serde(default)]
     model: String,
     #[serde(default)]
@@ -166,8 +186,47 @@ pub fn load_claude_code_history_for_session(
     load_claude_code_history_from_path(session_id, &path)
 }
 
+/// Cheap freshness probe for one session's transcript: `(mtime_ms, size_bytes)`.
+/// Auto-refresh callers compare it against the previous probe and skip the
+/// full read/parse/merge pipeline when the source file has not changed —
+/// which is every tick for a finished session. Returns `Ok(None)` when the
+/// transcript file is missing (caller falls back to a full refresh attempt).
+pub fn stat_claude_code_history_for_session(
+    conn: &Connection,
+    session_id: &str,
+) -> Result<Option<(i64, u64)>, String> {
+    let file_stem = claude_file_stem_from_session_id(session_id)?;
+    let path = resolve_claude_session_path(conn, file_stem)?;
+    match fs::metadata(&path) {
+        Ok(metadata) => {
+            let mtime_ms = metadata
+                .modified()
+                .ok()
+                .and_then(|modified| modified.duration_since(std::time::UNIX_EPOCH).ok())
+                .map(|duration| duration.as_millis() as i64)
+                .unwrap_or(0);
+            Ok(Some((mtime_ms, metadata.len())))
+        }
+        Err(_) => Ok(None),
+    }
+}
+
 fn sync_claude_code_history_cache(conn: &mut Connection) -> Result<(), String> {
-    let discovered = discover_claude_code_history_records()?;
+    let mut discovered = discover_claude_code_history_records()?;
+    // Managed (GUI-launched) sessions surface through their code_sessions
+    // row; the imported twin goes unlistable. Folding the verdict into the
+    // fingerprint re-parses a session whose managed status flips.
+    let managed_ids = managed_mirror::managed_source_session_ids_from_conn(
+        conn,
+        SOURCE_CLAUDE_CODE,
+        SOURCE_CLAUDE_CODE,
+    )?;
+    for record in &mut discovered {
+        managed_mirror::append_managed_fingerprint(
+            &mut record.source_fingerprint,
+            managed_ids.contains(&record.source_session_id),
+        );
+    }
     let signatures = discovered
         .iter()
         .map(ImportedHistoryDiscoveredRecord::signature)
@@ -179,9 +238,16 @@ fn sync_claude_code_history_cache(conn: &mut Connection) -> Result<(), String> {
         |record| record.signature(),
     )?;
     let mut inputs = Vec::new();
+    let mut rounds = Vec::new();
+    let mut reparsed_ids = Vec::new();
     for record in changed {
-        if let Some(meta) = parse_claude_session_meta(record)? {
-            inputs.push(session_meta_to_cache_input(meta));
+        if let Some(mut meta) = parse_claude_session_meta(record)? {
+            let is_managed_history_mirror = managed_ids.contains(&meta.source_session_id);
+            reparsed_ids.push(meta.session_id.clone());
+            rounds.append(&mut meta.rounds);
+            let mut input = session_meta_to_cache_input(meta);
+            input.listable = input.listable && !is_managed_history_mirror;
+            inputs.push(input);
         }
     }
     imported_cache::sync_source_cache_from_conn(
@@ -189,7 +255,13 @@ fn sync_claude_code_history_cache(conn: &mut Connection) -> Result<(), String> {
         SOURCE_CLAUDE_CODE,
         imported_cache::live_ids_from_signatures(&signatures),
         inputs,
-    )
+    )?;
+    imported_cache::write_session_rounds_from_conn(conn, &reparsed_ids, &rounds)?;
+    // Context-window continuations rewrite the conversation into a new
+    // session file with the same first-user-message uuid; keep only the
+    // newest sibling of each family listable.
+    imported_cache::demote_superseded_continuations_from_conn(conn, SOURCE_CLAUDE_CODE)?;
+    Ok(())
 }
 
 fn discover_claude_code_history_records() -> Result<Vec<ImportedHistoryDiscoveredRecord>, String> {
@@ -264,10 +336,7 @@ fn load_claude_session_titles(
     {
         let entry = entry.map_err(|err| format!("Failed to read Claude session entry: {err}"))?;
         let path = entry.path();
-        if !path
-            .extension()
-            .is_some_and(|extension| extension == "json")
-        {
+        if path.extension().is_none_or(|extension| extension != "json") {
             continue;
         }
         let contents = fs::read_to_string(&path).map_err(|err| {
@@ -357,6 +426,12 @@ fn parse_claude_session_meta(
     let mut branch: Option<String> = None;
     let mut input_tokens = 0;
     let mut output_tokens = 0;
+    let mut cache_read_tokens = 0;
+    let mut cache_write_tokens = 0;
+    let mut rounds: Vec<RoundUsage> = Vec::new();
+    // One API response spans several assistant lines that repeat the same
+    // `usage`; count each `message.id` once.
+    let mut seen_message_ids: HashSet<String> = HashSet::new();
     // Primary impact source: exact counts from tool_use_result.structuredPatch.
     let mut impact = ImportedHistoryImpactStats::default();
     let mut touched_files = BTreeSet::new();
@@ -369,6 +444,7 @@ fn parse_claude_session_meta(
     // `sessionId`. Capturing it lets us subsume the child under its parent the
     // same way Codex does, instead of listing it as a top-level session.
     let mut parent_source_session_id: Option<String> = None;
+    let mut first_user_uuid: Option<String> = None;
 
     for line in reader.lines() {
         let line = line.map_err(|err| format!("Failed to read Claude history line: {err}"))?;
@@ -380,6 +456,11 @@ fn parse_claude_session_meta(
             Ok(parsed) => parsed,
             Err(_) => continue,
         };
+        let line_ms = parsed
+            .timestamp
+            .as_deref()
+            .and_then(imported_history::parse_iso_to_epoch_ms_opt)
+            .unwrap_or(0);
         if let Some(timestamp) = parsed
             .timestamp
             .as_deref()
@@ -434,10 +515,19 @@ fn parse_claude_session_meta(
         if let Some(result) = parsed.tool_use_result.as_ref() {
             collect_claude_impact_from_tool_result(result, &mut impact, &mut touched_files);
         }
+        if first_user_uuid.is_none() && parsed.r#type == "user" && !parsed.uuid.trim().is_empty() {
+            first_user_uuid = Some(parsed.uuid.trim().to_string());
+        }
         if let Some(message) = parsed.message {
             if first_prompt.is_empty() && parsed.r#type == "user" {
                 if let Some(text) = claude_content_text(&message.content) {
-                    first_prompt = imported_history::truncate_name(&text, 200);
+                    // GUI-launched runs prefix the first prompt with the
+                    // exec-mode briefing; bridge-only text is no title
+                    // candidate at all.
+                    let text = imported_history::strip_orgii_exec_mode_bridge(&text);
+                    if !text.trim().is_empty() {
+                        first_prompt = imported_history::truncate_name(text, 200);
+                    }
                 }
             }
             if model.is_none()
@@ -455,11 +545,38 @@ fn parse_claude_session_meta(
                     );
                 }
             }
-            if let Some(usage) = message.usage {
+            // Skip repeated lines of the same API response (same message.id),
+            // which would otherwise triple both totals and rounds.
+            let usage_is_new = message.id.is_empty() || seen_message_ids.insert(message.id.clone());
+            if let Some(usage) = message.usage.filter(|_| usage_is_new) {
+                // input_tokens stays cache-inclusive (fresh + both cache kinds);
+                // the cache portion is tracked separately for the cost split.
                 input_tokens += usage.input_tokens
                     + usage.cache_read_input_tokens
                     + usage.cache_creation_input_tokens;
                 output_tokens += usage.output_tokens;
+                cache_read_tokens += usage.cache_read_input_tokens;
+                cache_write_tokens += usage.cache_creation_input_tokens;
+                // One round per assistant message that reports usage. `input`
+                // here is FRESH (round convention), cache tracked separately.
+                if usage.input_tokens > 0
+                    || usage.output_tokens > 0
+                    || usage.cache_read_input_tokens > 0
+                    || usage.cache_creation_input_tokens > 0
+                {
+                    rounds.push(RoundUsage {
+                        source: SOURCE_CLAUDE_CODE,
+                        source_session_id: record.source_session_id.clone(),
+                        session_id: super::canonical_session_id(&record.source_session_id),
+                        seq: rounds.len() as i64,
+                        model: model.clone(),
+                        input_tokens: usage.input_tokens,
+                        output_tokens: usage.output_tokens,
+                        cache_read_tokens: usage.cache_read_input_tokens,
+                        cache_write_tokens: usage.cache_creation_input_tokens,
+                        created_at_ms: line_ms,
+                    });
+                }
             }
         }
     }
@@ -480,7 +597,7 @@ fn parse_claude_session_meta(
 
     Ok(Some(ClaudeCodeHistoryMeta {
         source_session_id: record.source_session_id.clone(),
-        session_id: format!("{CLAUDE_CODE_SESSION_PREFIX}{}", record.source_session_id),
+        session_id: super::canonical_session_id(&record.source_session_id),
         source_path: record.source_path.to_string_lossy().to_string(),
         source_record_key: record.source_record_key.clone(),
         source_mtime_ms: record.source_mtime_ms,
@@ -515,9 +632,13 @@ fn parse_claude_session_meta(
         branch,
         input_tokens,
         output_tokens,
+        cache_read_tokens,
+        cache_write_tokens,
+        rounds,
         impact,
         parent_session_id: parent_source_session_id
             .map(|uuid| format!("{CLAUDE_CODE_SESSION_PREFIX}{uuid}")),
+        first_user_uuid,
     }))
 }
 
@@ -538,11 +659,15 @@ fn session_meta_to_cache_input(meta: ClaudeCodeHistoryMeta) -> ImportedHistoryCa
         model: meta.model,
         input_tokens: meta.input_tokens,
         output_tokens: meta.output_tokens,
+        cache_read_tokens: meta.cache_read_tokens,
+        cache_write_tokens: meta.cache_write_tokens,
         repo_path: meta.repo_path,
         branch: meta.branch,
         impact: meta.impact,
         listable: true,
-        source_metadata_json: None,
+        source_metadata_json: imported_cache::continuation_group_metadata_json(
+            meta.first_user_uuid.as_deref(),
+        ),
         parent_session_id: meta.parent_session_id,
     }
 }
@@ -699,14 +824,19 @@ fn load_claude_code_history_from_path(
                         }
                     }
                 } else if let Some(text) = claude_content_text(&message.content) {
-                    chunks.push(imported_history::user_message_chunk(
-                        session_id,
-                        CLAUDE_CODE_PROVIDER_SLUG,
-                        sequence,
-                        &created_at,
-                        &text,
-                    ));
-                    sequence += 1;
+                    // Strip the GUI exec-mode briefing; a bridge-only message
+                    // carries no user-authored text, so emit no bubble.
+                    let text = imported_history::strip_orgii_exec_mode_bridge(&text);
+                    if !text.trim().is_empty() {
+                        chunks.push(imported_history::user_message_chunk(
+                            session_id,
+                            CLAUDE_CODE_PROVIDER_SLUG,
+                            sequence,
+                            &created_at,
+                            text,
+                        ));
+                        sequence += 1;
+                    }
                 }
             }
             "assistant" => {
@@ -816,7 +946,11 @@ fn normalize_edit_args(raw_name: &str, args: Value) -> Value {
     // result-pairing time (see `apply_claude_edit_diff`), and keeping old/new off
     // the args lets the frontend render that context-rich diff rather than a bare
     // old_string→new_string snippet.
-    let action = if raw_name == "Write" { "create" } else { "edit" };
+    let action = if raw_name == "Write" {
+        "create"
+    } else {
+        "edit"
+    };
     json!({
         "action": action,
         "file_path": file_path,
@@ -986,8 +1120,18 @@ fn resolve_claude_session_path(conn: &Connection, file_stem: &str) -> Result<Pat
 }
 
 fn claude_projects_dirs() -> Result<Vec<PathBuf>, String> {
-    let home = dirs::home_dir().ok_or_else(|| "Home directory not found".to_string())?;
-    Ok(claude_projects_dir_candidates(&home))
+    let home = app_paths::external_history_home_dir();
+    let mut dirs = claude_projects_dir_candidates(&home);
+    // ORGII-managed sessions run with CLAUDE_CONFIG_DIR redirected into
+    // per-account (own-key) or per-session (hosted-key) profile dirs; in
+    // native-transcript mode those stores are the transcript of record.
+    dirs.extend(
+        crate::sources::imported_history::managed_roots::profile_root_children(
+            &app_paths::claude_code_cli_profile_root(),
+            &["projects"],
+        ),
+    );
+    Ok(dirs)
 }
 
 fn claude_projects_dir_candidates(home: &Path) -> Vec<PathBuf> {

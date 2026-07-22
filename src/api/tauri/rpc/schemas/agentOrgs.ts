@@ -18,6 +18,108 @@ export const RawConfigWriteInput = z.object({
   content: z.string(),
 });
 
+export const SessionProvenanceHookPlatformSchema = z.enum([
+  "claude_code",
+  "codex",
+  "cursor",
+  "qwen_code",
+  "factory_droid",
+  "trae",
+  "opencode",
+  "windsurf",
+  "kimi",
+  "antigravity",
+  "zcode",
+]);
+
+export const SessionProvenanceHookActivationStateSchema = z.enum([
+  "inactive",
+  "awaiting_verification",
+  "active",
+]);
+
+export const SessionProvenanceHookStatusSchema = z.object({
+  platform: SessionProvenanceHookPlatformSchema,
+  enabled: z.boolean(),
+  desiredEnabled: z.boolean(),
+  activationState: SessionProvenanceHookActivationStateSchema,
+  lastActivatedAt: z.string().nullable().optional(),
+  configPath: z.string(),
+  error: z.string().nullable().optional(),
+});
+
+export const SessionProvenanceHookSetEnabledInput = z.object({
+  platform: SessionProvenanceHookPlatformSchema,
+  enabled: z.boolean(),
+});
+
+export const SessionProvenanceSignalActionSchema = z.enum([
+  "read",
+  "write",
+  "create",
+  "delete",
+  "rename",
+  "search",
+]);
+
+export const SessionProvenanceSignalOutcomeSchema = z.enum([
+  "succeeded",
+  "failed",
+  "unknown",
+]);
+
+export const SessionProvenanceRecentSignalSchema = z.object({
+  source: z.string(),
+  sessionId: z.string(),
+  // Human-readable session title, resolved from the sessions table when the
+  // session has been reconciled with a real name. Null for hook-only sessions
+  // whose title is still just the raw id — the UI shows a shortened id instead.
+  sessionTitle: z.string().nullable().optional(),
+  actorId: z.string().nullable().optional(),
+  filePath: z.string(),
+  workspacePath: z.string(),
+  // Unknown future action/outcome kinds fall back to a plain string rather
+  // than dropping the row, so the table degrades gracefully across upgrades.
+  action: z.union([SessionProvenanceSignalActionSchema, z.string()]),
+  outcome: z.union([SessionProvenanceSignalOutcomeSchema, z.string()]),
+  occurredAt: z.string(),
+  captureMethod: z.string(),
+});
+
+export const SessionProvenanceRecentSignalsInput = z.object({
+  limit: z.number().int().positive().optional(),
+});
+
+// One live agent-status row, keyed by the canonical session id (equal to the
+// imported-history session id, e.g. `claudecodeapp-<uuid>`). `status` uses the
+// existing session-status vocabulary (`running`, `waiting_for_user`,
+// `completed`, `failed`) so it can be assigned onto Session rows directly.
+export const AgentLiveStatusSchema = z.object({
+  sessionId: z.string(),
+  orgiiSessionId: z.string().optional(),
+  source: z.string(),
+  status: z.string(),
+  toolName: z.string().optional(),
+  toolInputPreview: z.string().optional(),
+  interactivePrompt: z.string().optional(),
+  isInterrupt: z.boolean(),
+  updatedAtMs: z.number().int(),
+});
+
+export type SessionProvenanceHookPlatform = z.output<
+  typeof SessionProvenanceHookPlatformSchema
+>;
+export type SessionProvenanceHookStatus = z.output<
+  typeof SessionProvenanceHookStatusSchema
+>;
+export type SessionProvenanceRecentSignal = z.output<
+  typeof SessionProvenanceRecentSignalSchema
+>;
+export type AgentLiveStatus = z.output<typeof AgentLiveStatusSchema>;
+export type SessionProvenanceSignalAction = z.output<
+  typeof SessionProvenanceSignalActionSchema
+>;
+
 export const CliConfigFileInput = z.object({
   agentName: z.string(),
   fileId: z.string(),
@@ -28,6 +130,11 @@ export const CliConfigFileWriteInput = CliConfigFileInput.extend({
 });
 
 export const HierarchyModeSchema = z.enum(["flat", "soft", "strict"]);
+export const PlanApprovalPolicySchema = z.enum([
+  "coordinator",
+  "user",
+  "automatic",
+]);
 export const OrgMemberRuntimeConfigSchema = z.object({
   keySource: z.enum(["own_key", "hosted_key"]).optional(),
   accountId: z.string().optional(),
@@ -53,6 +160,7 @@ export type OrgMember = {
   runtimeConfig?: OrgMemberRuntimeConfig;
   description?: string;
   hierarchyMode?: z.output<typeof HierarchyModeSchema>;
+  planApprovalPolicy?: z.output<typeof PlanApprovalPolicySchema>;
   children: OrgMember[];
 };
 
@@ -65,6 +173,7 @@ export const OrgMemberSchema: z.ZodType<OrgMember> = z.lazy(() =>
     runtimeConfig: OrgMemberRuntimeConfigSchema.optional(),
     description: z.string().optional(),
     hierarchyMode: HierarchyModeSchema.optional(),
+    planApprovalPolicy: PlanApprovalPolicySchema.optional(),
     children: z.array(OrgMemberSchema),
   })
 );

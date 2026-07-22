@@ -29,6 +29,7 @@ import React, {
   useState,
 } from "react";
 
+import { cliAgentTuiRelease } from "@src/api/tauri/agent/cliTerminalSession";
 import { TerminalCore } from "@src/engines/TerminalCore";
 import {
   type AddSessionOptions,
@@ -107,18 +108,29 @@ export function ChatPanelTerminalContent({
   useEffect(() => {
     if (!session?.agentCommand) return;
 
+    const agentSessionId = session.agentSessionId;
     const ptySessionId = toBackendPtySessionId(terminalSessionId);
     const unlistenPromise = listenTauri(`pty-exit-${ptySessionId}`, () => {
       dispatchUpdateInfo({
         sessionId: terminalSessionId,
         info: { agentStatus: TERMINAL_AGENT_STATUS.DONE },
       });
+      // Park the backing managed session (runner='tui'): the CLI is gone, so
+      // hooks will not deliver a terminal state for this row anymore.
+      if (agentSessionId) {
+        void cliAgentTuiRelease(agentSessionId);
+      }
     });
 
     return () => {
       unlistenPromise.then((unlisten) => unlisten()).catch(() => undefined);
     };
-  }, [session?.agentCommand, terminalSessionId, dispatchUpdateInfo]);
+  }, [
+    session?.agentCommand,
+    session?.agentSessionId,
+    terminalSessionId,
+    dispatchUpdateInfo,
+  ]);
 
   // Track whether we've already injected the CLI command to avoid double-write
   const injectedRef = useRef(false);
@@ -248,7 +260,7 @@ export function ChatPanelTerminalContent({
       <TerminalCore
         terminalState={terminalState}
         className="terminal-core chat-panel-terminal-core min-h-0 flex-1 bg-chat-pane"
-        backgroundColor={resolvedBg ?? "var(--color-chat-pane-base)"}
+        backgroundColor={resolvedBg ?? "var(--color-primary-pane-bg)"}
         visible={visible}
       />
     </div>

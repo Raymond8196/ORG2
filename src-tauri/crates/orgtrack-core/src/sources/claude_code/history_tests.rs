@@ -119,6 +119,49 @@ fn parses_claude_session_metadata() {
 }
 
 #[test]
+fn counts_repeated_message_id_usage_once() {
+    // Claude Code writes one API response across several assistant lines that
+    // each repeat the cumulative usage; tokens + rounds must count it once.
+    let temp_dir = std::env::temp_dir().join(format!(
+        "orgii-claude-history-dedup-test-{}",
+        std::process::id()
+    ));
+    std::fs::create_dir_all(&temp_dir).expect("create temp dir");
+    let path = temp_dir.join("claude-dedup.jsonl");
+    let content = r#"{"type":"user","sessionId":"d","timestamp":"2026-04-01T07:06:46.543Z","message":{"role":"user","content":"hi"}}
+{"type":"assistant","sessionId":"d","timestamp":"2026-04-01T07:06:49.000Z","message":{"id":"msg_1","role":"assistant","model":"claude-sonnet-4","content":[{"type":"text","text":"a"}],"usage":{"input_tokens":10,"output_tokens":20,"cache_read_input_tokens":5,"cache_creation_input_tokens":6}}}
+{"type":"assistant","sessionId":"d","timestamp":"2026-04-01T07:06:49.010Z","message":{"id":"msg_1","role":"assistant","model":"claude-sonnet-4","content":[{"type":"tool_use","id":"t","name":"x","input":{}}],"usage":{"input_tokens":10,"output_tokens":20,"cache_read_input_tokens":5,"cache_creation_input_tokens":6}}}
+{"type":"assistant","sessionId":"d","timestamp":"2026-04-01T07:06:59.000Z","message":{"id":"msg_1","role":"assistant","content":[{"type":"text","text":"b"}],"usage":{"input_tokens":10,"output_tokens":20,"cache_read_input_tokens":5,"cache_creation_input_tokens":6}}}
+"#;
+    std::fs::write(&path, content).expect("write fixture");
+
+    let (source_mtime_ms, source_size_bytes) =
+        imported_paths::file_metadata_signature(&path, "Claude").expect("metadata");
+    let record = ImportedHistoryDiscoveredRecord {
+        source_session_id: "claude-dedup".to_string(),
+        source_path: path.clone(),
+        source_record_key: "claude-dedup".to_string(),
+        source_mtime_ms,
+        source_size_bytes,
+        source_fingerprint: String::new(),
+        parser_version: CLAUDE_CODE_METADATA_PARSER_VERSION,
+    };
+    let meta = parse_claude_session_meta(&record)
+        .expect("parse")
+        .expect("session meta");
+
+    // Counted once despite three repeated lines of the same msg_1.
+    assert_eq!(meta.input_tokens, 21); // 10 + 5 + 6, cache-inclusive
+    assert_eq!(meta.output_tokens, 20);
+    assert_eq!(meta.cache_read_tokens, 5);
+    assert_eq!(meta.cache_write_tokens, 6);
+    assert_eq!(meta.rounds.len(), 1);
+
+    std::fs::remove_file(&path).expect("remove fixture");
+    std::fs::remove_dir(&temp_dir).expect("remove temp dir");
+}
+
+#[test]
 fn prefers_claude_session_json_name_as_name() {
     let temp_dir = std::env::temp_dir().join(format!(
         "orgii-claude-history-session-name-test-{}",
@@ -378,7 +421,10 @@ fn edit_replay_chunk_carries_structured_patch_as_diff() {
     assert_eq!(edit.function, imported_history::FUNCTION_EDIT_FILE);
     // Args no longer bury fields under `payload`; old/new stay off so the
     // context-rich diff (below) is what the frontend renders.
-    assert_eq!(edit.args.get("action").and_then(Value::as_str), Some("edit"));
+    assert_eq!(
+        edit.args.get("action").and_then(Value::as_str),
+        Some("edit")
+    );
     assert_eq!(
         edit.args.get("file_path").and_then(Value::as_str),
         Some("/tmp/p/a.rs")
@@ -386,13 +432,20 @@ fn edit_replay_chunk_carries_structured_patch_as_diff() {
     assert!(edit.args.get("payload").is_none());
     assert!(edit.args.get("old_string").is_none());
 
-    let diff = edit.result.get("diff").and_then(Value::as_str).expect("diff");
+    let diff = edit
+        .result
+        .get("diff")
+        .and_then(Value::as_str)
+        .expect("diff");
     assert!(diff.contains("--- /tmp/p/a.rs"));
     assert!(diff.contains("@@ -1,2 +1,3 @@"));
     assert!(diff.contains("-old line"));
     assert!(diff.contains("+new line one"));
     assert!(diff.contains(" ctx"));
-    assert_eq!(edit.result.get("linesAdded").and_then(Value::as_i64), Some(2));
+    assert_eq!(
+        edit.result.get("linesAdded").and_then(Value::as_i64),
+        Some(2)
+    );
     assert_eq!(
         edit.result.get("linesRemoved").and_then(Value::as_i64),
         Some(1)
@@ -423,7 +476,11 @@ fn write_replay_chunk_is_tagged_create_and_diffs_from_patch() {
         write.args.get("action").and_then(Value::as_str),
         Some("create")
     );
-    let diff = write.result.get("diff").and_then(Value::as_str).expect("diff");
+    let diff = write
+        .result
+        .get("diff")
+        .and_then(Value::as_str)
+        .expect("diff");
     assert!(diff.contains("@@ -0,0 +1,1 @@"));
     assert!(diff.contains("+fn main() {}"));
     assert_eq!(
@@ -454,9 +511,157 @@ fn edit_without_structured_patch_falls_back_to_old_new_on_args() {
     let chunks = load_claude_code_history_from_path("claudecodeapp-abc", &path).expect("parse");
     assert_eq!(chunks.len(), 1);
     let edit = &chunks[0];
-    assert_eq!(edit.args.get("old_string").and_then(Value::as_str), Some("foo"));
-    assert_eq!(edit.args.get("new_string").and_then(Value::as_str), Some("bar"));
+    assert_eq!(
+        edit.args.get("old_string").and_then(Value::as_str),
+        Some("foo")
+    );
+    assert_eq!(
+        edit.args.get("new_string").and_then(Value::as_str),
+        Some("bar")
+    );
     assert!(edit.result.get("diff").is_none());
+
+    std::fs::remove_file(&path).expect("remove fixture");
+    std::fs::remove_dir(&temp_dir).expect("remove temp dir");
+}
+
+#[test]
+fn captures_first_user_uuid_as_continuation_group_key() {
+    let temp_dir = std::env::temp_dir().join(format!(
+        "orgii-claude-history-continuation-test-{}",
+        std::process::id()
+    ));
+    std::fs::create_dir_all(&temp_dir).expect("create temp dir");
+    let path = temp_dir.join("d0641111-1111-1111-1111-111111111111.jsonl");
+    // Continuation rewrites preserve message uuids; the first `type:"user"`
+    // line's uuid is the family key. Title/meta records before it must not
+    // contribute a key.
+    let content = r#"{"type":"custom-title","customTitle":"My convo","sessionId":"d0641111-1111-1111-1111-111111111111"}
+{"type":"user","uuid":"b7b5ae5f-0000-0000-0000-000000000001","sessionId":"d0641111-1111-1111-1111-111111111111","cwd":"/tmp/project","gitBranch":"main","timestamp":"2026-07-17T10:00:00.000Z","message":{"role":"user","content":"first message"}}
+{"type":"user","uuid":"b7b5ae5f-0000-0000-0000-000000000002","sessionId":"d0641111-1111-1111-1111-111111111111","cwd":"/tmp/project","gitBranch":"main","timestamp":"2026-07-17T10:01:00.000Z","message":{"role":"user","content":"second message"}}
+"#;
+    std::fs::write(&path, content).expect("write fixture");
+
+    let (source_mtime_ms, source_size_bytes) =
+        imported_paths::file_metadata_signature(&path, "Claude").expect("metadata");
+    let record = ImportedHistoryDiscoveredRecord {
+        source_session_id: "d0641111-1111-1111-1111-111111111111".to_string(),
+        source_path: path.clone(),
+        source_record_key: "d0641111-1111-1111-1111-111111111111".to_string(),
+        source_mtime_ms,
+        source_size_bytes,
+        source_fingerprint: String::new(),
+        parser_version: CLAUDE_CODE_METADATA_PARSER_VERSION,
+    };
+    let meta = parse_claude_session_meta(&record)
+        .expect("parse")
+        .expect("session meta");
+    assert_eq!(
+        meta.first_user_uuid.as_deref(),
+        Some("b7b5ae5f-0000-0000-0000-000000000001")
+    );
+
+    let cache_input = session_meta_to_cache_input(meta);
+    let metadata_json = cache_input.source_metadata_json.expect("metadata json");
+    let parsed: serde_json::Value = serde_json::from_str(&metadata_json).expect("parse json");
+    assert_eq!(
+        parsed
+            .get(imported_cache::CONTINUATION_GROUP_KEY_FIELD)
+            .and_then(|value| value.as_str()),
+        Some("b7b5ae5f-0000-0000-0000-000000000001")
+    );
+
+    std::fs::remove_file(&path).expect("remove fixture");
+    std::fs::remove_dir(&temp_dir).expect("remove temp dir");
+}
+
+#[test]
+fn strips_ide_context_from_claude_replay() {
+    let temp_dir = std::env::temp_dir().join(format!(
+        "orgii-claude-history-ide-context-test-{}",
+        std::process::id()
+    ));
+    std::fs::create_dir_all(&temp_dir).expect("create temp dir");
+    let path = temp_dir.join("claude-ide-context.jsonl");
+    // Line 1: ide_context-only user message (no user-authored text at all).
+    // Line 2: bridge + ide_context prefixed user message with real text.
+    let content = r#"{"type":"user","sessionId":"abc","cwd":"/tmp/project","gitBranch":"main","timestamp":"2026-04-01T07:06:46.543Z","message":{"role":"user","content":"<ide_context>\nopen file: src/app.ts\n</ide_context>"}}
+{"type":"user","sessionId":"abc","cwd":"/tmp/project","gitBranch":"main","timestamp":"2026-04-01T07:06:47.000Z","message":{"role":"user","content":"<orgii_cli_exec_mode_bridge>\ninternal briefing\n</orgii_cli_exec_mode_bridge>\n\n<ide_context>\nopen file: src/app.ts\n</ide_context>\n\nfix the login bug"}}
+{"type":"assistant","sessionId":"abc","cwd":"/tmp/project","gitBranch":"main","timestamp":"2026-04-01T07:06:49.000Z","message":{"role":"assistant","model":"claude-sonnet-4","content":[{"type":"text","text":"done"}],"usage":{"input_tokens":3,"output_tokens":5}}}
+"#;
+    std::fs::write(&path, content).expect("write fixture");
+
+    // Replay: the ide_context-only line emits no bubble; the prefixed
+    // line's bubble carries only the user-authored text.
+    let chunks = load_claude_code_history_from_path("claudecodeapp-abc", &path).expect("parse");
+    let user_chunks: Vec<_> = chunks
+        .iter()
+        .filter(|chunk| chunk.function == imported_history::FUNCTION_USER_MESSAGE)
+        .collect();
+    assert_eq!(user_chunks.len(), 1);
+    assert_eq!(
+        user_chunks[0]
+            .result
+            .get("message")
+            .and_then(|message| message.get("content"))
+            .and_then(Value::as_str),
+        Some("fix the login bug")
+    );
+
+    std::fs::remove_file(&path).expect("remove fixture");
+    std::fs::remove_dir(&temp_dir).expect("remove temp dir");
+}
+
+#[test]
+fn strips_orgii_exec_mode_bridge_from_claude_title_and_replay() {
+    let temp_dir = std::env::temp_dir().join(format!(
+        "orgii-claude-history-bridge-test-{}",
+        std::process::id()
+    ));
+    std::fs::create_dir_all(&temp_dir).expect("create temp dir");
+    let path = temp_dir.join("claude-bridge.jsonl");
+    // Line 1: bridge-only user message (no user-authored text at all).
+    // Line 2: bridge-prefixed user message with real text after it.
+    let content = r#"{"type":"user","sessionId":"abc","cwd":"/tmp/project","gitBranch":"main","timestamp":"2026-04-01T07:06:46.543Z","message":{"role":"user","content":"<orgii_cli_exec_mode_bridge>\ninternal briefing\n</orgii_cli_exec_mode_bridge>"}}
+{"type":"user","sessionId":"abc","cwd":"/tmp/project","gitBranch":"main","timestamp":"2026-04-01T07:06:47.000Z","message":{"role":"user","content":"<orgii_cli_exec_mode_bridge>\ninternal briefing\n</orgii_cli_exec_mode_bridge>\n\nfix the login bug"}}
+{"type":"assistant","sessionId":"abc","cwd":"/tmp/project","gitBranch":"main","timestamp":"2026-04-01T07:06:49.000Z","message":{"role":"assistant","model":"claude-sonnet-4","content":[{"type":"text","text":"done"}],"usage":{"input_tokens":3,"output_tokens":5}}}
+"#;
+    std::fs::write(&path, content).expect("write fixture");
+
+    // Title/first_prompt: the bridge-only line is skipped as a candidate;
+    // the prefixed line contributes only the user-authored text.
+    let (source_mtime_ms, source_size_bytes) =
+        imported_paths::file_metadata_signature(&path, "Claude").expect("metadata");
+    let record = ImportedHistoryDiscoveredRecord {
+        source_session_id: "claude-bridge".to_string(),
+        source_path: path.clone(),
+        source_record_key: "claude-bridge".to_string(),
+        source_mtime_ms,
+        source_size_bytes,
+        source_fingerprint: String::new(),
+        parser_version: CLAUDE_CODE_METADATA_PARSER_VERSION,
+    };
+    let meta = parse_claude_session_meta(&record)
+        .expect("parse")
+        .expect("session meta");
+    assert_eq!(meta.name, "fix the login bug");
+
+    // Replay: the bridge-only line emits no bubble; the prefixed line's
+    // bubble carries only the user-authored text.
+    let chunks = load_claude_code_history_from_path("claudecodeapp-abc", &path).expect("parse");
+    let user_chunks: Vec<_> = chunks
+        .iter()
+        .filter(|chunk| chunk.function == imported_history::FUNCTION_USER_MESSAGE)
+        .collect();
+    assert_eq!(user_chunks.len(), 1);
+    assert_eq!(
+        user_chunks[0]
+            .result
+            .get("message")
+            .and_then(|message| message.get("content"))
+            .and_then(Value::as_str),
+        Some("fix the login bug")
+    );
 
     std::fs::remove_file(&path).expect("remove fixture");
     std::fs::remove_dir(&temp_dir).expect("remove temp dir");

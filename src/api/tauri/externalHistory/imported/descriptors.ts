@@ -1,12 +1,6 @@
-export type ImportedHistorySourceId =
-  | "cursor_ide"
-  | "codex_app"
-  | "claude_code"
-  | "opencode"
-  | "windsurf"
-  | "workbuddy"
-  | "trae"
-  | "cline";
+import type { ImportedHistorySourceId } from "@src/types/session/externalHistory";
+
+export type { ImportedHistorySourceId } from "@src/types/session/externalHistory";
 
 export type ImportedHistoryListCategory =
   `external_history:${ImportedHistorySourceId}`;
@@ -35,6 +29,17 @@ export const IMPORTED_HISTORY_SOURCE_DESCRIPTORS: readonly ImportedHistorySource
       listable: true,
       replayable: true,
       supportsWindowedReplay: true,
+    },
+    {
+      sourceId: "cursor_cli",
+      listCategory: "external_history:cursor_cli",
+      prefix: "cursorcliapp-",
+      iconId: "cursor",
+      displayName: "Cursor CLI",
+      groupLabel: "Cursor CLI",
+      listable: true,
+      replayable: true,
+      supportsWindowedReplay: false,
     },
     {
       sourceId: "codex_app",
@@ -109,6 +114,72 @@ export const IMPORTED_HISTORY_SOURCE_DESCRIPTORS: readonly ImportedHistorySource
       iconId: "cline",
       displayName: "Cline",
       groupLabel: "Cline",
+      listable: true,
+      replayable: true,
+      supportsWindowedReplay: false,
+    },
+    {
+      sourceId: "warp",
+      listCategory: "external_history:warp",
+      prefix: "warpapp-",
+      iconId: "warp",
+      displayName: "Warp",
+      groupLabel: "Warp",
+      listable: true,
+      replayable: true,
+      supportsWindowedReplay: false,
+    },
+    {
+      sourceId: "zcode",
+      listCategory: "external_history:zcode",
+      prefix: "zcodeapp-",
+      iconId: "zcode",
+      displayName: "ZCode",
+      groupLabel: "ZCode",
+      listable: true,
+      replayable: true,
+      supportsWindowedReplay: false,
+    },
+    {
+      sourceId: "qoder",
+      listCategory: "external_history:qoder",
+      prefix: "qoderapp-",
+      iconId: "qoder",
+      displayName: "Qoder",
+      groupLabel: "Qoder",
+      listable: true,
+      replayable: true,
+      supportsWindowedReplay: false,
+    },
+    {
+      sourceId: "mimo_code",
+      listCategory: "external_history:mimo_code",
+      prefix: "mimocodeapp-",
+      iconId: "mimo_code",
+      displayName: "Mimo Code",
+      groupLabel: "Mimo Code",
+      listable: true,
+      replayable: true,
+      supportsWindowedReplay: false,
+    },
+    {
+      sourceId: "omp",
+      listCategory: "external_history:omp",
+      prefix: "ompapp-",
+      iconId: "omp",
+      displayName: "OMP",
+      groupLabel: "OMP",
+      listable: true,
+      replayable: true,
+      supportsWindowedReplay: false,
+    },
+    {
+      sourceId: "qoder_cli",
+      listCategory: "external_history:qoder_cli",
+      prefix: "qodercliapp-",
+      iconId: "qoder",
+      displayName: "Qoder CLI",
+      groupLabel: "Qoder CLI",
       listable: true,
       replayable: true,
       supportsWindowedReplay: false,

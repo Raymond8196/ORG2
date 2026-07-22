@@ -108,6 +108,8 @@ export interface GitDiffContentProps {
   onReload?: () => void;
   /** Callback when a file is selected from breadcrumb dropdown */
   onFileSelect?: (filePath: string) => void;
+  /** Dismiss the focused file preview. */
+  onClose?: () => void;
   /** Notify parent when local unsaved state changes (tab bar dot vs close) */
   onUnsavedChange?: (hasUnsaved: boolean) => void;
   /** Optional content rendered before the breadcrumb in the file header. */
@@ -160,6 +162,7 @@ function arePropsEqual(
   if (!!prevProps.onContentChange !== !!nextProps.onContentChange) return false;
   if (!!prevProps.onReload !== !!nextProps.onReload) return false;
   if (!!prevProps.onUnsavedChange !== !!nextProps.onUnsavedChange) return false;
+  if (!!prevProps.onClose !== !!nextProps.onClose) return false;
   if (prevProps.leadingHeaderSlot !== nextProps.leadingHeaderSlot) return false;
   if (
     prevProps.publishHeaderToWorkstation !==
@@ -178,6 +181,7 @@ interface CallbackRefs {
   onResolveConflict?: GitDiffContentProps["onResolveConflict"];
   onContentChange?: GitDiffContentProps["onContentChange"];
   onReload?: GitDiffContentProps["onReload"];
+  onClose?: GitDiffContentProps["onClose"];
 }
 
 interface SelectionDropdownState {
@@ -200,6 +204,7 @@ const GitDiffContentInner: React.FC<GitDiffContentProps> = ({
   onContentChange,
   onReload,
   onFileSelect,
+  onClose,
   onUnsavedChange,
   leadingHeaderSlot,
   publishHeaderToWorkstation = true,
@@ -228,7 +233,12 @@ const GitDiffContentInner: React.FC<GitDiffContentProps> = ({
   const callbackRefs = useRef<CallbackRefs>({});
 
   useEffect(() => {
-    callbackRefs.current = { onResolveConflict, onContentChange, onReload };
+    callbackRefs.current = {
+      onResolveConflict,
+      onContentChange,
+      onReload,
+      onClose,
+    };
   });
 
   // View mode state for diff display
@@ -285,6 +295,10 @@ const GitDiffContentInner: React.FC<GitDiffContentProps> = ({
 
   const handleCloseSelectionDropdown = useCallback(() => {
     setSelectionDropdown(null);
+  }, []);
+
+  const handleCloseFocus = useCallback(() => {
+    callbackRefs.current.onClose?.();
   }, []);
 
   const handleAskAgent = useCallback(
@@ -524,6 +538,7 @@ const GitDiffContentInner: React.FC<GitDiffContentProps> = ({
         loading={loading || selfFetching}
         onFileSelect={onFileSelect}
         showOpenFileAction={!!onFileSelect}
+        onClose={onClose ? handleCloseFocus : undefined}
       />
     );
 
@@ -653,6 +668,7 @@ const GitDiffContentInner: React.FC<GitDiffContentProps> = ({
         hasUnsavedChanges={hasUnsavedChanges}
         onFileSelect={onFileSelect}
         showOpenFileAction={!!onFileSelect}
+        onClose={onClose ? handleCloseFocus : undefined}
       />
 
       {/* Content - Conflict Editor or Diff View */}

@@ -16,11 +16,13 @@ import { getTurnTimingLabels } from "../utils/turnTimingFormatting";
 export const MAX_CONVERSATION_MINIMAP_MARKERS = 20;
 
 export function getConversationPreviewPositionClass(
-  chatPanelPosition: "left" | "right"
+  _chatPanelPosition: "left" | "right"
 ): string {
-  return chatPanelPosition === "left"
-    ? "left-full ml-3 @[640px]/chatbody:left-auto @[640px]/chatbody:ml-0 @[640px]/chatbody:right-full @[640px]/chatbody:mr-1"
-    : "right-full mr-3 @[640px]/chatbody:mr-1";
+  // The minimap is always pinned to the chat body's right edge, so the hover
+  // preview must open left (into the chat) to stay inside the chat's
+  // `overflow-hidden` bounds. Opening outward — toward the pane edge or a
+  // neighboring panel — gets the preview clipped, regardless of dock side.
+  return "right-full mr-3 @[640px]/chatbody:mr-1";
 }
 
 export function sampleConversationGroupIndices(

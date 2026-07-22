@@ -239,18 +239,25 @@ struct ApiDoc;
 // High port to avoid conflicts with common apps
 const DEFAULT_IDE_SERVER_PORT: u16 = 13847;
 
-fn ide_server_port() -> u16 {
+fn ide_server_port(default_port: u16) -> u16 {
     std::env::var("ORGII_IDE_SERVER_PORT")
         .ok()
         .and_then(|value| value.parse::<u16>().ok())
-        .unwrap_or(DEFAULT_IDE_SERVER_PORT)
+        .filter(|port| *port > 0)
+        .unwrap_or(default_port)
 }
 
 /// Start the unified IDE server
 pub async fn start_server(
     ws_tx: broadcast::Sender<String>,
+    default_port: u16,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let addr = SocketAddr::from(([127, 0, 0, 1], ide_server_port()));
+    let port = ide_server_port(if default_port > 0 {
+        default_port
+    } else {
+        DEFAULT_IDE_SERVER_PORT
+    });
+    let addr = SocketAddr::from(([127, 0, 0, 1], port));
 
     // Create CORS layer (allow frontend on any localhost port)
     let cors = CorsLayer::new()
@@ -288,6 +295,29 @@ pub async fn start_server(
             "/automation/webhook/{*route}",
             axum::routing::post(automation_webhook_handler),
         )
+        // Live agent-status ingest: token-authenticated posts from the
+        // `--session-provenance-hook` subprocess (see api::agent_status_ingest).
+        .route(
+            super::agent_status_ingest::AGENT_STATUS_ROUTE,
+            axum::routing::post(super::agent_status_ingest::handle).layer(
+                axum::extract::DefaultBodyLimit::max(
+                    super::agent_status_ingest::AGENT_STATUS_MAX_BODY_BYTES,
+                ),
+            ),
+        )
+        // Interactive tool-approval long-poll: a managed Claude Code
+        // `PermissionRequest` hook parks here until the user answers the
+        // desktop PermissionCard (see api::agent_approval_ingest). Same
+        // token auth as the status route; deliberately NOT behind the
+        // /agent TimeoutLayer — the park timeout is enforced in-handler.
+        .route(
+            super::agent_approval_ingest::AGENT_APPROVAL_ROUTE,
+            axum::routing::post(super::agent_approval_ingest::handle).layer(
+                axum::extract::DefaultBodyLimit::max(
+                    super::agent_approval_ingest::AGENT_APPROVAL_MAX_BODY_BYTES,
+                ),
+            ),
+        )
         // Sync framework inbound webhook route. Verifies
         // the per-(project, adapter) HMAC secret then drops the
         // delivery into the merge_external outbox so the standard
@@ -309,6 +339,9 @@ pub async fn start_server(
 
     // Start server
     let listener = tokio::net::TcpListener::bind(addr).await?;
+    // Publish the live-status endpoint descriptor only once the port is
+    // actually bound, so hook posts never race a half-started server.
+    super::agent_status_ingest::write_endpoint_file(port);
     axum::serve(listener, app).await?;
 
     Ok(())

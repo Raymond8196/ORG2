@@ -28,6 +28,7 @@
     "agentSessions": "Agent Session",
     "apiKeys": "API Keys",
     "appUpdate": "앱 업데이트",
+    "security": "보안",
     "monitor": "디바이스 & 네트워크",
     "osAgentConfig": "OS Agent 설정",
     "sdeAgentConfig": "SDE Agent 설정",
@@ -39,7 +40,8 @@
     "storage": "스토리지",
     "projectUsage": "Project 및 사용량",
     "agentMemory": "Agent 메모리",
-    "agentOrg": "Agent 팀"
+    "agentOrg": "Agent 팀",
+    "collaboration": "협업"
   },
   "coreSidebar": {
     "groups": {
@@ -54,6 +56,7 @@
       "models": "모델 & Keys",
       "myRoles": "내 역할",
       "rulesMemoryEvolution": "규칙, 메모리 & 진화",
+      "security": "보안",
       "routines": "루틴",
       "tools": "Built-in Tools",
       "computerUse": "Computer Use",
@@ -66,6 +69,16 @@
       "housekeeper": "MiniCPM Housekeeper",
       "externalSkillsets": "Skills, MCPs, Plugins"
     }
+  },
+  "security": {
+    "scan": "비밀 정보 전송 전 경고",
+    "scanDesc": "입력창에 입력한 내용에서 API 키, 토큰, 비밀번호를 검사하고 모델로 보내기 전에 확인을 요청합니다",
+    "entropy": "고엔트로피 문자열 감지",
+    "entropyDesc": "알려진 키 형식과 일치하지 않는 무작위처럼 보이는 긴 문자열도 표시합니다. 더 많은 비밀 정보를 잡아내지만 때때로 해시나 ID를 표시할 수 있습니다",
+    "customPatterns": "사용자 지정 패턴",
+    "customPatternsDesc": "한 줄에 하나의 정규 표현식을 입력합니다. 일치하는 항목은 비밀 정보로 처리됩니다. 잘못된 표현식은 무시됩니다",
+    "customPatternsPlaceholder": "예: MYCORP_[A-Z0-9]{20}",
+    "invalidPatterns": "{{count}}개 패턴이 잘못되어 무시됩니다: {{patterns}}"
   },
   "myRoles": {
     "currentStatus": "내 현재 상태",
@@ -790,6 +803,23 @@
     "currentVersion": "현재 버전"
   },
   "monitor": {
+    "appMemory": "App memory",
+    "appBackend": "ORG2 backend",
+    "appWebviewHelpers": "Owned WebView helpers",
+    "rssMappedDiagnostic": "RSS / mapped memory (diagnostic)",
+    "measurement": "Measurement",
+    "measurementKinds": {
+      "native": "Native effective memory",
+      "compatibility": "Compatibility metric",
+      "mixed": "Mixed native / fallback metrics",
+      "rss_fallback": "RSS fallback",
+      "unavailable": "Unavailable"
+    },
+    "toolProcessDiagnostics": "Terminal, CLI & tool processes (RSS diagnostic)",
+    "excludedFromAppMemory": "excluded from App memory",
+    "noToolProcesses": "No terminal, CLI, MCP, or tool processes detected",
+    "categoryAgentCli": "CLI agent",
+    "categoryMcpOrTool": "MCP / tool process",
     "categoryTerminal": "터미널/도구 프로세스",
     "categoryWebview": "WebView 렌더러",
     "categoryGpu": "WebKit GPU",
@@ -1290,5 +1320,11 @@
     "searchActions": "액션 검색...",
     "noActionsFound": "액션을 찾을 수 없음",
     "noConfigurableProperties": "설정 가능한 속성 없음"
+  },
+  "collaboration": {
+    "tabs": {
+      "cloud": "클라우드",
+      "selfHosted": "자체 호스팅"
+    }
   }
 }

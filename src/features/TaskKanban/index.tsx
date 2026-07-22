@@ -34,6 +34,7 @@ import {
   kanbanAgentTypeFilterAtom,
   kanbanAutoArchiveTtlAtom,
   kanbanDetailPanelVisibleAtom,
+  kanbanFileSearchQueryAtom,
   kanbanManualArchivedSessionIdsAtom,
   kanbanSelectedTaskIdAtom,
   kanbanSidebarFilterAtom,
@@ -105,6 +106,7 @@ const Kanban: React.FC<TaskKanbanProps> = ({
     useAtom(kanbanTimeFilterAtom);
   const sidebarFilter = useAtomValue(kanbanSidebarFilterAtom);
   const agentTypeFilter = useAtomValue(kanbanAgentTypeFilterAtom);
+  const fileSearchQuery = useAtomValue(kanbanFileSearchQueryAtom);
   const [autoArchiveTtl, setAutoArchiveTtl] = useAtom(kanbanAutoArchiveTtlAtom);
   const setManualArchivedSessionIds = useSetAtom(
     kanbanManualArchivedSessionIdsAtom
@@ -131,6 +133,9 @@ const Kanban: React.FC<TaskKanbanProps> = ({
 
   const viewMode = parseFactoryViewMode(location.search);
   const showReplayControls = viewMode === "kanban";
+  const fileSearchEnabled =
+    !hideHeader && (viewMode === "kanban" || viewMode === "list");
+  const effectiveFileSearchQuery = fileSearchEnabled ? fileSearchQuery : "";
   const [calendarDate, setCalendarDate] = useState<Date>(() => new Date());
 
   useEffect(() => {
@@ -150,6 +155,7 @@ const Kanban: React.FC<TaskKanbanProps> = ({
       sidebarFilter,
       agentTypeFilter,
       selectedTaskId,
+      fileSearchQuery: effectiveFileSearchQuery,
     });
 
   const handlePointerDownCapture = useCallback((event: React.PointerEvent) => {
@@ -270,6 +276,7 @@ const Kanban: React.FC<TaskKanbanProps> = ({
           onTaskMove={handleTaskMove}
           onTaskClick={handleTaskClick}
           onAddTask={handleAddTask}
+          hasFileSearchQuery={effectiveFileSearchQuery.trim().length > 0}
         />
 
         {showReplayControls && (
@@ -309,7 +316,10 @@ const Kanban: React.FC<TaskKanbanProps> = ({
         <div
           className={`${WORK_MANAGEMENT_SESSION_PREVIEW_OVERLAY_CLASS} kanban-session-preview-overlay`}
         >
-          <div className={WORK_MANAGEMENT_SESSION_PREVIEW_SURFACE_CLASS}>
+          <div
+            className={WORK_MANAGEMENT_SESSION_PREVIEW_SURFACE_CLASS}
+            data-draggable-window
+          >
             <TaskDetailPanel
               visible={detailPanelVisible}
               task={selectedTask}

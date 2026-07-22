@@ -73,10 +73,10 @@ export interface SessionImpactState {
 
 /**
  * Loads already-parsed session impact stats for the Kanban board. This is a
- * read-only view: it surfaces stats parsed from the external app data
- * (`impactFromSession`) and previously-stored orgtrack summaries
- * (`getOrgtrackSessionSummaries`). It never triggers any analysis/backfill
- * calculation — existing data is displayed as-is.
+ * read-only view: it surfaces source-owned metadata (`impactFromSession`) and
+ * materialized orgtrack summaries (`getOrgtrackSessionSummaries`). Native
+ * summaries may lazily refresh their versioned turn index on first access;
+ * filtering itself never parses transcripts or invokes provider loaders.
  */
 export function useSessionImpact(
   sessions: readonly Session[]

@@ -77,11 +77,35 @@ interface InitPtyConnectionParams {
   shellOverride?: string;
   argsOverride?: string[];
   envOverride?: Record<string, string>;
+  forceRepoCwd?: boolean;
   nameOverride?: string;
   onSessionInfoReady?: TerminalViewProps["onSessionInfoReady"];
   setIsBrowserMode: (value: boolean) => void;
   setIsConnecting: (value: boolean) => void;
   abortSignal?: AbortSignal;
+}
+
+/**
+ * Leaf guard for every async PTY write. Identity is as important as abort:
+ * React may already have mounted a replacement terminal in the same ref by
+ * the time an IPC/snapshot/scheduler continuation resumes.
+ */
+export function writeToLiveTerminal(
+  terminalRef: MutableRefObject<Terminal | null>,
+  terminal: Terminal,
+  isAborted: () => boolean,
+  data: string | Uint8Array
+): boolean {
+  if (isAborted() || terminalRef.current !== terminal) return false;
+  try {
+    terminal.write(data);
+    return true;
+  } catch (error) {
+    // xterm renderer disposal must never replace the whole application with
+    // an error boundary. A later live terminal/output snapshot can recover.
+    log.warn("[TerminalView] Dropped write for unavailable renderer:", error);
+    return false;
+  }
 }
 
 /**
@@ -97,11 +121,13 @@ function resolvePtyLaunchOptions({
   shellType,
   customShellPath,
   shellOverride,
+  forceRepoCwd,
 }: {
   repoPath?: string;
   shellType: ShellType;
   customShellPath?: string;
   shellOverride?: string;
+  forceRepoCwd?: boolean;
 }) {
   let cwd: string | null = null;
   let shell: string | null = shellOverride || null;
@@ -115,6 +141,13 @@ function resolvePtyLaunchOptions({
   } else if (shellType === "custom") {
     if (customShellPath) shell = customShellPath;
     cwd = repoPath || null;
+  }
+
+  // CLI-agent terminals must start where their session lives (worktree /
+  // repo) regardless of the user's shellType cwd preference — `default`
+  // would otherwise drop the agent into the home directory.
+  if (forceRepoCwd && repoPath) {
+    cwd = repoPath;
   }
 
   return { cwd, shell };
@@ -138,6 +171,7 @@ function formatLastLogin(sessionKey: string) {
 async function fetchPtyInfo(
   sessionId: string,
   sessionKey: string,
+  isTerminalLive: () => boolean,
   onSessionInfoReady?: TerminalViewProps["onSessionInfoReady"]
 ) {
   try {
@@ -150,6 +184,7 @@ async function fetchPtyInfo(
       sessionId,
     });
 
+    if (!isTerminalLive()) return;
     onSessionInfoReady?.({
       sessionKey,
       pid: ptyInfo.pid || undefined,
@@ -166,28 +201,32 @@ async function reconnectOrCreatePty({
   rows,
   sessionId,
   sessionKey,
-  terminal,
   repoPath,
   shellType,
   customShellPath,
   shellOverride,
   argsOverride,
   envOverride,
+  forceRepoCwd,
   nameOverride,
+  isTerminalLive,
+  writeToTerminal,
   onSessionInfoReady,
 }: {
   cols: number;
   rows: number;
   sessionId: string;
   sessionKey: string;
-  terminal: Terminal;
   repoPath?: string;
   shellType: ShellType;
   customShellPath?: string;
   shellOverride?: string;
   argsOverride?: string[];
   envOverride?: Record<string, string>;
+  forceRepoCwd?: boolean;
   nameOverride?: string;
+  isTerminalLive: () => boolean;
+  writeToTerminal: (data: string | Uint8Array) => void;
   onSessionInfoReady?: TerminalViewProps["onSessionInfoReady"];
 }) {
   let ptyExists = false;
@@ -204,14 +243,17 @@ async function reconnectOrCreatePty({
     ptyExists = false;
   }
 
+  if (!isTerminalLive()) return;
+
   if (!ptyExists) {
-    terminal.writeln(formatLastLogin(sessionKey));
+    writeToTerminal(`${formatLastLogin(sessionKey)}\r\n`);
 
     const { cwd, shell } = resolvePtyLaunchOptions({
       repoPath,
       shellType,
       customShellPath,
       shellOverride,
+      forceRepoCwd,
     });
 
     await invokeTauri("create_pty", {
@@ -227,7 +269,13 @@ async function reconnectOrCreatePty({
       },
     });
 
-    await fetchPtyInfo(sessionId, sessionKey, onSessionInfoReady);
+    if (!isTerminalLive()) return;
+    await fetchPtyInfo(
+      sessionId,
+      sessionKey,
+      isTerminalLive,
+      onSessionInfoReady
+    );
     return undefined;
   }
 
@@ -241,14 +289,15 @@ async function reconnectOrCreatePty({
       { sessionId }
     );
 
+    if (!isTerminalLive()) return attach.covers_seq;
     const cachedBuffer = getTerminalBuffer(sessionId);
     deleteTerminalBuffer(sessionId);
     if (cachedBuffer && !attach.missed_output) {
       // Nothing was produced while detached: the client-side serialized
       // buffer is the richer restore (full scrollback vs bounded snapshot).
-      terminal.write(cachedBuffer);
+      writeToTerminal(cachedBuffer);
     } else if (attach.output) {
-      terminal.write(attach.output);
+      writeToTerminal(attach.output);
     }
     return attach.covers_seq;
   } catch (error) {
@@ -261,7 +310,8 @@ async function reconnectOrCreatePty({
 
     const cachedBuffer = getTerminalBuffer(sessionId);
     if (cachedBuffer) {
-      terminal.write(cachedBuffer);
+      if (!isTerminalLive()) return undefined;
+      writeToTerminal(cachedBuffer);
       deleteTerminalBuffer(sessionId);
       return undefined;
     }
@@ -272,8 +322,9 @@ async function reconnectOrCreatePty({
         unacked_bytes?: number;
       }>("get_pty_output_snapshot", { sessionId });
 
+      if (!isTerminalLive()) return undefined;
       if (snapshot.output) {
-        terminal.write(snapshot.output);
+        writeToTerminal(snapshot.output);
       }
       if (snapshot.unacked_bytes && snapshot.unacked_bytes > 0) {
         await invokeTauri("ack_pty_data", {
@@ -306,6 +357,7 @@ export async function initPtyConnection({
   shellOverride,
   argsOverride,
   envOverride,
+  forceRepoCwd,
   nameOverride,
   onSessionInfoReady,
   setIsBrowserMode,
@@ -332,12 +384,17 @@ export async function initPtyConnection({
   try {
     const terminal = terminalRef.current;
     if (!terminal || isAborted()) return;
+    const isTerminalLive = () =>
+      !isAborted() && terminalRef.current === terminal;
 
     const utf8Decoder = new TextDecoder("utf-8", { fatal: false });
 
     // Stable write callback — captured once per session so the hot IPC
-    // handler never allocates a new closure per event.
-    const terminalWrite = (d: string | Uint8Array) => terminal.write(d);
+    // handler never allocates a new closure per event. The identity guard is
+    // deliberately inside the callback: a scheduler turn already queued
+    // before cleanup must also be harmless after this terminal is replaced.
+    const terminalWrite = (d: string | Uint8Array) =>
+      writeToLiveTerminal(terminalRef, terminal, isAborted, d);
 
     // Register this pane with the output scheduler, suspended: chunks that
     // arrive during connect queue up in order but nothing is written until
@@ -391,7 +448,7 @@ export async function initPtyConnection({
     unlistenOutputRef.current = unlistenOutput;
 
     const unlistenExit = await listenTauri(`pty-exit-${sessionId}`, () => {
-      if (isAborted()) return;
+      if (!isTerminalLive()) return;
 
       // Drain any still-queued output before the banner so the final bytes
       // land in order (resume first in case exit raced a reconnect).
@@ -400,9 +457,9 @@ export async function initPtyConnection({
 
       const trailingOutput = utf8Decoder.decode();
       if (trailingOutput) {
-        terminal.write(trailingOutput);
+        terminalWrite(trailingOutput);
       }
-      terminal.writeln("\r\n\x1b[33m[Session ended]\x1b[0m");
+      terminalWrite("\r\n\x1b[33m[Session ended]\x1b[0m\r\n");
       unregisterPane(sessionId);
     });
     if (isAborted()) {
@@ -422,14 +479,16 @@ export async function initPtyConnection({
         rows,
         sessionId,
         sessionKey,
-        terminal,
         repoPath: repoPathRef.current,
         shellType,
         customShellPath,
         shellOverride,
         argsOverride,
         envOverride,
+        forceRepoCwd,
         nameOverride,
+        isTerminalLive,
+        writeToTerminal: terminalWrite,
         onSessionInfoReady,
       });
     } finally {
@@ -438,17 +497,23 @@ export async function initPtyConnection({
       resumePane(sessionId, coversSeq);
     }
 
-    if (isAborted()) return;
+    if (!isTerminalLive()) return;
     setIsConnecting(false);
     terminal.focus();
   } catch (error) {
     if (isAborted()) return;
     log.error("Failed to create/connect PTY session:", error);
     setIsConnecting(false);
-    const terminal = terminalRef.current;
-    if (terminal) {
-      terminal.writeln("\x1b[31mFailed to connect to system terminal\x1b[0m");
-      terminal.writeln(`\x1b[90mError: ${error}\x1b[0m`);
+    const liveTerminal = terminalRef.current;
+    if (liveTerminal) {
+      try {
+        liveTerminal.writeln(
+          "\x1b[31mFailed to connect to system terminal\x1b[0m"
+        );
+        liveTerminal.writeln(`\x1b[90mError: ${error}\x1b[0m`);
+      } catch (writeError) {
+        log.warn("[TerminalView] Failed to render PTY error:", writeError);
+      }
     }
   }
 }

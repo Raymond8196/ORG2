@@ -11,6 +11,8 @@ import {
 
 const labels: ChatPanelTabDisplayLabels = {
   launchpad: "Launchpad",
+  runtime: "Runtime",
+  organization: "Manage ORG",
   workManagement: {
     kanban: "Kanban",
     projects: "Projects",
@@ -29,6 +31,12 @@ function tab(
 }
 
 describe("resolveChatPanelTabDisplayTitle", () => {
+  it("uses the localized Runtime title", () => {
+    expect(resolveChatPanelTabDisplayTitle(tab("runtime"), null, labels)).toBe(
+      "Runtime"
+    );
+  });
+
   it("uses the active management destination as the localized tab title", () => {
     expect(
       resolveChatPanelTabDisplayTitle(tab("work-management"), null, labels)
@@ -64,6 +72,26 @@ describe("resolveChatPanelTabDisplayTitle", () => {
     expect(
       resolveChatPanelTabDisplayTitle(tab("start-page"), null, labels)
     ).toBe("Launchpad");
+  });
+
+  it("shows the workspace name for a workspace tab", () => {
+    expect(
+      resolveChatPanelTabDisplayTitle(
+        tab("workspace", "orgii-web"),
+        null,
+        labels
+      )
+    ).toBe("orgii-web");
+  });
+
+  it("keeps organization management distinct from Launchpad", () => {
+    expect(
+      resolveChatPanelTabDisplayTitle(
+        tab("organization", "Manage ORG"),
+        null,
+        labels
+      )
+    ).toBe("Manage ORG");
   });
 
   it("uses the linked session instead of a leaked Launchpad title", () => {

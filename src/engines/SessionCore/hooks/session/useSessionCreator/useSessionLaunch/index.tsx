@@ -18,7 +18,9 @@ import {
   pendingSyntheticEventAtom,
 } from "@src/engines/SessionCore/core/atoms";
 import { SESSION_CREATOR_LAUNCH_MODE } from "@src/features/SessionCreator/types";
+import { autoTagLaunchedSessionToActiveCloudOrg } from "@src/features/TeamCollaboration/autoTagNewSession";
 import { createLogger } from "@src/hooks/logger";
+import { useSecretScanGuard } from "@src/hooks/security/useSecretScanGuard";
 import { collectAdeContext } from "@src/services/context/collectors";
 import {
   activeSessionIdAtom,
@@ -87,6 +89,7 @@ export function useSessionLaunch(
   } = options;
 
   const { t } = useTranslation("sessions");
+  const guardAgainstSecrets = useSecretScanGuard();
   const [isLoading, setIsLoading] = useState(false);
   const {
     closeAddFundsModal,
@@ -165,6 +168,9 @@ export function useSessionLaunch(
       t
     );
     if (!confirmedShortInput) return false;
+
+    const clearedSecretScan = await guardAgainstSecrets(editorContent);
+    if (!clearedSecretScan) return false;
 
     const { agentInput, userInput } = await prepareLaunchInput({
       editorContent,
@@ -245,6 +251,13 @@ export function useSessionLaunch(
           result,
         })
       );
+      void autoTagLaunchedSessionToActiveCloudOrg({
+        sessionId: result.sessionId,
+        repoPath: effectiveSource?.repoPath ?? null,
+        launchOrgId: resolvedWorkItemContext?.orgId ?? null,
+      }).catch((error: unknown) => {
+        log.warn("Failed to auto-tag launched session to cloud org", error);
+      });
       if (selectedAgentOrgId) {
         void loadSidebarSessions({ forceRefresh: true }).catch(
           (error: unknown) => {
@@ -325,6 +338,7 @@ export function useSessionLaunch(
     validateSessionConfig,
     editorContent,
     t,
+    guardAgainstSecrets,
     effectiveSource,
     composerInputRef,
     launchMode,

@@ -69,6 +69,10 @@ pub struct CodeSession {
     pub project_slug: Option<String>,
     pub work_item_id: Option<String>,
     pub agent_role: Option<String>,
+    /// Where the transcript of record lives: `chunks` (legacy
+    /// `code_session_chunks`) or `native` (the CLI's own store via the
+    /// imported-history loaders). Frozen at creation time.
+    pub transcript_source: String,
     pub created_at: String,
     pub updated_at: String,
 }

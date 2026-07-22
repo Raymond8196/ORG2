@@ -13,8 +13,8 @@ import {
   GitBranch,
   GitPullRequest,
   Globe,
+  Link,
   ListChecks,
-  MessageSquare,
   MousePointer2,
   SquareMousePointer,
   Terminal,
@@ -22,17 +22,22 @@ import {
 } from "lucide-react";
 import React, { memo, useCallback, useMemo } from "react";
 
+import GitHubPillIcon from "@src/assets/modelIcons/github-pill.svg";
 import { ChatImageThumbnailRow } from "@src/components/ChatImageThumbnail";
 import BasePill from "@src/components/ComposerInput/BasePill";
+import { isGitHubPillUrl } from "@src/components/ComposerInput/githubUrl";
 import { truncateVisiblePillLabel } from "@src/components/ComposerInput/utils";
 import FileTypeIcon from "@src/components/FileTypeIcon";
 import {
   PILL_LINE_HEIGHT,
   PILL_SIZE,
   PILL_TYPES,
+  PILL_TYPE_LIST,
 } from "@src/config/pillTokens";
 import type { PillType } from "@src/config/pillTokens";
 import { sessionByIdAtom } from "@src/store/session/sessionAtom";
+import { openExternalLink } from "@src/util/platform/ipcRenderer";
+import { resolveSessionRowIcon } from "@src/util/session/sessionSidebarRow";
 
 /**
  * Local variant of PILL_REGEX that restricts the display-name capture group
@@ -42,23 +47,7 @@ import { sessionByIdAtom } from "@src/store/session/sessionAtom";
  * token.
  */
 const SINGLE_LINE_PILL_REGEX = new RegExp(
-  `([^\\n[]+?)\\s*\\[(${[
-    "file",
-    "folder",
-    "repo",
-    "branch",
-    "terminal",
-    "session",
-    "browser",
-    "project",
-    "workitem",
-    "dom-element",
-    "dom-component",
-    "skill",
-    "paste",
-    "pr",
-    "issue",
-  ].join("|")}):([^\\]]+)\\]`,
+  `([^\\n[]+?)\\s*\\[(${PILL_TYPE_LIST.join("|")}):([^\\]]+)\\]`,
   "g"
 );
 
@@ -210,39 +199,53 @@ function parseUserMessage(text: string): Segment[] {
 
 const ICON_PROPS = { size: PILL_SIZE.iconSize, strokeWidth: 1.75 } as const;
 
-const PillIcon: React.FC<{ pillType: PillType; displayName: string }> = memo(
-  ({ pillType, displayName }) => {
-    switch (pillType) {
-      case "repo":
-        return <Code {...ICON_PROPS} />;
-      case "folder":
-        return <Folder {...ICON_PROPS} />;
-      case "branch":
-        return <GitBranch {...ICON_PROPS} />;
-      case "terminal":
-        return <Terminal {...ICON_PROPS} />;
-      case "session":
-        return <MessageSquare {...ICON_PROPS} />;
-      case "browser":
-        return <Globe {...ICON_PROPS} />;
-      case "dom-element":
-        return <SquareMousePointer {...ICON_PROPS} />;
-      case "dom-component":
-        return <MousePointer2 {...ICON_PROPS} />;
-      case "project":
-        return <FolderKanban {...ICON_PROPS} />;
-      case "workitem":
-      case "issue":
-        return <ListChecks {...ICON_PROPS} />;
-      case "skill":
-        return <Toolbox {...ICON_PROPS} />;
-      case "pr":
-        return <GitPullRequest {...ICON_PROPS} />;
-      default:
-        return <FileTypeIcon fileName={displayName} size="small" />;
-    }
+const PillIcon: React.FC<{
+  pillType: PillType;
+  displayName: string;
+  path: string;
+}> = memo(function PillIcon({ pillType, displayName, path }) {
+  if (isGitHubPillUrl(path)) {
+    return (
+      <GitHubPillIcon
+        width={PILL_SIZE.iconSize}
+        height={PILL_SIZE.iconSize}
+        className="text-primary-6"
+      />
+    );
   }
-);
+
+  switch (pillType) {
+    case "repo":
+      return <Code {...ICON_PROPS} />;
+    case "folder":
+      return <Folder {...ICON_PROPS} />;
+    case "branch":
+      return <GitBranch {...ICON_PROPS} />;
+    case "terminal":
+      return <Terminal {...ICON_PROPS} />;
+    case "session":
+      return <SessionPillIcon path={path} />;
+    case "browser":
+      return <Globe {...ICON_PROPS} />;
+    case "link":
+      return <Link {...ICON_PROPS} />;
+    case "dom-element":
+      return <SquareMousePointer {...ICON_PROPS} />;
+    case "dom-component":
+      return <MousePointer2 {...ICON_PROPS} />;
+    case "project":
+      return <FolderKanban {...ICON_PROPS} />;
+    case "workitem":
+    case "issue":
+      return <ListChecks {...ICON_PROPS} />;
+    case "skill":
+      return <Toolbox {...ICON_PROPS} />;
+    case "pr":
+      return <GitPullRequest {...ICON_PROPS} />;
+    default:
+      return <FileTypeIcon fileName={displayName} size="small" />;
+  }
+});
 PillIcon.displayName = "PillIcon";
 
 // ============================================
@@ -262,6 +265,17 @@ function sessionIdFromPillPath(path: string): string {
   return withoutScheme.split("::")[0].split("/")[0];
 }
 
+const SessionPillIcon: React.FC<{ path: string }> = memo(({ path }) => {
+  const sessionId = sessionIdFromPillPath(path);
+  const session = useAtomValue(sessionByIdAtom(sessionId));
+  const Icon = useMemo(
+    () => resolveSessionRowIcon(session ?? sessionId),
+    [session, sessionId]
+  );
+  return React.createElement(Icon, ICON_PROPS);
+});
+SessionPillIcon.displayName = "SessionPillIcon";
+
 /**
  * Session pill labels resolve the LIVE session name from the store instead
  * of trusting the serialized token: the `displayName [type:path]` grammar
@@ -278,7 +292,11 @@ const SessionPillLabel: React.FC<{ path: string; fallback: string }> = memo(
 SessionPillLabel.displayName = "SessionPillLabel";
 
 const InlinePill: React.FC<{ segment: PillSegment }> = memo(({ segment }) => {
+  const isGitHubUrl = isGitHubPillUrl(segment.path);
+  const isGenericLink = segment.pillType === "link";
   const isClickable =
+    isGitHubUrl ||
+    isGenericLink ||
     segment.pillType === "terminal" ||
     segment.pillType === "file" ||
     segment.pillType === "folder" ||
@@ -286,9 +304,14 @@ const InlinePill: React.FC<{ segment: PillSegment }> = memo(({ segment }) => {
     segment.pillType === "paste";
 
   const handleClick = useCallback(
-    (e: React.MouseEvent) => {
+    (e: React.SyntheticEvent) => {
       e.stopPropagation();
       e.preventDefault();
+
+      if (isGitHubUrl || isGenericLink) {
+        void openExternalLink(segment.path);
+        return;
+      }
 
       if (segment.pillType === "terminal") {
         let sessionId: string;
@@ -349,7 +372,15 @@ const InlinePill: React.FC<{ segment: PillSegment }> = memo(({ segment }) => {
         );
       }
     },
-    [segment]
+    [isGenericLink, isGitHubUrl, segment]
+  );
+
+  const handleKeyDown = useCallback(
+    (event: React.KeyboardEvent) => {
+      if (!isClickable || (event.key !== "Enter" && event.key !== " ")) return;
+      handleClick(event);
+    },
+    [handleClick, isClickable]
   );
 
   /** Prevent mousedown from triggering text-selection or parent click */
@@ -364,8 +395,11 @@ const InlinePill: React.FC<{ segment: PillSegment }> = memo(({ segment }) => {
   );
 
   const visibleDisplayName = useMemo(
-    () => truncateVisiblePillLabel(segment.displayName),
-    [segment.displayName]
+    () =>
+      isGitHubUrl || isGenericLink
+        ? segment.displayName
+        : truncateVisiblePillLabel(segment.displayName),
+    [isGenericLink, isGitHubUrl, segment.displayName]
   );
 
   return (
@@ -375,6 +409,7 @@ const InlinePill: React.FC<{ segment: PillSegment }> = memo(({ segment }) => {
         <PillIcon
           pillType={segment.pillType}
           displayName={segment.displayName}
+          path={segment.path}
         />
       }
       role={isClickable ? "button" : undefined}
@@ -387,6 +422,7 @@ const InlinePill: React.FC<{ segment: PillSegment }> = memo(({ segment }) => {
         WebkitUserSelect: "none",
       }}
       onClick={isClickable ? handleClick : undefined}
+      onKeyDown={isClickable ? handleKeyDown : undefined}
       onMouseDown={handleMouseDown}
       title={segment.displayName}
     >

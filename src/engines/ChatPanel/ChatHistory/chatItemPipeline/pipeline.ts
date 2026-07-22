@@ -43,7 +43,7 @@ import {
 import { canConsolidate, mergeObservations } from "./utils";
 
 // ============================================
-// Error dedup helpers (pipeline-local, no blocks dependency)
+// Error detection helpers (pipeline-local, no blocks dependency)
 // ============================================
 
 function getErrorText(result: Record<string, unknown>): string | null {
@@ -92,9 +92,81 @@ function getStableActivityItemId(event: SessionEvent): string {
   return event.id;
 }
 
+/**
+ * `chunk_id` is the React key for every rendered chat row, so it has to be
+ * unique across the returned list.
+ *
+ * `getStableActivityItemId` deliberately collapses a `tool_call` and its
+ * `tool_result` onto one `tool:<sessionId>:<callId>` id, on the assumption that
+ * the backend merged the pair into a single event. When that merge doesn't
+ * happen both events reach here and claim the same id — React then warns and
+ * may drop one of the two rows outright.
+ *
+ * Disambiguate rather than drop: both events carry real content, and silently
+ * discarding one would hide the upstream merge failure instead of surfacing it.
+ * The fast path allocates nothing when ids are already unique, which is the
+ * normal case.
+ */
+function ensureUniqueChunkIds(items: OptimizedChatItem[]): OptimizedChatItem[] {
+  const seen = new Set<string>();
+  let hasCollision = false;
+  for (const item of items) {
+    if (seen.has(item.chunk_id)) {
+      hasCollision = true;
+      break;
+    }
+    seen.add(item.chunk_id);
+  }
+  if (!hasCollision) return items;
+
+  seen.clear();
+  return items.map((item) => {
+    if (!seen.has(item.chunk_id)) {
+      seen.add(item.chunk_id);
+      return item;
+    }
+    let occurrence = 2;
+    let candidate = `${item.chunk_id}#${occurrence}`;
+    while (seen.has(candidate)) {
+      occurrence++;
+      candidate = `${item.chunk_id}#${occurrence}`;
+    }
+    seen.add(candidate);
+    return { ...item, chunk_id: candidate };
+  });
+}
+
 // ============================================
 // Main Pipeline Function
 // ============================================
+
+function isDiffProjectionEvent(event: SessionEvent): boolean {
+  const canonical = event.uiCanonical || event.functionName;
+  if (
+    canonical === "edit_file" ||
+    canonical === "edit_file_by_replace" ||
+    canonical === "delete_file" ||
+    canonical === "apply_patch"
+  ) {
+    return true;
+  }
+
+  const action = event.args?.action;
+  return (
+    (canonical === "git" || canonical === "git_diff") &&
+    typeof action === "string" &&
+    action.toLowerCase().includes("diff")
+  );
+}
+
+function shouldSkipEvent(
+  event: SessionEvent,
+  policy: ChatItemPipelineOptions["skipPolicy"]
+): boolean {
+  if (policy === "none" || policy === undefined) return false;
+  if (policy === "diff") return isDiffProjectionEvent(event);
+  return false;
+}
 
 /**
  * Process SessionEvent[] into display-ready OptimizedChatItem[].
@@ -111,6 +183,17 @@ export function processChatItems(
     successCount: 0,
     failedCount: 0,
     pendingCount: 0,
+  };
+
+  const updateVisibleStatusCount = (event: SessionEvent, delta: 1 | -1) => {
+    if (event.id === "loading") return;
+    if (event.result?.success === true) {
+      stats.successCount += delta;
+    } else if (event.result?.success === false) {
+      stats.failedCount += delta;
+    } else {
+      stats.pendingCount += delta;
+    }
   };
 
   let readFileBuffer: SessionEvent[] = [];
@@ -338,7 +421,7 @@ export function processChatItems(
   let sawManageTodo = false;
 
   for (let index = 0; index < events.length; index++) {
-    const event = events[index];
+    let event = events[index];
 
     if (
       runningChunksToSkip.has(event.id) ||
@@ -360,8 +443,9 @@ export function processChatItems(
       if (resultCallId) {
         const runningArgs = runningArgsMap.get(resultCallId);
         if (runningArgs) {
-          (event as { args: Record<string, unknown> }).args = {
-            ...runningArgs,
+          event = {
+            ...event,
+            args: { ...runningArgs },
           };
         }
       }
@@ -374,9 +458,9 @@ export function processChatItems(
       }
     }
 
-    // Caller-supplied skip predicate (e.g. drop diff events when the Diff
-    // simulator app is active).
-    if (opts.shouldSkipEvent && opts.shouldSkipEvent(event)) {
+    // Serializable caller-selected exclusion policy (for example, Diff owns
+    // file-mutation cards on surfaces where inline diff rows are hidden).
+    if (shouldSkipEvent(event, opts.skipPolicy)) {
       continue;
     }
 
@@ -503,26 +587,22 @@ export function processChatItems(
     // Regular event — flush all buffers and add as activity
     flushAllBuffers();
 
-    // Fold consecutive identical tool errors into a single item with a repeat count.
-    // repeatedErrorCount stores the number of extra occurrences beyond the first
-    // (i.e. total occurrences = repeatedErrorCount + 1). Stats are only counted
-    // for items that actually land in the result array, so folded duplicates are
-    // excluded — this keeps stats.failedCount consistent with result.length.
-    if (isFailedToolCall(event)) {
+    // A todo event contains the complete checklist snapshot. Consecutive
+    // updates therefore supersede each other; rendering every intermediate
+    // snapshot produces near-identical cards (for example pending `content`
+    // immediately followed by in-progress `activeForm`). Keep only the last
+    // snapshot in a contiguous run. Any real activity between updates remains
+    // a boundary, so progress history around edits/commands is preserved.
+    if (isManageTodoEvent(event)) {
       const last = result[result.length - 1];
       if (
         last?.type === "activity" &&
         last.event &&
-        last.event.functionName === event.functionName &&
-        last.event.actionType === "tool_call" &&
-        isFailedToolCall(last.event) &&
-        getErrorText(last.event.result ?? {}) ===
-          getErrorText(event.result ?? {})
+        isManageTodoEvent(last.event)
       ) {
-        result[result.length - 1] = {
-          ...last,
-          repeatedErrorCount: (last.repeatedErrorCount ?? 1) + 1,
-        };
+        updateVisibleStatusCount(last.event, -1);
+        updateVisibleStatusCount(event, 1);
+        result[result.length - 1] = eventToItem(event);
         continue;
       }
     }
@@ -532,17 +612,7 @@ export function processChatItems(
     // (handled above via continue) are excluded so these counts stay
     // consistent with result.length-of-this-kind. (totalActivities was
     // bumped earlier — it tracks raw events including buffered ones.)
-    if (event.id !== "loading") {
-      const isSuccess = event.result?.success === true;
-      const isFailed = event.result?.success === false;
-      if (isSuccess) {
-        stats.successCount++;
-      } else if (isFailed) {
-        stats.failedCount++;
-      } else {
-        stats.pendingCount++;
-      }
-    }
+    updateVisibleStatusCount(event, 1);
 
     result.push(eventToItem(event));
   }
@@ -556,5 +626,5 @@ export function processChatItems(
   flushEditBuffer(false);
   flushPartialBuffer();
 
-  return { items: result, stats };
+  return { items: ensureUniqueChunkIds(result), stats };
 }

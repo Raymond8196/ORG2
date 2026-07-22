@@ -58,14 +58,18 @@ import OpenAIIcon from "@src/assets/modelIcons/openai.svg";
 import OpenClawIcon from "@src/assets/modelIcons/openclaw.svg";
 import OpenCodeIcon from "@src/assets/modelIcons/opencode.svg";
 import OpenRouterIcon from "@src/assets/modelIcons/openrouter.svg";
-import OrgiiIcon from "@src/assets/modelIcons/orgii.svg";
+import OrgiiIcon from "@src/assets/modelIcons/org2-session.svg";
 import PerplexityIcon from "@src/assets/modelIcons/perplexity.svg";
 import PiIcon from "@src/assets/modelIcons/pi.svg";
+import QoderIcon from "@src/assets/modelIcons/qoder.svg";
 import QwenIcon from "@src/assets/modelIcons/qwen.svg";
 import RovoIcon from "@src/assets/modelIcons/rovo.svg";
 import SiliconFlowIcon from "@src/assets/modelIcons/siliconflow.svg";
+import TraeIcon from "@src/assets/modelIcons/trae.svg";
 import VllmIcon from "@src/assets/modelIcons/vllm.svg";
 import VolcengineIcon from "@src/assets/modelIcons/volcengine.svg";
+import WarpIcon from "@src/assets/modelIcons/warp.svg";
+import WindsurfIcon from "@src/assets/modelIcons/windsurf.svg";
 import WorkBuddyIcon from "@src/assets/modelIcons/workbuddy.svg";
 import XaiIcon from "@src/assets/modelIcons/xai.svg";
 import XiaomiIcon from "@src/assets/modelIcons/xiaomi.svg";
@@ -73,8 +77,6 @@ import YiIcon from "@src/assets/modelIcons/yi.svg";
 import ZcodeIcon from "@src/assets/modelIcons/zcode.svg";
 import ZenMuxIcon from "@src/assets/modelIcons/zenmux.svg";
 import ZhipuIcon from "@src/assets/modelIcons/zhipu.svg";
-import TraeIcon from "@src/assets/softwareIcons/trae.svg";
-import WindsurfIcon from "@src/assets/softwareIcons/windsurf.svg";
 
 // ============================================
 // Types
@@ -98,6 +100,7 @@ export type IconProvider =
   | "windsurf"
   | "trae"
   | "workbuddy"
+  | "warp"
   | "amp"
   | "devin"
   | "rovo"
@@ -138,6 +141,7 @@ export type IconProvider =
   | "yi"
   | "zhipu"
   | "zcode"
+  | "qoder"
   | "baichuan"
   | "minimax"
   | "longcat"
@@ -172,6 +176,7 @@ export const ICON_MAP: Record<
   windsurf: WindsurfIcon,
   trae: TraeIcon,
   workbuddy: WorkBuddyIcon,
+  warp: WarpIcon,
   claude_code: ClaudeCodeIcon,
   copilot: CopilotIcon,
   gemini: GeminiIcon,
@@ -207,6 +212,7 @@ export const ICON_MAP: Record<
   yi: YiIcon,
   zhipu: ZhipuIcon,
   zcode: ZcodeIcon,
+  qoder: QoderIcon,
   baichuan: BaichuanIcon,
   minimax: MinimaxIcon,
   longcat: LongCatIcon,
@@ -279,6 +285,7 @@ export const SELECTABLE_ICON_PROVIDERS: IconProvider[] = [
   "yi",
   "zhipu",
   "zcode",
+  "qoder",
   "baichuan",
   "minimax",
   "longcat",
@@ -355,6 +362,8 @@ const MODEL_TYPE_TO_ICON: Record<ModelType, IconProvider> = {
   autohand: "autohand",
   omp: "omp",
   pi: "pi",
+  qoder_cli: "qoder",
+  trae_cli: "trae",
   // API key providers
   anthropic_api: "claude",
   openai_api: "openai",
@@ -569,6 +578,11 @@ export function getIconProviderFromModelName(
   // ZCode IDE / Z.ai coding workspace
   if (lower.includes("zcode")) {
     return "zcode";
+  }
+
+  // Qoder IDE (Alibaba's agentic IDE)
+  if (lower.includes("qoder")) {
+    return "qoder";
   }
 
   // Zhipu/GLM models

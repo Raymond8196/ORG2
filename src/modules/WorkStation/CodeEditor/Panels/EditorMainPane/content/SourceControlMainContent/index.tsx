@@ -11,8 +11,6 @@
 import { useAtomValue } from "jotai";
 import React, { Suspense, memo, useCallback, useMemo } from "react";
 
-import { IssueDetailPanel } from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/IssuesContent/IssueDetailPanel";
-import { PrDetailPanel } from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/PullRequestContent/detail/PrDetailPanel";
 import {
   NoTabsPlaceholder,
   type QuickAction,
@@ -33,6 +31,20 @@ import FocusView from "./FocusView";
 const GitCommitDetailContent = React.lazy(
   () => import("../GitCommitDetailContent")
 );
+const IssueDetailPanel = React.lazy(() =>
+  import("@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/IssuesContent/IssueDetailPanel").then(
+    (module) => ({ default: module.IssueDetailPanel })
+  )
+);
+const PrDetailPanel = React.lazy(() =>
+  import("@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/PullRequestContent/detail/PrDetailPanel").then(
+    (module) => ({ default: module.PrDetailPanel })
+  )
+);
+
+const DetailFallback = () => (
+  <Placeholder variant="loading" placement="detail-panel" fillParentHeight />
+);
 
 export type SourceControlPillMode = "focus" | "all-changes";
 
@@ -48,6 +60,8 @@ export interface SourceControlMainContentProps {
   onForceReload?: () => void;
   /** Open the focused file as a regular file tab */
   onFileSelect?: (path: string) => void;
+  /** Clear the focused file without closing Source Control. */
+  onCloseFocus?: () => void;
   /** Sync git-diff local edits to tab bar unsaved indicator */
   onGitDiffUnsavedChange?: (hasUnsaved: boolean) => void;
   /** Selected commit/stash rendered in the Source Control right pane. */
@@ -70,6 +84,7 @@ const SourceControlMainContent: React.FC<SourceControlMainContentProps> = ({
   hasFocus,
   onForceReload,
   onFileSelect,
+  onCloseFocus,
   onGitDiffUnsavedChange,
   historySelection,
   files,
@@ -129,12 +144,14 @@ const SourceControlMainContent: React.FC<SourceControlMainContentProps> = ({
 
   if (prIdentity) {
     return (
-      <PrDetailPanel
-        identity={prIdentity}
-        repoPath={repoPath ?? ""}
-        repoId={repoId}
-        onFileSelect={onFileSelect}
-      />
+      <Suspense fallback={<DetailFallback />}>
+        <PrDetailPanel
+          identity={prIdentity}
+          repoPath={repoPath ?? ""}
+          repoId={repoId}
+          onFileSelect={onFileSelect}
+        />
+      </Suspense>
     );
   }
 
@@ -146,16 +163,18 @@ const SourceControlMainContent: React.FC<SourceControlMainContentProps> = ({
     }
 
     return (
-      <IssueDetailPanel
-        issue={selectedIssueState.issue}
-        comments={selectedIssueState.comments}
-        commentsLoading={selectedIssueState.commentsLoading}
-        submittingComment={selectedIssueState.submittingComment}
-        onClose={() => undefined}
-        onCloseIssue={handleCloseIssue}
-        onReopenIssue={handleReopenIssue}
-        onAddComment={handleAddIssueComment}
-      />
+      <Suspense fallback={<DetailFallback />}>
+        <IssueDetailPanel
+          issue={selectedIssueState.issue}
+          timeline={selectedIssueState.timeline}
+          timelineLoading={selectedIssueState.timelineLoading}
+          submittingComment={selectedIssueState.submittingComment}
+          onClose={() => undefined}
+          onCloseIssue={handleCloseIssue}
+          onReopenIssue={handleReopenIssue}
+          onAddComment={handleAddIssueComment}
+        />
+      </Suspense>
     );
   }
 
@@ -210,6 +229,7 @@ const SourceControlMainContent: React.FC<SourceControlMainContentProps> = ({
           hasFocus={hasFocus}
           onReload={onForceReload}
           onFileSelect={onFileSelect}
+          onClose={onCloseFocus}
           onUnsavedChange={onGitDiffUnsavedChange}
           emptyActions={emptyFocusActions}
         />

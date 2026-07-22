@@ -18,7 +18,7 @@ import {
   getStatusColor,
   getStatusLetterForFile,
 } from "@src/config/gitStatus";
-import { CodeMirrorDiff } from "@src/features/CodeMirror";
+import { EDITOR_TAB_CANVAS_BG_CLASS } from "@src/config/workstation/tokens";
 import { FileHeader } from "@src/modules/shared/components/FileHeader";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 import {
@@ -60,9 +60,13 @@ const LazyPagesPreview = React.lazy(
   () =>
     import("@src/modules/WorkStation/CodeEditor/Panels/EditorMainPane/content/FilePreviewContent/PagesPreview")
 );
+const LazyCodeMirrorDiff = React.lazy(
+  () => import("@src/features/CodeMirror/Diff")
+);
 
 export interface DiffFileSectionData {
   path: string;
+  original_path?: string | null;
   status: GitFileStatus;
   staged: boolean;
   additions?: number;
@@ -86,9 +90,12 @@ export interface DiffFileSectionProps {
   sectionRef?: React.RefObject<HTMLDivElement | null>;
   onFileSelect?: (path: string) => void;
   onRequestContent?: (file: DiffFileSectionData) => void;
+  onExpansionChange?: (expanded: boolean) => void;
   hideDirectory?: boolean;
   showBottomBorder?: boolean;
   dataPath?: string;
+  /** Show `current path ← original path` metadata for renamed files. */
+  showRenamePath?: boolean;
   /**
    * When true, renders a flat FileHeader (matching source control style)
    * instead of the collapsible chevron button. Content is always expanded.
@@ -126,9 +133,11 @@ const DiffFileSection: React.FC<DiffFileSectionProps> = ({
   repoPath,
   sectionRef,
   onRequestContent,
+  onExpansionChange,
   hideDirectory = false,
   showBottomBorder = true,
   dataPath,
+  showRenamePath = false,
   flat = false,
   noBottomPadding = false,
 }) => {
@@ -141,6 +150,7 @@ const DiffFileSection: React.FC<DiffFileSectionProps> = ({
     manualExpanded?.signal === expansionSignal
       ? manualExpanded.value
       : defaultExpanded;
+  const previousExpandedRef = useRef(expanded);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const setAddToAgent = useSetAtom(addToAgentAtom);
@@ -187,6 +197,12 @@ const DiffFileSection: React.FC<DiffFileSectionProps> = ({
     }
     onRequestContent?.(file);
   }, [expanded, file, isDeleted, onRequestContent]);
+
+  useEffect(() => {
+    if (previousExpandedRef.current === expanded) return;
+    previousExpandedRef.current = expanded;
+    onExpansionChange?.(expanded);
+  }, [expanded, onExpansionChange]);
 
   const statusLetter = getStatusLetterForFile(file.status, file.staged);
   const statusColor = getStatusColor(statusLetter);
@@ -285,11 +301,21 @@ const DiffFileSection: React.FC<DiffFileSectionProps> = ({
   const previewContent = renderPreviewContent();
   const displayPath = getDisplayPath(file.path, repoPath);
   const { fileName, dirPath } = getFileNameAndDir(displayPath);
+  const originalDisplayPath = file.original_path
+    ? getDisplayPath(file.original_path, repoPath)
+    : null;
+  const renamePath =
+    showRenamePath &&
+    file.status === "renamed" &&
+    originalDisplayPath &&
+    originalDisplayPath !== displayPath
+      ? originalDisplayPath
+      : null;
 
   const diffContent = (
     <div ref={containerRef}>
       {previewContent ? (
-        <div className="h-[480px] min-h-[320px] overflow-hidden bg-bg-1">
+        <div className="h-[480px] min-h-[320px] overflow-hidden">
           <Suspense
             fallback={
               <Placeholder
@@ -309,21 +335,31 @@ const DiffFileSection: React.FC<DiffFileSectionProps> = ({
           subtitle={displayPath}
         />
       ) : hasContent ? (
-        <CodeMirrorDiff
-          oldValue={resolvedDiff.oldContent || ""}
-          newValue={resolvedDiff.newContent || ""}
-          filePath={file.path}
-          changeType={file.status}
-          oldStartLine={resolvedDiff.oldStartLine}
-          newStartLine={resolvedDiff.newStartLine}
-          showLineNumbers={file.showLineNumbers !== false}
-          viewMode="unified"
-          readOnly={true}
-          mergeControls={false}
-          collapseUnchanged={true}
-          noBottomPadding={noBottomPadding}
-          autoHeight
-        />
+        <Suspense
+          fallback={
+            <Placeholder
+              variant="loading"
+              placement="detail-panel"
+              title={t("placeholders.loadingChanges")}
+            />
+          }
+        >
+          <LazyCodeMirrorDiff
+            oldValue={resolvedDiff.oldContent || ""}
+            newValue={resolvedDiff.newContent || ""}
+            filePath={file.path}
+            changeType={file.status}
+            oldStartLine={resolvedDiff.oldStartLine}
+            newStartLine={resolvedDiff.newStartLine}
+            showLineNumbers={file.showLineNumbers !== false}
+            viewMode="unified"
+            readOnly={true}
+            mergeControls={false}
+            collapseUnchanged={true}
+            noBottomPadding={noBottomPadding}
+            autoHeight
+          />
+        </Suspense>
       ) : file.isUnavailable ? (
         <Placeholder
           variant="empty"
@@ -377,7 +413,7 @@ const DiffFileSection: React.FC<DiffFileSectionProps> = ({
         data-diff-section-path={dataPath}
       >
         <button
-          className="sticky top-0 z-10 flex w-full min-w-0 items-center gap-2 bg-[var(--cm-editor-background)] px-3 py-2 text-left hover:bg-fill-2 disabled:cursor-default disabled:hover:bg-transparent"
+          className={`sticky top-0 z-10 flex w-full min-w-0 items-center gap-2 px-3 py-2 text-left hover:bg-fill-2 disabled:cursor-default disabled:hover:bg-transparent ${EDITOR_TAB_CANVAS_BG_CLASS}`}
           onClick={toggleExpanded}
           disabled={isDeleted}
         >
@@ -401,6 +437,19 @@ const DiffFileSection: React.FC<DiffFileSectionProps> = ({
               <span className="min-w-0 truncate text-[11px] text-text-2">
                 {dirPath}
               </span>
+            ) : null}
+            {renamePath ? (
+              <>
+                <span className="shrink-0 text-[11px] text-text-3" aria-hidden>
+                  ←
+                </span>
+                <span
+                  className="min-w-0 truncate text-[11px] text-text-2"
+                  title={`${displayPath} ← ${renamePath}`}
+                >
+                  {renamePath}
+                </span>
+              </>
             ) : null}
           </div>
           <DiffStatsBadge

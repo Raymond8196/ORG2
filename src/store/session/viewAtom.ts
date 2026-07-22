@@ -223,6 +223,42 @@ updateSessionMetadataAtom.debugLabel = "updateSessionMetadataAtom";
 // ============================================
 
 /**
+ * Claim the singleton session pipeline for a transient chat surface.
+ *
+ * This mirrors the engine transition performed by `jumpToSessionAtom`
+ * without changing WorkStation's remembered selection. Secondary surfaces
+ * such as the kanban detail panel use it to load their session while leaving
+ * the user's primary WorkStation context intact.
+ */
+export const claimPipelineSessionAtom = atom(
+  null,
+  (get, set, sessionId: string) => {
+    const previousPipelineSessionId = get(activeSessionIdAtom);
+
+    set(clearSessionAtom);
+    set(loadStatusAtom, "loading");
+    set(activeSessionIdAtom, sessionId);
+    if (previousPipelineSessionId === sessionId) {
+      set(triggerSessionReloadAtom, sessionId);
+    }
+  }
+);
+claimPipelineSessionAtom.debugLabel = "claimPipelineSessionAtom";
+
+/**
+ * Release the transient session pipeline without forgetting the WorkStation's
+ * remembered session tab. Non-session Chat Panel tabs use this when they take
+ * over the visible surface so background sync, Presence, and replay snapshots
+ * do not keep treating the hidden session as rendered.
+ */
+export const releasePipelineSessionAtom = atom(null, (get, set) => {
+  if (!get(activeSessionIdAtom) && !get(sessionIdAtom)) return;
+  set(clearSessionAtom);
+  set(activeSessionIdAtom, null);
+});
+releasePipelineSessionAtom.debugLabel = "releasePipelineSessionAtom";
+
+/**
  * Unified action for switching sessions. Every navigation path
  * (sidebar, history panel, Chat tool tabs, control tower) MUST
  * use this atom to avoid state leaks and timestamp jumps.

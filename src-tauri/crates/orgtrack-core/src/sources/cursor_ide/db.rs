@@ -5,10 +5,11 @@
 //! external-history cache table. Full bubble/transcript content stays in
 //! Cursor's DB and is loaded lazily by `history.rs`.
 
+use std::collections::{HashMap, HashSet};
+
 use chrono::TimeZone;
 use rusqlite::{params, Connection, OptionalExtension};
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
 use crate::sources::imported_history::{
     cache as source_cache,
@@ -24,11 +25,10 @@ use super::io::{
 };
 use super::CURSORIDE_SESSION_PREFIX;
 
-// v5: discovery reads Cursor's `conversation-search.db` index only (signature =
-// updated_at + root_fingerprint), and each row now carries repo_path / branch /
-// touched_files parsed from the composer. Bumped so older cached rows re-sync
-// once cleanly and pick up the new metadata.
-const CURSOR_IDE_METADATA_PARSER_VERSION: i64 = 5;
+// v6: top-level index rows now bring their `subagentComposerIds` into the cache
+// as child sessions with `parent_session_id`, allowing the shared sidebar
+// parent/child collapse flow to render Cursor subagents.
+const CURSOR_IDE_METADATA_PARSER_VERSION: i64 = 6;
 const COMPOSER_KEY_PREFIX: &str = "composerData:";
 const BUBBLE_KEY_PREFIX: &str = "bubbleId:";
 const SOURCE_RECORD_KEY_PREFIX: &str = "cursorDiskKV:";
@@ -67,13 +67,16 @@ struct RawComposerData {
     #[serde(default)]
     full_conversation_headers_only: Vec<BubbleHeader>,
     #[serde(default)]
-    subagent_info: Option<Value>,
+    subagent_info: Option<super::models::RawCursorSubagentInfo>,
+    #[serde(default)]
+    subagent_composer_ids: Vec<String>,
     #[serde(default)]
     tracked_git_repos: Vec<super::models::RawTrackedGitRepo>,
     #[serde(default)]
     workspace_identifier: Option<super::models::RawWorkspaceIdentifier>,
     #[serde(default)]
-    original_file_states: std::collections::BTreeMap<String, super::models::RawCursorOriginalFileState>,
+    original_file_states:
+        std::collections::BTreeMap<String, super::models::RawCursorOriginalFileState>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -114,6 +117,12 @@ struct CursorIndexRow {
     updated_at_ms: i64,
     is_archived: bool,
     root_fingerprint: String,
+}
+
+struct CursorParentBuild {
+    inputs: Vec<ImportedHistoryCacheInput>,
+    live_child_ids: Vec<String>,
+    child_list_authoritative: bool,
 }
 
 impl CursorIndexRow {
@@ -267,20 +276,79 @@ fn delta_sync(cache_conn: &mut Connection) -> Result<(), String> {
         .iter()
         .map(|row| row.signature(&source_path))
         .collect::<Vec<_>>();
-    let live_ids = source_cache::live_ids_from_signatures(&signatures);
+    let live_parent_ids = source_cache::live_ids_from_signatures(&signatures);
+    let live_parent_id_set = live_parent_ids.iter().cloned().collect::<HashSet<_>>();
+    let cached_child_ids_by_parent = cached_cursor_child_ids_by_parent(cache_conn)?;
     let changed = source_cache::changed_records_from_conn(
         cache_conn,
         SOURCE_CURSOR_IDE,
         &discovered,
         |row| row.signature(&source_path),
     )?;
-    let inputs = changed
-        .into_iter()
-        .map(|row| build_input_from_index(cursor_conn.as_ref(), row, &source_path))
-        .collect::<Result<Vec<_>, _>>()?;
+    let changed_parent_ids = changed
+        .iter()
+        .map(|row| row.id.clone())
+        .collect::<HashSet<_>>();
+    let mut authoritative_changed_parent_ids = HashSet::new();
+    let mut live_ids = live_parent_ids;
+    let mut inputs = Vec::new();
+
+    for row in changed {
+        let built = build_inputs_from_index(cursor_conn.as_ref(), row, &source_path)?;
+        if built.child_list_authoritative {
+            authoritative_changed_parent_ids.insert(row.id.clone());
+        }
+        live_ids.extend(built.live_child_ids);
+        inputs.extend(built.inputs);
+    }
+
+    // Unchanged parents retain their cached children without touching the large
+    // composer blobs. If a changed parent's blob was temporarily unavailable,
+    // retain its previous children too instead of pruning good cache rows.
+    for (parent_id, child_ids) in cached_child_ids_by_parent {
+        if !live_parent_id_set.contains(&parent_id) {
+            continue;
+        }
+        let changed_with_authoritative_children = changed_parent_ids.contains(&parent_id)
+            && authoritative_changed_parent_ids.contains(&parent_id);
+        if !changed_with_authoritative_children {
+            live_ids.extend(child_ids);
+        }
+    }
 
     source_cache::sync_source_cache_from_conn(cache_conn, SOURCE_CURSOR_IDE, live_ids, inputs)?;
     Ok(())
+}
+
+fn cached_cursor_child_ids_by_parent(
+    cache_conn: &Connection,
+) -> Result<HashMap<String, Vec<String>>, String> {
+    let mut stmt = cache_conn
+        .prepare(
+            "SELECT source_session_id, parent_session_id
+             FROM imported_history_session_cache
+             WHERE source = ?1 AND parent_session_id != ''",
+        )
+        .map_err(|err| format!("Failed to prepare cached Cursor child query: {err}"))?;
+    let rows = stmt
+        .query_map([SOURCE_CURSOR_IDE], |row| {
+            Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
+        })
+        .map_err(|err| format!("Failed to query cached Cursor children: {err}"))?;
+
+    let mut child_ids_by_parent = HashMap::<String, Vec<String>>::new();
+    for row in rows {
+        let (child_id, parent_session_id) =
+            row.map_err(|err| format!("Failed to read cached Cursor child row: {err}"))?;
+        let Some(parent_id) = parent_session_id.strip_prefix(CURSORIDE_SESSION_PREFIX) else {
+            continue;
+        };
+        child_ids_by_parent
+            .entry(parent_id.to_string())
+            .or_default()
+            .push(child_id);
+    }
+    Ok(child_ids_by_parent)
 }
 
 fn discover_from_index(index_conn: &Connection) -> Result<Vec<CursorIndexRow>, String> {
@@ -313,11 +381,11 @@ fn discover_from_index(index_conn: &Connection) -> Result<Vec<CursorIndexRow>, S
 /// `composerData` in `state.vscdb` for the rich metadata (status / mode / tokens
 /// / impact); if that's missing (state.vscdb absent or a cloud-only row), falls
 /// back to a minimal row carrying just the index's title + timestamp.
-fn build_input_from_index(
+fn build_inputs_from_index(
     cursor_conn: Option<&Connection>,
     row: &CursorIndexRow,
     source_path: &str,
-) -> Result<ImportedHistoryCacheInput, String> {
+) -> Result<CursorParentBuild, String> {
     let record_key = format!("{SOURCE_RECORD_KEY_PREFIX}{COMPOSER_KEY_PREFIX}{}", row.id);
     if let Some(cursor_conn) = cursor_conn {
         if let Some(raw) = load_composer_raw(cursor_conn, &row.id)? {
@@ -330,20 +398,68 @@ fn build_input_from_index(
                 row.is_archived as i64,
                 &row.root_fingerprint,
                 &raw,
+                None,
             )?;
             // Sort/display recency comes from the index's authoritative
             // `updated_at`, not the composer's possibly-stale last-bubble time.
             if row.updated_at_ms > 0 {
                 input.updated_at_ms = row.updated_at_ms;
             }
-            return Ok(input);
+            let mut seen_child_ids = HashSet::new();
+            let live_child_ids = raw
+                .subagent_composer_ids
+                .iter()
+                .map(|id| id.trim())
+                .filter(|id| !id.is_empty() && *id != row.id)
+                .filter(|id| seen_child_ids.insert((*id).to_string()))
+                .map(str::to_string)
+                .collect::<Vec<_>>();
+            let mut inputs = Vec::with_capacity(live_child_ids.len() + 1);
+            inputs.push(input);
+            for child_id in &live_child_ids {
+                let Some(child_raw) = load_composer_raw(cursor_conn, child_id)? else {
+                    continue;
+                };
+                let child_parent_id = child_raw
+                    .subagent_info
+                    .as_ref()
+                    .map(|info| info.parent_composer_id.trim())
+                    .filter(|parent_id| !parent_id.is_empty())
+                    .unwrap_or(&row.id);
+                let child_record_key =
+                    format!("{SOURCE_RECORD_KEY_PREFIX}{COMPOSER_KEY_PREFIX}{child_id}");
+                let child_source_mtime = child_raw
+                    .created_at
+                    .max(child_raw.last_updated_at)
+                    .max(row.updated_at_ms);
+                inputs.push(cache_input_from_raw(
+                    cursor_conn,
+                    child_id,
+                    source_path,
+                    &child_record_key,
+                    child_source_mtime,
+                    0,
+                    &format!("parent:{child_parent_id}"),
+                    &child_raw,
+                    Some(child_parent_id),
+                )?);
+            }
+            return Ok(CursorParentBuild {
+                inputs,
+                live_child_ids,
+                child_list_authoritative: true,
+            });
         }
     }
-    Ok(minimal_cache_input_from_index(
-        row,
-        source_path,
-        &record_key,
-    ))
+    Ok(CursorParentBuild {
+        inputs: vec![minimal_cache_input_from_index(
+            row,
+            source_path,
+            &record_key,
+        )],
+        live_child_ids: Vec::new(),
+        child_list_authoritative: false,
+    })
 }
 
 /// Minimal cache row from the index alone — used when the composer blob is
@@ -358,7 +474,7 @@ fn minimal_cache_input_from_index(
     ImportedHistoryCacheInput {
         source: SOURCE_CURSOR_IDE,
         source_session_id: row.id.clone(),
-        session_id: format!("{CURSORIDE_SESSION_PREFIX}{}", row.id),
+        session_id: super::canonical_session_id(&row.id),
         source_path: source_path.to_string(),
         source_record_key: record_key.to_string(),
         source_mtime_ms: row.updated_at_ms,
@@ -371,6 +487,8 @@ fn minimal_cache_input_from_index(
         model: None,
         input_tokens: 0,
         output_tokens: 0,
+        cache_read_tokens: 0,
+        cache_write_tokens: 0,
         repo_path: None,
         branch: None,
         impact: ImportedHistoryImpactStats::default(),
@@ -412,6 +530,7 @@ fn cache_input_from_raw(
     source_size_bytes: i64,
     source_fingerprint: &str,
     raw: &RawComposerData,
+    parent_source_session_id: Option<&str>,
 ) -> Result<ImportedHistoryCacheInput, String> {
     let model = raw
         .model_config
@@ -436,10 +555,14 @@ fn cache_input_from_raw(
     let source_metadata_json = serde_json::to_string(&metadata)
         .map_err(|err| format!("Failed to encode Cursor metadata cache payload: {err}"))?;
 
+    let parent_session_id = parent_source_session_id
+        .map(str::trim)
+        .filter(|parent_id| !parent_id.is_empty() && *parent_id != id)
+        .map(|parent_id| format!("{CURSORIDE_SESSION_PREFIX}{parent_id}"));
     Ok(ImportedHistoryCacheInput {
         source: SOURCE_CURSOR_IDE,
         source_session_id: id.to_string(),
-        session_id: format!("{CURSORIDE_SESSION_PREFIX}{id}"),
+        session_id: super::canonical_session_id(id),
         source_path: source_path.to_string(),
         source_record_key: source_record_key.to_string(),
         source_mtime_ms,
@@ -452,6 +575,8 @@ fn cache_input_from_raw(
         model,
         input_tokens: raw.context_tokens_used as i64,
         output_tokens: 0,
+        cache_read_tokens: 0,
+        cache_write_tokens: 0,
         repo_path: workspace.repo_path,
         branch: workspace.branch,
         impact: ImportedHistoryImpactStats {
@@ -460,9 +585,11 @@ fn cache_input_from_raw(
             lines_removed: raw.total_lines_removed,
             touched_files,
         },
-        listable: raw.subagent_info.is_none(),
+        // Child rows are fetched through `es_get_child_sessions`, not through
+        // root-session pagination or analytics lists.
+        listable: parent_session_id.is_none(),
         source_metadata_json: Some(source_metadata_json),
-        parent_session_id: None,
+        parent_session_id,
     })
 }
 
@@ -602,7 +729,12 @@ mod tests {
             }
         }"#;
         let row: RawComposerData = serde_json::from_str(json).expect("parse");
-        assert!(row.subagent_info.is_some());
+        let info = row.subagent_info.expect("subagent info");
+        assert_eq!(info.subagent_type_name, "generalPurpose");
+        assert_eq!(
+            info.parent_composer_id,
+            "df05eda5-7f2e-40d1-9e15-1667a1c49af2"
+        );
     }
 
     #[test]
@@ -718,7 +850,12 @@ mod tests {
             is_archived: false,
             root_fingerprint: "fp".into(),
         };
-        let input = build_input_from_index(None, &row, "/store/state.vscdb").expect("build");
+        let built =
+            build_inputs_from_index(None, &row, "/store/state.vscdb").expect("build inputs");
+        assert!(!built.child_list_authoritative);
+        assert!(built.live_child_ids.is_empty());
+        assert_eq!(built.inputs.len(), 1);
+        let input = &built.inputs[0];
         assert_eq!(input.session_id, format!("{CURSORIDE_SESSION_PREFIX}c9"));
         assert_eq!(input.name, "Just title");
         assert_eq!(input.created_at_ms, 4242);
@@ -764,7 +901,11 @@ mod tests {
             is_archived: false,
             root_fingerprint: "fp".into(),
         };
-        let input = build_input_from_index(Some(&cursor), &row, "/store").expect("build");
+        let built = build_inputs_from_index(Some(&cursor), &row, "/store").expect("build inputs");
+        assert!(built.child_list_authoritative);
+        assert!(built.live_child_ids.is_empty());
+        assert_eq!(built.inputs.len(), 1);
+        let input = &built.inputs[0];
         // Rich fields come from the composer blob…
         assert_eq!(input.name, "Rich");
         assert_eq!(input.created_at_ms, 1000);
@@ -776,10 +917,84 @@ mod tests {
         let mut touched = input.impact.touched_files.clone();
         touched.sort();
         // Edited (contentKey) + newly-created files, but not the untouched one.
-        assert_eq!(touched, vec!["/repo/orgii/src/a.ts", "/repo/orgii/src/b.ts"]);
+        assert_eq!(
+            touched,
+            vec!["/repo/orgii/src/a.ts", "/repo/orgii/src/b.ts"]
+        );
         // …while recency + change-signature come from the index row.
         assert_eq!(input.updated_at_ms, 3000);
         assert_eq!(input.source_mtime_ms, 3000);
         assert_eq!(input.source_fingerprint, "fp");
+    }
+
+    #[test]
+    fn changed_parent_builds_collapsible_subagent_rows() {
+        let cursor = Connection::open_in_memory().expect("open cursor db");
+        cursor
+            .execute(
+                "CREATE TABLE cursorDiskKV (key TEXT PRIMARY KEY, value TEXT)",
+                [],
+            )
+            .expect("create cursorDiskKV");
+        let parent = serde_json::json!({
+            "composerId": "parent-1",
+            "name": "Parent",
+            "createdAt": 1000,
+            "lastUpdatedAt": 3000,
+            "subagentComposerIds": ["child-1", "child-1", "", "parent-1"]
+        })
+        .to_string();
+        let child = serde_json::json!({
+            "composerId": "child-1",
+            "name": "Explore codebase",
+            "createdAt": 1500,
+            "lastUpdatedAt": 2500,
+            "status": "completed",
+            "subagentInfo": {
+                "subagentTypeName": "explore",
+                "parentComposerId": "parent-1",
+                "toolCallId": "tool-1"
+            }
+        })
+        .to_string();
+        cursor
+            .execute(
+                "INSERT INTO cursorDiskKV VALUES ('composerData:parent-1', ?1)",
+                params![parent],
+            )
+            .expect("insert parent");
+        cursor
+            .execute(
+                "INSERT INTO cursorDiskKV VALUES ('composerData:child-1', ?1)",
+                params![child],
+            )
+            .expect("insert child");
+
+        let row = CursorIndexRow {
+            id: "parent-1".into(),
+            title: "Index parent".into(),
+            updated_at_ms: 3000,
+            is_archived: false,
+            root_fingerprint: "fp".into(),
+        };
+        let built = build_inputs_from_index(Some(&cursor), &row, "/store").expect("build inputs");
+
+        assert!(built.child_list_authoritative);
+        assert_eq!(built.live_child_ids, vec!["child-1"]);
+        assert_eq!(built.inputs.len(), 2);
+        let parent_input = &built.inputs[0];
+        assert!(parent_input.listable);
+        assert!(parent_input.parent_session_id.is_none());
+        let child_input = &built.inputs[1];
+        assert_eq!(
+            child_input.session_id,
+            format!("{CURSORIDE_SESSION_PREFIX}child-1")
+        );
+        assert!(!child_input.listable);
+        assert_eq!(
+            child_input.parent_session_id.as_deref(),
+            Some("cursoride-parent-1")
+        );
+        assert_eq!(child_input.name, "Explore codebase");
     }
 }

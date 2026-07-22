@@ -28,6 +28,7 @@
     "agentSessions": "Agent Sessions",
     "apiKeys": "API Keys",
     "appUpdate": "Actualización",
+    "security": "Seguridad",
     "monitor": "Dispositivo & red",
     "osAgentConfig": "Config de OS Agent",
     "sdeAgentConfig": "Config de SDE Agent",
@@ -39,7 +40,8 @@
     "storage": "Almacenamiento",
     "projectUsage": "Project y uso",
     "agentMemory": "Memoria del Agent",
-    "agentOrg": "Equipo Agent"
+    "agentOrg": "Equipo Agent",
+    "collaboration": "Colaboración"
   },
   "coreSidebar": {
     "groups": {
@@ -54,6 +56,7 @@
       "models": "Modelos & Keys",
       "myRoles": "Mis roles",
       "rulesMemoryEvolution": "Reglas, Memoria & Evolución",
+      "security": "Seguridad",
       "routines": "Rutinas",
       "tools": "Herramientas integradas",
       "computerUse": "Computer Use",
@@ -66,6 +69,16 @@
       "housekeeper": "MiniCPM Housekeeper",
       "externalSkillsets": "Skills, MCPs, Plugins"
     }
+  },
+  "security": {
+    "scan": "Avisar antes de enviar secretos",
+    "scanDesc": "Analiza lo que escribes en el editor en busca de claves de API, tokens y contraseñas, y pide confirmación antes de enviarlos al modelo",
+    "entropy": "Detectar cadenas de alta entropía",
+    "entropyDesc": "También marca cadenas largas de aspecto aleatorio que no coinciden con un formato de clave conocido. Detecta más secretos, pero a veces puede marcar hashes o identificadores",
+    "customPatterns": "Patrones personalizados",
+    "customPatternsDesc": "Una expresión regular por línea. Cualquier coincidencia se trata como un secreto. Las expresiones no válidas se ignoran",
+    "customPatternsPlaceholder": "p. ej. MYCORP_[A-Z0-9]{20}",
+    "invalidPatterns": "{{count}} patrón(es) no son válidos y se ignorarán: {{patterns}}"
   },
   "myRoles": {
     "currentStatus": "Mi estado actual",
@@ -790,6 +803,23 @@
     "currentVersion": "Versión actual"
   },
   "monitor": {
+    "appMemory": "App memory",
+    "appBackend": "ORG2 backend",
+    "appWebviewHelpers": "Owned WebView helpers",
+    "rssMappedDiagnostic": "RSS / mapped memory (diagnostic)",
+    "measurement": "Measurement",
+    "measurementKinds": {
+      "native": "Native effective memory",
+      "compatibility": "Compatibility metric",
+      "mixed": "Mixed native / fallback metrics",
+      "rss_fallback": "RSS fallback",
+      "unavailable": "Unavailable"
+    },
+    "toolProcessDiagnostics": "Terminal, CLI & tool processes (RSS diagnostic)",
+    "excludedFromAppMemory": "excluded from App memory",
+    "noToolProcesses": "No terminal, CLI, MCP, or tool processes detected",
+    "categoryAgentCli": "CLI agent",
+    "categoryMcpOrTool": "MCP / tool process",
     "categoryTerminal": "Proceso de terminal/herramienta",
     "categoryWebview": "Renderizador de WebView",
     "categoryGpu": "GPU de WebKit",
@@ -1290,5 +1320,11 @@
     "searchActions": "Buscar acciones...",
     "noActionsFound": "No se encontraron acciones",
     "noConfigurableProperties": "Sin propiedades configurables"
+  },
+  "collaboration": {
+    "tabs": {
+      "cloud": "Nube",
+      "selfHosted": "Autoalojado"
+    }
   }
 }

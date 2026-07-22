@@ -22,7 +22,10 @@ import { rejectQuestion, respondQuestion } from "@src/api/tauri/agent";
 import Message from "@src/components/Message";
 import { extractQuestionBatch } from "@src/engines/ChatPanel/InputArea/AskQuestionCard/extractQuestionBatch";
 import { chatEventsAtom } from "@src/engines/SessionCore";
+import { parseAddressCommentsSlashCommand } from "@src/features/Org2Cloud/addressCommentsSlashToken";
+import { useAddressCommentsSlashCommand } from "@src/features/Org2Cloud/useAddressCommentsSlashCommand";
 import { createLogger } from "@src/hooks/logger";
+import { useSecretScanGuard } from "@src/hooks/security/useSecretScanGuard";
 import { sessionByIdAtom } from "@src/store/session";
 import type { ChatImageAttachment } from "@src/store/ui/chatImageAtom";
 import { wpReadOnlyAtom } from "@src/store/ui/chatPanelAtom";
@@ -97,6 +100,7 @@ export interface UseSubmitMessageOptions {
   ) => Promise<void>;
   onSubmitOverride?: (input: SubmitOverrideInput) => Promise<boolean>;
   submitDisabled?: boolean;
+  enableAgentInterceptors?: boolean;
 }
 
 // ============================================================================
@@ -120,16 +124,26 @@ export function useSubmitMessage({
   handleSessChatSubmit,
   onSubmitOverride,
   submitDisabled = false,
+  enableAgentInterceptors = true,
 }: UseSubmitMessageOptions): (options?: SubmitMessageOptions) => Promise<void> {
   const { t } = useTranslation("sessions");
   const store = useStore();
   const wpReadOnly = useAtomValue(wpReadOnlyAtom);
   const submitInFlightKeyRef = useRef<string | null>(null);
   const { runManualCompact } = useManualCompact();
+  const guardAgainstSecrets = useSecretScanGuard();
+  const addressComments = useAddressCommentsSlashCommand(
+    draftSessionId || null
+  );
 
   return useCallback(
     async (options: SubmitMessageOptions = {}) => {
-      if (wpReadOnly) {
+      // Imported teammate replays are intentionally read-only in the event
+      // store, but their composer owns an onSubmitOverride that performs
+      // fork-before-send. Let that coordinator inspect the submission before
+      // applying the ordinary read-only guard; otherwise the generic
+      // "No active session" toast makes the fork flow unreachable.
+      if (wpReadOnly && !onSubmitOverride) {
         Message.warning(t("chat.noActiveSession"));
         return;
       }
@@ -164,7 +178,7 @@ export function useSubmitMessage({
       // of dispatching a message (Claude Code parity). Only a pure text
       // command qualifies — attached images mean the user is sending real
       // content that happens to start with "/compact".
-      if (hasText && !hasAttachedImages) {
+      if (enableAgentInterceptors && hasText && !hasAttachedImages) {
         const compactCommand = parseCompactSlashCommand(displayText);
         if (compactCommand) {
           refs.composerInputRef.current.clear();
@@ -177,6 +191,19 @@ export function useSubmitMessage({
           );
           return;
         }
+
+        const addressDraft = parseAddressCommentsSlashCommand(displayText);
+        if (addressDraft) {
+          refs.composerInputRef.current.clear();
+          void flushDraft("").catch((err: unknown) => {
+            log.warn("[useSubmitMessage] flushDraft(address) failed:", err);
+          });
+          addressComments.run({
+            selectedHeadIds: addressDraft.selectedHeadIds,
+            instruction: addressDraft.instruction,
+          });
+          return;
+        }
       }
 
       // A running session blocks ordinary sends, but not `/compact`: manual
@@ -185,10 +212,18 @@ export function useSubmitMessage({
       // becomes a silent no-op while the session is working.
       if (submitDisabled) return;
 
+      // ── Secret scan gate ─────────────────────────────────────────────────
+      // Warn before a typed API key / token / password enters the transcript
+      // and reaches the model. The user can still choose to send anyway.
+      if (hasText) {
+        const clearedSecretScan = await guardAgainstSecrets(displayText);
+        if (!clearedSecretScan) return;
+      }
+
       // ── Question intercept ────────────────────────────────────────────────
       // When the agent asked a question and the user typed a reply in the main
       // input, forward the typed text as the question answer before dispatching.
-      if (hasText && draftSessionId) {
+      if (enableAgentInterceptors && hasText && draftSessionId) {
         const events = store.get(chatEventsAtom);
         for (const event of events) {
           if (event.sessionId && event.sessionId !== draftSessionId) continue;
@@ -216,16 +251,18 @@ export function useSubmitMessage({
       }
 
       // ── MCP slash-command resolution ─────────────────────────────────────
-      try {
-        const rendered = await resolveMcpSlashCommand(displayText.trim());
-        if (rendered !== null) {
-          displayText = rendered;
+      if (enableAgentInterceptors) {
+        try {
+          const rendered = await resolveMcpSlashCommand(displayText.trim());
+          if (rendered !== null) {
+            displayText = rendered;
+          }
+        } catch (err) {
+          Message.error(
+            `MCP prompt failed: ${err instanceof Error ? err.message : String(err)}`
+          );
+          return;
         }
-      } catch (err) {
-        Message.error(
-          `MCP prompt failed: ${err instanceof Error ? err.message : String(err)}`
-        );
-        return;
       }
 
       // ── Skill pill expansion ──────────────────────────────────────────────
@@ -480,6 +517,7 @@ export function useSubmitMessage({
     [
       wpReadOnly,
       store,
+      guardAgainstSecrets,
       handleSessChatSubmit,
       citeCode,
       refs,
@@ -491,7 +529,9 @@ export function useSubmitMessage({
       clearReplyTarget,
       onSubmitOverride,
       submitDisabled,
+      enableAgentInterceptors,
       runManualCompact,
+      addressComments,
     ]
   );
 }

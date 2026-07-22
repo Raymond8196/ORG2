@@ -74,6 +74,11 @@
       "other": "Secret"
     }
   },
+  "secretScan": {
+    "title": "Possible secret detected",
+    "message": "This message looks like it contains sensitive credentials:\n\n{{items}}\n\nSending it will store the secret in the chat transcript and send it to the model. Send anyway?",
+    "sendAnyway": "Send anyway"
+  },
   "actions": {
     "all": "All",
     "save": "Save",
@@ -189,6 +194,7 @@
     "viewOnGitHub": "View on GitHub",
     "selectRepository": "Select Repo",
     "collapse": "Collapse",
+    "toggle": "Toggle thread",
     "addRepo": "Add Repo",
     "addFolder": "Add Folder",
     "resume": "Resume",
@@ -210,7 +216,8 @@
     "openInApp": "Open in App",
     "skipThisVersion": "Skip this version",
     "later": "Later",
-    "link": "Link"
+    "link": "Link",
+    "copyName": "Copy Name"
   },
   "refreshToast": {
     "successName": "{{name}} refreshed",
@@ -431,6 +438,27 @@
     "issueComments_other": "{{count}} comments",
     "overview": "Overview",
     "sessionBlame": "Session Blame",
+    "sessionBlameSubagent": "Subagent: {{name}}",
+    "sessionBlameMainSession": "Main session",
+    "sessionBlameAction": {
+      "read": "Read",
+      "write": "Write",
+      "create": "Create",
+      "delete": "Delete",
+      "rename": "Rename",
+      "search": "Search"
+    },
+    "sessionBlamePrecision": {
+      "unknown": "Unknown confidence",
+      "session_only": "Session only",
+      "correlated": "Correlated",
+      "exact": "Exact attribution"
+    },
+    "sessionBlameBackfill": {
+      "indexing": "Indexing historical sessions {{indexed}}/{{total}}",
+      "partial": "Historical index incomplete ({{failed}} failed)",
+      "failed": "Historical session indexing failed"
+    },
     "agentBlame": "Agent Blame",
     "initializeAgentBlame": "Initialize Agent Blame",
     "rescan": "Rescan",
@@ -530,6 +558,10 @@
     "failedToRenderEvent": "Failed to render event",
     "unknown": "Unknown error",
     "agentRequestFailed": "Agent request failed",
+    "codexLoginExpired": "Codex sign-in expired",
+    "codexLoginExpiredDescription": "Reconnect Codex to repair this account. You will return to this session after the new sign-in is saved.",
+    "reconnectCodex": "Reconnect Codex",
+    "technicalDetails": "Technical details",
     "failedToCopy": "Failed to copy",
     "api": {
       "titles": {
@@ -1178,9 +1210,9 @@
       "tokenLabel": "Personal access token",
       "tokenRequired": "Token is required",
       "createTokenButton": "Create Token",
-      "openGitSettingsButton": "Open Git Settings",
+      "openGitSettingsButton": "Open Settings",
       "configureInSettings": "Configure Git in Settings",
-      "configureInSettingsDesc": "Add GitHub App access, save a token, or scan local credentials in Settings → Integrations → Git, then retry this Git operation."
+      "configureInSettingsDesc": "Add GitHub App access, save a token, or scan local credentials in Settings → Connections, then retry this Git operation."
     },
     "actions": {
       "publish": "Publish",
@@ -1282,7 +1314,7 @@
       },
       "authRequired": {
         "title": "Connect GitHub",
-        "description": "Go to Settings → Integrations → Git to connect your GitHub account."
+        "description": "Go to Settings → Connections to connect your GitHub account."
       }
     },
     "issues": {
@@ -1312,12 +1344,49 @@
         "completed": "Completed",
         "notPlanned": "Not planned"
       },
+      "activity": {
+        "opened": "opened this issue",
+        "commented": "commented",
+        "timelineItemCount_one": "{{count}} timeline item",
+        "timelineItemCount_other": "{{count}} timeline items",
+        "noDescription": "No description provided.",
+        "assigned": "assigned",
+        "assignedIssue": "assigned this issue",
+        "unassigned": "unassigned",
+        "removedAssignee": "removed an assignee",
+        "added": "added",
+        "removed": "removed",
+        "label": "a label",
+        "milestoned": "added this issue to milestone {{milestone}}",
+        "demilestoned": "removed this issue from milestone {{milestone}}",
+        "closedViaCommit": "closed this issue via commit {{commit}}",
+        "closed": "closed this issue",
+        "reopened": "reopened this issue",
+        "renamedTo": "renamed this issue to",
+        "renamed": "renamed this issue",
+        "locked": "locked this conversation",
+        "lockedAs": "locked this conversation as {{reason}}",
+        "unlocked": "unlocked this conversation",
+        "crossReferencedFrom": "referenced this issue from",
+        "crossReferenced": "cross-referenced this issue",
+        "referencedInCommit": "referenced this issue in commit {{commit}}",
+        "referencedInACommit": "referenced this issue in a commit",
+        "connected": "linked this issue",
+        "disconnected": "unlinked this issue",
+        "markedAsDuplicate": "marked this issue as a duplicate",
+        "unmarkedAsDuplicate": "removed the duplicate marking",
+        "pinned": "pinned this issue",
+        "unpinned": "unpinned this issue",
+        "transferred": "transferred this issue",
+        "convertedToDiscussion": "converted this issue to a discussion",
+        "mentioned": "mentioned this issue"
+      },
       "authRequired": {
         "title": "Connect GitHub",
-        "description": "Go to Settings → Integrations → Git to connect your GitHub account."
+        "description": "Go to Settings → Connections to connect your GitHub account."
       },
       "reAuthRequired": "GitHub Authorization Required",
-      "reAuthDescription": "Your GitHub token has expired. Go to Settings → Integrations → Git to reconnect.",
+      "reAuthDescription": "Your GitHub token has expired. Go to Settings → Connections to reconnect.",
       "goToSettings": "Go to Settings"
     },
     "commit": {
@@ -1639,6 +1708,11 @@
           "label": "Search Agent sessions",
           "pillLabel": "Search Sessions",
           "placeholder": "Search Agent sessions..."
+        },
+        "searchAllSessions": {
+          "label": "Search across all sessions",
+          "pillLabel": "Search All Sessions",
+          "placeholder": "Search across all sessions..."
         },
         "switchWorkspace": {
           "label": "Switch workspace"
@@ -1970,15 +2044,6 @@
     "lastActive": "Last active: {{date}}",
     "activeNow": "Active now: {{ides}}",
     "active": "Active",
-    "tabs": {
-      "activity": "Activity",
-      "focus": "Focus",
-      "languages": "Languages",
-      "heatmap": "Heatmap",
-      "ide": "IDE",
-      "cursor": "Cursor",
-      "cli": "CLI"
-    },
     "cliSessions": "AI CLI Sessions",
     "cliPrompt": "Prompt",
     "cliMessages": "Messages",
@@ -2069,9 +2134,6 @@
     "pill": {
       "focus": "Focus",
       "allChanges": "All Changes"
-    },
-    "sessionFilter": {
-      "allSessions": "All sessions"
     },
     "scope": {
       "local": "Local",

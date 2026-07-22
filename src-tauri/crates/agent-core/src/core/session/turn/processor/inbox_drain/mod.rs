@@ -16,7 +16,6 @@ pub use hooks::MemberShutdownHookGuard;
 pub use hooks::{install_member_shutdown_hook, MemberShutdownHook, NoopMemberShutdownHook};
 
 pub use drain::drain_and_render_deferred;
-pub use drain::STALE_WORKER_TASK_RELEASE_TIMEOUT_SECS;
 pub use guard::DrainGuard;
 
 #[cfg(test)]
@@ -25,7 +24,7 @@ pub use drain::drain_and_render;
 // Implementation lives in focused submodules:
 //   guard.rs   — DrainGuard struct and its impl
 //   routing.rs — resolve_recipient_member_id, resolve_sender_member
-//   drain.rs   — drain_and_render_deferred, side effects, autonomous claim
+//   drain.rs   — drain_and_render_deferred and typed inbox side effects
 
 // These imports are not used in mod.rs itself — they are brought in solely
 // so the `mod tests` child module can access them via `use super::*`.
@@ -55,29 +54,18 @@ mod tests {
         crate::foundation::persistence::session_snapshots::ensure_tables_with(&conn)
             .expect("agent sessions schema");
         crate::session::persistence::init(&conn).expect("session schema");
-        conn.execute_batch(
-            "CREATE TABLE IF NOT EXISTS session_token_usage (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                session_id TEXT NOT NULL,
-                session_type TEXT NOT NULL DEFAULT 'sde',
-                model TEXT,
-                account_id TEXT,
-                input_tokens INTEGER NOT NULL DEFAULT 0,
-                output_tokens INTEGER NOT NULL DEFAULT 0,
-                cache_read_tokens INTEGER NOT NULL DEFAULT 0,
-                cache_write_tokens INTEGER NOT NULL DEFAULT 0,
-                total_tokens INTEGER NOT NULL DEFAULT 0,
-                context_tokens INTEGER NOT NULL DEFAULT 0,
-                context_usage_json TEXT,
-                created_at TEXT NOT NULL DEFAULT ''
-            );",
-        )
-        .expect("session token usage schema");
+        // Canonical test DDL — includes every table UNIFIED_SESSION_SELECT
+        // reads (session_token_usage AND the orgtrack_core_session_usage
+        // projection); a hand-rolled subset here goes stale when the SELECT
+        // gains a new source table.
+        crate::persistence::test_schema::ensure_agent_sessions_schema(&conn);
         crate::coordination::agent_org_runs::init_schema(&conn).expect("agent org runs schema");
         crate::coordination::agent_inbox::init_schema(&conn).expect("agent inbox schema");
         crate::coordination::agent_member_interventions::init_schema(&conn)
             .expect("member intervention schema");
         crate::coordination::agent_org_tasks::init_schema(&conn).expect("agent team tasks schema");
+        crate::coordination::agent_org_plan_approvals::init_schema(&conn)
+            .expect("agent org plan approvals schema");
         conn.execute_batch(
             "CREATE TABLE IF NOT EXISTS code_sessions (
                 session_id TEXT PRIMARY KEY,
@@ -103,6 +91,7 @@ mod tests {
             coordinator_role: "team".into(),
             members: vec![],
             hierarchy_mode: Default::default(),
+            plan_approval_policy: crate::definitions::orgs::PlanApprovalPolicy::Coordinator,
             root_session_id: Some("root-1".into()),
         }
     }
@@ -122,6 +111,71 @@ mod tests {
                 parent_member_id: None,
             });
         ctx
+    }
+
+    /// Task-store tests need a real Running run because task mutations are
+    /// commit-time gated by the canonical run row. Inbox-only fixtures can
+    /// continue using the lightweight context helpers above.
+    fn running_ctx_for_members(members: &[(&str, &str, &str)]) -> AgentOrgRunContext {
+        use crate::coordination::agent_org_runs::{
+            AgentOrgRunEntryMode, AgentOrgRunStatus, AgentOrgRunStore, CreateAgentOrgRunParams,
+        };
+        use crate::core::definitions::orgs::{OrgDefinition, OrgMember};
+
+        ensure_inbox_schema();
+        let unique = uuid::Uuid::new_v4().to_string();
+        let run = AgentOrgRunStore::create(CreateAgentOrgRunParams {
+            org_id: format!("org-inbox-drain-{unique}"),
+            coordinator_agent_id: "coord".to_string(),
+            root_session_id: Some(format!("root-{unique}")),
+            org_snapshot: OrgDefinition {
+                id: format!("org-inbox-drain-{unique}"),
+                name: "Inbox Drain Test Org".to_string(),
+                role: "coordinator".to_string(),
+                agent_id: "coord".to_string(),
+                description: None,
+                hierarchy_mode: Default::default(),
+                plan_approval_policy: crate::definitions::orgs::PlanApprovalPolicy::Coordinator,
+                children: members
+                    .iter()
+                    .map(|(member_id, agent_id, name)| OrgMember {
+                        id: (*member_id).to_string(),
+                        name: (*name).to_string(),
+                        role: "engineer".to_string(),
+                        agent_id: (*agent_id).to_string(),
+                        runtime_config: None,
+                        children: Vec::new(),
+                    })
+                    .collect(),
+            },
+            entry_mode: AgentOrgRunEntryMode::StandaloneSession,
+            status: AgentOrgRunStatus::Running,
+            work_item_id: None,
+            project_slug: None,
+            routine_fire_id: None,
+        })
+        .expect("create canonical running run fixture");
+        let mut context = ctx_for(&run.id);
+        context.root_session_id = run.root_session_id;
+        context.members = members
+            .iter()
+            .map(|(member_id, agent_id, name)| {
+                crate::coordination::agent_org_runs::AgentOrgContextMember {
+                    member_id: (*member_id).to_string(),
+                    agent_id: (*agent_id).to_string(),
+                    name: (*name).to_string(),
+                    role: "engineer".to_string(),
+                    parent_member_id: None,
+                }
+            })
+            .collect();
+        context
+    }
+
+    fn eligible_task_metadata(member_ids: &[&str]) -> Option<Value> {
+        Some(serde_json::json!({
+            crate::coordination::agent_org_tasks::TASK_METADATA_ELIGIBLE_MEMBER_IDS: member_ids,
+        }))
     }
 
     fn upsert_org_member_session(
@@ -540,6 +594,7 @@ mod tests {
             current_mode: Some(crate::session::AgentExecMode::Plan),
             summary: None,
             failure_reason: None,
+            unfinished_task_ids: Vec::new(),
         };
         assert_eq!(
             render_payload(&msg),
@@ -556,6 +611,7 @@ mod tests {
             current_mode: Some(crate::session::AgentExecMode::Build),
             summary: Some("aborted by coordinator".into()),
             failure_reason: None,
+            unfinished_task_ids: Vec::new(),
         };
         assert_eq!(
             render_payload(&msg),
@@ -573,6 +629,7 @@ mod tests {
             current_mode: Some(crate::session::AgentExecMode::Ask),
             summary: None,
             failure_reason: Some("provider 5xx".into()),
+            unfinished_task_ids: Vec::new(),
         };
         assert_eq!(
             render_payload(&msg),
@@ -590,6 +647,7 @@ mod tests {
             current_mode: None,
             summary: Some("   ".into()),
             failure_reason: Some("".into()),
+            unfinished_task_ids: Vec::new(),
         };
         assert_eq!(
             render_payload(&msg),
@@ -608,12 +666,14 @@ mod tests {
             current_mode: Some(crate::session::AgentExecMode::Plan),
             summary: Some("a\"b".into()),
             failure_reason: Some("x'y".into()),
+            unfinished_task_ids: vec!["task<&>".into()],
         };
         let rendered = render_payload(&msg);
         assert!(rendered.contains("member_id=\"alice&lt;1&gt;\""));
         assert!(rendered.contains("member_name=\"A&amp;B\""));
         assert!(rendered.contains("summary=\"a&quot;b\""));
         assert!(rendered.contains("failure_reason=\"x&apos;y\""));
+        assert!(rendered.contains("unfinished_task_ids=\"task&lt;&amp;&gt;\""));
     }
 
     #[test]
@@ -623,11 +683,17 @@ mod tests {
             subject: "Wire memory pruning".into(),
             description: "Use the rolling-budget helper".into(),
             assigned_by: "Coordinator".into(),
+            dependency_outputs: Vec::new(),
+            execution_mode: crate::coordination::agent_org_tasks::TaskExecutionMode::Build,
         };
         assert_eq!(
             render_payload(&msg),
             "<task_assigned task_id=\"task-7\" subject=\"Wire memory pruning\" \
-             assigned_by=\"Coordinator\">Use the rolling-budget helper</task_assigned>"
+             assigned_by=\"Coordinator\" execution_mode=\"build\"><description>Use the rolling-budget helper</description>\
+             <instructions>Before doing this task, call task_update for this exact task_id with status=&quot;in_progress&quot;. \
+             Only you, the owning member, may record this task&apos;s in_progress/completed lifecycle or output. \
+             When finished, call task_update with status=&quot;completed&quot; and output={summary, content?, artifact_ids?}; \
+             summary is required.</instructions></task_assigned>"
         );
     }
 
@@ -638,12 +704,15 @@ mod tests {
             subject: "A & B".into(),
             description: "<plan>steal</plan>".into(),
             assigned_by: "Alice \"Lead\"".into(),
+            dependency_outputs: Vec::new(),
+            execution_mode: crate::coordination::agent_org_tasks::TaskExecutionMode::Build,
         };
         let rendered = render_payload(&msg);
         assert!(rendered.contains("task_id=\"task&lt;1&gt;\""));
         assert!(rendered.contains("subject=\"A &amp; B\""));
         assert!(rendered.contains("assigned_by=\"Alice &quot;Lead&quot;\""));
         assert!(rendered.contains(">&lt;plan&gt;steal&lt;/plan&gt;<"));
+        assert!(rendered.contains("<instructions>Before doing this task"));
         // Sanity: no raw '<' or '>' inside attribute values or body
         // (everything except the framing tags must be escaped).
         let inner = rendered
@@ -657,13 +726,13 @@ mod tests {
         );
     }
 
-    /// Pin the side-effect: when the inbox drain encounters a
-    /// `PlanApprovalResponse { accepted: true }`,
-    /// the recipient session must drop both plan-mode caches. This is
-    /// the half that the pure rendering tests above can't observe
-    /// because they pass `None` for the session.
+    /// Legacy compatibility pin: older builds sent
+    /// `PlanApprovalResponse { accepted: true }` back to the Planner and
+    /// used it to start a Build turn. New task-bound approval completes the
+    /// planning task and wakes downstream tasks instead, but persisted unread
+    /// rows from an older build must still drain safely.
     #[test]
-    fn drain_clears_plan_mode_caches_on_accepted_response() {
+    fn legacy_accepted_response_clears_plan_mode_caches() {
         let _sandbox = test_helpers::test_env::sandbox();
         let run_id = format!("run-{}", uuid::Uuid::new_v4());
         let ctx = ctx_for(&run_id);
@@ -733,16 +802,18 @@ mod tests {
             session.pre_plan_mode_cache.get(&session.id).is_none(),
             "pre_plan_mode_cache should be consumed on accepted approval"
         );
-        assert_eq!(
-            session.requested_exec_mode_cache.peek(&session.id),
-            Some(crate::session::AgentExecMode::Build),
-            "accepted approval should stage the next member turn in build mode"
+        assert!(
+            session
+                .requested_exec_mode_cache
+                .peek(&session.id)
+                .is_none(),
+            "drain must not restage a pre-turn control row for another turn"
         );
     }
 
     /// Negative pin for the same side effect: a rejected response must
-    /// NOT clear the plan-mode caches, and it must stage the next turn
-    /// back in Plan mode so the member can revise and resubmit.
+    /// NOT clear the plan-mode caches. Its mode is applied by the pre-turn
+    /// resolver to the current wake, not staged by drain for another turn.
     #[test]
     fn drain_preserves_plan_mode_caches_on_rejected_response() {
         let _sandbox = test_helpers::test_env::sandbox();
@@ -797,10 +868,12 @@ mod tests {
             session.pre_plan_mode_cache.get(&session.id).is_some(),
             "rejected response must NOT consume pre_plan_mode_cache"
         );
-        assert_eq!(
-            session.requested_exec_mode_cache.peek(&session.id),
-            Some(crate::session::AgentExecMode::Plan),
-            "rejected response should stage the next member turn back in plan mode"
+        assert!(
+            session
+                .requested_exec_mode_cache
+                .peek(&session.id)
+                .is_none(),
+            "drain must not repeat the rejected Plan control on a later turn"
         );
     }
 
@@ -935,6 +1008,140 @@ mod tests {
         guard3.commit();
     }
 
+    #[test]
+    fn materialized_batch_replay_delivers_only_rows_that_arrived_later() {
+        let _sandbox = test_helpers::test_env::sandbox();
+        let run_id = format!("run-{}", uuid::Uuid::new_v4());
+        let ctx = ctx_for(&run_id);
+        let session_id = format!("session-{}", uuid::Uuid::new_v4());
+        upsert_org_member_session(
+            &session_id,
+            ctx.root_session_id.as_deref().unwrap_or("root-1"),
+            "worker-1",
+            "member-worker-1",
+        );
+        let definition = crate::core::definitions::builtin::sde_agent();
+        let session = crate::state::AgentSession::new(session_id.clone(), definition);
+
+        let insert_plain = |text: &str| {
+            AgentInboxStore::insert(InsertInboxParams {
+                recipient_agent_id: "worker-1".into(),
+                recipient_member_id: Some("member-worker-1".into()),
+                sender_agent_id: "coord".into(),
+                sender_member_id: Some(COORDINATOR_MEMBER_ID.into()),
+                org_run_id: Some(run_id.clone()),
+                message: AgentMessage::Plain {
+                    summary: text.into(),
+                    text: text.into(),
+                },
+            })
+            .expect("insert inbox row")
+        };
+        let one = insert_plain("first materialized row");
+        let two = insert_plain("second materialized row");
+
+        let mut first_messages = Vec::new();
+        let first = drain_and_render_deferred(
+            &ctx,
+            "worker-1",
+            Some("member-worker-1"),
+            &mut first_messages,
+            Some(&session),
+        );
+        assert_eq!(first.new_materialization_ids(), &[one.id, two.id]);
+        let first_content = first.transcript_content().expect("first transcript");
+        let (first_message_id, first_intent_id) = first
+            .transcript_identity(&session_id)
+            .expect("first identity");
+        crate::session::persistence::materialize_agent_org_inbox_transcript(
+            &session_id,
+            first.new_materialization_ids(),
+            &first_message_id,
+            &first_intent_id,
+            first_content,
+        )
+        .expect("materialize first batch");
+        drop(first); // crash before mark-read
+
+        let mut exact_replay_messages = Vec::new();
+        let exact_replay = drain_and_render_deferred(
+            &ctx,
+            "worker-1",
+            Some("member-worker-1"),
+            &mut exact_replay_messages,
+            Some(&session),
+        );
+        assert!(exact_replay.has_pending_input());
+        assert!(exact_replay.transcript_content().is_none());
+        assert!(exact_replay_messages.is_empty());
+        assert_eq!(exact_replay.materializations().len(), 1);
+        drop(exact_replay); // provider retry also crashes
+
+        let three = insert_plain("third row arrived after crash");
+        let mut retry_messages = Vec::new();
+        let retry = drain_and_render_deferred(
+            &ctx,
+            "worker-1",
+            Some("member-worker-1"),
+            &mut retry_messages,
+            Some(&session),
+        );
+        assert_eq!(retry.drained_count(), 3);
+        assert_eq!(retry.new_materialization_ids(), &[three.id]);
+        assert_eq!(retry_messages.len(), 1);
+        let rendered = retry_messages[0]["content"]
+            .as_str()
+            .expect("new-row attachment");
+        assert!(rendered.contains("third row arrived after crash"));
+        assert!(!rendered.contains("first materialized row"));
+        assert!(!rendered.contains("second materialized row"));
+
+        let retry_content = retry.transcript_content().expect("retry transcript");
+        let (retry_message_id, retry_intent_id) = retry
+            .transcript_identity(&session_id)
+            .expect("retry identity");
+        crate::session::persistence::materialize_agent_org_inbox_transcript(
+            &session_id,
+            retry.new_materialization_ids(),
+            &retry_message_id,
+            &retry_intent_id,
+            retry_content,
+        )
+        .expect("materialize later row");
+
+        let transcript = crate::session::persistence::load_messages(&session_id)
+            .expect("load durable transcript");
+        assert_eq!(transcript.len(), 2, "one transcript per materialized batch");
+        let combined = transcript
+            .iter()
+            .map(|row| row.content.as_str())
+            .collect::<Vec<_>>()
+            .join("\n");
+        for text in [
+            "first materialized row",
+            "second materialized row",
+            "third row arrived after crash",
+        ] {
+            assert_eq!(combined.matches(text).count(), 1, "{text} must appear once");
+        }
+
+        retry.commit();
+        assert!(
+            AgentInboxStore::list_unread_for_member("member-worker-1", &run_id)
+                .expect("list unread after success")
+                .is_empty()
+        );
+        let receipt_count: i64 = database::db::get_connection()
+            .expect("receipt connection")
+            .query_row(
+                "SELECT COUNT(*) FROM agent_inbox_materializations",
+                [],
+                |row| row.get(0),
+            )
+            .expect("receipt count");
+        assert_eq!(receipt_count, 0, "successful ack removes receipts");
+    }
+
     /// Defence-in-depth — a `PlanApprovalResponse`
     /// row whose sender is NOT the coordinator must be dropped on
     /// the read side, even if it somehow landed in the inbox. The
@@ -1013,8 +1220,8 @@ mod tests {
     #[test]
     fn drain_cancels_member_and_inserts_member_terminated_on_accepted_shutdown() {
         let _sandbox = test_helpers::test_env::sandbox();
-        let run_id = format!("run-{}", uuid::Uuid::new_v4());
-        let ctx = ctx_for_with_member(&run_id, "alice-agent", "Alice");
+        let ctx = running_ctx_for_members(&[("member-alice-agent", "alice-agent", "Alice")]);
+        let run_id = ctx.run_id.clone();
 
         AgentInboxStore::insert(InsertInboxParams {
             recipient_agent_id: "coord".into(),
@@ -1087,19 +1294,97 @@ mod tests {
         );
     }
 
+    #[test]
+    fn shutdown_notification_failure_leaves_source_unread_and_retries_before_delivery() {
+        let _sandbox = test_helpers::test_env::sandbox();
+        let ctx = running_ctx_for_members(&[("member-alice-agent", "alice-agent", "Alice")]);
+        let run_id = ctx.run_id.clone();
+        let source = AgentInboxStore::insert(InsertInboxParams {
+            recipient_agent_id: "coord".into(),
+            recipient_member_id: Some(COORDINATOR_MEMBER_ID.into()),
+            sender_agent_id: "alice-agent".into(),
+            sender_member_id: Some("member-alice-agent".into()),
+            org_run_id: Some(run_id.clone()),
+            message: AgentMessage::ShutdownResponse {
+                request_id: RequestId("req-shut-retry".into()),
+                accepted: true,
+                note: None,
+            },
+        })
+        .expect("insert shutdown response");
+        let conn = database::db::get_connection().expect("db");
+        conn.execute_batch(
+            "CREATE TRIGGER fail_member_terminated
+             BEFORE INSERT ON agent_inbox
+             WHEN NEW.payload_kind='member_terminated'
+             BEGIN
+               SELECT RAISE(ABORT, 'forced member termination insert failure');
+             END;",
+        )
+        .expect("install forced failure");
+
+        let definition = crate::core::definitions::builtin::sde_agent();
+        let session = crate::state::AgentSession::new("session-coord".into(), definition);
+        let recording = Arc::new(RecordingShutdownHook::default());
+        let _guard = MemberShutdownHookGuard::install(recording.clone());
+        let mut first_messages = Vec::new();
+        let first = drain_and_render_deferred(
+            &ctx,
+            "coord",
+            Some(COORDINATOR_MEMBER_ID),
+            &mut first_messages,
+            Some(&session),
+        );
+        assert_eq!(first.drained_count(), 0);
+        assert!(
+            first_messages.is_empty(),
+            "failed side effect must fail closed"
+        );
+        let unread = AgentInboxStore::list_unread_for_member(COORDINATOR_MEMBER_ID, &run_id)
+            .expect("list unread after failure");
+        assert_eq!(
+            unread.iter().map(|row| row.id).collect::<Vec<_>>(),
+            vec![source.id]
+        );
+
+        conn.execute_batch("DROP TRIGGER fail_member_terminated")
+            .expect("remove forced failure");
+        let mut retry_messages = Vec::new();
+        let drained = drain_and_render(
+            &ctx,
+            "coord",
+            Some(COORDINATOR_MEMBER_ID),
+            &mut retry_messages,
+            Some(&session),
+        );
+        assert_eq!(drained, 1);
+        assert_eq!(retry_messages.len(), 1);
+        let unread = AgentInboxStore::list_unread_for_member(COORDINATOR_MEMBER_ID, &run_id)
+            .expect("list unread after retry");
+        assert_eq!(unread.len(), 1);
+        assert!(matches!(
+            unread[0]
+                .decode_payload()
+                .expect("decode retry notification"),
+            AgentMessage::MemberTerminated { .. }
+        ));
+    }
+
     /// When a member acknowledges shutdown, every task it still owns
-    /// is released back to the pool (status → pending, owner → null)
-    /// so the next idle peer can auto-claim it. Tasks that were
-    /// already completed are left alone.
+    /// becomes ownerless Pending work awaiting explicit coordinator
+    /// reassignment. Tasks that were already completed are left alone.
     #[test]
     fn drain_releases_member_tasks_on_accepted_shutdown() {
         use crate::coordination::agent_org_tasks::{
-            AgentOrgTaskStore, ClaimOptions, CreateTaskParams, TaskStatus,
+            AgentOrgTaskStore, CreateTaskParams, TaskStatus,
         };
 
         let _sandbox = test_helpers::test_env::sandbox();
-        let run_id = format!("run-{}", uuid::Uuid::new_v4());
-        let ctx = ctx_for_with_member(&run_id, "alice-agent", "Alice");
+        let ctx = running_ctx_for_members(&[
+            ("member-alice-agent", "alice-agent", "Alice"),
+            ("member-peer", "peer-agent", "Peer"),
+        ]);
+        let run_id = ctx.run_id.clone();
 
         AgentOrgTaskStore::create(CreateTaskParams {
             id: "open-1".into(),
@@ -1107,11 +1392,11 @@ mod tests {
             subject: "Half-finished work".into(),
             description: String::new(),
             active_form: None,
-            owner: None,
-            status: TaskStatus::Pending,
+            owner: Some("member-alice-agent".into()),
+            status: TaskStatus::InProgress,
             blocks: vec![],
             blocked_by: vec![],
-            metadata: None,
+            metadata: eligible_task_metadata(&["member-alice-agent", "member-peer"]),
         })
         .unwrap();
         AgentOrgTaskStore::create(CreateTaskParams {
@@ -1127,14 +1412,6 @@ mod tests {
             metadata: None,
         })
         .unwrap();
-        AgentOrgTaskStore::try_claim(
-            &run_id,
-            "open-1",
-            "member-alice-agent",
-            ClaimOptions::default(),
-        )
-        .unwrap();
-
         AgentInboxStore::insert(InsertInboxParams {
             recipient_agent_id: "coord".into(),
             recipient_member_id: Some(COORDINATOR_MEMBER_ID.into()),
@@ -1286,7 +1563,7 @@ mod tests {
     }
 
     #[test]
-    fn drain_releases_stale_worker_tasks_before_autonomous_claim() {
+    fn drain_does_not_steal_task_from_stale_running_worker() {
         use crate::coordination::agent_org_runs::{
             AgentOrgRunEntryMode, AgentOrgRunStatus, AgentOrgRunStore, CreateAgentOrgRunParams,
         };
@@ -1324,6 +1601,7 @@ mod tests {
                 agent_id: "coord".to_string(),
                 description: None,
                 hierarchy_mode: Default::default(),
+                plan_approval_policy: crate::definitions::orgs::PlanApprovalPolicy::Coordinator,
                 children: vec![
                     OrgMember {
                         id: "member-stale".to_string(),
@@ -1350,8 +1628,10 @@ mod tests {
             routine_fire_id: None,
         })
         .expect("create org run");
-        let stale_time =
-            now - chrono::Duration::seconds(STALE_WORKER_TASK_RELEASE_TIMEOUT_SECS + 60);
+        let stale_time = now
+            - chrono::Duration::seconds(
+                crate::coordination::agent_org_tasks::STALE_MEMBER_NOTICE_SECS + 60,
+            );
         upsert_session(&UnifiedSessionRecord {
             session_id: "stale-worker-session".to_string(),
             name: "stale worker".to_string(),
@@ -1377,17 +1657,17 @@ mod tests {
             status: TaskStatus::InProgress,
             blocks: Vec::new(),
             blocked_by: Vec::new(),
-            metadata: None,
+            metadata: eligible_task_metadata(&["member-stale", "member-fresh"]),
         })
         .expect("create stale-owned task");
 
         let workers = AgentOrgRunStore::list_descendant_worker_sessions(&run.id)
-            .expect("list descendant workers before stale release");
+            .expect("list descendant workers before drain");
         assert!(
             workers
                 .iter()
                 .any(|worker| worker.member_id.as_deref() == Some("member-stale")),
-            "stale worker session must be discoverable before release: {workers:?}"
+            "stale worker session must be discoverable before drain: {workers:?}"
         );
 
         let mut ctx = ctx_for_with_member(&run.id, "stale-worker", "Stale Worker");
@@ -1408,29 +1688,26 @@ mod tests {
             &mut messages,
             None,
         );
-        assert_eq!(drained, 1, "fresh worker should auto-claim released task");
+        assert_eq!(drained, 0, "age alone must not release Running work");
         let stored = AgentOrgTaskStore::get(&run.id, "stale-drain-task")
             .expect("get task")
             .expect("task exists");
-        assert_eq!(stored.owner.as_deref(), Some("member-fresh"));
+        assert_eq!(stored.owner.as_deref(), Some("member-stale"));
         assert_eq!(stored.status, TaskStatus::InProgress);
-        let body = messages[0]["content"].as_str().expect("content");
-        assert!(body.contains("task_id=\"stale-drain-task\""), "{body}");
+        assert!(messages.is_empty());
     }
 
-    /// A member with an empty inbox auto-claims the next available
-    /// task. The claim posts a self-`TaskAssigned` row that the
-    /// immediately-following `list_unread_for_member` call drains
-    /// and renders into the turn attachment.
+    /// Ownerless tasks are durable waiting-room rows. An empty inbox drain
+    /// must not mutate ownership or manufacture a TaskAssigned message.
     #[test]
-    fn autonomous_claim_picks_up_unowned_task_for_idle_member() {
+    fn ownerless_task_is_not_claimed_by_inbox_drain() {
         use crate::coordination::agent_org_tasks::{
             AgentOrgTaskStore, CreateTaskParams, TaskStatus,
         };
 
         let _sandbox = test_helpers::test_env::sandbox();
-        let run_id = format!("run-{}", uuid::Uuid::new_v4());
-        let ctx = ctx_for_with_member(&run_id, "alice", "Alice");
+        let ctx = running_ctx_for_members(&[("member-alice", "alice", "Alice")]);
+        let run_id = ctx.run_id.clone();
 
         AgentOrgTaskStore::create(CreateTaskParams {
             id: "claim-1".into(),
@@ -1442,81 +1719,24 @@ mod tests {
             status: TaskStatus::Pending,
             blocks: vec![],
             blocked_by: vec![],
-            metadata: None,
+            metadata: eligible_task_metadata(&["member-alice"]),
         })
         .expect("create task");
 
         let mut messages: Vec<Value> = Vec::new();
         let drained = drain_and_render(&ctx, "alice", Some("member-alice"), &mut messages, None);
-        assert_eq!(drained, 1, "self-claim row should be the only injected row");
-        let body = messages[0]["content"].as_str().expect("content");
-        assert!(body.contains("kind=\"task_assigned\""), "{body}");
-        assert!(body.contains("Refactor the auth layer"), "{body}");
-
-        // The store row is now owned by alice and in_progress.
+        assert_eq!(drained, 0, "ownerless work is not executable input");
+        assert!(messages.is_empty());
         let stored = AgentOrgTaskStore::get(&run_id, "claim-1").unwrap().unwrap();
-        assert_eq!(stored.owner.as_deref(), Some("member-alice"));
-        assert_eq!(stored.status, TaskStatus::InProgress);
+        assert!(stored.owner.is_none());
+        assert_eq!(stored.status, TaskStatus::Pending);
     }
 
-    /// A member that already has work in flight does not steal another
-    /// task on the next drain (skip-if-busy branch in the polling loop).
+    /// `ExecModeSetRequest` is rendered but does not restage itself during
+    /// drain. The background-wake resolver has already applied it before the
+    /// turn policy/toolset was built.
     #[test]
-    fn autonomous_claim_skips_when_member_already_busy() {
-        use crate::coordination::agent_org_tasks::{
-            AgentOrgTaskStore, ClaimOptions, CreateTaskParams, TaskStatus,
-        };
-
-        let _sandbox = test_helpers::test_env::sandbox();
-        let run_id = format!("run-{}", uuid::Uuid::new_v4());
-        let ctx = ctx_for_with_member(&run_id, "alice", "Alice");
-
-        AgentOrgTaskStore::create(CreateTaskParams {
-            id: "busy-1".into(),
-            org_run_id: run_id.clone(),
-            subject: "First".into(),
-            description: String::new(),
-            active_form: None,
-            owner: None,
-            status: TaskStatus::Pending,
-            blocks: vec![],
-            blocked_by: vec![],
-            metadata: None,
-        })
-        .unwrap();
-        AgentOrgTaskStore::create(CreateTaskParams {
-            id: "busy-2".into(),
-            org_run_id: run_id.clone(),
-            subject: "Second".into(),
-            description: String::new(),
-            active_form: None,
-            owner: None,
-            status: TaskStatus::Pending,
-            blocks: vec![],
-            blocked_by: vec![],
-            metadata: None,
-        })
-        .unwrap();
-        AgentOrgTaskStore::try_claim(&run_id, "busy-1", "member-alice", ClaimOptions::default())
-            .unwrap();
-
-        let mut messages: Vec<Value> = Vec::new();
-        let drained = drain_and_render(&ctx, "alice", Some("member-alice"), &mut messages, None);
-        assert_eq!(drained, 0, "busy member should not auto-claim again");
-        let busy2 = AgentOrgTaskStore::get(&run_id, "busy-2").unwrap().unwrap();
-        assert!(
-            busy2.owner.is_none(),
-            "second task must remain unclaimed: {busy2:?}"
-        );
-    }
-
-    /// `ExecModeSetRequest` from the coordinator stages the new mode
-    /// on the member's session cache so the next `send_message_impl`
-    /// consumes it via `requested_exec_mode_cache.take()`. Mirrors the
-    /// way `PlanApprovalResponse{accepted=true}` clears plan caches as
-    /// a side effect of the same drain.
-    #[test]
-    fn drain_stages_exec_mode_override_for_coordinator_request() {
+    fn drain_does_not_restage_exec_mode_override() {
         use crate::session::AgentExecMode;
 
         let _sandbox = test_helpers::test_env::sandbox();
@@ -1555,11 +1775,13 @@ mod tests {
             "row must render with the requested mode: {body}"
         );
 
-        let staged = session
-            .requested_exec_mode_cache
-            .peek(&session.id)
-            .expect("cache must hold the override after drain");
-        assert_eq!(staged, AgentExecMode::Plan);
+        assert!(
+            session
+                .requested_exec_mode_cache
+                .peek(&session.id)
+                .is_none(),
+            "pre-applied override must not be staged for a second turn"
+        );
     }
 
     /// Defence-in-depth: an `ExecModeSetRequest` row from a
@@ -1621,17 +1843,17 @@ mod tests {
         );
     }
 
-    /// The coordinator never auto-claims (only members poll; the
-    /// coordinator dispatches work).
+    /// Inbox drain never changes ownerless task state, including for the
+    /// coordinator. Assignment happens only through task tools.
     #[test]
-    fn autonomous_claim_skips_for_coordinator() {
+    fn coordinator_inbox_drain_does_not_assign_ownerless_task() {
         use crate::coordination::agent_org_tasks::{
             AgentOrgTaskStore, CreateTaskParams, TaskStatus,
         };
 
         let _sandbox = test_helpers::test_env::sandbox();
-        let run_id = format!("run-{}", uuid::Uuid::new_v4());
-        let ctx = ctx_for(&run_id);
+        let ctx = running_ctx_for_members(&[("member-worker", "worker", "Worker")]);
+        let run_id = ctx.run_id.clone();
 
         AgentOrgTaskStore::create(CreateTaskParams {
             id: "coord-1".into(),
@@ -1643,7 +1865,10 @@ mod tests {
             status: TaskStatus::Pending,
             blocks: vec![],
             blocked_by: vec![],
-            metadata: None,
+            metadata: Some(serde_json::json!({
+                crate::coordination::agent_org_tasks::TASK_METADATA_ELIGIBLE_MEMBER_IDS:
+                    ["member-worker"],
+            })),
         })
         .unwrap();
 

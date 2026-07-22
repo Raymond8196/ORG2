@@ -49,6 +49,7 @@ export function buildWorkItemsSidebarMenuItems(labels: {
       label: labels.projects,
       icon: Boxes,
       iconName: "boxes",
+      dataTestId: "sidebar-work-items-projects",
     },
     {
       id: WORK_ITEMS_GITHUB_ISSUES_MENU_ITEM_ID,
@@ -56,6 +57,7 @@ export function buildWorkItemsSidebarMenuItems(labels: {
       label: labels.githubIssues,
       icon: CircleDot,
       iconName: "circle-dot",
+      dataTestId: "sidebar-work-items-github-issues",
     },
     {
       id: WORK_ITEMS_GITHUB_PRS_MENU_ITEM_ID,
@@ -63,6 +65,7 @@ export function buildWorkItemsSidebarMenuItems(labels: {
       label: labels.githubPrs,
       icon: GitPullRequest,
       iconName: "git-pull-request",
+      dataTestId: "sidebar-work-items-github-prs",
     },
   ];
 }

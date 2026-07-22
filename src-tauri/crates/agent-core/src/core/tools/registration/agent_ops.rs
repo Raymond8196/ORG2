@@ -95,12 +95,16 @@ pub fn register(registry: &mut ToolRegistry, deps: &ToolDeps, disabled: &HashSet
             deps.app_handle.clone(),
             deps.session_account_id.clone(),
             deps.agent_model.clone(),
+            deps.session_org_id.clone(),
         )),
         disabled,
     );
     register_if_enabled(
         registry,
-        Box::new(WorkItemTool::new(deps.session_id.clone())),
+        Box::new(WorkItemTool::new(
+            deps.session_id.clone(),
+            deps.session_org_id.clone(),
+        )),
         disabled,
     );
 

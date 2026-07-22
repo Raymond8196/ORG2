@@ -28,6 +28,7 @@ async function sendPlanMessage(
 ): Promise<void> {
   const adeContext = collectAdeContext({
     expectedRepoPath: params.workspacePath ?? null,
+    sessionId,
   });
   // Raw invoke bypasses useMessageDispatch — without the optimistic running
   // the planning indicator stays blank until Rust's first status event (#8).

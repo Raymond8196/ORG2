@@ -1,9 +1,22 @@
 //! Wiremock-backed unit tests for the Linear OAuth helpers.
 
 use super::*;
+use serial_test::serial;
 use std::time::Duration;
 use wiremock::matchers::{body_string_contains, method, path};
 use wiremock::{Mock, MockServer, ResponseTemplate};
+
+async fn loopback_get(url: &str) -> reqwest::Response {
+    crate::test_support::install_crypto_provider_for_tests();
+    reqwest::Client::builder()
+        .no_proxy()
+        .build()
+        .expect("loopback test client")
+        .get(url)
+        .send()
+        .await
+        .expect("redirect get")
+}
 
 /// PKCE challenge derivation must match RFC 7636: the URL-safe-no-pad
 /// base64 of the SHA-256 of the verifier ASCII bytes. This vector
@@ -34,6 +47,7 @@ fn random_base64url_yields_distinct_long_outputs() {
 /// `start_auth_flow` must build an `authorize_url` that contains every
 /// PKCE-required query parameter, encoded properly.
 #[tokio::test]
+#[serial(linear_oauth_loopback)]
 async fn start_auth_flow_builds_pkce_compliant_authorize_url() {
     let descriptor = start_auth_flow("test_client_123")
         .await
@@ -71,6 +85,7 @@ async fn start_auth_flow_rejects_empty_client_id() {
 }
 
 #[tokio::test]
+#[serial(linear_oauth_loopback)]
 async fn await_callback_resolves_with_code_on_state_match() {
     let descriptor = start_auth_flow("test_client").await.expect("flow start");
     let port = descriptor.port;
@@ -90,7 +105,7 @@ async fn await_callback_resolves_with_code_on_state_match() {
         port,
         urlencoding::encode(&state)
     );
-    let resp = reqwest::get(&url).await.expect("redirect get");
+    let resp = loopback_get(&url).await;
     assert_eq!(resp.status().as_u16(), 200);
 
     let outcome = listener_handle.await.expect("listener join");
@@ -101,6 +116,7 @@ async fn await_callback_resolves_with_code_on_state_match() {
 }
 
 #[tokio::test]
+#[serial(linear_oauth_loopback)]
 async fn await_callback_returns_state_mismatch_when_state_differs() {
     let descriptor = start_auth_flow("test_client").await.expect("flow start");
     let port = descriptor.port;
@@ -117,7 +133,7 @@ async fn await_callback_returns_state_mismatch_when_state_differs() {
         "http://localhost:{}/callback?code=AUTHCODE&state=ATTACKER",
         port
     );
-    let _ = reqwest::get(&url).await.expect("redirect get");
+    let _ = loopback_get(&url).await;
 
     let outcome = listener_handle.await.expect("listener join");
     match outcome {
@@ -133,6 +149,7 @@ async fn await_callback_returns_state_mismatch_when_state_differs() {
 }
 
 #[tokio::test]
+#[serial(linear_oauth_loopback)]
 async fn await_callback_times_out_when_no_callback_arrives() {
     let descriptor = start_auth_flow("test_client").await.expect("flow start");
     let outcome = await_callback_with_timeout(
@@ -150,6 +167,7 @@ async fn await_callback_times_out_when_no_callback_arrives() {
 }
 
 #[tokio::test]
+#[serial(linear_oauth_loopback)]
 async fn await_callback_returns_cancelled_when_token_signalled() {
     let descriptor = start_auth_flow("test_client").await.expect("flow start");
     let cancel = CancellationToken::new();
@@ -173,6 +191,7 @@ async fn await_callback_returns_cancelled_when_token_signalled() {
 }
 
 #[tokio::test]
+#[serial(linear_oauth_loopback)]
 async fn await_callback_returns_access_denied_on_authorize_error() {
     let descriptor = start_auth_flow("test_client").await.expect("flow start");
     let port = descriptor.port;
@@ -189,7 +208,7 @@ async fn await_callback_returns_access_denied_on_authorize_error() {
         "http://localhost:{}/callback?error=access_denied&error_description=user+denied",
         port
     );
-    let _ = reqwest::get(&url).await.expect("redirect get");
+    let _ = loopback_get(&url).await;
     let outcome = listener_handle.await.expect("listener join");
     assert!(
         matches!(outcome, Err(PollOutcome::AccessDenied)),

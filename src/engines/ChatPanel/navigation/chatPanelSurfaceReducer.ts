@@ -6,7 +6,7 @@ import {
   type ChatPanelCreateProjectContext,
   type ChatPanelCreateTarget,
   type ChatPanelNavigateCommand,
-  type ChatPanelSelectedCollabOrg,
+  type ChatPanelSelectedCloudOrg,
   type ChatPanelSelectedProject,
   type ChatPanelSelectedProjectOrg,
   type ChatPanelSelectedWorkItem,
@@ -24,7 +24,7 @@ export interface ChatPanelSurfaceSnapshot {
   selectedProject: ChatPanelSelectedProject | null;
   selectedProjectOrg: ChatPanelSelectedProjectOrg | null;
   selectedWorkspace: ChatPanelSelectedWorkspace | null;
-  selectedCollabOrg: ChatPanelSelectedCollabOrg | null;
+  selectedCloudOrg: ChatPanelSelectedCloudOrg | null;
   exploreOpen: boolean;
   workspaceOverviewTab: WorkspaceOverviewTab;
 }
@@ -37,7 +37,7 @@ export const EMPTY_CHAT_PANEL_SURFACE_SNAPSHOT: ChatPanelSurfaceSnapshot = {
   selectedProject: null,
   selectedProjectOrg: null,
   selectedWorkspace: null,
-  selectedCollabOrg: null,
+  selectedCloudOrg: null,
   exploreOpen: false,
   workspaceOverviewTab: WORKSPACE_OVERVIEW_TAB.OVERVIEW,
 };
@@ -100,11 +100,6 @@ export function reduceChatPanelSurfaceCommand(
         ...next,
         selectedWorkItem: command.workItem,
       };
-    case CHAT_PANEL_SURFACE_KIND.WORKSPACE_DASHBOARD:
-      return {
-        ...next,
-        contentMode: CHAT_PANEL_CONTENT_MODE.SESSION,
-      };
     case CHAT_PANEL_SURFACE_KIND.WORKSPACE_EXPLORE:
       return {
         ...next,
@@ -117,10 +112,10 @@ export function reduceChatPanelSurfaceCommand(
         workspaceOverviewTab:
           command.tab ?? currentSnapshot.workspaceOverviewTab,
       };
-    case CHAT_PANEL_SURFACE_KIND.COLLAB_ORG:
+    case CHAT_PANEL_SURFACE_KIND.CLOUD_ORG:
       return {
         ...next,
-        selectedCollabOrg: command.collabOrg,
+        selectedCloudOrg: command.cloudOrg,
       };
   }
 }

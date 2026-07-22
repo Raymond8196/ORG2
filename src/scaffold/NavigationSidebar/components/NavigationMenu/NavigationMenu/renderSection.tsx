@@ -60,11 +60,14 @@ export function renderNavigationMenuItem({
       isOpen={isOpen}
       submenuSelected={submenuSelected}
       collapsed={collapsed}
+      t={t}
       renderIcon={renderIcon}
       renderMenuItem={renderMenuItem}
       onMenuItemContextMenu={onMenuItemContextMenu}
       onRowMouseEnter={onRowMouseEnter}
+      onRowActionClick={onRowActionClick}
       onToggleSubmenu={onToggleSubmenu}
+      onMenuItemClick={onMenuItemClick}
       compactRows={compactRows}
     />
   ) : (

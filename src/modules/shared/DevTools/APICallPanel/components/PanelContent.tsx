@@ -7,6 +7,7 @@ import Table, { type TableColumn } from "@src/components/Table";
 import type {
   ApiCall,
   ApiCallHotspot,
+  PushHotspot,
   TimerHotspot,
 } from "@src/util/monitoring/apiTracker";
 
@@ -28,6 +29,7 @@ export interface PanelContentProps {
   apiCalls: ApiCall[];
   hotspots: ApiCallHotspot[];
   timerHotspots: TimerHotspot[];
+  pushHotspots: PushHotspot[];
   expandedCall: string | null;
   onToggleExpand: (id: string) => void;
   onExpandedChange: (id: string | null) => void;
@@ -55,10 +57,40 @@ function getTimerLabel(hotspot: TimerHotspot): string {
   return `${hotspot.kind === "interval" ? "setInterval" : "setTimeout"}(${hotspot.delayMs ?? "?"}ms)`;
 }
 
+function getApiCallTarget(call: ApiCall): string {
+  return call.transport === "tauri"
+    ? call.tauriCommand || call.url
+    : call.fullUrl;
+}
+
+/** Keep the compact top-six summary, but never hide a group the tracker has
+ * classified as likely polling. */
+export function selectVisibleApiHotspots(
+  hotspots: ApiCallHotspot[]
+): ApiCallHotspot[] {
+  return hotspots.filter(
+    (hotspot, index) => index < 6 || hotspot.isLikelyPolling
+  );
+}
+
+export function selectVisibleTimerHotspots(
+  hotspots: TimerHotspot[]
+): TimerHotspot[] {
+  return hotspots.filter((hotspot, index) => index < 6 || hotspot.isLikelyLoop);
+}
+
+export function selectVisiblePushHotspots(
+  hotspots: PushHotspot[]
+): PushHotspot[] {
+  return hotspots.filter(
+    (hotspot, index) => index < 6 || hotspot.isLikelyStream
+  );
+}
+
 const HotspotSummary: React.FC<{ hotspots: ApiCallHotspot[] }> = ({
   hotspots,
 }) => {
-  const topHotspots = hotspots.slice(0, 6);
+  const topHotspots = selectVisibleApiHotspots(hotspots);
   if (topHotspots.length === 0) return null;
 
   return (
@@ -89,7 +121,7 @@ const HotspotSummary: React.FC<{ hotspots: ApiCallHotspot[] }> = ({
           >
             <div className="mb-1 flex items-center justify-between gap-2">
               <span className="text-[10px] font-semibold uppercase tracking-wide text-text-3">
-                {hotspot.backend === "rust" ? "Rust" : "HTTP"} ·{" "}
+                {hotspot.transport === "tauri" ? "IPC" : "HTTP"} ·{" "}
                 {hotspot.method}
               </span>
               <span
@@ -132,7 +164,7 @@ const HotspotSummary: React.FC<{ hotspots: ApiCallHotspot[] }> = ({
 const TimerHotspotSummary: React.FC<{ hotspots: TimerHotspot[] }> = ({
   hotspots,
 }) => {
-  const topHotspots = hotspots.slice(0, 6);
+  const topHotspots = selectVisibleTimerHotspots(hotspots);
   if (topHotspots.length === 0) return null;
 
   return (
@@ -197,28 +229,87 @@ const TimerHotspotSummary: React.FC<{ hotspots: TimerHotspot[] }> = ({
   );
 };
 
+const PUSH_KIND_LABELS: Record<PushHotspot["kind"], string> = {
+  "tauri-event": "Tauri event",
+  channel: "IPC channel",
+  ws: "WebSocket",
+  sse: "SSE",
+};
+
+const PushTrafficSummary: React.FC<{ hotspots: PushHotspot[] }> = ({
+  hotspots,
+}) => {
+  const topHotspots = selectVisiblePushHotspots(hotspots);
+  if (topHotspots.length === 0) return null;
+
+  return (
+    <div className="border-b border-border-2 bg-bg-1/70 px-4 py-3">
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <div>
+          <div className="text-[12px] font-semibold text-text-1">
+            Event / stream traffic
+          </div>
+          <div className="text-[11px] text-text-3">
+            Events delivered to the frontend (Tauri events, channels, WS, SSE)
+            over the last 2 minutes
+          </div>
+        </div>
+        <div className="text-[11px] text-text-3">
+          {hotspots.filter((hotspot) => hotspot.isLikelyStream).length} active
+          streams
+        </div>
+      </div>
+      <div className="grid grid-cols-1 gap-2 lg:grid-cols-2 xl:grid-cols-3">
+        {topHotspots.map((hotspot) => (
+          <div
+            key={hotspot.key}
+            className={`rounded-lg border p-2.5 ${
+              hotspot.isLikelyStream
+                ? "border-primary-6/40 bg-primary-6/10"
+                : "border-border-2 bg-bg-2"
+            }`}
+          >
+            <div className="mb-1 flex items-center justify-between gap-2">
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-text-3">
+                {PUSH_KIND_LABELS[hotspot.kind]}
+              </span>
+              <span
+                className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${
+                  hotspot.isLikelyStream
+                    ? "bg-primary-6/15 text-primary-6"
+                    : "bg-fill-2 text-text-3"
+                }`}
+              >
+                {formatCallsPerMinute(hotspot.eventsPerMinute)}/min
+              </span>
+            </div>
+            <div
+              className="truncate text-[11px] font-medium text-primary-6"
+              title={hotspot.name}
+            >
+              {hotspot.name}
+            </div>
+            <div className="mt-1 text-right text-[10px] text-text-3">
+              {hotspot.count} events
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const PanelContent: React.FC<PanelContentProps> = ({
   apiCalls,
   hotspots,
   timerHotspots,
+  pushHotspots,
   expandedCall,
   onToggleExpand,
   onExpandedChange,
 }) => {
   const columns = useMemo<TableColumn<ApiCall>[]>(
     () => [
-      {
-        key: "backend",
-        dataIndex: "backend",
-        title: "Backend",
-        width: "10%",
-        sorter: (callA, callB) => callA.backend.localeCompare(callB.backend),
-        render: (_value, call) => (
-          <span className="text-[11px] text-text-3">
-            {call.backend === "rust" ? "Rust" : "Python"}
-          </span>
-        ),
-      },
       {
         key: "method",
         dataIndex: "method",
@@ -233,18 +324,9 @@ const PanelContent: React.FC<PanelContentProps> = ({
         key: "target",
         dataIndex: "url",
         title: "Target",
-        width: "34%",
-        sorter: (callA, callB) => {
-          const targetA =
-            callA.backend === "rust"
-              ? callA.tauriCommand || callA.url
-              : callA.fullUrl;
-          const targetB =
-            callB.backend === "rust"
-              ? callB.tauriCommand || callB.url
-              : callB.fullUrl;
-          return targetA.localeCompare(targetB);
-        },
+        width: "42%",
+        sorter: (callA, callB) =>
+          getApiCallTarget(callA).localeCompare(getApiCallTarget(callB)),
         render: (_value, call) => (
           <button
             type="button"
@@ -252,8 +334,8 @@ const PanelContent: React.FC<PanelContentProps> = ({
             onClick={() => onToggleExpand(call.id)}
             title={call.fullUrl}
           >
-            {call.backend === "rust"
-              ? call.tauriCommand || call.url
+            {call.transport === "tauri"
+              ? getApiCallTarget(call)
               : formatApiUrl(call.fullUrl)}
           </button>
         ),
@@ -276,7 +358,7 @@ const PanelContent: React.FC<PanelContentProps> = ({
         key: "trigger",
         dataIndex: "interactionType",
         title: "Trigger",
-        width: "10%",
+        width: "12%",
         sorter: (callA, callB) =>
           (callA.interactionType ?? "auto").localeCompare(
             callB.interactionType ?? "auto"
@@ -364,7 +446,11 @@ const PanelContent: React.FC<PanelContentProps> = ({
     [expandedCall, onExpandedChange]
   );
 
-  if (apiCalls.length === 0 && timerHotspots.length === 0) {
+  if (
+    apiCalls.length === 0 &&
+    timerHotspots.length === 0 &&
+    pushHotspots.length === 0
+  ) {
     return <EmptyState />;
   }
 
@@ -372,6 +458,7 @@ const PanelContent: React.FC<PanelContentProps> = ({
     <div className="flex min-h-0 flex-col">
       <TimerHotspotSummary hotspots={timerHotspots} />
       <HotspotSummary hotspots={hotspots} />
+      <PushTrafficSummary hotspots={pushHotspots} />
       {apiCalls.length > 0 ? (
         <Table<ApiCall>
           columns={columns}

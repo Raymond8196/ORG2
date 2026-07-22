@@ -24,7 +24,16 @@ export function createRedrawTerminalAfterLayoutChange({
     if (!terminal || !fitAddon || !container) return;
 
     requestAnimationFrame(() => {
-      if (!terminalRef.current || !fitAddonRef.current) return;
+      // A replacement terminal can mount before this frame runs. Checking
+      // merely for non-null refs would then operate on the disposed instance
+      // captured above while a different live instance occupies the refs.
+      if (
+        terminalRef.current !== terminal ||
+        fitAddonRef.current !== fitAddon ||
+        containerRef.current !== container
+      ) {
+        return;
+      }
       const rect = container.getBoundingClientRect();
       if (rect.width === 0 || rect.height === 0) return;
 
@@ -58,9 +67,10 @@ export function createFitTerminal({
           return;
         }
 
-        terminalRef.current.clearTextureAtlas();
+        // FitAddon resizes xterm and triggers the normal renderer update. Clearing
+        // the WebGL glyph atlas and forcing a full refresh on every ResizeObserver
+        // notification causes visible flashes while embedded terminal layouts settle.
         fitAddonRef.current.fit();
-        terminalRef.current.refresh(0, terminalRef.current.rows - 1);
       } catch (error) {
         log.warn("[Terminal] Fit error:", error);
       }

@@ -10,6 +10,7 @@ import {
 } from "@src/store/ui/kanbanReplayAtom";
 import {
   kanbanDetailPanelVisibleAtom,
+  kanbanFileSearchQueryAtom,
   kanbanSelectedTaskIdAtom,
 } from "@src/store/ui/kanbanViewStateAtom";
 import { workManagementCreatorVisibleAtom } from "@src/store/ui/workManagementCreatorAtom";
@@ -27,6 +28,7 @@ export const disposeWorkManagementStateAtom = atom(null, (_get, set) => {
 
   set(kanbanSelectedTaskIdAtom, null);
   set(kanbanDetailPanelVisibleAtom, false);
+  set(kanbanFileSearchQueryAtom, "");
   set(kanbanReplayCursorAtom, null);
   set(kanbanReplayModeAtom, "follow");
   set(kanbanReplayBoundsAtom, { start: 0, end: 0 });

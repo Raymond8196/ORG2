@@ -181,14 +181,6 @@ export const APP_GRID_ITEMS: AppItem[] = [
     routePath: ROUTES.workStation.browser.path,
   },
   {
-    id: "db-manager",
-    labelKey: "navigation:labels.dbManager",
-    icon: ICON_CONFIG.dbManager,
-    iconName: "database",
-    action: "db-manager",
-    routePath: ROUTES.workStation.database.path,
-  },
-  {
     id: "projects",
     labelKey: "navigation:labels.projects",
     icon: ICON_CONFIG.projects,

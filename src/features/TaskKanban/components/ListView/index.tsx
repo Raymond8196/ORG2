@@ -16,8 +16,8 @@ const PAGE_SIZE = 50;
 const PAGE_SIZE_OPTIONS = [50, 100, 200];
 
 // Stable identity so <SessionTable>'s column memo isn't rebuilt each render.
-// The list drops the git-commit "Committed" ratio (meaningless for read-only
-// imported/agent sessions) and surfaces token usage instead.
+// The list drops the git-commit "Committed" ratio because it is not meaningful
+// for read-only imported/agent sessions.
 const LIST_COLUMN_VISIBILITY: Partial<Record<SessionTableColumnKey, boolean>> =
   {
     committedRate: false,

@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import type { OrchestratorConfig } from "@src/api/http/project";
 import type { TabPillItem } from "@src/components/TabPill";
 import { createLogger } from "@src/hooks/logger";
 import {
@@ -65,13 +64,6 @@ export function useWorkItemContentState(
   const currentPhase = workItem.orchestratorState?.current_phase ?? "idle";
   const isAgentRunning = currentPhase === "sde" || currentPhase === "review";
 
-  const launcherShouldCollapse = currentPhase !== "idle";
-  const [launcherUserExpanded, setLauncherUserExpanded] = useState(false);
-  const launcherCollapsed = launcherShouldCollapse && !launcherUserExpanded;
-  const handleToggleLauncher = useCallback(() => {
-    setLauncherUserExpanded((prev) => !prev);
-  }, []);
-
   const pendingOpenChatRef = useRef(false);
 
   const handleStartAgentAndOpenChat = useCallback(
@@ -125,24 +117,42 @@ export function useWorkItemContentState(
 
   // --- Description editor ---
 
-  const [resolvedDescription, setResolvedDescription] = useState<string | null>(
-    null
-  );
   const rawDescription =
     workItem.spec || workItem.session_metadata?.file_change_summary || "";
+  const [resolvedDescriptionState, setResolvedDescriptionState] = useState<{
+    source: string;
+    value: string;
+  } | null>(null);
+  const resolvedDescription =
+    resolvedDescriptionState?.source === rawDescription
+      ? resolvedDescriptionState.value
+      : null;
 
   useEffect(() => {
     let cancelled = false;
     if (projectSlug && rawDescription) {
       resolveImagePathsForDisplay(rawDescription, projectSlug)
         .then((resolved) => {
-          if (!cancelled) setResolvedDescription(resolved);
+          if (!cancelled) {
+            setResolvedDescriptionState({
+              source: rawDescription,
+              value: resolved,
+            });
+          }
         })
         .catch(() => {
-          if (!cancelled) setResolvedDescription(rawDescription);
+          if (!cancelled) {
+            setResolvedDescriptionState({
+              source: rawDescription,
+              value: rawDescription,
+            });
+          }
         });
     } else {
-      setResolvedDescription(rawDescription);
+      setResolvedDescriptionState({
+        source: rawDescription,
+        value: rawDescription,
+      });
     }
     return () => {
       cancelled = true;
@@ -151,7 +161,7 @@ export function useWorkItemContentState(
 
   // --- Timeline ---
 
-  const { timelineEntries, formatRelativeTime } = useWorkItemTimeline({
+  const { timelineEntries } = useWorkItemTimeline({
     workItem,
     teamMembers,
   });
@@ -193,18 +203,6 @@ export function useWorkItemContentState(
     [onUpdateWorkItem, onUpdateWorkItemImmediate]
   );
 
-  const handleOrchestratorConfigUpdate = useCallback(
-    (updates: Partial<OrchestratorConfig>) => {
-      onUpdateWorkItem?.({
-        orchestratorConfig: {
-          ...(workItem.orchestratorConfig ?? {}),
-          ...updates,
-        },
-      } as Partial<WorkItemExtended>);
-    },
-    [workItem, onUpdateWorkItem]
-  );
-
   const handleCommentSubmit = useCallback(async () => {
     if (!commentText.trim() || isSubmittingComment) return;
 
@@ -244,19 +242,14 @@ export function useWorkItemContentState(
     isSubmittingComment,
     currentPhase,
     isAgentRunning,
-    launcherCollapsed,
-    launcherShouldCollapse,
-    handleToggleLauncher,
     handleStartAgentAndOpenChat,
     sessionTabItems,
     resolvedDescription,
     rawDescription,
     timelineEntries,
-    formatRelativeTime,
     handleTitleChange,
     handleDescriptionChange,
     handleTodosChange,
-    handleOrchestratorConfigUpdate,
     handleCommentSubmit,
   };
 }
