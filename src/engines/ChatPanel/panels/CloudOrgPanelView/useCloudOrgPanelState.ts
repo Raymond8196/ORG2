@@ -17,6 +17,7 @@ import {
   ensureFreshSession,
   getEntitlementState,
 } from "@src/features/Org2Cloud/org2CloudClient";
+import { isFetchTransportError } from "@src/features/Org2Cloud/org2CloudFetchRetry";
 import { loadCloudOrgMembers } from "@src/features/Org2Cloud/org2CloudMembersCoordinator";
 import { org2CloudRosterVersionAtom } from "@src/features/Org2Cloud/org2CloudOrgsAtom";
 import {
@@ -335,7 +336,13 @@ export function useCloudOrgPanelState(orgId: string) {
         if (freshToken) await refreshScopeState(freshToken);
         return;
       }
-      setScopesError(error instanceof Error ? error.message : String(error));
+      setScopesError(
+        isFetchTransportError(error)
+          ? t("cloud.orgManagement.errors.network")
+          : error instanceof Error
+            ? error.message
+            : String(error)
+      );
     } finally {
       setSavingScopes(false);
     }
@@ -365,7 +372,13 @@ export function useCloudOrgPanelState(orgId: string) {
         ...currentFloors,
         [orgId]: previous,
       }));
-      setFloorError(error instanceof Error ? error.message : String(error));
+      setFloorError(
+        isFetchTransportError(error)
+          ? t("cloud.orgManagement.errors.network")
+          : error instanceof Error
+            ? error.message
+            : String(error)
+      );
     } finally {
       setSavingFloor(false);
     }
