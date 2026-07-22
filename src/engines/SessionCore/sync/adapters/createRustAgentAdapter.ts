@@ -368,8 +368,12 @@ export function createRustAgentAdapter(
             }
           : undefined,
         setStreaming: (value: boolean) => {
+          // Token/thinking deltas all assert the same active state. Crossing the
+          // Tauri boundary for every chunk only rewrites one bool, yet it can
+          // generate hundreds of IPC calls per minute during a long reply.
+          if (_streaming === value) return;
           _streaming = value;
-          eventStoreProxy.setStreaming(value, sessionId);
+          void eventStoreProxy.setStreaming(value, sessionId);
         },
       });
 
