@@ -1,6 +1,7 @@
 import { atom } from "jotai";
 
 import { destroyChatPanelTerminalAtom } from "@src/store/chatPanel/chatPanelTerminalAtom";
+import { workstationActiveSessionIdAtom } from "@src/store/session/viewAtom";
 import {
   type ChatPanelSelectedWorkItem,
   chatPanelSelectedCloudOrgAtom,
@@ -38,6 +39,20 @@ export const closeChatPanelTabAtom = atom(null, (get, set, tabId: string) => {
   if (idx === -1) return;
   const tab = state.tabs[idx];
   const nextTabs = state.tabs.filter((candidate) => candidate.id !== tabId);
+  if (
+    tab.type === "session" &&
+    tab.sessionId &&
+    get(workstationActiveSessionIdAtom) === tab.sessionId &&
+    !nextTabs.some(
+      (candidate) =>
+        candidate.type === "session" && candidate.sessionId === tab.sessionId
+    )
+  ) {
+    // A closed tab cannot remain the WorkStation's remembered selection.
+    // Activating a neighbouring session below will immediately replace this;
+    // a Launchpad/non-session fallback correctly leaves it empty.
+    set(workstationActiveSessionIdAtom, null);
+  }
   if (
     tab.type === "work-management" &&
     !nextTabs.some((candidate) => candidate.type === "work-management")

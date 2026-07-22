@@ -40,6 +40,17 @@ export const Org2CloudAuthStateSchema = z.object({
 
 export type Org2CloudAuthState = z.infer<typeof Org2CloudAuthStateSchema>;
 
+/**
+ * Stable privacy/cache boundary for managed-cloud state. Access-token refresh
+ * and profile enrichment replace the auth object without changing identity;
+ * endpoint or account switches must produce a different key.
+ */
+export function org2CloudAuthIdentityKey(
+  auth: Pick<Org2CloudAuthState, "supabaseUrl" | "userId">
+): string {
+  return `${auth.supabaseUrl.trim().replace(/\/+$/, "")}|${auth.userId}`;
+}
+
 const StoredAuthSchema = Org2CloudAuthStateSchema.nullable();
 
 export const org2CloudAuthAtom = atomWithStorage<Org2CloudAuthState | null>(

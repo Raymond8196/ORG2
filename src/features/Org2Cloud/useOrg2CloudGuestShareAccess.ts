@@ -24,9 +24,16 @@ import type { Session } from "@src/store/session/sessionAtom/types";
 import { activeSessionIdAtom } from "@src/store/session/viewAtom";
 
 import { classifyCloudShareResolveError } from "./cloudShareImportModel";
-import { commitRefreshedAuth, org2CloudAuthAtom } from "./org2CloudAuthAtom";
+import {
+  commitRefreshedAuth,
+  org2CloudAuthAtom,
+  org2CloudAuthIdentityKey,
+} from "./org2CloudAuthAtom";
 import { ensureFreshSession } from "./org2CloudClient";
-import { resolvePersistedCloudShareEndpoint } from "./org2CloudShareEndpoint";
+import {
+  requireCloudShareAuthEndpoint,
+  resolvePersistedCloudShareEndpoint,
+} from "./org2CloudShareEndpoint";
 import { resolveCloudSessionShare } from "./org2CloudSharesClient";
 
 const log = createLogger("Org2CloudGuestShareAccess");
@@ -38,6 +45,11 @@ interface GuestShareCapability {
   sessionId: string;
   shareToken: string;
   shareEndpointUrl?: string;
+}
+
+interface GuestShareValidationFlight {
+  signal?: AbortSignal;
+  promise: Promise<void>;
 }
 
 export function guestShareCapabilities(
@@ -78,11 +90,17 @@ export function useOrg2CloudGuestShareAccess(): void {
   const capabilitiesRef = useRef(capabilities);
   const authRef = useRef(auth);
   const activeSessionIdRef = useRef(activeSessionId);
-  const validationInFlightRef = useRef(false);
+  const validationInFlightRef = useRef<GuestShareValidationFlight | null>(null);
 
-  capabilitiesRef.current = capabilities;
-  authRef.current = auth;
-  activeSessionIdRef.current = activeSessionId;
+  useEffect(() => {
+    capabilitiesRef.current = capabilities;
+  }, [capabilities]);
+  useEffect(() => {
+    authRef.current = auth;
+  }, [auth]);
+  useEffect(() => {
+    activeSessionIdRef.current = activeSessionId;
+  }, [activeSessionId]);
 
   const evictCapability = useCallback(
     (revoked: GuestShareCapability) => {
@@ -130,10 +148,11 @@ export function useOrg2CloudGuestShareAccess(): void {
   );
 
   const validate = useCallback(
-    async (scope: "active" | "all", signal?: AbortSignal): Promise<void> => {
-      if (validationInFlightRef.current) return;
+    async (scope: "active" | "all", signal?: AbortSignal): Promise<boolean> => {
+      const activeFlight = validationInFlightRef.current;
+      if (activeFlight && !activeFlight.signal?.aborted) return false;
       const currentAuth = authRef.current;
-      if (!currentAuth) return;
+      if (!currentAuth) return false;
 
       const currentCapabilities = capabilitiesRef.current;
       const targets =
@@ -142,10 +161,13 @@ export function useOrg2CloudGuestShareAccess(): void {
           : currentCapabilities.filter(
               (entry) => entry.sessionId === activeSessionIdRef.current
             );
-      if (targets.length === 0) return;
+      if (targets.length === 0) return false;
 
-      validationInFlightRef.current = true;
-      try {
+      const flight: GuestShareValidationFlight = {
+        signal,
+        promise: Promise.resolve(),
+      };
+      flight.promise = (async () => {
         const fresh = await ensureFreshSession(currentAuth, {
           onRefreshRejected: () =>
             setAuth((latest) => (latest === currentAuth ? null : latest)),
@@ -158,8 +180,9 @@ export function useOrg2CloudGuestShareAccess(): void {
         for (const capability of targets) {
           if (signal?.aborted) return;
           try {
-            const endpoint = resolvePersistedCloudShareEndpoint(
-              capability.shareEndpointUrl
+            const endpoint = requireCloudShareAuthEndpoint(
+              resolvePersistedCloudShareEndpoint(capability.shareEndpointUrl),
+              fresh.supabaseUrl
             );
             await resolveCloudSessionShare(
               fresh.accessToken,
@@ -173,9 +196,14 @@ export function useOrg2CloudGuestShareAccess(): void {
             }
           }
         }
-      } finally {
-        validationInFlightRef.current = false;
-      }
+      })().finally(() => {
+        if (validationInFlightRef.current === flight) {
+          validationInFlightRef.current = null;
+        }
+      });
+      validationInFlightRef.current = flight;
+      await flight.promise;
+      return true;
     },
     [evictCapability, setAuth]
   );
@@ -186,29 +214,61 @@ export function useOrg2CloudGuestShareAccess(): void {
         `${entry.sessionId}\u001f${entry.shareEndpointUrl ?? ""}\u001f${entry.shareToken}`
     )
     .join("\u001e");
-  const isAuthenticated = auth !== null;
+  const authIdentityKey = auth ? org2CloudAuthIdentityKey(auth) : null;
 
   useEffect(() => {
-    if (!isAuthenticated || capabilities.length === 0) return undefined;
+    if (!authIdentityKey || capabilities.length === 0) return undefined;
     const abortController = new AbortController();
-    const runAll = () => void validate("all", abortController.signal);
-    const runActive = () => void validate("active", abortController.signal);
+    let timer: number | null = null;
+    let lastAllValidationAt = 0;
+    const clearTimer = () => {
+      if (timer !== null) window.clearTimeout(timer);
+      timer = null;
+    };
+    const isVisible = () => document.visibilityState !== "hidden";
+    const runAll = () => {
+      if (!isVisible()) return;
+      void validate("all", abortController.signal).then((started) => {
+        if (started && !abortController.signal.aborted) {
+          lastAllValidationAt = Date.now();
+        }
+      });
+    };
+    const schedule = () => {
+      clearTimer();
+      if (!isVisible()) return;
+      timer = window.setTimeout(() => {
+        timer = null;
+        if (Date.now() - lastAllValidationAt >= ALL_REVALIDATE_MS) runAll();
+        else void validate("active", abortController.signal);
+        schedule();
+      }, ACTIVE_REVALIDATE_MS);
+    };
     const onVisibilityChange = () => {
-      if (document.visibilityState === "visible") runAll();
+      if (!isVisible()) {
+        clearTimer();
+        return;
+      }
+      runAll();
+      schedule();
+    };
+    const onFocus = () => {
+      runAll();
+      schedule();
     };
 
-    runAll();
-    const activeTimer = window.setInterval(runActive, ACTIVE_REVALIDATE_MS);
-    const allTimer = window.setInterval(runAll, ALL_REVALIDATE_MS);
-    window.addEventListener("focus", runAll);
+    if (isVisible()) {
+      runAll();
+      schedule();
+    }
+    window.addEventListener("focus", onFocus);
     document.addEventListener("visibilitychange", onVisibilityChange);
 
     return () => {
       abortController.abort();
-      window.clearInterval(activeTimer);
-      window.clearInterval(allTimer);
-      window.removeEventListener("focus", runAll);
+      clearTimer();
+      window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
-  }, [capabilityKey, capabilities.length, isAuthenticated, validate]);
+  }, [authIdentityKey, capabilityKey, capabilities.length, validate]);
 }

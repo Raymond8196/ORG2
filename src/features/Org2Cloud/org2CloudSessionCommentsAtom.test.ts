@@ -5,6 +5,7 @@ import { Org2CloudCommentError } from "./org2CloudCommentsClient";
 import type { CloudSessionComment } from "./org2CloudCommentsClient";
 import {
   type CloudSessionCommentsEntry,
+  MAX_SESSION_COMMENT_CACHE_ENTRIES,
   countLiveComments,
   decideSessionCommentsFetch,
   getThreadResolution,
@@ -13,10 +14,50 @@ import {
   isThreadResolved,
   mergePresentEventIdEntries,
   patchComment,
+  sessionCommentsEntryForIdentity,
   shouldEvictSessionCommentsOnError,
+  writeSessionCommentsEntry,
 } from "./org2CloudSessionCommentsAtom";
 
 let sequence = 0;
+
+describe("session comment identity isolation", () => {
+  const entry: CloudSessionCommentsEntry = {
+    identityKey: "https://cloud.example.com|user-1",
+    comments: [],
+    viewerOwnsSession: true,
+    state: "ready",
+    fetchedAt: 1,
+  };
+
+  it("exposes cached bodies only to the endpoint/account that loaded them", () => {
+    expect(
+      sessionCommentsEntryForIdentity(entry, "https://cloud.example.com|user-1")
+    ).toBe(entry);
+    expect(
+      sessionCommentsEntryForIdentity(entry, "https://cloud.example.com|user-2")
+    ).toBeUndefined();
+    expect(sessionCommentsEntryForIdentity(entry, null)).toBeUndefined();
+  });
+
+  it("bounds cached threads with least-recent eviction", () => {
+    let entries: Record<string, CloudSessionCommentsEntry> = {};
+    for (
+      let index = 0;
+      index <= MAX_SESSION_COMMENT_CACHE_ENTRIES;
+      index += 1
+    ) {
+      entries = writeSessionCommentsEntry(entries, `org|session-${index}`, {
+        ...entry,
+        fetchedAt: index,
+      });
+    }
+    expect(Object.keys(entries)).toHaveLength(
+      MAX_SESSION_COMMENT_CACHE_ENTRIES
+    );
+    expect(entries["org|session-0"]).toBeUndefined();
+  });
+});
 
 function comment(
   overrides: Partial<CloudSessionComment> & { id: string }

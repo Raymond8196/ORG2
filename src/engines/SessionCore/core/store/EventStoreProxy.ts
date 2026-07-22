@@ -22,6 +22,7 @@
  * which are fed from the derived snapshot pushed by Rust.
  */
 import { rpc } from "@src/api/tauri/rpc";
+import { TURN_WINDOW_RECENT_BODY_COUNT } from "@src/engines/SessionCore/turns/turnWindowConfig";
 import { createLogger } from "@src/hooks/logger";
 
 import type { EventPayloadBody, SessionEvent } from "../types";
@@ -377,7 +378,7 @@ class EventStoreProxyImpl {
   ): Promise<number> {
     return rpc.sessionCore.eventStore.loadInitialTurnWindow({
       sessionId,
-      recentTurnCount,
+      recentTurnCount: recentTurnCount ?? TURN_WINDOW_RECENT_BODY_COUNT,
     });
   }
 

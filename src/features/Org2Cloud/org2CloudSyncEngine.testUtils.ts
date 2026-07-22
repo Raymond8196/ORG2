@@ -12,6 +12,7 @@ import { processChunksRust } from "@src/engines/SessionCore/ingestion/rustBridge
 import type { RemoteTeammateSessionMetadata } from "@src/store/collaboration/types";
 import { sessionsAtom } from "@src/store/session/sessionAtom/atoms";
 import type { Session } from "@src/store/session/sessionAtom/types";
+import { chatPanelSelectedCloudOrgAtom } from "@src/store/ui/chatPanelAtom";
 import { createInstrumentedStore } from "@src/util/core/state/instrumentedStore";
 
 import {
@@ -35,7 +36,10 @@ import {
 } from "./org2CloudAccessSettings";
 import type { Org2CloudAuthState } from "./org2CloudAuthAtom";
 import { org2CloudAuthAtom } from "./org2CloudAuthAtom";
-import { org2CloudOrgsAtom } from "./org2CloudOrgsAtom";
+import {
+  org2CloudOrgsAtom,
+  sidebarActiveCloudOrgIdAtom,
+} from "./org2CloudOrgsAtom";
 import { ensureProjectOrgForCloudOrg } from "./org2CloudProjectOrgAlias";
 import type { CloudOrgCollabState } from "./org2CloudProjectsClient";
 import { Org2CloudProjectsError } from "./org2CloudProjectsClient";
@@ -56,6 +60,7 @@ import { Org2CloudSyncError } from "./org2CloudSyncClient";
 import {
   DATA_CHANGED_DEBOUNCE_MS,
   HIDDEN_PASS_INTERVAL_MS,
+  INACTIVE_ORG_BACKOFF_COOLDOWN_MS,
   ORG_BACKOFF_COOLDOWN_MS,
   Org2CloudSyncEngine,
   PASS_INTERVAL_MS,
@@ -287,6 +292,8 @@ export function createEngineFixture() {
   store.set(org2CloudOrgsAtom, [
     { orgId: "corg-1", name: "Cloud Team", role: "member" },
   ]);
+  store.set(chatPanelSelectedCloudOrgAtom, null);
+  store.set(sidebarActiveCloudOrgIdAtom, null);
   store.set(org2CloudRepoScopesAtom, { "corg-1": [SCOPE_KEY] });
   store.set(org2CloudSyncEnabledAtom, {});
   store.set(org2CloudPushCursorsAtom, {});
@@ -340,9 +347,11 @@ export function cleanupEngineFixture(engine: Org2CloudSyncEngine): void {
  */
 export const engineTestDeps = {
   DATA_CHANGED_DEBOUNCE_MS,
+  chatPanelSelectedCloudOrgAtom,
   ensureProjectOrgForCloudOrg,
   getImportedHistorySourceBySessionId,
   HIDDEN_PASS_INTERVAL_MS,
+  INACTIVE_ORG_BACKOFF_COOLDOWN_MS,
   ORG2_CLOUD_ENDPOINT_OVERRIDE_STORAGE_KEY,
   ORG2_CLOUD_EXPECTED_SCHEMA_VERSION,
   ORG_BACKOFF_COOLDOWN_MS,
@@ -362,6 +371,7 @@ export const engineTestDeps = {
   org2CloudPushedMetadataAtom,
   org2CloudRepoScopesAtom,
   org2CloudSyncEnabledAtom,
+  sidebarActiveCloudOrgIdAtom,
   sessionOrgTagsAtom,
   sessionsAtom,
 };
