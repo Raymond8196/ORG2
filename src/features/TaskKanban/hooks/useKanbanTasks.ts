@@ -13,7 +13,7 @@
  * than the selected window.
  */
 import { useAtomValue, useSetAtom } from "jotai";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 
 import { useCloudOrgRemoteSessions } from "@src/features/Org2Cloud/org2CloudRemoteSessionsAtom";
 import type { RemoteTeammateSessionMetadata } from "@src/store/collaboration/types";
@@ -35,6 +35,7 @@ import type {
 } from "../config";
 import { KANBAN_COLUMNS, getTimeFilterCutoff } from "../config";
 import type { KanbanTask } from "../types";
+import { useKanbanNowTick } from "./useKanbanNowTick";
 import {
   resolveKanbanTaskCreator,
   sessionMatchesKanbanOrgScope,
@@ -107,16 +108,9 @@ export function useKanbanTasks(
   const setReplayBounds = useSetAtom(kanbanReplayBoundsAtom);
   const setReplayEvents = useSetAtom(kanbanReplayEventsAtom);
 
-  // "Now" tick — owned by an interval rather than read inline so the
-  // memo stays pure (React's hooks-purity rule rejects `Date.now()` in
-  // a useMemo body). 30s granularity is plenty for a board view; the
-  // right edge also advances whenever a session actually moves, which
-  // is the path that matters in practice.
-  const [nowTick, setNowTick] = useState<number>(() => Date.now());
-  useEffect(() => {
-    const id = setInterval(() => setNowTick(Date.now()), 30_000);
-    return () => clearInterval(id);
-  }, []);
+  // 30s is enough for time-window boundaries. The owner pauses while hidden,
+  // refreshes once on return, and never overlaps timers.
+  const nowTick = useKanbanNowTick();
 
   const visibleSessions = useMemo(
     () =>

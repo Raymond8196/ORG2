@@ -50,7 +50,11 @@ import TaskKanbanReplayBar from "./components/KanbanReplayBar";
 import KanbanReplayStatusPill from "./components/KanbanReplayStatusPill";
 import TaskDetailPanel from "./components/TaskDetailPanel";
 import TaskKanbanContent from "./components/TaskKanbanContent";
-import { type AgentKanbanColumnId, type KanbanTimeFilter } from "./config";
+import {
+  type AgentKanbanColumnId,
+  DEFAULT_KANBAN_TIME_FILTER,
+  type KanbanTimeFilter,
+} from "./config";
 import { useKanbanTasks } from "./hooks/useKanbanTasks";
 import { useTaskKanbanFilters } from "./hooks/useTaskKanbanFilters";
 import { useTaskKanbanHeader } from "./hooks/useTaskKanbanHeader";
@@ -127,7 +131,7 @@ const Kanban: React.FC<TaskKanbanProps> = ({
 
   const isControlled = onTimeFilterChange !== undefined;
   const timeFilter = isControlled
-    ? (controlledTimeFilter ?? "12h")
+    ? (controlledTimeFilter ?? DEFAULT_KANBAN_TIME_FILTER)
     : internalTimeFilter;
   const setTimeFilter = useCallback(
     (next: KanbanTimeFilter) => {
@@ -146,6 +150,14 @@ const Kanban: React.FC<TaskKanbanProps> = ({
     !hideHeader && (viewMode === "kanban" || viewMode === "list");
   const effectiveFileSearchQuery = fileSearchEnabled ? fileSearchQuery : "";
   const [calendarDate, setCalendarDate] = useState<Date>(() => new Date());
+  const taskRenderWindowKey = [
+    followSidebarOrgScope ? (selectedOrgId ?? "personal") : "unscoped",
+    timeFilter,
+    autoArchiveTtl,
+    sidebarFilter,
+    agentTypeFilter,
+    effectiveFileSearchQuery,
+  ].join(":");
 
   useEffect(() => {
     void loadSidebarSessions({ forceRefresh: true });
@@ -334,6 +346,7 @@ const Kanban: React.FC<TaskKanbanProps> = ({
           onAddTask={handleAddTask}
           renderListRowAction={renderListRowAction}
           hasFileSearchQuery={effectiveFileSearchQuery.trim().length > 0}
+          taskRenderWindowKey={taskRenderWindowKey}
         />
 
         {showReplayControls && (

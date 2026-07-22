@@ -32,6 +32,7 @@ export interface TaskKanbanContentProps {
   onAddTask: () => void;
   renderListRowAction?: (task: KanbanTask) => React.ReactNode;
   hasFileSearchQuery: boolean;
+  taskRenderWindowKey: string;
 }
 
 const TaskKanbanContent: React.FC<TaskKanbanContentProps> = ({
@@ -47,6 +48,7 @@ const TaskKanbanContent: React.FC<TaskKanbanContentProps> = ({
   onAddTask,
   renderListRowAction,
   hasFileSearchQuery,
+  taskRenderWindowKey,
 }) => {
   const { t } = useTranslation("sessions");
   if (
@@ -109,6 +111,7 @@ const TaskKanbanContent: React.FC<TaskKanbanContentProps> = ({
           allowTaskDrag
           showAddButton={false}
           selectedTaskId={detailPanelVisible ? selectedTaskId : null}
+          taskRenderWindowKey={taskRenderWindowKey}
           className="kanban-board--linear"
         />
       );
