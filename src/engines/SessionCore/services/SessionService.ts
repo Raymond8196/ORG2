@@ -305,6 +305,7 @@ export const SessionService = {
     const sessionRow = getInstrumentedStore().get(sessionByIdAtom(sessionId));
     const adeContext = collectAdeContext({
       expectedRepoPath: sessionRow?.repoPath ?? null,
+      sessionId,
     });
     const adapter = getAdapterForSession(sessionId);
     if (!adapter) {
