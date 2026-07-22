@@ -6,14 +6,16 @@ import {
   Placeholder,
   SessionTable,
   type SessionTableColumnKey,
+  type SessionTableColumnOverrides,
+  type SessionTableItem,
   mapKanbanTaskToSessionTableItem,
 } from "@src/modules/shared/layouts/blocks";
 import { toIntlLocaleTag } from "@src/util/data/formatters/date";
 
 import { getColumnTitleKey } from "../../config";
 
-const PAGE_SIZE = 50;
-const PAGE_SIZE_OPTIONS = [50, 100, 200];
+const PAGE_SIZE = 25;
+const PAGE_SIZE_OPTIONS = [25, 50];
 
 // Stable identity so <SessionTable>'s column memo isn't rebuilt each render.
 // The list drops the git-commit "Committed" ratio because it is not meaningful
@@ -21,8 +23,26 @@ const PAGE_SIZE_OPTIONS = [50, 100, 200];
 const LIST_COLUMN_VISIBILITY: Partial<Record<SessionTableColumnKey, boolean>> =
   {
     committedRate: false,
+    filesChanged: false,
     tokens: true,
   };
+
+const EMPTY_STAT = "—";
+
+function combineFileAndLineChanges(item: SessionTableItem): SessionTableItem {
+  if (item.filesChangedLabel == null && item.impactLabel == null) return item;
+
+  return {
+    ...item,
+    impactLabel: (
+      <span className="inline-flex items-center gap-1.5 whitespace-nowrap tabular-nums">
+        <span>{item.filesChangedLabel ?? EMPTY_STAT}</span>
+        <span aria-hidden="true">·</span>
+        <span>{item.impactLabel ?? EMPTY_STAT}</span>
+      </span>
+    ),
+  };
+}
 
 function getTaskTimestamp(task: KanbanTask): number {
   const timestamp = task.updated_at || task.created_at;
@@ -61,14 +81,16 @@ const ListView: React.FC<ListViewProps> = ({
   const sessionTableItems = useMemo(
     () =>
       sortedTasks.map((task) =>
-        mapKanbanTaskToSessionTableItem({
-          task,
-          active: task.id === selectedTaskId && detailPanelVisible,
-          statusLabel: t(`sessions:${getColumnTitleKey(task.status)}`),
-          dateTimeLabelOptions,
-          testId: "kanban-list-session-row",
-          rowAction: renderRowAction?.(task),
-        })
+        combineFileAndLineChanges(
+          mapKanbanTaskToSessionTableItem({
+            task,
+            active: task.id === selectedTaskId && detailPanelVisible,
+            statusLabel: t(`sessions:${getColumnTitleKey(task.status)}`),
+            dateTimeLabelOptions,
+            testId: "kanban-list-session-row",
+            rowAction: renderRowAction?.(task),
+          })
+        )
       ),
     [
       dateTimeLabelOptions,
@@ -86,6 +108,20 @@ const ListView: React.FC<ListViewProps> = ({
     }),
     [sortedTasks]
   );
+  const columnOverrides = useMemo<SessionTableColumnOverrides>(
+    () => ({
+      impact: {
+        label: (
+          <>
+            {t("common:labels.files")} <span aria-hidden="true">·</span>{" "}
+            {t("common:aiImpact.lines")}
+          </>
+        ),
+        width: "190px",
+      },
+    }),
+    [t]
+  );
 
   return (
     <div className="absolute inset-0 flex flex-col overflow-hidden">
@@ -101,6 +137,7 @@ const ListView: React.FC<ListViewProps> = ({
           items={sessionTableItems}
           className="[&_.table-fixed-header]:scrollbar-hide [&_.table-scroll]:scrollbar-hide"
           columnVisibility={columnVisibility}
+          columnOverrides={columnOverrides}
           ownerColumnLabel={t("projects:projects.groupBy.createdBy")}
           onSelect={(item) => {
             const task = sortedTasks.find(

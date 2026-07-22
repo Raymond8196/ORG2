@@ -104,6 +104,25 @@ describe("mapKanbanTaskToSessionTableItem", () => {
 
     expect(item.rowAction).toBe(rowAction);
   });
+
+  it("uses text-1 for both the agent and model icons", () => {
+    const item = mapKanbanTaskToSessionTableItem({
+      task: {
+        ...makeTask(),
+        cliAgentType: "codex",
+        modelName: "gpt-5.6-sol",
+      },
+      statusLabel: "In progress",
+    });
+
+    expect(isValidElement(item.agentIcon)).toBe(true);
+    expect(isValidElement(item.modelIcon)).toBe(true);
+    if (!isValidElement(item.agentIcon) || !isValidElement(item.modelIcon)) {
+      throw new Error("missing agent or model icon");
+    }
+    expect(item.agentIcon.props.className).toBe("text-text-1");
+    expect(item.modelIcon.props.className).toBe("text-text-1");
+  });
 });
 
 describe("truncateSessionOwnerLabel", () => {

@@ -57,6 +57,13 @@ export type SessionTableColumnKey =
   | "lastUpdated"
   | "actions";
 
+export type SessionTableColumnOverrides = Partial<
+  Record<
+    SessionTableColumnKey,
+    Partial<Pick<SettingsTableColumn<SessionTableItem>, "label" | "width">>
+  >
+>;
+
 /**
  * Preserve established table layouts while allowing the Kanban list to opt
  * into its token-usage column. Row actions remain visible whenever supplied.
@@ -91,6 +98,8 @@ export interface SessionTableProps {
   pageSizeOptions?: number[];
   /** Per-column overrides merged over the shared visibility defaults. */
   columnVisibility?: Partial<Record<SessionTableColumnKey, boolean>>;
+  /** Optional presentation overrides for consumers with a denser column. */
+  columnOverrides?: SessionTableColumnOverrides;
   /** Override the shared Member label when owner means a more precise role. */
   ownerColumnLabel?: React.ReactNode;
 }
@@ -167,6 +176,7 @@ export const SessionTable: React.FC<SessionTableProps> = ({
   pageSize,
   pageSizeOptions,
   columnVisibility,
+  columnOverrides,
   ownerColumnLabel,
 }) => {
   const { t } = useTranslation(["sessions", "common"]);
@@ -368,11 +378,17 @@ export const SessionTable: React.FC<SessionTableProps> = ({
         : []),
     ];
 
-    return availableColumns.filter(
-      (column) =>
-        columnVisibility?.[column.key] ?? DEFAULT_COLUMN_VISIBILITY[column.key]
-    );
-  }, [t, hasRowActions, columnVisibility, ownerColumnLabel]);
+    return availableColumns
+      .filter(
+        (column) =>
+          columnVisibility?.[column.key] ??
+          DEFAULT_COLUMN_VISIBILITY[column.key]
+      )
+      .map((column) => ({
+        ...column,
+        ...columnOverrides?.[column.key],
+      }));
+  }, [t, hasRowActions, columnVisibility, columnOverrides, ownerColumnLabel]);
 
   const filteredItems = useMemo(() => {
     if (!shouldShowSearch) return items;
