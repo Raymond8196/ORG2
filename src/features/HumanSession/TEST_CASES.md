@@ -29,6 +29,10 @@
 - Type `@`, choose **Sessions**, search, and select a session; the same kind of pill is inserted.
 - Reopen the work log; mentioned sessions rehydrate from `Display name [session:<session-id>]` without embedding a transcript.
 
+## Session metadata
+
+- Hover a work log anywhere a session hover card is available; the first metadata row shows **Human** without a model icon or model name, followed by repository/branch location, paths, and timestamps. Other local session hover cards use the same type-first row order.
+
 ## Deletion
 
 - Delete a work log through the standard sidebar action; the canonical Human-session row and all appended entries are removed by the database cascade.
