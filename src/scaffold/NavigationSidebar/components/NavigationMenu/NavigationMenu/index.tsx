@@ -44,15 +44,18 @@ const NavigationMenu: React.FC<NavigationMenuProps> = React.memo(
 
     const toggleSubmenu = useCallback(
       (key: string) => {
-        setOpenSubmenus((prev) => {
-          const open = !prev.includes(key);
-          onSubmenuOpenChange?.(key, open);
-          return open
-            ? [...prev, key]
-            : prev.filter((keyItem) => keyItem !== key);
-        });
+        const open = !openSubmenus.includes(key);
+        setOpenSubmenus(
+          open
+            ? [...openSubmenus, key]
+            : openSubmenus.filter((keyItem) => keyItem !== key)
+        );
+        // Keep cross-component navigation outside the state updater. React can
+        // replay updater functions, which previously emitted duplicate opens
+        // and could restore a drill-down after its Back action closed it.
+        onSubmenuOpenChange?.(key, open);
       },
-      [onSubmenuOpenChange]
+      [onSubmenuOpenChange, openSubmenus]
     );
 
     const isSubmenuSelected = useCallback(
