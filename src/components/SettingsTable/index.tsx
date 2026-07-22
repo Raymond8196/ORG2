@@ -324,18 +324,24 @@ function SettingsTableToolbar({
       </div>
       {hasInlineSearch && searchBar ? (
         <div className="order-1 flex w-full shrink-0 items-center gap-2 @[640px]:order-2 @[640px]:w-auto">
-          <Input
-            type="search"
-            size={searchBar.searchInputSize ?? "small"}
-            className="min-w-0 flex-1 @[640px]:w-52 @[640px]:flex-none"
-            value={searchBar.searchValue ?? ""}
-            placeholder={searchBar.searchPlaceholder}
-            prefix={<Search size={14} className="text-text-3" aria-hidden />}
-            onChange={(value) => searchBar.onSearchChange?.(value)}
-            allowClear={searchBar.allowSearchClear ?? true}
-            onClear={searchBar.onSearchClear}
-          />
-          {searchBar.rightContent}
+          <div className="min-w-0 flex-1 @[640px]:w-52 @[640px]:flex-none">
+            <Input
+              type="search"
+              size={searchBar.searchInputSize ?? "small"}
+              className="w-full min-w-0"
+              value={searchBar.searchValue ?? ""}
+              placeholder={searchBar.searchPlaceholder}
+              prefix={<Search size={14} className="text-text-3" aria-hidden />}
+              onChange={(value) => searchBar.onSearchChange?.(value)}
+              allowClear={searchBar.allowSearchClear ?? true}
+              onClear={searchBar.onSearchClear}
+            />
+          </div>
+          {searchBar.rightContent ? (
+            <div className="flex shrink-0 items-center gap-2">
+              {searchBar.rightContent}
+            </div>
+          ) : null}
         </div>
       ) : null}
     </div>

@@ -29,4 +29,14 @@ describe("SettingsTable sticky toolbar contract", () => {
     expect(maskRule).toBeDefined();
     expect(maskRule).not.toMatch(/\bposition\s*:/);
   });
+
+  it("sizes inline search on a flex wrapper so actions stay inside the table", () => {
+    expect(settingsTableSource).toContain(
+      '<div className="min-w-0 flex-1 @[640px]:w-52 @[640px]:flex-none">'
+    );
+    expect(settingsTableSource).toContain('className="w-full min-w-0"');
+    expect(settingsTableSource).toContain(
+      'className="flex shrink-0 items-center gap-2"'
+    );
+  });
 });
