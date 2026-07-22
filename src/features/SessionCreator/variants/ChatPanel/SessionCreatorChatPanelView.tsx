@@ -34,6 +34,7 @@ interface CategoryPickerProps {
   currentAgentOrgId?: string;
   currentCategory: DispatchCategory;
   currentCliAgentType?: CliAgentType;
+  includeHumanSession: boolean;
   modelPickerStyle: string;
   onClose: () => void;
   onSelect: (selection: AgentSelection) => void;
@@ -408,7 +409,7 @@ const SessionCreatorChatPanelView: React.FC<
 
       {categoryPickerProps.modelPickerStyle === "dropdown" ? (
         <DispatchCategoryDropdown
-          includeHumanSession
+          includeHumanSession={categoryPickerProps.includeHumanSession}
           isOpen={isCategorySelectorOpen}
           onClose={categoryPickerProps.onClose}
           onSelect={categoryPickerProps.onSelect}
@@ -422,7 +423,7 @@ const SessionCreatorChatPanelView: React.FC<
         />
       ) : (
         <DispatchCategoryPalette
-          includeHumanSession
+          includeHumanSession={categoryPickerProps.includeHumanSession}
           isOpen={isCategorySelectorOpen}
           onClose={categoryPickerProps.onClose}
           onSelect={categoryPickerProps.onSelect}

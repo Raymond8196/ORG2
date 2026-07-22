@@ -181,6 +181,19 @@ export function normalizeSessionCreatorState(
   return state;
 }
 
+export function normalizeAgentOnlySessionCreatorState(
+  state: SessionCreatorState
+): SessionCreatorState {
+  if (
+    state.dispatchCategory !== "human_session" &&
+    state.targetKind !== SESSION_TARGET_KIND.HUMAN
+  ) {
+    return state;
+  }
+
+  return withDefaultSdeAgent(state);
+}
+
 // ============================================
 // Atoms
 // ============================================
