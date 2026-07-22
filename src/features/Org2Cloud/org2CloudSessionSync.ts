@@ -27,10 +27,7 @@ import {
   computeFrozenEventCount,
   splitFrozenIntoSegments,
 } from "../TeamCollaboration/engine/collabSyncEngineHelpers";
-import {
-  getSessionForkedFrom,
-  getSessionTaskContext,
-} from "../TeamCollaboration/forkSession";
+import { getSessionForkedFrom } from "../TeamCollaboration/forkSession";
 import { computeSegmentHash } from "../TeamCollaboration/sync/collabGzip";
 import type { CloudPushAccess } from "./org2CloudAccessSettings";
 import type { Org2CloudAuthState } from "./org2CloudAuthAtom";
@@ -48,6 +45,9 @@ const log = createLogger("Org2CloudSyncEngine");
 /** Safety TTL for rechecking a session whose events plane was verified clean. */
 const EVENTS_CLEAN_TTL_MS = 10 * 60_000;
 
+/** Largest cursor accepted by the backend's int4 `p_after_seq` argument. */
+const HEAD_READ_AFTER_SEQ = 2_147_483_647;
+
 /** Client seam so tests inject fetch-free fakes. */
 export type Org2CloudSyncClientDeps = Pick<
   typeof org2CloudSyncClient,
@@ -59,9 +59,22 @@ export type Org2CloudSyncClientDeps = Pick<
   | "deleteSession"
 >;
 
+interface PreparedPushPlan {
+  perEventHashes: string[];
+  frozenEventCount: number;
+  tailEvents: SessionEvent[];
+  tailHash: string | null;
+  frozenChainHash: string;
+}
+
+interface PreparedPushEvents {
+  stampAtRead: number;
+  events: SessionEvent[];
+  plan(): Promise<PreparedPushPlan>;
+}
+
 /**
- * Build the cloud metadata through the same collaboration wire shape used by
- * self-hosted sync, restoring fork/task lineage stripped from Session rows.
+ * Build cloud metadata while restoring fork lineage stripped from Session rows.
  */
 export function buildCloudSessionMetadata(
   session: Session,
@@ -90,20 +103,7 @@ export function buildCloudSessionMetadata(
     ...session,
     forkedFrom: getSessionForkedFrom(session),
   };
-  const taskContext = getSessionTaskContext(session);
-  return toRemoteMetadata(
-    withLineage,
-    org,
-    member,
-    settings,
-    scopeKey,
-    taskContext
-      ? {
-          commentId: taskContext.commentId,
-          sourceSessionId: taskContext.sourceSessionId,
-        }
-      : undefined
-  );
+  return toRemoteMetadata(withLineage, org, member, settings, scopeKey);
 }
 
 /** True for local sessions that may ever be pushed to the cloud. */
@@ -124,6 +124,11 @@ export class Org2CloudSessionSync {
   private readonly cleanEventPlanes = new Map<string, Map<string, number>>();
   /** Session activity stamp prevents a mid-push write from being marked clean. */
   private readonly eventActivityStamps = new Map<string, number>();
+  /** Org-independent event reads and hashing shared across orgs in one pass. */
+  private readonly passPushPrepareCache = new Map<
+    string,
+    Promise<PreparedPushEvents>
+  >();
 
   constructor(
     private readonly getStore: () => CloudStore | null,
@@ -134,6 +139,48 @@ export class Org2CloudSessionSync {
     this.lastPushedMetadataHashes.clear();
     this.cleanEventPlanes.clear();
     this.eventActivityStamps.clear();
+    this.passPushPrepareCache.clear();
+  }
+
+  /** Start a new engine pass; prepared events must never leak across passes. */
+  beginPass(): void {
+    this.passPushPrepareCache.clear();
+  }
+
+  /**
+   * Keep app-lifetime acceleration state inside the currently reachable data
+   * set. Durable cursors/markers remain in Jotai storage until their own
+   * retraction/reconcile paths run; these in-memory hashes and clean stamps are
+   * only caches, so dropping a dead key can at worst cause one safe recheck.
+   */
+  prune(
+    liveOrgIds: ReadonlySet<string>,
+    liveSessionIds: ReadonlySet<string>
+  ): void {
+    for (const key of this.lastPushedMetadataHashes.keys()) {
+      const separatorIndex = key.indexOf(":");
+      const orgId = separatorIndex === -1 ? key : key.slice(0, separatorIndex);
+      const sessionId =
+        separatorIndex === -1 ? "" : key.slice(separatorIndex + 1);
+      if (!liveOrgIds.has(orgId) || !liveSessionIds.has(sessionId)) {
+        this.lastPushedMetadataHashes.delete(key);
+      }
+    }
+    for (const [sessionId, byOrg] of this.cleanEventPlanes) {
+      if (!liveSessionIds.has(sessionId)) {
+        this.cleanEventPlanes.delete(sessionId);
+        continue;
+      }
+      for (const orgId of byOrg.keys()) {
+        if (!liveOrgIds.has(orgId)) byOrg.delete(orgId);
+      }
+      if (byOrg.size === 0) this.cleanEventPlanes.delete(sessionId);
+    }
+    for (const sessionId of this.eventActivityStamps.keys()) {
+      if (!liveSessionIds.has(sessionId)) {
+        this.eventActivityStamps.delete(sessionId);
+      }
+    }
   }
 
   /** Drop clean markers and stamp a local event-store write. */
@@ -295,6 +342,48 @@ export class Org2CloudSessionSync {
     return eventStoreProxy.getPersistedEvents(sessionId);
   }
 
+  private preparePushEventsForPass(
+    sessionId: string
+  ): Promise<PreparedPushEvents> {
+    const cached = this.passPushPrepareCache.get(sessionId);
+    if (cached) return cached;
+    const prepared = (async (): Promise<PreparedPushEvents> => {
+      const stampAtRead = this.eventActivityStamps.get(sessionId) ?? 0;
+      const events = await this.loadPushEvents(sessionId);
+      let planPromise: Promise<PreparedPushPlan> | null = null;
+      const plan = (): Promise<PreparedPushPlan> => {
+        if (!planPromise) {
+          planPromise = (async () => {
+            const perEventHashes = await Promise.all(
+              events.map((event) => sha256Hex(stableStringify(event)))
+            );
+            const frozenEventCount = computeFrozenEventCount(events);
+            const tailEvents = events.slice(frozenEventCount);
+            const tailHash =
+              tailEvents.length > 0
+                ? await computeSegmentHash(tailEvents)
+                : null;
+            const frozenChainHash = await this.computeFrozenChainHash(
+              perEventHashes,
+              frozenEventCount
+            );
+            return {
+              perEventHashes,
+              frozenEventCount,
+              tailEvents,
+              tailHash,
+              frozenChainHash,
+            };
+          })();
+        }
+        return planPromise;
+      };
+      return { stampAtRead, events, plan };
+    })();
+    this.passPushPrepareCache.set(sessionId, prepared);
+    return prepared;
+  }
+
   async pushSession(
     auth: Org2CloudAuthState,
     orgId: string,
@@ -311,6 +400,10 @@ export class Org2CloudSessionSync {
         scopeKey,
         access
       );
+      // A metadata-only pass invalidates local segment knowledge. If policy
+      // later rises to full replay, rebuild the authoritative transcript.
+      this.cleanEventPlanes.get(sessionId)?.delete(orgId);
+      this.clearCursor(orgId, sessionId);
       return;
     }
     if (this.isEventPlaneClean(orgId, sessionId)) {
@@ -323,8 +416,8 @@ export class Org2CloudSessionSync {
       );
       return;
     }
-    const stampAtRead = this.eventActivityStamps.get(sessionId) ?? 0;
-    const events = await this.loadPushEvents(sessionId);
+    const { stampAtRead, events, plan } =
+      await this.preparePushEventsForPass(sessionId);
     const cursor = this.getCursor(orgId, sessionId);
     if (!cursor && events.length === 0) {
       await this.upsertMetadataIfChanged(
@@ -345,17 +438,13 @@ export class Org2CloudSessionSync {
       return;
     }
 
-    const perEventHashes = await Promise.all(
-      events.map((event) => sha256Hex(stableStringify(event)))
-    );
-    const frozenEventCount = computeFrozenEventCount(events);
-    const tailEvents = events.slice(frozenEventCount);
-    const tailHash =
-      tailEvents.length > 0 ? await computeSegmentHash(tailEvents) : null;
-    const frozenChainHash = await this.computeFrozenChainHash(
+    const {
       perEventHashes,
-      frozenEventCount
-    );
+      frozenEventCount,
+      tailEvents,
+      tailHash,
+      frozenChainHash,
+    } = await plan();
 
     if (cursor) {
       let frozenIntact = frozenEventCount >= cursor.frozenEventCount;
@@ -528,7 +617,8 @@ export class Org2CloudSessionSync {
     const snapshot = await this.client.getSessionEvents(
       auth.accessToken,
       orgId,
-      sessionId
+      sessionId,
+      { afterSeq: HEAD_READ_AFTER_SEQ }
     );
     return snapshot.epoch ?? 0;
   }

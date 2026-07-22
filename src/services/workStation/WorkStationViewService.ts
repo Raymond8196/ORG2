@@ -153,14 +153,14 @@ export const WorkStationViewService = {
       ]);
 
     const store = getStore();
-    const { openKanbanChatPanelTabAtom } =
+    const { openWorkManagementChatPanelTabAtom } =
       await import("@src/store/chatPanel/chatPanelTabsAtom");
     const currentMode = store.get(stationModeAtom);
     const chatStationMode =
       currentMode === "agent-station" ? "agent-station" : "my-station";
     store.set(stationModeAtom, chatStationMode);
     store.set(activeStationChatVisibleAtom, chatStationMode, true);
-    store.set(openKanbanChatPanelTabAtom, {});
+    store.set(openWorkManagementChatPanelTabAtom, {});
     if (!isWorkStationRoute()) {
       dispatchNavigate(ROUTES.workStation.base.path);
     }
@@ -221,17 +221,20 @@ export const WorkStationViewService = {
   },
 
   async openCodeEditorTab(tabId: string): Promise<boolean> {
-    const [{ stationModeAtom }, { queuePendingCodeEditorTab }] =
-      await Promise.all([
-        import("@src/store/ui/simulatorAtom"),
-        import("@src/store/workstation/tabs"),
-      ]);
+    const [
+      { stationModeAtom },
+      { presentedWorkstationWorkspaceKeyAtom, queuePendingCodeEditorTab },
+    ] = await Promise.all([
+      import("@src/store/ui/simulatorAtom"),
+      import("@src/store/workstation/tabs"),
+    ]);
 
     const store = getStore();
     const isAlreadyOnCodeEditorRoute = isCodeEditorRoute();
     await unmaximizeChatPanel();
     store.set(stationModeAtom, "my-station");
-    queuePendingCodeEditorTab(tabId);
+    const workspace = store.get(presentedWorkstationWorkspaceKeyAtom);
+    queuePendingCodeEditorTab(workspace, tabId);
     dispatchNavigate(ROUTES.workStation.code.path);
     if (isAlreadyOnCodeEditorRoute) {
       dispatchOpenCodeTab(tabId);

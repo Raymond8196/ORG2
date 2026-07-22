@@ -1,10 +1,14 @@
+//! Codex session-meta parsing and parent-thread resolution.
+
 use std::collections::BTreeSet;
 use std::fs;
 use std::io::{BufRead, BufReader};
+use std::path::{Path, PathBuf};
 
 use serde::Deserialize;
 use serde_json::Value;
 
+use crate::sources::codex::canonical_session_id;
 use crate::sources::imported_history::{
     self,
     metadata::{
@@ -13,33 +17,23 @@ use crate::sources::imported_history::{
     },
 };
 
-use super::*;
+use super::impact::{collect_codex_impact_from_patch_apply_end, collect_codex_impact_from_payload};
+use super::index::{
+    codex_session_index_title_for_record, codex_sessions_dir_for_session_path,
+    codex_thread_id_from_file_stem, collect_codex_session_files,
+};
+use super::transcript::user_message_from_payload;
+use super::{CodexAppSessionMeta, CodexJsonlLine, CODEX_APP_METADATA_PARSER_VERSION};
 
-#[derive(Debug, Clone)]
-pub(crate) struct CodexAppSessionMeta {
-    pub(crate) source_session_id: String,
-    pub(crate) session_id: String,
-    pub(crate) source_path: String,
-    pub(crate) source_record_key: String,
-    pub(crate) source_mtime_ms: i64,
-    pub(crate) source_size_bytes: i64,
-    pub(crate) source_fingerprint: String,
-    pub(crate) name: String,
-    pub(crate) parent_session_id: Option<String>,
-    pub(crate) created_at_ms: i64,
-    pub(crate) updated_at_ms: i64,
-    pub(crate) model: Option<String>,
-    pub(crate) repo_path: Option<String>,
-    pub(crate) input_tokens: i64,
-    pub(crate) output_tokens: i64,
-    pub(crate) cache_read_tokens: i64,
-    pub(crate) cache_write_tokens: i64,
-    pub(crate) impact: ImportedHistoryImpactStats,
-    pub(crate) rounds: Vec<RoundUsage>,
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CodexTranscriptLocator {
+    pub source_session_id: String,
+    pub session_id: String,
+    pub source_path: PathBuf,
 }
 
 #[derive(Debug, Deserialize)]
-pub(crate) struct CodexTurnContextPayload {
+struct CodexTurnContextPayload {
     #[serde(default)]
     cwd: String,
     #[serde(default)]
@@ -167,7 +161,7 @@ pub(crate) fn parse_codex_session_meta(
                     rounds.push(RoundUsage {
                         source: SOURCE_CODEX_APP,
                         source_session_id: record.source_session_id.clone(),
-                        session_id: super::canonical_session_id(&record.source_session_id),
+                        session_id: canonical_session_id(&record.source_session_id),
                         seq: rounds.len() as i64,
                         model: model.clone(),
                         input_tokens: d_fresh,
@@ -218,7 +212,7 @@ pub(crate) fn parse_codex_session_meta(
     };
     Ok(Some(CodexAppSessionMeta {
         source_session_id: record.source_session_id.clone(),
-        session_id: super::canonical_session_id(&record.source_session_id),
+        session_id: canonical_session_id(&record.source_session_id),
         source_path: record.source_path.to_string_lossy().to_string(),
         source_record_key: record.source_record_key.clone(),
         source_mtime_ms: record.source_mtime_ms,
@@ -249,7 +243,7 @@ pub(crate) fn parse_codex_session_meta(
     }))
 }
 
-pub(crate) fn session_meta_to_cache_input(meta: CodexAppSessionMeta) -> ImportedHistoryCacheInput {
+pub(super) fn session_meta_to_cache_input(meta: CodexAppSessionMeta) -> ImportedHistoryCacheInput {
     ImportedHistoryCacheInput {
         source: SOURCE_CODEX_APP,
         source_session_id: meta.source_session_id,
@@ -277,7 +271,7 @@ pub(crate) fn session_meta_to_cache_input(meta: CodexAppSessionMeta) -> Imported
     }
 }
 
-pub(crate) fn parent_thread_id_from_session_meta_payload(
+fn parent_thread_id_from_session_meta_payload(
     payload: &Value,
     current_thread_id: Option<&str>,
 ) -> Option<String> {
@@ -305,7 +299,7 @@ pub(crate) fn parent_thread_id_from_session_meta_payload(
     None
 }
 
-pub(crate) fn normalize_parent_thread_id_candidate(
+fn normalize_parent_thread_id_candidate(
     value: &str,
     current_thread_id: Option<&str>,
 ) -> Option<String> {
@@ -316,7 +310,7 @@ pub(crate) fn normalize_parent_thread_id_candidate(
     Some(trimmed.to_string())
 }
 
-pub(crate) fn codex_parent_session_id_for_record(
+fn codex_parent_session_id_for_record(
     record: &ImportedHistoryDiscoveredRecord,
     parent_thread_id: &str,
 ) -> Option<String> {
@@ -324,4 +318,63 @@ pub(crate) fn codex_parent_session_id_for_record(
         .ok()
         .flatten()
         .map(|locator| locator.session_id)
+}
+
+/// Resolve a Codex thread UUID to the concrete rollout file that ORGII can
+/// replay. Lifecycle hooks identify the parent with a stable thread UUID, but
+/// their common `transcript_path` may point at the active child rollout.
+pub fn resolve_codex_transcript_for_thread_id_near_path(
+    reference_path: &Path,
+    thread_id: &str,
+) -> Result<Option<CodexTranscriptLocator>, String> {
+    let Some(sessions_dir) = codex_sessions_dir_for_session_path(reference_path) else {
+        return Ok(None);
+    };
+    let find_locator = |mut files: Vec<PathBuf>| {
+        files.sort();
+        files.into_iter().find_map(|path| {
+            let file_stem = path
+                .file_stem()
+                .and_then(|value| value.to_str())?
+                .to_string();
+            (codex_thread_id_from_file_stem(&file_stem) == Some(thread_id)).then(|| {
+                CodexTranscriptLocator {
+                    session_id: canonical_session_id(&file_stem),
+                    source_session_id: file_stem,
+                    source_path: path,
+                }
+            })
+        })
+    };
+
+    // Parent and child rollouts from one subagent run normally share the same
+    // dated directory. Search that tiny locality before falling back to the
+    // full CODEX_HOME session tree, which can contain years of history.
+    if let Some(nearby_dir) = reference_path.parent() {
+        let mut nearby_files = Vec::new();
+        collect_codex_session_files(nearby_dir, &mut nearby_files)?;
+        if let Some(locator) = find_locator(nearby_files) {
+            return Ok(Some(locator));
+        }
+    }
+
+    let mut files = Vec::new();
+    collect_codex_session_files(&sessions_dir, &mut files)?;
+    Ok(find_locator(files))
+}
+
+fn session_title_from_payload(payload: &Value) -> Option<String> {
+    [
+        "title",
+        "name",
+        "threadName",
+        "thread_name",
+        "conversationTitle",
+        "conversation_title",
+    ]
+    .iter()
+    .filter_map(|key| payload.get(*key).and_then(Value::as_str))
+    .map(str::trim)
+    .find(|value| !value.is_empty())
+    .map(ToString::to_string)
 }

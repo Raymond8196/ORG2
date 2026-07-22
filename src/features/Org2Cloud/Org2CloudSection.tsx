@@ -4,14 +4,10 @@
  * Two tabs:
  *  1. Cloud — ORG2 Cloud (managed) with the existing sign-in /
  *     sign-out control. Sign-in opens the managed cloud login page in the
- *     SYSTEM browser; the login page finishes with a redirect to
- *     `orgii://auth/callback#…`, which the OS delivers through the
- *     deep-link plugin and useDeepLinkHandler completes at the
- *     always-mounted app root — so sign-in survives this section
- *     unmounting.
- *     Includes the agent task runner card (`CloudAgentRunnerCard`, agent-pickup §4 item
- *     7) — per-org account/model/mode defaults for comment-task runs;
- *     hidden until a cloud org exists.
+ *     SYSTEM browser; the login page finishes through an ephemeral localhost
+ *     receiver, which the OAuth plugin delivers to useDeepLinkHandler at the
+ *     always-mounted app root. Installed-app custom-scheme callbacks remain
+ *     supported for cold-start compatibility.
  *  2. Self-hosted — the custom ORG2 Cloud backend card (`CloudEndpointCard`,
  *     cloud-parity Phase C): self-hosting means deploying the SAME stack
  *     and pointing the app at it.
@@ -22,15 +18,19 @@ import {
   SectionRow,
 } from "@/src/modules/shared/layouts/SectionLayout";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { useAtom } from "jotai";
+import { useAtom, useStore } from "jotai";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
-import CloudAgentRunnerCard from "@src/features/Org2Cloud/CloudAgentRunnerCard";
 import CloudEndpointCard from "@src/features/Org2Cloud/CloudEndpointCard";
 import { buildOrg2CloudLoginUrl } from "@src/features/Org2Cloud/config";
 import { org2CloudAuthAtom } from "@src/features/Org2Cloud/org2CloudAuthAtom";
+import {
+  beginOrg2CloudAuthLoopback,
+  cancelPendingOrg2CloudAuthLoopback,
+} from "@src/features/Org2Cloud/org2CloudAuthLoopback";
+import { resetOrgEntitlementCoordinator } from "@src/features/Org2Cloud/org2CloudEntitlementCoordinator";
 import { createLogger } from "@src/hooks/logger";
 
 const log = createLogger("Org2CloudSection");
@@ -49,16 +49,27 @@ const Org2CloudSection: React.FC<Org2CloudSectionProps> = ({
 }) => {
   const { t } = useTranslation("navigation");
   const [auth, setAuth] = useAtom(org2CloudAuthAtom);
+  const store = useStore();
+  const signedInIdentity =
+    auth?.profile?.displayName ??
+    auth?.profile?.primaryEmail ??
+    auth?.userId ??
+    "";
 
-  const handleSignIn = useCallback(() => {
-    openUrl(buildOrg2CloudLoginUrl()).catch((error: unknown) => {
+  const handleSignIn = useCallback(async () => {
+    try {
+      const callbackUrl = await beginOrg2CloudAuthLoopback();
+      await openUrl(buildOrg2CloudLoginUrl(callbackUrl));
+    } catch (error: unknown) {
+      await cancelPendingOrg2CloudAuthLoopback();
       log.error("failed to open ORG2 Cloud login in system browser", error);
-    });
+    }
   }, []);
 
   const handleSignOut = useCallback(() => {
+    resetOrgEntitlementCoordinator(store);
     setAuth(null);
-  }, [setAuth]);
+  }, [setAuth, store]);
 
   if (activeTab === COLLABORATION_TAB_KEYS.SELF_HOSTED) {
     return <CloudEndpointCard />;
@@ -81,13 +92,22 @@ const Org2CloudSection: React.FC<Org2CloudSectionProps> = ({
         >
           <div className={SECTION_ACTION_GAP_CLASSES}>
             {auth ? (
-              <Button
-                size="default"
-                onClick={handleSignOut}
-                data-testid="org2-cloud-sign-out"
-              >
-                {t("cloud.signOut")}
-              </Button>
+              <div className="flex items-center gap-2">
+                <span
+                  className="max-w-56 truncate text-sm text-text-2"
+                  data-testid="org2-cloud-signed-in-identity"
+                  title={signedInIdentity}
+                >
+                  {t("cloud.signedInAs", { name: signedInIdentity })}
+                </span>
+                <Button
+                  size="default"
+                  onClick={handleSignOut}
+                  data-testid="org2-cloud-sign-out"
+                >
+                  {t("cloud.signOut")}
+                </Button>
+              </div>
             ) : (
               <Button
                 size="default"
@@ -100,9 +120,6 @@ const Org2CloudSection: React.FC<Org2CloudSectionProps> = ({
           </div>
         </SectionRow>
       </SectionContainer>
-
-      {/* Per-org agent-task runner defaults; hidden until an org exists. */}
-      <CloudAgentRunnerCard />
     </>
   );
 };

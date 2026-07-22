@@ -242,6 +242,7 @@ describe("resetSessionSwitchState optimistic-running preservation", () => {
       setSessionRuntimeError: vi.fn(),
       setPendingCancel: vi.fn(),
       setStreamRetryStatus: vi.fn(),
+      clearCanvasPreviewOnSessionSwitch: vi.fn(),
     };
   }
 
@@ -263,6 +264,21 @@ describe("resetSessionSwitchState optimistic-running preservation", () => {
     expect(actions.setSessionContextTokens).toHaveBeenCalledWith(0);
     expect(actions.setSessionContextUsage).toHaveBeenCalledWith(null);
     expect(actions.setSessionContextBreakdown).toHaveBeenCalledWith(null);
+  });
+
+  it("clears canvas preview when switching between sessions", () => {
+    const actions = createSwitchActions();
+    resetSessionSwitchState(actions, "session-b", "session-a");
+    expect(actions.clearCanvasPreviewOnSessionSwitch).toHaveBeenCalledWith(
+      "session-a",
+      "session-b"
+    );
+  });
+
+  it("does not request a canvas clear without an entering session", () => {
+    const actions = createSwitchActions();
+    resetSessionSwitchState(actions);
+    expect(actions.clearCanvasPreviewOnSessionSwitch).not.toHaveBeenCalled();
   });
 
   it("preserves running for a session just optimistically started", () => {

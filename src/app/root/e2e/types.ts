@@ -529,6 +529,9 @@ export interface E2EHelpers {
     content: string
   ) => Promise<Result<{ result: Json }>>;
   launchSession: (params: Json) => Promise<Result<{ result: Json }>>;
+  reloadSessionList: () => Promise<
+    Result<{ count: number; sessionIds: string[] }>
+  >;
   getSessionAggregateRow: (
     sessionId: string
   ) => Promise<Result<{ session: Json | null }>>;
@@ -590,8 +593,8 @@ export interface E2EHelpers {
   seedShellProcess: (input: {
     sessionId: string;
     pid: number;
+    callId?: string;
     command: string;
-    logPath?: string;
     status?: "running" | "background";
   }) => Promise<Result<{ sessionId: string; pid: number }>>;
   seedSubagentJob: (input: {
@@ -858,6 +861,12 @@ export interface E2EHelpers {
     orgs: Array<{ orgId: string; name: string; role: string }>;
   }) => Promise<Result<{ count: number }>>;
   cloudListOrgs: () => Promise<Result<{ orgs: Json[] }>>;
+  cloudInspectMemberRoster: (opts: { orgId: string }) => Promise<
+    Result<{
+      rosterVersion: number;
+      members: Json[] | null;
+    }>
+  >;
   cloudInspectRosterState: () => Promise<
     Result<{
       orgs: Json[];

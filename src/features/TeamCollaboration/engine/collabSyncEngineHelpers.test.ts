@@ -6,13 +6,24 @@ import type { SessionEvent } from "@src/engines/SessionCore/core/types";
 import { COLLAB_IDENTITY_KIND } from "@src/store/collaboration/types";
 import type { RemoteTeammateSessionMetadata } from "@src/store/collaboration/types";
 import { sessionsAtom } from "@src/store/session/sessionAtom/atoms";
+import {
+  __GUEST_IMPORT_REGISTRY_INTERNALS,
+  mergeGuestImportedSessions,
+  removeGuestImportedSession,
+} from "@src/store/session/sessionAtom/guestImportRegistry";
 import type { Session } from "@src/store/session/sessionAtom/types";
 import { createInstrumentedStore } from "@src/util/core/state/instrumentedStore";
 
+import {
+  FORK_SNAPSHOT_ERROR_KIND,
+  ForkSnapshotIntegrityError,
+  SegmentIntegrityError,
+} from "../forkSnapshotIntegrity";
 import type {
   CollabSyncBackendClient,
   SessionEventSegmentsSnapshot,
 } from "../sync/CollabSyncBackend";
+import { computeSegmentHash } from "../sync/collabGzip";
 import {
   deriveImportedSessionId,
   forkSession,
@@ -29,6 +40,7 @@ vi.mock("@src/engines/SessionCore/core/store/EventStoreProxy", () => ({
     set: vi.fn(),
     saveToCache: vi.fn(),
     clear: vi.fn(),
+    clearPersistedHistory: vi.fn(),
   },
 }));
 
@@ -40,6 +52,21 @@ const eventStoreMock = vi.mocked(eventStoreProxy);
 const indexCollaborationSessionMock = vi.mocked(
   indexOrgtrackCollaborationSession
 );
+
+async function sealSnapshot(
+  snapshot: SessionEventSegmentsSnapshot
+): Promise<SessionEventSegmentsSnapshot> {
+  const segments = await Promise.all(
+    snapshot.segments.map(async (segment) => ({
+      ...segment,
+      segmentHash: await computeSegmentHash(segment.events),
+    }))
+  );
+  const tailHash =
+    segments.find((segment) => segment.isTail)?.segmentHash ??
+    snapshot.tailHash;
+  return { ...snapshot, tailHash, segments };
+}
 
 describe("isCollabConflictError (both backends' OCC rejection)", () => {
   it("matches the self-hosted ORGII_CONFLICT", () => {
@@ -121,18 +148,56 @@ describe("splitFrozenIntoSegments 256KB packing", () => {
     expect(segments[0].events).toHaveLength(1);
     expect(segments[0].events[0].id).toBe("huge");
   });
+
+  it("budgets by UTF-8 bytes, not UTF-16 length (CJK regression)", () => {
+    // Each CJK char is 1 UTF-16 code unit but 3 UTF-8 bytes. A length-based
+    // budget would pack ~3× over the wire cap for CJK-heavy transcripts.
+    const cjkPayload = "汉".repeat(60 * 1024); // ~180 KiB UTF-8, 60 K length
+    const events = Array.from({ length: 6 }, (_unused, index) =>
+      makeEvent(`cjk${index}`, cjkPayload)
+    );
+    const encoder = new TextEncoder();
+
+    const segments = splitFrozenIntoSegments(events, 1);
+
+    // UTF-16 budgeting would fit 4 events per segment (~240K length) and
+    // produce 2 segments; UTF-8 budgeting fits 1 per segment.
+    expect(segments.length).toBeGreaterThanOrEqual(6);
+    for (const segment of segments) {
+      if (segment.events.length <= 1) continue;
+      const segmentBytes = segment.events.reduce(
+        (sum, event) => sum + encoder.encode(JSON.stringify(event)).byteLength,
+        0
+      );
+      expect(segmentBytes).toBeLessThanOrEqual(SEGMENT_MAX_BYTES);
+    }
+  });
 });
 
 describe("deriveImportedSessionId", () => {
-  it("is deterministic per (orgId, sourceSessionId) and keeps the imported-session prefix", async () => {
-    const first = await deriveImportedSessionId("org-1", "remote-1");
-    const second = await deriveImportedSessionId("org-1", "remote-1");
+  it("is deterministic per (endpoint, orgId, sourceSessionId) and keeps the imported-session prefix", async () => {
+    const first = await deriveImportedSessionId(
+      "org-1",
+      "remote-1",
+      "https://cloud-a.example.com/"
+    );
+    const second = await deriveImportedSessionId(
+      "org-1",
+      "remote-1",
+      "https://cloud-a.example.com"
+    );
     const otherSession = await deriveImportedSessionId("org-1", "remote-2");
     const otherOrg = await deriveImportedSessionId("org-2", "remote-1");
+    const otherEndpoint = await deriveImportedSessionId(
+      "org-1",
+      "remote-1",
+      "https://cloud-b.example.com"
+    );
     expect(first).toBe(second);
     expect(first).toMatch(/^imported-session-[0-9a-f]{32}$/);
     expect(otherSession).not.toBe(first);
     expect(otherOrg).not.toBe(first);
+    expect(otherEndpoint).not.toBe(first);
   });
 });
 
@@ -188,8 +253,12 @@ describe("importRemoteSession", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     store.set(sessionsAtom, []);
+    localStorage.removeItem(
+      __GUEST_IMPORT_REGISTRY_INTERNALS.GUEST_IMPORT_REGISTRY_STORAGE_KEY
+    );
     eventStoreMock.set.mockResolvedValue(undefined);
     eventStoreMock.clear.mockResolvedValue(undefined);
+    eventStoreMock.clearPersistedHistory.mockResolvedValue(undefined);
     eventStoreMock.getPersistedEvents.mockResolvedValue([]);
     eventStoreMock.saveToCache.mockResolvedValue(1);
     indexCollaborationSessionMock.mockResolvedValue(0);
@@ -197,7 +266,7 @@ describe("importRemoteSession", () => {
 
   it("indexes an authorized replay against the viewer's checkout", async () => {
     const client = {
-      getSessionEventSegments: vi.fn(async () => makeSnapshot()),
+      getSessionEventSegments: vi.fn(async () => sealSnapshot(makeSnapshot())),
     } satisfies Pick<CollabSyncBackendClient, "getSessionEventSegments">;
     const remote = makeRemote();
 
@@ -223,7 +292,7 @@ describe("importRemoteSession", () => {
 
   it("rejects on a failed durable write, clears the orphan, and reuses the deterministic id on retry", async () => {
     const client = {
-      getSessionEventSegments: vi.fn(async () => makeSnapshot()),
+      getSessionEventSegments: vi.fn(async () => sealSnapshot(makeSnapshot())),
     } satisfies Pick<CollabSyncBackendClient, "getSessionEventSegments">;
     // The durable cache write fails (transient SQLite lock → swallowed → 0).
     eventStoreMock.saveToCache.mockResolvedValueOnce(0);
@@ -258,7 +327,7 @@ describe("importRemoteSession", () => {
 
   it("re-fetches a hollow cache: matching cursor but empty local event store", async () => {
     const client = {
-      getSessionEventSegments: vi.fn(async () => makeSnapshot()),
+      getSessionEventSegments: vi.fn(async () => sealSnapshot(makeSnapshot())),
     } satisfies Pick<CollabSyncBackendClient, "getSessionEventSegments">;
     const expectedId = await deriveImportedSessionId("org-1", "remote-1");
     store.set(sessionsAtom, [
@@ -297,7 +366,7 @@ describe("importRemoteSession", () => {
 
   it("keeps the cursor no-op when the local event store still holds the events", async () => {
     const client = {
-      getSessionEventSegments: vi.fn(async () => makeSnapshot()),
+      getSessionEventSegments: vi.fn(async () => sealSnapshot(makeSnapshot())),
     } satisfies Pick<CollabSyncBackendClient, "getSessionEventSegments">;
     const expectedId = await deriveImportedSessionId("org-1", "remote-1");
     store.set(sessionsAtom, [
@@ -334,7 +403,7 @@ describe("importRemoteSession", () => {
 
   it("stamps Session.orgId on a MEMBER import so the sidebar org filter matches", async () => {
     const client = {
-      getSessionEventSegments: vi.fn(async () => makeSnapshot()),
+      getSessionEventSegments: vi.fn(async () => sealSnapshot(makeSnapshot())),
     } satisfies Pick<CollabSyncBackendClient, "getSessionEventSegments">;
 
     // Member context: engine PullLoop / panel replay — org profile, no token.
@@ -355,7 +424,7 @@ describe("importRemoteSession", () => {
 
   it("preserves an external app source on the local replay provenance", async () => {
     const client = {
-      getSessionEventSegments: vi.fn(async () => makeSnapshot()),
+      getSessionEventSegments: vi.fn(async () => sealSnapshot(makeSnapshot())),
     } satisfies Pick<CollabSyncBackendClient, "getSessionEventSegments">;
 
     const result = await importRemoteSession({
@@ -374,7 +443,7 @@ describe("importRemoteSession", () => {
 
   it("leaves Session.orgId unset on a GUEST share-token import (stays under Personal)", async () => {
     const client = {
-      getSessionEventSegments: vi.fn(async () => makeSnapshot()),
+      getSessionEventSegments: vi.fn(async () => sealSnapshot(makeSnapshot())),
     } satisfies Pick<CollabSyncBackendClient, "getSessionEventSegments">;
 
     // Guest context: CollabShareImportDialog — the share token authenticates,
@@ -384,6 +453,7 @@ describe("importRemoteSession", () => {
       orgId: "org-1",
       remoteSession: makeRemote(),
       shareToken: "share-token",
+      shareEndpointUrl: "https://cloud.example.com",
     });
 
     const record = (store.get(sessionsAtom) as Session[]).find(
@@ -394,11 +464,201 @@ describe("importRemoteSession", () => {
     // Provenance still records the origin org.
     expect(record.importedFrom?.orgId).toBe("org-1");
     expect(record.importedFrom?.shareToken).toBe("share-token");
+    expect(record.importedFrom?.shareEndpointUrl).toBe(
+      "https://cloud.example.com"
+    );
+  });
+
+  it("guest import survives an authoritative list replace via the registry", async () => {
+    const client = {
+      getSessionEventSegments: vi.fn(async () => sealSnapshot(makeSnapshot())),
+    } satisfies Pick<CollabSyncBackendClient, "getSessionEventSegments">;
+
+    const result = await importRemoteSession({
+      client,
+      orgId: "org-1",
+      remoteSession: makeRemote(),
+      shareToken: "share-token",
+      shareEndpointUrl: "https://cloud.example.com",
+    });
+
+    const restored = mergeGuestImportedSessions([]).find(
+      (session) => session.session_id === result!.localSessionId
+    );
+    expect(restored?.importedFrom?.shareToken).toBe("share-token");
+    expect(restored?.importedFrom?.shareEndpointUrl).toBe(
+      "https://cloud.example.com"
+    );
+    expect(restored?.importedFrom?.orgId).toBe("org-1");
+    expect(restored?.importedFrom?.sourceSessionId).toBe("remote-1");
+
+    removeGuestImportedSession(result!.localSessionId);
+    expect(mergeGuestImportedSessions([])).toEqual([]);
+  });
+
+  it("member imports never enter the guest registry", async () => {
+    const client = {
+      getSessionEventSegments: vi.fn(async () => sealSnapshot(makeSnapshot())),
+    } satisfies Pick<CollabSyncBackendClient, "getSessionEventSegments">;
+
+    await importRemoteSession({
+      client,
+      orgId: "org-1",
+      remoteSession: makeRemote(),
+    });
+
+    expect(mergeGuestImportedSessions([])).toEqual([]);
+  });
+
+  it("fails closed when decoded segment content disagrees with its hash", async () => {
+    const snapshot = await sealSnapshot(makeSnapshot());
+    const tampered = {
+      ...snapshot,
+      segments: snapshot.segments.map((segment) => ({
+        ...segment,
+        events: [
+          {
+            ...(segment.events[0] as unknown as Record<string, unknown>),
+            id: "tampered",
+          } as unknown as SessionEvent,
+          ...segment.events.slice(1),
+        ],
+      })),
+    };
+    const client = {
+      getSessionEventSegments: vi.fn(async () => tampered),
+    } satisfies Pick<CollabSyncBackendClient, "getSessionEventSegments">;
+
+    await expect(
+      importRemoteSession({
+        client,
+        orgId: "org-1",
+        remoteSession: makeRemote(),
+      })
+    ).rejects.toSatisfy(
+      (error: unknown) =>
+        error instanceof SegmentIntegrityError &&
+        error.mismatch === "content_hash" &&
+        error.seq === 1 &&
+        !error.isTail
+    );
+    expect(eventStoreMock.set).not.toHaveBeenCalled();
+  });
+
+  it("an aborted import stops before any durable write", async () => {
+    const controller = new AbortController();
+    const client = {
+      getSessionEventSegments: vi.fn(
+        async (input: { signal?: AbortSignal }) => {
+          expect(input.signal).toBe(controller.signal);
+          controller.abort();
+          return sealSnapshot(makeSnapshot());
+        }
+      ),
+    } satisfies Pick<CollabSyncBackendClient, "getSessionEventSegments">;
+
+    await expect(
+      importRemoteSession({
+        client,
+        orgId: "org-1",
+        remoteSession: makeRemote(),
+        signal: controller.signal,
+      })
+    ).rejects.toSatisfy(
+      (error: unknown) =>
+        error instanceof DOMException && error.name === "AbortError"
+    );
+    expect(eventStoreMock.set).not.toHaveBeenCalled();
+    expect(eventStoreMock.saveToCache).not.toHaveBeenCalled();
+  });
+
+  it("rolls back durable history when cancellation arrives before the session-row commit", async () => {
+    const controller = new AbortController();
+    const client = {
+      getSessionEventSegments: vi.fn(async () => sealSnapshot(makeSnapshot())),
+    } satisfies Pick<CollabSyncBackendClient, "getSessionEventSegments">;
+    eventStoreMock.saveToCache.mockImplementationOnce(async () => {
+      controller.abort();
+      return 1;
+    });
+
+    await expect(
+      importRemoteSession({
+        client,
+        orgId: "org-1",
+        remoteSession: makeRemote(),
+        signal: controller.signal,
+      })
+    ).rejects.toSatisfy(
+      (error: unknown) =>
+        error instanceof DOMException && error.name === "AbortError"
+    );
+
+    const expectedId = await deriveImportedSessionId("org-1", "remote-1");
+    expect(eventStoreMock.set).toHaveBeenCalledTimes(1);
+    expect(eventStoreMock.clearPersistedHistory).toHaveBeenCalledWith(
+      expectedId
+    );
+    expect(eventStoreMock.clear).toHaveBeenCalledWith(expectedId);
+    expect(store.get(sessionsAtom)).toHaveLength(0);
+  });
+
+  it("keeps identically named remote sessions from different endpoints isolated", async () => {
+    const client = {
+      getSessionEventSegments: vi.fn(async () => sealSnapshot(makeSnapshot())),
+    } satisfies Pick<CollabSyncBackendClient, "getSessionEventSegments">;
+
+    const cloudA = await importRemoteSession({
+      client,
+      orgId: "org-1",
+      remoteSession: makeRemote(),
+      sourceEndpointUrl: "https://cloud-a.example.com",
+    });
+    const cloudB = await importRemoteSession({
+      client,
+      orgId: "org-1",
+      remoteSession: makeRemote(),
+      sourceEndpointUrl: "https://cloud-b.example.com",
+    });
+
+    expect(cloudA?.localSessionId).not.toBe(cloudB?.localSessionId);
+    const records = store.get(sessionsAtom) as Session[];
+    expect(records).toHaveLength(2);
+    expect(
+      records.map((record) => record.importedFrom?.sourceEndpointUrl).sort()
+    ).toEqual(["https://cloud-a.example.com", "https://cloud-b.example.com"]);
+  });
+
+  it("fails closed when a segment's eventCount disagrees with its payload", async () => {
+    const snapshot = await sealSnapshot(makeSnapshot());
+    const tampered = {
+      ...snapshot,
+      segments: snapshot.segments.map((segment) => ({
+        ...segment,
+        eventCount: segment.eventCount + 1,
+      })),
+    };
+    const client = {
+      getSessionEventSegments: vi.fn(async () => tampered),
+    } satisfies Pick<CollabSyncBackendClient, "getSessionEventSegments">;
+
+    await expect(
+      importRemoteSession({
+        client,
+        orgId: "org-1",
+        remoteSession: makeRemote(),
+      })
+    ).rejects.toSatisfy(
+      (error: unknown) =>
+        error instanceof SegmentIntegrityError &&
+        error.mismatch === "event_count"
+    );
+    expect(eventStoreMock.set).not.toHaveBeenCalled();
   });
 
   it("preserves a guest capability during a later tokenless re-import", async () => {
     const client = {
-      getSessionEventSegments: vi.fn(async () => makeSnapshot()),
+      getSessionEventSegments: vi.fn(async () => sealSnapshot(makeSnapshot())),
     } satisfies Pick<CollabSyncBackendClient, "getSessionEventSegments">;
     const localSessionId = await deriveImportedSessionId("org-1", "remote-1");
     store.set(sessionsAtom, [
@@ -413,6 +673,7 @@ describe("importRemoteSession", () => {
           seq: 0,
           count: 0,
           shareToken: "share-token",
+          shareEndpointUrl: "https://cloud.example.com",
         },
       } as unknown as Session,
     ]);
@@ -426,9 +687,12 @@ describe("importRemoteSession", () => {
       (session) => session.session_id === result!.localSessionId
     );
     expect(record?.importedFrom?.shareToken).toBe("share-token");
+    expect(record?.importedFrom?.shareEndpointUrl).toBe(
+      "https://cloud.example.com"
+    );
   });
 
-  it("dedups concurrent imports of the same remote session in flight", async () => {
+  it("serializes concurrent imports without sharing a caller's promise", async () => {
     let resolveFirstFetch!: (snapshot: SessionEventSegmentsSnapshot) => void;
     const client = {
       getSessionEventSegments: vi
@@ -439,31 +703,33 @@ describe("importRemoteSession", () => {
               resolveFirstFetch = resolve;
             })
         )
-        .mockResolvedValue({
-          ...makeSnapshot(),
-          frozenSeq: 2,
-          count: 2,
-          segments: [
-            ...makeSnapshot().segments,
-            {
-              seq: 2,
-              isTail: false,
-              events: [
-                {
-                  id: "e2",
-                  sessionId: "remote-1",
-                  displayStatus: "completed",
-                } as unknown as SessionEvent,
-              ],
-              eventCount: 1,
-              segmentHash: "h2",
-            },
-          ],
-        }),
+        .mockImplementation(async () =>
+          sealSnapshot({
+            ...makeSnapshot(),
+            frozenSeq: 2,
+            count: 2,
+            segments: [
+              ...makeSnapshot().segments,
+              {
+                seq: 2,
+                isTail: false,
+                events: [
+                  {
+                    id: "e2",
+                    sessionId: "remote-1",
+                    displayStatus: "completed",
+                  } as unknown as SessionEvent,
+                ],
+                eventCount: 1,
+                segmentHash: "h2",
+              },
+            ],
+          })
+        ),
     } satisfies Pick<CollabSyncBackendClient, "getSessionEventSegments">;
 
-    // Engine PullLoop and a panel replay click race on the same session:
-    // the second call must share the first call's in-flight promise.
+    // Engine PullLoop and a panel replay click race on the same session. The
+    // second attempt waits instead of sharing the first caller's cancellation.
     const first = importRemoteSession({
       client,
       orgId: "org-1",
@@ -474,12 +740,14 @@ describe("importRemoteSession", () => {
       orgId: "org-1",
       remoteSession: makeRemote(),
     });
+    for (let flush = 0; flush < 5; flush += 1) await Promise.resolve();
     expect(client.getSessionEventSegments).toHaveBeenCalledTimes(1);
 
-    resolveFirstFetch(makeSnapshot());
+    resolveFirstFetch(await sealSnapshot(makeSnapshot()));
     const [firstResult, secondResult] = await Promise.all([first, second]);
     expect(firstResult?.localSessionId).toBe(secondResult?.localSessionId);
-    expect(eventStoreMock.set).toHaveBeenCalledTimes(1);
+    expect(client.getSessionEventSegments).toHaveBeenCalledTimes(2);
+    expect(eventStoreMock.set).toHaveBeenCalledTimes(2);
 
     // The in-flight entry is cleared afterwards: a later call with a newer
     // remote summary fetches again instead of returning the stale promise.
@@ -488,7 +756,7 @@ describe("importRemoteSession", () => {
       orgId: "org-1",
       remoteSession: makeRemote({ eventsFrozenSeq: 2, eventsCount: 2 }),
     });
-    expect(client.getSessionEventSegments).toHaveBeenCalledTimes(2);
+    expect(client.getSessionEventSegments).toHaveBeenCalledTimes(3);
     expect(third?.updated).toBe(true);
   });
 });
@@ -556,9 +824,116 @@ describe("forkSession (design §16.11, fork & continue)", () => {
     eventStoreMock.saveToCache.mockResolvedValue(1);
   });
 
+  it("preserves every frozen segment plus the mutable tail in source order", async () => {
+    const snapshot = await sealSnapshot({
+      epoch: 3,
+      frozenSeq: 2,
+      tailHash: "tail-hash",
+      count: 5,
+      segments: [
+        {
+          seq: 1,
+          isTail: false,
+          events: [
+            { id: "turn-1-user", sessionId: "remote-1" },
+            { id: "turn-1-agent", sessionId: "remote-1" },
+          ] as SessionEvent[],
+          eventCount: 2,
+          segmentHash: "h1",
+        },
+        {
+          seq: 2,
+          isTail: false,
+          events: [
+            { id: "turn-2-user", sessionId: "remote-1" },
+            { id: "turn-2-agent", sessionId: "remote-1" },
+          ] as SessionEvent[],
+          eventCount: 2,
+          segmentHash: "h2",
+        },
+        {
+          seq: 0,
+          isTail: true,
+          events: [
+            { id: "turn-3-user", sessionId: "remote-1" },
+          ] as SessionEvent[],
+          eventCount: 1,
+          segmentHash: "tail-hash",
+        },
+      ],
+    });
+    const client = {
+      getSessionEventSegments: vi.fn(async () => snapshot),
+    } satisfies Pick<CollabSyncBackendClient, "getSessionEventSegments">;
+
+    const result = await forkSession({
+      client,
+      orgId: "org-1",
+      remoteSession: makeRemote({
+        eventsEpoch: 3,
+        eventsFrozenSeq: 2,
+        eventsCount: 5,
+        eventsTailHash: snapshot.tailHash ?? undefined,
+      }),
+    });
+
+    expect(result?.eventCount).toBe(5);
+    const [written, forkId] = eventStoreMock.set.mock.calls[0];
+    // Inherited event ids are namespaced by the fork's local session id so
+    // they cannot collide (PK id) with the source or a sibling import copy.
+    expect((written as SessionEvent[]).map((event) => event.id)).toEqual([
+      `${forkId}~turn-1-user`,
+      `${forkId}~turn-1-agent`,
+      `${forkId}~turn-2-user`,
+      `${forkId}~turn-2-agent`,
+      `${forkId}~turn-3-user`,
+    ]);
+  });
+
+  it("fails closed when a tail-only snapshot contradicts the list summary", async () => {
+    const snapshot = await sealSnapshot({
+      epoch: 4,
+      frozenSeq: 0,
+      tailHash: "tail-only",
+      count: 1,
+      segments: [
+        {
+          seq: 0,
+          isTail: true,
+          events: [
+            { id: "latest-only", sessionId: "remote-1" },
+          ] as SessionEvent[],
+          eventCount: 1,
+          segmentHash: "tail-only",
+        },
+      ],
+    });
+    const client = {
+      getSessionEventSegments: vi.fn(async () => snapshot),
+    } satisfies Pick<CollabSyncBackendClient, "getSessionEventSegments">;
+
+    await expect(
+      forkSession({
+        client,
+        orgId: "org-1",
+        remoteSession: makeRemote({
+          eventsEpoch: 4,
+          eventsFrozenSeq: 2,
+          eventsCount: 5,
+          eventsTailHash: snapshot.tailHash ?? undefined,
+        }),
+      })
+    ).rejects.toSatisfy(
+      (error: unknown) =>
+        error instanceof ForkSnapshotIntegrityError &&
+        error.kind === FORK_SNAPSHOT_ERROR_KIND.SNAPSHOT_INCOMPLETE
+    );
+    expect(eventStoreMock.set).not.toHaveBeenCalled();
+  });
+
   it("creates a WRITABLE session with forkedFrom provenance and persisted events", async () => {
     const client = {
-      getSessionEventSegments: vi.fn(async () => makeSnapshot()),
+      getSessionEventSegments: vi.fn(async () => sealSnapshot(makeSnapshot())),
     } satisfies Pick<CollabSyncBackendClient, "getSessionEventSegments">;
 
     const result = await forkSession({
@@ -610,7 +985,7 @@ describe("forkSession (design §16.11, fork & continue)", () => {
 
   it("uses the resolved LOCAL workspace over the owner's absolute path when provided", async () => {
     const client = {
-      getSessionEventSegments: vi.fn(async () => makeSnapshot()),
+      getSessionEventSegments: vi.fn(async () => sealSnapshot(makeSnapshot())),
     } satisfies Pick<CollabSyncBackendClient, "getSessionEventSegments">;
 
     const result = await forkSession({
@@ -628,7 +1003,7 @@ describe("forkSession (design §16.11, fork & continue)", () => {
 
   it("drops the owner's dead path entirely when no local checkout resolved (null override)", async () => {
     const client = {
-      getSessionEventSegments: vi.fn(async () => makeSnapshot()),
+      getSessionEventSegments: vi.fn(async () => sealSnapshot(makeSnapshot())),
     } satisfies Pick<CollabSyncBackendClient, "getSessionEventSegments">;
 
     const result = await forkSession({
@@ -647,7 +1022,7 @@ describe("forkSession (design §16.11, fork & continue)", () => {
 
   it("inherits the thread root when forking a fork (relay chain)", async () => {
     const client = {
-      getSessionEventSegments: vi.fn(async () => makeSnapshot()),
+      getSessionEventSegments: vi.fn(async () => sealSnapshot(makeSnapshot())),
     } satisfies Pick<CollabSyncBackendClient, "getSessionEventSegments">;
 
     const result = await forkSession({
@@ -675,7 +1050,7 @@ describe("forkSession (design §16.11, fork & continue)", () => {
 
   it("is push-eligible (unlike an import): the continuation syncs back as MY session", async () => {
     const client = {
-      getSessionEventSegments: vi.fn(async () => makeSnapshot()),
+      getSessionEventSegments: vi.fn(async () => sealSnapshot(makeSnapshot())),
     } satisfies Pick<CollabSyncBackendClient, "getSessionEventSegments">;
 
     const result = await forkSession({
@@ -707,29 +1082,32 @@ describe("forkSession (design §16.11, fork & continue)", () => {
     expect(importedRecord.importedFrom).toBeDefined();
   });
 
-  it("returns null for a metadata-only session without fetching anything", async () => {
+  it("throws a typed replay error for metadata-only sessions without fetching", async () => {
     const client = {
-      getSessionEventSegments: vi.fn(async () => makeSnapshot()),
+      getSessionEventSegments: vi.fn(async () => sealSnapshot(makeSnapshot())),
     } satisfies Pick<CollabSyncBackendClient, "getSessionEventSegments">;
 
-    const result = await forkSession({
-      client,
-      orgId: "org-1",
-      remoteSession: makeRemote({
-        eventsEpoch: undefined,
-        eventsFrozenSeq: undefined,
-        eventsCount: undefined,
-      }),
+    await expect(
+      forkSession({
+        client,
+        orgId: "org-1",
+        remoteSession: makeRemote({
+          eventsEpoch: undefined,
+          eventsFrozenSeq: undefined,
+          eventsCount: undefined,
+        }),
+      })
+    ).rejects.toMatchObject({
+      kind: "replay_unavailable",
+      sourceSessionId: "remote-1",
     });
-
-    expect(result).toBeNull();
     expect(client.getSessionEventSegments).not.toHaveBeenCalled();
     expect(store.get(sessionsAtom)).toHaveLength(0);
   });
 
   it("throws on a failed durable write and leaves no session record behind", async () => {
     const client = {
-      getSessionEventSegments: vi.fn(async () => makeSnapshot()),
+      getSessionEventSegments: vi.fn(async () => sealSnapshot(makeSnapshot())),
     } satisfies Pick<CollabSyncBackendClient, "getSessionEventSegments">;
     // The durable cache write fails (swallowed error → 0 rows saved).
     eventStoreMock.saveToCache.mockResolvedValueOnce(0);

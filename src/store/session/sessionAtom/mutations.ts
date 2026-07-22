@@ -38,6 +38,7 @@ import {
   sessionLastLoadedAtom,
   sessionsAtom,
 } from "./atoms";
+import { removeGuestImportedSession } from "./guestImportRegistry";
 import type { Session, SessionStatus } from "./types";
 
 const getStore = () => getInstrumentedStore();
@@ -136,6 +137,7 @@ export const removeSession = (sessionId: string) => {
     localStorage.removeItem(`orgii:tuiMode:${sessionId}`);
   }
   store.set(clearTodosForSessionAtom, sessionId);
+  removeGuestImportedSession(sessionId);
 };
 
 /**

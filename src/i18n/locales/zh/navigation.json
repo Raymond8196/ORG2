@@ -12,6 +12,7 @@
     "drafts": "草稿",
     "browser": "浏览器",
     "editor": "编辑器",
+    "environment": "环境",
     "workspace": "工作区",
     "codeEditor": "代码编辑器",
     "databaseManager": "数据库管理器",
@@ -464,7 +465,7 @@
     "createOrg": "创建",
     "joinOrg": "加入",
     "orgSource": "组织来源",
-    "localOrg": "Local",
+    "localOrg": "本地",
     "orgName": "ORG 名称",
     "orgNamePlaceholder": "Team Alpha",
     "inviteCode": "邀请链接或代码",
@@ -489,7 +490,11 @@
       "forkSetupNoWorkspace": "不使用工作区继续",
       "forkSetupAccount": "账户",
       "forkSetupModel": "模型",
-      "forkSetupContinue": "Fork 并继续"
+      "forkSetupContinue": "Fork 并继续",
+      "forkSnapshotIncomplete": "云端快照不完整。请让所有者完成同步后重试。",
+      "forkAgentUnavailable": "请先选择本机 Agent 再分叉。",
+      "forkBackendRegistrationFailed": "历史已复制，但可运行的分叉会话注册失败。请重试。",
+      "forkReplayUnavailable": "此会话尚无完整回放。请让所有者共享完整回放后重试。"
     },
     "repoPicker": {
       "loading": "正在加载 repo…",
@@ -509,7 +514,13 @@
       "error": "分叉会话失败",
       "sendFailed": "已分叉，但消息发送失败——内容已恢复到输入框",
       "forkedChipTooltip": "分叉自 {{name}}",
-      "continuePlaceholder": "发送消息，Fork 后在 ORGII 中继续…"
+      "continuePlaceholder": "发送消息，Fork 后在 ORGII 中继续…",
+      "snapshotError": "云端快照不完整。请让所有者完成同步后重试。",
+      "agentError": "请先选择本机 Agent 再分叉。",
+      "backendError": "历史已复制，但可运行的分叉会话注册失败。请重试。",
+      "parentOpenUnavailable": "无法从此分叉打开源会话。",
+      "replayError": "此会话尚无完整回放。请让所有者共享完整回放后重试。",
+      "openParentButton": "打开来自 {{name}} 的源会话"
     }
   },
   "cloud": {
@@ -636,7 +647,8 @@
         "youTag": "我",
         "ownerTag": "所有者",
         "floorOff": "无最低要求",
-        "floorTooltip": "该成员的最低分享级别。与组织级最低要求取更严格者生效。"
+        "floorTooltip": "该成员的最低分享级别。与组织级最低要求取更严格者生效。",
+        "floorOrgMinimum": "组织最低要求（{{mode}}）"
       },
       "leave": {
         "action": "退出组织",
@@ -677,7 +689,7 @@
         "joinedFallbackToast": "已加入云端组织"
       },
       "create": {
-        "sourceCloud": "ORG2 云（托管）",
+        "sourceCloud": "云端",
         "signInFirst": "登录 ORG2 云以创建或加入托管组织。",
         "openSettings": "打开登录设置",
         "createdToast": "云端组织已创建"
@@ -697,22 +709,18 @@
         "inviteExhausted": "该邀请的使用次数已用完。"
       }
     },
-    "defaultAccess": {
-      "label": "默认同步级别",
-      "help": "适用于本设备上按仓库范围匹配、且没有单独设置的会话。选择“关闭”时，会话保留在本地，直到你主动开启"
-    },
     "syncLevel": {
       "menuItem": "云同步级别…",
       "title": "云同步级别",
       "hint": "为每个云组织选择这个会话共享什么——不共享、仅元数据或完整回放——以及谁可以看到它。",
-      "orgDefaultOption": "组织默认（{{mode}}）",
       "modeOff": "关闭",
       "modeMetadata": "仅元数据",
       "modeFullReplay": "完整回放",
       "visibilityOrg": "组织内所有人",
       "visibilityRestricted": "仅自己",
       "taggedNote": "该会话已被移入此组织，在保持标记期间至少会共享元数据。",
-      "floorNote": "组织管理员要求至少分享到{{mode}}。"
+      "floorNote": "组织管理员要求至少分享到{{mode}}。",
+      "orgMinimumOption": "组织最低要求（{{mode}}）"
     },
     "share": {
       "menuItem": "云端分享…",
@@ -743,33 +751,23 @@
       "importPasteClipboard": "从剪贴板粘贴",
       "importSubmit": "导入",
       "importInvalidInput": "这不是有效的分享链接或令牌。",
-      "selectAll": "所有人（{{count}}）"
-    },
-    "agentRunner": {
-      "title": "Agent 任务运行器",
-      "desc": "从会话讨论串发起的评论任务（“在本机运行”）的默认设置",
-      "machineNotice": "运行在本机执行，并使用此账号的 token",
-      "orgLabel": "组织",
-      "accountLabel": "账号",
-      "accountPlaceholder": "默认账号",
-      "modelLabel": "模型",
-      "modelPlaceholder": "默认模型",
-      "modeLabel": "模式",
-      "autoRunLabel": "自动运行 @agent 任务",
-      "autoRunDesc": "在你拥有的会话中自动认领并运行未处理的 @agent 评论任务。默认关闭——在你开启之前,队友的 @agent 提及不会消耗你的令牌。"
+      "selectAll": "所有人（{{count}}）",
+      "incomingEndpointMismatch": "此分享来自另一套自定义云。请先配置对应的云端点再导入。",
+      "incomingConnectionError": "无法连接云服务。请检查网络后重试。",
+      "incomingIncompatibleError": "云服务返回了不兼容的分享数据。请更新 ORGII 或检查云部署。",
+      "incomingServerError": "云服务暂时无法解析此分享，请重试。",
+      "incomingAlreadyOnDevice": "此 session 已在本机，无需创建重复副本。",
+      "incomingOpenExisting": "打开 session",
+      "incomingRetry": "重试"
     },
     "comments": {
       "task": {
         "assignFailed": "评论已发布，但指派 Agent 失败——请从讨论串重试",
         "assignUnavailableHere": "评论已发布——当前视图不支持指派 Agent",
-        "turnBadge": "有 Agent 正在处理此回合",
         "addressingChip": "正在处理评论：“{{excerpt}}”",
         "addressingChipGeneric": "正在处理一条评论",
         "addressingChipTooltip": "为处理源会话的评论讨论串而分叉",
-        "openBadge_one": "{{count}} 个待认领的 Agent 任务",
-        "openBadge": "{{count}} 个待认领的 Agent 任务",
-        "activeBadge_one": "{{count}} 个 Agent 正在处理此会话",
-        "activeBadge": "{{count}} 个 Agent 正在处理此会话"
+        "mentionSuggestion": "将这条评论指派给 Agent"
       },
       "toggleLabel": "评论",
       "notesButton": "会话备注",
@@ -817,6 +815,7 @@
       "help": "设置本组织仓库中的会话，成员最少必须分享到什么级别。成员不能设得更低。“无最低要求”保持当前行为",
       "optionNone": "无最低要求",
       "memberNote": "组织管理员要求至少分享到{{mode}}，因此你不能把会话设得比这更低"
-    }
+    },
+    "signedInAs": "已登录：{{name}}"
   }
 }

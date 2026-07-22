@@ -88,7 +88,7 @@ describe("buildCloudSessionFetchClient", () => {
     expect(tailSeg.events).toEqual(tail);
   });
 
-  it("applies afterSeq client-side (cloud RPC always returns the full epoch)", async () => {
+  it("passes afterSeq to the server range read and drops any smuggled prefix", async () => {
     getSessionEventsMock.mockResolvedValue(await cloudSnapshot());
     const client = buildCloudSessionFetchClient("jwt-token");
 
@@ -98,12 +98,20 @@ describe("buildCloudSessionFetchClient", () => {
       afterSeq: 1,
     });
 
-    // Frozen seq 1 filtered out; seq 2 + tail (always included) remain.
+    // The cursor rides the wire (p_after_seq server-side range read).
+    expect(getSessionEventsMock).toHaveBeenCalledWith(
+      "jwt-token",
+      "org-1",
+      "agentsession-abc",
+      { afterSeq: 1 }
+    );
+    // Defense in depth: a legacy/full response must still be filtered so an
+    // already-held frozen prefix never re-enters the incremental splice.
     expect(snapshot.segments.map((s) => s.seq)).toEqual([2, 0]);
     expect(snapshot.segments.map((s) => s.isTail)).toEqual([false, true]);
   });
 
-  it("guest path: threads the share token into the RPC options (0012)", async () => {
+  it("registered non-member path threads JWT and share token (0012)", async () => {
     getSessionEventsMock.mockResolvedValue({
       epoch: 1,
       frozenSeq: 0,
@@ -111,8 +119,7 @@ describe("buildCloudSessionFetchClient", () => {
       count: 0,
       segments: [],
     });
-    // Anon fetch client — the token is the whole credential.
-    const client = buildCloudSessionFetchClient(null);
+    const client = buildCloudSessionFetchClient("jwt-non-member");
 
     await client.getSessionEventSegments({
       orgId: "org-1",
@@ -121,10 +128,40 @@ describe("buildCloudSessionFetchClient", () => {
     });
 
     expect(getSessionEventsMock).toHaveBeenCalledWith(
-      null,
+      "jwt-non-member",
       "org-1",
       "agentsession-abc",
       { shareToken: "t".repeat(64) }
+    );
+  });
+
+  it("pins registered-link segment reads to the endpoint used for resolve", async () => {
+    getSessionEventsMock.mockResolvedValue({
+      epoch: 1,
+      frozenSeq: 0,
+      tailHash: null,
+      count: 0,
+      segments: [],
+    });
+    const endpoint = {
+      webOrigin: "https://app.custom.example.com",
+      supabaseUrl: "https://db.custom.example.com",
+      anonKey: "custom-anon",
+      isOfficial: false,
+    };
+    const client = buildCloudSessionFetchClient("jwt-non-member", endpoint);
+
+    await client.getSessionEventSegments({
+      orgId: "org-1",
+      sessionRowId: "org-1:user-1:agentsession-abc",
+      shareToken: "t".repeat(64),
+    });
+
+    expect(getSessionEventsMock).toHaveBeenCalledWith(
+      "jwt-non-member",
+      "org-1",
+      "agentsession-abc",
+      { shareToken: "t".repeat(64), endpoint }
     );
   });
 
