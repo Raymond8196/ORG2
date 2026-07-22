@@ -53,12 +53,14 @@ import {
 import type {
   CloudAppendSessionEventsInput,
   CloudOrgScopeState,
+  CloudOrgSessions,
   CloudRewriteSessionEventsInput,
   CloudSessionEventsSnapshot,
 } from "./org2CloudSyncClient";
 import { Org2CloudSyncError } from "./org2CloudSyncClient";
 import {
   DATA_CHANGED_DEBOUNCE_MS,
+  EXTERNAL_HISTORY_ACTIVITY_DEBOUNCE_MS,
   HIDDEN_PASS_INTERVAL_MS,
   INACTIVE_ORG_BACKOFF_COOLDOWN_MS,
   ORG_BACKOFF_COOLDOWN_MS,
@@ -229,6 +231,12 @@ export function makeClient() {
         coolingDown: [],
       })
     ),
+    listOrgSessions: vi.fn(
+      async (_token: string, _orgId: string): Promise<CloudOrgSessions> => ({
+        serverTime: "2026-07-01T12:00:00.000Z",
+        sessions: [],
+      })
+    ),
     deleteSession: vi.fn(
       async (_token: string, _orgId: string, _sessionId: string) => undefined
     ),
@@ -293,7 +301,7 @@ export function createEngineFixture() {
     { orgId: "corg-1", name: "Cloud Team", role: "member" },
   ]);
   store.set(chatPanelSelectedCloudOrgAtom, null);
-  store.set(sidebarActiveCloudOrgIdAtom, null);
+  store.set(sidebarActiveCloudOrgIdAtom, "corg-1");
   store.set(org2CloudRepoScopesAtom, { "corg-1": [SCOPE_KEY] });
   store.set(org2CloudSyncEnabledAtom, {});
   store.set(org2CloudPushCursorsAtom, {});
@@ -347,6 +355,7 @@ export function cleanupEngineFixture(engine: Org2CloudSyncEngine): void {
  */
 export const engineTestDeps = {
   DATA_CHANGED_DEBOUNCE_MS,
+  EXTERNAL_HISTORY_ACTIVITY_DEBOUNCE_MS,
   chatPanelSelectedCloudOrgAtom,
   ensureProjectOrgForCloudOrg,
   getImportedHistorySourceBySessionId,
