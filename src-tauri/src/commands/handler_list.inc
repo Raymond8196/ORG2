@@ -466,6 +466,11 @@ key_vault::session_step_explain,
 key_vault::housekeeper_health_check,
 key_vault::housekeeper_token_benchmark,
 key_vault::housekeeper_ui_intent,
+// Human-authored proof-of-work sessions
+agent_sessions::human::human_session_create,
+agent_sessions::human::human_session_get,
+agent_sessions::human::human_session_append,
+agent_sessions::human::human_session_delete,
 // Key storage commands (CRUD for ~/.orgii/credentials.json)
 key_vault::list_keys,
 key_vault::get_key,

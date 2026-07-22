@@ -5,6 +5,9 @@
     "decision": "{{tokenCount}} Token quyết định",
     "tooltip": "Phân bổ công cụ ước tính. Phương pháp: {{method}}. Đầu vào: {{inputBytes}} bytes. Đầu ra: {{outputBytes}} bytes. Quyết định: {{decisionTokens}} Token. Ngữ cảnh: {{contextTokens}} Token. Follow-up: {{followupTokens}} Token. LLM cache read liên quan: {{cacheReadTokens}} Token. LLM cache write liên quan: {{cacheWriteTokens}} Token."
   },
+  "humanSession": {
+    "titlePlaceholder": "Tiêu đề (không bắt buộc)"
+  },
   "history": {
     "untitledSession": "Session chưa đặt tên",
     "prStatus": {
@@ -2089,7 +2092,10 @@
     "categoryLabel": "Danh mục phiên",
     "categoryTemplate": "Chọn {category}",
     "categoryPlaceholder": "Agent",
-    "builtInAgents": "Agent tích hợp",
+    "builtIns": "Tích hợp sẵn",
+    "humanSession": {
+      "name": "Nhật ký công việc"
+    },
     "cliAgents": "Agent CLI",
     "customAgents": "Agent tùy chỉnh",
     "agentOrgs": "Nhóm Agent",

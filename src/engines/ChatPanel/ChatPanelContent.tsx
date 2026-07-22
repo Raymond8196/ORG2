@@ -3,7 +3,7 @@ import React, { Suspense } from "react";
 import type { SessionContinuation } from "@src/store/session/sessionTabPlacementAtom";
 import type { ChatHistoryDisplayMode } from "@src/store/ui/chatPanelAtom";
 
-import ChatView from "./ChatView";
+import SessionContentView from "./SessionContentView";
 
 const BenchmarkPanel = React.lazy(() =>
   import("@src/features/BenchmarkPanel").then((module) => ({
@@ -51,7 +51,7 @@ export function ChatPanelContent({
         </Suspense>
       ) : showSessionContent && currentSessionId ? (
         <div className="flex min-h-0 flex-1 flex-col">
-          <ChatView
+          <SessionContentView
             sessionId={currentSessionId}
             onRegisterSearchOpen={handleRegisterSearchOpen}
             displayMode={displayMode}
