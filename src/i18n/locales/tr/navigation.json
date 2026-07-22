@@ -614,7 +614,8 @@
         "inviteInvalid": "Bu davet kodu geçerli değil.",
         "inviteRevoked": "Bu davet iptal edilmiş.",
         "inviteExpired": "Bu davetin süresi dolmuş.",
-        "inviteExhausted": "Bu davetin kullanım hakkı kalmamış."
+        "inviteExhausted": "Bu davetin kullanım hakkı kalmamış.",
+        "network": "Bulut hizmetine bağlanılamadı. Ağınızı kontrol edip yeniden deneyin."
       }
     },
     "syncLevel": {

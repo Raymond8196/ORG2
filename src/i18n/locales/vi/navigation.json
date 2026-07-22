@@ -614,7 +614,8 @@
         "inviteInvalid": "Mã mời không hợp lệ.",
         "inviteRevoked": "Lời mời đã bị thu hồi.",
         "inviteExpired": "Lời mời đã hết hạn.",
-        "inviteExhausted": "Lời mời đã hết số lần dùng."
+        "inviteExhausted": "Lời mời đã hết số lần dùng.",
+        "network": "Không thể kết nối dịch vụ đám mây. Hãy kiểm tra mạng và thử lại."
       }
     },
     "syncLevel": {
