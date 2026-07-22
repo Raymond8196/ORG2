@@ -38,6 +38,7 @@ async function sendPlanMessage(
       {
         sessionId,
         content,
+        turnIntentSource: "user_submit",
         mode: params.mode,
         ...(params.model ? { model: params.model } : {}),
         ...(params.accountId ? { accountId: params.accountId } : {}),

@@ -58,6 +58,7 @@ import {
   applyToolUsageToEvents,
   loadUsageTelemetry,
 } from "./rustAgent/toolUsageCache";
+import { buildRustAgentSendMessageArgs } from "./rustAgentSendPayload";
 import type {
   AgentTokenUsage,
   AgentWSEvent,
@@ -601,43 +602,11 @@ export function createRustAgentAdapter(
     },
 
     async sendMessage(input: AdapterSendInput): Promise<void> {
-      const {
-        sessionId,
-        content,
-        displayText,
-        model,
-        accountId,
-        mode,
-        adeContext,
-        imageDataUrls,
-        isResume,
-        clientMessageId,
-        turnIntentId,
-        sessionRepoPath,
-      } = input;
-      // The session row's persisted repo is the source of truth for
-      // workspace_root. Using the global repo selection atom would collide
-      // when two sessions on different repos are open simultaneously.
-      const activePath = sessionRepoPath ?? undefined;
+      const { sessionId } = input;
       clearSessionStreamingStopped(sessionId);
       await retryInvokeTauri(
         "agent_send_message",
-        {
-          sessionId,
-          content,
-          ...(displayText && displayText !== content ? { displayText } : {}),
-          ...(model ? { model } : {}),
-          ...(accountId ? { accountId } : {}),
-          ...(mode ? { mode } : {}),
-          ...(activePath ? { workspacePath: activePath } : {}),
-          ...(imageDataUrls && imageDataUrls.length > 0
-            ? { images: imageDataUrls }
-            : {}),
-          ...(adeContext ? { ideContext: adeContext } : {}),
-          ...(isResume ? { isResume: true } : {}),
-          ...(clientMessageId ? { clientMessageId } : {}),
-          ...(turnIntentId ? { turnIntentId } : {}),
-        },
+        buildRustAgentSendMessageArgs(input),
         sessionId
       );
     },
