@@ -33,12 +33,14 @@ import { repoMapAtom } from "@src/store/repo";
 import {
   activeSessionCreatorDraftIdAtom,
   deleteSessionCreatorDraftAtom,
+  loadMoreCategory,
   loadSidebarSessionById,
   loadSidebarSessions,
   markAllSessionsVisited,
   promoteActiveSessionCreatorDraftAtom,
   sessionCreatorDraftListAtom,
   sessionLoadingAtom,
+  sessionPaginationAtom,
   sessionsAtom,
   visitedSessionsAtom,
   workstationActiveSessionIdAtom,
@@ -98,6 +100,7 @@ import {
 import { useProjectsWorkItemMenuItems } from "../useProjectsWorkItemMenuItems";
 import { useRenameSessionModal } from "../useRenameSessionModal";
 import { useSessionMenuItems } from "../useSessionMenuItems";
+import { loadUnifiedReadyCategories } from "../useSessionMenuItems/paginationHelpers";
 import { useWorkstationSidebarContextMenu } from "../useWorkstationSidebarContextMenu";
 import { useWorkstationSidebarHandlers } from "../useWorkstationSidebarHandlers";
 import {
@@ -109,7 +112,12 @@ import {
 } from "../workstationSidebarData";
 import { SidebarDialogs } from "./SidebarDialogs";
 import { useSidebarBottomRightActions } from "./bottomActions";
-import { buildCloudScopedMenuItems } from "./cloudScopedMenuItems";
+import {
+  CLOUD_MY_SESSIONS_LOAD_MORE_ID,
+  CLOUD_SESSION_SECTION_PAGE_SIZE,
+  buildCloudScopedMenuItems,
+  isCloudScopedLocalRow,
+} from "./cloudScopedMenuItems";
 import { useCloudSessionsSection } from "./cloudSessionsSection";
 import {
   useRenderProjectsMenuItemWrapper,
@@ -158,6 +166,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
   const navigate = useNavigate();
   const sessions = useAtomValue(sessionsAtom);
   const sessionsLoading = useAtomValue(sessionLoadingAtom);
+  const sessionPagination = useAtomValue(sessionPaginationAtom);
   const sessionSidebarRevealRequest = useAtomValue(
     sessionSidebarRevealRequestAtom
   );
@@ -268,6 +277,22 @@ export const WorkstationSidebarConnector: React.FC = () => {
   const [includeExternal, setIncludeExternal] = useAtom(
     sidebarIncludeExternalAtom
   );
+  const cloudMyPaginationScopeKey = activeCloudOrgId
+    ? [
+        activeCloudOrgId,
+        sidebarSearchQueries.workstation,
+        groupByMode,
+        includeExternal ? "external" : "native",
+      ].join("\u001f")
+    : "";
+  const [cloudMyPagination, setCloudMyPagination] = useState({
+    scopeKey: "",
+    visibleCount: CLOUD_SESSION_SECTION_PAGE_SIZE,
+  });
+  const cloudMySessionsVisibleCount =
+    cloudMyPagination.scopeKey === cloudMyPaginationScopeKey
+      ? cloudMyPagination.visibleCount
+      : CLOUD_SESSION_SECTION_PAGE_SIZE;
   const cloudAuth = useAtomValue(org2CloudAuthAtom);
   const cloudSignedInIdentity = cloudAuth
     ? (cloudAuth.profile?.displayName ??
@@ -347,7 +372,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     cloudMenuItems,
     cloudThreadedLocalSessionIds,
     selectedCloudMenuItemId,
-    handleCloudRemoteItemClick,
+    handleCloudSessionItemClick,
     handleCloudRemoteItemRemove,
     cloudMemberFilterDropdown,
     cloudRemoteRowMap,
@@ -395,6 +420,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     excludedSessionIds: sessionListExcludedIds,
     includeExternal,
     groupVisibleCounts,
+    showAllLoadedGroupSessions: Boolean(activeCloudOrgId),
     expandedSubagentParentIds,
     revealedSessionIds,
   });
@@ -461,6 +487,10 @@ export const WorkstationSidebarConnector: React.FC = () => {
     sessionCreatorDrafts,
     t,
   });
+  const loadedCloudMySessionRowCount = useMemo(
+    () => sessionSidebarMenuItems.filter(isCloudScopedLocalRow).length,
+    [sessionSidebarMenuItems]
+  );
   const revealCandidateMenuItems = useMemo(
     () => [...cloudMenuItems, ...sessionSidebarMenuItems],
     [cloudMenuItems, sessionSidebarMenuItems]
@@ -607,6 +637,34 @@ export const WorkstationSidebarConnector: React.FC = () => {
     setChatPanelCreateTarget,
   });
 
+  const handleCloudSidebarItemClick = useCallback(
+    (item: NavigationMenuItem): boolean => {
+      if (handleCloudSessionItemClick(item)) return true;
+      if (item.id !== CLOUD_MY_SESSIONS_LOAD_MORE_ID) return false;
+
+      const nextVisibleCount =
+        cloudMySessionsVisibleCount + CLOUD_SESSION_SECTION_PAGE_SIZE;
+      setCloudMyPagination({
+        scopeKey: cloudMyPaginationScopeKey,
+        visibleCount: nextVisibleCount,
+      });
+      if (nextVisibleCount >= loadedCloudMySessionRowCount) {
+        void loadUnifiedReadyCategories({
+          pagination: sessionPagination,
+          loadCategory: loadMoreCategory,
+        });
+      }
+      return true;
+    },
+    [
+      cloudMyPaginationScopeKey,
+      cloudMySessionsVisibleCount,
+      handleCloudSessionItemClick,
+      loadedCloudMySessionRowCount,
+      sessionPagination,
+    ]
+  );
+
   const {
     handleDeleteSession,
     handleExportMarkdown,
@@ -627,7 +685,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     onOpenChatPanelTab: activateChatPanelTab,
     onOpenSessionChatPanelTab: openOrReplaceSessionInChatPanelTab,
     onCloseChatPanelTab: closeAndDestroyChatPanelTab,
-    onCloudRemoteItemClick: handleCloudRemoteItemClick,
+    onCloudSidebarItemClick: handleCloudSidebarItemClick,
   });
   const handleOpenInNewTab = useCallback(
     (sessionId: string) => {
@@ -749,8 +807,17 @@ export const WorkstationSidebarConnector: React.FC = () => {
         // use the regular session action decoration.
         sessionMenuItems: decorateSessionRowActions(sessionSidebarMenuItems),
         mySessionsLabel: t("cloud.sidebar.mySessions"),
+        mySessionsVisibleCount: cloudMySessionsVisibleCount,
+        loadMoreLabel: tCommon("common:actions.loadMore", "Load more"),
       }),
-    [cloudMenuItems, decorateSessionRowActions, sessionSidebarMenuItems, t]
+    [
+      cloudMenuItems,
+      cloudMySessionsVisibleCount,
+      decorateSessionRowActions,
+      sessionSidebarMenuItems,
+      t,
+      tCommon,
+    ]
   );
   const sidebarMenuItems =
     activeSidebarKey === "projects" || workItemsContentVisible

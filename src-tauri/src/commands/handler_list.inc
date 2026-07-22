@@ -9,6 +9,8 @@ usage_diagnostics::commands::diagnostics_start,
 usage_diagnostics::commands::diagnostics_configure,
 usage_diagnostics::commands::diagnostics_flush_now,
 usage_diagnostics::commands::diagnostics_record_usage_snapshot,
+// Dev-only ORG2 Cloud auth import from the installed app's WebKit origin
+infrastructure::dev_bundled_auth::debug_import_bundled_org2_cloud_auth,
 // Window commands - Centralized window management
 app_window::commands::create_app_window,
 app_window::commands::show_or_create_app_window,

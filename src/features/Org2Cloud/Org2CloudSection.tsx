@@ -19,13 +19,20 @@ import {
 } from "@/src/modules/shared/layouts/SectionLayout";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useAtom, useStore } from "jotai";
-import React, { useCallback } from "react";
+import { RefreshCw } from "lucide-react";
+import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
+import Message from "@src/components/Message";
+import { REFRESH_ICON_TOKENS } from "@src/components/RefreshIcon/tokens";
 import CloudEndpointCard from "@src/features/Org2Cloud/CloudEndpointCard";
 import { buildOrg2CloudLoginUrl } from "@src/features/Org2Cloud/config";
-import { org2CloudAuthAtom } from "@src/features/Org2Cloud/org2CloudAuthAtom";
+import { importBundledOrg2CloudAuthForDev } from "@src/features/Org2Cloud/devBundledAuthImport";
+import {
+  org2CloudAuthAtom,
+  org2CloudAuthIdentityKey,
+} from "@src/features/Org2Cloud/org2CloudAuthAtom";
 import {
   beginOrg2CloudAuthLoopback,
   cancelPendingOrg2CloudAuthLoopback,
@@ -47,8 +54,9 @@ interface Org2CloudSectionProps {
 const Org2CloudSection: React.FC<Org2CloudSectionProps> = ({
   activeTab = COLLABORATION_TAB_KEYS.CLOUD,
 }) => {
-  const { t } = useTranslation("navigation");
+  const { t } = useTranslation(["navigation", "common"]);
   const [auth, setAuth] = useAtom(org2CloudAuthAtom);
+  const [isRefreshingDevAuth, setIsRefreshingDevAuth] = useState(false);
   const store = useStore();
   const signedInIdentity =
     auth?.profile?.displayName ??
@@ -70,6 +78,32 @@ const Org2CloudSection: React.FC<Org2CloudSectionProps> = ({
     resetOrgEntitlementCoordinator(store);
     setAuth(null);
   }, [setAuth, store]);
+
+  const handleRefreshDevAuth = useCallback(async () => {
+    if (isRefreshingDevAuth) return;
+    setIsRefreshingDevAuth(true);
+    try {
+      const bundledAuth = await importBundledOrg2CloudAuthForDev();
+      const currentIdentity = auth ? org2CloudAuthIdentityKey(auth) : null;
+      const bundledIdentity = bundledAuth
+        ? org2CloudAuthIdentityKey(bundledAuth)
+        : null;
+      if (currentIdentity !== bundledIdentity) {
+        resetOrgEntitlementCoordinator(store);
+      }
+      setAuth(bundledAuth);
+      if (bundledAuth) {
+        Message.success(t("cloud.signedInToast"));
+      } else {
+        Message.info(t("common:errors.notFound"));
+      }
+    } catch (error: unknown) {
+      log.error("failed to refresh ORG2 Cloud auth from bundled app", error);
+      Message.error(t("common:errors.unknownError"));
+    } finally {
+      setIsRefreshingDevAuth(false);
+    }
+  }, [auth, isRefreshingDevAuth, setAuth, store, t]);
 
   if (activeTab === COLLABORATION_TAB_KEYS.SELF_HOSTED) {
     return <CloudEndpointCard />;
@@ -115,6 +149,26 @@ const Org2CloudSection: React.FC<Org2CloudSectionProps> = ({
                 data-testid="org2-cloud-sign-in"
               >
                 {t("cloud.signIn")}
+              </Button>
+            )}
+            {process.env.NODE_ENV === "development" && (
+              <Button
+                size="default"
+                icon={
+                  <RefreshCw
+                    size={14}
+                    className={
+                      isRefreshingDevAuth ? REFRESH_ICON_TOKENS.spin : ""
+                    }
+                  />
+                }
+                loading={isRefreshingDevAuth}
+                loadingSpinIcon
+                disabled={isRefreshingDevAuth}
+                onClick={handleRefreshDevAuth}
+                data-testid="org2-cloud-refresh-dev-auth"
+              >
+                {t("common:actions.refresh")}
               </Button>
             )}
           </div>
