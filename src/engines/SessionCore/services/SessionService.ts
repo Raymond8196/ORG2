@@ -141,7 +141,8 @@ export const SessionService = {
     // creator picks from the same atom), so prefer the explicit param
     // when supplied and skip the gate when not — at create time there's
     // no persisted row to compare against yet.
-    const expectedRepoPath = params.projectRepoPath || params.repoPath || null;
+    const expectedRepoPath =
+      params.worktreePath || params.repoPath || params.projectRepoPath || null;
     const adeContext = collectAdeContext({ expectedRepoPath });
 
     const isCli = Boolean(params.cliAgentType);
@@ -154,13 +155,13 @@ export const SessionService = {
         ? { images: params.imageDataUrls }
         : {}),
       workspacePath: params.projectRepoPath || params.repoPath || undefined,
+      worktreePath: params.worktreePath || undefined,
       accountId: params.accountId || undefined,
       name: params.name || params.task.slice(0, 60),
       mode: params.mode || undefined,
       agentDefinitionId: params.agentDefinitionId || undefined,
       workItemId: params.workItemId || undefined,
       agentRole: params.agentRole || undefined,
-      worktreePath: params.repoPath || undefined,
       keySource: params.keySource || undefined,
       parentSessionId: params.parentSessionId || undefined,
       ideContext: adeContext,

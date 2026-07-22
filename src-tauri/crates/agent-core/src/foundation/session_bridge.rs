@@ -47,11 +47,10 @@ pub struct CliLaunchParams {
     pub account_id: Option<String>,
     pub repo_path: Option<String>,
     pub branch: Option<String>,
+    pub worktree_path: Option<String>,
+    pub worktree_base_ref: Option<String>,
     pub hosted_token: Option<String>,
     pub isolate: bool,
-    /// Reuse an existing worktree checkout (mutually exclusive with
-    /// `isolate`, which creates a fresh one).
-    pub worktree_path: Option<String>,
     pub background: bool,
     pub key_source: Option<String>,
     pub additional_directories: Option<Vec<String>>,
@@ -77,6 +76,10 @@ pub struct CliLaunchParams {
 pub struct CliLaunchOutcome {
     pub session_id: String,
     pub created_at: String,
+    pub workspace_path: Option<String>,
+    pub worktree_path: Option<String>,
+    pub worktree_branch: Option<String>,
+    pub base_ref: Option<String>,
 }
 
 /// `Box<dyn Future>` because the underlying `cli_agent_create` /
