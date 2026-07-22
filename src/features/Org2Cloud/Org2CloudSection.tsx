@@ -4,11 +4,10 @@
  * Two tabs:
  *  1. Cloud — ORG2 Cloud (managed) with the existing sign-in /
  *     sign-out control. Sign-in opens the managed cloud login page in the
- *     SYSTEM browser; the login page finishes with a redirect to
- *     `orgii://auth/callback#…`, which the OS delivers through the
- *     deep-link plugin and useDeepLinkHandler completes at the
- *     always-mounted app root — so sign-in survives this section
- *     unmounting.
+ *     SYSTEM browser; the login page finishes through an ephemeral localhost
+ *     receiver, which the OAuth plugin delivers to useDeepLinkHandler at the
+ *     always-mounted app root. Installed-app custom-scheme callbacks remain
+ *     supported for cold-start compatibility.
  *  2. Self-hosted — the custom ORG2 Cloud backend card (`CloudEndpointCard`,
  *     cloud-parity Phase C): self-hosting means deploying the SAME stack
  *     and pointing the app at it.
@@ -27,6 +26,10 @@ import Button from "@src/components/Button";
 import CloudEndpointCard from "@src/features/Org2Cloud/CloudEndpointCard";
 import { buildOrg2CloudLoginUrl } from "@src/features/Org2Cloud/config";
 import { org2CloudAuthAtom } from "@src/features/Org2Cloud/org2CloudAuthAtom";
+import {
+  beginOrg2CloudAuthLoopback,
+  cancelPendingOrg2CloudAuthLoopback,
+} from "@src/features/Org2Cloud/org2CloudAuthLoopback";
 import { resetOrgEntitlementCoordinator } from "@src/features/Org2Cloud/org2CloudEntitlementCoordinator";
 import { createLogger } from "@src/hooks/logger";
 
@@ -53,10 +56,14 @@ const Org2CloudSection: React.FC<Org2CloudSectionProps> = ({
     auth?.userId ??
     "";
 
-  const handleSignIn = useCallback(() => {
-    openUrl(buildOrg2CloudLoginUrl()).catch((error: unknown) => {
+  const handleSignIn = useCallback(async () => {
+    try {
+      const callbackUrl = await beginOrg2CloudAuthLoopback();
+      await openUrl(buildOrg2CloudLoginUrl(callbackUrl));
+    } catch (error: unknown) {
+      await cancelPendingOrg2CloudAuthLoopback();
       log.error("failed to open ORG2 Cloud login in system browser", error);
-    });
+    }
   }, []);
 
   const handleSignOut = useCallback(() => {
