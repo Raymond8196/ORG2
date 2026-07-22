@@ -11,7 +11,11 @@
  *
  * Usage:
  *   import { SessionService } from "@src/engines/SessionCore/services/SessionService";
- *   await SessionService.sendMessage({ sessionId, content: "fix the bug" });
+ *   await SessionService.sendMessage({
+ *     sessionId,
+ *     content: "fix the bug",
+ *     turnIntentSource: "user_submit",
+ *   });
  */
 import {
   CANCEL_REASON,
@@ -297,6 +301,7 @@ export const SessionService = {
       isResume,
       clientMessageId,
       turnIntentId,
+      turnIntentSource,
     } = params;
     // Gate ADE context on the session row's persisted repo so a session
     // on repo A doesn't ship repo B's editor / git / LSP state when the
@@ -353,6 +358,7 @@ export const SessionService = {
         isResume,
         clientMessageId,
         turnIntentId,
+        turnIntentSource,
         adeContext,
         sessionRepoPath: sessionRow?.repoPath ?? null,
       });
