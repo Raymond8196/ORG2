@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { RefreshCw, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -12,9 +12,11 @@ import {
   type UsageTrendPoint,
   usageDashboardOverview,
 } from "@src/api/tauri/usageDashboard";
+import Button from "@src/components/Button";
 import Select from "@src/components/Select";
 import TabPill, { type TabPillItem } from "@src/components/TabPill";
 import { DEBOUNCE_DELAYS, useDebouncedCallback } from "@src/hooks/perf";
+import { useRefreshSpin } from "@src/hooks/ui";
 import {
   SECTION_GAP_CLASSES,
   SECTION_SUBHEADING_CLASSES,
@@ -255,6 +257,16 @@ export default function SessionUsagePanel() {
     [loadRounds]
   );
 
+  const handleUsageRefresh = useCallback(() => {
+    void loadHeadline();
+    if (roundsOpen) void loadRounds();
+  }, [loadHeadline, loadRounds, roundsOpen]);
+  const usageRefreshing = headlineLoading || (roundsOpen && roundLoading);
+  const { spinClass, handleClick: handleUsageRefreshClick } = useRefreshSpin(
+    handleUsageRefresh,
+    usageRefreshing
+  );
+
   const sourceTabs = useMemo<TabPillItem[]>(
     () => [
       { key: SOURCE_ALL, label: t("usage.allSources") },
@@ -321,6 +333,27 @@ export default function SessionUsagePanel() {
         </div>
       </div>
 
+      <div
+        className="flex min-h-9 items-center justify-between gap-3"
+        data-testid="usage-title-controls"
+      >
+        <h3 className={SECTION_SUBHEADING_CLASSES}>{t("usage.title")}</h3>
+        <Button
+          htmlType="button"
+          variant="tertiary"
+          appearance="ghost"
+          size="small"
+          disabled={usageRefreshing}
+          aria-label={t("usage.refresh")}
+          title={t("usage.refresh")}
+          onClick={handleUsageRefreshClick}
+          icon={<RefreshCw size={14} className={spinClass} />}
+          data-testid="usage-refresh"
+        >
+          {t("usage.refresh")}
+        </Button>
+      </div>
+
       {session && (
         <button
           type="button"
@@ -355,10 +388,7 @@ export default function SessionUsagePanel() {
         <Placeholder variant="loading" placement="detail-panel" />
       ) : summary ? (
         <>
-          <div className={SECTION_GAP_CLASSES}>
-            <h3 className={SECTION_SUBHEADING_CLASSES}>{t("usage.title")}</h3>
-            <UsageStatCards summary={summary} language={language} />
-          </div>
+          <UsageStatCards summary={summary} language={language} />
           <UsageTrendChart
             points={trends}
             hourly={hourly}

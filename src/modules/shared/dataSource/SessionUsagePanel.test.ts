@@ -102,6 +102,11 @@ describe("SessionUsagePanel", () => {
         disconnect = vi.fn();
       }
     );
+    vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
+      callback(0);
+      return 1;
+    });
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
     mocks.usageDashboardOverview
       .mockReset()
       .mockResolvedValue(createOverview());
@@ -131,6 +136,37 @@ describe("SessionUsagePanel", () => {
     expect(markup).toContain("h-4 w-px shrink-0 bg-border-2");
     expect(markup).toContain("select-size-small");
     expect(markup).toContain("bg-fill-1 font-semibold text-primary-6");
+    expect(markup).toContain('data-testid="usage-title-controls"');
+    expect(markup).toContain('data-testid="usage-refresh"');
+    expect(markup).toContain('aria-label="usage.refresh"');
+    expect(markup).toContain("usage.title");
+  });
+
+  it("refreshes headline data and an open request page together", async () => {
+    await act(async () => {
+      root.render(createElement(SessionUsagePanel));
+    });
+
+    const open = container.querySelector<HTMLButtonElement>(
+      '[data-testid="usage-rounds-toggle"]'
+    );
+    await act(async () => open?.click());
+    expect(mocks.usageDashboardOverview).toHaveBeenCalledTimes(2);
+
+    const refresh = container.querySelector<HTMLButtonElement>(
+      '[data-testid="usage-refresh"]'
+    );
+    expect(refresh).not.toBeNull();
+
+    await act(async () => refresh?.click());
+    expect(mocks.usageDashboardOverview).toHaveBeenCalledTimes(4);
+    expect(mocks.usageDashboardOverview.mock.calls[2]?.[1]).toMatchObject({
+      includeRounds: false,
+    });
+    expect(mocks.usageDashboardOverview.mock.calls[3]?.[1]).toMatchObject({
+      includeHeadline: false,
+      includeRounds: true,
+    });
   });
 
   it("loads requests on expansion and refreshes them only after a click", async () => {
