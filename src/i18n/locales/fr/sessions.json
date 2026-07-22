@@ -5,6 +5,9 @@
     "decision": "{{tokenCount}} Token decision",
     "tooltip": "Attribution estimée de l’outil. Méthode : {{method}}. Entrée : {{inputBytes}} bytes. Sortie : {{outputBytes}} bytes. Décision : {{decisionTokens}} Token. Contexte : {{contextTokens}} Token. Follow-up : {{followupTokens}} Token. Cache LLM lié lu : {{cacheReadTokens}} Token. Cache LLM lié écrit : {{cacheWriteTokens}} Token."
   },
+  "humanSession": {
+    "titlePlaceholder": "Titre (facultatif)"
+  },
   "history": {
     "untitledSession": "Session sans titre",
     "prStatus": {
@@ -2092,7 +2095,10 @@
     "categoryLabel": "Catégorie de session",
     "categoryTemplate": "Sélectionner {category}",
     "categoryPlaceholder": "Agent",
-    "builtInAgents": "Agents intégrés",
+    "builtIns": "Intégrés",
+    "humanSession": {
+      "name": "Journal de travail"
+    },
     "cliAgents": "Agents CLI",
     "customAgents": "Agents personnalisés",
     "agentOrgs": "Équipes Agent",

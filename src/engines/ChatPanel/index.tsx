@@ -60,6 +60,7 @@ import {
   toggleChatPanelMaximizedAtom,
 } from "@src/store/ui/chatPanelAtom";
 import type { WorkItemDraft } from "@src/store/workstation/projectManager";
+import { isHumanSession } from "@src/util/session/sessionDispatch";
 
 import { useReloadSession } from "./ChatHistory/hooks/useReloadSession";
 import { ChatPanelContent } from "./ChatPanelContent";
@@ -106,6 +107,9 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
     const viewMode = useRouteViewMode();
     const { currentSessionId, currentSession, panelTitle } = usePanelTitle();
     const activeSession = currentSession ?? undefined;
+    const humanSessionActive =
+      currentSession?.category === "human_session" ||
+      isHumanSession(currentSessionId);
     const handleReloadSession = useReloadSession(currentSessionId ?? null);
 
     const [contentMode, setContentMode] = useAtom(chatPanelContentModeAtom);
@@ -514,6 +518,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
           contentState.showSessionContent && !isStandaloneToolTabActive
         }
         showCloudShareSettings={showCloudShareSettings}
+        showTranscriptActions={!humanSessionActive}
         showTuiModeToggle={showTuiModeToggle}
         tuiMode={tuiMode}
         handleTuiModeToggle={handleTuiModeToggle}
