@@ -63,6 +63,8 @@ fn build_filter(
         start_ms,
         end_ms,
         session_id: session_id.filter(|value| !value.is_empty()),
+        // The desktop dashboard scopes to the four primary buckets.
+        all_sources: false,
     }
 }
 
