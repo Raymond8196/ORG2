@@ -2,6 +2,7 @@ import {
   CLAUDE_CODE_HISTORY_SESSION_PREFIX,
   CLI_SESSION_PREFIX,
   CODEX_APP_SESSION_PREFIX,
+  HUMAN_SESSION_PREFIX,
   OPENCODE_HISTORY_SESSION_PREFIX,
   OS_AGENT_SESSION_PREFIX,
   SDE_AGENT_SESSION_PREFIX,
@@ -15,6 +16,7 @@ import {
   isCliSession,
   isCodexAppSession,
   isExternalHistorySession,
+  isHumanSession,
   isOpenCodeHistorySession,
   isWarpHistorySession,
   isWindsurfHistorySession,
@@ -25,11 +27,19 @@ describe("sessionDispatch constants", () => {
     expect(OS_AGENT_SESSION_PREFIX).toBe("osagent-");
     expect(SDE_AGENT_SESSION_PREFIX).toBe("sdeagent-");
     expect(CLI_SESSION_PREFIX).toBe("cliagent-");
+    expect(HUMAN_SESSION_PREFIX).toBe("humansession-");
     expect(CODEX_APP_SESSION_PREFIX).toBe("codexapp-");
     expect(CLAUDE_CODE_HISTORY_SESSION_PREFIX).toBe("claudecodeapp-");
     expect(OPENCODE_HISTORY_SESSION_PREFIX).toBe("opencodeapp-");
     expect(WINDSURF_HISTORY_SESSION_PREFIX).toBe("windsurfapp-");
     expect(WARP_HISTORY_SESSION_PREFIX).toBe("warpapp-");
+  });
+});
+
+describe("isHumanSession", () => {
+  it("recognizes Human proof-of-work sessions", () => {
+    expect(isHumanSession("humansession-abc")).toBe(true);
+    expect(isHumanSession("sdeagent-abc")).toBe(false);
   });
 });
 
@@ -72,6 +82,7 @@ describe("getDispatchCategory", () => {
     expect(getDispatchCategory("osagent-x")).toBe("rust_agent");
     expect(getDispatchCategory("sdeagent-x")).toBe("rust_agent");
     expect(getDispatchCategory("cliagent-x")).toBe("cli_agent");
+    expect(getDispatchCategory("humansession-x")).toBe("human_session");
     expect(getDispatchCategory("cursoride-x")).toBe("cursor_ide");
     expect(getDispatchCategory("codexapp-x")).toBe("external_history");
     expect(getDispatchCategory("claudecodeapp-x")).toBe("external_history");
