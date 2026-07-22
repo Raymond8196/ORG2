@@ -233,7 +233,7 @@ export const WorktreePalette: React.FC<WorktreePaletteProps> = ({
             )?.branch
           }
           onClose={() => setCreateModalOpen(false)}
-          onSelect={handleCreateSourceSelect}
+          onSelect={({ source }) => handleCreateSourceSelect(source)}
         />
       )}
     </>

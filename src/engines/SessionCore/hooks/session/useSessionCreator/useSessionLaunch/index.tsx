@@ -35,8 +35,7 @@ import {
 import { lastUserMessageAtom } from "@src/store/session/cliSessionStatusAtom";
 import { creatorDefaultExecModeAtom } from "@src/store/session/creatorDefaultExecModeAtom";
 import { runningLocationAtom } from "@src/store/session/runningLocationAtom";
-import { selectedWorktreePathAtom } from "@src/store/session/selectedWorktreePathAtom";
-import { worktreeLaunchSourceAtom } from "@src/store/session/worktreeLaunchSourceAtom";
+import { worktreeLaunchSelectionAtom } from "@src/store/session/worktreeLaunchSourceAtom";
 import { stationModeAtom } from "@src/store/ui/simulatorAtom";
 import { triggerSessionExpired } from "@src/store/ui/uiAtom";
 import type { ViewModeType } from "@src/store/ui/viewModeAtom";
@@ -105,8 +104,7 @@ export function useSessionLaunch(
   const selectedAgentOrgId = useAtomValue(selectedAgentOrgIdAtom);
   const agentExecMode = useAtomValue(creatorDefaultExecModeAtom);
   const runningLocation = useAtomValue(runningLocationAtom);
-  const selectedWorktreePath = useAtomValue(selectedWorktreePathAtom);
-  const worktreeLaunchSource = useAtomValue(worktreeLaunchSourceAtom);
+  const worktreeLaunchSelection = useAtomValue(worktreeLaunchSelectionAtom);
   const workspaceFolders = useAtomValue(workspaceFoldersAtom);
   const setViewMode = useSetAtom(viewModeAtom);
   const setIsSwitching = useSetAtom(viewModeSwitchingAtom);
@@ -211,11 +209,10 @@ export function useSessionLaunch(
           runningLocation,
           selectedAgentDefId,
           selectedAgentOrgId,
-          selectedWorktreePath,
           sessionName,
           targetKind,
           workspaceFolders,
-          worktreeLaunchSource,
+          worktreeLaunchSelection,
         });
 
       const result = await sessionLaunch({
@@ -341,11 +338,10 @@ export function useSessionLaunch(
     runningLocation,
     selectedAgentDefId,
     selectedAgentOrgId,
-    selectedWorktreePath,
     sessionName,
     targetKind,
     workspaceFolders,
-    worktreeLaunchSource,
+    worktreeLaunchSelection,
     clearImages,
     dispatchLoadSession,
     setLastUserMessage,

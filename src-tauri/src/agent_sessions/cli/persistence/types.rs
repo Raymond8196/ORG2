@@ -97,6 +97,10 @@ pub struct CreateCodeSessionParams {
     pub account_id: Option<String>,
     pub repo_path: Option<String>,
     pub branch: Option<String>,
+    /// Existing registered linked worktree to reuse for execution.
+    pub worktree_path: Option<String>,
+    /// Git base ref used only when `isolate` creates a fresh worktree.
+    pub worktree_base_ref: Option<String>,
     pub proxy_token: Option<String>,
     pub proxy_url: Option<String>,
     pub hosted_token: Option<String>,

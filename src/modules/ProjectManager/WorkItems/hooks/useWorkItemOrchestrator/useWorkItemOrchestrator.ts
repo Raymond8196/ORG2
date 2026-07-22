@@ -91,7 +91,7 @@ export function useWorkItemOrchestrator(
   const agentMode: AgentExecMode | undefined = normalizeExecMode(rawMode);
 
   const resolveSessionRepoPath = useCallback(
-    () => projectRepoPath ?? worktreePath ?? "",
+    () => worktreePath ?? projectRepoPath ?? "",
     [projectRepoPath, worktreePath]
   );
 
@@ -151,8 +151,12 @@ export function useWorkItemOrchestrator(
 
         const { sessionId: createdSessionId } = await SessionService.create({
           task: sdePrompt,
-          repoPath: resolveSessionRepoPath(),
+          repoPath: projectRepoPath!,
           projectRepoPath: projectRepoPath!,
+          worktreePath:
+            resolveSessionRepoPath() !== projectRepoPath
+              ? resolveSessionRepoPath()
+              : undefined,
           accountId,
           model: modelId,
           workItemId: shortId!,
