@@ -102,16 +102,18 @@ export function useChatProjection({
   } | null>(null);
 
   useEffect(() => {
-    if (projectionEnabled) return;
+    if (shouldUseWorker) return;
 
-    // ChatHistory stays mounted while Launchpad and other non-session tabs are
-    // active. Drop every React-side reference to the previous replay here;
-    // disposing the Worker session alone does not release these event and
-    // projection graphs.
+    // A completed Worker projection owns both the input event array and the
+    // projected output graph. ChatHistory stays mounted not only on Launchpad
+    // but also while switching to a smaller session that projects on the main
+    // thread. Drop those Worker-side React references whenever the CURRENT
+    // input no longer uses the Worker; disposing its remote session alone does
+    // not release workerState/previousWorkerInputRef in this component.
     requestIdentityRef.current += 1;
     previousWorkerInputRef.current = null;
     setWorkerState(null);
-  }, [projectionEnabled]);
+  }, [shouldUseWorker]);
 
   useEffect(() => {
     if (!shouldUseWorker || !sessionId || !workerSessionKey) return;

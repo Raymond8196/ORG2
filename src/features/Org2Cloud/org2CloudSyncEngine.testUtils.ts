@@ -12,6 +12,7 @@ import { processChunksRust } from "@src/engines/SessionCore/ingestion/rustBridge
 import type { RemoteTeammateSessionMetadata } from "@src/store/collaboration/types";
 import { sessionsAtom } from "@src/store/session/sessionAtom/atoms";
 import type { Session } from "@src/store/session/sessionAtom/types";
+import { chatPanelSelectedCloudOrgAtom } from "@src/store/ui/chatPanelAtom";
 import { createInstrumentedStore } from "@src/util/core/state/instrumentedStore";
 
 import {
@@ -291,6 +292,8 @@ export function createEngineFixture() {
   store.set(org2CloudOrgsAtom, [
     { orgId: "corg-1", name: "Cloud Team", role: "member" },
   ]);
+  store.set(chatPanelSelectedCloudOrgAtom, null);
+  store.set(sidebarActiveCloudOrgIdAtom, null);
   store.set(org2CloudRepoScopesAtom, { "corg-1": [SCOPE_KEY] });
   store.set(org2CloudSyncEnabledAtom, {});
   store.set(org2CloudPushCursorsAtom, {});
@@ -344,6 +347,7 @@ export function cleanupEngineFixture(engine: Org2CloudSyncEngine): void {
  */
 export const engineTestDeps = {
   DATA_CHANGED_DEBOUNCE_MS,
+  chatPanelSelectedCloudOrgAtom,
   ensureProjectOrgForCloudOrg,
   getImportedHistorySourceBySessionId,
   HIDDEN_PASS_INTERVAL_MS,

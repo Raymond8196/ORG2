@@ -23,6 +23,7 @@ import {
 const mocks = vi.hoisted(() => ({
   disposeSession: vi.fn(),
   isSupported: vi.fn(),
+  projectDelta: vi.fn(),
   projectChatHistory: vi.fn(),
   projectSnapshot: vi.fn(),
 }));
@@ -31,7 +32,7 @@ vi.mock("../client", () => ({
   chatProjectionClient: {
     disposeSession: mocks.disposeSession,
     isSupported: mocks.isSupported,
-    projectDelta: vi.fn(),
+    projectDelta: mocks.projectDelta,
     projectSnapshot: mocks.projectSnapshot,
     updateOptions: vi.fn(),
   },
@@ -61,13 +62,15 @@ function projection(itemCount: number): ChatHistoryProjectionResult {
 function ProjectionProbe({
   enabled,
   events = oneEvent,
+  sourceVersion = 1,
 }: {
   enabled: boolean;
   events?: SessionEvent[];
+  sourceVersion?: number;
 }) {
   const result = useChatProjection({
     sessionId: enabled ? "session-1" : null,
-    sourceVersion: 1,
+    sourceVersion,
     events,
     options,
     enabled,
@@ -92,6 +95,7 @@ describe("useChatProjection lifecycle", () => {
   beforeEach(() => {
     mocks.disposeSession.mockReset();
     mocks.isSupported.mockReset();
+    mocks.projectDelta.mockReset();
     mocks.projectChatHistory.mockReset();
     mocks.projectSnapshot.mockReset();
     container = document.createElement("div");
@@ -161,5 +165,58 @@ describe("useChatProjection lifecycle", () => {
     expect(container.firstElementChild?.getAttribute("data-pending")).toBe(
       "true"
     );
+  });
+
+  it("drops a heavy worker graph when the same session switches to a main-thread projection", async () => {
+    const largeEvents = Array.from(
+      { length: CHAT_PROJECTION_WORKER_THRESHOLD },
+      (_, index) => ({ id: `event-${index}` }) as SessionEvent
+    );
+    mocks.isSupported.mockReturnValue(true);
+    mocks.projectChatHistory.mockReturnValue(projection(1));
+    mocks.projectSnapshot
+      .mockResolvedValueOnce({
+        result: projection(2),
+        projectionRevision: 1,
+        metrics: { queueWaitMs: 0, computeMs: 1, inputEvents: 2_000 },
+      })
+      .mockReturnValueOnce(new Promise(() => {}));
+
+    await act(async () => {
+      root.render(
+        createElement(ProjectionProbe, {
+          enabled: true,
+          events: largeEvents,
+          sourceVersion: 1,
+        })
+      );
+    });
+
+    await act(async () => {
+      root.render(
+        createElement(ProjectionProbe, {
+          enabled: true,
+          events: oneEvent,
+          sourceVersion: 2,
+        })
+      );
+    });
+    expect(container.firstElementChild?.getAttribute("data-count")).toBe("1");
+
+    act(() => {
+      root.render(
+        createElement(ProjectionProbe, {
+          enabled: true,
+          events: largeEvents,
+          sourceVersion: 3,
+        })
+      );
+    });
+
+    // The small/main-thread interval is a lifecycle boundary. Re-entering the
+    // Worker must send a fresh snapshot, not retain the old 2,000-event array
+    // and derive a delta from it.
+    expect(mocks.projectSnapshot).toHaveBeenCalledTimes(2);
+    expect(mocks.projectDelta).not.toHaveBeenCalled();
   });
 });

@@ -284,6 +284,28 @@ describe("Org2CloudSyncEngine project and endpoint synchronization", () => {
     expect(projectsClient.listOrgCollabState).not.toHaveBeenCalled();
   });
 
+  it("releases every per-org cache when membership disappears", async () => {
+    const aliasMock = vi.mocked(ensureProjectOrgForCloudOrg);
+    await engine.runSyncPass();
+    aliasMock.mockClear();
+    client.getOrgRepoScopes.mockClear();
+    projectsClient.listOrgCollabState.mockClear();
+
+    const originalOrgs = store.get(org2CloudOrgsAtom);
+    store.set(org2CloudOrgsAtom, []);
+    await engine.runSyncPass();
+    store.set(org2CloudOrgsAtom, originalOrgs);
+    await engine.runSyncPass();
+
+    expect(aliasMock).toHaveBeenCalledTimes(1);
+    expect(client.getOrgRepoScopes).toHaveBeenCalledTimes(1);
+    expect(projectsClient.listOrgCollabState).toHaveBeenCalledWith(
+      "jwt-1",
+      "corg-1",
+      undefined
+    );
+  });
+
   it("pushes drained outbox rows through the cloud upsert RPCs and acks the version", async () => {
     bridge.drainOutbox
       .mockResolvedValueOnce([

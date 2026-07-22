@@ -1,77 +1,101 @@
-# ORG2 Performance Guard — Org2Cloud Session Sharing
+# ORG2 Performance Guard — PR #482 Session Sharing
 
 Date: 2026-07-21
-Scope: every background resource the session-sharing surface can create or retain —
-sync engine timer chain, Realtime channels + presence, roster/member-name/remote-session/
-comment caches, guest-share validation polling, panel fallback interval, and the
-comments nudge bus. Companion architecture report:
-`docs/architecture-audit-2026-07-21/SessionSharingOrg2Cloud.md`.
 
-## Resource inventory and lifecycle matrix
+Scope: all background work and retained state added or changed by PR #482: sync passes,
+Realtime/presence, roster/member/session/comment caches, guest validation, projection Worker,
+imported-session turn paging, diagnostics, and dual-instance runtime isolation.
 
-| Resource                                                     | Owner                                                 | Visible                                                            | Hidden                                           | Signed out                        | Account/endpoint switch                                        | Terminal state                                                    |
-| ------------------------------------------------------------ | ----------------------------------------------------- | ------------------------------------------------------------------ | ------------------------------------------------ | --------------------------------- | -------------------------------------------------------------- | ----------------------------------------------------------------- |
-| Sync engine pass timer (single recursive `setTimeout` chain) | `Org2CloudSyncLifecycle` via `useOrg2CloudSyncEngine` | 60s cadence                                                        | 300s cadence (same chain, stretched)             | **stopped** (fixed this pass)     | stop + start; `resetSyncState()` clears every per-identity Map | `stop()` clears timer, listeners, waiters                         |
-| Realtime postgres channels                                   | `useOrg2CloudRealtime` Slice B                        | active org only                                                    | unchanged (push transport)                       | connection disposed               | connection rebuilt (new socket, new auth)                      | unsubscribe removes channel                                       |
-| Presence channel + track/broadcast retries                   | realtime client `joinPresence`                        | event-driven; retries 1s→30s capped backoff (fixed this pass)      | unchanged                                        | disposed with connection          | rebuilt with connection                                        | `leave()` clears both retry timers, pending broadcasts            |
-| Presence call scheduler (5 calls / 30s window)               | realtime connection                                   | serializes track/untrack across all org channels                   | unchanged                                        | garbage-collected with connection | fresh scheduler                                                | idle when queue empty (no standing timer)                         |
-| Member panel roster fallback                                 | `useCloudOrgPanelState`                               | 30s `setInterval`, fetch only when visible                         | ticks but **skips fetch**                        | cleared (effect deps)             | cleared + re-armed under new identity                          | cleared on unmount/org change                                     |
-| Guest share validation                                       | `useOrg2CloudGuestShareAccess`                        | active session 5s / all shares 60s, single-flight with AbortSignal | skipped while hidden, one revalidation on return | idle (no capabilities)            | flights aborted by identity guard                              | unmount aborts in-flight                                          |
-| Roster / member-name / remote-session / comment caches       | per-store WeakMap + atoms                             | LRU-capped (64/64/64+64/128, force tokens 500)                     | n/a                                              | cleared                           | cleared in one `useLayoutEffect` before paint                  | store GC via WeakMap                                              |
-| Comments nudge counters                                      | `org2CloudCommentsSignalAtom`                         | LRU-capped at 256 keys (fixed this pass)                           | n/a                                              | cleared                           | cleared                                                        | n/a                                                               |
-| Present-event-id registry                                    | `sessionCommentPresentEventIdsAtom`                   | one entry per mounted provider instance                            | n/a                                              | n/a                               | n/a                                                            | unmount deletes instance slot; last instance deletes session slot |
+## Verdict
 
-## Findings
+**Pass.** The previously observed 2.57 GB settled footprint was not acceptable and was traced to
+an imported-session turn-index mismatch that forced full-history fallback. After accepting the
+imported `user` alias and paging by turn, the same real session settles near 0.5 GB while open and
+releases its current-session/Chat tree allocations when closed. This audit found and fixed the
+remaining Worker-transition and per-org/session cache-retention gaps.
 
-| Area                                                      | Verdict                            | Evidence                                                                                                                                      | Change or reason kept                                                                                                                                                                                                                                                                              | Verification                                                                                             |
-| --------------------------------------------------------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| Background work — sync engine while signed out            | fix                                | pass timer chain kept ticking with no cloud identity; per-identity Maps survived switches                                                     | `useOrg2CloudSyncEngine` keyed to `org2CloudAuthIdentityKey`: stop on identity change/sign-out, start only while signed in                                                                                                                                                                         | typecheck + existing engine suites (projects/sessions/metadata) pass; `stop()` path already unit-covered |
-| Background work — presence track/broadcast retry          | fix                                | fixed 1s re-arm forever on persistent RLS/token failure (up to 2 wasted calls/s/channel)                                                      | capped exponential backoff 1s→30s, streak reset on success and on `SUBSCRIBED` edge                                                                                                                                                                                                                | 4 new unit tests: backoff cadence, 30s ceiling, reset-on-success, first-retry-stays-fast                 |
-| Background work — panel roster fallback                   | keep                               | 30s interval, fetch skipped while hidden, torn down on org/identity change                                                                    | interval is the documented low-frequency safety net for deployments without the Realtime channel; push invalidation (`org_change_signals`) remains primary                                                                                                                                         | existing `useCloudOrgPanelState` behavior tests                                                          |
-| Background work — sync engine failure cadence             | keep                               | generic pass failures wait for the next 60s/300s tick; org-level backoff and `online` recovery exist                                          | no unbounded retry loop to fix; adding another backoff layer would delay legitimate recovery                                                                                                                                                                                                       | engine unit suites                                                                                       |
-| Background work — inactive-org entitlement retries        | fix (landed upstream, `21cea5330`) | quota/disabled backoff retried every 5 min and toasted regardless of which org the user was viewing; backoff Maps never pruned on org removal | inactive orgs back off 30 min and log instead of toasting (upgraded to a toast on first active view); `pruneRemovedOrgBackoffs` bounds every backoff Map by the live roster each pass; audience Maps cleared in `resetSyncState()`, which production now reaches via the identity-keyed stop/start | engine unit tests shipped with the commit; full Org2Cloud suite green post-merge (561 tests)             |
-| Memory — comments-signal counters                         | fix                                | one number per (org, session) ever nudged, cleared only on identity change                                                                    | `bumpCommentsSignalKey` LRU cap at 256, all three writers routed through it                                                                                                                                                                                                                        | `org2CloudCommentsBus.test.ts`: cap, eviction order, recency, non-mutation                               |
-| Memory — roster/member-name/remote-session/comment caches | keep (pre-hardened this branch)    | all LRU-capped with recency refresh; in-flight maps are per-store WeakMaps                                                                    | caps: 64/64/64+64/128/500                                                                                                                                                                                                                                                                          | bound/eviction unit tests in each atom's suite                                                           |
-| Scope/isolation — cache identity keys                     | keep (pre-hardened this branch)    | every cloud cache keyed/guarded by `supabaseUrl                                                                                               | userId`; async commits re-check identity before writing                                                                                                                                                                                                                                            | one `useLayoutEffect` evicts all identity-owned atoms before paint on switch                             | identity-switch unit tests across the four cache suites |
-| Scope/isolation — secondary Tauri instance                | keep (this branch)                 | `yorg.orgii.e2e.instance{N}` resolves the same isolated ports/data home/external-history home as production secondaries                       | Rust unit test asserts profile parity                                                                                                                                                                                                                                                              | `runtime_instance.rs` test, `cargo check`                                                                |
-| Rendering/hot path — presence sync writes                 | fix                                | every heartbeat frame wrote a fresh roster object; sidebar menu tree rebuilt per frame                                                        | `org2CloudPresenceRosterEquals` keeps the previous object when the semantic view is unchanged (ignores `updatedAt`)                                                                                                                                                                                | `org2CloudPresenceAtom.test.ts` equality cases                                                           |
-| Rendering/hot path — viewers indicator                    | fix                                | flatMap over all orgs' cached rows per presence change                                                                                        | identity-filtered active-org read (same chain as Slice C)                                                                                                                                                                                                                                          | typecheck + existing indicator behavior                                                                  |
-| Stale writes — share dialog refresh                       | fix                                | post-await `setState` guarded only by identity                                                                                                | `unmountedRef` added to the commit gate                                                                                                                                                                                                                                                            | typecheck; hook logic unchanged otherwise                                                                |
-| Hot path — per-event hash on unclean session push         | keep                               | `stableStringify`+`sha256Hex` per event only when a session's event plane is dirty                                                            | bounded by the 10-min clean-plane TTL + activity invalidation; clean sessions skip entirely; cost is proportional to real edit activity, not idle time                                                                                                                                             | engine session-sync unit suite                                                                           |
-| Background work — guest validation overlap after abort    | keep                               | an aborted flight may finish its in-flight HTTP while the successor starts                                                                    | commits and evictions are gated on the abort signal, so overlap wastes at most one request per identity/capability change and cannot double-evict                                                                                                                                                  | `useOrg2CloudGuestShareAccess` unit tests                                                                |
-| Background work — project-push retry while hidden         | keep                               | one-shot 30.25s timer, single-flight                                                                                                          | durable-outbox exception (skill invariant): bounded frequency and scope; deferring it would delay draining durable writes                                                                                                                                                                          | lifecycle unit suite                                                                                     |
+## Resource lifecycle matrix
 
-## Sweep candidate surfaced (not fixed here)
+| Resource                                  | Owner / bound                                                  | Visible                                            | Hidden                       | Signed out / identity switch             | Terminal state                                        |
+| ----------------------------------------- | -------------------------------------------------------------- | -------------------------------------------------- | ---------------------------- | ---------------------------------------- | ----------------------------------------------------- |
+| Sync pass timer                           | `Org2CloudSyncLifecycle`, one recursive timer                  | 60s                                                | 300s                         | stopped; all identity state reset        | `stop()` clears timer/listeners/waiters               |
+| Inactive entitlement backoff              | per live org                                                   | active org: 5m + one toast; inactive: 30m log-only | same bounded state           | pruned by live roster; reset on identity | removed org is deleted next pass                      |
+| Realtime postgres channels                | active org only                                                | push-driven                                        | retained for correctness     | connection disposed/rebuilt              | unsubscribe removes channel                           |
+| Presence retries                          | per presence connection, one pending track and broadcast retry | 1s → 30s capped exponential                        | same                         | disposed/rebuilt                         | `leave()` clears timers and pending payloads          |
+| Presence roster atom                      | current identity/org                                           | semantic writes only                               | same                         | cleared before paint                     | overwritten/cleared                                   |
+| Member panel fallback                     | one 30s interval                                               | fetches                                            | tick skips fetch             | effect teardown/re-arm                   | clear on unmount/org change                           |
+| Guest validation                          | one flight per capability; active 5s/all 60s                   | validates                                          | skips, one refresh on return | abort and identity commit guard          | unmount aborts                                        |
+| Roster/member/remote/comment caches       | WeakMap per store plus LRU 64/64/64+64/128; force tokens 500   | bounded                                            | n/a                          | cleared on identity                      | store GC                                              |
+| Comment nudge counters                    | atom LRU 256                                                   | bounded                                            | n/a                          | cleared                                  | LRU eviction                                          |
+| Sync-engine org maps/sets                 | live roster                                                    | pruned every pass                                  | same                         | reset                                    | removed org deleted next pass                         |
+| Session-sync hashes/activity/clean planes | live org + local session set                                   | pruned every pass                                  | same                         | reset                                    | deleted session/removed org deleted next pass         |
+| Projection Worker state                   | current heavy session only                                     | Worker for large input                             | current surface only         | session-owned                            | cleared on Worker → main switch and unmount           |
+| Imported turn bodies                      | current turn plus configured window                            | lazily loaded                                      | n/a                          | session-owned                            | unloaded on close; old turns loaded on navigation     |
+| Present-event registry                    | mounted provider instances                                     | one slot per mounted pane                          | n/a                          | n/a                                      | symmetric unmount; last instance removes session slot |
 
-Native context menus are built with `TauriMenu.new(...)` + `popup()` and never explicitly
-disposed. The session-sharing sidebar's row "Remove" menu follows the identical pattern used at
-12+ call sites codebase-wide (tab context menus, file explorer, git history, spotlight, sidebar
-chrome). Allocation is user-click-driven (no idle growth), so this is not a session-sharing
-regression; if Tauri menu handles are confirmed to leak Rust-side, it should be fixed once as a
-shared `popupAndClose` helper across all call sites — a config-level decision, not a
-site-by-site patch.
+## Findings and decisions
 
-## Correctness/privacy preserved
+| Area                                   | Verdict            | Evidence                                                                                                     | Change or reason                                                                                                      |
+| -------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------- |
+| Signed-out sync engine                 | fixed              | Timer and maps originally survived auth removal.                                                             | Identity-keyed stop/start and full reset.                                                                             |
+| Presence retry loop                    | fixed              | Persistent failures re-armed at 1 Hz.                                                                        | Capped exponential backoff with reset on recovery.                                                                    |
+| Presence heartbeat renders             | fixed              | Every sync wrote a fresh roster object.                                                                      | Semantic equality ignores heartbeat-only timestamps.                                                                  |
+| Comments signal growth                 | fixed              | One key per historically nudged session.                                                                     | 256-key LRU for every writer.                                                                                         |
+| Removed-org state                      | fixed in this pass | Only four backoff maps were pruned.                                                                          | `pruneRemovedOrgState` now covers backoff, hydration, aliases, inbound cursors, pending/full state, and session sync. |
+| Deleted-session sync caches            | fixed in this pass | Push hashes, clean planes, and activity stamps lived until identity reset.                                   | `Org2CloudSessionSync.prune` uses the live roster and local session list each pass.                                   |
+| Projection Worker transition           | fixed in this pass | Heavy Worker graph survived switching to a small main-thread session.                                        | Clear Worker state/input on every non-Worker input; Worker → main → Worker regression proves a fresh snapshot.        |
+| Imported session full-history fallback | fixed              | 7,569-event / 42.9M-character session had zero indexed turns because imports use `user`, not `user_message`. | Turn-index v11 recognizes both aliases; UI loads a bounded turn window and normalizes both preview prefixes.          |
+| Per-event hash on dirty push           | keep               | Runs only for event-dirty sessions; clean plane has 10m TTL/activity invalidation.                           | Work is proportional to real edits, not idle time.                                                                    |
+| Project push retry while hidden        | keep               | One-shot 30.25s, single-flight.                                                                              | Durable-outbox exception; bounded and required for eventual write delivery.                                           |
+| Native context-menu handles            | follow-up sweep    | User-click-driven pattern occurs at 12+ sites.                                                               | Measure Tauri handle retention, then fix centrally if necessary; not an idle session-sharing regression.              |
 
-- Realtime propagation: presence equality check only suppresses **semantically identical**
-  rosters; any user/session/name change still writes. Backoff never delays the first retry
-  (base 1s) and resets on the `SUBSCRIBED` edge, so recovery after reconnect is immediate.
-- Revocation: guest-share definitive-revocation eviction and comment-visibility eviction
-  paths untouched; sync engine restart on identity change re-lists under the new identity.
-- Comments-signal eviction cannot silently drop a live nudge except in the marginal case
-  documented at `bumpCommentsSignalKey` (>256 distinct nudged keys, then a force-token
-  collision), which the mount/TTL fetch covers.
+## Real packaged dual-instance measurements
 
-## Verification evidence
+Measured earlier on this PR branch with two real Tauri render processes and the second account's
+isolated session DB, after the turn-index/paging fix and before the final audit-only lifecycle
+follow-ups. The stress fixture is `imported-session-1a3b30ee6dcea9cd52580821f805e432`: 7,569 events,
+approximately 42.9M characters, 54 user turns, and 250 embedded `data:image` payloads.
 
-- `tsc --noEmit` clean; `cargo check` clean; `git diff --check` clean.
-- `pnpm vitest run src/features/Org2Cloud`: 51 files / 557 tests pass.
-- Wider sweep (`Org2Cloud` + `TeamCollaboration` + `ChatPanel`): 151 files / 1476 tests pass.
-- Not run in this pass: live dual-instance idle-CPU measurement on the real Tauri surface
-  (requires the dual build + oauth-live secondary account). The dual-instance E2E spec
-  exists on this branch; run `tests/e2e` `cloud-dual-instance-ui.spec.mjs` before release
-  for measured confirmation.
+| State                                                                           | App working set | WebView helpers |                         Backend | Other evidence                                       |
+| ------------------------------------------------------------------------------- | --------------: | --------------: | ------------------------------: | ---------------------------------------------------- |
+| Before turn-index fix, full replay peak                                         |         4.50 GB |   4.176 GB peak |                        included | unacceptable                                         |
+| Before fix, settled                                                             |         2.66 GB |        2.447 GB |                        included | unacceptable                                         |
+| After fix, latest turn                                                          |        467.3 MB |          414 MB |                           54 MB | 122 FPS                                              |
+| After fix, worst sampled historical turn (803 events, 11.58M chars, 102 images) |        512.0 MB |          436 MB |                           76 MB | 2,195 DOM nodes, 122 FPS                             |
+| Return to latest                                                                |        515.7 MB |             n/a |                             n/a | stable, no replay spike                              |
+| Session closed                                                                  |        459.9 MB |          384 MB | current-session allocation 0 MB | Chat rendered tree removed, 1,731 DOM nodes, 122 FPS |
 
-**Performance verdict: pass** — every applicable invariant is evidenced at the unit/typecheck
-level; the one unmeasured item (live idle-CPU on the packaged dual build) is named above and
-does not gate any invariant that code-level evidence already covers.
+At the worst sampled historical turn the diagnostics attributed about 45 MB to runtime
+estimates, 19 MB to snapshots, 14 MB to current-session state, and 53/12 MB to the Chat rendered
+tree buckets. Closing the session removed the current-session and Chat-tree ownership as
+expected. A true idle CPU percentage was not captured; this report therefore does not claim an
+idle-CPU number. Code-level timer cadence/backoff and the stable 122 FPS surface provide
+supporting, not substitutive, evidence.
+
+## Correctness and privacy invariants
+
+- Presence equality suppresses only semantically identical rosters; user, name, or viewed-session
+  changes still publish.
+- Revocation eviction, server authorization, comment visibility, and directed-share boundaries
+  are unchanged by cache pruning.
+- Pruning uses only authoritative live roster and local session ownership. Persistent remote
+  cursors/markers remain governed by reconciliation/retraction rather than transient UI state.
+- Turn paging changes local materialization only; imported history remains immutable and forking
+  creates an ordinary local continuation.
+
+## Verification
+
+- Targeted performance/lifecycle regressions: 4 files / 83 tests pass.
+- Wider Org2Cloud + TeamCollaboration + ChatPanel sweep: 153 files / 1,496 tests pass.
+- Full repository run: 592 files / 5,727 tests pass; full ESLint and
+  `cargo clippy --workspace` pass (baseline advisory warnings only).
+- `tsc --noEmit`, `cargo check`, changed-file lint/format, E2E syntax, frozen lockfile, and
+  `git diff --check`: pass.
+- Session-persistence imported-user turn-index test: pass.
+- Packaged dual-instance memory test: pass at the measurements above.
+- Final-head dual build: both executables compile and copy with matching hashes. Final-head UI
+  launch was blocked before process creation by Windows Smart App Control's enterprise signing
+  requirement (Code Integrity 3077); no bypass was attempted and no final-head UI result is
+  claimed.
+- Automated cloud dual E2E was not rerun in this shell because no `E2E_CLOUD_*` service/password
+  credentials are present. This is a test-environment limitation, not a silent pass.

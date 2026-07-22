@@ -27,6 +27,7 @@ const {
   PERSONAL_EXCLUDED_TOKEN,
   Org2CloudSyncEngine,
   Org2CloudSyncError,
+  chatPanelSelectedCloudOrgAtom,
   cloudOrgToken,
   getImportedHistorySourceBySessionId,
   org2CloudAccessSettingsAtom,
@@ -424,6 +425,21 @@ describe("Org2CloudSyncEngine session publishing", () => {
     expect(messageMock.warning).not.toHaveBeenCalled();
   });
 
+  it("treats the visible management org as active for retry and toast policy", async () => {
+    store.set(sidebarActiveCloudOrgIdAtom, null);
+    store.set(chatPanelSelectedCloudOrgAtom, { orgId: "corg-1" });
+    client.upsertSessionMetadata.mockRejectedValue(
+      new Org2CloudSyncError("ORG2_QUOTA_EXCEEDED", 403)
+    );
+
+    await engine.runSyncPass();
+
+    expect(messageMock.warning).toHaveBeenCalledTimes(1);
+    expect(messageMock.warning).toHaveBeenCalledWith(
+      "navigation:cloud.sync.quotaExceededToast"
+    );
+  });
+
   it("resumes and warns once when a backed-off inactive org becomes active", async () => {
     store.set(sidebarActiveCloudOrgIdAtom, null);
     client.upsertSessionMetadata.mockRejectedValue(
@@ -475,6 +491,18 @@ describe("Org2CloudSyncEngine session publishing", () => {
     await engine.runSyncPass();
 
     expect(messageMock.warning).toHaveBeenCalledTimes(2);
+  });
+
+  it("evicts per-session acceleration state when a local session disappears", async () => {
+    await engine.runSyncPass();
+    client.upsertSessionMetadata.mockClear();
+
+    store.set(sessionsAtom, []);
+    await engine.runSyncPass();
+    store.set(sessionsAtom, [SESSION]);
+    await engine.runSyncPass();
+
+    expect(client.upsertSessionMetadata).toHaveBeenCalledTimes(1);
   });
 
   it("skips orgs without local scopes or with sync disabled", async () => {
