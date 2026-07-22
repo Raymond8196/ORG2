@@ -8,12 +8,21 @@
  * (`importRemoteSession` / `forkTeammateSession`); only the segments fetch
  * differs (`buildCloudSessionFetchClient`, JWT-backed).
  */
-import { useAtom, useSetAtom } from "jotai";
+import { useAtom, useSetAtom, useStore } from "jotai";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import Message from "@src/components/Message";
-import { importRemoteSession } from "@src/features/TeamCollaboration/engine/collabSyncEngineHelpers";
+import {
+  beginSessionHydrationAtom,
+  endSessionHydrationAtom,
+  triggerSessionReloadAtom,
+} from "@src/engines/SessionCore";
+import {
+  deriveImportedSessionId,
+  findImportedSession,
+  importRemoteSession,
+} from "@src/features/TeamCollaboration/engine/collabSyncEngineHelpers";
 import {
   ForkCancelledError,
   forkTeammateSession,
@@ -24,8 +33,17 @@ import { createLogger } from "@src/hooks/logger";
 import { useSessionView } from "@src/hooks/ui/tabs/useSessionView";
 import { openOrReplaceSessionInChatPanelTabAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
 import type { RemoteTeammateSessionMetadata } from "@src/store/collaboration/types";
+import { activeSessionIdAtom, sessionsAtom } from "@src/store/session";
 
-import { commitRefreshedAuth, org2CloudAuthAtom } from "./org2CloudAuthAtom";
+import {
+  resolveCloudSessionReplayIconId,
+  runImmediateCloudSessionReplay,
+} from "./cloudSessionReplayLifecycle";
+import {
+  commitRefreshedAuth,
+  org2CloudAuthAtom,
+  org2CloudAuthIdentityKey,
+} from "./org2CloudAuthAtom";
 import { buildCloudSessionFetchClient } from "./org2CloudBackendAdapter";
 import { ensureFreshSession } from "./org2CloudClient";
 import { isOrg2SyncErrorCode } from "./org2CloudSyncClient";
@@ -57,16 +75,21 @@ export function useCloudSessionActions(
   orgId: string | null
 ): UseCloudSessionActionsResult {
   const { t } = useTranslation("navigation");
+  const store = useStore();
   const [auth, setAuth] = useAtom(org2CloudAuthAtom);
-  const { openSession } = useSessionView();
+  const { openSession, updateMetadata } = useSessionView();
   const openOrReplaceSessionTab = useSetAtom(
     openOrReplaceSessionInChatPanelTabAtom
   );
+  const beginSessionHydration = useSetAtom(beginSessionHydrationAtom);
+  const endSessionHydration = useSetAtom(endSessionHydrationAtom);
+  const triggerSessionReload = useSetAtom(triggerSessionReloadAtom);
   const openCloudBillingPage = useOpenCloudBilling();
   const [busySessionRowId, setBusySessionRowId] = useState<string | null>(null);
   // Latest auth via ref so token-refresh writes don't recreate callbacks
   // (same idiom as the panel fetch effects).
   const authRef = useRef(auth);
+  const authIdentityKey = auth ? org2CloudAuthIdentityKey(auth) : null;
   useEffect(() => {
     authRef.current = auth;
   }, [auth]);
@@ -79,7 +102,7 @@ export function useCloudSessionActions(
       replayAbortRef.current?.abort();
       replayAbortRef.current = null;
     };
-  }, []);
+  }, [authIdentityKey, orgId]);
 
   /** Fresh JWT for a user action (same refresh idiom as the panel). */
   const freshAccessToken = useCallback(async (): Promise<string | null> => {
@@ -112,43 +135,85 @@ export function useCloudSessionActions(
       if (busySessionRowId) return "noop";
       setBusySessionRowId(remoteSession.id);
       replayAbortRef.current?.abort();
-      replayAbortRef.current = new AbortController();
+      const abortController = new AbortController();
+      replayAbortRef.current = abortController;
       try {
         const sourceEndpointUrl = authRef.current?.supabaseUrl;
-        const accessToken = await freshAccessToken();
-        if (!accessToken || !sourceEndpointUrl) {
+        if (!sourceEndpointUrl) {
           Message.error(t("cloud.orgPanel.importError"));
           return "failed";
         }
-        // Resolve before import so the importer can translate owner-side
-        // absolute paths while building the local Session Blame index.
-        const localRepoPath =
-          (await resolveForkWorkspacePath(remoteSession)) ?? undefined;
-        const result = await importRemoteSession({
-          client: buildCloudSessionFetchClient(accessToken),
+        const existing = findImportedSession(
+          store.get(sessionsAtom),
           orgId,
-          remoteSession,
-          sourceEndpointUrl,
-          workspaceRepoPath: localRepoPath,
-          signal: replayAbortRef.current?.signal,
+          remoteSession.sourceSessionId,
+          sourceEndpointUrl
+        );
+        const localSessionId =
+          existing?.session_id ??
+          (await deriveImportedSessionId(
+            orgId,
+            remoteSession.sourceSessionId,
+            sourceEndpointUrl
+          ));
+
+        let localRepoPath: string | undefined;
+        const result = await runImmediateCloudSessionReplay({
+          sessionId: localSessionId,
+          beginHydration: (sessionId) =>
+            beginSessionHydration({
+              sessionId,
+              iconId: resolveCloudSessionReplayIconId(remoteSession),
+            }),
+          openTab: (sessionId) => {
+            openOrReplaceSessionTab({
+              sessionId,
+              sessionName: remoteSession.title,
+            });
+          },
+          load: async () => {
+            const accessToken = await freshAccessToken();
+            abortController.signal.throwIfAborted();
+            if (!accessToken) return null;
+            // Resolve after opening so checkout discovery cannot delay the
+            // Chat Pane tab. The path later restores local tab metadata and
+            // feeds the derived blame index.
+            localRepoPath =
+              (await resolveForkWorkspacePath(remoteSession)) ?? undefined;
+            abortController.signal.throwIfAborted();
+            return importRemoteSession({
+              client: buildCloudSessionFetchClient(accessToken),
+              orgId,
+              remoteSession,
+              sourceEndpointUrl,
+              workspaceRepoPath: localRepoPath,
+              signal: abortController.signal,
+            });
+          },
+          endHydration: endSessionHydration,
         });
         if (result) {
-          openOrReplaceSessionTab({
-            sessionId: result.localSessionId,
-            sessionName: remoteSession.title,
-            repoPath: localRepoPath,
-          });
-          openSession(
-            result.localSessionId,
-            remoteSession.title,
-            localRepoPath
-          );
+          if (result.localSessionId !== localSessionId) {
+            log.warn("cloud replay resolved a different local session id", {
+              expected: localSessionId,
+              actual: result.localSessionId,
+              sourceSessionId: remoteSession.sourceSessionId,
+            });
+          }
+          // Do not navigate here: the user may have left or closed the tab
+          // while the network request was running. Reload only the still-live
+          // surface; inactive sessions read the persisted cache when reopened.
+          if (store.get(activeSessionIdAtom) === result.localSessionId) {
+            updateMetadata({ repoPath: localRepoPath });
+            triggerSessionReload(result.localSessionId);
+          }
           return "opened";
         }
         // null ⇒ owner has published no segments (metadata-only card).
         Message.error(t("cloud.orgPanel.importError"));
         return "failed";
       } catch (error) {
+        if (abortController.signal.aborted) return "noop";
         if (isOrg2SyncErrorCode(error, "ORG2_RETENTION_EXPIRED")) {
           notifyRetentionExpired();
           return "retention-expired";
@@ -163,17 +228,24 @@ export function useCloudSessionActions(
         Message.error(t("cloud.orgPanel.importError"));
         return "failed";
       } finally {
+        if (replayAbortRef.current === abortController) {
+          replayAbortRef.current = null;
+        }
         setBusySessionRowId(null);
       }
     },
     [
       busySessionRowId,
+      beginSessionHydration,
+      endSessionHydration,
       freshAccessToken,
       openOrReplaceSessionTab,
-      openSession,
       notifyRetentionExpired,
       orgId,
+      store,
       t,
+      triggerSessionReload,
+      updateMetadata,
     ]
   );
 

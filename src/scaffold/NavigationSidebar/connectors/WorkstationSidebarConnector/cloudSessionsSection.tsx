@@ -61,7 +61,7 @@ import {
 import {
   type CloudSessionThreadRow,
   buildCloudSessionThreads,
-  collectThreadedLocalSessionIds,
+  collectCloudFlatListExcludedSessionIds,
   isCloudThreadRowDisabled,
 } from "@src/features/Org2Cloud/cloudSessionThreads";
 import {
@@ -112,8 +112,8 @@ interface UseCloudSessionsSectionParams {
 interface UseCloudSessionsSectionResult {
   /** Separator + thread rows; empty when no cloud scope is active. */
   cloudMenuItems: NavigationMenuItem[];
-  /** Local session ids to hide from the flat list (threaded position wins). */
-  cloudThreadedLocalSessionIds: ReadonlySet<string>;
+  /** Local session ids to hide from the flat "My Sessions" list. */
+  cloudFlatListExcludedSessionIds: ReadonlySet<string>;
   /** Cloud row key corresponding to the active local replay/import session. */
   selectedCloudMenuItemId: string | null;
   /** Click resolver for Team rows and the Team section's pagination row. */
@@ -308,41 +308,20 @@ export function useCloudSessionsSection({
     );
   }, []);
 
-  // Local sessions that already render at their threaded position — hidden
-  // from the flat local list so they never appear twice. Invariant: a session
-  // is excluded from the flat list only if it is actually VISIBLE in the team
-  // section, so this derives from the FILTERED threads — a member filter that
-  // drops a thread returns the viewer's own sessions to the flat list instead
-  // of vanishing them from both lists.
+  // Local sessions that must stay out of the flat "My Sessions" list.
   //
   // Two kinds of exclusions:
   // 1. MINE rows (bare id = a local session) — the thread row IS the entry.
   // 2. IMPORTED TEAMMATE COPIES (`importedFrom`): a replay click materializes
-  //    the transcript as a local `imported-session-…` cache row. That cache
-  //    must not ALSO list under TODAY while its team row renders — clicking
-  //    the team row re-opens the same import (deterministic id + cursor
-  //    no-op), so hiding it removes the "I just looked at it and it
-  //    duplicated" effect without losing anything.
-  const cloudThreadedLocalSessionIds = useMemo(() => {
+  //    the transcript as a local cache row. It is never the viewer's own
+  //    session, even when its Team row is outside the current filter/page.
+  const cloudFlatListExcludedSessionIds = useMemo(() => {
     if (!orgId) return new Set<string>();
-    const ids = collectThreadedLocalSessionIds(visibleThreads);
-    const visibleBareIds = new Set<string>();
-    for (const thread of visibleThreads) {
-      for (const threadRow of [thread.root, ...thread.descendants]) {
-        visibleBareIds.add(threadRow.bareSessionId);
-      }
-    }
-    for (const session of sessions) {
-      const imported = session.importedFrom;
-      if (
-        imported &&
-        imported.orgId === orgId &&
-        visibleBareIds.has(imported.sourceSessionId)
-      ) {
-        ids.add(session.session_id);
-      }
-    }
-    return ids;
+    return collectCloudFlatListExcludedSessionIds(
+      visibleThreads,
+      sessions,
+      orgId
+    );
   }, [orgId, sessions, visibleThreads]);
 
   const selectedCloudMenuItemId = useMemo(() => {
@@ -919,7 +898,7 @@ export function useCloudSessionsSection({
 
   return {
     cloudMenuItems,
-    cloudThreadedLocalSessionIds,
+    cloudFlatListExcludedSessionIds,
     selectedCloudMenuItemId,
     handleCloudSessionItemClick,
     resetCloudTeamPagination,

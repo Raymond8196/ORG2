@@ -164,6 +164,9 @@ export const WORKBUDDY_HISTORY_SESSION_PREFIX = "workbuddyapp-";
 /** Prefix for imported Warp event session IDs. */
 export const WARP_HISTORY_SESSION_PREFIX = "warpapp-";
 
+/** Deterministic local cache ID for a teammate collaboration replay. */
+export const COLLAB_IMPORTED_SESSION_PREFIX = "imported-session-";
+
 /** Prefix for Wingman Agent session IDs */
 export const WINGMAN_SESSION_PREFIX = "wingman-";
 
@@ -376,6 +379,10 @@ export function resolveSessionIconId(
   sessionId: string | null | undefined
 ): string {
   if (!sessionId) return "bot";
+  // Collaboration replays can open their Chat Pane tab before the local
+  // Session row has finished hydrating. Keep that pending tab on the same
+  // ORGII mark used by its Team Sessions sidebar row instead of flashing Bot.
+  if (sessionId.startsWith(COLLAB_IMPORTED_SESSION_PREFIX)) return "orgii";
   const config = findPrefixConfig(sessionId);
   return config?.iconId ?? "bot";
 }
