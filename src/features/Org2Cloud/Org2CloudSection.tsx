@@ -17,7 +17,6 @@ import {
   SectionContainer,
   SectionRow,
 } from "@/src/modules/shared/layouts/SectionLayout";
-import { openUrl } from "@tauri-apps/plugin-opener";
 import { useAtom, useStore } from "jotai";
 import { RefreshCw } from "lucide-react";
 import React, { useCallback, useState } from "react";
@@ -27,17 +26,13 @@ import Button from "@src/components/Button";
 import Message from "@src/components/Message";
 import { REFRESH_ICON_TOKENS } from "@src/components/RefreshIcon/tokens";
 import CloudEndpointCard from "@src/features/Org2Cloud/CloudEndpointCard";
-import { buildOrg2CloudLoginUrl } from "@src/features/Org2Cloud/config";
 import { importBundledOrg2CloudAuthForDev } from "@src/features/Org2Cloud/devBundledAuthImport";
 import {
   org2CloudAuthAtom,
   org2CloudAuthIdentityKey,
 } from "@src/features/Org2Cloud/org2CloudAuthAtom";
-import {
-  beginOrg2CloudAuthLoopback,
-  cancelPendingOrg2CloudAuthLoopback,
-} from "@src/features/Org2Cloud/org2CloudAuthLoopback";
 import { resetOrgEntitlementCoordinator } from "@src/features/Org2Cloud/org2CloudEntitlementCoordinator";
+import { useOrg2CloudSignIn } from "@src/features/Org2Cloud/useOrg2CloudSignIn";
 import { createLogger } from "@src/hooks/logger";
 
 const log = createLogger("Org2CloudSection");
@@ -64,15 +59,7 @@ const Org2CloudSection: React.FC<Org2CloudSectionProps> = ({
     auth?.userId ??
     "";
 
-  const handleSignIn = useCallback(async () => {
-    try {
-      const callbackUrl = await beginOrg2CloudAuthLoopback();
-      await openUrl(buildOrg2CloudLoginUrl(callbackUrl));
-    } catch (error: unknown) {
-      await cancelPendingOrg2CloudAuthLoopback();
-      log.error("failed to open ORG2 Cloud login in system browser", error);
-    }
-  }, []);
+  const handleSignIn = useOrg2CloudSignIn();
 
   const handleSignOut = useCallback(() => {
     resetOrgEntitlementCoordinator(store);
