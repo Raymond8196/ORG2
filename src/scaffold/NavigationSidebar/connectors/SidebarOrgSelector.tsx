@@ -139,7 +139,7 @@ const SidebarOrgSelector: React.FC<SidebarOrgSelectorProps> = React.memo(
       >
         <WorkstationToolbarTooltip
           label={t("collaboration.switchOrg")}
-          position="top"
+          position="bottom"
           disabled={menuOpen}
         >
           <div className="w-full min-w-0">
@@ -150,13 +150,14 @@ const SidebarOrgSelector: React.FC<SidebarOrgSelectorProps> = React.memo(
               onVisibleChange={setMenuOpen}
               popupVisible={menuOpen}
               dropdownRender={renderDropdown}
+              showTriggerIcon={false}
               variant="ghost"
               size="small"
-              radius="pill"
+              radius="lg"
               dropdownWidth={250}
               dropdownAlign="left"
-              className="h-7 w-full"
-              selectorClassName={`h-7 !px-2 text-[12px] [&_.select-suffix]:ml-1 [&_.select-value]:text-[12px] ${
+              className="h-8 w-full"
+              selectorClassName={`h-8 !px-2 [&_.select-arrow]:!text-text-2 [&_.select-suffix]:ml-2 [&_.select-value]:!flex-initial [&_.select-value]:gap-3 [&_.select-value]:text-[13px] [&_.select-value]:font-semibold ${
                 menuOpen ? "!bg-sidebar-selected" : "hover:!bg-sidebar-selected"
               }`}
               dataTestId="sidebar-org-selector"
