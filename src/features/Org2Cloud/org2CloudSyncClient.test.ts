@@ -349,21 +349,105 @@ describe("cloud_list_org_sessions", () => {
 });
 
 describe("cloud_get_session_events", () => {
-  it("parses the segments snapshot", async () => {
+  it("parses a bounded segments page", async () => {
     fetchMock.mockResolvedValueOnce(
       jsonResponse({
         epoch: 4,
         frozenSeq: 2,
         tailHash: "th",
+        count: 3,
+        nextAfterSeq: 1,
+        hasMore: false,
         segments: [
           { seq: 1, payloadGz: "abc", eventCount: 3, segmentHash: "h1" },
         ],
       })
     );
     const result = await getSessionEvents("jwt-1", "org-1", "s-1");
-    expect(lastBody()).toEqual({ p_org_id: "org-1", p_session_id: "s-1" });
+    expect(lastCall().url).toBe(
+      `${ORG2_CLOUD_OFFICIAL_SUPABASE_URL}/rest/v1/rpc/cloud_get_session_events_page`
+    );
+    expect(lastBody()).toEqual({
+      p_org_id: "org-1",
+      p_session_id: "s-1",
+      p_after_seq: 0,
+      p_limit: 64,
+    });
     expect(result.epoch).toBe(4);
     expect(result.segments[0].segmentHash).toBe("h1");
+  });
+
+  it("walks pages sequentially and pins the epoch after page one", async () => {
+    fetchMock
+      .mockResolvedValueOnce(
+        jsonResponse({
+          epoch: 7,
+          frozenSeq: 2,
+          tailHash: "tail",
+          count: 5,
+          nextAfterSeq: 1,
+          hasMore: true,
+          segments: [
+            { seq: 1, payloadGz: "one", eventCount: 2, segmentHash: "h1" },
+          ],
+        })
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({
+          epoch: 7,
+          frozenSeq: 2,
+          tailHash: "tail",
+          count: 5,
+          nextAfterSeq: 2,
+          hasMore: false,
+          segments: [
+            { seq: 2, payloadGz: "two", eventCount: 2, segmentHash: "h2" },
+            { seq: 0, payloadGz: "tail", eventCount: 1, segmentHash: "tail" },
+          ],
+        })
+      );
+
+    const result = await getSessionEvents("jwt-1", "org-1", "s-large", {
+      shareToken: "share-token",
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const secondBody = JSON.parse(
+      String((fetchMock.mock.calls[1] as [string, RequestInit])[1].body)
+    ) as Record<string, unknown>;
+    expect(secondBody).toEqual({
+      p_org_id: "org-1",
+      p_session_id: "s-large",
+      p_after_seq: 1,
+      p_limit: 64,
+      p_expected_epoch: 7,
+      p_share_token: "share-token",
+    });
+    expect(result.segments.map((segment) => segment.seq)).toEqual([1, 2, 0]);
+  });
+
+  it("falls back once for a backend that predates the paged RPC", async () => {
+    fetchMock
+      .mockResolvedValueOnce(
+        jsonResponse({ message: "PGRST202 function was not found" }, 404)
+      )
+      .mockResolvedValueOnce(
+        jsonResponse({
+          epoch: 1,
+          frozenSeq: 0,
+          tailHash: null,
+          count: 0,
+          segments: [],
+        })
+      );
+
+    const result = await getSessionEvents("jwt-1", "org-1", "s-small");
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect((fetchMock.mock.calls[1] as [string, RequestInit])[0]).toBe(
+      `${ORG2_CLOUD_OFFICIAL_SUPABASE_URL}/rest/v1/rpc/cloud_get_session_events`
+    );
+    expect(result).toMatchObject({ epoch: 1, count: 0, segments: [] });
   });
 
   it("maps ORG2_RETENTION_EXPIRED into a coded error", async () => {
@@ -378,7 +462,12 @@ describe("cloud_get_session_events", () => {
 
   it("uses an explicit endpoint without leaking it into the RPC body", async () => {
     fetchMock.mockResolvedValueOnce(
-      jsonResponse({ epoch: null, segments: [] })
+      jsonResponse({
+        epoch: null,
+        nextAfterSeq: 0,
+        hasMore: false,
+        segments: [],
+      })
     );
     await getSessionEvents("jwt-1", "org-1", "s-1", {
       endpoint: {
@@ -389,8 +478,13 @@ describe("cloud_get_session_events", () => {
       },
     });
     expect(lastCall().url).toBe(
-      "https://db.custom.example.com/rest/v1/rpc/cloud_get_session_events"
+      "https://db.custom.example.com/rest/v1/rpc/cloud_get_session_events_page"
     );
-    expect(lastBody()).toEqual({ p_org_id: "org-1", p_session_id: "s-1" });
+    expect(lastBody()).toEqual({
+      p_org_id: "org-1",
+      p_session_id: "s-1",
+      p_after_seq: 0,
+      p_limit: 64,
+    });
   });
 });

@@ -152,6 +152,21 @@ const CloudSessionEventsSchema = z.object({
   segments: z.array(CloudSegmentWireSchema).default([]),
 });
 
+const CloudSessionEventsPageSchema = CloudSessionEventsSchema.extend({
+  nextAfterSeq: z.number().int().nonnegative(),
+  hasMore: z.boolean(),
+});
+
+/**
+ * Keep each PostgREST response comfortably below the 15 s statement timeout.
+ * One frozen segment is capped at 256 KiB before gzip. The server cap of 64
+ * bounds a page to roughly 16 MiB of canonical event JSON while cutting a
+ * gigabyte replay from ~100 network/IPC round trips to ~25.
+ */
+const SESSION_EVENTS_PAGE_SIZE = 64;
+/** Corruption/runaway guard: 65,536 frozen segments at the page size above. */
+const MAX_SESSION_EVENT_PAGES = 4_096;
+
 const CloudCoolingScopeSchema = z.object({
   scopeKey: z.string(),
   /** ISO timestamp (UTC) when the cooling slot is reclaimed. */
@@ -187,6 +202,11 @@ export interface CloudSessionEventsSnapshot {
   count: number | null;
   segments: SegmentWirePayload[];
 }
+
+export type CloudSessionEventsSummary = Omit<
+  CloudSessionEventsSnapshot,
+  "segments"
+>;
 
 export interface CloudOrgSessions {
   serverTime?: string;
@@ -394,16 +414,142 @@ export interface GetSessionEventsOptions {
 
 /**
  * Member: full segments snapshot for one shared session. Raises
- * ORG2_RETENTION_EXPIRED when the session left the plan's window. Segments
- * are returned as WIRE payloads (gzipped base64) — decode with the shared
- * `decodeSegmentEvents` when replay lands in a later cut.
+ * ORG2_RETENTION_EXPIRED when the session left the plan's window. Frozen
+ * segments are fetched through bounded server pages and reassembled in wire
+ * order; the tail is returned only on the final page. This prevents a large
+ * replay from forcing PostgreSQL to aggregate the entire history into one
+ * JSON value (and hitting the managed 15 s statement timeout).
  *
  * With `options.shareToken` this becomes a registered-link read that does not
  * require org membership (opaque ORG2_UNAUTHORIZED on every capability
- * failure). The optional params are only put on the wire when set, so member
- * calls stay byte-identical to the pre-0012 shape.
+ * failure).
+ *
+ * A backend that predates the paged RPC receives one compatibility attempt
+ * through `cloud_get_session_events`. Official cloud is upgraded in lockstep;
+ * the fallback keeps existing small-session self-hosted deployments usable.
  */
 export async function getSessionEvents(
+  accessToken: string,
+  orgId: string,
+  sessionId: string,
+  options?: GetSessionEventsOptions
+): Promise<CloudSessionEventsSnapshot> {
+  const segments: SegmentWirePayload[] = [];
+  const summary = await streamSessionEvents(
+    accessToken,
+    orgId,
+    sessionId,
+    async (page) => {
+      segments.push(...page.segments);
+    },
+    options
+  );
+  return { ...summary, segments };
+}
+
+/**
+ * Bounded-memory variant used by large replay imports. A page is released as
+ * soon as `onPage` resolves; callers must not retain it when they need a
+ * genuinely streaming path.
+ */
+export async function streamSessionEvents(
+  accessToken: string,
+  orgId: string,
+  sessionId: string,
+  onPage: (page: CloudSessionEventsSnapshot) => Promise<void>,
+  options?: GetSessionEventsOptions
+): Promise<CloudSessionEventsSummary> {
+  try {
+    return await streamSessionEventsPaged(
+      accessToken,
+      orgId,
+      sessionId,
+      onPage,
+      options
+    );
+  } catch (error) {
+    if (!(error instanceof Org2CloudSyncError) || error.status !== 404) {
+      throw error;
+    }
+    const snapshot = await getSessionEventsLegacy(
+      accessToken,
+      orgId,
+      sessionId,
+      options
+    );
+    await onPage(snapshot);
+    const { segments: _segments, ...summary } = snapshot;
+    return summary;
+  }
+}
+
+async function streamSessionEventsPaged(
+  accessToken: string,
+  orgId: string,
+  sessionId: string,
+  onPage: (page: CloudSessionEventsSnapshot) => Promise<void>,
+  options?: GetSessionEventsOptions
+): Promise<CloudSessionEventsSummary> {
+  let afterSeq = options?.afterSeq ?? 0;
+  let expectedEpoch: number | null = null;
+  let latest: CloudSessionEventsSummary = {
+    epoch: null,
+    frozenSeq: null,
+    tailHash: null,
+    count: null,
+  };
+
+  for (let pageIndex = 0; pageIndex < MAX_SESSION_EVENT_PAGES; pageIndex += 1) {
+    const payload = await callSyncRpc(
+      "cloud_get_session_events_page",
+      accessToken,
+      {
+        p_org_id: orgId,
+        p_session_id: sessionId,
+        p_after_seq: afterSeq,
+        p_limit: SESSION_EVENTS_PAGE_SIZE,
+        ...(expectedEpoch !== null ? { p_expected_epoch: expectedEpoch } : {}),
+        ...(options?.shareToken !== undefined
+          ? { p_share_token: options.shareToken }
+          : {}),
+      },
+      options?.endpoint,
+      options?.signal
+    );
+    const parsed = CloudSessionEventsPageSchema.parse(payload);
+    if (expectedEpoch === null) {
+      expectedEpoch = parsed.epoch;
+    } else if (parsed.epoch !== expectedEpoch) {
+      throw new Org2CloudSyncError(
+        "ORG2_CONFLICT session events epoch changed during paged read",
+        409
+      );
+    }
+
+    latest = {
+      epoch: parsed.epoch,
+      frozenSeq: parsed.frozenSeq,
+      tailHash: parsed.tailHash,
+      count: parsed.count,
+    };
+    await onPage({ ...latest, segments: parsed.segments });
+    if (!parsed.hasMore) {
+      return latest;
+    }
+    if (parsed.nextAfterSeq <= afterSeq) {
+      throw new Org2CloudSyncError(
+        "cloud_get_session_events_page did not advance its cursor"
+      );
+    }
+    afterSeq = parsed.nextAfterSeq;
+  }
+
+  throw new Org2CloudSyncError(
+    `cloud_get_session_events_page exceeded ${MAX_SESSION_EVENT_PAGES} pages`
+  );
+}
+
+async function getSessionEventsLegacy(
   accessToken: string,
   orgId: string,
   sessionId: string,
