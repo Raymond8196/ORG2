@@ -1,6 +1,12 @@
 import { createStore } from "jotai/vanilla";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
+import {
+  captureLoadedTurnRegistryGeneration,
+  clearLoadedTurnRegistry,
+  getLoadedTurnRegistryStats,
+  markTurnBodyLoaded,
+} from "../../../turns/loadedTurnRegistry";
 import { eventStoreProxy } from "../../store/EventStoreProxy";
 import type { SessionEvent } from "../../types";
 import type {
@@ -49,6 +55,8 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
+  clearLoadedTurnRegistry("session-1");
+  clearLoadedTurnRegistry("session-2");
   vi.mocked(eventStoreProxy.append).mockClear();
   vi.mocked(eventStoreProxy.set).mockClear();
   vi.mocked(eventStoreProxy.mergeEvents).mockClear();
@@ -196,6 +204,26 @@ describe("loadSessionAtom", () => {
     expect(eventStoreProxy.cancelScheduledSnapshotRelease).toHaveBeenCalledWith(
       "session-2"
     );
+  });
+
+  it("clears loaded historical turns on a direct session switch", () => {
+    const store = createStore();
+    const generation = captureLoadedTurnRegistryGeneration("session-1");
+    markTurnBodyLoaded("session-1", "turn-1", generation);
+
+    store.set(loadSessionAtom, {
+      sessionId: "session-1",
+      events: [makeMessageEvent("user-round-1", "session-1")],
+    });
+    store.set(loadSessionAtom, {
+      sessionId: "session-2",
+      events: [makeMessageEvent("user-round-1", "session-2")],
+    });
+
+    expect(getLoadedTurnRegistryStats()).toMatchObject({
+      sessions: 0,
+      loadedTurns: 0,
+    });
   });
 
   it("immediately releases a read-only imported snapshot when switching away", () => {
