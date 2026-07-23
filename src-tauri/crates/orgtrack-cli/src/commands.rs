@@ -10,11 +10,11 @@ use orgtrack_core::usage_dashboard::{
     self, TrendBucket, UsageFilter, UsageRoundQuery, UsageSessionRow, UsageSummary,
 };
 
+use crate::output::chunk_body;
 use crate::output::{
     csv_row, formatter_for, md_cell, parse_sort, preview_of, print_usage_session_row,
     print_usage_summary, render_template, row_matches, session_label, to_json, truncate,
 };
-use crate::output::chunk_body;
 use crate::plugin_exec::{
     apply_chunk_processors, apply_session_processors, load_session_chunks, source_of_session,
 };
@@ -60,14 +60,17 @@ pub(crate) fn cmd_sources(opts: &Options, plugins: &[LoaderPlugin]) -> Result<()
 /// surfaces broken manifests (with the reason) so they are visible, not silent;
 /// `trust` pins an exec plugin's content hash so it may run.
 pub(crate) fn cmd_plugins(opts: &Options, discovered: &plugins::Discovered) -> Result<(), String> {
-    let subcommand = opts.positionals.first().map(String::as_str).unwrap_or("list");
+    let subcommand = opts
+        .positionals
+        .first()
+        .map(String::as_str)
+        .unwrap_or("list");
     match subcommand {
         "list" => cmd_plugins_list(opts, discovered),
         "trust" => {
-            let id = opts
-                .positionals
-                .get(1)
-                .ok_or("`plugins trust` needs a plugin id, e.g. `orgtrack plugins trust my_agent`")?;
+            let id = opts.positionals.get(1).ok_or(
+                "`plugins trust` needs a plugin id, e.g. `orgtrack plugins trust my_agent`",
+            )?;
             let hash = plugins::trust(id, discovered)?;
             println!("Trusted '{id}' (sha256 {}…).", &hash[..hash.len().min(12)]);
             Ok(())
@@ -78,7 +81,10 @@ pub(crate) fn cmd_plugins(opts: &Options, discovered: &plugins::Discovered) -> R
     }
 }
 
-pub(crate) fn cmd_plugins_list(opts: &Options, discovered: &plugins::Discovered) -> Result<(), String> {
+pub(crate) fn cmd_plugins_list(
+    opts: &Options,
+    discovered: &plugins::Discovered,
+) -> Result<(), String> {
     if opts.json {
         println!(
             "{}",
@@ -161,7 +167,11 @@ pub(crate) fn cmd_plugins_list(opts: &Options, discovered: &plugins::Discovered)
         );
     }
     for plugin in &discovered.hooks {
-        let on = if plugin.on.is_empty() { "any".to_string() } else { plugin.on.join(",") };
+        let on = if plugin.on.is_empty() {
+            "any".to_string()
+        } else {
+            plugin.on.join(",")
+        };
         println!(
             "{:<14}  {:<18}  {:<9}  on={:<10}  {}",
             plugin.id,
@@ -330,7 +340,10 @@ pub(crate) fn cmd_search_content(
         Format::Csv => {
             println!("source,name,snippet,session_id");
             for hit in &hits {
-                print!("{}", csv_row(&[&hit.source, &hit.name, &hit.snippet, &hit.session_id]));
+                print!(
+                    "{}",
+                    csv_row(&[&hit.source, &hit.name, &hit.snippet, &hit.session_id])
+                );
             }
         }
         Format::Table => {
@@ -361,12 +374,18 @@ pub(crate) fn list_rows_json(shown: &[&ScannedRow]) -> Vec<serde_json::Value> {
         .map(|item| {
             let mut value = serde_json::to_value(&item.row).unwrap_or(serde_json::Value::Null);
             if let Some(object) = value.as_object_mut() {
-                object.insert("source".into(), serde_json::Value::String(item.source.clone()));
+                object.insert(
+                    "source".into(),
+                    serde_json::Value::String(item.source.clone()),
+                );
                 if let Some(project) =
                     crate::project::identify_cached(item.row.repo_path.as_deref().unwrap_or(""))
                 {
                     object.insert("projectId".into(), serde_json::Value::String(project.id));
-                    object.insert("projectSlug".into(), serde_json::Value::String(project.slug));
+                    object.insert(
+                        "projectSlug".into(),
+                        serde_json::Value::String(project.slug),
+                    );
                 }
             }
             value
@@ -428,8 +447,9 @@ pub(crate) fn render_list_md(shown: &[&ScannedRow]) -> String {
 }
 
 pub(crate) fn render_list_csv(shown: &[&ScannedRow]) -> String {
-    let mut out =
-        String::from("source,updated_at,model,total_tokens,files_changed,name,repo_name,session_id\n");
+    let mut out = String::from(
+        "source,updated_at,model,total_tokens,files_changed,name,repo_name,session_id\n",
+    );
     for item in shown {
         let row = &item.row;
         out.push_str(&csv_row(&[
@@ -472,6 +492,7 @@ pub(crate) fn cmd_usage(
     let sort = parse_sort(opts.sort.as_deref())?;
     let limit = opts.limit.unwrap_or(50);
 
+    let summary = usage_dashboard::usage_summary(&conn, &filter)?;
     let sessions = usage_dashboard::usage_sessions(&conn, &filter, sort, 0, limit)?;
     // Trend series (daily) is computed for JSON consumers; the table view
     // shows the headline + per-session rows.
@@ -483,19 +504,17 @@ pub(crate) fn cmd_usage(
         0,
         limit,
         TrendBucket::Day,
-        true,
+        false,
         true,
         false,
     )?;
-    let summary = overview.summary;
-    let trends = overview.trends;
 
     if let Some(formatter) = formatter_for(opts, formatters) {
         let context = serde_json::json!({
             "command": "usage",
             "summary": summary,
             "sessions": sessions,
-            "trends": trends,
+            "trends": overview.trends,
         });
         return render_template(formatter, &context);
     }
@@ -505,7 +524,7 @@ pub(crate) fn cmd_usage(
             to_json(&serde_json::json!({
                 "summary": summary,
                 "sessions": sessions,
-                "trends": trends,
+                "trends": overview.trends,
             }))?
         ),
         Format::Md => print!("{}", render_usage_md(&summary, &sessions)),
@@ -607,8 +626,13 @@ pub(crate) fn cmd_check(
         all_sources: true,
         ..UsageFilter::default()
     };
-    let mut sessions =
-        usage_dashboard::usage_sessions(&conn, &filter, usage_dashboard::SessionSort::Recent, 0, SCAN_PAGE)?;
+    let mut sessions = usage_dashboard::usage_sessions(
+        &conn,
+        &filter,
+        usage_dashboard::SessionSort::Recent,
+        0,
+        SCAN_PAGE,
+    )?;
     if !opts.sources.is_empty() {
         sessions.retain(|row| opts.sources.iter().any(|source| source == &row.source));
     }
@@ -624,7 +648,11 @@ pub(crate) fn cmd_check(
 /// Invoke each trusted hook whose `on` severities intersect the fired ones,
 /// passing the firings JSON on stdin. An untrusted or failing hook is a stderr
 /// note, never fatal — the report and exit code stand on their own.
-fn run_hooks(firings: &[triggers::Firing], hooks: &[plugins::HookPlugin], timeout: std::time::Duration) {
+fn run_hooks(
+    firings: &[triggers::Firing],
+    hooks: &[plugins::HookPlugin],
+    timeout: std::time::Duration,
+) {
     if firings.is_empty() || hooks.is_empty() {
         return;
     }
@@ -640,8 +668,10 @@ fn run_hooks(firings: &[triggers::Firing], hooks: &[plugins::HookPlugin], timeou
         })).collect::<Vec<_>>(),
     })
     .to_string();
-    let fired: std::collections::HashSet<&str> =
-        firings.iter().map(|firing| firing.severity.label()).collect();
+    let fired: std::collections::HashSet<&str> = firings
+        .iter()
+        .map(|firing| firing.severity.label())
+        .collect();
 
     for hook in hooks {
         if !fired.iter().any(|severity| hook.wants(severity)) {
@@ -679,7 +709,8 @@ fn load_triggers(opts: &Options) -> Result<Vec<triggers::Trigger>, String> {
         }
         return Ok(Vec::new());
     }
-    let text = std::fs::read_to_string(&path).map_err(|err| format!("read {}: {err}", path.display()))?;
+    let text =
+        std::fs::read_to_string(&path).map_err(|err| format!("read {}: {err}", path.display()))?;
     triggers::parse(&text)
 }
 
@@ -794,8 +825,14 @@ fn render_check(
                     truncate(&firing.message, 40),
                 );
             }
-            let errors = firings.iter().filter(|f| f.severity.label() == "error").count();
-            let warns = firings.iter().filter(|f| f.severity.label() == "warn").count();
+            let errors = firings
+                .iter()
+                .filter(|f| f.severity.label() == "error")
+                .count();
+            let warns = firings
+                .iter()
+                .filter(|f| f.severity.label() == "warn")
+                .count();
             println!(
                 "\n{} trigger(s) fired ({errors} error, {warns} warn).",
                 firings.len()
@@ -819,9 +856,10 @@ pub(crate) fn cmd_show(
         scan_all(&target.path, opts, plugins);
     }
     let conn = open_conn(&target.path)?;
-    let chunks = load_session_chunks(&conn, &session_id, plugins, opts.timeout())?.ok_or_else(
-        || format!("'{session_id}' is not a known imported session id (nothing to show)"),
-    )?;
+    let chunks =
+        load_session_chunks(&conn, &session_id, plugins, opts.timeout())?.ok_or_else(|| {
+            format!("'{session_id}' is not a known imported session id (nothing to show)")
+        })?;
     // Chunk-stage processors reshape the conversation before rendering.
     let source = source_of_session(&session_id, plugins);
     let chunks = apply_chunk_processors(&session_id, &source, chunks, processors, opts.timeout());
@@ -863,7 +901,10 @@ pub(crate) fn render_show_md(session_id: &str, chunks: &[ActivityChunk]) -> Stri
     let mut out = format!("# Session {session_id}\n\n");
     for chunk in chunks {
         let role = chunk_role(chunk);
-        out.push_str(&format!("**{role}** · {}\n\n", truncate(&chunk.created_at, 19)));
+        out.push_str(&format!(
+            "**{role}** · {}\n\n",
+            truncate(&chunk.created_at, 19)
+        ));
         let body = chunk_body(&chunk.args).or_else(|| chunk_body(&chunk.result));
         match body {
             Some(text) if chunk.action_type == "tool_call" => {
