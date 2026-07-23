@@ -82,6 +82,7 @@ import {
 } from "@src/features/Org2Cloud/org2CloudSyncAtoms";
 import { useCloudSessionActions } from "@src/features/Org2Cloud/useCloudSessionActions";
 import { createLogger } from "@src/hooks/logger";
+import { useRefreshSpin } from "@src/hooks/ui";
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
 import type { RemoteTeammateSessionMetadata } from "@src/store/collaboration/types";
 import type { Session } from "@src/store/session";
@@ -181,6 +182,12 @@ export function useCloudSessionsSection({
   const store = useStore();
   const { rows, state, documentVisible, refresh } =
     useCloudOrgRemoteSessions(orgId);
+  const { spinClass: refreshSpinClass, handleClick: handleRefreshClick } =
+    useRefreshSpin(
+      refresh,
+      false,
+      orgId ? `cloud-team-sessions:${orgId}` : undefined
+    );
   const { replaySession, forkSession, busySessionRowId } =
     useCloudSessionActions(orgId);
   const presenceMap = useAtomValue(org2CloudPresenceAtom);
@@ -670,9 +677,10 @@ export function useCloudSessionsSection({
     header.rowActions = [
       {
         icon: RefreshCw,
+        iconClassName: refreshSpinClass,
         label: tCommon("actions.refresh"),
         dataTestId: "cloud-team-sessions-refresh",
-        onClick: () => refresh(),
+        onClick: handleRefreshClick,
       },
       {
         icon: ListFilter,
@@ -736,7 +744,8 @@ export function useCloudSessionsSection({
     state,
     filter.kind,
     memberMenu,
-    refresh,
+    refreshSpinClass,
+    handleRefreshClick,
     buildRowItem,
     t,
     tCommon,

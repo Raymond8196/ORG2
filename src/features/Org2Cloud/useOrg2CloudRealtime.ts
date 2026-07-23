@@ -95,6 +95,7 @@ import {
 } from "./org2CloudRealtimeClient";
 import { resolveActiveRealtimeOrgId } from "./org2CloudRealtimeScope";
 import {
+  bumpRemoteSessionsInvalidation,
   org2CloudRemoteSessionsAtom,
   org2CloudRemoteSessionsVersionAtom,
   remoteSessionsEntryForIdentity,
@@ -179,11 +180,10 @@ export function useOrg2CloudRealtime(): void {
     [setCommentsSignal]
   );
   const bumpRemoteSessionsVersion = useCallback(
-    (orgId: string) => {
-      setRemoteSessionsVersion((current) => ({
-        ...current,
-        [orgId]: (current[orgId] ?? 0) + 1,
-      }));
+    (orgId: string, options: { full?: boolean } = {}) => {
+      setRemoteSessionsVersion((current) =>
+        bumpRemoteSessionsInvalidation(current, orgId, options)
+      );
     },
     [setRemoteSessionsVersion]
   );
@@ -298,13 +298,7 @@ export function useOrg2CloudRealtime(): void {
           pushSessions: pending.pushSessions || floorChanged,
         });
       })();
-      setRemoteSessions((current) => {
-        if (!(pending.orgId in current)) return current;
-        const next = { ...current };
-        delete next[pending.orgId];
-        return next;
-      });
-      bumpRemoteSessionsVersion(pending.orgId);
+      bumpRemoteSessionsVersion(pending.orgId, { full: true });
       bumpOrgCommentsSignal(pending.orgId);
     };
     document.addEventListener("visibilitychange", recoverWhenVisible);
@@ -315,7 +309,6 @@ export function useOrg2CloudRealtime(): void {
     bumpOrgCommentsSignal,
     bumpRemoteSessionsVersion,
     refreshEntitlementForOrg,
-    setRemoteSessions,
   ]);
 
   // --- Connection + Slice A (roster). Rebuilds on user / endpoint / active
@@ -434,15 +427,10 @@ export function useOrg2CloudRealtime(): void {
             void refreshEntitlementForOrg(orgId).then((floorChanged) => {
               if (floorChanged) org2CloudSyncEngine.resumeOrg(orgId);
             });
-            // Force a complete session listing after a disconnected window;
-            // subsequent invalidations use its server cursor.
-            setRemoteSessions((current) => {
-              if (!(orgId in current)) return current;
-              const next = { ...current };
-              delete next[orgId];
-              return next;
-            });
-            bumpRemoteSessionsVersion(orgId);
+            // Force a complete listing after a disconnected window while the
+            // last authorized snapshot stays visible. The fetch coordinator
+            // replaces it atomically only if the server truth changed.
+            bumpRemoteSessionsVersion(orgId, { full: true });
             bumpOrgCommentsSignal(orgId);
           }
         },

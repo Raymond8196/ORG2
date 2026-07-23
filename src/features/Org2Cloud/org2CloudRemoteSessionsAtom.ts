@@ -39,6 +39,7 @@ type JotaiStore = ReturnType<typeof createStore>;
 interface RemoteSessionsRequestState {
   inFlightKeys: Set<string>;
   lastFetchedVersionByKey: Map<string, number>;
+  lastFullRefreshVersionByKey: Map<string, number>;
   activeIdentityKey: string | null;
 }
 const requestStateByStore = new WeakMap<
@@ -52,6 +53,7 @@ function requestStateFor(store: JotaiStore): RemoteSessionsRequestState {
     state = {
       inFlightKeys: new Set<string>(),
       lastFetchedVersionByKey: new Map<string, number>(),
+      lastFullRefreshVersionByKey: new Map<string, number>(),
       activeIdentityKey: null,
     };
     requestStateByStore.set(store, state);
@@ -127,6 +129,50 @@ export function mergeRemoteSessionDelta(
   );
 }
 
+function jsonValueEquals(left: unknown, right: unknown): boolean {
+  if (Object.is(left, right)) return true;
+  if (
+    !left ||
+    !right ||
+    typeof left !== "object" ||
+    typeof right !== "object"
+  ) {
+    return false;
+  }
+  if (Array.isArray(left) || Array.isArray(right)) {
+    if (!Array.isArray(left) || !Array.isArray(right)) return false;
+    return (
+      left.length === right.length &&
+      left.every((value, index) => jsonValueEquals(value, right[index]))
+    );
+  }
+  const leftRecord = left as Record<string, unknown>;
+  const rightRecord = right as Record<string, unknown>;
+  const leftKeys = Object.keys(leftRecord);
+  const rightKeys = Object.keys(rightRecord);
+  return (
+    leftKeys.length === rightKeys.length &&
+    leftKeys.every(
+      (key) =>
+        Object.prototype.hasOwnProperty.call(rightRecord, key) &&
+        jsonValueEquals(leftRecord[key], rightRecord[key])
+    )
+  );
+}
+
+/**
+ * Preserve row-array identity when a refresh returns the same server truth.
+ * Consumers derive the entire sidebar tree from this array, so structural
+ * sharing avoids rebuilding and repainting every Team Sessions row for a
+ * no-op reconnect/TTL refresh.
+ */
+export function retainUnchangedRemoteSessionRows(
+  previous: RemoteTeammateSessionMetadata[],
+  next: RemoteTeammateSessionMetadata[]
+): RemoteTeammateSessionMetadata[] {
+  return jsonValueEquals(previous, next) ? previous : next;
+}
+
 function cursorFromServerTime(
   serverTime: string | undefined,
   fallback: string | undefined
@@ -145,6 +191,7 @@ export function beginRemoteSessionsFetch(
     identityKey && entry?.identityKey !== identityKey
       ? EMPTY_ENTRY
       : (entry ?? EMPTY_ENTRY);
+  if (current.fetchedAt !== 0) return current;
   return {
     ...current,
     ...(identityKey ? { identityKey } : {}),
@@ -184,14 +231,41 @@ export const org2CloudRemoteSessionsAtom = atom<
 org2CloudRemoteSessionsAtom.debugLabel = "org2CloudRemoteSessionsAtom";
 
 /**
- * Per-org invalidation counter for the remote-sessions list. Plane-specific
+ * Per-org invalidation signal for the remote-sessions list. Plane-specific
  * Presence nudges provide the live path; the bounded durable signal fallback
- * and reconnect recovery cover missed broadcasts. Fetches after the first
- * snapshot use the server cursor and merge deltas/tombstones.
+ * and reconnect recovery cover missed broadcasts. `fullRefreshVersion`
+ * advances when reconnect recovery needs an authoritative listing without
+ * deleting the last visible snapshot first.
  */
-export const org2CloudRemoteSessionsVersionAtom = atom<Record<string, number>>(
-  {}
-);
+export interface CloudRemoteSessionsInvalidation {
+  version: number;
+  fullRefreshVersion: number;
+}
+
+export function bumpRemoteSessionsInvalidation(
+  current: Record<string, CloudRemoteSessionsInvalidation>,
+  orgId: string,
+  options: { full?: boolean } = {}
+): Record<string, CloudRemoteSessionsInvalidation> {
+  const previous = current[orgId];
+  const next = { ...current };
+  delete next[orgId];
+  next[orgId] = {
+    version: (previous?.version ?? 0) + 1,
+    fullRefreshVersion:
+      (previous?.fullRefreshVersion ?? 0) + (options.full ? 1 : 0),
+  };
+  const orgIds = Object.keys(next);
+  while (orgIds.length > MAX_REMOTE_SESSIONS_VERSION_KEYS) {
+    const oldest = orgIds.shift();
+    if (oldest) delete next[oldest];
+  }
+  return next;
+}
+
+export const org2CloudRemoteSessionsVersionAtom = atom<
+  Record<string, CloudRemoteSessionsInvalidation>
+>({});
 org2CloudRemoteSessionsVersionAtom.debugLabel =
   "org2CloudRemoteSessionsVersionAtom";
 
@@ -218,7 +292,9 @@ export function useCloudOrgRemoteSessions(
   const [entries, setEntries] = useAtom(org2CloudRemoteSessionsAtom);
   const versionByOrg = useAtomValue(org2CloudRemoteSessionsVersionAtom);
   const setVersionByOrg = useSetAtom(org2CloudRemoteSessionsVersionAtom);
-  const invalidationVersion = orgId ? (versionByOrg[orgId] ?? 0) : 0;
+  const invalidationSignal = orgId ? versionByOrg[orgId] : undefined;
+  const invalidationVersion = invalidationSignal?.version ?? 0;
+  const fullRefreshVersion = invalidationSignal?.fullRefreshVersion ?? 0;
   const [visibilityVersion, setVisibilityVersion] = useState(0);
   useEffect(() => {
     if (typeof document === "undefined") return undefined;
@@ -247,6 +323,7 @@ export function useCloudOrgRemoteSessions(
     if (requestState.activeIdentityKey === authIdentityKey) return;
     requestState.activeIdentityKey = authIdentityKey;
     requestState.lastFetchedVersionByKey.clear();
+    requestState.lastFullRefreshVersionByKey.clear();
     // Rows are server-authorized. Drop the previous identity's snapshots
     // immediately instead of retaining invisible data for the app lifetime.
     setEntries({});
@@ -271,13 +348,13 @@ export function useCloudOrgRemoteSessions(
         identityKey
       );
       const since = options.full ? undefined : entryAtStart?.serverCursor;
-      setEntries((previous) =>
-        writeRemoteSessionsEntry(
-          previous,
-          targetOrgId,
-          beginRemoteSessionsFetch(previous[targetOrgId], identityKey)
-        )
-      );
+      setEntries((previous) => {
+        const currentEntry = previous[targetOrgId];
+        const nextEntry = beginRemoteSessionsFetch(currentEntry, identityKey);
+        return currentEntry === nextEntry
+          ? previous
+          : writeRemoteSessionsEntry(previous, targetOrgId, nextEntry);
+      });
       try {
         const fresh = await ensureFreshSession(current);
         if (!fresh) throw new Error("token refresh failed");
@@ -296,11 +373,10 @@ export function useCloudOrgRemoteSessions(
             previous[targetOrgId],
             identityKey
           );
-          // A reconnect/full-refresh invalidation removes the cached entry. If
-          // an older delta request was already in flight, never let its partial
-          // response recreate that entry and turn the required full reload back
-          // into another delta. Writing an idle sentinel wakes the effect after
-          // the request leaves the single-flight set, so the next call is full.
+          // If lifecycle eviction removes this entry while an older delta is
+          // in flight, never let that partial response recreate the cache.
+          // Writing an idle sentinel wakes the effect after the request leaves
+          // the single-flight set, so the next call is an authoritative list.
           if (since && !current) {
             return writeRemoteSessionsEntry(previous, targetOrgId, {
               identityKey,
@@ -309,9 +385,14 @@ export function useCloudOrgRemoteSessions(
               fetchedAt: 0,
             });
           }
-          const rows = since
-            ? mergeRemoteSessionDelta(current?.rows ?? [], result.sessions)
+          const previousRows = current?.rows ?? [];
+          const refreshedRows = since
+            ? mergeRemoteSessionDelta(previousRows, result.sessions)
             : result.sessions.filter((row) => !row.deletedAt);
+          const rows = retainUnchangedRemoteSessionRows(
+            previousRows,
+            refreshedRows
+          );
           return writeRemoteSessionsEntry(previous, targetOrgId, {
             identityKey,
             rows,
@@ -362,7 +443,10 @@ export function useCloudOrgRemoteSessions(
     const requestKey = `${authIdentityKey}|${orgId}`;
     const lastFetchedVersion =
       requestState.lastFetchedVersionByKey.get(requestKey) ?? 0;
+    const lastFullRefreshVersion =
+      requestState.lastFullRefreshVersionByKey.get(requestKey) ?? 0;
     const invalidated = invalidationVersion > lastFetchedVersion;
+    const fullInvalidated = fullRefreshVersion > lastFullRefreshVersion;
     const stale =
       !entry ||
       entry.state === "idle" ||
@@ -375,11 +459,17 @@ export function useCloudOrgRemoteSessions(
       requestKey,
       invalidationVersion
     );
-    void fetchOrgSessions(orgId);
+    rememberRemoteSessionsFetchedVersion(
+      requestState.lastFullRefreshVersionByKey,
+      requestKey,
+      fullRefreshVersion
+    );
+    void fetchOrgSessions(orgId, { full: fullInvalidated });
   }, [
     orgId,
     signedIn,
     invalidationVersion,
+    fullRefreshVersion,
     entrySnapshot,
     authIdentityKey,
     fetchOrgSessions,
