@@ -241,6 +241,18 @@ export function isImportedHistorySession(
   return isCursorIdeSession(sessionId) || isExternalHistorySession(sessionId);
 }
 
+/**
+ * A durable, read-only collaboration replay imported from another member or
+ * share link. It uses the local Rust/SQLite replay adapter, so it must remain
+ * distinct from `isImportedHistorySession` (which routes to provider-specific
+ * Codex/Claude/Cursor source adapters).
+ */
+export function isCollaborationImportedSession(
+  sessionId: string | null | undefined
+): boolean {
+  return Boolean(sessionId?.startsWith(COLLAB_IMPORTED_SESSION_PREFIX));
+}
+
 export function getExternalHistorySourceId(
   sessionId: string | null | undefined
 ): ImportedHistorySourceId | undefined {

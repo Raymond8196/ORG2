@@ -24,7 +24,10 @@ import {
 } from "@src/engines/SessionCore/turns";
 import { TURN_PAGE_PREFETCH_RADIUS } from "@src/engines/SessionCore/turns/turnWindowConfig";
 import { createLogger } from "@src/hooks/logger";
-import { isCodexAppSession } from "@src/util/session/sessionDispatch";
+import {
+  isCodexAppSession,
+  isCollaborationImportedSession,
+} from "@src/util/session/sessionDispatch";
 
 import {
   formatCursorIdeTurnPageTimeLabel,
@@ -142,6 +145,7 @@ export function useTurnPageNavigation({
   setTurnPageListOpen,
 }: UseTurnPageNavigationOptions): UseTurnPageNavigationReturn {
   const { t } = useTranslation();
+  const requiresExplicitTurnLoad = isCollaborationImportedSession(activeId);
 
   // Tracks `${activeId}:${turnId}` keys we've already kicked off a body
   // load for so the prefetch effect doesn't refire on every render.
@@ -167,7 +171,12 @@ export function useTurnPageNavigation({
   }, [activeId]);
 
   useEffect(() => {
-    if (!turnPaginationEnabled || !activeId || sessionLoadStatus !== "loaded") {
+    if (
+      !turnPaginationEnabled ||
+      !activeId ||
+      sessionLoadStatus !== "loaded" ||
+      requiresExplicitTurnLoad
+    ) {
       return;
     }
 
@@ -246,6 +255,7 @@ export function useTurnPageNavigation({
     currentPageIndex,
     groupMeta,
     pages,
+    requiresExplicitTurnLoad,
     sessionLoadStatus,
     turnPaginationEnabled,
   ]);
@@ -319,12 +329,14 @@ export function useTurnPageNavigation({
     [activeId, loadedTurnIds]
   );
 
-  const currentPageHasUnloadedTurn = (() => {
-    const page = pages[currentPageIndex];
-    if (!page) return false;
-    const turnIds = getTurnIdsToLoadForPage(page, groupMeta);
-    return turnIds.some((turnId) => !isTurnLoaded(turnId));
-  })();
+  const currentPageHasUnloadedTurn =
+    !requiresExplicitTurnLoad &&
+    (() => {
+      const page = pages[currentPageIndex];
+      if (!page) return false;
+      const turnIds = getTurnIdsToLoadForPage(page, groupMeta);
+      return turnIds.some((turnId) => !isTurnLoaded(turnId));
+    })();
   const turnPaginationReady =
     sessionLoadStatus === "loaded" &&
     pageCount > 0 &&

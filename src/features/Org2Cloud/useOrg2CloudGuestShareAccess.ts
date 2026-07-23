@@ -14,6 +14,7 @@ import { deleteSession as deleteLocalSession } from "@src/api/tauri/agent";
 import { deleteOrgtrackCollaborationSession } from "@src/api/tauri/lineage";
 import { createLogger } from "@src/hooks/logger";
 import {
+  activeChatPanelTabAtom,
   chatPanelTabsAtom,
   closeChatPanelTabAtom,
 } from "@src/store/chatPanel/chatPanelTabsAtom";
@@ -21,7 +22,6 @@ import { sessionsAtom } from "@src/store/session/sessionAtom/atoms";
 import { removeSession } from "@src/store/session/sessionAtom/mutations";
 import { persistSessions } from "@src/store/session/sessionAtom/persistence";
 import type { Session } from "@src/store/session/sessionAtom/types";
-import { activeSessionIdAtom } from "@src/store/session/viewAtom";
 
 import { classifyCloudShareResolveError } from "./cloudShareImportModel";
 import {
@@ -80,7 +80,9 @@ export function useOrg2CloudGuestShareAccess(): void {
   const auth = useAtomValue(org2CloudAuthAtom);
   const setAuth = useSetAtom(org2CloudAuthAtom);
   const sessions = useAtomValue(sessionsAtom) as Session[];
-  const activeSessionId = useAtomValue(activeSessionIdAtom) ?? "";
+  const activeTab = useAtomValue(activeChatPanelTabAtom);
+  const activeSessionId =
+    activeTab?.type === "session" ? (activeTab.sessionId ?? "") : "";
   const store = useStore();
 
   const capabilities = useMemo(

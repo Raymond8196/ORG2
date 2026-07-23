@@ -44,6 +44,10 @@ import { ensureProjectOrgForCloudOrg } from "./org2CloudProjectOrgAlias";
 import type { CloudOrgCollabState } from "./org2CloudProjectsClient";
 import { Org2CloudProjectsError } from "./org2CloudProjectsClient";
 import {
+  SESSION_PUSH_RETRY_BASE_MS,
+  SESSION_SEGMENT_UPLOAD_BATCH_SIZE,
+} from "./org2CloudSessionSync";
+import {
   org2CloudCollabStateCursorsAtom,
   org2CloudPushCursorsAtom,
   org2CloudPushedMetadataAtom,
@@ -374,6 +378,8 @@ export const engineTestDeps = {
   PASS_INTERVAL_MS,
   PERSONAL_EXCLUDED_TOKEN,
   PROJECT_PUSH_RETRY_DELAY_MS,
+  SESSION_PUSH_RETRY_BASE_MS,
+  SESSION_SEGMENT_UPLOAD_BATCH_SIZE,
   cloudOrgToken,
   org2CloudAccessSettingsAtom,
   org2CloudSharingFloorAtom,

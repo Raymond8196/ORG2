@@ -15,6 +15,7 @@ import {
   isClaudeCodeHistorySession,
   isCliSession,
   isCodexAppSession,
+  isCollaborationImportedSession,
   isExternalHistorySession,
   isHumanSession,
   isOpenCodeHistorySession,
@@ -99,6 +100,12 @@ describe("getDispatchCategory", () => {
 });
 
 describe("external history source detection", () => {
+  it("recognizes collaboration replay ids without routing them as provider history", () => {
+    expect(isCollaborationImportedSession("imported-session-abc")).toBe(true);
+    expect(isCollaborationImportedSession("codexapp-rollout-1")).toBe(false);
+    expect(isExternalHistorySession("imported-session-abc")).toBe(false);
+  });
+
   it("recognizes Codex App imported history sessions", () => {
     expect(isExternalHistorySession("codexapp-rollout-1")).toBe(true);
     expect(isCodexAppSession("codexapp-rollout-1")).toBe(true);
