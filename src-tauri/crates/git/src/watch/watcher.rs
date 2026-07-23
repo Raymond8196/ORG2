@@ -542,6 +542,13 @@ impl RepoWatcher {
 
         // Cancel any pending debounce
         self.debounce_manager.cancel_debounce(repo_id);
+        self.last_git_change.write().remove(repo_id);
+        self.last_poll_attempt.write().remove(repo_id);
+        let mut active_repo_id = self.active_poll_repo_id.write();
+        if active_repo_id.as_deref() == Some(repo_id) {
+            *active_repo_id = None;
+        }
+        drop(active_repo_id);
 
         log::info!("Stopped watching repository: {}", repo_id);
 
@@ -550,7 +557,10 @@ impl RepoWatcher {
 
     /// Stop all watchers
     pub fn unwatch_all(&self) {
-        let repo_ids: Vec<String> = self.watchers.read().keys().cloned().collect();
+        // Include polling-only/degraded repositories that never acquired a
+        // native watcher, otherwise their state and adaptive-poll metadata
+        // survive an "unwatch all" lifecycle.
+        let repo_ids: Vec<String> = self.state_store.get_all_states().into_keys().collect();
         for repo_id in repo_ids {
             let _ = self.unwatch_repo(&repo_id);
         }

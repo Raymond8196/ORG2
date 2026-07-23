@@ -29,7 +29,10 @@ import {
 } from "@src/util/core/windowFocus";
 
 import {
+  type DataSourceConfigMap,
+  type DataSourcePresence,
   FREQUENCY_INTERVAL_MS,
+  type ScanFrequency,
   dataSourceConfigAtom,
   dataSourceGlobalFrequencyAtom,
   dataSourcePresenceAtom,
@@ -38,10 +41,6 @@ import {
   getSourceConfig,
 } from "./dataSourceConfigAtom";
 import { loadExternalHistorySidebarSessions } from "./sessionAtom/loaders";
-
-// Base cadence of the scheduler's own tick. The shortest source cadence is 60s,
-// so a 30s tick keeps drift small without frequent wakeups.
-const TICK_MS = 30_000;
 
 // While the window is unfocused, every source's effective cadence is stretched
 // to at least this floor (mirrors the backend git poller's focus-adaptive
@@ -52,8 +51,47 @@ const UNFOCUSED_SCAN_INTERVAL_MS = 10 * 60_000;
 
 /** Cadence for refreshing the lightweight store-presence snapshot. */
 const SOURCE_PRESENCE_PROBE_INTERVAL_MS = 30 * 60_000;
+const FAILED_SCAN_RETRY_MS = 30_000;
 
 let autoScanInFlight: Promise<void> | null = null;
+
+export function nextDataSourceAutoScanDelay(
+  now: number,
+  focused: boolean,
+  enabled: boolean,
+  cfgMap: DataSourceConfigMap,
+  previousPresence: Record<string, DataSourcePresence>,
+  global: ScanFrequency
+): number | null {
+  if (!enabled) return null;
+  let earliestDeadline: number | null = null;
+  for (const { sourceId } of IMPORTED_HISTORY_SOURCE_DESCRIPTORS) {
+    const cfg = getSourceConfig(cfgMap, sourceId);
+    if (!cfg.enabled) continue;
+    const interval = FREQUENCY_INTERVAL_MS[effectiveFrequency(cfg, global)];
+    if (interval == null) continue;
+
+    const presence = previousPresence[sourceId];
+    const probeDeadline =
+      presence == null
+        ? now
+        : presence.checkedAt + SOURCE_PRESENCE_PROBE_INTERVAL_MS;
+    const effectiveInterval = focused
+      ? interval
+      : Math.max(interval, UNFOCUSED_SCAN_INTERVAL_MS);
+    const scanDeadline =
+      cfg.lastScannedAt == null ? now : cfg.lastScannedAt + effectiveInterval;
+    const deadline =
+      presence?.historyFound === false
+        ? probeDeadline
+        : Math.min(scanDeadline, probeDeadline);
+    earliestDeadline =
+      earliestDeadline == null
+        ? deadline
+        : Math.min(earliestDeadline, deadline);
+  }
+  return earliestDeadline == null ? null : Math.max(0, earliestDeadline - now);
+}
 
 async function performDataSourceAutoScan(force: boolean): Promise<void> {
   const store = getInstrumentedStore();
@@ -187,19 +225,25 @@ interface DataSourceAutoScanVisibilitySource {
 
 interface DataSourceAutoScanScheduler {
   trigger(force?: boolean): void;
+  schedule(): void;
   stop(): void;
 }
 
 /**
- * Own the scheduler's one recursive timeout. Hidden documents clear the timer;
- * becoming visible triggers one immediate catch-up pass and re-arms the chain.
+ * Own the scheduler's one exact-deadline timeout. Hidden documents clear the
+ * timer; becoming visible triggers one immediate due-check and re-arms the
+ * chain. Failed scans retry after a bounded delay without creating a second
+ * timer or overlapping an active scan.
  */
 export function startDataSourceAutoScanScheduler(
   source: DataSourceAutoScanVisibilitySource,
   scan: (force?: boolean) => Promise<void>,
-  intervalMs = TICK_MS
+  nextDelay: () => number | null,
+  failedScanRetryMs = FAILED_SCAN_RETRY_MS
 ): DataSourceAutoScanScheduler {
   let stopped = false;
+  let running = false;
+  let retryNotBefore = 0;
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
   const clearTimer = () => {
@@ -209,20 +253,31 @@ export function startDataSourceAutoScanScheduler(
   };
   const schedule = () => {
     clearTimer();
-    if (stopped || source.visibilityState === "hidden") return;
+    if (stopped || running || source.visibilityState === "hidden") return;
+    const delay = nextDelay();
+    if (delay == null) return;
     timeoutId = setTimeout(() => {
       timeoutId = undefined;
       trigger();
-    }, intervalMs);
+    }, Math.max(1, delay, retryNotBefore - Date.now()));
   };
   const trigger = (force = false) => {
     clearTimer();
-    if (stopped || source.visibilityState === "hidden") return;
+    if (stopped || running || source.visibilityState === "hidden") return;
+    running = true;
     void scan(force)
-      .catch(() => {
-        /* transient; next tick retries */
-      })
-      .finally(schedule);
+      .then(
+        () => {
+          retryNotBefore = 0;
+        },
+        () => {
+          retryNotBefore = Date.now() + failedScanRetryMs;
+        }
+      )
+      .finally(() => {
+        running = false;
+        schedule();
+      });
   };
   const onVisibilityChange = () => {
     clearTimer();
@@ -235,6 +290,7 @@ export function startDataSourceAutoScanScheduler(
   trigger();
   return {
     trigger,
+    schedule,
     stop: () => {
       stopped = true;
       clearTimer();
@@ -245,18 +301,35 @@ export function startDataSourceAutoScanScheduler(
 
 export function useDataSourceAutoScan(): void {
   useEffect(() => {
+    const store = getInstrumentedStore();
     const scheduler = startDataSourceAutoScanScheduler(
       document,
-      runDataSourceAutoScan
+      runDataSourceAutoScan,
+      () =>
+        nextDataSourceAutoScanDelay(
+          Date.now(),
+          isWindowFocused(),
+          store.get(externalSessionsEnabledAtom),
+          store.get(dataSourceConfigAtom),
+          store.get(dataSourcePresenceAtom),
+          store.get(dataSourceGlobalFrequencyAtom)
+        )
     );
     // A visible but unfocused window retains the low-frequency background
     // safety floor. Regaining focus immediately checks foreground cadences.
     const unsubscribeFocus = onWindowFocusRegained(() => {
       scheduler.trigger();
     });
+    const unsubscribers = [
+      store.sub(dataSourceConfigAtom, scheduler.schedule),
+      store.sub(dataSourcePresenceAtom, scheduler.schedule),
+      store.sub(dataSourceGlobalFrequencyAtom, scheduler.schedule),
+      store.sub(externalSessionsEnabledAtom, scheduler.schedule),
+    ];
     return () => {
       unsubscribeFocus();
       scheduler.stop();
+      for (const unsubscribe of unsubscribers) unsubscribe();
     };
   }, []);
 }
