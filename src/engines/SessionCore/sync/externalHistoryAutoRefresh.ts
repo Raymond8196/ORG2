@@ -12,7 +12,7 @@ import {
   getTranscriptSignature,
   rememberTranscriptSignature,
 } from "./externalHistoryTranscriptSignatures";
-import { getAdapterForSession } from "./types";
+import { type SessionAdapter, getAdapterForSession } from "./types";
 
 const logger = createLogger("ExternalHistoryAutoRefresh");
 
@@ -187,6 +187,23 @@ type DispatchSessionLoad = (payload: {
   replace?: boolean;
 }) => void;
 
+interface ObservedSignatureHistoryAdapter extends SessionAdapter {
+  loadHistoryFromObservedSignature(
+    sessionId: string,
+    signal: AbortSignal,
+    observedSignature: string
+  ): Promise<SessionEvent[]>;
+}
+
+function supportsObservedSignatureLoad(
+  adapter: SessionAdapter
+): adapter is ObservedSignatureHistoryAdapter {
+  return (
+    "loadHistoryFromObservedSignature" in adapter &&
+    typeof adapter.loadHistoryFromObservedSignature === "function"
+  );
+}
+
 /**
  * Incremental guard: probe the transcript's (mtime, size) and report whether
  * a full reload is needed. Errs on the side of reloading (stat unsupported
@@ -215,16 +232,34 @@ async function transcriptChanged(
 export async function refreshImportedHistorySession(
   sessionId: string,
   signal: AbortSignal,
-  dispatchLoadSession: DispatchSessionLoad
+  dispatchLoadSession: DispatchSessionLoad,
+  observedSignature?: string | null
 ): Promise<boolean> {
   if (!isImportedHistorySession(sessionId)) return false;
   const adapter = getAdapterForSession(sessionId);
   if (!adapter || adapter.category !== "external_history") return false;
 
-  const { changed, signature } = await transcriptChanged(sessionId, signal);
-  if (!changed || signal.aborted) return false;
+  let signature = observedSignature;
+  if (signature === undefined) {
+    const probe = await transcriptChanged(sessionId, signal);
+    if (!probe.changed || signal.aborted) return false;
+    signature = probe.signature;
+  } else if (signal.aborted) {
+    return false;
+  }
 
-  const events = await adapter.loadHistory(sessionId, signal);
+  let usedObservedSignature = false;
+  let events: SessionEvent[];
+  if (signature !== null && supportsObservedSignatureLoad(adapter)) {
+    usedObservedSignature = true;
+    events = await adapter.loadHistoryFromObservedSignature(
+      sessionId,
+      signal,
+      signature
+    );
+  } else {
+    events = await adapter.loadHistory(sessionId, signal);
+  }
   if (signal.aborted || events.length === 0) return false;
   const source = getImportedHistorySourceBySessionId(sessionId);
   dispatchLoadSession({
@@ -235,7 +270,12 @@ export async function refreshImportedHistorySession(
     // beside today's placeholders as a live external transcript grows.
     replace: source?.supportsWindowedReplay === true,
   });
-  if (signature) rememberTranscriptSignature(sessionId, signature);
+  // The signature-aware adapter owns the post-load stat check. Remembering
+  // the outer signature again here would hide a transcript mutation that
+  // happened while the snapshot was being parsed.
+  if (signature && !usedObservedSignature) {
+    rememberTranscriptSignature(sessionId, signature);
+  }
   return true;
 }
 
@@ -286,7 +326,8 @@ export function useExternalHistoryAutoRefresh(options: {
         await refreshImportedHistorySession(
           sessionId,
           controller.signal,
-          dispatchLoadSession
+          dispatchLoadSession,
+          probe.signature
         );
         settleState.signature = null;
         settleState.firstObservedAt = 0;
