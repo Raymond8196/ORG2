@@ -9,6 +9,7 @@ import {
   __TESTS_ONLY,
   loadExternalHistorySidebarSessions,
   loadMoreCategory,
+  loadSessionRoster,
   loadSidebarSessionById,
   loadSidebarSessions,
 } from "../loaders";
@@ -56,6 +57,10 @@ describe("loadSidebarSessions", () => {
     mocks.externalHistorySidebarList.mockReset();
     mocks.sessionAggregateList.mockReset();
     mocks.persistSessions.mockReset();
+  });
+
+  it("keeps legacy sidebar callers on the canonical roster coordinator", () => {
+    expect(loadSidebarSessions).toBe(loadSessionRoster);
   });
 
   it("loads an independent initial page for every external-history source", async () => {

@@ -7,9 +7,10 @@
  * On app startup it scans only enabled, non-manual importable sources whose
  * persisted cadence is due (including sources that have never been scanned).
  * Sources without a store receive only a cheap presence probe every 30 minutes;
- * when a store appears, its importer runs immediately. Each successful full scan
- * is followed by one unified sidebar cache reload. Sources set to "manual" are
- * never auto-scanned or presence-probed, including at startup.
+ * when a store appears, its importer runs immediately. A successful full scan
+ * reloads the external-history sidebar cache only when source data changed.
+ * Sources set to "manual" are never auto-scanned or presence-probed, including
+ * at startup.
  *
  * Config is read straight from the shared store on each tick, so the interval is
  * armed once and always sees the latest values without re-arming. The timer is
@@ -54,6 +55,35 @@ const SOURCE_PRESENCE_PROBE_INTERVAL_MS = 30 * 60_000;
 const FAILED_SCAN_RETRY_MS = 30_000;
 
 let autoScanInFlight: Promise<void> | null = null;
+
+async function mapSettledWithConcurrency<T, R>(
+  items: readonly T[],
+  concurrency: number,
+  mapper: (item: T) => Promise<R>
+): Promise<PromiseSettledResult<R>[]> {
+  const results = new Array<PromiseSettledResult<R>>(items.length);
+  let nextIndex = 0;
+  const worker = async () => {
+    while (nextIndex < items.length) {
+      const index = nextIndex++;
+      try {
+        results[index] = {
+          status: "fulfilled",
+          value: await mapper(items[index]!),
+        };
+      } catch (reason) {
+        results[index] = { status: "rejected", reason };
+      }
+    }
+  };
+  await Promise.all(
+    Array.from(
+      { length: Math.min(Math.max(1, concurrency), items.length) },
+      worker
+    )
+  );
+  return results;
+}
 
 export function nextDataSourceAutoScanDelay(
   now: number,
@@ -132,11 +162,13 @@ async function performDataSourceAutoScan(force: boolean): Promise<void> {
       now - presence.checkedAt >= SOURCE_PRESENCE_PROBE_INTERVAL_MS;
     return probeDue ? [sourceId] : [];
   });
-  const probeResults = await Promise.allSettled(
-    probeSourceIds.map(async (sourceId) => ({
+  const probeResults = await mapSettledWithConcurrency(
+    probeSourceIds,
+    2,
+    async (sourceId) => ({
       sourceId,
       probe: await externalCliSourceProbe(sourceId),
-    }))
+    })
   );
   const successfulProbes = new Map<string, boolean>();
   for (const result of probeResults) {
@@ -188,8 +220,10 @@ async function performDataSourceAutoScan(force: boolean): Promise<void> {
   }
 
   if (dueSourceIds.length === 0) return;
-  await externalHistoryRescanSources(dueSourceIds);
-  await loadExternalHistorySidebarSessions();
+  const scanResult = await externalHistoryRescanSources(dueSourceIds);
+  if (scanResult.changedSources.length > 0) {
+    await loadExternalHistorySidebarSessions();
+  }
 
   const scannedAt = Date.now();
   store.set(dataSourceConfigAtom, (prev) => {
@@ -256,10 +290,13 @@ export function startDataSourceAutoScanScheduler(
     if (stopped || running || source.visibilityState === "hidden") return;
     const delay = nextDelay();
     if (delay == null) return;
-    timeoutId = setTimeout(() => {
-      timeoutId = undefined;
-      trigger();
-    }, Math.max(1, delay, retryNotBefore - Date.now()));
+    timeoutId = setTimeout(
+      () => {
+        timeoutId = undefined;
+        trigger();
+      },
+      Math.max(1, delay, retryNotBefore - Date.now())
+    );
   };
   const trigger = (force = false) => {
     clearTimer();

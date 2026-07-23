@@ -259,21 +259,22 @@ const EXTERNAL_HISTORY_SOURCE_LOADERS: &[ExternalHistorySourceLoader] = &[
     },
 ];
 
-/// Force a source's on-disk store to be re-read and its metadata cache
-/// re-synced, discarding the returned page. This runs the exact sync the
+/// Discover a source's current records and incrementally re-sync its metadata
+/// cache, discarding the returned page. This runs the exact sync the
 /// sidebar/list path performs (re-parsing every record whose signature changed,
-/// e.g. after a parser-version bump), so the manual "Rescan" action can refresh
-/// counts and names immediately instead of waiting for a lazy list load.
+/// e.g. after a parser-version bump), so a manual update can refresh counts and
+/// names immediately instead of waiting for a lazy list load.
 pub fn resync_external_history_source(
     conn: &mut rusqlite::Connection,
     source: &str,
-) -> Result<(), String> {
+) -> Result<bool, String> {
     let loader = EXTERNAL_HISTORY_SOURCE_LOADERS
         .iter()
         .find(|loader| loader.source == source)
         .ok_or_else(|| format!("Unknown external history source: {source}"))?;
+    let changes_before = conn.total_changes();
     (loader.load_page)(conn, IMPORTED_HISTORY_PAGE_SIZE, 0)?;
-    Ok(())
+    Ok(conn.total_changes() > changes_before)
 }
 
 fn append_external_history_page(

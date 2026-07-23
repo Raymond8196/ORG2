@@ -71,7 +71,11 @@ describe("runDataSourceAutoScan", () => {
         sourceId,
         historyFound: true,
       }));
-    mocks.externalHistoryRescanSources.mockReset().mockResolvedValue(undefined);
+    mocks.externalHistoryRescanSources
+      .mockReset()
+      .mockImplementation(async (sourceIds: string[]) => ({
+        changedSources: sourceIds,
+      }));
     mocks.loadExternalHistorySidebarSessions
       .mockReset()
       .mockResolvedValue(undefined);
@@ -365,6 +369,34 @@ describe("runDataSourceAutoScan", () => {
     expect(mocks.loadExternalHistorySidebarSessions).toHaveBeenCalledOnce();
   });
 
+  it("does not reload sidebar pages when an incremental scan changed nothing", async () => {
+    const config: DataSourceConfigMap = Object.fromEntries(
+      IMPORTED_HISTORY_SOURCE_DESCRIPTORS.map(({ sourceId }) => [
+        sourceId,
+        { enabled: false, frequency: "default" as const, lastScannedAt: null },
+      ])
+    );
+    config.codex_app = {
+      enabled: true,
+      frequency: "120s",
+      lastScannedAt: NOW - 120_000,
+    };
+    mocks.store?.set(dataSourceConfigAtom, config);
+    mocks.externalHistoryRescanSources.mockResolvedValueOnce({
+      changedSources: [],
+    });
+
+    await runDataSourceAutoScan();
+
+    expect(mocks.externalHistoryRescanSources).toHaveBeenCalledWith([
+      "codex_app",
+    ]);
+    expect(mocks.loadExternalHistorySidebarSessions).not.toHaveBeenCalled();
+    expect(mocks.store?.get(dataSourceConfigAtom).codex_app.lastScannedAt).toBe(
+      NOW
+    );
+  });
+
   it("deduplicates overlapping startup passes", async () => {
     const config: DataSourceConfigMap = Object.fromEntries(
       IMPORTED_HISTORY_SOURCE_DESCRIPTORS.map(({ sourceId }) => [
@@ -381,9 +413,9 @@ describe("runDataSourceAutoScan", () => {
 
     let finishScan: (() => void) | undefined;
     mocks.externalHistoryRescanSources.mockImplementation(
-      () =>
-        new Promise<void>((resolve) => {
-          finishScan = resolve;
+      (sourceIds: string[]) =>
+        new Promise<{ changedSources: string[] }>((resolve) => {
+          finishScan = () => resolve({ changedSources: sourceIds });
         })
     );
 
