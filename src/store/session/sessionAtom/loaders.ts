@@ -7,10 +7,11 @@
  *    used by panels that want a single flat list across all categories
  *    (Chat history panel, Simulator panel, useSessionManager).
  *
- *  - `loadSidebarSessions()` / `loadMoreCategory()` — sidebar-specific
- *    paginated loaders. Native categories fetch one top-N page; imported
- *    sources fetch lightweight, independent date-bucket pages from ORGII's
- *    cache so a busy Today bucket cannot hide Yesterday.
+ *  - `loadSessionRoster()` / `loadMoreCategory()` — the shared incremental
+ *    roster consumed by Sidebar and every session Kanban mode. Native
+ *    categories fetch one top-N page; imported sources fetch lightweight,
+ *    independent date-bucket pages from ORGII's cache so a busy Today bucket
+ *    cannot hide Yesterday.
  */
 import {
   type ImportedHistorySource,
@@ -446,10 +447,12 @@ function replaceFirstPageForCategory(
   return mergeSessions(prev, incoming);
 }
 
-export const loadSidebarSessions = async (options?: {
+interface SidebarLoadOptions {
   pageSize?: number;
   forceRefresh?: boolean;
-}) => {
+}
+
+const performSidebarSessionLoad = async (options?: SidebarLoadOptions) => {
   const store = getStore();
   const pageSize = options?.pageSize ?? SESSION_SIDEBAR_PAGE_SIZE;
   const { forceRefresh = false } = options ?? {};
@@ -597,6 +600,83 @@ export const loadExternalHistorySidebarSessions = async (options?: {
   );
 };
 
+function mergeSidebarLoadOptions(
+  current: SidebarLoadOptions | null,
+  requested: SidebarLoadOptions
+): SidebarLoadOptions {
+  return {
+    pageSize: Math.max(
+      current?.pageSize ?? SESSION_SIDEBAR_PAGE_SIZE,
+      requested.pageSize ?? SESSION_SIDEBAR_PAGE_SIZE
+    ),
+    forceRefresh:
+      (current?.forceRefresh ?? false) || (requested.forceRefresh ?? false),
+  };
+}
+
+function sidebarLoadCovers(
+  active: SidebarLoadOptions | null,
+  requested: SidebarLoadOptions
+): boolean {
+  if (!active) return false;
+  const activePageSize = active.pageSize ?? SESSION_SIDEBAR_PAGE_SIZE;
+  const requestedPageSize = requested.pageSize ?? SESSION_SIDEBAR_PAGE_SIZE;
+  return (
+    activePageSize >= requestedPageSize &&
+    ((active.forceRefresh ?? false) || !(requested.forceRefresh ?? false))
+  );
+}
+
+/**
+ * Build a single-flight coordinator around the sidebar read. Kept as a small
+ * injectable unit so queue coverage, escalation, and failure recovery can be
+ * tested without exercising every session provider.
+ */
+function createSidebarLoadCoordinator(
+  load: (options?: SidebarLoadOptions) => Promise<void>
+): (options?: SidebarLoadOptions) => Promise<void> {
+  let inFlight: Promise<void> | null = null;
+  let active: SidebarLoadOptions | null = null;
+  let pending: SidebarLoadOptions | null = null;
+
+  return (options: SidebarLoadOptions = {}): Promise<void> => {
+    if (inFlight && sidebarLoadCovers(active, options)) {
+      return inFlight;
+    }
+    pending = mergeSidebarLoadOptions(pending, options);
+    if (inFlight) return inFlight;
+
+    const run = async () => {
+      while (pending) {
+        const next = pending;
+        pending = null;
+        active = next;
+        await load(next);
+      }
+    };
+    inFlight = run().finally(() => {
+      active = null;
+      inFlight = null;
+    });
+    return inFlight;
+  };
+}
+
+/**
+ * One process-wide session-roster loader. Overlapping mounts/refreshes join the
+ * active read; a stronger request (forced or larger page) is merged into one
+ * follow-up pass instead of starting a parallel category fan-out.
+ */
+export const loadSessionRoster = createSidebarLoadCoordinator(
+  performSidebarSessionLoad
+);
+
+/**
+ * Compatibility alias for callers outside the roster surfaces. New Sidebar
+ * and Kanban code should use `loadSessionRoster` so ownership is unambiguous.
+ */
+export const loadSidebarSessions = loadSessionRoster;
+
 /**
  * Hydrate one canonical session row for sidebar deep-link navigation.
  *
@@ -664,6 +744,7 @@ export const loadMoreCategory = async (
 };
 
 export const __TESTS_ONLY = {
+  createSidebarLoadCoordinator,
   mergeSessions,
   replaceExternalHistorySourceFirstPage,
 };
