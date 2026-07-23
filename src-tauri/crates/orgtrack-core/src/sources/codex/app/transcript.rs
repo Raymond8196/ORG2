@@ -924,6 +924,9 @@ fn load_codex_app_from_path_with_mode<'a>(
                     sequence += 1;
                 }
             }
+            "sub_agent_activity" => {
+                attach_subagent_activity_to_pending_call(&parsed.payload, &mut pending_tool_calls);
+            }
             "function_call_output" | "custom_tool_call_output" => {
                 let call_id = parsed.payload.get("call_id").and_then(Value::as_str);
                 if let Some(call_id) = call_id {
@@ -1044,6 +1047,52 @@ fn load_codex_app_from_path_with_mode<'a>(
     }
 
     Ok(collector.finish())
+}
+
+fn attach_subagent_activity_to_pending_call(
+    payload: &Value,
+    pending_tool_calls: &mut HashMap<String, Vec<ImportedToolCall>>,
+) {
+    if payload.get("kind").and_then(Value::as_str) != Some("started") {
+        return;
+    }
+    let Some(call_id) = payload.get("event_id").and_then(Value::as_str) else {
+        return;
+    };
+    let Some(calls) = pending_tool_calls.get_mut(call_id) else {
+        return;
+    };
+    let Some(call) = calls
+        .iter_mut()
+        .find(|call| call.canonical_name == "subagent")
+    else {
+        return;
+    };
+    let Some(args) = call.args.as_object_mut() else {
+        return;
+    };
+    if let Some(thread_id) = payload
+        .get("agent_thread_id")
+        .and_then(Value::as_str)
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+    {
+        args.insert(
+            "codexAgentThreadId".to_string(),
+            Value::String(thread_id.to_string()),
+        );
+    }
+    if let Some(agent_path) = payload
+        .get("agent_path")
+        .and_then(Value::as_str)
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+    {
+        args.insert(
+            "agent_path".to_string(),
+            Value::String(agent_path.to_string()),
+        );
+    }
 }
 
 fn lifecycle_turn_id<'a>(payload: &'a Value, active_turn_id: Option<&'a str>) -> Option<&'a str> {
