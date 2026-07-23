@@ -7,10 +7,11 @@
  *    used by panels that want a single flat list across all categories
  *    (Chat history panel, Simulator panel, useSessionManager).
  *
- *  - `loadSidebarSessions()` / `loadMoreCategory()` — sidebar-specific
- *    paginated loaders. Native categories fetch one top-N page; imported
- *    sources fetch lightweight, independent date-bucket pages from ORGII's
- *    cache so a busy Today bucket cannot hide Yesterday.
+ *  - `loadSessionRoster()` / `loadMoreCategory()` — the shared incremental
+ *    roster consumed by Sidebar and every session Kanban mode. Native
+ *    categories fetch one top-N page; imported sources fetch lightweight,
+ *    independent date-bucket pages from ORGII's cache so a busy Today bucket
+ *    cannot hide Yesterday.
  */
 import {
   type ImportedHistorySource,
@@ -662,13 +663,19 @@ function createSidebarLoadCoordinator(
 }
 
 /**
- * One process-wide sidebar loader. Overlapping mounts/refreshes join the
+ * One process-wide session-roster loader. Overlapping mounts/refreshes join the
  * active read; a stronger request (forced or larger page) is merged into one
  * follow-up pass instead of starting a parallel category fan-out.
  */
-export const loadSidebarSessions = createSidebarLoadCoordinator(
+export const loadSessionRoster = createSidebarLoadCoordinator(
   performSidebarSessionLoad
 );
+
+/**
+ * Compatibility alias for callers outside the roster surfaces. New Sidebar
+ * and Kanban code should use `loadSessionRoster` so ownership is unambiguous.
+ */
+export const loadSidebarSessions = loadSessionRoster;
 
 /**
  * Hydrate one canonical session row for sidebar deep-link navigation.

@@ -9,6 +9,7 @@ import { rescanSidebarSessions } from "./sidebarSessionRefresh";
 const mocks = vi.hoisted(() => ({
   externalHistoryRescanSources: vi.fn(),
   loadExternalHistorySidebarSessions: vi.fn(),
+  loadSessionRoster: vi.fn(),
   store: undefined as ReturnType<typeof createStore> | undefined,
 }));
 
@@ -19,6 +20,7 @@ vi.mock("@src/api/tauri/externalHistory", async (importOriginal) => ({
 
 vi.mock("@src/store/session", () => ({
   loadExternalHistorySidebarSessions: mocks.loadExternalHistorySidebarSessions,
+  loadSessionRoster: mocks.loadSessionRoster,
 }));
 
 vi.mock("@src/util/core/state/instrumentedStore", () => ({
@@ -39,6 +41,7 @@ describe("rescanSidebarSessions", () => {
     mocks.loadExternalHistorySidebarSessions
       .mockReset()
       .mockResolvedValue(undefined);
+    mocks.loadSessionRoster.mockReset().mockResolvedValue(undefined);
   });
 
   it("rescans every enabled external source before reloading the sidebar", async () => {
@@ -55,6 +58,7 @@ describe("rescanSidebarSessions", () => {
       expectedSources
     );
     expect(mocks.loadExternalHistorySidebarSessions).toHaveBeenCalledOnce();
+    expect(mocks.loadSessionRoster).not.toHaveBeenCalled();
     expect(
       mocks.externalHistoryRescanSources.mock.invocationCallOrder[0]
     ).toBeLessThan(
@@ -77,5 +81,6 @@ describe("rescanSidebarSessions", () => {
 
     expect(mocks.externalHistoryRescanSources).toHaveBeenCalledOnce();
     expect(mocks.loadExternalHistorySidebarSessions).not.toHaveBeenCalled();
+    expect(mocks.loadSessionRoster).not.toHaveBeenCalled();
   });
 });
