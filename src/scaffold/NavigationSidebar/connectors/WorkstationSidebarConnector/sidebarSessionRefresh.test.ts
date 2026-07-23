@@ -8,7 +8,6 @@ import { rescanSidebarSessions } from "./sidebarSessionRefresh";
 
 const mocks = vi.hoisted(() => ({
   externalHistoryRescanSources: vi.fn(),
-  loadExternalHistorySidebarSessions: vi.fn(),
   loadSessionRoster: vi.fn(),
   store: undefined as ReturnType<typeof createStore> | undefined,
 }));
@@ -19,7 +18,6 @@ vi.mock("@src/api/tauri/externalHistory", async (importOriginal) => ({
 }));
 
 vi.mock("@src/store/session", () => ({
-  loadExternalHistorySidebarSessions: mocks.loadExternalHistorySidebarSessions,
   loadSessionRoster: mocks.loadSessionRoster,
 }));
 
@@ -33,14 +31,7 @@ vi.mock("@src/util/core/state/instrumentedStore", () => ({
 describe("rescanSidebarSessions", () => {
   beforeEach(() => {
     mocks.store = createStore();
-    mocks.externalHistoryRescanSources
-      .mockReset()
-      .mockImplementation(async (sourceIds: string[]) => ({
-        changedSources: sourceIds,
-      }));
-    mocks.loadExternalHistorySidebarSessions
-      .mockReset()
-      .mockResolvedValue(undefined);
+    mocks.externalHistoryRescanSources.mockReset().mockResolvedValue(undefined);
     mocks.loadSessionRoster.mockReset().mockResolvedValue(undefined);
   });
 
@@ -57,30 +48,17 @@ describe("rescanSidebarSessions", () => {
     expect(mocks.externalHistoryRescanSources).toHaveBeenCalledWith(
       expectedSources
     );
-    expect(mocks.loadExternalHistorySidebarSessions).toHaveBeenCalledOnce();
-    expect(mocks.loadSessionRoster).not.toHaveBeenCalled();
+    expect(mocks.loadSessionRoster).toHaveBeenCalledWith({
+      forceRefresh: true,
+    });
     expect(
       mocks.externalHistoryRescanSources.mock.invocationCallOrder[0]
-    ).toBeLessThan(
-      mocks.loadExternalHistorySidebarSessions.mock.invocationCallOrder[0]
-    );
+    ).toBeLessThan(mocks.loadSessionRoster.mock.invocationCallOrder[0]);
     expect(
       mocks.store?.get(dataSourceConfigAtom).warp.lastScannedAt
     ).toBeNull();
     expect(
       mocks.store?.get(dataSourceConfigAtom).codex_app.lastScannedAt
     ).toEqual(expect.any(Number));
-  });
-
-  it("skips the sidebar reload when the incremental rescan changed nothing", async () => {
-    mocks.externalHistoryRescanSources.mockResolvedValueOnce({
-      changedSources: [],
-    });
-
-    await rescanSidebarSessions();
-
-    expect(mocks.externalHistoryRescanSources).toHaveBeenCalledOnce();
-    expect(mocks.loadExternalHistorySidebarSessions).not.toHaveBeenCalled();
-    expect(mocks.loadSessionRoster).not.toHaveBeenCalled();
   });
 });

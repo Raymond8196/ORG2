@@ -8,7 +8,7 @@
  * persisted cadence is due (including sources that have never been scanned).
  * Sources without a store receive only a cheap presence probe every 30 minutes;
  * when a store appears, its importer runs immediately. A successful full scan
- * reloads the external-history sidebar cache only when source data changed.
+ * refreshes the canonical session roster only when source data changed.
  * Sources set to "manual" are never auto-scanned or presence-probed, including
  * at startup.
  *
@@ -41,7 +41,7 @@ import {
   externalSessionsEnabledAtom,
   getSourceConfig,
 } from "./dataSourceConfigAtom";
-import { loadExternalHistorySidebarSessions } from "./sessionAtom/loaders";
+import { loadSessionRoster } from "./sessionAtom/loaders";
 
 // While the window is unfocused, every source's effective cadence is stretched
 // to at least this floor (mirrors the backend git poller's focus-adaptive
@@ -222,7 +222,7 @@ async function performDataSourceAutoScan(force: boolean): Promise<void> {
   if (dueSourceIds.length === 0) return;
   const scanResult = await externalHistoryRescanSources(dueSourceIds);
   if (scanResult.changedSources.length > 0) {
-    await loadExternalHistorySidebarSessions();
+    await loadSessionRoster({ forceRefresh: true });
   }
 
   const scannedAt = Date.now();

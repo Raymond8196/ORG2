@@ -56,7 +56,7 @@ import {
   SectionContainer,
   SectionRow,
 } from "@src/modules/shared/layouts/SectionLayout";
-import { loadExternalHistorySidebarSessions } from "@src/store/session";
+import { loadSessionRoster } from "@src/store/session";
 import {
   ACTIVE_EXTERNAL_SESSION_REFRESH_FREQUENCIES,
   type ActiveExternalSessionRefreshFrequency,
@@ -280,7 +280,7 @@ const RuntimeScanningPanel: React.FC = () => {
           });
           if (!panelMountedRef.current) return;
           if (scanResult.changedSources.length > 0) {
-            await loadExternalHistorySidebarSessions();
+            await loadSessionRoster({ forceRefresh: true });
             if (!panelMountedRef.current) return;
           }
           await loadStats(sourceId);
@@ -317,7 +317,7 @@ const RuntimeScanningPanel: React.FC = () => {
       const scanResult = await externalHistoryRescanSources(importables);
       if (!panelMountedRef.current) return;
       if (scanResult.changedSources.length > 0) {
-        await loadExternalHistorySidebarSessions();
+        await loadSessionRoster({ forceRefresh: true });
         if (!panelMountedRef.current) return;
       }
       const probes = await externalCliSourcesDetect();
@@ -368,7 +368,7 @@ const RuntimeScanningPanel: React.FC = () => {
       updateConfig(sourceId, { enabled });
       // Config write is synchronous in the shared store, so the reload below
       // already respects the new enabled state.
-      await loadExternalHistorySidebarSessions();
+      await loadSessionRoster({ forceRefresh: true });
       if (enabled) {
         if (row.importable && isImportableId(sourceId)) {
           await loadStats(sourceId);
