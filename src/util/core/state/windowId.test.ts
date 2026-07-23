@@ -3,13 +3,13 @@
  *
  * Reproduces the "WKWebView privacy state throws SecurityError on sessionStorage
  * access, aborting first render" failure class. getWindowId() runs at
- * module-eval time via windowIdAtom (and repo/atoms getWindowScopedKey), inside
- * the App's synchronous import graph. An unguarded throw there would strand the
- * user on the splash. These tests pin the in-memory fallback.
+ * module-eval time through persisted repo/workspace atom keys inside the App's
+ * synchronous import graph. An unguarded throw there would strand the user on
+ * the splash. These tests pin the in-memory fallback.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { getWindowId } from "./windowScopedState";
+import { getWindowId } from "./windowId";
 
 beforeEach(() => {
   sessionStorage.clear();
