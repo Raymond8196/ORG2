@@ -139,6 +139,9 @@
       "helveticaNeue": "Helvetica Neue 스타일"
     },
     "uiScale": "UI 크기",
+    "preferences": "환경설정",
+    "usePointerCursors": "포인터 커서 사용",
+    "usePointerCursorsDesc": "대화형 요소 위에 마우스를 올리면 커서를 포인터로 변경합니다",
     "timezoneAuto": "자동 (브라우저)",
     "timezoneSearchPlaceholder": "가까운 도시 검색",
     "sendOnEnter": "Enter로 메시지 보내기",
