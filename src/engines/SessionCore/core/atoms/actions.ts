@@ -403,6 +403,7 @@ export const loadSessionAtom = atom(
         set(pendingSyntheticEventAtom, null);
       }
       resetSessionUIState(set, currentSessionId);
+      clearLoadedTurnRegistry(currentSessionId);
       // Direct A→B switches come through here without clearSessionAtom —
       // apply the same imported-immediate/live-deferred release policy.
       releaseDepartingSessionSnapshot(currentSessionId);

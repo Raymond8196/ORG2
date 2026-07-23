@@ -6,6 +6,7 @@ import {
 import { codexAppTurnLoader } from "./codexAppTurnLoader";
 import { cursorIdeTurnLoader } from "./cursorIdeTurnLoader";
 import {
+  captureLoadedTurnRegistryGeneration,
   getPendingTurnLoad,
   markTurnBodyLoaded,
   trackPendingTurnLoad,
@@ -33,8 +34,9 @@ export async function loadSessionTurnBodyIntoStore(
   }
 
   const loader = getSessionTurnLoader(args.sessionId);
+  const generation = captureLoadedTurnRegistryGeneration(args.sessionId);
   const load = loader.loadTurnBodyIntoStore(args).then(() => {
-    markTurnBodyLoaded(args.sessionId, args.turnId);
+    markTurnBodyLoaded(args.sessionId, args.turnId, generation);
   });
   await trackPendingTurnLoad(args.sessionId, args.turnId, load);
 }
