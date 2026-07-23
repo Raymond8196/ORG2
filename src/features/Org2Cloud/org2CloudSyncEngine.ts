@@ -33,9 +33,12 @@
  * engine, backed by the cloud RPC adapter (`org2CloudProjectsClient`). The
  * pulled state comes from `cloud_list_org_collab_state` behind a persisted
  * per-org cursor (`org2CloudCollabStateCursorsAtom`, serverTime − 2s
- * overlap), bypassed once per engine start for a COMPLETE listing — a row
- * that leaves the visible set without a tombstone can only be proven absent
- * against the full state. Work items are org-wide: no repo-scope selection.
+ * overlap), bypassed for a COMPLETE listing only for the ACTIVE org on
+ * start/reconnect/roster recovery — a row that leaves the visible set
+ * without a tombstone can only be proven absent against the full state, and
+ * background orgs get that authoritative listing when next activated (the
+ * SUBSCRIBED edge forces it). Work items are org-wide: no repo-scope
+ * selection.
  *
  * Scheduling is event-driven: start/roster changes, local EventStore writes,
  * the durable project outbox event, Realtime invalidations, reconnect,
@@ -576,7 +579,18 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
     const forceAllInbound = this.forceAllInboundNextPass;
     this.forceAllInboundNextPass = false;
     if (forceAllInbound) {
-      for (const org of orgs) requestedFullInboundOrgIds.add(org.orgId);
+      // Complete listings are reserved for the org the user is looking at;
+      // background orgs recover through their delta cursors here (the pulled
+      // state includes LWW tombstones) and get their own authoritative full
+      // listing from the SUBSCRIBED edge when they are next activated. This
+      // keeps start/online/roster recovery from issuing O(orgs) full listings.
+      for (const org of orgs) {
+        if (this.isActiveOrg(org.orgId)) {
+          requestedFullInboundOrgIds.add(org.orgId);
+        } else {
+          requestedInboundOrgIds.add(org.orgId);
+        }
+      }
     }
     for (const orgId of requestedFullInboundOrgIds) {
       requestedInboundOrgIds.add(orgId);
