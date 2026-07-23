@@ -191,8 +191,14 @@ async function initializeApp() {
   // - Background: loads from IndexedDB + decodes (disk + GPU)
   //
   // Wrap in timeout to prevent hanging forever if any init hangs
+  // i18n is NOT degradable: App calls useTranslation() at render, which crashes
+  // (this.store undefined → "undefined is not an object evaluating
+  // 'this.store.hasLanguageSomeTranslations'") if i18n.init() hasn't completed.
+  // Keep it out of the bounded race below and await it unconditionally before
+  // mount. i18nReady already started at module load and runs in parallel with
+  // the other ops; this await only blocks when cold start is slow enough that
+  // locale bundles are still loading.
   const initPromise = Promise.all([
-    i18nReady,
     initTheme(),
     initializeTauriAPIs(),
     initBackgroundImage(),
@@ -210,6 +216,21 @@ async function initializeApp() {
   } catch (error) {
     // Log but continue - we want to mount React even if some init failed
     log.warn("[Init] Initialization issue:", error);
+  }
+
+  // i18n must be fully initialized before React mounts — a half-initialized
+  // i18next instance crashes the first useTranslation() call. A rejection here
+  // means language resources couldn't load at all; surface it rather than
+  // mounting a guaranteed-to-crash React tree.
+  try {
+    await i18nReady;
+  } catch (error) {
+    log.critical("[Init] i18n initialization failed:", error);
+    showEmergencyError(
+      "Initialization Failed",
+      "The application could not initialize its language resources. Please try restarting."
+    );
+    return;
   }
 
   const App = (await appModulePromise).default;
