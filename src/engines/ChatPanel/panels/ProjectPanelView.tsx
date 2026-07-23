@@ -21,6 +21,7 @@ import IntegrationIcon from "@src/components/IntegrationIcon";
 import TabPill from "@src/components/TabPill";
 import type { TabPillItem } from "@src/components/TabPill";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
+import { ChatLoadingBlock } from "@src/engines/ChatPanel/blocks/primitives";
 import { usePublishChatPanelHeader } from "@src/engines/ChatPanel/header";
 import KanbanBoard from "@src/features/KanbanBoard";
 import type { KanbanTask, TaskStatus } from "@src/features/KanbanBoard";
@@ -532,11 +533,9 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
   }, []);
 
   const overviewContent = projectBodyLoading ? (
-    <Placeholder
-      variant="loading"
-      title={t("common:actions.loading")}
-      fillParentHeight
-    />
+    <div className="p-2">
+      <ChatLoadingBlock />
+    </div>
   ) : projectBodyError ? (
     <Placeholder variant="error" title={projectBodyError} fillParentHeight />
   ) : (
@@ -559,11 +558,9 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
   );
 
   const workItemsContent = workItemsLoading ? (
-    <Placeholder
-      variant="loading"
-      title={t("common:actions.loading")}
-      fillParentHeight
-    />
+    <div className="p-2">
+      <ChatLoadingBlock />
+    </div>
   ) : workItemsError ? (
     <Placeholder
       variant="error"
