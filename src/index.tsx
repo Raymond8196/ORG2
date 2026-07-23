@@ -159,7 +159,18 @@ async function initializeApp() {
     // A focus event retries synchronization after React mounts.
     log.warn("[Init] Shared auth storage unavailable:", error);
   }
-  const appModulePromise = import("@src/App");
+  // In dev, bundle App into main.js (webpackMode: "eager") instead of emitting
+  // it as a separate runtime chunk. App is the aggregate entry and pulls in
+  // most of the app; with eval-cheap-module-source-map that chunk balloons to
+  // ~77MB and WebKitGTK fails the dynamic import → "Initialization Failed".
+  // eager keeps the Promise-returning import() semantics (so the await below
+  // still defers App module-tree evaluation until after the runtime-identity
+  // config above has run) without emitting a loadable chunk. Production keeps
+  // the normal dynamic import — prod minifies and has no eval source maps, so
+  // the App chunk is small there.
+  const appModulePromise = isDev
+    ? import(/* webpackMode: "eager" */ "@src/App")
+    : import("@src/App");
 
   // Clear stale opened repos from previous app session (main window only)
   // Secondary windows should not clear, as they'd wipe main window's registration
