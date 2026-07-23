@@ -346,6 +346,16 @@ describe("cloud_list_org_sessions", () => {
       since: "2026-07-01T00:00:00.000Z",
     });
   });
+
+  it("passes request cancellation through to the transport", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ sessions: [] }));
+    const controller = new AbortController();
+    await listOrgSessions("jwt-1", "org-1", undefined, controller.signal);
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ signal: expect.any(AbortSignal) })
+    );
+  });
 });
 
 describe("cloud_get_session_events", () => {

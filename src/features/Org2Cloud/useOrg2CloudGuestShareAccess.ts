@@ -4,8 +4,9 @@
  * A guest import is deliberately durable so it survives session-list reloads,
  * but the durable replay must not outlive the share token that authorized it.
  * Guests cannot subscribe to the source org's private Realtime channels, so
- * the active replay is revalidated on a short cadence and all guest imports
- * are checked on focus / a low-frequency fallback cadence.
+ * capabilities are revalidated on concrete lifecycle events: import registry
+ * changes, opening a guest replay, and focus/visibility recovery. There is no
+ * periodic permission polling.
  */
 import { useAtomValue, useSetAtom, useStore } from "jotai";
 import { useCallback, useEffect, useMemo, useRef } from "react";
@@ -37,9 +38,6 @@ import {
 import { resolveCloudSessionShare } from "./org2CloudSharesClient";
 
 const log = createLogger("Org2CloudGuestShareAccess");
-
-const ACTIVE_REVALIDATE_MS = 5_000;
-const ALL_REVALIDATE_MS = 60_000;
 
 interface GuestShareCapability {
   sessionId: string;
@@ -221,56 +219,38 @@ export function useOrg2CloudGuestShareAccess(): void {
   useEffect(() => {
     if (!authIdentityKey || capabilities.length === 0) return undefined;
     const abortController = new AbortController();
-    let timer: number | null = null;
-    let lastAllValidationAt = 0;
-    const clearTimer = () => {
-      if (timer !== null) window.clearTimeout(timer);
-      timer = null;
-    };
     const isVisible = () => document.visibilityState !== "hidden";
     const runAll = () => {
       if (!isVisible()) return;
-      void validate("all", abortController.signal).then((started) => {
-        if (started && !abortController.signal.aborted) {
-          lastAllValidationAt = Date.now();
-        }
-      });
-    };
-    const schedule = () => {
-      clearTimer();
-      if (!isVisible()) return;
-      timer = window.setTimeout(() => {
-        timer = null;
-        if (Date.now() - lastAllValidationAt >= ALL_REVALIDATE_MS) runAll();
-        else void validate("active", abortController.signal);
-        schedule();
-      }, ACTIVE_REVALIDATE_MS);
+      void validate("all", abortController.signal);
     };
     const onVisibilityChange = () => {
-      if (!isVisible()) {
-        clearTimer();
-        return;
-      }
-      runAll();
-      schedule();
-    };
-    const onFocus = () => {
-      runAll();
-      schedule();
+      if (isVisible()) runAll();
     };
 
-    if (isVisible()) {
-      runAll();
-      schedule();
-    }
-    window.addEventListener("focus", onFocus);
+    runAll();
+    window.addEventListener("focus", runAll);
     document.addEventListener("visibilitychange", onVisibilityChange);
 
     return () => {
       abortController.abort();
-      clearTimer();
-      window.removeEventListener("focus", onFocus);
+      window.removeEventListener("focus", runAll);
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
   }, [authIdentityKey, capabilityKey, capabilities.length, validate]);
+
+  useEffect(() => {
+    if (!authIdentityKey || !activeSessionId || capabilities.length === 0) {
+      return undefined;
+    }
+    const abortController = new AbortController();
+    void validate("active", abortController.signal);
+    return () => abortController.abort();
+  }, [
+    activeSessionId,
+    authIdentityKey,
+    capabilityKey,
+    capabilities.length,
+    validate,
+  ]);
 }

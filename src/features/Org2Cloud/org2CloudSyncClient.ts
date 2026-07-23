@@ -34,7 +34,10 @@ import {
   ORG2_CLOUD_POSTGREST_SCHEMA,
   getCloudEndpoint,
 } from "./config";
-import { fetchWithTransportRetry } from "./org2CloudFetchRetry";
+import {
+  fetchWithTransportRetry,
+  runCloudRequestWithTimeout,
+} from "./org2CloudFetchRetry";
 
 // ---------------------------------------------------------------------------
 // Error model
@@ -105,32 +108,40 @@ async function callSyncRpc(
   accessToken: string,
   body: Record<string, unknown>,
   endpoint: CloudEndpoint = getCloudEndpoint(),
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  timeoutMs?: number
 ): Promise<unknown> {
-  const response = await fetchWithTransportRetry(
-    rpcUrl(functionName, endpoint),
-    {
-      method: "POST",
-      headers: rpcHeaders(accessToken, endpoint),
-      body: JSON.stringify(body),
-      signal,
+  const execute = async (requestSignal?: AbortSignal): Promise<unknown> => {
+    const response = await fetchWithTransportRetry(
+      rpcUrl(functionName, endpoint),
+      {
+        method: "POST",
+        headers: rpcHeaders(accessToken, endpoint),
+        body: JSON.stringify(body),
+        signal: requestSignal,
+      }
+    );
+    const text = await response.text();
+    let payload: unknown = null;
+    try {
+      payload = text ? JSON.parse(text) : null;
+    } catch {
+      payload = null;
     }
-  );
-  const text = await response.text();
-  let payload: unknown = null;
-  try {
-    payload = text ? JSON.parse(text) : null;
-  } catch {
-    payload = null;
+    if (!response.ok) {
+      const message =
+        payload && typeof payload === "object" && "message" in payload
+          ? String((payload as { message: unknown }).message)
+          : `org2_cloud rpc ${functionName} failed with ${response.status}`;
+      throw new Org2CloudSyncError(message, response.status);
+    }
+    return payload;
+  };
+  if (signal?.aborted) {
+    throw new DOMException("The operation was aborted.", "AbortError");
   }
-  if (!response.ok) {
-    const message =
-      payload && typeof payload === "object" && "message" in payload
-        ? String((payload as { message: unknown }).message)
-        : `org2_cloud rpc ${functionName} failed with ${response.status}`;
-    throw new Org2CloudSyncError(message, response.status);
-  }
-  return payload;
+  if (timeoutMs === undefined) return execute(signal);
+  return runCloudRequestWithTimeout(execute, timeoutMs, signal);
 }
 
 // ---------------------------------------------------------------------------
@@ -367,12 +378,20 @@ export async function appendSessionEvents(
 export async function listOrgSessions(
   accessToken: string,
   orgId: string,
-  since?: string
+  since?: string,
+  signal?: AbortSignal
 ): Promise<CloudOrgSessions> {
-  const payload = await callSyncRpc("cloud_list_org_sessions", accessToken, {
-    p_org_id: orgId,
-    since: since ?? null,
-  });
+  const payload = await callSyncRpc(
+    "cloud_list_org_sessions",
+    accessToken,
+    {
+      p_org_id: orgId,
+      since: since ?? null,
+    },
+    getCloudEndpoint(),
+    signal,
+    15_000
+  );
   const parsed = CloudOrgSessionsSchema.parse(payload);
   // Access-ladder normalization: the cloud column is `events_epoch integer
   // DEFAULT 0 NOT NULL`, so the wire never omits the segment summary — but
