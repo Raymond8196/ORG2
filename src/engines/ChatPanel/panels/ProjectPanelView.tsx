@@ -575,13 +575,7 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
       }}
     />
   ) : (
-    <div
-      className={
-        activePanelTab === "kanban"
-          ? "h-full min-h-0 flex-1 overflow-hidden"
-          : "overflow-visible"
-      }
-    >
+    <div className="h-full min-h-0 flex-1 overflow-hidden">
       {activePanelTab === "kanban" ? (
         <div className="h-full min-h-0">
           <KanbanBoard
@@ -623,7 +617,6 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
           readonly
           disableProjectEdit
           compactRows
-          scrollMode="page"
           workItemPrefix={selectedProject.project.workItemPrefix}
         />
       )}
@@ -668,7 +661,13 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
           </div>
         ) : null}
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide">
+      <div
+        className={
+          activePanelTab === "overview"
+            ? "min-h-0 flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide"
+            : "min-h-0 flex-1 overflow-hidden"
+        }
+      >
         {activePanelTab === "overview" ? overviewContent : workItemsContent}
       </div>
     </section>
