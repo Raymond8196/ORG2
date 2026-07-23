@@ -459,6 +459,10 @@ describe("importRemoteSession", () => {
         model: "gpt-5.6-sol",
       },
     });
+    expect(record).toMatchObject({
+      agentDisplayName: "Codex App",
+      agentIconId: "codex",
+    });
   });
 
   it("stamps Session.orgId on a MEMBER import so the sidebar org filter matches", async () => {
@@ -509,7 +513,44 @@ describe("importRemoteSession", () => {
       agentDefinitionId: "codex-app",
       model: "gpt-5.6-sol",
     });
+    expect(record).toMatchObject({
+      agentDisplayName: "Codex App",
+      agentIconId: "codex",
+    });
     expect(record?.model).toBeUndefined();
+  });
+
+  it("keeps a named ORGII agent identity when opening creates the local replay", async () => {
+    const client = {
+      getSessionEventSegments: vi.fn(async () => sealSnapshot(makeSnapshot())),
+    } satisfies Pick<CollabSyncBackendClient, "getSessionEventSegments">;
+
+    const result = await importRemoteSession({
+      client,
+      orgId: "org-1",
+      remoteSession: makeRemote({
+        agentDisplayName: "Agent Architect",
+        agentDefinitionId: "builtin:agent-architect",
+        model: "gpt-5.6-sol",
+        origin: { kind: "orgii" },
+      }),
+    });
+    const record = (store.get(sessionsAtom) as Session[]).find(
+      (session) => session.session_id === result!.localSessionId
+    );
+
+    expect(record).toMatchObject({
+      agentDisplayName: "ORG2",
+      agentIconId: "orgii",
+      model: undefined,
+      importedFrom: {
+        sourceDisplay: {
+          agentDisplayName: "Agent Architect",
+          agentDefinitionId: "builtin:agent-architect",
+          model: "gpt-5.6-sol",
+        },
+      },
+    });
   });
 
   it("leaves Session.orgId unset on a GUEST share-token import (stays under Personal)", async () => {

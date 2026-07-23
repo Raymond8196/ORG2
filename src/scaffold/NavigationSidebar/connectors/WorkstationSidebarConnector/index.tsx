@@ -385,6 +385,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
   const {
     cloudMenuItems,
     cloudFlatListExcludedSessionIds,
+    cloudLocalSessionIds,
     selectedCloudMenuItemId,
     handleCloudSessionItemClick,
     resetCloudTeamPagination,
@@ -397,6 +398,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     sessions,
     filter: cloudSessionFilter,
     activeSessionId,
+    localSessionHydrationLimit: cloudMySessionsVisibleCount,
     revealedMenuItemId:
       activeSessionSidebarRevealRequest?.cloudOrgId === activeCloudOrgId
         ? activeSessionSidebarRevealRequest.sidebarItemId
@@ -404,9 +406,8 @@ export const WorkstationSidebarConnector: React.FC = () => {
     onFilterChange: handleCloudSessionFilterChange,
   });
 
-  // Threaded position wins: mine-rows shown inside a fork thread leave the
-  // flat local list, and imported teammate caches never count as "mine"
-  // (sessionMap keeps every excluded row available for click routing).
+  // Read-only teammate replay caches stay behind their Team Conversation row.
+  // Writable current-device originals remain in the My Conversations list.
   const sessionListExcludedIds = useMemo(() => {
     if (!personalHiddenCloudTaggedIds) return cloudFlatListExcludedSessionIds;
     if (cloudFlatListExcludedSessionIds.size === 0) {
@@ -417,6 +418,12 @@ export const WorkstationSidebarConnector: React.FC = () => {
       ...personalHiddenCloudTaggedIds,
     ]);
   }, [cloudFlatListExcludedSessionIds, personalHiddenCloudTaggedIds]);
+  const cloudScopedExtraSessionIds = useMemo(() => {
+    if (!activeCloudOrgId || cloudLocalSessionIds.size === 0) {
+      return cloudTaggedSessionIds;
+    }
+    return new Set([...(cloudTaggedSessionIds ?? []), ...cloudLocalSessionIds]);
+  }, [activeCloudOrgId, cloudLocalSessionIds, cloudTaggedSessionIds]);
 
   const {
     menuItems,
@@ -432,7 +439,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     untitledSession,
     searchQuery: sidebarSearchQueries.workstation,
     selectedOrgIds: sessionFilterOrgIds,
-    extraSessionIds: cloudTaggedSessionIds,
+    extraSessionIds: cloudScopedExtraSessionIds,
     excludedSessionIds: sessionListExcludedIds,
     includeExternal,
     groupVisibleCounts,
