@@ -4,13 +4,12 @@
  * App-wide scheduler that keeps external-history sources fresh. Mounted once in
  * AppBootstrap so it runs regardless of whether the Data Sources panel is open.
  *
- * On app startup it immediately scans each enabled, non-manual importable source
- * with an on-disk history store once, regardless of the persisted last-scan
- * timestamp. Sources without a store receive only a cheap presence probe every
- * 30 minutes; when a store appears, its importer runs immediately. Subsequent
- * full scans use the effective per-source/global cadence. Each successful full
- * scan is followed by one unified sidebar cache reload. Sources set to "manual"
- * are never auto-scanned or presence-probed, including at startup.
+ * On app startup it scans only enabled, non-manual importable sources whose
+ * persisted cadence is due (including sources that have never been scanned).
+ * Sources without a store receive only a cheap presence probe every 30 minutes;
+ * when a store appears, its importer runs immediately. Each successful full scan
+ * is followed by one unified sidebar cache reload. Sources set to "manual" are
+ * never auto-scanned or presence-probed, including at startup.
  *
  * Config is read straight from the shared store on each tick, so the interval is
  * armed once and always sees the latest values without re-arming. The timer is
@@ -24,7 +23,10 @@ import {
   externalHistoryRescanSources,
 } from "@src/api/tauri/externalHistory";
 import { getInstrumentedStore } from "@src/util/core/state/instrumentedStore";
-import { isWindowFocused } from "@src/util/core/windowFocus";
+import {
+  isWindowFocused,
+  onWindowFocusRegained,
+} from "@src/util/core/windowFocus";
 
 import {
   FREQUENCY_INTERVAL_MS,
@@ -164,7 +166,7 @@ async function performDataSourceAutoScan(force: boolean): Promise<void> {
   });
 }
 
-/** Run one deduplicated auto-scan pass. `force` is reserved for app startup. */
+/** Run one deduplicated auto-scan pass. `force` is reserved for explicit refreshes. */
 export async function runDataSourceAutoScan(force = false): Promise<void> {
   if (autoScanInFlight) return autoScanInFlight;
 
@@ -198,7 +200,6 @@ export function startDataSourceAutoScanScheduler(
   intervalMs = TICK_MS
 ): DataSourceAutoScanScheduler {
   let stopped = false;
-  let startupPending = true;
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
   const clearTimer = () => {
@@ -217,9 +218,7 @@ export function startDataSourceAutoScanScheduler(
   const trigger = (force = false) => {
     clearTimer();
     if (stopped || source.visibilityState === "hidden") return;
-    const shouldForce = startupPending || force;
-    startupPending = false;
-    void scan(shouldForce)
+    void scan(force)
       .catch(() => {
         /* transient; next tick retries */
       })
@@ -231,7 +230,9 @@ export function startDataSourceAutoScanScheduler(
   };
 
   source.addEventListener("visibilitychange", onVisibilityChange);
-  trigger(true);
+  // Respect persisted per-source cadences on relaunch. Explicit refreshes can
+  // still request a forced pass through trigger(true).
+  trigger();
   return {
     trigger,
     stop: () => {
@@ -250,10 +251,11 @@ export function useDataSourceAutoScan(): void {
     );
     // A visible but unfocused window retains the low-frequency background
     // safety floor. Regaining focus immediately checks foreground cadences.
-    const onFocus = () => scheduler.trigger();
-    window.addEventListener("focus", onFocus);
+    const unsubscribeFocus = onWindowFocusRegained(() => {
+      scheduler.trigger();
+    });
     return () => {
-      window.removeEventListener("focus", onFocus);
+      unsubscribeFocus();
       scheduler.stop();
     };
   }, []);
