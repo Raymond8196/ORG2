@@ -167,7 +167,7 @@ export function ChatPanelEmptyContent({
                   chatPanelFooter
                   renderAgentComposer={
                     SessionCreatorSlot
-                      ? (headerContent) => (
+                      ? (headerContent, pinnedActionsContent) => (
                           <SessionCreatorSlot
                             className={
                               showInlineAiModePanel
@@ -177,10 +177,12 @@ export function ChatPanelEmptyContent({
                             variant={creatorVariant}
                             centerFullScreenContent
                             composerHeaderContent={headerContent}
+                            pinnedActionsContent={pinnedActionsContent}
                             innerClassName={
                               showInlineAiModePanel ? "pb-2 pt-1" : undefined
                             }
                             hidePresenceButton
+                            hideWorkItemAttachmentControl
                             includeHumanSession={false}
                             launchMode={
                               SESSION_CREATOR_LAUNCH_MODE.START_BACKGROUND

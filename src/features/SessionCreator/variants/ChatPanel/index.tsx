@@ -108,11 +108,13 @@ const SessionCreatorChatPanelContent: React.FC<
   centerFullScreenContent = false,
   className = "",
   composerHeaderContent,
+  pinnedActionsContent,
   innerClassName,
   footerSlot,
   leadingActionSlot,
   headerLayout = "hero",
   hideRepoLine = false,
+  hideWorkItemAttachmentControl = false,
   includeHumanSession = true,
   initialContent,
   dropdownDirection = "down",
@@ -686,8 +688,8 @@ const SessionCreatorChatPanelContent: React.FC<
       compactHeaderIcon={compactHeaderIcon}
       composerHeaderContent={
         isHumanMode ? (
-          <div className="px-1" data-testid="create-human-session-header">
-            <div className="flex h-10 items-center py-0">
+          <div data-testid="create-human-session-header">
+            <div className="flex h-10 items-center px-1 py-0">
               <Input
                 type="text"
                 value={humanTitle}
@@ -698,10 +700,13 @@ const SessionCreatorChatPanelContent: React.FC<
                 disabled={humanCreating}
                 fieldVariant="ghost"
                 size="small"
-                className="flex-1"
+                className="flex-1 focus-within:!bg-transparent hover:!bg-transparent"
                 inputClassName={GHOST_INPUT_PLACEHOLDER_CLASS}
                 data-testid="create-human-session-title-input"
               />
+            </div>
+            <div className="px-2" aria-hidden>
+              <div className="border-t border-border-2" />
             </div>
           </div>
         ) : (
@@ -772,6 +777,7 @@ const SessionCreatorChatPanelContent: React.FC<
       heroIcon={heroIcon}
       hidePresenceButton={hidePresenceButton}
       hideRepoLine={hideRepoLine}
+      hideWorkItemAttachmentControl={hideWorkItemAttachmentControl}
       innerClassName={innerClassName}
       isCategorySelectorOpen={isCategorySelectorOpen}
       isCliTuiMode={isCliTuiMode}
@@ -786,6 +792,7 @@ const SessionCreatorChatPanelContent: React.FC<
       onLaunch={handleLaunch}
       onShareScreen={() => handleShareScreenClick().catch(log.error)}
       onToggleOrgMembers={handleToggleOrgMembers}
+      pinnedActionsContent={isHumanMode ? undefined : pinnedActionsContent}
       orgMembersPanelProps={
         selectedOrg
           ? {
