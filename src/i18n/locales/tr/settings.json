@@ -139,6 +139,9 @@
       "helveticaNeue": "Helvetica Neue tarzı"
     },
     "uiScale": "Arayüz ölçeği",
+    "preferences": "Tercihler",
+    "usePointerCursors": "İşaretçi imleçleri kullan",
+    "usePointerCursorsDesc": "Etkileşimli öğelerin üzerine gelindiğinde imleci işaretçiye dönüştürür",
     "timezoneAuto": "Otomatik (Tarayıcı)",
     "timezoneSearchPlaceholder": "En yakın şehirleri ara",
     "sendOnEnter": "Mesajları Enter ile gönder",

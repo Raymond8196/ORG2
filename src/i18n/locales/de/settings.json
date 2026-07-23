@@ -139,6 +139,9 @@
       "helveticaNeue": "Helvetica-Neue-Stil"
     },
     "uiScale": "UI-Skalierung",
+    "preferences": "Präferenzen",
+    "usePointerCursors": "Zeiger-Cursor verwenden",
+    "usePointerCursorsDesc": "Den Cursor beim Bewegen über interaktive Elemente in einen Zeiger ändern",
     "timezoneAuto": "Automatisch (Browser)",
     "timezoneSearchPlaceholder": "Nächste Städte suchen",
     "sendOnEnter": "Nachrichten mit Enter senden",

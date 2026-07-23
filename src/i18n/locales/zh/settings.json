@@ -139,6 +139,9 @@
       "helveticaNeue": "Helvetica Neue 风格"
     },
     "uiScale": "界面缩放",
+    "preferences": "偏好设置",
+    "usePointerCursors": "使用指针光标",
+    "usePointerCursorsDesc": "悬停在交互元素上时将光标更改为指针",
     "timezoneAuto": "自动（浏览器）",
     "timezoneSearchPlaceholder": "搜索附近城市",
     "sendOnEnter": "Enter 发送消息",

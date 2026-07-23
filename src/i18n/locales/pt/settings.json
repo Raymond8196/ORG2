@@ -139,6 +139,9 @@
       "helveticaNeue": "Estilo Helvetica Neue"
     },
     "uiScale": "Escala da interface",
+    "preferences": "Preferências",
+    "usePointerCursors": "Usar cursores de ponteiro",
+    "usePointerCursorsDesc": "Altera o cursor para um ponteiro ao passar sobre elementos interativos",
     "timezoneAuto": "Automático (Navegador)",
     "timezoneSearchPlaceholder": "Pesquisar cidades próximas",
     "sendOnEnter": "Enviar mensagens com Enter",
