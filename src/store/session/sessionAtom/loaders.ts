@@ -485,28 +485,9 @@ const performSidebarSessionLoad = async (options?: SidebarLoadOptions) => {
     return;
   }
 
-  await loadSidebarSessionCategories(SESSION_LIST_CATEGORIES, pageSize, true);
-  store.set(sessionLastLoadedAtom, now);
-};
-
-async function loadSidebarSessionCategories(
-  categories: readonly SessionListCategory[],
-  pageSize: number,
-  isFullSidebarLoad: boolean
-): Promise<void> {
-  const store = getStore();
   store.set(sessionLoadingAtom, true);
   store.set(sessionErrorAtom, null);
-
-  const resetPagination = resetPaginationState();
-  store.set(sessionPaginationAtom, (previous) => {
-    if (isFullSidebarLoad) return resetPagination;
-    const next = { ...previous };
-    for (const category of categories) {
-      next[category] = resetPagination[category];
-    }
-    return next;
-  });
+  store.set(sessionPaginationAtom, resetPaginationState());
 
   // Sources the user has disabled in the Data Sources panel must not load;
   // the master external-sessions switch disables all of them at once.
@@ -519,11 +500,11 @@ async function loadSidebarSessionCategories(
     return source ? isSourceDisabled(dataSourceConfig, source.sourceId) : false;
   };
 
-  for (const category of categories) {
+  for (const category of SESSION_LIST_CATEGORIES) {
     setPaginationFor(category, { loading: true });
   }
 
-  const enabledCategories = categories.filter((category) => {
+  const enabledCategories = SESSION_LIST_CATEGORIES.filter((category) => {
     if (!isCategoryDisabled(category)) return true;
     store.set(sessionsAtom, (prev) =>
       replaceFirstPageForCategory(category, prev, [], false)
@@ -596,25 +577,8 @@ async function loadSidebarSessionCategories(
 
   const merged = store.get(sessionsAtom);
   persistSessions(merged);
+  store.set(sessionLastLoadedAtom, now);
   store.set(sessionLoadingAtom, false);
-}
-
-/**
- * Refresh only imported-history sidebar pages after an external-source scan.
- * Native CLI / agent / human categories are unaffected by that scan, so a full
- * sidebar reload would issue three unrelated aggregate queries every cadence.
- */
-export const loadExternalHistorySidebarSessions = async (options?: {
-  pageSize?: number;
-}) => {
-  const categories = SESSION_LIST_CATEGORIES.filter(
-    isImportedHistoryListCategory
-  );
-  await loadSidebarSessionCategories(
-    categories,
-    options?.pageSize ?? SESSION_SIDEBAR_PAGE_SIZE,
-    false
-  );
 };
 
 function mergeSidebarLoadOptions(
