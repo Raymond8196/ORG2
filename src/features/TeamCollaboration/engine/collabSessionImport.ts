@@ -18,6 +18,7 @@ import type {
   SessionImportedFrom,
 } from "@src/store/session/sessionAtom/types";
 import { getInstrumentedStore } from "@src/util/core/state/instrumentedStore";
+import { resolveSessionDisplayMetadata } from "@src/util/session/sessionDisplayMetadata";
 
 import { namespaceCopyEventId } from "../copyEventId";
 import {
@@ -83,6 +84,19 @@ function resolveImportedSourceDisplay(
   };
 }
 
+function resolveImportedSourcePresentation(
+  localSessionId: string,
+  importedFrom: SessionImportedFrom
+) {
+  return resolveSessionDisplayMetadata({
+    kind: "local",
+    session: {
+      session_id: localSessionId,
+      importedFrom,
+    },
+  });
+}
+
 function refreshImportedSessionPresentation(
   existing: Session,
   remoteSession: ImportRemoteSessionOptions["remoteSession"]
@@ -98,9 +112,23 @@ function refreshImportedSessionPresentation(
   const ownerAvatarUrl =
     remoteSession.ownerAvatarUrl ?? importedFrom.ownerAvatarUrl;
   const repoPath = remoteSession.repoPath ?? existing.repoPath;
+  const refreshedImportedFrom: SessionImportedFrom = {
+    ...importedFrom,
+    ownerMemberId: remoteSession.ownerMemberId,
+    ownerDisplayName: remoteSession.ownerDisplayName,
+    ownerAvatarUrl,
+    externalHistorySource,
+    sourceDisplay,
+  };
+  const sourcePresentation = resolveImportedSourcePresentation(
+    existing.session_id,
+    refreshedImportedFrom
+  );
   const unchanged =
     existing.name === remoteSession.title &&
     existing.repoPath === repoPath &&
+    existing.agentDisplayName === sourcePresentation.agentLabel &&
+    existing.agentIconId === sourcePresentation.agentIconId &&
     importedFrom.ownerMemberId === remoteSession.ownerMemberId &&
     importedFrom.ownerDisplayName === remoteSession.ownerDisplayName &&
     importedFrom.ownerAvatarUrl === ownerAvatarUrl &&
@@ -117,14 +145,9 @@ function refreshImportedSessionPresentation(
     ...existing,
     name: remoteSession.title,
     repoPath,
-    importedFrom: {
-      ...importedFrom,
-      ownerMemberId: remoteSession.ownerMemberId,
-      ownerDisplayName: remoteSession.ownerDisplayName,
-      ownerAvatarUrl,
-      externalHistorySource,
-      sourceDisplay,
-    },
+    agentDisplayName: sourcePresentation.agentLabel,
+    agentIconId: sourcePresentation.agentIconId,
+    importedFrom: refreshedImportedFrom,
   };
   upsertSession(refreshed);
   recordGuestImportedSession(refreshed);
@@ -324,6 +347,10 @@ async function importRemoteSessionInner(
     shareEndpointUrl:
       shareEndpointUrl ?? existing?.importedFrom?.shareEndpointUrl,
   };
+  const sourcePresentation = resolveImportedSourcePresentation(
+    localSessionId,
+    importedFrom
+  );
   const priorPersisted = existing
     ? await eventStoreProxy.getPersistedEvents(localSessionId)
     : [];
@@ -342,8 +369,12 @@ async function importRemoteSessionInner(
     // composer ask which of the viewer's OWN local models/keys the fork should
     // actually use.
     model: undefined,
-    agentIconId: "archive",
-    agentDisplayName: "Collaboration Snapshot",
+    // Opening a cloud row replaces it with this local replay in Kanban,
+    // sidebar, search, and workstation consumers. Keep the same source-agent
+    // presentation on the replacement row so that transition never renames
+    // the agent to an import-mechanism placeholder.
+    agentIconId: sourcePresentation.agentIconId,
+    agentDisplayName: sourcePresentation.agentLabel,
     pinned: existing?.pinned ?? false,
     // Ownership stamp (`Session.orgId`, distinct from `importedFrom.orgId`
     // provenance — see sessionAtom/types.ts): filing the import under the

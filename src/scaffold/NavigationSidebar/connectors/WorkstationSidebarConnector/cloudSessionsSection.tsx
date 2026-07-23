@@ -7,12 +7,10 @@
  * Threads come from the pure `buildCloudSessionThreads` helper; replay/fork
  * ride the same canonical `useCloudSessionActions` used by Kanban List.
  *
- * Row identity:
- * - rows that are MINE (bare id matches a local session) use the LOCAL
- *   session id — clicks route through the normal sessionMap path, and the
- *   duplicate is hidden from the flat local list (threaded position wins);
- * - teammate rows get `cloudremote-<orgId>|<rowId>` ids, resolved in
- *   useWorkstationSidebarHandlers BEFORE the sessionMap fallback.
+ * Team Conversations is remote-only: exact local-device rows are filtered
+ * before grouping and stay under My Sessions. Same-account rows without a
+ * matching local session id are retained because they came from another
+ * device. Every rendered row gets a `cloudremote-<orgId>|<rowId>` id.
  *
  * Parent-row choice: a thread root sets `navigableParent`, so a body/label
  * click OPENS the source session (replay/open) while the dedicated chevron
@@ -60,6 +58,8 @@ import {
   type CloudSessionThreadRow,
   buildCloudSessionThreads,
   collectCloudFlatListExcludedSessionIds,
+  collectCurrentDeviceCloudSessionIds,
+  collectCurrentDeviceSessionsToHydrate,
   isCloudThreadRowDisabled,
 } from "@src/features/Org2Cloud/cloudSessionThreads";
 import {
@@ -67,7 +67,6 @@ import {
   org2CloudAuthAtom,
   org2CloudAuthIdentityKey,
 } from "@src/features/Org2Cloud/org2CloudAuthAtom";
-import { cloudSessionIdFromRowId } from "@src/features/Org2Cloud/org2CloudBackendAdapter";
 import { type CloudOrgMember } from "@src/features/Org2Cloud/org2CloudClient";
 import { loadCloudOrgMembers } from "@src/features/Org2Cloud/org2CloudMembersCoordinator";
 import { org2CloudRosterVersionAtom } from "@src/features/Org2Cloud/org2CloudOrgsAtom";
@@ -77,11 +76,16 @@ import {
   viewersForSession,
 } from "@src/features/Org2Cloud/org2CloudPresenceAtom";
 import { useCloudOrgRemoteSessions } from "@src/features/Org2Cloud/org2CloudRemoteSessionsAtom";
+import {
+  org2CloudPushCursorsAtom,
+  org2CloudPushedMetadataAtom,
+} from "@src/features/Org2Cloud/org2CloudSyncAtoms";
 import { useCloudSessionActions } from "@src/features/Org2Cloud/useCloudSessionActions";
+import { createLogger } from "@src/hooks/logger";
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
 import type { RemoteTeammateSessionMetadata } from "@src/store/collaboration/types";
 import type { Session } from "@src/store/session";
-import { removeSession } from "@src/store/session";
+import { loadSidebarSessionsByIds, removeSession } from "@src/store/session";
 import { copyText } from "@src/util/data/clipboard";
 import { resolveSessionDisplayMetadata } from "@src/util/session/sessionDisplayMetadata";
 import { formatRelativeTime } from "@src/util/time/formatRelativeTime";
@@ -103,6 +107,8 @@ interface UseCloudSessionsSectionParams {
   filter: CloudSessionFilter;
   /** Currently active local session, used to map replay imports to cloud rows. */
   activeSessionId: string;
+  /** Demand bound for exact local hydration in the My Conversations section. */
+  localSessionHydrationLimit: number;
   /** One exact Team Session row temporarily revealed by cross-surface nav. */
   revealedMenuItemId?: string;
   onFilterChange: (filter: CloudSessionFilter) => void;
@@ -113,6 +119,8 @@ interface UseCloudSessionsSectionResult {
   cloudMenuItems: NavigationMenuItem[];
   /** Local session ids to hide from the flat "My Sessions" list. */
   cloudFlatListExcludedSessionIds: ReadonlySet<string>;
+  /** Local-origin cloud row ids that belong in the active My section. */
+  cloudLocalSessionIds: ReadonlySet<string>;
   /** Cloud row key corresponding to the active local replay/import session. */
   selectedCloudMenuItemId: string | null;
   /** Click resolver for Team rows and the Team section's pagination row. */
@@ -139,6 +147,7 @@ interface MemberFilterMenuState {
 
 const HIDDEN_REMOTE_SESSIONS_STORAGE_KEY =
   "orgii:org2-cloud-v1:hidden-remote-sessions";
+const logger = createLogger("CloudSessionsSection");
 
 function readHiddenRemoteSessionIds(): Set<string> {
   if (typeof localStorage === "undefined") return new Set();
@@ -163,16 +172,20 @@ export function useCloudSessionsSection({
   sessions,
   filter,
   activeSessionId,
+  localSessionHydrationLimit,
   revealedMenuItemId,
   onFilterChange,
 }: UseCloudSessionsSectionParams): UseCloudSessionsSectionResult {
   const { t } = useTranslation("navigation");
   const { t: tCommon } = useTranslation("common");
   const store = useStore();
-  const { rows, state, refresh } = useCloudOrgRemoteSessions(orgId);
+  const { rows, state, documentVisible, refresh } =
+    useCloudOrgRemoteSessions(orgId);
   const { replaySession, forkSession, busySessionRowId } =
     useCloudSessionActions(orgId);
   const presenceMap = useAtomValue(org2CloudPresenceAtom);
+  const pushedMetadata = useAtomValue(org2CloudPushedMetadataAtom);
+  const pushCursors = useAtomValue(org2CloudPushCursorsAtom);
   const [auth, setAuth] = useAtom(org2CloudAuthAtom);
   const selfUserId = auth?.userId ?? null;
   const authIdentityKey = auth ? org2CloudAuthIdentityKey(auth) : null;
@@ -231,9 +244,71 @@ export function useCloudSessionsSection({
   );
 
   const localOwnSessionIds = useMemo(
+    () =>
+      orgId
+        ? collectCurrentDeviceCloudSessionIds(
+            orgId,
+            sessions,
+            pushedMetadata,
+            pushCursors
+          )
+        : new Set<string>(),
+    [orgId, pushCursors, pushedMetadata, sessions]
+  );
+  const loadedSessionIds = useMemo(
     () => new Set(sessions.map((session) => session.session_id)),
     [sessions]
   );
+  const cloudLocalSessionIds = useMemo(() => {
+    const ids = new Set<string>();
+    if (!selfUserId) return ids;
+    for (const row of rows) {
+      if (
+        !row.deletedAt &&
+        row.ownerUserId === selfUserId &&
+        localOwnSessionIds.has(row.sourceSessionId)
+      ) {
+        ids.add(row.sourceSessionId);
+      }
+    }
+    return ids;
+  }, [localOwnSessionIds, rows, selfUserId]);
+  const localSessionIdsToHydrate = useMemo(
+    () =>
+      collectCurrentDeviceSessionsToHydrate(
+        rows,
+        selfUserId,
+        localOwnSessionIds,
+        loadedSessionIds,
+        localSessionHydrationLimit
+      ),
+    [
+      loadedSessionIds,
+      localOwnSessionIds,
+      localSessionHydrationLimit,
+      rows,
+      selfUserId,
+    ]
+  );
+  const localHydrationRequestKeyRef = React.useRef<string | null>(null);
+  useEffect(() => {
+    if (!documentVisible) return;
+    if (localSessionIdsToHydrate.length === 0) {
+      localHydrationRequestKeyRef.current = null;
+      return;
+    }
+    const requestKey = JSON.stringify(localSessionIdsToHydrate);
+    if (localHydrationRequestKeyRef.current === requestKey) return;
+    localHydrationRequestKeyRef.current = requestKey;
+    void loadSidebarSessionsByIds(localSessionIdsToHydrate).catch(
+      (error: unknown) => {
+        if (localHydrationRequestKeyRef.current === requestKey) {
+          localHydrationRequestKeyRef.current = null;
+        }
+        logger.warn("failed to hydrate local cloud sessions:", error);
+      }
+    );
+  }, [documentVisible, localSessionIdsToHydrate]);
 
   const unhiddenRows = useMemo(
     () =>
@@ -286,9 +361,10 @@ export function useCloudSessionsSection({
     if (!revealedMenuItemId) return -1;
     return threads.findIndex((thread) =>
       [thread.root, ...thread.descendants].some((threadRow) => {
-        const itemId = threadRow.isMine
-          ? threadRow.bareSessionId
-          : buildCloudRemoteItemId(threadRow.row.orgId, threadRow.row.id);
+        const itemId = buildCloudRemoteItemId(
+          threadRow.row.orgId,
+          threadRow.row.id
+        );
         return itemId === revealedMenuItemId;
       })
     );
@@ -307,21 +383,13 @@ export function useCloudSessionsSection({
     );
   }, []);
 
-  // Local sessions that must stay out of the flat "My Sessions" list.
-  //
-  // Two kinds of exclusions:
-  // 1. MINE rows (bare id = a local session) — the thread row IS the entry.
-  // 2. IMPORTED TEAMMATE COPIES (`importedFrom`): a replay click materializes
-  //    the transcript as a local cache row. It is never the viewer's own
-  //    session, even when its Team row is outside the current filter/page.
+  // Imported teammate replays materialize a local read-only cache row. Hide
+  // only those caches from My Sessions; writable local sessions never move
+  // into Team Conversations.
   const cloudFlatListExcludedSessionIds = useMemo(() => {
     if (!orgId) return new Set<string>();
-    return collectCloudFlatListExcludedSessionIds(
-      visibleThreads,
-      sessions,
-      orgId
-    );
-  }, [orgId, sessions, visibleThreads]);
+    return collectCloudFlatListExcludedSessionIds(sessions, orgId);
+  }, [orgId, sessions]);
 
   const selectedCloudMenuItemId = useMemo(() => {
     if (!orgId || !activeSessionId) return null;
@@ -335,8 +403,7 @@ export function useCloudSessionsSection({
       .map((threadRow) => threadRow.row)
       .find(
         (row) =>
-          !row.deletedAt &&
-          cloudSessionIdFromRowId(row.id) === imported.sourceSessionId
+          !row.deletedAt && row.sourceSessionId === imported.sourceSessionId
       );
     return sourceRow ? buildCloudRemoteItemId(orgId, sourceRow.id) : null;
   }, [activeSessionId, orgId, sessions, visibleThreads]);
@@ -389,11 +456,10 @@ export function useCloudSessionsSection({
 
   const hideRemoteSession = useCallback(
     (row: RemoteTeammateSessionMetadata) => {
-      const sourceSessionId = cloudSessionIdFromRowId(row.id);
       const importedCopies = sessions.filter(
         (session) =>
           session.importedFrom?.orgId === row.orgId &&
-          session.importedFrom.sourceSessionId === sourceSessionId
+          session.importedFrom.sourceSessionId === row.sourceSessionId
       );
       void Promise.all(
         importedCopies.map(async (session) => {
@@ -438,15 +504,10 @@ export function useCloudSessionsSection({
 
   const buildRowItem = useCallback(
     (threadRow: CloudSessionThreadRow, asParentOf?: NavigationMenuItem[]) => {
-      const { row, bareSessionId, isMine } = threadRow;
+      const { row, bareSessionId } = threadRow;
       const isFork = Boolean(row.forkedFrom);
-      // Mine rows route to the LOCAL session and need no published segments —
-      // only teammate rows require an events epoch to be clickable (the
-      // connector's "not published" title tooltip keys on this too).
       const disabled = isCloudThreadRowDisabled(threadRow);
-      const itemId = isMine
-        ? bareSessionId
-        : buildCloudRemoteItemId(row.orgId, row.id);
+      const itemId = buildCloudRemoteItemId(row.orgId, row.id);
       const relativeTime = row.lastActivityAt
         ? formatRelativeTime(row.lastActivityAt, "nano")
         : "";
@@ -544,13 +605,6 @@ export function useCloudSessionsSection({
         trailingElement,
         disabled,
         children: asParentOf,
-        dragPayload: isMine
-          ? {
-              path: `session://${bareSessionId}`,
-              name: displayTitle,
-              iconType: "session",
-            }
-          : undefined,
         // A thread root is a real session, not just a group header: keep it
         // openable after a fork adds child rows (the chevron toggles the
         // thread). Only meaningful when it actually has children.
@@ -559,8 +613,8 @@ export function useCloudSessionsSection({
       if (!disabled) {
         item.showMoreActions = true;
       }
-      if (!isMine && !disabled) {
-        // Teammate rows open/replay on plain click. Hover adds Fork plus the
+      if (!disabled) {
+        // Remote rows open/replay on plain click. Hover adds Fork plus the
         // standard overflow menu, whether this row is a leaf or thread root.
         item.rowActions = [
           {
@@ -688,14 +742,12 @@ export function useCloudSessionsSection({
     tCommon,
   ]);
 
-  // Hover-card lookup: every VISIBLE teammate thread row, keyed by the same
-  // `cloudremote-` id the menu item carries. Mine rows are intentionally
-  // absent — they resolve through the local session store.
+  // Hover-card lookup: every visible remote thread row, keyed by the same
+  // `cloudremote-` id the menu item carries.
   const cloudRemoteRowMap = useMemo(() => {
     const map = new Map<string, RemoteTeammateSessionMetadata>();
     for (const thread of visibleThreads) {
       for (const threadRow of [thread.root, ...thread.descendants]) {
-        if (threadRow.isMine) continue;
         map.set(
           buildCloudRemoteItemId(threadRow.row.orgId, threadRow.row.id),
           threadRow.row
@@ -709,7 +761,6 @@ export function useCloudSessionsSection({
     const map = new Map<string, readonly Org2CloudPresenceEntry[]>();
     for (const thread of visibleThreads) {
       for (const threadRow of [thread.root, ...thread.descendants]) {
-        if (threadRow.isMine) continue;
         map.set(
           buildCloudRemoteItemId(threadRow.row.orgId, threadRow.row.id),
           viewersForSession(
@@ -848,8 +899,7 @@ export function useCloudSessionsSection({
                 const viewingRow = presenceEntry?.viewingSessionId
                   ? rows.find(
                       (row) =>
-                        cloudSessionIdFromRowId(row.id) ===
-                        presenceEntry.viewingSessionId
+                        row.sourceSessionId === presenceEntry.viewingSessionId
                     )
                   : undefined;
                 const viewingTitle = viewingRow
@@ -909,6 +959,7 @@ export function useCloudSessionsSection({
   return {
     cloudMenuItems,
     cloudFlatListExcludedSessionIds,
+    cloudLocalSessionIds,
     selectedCloudMenuItemId,
     handleCloudSessionItemClick,
     resetCloudTeamPagination,

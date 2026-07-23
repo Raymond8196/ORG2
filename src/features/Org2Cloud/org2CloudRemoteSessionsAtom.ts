@@ -198,6 +198,8 @@ org2CloudRemoteSessionsVersionAtom.debugLabel =
 export interface UseCloudOrgRemoteSessionsResult {
   rows: RemoteTeammateSessionMetadata[];
   state: CloudRemoteSessionsFetchState;
+  /** Re-renders on visibility return so demand-driven consumers can resume. */
+  documentVisible: boolean;
   /** Refetch now, ignoring the TTL. */
   refresh: () => void;
 }
@@ -397,5 +399,7 @@ export function useCloudOrgRemoteSessions(
   }, [orgId, signedIn, authIdentityKey, fetchOrgSessions, requestState]);
 
   const entry = entrySnapshot ?? EMPTY_ENTRY;
-  return { rows: entry.rows, state: entry.state, refresh };
+  const documentVisible =
+    typeof document === "undefined" || document.visibilityState !== "hidden";
+  return { rows: entry.rows, state: entry.state, documentVisible, refresh };
 }
