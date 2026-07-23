@@ -57,10 +57,10 @@ export const DEFAULT_DATA_SOURCE_CONFIG: DataSourceConfig = {
  * probe, so rescanning every provider once a minute does not improve the chat
  * someone is watching. On a populated machine that global pass also reloads
  * the sidebar and rechecks children for changed parent sessions, producing a
- * visible CPU/allocation spike. Five minutes keeps discovery reasonably fresh
+ * visible CPU/allocation spike. Ten minutes keeps discovery reasonably fresh
  * while leaving the explicit 60-second option available to users who need it.
  */
-export const DEFAULT_GLOBAL_FREQUENCY: ScanFrequency = "5m";
+export const DEFAULT_GLOBAL_FREQUENCY: ScanFrequency = "10m";
 
 export type DataSourceConfigMap = Record<string, DataSourceConfig>;
 
