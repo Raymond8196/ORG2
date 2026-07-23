@@ -41,6 +41,7 @@ import { openFileInWorkStation } from "@src/util/ui/openFileInWorkStation";
 
 import SessionProvenanceSourceIcon from "./SessionProvenanceSourceIcon";
 import { tildePath } from "./sourcePath";
+import { startVisibilityAwarePolling } from "./visibilityPolling";
 
 interface PlatformMeta {
   id: SessionProvenanceHookPlatform;
@@ -203,34 +204,11 @@ const SessionProvenanceHookPlatformsTable: React.FC = () => {
 
   useEffect(() => {
     if (statuses.codex?.activationState !== "awaiting_verification") return;
-    let stopped = false;
-    let timeoutId: number | undefined;
-    const clearTimer = () => {
-      if (timeoutId === undefined) return;
-      window.clearTimeout(timeoutId);
-      timeoutId = undefined;
-    };
-    const schedule = () => {
-      clearTimer();
-      if (stopped || document.visibilityState === "hidden") return;
-      timeoutId = window.setTimeout(() => {
-        timeoutId = undefined;
-        void loadStatuses(true).finally(schedule);
-      }, 2_000);
-    };
-    const onVisibilityChange = () => {
-      clearTimer();
-      if (document.visibilityState !== "hidden") {
-        void loadStatuses(true).finally(schedule);
-      }
-    };
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    schedule();
-    return () => {
-      stopped = true;
-      clearTimer();
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-    };
+    return startVisibilityAwarePolling(
+      document,
+      () => loadStatuses(true),
+      2_000
+    );
   }, [loadStatuses, statuses.codex?.activationState]);
 
   useEffect(() => {
