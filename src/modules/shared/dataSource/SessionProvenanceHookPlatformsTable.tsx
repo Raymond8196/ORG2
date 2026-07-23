@@ -103,6 +103,8 @@ const SessionProvenanceHookPlatformsTable: React.FC = () => {
   const approvalAutoExpanded = useRef<Set<SessionProvenanceHookPlatform>>(
     new Set()
   );
+  const mountedRef = useRef(true);
+  const statusRequestRef = useRef(0);
 
   const [masterEnabled, setMasterEnabled] = useState(true);
   const [masterPending, setMasterPending] = useState(false);
@@ -154,6 +156,7 @@ const SessionProvenanceHookPlatformsTable: React.FC = () => {
   }, []);
 
   const loadStatuses = useCallback(async (silent = false) => {
+    const requestId = ++statusRequestRef.current;
     if (!silent) setRefreshing(true);
     try {
       const [nextStatuses, nextMasterEnabled, nextLiveStatusEnabled] =
@@ -162,12 +165,19 @@ const SessionProvenanceHookPlatformsTable: React.FC = () => {
           rpc.agentOrgs.sessionProvenance.masterEnabled(),
           rpc.agentOrgs.sessionProvenance.liveStatusEnabled(),
         ]);
+      if (!mountedRef.current || requestId !== statusRequestRef.current) return;
       setStatuses(indexStatuses(nextStatuses));
       setMasterEnabled(nextMasterEnabled);
       setLiveStatusEnabled(nextLiveStatusEnabled);
       if (!silent) setErrors({});
     } catch (error) {
-      if (silent) return;
+      if (
+        silent ||
+        !mountedRef.current ||
+        requestId !== statusRequestRef.current
+      ) {
+        return;
+      }
       const message = error instanceof Error ? error.message : String(error);
       setErrors(
         Object.fromEntries(
@@ -175,19 +185,52 @@ const SessionProvenanceHookPlatformsTable: React.FC = () => {
         ) as ErrorByPlatform
       );
     } finally {
-      setInitialLoading(false);
-      if (!silent) setRefreshing(false);
+      if (mountedRef.current && requestId === statusRequestRef.current) {
+        setInitialLoading(false);
+        if (!silent) setRefreshing(false);
+      }
     }
   }, []);
 
   useEffect(() => {
+    mountedRef.current = true;
     void loadStatuses();
+    return () => {
+      mountedRef.current = false;
+      statusRequestRef.current += 1;
+    };
   }, [loadStatuses]);
 
   useEffect(() => {
     if (statuses.codex?.activationState !== "awaiting_verification") return;
-    const interval = window.setInterval(() => void loadStatuses(true), 2_000);
-    return () => window.clearInterval(interval);
+    let stopped = false;
+    let timeoutId: number | undefined;
+    const clearTimer = () => {
+      if (timeoutId === undefined) return;
+      window.clearTimeout(timeoutId);
+      timeoutId = undefined;
+    };
+    const schedule = () => {
+      clearTimer();
+      if (stopped || document.visibilityState === "hidden") return;
+      timeoutId = window.setTimeout(() => {
+        timeoutId = undefined;
+        void loadStatuses(true).finally(schedule);
+      }, 2_000);
+    };
+    const onVisibilityChange = () => {
+      clearTimer();
+      if (document.visibilityState !== "hidden") {
+        void loadStatuses(true).finally(schedule);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    schedule();
+    return () => {
+      stopped = true;
+      clearTimer();
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
   }, [loadStatuses, statuses.codex?.activationState]);
 
   useEffect(() => {

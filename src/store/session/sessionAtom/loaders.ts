@@ -446,10 +446,12 @@ function replaceFirstPageForCategory(
   return mergeSessions(prev, incoming);
 }
 
-export const loadSidebarSessions = async (options?: {
+interface SidebarLoadOptions {
   pageSize?: number;
   forceRefresh?: boolean;
-}) => {
+}
+
+const performSidebarSessionLoad = async (options?: SidebarLoadOptions) => {
   const store = getStore();
   const pageSize = options?.pageSize ?? SESSION_SIDEBAR_PAGE_SIZE;
   const { forceRefresh = false } = options ?? {};
@@ -559,6 +561,65 @@ export const loadSidebarSessions = async (options?: {
   persistSessions(merged);
   store.set(sessionLastLoadedAtom, now);
   store.set(sessionLoadingAtom, false);
+};
+
+let sidebarLoadInFlight: Promise<void> | null = null;
+let activeSidebarLoad: SidebarLoadOptions | null = null;
+let pendingSidebarLoad: SidebarLoadOptions | null = null;
+
+function mergeSidebarLoadOptions(
+  current: SidebarLoadOptions | null,
+  requested: SidebarLoadOptions
+): SidebarLoadOptions {
+  return {
+    pageSize: Math.max(
+      current?.pageSize ?? SESSION_SIDEBAR_PAGE_SIZE,
+      requested.pageSize ?? SESSION_SIDEBAR_PAGE_SIZE
+    ),
+    forceRefresh:
+      (current?.forceRefresh ?? false) || (requested.forceRefresh ?? false),
+  };
+}
+
+function activeLoadCovers(requested: SidebarLoadOptions): boolean {
+  if (!activeSidebarLoad) return false;
+  const activePageSize =
+    activeSidebarLoad.pageSize ?? SESSION_SIDEBAR_PAGE_SIZE;
+  const requestedPageSize = requested.pageSize ?? SESSION_SIDEBAR_PAGE_SIZE;
+  return (
+    activePageSize >= requestedPageSize &&
+    ((activeSidebarLoad.forceRefresh ?? false) ||
+      !(requested.forceRefresh ?? false))
+  );
+}
+
+/**
+ * One process-wide sidebar loader. Overlapping mounts/refreshes join the
+ * active read; a stronger request (forced or larger page) is merged into one
+ * follow-up pass instead of starting a parallel category fan-out.
+ */
+export const loadSidebarSessions = (
+  options: SidebarLoadOptions = {}
+): Promise<void> => {
+  if (sidebarLoadInFlight && activeLoadCovers(options)) {
+    return sidebarLoadInFlight;
+  }
+  pendingSidebarLoad = mergeSidebarLoadOptions(pendingSidebarLoad, options);
+  if (sidebarLoadInFlight) return sidebarLoadInFlight;
+
+  const run = async () => {
+    while (pendingSidebarLoad) {
+      const next = pendingSidebarLoad;
+      pendingSidebarLoad = null;
+      activeSidebarLoad = next;
+      await performSidebarSessionLoad(next);
+    }
+  };
+  sidebarLoadInFlight = run().finally(() => {
+    activeSidebarLoad = null;
+    sidebarLoadInFlight = null;
+  });
+  return sidebarLoadInFlight;
 };
 
 /**

@@ -4,13 +4,12 @@
  * App-wide scheduler that keeps external-history sources fresh. Mounted once in
  * AppBootstrap so it runs regardless of whether the Data Sources panel is open.
  *
- * On app startup it immediately scans each enabled, non-manual importable source
- * with an on-disk history store once, regardless of the persisted last-scan
- * timestamp. Sources without a store receive only a cheap presence probe every
- * 30 minutes; when a store appears, its importer runs immediately. Subsequent
- * full scans use the effective per-source/global cadence. Each successful full
- * scan is followed by one unified sidebar cache reload. Sources set to "manual"
- * are never auto-scanned or presence-probed, including at startup.
+ * App startup performs one due-aware pass: persisted freshness is honored, so
+ * reopening ORGII does not rescan every provider. Sources without a store
+ * receive only a cheap presence probe every 30 minutes; when a store appears,
+ * its incremental importer runs immediately. Each successful scan is followed
+ * by one unified sidebar cache reload. Sources set to "manual" are never
+ * auto-scanned or presence-probed.
  *
  * Config is read straight from the shared store on each tick, so the interval is
  * armed once and always sees the latest values without re-arming. The timer is
@@ -53,6 +52,35 @@ const SOURCE_PRESENCE_PROBE_INTERVAL_MS = 30 * 60_000;
 
 let autoScanInFlight: Promise<void> | null = null;
 
+async function mapSettledWithConcurrency<T, R>(
+  items: readonly T[],
+  concurrency: number,
+  mapper: (item: T) => Promise<R>
+): Promise<PromiseSettledResult<R>[]> {
+  const results = new Array<PromiseSettledResult<R>>(items.length);
+  let nextIndex = 0;
+  const worker = async () => {
+    while (nextIndex < items.length) {
+      const index = nextIndex++;
+      try {
+        results[index] = {
+          status: "fulfilled",
+          value: await mapper(items[index]!),
+        };
+      } catch (reason) {
+        results[index] = { status: "rejected", reason };
+      }
+    }
+  };
+  await Promise.all(
+    Array.from(
+      { length: Math.min(Math.max(1, concurrency), items.length) },
+      worker
+    )
+  );
+  return results;
+}
+
 async function performDataSourceAutoScan(force: boolean): Promise<void> {
   const store = getInstrumentedStore();
   // Master switch: external sessions fully off — no scans, including startup.
@@ -92,11 +120,13 @@ async function performDataSourceAutoScan(force: boolean): Promise<void> {
       now - presence.checkedAt >= SOURCE_PRESENCE_PROBE_INTERVAL_MS;
     return probeDue ? [sourceId] : [];
   });
-  const probeResults = await Promise.allSettled(
-    probeSourceIds.map(async (sourceId) => ({
+  const probeResults = await mapSettledWithConcurrency(
+    probeSourceIds,
+    2,
+    async (sourceId) => ({
       sourceId,
       probe: await externalCliSourceProbe(sourceId),
-    }))
+    })
   );
   const successfulProbes = new Map<string, boolean>();
   for (const result of probeResults) {
@@ -148,8 +178,10 @@ async function performDataSourceAutoScan(force: boolean): Promise<void> {
   }
 
   if (dueSourceIds.length === 0) return;
-  await externalHistoryRescanSources(dueSourceIds);
-  await loadSidebarSessions({ forceRefresh: true });
+  const scanResult = await externalHistoryRescanSources(dueSourceIds);
+  if (scanResult?.changedSources.length !== 0) {
+    await loadSidebarSessions({ forceRefresh: true });
+  }
 
   const scannedAt = Date.now();
   store.set(dataSourceConfigAtom, (prev) => {
@@ -164,7 +196,7 @@ async function performDataSourceAutoScan(force: boolean): Promise<void> {
   });
 }
 
-/** Run one deduplicated auto-scan pass. `force` is reserved for app startup. */
+/** Run one deduplicated auto-scan pass. `force` is for explicit rebuild flows. */
 export async function runDataSourceAutoScan(force = false): Promise<void> {
   if (autoScanInFlight) return autoScanInFlight;
 
@@ -198,7 +230,6 @@ export function startDataSourceAutoScanScheduler(
   intervalMs = TICK_MS
 ): DataSourceAutoScanScheduler {
   let stopped = false;
-  let startupPending = true;
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
   const clearTimer = () => {
@@ -217,9 +248,7 @@ export function startDataSourceAutoScanScheduler(
   const trigger = (force = false) => {
     clearTimer();
     if (stopped || source.visibilityState === "hidden") return;
-    const shouldForce = startupPending || force;
-    startupPending = false;
-    void scan(shouldForce)
+    void scan(force)
       .catch(() => {
         /* transient; next tick retries */
       })
@@ -231,7 +260,7 @@ export function startDataSourceAutoScanScheduler(
   };
 
   source.addEventListener("visibilitychange", onVisibilityChange);
-  trigger(true);
+  trigger();
   return {
     trigger,
     stop: () => {
