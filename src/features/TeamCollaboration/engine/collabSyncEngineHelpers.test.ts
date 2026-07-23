@@ -401,6 +401,66 @@ describe("importRemoteSession", () => {
     expect(client.getSessionEventSegments).not.toHaveBeenCalled();
   });
 
+  it("refreshes source display metadata without refetching unchanged events", async () => {
+    const client = {
+      getSessionEventSegments: vi.fn(async () => sealSnapshot(makeSnapshot())),
+    } satisfies Pick<CollabSyncBackendClient, "getSessionEventSegments">;
+    const expectedId = await deriveImportedSessionId("org-1", "remote-1");
+    store.set(sessionsAtom, [
+      {
+        session_id: expectedId,
+        status: "completed",
+        created_at: "2026-07-01T00:00:00.000Z",
+        updated_at: "2026-07-01T00:00:00.000Z",
+        name: "Remote session",
+        model: undefined,
+        agentIconId: "archive",
+        agentDisplayName: "Collaboration Snapshot",
+        importedFrom: {
+          orgId: "org-1",
+          sourceSessionId: "remote-1",
+          ownerMemberId: "m2",
+          ownerDisplayName: "Bob",
+          epoch: 1,
+          seq: 1,
+          count: 1,
+          frozenCount: 1,
+          tailHash: undefined,
+          importedAt: "2026-07-01T00:00:00.000Z",
+        },
+      },
+    ]);
+    eventStoreMock.getPersistedEvents.mockResolvedValue([
+      { id: "e1" } as unknown as SessionEvent,
+    ]);
+
+    const result = await importRemoteSession({
+      client,
+      orgId: "org-1",
+      remoteSession: makeRemote({
+        cliAgentType: "codex",
+        agentDisplayName: "Codex App",
+        model: "gpt-5.6-sol",
+        origin: { kind: "external_history", source: "codex_app" },
+      }),
+    });
+    const record = (store.get(sessionsAtom) as Session[]).find(
+      (session) => session.session_id === expectedId
+    );
+
+    expect(result?.updated).toBe(false);
+    expect(client.getSessionEventSegments).not.toHaveBeenCalled();
+    expect(record?.model).toBeUndefined();
+    expect(record?.importedFrom).toMatchObject({
+      externalHistorySource: "codex_app",
+      sourceDisplay: {
+        cliAgentType: "codex",
+        agentDisplayName: "Codex App",
+        model: "gpt-5.6-sol",
+      },
+    });
+  });
+
   it("stamps Session.orgId on a MEMBER import so the sidebar org filter matches", async () => {
     const client = {
       getSessionEventSegments: vi.fn(async () => sealSnapshot(makeSnapshot())),
@@ -431,6 +491,10 @@ describe("importRemoteSession", () => {
       client,
       orgId: "org-1",
       remoteSession: makeRemote({
+        cliAgentType: "codex",
+        agentDisplayName: "Codex App",
+        agentDefinitionId: "codex-app",
+        model: "gpt-5.6-sol",
         origin: { kind: "external_history", source: "codex_app" },
       }),
     });
@@ -439,6 +503,13 @@ describe("importRemoteSession", () => {
     );
 
     expect(record?.importedFrom?.externalHistorySource).toBe("codex_app");
+    expect(record?.importedFrom?.sourceDisplay).toEqual({
+      cliAgentType: "codex",
+      agentDisplayName: "Codex App",
+      agentDefinitionId: "codex-app",
+      model: "gpt-5.6-sol",
+    });
+    expect(record?.model).toBeUndefined();
   });
 
   it("leaves Session.orgId unset on a GUEST share-token import (stays under Personal)", async () => {
