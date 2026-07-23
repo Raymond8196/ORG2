@@ -136,8 +136,7 @@ fn build_input_from_index_without_composer_uses_index_fields() {
         is_archived: false,
         root_fingerprint: "fp".into(),
     };
-    let built =
-        build_inputs_from_index(None, &row, "/store/state.vscdb").expect("build inputs");
+    let built = build_inputs_from_index(None, &row, "/store/state.vscdb").expect("build inputs");
     assert!(!built.child_list_authoritative);
     assert!(built.live_child_ids.is_empty());
     assert_eq!(built.inputs.len(), 1);

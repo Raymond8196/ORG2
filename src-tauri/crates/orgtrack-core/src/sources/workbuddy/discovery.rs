@@ -28,7 +28,8 @@ pub(super) fn sync_workbuddy_history_cache(conn: &mut Connection) -> Result<(), 
     )
 }
 
-pub(super) fn discover_workbuddy_history_records() -> Result<Vec<ImportedHistoryDiscoveredRecord>, String> {
+pub(super) fn discover_workbuddy_history_records(
+) -> Result<Vec<ImportedHistoryDiscoveredRecord>, String> {
     let mut files = Vec::new();
     for root in workbuddy_history_roots()? {
         if root.is_dir() {

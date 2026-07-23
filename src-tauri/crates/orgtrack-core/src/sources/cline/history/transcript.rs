@@ -12,7 +12,10 @@ pub(super) fn load_cline_history_from_path(
     Ok(transcript_to_chunks(session_id, &transcript))
 }
 
-pub(super) fn transcript_to_chunks(session_id: &str, transcript: &ClineTranscript) -> Vec<ActivityChunk> {
+pub(super) fn transcript_to_chunks(
+    session_id: &str,
+    transcript: &ClineTranscript,
+) -> Vec<ActivityChunk> {
     // Pass 1: collect every tool result as its raw `content` value (not flattened
     // text) so a batched call can pair each sub-operation with its own entry in
     // the parallel result list, regardless of which later user turn carried it.
@@ -235,7 +238,11 @@ pub(super) fn cline_sub_output(results: Option<&Value>, index: usize, batched: b
     value_to_text(results)
 }
 
-pub(super) fn cline_sub_success(results: Option<&Value>, index: usize, batched: bool) -> Option<bool> {
+pub(super) fn cline_sub_success(
+    results: Option<&Value>,
+    index: usize,
+    batched: bool,
+) -> Option<bool> {
     let result = if batched {
         results?.as_array()?.get(index)?
     } else if let Some(first) = results?.as_array().and_then(|items| items.first()) {

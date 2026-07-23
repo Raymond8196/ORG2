@@ -12,7 +12,10 @@ pub(super) fn open_store_readonly(path: &Path) -> Result<Connection, String> {
     .map_err(|err| format!("Failed to open Cursor CLI store {}: {err}", path.display()))
 }
 
-pub(super) fn resolve_store_path(conn: &Connection, source_session_id: &str) -> Result<PathBuf, String> {
+pub(super) fn resolve_store_path(
+    conn: &Connection,
+    source_session_id: &str,
+) -> Result<PathBuf, String> {
     if let Some(path) = imported_cache::get_cached_source_path_from_conn(
         conn,
         SOURCE_CURSOR_CLI,

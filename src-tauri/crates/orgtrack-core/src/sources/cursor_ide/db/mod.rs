@@ -14,9 +14,7 @@ use rusqlite::params;
 
 use crate::sources::imported_history::{
     cache as source_cache,
-    metadata::{
-        ImportedHistoryCacheInput, ImportedHistoryRecordSignature, SOURCE_CURSOR_IDE,
-    },
+    metadata::{ImportedHistoryCacheInput, ImportedHistoryRecordSignature, SOURCE_CURSOR_IDE},
 };
 
 use super::io::{
