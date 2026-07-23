@@ -139,6 +139,9 @@
       "helveticaNeue": "Kiểu Helvetica Neue"
     },
     "uiScale": "Tỷ lệ giao diện",
+    "preferences": "Tùy chọn",
+    "usePointerCursors": "Sử dụng con trỏ dạng bàn tay",
+    "usePointerCursorsDesc": "Đổi con trỏ sang dạng bàn tay khi di chuột qua các phần tử tương tác",
     "timezoneAuto": "Tự động (Trình duyệt)",
     "timezoneSearchPlaceholder": "Tìm kiếm thành phố gần nhất",
     "sendOnEnter": "Gửi tin nhắn bằng Enter",
