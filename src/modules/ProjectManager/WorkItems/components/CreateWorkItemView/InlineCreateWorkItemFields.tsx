@@ -92,6 +92,7 @@ export interface InlineCreateWorkItemFieldsState {
   stubWorkItem: WorkItemExtended;
   titleSection: React.ReactNode;
   updateDraft: (patch: Partial<WorkItemDraft>) => void;
+  workItemOrgPill: React.ReactNode;
   workItemPillBreadcrumb: React.ReactNode;
 }
 
@@ -496,7 +497,7 @@ export function useInlineCreateWorkItemFields({
       autoFocus
       fieldVariant="ghost"
       size="small"
-      className="flex-1"
+      className="flex-1 focus-within:!bg-transparent hover:!bg-transparent"
       inputClassName={GHOST_INPUT_PLACEHOLDER_CLASS}
       data-testid="create-work-item-title-input"
     />
@@ -549,6 +550,7 @@ export function useInlineCreateWorkItemFields({
     stubWorkItem,
     titleSection,
     updateDraft,
+    workItemOrgPill: orgBreadcrumbSegment,
     workItemPillBreadcrumb,
   };
 }
