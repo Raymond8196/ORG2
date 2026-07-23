@@ -420,6 +420,8 @@ pub(crate) fn scanned_row_from_json(value: &serde_json::Value) -> Option<Scanned
             background: flag("background", false),
             is_active: flag("isActive", false),
             repo_path: js_str(value, "repoPath"),
+            repo_root_path: js_str(value, "repoRootPath"),
+            repo_remote_urls: js_str_vec(value, "repoRemoteUrls"),
             storage_path: js_str(value, "storagePath"),
             repo_name: js_str(value, "repoName"),
             branch: js_str(value, "branch"),

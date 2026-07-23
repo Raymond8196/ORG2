@@ -228,6 +228,8 @@ function importedHistoryPageResult(
         is_active: row.isActive ?? false,
         background: false,
         repoPath: row.repoPath,
+        repoRootPath: row.repoRootPath,
+        repoRemoteUrls: row.repoRemoteUrls,
         storagePath: row.storagePath,
         agentIconId: source.iconId,
         agentDisplayName: source.displayName,

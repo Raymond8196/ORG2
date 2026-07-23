@@ -105,6 +105,9 @@ vi.mock("@src/engines/SessionCore/ingestion/rustBridge", () => ({
 vi.mock("../TeamCollaboration/repoScopeResolver", () => ({
   peekShareableScopeKeys: vi.fn(),
   primeShareableScopeKey: vi.fn(),
+  shareableScopeKeysFromRemoteUrls: vi.fn((urls: string[] | undefined) =>
+    urls?.length ? [...urls] : null
+  ),
   resolveMatchingOrgRepoScope: vi.fn(
     async (keys: string[] | null, scopes: string[] | undefined) =>
       scopes?.find((scope) => keys?.includes(scope)) ?? null
@@ -174,6 +177,7 @@ export const SESSION: Session = {
   name: "Local session",
   orgId: "cloud:corg-1",
   repoPath: REPO_PATH,
+  repoRemoteUrls: [SCOPE_KEY],
   category: "rust_agent",
 };
 

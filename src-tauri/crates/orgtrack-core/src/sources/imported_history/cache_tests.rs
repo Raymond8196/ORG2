@@ -104,6 +104,18 @@ fn sidebar_query_is_date_bounded_and_carries_impact_metadata() {
     inside.impact.touched_files = vec!["large/path.rs".to_string()];
     let outside = input(SOURCE_CODEX_APP, "outside", 450);
     upsert_imported_session_cache_from_conn(&mut conn, &[inside, outside]).expect("upsert");
+    conn.execute(
+        "INSERT INTO imported_history_repo_identity (
+            working_path, repo_root_path, remote_urls_json, resolution_kind,
+            checked_at_ms, next_refresh_at_ms
+         ) VALUES (?1, ?2, ?3, 'git', 1, 2)",
+        rusqlite::params![
+            "/tmp/repo-inside",
+            "/tmp",
+            r#"["git@github.com:yorgai/org2.git"]"#
+        ],
+    )
+    .expect("insert repo identity");
 
     let page =
         query_imported_sidebar_page_from_conn(&conn, SOURCE_CODEX_APP, Some(200), Some(300), 10, 0)
@@ -114,6 +126,11 @@ fn sidebar_query_is_date_bounded_and_carries_impact_metadata() {
     let row = &page.sessions[0];
     assert_eq!(row.session_id, "codex_app-inside");
     assert_eq!(row.repo_path.as_deref(), Some("/tmp/repo-inside"));
+    assert_eq!(row.repo_root_path.as_deref(), Some("/tmp"));
+    assert_eq!(
+        row.repo_remote_urls,
+        vec!["git@github.com:yorgai/org2.git".to_string()]
+    );
     // Imported sessions have no sessions.db copy — the hover card's storage
     // row can only point at the source app's own transcript file.
     assert_eq!(row.storage_path.as_deref(), Some("/tmp/inside.jsonl"));

@@ -221,6 +221,8 @@ pub(crate) fn cached_to_row(
         is_active: false,
         storage_path: Some(session.source_path),
         repo_path: session.repo_path,
+        repo_root_path: session.repo_root_path,
+        repo_remote_urls: session.repo_remote_urls,
         repo_name,
         branch: session.branch,
         files_changed: session.impact.files_changed,

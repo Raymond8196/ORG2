@@ -36,6 +36,8 @@ pub struct ImportedHistoryCachedSession {
     pub input_tokens: i64,
     pub output_tokens: i64,
     pub repo_path: Option<String>,
+    pub repo_root_path: Option<String>,
+    pub repo_remote_urls: Vec<String>,
     pub branch: Option<String>,
     pub impact: ImportedHistoryImpactStats,
     pub listable: bool,
@@ -54,6 +56,8 @@ impl ImportedHistoryCachedSession {
             input_tokens: self.input_tokens,
             output_tokens: self.output_tokens,
             repo_path: self.repo_path.clone(),
+            repo_root_path: self.repo_root_path.clone(),
+            repo_remote_urls: self.repo_remote_urls.clone(),
             storage_path: Some(self.source_path.clone()),
             branch: self.branch.clone(),
             files_changed: self.impact.files_changed,
@@ -387,15 +391,19 @@ pub fn query_imported_sidebar_page_from_conn(
     values.push(SqlValue::from(limit.saturating_add(1) as i64));
     values.push(SqlValue::from(offset as i64));
     let sql = format!(
-        "SELECT session_id, name, created_at_ms, updated_at_ms, repo_path,
+        "SELECT session_id, name, created_at_ms, updated_at_ms, cache.repo_path,
                 model, files_changed, lines_added, lines_removed, touched_files_json,
-                input_tokens, output_tokens, source_path
-         FROM imported_history_session_cache
-         WHERE source = ?1
-           AND listable = 1
-           AND parent_session_id = ''
+                input_tokens, output_tokens, source_path,
+                identity.repo_root_path, identity.remote_urls_json
+         FROM imported_history_session_cache cache
+         LEFT JOIN imported_history_repo_identity identity
+           ON identity.working_path = cache.repo_path
+         WHERE cache.source = ?1
+           AND cache.listable = 1
+           AND cache.parent_session_id = ''
            {range_sql}
-         ORDER BY updated_at_ms DESC, created_at_ms DESC, source_session_id ASC
+         ORDER BY cache.updated_at_ms DESC, cache.created_at_ms DESC,
+                  cache.source_session_id ASC
          LIMIT ?{limit_param} OFFSET ?{offset_param}"
     );
     let mut stmt = conn
@@ -413,6 +421,13 @@ pub fn query_imported_sidebar_page_from_conn(
             let input_tokens: i64 = row.get(10)?;
             let output_tokens: i64 = row.get(11)?;
             let source_path: String = row.get(12)?;
+            let repo_root_path: Option<String> = row.get(13)?;
+            let remote_urls_json: Option<String> = row.get(14)?;
+            let repo_remote_urls =
+                serde_json::from_str::<Vec<String>>(remote_urls_json.as_deref().unwrap_or("[]"))
+                    .map_err(|err| {
+                        rusqlite::Error::FromSqlConversionFailure(14, Type::Text, Box::new(err))
+                    })?;
             Ok(ImportedHistorySidebarRow {
                 session_id: row.get(0)?,
                 name: row.get(1)?,
@@ -421,6 +436,8 @@ pub fn query_imported_sidebar_page_from_conn(
                 status: None,
                 is_active: None,
                 repo_path: non_empty_string(repo_path),
+                repo_root_path: repo_root_path.and_then(non_empty_string),
+                repo_remote_urls,
                 storage_path: non_empty_string(source_path),
                 model: non_empty_string(model),
                 total_tokens: input_tokens + output_tokens,
@@ -626,9 +643,13 @@ fn query_cached_sessions_by_filter_from_conn(
         "SELECT source_session_id, session_id, source_path, source_record_key,
                 source_mtime_ms, source_size_bytes, source_fingerprint, parser_version,
                 name, created_at_ms, updated_at_ms, model, input_tokens, output_tokens,
-                repo_path, branch, files_changed, lines_added, lines_removed,
-                touched_files_json, listable, source_metadata_json, parent_session_id
+                imported_history_session_cache.repo_path, branch, files_changed,
+                lines_added, lines_removed, touched_files_json, listable,
+                source_metadata_json, parent_session_id,
+                identity.repo_root_path, identity.remote_urls_json
          FROM imported_history_session_cache
+         LEFT JOIN imported_history_repo_identity identity
+           ON identity.working_path = imported_history_session_cache.repo_path
          WHERE source = ?1 AND {filter_sql}
          ORDER BY updated_at_ms DESC, created_at_ms DESC, source_session_id ASC
          LIMIT ?{} OFFSET ?{}",
@@ -653,6 +674,13 @@ fn query_cached_sessions_by_filter_from_conn(
                     rusqlite::Error::FromSqlConversionFailure(19, Type::Text, Box::new(err))
                 })?;
             let parent_session_id: String = row.get(22)?;
+            let repo_root_path: Option<String> = row.get(23)?;
+            let remote_urls_json: Option<String> = row.get(24)?;
+            let repo_remote_urls =
+                serde_json::from_str::<Vec<String>>(remote_urls_json.as_deref().unwrap_or("[]"))
+                    .map_err(|err| {
+                        rusqlite::Error::FromSqlConversionFailure(24, Type::Text, Box::new(err))
+                    })?;
             Ok(ImportedHistoryCachedSession {
                 source_session_id: row.get(0)?,
                 session_id: row.get(1)?,
@@ -669,6 +697,8 @@ fn query_cached_sessions_by_filter_from_conn(
                 input_tokens: row.get(12)?,
                 output_tokens: row.get(13)?,
                 repo_path: non_empty_string(repo_path),
+                repo_root_path: repo_root_path.and_then(non_empty_string),
+                repo_remote_urls,
                 branch: non_empty_string(branch),
                 impact: ImportedHistoryImpactStats {
                     files_changed: row.get(16)?,
@@ -701,7 +731,14 @@ pub fn sync_source_cache_from_conn(
     inputs: Vec<ImportedHistoryCacheInput>,
 ) -> Result<(), String> {
     upsert_imported_session_cache_from_conn(conn, &inputs)?;
-    prune_missing_records_from_conn(conn, source, &live_source_session_ids)
+    prune_missing_records_from_conn(conn, source, &live_source_session_ids)?;
+    #[cfg(feature = "git")]
+    super::repo_identity::sync_repo_identities_for_source_from_conn(
+        conn,
+        source,
+        current_epoch_ms()?,
+    )?;
+    Ok(())
 }
 
 pub fn query_cached_session_from_conn(
