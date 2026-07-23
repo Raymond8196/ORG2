@@ -99,6 +99,24 @@ describe("external history rescans", () => {
     ]);
   });
 
+  it("joins a same-source scan that is already active", async () => {
+    const active = deferred<{ changedSources: ["codex_app"] }>();
+    invokeMock.mockReturnValueOnce(active.promise);
+
+    const first = externalHistoryRescanSource("codex_app");
+    await vi.waitFor(() => expect(invokeMock).toHaveBeenCalledOnce());
+    const joined = externalHistoryRescanSource("codex_app");
+
+    await Promise.resolve();
+    expect(invokeMock).toHaveBeenCalledOnce();
+
+    active.resolve({ changedSources: ["codex_app"] });
+    await expect(Promise.all([first, joined])).resolves.toEqual([
+      { changedSources: ["codex_app"] },
+      { changedSources: ["codex_app"] },
+    ]);
+  });
+
   it("queues a clear rebuild when an incremental scan is already active", async () => {
     const active = deferred<{ changedSources: [] }>();
     invokeMock
