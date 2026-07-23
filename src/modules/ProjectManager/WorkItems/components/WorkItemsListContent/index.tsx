@@ -2,7 +2,9 @@ import type React from "react";
 import { type FC, type ReactNode, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
-import VirtualizedGroupedList from "@src/modules/ProjectManager/shared/components/VirtualizedGroupedList";
+import VirtualizedGroupedList, {
+  type VirtualizedGroup,
+} from "@src/modules/ProjectManager/shared/components/VirtualizedGroupedList";
 import { PROJECT_MANAGER_PLACEHOLDER_PLACEMENT } from "@src/modules/ProjectManager/shared/placeholderTokens";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 import type { DropdownOption, Person } from "@src/types/core/shared";
@@ -141,7 +143,12 @@ const WorkItemsListContent: FC<WorkItemsListContentProps> = ({
   );
 
   const defaultGroupExpanded = useCallback(
-    (virtualGroup: (typeof virtualGroups)[number]) => {
+    (
+      virtualGroup: VirtualizedGroup<
+        WorkItemGroup<WorkItemExtended>,
+        WorkItemVirtualRow
+      >
+    ) => {
       const { group } = virtualGroup;
       return (
         collapseAllSignal === 0 &&
