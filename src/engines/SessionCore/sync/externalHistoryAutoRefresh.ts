@@ -22,10 +22,32 @@ const logger = createLogger("ExternalHistoryAutoRefresh");
 // Refresh floor while the window is unfocused; the configured 3s-1m cadence
 // only applies to a chat someone is looking at.
 const UNFOCUSED_REFRESH_INTERVAL_MS = 60_000;
+const MIN_TRANSCRIPT_SETTLE_MS = 2_000;
+
+export type TranscriptSettleState = {
+  signature: string | null;
+  firstObservedAt: number;
+};
+
+export function shouldWaitForStableTranscript(
+  state: TranscriptSettleState,
+  signature: string | null,
+  nowMs: number,
+  settleMs: number
+): boolean {
+  if (!signature) return false;
+  if (state.signature !== signature) {
+    state.signature = signature;
+    state.firstObservedAt = nowMs;
+    return true;
+  }
+  return nowMs - state.firstObservedAt < settleMs;
+}
 
 type DispatchSessionLoad = (payload: {
   sessionId: string;
   events: SessionEvent[];
+  replace?: boolean;
 }) => void;
 
 /**
@@ -67,7 +89,15 @@ export async function refreshImportedHistorySession(
 
   const events = await adapter.loadHistory(sessionId, signal);
   if (signal.aborted || events.length === 0) return false;
-  dispatchLoadSession({ sessionId, events });
+  const source = getImportedHistorySourceBySessionId(sessionId);
+  dispatchLoadSession({
+    sessionId,
+    events,
+    // A source-level window is a complete bounded snapshot, not an append
+    // delta. Replacing prevents yesterday's loaded turn bodies from surviving
+    // beside today's placeholders as a live external transcript grows.
+    replace: source?.supportsWindowedReplay === true,
+  });
   if (signature) rememberTranscriptSignature(sessionId, signature);
   return true;
 }
@@ -87,6 +117,11 @@ export function useExternalHistoryAutoRefresh(options: {
     let refreshRunning = false;
     let activeController: AbortController | null = null;
     let lastAttemptAt = 0;
+    const settleState: TranscriptSettleState = {
+      signature: null,
+      firstObservedAt: 0,
+    };
+    const settleMs = Math.max(intervalMs, MIN_TRANSCRIPT_SETTLE_MS);
     const refresh = async () => {
       if (refreshRunning) return;
       // The configured cadence (3s-1m) is for a chat the user is actually
@@ -103,11 +138,38 @@ export function useExternalHistoryAutoRefresh(options: {
       refreshRunning = true;
       activeController = new AbortController();
       try {
+        // A live Codex/Claude transcript can grow several times per second.
+        // Replacing the windowed replay on every observed size change keeps
+        // the UI in a loading state and retains large transient allocations.
+        // Wait until the same new signature survives one configured refresh
+        // period; the initial session load is handled by the switch adapter
+        // and is therefore never delayed by this auto-refresh guard.
+        const probe = await transcriptChanged(
+          sessionId,
+          activeController.signal
+        );
+        if (!probe.changed || activeController.signal.aborted) {
+          settleState.signature = null;
+          settleState.firstObservedAt = 0;
+          return;
+        }
+        if (
+          shouldWaitForStableTranscript(
+            settleState,
+            probe.signature,
+            Date.now(),
+            settleMs
+          )
+        ) {
+          return;
+        }
         await refreshImportedHistorySession(
           sessionId,
           activeController.signal,
           dispatchLoadSession
         );
+        settleState.signature = null;
+        settleState.firstObservedAt = 0;
       } catch (error) {
         if (!activeController.signal.aborted) {
           logger.warn(`Failed to refresh ${sessionId}:`, error);

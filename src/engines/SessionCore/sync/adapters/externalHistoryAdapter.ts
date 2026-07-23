@@ -31,7 +31,11 @@ export function selectExternalHistoryInitialWindow(
   chunks: ActivityChunk[],
   options: { supportsWindowedReplay?: boolean } = {}
 ): ActivityChunk[] {
-  if (options.supportsWindowedReplay === false) {
+  // A source-level window already contains lightweight headers/placeholders
+  // for older turns. Slicing that response here would make those turns
+  // unreachable even though their bodies are available through the turn
+  // loader. Trust the source's bounded wire contract.
+  if (options.supportsWindowedReplay !== undefined) {
     return chunks;
   }
 
