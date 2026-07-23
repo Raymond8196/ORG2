@@ -451,7 +451,11 @@ describe("cloud teammate hover card", () => {
     expect(markup).toContain("forked from @");
     expect(markup).toContain("org2");
     expect(markup).toContain("feat/org2-cloud-auth");
+    expect(markup).toContain("sessions:history.detail.internal");
     // Owner agent/model row (pushed with the metadata since 2026-07-11).
+    expect(markup).toContain(
+      'text-text-1"><i data-agent-icon="stub" data-size="13"'
+    );
     expect(markup).toContain("Claude Code CLI");
     expect(markup).toContain("claude-sonnet-5");
   });
@@ -466,6 +470,20 @@ describe("cloud teammate hover card", () => {
 
     expect(markup).toContain('data-testid="cloud-session-watchers"');
     expect(markup).toContain("Bob, Carol");
+  });
+
+  it("renders a localized external origin with its source app", () => {
+    const markup = renderToStaticMarkup(
+      createElement(CloudSessionHoverCardContent, {
+        row: makeRow("s1", {
+          origin: { kind: "external_history", source: "codex_app" },
+        }),
+      })
+    );
+
+    expect(markup).toContain("sessions:history.detail.external");
+    expect(markup).toContain("Codex App");
+    expect(markup).not.toContain("External session");
   });
 
   it("shows the canonical shared session id as a copyable hover-card row", () => {
