@@ -563,10 +563,6 @@ const performSidebarSessionLoad = async (options?: SidebarLoadOptions) => {
   store.set(sessionLoadingAtom, false);
 };
 
-let sidebarLoadInFlight: Promise<void> | null = null;
-let activeSidebarLoad: SidebarLoadOptions | null = null;
-let pendingSidebarLoad: SidebarLoadOptions | null = null;
-
 function mergeSidebarLoadOptions(
   current: SidebarLoadOptions | null,
   requested: SidebarLoadOptions
@@ -581,16 +577,52 @@ function mergeSidebarLoadOptions(
   };
 }
 
-function activeLoadCovers(requested: SidebarLoadOptions): boolean {
-  if (!activeSidebarLoad) return false;
-  const activePageSize =
-    activeSidebarLoad.pageSize ?? SESSION_SIDEBAR_PAGE_SIZE;
+function sidebarLoadCovers(
+  active: SidebarLoadOptions | null,
+  requested: SidebarLoadOptions
+): boolean {
+  if (!active) return false;
+  const activePageSize = active.pageSize ?? SESSION_SIDEBAR_PAGE_SIZE;
   const requestedPageSize = requested.pageSize ?? SESSION_SIDEBAR_PAGE_SIZE;
   return (
     activePageSize >= requestedPageSize &&
-    ((activeSidebarLoad.forceRefresh ?? false) ||
-      !(requested.forceRefresh ?? false))
+    ((active.forceRefresh ?? false) || !(requested.forceRefresh ?? false))
   );
+}
+
+/**
+ * Build a single-flight coordinator around the sidebar read. Kept as a small
+ * injectable unit so queue coverage, escalation, and failure recovery can be
+ * tested without exercising every session provider.
+ */
+function createSidebarLoadCoordinator(
+  load: (options?: SidebarLoadOptions) => Promise<void>
+): (options?: SidebarLoadOptions) => Promise<void> {
+  let inFlight: Promise<void> | null = null;
+  let active: SidebarLoadOptions | null = null;
+  let pending: SidebarLoadOptions | null = null;
+
+  return (options: SidebarLoadOptions = {}): Promise<void> => {
+    if (inFlight && sidebarLoadCovers(active, options)) {
+      return inFlight;
+    }
+    pending = mergeSidebarLoadOptions(pending, options);
+    if (inFlight) return inFlight;
+
+    const run = async () => {
+      while (pending) {
+        const next = pending;
+        pending = null;
+        active = next;
+        await load(next);
+      }
+    };
+    inFlight = run().finally(() => {
+      active = null;
+      inFlight = null;
+    });
+    return inFlight;
+  };
 }
 
 /**
@@ -598,29 +630,9 @@ function activeLoadCovers(requested: SidebarLoadOptions): boolean {
  * active read; a stronger request (forced or larger page) is merged into one
  * follow-up pass instead of starting a parallel category fan-out.
  */
-export const loadSidebarSessions = (
-  options: SidebarLoadOptions = {}
-): Promise<void> => {
-  if (sidebarLoadInFlight && activeLoadCovers(options)) {
-    return sidebarLoadInFlight;
-  }
-  pendingSidebarLoad = mergeSidebarLoadOptions(pendingSidebarLoad, options);
-  if (sidebarLoadInFlight) return sidebarLoadInFlight;
-
-  const run = async () => {
-    while (pendingSidebarLoad) {
-      const next = pendingSidebarLoad;
-      pendingSidebarLoad = null;
-      activeSidebarLoad = next;
-      await performSidebarSessionLoad(next);
-    }
-  };
-  sidebarLoadInFlight = run().finally(() => {
-    activeSidebarLoad = null;
-    sidebarLoadInFlight = null;
-  });
-  return sidebarLoadInFlight;
-};
+export const loadSidebarSessions = createSidebarLoadCoordinator(
+  performSidebarSessionLoad
+);
 
 /**
  * Hydrate one canonical session row for sidebar deep-link navigation.
@@ -689,6 +701,7 @@ export const loadMoreCategory = async (
 };
 
 export const __TESTS_ONLY = {
+  createSidebarLoadCoordinator,
   mergeSessions,
   replaceExternalHistorySourceFirstPage,
 };

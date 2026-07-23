@@ -10,8 +10,8 @@
  *
  * Per-source config (enabled / frequency / lastScannedAt) is persisted via
  * `dataSourceConfigAtom`. A disabled source is gated out of `loadSidebarSessions`
- * so its sessions never load anywhere. Rescan re-runs detection; for importable
- * sources it also clears the cache and re-imports.
+ * so its sessions never load anywhere. Rescan re-runs detection and performs
+ * an incremental import by default, with an explicit clear-and-rebuild option.
  */
 import { invoke } from "@tauri-apps/api/core";
 import { useAtom } from "jotai";

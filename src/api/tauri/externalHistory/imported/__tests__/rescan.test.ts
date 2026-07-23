@@ -9,6 +9,16 @@ const { invokeMock } = vi.hoisted(() => ({
   invokeMock: vi.fn(),
 }));
 
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((resolvePromise, rejectPromise) => {
+    resolve = resolvePromise;
+    reject = rejectPromise;
+  });
+  return { promise, reject, resolve };
+}
+
 vi.mock("@tauri-apps/api/core", () => ({
   invoke: invokeMock,
 }));
@@ -64,5 +74,67 @@ describe("external history rescans", () => {
       source: "codex_app",
       clear: true,
     });
+  });
+
+  it("serializes a disjoint source behind the active native scan", async () => {
+    const active = deferred<{ changedSources: ["codex_app"] }>();
+    invokeMock
+      .mockReturnValueOnce(active.promise)
+      .mockResolvedValueOnce({ changedSources: ["cline"] });
+
+    const first = externalHistoryRescanSource("codex_app");
+    await vi.waitFor(() => expect(invokeMock).toHaveBeenCalledOnce());
+
+    const second = externalHistoryRescanSource("cline");
+    await Promise.resolve();
+    expect(invokeMock).toHaveBeenCalledOnce();
+
+    active.resolve({ changedSources: ["codex_app"] });
+    await first;
+    await vi.waitFor(() => expect(invokeMock).toHaveBeenCalledTimes(2));
+    await expect(second).resolves.toEqual({ changedSources: ["cline"] });
+    expect(invokeMock.mock.calls[1]).toEqual([
+      "external_history_rescan_sources",
+      { sources: ["cline"], clear: false },
+    ]);
+  });
+
+  it("queues a clear rebuild when an incremental scan is already active", async () => {
+    const active = deferred<{ changedSources: [] }>();
+    invokeMock
+      .mockReturnValueOnce(active.promise)
+      .mockResolvedValueOnce({ changedSources: ["codex_app"] });
+
+    const incremental = externalHistoryRescanSource("codex_app");
+    await vi.waitFor(() => expect(invokeMock).toHaveBeenCalledOnce());
+
+    const rebuild = externalHistoryRescanSource("codex_app", { clear: true });
+    await Promise.resolve();
+    expect(invokeMock).toHaveBeenCalledOnce();
+
+    active.resolve({ changedSources: [] });
+    await incremental;
+    await vi.waitFor(() => expect(invokeMock).toHaveBeenCalledTimes(2));
+    await rebuild;
+    expect(invokeMock.mock.calls[1]).toEqual([
+      "external_history_rescan_source",
+      { source: "codex_app", clear: true },
+    ]);
+  });
+
+  it("releases the queue after a failed scan and continues with pending work", async () => {
+    const active = deferred<{ changedSources: [] }>();
+    invokeMock
+      .mockReturnValueOnce(active.promise)
+      .mockResolvedValueOnce({ changedSources: [] });
+
+    const failed = externalHistoryRescanSource("codex_app");
+    await vi.waitFor(() => expect(invokeMock).toHaveBeenCalledOnce());
+    const pending = externalHistoryRescanSource("cline");
+
+    active.reject(new Error("scan failed"));
+    await expect(failed).rejects.toThrow("scan failed");
+    await vi.waitFor(() => expect(invokeMock).toHaveBeenCalledTimes(2));
+    await expect(pending).resolves.toEqual({ changedSources: [] });
   });
 });
