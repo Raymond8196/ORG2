@@ -139,6 +139,9 @@
       "helveticaNeue": "Helvetica Neue 風格"
     },
     "uiScale": "界面縮放",
+    "preferences": "偏好設定",
+    "usePointerCursors": "使用指標游標",
+    "usePointerCursorsDesc": "將游標移至互動元素上時變更為指標",
     "timezoneAuto": "自動（瀏覽器）",
     "timezoneSearchPlaceholder": "搜索附近城市",
     "sendOnEnter": "Enter 發送消息",

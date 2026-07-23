@@ -139,6 +139,9 @@
       "helveticaNeue": "Helvetica Neue style"
     },
     "uiScale": "UI scale",
+    "preferences": "Preferences",
+    "usePointerCursors": "Use pointer cursors",
+    "usePointerCursorsDesc": "Change the cursor to a pointer when hovering over interactive elements",
     "timezoneAuto": "Auto (Browser)",
     "timezoneSearchPlaceholder": "Search closest cities",
     "sendOnEnter": "Send messages with Enter",
