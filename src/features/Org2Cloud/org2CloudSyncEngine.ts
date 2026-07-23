@@ -57,7 +57,10 @@ import { ProjectSyncChannel } from "../TeamCollaboration/engine/ProjectSyncChann
 import type { ProjectSyncBridge } from "../TeamCollaboration/engine/projectSyncBridge";
 import { tauriProjectSyncBridge } from "../TeamCollaboration/engine/projectSyncBridge";
 import { getSessionForkedFrom } from "../TeamCollaboration/forkSession";
-import { isScopeMatchableImportedSession } from "../TeamCollaboration/importedSessionScopeMatch";
+import {
+  isScopeMatchableImportedSession,
+  persistedScopeKeysForImportedSession,
+} from "../TeamCollaboration/importedSessionScopeMatch";
 import {
   peekShareableScopeKeys,
   primeShareableScopeKey,
@@ -921,6 +924,8 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
   /** ALL shareable keys for the session's checkout (multi-remote), from the
    * resolver cache. undefined = resolution in flight (primed here). */
   private getSessionScopeKeys(session: Session): string[] | null | undefined {
+    const persistedKeys = persistedScopeKeysForImportedSession(session);
+    if (persistedKeys !== undefined) return persistedKeys;
     if (!session.repoPath) return null;
     const keys = peekShareableScopeKeys(session.repoPath);
     if (keys === undefined) primeShareableScopeKey(session.repoPath);

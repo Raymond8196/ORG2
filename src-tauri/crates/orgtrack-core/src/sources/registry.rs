@@ -171,6 +171,8 @@ fn scan_cursor_ide(
                 background: row.background,
                 is_active: row.is_active,
                 repo_path: row.repo_path,
+                repo_root_path: row.repo_root_path,
+                repo_remote_urls: row.repo_remote_urls,
                 storage_path: row.storage_path,
                 repo_name: row.repo_name,
                 branch: row.branch,
