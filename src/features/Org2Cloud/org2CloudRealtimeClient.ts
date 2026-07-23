@@ -141,7 +141,16 @@ export function createOrg2CloudRealtimeConnection(
         autoRefreshToken: false,
         detectSessionInUrl: false,
       },
-      realtime: { params: { eventsPerSecond: 5 } },
+      realtime: {
+        params: { eventsPerSecond: 5 },
+        // realtime-js defaults to a FIXED [1s,2s,5s,10s]+flat-10s schedule,
+        // which phase-locks every client's reconnect after a shared outage;
+        // the random spread staggers the fleet's rejoin (and therefore the
+        // SUBSCRIBED-edge recovery reads) across a few seconds.
+        reconnectAfterMs: (tries: number) =>
+          ([1_000, 2_000, 5_000, 10_000][tries - 1] ?? 10_000) +
+          Math.floor(Math.random() * 3_000),
+      },
     }
   );
   client.realtime.setAuth(accessToken);

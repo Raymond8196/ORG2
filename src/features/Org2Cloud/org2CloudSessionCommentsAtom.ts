@@ -37,11 +37,11 @@ import {
 } from "./org2CloudCommentsClient";
 import {
   EMPTY_ENTRY,
-  SESSION_COMMENTS_ERROR_RETRY_MS,
   decideSessionCommentsFetch,
   insertComment,
   patchComment,
   sessionCommentsEntryForIdentity,
+  sessionCommentsErrorRetryDelayMs,
   shouldEvictSessionCommentsOnError,
   writeSessionCommentsEntry,
 } from "./org2CloudSessionCommentsAtom.commentTransforms";
@@ -76,6 +76,8 @@ export type {
 export {
   MAX_SESSION_COMMENT_CACHE_ENTRIES,
   SESSION_COMMENTS_ERROR_RETRY_MS,
+  SESSION_COMMENTS_ERROR_RETRY_MAX_MS,
+  sessionCommentsErrorRetryDelayMs,
   countLiveComments,
   decideSessionCommentsFetch,
   getThreadResolution,
@@ -271,19 +273,20 @@ export function useSessionComments(
           const evict = shouldEvictSessionCommentsOnError(error);
           const errorMessage =
             error instanceof Error ? error.message : String(error);
-          setEntries((previous) =>
-            writeSessionCommentsEntry(previous, targetKey, {
-              ...(evict
-                ? EMPTY_ENTRY
-                : previous[targetKey]?.identityKey === requestIdentityKey
-                  ? previous[targetKey]
-                  : EMPTY_ENTRY),
+          setEntries((previous) => {
+            const retained =
+              !evict && previous[targetKey]?.identityKey === requestIdentityKey
+                ? previous[targetKey]
+                : undefined;
+            return writeSessionCommentsEntry(previous, targetKey, {
+              ...(retained ?? EMPTY_ENTRY),
               identityKey: requestIdentityKey,
               state: "error",
               errorMessage,
+              consecutiveFailures: (retained?.consecutiveFailures ?? 0) + 1,
               fetchedAt: Date.now(),
-            })
-          );
+            });
+          });
         } finally {
           if (forceToken) {
             if (activeForceTokenByKey.get(requestKey) === forceToken) {
@@ -325,16 +328,26 @@ export function useSessionComments(
 
   // Error retry: one deferred re-run per error result while a consumer is
   // mounted (the entry's fetchedAt changes on every attempt, re-arming the
-  // effect). Not a recurring timer — it exists only while an error shows.
+  // effect). Not a recurring timer — it exists only while an error shows, and
+  // consecutive failures widen the delay exponentially.
   const entryFetchedAt = entry.fetchedAt;
+  const entryConsecutiveFailures = entry.consecutiveFailures ?? 1;
   useEffect(() => {
     if (!orgId || !sessionId || !signedIn) return undefined;
     if (entryState !== "error") return undefined;
     const timer = setTimeout(() => {
       void fetchComments(orgId, sessionId, {});
-    }, SESSION_COMMENTS_ERROR_RETRY_MS);
+    }, sessionCommentsErrorRetryDelayMs(entryConsecutiveFailures));
     return () => clearTimeout(timer);
-  }, [orgId, sessionId, signedIn, entryState, entryFetchedAt, fetchComments]);
+  }, [
+    orgId,
+    sessionId,
+    signedIn,
+    entryState,
+    entryFetchedAt,
+    entryConsecutiveFailures,
+    fetchComments,
+  ]);
 
   // --- Realtime nudge (comments bus): a peer's comment/task mutation
   // broadcast bumps this counter — force-refetch immediately so the open
