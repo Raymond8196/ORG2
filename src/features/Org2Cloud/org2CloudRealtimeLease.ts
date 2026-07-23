@@ -5,9 +5,9 @@ import { isWindowFocused } from "@src/util/core/windowFocus";
 /**
  * Realtime demand is strictly tied to an interactive desktop window. Local
  * event writes and the durable project outbox use their own event-driven HTTP
- * paths, so a hidden/unfocused window has no reason to retain a billable
- * socket. Returning focus reacquires immediately; each channel's SUBSCRIBED
- * true-edge performs the compensating recovery read.
+ * paths, so a hidden window has no reason to retain a billable socket.
+ * Returning focus reacquires immediately; each channel's SUBSCRIBED true-edge
+ * performs the compensating recovery read.
  */
 export interface Org2CloudRealtimeLeaseController {
   /** Re-evaluate foreground state after focus/blur/visibility changes. */
@@ -20,24 +20,45 @@ export interface Org2CloudRealtimeLeaseController {
   isHeld(): boolean;
 }
 
+/**
+ * A blurred-but-visible window keeps the lease for this long before the
+ * release publishes. Routine focus flips (cmd-tab, dialogs, Spotlight) must
+ * not pay a socket teardown, four channel re-joins, presence churn, and the
+ * SUBSCRIBED-edge recovery listings; only a sustained departure should.
+ */
+export const REALTIME_LEASE_RELEASE_GRACE_MS = 45_000;
+
 interface CreateOrg2CloudRealtimeLeaseControllerOptions {
   readonly isForeground: () => boolean;
+  readonly isHidden: () => boolean;
   readonly onChange: (held: boolean) => void;
   readonly initialHeld?: boolean;
+  readonly releaseGraceMs?: number;
 }
 
 /**
  * Small explicit state machine for the billable Realtime connection lease:
- * foreground = held, background/hidden = released. It contains no cadence,
- * polling loop, grace timeout, or keepalive of its own.
+ * foreground = held; hidden = released immediately; blurred-but-visible =
+ * released after one one-shot grace timer (cancelled on refocus). It contains
+ * no cadence, polling loop, or keepalive of its own.
  */
 export function createOrg2CloudRealtimeLeaseController({
   isForeground,
+  isHidden,
   onChange,
   initialHeld = isForeground(),
+  releaseGraceMs = REALTIME_LEASE_RELEASE_GRACE_MS,
 }: CreateOrg2CloudRealtimeLeaseControllerOptions): Org2CloudRealtimeLeaseController {
   let held = initialHeld;
   let disposed = false;
+  let releaseTimer: ReturnType<typeof setTimeout> | null = null;
+
+  const cancelPendingRelease = () => {
+    if (releaseTimer !== null) {
+      clearTimeout(releaseTimer);
+      releaseTimer = null;
+    }
+  };
 
   const publish = (nextHeld: boolean) => {
     if (held === nextHeld || disposed) return;
@@ -46,9 +67,30 @@ export function createOrg2CloudRealtimeLeaseController({
   };
 
   return {
-    refresh: () => publish(isForeground()),
-    releaseImmediately: () => publish(false),
+    refresh: () => {
+      if (isForeground()) {
+        cancelPendingRelease();
+        publish(true);
+        return;
+      }
+      if (isHidden()) {
+        cancelPendingRelease();
+        publish(false);
+        return;
+      }
+      if (!held || releaseTimer !== null) return;
+      releaseTimer = setTimeout(() => {
+        releaseTimer = null;
+        if (disposed || isForeground()) return;
+        publish(false);
+      }, releaseGraceMs);
+    },
+    releaseImmediately: () => {
+      cancelPendingRelease();
+      publish(false);
+    },
     dispose: () => {
+      cancelPendingRelease();
       disposed = true;
     },
     isHeld: () => held,
@@ -70,6 +112,7 @@ export function useOrg2CloudRealtimeLease(): boolean {
     }
     const controller = createOrg2CloudRealtimeLeaseController({
       isForeground: isWindowFocused,
+      isHidden: () => document.visibilityState === "hidden",
       // Preserve the render-time truth so a focus transition between render
       // and effect setup is reconciled instead of silently skipped.
       initialHeld: initialHeldRef.current,
