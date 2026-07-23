@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { buildVirtualizedGroupModel } from "./model";
+import { type VirtualizedGroup, buildVirtualizedGroupModel } from "./model";
 
 describe("buildVirtualizedGroupModel", () => {
-  const groups = [
+  const groups: readonly VirtualizedGroup<{ label: string }, string>[] = [
     { key: "open", group: { label: "Open" }, items: ["a", "b"] },
     { key: "closed", group: { label: "Closed" }, items: ["c"] },
-  ] as const;
+  ];
 
   it("keeps headers but omits collapsed row references", () => {
     const model = buildVirtualizedGroupModel(
