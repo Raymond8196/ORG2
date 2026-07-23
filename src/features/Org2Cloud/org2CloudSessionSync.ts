@@ -3,328 +3,62 @@ import { eventStoreProxy } from "@src/engines/SessionCore/core/store/EventStoreP
 import type { SessionEvent } from "@src/engines/SessionCore/core/types";
 import { processChunksRust } from "@src/engines/SessionCore/ingestion/rustBridge";
 import { createLogger } from "@src/hooks/logger";
-import { createCollabAvatarIdentity } from "@src/store/collaboration/protocol";
-import {
-  COLLAB_IDENTITY_KIND,
-  COLLAB_ROLE,
-  COLLAB_SESSION_ACCESS_MODE,
-} from "@src/store/collaboration/types";
-import type {
-  CollabMemberRecord,
-  CollabOrgRecord,
-  RemoteTeammateSessionMetadata,
-} from "@src/store/collaboration/types";
+import { COLLAB_SESSION_ACCESS_MODE } from "@src/store/collaboration/types";
+import type { RemoteTeammateSessionMetadata } from "@src/store/collaboration/types";
 import type { Session } from "@src/store/session/sessionAtom/types";
 import { isImportedHistorySession } from "@src/util/session/sessionDispatch";
 
 import {
-  createDefaultAccessSettings,
   sha256Hex,
   stableStringify,
-  toRemoteMetadata,
 } from "../TeamCollaboration/collabSyncUtils";
 import {
   computeFrozenEventCount,
   splitFrozenIntoSegments,
 } from "../TeamCollaboration/engine/collabSyncEngineHelpers";
-import { getSessionForkedFrom } from "../TeamCollaboration/forkSession";
 import { computeSegmentHash } from "../TeamCollaboration/sync/collabGzip";
 import type { CloudPushAccess } from "./org2CloudAccessSettings";
 import type { Org2CloudAuthState } from "./org2CloudAuthAtom";
 import { broadcastOrgControlChangedToPeers } from "./org2CloudControlBus";
-import type { CollabSessionPushCursor } from "./org2CloudSyncAtoms";
 import {
-  org2CloudPushCursorsAtom,
-  org2CloudPushedMetadataAtom,
-} from "./org2CloudSyncAtoms";
-import * as org2CloudSyncClient from "./org2CloudSyncClient";
+  buildCloudSessionMetadata,
+  metadataPayloadForHash,
+} from "./org2CloudSessionSync.metadata";
+import { Org2CloudSessionSyncState } from "./org2CloudSessionSync.state";
+import type {
+  Org2CloudSyncClientDeps,
+  PreparedPushEvents,
+  PreparedPushPlan,
+} from "./org2CloudSessionSync.types";
 import { isOrg2SyncErrorCode } from "./org2CloudSyncClient";
-import {
-  type CloudStore,
-  EXTERNAL_HISTORY_ACTIVITY_DEBOUNCE_MS,
-} from "./org2CloudSyncLifecycle";
+import type { CloudStore } from "./org2CloudSyncLifecycle";
+
+export {
+  buildCloudSessionMetadata,
+  isCloudPushCandidate,
+} from "./org2CloudSessionSync.metadata";
+export type { Org2CloudSyncClientDeps } from "./org2CloudSessionSync.types";
 
 const log = createLogger("Org2CloudSyncEngine");
-
-/** Safety TTL for rechecking a session whose events plane was verified clean. */
-const EVENTS_CLEAN_TTL_MS = 10 * 60_000;
 
 /** Largest cursor accepted by the backend's int4 `p_after_seq` argument. */
 const HEAD_READ_AFTER_SEQ = 2_147_483_647;
 
-/** Client seam so tests inject fetch-free fakes. */
-export type Org2CloudSyncClientDeps = Pick<
-  typeof org2CloudSyncClient,
-  | "upsertSessionMetadata"
-  | "appendSessionEvents"
-  | "rewriteSessionEvents"
-  | "getSessionEvents"
-  | "getOrgRepoScopes"
-  | "listOrgSessions"
-  | "deleteSession"
->;
-
-interface PreparedPushPlan {
-  perEventHashes: string[];
-  frozenEventCount: number;
-  tailEvents: SessionEvent[];
-  tailHash: string | null;
-  frozenChainHash: string;
-}
-
-interface PreparedPushEvents {
-  stampAtRead: number;
-  events: SessionEvent[];
-  plan(): Promise<PreparedPushPlan>;
-}
-
-interface CleanEventPlaneStamp {
-  verifiedAt: number;
-  /** Imported transcript version used for this proof. */
-  sourceUpdatedAt?: string;
-}
-
-interface ExternalHistoryVersionObservation {
-  sourceUpdatedAt: string;
-  observedAt: number;
-}
-
-function metadataPayloadForHash(
-  metadata: RemoteTeammateSessionMetadata
-): Partial<RemoteTeammateSessionMetadata> {
-  const payload: Partial<RemoteTeammateSessionMetadata> = { ...metadata };
-  // These fields are derived by the listing RPC, not authored by
-  // cloud_upsert_session_metadata. Excluding them makes a server summary
-  // comparable to the exact payload this client would upload.
-  // ownerMemberId is also server-authoritative: the synthetic local member
-  // uses auth.userId, while the listing returns the org-membership row id.
-  // The row id embeds that membership id, so it is server-derived too.
-  delete payload.id;
-  delete payload.ownerMemberId;
-  delete payload.directlySharedWithMe;
-  delete payload.eventsEpoch;
-  delete payload.eventsFrozenSeq;
-  delete payload.eventsCount;
-  delete payload.eventsTailHash;
-  delete payload.deletedAt;
-  delete payload.commentCount;
-  delete payload.unresolvedCommentCount;
-  return payload;
-}
-
-/**
- * Build cloud metadata while restoring fork lineage stripped from Session rows.
- */
-export function buildCloudSessionMetadata(
-  session: Session,
-  orgId: string,
-  userId: string,
-  displayName: string,
-  scopeKey: string | null,
-  access: CloudPushAccess,
-  avatarUrl?: string
-): RemoteTeammateSessionMetadata {
-  const org: CollabOrgRecord = { id: orgId, name: "", createdAt: "" };
-  const member: CollabMemberRecord = {
-    id: userId,
-    orgId,
-    displayName,
-    avatar: createCollabAvatarIdentity(displayName),
-    role: COLLAB_ROLE.MEMBER,
-    identityKind: COLLAB_IDENTITY_KIND.HUMAN,
-    joinedAt: "",
-  };
-  const settings = {
-    ...createDefaultAccessSettings(orgId, userId),
-    accessMode: access.accessMode,
-    sessionVisibility: { [session.session_id]: access.visibility },
-  };
-  const withLineage: Session = {
-    ...session,
-    forkedFrom: getSessionForkedFrom(session),
-  };
-  return {
-    ...toRemoteMetadata(withLineage, org, member, settings, scopeKey),
-    ...(avatarUrl ? { ownerAvatarUrl: avatarUrl } : {}),
-  };
-}
-
-/** True for local sessions that may ever be pushed to the cloud. */
-export function isCloudPushCandidate(session: Session): boolean {
-  // Imported teammate copies must never round-trip under the local user.
-  // The user's own external history has no importedFrom and remains shareable.
-  return !session.importedFrom;
-}
-
 /**
  * Owns one session's metadata/event push plane, including persisted cursors,
  * event-clean stamps, OCC re-anchors, and retract bookkeeping.
+ *
+ * In-memory bookkeeping (pushed-metadata hashes, clean-event-plane stamps,
+ * cursor/pushed-marker storage) lives in the Org2CloudSessionSyncState base
+ * class in org2CloudSessionSync.state.ts; this subclass adds the
+ * network-facing push/rewrite orchestration that calls the sync client.
  */
-export class Org2CloudSessionSync {
-  /** `${orgId}:${sessionId}` to hash of the last upserted metadata. */
-  private readonly lastPushedMetadataHashes = new Map<string, string>();
-  /** sessionId to orgId to time when the event plane was verified clean. */
-  private readonly cleanEventPlanes = new Map<
-    string,
-    Map<string, CleanEventPlaneStamp>
-  >();
-  /** A cold-start remote summary may seed each (org, session) only once. */
-  private readonly remoteSeedAttemptedKeys = new Set<string>();
-  /** Session activity stamp prevents a mid-push write from being marked clean. */
-  private readonly eventActivityStamps = new Map<string, number>();
-  /** Last write time for quiet-window gating of mutable external histories. */
-  private readonly eventActivityAtMs = new Map<string, number>();
-  /** Last imported-source version observed from sessionsAtom. */
-  private readonly externalHistoryVersions = new Map<
-    string,
-    ExternalHistoryVersionObservation
-  >();
-  /** Org-independent event reads and hashing shared across orgs in one pass. */
-  private readonly passPushPrepareCache = new Map<
-    string,
-    Promise<PreparedPushEvents>
-  >();
-
+export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
   constructor(
-    private readonly getStore: () => CloudStore | null,
+    getStore: () => CloudStore | null,
     private readonly client: Org2CloudSyncClientDeps
-  ) {}
-
-  reset(): void {
-    this.lastPushedMetadataHashes.clear();
-    this.cleanEventPlanes.clear();
-    this.eventActivityStamps.clear();
-    this.eventActivityAtMs.clear();
-    this.externalHistoryVersions.clear();
-    this.passPushPrepareCache.clear();
-    this.remoteSeedAttemptedKeys.clear();
-  }
-
-  /** Start a new engine pass; prepared events must never leak across passes. */
-  beginPass(): void {
-    this.passPushPrepareCache.clear();
-  }
-
-  /**
-   * Keep app-lifetime acceleration state inside the currently reachable data
-   * set. Durable cursors/markers remain in Jotai storage until their own
-   * retraction/reconcile paths run; these in-memory hashes and clean stamps are
-   * only caches, so dropping a dead key can at worst cause one safe recheck.
-   */
-  prune(
-    liveOrgIds: ReadonlySet<string>,
-    liveSessionIds: ReadonlySet<string>
-  ): void {
-    for (const key of this.lastPushedMetadataHashes.keys()) {
-      const separatorIndex = key.indexOf(":");
-      const orgId = separatorIndex === -1 ? key : key.slice(0, separatorIndex);
-      const sessionId =
-        separatorIndex === -1 ? "" : key.slice(separatorIndex + 1);
-      if (!liveOrgIds.has(orgId) || !liveSessionIds.has(sessionId)) {
-        this.lastPushedMetadataHashes.delete(key);
-      }
-    }
-    for (const key of this.remoteSeedAttemptedKeys) {
-      const separatorIndex = key.indexOf(":");
-      const orgId = separatorIndex === -1 ? key : key.slice(0, separatorIndex);
-      const sessionId =
-        separatorIndex === -1 ? "" : key.slice(separatorIndex + 1);
-      if (!liveOrgIds.has(orgId) || !liveSessionIds.has(sessionId)) {
-        this.remoteSeedAttemptedKeys.delete(key);
-      }
-    }
-    for (const [sessionId, byOrg] of this.cleanEventPlanes) {
-      if (!liveSessionIds.has(sessionId)) {
-        this.cleanEventPlanes.delete(sessionId);
-        continue;
-      }
-      for (const orgId of byOrg.keys()) {
-        if (!liveOrgIds.has(orgId)) byOrg.delete(orgId);
-      }
-      if (byOrg.size === 0) this.cleanEventPlanes.delete(sessionId);
-    }
-    for (const sessionId of this.eventActivityStamps.keys()) {
-      if (!liveSessionIds.has(sessionId)) {
-        this.eventActivityStamps.delete(sessionId);
-      }
-    }
-    for (const sessionId of this.eventActivityAtMs.keys()) {
-      if (!liveSessionIds.has(sessionId)) {
-        this.eventActivityAtMs.delete(sessionId);
-      }
-    }
-    for (const sessionId of this.externalHistoryVersions.keys()) {
-      if (!liveSessionIds.has(sessionId)) {
-        this.externalHistoryVersions.delete(sessionId);
-      }
-    }
-  }
-
-  /** Drop clean markers and stamp a local event-store write. */
-  noteSessionEventActivity(sessionId: string): void {
-    this.eventActivityStamps.set(
-      sessionId,
-      (this.eventActivityStamps.get(sessionId) ?? 0) + 1
-    );
-    this.eventActivityAtMs.set(sessionId, Date.now());
-    this.cleanEventPlanes.delete(sessionId);
-  }
-
-  /**
-   * Imported CLI files are mutable snapshots, not append-only EventStore
-   * streams. During a live turn older normalized records can still change;
-   * wait for the same quiet window as the lifecycle timer before doing the
-   * expensive full read/normalize/rewrite. Metadata remains live.
-   */
-  private isExternalHistorySettled(session: Session): boolean {
-    const sessionId = session.session_id;
-    if (!isImportedHistorySession(sessionId)) return true;
-    const now = Date.now();
-    const observed = this.externalHistoryVersions.get(sessionId);
-    if (!observed || observed.sourceUpdatedAt !== session.updated_at) {
-      this.externalHistoryVersions.set(sessionId, {
-        sourceUpdatedAt: session.updated_at,
-        observedAt: now,
-      });
-      return false;
-    }
-    const changedAt = Math.max(
-      observed.observedAt,
-      this.eventActivityAtMs.get(sessionId) ?? 0
-    );
-    return now - changedAt >= EXTERNAL_HISTORY_ACTIVITY_DEBOUNCE_MS;
-  }
-
-  private isEventPlaneClean(orgId: string, session: Session): boolean {
-    const clean = this.cleanEventPlanes.get(session.session_id)?.get(orgId);
-    if (!clean || Date.now() - clean.verifiedAt >= EVENTS_CLEAN_TTL_MS) {
-      return false;
-    }
-    return (
-      !isImportedHistorySession(session.session_id) ||
-      clean.sourceUpdatedAt === session.updated_at
-    );
-  }
-
-  private markEventPlaneClean(
-    orgId: string,
-    session: Session,
-    stampAtRead: number,
-    verifiedAt = Date.now()
-  ): void {
-    const sessionId = session.session_id;
-    if ((this.eventActivityStamps.get(sessionId) ?? 0) !== stampAtRead) return;
-    let byOrg = this.cleanEventPlanes.get(sessionId);
-    if (!byOrg) {
-      byOrg = new Map();
-      this.cleanEventPlanes.set(sessionId, byOrg);
-    }
-    byOrg.set(orgId, {
-      verifiedAt,
-      sourceUpdatedAt: isImportedHistorySession(sessionId)
-        ? session.updated_at
-        : undefined,
-    });
+  ) {
+    super(getStore);
   }
 
   /**
@@ -386,79 +120,6 @@ export class Org2CloudSessionSync {
       session,
       this.eventActivityStamps.get(session.session_id) ?? 0
     );
-  }
-
-  private getCursor(
-    orgId: string,
-    sessionId: string
-  ): CollabSessionPushCursor | undefined {
-    return this.getStore()?.get(org2CloudPushCursorsAtom)[
-      `${orgId}:${sessionId}`
-    ];
-  }
-
-  private setCursor(cursor: CollabSessionPushCursor): void {
-    this.getStore()?.set(org2CloudPushCursorsAtom, (current) => ({
-      ...current,
-      [`${cursor.orgId}:${cursor.sessionId}`]: cursor,
-    }));
-  }
-
-  private async computeFrozenChainHash(
-    perEventHashes: string[],
-    frozenEventCount: number
-  ): Promise<string> {
-    return sha256Hex(perEventHashes.slice(0, frozenEventCount).join("\n"));
-  }
-
-  /** Force the next metadata plane to upsert even if its bytes are unchanged. */
-  invalidatePushedMetadataHash(orgId: string, sessionId: string): void {
-    this.lastPushedMetadataHashes.delete(`${orgId}:${sessionId}`);
-  }
-
-  /** Whether local durable state proves this session was previously pushed. */
-  wasCloudPushed(orgId: string, sessionId: string): boolean {
-    const key = `${orgId}:${sessionId}`;
-    return (
-      this.lastPushedMetadataHashes.has(key) ||
-      this.getPushedMetadataMarker(orgId, sessionId) ||
-      this.getCursor(orgId, sessionId) !== undefined
-    );
-  }
-
-  private getPushedMetadataMarker(orgId: string, sessionId: string): boolean {
-    return (
-      this.getStore()?.get(org2CloudPushedMetadataAtom)[
-        `${orgId}:${sessionId}`
-      ] === true
-    );
-  }
-
-  private setPushedMetadataMarker(orgId: string, sessionId: string): void {
-    const key = `${orgId}:${sessionId}`;
-    this.getStore()?.set(org2CloudPushedMetadataAtom, (current) =>
-      current[key] ? current : { ...current, [key]: true }
-    );
-  }
-
-  private clearPushedMetadataMarker(orgId: string, sessionId: string): void {
-    const key = `${orgId}:${sessionId}`;
-    this.getStore()?.set(org2CloudPushedMetadataAtom, (current) => {
-      if (!(key in current)) return current;
-      const next = { ...current };
-      delete next[key];
-      return next;
-    });
-  }
-
-  private clearCursor(orgId: string, sessionId: string): void {
-    const key = `${orgId}:${sessionId}`;
-    this.getStore()?.set(org2CloudPushCursorsAtom, (current) => {
-      if (!(key in current)) return current;
-      const next = { ...current };
-      delete next[key];
-      return next;
-    });
   }
 
   /** Soft-tombstone a prior push and clear every local pushed marker. */
