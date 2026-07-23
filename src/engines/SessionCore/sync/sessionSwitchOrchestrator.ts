@@ -180,7 +180,7 @@ async function handleCacheHit(
     abortController,
     setPendingPlanApprovals
   );
-  if (!isImportedHistorySession(sessionId)) {
+  if (cacheHitInFlight && !isImportedHistorySession(sessionId)) {
     reconcileInFlightHistory(sessionId, adapter, refs, actions);
   }
   applyPostLoadResult(sessionId, postResult, actions);
@@ -257,7 +257,7 @@ async function handleCacheMiss(
   if (abortController.signal.aborted) return;
 
   actions.dispatchLoadSession({ sessionId, events });
-  if (!isImportedHistorySession(sessionId)) {
+  if (missInFlight && !isImportedHistorySession(sessionId)) {
     reconcileInFlightHistory(sessionId, adapter, refs, actions);
   }
 
