@@ -107,7 +107,7 @@ describe("runDataSourceAutoScan", () => {
         true,
         config,
         { codex_app: { historyFound: true, checkedAt: NOW } },
-        "5m"
+        "10m"
       )
     ).toBe(60_000);
     expect(
@@ -117,7 +117,7 @@ describe("runDataSourceAutoScan", () => {
         true,
         config,
         { codex_app: { historyFound: true, checkedAt: NOW } },
-        "5m"
+        "10m"
       )
     ).toBe(10 * 60_000);
   });
@@ -139,10 +139,10 @@ describe("runDataSourceAutoScan", () => {
     };
 
     expect(
-      nextDataSourceAutoScanDelay(NOW, true, true, config, presence, "5m")
+      nextDataSourceAutoScanDelay(NOW, true, true, config, presence, "10m")
     ).toBe(SOURCE_PRESENCE_PROBE_INTERVAL_MS);
     expect(
-      nextDataSourceAutoScanDelay(NOW, true, false, config, presence, "5m")
+      nextDataSourceAutoScanDelay(NOW, true, false, config, presence, "10m")
     ).toBeNull();
   });
 
