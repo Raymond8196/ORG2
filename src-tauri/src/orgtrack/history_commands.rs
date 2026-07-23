@@ -44,6 +44,8 @@ async fn acquire_external_history_scan_permit(
 }
 
 const CODEX_TURN_PROJECTION_CACHE_CAPACITY: usize = 8;
+const CODEX_TURN_PROJECTION_LIMIT_PER_SESSION: usize = 4_096;
+const CODEX_INITIAL_RECENT_TURN_COUNT: usize = 1;
 
 #[derive(Debug)]
 struct CodexTurnProjectionCacheEntry {
@@ -89,6 +91,18 @@ impl CodexTurnProjectionCache {
         {
             self.entries.remove(index);
         }
+        let projected = if projected.len() > CODEX_TURN_PROJECTION_LIMIT_PER_SESSION {
+            projected
+                .into_iter()
+                .rev()
+                .take(CODEX_TURN_PROJECTION_LIMIT_PER_SESSION)
+                .collect::<Vec<_>>()
+                .into_iter()
+                .rev()
+                .collect()
+        } else {
+            projected
+        };
         self.entries.push_back(CodexTurnProjectionCacheEntry {
             session_id,
             signature,
@@ -460,6 +474,44 @@ pub async fn codex_app_chunks(
         let signature_after = codex_transcript_signature(&conn, &session_id)?;
         remember_codex_turn_projection(&session_id, signature_before, signature_after, projected);
         Ok(chunks)
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
+}
+
+#[tauri::command]
+pub async fn codex_app_initial_window(
+    session_id: String,
+) -> Result<codex_app::CodexAppInitialWindow, String> {
+    tokio::task::spawn_blocking(move || {
+        let conn = open_cache_conn()?;
+        let signature_before = codex_transcript_signature(&conn, &session_id)?;
+        let window = codex_app::load_codex_app_initial_window_for_session(
+            &conn,
+            &session_id,
+            CODEX_INITIAL_RECENT_TURN_COUNT,
+        )?;
+        let signature_after = codex_transcript_signature(&conn, &session_id)?;
+        remember_codex_turn_projection(
+            &session_id,
+            signature_before,
+            signature_after,
+            window.turns.clone(),
+        );
+        Ok(window)
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
+}
+
+#[tauri::command]
+pub async fn codex_app_turn_window(
+    session_id: String,
+    turn_id: String,
+) -> Result<codex_app::CodexAppTurnWindow, String> {
+    tokio::task::spawn_blocking(move || {
+        let conn = open_cache_conn()?;
+        codex_app::load_codex_app_turn_for_session(&conn, &session_id, &turn_id)
     })
     .await
     .map_err(|err| format!("Task join error: {err}"))?
@@ -1027,5 +1079,26 @@ mod tests {
         assert!(cache.get("codexapp-0", (0, 0)).is_none());
         assert!(cache.get("codexapp-1", (999, 999)).is_none());
         assert!(cache.get("codexapp-2", (2, 2)).is_some());
+    }
+
+    #[test]
+    fn codex_projection_cache_bounds_turns_per_session() {
+        let mut cache = CodexTurnProjectionCache::default();
+        cache.insert(
+            "codexapp-large".to_string(),
+            (1, 2),
+            (0..=CODEX_TURN_PROJECTION_LIMIT_PER_SESSION)
+                .map(|index| projected(&format!("user-{index}"), index as i64))
+                .collect(),
+        );
+
+        let projected = cache
+            .get("codexapp-large", (1, 2))
+            .expect("cached projection");
+        assert_eq!(projected.len(), CODEX_TURN_PROJECTION_LIMIT_PER_SESSION);
+        assert_eq!(
+            projected.first().map(|turn| turn.turn_id.as_str()),
+            Some("user-1")
+        );
     }
 }

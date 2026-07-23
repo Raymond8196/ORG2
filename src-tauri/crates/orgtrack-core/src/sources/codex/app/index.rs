@@ -4,6 +4,7 @@ use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use core_types::activity::ActivityChunk;
 use rusqlite::Connection;
@@ -21,8 +22,18 @@ use super::meta::{
     parse_codex_session_meta, resolve_codex_transcript_for_thread_id_near_path,
     session_meta_to_cache_input,
 };
-use super::transcript::load_codex_app_from_path;
+use super::transcript::{
+    load_codex_app_from_path, load_codex_app_initial_window_from_path,
+    load_codex_app_turn_from_path, CodexAppInitialWindow, CodexAppTurnWindow,
+};
 use super::{CodexAppRecentPath, CodexAppSessionPage, CODEX_APP_METADATA_PARSER_VERSION};
+
+/// Metadata discovery normally parses changed rollouts to derive repo, title,
+/// and rounds. Re-reading a very large rollout while Codex is still appending
+/// can allocate several times the file size and immediately become stale.
+/// Keep its existing cached row (if any) and parse it once after a quiet window.
+const MAX_EAGER_ACTIVE_CODEX_METADATA_BYTES: i64 = 32 * 1024 * 1024;
+const ACTIVE_CODEX_METADATA_QUIET_NS: i64 = 10 * 60 * 1_000_000_000;
 
 #[derive(Debug, Clone)]
 struct CodexSessionIndexEntry {
@@ -74,6 +85,26 @@ pub fn load_codex_app_for_session(
     load_codex_app_from_path(session_id, &path)
 }
 
+pub fn load_codex_app_initial_window_for_session(
+    conn: &Connection,
+    session_id: &str,
+    recent_turn_count: usize,
+) -> Result<CodexAppInitialWindow, String> {
+    let file_stem = codex_file_stem_from_session_id(session_id)?;
+    let path = resolve_codex_session_path(conn, file_stem)?;
+    load_codex_app_initial_window_from_path(session_id, &path, recent_turn_count)
+}
+
+pub fn load_codex_app_turn_for_session(
+    conn: &Connection,
+    session_id: &str,
+    turn_id: &str,
+) -> Result<CodexAppTurnWindow, String> {
+    let file_stem = codex_file_stem_from_session_id(session_id)?;
+    let path = resolve_codex_session_path(conn, file_stem)?;
+    load_codex_app_turn_from_path(session_id, &path, turn_id)
+}
+
 fn sync_codex_app_cache(conn: &mut Connection) -> Result<(), String> {
     let mut discovered = discover_codex_app_records()?;
     // Managed (GUI-launched) Codex sessions surface through their
@@ -107,7 +138,11 @@ fn sync_codex_app_cache(conn: &mut Connection) -> Result<(), String> {
     let mut inputs = Vec::new();
     let mut rounds = Vec::new();
     let mut reparsed_ids = Vec::new();
+    let now_ns = unix_epoch_now_ns();
     for record in changed {
+        if should_defer_active_codex_metadata(&record, now_ns) {
+            continue;
+        }
         if let Some(mut meta) = parse_codex_session_meta(record)? {
             let is_managed_history_mirror =
                 crate::sources::imported_history::managed_mirror::is_managed_source_session_id(
@@ -128,6 +163,22 @@ fn sync_codex_app_cache(conn: &mut Connection) -> Result<(), String> {
         inputs,
     )?;
     imported_cache::write_session_rounds_from_conn(conn, &reparsed_ids, &rounds)
+}
+
+fn unix_epoch_now_ns() -> i64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .ok()
+        .and_then(|elapsed| i64::try_from(elapsed.as_nanos()).ok())
+        .unwrap_or(i64::MAX)
+}
+
+fn should_defer_active_codex_metadata(
+    record: &ImportedHistoryDiscoveredRecord,
+    now_ns: i64,
+) -> bool {
+    record.source_size_bytes > MAX_EAGER_ACTIVE_CODEX_METADATA_BYTES
+        && now_ns.saturating_sub(record.source_mtime_ms) < ACTIVE_CODEX_METADATA_QUIET_NS
 }
 
 fn discover_codex_app_records() -> Result<Vec<ImportedHistoryDiscoveredRecord>, String> {
@@ -451,4 +502,50 @@ pub(crate) fn codex_sessions_dir_candidates(home: &Path) -> Vec<PathBuf> {
         .filter(|root| seen.insert(root.clone()))
         .map(|root| root.join("sessions"))
         .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn discovered_record(
+        source_size_bytes: i64,
+        source_mtime_ns: i64,
+    ) -> ImportedHistoryDiscoveredRecord {
+        ImportedHistoryDiscoveredRecord {
+            source_session_id: "rollout-test".to_string(),
+            source_path: PathBuf::from("rollout-test.jsonl"),
+            source_record_key: "rollout-test".to_string(),
+            source_mtime_ms: source_mtime_ns,
+            source_size_bytes,
+            source_fingerprint: String::new(),
+            parser_version: CODEX_APP_METADATA_PARSER_VERSION,
+        }
+    }
+
+    #[test]
+    fn giant_active_codex_metadata_is_deferred_until_quiet() {
+        let now_ns = 1_750_000_000_000_000_000;
+        let record = discovered_record(
+            MAX_EAGER_ACTIVE_CODEX_METADATA_BYTES + 1,
+            now_ns - ACTIVE_CODEX_METADATA_QUIET_NS + 1,
+        );
+
+        assert!(should_defer_active_codex_metadata(&record, now_ns));
+        assert!(!should_defer_active_codex_metadata(
+            &discovered_record(
+                record.source_size_bytes,
+                now_ns - ACTIVE_CODEX_METADATA_QUIET_NS
+            ),
+            now_ns
+        ));
+    }
+
+    #[test]
+    fn bounded_active_codex_metadata_remains_eager() {
+        let now_ns = 1_750_000_000_000_000_000;
+        let record = discovered_record(MAX_EAGER_ACTIVE_CODEX_METADATA_BYTES, now_ns);
+
+        assert!(!should_defer_active_codex_metadata(&record, now_ns));
+    }
 }
