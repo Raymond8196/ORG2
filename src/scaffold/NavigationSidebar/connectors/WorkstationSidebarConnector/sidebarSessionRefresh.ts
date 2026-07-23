@@ -6,7 +6,7 @@ import {
 } from "@src/api/tauri/externalHistory";
 import {
   loadExternalHistorySidebarSessions,
-  loadSidebarSessions,
+  loadSessionRoster,
 } from "@src/store/session";
 import {
   dataSourceConfigAtom,
@@ -50,6 +50,6 @@ export async function rescanSidebarSessions(): Promise<void> {
 
 export function useSidebarSessionRefreshEffects(): void {
   useEffect(() => {
-    void loadSidebarSessions({ forceRefresh: true });
+    void loadSessionRoster();
   }, []);
 }
