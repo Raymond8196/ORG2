@@ -20,6 +20,14 @@ const EXTERNAL_HISTORY_INITIAL_CHUNK_LIMIT = 200;
 const MAX_IN_FLIGHT_EXTERNAL_HISTORY_LOADS = 8;
 const inFlightExternalHistoryLoads = new Map<string, Promise<SessionEvent[]>>();
 
+interface ExternalHistorySessionAdapter extends SessionAdapter {
+  loadHistoryFromObservedSignature(
+    sessionId: string,
+    signal: AbortSignal,
+    observedSignature: string
+  ): Promise<SessionEvent[]>;
+}
+
 function isUserMessageChunk(chunk: ActivityChunk): boolean {
   return (
     chunk.action_type === "raw" &&
@@ -82,24 +90,11 @@ async function readTranscriptSignature(
   }
 }
 
-async function loadExternalHistorySnapshot(
-  sessionId: string
-): Promise<SessionEvent[]> {
-  const source = getImportedHistorySourceBySessionId(sessionId);
-  if (!source) {
-    logger.warn("No external history loader registered for session", sessionId);
-    return [];
-  }
-  const signatureBefore = await readTranscriptSignature(source, sessionId);
-  const chunks = await source.loadPreviewChunks(sessionId);
-  if (!Array.isArray(chunks) || chunks.length === 0) {
-    return [];
-  }
-  const initialWindow = selectExternalHistoryInitialWindow(chunks, {
-    supportsWindowedReplay: source.supportsWindowedReplay,
-  });
-  const events = await processChunksRust(initialWindow, sessionId);
-  const signatureAfter = await readTranscriptSignature(source, sessionId);
+function recordLoadedTranscriptSignature(
+  sessionId: string,
+  signatureBefore: string | null,
+  signatureAfter: string | null
+): void {
   if (signatureBefore && signatureBefore === signatureAfter) {
     // Seed the auto-refresh guard with the exact snapshot just rendered. The
     // old path left it empty, so the first 3–5 second tick parsed and
@@ -110,16 +105,42 @@ async function loadExternalHistorySnapshot(
     // eligible to refresh instead of claiming the newer snapshot was shown.
     forgetTranscriptSignature(sessionId);
   }
+}
+
+async function loadExternalHistorySnapshot(
+  sessionId: string,
+  observedSignature?: string
+): Promise<SessionEvent[]> {
+  const source = getImportedHistorySourceBySessionId(sessionId);
+  if (!source) {
+    logger.warn("No external history loader registered for session", sessionId);
+    return [];
+  }
+  const signatureBefore =
+    observedSignature ?? (await readTranscriptSignature(source, sessionId));
+  const chunks = await source.loadPreviewChunks(sessionId);
+  if (!Array.isArray(chunks) || chunks.length === 0) {
+    const signatureAfter = await readTranscriptSignature(source, sessionId);
+    recordLoadedTranscriptSignature(sessionId, signatureBefore, signatureAfter);
+    return [];
+  }
+  const initialWindow = selectExternalHistoryInitialWindow(chunks, {
+    supportsWindowedReplay: source.supportsWindowedReplay,
+  });
+  const events = await processChunksRust(initialWindow, sessionId);
+  const signatureAfter = await readTranscriptSignature(source, sessionId);
+  recordLoadedTranscriptSignature(sessionId, signatureBefore, signatureAfter);
   return events;
 }
 
 function getOrStartExternalHistoryLoad(
-  sessionId: string
+  sessionId: string,
+  observedSignature?: string
 ): Promise<SessionEvent[]> {
   const existing = inFlightExternalHistoryLoads.get(sessionId);
   if (existing) return existing;
 
-  const request = loadExternalHistorySnapshot(sessionId);
+  const request = loadExternalHistorySnapshot(sessionId, observedSignature);
   if (
     inFlightExternalHistoryLoads.size < MAX_IN_FLIGHT_EXTERNAL_HISTORY_LOADS
   ) {
@@ -142,16 +163,23 @@ function getOrStartExternalHistoryLoad(
 
 async function loadExternalHistory(
   sessionId: string,
-  signal: AbortSignal
+  signal: AbortSignal,
+  observedSignature?: string
 ): Promise<SessionEvent[]> {
-  const events = await getOrStartExternalHistoryLoad(sessionId);
+  const events = await getOrStartExternalHistoryLoad(
+    sessionId,
+    observedSignature
+  );
   return signal.aborted ? [] : events;
 }
 
-export const externalHistoryAdapter: SessionAdapter = {
+export const externalHistoryAdapter: ExternalHistorySessionAdapter = {
   category: "external_history",
 
   loadHistory: loadExternalHistory,
+
+  loadHistoryFromObservedSignature: (sessionId, signal, observedSignature) =>
+    loadExternalHistory(sessionId, signal, observedSignature),
 
   async postLoad() {
     return { runStatus: "completed" };

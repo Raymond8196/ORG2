@@ -113,4 +113,72 @@ describe("external history loading", () => {
     await expect(second).resolves.toEqual(events);
     expect(mocks.processChunks).toHaveBeenCalledTimes(1);
   });
+
+  it("reuses an observed signature and only probes once after parsing", async () => {
+    const loadPreviewChunks = vi.fn().mockResolvedValue([chunk()]);
+    const statTranscript = vi
+      .fn()
+      .mockResolvedValue({ mtimeMs: 100, sizeBytes: 200 });
+    mocks.getSource.mockReturnValue({
+      supportsWindowedReplay: true,
+      statTranscript,
+      loadPreviewChunks,
+    });
+    const events = [{ id: "event-1" }];
+    mocks.processChunks.mockResolvedValue(events);
+
+    await expect(
+      externalHistoryAdapter.loadHistoryFromObservedSignature!(
+        "codexapp-large",
+        new AbortController().signal,
+        "100:200"
+      )
+    ).resolves.toEqual(events);
+
+    expect(loadPreviewChunks).toHaveBeenCalledTimes(1);
+    expect(statTranscript).toHaveBeenCalledTimes(1);
+    expect(getTranscriptSignature("codexapp-large")).toBe("100:200");
+  });
+
+  it("keeps a changed transcript eligible for another refresh", async () => {
+    mocks.getSource.mockReturnValue({
+      supportsWindowedReplay: true,
+      statTranscript: vi
+        .fn()
+        .mockResolvedValue({ mtimeMs: 101, sizeBytes: 250 }),
+      loadPreviewChunks: vi.fn().mockResolvedValue([chunk()]),
+    });
+    mocks.processChunks.mockResolvedValue([{ id: "event-1" }]);
+
+    await externalHistoryAdapter.loadHistoryFromObservedSignature(
+      "codexapp-large",
+      new AbortController().signal,
+      "100:200"
+    );
+
+    expect(getTranscriptSignature("codexapp-large")).toBeUndefined();
+  });
+
+  it("remembers a stable empty transcript instead of reloading it forever", async () => {
+    const statTranscript = vi
+      .fn()
+      .mockResolvedValue({ mtimeMs: 100, sizeBytes: 0 });
+    mocks.getSource.mockReturnValue({
+      supportsWindowedReplay: true,
+      statTranscript,
+      loadPreviewChunks: vi.fn().mockResolvedValue([]),
+    });
+
+    await expect(
+      externalHistoryAdapter.loadHistoryFromObservedSignature(
+        "codexapp-large",
+        new AbortController().signal,
+        "100:0"
+      )
+    ).resolves.toEqual([]);
+
+    expect(statTranscript).toHaveBeenCalledTimes(1);
+    expect(mocks.processChunks).not.toHaveBeenCalled();
+    expect(getTranscriptSignature("codexapp-large")).toBe("100:0");
+  });
 });
