@@ -23,7 +23,6 @@ import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import React, { createContext, useContext, useEffect, useMemo } from "react";
 
-import { ROUTE_PATHS } from "@src/config/routePaths";
 import { createLogger } from "@src/hooks/logger";
 
 const log = createLogger("WindowScopedState");
@@ -394,11 +393,8 @@ export function getWindowType(): string {
 
   const path = window.location.pathname;
 
-  if (path.includes("/windows/welcome")) return "welcome";
-  if (path.includes("/windows/tab")) return "tab";
-  if (path.includes("/windows/")) return "window";
   if (path.includes("/orgii/workstation")) return "workspace";
-  if (path === "/" || path.includes(ROUTE_PATHS.startPage)) return "main";
+  if (path === "/") return "main";
 
   return "unknown";
 }

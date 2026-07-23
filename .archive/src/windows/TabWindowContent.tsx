@@ -6,11 +6,6 @@ import { WorkStationShellFallback } from "@src/modules/WorkStation/WorkStationSh
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 import { TabWindowData } from "@src/util/ui/window/windowManager";
 
-// Lazy load components for different tab types
-const SuggestionsPage = React.lazy(
-  () => import("@/src/modules/MainApp/StartPage")
-);
-
 const Settings = React.lazy(() => import("@/src/modules/MainApp/Settings"));
 const Editor = React.lazy(() => import("@src/modules/WorkStation"));
 
@@ -34,6 +29,7 @@ const TabWindowContent: React.FC<TabWindowContentProps> = ({ tabData }) => {
   const isEditorContent =
     routePath?.includes("/workstation") ||
     routePath?.includes("/editor") ||
+    type === "main" ||
     type === "editor";
 
   // Render content based on tab type, wrapped with appropriate provider
@@ -49,10 +45,6 @@ const TabWindowContent: React.FC<TabWindowContentProps> = ({ tabData }) => {
 
     // Routes that don't require special providers
     if (routePath) {
-      if (routePath.includes("/home")) {
-        return <SuggestionsPage />;
-      }
-
       if (routePath.includes("/settings")) {
         return <Settings />;
       }
@@ -60,8 +52,6 @@ const TabWindowContent: React.FC<TabWindowContentProps> = ({ tabData }) => {
 
     // Fallback based on tab type (for types without special providers)
     switch (type) {
-      case "main":
-        return <SuggestionsPage />;
       case "settings":
         return <Settings />;
       default:
