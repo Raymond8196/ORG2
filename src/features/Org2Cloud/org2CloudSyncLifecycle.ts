@@ -285,8 +285,12 @@ export abstract class Org2CloudSyncLifecycle {
     void this.runSyncPass();
   }
 
+  // Outbound event-driven paths deliberately run while hidden: a minimized
+  // window with an agent streaming is still producing local writes, and
+  // teammates must see the transcript advance. Only inbound-only nudges wait
+  // for visibility.
   private scheduleActivityPass(sessionId: string): void {
-    if (!this.started || isDocumentHidden()) return;
+    if (!this.started) return;
     const externalHistory = isImportedHistorySession(sessionId);
     const timer = externalHistory
       ? this.externalHistoryActivityTimer
@@ -296,7 +300,6 @@ export abstract class Org2CloudSyncLifecycle {
       () => {
         if (externalHistory) this.externalHistoryActivityTimer = null;
         else this.activityTimer = null;
-        if (isDocumentHidden()) return;
         void this.runSyncPass();
       },
       externalHistory
@@ -311,11 +314,9 @@ export abstract class Org2CloudSyncLifecycle {
     if (!this.started) return;
     this.forceProjectsNextPass = true;
     this.armProjectPushRetry();
-    if (isDocumentHidden()) return;
     if (this.dataChangedTimer !== null) clearTimeout(this.dataChangedTimer);
     this.dataChangedTimer = setTimeout(() => {
       this.dataChangedTimer = null;
-      if (isDocumentHidden()) return;
       void this.runSyncPass({ pushSessions: false });
     }, DATA_CHANGED_DEBOUNCE_MS);
   }

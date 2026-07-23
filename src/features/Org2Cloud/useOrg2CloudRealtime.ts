@@ -95,6 +95,7 @@ import {
   createOrg2CloudRealtimeConnection,
 } from "./org2CloudRealtimeClient";
 import { useOrg2CloudRealtimeLease } from "./org2CloudRealtimeLease";
+import { decideSubscribedEdgeRecovery } from "./org2CloudRealtimeRecovery";
 import { resolveActiveRealtimeOrgId } from "./org2CloudRealtimeScope";
 import {
   bumpRemoteSessionsInvalidation,
@@ -183,6 +184,19 @@ export function useOrg2CloudRealtime(): void {
     },
     [setCommentsSignal]
   );
+  const bumpActiveSessionCommentsSignal = useCallback(
+    (orgId: string) => {
+      const activeSessionId = store.get(activeSessionIdAtom);
+      if (!activeSessionId) return;
+      setCommentsSignal((current) =>
+        bumpCommentsSignalKey(
+          current,
+          sessionCommentsKey(orgId, activeSessionId)
+        )
+      );
+    },
+    [setCommentsSignal, store]
+  );
   const bumpRemoteSessionsVersion = useCallback(
     (orgId: string, options: { full?: boolean } = {}) => {
       setRemoteSessionsVersion((current) =>
@@ -230,6 +244,13 @@ export function useOrg2CloudRealtime(): void {
   const coarseSignalTrailingTimerRef = useRef<ReturnType<
     typeof setTimeout
   > | null>(null);
+  // Disconnect-duration bookkeeping for the SUBSCRIBED-edge recovery policy:
+  // short gaps and rejoin storms downgrade to delta pulls, long gaps run the
+  // authoritative full recovery (see org2CloudRealtimeRecovery).
+  const orgTeardownAtRef = useRef(new Map<string, number>());
+  const orgFullRecoveryAtRef = useRef(new Map<string, number>());
+  const connectionTeardownAtRef = useRef<number | undefined>(undefined);
+  const rosterEdgeRefetchAtRef = useRef<number | undefined>(undefined);
   useEffect(() => {
     refetchRef.current = refetchOrgs;
   }, [refetchOrgs]);
@@ -290,8 +311,18 @@ export function useOrg2CloudRealtime(): void {
         void refetchRef.current();
       },
       onStatus: (subscribed) => {
-        if (subscribed) {
-          // Compensate for events missed before/while (re)subscribing.
+        if (!subscribed) return;
+        // Compensate for events missed before/while (re)subscribing. Roster
+        // changes are rare: a short gap (org switch, brief reconnect) keeps
+        // the last authoritative roster instead of re-listing plus the ×N
+        // entitlement fan-out on every edge.
+        const decision = decideSubscribedEdgeRecovery({
+          nowMs: Date.now(),
+          teardownAtMs: connectionTeardownAtRef.current,
+          lastFullRecoveryAtMs: rosterEdgeRefetchAtRef.current,
+        });
+        if (decision === "full") {
+          rosterEdgeRefetchAtRef.current = Date.now();
           void refetchRef.current();
         }
       },
@@ -301,6 +332,7 @@ export function useOrg2CloudRealtime(): void {
       unsubRoster();
       connection.dispose();
       connectionRef.current = null;
+      connectionTeardownAtRef.current = Date.now();
     };
     // authRef (not auth) on purpose — see the ref comment above.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -367,13 +399,27 @@ export function useOrg2CloudRealtime(): void {
           scheduleCoarseSignalRefresh();
         },
         onStatus: (subscribed) => {
-          // On (re)subscribe force a complete listing for this org so
-          // tombstones (revoked projects / deleted work items / removed
-          // tasks) that landed while disconnected are observed.
+          // On (re)subscribe compensate for events missed while disconnected.
+          // A LONG gap forces complete listings so tombstone-free absences
+          // (revoked projects / retention shifts) are observed; a short gap or
+          // a rejoin storm keeps the delta cursors, which already merge
+          // deletedAt/LWW tombstones.
           if (subscribed) {
             coarseSignalHandledAtRef.current = Date.now();
             controlPlaneRefreshAtRef.current = Date.now();
             if (isDocumentHidden()) return;
+            const decision = decideSubscribedEdgeRecovery({
+              nowMs: Date.now(),
+              teardownAtMs: orgTeardownAtRef.current.get(orgId),
+              lastFullRecoveryAtMs: orgFullRecoveryAtRef.current.get(orgId),
+            });
+            if (decision === "delta") {
+              org2CloudSyncEngine.invalidateOrgInbound(orgId);
+              bumpRemoteSessionsVersion(orgId);
+              bumpOrgCommentsSignal(orgId);
+              return;
+            }
+            orgFullRecoveryAtRef.current.set(orgId, Date.now());
             org2CloudSyncEngine.invalidateOrgInbound(orgId, {
               full: true,
               pushSessions: true,
@@ -386,6 +432,10 @@ export function useOrg2CloudRealtime(): void {
             // replaces it atomically only if the server truth changed.
             bumpRemoteSessionsVersion(orgId, { full: true });
             bumpOrgCommentsSignal(orgId);
+            // The org-level bump above is TTL-gated; the session broadcast the
+            // released socket missed is exactly what the open thread needs, so
+            // force the active session's thread past the TTL.
+            bumpActiveSessionCommentsSignal(orgId);
           }
         },
       })
@@ -416,6 +466,7 @@ export function useOrg2CloudRealtime(): void {
 
     return () => {
       for (const unsub of unsubscribes) unsub();
+      orgTeardownAtRef.current.set(orgId, Date.now());
       setRosterRealtimeConnected((current) => {
         if (!(orgId in current)) return current;
         const next = { ...current };

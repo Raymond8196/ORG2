@@ -24,6 +24,8 @@ export interface CloudSessionCommentsEntry {
   state: CloudSessionCommentsFetchState;
   /** Last fetch failure (diagnostics only — UI keys on `state`). */
   errorMessage?: string;
+  /** Consecutive failed fetches; drives the exponential error-retry window. */
+  consecutiveFailures?: number;
   /** Epoch ms of the last completed fetch attempt (0 ⇒ never fetched). */
   fetchedAt: number;
 }
