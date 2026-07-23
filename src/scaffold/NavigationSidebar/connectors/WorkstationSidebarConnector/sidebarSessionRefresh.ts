@@ -4,7 +4,10 @@ import {
   IMPORTED_HISTORY_SOURCE_DESCRIPTORS,
   externalHistoryRescanSources,
 } from "@src/api/tauri/externalHistory";
-import { loadSidebarSessions } from "@src/store/session";
+import {
+  loadExternalHistorySidebarSessions,
+  loadSidebarSessions,
+} from "@src/store/session";
 import {
   dataSourceConfigAtom,
   externalSessionsEnabledAtom,
@@ -17,8 +20,9 @@ export async function rescanSidebarSessions(): Promise<void> {
   const store = getInstrumentedStore();
   if (!store.get(externalSessionsEnabledAtom)) {
     // External sessions are switched off entirely — nothing to rescan, and
-    // the sidebar reload below would be a no-op for external categories.
-    await loadSidebarSessions({ forceRefresh: true });
+    // the targeted reload removes any imported rows without touching native
+    // session categories.
+    await loadExternalHistorySidebarSessions();
     return;
   }
   const config = store.get(dataSourceConfigAtom);
@@ -27,7 +31,7 @@ export async function rescanSidebarSessions(): Promise<void> {
   ).map(({ sourceId }) => sourceId);
 
   await externalHistoryRescanSources(sourceIds);
-  await loadSidebarSessions({ forceRefresh: true });
+  await loadExternalHistorySidebarSessions();
 
   const lastScannedAt = Date.now();
   store.set(dataSourceConfigAtom, (previous) => {
