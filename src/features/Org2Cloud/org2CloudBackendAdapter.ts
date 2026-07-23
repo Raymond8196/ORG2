@@ -27,20 +27,46 @@
 import type {
   CollabSyncBackendClient,
   GetSessionEventSegmentsInput,
+  SessionEventSegmentRecord,
   SessionEventSegmentsSnapshot,
 } from "../TeamCollaboration/sync/CollabSyncBackend";
 import {
+  type SegmentWirePayload,
   decodeSegmentEvents,
   mapSegmentsBounded,
 } from "../TeamCollaboration/sync/segmentCodec";
 import type { CloudEndpoint } from "./config";
-import { getSessionEvents } from "./org2CloudSyncClient";
+import { getSessionEvents, streamSessionEvents } from "./org2CloudSyncClient";
 
 /** The one capability replay/fork need from a backend. */
 export type CloudSessionFetchClient = Pick<
   CollabSyncBackendClient,
-  "getSessionEventSegments"
+  "getSessionEventSegments" | "streamSessionEventSegments"
 >;
+
+async function decodeCloudSegments(
+  segments: readonly SegmentWirePayload[],
+  afterSeq: number,
+  signal?: AbortSignal
+): Promise<SessionEventSegmentRecord[]> {
+  return mapSegmentsBounded(
+    segments.filter((segment) => {
+      const seq = segment.seq ?? 0;
+      return seq === 0 || seq > afterSeq;
+    }),
+    async (segment) => {
+      const seq = segment.seq ?? 0;
+      return {
+        seq,
+        isTail: seq === 0,
+        events: await decodeSegmentEvents(segment.payloadGz),
+        eventCount: segment.eventCount,
+        segmentHash: segment.segmentHash,
+      };
+    },
+    signal
+  );
+}
 
 /**
  * The importer passes `remoteSession.id` (`${orgId}:${ownerUserId}:
@@ -94,25 +120,9 @@ export function buildCloudSessionFetchClient(
             }
           : undefined
       );
-      const segments = await mapSegmentsBounded(
-        snapshot.segments
-          // Defense in depth: the server contract already excludes frozen
-          // seqs ≤ afterSeq, but a legacy/full response must not smuggle an
-          // already-held prefix back into the incremental splice.
-          .filter((segment) => {
-            const seq = segment.seq ?? 0;
-            return seq === 0 || seq > afterSeq;
-          }),
-        async (segment) => {
-          const seq = segment.seq ?? 0;
-          return {
-            seq,
-            isTail: seq === 0,
-            events: await decodeSegmentEvents(segment.payloadGz),
-            eventCount: segment.eventCount,
-            segmentHash: segment.segmentHash,
-          };
-        },
+      const segments = await decodeCloudSegments(
+        snapshot.segments,
+        afterSeq,
         input.signal
       );
       return {
@@ -122,6 +132,35 @@ export function buildCloudSessionFetchClient(
         count: snapshot.count,
         segments,
       };
+    },
+    async streamSessionEventSegments(input, onPage) {
+      const afterSeq = input.afterSeq ?? 0;
+      return streamSessionEvents(
+        accessToken,
+        input.orgId,
+        cloudSessionIdFromRowId(input.sessionRowId),
+        async (page) => {
+          await onPage({
+            epoch: page.epoch,
+            frozenSeq: page.frozenSeq,
+            tailHash: page.tailHash,
+            count: page.count,
+            segments: await decodeCloudSegments(
+              page.segments,
+              afterSeq,
+              input.signal
+            ),
+          });
+        },
+        {
+          ...(input.shareToken !== undefined
+            ? { shareToken: input.shareToken }
+            : {}),
+          ...(endpoint !== undefined ? { endpoint } : {}),
+          ...(afterSeq > 0 ? { afterSeq } : {}),
+          ...(input.signal !== undefined ? { signal: input.signal } : {}),
+        }
+      );
     },
   };
 }

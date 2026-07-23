@@ -38,6 +38,9 @@ vi.mock("@src/engines/SessionCore/core/store/EventStoreProxy", () => ({
     getEvents: vi.fn(),
     getPersistedEvents: vi.fn(),
     set: vi.fn(),
+    persistEventsBatch: vi.fn(),
+    finalizePersistedImport: vi.fn(),
+    loadInitialTurnWindow: vi.fn(),
     saveToCache: vi.fn(),
     clear: vi.fn(),
     clearPersistedHistory: vi.fn(),
@@ -260,6 +263,11 @@ describe("importRemoteSession", () => {
     eventStoreMock.clear.mockResolvedValue(undefined);
     eventStoreMock.clearPersistedHistory.mockResolvedValue(undefined);
     eventStoreMock.getPersistedEvents.mockResolvedValue([]);
+    eventStoreMock.persistEventsBatch.mockImplementation(
+      async (events: SessionEvent[]) => events.length
+    );
+    eventStoreMock.finalizePersistedImport.mockResolvedValue(3);
+    eventStoreMock.loadInitialTurnWindow.mockResolvedValue(1);
     eventStoreMock.saveToCache.mockResolvedValue(1);
     indexCollaborationSessionMock.mockResolvedValue(0);
   });
@@ -288,6 +296,119 @@ describe("importRemoteSession", () => {
       ownerMemberId: remote.ownerMemberId,
       ownerDisplayName: remote.ownerDisplayName,
     });
+  });
+
+  it("streams a fresh replay into bounded durable batches without assembling the full history", async () => {
+    const pageOne = await sealSnapshot({
+      epoch: 3,
+      frozenSeq: 2,
+      tailHash: null,
+      count: 3,
+      segments: [
+        {
+          seq: 1,
+          isTail: false,
+          events: [
+            {
+              id: "e1",
+              sessionId: "remote-1",
+              displayStatus: "completed",
+            } as unknown as SessionEvent,
+          ],
+          eventCount: 1,
+          segmentHash: "",
+        },
+      ],
+    });
+    const pageTwo = await sealSnapshot({
+      epoch: 3,
+      frozenSeq: 2,
+      tailHash: null,
+      count: 3,
+      segments: [
+        {
+          seq: 2,
+          isTail: false,
+          events: [
+            {
+              id: "e2",
+              sessionId: "remote-1",
+              displayStatus: "completed",
+            } as unknown as SessionEvent,
+          ],
+          eventCount: 1,
+          segmentHash: "",
+        },
+        {
+          seq: 0,
+          isTail: true,
+          events: [
+            {
+              id: "e3",
+              sessionId: "remote-1",
+              displayStatus: "completed",
+            } as unknown as SessionEvent,
+          ],
+          eventCount: 1,
+          segmentHash: "",
+        },
+      ],
+    });
+    const client = {
+      getSessionEventSegments: vi.fn(),
+      streamSessionEventSegments: vi.fn(
+        async (
+          _input: unknown,
+          onPage: (page: SessionEventSegmentsSnapshot) => Promise<void>
+        ) => {
+          await onPage(pageOne);
+          await onPage(pageTwo);
+          return {
+            epoch: 3,
+            frozenSeq: 2,
+            count: 3,
+            tailHash: pageTwo.tailHash,
+          };
+        }
+      ),
+    } satisfies Pick<
+      CollabSyncBackendClient,
+      "getSessionEventSegments" | "streamSessionEventSegments"
+    >;
+
+    const result = await importRemoteSession({
+      client,
+      orgId: "org-1",
+      remoteSession: makeRemote({
+        eventsEpoch: 3,
+        eventsFrozenSeq: 2,
+        eventsCount: 3,
+        eventsTailHash: pageTwo.tailHash ?? undefined,
+      }),
+      workspaceRepoPath: "/viewer/ORG2",
+    });
+
+    expect(result).toMatchObject({ updated: true, deferIndex: true });
+    expect(client.getSessionEventSegments).not.toHaveBeenCalled();
+    expect(eventStoreMock.persistEventsBatch).toHaveBeenCalledTimes(2);
+    expect(
+      eventStoreMock.persistEventsBatch.mock.calls.map(([events]) =>
+        events.map((event) => event.id)
+      )
+    ).toEqual([
+      [expect.stringContaining("e1")],
+      [expect.stringContaining("e2"), expect.stringContaining("e3")],
+    ]);
+    expect(eventStoreMock.set).not.toHaveBeenCalled();
+    expect(eventStoreMock.saveToCache).not.toHaveBeenCalled();
+    expect(eventStoreMock.finalizePersistedImport).toHaveBeenCalledWith(
+      result?.localSessionId
+    );
+    expect(eventStoreMock.loadInitialTurnWindow).toHaveBeenCalledWith(
+      result?.localSessionId,
+      0
+    );
+    expect(indexCollaborationSessionMock).not.toHaveBeenCalled();
   });
 
   it("rejects on a failed durable write, clears the orphan, and reuses the deterministic id on retry", async () => {
