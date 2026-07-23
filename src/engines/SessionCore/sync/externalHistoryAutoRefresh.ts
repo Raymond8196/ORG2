@@ -11,6 +11,10 @@ import {
 } from "@src/util/core/windowFocus";
 import { isImportedHistorySession } from "@src/util/session/sessionDispatch";
 
+import {
+  getTranscriptSignature,
+  rememberTranscriptSignature,
+} from "./externalHistoryTranscriptSignatures";
 import { getAdapterForSession } from "./types";
 
 const logger = createLogger("ExternalHistoryAutoRefresh");
@@ -23,23 +27,6 @@ type DispatchSessionLoad = (payload: {
   sessionId: string;
   events: SessionEvent[];
 }) => void;
-
-// Last observed transcript signature (`mtime:size`) per session. Refresh
-// ticks compare a cheap backend `stat` against this and skip the full
-// read → parse → merge pipeline while the file is unchanged — which is
-// every tick for a finished session. Bounded: replays touch few sessions.
-const transcriptSignatures = new Map<string, string>();
-const MAX_TRANSCRIPT_SIGNATURES = 64;
-
-function rememberTranscriptSignature(sessionId: string, signature: string) {
-  if (
-    !transcriptSignatures.has(sessionId) &&
-    transcriptSignatures.size >= MAX_TRANSCRIPT_SIGNATURES
-  ) {
-    transcriptSignatures.clear();
-  }
-  transcriptSignatures.set(sessionId, signature);
-}
 
 /**
  * Incremental guard: probe the transcript's (mtime, size) and report whether
@@ -57,7 +44,7 @@ async function transcriptChanged(
     if (signal.aborted || !stat) return { changed: true, signature: null };
     const signature = `${stat.mtimeMs}:${stat.sizeBytes}`;
     return {
-      changed: transcriptSignatures.get(sessionId) !== signature,
+      changed: getTranscriptSignature(sessionId) !== signature,
       signature,
     };
   } catch {

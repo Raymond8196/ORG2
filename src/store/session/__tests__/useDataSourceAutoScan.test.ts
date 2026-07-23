@@ -82,11 +82,11 @@ describe("runDataSourceAutoScan", () => {
     vi.unstubAllGlobals();
   });
 
-  it("defaults global provider discovery to a five-minute cadence", () => {
-    expect(mocks.store?.get(dataSourceGlobalFrequencyAtom)).toBe("5m");
+  it("defaults global provider discovery to a ten-minute cadence", () => {
+    expect(mocks.store?.get(dataSourceGlobalFrequencyAtom)).toBe("10m");
   });
 
-  it("scans enabled non-manual sources immediately at startup", async () => {
+  it("force scans enabled non-manual sources for explicit refreshes", async () => {
     mocks.store?.set(dataSourceGlobalFrequencyAtom, "60s");
     mocks.store?.set(dataSourceConfigAtom, {
       codex_app: {
@@ -382,7 +382,7 @@ describe("startDataSourceAutoScanScheduler", () => {
     const scan = vi.fn().mockResolvedValue(undefined);
     const scheduler = startDataSourceAutoScanScheduler(source, scan, 30_000);
 
-    expect(scan).toHaveBeenCalledWith(true);
+    expect(scan).toHaveBeenCalledWith(false);
     await vi.advanceTimersByTimeAsync(0);
     expect(vi.getTimerCount()).toBe(1);
 
@@ -406,7 +406,7 @@ describe("startDataSourceAutoScanScheduler", () => {
     expect(scan).toHaveBeenCalledTimes(3);
   });
 
-  it("defers the forced startup pass until an initially hidden app is visible", async () => {
+  it("defers the cadence-respecting startup pass until an initially hidden app is visible", async () => {
     vi.useFakeTimers();
     const source = new VisibilitySourceStub();
     source.visibilityState = "hidden";
@@ -417,7 +417,7 @@ describe("startDataSourceAutoScanScheduler", () => {
     expect(vi.getTimerCount()).toBe(0);
 
     source.setVisibility("visible");
-    expect(scan).toHaveBeenCalledWith(true);
+    expect(scan).toHaveBeenCalledWith(false);
     await vi.advanceTimersByTimeAsync(0);
     expect(vi.getTimerCount()).toBe(1);
 
