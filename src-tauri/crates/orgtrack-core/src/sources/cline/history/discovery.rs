@@ -81,7 +81,9 @@ pub(super) fn discover_cline_history_records() -> Result<Vec<ClineDiscoveredReco
     Ok(records)
 }
 
-pub(super) fn discover_cline_db_records(db_path: &Path) -> Result<Vec<ClineDiscoveredRecord>, String> {
+pub(super) fn discover_cline_db_records(
+    db_path: &Path,
+) -> Result<Vec<ClineDiscoveredRecord>, String> {
     let conn =
         Connection::open_with_flags(db_path, OpenFlags::SQLITE_OPEN_READ_ONLY).map_err(|err| {
             format!(

@@ -147,8 +147,7 @@ pub(crate) fn scan_all(path: &str, opts: &Options, plugins: &[LoaderPlugin]) -> 
         let (tx, rx) = mpsc::channel();
         let worker_path = path.to_string();
         thread::spawn(move || {
-            let result =
-                open_conn(&worker_path).and_then(|mut conn| job.run(&mut conn));
+            let result = open_conn(&worker_path).and_then(|mut conn| job.run(&mut conn));
             // Receiver may be gone (we timed out and moved on); ignore.
             let _ = tx.send(result);
         });

@@ -199,7 +199,9 @@ pub(super) fn effective_message(parsed: &WorkBuddyJsonlLine) -> Option<WorkBuddy
     })
 }
 
-pub(super) fn effective_function_call(parsed: &WorkBuddyJsonlLine) -> Option<WorkBuddyFunctionCall> {
+pub(super) fn effective_function_call(
+    parsed: &WorkBuddyJsonlLine,
+) -> Option<WorkBuddyFunctionCall> {
     if let Some(call) = parsed.function_call.as_ref() {
         return Some(call.clone());
     }
@@ -215,7 +217,9 @@ pub(super) fn effective_function_call(parsed: &WorkBuddyJsonlLine) -> Option<Wor
     })
 }
 
-pub(super) fn effective_function_result(parsed: &WorkBuddyJsonlLine) -> Option<WorkBuddyFunctionCallResult> {
+pub(super) fn effective_function_result(
+    parsed: &WorkBuddyJsonlLine,
+) -> Option<WorkBuddyFunctionCallResult> {
     if let Some(result) = parsed.function_call_result.as_ref() {
         return Some(result.clone());
     }
@@ -236,7 +240,10 @@ pub(super) fn reasoning_text(parsed: &WorkBuddyJsonlLine) -> Option<String> {
     content_text(&parsed.content).or_else(|| content_text(&parsed.raw_content))
 }
 
-pub(super) fn block_tool_call_from_item(item: &Value, created_at: &str) -> Option<ImportedToolCall> {
+pub(super) fn block_tool_call_from_item(
+    item: &Value,
+    created_at: &str,
+) -> Option<ImportedToolCall> {
     let call_id = item
         .get("id")
         .and_then(Value::as_str)

@@ -118,7 +118,9 @@ fn is_listable_composer(composer: &RawComposerData, chunks: &[ActivityChunk]) ->
     !chunks.is_empty()
 }
 
-pub(super) fn composer_meta_to_cache_input(meta: WindsurfComposerMeta) -> ImportedHistoryCacheInput {
+pub(super) fn composer_meta_to_cache_input(
+    meta: WindsurfComposerMeta,
+) -> ImportedHistoryCacheInput {
     let metadata = workspace_metadata_from_composer(&meta.composer);
     let model = meta
         .composer

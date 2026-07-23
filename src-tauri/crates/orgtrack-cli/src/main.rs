@@ -30,7 +30,8 @@ mod store;
 mod triggers;
 
 use crate::commands::{
-    cmd_check, cmd_list, cmd_plugins, cmd_scan, cmd_search_content, cmd_show, cmd_sources, cmd_usage,
+    cmd_check, cmd_list, cmd_plugins, cmd_scan, cmd_search_content, cmd_show, cmd_sources,
+    cmd_usage,
 };
 use crate::scan::validate_sources;
 
@@ -204,7 +205,9 @@ fn run(args: &[String]) -> Result<(), String> {
                 "sources" => cmd_sources(&opts, loaders),
                 "plugins" => cmd_plugins(&opts, &discovered),
                 "scan" => cmd_scan(&opts, loaders),
-                "list" | "ls" | "sessions" => cmd_list(&opts, None, loaders, processors, formatters),
+                "list" | "ls" | "sessions" => {
+                    cmd_list(&opts, None, loaders, processors, formatters)
+                }
                 "search" => {
                     let query = opts.positionals.join(" ");
                     if query.trim().is_empty() {
@@ -271,10 +274,7 @@ fn parse_options(args: &[String]) -> Result<Options, String> {
     Ok(opts)
 }
 
-fn next_value<'a>(
-    iter: &mut std::slice::Iter<'a, String>,
-    flag: &str,
-) -> Result<&'a str, String> {
+fn next_value<'a>(iter: &mut std::slice::Iter<'a, String>, flag: &str) -> Result<&'a str, String> {
     iter.next()
         .map(String::as_str)
         .ok_or_else(|| format!("{flag} expects a value"))

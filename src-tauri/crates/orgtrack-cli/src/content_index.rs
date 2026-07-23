@@ -122,8 +122,11 @@ pub(crate) fn update(
         let tx = conn.transaction().map_err(|err| err.to_string())?;
         for (session_id, source, name, fingerprint) in batch {
             let body = session_body(&tx, session_id, plugins, timeout);
-            tx.execute("DELETE FROM orgtrack_fts WHERE session_id = ?1", [session_id])
-                .map_err(|err| err.to_string())?;
+            tx.execute(
+                "DELETE FROM orgtrack_fts WHERE session_id = ?1",
+                [session_id],
+            )
+            .map_err(|err| err.to_string())?;
             tx.execute(
                 "INSERT INTO orgtrack_fts (session_id, source, name, body)
                  VALUES (?1, ?2, ?3, ?4)",
@@ -223,7 +226,14 @@ fn text_of(value: &serde_json::Value) -> Option<String> {
             {
                 return non_blank(text);
             }
-            for key in ["content", "text", "observation", "cmd", "command", "summary"] {
+            for key in [
+                "content",
+                "text",
+                "observation",
+                "cmd",
+                "command",
+                "summary",
+            ] {
                 if let Some(text) = map.get(key).and_then(|value| value.as_str()) {
                     if let Some(found) = non_blank(text) {
                         return Some(found);
