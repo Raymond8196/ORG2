@@ -139,6 +139,9 @@
       "helveticaNeue": "Helvetica Neue 風"
     },
     "uiScale": "UIスケール",
+    "preferences": "設定",
+    "usePointerCursors": "ポインターカーソルを使用",
+    "usePointerCursorsDesc": "インタラクティブな要素にカーソルを合わせたときにポインターへ変更します",
     "timezoneAuto": "自動（ブラウザ）",
     "timezoneSearchPlaceholder": "近くの都市を検索",
     "sendOnEnter": "Enter でメッセージを送信",
