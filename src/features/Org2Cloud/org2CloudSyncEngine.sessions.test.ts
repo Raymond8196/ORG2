@@ -25,6 +25,8 @@ const {
   EXTERNAL_HISTORY_ACTIVITY_DEBOUNCE_MS,
   ORG_BACKOFF_COOLDOWN_MS,
   PERSONAL_EXCLUDED_TOKEN,
+  SESSION_PUSH_RETRY_BASE_MS,
+  SESSION_SEGMENT_UPLOAD_BATCH_SIZE,
   Org2CloudSyncEngine,
   Org2CloudSyncError,
   chatPanelSelectedCloudOrgAtom,
@@ -303,6 +305,98 @@ describe("Org2CloudSyncEngine session publishing", () => {
     expect(cursor.pushedCount).toBe(3);
     // Rewrite ran only for the initial anchor, not the append pass.
     expect(client.rewriteSessionEvents).toHaveBeenCalledTimes(1);
+  });
+
+  it("publishes a large rewrite in bounded resumable segment batches", async () => {
+    const oversizedPayload = "x".repeat(260 * 1024);
+    const events = Array.from(
+      { length: SESSION_SEGMENT_UPLOAD_BATCH_SIZE + 1 },
+      (_, index) =>
+        ({
+          ...makeEvent(`large-${index}`),
+          payload: `${index}:${oversizedPayload}`,
+        }) as unknown as SessionEvent
+    );
+    eventStoreMock.getPersistedEvents.mockResolvedValue(events);
+
+    await engine.runSyncPass();
+
+    expect(client.rewriteSessionEvents).toHaveBeenCalledTimes(1);
+    const [, rewrite] = client.rewriteSessionEvents.mock.calls[0];
+    expect(rewrite.frozenSegments).toHaveLength(
+      SESSION_SEGMENT_UPLOAD_BATCH_SIZE
+    );
+    expect(rewrite.tail).toBeNull();
+    expect(rewrite.totalCount).toBe(SESSION_SEGMENT_UPLOAD_BATCH_SIZE);
+
+    expect(client.appendSessionEvents).toHaveBeenCalledTimes(1);
+    const [, append] = client.appendSessionEvents.mock.calls[0];
+    expect(append.expectedFrozenSeq).toBe(SESSION_SEGMENT_UPLOAD_BATCH_SIZE);
+    expect(append.newFrozenSegments).toHaveLength(1);
+    expect(append.totalCount).toBe(events.length);
+
+    expect(
+      store.get(org2CloudPushCursorsAtom)["corg-1:session-1"]
+    ).toMatchObject({
+      epoch: 1,
+      frozenSeq: SESSION_SEGMENT_UPLOAD_BATCH_SIZE + 1,
+      pushedCount: events.length,
+      frozenEventCount: events.length,
+    });
+  });
+
+  it("backs off a failed large upload and resumes from its committed batch", async () => {
+    const oversizedPayload = "y".repeat(260 * 1024);
+    const events = Array.from(
+      { length: SESSION_SEGMENT_UPLOAD_BATCH_SIZE + 2 },
+      (_, index) =>
+        ({
+          ...makeEvent(`resume-${index}`),
+          payload: `${index}:${oversizedPayload}`,
+        }) as unknown as SessionEvent
+    );
+    eventStoreMock.getPersistedEvents.mockResolvedValue(events);
+    client.appendSessionEvents.mockRejectedValueOnce(
+      new Org2CloudSyncError(
+        "canceling statement due to statement timeout",
+        500
+      )
+    );
+
+    await engine.runSyncPass();
+
+    expect(client.rewriteSessionEvents).toHaveBeenCalledTimes(1);
+    expect(client.appendSessionEvents).toHaveBeenCalledTimes(1);
+    expect(
+      store.get(org2CloudPushCursorsAtom)["corg-1:session-1"]
+    ).toMatchObject({
+      frozenSeq: SESSION_SEGMENT_UPLOAD_BATCH_SIZE,
+      pushedCount: SESSION_SEGMENT_UPLOAD_BATCH_SIZE,
+      frozenEventCount: SESSION_SEGMENT_UPLOAD_BATCH_SIZE,
+      tailHash: null,
+    });
+    expect(eventStoreMock.getPersistedEvents).toHaveBeenCalledTimes(1);
+
+    await engine.runSyncPass();
+    expect(client.rewriteSessionEvents).toHaveBeenCalledTimes(1);
+    expect(client.appendSessionEvents).toHaveBeenCalledTimes(1);
+    // The retry gate runs before loadPushEvents, so the large transcript is
+    // not reparsed or rehashed during the cooldown.
+    expect(eventStoreMock.getPersistedEvents).toHaveBeenCalledTimes(1);
+
+    vi.setSystemTime(Date.now() + SESSION_PUSH_RETRY_BASE_MS + 1);
+    await engine.runSyncPass();
+
+    expect(client.rewriteSessionEvents).toHaveBeenCalledTimes(1);
+    expect(client.appendSessionEvents).toHaveBeenCalledTimes(2);
+    expect(
+      store.get(org2CloudPushCursorsAtom)["corg-1:session-1"]
+    ).toMatchObject({
+      frozenSeq: SESSION_SEGMENT_UPLOAD_BATCH_SIZE + 2,
+      pushedCount: events.length,
+      frozenEventCount: events.length,
+    });
+    expect(eventStoreMock.getPersistedEvents).toHaveBeenCalledTimes(2);
   });
 
   it("does nothing when the push state is unchanged", async () => {
