@@ -139,6 +139,9 @@
       "helveticaNeue": "Стиль Helvetica Neue"
     },
     "uiScale": "Масштаб интерфейса",
+    "preferences": "Предпочтения",
+    "usePointerCursors": "Использовать курсор-указатель",
+    "usePointerCursorsDesc": "Менять курсор на указатель при наведении на интерактивные элементы",
     "timezoneAuto": "Авто (браузер)",
     "timezoneSearchPlaceholder": "Поиск ближайших городов",
     "sendOnEnter": "Отправлять сообщения клавишей Enter",
