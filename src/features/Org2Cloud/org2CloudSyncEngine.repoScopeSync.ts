@@ -18,10 +18,7 @@ import {
 import type { Org2CloudAuthState } from "./org2CloudAuthAtom";
 import type { Org2CloudSyncClientDeps } from "./org2CloudSessionSync";
 import { org2CloudRepoScopesAtom } from "./org2CloudSyncAtoms";
-import {
-  INACTIVE_ORG_FALLBACK_INTERVAL_MS,
-  SCOPE_HYDRATE_TTL_MS,
-} from "./org2CloudSyncEngine.constants";
+import { SCOPE_HYDRATE_THROTTLE_MS } from "./org2CloudSyncEngine.constants";
 import type { CloudStore } from "./org2CloudSyncLifecycle";
 
 const log = createLogger("Org2CloudSyncEngine");
@@ -45,8 +42,7 @@ export class Org2CloudRepoScopeSync {
 
   constructor(
     private readonly getStore: () => CloudStore | null,
-    private readonly client: Org2CloudSyncClientDeps,
-    private readonly isActiveOrg: (orgId: string) => boolean
+    private readonly client: Org2CloudSyncClientDeps
   ) {}
 
   reset(): void {
@@ -67,14 +63,15 @@ export class Org2CloudRepoScopeSync {
   }
 
   /**
-   * Best-effort, TTL-gated hydration of `org2CloudRepoScopesAtom` from
+   * Best-effort, event-throttled hydration of `org2CloudRepoScopesAtom` from
    * `cloud_get_org_repo_scopes`. Failures only log — the mirror keeps its
    * last-known scopes and the pass proceeds (offline pushes still work).
    *
    * Known narrow race (accepted): a hydration response fetched BEFORE a
    * concurrent panel save resolves can land AFTER it and briefly revert the
    * mirror to the pre-save scopes. Self-heals on the panel's own post-save
-   * refetch / the next TTL pass, so no versioning is layered on here.
+   * refetch / the next concrete sync event, so no versioning is layered on
+   * here.
    */
   async hydrateRepoScopes(
     auth: Org2CloudAuthState,
@@ -84,10 +81,7 @@ export class Org2CloudRepoScopeSync {
   ): Promise<void> {
     for (const org of orgs) {
       const lastAttempt = this.hydratedAtMs.get(org.orgId) ?? 0;
-      const hydrateInterval = this.isActiveOrg(org.orgId)
-        ? SCOPE_HYDRATE_TTL_MS
-        : INACTIVE_ORG_FALLBACK_INTERVAL_MS;
-      if (Date.now() - lastAttempt < hydrateInterval) continue;
+      if (Date.now() - lastAttempt < SCOPE_HYDRATE_THROTTLE_MS) continue;
       this.hydratedAtMs.set(org.orgId, Date.now());
       try {
         const state = await this.client.getOrgRepoScopes(

@@ -18,13 +18,18 @@ import type { CollabSessionAccessMode } from "@src/store/collaboration/types";
 
 import { ORG2_CLOUD_POSTGREST_SCHEMA, getCloudEndpoint } from "./config";
 import type { Org2CloudAuthState, Org2CloudProfile } from "./org2CloudAuthAtom";
-import { fetchWithTransportRetry } from "./org2CloudFetchRetry";
+import {
+  fetchWithTransportRetry,
+  runCloudRequestWithTimeout,
+} from "./org2CloudFetchRetry";
 import { CLOUD_ORG_ROLES, type CloudOrgRole } from "./org2CloudOrgManagement";
 
 const log = createLogger("Org2CloudClient");
 
 /** Refresh when the access token expires within this many seconds. */
 const REFRESH_SKEW_SECONDS = 60;
+/** A dead WKWebView fetch must not hold every auth-gated single-flight forever. */
+const AUTH_REFRESH_TIMEOUT_MS = 15_000;
 
 const CloudProfileWireSchema = z.object({
   userId: z.string().optional(),
@@ -318,16 +323,26 @@ async function refreshSessionAttempt(
       // previous refresh token, which GoTrue's reuse interval tolerates
       // (same rotated session), and the in-flight dedupe above already
       // serializes concurrent refreshes.
-      const response = await fetchWithTransportRetry(
-        `${endpoint.supabaseUrl}/auth/v1/token?grant_type=refresh_token`,
-        {
-          method: "POST",
-          headers: {
-            apikey: endpoint.anonKey,
-            "content-type": "application/json",
-          },
-          body: JSON.stringify({ refresh_token: refreshToken }),
-        }
+      const { response, payload } = await runCloudRequestWithTimeout(
+        async (signal) => {
+          const response = await fetchWithTransportRetry(
+            `${endpoint.supabaseUrl}/auth/v1/token?grant_type=refresh_token`,
+            {
+              method: "POST",
+              headers: {
+                apikey: endpoint.anonKey,
+                "content-type": "application/json",
+              },
+              body: JSON.stringify({ refresh_token: refreshToken }),
+              signal,
+            }
+          );
+          return {
+            response,
+            payload: response.ok ? await response.json() : null,
+          };
+        },
+        AUTH_REFRESH_TIMEOUT_MS
       );
       if (!response.ok) {
         log.warn(`token refresh failed with status ${response.status}`);
@@ -337,7 +352,7 @@ async function refreshSessionAttempt(
             response.status === 400 || response.status === 401,
         };
       }
-      const parsed = RefreshResponseSchema.safeParse(await response.json());
+      const parsed = RefreshResponseSchema.safeParse(payload);
       if (!parsed.success) {
         log.warn("token refresh returned unexpected shape");
         return { tokens: null, permanentlyRejected: false };

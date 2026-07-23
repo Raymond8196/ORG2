@@ -371,7 +371,7 @@ export function useSessionComments(
       return;
     }
     // org_change_signals carries unrelated projects, sessions, scopes, and
-    // comments. Let the existing TTL gate this coarse fallback instead of forcing
+    // comments. Let the existing TTL gate this coarse event instead of forcing
     // every open session to list comments for every org-level write.
     void fetchComments(orgId, sessionId);
   }, [

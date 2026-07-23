@@ -1,8 +1,8 @@
 /**
  * ORG2 Cloud inbound-sync Realtime manager (design: cloud-sync-supabase-realtime).
  *
- * Replaces 60s polling as the PRIMARY inbound trigger with Supabase Postgres
- * Changes. Mounted once in the router root beside `useOrg2CloudOrgs` /
+ * Uses Supabase Postgres Changes instead of recurring inbound polls. Mounted
+ * once in the router root beside `useOrg2CloudOrgs` /
  * `useOrg2CloudSyncEngine`. Owns one Realtime connection per signed-in
  * session/endpoint/active-org generation and drives two inbound slices:
  *
@@ -20,8 +20,9 @@
  *
  * Realtime is an INVALIDATION signal only: the data still arrives through the
  * existing RPC pull paths, so no cursor/tombstone logic is duplicated here. The
- * sync engine keeps a low-frequency fallback pass (see org2CloudSyncEngine) so
- * a dropped socket still reaches eventual consistency.
+ * A dropped/released socket is recovered by the channel's reconnect true-edge,
+ * visibility regain, and explicit user/network events; there is no recurring
+ * cloud sync pass.
  *
  * On (re)subscribe the true-edge of `onStatus` forces a compensating full pull
  * (roster refetch for A; inbound/session/policy recovery for B) to recover any
@@ -93,6 +94,7 @@ import {
   type Org2CloudRealtimeConnection,
   createOrg2CloudRealtimeConnection,
 } from "./org2CloudRealtimeClient";
+import { useOrg2CloudRealtimeLease } from "./org2CloudRealtimeLease";
 import { resolveActiveRealtimeOrgId } from "./org2CloudRealtimeScope";
 import {
   bumpRemoteSessionsInvalidation,
@@ -117,12 +119,12 @@ const CHANGE_SIGNALS_TABLE = "org_change_signals";
 
 /**
  * The backend's durable signal is intentionally coarse. Plane-specific
- * Presence broadcasts provide the live path; this bounded trailing fallback
- * recovers missed broadcasts without turning every session write into five
- * unrelated RPCs.
+ * Presence broadcasts provide the live path; the durable coarse row is a
+ * secondary event source. These windows throttle event storms—they do not
+ * schedule polling when no signal arrives.
  */
-const COARSE_SIGNAL_FALLBACK_MS = 60_000;
-const CONTROL_PLANE_FALLBACK_MS = 5 * 60_000;
+const COARSE_SIGNAL_THROTTLE_MS = 60_000;
+const CONTROL_PLANE_REFRESH_THROTTLE_MS = 5 * 60_000;
 
 function isDocumentHidden(): boolean {
   return (
@@ -144,11 +146,13 @@ export function useOrg2CloudRealtime(): void {
   const requestedActiveCloudOrgId = useAtomValue(sidebarActiveCloudOrgIdAtom);
   const managedCloudOrgId =
     useAtomValue(chatPanelSelectedCloudOrgAtom)?.orgId ?? null;
-  const activeRealtimeOrgId = resolveActiveRealtimeOrgId(
+  const requestedRealtimeOrgId = resolveActiveRealtimeOrgId(
     cloudOrgs,
     requestedActiveCloudOrgId,
     managedCloudOrgId
   );
+  const realtimeLeaseHeld = useOrg2CloudRealtimeLease();
+  const activeRealtimeOrgId = realtimeLeaseHeld ? requestedRealtimeOrgId : null;
   const refetchOrgs = useRefetchOrg2CloudOrgs();
   const setRosterVersion = useSetAtom(org2CloudRosterVersionAtom);
   const setRosterRealtimeConnected = useSetAtom(
@@ -221,27 +225,11 @@ export function useOrg2CloudRealtime(): void {
   // Stable refs so the per-org effect and status callbacks read current values
   // without forcing the connection to rebuild.
   const refetchRef = useRef(refetchOrgs);
-  const coarseSignalRefreshAtRef = useRef(0);
+  const coarseSignalHandledAtRef = useRef(0);
   const controlPlaneRefreshAtRef = useRef(0);
   const coarseSignalTrailingTimerRef = useRef<ReturnType<
     typeof setTimeout
   > | null>(null);
-  const hiddenRecoveryRef = useRef<{
-    orgId: string;
-    pushSessions: boolean;
-  } | null>(null);
-  const deferHiddenRecovery = useCallback(
-    (orgId: string, pushSessions: boolean) => {
-      const previous = hiddenRecoveryRef.current;
-      hiddenRecoveryRef.current = {
-        orgId,
-        pushSessions:
-          pushSessions ||
-          (previous?.orgId === orgId && previous.pushSessions === true),
-      };
-    },
-    []
-  );
   useEffect(() => {
     refetchRef.current = refetchOrgs;
   }, [refetchOrgs]);
@@ -277,39 +265,6 @@ export function useOrg2CloudRealtime(): void {
   );
 
   const connectionRef = useRef<Org2CloudRealtimeConnection | null>(null);
-
-  // Realtime channels stay joined while hidden, but network pulls do not.
-  // Collapse every hidden nudge into one full recovery when the window is
-  // visible again; a hidden scopes change also re-evaluates local uploads.
-  useEffect(() => {
-    if (typeof document === "undefined") return undefined;
-    const recoverWhenVisible = () => {
-      if (isDocumentHidden()) return;
-      const pending = hiddenRecoveryRef.current;
-      if (!pending || pending.orgId !== activeRealtimeOrgId) return;
-      hiddenRecoveryRef.current = null;
-      void (async () => {
-        const [, floorChanged] = await Promise.all([
-          refetchRef.current(),
-          refreshEntitlementForOrg(pending.orgId),
-        ]);
-        org2CloudSyncEngine.invalidateOrgInbound(pending.orgId, {
-          full: true,
-          pushSessions: pending.pushSessions || floorChanged,
-        });
-      })();
-      bumpRemoteSessionsVersion(pending.orgId, { full: true });
-      bumpOrgCommentsSignal(pending.orgId);
-    };
-    document.addEventListener("visibilitychange", recoverWhenVisible);
-    return () =>
-      document.removeEventListener("visibilitychange", recoverWhenVisible);
-  }, [
-    activeRealtimeOrgId,
-    bumpOrgCommentsSignal,
-    bumpRemoteSessionsVersion,
-    refreshEntitlementForOrg,
-  ]);
 
   // --- Connection + Slice A (roster). Rebuilds on user / endpoint / active
   // org. A fresh connection on scope switch avoids supabase-js reusing a
@@ -359,26 +314,28 @@ export function useOrg2CloudRealtime(): void {
   }, [auth?.accessToken]);
 
   // --- Slice B: change-signal + roster subscriptions for the active org only.
-  // Inactive orgs rely on the sync engine's bounded fallback pass and catch up
-  // immediately when selected; they must not keep reconnecting broken channels
-  // or pulling data while the user is working elsewhere.
+  // Inactive orgs catch up immediately when selected; they must not keep
+  // reconnecting channels or pulling data while the user works elsewhere.
   useEffect(() => {
     const connection = connectionRef.current;
     if (!connection || !userId || !activeRealtimeOrgId) return undefined;
 
     const unsubscribes: Array<() => void> = [];
     const orgId = activeRealtimeOrgId;
-    const runCoarseSignalFallback = () => {
+    const runCoarseSignalRefresh = () => {
       const now = Date.now();
-      coarseSignalRefreshAtRef.current = now;
-      if (isDocumentHidden()) {
-        deferHiddenRecovery(orgId, false);
-        return;
-      }
+      coarseSignalHandledAtRef.current = now;
+      // A blur/visibility event releases the connection. Ignore the tiny
+      // event-delivery race during teardown; the next SUBSCRIBED true-edge
+      // below performs the authoritative full recovery.
+      if (isDocumentHidden()) return;
       org2CloudSyncEngine.invalidateOrgInbound(orgId);
       bumpRemoteSessionsVersion(orgId);
       bumpOrgCommentsSignal(orgId);
-      if (now - controlPlaneRefreshAtRef.current >= CONTROL_PLANE_FALLBACK_MS) {
+      if (
+        now - controlPlaneRefreshAtRef.current >=
+        CONTROL_PLANE_REFRESH_THROTTLE_MS
+      ) {
         controlPlaneRefreshAtRef.current = now;
         void refetchRef.current();
         void refreshEntitlementForOrg(orgId).then((floorChanged) => {
@@ -386,18 +343,18 @@ export function useOrg2CloudRealtime(): void {
         });
       }
     };
-    const scheduleCoarseSignalFallback = () => {
+    const scheduleCoarseSignalRefresh = () => {
       const now = Date.now();
-      const elapsed = now - coarseSignalRefreshAtRef.current;
-      if (elapsed >= COARSE_SIGNAL_FALLBACK_MS) {
-        runCoarseSignalFallback();
+      const elapsed = now - coarseSignalHandledAtRef.current;
+      if (elapsed >= COARSE_SIGNAL_THROTTLE_MS) {
+        runCoarseSignalRefresh();
         return;
       }
       if (coarseSignalTrailingTimerRef.current) return;
       coarseSignalTrailingTimerRef.current = setTimeout(() => {
         coarseSignalTrailingTimerRef.current = null;
-        runCoarseSignalFallback();
-      }, COARSE_SIGNAL_FALLBACK_MS - elapsed);
+        runCoarseSignalRefresh();
+      }, COARSE_SIGNAL_THROTTLE_MS - elapsed);
     };
     unsubscribes.push(
       connection.subscribe({
@@ -405,21 +362,18 @@ export function useOrg2CloudRealtime(): void {
         filter: `org_id=eq.${orgId}`,
         onChange: () => {
           // This row carries no plane/entity discriminator. Treat it only as
-          // a bounded durable fallback; plane-specific Presence broadcasts
-          // below keep normal session/comment/control changes immediate.
-          scheduleCoarseSignalFallback();
+          // a bounded durable event; plane-specific Presence broadcasts below
+          // keep normal session/comment/control changes immediate.
+          scheduleCoarseSignalRefresh();
         },
         onStatus: (subscribed) => {
           // On (re)subscribe force a complete listing for this org so
           // tombstones (revoked projects / deleted work items / removed
           // tasks) that landed while disconnected are observed.
           if (subscribed) {
-            coarseSignalRefreshAtRef.current = Date.now();
+            coarseSignalHandledAtRef.current = Date.now();
             controlPlaneRefreshAtRef.current = Date.now();
-            if (isDocumentHidden()) {
-              deferHiddenRecovery(orgId, false);
-              return;
-            }
+            if (isDocumentHidden()) return;
             org2CloudSyncEngine.invalidateOrgInbound(orgId, {
               full: true,
               pushSessions: true,
@@ -557,13 +511,7 @@ export function useOrg2CloudRealtime(): void {
       onBroadcast: (event, payload) => {
         if (event === ORG_CONTROL_CHANGED_EVENT) {
           const kind = parseOrgControlChangeKind(payload);
-          if (kind && isDocumentHidden()) {
-            deferHiddenRecovery(
-              orgId,
-              kind === "scopes" || kind === "entitlement"
-            );
-            return;
-          }
+          if (kind && isDocumentHidden()) return;
           if (kind === "entitlement") {
             void refreshEntitlementForOrg(orgId).then((floorChanged) => {
               if (floorChanged) org2CloudSyncEngine.resumeOrg(orgId);
@@ -586,10 +534,7 @@ export function useOrg2CloudRealtime(): void {
         if (event !== COMMENTS_CHANGED_EVENT) return;
         const sessionId = payload.sessionId;
         if (typeof sessionId !== "string" || !sessionId) return;
-        if (isDocumentHidden()) {
-          deferHiddenRecovery(orgId, false);
-          return;
-        }
+        if (isDocumentHidden()) return;
         setCommentsSignal((current) =>
           bumpCommentsSignalKey(current, sessionCommentsKey(orgId, sessionId))
         );
@@ -672,11 +617,10 @@ export function useOrg2CloudRealtime(): void {
     bumpRemoteSessionsVersion,
   ]);
 
-  // Keep awareness attached to the session this app has open even while its
-  // window is in the background. On desktop only one app window can be
-  // foreground at a time; clearing on blur made two-device collaboration
-  // flicker and made every other viewer disappear as soon as focus moved.
-  // Navigation and channel teardown remain the authoritative leave signals.
+  // Keep awareness attached to the session while this foreground lease owns
+  // the active org channel. Blur/visibility teardown removes the entire
+  // channel and its Presence meta; navigation updates only the payload within
+  // a held lease.
   useEffect(() => {
     for (const [orgId, handle] of presenceHandlesRef.current) {
       const payload = buildPayload(orgId);

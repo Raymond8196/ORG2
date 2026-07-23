@@ -3,9 +3,10 @@
  *
  * Maps orgId → the org's retention-windowed `cloud_list_org_sessions` rows
  * plus fetch state. Fetched lazily by `useCloudOrgRemoteSessions` when the
- * sidebar's active scope is that cloud org, with a short TTL so re-selecting
- * an org doesn't refetch on every render; `refresh()` bypasses the TTL.
- * NOT persisted — retention filtering is server-side and rows go stale.
+ * sidebar's active scope is that cloud org, then refreshed only by concrete
+ * invalidations, foreground recovery, or the explicit refresh action.
+ * NOT persisted — retention filtering is server-side and reconnect recovery
+ * replaces the snapshot.
  */
 import {
   atom,
@@ -30,7 +31,6 @@ import { listOrgSessions } from "./org2CloudSyncClient";
 
 const log = createLogger("Org2CloudRemoteSessions");
 
-const REMOTE_SESSIONS_TTL_MS = 60_000;
 const REMOTE_SESSIONS_CURSOR_OVERLAP_MS = 2_000;
 export const MAX_REMOTE_SESSION_CACHE_ENTRIES = 64;
 export const MAX_REMOTE_SESSIONS_VERSION_KEYS = 64;
@@ -196,7 +196,7 @@ export function beginRemoteSessionsFetch(
     ...current,
     ...(identityKey ? { identityKey } : {}),
     // "loading" is an INITIAL-load UI state only. Realtime invalidations and
-    // the 60s safety TTL are background revalidations: keep the last ready
+    // foreground recovery are background revalidations: keep the last ready
     // snapshot visible instead of flashing an empty/loading row every time.
     state: current.fetchedAt === 0 ? "loading" : current.state,
   };
@@ -232,10 +232,11 @@ org2CloudRemoteSessionsAtom.debugLabel = "org2CloudRemoteSessionsAtom";
 
 /**
  * Per-org invalidation signal for the remote-sessions list. Plane-specific
- * Presence nudges provide the live path; the bounded durable signal fallback
- * and reconnect recovery cover missed broadcasts. `fullRefreshVersion`
- * advances when reconnect recovery needs an authoritative listing without
- * deleting the last visible snapshot first.
+ * Presence nudges provide the live path; the durable signal event and
+ * reconnect recovery cover missed broadcasts. Fetches after the first
+ * snapshot use the server cursor and merge deltas/tombstones.
+ * `fullRefreshVersion` advances when reconnect/foreground recovery needs an
+ * authoritative listing without deleting the last visible snapshot first.
  */
 export interface CloudRemoteSessionsInvalidation {
   version: number;
@@ -272,16 +273,17 @@ org2CloudRemoteSessionsVersionAtom.debugLabel =
 export interface UseCloudOrgRemoteSessionsResult {
   rows: RemoteTeammateSessionMetadata[];
   state: CloudRemoteSessionsFetchState;
-  /** Re-renders on visibility return so demand-driven consumers can resume. */
+  /** Re-renders on visibility flips so demand-driven consumers can resume. */
   documentVisible: boolean;
-  /** Refetch now, ignoring the TTL. */
+  /** Replace the current snapshot now. */
   refresh: () => void;
 }
 
 /**
  * Rows for `orgId` (null ⇒ no cloud scope active — returns the idle empty
- * entry and fetches nothing). Auto-fetches when the entry is missing or
- * older than the TTL.
+ * entry and fetches nothing). Auto-fetches the initial snapshot and responds
+ * to Realtime invalidations. Foreground recovery and `refresh()` are explicit
+ * full-fetch events; there is no recurring or render-driven TTL poll.
  */
 export function useCloudOrgRemoteSessions(
   orgId: string | null
@@ -295,13 +297,14 @@ export function useCloudOrgRemoteSessions(
   const invalidationSignal = orgId ? versionByOrg[orgId] : undefined;
   const invalidationVersion = invalidationSignal?.version ?? 0;
   const fullRefreshVersion = invalidationSignal?.fullRefreshVersion ?? 0;
-  const [visibilityVersion, setVisibilityVersion] = useState(0);
+  const [documentVisible, setDocumentVisible] = useState(
+    () =>
+      typeof document === "undefined" || document.visibilityState !== "hidden"
+  );
   useEffect(() => {
     if (typeof document === "undefined") return undefined;
     const onVisibilityChange = () => {
-      if (document.visibilityState !== "hidden") {
-        setVisibilityVersion((version) => version + 1);
-      }
+      setDocumentVisible(document.visibilityState !== "hidden");
     };
     document.addEventListener("visibilitychange", onVisibilityChange);
     return () =>
@@ -423,12 +426,13 @@ export function useCloudOrgRemoteSessions(
   );
 
   // Effect re-runs on: scope switch (orgId), sign-in flip, and each Realtime
-  // invalidation bump. On a bump the fetch runs regardless of TTL — the
-  // signal means the server HAS newer rows. The identity-keyed fetched-version
+  // invalidation bump. On a bump the fetch runs immediately — the signal
+  // means the server HAS newer rows. The identity-keyed fetched-version
   // map keeps a bump from re-firing after its fetch already ran. `entrySnapshot` is
   // intentionally a dependency: when a newer invalidation arrives during an
   // older in-flight request, that request's completion wakes this effect and
-  // lets the queued version fetch instead of stranding it until the 60s TTL.
+  // lets the queued version fetch instead of stranding it until another
+  // foreground/reconnect event.
   useEffect(() => {
     if (!orgId || !signedIn || !authIdentityKey) return;
     if (
@@ -447,11 +451,11 @@ export function useCloudOrgRemoteSessions(
       requestState.lastFullRefreshVersionByKey.get(requestKey) ?? 0;
     const invalidated = invalidationVersion > lastFetchedVersion;
     const fullInvalidated = fullRefreshVersion > lastFullRefreshVersion;
-    const stale =
-      !entry ||
-      entry.state === "idle" ||
-      Date.now() - entry.fetchedAt > REMOTE_SESSIONS_TTL_MS;
-    if ((!stale && !invalidated) || requestState.inFlightKeys.has(requestKey)) {
+    const needsInitialSnapshot = !entry || entry.state === "idle";
+    if (
+      (!needsInitialSnapshot && !invalidated) ||
+      requestState.inFlightKeys.has(requestKey)
+    ) {
       return;
     }
     rememberRemoteSessionsFetchedVersion(
@@ -474,8 +478,46 @@ export function useCloudOrgRemoteSessions(
     authIdentityKey,
     fetchOrgSessions,
     requestState,
-    visibilityVersion,
   ]);
+
+  // A foreground transition is an explicit recovery boundary: the Realtime
+  // lease was released while unfocused/hidden, so replace the listing once
+  // after focus returns. This also gives a timed-out initial RPC a deterministic
+  // user-driven retry without introducing a timer loop.
+  useEffect(() => {
+    if (
+      !orgId ||
+      !signedIn ||
+      !authIdentityKey ||
+      typeof window === "undefined" ||
+      typeof document === "undefined"
+    ) {
+      return undefined;
+    }
+    const recover = () => {
+      if (
+        typeof document !== "undefined" &&
+        document.visibilityState === "hidden"
+      ) {
+        return;
+      }
+      if (
+        typeof document !== "undefined" &&
+        typeof document.hasFocus === "function" &&
+        !document.hasFocus()
+      ) {
+        return;
+      }
+      if (requestState.inFlightKeys.has(`${authIdentityKey}|${orgId}`)) return;
+      void fetchOrgSessions(orgId, { full: true });
+    };
+    window.addEventListener("focus", recover);
+    document.addEventListener("visibilitychange", recover);
+    return () => {
+      window.removeEventListener("focus", recover);
+      document.removeEventListener("visibilitychange", recover);
+    };
+  }, [authIdentityKey, fetchOrgSessions, orgId, requestState, signedIn]);
 
   const refresh = useCallback(() => {
     if (!orgId || !signedIn || !authIdentityKey) return;
@@ -489,7 +531,5 @@ export function useCloudOrgRemoteSessions(
   }, [orgId, signedIn, authIdentityKey, fetchOrgSessions, requestState]);
 
   const entry = entrySnapshot ?? EMPTY_ENTRY;
-  const documentVisible =
-    typeof document === "undefined" || document.visibilityState !== "hidden";
   return { rows: entry.rows, state: entry.state, documentVisible, refresh };
 }
