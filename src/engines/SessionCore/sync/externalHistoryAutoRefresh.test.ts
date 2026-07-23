@@ -10,6 +10,7 @@ import {
 
 const mocks = vi.hoisted(() => ({
   loadHistory: vi.fn(),
+  loadHistoryFromObservedSignature: vi.fn(),
   getAdapterForSession: vi.fn(),
 }));
 
@@ -73,10 +74,41 @@ class RefreshSchedulerEnvironment implements ExternalHistoryRefreshSchedulerEnvi
 describe("refreshImportedHistorySession", () => {
   beforeEach(() => {
     mocks.loadHistory.mockReset();
+    mocks.loadHistoryFromObservedSignature.mockReset();
     mocks.getAdapterForSession.mockReset().mockReturnValue({
       category: "external_history",
       loadHistory: mocks.loadHistory,
+      loadHistoryFromObservedSignature: mocks.loadHistoryFromObservedSignature,
     });
+  });
+
+  it("reuses a signature already observed by the refresh scheduler", async () => {
+    const events = [
+      {
+        id: "event-1",
+        sessionId: "codexapp-active",
+        createdAt: "2026-07-16T05:00:00.000Z",
+      },
+    ];
+    mocks.loadHistoryFromObservedSignature.mockResolvedValue(events);
+    const dispatchLoadSession = vi.fn();
+    const controller = new AbortController();
+
+    await expect(
+      refreshImportedHistorySession(
+        "codexapp-active",
+        controller.signal,
+        dispatchLoadSession,
+        "100:200"
+      )
+    ).resolves.toBe(true);
+
+    expect(mocks.loadHistoryFromObservedSignature).toHaveBeenCalledWith(
+      "codexapp-active",
+      controller.signal,
+      "100:200"
+    );
+    expect(mocks.loadHistory).not.toHaveBeenCalled();
   });
 
   it("reloads and publishes the currently open external transcript", async () => {
