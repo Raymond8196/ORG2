@@ -481,16 +481,36 @@ fn init_source_cache_tables_upgrades_legacy_table_missing_columns() {
         "imported_history_session_cache",
         "listable"
     ));
-    let index_exists: bool = conn
+    for index_name in [
+        "idx_imported_history_sidebar_order",
+        "idx_imported_history_parent_created",
+    ] {
+        let index_exists: bool = conn
+            .query_row(
+                "SELECT COUNT(*) FROM sqlite_master
+                 WHERE type = 'index' AND name = ?1",
+                [index_name],
+                |row| Ok(row.get::<_, i64>(0)? == 1),
+            )
+            .expect("query index presence");
+        assert!(index_exists, "{index_name} should be created");
+    }
+
+    let query_plan: String = conn
         .query_row(
-            "SELECT COUNT(*) FROM sqlite_master
-             WHERE type = 'index' AND name = 'idx_imported_history_sidebar_order'",
-            [],
-            |row| Ok(row.get::<_, i64>(0)? == 1),
+            "EXPLAIN QUERY PLAN
+             SELECT session_id, source_session_id, created_at_ms, source_metadata_json
+             FROM imported_history_session_cache
+             WHERE source = ?1
+               AND parent_session_id = ?2
+               AND parent_session_id != ''
+             ORDER BY created_at_ms ASC, source_session_id ASC",
+            ["codex_app", "codexapp-parent"],
+            |row| row.get(3),
         )
-        .expect("query index presence");
+        .expect("query child-session lookup plan");
     assert!(
-        index_exists,
-        "sidebar-order partial index should be created"
+        query_plan.contains("idx_imported_history_parent_created"),
+        "child-session lookup should use its parent index: {query_plan}"
     );
 }

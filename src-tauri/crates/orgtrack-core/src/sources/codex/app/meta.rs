@@ -23,7 +23,9 @@ use super::index::{
     codex_thread_id_from_file_stem, collect_codex_session_files,
 };
 use super::transcript::user_message_from_payload;
-use super::{CodexAppSessionMeta, CodexJsonlLine, CODEX_APP_METADATA_PARSER_VERSION};
+use super::{
+    CodexAppSessionMeta, CodexAppSourceMetadata, CodexJsonlLine, CODEX_APP_METADATA_PARSER_VERSION,
+};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CodexTranscriptLocator {
@@ -80,6 +82,7 @@ pub(crate) fn parse_codex_session_meta(
     let mut fallback_impact = ImportedHistoryImpactStats::default();
     let mut fallback_touched = BTreeSet::new();
     let mut parent_thread_id: Option<String> = None;
+    let mut source_metadata = CodexAppSourceMetadata::default();
 
     for line in reader.lines() {
         let line = line.map_err(|err| format!("Failed to read Codex history line: {err}"))?;
@@ -105,7 +108,7 @@ pub(crate) fn parse_codex_session_meta(
         }
         if first_prompt.is_empty() {
             if let Some(message) = user_message_from_payload(&parsed.payload) {
-                first_prompt = imported_history::truncate_name(&message, 200);
+                first_prompt = message;
             }
         }
         if external_title.is_empty() && parsed.line_type == "session_meta" {
@@ -118,6 +121,9 @@ pub(crate) fn parse_codex_session_meta(
                 &parsed.payload,
                 codex_thread_id_from_file_stem(&record.source_record_key),
             );
+        }
+        if parsed.line_type == "session_meta" {
+            capture_subagent_source_metadata(&parsed.payload, &mut source_metadata);
         }
         if model.is_none() || repo_path.is_none() {
             if let Ok(turn_context) =
@@ -208,8 +214,9 @@ pub(crate) fn parse_codex_session_meta(
     } else if first_prompt.is_empty() {
         record.source_record_key.clone()
     } else {
-        first_prompt
+        imported_history::truncate_name(&first_prompt, 200)
     };
+    source_metadata.first_prompt = (!first_prompt.trim().is_empty()).then_some(first_prompt);
     Ok(Some(CodexAppSessionMeta {
         source_session_id: record.source_session_id.clone(),
         session_id: canonical_session_id(&record.source_session_id),
@@ -240,10 +247,15 @@ pub(crate) fn parse_codex_session_meta(
         cache_write_tokens,
         impact,
         rounds,
+        source_metadata,
     }))
 }
 
 pub(super) fn session_meta_to_cache_input(meta: CodexAppSessionMeta) -> ImportedHistoryCacheInput {
+    let source_metadata_json = meta
+        .parent_session_id
+        .as_ref()
+        .and_then(|_| serde_json::to_string(&meta.source_metadata).ok());
     ImportedHistoryCacheInput {
         source: SOURCE_CODEX_APP,
         source_session_id: meta.source_session_id,
@@ -266,8 +278,28 @@ pub(super) fn session_meta_to_cache_input(meta: CodexAppSessionMeta) -> Imported
         branch: None,
         impact: meta.impact,
         listable: true,
-        source_metadata_json: None,
+        source_metadata_json,
         parent_session_id: meta.parent_session_id,
+    }
+}
+
+fn capture_subagent_source_metadata(payload: &Value, metadata: &mut CodexAppSourceMetadata) {
+    let thread_spawn = payload.pointer("/source/subagent/thread_spawn");
+    if metadata.agent_path.is_none() {
+        metadata.agent_path = thread_spawn
+            .and_then(|value| value.get("agent_path"))
+            .and_then(Value::as_str)
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .map(ToString::to_string);
+    }
+    if metadata.agent_nickname.is_none() {
+        metadata.agent_nickname = thread_spawn
+            .and_then(|value| value.get("agent_nickname"))
+            .and_then(Value::as_str)
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .map(ToString::to_string);
     }
 }
 

@@ -545,7 +545,15 @@ impl SqliteRecordStore<'_> {
                     created_at_ms DESC,
                     source_session_id ASC
                 )
-                WHERE listable = 1 AND parent_session_id = '';",
+                WHERE listable = 1 AND parent_session_id = '';
+            CREATE INDEX IF NOT EXISTS idx_imported_history_parent_created
+                ON imported_history_session_cache(
+                    source,
+                    parent_session_id,
+                    created_at_ms,
+                    source_session_id
+                )
+                WHERE parent_session_id != '';",
         )?;
 
         // Per-round token usage for imported sessions (one row per assistant
