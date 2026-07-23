@@ -11,6 +11,7 @@ import {
   externalSessionsEnabledAtom,
 } from "../dataSourceConfigAtom";
 import {
+  nextDataSourceAutoScanDelay,
   runDataSourceAutoScan,
   startDataSourceAutoScanScheduler,
 } from "../useDataSourceAutoScan";
@@ -84,6 +85,65 @@ describe("runDataSourceAutoScan", () => {
 
   it("defaults global provider discovery to a ten-minute cadence", () => {
     expect(mocks.store?.get(dataSourceGlobalFrequencyAtom)).toBe("10m");
+  });
+
+  it("schedules directly at the next scan or presence deadline", () => {
+    const config: DataSourceConfigMap = Object.fromEntries(
+      IMPORTED_HISTORY_SOURCE_DESCRIPTORS.map(({ sourceId }) => [
+        sourceId,
+        { enabled: false, frequency: "default" as const, lastScannedAt: null },
+      ])
+    );
+    config.codex_app = {
+      enabled: true,
+      frequency: "60s",
+      lastScannedAt: NOW,
+    };
+
+    expect(
+      nextDataSourceAutoScanDelay(
+        NOW,
+        true,
+        true,
+        config,
+        { codex_app: { historyFound: true, checkedAt: NOW } },
+        "5m"
+      )
+    ).toBe(60_000);
+    expect(
+      nextDataSourceAutoScanDelay(
+        NOW,
+        false,
+        true,
+        config,
+        { codex_app: { historyFound: true, checkedAt: NOW } },
+        "5m"
+      )
+    ).toBe(10 * 60_000);
+  });
+
+  it("parks disabled scheduling and waits for the probe of an absent store", () => {
+    const config: DataSourceConfigMap = Object.fromEntries(
+      IMPORTED_HISTORY_SOURCE_DESCRIPTORS.map(({ sourceId }) => [
+        sourceId,
+        { enabled: false, frequency: "default" as const, lastScannedAt: null },
+      ])
+    );
+    config.cursor_ide = {
+      enabled: true,
+      frequency: "60s",
+      lastScannedAt: NOW - 60_000,
+    };
+    const presence = {
+      cursor_ide: { historyFound: false, checkedAt: NOW },
+    };
+
+    expect(
+      nextDataSourceAutoScanDelay(NOW, true, true, config, presence, "5m")
+    ).toBe(SOURCE_PRESENCE_PROBE_INTERVAL_MS);
+    expect(
+      nextDataSourceAutoScanDelay(NOW, true, false, config, presence, "5m")
+    ).toBeNull();
   });
 
   it("force scans enabled non-manual sources for explicit refreshes", async () => {
@@ -380,7 +440,11 @@ describe("startDataSourceAutoScanScheduler", () => {
     vi.useFakeTimers();
     const source = new VisibilitySourceStub();
     const scan = vi.fn().mockResolvedValue(undefined);
-    const scheduler = startDataSourceAutoScanScheduler(source, scan, 30_000);
+    const scheduler = startDataSourceAutoScanScheduler(
+      source,
+      scan,
+      () => 30_000
+    );
 
     expect(scan).toHaveBeenCalledWith(false);
     await vi.advanceTimersByTimeAsync(0);
@@ -411,7 +475,11 @@ describe("startDataSourceAutoScanScheduler", () => {
     const source = new VisibilitySourceStub();
     source.visibilityState = "hidden";
     const scan = vi.fn().mockResolvedValue(undefined);
-    const scheduler = startDataSourceAutoScanScheduler(source, scan, 30_000);
+    const scheduler = startDataSourceAutoScanScheduler(
+      source,
+      scan,
+      () => 30_000
+    );
 
     expect(scan).not.toHaveBeenCalled();
     expect(vi.getTimerCount()).toBe(0);

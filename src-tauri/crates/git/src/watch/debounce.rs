@@ -425,6 +425,7 @@ impl DebounceManager {
     /// Cancel pending debounce for a repository
     pub fn cancel_debounce(&self, repo_id: &str) {
         self.pending_events.write().remove(repo_id);
+        self.last_flush_times.write().remove(repo_id);
     }
 
     // ============================================
