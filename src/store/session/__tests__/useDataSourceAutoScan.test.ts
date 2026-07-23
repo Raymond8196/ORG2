@@ -299,6 +299,34 @@ describe("runDataSourceAutoScan", () => {
     expect(mocks.loadSidebarSessions).toHaveBeenCalledOnce();
   });
 
+  it("does not reload sidebar pages when an incremental scan changed nothing", async () => {
+    const config: DataSourceConfigMap = Object.fromEntries(
+      IMPORTED_HISTORY_SOURCE_DESCRIPTORS.map(({ sourceId }) => [
+        sourceId,
+        { enabled: false, frequency: "default" as const, lastScannedAt: null },
+      ])
+    );
+    config.codex_app = {
+      enabled: true,
+      frequency: "120s",
+      lastScannedAt: NOW - 120_000,
+    };
+    mocks.store?.set(dataSourceConfigAtom, config);
+    mocks.externalHistoryRescanSources.mockResolvedValueOnce({
+      changedSources: [],
+    });
+
+    await runDataSourceAutoScan();
+
+    expect(mocks.externalHistoryRescanSources).toHaveBeenCalledWith([
+      "codex_app",
+    ]);
+    expect(mocks.loadSidebarSessions).not.toHaveBeenCalled();
+    expect(mocks.store?.get(dataSourceConfigAtom).codex_app.lastScannedAt).toBe(
+      NOW
+    );
+  });
+
   it("deduplicates overlapping startup passes", async () => {
     const config: DataSourceConfigMap = Object.fromEntries(
       IMPORTED_HISTORY_SOURCE_DESCRIPTORS.map(({ sourceId }) => [
@@ -376,7 +404,7 @@ describe("startDataSourceAutoScanScheduler", () => {
     const scan = vi.fn().mockResolvedValue(undefined);
     const scheduler = startDataSourceAutoScanScheduler(source, scan, 30_000);
 
-    expect(scan).toHaveBeenCalledWith(true);
+    expect(scan).toHaveBeenCalledWith(false);
     await vi.advanceTimersByTimeAsync(0);
     expect(vi.getTimerCount()).toBe(1);
 
@@ -400,7 +428,7 @@ describe("startDataSourceAutoScanScheduler", () => {
     expect(scan).toHaveBeenCalledTimes(3);
   });
 
-  it("defers the forced startup pass until an initially hidden app is visible", async () => {
+  it("defers the due-aware startup pass until an initially hidden app is visible", async () => {
     vi.useFakeTimers();
     const source = new VisibilitySourceStub();
     source.visibilityState = "hidden";
@@ -411,7 +439,7 @@ describe("startDataSourceAutoScanScheduler", () => {
     expect(vi.getTimerCount()).toBe(0);
 
     source.setVisibility("visible");
-    expect(scan).toHaveBeenCalledWith(true);
+    expect(scan).toHaveBeenCalledWith(false);
     await vi.advanceTimersByTimeAsync(0);
     expect(vi.getTimerCount()).toBe(1);
 

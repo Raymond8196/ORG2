@@ -39,4 +39,30 @@ describe("external history rescans", () => {
     await externalHistoryRescanSources([]);
     expect(invokeMock).not.toHaveBeenCalled();
   });
+
+  it("coalesces overlapping callers into one serialized source batch", async () => {
+    await Promise.all([
+      externalHistoryRescanSources(["codex_app", "cline"]),
+      externalHistoryRescanSource("cline"),
+    ]);
+
+    expect(invokeMock).toHaveBeenCalledOnce();
+    expect(invokeMock).toHaveBeenCalledWith("external_history_rescan_sources", {
+      sources: ["codex_app", "cline"],
+      clear: false,
+    });
+  });
+
+  it("escalates a queued source to one clear rebuild", async () => {
+    await Promise.all([
+      externalHistoryRescanSource("codex_app"),
+      externalHistoryRescanSource("codex_app", { clear: true }),
+    ]);
+
+    expect(invokeMock).toHaveBeenCalledOnce();
+    expect(invokeMock).toHaveBeenCalledWith("external_history_rescan_source", {
+      source: "codex_app",
+      clear: true,
+    });
+  });
 });

@@ -26,8 +26,10 @@ export async function rescanSidebarSessions(): Promise<void> {
     ({ sourceId }) => getSourceConfig(config, sourceId).enabled
   ).map(({ sourceId }) => sourceId);
 
-  await externalHistoryRescanSources(sourceIds);
-  await loadSidebarSessions({ forceRefresh: true });
+  const scanResult = await externalHistoryRescanSources(sourceIds);
+  if (scanResult?.changedSources.length !== 0) {
+    await loadSidebarSessions({ forceRefresh: true });
+  }
 
   const lastScannedAt = Date.now();
   store.set(dataSourceConfigAtom, (previous) => {

@@ -32,6 +32,17 @@ fn open_cache_conn() -> Result<rusqlite::Connection, String> {
     get_connection().map_err(|err| format!("Failed to open orgtrack source cache DB: {err}"))
 }
 
+static EXTERNAL_HISTORY_SCAN_QUEUE: OnceLock<tokio::sync::Semaphore> = OnceLock::new();
+
+async fn acquire_external_history_scan_permit(
+) -> Result<tokio::sync::SemaphorePermit<'static>, String> {
+    EXTERNAL_HISTORY_SCAN_QUEUE
+        .get_or_init(|| tokio::sync::Semaphore::new(1))
+        .acquire()
+        .await
+        .map_err(|_| "External history scan queue closed".to_string())
+}
+
 const CODEX_TURN_PROJECTION_CACHE_CAPACITY: usize = 8;
 
 #[derive(Debug)]
@@ -275,19 +286,29 @@ fn imported_recent_paths() -> Result<Vec<imported_history::ImportedHistoryRecent
     Ok(imported_history::recent_paths_from_paths(&paths))
 }
 
-/// Force a full rescan of a single external history source.
+/// Rescan one external history source.
 ///
-/// Clears every cached metadata row for `source` from
-/// `imported_history_session_cache`. The next sidebar/list load re-reads the
-/// source's on-disk store from scratch (no cached signatures means the
-/// delta-sync treats every session as new) and repopulates the cache.
+/// The default path incrementally parses records whose stored signature
+/// changed. `clear = true` first removes the source cache, forcing a complete
+/// rebuild.
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExternalHistoryScanResultWire {
+    pub changed_sources: Vec<String>,
+}
+
 #[tauri::command]
-pub async fn external_history_rescan_source(source: String, clear: bool) -> Result<(), String> {
+pub async fn external_history_rescan_source(
+    source: String,
+    clear: bool,
+) -> Result<ExternalHistoryScanResultWire, String> {
     if !imported_history::metadata::is_imported_history_source(&source) {
         return Err(format!("Unknown external history source: {source}"));
     }
+    let _permit = acquire_external_history_scan_permit().await?;
     tokio::task::spawn_blocking(move || {
         let mut conn = open_cache_conn()?;
+        let changes_before = conn.total_changes();
         // `clear`: wipe the source's cached rows so every session is re-parsed
         // from scratch (drops stale rows / forces a full re-parse even when
         // file signatures are unchanged). Otherwise this is an incremental
@@ -297,9 +318,13 @@ pub async fn external_history_rescan_source(source: String, clear: bool) -> Resu
         }
         // Always re-read the on-disk store and repopulate the cache. The old
         // behavior only pruned, leaving the count at 0 until a later lazy load.
-        crate::agent_sessions::session_directory::aggregation::resync_external_history_source(
-            &mut conn, &source,
-        )
+        let changed =
+            crate::agent_sessions::session_directory::aggregation::resync_external_history_source(
+                &mut conn, &source,
+            )? || conn.total_changes() > changes_before;
+        Ok(ExternalHistoryScanResultWire {
+            changed_sources: changed.then_some(source).into_iter().collect(),
+        })
     })
     .await
     .map_err(|err| format!("Task join error: {err}"))?
@@ -314,7 +339,7 @@ pub async fn external_history_rescan_source(source: String, clear: bool) -> Resu
 pub async fn external_history_rescan_sources(
     sources: Vec<String>,
     clear: bool,
-) -> Result<(), String> {
+) -> Result<ExternalHistoryScanResultWire, String> {
     let mut seen_sources = HashSet::with_capacity(sources.len());
     for source in &sources {
         if !seen_sources.insert(source.as_str()) {
@@ -325,17 +350,23 @@ pub async fn external_history_rescan_sources(
         }
     }
 
+    let _permit = acquire_external_history_scan_permit().await?;
     tokio::task::spawn_blocking(move || {
         let mut conn = open_cache_conn()?;
+        let mut changed_sources = Vec::new();
         for source in sources {
+            let changes_before = conn.total_changes();
             if clear {
                 imported_history::cache::prune_missing_records_from_conn(&conn, &source, &[])?;
             }
-            crate::agent_sessions::session_directory::aggregation::resync_external_history_source(
+            let changed = crate::agent_sessions::session_directory::aggregation::resync_external_history_source(
                 &mut conn, &source,
-            )?;
+            )? || conn.total_changes() > changes_before;
+            if changed {
+                changed_sources.push(source);
+            }
         }
-        Ok(())
+        Ok(ExternalHistoryScanResultWire { changed_sources })
     })
     .await
     .map_err(|err| format!("Task join error: {err}"))?
@@ -881,20 +912,52 @@ pub async fn workbuddy_recent_paths(
     .map_err(|err| format!("Task join error: {err}"))?
 }
 
-/// Number of hidden sub-agent sessions cached for an importable source — Cursor's
-/// sub-agent composers, which are folded under a parent and excluded from the
-/// normal list queries. 0 for every other source today. Surfaced as its own
-/// column in the Data Sources panel next to the top-level session count.
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExternalHistorySourceStatsWire {
+    pub source_id: String,
+    pub session_count: usize,
+    pub subagent_count: usize,
+    pub last_used_at: Option<String>,
+}
+
+/// One compact cache-only inventory read for every requested source. This
+/// command never opens provider databases or walks transcript directories.
 #[tauri::command]
-pub async fn imported_history_subagent_count(source: String) -> Result<usize, String> {
-    if !imported_history::metadata::is_imported_history_source(&source) {
-        return Ok(0);
+pub async fn external_history_source_stats(
+    sources: Vec<String>,
+) -> Result<Vec<ExternalHistorySourceStatsWire>, String> {
+    let mut seen_sources = HashSet::with_capacity(sources.len());
+    for source in &sources {
+        if !seen_sources.insert(source.clone()) {
+            return Err(format!("Duplicate external history source: {source}"));
+        }
+        if !imported_history::metadata::is_imported_history_source(source) {
+            return Err(format!("Unknown external history source: {source}"));
+        }
     }
+
     tokio::task::spawn_blocking(move || {
         let conn = open_cache_conn()?;
-        let (_sessions, subagents) =
-            imported_history::cache::source_session_counts_from_conn(&conn, &source)?;
-        Ok(subagents)
+        let cached = imported_history::cache::all_source_stats_from_conn(&conn)?
+            .into_iter()
+            .map(|stats| (stats.source.clone(), stats))
+            .collect::<std::collections::HashMap<_, _>>();
+        Ok(sources
+            .into_iter()
+            .map(|source_id| {
+                let stats = cached.get(&source_id);
+                ExternalHistorySourceStatsWire {
+                    source_id,
+                    session_count: stats.map_or(0, |row| row.session_count),
+                    subagent_count: stats.map_or(0, |row| row.subagent_count),
+                    last_used_at: stats
+                        .and_then(|row| row.last_used_at_ms)
+                        .and_then(chrono::DateTime::<chrono::Utc>::from_timestamp_millis)
+                        .map(|value| value.to_rfc3339()),
+                }
+            })
+            .collect())
     })
     .await
     .map_err(|err| format!("Task join error: {err}"))?
