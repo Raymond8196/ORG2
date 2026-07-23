@@ -689,10 +689,11 @@ body.drag-over::after {
 
 /* Visible thin scrollbar for dropdown option lists (Settings > Timezone,
  * table selectors, etc.). Tailwind has no first-class scrollbar pseudo
- * utilities, so we expose this as a global helper class. */
+ * utilities, so we expose this as a global helper class. No `scrollbar-width`
+ * here: once WebKit/Chromium support it, its presence makes them IGNORE the
+ * ::-webkit-scrollbar rules below and fall back to an auto-hiding overlay
+ * bar — an overflowing dropdown then shows no scroll affordance at all. */
 .dropdown-options-scrollbar {
-  scrollbar-width: thin;
-
   &::-webkit-scrollbar {
     width: 6px;
   }
