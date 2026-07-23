@@ -22,7 +22,10 @@ use super::meta::{
     parse_codex_session_meta, resolve_codex_transcript_for_thread_id_near_path,
     session_meta_to_cache_input,
 };
-use super::transcript::load_codex_app_from_path;
+use super::transcript::{
+    load_codex_app_from_path, load_codex_app_initial_window_from_path,
+    load_codex_app_turn_from_path, CodexAppInitialWindow, CodexAppTurnWindow,
+};
 use super::{CodexAppRecentPath, CodexAppSessionPage, CODEX_APP_METADATA_PARSER_VERSION};
 
 /// Metadata discovery normally parses changed rollouts to derive repo, title,
@@ -80,6 +83,26 @@ pub fn load_codex_app_for_session(
     let file_stem = codex_file_stem_from_session_id(session_id)?;
     let path = resolve_codex_session_path(conn, file_stem)?;
     load_codex_app_from_path(session_id, &path)
+}
+
+pub fn load_codex_app_initial_window_for_session(
+    conn: &Connection,
+    session_id: &str,
+    recent_turn_count: usize,
+) -> Result<CodexAppInitialWindow, String> {
+    let file_stem = codex_file_stem_from_session_id(session_id)?;
+    let path = resolve_codex_session_path(conn, file_stem)?;
+    load_codex_app_initial_window_from_path(session_id, &path, recent_turn_count)
+}
+
+pub fn load_codex_app_turn_for_session(
+    conn: &Connection,
+    session_id: &str,
+    turn_id: &str,
+) -> Result<CodexAppTurnWindow, String> {
+    let file_stem = codex_file_stem_from_session_id(session_id)?;
+    let path = resolve_codex_session_path(conn, file_stem)?;
+    load_codex_app_turn_from_path(session_id, &path, turn_id)
 }
 
 fn sync_codex_app_cache(conn: &mut Connection) -> Result<(), String> {

@@ -1,5 +1,9 @@
-import { isCursorIdeSession } from "@src/util/session/sessionDispatch";
+import {
+  isCodexAppSession,
+  isCursorIdeSession,
+} from "@src/util/session/sessionDispatch";
 
+import { codexAppTurnLoader } from "./codexAppTurnLoader";
 import { cursorIdeTurnLoader } from "./cursorIdeTurnLoader";
 import {
   getPendingTurnLoad,
@@ -12,6 +16,9 @@ import type { LoadTurnBodyIntoStoreArgs, SessionTurnLoader } from "./types";
 export function getSessionTurnLoader(sessionId: string): SessionTurnLoader {
   if (isCursorIdeSession(sessionId)) {
     return cursorIdeTurnLoader;
+  }
+  if (isCodexAppSession(sessionId)) {
+    return codexAppTurnLoader;
   }
   return ownDbTurnLoader;
 }
