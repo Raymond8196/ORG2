@@ -9,7 +9,7 @@ import {
   getIconProviderFromType,
 } from "@src/components/ModelIcon/config";
 import type { RemoteTeammateSessionMetadata } from "@src/store/collaboration/types";
-import type { Session } from "@src/store/session";
+import type { Session } from "@src/store/session/sessionAtom/types";
 
 import { isAgentSession, resolveSessionIconId } from "./sessionDispatch";
 
