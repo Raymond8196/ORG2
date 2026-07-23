@@ -9,9 +9,10 @@
  * shows the on-disk path + file type.
  *
  * Per-source config (enabled / frequency / lastScannedAt) is persisted via
- * `dataSourceConfigAtom`. A disabled source is gated out of `loadSidebarSessions`
- * so its sessions never load anywhere. Rescan re-runs detection and performs
- * an incremental import by default, with an explicit clear-and-rebuild option.
+ * `dataSourceConfigAtom`. A disabled source is gated out of external-history
+ * sidebar loads so its sessions never load anywhere. Rescan re-runs detection
+ * and performs an incremental import by default, with an explicit
+ * clear-and-rebuild option.
  */
 import { invoke } from "@tauri-apps/api/core";
 import { useAtom } from "jotai";
@@ -55,7 +56,7 @@ import {
   SectionContainer,
   SectionRow,
 } from "@src/modules/shared/layouts/SectionLayout";
-import { loadSidebarSessions } from "@src/store/session";
+import { loadExternalHistorySidebarSessions } from "@src/store/session";
 import {
   ACTIVE_EXTERNAL_SESSION_REFRESH_FREQUENCIES,
   type ActiveExternalSessionRefreshFrequency,
@@ -278,8 +279,8 @@ const RuntimeScanningPanel: React.FC = () => {
             clear,
           });
           if (!panelMountedRef.current) return;
-          if (scanResult?.changedSources.length !== 0) {
-            await loadSidebarSessions({ forceRefresh: true });
+          if (scanResult.changedSources.length > 0) {
+            await loadExternalHistorySidebarSessions();
             if (!panelMountedRef.current) return;
           }
           await loadStats(sourceId);
@@ -315,8 +316,8 @@ const RuntimeScanningPanel: React.FC = () => {
     try {
       const scanResult = await externalHistoryRescanSources(importables);
       if (!panelMountedRef.current) return;
-      if (scanResult?.changedSources.length !== 0) {
-        await loadSidebarSessions({ forceRefresh: true });
+      if (scanResult.changedSources.length > 0) {
+        await loadExternalHistorySidebarSessions();
         if (!panelMountedRef.current) return;
       }
       const probes = await externalCliSourcesDetect();
@@ -367,7 +368,7 @@ const RuntimeScanningPanel: React.FC = () => {
       updateConfig(sourceId, { enabled });
       // Config write is synchronous in the shared store, so the reload below
       // already respects the new enabled state.
-      await loadSidebarSessions({ forceRefresh: true });
+      await loadExternalHistorySidebarSessions();
       if (enabled) {
         if (row.importable && isImportableId(sourceId)) {
           await loadStats(sourceId);
