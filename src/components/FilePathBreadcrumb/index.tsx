@@ -1,3 +1,10 @@
+/**
+ * FilePathBreadcrumb
+ *
+ * Slash-separated path breadcrumb with the file name emphasized. Used by
+ * changed-file rows (collapsed middle) and file-path hover tooltips
+ * (`maxSegments={null}` renders the untruncated path).
+ */
 import { Slash } from "lucide-react";
 import React, { useMemo } from "react";
 
@@ -13,24 +20,32 @@ const MAX_VISIBLE_SEGMENTS = 4;
 
 interface FilePathBreadcrumbProps {
   path: string;
+  /**
+   * Segments kept before the middle collapses to an ellipsis.
+   * `null` renders every segment.
+   * @default 4
+   */
+  maxSegments?: number | null;
+  className?: string;
 }
 
-const FilePathBreadcrumb: React.FC<FilePathBreadcrumbProps> = ({ path }) => {
+const FilePathBreadcrumb: React.FC<FilePathBreadcrumbProps> = ({
+  path,
+  maxSegments = MAX_VISIBLE_SEGMENTS,
+  className = "",
+}) => {
   const segments = useMemo(() => path.split("/").filter(Boolean), [path]);
 
   const displaySegments = useMemo(() => {
-    if (segments.length <= MAX_VISIBLE_SEGMENTS) return segments;
-    return [
-      segments[0],
-      "\u2026",
-      ...segments.slice(-(MAX_VISIBLE_SEGMENTS - 2)),
-    ];
-  }, [segments]);
+    if (maxSegments === null || segments.length <= maxSegments) return segments;
+    const tailCount = Math.max(1, maxSegments - 2);
+    return [segments[0], "…", ...segments.slice(-tailCount)];
+  }, [segments, maxSegments]);
 
   const lastIndex = displaySegments.length - 1;
 
   return (
-    <span className="inline-flex items-center gap-0.5 text-xs">
+    <span className={`inline-flex items-center gap-0.5 text-xs ${className}`}>
       {displaySegments.map((segment, index) => {
         const isFile = index === lastIndex;
         return (
@@ -49,3 +64,4 @@ const FilePathBreadcrumb: React.FC<FilePathBreadcrumbProps> = ({ path }) => {
 };
 
 export default FilePathBreadcrumb;
+export type { FilePathBreadcrumbProps };
