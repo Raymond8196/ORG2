@@ -60,6 +60,7 @@ describe("refreshSession", () => {
     // Plain GoTrue call — no PostgREST schema profile header.
     expect(headers["content-profile"]).toBeUndefined();
     expect(JSON.parse(String(init.body))).toEqual({ refresh_token: "rt-1" });
+    expect(init.signal).toBeInstanceOf(AbortSignal);
   });
 
   it("returns null on non-200", async () => {
