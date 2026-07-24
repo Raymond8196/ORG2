@@ -598,6 +598,92 @@ fn codex_desktop_exec_unwraps_parallel_shell_commands() {
 }
 
 #[test]
+fn codex_desktop_exec_unwraps_parallel_result_array_per_command() {
+    let temp_dir = std::env::temp_dir().join(format!(
+        "orgii-codex-parallel-results-test-{}",
+        std::process::id()
+    ));
+    std::fs::create_dir_all(&temp_dir).expect("create temp dir");
+    let path = temp_dir.join("rollout-parallel-results.jsonl");
+    let script = r#"const results = await Promise.all([
+  tools.exec_command({cmd:"npx eslint src/ --format stylish",workdir:"/tmp/project",yield_time_ms:30000,max_output_tokens:20000}),
+  tools.exec_command({cmd:"npm run typecheck",workdir:"/tmp/project",yield_time_ms:30000,max_output_tokens:30000})
+]); results.forEach((result) => text(JSON.stringify(result)));"#;
+    let wrapped_results = format!(
+        "Script completed\nWall time 17.6 seconds\nOutput:\n{}",
+        json!([
+            {
+                "chunk_id": "eed8df",
+                "wall_time_seconds": 17.6,
+                "session_id": 17954,
+                "original_token_count": 0,
+                "output": "lint passed\n"
+            },
+            {
+                "chunk_id": "7ed187",
+                "wall_time_seconds": 31.4,
+                "session_id": 95241,
+                "original_token_count": 14,
+                "output": "> orgii@1.2.1 typecheck\n> tsc --noEmit --pretty false\n"
+            }
+        ])
+    );
+    let content = [
+        json!({
+            "timestamp": "2026-07-23T15:27:00Z",
+            "type": "response_item",
+            "payload": {
+                "type": "custom_tool_call",
+                "name": "exec",
+                "call_id": "call_parallel_results",
+                "input": script,
+            }
+        }),
+        json!({
+            "timestamp": "2026-07-23T15:27:18Z",
+            "type": "response_item",
+            "payload": {
+                "type": "custom_tool_call_output",
+                "call_id": "call_parallel_results",
+                "output": [
+                    { "type": "input_text", "text": wrapped_results },
+                ],
+            }
+        }),
+    ]
+    .into_iter()
+    .map(|line| line.to_string())
+    .collect::<Vec<_>>()
+    .join("\n");
+    std::fs::write(&path, content).expect("write fixture");
+
+    let chunks = load_codex_app_from_path("codexapp-parallel-results", &path).expect("parse");
+
+    assert_eq!(chunks.len(), 2);
+    let lint = chunks
+        .iter()
+        .find(|chunk| chunk.args["command"] == "npx eslint src/ --format stylish")
+        .expect("lint command");
+    let typecheck = chunks
+        .iter()
+        .find(|chunk| chunk.args["command"] == "npm run typecheck")
+        .expect("typecheck command");
+    assert_eq!(lint.result["output"], "lint passed\n");
+    assert_eq!(
+        typecheck.result["output"],
+        "> orgii@1.2.1 typecheck\n> tsc --noEmit --pretty false\n"
+    );
+    assert!(chunks.iter().all(|chunk| {
+        chunk.result["output"]
+            .as_str()
+            .is_some_and(|output| !output.contains("Script completed"))
+    }));
+
+    std::fs::remove_file(&path).expect("remove fixture");
+    std::fs::remove_dir(&temp_dir).expect("remove temp dir");
+}
+
+#[test]
 fn codex_desktop_exec_unwraps_exec_command_arguments() {
     let script = r#"const results = await Promise.all([
   tools.exec_command({cmd:"git status --short --branch",workdir:"/Users/laptop-h/Documents/GitHub/ORGII",yield_time_ms:10000,max_output_tokens:3000}),
