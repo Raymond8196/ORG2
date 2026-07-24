@@ -12,13 +12,18 @@ import { getCloudCapabilitiesRaw } from "./org2CloudClient";
 
 const CloudCapabilitiesWireSchema = z.object({
   broadcastSignals: z.boolean().nullish().catch(undefined),
+  storageSegments: z.boolean().nullish().catch(undefined),
 });
 
 export interface CloudCapabilities {
   broadcastSignals: boolean;
+  storageSegments: boolean;
 }
 
-const LEGACY_CAPABILITIES: CloudCapabilities = { broadcastSignals: false };
+const LEGACY_CAPABILITIES: CloudCapabilities = {
+  broadcastSignals: false,
+  storageSegments: false,
+};
 
 const capabilitiesByEndpoint = new Map<string, CloudCapabilities>();
 const inFlightByEndpoint = new Map<string, Promise<CloudCapabilities>>();
@@ -42,6 +47,7 @@ export async function getCloudCapabilities(
     }
     const capabilities: CloudCapabilities = {
       broadcastSignals: parsed.data.broadcastSignals ?? false,
+      storageSegments: parsed.data.storageSegments ?? false,
     };
     capabilitiesByEndpoint.set(endpointKey, capabilities);
     return capabilities;

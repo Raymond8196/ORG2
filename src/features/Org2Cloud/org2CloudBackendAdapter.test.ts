@@ -2,7 +2,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { SessionEvent } from "@src/engines/SessionCore/core/types";
 
+import { computeSegmentHash } from "../TeamCollaboration/sync/collabGzip";
 import {
+  toFrozenSegmentStorage,
   toFrozenSegmentWire,
   toTailWire,
 } from "../TeamCollaboration/sync/segmentCodec";
@@ -10,6 +12,7 @@ import {
   buildCloudSessionFetchClient,
   cloudSessionIdFromRowId,
 } from "./org2CloudBackendAdapter";
+import { downloadReplayObject } from "./org2CloudStorageClient";
 import type { CloudSessionEventsSnapshot } from "./org2CloudSyncClient";
 import { Org2CloudSyncError, isOrg2SyncErrorCode } from "./org2CloudSyncClient";
 
@@ -18,8 +21,14 @@ vi.mock("./org2CloudSyncClient", async (importOriginal) => {
   return { ...actual, getSessionEvents: vi.fn() };
 });
 
+vi.mock("./org2CloudStorageClient", async (importOriginal) => {
+  const actual = await importOriginal<object>();
+  return { ...actual, downloadReplayObject: vi.fn() };
+});
+
 const { getSessionEvents } = await import("./org2CloudSyncClient");
 const getSessionEventsMock = vi.mocked(getSessionEvents);
+const downloadReplayObjectMock = vi.mocked(downloadReplayObject);
 
 function makeEvent(id: string): SessionEvent {
   return {
@@ -53,6 +62,7 @@ async function cloudSnapshot(): Promise<CloudSessionEventsSnapshot> {
 describe("buildCloudSessionFetchClient", () => {
   beforeEach(() => {
     getSessionEventsMock.mockReset();
+    downloadReplayObjectMock.mockReset();
   });
 
   it("maps the cloud response into the self-hosted snapshot shape", async () => {
@@ -86,6 +96,105 @@ describe("buildCloudSessionFetchClient", () => {
     expect(seg2.events).toEqual(frozen2);
     expect(tailSeg).toMatchObject({ seq: 0, isTail: true, eventCount: 2 });
     expect(tailSeg.events).toEqual(tail);
+  });
+
+  it("downloads storagePath segments and decodes their raw gzip bytes (mixed page)", async () => {
+    const stored = await toFrozenSegmentStorage({ seq: 2, events: frozen2 });
+    const storagePath = `org-1/agentsession-abc/2/2-${stored.segmentHash}.gz`;
+    const tailWire = await toTailWire(tail);
+    getSessionEventsMock.mockResolvedValue({
+      epoch: 2,
+      frozenSeq: 2,
+      tailHash: tailWire!.segmentHash,
+      count: 5,
+      segments: [
+        await toFrozenSegmentWire({ seq: 1, events: frozen1 }),
+        {
+          seq: 2,
+          storagePath,
+          eventCount: 1,
+          segmentHash: stored.segmentHash,
+        },
+        { ...tailWire!, seq: 0 },
+      ],
+    });
+    downloadReplayObjectMock.mockResolvedValue(stored.bytes);
+    const client = buildCloudSessionFetchClient("jwt-token");
+
+    const snapshot = await client.getSessionEventSegments({
+      orgId: "org-1",
+      sessionRowId: "org-1:user-1:agentsession-abc",
+    });
+
+    expect(downloadReplayObjectMock).toHaveBeenCalledTimes(1);
+    expect(downloadReplayObjectMock).toHaveBeenCalledWith(
+      "jwt-token",
+      storagePath,
+      undefined,
+      undefined
+    );
+    const [seg1, seg2, tailSeg] = snapshot.segments;
+    expect(seg1.events).toEqual(frozen1);
+    expect(seg2).toMatchObject({ seq: 2, isTail: false, eventCount: 1 });
+    expect(seg2.events).toEqual(frozen2);
+    // Integrity contract downstream: the hash is over pre-gzip bytes, so the
+    // downloaded segment must still satisfy validateSegmentIntegrity.
+    expect(await computeSegmentHash(seg2.events)).toBe(seg2.segmentHash);
+    expect(tailSeg.events).toEqual(tail);
+  });
+
+  it("threads the pinned endpoint into storage downloads", async () => {
+    const stored = await toFrozenSegmentStorage({ seq: 1, events: frozen1 });
+    const storagePath = `org-1/agentsession-abc/1/1-${stored.segmentHash}.gz`;
+    getSessionEventsMock.mockResolvedValue({
+      epoch: 1,
+      frozenSeq: 1,
+      tailHash: null,
+      count: 2,
+      segments: [
+        { seq: 1, storagePath, eventCount: 2, segmentHash: stored.segmentHash },
+      ],
+    });
+    downloadReplayObjectMock.mockResolvedValue(stored.bytes);
+    const endpoint = {
+      webOrigin: "https://app.custom.example.com",
+      supabaseUrl: "https://db.custom.example.com",
+      anonKey: "custom-anon",
+      isOfficial: false,
+    };
+    const client = buildCloudSessionFetchClient("jwt-non-member", endpoint);
+
+    await client.getSessionEventSegments({
+      orgId: "org-1",
+      sessionRowId: "org-1:user-1:agentsession-abc",
+      shareToken: "t".repeat(64),
+    });
+
+    expect(downloadReplayObjectMock).toHaveBeenCalledWith(
+      "jwt-non-member",
+      storagePath,
+      endpoint,
+      undefined
+    );
+  });
+
+  it("fails closed on a segment carrying neither payloadGz nor storagePath", async () => {
+    getSessionEventsMock.mockResolvedValue({
+      epoch: 1,
+      frozenSeq: 1,
+      tailHash: null,
+      count: 1,
+      segments: [{ seq: 1, eventCount: 1, segmentHash: "h1" }],
+    });
+    const client = buildCloudSessionFetchClient("jwt-token");
+
+    await expect(
+      client.getSessionEventSegments({
+        orgId: "org-1",
+        sessionRowId: "org-1:user-1:agentsession-abc",
+      })
+    ).rejects.toThrow(/neither payloadGz nor storagePath/);
+    expect(downloadReplayObjectMock).not.toHaveBeenCalled();
   });
 
   it("passes afterSeq to the server range read and drops any smuggled prefix", async () => {
