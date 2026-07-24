@@ -25,32 +25,52 @@ describe("getCloudCapabilities", () => {
     rawMock.mockResolvedValueOnce({ broadcastSignals: true });
     expect(await getCloudCapabilities("jwt-1")).toEqual({
       broadcastSignals: true,
+      storageSegments: false,
     });
     expect(await getCloudCapabilities("jwt-1")).toEqual({
       broadcastSignals: true,
+      storageSegments: false,
     });
     expect(rawMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("parses the 0006 storageSegments flag", async () => {
+    rawMock.mockResolvedValueOnce({
+      broadcastSignals: true,
+      storageSegments: true,
+    });
+    expect(await getCloudCapabilities("jwt-1")).toEqual({
+      broadcastSignals: true,
+      storageSegments: true,
+    });
   });
 
   it("answers legacy on failure without caching so the next probe retries", async () => {
     rawMock.mockResolvedValueOnce(null);
     expect(await getCloudCapabilities("jwt-1")).toEqual({
       broadcastSignals: false,
+      storageSegments: false,
     });
     rawMock.mockResolvedValueOnce({ broadcastSignals: true });
     expect(await getCloudCapabilities("jwt-1")).toEqual({
       broadcastSignals: true,
+      storageSegments: false,
     });
     expect(rawMock).toHaveBeenCalledTimes(2);
   });
 
   it("degrades a malformed flag to false and still caches the answer", async () => {
-    rawMock.mockResolvedValueOnce({ broadcastSignals: "yes" });
-    expect(await getCloudCapabilities("jwt-1")).toEqual({
-      broadcastSignals: false,
+    rawMock.mockResolvedValueOnce({
+      broadcastSignals: "yes",
+      storageSegments: "yes",
     });
     expect(await getCloudCapabilities("jwt-1")).toEqual({
       broadcastSignals: false,
+      storageSegments: false,
+    });
+    expect(await getCloudCapabilities("jwt-1")).toEqual({
+      broadcastSignals: false,
+      storageSegments: false,
     });
     expect(rawMock).toHaveBeenCalledTimes(1);
   });
@@ -64,9 +84,15 @@ describe("getCloudCapabilities", () => {
     );
     const first = getCloudCapabilities("jwt-1");
     const second = getCloudCapabilities("jwt-1");
-    release({ broadcastSignals: true });
-    expect(await first).toEqual({ broadcastSignals: true });
-    expect(await second).toEqual({ broadcastSignals: true });
+    release({ broadcastSignals: true, storageSegments: true });
+    expect(await first).toEqual({
+      broadcastSignals: true,
+      storageSegments: true,
+    });
+    expect(await second).toEqual({
+      broadcastSignals: true,
+      storageSegments: true,
+    });
     expect(rawMock).toHaveBeenCalledTimes(1);
   });
 });
