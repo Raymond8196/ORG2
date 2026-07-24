@@ -10,6 +10,7 @@ import {
 } from "./config";
 import {
   Org2CloudSyncError,
+  __SESSION_LISTING_INTERNALS,
   appendSessionEvents,
   getOrgRepoScopes,
   getSessionEvents,
@@ -259,7 +260,13 @@ describe("cloud_list_org_sessions", () => {
       })
     );
     const result = await listOrgSessions("jwt-1", "org-1");
-    expect(lastBody()).toEqual({ p_org_id: "org-1", since: null });
+    expect(lastBody()).toEqual({
+      p_org_id: "org-1",
+      since: null,
+      p_limit: 200,
+      p_cursor_updated_at: null,
+      p_cursor_session_id: null,
+    });
     expect(result.serverTime).toBe("2026-07-04T00:00:00.000Z");
     expect(result.sessions).toHaveLength(1);
     expect(result.sessions[0].ownerDisplayName).toBe("Bea");
@@ -495,6 +502,86 @@ describe("cloud_get_session_events", () => {
       p_session_id: "s-1",
       p_after_seq: 0,
       p_limit: 64,
+    });
+  });
+});
+
+describe("cloud_list_org_sessions keyset pagination (0005)", () => {
+  const row = (sessionId: string) => ({
+    id: `org-1:u-2:${sessionId}`,
+    orgId: "org-1",
+    ownerMemberId: "u-2",
+    ownerUserId: "u-2",
+    ownerDisplayName: "Bea",
+    ownerIdentityKind: "human",
+    sourceSessionId: sessionId,
+    title: sessionId,
+  });
+
+  beforeEach(() => {
+    __SESSION_LISTING_INTERNALS.resetPaginationSupport();
+  });
+
+  it("walks pages until the cursor disappears and concatenates rows", async () => {
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse({
+        serverTime: "2026-07-23T00:00:00.000Z",
+        sessions: [row("s-1"), row("s-2")],
+        nextCursor: { updatedAt: "2026-07-22T00:00:00.000Z", sessionId: "s-2" },
+      })
+    );
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse({
+        serverTime: "2026-07-23T00:00:01.000Z",
+        sessions: [row("s-3")],
+      })
+    );
+
+    const result = await listOrgSessions("jwt-1", "org-1");
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const secondBody = JSON.parse(
+      String((fetchMock.mock.calls[1] as [string, RequestInit])[1].body)
+    );
+    expect(secondBody.p_cursor_updated_at).toBe("2026-07-22T00:00:00.000Z");
+    expect(secondBody.p_cursor_session_id).toBe("s-2");
+    expect(result.sessions.map((s) => s.sourceSessionId)).toEqual([
+      "s-1",
+      "s-2",
+      "s-3",
+    ]);
+  });
+
+  it("falls back to the legacy call on a pre-0005 backend and remembers it", async () => {
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse(
+        {
+          message:
+            "Could not find the function org2_cloud.cloud_list_org_sessions",
+        },
+        404
+      )
+    );
+    fetchMock.mockResolvedValueOnce(jsonResponse({ sessions: [row("s-1")] }));
+
+    const result = await listOrgSessions("jwt-1", "org-1");
+    expect(result.sessions).toHaveLength(1);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(lastBody()).toEqual({ p_org_id: "org-1", since: null });
+
+    fetchMock.mockResolvedValueOnce(jsonResponse({ sessions: [] }));
+    await listOrgSessions("jwt-1", "org-1");
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(lastBody()).toEqual({ p_org_id: "org-1", since: null });
+  });
+
+  it("keeps delta pulls single-shot with the legacy body", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ sessions: [] }));
+    await listOrgSessions("jwt-1", "org-1", "2026-07-22T00:00:00.000Z");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(lastBody()).toEqual({
+      p_org_id: "org-1",
+      since: "2026-07-22T00:00:00.000Z",
     });
   });
 });
