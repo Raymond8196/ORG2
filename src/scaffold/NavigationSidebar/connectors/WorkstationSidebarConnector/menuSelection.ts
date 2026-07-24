@@ -13,7 +13,6 @@ import {
   COLLAB_ADD_ORG_MENU_ITEM_ID,
   KANBAN_MENU_ITEM_ID,
   RUNTIME_MENU_ITEM_ID,
-  TEAM_INBOX_MENU_ITEM_ID,
 } from "../sidebarConnectorUtils";
 import {
   getSelectedDraftMenuItemId,
@@ -60,9 +59,7 @@ export function resolveSelectedMenuItemIds({
       ? KANBAN_MENU_ITEM_ID
       : activeChatPanelTabType === "runtime"
         ? RUNTIME_MENU_ITEM_ID
-        : activeChatPanelTabType === "team-inbox"
-          ? TEAM_INBOX_MENU_ITEM_ID
-          : "";
+        : "";
   const isChatPanelProjectsContentSelected =
     chatPanelContentMode === CHAT_PANEL_CONTENT_MODE.NON_SESSION ||
     Boolean(chatPanelSelectedWorkItem) ||

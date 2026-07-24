@@ -28,9 +28,6 @@ export function buildWorkstationSidebarLabels({
   const createWorkItemLabel = tProjects("workItems.createWorkItem");
   const workItemsLabel = t("labels.workItems");
   const runtimeLabel = tSessions("chat.startPage.tabs.runtime");
-  const teamInboxLabel = t("labels.teamInbox", {
-    defaultValue: "Team Inbox",
-  });
   const importGithubIssuesLabel = tProjects("githubIssuesImport.menuLabel");
   const addOrgLabel = t("collaboration.addOrg");
   const manageOrgLabel = t("collaboration.manageOrg");
@@ -46,7 +43,6 @@ export function buildWorkstationSidebarLabels({
     createWorkItemLabel,
     workItemsLabel,
     runtimeLabel,
-    teamInboxLabel,
     importGithubIssuesLabel,
     addOrgLabel,
     manageOrgLabel,

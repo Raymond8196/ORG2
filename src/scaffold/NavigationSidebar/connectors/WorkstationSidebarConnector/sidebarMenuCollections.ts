@@ -27,8 +27,6 @@ interface UsePinnedMenuItemsParams {
   kanbanLabel: string;
   newSessionLabel: string;
   runtimeLabel: string;
-  teamInboxLabel: string;
-  teamInboxUnreadCount?: number;
   workItemDestinations: NavigationMenuItem[];
   t: TFunction<"navigation">;
 }
@@ -46,8 +44,6 @@ export function usePinnedMenuItems({
   kanbanLabel,
   newSessionLabel,
   runtimeLabel,
-  teamInboxLabel,
-  teamInboxUnreadCount,
   workItemDestinations,
   t,
 }: UsePinnedMenuItemsParams): UsePinnedMenuItemsResult {
@@ -61,18 +57,8 @@ export function usePinnedMenuItems({
         kanbanLabel,
         kanbanShortcut: getShortcutKeys("open_kanban"),
         runtimeLabel,
-        teamInboxLabel,
-        teamInboxUnreadCount,
       }),
-    [
-      kanbanLabel,
-      newSessionLabel,
-      runtimeLabel,
-      teamInboxLabel,
-      teamInboxUnreadCount,
-      workItemDestinations,
-      t,
-    ]
+    [kanbanLabel, newSessionLabel, runtimeLabel, workItemDestinations, t]
   );
   const projectsPinnedMenuItems = useMemo<NavigationMenuItem[]>(
     () =>

@@ -52,7 +52,6 @@ async function loadChatPanelTabAtoms() {
     openWorkManagementChatPanelTabAtom,
     openOrFocusChatPanelStartPageTabAtom,
     openRuntimeInChatPanelTabAtom,
-    openTeamInboxInChatPanelTabAtom,
     openOrFocusSessionInChatPanelTabAtom,
     openOrReplaceSessionInChatPanelTabAtom,
     openProjectInChatPanelTabAtom,
@@ -119,7 +118,6 @@ async function loadChatPanelTabAtoms() {
     openWorkManagementChatPanelTabAtom,
     openOrFocusChatPanelStartPageTabAtom,
     openRuntimeInChatPanelTabAtom,
-    openTeamInboxInChatPanelTabAtom,
     openOrFocusSessionInChatPanelTabAtom,
     openOrReplaceSessionInChatPanelTabAtom,
     openProjectInChatPanelTabAtom,
@@ -828,33 +826,6 @@ describe("ChatPanel navigation tabs", () => {
     expect(
       store.get(chatPanelTabsAtom).tabs.filter((tab) => tab.type === "runtime")
     ).toHaveLength(1);
-  });
-
-  it("opens Team Inbox as its own singleton tab", async () => {
-    const { chatPanelTabsAtom, openTeamInboxInChatPanelTabAtom, store } =
-      await loadChatPanelTabAtoms();
-
-    const teamInboxTabId = store.set(
-      openTeamInboxInChatPanelTabAtom,
-      "Team Inbox"
-    );
-    const focusedTabId = store.set(
-      openTeamInboxInChatPanelTabAtom,
-      "Team Inbox"
-    );
-
-    expect(focusedTabId).toBe(teamInboxTabId);
-    expect(store.get(chatPanelTabsAtom).activeTabId).toBe(teamInboxTabId);
-    expect(
-      store
-        .get(chatPanelTabsAtom)
-        .tabs.filter((tab) => tab.type === "team-inbox")
-    ).toEqual([
-      expect.objectContaining({
-        id: teamInboxTabId,
-        title: "Team Inbox",
-      }),
-    ]);
   });
 
   it("opens org management in its own singleton tab and restores the selected org", async () => {
