@@ -615,17 +615,15 @@ export function useOrg2CloudRealtime(): void {
       onBroadcast: (event, payload) => {
         if (event === ORG_DB_CHANGED_EVENT) {
           // Server-originated signal (0005 Broadcast-from-Database). Same
-          // downstream behavior as the legacy postgres_changes transports:
-          // roster events bump the per-org version, everything else runs
-          // the throttled coarse refresh (the kind discriminator is carried
-          // for future per-plane narrowing).
+          // downstream behavior as the legacy postgres_changes transports.
+          // `roster` also runs the coarse refresh: the membership trigger's
+          // bump wins the per-org debounce window, so a member-floor RPC in
+          // the same transaction broadcasts as `roster` (0005 PART 4 "kind
+          // shadowing") and the policy recovery has to ride this kind too.
           if (!broadcastSignals) return;
           const kind = parseOrgDbChangeKind(payload);
           if (!kind) return;
-          if (kind === "roster") {
-            bumpRosterVersion(orgId);
-            return;
-          }
+          if (kind === "roster") bumpRosterVersion(orgId);
           scheduleCoarseSignalRefresh();
           return;
         }
