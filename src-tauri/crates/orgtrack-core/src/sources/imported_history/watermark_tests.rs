@@ -212,3 +212,36 @@ fn watermark_rows_roundtrip_and_clear() {
         None
     );
 }
+
+#[test]
+fn malformed_watermark_row_degrades_to_none_and_self_heals() {
+    let conn = fixture_conn();
+    conn.execute(
+        "INSERT INTO imported_history_parse_watermarks (
+            source, source_session_id, byte_offset, source_size_bytes,
+            source_mtime_ms, prefix_hash, parser_version, state_json
+         ) VALUES ('claude_code', 'sess-1', 'garbage', 50, 1234, 'abcd', 9, '{}')",
+        [],
+    )
+    .expect("insert malformed row");
+
+    assert_eq!(
+        read_parse_watermark_from_conn(&conn, "claude_code", "sess-1")
+            .expect("malformed row reads as absent"),
+        None
+    );
+
+    let healed = ImportedParseWatermark {
+        byte_offset: 42,
+        source_size_bytes: 50,
+        source_mtime_ms: 1_234,
+        prefix_hash: "abcd".to_string(),
+        parser_version: 9,
+        state_json: "{\"created_at_ms\":1}".to_string(),
+    };
+    write_parse_watermark_from_conn(&conn, "claude_code", "sess-1", &healed).expect("rewrite");
+    assert_eq!(
+        read_parse_watermark_from_conn(&conn, "claude_code", "sess-1").expect("read healed"),
+        Some(healed)
+    );
+}
