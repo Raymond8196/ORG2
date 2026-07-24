@@ -26,23 +26,25 @@
  * ORG2_CONFLICT → re-anchor via epoch-bumped rewrite (server epoch read
  * through `getSessionEvents`). ORG2_QUOTA_EXCEEDED / ORG2_SYNC_DISABLED →
  * bounded per-org backoff. Only the actively viewed org surfaces a warning;
- * inactive orgs retry quietly at a slower cadence.
+ * inactive orgs use a longer event-triggered cooldown.
  *
  * Projects/work-items (cloud-parity Phase B): after the session push, every
  * org drives the SAME `ProjectSyncChannel` + Rust bridge as the self-hosted
  * engine, backed by the cloud RPC adapter (`org2CloudProjectsClient`). The
  * pulled state comes from `cloud_list_org_collab_state` behind a persisted
  * per-org cursor (`org2CloudCollabStateCursorsAtom`, serverTime − 2s
- * overlap), bypassed once per engine start for a COMPLETE listing — a row
- * that leaves the visible set without a tombstone can only be proven absent
- * against the full state. Work items are org-wide: no repo-scope selection.
+ * overlap), bypassed for a COMPLETE listing only for the ACTIVE org on
+ * start/reconnect/roster recovery — a row that leaves the visible set
+ * without a tombstone can only be proven absent against the full state, and
+ * background orgs get that authoritative listing when next activated (the
+ * SUBSCRIBED edge forces it). Work items are org-wide: no repo-scope
+ * selection.
  *
- * Cadence: fixed 60s timer chain plus a debounced pass on local event
- * writes (same `eventStoreProxy.subscribe` trigger the collab engine uses).
- * This chain is the app's ONLY recurring timer (user CPU constraint —
- * every recurring cloud pull rides inside the one pass): a hidden document
- * stretches the SAME chain to `HIDDEN_PASS_INTERVAL_MS`, and the
- * `visibilitychange` back to visible snaps it back with one immediate pass.
+ * Scheduling is event-driven: start/roster changes, local EventStore writes,
+ * the durable project outbox event, Realtime invalidations, reconnect,
+ * visibility regain, and explicit user actions. There is no recurring cloud
+ * pass. Debounce and bounded retry timers only coalesce or recover concrete
+ * events; they never poll for new work.
  *
  * This file is the thin orchestration shell — the pass loop (`syncAllOrgs`)
  * plus wiring. Cohesive sub-concerns are split into co-located composed
@@ -97,11 +99,7 @@ import {
   org2CloudSyncEnabledAtom,
 } from "./org2CloudSyncAtoms";
 import * as org2CloudSyncClient from "./org2CloudSyncClient";
-import {
-  INACTIVE_ORG_FALLBACK_INTERVAL_MS,
-  INBOUND_FALLBACK_INTERVAL_MS,
-  VANISHED_SESSION_SWEEP_INTERVAL_MS,
-} from "./org2CloudSyncEngine.constants";
+import { VANISHED_SESSION_SWEEP_INTERVAL_MS } from "./org2CloudSyncEngine.constants";
 import {
   Org2CloudOrgBackoffTracker,
   isCloudSyncBackoffError,
@@ -129,8 +127,6 @@ import { Org2CloudSyncLifecycle } from "./org2CloudSyncLifecycle";
 export {
   DATA_CHANGED_DEBOUNCE_MS,
   EXTERNAL_HISTORY_ACTIVITY_DEBOUNCE_MS,
-  HIDDEN_PASS_INTERVAL_MS,
-  PASS_INTERVAL_MS,
   PROJECT_PUSH_RETRY_DELAY_MS,
 } from "./org2CloudSyncLifecycle";
 export {
@@ -192,11 +188,7 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
     this.orgBackoff = new Org2CloudOrgBackoffTracker((orgId) =>
       this.isActiveOrg(orgId)
     );
-    this.repoScopeSync = new Org2CloudRepoScopeSync(
-      () => this.store,
-      client,
-      (orgId) => this.isActiveOrg(orgId)
-    );
+    this.repoScopeSync = new Org2CloudRepoScopeSync(() => this.store, client);
     this.projectsChannel = new Org2CloudProjectsChannel(
       () => this.store,
       projectsClient,
@@ -602,10 +594,9 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
     // quota backoff deliberately does NOT: project/work-item tombstones are
     // a control-plane operation and must still drain while uploads are full.
     //
-    // Inbound-fallback gate: these planes are Realtime-driven and scoped to
-    // the invalidated org. Ordinary signals retain their delta cursors; only
-    // reconnect recovery clears the full-listing latch above. Each org owns
-    // its own fallback timestamp so a noisy org cannot starve a quiet one.
+    // These planes are Realtime-driven and scoped to the invalidated org.
+    // Ordinary signals retain their delta cursors; only reconnect/roster
+    // recovery clears the full-listing latch above.
     // Consume requests only after auth/schema/outbound setup succeeds; an
     // offline or mismatched backend must leave them pending for the next pass.
     const requestedInboundOrgIds = new Set(this.pendingInboundOrgIds);
@@ -615,25 +606,24 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
     const forceAllInbound = this.forceAllInboundNextPass;
     this.forceAllInboundNextPass = false;
     if (forceAllInbound) {
-      for (const org of orgs) requestedFullInboundOrgIds.add(org.orgId);
+      // Complete listings are reserved for the org the user is looking at;
+      // background orgs recover through their delta cursors here (the pulled
+      // state includes LWW tombstones) and get their own authoritative full
+      // listing from the SUBSCRIBED edge when they are next activated. This
+      // keeps start/online/roster recovery from issuing O(orgs) full listings.
+      for (const org of orgs) {
+        if (this.isActiveOrg(org.orgId)) {
+          requestedFullInboundOrgIds.add(org.orgId);
+        } else {
+          requestedInboundOrgIds.add(org.orgId);
+        }
+      }
     }
     for (const orgId of requestedFullInboundOrgIds) {
       requestedInboundOrgIds.add(orgId);
       this.projectsChannel.invalidateFullListing(orgId);
     }
-    const nowMs = Date.now();
     const inboundOrgIds = new Set(requestedInboundOrgIds);
-    const fallbackInboundOrgIds = new Set<string>();
-    for (const org of orgs) {
-      const lastInbound = this.lastInboundPassAtMs.get(org.orgId) ?? 0;
-      const fallbackInterval = this.isActiveOrg(org.orgId)
-        ? INBOUND_FALLBACK_INTERVAL_MS
-        : INACTIVE_ORG_FALLBACK_INTERVAL_MS;
-      if (nowMs - lastInbound >= fallbackInterval) {
-        inboundOrgIds.add(org.orgId);
-        fallbackInboundOrgIds.add(org.orgId);
-      }
-    }
     const pushProjects = this.forceProjectsNextPass;
     this.forceProjectsNextPass = false;
     const projectOrgIds = pushProjects
@@ -647,15 +637,13 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
         if (enabledByOrg[org.orgId] === false) continue;
         if (this.orgBackoff.isOrgProjectBackedOff(org.orgId)) continue;
         try {
-          // Realtime-only pulls do not probe the local outbox. Local mutation
-          // requests and periodic safety passes still drain it.
+          // Realtime-only pulls do not probe the local outbox. A concrete
+          // local mutation/start/reconnect request drains it.
           await this.projectsChannel.syncOrgProjects(
             fresh,
             org,
             generation,
-            {
-              pushOutbox: pushProjects || fallbackInboundOrgIds.has(org.orgId),
-            },
+            { pushOutbox: pushProjects },
             {
               isCurrentGeneration: (gen) => this.generation === gen,
               scheduleProjectPushRetry: () => this.scheduleProjectPushRetry(),
@@ -669,24 +657,13 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
           }
           // A listing can fail before ProjectSyncChannel gets far enough to
           // return per-row pushErrors. When this pass was supposed to drain
-          // the durable outbox, keep the same bounded retry guarantee rather
-          // than stranding the write until the minute fallback cadence.
-          if (pushProjects || fallbackInboundOrgIds.has(org.orgId)) {
+          // the durable outbox, keep a bounded one-shot retry rather than
+          // stranding the write until another unrelated event.
+          if (pushProjects) {
             this.scheduleProjectPushRetry();
           }
           log.warn(`cloud project sync failed for org ${org.orgId}:`, error);
         }
-      }
-    }
-    if (inboundOrgIds.size > 0) {
-      // Constraint: marks each inbound-due org's pass timestamp so the
-      // projects-plane inbound-fallback cadence (lastInboundPassAtMs, read
-      // above) stays gated. Same enabled/backoff predicate the pull used.
-      for (const org of orgs) {
-        if (!inboundOrgIds.has(org.orgId)) continue;
-        if (enabledByOrg[org.orgId] === false) continue;
-        if (this.orgBackoff.isOrgProjectBackedOff(org.orgId)) continue;
-        this.lastInboundPassAtMs.set(org.orgId, nowMs);
       }
     }
   }
@@ -761,9 +738,6 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
     this.repoScopeSync.prune(currentOrgIds);
     this.projectsChannel.prune(currentOrgIds);
     this.sessionColdStart.prune(currentOrgIds);
-    for (const orgId of this.lastInboundPassAtMs.keys()) {
-      if (!currentOrgIds.has(orgId)) this.lastInboundPassAtMs.delete(orgId);
-    }
     for (const orgId of this.lastVanishedSweepAtMs.keys()) {
       if (!currentOrgIds.has(orgId)) this.lastVanishedSweepAtMs.delete(orgId);
     }
