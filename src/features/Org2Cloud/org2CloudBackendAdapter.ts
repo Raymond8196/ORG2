@@ -10,7 +10,8 @@
  * - cloud `seq = 0` is the mutable tail row → canonical `isTail: true`;
  * - cloud `payloadGz` (gzipped base64 event array) → decoded `events` via
  *   the SHARED `decodeSegmentEvents` codec (byte-identical wire format —
- *   both backends push through `segmentCodec`);
+ *   both backends push through `segmentCodec`); a 0006 `storagePath`
+ *   segment downloads its raw gzip object from the replay bucket instead;
  * - cloud `{epoch, frozenSeq, tailHash, count}` map 1:1 to the snapshot
  *   summary fields (`cloud_get_session_events` was built as a mirror of
  *   `orgii_get_session_event_segments`);
@@ -24,6 +25,8 @@
  * server-side retention filter) propagates to the caller so the panel can
  * show an upgrade prompt instead of a generic failure.
  */
+import type { SessionEvent } from "@src/engines/SessionCore/core/types";
+
 import type {
   CollabSyncBackendClient,
   GetSessionEventSegmentsInput,
@@ -31,12 +34,17 @@ import type {
   SessionEventSegmentsSnapshot,
 } from "../TeamCollaboration/sync/CollabSyncBackend";
 import {
-  type SegmentWirePayload,
   decodeSegmentEvents,
+  decodeSegmentEventsFromBytes,
   mapSegmentsBounded,
 } from "../TeamCollaboration/sync/segmentCodec";
 import type { CloudEndpoint } from "./config";
-import { getSessionEvents, streamSessionEvents } from "./org2CloudSyncClient";
+import { downloadReplayObject } from "./org2CloudStorageClient";
+import {
+  type CloudSegmentWire,
+  getSessionEvents,
+  streamSessionEvents,
+} from "./org2CloudSyncClient";
 
 /** The one capability replay/fork need from a backend. */
 export type CloudSessionFetchClient = Pick<
@@ -44,9 +52,33 @@ export type CloudSessionFetchClient = Pick<
   "getSessionEventSegments" | "streamSessionEventSegments"
 >;
 
+async function decodeCloudSegmentEvents(
+  segment: CloudSegmentWire,
+  accessToken: string,
+  endpoint?: CloudEndpoint,
+  signal?: AbortSignal
+): Promise<SessionEvent[]> {
+  if (segment.payloadGz != null) {
+    return decodeSegmentEvents(segment.payloadGz);
+  }
+  if (segment.storagePath != null) {
+    return decodeSegmentEventsFromBytes(
+      await downloadReplayObject(
+        accessToken,
+        segment.storagePath,
+        endpoint,
+        signal
+      )
+    );
+  }
+  throw new Error("cloud segment carries neither payloadGz nor storagePath");
+}
+
 async function decodeCloudSegments(
-  segments: readonly SegmentWirePayload[],
+  segments: readonly CloudSegmentWire[],
   afterSeq: number,
+  accessToken: string,
+  endpoint?: CloudEndpoint,
   signal?: AbortSignal
 ): Promise<SessionEventSegmentRecord[]> {
   return mapSegmentsBounded(
@@ -59,7 +91,12 @@ async function decodeCloudSegments(
       return {
         seq,
         isTail: seq === 0,
-        events: await decodeSegmentEvents(segment.payloadGz),
+        events: await decodeCloudSegmentEvents(
+          segment,
+          accessToken,
+          endpoint,
+          signal
+        ),
         eventCount: segment.eventCount,
         segmentHash: segment.segmentHash,
       };
@@ -123,6 +160,8 @@ export function buildCloudSessionFetchClient(
       const segments = await decodeCloudSegments(
         snapshot.segments,
         afterSeq,
+        accessToken,
+        endpoint,
         input.signal
       );
       return {
@@ -148,6 +187,8 @@ export function buildCloudSessionFetchClient(
             segments: await decodeCloudSegments(
               page.segments,
               afterSeq,
+              accessToken,
+              endpoint,
               input.signal
             ),
           });
