@@ -170,7 +170,7 @@ describe("TaskKanban ListView", () => {
     await act(async () => pageSizeSelect?.click());
 
     const optionsContainer = document.body.querySelector(
-      ".select-options-overlay > div"
+      ".dropdown-options-scrollbar > div"
     );
     const pageSizeOptions = Array.from(optionsContainer?.children ?? [])
       .map((option) => option.textContent?.trim())
