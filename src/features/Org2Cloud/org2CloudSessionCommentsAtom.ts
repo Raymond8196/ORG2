@@ -274,16 +274,22 @@ export function useSessionComments(
           const errorMessage =
             error instanceof Error ? error.message : String(error);
           setEntries((previous) => {
-            const retained =
-              !evict && previous[targetKey]?.identityKey === requestIdentityKey
-                ? previous[targetKey]
-                : undefined;
+            const stored = previous[targetKey];
+            const sameIdentity = stored?.identityKey === requestIdentityKey;
+            const retained = !evict && sameIdentity ? stored : undefined;
+            // Eviction protects cached BODIES, not the failure bookkeeping:
+            // resetting the counter on evict-class errors (e.g. a session
+            // that is not on the server) would turn the exponential retry
+            // back into a flat loop against a persistently failing target.
+            const priorFailures = sameIdentity
+              ? (stored?.consecutiveFailures ?? 0)
+              : 0;
             return writeSessionCommentsEntry(previous, targetKey, {
               ...(retained ?? EMPTY_ENTRY),
               identityKey: requestIdentityKey,
               state: "error",
               errorMessage,
-              consecutiveFailures: (retained?.consecutiveFailures ?? 0) + 1,
+              consecutiveFailures: priorFailures + 1,
               fetchedAt: Date.now(),
             });
           });
