@@ -28,11 +28,57 @@ import {
   ORG2_CLOUD_POSTGREST_SCHEMA,
   getCloudEndpoint,
 } from "./config";
-import { fetchWithTransportRetry } from "./org2CloudFetchRetry";
+import {
+  fetchWithTransportRetry,
+  isFetchTransportError,
+} from "./org2CloudFetchRetry";
 import { Org2CloudStorageError } from "./org2CloudStorageClient";
 import { Org2CloudSyncError } from "./org2CloudSyncClient";
 
 export const CLOUD_REPLAY_SIGN_PATH = "/api/replay/sign";
+
+const SIGN_RETRY_BACKOFF_MS = 300;
+
+export type Org2CloudSignerErrorCode =
+  | "unreachable"
+  | "unauthorized"
+  | "expired";
+
+/**
+ * Signer-route failure with a UI-mappable code. Extends the storage error so
+ * existing status-based handling keeps working; `code` is what the import
+ * dialog keys its user-facing copy on.
+ */
+export class Org2CloudSignerError extends Org2CloudStorageError {
+  readonly code: Org2CloudSignerErrorCode;
+
+  constructor(
+    message: string,
+    code: Org2CloudSignerErrorCode,
+    status: number | null = null
+  ) {
+    super(message, status);
+    this.name = "Org2CloudSignerError";
+    this.code = code;
+  }
+}
+
+function signerRejectionCode(
+  status: number,
+  payload: unknown
+): Org2CloudSignerErrorCode {
+  const detail =
+    payload && typeof payload === "object"
+      ? String(
+          (payload as { error?: unknown }).error ??
+            (payload as { message?: unknown }).message ??
+            ""
+        )
+      : "";
+  if (status === 410 || /expired/i.test(detail)) return "expired";
+  if (status === 401 || status === 403) return "unauthorized";
+  return "unreachable";
+}
 
 // Trailing .optional() keeps the inferred keys optional (`expiresAt?:`) —
 // the protocol.ts idiom — so plain object literals stay assignable.
@@ -117,26 +163,41 @@ export async function authorizeReplayRead(
   return CloudReplayReadGrantSchema.parse(payload);
 }
 
-/** Exchange a read grant for the signed-url map at the deployment's signer route. */
+/**
+ * Exchange a read grant for the signed-url map at the deployment's signer
+ * route. A network-level failure of the POST gets ONE extra retry after a
+ * short backoff (on top of fetchWithTransportRetry's immediate dead-socket
+ * retry); an HTTP rejection — 401 included — is never retried and maps to a
+ * coded Org2CloudSignerError.
+ */
 export async function signReplayReadUrls(
   grant: string,
   endpoint: CloudEndpoint = getCloudEndpoint(),
   signal?: AbortSignal
 ): Promise<CloudReplaySignedUrls> {
-  const response = await fetchWithTransportRetry(
-    new URL(CLOUD_REPLAY_SIGN_PATH, endpoint.webOrigin).toString(),
-    {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ grant }),
-      signal,
+  const url = new URL(CLOUD_REPLAY_SIGN_PATH, endpoint.webOrigin).toString();
+  const init: RequestInit = {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ grant }),
+    signal,
+  };
+  let response: Response;
+  try {
+    response = await fetchWithTransportRetry(url, init);
+  } catch (error) {
+    if (!isFetchTransportError(error) || signal?.aborted) throw error;
+    await new Promise((resolve) => setTimeout(resolve, SIGN_RETRY_BACKOFF_MS));
+    if (signal?.aborted) throw error;
+    try {
+      response = await fetchWithTransportRetry(url, init);
+    } catch (retryError) {
+      if (!isFetchTransportError(retryError)) throw retryError;
+      throw new Org2CloudSignerError(
+        "replay signer unreachable after retry",
+        "unreachable"
+      );
     }
-  );
-  if (!response.ok) {
-    throw new Org2CloudStorageError(
-      `replay sign request failed with ${response.status}`,
-      response.status
-    );
   }
   const text = await response.text();
   let payload: unknown = null;
@@ -144,6 +205,13 @@ export async function signReplayReadUrls(
     payload = text ? JSON.parse(text) : null;
   } catch {
     payload = null;
+  }
+  if (!response.ok) {
+    throw new Org2CloudSignerError(
+      `replay sign request failed with ${response.status}`,
+      signerRejectionCode(response.status, payload),
+      response.status
+    );
   }
   return CloudReplaySignedUrlsSchema.parse(payload);
 }

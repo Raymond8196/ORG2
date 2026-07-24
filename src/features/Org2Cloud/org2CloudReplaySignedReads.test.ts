@@ -8,6 +8,7 @@ import {
 import type { CloudEndpoint } from "./config";
 import {
   CLOUD_REPLAY_SIGN_PATH,
+  Org2CloudSignerError,
   authorizeReplayRead,
   createGuestReplayObjectReader,
   downloadSignedReplayObject,
@@ -174,6 +175,84 @@ describe("signReplayReadUrls", () => {
     );
     expect(error).toBeInstanceOf(Org2CloudStorageError);
     expect((error as Org2CloudStorageError).status).toBe(401);
+  });
+
+  it("retries ONCE after a short backoff when the POST fails at network level", async () => {
+    vi.useFakeTimers();
+    fetchMock
+      .mockRejectedValueOnce(new TypeError("Load failed"))
+      .mockRejectedValueOnce(new TypeError("Load failed"))
+      .mockResolvedValueOnce(
+        jsonResponse({ urls: { p: "https://signed.example/1" }, expiresIn: 60 })
+      );
+
+    const pending = signReplayReadUrls("grant-1", ENDPOINT);
+    await vi.advanceTimersByTimeAsync(300);
+    const signed = await pending;
+
+    expect(signed.urls).toEqual({ p: "https://signed.example/1" });
+    // 2 transport-level attempts inside the first fetchWithTransportRetry,
+    // then the single backoff retry.
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it("maps exhausted network retries to Org2CloudSignerError 'unreachable'", async () => {
+    vi.useFakeTimers();
+    fetchMock.mockRejectedValue(new TypeError("Load failed"));
+
+    const pending = signReplayReadUrls("grant-1", ENDPOINT).catch(
+      (caught: unknown) => caught
+    );
+    await vi.advanceTimersByTimeAsync(300);
+    const error = await pending;
+
+    expect(error).toBeInstanceOf(Org2CloudSignerError);
+    expect((error as Org2CloudSignerError).code).toBe("unreachable");
+    expect((error as Org2CloudSignerError).status).toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+  });
+
+  it("never retries an HTTP rejection: 401 maps to 'unauthorized' in one attempt", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ error: "bad grant" }, 401));
+
+    const error = await signReplayReadUrls("grant-1", ENDPOINT).catch(
+      (caught: unknown) => caught
+    );
+
+    expect(error).toBeInstanceOf(Org2CloudSignerError);
+    expect((error as Org2CloudSignerError).code).toBe("unauthorized");
+    expect((error as Org2CloudSignerError).status).toBe(401);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("classifies an expired-grant rejection as 'expired'", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ error: "expired" }, 401));
+    const error = await signReplayReadUrls("grant-1", ENDPOINT).catch(
+      (caught: unknown) => caught
+    );
+    expect(error).toBeInstanceOf(Org2CloudSignerError);
+    expect((error as Org2CloudSignerError).code).toBe("expired");
+    expect((error as Org2CloudSignerError).message).toContain(
+      "replay sign request failed with 401"
+    );
+  });
+
+  it("propagates the original transport error without retrying when aborted", async () => {
+    const controller = new AbortController();
+    const transportError = new TypeError("Load failed");
+    fetchMock.mockImplementationOnce(() => {
+      controller.abort();
+      return Promise.reject(transportError);
+    });
+
+    const error = await signReplayReadUrls(
+      "grant-1",
+      ENDPOINT,
+      controller.signal
+    ).catch((caught: unknown) => caught);
+
+    expect(error).toBe(transportError);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });
 
