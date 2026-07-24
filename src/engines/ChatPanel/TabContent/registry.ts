@@ -17,7 +17,6 @@ import {
   OrganizationSurfaceRenderer,
   ProjectSurfaceRenderer,
   RuntimeSurfaceRenderer,
-  TeamInboxSurfaceRenderer,
   WorkItemSurfaceRenderer,
   WorkspaceSurfaceRenderer,
 } from "./surfaceRenderers";
@@ -33,11 +32,6 @@ export const CHAT_PANEL_TAB_SURFACE_REGISTRY: ChatPanelTabSurfaceRegistry = {
     render: "component",
     Component: RuntimeSurfaceRenderer,
     debugLabel: "runtime",
-  },
-  "team-inbox": {
-    render: "component",
-    Component: TeamInboxSurfaceRenderer,
-    debugLabel: "team-inbox",
   },
   "work-management": {
     render: "work-management",

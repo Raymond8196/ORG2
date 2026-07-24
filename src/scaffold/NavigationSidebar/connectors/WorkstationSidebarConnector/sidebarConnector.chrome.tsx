@@ -67,8 +67,6 @@ interface UseWorkstationSidebarChromeParams {
   openWorkManagementTab: MenuItemRoutingParams["openWorkManagementTab"];
   openRuntimeTab: MenuItemRoutingParams["openRuntimeTab"];
   runtimeLabel: string;
-  openTeamInboxTab: MenuItemRoutingParams["openTeamInboxTab"];
-  teamInboxLabel: string;
   activateChatPanelTab: MenuItemRoutingParams["activateChatPanelTab"];
   handleMenuItemClick: MenuItemRoutingParams["handleMenuItemClick"];
   handleProjectsMenuItemClick: MenuItemRoutingParams["handleProjectsMenuItemClick"];
@@ -108,8 +106,6 @@ export function useWorkstationSidebarChrome({
   openWorkManagementTab,
   openRuntimeTab,
   runtimeLabel,
-  openTeamInboxTab,
-  teamInboxLabel,
   activateChatPanelTab,
   handleMenuItemClick,
   handleProjectsMenuItemClick,
@@ -148,8 +144,6 @@ export function useWorkstationSidebarChrome({
     openWorkManagementTab,
     openRuntimeTab,
     runtimeLabel,
-    openTeamInboxTab,
-    teamInboxLabel,
     activateChatPanelTab,
     handleMenuItemClick,
     workItemsContentVisible,

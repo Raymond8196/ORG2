@@ -22,7 +22,6 @@ import {
   KANBAN_MENU_ITEM_ID,
   NEW_SESSION_MENU_ITEM_ID,
   RUNTIME_MENU_ITEM_ID,
-  TEAM_INBOX_MENU_ITEM_ID,
   WORK_ITEMS_GITHUB_ISSUES_MENU_ITEM_ID,
   WORK_ITEMS_GITHUB_PRS_MENU_ITEM_ID,
   WORK_ITEMS_PROJECTS_MENU_ITEM_ID,
@@ -61,8 +60,6 @@ interface UseWorkstationSidebarMenuItemRoutingParams {
   }) => void;
   openRuntimeTab: (title: string) => void;
   runtimeLabel: string;
-  openTeamInboxTab: (title: string) => void;
-  teamInboxLabel: string;
   activateChatPanelTab: (tabId: string) => void;
   handleMenuItemClick: (key: string, item: NavigationMenuItem) => void;
   workItemsContentVisible: boolean;
@@ -82,8 +79,6 @@ export function useWorkstationSidebarMenuItemRouting({
   openWorkManagementTab,
   openRuntimeTab,
   runtimeLabel,
-  openTeamInboxTab,
-  teamInboxLabel,
   activateChatPanelTab,
   handleMenuItemClick,
   workItemsContentVisible,
@@ -134,10 +129,6 @@ export function useWorkstationSidebarMenuItemRouting({
         openRuntimeTab(runtimeLabel);
         return;
       }
-      if (item.id === TEAM_INBOX_MENU_ITEM_ID) {
-        openTeamInboxTab(teamInboxLabel);
-        return;
-      }
       if (isChatTerminalSidebarItem(item.id)) {
         activateChatPanelTab(getChatTerminalTabId(item.id));
         return;
@@ -170,9 +161,7 @@ export function useWorkstationSidebarMenuItemRouting({
       handleProjectsMenuItemClick,
       handleOpenInNewTab,
       openRuntimeTab,
-      openTeamInboxTab,
       runtimeLabel,
-      teamInboxLabel,
       sessionMap,
       workItemsContentVisible,
     ]
