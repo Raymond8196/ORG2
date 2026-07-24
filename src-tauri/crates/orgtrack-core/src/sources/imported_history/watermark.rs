@@ -37,25 +37,34 @@ pub fn read_parse_watermark_from_conn(
     source: &str,
     source_session_id: &str,
 ) -> Result<Option<ImportedParseWatermark>, String> {
-    conn.query_row(
-        "SELECT byte_offset, source_size_bytes, source_mtime_ms, prefix_hash,
-                parser_version, state_json
-         FROM imported_history_parse_watermarks
-         WHERE source = ?1 AND source_session_id = ?2",
-        params![source, source_session_id],
-        |row| {
-            Ok(ImportedParseWatermark {
-                byte_offset: row.get(0)?,
-                source_size_bytes: row.get(1)?,
-                source_mtime_ms: row.get(2)?,
-                prefix_hash: row.get(3)?,
-                parser_version: row.get(4)?,
-                state_json: row.get(5)?,
-            })
-        },
-    )
-    .optional()
-    .map_err(|err| format!("Failed to read imported parse watermark: {err}"))
+    let result = conn
+        .query_row(
+            "SELECT byte_offset, source_size_bytes, source_mtime_ms, prefix_hash,
+                    parser_version, state_json
+             FROM imported_history_parse_watermarks
+             WHERE source = ?1 AND source_session_id = ?2",
+            params![source, source_session_id],
+            |row| {
+                Ok(ImportedParseWatermark {
+                    byte_offset: row.get(0)?,
+                    source_size_bytes: row.get(1)?,
+                    source_mtime_ms: row.get(2)?,
+                    prefix_hash: row.get(3)?,
+                    parser_version: row.get(4)?,
+                    state_json: row.get(5)?,
+                })
+            },
+        )
+        .optional();
+    match result {
+        Ok(watermark) => Ok(watermark),
+        Err(
+            rusqlite::Error::InvalidColumnType(..)
+            | rusqlite::Error::FromSqlConversionFailure(..)
+            | rusqlite::Error::IntegralValueOutOfRange(..),
+        ) => Ok(None),
+        Err(err) => Err(format!("Failed to read imported parse watermark: {err}")),
+    }
 }
 
 pub fn write_parse_watermark_from_conn(
