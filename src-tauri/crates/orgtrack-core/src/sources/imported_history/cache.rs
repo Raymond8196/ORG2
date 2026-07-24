@@ -321,6 +321,11 @@ pub fn prune_missing_records_from_conn(
             [source],
         )
         .ok();
+        conn.execute(
+            "DELETE FROM imported_history_parse_watermarks WHERE source = ?1",
+            [source],
+        )
+        .ok();
         return Ok(());
     }
 
@@ -342,6 +347,13 @@ pub fn prune_missing_records_from_conn(
         "DELETE FROM imported_history_round_usage \
          WHERE source = ?1 AND session_id NOT IN \
              (SELECT session_id FROM imported_history_session_cache WHERE source = ?1)",
+        [source],
+    )
+    .ok();
+    conn.execute(
+        "DELETE FROM imported_history_parse_watermarks \
+         WHERE source = ?1 AND source_session_id NOT IN \
+             (SELECT source_session_id FROM imported_history_session_cache WHERE source = ?1)",
         [source],
     )
     .ok();

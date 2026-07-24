@@ -5,6 +5,7 @@ pub mod metadata;
 pub mod paths;
 #[cfg(feature = "git")]
 pub mod repo_identity;
+pub mod watermark;
 
 use std::collections::{BTreeSet, HashMap};
 use std::path::Path;
