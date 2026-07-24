@@ -192,7 +192,8 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
       auth.userId,
       displayName,
       scopeKey,
-      access
+      access,
+      auth.profile?.avatarUrl
     );
     const [localHash, remoteHash] = await Promise.all([
       sha256Hex(stableStringify(metadataPayloadForHash(localMetadata))),
@@ -200,7 +201,13 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
     ]);
     if (localHash !== remoteHash) return;
 
-    this.lastPushedMetadataHashes.set(key, localHash);
+    // upsertMetadataIfChanged gates on the FULL payload hash; seeding the
+    // stripped comparison hash would never match it and every restart would
+    // re-upsert an identical payload for every pushed session.
+    this.lastPushedMetadataHashes.set(
+      key,
+      await sha256Hex(stableStringify(localMetadata))
+    );
     this.setPushedMetadataMarker(orgId, session.session_id);
     if (!isImportedHistorySession(session.session_id)) return;
     const cursor = this.getCursor(orgId, session.session_id);

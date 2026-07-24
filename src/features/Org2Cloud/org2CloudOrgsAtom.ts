@@ -141,8 +141,8 @@ export function commitOrg2CloudOrgsRequest(
  * `org_memberships` subscription (useOrg2CloudRealtime). Consumers that
  * display the member list (CloudOrgPanelView) put their org's counter in a
  * fetch-effect dependency so a teammate joining/leaving/changing role
- * refreshes the list live. The open panel also performs a low-frequency
- * authoritative fallback for deployments where the channel is unavailable.
+ * refreshes the list live. Channel-unavailable recovery is driven by focus /
+ * visibility events rather than a periodic roster poll.
  */
 export const org2CloudRosterVersionAtom = atom<Record<string, number>>({});
 org2CloudRosterVersionAtom.debugLabel = "org2CloudRosterVersionAtom";
