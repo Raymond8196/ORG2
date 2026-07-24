@@ -128,6 +128,16 @@ export async function schemaVersion(): Promise<number | null> {
 }
 
 /**
+ * Raw 0005+ capability read; `null` on pre-0005 backends (PGRST202) and on
+ * transport failure. Interpretation/caching live in `org2CloudCapabilities`.
+ */
+export async function getCloudCapabilitiesRaw(
+  accessToken: string
+): Promise<unknown | null> {
+  return callRpc("get_cloud_capabilities", accessToken);
+}
+
+/**
  * Fetch the signed-in user's cloud profile. Returns `null` on any failure
  * or when the server returns an empty object (no profile row yet).
  */
