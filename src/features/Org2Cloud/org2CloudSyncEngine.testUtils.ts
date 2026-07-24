@@ -44,6 +44,10 @@ import { ensureProjectOrgForCloudOrg } from "./org2CloudProjectOrgAlias";
 import type { CloudOrgCollabState } from "./org2CloudProjectsClient";
 import { Org2CloudProjectsError } from "./org2CloudProjectsClient";
 import {
+  SESSION_PUSH_RETRY_BASE_MS,
+  SESSION_SEGMENT_UPLOAD_BATCH_SIZE,
+} from "./org2CloudSessionSync";
+import {
   org2CloudCollabStateCursorsAtom,
   org2CloudPushCursorsAtom,
   org2CloudPushedMetadataAtom,
@@ -61,11 +65,9 @@ import { Org2CloudSyncError } from "./org2CloudSyncClient";
 import {
   DATA_CHANGED_DEBOUNCE_MS,
   EXTERNAL_HISTORY_ACTIVITY_DEBOUNCE_MS,
-  HIDDEN_PASS_INTERVAL_MS,
   INACTIVE_ORG_BACKOFF_COOLDOWN_MS,
   ORG_BACKOFF_COOLDOWN_MS,
   Org2CloudSyncEngine,
-  PASS_INTERVAL_MS,
   PROJECT_PUSH_RETRY_DELAY_MS,
 } from "./org2CloudSyncEngine";
 
@@ -142,7 +144,7 @@ export const primeMock = vi.mocked(primeShareableScopeKey);
 export const resolveMatchingScopeMock = vi.mocked(resolveMatchingOrgRepoScope);
 export const messageMock = vi.mocked(Message);
 
-/** Minimal visibility stub for the engine's browser-only cadence paths. */
+/** Minimal visibility stub for the engine's browser lifecycle triggers. */
 export class DocumentStub extends EventTarget {
   visibilityState: DocumentVisibilityState = "visible";
 }
@@ -363,7 +365,6 @@ export const engineTestDeps = {
   chatPanelSelectedCloudOrgAtom,
   ensureProjectOrgForCloudOrg,
   getImportedHistorySourceBySessionId,
-  HIDDEN_PASS_INTERVAL_MS,
   INACTIVE_ORG_BACKOFF_COOLDOWN_MS,
   ORG2_CLOUD_ENDPOINT_OVERRIDE_STORAGE_KEY,
   ORG2_CLOUD_EXPECTED_SCHEMA_VERSION,
@@ -371,9 +372,10 @@ export const engineTestDeps = {
   Org2CloudProjectsError,
   Org2CloudSyncEngine,
   Org2CloudSyncError,
-  PASS_INTERVAL_MS,
   PERSONAL_EXCLUDED_TOKEN,
   PROJECT_PUSH_RETRY_DELAY_MS,
+  SESSION_PUSH_RETRY_BASE_MS,
+  SESSION_SEGMENT_UPLOAD_BATCH_SIZE,
   cloudOrgToken,
   org2CloudAccessSettingsAtom,
   org2CloudSharingFloorAtom,

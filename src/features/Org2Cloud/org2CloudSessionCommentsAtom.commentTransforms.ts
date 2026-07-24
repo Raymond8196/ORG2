@@ -24,8 +24,20 @@ export const MAX_SESSION_COMMENT_CACHE_ENTRIES = 128;
  * a momentary engine retract/re-upsert window) must not pin `state:"error"`
  * for the full TTL: an error entry becomes re-claimable after this window,
  * and a mounted consumer arms one deferred retry to actually re-run it.
+ * Consecutive failures widen the window exponentially up to the cap so a
+ * degraded backend is not hammered at a flat cadence by every open surface.
  */
 export const SESSION_COMMENTS_ERROR_RETRY_MS = 10_000;
+export const SESSION_COMMENTS_ERROR_RETRY_MAX_MS = 5 * 60_000;
+
+export function sessionCommentsErrorRetryDelayMs(
+  consecutiveFailures: number
+): number {
+  return Math.min(
+    SESSION_COMMENTS_ERROR_RETRY_MS * 2 ** Math.max(0, consecutiveFailures - 1),
+    SESSION_COMMENTS_ERROR_RETRY_MAX_MS
+  );
+}
 
 export const EMPTY_ENTRY: CloudSessionCommentsEntry = {
   comments: [],
@@ -109,7 +121,7 @@ export function decideSessionCommentsFetch(
   if (entry?.state === "loading") return force ? "queue_force" : "skip";
   const freshnessWindowMs =
     entry?.state === "error"
-      ? SESSION_COMMENTS_ERROR_RETRY_MS
+      ? sessionCommentsErrorRetryDelayMs(entry.consecutiveFailures ?? 1)
       : SESSION_COMMENTS_TTL_MS;
   const fresh =
     entry !== undefined &&

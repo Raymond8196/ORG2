@@ -145,7 +145,7 @@
     "timezoneAuto": "自动（浏览器）",
     "timezoneSearchPlaceholder": "搜索附近城市",
     "sendOnEnter": "Enter 发送消息",
-    "sendOnEnterDesc": "启用后 Enter 发送，Shift+Enter 换行；关闭后 Ctrl/Cmd+Enter 发送",
+    "sendOnEnterDesc": "启用后 Enter 发送，Shift+Enter 与 Ctrl/Cmd+Enter 换行；关闭后 Ctrl/Cmd+Enter 发送",
     "language": "语言",
     "languageSearchPlaceholder": "搜索语言...",
     "languageNames": {
@@ -1027,7 +1027,7 @@
     "decryptEffect": "打字机效果",
     "decryptEffectDesc": "Agent 消息逐字显示",
     "sendOnEnter": "Enter 发送消息",
-    "sendOnEnterDesc": "启用后 Enter 发送，Shift+Enter 换行；关闭后 Ctrl/Cmd+Enter 发送"
+    "sendOnEnterDesc": "启用后 Enter 发送，Shift+Enter 与 Ctrl/Cmd+Enter 换行；关闭后 Ctrl/Cmd+Enter 发送"
   },
   "languageServers": {
     "languageServersDesc": "管理用于自动补全、诊断和代码智能的 LSP 服务器",
