@@ -1,8 +1,8 @@
-# H4 — Change Signals via Broadcast-from-Database
+# Change Signals via Broadcast-from-Database (audit item H4)
 
 Date: 2026-07-24. Basis: realtime signal-chain architecture map (agent survey
 of 0001/0003 server path + full client subscription topology). Companion:
-`h5-storage-offload.md`.
+`replay-storage-offload.md`.
 
 ## Why
 
