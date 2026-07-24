@@ -20,7 +20,7 @@ use crate::sources::imported_history::{
 use crate::store::{sqlite::SqliteRecordStore, RecordStore};
 
 use super::meta::{
-    parse_codex_session_meta, resolve_codex_transcript_for_thread_id_near_path,
+    parse_codex_session_meta_incremental, resolve_codex_transcript_for_thread_id_near_path,
     session_meta_to_cache_input,
 };
 use super::transcript::{
@@ -294,10 +294,22 @@ fn sync_codex_app_cache(conn: &mut Connection) -> Result<(), String> {
     let mut reparsed_ids = Vec::new();
     let now_ns = unix_epoch_now_ns();
     for record in changed {
-        if should_defer_active_codex_metadata(&record, now_ns) {
+        if should_defer_active_codex_metadata(record, now_ns) {
             continue;
         }
-        if let Some(mut meta) = parse_codex_session_meta(record)? {
+        let stored_watermark = imported_history::watermark::read_parse_watermark_from_conn(
+            conn,
+            SOURCE_CODEX_APP,
+            &record.source_session_id,
+        )?;
+        let parse = parse_codex_session_meta_incremental(record, stored_watermark.as_ref())?;
+        imported_history::watermark::write_parse_watermark_from_conn(
+            conn,
+            SOURCE_CODEX_APP,
+            &record.source_session_id,
+            &parse.watermark,
+        )?;
+        if let Some(mut meta) = parse.meta {
             let is_managed_history_mirror =
                 crate::sources::imported_history::managed_mirror::is_managed_source_session_id(
                     &managed_ids,
