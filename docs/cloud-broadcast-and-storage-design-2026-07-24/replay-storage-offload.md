@@ -1,7 +1,7 @@
-# H5 — Replay Segment Payload Offload to Supabase Storage
+# Replay Segment Payload Offload to Supabase Storage (audit item H5)
 
 Date: 2026-07-24. Basis: segment-lifecycle architecture map (agent survey of
-0001/0002/0003 + client push/pull paths). Companion: `h4-broadcast.md`.
+0001/0002/0003 + client push/pull paths). Companion: `broadcast-change-signals.md`.
 
 ## Decision summary
 
