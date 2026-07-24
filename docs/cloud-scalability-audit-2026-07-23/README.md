@@ -7,6 +7,8 @@ Branch: `codex/reclaim-cloud-realtime-connections` (rebased onto develop `a14bb4
 
 > **进度 2026-07-23 晚**：客户端 P0 1–5 已全部落地在本分支（`d344f3b06` 租约宽限期+hash 种子、`d5850cd40` 断连门控+评论 force+抖动+hidden outbound、`ea3344388` 全量 listing 收敛到活跃 org、`bd0b444f4` 下拉滚动条样式冲突）。服务端 P0 的 0001 就地编辑 + 线上 delta 正在起草，验证基建（disposable Postgres + A/B 协议冒烟）已就绪。
 > 另：早前的「侧栏 roster 3 vs 7」已定性为纯 UI 裁剪问题（数据管线健康），见 branch 记忆。
+>
+> **进度 2026-07-24**：服务端 P0 1–4 已通过 cloud-infra `0003_scalability_p0.sql` 上线并零漂移核验；P0 5 的事件分页由用户的 `0002_bounded_session_event_pages.sql` 覆盖。后续批 `0004_roster_and_listing_scalability.sql`（cloud-infra `a45adcd`，待线上粘贴）一次性收编：B1 批量 entitlement、C2 sessions keyset 分页、H3 collab-state 统一 cursor 分页 + tombstone GC、M1 工作项稳态编辑不再锁 project 行、M4 评论 `p_since` delta、L2 bookkeeping GC。客户端配套（entitlement 种子 + sessions/collab 分页走查，全部向后兼容 PGRST202 回落）在 PR #509。仍未动的平台级方向：Broadcast-from-Database（H4）、Storage payload 外移（H5）——各需独立迁移与客户端订阅重写；`org_change_signals` 去抖后仍是 org 内写串行点（C1 残余）。
 
 ### P0 — 客户端（本分支范围内可修）
 

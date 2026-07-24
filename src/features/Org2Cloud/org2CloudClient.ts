@@ -158,16 +158,64 @@ export async function getCloudProfile(
   };
 }
 
+const EntitlementStateWireSchema = z.object({
+  plan: z.string(),
+  status: z.string(),
+  replayRetentionDays: z.number().nullish(),
+  maxOrgMembers: z.number().nullish(),
+  sessionSyncEnabled: z.boolean().nullish(),
+  // Admin-set org sharing FLOOR (0002): the minimum access mode a member may
+  // share a session at. Absent on pre-0002 backends ⇒ treat as 'off' (no
+  // floor). An unrecognized value is dropped by the enum, degrading to 'off'.
+  orgSharingFloor: z
+    .enum([
+      COLLAB_SESSION_ACCESS_MODE.OFF,
+      COLLAB_SESSION_ACCESS_MODE.METADATA_ONLY,
+      COLLAB_SESSION_ACCESS_MODE.FULL_REPLAY,
+    ])
+    .nullish()
+    .catch(undefined),
+});
+
+export interface CloudEntitlementState {
+  plan: string;
+  status: string;
+  replayRetentionDays?: number;
+  maxOrgMembers?: number;
+  sessionSyncEnabled?: boolean;
+  /** Org sharing floor; `undefined` (absent on the wire) ⇒ 'off' / no floor. */
+  orgSharingFloor?: CollabSessionAccessMode;
+}
+
+function normalizeEntitlementWire(
+  parsed: z.infer<typeof EntitlementStateWireSchema>
+): CloudEntitlementState {
+  return {
+    plan: parsed.plan,
+    status: parsed.status,
+    replayRetentionDays: parsed.replayRetentionDays ?? undefined,
+    maxOrgMembers: parsed.maxOrgMembers ?? undefined,
+    sessionSyncEnabled: parsed.sessionSyncEnabled ?? undefined,
+    orgSharingFloor: parsed.orgSharingFloor ?? undefined,
+  };
+}
+
 const CloudOrgWireSchema = z.object({
   orgId: z.string(),
   name: z.string(),
   role: z.enum(CLOUD_ORG_ROLES),
+  // 0004 backends resolve each org's entitlement inside the roster listing;
+  // null/absent (older or degraded backends, or one failing org) falls back
+  // to the per-org RPC for exactly that org. `.catch(undefined)` keeps a
+  // malformed entitlement from failing the whole roster parse.
+  entitlement: EntitlementStateWireSchema.nullish().catch(undefined),
 });
 
 export interface CloudOrg {
   orgId: string;
   name: string;
   role: CloudOrgRole;
+  entitlement?: CloudEntitlementState;
 }
 
 const CloudOrgMemberWireSchema = z.object({
@@ -199,35 +247,6 @@ export interface CloudOrgMember {
   sharingFloor?: CollabSessionAccessMode;
 }
 
-const EntitlementStateWireSchema = z.object({
-  plan: z.string(),
-  status: z.string(),
-  replayRetentionDays: z.number().nullish(),
-  maxOrgMembers: z.number().nullish(),
-  sessionSyncEnabled: z.boolean().nullish(),
-  // Admin-set org sharing FLOOR (0002): the minimum access mode a member may
-  // share a session at. Absent on pre-0002 backends ⇒ treat as 'off' (no
-  // floor). An unrecognized value is dropped by the enum, degrading to 'off'.
-  orgSharingFloor: z
-    .enum([
-      COLLAB_SESSION_ACCESS_MODE.OFF,
-      COLLAB_SESSION_ACCESS_MODE.METADATA_ONLY,
-      COLLAB_SESSION_ACCESS_MODE.FULL_REPLAY,
-    ])
-    .nullish()
-    .catch(undefined),
-});
-
-export interface CloudEntitlementState {
-  plan: string;
-  status: string;
-  replayRetentionDays?: number;
-  maxOrgMembers?: number;
-  sessionSyncEnabled?: boolean;
-  /** Org sharing floor; `undefined` (absent on the wire) ⇒ 'off' / no floor. */
-  orgSharingFloor?: CollabSessionAccessMode;
-}
-
 /**
  * Cloud orgs the signed-in user belongs to (`list_my_orgs`). Returns `null`
  * on any failure (offline / unreachable / wire drift) and `[]` only when the
@@ -247,7 +266,14 @@ export async function listMyOrgs(
     }
     return null;
   }
-  return parsed.data;
+  return parsed.data.map(({ orgId, name, role, entitlement }) => ({
+    orgId,
+    name,
+    role,
+    ...(entitlement
+      ? { entitlement: normalizeEntitlementWire(entitlement) }
+      : {}),
+  }));
 }
 
 /** Members of a cloud org (`list_org_members`). `[]` on any failure. */
@@ -295,15 +321,7 @@ export async function getEntitlementState(
     }
     return null;
   }
-  const { plan, status, replayRetentionDays, maxOrgMembers } = parsed.data;
-  return {
-    plan,
-    status,
-    replayRetentionDays: replayRetentionDays ?? undefined,
-    maxOrgMembers: maxOrgMembers ?? undefined,
-    sessionSyncEnabled: parsed.data.sessionSyncEnabled ?? undefined,
-    orgSharingFloor: parsed.data.orgSharingFloor ?? undefined,
-  };
+  return normalizeEntitlementWire(parsed.data);
 }
 
 /**
