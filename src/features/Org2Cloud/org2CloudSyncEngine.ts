@@ -76,7 +76,11 @@ import {
   org2CloudSharingFloorAtom,
   resolveCloudPushAccess,
 } from "./org2CloudAccessSettings";
-import { commitRefreshedAuth, org2CloudAuthAtom } from "./org2CloudAuthAtom";
+import {
+  type Org2CloudAuthState,
+  commitRefreshedAuth,
+  org2CloudAuthAtom,
+} from "./org2CloudAuthAtom";
 import { ensureFreshSession, schemaVersion } from "./org2CloudClient";
 import {
   buildCloudOrgSelectorValue,
@@ -95,6 +99,7 @@ import {
   org2CloudSyncEnabledAtom,
 } from "./org2CloudSyncAtoms";
 import * as org2CloudSyncClient from "./org2CloudSyncClient";
+import { VANISHED_SESSION_SWEEP_INTERVAL_MS } from "./org2CloudSyncEngine.constants";
 import {
   Org2CloudOrgBackoffTracker,
   isCloudSyncBackoffError,
@@ -112,6 +117,11 @@ import {
   type Org2CloudSchemaVersionProbe,
 } from "./org2CloudSyncEngine.schemaGate";
 import { Org2CloudSessionColdStart } from "./org2CloudSyncEngine.sessionColdStart";
+import {
+  type LocalSessionIdResolver,
+  findVanishedPushedSessionIds,
+  resolveLocalSessionIdsViaAggregateList,
+} from "./org2CloudSyncEngine.vanishedSessions";
 import { Org2CloudSyncLifecycle } from "./org2CloudSyncLifecycle";
 
 export {
@@ -157,12 +167,18 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
   private readonly projectsClient: Org2CloudProjectsClientDeps;
   private readonly projectSyncBridge: ProjectSyncBridge;
   private readonly sessionSync: Org2CloudSessionSync;
+  /** Confirms vanished-session suspects against every local store; a
+   * constructor seam so engine tests can fake local resolution. */
+  private readonly resolveLocalSessionIds: LocalSessionIdResolver;
+  /** Per-org timestamp of the last vanished-session GC sweep. */
+  private readonly lastVanishedSweepAtMs = new Map<string, number>();
 
   constructor(
     client: Org2CloudSyncClientDeps = org2CloudSyncClient,
     projectsClient: Org2CloudProjectsClientDeps = org2CloudProjectsClient,
     projectSyncBridge: ProjectSyncBridge = tauriProjectSyncBridge,
-    probeSchemaVersion: Org2CloudSchemaVersionProbe = schemaVersion
+    probeSchemaVersion: Org2CloudSchemaVersionProbe = schemaVersion,
+    resolveLocalSessionIds: LocalSessionIdResolver = resolveLocalSessionIdsViaAggregateList
   ) {
     super();
     this.client = client;
@@ -180,6 +196,7 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
     );
     this.sessionColdStart = new Org2CloudSessionColdStart(client);
     this.schemaGate = new Org2CloudSchemaGate(probeSchemaVersion);
+    this.resolveLocalSessionIds = resolveLocalSessionIds;
   }
 
   protected override resetSyncState(): void {
@@ -189,6 +206,7 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
     this.projectsChannel.reset();
     this.sessionColdStart.reset();
     this.schemaGate.reset();
+    this.lastVanishedSweepAtMs.clear();
   }
 
   protected override clearAllOrgBackoffs(): void {
@@ -557,6 +575,15 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
           );
         }
       }
+      // GC, after the per-session loop: every retract path above only runs
+      // for sessions VISITED in sessionsAtom, so a session that left the
+      // roster (deleted locally, or an imported continuation sibling the
+      // backend election demoted) keeps its server row and push markers
+      // forever — teammates see a ghost. Confirmed-vanished marked ids are
+      // retracted here with the same backoff handling as the other paths.
+      if (getCloudEndpoint().supabaseUrl !== passSupabaseUrl) return;
+      await this.retractVanishedSessions(fresh, org.orgId, generation);
+      if (this.generation !== generation) return;
     }
 
     // Projects / work items (cloud-parity Phase B), AFTER the session push.
@@ -645,6 +672,60 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
     this.orgBackoff.clearOrgBackoff(orgId);
   }
 
+  /**
+   * Vanished-session GC for one org: retract cloud rows THIS device
+   * push-marked whose sessions no longer resolve anywhere locally.
+   *
+   * TTL-throttled: the suspect set is dominated by marked sessions that
+   * merely fell out of the paginated roster, and each sweep costs one
+   * confirming backend lookup — not worth paying every 60s pass for a rare
+   * condition. Marked-but-resolvable ids are left alone; markers clear on
+   * successful retraction, so a healthy steady state has no suspects.
+   */
+  private async retractVanishedSessions(
+    fresh: Org2CloudAuthState,
+    orgId: string,
+    generation: number
+  ): Promise<void> {
+    const store = this.store;
+    if (!store) return;
+    if (this.orgBackoff.isOrgBackedOff(orgId)) return;
+    const now = Date.now();
+    const lastSweepAt = this.lastVanishedSweepAtMs.get(orgId) ?? 0;
+    if (now - lastSweepAt < VANISHED_SESSION_SWEEP_INTERVAL_MS) return;
+    this.lastVanishedSweepAtMs.set(orgId, now);
+
+    const vanishedIds = await findVanishedPushedSessionIds({
+      orgId,
+      markedSessionIds: this.sessionSync.markedSessionIds(orgId),
+      liveSessionIds: new Set(
+        store.get(sessionsAtom).map((session) => session.session_id)
+      ),
+      resolveSessionIds: this.resolveLocalSessionIds,
+    });
+    if (this.generation !== generation) return;
+    for (const sessionId of vanishedIds) {
+      if (this.generation !== generation) return;
+      try {
+        log.info(
+          `cloud retract [vanished locally]: session ${sessionId} org ${orgId}`
+        );
+        await this.sessionSync.retractSession(fresh, orgId, sessionId);
+      } catch (error) {
+        if (this.generation !== generation) return;
+        if (isCloudSyncBackoffError(error)) {
+          this.orgBackoff.backOffOrg(orgId, error);
+          return;
+        }
+        // Markers survive a failed retract, so the next sweep retries.
+        log.warn(
+          `cloud retract failed for vanished session ${sessionId}:`,
+          error
+        );
+      }
+    }
+  }
+
   /** The engine singleton outlives individual memberships. Keep every
    * app-lifetime org/session cache bounded by the authoritative live roster
    * and current local session list. */
@@ -657,6 +738,9 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
     this.repoScopeSync.prune(currentOrgIds);
     this.projectsChannel.prune(currentOrgIds);
     this.sessionColdStart.prune(currentOrgIds);
+    for (const orgId of this.lastVanishedSweepAtMs.keys()) {
+      if (!currentOrgIds.has(orgId)) this.lastVanishedSweepAtMs.delete(orgId);
+    }
     for (const orgId of this.pendingInboundOrgIds) {
       if (!currentOrgIds.has(orgId)) this.pendingInboundOrgIds.delete(orgId);
     }
