@@ -697,16 +697,41 @@
     "sessionStatusDesc": "Session-Start, Pause und Fortsetzung",
     "gitOperations": "Git-Operationen",
     "gitOperationsDesc": "Git Pull, Push und Sync-Benachrichtigungen",
+    "soundPreset": "Benachrichtigungston",
+    "soundPresetDesc": "Wähle den Ton für hörbare Benachrichtigungen",
+    "previewSound": "Anhören",
+    "soundPresets": {
+      "classic": "Klassisch",
+      "gentle": "Sanft",
+      "ascending": "Ansteigend",
+      "bell": "Glocke"
+    },
     "volume": "Lautstärke",
     "testNotification": "Testbenachrichtigung",
     "notification": "Benachrichtigung",
     "sound": "Ton",
     "enabledSuccess": "Benachrichtigungen aktiviert",
     "permissionDenied": "Benachrichtigungsberechtigung verweigert",
+    "criticalOnly": "Critical alerts only",
+    "criticalOnlyDesc": "Only notify when an action needs approval or a task fails",
+    "quietHours": "Do not disturb schedule",
+    "quietHoursDesc": "Silence routine notifications during a daily time window",
+    "quietHoursSchedule": "Quiet hours",
+    "quietHoursScheduleDesc": "Uses your device local time. Identical start and end times disable the window.",
+    "quietHoursStart": "From",
+    "quietHoursEnd": "To",
+    "allowCriticalDuringQuietHours": "Allow critical alerts",
+    "allowCriticalDuringQuietHoursDesc": "Approval requests and failures may show a system notification, but never play sound",
+    "backgroundCompletionSummary": "Summarize background completions",
+    "backgroundCompletionSummaryDesc": "Send one combined alert when quiet hours end",
+    "mutedSessions": "Muted sessions",
+    "mutedSessionsDesc": "{{count}} sessions are muted on this device",
+    "clearMutedSessions": "Clear all",
     "test": {
       "sent": "Testbenachrichtigung gesendet",
       "permissionWarning": "Testbenachrichtigung konnte nicht gesendet werden. Berechtigungen prüfen.",
-      "sendFailed": "Testbenachrichtigung konnte nicht gesendet werden. Bitte Berechtigungen prüfen und erneut versuchen."
+      "sendFailed": "Testbenachrichtigung konnte nicht gesendet werden. Bitte Berechtigungen prüfen und erneut versuchen.",
+      "soundFailed": "Der Benachrichtigungston konnte nicht wiedergegeben werden. Prüfen Sie die Systemlautstärke."
     }
   },
   "editor": {

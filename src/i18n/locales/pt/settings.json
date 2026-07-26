@@ -697,16 +697,41 @@
     "sessionStatusDesc": "Atualizações de início, pausa e retomada de sessão",
     "gitOperations": "Operações Git",
     "gitOperationsDesc": "Notificações de Git pull, push e sincronização",
+    "soundPreset": "Som de notificação",
+    "soundPresetDesc": "Escolha o som das notificações audíveis",
+    "previewSound": "Ouvir",
+    "soundPresets": {
+      "classic": "Clássico",
+      "gentle": "Suave",
+      "ascending": "Ascendente",
+      "bell": "Sino"
+    },
     "volume": "Volume",
     "testNotification": "Notificação de Teste",
     "notification": "Notificação",
     "sound": "Som",
     "enabledSuccess": "Notificações habilitadas",
     "permissionDenied": "Permissão de notificação negada",
+    "criticalOnly": "Critical alerts only",
+    "criticalOnlyDesc": "Only notify when an action needs approval or a task fails",
+    "quietHours": "Do not disturb schedule",
+    "quietHoursDesc": "Silence routine notifications during a daily time window",
+    "quietHoursSchedule": "Quiet hours",
+    "quietHoursScheduleDesc": "Uses your device local time. Identical start and end times disable the window.",
+    "quietHoursStart": "From",
+    "quietHoursEnd": "To",
+    "allowCriticalDuringQuietHours": "Allow critical alerts",
+    "allowCriticalDuringQuietHoursDesc": "Approval requests and failures may show a system notification, but never play sound",
+    "backgroundCompletionSummary": "Summarize background completions",
+    "backgroundCompletionSummaryDesc": "Send one combined alert when quiet hours end",
+    "mutedSessions": "Muted sessions",
+    "mutedSessionsDesc": "{{count}} sessions are muted on this device",
+    "clearMutedSessions": "Clear all",
     "test": {
       "sent": "Notificação de teste enviada",
       "permissionWarning": "Falha ao enviar notificação de teste. Verifique as permissões.",
-      "sendFailed": "Não foi possível enviar a notificação de teste. Verifique suas permissões de notificação e tente novamente."
+      "sendFailed": "Não foi possível enviar a notificação de teste. Verifique suas permissões de notificação e tente novamente.",
+      "soundFailed": "Não foi possível reproduzir o som de notificação. Verifique o volume do sistema."
     }
   },
   "editor": {

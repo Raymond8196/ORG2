@@ -697,16 +697,41 @@
     "sessionStatusDesc": "Session 시작, 일시 중지 및 재개 업데이트",
     "gitOperations": "Git 작업",
     "gitOperationsDesc": "Git pull, push 및 동기화 알림",
+    "soundPreset": "알림음",
+    "soundPresetDesc": "알림에 사용할 소리를 선택합니다",
+    "previewSound": "미리 듣기",
+    "soundPresets": {
+      "classic": "클래식",
+      "gentle": "부드럽게",
+      "ascending": "상승",
+      "bell": "벨"
+    },
     "volume": "볼륨",
     "testNotification": "테스트 알림",
     "notification": "알림",
     "sound": "사운드",
     "enabledSuccess": "알림이 활성화됨",
     "permissionDenied": "알림 권한이 거부됨",
+    "criticalOnly": "Critical alerts only",
+    "criticalOnlyDesc": "Only notify when an action needs approval or a task fails",
+    "quietHours": "Do not disturb schedule",
+    "quietHoursDesc": "Silence routine notifications during a daily time window",
+    "quietHoursSchedule": "Quiet hours",
+    "quietHoursScheduleDesc": "Uses your device local time. Identical start and end times disable the window.",
+    "quietHoursStart": "From",
+    "quietHoursEnd": "To",
+    "allowCriticalDuringQuietHours": "Allow critical alerts",
+    "allowCriticalDuringQuietHoursDesc": "Approval requests and failures may show a system notification, but never play sound",
+    "backgroundCompletionSummary": "Summarize background completions",
+    "backgroundCompletionSummaryDesc": "Send one combined alert when quiet hours end",
+    "mutedSessions": "Muted sessions",
+    "mutedSessionsDesc": "{{count}} sessions are muted on this device",
+    "clearMutedSessions": "Clear all",
     "test": {
       "sent": "테스트 알림 발송됨",
       "permissionWarning": "테스트 알림 전송 실패. 권한을 확인하세요.",
-      "sendFailed": "테스트 알림을 보낼 수 없습니다. 알림 권한을 확인하고 다시 시도하세요."
+      "sendFailed": "테스트 알림을 보낼 수 없습니다. 알림 권한을 확인하고 다시 시도하세요.",
+      "soundFailed": "알림 소리를 재생할 수 없습니다. 시스템 볼륨을 확인하세요."
     }
   },
   "editor": {

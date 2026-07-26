@@ -235,14 +235,12 @@ async fn run_turn(request: CliRunRequest, turn: TurnIdentity) -> Result<(), Stri
             }
             integrations::proxy::server::stop_session_proxy(&sid).await;
             session_runner::release_proxy_token_for_session_pub(&sid).await;
-            let mut failed_msg = serde_json::json!({
-                "type": "code_session.status_changed",
-                "session_id": sid,
-                "status": "failed",
-                "error_message": e,
-            });
-            failed_msg["turn_intent_id"] = serde_json::Value::String(runner_turn_intent_id.clone());
-            crate::api::websocket_handler::broadcast(failed_msg.to_string());
+            super::failure_broadcast::broadcast_async_run_failure(
+                &sid,
+                &e,
+                Some(&runner_turn_intent_id),
+            )
+            .await;
         }
         // Remove finished entry from RUNNING_SESSIONS to prevent unbounded growth
         session_runner::RUNNING_SESSIONS.lock().await.remove(&sid);

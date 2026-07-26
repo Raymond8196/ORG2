@@ -697,16 +697,41 @@
     "sessionStatusDesc": "Session 開始、暫停和恢復更新",
     "gitOperations": "Git 操作",
     "gitOperationsDesc": "Git pull、push 和同步通知",
+    "soundPreset": "通知音效",
+    "soundPresetDesc": "選擇通知提醒時播放的聲音",
+    "previewSound": "試聽",
+    "soundPresets": {
+      "classic": "經典雙音",
+      "gentle": "柔和和弦",
+      "ascending": "上揚三音",
+      "bell": "鈴音"
+    },
     "volume": "音量",
     "testNotification": "測試通知",
     "notification": "通知",
     "sound": "聲音",
     "enabledSuccess": "通知已啓用",
     "permissionDenied": "通知權限被拒絕",
+    "criticalOnly": "Critical alerts only",
+    "criticalOnlyDesc": "Only notify when an action needs approval or a task fails",
+    "quietHours": "Do not disturb schedule",
+    "quietHoursDesc": "Silence routine notifications during a daily time window",
+    "quietHoursSchedule": "Quiet hours",
+    "quietHoursScheduleDesc": "Uses your device local time. Identical start and end times disable the window.",
+    "quietHoursStart": "From",
+    "quietHoursEnd": "To",
+    "allowCriticalDuringQuietHours": "Allow critical alerts",
+    "allowCriticalDuringQuietHoursDesc": "Approval requests and failures may show a system notification, but never play sound",
+    "backgroundCompletionSummary": "Summarize background completions",
+    "backgroundCompletionSummaryDesc": "Send one combined alert when quiet hours end",
+    "mutedSessions": "Muted sessions",
+    "mutedSessionsDesc": "{{count}} sessions are muted on this device",
+    "clearMutedSessions": "Clear all",
     "test": {
       "sent": "測試通知已發送",
       "permissionWarning": "測試通知發送失敗，請檢查權限。",
-      "sendFailed": "無法發送測試通知。請檢查通知權限後重試。"
+      "sendFailed": "無法發送測試通知。請檢查通知權限後重試。",
+      "soundFailed": "無法播放通知音效，請檢查系統音量。"
     }
   },
   "editor": {

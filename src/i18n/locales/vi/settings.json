@@ -697,16 +697,41 @@
     "sessionStatusDesc": "Bắt đầu, tạm dừng và tiếp tục Session",
     "gitOperations": "Hoạt động Git",
     "gitOperationsDesc": "Thông báo Git pull, push và đồng bộ",
+    "soundPreset": "Âm thanh thông báo",
+    "soundPresetDesc": "Chọn âm thanh cho các thông báo có tiếng",
+    "previewSound": "Nghe thử",
+    "soundPresets": {
+      "classic": "Cổ điển",
+      "gentle": "Nhẹ nhàng",
+      "ascending": "Tăng dần",
+      "bell": "Chuông"
+    },
     "volume": "Âm lượng",
     "testNotification": "Thông báo thử",
     "notification": "Thông báo",
     "sound": "Âm thanh",
     "enabledSuccess": "Đã bật thông báo",
     "permissionDenied": "Đã từ chối quyền thông báo",
+    "criticalOnly": "Critical alerts only",
+    "criticalOnlyDesc": "Only notify when an action needs approval or a task fails",
+    "quietHours": "Do not disturb schedule",
+    "quietHoursDesc": "Silence routine notifications during a daily time window",
+    "quietHoursSchedule": "Quiet hours",
+    "quietHoursScheduleDesc": "Uses your device local time. Identical start and end times disable the window.",
+    "quietHoursStart": "From",
+    "quietHoursEnd": "To",
+    "allowCriticalDuringQuietHours": "Allow critical alerts",
+    "allowCriticalDuringQuietHoursDesc": "Approval requests and failures may show a system notification, but never play sound",
+    "backgroundCompletionSummary": "Summarize background completions",
+    "backgroundCompletionSummaryDesc": "Send one combined alert when quiet hours end",
+    "mutedSessions": "Muted sessions",
+    "mutedSessionsDesc": "{{count}} sessions are muted on this device",
+    "clearMutedSessions": "Clear all",
     "test": {
       "sent": "Đã gửi thông báo thử nghiệm",
       "permissionWarning": "Không gửi được thông báo thử nghiệm. Kiểm tra quyền truy cập.",
-      "sendFailed": "Không thể gửi thông báo thử nghiệm. Vui lòng kiểm tra quyền thông báo và thử lại."
+      "sendFailed": "Không thể gửi thông báo thử nghiệm. Vui lòng kiểm tra quyền thông báo và thử lại.",
+      "soundFailed": "Không thể phát âm thanh thông báo. Hãy kiểm tra âm lượng hệ thống."
     }
   },
   "editor": {

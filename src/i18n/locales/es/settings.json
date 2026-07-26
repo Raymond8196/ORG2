@@ -697,16 +697,41 @@
     "sessionStatusDesc": "Actualizaciones de inicio, pausa y reanudación de Session",
     "gitOperations": "Operaciones Git",
     "gitOperationsDesc": "Notificaciones de Git pull, push y sincronización",
+    "soundPreset": "Sonido de notificación",
+    "soundPresetDesc": "Elige el sonido de las notificaciones audibles",
+    "previewSound": "Escuchar",
+    "soundPresets": {
+      "classic": "Clásico",
+      "gentle": "Suave",
+      "ascending": "Ascendente",
+      "bell": "Campana"
+    },
     "volume": "Volumen",
     "testNotification": "Notificación de prueba",
     "notification": "Notificación",
     "sound": "Sonido",
     "enabledSuccess": "Notificaciones habilitadas",
     "permissionDenied": "Permiso de notificación denegado",
+    "criticalOnly": "Critical alerts only",
+    "criticalOnlyDesc": "Only notify when an action needs approval or a task fails",
+    "quietHours": "Do not disturb schedule",
+    "quietHoursDesc": "Silence routine notifications during a daily time window",
+    "quietHoursSchedule": "Quiet hours",
+    "quietHoursScheduleDesc": "Uses your device local time. Identical start and end times disable the window.",
+    "quietHoursStart": "From",
+    "quietHoursEnd": "To",
+    "allowCriticalDuringQuietHours": "Allow critical alerts",
+    "allowCriticalDuringQuietHoursDesc": "Approval requests and failures may show a system notification, but never play sound",
+    "backgroundCompletionSummary": "Summarize background completions",
+    "backgroundCompletionSummaryDesc": "Send one combined alert when quiet hours end",
+    "mutedSessions": "Muted sessions",
+    "mutedSessionsDesc": "{{count}} sessions are muted on this device",
+    "clearMutedSessions": "Clear all",
     "test": {
       "sent": "Notificación de prueba enviada",
       "permissionWarning": "No se pudo enviar la notificación de prueba. Comprueba los permisos.",
-      "sendFailed": "No se puede enviar la notificación de prueba. Comprueba los permisos de notificación e inténtalo de nuevo."
+      "sendFailed": "No se puede enviar la notificación de prueba. Comprueba los permisos de notificación e inténtalo de nuevo.",
+      "soundFailed": "No se puede reproducir el sonido de notificación. Comprueba el volumen del sistema."
     }
   },
   "editor": {

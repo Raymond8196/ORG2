@@ -9,20 +9,9 @@
 import { atom } from "jotai";
 
 import { settingsAtom } from "@src/store/settings/settingsAtom";
+import type { NotificationSettings } from "@src/types/ui/notification";
 
-export interface NotificationSettings {
-  enabled: boolean;
-  systemNotificationEnabled: boolean;
-  completionSound: boolean;
-  soundVolume: number;
-  categories: {
-    taskCompletion: boolean;
-    agentApproval: boolean;
-    errors: boolean;
-    sessionStatus: boolean;
-    gitOperations: boolean;
-  };
-}
+export type { NotificationSettings } from "@src/types/ui/notification";
 
 export const notificationSettingsAtom = atom<NotificationSettings>((get) => {
   const settings = get(settingsAtom);
@@ -30,8 +19,19 @@ export const notificationSettingsAtom = atom<NotificationSettings>((get) => {
     enabled: settings["notifications.enabled"],
     systemNotificationEnabled:
       settings["notifications.systemNotificationEnabled"],
-    completionSound: settings["notifications.completionSound"],
+    soundEnabled: settings["notifications.completionSound"],
+    soundPreset: settings["notifications.soundPreset"],
     soundVolume: settings["notifications.soundVolume"],
+    criticalOnly: settings["notifications.criticalOnly"],
+    quietHours: {
+      enabled: settings["notifications.quietHours.enabled"],
+      start: settings["notifications.quietHours.start"],
+      end: settings["notifications.quietHours.end"],
+      allowCritical: settings["notifications.quietHours.allowCritical"],
+    },
+    backgroundCompletionSummary:
+      settings["notifications.backgroundCompletionSummary"],
+    mutedSessionIds: settings["notifications.mutedSessionIds"],
     categories: {
       taskCompletion: settings["notifications.categories.taskCompletion"],
       agentApproval: settings["notifications.categories.agentApproval"],

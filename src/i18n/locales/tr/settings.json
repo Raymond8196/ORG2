@@ -697,16 +697,41 @@
     "sessionStatusDesc": "Session başlatma, duraklatma ve devam ettirme güncellemeleri",
     "gitOperations": "Git İşlemleri",
     "gitOperationsDesc": "Git pull, push ve senkronizasyon bildirimleri",
+    "soundPreset": "Bildirim sesi",
+    "soundPresetDesc": "Sesli bildirimlerde çalınacak sesi seçin",
+    "previewSound": "Önizle",
+    "soundPresets": {
+      "classic": "Klasik",
+      "gentle": "Yumuşak",
+      "ascending": "Yükselen",
+      "bell": "Zil"
+    },
     "volume": "Ses Seviyesi",
     "testNotification": "Test Bildirimi",
     "notification": "Bildirim",
     "sound": "Ses",
     "enabledSuccess": "Bildirimler etkinleştirildi",
     "permissionDenied": "Bildirim izni reddedildi",
+    "criticalOnly": "Critical alerts only",
+    "criticalOnlyDesc": "Only notify when an action needs approval or a task fails",
+    "quietHours": "Do not disturb schedule",
+    "quietHoursDesc": "Silence routine notifications during a daily time window",
+    "quietHoursSchedule": "Quiet hours",
+    "quietHoursScheduleDesc": "Uses your device local time. Identical start and end times disable the window.",
+    "quietHoursStart": "From",
+    "quietHoursEnd": "To",
+    "allowCriticalDuringQuietHours": "Allow critical alerts",
+    "allowCriticalDuringQuietHoursDesc": "Approval requests and failures may show a system notification, but never play sound",
+    "backgroundCompletionSummary": "Summarize background completions",
+    "backgroundCompletionSummaryDesc": "Send one combined alert when quiet hours end",
+    "mutedSessions": "Muted sessions",
+    "mutedSessionsDesc": "{{count}} sessions are muted on this device",
+    "clearMutedSessions": "Clear all",
     "test": {
       "sent": "Test bildirimi gönderildi",
       "permissionWarning": "Test bildirimi gönderilemedi. İzinleri kontrol edin.",
-      "sendFailed": "Test bildirimi gönderilemiyor. Bildirim izinlerinizi kontrol edip yeniden deneyin."
+      "sendFailed": "Test bildirimi gönderilemiyor. Bildirim izinlerinizi kontrol edip yeniden deneyin.",
+      "soundFailed": "Bildirim sesi çalınamıyor. Sistem ses düzeyini kontrol edin."
     }
   },
   "editor": {

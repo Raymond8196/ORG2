@@ -260,6 +260,7 @@ pub(super) async fn finalize_session_run(
         "exit_code": exit_code,
         "background": session.background,
         "session_name": session.name,
+        "plan_gate": cli_plan_approval_gate_reached,
     });
     if let Some(ref err_msg) = error_message {
         status_msg["error_message"] = serde_json::Value::String(err_msg.clone());

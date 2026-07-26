@@ -697,16 +697,41 @@
     "sessionStatusDesc": "Sessionの開始、一時停止、再開の更新",
     "gitOperations": "Git 操作",
     "gitOperationsDesc": "Git Pull、Push、同期の通知",
+    "soundPreset": "通知音",
+    "soundPresetDesc": "通知で再生する音を選択します",
+    "previewSound": "試聴",
+    "soundPresets": {
+      "classic": "クラシック",
+      "gentle": "やさしい",
+      "ascending": "上昇",
+      "bell": "ベル"
+    },
     "volume": "音量",
     "testNotification": "テスト通知",
     "notification": "通知",
     "sound": "サウンド",
     "enabledSuccess": "通知が有効になりました",
     "permissionDenied": "通知の許可が拒否されました",
+    "criticalOnly": "Critical alerts only",
+    "criticalOnlyDesc": "Only notify when an action needs approval or a task fails",
+    "quietHours": "Do not disturb schedule",
+    "quietHoursDesc": "Silence routine notifications during a daily time window",
+    "quietHoursSchedule": "Quiet hours",
+    "quietHoursScheduleDesc": "Uses your device local time. Identical start and end times disable the window.",
+    "quietHoursStart": "From",
+    "quietHoursEnd": "To",
+    "allowCriticalDuringQuietHours": "Allow critical alerts",
+    "allowCriticalDuringQuietHoursDesc": "Approval requests and failures may show a system notification, but never play sound",
+    "backgroundCompletionSummary": "Summarize background completions",
+    "backgroundCompletionSummaryDesc": "Send one combined alert when quiet hours end",
+    "mutedSessions": "Muted sessions",
+    "mutedSessionsDesc": "{{count}} sessions are muted on this device",
+    "clearMutedSessions": "Clear all",
     "test": {
       "sent": "テスト通知を送信しました",
       "permissionWarning": "テスト通知の送信に失敗しました。権限を確認してください。",
-      "sendFailed": "テスト通知を送信できません。通知の権限を確認してから再試行してください。"
+      "sendFailed": "テスト通知を送信できません。通知の権限を確認してから再試行してください。",
+      "soundFailed": "通知音を再生できません。システムの音量を確認してください。"
     }
   },
   "editor": {

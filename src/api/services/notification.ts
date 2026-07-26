@@ -1,4 +1,5 @@
-import { invoke } from "@tauri-apps/api/core";
+import { invoke, isTauri } from "@tauri-apps/api/core";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import {
   isPermissionGranted,
   requestPermission,
@@ -6,72 +7,67 @@ import {
 } from "@tauri-apps/plugin-notification";
 
 import { createLogger } from "@src/hooks/logger";
-import { NotificationSettings } from "@src/store/ui/notificationAtom";
+import type {
+  BackgroundCompletionSummary,
+  NotificationCategory,
+  NotificationContext,
+  NotificationDeliveryResult,
+  NotificationSettings,
+} from "@src/types/ui/notification";
+
+import {
+  NotificationEventDeduper,
+  NotificationRunTracker,
+  evaluateNotificationPolicy,
+} from "./notificationPolicy";
+import {
+  type NotificationSoundPlaybackOptions,
+  playNotificationSound as playSelectedNotificationSound,
+  unlockNotificationSound as unlockSelectedNotificationSound,
+} from "./notificationSound";
+import { BackgroundCompletionSummaryCoordinator } from "./notificationSummaryCoordinator";
 
 const log = createLogger("Notification");
 
-// Audio element for completion sounds
-let audioElement: HTMLAudioElement | null = null;
-let audioContext: AudioContext | null = null;
-
-// Initialize audio element
-const getAudioElement = (): HTMLAudioElement => {
-  if (!audioElement) {
-    audioElement = new Audio("/sounds/completion.mp3");
-    // Add error handler to fall back to generated sound
-    audioElement.addEventListener("error", () => {
-      log.warn("Sound file not found, using generated sound");
-    });
-  }
-  return audioElement;
-};
-
-// Generate a simple notification beep using Web Audio API as fallback
-const playGeneratedSound = (volume: number): void => {
-  try {
-    if (!audioContext) {
-      audioContext = new (
-        window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext })
-          .webkitAudioContext
-      )();
-    }
-
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-
-    // Pleasant notification sound
-    oscillator.frequency.setValueAtTime(880, audioContext.currentTime); // A5 note
-    oscillator.type = "sine";
-
-    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-    gainNode.gain.linearRampToValueAtTime(
-      volume / 100,
-      audioContext.currentTime + 0.01
-    );
-    gainNode.gain.exponentialRampToValueAtTime(
-      0.001,
-      audioContext.currentTime + 0.3
-    );
-
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.3);
-  } catch (error) {
-    log.error("Failed to play generated sound:", error);
-  }
-};
-
-// Notification categories type
-export type NotificationCategory = keyof NotificationSettings["categories"];
+export const TASK_FAILURE_NOTIFICATION_BODY =
+  "A task failed. Open ORGII for details.";
 
 export interface NotificationOptions {
   title: string;
   body: string;
   category?: NotificationCategory;
   playSound?: boolean;
+  context?: NotificationContext;
+  summaryLabel?: string;
+}
+
+type BackgroundCompletionSummaryListener = (
+  summary: BackgroundCompletionSummary
+) => void;
+
+let backgroundCompletionSummaryListener: BackgroundCompletionSummaryListener | null =
+  null;
+let anonymousSummaryEventSequence = 0;
+const notificationEventDeduper = new NotificationEventDeduper();
+const notificationRunTracker = new NotificationRunTracker();
+
+export function isPrimaryNotificationWindow(): boolean {
+  try {
+    return !isTauri() || getCurrentWindow().label === "main";
+  } catch {
+    return false;
+  }
+}
+
+export function markNotificationRunStarted(sessionId: string): void {
+  notificationRunTracker.markRunning(sessionId);
+}
+
+export function terminalNotificationEventKey(
+  sessionId: string,
+  status: "completed" | "failed"
+): string {
+  return notificationRunTracker.terminalEventKey(sessionId, status);
 }
 
 /**
@@ -143,27 +139,113 @@ export const sendSystemNotification = async (
 };
 
 /**
- * Play completion sound
+ * Play the user's selected notification sound.
  */
-export const playCompletionSound = (volume: number = 70): void => {
-  try {
-    const audio = getAudioElement();
-    audio.volume = Math.max(0, Math.min(1, volume / 100));
-    audio.currentTime = 0;
+export const playNotificationSound = (
+  options: NotificationSoundPlaybackOptions
+): Promise<boolean> => playSelectedNotificationSound(options);
 
-    const playPromise = audio.play();
+export const unlockNotificationSound = (): Promise<boolean> =>
+  unlockSelectedNotificationSound();
 
-    if (playPromise !== undefined) {
-      playPromise.catch(() => {
-        // If the audio file fails to play (not found or error), use generated sound
-        playGeneratedSound(volume);
-      });
-    }
-  } catch {
-    // Fallback to generated sound
-    playGeneratedSound(volume);
+async function deliverNotification(
+  options: NotificationOptions,
+  settings: NotificationSettings,
+  decision: {
+    sendSystemNotification: boolean;
+    playSound: boolean;
   }
-};
+): Promise<
+  Pick<NotificationDeliveryResult, "systemNotificationSent" | "soundPlayed">
+> {
+  let systemNotificationSent = false;
+  if (decision.sendSystemNotification) {
+    systemNotificationSent = await sendSystemNotification(
+      options.title,
+      options.body
+    );
+  }
+
+  const soundPlayed = decision.playSound
+    ? await playNotificationSound({
+        preset: settings.soundPreset,
+        volume: settings.soundVolume,
+      })
+    : false;
+
+  return {
+    systemNotificationSent,
+    soundPlayed,
+  };
+}
+
+const backgroundCompletionSummaryCoordinator =
+  new BackgroundCompletionSummaryCoordinator(async (summary, settings) => {
+    const visibleNames = summary.sessionNames.join(", ");
+    const remaining = Math.max(0, summary.count - summary.sessionNames.length);
+    const body = visibleNames
+      ? remaining > 0
+        ? `${visibleNames} and ${remaining} more`
+        : visibleNames
+      : `${summary.count} background tasks are ready for review`;
+
+    const options: NotificationOptions = {
+      title: `${summary.count} background task${summary.count === 1 ? "" : "s"} completed`,
+      body,
+      category: "taskCompletion",
+      playSound: true,
+    };
+    const decision = evaluateNotificationPolicy(
+      {
+        category: options.category,
+        playSound: true,
+      },
+      settings
+    );
+
+    if (decision.disposition !== "deliver") {
+      return decision.reason !== "quiet-hours";
+    }
+
+    const delivery = await deliverNotification(options, settings, decision);
+    let inAppDelivered = false;
+
+    if (backgroundCompletionSummaryListener) {
+      try {
+        backgroundCompletionSummaryListener(summary);
+        inAppDelivered = true;
+      } catch (error) {
+        log.error("[Notification] Summary listener failed:", error);
+      }
+    }
+
+    return (
+      delivery.systemNotificationSent || delivery.soundPlayed || inAppDelivered
+    );
+  });
+
+/** Keep the one-shot summary boundary timer aligned with live settings. */
+export function configureNotificationRuntime(
+  settings: NotificationSettings
+): void {
+  if (!isPrimaryNotificationWindow()) return;
+  backgroundCompletionSummaryCoordinator.configure(settings);
+}
+
+export function disposeNotificationRuntime(): void {
+  backgroundCompletionSummaryCoordinator.dispose();
+}
+
+export function setBackgroundCompletionSummaryListener(
+  listener: BackgroundCompletionSummaryListener | null
+): () => void {
+  backgroundCompletionSummaryListener = listener;
+  return () => {
+    if (backgroundCompletionSummaryListener === listener) {
+      backgroundCompletionSummaryListener = null;
+    }
+  };
+}
 
 /**
  * Send a notification based on settings
@@ -171,28 +253,69 @@ export const playCompletionSound = (volume: number = 70): void => {
 export const notify = async (
   options: NotificationOptions,
   settings: NotificationSettings
-): Promise<boolean> => {
-  if (!settings.enabled) {
-    return false;
+): Promise<NotificationDeliveryResult> => {
+  if (!isPrimaryNotificationWindow()) {
+    return {
+      disposition: "suppressed",
+      systemNotificationSent: false,
+      soundPlayed: false,
+      reason: "non-primary-window",
+    };
   }
 
-  if (options.category && !settings.categories[options.category]) {
-    return false;
+  const eventKey = options.context?.eventKey;
+  if (eventKey && !notificationEventDeduper.shouldDeliver(eventKey)) {
+    return {
+      disposition: "suppressed",
+      systemNotificationSent: false,
+      soundPlayed: false,
+      reason: "duplicate",
+    };
   }
 
-  let notificationSent = false;
-  if (settings.systemNotificationEnabled) {
-    notificationSent = await sendSystemNotification(
-      options.title,
-      options.body
+  configureNotificationRuntime(settings);
+  const decision = evaluateNotificationPolicy(
+    {
+      category: options.category,
+      context: options.context,
+      playSound: options.playSound !== false,
+    },
+    settings
+  );
+
+  if (decision.disposition === "defer") {
+    backgroundCompletionSummaryCoordinator.enqueue(
+      {
+        eventKey:
+          options.context?.eventKey ??
+          `summary:${Date.now()}:${++anonymousSummaryEventSequence}`,
+        sessionId: options.context?.sessionId,
+        sessionName: options.summaryLabel ?? options.body,
+      },
+      settings
     );
+    return {
+      disposition: "deferred",
+      systemNotificationSent: false,
+      soundPlayed: false,
+      reason: decision.reason,
+    };
   }
 
-  if (options.playSound !== false && settings.completionSound) {
-    playCompletionSound(settings.soundVolume);
+  if (decision.disposition === "suppress") {
+    return {
+      disposition: "suppressed",
+      systemNotificationSent: false,
+      soundPlayed: false,
+      reason: decision.reason,
+    };
   }
 
-  return notificationSent;
+  const delivery = await deliverNotification(options, settings, decision);
+  return {
+    disposition: "delivered",
+    ...delivery,
+  };
 };
 
 /**
@@ -200,14 +323,18 @@ export const notify = async (
  */
 export const notifyTaskCompletion = async (
   taskName: string,
-  settings: NotificationSettings
-): Promise<boolean> => {
+  settings: NotificationSettings,
+  context?: NotificationContext,
+  summaryLabel: string = taskName
+): Promise<NotificationDeliveryResult> => {
   return notify(
     {
       title: "Task Completed",
       body: taskName,
       category: "taskCompletion",
       playSound: true,
+      context,
+      summaryLabel,
     },
     settings
   );
@@ -218,14 +345,16 @@ export const notifyTaskCompletion = async (
  */
 export const notifyAgentApproval = async (
   actionName: string,
-  settings: NotificationSettings
-): Promise<boolean> => {
+  settings: NotificationSettings,
+  context?: NotificationContext
+): Promise<NotificationDeliveryResult> => {
   return notify(
     {
       title: "Action Requires Approval",
       body: actionName,
       category: "agentApproval",
       playSound: true,
+      context,
     },
     settings
   );
@@ -236,14 +365,16 @@ export const notifyAgentApproval = async (
  */
 export const notifyError = async (
   errorMessage: string,
-  settings: NotificationSettings
-): Promise<boolean> => {
+  settings: NotificationSettings,
+  context?: NotificationContext
+): Promise<NotificationDeliveryResult> => {
   return notify(
     {
       title: "Error",
       body: errorMessage,
       category: "errors",
-      playSound: false,
+      playSound: true,
+      context,
     },
     settings
   );
@@ -254,14 +385,16 @@ export const notifyError = async (
  */
 export const notifySessionStatus = async (
   status: string,
-  settings: NotificationSettings
-): Promise<boolean> => {
+  settings: NotificationSettings,
+  context?: NotificationContext
+): Promise<NotificationDeliveryResult> => {
   return notify(
     {
       title: "Session Status",
       body: status,
       category: "sessionStatus",
       playSound: false,
+      context,
     },
     settings
   );
@@ -273,7 +406,7 @@ export const notifySessionStatus = async (
 export const notifyGitOperation = async (
   operation: string,
   settings: NotificationSettings
-): Promise<boolean> => {
+): Promise<NotificationDeliveryResult> => {
   return notify(
     {
       title: "Git Operation",
@@ -291,23 +424,18 @@ export const notifyGitOperation = async (
 export const sendTestNotification = async (
   settings: NotificationSettings
 ): Promise<boolean> => {
-  const tempSettings = {
-    ...settings,
-    enabled: true,
-    systemNotificationEnabled: true,
-    categories: {
-      ...settings.categories,
-      taskCompletion: true,
-    },
-  };
-
-  return notify(
+  const result = await deliverNotification(
     {
       title: "Test Notification",
       body: "This is a test notification from ORGII",
       category: "taskCompletion",
       playSound: true,
     },
-    tempSettings
+    settings,
+    {
+      sendSystemNotification: true,
+      playSound: settings.soundEnabled,
+    }
   );
+  return result.systemNotificationSent;
 };

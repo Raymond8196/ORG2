@@ -1,4 +1,5 @@
 import {
+  BellOff,
   Braces,
   Clipboard,
   FolderOutput,
@@ -22,6 +23,7 @@ import {
 } from "@src/components/Dropdown/tokens";
 import Switch from "@src/components/Switch";
 import type { DropdownEnginePosition } from "@src/hooks/dropdown";
+import { useSessionNotificationMute } from "@src/hooks/notifications/useSessionNotificationMute";
 import type { ChatHistoryDisplayMode } from "@src/store/ui/chatPanelAtom";
 
 const HEADER_ICON_SIZE = 14;
@@ -92,6 +94,8 @@ export const SessionHeaderActionsMenu: React.FC<
 }) => {
   const { t } = useTranslation(["sessions", "common", "navigation"]);
   const moveToWorkstation = moveTarget === "workstation";
+  const { isMuted: sessionNotificationsMuted, setMuted } =
+    useSessionNotificationMute(currentSessionId);
 
   return (
     <>
@@ -216,6 +220,26 @@ export const SessionHeaderActionsMenu: React.FC<
                 {t("chat.linkWorkItem.menuItem")}
               </span>
             </button>
+            <div
+              className={`${DROPDOWN_CLASSES.item} w-full justify-between text-left`}
+              data-testid="session-notification-mute-row"
+            >
+              <BellOff size={DROPDOWN_ITEM.iconSize} strokeWidth={1.75} />
+              <span className="flex-1 truncate">
+                {t("chat.muteNotifications", {
+                  defaultValue: "Mute notifications",
+                })}
+              </span>
+              <Switch
+                checked={sessionNotificationsMuted}
+                disabled={!currentSessionId}
+                onChange={setMuted}
+                size="small"
+                ariaLabel={t("chat.muteNotifications", {
+                  defaultValue: "Mute notifications",
+                })}
+              />
+            </div>
             {showCloudShareSettings && (
               <button
                 type="button"

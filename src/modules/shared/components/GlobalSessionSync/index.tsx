@@ -14,11 +14,13 @@ import React from "react";
 import { useEventStoreBridge } from "@src/engines/SessionCore/core/store/useEventStoreBridge";
 import { useQueueDispatch } from "@src/engines/SessionCore/hooks/session/useQueueDispatch";
 import { useBackgroundSessionMonitor } from "@src/hooks/cliSession/useBackgroundSessionMonitor";
+import { useNotificationApprovalBridge } from "@src/hooks/notifications/useNotificationApprovalBridge";
 import { useNativeSessionStatusMonitor } from "@src/hooks/session/useNativeSessionStatusMonitor";
 
 const GlobalSessionSync: React.FC = () => {
   useEventStoreBridge();
   useBackgroundSessionMonitor();
+  useNotificationApprovalBridge();
   useNativeSessionStatusMonitor();
   useQueueDispatch();
   return null;

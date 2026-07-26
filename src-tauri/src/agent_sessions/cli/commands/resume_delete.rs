@@ -98,6 +98,12 @@ pub async fn cli_agent_resume(session_id: String) -> Result<(), String> {
             }
             integrations::proxy::server::stop_session_proxy(&sid).await;
             session_runner::release_proxy_token_for_session_pub(&sid).await;
+            // `cli_agent_resume` already returned Ok by the time we get here, so
+            // this broadcast is the frontend's only failure signal — without it
+            // the panel stays in its optimistic running state and no failure
+            // notification fires. Same payload as the create path; resume has no
+            // turn intent to attribute.
+            super::failure_broadcast::broadcast_async_run_failure(&sid, &e, None).await;
         }
         session_runner::RUNNING_SESSIONS.lock().await.remove(&sid);
     });

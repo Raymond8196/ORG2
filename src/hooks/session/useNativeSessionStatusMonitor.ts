@@ -16,20 +16,38 @@
  * backend-initiated switches reach `sessionsAtom` without relying on the
  * initiating window's optimistic update.
  *
- * This intentionally does NOT trigger toasts or notifications: those are
- * owned by `useBackgroundSessionMonitor` (CLI sessions) and individual
- * session panels. This hook is the minimal "keep the store in sync" layer.
+ * Completions and failures also pass through the shared notification policy:
+ * foreground turns may play sound, while background turns can additionally
+ * show or queue notifications.
  */
 import { listen } from "@tauri-apps/api/event";
-import { useEffect } from "react";
+import { useAtomValue } from "jotai";
+import { useEffect, useRef } from "react";
 
+import {
+  TASK_FAILURE_NOTIFICATION_BODY,
+  notifyError,
+  notifyTaskCompletion,
+} from "@src/api/services/notification";
+import {
+  isNotificationAttentionRequired,
+  isSuccessfulNotificationTurnStatus,
+} from "@src/api/services/notificationPolicy";
+import Message from "@src/components/Message";
 import {
   markTurnRunning,
   markTurnTerminal,
   toTurnTerminalStatus,
 } from "@src/engines/SessionCore/control/turnLifecycle";
-import { type SessionStatus, updateSessionStatus } from "@src/store/session";
+import {
+  type SessionStatus,
+  activeSessionIdAtom,
+  sessionByIdAtom,
+  updateSessionStatus,
+} from "@src/store/session";
+import { notificationSettingsAtom } from "@src/store/ui/notificationAtom";
 import { isTerminalStatus } from "@src/types/session/session";
+import { getInstrumentedStore } from "@src/util/core/state/instrumentedStore";
 import { isSessionRuntimeExecuting } from "@src/util/session/sessionRuntimeExecuting";
 
 interface SessionStatusChangedPayload {
@@ -50,17 +68,73 @@ interface SessionRenamedPayload {
 }
 
 export function useNativeSessionStatusMonitor(): void {
+  const notificationSettings = useAtomValue(notificationSettingsAtom);
+  const activeSessionId = useAtomValue(activeSessionIdAtom);
+  const settingsRef = useRef(notificationSettings);
+  const activeSessionIdRef = useRef(activeSessionId);
+
+  useEffect(() => {
+    settingsRef.current = notificationSettings;
+  }, [notificationSettings]);
+
+  useEffect(() => {
+    activeSessionIdRef.current = activeSessionId;
+  }, [activeSessionId]);
+
   useEffect(() => {
     const unlistenPromise = listen<SessionStatusChangedPayload>(
       "session-status-changed",
       (event) => {
         const { sessionId, status } = event.payload;
-        if (isTerminalStatus(status)) {
+        const completedTurn = isSuccessfulNotificationTurnStatus(status);
+        if (completedTurn) {
+          markTurnTerminal(sessionId, "completed");
+        } else if (isTerminalStatus(status)) {
           markTurnTerminal(sessionId, toTurnTerminalStatus(status));
         } else if (isSessionRuntimeExecuting(status)) {
           markTurnRunning(sessionId);
         }
         updateSessionStatus(sessionId, status as SessionStatus);
+
+        const session = getInstrumentedStore().get(sessionByIdAtom(sessionId));
+        const sessionName = session?.name || "Background session";
+        const isBackgroundSession = activeSessionIdRef.current !== sessionId;
+        const needsAttention =
+          isNotificationAttentionRequired(isBackgroundSession);
+        if (completedTurn) {
+          void notifyTaskCompletion(
+            `"${sessionName}" completed — ready for review`,
+            settingsRef.current,
+            {
+              sessionId,
+              background: needsAttention,
+            },
+            sessionName
+          ).then((result) => {
+            if (result.disposition !== "delivered" || !needsAttention) return;
+            Message.success({
+              content: `"${sessionName}" completed. Click to review diff.`,
+              duration: 0,
+              closable: true,
+            });
+          });
+        } else if (status === "failed") {
+          void notifyError(
+            TASK_FAILURE_NOTIFICATION_BODY,
+            settingsRef.current,
+            {
+              sessionId,
+              background: needsAttention,
+            }
+          ).then((result) => {
+            if (result.disposition !== "delivered" || !needsAttention) return;
+            Message.error({
+              content: `"${sessionName}" failed`,
+              duration: 8000,
+              closable: true,
+            });
+          });
+        }
       }
     );
 
