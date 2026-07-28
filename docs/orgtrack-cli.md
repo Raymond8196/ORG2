@@ -30,10 +30,30 @@ The CLI is only argument parsing, orchestration, and formatting over:
 3. `usage_dashboard::*` and `load_activity_chunks_for_session` — analyze &
    replay.
 
-Commands: `sources`, `scan`, `list`/`ls`, `search`, `usage`/`stats`, `show`.
-See the crate README for the full surface. Verified end-to-end against the local
-machine's real history (Claude Code + Codex: 289 listable sessions, 449
-token-bearing sessions, ~$5.5k of estimated spend, 97.8% cache-hit rate).
+Commands: `sources`, `scan`, `list`/`ls`, `search`, `usage`/`stats`, `show`,
+`resume`. See the crate README for the full surface. Verified end-to-end against
+the local machine's real history (Claude Code + Codex: 289 listable sessions,
+449 token-bearing sessions, ~$5.5k of estimated spend, 97.8% cache-hit rate).
+
+### `resume` — continue an imported session in its own CLI
+
+`orgtrack resume <session-id>` reopens an imported session in the CLI that
+owns it, sharing the desktop app's "Continue in CLI" plumbing
+(`orgtrack_core::sources::cli_resume`):
+
+- `claudecodeapp-<uuid>` → `claude --resume <uuid>`, executed from the
+  session's recorded workspace (Claude Code keys session storage on the
+  project path, so the original cwd is required — verified empirically:
+  resuming from another directory fails with "No conversation found").
+- `codexapp-rollout-<ts>-<uuid>` → `codex resume <uuid>` (bare thread uuid
+  extracted from the rollout stem; Codex looks sessions up globally).
+- `cursorcliapp-<id>` → `cursor-agent --resume <id>`.
+
+Only that session's provider is scanned. By default the process execs the
+CLI (the TUI takes over the terminal); `--print` emits the
+`cd <workspace> && <command>` line instead. Cursor IDE composer sessions are
+not resumable — no CLI shares their id space (checked empirically: zero
+overlap between `state.vscdb` composer ids and `~/.cursor/chats`).
 
 ## Why a Rust binary (not the TS stub)
 
