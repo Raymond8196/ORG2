@@ -39,6 +39,7 @@ pub trait SourceAdapter {
 pub mod activity;
 pub mod anthropic_jsonl;
 pub mod claude_code;
+pub mod cli_resume;
 pub mod cline;
 pub mod codex;
 pub mod cursor_cli;
