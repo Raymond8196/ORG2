@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import type { CliLaunchProfileView } from "@src/api/tauri/rpc/schemas/agentOrgs";
 
-import { formatCliTuiCommand } from "./cliTerminalSession";
+import {
+  appendCliCommandArgs,
+  formatCliTuiCommand,
+} from "./cliTerminalSession";
 
 function profile(
   overrides: Partial<CliLaunchProfileView> = {}
@@ -63,5 +66,25 @@ describe("formatCliTuiCommand", () => {
         "trae-cli"
       )
     ).toBe("'/Applications/Trae Agent/trae-cli' interactive 'two words'");
+  });
+});
+
+describe("appendCliCommandArgs", () => {
+  it("appends resume arguments after the resolved profile command", () => {
+    expect(
+      appendCliCommandArgs("claude --permission-mode plan", [
+        "--resume",
+        "b52f4220-8b0b-46c5-8ee6-001ebf91c6ed",
+      ])
+    ).toBe(
+      "claude --permission-mode plan --resume b52f4220-8b0b-46c5-8ee6-001ebf91c6ed"
+    );
+  });
+
+  it("quotes unsafe arguments and drops blank ones", () => {
+    expect(appendCliCommandArgs("codex", ["resume", " ", "two words"])).toBe(
+      "codex resume 'two words'"
+    );
+    expect(appendCliCommandArgs("codex", [])).toBe("codex");
   });
 });

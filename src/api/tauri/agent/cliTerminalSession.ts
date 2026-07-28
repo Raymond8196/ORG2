@@ -38,6 +38,19 @@ function quotePosixShellArg(value: string): string {
   return `'${value.replace(/'/g, `'\\''`)}'`;
 }
 
+/**
+ * Append extra arguments (e.g. a resume flag + session id) to an
+ * already-resolved terminal command, quoting each the same way the launch
+ * profile formatter does.
+ */
+export function appendCliCommandArgs(command: string, args: string[]): string {
+  const suffix = args
+    .filter((arg) => arg.trim().length > 0)
+    .map(quotePosixShellArg)
+    .join(" ");
+  return suffix.length > 0 ? `${command} ${suffix}` : command;
+}
+
 export function formatCliTuiCommand(
   profile: CliLaunchProfileView,
   detectedCommand: string

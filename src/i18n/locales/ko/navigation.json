@@ -400,6 +400,14 @@
       "parentOpenUnavailable": "The source session could not be opened from this fork.",
       "replayError": "Full replay is not available for this session. Ask the owner to share the replay, then retry.",
       "openParentButton": "{{name}}의 원본 세션 열기"
+    },
+    "continueCli": {
+      "headerButton": "{{agent}}에서 계속",
+      "headerTooltip": "터미널 탭에서 {{agent}}(으)로 이 세션을 다시 엽니다 ({{command}})",
+      "notInstalled": "{{agent}}이(가) 이 컴퓨터에 설치되어 있지 않습니다",
+      "missingWorkspace": "세션의 원래 폴더가 없습니다 — {{agent}}은(는) 원래 폴더에서만 재개할 수 있습니다",
+      "sourceMissing": "원본 세션 데이터가 디스크에 없습니다",
+      "launchFailed": "{{agent}} 터미널을 열지 못했습니다"
     }
   },
   "cloud": {

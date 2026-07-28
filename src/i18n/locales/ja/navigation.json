@@ -400,6 +400,14 @@
       "parentOpenUnavailable": "The source session could not be opened from this fork.",
       "replayError": "Full replay is not available for this session. Ask the owner to share the replay, then retry.",
       "openParentButton": "{{name}} の元セッションを開く"
+    },
+    "continueCli": {
+      "headerButton": "{{agent}} で続行",
+      "headerTooltip": "ターミナルタブで {{agent}} を使ってこのセッションを再開します（{{command}}）",
+      "notInstalled": "{{agent}} はこのマシンにインストールされていません",
+      "missingWorkspace": "セッションの元のフォルダが存在しません — {{agent}} は元のフォルダからのみ再開できます",
+      "sourceMissing": "元のセッションデータがディスク上に見つかりません",
+      "launchFailed": "{{agent}} ターミナルの起動に失敗しました"
     }
   },
   "cloud": {

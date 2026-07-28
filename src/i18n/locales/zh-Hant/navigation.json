@@ -492,6 +492,14 @@
       "parentOpenUnavailable": "無法從此分叉開啟來源工作階段。",
       "replayError": "此工作階段尚無完整回放。請讓擁有者共享完整回放後重試。",
       "openParentButton": "開啟來自 {{name}} 的來源工作階段"
+    },
+    "continueCli": {
+      "headerButton": "在 {{agent}} 中繼續",
+      "headerTooltip": "在終端分頁中以 {{agent}} 重新開啟此工作階段（{{command}}）",
+      "notInstalled": "此裝置未安裝 {{agent}}",
+      "missingWorkspace": "工作階段的原始資料夾已不存在，{{agent}} 只能在原資料夾中恢復",
+      "sourceMissing": "原始工作階段資料已不在磁碟上",
+      "launchFailed": "開啟 {{agent}} 終端失敗"
     }
   },
   "cloud": {

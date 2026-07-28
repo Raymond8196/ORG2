@@ -402,6 +402,14 @@
       "parentOpenUnavailable": "The source session could not be opened from this fork.",
       "replayError": "Full replay is not available for this session. Ask the owner to share the replay, then retry.",
       "openParentButton": "Abrir a sessão de origem de {{name}}"
+    },
+    "continueCli": {
+      "headerButton": "Continuar no {{agent}}",
+      "headerTooltip": "Reabrir esta sessão no {{agent}} em uma aba de terminal ({{command}})",
+      "notInstalled": "{{agent}} não está instalado nesta máquina",
+      "missingWorkspace": "A pasta original da sessão não existe mais — o {{agent}} só pode retomá-la a partir dela",
+      "sourceMissing": "Os dados originais da sessão não estão mais no disco",
+      "launchFailed": "Falha ao abrir o terminal do {{agent}}"
     }
   },
   "cloud": {

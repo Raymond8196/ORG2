@@ -13,6 +13,10 @@ export {
   type ExternalHistoryScanResult,
 } from "./rescan";
 export {
+  externalHistoryCliResumePlan,
+  type ExternalHistoryCliResumePlan,
+} from "./resume";
+export {
   fetchExternalSourceStats,
   fetchExternalSourceStatsBatch,
   type ExternalSourceStats,
