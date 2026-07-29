@@ -8,6 +8,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 
+import { getImportedHistoryCliResume } from "@src/api/tauri/externalHistory";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 
 import {
@@ -39,6 +40,15 @@ export function ChatViewPostHistoryOverlays({
   sessionId,
 }: ChatViewPostHistoryOverlaysProps) {
   const { t: tNavigation } = useTranslation("navigation");
+  // The composer only renders for CLI-continuable sources (ChatView gates
+  // on the same capability), so the placeholder can name the owning CLI
+  // and point at the header's native-resume action.
+  const cliResume = getImportedHistoryCliResume(sessionId);
+  const composerPlaceholder = cliResume
+    ? tNavigation("collaboration.continueCli.composerPlaceholder", {
+        agent: cliResume.displayName,
+      })
+    : tNavigation("collaboration.forkImported.continuePlaceholder");
 
   return (
     <>
@@ -55,9 +65,7 @@ export function ChatViewPostHistoryOverlays({
             <ChatSessionContext.Provider value={CHAT_SESSION_CONTEXT_NONE}>
               <InputArea
                 omitChatHeader
-                placeholder={tNavigation(
-                  "collaboration.forkImported.continuePlaceholder"
-                )}
+                placeholder={composerPlaceholder}
                 chatPanelPosition={position}
                 sessionScope="none"
                 addressSessionId={sessionId ?? null}

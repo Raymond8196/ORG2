@@ -11,6 +11,7 @@ import {
 import {
   type ExternalHistoryCliResumePlan,
   externalHistoryCliResumePlan,
+  getImportedHistoryCliResume,
 } from "@src/api/tauri/externalHistory";
 import type { CliAgentType } from "@src/api/types/keys";
 import Button from "@src/components/Button";
@@ -23,17 +24,6 @@ import type { Session } from "@src/store/session/sessionAtom/types";
 import { isImportedHistorySession } from "@src/util/session/sessionDispatch";
 
 const log = createLogger("ChatPanel");
-
-/** Header fallbacks when the CLI registry has not answered (or errored). */
-const AGENT_DISPLAY_FALLBACKS: Record<string, string> = {
-  claude_code: "Claude Code",
-  codex: "Codex",
-  cursor_cli: "Cursor CLI",
-  opencode: "OpenCode",
-  mimo_code: "MiMo Code",
-  cline: "Cline",
-  omp: "OMP",
-};
 
 function deriveExpectedProcess(command: string): string | undefined {
   const [binary] = command.trim().split(/\s+/);
@@ -66,10 +56,14 @@ const SessionContinueCliHeaderExtras: React.FC<
   const [launching, setLaunching] = useState(false);
 
   const isImported = Boolean(sessionId && isImportedHistorySession(sessionId));
+  // Sync capability gate: sources without a CLI resume path never render
+  // the button, and never pay the backend plan round-trip. The backend
+  // stays authoritative for per-session cases (subagents, odd ids).
+  const descriptorCliResume = getImportedHistoryCliResume(sessionId);
 
   useEffect(() => {
     setPlan(null);
-    if (!sessionId || !isImported) return undefined;
+    if (!sessionId || !isImported || !descriptorCliResume) return undefined;
     let cancelled = false;
     externalHistoryCliResumePlan(sessionId)
       .then((result) => {
@@ -81,7 +75,7 @@ const SessionContinueCliHeaderExtras: React.FC<
     return () => {
       cancelled = true;
     };
-  }, [sessionId, isImported]);
+  }, [sessionId, isImported, descriptorCliResume]);
 
   useEffect(() => {
     setAgent(undefined);
@@ -109,10 +103,10 @@ const SessionContinueCliHeaderExtras: React.FC<
     if (!plan) return "";
     return (
       agent?.displayName ??
-      AGENT_DISPLAY_FALLBACKS[plan.cliAgentType] ??
+      descriptorCliResume?.displayName ??
       plan.defaultBinary
     );
-  }, [agent, plan]);
+  }, [agent, descriptorCliResume, plan]);
 
   const disabledReason = useMemo(() => {
     if (!plan) return null;
