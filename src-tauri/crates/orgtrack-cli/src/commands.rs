@@ -951,12 +951,21 @@ pub(crate) fn chunk_role(chunk: &ActivityChunk) -> String {
 /// scans exactly one provider instead of all of them.
 fn resume_source_for_session_id(session_id: &str) -> Option<&'static str> {
     use orgtrack_core::sources::imported_history::metadata;
-    if session_id.starts_with(orgtrack_core::sources::claude_code::SESSION_PREFIX) {
+    use orgtrack_core::sources::{claude_code, cline, codex, cursor_cli, mimo_code, omp, opencode};
+    if session_id.starts_with(claude_code::SESSION_PREFIX) {
         Some(metadata::SOURCE_CLAUDE_CODE)
-    } else if session_id.starts_with(orgtrack_core::sources::codex::SESSION_PREFIX) {
+    } else if session_id.starts_with(codex::SESSION_PREFIX) {
         Some(metadata::SOURCE_CODEX_APP)
-    } else if session_id.starts_with(orgtrack_core::sources::cursor_cli::SESSION_PREFIX) {
+    } else if session_id.starts_with(cursor_cli::SESSION_PREFIX) {
         Some(metadata::SOURCE_CURSOR_CLI)
+    } else if session_id.starts_with(opencode::history::OPENCODE_SESSION_PREFIX) {
+        Some(metadata::SOURCE_OPENCODE)
+    } else if session_id.starts_with(mimo_code::history::MIMO_CODE_SESSION_PREFIX) {
+        Some(metadata::SOURCE_MIMO_CODE)
+    } else if session_id.starts_with(cline::history::CLINE_SESSION_PREFIX) {
+        Some(metadata::SOURCE_CLINE)
+    } else if session_id.starts_with(omp::history::OMP_SESSION_PREFIX) {
+        Some(metadata::SOURCE_OMP)
     } else {
         None
     }
@@ -980,7 +989,8 @@ pub(crate) fn cmd_resume(opts: &Options) -> Result<(), String> {
     let Some(source) = resume_source_for_session_id(&session_id) else {
         return Err(format!(
             "'{session_id}' is not from a CLI-resumable source — resume supports \
-             claude_code, codex_app, and cursor_cli session ids"
+             claude_code, codex_app, cursor_cli, opencode, mimo_code, cline, and \
+             omp session ids"
         ));
     };
 

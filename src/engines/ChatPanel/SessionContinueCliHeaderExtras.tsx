@@ -29,6 +29,10 @@ const AGENT_DISPLAY_FALLBACKS: Record<string, string> = {
   claude_code: "Claude Code",
   codex: "Codex",
   cursor_cli: "Cursor CLI",
+  opencode: "OpenCode",
+  mimo_code: "MiMo Code",
+  cline: "Cline",
+  omp: "OMP",
 };
 
 function deriveExpectedProcess(command: string): string | undefined {

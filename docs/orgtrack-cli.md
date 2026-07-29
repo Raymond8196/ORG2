@@ -48,12 +48,24 @@ owns it, sharing the desktop app's "Continue in CLI" plumbing
 - `codexapp-rollout-<ts>-<uuid>` → `codex resume <uuid>` (bare thread uuid
   extracted from the rollout stem; Codex looks sessions up globally).
 - `cursorcliapp-<id>` → `cursor-agent --resume <id>`.
+- `opencodeapp-ses_*` → `opencode --session <id>` (central db, global ids).
+- `mimocodeapp-ses_*` → `mimo --session <id>` (OpenCode fork, same flag —
+  verified against `mimo --help`).
+- `clineapp-<epoch>_<rand>` → `cline --id <id>` (global sessions.db).
+- `ompapp-<stem>` → `omp --session <transcript-path>` — oh-my-pi resolves
+  bare ids against the *current project's* session dir, so the plan
+  addresses the session file by absolute path instead (works from anywhere).
 
 Only that session's provider is scanned. By default the process execs the
 CLI (the TUI takes over the terminal); `--print` emits the
-`cd <workspace> && <command>` line instead. Cursor IDE composer sessions are
-not resumable — no CLI shares their id space (checked empirically: zero
-overlap between `state.vscdb` composer ids and `~/.cursor/chats`).
+`cd <workspace> && <command>` line instead.
+
+Not resumable, and why: `cursor_ide` (composer ids share no space with
+`cursor-agent`'s chat store — checked empirically, zero overlap), `windsurf`
+/ `warp` / `trae` / `qoder` (app-bound stores, no CLI resume surface), and
+`zcode` / `qoder_cli` / `workbuddy` (their CLIs likely resume — OpenCode
+fork / documented `/resume` / Claude Code fork — but no binary was present
+to verify the exact flag shape; extend `cli_resume` once one is).
 
 ## Why a Rust binary (not the TS stub)
 
