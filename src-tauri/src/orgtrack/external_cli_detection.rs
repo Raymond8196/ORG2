@@ -66,6 +66,7 @@ const IMPORTABLE_HISTORY_SOURCE_IDS: &[&str] = &[
     "pi",
     "qoder_cli",
     "qwen_code",
+    "copilot",
     "kimi",
 ];
 
@@ -79,12 +80,11 @@ fn store_kind_for(source_id: &str) -> &'static str {
         // Importable — ORGII parses these.
         "claude_code" | "codex_app" | "workbuddy" | "trae" | "cline" | "qoder" | "omp" | "pi"
         | "qoder_cli" | "qwen_code" | "kimi" => "jsonl",
-        "cursor_ide" | "cursor_cli" | "opencode" | "windsurf" | "warp" | "zcode" | "mimo_code" => {
-            "sqlite"
-        }
+        "cursor_ide" | "cursor_cli" | "opencode" | "windsurf" | "warp" | "zcode" | "mimo_code"
+        | "copilot" => "sqlite",
         // Known store format, not yet imported.
         "droid" => "jsonl",
-        "copilot" | "goose" | "grok" | "openclaw" => "sqlite",
+        "goose" | "grok" | "openclaw" => "sqlite",
         "aider" => "markdown",
         _ => "",
     }
@@ -384,8 +384,10 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
         &[],
         "copilot",
         "copilot",
-        false,
-        &[".copilot"],
+        // Session history under ~/.copilot/session-state is now
+        // parsed by `orgtrack_core::sources::copilot`.
+        true,
+        &[".copilot/session-state"],
     ),
     source(
         "grok",
@@ -626,6 +628,7 @@ fn importable_history_candidates(source_id: &str) -> Vec<PathBuf> {
             orgtrack_core::sources::qoder_cli::history::qoder_cli_history_candidate_paths()
         }
         "qwen_code" => vec![orgtrack_core::sources::qwen_code::history::qwen_code_history_root()],
+        "copilot" => home_candidates(&[".copilot/session-state"]),
         "kimi" => orgtrack_core::sources::kimi::history::kimi_history_candidate_paths(),
         _ => Vec::new(),
     }
@@ -759,6 +762,20 @@ mod tests {
     }
 
     #[test]
+    fn every_importable_catalog_source_is_registered_for_history_scans() {
+        for source in EXTERNAL_CLI_SOURCES
+            .iter()
+            .filter(|source| source.history_import)
+        {
+            assert!(
+                IMPORTABLE_HISTORY_SOURCE_IDS.contains(&source.source_id),
+                "{} is marked importable but missing from the scan registry",
+                source.source_id
+            );
+        }
+    }
+
+    #[test]
     fn catalog_source_ids_are_unique() {
         let mut seen = BTreeSet::new();
         for source in EXTERNAL_CLI_SOURCES {
@@ -785,6 +802,7 @@ mod tests {
             ("omp", "omp", "jsonl"),
             ("pi", "pi", "jsonl"),
             ("qoder_cli", "qodercli", "jsonl"),
+            ("copilot", "copilot", "sqlite"),
         ] {
             let source = EXTERNAL_CLI_SOURCES
                 .iter()

@@ -42,6 +42,7 @@ describe("imported history source helpers", () => {
     expect(isImportedHistoryReplayableSourceId("pi")).toBe(true);
     expect(isImportedHistoryReplayableSourceId("qoder_cli")).toBe(true);
     expect(isImportedHistoryReplayableSourceId("qwen_code")).toBe(true);
+    expect(isImportedHistoryReplayableSourceId("copilot")).toBe(true);
     expect(isImportedHistoryReplayableSourceId("kimi")).toBe(true);
     expect(isImportedHistoryReplayableSourceId(null)).toBe(false);
   });
@@ -51,6 +52,7 @@ describe("imported history source helpers", () => {
       probe("codex_app", true),
       probe("pi", true),
       probe("qwen_code", true),
+      probe("copilot", true),
       probe("unsupported_cli"),
     ]);
 

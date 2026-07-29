@@ -32,8 +32,8 @@ use super::imported_history::{
     ImportedHistorySessionRow,
 };
 use super::{
-    claude_code, cline, codex, cursor_cli, cursor_ide, kimi, mimo_code, omp, opencode, pi, qoder,
-    qoder_cli, qwen_code, trae, warp, windsurf, workbuddy, zcode,
+    claude_code, cline, codex, copilot, cursor_cli, cursor_ide, kimi, mimo_code, omp, opencode, pi,
+    qoder, qoder_cli, qwen_code, trae, warp, windsurf, workbuddy, zcode,
 };
 
 /// Signature every provider's paginated session loader shares. The `&mut
@@ -122,6 +122,12 @@ static REGISTERED: &[RegisteredSource] = &[
         id: metadata::SOURCE_CLINE,
         label: "Cline",
         scan: cline::history::list_cline_history_sessions_paginated,
+        continuation: None,
+    },
+    RegisteredSource {
+        id: metadata::SOURCE_COPILOT,
+        label: "Copilot CLI",
+        scan: copilot::history::list_copilot_history_sessions_paginated,
         continuation: None,
     },
     RegisteredSource {

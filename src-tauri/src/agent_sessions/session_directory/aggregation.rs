@@ -21,14 +21,15 @@ use database::db::get_connection;
 use orgtrack_core::sources::claude_code::history as claude_code_history;
 use orgtrack_core::sources::cline::history as cline_history;
 use orgtrack_core::sources::codex::app as codex_app_history;
+use orgtrack_core::sources::copilot::history as copilot_history;
 use orgtrack_core::sources::cursor_cli::history as cursor_cli_history;
 use orgtrack_core::sources::cursor_ide::history as cursor_ide_history;
 use orgtrack_core::sources::cursor_ide::history::CursorIdeSessionPage;
 use orgtrack_core::sources::imported_history::cache as imported_history_cache;
 use orgtrack_core::sources::imported_history::metadata::{
-    SOURCE_CLAUDE_CODE, SOURCE_CLINE, SOURCE_CODEX_APP, SOURCE_CURSOR_CLI, SOURCE_CURSOR_IDE,
-    SOURCE_KIMI, SOURCE_MIMO_CODE, SOURCE_OMP, SOURCE_OPENCODE, SOURCE_PI, SOURCE_QODER,
-    SOURCE_QODER_CLI, SOURCE_QWEN_CODE, SOURCE_TRAE, SOURCE_WARP, SOURCE_WINDSURF,
+    SOURCE_CLAUDE_CODE, SOURCE_CLINE, SOURCE_CODEX_APP, SOURCE_COPILOT, SOURCE_CURSOR_CLI,
+    SOURCE_CURSOR_IDE, SOURCE_KIMI, SOURCE_MIMO_CODE, SOURCE_OMP, SOURCE_OPENCODE, SOURCE_PI,
+    SOURCE_QODER, SOURCE_QODER_CLI, SOURCE_QWEN_CODE, SOURCE_TRAE, SOURCE_WARP, SOURCE_WINDSURF,
     SOURCE_WORKBUDDY, SOURCE_ZCODE,
 };
 use orgtrack_core::sources::imported_history::ImportedHistorySessionPage;
@@ -255,6 +256,15 @@ fn load_kimi_external_history_page(
         .map(ExternalHistoryPage::Imported)
 }
 
+fn load_copilot_external_history_page(
+    conn: &mut rusqlite::Connection,
+    limit: usize,
+    offset: usize,
+) -> Result<ExternalHistoryPage, String> {
+    copilot_history::list_copilot_history_sessions_paginated(conn, limit, offset)
+        .map(ExternalHistoryPage::Imported)
+}
+
 const EXTERNAL_HISTORY_SOURCE_LOADERS: &[ExternalHistorySourceLoader] = &[
     ExternalHistorySourceLoader {
         source: SOURCE_CLAUDE_CODE,
@@ -339,6 +349,11 @@ const EXTERNAL_HISTORY_SOURCE_LOADERS: &[ExternalHistorySourceLoader] = &[
     ExternalHistorySourceLoader {
         source: SOURCE_QWEN_CODE,
         load_page: load_qwen_code_external_history_page,
+        load_continuation_page: None,
+    },
+    ExternalHistorySourceLoader {
+        source: SOURCE_COPILOT,
+        load_page: load_copilot_external_history_page,
         load_continuation_page: None,
     },
     ExternalHistorySourceLoader {
@@ -1491,6 +1506,17 @@ mod tests {
             EXTERNAL_HISTORY_SOURCE_LOADERS
                 .iter()
                 .filter(|loader| loader.source == SOURCE_KIMI)
+                .count(),
+            1
+        );
+    }
+
+    #[test]
+    fn desktop_external_history_loaders_include_copilot_once() {
+        assert_eq!(
+            EXTERNAL_HISTORY_SOURCE_LOADERS
+                .iter()
+                .filter(|loader| loader.source == SOURCE_COPILOT)
                 .count(),
             1
         );

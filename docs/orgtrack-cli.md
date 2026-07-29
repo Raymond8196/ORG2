@@ -53,8 +53,14 @@ owns it, sharing the desktop app's "Continue in CLI" plumbing
   verified against `mimo --help`).
 - `clineapp-<epoch>_<rand>` → `cline --id <id>` (global sessions.db).
 - `ompapp-<stem>` → `omp --session <transcript-path>` — oh-my-pi resolves
-  bare ids against the *current project's* session dir, so the plan
+  bare ids against the _current project's_ session dir, so the plan
   addresses the session file by absolute path instead (works from anywhere).
+- `copilotapp-<uuid>` → `copilot --resume <uuid>` (the form documented by
+  the current CLI's `--help`).
+- `kimihistoryapp-cli/<group>/<id>` or
+  `kimihistoryapp-code/<workspace>/<id>/main` → `kimi --session <id>`,
+  executed from the recorded workspace when one is available (Kimi buckets
+  sessions per working directory).
 
 Only that session's provider is scanned. By default the process execs the
 CLI (the TUI takes over the terminal); `--print` emits the
@@ -66,6 +72,16 @@ Not resumable, and why: `cursor_ide` (composer ids share no space with
 `zcode` / `qoder_cli` / `workbuddy` (their CLIs likely resume — OpenCode
 fork / documented `/resume` / Claude Code fork — but no binary was present
 to verify the exact flag shape; extend `cli_resume` once one is).
+
+### Importer notes: copilot (2026-07-29)
+
+- **copilot** — GitHub Copilot CLI 1.x stores one
+  `~/.copilot/session-state/<uuid>/` per session (`events.jsonl` event
+  stream + `workspace.yaml` sidecar), with repository/branch and
+  per-request token usage (cache + reasoning split) in the sibling
+  `session-store.db`. The reader treats the db as best-effort enrichment.
+  The metadata-only `data.db` (Projects/Workspaces surface) records
+  nothing for `-p`/interactive runs — sessions live in session-state.
 
 ## Why a Rust binary (not the TS stub)
 

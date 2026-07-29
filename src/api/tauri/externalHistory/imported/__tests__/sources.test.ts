@@ -106,6 +106,7 @@ describe("imported history source registry", () => {
       "pi",
       "qoder_cli",
       "qwen_code",
+      "copilot",
       "kimi",
     ]);
     expect(
@@ -128,6 +129,7 @@ describe("imported history source registry", () => {
       "external_history:pi",
       "external_history:qoder_cli",
       "external_history:qwen_code",
+      "external_history:copilot",
       "external_history:kimi",
     ]);
     for (const source of IMPORTED_HISTORY_SOURCES) {

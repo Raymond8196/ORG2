@@ -65,7 +65,7 @@ COMMANDS:
     check                   Evaluate usage triggers; exit non-zero on error
     show <session-id>       Print a session's conversation/activity stream
     resume <session-id>     Reopen an imported session in its own CLI (claude,
-                            codex, cursor-agent, opencode, mimo, cline, omp)
+                            codex, cursor-agent, opencode, mimo, cline, omp, copilot, kimi)
     plugins list            Show discovered loader plugins
     plugins trust <id>      Trust an exec plugin so it may run
     help                    Show this help (alias: --help, -h)
