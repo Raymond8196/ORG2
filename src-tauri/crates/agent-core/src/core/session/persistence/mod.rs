@@ -37,6 +37,9 @@ pub use sidebar::{
     list_agent_org_root_sessions_page, list_standalone_coding_sessions_page,
     list_unpinned_sessions_by_type_page,
 };
+pub(crate) use crud::{
+    delete_session_with_connection, finish_session_delete, prepare_session_delete,
+};
 
 pub use messages::{
     anchor_at_or_after_created_at, append_compact_boundary, clear_messages,
