@@ -19,6 +19,7 @@ import { createLogger } from "@src/hooks/logger";
 import { enrichOrg2CloudProfile } from "./completeSignIn";
 import type { OrgRuntimeTelemetry } from "./memberRuntime/types";
 import {
+  clearRejectedAuth,
   commitRefreshedAuth,
   org2CloudAuthAtom,
   org2CloudAuthIdentityKey,
@@ -270,10 +271,21 @@ export function useOrg2CloudOrgs(): void {
       const fresh = await ensureFreshSession(current, {
         onRefreshRejected: () => {
           refreshRejected = true;
-          // Compare-and-set: never sign out a newer OAuth callback or a
-          // concurrently refreshed token chain because an older request
-          // finished late.
-          setAuth((latest) => (latest === current ? null : latest));
+          // Stable-identity compare-and-set: never sign out a newer OAuth
+          // callback or a concurrently refreshed token chain because an
+          // older request finished late. This must NOT compare by object
+          // reference — `org2CloudAuthAtom`'s `atomWithStorage` re-hydrates
+          // a freshly parsed (but content-identical) object from
+          // localStorage on every mount, so a reference captured here can
+          // legitimately diverge from the atom's live value for the exact
+          // same session. See `clearRejectedAuth` for the full explanation.
+          if (clearRejectedAuth(setAuth, current)) {
+            log.rateLimited(
+              "cloud-session-expired",
+              60_000,
+              "cloud session expired; signed out locally"
+            );
+          }
         },
       });
       if (cancelled || !isCurrentOrg2CloudOrgsRequest(store, requestEpoch)) {
