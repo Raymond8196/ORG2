@@ -566,7 +566,7 @@ describe("TeamRuntimePanel roster", () => {
     expect(card?.textContent).toContain("Swarm Founder");
     // CPU% and RAM used-of-total (GPU absent: no name, null percent).
     expect(card?.textContent).toContain("card.cpu 42%");
-    expect(card?.textContent).toContain("card.ram 12.5/32 GB");
+    expect(card?.textContent).toContain("card.ram 13/32 GB");
     // Known id → icon; unknown id → raw id; not_detected → hidden.
     expect(
       card?.querySelector('[data-testid="model-icon-claude"]')
