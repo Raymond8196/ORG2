@@ -1,4 +1,162 @@
 {
+  "teamInbox": {
+    "title": "Team-Posteingang",
+    "listLabel": "Liste des Team-Posteingangs",
+    "itemsLabel": "Einträge im Team-Posteingang",
+    "unreadCount": "{{count}} ungelesen",
+    "allRead": "Alles gelesen",
+    "loadMore": "Mehr laden",
+    "filters": {
+      "all": "Alle",
+      "mentions": "Erwähnungen",
+      "assigned": "Zugewiesen"
+    },
+    "status": {
+      "read": "Gelesen",
+      "unread": "Ungelesen"
+    },
+    "row": {
+      "assignedSummary": "{{status}} · {{priority}}",
+      "ariaLabel": "{{title}}, {{status}}"
+    },
+    "search": {
+      "placeholder": "Posteingang durchsuchen",
+      "ariaLabel": "Team-Posteingang durchsuchen"
+    },
+    "groups": {
+      "today": "Heute",
+      "yesterday": "Gestern",
+      "thisWeek": "Diese Woche",
+      "earlier": "Früher"
+    },
+    "empty": {
+      "title": "Noch nichts hier",
+      "subtitle": "Erwähnungen und zugewiesene Arbeitselemente werden hier angezeigt.",
+      "selectTitle": "Ein Element auswählen",
+      "selectSubtitle": "Kommentarkontext oder Details des Arbeitselements ansehen.",
+      "mentions": {
+        "title": "Keine Erwähnungen",
+        "subtitle": "Wenn dich ein Teammitglied in einem Kommentar mit @ erwähnt, erscheint es hier."
+      },
+      "assigned": {
+        "title": "Dir ist nichts zugewiesen",
+        "subtitle": "Dir zugewiesene Arbeitselemente werden hier angezeigt."
+      },
+      "noResults": {
+        "title": "Keine Treffer",
+        "subtitle": "Keine Elemente entsprechen „{{query}}“."
+      }
+    },
+    "loading": "Team-Posteingang wird geladen…",
+    "drop": {
+      "title": "Zum Erstellen eines Arbeitselements hier ablegen",
+      "subtitle": "Prüfe den Sitzungs-Schnappschuss und erstelle oder übergib dann das Arbeitselement.",
+      "processing": "Arbeitselement wird aus „{{title}}“ erstellt…",
+      "processingHint": "Sitzung wird gelesen und Projektmitglieder werden aufgelöst.",
+      "success": "Arbeitselement erstellt",
+      "reused": "Vorhandenes Arbeitselement aktualisiert",
+      "failed": "Arbeitselement konnte nicht erstellt werden",
+      "error": "Aus dieser Sitzung kann kein Arbeitselement erstellt werden.",
+      "open": "Öffnen",
+      "dismiss": "Verwerfen"
+    },
+    "handoff": {
+      "title": "Aus Sitzung erstellen",
+      "createFromSession": "Team-Arbeitselement erstellen…",
+      "project": "Zielprojekt",
+      "chooseProject": "Projekt auswählen",
+      "recipientSelf": "{{name}} (ich)",
+      "chooseRecipient": "Empfänger auswählen",
+      "todoCount_one": "{{count}} Aufgabe",
+      "todoCount_other": "{{count}} Aufgaben",
+      "workItemTitle": "Titel des Arbeitselements",
+      "assignTo": "Zuweisen an",
+      "note": "Übergabehinweis",
+      "notePlaceholder": "Teile mit, was fertig ist, was offen ist und was als Nächstes passieren sollte.",
+      "selfHint": "Wenn du dir dies selbst zuweist, entsteht ein normales Arbeitselement ohne Übergabeanfrage.",
+      "submitHandoff": "Erstellen & übergeben",
+      "submitCreate": "Arbeitselement erstellen",
+      "preparing": "„{{title}}“ wird vorbereitet…",
+      "preparationError": {
+        "session_unavailable": "Diese Sitzung ist nicht mehr verfügbar. Öffne sie erneut und versuche es noch einmal.",
+        "project_unavailable": "Das Projekt dieser Sitzung ist nicht mehr verfügbar.",
+        "identity_unavailable": "Deine Identität ist kein Mitglied dieses Sitzungsprojekts.",
+        "no_project": "Kein geeignetes Projekt verfügbar. Erstelle oder tritt einem Projekt bei und versuche es erneut.",
+        "unknown": "Diese Sitzung kann nicht vorbereitet werden. Aktualisiere den Team-Posteingang und versuche es erneut."
+      },
+      "submitError": "Das Arbeitselement konnte nicht erstellt werden. Überprüfe den Empfänger und versuche es erneut.",
+      "pendingTitle": "Übergabe von {{name}}",
+      "acceptedTitle": "Angenommen von {{name}}",
+      "returnedTitle": "Zurückgegeben von {{name}}",
+      "noNote": "Kein Übergabehinweis.",
+      "statusLabel": "Übergabe des Arbeitselements",
+      "return": "Zurückgeben",
+      "accept": "Annehmen",
+      "returnTitle": "Diese Übergabe zurückgeben?",
+      "confirmReturn": "An Absender zurückgeben",
+      "returnHint": "Teile {{name}} mit, was geklärt oder nachgebessert werden muss. Das Arbeitselement wird erneut zugewiesen.",
+      "returnPlaceholder": "Was muss sich vor der nächsten Übergabe ändern?",
+      "responseError": "Die Antwort auf die Übergabe konnte nicht gespeichert werden. Versuche es erneut.",
+      "identityUnavailable": "Deine Teamidentität konnte nicht bestätigt werden. Prüfe dein Projektprofil, bevor du antwortest.",
+      "rowPending": "Von {{name}} · Antwort ausstehend",
+      "rowAccepted": "Übergabe angenommen · {{status}} · {{priority}}",
+      "rowReturned": "Zurückgegeben von {{name}} · {{status}} · {{priority}}"
+    },
+    "errors": {
+      "loadTitle": "Team-Posteingang konnte nicht geladen werden",
+      "load": "Team-Posteingang konnte nicht geladen werden",
+      "loadMore": "Weitere Einträge im Team-Posteingang konnten nicht geladen werden. Versuche es erneut.",
+      "refresh": "Team-Posteingang konnte nicht aktualisiert werden",
+      "markRead": "Dieses Element konnte nicht als gelesen markiert werden. Versuche es erneut.",
+      "markUnread": "Dieses Element konnte nicht als ungelesen markiert werden. Versuche es erneut.",
+      "markAllRead": "Alle Elemente konnten nicht als gelesen markiert werden. Versuche es erneut.",
+      "identity": "Dein Konto konnte keinem Projektmitglied zugeordnet werden. Überprüfe die E-Mail-Adresse in deinem Projektprofil.",
+      "partialLoad": "Einige Quellen des Team-Posteingangs konnten nicht aktualisiert werden. Verfügbare Elemente werden weiterhin angezeigt.",
+      "workItemContext": "Einiger Projektkontext ist nicht verfügbar. Das Arbeitselement bleibt nutzbar.",
+      "workItemLoad": "Dieses Arbeitselement konnte nicht geladen werden. Versuche es erneut.",
+      "workItemUpdate": "Die letzte Änderung am Arbeitselement konnte nicht gespeichert werden. Versuche es erneut."
+    },
+    "detail": {
+      "assignedSubtitle": "Zugewiesenes Arbeitselement",
+      "standaloneProject": "Eigenständig",
+      "mentionSubtitle": "In einem Kommentar erwähnt",
+      "mentionedYou": "hat dich erwähnt",
+      "threadComments_one": "{{count}} Kommentar in diesem Thread",
+      "threadComments_other": "{{count}} Kommentare in diesem Thread"
+    },
+    "actions": {
+      "markRead": "Als gelesen markieren",
+      "markUnread": "Als ungelesen markieren",
+      "openWorkItem": "Arbeitselement öffnen",
+      "openSession": "Sitzung öffnen"
+    },
+    "fields": {
+      "status": "Status",
+      "priority": "Priorität",
+      "assignee": "Zugewiesen an",
+      "workItemId": "Arbeitselement-ID",
+      "session": "Sitzung",
+      "comments": "Kommentare",
+      "threadId": "Thread-ID",
+      "commentId": "Kommentar-ID"
+    },
+    "workItemStatus": {
+      "backlog": "Backlog",
+      "todo": "Zu erledigen",
+      "in_progress": "In Bearbeitung",
+      "in_review": "In Prüfung",
+      "blocked": "Blockiert",
+      "done": "Erledigt",
+      "cancelled": "Abgebrochen"
+    },
+    "priority": {
+      "none": "Keine Priorität",
+      "low": "Niedrig",
+      "medium": "Mittel",
+      "high": "Hoch",
+      "urgent": "Dringend"
+    }
+  },
   "toasts": {
     "replyEmpty": "Antwort darf nicht leer sein",
     "sessionNotFound": "Sitzung nicht gefunden",

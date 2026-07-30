@@ -51,6 +51,13 @@ export function usePinnedMenuItems({
   workItemDestinations,
   t,
 }: UsePinnedMenuItemsParams): UsePinnedMenuItemsResult {
+  const teamInboxUnreadAriaLabel = useMemo(
+    () =>
+      teamInboxUnreadCount
+        ? t("common:teamInbox.unreadCount", { count: teamInboxUnreadCount })
+        : undefined,
+    [t, teamInboxUnreadCount]
+  );
   const sessionPinnedMenuItems = useMemo<NavigationMenuItem[]>(
     () =>
       buildPinnedMenuItems({
@@ -63,6 +70,7 @@ export function usePinnedMenuItems({
         runtimeLabel,
         teamInboxLabel,
         teamInboxUnreadCount,
+        teamInboxUnreadAriaLabel,
       }),
     [
       kanbanLabel,
@@ -70,6 +78,7 @@ export function usePinnedMenuItems({
       runtimeLabel,
       teamInboxLabel,
       teamInboxUnreadCount,
+      teamInboxUnreadAriaLabel,
       workItemDestinations,
       t,
     ]

@@ -1,4 +1,162 @@
 {
+  "teamInbox": {
+    "title": "Boîte de réception d’équipe",
+    "listLabel": "Liste de la boîte de réception d’équipe",
+    "itemsLabel": "Éléments de la boîte de réception d’équipe",
+    "unreadCount": "{{count}} non lu(s)",
+    "allRead": "Tout est à jour",
+    "loadMore": "Charger plus",
+    "filters": {
+      "all": "Tous",
+      "mentions": "Mentions",
+      "assigned": "Assignés"
+    },
+    "status": {
+      "read": "Lu",
+      "unread": "Non lu"
+    },
+    "row": {
+      "assignedSummary": "{{status}} · {{priority}}",
+      "ariaLabel": "{{title}}, {{status}}"
+    },
+    "search": {
+      "placeholder": "Rechercher dans la boîte de réception",
+      "ariaLabel": "Rechercher dans la boîte de réception d’équipe"
+    },
+    "groups": {
+      "today": "Aujourd’hui",
+      "yesterday": "Hier",
+      "thisWeek": "Cette semaine",
+      "earlier": "Plus tôt"
+    },
+    "empty": {
+      "title": "Rien ici pour l’instant",
+      "subtitle": "Les mentions et les éléments de travail assignés apparaîtront ici.",
+      "selectTitle": "Sélectionner un élément",
+      "selectSubtitle": "Voir le contexte du commentaire ou les détails de l’élément de travail.",
+      "mentions": {
+        "title": "Aucune mention",
+        "subtitle": "Lorsqu’un coéquipier vous mentionne avec @ dans un commentaire, cela apparaît ici."
+      },
+      "assigned": {
+        "title": "Rien ne vous est assigné",
+        "subtitle": "Les éléments de travail qui vous sont assignés apparaîtront ici."
+      },
+      "noResults": {
+        "title": "Aucun résultat",
+        "subtitle": "Aucun élément ne correspond à « {{query}} »."
+      }
+    },
+    "loading": "Chargement de la boîte de réception d’équipe…",
+    "drop": {
+      "title": "Déposer ici pour créer un élément de travail",
+      "subtitle": "Vérifiez l’aperçu de la session, puis créez ou transférez l’élément de travail.",
+      "processing": "Création d’un élément de travail à partir de « {{title}} »…",
+      "processingHint": "Lecture de la session et résolution des membres du projet.",
+      "success": "Élément de travail créé",
+      "reused": "Élément de travail existant mis à jour",
+      "failed": "Impossible de créer l’élément de travail",
+      "error": "Impossible de créer un élément de travail à partir de cette session.",
+      "open": "Ouvrir",
+      "dismiss": "Ignorer"
+    },
+    "handoff": {
+      "title": "Créer depuis la session",
+      "createFromSession": "Créer un élément de travail d’équipe…",
+      "project": "Projet de destination",
+      "chooseProject": "Choisir un projet",
+      "recipientSelf": "{{name}} (moi)",
+      "chooseRecipient": "Choisir un destinataire",
+      "todoCount_one": "{{count}} tâche",
+      "todoCount_other": "{{count}} tâches",
+      "workItemTitle": "Titre de l’élément de travail",
+      "assignTo": "Assigner à",
+      "note": "Note de transfert",
+      "notePlaceholder": "Indiquez ce qui est prêt, ce qui reste en suspens et ce qui devrait suivre.",
+      "selfHint": "Vous l’assigner à vous-même crée un élément de travail normal, sans demande de transfert.",
+      "submitHandoff": "Créer et transférer",
+      "submitCreate": "Créer l’élément de travail",
+      "preparing": "Préparation de « {{title}} »…",
+      "preparationError": {
+        "session_unavailable": "Cette session n’est plus disponible. Rouvrez-la et réessayez.",
+        "project_unavailable": "Le projet de cette session n’est plus disponible.",
+        "identity_unavailable": "Votre identité n’est pas membre du projet de cette session.",
+        "no_project": "Aucun projet éligible disponible. Créez ou rejoignez un projet, puis réessayez.",
+        "unknown": "Impossible de préparer cette session. Actualisez la boîte de réception d’équipe et réessayez."
+      },
+      "submitError": "L’élément de travail n’a pas pu être créé. Vérifiez le destinataire et réessayez.",
+      "pendingTitle": "Transfert de {{name}}",
+      "acceptedTitle": "Accepté par {{name}}",
+      "returnedTitle": "Renvoyé par {{name}}",
+      "noNote": "Aucune note de transfert.",
+      "statusLabel": "Transfert de l’élément de travail",
+      "return": "Renvoyer",
+      "accept": "Accepter",
+      "returnTitle": "Renvoyer ce transfert ?",
+      "confirmReturn": "Renvoyer à l’expéditeur",
+      "returnHint": "Indiquez à {{name}} ce qui doit être clarifié ou complété. L’élément de travail lui sera réassigné.",
+      "returnPlaceholder": "Que faut-il changer avant un nouveau transfert ?",
+      "responseError": "La réponse au transfert n’a pas pu être enregistrée. Réessayez.",
+      "identityUnavailable": "Votre identité d’équipe n’a pas pu être vérifiée. Vérifiez votre profil de projet avant de répondre.",
+      "rowPending": "De {{name}} · En attente de réponse",
+      "rowAccepted": "Transfert accepté · {{status}} · {{priority}}",
+      "rowReturned": "Renvoyé par {{name}} · {{status}} · {{priority}}"
+    },
+    "errors": {
+      "loadTitle": "Impossible de charger la boîte de réception d’équipe",
+      "load": "Impossible de charger la boîte de réception d’équipe",
+      "loadMore": "Impossible de charger d’autres éléments de la boîte de réception d’équipe. Réessayez.",
+      "refresh": "Impossible d’actualiser la boîte de réception d’équipe",
+      "markRead": "Impossible de marquer cet élément comme lu. Réessayez.",
+      "markUnread": "Impossible de marquer cet élément comme non lu. Réessayez.",
+      "markAllRead": "Impossible de marquer tous les éléments comme lus. Réessayez.",
+      "identity": "Votre compte n’a pas pu être associé à un membre du projet. Vérifiez l’e-mail de votre profil de projet.",
+      "partialLoad": "Certaines sources de la boîte de réception d’équipe n’ont pas pu être actualisées. Les éléments disponibles restent affichés.",
+      "workItemContext": "Une partie du contexte du projet n’est pas disponible. L’élément de travail reste utilisable.",
+      "workItemLoad": "Impossible de charger cet élément de travail. Réessayez.",
+      "workItemUpdate": "Impossible d’enregistrer la dernière modification de l’élément de travail. Réessayez."
+    },
+    "detail": {
+      "assignedSubtitle": "Élément de travail assigné",
+      "standaloneProject": "Autonome",
+      "mentionSubtitle": "Mentionné dans un commentaire",
+      "mentionedYou": "vous a mentionné",
+      "threadComments_one": "{{count}} commentaire dans ce fil",
+      "threadComments_other": "{{count}} commentaires dans ce fil"
+    },
+    "actions": {
+      "markRead": "Marquer comme lu",
+      "markUnread": "Marquer comme non lu",
+      "openWorkItem": "Ouvrir l’élément de travail",
+      "openSession": "Ouvrir la session"
+    },
+    "fields": {
+      "status": "Statut",
+      "priority": "Priorité",
+      "assignee": "Assigné à",
+      "workItemId": "ID de l’élément de travail",
+      "session": "Session",
+      "comments": "Commentaires",
+      "threadId": "ID du fil",
+      "commentId": "ID du commentaire"
+    },
+    "workItemStatus": {
+      "backlog": "Backlog",
+      "todo": "À faire",
+      "in_progress": "En cours",
+      "in_review": "En revue",
+      "blocked": "Bloqué",
+      "done": "Terminé",
+      "cancelled": "Annulé"
+    },
+    "priority": {
+      "none": "Aucune priorité",
+      "low": "Basse",
+      "medium": "Moyenne",
+      "high": "Haute",
+      "urgent": "Urgente"
+    }
+  },
   "toasts": {
     "replyEmpty": "La réponse ne peut pas être vide",
     "sessionNotFound": "Session introuvable",

@@ -30,6 +30,7 @@ import {
   selectTeamInboxItems,
   toTeamInboxNavigationIntent,
 } from "./domain";
+import { performTeamInboxReadTransition } from "./teamInboxReadTransitions";
 
 export interface TeamInboxViewProps {
   dataSource?: TeamInboxDataSource;
@@ -210,32 +211,44 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
   const handleSelect = (item: TeamInboxItem) => {
     setRequestedItemId(getTeamInboxItemKey(item));
     if (item.readAt !== null) return;
-    void dataSource.markRead?.(item).catch(() => {
-      setLoadState({
-        status: "error",
-        message: t("teamInbox.errors.markRead"),
-      });
-    });
+    void performTeamInboxReadTransition("read", item, dataSource).then(
+      (result) => {
+        if (!result.ok) {
+          setLoadState({
+            status: "error",
+            message: t("teamInbox.errors.markRead"),
+          });
+        }
+      }
+    );
   };
 
   const handleMarkRead = (item: TeamInboxItem) => {
     if (item.readAt !== null) return;
-    void dataSource.markRead?.(item).catch(() => {
-      setLoadState({
-        status: "error",
-        message: t("teamInbox.errors.markRead"),
-      });
-    });
+    void performTeamInboxReadTransition("read", item, dataSource).then(
+      (result) => {
+        if (!result.ok) {
+          setLoadState({
+            status: "error",
+            message: t("teamInbox.errors.markRead"),
+          });
+        }
+      }
+    );
   };
 
   const handleMarkUnread = (item: TeamInboxItem) => {
     if (item.readAt === null) return;
-    void dataSource.markUnread?.(item).catch(() => {
-      setLoadState({
-        status: "error",
-        message: t("teamInbox.errors.markUnread"),
-      });
-    });
+    void performTeamInboxReadTransition("unread", item, dataSource).then(
+      (result) => {
+        if (!result.ok) {
+          setLoadState({
+            status: "error",
+            message: t("teamInbox.errors.markUnread"),
+          });
+        }
+      }
+    );
   };
 
   const handleMarkAllRead = () => {

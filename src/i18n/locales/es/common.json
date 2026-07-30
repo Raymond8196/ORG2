@@ -1,4 +1,162 @@
 {
+  "teamInbox": {
+    "title": "Bandeja del equipo",
+    "listLabel": "Lista de la bandeja del equipo",
+    "itemsLabel": "Elementos de la bandeja del equipo",
+    "unreadCount": "{{count}} sin leer",
+    "allRead": "Todo al día",
+    "loadMore": "Cargar más",
+    "filters": {
+      "all": "Todos",
+      "mentions": "Menciones",
+      "assigned": "Asignados"
+    },
+    "status": {
+      "read": "Leído",
+      "unread": "Sin leer"
+    },
+    "row": {
+      "assignedSummary": "{{status}} · {{priority}}",
+      "ariaLabel": "{{title}}, {{status}}"
+    },
+    "search": {
+      "placeholder": "Buscar en la bandeja",
+      "ariaLabel": "Buscar en la bandeja del equipo"
+    },
+    "groups": {
+      "today": "Hoy",
+      "yesterday": "Ayer",
+      "thisWeek": "Esta semana",
+      "earlier": "Anteriores"
+    },
+    "empty": {
+      "title": "Todavía no hay nada aquí",
+      "subtitle": "Las menciones y los elementos de trabajo asignados aparecerán aquí.",
+      "selectTitle": "Selecciona un elemento",
+      "selectSubtitle": "Consulta el contexto del comentario o los detalles del elemento de trabajo.",
+      "mentions": {
+        "title": "Sin menciones",
+        "subtitle": "Cuando un compañero te mencione con @ en un comentario, aparecerá aquí."
+      },
+      "assigned": {
+        "title": "No tienes nada asignado",
+        "subtitle": "Los elementos de trabajo asignados a ti aparecerán aquí."
+      },
+      "noResults": {
+        "title": "Sin coincidencias",
+        "subtitle": "Ningún elemento coincide con «{{query}}»."
+      }
+    },
+    "loading": "Cargando la bandeja del equipo…",
+    "drop": {
+      "title": "Suelta aquí para crear un elemento de trabajo",
+      "subtitle": "Revisa la instantánea de la sesión y luego crea o transfiere el elemento de trabajo.",
+      "processing": "Creando un elemento de trabajo a partir de «{{title}}»…",
+      "processingHint": "Leyendo la sesión y resolviendo los miembros del proyecto.",
+      "success": "Elemento de trabajo creado",
+      "reused": "Elemento de trabajo existente actualizado",
+      "failed": "No se pudo crear el elemento de trabajo",
+      "error": "No se puede crear un elemento de trabajo a partir de esta sesión.",
+      "open": "Abrir",
+      "dismiss": "Descartar"
+    },
+    "handoff": {
+      "title": "Crear desde la sesión",
+      "createFromSession": "Crear elemento de trabajo del equipo…",
+      "project": "Proyecto de destino",
+      "chooseProject": "Elegir un proyecto",
+      "recipientSelf": "{{name}} (yo)",
+      "chooseRecipient": "Elegir un destinatario",
+      "todoCount_one": "{{count}} pendiente",
+      "todoCount_other": "{{count}} pendientes",
+      "workItemTitle": "Título del elemento de trabajo",
+      "assignTo": "Asignar a",
+      "note": "Nota de traspaso",
+      "notePlaceholder": "Indica qué está listo, qué queda pendiente y qué debería ocurrir a continuación.",
+      "selfHint": "Asignarte esto a ti mismo crea un elemento de trabajo normal, sin solicitud de traspaso.",
+      "submitHandoff": "Crear y traspasar",
+      "submitCreate": "Crear elemento de trabajo",
+      "preparing": "Preparando «{{title}}»…",
+      "preparationError": {
+        "session_unavailable": "Esta sesión ya no está disponible. Vuelve a abrirla e inténtalo de nuevo.",
+        "project_unavailable": "El proyecto de esta sesión ya no está disponible.",
+        "identity_unavailable": "Tu identidad no es miembro del proyecto de esta sesión.",
+        "no_project": "No hay ningún proyecto elegible disponible. Crea o únete a un proyecto e inténtalo de nuevo.",
+        "unknown": "No se puede preparar esta sesión. Actualiza la bandeja del equipo e inténtalo de nuevo."
+      },
+      "submitError": "No se pudo crear el elemento de trabajo. Revisa el destinatario e inténtalo de nuevo.",
+      "pendingTitle": "Traspaso de {{name}}",
+      "acceptedTitle": "Aceptado por {{name}}",
+      "returnedTitle": "Devuelto por {{name}}",
+      "noNote": "Sin nota de traspaso.",
+      "statusLabel": "Traspaso del elemento de trabajo",
+      "return": "Devolver",
+      "accept": "Aceptar",
+      "returnTitle": "¿Devolver este traspaso?",
+      "confirmReturn": "Devolver al remitente",
+      "returnHint": "Indica a {{name}} qué necesita aclaración o seguimiento. El elemento de trabajo se le reasignará.",
+      "returnPlaceholder": "¿Qué debe cambiar antes de poder traspasarlo?",
+      "responseError": "No se pudo guardar la respuesta del traspaso. Inténtalo de nuevo.",
+      "identityUnavailable": "No se pudo verificar tu identidad de equipo. Revisa tu perfil de proyecto antes de responder.",
+      "rowPending": "De {{name}} · Esperando respuesta",
+      "rowAccepted": "Traspaso aceptado · {{status}} · {{priority}}",
+      "rowReturned": "Devuelto por {{name}} · {{status}} · {{priority}}"
+    },
+    "errors": {
+      "loadTitle": "No se pudo cargar la bandeja del equipo",
+      "load": "No se pudo cargar la bandeja del equipo",
+      "loadMore": "No se pudieron cargar más elementos de la bandeja del equipo. Inténtalo de nuevo.",
+      "refresh": "No se pudo actualizar la bandeja del equipo",
+      "markRead": "No se pudo marcar este elemento como leído. Inténtalo de nuevo.",
+      "markUnread": "No se pudo marcar este elemento como no leído. Inténtalo de nuevo.",
+      "markAllRead": "No se pudieron marcar todos los elementos como leídos. Inténtalo de nuevo.",
+      "identity": "Tu cuenta no se pudo asociar a ningún miembro del proyecto. Revisa el correo electrónico de tu perfil de proyecto.",
+      "partialLoad": "Algunas fuentes de la bandeja del equipo no se pudieron actualizar. Los elementos disponibles se siguen mostrando.",
+      "workItemContext": "Parte del contexto del proyecto no está disponible. El elemento de trabajo sigue siendo utilizable.",
+      "workItemLoad": "No se pudo cargar este elemento de trabajo. Inténtalo de nuevo.",
+      "workItemUpdate": "No se pudo guardar el último cambio del elemento de trabajo. Inténtalo de nuevo."
+    },
+    "detail": {
+      "assignedSubtitle": "Elemento de trabajo asignado",
+      "standaloneProject": "Independiente",
+      "mentionSubtitle": "Mencionado en un comentario",
+      "mentionedYou": "te mencionó",
+      "threadComments_one": "{{count}} comentario en este hilo",
+      "threadComments_other": "{{count}} comentarios en este hilo"
+    },
+    "actions": {
+      "markRead": "Marcar como leído",
+      "markUnread": "Marcar como no leído",
+      "openWorkItem": "Abrir elemento de trabajo",
+      "openSession": "Abrir sesión"
+    },
+    "fields": {
+      "status": "Estado",
+      "priority": "Prioridad",
+      "assignee": "Responsable",
+      "workItemId": "ID del elemento de trabajo",
+      "session": "Sesión",
+      "comments": "Comentarios",
+      "threadId": "ID del hilo",
+      "commentId": "ID del comentario"
+    },
+    "workItemStatus": {
+      "backlog": "Pendiente",
+      "todo": "Por hacer",
+      "in_progress": "En curso",
+      "in_review": "En revisión",
+      "blocked": "Bloqueado",
+      "done": "Hecho",
+      "cancelled": "Cancelado"
+    },
+    "priority": {
+      "none": "Sin prioridad",
+      "low": "Baja",
+      "medium": "Media",
+      "high": "Alta",
+      "urgent": "Urgente"
+    }
+  },
   "toasts": {
     "replyEmpty": "La respuesta no puede estar vacía",
     "sessionNotFound": "Sesión no encontrada",

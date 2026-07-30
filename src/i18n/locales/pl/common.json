@@ -1,4 +1,166 @@
 {
+  "teamInbox": {
+    "title": "Skrzynka zespołu",
+    "listLabel": "Lista skrzynki zespołu",
+    "itemsLabel": "Elementy skrzynki zespołu",
+    "unreadCount": "Nieprzeczytane: {{count}}",
+    "allRead": "Wszystko przeczytane",
+    "loadMore": "Wczytaj więcej",
+    "filters": {
+      "all": "Wszystkie",
+      "mentions": "Wzmianki",
+      "assigned": "Przypisane"
+    },
+    "status": {
+      "read": "Przeczytane",
+      "unread": "Nieprzeczytane"
+    },
+    "row": {
+      "assignedSummary": "{{status}} · {{priority}}",
+      "ariaLabel": "{{title}}, {{status}}"
+    },
+    "search": {
+      "placeholder": "Przeszukaj skrzynkę",
+      "ariaLabel": "Przeszukaj skrzynkę zespołu"
+    },
+    "groups": {
+      "today": "Dzisiaj",
+      "yesterday": "Wczoraj",
+      "thisWeek": "W tym tygodniu",
+      "earlier": "Wcześniej"
+    },
+    "empty": {
+      "title": "Nic tu jeszcze nie ma",
+      "subtitle": "Wzmianki i przypisane elementy pracy będą się tu pojawiać.",
+      "selectTitle": "Wybierz element",
+      "selectSubtitle": "Zobacz kontekst komentarza lub szczegóły elementu pracy.",
+      "mentions": {
+        "title": "Brak wzmianek",
+        "subtitle": "Gdy członek zespołu wspomni o Tobie za pomocą @ w komentarzu, pojawi się to tutaj."
+      },
+      "assigned": {
+        "title": "Nic Ci nie przypisano",
+        "subtitle": "Przypisane do Ciebie elementy pracy pojawią się tutaj."
+      },
+      "noResults": {
+        "title": "Brak wyników",
+        "subtitle": "Żaden element nie pasuje do „{{query}}”."
+      }
+    },
+    "loading": "Wczytywanie skrzynki zespołu…",
+    "drop": {
+      "title": "Upuść tutaj, aby utworzyć element pracy",
+      "subtitle": "Sprawdź migawkę sesji, a następnie utwórz lub przekaż element pracy.",
+      "processing": "Tworzenie elementu pracy z „{{title}}”…",
+      "processingHint": "Odczytywanie sesji i ustalanie członków projektu.",
+      "success": "Utworzono element pracy",
+      "reused": "Zaktualizowano istniejący element pracy",
+      "failed": "Nie udało się utworzyć elementu pracy",
+      "error": "Nie można utworzyć elementu pracy na podstawie tej sesji.",
+      "open": "Otwórz",
+      "dismiss": "Odrzuć"
+    },
+    "handoff": {
+      "title": "Utwórz z sesji",
+      "createFromSession": "Utwórz zespołowy element pracy…",
+      "project": "Projekt docelowy",
+      "chooseProject": "Wybierz projekt",
+      "recipientSelf": "{{name}} (ja)",
+      "chooseRecipient": "Wybierz odbiorcę",
+      "todoCount_one": "{{count}} zadanie",
+      "todoCount_few": "{{count}} zadania",
+      "todoCount_many": "{{count}} zadań",
+      "todoCount_other": "{{count}} zadania",
+      "workItemTitle": "Tytuł elementu pracy",
+      "assignTo": "Przypisz do",
+      "note": "Notatka przekazania",
+      "notePlaceholder": "Opisz, co jest gotowe, co pozostało nierozwiązane i co powinno się wydarzyć dalej.",
+      "selfHint": "Przypisanie tego do siebie tworzy zwykły element pracy bez żądania przekazania.",
+      "submitHandoff": "Utwórz i przekaż",
+      "submitCreate": "Utwórz element pracy",
+      "preparing": "Przygotowywanie „{{title}}”…",
+      "preparationError": {
+        "session_unavailable": "Ta sesja nie jest już dostępna. Otwórz ją ponownie i spróbuj jeszcze raz.",
+        "project_unavailable": "Projekt tej sesji nie jest już dostępny.",
+        "identity_unavailable": "Twoja tożsamość nie jest członkiem projektu tej sesji.",
+        "no_project": "Brak dostępnego kwalifikującego się projektu. Utwórz projekt lub dołącz do niego, a następnie spróbuj ponownie.",
+        "unknown": "Nie można przygotować tej sesji. Odśwież skrzynkę zespołu i spróbuj ponownie."
+      },
+      "submitError": "Nie udało się utworzyć elementu pracy. Sprawdź odbiorcę i spróbuj ponownie.",
+      "pendingTitle": "Przekazanie od {{name}}",
+      "acceptedTitle": "Zaakceptowane przez {{name}}",
+      "returnedTitle": "Zwrócone przez {{name}}",
+      "noNote": "Brak notatki przekazania.",
+      "statusLabel": "Przekazanie elementu pracy",
+      "return": "Zwróć",
+      "accept": "Zaakceptuj",
+      "returnTitle": "Zwrócić to przekazanie?",
+      "confirmReturn": "Zwróć do nadawcy",
+      "returnHint": "Poinformuj {{name}}, co wymaga wyjaśnienia lub dalszych działań. Element pracy zostanie ponownie przypisany.",
+      "returnPlaceholder": "Co należy zmienić przed kolejnym przekazaniem?",
+      "responseError": "Nie udało się zapisać odpowiedzi na przekazanie. Spróbuj ponownie.",
+      "identityUnavailable": "Nie udało się zweryfikować Twojej tożsamości zespołowej. Sprawdź swój profil projektu przed odpowiedzią.",
+      "rowPending": "Od {{name}} · Oczekuje na odpowiedź",
+      "rowAccepted": "Przekazanie zaakceptowane · {{status}} · {{priority}}",
+      "rowReturned": "Zwrócone przez {{name}} · {{status}} · {{priority}}"
+    },
+    "errors": {
+      "loadTitle": "Nie można wczytać skrzynki zespołu",
+      "load": "Nie można wczytać skrzynki zespołu",
+      "loadMore": "Nie można wczytać kolejnych elementów skrzynki zespołu. Spróbuj ponownie.",
+      "refresh": "Nie można odświeżyć skrzynki zespołu",
+      "markRead": "Nie można oznaczyć tego elementu jako przeczytanego. Spróbuj ponownie.",
+      "markUnread": "Nie można oznaczyć tego elementu jako nieprzeczytanego. Spróbuj ponownie.",
+      "markAllRead": "Nie można oznaczyć wszystkich elementów jako przeczytanych. Spróbuj ponownie.",
+      "identity": "Nie udało się dopasować Twojego konta do członka projektu. Sprawdź adres e-mail w profilu projektu.",
+      "partialLoad": "Nie udało się odświeżyć niektórych źródeł skrzynki zespołu. Dostępne elementy są nadal wyświetlane.",
+      "workItemContext": "Część kontekstu projektu jest niedostępna. Element pracy jest nadal użyteczny.",
+      "workItemLoad": "Nie można wczytać tego elementu pracy. Spróbuj ponownie.",
+      "workItemUpdate": "Nie można zapisać ostatniej zmiany elementu pracy. Spróbuj ponownie."
+    },
+    "detail": {
+      "assignedSubtitle": "Przypisany element pracy",
+      "standaloneProject": "Samodzielny",
+      "mentionSubtitle": "Wspomniano w komentarzu",
+      "mentionedYou": "wspomniał(a) o Tobie",
+      "threadComments_one": "{{count}} komentarz w tym wątku",
+      "threadComments_few": "{{count}} komentarze w tym wątku",
+      "threadComments_many": "{{count}} komentarzy w tym wątku",
+      "threadComments_other": "{{count}} komentarza w tym wątku"
+    },
+    "actions": {
+      "markRead": "Oznacz jako przeczytane",
+      "markUnread": "Oznacz jako nieprzeczytane",
+      "openWorkItem": "Otwórz element pracy",
+      "openSession": "Otwórz sesję"
+    },
+    "fields": {
+      "status": "Status",
+      "priority": "Priorytet",
+      "assignee": "Przypisano do",
+      "workItemId": "ID elementu pracy",
+      "session": "Sesja",
+      "comments": "Komentarze",
+      "threadId": "ID wątku",
+      "commentId": "ID komentarza"
+    },
+    "workItemStatus": {
+      "backlog": "Zaległości",
+      "todo": "Do zrobienia",
+      "in_progress": "W toku",
+      "in_review": "W recenzji",
+      "blocked": "Zablokowane",
+      "done": "Ukończone",
+      "cancelled": "Anulowane"
+    },
+    "priority": {
+      "none": "Brak priorytetu",
+      "low": "Niski",
+      "medium": "Średni",
+      "high": "Wysoki",
+      "urgent": "Pilny"
+    }
+  },
   "toasts": {
     "replyEmpty": "Odpowiedź nie może być pusta",
     "sessionNotFound": "Nie znaleziono sesji",
