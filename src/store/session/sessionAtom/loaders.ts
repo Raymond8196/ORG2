@@ -234,6 +234,7 @@ function importedHistoryPageResult(
         repoPath: row.repoPath,
         repoRootPath: row.repoRootPath,
         repoRemoteUrls: row.repoRemoteUrls,
+        branch: row.branch,
         storagePath: row.storagePath,
         agentIconId: source.iconId,
         agentDisplayName: source.displayName,

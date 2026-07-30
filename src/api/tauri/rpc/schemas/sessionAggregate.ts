@@ -246,6 +246,10 @@ export const ExternalHistorySidebarRowSchema = z.object({
   repoPath: z.string().optional(),
   repoRootPath: z.string().optional(),
   repoRemoteUrls: z.array(z.string()).optional(),
+  // Branch as recorded by the source app itself (Claude Code transcripts,
+  // Cursor/Windsurf tracked-repo metadata). Absent for sources that never
+  // report one — the sidebar simply omits the git indicator then.
+  branch: z.string().optional(),
   // The source app's transcript file. Imported sessions have no sessions.db
   // copy, so this is their only storage path.
   storagePath: z.string().optional(),
