@@ -645,7 +645,8 @@
     },
     "orgManagement": {
       "invites": {
-        "title": "邀請",
+        "createTitle": "新建邀請",
+        "historyTitle": "歷史邀請",
         "empty": "尚無邀請",
         "loadError": "無法載入邀請清單",
         "create": "建立邀請",

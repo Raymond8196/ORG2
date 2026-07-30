@@ -555,7 +555,8 @@
     },
     "orgManagement": {
       "invites": {
-        "title": "Invitations",
+        "createTitle": "Nouvelle invitation",
+        "historyTitle": "Invitations précédentes",
         "empty": "Aucune invitation pour l'instant",
         "loadError": "Impossible de charger les invitations",
         "create": "Créer une invitation",

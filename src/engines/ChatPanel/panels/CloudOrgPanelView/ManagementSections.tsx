@@ -2,9 +2,9 @@
  * Management sections of `CloudOrgPanelView` (managed-cloud mirror of the
  * self-hosted `CollabOrgPanelView/MembersSection`):
  *
- *  - `CloudInvitesCard`   (admin) — create invite (role + max uses + optional
- *    expiry), one-time copyable `orgii://cloud/join` link, inventory with
- *    usage/state, revoke.
+ *  - `CloudInvitesCard`   (admin) — two cards: "New invite" (role + max uses +
+ *    optional expiry, then the one-time copyable `orgii://cloud/join` link)
+ *    and "Previous invites" (one row per invite, status + revoke trailing).
  *  - `CloudMembersSection` — the signed-in member gets a dedicated About me
  *    card above the remaining member rows. Admins get a role dropdown
  *    (admin/member) and Remove; everyone but the owner gets Leave from the
@@ -186,151 +186,168 @@ export function CloudInvitesCard({ t, management }: CloudInvitesCardProps) {
   };
 
   return (
-    <SectionContainer title={t("cloud.orgManagement.invites.title")}>
-      <div data-testid="cloud-org-invites">
-        {invites.length === 0 ? (
-          <SectionRow
-            label={inviteListError ?? t("cloud.orgManagement.invites.empty")}
-            light
-          />
-        ) : (
-          invites.map((invite) => {
-            const state = deriveCloudInviteState(invite);
-            const active = state === CLOUD_INVITE_STATE.ACTIVE;
-            const inviteStatus = active
-              ? `${t("cloud.orgManagement.invites.remainingUses", {
-                  uses: getCloudInviteRemainingUses(invite),
-                })} · ${
-                  invite.expiresAt
-                    ? t("cloud.orgManagement.invites.expires", {
-                        date: formatSmartDateTime(invite.expiresAt),
-                      })
-                    : t("cloud.orgManagement.invites.neverExpires")
-                }`
-              : t(
-                  state === CLOUD_INVITE_STATE.REVOKED
-                    ? "cloud.orgManagement.invites.stateRevoked"
-                    : state === CLOUD_INVITE_STATE.EXPIRED
-                      ? "cloud.orgManagement.invites.stateExpired"
-                      : "cloud.orgManagement.invites.stateExhausted"
-                );
-            return (
-              <div
-                key={invite.inviteId}
-                data-testid="cloud-org-invite-row"
-                data-invite-id={invite.inviteId}
-              >
-                <SectionRow
-                  label={
-                    <span className="flex min-w-0 items-center gap-2">
-                      <CloudBadge>{roleLabel(t, invite.role)}</CloudBadge>
-                      <span className="min-w-0 truncate">
-                        {t("cloud.orgManagement.invites.createdAt", {
-                          date: formatSmartDateTime(invite.createdAt),
-                        })}
-                      </span>
-                    </span>
-                  }
-                  description={inviteStatus}
-                >
-                  {active ? (
-                    <Button
-                      htmlType="button"
-                      size="default"
-                      variant="secondary"
-                      disabled={Boolean(revokingInviteId)}
-                      loading={revokingInviteId === invite.inviteId}
-                      data-testid={`cloud-org-invite-revoke-${invite.inviteId}`}
-                      onClick={() => handleRevoke(invite)}
-                    >
-                      {t("cloud.orgManagement.invites.revoke")}
-                    </Button>
-                  ) : null}
-                </SectionRow>
-              </div>
-            );
-          })
-        )}
-
-        {latestCreatedInvite ? (
-          <SectionRow
-            label={t("cloud.orgManagement.invites.linkOneTimeNote")}
-            layout="vertical"
-          >
-            <div className="flex flex-col gap-2">
-              <div
-                className="select-text break-all rounded-md bg-fill-1 px-3 py-2 font-mono text-[12px] text-text-2"
-                data-testid="cloud-org-invite-link"
-              >
-                {latestCreatedInvite.inviteLink}
-              </div>
+    <>
+      {/* Box 1 — create. Keeps the `cloud-org-invites` testid: it is the
+      admin-only surface E2E asserts on (present for owner, absent for member). */}
+      <SectionContainer title={t("cloud.orgManagement.invites.createTitle")}>
+        <div data-testid="cloud-org-invites">
+          <SectionRow label={t("cloud.orgManagement.invites.usageLimitLabel")}>
+            <Select
+              size="default"
+              value={usageLimit}
+              options={usageOptions}
+              style={SECTION_CONTROL_STYLE}
+              dataTestId="cloud-org-invite-usage-select"
+              onChange={(value) => setUsageLimit(Number(value))}
+            />
+          </SectionRow>
+          <SectionRow label={t("cloud.orgManagement.invites.expiryLabel")}>
+            <Select
+              size="default"
+              value={expiresInDays}
+              options={expiryOptions}
+              style={SECTION_CONTROL_STYLE}
+              dataTestId="cloud-org-invite-expiry-select"
+              onChange={(value) => setExpiresInDays(Number(value))}
+            />
+          </SectionRow>
+          <SectionRow label={t("cloud.orgManagement.invites.roleLabel")}>
+            <Select
+              size="default"
+              value={role}
+              options={roleOptions}
+              style={SECTION_CONTROL_STYLE}
+              dataTestId="cloud-org-invite-role-select"
+              onChange={(value) => {
+                if (isCloudAssignableRole(value)) setRole(value);
+              }}
+            />
+          </SectionRow>
+          {/* No row label — the card title already says what this creates. */}
+          <SectionRow showHeader={false}>
+            <div className="flex w-full justify-end">
               <Button
                 htmlType="button"
                 size="default"
                 variant="primary"
-                data-testid="cloud-org-invite-link-copy"
-                disabled={copyingInvite}
-                onClick={() => void handleCopyInvite()}
+                disabled={creatingInvite}
+                loading={creatingInvite}
+                data-testid="cloud-org-create-invite"
+                onClick={handleCreate}
               >
-                {copyingInvite
-                  ? t("cloud.orgManagement.invites.copied")
-                  : t("cloud.orgManagement.invites.copyLink")}
+                {t("cloud.orgManagement.invites.create")}
               </Button>
             </div>
           </SectionRow>
-        ) : null}
 
-        <SectionRow label={t("cloud.orgManagement.invites.usageLimitLabel")}>
-          <Select
-            size="default"
-            value={usageLimit}
-            options={usageOptions}
-            style={SECTION_CONTROL_STYLE}
-            dataTestId="cloud-org-invite-usage-select"
-            onChange={(value) => setUsageLimit(Number(value))}
-          />
-        </SectionRow>
-        <SectionRow label={t("cloud.orgManagement.invites.expiryLabel")}>
-          <Select
-            size="default"
-            value={expiresInDays}
-            options={expiryOptions}
-            style={SECTION_CONTROL_STYLE}
-            dataTestId="cloud-org-invite-expiry-select"
-            onChange={(value) => setExpiresInDays(Number(value))}
-          />
-        </SectionRow>
-        <SectionRow label={t("cloud.orgManagement.invites.roleLabel")}>
-          <Select
-            size="default"
-            value={role}
-            options={roleOptions}
-            style={SECTION_CONTROL_STYLE}
-            dataTestId="cloud-org-invite-role-select"
-            onChange={(value) => {
-              if (isCloudAssignableRole(value)) setRole(value);
-            }}
-          />
-        </SectionRow>
-        <SectionRow label={t("cloud.orgManagement.invites.create")}>
-          <Button
-            htmlType="button"
-            size="default"
-            variant="primary"
-            disabled={creatingInvite}
-            loading={creatingInvite}
-            data-testid="cloud-org-create-invite"
-            onClick={handleCreate}
-          >
-            {t("cloud.orgManagement.invites.create")}
-          </Button>
-        </SectionRow>
+          {latestCreatedInvite ? (
+            <SectionRow
+              label={t("cloud.orgManagement.invites.linkOneTimeNote")}
+              layout="vertical"
+            >
+              <div className="flex flex-col gap-2">
+                <div
+                  className="select-text break-all rounded-md bg-fill-1 px-3 py-2 font-mono text-[12px] text-text-2"
+                  data-testid="cloud-org-invite-link"
+                >
+                  {latestCreatedInvite.inviteLink}
+                </div>
+                <Button
+                  htmlType="button"
+                  size="default"
+                  variant="primary"
+                  data-testid="cloud-org-invite-link-copy"
+                  disabled={copyingInvite}
+                  onClick={() => void handleCopyInvite()}
+                >
+                  {copyingInvite
+                    ? t("cloud.orgManagement.invites.copied")
+                    : t("cloud.orgManagement.invites.copyLink")}
+                </Button>
+              </div>
+            </SectionRow>
+          ) : null}
 
-        {inviteError ? (
-          <div className="pb-2 text-[12px] text-danger-6">{inviteError}</div>
-        ) : null}
-      </div>
-    </SectionContainer>
+          {inviteError ? (
+            <div className="pb-2 text-[12px] text-danger-6">{inviteError}</div>
+          ) : null}
+        </div>
+      </SectionContainer>
+
+      {/* Box 2 — inventory. One row per invite: role + created-at on the left,
+      status and Revoke trailing on the right. */}
+      <SectionContainer title={t("cloud.orgManagement.invites.historyTitle")}>
+        <div data-testid="cloud-org-invite-history">
+          {invites.length === 0 ? (
+            <SectionRow
+              label={inviteListError ?? t("cloud.orgManagement.invites.empty")}
+              light
+            />
+          ) : (
+            invites.map((invite) => {
+              const state = deriveCloudInviteState(invite);
+              const active = state === CLOUD_INVITE_STATE.ACTIVE;
+              const inviteStatus = active
+                ? `${t("cloud.orgManagement.invites.remainingUses", {
+                    uses: getCloudInviteRemainingUses(invite),
+                  })} · ${
+                    invite.expiresAt
+                      ? t("cloud.orgManagement.invites.expires", {
+                          date: formatSmartDateTime(invite.expiresAt),
+                        })
+                      : t("cloud.orgManagement.invites.neverExpires")
+                  }`
+                : t(
+                    state === CLOUD_INVITE_STATE.REVOKED
+                      ? "cloud.orgManagement.invites.stateRevoked"
+                      : state === CLOUD_INVITE_STATE.EXPIRED
+                        ? "cloud.orgManagement.invites.stateExpired"
+                        : "cloud.orgManagement.invites.stateExhausted"
+                  );
+              return (
+                <div
+                  key={invite.inviteId}
+                  data-testid="cloud-org-invite-row"
+                  data-invite-id={invite.inviteId}
+                >
+                  <SectionRow
+                    label={
+                      <span className="flex min-w-0 items-center gap-2">
+                        <CloudBadge>{roleLabel(t, invite.role)}</CloudBadge>
+                        <span className="min-w-0 truncate">
+                          {t("cloud.orgManagement.invites.createdAt", {
+                            date: formatSmartDateTime(invite.createdAt),
+                          })}
+                        </span>
+                      </span>
+                    }
+                  >
+                    <div className="flex flex-wrap items-center justify-end gap-2">
+                      <span className={SECTION_VALUE_SMALL_MUTED_CLASSES}>
+                        {inviteStatus}
+                      </span>
+                      {active ? (
+                        <Button
+                          htmlType="button"
+                          size="default"
+                          variant="secondary"
+                          disabled={Boolean(revokingInviteId)}
+                          loading={revokingInviteId === invite.inviteId}
+                          data-testid={`cloud-org-invite-revoke-${invite.inviteId}`}
+                          onClick={() => handleRevoke(invite)}
+                        >
+                          {t("cloud.orgManagement.invites.revoke")}
+                        </Button>
+                      ) : null}
+                    </div>
+                  </SectionRow>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </SectionContainer>
+    </>
   );
 }
 
