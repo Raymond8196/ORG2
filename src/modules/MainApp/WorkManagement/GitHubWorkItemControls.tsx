@@ -25,14 +25,13 @@ import { getPrStatusVariant, normalizePrStatus } from "@src/shared/pr/prStatus";
 
 import { GitHubWorkItemRow } from "./GitHubWorkItemList";
 import {
-  GITHUB_QUERY_STATE,
-  type IssueRepoFilter,
   type IssueState,
   type ManagedIssueItem,
   type ManagedIssueLabel,
   type ManagedPrItem,
-  type RepoFilterOption,
-} from "./githubWorkItemsModel";
+} from "./githubManagedItemModel";
+import { GITHUB_QUERY_STATE } from "./githubWorkItemsSearchQuery";
+import type { IssueRepoFilter, RepoFilterOption } from "./githubWorkItemsTypes";
 
 function ManagedIssueStateIcon({
   state,
@@ -389,6 +388,16 @@ export function ManagedPrRow({
         >
           {addLabel}
         </Button>
+      }
+      trailing={
+        pr.rawPr.author_avatar_url ? (
+          <img
+            src={pr.rawPr.author_avatar_url}
+            alt=""
+            title={pr.author}
+            className="mt-0.5 h-6 w-6 shrink-0 rounded-full bg-fill-2 object-cover"
+          />
+        ) : null
       }
     />
   );

@@ -1255,6 +1255,11 @@
         "stateAll": "All states",
         "assignedToMe": "Assigned to me",
         "createdByMe": "Created by me",
+        "pullRequests": {
+          "reviewRequested": "Review requested",
+          "authoredByMe": "Authored by me",
+          "otherTodos": "Other todos"
+        },
         "filters": "Filters",
         "openInGitHub": "Open in GitHub"
       }

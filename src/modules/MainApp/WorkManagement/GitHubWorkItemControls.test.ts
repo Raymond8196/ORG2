@@ -12,7 +12,7 @@ import {
   GITHUB_ITEM_KIND,
   type ManagedIssueItem,
   type ManagedPrItem,
-} from "./githubWorkItemsModel";
+} from "./githubManagedItemModel";
 
 const linkedIssue: ManagedIssueItem = {
   kind: GITHUB_ITEM_KIND.ISSUE,
@@ -40,7 +40,7 @@ const linkedIssue: ManagedIssueItem = {
     milestone: null,
   },
   author: "junyu",
-  timeAgo: "10m ago",
+  timeAgo: "10m",
   state: "open",
   labels: [],
   comments: 4,
@@ -56,11 +56,15 @@ const draftPr: ManagedPrItem = {
   repoId: "repo-1",
   repoPath: "/workspace/ORG2",
   remoteUrl: "https://github.com/org2ai/ORG2.git",
+  viewerLogin: "viewer",
   rawPr: {
     number: 465,
     url: "https://github.com/org2ai/ORG2/pull/465",
     title: "Consolidate audited workspace refactors",
     state: "open",
+    author_login: "junyu",
+    author_avatar_url: "https://example.com/avatar.png",
+    requested_reviewer_logins: [],
     head_branch: "audit-workspace",
     base_branch: "develop",
     draft: true,
@@ -68,7 +72,9 @@ const draftPr: ManagedPrItem = {
     updated_at: "2026-07-21T08:10:00Z",
   },
   author: "junyu",
-  timeAgo: "10m ago",
+  authoredByViewer: false,
+  reviewRequestedFromViewer: false,
+  timeAgo: "10m",
   state: "open",
   sourceBranch: "audit-workspace",
   targetBranch: "develop",

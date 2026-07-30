@@ -11,6 +11,11 @@
       "mentions": "Bahsedilenler",
       "assigned": "Atananlar"
     },
+    "sections": {
+      "reviewRequested": "İnceleme istendi",
+      "authoredByMe": "Benim oluşturduklarım",
+      "otherTodos": "Diğer görevler"
+    },
     "status": {
       "read": "Okundu",
       "unread": "Okunmadı"
@@ -33,10 +38,10 @@
       "title": "Henüz burada bir şey yok",
       "subtitle": "Bahsetmeler ve atanan iş öğeleri burada görünecek.",
       "selectTitle": "Bir öğe seçin",
-      "selectSubtitle": "Yorum bağlamını veya iş öğesi ayrıntılarını görüntüleyin.",
+      "selectSubtitle": "Yorum bağlamını veya iş öğesi ayrıntılarını görüntüleyin",
       "mentions": {
         "title": "Bahsetme yok",
-        "subtitle": "Bir takım arkadaşı bir yorumda sizden @ ile bahsettiğinde burada görünür."
+        "subtitle": "Bir takım arkadaşı bir yorumda sizden @ ile bahsettiğinde burada görünür"
       },
       "assigned": {
         "title": "Size atanan hiçbir şey yok",
@@ -111,7 +116,9 @@
       "markUnread": "Bu öğe okunmadı olarak işaretlenemedi. Tekrar deneyin.",
       "markAllRead": "Tüm öğeler okundu olarak işaretlenemedi. Tekrar deneyin.",
       "identity": "Hesabınız bir proje üyesiyle eşleştirilemedi. Proje profilinizdeki e-postayı kontrol edin.",
-      "partialLoad": "Bazı Ekip Gelen Kutusu kaynakları yenilenemedi. Kullanılabilir öğeler gösterilmeye devam ediyor.",
+      "partialLoad": "Bazı Ekip Gelen Kutusu kaynakları yenilenemedi. Kullanılabilir öğeler gösterilmeye devam ediyor",
+      "pullRequestsPartialLoad": "Bazı pull requestler yenilenemedi",
+      "pullRequestsPartialLoadHelp": "Kullanılabilir öğeler gösterilmeye devam ediyor; eksik pull requestleri yeniden yüklemeyi denemek için yenileyin",
       "workItemContext": "Bazı proje bağlamı kullanılamıyor. İş öğesi kullanılabilir durumda kalır.",
       "workItemLoad": "Bu iş öğesi yüklenemedi. Tekrar deneyin.",
       "workItemUpdate": "İş öğesindeki son değişiklik kaydedilemedi. Tekrar deneyin."

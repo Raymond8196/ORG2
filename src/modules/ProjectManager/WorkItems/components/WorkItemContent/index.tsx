@@ -496,7 +496,6 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
             <MarkdownContent
               body={displayedDescription}
               emptyText="No description provided."
-              clamped={!isThread}
               className="text-[14px] leading-6 text-text-1 [&_.chat-markdown-body]:text-[14px] [&_.chat-markdown-body]:leading-6"
             />
           ) : (

@@ -11,6 +11,11 @@
       "mentions": "Mentions",
       "assigned": "Assignés"
     },
+    "sections": {
+      "reviewRequested": "Révision demandée",
+      "authoredByMe": "Créées par moi",
+      "otherTodos": "Autres tâches"
+    },
     "status": {
       "read": "Lu",
       "unread": "Non lu"
@@ -33,10 +38,10 @@
       "title": "Rien ici pour l’instant",
       "subtitle": "Les mentions et les éléments de travail assignés apparaîtront ici.",
       "selectTitle": "Sélectionner un élément",
-      "selectSubtitle": "Voir le contexte du commentaire ou les détails de l’élément de travail.",
+      "selectSubtitle": "Voir le contexte du commentaire ou les détails de l’élément de travail",
       "mentions": {
         "title": "Aucune mention",
-        "subtitle": "Lorsqu’un coéquipier vous mentionne avec @ dans un commentaire, cela apparaît ici."
+        "subtitle": "Lorsqu’un coéquipier vous mentionne avec @ dans un commentaire, cela apparaît ici"
       },
       "assigned": {
         "title": "Rien ne vous est assigné",
@@ -111,7 +116,9 @@
       "markUnread": "Impossible de marquer cet élément comme non lu. Réessayez.",
       "markAllRead": "Impossible de marquer tous les éléments comme lus. Réessayez.",
       "identity": "Votre compte n’a pas pu être associé à un membre du projet. Vérifiez l’e-mail de votre profil de projet.",
-      "partialLoad": "Certaines sources de la boîte de réception d’équipe n’ont pas pu être actualisées. Les éléments disponibles restent affichés.",
+      "partialLoad": "Certaines sources de la boîte de réception d’équipe n’ont pas pu être actualisées. Les éléments disponibles restent affichés",
+      "pullRequestsPartialLoad": "Certaines demandes de tirage n’ont pas pu être actualisées",
+      "pullRequestsPartialLoadHelp": "Les éléments disponibles restent affichés ; actualisez pour tenter de charger à nouveau les demandes de tirage manquantes",
       "workItemContext": "Une partie du contexte du projet n’est pas disponible. L’élément de travail reste utilisable.",
       "workItemLoad": "Impossible de charger cet élément de travail. Réessayez.",
       "workItemUpdate": "Impossible d’enregistrer la dernière modification de l’élément de travail. Réessayez."

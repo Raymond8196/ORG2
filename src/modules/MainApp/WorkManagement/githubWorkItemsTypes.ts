@@ -1,3 +1,10 @@
+export type IssueRepoFilter = string;
+
+export interface RepoFilterOption {
+  key: IssueRepoFilter;
+  label: string;
+}
+
 export interface GitHubRepoSource {
   repoId: string;
   repoPath: string;

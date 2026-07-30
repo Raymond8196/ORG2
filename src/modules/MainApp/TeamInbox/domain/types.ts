@@ -23,6 +23,8 @@ export interface WorkItemTarget {
   orgId?: string;
   projectId: string;
   workItemId: string;
+  /** First repository in the owning project's synced-repository scope. */
+  repository?: string;
 }
 
 export interface WorkItemCommentTarget {

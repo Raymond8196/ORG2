@@ -14,6 +14,7 @@ import { SearchInput } from "@src/components/SearchInput";
 import { PAGE_ICON_BUTTON } from "@src/components/SettingsTable/SettingsTablePagination";
 import TabPill, { type TabPillItem } from "@src/components/TabPill";
 import { DETAIL_PANEL_WIDTH_TOKENS } from "@src/config/detailPanelTokens";
+import { CollapsibleSection } from "@src/modules/shared/layouts/blocks";
 
 export const GITHUB_WORK_ITEMS_SINGLE_ROW_MIN_WIDTH = 650;
 
@@ -173,6 +174,45 @@ export function GitHubWorkItemListFrame({
         {children}
       </div>
     </div>
+  );
+}
+
+export function GitHubWorkItemSection({
+  label,
+  testId,
+  children,
+  defaultOpen = true,
+}: {
+  label: string;
+  testId: string;
+  children?: ReactNode;
+  defaultOpen?: boolean;
+}): ReactNode {
+  return (
+    <section
+      className="border-t border-border-2 first:border-t-0"
+      data-testid={testId}
+      aria-label={label}
+    >
+      <CollapsibleSection
+        title={label}
+        defaultOpen={defaultOpen}
+        compact
+        headerRowClassName="mb-0 h-auto"
+        titleButtonClassName="w-full px-3 py-2 text-left text-[11px] font-medium text-text-3"
+        titleClassName="min-w-0 flex-1 truncate"
+        chevronSize={12}
+        chevronStrokeWidth={2}
+        titleButtonTestId={`${testId}-toggle`}
+      >
+        <div
+          className="divide-y divide-border-2 border-t border-border-2"
+          data-testid={`${testId}-content`}
+        >
+          {children}
+        </div>
+      </CollapsibleSection>
+    </section>
   );
 }
 

@@ -13,6 +13,7 @@ export const GITHUB_ITEM_KIND = {
   PR: "pr",
 } as const;
 
+export type IssueState = GitHubIssue["state"];
 export type ManagedIssueLabel = GitHubIssue["labels"][number];
 
 export interface ManagedIssueItem {
@@ -41,8 +42,11 @@ export interface ManagedPrItem {
   repoId: string;
   repoPath: string;
   remoteUrl: string;
+  viewerLogin: string | null;
   rawPr: OpenPRItem;
   author: string;
+  authoredByViewer: boolean;
+  reviewRequestedFromViewer: boolean;
   timeAgo: string;
   state: string;
   sourceBranch: string;
@@ -52,6 +56,23 @@ export interface ManagedPrItem {
 
 export type ManagedGitHubItem = ManagedIssueItem | ManagedPrItem;
 
+export function getManagedPullRequestKey(pullRequest: ManagedPrItem): string {
+  return `${pullRequest.repo}#${pullRequest.id}`;
+}
+
+export interface PullRequestTodoSections {
+  reviewRequested: ManagedPrItem[];
+  authoredByViewer: ManagedPrItem[];
+  otherTodos: ManagedPrItem[];
+}
+
+function isSameGitHubLogin(
+  left: string | null | undefined,
+  right: string | null | undefined
+): boolean {
+  return Boolean(left && right && left.toLowerCase() === right.toLowerCase());
+}
+
 export function formatGitHubItemTimeAgo(
   value: string,
   now: number = Date.now()
@@ -59,15 +80,15 @@ export function formatGitHubItemTimeAgo(
   const timestamp = Date.parse(value);
   if (Number.isNaN(timestamp)) return "";
   const elapsedMinutes = Math.max(0, Math.floor((now - timestamp) / 60_000));
-  if (elapsedMinutes < 1) return "now";
-  if (elapsedMinutes < 60) return `${elapsedMinutes}m ago`;
+  if (elapsedMinutes < 1) return "Now";
+  if (elapsedMinutes < 60) return `${elapsedMinutes}m`;
   const elapsedHours = Math.floor(elapsedMinutes / 60);
-  if (elapsedHours < 24) return `${elapsedHours}h ago`;
+  if (elapsedHours < 24) return `${elapsedHours}h`;
   const elapsedDays = Math.floor(elapsedHours / 24);
-  if (elapsedDays < 30) return `${elapsedDays}d ago`;
+  if (elapsedDays < 30) return `${elapsedDays}d`;
   const elapsedMonths = Math.floor(elapsedDays / 30);
-  if (elapsedMonths < 12) return `${elapsedMonths}mo ago`;
-  return `${Math.floor(elapsedMonths / 12)}y ago`;
+  if (elapsedMonths < 12) return `${elapsedMonths}mo`;
+  return `${Math.floor(elapsedMonths / 12)}y`;
 }
 
 export function mapIssueToManagedItem(
@@ -97,6 +118,13 @@ export function mapPrToManagedItem(
   pr: OpenPRItem,
   source: GitHubRepoSource
 ): ManagedPrItem {
+  const authoredByViewer = isSameGitHubLogin(
+    pr.author_login,
+    source.viewerLogin
+  );
+  const reviewRequestedFromViewer = pr.requested_reviewer_logins.some(
+    (reviewerLogin) => isSameGitHubLogin(reviewerLogin, source.viewerLogin)
+  );
   return {
     kind: GITHUB_ITEM_KIND.PR,
     id: pr.number,
@@ -105,8 +133,11 @@ export function mapPrToManagedItem(
     repoId: source.repoId,
     repoPath: source.repoPath,
     remoteUrl: source.remoteUrl,
+    viewerLogin: source.viewerLogin,
     rawPr: pr,
-    author: pr.head_branch,
+    author: pr.author_login,
+    authoredByViewer,
+    reviewRequestedFromViewer,
     timeAgo: formatGitHubItemTimeAgo(pr.updated_at),
     state: pr.state,
     sourceBranch: pr.head_branch,
@@ -136,6 +167,7 @@ function getSearchableParts(item: ManagedGitHubItem): string[] {
   return [
     item.title,
     item.repo,
+    item.author,
     item.sourceBranch,
     item.targetBranch,
     `#${item.id}`,
@@ -163,12 +195,8 @@ export function managedItemMatchesQuery(
     } else if (item.state !== query.state) return false;
   }
   if (query.author) {
-    const author =
-      item.kind === GITHUB_ITEM_KIND.ISSUE ? item.author : item.sourceBranch;
-    const expected =
-      query.author === "@me" && item.kind === GITHUB_ITEM_KIND.ISSUE
-        ? item.viewerLogin
-        : query.author;
+    const author = item.author;
+    const expected = query.author === "@me" ? item.viewerLogin : query.author;
     if (!expected || author.toLowerCase() !== expected.toLowerCase())
       return false;
   }
@@ -198,5 +226,34 @@ export function managedItemMatchesQuery(
     getSearchableParts(item).some((part) =>
       part.toLowerCase().includes(freeText)
     )
+  );
+}
+
+/**
+ * Orders open PRs into the three collapsible Work Management sections.
+ * GitHub's requested-reviewer list is outstanding-only, so a completed review
+ * naturally leaves the first section without an extra per-PR reviews request.
+ */
+export function groupPullRequestsIntoTodoSections(
+  items: readonly ManagedGitHubItem[]
+): PullRequestTodoSections {
+  return items.reduce<PullRequestTodoSections>(
+    (sections, item) => {
+      if (
+        item.kind !== GITHUB_ITEM_KIND.PR ||
+        item.state !== GITHUB_QUERY_STATE.OPEN
+      ) {
+        return sections;
+      }
+      if (item.reviewRequestedFromViewer) {
+        sections.reviewRequested.push(item);
+      } else if (item.authoredByViewer) {
+        sections.authoredByViewer.push(item);
+      } else {
+        sections.otherTodos.push(item);
+      }
+      return sections;
+    },
+    { reviewRequested: [], authoredByViewer: [], otherTodos: [] }
   );
 }

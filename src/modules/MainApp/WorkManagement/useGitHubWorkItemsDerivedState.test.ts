@@ -30,12 +30,17 @@ const issue = {
 } as unknown as GitHubIssue;
 const mergedPr = {
   number: 7,
+  url: "https://github.com/acme/repo/pull/7",
   title: "Ship fix",
   state: "merged",
+  author_login: "author",
+  author_avatar_url: null,
+  requested_reviewer_logins: [],
   updated_at: "2026-07-20T11:00:00.000Z",
   head_branch: "fix/crash",
   base_branch: "main",
   draft: false,
+  created_at: "2026-07-20T10:00:00.000Z",
 } as OpenPRItem;
 
 function derive(selectedRepo: string, selectedRepoPath: string | null) {
@@ -83,5 +88,53 @@ describe("GitHub work-items derived state", () => {
     expect(state.hasMoreFilteredIssues).toBe(true);
     expect(state.openIssuesLoaded).toBe(true);
     expect(state.closedIssuesLoaded).toBe(false);
+  });
+
+  it("orders open PRs with personal work before other todos", () => {
+    const openPr = (
+      number: number,
+      authorLogin: string,
+      requestedReviewerLogins: string[]
+    ): OpenPRItem => ({
+      ...mergedPr,
+      number,
+      state: "open",
+      author_login: authorLogin,
+      requested_reviewer_logins: requestedReviewerLogins,
+    });
+    const state = deriveGitHubWorkItemsState({
+      repoSources: [source],
+      repoIssueMap: {},
+      repoPrMap: {
+        [source.repoFullName]: {
+          ...EMPTY_REPO_PRS,
+          openPrs: [
+            openPr(8, "teammate", ["viewer"]),
+            openPr(9, "viewer", []),
+            openPr(10, "teammate", []),
+          ],
+          openLoaded: true,
+          closedPrs: [mergedPr],
+          closedLoaded: true,
+        },
+      },
+      parsedSearchQuery: parseGitHubSearchQuery("is:pr is:open"),
+      selectedRepo: "all",
+      selectedRepoPath: "/repo",
+      currentPage: 1,
+      allReposValue: "all",
+      currentWorkstationValue: "currentWorkstation",
+    });
+
+    expect(state.filteredItems.map((item) => item.id)).toEqual([8, 9, 10]);
+    expect(
+      state.pullRequestTodoSections.reviewRequested.map((item) => item.id)
+    ).toEqual([8]);
+    expect(
+      state.pullRequestTodoSections.authoredByViewer.map((item) => item.id)
+    ).toEqual([9]);
+    expect(
+      state.pullRequestTodoSections.otherTodos.map((item) => item.id)
+    ).toEqual([10]);
   });
 });

@@ -20,6 +20,7 @@
 - Refreshing the same Work Item preserves Discussion when open; switching to a different Work Item synchronously returns to its primary body.
 - The legacy default presentation keeps its expanded history behavior for callers that have not migrated to the shared thread surface.
 - Team Inbox and the full "Open work item" destination both use `WorkItemThreadSurface`, including the same ordered property pills and responsive wrapping policy.
+- Work Item thread descriptions use the shared 15-line measured Markdown preview and expand/collapse control used by pull-request descriptions and comments.
 - Both thread entry points pass one resolved project-member identity to the comment composer and history timeline.
 - Both thread entry points keep the description read-only until Edit and hide Preview/Raw tabs in the focused editor.
 - Legacy one-line descriptions containing escaped Markdown line breaks render and edit with real line breaks without being persisted merely by viewing.

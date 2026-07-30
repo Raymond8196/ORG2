@@ -2369,6 +2369,11 @@
       "mentions": "提及",
       "assigned": "分配给我"
     },
+    "sections": {
+      "reviewRequested": "已请求审查",
+      "authoredByMe": "由我创建",
+      "otherTodos": "其他待办事项"
+    },
     "status": {
       "read": "已读",
       "unread": "未读"
@@ -2398,10 +2403,10 @@
       "title": "暂无事项",
       "subtitle": "新的提及和分配会显示在这里。",
       "selectTitle": "选择一个事项",
-      "selectSubtitle": "查看评论上下文或工作项详情。",
+      "selectSubtitle": "查看评论上下文或工作项详情",
       "mentions": {
         "title": "暂无提及",
-        "subtitle": "当同事在评论中 @ 你时，会显示在这里。"
+        "subtitle": "当同事在评论中 @ 你时，会显示在这里"
       },
       "assigned": {
         "title": "暂无分配给你的事项",
@@ -2487,7 +2492,9 @@
       "markUnread": "标记未读失败，请重试。",
       "markAllRead": "全部标记已读失败，请重试。",
       "identity": "当前账户无法匹配到项目成员，请检查项目个人资料中的邮箱。",
-      "partialLoad": "部分团队收件箱来源刷新失败，当前可用事项仍会保留显示。",
+      "partialLoad": "部分团队收件箱来源刷新失败，当前可用事项仍会保留显示",
+      "pullRequestsPartialLoad": "部分拉取请求刷新失败",
+      "pullRequestsPartialLoadHelp": "当前可用事项仍会保留显示；请刷新以重新加载缺少的拉取请求",
       "workItemContext": "部分项目上下文暂不可用，工作项仍可继续查看和操作。",
       "workItemLoad": "无法加载此工作项，请重试。",
       "workItemUpdate": "无法保存刚才的工作项修改，请重试。"

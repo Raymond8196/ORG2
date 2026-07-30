@@ -1,8 +1,7 @@
-import { AtSign, ClipboardList } from "lucide-react";
+import { ListChecks, MessageSquareMore } from "lucide-react";
 import { forwardRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
-import { getListItemClasses } from "@src/components/ListPanel";
 import { formatRelativeTime } from "@src/util/time/formatRelativeTime";
 
 import {
@@ -11,6 +10,8 @@ import {
   workItemPriorityLabelKey,
   workItemStatusLabelKey,
 } from "../domain";
+import TeamInboxListItem from "./TeamInboxListItem";
+import { compactRepositoryLabel } from "./teamInboxRowMetadata";
 
 export interface TeamInboxRowProps {
   item: TeamInboxItem;
@@ -52,33 +53,41 @@ const TeamInboxRow = forwardRef<HTMLButtonElement, TeamInboxRowProps>(
           summary: toCompactPreview(item.payload.commentBody),
         };
       }
+      const repository = compactRepositoryLabel(item.target.repository);
+      const source = repository
+        ? t("teamInbox.row.issueSource", { repository })
+        : t("teamInbox.row.issueSourceFallback");
+      const handoff = item.payload.handoff;
+      if (!handoff) {
+        return {
+          meta: `${t("teamInbox.filters.assigned")} · ${source}`,
+          summary: "",
+        };
+      }
       const status = t(workItemStatusLabelKey(item.payload.status), {
         defaultValue: humanizeToken(item.payload.status),
       });
       const priority = t(workItemPriorityLabelKey(item.payload.priority), {
         defaultValue: humanizeToken(item.payload.priority),
       });
-      const handoff = item.payload.handoff;
-      const meta = handoff
-        ? t(
-            handoff.status === "pending"
-              ? "teamInbox.handoff.rowPending"
-              : handoff.status === "accepted"
-                ? "teamInbox.handoff.rowAccepted"
-                : "teamInbox.handoff.rowReturned",
-            {
-              name:
-                handoff.status === "returned"
-                  ? handoff.recipientName
-                  : handoff.senderName,
-              status,
-              priority,
-            }
-          )
-        : `${status} · ${priority}`;
+      const meta = t(
+        handoff.status === "pending"
+          ? "teamInbox.handoff.rowPending"
+          : handoff.status === "accepted"
+            ? "teamInbox.handoff.rowAccepted"
+            : "teamInbox.handoff.rowReturned",
+        {
+          name:
+            handoff.status === "returned"
+              ? handoff.recipientName
+              : handoff.senderName,
+          status,
+          priority,
+        }
+      );
       return {
-        meta,
-        summary: toCompactPreview(handoff?.note || item.payload.summary || ""),
+        meta: `${meta} · ${source}`,
+        summary: "",
       };
     }, [item, t]);
     const relativeTime = useMemo(
@@ -91,60 +100,37 @@ const TeamInboxRow = forwardRef<HTMLButtonElement, TeamInboxRowProps>(
     );
 
     return (
-      <button
+      <TeamInboxListItem
         ref={ref}
         id={itemKey}
-        type="button"
+        selected={selected}
         role="option"
-        aria-selected={selected}
-        aria-label={t("teamInbox.row.ariaLabel", {
+        ariaLabel={t("teamInbox.row.ariaLabel", {
           title,
           status: readLabel,
         })}
         tabIndex={selected ? 0 : -1}
-        data-testid="team-inbox-row"
-        data-item-kind={item.kind}
-        data-item-id={item.id}
-        data-unread={unread}
-        className={`${getListItemClasses(selected)} w-full min-w-0 !items-start text-left`}
+        dataAttributes={{
+          "data-testid": "team-inbox-row",
+          "data-item-kind": item.kind,
+          "data-item-id": item.id,
+          "data-unread": unread,
+        }}
+        title={title}
+        time={relativeTime}
+        preview={summary}
+        metadata={<span className="truncate">{meta}</span>}
+        unread={unread}
+        leading={
+          isMention ? (
+            <MessageSquareMore size={14} strokeWidth={1.8} />
+          ) : (
+            <ListChecks size={14} strokeWidth={1.8} />
+          )
+        }
+        leadingClassName={isMention ? "text-primary-6" : "text-success-6"}
         onClick={() => onSelect(item)}
-      >
-        <span
-          className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${isMention ? "bg-primary-1 text-primary-6" : "bg-success-1 text-success-6"}`}
-          aria-hidden
-        >
-          {isMention ? <AtSign size={14} /> : <ClipboardList size={14} />}
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="flex min-w-0 items-center gap-2">
-            {unread ? (
-              <span
-                className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary-6"
-                aria-hidden
-              />
-            ) : null}
-            <span
-              className={`truncate text-xs text-text-1 ${unread ? "font-semibold" : "font-medium"}`}
-            >
-              {title}
-            </span>
-            <span className="ml-auto shrink-0 text-xs font-normal text-text-4">
-              {relativeTime}
-            </span>
-          </span>
-          {summary ? (
-            <span
-              className="mt-0.5 line-clamp-2 block max-h-10 overflow-hidden text-xs font-normal leading-5 text-text-1"
-              title={summary}
-            >
-              {summary}
-            </span>
-          ) : null}
-          <span className="mt-1 block truncate text-xs font-normal text-text-4">
-            {meta}
-          </span>
-        </span>
-      </button>
+      />
     );
   }
 );

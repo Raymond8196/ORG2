@@ -117,7 +117,9 @@ export function coalesceGitHubListRequest<T>(
 // are persisted (not the heavier per-PR detail cache).
 
 const STORAGE_KEY_ISSUES = "orgii.ghcache.issues.v1";
-const STORAGE_KEY_PRS = "orgii.ghcache.prs.v1";
+// v2 adds author + outstanding-reviewer identity to every PR list item.
+// A key bump prevents v1 entries from being silently classified as unrelated.
+const STORAGE_KEY_PRS = "orgii.ghcache.prs.v2";
 
 function safeLocalStorage(): Storage | null {
   try {

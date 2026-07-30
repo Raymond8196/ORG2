@@ -14,6 +14,7 @@ import {
 
 import type { WorkItem } from "@src/types/core/workItem";
 
+import type { ManagedPrItem } from "../../WorkManagement/githubManagedItemModel";
 import TeamInboxView from "../TeamInboxView";
 import type { AssignedWorkItem } from "../domain";
 
@@ -24,6 +25,7 @@ const componentProps = vi.hoisted(() => ({
   assignedDetail: null as Record<string, unknown> | null,
   list: null as Record<string, unknown> | null,
   placeholder: null as Record<string, unknown> | null,
+  prDetail: null as Record<string, unknown> | null,
 }));
 const translate = vi.hoisted(() => vi.fn((key: string) => key));
 
@@ -64,6 +66,51 @@ vi.mock("../components", () => ({
   },
 }));
 
+vi.mock(
+  "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/PullRequestContent/detail/PrDetailPanel",
+  () => ({
+    PrDetailPanel: (props: Record<string, unknown>) => {
+      componentProps.prDetail = props;
+      return null;
+    },
+  })
+);
+
+function createPullRequest(): ManagedPrItem {
+  return {
+    kind: "pr",
+    id: 42,
+    title: "Render in Team Inbox detail",
+    repo: "orgii/desktop",
+    repoId: "repo-1",
+    repoPath: "/repos/orgii",
+    remoteUrl: "https://github.com/orgii/desktop.git",
+    viewerLogin: "viewer",
+    rawPr: {
+      number: 42,
+      url: "https://github.com/orgii/desktop/pull/42",
+      title: "Render in Team Inbox detail",
+      state: "open",
+      author_login: "viewer",
+      author_avatar_url: null,
+      requested_reviewer_logins: [],
+      head_branch: "feat/team-inbox",
+      base_branch: "main",
+      draft: false,
+      created_at: "2026-07-28T00:00:00.000Z",
+      updated_at: "2026-07-28T00:05:00.000Z",
+    },
+    author: "viewer",
+    authoredByViewer: true,
+    reviewRequestedFromViewer: false,
+    timeAgo: "5h",
+    state: "open",
+    sourceBranch: "feat/team-inbox",
+    targetBranch: "main",
+    updatedAt: "2026-07-28T00:05:00.000Z",
+  };
+}
+
 describe("TeamInboxView split layout", () => {
   let container: HTMLDivElement;
   let root: Root;
@@ -80,6 +127,7 @@ describe("TeamInboxView split layout", () => {
     componentProps.assignedDetail = null;
     componentProps.list = null;
     componentProps.placeholder = null;
+    componentProps.prDetail = null;
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -109,6 +157,13 @@ describe("TeamInboxView split layout", () => {
     expect(splitViewProps.current?.hideBreadcrumbWhenSidebarCollapsed).toBe(
       true
     );
+    expect(splitViewProps.current?.listPanelBackgroundClassName).toBe(
+      "bg-chat-pane"
+    );
+    expect(splitViewProps.current?.mainContentClassName).toBe("bg-chat-pane");
+    expect(splitViewProps.current?.listWidth).toBe(360);
+    expect(splitViewProps.current?.minListWidth).toBe(280);
+    expect(splitViewProps.current?.maxListWidth).toBe(480);
   });
 
   it("projects successful detail edits back into the matching Inbox row", async () => {
@@ -192,6 +247,49 @@ describe("TeamInboxView split layout", () => {
     expect(componentProps.list?.items).toEqual([]);
   });
 
+  it("opens a selected pull request in the Team Inbox right pane", async () => {
+    const pullRequest = createPullRequest();
+
+    await act(async () => {
+      root.render(
+        createElement(TeamInboxView, {
+          dataSource: {
+            listPage: async () => ({ items: [], nextCursor: null }),
+          },
+          pullRequests: [pullRequest],
+        })
+      );
+      await Promise.resolve();
+    });
+
+    const onSelectPullRequest = componentProps.list?.onSelectPullRequest as
+      | ((pullRequest: ManagedPrItem) => void)
+      | undefined;
+    expect(onSelectPullRequest).toBeTypeOf("function");
+
+    await act(async () => {
+      onSelectPullRequest?.(pullRequest);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(componentProps.list?.selectedPullRequestKey).toBe(
+      "orgii/desktop#42"
+    );
+    expect(componentProps.prDetail).toMatchObject({
+      repoPath: "/repos/orgii",
+      repoId: "repo-1",
+      identity: {
+        number: 42,
+        title: "Render in Team Inbox detail",
+        url: "https://github.com/orgii/desktop/pull/42",
+        status: "open",
+        headBranch: "feat/team-inbox",
+        baseBranch: "main",
+      },
+    });
+  });
+
   it("marks an unread item as read when its detail becomes visible", async () => {
     const unreadItem: AssignedWorkItem = {
       id: "assigned-unread",
@@ -260,11 +358,13 @@ describe("TeamInboxView split layout", () => {
       .mockRejectedValueOnce(new Error("offline"))
       .mockResolvedValueOnce({ items: [], nextCursor: null });
     const refresh = vi.fn(async () => undefined);
+    const refreshPullRequests = vi.fn();
 
     await act(async () => {
       root.render(
         createElement(TeamInboxView, {
           dataSource: { listPage, refresh },
+          onRefreshPullRequests: refreshPullRequests,
         })
       );
       await Promise.resolve();
@@ -282,6 +382,7 @@ describe("TeamInboxView split layout", () => {
     });
 
     expect(refresh).toHaveBeenCalledOnce();
+    expect(refreshPullRequests).toHaveBeenCalledOnce();
     expect(listPage).toHaveBeenCalledTimes(2);
   });
 });
