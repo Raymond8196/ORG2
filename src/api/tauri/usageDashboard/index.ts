@@ -277,6 +277,50 @@ export async function usageDashboardRounds(
   });
 }
 
+/**
+ * One (UTC-day-floor, bucket) aggregation row from
+ * `usage_dashboard_daily_rollup`. Unlike the dashboard queries above this is
+ * an `all_sources` rollup, so `bucket` may also be `"other"` (sources the
+ * desktop view hides). `dayStartMs` is the UTC midnight of the day.
+ */
+export interface DailyRollupRow {
+  dayStartMs: number;
+  bucket: string;
+  inputTokens: number;
+  outputTokens: number;
+  cacheReadTokens: number;
+  cacheWriteTokens: number;
+  totalTokens: number;
+  costUsd: number;
+  /** Distinct sessions observed in this (day, bucket). */
+  sessions: number;
+  /** Request-log round count in this (day, bucket). */
+  requests: number;
+}
+
+export interface DailyRollupResult {
+  days: DailyRollupRow[];
+  /** Lifetime mirror-deduped session count — independent of the window. */
+  totalSessions: number;
+}
+
+/**
+ * Per-UTC-day, per-bucket rollup over `[startMs, endMs]` for the
+ * member-runtime push (registered behind the same 1-permit semaphore as the
+ * other dashboard scans, so a plain wrapper is enough — concurrent callers
+ * queue in the backend). Also carries the lifetime session census the push
+ * shares as `stats.totalSessions`.
+ */
+export async function usageDashboardDailyRollup(
+  startMs: number,
+  endMs: number
+): Promise<DailyRollupResult> {
+  return invoke<DailyRollupResult>("usage_dashboard_daily_rollup", {
+    startMs,
+    endMs,
+  });
+}
+
 export async function usageDashboardSessions(
   scope: UsageScope = {},
   options?: { sort?: UsageSessionSort; offset?: number; limit?: number }
