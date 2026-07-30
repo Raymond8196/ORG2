@@ -58,15 +58,25 @@ interface ChartDatum {
   cost: number | null;
 }
 
-function formatBucketLabel(
+export function formatBucketLabel(
   ms: number,
   hourly: boolean,
   locale: string
 ): string {
   const date = new Date(ms);
+  // Day buckets are UTC calendar days (`TrendBucket::Day` floors on UTC, and
+  // `MemberUsageDay.day` is a UTC date string), so the label must name the
+  // bucket's own day: formatting UTC midnight in a negative-offset zone would
+  // print the PREVIOUS date and make teammates in different zones disagree
+  // about identical data. Hour buckets are plain instants — those stay local,
+  // which is what a viewer wants for "when did this happen".
   return hourly
     ? formatCompactHour(date)
-    : date.toLocaleDateString(locale, { month: "2-digit", day: "2-digit" });
+    : date.toLocaleDateString(locale, {
+        month: "2-digit",
+        day: "2-digit",
+        timeZone: "UTC",
+      });
 }
 
 export default function UsageTrendChart({
