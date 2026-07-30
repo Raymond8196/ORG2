@@ -137,11 +137,30 @@ fn sidebar_query_is_date_bounded_and_carries_impact_metadata() {
     // The Kanban board and other card surfaces render these inline, so the
     // lightweight sidebar row must carry them (regression guard).
     assert_eq!(row.model.as_deref(), Some("model-a"));
+    // The sidebar's git indicator reads this branch straight from the cache —
+    // it is whatever the source app recorded, never a working-copy lookup.
+    assert_eq!(row.branch.as_deref(), Some("main"));
     assert_eq!(row.total_tokens, 7); // input_tokens (3) + output_tokens (4)
     assert_eq!(row.files_changed, 1);
     assert_eq!(row.lines_added, 7);
     assert_eq!(row.lines_removed, 2);
     assert_eq!(row.touched_files, vec!["large/path.rs".to_string()]);
+}
+
+#[test]
+fn sidebar_query_reports_no_branch_for_sources_that_record_none() {
+    let mut conn = fixture_conn();
+    let mut branchless = input(SOURCE_CODEX_APP, "branchless", 250);
+    branchless.branch = None;
+    upsert_imported_session_cache_from_conn(&mut conn, &[branchless]).expect("upsert");
+
+    let page =
+        query_imported_sidebar_page_from_conn(&conn, SOURCE_CODEX_APP, Some(200), Some(300), 10, 0)
+            .expect("sidebar page");
+
+    // The upsert stores `None` as "", which must not reach the frontend as an
+    // empty branch — that would render a git indicator with no branch at all.
+    assert_eq!(page.sessions[0].branch, None);
 }
 
 #[test]

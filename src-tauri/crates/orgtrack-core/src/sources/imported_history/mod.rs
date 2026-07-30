@@ -216,6 +216,13 @@ pub struct ImportedHistorySidebarRow {
     pub repo_root_path: Option<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub repo_remote_urls: Vec<String>,
+    /// Git branch recorded by the source application itself (Claude Code's
+    /// `gitBranch` transcript field, Cursor/Windsurf tracked-repo metadata).
+    /// Never derived by scanning the working copy: sources that do not report
+    /// a branch leave this absent, and so do rows cached before it was
+    /// carried onto the sidebar projection.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub branch: Option<String>,
     /// The source app's own transcript file — the store of record for an
     /// imported session, which never has a `sessions.db` copy. Absent for
     /// rows cached before the path was recorded.

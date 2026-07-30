@@ -47,6 +47,7 @@ import type {
   UseSessionMenuItemsParams,
   UseSessionMenuItemsResult,
 } from "./types";
+import { useSessionPrStatuses } from "./useSessionPrStatuses";
 
 /**
  * One-line subtitle for a session row, shown ONLY while the session is
@@ -437,6 +438,10 @@ export function useSessionMenuItems({
     return map;
   }, [childSessionsByParent, visibleSessions]);
 
+  // Keyed off the listed rows, not `visibleSessions`: a repo only earns a PR
+  // fetch once one of its sessions is actually on screen.
+  const prForSession = useSessionPrStatuses(listedSessions);
+
   const buildSessionRow = useCallback(
     (session: Session): NavigationMenuItem =>
       buildSessionMenuItem({
@@ -446,8 +451,9 @@ export function useSessionMenuItems({
         liveDetail: liveDetailForSession(
           agentLiveStatuses.get(session.session_id)
         ),
+        pr: prForSession(session),
       }),
-    [agentLiveStatuses, untitledSession, visitedSessions]
+    [agentLiveStatuses, prForSession, untitledSession, visitedSessions]
   );
 
   const loadMoreRowFor = useCallback(
