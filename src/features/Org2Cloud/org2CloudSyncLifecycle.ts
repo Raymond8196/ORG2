@@ -201,12 +201,13 @@ export abstract class Org2CloudSyncLifecycle {
     try {
       await this.syncAllOrgs(generation, { pushSessions });
       // Journaling only — the pass outcome itself is unchanged.
+      //
+      // A successful pass advances the last-sync stamp but deliberately does
+      // NOT consume a journal slot: passes are activity-debounced (~1.5-3s),
+      // so success entries would evict every warning from the bounded ring
+      // within minutes of active work — exactly when the log matters. The
+      // journal is for problems; "it ran and worked" is the last-sync stamp.
       markSyncPass({ success: true });
-      recordSyncEvent({
-        level: "info",
-        kind: "sync_pass",
-        message: "Cloud sync pass completed",
-      });
     } catch (error) {
       log.warn("cloud sync pass failed:", error);
       markSyncPass({ success: false });
