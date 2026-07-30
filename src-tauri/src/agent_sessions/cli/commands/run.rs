@@ -78,6 +78,12 @@ fn new_id() -> String {
     uuid::Uuid::new_v4().to_string()
 }
 
+/// Mint a turn intent id for a path that has no `TurnIdentity` of its own
+/// (currently `cli_agent_resume`), so every turn is attributable.
+pub(super) fn new_turn_intent_id() -> String {
+    new_id()
+}
+
 /// Prepend IDE context (open files, git status, etc.) to the user prompt
 /// so external CLI agents are aware of the user's IDE state.
 fn inject_ide_context_into_prompt(user_input: &str, ide_context: Option<&IdeContext>) -> String {

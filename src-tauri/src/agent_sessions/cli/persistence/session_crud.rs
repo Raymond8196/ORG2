@@ -275,6 +275,32 @@ pub fn accept_cli_turn(
     turn_intent_id: &str,
     client_message_id: &str,
 ) -> Result<(), String> {
+    accept_cli_turn_with_source(
+        session_id,
+        turn_intent_id,
+        Some(client_message_id),
+        session_persistence::turn_intents::TurnIntentSource::UserSubmit,
+    )
+}
+
+/// `accept_cli_turn` for a resumed session: same atomic acceptance, but the
+/// intent is sourced as `Resume` and has no client message behind it — resume
+/// replays the session's stored `user_input` instead of a fresh submit.
+pub fn accept_cli_resume_turn(session_id: &str, turn_intent_id: &str) -> Result<(), String> {
+    accept_cli_turn_with_source(
+        session_id,
+        turn_intent_id,
+        None,
+        session_persistence::turn_intents::TurnIntentSource::Resume,
+    )
+}
+
+fn accept_cli_turn_with_source(
+    session_id: &str,
+    turn_intent_id: &str,
+    client_message_id: Option<&str>,
+    source: session_persistence::turn_intents::TurnIntentSource,
+) -> Result<(), String> {
     let conn = get_connection().map_err(|err| err.to_string())?;
     let tx = conn
         .unchecked_transaction()
@@ -288,9 +314,9 @@ pub fn accept_cli_turn(
         &tx,
         session_id,
         turn_intent_id,
-        Some(client_message_id),
+        client_message_id,
         None,
-        session_persistence::turn_intents::TurnIntentSource::UserSubmit,
+        source,
         session_persistence::turn_intents::TurnIntentStatus::Queued,
     )
     .map_err(|err| err.to_string())?;
