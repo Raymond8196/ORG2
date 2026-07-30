@@ -103,6 +103,59 @@ order:
 - Before handing off a PR, read back the published description (for example
   with `gh pr view`) and verify the section names and order.
 
+#### Base and diff integrity
+
+- Start from the intended target branch. Before handoff, fetch its latest state
+  and check whether the PR needs to be updated or conflicts resolved.
+- After resolving conflicts or incorporating target-branch changes, rerun the
+  checks affected by that integration.
+- Keep the published description synchronized with the final diff. Remove
+  claims about approaches, files, or behavior that are no longer present.
+- Avoid unrelated merge commits and generated churn. Do not rewrite published
+  history after review begins unless necessary; if history must change, use the
+  safest available method and tell reviewers what changed.
+
+#### Verification evidence
+
+- List the exact commands and meaningful manual checks that actually ran,
+  together with their outcomes.
+- State which relevant checks were not run and why. Do not write unsupported
+  claims such as "all tests pass" or infer runtime/performance improvement from
+  typecheck or code shape alone.
+- Verification must be proportional to risk and cover the changed behavior at
+  its owning boundary, not only a helper or selector.
+
+#### Risk, compatibility, and rollback
+
+- `Potential risks` must name concrete compatibility, data, concurrency,
+  lifecycle, platform, rollout, and unverified-path concerns that apply. Do not
+  use a generic "no risk" statement to avoid analysis.
+- Dependency or lockfile changes, database/schema migrations, configuration or
+  persistence format changes, and public API/IPC/wire changes must state why
+  they are necessary, how compatibility is handled, and how to roll back or
+  recover.
+- Destructive or difficult-to-reverse behavior requires an explicit rollback
+  or recovery plan before the PR is ready for review.
+
+#### UI and security evidence
+
+- User-visible UI changes should include screenshots or recordings appropriate
+  to the change, including relevant themes, viewport constraints, and
+  loading/empty/error states. If visual evidence is not useful, say why.
+- Before handoff, inspect the diff for secrets, tokens, personal paths, private
+  configuration, debug logs, build artifacts, caches, and unrelated formatting
+  changes. None may be included.
+
+#### Draft, ready, and review lifecycle
+
+- Keep the PR in Draft while material design choices, known blockers, required
+  migrations, or risk-proportionate verification remain incomplete.
+- Mark the PR ready only when its acceptance criteria are met and the
+  description reflects the current implementation.
+- If scope, behavior, or the chosen solution changes materially after review
+  begins, update the description and notify reviewers instead of silently
+  changing direction.
+
 ---
 
 ## What This File Does NOT Do
