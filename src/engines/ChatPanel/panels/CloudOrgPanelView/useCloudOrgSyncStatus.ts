@@ -42,7 +42,6 @@ export type SchemaProbeStatus =
 
 export interface CloudOrgSyncStatus {
   /** Origin of this org's data-plane endpoint (never the anon key). */
-  endpointOrigin: string | null;
   isOfficialEndpoint: boolean;
   signedIn: boolean;
   userId: string | null;
@@ -166,16 +165,11 @@ export function useCloudOrgSyncStatus(orgId: string): CloudOrgSyncStatus {
     })();
   }, [running]);
 
-  const endpointOrigin = useMemo(() => {
-    try {
-      return new URL(endpoint.supabaseUrl).origin;
-    } catch {
-      return null;
-    }
-  }, [endpoint.supabaseUrl]);
-
   return {
-    endpointOrigin,
+    // The endpoint URL is deliberately NOT exposed: the panel only reports
+    // WHICH KIND of backend this org talks to. Nothing downstream can render
+    // the host, so there is no path for it to leak into the UI or the copied
+    // journal.
     isOfficialEndpoint: endpoint.isOfficial,
     signedIn: Boolean(auth),
     userId: auth?.userId ?? null,

@@ -26,7 +26,6 @@ function status(
   overrides: Partial<CloudOrgSyncStatus> = {}
 ): CloudOrgSyncStatus {
   return {
-    endpointOrigin: "https://cloud.example.com",
     isOfficialEndpoint: true,
     signedIn: true,
     userId: "user-1",
@@ -76,13 +75,17 @@ function entry(overrides: Partial<SyncJournalEntry> = {}): SyncJournalEntry {
 }
 
 describe("CloudOrgSyncSection connection block", () => {
-  it("renders the endpoint origin, account, schema, and capability rows when signed in", () => {
+  it("reports the backend kind, account, schema, and capability rows when signed in", () => {
     const root = renderSection();
 
     const endpointRow = root.querySelector(
       '[data-testid="cloud-org-sync-endpoint"]'
     );
-    expect(endpointRow?.textContent).toContain("https://cloud.example.com");
+    // Backend KIND only — never a URL.
+    expect(endpointRow?.textContent).toContain(
+      "cloud.orgPanel.sync.endpointOfficial"
+    );
+    expect(root.textContent ?? "").not.toContain("http");
     expect(
       root.querySelector('[data-testid="cloud-org-sync-account"]')?.textContent
     ).toContain("user-1");
@@ -133,10 +136,11 @@ describe("CloudOrgSyncSection connection block", () => {
       root.querySelector('[data-testid="cloud-org-sync-capabilities"]')
         ?.textContent
     ).toContain("cloud.orgPanel.sync.capabilitiesUnavailable");
-    // Endpoint identity is still useful while signed out.
+    // Backend kind is still useful while signed out — still no URL.
     expect(
       root.querySelector('[data-testid="cloud-org-sync-endpoint"]')?.textContent
-    ).toContain("https://cloud.example.com");
+    ).toContain("cloud.orgPanel.sync.endpointOfficial");
+    expect(root.textContent ?? "").not.toContain("http");
   });
 
   it("calls out a schema mismatch with both versions", () => {
