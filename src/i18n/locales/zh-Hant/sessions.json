@@ -892,6 +892,7 @@
     "multipleChoice": "多選",
     "typeYourAnswer": "輸入您的回答…",
     "newSession": "新建會話",
+    "muteNotifications": "將此會話通知靜音",
     "startPage": {
       "title": "你想做什麼？",
       "back": "返回起始頁",

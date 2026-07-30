@@ -923,6 +923,7 @@
     "multipleChoice": "多选",
     "typeYourAnswer": "输入您的回答…",
     "newSession": "新建会话",
+    "muteNotifications": "静音此会话通知",
     "startPage": {
       "title": "你想做什么？",
       "back": "返回起始页",
