@@ -290,7 +290,7 @@ fn index_claude_user_turns(
         start_offset = start_offset.saturating_add(bytes_read as u64);
         // Any line that does not become a turn header counts toward the
         // previous turn's body-size surrogate.
-        let mut count_toward_previous_turn = |turns: &mut Vec<ClaudeIndexedTurn>| {
+        let count_toward_previous_turn = |turns: &mut Vec<ClaudeIndexedTurn>| {
             if line.iter().any(|byte| !byte.is_ascii_whitespace()) {
                 if let Some(previous) = turns.last_mut() {
                     previous.following_line_count += 1;
