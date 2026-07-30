@@ -17,6 +17,7 @@ import {
   INACTIVE_ORG_BACKOFF_COOLDOWN_MS,
   ORG_BACKOFF_COOLDOWN_MS,
 } from "./org2CloudSyncEngine.constants";
+import { describeSyncError, recordSyncEvent } from "./org2CloudSyncJournal";
 
 const log = createLogger("Org2CloudSyncEngine");
 
@@ -89,6 +90,17 @@ export class Org2CloudOrgBackoffTracker {
         ? "session_quota"
         : "sync_disabled"
     );
+    // Journal EVERY arming, not just the toast-worthy first one: the panel's
+    // sync log exists precisely so a silently-backed-off inactive org is
+    // still discoverable. Diagnostics only — no control flow below changes.
+    const described = describeSyncError(error);
+    recordSyncEvent({
+      level: "warn",
+      kind: "org_backoff",
+      orgId,
+      message: `Cloud sync backed off for ${Math.round(cooldownMs / 1000)}s: ${described.message}`,
+      code: described.code,
+    });
     const previousAudience = this.reportedAudiences.get(orgId);
     if (previousAudience === "active" || (!isActiveOrg && previousAudience)) {
       return;

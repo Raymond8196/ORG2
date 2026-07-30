@@ -32,6 +32,11 @@ export function CloudOrgPanelHeader({
         dataTestId: "cloud-org-tab-general",
       },
       {
+        key: CLOUD_ORG_MANAGEMENT_TAB.SYNC,
+        label: t("cloud.orgPanel.sync.tabTitle"),
+        dataTestId: "cloud-org-tab-sync",
+      },
+      {
         key: CLOUD_ORG_MANAGEMENT_TAB.MEMBERS,
         label: t("cloud.orgPanel.membersTitle"),
         dataTestId: "cloud-org-tab-members",

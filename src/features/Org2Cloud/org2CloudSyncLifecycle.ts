@@ -6,6 +6,12 @@ import { createLogger } from "@src/hooks/logger";
 import type { getInstrumentedStore } from "@src/util/core/state/instrumentedStore";
 import { isImportedHistorySession } from "@src/util/session/sessionDispatch";
 
+import {
+  describeSyncError,
+  markSyncPass,
+  recordSyncEvent,
+} from "./org2CloudSyncJournal";
+
 const log = createLogger("Org2CloudSyncEngine");
 
 export type CloudStore = ReturnType<typeof getInstrumentedStore>;
@@ -194,8 +200,24 @@ export abstract class Org2CloudSyncLifecycle {
     const generation = this.generation;
     try {
       await this.syncAllOrgs(generation, { pushSessions });
+      // Journaling only — the pass outcome itself is unchanged.
+      //
+      // A successful pass advances the last-sync stamp but deliberately does
+      // NOT consume a journal slot: passes are activity-debounced (~1.5-3s),
+      // so success entries would evict every warning from the bounded ring
+      // within minutes of active work — exactly when the log matters. The
+      // journal is for problems; "it ran and worked" is the last-sync stamp.
+      markSyncPass({ success: true });
     } catch (error) {
       log.warn("cloud sync pass failed:", error);
+      markSyncPass({ success: false });
+      const described = describeSyncError(error);
+      recordSyncEvent({
+        level: "error",
+        kind: "sync_pass",
+        message: described.message,
+        code: described.code,
+      });
     } finally {
       this.passRunning = false;
       if (this.started && this.generation === generation && this.passDirty) {

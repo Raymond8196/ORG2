@@ -1,0 +1,401 @@
+// @vitest-environment jsdom
+import type { TFunction } from "i18next";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { describe, expect, it, vi } from "vitest";
+
+import type { SyncJournalEntry } from "@src/features/Org2Cloud/org2CloudSyncJournal";
+import { createSmokeRoot, dispatch } from "@src/test/reactSmokeHarness";
+
+import {
+  CloudOrgSyncSection,
+  formatSyncJournalForCopy,
+} from "./CloudOrgSyncSection";
+import type { CloudOrgSyncStatus } from "./useCloudOrgSyncStatus";
+
+vi.mock("react-i18next", () => ({
+  useTranslation: () => ({ t: (key: string) => key }),
+}));
+
+const t = ((key: string, vars?: Record<string, unknown>) =>
+  vars
+    ? `${key}:${Object.values(vars).join(",")}`
+    : key) as TFunction<"navigation">;
+
+function status(
+  overrides: Partial<CloudOrgSyncStatus> = {}
+): CloudOrgSyncStatus {
+  return {
+    endpointOrigin: "https://cloud.example.com",
+    isOfficialEndpoint: true,
+    signedIn: true,
+    userId: "user-1",
+    tokenExpiresAtMs: Date.now() + 3_600_000,
+    expectedSchemaVersion: 1,
+    backendSchemaVersion: 1,
+    schemaStatus: "matched",
+    capabilities: {
+      broadcastSignals: true,
+      storageSegments: false,
+      homeEndpoints: false,
+      teamInboxMentions: true,
+      memberRuntime: true,
+    },
+    capabilitiesLoading: false,
+    lastSync: { lastPassAtMs: null, lastSuccessAtMs: null },
+    entries: [],
+    running: false,
+    runSucceeded: false,
+    runError: null,
+    runSync: vi.fn(),
+    clearLog: vi.fn(),
+    ...overrides,
+  };
+}
+
+function renderSection(
+  overrides: Partial<CloudOrgSyncStatus> = {}
+): DocumentFragment {
+  const markup = renderToStaticMarkup(
+    createElement(CloudOrgSyncSection, { t, status: status(overrides) })
+  );
+  const template = document.createElement("template");
+  template.innerHTML = markup;
+  return template.content;
+}
+
+function entry(overrides: Partial<SyncJournalEntry> = {}): SyncJournalEntry {
+  return {
+    id: "sync-1",
+    atMs: 1_700_000_000_000,
+    level: "error",
+    kind: "sync_pass",
+    message: "cloud sync pass failed",
+    ...overrides,
+  };
+}
+
+describe("CloudOrgSyncSection connection block", () => {
+  it("renders the endpoint origin, account, schema, and capability rows when signed in", () => {
+    const root = renderSection();
+
+    const endpointRow = root.querySelector(
+      '[data-testid="cloud-org-sync-endpoint"]'
+    );
+    expect(endpointRow?.textContent).toContain("https://cloud.example.com");
+    expect(
+      root.querySelector('[data-testid="cloud-org-sync-account"]')?.textContent
+    ).toContain("user-1");
+    expect(
+      root.querySelector('[data-testid="cloud-org-sync-token"]')
+    ).not.toBeNull();
+    expect(
+      root.querySelector('[data-testid="cloud-org-sync-signed-out"]')
+    ).toBeNull();
+    expect(
+      root.querySelector('[data-testid="cloud-org-sync-schema-matched"]')
+        ?.textContent
+    ).toContain("cloud.orgPanel.sync.schemaMatched");
+    expect(
+      root.querySelectorAll("[data-testid^='cloud-org-sync-capability-']")
+    ).toHaveLength(5);
+    expect(
+      root.querySelector(
+        '[data-testid="cloud-org-sync-capability-broadcastSignals"]'
+      )?.textContent
+    ).toContain("cloud.orgPanel.sync.capabilityEnabled");
+    expect(
+      root.querySelector(
+        '[data-testid="cloud-org-sync-capability-storageSegments"]'
+      )?.textContent
+    ).toContain("cloud.orgPanel.sync.capabilityDisabled");
+  });
+
+  it("degrades gracefully when signed out", () => {
+    const root = renderSection({
+      signedIn: false,
+      userId: null,
+      tokenExpiresAtMs: null,
+      capabilities: null,
+      capabilitiesLoading: false,
+    });
+
+    expect(
+      root.querySelector('[data-testid="cloud-org-sync-signed-out"]')
+    ).not.toBeNull();
+    expect(
+      root.querySelector('[data-testid="cloud-org-sync-account"]')
+    ).toBeNull();
+    expect(
+      root.querySelector('[data-testid="cloud-org-sync-token"]')
+    ).toBeNull();
+    expect(
+      root.querySelector('[data-testid="cloud-org-sync-capabilities"]')
+        ?.textContent
+    ).toContain("cloud.orgPanel.sync.capabilitiesUnavailable");
+    // Endpoint identity is still useful while signed out.
+    expect(
+      root.querySelector('[data-testid="cloud-org-sync-endpoint"]')?.textContent
+    ).toContain("https://cloud.example.com");
+  });
+
+  it("calls out a schema mismatch with both versions", () => {
+    const root = renderSection({
+      schemaStatus: "mismatched",
+      backendSchemaVersion: 3,
+    });
+
+    const cell = root.querySelector(
+      '[data-testid="cloud-org-sync-schema-mismatched"]'
+    );
+    expect(cell?.textContent).toBe("cloud.orgPanel.sync.schemaMismatch:3,1");
+    expect(cell?.classList).toContain("text-danger-6");
+  });
+
+  it("shows a checking state before the probe resolves", () => {
+    const root = renderSection({
+      schemaStatus: "checking",
+      backendSchemaVersion: null,
+      capabilities: null,
+      capabilitiesLoading: true,
+    });
+
+    expect(
+      root.querySelector('[data-testid="cloud-org-sync-schema-checking"]')
+        ?.textContent
+    ).toBe("cloud.orgPanel.sync.schemaChecking");
+    expect(
+      root.querySelector('[data-testid="cloud-org-sync-capabilities"]')
+        ?.textContent
+    ).toContain("cloud.orgPanel.sync.capabilitiesChecking");
+  });
+
+  it("never renders an anon key or token value", () => {
+    const markup = renderToStaticMarkup(
+      createElement(CloudOrgSyncSection, { t, status: status() })
+    );
+    expect(markup).not.toContain("anonKey");
+    expect(markup).not.toContain("accessToken");
+    expect(markup.toLowerCase()).not.toContain("eyj");
+  });
+});
+
+describe("CloudOrgSyncSection last-sync block", () => {
+  it("shows the never-synced empty state", () => {
+    const root = renderSection();
+
+    expect(
+      root.querySelector('[data-testid="cloud-org-sync-last-never"]')
+        ?.textContent
+    ).toBe("cloud.orgPanel.sync.lastSyncNever");
+    expect(
+      root.querySelector('[data-testid="cloud-org-sync-last-value"]')
+    ).toBeNull();
+    expect(
+      root.querySelector('[data-testid="cloud-org-sync-last-attempt"]')
+    ).toBeNull();
+  });
+
+  it("shows relative plus absolute time for a real timestamp", () => {
+    const lastSuccessAtMs = Date.now() - 2 * 60 * 60 * 1000;
+    const root = renderSection({
+      lastSync: { lastPassAtMs: lastSuccessAtMs, lastSuccessAtMs },
+    });
+
+    const value = root.querySelector(
+      '[data-testid="cloud-org-sync-last-value"]'
+    );
+    expect(value?.textContent).toContain("2 hours ago");
+    expect(value?.textContent).toContain(
+      new Date(lastSuccessAtMs).toLocaleString()
+    );
+    expect(
+      root.querySelector('[data-testid="cloud-org-sync-last-never"]')
+    ).toBeNull();
+  });
+
+  it("adds a last-attempt row when the newest pass failed", () => {
+    const lastSuccessAtMs = Date.now() - 60 * 60 * 1000;
+    const root = renderSection({
+      lastSync: { lastPassAtMs: Date.now() - 1_000, lastSuccessAtMs },
+    });
+
+    expect(
+      root.querySelector('[data-testid="cloud-org-sync-last-attempt"]')
+    ).not.toBeNull();
+  });
+});
+
+describe("CloudOrgSyncSection manual sync", () => {
+  it("disables the button and surfaces the running label while syncing", () => {
+    const root = renderSection({ running: true });
+
+    const button = root.querySelector<HTMLButtonElement>(
+      '[data-testid="cloud-org-sync-run"]'
+    );
+    expect(button?.disabled).toBe(true);
+    expect(button?.textContent).toContain("cloud.orgPanel.sync.manualRunning");
+  });
+
+  it("surfaces success and failure inline", () => {
+    const ok = renderSection({ runSucceeded: true });
+    expect(
+      ok.querySelector('[data-testid="cloud-org-sync-run-success"]')
+        ?.textContent
+    ).toBe("cloud.orgPanel.sync.manualSuccess");
+
+    const failed = renderSection({ runError: "network down" });
+    expect(
+      failed.querySelector('[data-testid="cloud-org-sync-run-error"]')
+        ?.textContent
+    ).toBe("cloud.orgPanel.sync.manualError:network down");
+    expect(
+      failed.querySelector('[data-testid="cloud-org-sync-run-success"]')
+    ).toBeNull();
+  });
+
+  it("invokes runSync on click without throwing", async () => {
+    const runSync = vi.fn();
+    const root = createSmokeRoot();
+    try {
+      await root.render(
+        createElement(CloudOrgSyncSection, { t, status: status({ runSync }) })
+      );
+      const button = root.container.querySelector<HTMLButtonElement>(
+        '[data-testid="cloud-org-sync-run"]'
+      );
+      await dispatch(() => button?.click());
+      expect(runSync).toHaveBeenCalledTimes(1);
+    } finally {
+      await root.unmount();
+    }
+  });
+});
+
+describe("CloudOrgSyncSection bug logs", () => {
+  it("renders the empty state and disables both log actions", () => {
+    const root = renderSection();
+
+    expect(
+      root.querySelector('[data-testid="cloud-org-sync-logs-empty"]')
+        ?.textContent
+    ).toContain("cloud.orgPanel.sync.logsEmpty");
+    expect(
+      root.querySelector<HTMLButtonElement>(
+        '[data-testid="cloud-org-sync-logs-clear"]'
+      )?.disabled
+    ).toBe(true);
+    expect(
+      root.querySelector<HTMLButtonElement>(
+        '[data-testid="cloud-org-sync-logs-copy"]'
+      )?.disabled
+    ).toBe(true);
+  });
+
+  it("renders entries newest first with level, kind, org, and code", () => {
+    const root = renderSection({
+      entries: [
+        entry({
+          id: "sync-2",
+          level: "warn",
+          kind: "org_backoff",
+          orgId: "org-1",
+          code: "ORG2_QUOTA_EXCEEDED",
+          message: "backed off",
+        }),
+        entry({
+          id: "sync-1",
+          level: "info",
+          kind: "sync_pass",
+          message: "ok",
+        }),
+      ],
+    });
+
+    const items = root.querySelectorAll(
+      '[data-testid="cloud-org-sync-log-entry"]'
+    );
+    expect(items).toHaveLength(2);
+    expect(items[0]?.textContent).toContain("backed off");
+    expect(items[0]?.textContent).toContain("org_backoff");
+    expect(items[0]?.textContent).toContain("ORG2_QUOTA_EXCEEDED");
+    expect(items[0]?.textContent).toContain(
+      "cloud.orgPanel.sync.logsOrg:org-1"
+    );
+    expect(items[1]?.textContent).toContain("ok");
+    expect(
+      root.querySelector('[data-testid="cloud-org-sync-log-level-warn"]')
+    ).not.toBeNull();
+    expect(
+      root.querySelector('[data-testid="cloud-org-sync-log-level-info"]')
+    ).not.toBeNull();
+    expect(
+      root.querySelector('[data-testid="cloud-org-sync-logs-empty"]')
+    ).toBeNull();
+  });
+
+  it("renders at most the newest 50 entries", () => {
+    const root = renderSection({
+      entries: Array.from({ length: 100 }, (_, index) =>
+        entry({ id: `sync-${100 - index}`, message: `entry-${100 - index}` })
+      ),
+    });
+
+    const items = root.querySelectorAll(
+      '[data-testid="cloud-org-sync-log-entry"]'
+    );
+    expect(items).toHaveLength(50);
+    expect(items[0]?.textContent).toContain("entry-100");
+    expect(items[49]?.textContent).toContain("entry-51");
+  });
+
+  it("calls clearLog from the clear button", async () => {
+    const clearLog = vi.fn();
+    const root = createSmokeRoot();
+    try {
+      await root.render(
+        createElement(CloudOrgSyncSection, {
+          t,
+          status: status({ clearLog, entries: [entry()] }),
+        })
+      );
+      const button = root.container.querySelector<HTMLButtonElement>(
+        '[data-testid="cloud-org-sync-logs-clear"]'
+      );
+      expect(button?.disabled).toBe(false);
+      await dispatch(() => button?.click());
+      expect(clearLog).toHaveBeenCalledTimes(1);
+    } finally {
+      await root.unmount();
+    }
+  });
+});
+
+describe("formatSyncJournalForCopy", () => {
+  it("emits one plain-text line per entry with the optional fields", () => {
+    const text = formatSyncJournalForCopy([
+      entry({
+        id: "sync-2",
+        level: "warn",
+        kind: "org_backoff",
+        orgId: "org-1",
+        code: "ORG2_SYNC_DISABLED",
+        message: "backed off",
+      }),
+      entry({ id: "sync-1", level: "info", message: "ok" }),
+    ]);
+
+    const lines = text.split("\n");
+    expect(lines).toHaveLength(2);
+    expect(lines[0]).toContain(
+      "WARN | org_backoff | org-1 | ORG2_SYNC_DISABLED"
+    );
+    expect(lines[0]?.endsWith("backed off")).toBe(true);
+    expect(lines[1]).toContain("INFO | sync_pass");
+    expect(lines[1]).not.toContain("|  |");
+  });
+
+  it("returns an empty string for an empty journal", () => {
+    expect(formatSyncJournalForCopy([])).toBe("");
+  });
+});
