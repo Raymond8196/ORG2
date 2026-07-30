@@ -84,6 +84,9 @@
     }
   },
   "kanban": {
+    "card": {
+      "openAsFloatingPane": "Mở dạng bảng nổi"
+    },
     "sessions": "Session",
     "fileSearch": {
       "placeholder": "Tìm phiên theo đường dẫn tệp",
@@ -948,6 +951,7 @@
     "defaultTitle": "Chat",
     "hideChatPanel": "Ẩn bảng trò chuyện",
     "showTokenUsage": "Hiển thị Token",
+    "showTurnMetadata": "Hiện chỉnh sửa và đọc",
     "compactDisplayMode": "Chế độ gọn",
     "replay": {
       "follow": "Theo dõi"

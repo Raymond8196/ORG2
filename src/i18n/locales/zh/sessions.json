@@ -97,6 +97,9 @@
     }
   },
   "kanban": {
+    "card": {
+      "openAsFloatingPane": "以悬浮面板打开"
+    },
     "sessions": "Session",
     "fileSearch": {
       "placeholder": "按文件路径搜索 Session",
@@ -996,6 +999,7 @@
     "defaultTitle": "Session",
     "hideChatPanel": "隐藏聊天面板",
     "showTokenUsage": "显示 Token",
+    "showTurnMetadata": "显示读写摘要",
     "compactDisplayMode": "紧凑模式",
     "replay": {
       "follow": "跟随"

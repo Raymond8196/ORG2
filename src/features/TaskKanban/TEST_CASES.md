@@ -88,3 +88,16 @@ Manual acceptance: use a column with at least 60 tasks, confirm the initial scro
 | Click a metadata-only teammate card             | Nothing opens (no published events to replay)                                     | `TaskKanban` `canOpen` guard; `cloudRemoteToKanbanTask.test.ts` |
 
 Manual acceptance: open **Work Management → Kanban** with an organization selected, click a teammate's session card, and confirm the floating preview window opens over the board (Work Management stays mounted, so the import is not aborted) and fills with the replayed transcript. Close it and confirm the board selection resets.
+
+## Card secondary-click menu
+
+| Case                                         | Expected result                                                                           | Coverage                                                            |
+| -------------------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Right-click a local session card             | A native menu offers **Open as Floating Pane** and **Open in New Tab**                    | `cardContextMenu.test.ts`                                           |
+| Choose **Open as Floating Pane**             | Same result as a primary click — the board's floating preview opens over the board        | `TaskKanban` reuses `handleTaskClick` for the action                |
+| Choose **Open in New Tab**                   | The session opens (or focuses) its own Chat Pane tab; the Kanban tab stays open           | `openOrFocusSessionInChatPanelTabAtom`; `chatPanelTabsAtom.test.ts` |
+| Right-click a replayable teammate cloud card | Only the floating action is offered — a Chat Pane tab would abort the board-hosted import | `cardContextMenu.test.ts`                                           |
+| Right-click a card with no local session     | Only the floating action is offered                                                       | `cardContextMenu.test.ts`                                           |
+| Right-click a card that cannot be opened     | No ORGII menu is shown                                                                    | `cardContextMenu.test.ts`; `KanbanColumn` `canOpen` guard           |
+
+Manual acceptance: open **Work Management → Kanban**, right-click a session card and confirm the ORGII menu replaces the WebView's Reload / Inspect Element menu. Pick **Open in New Tab** and confirm a new Chat Pane pill appears with that session while the Kanban pill stays open; right-click another card, pick **Open as Floating Pane**, and confirm the draggable preview opens over the board.

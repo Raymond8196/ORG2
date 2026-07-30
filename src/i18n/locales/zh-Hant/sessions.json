@@ -95,6 +95,9 @@
     }
   },
   "kanban": {
+    "card": {
+      "openAsFloatingPane": "以浮動面板打開"
+    },
     "sessions": "Session",
     "fileSearch": {
       "placeholder": "依檔案路徑搜尋 Session",
@@ -965,6 +968,7 @@
     "defaultTitle": "Session",
     "hideChatPanel": "隱藏聊天面板",
     "showTokenUsage": "顯示 Token",
+    "showTurnMetadata": "顯示讀寫摘要",
     "compactDisplayMode": "精簡模式",
     "replay": {
       "follow": "跟隨"

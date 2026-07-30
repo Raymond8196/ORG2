@@ -56,6 +56,7 @@ import {
   DEFAULT_KANBAN_TIME_FILTER,
   type KanbanTimeFilter,
 } from "./config";
+import { useKanbanCardContextMenu } from "./hooks/useKanbanCardContextMenu";
 import { useKanbanTasks } from "./hooks/useKanbanTasks";
 import { useTaskKanbanFilters } from "./hooks/useTaskKanbanFilters";
 import { useTaskKanbanHeader } from "./hooks/useTaskKanbanHeader";
@@ -263,6 +264,13 @@ const Kanban: React.FC<TaskKanbanProps> = ({
     ]
   );
 
+  // Secondary click offers the same target in either surface: the board's
+  // floating preview (what the primary click does) or its own Chat Pane tab.
+  const handleTaskContextMenu = useKanbanCardContextMenu({
+    onOpenFloatingPane: handleTaskClick,
+    remoteSessionsByTaskId,
+  });
+
   const handleCloseDetailPanel = useCallback(() => {
     setDetailPanelVisible(false);
     setSelectedTaskId(null);
@@ -375,6 +383,7 @@ const Kanban: React.FC<TaskKanbanProps> = ({
           calendarDate={calendarDate}
           onTaskMove={handleTaskMove}
           onTaskClick={handleTaskClick}
+          onTaskContextMenu={handleTaskContextMenu}
           onAddTask={handleAddTask}
           renderListRowAction={renderListRowAction}
           hasFileSearchQuery={effectiveFileSearchQuery.trim().length > 0}

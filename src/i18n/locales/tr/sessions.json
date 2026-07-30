@@ -84,6 +84,9 @@
     }
   },
   "kanban": {
+    "card": {
+      "openAsFloatingPane": "Yüzen Panelde Aç"
+    },
     "sessions": "Session",
     "fileSearch": {
       "placeholder": "Dosya yoluna göre oturum ara",
@@ -951,6 +954,7 @@
     "defaultTitle": "Sohbet",
     "hideChatPanel": "Sohbet panelini gizle",
     "showTokenUsage": "Token göster",
+    "showTurnMetadata": "Düzenlemeleri ve okumaları göster",
     "compactDisplayMode": "Kompakt mod",
     "replay": {
       "follow": "Takip et"

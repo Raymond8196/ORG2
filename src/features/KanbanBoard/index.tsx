@@ -110,6 +110,12 @@ export interface KanbanBoardProps {
   ) => void;
   /** Callback when a task is clicked */
   onTaskClick?: (task: KanbanTask) => void;
+  /**
+   * Callback when a task is secondary-clicked (right-click / two-finger tap).
+   * The consumer owns the menu and is responsible for suppressing the WebView
+   * default menu. Cards with `canOpen === false` never receive it.
+   */
+  onTaskContextMenu?: (task: KanbanTask, event: React.MouseEvent) => void;
   /** Callback when add task button is clicked */
   onAddTask?: (status: TaskStatus) => void;
   /** Callback when column order changes */
@@ -142,6 +148,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
   showAddButton = true,
   onTaskMove,
   onTaskClick,
+  onTaskContextMenu,
   onAddTask,
   onColumnOrderChange,
   selectedTaskId,
@@ -452,6 +459,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
                   column={column}
                   tasks={groupedTasks.get(column.id) || []}
                   onTaskClick={onTaskClick}
+                  onTaskContextMenu={onTaskContextMenu}
                   onAddTask={handleAddTask}
                   isDragging={activeType === "column" && activeId === column.id}
                   showAddButton={column.showAddButton ?? showAddButton}

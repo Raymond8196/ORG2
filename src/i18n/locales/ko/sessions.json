@@ -84,6 +84,9 @@
     }
   },
   "kanban": {
+    "card": {
+      "openAsFloatingPane": "플로팅 패널로 열기"
+    },
     "sessions": "Session",
     "fileSearch": {
       "placeholder": "파일 경로로 세션 검색",
@@ -950,6 +953,7 @@
     "defaultTitle": "채팅",
     "hideChatPanel": "채팅 패널 숨기기",
     "showTokenUsage": "Token 표시",
+    "showTurnMetadata": "편집·읽기 표시",
     "compactDisplayMode": "컴팩트 모드",
     "replay": {
       "follow": "팔로우"

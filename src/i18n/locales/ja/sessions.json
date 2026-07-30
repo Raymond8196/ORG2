@@ -84,6 +84,9 @@
     }
   },
   "kanban": {
+    "card": {
+      "openAsFloatingPane": "フローティングパネルで開く"
+    },
     "sessions": "Session",
     "fileSearch": {
       "placeholder": "ファイルパスでセッションを検索",
@@ -950,6 +953,7 @@
     "defaultTitle": "チャット",
     "hideChatPanel": "チャットパネルを非表示",
     "showTokenUsage": "Token を表示",
+    "showTurnMetadata": "編集と読み取りを表示",
     "compactDisplayMode": "コンパクトモード",
     "replay": {
       "follow": "フォロー"

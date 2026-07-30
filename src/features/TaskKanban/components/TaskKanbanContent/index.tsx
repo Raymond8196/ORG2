@@ -28,6 +28,8 @@ export interface TaskKanbanContentProps {
   calendarDate: Date;
   onTaskMove: (taskId: string, newStatus: TaskStatus) => void;
   onTaskClick: (task: KanbanTask) => void;
+  /** Card secondary-click. Board view only — List/Diary rows keep the default. */
+  onTaskContextMenu?: (task: KanbanTask, event: React.MouseEvent) => void;
   onAddTask: () => void;
   renderListRowAction?: (task: KanbanTask) => React.ReactNode;
   hasFileSearchQuery: boolean;
@@ -44,6 +46,7 @@ const TaskKanbanContent: React.FC<TaskKanbanContentProps> = ({
   calendarDate,
   onTaskMove,
   onTaskClick,
+  onTaskContextMenu,
   onAddTask,
   renderListRowAction,
   hasFileSearchQuery,
@@ -99,6 +102,7 @@ const TaskKanbanContent: React.FC<TaskKanbanContentProps> = ({
           columns={visibleColumns as unknown as KanbanColumnConfig[]}
           onTaskMove={onTaskMove}
           onTaskClick={onTaskClick}
+          onTaskContextMenu={onTaskContextMenu}
           onAddTask={onAddTask}
           allowColumnReorder={false}
           allowTaskDrag
