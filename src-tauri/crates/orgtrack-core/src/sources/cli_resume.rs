@@ -58,21 +58,36 @@ pub struct CliResumePlan {
 }
 
 impl CliResumePlan {
-    /// The full resume invocation as one display string, shell-quoted the
-    /// same way the chat-panel TUI launcher quotes commands.
+    /// The full resume invocation as one display string, shell-quoted for
+    /// the host's default chat-panel PTY shell — PowerShell on Windows
+    /// (`terminal::pty_commands::shells` makes it the Windows default),
+    /// POSIX elsewhere.
     pub fn display_command(&self) -> String {
+        self.display_command_for_shell(cfg!(windows))
+    }
+
+    /// `display_command`, with the target shell pinned explicitly instead
+    /// of read from the host OS, so both quoting styles can be exercised
+    /// without `#[cfg(windows)]`-gating the test itself.
+    pub fn display_command_for_shell(&self, windows: bool) -> String {
         std::iter::once(self.default_binary.to_string())
             .chain(self.resume_args.iter().cloned())
-            .map(|part| shell_quote(&part))
+            .map(|part| shell_quote_for_shell(&part, windows))
             .collect::<Vec<_>>()
             .join(" ")
     }
 }
 
-/// POSIX single-quote escaping for display command lines. Safe-charset
-/// values pass through unquoted so the common `claude --resume <uuid>`
-/// stays copy-paste clean.
+/// Shell-quote for the host's default chat-panel PTY shell (PowerShell on
+/// Windows, POSIX elsewhere). Safe-charset values pass through unquoted so
+/// the common `claude --resume <uuid>` stays copy-paste clean.
 pub fn shell_quote(value: &str) -> String {
+    shell_quote_for_shell(value, cfg!(windows))
+}
+
+/// `shell_quote`, with the target shell pinned explicitly instead of read
+/// from the host OS (see `display_command_for_shell`).
+pub fn shell_quote_for_shell(value: &str, windows: bool) -> String {
     if !value.is_empty()
         && value
             .bytes()
@@ -80,7 +95,14 @@ pub fn shell_quote(value: &str) -> String {
     {
         return value.to_string();
     }
-    format!("'{}'", value.replace('\'', r"'\''"))
+    if windows {
+        // PowerShell single-quoted strings pass backslashes through
+        // literally (unlike POSIX), so a Windows path only needs its
+        // embedded single quotes escaped, by doubling them.
+        format!("'{}'", value.replace('\'', "''"))
+    } else {
+        format!("'{}'", value.replace('\'', r"'\''"))
+    }
 }
 
 /// Build the resume plan for one imported session, or `None` when the
@@ -395,10 +417,41 @@ mod tests {
     }
 
     #[test]
-    fn display_command_quotes_unsafe_arguments() {
+    fn display_command_quotes_unsafe_arguments_posix() {
         let mut plan = cli_resume_plan(SOURCE_CLAUDE_CODE, UUID, None, None).expect("plan");
         plan.resume_args = vec!["--resume".to_string(), "a b'c".to_string()];
-        assert_eq!(plan.display_command(), r#"claude --resume 'a b'\''c'"#);
+        // Pinned to POSIX rather than `display_command()` so this assertion
+        // is stable regardless of the host OS running the test suite.
+        assert_eq!(
+            plan.display_command_for_shell(false),
+            r#"claude --resume 'a b'\''c'"#
+        );
+    }
+
+    #[test]
+    fn display_command_quotes_unsafe_arguments_powershell_on_windows() {
+        let mut plan = cli_resume_plan(SOURCE_CLAUDE_CODE, UUID, None, None).expect("plan");
+        // A backslash-heavy Windows path (e.g. omp's `--session <path>`)
+        // must pass through unescaped under PowerShell single-quoting,
+        // where POSIX's `'\''` escaping would corrupt it.
+        plan.resume_args = vec![
+            "--session".to_string(),
+            r"C:\Users\me\.omp\agent\sessions\a b'c.jsonl".to_string(),
+        ];
+        assert_eq!(
+            plan.display_command_for_shell(true),
+            r#"claude --session 'C:\Users\me\.omp\agent\sessions\a b''c.jsonl'"#
+        );
+    }
+
+    #[test]
+    fn shell_quote_matches_shell_quote_for_shell_at_cfg_windows() {
+        // `shell_quote` should defer to the host's actual target OS, not
+        // silently default to POSIX.
+        assert_eq!(
+            shell_quote("a b'c"),
+            shell_quote_for_shell("a b'c", cfg!(windows))
+        );
     }
 
     #[test]

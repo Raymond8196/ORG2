@@ -946,7 +946,7 @@ pub(crate) fn chunk_role(chunk: &ActivityChunk) -> String {
     }
 }
 
-/// The three imported sources whose owning CLI can reopen a session by id.
+/// The seven imported sources whose owning CLI can reopen a session by id.
 /// Maps a canonical (prefixed) session id back to its source so `resume`
 /// scans exactly one provider instead of all of them.
 fn resume_source_for_session_id(session_id: &str) -> Option<&'static str> {
