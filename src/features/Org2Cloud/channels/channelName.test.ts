@@ -30,7 +30,7 @@ describe("channel name normalization", () => {
     expect(normalizeChannelName("产品讨论")).toBe("产品讨论");
   });
 
-  it("validates the normalized form against the 0012 contract", () => {
+  it("validates the normalized form against the 0014 contract", () => {
     expect(validateChannelName("")).toBe("empty");
     expect(validateChannelName("x".repeat(CHANNEL_NAME_MAX_LENGTH + 1))).toBe(
       "tooLong"

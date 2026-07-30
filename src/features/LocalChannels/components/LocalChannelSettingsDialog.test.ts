@@ -36,7 +36,7 @@ const TARGET: LocalChannel = {
   archivedAt: null,
 };
 
-/** Archived sibling: its name stays reserved (cloud 0012 semantics). */
+/** Archived sibling: its name stays reserved (cloud 0014 semantics). */
 const RESERVED: LocalChannel = {
   id: "ch-b",
   name: "reserved",

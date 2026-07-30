@@ -29,7 +29,7 @@ existing collaboration stack:
 5. Per-viewer unread state (watermark cursor) driving sidebar/channel-list badges.
 
 > **Update (2026-07-31, later the same day):** the control plane described in §4
-> has been IMPLEMENTED as `orgii-cloud-infra/supabase/migrations/0012_org_channels.sql`
+> has been IMPLEMENTED as `orgii-cloud-infra/supabase/migrations/0014_org_channels.sql`
 > plus the desktop data layer (`src/features/Org2Cloud/channels/`), sidebar
 > section, and create/archive/delete/membership dialogs. Scope changed from
 > this document's first draft per user direction: **visibility limits,
@@ -50,7 +50,7 @@ existing collaboration stack:
 > cloud org. Backing store is an `atomWithStorage` + zod-validated registry
 > (`src/store/ui/localChannelsAtom.ts`), not SQLite — a channel registry is
 > small metadata; the heavier store can arrive with the local message plane.
-> Local channels enforce the SAME rules as 0012 (normalized names,
+> Local channels enforce the SAME rules as 0014 (normalized names,
 > case-insensitive uniqueness with archived names reserved, 200-active cap,
 > topic ≤ 250, archive soft / delete hard) so a future local→cloud
 > promotion has no semantic cliff. No visibility/membership/post-policy
@@ -129,7 +129,7 @@ Everything follows the house invariants:
 
 ---
 
-## 4. Backend design — `orgii-cloud-infra` migration `0012_org_channels.sql`
+## 4. Backend design — `orgii-cloud-infra` migration `0014_org_channels.sql`
 
 ### 4.1 Tables
 
@@ -272,7 +272,7 @@ All return a single `jsonb` with camelCase keys + `serverTime`; errors are
 - Read-cursor writes do **not** nudge (viewer-local; whole-org fan-out would be
   noise).
 
-### 4.6 The 0012 migration checklist (house rules that bite)
+### 4.6 The 0014 migration checklist (house rules that bite)
 
 1. `-- ===` header spec with PARTs, RE-PASTE HAZARD note, and a pointer to the TS
    wire-contract file (`src/features/Org2Cloud/channels/types.ts`).
@@ -379,7 +379,7 @@ it) — same graceful degradation teammate references have today.
 
 | #   | Repo              | Content                                                                                                                                                                                                            | Gate                                                            |
 | --- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------- |
-| A   | orgii-cloud-infra | Migration `0012_org_channels.sql` (tables, RPCs, signal, capability, delete-purge, verify tail)                                                                                                                    | SQL verify tail; seed-based RPC smoke tests                     |
+| A   | orgii-cloud-infra | Migration `0014_org_channels.sql` (tables, RPCs, signal, capability, delete-purge, verify tail)                                                                                                                    | SQL verify tail; seed-based RPC smoke tests                     |
 | B   | ORGII             | `features/Org2Cloud/channels/` client + atoms + realtime kind; no UI                                                                                                                                               | Unit tests on zod contract, cursor math, error mapping          |
 | C   | ORGII             | Channels tab + sidebar + channel list + text-only feed + composer (create/post/edit/delete/unread)                                                                                                                 | Unit tests per `ui-feature-workflow`; i18n; tokens-only styling |
 | D   | ORGII             | Reference cards + all three append flows + admission gating                                                                                                                                                        | Same                                                            |

@@ -108,7 +108,7 @@ describe("createLocalChannel", () => {
       ok: false,
       error: "nameTaken",
     });
-    // Archived names stay reserved (cloud 0012 semantics).
+    // Archived names stay reserved (cloud 0014 semantics).
     expect(createLocalChannel(channels, { name: "Old Plans" })).toEqual({
       ok: false,
       error: "nameTaken",

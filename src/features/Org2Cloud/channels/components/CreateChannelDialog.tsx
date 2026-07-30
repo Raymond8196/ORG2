@@ -1,6 +1,6 @@
 /**
  * CreateChannelDialog — Slack-style channel creation for a managed cloud org
- * (0012 control plane).
+ * (0014 control plane).
  *
  * Name input live-normalizes via `normalizeChannelNameInput` (lowercase,
  * leading '#' stripped, spaces → hyphens) behind a literal '#' adornment;

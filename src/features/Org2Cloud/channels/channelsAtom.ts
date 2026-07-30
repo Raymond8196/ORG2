@@ -1,6 +1,6 @@
 /**
  * Realtime invalidation state for org channels. The `channels` DB-change
- * signal (0012) bumps the per-org version; `useOrgChannels` refetches on the
+ * signal (0014) bumps the per-org version; `useOrgChannels` refetches on the
  * bump. Server-owned data itself lives in hook state (the
  * `useTeamRuntimeRoster` shape), keyed on `org2CloudAuthIdentityKey`, so an
  * identity switch never leaks one account's channel list into another's.

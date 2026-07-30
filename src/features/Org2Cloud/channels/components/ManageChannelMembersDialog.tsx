@@ -1,5 +1,5 @@
 /**
- * ManageChannelMembersDialog — membership surface for one org channel (0012
+ * ManageChannelMembersDialog — membership surface for one org channel (0014
  * membership RPCs). Lists members on open; managers additionally get an
  * add-members picker (org roster minus current members, shared coordinator
  * source) and per-row overflow actions (remove / toggle manager role). The

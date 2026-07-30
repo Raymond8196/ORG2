@@ -1,6 +1,6 @@
 /**
  * DeleteChannelDialog — Slack-style destructive confirm for the HARD channel
- * delete (0012 `cloud_delete_channel`, org owner/admin only, irreversible).
+ * delete (0014 `cloud_delete_channel`, org owner/admin only, irreversible).
  * The danger action stays disabled until the acknowledgement checkbox is
  * checked; `ORG2_ADMIN_REQUIRED` surfaces as a dedicated inline error. On
  * success bumps the per-org channels version so listings refetch.

@@ -59,7 +59,7 @@ const LocalChannelSettingsDialog: React.FC<LocalChannelSettingsDialogProps> = ({
   const handleSubmit = useCallback(() => {
     if (!channel) return;
     setErrorCode(null);
-    // Empty topic string intentionally clears it (0012 update contract).
+    // Empty topic string intentionally clears it (0014 update contract).
     const result = updateChannel({ id: channel.id, name, topic });
     if (!result.ok) {
       // The form is intentionally left untouched on every failure path.

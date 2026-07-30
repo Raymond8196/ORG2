@@ -1,5 +1,5 @@
 /**
- * Org-channels wire contract — pinned by `0012_org_channels.sql` (the SQL
+ * Org-channels wire contract — pinned by `0014_org_channels.sql` (the SQL
  * header points at this file). Channels are the Slack-style org chat plane:
  * this slice covers the CONTROL plane only (lifecycle, membership, access
  * limits); the message plane arrives with a later migration (design:
@@ -10,7 +10,7 @@
  */
 import { z } from "zod/v4";
 
-/** RPC-enforced bounds (0012 validation) — mirrored in composers/dialogs. */
+/** RPC-enforced bounds (0014 validation) — mirrored in composers/dialogs. */
 export const CHANNEL_NAME_MAX_LENGTH = 80;
 export const CHANNEL_TOPIC_MAX_LENGTH = 250;
 export const CHANNEL_MAX_ACTIVE_PER_ORG = 200;
@@ -94,7 +94,7 @@ export interface CreateCloudChannelInput {
 
 export interface UpdateCloudChannelInput {
   name?: string;
-  /** Empty string clears the topic (0012 contract). */
+  /** Empty string clears the topic (0014 contract). */
   topic?: string;
   postPolicy?: CloudChannelPostPolicy;
 }

@@ -1,6 +1,6 @@
 /**
  * ArchiveChannelDialog — Slack-tone confirm for archiving an org channel
- * (0012 `cloud_archive_channel`). Archiving hides the channel from the
+ * (0014 `cloud_archive_channel`). Archiving hides the channel from the
  * sidebar for everyone; history is kept and it can be unarchived later. On
  * success bumps the per-org channels version so listings refetch.
  */

@@ -188,7 +188,7 @@ describe("ChannelSettingsDialog", () => {
     expect(store.get(org2CloudChannelsVersionAtom)["org-1"]).toBe(1);
   });
 
-  it("sends ONLY the changed topic; the empty string clears it (0012 contract)", async () => {
+  it("sends ONLY the changed topic; the empty string clears it (0014 contract)", async () => {
     mocks.updateCloudChannel.mockResolvedValue(undefined);
     renderDialog();
 

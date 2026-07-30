@@ -1,6 +1,6 @@
 /**
  * ChannelSettingsDialog — rename / topic / post-policy editing for a cloud
- * org channel (0012 `cloud_update_channel`). Callers gate the entry point to
+ * org channel (0014 `cloud_update_channel`). Callers gate the entry point to
  * channel managers / org admins; the server re-checks and the
  * `ORG2_CHANNEL_MANAGER_REQUIRED` refusal surfaces as a dedicated inline
  * error. Shares the `LocalChannelSettingsDialog` layout, plus the cloud-only
@@ -93,7 +93,7 @@ const ChannelSettingsDialog: React.FC<ChannelSettingsDialogProps> = ({
       const accessToken = await getFreshAccessToken();
       await updateCloudChannel(accessToken, orgId, channel.id, {
         name: nameChanged ? submittedName : undefined,
-        // Empty string clears the topic (0012 contract).
+        // Empty string clears the topic (0014 contract).
         topic: topicChanged ? trimmedTopic : undefined,
         postPolicy: postPolicyChanged ? postPolicy : undefined,
       });

@@ -7,7 +7,7 @@
  * probe, identity-keyed state wiped on account switch, a monotonic request
  * counter dropping late completions, refetch on the hidden → visible edge —
  * plus a subscription to `org2CloudChannelsVersionAtom`, which the realtime
- * `channels` signal (0012) bumps. Strictly event-driven; no polling.
+ * `channels` signal (0014) bumps. Strictly event-driven; no polling.
  */
 import { useAtom, useAtomValue } from "jotai";
 import { useCallback, useEffect, useRef, useState } from "react";

@@ -1,6 +1,6 @@
 /**
  * Slack-style channel-name normalization, mirrored from the server rules in
- * `cloud_create_channel` (0012): trimmed, case-folded, leading '#' stripped,
+ * `cloud_create_channel` (0014): trimmed, case-folded, leading '#' stripped,
  * no whitespace, 1..80 chars. The client additionally converts inner
  * whitespace runs to single hyphens as the user types (Slack behavior) so
  * "Launch Swarm" becomes "launch-swarm" instead of a validation error.

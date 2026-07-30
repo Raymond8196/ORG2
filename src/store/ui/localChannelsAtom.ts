@@ -1,5 +1,5 @@
 /**
- * Local (non-cloud) org channels — the single-user counterpart of the 0012
+ * Local (non-cloud) org channels — the single-user counterpart of the 0014
  * cloud control plane, persisted on this machine only.
  *
  * The pure reducers below enforce the SAME rules as `cloud_create_channel` /
@@ -81,7 +81,7 @@ function fail(error: LocalChannelErrorCode): LocalChannelResult {
 /**
  * Names are stored normalized (lowercase), but compare case-folded anyway so
  * a hand-edited stored value can never open a duplicate-name loophole.
- * Archived channels count: their names stay reserved (cloud 0012 semantics).
+ * Archived channels count: their names stay reserved (cloud 0014 semantics).
  */
 function isNameTaken(
   channels: readonly LocalChannel[],
@@ -147,7 +147,7 @@ export function createLocalChannel(
 export interface UpdateLocalChannelInput {
   /** Omitted = unchanged. */
   name?: string;
-  /** Omitted = unchanged; empty string clears (0012 update contract). */
+  /** Omitted = unchanged; empty string clears (0014 update contract). */
   topic?: string;
   now?: string;
 }

@@ -1,6 +1,6 @@
 /**
  * Org-channels RPC client — typed throwing wrappers for the ten
- * `0012_org_channels` RPCs.
+ * `0014_org_channels` RPCs.
  *
  * Same raw-fetch idiom as `memberRuntimeClient` (JWT Bearer +
  * `Content-Profile: org2_cloud`, no supabase-js), routed through
