@@ -4,8 +4,7 @@ export type NotificationCategory =
   | "taskCompletion"
   | "agentApproval"
   | "errors"
-  | "sessionStatus"
-  | "gitOperations";
+  | "teamInbox";
 
 export interface NotificationQuietHoursSettings {
   enabled: boolean;
@@ -17,6 +16,7 @@ export interface NotificationQuietHoursSettings {
 export interface NotificationSettings {
   enabled: boolean;
   systemNotificationEnabled: boolean;
+  dockBadgeEnabled: boolean;
   soundEnabled: boolean;
   soundPreset: NotificationSoundPreset;
   soundVolume: number;

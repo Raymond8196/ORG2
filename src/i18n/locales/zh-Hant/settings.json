@@ -692,6 +692,7 @@
     "agentApproval": "Agent 審批",
     "agentApprovalDesc": "當 Agent 操作需要您的批准時",
     "errors": "錯誤和警告",
+    "teamInbox": "團隊收件匣",
     "errorsDesc": "當發生錯誤或警告時",
     "sessionStatus": "Session 狀態",
     "sessionStatusDesc": "Session 開始、暫停和恢復更新",

@@ -52,15 +52,29 @@ pub(super) async fn broadcast_async_run_failure(
     turn_intent_id: Option<&str>,
 ) {
     let lookup_id = session_id.to_string();
-    let session = tokio::task::spawn_blocking(move || persistence::get_session(&lookup_id))
-        .await
-        .ok()
-        .and_then(|result| result.ok())
-        .flatten()
-        .map(|session| AsyncFailureSession {
-            background: session.background,
-            name: session.name,
-        });
+    let session =
+        match tokio::task::spawn_blocking(move || persistence::get_session(&lookup_id)).await {
+            Ok(Ok(session)) => session.map(|session| AsyncFailureSession {
+                background: session.background,
+                name: session.name,
+            }),
+            Ok(Err(error)) => {
+                tracing::warn!(
+                    "[CodeSession] Failed to reload notification context for {}: {}",
+                    session_id,
+                    error
+                );
+                None
+            }
+            Err(error) => {
+                tracing::warn!(
+                    "[CodeSession] Notification context task failed for {}: {}",
+                    session_id,
+                    error
+                );
+                None
+            }
+        };
 
     crate::api::websocket_handler::broadcast(
         async_failure_payload(session_id, error_message, turn_intent_id, session).to_string(),

@@ -16,12 +16,14 @@ import { useQueueDispatch } from "@src/engines/SessionCore/hooks/session/useQueu
 import { useBackgroundSessionMonitor } from "@src/hooks/cliSession/useBackgroundSessionMonitor";
 import { useNotificationApprovalBridge } from "@src/hooks/notifications/useNotificationApprovalBridge";
 import { useNativeSessionStatusMonitor } from "@src/hooks/session/useNativeSessionStatusMonitor";
+import { useTeamInboxNotifications } from "@src/modules/MainApp/TeamInbox/useTeamInboxNotifications";
 
 const GlobalSessionSync: React.FC = () => {
   useEventStoreBridge();
   useBackgroundSessionMonitor();
   useNotificationApprovalBridge();
   useNativeSessionStatusMonitor();
+  useTeamInboxNotifications();
   useQueueDispatch();
   return null;
 };

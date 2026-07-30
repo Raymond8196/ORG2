@@ -16,29 +16,28 @@
  * backend-initiated switches reach `sessionsAtom` without relying on the
  * initiating window's optimistic update.
  *
- * Completions and failures also pass through the shared notification policy:
- * foreground turns may play sound, while background turns can additionally
- * show or queue notifications.
+ * It also owns transition-based native notifications. Foreground turns may
+ * play sound, while sessions outside user attention may additionally raise
+ * system notifications or quiet-hours summaries.
  */
 import { listen } from "@tauri-apps/api/event";
 import { useAtomValue } from "jotai";
 import { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 
-import {
-  TASK_FAILURE_NOTIFICATION_BODY,
-  notifyError,
-  notifyTaskCompletion,
-} from "@src/api/services/notification";
 import {
   isNotificationAttentionRequired,
   isSuccessfulNotificationTurnStatus,
 } from "@src/api/services/notificationPolicy";
-import Message from "@src/components/Message";
 import {
   markTurnRunning,
   markTurnTerminal,
   toTurnTerminalStatus,
 } from "@src/engines/SessionCore/control/turnLifecycle";
+import {
+  deliverSessionTerminalNotification,
+  shouldDeliverSessionTerminalNotification,
+} from "@src/hooks/session/sessionTerminalNotifications";
 import {
   type SessionStatus,
   activeSessionIdAtom,
@@ -47,7 +46,10 @@ import {
 } from "@src/store/session";
 import { notificationSettingsAtom } from "@src/store/ui/notificationAtom";
 import { isTerminalStatus } from "@src/types/session/session";
-import { getInstrumentedStore } from "@src/util/core/state/instrumentedStore";
+import {
+  getInstrumentedStore,
+  isStoreInitialized,
+} from "@src/util/core/state/instrumentedStore";
 import { isSessionRuntimeExecuting } from "@src/util/session/sessionRuntimeExecuting";
 
 interface SessionStatusChangedPayload {
@@ -68,18 +70,23 @@ interface SessionRenamedPayload {
 }
 
 export function useNativeSessionStatusMonitor(): void {
+  const { t } = useTranslation();
   const notificationSettings = useAtomValue(notificationSettingsAtom);
   const activeSessionId = useAtomValue(activeSessionIdAtom);
   const settingsRef = useRef(notificationSettings);
+  const translationRef = useRef(t);
   const activeSessionIdRef = useRef(activeSessionId);
 
   useEffect(() => {
     settingsRef.current = notificationSettings;
   }, [notificationSettings]);
-
   useEffect(() => {
     activeSessionIdRef.current = activeSessionId;
   }, [activeSessionId]);
+
+  useEffect(() => {
+    translationRef.current = t;
+  }, [t]);
 
   useEffect(() => {
     const unlistenPromise = listen<SessionStatusChangedPayload>(
@@ -87,6 +94,9 @@ export function useNativeSessionStatusMonitor(): void {
       (event) => {
         const { sessionId, status } = event.payload;
         const completedTurn = isSuccessfulNotificationTurnStatus(status);
+        const session = isStoreInitialized()
+          ? getInstrumentedStore().get(sessionByIdAtom(sessionId))
+          : undefined;
         if (completedTurn) {
           markTurnTerminal(sessionId, "completed");
         } else if (isTerminalStatus(status)) {
@@ -94,47 +104,33 @@ export function useNativeSessionStatusMonitor(): void {
         } else if (isSessionRuntimeExecuting(status)) {
           markTurnRunning(sessionId);
         }
-        updateSessionStatus(sessionId, status as SessionStatus);
 
-        const session = getInstrumentedStore().get(sessionByIdAtom(sessionId));
-        const sessionName = session?.name || "Background session";
-        const isBackgroundSession = activeSessionIdRef.current !== sessionId;
-        const needsAttention =
-          isNotificationAttentionRequired(isBackgroundSession);
-        if (completedTurn) {
-          void notifyTaskCompletion(
-            `"${sessionName}" completed — ready for review`,
-            settingsRef.current,
+        const completedBoundary =
+          completedTurn &&
+          !isSuccessfulNotificationTurnStatus(session?.status ?? "");
+        const notificationBoundary =
+          completedBoundary ||
+          shouldDeliverSessionTerminalNotification(session?.status, status);
+        if (session && notificationBoundary) {
+          const outsideActiveSession =
+            session.background === true ||
+            activeSessionIdRef.current !== sessionId;
+          deliverSessionTerminalNotification(
             {
               sessionId,
-              background: needsAttention,
+              status: completedBoundary ? "completed" : status,
+              sessionName:
+                session.name ||
+                translationRef.current("notifications.backgroundSession"),
+              attentionRequired:
+                isNotificationAttentionRequired(outsideActiveSession),
+              errorMessage: session.error_message,
             },
-            sessionName
-          ).then((result) => {
-            if (result.disposition !== "delivered" || !needsAttention) return;
-            Message.success({
-              content: `"${sessionName}" completed. Click to review diff.`,
-              duration: 0,
-              closable: true,
-            });
-          });
-        } else if (status === "failed") {
-          void notifyError(
-            TASK_FAILURE_NOTIFICATION_BODY,
             settingsRef.current,
-            {
-              sessionId,
-              background: needsAttention,
-            }
-          ).then((result) => {
-            if (result.disposition !== "delivered" || !needsAttention) return;
-            Message.error({
-              content: `"${sessionName}" failed`,
-              duration: 8000,
-              closable: true,
-            });
-          });
+            translationRef.current
+          );
         }
+        updateSessionStatus(sessionId, status as SessionStatus);
       }
     );
 

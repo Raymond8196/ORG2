@@ -1,4 +1,5 @@
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
+import type { BranchPrSnapshot } from "@src/store/git";
 import type { Session } from "@src/store/session";
 import { isTerminalStatus } from "@src/types/session/session";
 import { isSessionInProgress } from "@src/util/session/sessionInProgress";
@@ -9,6 +10,7 @@ import {
 } from "@src/util/session/sessionSidebarRow";
 import { formatRelativeTime } from "@src/util/time/formatRelativeTime";
 
+import { renderSessionGitIndicator } from "./gitIndicator";
 import { renderBreathingStatusDot, renderStatusDot } from "./statusIndicators";
 
 export function separator(id: string, title = ""): NavigationMenuItem {
@@ -41,6 +43,12 @@ interface BuildSessionMenuItemParams {
    * question). Rendered as the row subtitle only while the session waits.
    */
   liveDetail?: string;
+  /**
+   * PR the session's branch belongs to, from the sidebar's per-repo snapshot
+   * cache. Absent until the first fetch lands, or permanently for non-GitHub
+   * remotes — the row falls back to a plain branch glyph either way.
+   */
+  pr?: BranchPrSnapshot;
 }
 
 export function buildSessionMenuItem({
@@ -48,6 +56,7 @@ export function buildSessionMenuItem({
   untitledSession,
   visitedSessions,
   liveDetail,
+  pr,
 }: BuildSessionMenuItemParams): NavigationMenuItem {
   const inProgress = isSessionInProgress(session.status, session);
   const displayName = getSessionListDisplayName(session, untitledSession);
@@ -60,6 +69,11 @@ export function buildSessionMenuItem({
     : unread
       ? "unread"
       : "default";
+  // A working row parks its dot in `workingIndicator` instead, so the trailing
+  // slot may hold the git marker alone.
+  const statusDot =
+    inProgress && !pendingAsking ? null : renderStatusDot(statusDotTone);
+  const gitIndicator = renderSessionGitIndicator(session, pr);
 
   return {
     id: session.session_id,
@@ -71,11 +85,13 @@ export function buildSessionMenuItem({
     subtitle: liveDetail && pendingAsking ? liveDetail : undefined,
     workingIndicator:
       inProgress && !pendingAsking ? renderBreathingStatusDot() : undefined,
-    trailingElement: pendingAsking
-      ? renderStatusDot(statusDotTone)
-      : inProgress
-        ? undefined
-        : renderStatusDot(statusDotTone),
+    trailingElement:
+      gitIndicator || statusDot ? (
+        <span className="inline-flex items-center gap-1 leading-none">
+          {gitIndicator}
+          {statusDot}
+        </span>
+      ) : undefined,
     shortcut: formatRelativeTime(timestampSrc, "nano"),
     openContextMenuOnSelectedClick: true,
     dragPayload: {

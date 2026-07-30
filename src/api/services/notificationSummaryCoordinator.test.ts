@@ -13,6 +13,7 @@ function quietSettings(
   const base: NotificationSettings = {
     enabled: true,
     systemNotificationEnabled: true,
+    dockBadgeEnabled: false,
     soundEnabled: true,
     soundPreset: "classic",
     soundVolume: 70,
@@ -29,8 +30,7 @@ function quietSettings(
       taskCompletion: true,
       agentApproval: true,
       errors: true,
-      sessionStatus: false,
-      gitOperations: false,
+      teamInbox: true,
     },
   };
   return {

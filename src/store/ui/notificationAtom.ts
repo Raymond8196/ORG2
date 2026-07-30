@@ -19,6 +19,7 @@ export const notificationSettingsAtom = atom<NotificationSettings>((get) => {
     enabled: settings["notifications.enabled"],
     systemNotificationEnabled:
       settings["notifications.systemNotificationEnabled"],
+    dockBadgeEnabled: settings["notifications.dockBadgeEnabled"],
     soundEnabled: settings["notifications.completionSound"],
     soundPreset: settings["notifications.soundPreset"],
     soundVolume: settings["notifications.soundVolume"],
@@ -36,8 +37,7 @@ export const notificationSettingsAtom = atom<NotificationSettings>((get) => {
       taskCompletion: settings["notifications.categories.taskCompletion"],
       agentApproval: settings["notifications.categories.agentApproval"],
       errors: settings["notifications.categories.errors"],
-      sessionStatus: settings["notifications.categories.sessionStatus"],
-      gitOperations: settings["notifications.categories.gitOperations"],
+      teamInbox: settings["notifications.categories.teamInbox"],
     },
   };
 });

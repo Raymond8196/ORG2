@@ -692,6 +692,7 @@
     "agentApproval": "Agent 승인",
     "agentApprovalDesc": "Agent 작업에 승인이 필요할 때",
     "errors": "오류 및 경고",
+    "teamInbox": "팀 받은편지함",
     "errorsDesc": "오류 또는 경고가 발생할 때",
     "sessionStatus": "Session 상태",
     "sessionStatusDesc": "Session 시작, 일시 중지 및 재개 업데이트",

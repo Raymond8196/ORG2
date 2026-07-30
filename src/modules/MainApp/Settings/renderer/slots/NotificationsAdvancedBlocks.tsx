@@ -4,7 +4,6 @@ import {
   SectionContainer,
   SectionRow,
 } from "@/src/modules/shared/layouts/SectionLayout";
-import { invoke } from "@tauri-apps/api/core";
 import { open as shellOpen } from "@tauri-apps/plugin-shell";
 import { useAtomValue } from "jotai";
 import { Play } from "lucide-react";
@@ -12,9 +11,12 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
+  type NotificationPermissionStatus,
   checkNotificationPermission,
   playNotificationSound,
+  requestNotificationPermission,
   sendTestNotification,
+  setDockBadge,
   unlockNotificationSound,
 } from "@src/api/services/notification";
 import Button from "@src/components/Button";
@@ -27,23 +29,16 @@ import {
   normalizeNotificationSoundPreset,
 } from "@src/config/notificationSounds";
 import type { NotificationSoundPreset } from "@src/config/notificationSounds";
-import { createLogger } from "@src/hooks/logger";
 import { NAV_BUTTON_PROPS } from "@src/modules/MainApp/Settings/config";
 import { useSetting } from "@src/store/settings";
 import { notificationSettingsAtom } from "@src/store/ui/notificationAtom";
+import type { NotificationCategory } from "@src/types/ui/notification";
 import { isMacOS } from "@src/util/platform/tauri";
 
 import NotificationFocusBlocks from "./NotificationFocusBlocks";
 
-const log = createLogger("Notifications");
-
 interface NotificationCategoryConfig {
-  key:
-    | "taskCompletion"
-    | "agentApproval"
-    | "errors"
-    | "sessionStatus"
-    | "gitOperations";
+  key: NotificationCategory;
   labelKey: string;
   critical: boolean;
 }
@@ -65,13 +60,8 @@ const NOTIFICATION_CATEGORIES: NotificationCategoryConfig[] = [
     critical: true,
   },
   {
-    key: "sessionStatus",
-    labelKey: "notifications.sessionStatus",
-    critical: false,
-  },
-  {
-    key: "gitOperations",
-    labelKey: "notifications.gitOperations",
+    key: "teamInbox",
+    labelKey: "notifications.teamInbox",
     critical: false,
   },
 ];
@@ -99,14 +89,13 @@ const NotificationsAdvancedBlocks: React.FC = () => {
     "notifications.categories.agentApproval"
   );
   const [errors, setErrors] = useSetting("notifications.categories.errors");
-  const [sessionStatus, setSessionStatus] = useSetting(
-    "notifications.categories.sessionStatus"
-  );
-  const [gitOperations, setGitOperations] = useSetting(
-    "notifications.categories.gitOperations"
+  const [teamInbox, setTeamInbox] = useSetting(
+    "notifications.categories.teamInbox"
   );
 
-  const [permissionStatus, setPermissionStatus] = useState<string>("unknown");
+  const [permissionStatus, setPermissionStatus] =
+    useState<NotificationPermissionStatus>("unknown");
+  const [isRequestingPermission, setIsRequestingPermission] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const soundPresetOptions = useMemo(
     () =>
@@ -120,18 +109,43 @@ const NotificationsAdvancedBlocks: React.FC = () => {
   useEffect(() => {
     let cancelled = false;
     checkNotificationPermission().then((status) => {
-      if (!cancelled) {
-        setPermissionStatus(status);
-      }
+      if (!cancelled) setPermissionStatus(status);
     });
     return () => {
       cancelled = true;
     };
   }, []);
 
+  const ensureSystemPermission =
+    async (): Promise<NotificationPermissionStatus> => {
+      if (permissionStatus === "granted") return permissionStatus;
+      setIsRequestingPermission(true);
+      try {
+        const result = await requestNotificationPermission();
+        setPermissionStatus(result);
+        if (result !== "granted") {
+          Message.warning(t("notifications.permissionDenied"));
+        }
+        return result;
+      } finally {
+        setIsRequestingPermission(false);
+      }
+    };
+
+  const handleToggleSystemNotification = async () => {
+    if (systemNotificationEnabled) {
+      setSystemNotificationEnabled(false);
+      return;
+    }
+    if ((await ensureSystemPermission()) === "granted") {
+      setSystemNotificationEnabled(true);
+    }
+  };
+
   const handleTestNotification = async () => {
     setIsTesting(true);
     try {
+      if ((await ensureSystemPermission()) !== "granted") return;
       const success = await sendTestNotification(notificationSettings);
       if (success) {
         Message.success(t("notifications.test.sent"));
@@ -145,31 +159,22 @@ const NotificationsAdvancedBlocks: React.FC = () => {
     }
   };
 
-  const handleToggleDockBadge = async () => {
-    const newEnabled = !dockBadgeEnabled;
-    setDockBadgeEnabled(newEnabled);
-    if (!newEnabled) {
-      try {
-        await invoke("clear_dock_badge");
-      } catch (error) {
-        log.error("[Notifications] Failed to clear badge:", error);
-      }
-    }
+  const handleToggleDockBadge = () => {
+    const nextEnabled = !dockBadgeEnabled;
+    setDockBadgeEnabled(nextEnabled);
+    if (!nextEnabled) void setDockBadge(0);
   };
 
   const handleVolumeChange: (value: number | [number, number]) => void = (
     value
   ) => {
-    const nextVolume = Array.isArray(value) ? value[0] : value;
-    setSoundVolume(nextVolume);
+    setSoundVolume(Array.isArray(value) ? value[0] : value);
   };
 
   const handleSoundEnabledChange = () => {
     const nextSoundEnabled = !soundEnabled;
     setSoundEnabled(nextSoundEnabled);
-    if (nextSoundEnabled) {
-      void unlockNotificationSound();
-    }
+    if (nextSoundEnabled) void unlockNotificationSound();
   };
 
   const handlePreviewSound = async (preset: NotificationSoundPreset) => {
@@ -192,21 +197,17 @@ const NotificationsAdvancedBlocks: React.FC = () => {
     taskCompletion,
     agentApproval,
     errors,
-    sessionStatus,
-    gitOperations,
+    teamInbox,
   };
 
   const categorySetters = {
     taskCompletion: setTaskCompletion,
     agentApproval: setAgentApproval,
     errors: setErrors,
-    sessionStatus: setSessionStatus,
-    gitOperations: setGitOperations,
+    teamInbox: setTeamInbox,
   } as const;
 
-  if (!enabled) {
-    return null;
-  }
+  if (!enabled) return null;
 
   return (
     <>
@@ -241,9 +242,7 @@ const NotificationsAdvancedBlocks: React.FC = () => {
                 <Button
                   size="default"
                   icon={<Play size={14} />}
-                  onClick={() => {
-                    void handlePreviewSound(soundPreset);
-                  }}
+                  onClick={() => void handlePreviewSound(soundPreset)}
                   disabled={soundVolume === 0}
                 >
                   {t("notifications.previewSound")}
@@ -285,12 +284,11 @@ const NotificationsAdvancedBlocks: React.FC = () => {
         <SectionRow label={t("notifications.enableSystem")}>
           <Switch
             checked={systemNotificationEnabled}
-            onChange={() =>
-              setSystemNotificationEnabled(!systemNotificationEnabled)
-            }
+            disabled={isRequestingPermission}
+            onChange={() => void handleToggleSystemNotification()}
           />
         </SectionRow>
-        {systemNotificationEnabled && (
+        {(systemNotificationEnabled || permissionStatus !== "unknown") && (
           <SectionRow
             label={t("notifications.systemPermission")}
             indent
@@ -339,7 +337,7 @@ const NotificationsAdvancedBlocks: React.FC = () => {
             size="default"
             onClick={handleTestNotification}
             loading={isTesting}
-            disabled={permissionStatus !== "granted"}
+            disabled={isRequestingPermission}
           >
             {t("notifications.notification")}
           </Button>

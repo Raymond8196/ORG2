@@ -406,7 +406,7 @@ pub fn query_imported_sidebar_page_from_conn(
         "SELECT session_id, name, created_at_ms, updated_at_ms, cache.repo_path,
                 model, files_changed, lines_added, lines_removed, touched_files_json,
                 input_tokens, output_tokens, source_path,
-                identity.repo_root_path, identity.remote_urls_json
+                identity.repo_root_path, identity.remote_urls_json, cache.branch
          FROM imported_history_session_cache cache
          LEFT JOIN imported_history_repo_identity identity
            ON identity.working_path = cache.repo_path
@@ -440,6 +440,9 @@ pub fn query_imported_sidebar_page_from_conn(
                     .map_err(|err| {
                         rusqlite::Error::FromSqlConversionFailure(14, Type::Text, Box::new(err))
                     })?;
+            // Stored as "" for sources that report no branch (the upsert
+            // coalesces `None`), so normalize back to absent.
+            let branch: String = row.get(15)?;
             Ok(ImportedHistorySidebarRow {
                 session_id: row.get(0)?,
                 name: row.get(1)?,
@@ -450,6 +453,7 @@ pub fn query_imported_sidebar_page_from_conn(
                 repo_path: non_empty_string(repo_path),
                 repo_root_path: repo_root_path.and_then(non_empty_string),
                 repo_remote_urls,
+                branch: non_empty_string(branch),
                 storage_path: non_empty_string(source_path),
                 model: non_empty_string(model),
                 total_tokens: input_tokens + output_tokens,

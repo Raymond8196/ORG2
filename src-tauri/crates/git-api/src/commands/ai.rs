@@ -103,7 +103,7 @@ fn default_model_for(agent_type: &ModelType) -> &'static str {
         ModelType::ZenmuxApi => "deepseek/deepseek-chat",
         ModelType::DashscopeApi => "qwen-turbo",
         ModelType::MoonshotApi => "moonshot-v1-8k",
-        ModelType::MinimaxApi => "abab6.5s-chat",
+        ModelType::MinimaxApi => "MiniMax-M3",
         ModelType::ZhipuApi => "glm-4-flash",
         ModelType::VllmApi => "default",
         _ => "gpt-4o-mini",
@@ -374,7 +374,7 @@ mod tests {
         (ModelType::ZenmuxApi, "zenmux", "deepseek/deepseek-chat"),
         (ModelType::DashscopeApi, "dashscope", "qwen-turbo"),
         (ModelType::MoonshotApi, "moonshot", "moonshot-v1-8k"),
-        (ModelType::MinimaxApi, "minimax", "abab6.5s-chat"),
+        (ModelType::MinimaxApi, "minimax", "MiniMax-M3"),
         (ModelType::ZhipuApi, "zhipu", "glm-4-flash"),
         (ModelType::VllmApi, "vllm", "default"),
     ];

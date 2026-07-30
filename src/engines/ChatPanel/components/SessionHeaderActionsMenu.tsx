@@ -45,6 +45,7 @@ export interface SessionHeaderActionsMenuProps {
   handlePaginationToggle: (checked: boolean) => void;
   handleReloadFromMenu: () => void;
   handleTokenUsageVisibleToggle: (checked: boolean) => void;
+  handleTurnMetadataVisibleToggle: (checked: boolean) => void;
   headerActionsDropdownRef: React.RefObject<HTMLDivElement | null>;
   headerActionsPosition: DropdownEnginePosition;
   headerActionsTriggerRef: React.RefObject<HTMLButtonElement | null>;
@@ -55,6 +56,7 @@ export interface SessionHeaderActionsMenuProps {
   showCloudShareSettings: boolean;
   showTranscriptActions?: boolean;
   tokenUsageVisible: boolean;
+  turnMetadataVisible: boolean;
   toggleHeaderActionsMenu: () => void;
   triggerTestId: string;
 }
@@ -79,6 +81,7 @@ export const SessionHeaderActionsMenu: React.FC<
   handlePaginationToggle,
   handleReloadFromMenu,
   handleTokenUsageVisibleToggle,
+  handleTurnMetadataVisibleToggle,
   headerActionsDropdownRef,
   headerActionsPosition,
   headerActionsTriggerRef,
@@ -89,6 +92,7 @@ export const SessionHeaderActionsMenu: React.FC<
   showCloudShareSettings,
   showTranscriptActions = true,
   tokenUsageVisible,
+  turnMetadataVisible,
   toggleHeaderActionsMenu,
   triggerTestId,
 }) => {
@@ -281,6 +285,20 @@ export const SessionHeaderActionsMenu: React.FC<
                     onChange={handleTokenUsageVisibleToggle}
                     size="small"
                     ariaLabel={t("chat.showTokenUsage")}
+                  />
+                </div>
+                <div
+                  className={`${DROPDOWN_CLASSES.item} w-full justify-between text-left`}
+                >
+                  <span className="flex-1 truncate">
+                    {t("chat.showTurnMetadata")}
+                  </span>
+                  <Switch
+                    checked={turnMetadataVisible}
+                    onChange={handleTurnMetadataVisibleToggle}
+                    size="small"
+                    ariaLabel={t("chat.showTurnMetadata")}
+                    dataTestId="session-menu-turn-metadata-toggle"
                   />
                 </div>
                 <div

@@ -692,6 +692,7 @@
     "agentApproval": "Aprobación de Agent",
     "agentApprovalDesc": "Cuando una acción de Agent requiere tu aprobación",
     "errors": "Errores y advertencias",
+    "teamInbox": "Bandeja de entrada del equipo",
     "errorsDesc": "Cuando ocurren errores o advertencias",
     "sessionStatus": "Estado de Session",
     "sessionStatusDesc": "Actualizaciones de inicio, pausa y reanudación de Session",

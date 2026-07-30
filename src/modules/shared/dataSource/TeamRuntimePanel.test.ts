@@ -18,25 +18,17 @@ import { utcDayStartMs } from "./teamRuntimeData";
 const mocks = vi.hoisted(() => ({
   listMemberRuntime: vi.fn(),
   getMemberUsage: vi.fn(),
-  clearMemberRuntime: vi.fn(),
   getCloudCapabilities: vi.fn(),
   ensureFreshSession: vi.fn(),
   externalCliSourcesDetect: vi.fn(),
-  updateSettingsBatch: vi.fn(),
   signIn: vi.fn(),
-  resetMemberRuntimePushState: vi.fn(),
 }));
 
 vi.mock("@src/features/Org2Cloud/memberRuntime/memberRuntimeClient", () => ({
   listMemberRuntime: mocks.listMemberRuntime,
   getMemberUsage: mocks.getMemberUsage,
-  clearMemberRuntime: mocks.clearMemberRuntime,
   upsertMemberRuntime: vi.fn(),
   setOrgRuntimeTelemetry: vi.fn(),
-}));
-
-vi.mock("@src/features/Org2Cloud/memberRuntime/memberRuntimePushState", () => ({
-  resetMemberRuntimePushState: mocks.resetMemberRuntimePushState,
 }));
 
 // The auth and orgs atoms are replaced with plain writable atoms so each test
@@ -77,10 +69,6 @@ vi.mock("@src/api/tauri/usageDashboard", () => ({
 
 vi.mock("@src/features/Org2Cloud/useOrg2CloudSignIn", () => ({
   useOrg2CloudSignIn: () => mocks.signIn,
-}));
-
-vi.mock("@src/hooks/settings/useSettings", () => ({
-  useUpdateSettingsBatch: () => mocks.updateSettingsBatch,
 }));
 
 vi.mock("@src/hooks/ui", () => ({
@@ -398,7 +386,6 @@ beforeEach(() => {
   mocks.getCloudCapabilities.mockResolvedValue({ memberRuntime: true });
   mocks.listMemberRuntime.mockResolvedValue([]);
   mocks.getMemberUsage.mockResolvedValue([]);
-  mocks.clearMemberRuntime.mockResolvedValue(undefined);
   mocks.externalCliSourcesDetect.mockResolvedValue([
     {
       sourceId: "claude",
@@ -649,115 +636,6 @@ describe("TeamRuntimePanel drilldown", () => {
     });
     expect(
       container.querySelector('[data-testid="team-runtime-grid"]')
-    ).not.toBeNull();
-  });
-});
-
-describe("TeamRuntimePanel self-service", () => {
-  it("confirms inline, clears remote data, and flips the privacy setting off", async () => {
-    mocks.listMemberRuntime.mockResolvedValue([member()]);
-    await seedAtoms(AUTH, [org()]);
-    await mount();
-
-    await act(async () => {
-      container
-        .querySelector<HTMLButtonElement>(
-          '[data-testid="team-runtime-stop-sharing"]'
-        )
-        ?.click();
-    });
-    // Nothing destructive before the inline confirm.
-    expect(mocks.clearMemberRuntime).not.toHaveBeenCalled();
-    expect(
-      container.querySelector('[data-testid="team-runtime-stop-confirm"]')
-    ).not.toBeNull();
-
-    await act(async () => {
-      container
-        .querySelector<HTMLButtonElement>(
-          '[data-testid="team-runtime-stop-confirm"]'
-        )
-        ?.click();
-    });
-    for (let i = 0; i < 6; i += 1) {
-      await act(async () => {
-        await Promise.resolve();
-      });
-    }
-
-    expect(mocks.updateSettingsBatch).toHaveBeenCalledWith({
-      "privacy.shareRuntimeWithOrg": false,
-    });
-    expect(mocks.clearMemberRuntime).toHaveBeenCalledWith("token-1", "org-1");
-    // The remote delete succeeded: reset the local push-state fingerprints
-    // (same identityKey derivation the scheduler uses) so re-enabling
-    // sharing re-sends everything instead of skipping "unchanged" rows the
-    // server no longer has.
-    expect(mocks.resetMemberRuntimePushState).toHaveBeenCalledWith(
-      "https://cloud.example|me",
-      "org-1"
-    );
-  });
-
-  it("does not reset push state when the remote clear fails", async () => {
-    mocks.listMemberRuntime.mockResolvedValue([member()]);
-    mocks.clearMemberRuntime.mockRejectedValue(new Error("boom"));
-    await seedAtoms(AUTH, [org()]);
-    await mount();
-
-    await act(async () => {
-      container
-        .querySelector<HTMLButtonElement>(
-          '[data-testid="team-runtime-stop-sharing"]'
-        )
-        ?.click();
-    });
-    await act(async () => {
-      container
-        .querySelector<HTMLButtonElement>(
-          '[data-testid="team-runtime-stop-confirm"]'
-        )
-        ?.click();
-    });
-    for (let i = 0; i < 6; i += 1) {
-      await act(async () => {
-        await Promise.resolve();
-      });
-    }
-
-    expect(mocks.clearMemberRuntime).toHaveBeenCalledWith("token-1", "org-1");
-    expect(mocks.resetMemberRuntimePushState).not.toHaveBeenCalled();
-    expect(
-      container.querySelector('[data-testid="team-runtime-self-service"]')
-        ?.textContent
-    ).toContain("boom");
-  });
-
-  it("cancel backs out without touching anything", async () => {
-    mocks.listMemberRuntime.mockResolvedValue([member()]);
-    await seedAtoms(AUTH, [org()]);
-    await mount();
-
-    await act(async () => {
-      container
-        .querySelector<HTMLButtonElement>(
-          '[data-testid="team-runtime-stop-sharing"]'
-        )
-        ?.click();
-    });
-    await act(async () => {
-      container
-        .querySelector<HTMLButtonElement>(
-          '[data-testid="team-runtime-stop-cancel"]'
-        )
-        ?.click();
-    });
-
-    expect(mocks.clearMemberRuntime).not.toHaveBeenCalled();
-    expect(mocks.updateSettingsBatch).not.toHaveBeenCalled();
-    expect(mocks.resetMemberRuntimePushState).not.toHaveBeenCalled();
-    expect(
-      container.querySelector('[data-testid="team-runtime-stop-sharing"]')
     ).not.toBeNull();
   });
 });

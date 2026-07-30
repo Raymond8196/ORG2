@@ -692,6 +692,7 @@
     "agentApproval": "Agent 承認",
     "agentApprovalDesc": "Agent アクションが承認を必要とするとき",
     "errors": "エラーと警告",
+    "teamInbox": "チーム受信トレイ",
     "errorsDesc": "エラーまたは警告が発生したとき",
     "sessionStatus": "Session状態",
     "sessionStatusDesc": "Sessionの開始、一時停止、再開の更新",

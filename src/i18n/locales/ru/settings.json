@@ -692,6 +692,7 @@
     "agentApproval": "Одобрение Agent",
     "agentApprovalDesc": "Когда действие Agent требует вашего одобрения",
     "errors": "Ошибки и предупреждения",
+    "teamInbox": "Командные входящие",
     "errorsDesc": "Когда возникают ошибки или предупреждения",
     "sessionStatus": "Статус Session",
     "sessionStatusDesc": "Обновления о запуске, паузе и возобновлении Session",

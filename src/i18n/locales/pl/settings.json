@@ -692,6 +692,7 @@
     "agentApproval": "Zatwierdzenie Agent",
     "agentApprovalDesc": "Gdy akcja Agent wymaga Twojego zatwierdzenia",
     "errors": "Błędy i ostrzeżenia",
+    "teamInbox": "Skrzynka odbiorcza zespołu",
     "errorsDesc": "Gdy występują błędy lub ostrzeżenia",
     "sessionStatus": "Status sesji",
     "sessionStatusDesc": "Aktualizacje rozpoczęcia, pauzy i wznowienia sesji",

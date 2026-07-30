@@ -692,6 +692,7 @@
     "agentApproval": "Agent Onayı",
     "agentApprovalDesc": "Bir Agent eylemi onayınızı gerektirdiğinde",
     "errors": "Hatalar ve Uyarılar",
+    "teamInbox": "Ekip Gelen Kutusu",
     "errorsDesc": "Hatalar veya uyarılar oluştuğunda",
     "sessionStatus": "Session Durumu",
     "sessionStatusDesc": "Session başlatma, duraklatma ve devam ettirme güncellemeleri",

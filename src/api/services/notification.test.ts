@@ -3,20 +3,27 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { NotificationSettings } from "@src/types/ui/notification";
 
 import {
+  checkNotificationPermission,
   disposeNotificationRuntime,
   notifyAgentApproval,
   notifyError,
   notifyTaskCompletion,
+  notifyTeamInbox,
+  sendSystemNotification,
   sendTestNotification,
+  setDockBadge,
 } from "./notification";
 
 const mocks = vi.hoisted(() => ({
+  invoke: vi.fn(),
+  isPermissionGranted: vi.fn(),
   playNotificationSound: vi.fn(async () => true),
+  requestPermission: vi.fn(),
   sendNotification: vi.fn(async () => undefined),
 }));
 
 vi.mock("@tauri-apps/api/core", () => ({
-  invoke: vi.fn(),
+  invoke: mocks.invoke,
   isTauri: () => false,
 }));
 
@@ -25,18 +32,27 @@ vi.mock("@tauri-apps/api/window", () => ({
 }));
 
 vi.mock("@tauri-apps/plugin-notification", () => ({
-  isPermissionGranted: vi.fn(async () => true),
-  requestPermission: vi.fn(async () => "granted"),
+  isPermissionGranted: mocks.isPermissionGranted,
+  requestPermission: mocks.requestPermission,
   sendNotification: mocks.sendNotification,
+}));
+
+vi.mock("@src/hooks/logger", () => ({
+  createLogger: () => ({
+    error: vi.fn(),
+    warn: vi.fn(),
+  }),
 }));
 
 vi.mock("./notificationSound", () => ({
   playNotificationSound: mocks.playNotificationSound,
+  unlockNotificationSound: vi.fn(async () => true),
 }));
 
 const settings: NotificationSettings = {
   enabled: true,
   systemNotificationEnabled: false,
+  dockBadgeEnabled: false,
   soundEnabled: true,
   soundPreset: "bell",
   soundVolume: 42,
@@ -53,19 +69,35 @@ const settings: NotificationSettings = {
     taskCompletion: true,
     agentApproval: true,
     errors: true,
-    sessionStatus: false,
-    gitOperations: false,
+    teamInbox: true,
   },
 };
 
-describe("notification sound selection", () => {
+describe("notification service", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.sendNotification.mockResolvedValue(undefined);
+    mocks.playNotificationSound.mockResolvedValue(true);
   });
 
   afterEach(() => {
     disposeNotificationRuntime();
     vi.useRealTimers();
+  });
+
+  it("preserves the Rust permission tri-state", async () => {
+    mocks.invoke.mockResolvedValueOnce("unknown");
+
+    await expect(checkNotificationPermission()).resolves.toBe("unknown");
+    expect(mocks.invoke).toHaveBeenCalledWith("check_notification_permission");
+    expect(mocks.isPermissionGranted).not.toHaveBeenCalled();
+  });
+
+  it("does not mislabel a boolean fallback as denied", async () => {
+    mocks.invoke.mockRejectedValueOnce(new Error("IPC unavailable"));
+    mocks.isPermissionGranted.mockResolvedValueOnce(false);
+
+    await expect(checkNotificationPermission()).resolves.toBe("unknown");
   });
 
   it.each([
@@ -91,6 +123,45 @@ describe("notification sound selection", () => {
     });
   });
 
+  it("gates Team Inbox delivery on the master and category settings", async () => {
+    await notifyTeamInbox("New assignment", "Review it", {
+      ...settings,
+      enabled: false,
+    });
+    await notifyTeamInbox("New assignment", "Review it", {
+      ...settings,
+      categories: { ...settings.categories, teamInbox: false },
+    });
+
+    expect(mocks.sendNotification).not.toHaveBeenCalled();
+    expect(mocks.playNotificationSound).not.toHaveBeenCalled();
+  });
+
+  it("falls back to the Rust send boundary exactly once", async () => {
+    mocks.sendNotification.mockRejectedValueOnce(new Error("plugin failed"));
+    mocks.invoke.mockResolvedValueOnce(undefined);
+
+    await expect(sendSystemNotification("Title", "Body")).resolves.toBe(true);
+    expect(mocks.invoke).toHaveBeenCalledWith("send_notification", {
+      title: "Title",
+      body: "Body",
+    });
+  });
+
+  it("projects positive and cleared dock badge values", async () => {
+    mocks.invoke.mockResolvedValue(undefined);
+
+    await setDockBadge(7.9);
+    await setDockBadge(0);
+
+    expect(mocks.invoke).toHaveBeenNthCalledWith(1, "set_dock_badge", {
+      count: 7,
+    });
+    expect(mocks.invoke).toHaveBeenNthCalledWith(2, "set_dock_badge", {
+      count: null,
+    });
+  });
+
   it("disposes retained background-summary timers", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(2026, 6, 25, 23, 30));
@@ -103,16 +174,14 @@ describe("notification sound selection", () => {
     };
 
     await expect(
-      notifyTaskCompletion(
-        "Done",
-        quietSettings,
-        {
+      notifyTaskCompletion("Done", quietSettings, {
+        context: {
           sessionId: "summary-session",
           background: true,
           eventKey: "summary-dispose-test",
         },
-        "Summary session"
-      )
+        summaryLabel: "Summary session",
+      })
     ).resolves.toMatchObject({ disposition: "deferred" });
     expect(vi.getTimerCount()).toBe(1);
 

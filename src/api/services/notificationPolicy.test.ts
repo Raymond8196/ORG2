@@ -28,6 +28,7 @@ function makeSettings(
   const base: NotificationSettings = {
     enabled: true,
     systemNotificationEnabled: true,
+    dockBadgeEnabled: false,
     soundEnabled: true,
     soundPreset: "classic",
     soundVolume: 70,
@@ -44,8 +45,7 @@ function makeSettings(
       taskCompletion: true,
       agentApproval: true,
       errors: true,
-      sessionStatus: true,
-      gitOperations: true,
+      teamInbox: true,
     },
   };
   return {

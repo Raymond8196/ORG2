@@ -1,13 +1,15 @@
 /**
- * Sync tab — per-org connection health, last-sync clock, a manual trigger,
- * and the local sync journal ("bug logs").
+ * Sync tab — last-sync clock plus manual trigger (leading, since that is what
+ * a user opens this tab for), then per-org connection health, then the local
+ * sync journal ("bug logs").
  *
  * Presentational by design: every value arrives through `status`
  * (`useCloudOrgSyncStatus`), matching how `CloudOrgSettingsSection` consumes
  * `OrgRuntimeTelemetryState`. Nothing here talks to the backend.
  *
- * SECRETS: the connection block renders the endpoint ORIGIN and the signed-in
- * user id only. The Supabase anon key and the access/refresh tokens are never
+ * SECRETS: the connection block reports the backend KIND (managed vs custom)
+ * and the signed-in user id only. The endpoint URL is not even exposed by the
+ * status hook, and the Supabase anon key and access/refresh tokens are never
  * passed in, rendered, or copied.
  */
 import type { TFunction } from "i18next";
@@ -119,18 +121,88 @@ export function CloudOrgSyncSection({ t, status }: CloudOrgSyncSectionProps) {
 
   return (
     <>
+      <SectionContainer title={t("cloud.orgPanel.sync.lastSyncTitle")}>
+        <SectionRow
+          dataTestId="cloud-org-sync-last"
+          label={t("cloud.orgPanel.sync.lastSyncLabel")}
+        >
+          {lastSuccessAtMs === null ? (
+            <span
+              className="text-[12px] text-text-3"
+              data-testid="cloud-org-sync-last-never"
+            >
+              {t("cloud.orgPanel.sync.lastSyncNever")}
+            </span>
+          ) : (
+            <span
+              className="text-[12px] text-text-2"
+              data-testid="cloud-org-sync-last-value"
+            >
+              {`${formatRelativeTime(lastSuccessAtMs, "long")} · ${formatAbsolute(lastSuccessAtMs)}`}
+            </span>
+          )}
+        </SectionRow>
+        {status.lastSync.lastPassAtMs !== null &&
+        status.lastSync.lastPassAtMs !== lastSuccessAtMs ? (
+          <SectionRow
+            dataTestId="cloud-org-sync-last-attempt"
+            label={t("cloud.orgPanel.sync.lastAttemptLabel")}
+          >
+            <span className="text-[12px] text-text-3">
+              {`${formatRelativeTime(status.lastSync.lastPassAtMs, "long")} · ${formatAbsolute(status.lastSync.lastPassAtMs)}`}
+            </span>
+          </SectionRow>
+        ) : null}
+        <SectionRow
+          dataTestId="cloud-org-sync-manual"
+          label={t("cloud.orgPanel.sync.manualLabel")}
+          align="start"
+        >
+          <div className={`${SECTION_ACTION_GAP_CLASSES} flex-wrap`}>
+            <Button
+              htmlType="button"
+              size="default"
+              variant="primary"
+              disabled={status.running}
+              loading={status.running}
+              data-testid="cloud-org-sync-run"
+              onClick={status.runSync}
+            >
+              {status.running
+                ? t("cloud.orgPanel.sync.manualRunning")
+                : t("cloud.orgPanel.sync.manualAction")}
+            </Button>
+            {status.runError ? (
+              <span
+                className="text-[12px] text-danger-6"
+                data-testid="cloud-org-sync-run-error"
+              >
+                {t("cloud.orgPanel.sync.manualError", {
+                  message: status.runError,
+                })}
+              </span>
+            ) : status.runSucceeded ? (
+              <span
+                className="text-[12px] text-success-6"
+                data-testid="cloud-org-sync-run-success"
+              >
+                {t("cloud.orgPanel.sync.manualSuccess")}
+              </span>
+            ) : null}
+          </div>
+        </SectionRow>
+      </SectionContainer>
+
       <SectionContainer title={t("cloud.orgPanel.sync.connectionTitle")}>
         <SectionRow
           dataTestId="cloud-org-sync-endpoint"
           label={t("cloud.orgPanel.sync.endpointLabel")}
-          description={
-            status.isOfficialEndpoint
-              ? t("cloud.orgPanel.sync.endpointOfficial")
-              : t("cloud.orgPanel.sync.endpointCustom")
-          }
         >
-          <span className="break-all text-[12px] text-text-2">
-            {status.endpointOrigin ?? t("cloud.orgPanel.sync.endpointUnknown")}
+          {/* Backend KIND only — the endpoint URL is never rendered. */}
+          <span className="text-[12px] text-text-2">
+            {status.isOfficialEndpoint
+              ? t("cloud.orgPanel.sync.endpointOfficial")
+              : t("cloud.orgPanel.sync.endpointCustom")}
           </span>
         </SectionRow>
 
@@ -228,82 +300,6 @@ export function CloudOrgSyncSection({ t, status }: CloudOrgSyncSectionProps) {
                 : t("cloud.orgPanel.sync.capabilitiesUnavailable")}
             </span>
           )}
-        </SectionRow>
-      </SectionContainer>
-
-      <SectionContainer title={t("cloud.orgPanel.sync.lastSyncTitle")}>
-        <SectionRow
-          dataTestId="cloud-org-sync-last"
-          label={t("cloud.orgPanel.sync.lastSyncLabel")}
-        >
-          {lastSuccessAtMs === null ? (
-            <span
-              className="text-[12px] text-text-3"
-              data-testid="cloud-org-sync-last-never"
-            >
-              {t("cloud.orgPanel.sync.lastSyncNever")}
-            </span>
-          ) : (
-            <span
-              className="text-[12px] text-text-2"
-              data-testid="cloud-org-sync-last-value"
-            >
-              {`${formatRelativeTime(lastSuccessAtMs, "long")} · ${formatAbsolute(lastSuccessAtMs)}`}
-            </span>
-          )}
-        </SectionRow>
-        {status.lastSync.lastPassAtMs !== null &&
-        status.lastSync.lastPassAtMs !== lastSuccessAtMs ? (
-          <SectionRow
-            dataTestId="cloud-org-sync-last-attempt"
-            label={t("cloud.orgPanel.sync.lastAttemptLabel")}
-          >
-            <span className="text-[12px] text-text-3">
-              {`${formatRelativeTime(status.lastSync.lastPassAtMs, "long")} · ${formatAbsolute(status.lastSync.lastPassAtMs)}`}
-            </span>
-          </SectionRow>
-        ) : null}
-      </SectionContainer>
-
-      <SectionContainer title={t("cloud.orgPanel.sync.manualTitle")}>
-        <SectionRow
-          dataTestId="cloud-org-sync-manual"
-          label={t("cloud.orgPanel.sync.manualLabel")}
-          description={t("cloud.orgPanel.sync.manualHelp")}
-          align="start"
-        >
-          <div className={`${SECTION_ACTION_GAP_CLASSES} flex-wrap`}>
-            <Button
-              htmlType="button"
-              size="default"
-              variant="primary"
-              disabled={status.running}
-              loading={status.running}
-              data-testid="cloud-org-sync-run"
-              onClick={status.runSync}
-            >
-              {status.running
-                ? t("cloud.orgPanel.sync.manualRunning")
-                : t("cloud.orgPanel.sync.manualAction")}
-            </Button>
-            {status.runError ? (
-              <span
-                className="text-[12px] text-danger-6"
-                data-testid="cloud-org-sync-run-error"
-              >
-                {t("cloud.orgPanel.sync.manualError", {
-                  message: status.runError,
-                })}
-              </span>
-            ) : status.runSucceeded ? (
-              <span
-                className="text-[12px] text-success-6"
-                data-testid="cloud-org-sync-run-success"
-              >
-                {t("cloud.orgPanel.sync.manualSuccess")}
-              </span>
-            ) : null}
-          </div>
         </SectionRow>
       </SectionContainer>
 

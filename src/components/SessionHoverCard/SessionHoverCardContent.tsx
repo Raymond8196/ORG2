@@ -6,7 +6,6 @@ import {
   Clock,
   Diff,
   Fingerprint,
-  Folder,
   GitBranch,
   GitCommitVertical,
   Grip,
@@ -41,6 +40,7 @@ import {
 } from "@src/util/data/formatters/date";
 import { formatBranchLabel } from "@src/util/git/branchLabel";
 import { basename } from "@src/util/path";
+import { getFileManagerRevealLabelKey } from "@src/util/platform/fileManagerLabels";
 import {
   isCliSession,
   isHumanSession,
@@ -88,6 +88,12 @@ interface CliAgentStatusPayload {
 
 const PATH_ROW_CLASS_NAME =
   "block max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-left text-text-2 underline-offset-2 transition-colors hover:text-accent-9 hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent-8";
+/** Inline link used for text that sits beside other text inside a row. */
+const INLINE_LINK_CLASS_NAME =
+  "text-text-2 underline-offset-2 transition-colors hover:text-accent-9 hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent-8";
+/** Trailing icon-only affordance that reveals a path in the file manager. */
+const REVEAL_ICON_BUTTON_CLASS_NAME =
+  "flex shrink-0 items-center rounded text-text-4 transition-colors hover:text-accent-9 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent-8";
 const COMPACT_PATH_MAX_CHARS = 44;
 
 function formatCompactPath(path: string): string {
@@ -445,6 +451,7 @@ export const SessionHoverCardContent: React.FC<SessionHoverCardContentProps> =
     const storageRowPath = isNativeTranscript
       ? (transcriptLocation?.path ?? undefined)
       : storagePath;
+    const revealLabel = t(getFileManagerRevealLabelKey());
 
     const dateTimeLabelOptions = {
       todayLabel: t("common:relativeDate.today"),
@@ -502,7 +509,22 @@ export const SessionHoverCardContent: React.FC<SessionHoverCardContentProps> =
         {(repoName || branchLabel) && (
           <HoverCardRow icon={<GitBranch size={13} strokeWidth={1.75} />}>
             <div className="truncate text-text-2">
-              {repoName && <span>{repoName}</span>}
+              {repoName &&
+                (repoPath ? (
+                  // The repo folder is the location row, folded in: the name
+                  // is the link, its tooltip carries the full path.
+                  <button
+                    type="button"
+                    className={INLINE_LINK_CLASS_NAME}
+                    title={`${revealLabel} · ${repoPath}`}
+                    aria-label={`${revealLabel} ${repoPath}`}
+                    onClick={() => handleRevealPath(repoPath)}
+                  >
+                    {repoName}
+                  </button>
+                ) : (
+                  <span>{repoName}</span>
+                ))}
               {repoName && branchLabel && (
                 <span className="mx-1 text-text-4">·</span>
               )}
@@ -510,58 +532,69 @@ export const SessionHoverCardContent: React.FC<SessionHoverCardContentProps> =
             </div>
           </HoverCardRow>
         )}
-        {repoPath && (
-          <HoverCardRow icon={<Folder size={13} strokeWidth={1.75} />}>
-            <button
-              type="button"
-              className={PATH_ROW_CLASS_NAME}
-              title={repoPath}
-              onClick={() => handleRevealPath(repoPath)}
-            >
-              {formatCompactPath(repoPath)}
-            </button>
-          </HoverCardRow>
-        )}
-        {(storageRowPath || isNativeTranscript) && (
-          <HoverCardRow icon={<Save size={13} strokeWidth={1.75} />}>
-            {storageRowPath ? (
-              <button
-                type="button"
-                className={PATH_ROW_CLASS_NAME}
-                title={storageRowPath}
-                onClick={() => handleRevealPath(storageRowPath)}
-              >
-                {formatCompactPath(storageRowPath)}
-              </button>
-            ) : (
-              <span className="truncate text-text-2">
-                {t("history.detail.cliNativeStore")}
-              </span>
-            )}
-          </HoverCardRow>
-        )}
-        {underlyingSessionId && (
-          <HoverCardRow icon={<Fingerprint size={13} strokeWidth={1.75} />}>
-            <button
-              type="button"
-              className={PATH_ROW_CLASS_NAME}
-              title={underlyingSessionId}
-              onClick={() => handleCopyUnderlyingId(underlyingSessionId)}
-            >
-              <span className="text-text-3">
-                {t("history.detail.sessionId")}
-              </span>
-              <span className="mx-1 text-text-4">·</span>
-              <span>{formatCompactSessionId(underlyingSessionId)}</span>
-              {copiedForSessionId === sessionId && (
-                <Check
-                  size={12}
-                  strokeWidth={2}
-                  className="ml-1 inline-block align-[-1px] text-success-6"
-                  aria-hidden="true"
-                />
+        {(underlyingSessionId || storageRowPath || isNativeTranscript) && (
+          <HoverCardRow
+            icon={
+              underlyingSessionId ? (
+                <Fingerprint size={13} strokeWidth={1.75} />
+              ) : (
+                <Save size={13} strokeWidth={1.75} />
+              )
+            }
+          >
+            <div className="flex min-w-0 items-center gap-1">
+              {underlyingSessionId ? (
+                <button
+                  type="button"
+                  className={`${PATH_ROW_CLASS_NAME} min-w-0 flex-1`}
+                  title={underlyingSessionId}
+                  aria-label={`${t("common:actions.copy")} ${t(
+                    "history.detail.sessionId"
+                  )}`}
+                  onClick={() => handleCopyUnderlyingId(underlyingSessionId)}
+                >
+                  <span className="text-text-3">
+                    {t("history.detail.sessionId")}
+                  </span>
+                  <span className="mx-1 text-text-4">·</span>
+                  <span>{formatCompactSessionId(underlyingSessionId)}</span>
+                  {copiedForSessionId === sessionId && (
+                    <Check
+                      size={12}
+                      strokeWidth={2}
+                      className="ml-1 inline-block align-[-1px] text-success-6"
+                      aria-hidden="true"
+                    />
+                  )}
+                </button>
+              ) : storageRowPath ? (
+                <button
+                  type="button"
+                  className={`${PATH_ROW_CLASS_NAME} min-w-0 flex-1`}
+                  title={`${revealLabel} · ${storageRowPath}`}
+                  aria-label={`${revealLabel} ${storageRowPath}`}
+                  onClick={() => handleRevealPath(storageRowPath)}
+                >
+                  {formatCompactPath(storageRowPath)}
+                </button>
+              ) : (
+                <span className="min-w-0 flex-1 truncate text-text-2">
+                  {t("history.detail.cliNativeStore")}
+                </span>
               )}
-            </button>
+              {/* Transcript file for a row already spoken for by the id. */}
+              {underlyingSessionId && storageRowPath && (
+                <button
+                  type="button"
+                  className={REVEAL_ICON_BUTTON_CLASS_NAME}
+                  title={`${revealLabel} · ${storageRowPath}`}
+                  aria-label={`${revealLabel} ${storageRowPath}`}
+                  onClick={() => handleRevealPath(storageRowPath)}
+                >
+                  <Save size={12} strokeWidth={1.75} />
+                </button>
+              )}
+            </div>
           </HoverCardRow>
         )}
         {impactTask && (

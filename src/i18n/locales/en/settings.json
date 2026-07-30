@@ -732,7 +732,9 @@
       "permissionWarning": "Failed to send test notification. Check permissions.",
       "sendFailed": "Unable to send test notification. Please check your notification permissions and try again.",
       "soundFailed": "Unable to play the notification sound. Check your system volume."
-    }
+    },
+    "teamInbox": "Team Inbox",
+    "teamInboxDesc": "Assignments, mentions, and handoffs from teammates"
   },
   "editor": {
     "tabEditor": "Editor",

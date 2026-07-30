@@ -1,6 +1,7 @@
 import { useAtomValue } from "jotai";
 import React, { memo } from "react";
 
+import { chatTurnMetadataVisibleAtom } from "@src/store/ui/chatPanelAtom";
 import { hasLoadedMoreActivitiesAtom } from "@src/store/ui/sessionPaginationAtom";
 
 import { turnMetadataAtomFamily, turnMetadataKey } from "../turnMetadataAtom";
@@ -19,7 +20,13 @@ const TurnMetadataFooterSlot: React.FC<TurnMetadataFooterSlotProps> = memo(
       turnMetadataAtomFamily(turnMetadataKey(sessionId ?? "", turnId))
     );
     const hasLoadedMoreActivities = useAtomValue(hasLoadedMoreActivitiesAtom);
-    if (!sessionId || !summary || !isTerminalTurnStatus(summary.status))
+    const turnMetadataVisible = useAtomValue(chatTurnMetadataVisibleAtom);
+    if (
+      !turnMetadataVisible ||
+      !sessionId ||
+      !summary ||
+      !isTerminalTurnStatus(summary.status)
+    )
       return null;
     return (
       <TurnMetadataFooter

@@ -692,6 +692,7 @@
     "agentApproval": "Agent-Genehmigung",
     "agentApprovalDesc": "Wenn eine Agent-Aktion Ihre Genehmigung erfordert",
     "errors": "Fehler & Warnungen",
+    "teamInbox": "Team-Posteingang",
     "errorsDesc": "Wenn Fehler oder Warnungen auftreten",
     "sessionStatus": "Session-Status",
     "sessionStatusDesc": "Session-Start, Pause und Fortsetzung",

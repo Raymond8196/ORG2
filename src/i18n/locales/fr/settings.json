@@ -692,6 +692,7 @@
     "agentApproval": "Approbation Agent",
     "agentApprovalDesc": "Lorsqu'une action Agent nécessite votre approbation",
     "errors": "Erreurs et avertissements",
+    "teamInbox": "Boîte de réception de l’équipe",
     "errorsDesc": "Lorsque des erreurs ou avertissements se produisent",
     "sessionStatus": "État de la Session",
     "sessionStatusDesc": "Mises à jour de démarrage, pause et reprise de Session",

@@ -692,6 +692,7 @@
     "agentApproval": "Phê duyệt Agent",
     "agentApprovalDesc": "Khi hành động Agent cần sự phê duyệt của bạn",
     "errors": "Lỗi & Cảnh báo",
+    "teamInbox": "Hộp thư đến của nhóm",
     "errorsDesc": "Khi có lỗi hoặc cảnh báo",
     "sessionStatus": "Trạng thái Session",
     "sessionStatusDesc": "Bắt đầu, tạm dừng và tiếp tục Session",
