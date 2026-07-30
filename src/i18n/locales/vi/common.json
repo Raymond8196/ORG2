@@ -1,4 +1,160 @@
 {
+  "teamInbox": {
+    "title": "Hộp thư nhóm",
+    "listLabel": "Danh sách hộp thư nhóm",
+    "itemsLabel": "Mục trong hộp thư nhóm",
+    "unreadCount": "{{count}} chưa đọc",
+    "allRead": "Đã xem hết",
+    "loadMore": "Tải thêm",
+    "filters": {
+      "all": "Tất cả",
+      "mentions": "Được nhắc đến",
+      "assigned": "Được giao"
+    },
+    "status": {
+      "read": "Đã đọc",
+      "unread": "Chưa đọc"
+    },
+    "row": {
+      "assignedSummary": "{{status}} · {{priority}}",
+      "ariaLabel": "{{title}}, {{status}}"
+    },
+    "search": {
+      "placeholder": "Tìm trong hộp thư",
+      "ariaLabel": "Tìm trong hộp thư nhóm"
+    },
+    "groups": {
+      "today": "Hôm nay",
+      "yesterday": "Hôm qua",
+      "thisWeek": "Tuần này",
+      "earlier": "Trước đó"
+    },
+    "empty": {
+      "title": "Chưa có gì ở đây",
+      "subtitle": "Các lượt nhắc đến và mục công việc được giao sẽ xuất hiện ở đây.",
+      "selectTitle": "Chọn một mục",
+      "selectSubtitle": "Xem ngữ cảnh bình luận hoặc chi tiết mục công việc.",
+      "mentions": {
+        "title": "Không có lượt nhắc đến nào",
+        "subtitle": "Khi đồng đội nhắc đến bạn bằng @ trong bình luận, mục đó sẽ xuất hiện ở đây."
+      },
+      "assigned": {
+        "title": "Không có gì được giao cho bạn",
+        "subtitle": "Các mục công việc được giao cho bạn sẽ xuất hiện ở đây."
+      },
+      "noResults": {
+        "title": "Không có kết quả phù hợp",
+        "subtitle": "Không có mục nào khớp với “{{query}}”."
+      }
+    },
+    "loading": "Đang tải hộp thư nhóm…",
+    "drop": {
+      "title": "Thả vào đây để tạo mục công việc",
+      "subtitle": "Xem lại ảnh chụp phiên làm việc, sau đó tạo hoặc bàn giao mục công việc.",
+      "processing": "Đang tạo mục công việc từ “{{title}}”…",
+      "processingHint": "Đang đọc phiên làm việc và xác định thành viên dự án.",
+      "success": "Đã tạo mục công việc",
+      "reused": "Đã cập nhật mục công việc hiện có",
+      "failed": "Không thể tạo mục công việc",
+      "error": "Không thể tạo mục công việc từ phiên làm việc này.",
+      "open": "Mở",
+      "dismiss": "Bỏ qua"
+    },
+    "handoff": {
+      "title": "Tạo từ phiên làm việc",
+      "createFromSession": "Tạo mục công việc của nhóm…",
+      "project": "Dự án đích",
+      "chooseProject": "Chọn dự án",
+      "recipientSelf": "{{name}} (tôi)",
+      "chooseRecipient": "Chọn người nhận",
+      "todoCount_other": "{{count}} việc cần làm",
+      "workItemTitle": "Tiêu đề mục công việc",
+      "assignTo": "Giao cho",
+      "note": "Ghi chú bàn giao",
+      "notePlaceholder": "Cho biết những gì đã sẵn sàng, những gì còn tồn đọng và bước tiếp theo nên là gì.",
+      "selfHint": "Giao việc này cho chính bạn sẽ tạo một mục công việc bình thường, không có yêu cầu bàn giao.",
+      "submitHandoff": "Tạo & bàn giao",
+      "submitCreate": "Tạo mục công việc",
+      "preparing": "Đang chuẩn bị “{{title}}”…",
+      "preparationError": {
+        "session_unavailable": "Phiên làm việc này không còn khả dụng. Hãy mở lại và thử lại.",
+        "project_unavailable": "Dự án của phiên làm việc này không còn khả dụng.",
+        "identity_unavailable": "Danh tính của bạn không phải là thành viên của dự án thuộc phiên làm việc này.",
+        "no_project": "Không có dự án phù hợp nào khả dụng. Hãy tạo hoặc tham gia một dự án rồi thử lại.",
+        "unknown": "Không thể chuẩn bị phiên làm việc này. Hãy làm mới hộp thư nhóm rồi thử lại."
+      },
+      "submitError": "Không thể tạo mục công việc. Hãy kiểm tra người nhận rồi thử lại.",
+      "pendingTitle": "Bàn giao từ {{name}}",
+      "acceptedTitle": "Đã được {{name}} chấp nhận",
+      "returnedTitle": "Đã được {{name}} trả lại",
+      "noNote": "Không có ghi chú bàn giao.",
+      "statusLabel": "Bàn giao mục công việc",
+      "return": "Trả lại",
+      "accept": "Chấp nhận",
+      "returnTitle": "Trả lại lượt bàn giao này?",
+      "confirmReturn": "Trả lại cho người gửi",
+      "returnHint": "Cho {{name}} biết điều gì cần làm rõ hoặc theo dõi thêm. Mục công việc sẽ được giao lại cho họ.",
+      "returnPlaceholder": "Cần thay đổi điều gì trước khi bàn giao lại?",
+      "responseError": "Không thể lưu phản hồi bàn giao. Hãy thử lại.",
+      "identityUnavailable": "Không thể xác minh danh tính nhóm của bạn. Hãy kiểm tra hồ sơ dự án trước khi phản hồi.",
+      "rowPending": "Từ {{name}} · Đang chờ phản hồi",
+      "rowAccepted": "Đã chấp nhận bàn giao · {{status}} · {{priority}}",
+      "rowReturned": "Đã được {{name}} trả lại · {{status}} · {{priority}}"
+    },
+    "errors": {
+      "loadTitle": "Không thể tải hộp thư nhóm",
+      "load": "Không thể tải hộp thư nhóm",
+      "loadMore": "Không thể tải thêm mục trong hộp thư nhóm. Hãy thử lại.",
+      "refresh": "Không thể làm mới hộp thư nhóm",
+      "markRead": "Không thể đánh dấu mục này là đã đọc. Hãy thử lại.",
+      "markUnread": "Không thể đánh dấu mục này là chưa đọc. Hãy thử lại.",
+      "markAllRead": "Không thể đánh dấu tất cả mục là đã đọc. Hãy thử lại.",
+      "identity": "Không thể khớp tài khoản của bạn với thành viên dự án. Hãy kiểm tra email trong hồ sơ dự án của bạn.",
+      "partialLoad": "Một số nguồn của hộp thư nhóm không thể làm mới. Các mục khả dụng vẫn được hiển thị.",
+      "workItemContext": "Một phần ngữ cảnh dự án không khả dụng. Mục công việc vẫn có thể sử dụng được.",
+      "workItemLoad": "Không thể tải mục công việc này. Hãy thử lại.",
+      "workItemUpdate": "Không thể lưu thay đổi mới nhất của mục công việc. Hãy thử lại."
+    },
+    "detail": {
+      "assignedSubtitle": "Mục công việc được giao",
+      "standaloneProject": "Độc lập",
+      "mentionSubtitle": "Được nhắc đến trong một bình luận",
+      "mentionedYou": "đã nhắc đến bạn",
+      "threadComments_other": "{{count}} bình luận trong chuỗi này"
+    },
+    "actions": {
+      "markRead": "Đánh dấu đã đọc",
+      "markUnread": "Đánh dấu chưa đọc",
+      "openWorkItem": "Mở mục công việc",
+      "openSession": "Mở phiên làm việc"
+    },
+    "fields": {
+      "status": "Trạng thái",
+      "priority": "Mức độ ưu tiên",
+      "assignee": "Người phụ trách",
+      "workItemId": "ID mục công việc",
+      "session": "Phiên làm việc",
+      "comments": "Bình luận",
+      "threadId": "ID chuỗi",
+      "commentId": "ID bình luận"
+    },
+    "workItemStatus": {
+      "backlog": "Tồn đọng",
+      "todo": "Cần làm",
+      "in_progress": "Đang thực hiện",
+      "in_review": "Đang xem xét",
+      "blocked": "Bị chặn",
+      "done": "Hoàn thành",
+      "cancelled": "Đã hủy"
+    },
+    "priority": {
+      "none": "Không ưu tiên",
+      "low": "Thấp",
+      "medium": "Trung bình",
+      "high": "Cao",
+      "urgent": "Khẩn cấp"
+    }
+  },
   "toasts": {
     "replyEmpty": "Câu trả lời không được để trống",
     "sessionNotFound": "Không tìm thấy phiên",

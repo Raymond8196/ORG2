@@ -1,4 +1,160 @@
 {
+  "teamInbox": {
+    "title": "團隊收件匣",
+    "listLabel": "團隊收件匣清單",
+    "itemsLabel": "團隊收件匣項目",
+    "unreadCount": "{{count}} 則未讀",
+    "allRead": "已全部閱讀",
+    "loadMore": "載入更多",
+    "filters": {
+      "all": "全部",
+      "mentions": "提及",
+      "assigned": "已指派給我"
+    },
+    "status": {
+      "read": "已讀",
+      "unread": "未讀"
+    },
+    "row": {
+      "assignedSummary": "{{status}} · {{priority}}",
+      "ariaLabel": "{{title}}，{{status}}"
+    },
+    "search": {
+      "placeholder": "搜尋收件匣",
+      "ariaLabel": "搜尋團隊收件匣"
+    },
+    "groups": {
+      "today": "今天",
+      "yesterday": "昨天",
+      "thisWeek": "本週",
+      "earlier": "更早"
+    },
+    "empty": {
+      "title": "目前尚無項目",
+      "subtitle": "新的提及與指派的工作項目會顯示在這裡。",
+      "selectTitle": "選擇一個項目",
+      "selectSubtitle": "查看留言脈絡或工作項目詳情。",
+      "mentions": {
+        "title": "尚無提及",
+        "subtitle": "當同事在留言中以 @ 提及你時，會顯示在這裡。"
+      },
+      "assigned": {
+        "title": "尚無指派給你的項目",
+        "subtitle": "指派給你的工作項目會顯示在這裡。"
+      },
+      "noResults": {
+        "title": "沒有相符結果",
+        "subtitle": "沒有與「{{query}}」相符的項目。"
+      }
+    },
+    "loading": "正在載入團隊收件匣…",
+    "drop": {
+      "title": "拖曳到這裡以建立工作項目",
+      "subtitle": "先確認工作階段快照，再建立或交接工作項目。",
+      "processing": "正在從「{{title}}」建立工作項目…",
+      "processingHint": "正在讀取工作階段並解析專案成員。",
+      "success": "工作項目已建立",
+      "reused": "已更新現有工作項目",
+      "failed": "無法建立工作項目",
+      "error": "無法根據此工作階段建立工作項目。",
+      "open": "開啟",
+      "dismiss": "關閉"
+    },
+    "handoff": {
+      "title": "從工作階段建立",
+      "createFromSession": "建立團隊工作項目…",
+      "project": "目標專案",
+      "chooseProject": "選擇專案",
+      "recipientSelf": "{{name}}（我）",
+      "chooseRecipient": "選擇接收人",
+      "todoCount_other": "{{count}} 項待辦",
+      "workItemTitle": "工作項目標題",
+      "assignTo": "指派給",
+      "note": "交接說明",
+      "notePlaceholder": "說明已完成的事項、尚未解決的部分，以及接下來該做什麼。",
+      "selfHint": "指派給自己會建立一般工作項目，不會發出交接請求。",
+      "submitHandoff": "建立並交接",
+      "submitCreate": "建立工作項目",
+      "preparing": "正在準備「{{title}}」…",
+      "preparationError": {
+        "session_unavailable": "此工作階段已無法使用，請重新開啟後再試一次。",
+        "project_unavailable": "此工作階段所屬的專案已無法使用。",
+        "identity_unavailable": "你的身分並非此工作階段所屬專案的成員。",
+        "no_project": "沒有可用的合適專案，請先建立或加入專案後再試一次。",
+        "unknown": "無法準備此工作階段，請重新整理團隊收件匣後再試一次。"
+      },
+      "submitError": "無法建立工作項目，請檢查接收人後再試一次。",
+      "pendingTitle": "來自 {{name}} 的交接",
+      "acceptedTitle": "{{name}} 已接受",
+      "returnedTitle": "{{name}} 已退回",
+      "noNote": "沒有交接說明。",
+      "statusLabel": "工作項目交接",
+      "return": "退回",
+      "accept": "接受",
+      "returnTitle": "要退回這次交接嗎？",
+      "confirmReturn": "退回給發送者",
+      "returnHint": "告訴 {{name}} 需要釐清或補充的內容，工作項目將重新指派給對方。",
+      "returnPlaceholder": "在再次交接之前需要調整什麼？",
+      "responseError": "無法儲存交接回應，請再試一次。",
+      "identityUnavailable": "無法驗證你的團隊身分，請先檢查專案個人資料再回應。",
+      "rowPending": "來自 {{name}} · 等待回應",
+      "rowAccepted": "已接受交接 · {{status}} · {{priority}}",
+      "rowReturned": "{{name}} 已退回 · {{status}} · {{priority}}"
+    },
+    "errors": {
+      "loadTitle": "無法載入團隊收件匣",
+      "load": "無法載入團隊收件匣",
+      "loadMore": "無法載入更多團隊收件匣項目，請再試一次。",
+      "refresh": "無法重新整理團隊收件匣",
+      "markRead": "無法將此項目標記為已讀，請再試一次。",
+      "markUnread": "無法將此項目標記為未讀，請再試一次。",
+      "markAllRead": "無法將所有項目標記為已讀，請再試一次。",
+      "identity": "無法將你的帳戶與專案成員配對，請檢查專案個人資料中的電子郵件。",
+      "partialLoad": "部分團隊收件匣來源無法重新整理，現有項目仍會繼續顯示。",
+      "workItemContext": "部分專案內容暫時無法使用，工作項目仍可繼續操作。",
+      "workItemLoad": "無法載入此工作項目，請再試一次。",
+      "workItemUpdate": "無法儲存工作項目的最新變更，請再試一次。"
+    },
+    "detail": {
+      "assignedSubtitle": "已指派的工作項目",
+      "standaloneProject": "獨立項目",
+      "mentionSubtitle": "在留言中被提及",
+      "mentionedYou": "提及了你",
+      "threadComments_other": "此討論串中有 {{count}} 則留言"
+    },
+    "actions": {
+      "markRead": "標記為已讀",
+      "markUnread": "標記為未讀",
+      "openWorkItem": "開啟工作項目",
+      "openSession": "開啟工作階段"
+    },
+    "fields": {
+      "status": "狀態",
+      "priority": "優先順序",
+      "assignee": "負責人",
+      "workItemId": "工作項目 ID",
+      "session": "工作階段",
+      "comments": "留言",
+      "threadId": "討論串 ID",
+      "commentId": "留言 ID"
+    },
+    "workItemStatus": {
+      "backlog": "待辦清單",
+      "todo": "待辦",
+      "in_progress": "進行中",
+      "in_review": "審核中",
+      "blocked": "受阻",
+      "done": "已完成",
+      "cancelled": "已取消"
+    },
+    "priority": {
+      "none": "無優先順序",
+      "low": "低",
+      "medium": "中",
+      "high": "高",
+      "urgent": "緊急"
+    }
+  },
   "toasts": {
     "replyEmpty": "回覆不能為空",
     "sessionNotFound": "找不到 Session",

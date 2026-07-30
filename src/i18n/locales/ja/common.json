@@ -1,4 +1,160 @@
 {
+  "teamInbox": {
+    "title": "チームの受信トレイ",
+    "listLabel": "チーム受信トレイの一覧",
+    "itemsLabel": "チーム受信トレイの項目",
+    "unreadCount": "未読 {{count}} 件",
+    "allRead": "すべて確認済み",
+    "loadMore": "さらに読み込む",
+    "filters": {
+      "all": "すべて",
+      "mentions": "メンション",
+      "assigned": "自分の担当"
+    },
+    "status": {
+      "read": "既読",
+      "unread": "未読"
+    },
+    "row": {
+      "assignedSummary": "{{status}} · {{priority}}",
+      "ariaLabel": "{{title}}、{{status}}"
+    },
+    "search": {
+      "placeholder": "受信トレイを検索",
+      "ariaLabel": "チーム受信トレイを検索"
+    },
+    "groups": {
+      "today": "今日",
+      "yesterday": "昨日",
+      "thisWeek": "今週",
+      "earlier": "それ以前"
+    },
+    "empty": {
+      "title": "まだ何もありません",
+      "subtitle": "メンションや割り当てられた作業項目がここに表示されます。",
+      "selectTitle": "項目を選択してください",
+      "selectSubtitle": "コメントの文脈や作業項目の詳細を確認できます。",
+      "mentions": {
+        "title": "メンションはありません",
+        "subtitle": "チームメンバーがコメントで @ メンションすると、ここに表示されます。"
+      },
+      "assigned": {
+        "title": "自分に割り当てられた項目はありません",
+        "subtitle": "自分に割り当てられた作業項目がここに表示されます。"
+      },
+      "noResults": {
+        "title": "一致する項目がありません",
+        "subtitle": "「{{query}}」に一致する項目はありません。"
+      }
+    },
+    "loading": "チーム受信トレイを読み込んでいます…",
+    "drop": {
+      "title": "ここにドロップして作業項目を作成",
+      "subtitle": "セッションのスナップショットを確認してから、作業項目を作成または引き継いでください。",
+      "processing": "「{{title}}」から作業項目を作成しています…",
+      "processingHint": "セッションを読み込み、プロジェクトメンバーを解決しています。",
+      "success": "作業項目を作成しました",
+      "reused": "既存の作業項目を更新しました",
+      "failed": "作業項目を作成できませんでした",
+      "error": "このセッションから作業項目を作成できません。",
+      "open": "開く",
+      "dismiss": "閉じる"
+    },
+    "handoff": {
+      "title": "セッションから作成",
+      "createFromSession": "チーム作業項目を作成…",
+      "project": "移動先プロジェクト",
+      "chooseProject": "プロジェクトを選択",
+      "recipientSelf": "{{name}}（自分）",
+      "chooseRecipient": "受信者を選択",
+      "todoCount_other": "To-do {{count}} 件",
+      "workItemTitle": "作業項目のタイトル",
+      "assignTo": "担当者",
+      "note": "引き継ぎメモ",
+      "notePlaceholder": "完了していること、未解決の点、次に行うべきことを共有してください。",
+      "selfHint": "自分自身に割り当てると、引き継ぎ依頼のない通常の作業項目が作成されます。",
+      "submitHandoff": "作成して引き継ぐ",
+      "submitCreate": "作業項目を作成",
+      "preparing": "「{{title}}」を準備しています…",
+      "preparationError": {
+        "session_unavailable": "このセッションは利用できなくなりました。再度開いてやり直してください。",
+        "project_unavailable": "このセッションのプロジェクトは利用できなくなりました。",
+        "identity_unavailable": "あなたはこのセッションのプロジェクトのメンバーではありません。",
+        "no_project": "利用可能なプロジェクトがありません。プロジェクトを作成または参加してから再試行してください。",
+        "unknown": "このセッションを準備できません。チーム受信トレイを更新してから再試行してください。"
+      },
+      "submitError": "作業項目を作成できませんでした。受信者を確認してから再試行してください。",
+      "pendingTitle": "{{name}} からの引き継ぎ",
+      "acceptedTitle": "{{name}} が受諾しました",
+      "returnedTitle": "{{name}} が差し戻しました",
+      "noNote": "引き継ぎメモはありません。",
+      "statusLabel": "作業項目の引き継ぎ",
+      "return": "差し戻す",
+      "accept": "受諾する",
+      "returnTitle": "この引き継ぎを差し戻しますか?",
+      "confirmReturn": "送信者に差し戻す",
+      "returnHint": "確認や対応が必要な内容を {{name}} に伝えてください。作業項目は {{name}} に再割り当てされます。",
+      "returnPlaceholder": "次に引き継ぐ前に何を変更する必要がありますか?",
+      "responseError": "引き継ぎへの返信を保存できませんでした。再試行してください。",
+      "identityUnavailable": "チームでの本人確認ができませんでした。返信する前にプロジェクトのプロフィールを確認してください。",
+      "rowPending": "{{name}} から · 返信待ち",
+      "rowAccepted": "引き継ぎ受諾済み · {{status}} · {{priority}}",
+      "rowReturned": "{{name}} が差し戻し · {{status}} · {{priority}}"
+    },
+    "errors": {
+      "loadTitle": "チーム受信トレイを読み込めませんでした",
+      "load": "チーム受信トレイを読み込めませんでした",
+      "loadMore": "チーム受信トレイの項目をこれ以上読み込めませんでした。再試行してください。",
+      "refresh": "チーム受信トレイを更新できませんでした",
+      "markRead": "この項目を既読にできませんでした。再試行してください。",
+      "markUnread": "この項目を未読にできませんでした。再試行してください。",
+      "markAllRead": "すべての項目を既読にできませんでした。再試行してください。",
+      "identity": "アカウントをプロジェクトメンバーに一致させられませんでした。プロジェクトのプロフィールのメールアドレスを確認してください。",
+      "partialLoad": "一部のチーム受信トレイのソースを更新できませんでした。利用可能な項目は引き続き表示されます。",
+      "workItemContext": "一部のプロジェクト情報が利用できません。作業項目は引き続き使用できます。",
+      "workItemLoad": "この作業項目を読み込めませんでした。再試行してください。",
+      "workItemUpdate": "作業項目への最新の変更を保存できませんでした。再試行してください。"
+    },
+    "detail": {
+      "assignedSubtitle": "割り当てられた作業項目",
+      "standaloneProject": "単独",
+      "mentionSubtitle": "コメントでメンションされました",
+      "mentionedYou": "があなたをメンションしました",
+      "threadComments_other": "このスレッドには {{count}} 件のコメントがあります"
+    },
+    "actions": {
+      "markRead": "既読にする",
+      "markUnread": "未読にする",
+      "openWorkItem": "作業項目を開く",
+      "openSession": "セッションを開く"
+    },
+    "fields": {
+      "status": "ステータス",
+      "priority": "優先度",
+      "assignee": "担当者",
+      "workItemId": "作業項目 ID",
+      "session": "セッション",
+      "comments": "コメント",
+      "threadId": "スレッド ID",
+      "commentId": "コメント ID"
+    },
+    "workItemStatus": {
+      "backlog": "バックログ",
+      "todo": "未着手",
+      "in_progress": "進行中",
+      "in_review": "レビュー中",
+      "blocked": "ブロック中",
+      "done": "完了",
+      "cancelled": "キャンセル"
+    },
+    "priority": {
+      "none": "優先度なし",
+      "low": "低",
+      "medium": "中",
+      "high": "高",
+      "urgent": "緊急"
+    }
+  },
   "toasts": {
     "replyEmpty": "返信を入力してください",
     "sessionNotFound": "セッションが見つかりません",
