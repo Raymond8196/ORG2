@@ -24,6 +24,7 @@ export {
 export {
   addChatPanelLaunchpadTabAtom,
   addChatPanelTerminalTabAtom,
+  openChannelInChatPanelTabAtom,
   openOrganizationInChatPanelTabAtom,
   openCreateTargetInChatPanelStartPageAtom,
   openExploreInChatPanelTabAtom,
@@ -39,8 +40,10 @@ export {
   openWorkspaceOverviewInChatPanelTabAtom,
 } from "./chatPanelTabOpenAtoms";
 export {
+  buildChannelTabKey,
   buildDefaultLaunchpadTab,
   buildInitialChatPanelTabsState,
+  createChannelTab,
   createOrganizationTab,
   createLaunchpadTab,
   createRuntimeTab,
@@ -62,6 +65,7 @@ export {
 } from "./chatPanelTabPresentationAtoms";
 export {
   normalizePersistedChatPanelTabsState,
+  type ChatPanelSelectedChannel,
   type ChatPanelTab,
   type ChatPanelTabsState,
   type ChatPanelTabType,

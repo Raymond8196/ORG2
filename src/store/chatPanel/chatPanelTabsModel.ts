@@ -1,3 +1,4 @@
+import type { CloudChannelVisibility } from "@src/features/Org2Cloud/channels/types";
 import type {
   ChatPanelSelectedCloudOrg,
   ChatPanelSelectedOrganization,
@@ -22,7 +23,26 @@ export type ChatPanelTabType =
   | "organization"
   | "work-item"
   | "project"
-  | "explore";
+  | "explore"
+  | "channel";
+
+/**
+ * Payload for a "channel" tab, discriminated by scope. Local channels live in
+ * `localChannelsAtom` (this machine, single user); cloud channels are org
+ * rows from the `0014_org_channels.sql` control plane. Unlike the other tab
+ * payloads this type lives here rather than in `chatPanelAtom.ts` — a channel
+ * tab needs no `chatPanelSelected*Atom` replay, so it never joins the
+ * navigate-command surface.
+ */
+export type ChatPanelSelectedChannel =
+  | { scope: "local"; channelId: string; name: string }
+  | {
+      scope: "cloud";
+      orgId: string;
+      channelId: string;
+      name: string;
+      visibility: CloudChannelVisibility;
+    };
 
 export interface ChatPanelTab {
   id: string;
@@ -76,6 +96,11 @@ export interface ChatPanelTab {
    * panel self-fetches the project's work items from `project.projectSlug`.
    */
   project?: ChatPanelSelectedProject;
+  /**
+   * For "channel" tabs: the local or cloud channel whose message surface this
+   * pill owns. The surface renders straight from this payload.
+   */
+  channel?: ChatPanelSelectedChannel;
 }
 
 export interface ChatPanelTabsState {
@@ -105,6 +130,7 @@ const PERSISTED_CHAT_PANEL_TAB_TYPES = new Set<ChatPanelTabType>([
   "work-item",
   "project",
   "explore",
+  "channel",
 ]);
 
 export function isChatPanelTabDefaultFullscreen(

@@ -869,6 +869,31 @@
         "leave": "Salir del canal",
         "lastManager": "Primero asigna a otro gestor",
         "error": "Algo salió mal. Inténtalo de nuevo."
+      },
+      "feed": {
+        "composerPlaceholder": "Enviar mensaje a #{{name}}",
+        "composerHint": "Cmd/Ctrl + Intro para enviar",
+        "send": "Enviar",
+        "save": "Guardar",
+        "edit": "Editar mensaje",
+        "delete": "Eliminar mensaje",
+        "edited": "(editado)",
+        "deletedMessage": "mensaje eliminado",
+        "today": "Hoy",
+        "yesterday": "Ayer",
+        "you": "Tú",
+        "memberCount": "{{memberCount}} miembros",
+        "emptyTitle": "Este es el comienzo de #{{name}}",
+        "emptySubtitle": "Envía el primer mensaje para iniciar la conversación.",
+        "missingTitle": "El canal ya no está disponible",
+        "missingSubtitle": "Este canal se eliminó de este dispositivo.",
+        "cloudPendingTitle": "Aún no hay mensajes",
+        "cloudPendingSubtitle": "El historial de los canales en la nube llegará con la próxima actualización del backend.",
+        "cloudComposerDisabled": "Todavía no se pueden enviar mensajes en los canales en la nube: esta versión solo incluye la creación de canales y la gestión de miembros. El envío llegará con la próxima actualización del backend.",
+        "errorEmpty": "Escribe un mensaje primero",
+        "errorTooLong": "Ese mensaje es demasiado largo (máximo 4000 caracteres)",
+        "errorQuota": "Este canal alcanzó su límite de mensajes en este dispositivo",
+        "errorGeneric": "No se pudo enviar el mensaje. Inténtalo de nuevo."
       }
     }
   }

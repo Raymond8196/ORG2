@@ -959,6 +959,31 @@
         "leave": "退出頻道",
         "lastManager": "請先指定另一位管理員",
         "error": "操作失敗，請重試。"
+      },
+      "feed": {
+        "composerPlaceholder": "傳送訊息到 #{{name}}",
+        "composerHint": "Cmd/Ctrl + Enter 傳送",
+        "send": "傳送",
+        "save": "儲存",
+        "edit": "編輯訊息",
+        "delete": "刪除訊息",
+        "edited": "（已編輯）",
+        "deletedMessage": "訊息已刪除",
+        "today": "今天",
+        "yesterday": "昨天",
+        "you": "你",
+        "memberCount": "{{memberCount}} 位成員",
+        "emptyTitle": "這裡是 #{{name}} 的開始",
+        "emptySubtitle": "傳送第一則訊息，開啟對話。",
+        "missingTitle": "頻道已不存在",
+        "missingSubtitle": "此頻道已從這台裝置刪除。",
+        "cloudPendingTitle": "尚無訊息",
+        "cloudPendingSubtitle": "雲端頻道的歷史訊息將隨下一次後端升級提供。",
+        "cloudComposerDisabled": "雲端頻道尚不支援傳送訊息——本次發布僅包含頻道建立與成員管理，傳訊功能將隨下一次後端升級提供。",
+        "errorEmpty": "請先輸入訊息",
+        "errorTooLong": "訊息過長（最多 4000 個字元）",
+        "errorQuota": "此頻道在這台裝置上的訊息數量已達上限",
+        "errorGeneric": "訊息傳送失敗，請再試一次。"
       }
     }
   }

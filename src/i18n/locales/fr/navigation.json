@@ -869,6 +869,31 @@
         "leave": "Quitter le canal",
         "lastManager": "Désignez d'abord un autre gestionnaire",
         "error": "Une erreur est survenue. Veuillez réessayer."
+      },
+      "feed": {
+        "composerPlaceholder": "Envoyer un message à #{{name}}",
+        "composerHint": "Cmd/Ctrl + Entrée pour envoyer",
+        "send": "Envoyer",
+        "save": "Enregistrer",
+        "edit": "Modifier le message",
+        "delete": "Supprimer le message",
+        "edited": "(modifié)",
+        "deletedMessage": "message supprimé",
+        "today": "Aujourd'hui",
+        "yesterday": "Hier",
+        "you": "Vous",
+        "memberCount": "{{memberCount}} membres",
+        "emptyTitle": "C'est le début de #{{name}}",
+        "emptySubtitle": "Envoyez le premier message pour lancer la conversation.",
+        "missingTitle": "Canal indisponible",
+        "missingSubtitle": "Ce canal a été supprimé de cet appareil.",
+        "cloudPendingTitle": "Aucun message pour l'instant",
+        "cloudPendingSubtitle": "L'historique des canaux cloud arrivera avec la prochaine mise à niveau du backend.",
+        "cloudComposerDisabled": "L'envoi de messages n'est pas encore disponible pour les canaux cloud — cette version ne comprend que la création de canaux et la gestion des membres. L'envoi arrivera avec la prochaine mise à niveau du backend.",
+        "errorEmpty": "Saisissez d'abord un message",
+        "errorTooLong": "Ce message est trop long (4000 caractères maximum)",
+        "errorQuota": "Ce canal a atteint sa limite de messages sur cet appareil",
+        "errorGeneric": "Impossible d'envoyer le message. Veuillez réessayer."
       }
     }
   }

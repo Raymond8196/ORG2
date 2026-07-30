@@ -896,6 +896,31 @@
         "leave": "Leave channel",
         "lastManager": "Assign another manager first",
         "error": "Something went wrong. Please try again."
+      },
+      "feed": {
+        "composerPlaceholder": "Message #{{name}}",
+        "composerHint": "Cmd/Ctrl + Enter to send",
+        "send": "Send",
+        "save": "Save",
+        "edit": "Edit message",
+        "delete": "Delete message",
+        "edited": "(edited)",
+        "deletedMessage": "message deleted",
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "you": "You",
+        "memberCount": "{{memberCount}} members",
+        "emptyTitle": "This is the start of #{{name}}",
+        "emptySubtitle": "Send the first message to start the conversation.",
+        "missingTitle": "Channel no longer available",
+        "missingSubtitle": "This channel was deleted from this device.",
+        "cloudPendingTitle": "No messages yet",
+        "cloudPendingSubtitle": "Cloud channel history arrives with the next backend upgrade.",
+        "cloudComposerDisabled": "Messaging isn't available for cloud channels yet — this release ships channel setup and membership only. Posting arrives with the next backend upgrade.",
+        "errorEmpty": "Type a message first",
+        "errorTooLong": "That message is too long (4000 characters max)",
+        "errorQuota": "This channel has reached its message limit on this device",
+        "errorGeneric": "Couldn't post the message. Please try again."
       }
     }
   }

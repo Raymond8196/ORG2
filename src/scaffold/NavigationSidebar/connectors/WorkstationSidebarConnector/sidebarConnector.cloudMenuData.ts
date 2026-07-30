@@ -7,8 +7,10 @@
  *
  * Also mounts the cloud-org "Channels" section (`channelsSection.tsx`): its
  * rows join `cloudMenuItems` between Team Sessions and My Sessions, its
- * click resolver runs before the team-sessions one, and its dialogs surface
- * through `cloudChannelsDialogs` (rendered once in `SidebarDialogs`).
+ * click resolver runs before the team-sessions one, its selected row (the
+ * channel whose surface is the active chat-panel tab) takes precedence over
+ * the team-sessions selection, and its dialogs surface through
+ * `cloudChannelsDialogs` (rendered once in `SidebarDialogs`).
  */
 import { useCallback, useMemo } from "react";
 
@@ -68,8 +70,12 @@ export function useWorkstationSidebarCloudMenuData({
     onFilterChange: handleCloudSessionFilterChange,
   });
 
-  const { channelsMenuItems, handleChannelsItemClick, channelsDialogs } =
-    useCloudChannelsSection({ orgId: activeCloudOrgId });
+  const {
+    channelsMenuItems,
+    handleChannelsItemClick,
+    selectedChannelMenuItemId,
+    channelsDialogs,
+  } = useCloudChannelsSection({ orgId: activeCloudOrgId });
 
   // Channels sit after Team Sessions (both are org-scoped server data); the
   // My Sessions separator is appended downstream by buildCloudScopedMenuItems.
@@ -81,8 +87,8 @@ export function useWorkstationSidebarCloudMenuData({
     [channelsMenuItems, cloudMenuItems]
   );
 
-  // Channel rows resolve first: they are non-navigating in this slice, and
-  // their ids can never collide with `cloudremote-` / pagination ids.
+  // Channel rows resolve first: their ids can never collide with
+  // `cloudremote-` / pagination ids, so an early claim is unambiguous.
   const handleCloudScopedItemClick = useCallback(
     (item: NavigationMenuItem): boolean =>
       handleChannelsItemClick(item) || handleCloudSessionItemClick(item),
@@ -110,7 +116,10 @@ export function useWorkstationSidebarCloudMenuData({
 
   return {
     cloudMenuItems: mergedCloudMenuItems,
-    selectedCloudMenuItemId,
+    // An open channel surface wins over the team-sessions selection: it is
+    // the tab the pane is actually showing.
+    selectedCloudMenuItemId:
+      selectedChannelMenuItemId ?? selectedCloudMenuItemId,
     handleCloudSessionItemClick: handleCloudScopedItemClick,
     resetCloudTeamPagination,
     handleCloudRemoteItemRemove,

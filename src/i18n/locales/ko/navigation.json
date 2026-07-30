@@ -867,6 +867,31 @@
         "leave": "채널 나가기",
         "lastManager": "먼저 다른 관리자를 지정해 주세요",
         "error": "문제가 발생했습니다. 다시 시도해 주세요."
+      },
+      "feed": {
+        "composerPlaceholder": "#{{name}}에 메시지 보내기",
+        "composerHint": "Cmd/Ctrl + Enter로 전송",
+        "send": "보내기",
+        "save": "저장",
+        "edit": "메시지 편집",
+        "delete": "메시지 삭제",
+        "edited": "(편집됨)",
+        "deletedMessage": "삭제된 메시지입니다",
+        "today": "오늘",
+        "yesterday": "어제",
+        "you": "나",
+        "memberCount": "멤버 {{memberCount}}명",
+        "emptyTitle": "여기가 #{{name}}의 시작입니다",
+        "emptySubtitle": "첫 메시지를 보내 대화를 시작하세요.",
+        "missingTitle": "채널을 더 이상 사용할 수 없음",
+        "missingSubtitle": "이 채널은 이 기기에서 삭제되었습니다.",
+        "cloudPendingTitle": "아직 메시지가 없습니다",
+        "cloudPendingSubtitle": "클라우드 채널 기록은 다음 백엔드 업그레이드에서 제공됩니다.",
+        "cloudComposerDisabled": "클라우드 채널에는 아직 메시지를 보낼 수 없습니다. 이번 릴리스에는 채널 생성과 멤버 관리만 포함되며, 메시지 전송은 다음 백엔드 업그레이드에서 제공됩니다.",
+        "errorEmpty": "메시지를 먼저 입력하세요",
+        "errorTooLong": "메시지가 너무 깁니다(최대 4000자)",
+        "errorQuota": "이 채널은 이 기기에서 메시지 한도에 도달했습니다",
+        "errorGeneric": "메시지를 보내지 못했습니다. 다시 시도해 주세요."
       }
     }
   }

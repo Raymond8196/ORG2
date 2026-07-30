@@ -1,7 +1,9 @@
 /**
- * Cloud-org "Channels" sidebar section (Slack-style org channels, control
- * plane only — this slice has NO message feed, so channel rows deliberately
- * do not navigate anywhere and never take a selected state).
+ * Cloud-org "Channels" sidebar section (Slack-style org channels). Rows
+ * navigate: clicking one opens (or focuses) its `ChannelPanelView` tab and
+ * the row takes the ordinary selected state. The cloud message plane is
+ * still gated — `0014_org_channels.sql` ships the control plane only, so
+ * that surface renders read-only with a disabled composer.
  *
  * Coordinator in the `useCloudSessionsSection` shape: data comes from
  * `useOrgChannels` (capability-gated; the section hides entirely on
@@ -42,10 +44,15 @@ import { useOrgChannels } from "@src/features/Org2Cloud/channels/useOrgChannels"
 import { org2CloudOrgsAtom } from "@src/features/Org2Cloud/org2CloudOrgsAtom";
 import { createLogger } from "@src/hooks/logger";
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
+import {
+  activeChatPanelTabAtom,
+  openChannelInChatPanelTabAtom,
+} from "@src/store/chatPanel/chatPanelTabsAtom";
 
 import {
   CLOUD_CHANNELS_EMPTY_ID,
   type ChannelRowActionKind,
+  buildCloudChannelRowId,
   buildCloudChannelsMenuItems,
   isChannelManager,
   isCloudChannelsMenuItemId,
@@ -76,11 +83,17 @@ export interface UseCloudChannelsSectionResult {
   /** Separator + channel rows; empty when hidden (no scope / unsupported). */
   channelsMenuItems: NavigationMenuItem[];
   /**
-   * Click resolver for the section's rows. Swallows channel-row clicks (no
-   * navigation target exists in this slice); the ready-and-empty "Create a
+   * Click resolver for the section's rows. A channel row opens (or focuses)
+   * its message surface in a chat-panel tab; the ready-and-empty "Create a
    * channel" row opens the create dialog.
    */
   handleChannelsItemClick: (item: NavigationMenuItem) => boolean;
+  /**
+   * Row id of the channel whose surface is the active chat-panel tab, or
+   * null. Overrides the session-derived selection so the open channel reads
+   * as selected like any other navigable row.
+   */
+  selectedChannelMenuItemId: string | null;
   /** The five channel dialogs — render once next to the sidebar. */
   channelsDialogs: React.ReactNode;
 }
@@ -99,6 +112,19 @@ export function useCloudChannelsSection({
   } = useOrgChannels(orgId, { includeArchived: true });
   const cloudOrgs = useAtomValue(org2CloudOrgsAtom);
   const bumpChannelsVersion = useSetAtom(bumpOrg2CloudChannelsVersionAtom);
+  const activeChatPanelTab = useAtomValue(activeChatPanelTabAtom);
+  const openChannelTab = useSetAtom(openChannelInChatPanelTabAtom);
+
+  // Archived rows navigate too: archiving hides a channel from the active
+  // list, it does not make its history unreadable.
+  const channelsByRowId = useMemo(() => {
+    const map = new Map<string, CloudChannel>();
+    if (!orgId) return map;
+    for (const channel of [...channels, ...archivedChannels]) {
+      map.set(buildCloudChannelRowId(orgId, channel.id), channel);
+    }
+    return map;
+  }, [archivedChannels, channels, orgId]);
 
   const isOrgAdmin = useMemo(() => {
     const activeOrg = orgId
@@ -252,13 +278,33 @@ export function useCloudChannelsSection({
         // Only the ready-and-empty variant is clickable (loading/error rows
         // are disabled and never reach this resolver).
         openCreateDialog();
+        return true;
       }
-      // Channel rows have no message surface yet: swallow the click so the
-      // sidebar applies no navigation and no selected state.
+      const channel = channelsByRowId.get(item.id);
+      if (channel && orgId) {
+        openChannelTab({
+          scope: "cloud",
+          orgId,
+          channelId: channel.id,
+          name: channel.name,
+          visibility: channel.visibility,
+        });
+      }
+      // Handled either way: the separator and the "Archived" group header
+      // carry no navigation, and the sidebar must not fall through to the
+      // team-sessions resolver for ids in this section's namespace.
       return true;
     },
-    [openCreateDialog]
+    [channelsByRowId, openChannelTab, openCreateDialog, orgId]
   );
+
+  const selectedChannelMenuItemId =
+    orgId &&
+    activeChatPanelTab?.type === "channel" &&
+    activeChatPanelTab.channel?.scope === "cloud" &&
+    activeChatPanelTab.channel.orgId === orgId
+      ? buildCloudChannelRowId(orgId, activeChatPanelTab.channel.channelId)
+      : null;
 
   // Create/delete land through dialogs whose RPCs the realtime `channels`
   // signal may lag; an explicit bump guarantees an immediate refetch.
@@ -318,5 +364,10 @@ export function useCloudChannelsSection({
     </>
   );
 
-  return { channelsMenuItems, handleChannelsItemClick, channelsDialogs };
+  return {
+    channelsMenuItems,
+    handleChannelsItemClick,
+    selectedChannelMenuItemId,
+    channelsDialogs,
+  };
 }

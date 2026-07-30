@@ -959,6 +959,31 @@
         "leave": "退出频道",
         "lastManager": "请先指定另一位管理员",
         "error": "操作失败，请重试。"
+      },
+      "feed": {
+        "composerPlaceholder": "发送消息到 #{{name}}",
+        "composerHint": "Cmd/Ctrl + Enter 发送",
+        "send": "发送",
+        "save": "保存",
+        "edit": "编辑消息",
+        "delete": "删除消息",
+        "edited": "（已编辑）",
+        "deletedMessage": "消息已删除",
+        "today": "今天",
+        "yesterday": "昨天",
+        "you": "你",
+        "memberCount": "{{memberCount}} 位成员",
+        "emptyTitle": "这里是 #{{name}} 的开始",
+        "emptySubtitle": "发送第一条消息，开启对话。",
+        "missingTitle": "频道已不存在",
+        "missingSubtitle": "该频道已从此设备删除。",
+        "cloudPendingTitle": "暂无消息",
+        "cloudPendingSubtitle": "云端频道的历史消息将随下一次后端升级提供。",
+        "cloudComposerDisabled": "云端频道暂不支持发送消息——本次发布仅包含频道创建与成员管理，发消息功能将随下一次后端升级提供。",
+        "errorEmpty": "请先输入消息",
+        "errorTooLong": "消息过长（最多 4000 个字符）",
+        "errorQuota": "此频道在本设备上的消息数量已达上限",
+        "errorGeneric": "消息发送失败，请重试。"
       }
     }
   }

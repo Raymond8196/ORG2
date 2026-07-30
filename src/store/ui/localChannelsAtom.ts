@@ -30,6 +30,11 @@ import {
 } from "@src/features/Org2Cloud/channels/types";
 import { createZodJsonStorage } from "@src/util/core/storage/zodStorage";
 
+import {
+  localChannelMessagesAtom,
+  purgeLocalChannelMessages,
+} from "./localChannelMessagesAtom";
+
 export const LOCAL_CHANNELS_STORAGE_KEY = "orgii.localChannels.v1";
 
 /** Same bound as the cloud backend's per-org active-channel quota. */
@@ -323,11 +328,24 @@ export const unarchiveLocalChannelAtom = atom(
 );
 unarchiveLocalChannelAtom.debugLabel = "unarchiveLocalChannelAtom";
 
+/**
+ * Hard-delete the channel AND purge its message plane. The purge lives here
+ * rather than in the delete dialog so every delete path (dialog today, row
+ * action or bulk cleanup tomorrow) drops the messages too — an orphaned row
+ * set is unreachable through the UI but still costs storage forever. Both
+ * reducers stay pure; only this write atom knows about the two slices.
+ */
 export const deleteLocalChannelAtom = atom(
   null,
   (get, set, id: string): LocalChannelResult => {
     const result = deleteLocalChannel(get(localChannelsAtom), id);
-    if (result.ok) set(localChannelsAtom, result.channels);
+    if (!result.ok) return result;
+    set(localChannelsAtom, result.channels);
+    const messages = get(localChannelMessagesAtom);
+    const remaining = purgeLocalChannelMessages(messages, id);
+    if (remaining.length !== messages.length) {
+      set(localChannelMessagesAtom, remaining);
+    }
     return result;
   }
 );

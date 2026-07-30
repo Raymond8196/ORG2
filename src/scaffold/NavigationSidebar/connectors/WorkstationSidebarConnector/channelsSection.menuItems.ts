@@ -7,9 +7,9 @@
  * the exported `build*ActionKinds` helpers so tests can cover it without
  * rendering; the hook maps kinds onto dialogs / RPCs.
  *
- * Channel rows are intentionally non-navigating in this slice (no message
- * feed yet): the section's click resolver swallows the click, so no selected
- * state ever appears.
+ * Channel rows navigate: the section's click resolver opens (or focuses) the
+ * row's `ChannelPanelView` tab, and the row takes the ordinary selected state
+ * while that tab is active.
  */
 import type { TFunction } from "i18next";
 import {

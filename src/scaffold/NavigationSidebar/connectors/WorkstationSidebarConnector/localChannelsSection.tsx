@@ -26,6 +26,10 @@ import DeleteLocalChannelDialog from "@src/features/LocalChannels/components/Del
 import LocalChannelSettingsDialog from "@src/features/LocalChannels/components/LocalChannelSettingsDialog";
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
 import {
+  activeChatPanelTabAtom,
+  openChannelInChatPanelTabAtom,
+} from "@src/store/chatPanel/chatPanelTabsAtom";
+import {
   type LocalChannel,
   activeLocalChannelsAtom,
   archivedLocalChannelsAtom,
@@ -34,6 +38,7 @@ import {
 
 import {
   LOCAL_CHANNELS_EMPTY_ID,
+  buildLocalChannelRowId,
   buildLocalChannelsMenuItems,
   isLocalChannelsMenuItemId,
 } from "./localChannelsSection.menuItems";
@@ -53,11 +58,17 @@ export interface UseLocalChannelsSectionResult {
   /** Separator + channel rows; empty while a cloud org scope is active. */
   localChannelsMenuItems: NavigationMenuItem[];
   /**
-   * Click resolver for the section's rows. Swallows channel-row clicks (no
-   * navigation target exists in this slice); the ready-and-empty "Create a
+   * Click resolver for the section's rows. A channel row opens (or focuses)
+   * its message surface in a chat-panel tab; the ready-and-empty "Create a
    * channel" row opens the create dialog.
    */
   handleLocalChannelsItemClick: (item: NavigationMenuItem) => boolean;
+  /**
+   * Row id of the channel whose surface is the active chat-panel tab, or
+   * null. Overrides the session-derived selection so the open channel reads
+   * as selected like any other navigable row.
+   */
+  selectedLocalChannelMenuItemId: string | null;
   /** The four local channel dialogs — render once next to the sidebar. */
   localChannelsDialogs: React.ReactNode;
 }
@@ -70,6 +81,18 @@ export function useLocalChannelsSection({
   const channels = useAtomValue(activeLocalChannelsAtom);
   const archivedChannels = useAtomValue(archivedLocalChannelsAtom);
   const unarchiveChannel = useSetAtom(unarchiveLocalChannelAtom);
+  const activeChatPanelTab = useAtomValue(activeChatPanelTabAtom);
+  const openChannelTab = useSetAtom(openChannelInChatPanelTabAtom);
+
+  // Archived rows navigate too: an archived channel is hidden from the
+  // active list but its history stays readable.
+  const channelsByRowId = useMemo(() => {
+    const map = new Map<string, LocalChannel>();
+    for (const channel of [...channels, ...archivedChannels]) {
+      map.set(buildLocalChannelRowId(channel.id), channel);
+    }
+    return map;
+  }, [archivedChannels, channels]);
 
   const [dialogState, setDialogState] =
     useState<LocalChannelsDialogState | null>(null);
@@ -155,13 +178,32 @@ export function useLocalChannelsSection({
   const handleLocalChannelsItemClick = useCallback(
     (item: NavigationMenuItem): boolean => {
       if (!isLocalChannelsMenuItemId(item.id)) return false;
-      if (item.id === LOCAL_CHANNELS_EMPTY_ID) openCreateDialog();
-      // Channel rows have no message surface yet: swallow the click so the
-      // sidebar applies no navigation and no selected state.
+      if (item.id === LOCAL_CHANNELS_EMPTY_ID) {
+        openCreateDialog();
+        return true;
+      }
+      const channel = channelsByRowId.get(item.id);
+      if (channel) {
+        openChannelTab({
+          scope: "local",
+          channelId: channel.id,
+          name: channel.name,
+        });
+      }
+      // Handled either way: the separator and the "Archived" group header
+      // carry no navigation, and the sidebar must not fall through to the
+      // session resolver for ids in this section's namespace.
       return true;
     },
-    [openCreateDialog]
+    [channelsByRowId, openChannelTab, openCreateDialog]
   );
+
+  const selectedLocalChannelMenuItemId =
+    enabled &&
+    activeChatPanelTab?.type === "channel" &&
+    activeChatPanelTab.channel?.scope === "local"
+      ? buildLocalChannelRowId(activeChatPanelTab.channel.channelId)
+      : null;
 
   // The settings/archive/delete dialogs are KEYED per open + target: every
   // open is a fresh mount, which seeds/resets their form state without any
@@ -202,6 +244,7 @@ export function useLocalChannelsSection({
   return {
     localChannelsMenuItems,
     handleLocalChannelsItemClick,
+    selectedLocalChannelMenuItemId,
     localChannelsDialogs,
   };
 }

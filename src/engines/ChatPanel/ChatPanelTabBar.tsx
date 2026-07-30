@@ -42,9 +42,11 @@ import {
   Columns3,
   Gauge,
   GitPullRequest,
+  Hash,
   Inbox,
   Info,
   LayoutGrid,
+  Lock,
   MessageSquarePlus,
   Plus,
   Settings2,
@@ -190,6 +192,7 @@ const TabPill = memo(function TabPill({
     runtime: t("sessions:chat.startPage.tabs.runtime"),
     organization: t("navigation:collaboration.manageOrg"),
     teamInbox: t("navigation:labels.teamInbox", "Team Inbox"),
+    channelFallback: t("navigation:cloud.channels.title"),
     workManagement: {
       kanban: t("sessions:simulator.tabs.kanban"),
       projects: t("navigation:labels.projects"),
@@ -234,6 +237,19 @@ const TabPill = memo(function TabPill({
   } else if (tab.type === "team-inbox") {
     icon = (
       <Inbox
+        size={16}
+        strokeWidth={1.75}
+        className={`shrink-0 ${iconColorClass}`}
+      />
+    );
+  } else if (tab.type === "channel") {
+    // Private cloud channels carry the same lock the sidebar row uses.
+    const ChannelIcon =
+      tab.channel?.scope === "cloud" && tab.channel.visibility === "private"
+        ? Lock
+        : Hash;
+    icon = (
+      <ChannelIcon
         size={16}
         strokeWidth={1.75}
         className={`shrink-0 ${iconColorClass}`}

@@ -7,9 +7,9 @@
  * `Hash` (no private visibility), and there is no role gating — every row
  * offers settings / archive / delete (this machine's user owns everything).
  *
- * Channel rows are intentionally non-navigating (no message feed in this
- * slice): the section's click resolver swallows the click, so no selected
- * state ever appears.
+ * Channel rows navigate: the section's click resolver opens (or focuses) the
+ * row's message surface in a chat-panel tab, and the row takes the ordinary
+ * selected state while that tab is active.
  */
 import type { TFunction } from "i18next";
 import { ArchiveRestore, Hash, MoreHorizontal, Trash2 } from "lucide-react";

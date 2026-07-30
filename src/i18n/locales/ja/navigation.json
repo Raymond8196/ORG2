@@ -867,6 +867,31 @@
         "leave": "チャンネルを退出",
         "lastManager": "先に別の管理者を指定してください",
         "error": "エラーが発生しました。もう一度お試しください。"
+      },
+      "feed": {
+        "composerPlaceholder": "#{{name}} にメッセージを送信",
+        "composerHint": "Cmd/Ctrl + Enter で送信",
+        "send": "送信",
+        "save": "保存",
+        "edit": "メッセージを編集",
+        "delete": "メッセージを削除",
+        "edited": "（編集済み）",
+        "deletedMessage": "メッセージは削除されました",
+        "today": "今日",
+        "yesterday": "昨日",
+        "you": "あなた",
+        "memberCount": "メンバー {{memberCount}} 人",
+        "emptyTitle": "ここが #{{name}} の始まりです",
+        "emptySubtitle": "最初のメッセージを送って会話を始めましょう。",
+        "missingTitle": "チャンネルは利用できません",
+        "missingSubtitle": "このチャンネルはこの端末から削除されました。",
+        "cloudPendingTitle": "メッセージはまだありません",
+        "cloudPendingSubtitle": "クラウドチャンネルの履歴は次回のバックエンド更新で利用できるようになります。",
+        "cloudComposerDisabled": "クラウドチャンネルへの投稿はまだ利用できません。今回のリリースにはチャンネルの作成とメンバー管理のみが含まれます。投稿機能は次回のバックエンド更新で提供されます。",
+        "errorEmpty": "先にメッセージを入力してください",
+        "errorTooLong": "メッセージが長すぎます（最大 4000 文字）",
+        "errorQuota": "このチャンネルはこの端末でのメッセージ上限に達しました",
+        "errorGeneric": "メッセージを送信できませんでした。もう一度お試しください。"
       }
     }
   }

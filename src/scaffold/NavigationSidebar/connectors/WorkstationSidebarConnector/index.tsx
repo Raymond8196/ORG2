@@ -248,11 +248,12 @@ export const WorkstationSidebarConnector: React.FC = () => {
   const {
     localChannelsMenuItems,
     handleLocalChannelsItemClick,
+    selectedLocalChannelMenuItemId,
     localChannelsDialogs,
   } = useLocalChannelsSection({ enabled: activeCloudOrgId === null });
 
-  // Local channel rows resolve first (non-navigating; their ids can never
-  // collide with session/cloud ids) — the cloudMenuData composition idiom.
+  // Local channel rows resolve first (their ids can never collide with
+  // session/cloud ids) — the cloudMenuData composition idiom.
   const handleScopedSessionItemClick = useCallback(
     (item: NavigationMenuItem): boolean =>
       handleLocalChannelsItemClick(item) || handleCloudSessionItemClick(item),
@@ -537,7 +538,10 @@ export const WorkstationSidebarConnector: React.FC = () => {
       includeExternal,
       setGroupByMode,
       setIncludeExternal,
-      selectedCloudMenuItemId,
+      // In the local scope `selectedCloudMenuItemId` is null, so the open
+      // local-channel row lands in the same slot the cloud section uses.
+      selectedCloudMenuItemId:
+        selectedLocalChannelMenuItemId ?? selectedCloudMenuItemId,
       selectedMenuItemId,
       activeSessionId,
       collapsedSectionIds,

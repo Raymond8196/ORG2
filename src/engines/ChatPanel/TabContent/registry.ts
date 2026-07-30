@@ -13,6 +13,7 @@
  * a dedicated, self-sufficient component that reads its tab payload directly.
  */
 import {
+  ChannelSurfaceRenderer,
   ExploreSurfaceRenderer,
   OrganizationSurfaceRenderer,
   ProjectSurfaceRenderer,
@@ -68,6 +69,11 @@ export const CHAT_PANEL_TAB_SURFACE_REGISTRY: ChatPanelTabSurfaceRegistry = {
     render: "component",
     Component: ExploreSurfaceRenderer,
     debugLabel: "explore",
+  },
+  channel: {
+    render: "component",
+    Component: ChannelSurfaceRenderer,
+    debugLabel: "channel",
   },
 };
 

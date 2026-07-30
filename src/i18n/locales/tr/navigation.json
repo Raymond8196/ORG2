@@ -867,6 +867,31 @@
         "leave": "Kanaldan ayrıl",
         "lastManager": "Önce başka bir yönetici atayın",
         "error": "Bir sorun oluştu. Lütfen tekrar deneyin."
+      },
+      "feed": {
+        "composerPlaceholder": "#{{name}} kanalına mesaj gönder",
+        "composerHint": "Göndermek için Cmd/Ctrl + Enter",
+        "send": "Gönder",
+        "save": "Kaydet",
+        "edit": "Mesajı düzenle",
+        "delete": "Mesajı sil",
+        "edited": "(düzenlendi)",
+        "deletedMessage": "mesaj silindi",
+        "today": "Bugün",
+        "yesterday": "Dün",
+        "you": "Sen",
+        "memberCount": "{{memberCount}} üye",
+        "emptyTitle": "Burası #{{name}} kanalının başlangıcı",
+        "emptySubtitle": "Sohbeti başlatmak için ilk mesajı gönder.",
+        "missingTitle": "Kanal artık kullanılamıyor",
+        "missingSubtitle": "Bu kanal bu cihazdan silindi.",
+        "cloudPendingTitle": "Henüz mesaj yok",
+        "cloudPendingSubtitle": "Bulut kanallarının geçmişi bir sonraki arka uç yükseltmesiyle gelecek.",
+        "cloudComposerDisabled": "Bulut kanallarında mesajlaşma henüz kullanılamıyor — bu sürüm yalnızca kanal kurulumu ve üyelik içeriyor. Mesaj gönderme bir sonraki arka uç yükseltmesiyle gelecek.",
+        "errorEmpty": "Önce bir mesaj yaz",
+        "errorTooLong": "Bu mesaj çok uzun (en fazla 4000 karakter)",
+        "errorQuota": "Bu kanal bu cihazdaki mesaj sınırına ulaştı",
+        "errorGeneric": "Mesaj gönderilemedi. Lütfen tekrar dene."
       }
     }
   }

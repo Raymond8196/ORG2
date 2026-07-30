@@ -20,6 +20,8 @@ import {
 } from "@src/store/workstation/workstationTabBarAtoms";
 
 import {
+  buildChannelTabKey,
+  createChannelTab,
   createExploreTab,
   createLaunchpadTab,
   createOrganizationTab,
@@ -37,6 +39,7 @@ import {
   appendAndActivateChatPanelTabAtom,
 } from "./chatPanelTabPresentationAtoms";
 import {
+  type ChatPanelSelectedChannel,
   type ChatPanelTab,
   getWorkManagementFallbackTitle,
 } from "./chatPanelTabsModel";
@@ -455,6 +458,42 @@ export const openProjectInChatPanelTabAtom = atom(
   }
 );
 openProjectInChatPanelTabAtom.debugLabel = "openProjectInChatPanelTab";
+
+/**
+ * Open — or focus, if already open — a dedicated tab for a channel's message
+ * surface. Deduped per `(scope, channelId)`, the `openWorkItemInChatPanelTab`
+ * shape: re-opening refreshes the stored payload (a rename, or a cloud
+ * channel flipping visibility, would otherwise leave the pill stale) before
+ * focusing instead of stacking a second pill.
+ */
+export const openChannelInChatPanelTabAtom = atom(
+  null,
+  (get, set, channel: ChatPanelSelectedChannel) => {
+    const key = buildChannelTabKey(channel);
+    const existingTab = get(chatPanelTabsAtom).tabs.find(
+      (tab) =>
+        tab.type === "channel" &&
+        tab.channel !== undefined &&
+        buildChannelTabKey(tab.channel) === key
+    );
+    if (existingTab) {
+      set(chatPanelTabsAtom, (prev) => ({
+        ...prev,
+        tabs: prev.tabs.map((tab) =>
+          tab.id === existingTab.id
+            ? { ...tab, title: `#${channel.name}`, channel }
+            : tab
+        ),
+      }));
+      set(activateChatPanelTabAtom, existingTab.id);
+      return existingTab.id;
+    }
+    const tab = createChannelTab({ channel });
+    set(appendAndActivateChatPanelTabAtom, { tab });
+    return tab.id;
+  }
+);
+openChannelInChatPanelTabAtom.debugLabel = "openChannelInChatPanelTab";
 
 /** Open or focus the singleton Explore tab. */
 export const openExploreInChatPanelTabAtom = atom(null, (get, set) => {

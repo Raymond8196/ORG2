@@ -869,6 +869,31 @@
         "leave": "Channel verlassen",
         "lastManager": "Bestimme zuerst einen anderen Manager",
         "error": "Etwas ist schiefgelaufen. Bitte erneut versuchen."
+      },
+      "feed": {
+        "composerPlaceholder": "Nachricht an #{{name}}",
+        "composerHint": "Cmd/Strg + Enter zum Senden",
+        "send": "Senden",
+        "save": "Speichern",
+        "edit": "Nachricht bearbeiten",
+        "delete": "Nachricht löschen",
+        "edited": "(bearbeitet)",
+        "deletedMessage": "Nachricht gelöscht",
+        "today": "Heute",
+        "yesterday": "Gestern",
+        "you": "Du",
+        "memberCount": "{{memberCount}} Mitglieder",
+        "emptyTitle": "Das ist der Anfang von #{{name}}",
+        "emptySubtitle": "Sende die erste Nachricht, um das Gespräch zu starten.",
+        "missingTitle": "Kanal nicht mehr verfügbar",
+        "missingSubtitle": "Dieser Kanal wurde von diesem Gerät gelöscht.",
+        "cloudPendingTitle": "Noch keine Nachrichten",
+        "cloudPendingSubtitle": "Der Verlauf von Cloud-Kanälen kommt mit dem nächsten Backend-Update.",
+        "cloudComposerDisabled": "Nachrichten sind für Cloud-Kanäle noch nicht verfügbar – diese Version enthält nur Kanaleinrichtung und Mitgliedschaft. Das Senden kommt mit dem nächsten Backend-Update.",
+        "errorEmpty": "Gib zuerst eine Nachricht ein",
+        "errorTooLong": "Diese Nachricht ist zu lang (max. 4000 Zeichen)",
+        "errorQuota": "Dieser Kanal hat sein Nachrichtenlimit auf diesem Gerät erreicht",
+        "errorGeneric": "Nachricht konnte nicht gesendet werden. Bitte versuche es erneut."
       }
     }
   }
