@@ -38,6 +38,7 @@ interface BuildPinnedMenuItemsParams {
   runtimeLabel: string;
   teamInboxLabel: string;
   teamInboxUnreadCount?: number;
+  teamInboxUnreadAriaLabel?: string;
 }
 
 interface BuildProjectsPinnedMenuItemsParams {
@@ -57,6 +58,7 @@ export function buildPinnedMenuItems({
   runtimeLabel,
   teamInboxLabel,
   teamInboxUnreadCount = 0,
+  teamInboxUnreadAriaLabel,
 }: BuildPinnedMenuItemsParams): NavigationMenuItem[] {
   return [
     {
@@ -94,7 +96,9 @@ export function buildPinnedMenuItems({
       trailingElement:
         teamInboxUnreadCount > 0 ? (
           <span
-            aria-label={`${teamInboxUnreadCount} unread`}
+            aria-label={
+              teamInboxUnreadAriaLabel ?? `${teamInboxUnreadCount} unread`
+            }
             className="min-w-5 rounded-full bg-primary-6 px-1.5 text-center text-xs font-medium text-white"
           >
             {teamInboxUnreadCount > 99 ? "99+" : teamInboxUnreadCount}

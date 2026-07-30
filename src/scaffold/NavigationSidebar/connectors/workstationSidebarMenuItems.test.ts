@@ -1,3 +1,4 @@
+import type React from "react";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -51,6 +52,45 @@ describe("buildPinnedMenuItems", () => {
       dataTestId: "sidebar-runtime",
     });
     expect(items[0]?.openContextMenuOnSelectedClick).toBeUndefined();
+  });
+
+  it("translates the unread badge aria-label when one is supplied", () => {
+    const items = buildPinnedMenuItems({
+      newSessionLabel: "New Session",
+      newSessionShortcut: "⌘N",
+      workItemsLabel: "Work Items",
+      workItemDestinations: [],
+      kanbanLabel: "Kanban",
+      kanbanShortcut: "⌘O",
+      runtimeLabel: "Runtime",
+      teamInboxLabel: "Team Inbox",
+      teamInboxUnreadCount: 3,
+      teamInboxUnreadAriaLabel: "3 no leídos",
+    });
+
+    const badge = items[3]?.trailingElement as React.ReactElement<{
+      "aria-label"?: string;
+    }>;
+    expect(badge?.props["aria-label"]).toBe("3 no leídos");
+  });
+
+  it("falls back to an English badge aria-label when none is supplied", () => {
+    const items = buildPinnedMenuItems({
+      newSessionLabel: "New Session",
+      newSessionShortcut: "⌘N",
+      workItemsLabel: "Work Items",
+      workItemDestinations: [],
+      kanbanLabel: "Kanban",
+      kanbanShortcut: "⌘O",
+      runtimeLabel: "Runtime",
+      teamInboxLabel: "Team Inbox",
+      teamInboxUnreadCount: 5,
+    });
+
+    const badge = items[3]?.trailingElement as React.ReactElement<{
+      "aria-label"?: string;
+    }>;
+    expect(badge?.props["aria-label"]).toBe("5 unread");
   });
 
   it("keeps destination navigation available inside the Work Items layer", () => {
