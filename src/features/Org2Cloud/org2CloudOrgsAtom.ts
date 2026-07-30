@@ -67,6 +67,8 @@ export interface Org2CloudOrg {
    * push scheduler never runs for this org). Parsed tolerantly in
    * `listMyOrgs` — a malformed record degrades to absent. */
   runtimeTelemetry?: OrgRuntimeTelemetry | null;
+  /** 0013 org-level offline sync policy; absent ⇒ off. */
+  offlineSyncEnabled?: boolean;
 }
 
 export interface RefetchOrg2CloudOrgsOptions {

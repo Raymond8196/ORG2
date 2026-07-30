@@ -1,0 +1,299 @@
+/**
+ * Download control surface for a cloud session replay.
+ *
+ * One mount point renders three states off two atoms:
+ * - pending-play — a big session parked by the play gate: count + ETA and a
+ *   Start button; nothing has transferred yet.
+ * - downloading/finalizing — live progress with a Pause button. Pause keeps
+ *   the persisted pages; nothing rolls back.
+ * - paused — the held position with a Resume button.
+ *
+ * Two layout variants share the state machine: `centered` fills the Chat
+ * Pane's loading state, `card` is the compact pinned strip used when a
+ * transcript (skeleton or cached copy) is already rendering underneath.
+ * Renders nothing when the session has neither a pending entry nor progress,
+ * so both are safe to mount unconditionally.
+ *
+ * Start/Resume cannot call the replay hook from here — they park a start
+ * request that the mounted sidebar section consumes.
+ */
+import { useSetAtom } from "jotai";
+import type React from "react";
+import { useTranslation } from "react-i18next";
+
+import Button from "@src/components/Button";
+
+import { cancelCloudSessionDownload } from "./cloudSessionDownloadAbortRegistry";
+import {
+  type CloudPendingPlay,
+  cloudDownloadStartRequestAtom,
+} from "./cloudSessionDownloadControlAtoms";
+import {
+  type CloudSessionDownloadProgress,
+  cloudDownloadEtaMs,
+  cloudDownloadPercent,
+  formatCloudDownloadEta,
+} from "./cloudSessionDownloadProgressAtom";
+import {
+  useCloudSessionDownloadProgressEntry,
+  useCloudSessionPendingPlayEntry,
+} from "./useCloudSessionDownloadSurface";
+
+interface CloudSessionDownloadProgressCardProps {
+  /** Local session id the surface renders (imported-session-* for replays). */
+  sessionId: string | null | undefined;
+  /** Layout: compact pinned `card` (default) or pane-filling `centered`. */
+  variant?: "card" | "centered";
+}
+
+const ProgressBar: React.FC<{
+  percent: number | null;
+  paused?: boolean;
+  className: string;
+}> = ({ percent, paused = false, className }) => (
+  <div
+    role="progressbar"
+    aria-valuemin={0}
+    aria-valuemax={100}
+    aria-valuenow={percent ?? undefined}
+    className={`h-1.5 overflow-hidden rounded-full bg-fill-3 ${className}`}
+  >
+    <div
+      className={
+        percent === null
+          ? "h-full w-1/3 animate-pulse rounded-full bg-primary-6"
+          : paused
+            ? "h-full rounded-full bg-fill-4"
+            : "h-full rounded-full bg-primary-6 transition-[width] duration-300"
+      }
+      style={percent === null ? undefined : { width: `${percent}%` }}
+    />
+  </div>
+);
+
+/** Start/Resume both funnel through the sidebar-consumed request slot. */
+function useRequestDownloadStart(): (params: {
+  rowId: string;
+  orgId: string;
+}) => void {
+  const setStartRequest = useSetAtom(cloudDownloadStartRequestAtom);
+  return ({ rowId, orgId }) =>
+    setStartRequest({ requestId: Date.now(), rowId, orgId });
+}
+
+const PendingPlay: React.FC<{
+  pending: CloudPendingPlay;
+  variant: "card" | "centered";
+}> = ({ pending, variant }) => {
+  const { t } = useTranslation("navigation");
+  const requestStart = useRequestDownloadStart();
+  const estimate = t("cloud.download.estimate", {
+    count: pending.pendingEvents,
+    eta: formatCloudDownloadEta(pending.etaMs),
+  });
+  const startButton = (
+    <Button
+      variant="secondary"
+      size={variant === "centered" ? "small" : "mini"}
+      data-testid="cloud-session-download-start"
+      onClick={() =>
+        requestStart({ rowId: pending.rowId, orgId: pending.orgId })
+      }
+    >
+      {t("cloud.download.start")}
+    </Button>
+  );
+  if (variant === "centered") {
+    return (
+      <div
+        className="flex h-full flex-col items-center justify-center gap-3 p-6"
+        data-testid="cloud-session-download-pending"
+      >
+        <div className="text-xs tabular-nums text-text-3">{estimate}</div>
+        {startButton}
+      </div>
+    );
+  }
+  return (
+    <div
+      className="mx-1 mb-2 flex items-center justify-between gap-2 rounded-md border border-border-2 bg-bg-2 p-3 text-xs text-text-2"
+      data-testid="cloud-session-download-pending"
+    >
+      <span className="tabular-nums text-text-3">{estimate}</span>
+      {startButton}
+    </div>
+  );
+};
+
+const CenteredProgress: React.FC<{
+  progress: CloudSessionDownloadProgress;
+}> = ({ progress }) => {
+  const { t } = useTranslation("navigation");
+  const requestStart = useRequestDownloadStart();
+  const percent = cloudDownloadPercent(progress);
+  const etaMs = cloudDownloadEtaMs(progress);
+  const finalizing = progress.phase === "finalizing";
+  const paused = progress.phase === "paused";
+  const completed = progress.phase === "completed";
+  return (
+    <div
+      className="flex h-full flex-col items-center justify-center gap-3 p-6"
+      data-testid="cloud-session-download-progress"
+    >
+      <ProgressBar
+        percent={percent}
+        paused={paused}
+        className="w-64 max-w-full"
+      />
+      <div className="flex items-center gap-2 text-xs tabular-nums text-text-3">
+        {finalizing ? (
+          <span>{t("cloud.download.finalizing")}</span>
+        ) : (
+          <>
+            {completed && <span>{t("cloud.download.complete")}</span>}
+            {paused && <span>{t("cloud.download.paused")}</span>}
+            {percent !== null && <span>{percent}%</span>}
+            {progress.totalEvents !== null && (
+              <span>
+                {t("cloud.download.events", {
+                  loaded: progress.loadedEvents,
+                  total: progress.totalEvents,
+                })}
+              </span>
+            )}
+            {etaMs !== null && !paused && !completed && (
+              <span>
+                {t("cloud.download.eta", {
+                  eta: formatCloudDownloadEta(etaMs),
+                })}
+              </span>
+            )}
+          </>
+        )}
+      </div>
+      {!finalizing &&
+        !completed &&
+        (paused ? (
+          <Button
+            variant="secondary"
+            size="small"
+            data-testid="cloud-session-download-resume"
+            onClick={() =>
+              requestStart({ rowId: progress.rowId, orgId: progress.orgId })
+            }
+          >
+            {t("cloud.download.resume")}
+          </Button>
+        ) : (
+          <Button
+            variant="tertiary"
+            size="small"
+            data-testid="cloud-session-download-pause"
+            onClick={() => cancelCloudSessionDownload(progress.rowId)}
+          >
+            {t("cloud.download.pause")}
+          </Button>
+        ))}
+    </div>
+  );
+};
+
+const CardProgress: React.FC<{
+  progress: CloudSessionDownloadProgress;
+}> = ({ progress }) => {
+  const { t } = useTranslation("navigation");
+  const requestStart = useRequestDownloadStart();
+  const percent = cloudDownloadPercent(progress);
+  const etaMs = cloudDownloadEtaMs(progress);
+  const finalizing = progress.phase === "finalizing";
+  const paused = progress.phase === "paused";
+  const completed = progress.phase === "completed";
+  return (
+    <div
+      className="mx-1 mb-2 rounded-md border border-border-2 bg-bg-2 p-3"
+      data-testid="cloud-session-download-progress"
+    >
+      <div className="flex items-center justify-between gap-2 text-xs text-text-2">
+        <span>
+          {finalizing
+            ? t("cloud.download.finalizing")
+            : completed
+              ? t("cloud.download.complete")
+              : paused
+                ? t("cloud.download.paused")
+                : t("cloud.download.title")}
+        </span>
+        <span className="inline-flex items-center gap-2">
+          {percent !== null && (
+            <span className="tabular-nums text-text-3">{percent}%</span>
+          )}
+          {!finalizing &&
+            !completed &&
+            (paused ? (
+              <Button
+                variant="secondary"
+                size="mini"
+                data-testid="cloud-session-download-resume"
+                onClick={() =>
+                  requestStart({
+                    rowId: progress.rowId,
+                    orgId: progress.orgId,
+                  })
+                }
+              >
+                {t("cloud.download.resume")}
+              </Button>
+            ) : (
+              <Button
+                variant="tertiary"
+                size="mini"
+                data-testid="cloud-session-download-pause"
+                onClick={() => cancelCloudSessionDownload(progress.rowId)}
+              >
+                {t("cloud.download.pause")}
+              </Button>
+            ))}
+        </span>
+      </div>
+      <div className="mt-2">
+        <ProgressBar percent={percent} paused={paused} className="w-full" />
+      </div>
+      <div className="mt-1.5 flex items-center justify-between gap-2 text-[11px] text-text-3">
+        <span className="tabular-nums">
+          {progress.totalEvents !== null
+            ? t("cloud.download.events", {
+                loaded: progress.loadedEvents,
+                total: progress.totalEvents,
+              })
+            : null}
+        </span>
+        {etaMs !== null && !finalizing && !paused && !completed && (
+          <span>
+            {t("cloud.download.eta", { eta: formatCloudDownloadEta(etaMs) })}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const CloudSessionDownloadProgressCard: React.FC<
+  CloudSessionDownloadProgressCardProps
+> = ({ sessionId, variant = "card" }) => {
+  const progress = useCloudSessionDownloadProgressEntry(sessionId);
+  const pending = useCloudSessionPendingPlayEntry(sessionId);
+  // A live/paused transfer outranks a stale pending entry.
+  if (progress) {
+    return variant === "centered" ? (
+      <CenteredProgress progress={progress} />
+    ) : (
+      <CardProgress progress={progress} />
+    );
+  }
+  if (pending) {
+    return <PendingPlay pending={pending} variant={variant} />;
+  }
+  return null;
+};
+
+export default CloudSessionDownloadProgressCard;

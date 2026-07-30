@@ -2,6 +2,7 @@ import { getImportedHistorySourceBySessionId } from "@src/api/tauri/externalHist
 import { eventStoreProxy } from "@src/engines/SessionCore/core/store/EventStoreProxy";
 import type { SessionEvent } from "@src/engines/SessionCore/core/types";
 import { processChunksRust } from "@src/engines/SessionCore/ingestion/rustBridge";
+import { loadTurnIndex } from "@src/engines/SessionCore/storage/cacheAdapter";
 import { createLogger } from "@src/hooks/logger";
 import { COLLAB_SESSION_ACCESS_MODE } from "@src/store/collaboration/types";
 import type { RemoteTeammateSessionMetadata } from "@src/store/collaboration/types";
@@ -31,7 +32,10 @@ import type {
   PreparedPushPlan,
 } from "./org2CloudSessionSync.types";
 import type { CollabSessionPushCursor } from "./org2CloudSyncAtoms";
-import { isOrg2SyncErrorCode } from "./org2CloudSyncClient";
+import {
+  type CloudSessionTurnSummary,
+  isOrg2SyncErrorCode,
+} from "./org2CloudSyncClient";
 import type { CloudStore } from "./org2CloudSyncLifecycle";
 
 export {
@@ -63,6 +67,29 @@ export const SESSION_PUSH_RETRY_MAX_MS = 30 * 60_000;
 interface SessionPushRetryState {
   failures: number;
   retryAtMs: number;
+}
+
+/** Prompt previews published to the turn index are content-capped. */
+const TURN_INDEX_PROMPT_MAX_CHARS = 240;
+/**
+ * Client-side publish cap: sessions with more rounds skip the index (the
+ * viewer falls back to the plain progress download). Stays under whatever
+ * cap the server enforces on the jsonb payload.
+ */
+const TURN_INDEX_MAX_ROUNDS = 2_000;
+
+/** Mirror of Rust normalize_turn_user_preview (turn_window.rs) + truncation. */
+function normalizeTurnPromptPreview(preview: string): string {
+  const trimmed = preview.trim();
+  const stripped = trimmed.startsWith("user_message ")
+    ? trimmed.slice("user_message ".length)
+    : trimmed.startsWith("user ")
+      ? trimmed.slice("user ".length)
+      : trimmed;
+  const normalized = stripped.trim();
+  return normalized.length > TURN_INDEX_PROMPT_MAX_CHARS
+    ? `${normalized.slice(0, TURN_INDEX_PROMPT_MAX_CHARS)}…`
+    : normalized;
 }
 
 async function hashEventsBounded(events: SessionEvent[]): Promise<string[]> {
@@ -249,6 +276,7 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
       if (!isOrg2SyncErrorCode(error, "ORG2_SESSION_NOT_FOUND")) throw error;
     }
     this.invalidatePushedMetadataHash(orgId, sessionId);
+    this.lastPushedTurnIndexHashes.delete(`${orgId}:${sessionId}`);
     this.clearPushedMetadataMarker(orgId, sessionId);
     this.clearCursor(orgId, sessionId);
     broadcastOrgControlChangedToPeers(orgId, "sessions");
@@ -531,6 +559,7 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
           );
           broadcastOrgControlChangedToPeers(orgId, "sessions");
           this.markEventPlaneClean(orgId, session, stampAtRead);
+          void this.publishTurnIndexBestEffort(auth, orgId, session);
           return;
         } catch (error) {
           if (!isOrg2SyncErrorCode(error, "ORG2_CONFLICT")) throw error;
@@ -544,6 +573,7 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
             newEpoch: null,
           });
           this.markEventPlaneClean(orgId, session, stampAtRead);
+          void this.publishTurnIndexBestEffort(auth, orgId, session);
           return;
         }
       }
@@ -558,6 +588,7 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
         newEpoch: cursor.epoch + 1,
       });
       this.markEventPlaneClean(orgId, session, stampAtRead);
+      void this.publishTurnIndexBestEffort(auth, orgId, session);
       return;
     }
 
@@ -571,6 +602,61 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
       newEpoch: 1,
     });
     this.markEventPlaneClean(orgId, session, stampAtRead);
+    void this.publishTurnIndexBestEffort(auth, orgId, session);
+  }
+
+  /**
+   * Best-effort 0012 turn-index publish, fired after every successful
+   * events push (the index only ever changes together with events). Reads
+   * the local per-round index, normalizes prompt previews, and uploads a
+   * wholesale replacement for the cursor's epoch. Progressive enhancement
+   * only: capability/endpoint gating lives in the client wrapper, the
+   * in-memory hash gate dedups repeat passes, and every failure is logged
+   * and swallowed — a push must never fail or retry-storm on this.
+   */
+  private async publishTurnIndexBestEffort(
+    auth: Org2CloudAuthState,
+    orgId: string,
+    session: Session
+  ): Promise<void> {
+    const sessionId = session.session_id;
+    try {
+      const upsertTurnIndex = this.client.upsertSessionTurnIndex;
+      if (!upsertTurnIndex) return;
+      // The cursor the push just committed carries the epoch this index
+      // describes; without one there is nothing published to annotate.
+      const cursor = this.getCursor(orgId, sessionId);
+      if (!cursor) return;
+      const summaries = await loadTurnIndex(sessionId);
+      if (summaries.length === 0 || summaries.length > TURN_INDEX_MAX_ROUNDS) {
+        return;
+      }
+      const turns: CloudSessionTurnSummary[] = summaries.map((turn) => ({
+        turnId: turn.turnId,
+        prompt: normalizeTurnPromptPreview(turn.userPreview),
+        eventCount: Math.max(0, turn.eventCount),
+        bodyEventCount: Math.max(0, turn.bodyEventCount),
+        ...(turn.startedAt ? { startedAt: turn.startedAt } : {}),
+        ...(turn.endedAt ? { endedAt: turn.endedAt } : {}),
+        ...(turn.durationMs != null ? { durationMs: turn.durationMs } : {}),
+        ...(turn.nextTurnId ? { nextTurnId: turn.nextTurnId } : {}),
+      }));
+      const key = `${orgId}:${sessionId}`;
+      const hash = await sha256Hex(
+        stableStringify({ epoch: cursor.epoch, turns })
+      );
+      if (this.lastPushedTurnIndexHashes.get(key) === hash) return;
+      const published = await upsertTurnIndex(
+        auth.accessToken,
+        orgId,
+        sessionId,
+        cursor.epoch,
+        turns
+      );
+      if (published) this.lastPushedTurnIndexHashes.set(key, hash);
+    } catch (error) {
+      log.warn(`turn-index publish skipped for ${sessionId}`, error);
+    }
   }
 
   /**

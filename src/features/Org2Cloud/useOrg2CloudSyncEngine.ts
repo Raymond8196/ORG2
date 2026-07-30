@@ -21,6 +21,7 @@ import {
   org2CloudAuthAtom,
   org2CloudAuthIdentityKey,
 } from "./org2CloudAuthAtom";
+import { org2CloudOfflineSyncScheduler } from "./org2CloudOfflineSync";
 import {
   org2CloudOrgsAtom,
   org2CloudOrgsLoadedAtom,
@@ -48,9 +49,11 @@ export function useOrg2CloudSyncEngine(): void {
     // passes.
     org2CloudSyncEngine.stop();
     memberRuntimePushScheduler.stop();
+    org2CloudOfflineSyncScheduler.stop();
     if (authIdentityKey) {
       org2CloudSyncEngine.start(getInstrumentedStore());
       memberRuntimePushScheduler.start(getInstrumentedStore());
+      org2CloudOfflineSyncScheduler.start(getInstrumentedStore());
     }
     return undefined;
   }, [authIdentityKey]);

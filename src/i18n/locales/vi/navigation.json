@@ -398,7 +398,8 @@
       "agentError": "Choose a local agent before forking.",
       "backendError": "The session history was copied, but the runnable fork could not be registered. Retry.",
       "parentOpenUnavailable": "The source session could not be opened from this fork.",
-      "replayError": "Full replay is not available for this session. Ask the owner to share the replay, then retry."
+      "replayError": "Full replay is not available for this session. Ask the owner to share the replay, then retry.",
+      "openParentButton": "Mở phiên gốc từ {{name}}"
     }
   },
   "cloud": {
@@ -515,7 +516,10 @@
       "viewerOverflow": "và {{count}} người khác đang xem",
       "memberViewing": "đang xem: {{title}}",
       "viewerOverflow_one": "and 1 more viewer",
-      "viewerOverflow_other": "and {{count}} more viewers"
+      "viewerOverflow_other": "and {{count}} more viewers",
+      "loadingSession": "Đang tải phiên…",
+      "downloadProgress": "Đang tải xuống… {{percent}}%",
+      "downloadProgressEta": "Đang tải xuống… {{percent}}% · còn ~{{eta}}"
     },
     "sessionRef": {
       "chipLabel": "Phiên của nhóm",
@@ -523,7 +527,8 @@
       "signInRequired": "Đăng nhập ORG2 Cloud để mở phiên này.",
       "sessionNotFound": "Phiên đó không thuộc tổ chức này.",
       "notPublished": "Chia sẻ phiên này với một tổ chức trước khi sao chép tham chiếu.",
-      "chooseOrg": "Phiên này thuộc nhiều tổ chức. Chuyển sang tổ chức bạn muốn tham chiếu, rồi sao chép lại."
+      "chooseOrg": "Phiên này thuộc nhiều tổ chức. Chuyển sang tổ chức bạn muốn tham chiếu, rồi sao chép lại.",
+      "opening": "Đang mở phiên nhóm…"
     },
     "sync": {
       "quotaExceededToast": "Đồng bộ ORG2 Cloud tạm dừng: tổ chức này đã vượt hạn mức của gói",
@@ -761,6 +766,25 @@
     },
     "renameDisplayName": "Sửa tên hiển thị",
     "renameSaved": "Đã cập nhật tên hiển thị",
-    "renameFailed": "Không cập nhật được tên hiển thị"
+    "renameFailed": "Không cập nhật được tên hiển thị",
+    "download": {
+      "title": "Đang tải phiên nhóm…",
+      "events": "{{loaded}} / {{total}} sự kiện",
+      "eta": "Còn khoảng {{eta}}",
+      "finalizing": "Đang hoàn tất…",
+      "complete": "Tải xuống hoàn tất",
+      "estimate": "Phiên này có {{count}} sự kiện cần tải xuống (khoảng {{eta}}).",
+      "start": "Tải xuống",
+      "pause": "Tạm dừng",
+      "paused": "Đã tạm dừng",
+      "resume": "Tiếp tục"
+    },
+    "offlineSync": {
+      "label": "Đồng bộ ngoại tuyến",
+      "help": "Tự động tải mọi phiên được chia sẻ của tổ chức này về thiết bị của từng thành viên — phát lại mở ngay lập tức và hoạt động ngoại tuyến.",
+      "on": "Bật",
+      "off": "Tắt",
+      "memberNote": "Do quản trị viên bật — các phiên chia sẻ được tự động tải về thiết bị này."
+    }
   }
 }

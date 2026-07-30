@@ -5,6 +5,8 @@ import type { AgentOrgRunMemberView } from "@src/api/tauri/agent";
 import { DROPDOWN_CLASSES } from "@src/components/Dropdown/tokens";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import { ChatLoadingBlock } from "@src/engines/ChatPanel/blocks/primitives";
+import CloudSessionDownloadProgressCard from "@src/features/Org2Cloud/CloudSessionDownloadProgressCard";
+import { useCloudSessionHasDownloadSurface } from "@src/features/Org2Cloud/useCloudSessionDownloadSurface";
 import type { ChatHistoryDisplayMode } from "@src/store/ui/chatPanelAtom";
 
 import SessionHeader from "../../ChatItems/SessionHeader";
@@ -206,6 +208,8 @@ const ChatHistoryView: React.FC<ChatHistoryViewProps> = ({
     () => isExploringRef.current ?? false,
     [isExploringRef]
   );
+  const hasCloudDownloadProgress = useCloudSessionHasDownloadSurface(activeId);
+
   const renderGroupHeader = useGroupHeaderRenderer({
     displaySourceGroupIndices,
     sourceGroupCount: groupCounts.length,
@@ -404,11 +408,23 @@ const ChatHistoryView: React.FC<ChatHistoryViewProps> = ({
                 />
               )}
 
-            {isLoadingMore && (
+            {/* One pinned top-overlay slot: pagination shimmer and the
+                download progress/play card stack instead of overpainting
+                each other at the same z. A round-first skeleton renders the
+                transcript while segments are still streaming in — the
+                download card stays pinned above it; the empty/loading
+                branch mounts its own card. */}
+            {(isLoadingMore ||
+              (hasCloudDownloadProgress &&
+                activeProjectionHistory.length > 0)) && (
               <div
                 className={`absolute left-0 right-0 top-0 z-20 mx-auto ${surfaceBgClass} p-2 ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
               >
-                <ChatLoadingBlock />
+                {hasCloudDownloadProgress &&
+                  activeProjectionHistory.length > 0 && (
+                    <CloudSessionDownloadProgressCard sessionId={activeId} />
+                  )}
+                {isLoadingMore && <ChatLoadingBlock />}
               </div>
             )}
 
@@ -484,6 +500,7 @@ const ChatHistoryView: React.FC<ChatHistoryViewProps> = ({
                   </>
                 ) : (
                   <ChatHistoryEmptyState
+                    sessionId={activeId}
                     sessionLoadStatus={sessionLoadStatus}
                     sessionLoadError={sessionLoadError}
                     emptyConfirmed={emptyState.emptyConfirmed}

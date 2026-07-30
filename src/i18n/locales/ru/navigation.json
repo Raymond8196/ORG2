@@ -398,7 +398,8 @@
       "agentError": "Choose a local agent before forking.",
       "backendError": "The session history was copied, but the runnable fork could not be registered. Retry.",
       "parentOpenUnavailable": "The source session could not be opened from this fork.",
-      "replayError": "Full replay is not available for this session. Ask the owner to share the replay, then retry."
+      "replayError": "Full replay is not available for this session. Ask the owner to share the replay, then retry.",
+      "openParentButton": "Открыть исходную сессию от {{name}}"
     }
   },
   "cloud": {
@@ -515,7 +516,10 @@
       "viewerOverflow": "и ещё {{count}} смотрят",
       "memberViewing": "смотрит: {{title}}",
       "viewerOverflow_one": "and 1 more viewer",
-      "viewerOverflow_other": "and {{count}} more viewers"
+      "viewerOverflow_other": "and {{count}} more viewers",
+      "loadingSession": "Загрузка сессии…",
+      "downloadProgress": "Скачивание… {{percent}}%",
+      "downloadProgressEta": "Скачивание… {{percent}}% · осталось ~{{eta}}"
     },
     "sessionRef": {
       "chipLabel": "Сессия команды",
@@ -523,7 +527,8 @@
       "signInRequired": "Войдите в ORG2 Cloud, чтобы открыть эту сессию.",
       "sessionNotFound": "Эта сессия не принадлежит этой организации.",
       "notPublished": "Поделитесь этой сессией с организацией, прежде чем копировать ссылку на неё.",
-      "chooseOrg": "Эта сессия принадлежит нескольким организациям. Переключитесь на нужную организацию и скопируйте ссылку ещё раз."
+      "chooseOrg": "Эта сессия принадлежит нескольким организациям. Переключитесь на нужную организацию и скопируйте ссылку ещё раз.",
+      "opening": "Открытие командной сессии…"
     },
     "sync": {
       "quotaExceededToast": "Синхронизация ORG2 Cloud приостановлена: квота плана этой организации исчерпана",
@@ -761,6 +766,25 @@
     },
     "renameDisplayName": "Изменить отображаемое имя",
     "renameSaved": "Отображаемое имя обновлено",
-    "renameFailed": "Не удалось обновить отображаемое имя"
+    "renameFailed": "Не удалось обновить отображаемое имя",
+    "download": {
+      "title": "Скачивание командной сессии…",
+      "events": "{{loaded}} / {{total}} событий",
+      "eta": "Осталось около {{eta}}",
+      "finalizing": "Завершение…",
+      "complete": "Загрузка завершена",
+      "estimate": "В этой сессии {{count}} событий для загрузки (около {{eta}}).",
+      "start": "Скачать",
+      "pause": "Пауза",
+      "paused": "Приостановлено",
+      "resume": "Возобновить"
+    },
+    "offlineSync": {
+      "label": "Офлайн-синхронизация",
+      "help": "Автоматически загружает каждую общую сессию этой организации на устройство каждого участника — реплеи открываются мгновенно и работают офлайн.",
+      "on": "Вкл",
+      "off": "Выкл",
+      "memberNote": "Включено администратором — общие сессии загружаются на это устройство автоматически."
+    }
   }
 }

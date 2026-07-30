@@ -31,6 +31,8 @@ const EVENTS_CLEAN_TTL_MS = 10 * 60_000;
 export class Org2CloudSessionSyncState {
   /** `${orgId}:${sessionId}` to hash of the last upserted metadata. */
   protected readonly lastPushedMetadataHashes = new Map<string, string>();
+  /** `${orgId}:${sessionId}` to hash of the last published turn index (0012). */
+  protected readonly lastPushedTurnIndexHashes = new Map<string, string>();
   /** sessionId to orgId to time when the event plane was verified clean. */
   protected readonly cleanEventPlanes = new Map<
     string,
@@ -57,6 +59,7 @@ export class Org2CloudSessionSyncState {
 
   reset(): void {
     this.lastPushedMetadataHashes.clear();
+    this.lastPushedTurnIndexHashes.clear();
     this.cleanEventPlanes.clear();
     this.eventActivityStamps.clear();
     this.eventActivityAtMs.clear();
@@ -80,13 +83,19 @@ export class Org2CloudSessionSyncState {
     liveOrgIds: ReadonlySet<string>,
     liveSessionIds: ReadonlySet<string>
   ): void {
-    for (const key of this.lastPushedMetadataHashes.keys()) {
-      const separatorIndex = key.indexOf(":");
-      const orgId = separatorIndex === -1 ? key : key.slice(0, separatorIndex);
-      const sessionId =
-        separatorIndex === -1 ? "" : key.slice(separatorIndex + 1);
-      if (!liveOrgIds.has(orgId) || !liveSessionIds.has(sessionId)) {
-        this.lastPushedMetadataHashes.delete(key);
+    for (const hashes of [
+      this.lastPushedMetadataHashes,
+      this.lastPushedTurnIndexHashes,
+    ]) {
+      for (const key of hashes.keys()) {
+        const separatorIndex = key.indexOf(":");
+        const orgId =
+          separatorIndex === -1 ? key : key.slice(0, separatorIndex);
+        const sessionId =
+          separatorIndex === -1 ? "" : key.slice(separatorIndex + 1);
+        if (!liveOrgIds.has(orgId) || !liveSessionIds.has(sessionId)) {
+          hashes.delete(key);
+        }
       }
     }
     for (const key of this.remoteSeedAttemptedKeys) {

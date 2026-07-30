@@ -400,7 +400,8 @@
       "agentError": "Choose a local agent before forking.",
       "backendError": "The session history was copied, but the runnable fork could not be registered. Retry.",
       "parentOpenUnavailable": "The source session could not be opened from this fork.",
-      "replayError": "Full replay is not available for this session. Ask the owner to share the replay, then retry."
+      "replayError": "Full replay is not available for this session. Ask the owner to share the replay, then retry.",
+      "openParentButton": "Ouvrir la session source de {{name}}"
     }
   },
   "cloud": {
@@ -517,7 +518,10 @@
       "viewerOverflow": "et {{count}} autres spectateurs",
       "memberViewing": "regarde : {{title}}",
       "viewerOverflow_one": "and 1 more viewer",
-      "viewerOverflow_other": "and {{count}} more viewers"
+      "viewerOverflow_other": "and {{count}} more viewers",
+      "loadingSession": "Chargement de la session…",
+      "downloadProgress": "Téléchargement… {{percent}}%",
+      "downloadProgressEta": "Téléchargement… {{percent}}% · ~{{eta}} restant"
     },
     "sessionRef": {
       "chipLabel": "Session d'équipe",
@@ -525,7 +529,8 @@
       "signInRequired": "Connectez-vous à ORG2 Cloud pour ouvrir cette session.",
       "sessionNotFound": "Cette session n'appartient pas à cette organisation.",
       "notPublished": "Partagez cette session avec une organisation avant de copier une référence.",
-      "chooseOrg": "Cette session appartient à plusieurs organisations. Passez à l'organisation que vous voulez référencer, puis copiez de nouveau."
+      "chooseOrg": "Cette session appartient à plusieurs organisations. Passez à l'organisation que vous voulez référencer, puis copiez de nouveau.",
+      "opening": "Ouverture de la session d'équipe…"
     },
     "sync": {
       "quotaExceededToast": "Synchro ORG2 Cloud en pause : le quota du forfait de cette organisation est dépassé",
@@ -763,6 +768,25 @@
     },
     "renameDisplayName": "Modifier le nom d'affichage",
     "renameSaved": "Nom d'affichage mis à jour",
-    "renameFailed": "Impossible de mettre à jour le nom d'affichage"
+    "renameFailed": "Impossible de mettre à jour le nom d'affichage",
+    "download": {
+      "title": "Téléchargement de la session d'équipe…",
+      "events": "{{loaded}} / {{total}} événements",
+      "eta": "Environ {{eta}} restant",
+      "finalizing": "Finalisation…",
+      "complete": "Téléchargement terminé",
+      "estimate": "Cette session compte {{count}} événements à télécharger (environ {{eta}}).",
+      "start": "Télécharger",
+      "pause": "Suspendre",
+      "paused": "En pause",
+      "resume": "Reprendre"
+    },
+    "offlineSync": {
+      "label": "Synchronisation hors ligne",
+      "help": "Télécharge automatiquement chaque session partagée de cette organisation sur l'appareil de chaque membre : les replays s'ouvrent instantanément et fonctionnent hors ligne.",
+      "on": "Activé",
+      "off": "Désactivé",
+      "memberNote": "Activé par un administrateur — les sessions partagées se téléchargent automatiquement sur cet appareil."
+    }
   }
 }
