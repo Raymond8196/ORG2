@@ -324,6 +324,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       handleRegisterSearchOpen,
       handleReloadFromMenu,
       handleTokenUsageVisibleToggle,
+      handleTurnMetadataVisibleToggle,
       headerActionsDropdownRef,
       headerActionsPosition,
       headerActionsTriggerRef,
@@ -331,6 +332,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       isHeaderActionsPositioned,
       paginationEnabled,
       tokenUsageVisible,
+      turnMetadataVisible,
       toggleHeaderActionsMenu,
     } = useChatPanelHeaderActions({ handleReloadSession });
 
@@ -531,6 +533,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
         handlePaginationToggle={handlePaginationToggle}
         handleReloadFromMenu={handleReloadFromMenu}
         handleTokenUsageVisibleToggle={handleTokenUsageVisibleToggle}
+        handleTurnMetadataVisibleToggle={handleTurnMetadataVisibleToggle}
         headerActionsDropdownRef={headerActionsDropdownRef}
         headerActionsPosition={headerActionsPosition}
         headerActionsTriggerRef={headerActionsTriggerRef}
@@ -544,6 +547,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
         }
         paginationEnabled={paginationEnabled}
         tokenUsageVisible={tokenUsageVisible}
+        turnMetadataVisible={turnMetadataVisible}
         shouldOffsetHeaderForCollapsedSidebar={
           shouldOffsetHeaderForCollapsedSidebar
         }
