@@ -85,14 +85,15 @@ afterEach(() => {
 });
 
 describe("useCloudOrgSyncStatus", () => {
-  it("exposes the endpoint origin only, never the anon key", async () => {
+  it("exposes the backend kind but never the endpoint URL or the anon key", async () => {
     const probe = mountStatus();
     try {
       await probe.mount();
-      expect(probe.read().endpointOrigin).toBe("https://db.example.com");
-      expect(JSON.stringify(probe.read())).not.toContain(
-        "super-secret-anon-key"
-      );
+      expect(probe.read().isOfficialEndpoint).toBe(true);
+      // Neither the host nor the key may reach the UI layer at all.
+      const serialized = JSON.stringify(probe.read());
+      expect(serialized).not.toContain("db.example.com");
+      expect(serialized).not.toContain("super-secret-anon-key");
     } finally {
       await probe.root.unmount();
     }
