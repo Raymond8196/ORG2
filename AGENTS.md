@@ -58,6 +58,51 @@ Run every applicable skill. Keep architecture, React performance, and UI-consist
 
 Run `org2-performance-guard` whenever a change adds or modifies polling, timers, retries, subscriptions, workers, streaming hot paths, caches, scans, sync loops, pagination, or multi-instance state. Apply its lifecycle matrix and rejection rules even when performance is not the feature's headline. State the performance verdict and concrete verification in the delivery message.
 
+### Pull request contract
+
+Every pull request created or updated by an agent MUST follow these rules.
+
+#### Single responsibility
+
+- One PR solves one problem or delivers one feature. Do not combine multiple
+  features, unrelated bug fixes, opportunistic refactors, cleanup, formatting,
+  or documentation changes in the same PR.
+- Supporting tests and documentation belong in the same PR only when they
+  directly verify or explain that PR's single change.
+- If requested work contains independent changes, split them into separate
+  branches/worktrees and separate PRs.
+- If a new unrelated request arrives after a PR has been opened, do not append
+  it to the existing branch. Create a separate PR.
+- Before handoff, compare the branch against its base and confirm every changed
+  file maps directly to the PR's stated problem or solution.
+
+#### Description format
+
+The PR description MUST begin with these top-level sections in this exact
+order:
+
+```markdown
+## Problem
+
+<What is wrong, who or what is affected, and the root cause.>
+
+## Solution
+
+<What changed, the resulting invariant or behavior, and why this approach was chosen.>
+
+## Potential risks
+
+<Concrete regressions, compatibility concerns, unverified paths, or operational tradeoffs.>
+```
+
+- Do not replace these sections with `Summary`, `Overview`, or `Test plan`.
+- Do not leave a required section blank. If no material risk remains, state
+  that explicitly and explain why.
+- Additional sections such as `Audit`, `Verification`, screenshots, or rollout
+  notes may follow the three required sections.
+- Before handing off a PR, read back the published description (for example
+  with `gh pr view`) and verify the section names and order.
+
 ---
 
 ## What This File Does NOT Do
