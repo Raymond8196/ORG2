@@ -606,6 +606,18 @@ export class TeamInboxCoordinator {
   ): Promise<void> {
     const runtime = this.ensureScope(store, scope.key);
     const itemKey = getTeamInboxItemKey(item);
+    // Idempotency lives here, not just at the call site, so any caller —
+    // including future ones — can't double-fire a read/unread mutation and
+    // send a redundant network round-trip that risks drifting unreadCount.
+    // Check the live cache rather than the passed-in `item`, which may be a
+    // stale snapshot from the caller's render.
+    const currentItem = store
+      .get(teamInboxCacheAtom)
+      .items.find((candidate) => getTeamInboxItemKey(candidate) === itemKey);
+    const currentlyRead = (currentItem ?? item).readAt !== null;
+    if (currentlyRead === read) {
+      return Promise.resolve();
+    }
     const epoch = ++runtime.mutationEpoch;
     runtime.mutationEpochByItem.set(itemKey, epoch);
     this.patchReadState(
