@@ -11,6 +11,11 @@
       "mentions": "Menções",
       "assigned": "Atribuídos"
     },
+    "sections": {
+      "reviewRequested": "Revisão solicitada",
+      "authoredByMe": "Criados por mim",
+      "otherTodos": "Outras tarefas"
+    },
     "status": {
       "read": "Lido",
       "unread": "Não lido"
@@ -33,10 +38,10 @@
       "title": "Ainda não há nada aqui",
       "subtitle": "Menções e itens de trabalho atribuídos aparecerão aqui.",
       "selectTitle": "Selecione um item",
-      "selectSubtitle": "Veja o contexto do comentário ou os detalhes do item de trabalho.",
+      "selectSubtitle": "Veja o contexto do comentário ou os detalhes do item de trabalho",
       "mentions": {
         "title": "Nenhuma menção",
-        "subtitle": "Quando um colega de equipe mencionar você com @ em um comentário, isso aparecerá aqui."
+        "subtitle": "Quando um colega de equipe mencionar você com @ em um comentário, isso aparecerá aqui"
       },
       "assigned": {
         "title": "Nada atribuído a você",
@@ -111,7 +116,9 @@
       "markUnread": "Não foi possível marcar este item como não lido. Tente novamente.",
       "markAllRead": "Não foi possível marcar todos os itens como lidos. Tente novamente.",
       "identity": "Sua conta não pôde ser associada a um membro do projeto. Verifique o e-mail no seu perfil do projeto.",
-      "partialLoad": "Algumas fontes da caixa de entrada da equipe não puderam ser atualizadas. Os itens disponíveis continuam sendo exibidos.",
+      "partialLoad": "Algumas fontes da caixa de entrada da equipe não puderam ser atualizadas. Os itens disponíveis continuam sendo exibidos",
+      "pullRequestsPartialLoad": "Algumas solicitações de pull não puderam ser atualizadas",
+      "pullRequestsPartialLoadHelp": "Os itens disponíveis continuam sendo exibidos; atualize para tentar carregar novamente as solicitações de pull ausentes",
       "workItemContext": "Parte do contexto do projeto não está disponível. O item de trabalho continua utilizável.",
       "workItemLoad": "Não foi possível carregar este item de trabalho. Tente novamente.",
       "workItemUpdate": "Não foi possível salvar a última alteração do item de trabalho. Tente novamente."

@@ -24,24 +24,30 @@ import {
   GitHubWorkItemListFrame,
   GitHubWorkItemPagination,
   GitHubWorkItemSearch,
+  GitHubWorkItemSection,
   GitHubWorkItemStateTabs,
   GitHubWorkItemTableSurface,
   GitHubWorkItemToolbarActions,
 } from "./GitHubWorkItemList";
 import {
   GITHUB_ITEM_KIND,
-  GITHUB_QUERY_SCOPE,
-  GITHUB_QUERY_STATE,
-  type GitHubQueryScope,
-  type GitHubRepoSource,
-  type IssueRepoFilter,
   type ManagedGitHubItem,
   type ManagedIssueItem,
   type ManagedPrItem,
-  type ParsedGitHubSearchQuery,
-  type RepoFilterOption,
-} from "./githubWorkItemsModel";
+  groupPullRequestsIntoTodoSections,
+} from "./githubManagedItemModel";
 import { canAdvanceGitHubWorkItemsPage } from "./githubWorkItemsPagination";
+import {
+  GITHUB_QUERY_SCOPE,
+  GITHUB_QUERY_STATE,
+  type GitHubQueryScope,
+  type ParsedGitHubSearchQuery,
+} from "./githubWorkItemsSearchQuery";
+import type {
+  GitHubRepoSource,
+  IssueRepoFilter,
+  RepoFilterOption,
+} from "./githubWorkItemsTypes";
 import type { IssueDetailState } from "./useGitHubIssueDetail";
 
 interface GitHubWorkItemsViewProps {
@@ -184,11 +190,13 @@ export function GitHubWorkItemsView({
             allReposLabel={t("chat.manageIssues.allRepositories")}
             onSelectRepo={onRepoSelect}
           />
-          <GitHubWorkItemStateTabs
-            tabs={stateTabs}
-            activeTab={activeState}
-            onChange={handleStateChange}
-          />
+          {scope === GITHUB_QUERY_SCOPE.ISSUE ? (
+            <GitHubWorkItemStateTabs
+              tabs={stateTabs}
+              activeTab={activeState}
+              onChange={handleStateChange}
+            />
+          ) : null}
           {scope === GITHUB_QUERY_SCOPE.ISSUE ? (
             <IssuePersonalFilterDropdown
               options={issuePersonalFilterOptions}
@@ -278,6 +286,69 @@ export function GitHubWorkItemsView({
     await onNextPage();
     listScrollRef.current?.scrollTo({ top: 0 });
   };
+  const pullRequestTodoSections =
+    groupPullRequestsIntoTodoSections(filteredItems);
+  const pagedIssues = pagedItems.filter(
+    (item): item is ManagedIssueItem => item.kind === GITHUB_ITEM_KIND.ISSUE
+  );
+  const renderPrRows = (items: ManagedPrItem[]) =>
+    items.map((item) => (
+      <div key={`pr-${item.repo}-${item.id}`} className="w-full">
+        <ManagedPrRow
+          pr={item}
+          addLabel={t("chat.panels.manageIssues.addToChat")}
+          onOpenPr={onOpenPr}
+          onAddPr={onAddPr}
+        />
+      </div>
+    ));
+  const visibleRows =
+    scope === GITHUB_QUERY_SCOPE.PR ? (
+      <>
+        {pullRequestTodoSections.reviewRequested.length > 0 ? (
+          <GitHubWorkItemSection
+            label={t("chat.panels.manageIssues.pullRequests.reviewRequested")}
+            testId="github-pr-review-requested"
+          >
+            {renderPrRows(pullRequestTodoSections.reviewRequested)}
+          </GitHubWorkItemSection>
+        ) : null}
+        {pullRequestTodoSections.authoredByViewer.length > 0 ? (
+          <GitHubWorkItemSection
+            label={t("chat.panels.manageIssues.pullRequests.authoredByMe")}
+            testId="github-pr-authored"
+          >
+            {renderPrRows(pullRequestTodoSections.authoredByViewer)}
+          </GitHubWorkItemSection>
+        ) : null}
+        {pullRequestTodoSections.otherTodos.length > 0 ? (
+          <GitHubWorkItemSection
+            label={t("chat.panels.manageIssues.pullRequests.otherTodos")}
+            testId="github-pr-other-todos"
+          >
+            {renderPrRows(pullRequestTodoSections.otherTodos)}
+          </GitHubWorkItemSection>
+        ) : null}
+      </>
+    ) : (
+      <div className="divide-y divide-border-2">
+        {pagedIssues.map((item) => (
+          <div key={`issue-${item.repo}-${item.id}`} className="w-full">
+            <ManagedIssueRow
+              issue={item}
+              addLabel={t("chat.panels.manageIssues.addToChat")}
+              openInBrowserLabel={t("common:previews.openInBrowser")}
+              openInMyStationLabel={t("controlTower.sidebar.openInMyStation")}
+              moreActionsLabel={t("common:actions.moreActions")}
+              onOpenIssue={onOpenIssue}
+              onOpenIssueInBrowser={onOpenIssueInBrowser}
+              onOpenIssueInMyStation={onOpenIssueInMyStation}
+              onAddIssue={onAddIssue}
+            />
+          </div>
+        ))}
+      </div>
+    );
 
   const listContent = (() => {
     if (
@@ -343,41 +414,7 @@ export function GitHubWorkItemsView({
           // Keep paginated rows in normal document flow. Their wrapped titles
           // and metadata have dynamic heights, and native WebView zoom can put
           // virtualizer measurements in a different coordinate space.
-          pagedItems.map((item, index) => {
-            return (
-              <div
-                key={`${item.kind}-${item.repo}-${item.id}`}
-                className={`w-full ${
-                  index < pagedItems.length - 1
-                    ? "border-b border-border-2"
-                    : ""
-                }`}
-              >
-                {item.kind === GITHUB_ITEM_KIND.ISSUE ? (
-                  <ManagedIssueRow
-                    issue={item}
-                    addLabel={t("chat.panels.manageIssues.addToChat")}
-                    openInBrowserLabel={t("common:previews.openInBrowser")}
-                    openInMyStationLabel={t(
-                      "controlTower.sidebar.openInMyStation"
-                    )}
-                    moreActionsLabel={t("common:actions.moreActions")}
-                    onOpenIssue={onOpenIssue}
-                    onOpenIssueInBrowser={onOpenIssueInBrowser}
-                    onOpenIssueInMyStation={onOpenIssueInMyStation}
-                    onAddIssue={onAddIssue}
-                  />
-                ) : (
-                  <ManagedPrRow
-                    pr={item}
-                    addLabel={t("chat.panels.manageIssues.addToChat")}
-                    onOpenPr={onOpenPr}
-                    onAddPr={onAddPr}
-                  />
-                )}
-              </div>
-            );
-          })
+          visibleRows
         )}
       </GitHubWorkItemListFrame>
     );
@@ -451,7 +488,7 @@ export function GitHubWorkItemsView({
                     {listContent}
                   </div>
                 </GitHubWorkItemTableSurface>
-                {filteredItems.length > 0 ? (
+                {scope !== GITHUB_QUERY_SCOPE.PR && filteredItems.length > 0 ? (
                   <GitHubWorkItemPagination
                     totalLabel={t("common:pagination.pageOf", {
                       current: currentPage,

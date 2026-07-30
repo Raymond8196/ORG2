@@ -496,6 +496,11 @@ describe("WorkItemContent description editing", () => {
       container.querySelector("[data-testid='github-read-only-description']")
         ?.textContent
     ).toBe(baseWorkItem.spec);
+    expect(
+      container
+        .querySelector("[data-testid='github-read-only-description']")
+        ?.getAttribute("data-clamped")
+    ).toBe("true");
 
     act(() => {
       container

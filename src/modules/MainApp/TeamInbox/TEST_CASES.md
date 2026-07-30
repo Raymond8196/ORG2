@@ -25,24 +25,32 @@
 - Exact account IDs, verified full email addresses, linked emails, and provider usernames may resolve a viewer; matching display names or equal email local-parts across domains never does.
 - Reassigning a Work Item changes `assigned_human_id` and deletes the prior assignment episode's read receipt in the same SQLite transaction; agent assignments never enter the human-assignment projection.
 - Failed read/unread persistence rolls back the coordinator-owned optimistic snapshot, while a newer per-item mutation supersedes an older response.
+- With a Cloud Org active, pull requests are loaded only from repositories in that Org's persisted synced-repository scopes; another Org's scopes are ignored and an active Org with no scopes starts no PR repository loads.
+- Project-scoped assigned Work Items carry the first repository from the owning project's persisted synced-repository scope through the Rust/TypeScript wire boundary; projectless Work Items omit it.
 
 ## Presentation / polish
 
 1. Filter tabs (`All` / `Mentions` / `Assigned`) show a primary count badge only when that surface has unread items; badge clamps to `99+`.
 2. Unread rows render a leading primary dot and bold title; read rows drop the dot and use medium weight.
-3. Assigned rows show one title line, at most two plain-text excerpt lines, and a localized `status · priority` metadata line; Markdown syntax, escaped newlines, and redundant assignee names do not leak into the card.
-4. Successful edits in the selected Work Item immediately update the matching list row's title, summary, status, priority, and assignee; reassigning away from the viewer removes the stale assigned row.
-5. The list excerpt and detail Markdown body use the same `text-text-1` content token; hierarchy comes from size and weight rather than mismatched foreground colors.
+3. Assigned Work Item rows show one title line and a localized assignment/handoff metadata line with the compact synced-repository source (`Assigned to me · ORG2 issue`); the project slug, body excerpts, Markdown syntax, escaped newlines, and redundant assignee names do not appear in the row.
+4. Successful edits in the selected Work Item immediately update the matching list row's title and assignment state; reassigning away from the viewer removes the stale assigned row.
+5. Mention previews and detail Markdown bodies retain the `text-text-1` content token; assignment/repository metadata uses `text-text-2`.
 6. Assigned detail shows localized `Status` and `Priority` rows and no misleading `Assigned by` row when no assigner is known.
 7. `Mark all as read` in the header marks **only the active filter's** unread items (Mentions view never marks Assigned, and vice versa).
 8. Empty state copy is filter-specific (`No mentions` vs `Nothing assigned to you`), falling back to the generic empty copy for `All`.
 9. A `SearchInput` toolbar row filters the loaded items live; typing a non-matching query shows a dedicated `No matches` empty state (distinct from the filter-empty copy); clearing the query restores the list.
-10. Rows are grouped under recency headers (`Today` / `Yesterday` / `This week` / `Earlier`); empty groups are hidden, and Arrow/Home/End keyboard navigation still traverses the flat visible order across group boundaries.
-11. Selecting an assigned item lazily loads the full Work Item body and renders it as Markdown; while loading / on failure / when empty it falls back to the short list excerpt. Selecting a mention renders the comment body as Markdown. Stale body responses are discarded when the selection changes.
+10. Work Items and mentions render as one flat ordered list under `Other todos`, without `Today` / `Yesterday` / `This week` / `Earlier` subgroups; Arrow/Home/End keyboard navigation follows that visible order.
+11. Selecting an assigned item lazily loads the full Work Item body and renders it as Markdown; while loading / on failure / when empty it falls back to the stored summary even though that summary is not duplicated in the list row. Selecting a mention renders the comment body as Markdown. Stale body responses are discarded when the selection changes.
 12. A read item's detail exposes a `Mark as unread` action; invoking it returns the row + Sidebar unread badge to the unread state (local assignment deletes the SQLite receipt; cloud mention deletes the managed-cloud receipt). Re-marking read still works after refresh or on another device.
 13. When a source still has a next page, the list shows a `Load more` control—even when the active filter/search has no visible first-page result; invoking it appends the next page (local cursor round-trips with the `work_item_assigned:` prefix intact) and de-duplicates against the loaded set. The control hides once no source has more.
 14. Activating Retry after an initial load error calls the backing source's refresh boundary before reading a new snapshot; it never loops on the same failed cache entry.
 15. Partial-source degradation uses a warning treatment and preserves readable results; a total failure uses the blocking error state.
+16. Pull requests and Work Items use the same Team Inbox list-row primitive, including selected/hover tokens and shared title, metadata, and optional preview overflow rules; PR-specific status icons and Work Item-specific icons remain semantic variations inside that shared shell.
+17. Pull request rows show the author's avatar followed by `#number · repository · source branch` when GitHub supplies a working image URL; the author login is not repeated, and a missing or failed image is omitted without a broken-image placeholder or layout-only avatar layer.
+18. The resizable Team Inbox list pane defaults to 360px and may expand to 480px, leaving enough room for PR branch and repository context while preserving a usable detail pane.
+19. Row timestamps use the shared compact units (`5m`, `5h`, `3d`, `1mo`, `1y`) with no trailing `ago` and use `text-text-3`; row metadata remains `text-text-2`.
+20. Top-level section headers follow the sidebar Session hierarchy with a denser treatment: 28px headers, uppercase 10px `text-text-2` labels, hover/focus disclosure chevrons, and 8px gaps between sections.
+21. Repository/source labels use only the final path segment (never `owner/repository`), strip URL/query/`.git` decoration, and are capped at the first 10 characters for both pull requests and Work Items. A projectless Work Item falls back to the localized `Issue` type without inventing a repository.
 
 ## Session → Work Item drop
 

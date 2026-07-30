@@ -32,6 +32,13 @@ export interface OpenPRItem {
   url: string;
   title: string;
   state: string;
+  author_login: string;
+  author_avatar_url: string | null;
+  /**
+   * Outstanding direct review requests. GitHub removes a reviewer after they
+   * submit a review unless another review is requested.
+   */
+  requested_reviewer_logins: string[];
   head_branch: string;
   base_branch: string;
   draft: boolean;

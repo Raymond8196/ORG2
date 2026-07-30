@@ -2483,7 +2483,12 @@
     "filters": {
       "all": "All",
       "mentions": "Mentions",
-      "assigned": "Assigned"
+      "assigned": "Assigned to me"
+    },
+    "sections": {
+      "reviewRequested": "Review requested",
+      "authoredByMe": "Authored by me",
+      "otherTodos": "Other todos"
     },
     "status": {
       "read": "Read",
@@ -2498,6 +2503,8 @@
     },
     "row": {
       "assignedSummary": "{{status}} · {{priority}}",
+      "issueSource": "{{repository}} issue",
+      "issueSourceFallback": "Issue",
       "ariaLabel": "{{title}}, {{status}}"
     },
     "search": {
@@ -2514,10 +2521,10 @@
       "title": "Nothing here yet",
       "subtitle": "Mentions and assigned work items will appear here.",
       "selectTitle": "Select an item",
-      "selectSubtitle": "View its comment context or work item details.",
+      "selectSubtitle": "View its comment context or work item details",
       "mentions": {
         "title": "No mentions",
-        "subtitle": "When a teammate @mentions you in a comment, it shows up here."
+        "subtitle": "When a teammate @mentions you in a comment, it shows up here"
       },
       "assigned": {
         "title": "Nothing assigned to you",
@@ -2604,7 +2611,9 @@
       "markUnread": "Unable to mark this item as unread. Try again.",
       "markAllRead": "Unable to mark all items as read. Try again.",
       "identity": "Your account could not be matched to a project member. Check your project profile email.",
-      "partialLoad": "Some Team Inbox sources could not be refreshed. Available items are still shown.",
+      "partialLoad": "Some Team Inbox sources could not be refreshed. Available items are still shown",
+      "pullRequestsPartialLoad": "Some pull requests could not be refreshed",
+      "pullRequestsPartialLoadHelp": "Available items are still shown; refresh to try loading the missing pull requests again",
       "workItemContext": "Some project context is unavailable. The work item remains usable.",
       "workItemLoad": "Unable to load this work item. Try again.",
       "workItemUpdate": "Unable to save the latest work item change. Try again."

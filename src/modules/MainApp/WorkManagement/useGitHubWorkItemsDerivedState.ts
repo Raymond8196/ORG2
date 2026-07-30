@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 
 import {
+  groupPullRequestsIntoTodoSections,
   managedItemMatchesQuery,
   managedItemMatchesRepo,
   mapIssueToManagedItem,
@@ -11,6 +12,7 @@ import {
   getGitHubWorkItemsPageCount,
 } from "./githubWorkItemsPagination";
 import {
+  GITHUB_QUERY_SCOPE,
   GITHUB_QUERY_STATE,
   getIssuePageStatesForQuery,
 } from "./githubWorkItemsSearchQuery";
@@ -80,11 +82,21 @@ export function deriveGitHubWorkItemsState({
   const allItems = [...issues, ...pullRequests].sort((left, right) =>
     right.updatedAt.localeCompare(left.updatedAt)
   );
-  const filteredItems = allItems.filter(
+  const queryFilteredItems = allItems.filter(
     (item) =>
       managedItemMatchesRepo(item, effectiveSelectedRepo, allReposValue) &&
       managedItemMatchesQuery(item, parsedSearchQuery)
   );
+  const pullRequestTodoSections =
+    groupPullRequestsIntoTodoSections(queryFilteredItems);
+  const filteredItems =
+    parsedSearchQuery.scope === GITHUB_QUERY_SCOPE.PR
+      ? [
+          ...pullRequestTodoSections.reviewRequested,
+          ...pullRequestTodoSections.authoredByViewer,
+          ...pullRequestTodoSections.otherTodos,
+        ]
+      : queryFilteredItems;
   const pageStates = getIssuePageStatesForQuery(parsedSearchQuery);
   const paginatedSources =
     effectiveSelectedRepo === allReposValue
@@ -150,6 +162,7 @@ export function deriveGitHubWorkItemsState({
     selectedRepoSourceForCreate,
     effectiveSelectedRepo,
     allItems,
+    pullRequestTodoSections,
     filteredItems,
     pageStates,
     paginatedSources,

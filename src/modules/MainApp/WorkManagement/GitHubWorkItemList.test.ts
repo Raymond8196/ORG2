@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   GitHubWorkItemSearch,
+  GitHubWorkItemSection,
   GitHubWorkItemStateTabs,
   GitHubWorkItemTableSurface,
   GitHubWorkItemToolbarActions,
@@ -39,6 +40,28 @@ describe("GitHubWorkItemSearch", () => {
 
     expect(markup).toContain("min-w-0 flex-1");
     expect(markup).toContain('aria-label="Search issues"');
+  });
+});
+
+describe("GitHubWorkItemSection", () => {
+  it("labels personal pull-request buckets for assistive technology", () => {
+    const markup = renderToStaticMarkup(
+      createElement(
+        GitHubWorkItemSection,
+        {
+          label: "Review requested",
+          testId: "github-pr-review-requested",
+        },
+        createElement("div", null, "PR row")
+      )
+    );
+
+    expect(markup).toContain('aria-label="Review requested"');
+    expect(markup).toContain('data-testid="github-pr-review-requested"');
+    expect(markup).toContain('data-testid="github-pr-review-requested-toggle"');
+    expect(markup).toContain('aria-expanded="true"');
+    expect(markup).toContain("lucide-chevron-down");
+    expect(markup).toContain(">Review requested<");
   });
 });
 

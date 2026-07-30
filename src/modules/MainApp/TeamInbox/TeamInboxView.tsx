@@ -7,8 +7,14 @@ import React, {
 } from "react";
 import { useTranslation } from "react-i18next";
 
+import {
+  type ManagedPrItem,
+  getManagedPullRequestKey,
+} from "@src/modules/MainApp/WorkManagement/githubManagedItemModel";
 import SplitViewLayout from "@src/modules/shared/layouts/SplitViewLayout";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
+import { normalizePrStatus } from "@src/shared/pr/prStatus";
+import type { PrIdentity } from "@src/store/workstation/codeEditor/workstationSelectedPrAtom";
 import type { WorkItem } from "@src/types/core/workItem";
 
 import {
@@ -38,7 +44,17 @@ export interface TeamInboxViewProps {
   initialFilter?: TeamInboxFilter;
   pageSize?: number;
   viewerMemberIds?: readonly string[];
+  pullRequests?: readonly ManagedPrItem[];
+  pullRequestsLoading?: boolean;
+  pullRequestsError?: string | null;
+  onRefreshPullRequests?: () => void;
 }
+
+const PullRequestDetailPanel = React.lazy(() =>
+  import("@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/PullRequestContent/detail/PrDetailPanel").then(
+    (module) => ({ default: module.PrDetailPanel })
+  )
+);
 
 const EMPTY_TEAM_INBOX_DATA_SOURCE: TeamInboxDataSource = {
   async listPage() {
@@ -57,6 +73,10 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
   initialFilter = "all",
   pageSize = 50,
   viewerMemberIds = [],
+  pullRequests = [],
+  pullRequestsLoading = false,
+  pullRequestsError = null,
+  onRefreshPullRequests,
 }) => {
   const { t } = useTranslation();
   const [filter, setFilter] = useState<TeamInboxFilter>(initialFilter);
@@ -64,8 +84,10 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
   const [items, setItems] = useState<TeamInboxItem[]>([]);
   const [authoritativeUnreadCounts, setAuthoritativeUnreadCounts] =
     useState<TeamInboxUnreadCounts | null>(null);
-  const [recencyAnchorMs, setRecencyAnchorMs] = useState(() => Date.now());
   const [requestedItemId, setRequestedItemId] = useState<string | null>(null);
+  const [selectedPullRequestKey, setSelectedPullRequestKey] = useState<
+    string | null
+  >(null);
   const [loadState, setLoadState] = useState<LoadState>({
     status: "loading",
     message: null,
@@ -104,7 +126,6 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
         if (abortController.signal.aborted) return;
         setItems(page.items);
         setAuthoritativeUnreadCounts(page.unreadCounts ?? null);
-        setRecencyAnchorMs(Date.now());
         setHasMore(page.nextCursor != null);
         setLoadState(
           page.loading
@@ -154,6 +175,32 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
   );
   const unreadCounts = authoritativeUnreadCounts ?? loadedUnreadCounts;
   const totalUnread = unreadCounts.all;
+  const selectedPullRequest = useMemo(
+    () =>
+      pullRequests.find(
+        (pullRequest) =>
+          getManagedPullRequestKey(pullRequest) === selectedPullRequestKey
+      ) ?? null,
+    [pullRequests, selectedPullRequestKey]
+  );
+  const selectedPullRequestIdentity = useMemo<PrIdentity | null>(
+    () =>
+      selectedPullRequest
+        ? {
+            number: selectedPullRequest.id,
+            title: selectedPullRequest.title,
+            url: selectedPullRequest.rawPr.url,
+            status: normalizePrStatus({
+              state: selectedPullRequest.state,
+              merged: selectedPullRequest.state === "merged",
+              draft: selectedPullRequest.rawPr.draft,
+            }),
+            headBranch: selectedPullRequest.sourceBranch,
+            baseBranch: selectedPullRequest.targetBranch,
+          }
+        : null,
+    [selectedPullRequest]
+  );
   const selectedItem = useMemo(() => {
     if (visibleItems.length === 0) return null;
     return (
@@ -162,9 +209,10 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
       ) ?? visibleItems[0]
     );
   }, [requestedItemId, visibleItems]);
-  const selectedItemId = selectedItem
-    ? getTeamInboxItemKey(selectedItem)
-    : null;
+  const selectedItemId =
+    !selectedPullRequest && selectedItem
+      ? getTeamInboxItemKey(selectedItem)
+      : null;
 
   const markItemRead = useCallback(
     (item: TeamInboxItem) => {
@@ -184,8 +232,8 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
   );
 
   useEffect(() => {
-    if (selectedItem) markItemRead(selectedItem);
-  }, [markItemRead, selectedItem]);
+    if (!selectedPullRequest && selectedItem) markItemRead(selectedItem);
+  }, [markItemRead, selectedItem, selectedPullRequest]);
 
   const handleLoadMore = () => {
     if (!dataSource.loadMore || loadingMore) return;
@@ -209,6 +257,7 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
   };
 
   const handleRefresh = () => {
+    onRefreshPullRequests?.();
     setLoadState({ status: "loading", message: null });
     if (!dataSource.refresh) {
       setReloadRevision((value) => value + 1);
@@ -230,7 +279,12 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
   };
 
   const handleSelect = (item: TeamInboxItem) => {
+    setSelectedPullRequestKey(null);
     setRequestedItemId(getTeamInboxItemKey(item));
+  };
+
+  const handleSelectPullRequest = (pullRequest: ManagedPrItem) => {
+    setSelectedPullRequestKey(getManagedPullRequestKey(pullRequest));
   };
 
   const handleMarkRead = (item: TeamInboxItem) => {
@@ -316,6 +370,25 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
   );
 
   const detail = (() => {
+    if (selectedPullRequest && selectedPullRequestIdentity) {
+      return (
+        <React.Suspense
+          fallback={
+            <Placeholder
+              variant="loading"
+              placement="detail-panel"
+              fillParentHeight
+            />
+          }
+        >
+          <PullRequestDetailPanel
+            identity={selectedPullRequestIdentity}
+            repoPath={selectedPullRequest.repoPath}
+            repoId={selectedPullRequest.repoId}
+          />
+        </React.Suspense>
+      );
+    }
     if (loadState.status === "loading") {
       return (
         <Placeholder
@@ -383,7 +456,7 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
     >
       <div className="flex h-full min-h-0 flex-col">
         {(loadState.status === "error" || loadState.status === "warning") &&
-        items.length > 0 ? (
+        (items.length > 0 || pullRequests.length > 0) ? (
           <div
             role="status"
             className={`shrink-0 border-b px-3 py-2 text-xs ${
@@ -397,22 +470,26 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
         ) : null}
         <SplitViewLayout
           className="min-h-0 flex-1 rounded-page"
-          listWidth={280}
-          minListWidth={220}
-          maxListWidth={360}
+          listWidth={360}
+          minListWidth={280}
+          maxListWidth={480}
           resizable
           collapsible
           hideBreadcrumbWhenSidebarCollapsed
-          listPanelBackgroundClassName="bg-bg-2"
-          mainContentClassName="bg-bg-1"
+          listPanelBackgroundClassName="bg-chat-pane"
+          mainContentClassName="bg-chat-pane"
           listContent={
-            loadState.status === "loading" && items.length === 0 ? (
+            loadState.status === "loading" &&
+            items.length === 0 &&
+            pullRequests.length === 0 ? (
               <Placeholder
                 variant="loading"
                 title={t("teamInbox.loading")}
                 fillParentHeight
               />
-            ) : loadState.status === "error" && items.length === 0 ? (
+            ) : loadState.status === "error" &&
+              items.length === 0 &&
+              pullRequests.length === 0 ? (
               <Placeholder
                 variant="error"
                 title={t("teamInbox.errors.loadTitle")}
@@ -427,15 +504,19 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
               <TeamInboxList
                 filter={filter}
                 items={visibleItems}
-                recencyAnchorMs={recencyAnchorMs}
                 selectedItemId={selectedItemId}
                 totalUnread={totalUnread}
                 unreadCounts={unreadCounts}
                 query={query}
-                loading={loadState.status === "loading"}
+                loading={loadState.status === "loading" || pullRequestsLoading}
+                pullRequests={pullRequests}
+                pullRequestsLoading={pullRequestsLoading}
+                pullRequestsError={pullRequestsError}
+                selectedPullRequestKey={selectedPullRequestKey}
                 onQueryChange={setQuery}
                 onFilterChange={setFilter}
                 onSelectItem={handleSelect}
+                onSelectPullRequest={handleSelectPullRequest}
                 onRefresh={handleRefresh}
                 onMarkAllRead={
                   dataSource.markAllRead ? handleMarkAllRead : undefined

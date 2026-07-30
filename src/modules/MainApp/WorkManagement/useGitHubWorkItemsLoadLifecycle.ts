@@ -1,10 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { getGitRemotes } from "@src/api/http/git/remotes";
-import {
-  getGitHubGitCredentialForRemote,
-  listPRsLocal,
-} from "@src/api/tauri/github";
+import { getGitHubViewerLogin, listPRsLocal } from "@src/api/tauri/github";
 import type {
   GitHubIssue,
   OpenPRItem,
@@ -142,14 +139,13 @@ async function resolveGitHubRepoSource(
   if (!remoteUrl) return null;
   const repoFullName = parseGithubRepoFullName(remoteUrl);
   if (!repoFullName) return null;
-  const credential = await getGitHubGitCredentialForRemote(remoteUrl);
   return {
     repoId: repo.id,
     repoPath: repo.path,
     label: repo.name,
     remoteUrl,
     repoFullName,
-    viewerLogin: credential?.username ?? null,
+    viewerLogin: null,
   };
 }
 
@@ -262,9 +258,28 @@ export function useGitHubWorkItemsLoadLifecycle({
     void (async () => {
       setLoading(true);
       setLoadError(null);
-      const resolvedSources = (
-        await Promise.all(gitRepos.map(resolveGitHubRepoSource))
-      ).filter((source): source is GitHubRepoSource => Boolean(source));
+      if (gitRepos.length === 0) {
+        setRepoSources([]);
+        setRepoIssueMap({});
+        setRepoPrMap({});
+        setLoading(false);
+        return;
+      }
+      const [viewerResult, sources] = await Promise.all([
+        coalesceGitHubListRequest(
+          "work-management:viewer-login",
+          getGitHubViewerLogin
+        ).then(
+          (login) => ({ login, error: null }),
+          (error: unknown) => ({ login: null, error: String(error) })
+        ),
+        Promise.all(gitRepos.map(resolveGitHubRepoSource)),
+      ]);
+      if (cancelled) return;
+      const viewerLoginError = viewerResult.error;
+      const resolvedSources = sources
+        .filter((source): source is GitHubRepoSource => Boolean(source))
+        .map((source) => ({ ...source, viewerLogin: viewerResult.login }));
       if (cancelled) return;
       setRepoSources(resolvedSources);
       setRepoIssueMap(
@@ -344,7 +359,8 @@ export function useGitHubWorkItemsLoadLifecycle({
         });
       }
       setLoadError(
-        issueResults.find((result) => result.error)?.error ??
+        viewerLoginError ??
+          issueResults.find((result) => result.error)?.error ??
           prResults.find((result) => result.error)?.error ??
           null
       );

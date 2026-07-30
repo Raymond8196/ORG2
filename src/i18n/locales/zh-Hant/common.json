@@ -11,6 +11,11 @@
       "mentions": "提及",
       "assigned": "已指派給我"
     },
+    "sections": {
+      "reviewRequested": "已請求審查",
+      "authoredByMe": "由我建立",
+      "otherTodos": "其他待辦事項"
+    },
     "status": {
       "read": "已讀",
       "unread": "未讀"
@@ -33,10 +38,10 @@
       "title": "目前尚無項目",
       "subtitle": "新的提及與指派的工作項目會顯示在這裡。",
       "selectTitle": "選擇一個項目",
-      "selectSubtitle": "查看留言脈絡或工作項目詳情。",
+      "selectSubtitle": "查看留言脈絡或工作項目詳情",
       "mentions": {
         "title": "尚無提及",
-        "subtitle": "當同事在留言中以 @ 提及你時，會顯示在這裡。"
+        "subtitle": "當同事在留言中以 @ 提及你時，會顯示在這裡"
       },
       "assigned": {
         "title": "尚無指派給你的項目",
@@ -110,7 +115,9 @@
       "markUnread": "無法將此項目標記為未讀，請再試一次。",
       "markAllRead": "無法將所有項目標記為已讀，請再試一次。",
       "identity": "無法將你的帳戶與專案成員配對，請檢查專案個人資料中的電子郵件。",
-      "partialLoad": "部分團隊收件匣來源無法重新整理，現有項目仍會繼續顯示。",
+      "partialLoad": "部分團隊收件匣來源無法重新整理，現有項目仍會繼續顯示",
+      "pullRequestsPartialLoad": "部分拉取請求無法重新整理",
+      "pullRequestsPartialLoadHelp": "現有項目仍會繼續顯示；請重新整理以再次載入缺少的拉取請求",
       "workItemContext": "部分專案內容暫時無法使用，工作項目仍可繼續操作。",
       "workItemLoad": "無法載入此工作項目，請再試一次。",
       "workItemUpdate": "無法儲存工作項目的最新變更，請再試一次。"

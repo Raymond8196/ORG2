@@ -12,9 +12,9 @@ import type { SelectOption } from "@src/components/Select";
 import { reposAtom, selectedRepoPathAtom } from "@src/store/repo";
 
 import { GitHubWorkItemsView } from "./GitHubWorkItemsView";
-import type { RepoFilterOption } from "./githubWorkItemsModel";
 import { GITHUB_QUERY_SCOPE } from "./githubWorkItemsSearchQuery";
 import type { GitHubQueryScope } from "./githubWorkItemsSearchQuery";
+import type { RepoFilterOption } from "./githubWorkItemsTypes";
 import { useGitHubIssueDetail } from "./useGitHubIssueDetail";
 import { useGitHubIssueMutations } from "./useGitHubIssueMutations";
 import { useGitHubWorkItemActions } from "./useGitHubWorkItemActions";

@@ -11,6 +11,11 @@
       "mentions": "Wzmianki",
       "assigned": "Przypisane"
     },
+    "sections": {
+      "reviewRequested": "Prośba o przegląd",
+      "authoredByMe": "Utworzone przeze mnie",
+      "otherTodos": "Inne zadania"
+    },
     "status": {
       "read": "Przeczytane",
       "unread": "Nieprzeczytane"
@@ -33,10 +38,10 @@
       "title": "Nic tu jeszcze nie ma",
       "subtitle": "Wzmianki i przypisane elementy pracy będą się tu pojawiać.",
       "selectTitle": "Wybierz element",
-      "selectSubtitle": "Zobacz kontekst komentarza lub szczegóły elementu pracy.",
+      "selectSubtitle": "Zobacz kontekst komentarza lub szczegóły elementu pracy",
       "mentions": {
         "title": "Brak wzmianek",
-        "subtitle": "Gdy członek zespołu wspomni o Tobie za pomocą @ w komentarzu, pojawi się to tutaj."
+        "subtitle": "Gdy członek zespołu wspomni o Tobie za pomocą @ w komentarzu, pojawi się to tutaj"
       },
       "assigned": {
         "title": "Nic Ci nie przypisano",
@@ -113,7 +118,9 @@
       "markUnread": "Nie można oznaczyć tego elementu jako nieprzeczytanego. Spróbuj ponownie.",
       "markAllRead": "Nie można oznaczyć wszystkich elementów jako przeczytanych. Spróbuj ponownie.",
       "identity": "Nie udało się dopasować Twojego konta do członka projektu. Sprawdź adres e-mail w profilu projektu.",
-      "partialLoad": "Nie udało się odświeżyć niektórych źródeł skrzynki zespołu. Dostępne elementy są nadal wyświetlane.",
+      "partialLoad": "Nie udało się odświeżyć niektórych źródeł skrzynki zespołu. Dostępne elementy są nadal wyświetlane",
+      "pullRequestsPartialLoad": "Nie udało się odświeżyć niektórych pull requestów",
+      "pullRequestsPartialLoadHelp": "Dostępne elementy są nadal wyświetlane; odśwież, aby ponownie spróbować wczytać brakujące pull requesty",
       "workItemContext": "Część kontekstu projektu jest niedostępna. Element pracy jest nadal użyteczny.",
       "workItemLoad": "Nie można wczytać tego elementu pracy. Spróbuj ponownie.",
       "workItemUpdate": "Nie można zapisać ostatniej zmiany elementu pracy. Spróbuj ponownie."

@@ -5,6 +5,7 @@ import {
   GITHUB_FILTER_PRESET,
   applyGitHubPersonalFilters,
   getSelectedGitHubPersonalFilters,
+  normalizeGitHubSearchQueryForScope,
 } from "./useGitHubWorkItemsViewState";
 
 describe("GitHub work-items view state model", () => {
@@ -27,5 +28,14 @@ describe("GitHub work-items view state model", () => {
       GITHUB_FILTER_PRESET.BY_ME,
       GITHUB_FILTER_PRESET.ASSIGNED_TO_ME,
     ]);
+  });
+
+  it("keeps the PR inbox open-only while preserving its search text", () => {
+    expect(
+      normalizeGitHubSearchQueryForScope(
+        "pr",
+        "is:pr is:merged author:@me sidebar"
+      )
+    ).toBe("is:pr is:open author:@me sidebar");
   });
 });

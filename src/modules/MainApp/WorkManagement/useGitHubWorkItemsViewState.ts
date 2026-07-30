@@ -10,6 +10,8 @@ import {
 } from "react";
 
 import {
+  GITHUB_QUERY_SCOPE,
+  GITHUB_QUERY_STATE,
   getIssuePageStatesForQuery,
   parseGitHubSearchQuery,
   serializeGitHubSearchQuery,
@@ -47,11 +49,27 @@ interface ViewState {
 
 type ViewStateByScope = Record<OpsGitHubViewScope, ViewState>;
 
+export function normalizeGitHubSearchQueryForScope(
+  scope: OpsGitHubViewScope,
+  rawQuery: string
+): string {
+  const query = parseGitHubSearchQuery(rawQuery);
+  query.scope = scope;
+  if (scope === GITHUB_QUERY_SCOPE.PR) {
+    query.state = GITHUB_QUERY_STATE.OPEN;
+  }
+  return serializeGitHubSearchQuery(query);
+}
+
 function getInitialViewState(scope: OpsGitHubViewScope): ViewState {
   const cached = getCachedOpsGitHubView(scope);
   return {
-    searchQuery: cached?.searchQuery ?? `is:${scope} is:open`,
-    currentPage: cached?.currentPage ?? 1,
+    searchQuery: normalizeGitHubSearchQueryForScope(
+      scope,
+      cached?.searchQuery ?? `is:${scope} is:open`
+    ),
+    currentPage:
+      scope === GITHUB_QUERY_SCOPE.PR ? 1 : (cached?.currentPage ?? 1),
   };
 }
 
@@ -92,6 +110,9 @@ export function useGitHubWorkItemsViewState({
   const parsedSearchQuery = useMemo(() => {
     const query = parseGitHubSearchQuery(searchQuery);
     query.scope = scope;
+    if (scope === GITHUB_QUERY_SCOPE.PR) {
+      query.state = GITHUB_QUERY_STATE.OPEN;
+    }
     return query;
   }, [scope, searchQuery]);
   const selectedIssueListStates = useMemo(
@@ -136,7 +157,10 @@ export function useGitHubWorkItemsViewState({
     (query: string) => {
       setViewByScope((current) => ({
         ...current,
-        [scope]: { searchQuery: query, currentPage: 1 },
+        [scope]: {
+          searchQuery: normalizeGitHubSearchQueryForScope(scope, query),
+          currentPage: 1,
+        },
       }));
     },
     [scope]
@@ -145,9 +169,14 @@ export function useGitHubWorkItemsViewState({
     (mutate: (query: ParsedGitHubSearchQuery) => void) => {
       const nextQuery = parseGitHubSearchQuery(searchQuery);
       mutate(nextQuery);
-      setScopedSearchQuery(serializeGitHubSearchQuery(nextQuery));
+      setScopedSearchQuery(
+        normalizeGitHubSearchQueryForScope(
+          scope,
+          serializeGitHubSearchQuery(nextQuery)
+        )
+      );
     },
-    [searchQuery, setScopedSearchQuery]
+    [scope, searchQuery, setScopedSearchQuery]
   );
   const selectRepo = useCallback(
     (repo: string) => {

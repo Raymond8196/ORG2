@@ -11,6 +11,11 @@
       "mentions": "Erwähnungen",
       "assigned": "Zugewiesen"
     },
+    "sections": {
+      "reviewRequested": "Überprüfung angefordert",
+      "authoredByMe": "Von mir erstellt",
+      "otherTodos": "Weitere Aufgaben"
+    },
     "status": {
       "read": "Gelesen",
       "unread": "Ungelesen"
@@ -33,10 +38,10 @@
       "title": "Noch nichts hier",
       "subtitle": "Erwähnungen und zugewiesene Arbeitselemente werden hier angezeigt.",
       "selectTitle": "Ein Element auswählen",
-      "selectSubtitle": "Kommentarkontext oder Details des Arbeitselements ansehen.",
+      "selectSubtitle": "Kommentarkontext oder Details des Arbeitselements ansehen",
       "mentions": {
         "title": "Keine Erwähnungen",
-        "subtitle": "Wenn dich ein Teammitglied in einem Kommentar mit @ erwähnt, erscheint es hier."
+        "subtitle": "Wenn dich ein Teammitglied in einem Kommentar mit @ erwähnt, erscheint es hier"
       },
       "assigned": {
         "title": "Dir ist nichts zugewiesen",
@@ -111,7 +116,9 @@
       "markUnread": "Dieses Element konnte nicht als ungelesen markiert werden. Versuche es erneut.",
       "markAllRead": "Alle Elemente konnten nicht als gelesen markiert werden. Versuche es erneut.",
       "identity": "Dein Konto konnte keinem Projektmitglied zugeordnet werden. Überprüfe die E-Mail-Adresse in deinem Projektprofil.",
-      "partialLoad": "Einige Quellen des Team-Posteingangs konnten nicht aktualisiert werden. Verfügbare Elemente werden weiterhin angezeigt.",
+      "partialLoad": "Einige Quellen des Team-Posteingangs konnten nicht aktualisiert werden. Verfügbare Elemente werden weiterhin angezeigt",
+      "pullRequestsPartialLoad": "Einige Pull Requests konnten nicht aktualisiert werden",
+      "pullRequestsPartialLoadHelp": "Verfügbare Elemente werden weiterhin angezeigt; aktualisiere erneut, um die fehlenden Pull Requests zu laden",
       "workItemContext": "Einiger Projektkontext ist nicht verfügbar. Das Arbeitselement bleibt nutzbar.",
       "workItemLoad": "Dieses Arbeitselement konnte nicht geladen werden. Versuche es erneut.",
       "workItemUpdate": "Die letzte Änderung am Arbeitselement konnte nicht gespeichert werden. Versuche es erneut."

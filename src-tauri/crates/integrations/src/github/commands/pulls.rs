@@ -156,11 +156,105 @@ pub struct OpenPRItem {
     pub url: String,
     pub title: String,
     pub state: String,
+    pub author_login: String,
+    pub author_avatar_url: Option<String>,
+    /// GitHub removes a reviewer from this list after they submit a review,
+    /// unless another review is explicitly requested.
+    pub requested_reviewer_logins: Vec<String>,
     pub head_branch: String,
     pub base_branch: String,
     pub draft: bool,
     pub created_at: String,
     pub updated_at: String,
+}
+
+fn parse_open_pr_item(item: &Value) -> OpenPRItem {
+    OpenPRItem {
+        number: item["number"].as_u64().unwrap_or(0),
+        url: item["html_url"].as_str().unwrap_or("").to_string(),
+        title: item["title"].as_str().unwrap_or("").to_string(),
+        state: if item["merged_at"].is_null() {
+            item["state"].as_str().unwrap_or("open").to_string()
+        } else {
+            "merged".to_string()
+        },
+        author_login: item["user"]["login"].as_str().unwrap_or("").to_string(),
+        author_avatar_url: item["user"]["avatar_url"].as_str().map(String::from),
+        requested_reviewer_logins: item["requested_reviewers"]
+            .as_array()
+            .map(|reviewers| {
+                reviewers
+                    .iter()
+                    .filter_map(|reviewer| reviewer["login"].as_str().map(String::from))
+                    .collect()
+            })
+            .unwrap_or_default(),
+        head_branch: item["head"]["ref"].as_str().unwrap_or("").to_string(),
+        base_branch: item["base"]["ref"].as_str().unwrap_or("").to_string(),
+        draft: item["draft"].as_bool().unwrap_or(false),
+        created_at: item["created_at"].as_str().unwrap_or("").to_string(),
+        updated_at: item["updated_at"].as_str().unwrap_or("").to_string(),
+    }
+}
+
+#[cfg(test)]
+mod open_pr_item_tests {
+    use super::*;
+
+    #[test]
+    fn serializes_author_and_only_outstanding_requested_reviewers() {
+        let item = json!({
+            "number": 17,
+            "html_url": "https://github.com/acme/repo/pull/17",
+            "title": "Ship personal PR inbox",
+            "state": "open",
+            "merged_at": null,
+            "user": {
+                "login": "author",
+                "avatar_url": "https://avatars.example/author"
+            },
+            "requested_reviewers": [
+                { "login": "viewer" },
+                { "login": "second-reviewer" }
+            ],
+            "head": { "ref": "feature/personal-prs" },
+            "base": { "ref": "main" },
+            "draft": false,
+            "created_at": "2026-07-30T08:00:00Z",
+            "updated_at": "2026-07-30T09:00:00Z"
+        });
+
+        let serialized = serde_json::to_value(parse_open_pr_item(&item)).unwrap();
+
+        assert_eq!(serialized["author_login"], "author");
+        assert_eq!(
+            serialized["author_avatar_url"],
+            "https://avatars.example/author"
+        );
+        assert_eq!(
+            serialized["requested_reviewer_logins"],
+            json!(["viewer", "second-reviewer"])
+        );
+        assert_eq!(serialized["state"], "open");
+    }
+
+    #[test]
+    fn keeps_merged_state_and_defaults_missing_identity_fields() {
+        let item = json!({
+            "number": 18,
+            "state": "closed",
+            "merged_at": "2026-07-30T10:00:00Z",
+            "head": {},
+            "base": {}
+        });
+
+        let serialized = serde_json::to_value(parse_open_pr_item(&item)).unwrap();
+
+        assert_eq!(serialized["state"], "merged");
+        assert_eq!(serialized["author_login"], "");
+        assert_eq!(serialized["author_avatar_url"], Value::Null);
+        assert_eq!(serialized["requested_reviewer_logins"], json!([]));
+    }
 }
 
 #[command]
@@ -183,25 +277,7 @@ pub async fn github_list_prs(
         .await?;
     let items: Vec<OpenPRItem> = data
         .as_array()
-        .map(|arr| {
-            arr.iter()
-                .map(|item| OpenPRItem {
-                    number: item["number"].as_u64().unwrap_or(0),
-                    url: item["html_url"].as_str().unwrap_or("").to_string(),
-                    title: item["title"].as_str().unwrap_or("").to_string(),
-                    state: if item["merged_at"].is_null() {
-                        item["state"].as_str().unwrap_or("open").to_string()
-                    } else {
-                        "merged".to_string()
-                    },
-                    head_branch: item["head"]["ref"].as_str().unwrap_or("").to_string(),
-                    base_branch: item["base"]["ref"].as_str().unwrap_or("").to_string(),
-                    draft: item["draft"].as_bool().unwrap_or(false),
-                    created_at: item["created_at"].as_str().unwrap_or("").to_string(),
-                    updated_at: item["updated_at"].as_str().unwrap_or("").to_string(),
-                })
-                .collect()
-        })
+        .map(|arr| arr.iter().map(parse_open_pr_item).collect())
         .unwrap_or_default();
     log::info!(
         "[GitHub][Cmd] list_prs state={state} found {} PRs",

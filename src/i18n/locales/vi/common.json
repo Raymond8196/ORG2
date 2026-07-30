@@ -11,6 +11,11 @@
       "mentions": "Được nhắc đến",
       "assigned": "Được giao"
     },
+    "sections": {
+      "reviewRequested": "Yêu cầu đánh giá",
+      "authoredByMe": "Do tôi tạo",
+      "otherTodos": "Việc cần làm khác"
+    },
     "status": {
       "read": "Đã đọc",
       "unread": "Chưa đọc"
@@ -33,10 +38,10 @@
       "title": "Chưa có gì ở đây",
       "subtitle": "Các lượt nhắc đến và mục công việc được giao sẽ xuất hiện ở đây.",
       "selectTitle": "Chọn một mục",
-      "selectSubtitle": "Xem ngữ cảnh bình luận hoặc chi tiết mục công việc.",
+      "selectSubtitle": "Xem ngữ cảnh bình luận hoặc chi tiết mục công việc",
       "mentions": {
         "title": "Không có lượt nhắc đến nào",
-        "subtitle": "Khi đồng đội nhắc đến bạn bằng @ trong bình luận, mục đó sẽ xuất hiện ở đây."
+        "subtitle": "Khi đồng đội nhắc đến bạn bằng @ trong bình luận, mục đó sẽ xuất hiện ở đây"
       },
       "assigned": {
         "title": "Không có gì được giao cho bạn",
@@ -110,7 +115,9 @@
       "markUnread": "Không thể đánh dấu mục này là chưa đọc. Hãy thử lại.",
       "markAllRead": "Không thể đánh dấu tất cả mục là đã đọc. Hãy thử lại.",
       "identity": "Không thể khớp tài khoản của bạn với thành viên dự án. Hãy kiểm tra email trong hồ sơ dự án của bạn.",
-      "partialLoad": "Một số nguồn của hộp thư nhóm không thể làm mới. Các mục khả dụng vẫn được hiển thị.",
+      "partialLoad": "Một số nguồn của hộp thư nhóm không thể làm mới. Các mục khả dụng vẫn được hiển thị",
+      "pullRequestsPartialLoad": "Không thể làm mới một số pull request",
+      "pullRequestsPartialLoadHelp": "Các mục khả dụng vẫn được hiển thị; hãy làm mới để thử tải lại các pull request còn thiếu",
       "workItemContext": "Một phần ngữ cảnh dự án không khả dụng. Mục công việc vẫn có thể sử dụng được.",
       "workItemLoad": "Không thể tải mục công việc này. Hãy thử lại.",
       "workItemUpdate": "Không thể lưu thay đổi mới nhất của mục công việc. Hãy thử lại."
