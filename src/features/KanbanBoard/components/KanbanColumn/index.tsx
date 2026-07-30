@@ -67,6 +67,7 @@ export interface KanbanColumnProps {
   column: KanbanColumnConfig;
   tasks: KanbanTask[];
   onTaskClick?: (task: KanbanTask) => void;
+  onTaskContextMenu?: (task: KanbanTask, event: React.MouseEvent) => void;
   onAddTask?: (status: string) => void;
   isDragging?: boolean;
   showAddButton?: boolean;
@@ -86,6 +87,7 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
   column,
   tasks,
   onTaskClick,
+  onTaskContextMenu,
   onAddTask,
   isDragging,
   showAddButton = true,
@@ -290,6 +292,7 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
               tasks={renderedTasks}
               scrollElementRef={bodyRef}
               onTaskClick={onTaskClick}
+              onTaskContextMenu={onTaskContextMenu}
               dropIndicator={dropIndicator}
               columnColor={column.color}
               allowTaskDrag={allowTaskDrag}
@@ -341,6 +344,7 @@ interface ColumnTaskListProps {
   /** The scrollable column body — used as the virtualizer's scroll element. */
   scrollElementRef: React.MutableRefObject<HTMLDivElement | null>;
   onTaskClick?: (task: KanbanTask) => void;
+  onTaskContextMenu?: (task: KanbanTask, event: React.MouseEvent) => void;
   dropIndicator?: DropIndicatorState | null;
   columnColor: string;
   allowTaskDrag: boolean;
@@ -362,6 +366,7 @@ const ColumnTaskList: React.FC<ColumnTaskListProps> = ({
   tasks,
   scrollElementRef,
   onTaskClick,
+  onTaskContextMenu,
   dropIndicator,
   columnColor,
   allowTaskDrag,
@@ -376,6 +381,9 @@ const ColumnTaskList: React.FC<ColumnTaskListProps> = ({
         key={task.id}
         task={task}
         onTaskClick={task.canOpen === false ? undefined : onTaskClick}
+        onTaskContextMenu={
+          task.canOpen === false ? undefined : onTaskContextMenu
+        }
         showIndicatorBefore={dropIndicator?.beforeTaskId === task.id}
         indicatorColor={columnColor}
         allowDrag={allowTaskDrag && task.canMove !== false}
@@ -390,6 +398,7 @@ const ColumnTaskList: React.FC<ColumnTaskListProps> = ({
       columnColor,
       dropIndicator?.beforeTaskId,
       onTaskClick,
+      onTaskContextMenu,
       scaleDragTransform,
       selectedTaskId,
       useDragOverlay,
@@ -508,6 +517,7 @@ const VirtualTaskList: React.FC<VirtualTaskListProps> = ({
 interface SortableTaskCardProps {
   task: KanbanTask;
   onTaskClick?: (task: KanbanTask) => void;
+  onTaskContextMenu?: (task: KanbanTask, event: React.MouseEvent) => void;
   showIndicatorBefore?: boolean;
   indicatorColor?: string;
   allowDrag?: boolean;
@@ -525,6 +535,7 @@ interface SortableTaskCardProps {
 const SortableTaskCard: React.FC<SortableTaskCardProps> = ({
   task,
   onTaskClick,
+  onTaskContextMenu,
   showIndicatorBefore,
   indicatorColor = "var(--color-primary-6)",
   allowDrag = true,
@@ -579,6 +590,7 @@ const SortableTaskCard: React.FC<SortableTaskCardProps> = ({
         <TaskCard
           task={task}
           onClick={onTaskClick}
+          onContextMenu={onTaskContextMenu}
           isDragging={isDragging}
           isSelected={isSelected}
         />

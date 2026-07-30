@@ -21,6 +21,12 @@ import { formatTaskCardLastUpdated } from "./taskCardTime";
 export interface TaskCardProps {
   task: KanbanTask;
   onClick?: (task: KanbanTask) => void;
+  /**
+   * Right-click (secondary click) on the card. Consumers that pass this own
+   * the menu — including suppressing the WebView default — so the card only
+   * forwards the event.
+   */
+  onContextMenu?: (task: KanbanTask, event: React.MouseEvent) => void;
   isDragging?: boolean;
   /**
    * True when this card backs the currently-open session preview. Adds
@@ -47,12 +53,17 @@ function renderAgentIcon(task: KanbanTask) {
 const TaskCard: React.FC<TaskCardProps> = ({
   task,
   onClick,
+  onContextMenu,
   isDragging,
   isSelected = false,
 }) => {
   const handleClick = () => {
     onClick?.(task);
   };
+
+  const handleContextMenu = onContextMenu
+    ? (event: React.MouseEvent) => onContextMenu(task, event)
+    : undefined;
 
   const isInteractive = Boolean(onClick);
   const updatedAt = task.updated_at ?? task.completed_at ?? task.created_at;
@@ -73,6 +84,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
       className={cardClasses}
       data-testid={`kanban-task-card-${task.id}`}
       onClick={handleClick}
+      onContextMenu={handleContextMenu}
     >
       {/* Owning Agent Team (only set on the global Kanban board) */}
       {task.orgName && (

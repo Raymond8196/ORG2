@@ -84,6 +84,9 @@
     }
   },
   "kanban": {
+    "card": {
+      "openAsFloatingPane": "Als schwebendes Fenster öffnen"
+    },
     "sessions": "Session",
     "fileSearch": {
       "placeholder": "Sitzungen nach Dateipfad suchen",
@@ -949,6 +952,7 @@
     "defaultTitle": "Chat",
     "hideChatPanel": "Chat-Panel ausblenden",
     "showTokenUsage": "Token anzeigen",
+    "showTurnMetadata": "Änderungen & Lesevorgänge anzeigen",
     "compactDisplayMode": "Kompakter Modus",
     "replay": {
       "follow": "Folgen"

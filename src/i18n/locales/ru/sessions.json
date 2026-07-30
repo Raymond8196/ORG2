@@ -84,6 +84,9 @@
     }
   },
   "kanban": {
+    "card": {
+      "openAsFloatingPane": "Открыть во всплывающей панели"
+    },
     "sessions": "Session",
     "fileSearch": {
       "placeholder": "Поиск сессий по пути файла",
@@ -955,6 +958,7 @@
     "defaultTitle": "Чат",
     "hideChatPanel": "Скрыть панель чата",
     "showTokenUsage": "Показывать Token",
+    "showTurnMetadata": "Показывать правки и чтения",
     "compactDisplayMode": "Компактный режим",
     "replay": {
       "follow": "Следовать"
