@@ -17,7 +17,10 @@ use agent_core::interaction::plan_approval::{self, PlanResolution};
 use agent_core::session::AgentExecMode;
 use agent_core::tools::names as tool_names;
 
-use super::commands::{cli_agent_create, cli_agent_delete, cli_agent_message, cli_agent_run};
+use super::commands::{
+    cli_agent_create, cli_agent_delete, cli_agent_message, cli_agent_run, CliMessageRequest,
+    CliRunRequest,
+};
 use super::persistence::{self, CreateCodeSessionParams};
 
 fn run(
@@ -59,14 +62,14 @@ fn run(
         let created_at = session.created_at.clone();
 
         if !params.user_input.trim().is_empty() {
-            if let Err(err) = cli_agent_run(
-                session_id.clone(),
-                params.user_input,
-                None,
-                params.ide_context,
-                params.mode,
-                params.images,
-            )
+            if let Err(err) = cli_agent_run(CliRunRequest {
+                session_id: session_id.clone(),
+                user_input: params.user_input,
+                ide_context: params.ide_context,
+                mode: params.mode,
+                images: params.images,
+                ..Default::default()
+            })
             .await
             {
                 tracing::warn!(
@@ -193,17 +196,14 @@ fn respond_plan_approval(
             edited_marker = if edited { " (edited)" } else { "" },
         );
 
-        cli_agent_message(
-            params.session_id,
-            synthetic_content,
-            params.model,
-            params.account_id,
-            None,
-            Some(AgentExecMode::Build.as_str().to_string()),
-            None,
-            None,
-            None,
-        )
+        cli_agent_message(CliMessageRequest {
+            session_id: params.session_id,
+            content: synthetic_content,
+            model: params.model,
+            account_id: params.account_id,
+            mode: Some(AgentExecMode::Build.as_str().to_string()),
+            ..Default::default()
+        })
         .await
         .map(|_| ())
     })

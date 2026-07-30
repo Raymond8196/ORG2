@@ -2,7 +2,7 @@ import { z } from "zod/v4";
 
 import { ActivityChunkSchema } from "@src/api/realtime/websocket/schemas";
 
-export const CliMessageInputSchema = z.object({
+export const CliMessageRequestSchema = z.object({
   sessionId: z.string().min(1),
   content: z.string(),
   turnIntentId: z.string().min(1),
@@ -12,6 +12,12 @@ export const CliMessageInputSchema = z.object({
   ideContext: z.unknown().optional(),
   mode: z.string().optional(),
   images: z.array(z.string()).optional(),
+});
+
+/** `cli_agent_message` takes a single `request` struct, like the other
+ * multi-field commands (`benchmark_*`, `human_session_*`, pagination). */
+export const CliMessageInputSchema = z.object({
+  request: CliMessageRequestSchema,
 });
 
 export const CliRunReceiptSchema = z.object({
