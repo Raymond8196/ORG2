@@ -78,6 +78,7 @@ export interface MemberRuntimeMachine {
   chipType: string;
   cpuName?: string;
   cpuCores?: number;
+  /** Approximate whole GB (rounded at collection — "32", never "31.6"). */
   totalRamGb?: number;
   gpuName?: string;
   gpuVramGb?: number;

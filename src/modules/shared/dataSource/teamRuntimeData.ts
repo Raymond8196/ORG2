@@ -339,8 +339,11 @@ export function isInstalledAgentPresent(agent: MemberInstalledAgent): boolean {
 // Machine chips
 // ---------------------------------------------------------------------------
 
-/** Megabytes → gigabytes with at most one decimal (`24576` → `"24"`). */
+/** Megabytes → approximate whole gigabytes (`12800` → `"13"`, `32768` →
+ * `"32"`) — the roster deliberately shows "13/32 GB", never "12.5/31.6".
+ * Non-zero inputs floor at "1" so a lightly-loaded machine doesn't read as
+ * using nothing. */
 export function formatMemGb(mb: number): string {
   if (!Number.isFinite(mb) || mb <= 0) return "0";
-  return String(Number((mb / 1024).toFixed(1)));
+  return String(Math.max(1, Math.round(mb / 1024)));
 }
