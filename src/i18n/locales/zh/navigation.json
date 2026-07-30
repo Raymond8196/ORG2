@@ -877,6 +877,89 @@
       "on": "开启",
       "off": "关闭",
       "memberNote": "由管理员开启——共享会话会自动下载到本设备。"
+    },
+    "channels": {
+      "title": "频道",
+      "createAction": "创建频道",
+      "createFirst": "创建一个频道",
+      "manageMembers": "管理成员",
+      "archiveAction": "归档频道",
+      "unarchive": "取消归档",
+      "unarchiveFailed": "取消归档失败",
+      "deleteAction": "删除频道",
+      "leave": "退出频道",
+      "archivedGroup": "已归档",
+      "loadError": "频道加载失败",
+      "settings": {
+        "action": "频道设置",
+        "title": "#{{name}} 的设置",
+        "submit": "保存",
+        "managerRequired": "只有频道管理员才能编辑此频道",
+        "error": "更新失败，请重试。"
+      },
+      "local": {
+        "quotaExceeded": "此设备的频道数量已达上限",
+        "archiveBody": "归档后，频道将从侧边栏隐藏。历史记录会保留，之后可以随时取消归档。",
+        "deleteWarning": "此操作将永久删除该频道，且无法撤销。"
+      },
+      "cancel": "取消",
+      "create": {
+        "title": "创建频道",
+        "nameLabel": "名称",
+        "namePlaceholder": "例如：plan-budget",
+        "topicLabel": "主题",
+        "topicOptional": "（可选）",
+        "topicPlaceholder": "这个频道是聊什么的？",
+        "visibilityLabel": "可见性",
+        "publicTitle": "公开",
+        "publicDesc": "组织内所有人都可以查看并加入讨论",
+        "privateTitle": "私密",
+        "privateDesc": "只有受邀成员才能查看此频道",
+        "membersLabel": "添加成员",
+        "membersHint": "你将自动成为频道管理员",
+        "membersLoading": "正在加载成员…",
+        "membersEmpty": "组织里还没有其他成员",
+        "postPolicyLabel": "谁可以发言",
+        "postPolicyEveryone": "所有人",
+        "postPolicyManagers": "仅频道管理员",
+        "submit": "创建",
+        "nameTaken": "该名称已被占用",
+        "quotaExceeded": "该组织的频道数量已达上限",
+        "error": "频道创建失败，请重试。"
+      },
+      "archive": {
+        "title": "归档 #{{name}}？",
+        "body": "归档后，频道将对所有人从侧边栏隐藏。历史记录会保留，之后可以随时取消归档。",
+        "confirm": "归档",
+        "managerRequired": "只有频道管理员才能归档此频道",
+        "error": "归档失败，请重试。"
+      },
+      "delete": {
+        "title": "删除 #{{name}}？",
+        "warning": "此操作将为所有人永久删除该频道，且无法撤销。",
+        "acknowledge": "是的，永久删除该频道",
+        "confirm": "删除",
+        "adminRequired": "只有组织管理员才能删除频道",
+        "error": "删除失败，请重试。"
+      },
+      "members": {
+        "title": "#{{name}} 的成员",
+        "loading": "正在加载成员…",
+        "empty": "此频道还没有成员",
+        "loadError": "无法加载频道成员，请重试。",
+        "managerBadge": "管理员",
+        "you": "你",
+        "addLabel": "添加成员",
+        "addEmpty": "组织内所有人都已加入此频道",
+        "addSubmit": "添加",
+        "actions": "成员操作",
+        "remove": "移出频道",
+        "makeManager": "设为频道管理员",
+        "removeManager": "取消频道管理员",
+        "leave": "退出频道",
+        "lastManager": "请先指定另一位管理员",
+        "error": "操作失败，请重试。"
+      }
     }
   }
 }

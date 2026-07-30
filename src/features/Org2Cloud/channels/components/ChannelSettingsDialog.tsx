@@ -1,0 +1,250 @@
+/**
+ * ChannelSettingsDialog — rename / topic / post-policy editing for a cloud
+ * org channel (0012 `cloud_update_channel`). Callers gate the entry point to
+ * channel managers / org admins; the server re-checks and the
+ * `ORG2_CHANNEL_MANAGER_REQUIRED` refusal surfaces as a dedicated inline
+ * error. Shares the `LocalChannelSettingsDialog` layout, plus the cloud-only
+ * "who can post" select.
+ *
+ * Only fields that actually changed are sent (`cloud_update_channel` treats
+ * null as no-change; an empty topic string clears it). On success bumps the
+ * per-org channels version so listings refetch. Failures NEVER clear the
+ * form.
+ *
+ * The form seeds from the target channel at MOUNT (`useState` initializers):
+ * the mounting parent KEYS this dialog on open-state + channel id
+ * (`channelsSection.tsx`), so every open is a fresh mount with a fresh seed
+ * — no reset-in-effect (`react-hooks/set-state-in-effect`-safe).
+ */
+import Modal from "@/src/scaffold/ModalSystem";
+import { useSetAtom } from "jotai";
+import React, { useCallback, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+
+import Button from "@src/components/Button";
+import Input from "@src/components/Input";
+import Select from "@src/components/Select";
+
+import {
+  normalizeChannelName,
+  normalizeChannelNameInput,
+  validateChannelName,
+} from "../channelName";
+import { bumpOrg2CloudChannelsVersionAtom } from "../channelsAtom";
+import { isOrg2ChannelsErrorCode, updateCloudChannel } from "../channelsClient";
+import type { CloudChannel, CloudChannelPostPolicy } from "../types";
+import { CHANNEL_NAME_MAX_LENGTH, CHANNEL_TOPIC_MAX_LENGTH } from "../types";
+import { useFreshChannelAccessToken } from "./useChannelDialogAccess";
+
+/** Above the modal wrapper (9999) so the select panel is not swallowed. */
+const MODAL_SELECT_Z_INDEX = 10_000;
+
+type SettingsErrorKind = "nameTaken" | "managerRequired" | "generic";
+
+export interface ChannelSettingsDialogProps {
+  open: boolean;
+  orgId: string | null;
+  channel: CloudChannel | null;
+  onClose: () => void;
+}
+
+const ChannelSettingsDialog: React.FC<ChannelSettingsDialogProps> = ({
+  open,
+  orgId,
+  channel,
+  onClose,
+}) => {
+  const { t } = useTranslation("navigation");
+  const bumpChannelsVersion = useSetAtom(bumpOrg2CloudChannelsVersionAtom);
+  const getFreshAccessToken = useFreshChannelAccessToken();
+
+  // Seeded once per mount — the parent's key makes each open a fresh mount.
+  const [name, setName] = useState(() => channel?.name ?? "");
+  const [topic, setTopic] = useState(() => channel?.topic ?? "");
+  const [postPolicy, setPostPolicy] = useState<CloudChannelPostPolicy>(
+    () => channel?.postPolicy ?? "everyone"
+  );
+  const [submitting, setSubmitting] = useState(false);
+  const [errorKind, setErrorKind] = useState<SettingsErrorKind | null>(null);
+
+  const normalizedName = normalizeChannelName(name);
+  const canSubmit =
+    open &&
+    orgId !== null &&
+    channel !== null &&
+    normalizedName.length > 0 &&
+    !submitting;
+
+  const handleSubmit = useCallback(async () => {
+    if (!orgId || !channel || submitting) return;
+    const submittedName = normalizeChannelName(name);
+    if (validateChannelName(submittedName) !== null) return;
+    const trimmedTopic = topic.trim();
+    const nameChanged = submittedName !== channel.name;
+    const topicChanged = trimmedTopic !== (channel.topic ?? "");
+    const postPolicyChanged = postPolicy !== channel.postPolicy;
+    if (!nameChanged && !topicChanged && !postPolicyChanged) {
+      onClose();
+      return;
+    }
+    setSubmitting(true);
+    setErrorKind(null);
+    try {
+      const accessToken = await getFreshAccessToken();
+      await updateCloudChannel(accessToken, orgId, channel.id, {
+        name: nameChanged ? submittedName : undefined,
+        // Empty string clears the topic (0012 contract).
+        topic: topicChanged ? trimmedTopic : undefined,
+        postPolicy: postPolicyChanged ? postPolicy : undefined,
+      });
+      bumpChannelsVersion(orgId);
+      onClose();
+    } catch (caught) {
+      // The form is intentionally left untouched on every failure path.
+      if (isOrg2ChannelsErrorCode(caught, "ORG2_CONFLICT")) {
+        setErrorKind("nameTaken");
+      } else if (
+        isOrg2ChannelsErrorCode(caught, "ORG2_CHANNEL_MANAGER_REQUIRED")
+      ) {
+        setErrorKind("managerRequired");
+      } else {
+        setErrorKind("generic");
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  }, [
+    orgId,
+    channel,
+    submitting,
+    name,
+    topic,
+    postPolicy,
+    getFreshAccessToken,
+    bumpChannelsVersion,
+    onClose,
+  ]);
+
+  const postPolicyOptions = useMemo(
+    () => [
+      {
+        value: "everyone",
+        label: t("cloud.channels.create.postPolicyEveryone"),
+        dataTestId: "channel-settings-post-policy-everyone",
+      },
+      {
+        value: "managers",
+        label: t("cloud.channels.create.postPolicyManagers"),
+        dataTestId: "channel-settings-post-policy-managers",
+      },
+    ],
+    [t]
+  );
+
+  let errorMessage: string | null = null;
+  if (errorKind === "nameTaken") {
+    errorMessage = t("cloud.channels.create.nameTaken");
+  } else if (errorKind === "managerRequired") {
+    errorMessage = t("cloud.channels.settings.managerRequired");
+  } else if (errorKind === "generic") {
+    errorMessage = t("cloud.channels.settings.error");
+  }
+
+  return (
+    <Modal
+      visible={open && channel !== null}
+      title={t("cloud.channels.settings.title", { name: channel?.name ?? "" })}
+      onCancel={onClose}
+      footer={null}
+      width={480}
+    >
+      <div
+        className="flex flex-col gap-3"
+        data-testid="channel-settings-dialog"
+      >
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[12px] font-medium text-text-2">
+            {t("cloud.channels.create.nameLabel")}
+          </label>
+          <Input
+            value={name}
+            onChange={(value) => {
+              setName(normalizeChannelNameInput(value));
+            }}
+            placeholder={t("cloud.channels.create.namePlaceholder")}
+            maxLength={CHANNEL_NAME_MAX_LENGTH}
+            prefix={<span className="text-[13px] text-text-3">#</span>}
+            suffix={
+              <span className="text-[11px] tabular-nums text-text-4">
+                {name.length}/{CHANNEL_NAME_MAX_LENGTH}
+              </span>
+            }
+            data-testid="channel-settings-name"
+          />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[12px] font-medium text-text-2">
+            {t("cloud.channels.create.topicLabel")}{" "}
+            <span className="font-normal text-text-4">
+              {t("cloud.channels.create.topicOptional")}
+            </span>
+          </label>
+          <Input
+            value={topic}
+            onChange={setTopic}
+            placeholder={t("cloud.channels.create.topicPlaceholder")}
+            maxLength={CHANNEL_TOPIC_MAX_LENGTH}
+            data-testid="channel-settings-topic"
+          />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <span className="text-[12px] font-medium text-text-2">
+            {t("cloud.channels.create.postPolicyLabel")}
+          </span>
+          <Select
+            value={postPolicy}
+            options={postPolicyOptions}
+            onChange={(value) => setPostPolicy(value as CloudChannelPostPolicy)}
+            size="small"
+            panelZIndex={MODAL_SELECT_Z_INDEX}
+            dataTestId="channel-settings-post-policy"
+          />
+        </div>
+
+        {errorMessage ? (
+          <div
+            className="rounded-lg bg-danger-1 px-3 py-2 text-[12px] text-danger-6"
+            data-testid="channel-settings-error"
+          >
+            {errorMessage}
+          </div>
+        ) : null}
+
+        <div className="flex items-center justify-end gap-2">
+          <Button
+            htmlType="button"
+            variant="secondary"
+            onClick={onClose}
+            data-testid="channel-settings-cancel"
+          >
+            {t("cloud.channels.cancel")}
+          </Button>
+          <Button
+            htmlType="button"
+            variant="primary"
+            loading={submitting}
+            disabled={!canSubmit}
+            onClick={() => void handleSubmit()}
+            data-testid="channel-settings-submit"
+          >
+            {t("cloud.channels.settings.submit")}
+          </Button>
+        </div>
+      </div>
+    </Modal>
+  );
+};
+
+export default ChannelSettingsDialog;

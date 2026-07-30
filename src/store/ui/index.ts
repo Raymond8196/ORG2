@@ -17,6 +17,7 @@
 export * from "./sidebarAtom";
 export * from "./hoverSidebarAtom";
 export * from "./collapseStateAtom";
+export * from "./localChannelsAtom";
 
 // Editor
 export * from "./editorSettingsAtom";

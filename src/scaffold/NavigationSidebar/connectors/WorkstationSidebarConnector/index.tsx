@@ -8,6 +8,7 @@ import { useAppNavigation } from "@src/hooks/navigation/useAppNavigation";
 import { useSessionView } from "@src/hooks/ui/tabs/useSessionView";
 import { teamInboxUnreadCountAtom } from "@src/modules/MainApp/TeamInbox/store";
 import { useTeamInboxDataSource } from "@src/modules/MainApp/TeamInbox/useTeamInboxDataSource";
+import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
 import {
   activeSessionCreatorDraftIdAtom,
   deleteSessionCreatorDraftAtom,
@@ -31,6 +32,7 @@ import SidebarSettingsMenuButton from "../../blocks/SidebarSettingsMenuButton";
 import NavigationSidebar from "../../variants/NavigationSidebar";
 import { DEFAULT_COLLAPSED_SECTION_IDS } from "../workstationSidebarData";
 import { SidebarDialogs } from "./SidebarDialogs";
+import { useLocalChannelsSection } from "./localChannelsSection";
 import { useWorkstationSidebarBottomActions } from "./sidebarConnector.bottomActions";
 import { useWorkstationSidebarChatPanelAtoms } from "./sidebarConnector.chatPanelAtoms";
 import { useWorkstationSidebarChrome } from "./sidebarConnector.chrome";
@@ -227,6 +229,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     cloudRemoteViewerMap,
     sessionListExcludedIds,
     cloudScopedExtraSessionIds,
+    cloudChannelsDialogs,
   } = useWorkstationSidebarCloudMenuData({
     activeCloudOrgId,
     sessions,
@@ -239,6 +242,22 @@ export const WorkstationSidebarConnector: React.FC = () => {
     personalHiddenCloudTaggedIds,
     cloudTaggedSessionIds,
   });
+
+  // Local-scope Channels (this-machine, single-user): the mirror of the
+  // cloud channels section, mounted only while no cloud org is active.
+  const {
+    localChannelsMenuItems,
+    handleLocalChannelsItemClick,
+    localChannelsDialogs,
+  } = useLocalChannelsSection({ enabled: activeCloudOrgId === null });
+
+  // Local channel rows resolve first (non-navigating; their ids can never
+  // collide with session/cloud ids) — the cloudMenuData composition idiom.
+  const handleScopedSessionItemClick = useCallback(
+    (item: NavigationMenuItem): boolean =>
+      handleLocalChannelsItemClick(item) || handleCloudSessionItemClick(item),
+    [handleLocalChannelsItemClick, handleCloudSessionItemClick]
+  );
 
   const {
     menuItems,
@@ -375,7 +394,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     handleOpenLinkedWorkItemSession,
     handleToggleSubagentExpansion,
   } = useWorkstationSidebarSessionInteractionHandlers({
-    handleCloudSessionItemClick,
+    handleCloudSessionItemClick: handleScopedSessionItemClick,
     cloudMySessionsVisibleCount,
     cloudMyPaginationScopeKey,
     setCloudMyPagination,
@@ -429,6 +448,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     setActiveSessionMoreMenuId,
     subagentParentIds,
     cloudMenuItems,
+    localChannelsMenuItems,
     sessionSidebarMenuItems,
     cloudMySessionsVisibleCount,
     activeSidebarKey,
@@ -593,6 +613,8 @@ export const WorkstationSidebarConnector: React.FC = () => {
         }
       />
       <SidebarDialogs
+        cloudChannelsDialogs={cloudChannelsDialogs}
+        localChannelsDialogs={localChannelsDialogs}
         cloudMemberFilterDropdown={cloudMemberFilterDropdown}
         cloudShare={cloudShare}
         cloudSyncLevel={cloudSyncLevel}

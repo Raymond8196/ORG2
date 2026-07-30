@@ -814,6 +814,89 @@
       "on": "On",
       "off": "Off",
       "memberNote": "Enabled by an admin — shared sessions download to this device automatically."
+    },
+    "channels": {
+      "title": "Channels",
+      "createAction": "Create channel",
+      "createFirst": "Create a channel",
+      "manageMembers": "Manage members",
+      "archiveAction": "Archive channel",
+      "unarchive": "Unarchive",
+      "unarchiveFailed": "Couldn't unarchive the channel",
+      "deleteAction": "Delete channel",
+      "leave": "Leave channel",
+      "archivedGroup": "Archived",
+      "loadError": "Couldn't load channels",
+      "settings": {
+        "action": "Channel settings",
+        "title": "Settings for #{{name}}",
+        "submit": "Save",
+        "managerRequired": "Only channel managers can edit this channel",
+        "error": "Couldn't update the channel. Please try again."
+      },
+      "local": {
+        "quotaExceeded": "You've reached the channel limit on this device",
+        "archiveBody": "Archiving hides the channel from your sidebar. Its history is kept, and it can be unarchived later.",
+        "deleteWarning": "This will permanently delete the channel from this device. This cannot be undone."
+      },
+      "cancel": "Cancel",
+      "create": {
+        "title": "Create a channel",
+        "nameLabel": "Name",
+        "namePlaceholder": "e.g. plan-budget",
+        "topicLabel": "Topic",
+        "topicOptional": "(optional)",
+        "topicPlaceholder": "What's this about?",
+        "visibilityLabel": "Visibility",
+        "publicTitle": "Public",
+        "publicDesc": "Anyone in the org can view and join the conversation",
+        "privateTitle": "Private",
+        "privateDesc": "Only invited people can view this channel",
+        "membersLabel": "Add members",
+        "membersHint": "You'll be added as a channel manager automatically",
+        "membersLoading": "Loading members…",
+        "membersEmpty": "No other members in this org yet",
+        "postPolicyLabel": "Who can post",
+        "postPolicyEveryone": "Everyone",
+        "postPolicyManagers": "Only channel managers",
+        "submit": "Create",
+        "nameTaken": "That name is already taken",
+        "quotaExceeded": "This org has reached its channel limit",
+        "error": "Couldn't create the channel. Please try again."
+      },
+      "archive": {
+        "title": "Archive #{{name}}?",
+        "body": "Archiving hides the channel from the sidebar for everyone. Its history is kept, and it can be unarchived later.",
+        "confirm": "Archive",
+        "managerRequired": "Only channel managers can archive this channel",
+        "error": "Couldn't archive the channel. Please try again."
+      },
+      "delete": {
+        "title": "Delete #{{name}}?",
+        "warning": "This will permanently delete the channel for everyone. This cannot be undone.",
+        "acknowledge": "Yes, permanently delete the channel",
+        "confirm": "Delete",
+        "adminRequired": "Only org admins can delete channels",
+        "error": "Couldn't delete the channel. Please try again."
+      },
+      "members": {
+        "title": "Members of #{{name}}",
+        "loading": "Loading members…",
+        "empty": "No members in this channel yet",
+        "loadError": "Couldn't load channel members. Please try again.",
+        "managerBadge": "Manager",
+        "you": "You",
+        "addLabel": "Add members",
+        "addEmpty": "Everyone in the org is already in this channel",
+        "addSubmit": "Add",
+        "actions": "Member actions",
+        "remove": "Remove from channel",
+        "makeManager": "Make channel manager",
+        "removeManager": "Remove as channel manager",
+        "leave": "Leave channel",
+        "lastManager": "Assign another manager first",
+        "error": "Something went wrong. Please try again."
+      }
     }
   }
 }

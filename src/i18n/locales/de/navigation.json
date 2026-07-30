@@ -787,6 +787,89 @@
       "on": "An",
       "off": "Aus",
       "memberNote": "Von einem Admin aktiviert — geteilte Sitzungen werden automatisch auf dieses Gerät geladen."
+    },
+    "channels": {
+      "title": "Kanäle",
+      "createAction": "Kanal erstellen",
+      "createFirst": "Einen Kanal erstellen",
+      "manageMembers": "Mitglieder verwalten",
+      "archiveAction": "Kanal archivieren",
+      "unarchive": "Archivierung aufheben",
+      "unarchiveFailed": "Archivierung konnte nicht aufgehoben werden",
+      "deleteAction": "Kanal löschen",
+      "leave": "Kanal verlassen",
+      "archivedGroup": "Archiviert",
+      "loadError": "Kanäle konnten nicht geladen werden",
+      "settings": {
+        "action": "Kanaleinstellungen",
+        "title": "Einstellungen für #{{name}}",
+        "submit": "Speichern",
+        "managerRequired": "Nur Channel-Manager können diesen Channel bearbeiten",
+        "error": "Channel konnte nicht aktualisiert werden. Bitte erneut versuchen."
+      },
+      "local": {
+        "quotaExceeded": "Das Channel-Limit auf diesem Gerät ist erreicht",
+        "archiveBody": "Beim Archivieren wird der Channel aus der Seitenleiste ausgeblendet. Der Verlauf bleibt erhalten und die Archivierung kann später aufgehoben werden.",
+        "deleteWarning": "Der Channel wird dauerhaft von diesem Gerät gelöscht. Dies kann nicht rückgängig gemacht werden."
+      },
+      "cancel": "Abbrechen",
+      "create": {
+        "title": "Channel erstellen",
+        "nameLabel": "Name",
+        "namePlaceholder": "z. B. plan-budget",
+        "topicLabel": "Thema",
+        "topicOptional": "(optional)",
+        "topicPlaceholder": "Worum geht es hier?",
+        "visibilityLabel": "Sichtbarkeit",
+        "publicTitle": "Öffentlich",
+        "publicDesc": "Alle in der Organisation können die Unterhaltung sehen und beitreten",
+        "privateTitle": "Privat",
+        "privateDesc": "Nur eingeladene Personen können diesen Channel sehen",
+        "membersLabel": "Mitglieder hinzufügen",
+        "membersHint": "Du wirst automatisch Channel-Manager",
+        "membersLoading": "Mitglieder werden geladen…",
+        "membersEmpty": "Noch keine weiteren Mitglieder in dieser Organisation",
+        "postPolicyLabel": "Wer darf posten",
+        "postPolicyEveryone": "Alle",
+        "postPolicyManagers": "Nur Channel-Manager",
+        "submit": "Erstellen",
+        "nameTaken": "Dieser Name ist bereits vergeben",
+        "quotaExceeded": "Diese Organisation hat ihr Channel-Limit erreicht",
+        "error": "Channel konnte nicht erstellt werden. Bitte erneut versuchen."
+      },
+      "archive": {
+        "title": "#{{name}} archivieren?",
+        "body": "Beim Archivieren wird der Channel für alle aus der Seitenleiste ausgeblendet. Der Verlauf bleibt erhalten und die Archivierung kann später aufgehoben werden.",
+        "confirm": "Archivieren",
+        "managerRequired": "Nur Channel-Manager können diesen Channel archivieren",
+        "error": "Channel konnte nicht archiviert werden. Bitte erneut versuchen."
+      },
+      "delete": {
+        "title": "#{{name}} löschen?",
+        "warning": "Der Channel wird für alle dauerhaft gelöscht. Dies kann nicht rückgängig gemacht werden.",
+        "acknowledge": "Ja, den Channel dauerhaft löschen",
+        "confirm": "Löschen",
+        "adminRequired": "Nur Organisations-Admins können Channels löschen",
+        "error": "Channel konnte nicht gelöscht werden. Bitte erneut versuchen."
+      },
+      "members": {
+        "title": "Mitglieder von #{{name}}",
+        "loading": "Mitglieder werden geladen…",
+        "empty": "Noch keine Mitglieder in diesem Channel",
+        "loadError": "Channel-Mitglieder konnten nicht geladen werden. Bitte erneut versuchen.",
+        "managerBadge": "Manager",
+        "you": "Du",
+        "addLabel": "Mitglieder hinzufügen",
+        "addEmpty": "Alle in der Organisation sind bereits in diesem Channel",
+        "addSubmit": "Hinzufügen",
+        "actions": "Mitgliederaktionen",
+        "remove": "Aus dem Channel entfernen",
+        "makeManager": "Zum Channel-Manager machen",
+        "removeManager": "Als Channel-Manager entfernen",
+        "leave": "Channel verlassen",
+        "lastManager": "Bestimme zuerst einen anderen Manager",
+        "error": "Etwas ist schiefgelaufen. Bitte erneut versuchen."
+      }
     }
   }
 }

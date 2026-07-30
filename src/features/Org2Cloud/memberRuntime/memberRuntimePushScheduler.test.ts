@@ -96,6 +96,7 @@ const CONFIRMED_MEMBER_RUNTIME_TRUE: CloudCapabilitiesProbeResult = {
     memberRuntime: true,
     sessionTurnIndex: false,
     offlineSync: false,
+    orgChannels: false,
   },
   confirmed: true,
 };
@@ -316,6 +317,7 @@ describe("capability blackout: confirmed vs. unconfirmed", () => {
         memberRuntime: false,
         sessionTurnIndex: false,
         offlineSync: false,
+        orgChannels: false,
       },
       confirmed: true,
     } satisfies CloudCapabilitiesProbeResult);
@@ -347,6 +349,7 @@ describe("capability blackout: confirmed vs. unconfirmed", () => {
         memberRuntime: false,
         sessionTurnIndex: false,
         offlineSync: false,
+        orgChannels: false,
       },
       confirmed: false,
     } satisfies CloudCapabilitiesProbeResult);
@@ -391,6 +394,7 @@ describe("capability blackout: confirmed vs. unconfirmed", () => {
           memberRuntime: false,
           sessionTurnIndex: false,
           offlineSync: false,
+          orgChannels: false,
         },
         confirmed: false,
       } satisfies CloudCapabilitiesProbeResult)

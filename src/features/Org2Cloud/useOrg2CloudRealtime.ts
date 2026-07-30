@@ -51,6 +51,7 @@ import type { Session } from "@src/store/session/sessionAtom/types";
 import { activeSessionIdAtom } from "@src/store/session/viewAtom";
 import { chatPanelSelectedCloudOrgAtom } from "@src/store/ui/chatPanelAtom";
 
+import { bumpOrg2CloudChannelsVersionAtom } from "./channels/channelsAtom";
 import { org2CloudSharingFloorAtom } from "./org2CloudAccessSettings";
 import {
   commitRefreshedAuth,
@@ -147,7 +148,8 @@ type SignalPlane =
   | "comments"
   | "inbound"
   | "roster"
-  | "policy";
+  | "policy"
+  | "channels";
 
 const ALL_SIGNAL_PLANES: readonly SignalPlane[] = [
   "coarse",
@@ -156,6 +158,7 @@ const ALL_SIGNAL_PLANES: readonly SignalPlane[] = [
   "inbound",
   "roster",
   "policy",
+  "channels",
 ];
 
 function isDocumentHidden(): boolean {
@@ -187,6 +190,7 @@ export function useOrg2CloudRealtime(): void {
   const activeRealtimeOrgId = realtimeLeaseHeld ? requestedRealtimeOrgId : null;
   const refetchOrgs = useRefetchOrg2CloudOrgs();
   const setRosterVersion = useSetAtom(org2CloudRosterVersionAtom);
+  const bumpChannelsVersion = useSetAtom(bumpOrg2CloudChannelsVersionAtom);
   const setRosterRealtimeConnected = useSetAtom(
     org2CloudRosterRealtimeConnectedAtom
   );
@@ -504,6 +508,11 @@ export function useOrg2CloudRealtime(): void {
             });
             bumpRosterVersion(orgId);
           });
+          return;
+        case "channels":
+          schedulePlaneSignalRefresh("channels", () => {
+            bumpChannelsVersion(orgId);
+          });
       }
     },
     [
@@ -513,6 +522,7 @@ export function useOrg2CloudRealtime(): void {
       bumpRemoteSessionsVersion,
       bumpOrgCommentsSignal,
       bumpRosterVersion,
+      bumpChannelsVersion,
       refreshEntitlementForOrg,
     ]
   );
@@ -538,6 +548,7 @@ export function useOrg2CloudRealtime(): void {
         org2CloudSyncEngine.invalidateOrgInbound(orgId);
         bumpRemoteSessionsVersion(orgId);
         bumpOrgCommentsSignal(orgId);
+        bumpChannelsVersion(orgId);
         return;
       }
       orgFullRecoveryAtRef.current.set(orgId, Date.now());
@@ -557,11 +568,15 @@ export function useOrg2CloudRealtime(): void {
       // released socket missed is exactly what the open thread needs, so
       // force the active session's thread past the TTL.
       bumpActiveSessionCommentsSignal(orgId);
+      // Channel lifecycle broadcasts missed while disconnected re-pull here
+      // (the list RPC is a single bounded read; no delta cursor to preserve).
+      bumpChannelsVersion(orgId);
     },
     [
       bumpRemoteSessionsVersion,
       bumpOrgCommentsSignal,
       bumpActiveSessionCommentsSignal,
+      bumpChannelsVersion,
       refreshEntitlementForOrg,
     ]
   );

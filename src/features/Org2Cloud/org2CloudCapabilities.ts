@@ -21,6 +21,7 @@ const CloudCapabilitiesWireSchema = z.object({
   memberRuntime: z.boolean().nullish().catch(undefined),
   sessionTurnIndex: z.boolean().nullish().catch(undefined),
   offlineSync: z.boolean().nullish().catch(undefined),
+  orgChannels: z.boolean().nullish().catch(undefined),
 });
 
 export interface CloudCapabilities {
@@ -34,6 +35,8 @@ export interface CloudCapabilities {
   sessionTurnIndex: boolean;
   /** 0013 org-level offline-sync policy flag/setter are present. */
   offlineSync: boolean;
+  /** 0014 org-channels tables/RPCs are present. */
+  orgChannels: boolean;
 }
 
 const LEGACY_CAPABILITIES: CloudCapabilities = {
@@ -44,6 +47,7 @@ const LEGACY_CAPABILITIES: CloudCapabilities = {
   memberRuntime: false,
   sessionTurnIndex: false,
   offlineSync: false,
+  orgChannels: false,
 };
 
 export interface CloudCapabilitiesProbeResult {
@@ -91,6 +95,7 @@ async function probeCloudCapabilities(
       memberRuntime: parsed.data.memberRuntime ?? false,
       sessionTurnIndex: parsed.data.sessionTurnIndex ?? false,
       offlineSync: parsed.data.offlineSync ?? false,
+      orgChannels: parsed.data.orgChannels ?? false,
     };
     capabilitiesByEndpoint.set(endpointKey, capabilities);
     return { capabilities, confirmed: true };

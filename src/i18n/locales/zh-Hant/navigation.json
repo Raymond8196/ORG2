@@ -877,6 +877,89 @@
       "on": "開啟",
       "off": "關閉",
       "memberNote": "由管理員開啟——共享會話會自動下載到本裝置。"
+    },
+    "channels": {
+      "title": "頻道",
+      "createAction": "建立頻道",
+      "createFirst": "建立一個頻道",
+      "manageMembers": "管理成員",
+      "archiveAction": "封存頻道",
+      "unarchive": "取消封存",
+      "unarchiveFailed": "取消封存失敗",
+      "deleteAction": "刪除頻道",
+      "leave": "退出頻道",
+      "archivedGroup": "已封存",
+      "loadError": "無法載入頻道",
+      "settings": {
+        "action": "頻道設定",
+        "title": "#{{name}} 的設定",
+        "submit": "儲存",
+        "managerRequired": "只有頻道管理員才能編輯此頻道",
+        "error": "更新失敗，請重試。"
+      },
+      "local": {
+        "quotaExceeded": "此裝置的頻道數量已達上限",
+        "archiveBody": "封存後，頻道將從側邊欄隱藏。歷史紀錄會保留，之後可以隨時取消封存。",
+        "deleteWarning": "此操作將永久刪除該頻道，且無法復原。"
+      },
+      "cancel": "取消",
+      "create": {
+        "title": "建立頻道",
+        "nameLabel": "名稱",
+        "namePlaceholder": "例如：plan-budget",
+        "topicLabel": "主題",
+        "topicOptional": "（選填）",
+        "topicPlaceholder": "這個頻道要聊什麼？",
+        "visibilityLabel": "可見性",
+        "publicTitle": "公開",
+        "publicDesc": "組織內所有人都可以檢視並加入討論",
+        "privateTitle": "私密",
+        "privateDesc": "只有受邀成員才能檢視此頻道",
+        "membersLabel": "新增成員",
+        "membersHint": "你將自動成為頻道管理員",
+        "membersLoading": "正在載入成員…",
+        "membersEmpty": "組織裡還沒有其他成員",
+        "postPolicyLabel": "誰可以發言",
+        "postPolicyEveryone": "所有人",
+        "postPolicyManagers": "僅頻道管理員",
+        "submit": "建立",
+        "nameTaken": "該名稱已被使用",
+        "quotaExceeded": "該組織的頻道數量已達上限",
+        "error": "頻道建立失敗，請重試。"
+      },
+      "archive": {
+        "title": "封存 #{{name}}？",
+        "body": "封存後，頻道將對所有人從側邊欄隱藏。歷史紀錄會保留，之後可以隨時取消封存。",
+        "confirm": "封存",
+        "managerRequired": "只有頻道管理員才能封存此頻道",
+        "error": "封存失敗，請重試。"
+      },
+      "delete": {
+        "title": "刪除 #{{name}}？",
+        "warning": "此操作將為所有人永久刪除該頻道，且無法復原。",
+        "acknowledge": "是的，永久刪除該頻道",
+        "confirm": "刪除",
+        "adminRequired": "只有組織管理員才能刪除頻道",
+        "error": "刪除失敗，請重試。"
+      },
+      "members": {
+        "title": "#{{name}} 的成員",
+        "loading": "正在載入成員…",
+        "empty": "此頻道還沒有成員",
+        "loadError": "無法載入頻道成員，請重試。",
+        "managerBadge": "管理員",
+        "you": "你",
+        "addLabel": "新增成員",
+        "addEmpty": "組織內所有人都已加入此頻道",
+        "addSubmit": "新增",
+        "actions": "成員操作",
+        "remove": "移出頻道",
+        "makeManager": "設為頻道管理員",
+        "removeManager": "取消頻道管理員",
+        "leave": "退出頻道",
+        "lastManager": "請先指定另一位管理員",
+        "error": "操作失敗，請重試。"
+      }
     }
   }
 }

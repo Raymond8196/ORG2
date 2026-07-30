@@ -785,6 +785,89 @@
       "on": "Włączone",
       "off": "Wyłączone",
       "memberNote": "Włączone przez administratora — udostępnione sesje pobierają się automatycznie na to urządzenie."
+    },
+    "channels": {
+      "title": "Kanały",
+      "createAction": "Utwórz kanał",
+      "createFirst": "Utwórz kanał",
+      "manageMembers": "Zarządzaj członkami",
+      "archiveAction": "Zarchiwizuj kanał",
+      "unarchive": "Przywróć z archiwum",
+      "unarchiveFailed": "Nie udało się przywrócić kanału z archiwum",
+      "deleteAction": "Usuń kanał",
+      "leave": "Opuść kanał",
+      "archivedGroup": "Zarchiwizowane",
+      "loadError": "Nie udało się załadować kanałów",
+      "settings": {
+        "action": "Ustawienia kanału",
+        "title": "Ustawienia #{{name}}",
+        "submit": "Zapisz",
+        "managerRequired": "Tylko menedżerowie kanału mogą go edytować",
+        "error": "Nie udało się zaktualizować kanału. Spróbuj ponownie."
+      },
+      "local": {
+        "quotaExceeded": "Osiągnięto limit kanałów na tym urządzeniu",
+        "archiveBody": "Archiwizacja ukrywa kanał z paska bocznego. Historia zostaje zachowana, a kanał można później przywrócić.",
+        "deleteWarning": "Kanał zostanie trwale usunięty z tego urządzenia. Tej operacji nie można cofnąć."
+      },
+      "cancel": "Anuluj",
+      "create": {
+        "title": "Utwórz kanał",
+        "nameLabel": "Nazwa",
+        "namePlaceholder": "np. plan-budzetu",
+        "topicLabel": "Temat",
+        "topicOptional": "(opcjonalnie)",
+        "topicPlaceholder": "Czego dotyczy ten kanał?",
+        "visibilityLabel": "Widoczność",
+        "publicTitle": "Publiczny",
+        "publicDesc": "Każdy w organizacji może zobaczyć rozmowę i dołączyć",
+        "privateTitle": "Prywatny",
+        "privateDesc": "Tylko zaproszone osoby mogą zobaczyć ten kanał",
+        "membersLabel": "Dodaj członków",
+        "membersHint": "Automatycznie zostaniesz menedżerem kanału",
+        "membersLoading": "Wczytywanie członków…",
+        "membersEmpty": "W tej organizacji nie ma jeszcze innych członków",
+        "postPolicyLabel": "Kto może publikować",
+        "postPolicyEveryone": "Wszyscy",
+        "postPolicyManagers": "Tylko menedżerowie kanału",
+        "submit": "Utwórz",
+        "nameTaken": "Ta nazwa jest już zajęta",
+        "quotaExceeded": "Organizacja osiągnęła limit kanałów",
+        "error": "Nie udało się utworzyć kanału. Spróbuj ponownie."
+      },
+      "archive": {
+        "title": "Zarchiwizować #{{name}}?",
+        "body": "Archiwizacja ukrywa kanał z paska bocznego dla wszystkich. Historia zostaje zachowana, a kanał można później przywrócić.",
+        "confirm": "Archiwizuj",
+        "managerRequired": "Tylko menedżerowie kanału mogą go zarchiwizować",
+        "error": "Nie udało się zarchiwizować kanału. Spróbuj ponownie."
+      },
+      "delete": {
+        "title": "Usunąć #{{name}}?",
+        "warning": "Kanał zostanie trwale usunięty dla wszystkich. Tej operacji nie można cofnąć.",
+        "acknowledge": "Tak, trwale usuń kanał",
+        "confirm": "Usuń",
+        "adminRequired": "Tylko administratorzy organizacji mogą usuwać kanały",
+        "error": "Nie udało się usunąć kanału. Spróbuj ponownie."
+      },
+      "members": {
+        "title": "Członkowie #{{name}}",
+        "loading": "Wczytywanie członków…",
+        "empty": "W tym kanale nie ma jeszcze członków",
+        "loadError": "Nie udało się wczytać członków kanału. Spróbuj ponownie.",
+        "managerBadge": "Menedżer",
+        "you": "Ty",
+        "addLabel": "Dodaj członków",
+        "addEmpty": "Wszyscy z organizacji są już w tym kanale",
+        "addSubmit": "Dodaj",
+        "actions": "Akcje członka",
+        "remove": "Usuń z kanału",
+        "makeManager": "Mianuj menedżerem kanału",
+        "removeManager": "Odbierz rolę menedżera kanału",
+        "leave": "Opuść kanał",
+        "lastManager": "Najpierw wyznacz innego menedżera",
+        "error": "Coś poszło nie tak. Spróbuj ponownie."
+      }
     }
   }
 }

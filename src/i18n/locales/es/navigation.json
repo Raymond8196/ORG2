@@ -787,6 +787,89 @@
       "on": "Activado",
       "off": "Desactivado",
       "memberNote": "Activado por un administrador: las sesiones compartidas se descargan automáticamente en este dispositivo."
+    },
+    "channels": {
+      "title": "Canales",
+      "createAction": "Crear canal",
+      "createFirst": "Crear un canal",
+      "manageMembers": "Gestionar miembros",
+      "archiveAction": "Archivar canal",
+      "unarchive": "Desarchivar",
+      "unarchiveFailed": "No se pudo desarchivar el canal",
+      "deleteAction": "Eliminar canal",
+      "leave": "Salir del canal",
+      "archivedGroup": "Archivados",
+      "loadError": "No se pudieron cargar los canales",
+      "settings": {
+        "action": "Ajustes del canal",
+        "title": "Ajustes de #{{name}}",
+        "submit": "Guardar",
+        "managerRequired": "Solo los gestores del canal pueden editarlo",
+        "error": "No se pudo actualizar el canal. Inténtalo de nuevo."
+      },
+      "local": {
+        "quotaExceeded": "Has alcanzado el límite de canales en este dispositivo",
+        "archiveBody": "Al archivarlo, el canal se ocultará de la barra lateral. Su historial se conserva y se puede desarchivar más adelante.",
+        "deleteWarning": "Esto eliminará el canal de este dispositivo de forma permanente. No se puede deshacer."
+      },
+      "cancel": "Cancelar",
+      "create": {
+        "title": "Crear un canal",
+        "nameLabel": "Nombre",
+        "namePlaceholder": "p. ej. plan-presupuesto",
+        "topicLabel": "Tema",
+        "topicOptional": "(opcional)",
+        "topicPlaceholder": "¿De qué trata este canal?",
+        "visibilityLabel": "Visibilidad",
+        "publicTitle": "Público",
+        "publicDesc": "Cualquier persona de la organización puede ver la conversación y unirse",
+        "privateTitle": "Privado",
+        "privateDesc": "Solo las personas invitadas pueden ver este canal",
+        "membersLabel": "Añadir miembros",
+        "membersHint": "Se te añadirá automáticamente como gestor del canal",
+        "membersLoading": "Cargando miembros…",
+        "membersEmpty": "Aún no hay otros miembros en esta organización",
+        "postPolicyLabel": "Quién puede publicar",
+        "postPolicyEveryone": "Todos",
+        "postPolicyManagers": "Solo los gestores del canal",
+        "submit": "Crear",
+        "nameTaken": "Ese nombre ya está en uso",
+        "quotaExceeded": "Esta organización ha alcanzado su límite de canales",
+        "error": "No se pudo crear el canal. Inténtalo de nuevo."
+      },
+      "archive": {
+        "title": "¿Archivar #{{name}}?",
+        "body": "Al archivarlo, el canal se ocultará de la barra lateral para todos. Su historial se conserva y se puede desarchivar más adelante.",
+        "confirm": "Archivar",
+        "managerRequired": "Solo los gestores del canal pueden archivarlo",
+        "error": "No se pudo archivar el canal. Inténtalo de nuevo."
+      },
+      "delete": {
+        "title": "¿Eliminar #{{name}}?",
+        "warning": "Esto eliminará el canal de forma permanente para todos. No se puede deshacer.",
+        "acknowledge": "Sí, eliminar el canal de forma permanente",
+        "confirm": "Eliminar",
+        "adminRequired": "Solo los administradores de la organización pueden eliminar canales",
+        "error": "No se pudo eliminar el canal. Inténtalo de nuevo."
+      },
+      "members": {
+        "title": "Miembros de #{{name}}",
+        "loading": "Cargando miembros…",
+        "empty": "Aún no hay miembros en este canal",
+        "loadError": "No se pudieron cargar los miembros del canal. Inténtalo de nuevo.",
+        "managerBadge": "Gestor",
+        "you": "Tú",
+        "addLabel": "Añadir miembros",
+        "addEmpty": "Todos los miembros de la organización ya están en este canal",
+        "addSubmit": "Añadir",
+        "actions": "Acciones de miembro",
+        "remove": "Quitar del canal",
+        "makeManager": "Convertir en gestor del canal",
+        "removeManager": "Quitar como gestor del canal",
+        "leave": "Salir del canal",
+        "lastManager": "Primero asigna a otro gestor",
+        "error": "Algo salió mal. Inténtalo de nuevo."
+      }
     }
   }
 }

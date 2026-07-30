@@ -787,6 +787,89 @@
       "on": "Ativado",
       "off": "Desativado",
       "memberNote": "Ativado por um administrador — as sessões compartilhadas são baixadas automaticamente neste dispositivo."
+    },
+    "channels": {
+      "title": "Canais",
+      "createAction": "Criar canal",
+      "createFirst": "Criar um canal",
+      "manageMembers": "Gerenciar membros",
+      "archiveAction": "Arquivar canal",
+      "unarchive": "Desarquivar",
+      "unarchiveFailed": "Não foi possível desarquivar o canal",
+      "deleteAction": "Excluir canal",
+      "leave": "Sair do canal",
+      "archivedGroup": "Arquivados",
+      "loadError": "Não foi possível carregar os canais",
+      "settings": {
+        "action": "Configurações do canal",
+        "title": "Configurações de #{{name}}",
+        "submit": "Salvar",
+        "managerRequired": "Somente gerentes do canal podem editá-lo",
+        "error": "Não foi possível atualizar o canal. Tente novamente."
+      },
+      "local": {
+        "quotaExceeded": "Você atingiu o limite de canais neste dispositivo",
+        "archiveBody": "Ao arquivar, o canal fica oculto da barra lateral. O histórico é mantido e o canal pode ser desarquivado depois.",
+        "deleteWarning": "Isso excluirá o canal permanentemente deste dispositivo. Essa ação não pode ser desfeita."
+      },
+      "cancel": "Cancelar",
+      "create": {
+        "title": "Criar um canal",
+        "nameLabel": "Nome",
+        "namePlaceholder": "ex.: plano-orcamento",
+        "topicLabel": "Tópico",
+        "topicOptional": "(opcional)",
+        "topicPlaceholder": "Sobre o que é este canal?",
+        "visibilityLabel": "Visibilidade",
+        "publicTitle": "Público",
+        "publicDesc": "Qualquer pessoa da organização pode ver a conversa e participar",
+        "privateTitle": "Privado",
+        "privateDesc": "Somente pessoas convidadas podem ver este canal",
+        "membersLabel": "Adicionar membros",
+        "membersHint": "Você será adicionado automaticamente como gerente do canal",
+        "membersLoading": "Carregando membros…",
+        "membersEmpty": "Ainda não há outros membros nesta organização",
+        "postPolicyLabel": "Quem pode publicar",
+        "postPolicyEveryone": "Todos",
+        "postPolicyManagers": "Somente gerentes do canal",
+        "submit": "Criar",
+        "nameTaken": "Esse nome já está em uso",
+        "quotaExceeded": "Esta organização atingiu o limite de canais",
+        "error": "Não foi possível criar o canal. Tente novamente."
+      },
+      "archive": {
+        "title": "Arquivar #{{name}}?",
+        "body": "Ao arquivar, o canal fica oculto da barra lateral para todos. O histórico é mantido e o canal pode ser desarquivado depois.",
+        "confirm": "Arquivar",
+        "managerRequired": "Somente gerentes do canal podem arquivá-lo",
+        "error": "Não foi possível arquivar o canal. Tente novamente."
+      },
+      "delete": {
+        "title": "Excluir #{{name}}?",
+        "warning": "Isso excluirá o canal permanentemente para todos. Essa ação não pode ser desfeita.",
+        "acknowledge": "Sim, excluir o canal permanentemente",
+        "confirm": "Excluir",
+        "adminRequired": "Somente administradores da organização podem excluir canais",
+        "error": "Não foi possível excluir o canal. Tente novamente."
+      },
+      "members": {
+        "title": "Membros de #{{name}}",
+        "loading": "Carregando membros…",
+        "empty": "Ainda não há membros neste canal",
+        "loadError": "Não foi possível carregar os membros do canal. Tente novamente.",
+        "managerBadge": "Gerente",
+        "you": "Você",
+        "addLabel": "Adicionar membros",
+        "addEmpty": "Todos da organização já estão neste canal",
+        "addSubmit": "Adicionar",
+        "actions": "Ações do membro",
+        "remove": "Remover do canal",
+        "makeManager": "Tornar gerente do canal",
+        "removeManager": "Remover como gerente do canal",
+        "leave": "Sair do canal",
+        "lastManager": "Defina outro gerente primeiro",
+        "error": "Algo deu errado. Tente novamente."
+      }
     }
   }
 }
