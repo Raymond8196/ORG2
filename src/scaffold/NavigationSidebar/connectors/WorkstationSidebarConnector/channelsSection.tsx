@@ -28,7 +28,10 @@ import { useTranslation } from "react-i18next";
 
 import Message from "@src/components/Message";
 import { bumpOrg2CloudChannelsVersionAtom } from "@src/features/Org2Cloud/channels/channelsAtom";
-import { unarchiveCloudChannel } from "@src/features/Org2Cloud/channels/channelsClient";
+import {
+  isOrg2ChannelsErrorCode,
+  unarchiveCloudChannel,
+} from "@src/features/Org2Cloud/channels/channelsClient";
 import ArchiveChannelDialog from "@src/features/Org2Cloud/channels/components/ArchiveChannelDialog";
 import ChannelSettingsDialog from "@src/features/Org2Cloud/channels/components/ChannelSettingsDialog";
 import CreateChannelDialog from "@src/features/Org2Cloud/channels/components/CreateChannelDialog";
@@ -192,7 +195,13 @@ export function useCloudChannelsSection({
           bumpChannelsVersion(orgId);
         } catch (error) {
           log.warn("unarchive channel failed:", error);
-          Message.error(t("cloud.channels.unarchiveFailed"));
+          // Unarchive re-enters the active quota server-side; mirror the
+          // local section's dedicated quota message.
+          Message.error(
+            isOrg2ChannelsErrorCode(error, "ORG2_QUOTA_EXCEEDED")
+              ? t("cloud.channels.create.quotaExceeded")
+              : t("cloud.channels.unarchiveFailed")
+          );
         }
       })();
     },
@@ -259,7 +268,12 @@ export function useCloudChannelsSection({
 
   const channelsDialogs = (
     <>
+      {/* Keyed per org: the dialog keeps its draft across close/reopen, but
+          an org switch must drop it — a private-member selection made from
+          org A's roster is invisible in org B's picker and the server
+          rejects it (ORG2_VALIDATION) on every submit. */}
       <CreateChannelDialog
+        key={`create-${orgId ?? "none"}`}
         open={activeDialog?.kind === "create"}
         orgId={orgId}
         onClose={closeDialog}
