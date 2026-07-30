@@ -230,7 +230,7 @@ pub async fn run_validate_key(
         // OpenAI-compatible API providers (use OpenAI validator with provider's base URL).
         // Providers that also speak the Anthropic protocol declare an Anthropic
         // endpoint in the provider registry and route through it below.
-        "deepseek_api" | "groq_api" | "xai_api" | "zhipu_api" | "dashscope_api"
+        "atlascloud_api" | "deepseek_api" | "groq_api" | "xai_api" | "zhipu_api" | "dashscope_api"
         | "moonshot_api" | "minimax_api" | "longcat_api" | "openrouter_api" | "zenmux_api"
         | "siliconflow_api" | "modelscope_api" | "aihubmix_api" | "cherryin_api"
         | "bedrock_api" | "custom_api" | "vllm_api" | "orgii_orchestrator" | "orgii" => {
@@ -258,7 +258,7 @@ pub async fn run_validate_key(
         }
 
         _ => Err(format!(
-            "Unknown agent type: {}. Supported: copilot, cursor_cli, openai, anthropic, google, codex, claude_code, kiro, opencode, openai_api, anthropic_api, gemini_api, deepseek_api, groq_api, xai_api, zhipu_api, dashscope_api, moonshot_api, minimax_api, longcat_api, openrouter_api, zenmux_api, siliconflow_api, modelscope_api, aihubmix_api, cherryin_api, bedrock_api, custom_api, vllm_api, azure_openai_api, azure_anthropic_api",
+            "Unknown agent type: {}. Supported: copilot, cursor_cli, openai, anthropic, google, codex, claude_code, kiro, opencode, openai_api, atlascloud_api, anthropic_api, gemini_api, deepseek_api, groq_api, xai_api, zhipu_api, dashscope_api, moonshot_api, minimax_api, longcat_api, openrouter_api, zenmux_api, siliconflow_api, modelscope_api, aihubmix_api, cherryin_api, bedrock_api, custom_api, vllm_api, azure_openai_api, azure_anthropic_api",
             agent_type
         )),
     }
@@ -406,9 +406,9 @@ pub fn validate_token_format(agent_type: String, token: String) -> Result<(bool,
         }
 
         // OpenAI-compatible providers: just verify non-empty and reasonable length
-        "deepseek_api" | "groq_api" | "xai_api" | "zhipu_api" | "dashscope_api"
-        | "moonshot_api" | "minimax_api" | "longcat_api" | "openrouter_api" | "zenmux_api"
-        | "vllm_api" | "orgii_orchestrator" | "orgii" => {
+        "atlascloud_api" | "deepseek_api" | "groq_api" | "xai_api" | "zhipu_api"
+        | "dashscope_api" | "moonshot_api" | "minimax_api" | "longcat_api" | "openrouter_api"
+        | "zenmux_api" | "vllm_api" | "orgii_orchestrator" | "orgii" => {
             if token.is_empty() {
                 Ok((false, "API key is required".to_string()))
             } else if token.len() < 8 {
@@ -458,6 +458,7 @@ pub async fn fetch_key_quota(
         | "kiro"
         | "openai_api"
         | "anthropic_api"
+        | "atlascloud_api"
         | "gemini_api"
         | "deepseek_api"
         | "groq_api"
@@ -914,6 +915,10 @@ mod tests {
             default_base_url_for_provider("xai_api"),
             Some("https://api.x.ai".to_string())
         );
+        assert_eq!(
+            default_base_url_for_provider("atlascloud_api"),
+            Some("https://api.atlascloud.ai".to_string())
+        );
     }
 
     #[test]
@@ -1044,6 +1049,7 @@ mod tests {
             "deepseek_api",
             "groq_api",
             "xai_api",
+            "atlascloud_api",
             "zhipu_api",
             "dashscope_api",
             "moonshot_api",
@@ -1067,6 +1073,7 @@ mod tests {
             "deepseek_api",
             "groq_api",
             "xai_api",
+            "atlascloud_api",
             "zhipu_api",
             "dashscope_api",
             "moonshot_api",
@@ -1091,6 +1098,7 @@ mod tests {
             "deepseek_api",
             "groq_api",
             "xai_api",
+            "atlascloud_api",
             "longcat_api",
             "orgii_orchestrator",
             "orgii",

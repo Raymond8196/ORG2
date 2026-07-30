@@ -126,6 +126,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             has_subscription_plan: true,
             compatible_api_providers: &[
                 "openai_api",
+                "atlascloud_api",
                 "openrouter_api",
                 "azure_openai_api",
                 "deepseek_api",
@@ -221,6 +222,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             compatible_api_providers: &[
                 "anthropic_api",
                 "openai_api",
+                "atlascloud_api",
                 "gemini_api",
                 "openrouter_api",
                 "groq_api",

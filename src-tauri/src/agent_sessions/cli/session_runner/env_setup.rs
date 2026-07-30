@@ -22,6 +22,10 @@ use super::oauth_setup::write_codex_cli_auth_file;
 const OPENCODE_ZENMUX_PROVIDER_ID: &str = "zenmux";
 const OPENCODE_ZENMUX_BASE_URL: &str = "https://zenmux.ai/api/v1";
 const OPENCODE_DEFAULT_ZENMUX_MODEL: &str = "deepseek/deepseek-chat";
+const ATLASCLOUD_PROVIDER_ID: &str = "atlascloud";
+const ATLASCLOUD_CODEX_PROVIDER_ID: &str = "atlas_coding_plan";
+const ATLASCLOUD_BASE_URL: &str = "https://api.atlascloud.ai/v1";
+const ATLASCLOUD_DEFAULT_MODEL: &str = "zai-org/glm-5.1";
 const OPENCODE_ZENMUX_MODEL_IDS: &[&str] = &[
     "inclusionai/ling-1t",
     "inclusionai/ring-1t",
@@ -52,6 +56,15 @@ pub(super) fn opencode_zenmux_model_id(
         .or_else(|| selected_key.enabled_models.first().map(String::as_str))
         .or_else(|| selected_key.available_models.first().map(String::as_str))
         .unwrap_or(OPENCODE_DEFAULT_ZENMUX_MODEL)
+        .to_string()
+}
+
+pub(super) fn atlascloud_model_id(session_model: Option<&str>, selected_key: &ModelKey) -> String {
+    session_model
+        .filter(|value| !value.trim().is_empty())
+        .or_else(|| selected_key.enabled_models.first().map(String::as_str))
+        .or_else(|| selected_key.available_models.first().map(String::as_str))
+        .unwrap_or(ATLASCLOUD_DEFAULT_MODEL)
         .to_string()
 }
 
@@ -117,6 +130,115 @@ pub(super) fn setup_opencode_zenmux_profile(
         .map_err(|err| err.to_string())?;
     std::fs::write(data_dir.join("auth.json"), auth_bytes)
         .map_err(|err| format!("Failed to write OpenCode auth: {}", err))?;
+
+    Ok(())
+}
+
+fn opencode_atlascloud_config_payload(model_id: &str, base_url: &str) -> serde_json::Value {
+    serde_json::json!({
+        "$schema": "https://opencode.ai/config.json",
+        "provider": {
+            ATLASCLOUD_PROVIDER_ID: {
+                "npm": "@ai-sdk/openai-compatible",
+                "name": "atlascloud",
+                "options": {
+                    "baseURL": base_url,
+                    "apiKey": "{env:ATLASCLOUD_API_KEY}"
+                },
+                "models": {
+                    model_id: {
+                        "name": model_id
+                    }
+                }
+            }
+        },
+        "model": format!("{}/{}", ATLASCLOUD_PROVIDER_ID, model_id),
+        "small_model": format!("{}/{}", ATLASCLOUD_PROVIDER_ID, model_id)
+    })
+}
+
+pub(super) fn setup_opencode_atlascloud_profile(
+    profile_home: &Path,
+    selected_key: &ModelKey,
+    session_model: Option<&str>,
+) -> Result<(), String> {
+    let api_key = selected_key
+        .api_key
+        .as_deref()
+        .filter(|value| !value.trim().is_empty())
+        .ok_or_else(|| "OpenCode Atlas Cloud session requires an API key".to_string())?;
+    let model_id = atlascloud_model_id(session_model, selected_key);
+    let base_url = selected_key
+        .base_url
+        .as_deref()
+        .filter(|value| !value.trim().is_empty())
+        .unwrap_or(ATLASCLOUD_BASE_URL);
+    let config_dir = profile_home.join(".config").join("opencode");
+    let data_dir = profile_home.join(".local").join("share").join("opencode");
+
+    std::fs::create_dir_all(&config_dir)
+        .map_err(|err| format!("Failed to create OpenCode config dir: {}", err))?;
+    std::fs::create_dir_all(&data_dir)
+        .map_err(|err| format!("Failed to create OpenCode data dir: {}", err))?;
+
+    let config_bytes =
+        serde_json::to_vec_pretty(&opencode_atlascloud_config_payload(&model_id, base_url))
+            .map_err(|err| err.to_string())?;
+    std::fs::write(config_dir.join("opencode.json"), config_bytes)
+        .map_err(|err| format!("Failed to write OpenCode config: {}", err))?;
+
+    let auth_bytes = serde_json::to_vec_pretty(&serde_json::json!({
+        ATLASCLOUD_PROVIDER_ID: {
+            "type": "api",
+            "key": api_key
+        }
+    }))
+    .map_err(|err| err.to_string())?;
+    std::fs::write(data_dir.join("auth.json"), auth_bytes)
+        .map_err(|err| format!("Failed to write OpenCode auth: {}", err))?;
+
+    Ok(())
+}
+
+pub(super) fn setup_codex_atlascloud_profile(
+    profile_home: &Path,
+    selected_key: &ModelKey,
+    session_model: Option<&str>,
+) -> Result<(), String> {
+    let api_key = selected_key
+        .api_key
+        .as_deref()
+        .filter(|value| !value.trim().is_empty())
+        .ok_or_else(|| "Codex Atlas Cloud session requires an API key".to_string())?;
+    let model_id = atlascloud_model_id(session_model, selected_key);
+    let base_url = selected_key
+        .base_url
+        .as_deref()
+        .filter(|value| !value.trim().is_empty())
+        .unwrap_or(ATLASCLOUD_BASE_URL);
+    let quoted_model = serde_json::to_string(&model_id).map_err(|err| err.to_string())?;
+    let quoted_base_url = serde_json::to_string(base_url).map_err(|err| err.to_string())?;
+    let config = format!(
+        "model_provider = \"{ATLASCLOUD_CODEX_PROVIDER_ID}\"\n\
+         model = {quoted_model}\n\n\
+         [model_providers.{ATLASCLOUD_CODEX_PROVIDER_ID}]\n\
+         name = \"atlascloud\"\n\
+         base_url = {quoted_base_url}\n\
+         wire_api = \"chat\"\n\
+         requires_openai_auth = true\n"
+    );
+
+    std::fs::create_dir_all(profile_home)
+        .map_err(|err| format!("Failed to create Codex profile dir: {}", err))?;
+    std::fs::write(profile_home.join("config.toml"), config)
+        .map_err(|err| format!("Failed to write Codex config: {}", err))?;
+
+    let auth_bytes = serde_json::to_vec_pretty(&serde_json::json!({
+        "OPENAI_API_KEY": api_key
+    }))
+    .map_err(|err| err.to_string())?;
+    std::fs::write(profile_home.join("auth.json"), auth_bytes)
+        .map_err(|err| format!("Failed to write Codex auth: {}", err))?;
 
     Ok(())
 }
@@ -232,20 +354,50 @@ pub(super) fn configure_agent_profile(
             codex_home.to_string_lossy().to_string(),
         );
         write_codex_cli_auth_file(account_id, env_vars);
+        if selected_key.is_some_and(|key| key.model_type == ModelType::AtlascloudApi) {
+            let selected_key = selected_key
+                .ok_or_else(|| "Codex Atlas Cloud session requires a selected key".to_string())?;
+            setup_codex_atlascloud_profile(&codex_home, selected_key, session.model.as_deref())
+                .map_err(|err| format!("Failed to setup Codex Atlas Cloud profile: {}", err))?;
+        }
     }
 
     if matches!(agent, ModelType::OpenCode)
         && session.key_source == KeySource::OwnKey
-        && selected_key.is_some_and(|key| key.model_type == ModelType::ZenmuxApi)
+        && selected_key.is_some_and(|key| {
+            matches!(
+                &key.model_type,
+                ModelType::ZenmuxApi | ModelType::AtlascloudApi
+            )
+        })
     {
         let Some(account_id) = account_id else {
-            return Err("OpenCode ZenMux own-key session requires account_id".to_string());
+            return Err("OpenCode provider session requires account_id".to_string());
         };
         let selected_key = selected_key
-            .ok_or_else(|| "OpenCode ZenMux session requires a selected ZenMux key".to_string())?;
+            .ok_or_else(|| "OpenCode provider session requires a selected key".to_string())?;
         let opencode_home = app_paths::opencode_cli_profile_dir(account_id);
-        setup_opencode_zenmux_profile(&opencode_home, selected_key, session.model.as_deref())
-            .map_err(|err| format!("Failed to setup OpenCode ZenMux profile: {}", err))?;
+        let (provider_name, api_key_env) = match &selected_key.model_type {
+            ModelType::ZenmuxApi => {
+                setup_opencode_zenmux_profile(
+                    &opencode_home,
+                    selected_key,
+                    session.model.as_deref(),
+                )
+                .map_err(|err| format!("Failed to setup OpenCode ZenMux profile: {}", err))?;
+                ("ZenMux", "ZENMUX_API_KEY")
+            }
+            ModelType::AtlascloudApi => {
+                setup_opencode_atlascloud_profile(
+                    &opencode_home,
+                    selected_key,
+                    session.model.as_deref(),
+                )
+                .map_err(|err| format!("Failed to setup OpenCode Atlas Cloud profile: {}", err))?;
+                ("Atlas Cloud", "ATLASCLOUD_API_KEY")
+            }
+            _ => unreachable!("OpenCode managed profile guard only accepts ZenMux or Atlas Cloud"),
+        };
 
         let home_path = opencode_home.to_string_lossy().to_string();
         let config_home = opencode_home.join(".config").to_string_lossy().to_string();
@@ -255,12 +407,16 @@ pub(super) fn configure_agent_profile(
             .to_string_lossy()
             .to_string();
 
-        tracing::info!("[CodeSession] OpenCode ZenMux HOME={}", home_path);
+        tracing::info!(
+            "[CodeSession] OpenCode {} HOME={}",
+            provider_name,
+            home_path
+        );
         env_vars.insert("HOME".to_string(), home_path);
         env_vars.insert("XDG_CONFIG_HOME".to_string(), config_home);
         env_vars.insert("XDG_DATA_HOME".to_string(), data_home);
         if let Some(api_key) = selected_key.api_key.as_deref() {
-            env_vars.insert("ZENMUX_API_KEY".to_string(), api_key.to_string());
+            env_vars.insert(api_key_env.to_string(), api_key.to_string());
         }
     }
 

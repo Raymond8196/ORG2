@@ -357,6 +357,12 @@ pub fn get_provider_config(model_type: &str) -> ProviderConfig {
             true,
             Some("https://api.openai.com/v1"),
         ),
+        "atlascloud_api" => ProviderConfig::new(
+            "ATLASCLOUD_API_KEY",
+            Some("ATLASCLOUD_BASE_URL"),
+            true,
+            Some("https://api.atlascloud.ai/v1"),
+        ),
         "deepseek_api" => ProviderConfig::new(
             "DEEPSEEK_API_KEY",
             None,
@@ -530,6 +536,7 @@ pub fn get_all_provider_configs() -> Vec<(String, ProviderConfig)> {
         // API providers
         "anthropic_api",
         "openai_api",
+        "atlascloud_api",
         "deepseek_api",
         "gemini_api",
         "groq_api",
@@ -572,6 +579,23 @@ mod tests {
             config.default_base_url,
             Some("https://api.openai.com/v1".to_string())
         );
+    }
+
+    #[test]
+    fn test_get_provider_config_atlascloud() {
+        let config = get_provider_config("atlascloud_api");
+        assert_eq!(config.api_key_env_var, "ATLASCLOUD_API_KEY");
+        assert_eq!(
+            config.base_url_env_var,
+            Some("ATLASCLOUD_BASE_URL".to_string())
+        );
+        assert!(config.supports_base_url);
+        assert_eq!(
+            config.default_base_url,
+            Some("https://api.atlascloud.ai/v1".to_string())
+        );
+        assert_eq!(config.supported_protocols, vec!["openai"]);
+        assert_eq!(config.default_protocol, "openai");
     }
 
     #[test]
@@ -635,6 +659,7 @@ mod tests {
         // Should have at least the main providers
         assert!(configs.iter().any(|(k, _)| k == "openai_api"));
         assert!(configs.iter().any(|(k, _)| k == "anthropic_api"));
+        assert!(configs.iter().any(|(k, _)| k == "atlascloud_api"));
         assert!(configs.iter().any(|(k, _)| k == "zenmux_api"));
         assert!(configs.iter().any(|(k, _)| k == "cursor_cli"));
     }

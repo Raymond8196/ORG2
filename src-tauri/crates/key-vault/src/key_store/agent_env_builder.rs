@@ -368,6 +368,7 @@ impl KeyService {
             // API key providers: store api_key under the provider's env var name
             ModelType::AnthropicApi
             | ModelType::OpenaiApi
+            | ModelType::AtlascloudApi
             | ModelType::DeepseekApi
             | ModelType::GeminiApi
             | ModelType::GroqApi
@@ -400,6 +401,7 @@ impl KeyService {
                 let env_key = match agent_type {
                     ModelType::AnthropicApi => "ANTHROPIC_API_KEY",
                     ModelType::OpenaiApi => "OPENAI_API_KEY",
+                    ModelType::AtlascloudApi => "ATLASCLOUD_API_KEY",
                     ModelType::DeepseekApi => "DEEPSEEK_API_KEY",
                     ModelType::GeminiApi => "GEMINI_API_KEY",
                     ModelType::GroqApi => "GROQ_API_KEY",
@@ -534,6 +536,7 @@ impl KeyService {
             // API key providers — must mirror the list in get_env_for_agent
             ModelType::AnthropicApi
             | ModelType::OpenaiApi
+            | ModelType::AtlascloudApi
             | ModelType::DeepseekApi
             | ModelType::GeminiApi
             | ModelType::GroqApi
@@ -565,6 +568,7 @@ impl KeyService {
                 let env_key = match agent_type {
                     ModelType::AnthropicApi => "ANTHROPIC_API_KEY",
                     ModelType::OpenaiApi => "OPENAI_API_KEY",
+                    ModelType::AtlascloudApi => "ATLASCLOUD_API_KEY",
                     ModelType::DeepseekApi => "DEEPSEEK_API_KEY",
                     ModelType::GeminiApi => "GEMINI_API_KEY",
                     ModelType::GroqApi => "GROQ_API_KEY",
