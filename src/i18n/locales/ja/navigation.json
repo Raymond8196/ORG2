@@ -814,7 +814,7 @@
       "create": {
         "title": "チャンネルを作成",
         "nameLabel": "名前",
-        "namePlaceholder": "例: plan-budget",
+        "namePlaceholder": "例: code-review",
         "topicLabel": "トピック",
         "topicOptional": "（任意）",
         "topicPlaceholder": "このチャンネルの目的は？",

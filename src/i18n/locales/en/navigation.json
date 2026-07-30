@@ -843,7 +843,7 @@
       "create": {
         "title": "Create a channel",
         "nameLabel": "Name",
-        "namePlaceholder": "e.g. plan-budget",
+        "namePlaceholder": "e.g. code-review",
         "topicLabel": "Topic",
         "topicOptional": "(optional)",
         "topicPlaceholder": "What's this about?",

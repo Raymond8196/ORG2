@@ -134,17 +134,17 @@ describe("CreateLocalChannelDialog", () => {
     renderDialog({ onClose, onCreated });
 
     // Slack behavior: leading '#' stripped, lowercased, spaces → hyphens.
-    const input = typeName("#Launch Swarm");
-    expect(input.value).toBe("launch-swarm");
+    const input = typeName("#Code Review");
+    expect(input.value).toBe("code-review");
 
     clickSubmit();
 
     const stored = store.get(localChannelsAtom);
     expect(stored).toHaveLength(1);
-    expect(stored[0]?.name).toBe("launch-swarm");
+    expect(stored[0]?.name).toBe("code-review");
     expect(stored[0]?.archivedAt).toBeNull();
     expect(onCreated).toHaveBeenCalledWith(
-      expect.objectContaining({ name: "launch-swarm" })
+      expect.objectContaining({ name: "code-review" })
     );
     expect(onClose).toHaveBeenCalledTimes(1);
     // Success clears the draft for the next open.
@@ -152,17 +152,17 @@ describe("CreateLocalChannelDialog", () => {
   });
 
   it("surfaces name-taken inline and preserves the form", () => {
-    store.set(localChannelsAtom, [makeChannel({ name: "launch-swarm" })]);
+    store.set(localChannelsAtom, [makeChannel({ name: "code-review" })]);
     const onClose = vi.fn();
     renderDialog({ onClose });
 
     // Case-insensitive collision with the stored (already-normalized) name.
-    typeName("Launch Swarm");
+    typeName("Code Review");
     clickSubmit();
 
     expect(errorText()).toBe("cloud.channels.create.nameTaken");
     // Failure must NEVER clear the form, and nothing may be written.
-    expect(nameInput().value).toBe("launch-swarm");
+    expect(nameInput().value).toBe("code-review");
     expect(store.get(localChannelsAtom)).toHaveLength(1);
     expect(onClose).not.toHaveBeenCalled();
   });

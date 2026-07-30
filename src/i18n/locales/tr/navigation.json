@@ -814,7 +814,7 @@
       "create": {
         "title": "Kanal oluştur",
         "nameLabel": "Ad",
-        "namePlaceholder": "örn. plan-butce",
+        "namePlaceholder": "örn. kod-incelemesi",
         "topicLabel": "Konu",
         "topicOptional": "(isteğe bağlı)",
         "topicPlaceholder": "Bu kanal ne hakkında?",

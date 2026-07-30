@@ -816,7 +816,7 @@
       "create": {
         "title": "Crear un canal",
         "nameLabel": "Nombre",
-        "namePlaceholder": "p. ej. plan-presupuesto",
+        "namePlaceholder": "p. ej. revision-de-codigo",
         "topicLabel": "Tema",
         "topicOptional": "(opcional)",
         "topicPlaceholder": "¿De qué trata este canal?",

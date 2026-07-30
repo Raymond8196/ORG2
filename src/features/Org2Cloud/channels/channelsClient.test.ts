@@ -36,8 +36,8 @@ describe("channel wire schemas", () => {
   it("parses a full channel row", () => {
     const channel = CloudChannelSchema.parse({
       id: "c1",
-      name: "flight-path",
-      topic: "capture plan",
+      name: "release-notes",
+      topic: "review checklist",
       visibility: "private",
       postPolicy: "managers",
       createdBy: "u1",

@@ -814,7 +814,7 @@
       "create": {
         "title": "채널 만들기",
         "nameLabel": "이름",
-        "namePlaceholder": "예: plan-budget",
+        "namePlaceholder": "예: code-review",
         "topicLabel": "주제",
         "topicOptional": "(선택)",
         "topicPlaceholder": "이 채널은 무엇에 관한 것인가요?",

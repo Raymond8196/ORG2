@@ -50,7 +50,7 @@ const AUTH = {
 
 const CREATED_CHANNEL: CloudChannel = {
   id: "chan-1",
-  name: "launch-swarm",
+  name: "code-review",
   topic: undefined,
   visibility: "org",
   postPolicy: "everyone",
@@ -145,8 +145,8 @@ describe("CreateChannelDialog", () => {
     renderDialog({ onClose, onCreated });
 
     // Slack behavior: leading '#' stripped, lowercased, spaces → hyphens.
-    const input = typeName("#Launch  Swarm");
-    expect(input.value).toBe("launch-swarm");
+    const input = typeName("#Code  Review");
+    expect(input.value).toBe("code-review");
 
     const submit = document.querySelector<HTMLButtonElement>(
       '[data-testid="channel-create-submit"]'
@@ -159,7 +159,7 @@ describe("CreateChannelDialog", () => {
 
     expect(mocks.createCloudChannel).toHaveBeenCalledTimes(1);
     expect(mocks.createCloudChannel).toHaveBeenCalledWith("access", "org-1", {
-      name: "launch-swarm",
+      name: "code-review",
       topic: undefined,
       visibility: "org",
       postPolicy: "everyone",
@@ -196,7 +196,7 @@ describe("CreateChannelDialog", () => {
     const onClose = vi.fn();
     renderDialog({ onClose });
 
-    typeName("launch-swarm");
+    typeName("code-review");
     await act(async () => {
       document
         .querySelector<HTMLButtonElement>(
@@ -215,7 +215,7 @@ describe("CreateChannelDialog", () => {
       document.querySelector<HTMLInputElement>(
         '[data-testid="channel-create-name"]'
       )?.value
-    ).toBe("launch-swarm");
+    ).toBe("code-review");
     expect(onClose).not.toHaveBeenCalled();
     expect(store.get(org2CloudChannelsVersionAtom)["org-1"]).toBeUndefined();
   });

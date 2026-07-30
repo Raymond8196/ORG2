@@ -45,8 +45,8 @@ const AUTH = {
 
 const CHANNEL: CloudChannel = {
   id: "chan-1",
-  name: "launch-swarm",
-  topic: "capture plan",
+  name: "code-review",
+  topic: "review checklist",
   visibility: "org",
   postPolicy: "everyone",
   createdBy: "user-self",
@@ -156,8 +156,8 @@ describe("ChannelSettingsDialog", () => {
     const onClose = vi.fn();
     renderDialog({ onClose });
 
-    expect(input("channel-settings-name").value).toBe("launch-swarm");
-    expect(input("channel-settings-topic").value).toBe("capture plan");
+    expect(input("channel-settings-name").value).toBe("code-review");
+    expect(input("channel-settings-topic").value).toBe("review checklist");
 
     await clickSubmit();
 
@@ -216,7 +216,7 @@ describe("ChannelSettingsDialog", () => {
     expect(errorText()).toBe("cloud.channels.create.nameTaken");
     // Failure must NEVER clear the form.
     expect(input("channel-settings-name").value).toBe("taken-name");
-    expect(input("channel-settings-topic").value).toBe("capture plan");
+    expect(input("channel-settings-topic").value).toBe("review checklist");
     expect(onClose).not.toHaveBeenCalled();
     expect(store.get(org2CloudChannelsVersionAtom)["org-1"]).toBeUndefined();
   });

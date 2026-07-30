@@ -906,7 +906,7 @@
       "create": {
         "title": "建立頻道",
         "nameLabel": "名稱",
-        "namePlaceholder": "例如：plan-budget",
+        "namePlaceholder": "例如：code-review",
         "topicLabel": "主題",
         "topicOptional": "（選填）",
         "topicPlaceholder": "這個頻道要聊什麼？",

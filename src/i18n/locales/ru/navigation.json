@@ -814,7 +814,7 @@
       "create": {
         "title": "Создать канал",
         "nameLabel": "Название",
-        "namePlaceholder": "например, plan-budget",
+        "namePlaceholder": "например, code-review",
         "topicLabel": "Тема",
         "topicOptional": "(необязательно)",
         "topicPlaceholder": "О чём этот канал?",

@@ -57,8 +57,8 @@ function hydratedStore(): ReturnType<typeof createStore> {
 describe("createLocalChannel", () => {
   it("normalizes Slack-style names and stamps create metadata", () => {
     const result = createLocalChannel([], {
-      name: "  #Launch Swarm  ",
-      topic: "  Q3 rollout  ",
+      name: "  #Code Review  ",
+      topic: "  release checklist  ",
       id: "ch-new",
       now: NOW,
     });
@@ -67,14 +67,14 @@ describe("createLocalChannel", () => {
       channels: [
         {
           id: "ch-new",
-          name: "launch-swarm",
-          topic: "Q3 rollout",
+          name: "code-review",
+          topic: "release checklist",
           createdAt: NOW,
           updatedAt: NOW,
           archivedAt: null,
         },
       ],
-      channel: expect.objectContaining({ name: "launch-swarm" }),
+      channel: expect.objectContaining({ name: "code-review" }),
     });
   });
 

@@ -64,14 +64,14 @@ describe("channelsClient request building", () => {
       jsonResponse({
         channel: {
           id: "chan-1",
-          name: "launch-swarm",
+          name: "code-review",
           createdAt: "2026-07-31T00:00:00.000Z",
         },
       })
     );
 
     const channel = await createCloudChannel("token-1", "org-9", {
-      name: "launch-swarm",
+      name: "code-review",
       visibility: "private",
       postPolicy: "managers",
       memberUserIds: ["user-1", "user-2"],
@@ -91,7 +91,7 @@ describe("channelsClient request building", () => {
     });
     expect(JSON.parse(String(init.body))).toEqual({
       p_org_id: "org-9",
-      p_name: "launch-swarm",
+      p_name: "code-review",
       p_topic: null,
       p_visibility: "private",
       p_post_policy: "managers",
@@ -134,7 +134,7 @@ describe("channelsClient request building", () => {
     );
 
     const error: unknown = await createCloudChannel("token-1", "org-9", {
-      name: "launch-swarm",
+      name: "code-review",
       visibility: "org",
       postPolicy: "everyone",
     }).catch((caught: unknown) => caught);

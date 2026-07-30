@@ -45,7 +45,7 @@ const AUTH = {
 
 const CHANNEL: CloudChannel = {
   id: "chan-1",
-  name: "launch-swarm",
+  name: "code-review",
   topic: undefined,
   visibility: "org",
   postPolicy: "everyone",

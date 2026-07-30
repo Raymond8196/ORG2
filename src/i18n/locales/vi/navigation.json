@@ -814,7 +814,7 @@
       "create": {
         "title": "Tạo kênh",
         "nameLabel": "Tên",
-        "namePlaceholder": "vd: ke-hoach-ngan-sach",
+        "namePlaceholder": "vd: ra-soat-ma-nguon",
         "topicLabel": "Chủ đề",
         "topicOptional": "(không bắt buộc)",
         "topicPlaceholder": "Kênh này nói về điều gì?",

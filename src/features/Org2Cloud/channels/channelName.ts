@@ -3,7 +3,7 @@
  * `cloud_create_channel` (0014): trimmed, case-folded, leading '#' stripped,
  * no whitespace, 1..80 chars. The client additionally converts inner
  * whitespace runs to single hyphens as the user types (Slack behavior) so
- * "Launch Swarm" becomes "launch-swarm" instead of a validation error.
+ * "Code Review" becomes "code-review" instead of a validation error.
  */
 import { CHANNEL_NAME_MAX_LENGTH } from "./types";
 

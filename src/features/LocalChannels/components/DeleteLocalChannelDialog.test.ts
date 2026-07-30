@@ -27,7 +27,7 @@ vi.mock("react-i18next", () => ({
 
 const CHANNEL: LocalChannel = {
   id: "chan-1",
-  name: "launch-swarm",
+  name: "code-review",
   topic: undefined,
   createdAt: "2026-07-31T00:00:00.000Z",
   updatedAt: "2026-07-31T00:00:00.000Z",

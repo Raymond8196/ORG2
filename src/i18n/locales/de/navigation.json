@@ -816,7 +816,7 @@
       "create": {
         "title": "Channel erstellen",
         "nameLabel": "Name",
-        "namePlaceholder": "z. B. plan-budget",
+        "namePlaceholder": "z. B. code-review",
         "topicLabel": "Thema",
         "topicOptional": "(optional)",
         "topicPlaceholder": "Worum geht es hier?",

@@ -9,7 +9,7 @@ import { CHANNEL_NAME_MAX_LENGTH } from "./types";
 
 describe("channel name normalization", () => {
   it("lowercases, strips leading #, and hyphenates whitespace while typing", () => {
-    expect(normalizeChannelNameInput("#Launch Swarm")).toBe("launch-swarm");
+    expect(normalizeChannelNameInput("#Code Review")).toBe("code-review");
     expect(normalizeChannelNameInput("##General")).toBe("general");
     expect(normalizeChannelNameInput("a  b\tc")).toBe("a-b-c");
   });
@@ -22,12 +22,12 @@ describe("channel name normalization", () => {
   });
 
   it("drops edge hyphens left by typing on submit", () => {
-    expect(normalizeChannelName("  flight path  ")).toBe("flight-path");
-    expect(normalizeChannelName("-queen-bee-")).toBe("queen-bee");
+    expect(normalizeChannelName("  release notes  ")).toBe("release-notes");
+    expect(normalizeChannelName("-hotfix-branch-")).toBe("hotfix-branch");
   });
 
   it("keeps non-latin names intact (unicode channel names are allowed)", () => {
-    expect(normalizeChannelName("产品讨论")).toBe("产品讨论");
+    expect(normalizeChannelName("代码评审")).toBe("代码评审");
   });
 
   it("validates the normalized form against the 0014 contract", () => {
@@ -36,6 +36,6 @@ describe("channel name normalization", () => {
       "tooLong"
     );
     expect(validateChannelName("has space")).toBe("whitespace");
-    expect(validateChannelName("flight-path")).toBeNull();
+    expect(validateChannelName("release-notes")).toBeNull();
   });
 });

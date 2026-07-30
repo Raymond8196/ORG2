@@ -906,7 +906,7 @@
       "create": {
         "title": "创建频道",
         "nameLabel": "名称",
-        "namePlaceholder": "例如：plan-budget",
+        "namePlaceholder": "例如：code-review",
         "topicLabel": "主题",
         "topicOptional": "（可选）",
         "topicPlaceholder": "这个频道是聊什么的？",
