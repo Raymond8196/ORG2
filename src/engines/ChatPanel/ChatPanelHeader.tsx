@@ -49,6 +49,7 @@ interface ChatPanelHeaderProps {
   handlePaginationToggle: (checked: boolean) => void;
   handleReloadFromMenu: () => void;
   handleTokenUsageVisibleToggle: (checked: boolean) => void;
+  handleTurnMetadataVisibleToggle: (checked: boolean) => void;
   headerActionsDropdownRef: React.RefObject<HTMLDivElement | null>;
   headerActionsPosition: DropdownEnginePosition;
   headerActionsTriggerRef: React.RefObject<HTMLButtonElement | null>;
@@ -58,6 +59,7 @@ interface ChatPanelHeaderProps {
   focusedWorkstationMenuHostRef?: React.RefCallback<HTMLSpanElement>;
   paginationEnabled: boolean;
   tokenUsageVisible: boolean;
+  turnMetadataVisible: boolean;
   shouldOffsetHeaderForCollapsedSidebar: boolean;
   showChatFocusToggle: boolean;
   showHeader: boolean;
@@ -98,6 +100,7 @@ export function ChatPanelHeader({
   handlePaginationToggle,
   handleReloadFromMenu,
   handleTokenUsageVisibleToggle,
+  handleTurnMetadataVisibleToggle,
   headerActionsDropdownRef,
   headerActionsPosition,
   headerActionsTriggerRef,
@@ -107,6 +110,7 @@ export function ChatPanelHeader({
   focusedWorkstationMenuHostRef,
   paginationEnabled,
   tokenUsageVisible,
+  turnMetadataVisible,
   shouldOffsetHeaderForCollapsedSidebar,
   showChatFocusToggle,
   showHeader,
@@ -208,6 +212,7 @@ export function ChatPanelHeader({
             handlePaginationToggle={handlePaginationToggle}
             handleReloadFromMenu={handleReloadFromMenu}
             handleTokenUsageVisibleToggle={handleTokenUsageVisibleToggle}
+            handleTurnMetadataVisibleToggle={handleTurnMetadataVisibleToggle}
             headerActionsDropdownRef={headerActionsDropdownRef}
             headerActionsPosition={headerActionsPosition}
             headerActionsTriggerRef={headerActionsTriggerRef}
@@ -218,6 +223,7 @@ export function ChatPanelHeader({
             showCloudShareSettings={showCloudShareSettings}
             showTranscriptActions={showTranscriptActions}
             tokenUsageVisible={tokenUsageVisible}
+            turnMetadataVisible={turnMetadataVisible}
             toggleHeaderActionsMenu={toggleHeaderActionsMenu}
             triggerTestId="chat-panel-header-more-button"
           />

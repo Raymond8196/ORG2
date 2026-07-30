@@ -219,6 +219,20 @@ export const chatTokenUsageVisibleAtom = atomWithStorage<boolean>(
 );
 chatTokenUsageVisibleAtom.debugLabel = "chatTokenUsageVisibleAtom";
 
+/**
+ * Whether the per-round edits/reads summary card (`TurnMetadataFooter`)
+ * renders at the end of each agent turn. On by default; turning it off
+ * only hides the card — turn metadata is still indexed and still backs
+ * the composer files pill and Agent Station diff scoping.
+ */
+export const chatTurnMetadataVisibleAtom = atomWithStorage<boolean>(
+  "orgii:chatTurnMetadataVisible",
+  true,
+  createZodJsonStorage(z.boolean()),
+  { getOnInit: true }
+);
+chatTurnMetadataVisibleAtom.debugLabel = "chatTurnMetadataVisibleAtom";
+
 /** Presentation style for the chat panel model picker. */
 export type ModelPickerStyle = "spotlight" | "dropdown";
 

@@ -9,6 +9,7 @@ import { useDropdownEngine } from "@src/hooks/dropdown";
 import {
   chatHistoryDisplayModeAtom,
   chatTokenUsageVisibleAtom,
+  chatTurnMetadataVisibleAtom,
   chatTurnPaginationEnabledAtom,
 } from "@src/store/ui/chatPanelAtom";
 
@@ -41,6 +42,9 @@ export function useSessionHeaderActions({
   const [displayMode, setDisplayMode] = useAtom(chatHistoryDisplayModeAtom);
   const [tokenUsageVisible, setTokenUsageVisible] = useAtom(
     chatTokenUsageVisibleAtom
+  );
+  const [turnMetadataVisible, setTurnMetadataVisible] = useAtom(
+    chatTurnMetadataVisibleAtom
   );
   const eventCount = useAtomValue(eventCountAtom);
   const events = useAtomValue(eventsAtom);
@@ -77,6 +81,10 @@ export function useSessionHeaderActions({
     (checked: boolean) => setTokenUsageVisible(checked),
     [setTokenUsageVisible]
   );
+  const handleTurnMetadataVisibleToggle = useCallback(
+    (checked: boolean) => setTurnMetadataVisible(checked),
+    [setTurnMetadataVisible]
+  );
 
   const handleCopyEventJson = useCallback(() => {
     const json = JSON.stringify(events, null, 2);
@@ -105,6 +113,7 @@ export function useSessionHeaderActions({
     handleRegisterSearchOpen,
     handleReloadFromMenu,
     handleTokenUsageVisibleToggle,
+    handleTurnMetadataVisibleToggle,
     headerActionsDropdownRef,
     headerActionsPosition,
     headerActionsTriggerRef,
@@ -112,6 +121,7 @@ export function useSessionHeaderActions({
     isHeaderActionsPositioned,
     paginationEnabled,
     tokenUsageVisible,
+    turnMetadataVisible,
     toggleHeaderActionsMenu,
   };
 }
