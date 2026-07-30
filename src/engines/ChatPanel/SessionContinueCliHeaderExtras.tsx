@@ -6,6 +6,7 @@ import { loadAvailableAgents } from "@src/api/services/availableAgents";
 import {
   appendCliCommandArgs,
   cliAgentCreateTuiSession,
+  deriveExpectedProcess,
   resolveCliTuiCommand,
 } from "@src/api/tauri/agent/cliTerminalSession";
 import {
@@ -24,11 +25,6 @@ import type { Session } from "@src/store/session/sessionAtom/types";
 import { isImportedHistorySession } from "@src/util/session/sessionDispatch";
 
 const log = createLogger("ChatPanel");
-
-function deriveExpectedProcess(command: string): string | undefined {
-  const [binary] = command.trim().split(/\s+/);
-  return binary || undefined;
-}
 
 export interface SessionContinueCliHeaderExtrasProps {
   session: Session | null;
