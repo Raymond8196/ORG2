@@ -41,10 +41,12 @@ describe("sendCliMessage acceptance boundary", () => {
     ).resolves.toBeUndefined();
 
     expect(mocks.message).toHaveBeenCalledWith({
-      sessionId: "cliagent-worker",
-      content: "continue",
-      turnIntentId: "intent-1",
-      clientMessageId: "message-1",
+      request: {
+        sessionId: "cliagent-worker",
+        content: "continue",
+        turnIntentId: "intent-1",
+        clientMessageId: "message-1",
+      },
     });
     expect(mocks.registerReceipt).toHaveBeenCalledWith({
       sessionId: "cliagent-worker",

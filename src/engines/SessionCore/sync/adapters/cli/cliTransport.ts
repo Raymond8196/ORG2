@@ -26,17 +26,19 @@ export async function sendCliMessage(input: AdapterSendInput): Promise<void> {
   const turnIntentId = input.turnIntentId ?? newMessageId();
   const clientMessageId = input.clientMessageId ?? newMessageId();
   const receipt = await rpc.cli.message({
-    sessionId,
-    content,
-    turnIntentId,
-    clientMessageId,
-    ...(model ? { model } : {}),
-    ...(accountId ? { accountId } : {}),
-    ...(mode ? { mode } : {}),
-    ...(imageDataUrls && imageDataUrls.length > 0
-      ? { images: imageDataUrls }
-      : {}),
-    ...(adeContext ? { ideContext: adeContext } : {}),
+    request: {
+      sessionId,
+      content,
+      turnIntentId,
+      clientMessageId,
+      ...(model ? { model } : {}),
+      ...(accountId ? { accountId } : {}),
+      ...(mode ? { mode } : {}),
+      ...(imageDataUrls && imageDataUrls.length > 0
+        ? { images: imageDataUrls }
+        : {}),
+      ...(adeContext ? { ideContext: adeContext } : {}),
+    },
   });
   cliTurnLifecycleCoordinator.registerReceipt(receipt);
 }

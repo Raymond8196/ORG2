@@ -6,7 +6,7 @@ use super::super::persistence;
 use super::super::session_runner;
 use super::super::types::{KeySource, SessionStatus};
 use agent_core::session::IdeContext;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -14,6 +14,68 @@ pub struct CliRunReceipt {
     pub session_id: String,
     pub turn_intent_id: String,
     pub status: SessionStatus,
+}
+
+/// Start one CLI turn on an existing session row.
+///
+/// `Default` is derived so callers that only drive a plain prompt (the
+/// agent-core bridge, the debug runtime probes) can name just the fields
+/// they mean instead of padding the call with positional `None`s.
+#[derive(Debug, Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CliRunRequest {
+    pub session_id: String,
+    pub user_input: String,
+    pub cli_resume_id: Option<String>,
+    pub ide_context: Option<IdeContext>,
+    pub mode: Option<String>,
+    pub images: Option<Vec<String>>,
+}
+
+/// Send a follow-up message on an existing session, optionally switching the
+/// model/account first. `turn_intent_id` / `client_message_id` are optional:
+/// the frontend pre-assigns them so its optimistic user row and the persisted
+/// intent share one identity, while callers without a UI row omit them.
+#[derive(Debug, Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CliMessageRequest {
+    pub session_id: String,
+    pub content: String,
+    pub model: Option<String>,
+    pub account_id: Option<String>,
+    pub ide_context: Option<IdeContext>,
+    pub mode: Option<String>,
+    pub images: Option<Vec<String>>,
+    pub turn_intent_id: Option<String>,
+    pub client_message_id: Option<String>,
+}
+
+/// Identity of a single turn. `turn_intent_id` keys the `turn_intents` row and
+/// every `status_changed` broadcast for the turn; `client_message_id`
+/// reconciles the frontend's optimistic user message with the persisted one.
+#[derive(Debug)]
+struct TurnIdentity {
+    turn_intent_id: String,
+    client_message_id: String,
+}
+
+impl TurnIdentity {
+    /// Mint a fresh pair for a turn no client pre-assigned ids for.
+    fn generate() -> Self {
+        Self::from_client(None, None)
+    }
+
+    /// Adopt whichever halves the client supplied, minting the rest.
+    fn from_client(turn_intent_id: Option<String>, client_message_id: Option<String>) -> Self {
+        Self {
+            turn_intent_id: turn_intent_id.unwrap_or_else(new_id),
+            client_message_id: client_message_id.unwrap_or_else(new_id),
+        }
+    }
+}
+
+fn new_id() -> String {
+    uuid::Uuid::new_v4().to_string()
 }
 
 /// Prepend IDE context (open files, git status, etc.) to the user prompt
@@ -45,38 +107,27 @@ pub async fn cli_agent_tui_release(session_id: String) -> Result<bool, String> {
 
 /// Run a code session (spawn CLI agent in background).
 #[tauri::command]
-pub async fn cli_agent_run(
-    session_id: String,
-    user_input: String,
-    cli_resume_id: Option<String>,
-    ide_context: Option<IdeContext>,
-    mode: Option<String>,
-    images: Option<Vec<String>>,
-) -> Result<(), String> {
-    cli_agent_run_internal(
+pub async fn cli_agent_run(request: CliRunRequest) -> Result<(), String> {
+    run_turn(request, TurnIdentity::generate()).await
+}
+
+/// Shared turn body behind both `cli_agent_run` and `cli_agent_message`:
+/// persist acceptance under the registry lock, broadcast `running`, then spawn
+/// the background runner.
+async fn run_turn(request: CliRunRequest, turn: TurnIdentity) -> Result<(), String> {
+    let CliRunRequest {
         session_id,
         user_input,
         cli_resume_id,
         ide_context,
         mode,
         images,
-        uuid::Uuid::new_v4().to_string(),
-        uuid::Uuid::new_v4().to_string(),
-    )
-    .await
-}
+    } = request;
+    let TurnIdentity {
+        turn_intent_id,
+        client_message_id,
+    } = turn;
 
-#[allow(clippy::too_many_arguments)]
-async fn cli_agent_run_internal(
-    session_id: String,
-    user_input: String,
-    cli_resume_id: Option<String>,
-    ide_context: Option<IdeContext>,
-    mode: Option<String>,
-    images: Option<Vec<String>>,
-    turn_intent_id: String,
-    client_message_id: String,
-) -> Result<(), String> {
     tracing::info!(
         session_id = %session_id,
         has_resume_id = cli_resume_id.is_some(),
@@ -213,20 +264,19 @@ async fn cli_agent_run_internal(
 /// If `model` or `account_id` is provided, updates the session config before
 /// re-running so the CLI uses the newly selected model/key.
 #[tauri::command]
-#[allow(clippy::too_many_arguments)]
-pub async fn cli_agent_message(
-    session_id: String,
-    content: String,
-    model: Option<String>,
-    account_id: Option<String>,
-    ide_context: Option<IdeContext>,
-    mode: Option<String>,
-    images: Option<Vec<String>>,
-    turn_intent_id: Option<String>,
-    client_message_id: Option<String>,
-) -> Result<CliRunReceipt, String> {
-    let turn_intent_id = turn_intent_id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
-    let client_message_id = client_message_id.unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
+pub async fn cli_agent_message(request: CliMessageRequest) -> Result<CliRunReceipt, String> {
+    let CliMessageRequest {
+        session_id,
+        content,
+        model,
+        account_id,
+        ide_context,
+        mode,
+        images,
+        turn_intent_id,
+        client_message_id,
+    } = request;
+    let turn = TurnIdentity::from_client(turn_intent_id, client_message_id);
     tracing::info!(
         session_id = %session_id,
         has_model_override = model.is_some(),
@@ -377,15 +427,17 @@ pub async fn cli_agent_message(
 
     // Re-run the session with the new message
     tracing::info!(session_id = %session_id, "cli_agent_message: dispatching rerun");
-    cli_agent_run_internal(
-        session_id.clone(),
-        content,
-        cli_resume_id,
-        ide_context,
-        mode,
-        images,
-        turn_intent_id.clone(),
-        client_message_id,
+    let turn_intent_id = turn.turn_intent_id.clone();
+    run_turn(
+        CliRunRequest {
+            session_id: session_id.clone(),
+            user_input: content,
+            cli_resume_id,
+            ide_context,
+            mode,
+            images,
+        },
+        turn,
     )
     .await?;
     Ok(CliRunReceipt {
