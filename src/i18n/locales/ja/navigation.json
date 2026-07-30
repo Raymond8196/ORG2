@@ -502,7 +502,8 @@
     },
     "orgManagement": {
       "invites": {
-        "title": "招待",
+        "createTitle": "新規招待",
+        "historyTitle": "これまでの招待",
         "empty": "招待はまだありません",
         "loadError": "招待を読み込めませんでした",
         "create": "招待を作成",

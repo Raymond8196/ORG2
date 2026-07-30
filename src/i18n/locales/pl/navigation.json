@@ -502,7 +502,8 @@
     },
     "orgManagement": {
       "invites": {
-        "title": "Zaproszenia",
+        "createTitle": "Nowe zaproszenie",
+        "historyTitle": "Poprzednie zaproszenia",
         "empty": "Brak zaproszeń",
         "loadError": "Nie udało się wczytać zaproszeń",
         "create": "Utwórz zaproszenie",

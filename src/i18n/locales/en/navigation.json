@@ -531,7 +531,8 @@
     },
     "orgManagement": {
       "invites": {
-        "title": "Invites",
+        "createTitle": "New invite",
+        "historyTitle": "Previous invites",
         "empty": "No invites yet",
         "loadError": "Couldn't load invites",
         "create": "Create invite",

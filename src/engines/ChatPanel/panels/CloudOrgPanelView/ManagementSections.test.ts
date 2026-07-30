@@ -4,9 +4,10 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
 import type { CloudOrgMember } from "@src/features/Org2Cloud/org2CloudClient";
+import type { CloudInviteRecord } from "@src/features/Org2Cloud/org2CloudOrgManagement";
 import { COLLAB_SESSION_ACCESS_MODE } from "@src/store/collaboration/types";
 
-import { CloudMembersSection } from "./ManagementSections";
+import { CloudInvitesCard, CloudMembersSection } from "./ManagementSections";
 import type { CloudOrgManagement } from "./useCloudOrgManagement";
 
 const translations: Record<string, string> = {
@@ -16,10 +17,26 @@ const translations: Record<string, string> = {
   "cloud.orgManagement.members.youTag": "You",
   "cloud.orgManagement.members.ownerTag": "Owner",
   "cloud.orgManagement.leave.action": "Leave org",
+  "cloud.orgManagement.invites.createTitle": "New invite",
+  "cloud.orgManagement.invites.historyTitle": "Previous invites",
+  "cloud.orgManagement.invites.create": "Create invite",
+  "cloud.orgManagement.invites.empty": "No invites yet",
+  "cloud.orgManagement.invites.revoke": "Revoke",
+  "cloud.orgManagement.invites.roleMember": "Member",
+  "cloud.orgManagement.invites.stateRevoked": "Revoked",
+  "cloud.orgManagement.invites.neverExpires": "Never expires",
+  "cloud.orgManagement.invites.createdAt": "Created {{date}}",
+  "cloud.orgManagement.invites.remainingUses": "Uses left: {{uses}}",
 };
 
-const t = ((key: string) =>
-  translations[key] ?? key) as TFunction<"navigation">;
+const t = ((key: string, options?: Record<string, unknown>) => {
+  const template = translations[key] ?? key;
+  if (!options) return template;
+  return Object.entries(options).reduce(
+    (text, [name, value]) => text.replace(`{{${name}}}`, String(value)),
+    template
+  );
+}) as TFunction<"navigation">;
 
 function member(
   userId: string,
@@ -69,6 +86,80 @@ function renderMembers(
     })
   );
 }
+
+function invite(overrides: Partial<CloudInviteRecord> = {}): CloudInviteRecord {
+  return {
+    inviteId: "inv-1",
+    role: "member",
+    maxUses: 5,
+    usedCount: 2,
+    createdAt: "2026-07-28T15:16:00.000Z",
+    ...overrides,
+  };
+}
+
+function renderInvites(invites: CloudInviteRecord[]): string {
+  return renderToStaticMarkup(
+    createElement(CloudInvitesCard, {
+      t,
+      management: management({
+        invites,
+        inviteListError: null,
+        creatingInvite: false,
+        copyingInvite: false,
+        inviteError: null,
+        revokingInviteId: null,
+        latestCreatedInvite: null,
+        handleCreateInvite: vi.fn(),
+        handleCopyInvite: vi.fn(),
+        handleRevokeInvite: vi.fn(),
+      }),
+    })
+  );
+}
+
+describe("CloudInvitesCard layout", () => {
+  it("splits creation and history into two cards, create first", () => {
+    const markup = renderInvites([invite()]);
+
+    expect(markup.indexOf("New invite")).toBeLessThan(
+      markup.indexOf("Previous invites")
+    );
+    // Create controls stay in the first card, the inventory in the second.
+    expect(
+      markup.indexOf('data-testid="cloud-org-create-invite"')
+    ).toBeLessThan(markup.indexOf('data-testid="cloud-org-invite-history"'));
+    expect(
+      markup.indexOf('data-testid="cloud-org-invite-history"')
+    ).toBeLessThan(markup.indexOf('data-testid="cloud-org-invite-row"'));
+  });
+
+  it("keeps an invite on one row with the status left of Revoke", () => {
+    const markup = renderInvites([invite()]);
+    const row = markup.slice(
+      markup.indexOf('data-testid="cloud-org-invite-row"')
+    );
+
+    expect(row.indexOf("Uses left: 3")).toBeLessThan(
+      row.indexOf('data-testid="cloud-org-invite-revoke-inv-1"')
+    );
+    // The status moved out of SectionRow's description slot (its only marker
+    // class), so the row no longer stacks a second line under the label.
+    expect(row).not.toContain("mt-0.5");
+  });
+
+  it("shows the empty state in the history card and no revoke for a revoked invite", () => {
+    expect(renderInvites([])).toContain("No invites yet");
+
+    const revoked = renderInvites([
+      invite({ revokedAt: "2026-07-29T10:00:00.000Z" }),
+    ]);
+    expect(revoked).toContain("Revoked");
+    expect(revoked).not.toContain(
+      'data-testid="cloud-org-invite-revoke-inv-1"'
+    );
+  });
+});
 
 describe("CloudMembersSection layout", () => {
   it("shows the signed-in user in About me above the remaining members", () => {

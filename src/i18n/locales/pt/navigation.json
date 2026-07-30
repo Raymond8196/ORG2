@@ -504,7 +504,8 @@
     },
     "orgManagement": {
       "invites": {
-        "title": "Convites",
+        "createTitle": "Novo convite",
+        "historyTitle": "Convites anteriores",
         "empty": "Nenhum convite ainda",
         "loadError": "Não foi possível carregar os convites",
         "create": "Criar convite",

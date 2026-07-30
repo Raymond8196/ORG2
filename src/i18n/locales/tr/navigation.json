@@ -502,7 +502,8 @@
     },
     "orgManagement": {
       "invites": {
-        "title": "Davetler",
+        "createTitle": "Yeni davet",
+        "historyTitle": "Önceki davetler",
         "empty": "Henüz davet yok",
         "loadError": "Davetler yüklenemedi",
         "create": "Davet oluştur",

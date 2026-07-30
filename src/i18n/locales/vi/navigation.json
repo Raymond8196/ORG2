@@ -502,7 +502,8 @@
     },
     "orgManagement": {
       "invites": {
-        "title": "Lời mời",
+        "createTitle": "Lời mời mới",
+        "historyTitle": "Lời mời trước đây",
         "empty": "Chưa có lời mời nào",
         "loadError": "Không thể tải danh sách lời mời",
         "create": "Tạo lời mời",
