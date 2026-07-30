@@ -66,6 +66,7 @@ import type { CloudCapabilitiesProbeResult } from "../org2CloudCapabilities";
 import { getCloudCapabilitiesConfirmed } from "../org2CloudCapabilities";
 import { ensureFreshSession } from "../org2CloudClient";
 import { type Org2CloudOrg, org2CloudOrgsAtom } from "../org2CloudOrgsAtom";
+import { describeSyncError, recordSyncEvent } from "../org2CloudSyncJournal";
 import {
   type MemberRuntimeErrorCode,
   isMemberRuntimeErrorCode,
@@ -470,6 +471,15 @@ export class MemberRuntimePushScheduler {
         `${code ? ` (${code})` : ""}; retrying in ${Math.round(delayMs / 1000)}s`,
       error
     );
+    // Journaling only; the backoff decided above is already final.
+    const described = describeSyncError(error);
+    recordSyncEvent({
+      level: "warn",
+      kind: "member_runtime",
+      orgId: org.orgId,
+      message: `Member runtime push failed; retrying in ${Math.round(delayMs / 1000)}s: ${described.message}`,
+      code: described.code,
+    });
   }
 
   /**
