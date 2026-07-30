@@ -133,3 +133,46 @@ export function commitRefreshedAuth(
   });
   return committed;
 }
+
+/**
+ * Sign the user out locally after GoTrue DEFINITIVELY rejects a refresh
+ * credential (400/401 `invalid_grant` — never a transient network/timeout
+ * failure, see `ensureFreshSession`'s `onRefreshRejected`). Guarded by a
+ * compare-and-set, but deliberately on STABLE IDENTITY (`userId` +
+ * `refreshToken`) rather than object reference.
+ *
+ * Reference equality is NOT safe here: `org2CloudAuthAtom` is an
+ * `atomWithStorage` with `{ getOnInit: true }`, whose `onMount` re-reads
+ * `storage.getItem(...)` and calls `setAtom(...)` on every mount (jotai's
+ * `atomWithStorage` idiom — see `node_modules/jotai/.../utils.mjs`). Because
+ * `createZodJsonStorage`'s `getItem` runs `JSON.parse` + `schema.parse` on
+ * every call, it returns a BRAND-NEW object each time even when the
+ * persisted bytes are byte-for-byte unchanged. A `current` snapshot
+ * captured just before that re-hydration settles is therefore never
+ * `===` the atom's live value again, even though it is the exact same
+ * session — so a reference-equality CAS silently never fires and the
+ * rejected session is never cleared (the reported zombie-signed-in bug).
+ * Comparing `userId`/`refreshToken` survives that re-hydration while still
+ * refusing to clobber a newer sign-in or a concurrently rotated token
+ * (different `userId` and/or `refreshToken`).
+ */
+export function clearRejectedAuth(
+  setAuth: (
+    updater: (prev: Org2CloudAuthState | null) => Org2CloudAuthState | null
+  ) => void,
+  rejected: Org2CloudAuthState
+): boolean {
+  let cleared = false;
+  setAuth((current) => {
+    if (
+      !current ||
+      current.userId !== rejected.userId ||
+      current.refreshToken !== rejected.refreshToken
+    ) {
+      return current;
+    }
+    cleared = true;
+    return null;
+  });
+  return cleared;
+}

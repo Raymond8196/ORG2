@@ -8,6 +8,7 @@ import {
   ORG2_CLOUD_AUTH_STORAGE_KEY,
   type Org2CloudAuthState,
   Org2CloudAuthStateSchema,
+  clearRejectedAuth,
   commitRefreshedAuth,
   org2CloudAuthAtom,
 } from "./org2CloudAuthAtom";
@@ -183,6 +184,63 @@ describe("commitRefreshedAuth", () => {
   });
 });
 
+describe("clearRejectedAuth", () => {
+  it("clears the atom when the atom holds a DIFFERENT OBJECT with the same identity", () => {
+    // Regression for the zombie-signed-in bug: `atomWithStorage`'s onMount
+    // re-hydrates a freshly parsed object from localStorage on every mount
+    // (see the module doc comment), so the atom's live value is routinely
+    // NOT `===` a `current` snapshot captured just beforehand even though
+    // it is the exact same session. Rebuild that with a spread copy rather
+    // than reusing the VALID_STATE reference.
+    const store = createStore();
+    const rehydrated: Org2CloudAuthState = { ...VALID_STATE };
+    expect(rehydrated).not.toBe(VALID_STATE);
+    store.set(org2CloudAuthAtom, rehydrated);
+
+    expect(clearRejectedAuth(boundSetter(store), VALID_STATE)).toBe(true);
+
+    expect(store.get(org2CloudAuthAtom)).toBeNull();
+  });
+
+  it("is a no-op when already signed out", () => {
+    const store = createStore();
+    store.set(org2CloudAuthAtom, null);
+
+    expect(clearRejectedAuth(boundSetter(store), VALID_STATE)).toBe(false);
+
+    expect(store.get(org2CloudAuthAtom)).toBeNull();
+  });
+
+  it("does NOT clear a newer sign-in by a different user (CAS)", () => {
+    const store = createStore();
+    const newerLogin: Org2CloudAuthState = {
+      ...VALID_STATE,
+      userId: "user-2",
+      refreshToken: "rt-other",
+    };
+    store.set(org2CloudAuthAtom, newerLogin);
+
+    expect(clearRejectedAuth(boundSetter(store), VALID_STATE)).toBe(false);
+
+    expect(store.get(org2CloudAuthAtom)).toBe(newerLogin);
+  });
+
+  it("does NOT clear a session already rotated by a concurrent successful refresh (CAS)", () => {
+    const store = createStore();
+    const rotated: Org2CloudAuthState = {
+      ...VALID_STATE,
+      accessToken: "at-2",
+      refreshToken: "rt-2",
+    };
+    store.set(org2CloudAuthAtom, rotated);
+
+    // The rejection carries the STALE (pre-rotation) refresh token.
+    expect(clearRejectedAuth(boundSetter(store), VALID_STATE)).toBe(false);
+
+    expect(store.get(org2CloudAuthAtom)).toBe(rotated);
+  });
+});
+
 // The four @agent-adjacent callers (MoveToOrgDialog, useWorkstationSidebarHandlers,
 // useForkImportedSession, CreateCollabOrgView) all rotate the single-use refresh
 // token via ensureFreshSession, then MUST write it back through commitRefreshedAuth.
@@ -269,5 +327,99 @@ describe("caller commit discipline (ensureFreshSession + commitRefreshedAuth)", 
     expect(fresh?.refreshToken).toBe("rt-2");
 
     expect(store.get(org2CloudAuthAtom)?.refreshToken).toBe("rt");
+  });
+});
+
+// `useOrg2CloudOrgs` (org2CloudOrgsAtom.ts) wires `ensureFreshSession`'s
+// `onRefreshRejected` straight to `clearRejectedAuth`. This exercises that
+// exact composition against a live (mocked) GoTrue response, matching the
+// bug report: a 400 `invalid_grant` from the refresh endpoint.
+describe("signing out locally on a rejected refresh (ensureFreshSession + clearRejectedAuth)", () => {
+  const fetchMock = vi.fn();
+
+  beforeEach(() => {
+    vi.stubGlobal("fetch", fetchMock);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    fetchMock.mockReset();
+  });
+
+  function jsonResponse(body: unknown, status = 200): Response {
+    return new Response(JSON.stringify(body), {
+      status,
+      headers: { "content-type": "application/json" },
+    });
+  }
+
+  /** The `useOrg2CloudOrgs` onRefreshRejected composition under test. */
+  async function attemptRefresh(
+    store: ReturnType<typeof createStore>,
+    current: Org2CloudAuthState
+  ): Promise<{ fresh: Org2CloudAuthState | null; cleared: boolean }> {
+    let cleared = false;
+    const fresh = await ensureFreshSession(current, {
+      onRefreshRejected: () => {
+        cleared = clearRejectedAuth(boundSetter(store), current);
+      },
+    });
+    return { fresh, cleared };
+  }
+
+  it("(a) a 400 invalid_grant rejection clears the atom, flipping the UI signed-out", async () => {
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse({ error: "invalid_grant" }, 400)
+    );
+    const store = createStore();
+    // A freshly re-hydrated object (see clearRejectedAuth's doc comment) —
+    // NOT the same reference the earlier reference-equality guard needed.
+    const rehydrated: Org2CloudAuthState = { ...VALID_STATE };
+    store.set(org2CloudAuthAtom, rehydrated);
+
+    const { fresh, cleared } = await attemptRefresh(store, VALID_STATE);
+
+    expect(fresh).toBeNull();
+    expect(cleared).toBe(true);
+    // TeamRuntimePanel/sidebar phase derivation keys off `!auth` — this is
+    // the same condition that flips the UI to its signed-out affordances.
+    expect(store.get(org2CloudAuthAtom)).toBeNull();
+  });
+
+  it("(b) a network error retains auth (transient failures stay on the retry path)", async () => {
+    fetchMock.mockRejectedValueOnce(new Error("offline"));
+    const store = createStore();
+    const rehydrated: Org2CloudAuthState = { ...VALID_STATE };
+    store.set(org2CloudAuthAtom, rehydrated);
+
+    const { fresh, cleared } = await attemptRefresh(store, VALID_STATE);
+
+    expect(fresh).toBeNull();
+    expect(cleared).toBe(false);
+    expect(store.get(org2CloudAuthAtom)).toBe(rehydrated);
+  });
+
+  it("(c) a rejection arriving after a newer login leaves the newer session untouched", async () => {
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse({ error: "invalid_grant" }, 400)
+    );
+    const store = createStore();
+    store.set(org2CloudAuthAtom, VALID_STATE);
+
+    const refreshPromise = attemptRefresh(store, VALID_STATE);
+    // A newer sign-in (different user + tokens) lands while the stale
+    // refresh for VALID_STATE is still in flight.
+    const newerLogin: Org2CloudAuthState = {
+      ...VALID_STATE,
+      userId: "user-2",
+      accessToken: "at-newer",
+      refreshToken: "rt-newer",
+    };
+    store.set(org2CloudAuthAtom, newerLogin);
+
+    const { cleared } = await refreshPromise;
+
+    expect(cleared).toBe(false);
+    expect(store.get(org2CloudAuthAtom)).toBe(newerLogin);
   });
 });
