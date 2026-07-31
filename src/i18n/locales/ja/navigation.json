@@ -899,7 +899,8 @@
         "workItemCardOpen": "作業項目 {{name}} を開く",
         "githubCardOpen": "{{name}} を GitHub で開く",
         "githubIssue": "Issue",
-        "githubPullRequest": "プルリクエスト"
+        "githubPullRequest": "プルリクエスト",
+        "archivedComposerDisabled": "このチャンネルはアーカイブされています。投稿するにはアーカイブを解除してください。"
       }
     }
   }

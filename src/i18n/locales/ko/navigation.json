@@ -899,7 +899,8 @@
         "workItemCardOpen": "작업 항목 {{name}} 열기",
         "githubCardOpen": "GitHub에서 {{name}} 열기",
         "githubIssue": "이슈",
-        "githubPullRequest": "풀 리퀘스트"
+        "githubPullRequest": "풀 리퀘스트",
+        "archivedComposerDisabled": "이 채널은 보관 처리되었습니다. 게시하려면 보관을 해제하세요."
       }
     }
   }

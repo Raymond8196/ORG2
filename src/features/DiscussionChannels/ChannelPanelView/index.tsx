@@ -1,5 +1,5 @@
 /**
- * ChannelPanelView — the chat-pane surface behind a `"channel"` tab.
+ * DiscussionChannelPanelView — the chat-pane surface behind a `"channel"` tab.
  *
  * One surface, two scopes:
  *
@@ -57,7 +57,9 @@ import { useChannelSessionDrop } from "./useChannelSessionDrop";
 const EMPTY_STATE_COLUMN_CLASSES =
   "flex min-h-0 flex-1 items-center justify-center pb-36";
 
-export interface ChannelPanelViewProps {
+const COMPOSER_NOTICE_CLASSES = `border border-dashed border-border-2 bg-fill-1 px-3 py-2.5 text-[12px] text-text-3 ${INPUT_AREA.borderRadiusClass}`;
+
+export interface DiscussionChannelPanelViewProps {
   channel: ChatPanelSelectedChannel;
 }
 
@@ -88,6 +90,16 @@ const LocalChannelPanel: React.FC<LocalChannelPanelProps> = ({
   const composerFooterRef = useRef<HTMLElement | null>(null);
   const composerInputRef = useRef<ComposerInputRef | null>(null);
 
+  // Read the live row so a rename made in the settings dialog shows up here
+  // without re-opening the tab; the tab payload is only the fallback.
+  const channel = useMemo(
+    () => channels.find((candidate) => candidate.id === channelId) ?? null,
+    [channelId, channels]
+  );
+  // Archived = read-only (Slack/cloud expectation): a post the store accepts
+  // but the cloud plane would refuse on promotion is a semantic cliff.
+  const archived = channel !== null && channel.archivedAt !== null;
+
   // Transcript + composer are ONE drop target: a session dragged from the
   // sidebar or a tab strip anywhere over this panel becomes a pill in the
   // draft, the same reference an `@` mention would produce.
@@ -95,14 +107,8 @@ const LocalChannelPanel: React.FC<LocalChannelPanelProps> = ({
     surfaceRef,
     composerFooterRef,
     composerInputRef,
+    disabled: archived,
   });
-
-  // Read the live row so a rename made in the settings dialog shows up here
-  // without re-opening the tab; the tab payload is only the fallback.
-  const channel = useMemo(
-    () => channels.find((candidate) => candidate.id === channelId) ?? null,
-    [channelId, channels]
-  );
 
   // `InputArea` reads its submit handler through `onSubmitOverride`; the
   // refusal path throws so the composer restores the draft (see
@@ -192,8 +198,8 @@ const LocalChannelPanel: React.FC<LocalChannelPanelProps> = ({
           <ChannelMessageList
             messages={messages}
             authorLabel={t("cloud.channels.feed.you")}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
+            onEdit={archived ? null : handleEdit}
+            onDelete={archived ? null : handleDelete}
           />
         )}
         <ChannelComposer
@@ -201,8 +207,19 @@ const LocalChannelPanel: React.FC<LocalChannelPanelProps> = ({
           placeholder={t("cloud.channels.feed.composerPlaceholder", {
             name: displayName,
           })}
-          onSubmit={handlePost}
-          error={composerError}
+          onSubmit={archived ? null : handlePost}
+          acceptDraggedPills={!archived}
+          error={archived ? null : composerError}
+          notice={
+            archived ? (
+              <div
+                className={COMPOSER_NOTICE_CLASSES}
+                data-testid="channel-composer-archived"
+              >
+                {t("cloud.channels.feed.archivedComposerDisabled")}
+              </div>
+            ) : undefined
+          }
           footerRef={composerFooterRef}
           composerInputRef={composerInputRef}
         />
@@ -235,13 +252,24 @@ const CloudChannelPanel: React.FC<CloudChannelPanelProps> = ({
   fallbackIsPrivate,
 }) => {
   const { t } = useTranslation("navigation");
-  const { channels } = useOrgChannels(orgId);
+  // Archived channels stay browsable (Slack): without includeArchived an
+  // open tab for an archived channel would lose its live row — stale header
+  // name and no settings — even though the sidebar lets archived rows open.
+  // The hook PARTITIONS archived rows into `archivedChannels`; resolving
+  // against the live list alone re-creates exactly that stale-header hole.
+  const { channels, archivedChannels } = useOrgChannels(orgId, {
+    includeArchived: true,
+  });
   const [settingsOpen, setSettingsOpen] = useState(false);
 
   const channel = useMemo(
-    () => channels.find((candidate) => candidate.id === channelId) ?? null,
-    [channelId, channels]
+    () =>
+      channels.find((candidate) => candidate.id === channelId) ??
+      archivedChannels.find((candidate) => candidate.id === channelId) ??
+      null,
+    [archivedChannels, channelId, channels]
   );
+  const archived = channel?.archivedAt != null;
 
   return (
     <div className="flex h-full min-h-0 flex-col" data-testid="channel-panel">
@@ -278,12 +306,21 @@ const CloudChannelPanel: React.FC<CloudChannelPanelProps> = ({
           onSubmit={null}
           acceptDraggedPills={false}
           notice={
-            <div
-              className={`border border-dashed border-border-2 bg-fill-1 px-3 py-2.5 text-[12px] text-text-3 ${INPUT_AREA.borderRadiusClass}`}
-              data-testid="channel-composer-disabled"
-            >
-              {t("cloud.channels.feed.cloudComposerDisabled")}
-            </div>
+            archived ? (
+              <div
+                className={COMPOSER_NOTICE_CLASSES}
+                data-testid="channel-composer-archived"
+              >
+                {t("cloud.channels.feed.archivedComposerDisabled")}
+              </div>
+            ) : (
+              <div
+                className={COMPOSER_NOTICE_CLASSES}
+                data-testid="channel-composer-disabled"
+              >
+                {t("cloud.channels.feed.cloudComposerDisabled")}
+              </div>
+            )
           }
         />
       </div>
@@ -298,7 +335,9 @@ const CloudChannelPanel: React.FC<CloudChannelPanelProps> = ({
   );
 };
 
-const ChannelPanelView: React.FC<ChannelPanelViewProps> = ({ channel }) =>
+const DiscussionChannelPanelView: React.FC<DiscussionChannelPanelViewProps> = ({
+  channel,
+}) =>
   channel.scope === "local" ? (
     <LocalChannelPanel
       channelId={channel.channelId}
@@ -313,4 +352,4 @@ const ChannelPanelView: React.FC<ChannelPanelViewProps> = ({ channel }) =>
     />
   );
 
-export default ChannelPanelView;
+export default DiscussionChannelPanelView;

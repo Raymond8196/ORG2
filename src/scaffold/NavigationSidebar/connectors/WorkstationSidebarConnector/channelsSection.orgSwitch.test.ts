@@ -7,7 +7,7 @@
  * invisibly and fail every submit in org B with ORG2_VALIDATION).
  */
 import { Provider, createStore } from "jotai";
-import { Fragment, act, createElement } from "react";
+import { Fragment, type MouseEvent, act, createElement } from "react";
 import { type Root, createRoot } from "react-dom/client";
 import {
   afterAll,
@@ -20,6 +20,8 @@ import {
   vi,
 } from "vitest";
 
+import { bumpOrg2CloudChannelsVersionAtom } from "@src/features/Org2Cloud/channels/channelsAtom";
+import type { CloudChannel } from "@src/features/Org2Cloud/channels/types";
 import { org2CloudAuthAtom } from "@src/features/Org2Cloud/org2CloudAuthAtom";
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
 
@@ -30,6 +32,8 @@ const mocks = vi.hoisted(() => ({
   listCloudChannels: vi.fn(),
   getCloudCapabilities: vi.fn(),
   loadCloudOrgMembers: vi.fn(),
+  menuItemNew: vi.fn(),
+  menuNew: vi.fn(),
 }));
 
 vi.mock("react-i18next", () => ({
@@ -37,8 +41,8 @@ vi.mock("react-i18next", () => ({
 }));
 
 vi.mock("@tauri-apps/api/menu", () => ({
-  MenuItem: { new: vi.fn() },
-  Menu: { new: vi.fn() },
+  MenuItem: { new: mocks.menuItemNew },
+  Menu: { new: mocks.menuNew },
 }));
 
 vi.mock(
@@ -71,6 +75,21 @@ const AUTH = {
   expiresAt: 4_102_444_800,
 };
 
+const CHANNEL: CloudChannel = {
+  id: "channel-1",
+  name: "release-notes",
+  topic: "Ship status",
+  visibility: "org",
+  postPolicy: "everyone",
+  myRole: "manager",
+  messageCount: 0,
+  memberCount: 1,
+  createdBy: AUTH.userId,
+  createdAt: "2026-07-30T00:00:00.000Z",
+  updatedAt: "2026-07-30T00:00:00.000Z",
+  archivedAt: null,
+};
+
 const actEnvironment = globalThis as typeof globalThis & {
   IS_REACT_ACT_ENVIRONMENT?: boolean;
 };
@@ -88,6 +107,9 @@ async function flushAsync(): Promise<void> {
  */
 function Probe(props: { orgId: string | null }) {
   const section = useCloudChannelsSection({ orgId: props.orgId });
+  const channelRow = section.channelsMenuItems.find((item) =>
+    item.id.startsWith("cloud-channel-")
+  );
   return createElement(
     Fragment,
     null,
@@ -99,6 +121,11 @@ function Probe(props: { orgId: string | null }) {
           key: CLOUD_CHANNELS_EMPTY_ID,
           label: "",
         } as NavigationMenuItem),
+    }),
+    createElement("button", {
+      "data-testid": "probe-open-channel-actions",
+      onClick: (event: MouseEvent<HTMLButtonElement>) =>
+        channelRow?.rowActions?.[0]?.onClick(event),
     }),
     section.channelsDialogs
   );
@@ -117,6 +144,8 @@ describe("useCloudChannelsSection create-dialog org keying", () => {
     vi.clearAllMocks();
     localStorage.clear();
     mocks.getCloudCapabilities.mockResolvedValue({ orgChannels: true });
+    mocks.menuItemNew.mockImplementation(async (entry) => entry);
+    mocks.menuNew.mockResolvedValue({ popup: vi.fn() });
     mocks.listCloudChannels.mockResolvedValue({
       channels: [],
       serverTime: undefined,
@@ -216,5 +245,44 @@ describe("useCloudChannelsSection create-dialog org keying", () => {
     renderSection("org-b");
     await flushAsync();
     expect(nameInput()).toBeNull();
+  });
+
+  it("closes a channel-bound dialog when the authoritative list loses the channel", async () => {
+    mocks.listCloudChannels.mockResolvedValue({
+      channels: [CHANNEL],
+      serverTime: undefined,
+    });
+    renderSection("org-a");
+    await flushAsync();
+
+    act(() => {
+      document
+        .querySelector<HTMLButtonElement>(
+          '[data-testid="probe-open-channel-actions"]'
+        )
+        ?.click();
+    });
+    await flushAsync();
+    const settingsEntry = mocks.menuItemNew.mock.calls
+      .map(([entry]) => entry as { text?: string; action?: () => void })
+      .find((entry) => entry.text === "cloud.channels.settings.action");
+    expect(settingsEntry?.action).toBeTypeOf("function");
+    act(() => settingsEntry?.action?.());
+    expect(
+      document.querySelector('[data-testid="channel-settings-dialog"]')
+    ).not.toBeNull();
+
+    mocks.listCloudChannels.mockResolvedValue({
+      channels: [],
+      serverTime: undefined,
+    });
+    act(() => {
+      store.set(bumpOrg2CloudChannelsVersionAtom, "org-a");
+    });
+    await flushAsync();
+
+    expect(
+      document.querySelector('[data-testid="channel-settings-dialog"]')
+    ).toBeNull();
   });
 });

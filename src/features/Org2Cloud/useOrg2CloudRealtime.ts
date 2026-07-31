@@ -51,7 +51,10 @@ import type { Session } from "@src/store/session/sessionAtom/types";
 import { activeSessionIdAtom } from "@src/store/session/viewAtom";
 import { chatPanelSelectedCloudOrgAtom } from "@src/store/ui/chatPanelAtom";
 
-import { bumpOrg2CloudChannelsVersionAtom } from "./channels/channelsAtom";
+import {
+  bumpOrg2CloudChannelsVersionAtom,
+  org2CloudChannelsVersionAtom,
+} from "./channels/channelsAtom";
 import { org2CloudSharingFloorAtom } from "./org2CloudAccessSettings";
 import {
   commitRefreshedAuth,
@@ -192,6 +195,7 @@ export function useOrg2CloudRealtime(): void {
   const refetchOrgs = useRefetchOrg2CloudOrgs();
   const setRosterVersion = useSetAtom(org2CloudRosterVersionAtom);
   const bumpChannelsVersion = useSetAtom(bumpOrg2CloudChannelsVersionAtom);
+  const setChannelsVersion = useSetAtom(org2CloudChannelsVersionAtom);
   const setRosterRealtimeConnected = useSetAtom(
     org2CloudRosterRealtimeConnectedAtom
   );
@@ -259,8 +263,10 @@ export function useOrg2CloudRealtime(): void {
     setCommentsSignal({});
     setPresence({});
     setOutboundPresence({});
+    setChannelsVersion({});
   }, [
     authIdentityKey,
+    setChannelsVersion,
     setCommentsSignal,
     setMemberNames,
     setOutboundPresence,
@@ -757,7 +763,13 @@ export function useOrg2CloudRealtime(): void {
           // converges within 5 minutes instead of never.
           if (!broadcastSignals) return;
           const kind = parseOrgDbChangeKind(payload);
-          if (!kind) return;
+          if (!kind) {
+            // A kind this build does not know (a newer backend's plane):
+            // fall back to the coarse refresh instead of total silence, so
+            // an unrecognized plane still converges (Layer-5 default).
+            scheduleCoarseSignalRefresh();
+            return;
+          }
           dispatchDbChangeSignal(orgId, kind);
           return;
         }
@@ -828,6 +840,9 @@ export function useOrg2CloudRealtime(): void {
             ? current
             : { ...current, [orgId]: subscribed }
         );
+        // `org2CloudRealtimeClient` logs CHANNEL_ERROR/TIMED_OUT with the raw
+        // status while suppressing normal CLOSED teardown. Do not duplicate
+        // that diagnostic here from the lossy boolean edge.
         if (!subscribed) return;
         bumpRosterVersion(orgId);
         runSignalEdgeRecovery(orgId);
@@ -884,6 +899,7 @@ export function useOrg2CloudRealtime(): void {
     bumpRemoteSessionsVersion,
     bumpRosterVersion,
     dispatchDbChangeSignal,
+    scheduleCoarseSignalRefresh,
     runSignalEdgeRecovery,
   ]);
 

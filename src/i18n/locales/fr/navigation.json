@@ -901,7 +901,8 @@
         "workItemCardOpen": "Ouvrir l’élément de travail {{name}}",
         "githubCardOpen": "Ouvrir {{name}} sur GitHub",
         "githubIssue": "Ticket",
-        "githubPullRequest": "Pull request"
+        "githubPullRequest": "Pull request",
+        "archivedComposerDisabled": "Ce canal est archivé. Désarchivez-le pour publier."
       }
     }
   }

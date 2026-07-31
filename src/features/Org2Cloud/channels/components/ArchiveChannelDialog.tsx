@@ -9,7 +9,10 @@ import { useSetAtom } from "jotai";
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import Button from "@src/components/Button";
+import {
+  ChannelDialogErrorNotice,
+  ChannelDialogFooter,
+} from "@src/features/DiscussionChannels/components/ChannelDialogPrimitives";
 
 import { bumpOrg2CloudChannelsVersionAtom } from "../channelsAtom";
 import {
@@ -85,37 +88,27 @@ const ArchiveChannelDialog: React.FC<ArchiveChannelDialogProps> = ({
           {t("cloud.channels.archive.body")}
         </div>
 
-        {errorKind ? (
-          <div
-            className="rounded-lg bg-danger-1 px-3 py-2 text-[12px] text-danger-6"
-            data-testid="channel-archive-error"
-          >
-            {errorKind === "managerRequired"
+        <ChannelDialogErrorNotice
+          message={
+            errorKind === "managerRequired"
               ? t("cloud.channels.archive.managerRequired")
-              : t("cloud.channels.archive.error")}
-          </div>
-        ) : null}
+              : errorKind
+                ? t("cloud.channels.archive.error")
+                : null
+          }
+          testId="channel-archive-error"
+        />
 
-        <div className="flex items-center justify-end gap-2">
-          <Button
-            htmlType="button"
-            variant="secondary"
-            onClick={onClose}
-            data-testid="channel-archive-cancel"
-          >
-            {t("cloud.channels.cancel")}
-          </Button>
-          <Button
-            htmlType="button"
-            variant="primary"
-            loading={archiving}
-            disabled={archiving || !channel || !orgId}
-            onClick={() => void handleArchive()}
-            data-testid="channel-archive-confirm"
-          >
-            {t("cloud.channels.archive.confirm")}
-          </Button>
-        </div>
+        <ChannelDialogFooter
+          cancelLabel={t("cloud.channels.cancel")}
+          submitLabel={t("cloud.channels.archive.confirm")}
+          onCancel={onClose}
+          onSubmit={() => void handleArchive()}
+          cancelTestId="channel-archive-cancel"
+          submitTestId="channel-archive-confirm"
+          loading={archiving}
+          disabled={archiving || !channel || !orgId}
+        />
       </div>
     </Modal>
   );

@@ -899,7 +899,8 @@
         "workItemCardOpen": "{{name}} iş öğesini aç",
         "githubCardOpen": "{{name}} ögesini GitHub'da aç",
         "githubIssue": "Issue",
-        "githubPullRequest": "Pull request"
+        "githubPullRequest": "Pull request",
+        "archivedComposerDisabled": "Bu kanal arşivlendi. Göndermek için arşivden çıkarın."
       }
     }
   }

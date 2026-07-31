@@ -15,7 +15,10 @@ import { useSetAtom } from "jotai";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import Button from "@src/components/Button";
+import {
+  ChannelDialogErrorNotice,
+  ChannelDialogFooter,
+} from "@src/features/DiscussionChannels/components/ChannelDialogPrimitives";
 import {
   type LocalChannel,
   archiveLocalChannelAtom,
@@ -63,34 +66,20 @@ const ArchiveLocalChannelDialog: React.FC<ArchiveLocalChannelDialogProps> = ({
           {t("cloud.channels.local.archiveBody")}
         </div>
 
-        {failed ? (
-          <div
-            className="rounded-lg bg-danger-1 px-3 py-2 text-[12px] text-danger-6"
-            data-testid="local-channel-archive-error"
-          >
-            {t("cloud.channels.archive.error")}
-          </div>
-        ) : null}
+        <ChannelDialogErrorNotice
+          message={failed ? t("cloud.channels.archive.error") : null}
+          testId="local-channel-archive-error"
+        />
 
-        <div className="flex items-center justify-end gap-2">
-          <Button
-            htmlType="button"
-            variant="secondary"
-            onClick={onClose}
-            data-testid="local-channel-archive-cancel"
-          >
-            {t("cloud.channels.cancel")}
-          </Button>
-          <Button
-            htmlType="button"
-            variant="primary"
-            disabled={!channel}
-            onClick={handleArchive}
-            data-testid="local-channel-archive-confirm"
-          >
-            {t("cloud.channels.archive.confirm")}
-          </Button>
-        </div>
+        <ChannelDialogFooter
+          cancelLabel={t("cloud.channels.cancel")}
+          submitLabel={t("cloud.channels.archive.confirm")}
+          onCancel={onClose}
+          onSubmit={handleArchive}
+          cancelTestId="local-channel-archive-cancel"
+          submitTestId="local-channel-archive-confirm"
+          disabled={!channel}
+        />
       </div>
     </Modal>
   );

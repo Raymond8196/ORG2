@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  CHANNEL_NAME_MAX_LENGTH,
   normalizeChannelName,
   normalizeChannelNameInput,
   validateChannelName,
-} from "./channelName";
-import { CHANNEL_NAME_MAX_LENGTH } from "./types";
+} from "./channelContract";
 
 describe("channel name normalization", () => {
   it("lowercases, strips leading #, and hyphenates whitespace while typing", () => {

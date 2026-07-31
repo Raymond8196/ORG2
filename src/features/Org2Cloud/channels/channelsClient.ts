@@ -12,6 +12,8 @@
  */
 import { z } from "zod/v4";
 
+import { createLogger } from "@src/hooks/logger";
+
 import { type CloudEndpoint, ORG2_CLOUD_POSTGREST_SCHEMA } from "../config";
 import {
   fetchWithTransportRetry,
@@ -71,6 +73,8 @@ export function isOrg2ChannelsErrorCode(
 // RPC plumbing
 // ---------------------------------------------------------------------------
 
+const log = createLogger("Org2CloudChannels");
+
 function rpcUrl(functionName: string, endpoint: CloudEndpoint): string {
   return `${endpoint.supabaseUrl}/rest/v1/rpc/${functionName}`;
 }
@@ -83,6 +87,17 @@ async function callChannelsRpc(
   sourceSignal?: AbortSignal
 ): Promise<unknown> {
   const endpoint = endpointForOrg(orgId);
+  // Mutations leave an INFO trace (reads stay quiet): the dual-instance
+  // protocol audits cloud-state changes by log effect, and an unlogged
+  // channel delete/archive is invisible to it.
+  if (!functionName.startsWith("cloud_list_")) {
+    log.info(
+      `channels rpc ${functionName} org=${orgId}` +
+        (typeof body.p_channel_id === "string"
+          ? ` channel=${body.p_channel_id}`
+          : "")
+    );
+  }
   return runCloudRequestWithTimeout(
     async (signal) => {
       const response = await fetchWithTransportRetry(
@@ -123,7 +138,6 @@ async function callChannelsRpc(
 }
 
 const ChannelEnvelopeSchema = z.object({ channel: CloudChannelSchema });
-const OkSchema = z.object({ ok: z.boolean().catch(true) });
 const ArchiveResultSchema = z.object({
   archivedAt: z.string().nullable().catch(null),
 });
@@ -208,7 +222,10 @@ export async function archiveCloudChannel(
     { p_org_id: orgId, p_channel_id: channelId },
     signal
   );
-  return ArchiveResultSchema.parse(payload).archivedAt;
+  // HTTP 200 IS the success signal — a surprising body shape must not turn
+  // a server-side archive into a client-side "failure" (the mutation landed).
+  const parsed = ArchiveResultSchema.safeParse(payload);
+  return parsed.success ? parsed.data.archivedAt : null;
 }
 
 export async function unarchiveCloudChannel(
@@ -233,14 +250,15 @@ export async function deleteCloudChannel(
   channelId: string,
   signal?: AbortSignal
 ): Promise<void> {
-  const payload = await callChannelsRpc(
+  // HTTP 200 is the success signal; the `ok` body is informational only —
+  // parsing it strictly could report a completed delete as failed.
+  await callChannelsRpc(
     "cloud_delete_channel",
     accessToken,
     orgId,
     { p_org_id: orgId, p_channel_id: channelId },
     signal
   );
-  OkSchema.parse(payload);
 }
 
 // ---------------------------------------------------------------------------

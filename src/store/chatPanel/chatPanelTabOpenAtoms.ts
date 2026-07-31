@@ -461,7 +461,8 @@ openProjectInChatPanelTabAtom.debugLabel = "openProjectInChatPanelTab";
 
 /**
  * Open — or focus, if already open — a dedicated tab for a channel's message
- * surface. Deduped per `(scope, channelId)`, the `openWorkItemInChatPanelTab`
+ * surface. Deduped per composite key (`cloud:orgId:channelId` /
+ * `local:channelId`, see `buildChannelTabKey`), the `openWorkItemInChatPanelTab`
  * shape: re-opening refreshes the stored payload (a rename, or a cloud
  * channel flipping visibility, would otherwise leave the pill stale) before
  * focusing instead of stacking a second pill.
@@ -481,7 +482,7 @@ export const openChannelInChatPanelTabAtom = atom(
         ...prev,
         tabs: prev.tabs.map((tab) =>
           tab.id === existingTab.id
-            ? { ...tab, title: `#${channel.name}`, channel }
+            ? { ...tab, title: channel.name, channel }
             : tab
         ),
       }));

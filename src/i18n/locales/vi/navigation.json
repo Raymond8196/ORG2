@@ -899,7 +899,8 @@
         "workItemCardOpen": "Mở mục công việc {{name}}",
         "githubCardOpen": "Mở {{name}} trên GitHub",
         "githubIssue": "Issue",
-        "githubPullRequest": "Pull request"
+        "githubPullRequest": "Pull request",
+        "archivedComposerDisabled": "Kênh này đã được lưu trữ. Bỏ lưu trữ để đăng bài."
       }
     }
   }

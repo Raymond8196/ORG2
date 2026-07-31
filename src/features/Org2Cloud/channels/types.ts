@@ -10,10 +10,6 @@
  */
 import { z } from "zod/v4";
 
-/** RPC-enforced bounds (0014 validation) — mirrored in composers/dialogs. */
-export const CHANNEL_NAME_MAX_LENGTH = 80;
-export const CHANNEL_TOPIC_MAX_LENGTH = 250;
-export const CHANNEL_MAX_ACTIVE_PER_ORG = 200;
 export const CHANNEL_ADD_MEMBERS_MAX_PER_CALL = 100;
 
 export const CHANNELS_ERROR_CODES = [

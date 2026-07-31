@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
   LOCAL_CHANNELS_STORAGE_KEY,
   LOCAL_CHANNEL_MAX_ACTIVE,
+  LOCAL_CHANNEL_MAX_STORED,
   type LocalChannel,
   activeLocalChannelsAtom,
   archiveLocalChannel,
@@ -128,6 +129,21 @@ describe("createLocalChannel", () => {
     expect(createLocalChannel(withArchived, { name: "one-more" }).ok).toBe(
       true
     );
+  });
+
+  it("bounds active and archived rows retained on the device", () => {
+    const full = Array.from({ length: LOCAL_CHANNEL_MAX_STORED }, (_, index) =>
+      makeChannel({
+        id: `arch-${index}`,
+        name: `archived-${index}`,
+        archivedAt: NOW,
+      })
+    );
+
+    expect(createLocalChannel(full, { name: "one-more" })).toEqual({
+      ok: false,
+      error: "quota",
+    });
   });
 });
 

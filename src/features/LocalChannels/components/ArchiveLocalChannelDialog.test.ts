@@ -19,7 +19,7 @@ import {
   localChannelsAtom,
 } from "@src/store/ui/localChannelsAtom";
 
-import DeleteLocalChannelDialog from "./DeleteLocalChannelDialog";
+import ArchiveLocalChannelDialog from "./ArchiveLocalChannelDialog";
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (key: string) => key }),
@@ -38,7 +38,7 @@ const actEnvironment = globalThis as typeof globalThis & {
   IS_REACT_ACT_ENVIRONMENT?: boolean;
 };
 
-describe("DeleteLocalChannelDialog", () => {
+describe("ArchiveLocalChannelDialog", () => {
   let container: HTMLDivElement;
   let root: Root;
   let store: ReturnType<typeof createStore>;
@@ -72,7 +72,7 @@ describe("DeleteLocalChannelDialog", () => {
         createElement(
           Provider,
           { store },
-          createElement(DeleteLocalChannelDialog, {
+          createElement(ArchiveLocalChannelDialog, {
             open: true,
             channel: CHANNEL,
             onClose: overrides?.onClose ?? vi.fn(),
@@ -82,71 +82,41 @@ describe("DeleteLocalChannelDialog", () => {
     });
   }
 
-  function deleteButton(): HTMLButtonElement | null {
+  function archiveButton(): HTMLButtonElement | null {
     return document.querySelector<HTMLButtonElement>(
-      '[data-testid="local-channel-delete-confirm"]'
+      '[data-testid="local-channel-archive-confirm"]'
     );
   }
 
-  function toggleAcknowledge() {
-    const label = document.querySelector<HTMLLabelElement>(
-      '[data-testid="local-channel-delete-acknowledge"] label'
-    );
-    expect(label).not.toBeNull();
-    act(() => {
-      label?.click();
-    });
-  }
-
-  it("keeps the danger action disabled until the acknowledgement is checked", () => {
+  it("soft-archives the channel and closes", () => {
     const onClose = vi.fn();
     renderDialog({ onClose });
 
-    expect(deleteButton()?.disabled).toBe(true);
-
-    // Clicking delete while disabled must be a no-op.
     act(() => {
-      deleteButton()?.click();
-    });
-    expect(store.get(localChannelsAtom)).toHaveLength(1);
-
-    toggleAcknowledge();
-    expect(deleteButton()?.disabled).toBe(false);
-
-    act(() => {
-      deleteButton()?.click();
+      archiveButton()?.click();
     });
 
-    // Hard delete: the row is gone from the persisted store.
-    expect(store.get(localChannelsAtom)).toEqual([]);
+    const stored = store.get(localChannelsAtom);
+    expect(stored).toHaveLength(1);
+    expect(stored[0]?.archivedAt).not.toBeNull();
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it("unchecking the acknowledgement disables the action again", () => {
-    renderDialog();
-
-    toggleAcknowledge();
-    expect(deleteButton()?.disabled).toBe(false);
-    toggleAcknowledge();
-    expect(deleteButton()?.disabled).toBe(true);
-  });
-
   it("surfaces a reducer failure inline without closing", () => {
-    // A channel missing from the store (already removed elsewhere) makes the
+    // A channel missing from the store (already deleted elsewhere) makes the
     // reducer report "invalid" — the dialog must show the error, not close.
     store.set(localChannelsAtom, []);
     const onClose = vi.fn();
     renderDialog({ onClose });
 
-    toggleAcknowledge();
     act(() => {
-      deleteButton()?.click();
+      archiveButton()?.click();
     });
 
     expect(
-      document.querySelector('[data-testid="local-channel-delete-error"]')
+      document.querySelector('[data-testid="local-channel-archive-error"]')
         ?.textContent
-    ).toBe("cloud.channels.delete.error");
+    ).toBe("cloud.channels.archive.error");
     expect(onClose).not.toHaveBeenCalled();
   });
 });

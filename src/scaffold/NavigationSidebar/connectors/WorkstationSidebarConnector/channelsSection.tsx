@@ -1,6 +1,6 @@
 /**
  * Cloud-org "Channels" sidebar section (Slack-style org channels). Rows
- * navigate: clicking one opens (or focuses) its `ChannelPanelView` tab and
+ * navigate: clicking one opens (or focuses) its discussion-channel tab and
  * the row takes the ordinary selected state. The cloud message plane is
  * still gated — `0014_org_channels.sql` ships the control plane only, so
  * that surface renders read-only with a disabled composer.
@@ -25,7 +25,7 @@
  */
 import { MenuItem, Menu as TauriMenu } from "@tauri-apps/api/menu";
 import { useAtomValue, useSetAtom } from "jotai";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import Message from "@src/components/Message";
@@ -47,6 +47,7 @@ import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/compone
 import {
   activeChatPanelTabAtom,
   openChannelInChatPanelTabAtom,
+  reconcileDiscussionChannelTabsAtom,
 } from "@src/store/chatPanel/chatPanelTabsAtom";
 
 import {
@@ -114,17 +115,39 @@ export function useCloudChannelsSection({
   const bumpChannelsVersion = useSetAtom(bumpOrg2CloudChannelsVersionAtom);
   const activeChatPanelTab = useAtomValue(activeChatPanelTabAtom);
   const openChannelTab = useSetAtom(openChannelInChatPanelTabAtom);
+  const reconcileChannelTabs = useSetAtom(reconcileDiscussionChannelTabsAtom);
+  const accessibleChannels = useMemo(
+    () => [...channels, ...archivedChannels],
+    [archivedChannels, channels]
+  );
+
+  // `includeArchived: true` makes this an authoritative access listing:
+  // absence means revoked or hard-deleted, never merely archived.
+  useEffect(() => {
+    if (phase !== "ready" || !orgId) return;
+    reconcileChannelTabs({
+      scope: "cloud",
+      orgId,
+      channels: accessibleChannels.map((channel) => ({
+        scope: "cloud",
+        orgId,
+        channelId: channel.id,
+        name: channel.name,
+        visibility: channel.visibility,
+      })),
+    });
+  }, [accessibleChannels, orgId, phase, reconcileChannelTabs]);
 
   // Archived rows navigate too: archiving hides a channel from the active
   // list, it does not make its history unreadable.
   const channelsByRowId = useMemo(() => {
     const map = new Map<string, CloudChannel>();
     if (!orgId) return map;
-    for (const channel of [...channels, ...archivedChannels]) {
+    for (const channel of accessibleChannels) {
       map.set(buildCloudChannelRowId(orgId, channel.id), channel);
     }
     return map;
-  }, [archivedChannels, channels, orgId]);
+  }, [accessibleChannels, orgId]);
 
   const isOrgAdmin = useMemo(() => {
     const activeOrg = orgId
@@ -136,9 +159,31 @@ export function useCloudChannelsSection({
   const [dialogState, setDialogState] = useState<ChannelsDialogState | null>(
     null
   );
-  // An org switch invalidates any channel-bound dialog target.
+  const accessibleChannelIds = useMemo(
+    () => new Set(accessibleChannels.map((channel) => channel.id)),
+    [accessibleChannels]
+  );
+  // An org switch, revocation, or hard delete invalidates a channel-bound
+  // dialog target. Derive closed instead of resetting state in an effect.
   const activeDialog =
-    dialogState && dialogState.orgId === orgId ? dialogState : null;
+    dialogState &&
+    dialogState.orgId === orgId &&
+    (dialogState.kind === "create" ||
+      accessibleChannelIds.has(dialogState.channel.id))
+      ? dialogState
+      : null;
+
+  // Deriving closed hides the dialog but must not PARK it: with the stale
+  // state retained, switching back to this org hours later would silently
+  // reopen a possibly-destructive dialog. Drop the state once it derives
+  // closed (microtask keeps the render pure for the lint contract).
+  useEffect(() => {
+    if (dialogState && activeDialog === null) {
+      queueMicrotask(() => {
+        setDialogState((current) => (current === dialogState ? null : current));
+      });
+    }
+  }, [activeDialog, dialogState]);
 
   const closeDialog = useCallback(() => setDialogState(null), []);
 
@@ -203,10 +248,14 @@ export function useCloudChannelsSection({
         [...settingsEntries, ...kinds.map((kind) => entries[kind])].map(
           (entry) => MenuItem.new(entry)
         )
-      ).then(async (menuItems) => {
-        const menu = await TauriMenu.new({ items: menuItems });
-        await menu.popup();
-      });
+      )
+        .then(async (menuItems) => {
+          const menu = await TauriMenu.new({ items: menuItems });
+          await menu.popup();
+        })
+        .catch((error) => {
+          log.warn("channel row menu failed to open:", error);
+        });
     },
     [isOrgAdmin, openMembersDialog, orgId, t]
   );
@@ -306,12 +355,6 @@ export function useCloudChannelsSection({
       ? buildCloudChannelRowId(orgId, activeChatPanelTab.channel.channelId)
       : null;
 
-  // Create/delete land through dialogs whose RPCs the realtime `channels`
-  // signal may lag; an explicit bump guarantees an immediate refetch.
-  const bumpActiveOrgChannels = useCallback(() => {
-    if (orgId) bumpChannelsVersion(orgId);
-  }, [bumpChannelsVersion, orgId]);
-
   const channelsDialogs = (
     <>
       {/* Keyed per org: the dialog keeps its draft across close/reopen, but
@@ -323,7 +366,6 @@ export function useCloudChannelsSection({
         open={activeDialog?.kind === "create"}
         orgId={orgId}
         onClose={closeDialog}
-        onCreated={bumpActiveOrgChannels}
       />
       {/* Keyed per open + target: each open is a fresh mount, seeding the
           form from the channel without any reset-in-effect. */}
@@ -351,7 +393,6 @@ export function useCloudChannelsSection({
         orgId={orgId}
         channel={activeDialog?.kind === "delete" ? activeDialog.channel : null}
         onClose={closeDialog}
-        onDeleted={bumpActiveOrgChannels}
       />
       <ManageChannelMembersDialog
         open={activeDialog?.kind === "members"}
