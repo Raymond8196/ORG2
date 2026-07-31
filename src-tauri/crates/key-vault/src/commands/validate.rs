@@ -15,6 +15,7 @@ use crate::providers::copilot::CopilotValidator;
 use crate::providers::cursor::CursorValidator;
 use crate::providers::deepseek::DeepSeekQuotaFetcher;
 use crate::providers::google::GoogleValidator;
+use crate::providers::kimi::KimiCodeQuotaFetcher;
 use crate::providers::kiro::KiroValidator;
 use crate::providers::minimax::MiniMaxQuotaFetcher;
 use crate::providers::openai::OpenAIValidator;
@@ -975,6 +976,16 @@ async fn fetch_quota_for_key(
                 .fetch_quota(token, key.base_url.as_deref())
                 .await
         }
+        ModelType::MoonshotApi => {
+            let token = key
+                .api_key
+                .as_deref()
+                .filter(|token| !token.trim().is_empty())
+                .ok_or_else(|| "Kimi Code account has no API key".to_string())?;
+            KimiCodeQuotaFetcher::new()
+                .fetch_quota(token, key.base_url.as_deref())
+                .await
+        }
         ModelType::QoderCli => {
             let cookie =
                 first_non_empty_secret(key.session_token.as_deref(), key.api_key.as_deref())
@@ -1003,6 +1014,8 @@ fn first_non_empty_secret<'a>(
 fn quota_refresh_uses_strict_request_count(key: &crate::key_store::ModelKey) -> bool {
     matches!(key.model_type, ModelType::QoderCli)
         || (key.model_type == ModelType::ZhipuApi && team_scope_from_key(key).is_some())
+        || (key.model_type == ModelType::MoonshotApi
+            && crate::providers::kimi::has_supported_base_url(key.base_url.as_deref()))
 }
 
 pub(super) fn key_can_refresh_quota(key: &crate::key_store::ModelKey) -> bool {
@@ -1020,6 +1033,9 @@ pub(super) fn key_can_refresh_quota(key: &crate::key_store::ModelKey) -> bool {
         | ModelType::DeepseekApi
         | ModelType::OpenrouterApi
         | ModelType::MinimaxApi => has_api_key,
+        ModelType::MoonshotApi => {
+            has_api_key && crate::providers::kimi::has_supported_base_url(key.base_url.as_deref())
+        }
         ModelType::ZhipuApi => has_api_key && !has_partial_team_scope(key),
         ModelType::QoderCli => {
             (has_session_token || has_api_key)
@@ -1043,6 +1059,7 @@ mod direct_quota_dispatch_tests {
             (ModelType::DeepseekApi, "DeepSeek", "no API key"),
             (ModelType::OpenrouterApi, "OpenRouter", "no API key"),
             (ModelType::MinimaxApi, "MiniMax", "no API key"),
+            (ModelType::MoonshotApi, "Kimi Code", "no API key"),
             (ModelType::QoderCli, "Qoder", "no saved cookie or token"),
         ] {
             let key = crate::key_store::ModelKey::new(model_type);
@@ -1081,11 +1098,16 @@ mod direct_quota_dispatch_tests {
             ModelType::DeepseekApi,
             ModelType::OpenrouterApi,
             ModelType::MinimaxApi,
+            ModelType::MoonshotApi,
             ModelType::QoderCli,
         ] {
+            let is_kimi_code = model_type == ModelType::MoonshotApi;
             let mut key = crate::key_store::ModelKey::new(model_type);
             key.api_key = Some("api-key".to_string());
             key.session_token = Some("session-token".to_string());
+            if is_kimi_code {
+                key.base_url = Some("https://api.kimi.com/coding".to_string());
+            }
             assert!(key_can_refresh_quota(&key));
         }
 
@@ -1131,6 +1153,24 @@ mod direct_quota_dispatch_tests {
         assert!(quota_refresh_uses_strict_request_count(&key));
         key.base_url = Some("https://example.com".into());
         assert!(!key_can_refresh_quota(&key));
+    }
+
+    #[test]
+    fn kimi_code_capability_is_fixed_route_and_strict_one_attempt() {
+        let mut key = crate::key_store::ModelKey::new(ModelType::MoonshotApi);
+        key.api_key = Some("kimi-code-key".into());
+        assert!(!key_can_refresh_quota(&key));
+        assert!(!quota_refresh_uses_strict_request_count(&key));
+
+        key.base_url = Some("https://api.moonshot.ai/v1".into());
+        assert!(!key_can_refresh_quota(&key));
+        assert!(!quota_refresh_uses_strict_request_count(&key));
+
+        let ordinary_revision = quota_credential_revision(&key);
+        key.base_url = Some("https://api.kimi.com/coding/".into());
+        assert!(key_can_refresh_quota(&key));
+        assert!(quota_refresh_uses_strict_request_count(&key));
+        assert_ne!(ordinary_revision, quota_credential_revision(&key));
     }
 
     #[test]
