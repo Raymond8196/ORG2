@@ -69,6 +69,12 @@ export interface CloudPendingPlay {
   /** Events the download would actually fetch (listing count minus covered). */
   pendingEvents: number;
   etaMs: number;
+  /**
+   * What Start resumes: a read-only replay or a Take Over pre-import. Both
+   * ride the same card/progress surface; the start-request consumer routes
+   * by this.
+   */
+  kind: "replay" | "fork";
 }
 
 /** Keyed by the LOCAL imported-session id (the Chat Pane tab's key). */
@@ -103,6 +109,7 @@ export interface CloudDownloadStartRequest {
   requestId: number;
   rowId: string;
   orgId: string;
+  kind: "replay" | "fork";
 }
 
 /** Single-slot: a newer request replaces an unconsumed older one. */

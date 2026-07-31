@@ -294,6 +294,68 @@ pub struct ImportedToolCall {
     pub created_at: String,
 }
 
+/// Parse-state map for tool calls awaiting their output row. Drains in
+/// insertion (file-appearance) order: `HashMap` iteration order is randomized
+/// per process, and a nondeterministic emit order changes positional chunk
+/// ids across re-ingests of an unchanged transcript, which the cloud sync
+/// plane sees as an endless chain mismatch and answers with epoch rewrites.
+pub struct PendingCallMap<T> {
+    entries: HashMap<String, (u64, T)>,
+    next_order: u64,
+}
+
+impl<T> Default for PendingCallMap<T> {
+    fn default() -> Self {
+        Self {
+            entries: HashMap::new(),
+            next_order: 0,
+        }
+    }
+}
+
+impl<T> PendingCallMap<T> {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn insert(&mut self, key: String, value: T) {
+        let order = self.next_order;
+        self.next_order += 1;
+        self.entries.insert(key, (order, value));
+    }
+
+    /// Insert under a caller-supplied order slot, so an entry that moves
+    /// between keys (or maps) keeps its original file position.
+    pub fn reinsert(&mut self, key: String, order: u64, value: T) {
+        self.next_order = self.next_order.max(order.saturating_add(1));
+        self.entries.insert(key, (order, value));
+    }
+
+    pub fn remove(&mut self, key: &str) -> Option<T> {
+        self.entries.remove(key).map(|(_, value)| value)
+    }
+
+    pub fn take(&mut self, key: &str) -> Option<(u64, T)> {
+        self.entries.remove(key)
+    }
+
+    pub fn get_mut(&mut self, key: &str) -> Option<&mut T> {
+        self.entries.get_mut(key).map(|(_, value)| value)
+    }
+
+    pub fn drain_in_file_order(self) -> impl Iterator<Item = T> {
+        let mut entries = self.entries.into_iter().collect::<Vec<_>>();
+        entries.sort_unstable_by(
+            |(left_key, (left_order, _)), (right_key, (right_order, _))| {
+                left_order
+                    .cmp(right_order)
+                    .then_with(|| left_key.cmp(right_key))
+            },
+        );
+        entries.into_iter().map(|(_, (_, value))| value)
+    }
+}
+
 pub fn effective_limit(limit: usize) -> usize {
     if limit == 0 {
         DEFAULT_LIST_LIMIT

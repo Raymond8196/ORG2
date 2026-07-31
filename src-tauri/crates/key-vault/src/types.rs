@@ -40,6 +40,14 @@ impl UsageItem {
     }
 }
 
+/// Exact monetary balance exposed by providers that do not publish a
+/// percentage-based quota window (for example DeepSeek pay-as-you-go).
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct QuotaBalance {
+    pub amount: f64,
+    pub currency: String,
+}
+
 /// Quota/usage information for an API key.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct QuotaInfo {
@@ -65,6 +73,10 @@ pub struct QuotaInfo {
     pub quota_source: Option<String>,
     /// All usage items (cursor_auto_composer, cursor_api, chat, completions, etc.)
     pub usage_items: Vec<UsageItem>,
+    /// Exact provider-reported balance. This is intentionally separate from
+    /// percentage windows so callers never synthesize a misleading meter.
+    #[serde(default)]
+    pub balance: Option<QuotaBalance>,
     /// Auto-generated message from API
     pub auto_message: Option<String>,
     /// Named message from API

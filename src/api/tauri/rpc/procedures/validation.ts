@@ -24,6 +24,23 @@ export const validation = {
     .output(schemas.validation.KeyInfoSchema.nullable())
     .build(),
 
+  getKeyQuotaRefreshStatus: defineProcedure("get_key_quota_refresh_status")
+    .input(schemas.validation.GetKeyQuotaRefreshStatusInput)
+    .output(schemas.validation.KeyQuotaRefreshStatusInfoSchema.nullable())
+    .build(),
+
+  cursorSyncBillingUsage: defineProcedure("cursor_sync_billing_usage")
+    .input(schemas.validation.CursorBillingUsageInput)
+    .output(schemas.validation.CursorBillingUsageSnapshotSchema)
+    .build(),
+
+  cursorArchiveBillingUsageCache: defineProcedure(
+    "cursor_archive_billing_usage_cache"
+  )
+    .input(schemas.validation.CursorArchiveBillingUsageCacheInput)
+    .output(schemas.validation.ArchivedCursorBillingUsageCacheSchema)
+    .build(),
+
   listKeys: defineProcedure("list_keys")
     .output(z.array(schemas.validation.KeyInfoSchema))
     .build(),

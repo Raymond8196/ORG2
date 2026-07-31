@@ -12,6 +12,8 @@
  */
 import { atom, type createStore } from "jotai";
 
+import { formatDurationCompact } from "@src/util/time/formatDuration";
+
 export interface CloudSessionDownloadProgress {
   /** Remote row id (`RemoteTeammateSessionMetadata.id`) this download serves. */
   rowId: string;
@@ -208,14 +210,5 @@ export function createThrottledProgressReporter(
 
 /** Compact locale-neutral duration: "8s", "1m20s", "2h05m". */
 export function formatCloudDownloadEta(etaMs: number): string {
-  const totalSeconds = Math.max(1, Math.round(etaMs / 1000));
-  if (totalSeconds < 60) return `${totalSeconds}s`;
-  const totalMinutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  if (totalMinutes < 60) {
-    return seconds > 0 ? `${totalMinutes}m${seconds}s` : `${totalMinutes}m`;
-  }
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  return `${hours}h${String(minutes).padStart(2, "0")}m`;
+  return formatDurationCompact(etaMs);
 }
