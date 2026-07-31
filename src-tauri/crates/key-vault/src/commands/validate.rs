@@ -20,6 +20,11 @@ use crate::providers::minimax::MiniMaxQuotaFetcher;
 use crate::providers::openai::OpenAIValidator;
 use crate::providers::opencode_go::{workspace_id_override_from_key, OpenCodeGoQuotaFetcher};
 use crate::providers::openrouter::OpenRouterQuotaFetcher;
+use crate::providers::zai_team::{
+    has_partial_team_scope, team_scope_from_key, ZaiTeamQuotaFetcher,
+    ORGANIZATION_METADATA_KEY as ZAI_TEAM_ORGANIZATION_METADATA_KEY,
+    PROJECT_METADATA_KEY as ZAI_TEAM_PROJECT_METADATA_KEY,
+};
 use crate::providers::zhipu::ZhipuQuotaFetcher;
 use crate::quota_runtime::{
     QuotaAttemptState, QuotaFreshness, QuotaRefreshCompletion, QuotaRefreshRuntime,
@@ -511,21 +516,34 @@ pub async fn refresh_key_quota(
     .await
     .map_err(|err| format!("Quota key lookup worker failed: {err}"))??;
     let credential_revision = quota_credential_revision(&key);
+    let strict_request_count = quota_refresh_uses_strict_request_count(&key);
     let operation_key = key.clone();
     let operation_revision = credential_revision.clone();
+    let operation = move || {
+        let key = operation_key.clone();
+        let revision = operation_revision.clone();
+        async move { refresh_and_store_key_quota(key, revision).await }
+    };
 
-    QUOTA_REFRESH_RUNTIME
-        .refresh(
-            key_id.clone(),
-            credential_revision,
-            force.unwrap_or(false),
-            move || {
-                let key = operation_key.clone();
-                let revision = operation_revision.clone();
-                async move { refresh_and_store_key_quota(key, revision).await }
-            },
-        )
-        .await?;
+    if strict_request_count {
+        QUOTA_REFRESH_RUNTIME
+            .refresh_without_transient_retry(
+                key_id.clone(),
+                credential_revision,
+                force.unwrap_or(false),
+                operation,
+            )
+            .await?;
+    } else {
+        QUOTA_REFRESH_RUNTIME
+            .refresh(
+                key_id.clone(),
+                credential_revision,
+                force.unwrap_or(false),
+                operation,
+            )
+            .await?;
+    }
 
     tokio::task::spawn_blocking(move || {
         KEY_SERVICE
@@ -761,6 +779,20 @@ pub(super) fn quota_credential_revision(key: &crate::key_store::ModelKey) -> Str
         "opencode_workspace",
         workspace_id_override_from_key(key),
     );
+    hash_field(
+        &mut hasher,
+        ZAI_TEAM_ORGANIZATION_METADATA_KEY,
+        key.account_metadata
+            .get(ZAI_TEAM_ORGANIZATION_METADATA_KEY)
+            .map(String::as_str),
+    );
+    hash_field(
+        &mut hasher,
+        ZAI_TEAM_PROJECT_METADATA_KEY,
+        key.account_metadata
+            .get(ZAI_TEAM_PROJECT_METADATA_KEY)
+            .map(String::as_str),
+    );
 
     format!("{:x}", hasher.finalize())
 }
@@ -906,9 +938,18 @@ async fn fetch_quota_for_key(
                 .as_deref()
                 .filter(|token| !token.trim().is_empty())
                 .ok_or_else(|| "Zhipu account has no API key".to_string())?;
-            ZhipuQuotaFetcher::new()
-                .fetch_quota(token, key.base_url.as_deref())
-                .await
+            if let Some(scope) = team_scope_from_key(key) {
+                ZaiTeamQuotaFetcher::new().fetch_quota(token, scope).await
+            } else if has_partial_team_scope(key) {
+                Err(format!(
+                    "ZAI Team quota requires both {ZAI_TEAM_ORGANIZATION_METADATA_KEY} \
+                     and {ZAI_TEAM_PROJECT_METADATA_KEY}"
+                ))
+            } else {
+                ZhipuQuotaFetcher::new()
+                    .fetch_quota(token, key.base_url.as_deref())
+                    .await
+            }
         }
         ModelType::DeepseekApi => {
             let token = key
@@ -943,6 +984,10 @@ async fn fetch_quota_for_key(
     }
 }
 
+fn quota_refresh_uses_strict_request_count(key: &crate::key_store::ModelKey) -> bool {
+    key.model_type == ModelType::ZhipuApi && team_scope_from_key(key).is_some()
+}
+
 pub(super) fn key_can_refresh_quota(key: &crate::key_store::ModelKey) -> bool {
     let has_api_key = key
         .api_key
@@ -955,10 +1000,10 @@ pub(super) fn key_can_refresh_quota(key: &crate::key_store::ModelKey) -> bool {
     match key.model_type {
         ModelType::CursorCli => has_session_token,
         ModelType::Copilot
-        | ModelType::ZhipuApi
         | ModelType::DeepseekApi
         | ModelType::OpenrouterApi
         | ModelType::MinimaxApi => has_api_key,
+        ModelType::ZhipuApi => has_api_key && !has_partial_team_scope(key),
         ModelType::OpenCode => has_session_token || has_api_key,
         ModelType::ClaudeCode | ModelType::Codex => {
             key.auth_method == AuthMethod::Oauth && has_session_token
@@ -972,7 +1017,7 @@ mod direct_quota_dispatch_tests {
     use super::*;
 
     #[tokio::test]
-    async fn wave_two_provider_variants_reach_their_stored_key_dispatch_arms() {
+    async fn direct_provider_variants_reach_their_stored_key_dispatch_arms() {
         for (model_type, expected_provider) in [
             (ModelType::DeepseekApi, "DeepSeek"),
             (ModelType::OpenrouterApi, "OpenRouter"),
@@ -1031,6 +1076,27 @@ mod direct_quota_dispatch_tests {
         assert!(!key_can_refresh_quota(&crate::key_store::ModelKey::new(
             ModelType::AnthropicApi
         )));
+    }
+
+    #[test]
+    fn zai_team_capability_requires_complete_scope_and_revision_tracks_it() {
+        let mut key = crate::key_store::ModelKey::new(ModelType::ZhipuApi);
+        key.api_key = Some("api-key".to_string());
+        assert!(key_can_refresh_quota(&key));
+        assert!(!quota_refresh_uses_strict_request_count(&key));
+        let personal_revision = quota_credential_revision(&key);
+
+        key.account_metadata
+            .insert(ZAI_TEAM_ORGANIZATION_METADATA_KEY.into(), "org-1".into());
+        assert!(!key_can_refresh_quota(&key));
+        let partial_revision = quota_credential_revision(&key);
+        assert_ne!(personal_revision, partial_revision);
+
+        key.account_metadata
+            .insert(ZAI_TEAM_PROJECT_METADATA_KEY.into(), "project-1".into());
+        assert!(key_can_refresh_quota(&key));
+        assert!(quota_refresh_uses_strict_request_count(&key));
+        assert_ne!(partial_revision, quota_credential_revision(&key));
     }
 }
 

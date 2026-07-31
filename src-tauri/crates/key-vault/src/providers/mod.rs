@@ -15,4 +15,5 @@ pub mod opencode_go;
 pub mod openrouter;
 pub(crate) mod quota_http;
 pub(crate) mod quota_windows;
+pub mod zai_team;
 pub mod zhipu;

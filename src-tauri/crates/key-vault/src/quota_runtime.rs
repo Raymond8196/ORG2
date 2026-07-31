@@ -276,6 +276,42 @@ where
         F: Fn() -> Fut + Send + Sync + 'static,
         Fut: Future<Output = Result<QuotaRefreshCompletion<T>, String>> + Send + 'static,
     {
+        self.refresh_with_retry_policy(account_id, credential_revision, force, true, operation)
+            .await
+    }
+
+    /// Refresh with the same cache, single-flight, and concurrency policy but
+    /// without repeating a transient provider request.
+    ///
+    /// Use this for endpoints whose request-count contract is stricter than
+    /// the default one-retry resilience policy.
+    pub async fn refresh_without_transient_retry<F, Fut>(
+        &self,
+        account_id: String,
+        credential_revision: String,
+        force: bool,
+        operation: F,
+    ) -> Result<T, String>
+    where
+        F: Fn() -> Fut + Send + Sync + 'static,
+        Fut: Future<Output = Result<QuotaRefreshCompletion<T>, String>> + Send + 'static,
+    {
+        self.refresh_with_retry_policy(account_id, credential_revision, force, false, operation)
+            .await
+    }
+
+    async fn refresh_with_retry_policy<F, Fut>(
+        &self,
+        account_id: String,
+        credential_revision: String,
+        force: bool,
+        retry_transient: bool,
+        operation: F,
+    ) -> Result<T, String>
+    where
+        F: Fn() -> Fut + Send + Sync + 'static,
+        Fut: Future<Output = Result<QuotaRefreshCompletion<T>, String>> + Send + 'static,
+    {
         let now = Instant::now();
         let started_at = SystemTime::now();
         let mut superseded = None;
@@ -373,7 +409,10 @@ where
             let provider_worker = tokio::spawn(async move {
                 let permit = permits.acquire_owned().await;
                 match permit {
-                    Ok(_permit) => run_with_one_transient_retry(&operation).await,
+                    Ok(_permit) if retry_transient => {
+                        run_with_one_transient_retry(&operation).await
+                    }
+                    Ok(_permit) => operation().await,
                     Err(_) => Err("Quota refresh coordinator is shutting down".to_string()),
                 }
             });
