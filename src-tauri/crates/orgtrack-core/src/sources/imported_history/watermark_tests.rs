@@ -150,6 +150,101 @@ fn prefix_mutation_forces_a_full_reparse() {
 }
 
 #[test]
+fn same_size_mtime_change_forces_a_full_reparse() {
+    let path = temp_transcript("same-size-rewrite", "aa\nbb\n");
+    let (mtime, size) = stat(&path);
+    let mut reader =
+        WatermarkedTranscriptReader::open(&path, "Test", None, 1, mtime, size).expect("open full");
+    read_all(&mut reader);
+    let watermark = reader.into_watermark(1, mtime, size, "state-1".to_string());
+
+    fs::write(&path, "cc\ndd\n").expect("same-size rewrite");
+    let mut reopened =
+        WatermarkedTranscriptReader::open(&path, "Test", Some(&watermark), 1, mtime + 1, size)
+            .expect("open rewritten");
+    assert!(reopened.resume_state_json().is_none());
+    assert_eq!(
+        read_all(&mut reopened),
+        vec![("cc".to_string(), true), ("dd".to_string(), true)]
+    );
+
+    cleanup(&path);
+}
+
+#[test]
+fn rotated_file_identity_forces_a_full_reparse() {
+    let path = temp_transcript("rotation", "old\n");
+    let old_path = path.with_extension("old");
+    let (mtime, size) = stat(&path);
+    let mut reader =
+        WatermarkedTranscriptReader::open(&path, "Test", None, 1, mtime, size).expect("open full");
+    read_all(&mut reader);
+    let watermark = reader.into_watermark(1, mtime, size, "state-1".to_string());
+
+    fs::rename(&path, &old_path).expect("rotate old file");
+    fs::write(&path, "new\nappended\n").expect("create replacement");
+    let (rotated_mtime, rotated_size) = stat(&path);
+    let mut reopened = WatermarkedTranscriptReader::open(
+        &path,
+        "Test",
+        Some(&watermark),
+        1,
+        rotated_mtime.max(mtime),
+        rotated_size,
+    )
+    .expect("open replacement");
+    assert!(reopened.resume_state_json().is_none());
+    assert_eq!(
+        read_all(&mut reopened),
+        vec![("new".to_string(), true), ("appended".to_string(), true)]
+    );
+
+    fs::remove_file(&old_path).ok();
+    cleanup(&path);
+}
+
+#[test]
+fn oversized_line_is_rejected_without_advancing_a_watermark() {
+    let path = temp_transcript("oversized", "stable\n");
+    let (mtime, size) = stat(&path);
+    let mut reader =
+        WatermarkedTranscriptReader::open(&path, "Test", None, 1, mtime, size).expect("open full");
+    assert_eq!(
+        reader.next_line().expect("read stable"),
+        Some(TranscriptLine {
+            text: "stable".to_string(),
+            terminated: true,
+        })
+    );
+    let watermark = reader.into_watermark(1, mtime, size, "stable-state".to_string());
+
+    let oversized = vec![b'x'; MAX_JSONL_LINE_BYTES + 1];
+    fs::OpenOptions::new()
+        .append(true)
+        .open(&path)
+        .and_then(|mut file| {
+            std::io::Write::write_all(&mut file, &oversized)?;
+            std::io::Write::write_all(&mut file, b"\n")
+        })
+        .expect("append oversized record");
+    let (mtime_after, size_after) = stat(&path);
+    let mut resumed = WatermarkedTranscriptReader::open(
+        &path,
+        "Test",
+        Some(&watermark),
+        1,
+        mtime_after,
+        size_after,
+    )
+    .expect("open appended file");
+    assert_eq!(resumed.resume_state_json(), Some("stable-state"));
+    let error = resumed.next_line().expect_err("oversized line rejected");
+    assert!(error.contains("record exceeds"));
+
+    cleanup(&path);
+}
+
+#[test]
 fn size_regression_and_parser_version_change_force_a_full_reparse() {
     let path = temp_transcript("invalidate", "aa\nbb\n");
     let (mtime, size) = stat(&path);
