@@ -48,6 +48,7 @@ describe("cloud download control atoms", () => {
         orgId: "org-1",
         pendingEvents: 4450,
         etaMs: 17_000,
+        kind: "replay",
       },
     });
     expect(
@@ -65,11 +66,13 @@ describe("cloud download control atoms", () => {
       requestId: 1,
       rowId: "row-1",
       orgId: "org-1",
+      kind: "replay",
     });
     store.set(cloudDownloadStartRequestAtom, {
       requestId: 2,
       rowId: "row-2",
       orgId: "org-1",
+      kind: "fork",
     });
     expect(store.get(cloudDownloadStartRequestAtom)?.rowId).toBe("row-2");
   });

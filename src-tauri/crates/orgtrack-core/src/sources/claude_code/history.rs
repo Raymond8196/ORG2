@@ -1305,7 +1305,8 @@ fn load_claude_code_history_from_reader<R: BufRead>(
     forced_first_user_id: Option<&str>,
 ) -> Result<Vec<ActivityChunk>, String> {
     let mut chunks = Vec::new();
-    let mut pending_tool_calls: HashMap<String, ImportedToolCall> = HashMap::new();
+    let mut pending_tool_calls: imported_history::PendingCallMap<ImportedToolCall> =
+        imported_history::PendingCallMap::new();
     let mut sequence = start_sequence;
     let mut forced_first_user_id = forced_first_user_id;
 
@@ -1409,7 +1410,7 @@ fn load_claude_code_history_from_reader<R: BufRead>(
         }
     }
 
-    for call in pending_tool_calls.into_values() {
+    for call in pending_tool_calls.drain_in_file_order() {
         chunks.push(imported_history::tool_call_chunk(
             session_id,
             CLAUDE_CODE_PROVIDER_SLUG,
