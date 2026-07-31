@@ -155,6 +155,67 @@ fn walker_reuses_unchanged_directories_and_detects_changes() {
 }
 
 #[test]
+fn bounded_walker_stops_at_the_declared_leaf_depth() {
+    let root = temp_tree("bounded");
+    fs::create_dir_all(root.join("project/nested")).expect("create dirs");
+    fs::write(root.join("root.jsonl"), "root").expect("write root");
+    fs::write(root.join("project/session.jsonl"), "session").expect("write session");
+    fs::write(root.join("project/nested/foreign.jsonl"), "foreign").expect("write foreign");
+
+    let empty = HashMap::new();
+    let mut walker = SnapshotDirWalker::new(&empty, "jsonl", "Test");
+    let mut files = Vec::new();
+    walker
+        .collect_files_bounded(&root, &mut files, 1)
+        .expect("bounded walk");
+
+    assert!(files.contains(&root.join("root.jsonl")));
+    assert!(files.contains(&root.join("project/session.jsonl")));
+    assert!(!files.contains(&root.join("project/nested/foreign.jsonl")));
+    assert_eq!(walker.dirs_enumerated, 2);
+
+    fs::remove_dir_all(&root).ok();
+}
+
+#[cfg(unix)]
+#[test]
+fn bounded_walker_does_not_follow_symlinked_files_or_directories() {
+    use std::os::unix::fs::symlink;
+
+    let root = temp_tree("bounded-symlink");
+    let outside = temp_tree("bounded-symlink-outside");
+    fs::create_dir_all(root.join("project")).expect("create project");
+    fs::write(outside.join("foreign.jsonl"), "foreign").expect("write foreign");
+    symlink(&outside, root.join("linked-project")).expect("link directory");
+    symlink(
+        outside.join("foreign.jsonl"),
+        root.join("project/linked.jsonl"),
+    )
+    .expect("link file");
+
+    let empty = HashMap::new();
+    let mut walker = SnapshotDirWalker::new(&empty, "jsonl", "Test");
+    let mut files = Vec::new();
+    walker
+        .collect_files_bounded(&root, &mut files, 1)
+        .expect("bounded walk");
+
+    assert!(files.is_empty());
+    fs::remove_dir_all(&root).ok();
+    fs::remove_dir_all(&outside).ok();
+}
+
+#[test]
+fn discovered_file_collection_has_a_hard_cap() {
+    let mut files = vec![PathBuf::from("existing"); MAX_SNAPSHOT_FILES];
+    let error = push_bounded_file(&mut files, PathBuf::from("extra"), "Test")
+        .expect_err("file cap must reject more work");
+
+    assert!(error.contains("file safety limit"));
+    assert_eq!(files.len(), MAX_SNAPSHOT_FILES);
+}
+
+#[test]
 fn walker_ignores_racy_snapshot_whose_scan_did_not_postdate_dir_mtime() {
     let root = temp_tree("racy");
     fs::write(root.join("a.jsonl"), "a").expect("write a");

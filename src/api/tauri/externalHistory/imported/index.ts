@@ -14,6 +14,7 @@ import { cursorCliHistoryChunks } from "../sources/cursorCli";
 import { mimoCodeHistoryChunks } from "../sources/mimoCode";
 import { ompHistoryChunks } from "../sources/omp";
 import { opencodeHistoryChunks } from "../sources/opencode";
+import { piHistoryChunks } from "../sources/pi";
 import { qoderHistoryChunks } from "../sources/qoder";
 import { qoderCliHistoryChunks } from "../sources/qoderCli";
 import { traeHistoryChunks } from "../sources/trae";
@@ -193,6 +194,13 @@ export const IMPORTED_HISTORY_SOURCES: readonly ImportedHistorySource[] = [
     statTranscript: (sessionId) => importedHistoryStat("omp", sessionId),
     loadPreviewChunks: loadGenericPreviewChunks,
     loadFullTranscriptChunks: ompHistoryChunks,
+  },
+  {
+    ...descriptorFor("pi"),
+    dispatchCategory: "external_history",
+    statTranscript: (sessionId) => importedHistoryStat("pi", sessionId),
+    loadPreviewChunks: loadGenericPreviewChunks,
+    loadFullTranscriptChunks: piHistoryChunks,
   },
   {
     ...descriptorFor("qoder_cli"),

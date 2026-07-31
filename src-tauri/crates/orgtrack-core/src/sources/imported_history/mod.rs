@@ -55,6 +55,7 @@ enum ImportedHistoryLoader {
     Qoder,
     MimoCode,
     Omp,
+    Pi,
     QoderCli,
 }
 
@@ -87,6 +88,8 @@ fn imported_history_loader(session_id: &str) -> Option<ImportedHistoryLoader> {
         Some(ImportedHistoryLoader::MimoCode)
     } else if session_id.starts_with(super::omp::history::OMP_SESSION_PREFIX) {
         Some(ImportedHistoryLoader::Omp)
+    } else if session_id.starts_with(super::pi::history::PI_SESSION_PREFIX) {
+        Some(ImportedHistoryLoader::Pi)
     } else if session_id.starts_with(super::qoder_cli::history::QODER_CLI_SESSION_PREFIX) {
         Some(ImportedHistoryLoader::QoderCli)
     } else {
@@ -149,6 +152,9 @@ pub fn load_activity_chunks_for_session(
         }
         Some(ImportedHistoryLoader::Omp) => {
             super::omp::history::load_omp_history_for_session(conn, session_id)?
+        }
+        Some(ImportedHistoryLoader::Pi) => {
+            super::pi::history::load_pi_history_for_session(conn, session_id)?
         }
         Some(ImportedHistoryLoader::QoderCli) => {
             super::qoder_cli::history::load_qoder_cli_history_for_session(conn, session_id)?
@@ -866,6 +872,7 @@ mod impact_tests {
             ("qoderapp-id", ImportedHistoryLoader::Qoder),
             ("mimocodeapp-id", ImportedHistoryLoader::MimoCode),
             ("ompapp-id", ImportedHistoryLoader::Omp),
+            ("piapp-id", ImportedHistoryLoader::Pi),
             ("qodercliapp-id", ImportedHistoryLoader::QoderCli),
         ];
 

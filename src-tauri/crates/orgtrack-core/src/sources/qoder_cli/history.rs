@@ -22,6 +22,9 @@ fn config() -> AnthropicJsonlSource {
         // Qoder keeps delegated-agent transcripts below each primary session.
         // They are replay internals, not standalone sessions in the sidebar.
         exclude_subagent_dirs: true,
+        max_discovery_depth: None,
+        incremental_metadata: false,
+        session_id_from_header: false,
     }
 }
 

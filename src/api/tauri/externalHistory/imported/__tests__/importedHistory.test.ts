@@ -39,6 +39,7 @@ describe("imported history source helpers", () => {
     expect(isImportedHistoryReplayableSourceId("warp")).toBe(true);
     expect(isImportedHistoryReplayableSourceId("mimo_code")).toBe(true);
     expect(isImportedHistoryReplayableSourceId("omp")).toBe(true);
+    expect(isImportedHistoryReplayableSourceId("pi")).toBe(true);
     expect(isImportedHistoryReplayableSourceId("qoder_cli")).toBe(true);
     expect(isImportedHistoryReplayableSourceId("qwen_code")).toBe(false);
     expect(isImportedHistoryReplayableSourceId(null)).toBe(false);
@@ -47,6 +48,7 @@ describe("imported history source helpers", () => {
   it("filters detected external CLIs without replay support", () => {
     const filtered = getDetectedExternalCliSourcesWithoutReplay([
       probe("codex_app", true),
+      probe("pi", true),
       probe("qwen_code"),
     ]);
 

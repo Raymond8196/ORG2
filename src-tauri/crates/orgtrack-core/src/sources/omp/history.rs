@@ -20,6 +20,9 @@ fn config() -> AnthropicJsonlSource {
         parser_version: 1,
         candidate_roots: omp_history_candidate_paths(),
         exclude_subagent_dirs: false,
+        max_discovery_depth: None,
+        incremental_metadata: false,
+        session_id_from_header: false,
     }
 }
 
