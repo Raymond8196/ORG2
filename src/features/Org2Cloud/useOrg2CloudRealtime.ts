@@ -82,6 +82,7 @@ import {
 import { refreshOrgEntitlement } from "./org2CloudEntitlementCoordinator";
 import { org2CloudMemberNamesAtom } from "./org2CloudMemberNamesAtom";
 import { clearCloudOrgMembersCache } from "./org2CloudMembersCoordinator";
+import { endpointForOrigin } from "./org2CloudOrgEndpointRouter";
 import {
   org2CloudOrgsAtom,
   org2CloudRosterRealtimeConnectedAtom,
@@ -319,7 +320,10 @@ export function useOrg2CloudRealtime(): void {
     setBroadcastSignals(false);
     const current = authRef.current;
     if (!userId || !current) return undefined;
-    void getCloudCapabilities(current.accessToken).then((capabilities) => {
+    void getCloudCapabilities(
+      current.accessToken,
+      endpointForOrigin(current.supabaseUrl)
+    ).then((capabilities) => {
       if (!cancelled && capabilities.broadcastSignals) {
         setBroadcastSignals(true);
       }

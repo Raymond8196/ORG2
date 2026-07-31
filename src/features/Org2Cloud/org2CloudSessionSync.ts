@@ -79,7 +79,7 @@ const TURN_INDEX_PROMPT_MAX_CHARS = 240;
 const TURN_INDEX_MAX_ROUNDS = 2_000;
 
 /** Mirror of Rust normalize_turn_user_preview (turn_window.rs) + truncation. */
-function normalizeTurnPromptPreview(preview: string): string {
+export function normalizeTurnPromptPreview(preview: string): string {
   const trimmed = preview.trim();
   const stripped = trimmed.startsWith("user_message ")
     ? trimmed.slice("user_message ".length)
@@ -454,6 +454,24 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
     const shrinkKey = `${orgId}:${sessionId}`;
     let confirmedShrink = false;
     if (cursor && events.length < cursor.pushedCount) {
+      if (events.length === 0) {
+        // A hollow local read can NEVER authorize erasing the cloud copy.
+        // An empty store (wiped cache, missing provider DB, rebuilding
+        // import) reads zero on EVERY pass, so consecutive-pass
+        // confirmation is no evidence of intent — and the cloud row may be
+        // the only surviving copy (cursoride-93121e8a lost its 301 cloud
+        // events to exactly this rewrite on 2026-07-31). Recovery for a
+        // hollow local store is seed/import, not an empty rewrite.
+        this.sessionShrinkCandidates.delete(shrinkKey);
+        log.rateLimited(
+          `hollow-push-${shrinkKey}`,
+          60_000,
+          `persisted read for ${sessionId} returned 0 events but the ` +
+            `cloud cursor covers ${cursor.pushedCount}; refusing hollow ` +
+            `epoch rewrite`
+        );
+        return;
+      }
       if (this.sessionShrinkCandidates.get(shrinkKey) === events.length) {
         this.sessionShrinkCandidates.delete(shrinkKey);
         confirmedShrink = true;
@@ -559,7 +577,12 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
           );
           broadcastOrgControlChangedToPeers(orgId, "sessions");
           this.markEventPlaneClean(orgId, session, stampAtRead);
-          void this.publishTurnIndexBestEffort(auth, orgId, session);
+          void this.publishTurnIndexBestEffort(
+            auth,
+            orgId,
+            session,
+            stampAtRead
+          );
           return;
         } catch (error) {
           if (!isOrg2SyncErrorCode(error, "ORG2_CONFLICT")) throw error;
@@ -573,7 +596,12 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
             newEpoch: null,
           });
           this.markEventPlaneClean(orgId, session, stampAtRead);
-          void this.publishTurnIndexBestEffort(auth, orgId, session);
+          void this.publishTurnIndexBestEffort(
+            auth,
+            orgId,
+            session,
+            stampAtRead
+          );
           return;
         }
       }
@@ -588,7 +616,7 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
         newEpoch: cursor.epoch + 1,
       });
       this.markEventPlaneClean(orgId, session, stampAtRead);
-      void this.publishTurnIndexBestEffort(auth, orgId, session);
+      void this.publishTurnIndexBestEffort(auth, orgId, session, stampAtRead);
       return;
     }
 
@@ -602,7 +630,7 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
       newEpoch: 1,
     });
     this.markEventPlaneClean(orgId, session, stampAtRead);
-    void this.publishTurnIndexBestEffort(auth, orgId, session);
+    void this.publishTurnIndexBestEffort(auth, orgId, session, stampAtRead);
   }
 
   /**
@@ -617,12 +645,21 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
   private async publishTurnIndexBestEffort(
     auth: Org2CloudAuthState,
     orgId: string,
-    session: Session
+    session: Session,
+    stampAtRead: number
   ): Promise<void> {
     const sessionId = session.session_id;
     try {
       const upsertTurnIndex = this.client.upsertSessionTurnIndex;
       if (!upsertTurnIndex) return;
+      // The local turn index is read AFTER the events push and reflects the
+      // LIVE store. If events landed since the pushed snapshot, the index
+      // would advertise rounds whose bodies are not on the server yet
+      // (phantom placeholders for every viewer); skip — the push those
+      // events trigger republishes.
+      if ((this.eventActivityStamps.get(sessionId) ?? 0) !== stampAtRead) {
+        return;
+      }
       // The cursor the push just committed carries the epoch this index
       // describes; without one there is nothing published to annotate.
       const cursor = this.getCursor(orgId, sessionId);

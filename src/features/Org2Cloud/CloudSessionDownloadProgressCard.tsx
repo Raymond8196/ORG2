@@ -22,6 +22,7 @@ import type React from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
+import ProgressBar from "@src/components/ProgressBar";
 
 import { cancelCloudSessionDownload } from "./cloudSessionDownloadAbortRegistry";
 import {
@@ -46,39 +47,28 @@ interface CloudSessionDownloadProgressCardProps {
   variant?: "card" | "centered";
 }
 
-const ProgressBar: React.FC<{
+const DownloadBar: React.FC<{
   percent: number | null;
   paused?: boolean;
   className: string;
 }> = ({ percent, paused = false, className }) => (
-  <div
-    role="progressbar"
-    aria-valuemin={0}
-    aria-valuemax={100}
-    aria-valuenow={percent ?? undefined}
-    className={`h-1.5 overflow-hidden rounded-full bg-fill-3 ${className}`}
-  >
-    <div
-      className={
-        percent === null
-          ? "h-full w-1/3 animate-pulse rounded-full bg-primary-6"
-          : paused
-            ? "h-full rounded-full bg-fill-4"
-            : "h-full rounded-full bg-primary-6 transition-[width] duration-300"
-      }
-      style={percent === null ? undefined : { width: `${percent}%` }}
-    />
-  </div>
+  <ProgressBar
+    percent={percent ?? 0}
+    indeterminate={percent === null}
+    color={paused ? "bg-fill-4" : "bg-primary-6"}
+    width={className}
+  />
 );
 
 /** Start/Resume both funnel through the sidebar-consumed request slot. */
 function useRequestDownloadStart(): (params: {
   rowId: string;
   orgId: string;
+  kind?: "replay" | "fork";
 }) => void {
   const setStartRequest = useSetAtom(cloudDownloadStartRequestAtom);
-  return ({ rowId, orgId }) =>
-    setStartRequest({ requestId: Date.now(), rowId, orgId });
+  return ({ rowId, orgId, kind = "replay" }) =>
+    setStartRequest({ requestId: Date.now(), rowId, orgId, kind });
 }
 
 const PendingPlay: React.FC<{
@@ -97,10 +87,16 @@ const PendingPlay: React.FC<{
       size={variant === "centered" ? "small" : "mini"}
       data-testid="cloud-session-download-start"
       onClick={() =>
-        requestStart({ rowId: pending.rowId, orgId: pending.orgId })
+        requestStart({
+          rowId: pending.rowId,
+          orgId: pending.orgId,
+          kind: pending.kind,
+        })
       }
     >
-      {t("cloud.download.start")}
+      {pending.kind === "fork"
+        ? t("cloud.orgPanel.fork")
+        : t("cloud.download.start")}
     </Button>
   );
   if (variant === "centered") {
@@ -140,7 +136,7 @@ const CenteredProgress: React.FC<{
       className="flex h-full flex-col items-center justify-center gap-3 p-6"
       data-testid="cloud-session-download-progress"
     >
-      <ProgressBar
+      <DownloadBar
         percent={percent}
         paused={paused}
         className="w-64 max-w-full"
@@ -256,7 +252,7 @@ const CardProgress: React.FC<{
         </span>
       </div>
       <div className="mt-2">
-        <ProgressBar percent={percent} paused={paused} className="w-full" />
+        <DownloadBar percent={percent} paused={paused} className="w-full" />
       </div>
       <div className="mt-1.5 flex items-center justify-between gap-2 text-[11px] text-text-3">
         <span className="tabular-nums">
