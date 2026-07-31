@@ -12,23 +12,18 @@
  * (`ORG2_CONFLICT`) and org quota (`ORG2_QUOTA_EXCEEDED`) from the generic
  * case.
  */
-import Modal from "@/src/scaffold/ModalSystem";
+import Modal, { MODAL_SELECT_Z_INDEX } from "@/src/scaffold/ModalSystem";
 import { useAtomValue, useSetAtom } from "jotai";
 import { Hash, Lock } from "lucide-react";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
 import Checkbox from "@src/components/Checkbox";
-import Input from "@src/components/Input";
 import Select from "@src/components/Select";
 
 import { org2CloudAuthAtom } from "../../org2CloudAuthAtom";
-import {
-  normalizeChannelName,
-  normalizeChannelNameInput,
-  validateChannelName,
-} from "../channelName";
+import { normalizeChannelName, validateChannelName } from "../channelName";
 import { bumpOrg2CloudChannelsVersionAtom } from "../channelsAtom";
 import { createCloudChannel, isOrg2ChannelsErrorCode } from "../channelsClient";
 import type {
@@ -36,18 +31,16 @@ import type {
   CloudChannelPostPolicy,
   CloudChannelVisibility,
 } from "../types";
+import { CHANNEL_ADD_MEMBERS_MAX_PER_CALL } from "../types";
 import {
-  CHANNEL_ADD_MEMBERS_MAX_PER_CALL,
-  CHANNEL_NAME_MAX_LENGTH,
-  CHANNEL_TOPIC_MAX_LENGTH,
-} from "../types";
+  ChannelDialogErrorNotice,
+  ChannelNameField,
+  ChannelTopicField,
+} from "./ChannelFormFields";
 import {
   useActiveOrgMembers,
   useFreshChannelAccessToken,
 } from "./useChannelDialogAccess";
-
-/** Above the modal wrapper (9999) so the select panel is not swallowed. */
-const MODAL_SELECT_Z_INDEX = 10_000;
 
 type CreateChannelErrorKind = "nameTaken" | "quotaExceeded" | "generic";
 
@@ -90,6 +83,24 @@ const CreateChannelDialog: React.FC<CreateChannelDialogProps> = ({
   const normalizedName = normalizeChannelName(name);
   const canSubmit =
     open && orgId !== null && normalizedName.length > 0 && !submitting;
+
+  const orgRadioRef = useRef<HTMLButtonElement | null>(null);
+  const privateRadioRef = useRef<HTMLButtonElement | null>(null);
+  const handleVisibilityKeyDown = useCallback(
+    (event: React.KeyboardEvent) => {
+      if (
+        !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)
+      ) {
+        return;
+      }
+      event.preventDefault();
+      // Two radios: any arrow toggles to the other option and moves focus.
+      const next = visibility === "org" ? "private" : "org";
+      setVisibility(next);
+      (next === "org" ? orgRadioRef : privateRadioRef).current?.focus();
+    },
+    [visibility]
+  );
 
   const handleToggleMember = useCallback((userId: string) => {
     setSelectedMemberIds((current) =>
@@ -207,42 +218,17 @@ const CreateChannelDialog: React.FC<CreateChannelDialogProps> = ({
         className="flex max-h-[70vh] flex-col gap-3 overflow-y-auto"
         data-testid="channel-create-dialog"
       >
-        <div className="flex flex-col gap-1.5">
-          <label className="text-[12px] font-medium text-text-2">
-            {t("cloud.channels.create.nameLabel")}
-          </label>
-          <Input
-            value={name}
-            onChange={(value) => {
-              setName(normalizeChannelNameInput(value));
-            }}
-            placeholder={t("cloud.channels.create.namePlaceholder")}
-            maxLength={CHANNEL_NAME_MAX_LENGTH}
-            prefix={<span className="text-[13px] text-text-3">#</span>}
-            suffix={
-              <span className="text-[11px] tabular-nums text-text-4">
-                {name.length}/{CHANNEL_NAME_MAX_LENGTH}
-              </span>
-            }
-            data-testid="channel-create-name"
-          />
-        </div>
+        <ChannelNameField
+          value={name}
+          onChange={setName}
+          testId="channel-create-name"
+        />
 
-        <div className="flex flex-col gap-1.5">
-          <label className="text-[12px] font-medium text-text-2">
-            {t("cloud.channels.create.topicLabel")}{" "}
-            <span className="font-normal text-text-4">
-              {t("cloud.channels.create.topicOptional")}
-            </span>
-          </label>
-          <Input
-            value={topic}
-            onChange={setTopic}
-            placeholder={t("cloud.channels.create.topicPlaceholder")}
-            maxLength={CHANNEL_TOPIC_MAX_LENGTH}
-            data-testid="channel-create-topic"
-          />
-        </div>
+        <ChannelTopicField
+          value={topic}
+          onChange={setTopic}
+          testId="channel-create-topic"
+        />
 
         <div className="flex flex-col gap-1.5">
           <span className="text-[12px] font-medium text-text-2">
@@ -252,11 +238,16 @@ const CreateChannelDialog: React.FC<CreateChannelDialogProps> = ({
             role="radiogroup"
             aria-label={t("cloud.channels.create.visibilityLabel")}
             className="grid grid-cols-2 gap-2"
+            onKeyDown={handleVisibilityKeyDown}
           >
             <button
               type="button"
               role="radio"
               aria-checked={visibility === "org"}
+              // Roving tabindex: only the checked radio is in the tab order;
+              // arrow keys move the selection (ARIA radiogroup contract).
+              tabIndex={visibility === "org" ? 0 : -1}
+              ref={orgRadioRef}
               onClick={() => setVisibility("org")}
               className={visibilityCardClass(visibility === "org")}
               data-testid="channel-create-visibility-org"
@@ -273,6 +264,8 @@ const CreateChannelDialog: React.FC<CreateChannelDialogProps> = ({
               type="button"
               role="radio"
               aria-checked={visibility === "private"}
+              tabIndex={visibility === "private" ? 0 : -1}
+              ref={privateRadioRef}
               onClick={() => setVisibility("private")}
               className={visibilityCardClass(visibility === "private")}
               data-testid="channel-create-visibility-private"
@@ -351,14 +344,10 @@ const CreateChannelDialog: React.FC<CreateChannelDialogProps> = ({
           />
         </div>
 
-        {errorMessage ? (
-          <div
-            className="rounded-lg bg-danger-1 px-3 py-2 text-[12px] text-danger-6"
-            data-testid="channel-create-error"
-          >
-            {errorMessage}
-          </div>
-        ) : null}
+        <ChannelDialogErrorNotice
+          message={errorMessage}
+          testId="channel-create-error"
+        />
 
         <div className="flex items-center justify-end gap-2">
           <Button

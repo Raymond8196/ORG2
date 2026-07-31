@@ -991,7 +991,8 @@
         "workItemCardOpen": "開啟工作項目 {{name}}",
         "githubCardOpen": "在 GitHub 中開啟 {{name}}",
         "githubIssue": "Issue",
-        "githubPullRequest": "Pull Request"
+        "githubPullRequest": "Pull Request",
+        "archivedComposerDisabled": "該頻道已封存,取消封存後才能發言。"
       }
     }
   }

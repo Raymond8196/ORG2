@@ -9,20 +9,19 @@
  * plus a subscription to `org2CloudChannelsVersionAtom`, which the realtime
  * `channels` signal (0014) bumps. Strictly event-driven; no polling.
  */
-import { useAtom, useAtomValue } from "jotai";
+import { useAtomValue } from "jotai";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
-  commitRefreshedAuth,
   org2CloudAuthAtom,
   org2CloudAuthIdentityKey,
 } from "@src/features/Org2Cloud/org2CloudAuthAtom";
 import { getCloudCapabilities } from "@src/features/Org2Cloud/org2CloudCapabilities";
-import { ensureFreshSession } from "@src/features/Org2Cloud/org2CloudClient";
 import { createLogger } from "@src/hooks/logger";
 
 import { org2CloudChannelsVersionAtom } from "./channelsAtom";
 import { listCloudChannels } from "./channelsClient";
+import { useFreshChannelAccessToken } from "./components/useChannelDialogAccess";
 import type { CloudChannel } from "./types";
 
 const log = createLogger("OrgChannels");
@@ -66,7 +65,7 @@ export function useOrgChannels(
   orgId: string | null,
   options?: { includeArchived?: boolean }
 ): OrgChannelsState {
-  const [auth, setAuth] = useAtom(org2CloudAuthAtom);
+  const auth = useAtomValue(org2CloudAuthAtom);
   const includeArchived = options?.includeArchived ?? false;
   const channelsVersion = useAtomValue(org2CloudChannelsVersionAtom);
   const versionForOrg = orgId ? (channelsVersion[orgId] ?? 0) : 0;
@@ -83,13 +82,6 @@ export function useOrgChannels(
   const listKey = authIdentityKey
     ? `${authIdentityKey}|${orgId ?? ""}|${includeArchived ? "a" : ""}`
     : null;
-
-  // Latest auth via ref (panel idiom): token-refresh writes must not
-  // retrigger the fetch effect.
-  const authRef = useRef(auth);
-  useEffect(() => {
-    authRef.current = auth;
-  }, [auth]);
 
   // Cloud fetches may settle after an org/account switch; a monotonic
   // counter drops late completions.
@@ -109,14 +101,9 @@ export function useOrgChannels(
     setError(null);
   }, [authIdentityKey]);
 
-  const getFreshAccessToken = useCallback(async (): Promise<string> => {
-    const current = authRef.current;
-    if (!current) throw new Error("signed out");
-    const fresh = await ensureFreshSession(current);
-    if (!fresh) throw new Error("cloud session refresh failed");
-    commitRefreshedAuth(setAuth, current, fresh);
-    return fresh.accessToken;
-  }, [setAuth]);
+  // One token helper for the whole channels slice (the dialogs' hook) — a
+  // second byte-equivalent copy here kept drifting risk alive.
+  const getFreshAccessToken = useFreshChannelAccessToken();
 
   useEffect(() => {
     if (!authIdentityKey || !orgId) return;

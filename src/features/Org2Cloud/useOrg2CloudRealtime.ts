@@ -51,7 +51,10 @@ import type { Session } from "@src/store/session/sessionAtom/types";
 import { activeSessionIdAtom } from "@src/store/session/viewAtom";
 import { chatPanelSelectedCloudOrgAtom } from "@src/store/ui/chatPanelAtom";
 
-import { bumpOrg2CloudChannelsVersionAtom } from "./channels/channelsAtom";
+import {
+  bumpOrg2CloudChannelsVersionAtom,
+  org2CloudChannelsVersionAtom,
+} from "./channels/channelsAtom";
 import { org2CloudSharingFloorAtom } from "./org2CloudAccessSettings";
 import {
   commitRefreshedAuth,
@@ -191,6 +194,7 @@ export function useOrg2CloudRealtime(): void {
   const refetchOrgs = useRefetchOrg2CloudOrgs();
   const setRosterVersion = useSetAtom(org2CloudRosterVersionAtom);
   const bumpChannelsVersion = useSetAtom(bumpOrg2CloudChannelsVersionAtom);
+  const setChannelsVersion = useSetAtom(org2CloudChannelsVersionAtom);
   const setRosterRealtimeConnected = useSetAtom(
     org2CloudRosterRealtimeConnectedAtom
   );
@@ -258,8 +262,10 @@ export function useOrg2CloudRealtime(): void {
     setCommentsSignal({});
     setPresence({});
     setOutboundPresence({});
+    setChannelsVersion({});
   }, [
     authIdentityKey,
+    setChannelsVersion,
     setCommentsSignal,
     setMemberNames,
     setOutboundPresence,
@@ -614,7 +620,17 @@ export function useOrg2CloudRealtime(): void {
           onStatus: (subscribed) => {
             // On (re)subscribe compensate for events missed while
             // disconnected.
-            if (subscribed) runSignalEdgeRecovery(orgId);
+            if (subscribed) {
+              runSignalEdgeRecovery(orgId);
+              return;
+            }
+            // A lost/failed join was previously silent — a stale-token
+            // connection joins dead and the list stalls with no trace
+            // (dual-instance escape 2026-07-31). Diagnostic, not recovery:
+            // the next SUBSCRIBED true-edge stays the recovery path.
+            log.warn(
+              `realtime: change-signals subscription lost for org ${orgId}`
+            );
           },
         })
       );
@@ -753,7 +769,13 @@ export function useOrg2CloudRealtime(): void {
           // converges within 5 minutes instead of never.
           if (!broadcastSignals) return;
           const kind = parseOrgDbChangeKind(payload);
-          if (!kind) return;
+          if (!kind) {
+            // A kind this build does not know (a newer backend's plane):
+            // fall back to the coarse refresh instead of total silence, so
+            // an unrecognized plane still converges (Layer-5 default).
+            scheduleCoarseSignalRefresh();
+            return;
+          }
           dispatchDbChangeSignal(orgId, kind);
           return;
         }
@@ -824,7 +846,13 @@ export function useOrg2CloudRealtime(): void {
             ? current
             : { ...current, [orgId]: subscribed }
         );
-        if (!subscribed) return;
+        if (!subscribed) {
+          // Diagnostic for silent join failures (a connection built on a
+          // stale token joins dead with no other trace); the SUBSCRIBED
+          // true-edge remains the recovery path.
+          log.warn(`realtime: broadcast channel not subscribed for ${orgId}`);
+          return;
+        }
         bumpRosterVersion(orgId);
         runSignalEdgeRecovery(orgId);
       },
@@ -880,6 +908,7 @@ export function useOrg2CloudRealtime(): void {
     bumpRemoteSessionsVersion,
     bumpRosterVersion,
     dispatchDbChangeSignal,
+    scheduleCoarseSignalRefresh,
     runSignalEdgeRecovery,
   ]);
 

@@ -17,6 +17,7 @@ import {
   isOrg2ChannelsErrorCode,
 } from "../channelsClient";
 import type { CloudChannel } from "../types";
+import { ChannelDialogErrorNotice } from "./ChannelFormFields";
 import { useFreshChannelAccessToken } from "./useChannelDialogAccess";
 
 type ArchiveErrorKind = "managerRequired" | "generic";
@@ -85,16 +86,16 @@ const ArchiveChannelDialog: React.FC<ArchiveChannelDialogProps> = ({
           {t("cloud.channels.archive.body")}
         </div>
 
-        {errorKind ? (
-          <div
-            className="rounded-lg bg-danger-1 px-3 py-2 text-[12px] text-danger-6"
-            data-testid="channel-archive-error"
-          >
-            {errorKind === "managerRequired"
+        <ChannelDialogErrorNotice
+          message={
+            errorKind === "managerRequired"
               ? t("cloud.channels.archive.managerRequired")
-              : t("cloud.channels.archive.error")}
-          </div>
-        ) : null}
+              : errorKind
+                ? t("cloud.channels.archive.error")
+                : null
+          }
+          testId="channel-archive-error"
+        />
 
         <div className="flex items-center justify-end gap-2">
           <Button

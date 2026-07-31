@@ -30,12 +30,27 @@ import {
 } from "@src/features/Org2Cloud/channels/types";
 import { createZodJsonStorage } from "@src/util/core/storage/zodStorage";
 
-import {
-  localChannelMessagesAtom,
-  purgeLocalChannelMessages,
-} from "./localChannelMessagesAtom";
+import { purgeLocalChannelMessagesAtom } from "./localChannelMessagesAtom";
 
-export const LOCAL_CHANNELS_STORAGE_KEY = "orgii.localChannels.v1";
+/** Colon-style key (codebase convention); the dot-style original is adopted below. */
+export const LOCAL_CHANNELS_STORAGE_KEY = "orgii:localChannels:v1";
+const LEGACY_LOCAL_CHANNELS_STORAGE_KEY = "orgii.localChannels.v1";
+
+// One-time adoption of the briefly-shipped dot-style key — no data loss for
+// anyone who created channels on an early develop build.
+try {
+  if (typeof localStorage !== "undefined") {
+    const legacy = localStorage.getItem(LEGACY_LOCAL_CHANNELS_STORAGE_KEY);
+    if (legacy !== null) {
+      if (localStorage.getItem(LOCAL_CHANNELS_STORAGE_KEY) === null) {
+        localStorage.setItem(LOCAL_CHANNELS_STORAGE_KEY, legacy);
+      }
+      localStorage.removeItem(LEGACY_LOCAL_CHANNELS_STORAGE_KEY);
+    }
+  }
+} catch {
+  // Storage unavailable — nothing to migrate.
+}
 
 /** Same bound as the cloud backend's per-org active-channel quota. */
 export const LOCAL_CHANNEL_MAX_ACTIVE = CHANNEL_MAX_ACTIVE_PER_ORG;
@@ -51,20 +66,31 @@ export const LocalChannelSchema = z.object({
 
 export type LocalChannel = z.output<typeof LocalChannelSchema>;
 
-/** Tolerant list schema: drop malformed rows, keep the rest. */
+/** Tolerant list schema: drop malformed rows (logged), keep the rest. */
 const StoredLocalChannelsSchema: z.ZodType<LocalChannel[]> = z
   .array(z.unknown())
   .transform((rows) =>
     rows.flatMap((row) => {
       const parsed = LocalChannelSchema.safeParse(row);
-      return parsed.success ? [parsed.data] : [];
+      if (!parsed.success) {
+        // A silent per-row drop becomes permanent on the next whole-list
+        // write; leave a trace so a schema change that sheds user data is
+        // diagnosable instead of invisible.
+        console.warn("[localChannels] dropped malformed stored row", row);
+        return [];
+      }
+      return [parsed.data];
     })
   );
 
 export const localChannelsAtom = atomWithStorage<LocalChannel[]>(
   LOCAL_CHANNELS_STORAGE_KEY,
   [],
-  createZodJsonStorage(StoredLocalChannelsSchema),
+  createZodJsonStorage(StoredLocalChannelsSchema, {
+    onInvalid: (key, _rawValue, error) => {
+      console.warn(`[localChannels] invalid stored payload for ${key}`, error);
+    },
+  }),
   { getOnInit: true }
 );
 localChannelsAtom.debugLabel = "localChannelsAtom";
@@ -203,7 +229,9 @@ export function archiveLocalChannel(
   const current = channels.find((channel) => channel.id === id);
   if (!current) return fail("invalid");
   if (current.archivedAt !== null) {
-    return { ok: true, channels: [...channels], channel: current };
+    // Idempotent no-op keeps the input identity so write atoms can skip the
+    // redundant persist + subscriber notification.
+    return { ok: true, channels: channels as LocalChannel[], channel: current };
   }
   const stamp = now ?? new Date().toISOString();
   const updated: LocalChannel = {
@@ -229,7 +257,8 @@ export function unarchiveLocalChannel(
   const current = channels.find((channel) => channel.id === id);
   if (!current) return fail("invalid");
   if (current.archivedAt === null) {
-    return { ok: true, channels: [...channels], channel: current };
+    // Idempotent no-op — same identity contract as archiveLocalChannel.
+    return { ok: true, channels: channels as LocalChannel[], channel: current };
   }
   if (countActive(channels) >= LOCAL_CHANNEL_MAX_ACTIVE) return fail("quota");
   const updated: LocalChannel = {
@@ -311,8 +340,11 @@ updateLocalChannelAtom.debugLabel = "updateLocalChannelAtom";
 export const archiveLocalChannelAtom = atom(
   null,
   (get, set, id: string): LocalChannelResult => {
-    const result = archiveLocalChannel(get(localChannelsAtom), id);
-    if (result.ok) set(localChannelsAtom, result.channels);
+    const current = get(localChannelsAtom);
+    const result = archiveLocalChannel(current, id);
+    if (result.ok && result.channels !== current) {
+      set(localChannelsAtom, result.channels);
+    }
     return result;
   }
 );
@@ -321,8 +353,11 @@ archiveLocalChannelAtom.debugLabel = "archiveLocalChannelAtom";
 export const unarchiveLocalChannelAtom = atom(
   null,
   (get, set, id: string): LocalChannelResult => {
-    const result = unarchiveLocalChannel(get(localChannelsAtom), id);
-    if (result.ok) set(localChannelsAtom, result.channels);
+    const current = get(localChannelsAtom);
+    const result = unarchiveLocalChannel(current, id);
+    if (result.ok && result.channels !== current) {
+      set(localChannelsAtom, result.channels);
+    }
     return result;
   }
 );
@@ -341,11 +376,9 @@ export const deleteLocalChannelAtom = atom(
     const result = deleteLocalChannel(get(localChannelsAtom), id);
     if (!result.ok) return result;
     set(localChannelsAtom, result.channels);
-    const messages = get(localChannelMessagesAtom);
-    const remaining = purgeLocalChannelMessages(messages, id);
-    if (remaining.length !== messages.length) {
-      set(localChannelMessagesAtom, remaining);
-    }
+    // Compose the message-plane purge atom instead of duplicating its body —
+    // one purge implementation, every delete path included.
+    set(purgeLocalChannelMessagesAtom, id);
     return result;
   }
 );

@@ -194,11 +194,14 @@ export const createProjectTab = defineChatPanelTabFactory<{
 
 /**
  * Local and cloud channel ids come from different id spaces, so the scope
- * joins the key: a local channel and a cloud channel that happen to share an
- * id can never collapse onto one pill.
+ * joins the key. Cloud channel identity is the composite (org_id, id) — the
+ * 0014 primary key — so the org joins the key too: two orgs' channels can
+ * never collapse onto one pill (nor cross-refresh each other's payloads).
  */
 export function buildChannelTabKey(channel: ChatPanelSelectedChannel): string {
-  return `${channel.scope}:${channel.channelId}`;
+  return channel.scope === "cloud"
+    ? `cloud:${channel.orgId}:${channel.channelId}`
+    : `local:${channel.channelId}`;
 }
 
 export const createChannelTab = defineChatPanelTabFactory<{

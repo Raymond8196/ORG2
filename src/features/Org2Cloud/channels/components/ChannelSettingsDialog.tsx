@@ -16,28 +16,24 @@
  * (`channelsSection.tsx`), so every open is a fresh mount with a fresh seed
  * — no reset-in-effect (`react-hooks/set-state-in-effect`-safe).
  */
-import Modal from "@/src/scaffold/ModalSystem";
+import Modal, { MODAL_SELECT_Z_INDEX } from "@/src/scaffold/ModalSystem";
 import { useSetAtom } from "jotai";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
-import Input from "@src/components/Input";
 import Select from "@src/components/Select";
 
-import {
-  normalizeChannelName,
-  normalizeChannelNameInput,
-  validateChannelName,
-} from "../channelName";
+import { normalizeChannelName, validateChannelName } from "../channelName";
 import { bumpOrg2CloudChannelsVersionAtom } from "../channelsAtom";
 import { isOrg2ChannelsErrorCode, updateCloudChannel } from "../channelsClient";
 import type { CloudChannel, CloudChannelPostPolicy } from "../types";
-import { CHANNEL_NAME_MAX_LENGTH, CHANNEL_TOPIC_MAX_LENGTH } from "../types";
+import {
+  ChannelDialogErrorNotice,
+  ChannelNameField,
+  ChannelTopicField,
+} from "./ChannelFormFields";
 import { useFreshChannelAccessToken } from "./useChannelDialogAccess";
-
-/** Above the modal wrapper (9999) so the select panel is not swallowed. */
-const MODAL_SELECT_Z_INDEX = 10_000;
 
 type SettingsErrorKind = "nameTaken" | "managerRequired" | "generic";
 
@@ -162,42 +158,17 @@ const ChannelSettingsDialog: React.FC<ChannelSettingsDialogProps> = ({
         className="flex flex-col gap-3"
         data-testid="channel-settings-dialog"
       >
-        <div className="flex flex-col gap-1.5">
-          <label className="text-[12px] font-medium text-text-2">
-            {t("cloud.channels.create.nameLabel")}
-          </label>
-          <Input
-            value={name}
-            onChange={(value) => {
-              setName(normalizeChannelNameInput(value));
-            }}
-            placeholder={t("cloud.channels.create.namePlaceholder")}
-            maxLength={CHANNEL_NAME_MAX_LENGTH}
-            prefix={<span className="text-[13px] text-text-3">#</span>}
-            suffix={
-              <span className="text-[11px] tabular-nums text-text-4">
-                {name.length}/{CHANNEL_NAME_MAX_LENGTH}
-              </span>
-            }
-            data-testid="channel-settings-name"
-          />
-        </div>
+        <ChannelNameField
+          value={name}
+          onChange={setName}
+          testId="channel-settings-name"
+        />
 
-        <div className="flex flex-col gap-1.5">
-          <label className="text-[12px] font-medium text-text-2">
-            {t("cloud.channels.create.topicLabel")}{" "}
-            <span className="font-normal text-text-4">
-              {t("cloud.channels.create.topicOptional")}
-            </span>
-          </label>
-          <Input
-            value={topic}
-            onChange={setTopic}
-            placeholder={t("cloud.channels.create.topicPlaceholder")}
-            maxLength={CHANNEL_TOPIC_MAX_LENGTH}
-            data-testid="channel-settings-topic"
-          />
-        </div>
+        <ChannelTopicField
+          value={topic}
+          onChange={setTopic}
+          testId="channel-settings-topic"
+        />
 
         <div className="flex flex-col gap-1.5">
           <span className="text-[12px] font-medium text-text-2">
@@ -213,14 +184,10 @@ const ChannelSettingsDialog: React.FC<ChannelSettingsDialogProps> = ({
           />
         </div>
 
-        {errorMessage ? (
-          <div
-            className="rounded-lg bg-danger-1 px-3 py-2 text-[12px] text-danger-6"
-            data-testid="channel-settings-error"
-          >
-            {errorMessage}
-          </div>
-        ) : null}
+        <ChannelDialogErrorNotice
+          message={errorMessage}
+          testId="channel-settings-error"
+        />
 
         <div className="flex items-center justify-end gap-2">
           <Button

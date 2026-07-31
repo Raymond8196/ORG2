@@ -203,10 +203,14 @@ export function useCloudChannelsSection({
         [...settingsEntries, ...kinds.map((kind) => entries[kind])].map(
           (entry) => MenuItem.new(entry)
         )
-      ).then(async (menuItems) => {
-        const menu = await TauriMenu.new({ items: menuItems });
-        await menu.popup();
-      });
+      )
+        .then(async (menuItems) => {
+          const menu = await TauriMenu.new({ items: menuItems });
+          await menu.popup();
+        })
+        .catch((error) => {
+          log.warn("channel row menu failed to open:", error);
+        });
     },
     [isOrgAdmin, openMembersDialog, orgId, t]
   );

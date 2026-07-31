@@ -29,8 +29,28 @@ import { z } from "zod/v4";
 
 import { createZodJsonStorage } from "@src/util/core/storage/zodStorage";
 
+/** Colon-style key (codebase convention); the dot-style original is adopted below. */
 export const LOCAL_CHANNEL_MESSAGES_STORAGE_KEY =
+  "orgii:localChannelMessages:v1";
+const LEGACY_LOCAL_CHANNEL_MESSAGES_STORAGE_KEY =
   "orgii.localChannelMessages.v1";
+
+// One-time adoption of the briefly-shipped dot-style key.
+try {
+  if (typeof localStorage !== "undefined") {
+    const legacy = localStorage.getItem(
+      LEGACY_LOCAL_CHANNEL_MESSAGES_STORAGE_KEY
+    );
+    if (legacy !== null) {
+      if (localStorage.getItem(LOCAL_CHANNEL_MESSAGES_STORAGE_KEY) === null) {
+        localStorage.setItem(LOCAL_CHANNEL_MESSAGES_STORAGE_KEY, legacy);
+      }
+      localStorage.removeItem(LEGACY_LOCAL_CHANNEL_MESSAGES_STORAGE_KEY);
+    }
+  }
+} catch {
+  // Storage unavailable — nothing to migrate.
+}
 
 /** Same body ceiling as the cloud session-comment plane. */
 export const LOCAL_CHANNEL_MESSAGE_MAX_LENGTH = 4000;
@@ -49,20 +69,32 @@ export const LocalChannelMessageSchema = z.object({
 
 export type LocalChannelMessage = z.output<typeof LocalChannelMessageSchema>;
 
-/** Tolerant list schema: drop malformed rows, keep the rest. */
+/** Tolerant list schema: drop malformed rows (logged), keep the rest. */
 const StoredLocalChannelMessagesSchema: z.ZodType<LocalChannelMessage[]> = z
   .array(z.unknown())
   .transform((rows) =>
     rows.flatMap((row) => {
       const parsed = LocalChannelMessageSchema.safeParse(row);
-      return parsed.success ? [parsed.data] : [];
+      if (!parsed.success) {
+        // Trace per-row drops — the next whole-list write makes them final.
+        console.warn("[localChannelMessages] dropped malformed row", row);
+        return [];
+      }
+      return [parsed.data];
     })
   );
 
 export const localChannelMessagesAtom = atomWithStorage<LocalChannelMessage[]>(
   LOCAL_CHANNEL_MESSAGES_STORAGE_KEY,
   [],
-  createZodJsonStorage(StoredLocalChannelMessagesSchema),
+  createZodJsonStorage(StoredLocalChannelMessagesSchema, {
+    onInvalid: (key, _rawValue, error) => {
+      console.warn(
+        `[localChannelMessages] invalid stored payload for ${key}`,
+        error
+      );
+    },
+  }),
   { getOnInit: true }
 );
 localChannelMessagesAtom.debugLabel = "localChannelMessagesAtom";
@@ -267,12 +299,18 @@ export function selectLocalChannelMessages(
   messages: readonly LocalChannelMessage[],
   channelId: string
 ): LocalChannelMessage[] {
-  return messages
-    .filter((message) => message.channelId === channelId)
-    .map((message) =>
-      message.deletedAt === null ? message : { ...message, body: "" }
-    )
-    .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  return (
+    messages
+      .filter((message) => message.channelId === channelId)
+      .map((message) =>
+        message.deletedAt === null ? message : { ...message, body: "" }
+      )
+      // Codepoint compare: ISO-8601 strings order lexicographically; locale
+      // collation is both slower and locale-dependent for pure timestamps.
+      .sort((a, b) =>
+        a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : 0
+      )
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -339,7 +377,7 @@ export const deleteLocalChannelMessageAtom = atom(
 );
 deleteLocalChannelMessageAtom.debugLabel = "deleteLocalChannelMessageAtom";
 
-/** Purge one channel's messages. Wired into the local channel delete path. */
+/** Purge one channel's messages — `deleteLocalChannelAtom` composes this. */
 export const purgeLocalChannelMessagesAtom = atom(
   null,
   (get, set, channelId: string): LocalChannelMessage[] => {

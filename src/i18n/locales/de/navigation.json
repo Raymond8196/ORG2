@@ -901,7 +901,8 @@
         "workItemCardOpen": "Arbeitselement {{name}} öffnen",
         "githubCardOpen": "{{name}} auf GitHub öffnen",
         "githubIssue": "Issue",
-        "githubPullRequest": "Pull Request"
+        "githubPullRequest": "Pull Request",
+        "archivedComposerDisabled": "Dieser Kanal ist archiviert. Zum Posten die Archivierung aufheben."
       }
     }
   }

@@ -123,7 +123,6 @@ async function callChannelsRpc(
 }
 
 const ChannelEnvelopeSchema = z.object({ channel: CloudChannelSchema });
-const OkSchema = z.object({ ok: z.boolean().catch(true) });
 const ArchiveResultSchema = z.object({
   archivedAt: z.string().nullable().catch(null),
 });
@@ -208,7 +207,10 @@ export async function archiveCloudChannel(
     { p_org_id: orgId, p_channel_id: channelId },
     signal
   );
-  return ArchiveResultSchema.parse(payload).archivedAt;
+  // HTTP 200 IS the success signal — a surprising body shape must not turn
+  // a server-side archive into a client-side "failure" (the mutation landed).
+  const parsed = ArchiveResultSchema.safeParse(payload);
+  return parsed.success ? parsed.data.archivedAt : null;
 }
 
 export async function unarchiveCloudChannel(
@@ -233,14 +235,15 @@ export async function deleteCloudChannel(
   channelId: string,
   signal?: AbortSignal
 ): Promise<void> {
-  const payload = await callChannelsRpc(
+  // HTTP 200 is the success signal; the `ok` body is informational only —
+  // parsing it strictly could report a completed delete as failed.
+  await callChannelsRpc(
     "cloud_delete_channel",
     accessToken,
     orgId,
     { p_org_id: orgId, p_channel_id: channelId },
     signal
   );
-  OkSchema.parse(payload);
 }
 
 // ---------------------------------------------------------------------------

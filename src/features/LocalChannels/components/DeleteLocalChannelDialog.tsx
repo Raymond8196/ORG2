@@ -17,6 +17,7 @@ import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
 import Checkbox from "@src/components/Checkbox";
+import { ChannelDialogErrorNotice } from "@src/features/Org2Cloud/channels/components/ChannelFormFields";
 import {
   type LocalChannel,
   deleteLocalChannelAtom,
@@ -79,14 +80,10 @@ const DeleteLocalChannelDialog: React.FC<DeleteLocalChannelDialogProps> = ({
           </Checkbox>
         </div>
 
-        {failed ? (
-          <div
-            className="rounded-lg bg-danger-1 px-3 py-2 text-[12px] text-danger-6"
-            data-testid="local-channel-delete-error"
-          >
-            {t("cloud.channels.delete.error")}
-          </div>
-        ) : null}
+        <ChannelDialogErrorNotice
+          message={failed ? t("cloud.channels.delete.error") : null}
+          testId="local-channel-delete-error"
+        />
 
         <div className="flex items-center justify-end gap-2">
           <Button

@@ -24,6 +24,7 @@ import ArchiveLocalChannelDialog from "@src/features/LocalChannels/components/Ar
 import CreateLocalChannelDialog from "@src/features/LocalChannels/components/CreateLocalChannelDialog";
 import DeleteLocalChannelDialog from "@src/features/LocalChannels/components/DeleteLocalChannelDialog";
 import LocalChannelSettingsDialog from "@src/features/LocalChannels/components/LocalChannelSettingsDialog";
+import { createLogger } from "@src/hooks/logger";
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
 import {
   activeChatPanelTabAtom,
@@ -42,6 +43,8 @@ import {
   buildLocalChannelsMenuItems,
   isLocalChannelsMenuItemId,
 } from "./localChannelsSection.menuItems";
+
+const log = createLogger("LocalChannelsSection");
 
 type LocalChannelsDialogState =
   | { kind: "create" }
@@ -121,12 +124,14 @@ export function useLocalChannelsSection({
           action: () => setDialogState({ kind: "delete", channel }),
         },
       ];
-      void Promise.all(entries.map((entry) => MenuItem.new(entry))).then(
-        async (menuItems) => {
+      void Promise.all(entries.map((entry) => MenuItem.new(entry)))
+        .then(async (menuItems) => {
           const menu = await TauriMenu.new({ items: menuItems });
           await menu.popup();
-        }
-      );
+        })
+        .catch((error) => {
+          log.warn("local channel row menu failed to open:", error);
+        });
     },
     [t]
   );

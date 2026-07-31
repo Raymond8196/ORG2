@@ -17,6 +17,7 @@ import Checkbox from "@src/components/Checkbox";
 import { bumpOrg2CloudChannelsVersionAtom } from "../channelsAtom";
 import { deleteCloudChannel, isOrg2ChannelsErrorCode } from "../channelsClient";
 import type { CloudChannel } from "../types";
+import { ChannelDialogErrorNotice } from "./ChannelFormFields";
 import { useFreshChannelAccessToken } from "./useChannelDialogAccess";
 
 type DeleteErrorKind = "adminRequired" | "generic";
@@ -103,16 +104,16 @@ const DeleteChannelDialog: React.FC<DeleteChannelDialogProps> = ({
           </Checkbox>
         </div>
 
-        {errorKind ? (
-          <div
-            className="rounded-lg bg-danger-1 px-3 py-2 text-[12px] text-danger-6"
-            data-testid="channel-delete-error"
-          >
-            {errorKind === "adminRequired"
+        <ChannelDialogErrorNotice
+          message={
+            errorKind === "adminRequired"
               ? t("cloud.channels.delete.adminRequired")
-              : t("cloud.channels.delete.error")}
-          </div>
-        ) : null}
+              : errorKind
+                ? t("cloud.channels.delete.error")
+                : null
+          }
+          testId="channel-delete-error"
+        />
 
         <div className="flex items-center justify-end gap-2">
           <Button

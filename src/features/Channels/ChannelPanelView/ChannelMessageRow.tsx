@@ -312,6 +312,17 @@ const ChannelMessageRow: React.FC<ChannelMessageRowProps> = ({
             <Textarea
               value={draft}
               onChange={(value) => setDraft(value)}
+              // The comment-plane editing shortcuts: Ctrl/Cmd+Enter saves,
+              // Escape leaves the autofocused editor without a mouse.
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
+                  event.preventDefault();
+                  saveEdit();
+                } else if (event.key === "Escape") {
+                  event.preventDefault();
+                  setEditing(false);
+                }
+              }}
               size="small"
               autoSize
               rows={2}

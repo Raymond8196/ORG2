@@ -928,7 +928,8 @@
         "workItemCardOpen": "Open work item {{name}}",
         "githubCardOpen": "Open {{name}} on GitHub",
         "githubIssue": "Issue",
-        "githubPullRequest": "Pull request"
+        "githubPullRequest": "Pull request",
+        "archivedComposerDisabled": "This channel is archived. Unarchive it to post again."
       }
     }
   }

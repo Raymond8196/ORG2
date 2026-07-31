@@ -37,6 +37,7 @@ import {
 } from "../channelsClient";
 import type { CloudChannel, CloudChannelMember } from "../types";
 import { CHANNEL_ADD_MEMBERS_MAX_PER_CALL } from "../types";
+import { ChannelDialogErrorNotice } from "./ChannelFormFields";
 import {
   useActiveOrgMembers,
   useFreshChannelAccessToken,
@@ -252,16 +253,16 @@ const ManageChannelMembersDialog: React.FC<ManageChannelMembersDialogProps> = ({
         className="flex max-h-[70vh] flex-col gap-3 overflow-y-auto"
         data-testid="channel-members-dialog"
       >
-        {errorKind ? (
-          <div
-            className="rounded-lg bg-danger-1 px-3 py-2 text-[12px] text-danger-6"
-            data-testid="channel-members-error"
-          >
-            {errorKind === "lastManager"
+        <ChannelDialogErrorNotice
+          message={
+            errorKind === "lastManager"
               ? t("cloud.channels.members.lastManager")
-              : t("cloud.channels.members.error")}
-          </div>
-        ) : null}
+              : errorKind
+                ? t("cloud.channels.members.error")
+                : null
+          }
+          testId="channel-members-error"
+        />
 
         {loading && members === null ? (
           <div
@@ -271,12 +272,10 @@ const ManageChannelMembersDialog: React.FC<ManageChannelMembersDialogProps> = ({
             {t("cloud.channels.members.loading")}
           </div>
         ) : loadFailed && members === null ? (
-          <div
-            className="rounded-lg bg-danger-1 px-3 py-2 text-[12px] text-danger-6"
-            data-testid="channel-members-load-error"
-          >
-            {t("cloud.channels.members.loadError")}
-          </div>
+          <ChannelDialogErrorNotice
+            message={t("cloud.channels.members.loadError")}
+            testId="channel-members-load-error"
+          />
         ) : (members ?? []).length === 0 ? (
           <div className="text-[12px] text-text-3">
             {t("cloud.channels.members.empty")}

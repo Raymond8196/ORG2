@@ -899,7 +899,8 @@
         "workItemCardOpen": "Открыть рабочую задачу {{name}}",
         "githubCardOpen": "Открыть {{name}} на GitHub",
         "githubIssue": "Issue",
-        "githubPullRequest": "Pull request"
+        "githubPullRequest": "Pull request",
+        "archivedComposerDisabled": "Этот канал в архиве. Разархивируйте его, чтобы писать."
       }
     }
   }

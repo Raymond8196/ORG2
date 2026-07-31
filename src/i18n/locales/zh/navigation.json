@@ -991,7 +991,8 @@
         "workItemCardOpen": "打开工作项 {{name}}",
         "githubCardOpen": "在 GitHub 中打开 {{name}}",
         "githubIssue": "Issue",
-        "githubPullRequest": "Pull Request"
+        "githubPullRequest": "Pull Request",
+        "archivedComposerDisabled": "该频道已归档,取消归档后才能发言。"
       }
     }
   }
