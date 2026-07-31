@@ -35,5 +35,8 @@ describe("Task Kanban external-history filters", () => {
     expect(EXTERNAL_HISTORY_FILTER_BY_SOURCE.qwen_code).toBe(
       KANBAN_AGENT_TYPE_FILTER.QWEN_CODE_APP
     );
+    expect(EXTERNAL_HISTORY_FILTER_BY_SOURCE.kimi).toBe(
+      KANBAN_AGENT_TYPE_FILTER.KIMI_CLI
+    );
   });
 });

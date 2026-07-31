@@ -14,6 +14,7 @@ use orgtrack_core::sources::cursor_ide::{
     db as cursor_db, disk_reads as cursor_disk_reads, history as cursor_db_history,
 };
 use orgtrack_core::sources::imported_history;
+use orgtrack_core::sources::kimi::history as kimi_history;
 use orgtrack_core::sources::mimo_code::history as mimo_code_history;
 use orgtrack_core::sources::omp::history as omp_history;
 use orgtrack_core::sources::opencode::history as opencode_history;
@@ -433,6 +434,7 @@ fn imported_recent_paths() -> Result<Vec<imported_history::ImportedHistoryRecent
     paths.extend(qwen_code_history::list_qwen_code_recent_paths(
         &mut conn, 0,
     )?);
+    paths.extend(kimi_history::list_kimi_recent_paths(&mut conn, 0)?);
     Ok(imported_history::recent_paths_from_paths(&paths))
 }
 
@@ -1282,6 +1284,31 @@ pub async fn qwen_code_recent_paths(
     tokio::task::spawn_blocking(move || {
         let mut conn = open_cache_conn()?;
         qwen_code_history::list_qwen_code_recent_paths(&mut conn, limit)
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
+}
+
+#[tauri::command]
+pub async fn kimi_history_chunks(
+    session_id: String,
+) -> Result<Vec<core_types::activity::ActivityChunk>, String> {
+    tokio::task::spawn_blocking(move || {
+        let conn = open_cache_conn()?;
+        kimi_history::load_kimi_history_for_session(&conn, &session_id)
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
+}
+
+#[tauri::command]
+pub async fn kimi_recent_paths(
+    limit: Option<usize>,
+) -> Result<Vec<kimi_history::KimiRecentPath>, String> {
+    let limit = limit.unwrap_or(20);
+    tokio::task::spawn_blocking(move || {
+        let mut conn = open_cache_conn()?;
+        kimi_history::list_kimi_recent_paths(&mut conn, limit)
     })
     .await
     .map_err(|err| format!("Task join error: {err}"))?

@@ -42,6 +42,7 @@ describe("imported history source helpers", () => {
     expect(isImportedHistoryReplayableSourceId("pi")).toBe(true);
     expect(isImportedHistoryReplayableSourceId("qoder_cli")).toBe(true);
     expect(isImportedHistoryReplayableSourceId("qwen_code")).toBe(true);
+    expect(isImportedHistoryReplayableSourceId("kimi")).toBe(true);
     expect(isImportedHistoryReplayableSourceId(null)).toBe(false);
   });
 

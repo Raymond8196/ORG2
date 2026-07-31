@@ -151,7 +151,8 @@ impl<'a> SnapshotDirWalker<'a> {
     /// Collect matching files without walking below `max_depth` directory
     /// edges from `dir`. A value of `1`, for example, inspects files directly
     /// under each immediate child but never enters grandchildren. Callers
-    /// that require an exact leaf depth still filter shallower files.
+    /// that require an exact leaf depth still filter shallower files. Bounded
+    /// callers also reject directory and file symlinks.
     pub fn collect_files_bounded(
         &mut self,
         dir: &Path,
@@ -167,6 +168,13 @@ impl<'a> SnapshotDirWalker<'a> {
         out: &mut Vec<PathBuf>,
         remaining_depth: Option<usize>,
     ) -> Result<(), String> {
+        if remaining_depth.is_some()
+            && fs::symlink_metadata(dir)
+                .ok()
+                .is_some_and(|metadata| metadata.file_type().is_symlink())
+        {
+            return Ok(());
+        }
         self.dirs_visited = self.dirs_visited.saturating_add(1);
         if self.dirs_visited > MAX_SNAPSHOT_DIRECTORIES {
             return Err(format!(
@@ -195,7 +203,15 @@ impl<'a> SnapshotDirWalker<'a> {
                 {
                     self.dirs_reused += 1;
                     for name in &snapshot.files {
-                        push_bounded_file(out, dir.join(name), self.error_label)?;
+                        let path = dir.join(name);
+                        if remaining_depth.is_some()
+                            && fs::symlink_metadata(&path).ok().is_some_and(|metadata| {
+                                metadata.file_type().is_symlink() || !metadata.is_file()
+                            })
+                        {
+                            continue;
+                        }
+                        push_bounded_file(out, path, self.error_label)?;
                     }
                     let subdirs = snapshot.subdirs.clone();
                     self.next.insert(key, snapshot.clone());
@@ -296,7 +312,6 @@ fn push_bounded_file(
     out.push(path);
     Ok(())
 }
-
 #[cfg(test)]
 #[path = "scan_snapshot_tests.rs"]
 mod tests;

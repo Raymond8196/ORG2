@@ -1,0 +1,1006 @@
+//! Bounded Kimi CLI / Kimi Code history and usage importer.
+//!
+//! The two products share a public source id but not an on-disk protocol:
+//!
+//! - `~/.kimi/sessions/<group>/<session>/wire.jsonl` stores legacy
+//!   `StatusUpdate.payload.token_usage` records.
+//! - `<Kimi Code home>/sessions/<workspace>/<session>/agents/<agent>/wire.jsonl`
+//!   stores turn-scoped `usage.record` records.
+//!
+//! Discovery is demand-driven. It follows neither symlinks nor ambient paths
+//! outside the current external-history identity, and metadata parsing resumes
+//! from the shared fixed-size append seam.
+
+use std::collections::{HashMap, HashSet};
+use std::fs;
+use std::io::Read;
+use std::path::{Component, Path, PathBuf};
+
+use core_types::activity::ActivityChunk;
+use rusqlite::Connection;
+use serde::{Deserialize, Serialize};
+use serde_json::Value;
+
+use crate::sources::imported_history::{
+    self, cache as imported_cache,
+    metadata::{
+        ImportedHistoryCacheInput, ImportedHistoryDiscoveredRecord, ImportedHistoryImpactStats,
+        RoundUsage, SOURCE_KIMI,
+    },
+    paths as imported_paths, scan_snapshot,
+    watermark::{ImportedParseWatermark, PrefixHasher, WatermarkedTranscriptReader},
+    ImportedHistoryRecentPath, ImportedHistorySessionPage,
+};
+
+pub const KIMI_SESSION_PREFIX: &str = "kimiapp-";
+pub type KimiRecentPath = ImportedHistoryRecentPath;
+
+const KIMI_METADATA_PARSER_VERSION: i64 = 3;
+const DEFAULT_MODEL: &str = "kimi-for-coding";
+const MAX_CONFIG_BYTES: u64 = 64 * 1024;
+const MAX_WIRE_FILE_BYTES: i64 = 64 * 1024 * 1024;
+const MAX_CHANGED_SESSIONS_PER_SYNC: usize = 256;
+const MAX_PARSE_SOURCE_BYTES_PER_SYNC: i64 = 64 * 1024 * 1024;
+const MAX_STATE_JSON_BYTES: usize = 4 * 1024 * 1024;
+const MAX_USAGE_ROUNDS: usize = 20_000;
+const MAX_ID_BYTES: usize = 1_024;
+const MAX_MODEL_BYTES: usize = 1_024;
+const MAX_REPLAY_CHUNKS: usize = 20_000;
+const MAX_REPLAY_TEXT_BYTES: usize = 8 * 1024 * 1024;
+const MAX_REPLAY_MESSAGE_CHARS: usize = 50_000;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum KimiLayout {
+    Legacy,
+    Code,
+}
+
+impl KimiLayout {
+    fn state_label(self) -> &'static str {
+        match self {
+            Self::Legacy => "legacy",
+            Self::Code => "code",
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+struct LegacyConfig {
+    model: String,
+    fingerprint: String,
+}
+
+#[derive(Debug)]
+struct KimiDiscovery {
+    records: Vec<ImportedHistoryDiscoveredRecord>,
+    legacy_config: LegacyConfig,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default, rename_all = "camelCase")]
+struct KimiRoundState {
+    dedup_key: Option<String>,
+    model: String,
+    input_tokens: i64,
+    output_tokens: i64,
+    cache_read_tokens: i64,
+    cache_write_tokens: i64,
+    created_at_ms: i64,
+    timestamp_is_wire: bool,
+}
+
+impl KimiRoundState {
+    fn exact_total(&self) -> i128 {
+        i128::from(self.input_tokens)
+            + i128::from(self.output_tokens)
+            + i128::from(self.cache_read_tokens)
+            + i128::from(self.cache_write_tokens)
+    }
+
+    fn is_empty(&self) -> bool {
+        self.exact_total() == 0
+    }
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(default, rename_all = "camelCase")]
+struct KimiMetaState {
+    layout: String,
+    config_fingerprint: String,
+    default_model: String,
+    latest_request_model: Option<String>,
+    created_at_ms: i64,
+    updated_at_ms: i64,
+    first_user_text: Option<String>,
+    rounds: Vec<KimiRoundState>,
+}
+
+#[derive(Debug)]
+struct ParsedKimiMeta {
+    input: ImportedHistoryCacheInput,
+    rounds: Vec<RoundUsage>,
+    watermark: ImportedParseWatermark,
+}
+
+pub fn list_kimi_history_sessions_paginated(
+    conn: &mut Connection,
+    limit: usize,
+    offset: usize,
+) -> Result<ImportedHistorySessionPage, String> {
+    sync_kimi_history_cache(conn)?;
+    imported_cache::query_imported_session_page_from_conn(conn, SOURCE_KIMI, limit, offset)
+}
+
+pub fn list_kimi_recent_paths(
+    conn: &mut Connection,
+    limit: usize,
+) -> Result<Vec<ImportedHistoryRecentPath>, String> {
+    sync_kimi_history_cache(conn)?;
+    imported_cache::query_imported_recent_paths_from_conn(conn, SOURCE_KIMI, limit)
+}
+
+pub fn load_kimi_history_for_session(
+    conn: &Connection,
+    session_id: &str,
+) -> Result<Vec<ActivityChunk>, String> {
+    if !session_id.starts_with(KIMI_SESSION_PREFIX) {
+        return Err(format!("Invalid Kimi session id: {session_id}"));
+    }
+    let (_, cached) =
+        imported_cache::query_cached_session_by_session_id_from_conn(conn, session_id)?
+            .filter(|(source, _)| source == SOURCE_KIMI)
+            .ok_or_else(|| format!("Kimi session not found: {session_id}"))?;
+    let layout = layout_from_source_id(&cached.source_session_id)?;
+    read_replay(Path::new(&cached.source_path), session_id, layout)
+}
+
+/// Candidate roots used by both importer and source detection.
+///
+/// An ambient `KIMI_CODE_HOME` is honored only when it resolves within the
+/// current external-history identity. Secondary instances therefore cannot
+/// inherit the primary user's custom Kimi path accidentally.
+pub fn kimi_history_candidate_paths() -> Vec<PathBuf> {
+    let home = app_paths::external_history_home_dir();
+    vec![
+        home.join(".kimi").join("sessions"),
+        kimi_code_home_for(&home, std::env::var_os("KIMI_CODE_HOME").as_deref()).join("sessions"),
+    ]
+}
+
+fn kimi_code_home_for(home: &Path, configured: Option<&std::ffi::OsStr>) -> PathBuf {
+    let fallback = home.join(".kimi-code");
+    let Some(configured) = configured.filter(|value| !value.is_empty()) else {
+        return fallback;
+    };
+    let configured_path = Path::new(configured);
+    let candidate = if configured_path.is_absolute() {
+        configured_path.to_path_buf()
+    } else if configured_path
+        .components()
+        .all(|component| matches!(component, Component::Normal(_) | Component::CurDir))
+    {
+        home.join(configured_path)
+    } else {
+        return fallback;
+    };
+    if candidate
+        .components()
+        .any(|component| component == Component::ParentDir)
+    {
+        return fallback;
+    }
+    let canonical_home = fs::canonicalize(home).unwrap_or_else(|_| home.to_path_buf());
+    let canonical_candidate =
+        fs::canonicalize(&candidate).unwrap_or_else(|_| candidate.to_path_buf());
+    canonical_candidate
+        .starts_with(&canonical_home)
+        .then_some(candidate)
+        .unwrap_or(fallback)
+}
+
+fn sync_kimi_history_cache(conn: &mut Connection) -> Result<(), String> {
+    let home = app_paths::external_history_home_dir();
+    sync_kimi_history_cache_in(conn, &home, std::env::var_os("KIMI_CODE_HOME").as_deref())
+}
+
+fn sync_kimi_history_cache_in(
+    conn: &mut Connection,
+    home: &Path,
+    kimi_code_home: Option<&std::ffi::OsStr>,
+) -> Result<(), String> {
+    let discovery = discover_kimi_records_in(conn, home, kimi_code_home)?;
+    let signatures = discovery
+        .records
+        .iter()
+        .map(ImportedHistoryDiscoveredRecord::signature)
+        .collect::<Vec<_>>();
+    let mut changed = imported_cache::changed_records_from_conn(
+        conn,
+        SOURCE_KIMI,
+        &discovery.records,
+        ImportedHistoryDiscoveredRecord::signature,
+    )?;
+    changed.sort_by(|left, right| {
+        right
+            .source_mtime_ms
+            .cmp(&left.source_mtime_ms)
+            .then_with(|| left.source_session_id.cmp(&right.source_session_id))
+    });
+
+    let mut processed = 0usize;
+    let mut admitted_source_bytes = 0_i64;
+    for record in changed {
+        if processed >= MAX_CHANGED_SESSIONS_PER_SYNC {
+            break;
+        }
+        let next_source_bytes =
+            admitted_source_bytes.saturating_add(record.source_size_bytes.max(0));
+        if processed > 0 && next_source_bytes > MAX_PARSE_SOURCE_BYTES_PER_SYNC {
+            break;
+        }
+        let layout = layout_from_source_id(&record.source_session_id)?;
+        let default_model = match layout {
+            KimiLayout::Legacy => discovery.legacy_config.model.as_str(),
+            KimiLayout::Code => DEFAULT_MODEL,
+        };
+        let stored = imported_history::watermark::read_parse_watermark_from_conn(
+            conn,
+            SOURCE_KIMI,
+            &record.source_session_id,
+        )?;
+        let parsed = parse_kimi_meta(record, layout, default_model, stored.as_ref())?;
+        imported_history::watermark::write_parse_watermark_from_conn(
+            conn,
+            SOURCE_KIMI,
+            &record.source_session_id,
+            &parsed.watermark,
+        )?;
+        let session_id = parsed.input.session_id.clone();
+        imported_cache::upsert_imported_session_cache_from_conn(
+            conn,
+            std::slice::from_ref(&parsed.input),
+        )?;
+        imported_cache::write_session_rounds_from_conn(
+            conn,
+            std::slice::from_ref(&session_id),
+            &parsed.rounds,
+        )?;
+        processed = processed.saturating_add(1);
+        admitted_source_bytes = next_source_bytes;
+    }
+
+    imported_cache::sync_source_cache_from_conn(
+        conn,
+        SOURCE_KIMI,
+        imported_cache::live_ids_from_signatures(&signatures),
+        Vec::new(),
+    )
+}
+
+fn discover_kimi_records_in(
+    conn: &Connection,
+    home: &Path,
+    kimi_code_home: Option<&std::ffi::OsStr>,
+) -> Result<KimiDiscovery, String> {
+    let legacy_root = home.join(".kimi").join("sessions");
+    let code_root = kimi_code_home_for(home, kimi_code_home).join("sessions");
+    let legacy_config = read_legacy_config(&legacy_root);
+    let previous = scan_snapshot::read_dir_snapshots_from_conn(conn, SOURCE_KIMI);
+    let mut walker = scan_snapshot::SnapshotDirWalker::new(&previous, "jsonl", "Kimi");
+    let mut records = Vec::new();
+    let mut seen_physical_paths = HashSet::new();
+
+    collect_layout_records(
+        &mut walker,
+        &legacy_root,
+        2,
+        KimiLayout::Legacy,
+        &legacy_config.fingerprint,
+        &mut seen_physical_paths,
+        &mut records,
+    )?;
+    collect_layout_records(
+        &mut walker,
+        &code_root,
+        4,
+        KimiLayout::Code,
+        "kimi-code-wire-v2",
+        &mut seen_physical_paths,
+        &mut records,
+    )?;
+
+    let next = walker.into_snapshots();
+    scan_snapshot::persist_dir_snapshots_if_changed(conn, SOURCE_KIMI, &previous, &next)?;
+    records.sort_by(|left, right| left.source_session_id.cmp(&right.source_session_id));
+    Ok(KimiDiscovery {
+        records,
+        legacy_config,
+    })
+}
+
+fn collect_layout_records(
+    walker: &mut scan_snapshot::SnapshotDirWalker<'_>,
+    root: &Path,
+    max_depth: usize,
+    layout: KimiLayout,
+    fingerprint: &str,
+    seen_physical_paths: &mut HashSet<PathBuf>,
+    records: &mut Vec<ImportedHistoryDiscoveredRecord>,
+) -> Result<(), String> {
+    if !root.is_dir() {
+        return Ok(());
+    }
+    let mut files = Vec::new();
+    walker.collect_files_bounded(root, &mut files, max_depth)?;
+    for path in files {
+        let Some(relative) = path.strip_prefix(root).ok() else {
+            continue;
+        };
+        let Some(source_session_id) = source_id_for_relative(layout, relative) else {
+            continue;
+        };
+        ensure_regular_history_file(&path)?;
+        let physical = fs::canonicalize(&path).unwrap_or_else(|_| path.clone());
+        if !seen_physical_paths.insert(physical) {
+            continue;
+        }
+        let (mtime, size) = imported_paths::file_metadata_signature(&path, "Kimi")?;
+        if size > MAX_WIRE_FILE_BYTES {
+            return Err(format!(
+                "Kimi history {} exceeds the {}-byte safety limit",
+                path.display(),
+                MAX_WIRE_FILE_BYTES
+            ));
+        }
+        records.push(ImportedHistoryDiscoveredRecord {
+            source_record_key: source_session_id.clone(),
+            source_session_id,
+            source_path: path,
+            source_mtime_ms: mtime,
+            source_size_bytes: size,
+            source_fingerprint: fingerprint.to_string(),
+            parser_version: KIMI_METADATA_PARSER_VERSION,
+        });
+    }
+    Ok(())
+}
+
+fn source_id_for_relative(layout: KimiLayout, relative: &Path) -> Option<String> {
+    let components = relative
+        .components()
+        .map(|component| match component {
+            Component::Normal(value) => value.to_str(),
+            _ => None,
+        })
+        .collect::<Option<Vec<_>>>()?;
+    let parts = match layout {
+        KimiLayout::Legacy if components.len() == 3 && components[2] == "wire.jsonl" => {
+            vec!["cli", components[0], components[1]]
+        }
+        KimiLayout::Code
+            if components.len() == 5
+                && components[2] == "agents"
+                && components[4] == "wire.jsonl" =>
+        {
+            vec!["code", components[0], components[1], components[3]]
+        }
+        _ => return None,
+    };
+    if parts
+        .iter()
+        .any(|part| part.is_empty() || part.len() > MAX_ID_BYTES || *part == "." || *part == "..")
+    {
+        return None;
+    }
+    Some(parts.join("/"))
+}
+
+fn read_legacy_config(sessions_root: &Path) -> LegacyConfig {
+    let config_path = sessions_root
+        .parent()
+        .map(|parent| parent.join("config.json"));
+    let Some(path) = config_path else {
+        return fallback_legacy_config("missing");
+    };
+    let Ok(metadata) = fs::symlink_metadata(&path) else {
+        return fallback_legacy_config("missing");
+    };
+    if metadata.file_type().is_symlink() || !metadata.is_file() {
+        return fallback_legacy_config("unsafe");
+    }
+    if metadata.len() > MAX_CONFIG_BYTES {
+        return fallback_legacy_config("oversized");
+    }
+    let Ok(file) = fs::File::open(&path) else {
+        return fallback_legacy_config("unreadable");
+    };
+    let mut bytes = Vec::with_capacity(metadata.len() as usize);
+    if file
+        .take(MAX_CONFIG_BYTES + 1)
+        .read_to_end(&mut bytes)
+        .is_err()
+        || bytes.len() as u64 > MAX_CONFIG_BYTES
+    {
+        return fallback_legacy_config("unreadable");
+    }
+    let model = serde_json::from_slice::<Value>(&bytes)
+        .ok()
+        .and_then(|value| {
+            value
+                .get("model")
+                .and_then(Value::as_str)
+                .map(str::trim)
+                .map(str::to_string)
+        })
+        .filter(|model| !model.is_empty() && model.len() <= MAX_MODEL_BYTES)
+        .unwrap_or_else(|| DEFAULT_MODEL.to_string());
+    LegacyConfig {
+        fingerprint: model_fingerprint(&model),
+        model,
+    }
+}
+
+fn fallback_legacy_config(reason: &str) -> LegacyConfig {
+    LegacyConfig {
+        model: DEFAULT_MODEL.to_string(),
+        fingerprint: format!("kimi-config-{reason}-{}", model_fingerprint(DEFAULT_MODEL)),
+    }
+}
+
+fn model_fingerprint(model: &str) -> String {
+    let mut hasher = PrefixHasher::default();
+    hasher.update(model.as_bytes());
+    format!("kimi-config-model-v1:{}", hasher.digest())
+}
+
+fn layout_from_source_id(source_session_id: &str) -> Result<KimiLayout, String> {
+    if source_session_id.starts_with("cli/") {
+        Ok(KimiLayout::Legacy)
+    } else if source_session_id.starts_with("code/") {
+        Ok(KimiLayout::Code)
+    } else {
+        Err(format!(
+            "Unknown Kimi source namespace: {source_session_id}"
+        ))
+    }
+}
+
+fn parse_kimi_meta(
+    record: &ImportedHistoryDiscoveredRecord,
+    layout: KimiLayout,
+    default_model: &str,
+    watermark: Option<&ImportedParseWatermark>,
+) -> Result<ParsedKimiMeta, String> {
+    let mut reader = WatermarkedTranscriptReader::open(
+        &record.source_path,
+        "Kimi",
+        watermark,
+        KIMI_METADATA_PARSER_VERSION,
+        record.source_mtime_ms,
+        record.source_size_bytes,
+    )?;
+    let mut state = initial_state(layout, default_model, &record.source_fingerprint);
+    let mut resumed = false;
+    if let Some(raw) = reader.resume_state_json() {
+        if raw.len() <= MAX_STATE_JSON_BYTES {
+            if let Ok(candidate) = serde_json::from_str::<KimiMetaState>(raw) {
+                if candidate.layout == layout.state_label()
+                    && candidate.config_fingerprint == record.source_fingerprint
+                    && candidate.validate().is_ok()
+                {
+                    state = candidate;
+                    resumed = true;
+                }
+            }
+        }
+    }
+    if !resumed && reader.resume_state_json().is_some() {
+        reader = WatermarkedTranscriptReader::open(
+            &record.source_path,
+            "Kimi",
+            None,
+            KIMI_METADATA_PARSER_VERSION,
+            record.source_mtime_ms,
+            record.source_size_bytes,
+        )?;
+    }
+
+    let mut dedup_indices = state.dedup_indices()?;
+    let mut tail_state = None;
+    while let Some(line) = reader.next_line()? {
+        let trimmed = line.text.trim();
+        if trimmed.is_empty() {
+            continue;
+        }
+        if line.terminated {
+            state.feed(
+                trimmed,
+                layout,
+                record.source_mtime_ms / 1_000_000,
+                &mut dedup_indices,
+            )?;
+        } else {
+            let mut candidate = state.clone();
+            let mut candidate_indices = candidate.dedup_indices()?;
+            candidate.feed(
+                trimmed,
+                layout,
+                record.source_mtime_ms / 1_000_000,
+                &mut candidate_indices,
+            )?;
+            tail_state = Some(candidate);
+        }
+    }
+    state.validate()?;
+    let state_json = serde_json::to_string(&state)
+        .map_err(|err| format!("Failed to serialize Kimi parse state: {err}"))?;
+    if state_json.len() > MAX_STATE_JSON_BYTES {
+        return Err(format!(
+            "Kimi parse state exceeds the {MAX_STATE_JSON_BYTES}-byte safety limit"
+        ));
+    }
+    let next_watermark = reader.into_watermark(
+        KIMI_METADATA_PARSER_VERSION,
+        record.source_mtime_ms,
+        record.source_size_bytes,
+        state_json,
+    );
+    let visible_state = tail_state.unwrap_or(state);
+    let (input, rounds) = visible_state.finish(record)?;
+    Ok(ParsedKimiMeta {
+        input,
+        rounds,
+        watermark: next_watermark,
+    })
+}
+
+fn initial_state(layout: KimiLayout, default_model: &str, fingerprint: &str) -> KimiMetaState {
+    KimiMetaState {
+        layout: layout.state_label().to_string(),
+        config_fingerprint: fingerprint.to_string(),
+        default_model: default_model.to_string(),
+        ..KimiMetaState::default()
+    }
+}
+
+impl KimiMetaState {
+    fn dedup_indices(&self) -> Result<HashMap<String, usize>, String> {
+        let mut indices = HashMap::new();
+        for (index, round) in self.rounds.iter().enumerate() {
+            if let Some(key) = round.dedup_key.as_ref().filter(|key| !key.is_empty()) {
+                if indices.insert(key.clone(), index).is_some() {
+                    return Err("Kimi parse state contains duplicate usage ids".to_string());
+                }
+            }
+        }
+        Ok(indices)
+    }
+
+    fn feed(
+        &mut self,
+        line: &str,
+        layout: KimiLayout,
+        fallback_timestamp_ms: i64,
+        dedup_indices: &mut HashMap<String, usize>,
+    ) -> Result<(), String> {
+        let Ok(value) = serde_json::from_str::<Value>(line) else {
+            return Ok(());
+        };
+        match layout {
+            KimiLayout::Legacy => {
+                let timestamp = legacy_timestamp_ms(&value).unwrap_or(fallback_timestamp_ms);
+                self.observe_timestamp(timestamp);
+                let Some(message) = value.get("message") else {
+                    return Ok(());
+                };
+                let message_type = message
+                    .get("type")
+                    .and_then(Value::as_str)
+                    .unwrap_or_default();
+                let payload = message.get("payload").unwrap_or(&Value::Null);
+                if message_type == "TurnBegin" && self.first_user_text.is_none() {
+                    self.first_user_text =
+                        first_string(payload, &["user_input", "userInput", "input"])
+                            .map(|text| imported_history::truncate_name(text, 200));
+                }
+                if message_type != "StatusUpdate" {
+                    return Ok(());
+                }
+                let Some(usage) = payload.get("token_usage") else {
+                    return Ok(());
+                };
+                let round = round_from_usage(
+                    usage,
+                    &self.default_model,
+                    timestamp,
+                    legacy_timestamp_ms(&value).is_some(),
+                    payload
+                        .get("message_id")
+                        .and_then(Value::as_str)
+                        .filter(|id| !id.is_empty())
+                        .map(str::to_string),
+                );
+                self.push_legacy_round(round, dedup_indices)
+            }
+            KimiLayout::Code => {
+                let line_type = value
+                    .get("type")
+                    .and_then(Value::as_str)
+                    .unwrap_or_default();
+                let timestamp = code_timestamp_ms(&value).unwrap_or(fallback_timestamp_ms);
+                self.observe_timestamp(timestamp);
+                if line_type == "llm.request" {
+                    if let Some(model) = value
+                        .get("model")
+                        .and_then(Value::as_str)
+                        .and_then(concrete_code_model)
+                    {
+                        self.latest_request_model = Some(model);
+                    }
+                    return Ok(());
+                }
+                if line_type != "usage.record"
+                    || value.get("usageScope").and_then(Value::as_str) != Some("turn")
+                {
+                    return Ok(());
+                }
+                let Some(usage) = value.get("usage") else {
+                    return Ok(());
+                };
+                let model = value
+                    .get("model")
+                    .and_then(Value::as_str)
+                    .and_then(concrete_code_model)
+                    .or_else(|| self.latest_request_model.clone())
+                    .unwrap_or_else(|| self.default_model.clone());
+                self.push_round(round_from_usage(
+                    usage,
+                    &model,
+                    timestamp,
+                    code_timestamp_ms(&value).is_some(),
+                    None,
+                ))
+            }
+        }
+    }
+
+    fn push_legacy_round(
+        &mut self,
+        round: KimiRoundState,
+        dedup_indices: &mut HashMap<String, usize>,
+    ) -> Result<(), String> {
+        if round.is_empty() {
+            return Ok(());
+        }
+        let Some(key) = round.dedup_key.clone().filter(|key| !key.is_empty()) else {
+            return self.push_round(round);
+        };
+        if key.len() > MAX_ID_BYTES {
+            return Err("Kimi message id exceeds the safety limit".to_string());
+        }
+        if let Some(index) = dedup_indices.get(&key).copied() {
+            let existing = &self.rounds[index];
+            let replace = round.exact_total() > existing.exact_total()
+                || (round.exact_total() == existing.exact_total()
+                    && ((round.timestamp_is_wire && !existing.timestamp_is_wire)
+                        || (round.timestamp_is_wire == existing.timestamp_is_wire
+                            && round.created_at_ms >= existing.created_at_ms)));
+            if replace {
+                self.rounds[index] = round;
+            }
+            return Ok(());
+        }
+        let index = self.rounds.len();
+        self.push_round(round)?;
+        dedup_indices.insert(key, index);
+        Ok(())
+    }
+
+    fn push_round(&mut self, round: KimiRoundState) -> Result<(), String> {
+        if round.is_empty() {
+            return Ok(());
+        }
+        if self.rounds.len() >= MAX_USAGE_ROUNDS {
+            return Err(format!(
+                "Kimi history exceeds the {MAX_USAGE_ROUNDS}-round safety limit"
+            ));
+        }
+        self.rounds.push(round);
+        Ok(())
+    }
+
+    fn observe_timestamp(&mut self, timestamp_ms: i64) {
+        if timestamp_ms <= 0 {
+            return;
+        }
+        if self.created_at_ms == 0 || timestamp_ms < self.created_at_ms {
+            self.created_at_ms = timestamp_ms;
+        }
+        self.updated_at_ms = self.updated_at_ms.max(timestamp_ms);
+    }
+
+    fn validate(&self) -> Result<(), String> {
+        if self.layout.len() > 16
+            || self.config_fingerprint.len() > MAX_ID_BYTES
+            || self.default_model.len() > MAX_MODEL_BYTES
+            || self
+                .latest_request_model
+                .as_ref()
+                .is_some_and(|model| model.len() > MAX_MODEL_BYTES)
+            || self
+                .first_user_text
+                .as_ref()
+                .is_some_and(|text| text.len() > 1_024)
+        {
+            return Err("Kimi parse state contains an oversized field".to_string());
+        }
+        if self.rounds.len() > MAX_USAGE_ROUNDS {
+            return Err("Kimi parse state contains too many usage rounds".to_string());
+        }
+        for round in &self.rounds {
+            if round.model.len() > MAX_MODEL_BYTES
+                || round
+                    .dedup_key
+                    .as_ref()
+                    .is_some_and(|key| key.len() > MAX_ID_BYTES)
+                || [
+                    round.input_tokens,
+                    round.output_tokens,
+                    round.cache_read_tokens,
+                    round.cache_write_tokens,
+                ]
+                .into_iter()
+                .any(|tokens| tokens < 0)
+            {
+                return Err("Kimi parse state contains an invalid usage round".to_string());
+            }
+        }
+        self.dedup_indices().map(|_| ())
+    }
+
+    fn finish(
+        self,
+        record: &ImportedHistoryDiscoveredRecord,
+    ) -> Result<(ImportedHistoryCacheInput, Vec<RoundUsage>), String> {
+        self.validate()?;
+        let fallback_ms = record.source_mtime_ms / 1_000_000;
+        let session_id = format!("{KIMI_SESSION_PREFIX}{}", record.source_session_id);
+        let mut input_tokens = 0_i64;
+        let mut output_tokens = 0_i64;
+        let mut cache_read_tokens = 0_i64;
+        let mut cache_write_tokens = 0_i64;
+        let mut rounds = Vec::with_capacity(self.rounds.len());
+        for (sequence, round) in self.rounds.into_iter().enumerate() {
+            input_tokens = input_tokens
+                .saturating_add(round.input_tokens)
+                .saturating_add(round.cache_read_tokens)
+                .saturating_add(round.cache_write_tokens);
+            output_tokens = output_tokens.saturating_add(round.output_tokens);
+            cache_read_tokens = cache_read_tokens.saturating_add(round.cache_read_tokens);
+            cache_write_tokens = cache_write_tokens.saturating_add(round.cache_write_tokens);
+            rounds.push(RoundUsage {
+                source: SOURCE_KIMI,
+                source_session_id: record.source_session_id.clone(),
+                session_id: session_id.clone(),
+                seq: sequence as i64,
+                model: Some(round.model),
+                input_tokens: round.input_tokens,
+                output_tokens: round.output_tokens,
+                cache_read_tokens: round.cache_read_tokens,
+                cache_write_tokens: round.cache_write_tokens,
+                created_at_ms: round.created_at_ms,
+            });
+        }
+        let model = rounds
+            .last()
+            .and_then(|round| round.model.clone())
+            .or_else(|| Some(self.default_model.clone()));
+        let name = self
+            .first_user_text
+            .unwrap_or_else(|| record.source_record_key.clone());
+        Ok((
+            ImportedHistoryCacheInput {
+                source: SOURCE_KIMI,
+                source_session_id: record.source_session_id.clone(),
+                session_id,
+                source_path: record.source_path.to_string_lossy().to_string(),
+                source_record_key: record.source_record_key.clone(),
+                source_mtime_ms: record.source_mtime_ms,
+                source_size_bytes: record.source_size_bytes,
+                source_fingerprint: record.source_fingerprint.clone(),
+                parser_version: KIMI_METADATA_PARSER_VERSION,
+                name,
+                created_at_ms: if self.created_at_ms > 0 {
+                    self.created_at_ms
+                } else {
+                    fallback_ms
+                },
+                updated_at_ms: if self.updated_at_ms > 0 {
+                    self.updated_at_ms
+                } else {
+                    fallback_ms
+                },
+                model,
+                input_tokens,
+                output_tokens,
+                cache_read_tokens,
+                cache_write_tokens,
+                repo_path: None,
+                branch: None,
+                impact: ImportedHistoryImpactStats::default(),
+                listable: true,
+                source_metadata_json: None,
+                parent_session_id: None,
+            },
+            rounds,
+        ))
+    }
+}
+
+fn round_from_usage(
+    usage: &Value,
+    model: &str,
+    created_at_ms: i64,
+    timestamp_is_wire: bool,
+    dedup_key: Option<String>,
+) -> KimiRoundState {
+    KimiRoundState {
+        dedup_key,
+        model: bounded_model(model),
+        input_tokens: nonnegative_token(usage, &["input_other", "inputOther"]),
+        output_tokens: nonnegative_token(usage, &["output"]),
+        cache_read_tokens: nonnegative_token(usage, &["input_cache_read", "inputCacheRead"]),
+        cache_write_tokens: nonnegative_token(
+            usage,
+            &["input_cache_creation", "inputCacheCreation"],
+        ),
+        created_at_ms,
+        timestamp_is_wire,
+    }
+}
+
+fn nonnegative_token(value: &Value, keys: &[&str]) -> i64 {
+    keys.iter()
+        .find_map(|key| value.get(*key))
+        .and_then(|value| {
+            value
+                .as_i64()
+                .or_else(|| value.as_u64().map(|raw| raw.min(i64::MAX as u64) as i64))
+        })
+        .unwrap_or(0)
+        .max(0)
+}
+
+fn bounded_model(model: &str) -> String {
+    let model = model.trim();
+    if model.is_empty() || model.len() > MAX_MODEL_BYTES {
+        DEFAULT_MODEL.to_string()
+    } else {
+        model.to_string()
+    }
+}
+
+fn concrete_code_model(model: &str) -> Option<String> {
+    let normalized = model
+        .trim()
+        .strip_prefix("kimi-code/")
+        .unwrap_or(model.trim())
+        .trim();
+    let symbolic =
+        normalized.len() >= 4 && normalized.starts_with("__") && normalized.ends_with("__");
+    (!normalized.is_empty() && !symbolic && normalized.len() <= MAX_MODEL_BYTES)
+        .then(|| normalized.to_string())
+}
+
+fn legacy_timestamp_ms(value: &Value) -> Option<i64> {
+    let timestamp = value.get("timestamp")?.as_f64()?;
+    if !timestamp.is_finite() || timestamp <= 0.0 {
+        return None;
+    }
+    let millis = timestamp * 1000.0;
+    (millis.is_finite() && millis > 0.0 && millis <= i64::MAX as f64).then(|| millis as i64)
+}
+
+fn code_timestamp_ms(value: &Value) -> Option<i64> {
+    value
+        .get("time")?
+        .as_i64()
+        .filter(|timestamp| *timestamp > 0)
+}
+
+fn first_string<'a>(value: &'a Value, keys: &[&str]) -> Option<&'a str> {
+    keys.iter()
+        .find_map(|key| value.get(*key).and_then(Value::as_str))
+        .map(str::trim)
+        .filter(|text| !text.is_empty())
+}
+
+fn read_replay(
+    path: &Path,
+    session_id: &str,
+    layout: KimiLayout,
+) -> Result<Vec<ActivityChunk>, String> {
+    ensure_regular_history_file(path)?;
+    if layout == KimiLayout::Code {
+        // Kimi Code's wire format exposes usage metadata, not replayable
+        // conversation bodies. Do not scan a potentially large file only to
+        // return an empty transcript.
+        return Ok(Vec::new());
+    }
+    let (mtime, size) = imported_paths::file_metadata_signature(path, "Kimi")?;
+    if size > MAX_WIRE_FILE_BYTES {
+        return Err("Kimi history exceeds the replay safety limit".to_string());
+    }
+    let mut reader = WatermarkedTranscriptReader::open(
+        path,
+        "Kimi",
+        None,
+        KIMI_METADATA_PARSER_VERSION,
+        mtime,
+        size,
+    )?;
+    let mut chunks = Vec::new();
+    let mut retained_text_bytes = 0usize;
+    while let Some(line) = reader.next_line()? {
+        let Ok(value) = serde_json::from_str::<Value>(line.text.trim()) else {
+            continue;
+        };
+        let timestamp = legacy_timestamp_ms(&value).unwrap_or(mtime / 1_000_000);
+        let created_at = imported_history::epoch_ms_to_iso(timestamp);
+        let Some(message) = value.get("message") else {
+            continue;
+        };
+        let kind = message
+            .get("type")
+            .and_then(Value::as_str)
+            .unwrap_or_default();
+        let payload = message.get("payload").unwrap_or(&Value::Null);
+        let (role, text) = match kind {
+            "TurnBegin" => (
+                "user",
+                first_string(payload, &["user_input", "userInput", "input"]),
+            ),
+            "ContentPart" => ("assistant", first_string(payload, &["text", "content"])),
+            _ => continue,
+        };
+        let Some(text) = text else {
+            continue;
+        };
+        let text = imported_history::truncate_name(text, MAX_REPLAY_MESSAGE_CHARS);
+        if chunks.len() >= MAX_REPLAY_CHUNKS
+            || retained_text_bytes.saturating_add(text.len()) > MAX_REPLAY_TEXT_BYTES
+        {
+            return Err("Kimi replay exceeds the bounded in-memory safety limit".to_string());
+        }
+        retained_text_bytes = retained_text_bytes.saturating_add(text.len());
+        let sequence = chunks.len();
+        chunks.push(if role == "user" {
+            imported_history::user_message_chunk(session_id, "kimi", sequence, &created_at, &text)
+        } else {
+            imported_history::assistant_message_chunk(
+                session_id,
+                "kimi",
+                sequence,
+                &created_at,
+                &text,
+            )
+        });
+    }
+    Ok(chunks)
+}
+
+fn ensure_regular_history_file(path: &Path) -> Result<(), String> {
+    let metadata = fs::symlink_metadata(path)
+        .map_err(|err| format!("Failed to inspect Kimi history {}: {err}", path.display()))?;
+    if metadata.file_type().is_symlink() || !metadata.is_file() {
+        return Err(format!(
+            "Refusing unsafe Kimi history path: {}",
+            path.display()
+        ));
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+#[path = "history_tests.rs"]
+mod tests;
