@@ -900,7 +900,15 @@
         "githubCardOpen": "Mở {{name}} trên GitHub",
         "githubIssue": "Issue",
         "githubPullRequest": "Pull request",
-        "archivedComposerDisabled": "Kênh này đã được lưu trữ. Bỏ lưu trữ để đăng bài."
+        "archivedComposerDisabled": "Kênh này đã được lưu trữ. Bỏ lưu trữ để đăng bài.",
+        "errorPostForbidden": "Chỉ người quản lý kênh mới có thể đăng vào kênh này",
+        "errorArchived": "Kênh này đã lưu trữ nên không thể đăng tin nhắn",
+        "errorChannelMissing": "Kênh này không còn khả dụng",
+        "errorMessageMissing": "Tin nhắn này không còn khả dụng",
+        "loadError": "Không thể tải tin nhắn",
+        "loadingMessages": "Đang tải tin nhắn…",
+        "loadOlder": "Tải tin nhắn cũ hơn",
+        "unknownAuthor": "Thành viên nhóm"
       }
     }
   }

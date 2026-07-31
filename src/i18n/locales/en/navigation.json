@@ -929,7 +929,15 @@
         "githubCardOpen": "Open {{name}} on GitHub",
         "githubIssue": "Issue",
         "githubPullRequest": "Pull request",
-        "archivedComposerDisabled": "This channel is archived. Unarchive it to post again."
+        "archivedComposerDisabled": "This channel is archived. Unarchive it to post again.",
+        "errorPostForbidden": "Only channel managers can post in this channel",
+        "errorArchived": "This channel is archived, so posting is turned off",
+        "errorChannelMissing": "This channel is no longer available",
+        "errorMessageMissing": "That message is no longer available",
+        "loadError": "Couldn't load messages",
+        "loadingMessages": "Loading messages…",
+        "loadOlder": "Load earlier messages",
+        "unknownAuthor": "Teammate"
       }
     }
   }

@@ -902,7 +902,15 @@
         "githubCardOpen": "{{name}} auf GitHub öffnen",
         "githubIssue": "Issue",
         "githubPullRequest": "Pull Request",
-        "archivedComposerDisabled": "Dieser Kanal ist archiviert. Zum Posten die Archivierung aufheben."
+        "archivedComposerDisabled": "Dieser Kanal ist archiviert. Zum Posten die Archivierung aufheben.",
+        "errorPostForbidden": "Nur Channel-Manager können in diesem Channel posten",
+        "errorArchived": "Dieser Channel ist archiviert, Senden ist deaktiviert",
+        "errorChannelMissing": "Dieser Channel ist nicht mehr verfügbar",
+        "errorMessageMissing": "Diese Nachricht ist nicht mehr verfügbar",
+        "loadError": "Nachrichten konnten nicht geladen werden",
+        "loadingMessages": "Nachrichten werden geladen…",
+        "loadOlder": "Ältere Nachrichten laden",
+        "unknownAuthor": "Teammitglied"
       }
     }
   }

@@ -900,7 +900,15 @@
         "githubCardOpen": "{{name}} ögesini GitHub'da aç",
         "githubIssue": "Issue",
         "githubPullRequest": "Pull request",
-        "archivedComposerDisabled": "Bu kanal arşivlendi. Göndermek için arşivden çıkarın."
+        "archivedComposerDisabled": "Bu kanal arşivlendi. Göndermek için arşivden çıkarın.",
+        "errorPostForbidden": "Bu kanala yalnızca kanal yöneticileri gönderebilir",
+        "errorArchived": "Bu kanal arşivlendi, bu yüzden gönderim kapalı",
+        "errorChannelMissing": "Bu kanal artık kullanılamıyor",
+        "errorMessageMissing": "Bu mesaj artık kullanılamıyor",
+        "loadError": "Mesajlar yüklenemedi",
+        "loadingMessages": "Mesajlar yükleniyor…",
+        "loadOlder": "Önceki mesajları yükle",
+        "unknownAuthor": "Takım arkadaşı"
       }
     }
   }
