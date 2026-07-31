@@ -11,6 +11,7 @@ import {
 import { clineHistoryChunks } from "../sources/cline";
 import { codexAppChunks, codexAppInitialWindow } from "../sources/codexApp";
 import { cursorCliHistoryChunks } from "../sources/cursorCli";
+import { kimiHistoryChunks } from "../sources/kimi";
 import { mimoCodeHistoryChunks } from "../sources/mimoCode";
 import { ompHistoryChunks } from "../sources/omp";
 import { opencodeHistoryChunks } from "../sources/opencode";
@@ -216,6 +217,13 @@ export const IMPORTED_HISTORY_SOURCES: readonly ImportedHistorySource[] = [
     statTranscript: (sessionId) => importedHistoryStat("qwen_code", sessionId),
     loadPreviewChunks: loadGenericPreviewChunks,
     loadFullTranscriptChunks: qwenCodeHistoryChunks,
+  },
+  {
+    ...descriptorFor("kimi"),
+    dispatchCategory: "external_history",
+    statTranscript: (sessionId) => importedHistoryStat("kimi", sessionId),
+    loadPreviewChunks: loadGenericPreviewChunks,
+    loadFullTranscriptChunks: kimiHistoryChunks,
   },
 ];
 

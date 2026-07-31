@@ -32,7 +32,7 @@ use super::imported_history::{
     ImportedHistorySessionRow,
 };
 use super::{
-    claude_code, cline, codex, cursor_cli, cursor_ide, mimo_code, omp, opencode, pi, qoder,
+    claude_code, cline, codex, cursor_cli, cursor_ide, kimi, mimo_code, omp, opencode, pi, qoder,
     qoder_cli, qwen_code, trae, warp, windsurf, workbuddy, zcode,
 };
 
@@ -164,6 +164,12 @@ static REGISTERED: &[RegisteredSource] = &[
         id: metadata::SOURCE_QWEN_CODE,
         label: "Qwen Code",
         scan: qwen_code::history::list_qwen_code_history_sessions_paginated,
+        continuation: None,
+    },
+    RegisteredSource {
+        id: metadata::SOURCE_KIMI,
+        label: "Kimi",
+        scan: kimi::history::list_kimi_history_sessions_paginated,
         continuation: None,
     },
     RegisteredSource {

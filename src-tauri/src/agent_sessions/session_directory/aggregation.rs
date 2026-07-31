@@ -23,11 +23,13 @@ use orgtrack_core::sources::cursor_ide::history::CursorIdeSessionPage;
 use orgtrack_core::sources::imported_history::cache as imported_history_cache;
 use orgtrack_core::sources::imported_history::metadata::{
     SOURCE_CLAUDE_CODE, SOURCE_CLINE, SOURCE_CODEX_APP, SOURCE_CURSOR_CLI, SOURCE_CURSOR_IDE,
-    SOURCE_MIMO_CODE, SOURCE_OMP, SOURCE_OPENCODE, SOURCE_PI, SOURCE_QODER, SOURCE_QODER_CLI,
-    SOURCE_QWEN_CODE, SOURCE_TRAE, SOURCE_WARP, SOURCE_WINDSURF, SOURCE_WORKBUDDY, SOURCE_ZCODE,
+    SOURCE_KIMI, SOURCE_MIMO_CODE, SOURCE_OMP, SOURCE_OPENCODE, SOURCE_PI, SOURCE_QODER,
+    SOURCE_QODER_CLI, SOURCE_QWEN_CODE, SOURCE_TRAE, SOURCE_WARP, SOURCE_WINDSURF,
+    SOURCE_WORKBUDDY, SOURCE_ZCODE,
 };
 use orgtrack_core::sources::imported_history::ImportedHistorySessionPage;
 use orgtrack_core::sources::imported_history::IMPORTED_STATUS_COMPLETED;
+use orgtrack_core::sources::kimi::history as kimi_history;
 use orgtrack_core::sources::mimo_code::history as mimo_code_history;
 use orgtrack_core::sources::omp::history as omp_history;
 use orgtrack_core::sources::opencode::history as opencode_history;
@@ -67,9 +69,8 @@ struct ExternalHistorySourceLoader {
     /// more", or offsets computed against page zero's filtered stream
     /// misalign — duplicating rows already shown and surfacing rows page
     /// zero hides. `None` = the generic cache page matches page zero.
-    load_continuation_page: Option<
-        fn(&mut rusqlite::Connection, usize, usize) -> Result<ExternalHistoryPage, String>,
-    >,
+    load_continuation_page:
+        Option<fn(&mut rusqlite::Connection, usize, usize) -> Result<ExternalHistoryPage, String>>,
 }
 
 fn load_claude_code_external_history_page(
@@ -234,6 +235,15 @@ fn load_qwen_code_external_history_page(
         .map(ExternalHistoryPage::Imported)
 }
 
+fn load_kimi_external_history_page(
+    conn: &mut rusqlite::Connection,
+    limit: usize,
+    offset: usize,
+) -> Result<ExternalHistoryPage, String> {
+    kimi_history::list_kimi_history_sessions_paginated(conn, limit, offset)
+        .map(ExternalHistoryPage::Imported)
+}
+
 const EXTERNAL_HISTORY_SOURCE_LOADERS: &[ExternalHistorySourceLoader] = &[
     ExternalHistorySourceLoader {
         source: SOURCE_CLAUDE_CODE,
@@ -318,6 +328,11 @@ const EXTERNAL_HISTORY_SOURCE_LOADERS: &[ExternalHistorySourceLoader] = &[
     ExternalHistorySourceLoader {
         source: SOURCE_QWEN_CODE,
         load_page: load_qwen_code_external_history_page,
+        load_continuation_page: None,
+    },
+    ExternalHistorySourceLoader {
+        source: SOURCE_KIMI,
+        load_page: load_kimi_external_history_page,
         load_continuation_page: None,
     },
 ];
@@ -1203,6 +1218,17 @@ mod tests {
             EXTERNAL_HISTORY_SOURCE_LOADERS
                 .iter()
                 .filter(|loader| loader.source == SOURCE_QWEN_CODE)
+                .count(),
+            1
+        );
+    }
+
+    #[test]
+    fn desktop_external_history_loaders_include_kimi_once() {
+        assert_eq!(
+            EXTERNAL_HISTORY_SOURCE_LOADERS
+                .iter()
+                .filter(|loader| loader.source == SOURCE_KIMI)
                 .count(),
             1
         );

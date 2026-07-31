@@ -106,6 +106,7 @@ describe("imported history source registry", () => {
       "pi",
       "qoder_cli",
       "qwen_code",
+      "kimi",
     ]);
     expect(
       IMPORTED_HISTORY_SOURCES.map((source) => source.listCategory)
@@ -127,6 +128,7 @@ describe("imported history source registry", () => {
       "external_history:pi",
       "external_history:qoder_cli",
       "external_history:qwen_code",
+      "external_history:kimi",
     ]);
     for (const source of IMPORTED_HISTORY_SOURCES) {
       expect(source.loadPreviewChunks).toBeTypeOf("function");
@@ -172,6 +174,12 @@ describe("imported history source registry", () => {
     expect(
       getImportedHistorySourceBySessionId("qwencodeapp-session-1")?.sourceId
     ).toBe("qwen_code");
+    expect(
+      getImportedHistorySourceBySessionId("kimihistoryapp-cli/group/session")?.sourceId
+    ).toBe("kimi");
+    expect(getImportedHistorySourceBySessionId("kimiapp-hook-session")).toBe(
+      undefined
+    );
   });
 
   it("resolves source metadata by list category", () => {

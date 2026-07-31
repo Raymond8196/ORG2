@@ -66,6 +66,7 @@ const IMPORTABLE_HISTORY_SOURCE_IDS: &[&str] = &[
     "pi",
     "qoder_cli",
     "qwen_code",
+    "kimi",
 ];
 
 /// On-disk store format for a source's session history — the "file type" shown
@@ -76,21 +77,13 @@ const IMPORTABLE_HISTORY_SOURCE_IDS: &[&str] = &[
 fn store_kind_for(source_id: &str) -> &'static str {
     match source_id {
         // Importable — ORGII parses these.
-        "claude_code"
-        | "codex_app"
-        | "workbuddy"
-        | "trae"
-        | "cline"
-        | "qoder"
-        | "omp"
-        | "pi"
-        | "qoder_cli"
-        | "qwen_code" => "jsonl",
+        "claude_code" | "codex_app" | "workbuddy" | "trae" | "cline" | "qoder" | "omp" | "pi"
+        | "qoder_cli" | "qwen_code" | "kimi" => "jsonl",
         "cursor_ide" | "cursor_cli" | "opencode" | "windsurf" | "warp" | "zcode" | "mimo_code" => {
             "sqlite"
         }
         // Known store format, not yet imported.
-        "kimi" | "droid" => "jsonl",
+        "droid" => "jsonl",
         "copilot" | "goose" | "grok" | "openclaw" => "sqlite",
         "aider" => "markdown",
         _ => "",
@@ -336,8 +329,8 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
         &[],
         "kimi",
         "kimi",
-        false,
-        &[".kimi"],
+        true,
+        &[".kimi/sessions", ".kimi-code/sessions"],
     ),
     source(
         "mistral_vibe",
@@ -630,6 +623,7 @@ fn importable_history_candidates(source_id: &str) -> Vec<PathBuf> {
             orgtrack_core::sources::qoder_cli::history::qoder_cli_history_candidate_paths()
         }
         "qwen_code" => vec![orgtrack_core::sources::qwen_code::history::qwen_code_history_root()],
+        "kimi" => orgtrack_core::sources::kimi::history::kimi_history_candidate_paths(),
         _ => Vec::new(),
     }
 }
@@ -822,6 +816,21 @@ mod tests {
         assert!(qwen.history_import);
         assert_eq!(qwen.history_dirs, &[".qwen/projects"]);
         assert_eq!(store_kind_for("qwen_code"), "jsonl");
+
+        let kimi = EXTERNAL_CLI_SOURCES
+            .iter()
+            .find(|source| source.source_id == "kimi")
+            .expect("Kimi source");
+        assert!(kimi.history_import);
+        assert_eq!(
+            kimi.history_dirs,
+            &[".kimi/sessions", ".kimi-code/sessions"]
+        );
+        assert_eq!(store_kind_for("kimi"), "jsonl");
+        assert_eq!(
+            importable_history_candidates("kimi"),
+            orgtrack_core::sources::kimi::history::kimi_history_candidate_paths()
+        );
     }
 
     #[test]

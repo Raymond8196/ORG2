@@ -111,6 +111,7 @@ export const EXTERNAL_HISTORY_FILTER_BY_SOURCE: Record<
   pi: KANBAN_AGENT_TYPE_FILTER.PI_APP,
   qoder_cli: KANBAN_AGENT_TYPE_FILTER.QODER_CLI_APP,
   qwen_code: KANBAN_AGENT_TYPE_FILTER.QWEN_CODE_APP,
+  kimi: KANBAN_AGENT_TYPE_FILTER.KIMI_CLI,
 };
 
 /** Widened column id used inside Agent Kanban only. */

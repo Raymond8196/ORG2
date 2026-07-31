@@ -58,6 +58,7 @@ enum ImportedHistoryLoader {
     Pi,
     QoderCli,
     QwenCode,
+    Kimi,
 }
 
 fn imported_history_loader(session_id: &str) -> Option<ImportedHistoryLoader> {
@@ -95,6 +96,8 @@ fn imported_history_loader(session_id: &str) -> Option<ImportedHistoryLoader> {
         Some(ImportedHistoryLoader::QoderCli)
     } else if session_id.starts_with(super::qwen_code::history::QWEN_CODE_SESSION_PREFIX) {
         Some(ImportedHistoryLoader::QwenCode)
+    } else if session_id.starts_with(super::kimi::history::KIMI_SESSION_PREFIX) {
+        Some(ImportedHistoryLoader::Kimi)
     } else {
         None
     }
@@ -164,6 +167,9 @@ pub fn load_activity_chunks_for_session(
         }
         Some(ImportedHistoryLoader::QwenCode) => {
             super::qwen_code::history::load_qwen_code_history_for_session(conn, session_id)?
+        }
+        Some(ImportedHistoryLoader::Kimi) => {
+            super::kimi::history::load_kimi_history_for_session(conn, session_id)?
         }
         None => return Ok(None),
     };
@@ -881,11 +887,13 @@ mod impact_tests {
             ("piapp-id", ImportedHistoryLoader::Pi),
             ("qodercliapp-id", ImportedHistoryLoader::QoderCli),
             ("qwencodeapp-id", ImportedHistoryLoader::QwenCode),
+            ("kimihistoryapp-id", ImportedHistoryLoader::Kimi),
         ];
 
         for (session_id, expected) in cases {
             assert_eq!(imported_history_loader(session_id), Some(expected));
         }
+        assert_eq!(imported_history_loader("kimiapp-hook-id"), None);
         assert_eq!(imported_history_loader("org2-native-id"), None);
     }
 
