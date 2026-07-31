@@ -13,15 +13,11 @@
 //! where every member reports UTC days so team aggregation is
 //! timezone-consistent.
 //!
-//! Unlike the interactive dashboard reads, this runs unattended on a
-//! scheduler (up to every ~15 minutes) behind the shared single-permit query
-//! semaphore, so it uses [`visit_rounds_windowed`] instead of plain
-//! `visit_rounds`: the native per-turn fetch pushes this call's `[start_ms,
-//! end_ms]` window down to SQL rather than pulling every native turn ever
-//! recorded through the app layer on every tick. This is safe here (but not
-//! for the request-log/session-table reads) because this rollup never reads
-//! `UsageRoundRow::round_id`, whose numbering the windowed fetch does not
-//! preserve — see [`visit_rounds_windowed`]'s doc comment.
+//! This runs unattended on a scheduler (up to every ~15 minutes) behind the
+//! shared single-permit query semaphore. Its compatibility entry point,
+//! [`visit_rounds_windowed`], shares the same source/session/time SQL pushdown
+//! as interactive reads; stable database row/sequence ids keep window changes
+//! from renumbering request-log rows.
 
 use std::collections::{BTreeMap, HashSet};
 

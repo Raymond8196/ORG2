@@ -27,20 +27,18 @@ use orgtrack_core::sources::zcode::history as zcode_history;
 use session_persistence::CachedTurnSummary;
 
 use super::external_cli_detection::{self, ExternalCliSourceProbe};
+use super::history_scan_coordinator::{
+    ExternalHistoryScanCoordinator, ExternalHistoryScanJob, ExternalHistoryScanMode,
+    ExternalHistorySourceScanOutcome, ExternalHistorySourceScanResult,
+};
 
 fn open_cache_conn() -> Result<rusqlite::Connection, String> {
     get_connection().map_err(|err| format!("Failed to open orgtrack source cache DB: {err}"))
 }
 
-static EXTERNAL_HISTORY_SCAN_QUEUE: OnceLock<tokio::sync::Semaphore> = OnceLock::new();
-
-async fn acquire_external_history_scan_permit(
-) -> Result<tokio::sync::SemaphorePermit<'static>, String> {
-    EXTERNAL_HISTORY_SCAN_QUEUE
-        .get_or_init(|| tokio::sync::Semaphore::new(1))
-        .acquire()
-        .await
-        .map_err(|_| "External history scan queue closed".to_string())
+fn external_history_scan_coordinator() -> &'static ExternalHistoryScanCoordinator {
+    static COORDINATOR: OnceLock<ExternalHistoryScanCoordinator> = OnceLock::new();
+    COORDINATOR.get_or_init(ExternalHistoryScanCoordinator::default)
 }
 
 const IMPORTED_TURN_PROJECTION_CACHE_CAPACITY: usize = 8;
@@ -442,13 +440,123 @@ fn imported_recent_paths() -> Result<Vec<imported_history::ImportedHistoryRecent
 pub struct ExternalHistoryScanResultWire {
     pub changed_sources: Vec<String>,
     /// Whole-source cache signatures for every rescanned source, changed or
-    /// not. `changed_sources` only reports writes made by THIS call; other
-    /// surfaces (kanban, usage, transcript pagers) sync the same cache
-    /// between scheduler ticks, and continuation demotions applied during
-    /// those foreign syncs would otherwise never look like a change here.
-    /// The frontend compares these against the signatures captured at its
-    /// last roster reload to decide whether the sidebar is stale.
+    /// not. Concurrent callers for the same source share one scan flight and
+    /// therefore receive the same change result. Other surfaces (kanban,
+    /// usage, transcript pagers) sync the same cache between scheduler ticks,
+    /// and continuation demotions applied during those foreign syncs would
+    /// otherwise never look like a change here. The frontend compares these
+    /// against the signatures captured at its last roster reload to decide
+    /// whether the sidebar is stale.
     pub source_signatures: std::collections::HashMap<String, String>,
+}
+
+fn external_history_scan_mode(clear: bool) -> ExternalHistoryScanMode {
+    if clear {
+        ExternalHistoryScanMode::Rebuild
+    } else {
+        ExternalHistoryScanMode::Incremental
+    }
+}
+
+fn run_external_history_scan_jobs(
+    coordinator: &ExternalHistoryScanCoordinator,
+    jobs: Vec<ExternalHistoryScanJob>,
+) -> Vec<(ExternalHistoryScanJob, ExternalHistorySourceScanOutcome)> {
+    let mut conn = match open_cache_conn() {
+        Ok(conn) => conn,
+        Err(error) => {
+            return jobs
+                .into_iter()
+                .map(|job| (job, Err(error.clone())))
+                .collect();
+        }
+    };
+
+    jobs.into_iter()
+        // A rebuild can supersede one source while an already-claimed
+        // scan-all batch is still parsing an earlier source.
+        .filter(|job| coordinator.is_current_running_job(job))
+        .map(|job| {
+            let outcome = (|| {
+                let changes_before = conn.total_changes();
+                // Rebuild is explicit: wipe this source's cached rows so all
+                // sessions are parsed again. Incremental remains the default.
+                if job.mode == ExternalHistoryScanMode::Rebuild {
+                    imported_history::cache::prune_missing_records_from_conn(
+                        &conn,
+                        &job.source,
+                        &[],
+                    )?;
+                }
+                let changed = crate::agent_sessions::session_directory::aggregation::resync_external_history_source(
+                    &mut conn,
+                    &job.source,
+                )? || conn.total_changes() > changes_before;
+                let signature =
+                    imported_history::cache::query_source_cache_signature_from_conn(
+                        &conn,
+                        &job.source,
+                    )?;
+                Ok(ExternalHistorySourceScanResult { changed, signature })
+            })();
+            (job, outcome)
+        })
+        .collect()
+}
+
+fn launch_external_history_scan_jobs(jobs: Vec<ExternalHistoryScanJob>) {
+    if jobs.is_empty() {
+        return;
+    }
+    tokio::spawn(async move {
+        let coordinator = external_history_scan_coordinator();
+        let _permit = match coordinator.acquire_permit().await {
+            Ok(permit) => permit,
+            Err(error) => {
+                coordinator.fail_current_jobs(jobs, error);
+                return;
+            }
+        };
+        let jobs = coordinator.begin_current_jobs(jobs);
+        if jobs.is_empty() {
+            return;
+        }
+        let fallback_jobs = jobs.clone();
+        let outcomes = match tokio::task::spawn_blocking(move || {
+            run_external_history_scan_jobs(coordinator, jobs)
+        })
+        .await
+        {
+            Ok(outcomes) => outcomes,
+            Err(error) => fallback_jobs
+                .into_iter()
+                .map(|job| (job, Err(format!("Task join error: {error}"))))
+                .collect(),
+        };
+        coordinator.complete_jobs(outcomes);
+    });
+}
+
+async fn external_history_rescan_validated_sources(
+    sources: Vec<String>,
+    mode: ExternalHistoryScanMode,
+) -> Result<ExternalHistoryScanResultWire, String> {
+    let schedule = external_history_scan_coordinator().schedule(sources.clone(), mode);
+    launch_external_history_scan_jobs(schedule.jobs);
+    let results = schedule.waiter.wait().await?;
+    let changed_sources = sources
+        .iter()
+        .filter(|source| results.get(*source).is_some_and(|result| result.changed))
+        .cloned()
+        .collect();
+    let source_signatures = results
+        .into_iter()
+        .map(|(source, result)| (source, result.signature))
+        .collect();
+    Ok(ExternalHistoryScanResultWire {
+        changed_sources,
+        source_signatures,
+    })
 }
 
 #[tauri::command]
@@ -459,32 +567,11 @@ pub async fn external_history_rescan_source(
     if !imported_history::metadata::is_imported_history_source(&source) {
         return Err(format!("Unknown external history source: {source}"));
     }
-    let _permit = acquire_external_history_scan_permit().await?;
-    tokio::task::spawn_blocking(move || {
-        let mut conn = open_cache_conn()?;
-        let changes_before = conn.total_changes();
-        // `clear`: wipe the source's cached rows so every session is re-parsed
-        // from scratch (drops stale rows / forces a full re-parse even when
-        // file signatures are unchanged). Otherwise this is an incremental
-        // "update" — only sessions whose signature changed are re-parsed.
-        if clear {
-            imported_history::cache::prune_missing_records_from_conn(&conn, &source, &[])?;
-        }
-        // Always re-read the on-disk store and repopulate the cache. The old
-        // behavior only pruned, leaving the count at 0 until a later lazy load.
-        let changed =
-            crate::agent_sessions::session_directory::aggregation::resync_external_history_source(
-                &mut conn, &source,
-            )? || conn.total_changes() > changes_before;
-        let signature =
-            imported_history::cache::query_source_cache_signature_from_conn(&conn, &source)?;
-        Ok(ExternalHistoryScanResultWire {
-            changed_sources: changed.then_some(source.clone()).into_iter().collect(),
-            source_signatures: std::iter::once((source, signature)).collect(),
-        })
-    })
-    .await
-    .map_err(|err| format!("Task join error: {err}"))?
+    // The normal path is signature-based incremental sync. Provider parser
+    // version changes remain part of those signatures and force the affected
+    // records to re-parse without clearing unrelated cached rows.
+    let mode = external_history_scan_mode(clear);
+    external_history_rescan_validated_sources(vec![source], mode).await
 }
 
 /// Incrementally update multiple external history sources in one IPC request.
@@ -507,34 +594,8 @@ pub async fn external_history_rescan_sources(
         }
     }
 
-    let _permit = acquire_external_history_scan_permit().await?;
-    tokio::task::spawn_blocking(move || {
-        let mut conn = open_cache_conn()?;
-        let mut changed_sources = Vec::new();
-        let mut source_signatures = std::collections::HashMap::new();
-        for source in sources {
-            let changes_before = conn.total_changes();
-            if clear {
-                imported_history::cache::prune_missing_records_from_conn(&conn, &source, &[])?;
-            }
-            let changed = crate::agent_sessions::session_directory::aggregation::resync_external_history_source(
-                &mut conn, &source,
-            )? || conn.total_changes() > changes_before;
-            source_signatures.insert(
-                source.clone(),
-                imported_history::cache::query_source_cache_signature_from_conn(&conn, &source)?,
-            );
-            if changed {
-                changed_sources.push(source);
-            }
-        }
-        Ok(ExternalHistoryScanResultWire {
-            changed_sources,
-            source_signatures,
-        })
-    })
-    .await
-    .map_err(|err| format!("Task join error: {err}"))?
+    let mode = external_history_scan_mode(clear);
+    external_history_rescan_validated_sources(sources, mode).await
 }
 
 #[tauri::command]
@@ -1367,6 +1428,18 @@ mod tests {
 
         assert_eq!(turns[0].status, "pending");
         assert!(!turns[0].interrupted);
+    }
+
+    #[test]
+    fn external_history_rebuild_requires_explicit_clear() {
+        assert_eq!(
+            external_history_scan_mode(false),
+            ExternalHistoryScanMode::Incremental
+        );
+        assert_eq!(
+            external_history_scan_mode(true),
+            ExternalHistoryScanMode::Rebuild
+        );
     }
 
     #[test]
