@@ -780,12 +780,16 @@ impl KimiMetaState {
                         .map(str::to_string);
                     return Ok(());
                 }
-                if let Some((role, text)) = code_context_message_text(&value) {
-                    if matches!(role, "user" | "assistant") && !text.is_empty() {
+                if let Some((role, content)) = code_context_message(&value) {
+                    if matches!(role, "user" | "assistant") && code_content_has_text(content) {
                         self.has_replayable_content = true;
                     }
                     if role == "user" && self.first_user_text.is_none() {
-                        self.first_user_text = Some(imported_history::truncate_name(&text, 200));
+                        let text = code_content_text(content);
+                        if !text.is_empty() {
+                            self.first_user_text =
+                                Some(imported_history::truncate_name(&text, 200));
+                        }
                     }
                 }
                 if code_loop_part(&value).is_some_and(|(_, text)| !text.is_empty()) {
@@ -1088,14 +1092,40 @@ fn first_string<'a>(value: &'a Value, keys: &[&str]) -> Option<&'a str> {
         .filter(|text| !text.is_empty())
 }
 
-fn code_context_message_text(value: &Value) -> Option<(&str, String)> {
+fn code_context_message<'a>(value: &'a Value) -> Option<(&'a str, &'a Value)> {
     if value.get("type").and_then(Value::as_str) != Some("context.append_message") {
         return None;
     }
     let message = value.get("message")?;
     let role = message.get("role")?.as_str()?;
-    let text = code_content_text(message.get("content")?);
-    Some((role, text))
+    Some((role, message.get("content")?))
+}
+
+fn code_context_message_text(value: &Value) -> Option<(&str, String)> {
+    let (role, content) = code_context_message(value)?;
+    Some((role, code_content_text(content)))
+}
+
+fn code_content_has_text(content: &Value) -> bool {
+    if content.as_str().is_some_and(|text| !text.is_empty()) {
+        return true;
+    }
+    content.as_array().is_some_and(|parts| {
+        parts.iter().any(|part| {
+            let kind = part.get("type").and_then(Value::as_str).unwrap_or_default();
+            match kind {
+                "text" => part
+                    .get("text")
+                    .and_then(Value::as_str)
+                    .is_some_and(|text| !text.is_empty()),
+                "think" => part
+                    .get("think")
+                    .and_then(Value::as_str)
+                    .is_some_and(|text| !text.is_empty()),
+                _ => false,
+            }
+        })
+    })
 }
 
 fn code_content_text(content: &Value) -> String {
