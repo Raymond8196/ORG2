@@ -24,20 +24,21 @@
 
 ## Edge Cases
 
-| #   | Scenario                         | Steps                                              | Expected Result                                                              |
-| --- | -------------------------------- | -------------------------------------------------- | ---------------------------------------------------------------------------- |
-| 1   | Open a binary/unsupported file   | Click a `.png` in file tree.                       | Editor shows "binary file" or preview fallback; no garbled text.             |
-| 2   | Open an empty file               | Click an empty `.ts` file.                         | Editor renders empty; no crash; save works.                                  |
-| 3   | File deleted externally mid-edit | Delete file outside app while it's open in editor. | Tab marked as "file not found"; editor shows warning.                        |
-| 4   | Very large file (> 1 MB)         | Open a 2 MB log file.                              | CodeMirror loads without UI freeze; syntax highlight may be disabled.        |
-| 5   | Git diff with binary changes     | Open file with only binary changes in diff.        | Diff gutter shows changed state; no garbled diff output.                     |
-| 6   | Multiple tabs open               | Open 15 files simultaneously.                      | All tabs shown (or overflow scrolled); each renders correctly.               |
-| 7   | Search with no results           | Open search; type string not present in file.      | "No results" indicator shown; no crash.                                      |
-| 8   | Search with regex                | Open search; enable regex mode; type `\d+`.        | Numeric matches highlighted.                                                 |
-| 9   | Close unsaved tab                | Edit a file; close tab without saving.             | Confirmation dialog appears; cancel preserves tab; confirm discards changes. |
-| 10  | Window resize                    | Resize workstation panel while file is open.       | Editor reflows; no layout artifacts.                                         |
-| 11  | Stash count badge                | `useStashCount` returns > 0.                       | Git status area shows stash count badge.                                     |
-| 12  | Rapid open/close tabs            | Open and close 5 tabs rapidly.                     | No memory leak; no stale state in CodeMirror instances.                      |
+| #   | Scenario                         | Steps                                              | Expected Result                                                                                       |
+| --- | -------------------------------- | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| 1   | Open a binary/unsupported file   | Click a `.png` in file tree.                       | Editor shows "binary file" or preview fallback; no garbled text.                                      |
+| 2   | Open an empty file               | Click an empty `.ts` file.                         | Editor renders empty; no crash; save works.                                                           |
+| 3   | File deleted externally mid-edit | Delete file outside app while it's open in editor. | Tab marked as "file not found"; editor shows warning.                                                 |
+| 4   | Very large file (> 1 MB)         | Open a 2 MB log file.                              | CodeMirror loads without UI freeze; syntax highlight may be disabled.                                 |
+| 5   | Git diff with binary changes     | Open file with only binary changes in diff.        | Diff gutter shows changed state; no garbled diff output.                                              |
+| 6   | Multiple tabs open               | Open 15 files simultaneously.                      | All tabs shown (or overflow scrolled); each renders correctly.                                        |
+| 7   | Search with no results           | Open search; type string not present in file.      | "No results" indicator shown; no crash.                                                               |
+| 8   | Search with regex                | Open search; enable regex mode; type `\d+`.        | Numeric matches highlighted.                                                                          |
+| 9   | Close unsaved tab                | Edit a file; close tab without saving.             | Confirmation dialog appears; cancel preserves tab; confirm discards changes.                          |
+| 10  | Window resize                    | Resize workstation panel while file is open.       | Editor reflows; no layout artifacts.                                                                  |
+| 11  | Stash count badge                | `useStashCount` returns > 0.                       | Git status area shows stash count badge.                                                              |
+| 12  | Rapid open/close tabs            | Open and close 5 tabs rapidly.                     | No memory leak; no stale state in CodeMirror instances.                                               |
+| 13  | Return to Review tab             | Open Review, switch to Files, then return.         | Existing Source Control tree stays visible while Git initialization is revalidated; no loading flash. |
 
 ## Error / Degraded States
 
