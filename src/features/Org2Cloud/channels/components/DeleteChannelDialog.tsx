@@ -11,7 +11,6 @@ import { TriangleAlert } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import Button from "@src/components/Button";
 import Checkbox from "@src/components/Checkbox";
 
 import { bumpOrg2CloudChannelsVersionAtom } from "../channelsAtom";
@@ -84,7 +83,19 @@ const DeleteChannelDialog: React.FC<DeleteChannelDialogProps> = ({
       visible={open && channel !== null}
       title={t("cloud.channels.delete.title", { name: channel?.name ?? "" })}
       onCancel={onClose}
-      footer={null}
+      onOk={handleDelete}
+      cancelText={t("cloud.channels.cancel")}
+      okText={t("cloud.channels.delete.confirm")}
+      cancelButtonProps={{
+        disabled: deleting,
+        dataTestId: "channel-delete-cancel",
+      }}
+      okButtonProps={{
+        status: "danger",
+        loading: deleting,
+        disabled: !acknowledged || deleting || !channel || !orgId,
+        dataTestId: "channel-delete-confirm",
+      }}
       width={440}
     >
       <div className="flex flex-col gap-3" data-testid="channel-delete-dialog">
@@ -113,27 +124,6 @@ const DeleteChannelDialog: React.FC<DeleteChannelDialogProps> = ({
               : t("cloud.channels.delete.error")}
           </div>
         ) : null}
-
-        <div className="flex items-center justify-end gap-2">
-          <Button
-            htmlType="button"
-            variant="secondary"
-            onClick={onClose}
-            data-testid="channel-delete-cancel"
-          >
-            {t("cloud.channels.cancel")}
-          </Button>
-          <Button
-            htmlType="button"
-            variant="danger"
-            loading={deleting}
-            disabled={!acknowledged || deleting || !channel || !orgId}
-            onClick={() => void handleDelete()}
-            data-testid="channel-delete-confirm"
-          >
-            {t("cloud.channels.delete.confirm")}
-          </Button>
-        </div>
       </div>
     </Modal>
   );

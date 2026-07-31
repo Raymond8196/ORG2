@@ -16,7 +16,6 @@ import { useSetAtom } from "jotai";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import Button from "@src/components/Button";
 import Input from "@src/components/Input";
 import {
   normalizeChannelName,
@@ -81,7 +80,17 @@ const LocalChannelSettingsDialog: React.FC<LocalChannelSettingsDialogProps> = ({
       visible={open && channel !== null}
       title={t("cloud.channels.settings.title", { name: channel?.name ?? "" })}
       onCancel={onClose}
-      footer={null}
+      onOk={handleSubmit}
+      cancelText={t("cloud.channels.cancel")}
+      okText={t("cloud.channels.settings.submit")}
+      cancelButtonProps={{
+        dataTestId: "local-channel-settings-cancel",
+      }}
+      okButtonProps={{
+        loading: false,
+        disabled: !canSubmit,
+        dataTestId: "local-channel-settings-submit",
+      }}
       width={480}
     >
       <div
@@ -133,26 +142,6 @@ const LocalChannelSettingsDialog: React.FC<LocalChannelSettingsDialogProps> = ({
             {errorMessage}
           </div>
         ) : null}
-
-        <div className="flex items-center justify-end gap-2">
-          <Button
-            htmlType="button"
-            variant="secondary"
-            onClick={onClose}
-            data-testid="local-channel-settings-cancel"
-          >
-            {t("cloud.channels.cancel")}
-          </Button>
-          <Button
-            htmlType="button"
-            variant="primary"
-            disabled={!canSubmit}
-            onClick={handleSubmit}
-            data-testid="local-channel-settings-submit"
-          >
-            {t("cloud.channels.settings.submit")}
-          </Button>
-        </div>
       </div>
     </Modal>
   );

@@ -1,0 +1,20 @@
+# Channel dialogs UI audit
+
+The configured `frontend-ui-audit` skill was unavailable in both the user and
+workspace skill locations. This fallback audit applies the repository routing
+criteria directly to the channel-dialog files changed in this batch.
+
+| Line                                                                                                   | Element                  | Verdict          | Reason                                                                                                                                                                                                                 | Suggested change                                                                                   |
+| ------------------------------------------------------------------------------------------------------ | ------------------------ | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `CreateChannelDialog.tsx:204-221`; cloud settings/archive/delete; local create/settings/archive/delete | Modal action footer      | fix              | Action buttons were rendered inside each scrollable modal body with duplicated layout. The shared `Modal` default footer already owns consistent spacing, border, disabled state, loading state, and button hierarchy. | Applied: route cancel/submit through `Modal` footer props.                                         |
+| `CreateChannelDialog.tsx:264-290`                                                                      | Visibility control       | fix              | The custom radio-card buttons duplicated selection semantics and styling already owned by the design-system `Radio` component.                                                                                         | Applied: use `Radio.Group` and `Radio`.                                                            |
+| `ManageChannelMembersDialog.tsx:249-271`                                                               | Member-management footer | fix              | The Add action sat inside the scrolling member list instead of the dialog action region. This caused its position to vary with list content.                                                                           | Applied: use `PanelFooter` with fixed Cancel/Add actions.                                          |
+| `CreateChannelDialog.tsx:227-294`                                                                      | 112px form-label grid    | keep with reason | A fixed label rail is specific to the supplied Lark-style reference and keeps mixed inputs aligned. It is layout structure, not a reusable visual primitive.                                                           | Keep until another wide form needs the same layout; then extract a shared form-row component.      |
+| `CreateChannelDialog.tsx:302-384`                                                                      | Two-pane member picker   | keep with reason | No existing design-system component owns an available-versus-selected roster. The implementation composes existing `Checkbox` and `Avatar` primitives and preserves the channel selection limit.                       | Keep local to channel creation; abstract only when a second two-pane roster picker appears.        |
+| Channel dialog inline error boxes                                                                      | Inline error treatment   | keep with reason | The repeated danger surface predates this footer change and is consistent across the channel family. Changing it here would broaden this batch beyond modal layout.                                                    | Consider a separate design-system alert sweep if this pattern needs consolidation across features. |
+
+## Verdict summary
+
+- fix: 3
+- keep with reason: 3
+- abstract: 0

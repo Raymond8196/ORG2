@@ -152,6 +152,7 @@ describe("CreateChannelDialog", () => {
       '[data-testid="channel-create-submit"]'
     );
     expect(submit?.disabled).toBe(false);
+    expect(submit?.closest(".liquid-modal-body")).toBeNull();
     await act(async () => {
       submit?.click();
     });
@@ -187,6 +188,70 @@ describe("CreateChannelDialog", () => {
         '[data-testid="channel-create-submit"]'
       )?.disabled
     ).toBe(true);
+  });
+
+  it("shows selected private members in the two-pane picker and submits them", async () => {
+    mocks.createCloudChannel.mockResolvedValue({
+      ...CREATED_CHANNEL,
+      visibility: "private",
+      memberCount: 2,
+    });
+    mocks.loadCloudOrgMembers.mockResolvedValue({
+      auth: AUTH,
+      members: [
+        { userId: "user-self", role: "owner", status: "active" },
+        {
+          userId: "user-2",
+          displayName: "Cara",
+          role: "member",
+          status: "active",
+        },
+      ],
+    });
+    renderDialog();
+
+    act(() => {
+      document
+        .querySelector<HTMLInputElement>(
+          '[data-testid="channel-create-visibility-private"] input'
+        )
+        ?.click();
+    });
+    await flushAsync();
+
+    const memberCheckbox = document.querySelector<HTMLInputElement>(
+      '[data-testid="channel-create-member-user-2"] input'
+    );
+    expect(memberCheckbox).not.toBeNull();
+    act(() => memberCheckbox?.click());
+
+    expect(
+      document.querySelector('[data-testid="channel-create-selected-count"]')
+        ?.textContent
+    ).toContain("(1)");
+    expect(
+      document.querySelector(
+        '[data-testid="channel-create-selected-member-user-2"]'
+      )?.textContent
+    ).toContain("Cara");
+
+    typeName("private-room");
+    await act(async () => {
+      document
+        .querySelector<HTMLButtonElement>(
+          '[data-testid="channel-create-submit"]'
+        )
+        ?.click();
+    });
+    await flushAsync();
+
+    expect(mocks.createCloudChannel).toHaveBeenCalledWith("access", "org-1", {
+      name: "private-room",
+      topic: undefined,
+      visibility: "private",
+      postPolicy: "everyone",
+      memberUserIds: ["user-2"],
+    });
   });
 
   it("shows the name-taken error on ORG2_CONFLICT and keeps the form intact", async () => {

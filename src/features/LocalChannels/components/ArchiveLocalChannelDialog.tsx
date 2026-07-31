@@ -15,7 +15,6 @@ import { useSetAtom } from "jotai";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import Button from "@src/components/Button";
 import {
   type LocalChannel,
   archiveLocalChannelAtom,
@@ -52,7 +51,17 @@ const ArchiveLocalChannelDialog: React.FC<ArchiveLocalChannelDialogProps> = ({
       visible={open && channel !== null}
       title={t("cloud.channels.archive.title", { name: channel?.name ?? "" })}
       onCancel={onClose}
-      footer={null}
+      onOk={handleArchive}
+      cancelText={t("cloud.channels.cancel")}
+      okText={t("cloud.channels.archive.confirm")}
+      cancelButtonProps={{
+        dataTestId: "local-channel-archive-cancel",
+      }}
+      okButtonProps={{
+        loading: false,
+        disabled: !channel,
+        dataTestId: "local-channel-archive-confirm",
+      }}
       width={440}
     >
       <div
@@ -71,26 +80,6 @@ const ArchiveLocalChannelDialog: React.FC<ArchiveLocalChannelDialogProps> = ({
             {t("cloud.channels.archive.error")}
           </div>
         ) : null}
-
-        <div className="flex items-center justify-end gap-2">
-          <Button
-            htmlType="button"
-            variant="secondary"
-            onClick={onClose}
-            data-testid="local-channel-archive-cancel"
-          >
-            {t("cloud.channels.cancel")}
-          </Button>
-          <Button
-            htmlType="button"
-            variant="primary"
-            disabled={!channel}
-            onClick={handleArchive}
-            data-testid="local-channel-archive-confirm"
-          >
-            {t("cloud.channels.archive.confirm")}
-          </Button>
-        </div>
       </div>
     </Modal>
   );

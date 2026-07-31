@@ -57,10 +57,12 @@ export interface ModalProps {
     status?: "danger" | "warning" | "success" | "default";
     loading?: boolean;
     disabled?: boolean;
+    dataTestId?: string;
   };
 
   cancelButtonProps?: {
     disabled?: boolean;
+    dataTestId?: string;
   };
   /** Custom close icon */
   closeIcon?: React.ReactNode;
@@ -200,6 +202,7 @@ const Modal: React.FC<ModalProps> = ({
                     },
                     variant: "secondary",
                     disabled: cancelButtonProps?.disabled,
+                    dataTestId: cancelButtonProps?.dataTestId,
                   },
                 ]
               : undefined
@@ -212,6 +215,7 @@ const Modal: React.FC<ModalProps> = ({
             disabled: isDisabled || isLoading,
             loading: isLoading,
             variant: primaryVariant,
+            dataTestId: okButtonProps?.dataTestId,
           }}
         />
       );

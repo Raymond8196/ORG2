@@ -15,7 +15,6 @@ import { TriangleAlert } from "lucide-react";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import Button from "@src/components/Button";
 import Checkbox from "@src/components/Checkbox";
 import {
   type LocalChannel,
@@ -57,7 +56,18 @@ const DeleteLocalChannelDialog: React.FC<DeleteLocalChannelDialogProps> = ({
       visible={open && channel !== null}
       title={t("cloud.channels.delete.title", { name: channel?.name ?? "" })}
       onCancel={onClose}
-      footer={null}
+      onOk={handleDelete}
+      cancelText={t("cloud.channels.cancel")}
+      okText={t("cloud.channels.delete.confirm")}
+      cancelButtonProps={{
+        dataTestId: "local-channel-delete-cancel",
+      }}
+      okButtonProps={{
+        status: "danger",
+        loading: false,
+        disabled: !acknowledged || !channel,
+        dataTestId: "local-channel-delete-confirm",
+      }}
       width={440}
     >
       <div
@@ -87,26 +97,6 @@ const DeleteLocalChannelDialog: React.FC<DeleteLocalChannelDialogProps> = ({
             {t("cloud.channels.delete.error")}
           </div>
         ) : null}
-
-        <div className="flex items-center justify-end gap-2">
-          <Button
-            htmlType="button"
-            variant="secondary"
-            onClick={onClose}
-            data-testid="local-channel-delete-cancel"
-          >
-            {t("cloud.channels.cancel")}
-          </Button>
-          <Button
-            htmlType="button"
-            variant="danger"
-            disabled={!acknowledged || !channel}
-            onClick={handleDelete}
-            data-testid="local-channel-delete-confirm"
-          >
-            {t("cloud.channels.delete.confirm")}
-          </Button>
-        </div>
       </div>
     </Modal>
   );

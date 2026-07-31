@@ -9,8 +9,6 @@ import { useSetAtom } from "jotai";
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import Button from "@src/components/Button";
-
 import { bumpOrg2CloudChannelsVersionAtom } from "../channelsAtom";
 import {
   archiveCloudChannel,
@@ -77,7 +75,18 @@ const ArchiveChannelDialog: React.FC<ArchiveChannelDialogProps> = ({
       visible={open && channel !== null}
       title={t("cloud.channels.archive.title", { name: channel?.name ?? "" })}
       onCancel={onClose}
-      footer={null}
+      onOk={handleArchive}
+      cancelText={t("cloud.channels.cancel")}
+      okText={t("cloud.channels.archive.confirm")}
+      cancelButtonProps={{
+        disabled: archiving,
+        dataTestId: "channel-archive-cancel",
+      }}
+      okButtonProps={{
+        loading: archiving,
+        disabled: archiving || !channel || !orgId,
+        dataTestId: "channel-archive-confirm",
+      }}
       width={440}
     >
       <div className="flex flex-col gap-3" data-testid="channel-archive-dialog">
@@ -95,27 +104,6 @@ const ArchiveChannelDialog: React.FC<ArchiveChannelDialogProps> = ({
               : t("cloud.channels.archive.error")}
           </div>
         ) : null}
-
-        <div className="flex items-center justify-end gap-2">
-          <Button
-            htmlType="button"
-            variant="secondary"
-            onClick={onClose}
-            data-testid="channel-archive-cancel"
-          >
-            {t("cloud.channels.cancel")}
-          </Button>
-          <Button
-            htmlType="button"
-            variant="primary"
-            loading={archiving}
-            disabled={archiving || !channel || !orgId}
-            onClick={() => void handleArchive()}
-            data-testid="channel-archive-confirm"
-          >
-            {t("cloud.channels.archive.confirm")}
-          </Button>
-        </div>
       </div>
     </Modal>
   );

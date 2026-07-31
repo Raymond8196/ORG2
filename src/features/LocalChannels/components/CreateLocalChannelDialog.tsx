@@ -15,7 +15,6 @@ import { useSetAtom } from "jotai";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import Button from "@src/components/Button";
 import Input from "@src/components/Input";
 import {
   normalizeChannelName,
@@ -87,7 +86,17 @@ const CreateLocalChannelDialog: React.FC<CreateLocalChannelDialogProps> = ({
       visible={open}
       title={t("cloud.channels.create.title")}
       onCancel={handleClose}
-      footer={null}
+      onOk={handleSubmit}
+      cancelText={t("cloud.channels.cancel")}
+      okText={t("cloud.channels.create.submit")}
+      cancelButtonProps={{
+        dataTestId: "local-channel-create-cancel",
+      }}
+      okButtonProps={{
+        loading: false,
+        disabled: !canSubmit,
+        dataTestId: "local-channel-create-submit",
+      }}
       width={480}
     >
       <div
@@ -139,26 +148,6 @@ const CreateLocalChannelDialog: React.FC<CreateLocalChannelDialogProps> = ({
             {errorMessage}
           </div>
         ) : null}
-
-        <div className="flex items-center justify-end gap-2">
-          <Button
-            htmlType="button"
-            variant="secondary"
-            onClick={handleClose}
-            data-testid="local-channel-create-cancel"
-          >
-            {t("cloud.channels.cancel")}
-          </Button>
-          <Button
-            htmlType="button"
-            variant="primary"
-            disabled={!canSubmit}
-            onClick={handleSubmit}
-            data-testid="local-channel-create-submit"
-          >
-            {t("cloud.channels.create.submit")}
-          </Button>
-        </div>
       </div>
     </Modal>
   );

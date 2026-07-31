@@ -235,11 +235,11 @@ describe("ManageChannelMembersDialog", () => {
     });
 
     await act(async () => {
-      document
-        .querySelector<HTMLButtonElement>(
-          '[data-testid="channel-members-add-submit"]'
-        )
-        ?.click();
+      const submit = document.querySelector<HTMLButtonElement>(
+        '[data-testid="channel-members-add-submit"]'
+      );
+      expect(submit?.closest(".liquid-modal-body")).toBeNull();
+      submit?.click();
     });
     await flushAsync();
 
