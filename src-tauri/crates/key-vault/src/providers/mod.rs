@@ -8,6 +8,7 @@ pub mod copilot;
 pub mod cursor;
 pub mod deepseek;
 pub mod google;
+pub mod kimi;
 pub mod kiro;
 pub mod minimax;
 pub mod openai;
