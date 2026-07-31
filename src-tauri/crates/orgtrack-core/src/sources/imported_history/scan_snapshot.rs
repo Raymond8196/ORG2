@@ -336,6 +336,7 @@ fn push_bounded_file(
     out.push(path);
     Ok(())
 }
+
 #[cfg(test)]
 #[path = "scan_snapshot_tests.rs"]
 mod tests;

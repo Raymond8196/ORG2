@@ -529,4 +529,12 @@ mod tests {
             Some(CliAgentType::QwenCode.as_str())
         );
     }
+
+    #[test]
+    fn kimi_imported_rows_keep_the_existing_cli_agent_identity() {
+        assert_eq!(
+            imported_history_cli_agent_type(SOURCE_KIMI).as_deref(),
+            Some(CliAgentType::KimiCli.as_str())
+        );
+    }
 }

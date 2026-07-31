@@ -1224,6 +1224,17 @@ mod tests {
     }
 
     #[test]
+    fn desktop_external_history_loaders_include_kimi_once() {
+        assert_eq!(
+            EXTERNAL_HISTORY_SOURCE_LOADERS
+                .iter()
+                .filter(|loader| loader.source == SOURCE_KIMI)
+                .count(),
+            1
+        );
+    }
+
+    #[test]
     fn apply_filters_matches_canonical_session_ids_exactly() {
         let mut sessions = vec![
             make_session(

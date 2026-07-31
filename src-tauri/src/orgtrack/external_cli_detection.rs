@@ -816,6 +816,21 @@ mod tests {
         assert!(qwen.history_import);
         assert_eq!(qwen.history_dirs, &[".qwen/projects"]);
         assert_eq!(store_kind_for("qwen_code"), "jsonl");
+
+        let kimi = EXTERNAL_CLI_SOURCES
+            .iter()
+            .find(|source| source.source_id == "kimi")
+            .expect("Kimi source");
+        assert!(kimi.history_import);
+        assert_eq!(
+            kimi.history_dirs,
+            &[".kimi/sessions", ".kimi-code/sessions"]
+        );
+        assert_eq!(store_kind_for("kimi"), "jsonl");
+        assert_eq!(
+            importable_history_candidates("kimi"),
+            orgtrack_core::sources::kimi::history::kimi_history_candidate_paths()
+        );
     }
 
     #[test]
