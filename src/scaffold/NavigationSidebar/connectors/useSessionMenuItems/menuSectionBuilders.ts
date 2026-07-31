@@ -100,8 +100,9 @@ export function buildByAgentMenuItems({
   }
 
   const items: NavigationMenuItem[] = [];
-  let hasHiddenLocalSessions = appendPinnedSessions(items);
+  appendPinnedSessions(items);
   const loadMoreEmitted = new Set<SessionListCategory>();
+  const categoriesWithHiddenLocalSessions = new Set<SessionListCategory>();
   const sortedAgentOrgGroups = Array.from(agentOrgGroups.entries()).sort(
     ([orgIdA, sessionsA], [orgIdB, sessionsB]) => {
       const labelA = sessionsA[0]?.agentOrgName ?? orgIdA;
@@ -119,8 +120,14 @@ export function buildByAgentMenuItems({
       groupSessions
     );
     if (hasHiddenOrgSessions) {
-      hasHiddenLocalSessions = true;
-      loadMoreEmitted.add("rust_agent");
+      categoriesWithHiddenLocalSessions.add("agent_org_root");
+    }
+  }
+  if (!categoriesWithHiddenLocalSessions.has("agent_org_root")) {
+    const row = loadMoreRowFor("agent_org_root");
+    if (row) {
+      items.push(row);
+      loadMoreEmitted.add("agent_org_root");
     }
   }
 
@@ -133,10 +140,14 @@ export function buildByAgentMenuItems({
       `agent:${key}`,
       groupSessions
     );
-    hasHiddenLocalSessions =
-      groupHasHiddenLocalSessions || hasHiddenLocalSessions;
     const wireCategory = groupKeyToWireCategory(key);
-    if (!hasHiddenLocalSessions && !loadMoreEmitted.has(wireCategory)) {
+    if (groupHasHiddenLocalSessions) {
+      categoriesWithHiddenLocalSessions.add(wireCategory);
+    }
+    if (
+      !categoriesWithHiddenLocalSessions.has(wireCategory) &&
+      !loadMoreEmitted.has(wireCategory)
+    ) {
       const row = loadMoreRowFor(wireCategory);
       if (row) {
         items.push(row);

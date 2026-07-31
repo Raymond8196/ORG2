@@ -11,6 +11,8 @@ import type {
   ExternalHistorySidebarListRequest,
   ExternalHistorySidebarResponse,
   ExternalHistorySidebarSourceRequest,
+  NativeSidebarSessionPageResponse,
+  NativeSidebarSessionStream,
   SessionAggregateRecord,
   SessionFilter,
   SessionListResponse,
@@ -47,6 +49,8 @@ export type {
   ExternalHistorySidebarListRequest,
   ExternalHistorySidebarResponse,
   ExternalHistorySidebarSourceRequest,
+  NativeSidebarSessionPageResponse,
+  NativeSidebarSessionStream,
   SessionAggregateRecord,
   SessionFilter,
   SessionListResponse,
@@ -66,6 +70,14 @@ export async function sessionAggregateList(
   filter?: SessionFilter
 ): Promise<SessionListResponse> {
   return rpc.sessionAggregate.list({ filter }) as Promise<SessionListResponse>;
+}
+
+export async function nativeSidebarSessionPage(
+  stream: NativeSidebarSessionStream,
+  offset: number,
+  limit: number
+): Promise<NativeSidebarSessionPageResponse> {
+  return rpc.sessionAggregate.nativeSidebarPage({ stream, offset, limit });
 }
 
 export async function externalHistorySidebarList(

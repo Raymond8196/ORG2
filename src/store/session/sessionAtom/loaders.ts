@@ -25,6 +25,7 @@ import {
   type SessionFilter,
   type SessionListResponse,
   externalHistorySidebarList,
+  nativeSidebarSessionPage,
   sessionAggregateList,
   toFrontendSessions,
 } from "@src/api/tauri/session";
@@ -70,6 +71,7 @@ const BULK_CACHE_DURATION_MS = 5 * 60 * 1000;
 const DEFAULT_FLAT_LIST_PAGE_SIZE = 200;
 const RECENT_NATIVE_REFRESH_LIMIT =
   SESSION_SIDEBAR_PAGE_SIZE * BASE_SESSION_LIST_CATEGORIES.length;
+let sidebarRosterGeneration = 0;
 const exactSessionBatchLoadsByStore = new WeakMap<
   object,
   Map<string, Promise<Session[]>>
@@ -402,11 +404,12 @@ export const loadSessions = async (options?: LoadSessionsOptions) => {
 interface FetchPageResult {
   sessions: Session[];
   hasMore: boolean;
+  nextOffset?: number;
   dateBuckets?: DateBucketPaginationMap;
 }
 
 async function fetchAggregatePage(
-  wireCategory: "cli" | "agent" | "agent,os" | "human",
+  wireCategory: "cli" | "os" | "human",
   offset: number,
   pageSize: number
 ): Promise<FetchPageResult> {
@@ -427,6 +430,21 @@ async function fetchAggregatePage(
   };
 }
 
+async function fetchNativeSidebarPage(
+  stream: "standaloneAgent" | "agentOrgRoot",
+  offset: number,
+  pageSize: number
+): Promise<FetchPageResult> {
+  const response = await nativeSidebarSessionPage(stream, offset, pageSize);
+  return {
+    sessions: toFrontendSessions(response.sessions).filter(
+      isPrimarySessionListSession
+    ),
+    hasMore: response.hasMore,
+    nextOffset: response.nextOffset,
+  };
+}
+
 async function loadCategoryPage(
   category: SessionListCategory,
   offset: number,
@@ -442,12 +460,12 @@ async function loadCategoryPage(
   switch (category) {
     case "cli_agent":
       return fetchAggregatePage("cli", offset, pageSize);
-    case "rust_agent":
-      // Rust-native sessions include both SDE/custom agent rows (category=agent)
-      // and channel/desktop OS rows (category=os, e.g. osagent-feishu-*).
-      // The sidebar groups them under one Rust Agent bucket, so fetch both;
-      // otherwise Feishu channel sessions exist in DB but never appear/open.
-      return fetchAggregatePage("agent,os", offset, pageSize);
+    case "standalone_agent":
+      return fetchNativeSidebarPage("standaloneAgent", offset, pageSize);
+    case "agent_org_root":
+      return fetchNativeSidebarPage("agentOrgRoot", offset, pageSize);
+    case "os_agent":
+      return fetchAggregatePage("os", offset, pageSize);
     case "human_session":
       return fetchAggregatePage("human", offset, pageSize);
   }
@@ -494,6 +512,7 @@ const performSidebarSessionLoad = async (options?: SidebarLoadOptions) => {
     return;
   }
 
+  const generation = ++sidebarRosterGeneration;
   store.set(sessionLoadingAtom, true);
   store.set(sessionErrorAtom, null);
   store.set(sessionPaginationAtom, resetPaginationState());
@@ -528,13 +547,14 @@ const performSidebarSessionLoad = async (options?: SidebarLoadOptions) => {
 
   const applyInitialPage = (
     category: SessionListCategory,
-    { sessions, hasMore, dateBuckets }: FetchPageResult
+    { sessions, hasMore, nextOffset, dateBuckets }: FetchPageResult
   ) => {
+    if (generation !== sidebarRosterGeneration) return;
     store.set(sessionsAtom, (prev) =>
       replaceFirstPageForCategory(category, prev, sessions)
     );
     setPaginationFor(category, {
-      loaded: sessions.length,
+      loaded: nextOffset ?? sessions.length,
       hasMore,
       loading: false,
       dateBuckets,
@@ -549,7 +569,9 @@ const performSidebarSessionLoad = async (options?: SidebarLoadOptions) => {
         applyInitialPage(category, result);
       } catch (error) {
         log.warn(`[SessionAtom] ${category} initial page failed:`, error);
-        setPaginationFor(category, { loading: false });
+        if (generation === sidebarRosterGeneration) {
+          setPaginationFor(category, { loading: false });
+        }
       }
     });
 
@@ -576,14 +598,17 @@ const performSidebarSessionLoad = async (options?: SidebarLoadOptions) => {
       }
     } catch (error) {
       log.warn("[SessionAtom] external history initial pages failed:", error);
-      for (const { category } of importedCategories) {
-        setPaginationFor(category, { loading: false });
+      if (generation === sidebarRosterGeneration) {
+        for (const { category } of importedCategories) {
+          setPaginationFor(category, { loading: false });
+        }
       }
     }
   })();
 
   await Promise.allSettled([...nativeTasks, importedTask]);
 
+  if (generation !== sidebarRosterGeneration) return;
   const merged = store.get(sessionsAtom);
   persistSessions(merged);
   store.set(sessionLastLoadedAtom, now);
@@ -781,19 +806,22 @@ export const loadMoreCategory = async (
   const current = store.get(sessionPaginationAtom)[category];
   if (current.loading || !current.hasMore) return;
 
+  const generation = sidebarRosterGeneration;
   setPaginationFor(category, { loading: true });
 
   try {
-    const { sessions, hasMore, dateBuckets } = await loadCategoryPage(
-      category,
-      current.loaded,
-      pageSize,
-      current.dateBuckets
-    );
+    const { sessions, hasMore, nextOffset, dateBuckets } =
+      await loadCategoryPage(
+        category,
+        current.loaded,
+        pageSize,
+        current.dateBuckets
+      );
+    if (generation !== sidebarRosterGeneration) return;
     const primarySessions = sessions.filter(isPrimarySessionListSession);
     store.set(sessionsAtom, (prev) => mergeSessions(prev, primarySessions));
     setPaginationFor(category, {
-      loaded: current.loaded + sessions.length,
+      loaded: nextOffset ?? current.loaded + sessions.length,
       hasMore,
       loading: false,
       dateBuckets,
@@ -801,7 +829,9 @@ export const loadMoreCategory = async (
     persistSessions(store.get(sessionsAtom));
   } catch (error) {
     log.warn(`[SessionAtom] loadMoreCategory(${category}) failed:`, error);
-    setPaginationFor(category, { loading: false });
+    if (generation === sidebarRosterGeneration) {
+      setPaginationFor(category, { loading: false });
+    }
   }
 };
 

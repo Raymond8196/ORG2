@@ -28,6 +28,52 @@ use super::{
 pub struct AgentOrgRunStore;
 
 impl AgentOrgRunStore {
+    /// Load Agent Org run metadata only for roots in the current page.
+    ///
+    /// Results are newest-first so callers can deterministically choose the
+    /// first record if legacy data contains several runs for one root.
+    pub fn list_runs_for_root_session_ids(
+        root_session_ids: &[String],
+    ) -> Result<Vec<AgentOrgRunRecord>, String> {
+        if root_session_ids.is_empty() {
+            return Ok(Vec::new());
+        }
+        let conn = get_connection().map_err(|err| err.to_string())?;
+        let placeholders = (1..=root_session_ids.len())
+            .map(|index| format!("?{index}"))
+            .collect::<Vec<_>>()
+            .join(", ");
+        let sql = format!(
+            "SELECT id,
+                    org_id,
+                    coordinator_agent_id,
+                    root_session_id,
+                    org_snapshot_json,
+                    entry_mode,
+                    status,
+                    work_item_id,
+                    project_slug,
+                    routine_fire_id,
+                    summary,
+                    last_error,
+                    created_at,
+                    updated_at,
+                    completed_at
+             FROM agent_org_runs
+             WHERE root_session_id IN ({placeholders})
+             ORDER BY updated_at DESC, id DESC"
+        );
+        let mut stmt = conn.prepare(&sql).map_err(|err| err.to_string())?;
+        let rows = stmt
+            .query_map(
+                rusqlite::params_from_iter(root_session_ids.iter()),
+                row_to_run,
+            )
+            .map_err(|err| err.to_string())?;
+        rows.collect::<Result<Vec<_>, _>>()
+            .map_err(|err| err.to_string())
+    }
+
     pub fn create(params: CreateAgentOrgRunParams) -> Result<AgentOrgRunRecord, String> {
         let entry_mode = validate_entry_mode(params.entry_mode.as_str())?;
         let status = validate_status(params.status.as_str())?;

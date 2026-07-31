@@ -22,6 +22,8 @@ import {
 } from "@src/engines/SessionCore/storage/cacheAdapter";
 import { cliAdapter } from "@src/engines/SessionCore/sync/adapters";
 import { getAdapterForSession } from "@src/engines/SessionCore/sync/types";
+import { sidebarGroupByAtom } from "@src/scaffold/NavigationSidebar/connectors/sidebarGroupByAtom";
+import type { GroupByMode } from "@src/scaffold/NavigationSidebar/connectors/types";
 import {
   chatPanelTabsAtom,
   openOrFocusChatPanelStartPageTabAtom,
@@ -45,7 +47,10 @@ import {
   upsertPendingPlanApproval,
 } from "@src/store/session/planApprovalAtom";
 import { sessionsAtom } from "@src/store/session/sessionAtom/atoms";
-import { loadSessions } from "@src/store/session/sessionAtom/loaders";
+import {
+  loadSessionRoster,
+  loadSessions,
+} from "@src/store/session/sessionAtom/loaders";
 import { upsertSession } from "@src/store/session/sessionAtom/mutations";
 import type { Session } from "@src/store/session/sessionAtom/types";
 import {
@@ -775,6 +780,21 @@ export function createSessionHelpers(store: E2EStore) {
     }
   };
 
+  const setSidebarGroupBy = async (
+    mode: GroupByMode
+  ): Promise<Result<{ mode: GroupByMode }>> => {
+    try {
+      if (mode !== "byTime" && mode !== "byAgent" && mode !== "byWorkspace") {
+        return { ok: false, error: `setSidebarGroupBy: invalid mode ${mode}` };
+      }
+      store.set(sidebarGroupByAtom, mode);
+      await loadSessionRoster({ forceRefresh: true });
+      return { ok: true, mode };
+    } catch (err) {
+      return asError(err);
+    }
+  };
+
   return {
     promptDump: promptDumpHelper,
     getActiveSessionId,
@@ -785,6 +805,7 @@ export function createSessionHelpers(store: E2EStore) {
     resetToNewSession,
     openSession,
     reloadSessionList,
+    setSidebarGroupBy,
     launchSession,
     getSessionAggregateRow,
     getSessionAggregateRowFromList,
@@ -805,6 +826,8 @@ export function createSessionHelpers(store: E2EStore) {
     killSubagentJobWire: seeders.killSubagentJobWire,
     listRunningSubagentJobsWire: seeders.listRunningSubagentJobsWire,
     debugSeedChildSessionWire: seeders.debugSeedChildSessionWire,
+    debugSeedSidebarCodingSessionWire:
+      seeders.debugSeedSidebarCodingSessionWire,
     debugSeedPendingPlanWire: seeders.debugSeedPendingPlanWire,
     deleteSessionWire: seeders.deleteSessionWire,
     patchSessionExecModeWire,

@@ -60,6 +60,17 @@ export const SessionAggregateListInput = z.object({
   filter: SessionFilterInput.optional(),
 });
 
+export const NativeSidebarSessionStreamSchema = z.enum([
+  "standaloneAgent",
+  "agentOrgRoot",
+]);
+
+export const NativeSidebarSessionPageInput = z.object({
+  stream: NativeSidebarSessionStreamSchema,
+  offset: z.number().int().min(0),
+  limit: z.number().int().min(1).max(50),
+});
+
 export const ExternalHistorySidebarDateBucketSchema = z.enum([
   "today",
   "yesterday",
@@ -234,6 +245,12 @@ export const SessionListResponseSchema = z.object({
   sessions: z.array(SessionAggregateRecordSchema),
 });
 
+export const NativeSidebarSessionPageResponseSchema = z.object({
+  sessions: z.array(SessionAggregateRecordSchema),
+  nextOffset: z.number().int().min(0),
+  hasMore: z.boolean(),
+});
+
 export const ExternalHistorySidebarRowSchema = z.object({
   sessionId: z.string(),
   name: z.string(),
@@ -281,6 +298,12 @@ export type SessionAggregateRecord = z.output<
   typeof SessionAggregateRecordSchema
 >;
 export type SessionListResponse = z.output<typeof SessionListResponseSchema>;
+export type NativeSidebarSessionStream = z.output<
+  typeof NativeSidebarSessionStreamSchema
+>;
+export type NativeSidebarSessionPageResponse = z.output<
+  typeof NativeSidebarSessionPageResponseSchema
+>;
 export type ExternalHistorySidebarDateBucket = z.output<
   typeof ExternalHistorySidebarDateBucketSchema
 >;

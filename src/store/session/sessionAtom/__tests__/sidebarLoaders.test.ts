@@ -18,6 +18,7 @@ import { sessionPaginationAtom } from "../paginationAtoms";
 
 const mocks = vi.hoisted(() => ({
   externalHistorySidebarList: vi.fn(),
+  nativeSidebarSessionPage: vi.fn(),
   sessionAggregateList: vi.fn(),
   persistSessions: vi.fn(),
   store: undefined as ReturnType<typeof createStore> | undefined,
@@ -25,6 +26,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@src/api/tauri/session", () => ({
   externalHistorySidebarList: mocks.externalHistorySidebarList,
+  nativeSidebarSessionPage: mocks.nativeSidebarSessionPage,
   sessionAggregateList: mocks.sessionAggregateList,
   toFrontendSessions: (sessions: unknown[]) => sessions,
 }));
@@ -56,6 +58,12 @@ describe("loadSidebarSessions", () => {
   beforeEach(() => {
     mocks.store = createStore();
     mocks.externalHistorySidebarList.mockReset();
+    mocks.nativeSidebarSessionPage.mockReset();
+    mocks.nativeSidebarSessionPage.mockResolvedValue({
+      sessions: [],
+      nextOffset: 0,
+      hasMore: false,
+    });
     mocks.sessionAggregateList.mockReset();
     mocks.persistSessions.mockReset();
   });
@@ -94,7 +102,7 @@ describe("loadSidebarSessions", () => {
     expect(mocks.sessionAggregateList).toHaveBeenCalledOnce();
     expect(mocks.sessionAggregateList).toHaveBeenCalledWith({
       includeExternalHistory: false,
-      limit: 30,
+      limit: 50,
       sortBy: "updated_at",
       sortOrder: "desc",
     });
@@ -122,6 +130,72 @@ describe("loadSidebarSessions", () => {
     expect(mocks.sessionAggregateList).toHaveBeenCalledOnce();
     resolveRefresh?.({ sessions: [] });
     await Promise.all([first, second]);
+  });
+
+  it("pages standalone agents and Agent Org roots with independent offsets", async () => {
+    mocks.sessionAggregateList.mockResolvedValue({ sessions: [] });
+    mocks.externalHistorySidebarList.mockResolvedValue({ sources: [] });
+    mocks.nativeSidebarSessionPage.mockImplementation(
+      async (stream: "standaloneAgent" | "agentOrgRoot", offset: number) => {
+        if (stream === "standaloneAgent" && offset === 0) {
+          return {
+            sessions: [
+              { session_id: "standalone-1" },
+              { session_id: "standalone-2" },
+            ],
+            nextOffset: 2,
+            hasMore: true,
+          };
+        }
+        if (stream === "standaloneAgent") {
+          return {
+            sessions: [{ session_id: "standalone-3" }],
+            nextOffset: 3,
+            hasMore: false,
+          };
+        }
+        return {
+          sessions: [{ session_id: "org-root-1", agentOrgId: "org-1" }],
+          nextOffset: 1,
+          hasMore: true,
+        };
+      }
+    );
+
+    await loadSidebarSessions({ forceRefresh: true, pageSize: 2 });
+
+    expect(mocks.nativeSidebarSessionPage).toHaveBeenCalledWith(
+      "standaloneAgent",
+      0,
+      10
+    );
+    expect(mocks.nativeSidebarSessionPage).toHaveBeenCalledWith(
+      "agentOrgRoot",
+      0,
+      10
+    );
+    expect(mocks.store?.get(sessionPaginationAtom).standalone_agent).toEqual(
+      expect.objectContaining({ loaded: 2, hasMore: true })
+    );
+    expect(mocks.store?.get(sessionPaginationAtom).agent_org_root).toEqual(
+      expect.objectContaining({ loaded: 1, hasMore: true })
+    );
+
+    mocks.nativeSidebarSessionPage.mockClear();
+    await loadMoreCategory("standalone_agent", 2);
+
+    expect(mocks.nativeSidebarSessionPage).toHaveBeenCalledTimes(1);
+    expect(mocks.nativeSidebarSessionPage).toHaveBeenCalledWith(
+      "standaloneAgent",
+      2,
+      2
+    );
+    expect(mocks.store?.get(sessionPaginationAtom).standalone_agent).toEqual(
+      expect.objectContaining({ loaded: 3, hasMore: false })
+    );
+    expect(mocks.store?.get(sessionPaginationAtom).agent_org_root).toEqual(
+      expect.objectContaining({ loaded: 1, hasMore: true })
+    );
   });
 
   it("loads an independent initial page for every external-history source", async () => {

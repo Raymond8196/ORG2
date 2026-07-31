@@ -18,7 +18,9 @@ import {
 
 export type BaseSessionListCategory =
   | "cli_agent"
-  | "rust_agent"
+  | "standalone_agent"
+  | "agent_org_root"
+  | "os_agent"
   | "human_session";
 
 export type SessionListCategory =
@@ -26,7 +28,13 @@ export type SessionListCategory =
   | ImportedHistoryListCategory;
 
 export const BASE_SESSION_LIST_CATEGORIES: readonly BaseSessionListCategory[] =
-  ["cli_agent", "rust_agent", "human_session"];
+  [
+    "cli_agent",
+    "standalone_agent",
+    "agent_org_root",
+    "os_agent",
+    "human_session",
+  ];
 
 export const SESSION_LIST_CATEGORIES: readonly SessionListCategory[] = [
   ...BASE_SESSION_LIST_CATEGORIES,

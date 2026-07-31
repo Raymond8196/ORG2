@@ -13,10 +13,11 @@ use orgtrack_core::sources::imported_history::{
     metadata::{is_imported_history_source, SOURCE_CURSOR_IDE},
 };
 
-use super::aggregation::list_all_sessions;
+use super::aggregation::{list_all_sessions, list_native_sidebar_sessions};
 use super::types::{
     ExternalHistorySidebarBatchResponse, ExternalHistorySidebarBucketPage,
-    ExternalHistorySidebarResponse, ExternalHistorySidebarSourceRequest, SessionFilter,
+    ExternalHistorySidebarResponse, ExternalHistorySidebarSourceRequest,
+    NativeSidebarSessionPageResponse, NativeSidebarSessionStream, SessionFilter,
     SessionListResponse,
 };
 
@@ -36,6 +37,19 @@ pub async fn session_aggregate_list(
     tokio::task::spawn_blocking(move || list_all_sessions(filter.as_ref()))
         .await
         .map_err(|err| format!("Task join error: {}", err))?
+}
+
+/// List one independent native sidebar stream. Unlike the legacy aggregate
+/// category page, stream membership is resolved before SQL pagination.
+#[tauri::command]
+pub async fn session_native_sidebar_page(
+    stream: NativeSidebarSessionStream,
+    offset: usize,
+    limit: usize,
+) -> Result<NativeSidebarSessionPageResponse, String> {
+    tokio::task::spawn_blocking(move || list_native_sidebar_sessions(stream, offset, limit))
+        .await
+        .map_err(|err| format!("Task join error: {err}"))?
 }
 
 const EXTERNAL_HISTORY_SIDEBAR_BUCKET_MAX_LIMIT: usize = 50;
