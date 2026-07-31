@@ -893,7 +893,13 @@
         "dropSessionHint": "놓으면 이 세션이 참조로 추가됩니다",
         "messageBodyLabel": "채널 메시지",
         "sessionCardMissing": "이 기기에서는 사용할 수 없음",
-        "sessionCardOpen": "세션 {{name}} 열기"
+        "sessionCardOpen": "세션 {{name}} 열기",
+        "workItemCardMissing": "이 기기에서는 사용할 수 없음",
+        "workItemCardLoading": "불러오는 중…",
+        "workItemCardOpen": "작업 항목 {{name}} 열기",
+        "githubCardOpen": "GitHub에서 {{name}} 열기",
+        "githubIssue": "이슈",
+        "githubPullRequest": "풀 리퀘스트"
       }
     }
   }

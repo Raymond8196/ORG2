@@ -985,7 +985,13 @@
         "dropSessionHint": "放開以將該工作階段加入為參考",
         "messageBodyLabel": "頻道訊息",
         "sessionCardMissing": "此裝置上不可用",
-        "sessionCardOpen": "開啟工作階段 {{name}}"
+        "sessionCardOpen": "開啟工作階段 {{name}}",
+        "workItemCardMissing": "此裝置上不可用",
+        "workItemCardLoading": "正在載入…",
+        "workItemCardOpen": "開啟工作項目 {{name}}",
+        "githubCardOpen": "在 GitHub 中開啟 {{name}}",
+        "githubIssue": "Issue",
+        "githubPullRequest": "Pull Request"
       }
     }
   }

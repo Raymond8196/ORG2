@@ -922,7 +922,13 @@
         "dropSessionHint": "Drop to add this session as a reference",
         "messageBodyLabel": "Channel message",
         "sessionCardMissing": "Not available on this device",
-        "sessionCardOpen": "Open session {{name}}"
+        "sessionCardOpen": "Open session {{name}}",
+        "workItemCardMissing": "Not available on this device",
+        "workItemCardLoading": "Loading…",
+        "workItemCardOpen": "Open work item {{name}}",
+        "githubCardOpen": "Open {{name}} on GitHub",
+        "githubIssue": "Issue",
+        "githubPullRequest": "Pull request"
       }
     }
   }

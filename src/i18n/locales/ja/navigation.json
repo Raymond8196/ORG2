@@ -893,7 +893,13 @@
         "dropSessionHint": "ドロップしてこのセッションを参照として追加",
         "messageBodyLabel": "チャンネルメッセージ",
         "sessionCardMissing": "このデバイスでは利用できません",
-        "sessionCardOpen": "セッション {{name}} を開く"
+        "sessionCardOpen": "セッション {{name}} を開く",
+        "workItemCardMissing": "このデバイスでは利用できません",
+        "workItemCardLoading": "読み込み中…",
+        "workItemCardOpen": "作業項目 {{name}} を開く",
+        "githubCardOpen": "{{name}} を GitHub で開く",
+        "githubIssue": "Issue",
+        "githubPullRequest": "プルリクエスト"
       }
     }
   }

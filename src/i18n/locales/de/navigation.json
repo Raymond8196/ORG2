@@ -895,7 +895,13 @@
         "dropSessionHint": "Ablegen, um diese Sitzung als Referenz hinzuzufügen",
         "messageBodyLabel": "Kanalnachricht",
         "sessionCardMissing": "Auf diesem Gerät nicht verfügbar",
-        "sessionCardOpen": "Sitzung {{name}} öffnen"
+        "sessionCardOpen": "Sitzung {{name}} öffnen",
+        "workItemCardMissing": "Auf diesem Gerät nicht verfügbar",
+        "workItemCardLoading": "Wird geladen…",
+        "workItemCardOpen": "Arbeitselement {{name}} öffnen",
+        "githubCardOpen": "{{name}} auf GitHub öffnen",
+        "githubIssue": "Issue",
+        "githubPullRequest": "Pull Request"
       }
     }
   }

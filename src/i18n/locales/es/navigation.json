@@ -895,7 +895,13 @@
         "dropSessionHint": "Suelta para añadir esta sesión como referencia",
         "messageBodyLabel": "Mensaje del canal",
         "sessionCardMissing": "No disponible en este dispositivo",
-        "sessionCardOpen": "Abrir la sesión {{name}}"
+        "sessionCardOpen": "Abrir la sesión {{name}}",
+        "workItemCardMissing": "No disponible en este dispositivo",
+        "workItemCardLoading": "Cargando…",
+        "workItemCardOpen": "Abrir el elemento de trabajo {{name}}",
+        "githubCardOpen": "Abrir {{name}} en GitHub",
+        "githubIssue": "Incidencia",
+        "githubPullRequest": "Pull request"
       }
     }
   }

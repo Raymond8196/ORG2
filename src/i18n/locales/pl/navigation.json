@@ -893,7 +893,13 @@
         "dropSessionHint": "Upuść, aby dodać tę sesję jako odniesienie",
         "messageBodyLabel": "Wiadomość kanału",
         "sessionCardMissing": "Niedostępne na tym urządzeniu",
-        "sessionCardOpen": "Otwórz sesję {{name}}"
+        "sessionCardOpen": "Otwórz sesję {{name}}",
+        "workItemCardMissing": "Niedostępne na tym urządzeniu",
+        "workItemCardLoading": "Wczytywanie…",
+        "workItemCardOpen": "Otwórz element pracy {{name}}",
+        "githubCardOpen": "Otwórz {{name}} w GitHubie",
+        "githubIssue": "Zgłoszenie",
+        "githubPullRequest": "Pull request"
       }
     }
   }

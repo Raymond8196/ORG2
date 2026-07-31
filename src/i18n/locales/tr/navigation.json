@@ -893,7 +893,13 @@
         "dropSessionHint": "Bu oturumu referans olarak eklemek için bırakın",
         "messageBodyLabel": "Kanal mesajı",
         "sessionCardMissing": "Bu cihazda kullanılamıyor",
-        "sessionCardOpen": "{{name}} oturumunu aç"
+        "sessionCardOpen": "{{name}} oturumunu aç",
+        "workItemCardMissing": "Bu cihazda kullanılamıyor",
+        "workItemCardLoading": "Yükleniyor…",
+        "workItemCardOpen": "{{name}} iş öğesini aç",
+        "githubCardOpen": "{{name}} ögesini GitHub'da aç",
+        "githubIssue": "Issue",
+        "githubPullRequest": "Pull request"
       }
     }
   }

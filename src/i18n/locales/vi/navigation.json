@@ -893,7 +893,13 @@
         "dropSessionHint": "Thả để thêm phiên này làm tham chiếu",
         "messageBodyLabel": "Tin nhắn kênh",
         "sessionCardMissing": "Không khả dụng trên thiết bị này",
-        "sessionCardOpen": "Mở phiên {{name}}"
+        "sessionCardOpen": "Mở phiên {{name}}",
+        "workItemCardMissing": "Không khả dụng trên thiết bị này",
+        "workItemCardLoading": "Đang tải…",
+        "workItemCardOpen": "Mở mục công việc {{name}}",
+        "githubCardOpen": "Mở {{name}} trên GitHub",
+        "githubIssue": "Issue",
+        "githubPullRequest": "Pull request"
       }
     }
   }

@@ -14,6 +14,20 @@
  * native session-tab protocol. So a `reference` drop that landed inside the
  * composer was already turned into a pill and must be declined here, or the
  * user gets the pill twice.
+ *
+ * WORK ITEMS are deliberately NOT handled here. `InputArea`'s own drop path
+ * already covers them end to end — `insertPillFromTabPayload` has a
+ * `workitem` branch that mints the `workitem://<slug>/<shortId>/<ts>` pill
+ * `channelMessageBody` reads back as a card — so a work item dropped on the
+ * composer composes and renders today with no code in this file. Extending
+ * the panel-wide target to work items would mean widening
+ * `getSessionReferenceFromDragDetail` and `useSessionDropTarget` from
+ * `SessionReferenceOpen` to a reference union, and that hook is shared with
+ * `TeamInboxSessionDropSurface`; the cost lands on a surface that asked for
+ * none of it. The remaining gap is narrow and cosmetic: a work item released
+ * over the TRANSCRIPT rather than the composer is ignored, where a session
+ * would have been caught. Widen the shared hook when a second surface needs
+ * the same thing, not for this one.
  */
 import { type RefObject, useCallback } from "react";
 

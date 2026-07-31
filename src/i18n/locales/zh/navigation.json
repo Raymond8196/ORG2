@@ -985,7 +985,13 @@
         "dropSessionHint": "松开以将该会话添加为引用",
         "messageBodyLabel": "频道消息",
         "sessionCardMissing": "此设备上不可用",
-        "sessionCardOpen": "打开会话 {{name}}"
+        "sessionCardOpen": "打开会话 {{name}}",
+        "workItemCardMissing": "此设备上不可用",
+        "workItemCardLoading": "正在加载…",
+        "workItemCardOpen": "打开工作项 {{name}}",
+        "githubCardOpen": "在 GitHub 中打开 {{name}}",
+        "githubIssue": "Issue",
+        "githubPullRequest": "Pull Request"
       }
     }
   }

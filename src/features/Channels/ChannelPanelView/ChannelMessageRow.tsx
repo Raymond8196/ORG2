@@ -7,16 +7,18 @@
  * tombstoned row renders the italic "message deleted" line instead, matching
  * how `CommentThreadList` keeps a deleted comment's slot in the thread.
  *
- * A body that carries pill syntax is split first (`splitChannelMessageBody`),
- * because the two pill families want different treatment on the READ side:
+ * A body is split first (`splitChannelMessageBody`), because its parts want
+ * different treatment on the READ side:
  *
- *  - **session** references are promoted OUT of the sentence and rendered as
- *    `ChannelSessionCard`s below the prose — a channel post about a session
- *    should show what that session is, not a token in a line of text.
- *  - **every other pill** (file, folder, link…) stays inline, so the leftover
- *    prose still goes through a read-only `ComposerInput` when it has pills —
- *    the rule `HumanSessionView` applies to its work-log entries — and through
- *    `MarkDown` when it does not.
+ *  - **session, work item and GitHub issue/PR** references are promoted OUT of
+ *    the sentence and rendered as cards below the prose — a channel post about
+ *    a session or an item should show what that thing IS, not a token in a
+ *    line of text. Cards render in the order the references appeared, so a
+ *    post naming all three reads top-to-bottom the way it was written.
+ *  - **every other pill** (file, folder, generic link…) stays inline, so the
+ *    leftover prose still goes through a read-only `ComposerInput` when it has
+ *    pills — the rule `HumanSessionView` applies to its work-log entries — and
+ *    through `MarkDown` when it does not.
  *
  * Read-only pills route their clicks nowhere useful (`ComposerPill` falls
  * through to `file-pill-click`, which only the code editor listens for, and
@@ -61,9 +63,15 @@ import { LOCAL_CHANNEL_MESSAGE_MAX_LENGTH } from "@src/store/ui/localChannelMess
 import { formatLocalClock } from "@src/util/data/formatters/date";
 import { formatRelativeTime } from "@src/util/time/formatRelativeTime";
 
+import ChannelGitHubCard from "./ChannelGitHubCard";
 import ChannelSessionCard from "./ChannelSessionCard";
+import ChannelWorkItemCard from "./ChannelWorkItemCard";
 import type { ChannelDateDividerLabel } from "./channelFeedRows";
-import { splitChannelMessageBody } from "./channelMessageBody";
+import {
+  type ChannelMessageReference,
+  channelReferenceKey,
+  splitChannelMessageBody,
+} from "./channelMessageBody";
 
 export interface ChannelDateDividerProps {
   label: ChannelDateDividerLabel;
@@ -130,6 +138,42 @@ const ChannelMessagePillBody: React.FC<{ body: string; label: string }> = ({
         className="text-sm leading-6 text-text-1"
       />
     </div>
+  );
+};
+
+/**
+ * One promoted reference. The dispatch lives here rather than inside a single
+ * mega-card so each kind keeps its own data dependencies: only the work-item
+ * card subscribes to the project read, only the session card to session state.
+ */
+const ReferenceCard: React.FC<{
+  reference: ChannelMessageReference;
+  onOpenSession: (sessionId: string) => void;
+}> = ({ reference, onOpenSession }) => {
+  if (reference.kind === "session") {
+    return (
+      <ChannelSessionCard
+        sessionId={reference.sessionId}
+        fallbackTitle={reference.title}
+        onOpen={onOpenSession}
+      />
+    );
+  }
+  if (reference.kind === "workItem") {
+    return (
+      <ChannelWorkItemCard
+        projectSlug={reference.projectSlug}
+        shortId={reference.shortId}
+        fallbackTitle={reference.title}
+      />
+    );
+  }
+  return (
+    <ChannelGitHubCard
+      url={reference.url}
+      displayName={reference.displayName}
+      resource={reference.resource}
+    />
   );
 };
 
@@ -315,11 +359,10 @@ const ChannelMessageRow: React.FC<ChannelMessageRowProps> = ({
               )
             ) : null}
             {references.map((reference) => (
-              <ChannelSessionCard
-                key={reference.sessionId}
-                sessionId={reference.sessionId}
-                fallbackTitle={reference.title}
-                onOpen={handleOpenSession}
+              <ReferenceCard
+                key={channelReferenceKey(reference)}
+                reference={reference}
+                onOpenSession={handleOpenSession}
               />
             ))}
           </div>

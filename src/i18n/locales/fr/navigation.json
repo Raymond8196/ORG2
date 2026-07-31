@@ -895,7 +895,13 @@
         "dropSessionHint": "Déposez pour ajouter cette session en référence",
         "messageBodyLabel": "Message du canal",
         "sessionCardMissing": "Indisponible sur cet appareil",
-        "sessionCardOpen": "Ouvrir la session {{name}}"
+        "sessionCardOpen": "Ouvrir la session {{name}}",
+        "workItemCardMissing": "Indisponible sur cet appareil",
+        "workItemCardLoading": "Chargement…",
+        "workItemCardOpen": "Ouvrir l’élément de travail {{name}}",
+        "githubCardOpen": "Ouvrir {{name}} sur GitHub",
+        "githubIssue": "Ticket",
+        "githubPullRequest": "Pull request"
       }
     }
   }
