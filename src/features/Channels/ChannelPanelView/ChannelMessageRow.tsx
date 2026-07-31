@@ -7,6 +7,22 @@
  * tombstoned row renders the italic "message deleted" line instead, matching
  * how `CommentThreadList` keeps a deleted comment's slot in the thread.
  *
+ * A body that carries pill syntax is split first (`splitChannelMessageBody`),
+ * because the two pill families want different treatment on the READ side:
+ *
+ *  - **session** references are promoted OUT of the sentence and rendered as
+ *    `ChannelSessionCard`s below the prose — a channel post about a session
+ *    should show what that session is, not a token in a line of text.
+ *  - **every other pill** (file, folder, link…) stays inline, so the leftover
+ *    prose still goes through a read-only `ComposerInput` when it has pills —
+ *    the rule `HumanSessionView` applies to its work-log entries — and through
+ *    `MarkDown` when it does not.
+ *
+ * Read-only pills route their clicks nowhere useful (`ComposerPill` falls
+ * through to `file-pill-click`, which only the code editor listens for, and
+ * `UserMessageContent` excludes `session` from its clickable set), which is
+ * the other reason the session case is a card: the card owns its own click.
+ *
  * Horizontal inset is `CHAT_ITEM_PADDING_X` — the same token `ChatItemWrap`
  * applies to every session transcript item — so rows sit on the transcript's
  * gutter inside the shared max-width column, not on a bespoke one.
@@ -14,22 +30,40 @@
  * Edit is inline (`Textarea` + Save / Cancel), the shape the comment plane
  * already uses — no dialog, no separate route.
  */
+import { useSetAtom, useStore } from "jotai";
 import { Check, Pencil, Trash2, X } from "lucide-react";
-import React, { useCallback, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 
 import Avatar from "@src/components/Avatar";
 import Button from "@src/components/Button";
+import ComposerInput, {
+  type ComposerInputRef,
+} from "@src/components/ComposerInput";
 import MarkDown from "@src/components/MarkDown";
 import Textarea from "@src/components/Textarea";
 import Tooltip from "@src/components/Tooltip";
+import {
+  hasPillSyntax,
+  parsePillTextToSnapshot,
+} from "@src/engines/ChatPanel/InputArea/utils/pillContentParser";
 import { CHAT_ITEM_PADDING_X } from "@src/engines/ChatPanel/blocks/primitives/config";
+import { openOrFocusSessionInChatPanelTabAtom } from "@src/store/chatPanel/chatPanelTabOpenAtoms";
+import { sessionByIdAtom } from "@src/store/session/sessionAtom";
 import type { LocalChannelMessage } from "@src/store/ui/localChannelMessagesAtom";
 import { LOCAL_CHANNEL_MESSAGE_MAX_LENGTH } from "@src/store/ui/localChannelMessagesAtom";
 import { formatLocalClock } from "@src/util/data/formatters/date";
 import { formatRelativeTime } from "@src/util/time/formatRelativeTime";
 
+import ChannelSessionCard from "./ChannelSessionCard";
 import type { ChannelDateDividerLabel } from "./channelFeedRows";
+import { splitChannelMessageBody } from "./channelMessageBody";
 
 export interface ChannelDateDividerProps {
   label: ChannelDateDividerLabel;
@@ -68,6 +102,37 @@ export const ChannelDateDivider: React.FC<ChannelDateDividerProps> = ({
   );
 };
 
+/**
+ * Prose that still holds non-session pills after the split, rendered through
+ * the read-only composer so a file/folder/link reference keeps its pill.
+ */
+const ChannelMessagePillBody: React.FC<{ body: string; label: string }> = ({
+  body,
+  label,
+}) => {
+  const editorRef = useRef<ComposerInputRef | null>(null);
+
+  useEffect(() => {
+    editorRef.current?.setContent(
+      hasPillSyntax(body) ? parsePillTextToSnapshot(body) : body
+    );
+  }, [body]);
+
+  return (
+    <div data-testid="channel-message-pill-body">
+      <ComposerInput
+        ref={editorRef}
+        ariaLabel={label}
+        initialContent={body}
+        editable={false}
+        minHeight={0}
+        overflowY="visible"
+        className="text-sm leading-6 text-text-1"
+      />
+    </div>
+  );
+};
+
 export interface ChannelMessageRowProps {
   message: LocalChannelMessage;
   /** Continues the block above: avatar + author line are suppressed. */
@@ -87,11 +152,32 @@ const ChannelMessageRow: React.FC<ChannelMessageRowProps> = ({
   onDelete,
 }) => {
   const { t } = useTranslation("navigation");
+  const store = useStore();
+  const openSession = useSetAtom(openOrFocusSessionInChatPanelTabAtom);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(message.body);
   const isTombstone = message.deletedAt !== null;
   const canEdit = onEdit !== null && !isTombstone;
   const canDelete = onDelete !== null && !isTombstone;
+
+  // Editing stays on the RAW body — the stored pill syntax is what the author
+  // typed, and rewriting it from the split would drop their references.
+  const { text: bodyText, references } = useMemo(
+    () => splitChannelMessageBody(message.body),
+    [message.body]
+  );
+
+  const handleOpenSession = useCallback(
+    (sessionId: string) => {
+      const session = store.get(sessionByIdAtom(sessionId));
+      openSession({
+        sessionId,
+        sessionName: session?.name,
+        repoPath: session?.repoPath,
+      });
+    },
+    [openSession, store]
+  );
 
   const startEditing = useCallback(() => {
     setDraft(message.body);
@@ -218,7 +304,24 @@ const ChannelMessageRow: React.FC<ChannelMessageRowProps> = ({
             className="min-w-0 break-words text-sm leading-6 text-text-1"
             data-testid="channel-message-body"
           >
-            <MarkDown textContent={message.body} skipPreprocess />
+            {bodyText ? (
+              hasPillSyntax(bodyText) ? (
+                <ChannelMessagePillBody
+                  body={bodyText}
+                  label={t("cloud.channels.feed.messageBodyLabel")}
+                />
+              ) : (
+                <MarkDown textContent={bodyText} skipPreprocess />
+              )
+            ) : null}
+            {references.map((reference) => (
+              <ChannelSessionCard
+                key={reference.sessionId}
+                sessionId={reference.sessionId}
+                fallbackTitle={reference.title}
+                onOpen={handleOpenSession}
+              />
+            ))}
           </div>
         )}
       </div>

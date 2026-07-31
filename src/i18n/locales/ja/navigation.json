@@ -889,7 +889,11 @@
         "errorEmpty": "先にメッセージを入力してください",
         "errorTooLong": "メッセージが長すぎます（最大 4000 文字）",
         "errorQuota": "このチャンネルはこの端末でのメッセージ上限に達しました",
-        "errorGeneric": "メッセージを送信できませんでした。もう一度お試しください。"
+        "errorGeneric": "メッセージを送信できませんでした。もう一度お試しください。",
+        "dropSessionHint": "ドロップしてこのセッションを参照として追加",
+        "messageBodyLabel": "チャンネルメッセージ",
+        "sessionCardMissing": "このデバイスでは利用できません",
+        "sessionCardOpen": "セッション {{name}} を開く"
       }
     }
   }

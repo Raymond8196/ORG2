@@ -889,7 +889,11 @@
         "errorEmpty": "메시지를 먼저 입력하세요",
         "errorTooLong": "메시지가 너무 깁니다(최대 4000자)",
         "errorQuota": "이 채널은 이 기기에서 메시지 한도에 도달했습니다",
-        "errorGeneric": "메시지를 보내지 못했습니다. 다시 시도해 주세요."
+        "errorGeneric": "메시지를 보내지 못했습니다. 다시 시도해 주세요.",
+        "dropSessionHint": "놓으면 이 세션이 참조로 추가됩니다",
+        "messageBodyLabel": "채널 메시지",
+        "sessionCardMissing": "이 기기에서는 사용할 수 없음",
+        "sessionCardOpen": "세션 {{name}} 열기"
       }
     }
   }

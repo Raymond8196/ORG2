@@ -889,7 +889,11 @@
         "errorEmpty": "Najpierw wpisz wiadomość",
         "errorTooLong": "Ta wiadomość jest za długa (maksymalnie 4000 znaków)",
         "errorQuota": "Ten kanał osiągnął limit wiadomości na tym urządzeniu",
-        "errorGeneric": "Nie udało się wysłać wiadomości. Spróbuj ponownie."
+        "errorGeneric": "Nie udało się wysłać wiadomości. Spróbuj ponownie.",
+        "dropSessionHint": "Upuść, aby dodać tę sesję jako odniesienie",
+        "messageBodyLabel": "Wiadomość kanału",
+        "sessionCardMissing": "Niedostępne na tym urządzeniu",
+        "sessionCardOpen": "Otwórz sesję {{name}}"
       }
     }
   }

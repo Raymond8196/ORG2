@@ -981,7 +981,11 @@
         "errorEmpty": "請先輸入訊息",
         "errorTooLong": "訊息過長（最多 4000 個字元）",
         "errorQuota": "此頻道在這台裝置上的訊息數量已達上限",
-        "errorGeneric": "訊息傳送失敗，請再試一次。"
+        "errorGeneric": "訊息傳送失敗，請再試一次。",
+        "dropSessionHint": "放開以將該工作階段加入為參考",
+        "messageBodyLabel": "頻道訊息",
+        "sessionCardMissing": "此裝置上不可用",
+        "sessionCardOpen": "開啟工作階段 {{name}}"
       }
     }
   }

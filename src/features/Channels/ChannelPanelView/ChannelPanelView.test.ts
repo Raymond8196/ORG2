@@ -26,7 +26,16 @@ import {
   vi,
 } from "vitest";
 
+import type { ComposerInputRef } from "@src/components/ComposerInput";
 import type { SubmitOverrideInput } from "@src/engines/ChatPanel/hooks/useInputArea/types";
+import type { TabDragEventDetail } from "@src/modules/WorkStation/shared/TabBar/tabDragTypes";
+import {
+  SESSION_TAB_DRAG_END_EVENT,
+  SESSION_TAB_DRAG_START_EVENT,
+  type SessionTabDragEndDetail,
+  type SessionTabDragStartDetail,
+  type SessionTabTransfer,
+} from "@src/shared/dnd/sessionTabDrag";
 import type { ChatPanelSelectedChannel } from "@src/store/chatPanel/chatPanelTabsAtom";
 import {
   LOCAL_CHANNEL_MESSAGES_STORAGE_KEY,
@@ -49,18 +58,31 @@ interface StubbedInputAreaProps {
   allowFileAttachments?: boolean;
   enableAgentInterceptors?: boolean;
   sessionScope?: string;
+  acceptDraggedPills?: boolean;
+  composerInputRef?: { current: ComposerInputRef | null };
   onSubmitOverride?: (input: SubmitOverrideInput) => Promise<boolean>;
 }
 
 const mocks = vi.hoisted(() => ({
   inputAreaProps: [] as StubbedInputAreaProps[],
+  insertFilePill: vi.fn(),
 }));
 
+// The stub publishes the editor handle the same way the real `InputArea`
+// does, so the surface's drop path can be driven end to end. It also carries
+// `data-chat-drop-target`, the attribute `InputArea` puts on its own drop rect
+// and the one the surface hit-tests to avoid double-inserting a pill.
 vi.mock("@src/engines/ChatPanel/InputArea", () => ({
   default: (props: StubbedInputAreaProps) => {
     mocks.inputAreaProps.push(props);
+    if (props.composerInputRef) {
+      props.composerInputRef.current = {
+        insertFilePill: mocks.insertFilePill,
+      } as unknown as ComposerInputRef;
+    }
     return createElement("div", {
       "data-testid": "channel-input-area",
+      "data-chat-drop-target": "",
       "data-submit-disabled": String(props.submitDisabled ?? false),
       "data-session-id": props.sessionId ?? "",
       "data-placeholder": props.placeholder ?? "",
@@ -210,6 +232,91 @@ describe("ChannelPanelView", () => {
     const props = mocks.inputAreaProps.at(-1);
     if (!props) throw new Error("InputArea was never rendered");
     return props;
+  }
+
+  /**
+   * Pins a rect on an element jsdom would otherwise report as 0×0, so the
+   * drop hit-test has geometry to work with.
+   */
+  function stubRect(
+    element: Element,
+    box: { left: number; top: number; right: number; bottom: number }
+  ): void {
+    vi.spyOn(element, "getBoundingClientRect").mockReturnValue({
+      x: box.left,
+      y: box.top,
+      left: box.left,
+      top: box.top,
+      right: box.right,
+      bottom: box.bottom,
+      width: box.right - box.left,
+      height: box.bottom - box.top,
+      toJSON: () => ({}),
+    });
+  }
+
+  /** Surface spans 0–400; the composer's own drop rect sits at the bottom. */
+  function stubDropGeometry(): void {
+    const surface = container.querySelector(
+      "[data-testid='channel-session-drop-surface']"
+    );
+    if (!surface) throw new Error("drop surface was never rendered");
+    stubRect(surface, { left: 0, top: 0, right: 400, bottom: 400 });
+    const composer = composerElement();
+    if (composer) {
+      stubRect(composer, { left: 0, top: 340, right: 400, bottom: 400 });
+    }
+  }
+
+  const TRANSFER: SessionTabTransfer = {
+    source: "chat-panel",
+    sourceTabId: "tab-1",
+    sessionId: "sess-42",
+    title: "Fix the flaky test",
+  };
+
+  /** A native session TAB leaving a tab strip. */
+  function dragSessionTab(clientX: number, clientY: number): void {
+    act(() => {
+      document.dispatchEvent(
+        new CustomEvent<SessionTabDragStartDetail>(
+          SESSION_TAB_DRAG_START_EVENT,
+          { detail: { transfer: TRANSFER } }
+        )
+      );
+    });
+    act(() => {
+      document.dispatchEvent(
+        new CustomEvent<SessionTabDragEndDetail>(SESSION_TAB_DRAG_END_EVENT, {
+          detail: { transfer: TRANSFER, clientX, clientY },
+        })
+      );
+    });
+  }
+
+  /** A sidebar session ROW, which emits the generic reference-pill drag. */
+  function dragSessionRow(pointerX: number, pointerY: number): void {
+    const detail: TabDragEventDetail = {
+      tabId: "row-1",
+      name: TRANSFER.title,
+      pill: {
+        path: `session://${TRANSFER.sessionId}`,
+        name: TRANSFER.title,
+        iconType: "session",
+      },
+      pointerX,
+      pointerY,
+    };
+    act(() => {
+      document.dispatchEvent(
+        new CustomEvent<TabDragEventDetail>("tab-drag-start", { detail })
+      );
+    });
+    act(() => {
+      document.dispatchEvent(
+        new CustomEvent<TabDragEventDetail>("tab-drag-end", { detail })
+      );
+    });
   }
 
   /** Drives the surface exactly the way `useSubmitMessage` drives it. */
@@ -398,5 +505,81 @@ describe("ChannelPanelView", () => {
     await submit("this must not land anywhere");
 
     expect(store.get(localChannelMessagesAtom)).toEqual([]);
+  });
+
+  it("attaches a session dropped on the transcript to the draft as a pill", () => {
+    render();
+    stubDropGeometry();
+
+    dragSessionTab(120, 120);
+
+    expect(mocks.insertFilePill).toHaveBeenCalledWith(
+      expect.stringMatching(/^session:\/\/sess-42\/\d+$/),
+      false,
+      "session",
+      "Fix the flaky test"
+    );
+  });
+
+  it("highlights the whole surface while an eligible session is dragged", () => {
+    render();
+    stubDropGeometry();
+
+    act(() => {
+      document.dispatchEvent(
+        new CustomEvent<SessionTabDragStartDetail>(
+          SESSION_TAB_DRAG_START_EVENT,
+          { detail: { transfer: TRANSFER } }
+        )
+      );
+    });
+
+    const zone = container.querySelector(
+      "[data-testid='channel-session-drop-zone']"
+    );
+    expect(zone).not.toBeNull();
+    expect(zone?.textContent).toBe("cloud.channels.feed.dropSessionHint");
+  });
+
+  it("ignores a drop released outside the channel surface", () => {
+    render();
+    stubDropGeometry();
+
+    dragSessionTab(900, 900);
+
+    expect(mocks.insertFilePill).not.toHaveBeenCalled();
+    expect(
+      container.querySelector("[data-testid='channel-session-drop-zone']")
+    ).toBeNull();
+  });
+
+  it("declines a sidebar-row drop the composer already turned into a pill", () => {
+    render();
+    stubDropGeometry();
+
+    // Inside the composer's own drop rect: `InputArea`'s `useTabDragEndToPill`
+    // owns this one, so inserting here too would give the user two pills.
+    dragSessionRow(200, 370);
+    expect(mocks.insertFilePill).not.toHaveBeenCalled();
+
+    // Same drag released over the transcript is ours.
+    dragSessionRow(200, 120);
+    expect(mocks.insertFilePill).toHaveBeenCalledTimes(1);
+  });
+
+  it("refuses session drops on a cloud channel instead of half-accepting", () => {
+    render(CLOUD_TARGET);
+    expect(latestComposerProps().acceptDraggedPills).toBe(false);
+    expect(
+      container.querySelector("[data-testid='channel-session-drop-surface']")
+    ).toBeNull();
+
+    dragSessionTab(120, 120);
+    dragSessionRow(120, 120);
+
+    expect(mocks.insertFilePill).not.toHaveBeenCalled();
+    expect(
+      container.querySelector("[data-testid='channel-session-drop-zone']")
+    ).toBeNull();
   });
 });

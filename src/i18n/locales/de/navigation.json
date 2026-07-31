@@ -891,7 +891,11 @@
         "errorEmpty": "Gib zuerst eine Nachricht ein",
         "errorTooLong": "Diese Nachricht ist zu lang (max. 4000 Zeichen)",
         "errorQuota": "Dieser Kanal hat sein Nachrichtenlimit auf diesem Gerät erreicht",
-        "errorGeneric": "Nachricht konnte nicht gesendet werden. Bitte versuche es erneut."
+        "errorGeneric": "Nachricht konnte nicht gesendet werden. Bitte versuche es erneut.",
+        "dropSessionHint": "Ablegen, um diese Sitzung als Referenz hinzuzufügen",
+        "messageBodyLabel": "Kanalnachricht",
+        "sessionCardMissing": "Auf diesem Gerät nicht verfügbar",
+        "sessionCardOpen": "Sitzung {{name}} öffnen"
       }
     }
   }

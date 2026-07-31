@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import Button from "@src/components/Button";
 import { createLogger } from "@src/hooks/logger";
 import type { SessionReferenceOpen } from "@src/shared/dnd/sessionTabDrag";
+import { useSessionDropTarget } from "@src/shared/dnd/useSessionDropTarget";
 
 import type {
   TeamInboxCreatedWorkItem,
@@ -24,7 +25,6 @@ import {
   consumeTeamInboxSessionHandoffRequestAtom,
   teamInboxSessionHandoffRequestAtom,
 } from "../store";
-import { useTeamInboxSessionDropTarget } from "../useTeamInboxSessionDropTarget";
 import SessionHandoffComposer from "./SessionHandoffComposer";
 
 type Operation =
@@ -135,7 +135,7 @@ const TeamInboxSessionDropSurface: React.FC<
     [dataSource, t]
   );
 
-  const drop = useTeamInboxSessionDropTarget({
+  const drop = useSessionDropTarget({
     containerRef,
     disabled:
       !dataSource.createWorkItemFromSession ||

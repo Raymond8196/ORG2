@@ -18,17 +18,23 @@
  * composer is the real `InputArea` in the absolutely positioned footer
  * `HumanSessionView` uses. Settings reuses the existing per-scope dialog —
  * this view mounts it, never reimplements it.
+ *
+ * A local channel is also a session DROP target (`useChannelSessionDrop`):
+ * dragging a session row or tab anywhere over the panel attaches it to the
+ * draft as a reference pill. Cloud channels mount no drop target at all.
  */
 import { useAtomValue, useSetAtom } from "jotai";
 import { MessagesSquare } from "lucide-react";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import type { ComposerInputRef } from "@src/components/ComposerInput";
 import { INPUT_AREA } from "@src/config/inputAreaTokens";
 import LocalChannelSettingsDialog from "@src/features/LocalChannels/components/LocalChannelSettingsDialog";
 import ChannelSettingsDialog from "@src/features/Org2Cloud/channels/components/ChannelSettingsDialog";
 import { useOrgChannels } from "@src/features/Org2Cloud/channels/useOrgChannels";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
+import { SESSION_TAB_DROP_TARGET_HIGHLIGHT_CLASS } from "@src/shared/dnd/sessionTabDrag";
 import type { ChatPanelSelectedChannel } from "@src/store/chatPanel/chatPanelTabsAtom";
 import {
   deleteLocalChannelMessageAtom,
@@ -42,6 +48,7 @@ import ChannelComposer from "./ChannelComposer";
 import ChannelMessageList from "./ChannelMessageList";
 import ChannelPanelHeader from "./ChannelPanelHeader";
 import { createChannelPostHandler } from "./channelPostHandler";
+import { useChannelSessionDrop } from "./useChannelSessionDrop";
 
 /**
  * Bottom inset on the empty-state column so the placeholder clears the
@@ -77,6 +84,18 @@ const LocalChannelPanel: React.FC<LocalChannelPanelProps> = ({
   const deleteMessage = useSetAtom(deleteLocalChannelMessageAtom);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [composerError, setComposerError] = useState<string | null>(null);
+  const surfaceRef = useRef<HTMLDivElement | null>(null);
+  const composerFooterRef = useRef<HTMLElement | null>(null);
+  const composerInputRef = useRef<ComposerInputRef | null>(null);
+
+  // Transcript + composer are ONE drop target: a session dragged from the
+  // sidebar or a tab strip anywhere over this panel becomes a pill in the
+  // draft, the same reference an `@` mention would produce.
+  const sessionDrop = useChannelSessionDrop({
+    surfaceRef,
+    composerFooterRef,
+    composerInputRef,
+  });
 
   // Read the live row so a rename made in the settings dialog shows up here
   // without re-opening the tab; the tab payload is only the fallback.
@@ -139,7 +158,24 @@ const LocalChannelPanel: React.FC<LocalChannelPanelProps> = ({
         memberCount={undefined}
         onOpenSettings={() => setSettingsOpen(true)}
       />
-      <div className="relative flex min-h-0 flex-1 flex-col">
+      <div
+        className="relative flex min-h-0 flex-1 flex-col"
+        ref={surfaceRef}
+        data-testid="channel-session-drop-surface"
+      >
+        {sessionDrop.active ? (
+          <div
+            className={`${SESSION_TAB_DROP_TARGET_HIGHLIGHT_CLASS} inset-2 flex items-end justify-center pb-40`}
+            data-testid="channel-session-drop-zone"
+            data-drop-over={String(sessionDrop.over)}
+            role="status"
+            aria-live="polite"
+          >
+            <span className="rounded-md border border-border-2 bg-bg-2 px-3 py-1.5 text-xs font-medium text-text-1 shadow-sm">
+              {t("cloud.channels.feed.dropSessionHint")}
+            </span>
+          </div>
+        ) : null}
         {messages.length === 0 ? (
           <div className={EMPTY_STATE_COLUMN_CLASSES}>
             <Placeholder
@@ -167,6 +203,8 @@ const LocalChannelPanel: React.FC<LocalChannelPanelProps> = ({
           })}
           onSubmit={handlePost}
           error={composerError}
+          footerRef={composerFooterRef}
+          composerInputRef={composerInputRef}
         />
       </div>
       <LocalChannelSettingsDialog
@@ -229,13 +267,16 @@ const CloudChannelPanel: React.FC<CloudChannelPanelProps> = ({
         {/* Honest disabled state: the cloud message RPCs do not exist yet, so
             the SAME composer the local scope gets renders inert with the
             explanation above it, instead of accepting text it could never
-            send. */}
+            send. For the same reason no session drop target is mounted here
+            and `acceptDraggedPills` is off — a reference dropped on a channel
+            that cannot post is a promise the surface can't keep. */}
         <ChannelComposer
           composerId={`channel-cloud-${orgId}-${channelId}`}
           placeholder={t("cloud.channels.feed.composerPlaceholder", {
             name: channel?.name ?? fallbackName,
           })}
           onSubmit={null}
+          acceptDraggedPills={false}
           notice={
             <div
               className={`border border-dashed border-border-2 bg-fill-1 px-3 py-2.5 text-[12px] text-text-3 ${INPUT_AREA.borderRadiusClass}`}

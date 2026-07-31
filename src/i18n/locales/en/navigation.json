@@ -918,7 +918,11 @@
         "errorEmpty": "Type a message first",
         "errorTooLong": "That message is too long (4000 characters max)",
         "errorQuota": "This channel has reached its message limit on this device",
-        "errorGeneric": "Couldn't post the message. Please try again."
+        "errorGeneric": "Couldn't post the message. Please try again.",
+        "dropSessionHint": "Drop to add this session as a reference",
+        "messageBodyLabel": "Channel message",
+        "sessionCardMissing": "Not available on this device",
+        "sessionCardOpen": "Open session {{name}}"
       }
     }
   }

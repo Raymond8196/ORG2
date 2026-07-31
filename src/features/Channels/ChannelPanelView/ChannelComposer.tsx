@@ -16,6 +16,7 @@
  */
 import React from "react";
 
+import type { ComposerInputRef } from "@src/components/ComposerInput";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import InputArea from "@src/engines/ChatPanel/InputArea";
 
@@ -35,6 +36,15 @@ export interface ChannelComposerProps {
   notice?: React.ReactNode;
   /** Inline refusal from the last post (already localized). */
   error?: string | null;
+  /** The footer element, so the panel can hit-test drops against it. */
+  footerRef?: React.RefObject<HTMLElement | null>;
+  /**
+   * Receives the live editor handle so a session dropped anywhere on the
+   * channel surface — not just on the input rect — becomes a pill here.
+   */
+  composerInputRef?: React.MutableRefObject<ComposerInputRef | null>;
+  /** False on the cloud variant: a dropped reference could never be posted. */
+  acceptDraggedPills?: boolean;
 }
 
 const noopSubmit: ChannelPostHandler = async () => true;
@@ -45,8 +55,12 @@ const ChannelComposer: React.FC<ChannelComposerProps> = ({
   onSubmit,
   notice,
   error,
+  footerRef,
+  composerInputRef,
+  acceptDraggedPills = true,
 }) => (
   <footer
+    ref={footerRef as React.Ref<HTMLElement>}
     className="absolute bottom-0 left-0 right-0 z-50 flex w-full flex-col items-center px-2 pb-2 pt-1"
     data-testid="channel-composer"
   >
@@ -71,6 +85,8 @@ const ChannelComposer: React.FC<ChannelComposerProps> = ({
         key={composerId}
         omitChatHeader
         bottomAnchored
+        composerInputRef={composerInputRef}
+        acceptDraggedPills={acceptDraggedPills}
         sessionId={composerId}
         sessionScope="none"
         placeholder={placeholder}

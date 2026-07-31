@@ -889,7 +889,11 @@
         "errorEmpty": "Önce bir mesaj yaz",
         "errorTooLong": "Bu mesaj çok uzun (en fazla 4000 karakter)",
         "errorQuota": "Bu kanal bu cihazdaki mesaj sınırına ulaştı",
-        "errorGeneric": "Mesaj gönderilemedi. Lütfen tekrar dene."
+        "errorGeneric": "Mesaj gönderilemedi. Lütfen tekrar dene.",
+        "dropSessionHint": "Bu oturumu referans olarak eklemek için bırakın",
+        "messageBodyLabel": "Kanal mesajı",
+        "sessionCardMissing": "Bu cihazda kullanılamıyor",
+        "sessionCardOpen": "{{name}} oturumunu aç"
       }
     }
   }

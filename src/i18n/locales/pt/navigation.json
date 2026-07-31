@@ -891,7 +891,11 @@
         "errorEmpty": "Digite uma mensagem primeiro",
         "errorTooLong": "Essa mensagem é longa demais (máximo de 4000 caracteres)",
         "errorQuota": "Este canal atingiu o limite de mensagens neste dispositivo",
-        "errorGeneric": "Não foi possível enviar a mensagem. Tente novamente."
+        "errorGeneric": "Não foi possível enviar a mensagem. Tente novamente.",
+        "dropSessionHint": "Solte para adicionar esta sessão como referência",
+        "messageBodyLabel": "Mensagem do canal",
+        "sessionCardMissing": "Indisponível neste dispositivo",
+        "sessionCardOpen": "Abrir a sessão {{name}}"
       }
     }
   }
