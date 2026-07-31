@@ -12,7 +12,7 @@ use core_types::key_source::KeySource;
 use orgtrack_core::sources::cursor_ide::history::CursorIdeSessionRow;
 use orgtrack_core::sources::imported_history::metadata::{
     SOURCE_CLAUDE_CODE, SOURCE_CODEX_APP, SOURCE_CURSOR_IDE, SOURCE_MIMO_CODE, SOURCE_OMP,
-    SOURCE_OPENCODE, SOURCE_PI, SOURCE_QODER_CLI,
+    SOURCE_OPENCODE, SOURCE_PI, SOURCE_QODER_CLI, SOURCE_QWEN_CODE,
 };
 use orgtrack_core::sources::imported_history::ImportedHistorySessionRow;
 
@@ -184,6 +184,7 @@ fn imported_history_cli_agent_type(source_label: &str) -> Option<String> {
         SOURCE_OMP => Some(CliAgentType::Omp.as_str().to_string()),
         SOURCE_PI => Some(CliAgentType::Pi.as_str().to_string()),
         SOURCE_QODER_CLI => Some(CliAgentType::QoderCli.as_str().to_string()),
+        SOURCE_QWEN_CODE => Some(CliAgentType::QwenCode.as_str().to_string()),
         _ => None,
     }
 }
@@ -513,5 +514,18 @@ pub fn human_session_to_aggregate_record(
         lines_added: None,
         lines_removed: None,
         touched_files: None,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn qwen_imported_rows_keep_the_existing_cli_agent_identity() {
+        assert_eq!(
+            imported_history_cli_agent_type(SOURCE_QWEN_CODE).as_deref(),
+            Some(CliAgentType::QwenCode.as_str())
+        );
     }
 }

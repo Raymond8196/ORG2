@@ -105,6 +105,7 @@ describe("imported history source registry", () => {
       "omp",
       "pi",
       "qoder_cli",
+      "qwen_code",
     ]);
     expect(
       IMPORTED_HISTORY_SOURCES.map((source) => source.listCategory)
@@ -125,6 +126,7 @@ describe("imported history source registry", () => {
       "external_history:omp",
       "external_history:pi",
       "external_history:qoder_cli",
+      "external_history:qwen_code",
     ]);
     for (const source of IMPORTED_HISTORY_SOURCES) {
       expect(source.loadPreviewChunks).toBeTypeOf("function");
@@ -167,6 +169,9 @@ describe("imported history source registry", () => {
     expect(
       getImportedHistorySourceBySessionId("qodercliapp-session-1")?.sourceId
     ).toBe("qoder_cli");
+    expect(
+      getImportedHistorySourceBySessionId("qwencodeapp-session-1")?.sourceId
+    ).toBe("qwen_code");
   });
 
   it("resolves source metadata by list category", () => {
