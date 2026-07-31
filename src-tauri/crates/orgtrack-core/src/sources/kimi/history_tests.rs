@@ -79,8 +79,8 @@ fn legacy_usage_dedupes_status_updates_and_config_invalidates_model() {
         .path()
         .join(".kimi/sessions/project-a/session-a/wire.jsonl");
     write_file(
-        &home.path().join(".kimi/config.json"),
-        r#"{"model":"kimi-k3"}"#,
+        &home.path().join(".kimi/config.toml"),
+        "default_model = \"kimi-k3\"\n",
     );
     write_file(
         &wire,
@@ -117,24 +117,58 @@ fn legacy_usage_dedupes_status_updates_and_config_invalidates_model() {
     assert_eq!(round_count, 1);
 
     let session_id = format!("{KIMI_SESSION_PREFIX}cli/project-a/session-a");
-    let replay = load_kimi_history_for_session(&conn, &session_id).expect("legacy replay");
+    let replay = load_kimi_history_for_session_in(&conn, &session_id, home.path(), None)
+        .expect("legacy replay");
     assert_eq!(replay.len(), 2);
     assert_eq!(replay[0].function, imported_history::FUNCTION_USER_MESSAGE);
     assert_eq!(replay[1].function, imported_history::FUNCTION_ASSISTANT);
 
     write_file(
-        &home.path().join(".kimi/config.json"),
-        r#"{"model":"kimi-k3.1"}"#,
+        &home.path().join(".kimi/config.toml"),
+        "default_model = 'kimi-k3.1'\n",
     );
     sync_kimi_history_cache_in(&mut conn, home.path(), None).expect("config refresh");
     assert_eq!(
         cached_usage(&conn, "cli/project-a/session-a").0,
         "kimi-k3.1"
     );
+
+    #[cfg(unix)]
+    {
+        let outside = TestHome::new("legacy-replay-outside");
+        let replacement = outside.path().join("project-a/session-a/wire.jsonl");
+        write_file(&replacement, "foreign\n");
+        fs::remove_dir_all(home.path().join(".kimi/sessions/project-a"))
+            .expect("remove original project");
+        std::os::unix::fs::symlink(
+            outside.path().join("project-a"),
+            home.path().join(".kimi/sessions/project-a"),
+        )
+        .expect("replace parent with symlink");
+        let error = load_kimi_history_for_session_in(&conn, &session_id, home.path(), None)
+            .expect_err("replay must reject replaced parent");
+        assert!(error.contains("unsafe Kimi history path"));
+    }
 }
 
 #[test]
-fn kimi_code_counts_only_turn_scope_and_tracks_concrete_models() {
+fn legacy_config_supports_current_toml_and_old_json_fields() {
+    assert_eq!(
+        model_from_toml(b"# comment\ndefault_model = \"kimi-current\"\n").as_deref(),
+        Some("kimi-current")
+    );
+    assert_eq!(
+        model_from_json(br#"{"default_model":"kimi-json-current"}"#).as_deref(),
+        Some("kimi-json-current")
+    );
+    assert_eq!(
+        model_from_json(br#"{"model":"kimi-json-legacy"}"#).as_deref(),
+        Some("kimi-json-legacy")
+    );
+}
+
+#[test]
+fn kimi_code_counts_every_incremental_usage_record_and_tracks_concrete_models() {
     let home = TestHome::new("code");
     let wire = home
         .path()
@@ -145,7 +179,8 @@ fn kimi_code_counts_only_turn_scope_and_tracks_concrete_models() {
             "{\"type\":\"llm.request\",\"model\":\"k3\",\"time\":1780319377000}\n",
             "{\"type\":\"usage.record\",\"model\":\"__runtime_model__\",\"usage\":{\"inputOther\":100,\"output\":50,\"inputCacheRead\":25,\"inputCacheCreation\":0},\"usageScope\":\"turn\",\"time\":1780319377010}\n",
             "{\"type\":\"usage.record\",\"model\":\"kimi-code/kimi-for-coding\",\"usage\":{\"inputOther\":200,\"output\":75,\"inputCacheRead\":0,\"inputCacheCreation\":10},\"usageScope\":\"turn\",\"time\":1780319377020}\n",
-            "{\"type\":\"usage.record\",\"model\":\"ignored\",\"usage\":{\"inputOther\":999,\"output\":999},\"usageScope\":\"session\",\"time\":1780319377030}\n",
+            "{\"type\":\"usage.record\",\"model\":\"compactor\",\"usage\":{\"inputOther\":7,\"output\":3},\"usageScope\":\"session\",\"time\":1780319377030}\n",
+            "{\"type\":\"usage.record\",\"model\":\"background\",\"usage\":{\"inputOther\":11,\"output\":5},\"time\":1780319377035}\n",
             "{\"type\":\"step.end\",\"model\":\"ignored\",\"usage\":{\"inputOther\":888,\"output\":888},\"usageScope\":\"turn\",\"time\":1780319377040}\n",
         ),
     );
@@ -156,9 +191,9 @@ fn kimi_code_counts_only_turn_scope_and_tracks_concrete_models() {
     assert_eq!(
         cached_usage(&conn, "code/work/session/main"),
         (
-            "kimi-for-coding".to_string(),
-            335,
-            125,
+            "background".to_string(),
+            353,
+            133,
             25,
             10,
             "code/work/session/main".to_string()
@@ -175,11 +210,25 @@ fn kimi_code_counts_only_turn_scope_and_tracks_concrete_models() {
         .expect("query models")
         .collect::<Result<Vec<_>, _>>()
         .expect("models");
-    assert_eq!(models, vec!["k3", "kimi-for-coding"]);
+    assert_eq!(
+        models,
+        vec!["k3", "kimi-for-coding", "compactor", "background"]
+    );
+    let listable: i64 = conn
+        .query_row(
+            "SELECT listable FROM imported_history_session_cache
+             WHERE source = ?1 AND source_session_id = ?2",
+            [SOURCE_KIMI, "code/work/session/main"],
+            |row| row.get(0),
+        )
+        .expect("Kimi Code visibility");
+    assert_eq!(listable, 0, "metadata-only Kimi Code rows stay hidden");
     let session_id = format!("{KIMI_SESSION_PREFIX}code/work/session/main");
-    assert!(load_kimi_history_for_session(&conn, &session_id)
-        .expect("Kimi Code metadata-only replay")
-        .is_empty());
+    assert!(
+        load_kimi_history_for_session_in(&conn, &session_id, home.path(), None)
+            .expect("Kimi Code metadata-only replay")
+            .is_empty()
+    );
 }
 
 #[test]
@@ -289,6 +338,124 @@ fn discovery_accepts_only_exact_layouts_and_rejects_symlink_escape() {
         .map(|record| record.source_session_id.as_str())
         .collect::<Vec<_>>();
     assert_eq!(ids, vec!["cli/group/session", "code/work/session/main"]);
+}
+
+#[cfg(unix)]
+#[test]
+fn discovery_rejects_a_symlinked_provider_root() {
+    let home = TestHome::new("root-symlink");
+    let outside = TestHome::new("root-symlink-outside");
+    write_file(
+        &outside
+            .path()
+            .join(".kimi/sessions/group/session/wire.jsonl"),
+        "{}\n",
+    );
+    std::os::unix::fs::symlink(outside.path().join(".kimi"), home.path().join(".kimi"))
+        .expect("link provider root");
+
+    let conn = fixture_conn();
+    let error = discover_kimi_records_in(&conn, home.path(), None)
+        .expect_err("provider-root symlink must fail closed");
+    assert!(error.contains("unsafe Kimi path"));
+}
+
+#[test]
+fn replay_coalesces_streamed_content_parts_into_one_assistant_message() {
+    let home = TestHome::new("streamed-content");
+    write_file(
+        &home
+            .path()
+            .join(".kimi/sessions/project/session/wire.jsonl"),
+        concat!(
+            "{\"timestamp\":1770983400.0,\"message\":{\"type\":\"TurnBegin\",\"payload\":{\"user_input\":\"hello\"}}}\n",
+            "{\"timestamp\":1770983401.0,\"message\":{\"type\":\"ContentPart\",\"payload\":{\"text\":\"hello \"}}}\n",
+            "{\"timestamp\":1770983402.0,\"message\":{\"type\":\"ContentPart\",\"payload\":{\"text\":\"back\"}}}\n",
+        ),
+    );
+    let mut conn = fixture_conn();
+    sync_kimi_history_cache_in(&mut conn, home.path(), None).expect("sync replay fixture");
+    let session_id = format!("{KIMI_SESSION_PREFIX}cli/project/session");
+    let replay = load_kimi_history_for_session_in(&conn, &session_id, home.path(), None)
+        .expect("load replay");
+
+    assert_eq!(replay.len(), 2);
+    assert_eq!(replay[1].function, imported_history::FUNCTION_ASSISTANT);
+    assert_eq!(replay[1].result["content"], "hello back");
+}
+
+#[test]
+fn kimi_code_subagents_are_hidden_and_linked_to_the_hidden_main_row() {
+    let home = TestHome::new("subagent-placement");
+    for agent in ["main", "worker-1"] {
+        write_file(
+            &home.path().join(format!(
+                ".kimi-code/sessions/work/session/agents/{agent}/wire.jsonl"
+            )),
+            "{\"type\":\"usage.record\",\"model\":\"k3\",\"usage\":{\"inputOther\":1,\"output\":1},\"usageScope\":\"turn\",\"time\":1780319377010}\n",
+        );
+    }
+    let mut conn = fixture_conn();
+    sync_kimi_history_cache_in(&mut conn, home.path(), None).expect("sync subagents");
+
+    let main = conn
+        .query_row(
+            "SELECT listable, parent_session_id
+             FROM imported_history_session_cache
+             WHERE source = ?1 AND source_session_id = ?2",
+            [SOURCE_KIMI, "code/work/session/main"],
+            |row| Ok((row.get::<_, i64>(0)?, row.get::<_, String>(1)?)),
+        )
+        .expect("main placement");
+    let worker = conn
+        .query_row(
+            "SELECT listable, parent_session_id
+             FROM imported_history_session_cache
+             WHERE source = ?1 AND source_session_id = ?2",
+            [SOURCE_KIMI, "code/work/session/worker-1"],
+            |row| Ok((row.get::<_, i64>(0)?, row.get::<_, String>(1)?)),
+        )
+        .expect("worker placement");
+    assert_eq!(main, (0, String::new()));
+    assert_eq!(
+        worker,
+        (0, format!("{KIMI_SESSION_PREFIX}code/work/session/main"))
+    );
+}
+
+#[test]
+fn failed_core_projection_keeps_the_record_retry_eligible() {
+    let home = TestHome::new("projection-retry");
+    write_file(
+        &home
+            .path()
+            .join(".kimi/sessions/project/session/wire.jsonl"),
+        "{\"timestamp\":1770983410.0,\"message\":{\"type\":\"StatusUpdate\",\"payload\":{\"token_usage\":{\"input_other\":10,\"output\":2},\"message_id\":\"msg-1\"}}}\n",
+    );
+    let mut conn = fixture_conn();
+    conn.execute("DROP TABLE orgtrack_core_sessions", [])
+        .expect("drop core projection table");
+
+    sync_kimi_history_cache_in(&mut conn, home.path(), None)
+        .expect_err("core projection failure must surface");
+    let parser_version: i64 = conn
+        .query_row(
+            "SELECT parser_version FROM imported_history_session_cache
+             WHERE source = ?1 AND source_session_id = ?2",
+            [SOURCE_KIMI, "cli/project/session"],
+            |row| row.get(0),
+        )
+        .expect("retry marker");
+    assert_eq!(parser_version, -1);
+
+    crate::store::sqlite::SqliteRecordStore::init_tables(&conn)
+        .expect("restore core projection table");
+    sync_kimi_history_cache_in(&mut conn, home.path(), None).expect("retry succeeds");
+    assert_eq!(
+        cached_usage(&conn, "cli/project/session").1,
+        10,
+        "retry restores the imported usage"
+    );
 }
 
 #[test]

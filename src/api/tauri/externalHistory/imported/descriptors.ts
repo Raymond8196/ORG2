@@ -209,7 +209,7 @@ export const IMPORTED_HISTORY_SOURCE_DESCRIPTORS: readonly ImportedHistorySource
     {
       sourceId: "kimi",
       listCategory: "external_history:kimi",
-      prefix: "kimiapp-",
+      prefix: "kimihistoryapp-",
       iconId: "kimi",
       displayName: "Kimi",
       groupLabel: "Kimi",

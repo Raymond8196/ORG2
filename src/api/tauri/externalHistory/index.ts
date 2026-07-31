@@ -34,6 +34,7 @@ export * from "./sources/omp";
 export * from "./sources/pi";
 export * from "./sources/qoderCli";
 export * from "./sources/qwenCode";
+export * from "./sources/kimi";
 
 export interface ExternalHistoryImportedRepo {
   repoId: string;

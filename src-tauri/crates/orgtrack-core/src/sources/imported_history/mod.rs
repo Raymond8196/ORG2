@@ -825,11 +825,13 @@ mod impact_tests {
             ("piapp-id", ImportedHistoryLoader::Pi),
             ("qodercliapp-id", ImportedHistoryLoader::QoderCli),
             ("qwencodeapp-id", ImportedHistoryLoader::QwenCode),
+            ("kimihistoryapp-id", ImportedHistoryLoader::Kimi),
         ];
 
         for (session_id, expected) in cases {
             assert_eq!(imported_history_loader(session_id), Some(expected));
         }
+        assert_eq!(imported_history_loader("kimiapp-hook-id"), None);
         assert_eq!(imported_history_loader("org2-native-id"), None);
     }
 
