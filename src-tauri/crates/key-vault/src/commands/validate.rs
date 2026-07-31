@@ -20,6 +20,7 @@ use crate::providers::minimax::MiniMaxQuotaFetcher;
 use crate::providers::openai::OpenAIValidator;
 use crate::providers::opencode_go::{workspace_id_override_from_key, OpenCodeGoQuotaFetcher};
 use crate::providers::openrouter::OpenRouterQuotaFetcher;
+use crate::providers::qoder::QoderQuotaFetcher;
 use crate::providers::zai_team::{
     has_partial_team_scope, team_scope_from_key, ZaiTeamQuotaFetcher,
     ORGANIZATION_METADATA_KEY as ZAI_TEAM_ORGANIZATION_METADATA_KEY,
@@ -922,12 +923,9 @@ async fn fetch_quota_for_key(
                 .await
         }
         ModelType::OpenCode => {
-            let cookie = key
-                .session_token
-                .as_deref()
-                .or(key.api_key.as_deref())
-                .filter(|token| !token.trim().is_empty())
-                .ok_or_else(|| "OpenCode account has no session cookie".to_string())?;
+            let cookie =
+                first_non_empty_secret(key.session_token.as_deref(), key.api_key.as_deref())
+                    .ok_or_else(|| "OpenCode account has no session cookie".to_string())?;
             OpenCodeGoQuotaFetcher::new()
                 .fetch_quota(cookie, workspace_id_override_from_key(key))
                 .await
@@ -977,6 +975,14 @@ async fn fetch_quota_for_key(
                 .fetch_quota(token, key.base_url.as_deref())
                 .await
         }
+        ModelType::QoderCli => {
+            let cookie =
+                first_non_empty_secret(key.session_token.as_deref(), key.api_key.as_deref())
+                    .ok_or_else(|| "Qoder account has no saved cookie or token".to_string())?;
+            QoderQuotaFetcher::new()
+                .fetch_quota(cookie, key.base_url.as_deref())
+                .await
+        }
         ref other => Err(format!(
             "{} does not have a quota refresh API",
             other.as_str()
@@ -984,8 +990,19 @@ async fn fetch_quota_for_key(
     }
 }
 
+fn first_non_empty_secret<'a>(
+    preferred: Option<&'a str>,
+    fallback: Option<&'a str>,
+) -> Option<&'a str> {
+    preferred
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .or_else(|| fallback.map(str::trim).filter(|value| !value.is_empty()))
+}
+
 fn quota_refresh_uses_strict_request_count(key: &crate::key_store::ModelKey) -> bool {
-    key.model_type == ModelType::ZhipuApi && team_scope_from_key(key).is_some()
+    matches!(key.model_type, ModelType::QoderCli)
+        || (key.model_type == ModelType::ZhipuApi && team_scope_from_key(key).is_some())
 }
 
 pub(super) fn key_can_refresh_quota(key: &crate::key_store::ModelKey) -> bool {
@@ -1004,6 +1021,10 @@ pub(super) fn key_can_refresh_quota(key: &crate::key_store::ModelKey) -> bool {
         | ModelType::OpenrouterApi
         | ModelType::MinimaxApi => has_api_key,
         ModelType::ZhipuApi => has_api_key && !has_partial_team_scope(key),
+        ModelType::QoderCli => {
+            (has_session_token || has_api_key)
+                && crate::providers::qoder::has_supported_region(key.base_url.as_deref())
+        }
         ModelType::OpenCode => has_session_token || has_api_key,
         ModelType::ClaudeCode | ModelType::Codex => {
             key.auth_method == AuthMethod::Oauth && has_session_token
@@ -1018,15 +1039,16 @@ mod direct_quota_dispatch_tests {
 
     #[tokio::test]
     async fn direct_provider_variants_reach_their_stored_key_dispatch_arms() {
-        for (model_type, expected_provider) in [
-            (ModelType::DeepseekApi, "DeepSeek"),
-            (ModelType::OpenrouterApi, "OpenRouter"),
-            (ModelType::MinimaxApi, "MiniMax"),
+        for (model_type, expected_provider, expected_secret) in [
+            (ModelType::DeepseekApi, "DeepSeek", "no API key"),
+            (ModelType::OpenrouterApi, "OpenRouter", "no API key"),
+            (ModelType::MinimaxApi, "MiniMax", "no API key"),
+            (ModelType::QoderCli, "Qoder", "no saved cookie or token"),
         ] {
             let key = crate::key_store::ModelKey::new(model_type);
             let error = fetch_quota_for_key(&key).await.unwrap_err();
             assert!(
-                error.contains(expected_provider) && error.contains("no API key"),
+                error.contains(expected_provider) && error.contains(expected_secret),
                 "unexpected dispatch error: {error}"
             );
         }
@@ -1059,6 +1081,7 @@ mod direct_quota_dispatch_tests {
             ModelType::DeepseekApi,
             ModelType::OpenrouterApi,
             ModelType::MinimaxApi,
+            ModelType::QoderCli,
         ] {
             let mut key = crate::key_store::ModelKey::new(model_type);
             key.api_key = Some("api-key".to_string());
@@ -1097,6 +1120,30 @@ mod direct_quota_dispatch_tests {
         assert!(key_can_refresh_quota(&key));
         assert!(quota_refresh_uses_strict_request_count(&key));
         assert_ne!(partial_revision, quota_credential_revision(&key));
+    }
+
+    #[test]
+    fn qoder_capability_requires_an_explicit_saved_secret() {
+        let mut key = crate::key_store::ModelKey::new(ModelType::QoderCli);
+        assert!(!key_can_refresh_quota(&key));
+        key.session_token = Some("session=qoder".into());
+        assert!(key_can_refresh_quota(&key));
+        assert!(quota_refresh_uses_strict_request_count(&key));
+        key.base_url = Some("https://example.com".into());
+        assert!(!key_can_refresh_quota(&key));
+    }
+
+    #[test]
+    fn stored_cookie_resolution_skips_blank_preferred_values() {
+        assert_eq!(
+            first_non_empty_secret(Some("  "), Some(" fallback-cookie ")),
+            Some("fallback-cookie")
+        );
+        assert_eq!(
+            first_non_empty_secret(Some(" preferred-cookie "), Some("fallback-cookie")),
+            Some("preferred-cookie")
+        );
+        assert_eq!(first_non_empty_secret(Some(" "), None), None);
     }
 }
 
