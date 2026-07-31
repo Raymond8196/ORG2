@@ -16,7 +16,7 @@
  */
 import { MenuItem, Menu as TauriMenu } from "@tauri-apps/api/menu";
 import { useAtomValue, useSetAtom } from "jotai";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import Message from "@src/components/Message";
@@ -29,11 +29,13 @@ import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/compone
 import {
   activeChatPanelTabAtom,
   openChannelInChatPanelTabAtom,
+  reconcileDiscussionChannelTabsAtom,
 } from "@src/store/chatPanel/chatPanelTabsAtom";
 import {
   type LocalChannel,
   activeLocalChannelsAtom,
   archivedLocalChannelsAtom,
+  reconcileLocalChannelMessagesAtom,
   unarchiveLocalChannelAtom,
 } from "@src/store/ui/localChannelsAtom";
 
@@ -84,23 +86,63 @@ export function useLocalChannelsSection({
   const channels = useAtomValue(activeLocalChannelsAtom);
   const archivedChannels = useAtomValue(archivedLocalChannelsAtom);
   const unarchiveChannel = useSetAtom(unarchiveLocalChannelAtom);
+  const reconcileMessages = useSetAtom(reconcileLocalChannelMessagesAtom);
   const activeChatPanelTab = useAtomValue(activeChatPanelTabAtom);
   const openChannelTab = useSetAtom(openChannelInChatPanelTabAtom);
+  const reconcileChannelTabs = useSetAtom(reconcileDiscussionChannelTabsAtom);
+  const accessibleChannels = useMemo(
+    () => [...channels, ...archivedChannels],
+    [archivedChannels, channels]
+  );
+
+  // App-start reconciliation closes the old crash/interrupted-delete gap:
+  // persisted message rows without a control-plane owner are swept once.
+  useEffect(() => {
+    const result = reconcileMessages();
+    if (result.removed > 0) {
+      log.info(
+        `purged ${result.removed} orphaned local channel messages across ${result.orphanedChannelIds.length} channels`
+      );
+    }
+  }, [reconcileMessages]);
+
+  useEffect(() => {
+    reconcileChannelTabs({
+      scope: "local",
+      channels: accessibleChannels.map((channel) => ({
+        scope: "local",
+        channelId: channel.id,
+        name: channel.name,
+      })),
+    });
+  }, [accessibleChannels, reconcileChannelTabs]);
 
   // Archived rows navigate too: an archived channel is hidden from the
   // active list but its history stays readable.
   const channelsByRowId = useMemo(() => {
     const map = new Map<string, LocalChannel>();
-    for (const channel of [...channels, ...archivedChannels]) {
+    for (const channel of accessibleChannels) {
       map.set(buildLocalChannelRowId(channel.id), channel);
     }
     return map;
-  }, [archivedChannels, channels]);
+  }, [accessibleChannels]);
 
   const [dialogState, setDialogState] =
     useState<LocalChannelsDialogState | null>(null);
-  // A scope switch (cloud org activated) closes any open local dialog.
-  const activeDialog = enabled ? dialogState : null;
+  const accessibleChannelIds = useMemo(
+    () => new Set(accessibleChannels.map((channel) => channel.id)),
+    [accessibleChannels]
+  );
+  // A scope switch or a delete from another local surface invalidates a
+  // channel-bound dialog target. Derive closed instead of resetting in an
+  // effect.
+  const activeDialog =
+    enabled &&
+    dialogState &&
+    (dialogState.kind === "create" ||
+      accessibleChannelIds.has(dialogState.channel.id))
+      ? dialogState
+      : null;
 
   const closeDialog = useCallback(() => setDialogState(null), []);
   const openCreateDialog = useCallback(

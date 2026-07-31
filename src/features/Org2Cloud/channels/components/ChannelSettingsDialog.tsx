@@ -21,18 +21,21 @@ import { useSetAtom } from "jotai";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import Button from "@src/components/Button";
 import Select from "@src/components/Select";
+import {
+  normalizeChannelName,
+  validateChannelName,
+} from "@src/features/DiscussionChannels/channelContract";
+import {
+  ChannelDialogErrorNotice,
+  ChannelDialogFooter,
+  ChannelNameField,
+  ChannelTopicField,
+} from "@src/features/DiscussionChannels/components/ChannelDialogPrimitives";
 
-import { normalizeChannelName, validateChannelName } from "../channelName";
 import { bumpOrg2CloudChannelsVersionAtom } from "../channelsAtom";
 import { isOrg2ChannelsErrorCode, updateCloudChannel } from "../channelsClient";
 import type { CloudChannel, CloudChannelPostPolicy } from "../types";
-import {
-  ChannelDialogErrorNotice,
-  ChannelNameField,
-  ChannelTopicField,
-} from "./ChannelFormFields";
 import { useFreshChannelAccessToken } from "./useChannelDialogAccess";
 
 type SettingsErrorKind = "nameTaken" | "managerRequired" | "generic";
@@ -189,26 +192,16 @@ const ChannelSettingsDialog: React.FC<ChannelSettingsDialogProps> = ({
           testId="channel-settings-error"
         />
 
-        <div className="flex items-center justify-end gap-2">
-          <Button
-            htmlType="button"
-            variant="secondary"
-            onClick={onClose}
-            data-testid="channel-settings-cancel"
-          >
-            {t("cloud.channels.cancel")}
-          </Button>
-          <Button
-            htmlType="button"
-            variant="primary"
-            loading={submitting}
-            disabled={!canSubmit}
-            onClick={() => void handleSubmit()}
-            data-testid="channel-settings-submit"
-          >
-            {t("cloud.channels.settings.submit")}
-          </Button>
-        </div>
+        <ChannelDialogFooter
+          cancelLabel={t("cloud.channels.cancel")}
+          submitLabel={t("cloud.channels.settings.submit")}
+          onCancel={onClose}
+          onSubmit={() => void handleSubmit()}
+          cancelTestId="channel-settings-cancel"
+          submitTestId="channel-settings-submit"
+          loading={submitting}
+          disabled={!canSubmit}
+        />
       </div>
     </Modal>
   );

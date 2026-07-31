@@ -71,10 +71,7 @@ describe("CreateLocalChannelDialog", () => {
     Reflect.deleteProperty(actEnvironment, "IS_REACT_ACT_ENVIRONMENT");
   });
 
-  function renderDialog(overrides?: {
-    onClose?: () => void;
-    onCreated?: (channel: LocalChannel) => void;
-  }) {
+  function renderDialog(overrides?: { onClose?: () => void }) {
     act(() => {
       root.render(
         createElement(
@@ -83,7 +80,6 @@ describe("CreateLocalChannelDialog", () => {
           createElement(CreateLocalChannelDialog, {
             open: true,
             onClose: overrides?.onClose ?? vi.fn(),
-            onCreated: overrides?.onCreated,
           })
         )
       );
@@ -130,8 +126,7 @@ describe("CreateLocalChannelDialog", () => {
 
   it("live-normalizes like the cloud dialog and persists the created channel", () => {
     const onClose = vi.fn();
-    const onCreated = vi.fn();
-    renderDialog({ onClose, onCreated });
+    renderDialog({ onClose });
 
     // Slack behavior: leading '#' stripped, lowercased, spaces → hyphens.
     const input = typeName("#Code Review");
@@ -143,9 +138,6 @@ describe("CreateLocalChannelDialog", () => {
     expect(stored).toHaveLength(1);
     expect(stored[0]?.name).toBe("code-review");
     expect(stored[0]?.archivedAt).toBeNull();
-    expect(onCreated).toHaveBeenCalledWith(
-      expect.objectContaining({ name: "code-review" })
-    );
     expect(onClose).toHaveBeenCalledTimes(1);
     // Success clears the draft for the next open.
     expect(nameInput().value).toBe("");

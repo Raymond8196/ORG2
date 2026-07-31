@@ -26,6 +26,7 @@ import Button from "@src/components/Button";
 import Checkbox from "@src/components/Checkbox";
 import Dropdown from "@src/components/Dropdown";
 import type { DropdownOption } from "@src/components/Dropdown/types";
+import { ChannelDialogErrorNotice } from "@src/features/DiscussionChannels/components/ChannelDialogPrimitives";
 
 import { bumpOrg2CloudChannelsVersionAtom } from "../channelsAtom";
 import {
@@ -37,7 +38,6 @@ import {
 } from "../channelsClient";
 import type { CloudChannel, CloudChannelMember } from "../types";
 import { CHANNEL_ADD_MEMBERS_MAX_PER_CALL } from "../types";
-import { ChannelDialogErrorNotice } from "./ChannelFormFields";
 import {
   useActiveOrgMembers,
   useFreshChannelAccessToken,

@@ -5,6 +5,8 @@ import {
   LOCAL_CHANNEL_MESSAGES_STORAGE_KEY,
   LOCAL_CHANNEL_MESSAGE_MAX_LENGTH,
   LOCAL_CHANNEL_MESSAGE_MAX_PER_CHANNEL,
+  LOCAL_CHANNEL_MESSAGE_MAX_TOTAL,
+  LOCAL_CHANNEL_MESSAGE_STORAGE_BUDGET_BYTES,
   type LocalChannelMessage,
   deleteLocalChannelMessage,
   deleteLocalChannelMessageAtom,
@@ -14,6 +16,7 @@ import {
   postLocalChannelMessage,
   postLocalChannelMessageAtom,
   purgeLocalChannelMessages,
+  purgeOrphanedLocalChannelMessages,
   selectLocalChannelMessages,
 } from "../localChannelMessagesAtom";
 import {
@@ -21,6 +24,7 @@ import {
   type LocalChannel,
   deleteLocalChannelAtom,
   localChannelsAtom,
+  reconcileLocalChannelMessagesAtom,
 } from "../localChannelsAtom";
 
 const NOW = "2026-07-31T00:00:00.000Z";
@@ -157,6 +161,45 @@ describe("postLocalChannelMessage", () => {
     expect(ids).not.toContain("msg-0");
     expect(ids).toContain("msg-1");
   });
+
+  it("refuses to post when live rows across channels hit the global cap", () => {
+    const messages = Array.from(
+      { length: LOCAL_CHANNEL_MESSAGE_MAX_TOTAL },
+      (_, index) =>
+        makeMessage({
+          id: `global-${index}`,
+          channelId: `chan-${index % 5}`,
+        })
+    );
+
+    expect(
+      postLocalChannelMessage(messages, {
+        channelId: "chan-new",
+        body: "release-notes",
+      })
+    ).toEqual({ ok: false, error: "quota" });
+  });
+
+  it("refuses a write before the serialized store exceeds its byte budget", () => {
+    const largeBody = "界".repeat(LOCAL_CHANNEL_MESSAGE_MAX_LENGTH);
+    const messages = Array.from({ length: 350 }, (_, index) =>
+      makeMessage({
+        id: `large-${index}`,
+        channelId: `large-channel-${index}`,
+        body: largeBody,
+      })
+    );
+    expect(
+      new TextEncoder().encode(JSON.stringify(messages)).byteLength
+    ).toBeGreaterThan(LOCAL_CHANNEL_MESSAGE_STORAGE_BUDGET_BYTES);
+
+    expect(
+      postLocalChannelMessage(messages, {
+        channelId: "chan-new",
+        body: "release-notes",
+      })
+    ).toEqual({ ok: false, error: "quota" });
+  });
 });
 
 describe("editLocalChannelMessage", () => {
@@ -250,6 +293,18 @@ describe("purgeLocalChannelMessages", () => {
       expect.objectContaining({ id: "b" }),
     ]);
   });
+
+  it("drops every row whose owning channel no longer exists", () => {
+    const messages = [
+      makeMessage({ id: "keep", channelId: "chan-1" }),
+      makeMessage({ id: "orphan-a", channelId: "gone-1" }),
+      makeMessage({ id: "orphan-b", channelId: "gone-2" }),
+    ];
+
+    expect(
+      purgeOrphanedLocalChannelMessages(messages, new Set(["chan-1"]))
+    ).toEqual([expect.objectContaining({ id: "keep" })]);
+  });
 });
 
 describe("persistence", () => {
@@ -337,5 +392,28 @@ describe("deleting a local channel purges its messages", () => {
 
     expect(result).toEqual({ ok: false, error: "invalid" });
     expect(store.get(localChannelMessagesAtom)).toHaveLength(1);
+  });
+
+  it("sweeps boot-time orphans and evicts their selector-family entries", () => {
+    const store = hydratedStore();
+    store.set(localChannelsAtom, [channel]);
+    store.set(localChannelMessagesAtom, [
+      makeMessage({ id: "keep", channelId: "chan-1" }),
+      makeMessage({ id: "orphan", channelId: "gone" }),
+    ]);
+    const orphanSelector = localChannelMessagesForChannelAtomFamily("gone");
+
+    const result = store.set(reconcileLocalChannelMessagesAtom);
+
+    expect(result).toEqual({
+      removed: 1,
+      orphanedChannelIds: ["gone"],
+    });
+    expect(store.get(localChannelMessagesAtom)).toEqual([
+      expect.objectContaining({ id: "keep" }),
+    ]);
+    expect(localChannelMessagesForChannelAtomFamily("gone")).not.toBe(
+      orphanSelector
+    );
   });
 });

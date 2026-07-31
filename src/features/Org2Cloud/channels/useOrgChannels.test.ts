@@ -16,7 +16,7 @@ import {
 import { org2CloudAuthAtom } from "../org2CloudAuthAtom";
 import { bumpOrg2CloudChannelsVersionAtom } from "./channelsAtom";
 import type { CloudChannel, CloudChannelsList } from "./types";
-import { useOrgChannels } from "./useOrgChannels";
+import { __ORG_CHANNELS_INTERNALS, useOrgChannels } from "./useOrgChannels";
 
 const mocks = vi.hoisted(() => ({
   ensureFreshSession: vi.fn(),
@@ -141,6 +141,7 @@ describe("useOrgChannels", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    __ORG_CHANNELS_INTERNALS.reset();
     localStorage.clear();
     // Token refresh hands back a NEW auth object carrying the fresh token —
     // every downstream RPC must use it, never the stale atom token.
@@ -231,6 +232,45 @@ describe("useOrgChannels", () => {
     );
   });
 
+  it("coalesces identical in-flight list requests from multiple consumers", async () => {
+    const pending = deferred<CloudChannelsList>();
+    mocks.listCloudChannels.mockImplementation(() => pending.promise);
+
+    act(() => {
+      root.render(
+        createElement(
+          Provider,
+          { store },
+          createElement(
+            "div",
+            null,
+            createElement(Probe, {
+              orgId: "org-a",
+              includeArchived: true,
+            }),
+            createElement(Probe, {
+              orgId: "org-a",
+              includeArchived: true,
+            })
+          )
+        )
+      );
+    });
+    await flushAsync();
+
+    expect(mocks.listCloudChannels).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      pending.resolve(channelsPage([makeChannel("c1", "general")]));
+    });
+    await flushAsync();
+    expect(
+      document.querySelectorAll(
+        '[data-testid="channels-probe"][data-phase="ready"]'
+      )
+    ).toHaveLength(2);
+  });
+
   it("never surfaces archived channels when includeArchived is off", async () => {
     mocks.listCloudChannels.mockResolvedValue(
       channelsPage([
@@ -312,6 +352,23 @@ describe("useOrgChannels", () => {
     });
     await flushAsync();
     expect(mocks.listCloudChannels).toHaveBeenCalledTimes(2);
+  });
+
+  it("refetches when a blurred desktop window regains focus", async () => {
+    mocks.listCloudChannels
+      .mockResolvedValueOnce(channelsPage([makeChannel("c1", "before")]))
+      .mockResolvedValueOnce(channelsPage([makeChannel("c1", "after")]));
+    renderProbe("org-a");
+    await flushAsync();
+    expect(probe().channels).toBe("before");
+
+    act(() => {
+      window.dispatchEvent(new Event("focus"));
+    });
+    await flushAsync();
+
+    expect(mocks.listCloudChannels).toHaveBeenCalledTimes(2);
+    expect(probe().channels).toBe("after");
   });
 
   it("surfaces a list failure as the error phase with the message", async () => {

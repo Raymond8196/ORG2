@@ -234,6 +234,42 @@ const ChannelMessageRow: React.FC<ChannelMessageRowProps> = ({
     if (onEdit(message.id, draft)) setEditing(false);
   }, [draft, message.id, onEdit]);
 
+  const messageActions =
+    canEdit || canDelete ? (
+      <span
+        className={`${grouped ? "absolute right-0 top-0 z-10 rounded-md bg-bg-1" : "ml-auto"} inline-flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-focus-within/channelmsg:opacity-100 group-hover/channelmsg:opacity-100`}
+      >
+        {canEdit ? (
+          <Tooltip content={t("cloud.channels.feed.edit")} framedPanel>
+            <Button
+              htmlType="button"
+              variant="tertiary"
+              size="mini"
+              iconOnly
+              aria-label={t("cloud.channels.feed.edit")}
+              data-testid="channel-message-edit"
+              icon={<Pencil size={12} strokeWidth={2} />}
+              onClick={startEditing}
+            />
+          </Tooltip>
+        ) : null}
+        {canDelete ? (
+          <Tooltip content={t("cloud.channels.feed.delete")} framedPanel>
+            <Button
+              htmlType="button"
+              variant="tertiary"
+              size="mini"
+              iconOnly
+              aria-label={t("cloud.channels.feed.delete")}
+              data-testid="channel-message-delete"
+              icon={<Trash2 size={12} strokeWidth={2} />}
+              onClick={() => onDelete?.(message.id)}
+            />
+          </Tooltip>
+        ) : null}
+      </span>
+    ) : null;
+
   return (
     <div
       className={`group/channelmsg flex gap-2 ${CHAT_ITEM_PADDING_X} ${grouped ? "py-0.5" : "pb-1 pt-2"}`}
@@ -245,7 +281,8 @@ const ChannelMessageRow: React.FC<ChannelMessageRowProps> = ({
           <Avatar size={28}>{authorLabel.slice(0, 1).toUpperCase()}</Avatar>
         )}
       </div>
-      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+      <div className="relative flex min-w-0 flex-1 flex-col gap-0.5">
+        {grouped ? messageActions : null}
         {grouped ? null : (
           <div className="flex min-w-0 items-baseline gap-2">
             <span className="truncate text-[13px] font-semibold text-text-1">
@@ -267,36 +304,7 @@ const ChannelMessageRow: React.FC<ChannelMessageRowProps> = ({
                 {t("cloud.channels.feed.edited")}
               </span>
             ) : null}
-            <span className="ml-auto inline-flex shrink-0 items-center gap-0.5 opacity-0 transition-opacity group-focus-within/channelmsg:opacity-100 group-hover/channelmsg:opacity-100">
-              {canEdit ? (
-                <Tooltip content={t("cloud.channels.feed.edit")} framedPanel>
-                  <Button
-                    htmlType="button"
-                    variant="tertiary"
-                    size="mini"
-                    iconOnly
-                    aria-label={t("cloud.channels.feed.edit")}
-                    data-testid="channel-message-edit"
-                    icon={<Pencil size={12} strokeWidth={2} />}
-                    onClick={startEditing}
-                  />
-                </Tooltip>
-              ) : null}
-              {canDelete ? (
-                <Tooltip content={t("cloud.channels.feed.delete")} framedPanel>
-                  <Button
-                    htmlType="button"
-                    variant="tertiary"
-                    size="mini"
-                    iconOnly
-                    aria-label={t("cloud.channels.feed.delete")}
-                    data-testid="channel-message-delete"
-                    icon={<Trash2 size={12} strokeWidth={2} />}
-                    onClick={() => onDelete?.(message.id)}
-                  />
-                </Tooltip>
-              ) : null}
-            </span>
+            {messageActions}
           </div>
         )}
 

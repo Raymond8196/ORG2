@@ -17,9 +17,11 @@ export {
   nextChatPanelTabAtom,
   patchChatPanelWorkItemTabAtom,
   prevChatPanelTabAtom,
+  reconcileDiscussionChannelTabsAtom,
   reorderChatPanelTabsAtom,
   setChatPanelTabTitleAtom,
   toggleChatPanelTabTuiModeAtom,
+  type ReconcileDiscussionChannelTabsInput,
 } from "./chatPanelTabLifecycleAtoms";
 export {
   addChatPanelLaunchpadTabAtom,

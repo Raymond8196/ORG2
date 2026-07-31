@@ -1,5 +1,5 @@
 /**
- * ChannelPanelView — the chat-pane surface behind a `"channel"` tab.
+ * DiscussionChannelPanelView — the chat-pane surface behind a `"channel"` tab.
  *
  * One surface, two scopes:
  *
@@ -57,7 +57,7 @@ import { useChannelSessionDrop } from "./useChannelSessionDrop";
 const EMPTY_STATE_COLUMN_CLASSES =
   "flex min-h-0 flex-1 items-center justify-center pb-36";
 
-export interface ChannelPanelViewProps {
+export interface DiscussionChannelPanelViewProps {
   channel: ChatPanelSelectedChannel;
 }
 
@@ -196,8 +196,8 @@ const LocalChannelPanel: React.FC<LocalChannelPanelProps> = ({
           <ChannelMessageList
             messages={messages}
             authorLabel={t("cloud.channels.feed.you")}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
+            onEdit={archived ? null : handleEdit}
+            onDelete={archived ? null : handleDelete}
           />
         )}
         <ChannelComposer
@@ -316,7 +316,9 @@ const CloudChannelPanel: React.FC<CloudChannelPanelProps> = ({
   );
 };
 
-const ChannelPanelView: React.FC<ChannelPanelViewProps> = ({ channel }) =>
+const DiscussionChannelPanelView: React.FC<DiscussionChannelPanelViewProps> = ({
+  channel,
+}) =>
   channel.scope === "local" ? (
     <LocalChannelPanel
       channelId={channel.channelId}
@@ -331,4 +333,4 @@ const ChannelPanelView: React.FC<ChannelPanelViewProps> = ({ channel }) =>
     />
   );
 
-export default ChannelPanelView;
+export default DiscussionChannelPanelView;

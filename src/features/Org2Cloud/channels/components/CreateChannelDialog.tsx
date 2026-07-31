@@ -18,25 +18,24 @@ import { Hash, Lock } from "lucide-react";
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import Button from "@src/components/Button";
 import Checkbox from "@src/components/Checkbox";
 import Select from "@src/components/Select";
-
-import { org2CloudAuthAtom } from "../../org2CloudAuthAtom";
-import { normalizeChannelName, validateChannelName } from "../channelName";
-import { bumpOrg2CloudChannelsVersionAtom } from "../channelsAtom";
-import { createCloudChannel, isOrg2ChannelsErrorCode } from "../channelsClient";
-import type {
-  CloudChannel,
-  CloudChannelPostPolicy,
-  CloudChannelVisibility,
-} from "../types";
-import { CHANNEL_ADD_MEMBERS_MAX_PER_CALL } from "../types";
+import {
+  normalizeChannelName,
+  validateChannelName,
+} from "@src/features/DiscussionChannels/channelContract";
 import {
   ChannelDialogErrorNotice,
+  ChannelDialogFooter,
   ChannelNameField,
   ChannelTopicField,
-} from "./ChannelFormFields";
+} from "@src/features/DiscussionChannels/components/ChannelDialogPrimitives";
+
+import { org2CloudAuthAtom } from "../../org2CloudAuthAtom";
+import { bumpOrg2CloudChannelsVersionAtom } from "../channelsAtom";
+import { createCloudChannel, isOrg2ChannelsErrorCode } from "../channelsClient";
+import type { CloudChannelPostPolicy, CloudChannelVisibility } from "../types";
+import { CHANNEL_ADD_MEMBERS_MAX_PER_CALL } from "../types";
 import {
   useActiveOrgMembers,
   useFreshChannelAccessToken,
@@ -48,14 +47,12 @@ export interface CreateChannelDialogProps {
   open: boolean;
   orgId: string | null;
   onClose: () => void;
-  onCreated?: (channel: CloudChannel) => void;
 }
 
 const CreateChannelDialog: React.FC<CreateChannelDialogProps> = ({
   open,
   orgId,
   onClose,
-  onCreated,
 }) => {
   const { t } = useTranslation("navigation");
   const currentUserId = useAtomValue(org2CloudAuthAtom)?.userId ?? null;
@@ -133,7 +130,7 @@ const CreateChannelDialog: React.FC<CreateChannelDialogProps> = ({
     try {
       const accessToken = await getFreshAccessToken();
       const trimmedTopic = topic.trim();
-      const channel = await createCloudChannel(accessToken, orgId, {
+      await createCloudChannel(accessToken, orgId, {
         name: submittedName,
         topic: trimmedTopic.length > 0 ? trimmedTopic : undefined,
         visibility,
@@ -144,7 +141,6 @@ const CreateChannelDialog: React.FC<CreateChannelDialogProps> = ({
             : undefined,
       });
       bumpChannelsVersion(orgId);
-      onCreated?.(channel);
       resetForm();
       onClose();
     } catch (caught) {
@@ -169,7 +165,6 @@ const CreateChannelDialog: React.FC<CreateChannelDialogProps> = ({
     selectedMemberIds,
     getFreshAccessToken,
     bumpChannelsVersion,
-    onCreated,
     resetForm,
     onClose,
   ]);
@@ -349,26 +344,16 @@ const CreateChannelDialog: React.FC<CreateChannelDialogProps> = ({
           testId="channel-create-error"
         />
 
-        <div className="flex items-center justify-end gap-2">
-          <Button
-            htmlType="button"
-            variant="secondary"
-            onClick={handleClose}
-            data-testid="channel-create-cancel"
-          >
-            {t("cloud.channels.cancel")}
-          </Button>
-          <Button
-            htmlType="button"
-            variant="primary"
-            loading={submitting}
-            disabled={!canSubmit}
-            onClick={() => void handleSubmit()}
-            data-testid="channel-create-submit"
-          >
-            {t("cloud.channels.create.submit")}
-          </Button>
-        </div>
+        <ChannelDialogFooter
+          cancelLabel={t("cloud.channels.cancel")}
+          submitLabel={t("cloud.channels.create.submit")}
+          onCancel={handleClose}
+          onSubmit={() => void handleSubmit()}
+          cancelTestId="channel-create-cancel"
+          submitTestId="channel-create-submit"
+          loading={submitting}
+          disabled={!canSubmit}
+        />
       </div>
     </Modal>
   );

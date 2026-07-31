@@ -16,13 +16,13 @@ import { useSetAtom } from "jotai";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import Button from "@src/components/Button";
-import { normalizeChannelName } from "@src/features/Org2Cloud/channels/channelName";
+import { normalizeChannelName } from "@src/features/DiscussionChannels/channelContract";
 import {
   ChannelDialogErrorNotice,
+  ChannelDialogFooter,
   ChannelNameField,
   ChannelTopicField,
-} from "@src/features/Org2Cloud/channels/components/ChannelFormFields";
+} from "@src/features/DiscussionChannels/components/ChannelDialogPrimitives";
 import {
   type LocalChannel,
   type LocalChannelErrorCode,
@@ -102,25 +102,15 @@ const LocalChannelSettingsDialog: React.FC<LocalChannelSettingsDialogProps> = ({
           testId="local-channel-settings-error"
         />
 
-        <div className="flex items-center justify-end gap-2">
-          <Button
-            htmlType="button"
-            variant="secondary"
-            onClick={onClose}
-            data-testid="local-channel-settings-cancel"
-          >
-            {t("cloud.channels.cancel")}
-          </Button>
-          <Button
-            htmlType="button"
-            variant="primary"
-            disabled={!canSubmit}
-            onClick={handleSubmit}
-            data-testid="local-channel-settings-submit"
-          >
-            {t("cloud.channels.settings.submit")}
-          </Button>
-        </div>
+        <ChannelDialogFooter
+          cancelLabel={t("cloud.channels.cancel")}
+          submitLabel={t("cloud.channels.settings.submit")}
+          onCancel={onClose}
+          onSubmit={handleSubmit}
+          cancelTestId="local-channel-settings-cancel"
+          submitTestId="local-channel-settings-submit"
+          disabled={!canSubmit}
+        />
       </div>
     </Modal>
   );

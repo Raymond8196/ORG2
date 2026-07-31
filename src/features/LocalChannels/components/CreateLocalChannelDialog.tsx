@@ -15,15 +15,14 @@ import { useSetAtom } from "jotai";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import Button from "@src/components/Button";
-import { normalizeChannelName } from "@src/features/Org2Cloud/channels/channelName";
+import { normalizeChannelName } from "@src/features/DiscussionChannels/channelContract";
 import {
   ChannelDialogErrorNotice,
+  ChannelDialogFooter,
   ChannelNameField,
   ChannelTopicField,
-} from "@src/features/Org2Cloud/channels/components/ChannelFormFields";
+} from "@src/features/DiscussionChannels/components/ChannelDialogPrimitives";
 import {
-  type LocalChannel,
   type LocalChannelErrorCode,
   createLocalChannelAtom,
 } from "@src/store/ui/localChannelsAtom";
@@ -31,13 +30,11 @@ import {
 export interface CreateLocalChannelDialogProps {
   open: boolean;
   onClose: () => void;
-  onCreated?: (channel: LocalChannel) => void;
 }
 
 const CreateLocalChannelDialog: React.FC<CreateLocalChannelDialogProps> = ({
   open,
   onClose,
-  onCreated,
 }) => {
   const { t } = useTranslation("navigation");
   const createChannel = useSetAtom(createLocalChannelAtom);
@@ -64,11 +61,10 @@ const CreateLocalChannelDialog: React.FC<CreateLocalChannelDialogProps> = ({
       setErrorCode(result.error);
       return;
     }
-    onCreated?.(result.channel);
     setName("");
     setTopic("");
     onClose();
-  }, [createChannel, name, topic, onCreated, onClose]);
+  }, [createChannel, name, topic, onClose]);
 
   let errorMessage: string | null = null;
   if (errorCode === "nameTaken") {
@@ -108,25 +104,15 @@ const CreateLocalChannelDialog: React.FC<CreateLocalChannelDialogProps> = ({
           testId="local-channel-create-error"
         />
 
-        <div className="flex items-center justify-end gap-2">
-          <Button
-            htmlType="button"
-            variant="secondary"
-            onClick={handleClose}
-            data-testid="local-channel-create-cancel"
-          >
-            {t("cloud.channels.cancel")}
-          </Button>
-          <Button
-            htmlType="button"
-            variant="primary"
-            disabled={!canSubmit}
-            onClick={handleSubmit}
-            data-testid="local-channel-create-submit"
-          >
-            {t("cloud.channels.create.submit")}
-          </Button>
-        </div>
+        <ChannelDialogFooter
+          cancelLabel={t("cloud.channels.cancel")}
+          submitLabel={t("cloud.channels.create.submit")}
+          onCancel={handleClose}
+          onSubmit={handleSubmit}
+          cancelTestId="local-channel-create-cancel"
+          submitTestId="local-channel-create-submit"
+          disabled={!canSubmit}
+        />
       </div>
     </Modal>
   );

@@ -7,17 +7,18 @@
  */
 import Modal from "@/src/scaffold/ModalSystem";
 import { useSetAtom } from "jotai";
-import { TriangleAlert } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import Button from "@src/components/Button";
-import Checkbox from "@src/components/Checkbox";
+import {
+  ChannelDeleteConfirmation,
+  ChannelDialogErrorNotice,
+  ChannelDialogFooter,
+} from "@src/features/DiscussionChannels/components/ChannelDialogPrimitives";
 
 import { bumpOrg2CloudChannelsVersionAtom } from "../channelsAtom";
 import { deleteCloudChannel, isOrg2ChannelsErrorCode } from "../channelsClient";
 import type { CloudChannel } from "../types";
-import { ChannelDialogErrorNotice } from "./ChannelFormFields";
 import { useFreshChannelAccessToken } from "./useChannelDialogAccess";
 
 type DeleteErrorKind = "adminRequired" | "generic";
@@ -27,7 +28,6 @@ export interface DeleteChannelDialogProps {
   orgId: string | null;
   channel: CloudChannel | null;
   onClose: () => void;
-  onDeleted?: () => void;
 }
 
 const DeleteChannelDialog: React.FC<DeleteChannelDialogProps> = ({
@@ -35,7 +35,6 @@ const DeleteChannelDialog: React.FC<DeleteChannelDialogProps> = ({
   orgId,
   channel,
   onClose,
-  onDeleted,
 }) => {
   const { t } = useTranslation("navigation");
   const bumpChannelsVersion = useSetAtom(bumpOrg2CloudChannelsVersionAtom);
@@ -58,7 +57,6 @@ const DeleteChannelDialog: React.FC<DeleteChannelDialogProps> = ({
       const accessToken = await getFreshAccessToken();
       await deleteCloudChannel(accessToken, orgId, channel.id);
       bumpChannelsVersion(orgId);
-      onDeleted?.();
       onClose();
     } catch (caught) {
       setErrorKind(
@@ -76,7 +74,6 @@ const DeleteChannelDialog: React.FC<DeleteChannelDialogProps> = ({
     deleting,
     getFreshAccessToken,
     bumpChannelsVersion,
-    onDeleted,
     onClose,
   ]);
 
@@ -89,20 +86,13 @@ const DeleteChannelDialog: React.FC<DeleteChannelDialogProps> = ({
       width={440}
     >
       <div className="flex flex-col gap-3" data-testid="channel-delete-dialog">
-        <div className="flex items-start gap-2 rounded-lg bg-danger-1 px-3 py-2 text-[12px] text-danger-6">
-          <TriangleAlert size={14} className="mt-0.5 shrink-0" />
-          <span>{t("cloud.channels.delete.warning")}</span>
-        </div>
-
-        <div data-testid="channel-delete-acknowledge">
-          <Checkbox
-            size="small"
-            checked={acknowledged}
-            onChange={(checked) => setAcknowledged(checked)}
-          >
-            {t("cloud.channels.delete.acknowledge")}
-          </Checkbox>
-        </div>
+        <ChannelDeleteConfirmation
+          warning={t("cloud.channels.delete.warning")}
+          acknowledgement={t("cloud.channels.delete.acknowledge")}
+          checked={acknowledged}
+          onChange={setAcknowledged}
+          acknowledgeTestId="channel-delete-acknowledge"
+        />
 
         <ChannelDialogErrorNotice
           message={
@@ -115,26 +105,17 @@ const DeleteChannelDialog: React.FC<DeleteChannelDialogProps> = ({
           testId="channel-delete-error"
         />
 
-        <div className="flex items-center justify-end gap-2">
-          <Button
-            htmlType="button"
-            variant="secondary"
-            onClick={onClose}
-            data-testid="channel-delete-cancel"
-          >
-            {t("cloud.channels.cancel")}
-          </Button>
-          <Button
-            htmlType="button"
-            variant="danger"
-            loading={deleting}
-            disabled={!acknowledged || deleting || !channel || !orgId}
-            onClick={() => void handleDelete()}
-            data-testid="channel-delete-confirm"
-          >
-            {t("cloud.channels.delete.confirm")}
-          </Button>
-        </div>
+        <ChannelDialogFooter
+          cancelLabel={t("cloud.channels.cancel")}
+          submitLabel={t("cloud.channels.delete.confirm")}
+          onCancel={onClose}
+          onSubmit={() => void handleDelete()}
+          cancelTestId="channel-delete-cancel"
+          submitTestId="channel-delete-confirm"
+          submitVariant="danger"
+          loading={deleting}
+          disabled={!acknowledged || deleting || !channel || !orgId}
+        />
       </div>
     </Modal>
   );

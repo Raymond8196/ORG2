@@ -10,6 +10,7 @@ async function loadChannelTabAtoms() {
     closeChatPanelTabAtom,
     normalizePersistedChatPanelTabsState,
     openChannelInChatPanelTabAtom,
+    reconcileDiscussionChannelTabsAtom,
   } = await import("../chatPanelTabsAtom");
   return {
     buildChannelTabKey,
@@ -17,6 +18,7 @@ async function loadChannelTabAtoms() {
     closeChatPanelTabAtom,
     normalizePersistedChatPanelTabsState,
     openChannelInChatPanelTabAtom,
+    reconcileDiscussionChannelTabsAtom,
     store,
   };
 }
@@ -143,5 +145,64 @@ describe("openChannelInChatPanelTabAtom", () => {
       type: "channel",
       channel: CLOUD_CHANNEL,
     });
+  });
+
+  it("closes inaccessible channel tabs without touching other scopes or orgs", () => {
+    atoms.store.set(atoms.openChannelInChatPanelTabAtom, LOCAL_CHANNEL);
+    const revokedOrg1Tab = atoms.store.set(
+      atoms.openChannelInChatPanelTabAtom,
+      CLOUD_CHANNEL
+    );
+    atoms.store.set(atoms.openChannelInChatPanelTabAtom, {
+      ...CLOUD_CHANNEL,
+      channelId: "chan-2",
+      name: "still-visible",
+    });
+    atoms.store.set(atoms.openChannelInChatPanelTabAtom, {
+      ...CLOUD_CHANNEL,
+      orgId: "org-2",
+      channelId: "chan-3",
+      name: "other-org",
+    });
+
+    const closedCloudTabs = atoms.store.set(
+      atoms.reconcileDiscussionChannelTabsAtom,
+      {
+        scope: "cloud",
+        orgId: "org-1",
+        channels: [
+          {
+            ...CLOUD_CHANNEL,
+            channelId: "chan-2",
+            name: "renamed-visible",
+            visibility: "private",
+          },
+        ],
+      }
+    );
+
+    expect(closedCloudTabs).toEqual([revokedOrg1Tab]);
+    expect(channelTabs().map((tab) => tab.title)).toEqual([
+      "#code-review",
+      "#renamed-visible",
+      "#other-org",
+    ]);
+    expect(channelTabs()[1]?.channel).toMatchObject({
+      name: "renamed-visible",
+      visibility: "private",
+    });
+
+    const closedLocalTabs = atoms.store.set(
+      atoms.reconcileDiscussionChannelTabsAtom,
+      {
+        scope: "local",
+        channels: [],
+      }
+    );
+    expect(closedLocalTabs).toHaveLength(1);
+    expect(channelTabs().map((tab) => tab.title)).toEqual([
+      "#renamed-visible",
+      "#other-org",
+    ]);
   });
 });

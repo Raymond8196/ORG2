@@ -10,7 +10,7 @@
  * `channels` signal (0014) bumps. Strictly event-driven; no polling.
  */
 import { useAtomValue } from "jotai";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
   org2CloudAuthAtom,
@@ -18,11 +18,12 @@ import {
 } from "@src/features/Org2Cloud/org2CloudAuthAtom";
 import { getCloudCapabilities } from "@src/features/Org2Cloud/org2CloudCapabilities";
 import { createLogger } from "@src/hooks/logger";
+import { onWindowFocusRegained } from "@src/util/core/windowFocus";
 
 import { org2CloudChannelsVersionAtom } from "./channelsAtom";
 import { listCloudChannels } from "./channelsClient";
 import { useFreshChannelAccessToken } from "./components/useChannelDialogAccess";
-import type { CloudChannel } from "./types";
+import type { CloudChannel, CloudChannelsList } from "./types";
 
 const log = createLogger("OrgChannels");
 
@@ -48,6 +49,27 @@ export interface OrgChannelsState {
 }
 
 const NO_CHANNELS: CloudChannel[] = [];
+const listInFlightByIdentityScope = new Map<
+  string,
+  Promise<CloudChannelsList>
+>();
+
+async function listCloudChannelsSingleFlight(
+  key: string,
+  load: () => Promise<CloudChannelsList>
+): Promise<CloudChannelsList> {
+  const existing = listInFlightByIdentityScope.get(key);
+  if (existing) return existing;
+  const request = load();
+  listInFlightByIdentityScope.set(key, request);
+  try {
+    return await request;
+  } finally {
+    if (listInFlightByIdentityScope.get(key) === request) {
+      listInFlightByIdentityScope.delete(key);
+    }
+  }
+}
 
 /**
  * `orgChannels` joins `CloudCapabilities` with the plumbing change; read it
@@ -106,7 +128,7 @@ export function useOrgChannels(
   const getFreshAccessToken = useFreshChannelAccessToken();
 
   useEffect(() => {
-    if (!authIdentityKey || !orgId) return;
+    if (!authIdentityKey || !orgId || !listKey) return;
     let cancelled = false;
     const seq = ++requestRef.current;
     void (async () => {
@@ -119,9 +141,9 @@ export function useOrgChannels(
         if (cancelled || seq !== requestRef.current) return;
         setSupported(isSupported);
         if (!isSupported) return;
-        const page = await listCloudChannels(accessToken, orgId, {
-          includeArchived,
-        });
+        const page = await listCloudChannelsSingleFlight(listKey, () =>
+          listCloudChannels(accessToken, orgId, { includeArchived })
+        );
         if (cancelled || seq !== requestRef.current) return;
         setChannels(page.channels);
         setChannelsKey(
@@ -142,6 +164,7 @@ export function useOrgChannels(
   }, [
     authIdentityKey,
     orgId,
+    listKey,
     includeArchived,
     refreshNonce,
     versionForOrg,
@@ -152,16 +175,14 @@ export function useOrgChannels(
     setRefreshNonce((nonce) => nonce + 1);
   }, []);
 
-  // Refetch on the hidden → visible edge; the effect above covers mount and
-  // realtime version bumps.
+  // A background window can release its Realtime lease after the blur grace
+  // without becoming document-hidden. Refetch on either focus regain or the
+  // hidden → visible edge so its authoritative list converges even if the
+  // reconnect signal is delayed. Identical concurrent consumers remain
+  // coalesced by the identity-scoped single-flight map above.
   useEffect(() => {
     if (!authIdentityKey) return;
-    const onVisibilityChange = () => {
-      if (document.visibilityState !== "hidden") refresh();
-    };
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    return () =>
-      document.removeEventListener("visibilitychange", onVisibilityChange);
+    return onWindowFocusRegained(refresh);
   }, [authIdentityKey, refresh]);
 
   const visibleChannels =
@@ -183,12 +204,19 @@ export function useOrgChannels(
   }
 
   const list = visibleChannels ?? NO_CHANNELS;
+  const channelPartitions = useMemo(
+    () => ({
+      channels: list.filter((channel) => channel.archivedAt === null),
+      archivedChannels: includeArchived
+        ? list.filter((channel) => channel.archivedAt !== null)
+        : NO_CHANNELS,
+    }),
+    [includeArchived, list]
+  );
   return {
     phase,
-    channels: list.filter((channel) => channel.archivedAt === null),
-    archivedChannels: includeArchived
-      ? list.filter((channel) => channel.archivedAt !== null)
-      : NO_CHANNELS,
+    channels: channelPartitions.channels,
+    archivedChannels: channelPartitions.archivedChannels,
     error,
     refreshing: fetching,
     refresh,
@@ -196,3 +224,7 @@ export function useOrgChannels(
     currentUserId: auth?.userId ?? null,
   };
 }
+
+export const __ORG_CHANNELS_INTERNALS = {
+  reset: () => listInFlightByIdentityScope.clear(),
+};

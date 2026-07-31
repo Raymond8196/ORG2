@@ -7,7 +7,7 @@
  * server-side validation the local UI never surfaced: names normalized via
  * `normalizeChannelName`, 1..80 chars, case-insensitive uniqueness across
  * active AND archived channels (archived names stay reserved), at most
- * `CHANNEL_MAX_ACTIVE_PER_ORG` active channels, topics ≤ 250 chars, archive
+ * `CHANNEL_MAX_ACTIVE_PER_SCOPE` active channels, topics ≤ 250 chars, archive
  * is soft (`archivedAt`), delete is hard removal.
  *
  * Persistence uses the zod-validated localStorage idiom
@@ -21,16 +21,17 @@ import { atomWithStorage } from "jotai/utils";
 import { z } from "zod/v4";
 
 import {
+  CHANNEL_MAX_ACTIVE_PER_SCOPE,
+  CHANNEL_TOPIC_MAX_LENGTH,
   normalizeChannelName,
   validateChannelName,
-} from "@src/features/Org2Cloud/channels/channelName";
-import {
-  CHANNEL_MAX_ACTIVE_PER_ORG,
-  CHANNEL_TOPIC_MAX_LENGTH,
-} from "@src/features/Org2Cloud/channels/types";
+} from "@src/features/DiscussionChannels/channelContract";
 import { createZodJsonStorage } from "@src/util/core/storage/zodStorage";
 
-import { purgeLocalChannelMessagesAtom } from "./localChannelMessagesAtom";
+import {
+  purgeLocalChannelMessagesAtom,
+  purgeOrphanedLocalChannelMessagesAtom,
+} from "./localChannelMessagesAtom";
 
 /** Colon-style key (codebase convention); the dot-style original is adopted below. */
 export const LOCAL_CHANNELS_STORAGE_KEY = "orgii:localChannels:v1";
@@ -53,7 +54,10 @@ try {
 }
 
 /** Same bound as the cloud backend's per-org active-channel quota. */
-export const LOCAL_CHANNEL_MAX_ACTIVE = CHANNEL_MAX_ACTIVE_PER_ORG;
+export const LOCAL_CHANNEL_MAX_ACTIVE = CHANNEL_MAX_ACTIVE_PER_SCOPE;
+
+/** Bounds archived + active rows retained by this device. */
+export const LOCAL_CHANNEL_MAX_STORED = 1_000;
 
 export const LocalChannelSchema = z.object({
   id: z.string(),
@@ -161,7 +165,12 @@ export function createLocalChannel(
   const topic = normalizeTopic(input.topic);
   if (!topic.ok) return fail("invalid");
   if (isNameTaken(channels, name)) return fail("nameTaken");
-  if (countActive(channels) >= LOCAL_CHANNEL_MAX_ACTIVE) return fail("quota");
+  if (
+    channels.length >= LOCAL_CHANNEL_MAX_STORED ||
+    countActive(channels) >= LOCAL_CHANNEL_MAX_ACTIVE
+  ) {
+    return fail("quota");
+  }
 
   const now = input.now ?? new Date().toISOString();
   const channel: LocalChannel = {
@@ -383,3 +392,16 @@ export const deleteLocalChannelAtom = atom(
   }
 );
 deleteLocalChannelAtom.debugLabel = "deleteLocalChannelAtom";
+
+/**
+ * Reconcile the message plane from the authoritative local channel registry.
+ * Mounted once by the sidebar coordinator at app startup.
+ */
+export const reconcileLocalChannelMessagesAtom = atom(null, (get, set) =>
+  set(
+    purgeOrphanedLocalChannelMessagesAtom,
+    new Set(get(localChannelsAtom).map((channel) => channel.id))
+  )
+);
+reconcileLocalChannelMessagesAtom.debugLabel =
+  "reconcileLocalChannelMessagesAtom";

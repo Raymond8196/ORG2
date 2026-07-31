@@ -8,7 +8,7 @@
  * rendering; the hook maps kinds onto dialogs / RPCs.
  *
  * Channel rows navigate: the section's click resolver opens (or focuses) the
- * row's `ChannelPanelView` tab, and the row takes the ordinary selected state
+ * row's discussion-channel tab, and the row takes the ordinary selected state
  * while that tab is active.
  */
 import type { TFunction } from "i18next";

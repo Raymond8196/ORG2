@@ -15,6 +15,7 @@ import {
   activateChatPanelTabAtom,
   transitionChatPanelTabPresentationAtom,
 } from "./chatPanelTabPresentationAtoms";
+import type { ChatPanelSelectedChannel } from "./chatPanelTabsModel";
 import { chatPanelTabsAtom } from "./chatPanelTabsState";
 import { disposeWorkManagementStateAtom } from "./disposeWorkManagementStateAtom";
 
@@ -176,6 +177,71 @@ export const closeProjectOrgChatPanelTabsAtom = atom(
   }
 );
 closeProjectOrgChatPanelTabsAtom.debugLabel = "closeProjectOrgChatPanelTabs";
+
+export type ReconcileDiscussionChannelTabsInput =
+  | {
+      scope: "local";
+      channels: readonly Extract<
+        ChatPanelSelectedChannel,
+        { scope: "local" }
+      >[];
+    }
+  | {
+      scope: "cloud";
+      orgId: string;
+      channels: readonly Extract<
+        ChatPanelSelectedChannel,
+        { scope: "cloud" }
+      >[];
+    };
+
+/**
+ * Close discussion-channel tabs that disappeared from an authoritative full
+ * listing and refresh the payload/title of survivors. Cloud callers must
+ * include archived rows, so an archive remains readable while a membership
+ * revocation or hard delete closes the stale tab.
+ */
+export const reconcileDiscussionChannelTabsAtom = atom(
+  null,
+  (get, set, input: ReconcileDiscussionChannelTabsInput) => {
+    const accessible = new Map(
+      input.channels.map((channel) => [channel.channelId, channel])
+    );
+    const state = get(chatPanelTabsAtom);
+    const tabIds: string[] = [];
+    let payloadChanged = false;
+    const tabs = state.tabs.map((tab) => {
+      if (tab.type !== "channel" || !tab.channel) return tab;
+      const matchesScope =
+        input.scope === "local"
+          ? tab.channel.scope === "local"
+          : tab.channel.scope === "cloud" && tab.channel.orgId === input.orgId;
+      if (!matchesScope) return tab;
+
+      const channel = accessible.get(tab.channel.channelId);
+      if (!channel) {
+        tabIds.push(tab.id);
+        return tab;
+      }
+      const samePayload =
+        channel.scope === tab.channel.scope &&
+        channel.name === tab.channel.name &&
+        (channel.scope === "local" ||
+          (tab.channel.scope === "cloud" &&
+            channel.orgId === tab.channel.orgId &&
+            channel.visibility === tab.channel.visibility));
+      if (samePayload) return tab;
+      payloadChanged = true;
+      return { ...tab, title: `#${channel.name}`, channel };
+    });
+
+    if (payloadChanged) set(chatPanelTabsAtom, { ...state, tabs });
+    for (const tabId of tabIds) set(closeChatPanelTabAtom, tabId);
+    return tabIds;
+  }
+);
+reconcileDiscussionChannelTabsAtom.debugLabel =
+  "reconcileDiscussionChannelTabs";
 
 /** Navigate to the next tab (wraps around) */
 export const nextChatPanelTabAtom = atom(null, (get, set) => {

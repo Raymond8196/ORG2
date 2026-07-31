@@ -620,17 +620,7 @@ export function useOrg2CloudRealtime(): void {
           onStatus: (subscribed) => {
             // On (re)subscribe compensate for events missed while
             // disconnected.
-            if (subscribed) {
-              runSignalEdgeRecovery(orgId);
-              return;
-            }
-            // A lost/failed join was previously silent — a stale-token
-            // connection joins dead and the list stalls with no trace
-            // (dual-instance escape 2026-07-31). Diagnostic, not recovery:
-            // the next SUBSCRIBED true-edge stays the recovery path.
-            log.warn(
-              `realtime: change-signals subscription lost for org ${orgId}`
-            );
+            if (subscribed) runSignalEdgeRecovery(orgId);
           },
         })
       );
@@ -846,13 +836,10 @@ export function useOrg2CloudRealtime(): void {
             ? current
             : { ...current, [orgId]: subscribed }
         );
-        if (!subscribed) {
-          // Diagnostic for silent join failures (a connection built on a
-          // stale token joins dead with no other trace); the SUBSCRIBED
-          // true-edge remains the recovery path.
-          log.warn(`realtime: broadcast channel not subscribed for ${orgId}`);
-          return;
-        }
+        // `org2CloudRealtimeClient` logs CHANNEL_ERROR/TIMED_OUT with the raw
+        // status while suppressing normal CLOSED teardown. Do not duplicate
+        // that diagnostic here from the lossy boolean edge.
+        if (!subscribed) return;
         bumpRosterVersion(orgId);
         runSignalEdgeRecovery(orgId);
       },

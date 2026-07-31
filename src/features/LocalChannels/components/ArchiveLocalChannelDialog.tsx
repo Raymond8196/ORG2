@@ -15,8 +15,10 @@ import { useSetAtom } from "jotai";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import Button from "@src/components/Button";
-import { ChannelDialogErrorNotice } from "@src/features/Org2Cloud/channels/components/ChannelFormFields";
+import {
+  ChannelDialogErrorNotice,
+  ChannelDialogFooter,
+} from "@src/features/DiscussionChannels/components/ChannelDialogPrimitives";
 import {
   type LocalChannel,
   archiveLocalChannelAtom,
@@ -69,25 +71,15 @@ const ArchiveLocalChannelDialog: React.FC<ArchiveLocalChannelDialogProps> = ({
           testId="local-channel-archive-error"
         />
 
-        <div className="flex items-center justify-end gap-2">
-          <Button
-            htmlType="button"
-            variant="secondary"
-            onClick={onClose}
-            data-testid="local-channel-archive-cancel"
-          >
-            {t("cloud.channels.cancel")}
-          </Button>
-          <Button
-            htmlType="button"
-            variant="primary"
-            disabled={!channel}
-            onClick={handleArchive}
-            data-testid="local-channel-archive-confirm"
-          >
-            {t("cloud.channels.archive.confirm")}
-          </Button>
-        </div>
+        <ChannelDialogFooter
+          cancelLabel={t("cloud.channels.cancel")}
+          submitLabel={t("cloud.channels.archive.confirm")}
+          onCancel={onClose}
+          onSubmit={handleArchive}
+          cancelTestId="local-channel-archive-cancel"
+          submitTestId="local-channel-archive-confirm"
+          disabled={!channel}
+        />
       </div>
     </Modal>
   );

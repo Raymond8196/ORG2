@@ -43,8 +43,8 @@ const RuntimePanelView = React.lazy(() => import("../panels/RuntimePanelView"));
 const TeamInboxView = React.lazy(
   () => import("@src/modules/MainApp/TeamInbox")
 );
-const ChannelPanelView = React.lazy(
-  () => import("@src/features/Channels/ChannelPanelView")
+const DiscussionChannelPanelView = React.lazy(
+  () => import("@src/features/DiscussionChannels/ChannelPanelView")
 );
 
 export interface ChatPanelSurfaceRendererProps {
@@ -140,7 +140,7 @@ export function ChannelSurfaceRenderer({
   // remounts the transcript instead of replaying another channel's scroll.
   return (
     <Suspense fallback={null}>
-      <ChannelPanelView
+      <DiscussionChannelPanelView
         key={`${tab.channel.scope}:${tab.channel.channelId}`}
         channel={tab.channel}
       />

@@ -48,7 +48,7 @@ import {
   localChannelsAtom,
 } from "@src/store/ui/localChannelsAtom";
 
-import ChannelPanelView from "./index";
+import DiscussionChannelPanelView from "./index";
 
 interface StubbedInputAreaProps {
   sessionId?: string;
@@ -173,7 +173,7 @@ const actEnvironment = globalThis as typeof globalThis & {
   IS_REACT_ACT_ENVIRONMENT?: boolean;
 };
 
-describe("ChannelPanelView", () => {
+describe("DiscussionChannelPanelView", () => {
   let container: HTMLDivElement;
   let root: Root;
   let store: ReturnType<typeof createStore>;
@@ -210,7 +210,7 @@ describe("ChannelPanelView", () => {
         createElement(
           Provider,
           { store },
-          createElement(ChannelPanelView, { channel })
+          createElement(DiscussionChannelPanelView, { channel })
         )
       );
     });

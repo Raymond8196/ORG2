@@ -66,10 +66,7 @@ describe("DeleteLocalChannelDialog", () => {
     Reflect.deleteProperty(actEnvironment, "IS_REACT_ACT_ENVIRONMENT");
   });
 
-  function renderDialog(overrides?: {
-    onClose?: () => void;
-    onDeleted?: () => void;
-  }) {
+  function renderDialog(overrides?: { onClose?: () => void }) {
     act(() => {
       root.render(
         createElement(
@@ -79,7 +76,6 @@ describe("DeleteLocalChannelDialog", () => {
             open: true,
             channel: CHANNEL,
             onClose: overrides?.onClose ?? vi.fn(),
-            onDeleted: overrides?.onDeleted,
           })
         )
       );
@@ -104,8 +100,7 @@ describe("DeleteLocalChannelDialog", () => {
 
   it("keeps the danger action disabled until the acknowledgement is checked", () => {
     const onClose = vi.fn();
-    const onDeleted = vi.fn();
-    renderDialog({ onClose, onDeleted });
+    renderDialog({ onClose });
 
     expect(deleteButton()?.disabled).toBe(true);
 
@@ -114,7 +109,6 @@ describe("DeleteLocalChannelDialog", () => {
       deleteButton()?.click();
     });
     expect(store.get(localChannelsAtom)).toHaveLength(1);
-    expect(onDeleted).not.toHaveBeenCalled();
 
     toggleAcknowledge();
     expect(deleteButton()?.disabled).toBe(false);
@@ -125,7 +119,6 @@ describe("DeleteLocalChannelDialog", () => {
 
     // Hard delete: the row is gone from the persisted store.
     expect(store.get(localChannelsAtom)).toEqual([]);
-    expect(onDeleted).toHaveBeenCalledTimes(1);
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
