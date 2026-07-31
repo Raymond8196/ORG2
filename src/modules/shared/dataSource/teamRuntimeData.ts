@@ -16,6 +16,7 @@ import type {
 } from "@src/api/tauri/usageDashboard";
 import type {
   MemberInstalledAgent,
+  MemberRuntimeListEntry,
   MemberUsageDay,
   OrgRuntimeTelemetry,
   TeamUsageBucket,
@@ -28,6 +29,7 @@ import {
   TEAM_USAGE_BUCKETS,
   utcDayFromMs,
 } from "@src/features/Org2Cloud/memberRuntime/types";
+import type { RemoteTeammateSessionMetadata } from "@src/store/collaboration/types";
 
 const DAY_MS = 86_400_000;
 
@@ -185,6 +187,144 @@ export function foldRecentDays(
     }
   }
   return headline;
+}
+
+// ---------------------------------------------------------------------------
+// Today org snapshot + recent shared sessions
+// ---------------------------------------------------------------------------
+
+export interface OrgRuntimeTodaySnapshot {
+  usage: UsageSummary;
+  activeMembers: number;
+  memberCount: number;
+  currentSystems: number;
+  averageCpuPercent: number | null;
+  averageRamPercent: number | null;
+}
+
+function safeAverage(values: readonly number[]): number | null {
+  if (values.length === 0) return null;
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+/**
+ * Fold the selected members into one UTC-today dashboard snapshot.
+ *
+ * Machine averages intentionally include only current reports. Mixing an
+ * hours-old sample into "average CPU/RAM" makes a sleeping laptop look like
+ * live org capacity, so stale or malformed samples are excluded rather than
+ * represented as zero.
+ */
+export function buildOrgRuntimeTodaySnapshot(
+  members: readonly MemberRuntimeListEntry[],
+  telemetry: OrgRuntimeTelemetry | null,
+  nowMs: number
+): OrgRuntimeTodaySnapshot {
+  const today = utcDayFromMs(nowMs);
+  const usageRows: MemberUsageDay[] = [];
+  const cpuPercents: number[] = [];
+  const ramPercents: number[] = [];
+  let activeMembers = 0;
+  let currentSystems = 0;
+
+  for (const member of members) {
+    let memberActiveToday = false;
+    for (const row of member.recentDays) {
+      if (row.day !== today) continue;
+      usageRows.push(row);
+      if (
+        !memberActiveToday &&
+        (row.requests > 0 ||
+          row.sessions > 0 ||
+          row.totalTokens > 0 ||
+          row.costUsd > 0)
+      ) {
+        memberActiveToday = true;
+      }
+    }
+    if (memberActiveToday) activeMembers += 1;
+
+    if (isRuntimeStale(member.reportedAt, telemetry, nowMs)) continue;
+    currentSystems += 1;
+    const sample = member.sample;
+    if (!sample) continue;
+    if (Number.isFinite(sample.cpuPercent)) {
+      cpuPercents.push(Math.min(100, Math.max(0, sample.cpuPercent)));
+    }
+    if (
+      Number.isFinite(sample.memUsedMb) &&
+      Number.isFinite(sample.memTotalMb) &&
+      sample.memTotalMb > 0
+    ) {
+      ramPercents.push(
+        Math.min(100, Math.max(0, (sample.memUsedMb / sample.memTotalMb) * 100))
+      );
+    }
+  }
+
+  return {
+    usage: foldMemberUsageSummary(usageRows),
+    activeMembers,
+    memberCount: members.length,
+    currentSystems,
+    averageCpuPercent: safeAverage(cpuPercents),
+    averageRamPercent: safeAverage(ramPercents),
+  };
+}
+
+/**
+ * Return the newest visible shared sessions for the selected member scope.
+ * The remote-session coordinator already bounds and identity-keys its cache;
+ * this pure projection retains at most `limit` rows for rendering.
+ */
+export function recentSharedSessions(
+  rows: readonly RemoteTeammateSessionMetadata[],
+  ownerUserId: string | null,
+  limit = 5
+): RemoteTeammateSessionMetadata[] {
+  const boundedLimit = Math.max(0, Math.floor(limit));
+  if (boundedLimit === 0) return [];
+  const newest: RemoteTeammateSessionMetadata[] = [];
+  const compareNewestFirst = (
+    left: RemoteTeammateSessionMetadata,
+    right: RemoteTeammateSessionMetadata
+  ): number => {
+    const leftMs = left.lastActivityAt
+      ? Date.parse(left.lastActivityAt)
+      : Number.NEGATIVE_INFINITY;
+    const rightMs = right.lastActivityAt
+      ? Date.parse(right.lastActivityAt)
+      : Number.NEGATIVE_INFINITY;
+    const normalizedLeft = Number.isFinite(leftMs)
+      ? leftMs
+      : Number.NEGATIVE_INFINITY;
+    const normalizedRight = Number.isFinite(rightMs)
+      ? rightMs
+      : Number.NEGATIVE_INFINITY;
+    if (normalizedLeft !== normalizedRight) {
+      return normalizedRight - normalizedLeft;
+    }
+    return right.id.localeCompare(left.id);
+  };
+
+  // Keep only the requested top-k while scanning. The shared Team Sessions
+  // cache can hold a large bounded org listing; sorting a full copy merely to
+  // render five rows creates avoidable O(n log n) work and O(n) allocation.
+  for (const row of rows) {
+    if (
+      row.deletedAt ||
+      (ownerUserId !== null && row.ownerUserId !== ownerUserId)
+    ) {
+      continue;
+    }
+    const insertAt = newest.findIndex(
+      (existing) => compareNewestFirst(row, existing) < 0
+    );
+    if (insertAt >= 0) newest.splice(insertAt, 0, row);
+    else if (newest.length < boundedLimit) newest.push(row);
+    if (newest.length > boundedLimit) newest.pop();
+  }
+  return newest;
 }
 
 // ---------------------------------------------------------------------------

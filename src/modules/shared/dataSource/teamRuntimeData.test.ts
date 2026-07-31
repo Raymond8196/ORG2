@@ -1,8 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import type { MemberUsageDay } from "@src/features/Org2Cloud/memberRuntime/types";
+import type {
+  MemberRuntimeListEntry,
+  MemberUsageDay,
+} from "@src/features/Org2Cloud/memberRuntime/types";
+import type { RemoteTeammateSessionMetadata } from "@src/store/collaboration/types";
 
 import {
+  buildOrgRuntimeTodaySnapshot,
   clampTelemetryInterval,
   foldMemberUsageSummary,
   foldRecentDays,
@@ -12,6 +17,7 @@ import {
   memberUsageDaysToTrendPoints,
   parseTelemetryOption,
   readOrgRuntimeTelemetry,
+  recentSharedSessions,
   telemetrySelectValue,
   utcDayStartMs,
 } from "./teamRuntimeData";
@@ -29,6 +35,51 @@ function usageDay(over: Partial<MemberUsageDay> = {}): MemberUsageDay {
     sessions: 2,
     requests: 8,
     ...over,
+  };
+}
+
+function member(
+  userId: string,
+  over: Partial<MemberRuntimeListEntry> = {}
+): MemberRuntimeListEntry {
+  return {
+    userId,
+    displayName: userId,
+    avatarUrl: null,
+    role: "member",
+    reportedAt: "2026-07-29T11:30:00Z",
+    machine: null,
+    sample: null,
+    stats: null,
+    builderTypeCode: null,
+    profile: null,
+    installedAgents: [],
+    profileUpdatedAt: null,
+    agentsUpdatedAt: null,
+    recentDays: [],
+    ...over,
+  };
+}
+
+function remoteSession(
+  id: string,
+  ownerUserId: string,
+  lastActivityAt?: string
+): RemoteTeammateSessionMetadata {
+  return {
+    id,
+    orgId: "org-1",
+    ownerMemberId: `member-${ownerUserId}`,
+    ownerUserId,
+    ownerDisplayName: ownerUserId,
+    ownerIdentityKind: "human",
+    sourceSessionId: `source-${id}`,
+    title: id,
+    lastActivityAt,
+    eventsEpoch: 0,
+    eventsFrozenSeq: 0,
+    eventsCount: 0,
+    eventsTailHash: "",
   };
 }
 
@@ -185,6 +236,103 @@ describe("foldRecentDays", () => {
       weekTokens: 0,
       weekCostUsd: 0,
     });
+  });
+});
+
+describe("buildOrgRuntimeTodaySnapshot", () => {
+  const now = Date.parse("2026-07-29T12:00:00Z");
+  const telemetry = { enabled: true, intervalMinutes: 60 };
+
+  it("folds only UTC-today usage and counts active members once", () => {
+    const snapshot = buildOrgRuntimeTodaySnapshot(
+      [
+        member("ada", {
+          recentDays: [
+            usageDay({ day: "2026-07-29", bucket: "claude" }),
+            usageDay({ day: "2026-07-29", bucket: "codex" }),
+            usageDay({ day: "2026-07-28", totalTokens: 99_000 }),
+          ],
+        }),
+        member("lin", {
+          recentDays: [usageDay({ day: "2026-07-28" })],
+        }),
+      ],
+      telemetry,
+      now
+    );
+
+    expect(snapshot.activeMembers).toBe(1);
+    expect(snapshot.memberCount).toBe(2);
+    expect(snapshot.usage.requestCount).toBe(16);
+    expect(snapshot.usage.realTotalTokens).toBe(940);
+  });
+
+  it("excludes stale samples and averages only current finite system load", () => {
+    const snapshot = buildOrgRuntimeTodaySnapshot(
+      [
+        member("fresh-a", {
+          sample: {
+            cpuPercent: 20,
+            memUsedMb: 8_192,
+            memTotalMb: 32_768,
+            gpuPercent: null,
+            sampledOverMs: 1_000,
+            sampledAtMs: now,
+          },
+        }),
+        member("fresh-b", {
+          sample: {
+            cpuPercent: 40,
+            memUsedMb: 24_576,
+            memTotalMb: 32_768,
+            gpuPercent: null,
+            sampledOverMs: 1_000,
+            sampledAtMs: now,
+          },
+        }),
+        member("stale", {
+          reportedAt: "2026-07-29T08:00:00Z",
+          sample: {
+            cpuPercent: 100,
+            memUsedMb: 32_768,
+            memTotalMb: 32_768,
+            gpuPercent: null,
+            sampledOverMs: 1_000,
+            sampledAtMs: now,
+          },
+        }),
+      ],
+      telemetry,
+      now
+    );
+
+    expect(snapshot.currentSystems).toBe(2);
+    expect(snapshot.averageCpuPercent).toBe(30);
+    expect(snapshot.averageRamPercent).toBe(50);
+  });
+});
+
+describe("recentSharedSessions", () => {
+  it("sorts newest-first, scopes by owner, drops tombstones, and caps output", () => {
+    const rows = [
+      remoteSession("old", "ada", "2026-07-29T08:00:00Z"),
+      remoteSession("new", "ada", "2026-07-29T11:00:00Z"),
+      remoteSession("other", "lin", "2026-07-29T12:00:00Z"),
+      {
+        ...remoteSession("deleted", "ada", "2026-07-29T13:00:00Z"),
+        deletedAt: "2026-07-29T13:01:00Z",
+      },
+    ];
+
+    expect(recentSharedSessions(rows, "ada", 1).map((row) => row.id)).toEqual([
+      "new",
+    ]);
+    expect(recentSharedSessions(rows, null, 5).map((row) => row.id)).toEqual([
+      "other",
+      "new",
+      "old",
+    ]);
+    expect(recentSharedSessions(rows, null, 0)).toEqual([]);
   });
 });
 

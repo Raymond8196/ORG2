@@ -2,6 +2,19 @@
   "title": "Runtime de l'équipe",
   "refresh": "Actualiser",
   "loadError": "Impossible de charger le runtime de l'équipe",
+  "overview": {
+    "todayUtc": "Aujourd'hui (UTC)",
+    "person": "Personne",
+    "everyone": "Tout le monde",
+    "activeMembers": "Membres actifs",
+    "systemsCurrent": "{{current}} systèmes à jour sur {{total}}",
+    "usageByAgent": "Utilisation par agent",
+    "recentSessions": "Dernières sessions partagées",
+    "recentHint": "Les cinq sessions partagées les plus récemment actives dans cette organisation.",
+    "recentLoading": "Chargement des sessions partagées…",
+    "recentEmpty": "Aucune session partagée",
+    "members": "Détail par membre"
+  },
   "signedOut": {
     "title": "Connectez-vous pour voir votre équipe",
     "subtitle": "Le runtime des coéquipiers est partagé via ORG2 Cloud.",

@@ -1,11 +1,11 @@
 /**
- * Data hook for the Runtime → Team section.
+ * Data hook for Runtime's organization-scoped sections.
  *
- * Owns the cloud reads: org selection over `org2CloudOrgsAtom`, fresh-token
- * resolution (the `ensureFreshSession` + `commitRefreshedAuth` panel idiom
- * from `useCloudOrgPanelState`), the `memberRuntime` capability probe, and the
- * roster fetch. Refetches on mount and on the document becoming visible —
- * deliberately no polling loop; the data is hourly-coarse.
+ * Owns the cloud reads for the org id controlled by the Runtime header:
+ * fresh-token resolution (the `ensureFreshSession` + `commitRefreshedAuth`
+ * panel idiom from `useCloudOrgPanelState`), the `memberRuntime` capability
+ * probe, and the roster fetch. Refetches on mount and on the document becoming
+ * visible — deliberately no polling loop; the data is hourly-coarse.
  */
 import { useAtom, useAtomValue } from "jotai";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -23,7 +23,6 @@ import {
 import { getCloudCapabilities } from "@src/features/Org2Cloud/org2CloudCapabilities";
 import { ensureFreshSession } from "@src/features/Org2Cloud/org2CloudClient";
 import {
-  type Org2CloudOrg,
   org2CloudOrgsAtom,
   org2CloudOrgsLoadedAtom,
 } from "@src/features/Org2Cloud/org2CloudOrgsAtom";
@@ -53,9 +52,7 @@ export type TeamRuntimePhase =
 
 export interface TeamRuntimeRosterState {
   phase: TeamRuntimePhase;
-  orgs: Org2CloudOrg[];
   selectedOrgId: string | null;
-  selectOrg: (orgId: string) => void;
   /** Telemetry setting of the selected org (null = unset ⇒ disabled). */
   telemetry: OrgRuntimeTelemetry | null;
   /** Viewer is admin/owner of the selected org (for the enable hint). */
@@ -96,16 +93,19 @@ const ORG_LOAD_STALL_MS = 20_000;
 const ORG_LOAD_STALL_ERROR =
   "Couldn't load your cloud organizations. Try refreshing, or sign out and back in if this keeps happening.";
 
-export function useTeamRuntimeRoster(): TeamRuntimeRosterState {
+export function useTeamRuntimeRoster(
+  requestedOrgId?: string
+): TeamRuntimeRosterState {
   const [auth, setAuth] = useAtom(org2CloudAuthAtom);
   const orgs = useAtomValue(org2CloudOrgsAtom);
   const orgsLoaded = useAtomValue(org2CloudOrgsLoadedAtom);
 
-  const [pickedOrgId, setPickedOrgId] = useState<string | null>(null);
   const selectedOrgId =
-    pickedOrgId && orgs.some((org) => org.orgId === pickedOrgId)
-      ? pickedOrgId
-      : (orgs[0]?.orgId ?? null);
+    requestedOrgId === undefined
+      ? (orgs[0]?.orgId ?? null)
+      : orgs.some((org) => org.orgId === requestedOrgId)
+        ? requestedOrgId
+        : null;
   const selectedOrg = orgs.find((org) => org.orgId === selectedOrgId) ?? null;
   const rawTelemetry = readOrgRuntimeTelemetry(selectedOrg);
   // `readOrgRuntimeTelemetry` builds a fresh object every call, which would
@@ -270,9 +270,7 @@ export function useTeamRuntimeRoster(): TeamRuntimeRosterState {
 
   return {
     phase,
-    orgs,
     selectedOrgId,
-    selectOrg: setPickedOrgId,
     telemetry,
     isSelectedOrgAdmin:
       selectedOrg?.role === "admin" || selectedOrg?.role === "owner",

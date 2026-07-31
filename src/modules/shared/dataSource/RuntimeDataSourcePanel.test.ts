@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { getDefaultStore } from "jotai";
 import { act, createElement } from "react";
 import { type Root, createRoot } from "react-dom/client";
 import {
@@ -11,6 +12,13 @@ import {
   it,
   vi,
 } from "vitest";
+
+import { org2CloudAuthAtom } from "@src/features/Org2Cloud/org2CloudAuthAtom";
+import {
+  org2CloudOrgsAtom,
+  org2CloudOrgsLoadedAtom,
+  sidebarActiveCloudOrgIdAtom,
+} from "@src/features/Org2Cloud/org2CloudOrgsAtom";
 
 import RuntimeDataSourcePanel from ".";
 
@@ -25,6 +33,62 @@ vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string) => key,
   }),
+}));
+
+vi.mock("@src/features/Org2Cloud/org2CloudAuthAtom", async () => {
+  const { atom } = await import("jotai");
+  return { org2CloudAuthAtom: atom(null) };
+});
+
+vi.mock("@src/features/Org2Cloud/org2CloudOrgsAtom", async () => {
+  const { atom } = await import("jotai");
+  return {
+    org2CloudOrgsAtom: atom([]),
+    org2CloudOrgsLoadedAtom: atom(true),
+    sidebarActiveCloudOrgIdAtom: atom(null),
+    buildCloudOrgSelectorValue: (orgId: string) => `cloud:${orgId}`,
+    parseCloudOrgSelectorValue: (value: string) =>
+      value.startsWith("cloud:") ? value.slice("cloud:".length) : null,
+  };
+});
+
+vi.mock("@src/components/Select", () => ({
+  default: ({
+    value,
+    options = [],
+    onChange,
+    dataTestId,
+  }: {
+    value?: unknown;
+    options?: Array<{ value: unknown; label: string }>;
+    onChange?: (value: unknown) => void;
+    dataTestId?: string;
+  }) =>
+    createElement(
+      "select",
+      {
+        value: String(value),
+        "data-testid": dataTestId,
+        onChange: (event: { target: { value: string } }) =>
+          onChange?.(event.target.value),
+      },
+      options.map((option) =>
+        createElement(
+          "option",
+          { key: String(option.value), value: String(option.value) },
+          option.label
+        )
+      )
+    ),
+}));
+
+vi.mock("./TeamRuntimePanel", () => ({
+  default: ({ orgId, view }: { orgId?: string; view?: string }) =>
+    createElement("div", {
+      "data-testid": "runtime-section-organization",
+      "data-org-id": orgId,
+      "data-view": view,
+    }),
 }));
 
 vi.mock("./SessionUsagePanel", async () => {
@@ -95,6 +159,7 @@ vi.mock(
 const reactActEnvironment = globalThis as typeof globalThis & {
   IS_REACT_ACT_ENVIRONMENT?: boolean;
 };
+const store = getDefaultStore();
 
 describe("RuntimeDataSourcePanel", () => {
   let container: HTMLDivElement;
@@ -113,6 +178,10 @@ describe("RuntimeDataSourcePanel", () => {
   });
 
   beforeEach(async () => {
+    store.set(org2CloudAuthAtom, null);
+    store.set(org2CloudOrgsAtom, []);
+    store.set(org2CloudOrgsLoadedAtom, true);
+    store.set(sidebarActiveCloudOrgIdAtom, null);
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -187,6 +256,7 @@ describe("RuntimeDataSourcePanel", () => {
   });
 
   it("preserves the Runtime navigation and scroll ownership", () => {
+    const picker = container.innerHTML.indexOf("runtime-scope-picker");
     const usage = container.innerHTML.indexOf("data-source-view-usage");
     const profile = container.innerHTML.indexOf("data-source-view-profile");
     const quota = container.innerHTML.indexOf("data-source-view-quota");
@@ -194,7 +264,8 @@ describe("RuntimeDataSourcePanel", () => {
     const hooks = container.innerHTML.indexOf("data-source-view-hooks");
     const assets = container.innerHTML.indexOf("data-source-view-assets");
 
-    expect(usage).toBeGreaterThanOrEqual(0);
+    expect(picker).toBeGreaterThanOrEqual(0);
+    expect(usage).toBeGreaterThan(picker);
     expect(profile).toBeGreaterThan(usage);
     expect(quota).toBeGreaterThan(profile);
     expect(scanning).toBeGreaterThan(quota);
@@ -210,5 +281,57 @@ describe("RuntimeDataSourcePanel", () => {
     expect(
       container.querySelector('[data-testid="data-source-view-types"]')
     ).toBeNull();
+  });
+
+  it("switches from Personal tabs to the selected organization's Today and Members tabs", async () => {
+    await act(async () => {
+      store.set(org2CloudAuthAtom, {
+        kind: "org2_cloud",
+        supabaseUrl: "https://cloud.example",
+        supabaseAnonKey: "anon",
+        userId: "me",
+        accessToken: "token",
+        refreshToken: "refresh",
+        expiresAt: Math.floor(Date.now() / 1000) + 3600,
+      });
+      store.set(org2CloudOrgsAtom, [
+        { orgId: "org-1", name: "Example Team", role: "member" },
+      ]);
+    });
+
+    const scopePicker = container.querySelector<HTMLSelectElement>(
+      '[data-testid="runtime-scope-picker"]'
+    );
+    expect(scopePicker).not.toBeNull();
+    await act(async () => {
+      if (!scopePicker) return;
+      scopePicker.value = "cloud:org-1";
+      scopePicker.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    await act(async () => {
+      await vi.dynamicImportSettled();
+      await Promise.resolve();
+    });
+
+    expect(
+      container.querySelector('[data-testid="data-source-view-usage"]')
+    ).toBeNull();
+    expect(
+      container
+        .querySelector('[data-testid="data-source-view-org-today"]')
+        ?.getAttribute("data-active")
+    ).toBe("true");
+    const orgPanel = container.querySelector(
+      '[data-testid="runtime-section-organization"]'
+    );
+    expect(orgPanel?.getAttribute("data-org-id")).toBe("org-1");
+    expect(orgPanel?.getAttribute("data-view")).toBe("today");
+
+    await selectSection("data-source-view-org-members");
+    expect(
+      container
+        .querySelector('[data-testid="runtime-section-organization"]')
+        ?.getAttribute("data-view")
+    ).toBe("members");
   });
 });
