@@ -38,6 +38,7 @@ import {
   ClaudeCodeOauthStartResponseSchema,
   CodexOauthExchangeResponseSchema,
   CodexOauthStartResponseSchema,
+  CursorBillingUsagePageSchema,
   CursorBillingUsageSnapshotSchema,
   CursorNativeOauthPollResponseSchema,
   CursorNativeOauthStartResponseSchema,
@@ -140,6 +141,9 @@ export type KeyQuotaRefreshStatusInfo = z.infer<
 >;
 export type CursorBillingUsageSnapshot = z.infer<
   typeof CursorBillingUsageSnapshotSchema
+>;
+export type CursorBillingUsagePage = z.infer<
+  typeof CursorBillingUsagePageSchema
 >;
 export type CursorNativeOauthStartResponse = z.infer<
   typeof CursorNativeOauthStartResponseSchema

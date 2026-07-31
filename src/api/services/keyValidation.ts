@@ -19,6 +19,7 @@ import type {
   CliVersionSnapshot,
   CodexOauthExchangeResponse,
   CodexOauthStartResponse,
+  CursorBillingUsagePage,
   CursorBillingUsageSnapshot,
   FullKeyResponse,
   HealthStatus,
@@ -48,6 +49,7 @@ export type {
   ClaudeCodeOauthStartResponse,
   CodexOauthExchangeResponse,
   CodexOauthStartResponse,
+  CursorBillingUsagePage,
   CursorBillingUsageSnapshot,
   DetectedKey,
   DetectedQuotaInfo,
@@ -159,7 +161,9 @@ export async function getKeyQuotaRefreshStatus(
 }
 
 /**
- * Sync Cursor's exact account-level billing export.
+ * Sync Cursor's exact account-level billing export and return its bounded
+ * aggregate summary. Event rows remain in the private raw cache and must be
+ * read through `readCursorBillingUsagePage`.
  *
  * This source is intentionally separate from local Cursor session context
  * history so callers cannot accidentally double-count both datasets.
@@ -169,6 +173,24 @@ export async function syncCursorBillingUsage(
   force = false
 ): Promise<CursorBillingUsageSnapshot> {
   return rpc.validation.cursorSyncBillingUsage({ accountId, force });
+}
+
+/**
+ * Read one bounded page from the current Cursor billing last-good cache.
+ *
+ * `cursor` is opaque and only valid for the same account/credential snapshot.
+ * The backend enforces a hard maximum of 200 events per IPC response.
+ */
+export async function readCursorBillingUsagePage(
+  accountId: string,
+  cursor: string | null = null,
+  limit = 100
+): Promise<CursorBillingUsagePage> {
+  return rpc.validation.cursorReadBillingUsagePage({
+    accountId,
+    cursor,
+    limit: Math.min(200, Math.max(1, Math.trunc(limit))),
+  });
 }
 
 /** Archive the active account cache during logout/removal. */
