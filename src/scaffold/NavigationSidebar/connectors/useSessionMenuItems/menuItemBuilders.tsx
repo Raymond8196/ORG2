@@ -1,13 +1,16 @@
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
 import type { BranchPrSnapshot } from "@src/store/git";
 import type { Session } from "@src/store/session";
-import { isTerminalStatus } from "@src/types/session/session";
 import { isSessionInProgress } from "@src/util/session/sessionInProgress";
 import { getSessionSearchText } from "@src/util/session/sessionSearch";
 import {
   getSessionListDisplayName,
   resolveSessionRowIcon,
 } from "@src/util/session/sessionSidebarRow";
+import {
+  isSessionPendingAsking,
+  resolveSessionStatusDotTone,
+} from "@src/util/session/sessionStatusDot";
 import { formatRelativeTime } from "@src/util/time/formatRelativeTime";
 
 import { renderSessionGitIndicator } from "./gitIndicator";
@@ -17,18 +20,13 @@ export function separator(id: string, title = ""): NavigationMenuItem {
   return { id: `separator-${id}`, key: `separator-${id}`, label: title };
 }
 
-export function isSessionPendingAsking(session: Session): boolean {
-  return session.status === "waiting_for_user";
-}
-
-export function isSessionCompletedUnread(
-  session: Session,
-  visitedSessions: ReadonlySet<string>
-): boolean {
-  if (!isTerminalStatus(session.status)) return false;
-  if (session.mergeStatus === "pending") return false;
-  return !visitedSessions.has(session.session_id);
-}
+// Moved to @src/util/session/sessionStatusDot so non-sidebar surfaces (the
+// channel session card) can share one derivation. Re-exported here because
+// existing call sites import them from this module.
+export {
+  isSessionCompletedUnread,
+  isSessionPendingAsking,
+} from "@src/util/session/sessionStatusDot";
 
 export function isBenchmarkSessionRow(session: Session): boolean {
   return session.user_input?.startsWith("Benchmark run coordinator") ?? false;
@@ -63,12 +61,7 @@ export function buildSessionMenuItem({
   const timestampSrc =
     session.updated_at || session.updated_time || session.created_at;
   const pendingAsking = isSessionPendingAsking(session);
-  const unread = isSessionCompletedUnread(session, visitedSessions);
-  const statusDotTone = pendingAsking
-    ? "asking"
-    : unread
-      ? "unread"
-      : "default";
+  const statusDotTone = resolveSessionStatusDotTone(session, visitedSessions);
   // A working row parks its dot in `workingIndicator` instead, so the trailing
   // slot may hold the git marker alone.
   const statusDot =

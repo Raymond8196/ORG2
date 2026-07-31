@@ -7,8 +7,13 @@
  * priority/labels) that a transcript row has no use for. What IS reused is
  * the data side: `sessionToKanbanTask` projects the session exactly as the
  * board sees it (title with pill references stripped, agent identity, model,
- * tokens, workspace), and `mapSessionToKanbanColumn` decides the status tone,
- * so a channel card can never disagree with the board about a session.
+ * tokens, workspace), so a channel card can never disagree with the board
+ * about a session.
+ *
+ * The status dot is deliberately NOT derived from the board column: it runs
+ * the sidebar's derivation (`resolveSessionStatusDotTone` + the breathing
+ * marker for in-progress work) so one session shows the same dot in the
+ * sidebar row and on the card.
  *
  * Round count comes from `useSessionTurnOverview`, the same derivation the
  * session hover card uses. That hook keeps a module-level cache keyed by
@@ -24,18 +29,20 @@ import { ChevronRight, FolderGit2, Repeat } from "lucide-react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
-import ModelIcon from "@src/components/ModelIcon";
 import { useSessionTurnOverview } from "@src/components/SessionHoverCard/useSessionTurnOverview";
 import { resolveAgentIcon } from "@src/config/agentIcons";
-import { mapSessionToKanbanColumn } from "@src/features/TaskKanban/config";
 import { sessionToKanbanTask } from "@src/features/TaskKanban/hooks/useKanbanTasks/sessionToKanbanTask";
-import { renderBreathingStatusDot } from "@src/scaffold/NavigationSidebar/connectors/useSessionMenuItems/statusIndicators";
-import { sessionByIdAtom } from "@src/store/session/sessionAtom";
-import type { Session } from "@src/store/session/sessionAtom/types";
-import { formatModelNameFull } from "@src/util/formatModelName";
 import {
-  type SessionStatusDotTone,
-  resolveSessionStatusDotColor,
+  renderBreathingStatusDot,
+  renderStatusDot,
+} from "@src/scaffold/NavigationSidebar/connectors/useSessionMenuItems/statusIndicators";
+import { sessionByIdAtom } from "@src/store/session/sessionAtom";
+import { visitedSessionsAtom } from "@src/store/session/visitedSessionsAtom";
+import { formatModelNameFull } from "@src/util/formatModelName";
+import { isSessionInProgress } from "@src/util/session/sessionInProgress";
+import {
+  isSessionPendingAsking,
+  resolveSessionStatusDotTone,
 } from "@src/util/session/sessionStatusDot";
 
 /**
@@ -54,21 +61,9 @@ export interface ChannelSessionCardProps {
   onOpen: (sessionId: string) => void;
 }
 
-function statusTone(session: Session): SessionStatusDotTone {
-  switch (session.status) {
-    case "failed":
-    case "error":
-    case "timeout":
-    case "killed":
-      return "failed";
-    default:
-      break;
-  }
-  const column = mapSessionToKanbanColumn(session, { autoArchiveTtl: "never" });
-  if (column === "in_progress") return "working";
-  if (column === "blocking") return "asking";
-  return "default";
-}
+/** Cards sit inside the 900px transcript column but read as attachments, not
+ *  full-width blocks, so they stop well short of the message text. */
+const SESSION_CARD_MAX_WIDTH = "max-w-[600px]";
 
 /**
  * Resolved outside the component, the way `TaskCard.renderAgentIcon` does it:
@@ -97,6 +92,7 @@ const ChannelSessionCard: React.FC<ChannelSessionCardProps> = ({
 }) => {
   const { t } = useTranslation("navigation");
   const session = useAtomValue(sessionByIdAtom(sessionId));
+  const visitedSessions = useAtomValue(visitedSessionsAtom);
   const turnOverview = useSessionTurnOverview(sessionId);
 
   const task = useMemo(
@@ -118,7 +114,7 @@ const ChannelSessionCard: React.FC<ChannelSessionCardProps> = ({
   if (!session || !task) {
     return (
       <div
-        className="mt-1.5 flex w-full flex-col gap-0.5 rounded-lg border border-dashed border-border-2 bg-fill-1 p-3"
+        className={`mt-1.5 flex w-full flex-col gap-0.5 rounded-lg border border-dashed border-border-2 p-3 ${SESSION_CARD_MAX_WIDTH}`}
         data-testid="channel-session-card"
         data-session-id={sessionId}
         data-session-missing="true"
@@ -133,13 +129,14 @@ const ChannelSessionCard: React.FC<ChannelSessionCardProps> = ({
     );
   }
 
-  const tone = statusTone(session);
+  const inProgress = isSessionInProgress(session.status, session);
+  const pendingAsking = isSessionPendingAsking(session);
   const roundCount = turnOverview?.turnCount ?? 0;
 
   return (
     <button
       type="button"
-      className="mt-1.5 flex w-full items-center gap-2 rounded-lg border border-border-2 bg-bg-1 p-3 text-left transition-colors hover:bg-fill-1"
+      className={`mt-1.5 flex w-full items-center gap-2 rounded-lg border border-border-2 p-3 text-left transition-colors hover:bg-fill-1 ${SESSION_CARD_MAX_WIDTH}`}
       data-testid="channel-session-card"
       data-session-id={sessionId}
       aria-label={t("cloud.channels.feed.sessionCardOpen", {
@@ -155,21 +152,17 @@ const ChannelSessionCard: React.FC<ChannelSessionCardProps> = ({
           <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-text-1">
             {task.title}
           </span>
-          {tone === "working" ? (
-            renderBreathingStatusDot()
-          ) : (
-            <span
-              aria-hidden
-              className="h-1.5 w-1.5 shrink-0 rounded-full"
-              style={{ backgroundColor: resolveSessionStatusDotColor(tone) }}
-            />
-          )}
+          <span className="inline-flex shrink-0 items-center">
+            {inProgress && !pendingAsking
+              ? renderBreathingStatusDot()
+              : renderStatusDot(
+                  resolveSessionStatusDotTone(session, visitedSessions)
+                )}
+          </span>
         </div>
         <div className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px] text-text-3">
           {task.modelName ? (
-            <MetaItem icon={<ModelIcon modelName={task.modelName} size={12} />}>
-              {formatModelNameFull(task.modelName)}
-            </MetaItem>
+            <MetaItem>{formatModelNameFull(task.modelName)}</MetaItem>
           ) : null}
           {roundCount > 0 ? (
             <MetaItem
