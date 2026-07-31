@@ -32,8 +32,8 @@ use super::imported_history::{
     ImportedHistorySessionRow,
 };
 use super::{
-    claude_code, cline, codex, cursor_cli, cursor_ide, mimo_code, omp, opencode, qoder, qoder_cli,
-    trae, warp, windsurf, workbuddy, zcode,
+    claude_code, cline, codex, cursor_cli, cursor_ide, mimo_code, omp, opencode, pi, qoder,
+    qoder_cli, trae, warp, windsurf, workbuddy, zcode,
 };
 
 /// Signature every provider's paginated session loader shares. The `&mut
@@ -173,6 +173,12 @@ static REGISTERED: &[RegisteredSource] = &[
         continuation: None,
     },
     RegisteredSource {
+        id: metadata::SOURCE_PI,
+        label: "Pi",
+        scan: pi::history::list_pi_history_sessions_paginated,
+        continuation: None,
+    },
+    RegisteredSource {
         id: metadata::SOURCE_WORKBUDDY,
         label: "WorkBuddy",
         scan: workbuddy::list_workbuddy_history_sessions_paginated,
@@ -303,6 +309,7 @@ mod tests {
     fn find_matches_registered_and_rejects_unknown() {
         assert!(is_registered(metadata::SOURCE_CLAUDE_CODE));
         assert!(find(metadata::SOURCE_WARP).is_some());
+        assert!(find(metadata::SOURCE_PI).is_some());
         assert!(!is_registered("definitely_not_a_source"));
         assert!(scan_source(
             &mut Connection::open_in_memory().unwrap(),
