@@ -104,15 +104,47 @@ function normalizeBody(
   return { ok: true, body: trimmed };
 }
 
-/** Rows still stored for a channel — tombstones included (they hold a slot). */
-function countChannelMessages(
+/**
+ * LIVE rows for a channel — tombstones do NOT hold a slot. Counting them
+ * made a full channel permanently read-only (deleting messages never freed
+ * room), and the cloud design has no per-channel cap at all; the local cap
+ * is purely a storage bound. Stored tombstones are compacted oldest-first
+ * on post once the total row count reaches the cap.
+ */
+function countLiveChannelMessages(
   messages: readonly LocalChannelMessage[],
   channelId: string
 ): number {
   return messages.reduce(
+    (count, message) =>
+      message.channelId === channelId && message.deletedAt === null
+        ? count + 1
+        : count,
+    0
+  );
+}
+
+/** Evict oldest tombstones of the channel until its total rows fit the cap. */
+function compactChannelTombstones(
+  messages: readonly LocalChannelMessage[],
+  channelId: string
+): readonly LocalChannelMessage[] {
+  const totalRows = messages.reduce(
     (count, message) => (message.channelId === channelId ? count + 1 : count),
     0
   );
+  let toEvict = totalRows - (LOCAL_CHANNEL_MESSAGE_MAX_PER_CHANNEL - 1);
+  if (toEvict <= 0) return messages;
+  const evictIds = new Set<string>();
+  for (const message of messages) {
+    if (toEvict === 0) break;
+    if (message.channelId === channelId && message.deletedAt !== null) {
+      evictIds.add(message.id);
+      toEvict -= 1;
+    }
+  }
+  if (evictIds.size === 0) return messages;
+  return messages.filter((message) => !evictIds.has(message.id));
 }
 
 export interface PostLocalChannelMessageInput {
@@ -132,11 +164,12 @@ export function postLocalChannelMessage(
   const body = normalizeBody(input.body);
   if (!body.ok) return fail(body.error);
   if (
-    countChannelMessages(messages, input.channelId) >=
+    countLiveChannelMessages(messages, input.channelId) >=
     LOCAL_CHANNEL_MESSAGE_MAX_PER_CHANNEL
   ) {
     return fail("quota");
   }
+  const compacted = compactChannelTombstones(messages, input.channelId);
 
   const message: LocalChannelMessage = {
     id: input.id ?? crypto.randomUUID(),
@@ -146,7 +179,7 @@ export function postLocalChannelMessage(
     editedAt: null,
     deletedAt: null,
   };
-  return { ok: true, messages: [...messages, message], message };
+  return { ok: true, messages: [...compacted, message], message };
 }
 
 export interface EditLocalChannelMessageInput {

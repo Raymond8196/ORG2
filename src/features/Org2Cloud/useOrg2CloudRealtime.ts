@@ -434,6 +434,7 @@ export function useOrg2CloudRealtime(): void {
       "sessions",
       "comments",
       "inbound",
+      "channels",
     ]);
     // A blur/visibility event releases the connection. Ignore the tiny
     // event-delivery race during teardown; the next SUBSCRIBED true-edge
@@ -442,11 +443,16 @@ export function useOrg2CloudRealtime(): void {
     org2CloudSyncEngine.invalidateOrgInbound(orgId);
     bumpRemoteSessionsVersion(orgId);
     bumpOrgCommentsSignal(orgId);
+    // Channels ride the same coarse net: a shadowed per-kind signal (or a
+    // plain-0005 backend) must still converge the sidebar list here — this
+    // is the only recovery path short of a reconnect edge.
+    bumpChannelsVersion(orgId);
     maybeRefreshControlPlane(orgId);
   }, [
     activeRealtimeOrgId,
     bumpRemoteSessionsVersion,
     bumpOrgCommentsSignal,
+    bumpChannelsVersion,
     maybeRefreshControlPlane,
   ]);
   // Per-plane leading/trailing coalescer. A successful subscribe edge marks

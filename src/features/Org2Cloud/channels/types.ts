@@ -62,8 +62,24 @@ export const CloudChannelSchema = z.object({
 
 export type CloudChannel = z.output<typeof CloudChannelSchema>;
 
+/**
+ * Drop-bad-rows array (the org2CloudSyncClient listing precedent): one
+ * malformed row degrades to nothing instead of rejecting the whole listing
+ * and blanking the sidebar section.
+ */
+const tolerantRowArray = <Schema extends z.ZodType>(schema: Schema) =>
+  z
+    .array(z.unknown())
+    .default([])
+    .transform((rows) =>
+      rows.flatMap((row) => {
+        const parsed = schema.safeParse(row);
+        return parsed.success ? [parsed.data] : [];
+      })
+    );
+
 export const CloudChannelsListSchema = z.object({
-  channels: z.array(CloudChannelSchema).default([]),
+  channels: tolerantRowArray(CloudChannelSchema),
   serverTime: NullableStringSchema,
 });
 
@@ -80,7 +96,7 @@ export const CloudChannelMemberSchema = z.object({
 export type CloudChannelMember = z.output<typeof CloudChannelMemberSchema>;
 
 export const CloudChannelMembersSchema = z.object({
-  members: z.array(CloudChannelMemberSchema).default([]),
+  members: tolerantRowArray(CloudChannelMemberSchema),
 });
 
 export interface CreateCloudChannelInput {

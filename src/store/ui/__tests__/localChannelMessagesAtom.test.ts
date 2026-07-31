@@ -126,6 +126,37 @@ describe("postLocalChannelMessage", () => {
     );
     expect(result.ok).toBe(true);
   });
+
+  it("does not count tombstones toward the cap — deleting frees a slot", () => {
+    const full = manyMessages(LOCAL_CHANNEL_MESSAGE_MAX_PER_CHANNEL).map(
+      (message, index) =>
+        index === 0 ? { ...message, deletedAt: LATER, body: "" } : message
+    );
+    const result = postLocalChannelMessage(full, {
+      channelId: "chan-1",
+      body: "release-notes",
+    });
+    expect(result.ok).toBe(true);
+  });
+
+  it("compacts the oldest tombstone when total rows hit the cap", () => {
+    const full = manyMessages(LOCAL_CHANNEL_MESSAGE_MAX_PER_CHANNEL).map(
+      (message, index) =>
+        index <= 1 ? { ...message, deletedAt: LATER, body: "" } : message
+    );
+    const result = postLocalChannelMessage(full, {
+      channelId: "chan-1",
+      body: "release-notes",
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    // Total rows stay at the cap: the oldest tombstone (msg-0) was evicted,
+    // the younger tombstone (msg-1) survives.
+    expect(result.messages).toHaveLength(LOCAL_CHANNEL_MESSAGE_MAX_PER_CHANNEL);
+    const ids = result.messages.map((message) => message.id);
+    expect(ids).not.toContain("msg-0");
+    expect(ids).toContain("msg-1");
+  });
 });
 
 describe("editLocalChannelMessage", () => {
