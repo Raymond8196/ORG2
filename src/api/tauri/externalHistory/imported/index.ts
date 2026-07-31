@@ -17,6 +17,7 @@ import { opencodeHistoryChunks } from "../sources/opencode";
 import { piHistoryChunks } from "../sources/pi";
 import { qoderHistoryChunks } from "../sources/qoder";
 import { qoderCliHistoryChunks } from "../sources/qoderCli";
+import { qwenCodeHistoryChunks } from "../sources/qwenCode";
 import { traeHistoryChunks } from "../sources/trae";
 import { warpHistoryChunks } from "../sources/warp";
 import { windsurfHistoryChunks } from "../sources/windsurf";
@@ -208,6 +209,13 @@ export const IMPORTED_HISTORY_SOURCES: readonly ImportedHistorySource[] = [
     statTranscript: (sessionId) => importedHistoryStat("qoder_cli", sessionId),
     loadPreviewChunks: loadGenericPreviewChunks,
     loadFullTranscriptChunks: qoderCliHistoryChunks,
+  },
+  {
+    ...descriptorFor("qwen_code"),
+    dispatchCategory: "external_history",
+    statTranscript: (sessionId) => importedHistoryStat("qwen_code", sessionId),
+    loadPreviewChunks: loadGenericPreviewChunks,
+    loadFullTranscriptChunks: qwenCodeHistoryChunks,
   },
 ];
 

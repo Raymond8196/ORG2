@@ -24,7 +24,7 @@ use orgtrack_core::sources::imported_history::cache as imported_history_cache;
 use orgtrack_core::sources::imported_history::metadata::{
     SOURCE_CLAUDE_CODE, SOURCE_CLINE, SOURCE_CODEX_APP, SOURCE_CURSOR_CLI, SOURCE_CURSOR_IDE,
     SOURCE_MIMO_CODE, SOURCE_OMP, SOURCE_OPENCODE, SOURCE_PI, SOURCE_QODER, SOURCE_QODER_CLI,
-    SOURCE_TRAE, SOURCE_WARP, SOURCE_WINDSURF, SOURCE_WORKBUDDY, SOURCE_ZCODE,
+    SOURCE_QWEN_CODE, SOURCE_TRAE, SOURCE_WARP, SOURCE_WINDSURF, SOURCE_WORKBUDDY, SOURCE_ZCODE,
 };
 use orgtrack_core::sources::imported_history::ImportedHistorySessionPage;
 use orgtrack_core::sources::imported_history::IMPORTED_STATUS_COMPLETED;
@@ -34,6 +34,7 @@ use orgtrack_core::sources::opencode::history as opencode_history;
 use orgtrack_core::sources::pi::history as pi_history;
 use orgtrack_core::sources::qoder::history as qoder_history;
 use orgtrack_core::sources::qoder_cli::history as qoder_cli_history;
+use orgtrack_core::sources::qwen_code::history as qwen_code_history;
 use orgtrack_core::sources::trae::history as trae_history;
 use orgtrack_core::sources::warp::history as warp_history;
 use orgtrack_core::sources::windsurf::history as windsurf_history;
@@ -224,6 +225,15 @@ fn load_qoder_cli_external_history_page(
         .map(ExternalHistoryPage::Imported)
 }
 
+fn load_qwen_code_external_history_page(
+    conn: &mut rusqlite::Connection,
+    limit: usize,
+    offset: usize,
+) -> Result<ExternalHistoryPage, String> {
+    qwen_code_history::list_qwen_code_history_sessions_paginated(conn, limit, offset)
+        .map(ExternalHistoryPage::Imported)
+}
+
 const EXTERNAL_HISTORY_SOURCE_LOADERS: &[ExternalHistorySourceLoader] = &[
     ExternalHistorySourceLoader {
         source: SOURCE_CLAUDE_CODE,
@@ -303,6 +313,11 @@ const EXTERNAL_HISTORY_SOURCE_LOADERS: &[ExternalHistorySourceLoader] = &[
     ExternalHistorySourceLoader {
         source: SOURCE_QODER_CLI,
         load_page: load_qoder_cli_external_history_page,
+        load_continuation_page: None,
+    },
+    ExternalHistorySourceLoader {
+        source: SOURCE_QWEN_CODE,
+        load_page: load_qwen_code_external_history_page,
         load_continuation_page: None,
     },
 ];
@@ -1180,6 +1195,17 @@ mod tests {
 
         assert_eq!(sessions.len(), 1);
         assert_eq!(sessions[0].session_id, "2");
+    }
+
+    #[test]
+    fn desktop_external_history_loaders_include_qwen_code_once() {
+        assert_eq!(
+            EXTERNAL_HISTORY_SOURCE_LOADERS
+                .iter()
+                .filter(|loader| loader.source == SOURCE_QWEN_CODE)
+                .count(),
+            1
+        );
     }
 
     #[test]

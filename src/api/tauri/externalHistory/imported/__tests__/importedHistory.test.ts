@@ -41,7 +41,7 @@ describe("imported history source helpers", () => {
     expect(isImportedHistoryReplayableSourceId("omp")).toBe(true);
     expect(isImportedHistoryReplayableSourceId("pi")).toBe(true);
     expect(isImportedHistoryReplayableSourceId("qoder_cli")).toBe(true);
-    expect(isImportedHistoryReplayableSourceId("qwen_code")).toBe(false);
+    expect(isImportedHistoryReplayableSourceId("qwen_code")).toBe(true);
     expect(isImportedHistoryReplayableSourceId(null)).toBe(false);
   });
 
@@ -49,9 +49,10 @@ describe("imported history source helpers", () => {
     const filtered = getDetectedExternalCliSourcesWithoutReplay([
       probe("codex_app", true),
       probe("pi", true),
-      probe("qwen_code"),
+      probe("qwen_code", true),
+      probe("unsupported_cli"),
     ]);
 
-    expect(filtered.map((item) => item.sourceId)).toEqual(["qwen_code"]);
+    expect(filtered.map((item) => item.sourceId)).toEqual(["unsupported_cli"]);
   });
 });

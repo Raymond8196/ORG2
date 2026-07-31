@@ -52,6 +52,7 @@ pub mod orgii_rust_agents;
 pub mod pi;
 pub mod qoder;
 pub mod qoder_cli;
+pub mod qwen_code;
 pub mod registry;
 pub mod trae;
 pub mod warp;

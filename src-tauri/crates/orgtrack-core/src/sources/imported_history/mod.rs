@@ -57,6 +57,7 @@ enum ImportedHistoryLoader {
     Omp,
     Pi,
     QoderCli,
+    QwenCode,
 }
 
 fn imported_history_loader(session_id: &str) -> Option<ImportedHistoryLoader> {
@@ -92,6 +93,8 @@ fn imported_history_loader(session_id: &str) -> Option<ImportedHistoryLoader> {
         Some(ImportedHistoryLoader::Pi)
     } else if session_id.starts_with(super::qoder_cli::history::QODER_CLI_SESSION_PREFIX) {
         Some(ImportedHistoryLoader::QoderCli)
+    } else if session_id.starts_with(super::qwen_code::history::QWEN_CODE_SESSION_PREFIX) {
+        Some(ImportedHistoryLoader::QwenCode)
     } else {
         None
     }
@@ -158,6 +161,9 @@ pub fn load_activity_chunks_for_session(
         }
         Some(ImportedHistoryLoader::QoderCli) => {
             super::qoder_cli::history::load_qoder_cli_history_for_session(conn, session_id)?
+        }
+        Some(ImportedHistoryLoader::QwenCode) => {
+            super::qwen_code::history::load_qwen_code_history_for_session(conn, session_id)?
         }
         None => return Ok(None),
     };
@@ -874,6 +880,7 @@ mod impact_tests {
             ("ompapp-id", ImportedHistoryLoader::Omp),
             ("piapp-id", ImportedHistoryLoader::Pi),
             ("qodercliapp-id", ImportedHistoryLoader::QoderCli),
+            ("qwencodeapp-id", ImportedHistoryLoader::QwenCode),
         ];
 
         for (session_id, expected) in cases {

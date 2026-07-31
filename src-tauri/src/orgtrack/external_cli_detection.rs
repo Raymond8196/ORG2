@@ -65,6 +65,7 @@ const IMPORTABLE_HISTORY_SOURCE_IDS: &[&str] = &[
     "omp",
     "pi",
     "qoder_cli",
+    "qwen_code",
 ];
 
 /// On-disk store format for a source's session history — the "file type" shown
@@ -75,13 +76,21 @@ const IMPORTABLE_HISTORY_SOURCE_IDS: &[&str] = &[
 fn store_kind_for(source_id: &str) -> &'static str {
     match source_id {
         // Importable — ORGII parses these.
-        "claude_code" | "codex_app" | "workbuddy" | "trae" | "cline" | "qoder" | "omp" | "pi"
-        | "qoder_cli" => "jsonl",
+        "claude_code"
+        | "codex_app"
+        | "workbuddy"
+        | "trae"
+        | "cline"
+        | "qoder"
+        | "omp"
+        | "pi"
+        | "qoder_cli"
+        | "qwen_code" => "jsonl",
         "cursor_ide" | "cursor_cli" | "opencode" | "windsurf" | "warp" | "zcode" | "mimo_code" => {
             "sqlite"
         }
         // Known store format, not yet imported.
-        "qwen_code" | "kimi" | "droid" => "jsonl",
+        "kimi" | "droid" => "jsonl",
         "copilot" | "goose" | "grok" | "openclaw" => "sqlite",
         "aider" => "markdown",
         _ => "",
@@ -349,8 +358,8 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
         &[],
         "qwen",
         "qwen",
-        false,
-        &[".qwen"],
+        true,
+        &[".qwen/projects"],
     ),
     source(
         "hermes",
@@ -620,6 +629,7 @@ fn importable_history_candidates(source_id: &str) -> Vec<PathBuf> {
         "qoder_cli" => {
             orgtrack_core::sources::qoder_cli::history::qoder_cli_history_candidate_paths()
         }
+        "qwen_code" => vec![orgtrack_core::sources::qwen_code::history::qwen_code_history_root()],
         _ => Vec::new(),
     }
 }
@@ -804,6 +814,14 @@ mod tests {
             .expect("Trae CLI source");
         assert_eq!(trae.detect_cmd, "trae-cli");
         assert_eq!(trae.launch_cmd, "trae-cli interactive");
+
+        let qwen = EXTERNAL_CLI_SOURCES
+            .iter()
+            .find(|source| source.source_id == "qwen_code")
+            .expect("Qwen Code source");
+        assert!(qwen.history_import);
+        assert_eq!(qwen.history_dirs, &[".qwen/projects"]);
+        assert_eq!(store_kind_for("qwen_code"), "jsonl");
     }
 
     #[test]

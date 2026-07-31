@@ -33,7 +33,7 @@ use super::imported_history::{
 };
 use super::{
     claude_code, cline, codex, cursor_cli, cursor_ide, mimo_code, omp, opencode, pi, qoder,
-    qoder_cli, trae, warp, windsurf, workbuddy, zcode,
+    qoder_cli, qwen_code, trae, warp, windsurf, workbuddy, zcode,
 };
 
 /// Signature every provider's paginated session loader shares. The `&mut
@@ -158,6 +158,12 @@ static REGISTERED: &[RegisteredSource] = &[
         id: metadata::SOURCE_QODER_CLI,
         label: "Qoder CLI",
         scan: qoder_cli::history::list_qoder_cli_history_sessions_paginated,
+        continuation: None,
+    },
+    RegisteredSource {
+        id: metadata::SOURCE_QWEN_CODE,
+        label: "Qwen Code",
+        scan: qwen_code::history::list_qwen_code_history_sessions_paginated,
         continuation: None,
     },
     RegisteredSource {

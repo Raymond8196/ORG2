@@ -195,4 +195,15 @@ export const IMPORTED_HISTORY_SOURCE_DESCRIPTORS: readonly ImportedHistorySource
       replayable: true,
       supportsWindowedReplay: true,
     },
+    {
+      sourceId: "qwen_code",
+      listCategory: "external_history:qwen_code",
+      prefix: "qwencodeapp-",
+      iconId: "qwen_code",
+      displayName: "Qwen Code",
+      groupLabel: "Qwen Code",
+      listable: true,
+      replayable: true,
+      supportsWindowedReplay: true,
+    },
   ];

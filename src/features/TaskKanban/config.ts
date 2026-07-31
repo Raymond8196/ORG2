@@ -83,6 +83,7 @@ export const KANBAN_AGENT_TYPE_FILTER = {
   OMP_APP: "omp_app",
   PI_APP: "pi_app",
   QODER_CLI_APP: "qoder_cli_app",
+  QWEN_CODE_APP: "qwen_code_app",
 } as const;
 
 export type KanbanBuiltInAgentTypeFilter =
@@ -109,6 +110,7 @@ export const EXTERNAL_HISTORY_FILTER_BY_SOURCE: Record<
   omp: KANBAN_AGENT_TYPE_FILTER.OMP_APP,
   pi: KANBAN_AGENT_TYPE_FILTER.PI_APP,
   qoder_cli: KANBAN_AGENT_TYPE_FILTER.QODER_CLI_APP,
+  qwen_code: KANBAN_AGENT_TYPE_FILTER.QWEN_CODE_APP,
 };
 
 /** Widened column id used inside Agent Kanban only. */
