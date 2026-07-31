@@ -807,8 +807,8 @@
       },
       "local": {
         "quotaExceeded": "Bạn đã đạt giới hạn số kênh trên thiết bị này",
-        "archiveBody": "Khi lưu trữ, kênh sẽ bị ẩn khỏi thanh bên. Lịch sử vẫn được giữ lại và có thể bỏ lưu trữ sau.",
-        "deleteWarning": "Thao tác này sẽ xóa vĩnh viễn kênh khỏi thiết bị này và không thể hoàn tác."
+        "archiveBody": "Khi lưu trữ, kênh sẽ bị ẩn khỏi thanh bên. Lịch sử vẫn được giữ lại và có thể bỏ lưu trữ sau",
+        "deleteWarning": "Thao tác này sẽ xóa vĩnh viễn kênh khỏi thiết bị này và không thể hoàn tác"
       },
       "cancel": "Hủy",
       "create": {
@@ -837,14 +837,14 @@
       },
       "archive": {
         "title": "Lưu trữ #{{name}}?",
-        "body": "Khi lưu trữ, kênh sẽ bị ẩn khỏi thanh bên của mọi người. Lịch sử vẫn được giữ lại và có thể bỏ lưu trữ sau.",
+        "body": "Khi lưu trữ, kênh sẽ bị ẩn khỏi thanh bên của mọi người. Lịch sử vẫn được giữ lại và có thể bỏ lưu trữ sau",
         "confirm": "Lưu trữ",
         "managerRequired": "Chỉ người quản lý kênh mới có thể lưu trữ kênh này",
         "error": "Không thể lưu trữ kênh. Vui lòng thử lại."
       },
       "delete": {
         "title": "Xóa #{{name}}?",
-        "warning": "Thao tác này sẽ xóa vĩnh viễn kênh đối với tất cả mọi người và không thể hoàn tác.",
+        "warning": "Thao tác này sẽ xóa vĩnh viễn kênh đối với tất cả mọi người và không thể hoàn tác",
         "acknowledge": "Có, xóa vĩnh viễn kênh này",
         "confirm": "Xóa",
         "adminRequired": "Chỉ quản trị viên tổ chức mới có thể xóa kênh",
@@ -885,7 +885,7 @@
         "missingSubtitle": "Kênh này đã bị xóa khỏi thiết bị này",
         "cloudPendingTitle": "Chưa có tin nhắn nào",
         "cloudPendingSubtitle": "Lịch sử kênh trên đám mây sẽ có ở bản nâng cấp backend tiếp theo",
-        "cloudComposerDisabled": "Kênh trên đám mây chưa hỗ trợ nhắn tin — bản phát hành này chỉ gồm tạo kênh và quản lý thành viên. Việc gửi tin nhắn sẽ có ở bản nâng cấp backend tiếp theo.",
+        "cloudComposerDisabled": "Kênh trên đám mây chưa hỗ trợ nhắn tin — bản phát hành này chỉ gồm tạo kênh và quản lý thành viên. Việc gửi tin nhắn sẽ có ở bản nâng cấp backend tiếp theo",
         "errorEmpty": "Hãy nhập tin nhắn trước",
         "errorTooLong": "Tin nhắn quá dài (tối đa 4000 ký tự)",
         "errorQuota": "Kênh này đã đạt giới hạn tin nhắn trên thiết bị này",

@@ -836,8 +836,8 @@
       },
       "local": {
         "quotaExceeded": "You've reached the channel limit on this device",
-        "archiveBody": "Archiving hides the channel from your sidebar. Its history is kept, and it can be unarchived later.",
-        "deleteWarning": "This will permanently delete the channel from this device. This cannot be undone."
+        "archiveBody": "Archiving hides the channel from your sidebar. Its history is kept, and it can be unarchived later",
+        "deleteWarning": "This will permanently delete the channel from this device. This cannot be undone"
       },
       "cancel": "Cancel",
       "create": {
@@ -866,14 +866,14 @@
       },
       "archive": {
         "title": "Archive #{{name}}?",
-        "body": "Archiving hides the channel from the sidebar for everyone. Its history is kept, and it can be unarchived later.",
+        "body": "Archiving hides the channel from the sidebar for everyone. Its history is kept, and it can be unarchived later",
         "confirm": "Archive",
         "managerRequired": "Only channel managers can archive this channel",
         "error": "Couldn't archive the channel. Please try again."
       },
       "delete": {
         "title": "Delete #{{name}}?",
-        "warning": "This will permanently delete the channel for everyone. This cannot be undone.",
+        "warning": "This will permanently delete the channel for everyone. This cannot be undone",
         "acknowledge": "Yes, permanently delete the channel",
         "confirm": "Delete",
         "adminRequired": "Only org admins can delete channels",
@@ -914,7 +914,7 @@
         "missingSubtitle": "This channel was deleted from this device",
         "cloudPendingTitle": "No messages yet",
         "cloudPendingSubtitle": "Cloud channel history arrives with the next backend upgrade",
-        "cloudComposerDisabled": "Messaging isn't available for cloud channels yet — this release ships channel setup and membership only. Posting arrives with the next backend upgrade.",
+        "cloudComposerDisabled": "Messaging isn't available for cloud channels yet — this release ships channel setup and membership only. Posting arrives with the next backend upgrade",
         "errorEmpty": "Type a message first",
         "errorTooLong": "That message is too long (4000 characters max)",
         "errorQuota": "This channel has reached its message limit on this device",

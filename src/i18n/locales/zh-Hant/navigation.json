@@ -899,8 +899,8 @@
       },
       "local": {
         "quotaExceeded": "此裝置的頻道數量已達上限",
-        "archiveBody": "封存後，頻道將從側邊欄隱藏。歷史紀錄會保留，之後可以隨時取消封存。",
-        "deleteWarning": "此操作將永久刪除該頻道，且無法復原。"
+        "archiveBody": "封存後，頻道將從側邊欄隱藏。歷史紀錄會保留，之後可以隨時取消封存",
+        "deleteWarning": "此操作將永久刪除該頻道，且無法復原"
       },
       "cancel": "取消",
       "create": {
@@ -929,14 +929,14 @@
       },
       "archive": {
         "title": "封存 #{{name}}？",
-        "body": "封存後，頻道將對所有人從側邊欄隱藏。歷史紀錄會保留，之後可以隨時取消封存。",
+        "body": "封存後，頻道將對所有人從側邊欄隱藏。歷史紀錄會保留，之後可以隨時取消封存",
         "confirm": "封存",
         "managerRequired": "只有頻道管理員才能封存此頻道",
         "error": "封存失敗，請重試。"
       },
       "delete": {
         "title": "刪除 #{{name}}？",
-        "warning": "此操作將為所有人永久刪除該頻道，且無法復原。",
+        "warning": "此操作將為所有人永久刪除該頻道，且無法復原",
         "acknowledge": "是的，永久刪除該頻道",
         "confirm": "刪除",
         "adminRequired": "只有組織管理員才能刪除頻道",
@@ -977,7 +977,7 @@
         "missingSubtitle": "此頻道已從這台裝置刪除",
         "cloudPendingTitle": "尚無訊息",
         "cloudPendingSubtitle": "雲端頻道的歷史訊息將隨下一次後端升級提供",
-        "cloudComposerDisabled": "雲端頻道尚不支援傳送訊息——本次發布僅包含頻道建立與成員管理，傳訊功能將隨下一次後端升級提供。",
+        "cloudComposerDisabled": "雲端頻道尚不支援傳送訊息——本次發布僅包含頻道建立與成員管理，傳訊功能將隨下一次後端升級提供",
         "errorEmpty": "請先輸入訊息",
         "errorTooLong": "訊息過長（最多 4000 個字元）",
         "errorQuota": "此頻道在這台裝置上的訊息數量已達上限",

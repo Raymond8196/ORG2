@@ -809,8 +809,8 @@
       },
       "local": {
         "quotaExceeded": "Vous avez atteint la limite de canaux sur cet appareil",
-        "archiveBody": "L'archivage masque le canal de la barre latérale. Son historique est conservé et il pourra être désarchivé plus tard.",
-        "deleteWarning": "Le canal sera définitivement supprimé de cet appareil. Cette action est irréversible."
+        "archiveBody": "L'archivage masque le canal de la barre latérale. Son historique est conservé et il pourra être désarchivé plus tard",
+        "deleteWarning": "Le canal sera définitivement supprimé de cet appareil. Cette action est irréversible"
       },
       "cancel": "Annuler",
       "create": {
@@ -839,14 +839,14 @@
       },
       "archive": {
         "title": "Archiver #{{name}} ?",
-        "body": "L'archivage masque le canal de la barre latérale pour tout le monde. Son historique est conservé et il pourra être désarchivé plus tard.",
+        "body": "L'archivage masque le canal de la barre latérale pour tout le monde. Son historique est conservé et il pourra être désarchivé plus tard",
         "confirm": "Archiver",
         "managerRequired": "Seuls les gestionnaires du canal peuvent l'archiver",
         "error": "Impossible d'archiver le canal. Veuillez réessayer."
       },
       "delete": {
         "title": "Supprimer #{{name}} ?",
-        "warning": "Le canal sera définitivement supprimé pour tout le monde. Cette action est irréversible.",
+        "warning": "Le canal sera définitivement supprimé pour tout le monde. Cette action est irréversible",
         "acknowledge": "Oui, supprimer définitivement le canal",
         "confirm": "Supprimer",
         "adminRequired": "Seuls les administrateurs de l'organisation peuvent supprimer des canaux",
@@ -887,7 +887,7 @@
         "missingSubtitle": "Ce canal a été supprimé de cet appareil",
         "cloudPendingTitle": "Aucun message pour l'instant",
         "cloudPendingSubtitle": "L'historique des canaux cloud arrivera avec la prochaine mise à niveau du backend",
-        "cloudComposerDisabled": "L'envoi de messages n'est pas encore disponible pour les canaux cloud — cette version ne comprend que la création de canaux et la gestion des membres. L'envoi arrivera avec la prochaine mise à niveau du backend.",
+        "cloudComposerDisabled": "L'envoi de messages n'est pas encore disponible pour les canaux cloud — cette version ne comprend que la création de canaux et la gestion des membres. L'envoi arrivera avec la prochaine mise à niveau du backend",
         "errorEmpty": "Saisissez d'abord un message",
         "errorTooLong": "Ce message est trop long (4000 caractères maximum)",
         "errorQuota": "Ce canal a atteint sa limite de messages sur cet appareil",

@@ -899,8 +899,8 @@
       },
       "local": {
         "quotaExceeded": "此设备的频道数量已达上限",
-        "archiveBody": "归档后，频道将从侧边栏隐藏。历史记录会保留，之后可以随时取消归档。",
-        "deleteWarning": "此操作将永久删除该频道，且无法撤销。"
+        "archiveBody": "归档后，频道将从侧边栏隐藏。历史记录会保留，之后可以随时取消归档",
+        "deleteWarning": "此操作将永久删除该频道，且无法撤销"
       },
       "cancel": "取消",
       "create": {
@@ -929,14 +929,14 @@
       },
       "archive": {
         "title": "归档 #{{name}}？",
-        "body": "归档后，频道将对所有人从侧边栏隐藏。历史记录会保留，之后可以随时取消归档。",
+        "body": "归档后，频道将对所有人从侧边栏隐藏。历史记录会保留，之后可以随时取消归档",
         "confirm": "归档",
         "managerRequired": "只有频道管理员才能归档此频道",
         "error": "归档失败，请重试。"
       },
       "delete": {
         "title": "删除 #{{name}}？",
-        "warning": "此操作将为所有人永久删除该频道，且无法撤销。",
+        "warning": "此操作将为所有人永久删除该频道，且无法撤销",
         "acknowledge": "是的，永久删除该频道",
         "confirm": "删除",
         "adminRequired": "只有组织管理员才能删除频道",
@@ -977,7 +977,7 @@
         "missingSubtitle": "该频道已从此设备删除",
         "cloudPendingTitle": "暂无消息",
         "cloudPendingSubtitle": "云端频道的历史消息将随下一次后端升级提供",
-        "cloudComposerDisabled": "云端频道暂不支持发送消息——本次发布仅包含频道创建与成员管理，发消息功能将随下一次后端升级提供。",
+        "cloudComposerDisabled": "云端频道暂不支持发送消息——本次发布仅包含频道创建与成员管理，发消息功能将随下一次后端升级提供",
         "errorEmpty": "请先输入消息",
         "errorTooLong": "消息过长（最多 4000 个字符）",
         "errorQuota": "此频道在本设备上的消息数量已达上限",

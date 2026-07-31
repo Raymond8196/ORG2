@@ -807,8 +807,8 @@
       },
       "local": {
         "quotaExceeded": "Bu cihazdaki kanal sınırına ulaştınız",
-        "archiveBody": "Arşivlenen kanal kenar çubuğundan gizlenir. Geçmiş korunur ve kanal daha sonra arşivden çıkarılabilir.",
-        "deleteWarning": "Bu işlem kanalı bu cihazdan kalıcı olarak siler. Geri alınamaz."
+        "archiveBody": "Arşivlenen kanal kenar çubuğundan gizlenir. Geçmiş korunur ve kanal daha sonra arşivden çıkarılabilir",
+        "deleteWarning": "Bu işlem kanalı bu cihazdan kalıcı olarak siler. Geri alınamaz"
       },
       "cancel": "İptal",
       "create": {
@@ -837,14 +837,14 @@
       },
       "archive": {
         "title": "#{{name}} arşivlensin mi?",
-        "body": "Arşivlenen kanal herkesin kenar çubuğundan gizlenir. Geçmiş korunur ve kanal daha sonra arşivden çıkarılabilir.",
+        "body": "Arşivlenen kanal herkesin kenar çubuğundan gizlenir. Geçmiş korunur ve kanal daha sonra arşivden çıkarılabilir",
         "confirm": "Arşivle",
         "managerRequired": "Bu kanalı yalnızca kanal yöneticileri arşivleyebilir",
         "error": "Kanal arşivlenemedi. Lütfen tekrar deneyin."
       },
       "delete": {
         "title": "#{{name}} silinsin mi?",
-        "warning": "Bu işlem kanalı herkes için kalıcı olarak siler. Geri alınamaz.",
+        "warning": "Bu işlem kanalı herkes için kalıcı olarak siler. Geri alınamaz",
         "acknowledge": "Evet, kanalı kalıcı olarak sil",
         "confirm": "Sil",
         "adminRequired": "Kanalları yalnızca organizasyon yöneticileri silebilir",
@@ -885,7 +885,7 @@
         "missingSubtitle": "Bu kanal bu cihazdan silindi",
         "cloudPendingTitle": "Henüz mesaj yok",
         "cloudPendingSubtitle": "Bulut kanallarının geçmişi bir sonraki arka uç yükseltmesiyle gelecek",
-        "cloudComposerDisabled": "Bulut kanallarında mesajlaşma henüz kullanılamıyor — bu sürüm yalnızca kanal kurulumu ve üyelik içeriyor. Mesaj gönderme bir sonraki arka uç yükseltmesiyle gelecek.",
+        "cloudComposerDisabled": "Bulut kanallarında mesajlaşma henüz kullanılamıyor — bu sürüm yalnızca kanal kurulumu ve üyelik içeriyor. Mesaj gönderme bir sonraki arka uç yükseltmesiyle gelecek",
         "errorEmpty": "Önce bir mesaj yaz",
         "errorTooLong": "Bu mesaj çok uzun (en fazla 4000 karakter)",
         "errorQuota": "Bu kanal bu cihazdaki mesaj sınırına ulaştı",

@@ -807,8 +807,8 @@
       },
       "local": {
         "quotaExceeded": "Osiągnięto limit kanałów na tym urządzeniu",
-        "archiveBody": "Archiwizacja ukrywa kanał z paska bocznego. Historia zostaje zachowana, a kanał można później przywrócić.",
-        "deleteWarning": "Kanał zostanie trwale usunięty z tego urządzenia. Tej operacji nie można cofnąć."
+        "archiveBody": "Archiwizacja ukrywa kanał z paska bocznego. Historia zostaje zachowana, a kanał można później przywrócić",
+        "deleteWarning": "Kanał zostanie trwale usunięty z tego urządzenia. Tej operacji nie można cofnąć"
       },
       "cancel": "Anuluj",
       "create": {
@@ -837,14 +837,14 @@
       },
       "archive": {
         "title": "Zarchiwizować #{{name}}?",
-        "body": "Archiwizacja ukrywa kanał z paska bocznego dla wszystkich. Historia zostaje zachowana, a kanał można później przywrócić.",
+        "body": "Archiwizacja ukrywa kanał z paska bocznego dla wszystkich. Historia zostaje zachowana, a kanał można później przywrócić",
         "confirm": "Archiwizuj",
         "managerRequired": "Tylko menedżerowie kanału mogą go zarchiwizować",
         "error": "Nie udało się zarchiwizować kanału. Spróbuj ponownie."
       },
       "delete": {
         "title": "Usunąć #{{name}}?",
-        "warning": "Kanał zostanie trwale usunięty dla wszystkich. Tej operacji nie można cofnąć.",
+        "warning": "Kanał zostanie trwale usunięty dla wszystkich. Tej operacji nie można cofnąć",
         "acknowledge": "Tak, trwale usuń kanał",
         "confirm": "Usuń",
         "adminRequired": "Tylko administratorzy organizacji mogą usuwać kanały",
@@ -885,7 +885,7 @@
         "missingSubtitle": "Ten kanał został usunięty z tego urządzenia",
         "cloudPendingTitle": "Nie ma jeszcze wiadomości",
         "cloudPendingSubtitle": "Historia kanałów w chmurze pojawi się wraz z kolejną aktualizacją backendu",
-        "cloudComposerDisabled": "Wysyłanie wiadomości w kanałach w chmurze nie jest jeszcze dostępne — ta wersja obejmuje tylko tworzenie kanałów i zarządzanie członkami. Wysyłanie pojawi się wraz z kolejną aktualizacją backendu.",
+        "cloudComposerDisabled": "Wysyłanie wiadomości w kanałach w chmurze nie jest jeszcze dostępne — ta wersja obejmuje tylko tworzenie kanałów i zarządzanie członkami. Wysyłanie pojawi się wraz z kolejną aktualizacją backendu",
         "errorEmpty": "Najpierw wpisz wiadomość",
         "errorTooLong": "Ta wiadomość jest za długa (maksymalnie 4000 znaków)",
         "errorQuota": "Ten kanał osiągnął limit wiadomości na tym urządzeniu",

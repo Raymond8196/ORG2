@@ -809,8 +809,8 @@
       },
       "local": {
         "quotaExceeded": "Has alcanzado el límite de canales en este dispositivo",
-        "archiveBody": "Al archivarlo, el canal se ocultará de la barra lateral. Su historial se conserva y se puede desarchivar más adelante.",
-        "deleteWarning": "Esto eliminará el canal de este dispositivo de forma permanente. No se puede deshacer."
+        "archiveBody": "Al archivarlo, el canal se ocultará de la barra lateral. Su historial se conserva y se puede desarchivar más adelante",
+        "deleteWarning": "Esto eliminará el canal de este dispositivo de forma permanente. No se puede deshacer"
       },
       "cancel": "Cancelar",
       "create": {
@@ -839,14 +839,14 @@
       },
       "archive": {
         "title": "¿Archivar #{{name}}?",
-        "body": "Al archivarlo, el canal se ocultará de la barra lateral para todos. Su historial se conserva y se puede desarchivar más adelante.",
+        "body": "Al archivarlo, el canal se ocultará de la barra lateral para todos. Su historial se conserva y se puede desarchivar más adelante",
         "confirm": "Archivar",
         "managerRequired": "Solo los gestores del canal pueden archivarlo",
         "error": "No se pudo archivar el canal. Inténtalo de nuevo."
       },
       "delete": {
         "title": "¿Eliminar #{{name}}?",
-        "warning": "Esto eliminará el canal de forma permanente para todos. No se puede deshacer.",
+        "warning": "Esto eliminará el canal de forma permanente para todos. No se puede deshacer",
         "acknowledge": "Sí, eliminar el canal de forma permanente",
         "confirm": "Eliminar",
         "adminRequired": "Solo los administradores de la organización pueden eliminar canales",
@@ -887,7 +887,7 @@
         "missingSubtitle": "Este canal se eliminó de este dispositivo",
         "cloudPendingTitle": "Aún no hay mensajes",
         "cloudPendingSubtitle": "El historial de los canales en la nube llegará con la próxima actualización del backend",
-        "cloudComposerDisabled": "Todavía no se pueden enviar mensajes en los canales en la nube: esta versión solo incluye la creación de canales y la gestión de miembros. El envío llegará con la próxima actualización del backend.",
+        "cloudComposerDisabled": "Todavía no se pueden enviar mensajes en los canales en la nube: esta versión solo incluye la creación de canales y la gestión de miembros. El envío llegará con la próxima actualización del backend",
         "errorEmpty": "Escribe un mensaje primero",
         "errorTooLong": "Ese mensaje es demasiado largo (máximo 4000 caracteres)",
         "errorQuota": "Este canal alcanzó su límite de mensajes en este dispositivo",

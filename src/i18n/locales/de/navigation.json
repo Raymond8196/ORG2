@@ -809,8 +809,8 @@
       },
       "local": {
         "quotaExceeded": "Das Channel-Limit auf diesem Gerät ist erreicht",
-        "archiveBody": "Beim Archivieren wird der Channel aus der Seitenleiste ausgeblendet. Der Verlauf bleibt erhalten und die Archivierung kann später aufgehoben werden.",
-        "deleteWarning": "Der Channel wird dauerhaft von diesem Gerät gelöscht. Dies kann nicht rückgängig gemacht werden."
+        "archiveBody": "Beim Archivieren wird der Channel aus der Seitenleiste ausgeblendet. Der Verlauf bleibt erhalten und die Archivierung kann später aufgehoben werden",
+        "deleteWarning": "Der Channel wird dauerhaft von diesem Gerät gelöscht. Dies kann nicht rückgängig gemacht werden"
       },
       "cancel": "Abbrechen",
       "create": {
@@ -839,14 +839,14 @@
       },
       "archive": {
         "title": "#{{name}} archivieren?",
-        "body": "Beim Archivieren wird der Channel für alle aus der Seitenleiste ausgeblendet. Der Verlauf bleibt erhalten und die Archivierung kann später aufgehoben werden.",
+        "body": "Beim Archivieren wird der Channel für alle aus der Seitenleiste ausgeblendet. Der Verlauf bleibt erhalten und die Archivierung kann später aufgehoben werden",
         "confirm": "Archivieren",
         "managerRequired": "Nur Channel-Manager können diesen Channel archivieren",
         "error": "Channel konnte nicht archiviert werden. Bitte erneut versuchen."
       },
       "delete": {
         "title": "#{{name}} löschen?",
-        "warning": "Der Channel wird für alle dauerhaft gelöscht. Dies kann nicht rückgängig gemacht werden.",
+        "warning": "Der Channel wird für alle dauerhaft gelöscht. Dies kann nicht rückgängig gemacht werden",
         "acknowledge": "Ja, den Channel dauerhaft löschen",
         "confirm": "Löschen",
         "adminRequired": "Nur Organisations-Admins können Channels löschen",
@@ -887,7 +887,7 @@
         "missingSubtitle": "Dieser Kanal wurde von diesem Gerät gelöscht",
         "cloudPendingTitle": "Noch keine Nachrichten",
         "cloudPendingSubtitle": "Der Verlauf von Cloud-Kanälen kommt mit dem nächsten Backend-Update",
-        "cloudComposerDisabled": "Nachrichten sind für Cloud-Kanäle noch nicht verfügbar – diese Version enthält nur Kanaleinrichtung und Mitgliedschaft. Das Senden kommt mit dem nächsten Backend-Update.",
+        "cloudComposerDisabled": "Nachrichten sind für Cloud-Kanäle noch nicht verfügbar – diese Version enthält nur Kanaleinrichtung und Mitgliedschaft. Das Senden kommt mit dem nächsten Backend-Update",
         "errorEmpty": "Gib zuerst eine Nachricht ein",
         "errorTooLong": "Diese Nachricht ist zu lang (max. 4000 Zeichen)",
         "errorQuota": "Dieser Kanal hat sein Nachrichtenlimit auf diesem Gerät erreicht",
