@@ -34,6 +34,11 @@ export const validation = {
     .output(schemas.validation.CursorBillingUsageSnapshotSchema)
     .build(),
 
+  cursorReadBillingUsagePage: defineProcedure("cursor_read_billing_usage_page")
+    .input(schemas.validation.CursorBillingUsagePageInput)
+    .output(schemas.validation.CursorBillingUsagePageSchema)
+    .build(),
+
   cursorArchiveBillingUsageCache: defineProcedure(
     "cursor_archive_billing_usage_cache"
   )

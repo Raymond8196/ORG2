@@ -116,24 +116,34 @@ export const CursorBillingUsageEventSchema = z.object({
   }),
 });
 
+export const CursorBillingUsageSummarySchema = z.object({
+  dataQuality: z.object({
+    totalRows: z.number().int().nonnegative(),
+    emittedRows: z.number().int().nonnegative(),
+    skippedRows: z.number().int().nonnegative(),
+    completeRows: z.number().int().nonnegative(),
+    partialRows: z.number().int().nonnegative(),
+    missingMetricValues: z.number().int().nonnegative(),
+    invalidMetricValues: z.number().int().nonnegative(),
+  }),
+  totals: z.object({
+    inputTokens: z.number().int().nonnegative(),
+    outputTokens: z.number().int().nonnegative(),
+    cacheReadTokens: z.number().int().nonnegative(),
+    cacheWriteTokens: z.number().int().nonnegative(),
+    costUsd: z.number().nonnegative(),
+    exactCostRows: z.number().int().nonnegative(),
+  }),
+  rawBytes: z.number().int().nonnegative(),
+});
+
 export const CursorBillingUsageSnapshotSchema = z.object({
   accountId: z.string(),
   fetchedAt: z.string(),
   lastSyncAttemptAt: z.string().nullable(),
   source: z.enum(["network", "fresh_cache", "last_good_cache"]),
   isStale: z.boolean(),
-  export: z.object({
-    events: z.array(CursorBillingUsageEventSchema),
-    dataQuality: z.object({
-      totalRows: z.number().int().nonnegative(),
-      emittedRows: z.number().int().nonnegative(),
-      skippedRows: z.number().int().nonnegative(),
-      completeRows: z.number().int().nonnegative(),
-      partialRows: z.number().int().nonnegative(),
-      missingMetricValues: z.number().int().nonnegative(),
-      invalidMetricValues: z.number().int().nonnegative(),
-    }),
-  }),
+  summary: CursorBillingUsageSummarySchema,
   syncFailure: z
     .object({
       kind: z.enum([
@@ -147,6 +157,20 @@ export const CursorBillingUsageSnapshotSchema = z.object({
       message: z.string(),
     })
     .nullable(),
+});
+
+export const CursorBillingUsagePageInput = z.object({
+  accountId: z.string(),
+  cursor: z.string().nullable().optional(),
+  limit: z.number().int().min(1).max(200).optional().default(100),
+});
+
+export const CursorBillingUsagePageSchema = z.object({
+  accountId: z.string(),
+  fetchedAt: z.string(),
+  events: z.array(CursorBillingUsageEventSchema).max(200),
+  nextCursor: z.string().nullable(),
+  hasMore: z.boolean(),
 });
 
 export const CursorArchiveBillingUsageCacheInput = z.object({
