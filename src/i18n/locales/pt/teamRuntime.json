@@ -10,7 +10,6 @@
     "systemsCurrent": "{{current}} de {{total}} sistemas atualizados",
     "usageByAgent": "Uso por agente",
     "recentSessions": "Sessões compartilhadas recentes",
-    "recentHint": "As cinco sessões compartilhadas com atividade mais recente nesta organização.",
     "recentLoading": "Carregando sessões compartilhadas…",
     "recentEmpty": "Ainda não há sessões compartilhadas",
     "members": "Detalhamento por membro"

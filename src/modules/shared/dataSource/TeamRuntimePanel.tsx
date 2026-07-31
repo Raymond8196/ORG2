@@ -70,7 +70,7 @@ function useAgentCatalog(enabled: boolean): AgentCatalog {
   return enabled ? catalog : EMPTY_AGENT_CATALOG;
 }
 
-function RuntimeRefreshControl({
+function RuntimeRefreshButton({
   onRefresh,
   refreshing,
 }: {
@@ -80,25 +80,20 @@ function RuntimeRefreshControl({
   const { t } = useTranslation("teamRuntime");
   const { spinClass, handleClick } = useRefreshSpin(onRefresh, refreshing);
   return (
-    <div
-      className="flex min-h-9 items-center justify-end"
-      data-testid="team-runtime-controls"
+    <Button
+      htmlType="button"
+      variant="tertiary"
+      appearance="ghost"
+      size="small"
+      disabled={refreshing}
+      aria-label={t("refresh")}
+      title={t("refresh")}
+      onClick={handleClick}
+      icon={<RefreshCw size={14} className={spinClass} />}
+      data-testid="team-runtime-refresh"
     >
-      <Button
-        htmlType="button"
-        variant="tertiary"
-        appearance="ghost"
-        size="small"
-        disabled={refreshing}
-        aria-label={t("refresh")}
-        title={t("refresh")}
-        onClick={handleClick}
-        icon={<RefreshCw size={14} className={spinClass} />}
-        data-testid="team-runtime-refresh"
-      >
-        {t("refresh")}
-      </Button>
-    </div>
+      {t("refresh")}
+    </Button>
   );
 }
 
@@ -152,23 +147,23 @@ function TeamRuntimeTodayConnected({
   );
 
   return (
-    <>
-      <RuntimeRefreshControl
-        onRefresh={refreshAll}
-        refreshing={rosterRefreshing}
-      />
-      <TeamRuntimeToday
-        members={members}
-        telemetry={telemetry}
-        nowMs={nowMs}
-        language={language}
-        selectedMemberId={selectedMemberId}
-        onSelectMember={onSelectMember}
-        sessionRows={remoteSessions.rows}
-        sessionState={remoteSessions.state}
-        onOpenSession={handleOpenSession}
-      />
-    </>
+    <TeamRuntimeToday
+      members={members}
+      telemetry={telemetry}
+      nowMs={nowMs}
+      language={language}
+      selectedMemberId={selectedMemberId}
+      onSelectMember={onSelectMember}
+      sessionRows={remoteSessions.rows}
+      sessionState={remoteSessions.state}
+      onOpenSession={handleOpenSession}
+      headerAction={
+        <RuntimeRefreshButton
+          onRefresh={refreshAll}
+          refreshing={rosterRefreshing}
+        />
+      }
+    />
   );
 }
 
@@ -377,10 +372,15 @@ export default function TeamRuntimePanel({
     <div className={SECTION_GAP_CLASSES} data-testid="team-runtime-panel">
       {roster.phase !== "signedOut" &&
       !(roster.phase === "ready" && view === "today") ? (
-        <RuntimeRefreshControl
-          onRefresh={roster.refresh}
-          refreshing={roster.refreshing}
-        />
+        <div
+          className="flex min-h-9 items-center justify-end"
+          data-testid="team-runtime-controls"
+        >
+          <RuntimeRefreshButton
+            onRefresh={roster.refresh}
+            refreshing={roster.refreshing}
+          />
+        </div>
       ) : null}
 
       {content}

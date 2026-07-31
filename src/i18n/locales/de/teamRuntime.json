@@ -10,7 +10,6 @@
     "systemsCurrent": "{{current}} von {{total}} Systemen aktuell",
     "usageByAgent": "Nutzung nach Agent",
     "recentSessions": "Neueste geteilte Sessions",
-    "recentHint": "Die fünf zuletzt aktiven Sessions, die mit dieser Organisation geteilt wurden.",
     "recentLoading": "Geteilte Sessions werden geladen…",
     "recentEmpty": "Noch keine geteilten Sessions",
     "members": "Aufschlüsselung nach Mitglied"

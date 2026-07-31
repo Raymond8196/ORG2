@@ -6,7 +6,7 @@
  * so this component owns no network request, timer, subscription, or cache.
  */
 import { Activity, MessageSquareText } from "lucide-react";
-import { memo, useMemo } from "react";
+import { type ReactNode, memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import Avatar from "@src/components/Avatar";
@@ -76,6 +76,7 @@ interface TeamRuntimeTodayProps {
   sessionRows: readonly RemoteTeammateSessionMetadata[];
   sessionState: CloudRemoteSessionsFetchState;
   onOpenSession: (row: RemoteTeammateSessionMetadata) => void;
+  headerAction?: ReactNode;
 }
 
 function TeamRuntimeToday({
@@ -88,6 +89,7 @@ function TeamRuntimeToday({
   sessionRows,
   sessionState,
   onOpenSession,
+  headerAction,
 }: TeamRuntimeTodayProps) {
   const { t } = useTranslation("teamRuntime");
   const { t: tUsage } = useTranslation("sessions", {
@@ -146,30 +148,45 @@ function TeamRuntimeToday({
 
   return (
     <div className="flex flex-col gap-5" data-testid="team-runtime-today">
-      <div className="flex min-h-9 flex-wrap items-center justify-between gap-3">
+      <div
+        className="flex min-h-9 flex-wrap items-center justify-between gap-3"
+        data-testid="team-runtime-title-row"
+      >
         <div className="flex items-center gap-2">
           <Activity className="h-4 w-4 text-text-3" aria-hidden />
           <h3 className={SECTION_SUBHEADING_CLASSES}>
             {t("overview.todayUtc")}
           </h3>
         </div>
-        {members.length > 0 ? (
+        {members.length > 0 || headerAction ? (
           <div className="flex min-w-0 items-center gap-2">
-            <span className="shrink-0 text-xs text-text-3">
-              {t("overview.person")}
-            </span>
-            <Select
-              value={selectedMemberId ?? ALL_MEMBERS}
-              options={memberOptions}
-              onChange={(value) =>
-                onSelectMember(
-                  String(value) === ALL_MEMBERS ? null : String(value)
-                )
-              }
-              variant="ghost"
-              size="small"
-              dataTestId="team-runtime-person-select"
-            />
+            {members.length > 0 ? (
+              <>
+                <span className="shrink-0 text-xs text-text-3">
+                  {t("overview.person")}
+                </span>
+                <Select
+                  value={selectedMemberId ?? ALL_MEMBERS}
+                  options={memberOptions}
+                  onChange={(value) =>
+                    onSelectMember(
+                      String(value) === ALL_MEMBERS ? null : String(value)
+                    )
+                  }
+                  variant="ghost"
+                  size="small"
+                  dataTestId="team-runtime-person-select"
+                />
+              </>
+            ) : null}
+            {headerAction ? (
+              <div
+                className="flex shrink-0 items-center"
+                data-testid="team-runtime-controls"
+              >
+                {headerAction}
+              </div>
+            ) : null}
           </div>
         ) : null}
       </div>
@@ -253,14 +270,9 @@ function TeamRuntimeToday({
         </section>
 
         <section className="flex min-w-0 flex-col gap-3">
-          <div>
-            <h3 className={SECTION_SUBHEADING_CLASSES}>
-              {t("overview.recentSessions")}
-            </h3>
-            <p className="mt-1 text-xs text-text-3">
-              {t("overview.recentHint")}
-            </p>
-          </div>
+          <h3 className={SECTION_SUBHEADING_CLASSES}>
+            {t("overview.recentSessions")}
+          </h3>
           <SectionContainer>
             {latestSessions.length > 0 ? (
               latestSessions.map((session) => (

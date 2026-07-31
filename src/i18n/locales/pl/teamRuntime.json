@@ -10,7 +10,6 @@
     "systemsCurrent": "Aktualne systemy: {{current}} z {{total}}",
     "usageByAgent": "Użycie według agenta",
     "recentSessions": "Najnowsze udostępnione sesje",
-    "recentHint": "Pięć ostatnio aktywnych sesji udostępnionych tej organizacji.",
     "recentLoading": "Wczytywanie udostępnionych sesji…",
     "recentEmpty": "Brak udostępnionych sesji",
     "members": "Podział według członka"

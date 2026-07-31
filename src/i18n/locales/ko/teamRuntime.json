@@ -10,7 +10,6 @@
     "systemsCurrent": "{{total}}개 시스템 중 {{current}}개가 최신 상태",
     "usageByAgent": "에이전트별 사용량",
     "recentSessions": "최근 공유 세션",
-    "recentHint": "이 조직에서 가장 최근에 활동한 공유 세션 5개입니다.",
     "recentLoading": "공유 세션을 불러오는 중…",
     "recentEmpty": "아직 공유된 세션이 없습니다",
     "members": "구성원별 내역"

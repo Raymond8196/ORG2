@@ -10,7 +10,6 @@
     "systemsCurrent": "{{current}}/{{total}} hệ thống đang cập nhật",
     "usageByAgent": "Mức sử dụng theo tác tử",
     "recentSessions": "Phiên được chia sẻ gần đây",
-    "recentHint": "Năm phiên được chia sẻ có hoạt động gần nhất trong tổ chức này.",
     "recentLoading": "Đang tải các phiên được chia sẻ…",
     "recentEmpty": "Chưa có phiên nào được chia sẻ",
     "members": "Chi tiết theo thành viên"

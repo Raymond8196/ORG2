@@ -10,7 +10,6 @@
     "systemsCurrent": "{{total}} 台系統中有 {{current}} 台狀態為最新",
     "usageByAgent": "依代理程式統計用量",
     "recentSessions": "最近共享的工作階段",
-    "recentHint": "此組織中最近活躍的五個共享工作階段。",
     "recentLoading": "正在載入共享工作階段…",
     "recentEmpty": "尚無共享工作階段",
     "members": "成員明細"

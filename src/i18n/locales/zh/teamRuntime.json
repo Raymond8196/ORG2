@@ -10,7 +10,6 @@
     "systemsCurrent": "{{total}} 台系统中有 {{current}} 台状态最新",
     "usageByAgent": "按智能体统计用量",
     "recentSessions": "最近共享的会话",
-    "recentHint": "该组织中最近活跃的五个共享会话。",
     "recentLoading": "正在加载共享会话…",
     "recentEmpty": "还没有共享会话",
     "members": "成员明细"

@@ -618,6 +618,12 @@ describe("TeamRuntimePanel roster", () => {
         '[data-testid^="team-runtime-recent-session-"]'
       )
     ).toHaveLength(5);
+    expect(container.textContent).not.toContain("overview.recentHint");
+    expect(
+      container
+        .querySelector('[data-testid="team-runtime-title-row"]')
+        ?.querySelector('[data-testid="team-runtime-refresh"]')
+    ).not.toBeNull();
 
     const personSelect = container.querySelector<HTMLSelectElement>(
       '[data-testid="team-runtime-person-select"]'

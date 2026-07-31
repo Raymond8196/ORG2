@@ -10,7 +10,6 @@
     "systemsCurrent": "{{current}} of {{total}} systems current",
     "usageByAgent": "Usage by agent",
     "recentSessions": "Latest shared sessions",
-    "recentHint": "The five most recently active sessions shared with this organization.",
     "recentLoading": "Loading shared sessions…",
     "recentEmpty": "No shared sessions yet",
     "members": "Member breakdown"

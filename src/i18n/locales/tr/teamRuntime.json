@@ -10,7 +10,6 @@
     "systemsCurrent": "{{total}} sistemin {{current}} tanesi güncel",
     "usageByAgent": "Aracıya göre kullanım",
     "recentSessions": "Son paylaşılan oturumlar",
-    "recentHint": "Bu kuruluşla paylaşılan en son etkin beş oturum.",
     "recentLoading": "Paylaşılan oturumlar yükleniyor…",
     "recentEmpty": "Henüz paylaşılan oturum yok",
     "members": "Üye dökümü"
