@@ -1,9 +1,13 @@
 # PR #610 Discussion Channels — Dual-Instance Verification
 
-**Date:** 2026-07-30  
-**Build under test:** `pnpm run tauri:build:fast:dual`  
-**Identities:** main instance (channel manager) and ORG2 Instance 2 (org admin)  
-**Workspace:** `CU Vanta Shares 0721`  
+**Date:** 2026-07-30
+
+**Build under test:** `pnpm run tauri:build:fast:dual`
+
+**Identities:** main instance (channel manager) and ORG2 Instance 2 (org admin)
+
+**Workspace:** `CU Vanta Shares 0721`
+
 **Final verdict:** pass for the PR #610 discussion-channel lifecycle matrix below; all temporary cloud rows were permanently deleted
 
 ## Environment isolation
@@ -68,6 +72,12 @@ collisions.
   — 3 files, 21 tests passed.
 - Dual executable build:
   `pnpm run tauri:build:fast:dual` — both identities built successfully in
-  198.9 seconds.
-- Full-suite and static-check outcomes are recorded in the PR description after
-  the final post-fix run.
+  198.9 seconds for the functional run. After merging the latest `develop`, the
+  same command returned exit code 0 in 49.0 seconds from the completed
+  incremental artifacts.
+- Final post-integration smoke: both newly timestamped executables launched
+  simultaneously, retained separate process identities/settings/ports, opened
+  the same organization with no temporary channels present, and closed cleanly.
+- Final post-integration suite: `pnpm exec vitest run --reporter=dot` returned
+  exit code 0 in 255.8 seconds; typecheck, changed-file ESLint, circular
+  dependency scan, cloud i18n completeness, and `git diff --check` also passed.

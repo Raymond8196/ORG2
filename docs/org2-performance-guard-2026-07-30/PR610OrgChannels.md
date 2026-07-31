@@ -1,6 +1,7 @@
 # PR #610 Org Channels — Performance Guard
 
-**Date:** 2026-07-30  
+**Date:** 2026-07-30
+
 **Verdict:** pass after bounds and lifecycle fixes
 
 | Surface                    | Active                                                                                                   | Idle                                | Hidden/background                                                                                                                          | Repeated open/close                                                                                                                  | Multi-instance                                                                              | Verdict |

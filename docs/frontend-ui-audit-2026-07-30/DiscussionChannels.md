@@ -1,7 +1,9 @@
 # Discussion Channels — Frontend UI Audit
 
-**Date:** 2026-07-30  
-**Scope:** channel dialogs and message rows changed by PR #610 plus deferred follow-ups  
+**Date:** 2026-07-30
+
+**Scope:** channel dialogs and message rows changed by PR #610 plus deferred follow-ups
+
 **Method note:** the routed `frontend-ui-audit` skill was not present in either configured skill location, so this report applies the repository-required output columns and design-system checks directly.
 
 | Line                                                                                | Element                                             | Verdict          | Reason                                                                                                                                                                                | Suggested change                                                                                                  |

@@ -1,7 +1,9 @@
 # PR #610 Org Channels Follow-ups — Architecture Audit
 
-**Date:** 2026-07-30  
-**Scope:** `origin/develop..fix/org-channels-audit-followups`, including the four items originally deferred in PR #610  
+**Date:** 2026-07-30
+
+**Scope:** `origin/develop..fix/org-channels-audit-followups`, including the four items originally deferred in PR #610
+
 **Verdict:** pass after fixes; no known P0/P1/P2 architecture finding remains in the audited scope
 
 ## Findings and disposition
