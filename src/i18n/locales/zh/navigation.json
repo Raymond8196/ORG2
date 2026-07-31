@@ -607,7 +607,10 @@
       "viewerOverflow": "还有 {{count}} 人正在看",
       "memberViewing": "正在看：{{title}}",
       "viewerOverflow_one": "and 1 more viewer",
-      "viewerOverflow_other": "and {{count}} more viewers"
+      "viewerOverflow_other": "and {{count}} more viewers",
+      "loadingSession": "正在加载会话…",
+      "downloadProgress": "下载中… {{percent}}%",
+      "downloadProgressEta": "下载中… {{percent}}% · 剩余约 {{eta}}"
     },
     "sessionRef": {
       "chipLabel": "团队会话",
@@ -615,7 +618,8 @@
       "signInRequired": "登录 ORG2 Cloud 以打开此会话。",
       "sessionNotFound": "该会话不属于此组织。",
       "notPublished": "先将此会话共享给某个组织，再复制引用。",
-      "chooseOrg": "此会话属于多个组织。切换到你要引用的组织，然后重新复制。"
+      "chooseOrg": "此会话属于多个组织。切换到你要引用的组织，然后重新复制。",
+      "opening": "正在打开团队会话…"
     },
     "sync": {
       "quotaExceededToast": "ORG2 云同步已暂停：该组织的套餐配额已用尽",
@@ -854,6 +858,25 @@
     "signedInAs": "已登录：{{name}}",
     "renameDisplayName": "修改显示名",
     "renameSaved": "显示名已更新",
-    "renameFailed": "显示名更新失败"
+    "renameFailed": "显示名更新失败",
+    "download": {
+      "title": "正在下载团队会话…",
+      "events": "{{loaded}} / {{total}} 条事件",
+      "eta": "预计剩余 {{eta}}",
+      "finalizing": "正在整理…",
+      "complete": "下载完成",
+      "estimate": "该会话有 {{count}} 个事件待下载（约 {{eta}}）。",
+      "start": "开始下载",
+      "pause": "暂停",
+      "paused": "已暂停",
+      "resume": "继续"
+    },
+    "offlineSync": {
+      "label": "离线同步",
+      "help": "自动把该组织的所有共享会话下载到每个成员的设备,回放秒开、离线可看。",
+      "on": "开启",
+      "off": "关闭",
+      "memberNote": "由管理员开启——共享会话会自动下载到本设备。"
+    }
   }
 }

@@ -38,6 +38,7 @@ vi.mock("@src/engines/SessionCore/core/store/EventStoreProxy", () => ({
     subscribe: vi.fn(),
     getEvents: vi.fn(),
     getPersistedEvents: vi.fn(),
+    countPersistedEvents: vi.fn(),
     set: vi.fn(),
     persistEventsBatch: vi.fn(),
     finalizePersistedImport: vi.fn(),
@@ -434,6 +435,7 @@ describe("importRemoteSession", () => {
     eventStoreMock.clear.mockResolvedValue(undefined);
     eventStoreMock.clearPersistedHistory.mockResolvedValue(undefined);
     eventStoreMock.getPersistedEvents.mockResolvedValue([]);
+    eventStoreMock.countPersistedEvents.mockResolvedValue(0);
     eventStoreMock.persistEventsBatch.mockImplementation(
       async (events: SessionEvent[]) => events.length
     );
@@ -682,6 +684,7 @@ describe("importRemoteSession", () => {
     eventStoreMock.getPersistedEvents.mockResolvedValue([
       { id: "e1" } as unknown as SessionEvent,
     ]);
+    eventStoreMock.countPersistedEvents.mockResolvedValue(1);
 
     const result = await importRemoteSession({
       client,
@@ -726,6 +729,7 @@ describe("importRemoteSession", () => {
     eventStoreMock.getPersistedEvents.mockResolvedValue([
       { id: "e1" } as unknown as SessionEvent,
     ]);
+    eventStoreMock.countPersistedEvents.mockResolvedValue(1);
 
     await importRemoteSession({
       client,
@@ -772,6 +776,7 @@ describe("importRemoteSession", () => {
     eventStoreMock.getPersistedEvents.mockResolvedValue([
       { id: "e1" } as unknown as SessionEvent,
     ]);
+    eventStoreMock.countPersistedEvents.mockResolvedValue(1);
 
     const result = await importRemoteSession({
       client,
@@ -1274,6 +1279,7 @@ describe("forkSession (design §16.11, fork & continue)", () => {
     eventStoreMock.set.mockResolvedValue(undefined);
     eventStoreMock.clear.mockResolvedValue(undefined);
     eventStoreMock.getPersistedEvents.mockResolvedValue([]);
+    eventStoreMock.countPersistedEvents.mockResolvedValue(0);
     eventStoreMock.saveToCache.mockResolvedValue(1);
   });
 

@@ -17,7 +17,11 @@ export type Org2CloudSyncClientDeps = Pick<
   | "getOrgRepoScopes"
   | "listOrgSessions"
   | "deleteSession"
->;
+> &
+  // Optional so existing fetch-free fakes stay valid: the turn-index
+  // publish is best-effort progressive enhancement (0012), and a fake
+  // without it simply never publishes.
+  Partial<Pick<typeof org2CloudSyncClient, "upsertSessionTurnIndex">>;
 
 export interface PreparedPushPlan {
   perEventHashes: string[];

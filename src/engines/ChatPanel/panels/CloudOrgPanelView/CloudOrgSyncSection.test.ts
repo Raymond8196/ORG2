@@ -39,6 +39,8 @@ function status(
       homeEndpoints: false,
       teamInboxMentions: true,
       memberRuntime: true,
+      sessionTurnIndex: false,
+      offlineSync: false,
     },
     capabilitiesLoading: false,
     lastSync: { lastPassAtMs: null, lastSuccessAtMs: null },

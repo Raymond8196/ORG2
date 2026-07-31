@@ -400,7 +400,8 @@
       "agentError": "Choose a local agent before forking.",
       "backendError": "The session history was copied, but the runnable fork could not be registered. Retry.",
       "parentOpenUnavailable": "The source session could not be opened from this fork.",
-      "replayError": "Full replay is not available for this session. Ask the owner to share the replay, then retry."
+      "replayError": "Full replay is not available for this session. Ask the owner to share the replay, then retry.",
+      "openParentButton": "Abrir la sesión de origen de {{name}}"
     }
   },
   "cloud": {
@@ -517,7 +518,10 @@
       "viewerOverflow": "y {{count}} espectadores más",
       "memberViewing": "viendo: {{title}}",
       "viewerOverflow_one": "and 1 more viewer",
-      "viewerOverflow_other": "and {{count}} more viewers"
+      "viewerOverflow_other": "and {{count}} more viewers",
+      "loadingSession": "Cargando sesión…",
+      "downloadProgress": "Descargando… {{percent}}%",
+      "downloadProgressEta": "Descargando… {{percent}}% · ~{{eta}} restante"
     },
     "sessionRef": {
       "chipLabel": "Sesión de equipo",
@@ -525,7 +529,8 @@
       "signInRequired": "Inicia sesión en ORG2 Cloud para abrir esta sesión.",
       "sessionNotFound": "Esa sesión no pertenece a esta organización.",
       "notPublished": "Comparte esta sesión con una organización antes de copiar una referencia.",
-      "chooseOrg": "Esta sesión está en varias organizaciones. Cambia a la organización que quieras referenciar y vuelve a copiar."
+      "chooseOrg": "Esta sesión está en varias organizaciones. Cambia a la organización que quieras referenciar y vuelve a copiar.",
+      "opening": "Abriendo la sesión de equipo…"
     },
     "sync": {
       "quotaExceededToast": "Sincronización de ORG2 Cloud en pausa: se superó la cuota del plan de esta organización",
@@ -763,6 +768,25 @@
     },
     "renameDisplayName": "Editar nombre para mostrar",
     "renameSaved": "Nombre para mostrar actualizado",
-    "renameFailed": "No se pudo actualizar el nombre para mostrar"
+    "renameFailed": "No se pudo actualizar el nombre para mostrar",
+    "download": {
+      "title": "Descargando la sesión de equipo…",
+      "events": "{{loaded}} / {{total}} eventos",
+      "eta": "Quedan unos {{eta}}",
+      "finalizing": "Finalizando…",
+      "complete": "Descarga completada",
+      "estimate": "Esta sesión tiene {{count}} eventos por descargar (aprox. {{eta}}).",
+      "start": "Descargar",
+      "pause": "Pausar",
+      "paused": "En pausa",
+      "resume": "Reanudar"
+    },
+    "offlineSync": {
+      "label": "Sincronización sin conexión",
+      "help": "Descarga automáticamente todas las sesiones compartidas de esta organización en el dispositivo de cada miembro: las reproducciones abren al instante y funcionan sin conexión.",
+      "on": "Activado",
+      "off": "Desactivado",
+      "memberNote": "Activado por un administrador: las sesiones compartidas se descargan automáticamente en este dispositivo."
+    }
   }
 }

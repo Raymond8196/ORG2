@@ -398,7 +398,8 @@
       "agentError": "Choose a local agent before forking.",
       "backendError": "The session history was copied, but the runnable fork could not be registered. Retry.",
       "parentOpenUnavailable": "The source session could not be opened from this fork.",
-      "replayError": "Full replay is not available for this session. Ask the owner to share the replay, then retry."
+      "replayError": "Full replay is not available for this session. Ask the owner to share the replay, then retry.",
+      "openParentButton": "{{name}} の元セッションを開く"
     }
   },
   "cloud": {
@@ -515,7 +516,10 @@
       "viewerOverflow": "他 {{count}} 人が見ています",
       "memberViewing": "閲覧中: {{title}}",
       "viewerOverflow_one": "and 1 more viewer",
-      "viewerOverflow_other": "and {{count}} more viewers"
+      "viewerOverflow_other": "and {{count}} more viewers",
+      "loadingSession": "セッションを読み込み中…",
+      "downloadProgress": "ダウンロード中… {{percent}}%",
+      "downloadProgressEta": "ダウンロード中… {{percent}}% · 残り約 {{eta}}"
     },
     "sessionRef": {
       "chipLabel": "チームセッション",
@@ -523,7 +527,8 @@
       "signInRequired": "このセッションを開くには ORG2 Cloud にサインインしてください。",
       "sessionNotFound": "そのセッションはこの組織に属していません。",
       "notPublished": "参照をコピーする前に、このセッションを組織と共有してください。",
-      "chooseOrg": "このセッションは複数の組織に属しています。参照したい組織に切り替えてから、もう一度コピーしてください。"
+      "chooseOrg": "このセッションは複数の組織に属しています。参照したい組織に切り替えてから、もう一度コピーしてください。",
+      "opening": "チームセッションを開いています…"
     },
     "sync": {
       "quotaExceededToast": "ORG2 クラウド同期を一時停止しました：この組織のプランのクォータを超過しています",
@@ -761,6 +766,25 @@
     },
     "renameDisplayName": "表示名を編集",
     "renameSaved": "表示名を更新しました",
-    "renameFailed": "表示名を更新できませんでした"
+    "renameFailed": "表示名を更新できませんでした",
+    "download": {
+      "title": "チームセッションをダウンロード中…",
+      "events": "{{loaded}} / {{total}} 件のイベント",
+      "eta": "残り約 {{eta}}",
+      "finalizing": "仕上げ処理中…",
+      "complete": "ダウンロード完了",
+      "estimate": "このセッションには {{count}} 件のイベントがあります（約 {{eta}}）。",
+      "start": "ダウンロード",
+      "pause": "一時停止",
+      "paused": "一時停止中",
+      "resume": "再開"
+    },
+    "offlineSync": {
+      "label": "オフライン同期",
+      "help": "この組織で共有されたすべてのセッションを各メンバーの端末に自動ダウンロードします。リプレイが即座に開き、オフラインでも閲覧できます。",
+      "on": "オン",
+      "off": "オフ",
+      "memberNote": "管理者が有効化 — 共有セッションはこの端末に自動ダウンロードされます。"
+    }
   }
 }

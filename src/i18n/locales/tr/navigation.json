@@ -398,7 +398,8 @@
       "agentError": "Choose a local agent before forking.",
       "backendError": "The session history was copied, but the runnable fork could not be registered. Retry.",
       "parentOpenUnavailable": "The source session could not be opened from this fork.",
-      "replayError": "Full replay is not available for this session. Ask the owner to share the replay, then retry."
+      "replayError": "Full replay is not available for this session. Ask the owner to share the replay, then retry.",
+      "openParentButton": "{{name}} kaynak oturumunu aç"
     }
   },
   "cloud": {
@@ -515,7 +516,10 @@
       "viewerOverflow": "ve {{count}} kişi daha izliyor",
       "memberViewing": "görüntülüyor: {{title}}",
       "viewerOverflow_one": "and 1 more viewer",
-      "viewerOverflow_other": "and {{count}} more viewers"
+      "viewerOverflow_other": "and {{count}} more viewers",
+      "loadingSession": "Oturum yükleniyor…",
+      "downloadProgress": "İndiriliyor… {{percent}}%",
+      "downloadProgressEta": "İndiriliyor… {{percent}}% · ~{{eta}} kaldı"
     },
     "sessionRef": {
       "chipLabel": "Ekip oturumu",
@@ -523,7 +527,8 @@
       "signInRequired": "Bu oturumu açmak için ORG2 Cloud'da oturum aç.",
       "sessionNotFound": "Bu oturum bu organizasyona ait değil.",
       "notPublished": "Referansı kopyalamadan önce bu oturumu bir organizasyonla paylaş.",
-      "chooseOrg": "Bu oturum birden çok organizasyona ait. Referans vermek istediğin organizasyona geç, sonra tekrar kopyala."
+      "chooseOrg": "Bu oturum birden çok organizasyona ait. Referans vermek istediğin organizasyona geç, sonra tekrar kopyala.",
+      "opening": "Takım oturumu açılıyor…"
     },
     "sync": {
       "quotaExceededToast": "ORG2 Cloud sync paused: this org's plan quota is exceeded",
@@ -761,6 +766,25 @@
     },
     "renameDisplayName": "Görünen adı düzenle",
     "renameSaved": "Görünen ad güncellendi",
-    "renameFailed": "Görünen ad güncellenemedi"
+    "renameFailed": "Görünen ad güncellenemedi",
+    "download": {
+      "title": "Takım oturumu indiriliyor…",
+      "events": "{{loaded}} / {{total}} olay",
+      "eta": "Yaklaşık {{eta}} kaldı",
+      "finalizing": "Tamamlanıyor…",
+      "complete": "İndirme tamamlandı",
+      "estimate": "Bu oturumda indirilecek {{count}} olay var (yaklaşık {{eta}}).",
+      "start": "İndir",
+      "pause": "Duraklat",
+      "paused": "Duraklatıldı",
+      "resume": "Devam et"
+    },
+    "offlineSync": {
+      "label": "Çevrimdışı eşitleme",
+      "help": "Bu organizasyondaki tüm paylaşılan oturumları her üyenin cihazına otomatik indirir — tekrarlar anında açılır ve çevrimdışı çalışır.",
+      "on": "Açık",
+      "off": "Kapalı",
+      "memberNote": "Bir yönetici etkinleştirdi — paylaşılan oturumlar bu cihaza otomatik indirilir."
+    }
   }
 }

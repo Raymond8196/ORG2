@@ -12,7 +12,7 @@ import type { SessionTurnLoader } from "./types";
 interface PendingImportedTurnBatch {
   turnIds: Set<string>;
   waiters: Array<{
-    resolve: () => void;
+    resolve: (loaded: boolean) => void;
     reject: (error: unknown) => void;
   }>;
   flushing: boolean;
@@ -36,13 +36,18 @@ async function flushPendingBatch(sessionId: string): Promise<void> {
         turnIds,
       });
       const chunks = windows.flatMap((window) => window.chunks);
+      // Batch-level resolution: per-turn attribution is not available on
+      // this wire, but provider files are local so an empty window means
+      // the whole batch found nothing.
+      let loaded = false;
       if (chunks.length > 0) {
         const events = await processChunksRust(chunks, sessionId);
         if (events.length > 0) {
           await eventStoreProxy.mergeRoundWindowEvents(events, sessionId);
+          loaded = true;
         }
       }
-      for (const waiter of waiters) waiter.resolve();
+      for (const waiter of waiters) waiter.resolve(loaded);
     } catch (error) {
       for (const waiter of waiters) waiter.reject(error);
     }
@@ -54,7 +59,7 @@ async function flushPendingBatch(sessionId: string): Promise<void> {
 function enqueueImportedTurnLoad(
   sessionId: string,
   turnId: string
-): Promise<void> {
+): Promise<boolean> {
   return new Promise((resolve, reject) => {
     const existing = pendingBatches.get(sessionId);
     if (existing) {
@@ -81,8 +86,8 @@ export const importedHistoryTurnLoader: SessionTurnLoader = {
       isCodexAppSession(sessionId) ||
       isCursorIdeSession(sessionId)
     ) {
-      return;
+      return false;
     }
-    await enqueueImportedTurnLoad(sessionId, turnId);
+    return enqueueImportedTurnLoad(sessionId, turnId);
   },
 };

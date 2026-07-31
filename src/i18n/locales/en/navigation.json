@@ -544,7 +544,10 @@
       "viewerOverflow": "and {{count}} more viewers",
       "memberViewing": "viewing: {{title}}",
       "viewerOverflow_one": "and 1 more viewer",
-      "viewerOverflow_other": "and {{count}} more viewers"
+      "viewerOverflow_other": "and {{count}} more viewers",
+      "loadingSession": "Loading session…",
+      "downloadProgress": "Downloading… {{percent}}%",
+      "downloadProgressEta": "Downloading… {{percent}}% · ~{{eta}} left"
     },
     "sessionRef": {
       "chipLabel": "Team session",
@@ -552,7 +555,8 @@
       "signInRequired": "Sign in to ORG2 Cloud to open this session.",
       "sessionNotFound": "That session is not in this organization.",
       "notPublished": "Share this session to an organization before copying a reference.",
-      "chooseOrg": "This session is in several organizations. Switch to the one you want to reference, then copy again."
+      "chooseOrg": "This session is in several organizations. Switch to the one you want to reference, then copy again.",
+      "opening": "Opening team session…"
     },
     "sync": {
       "quotaExceededToast": "ORG2 Cloud sync paused: this org's plan quota is exceeded",
@@ -791,6 +795,25 @@
     "signedInAs": "Signed in as {{name}}",
     "renameDisplayName": "Edit display name",
     "renameSaved": "Display name updated",
-    "renameFailed": "Failed to update display name"
+    "renameFailed": "Failed to update display name",
+    "download": {
+      "title": "Downloading team session…",
+      "events": "{{loaded}} / {{total}} events",
+      "eta": "About {{eta}} remaining",
+      "finalizing": "Finalizing…",
+      "complete": "Download complete",
+      "estimate": "This session has {{count}} events to download (about {{eta}}).",
+      "start": "Download",
+      "pause": "Pause",
+      "paused": "Paused",
+      "resume": "Resume"
+    },
+    "offlineSync": {
+      "label": "Offline sync",
+      "help": "Automatically download every shared session in this organization to each member's device, so replays open instantly and work offline.",
+      "on": "On",
+      "off": "Off",
+      "memberNote": "Enabled by an admin — shared sessions download to this device automatically."
+    }
   }
 }

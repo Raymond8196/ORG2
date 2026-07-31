@@ -236,6 +236,21 @@ pub fn finalize_deferred_event_import(session_id: &str) -> SqliteResult<usize> {
     Ok(event_count)
 }
 
+/// Count persisted events for a session without loading them.
+///
+/// A pure read: no sequence normalization and no writer serializer, so it
+/// stays cheap even while a large import batch holds the writer lock. Used
+/// as the cache-hit probe for imported replays, where `load_events` on a
+/// 100k-event session just to check non-emptiness is prohibitive.
+pub fn count_events(session_id: &str) -> SqliteResult<i64> {
+    let conn = get_connection()?;
+    conn.query_row(
+        "SELECT COUNT(*) FROM events WHERE session_id = ?1",
+        [session_id],
+        |row| row.get(0),
+    )
+}
+
 /// Load all events for a session.
 ///
 /// `normalize_session_sequences` is a writer (per-row UPDATEs) so it
@@ -949,6 +964,31 @@ mod tests {
                     .map(|event| event.id)
                     .collect::<Vec<_>>(),
                 ["event-1", "event-2", "event-3"]
+            );
+        });
+    }
+
+    #[test]
+    fn count_events_counts_without_loading() {
+        with_temp_orgii_home(|| {
+            {
+                let conn = get_connection().expect("open sessions DB");
+                super::super::schema::init_session_tables(&conn).expect("init session schema");
+            }
+            let session_id = "count-events-session";
+            assert_eq!(count_events(session_id).expect("count empty"), 0);
+            save_events(
+                session_id,
+                &[
+                    cached_event(session_id, "event-1", "2026-07-17T00:00:01.000Z"),
+                    cached_event(session_id, "event-2", "2026-07-17T00:00:02.000Z"),
+                ],
+            )
+            .expect("seed events");
+            assert_eq!(count_events(session_id).expect("count seeded"), 2);
+            assert_eq!(
+                count_events("some-other-session").expect("count unrelated"),
+                0
             );
         });
     }

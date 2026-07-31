@@ -398,7 +398,8 @@
       "agentError": "Choose a local agent before forking.",
       "backendError": "The session history was copied, but the runnable fork could not be registered. Retry.",
       "parentOpenUnavailable": "The source session could not be opened from this fork.",
-      "replayError": "Full replay is not available for this session. Ask the owner to share the replay, then retry."
+      "replayError": "Full replay is not available for this session. Ask the owner to share the replay, then retry.",
+      "openParentButton": "{{name}}의 원본 세션 열기"
     }
   },
   "cloud": {
@@ -515,7 +516,10 @@
       "viewerOverflow": "외 {{count}}명이 보고 있습니다",
       "memberViewing": "보는 중: {{title}}",
       "viewerOverflow_one": "and 1 more viewer",
-      "viewerOverflow_other": "and {{count}} more viewers"
+      "viewerOverflow_other": "and {{count}} more viewers",
+      "loadingSession": "세션 불러오는 중…",
+      "downloadProgress": "다운로드 중… {{percent}}%",
+      "downloadProgressEta": "다운로드 중… {{percent}}% · 약 {{eta}} 남음"
     },
     "sessionRef": {
       "chipLabel": "팀 세션",
@@ -523,7 +527,8 @@
       "signInRequired": "이 세션을 열려면 ORG2 Cloud에 로그인하세요.",
       "sessionNotFound": "해당 세션은 이 조직에 없습니다.",
       "notPublished": "참조를 복사하려면 먼저 이 세션을 조직과 공유하세요.",
-      "chooseOrg": "이 세션은 여러 조직에 속해 있습니다. 참조할 조직으로 전환한 후 다시 복사하세요."
+      "chooseOrg": "이 세션은 여러 조직에 속해 있습니다. 참조할 조직으로 전환한 후 다시 복사하세요.",
+      "opening": "팀 세션을 여는 중…"
     },
     "sync": {
       "quotaExceededToast": "ORG2 클라우드 동기화 일시 중지: 이 조직의 플랜 할당량을 초과했습니다",
@@ -761,6 +766,25 @@
     },
     "renameDisplayName": "표시 이름 수정",
     "renameSaved": "표시 이름이 변경되었습니다",
-    "renameFailed": "표시 이름을 업데이트하지 못했습니다"
+    "renameFailed": "표시 이름을 업데이트하지 못했습니다",
+    "download": {
+      "title": "팀 세션 다운로드 중…",
+      "events": "{{loaded}} / {{total}}개 이벤트",
+      "eta": "약 {{eta}} 남음",
+      "finalizing": "마무리 중…",
+      "complete": "다운로드 완료",
+      "estimate": "이 세션에는 다운로드할 이벤트가 {{count}}개 있습니다(약 {{eta}}).",
+      "start": "다운로드",
+      "pause": "일시중지",
+      "paused": "일시중지됨",
+      "resume": "재개"
+    },
+    "offlineSync": {
+      "label": "오프라인 동기화",
+      "help": "이 조직의 모든 공유 세션을 각 구성원의 기기에 자동으로 다운로드합니다. 리플레이가 즉시 열리고 오프라인에서도 볼 수 있습니다.",
+      "on": "켬",
+      "off": "끔",
+      "memberNote": "관리자가 활성화함 — 공유 세션이 이 기기에 자동으로 다운로드됩니다."
+    }
   }
 }

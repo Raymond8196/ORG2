@@ -30,6 +30,8 @@ describe("getCloudCapabilities", () => {
       homeEndpoints: false,
       teamInboxMentions: false,
       memberRuntime: false,
+      sessionTurnIndex: false,
+      offlineSync: false,
     });
     expect(await getCloudCapabilities("jwt-1")).toEqual({
       broadcastSignals: true,
@@ -37,6 +39,8 @@ describe("getCloudCapabilities", () => {
       homeEndpoints: false,
       teamInboxMentions: false,
       memberRuntime: false,
+      sessionTurnIndex: false,
+      offlineSync: false,
     });
     expect(rawMock).toHaveBeenCalledTimes(1);
   });
@@ -52,6 +56,8 @@ describe("getCloudCapabilities", () => {
       homeEndpoints: false,
       teamInboxMentions: false,
       memberRuntime: false,
+      sessionTurnIndex: false,
+      offlineSync: false,
     });
   });
 
@@ -67,6 +73,8 @@ describe("getCloudCapabilities", () => {
       homeEndpoints: true,
       teamInboxMentions: false,
       memberRuntime: false,
+      sessionTurnIndex: false,
+      offlineSync: false,
     });
   });
 
@@ -83,6 +91,8 @@ describe("getCloudCapabilities", () => {
       homeEndpoints: true,
       teamInboxMentions: true,
       memberRuntime: false,
+      sessionTurnIndex: false,
+      offlineSync: false,
     });
   });
 
@@ -93,6 +103,8 @@ describe("getCloudCapabilities", () => {
       homeEndpoints: true,
       teamInboxMentions: true,
       memberRuntime: true,
+      sessionTurnIndex: false,
+      offlineSync: false,
     });
     expect(await getCloudCapabilities("jwt-1")).toEqual({
       broadcastSignals: true,
@@ -100,6 +112,8 @@ describe("getCloudCapabilities", () => {
       homeEndpoints: true,
       teamInboxMentions: true,
       memberRuntime: true,
+      sessionTurnIndex: false,
+      offlineSync: false,
     });
   });
 
@@ -111,6 +125,8 @@ describe("getCloudCapabilities", () => {
       homeEndpoints: false,
       teamInboxMentions: false,
       memberRuntime: false,
+      sessionTurnIndex: false,
+      offlineSync: false,
     });
     rawMock.mockResolvedValueOnce({ broadcastSignals: true });
     expect(await getCloudCapabilities("jwt-1")).toEqual({
@@ -119,6 +135,8 @@ describe("getCloudCapabilities", () => {
       homeEndpoints: false,
       teamInboxMentions: false,
       memberRuntime: false,
+      sessionTurnIndex: false,
+      offlineSync: false,
     });
     expect(rawMock).toHaveBeenCalledTimes(2);
   });
@@ -135,6 +153,8 @@ describe("getCloudCapabilities", () => {
       homeEndpoints: false,
       teamInboxMentions: false,
       memberRuntime: false,
+      sessionTurnIndex: false,
+      offlineSync: false,
     });
     expect(await getCloudCapabilities("jwt-1")).toEqual({
       broadcastSignals: false,
@@ -142,6 +162,8 @@ describe("getCloudCapabilities", () => {
       homeEndpoints: false,
       teamInboxMentions: false,
       memberRuntime: false,
+      sessionTurnIndex: false,
+      offlineSync: false,
     });
     expect(rawMock).toHaveBeenCalledTimes(1);
   });
@@ -162,6 +184,8 @@ describe("getCloudCapabilities", () => {
       homeEndpoints: false,
       teamInboxMentions: false,
       memberRuntime: false,
+      sessionTurnIndex: false,
+      offlineSync: false,
     });
     expect(await second).toEqual({
       broadcastSignals: true,
@@ -169,6 +193,8 @@ describe("getCloudCapabilities", () => {
       homeEndpoints: false,
       teamInboxMentions: false,
       memberRuntime: false,
+      sessionTurnIndex: false,
+      offlineSync: false,
     });
     expect(rawMock).toHaveBeenCalledTimes(1);
   });
@@ -185,6 +211,8 @@ describe("getCloudCapabilitiesConfirmed", () => {
       homeEndpoints: false,
       teamInboxMentions: false,
       memberRuntime: false,
+      sessionTurnIndex: false,
+      offlineSync: false,
     });
   });
 
@@ -195,6 +223,8 @@ describe("getCloudCapabilitiesConfirmed", () => {
       homeEndpoints: true,
       teamInboxMentions: true,
       memberRuntime: true,
+      sessionTurnIndex: false,
+      offlineSync: false,
     });
     const result = await getCloudCapabilitiesConfirmed("jwt-1");
     expect(result.confirmed).toBe(true);
@@ -211,6 +241,8 @@ describe("getCloudCapabilitiesConfirmed", () => {
       homeEndpoints: false,
       teamInboxMentions: false,
       memberRuntime: false,
+      sessionTurnIndex: false,
+      offlineSync: false,
     });
   });
 
@@ -239,6 +271,8 @@ describe("getCloudCapabilitiesConfirmed", () => {
       homeEndpoints: false,
       teamInboxMentions: false,
       memberRuntime: false,
+      sessionTurnIndex: false,
+      offlineSync: false,
     });
     // A cached hit is, by definition, a confirmed read — no second RPC.
     const result = await getCloudCapabilitiesConfirmed("jwt-1");

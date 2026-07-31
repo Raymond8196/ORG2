@@ -54,6 +54,31 @@ export interface ImportRemoteSessionOptions extends RemoteSessionFetchOptions {
    * a local navigation path.
    */
   workspaceRepoPath?: string;
+  /**
+   * Pause capture: on an aborted fresh stream, receives the last PERSISTED
+   * position (epoch / frozen seq / counts) so the caller can offer a resume
+   * that continues past it. Persisted pages are deliberately NOT rolled back
+   * on abort when this is provided. Never called when nothing durable was
+   * written (the next start is a plain fresh stream).
+   */
+  onPauseState?: (state: {
+    epoch: number;
+    seq: number;
+    count: number;
+    frozenCount: number;
+  }) => void;
+  /**
+   * Continue a previously paused fresh download: skip straight to the
+   * incremental streamer with this cursor. Epoch drift or a persisted-count
+   * mismatch degrades to a full fresh restream, so a stale cursor can never
+   * corrupt the copy.
+   */
+  resumeCursor?: {
+    epoch: number;
+    seq: number;
+    count: number;
+    frozenCount: number;
+  } | null;
 }
 
 export interface ImportRemoteSessionResult {
@@ -110,12 +135,15 @@ async function streamFreshRemoteSessionToCache(
   if (!stream) return null;
 
   for (let attempt = 0; attempt < STREAM_IMPORT_MAX_ATTEMPTS; attempt += 1) {
-    await eventStoreProxy.clearPersistedHistory(localSessionId);
     let epoch: number | null = null;
     let expectedFrozenSeq = 0;
     let persistedCount = 0;
     let frozenCount = 0;
     let tailHash: string | null = null;
+    // Pause bookkeeping: expectedFrozenSeq advances during page VALIDATION,
+    // before the page persists — a resume cursor must only ever describe
+    // rows that actually landed in SQLite.
+    let lastPersistedFrozenSeq = 0;
 
     try {
       const summary = await stream(
@@ -132,6 +160,11 @@ async function streamFreshRemoteSessionToCache(
           throwIfAborted(options.signal);
           if (page.epoch === null || page.count === null) return;
           if (epoch === null) {
+            // First page with data: only now is it certain the owner still
+            // publishes segments. Clearing here rather than at attempt
+            // start lets an EXISTING local copy survive the unpublished
+            // race (this path also serves full restreams of stale imports).
+            await eventStoreProxy.clearPersistedHistory(localSessionId);
             epoch = page.epoch;
           } else if (page.epoch !== epoch) {
             throw new Error(
@@ -181,12 +214,18 @@ async function streamFreshRemoteSessionToCache(
             (count, segment) => count + segment.events.length,
             0
           );
+          lastPersistedFrozenSeq = expectedFrozenSeq;
           if (tail) tailHash = tail.segmentHash;
+          options.onProgress?.({
+            loadedEvents: persistedCount,
+            totalEvents: page.count,
+          });
         }
       );
 
       if (summary.epoch === null || summary.count === null) {
-        await eventStoreProxy.clearPersistedHistory(localSessionId);
+        // No page carried data, so nothing was cleared or persisted — an
+        // existing local copy is untouched.
         return null;
       }
       if (
@@ -197,6 +236,11 @@ async function streamFreshRemoteSessionToCache(
         throw new Error("Streamed replay summary did not reconcile");
       }
       throwIfAborted(options.signal);
+      options.onProgress?.({
+        loadedEvents: persistedCount,
+        totalEvents: summary.count,
+        phase: "finalizing",
+      });
       const finalizedCount =
         await eventStoreProxy.finalizePersistedImport(localSessionId);
       if (finalizedCount !== summary.count) {
@@ -220,8 +264,25 @@ async function streamFreshRemoteSessionToCache(
         tailHash: tailHash ?? summary.tailHash,
       };
     } catch (error) {
-      await eventStoreProxy.clearPersistedHistory(localSessionId);
-      await eventStoreProxy.clear(localSessionId).catch(() => undefined);
+      if (options.signal?.aborted && options.onPauseState) {
+        // Pause, not failure: keep the persisted pages and hand the caller
+        // a cursor describing them. Nothing durable ⇒ no capture — the next
+        // start is an ordinary fresh stream.
+        if (epoch !== null && persistedCount > 0) {
+          options.onPauseState({
+            epoch,
+            seq: lastPersistedFrozenSeq,
+            count: persistedCount,
+            frozenCount,
+          });
+        }
+        throw error;
+      }
+      if (epoch !== null) {
+        // Partial rows were written this attempt; drop them.
+        await eventStoreProxy.clearPersistedHistory(localSessionId);
+        await eventStoreProxy.clear(localSessionId).catch(() => undefined);
+      }
       if (
         isReplayEpochConflict(error) &&
         attempt + 1 < STREAM_IMPORT_MAX_ATTEMPTS
@@ -232,6 +293,170 @@ async function streamFreshRemoteSessionToCache(
     }
   }
   throw new Error("Streamed replay import exhausted its retry budget");
+}
+
+/**
+ * Incremental streamed refresh for an already-imported replay: fetch only
+ * frozen segments past the cursor plus the current tail, upsert them into
+ * the existing persisted rows (event ids are stable across tail freezes, so
+ * re-sent tail events dedup in place), then republish. Returns null when the
+ * delta cannot be applied cleanly — the caller restreams from scratch. The
+ * finalize count check is the safety net: any drift (a tail rewritten in
+ * place, legacy un-namespaced rows) surfaces as a count mismatch.
+ */
+async function streamIncrementalRemoteSessionToCache(
+  options: ImportRemoteSessionOptions,
+  localSessionId: string,
+  cursor: { epoch: number; seq: number; count: number; frozenCount: number }
+): Promise<PersistedStreamSummary | null> {
+  const stream = options.client.streamSessionEventSegments;
+  if (!stream) return null;
+  // Cheap probe (COUNT, no event load): the local store must hold exactly
+  // what the cursor claims before a delta may be spliced onto it.
+  const persistedCount =
+    await eventStoreProxy.countPersistedEvents(localSessionId);
+  if (persistedCount !== cursor.count) return null;
+
+  let expectedFrozenSeq = cursor.seq;
+  let appendedFrozenCount = 0;
+  let appendedCount = 0;
+  let tailHash: string | null = null;
+  let lastPersistedFrozenSeq = cursor.seq;
+  try {
+    const summary = await stream(
+      {
+        orgId: options.orgId,
+        sessionRowId: options.remoteSession.id,
+        afterSeq: cursor.seq,
+        ...(options.shareToken !== undefined
+          ? { shareToken: options.shareToken }
+          : {}),
+        ...(options.signal !== undefined ? { signal: options.signal } : {}),
+      },
+      async (page) => {
+        throwIfAborted(options.signal);
+        if (page.epoch === null || page.count === null) return;
+        if (page.epoch !== cursor.epoch) {
+          throw new Error(
+            "ORG2_CONFLICT session events epoch changed during incremental import"
+          );
+        }
+        const frozen = page.segments
+          .filter((segment) => !segment.isTail)
+          .sort((a, b) => a.seq - b.seq);
+        const tails = page.segments.filter((segment) => segment.isTail);
+        if (tails.length > 1) {
+          throw new Error("Replay page contained more than one tail");
+        }
+        for (const segment of [...frozen, ...tails]) {
+          await validateSegmentIntegrity(segment);
+        }
+        for (const segment of frozen) {
+          if (segment.seq !== expectedFrozenSeq + 1) {
+            throw new Error("Replay page contained a frozen-segment gap");
+          }
+          expectedFrozenSeq = segment.seq;
+        }
+        const tail = tails[0] ?? null;
+        const sourceEvents = [
+          ...frozen.flatMap((segment) => segment.events),
+          ...(tail?.events ?? []),
+        ];
+        const localEvents = rewriteEventsForImportedSnapshot(
+          sourceEvents,
+          localSessionId
+        );
+        if (localEvents.length > 0) {
+          const savedCount = await eventStoreProxy.persistEventsBatch(
+            localEvents,
+            localSessionId
+          );
+          if (savedCount <= 0) {
+            throw new Error(
+              `Failed to persist incremental import ${options.remoteSession.sourceSessionId}`
+            );
+          }
+        }
+        appendedCount += localEvents.length;
+        appendedFrozenCount += frozen.reduce(
+          (count, segment) => count + segment.events.length,
+          0
+        );
+        lastPersistedFrozenSeq = expectedFrozenSeq;
+        if (tail) tailHash = tail.segmentHash;
+        options.onProgress?.({
+          // Approximate: overlap with the re-sent tail dedups on upsert.
+          loadedEvents: Math.min(
+            page.count,
+            cursor.frozenCount + appendedCount
+          ),
+          totalEvents: page.count,
+        });
+      }
+    );
+
+    if (summary.epoch === null || summary.count === null) return null;
+    if (summary.epoch !== cursor.epoch) {
+      throw new Error("Incremental replay summary epoch did not match cursor");
+    }
+    if (expectedFrozenSeq !== (summary.frozenSeq ?? 0)) {
+      throw new Error("Incremental replay summary did not reconcile");
+    }
+    throwIfAborted(options.signal);
+    options.onProgress?.({
+      loadedEvents: summary.count,
+      totalEvents: summary.count,
+      phase: "finalizing",
+    });
+    const finalizedCount =
+      await eventStoreProxy.finalizePersistedImport(localSessionId);
+    if (finalizedCount !== summary.count) {
+      throw new Error(
+        `Incremental replay finalize count ${finalizedCount} did not match ${summary.count}`
+      );
+    }
+    throwIfAborted(options.signal);
+    const loaded = await eventStoreProxy.loadInitialTurnWindow(
+      localSessionId,
+      0
+    );
+    if (summary.count > 0 && loaded <= 0) {
+      throw new Error("Failed to hydrate incremental replay turn window");
+    }
+    return {
+      epoch: summary.epoch,
+      frozenSeq: summary.frozenSeq ?? 0,
+      frozenCount: cursor.frozenCount + appendedFrozenCount,
+      count: finalizedCount,
+      tailHash: tailHash ?? summary.tailHash,
+    };
+  } catch (error) {
+    if (options.signal?.aborted) {
+      // Pause capture for the incremental case. The tail upsert dedups
+      // re-sent events, so the durable count is PROBED, not derived —
+      // making the pause resumable instead of leaving unfinalized rows
+      // for the next start's count probe to disown.
+      if (options.onPauseState) {
+        const persisted = await eventStoreProxy
+          .countPersistedEvents(localSessionId)
+          .catch(() => null);
+        if (persisted !== null && persisted > 0) {
+          options.onPauseState({
+            epoch: cursor.epoch,
+            seq: lastPersistedFrozenSeq,
+            count: persisted,
+            frozenCount: cursor.frozenCount + appendedFrozenCount,
+          });
+        }
+      }
+      throw error;
+    }
+    log.warn("incremental replay refresh failed; falling back to restream", {
+      localSessionId,
+      error,
+    });
+    return null;
+  }
 }
 
 function resolveImportedSourceDisplay(
@@ -444,11 +669,12 @@ async function importRemoteSessionInner(
     // cache row can outlive its event data (restart/cleanup churn), and
     // trusting the cursor then pins an unrecoverable empty replay: every
     // click returns here and Reload re-reads the same empty store. Verify
-    // before short-circuiting; fall through to a full refetch when hollow.
-    const persisted = await eventStoreProxy.getPersistedEvents(
+    // with a cheap COUNT (a full getPersistedEvents read on a large replay
+    // made every cached open slow); fall through to a refetch when hollow.
+    const persistedCount = await eventStoreProxy.countPersistedEvents(
       existing.session_id
     );
-    if (persisted.length > 0 || remoteSession.eventsCount === 0) {
+    if (persistedCount > 0 || remoteSession.eventsCount === 0) {
       refreshImportedSessionPresentation(existing, remoteSession);
       return { localSessionId: existing.session_id, updated: false };
     }
@@ -457,17 +683,77 @@ async function importRemoteSessionInner(
   let assembled: AssembledSegments | null = null;
   let streamed: PersistedStreamSummary | null = null;
   let localSessionId = existing?.session_id;
-  if (!existing && options.client.streamSessionEventSegments) {
-    // Fresh imports are the common large-history path. Persist bounded pages
-    // directly instead of constructing two full event arrays in the WebView.
-    localSessionId = await deriveImportedSessionId(
+  if (options.client.streamSessionEventSegments) {
+    // Streamed imports persist bounded pages straight to SQLite — the full
+    // replay never materializes in WebView memory. An existing import first
+    // tries an incremental append past its cursor; any mismatch falls back
+    // to a full restream. The assembled path's atomic restore-on-failure is
+    // deliberately traded away here: a failed restream clears the local
+    // copy, and the next open simply re-downloads it.
+    localSessionId ??= await deriveImportedSessionId(
       orgId,
       remoteSession.sourceSessionId,
       sourceEndpointUrl
     );
     onBeforeWrite?.(localSessionId);
-    streamed = await streamFreshRemoteSessionToCache(options, localSessionId);
-    if (!streamed) return null;
+    if (options.resumeCursor) {
+      // Paused-download continuation: the incremental streamer already
+      // guards everything a stale cursor could break (count probe, in-epoch
+      // check, finalize reconcile) and falls back to null on any mismatch.
+      streamed = await streamIncrementalRemoteSessionToCache(
+        options,
+        localSessionId,
+        options.resumeCursor
+      );
+    }
+    if (
+      !streamed &&
+      existing &&
+      cursor &&
+      cursor.epoch >= 1 &&
+      cursor.epoch === remoteSession.eventsEpoch &&
+      cursor.frozenCount !== undefined &&
+      (remoteSession.eventsFrozenSeq ?? 0) >= cursor.seq
+    ) {
+      streamed = await streamIncrementalRemoteSessionToCache(
+        options,
+        localSessionId,
+        {
+          epoch: cursor.epoch,
+          seq: cursor.seq,
+          count: cursor.count,
+          frozenCount: cursor.frozenCount,
+        }
+      );
+    }
+    streamed ??= await streamFreshRemoteSessionToCache(options, localSessionId);
+    if (!streamed) {
+      // No segments published (or publishing stopped mid-race): keep any
+      // local copy — the deferred clear above never ran.
+      if (!existing) return null;
+      // ...but only a copy that still matches its cursor. A failed
+      // incremental may have left unfinalized rows past it; pinning those
+      // would replay a corrupted tail until the owner republishes.
+      const cursorCount = existing.importedFrom?.count;
+      if (cursorCount !== undefined) {
+        const persisted = await eventStoreProxy.countPersistedEvents(
+          existing.session_id
+        );
+        if (persisted !== cursorCount) {
+          log.warn(
+            "unpublished refresh left an inconsistent local copy; clearing",
+            { localSessionId: existing.session_id, persisted, cursorCount }
+          );
+          await eventStoreProxy.clearPersistedHistory(existing.session_id);
+          await eventStoreProxy
+            .clear(existing.session_id)
+            .catch(() => undefined);
+          return null;
+        }
+      }
+      refreshImportedSessionPresentation(existing, remoteSession);
+      return { localSessionId: existing.session_id, updated: false };
+    }
   } else {
     if (
       existing &&
@@ -521,9 +807,13 @@ async function importRemoteSessionInner(
     : [];
   const replay = streamed ?? assembled;
   if (!replay) return null;
-  const priorPersisted = existing
-    ? await eventStoreProxy.getPersistedEvents(localSessionId)
-    : [];
+  // Only the assembled (non-streamed) path needs the full prior snapshot:
+  // it is the restore point for its atomic replace, and the source of the
+  // legacy bare-row purge below. Streamed paths must not pay this read.
+  const priorPersisted =
+    existing && !streamed
+      ? await eventStoreProxy.getPersistedEvents(localSessionId)
+      : [];
   let storageMutated = streamed !== null;
   try {
     throwIfAborted(options.signal);

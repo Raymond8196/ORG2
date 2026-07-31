@@ -19,6 +19,8 @@ const CloudCapabilitiesWireSchema = z.object({
   homeEndpoints: z.boolean().nullish().catch(undefined),
   teamInboxMentions: z.boolean().nullish().catch(undefined),
   memberRuntime: z.boolean().nullish().catch(undefined),
+  sessionTurnIndex: z.boolean().nullish().catch(undefined),
+  offlineSync: z.boolean().nullish().catch(undefined),
 });
 
 export interface CloudCapabilities {
@@ -28,6 +30,10 @@ export interface CloudCapabilities {
   teamInboxMentions: boolean;
   /** 0010 member-runtime sharing tables/RPCs are present. */
   memberRuntime: boolean;
+  /** 0012 per-round turn-index table/RPCs are present. */
+  sessionTurnIndex: boolean;
+  /** 0013 org-level offline-sync policy flag/setter are present. */
+  offlineSync: boolean;
 }
 
 const LEGACY_CAPABILITIES: CloudCapabilities = {
@@ -36,6 +42,8 @@ const LEGACY_CAPABILITIES: CloudCapabilities = {
   homeEndpoints: false,
   teamInboxMentions: false,
   memberRuntime: false,
+  sessionTurnIndex: false,
+  offlineSync: false,
 };
 
 export interface CloudCapabilitiesProbeResult {
@@ -81,6 +89,8 @@ async function probeCloudCapabilities(
       homeEndpoints: parsed.data.homeEndpoints ?? false,
       teamInboxMentions: parsed.data.teamInboxMentions ?? false,
       memberRuntime: parsed.data.memberRuntime ?? false,
+      sessionTurnIndex: parsed.data.sessionTurnIndex ?? false,
+      offlineSync: parsed.data.offlineSync ?? false,
     };
     capabilitiesByEndpoint.set(endpointKey, capabilities);
     return { capabilities, confirmed: true };

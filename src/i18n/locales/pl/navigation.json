@@ -398,7 +398,8 @@
       "agentError": "Choose a local agent before forking.",
       "backendError": "The session history was copied, but the runnable fork could not be registered. Retry.",
       "parentOpenUnavailable": "The source session could not be opened from this fork.",
-      "replayError": "Full replay is not available for this session. Ask the owner to share the replay, then retry."
+      "replayError": "Full replay is not available for this session. Ask the owner to share the replay, then retry.",
+      "openParentButton": "Otwórz sesję źródłową od {{name}}"
     }
   },
   "cloud": {
@@ -515,7 +516,10 @@
       "viewerOverflow": "i jeszcze {{count}} oglądających",
       "memberViewing": "ogląda: {{title}}",
       "viewerOverflow_one": "and 1 more viewer",
-      "viewerOverflow_other": "and {{count}} more viewers"
+      "viewerOverflow_other": "and {{count}} more viewers",
+      "loadingSession": "Ładowanie sesji…",
+      "downloadProgress": "Pobieranie… {{percent}}%",
+      "downloadProgressEta": "Pobieranie… {{percent}}% · zostało ~{{eta}}"
     },
     "sessionRef": {
       "chipLabel": "Sesja zespołu",
@@ -523,7 +527,8 @@
       "signInRequired": "Zaloguj się do ORG2 Cloud, aby otworzyć tę sesję.",
       "sessionNotFound": "Ta sesja nie należy do tej organizacji.",
       "notPublished": "Udostępnij tę sesję organizacji, zanim skopiujesz odwołanie.",
-      "chooseOrg": "Ta sesja należy do kilku organizacji. Przełącz się na organizację, do której chcesz się odwołać, i skopiuj ponownie."
+      "chooseOrg": "Ta sesja należy do kilku organizacji. Przełącz się na organizację, do której chcesz się odwołać, i skopiuj ponownie.",
+      "opening": "Otwieranie sesji zespołu…"
     },
     "sync": {
       "quotaExceededToast": "ORG2 Cloud sync paused: this org's plan quota is exceeded",
@@ -761,6 +766,25 @@
     },
     "renameDisplayName": "Edytuj nazwę wyświetlaną",
     "renameSaved": "Nazwa wyświetlana zaktualizowana",
-    "renameFailed": "Nie udało się zaktualizować nazwy wyświetlanej"
+    "renameFailed": "Nie udało się zaktualizować nazwy wyświetlanej",
+    "download": {
+      "title": "Pobieranie sesji zespołu…",
+      "events": "{{loaded}} / {{total}} zdarzeń",
+      "eta": "Pozostało około {{eta}}",
+      "finalizing": "Finalizowanie…",
+      "complete": "Pobieranie zakończone",
+      "estimate": "Ta sesja ma {{count}} zdarzeń do pobrania (około {{eta}}).",
+      "start": "Pobierz",
+      "pause": "Wstrzymaj",
+      "paused": "Wstrzymano",
+      "resume": "Wznów"
+    },
+    "offlineSync": {
+      "label": "Synchronizacja offline",
+      "help": "Automatycznie pobiera każdą udostępnioną sesję tej organizacji na urządzenie każdego członka — odtworzenia otwierają się natychmiast i działają offline.",
+      "on": "Włączone",
+      "off": "Wyłączone",
+      "memberNote": "Włączone przez administratora — udostępnione sesje pobierają się automatycznie na to urządzenie."
+    }
   }
 }

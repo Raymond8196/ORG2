@@ -9,6 +9,7 @@ import { COLLAB_SESSION_ACCESS_MODE } from "@src/store/collaboration/types";
 
 import { CloudOrgSettingsSection } from "./CloudOrgSettingsSection";
 import type { CloudOrgManagement } from "./useCloudOrgManagement";
+import type { OrgOfflineSyncState } from "./useOrgOfflineSync";
 import type { OrgRuntimeTelemetryState } from "./useOrgRuntimeTelemetry";
 
 vi.mock("react-i18next", () => ({
@@ -84,6 +85,16 @@ function runtimeSharing(
   };
 }
 
+function offlineSync(): OrgOfflineSyncState {
+  return {
+    value: "off",
+    enabled: false,
+    saving: false,
+    error: null,
+    handleChange: vi.fn().mockResolvedValue(undefined),
+  };
+}
+
 function renderSettings(
   overrides: Partial<CloudOrgManagement> = {},
   runtimeSharingOverrides: Partial<OrgRuntimeTelemetryState> = {}
@@ -101,6 +112,7 @@ function renderSettings(
       floorError: null,
       onFloorChange: vi.fn().mockResolvedValue(undefined),
       runtimeSharing: runtimeSharing(runtimeSharingOverrides),
+      offlineSync: offlineSync(),
       openCloudBillingPage: vi.fn(),
       orgName: "Example team",
       members,
