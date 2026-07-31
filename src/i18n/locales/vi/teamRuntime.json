@@ -3,8 +3,7 @@
   "refresh": "Làm mới",
   "loadError": "Không thể tải runtime của nhóm",
   "overview": {
-    "todayUtc": "Hôm nay (UTC)",
-    "person": "Thành viên",
+    "today": "Hôm nay",
     "everyone": "Mọi người",
     "activeMembers": "Thành viên hoạt động",
     "systemsCurrent": "{{current}}/{{total}} hệ thống đang cập nhật",

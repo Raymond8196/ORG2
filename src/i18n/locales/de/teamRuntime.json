@@ -3,8 +3,7 @@
   "refresh": "Aktualisieren",
   "loadError": "Team-Runtime konnte nicht geladen werden",
   "overview": {
-    "todayUtc": "Heute (UTC)",
-    "person": "Person",
+    "today": "Heute",
     "everyone": "Alle",
     "activeMembers": "Aktive Mitglieder",
     "systemsCurrent": "{{current}} von {{total}} Systemen aktuell",

@@ -624,6 +624,13 @@ describe("TeamRuntimePanel roster", () => {
         .querySelector('[data-testid="team-runtime-title-row"]')
         ?.querySelector('[data-testid="team-runtime-refresh"]')
     ).not.toBeNull();
+    const titleRow = container.querySelector(
+      '[data-testid="team-runtime-title-row"]'
+    );
+    expect(titleRow?.firstElementChild?.tagName).toBe("H3");
+    expect(titleRow?.textContent).toContain("overview.today");
+    expect(titleRow?.textContent).not.toContain("overview.todayUtc");
+    expect(titleRow?.textContent).not.toContain("overview.person");
 
     const personSelect = container.querySelector<HTMLSelectElement>(
       '[data-testid="team-runtime-person-select"]'

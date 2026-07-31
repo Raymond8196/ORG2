@@ -108,7 +108,7 @@ const RuntimeSectionTabs: React.FC<RuntimeSectionTabsProps> = memo(
       () => [
         {
           key: "today",
-          label: tTeamRuntime("overview.todayUtc"),
+          label: tTeamRuntime("overview.today"),
           dataTestId: "data-source-view-org-today",
         },
         {

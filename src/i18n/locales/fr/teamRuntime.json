@@ -3,8 +3,7 @@
   "refresh": "Actualiser",
   "loadError": "Impossible de charger le runtime de l'équipe",
   "overview": {
-    "todayUtc": "Aujourd'hui (UTC)",
-    "person": "Personne",
+    "today": "Aujourd'hui",
     "everyone": "Tout le monde",
     "activeMembers": "Membres actifs",
     "systemsCurrent": "{{current}} systèmes à jour sur {{total}}",

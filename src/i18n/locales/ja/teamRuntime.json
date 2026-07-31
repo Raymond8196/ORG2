@@ -3,8 +3,7 @@
   "refresh": "更新",
   "loadError": "チームランタイムの読み込みに失敗しました",
   "overview": {
-    "todayUtc": "今日（UTC）",
-    "person": "メンバー",
+    "today": "今日",
     "everyone": "全員",
     "activeMembers": "アクティブなメンバー",
     "systemsCurrent": "{{total}} 台中 {{current}} 台が最新",

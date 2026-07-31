@@ -3,8 +3,7 @@
   "refresh": "Yenile",
   "loadError": "Ekip çalışma zamanı yüklenemedi",
   "overview": {
-    "todayUtc": "Bugün (UTC)",
-    "person": "Kişi",
+    "today": "Bugün",
     "everyone": "Herkes",
     "activeMembers": "Aktif üyeler",
     "systemsCurrent": "{{total}} sistemin {{current}} tanesi güncel",

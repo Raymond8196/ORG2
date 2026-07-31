@@ -5,7 +5,7 @@
  * sessions are a read-only projection of the existing Team Sessions cache,
  * so this component owns no network request, timer, subscription, or cache.
  */
-import { Activity, MessageSquareText } from "lucide-react";
+import { MessageSquareText } from "lucide-react";
 import { type ReactNode, memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -152,32 +152,22 @@ function TeamRuntimeToday({
         className="flex min-h-9 flex-wrap items-center justify-between gap-3"
         data-testid="team-runtime-title-row"
       >
-        <div className="flex items-center gap-2">
-          <Activity className="h-4 w-4 text-text-3" aria-hidden />
-          <h3 className={SECTION_SUBHEADING_CLASSES}>
-            {t("overview.todayUtc")}
-          </h3>
-        </div>
+        <h3 className={SECTION_SUBHEADING_CLASSES}>{t("overview.today")}</h3>
         {members.length > 0 || headerAction ? (
           <div className="flex min-w-0 items-center gap-2">
             {members.length > 0 ? (
-              <>
-                <span className="shrink-0 text-xs text-text-3">
-                  {t("overview.person")}
-                </span>
-                <Select
-                  value={selectedMemberId ?? ALL_MEMBERS}
-                  options={memberOptions}
-                  onChange={(value) =>
-                    onSelectMember(
-                      String(value) === ALL_MEMBERS ? null : String(value)
-                    )
-                  }
-                  variant="ghost"
-                  size="small"
-                  dataTestId="team-runtime-person-select"
-                />
-              </>
+              <Select
+                value={selectedMemberId ?? ALL_MEMBERS}
+                options={memberOptions}
+                onChange={(value) =>
+                  onSelectMember(
+                    String(value) === ALL_MEMBERS ? null : String(value)
+                  )
+                }
+                variant="ghost"
+                size="small"
+                dataTestId="team-runtime-person-select"
+              />
             ) : null}
             {headerAction ? (
               <div

@@ -3,8 +3,7 @@
   "refresh": "Обновить",
   "loadError": "Не удалось загрузить рантайм команды",
   "overview": {
-    "todayUtc": "Сегодня (UTC)",
-    "person": "Участник",
+    "today": "Сегодня",
     "everyone": "Все",
     "activeMembers": "Активные участники",
     "systemsCurrent": "Актуальны {{current}} из {{total}} систем",

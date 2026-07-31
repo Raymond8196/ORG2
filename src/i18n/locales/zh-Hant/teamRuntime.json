@@ -3,8 +3,7 @@
   "refresh": "重新整理",
   "loadError": "無法載入團隊執行狀態",
   "overview": {
-    "todayUtc": "今天（UTC）",
-    "person": "成員",
+    "today": "今天",
     "everyone": "所有人",
     "activeMembers": "活躍成員",
     "systemsCurrent": "{{total}} 台系統中有 {{current}} 台狀態為最新",

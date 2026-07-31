@@ -3,8 +3,7 @@
   "refresh": "刷新",
   "loadError": "团队运行状态加载失败",
   "overview": {
-    "todayUtc": "今天（UTC）",
-    "person": "成员",
+    "today": "今天",
     "everyone": "所有人",
     "activeMembers": "活跃成员",
     "systemsCurrent": "{{total}} 台系统中有 {{current}} 台状态最新",

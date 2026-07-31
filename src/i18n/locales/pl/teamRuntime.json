@@ -3,8 +3,7 @@
   "refresh": "Odśwież",
   "loadError": "Nie udało się wczytać danych runtime zespołu",
   "overview": {
-    "todayUtc": "Dzisiaj (UTC)",
-    "person": "Osoba",
+    "today": "Dzisiaj",
     "everyone": "Wszyscy",
     "activeMembers": "Aktywni członkowie",
     "systemsCurrent": "Aktualne systemy: {{current}} z {{total}}",

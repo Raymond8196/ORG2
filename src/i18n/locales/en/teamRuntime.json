@@ -3,8 +3,7 @@
   "refresh": "Refresh",
   "loadError": "Failed to load team runtime",
   "overview": {
-    "todayUtc": "Today (UTC)",
-    "person": "Person",
+    "today": "Today",
     "everyone": "Everyone",
     "activeMembers": "Active members",
     "systemsCurrent": "{{current}} of {{total}} systems current",
