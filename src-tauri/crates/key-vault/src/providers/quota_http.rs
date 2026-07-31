@@ -8,8 +8,8 @@ use std::fmt;
 use std::sync::LazyLock;
 use std::time::Duration;
 
-use reqwest::header::{ACCEPT, CONTENT_LENGTH, RETRY_AFTER};
-use reqwest::{Client, StatusCode};
+use reqwest::header::{HeaderMap, ACCEPT, CONTENT_LENGTH, RETRY_AFTER};
+use reqwest::{Client, RequestBuilder, StatusCode};
 use serde_json::Value;
 
 const REQUEST_DEADLINE: Duration = Duration::from_secs(12);
@@ -53,23 +53,52 @@ pub(crate) async fn get_bearer_json(
     url: &str,
     api_key: &str,
 ) -> Result<Value, QuotaHttpError> {
-    let client = QUOTA_HTTP_CLIENT
+    let client = quota_http_client()?;
+    send_json(
+        provider,
+        client
+            .get(url)
+            .bearer_auth(api_key)
+            .header(ACCEPT, "application/json"),
+    )
+    .await
+}
+
+/// Perform one bounded GET with provider-specific headers.
+///
+/// Callers construct a `HeaderMap` so secrets remain typed header values and
+/// never pass through URL query strings. Redirect, deadline, connection-pool,
+/// and response-size policy remains centralized in this module.
+pub(crate) async fn get_json_with_headers(
+    provider: &str,
+    url: &str,
+    headers: HeaderMap,
+) -> Result<Value, QuotaHttpError> {
+    let client = quota_http_client()?;
+    send_json(
+        provider,
+        client
+            .get(url)
+            .header(ACCEPT, "application/json")
+            .headers(headers),
+    )
+    .await
+}
+
+fn quota_http_client() -> Result<&'static Client, QuotaHttpError> {
+    QUOTA_HTTP_CLIENT
         .as_ref()
         .map_err(|message| QuotaHttpError {
             status: None,
             message: message.clone(),
-        })?;
+        })
+}
 
-    let mut response = client
-        .get(url)
-        .bearer_auth(api_key)
-        .header(ACCEPT, "application/json")
-        .send()
-        .await
-        .map_err(|error| QuotaHttpError {
-            status: None,
-            message: format!("{provider} quota request failed: {error}"),
-        })?;
+async fn send_json(provider: &str, request: RequestBuilder) -> Result<Value, QuotaHttpError> {
+    let mut response = request.send().await.map_err(|error| QuotaHttpError {
+        status: None,
+        message: format!("{provider} quota request failed: {error}"),
+    })?;
 
     let status = response.status();
     if !status.is_success() {

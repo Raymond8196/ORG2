@@ -357,6 +357,25 @@ async fn transient_error_retries_once_and_non_transient_error_does_not() {
 }
 
 #[tokio::test]
+async fn strict_request_policy_does_not_retry_transient_errors() {
+    let runtime = runtime(4, 1);
+    let calls = Arc::new(AtomicUsize::new(0));
+    let error = runtime
+        .refresh_without_transient_retry("strict".into(), "revision".into(), false, {
+            let calls = Arc::clone(&calls);
+            move || {
+                calls.fetch_add(1, Ordering::SeqCst);
+                async { Err("HTTP 503 retry-after: 0".to_string()) }
+            }
+        })
+        .await
+        .unwrap_err();
+
+    assert_eq!(error, "HTTP 503 retry-after: 0");
+    assert_eq!(calls.load(Ordering::SeqCst), 1);
+}
+
+#[tokio::test]
 async fn provider_worker_panic_releases_single_flight_waiters() {
     let runtime = runtime(4, 1);
     let error = runtime

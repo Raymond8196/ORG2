@@ -1,11 +1,10 @@
 //! MiniMax Token Plan quota lookup with region-locked compatibility fallback.
 
-use chrono::{DateTime, SecondsFormat, Utc};
 use reqwest::StatusCode;
 use serde_json::Value;
 
 use crate::providers::quota_http::{get_bearer_json, QuotaHttpError};
-use crate::providers::quota_windows::{quota_from_windows, QuotaWindow};
+use crate::providers::quota_windows::{json_time_to_rfc3339, quota_from_windows, QuotaWindow};
 use crate::types::QuotaInfo;
 
 const TOKEN_PLAN_URL_EN: &str = "https://api.minimax.io/v1/token_plan/remains";
@@ -155,7 +154,7 @@ fn parse_minimax_quota(body: &Value) -> Result<QuotaInfo, MiniMaxParseError> {
         {
             windows.push(QuotaWindow::session(
                 100.0 - remaining.clamp(0.0, 100.0),
-                general.get("end_time").and_then(timestamp_to_rfc3339),
+                general.get("end_time").and_then(json_time_to_rfc3339),
             ));
         }
     }
@@ -172,7 +171,7 @@ fn parse_minimax_quota(body: &Value) -> Result<QuotaInfo, MiniMaxParseError> {
                 100.0 - remaining.clamp(0.0, 100.0),
                 general
                     .get("weekly_end_time")
-                    .and_then(timestamp_to_rfc3339),
+                    .and_then(json_time_to_rfc3339),
             ));
         }
     }
@@ -233,21 +232,6 @@ fn finite_number(value: &Value) -> Option<f64> {
         .as_f64()
         .or_else(|| value.as_str()?.trim().parse::<f64>().ok())?;
     number.is_finite().then_some(number)
-}
-
-fn timestamp_to_rfc3339(value: &Value) -> Option<String> {
-    let raw = finite_number(value)?;
-    if !raw.is_finite() || raw < 0.0 {
-        return None;
-    }
-    let milliseconds = if raw < 1_000_000_000_000.0 {
-        raw * 1000.0
-    } else {
-        raw
-    };
-    let milliseconds = milliseconds.round() as i64;
-    DateTime::<Utc>::from_timestamp_millis(milliseconds)
-        .map(|time| time.to_rfc3339_opts(SecondsFormat::Secs, true))
 }
 
 #[cfg(test)]
