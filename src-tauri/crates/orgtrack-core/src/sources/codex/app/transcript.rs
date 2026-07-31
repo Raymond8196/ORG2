@@ -987,8 +987,10 @@ fn load_codex_app_from_path_with_mode<'a>(
     let mut reader = BufReader::new(file);
 
     let mut collector = CodexTranscriptCollector::new(session_id, mode);
-    let mut pending_tool_calls: HashMap<String, Vec<ImportedToolCall>> = HashMap::new();
-    let mut background_tool_calls: HashMap<String, PendingBackgroundToolCall> = HashMap::new();
+    let mut pending_tool_calls: imported_history::PendingCallMap<Vec<ImportedToolCall>> =
+        imported_history::PendingCallMap::new();
+    let mut background_tool_calls: imported_history::PendingCallMap<PendingBackgroundToolCall> =
+        imported_history::PendingCallMap::new();
     let mut pending_task_turn_id: Option<String> = None;
     let mut pending_task_turn_offset: Option<u64> = None;
     let mut active_task_turn_id: Option<String> = None;
@@ -1139,16 +1141,21 @@ fn load_codex_app_from_path_with_mode<'a>(
             "function_call_output" | "custom_tool_call_output" => {
                 let call_id = parsed.payload.get("call_id").and_then(Value::as_str);
                 if let Some(call_id) = call_id {
-                    if let Some(calls) = pending_tool_calls.remove(call_id) {
+                    if let Some((file_order, calls)) = pending_tool_calls.take(call_id) {
                         let output_value = parsed.payload.get("output");
                         let output = codex_tool_output_text(output_value);
                         if let Some(cell_id) = wait_cell_id(&calls) {
                             let cell_key = background_cell_key(cell_id);
-                            if let Some(mut background) = background_tool_calls.remove(&cell_key) {
+                            if let Some((background_order, mut background)) =
+                                background_tool_calls.take(&cell_key)
+                            {
                                 if let Some(next_cell_id) = background_cell_id(&output) {
                                     background.latest_output = output;
-                                    background_tool_calls
-                                        .insert(background_cell_key(&next_cell_id), background);
+                                    background_tool_calls.reinsert(
+                                        background_cell_key(&next_cell_id),
+                                        background_order,
+                                        background,
+                                    );
                                 } else {
                                     let final_output = if output.trim().is_empty() {
                                         background.latest_output
@@ -1158,6 +1165,7 @@ fn load_codex_app_from_path_with_mode<'a>(
                                     resolve_codex_tool_outputs(
                                         session_id,
                                         background.calls,
+                                        background_order,
                                         output_value,
                                         &final_output,
                                         &mut collector.current,
@@ -1169,8 +1177,9 @@ fn load_codex_app_from_path_with_mode<'a>(
                             }
                         }
                         if let Some(cell_id) = background_cell_id(&output) {
-                            background_tool_calls.insert(
+                            background_tool_calls.reinsert(
                                 background_cell_key(&cell_id),
+                                file_order,
                                 PendingBackgroundToolCall {
                                     calls,
                                     latest_output: output,
@@ -1181,6 +1190,7 @@ fn load_codex_app_from_path_with_mode<'a>(
                         resolve_codex_tool_outputs(
                             session_id,
                             calls,
+                            file_order,
                             output_value,
                             &output,
                             &mut collector.current,
@@ -1230,7 +1240,7 @@ fn load_codex_app_from_path_with_mode<'a>(
         }
     }
 
-    for calls in pending_tool_calls.into_values() {
+    for calls in pending_tool_calls.drain_in_file_order() {
         for call in calls {
             collector
                 .current
@@ -1238,7 +1248,7 @@ fn load_codex_app_from_path_with_mode<'a>(
             sequence += 1;
         }
     }
-    for background in background_tool_calls.into_values() {
+    for background in background_tool_calls.drain_in_file_order() {
         if background
             .calls
             .iter()
@@ -1260,7 +1270,7 @@ fn load_codex_app_from_path_with_mode<'a>(
 
 fn attach_subagent_activity_to_pending_call(
     payload: &Value,
-    pending_tool_calls: &mut HashMap<String, Vec<ImportedToolCall>>,
+    pending_tool_calls: &mut imported_history::PendingCallMap<Vec<ImportedToolCall>>,
 ) {
     if payload.get("kind").and_then(Value::as_str) != Some("started") {
         return;
@@ -1311,14 +1321,16 @@ fn lifecycle_turn_id<'a>(payload: &'a Value, active_turn_id: Option<&'a str>) ->
         .or(active_turn_id)
 }
 
+#[allow(clippy::too_many_arguments)]
 fn resolve_codex_tool_outputs(
     transcript_session_id: &str,
     calls: Vec<ImportedToolCall>,
+    file_order: u64,
     output_value: Option<&Value>,
     fallback_output: &str,
     chunks: &mut Vec<ActivityChunk>,
     sequence: &mut usize,
-    background_tool_calls: &mut HashMap<String, PendingBackgroundToolCall>,
+    background_tool_calls: &mut imported_history::PendingCallMap<PendingBackgroundToolCall>,
 ) {
     let mut results = codex_exec_results(output_value);
     if results.len() == calls.len() {
@@ -1326,6 +1338,7 @@ fn resolve_codex_tool_outputs(
             resolve_codex_call_group(
                 transcript_session_id,
                 vec![call],
+                file_order,
                 result,
                 chunks,
                 sequence,
@@ -1338,6 +1351,7 @@ fn resolve_codex_tool_outputs(
         resolve_codex_call_group(
             transcript_session_id,
             calls,
+            file_order,
             results.remove(0),
             chunks,
             sequence,
@@ -1359,10 +1373,11 @@ fn resolve_codex_tool_outputs(
 fn resolve_codex_call_group(
     transcript_session_id: &str,
     calls: Vec<ImportedToolCall>,
+    file_order: u64,
     result: CodexExecResult,
     chunks: &mut Vec<ActivityChunk>,
     sequence: &mut usize,
-    background_tool_calls: &mut HashMap<String, PendingBackgroundToolCall>,
+    background_tool_calls: &mut imported_history::PendingCallMap<PendingBackgroundToolCall>,
 ) {
     if calls.len() == 1 && calls[0].canonical_name == imported_history::FUNCTION_AWAIT_OUTPUT {
         resolve_write_stdin_call(
@@ -1378,8 +1393,9 @@ fn resolve_codex_call_group(
 
     if result.exit_code.is_none() {
         if let Some(session_id) = result.session_id.as_deref() {
-            background_tool_calls.insert(
+            background_tool_calls.reinsert(
                 background_session_key(session_id),
+                file_order,
                 PendingBackgroundToolCall {
                     calls,
                     latest_output: result.output,
@@ -1405,15 +1421,15 @@ fn resolve_write_stdin_call(
     result: CodexExecResult,
     chunks: &mut Vec<ActivityChunk>,
     sequence: &mut usize,
-    background_tool_calls: &mut HashMap<String, PendingBackgroundToolCall>,
+    background_tool_calls: &mut imported_history::PendingCallMap<PendingBackgroundToolCall>,
 ) {
     let source_session_id = continuation
         .args
         .get("session_id")
         .and_then(Value::as_str)
         .unwrap_or_default();
-    let Some(mut background) =
-        background_tool_calls.remove(&background_session_key(source_session_id))
+    let Some((background_order, mut background)) =
+        background_tool_calls.take(&background_session_key(source_session_id))
     else {
         emit_codex_call_group(
             transcript_session_id,
@@ -1431,7 +1447,11 @@ fn resolve_write_stdin_call(
 
     if result.exit_code.is_none() {
         if let Some(next_session_id) = result.session_id.as_deref() {
-            background_tool_calls.insert(background_session_key(next_session_id), background);
+            background_tool_calls.reinsert(
+                background_session_key(next_session_id),
+                background_order,
+                background,
+            );
             return;
         }
     }

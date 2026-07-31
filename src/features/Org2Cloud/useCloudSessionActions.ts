@@ -106,6 +106,11 @@ export interface CloudSessionReplayOptions {
   skipDownloadGate?: boolean;
 }
 
+export interface CloudSessionForkOptions {
+  /** True for starts the play card's Start button already confirmed. */
+  skipDownloadGate?: boolean;
+}
+
 export type CloudSessionActionOutcome =
   | "opened"
   /** The click raced past the server-side retention filter — show upgrade. */
@@ -120,7 +125,8 @@ export interface UseCloudSessionActionsResult {
     options?: CloudSessionReplayOptions
   ) => Promise<CloudSessionActionOutcome>;
   forkSession: (
-    remoteSession: RemoteTeammateSessionMetadata
+    remoteSession: RemoteTeammateSessionMetadata,
+    options?: CloudSessionForkOptions
   ) => Promise<CloudSessionActionOutcome>;
   /**
    * Row ids (`remoteSession.id`) with a replay/fork in flight. Per-row and
@@ -256,6 +262,7 @@ export function useCloudSessionActions(
               orgId,
               pendingEvents,
               etaMs: decision.etaMs,
+              kind: "replay",
             },
           });
           dismissCloudReferenceOpeningToast();
@@ -608,26 +615,240 @@ export function useCloudSessionActions(
   // engine fork + backend row registration + first-send context handoff.
   const forkSession = useCallback(
     async (
-      remoteSession: RemoteTeammateSessionMetadata
+      remoteSession: RemoteTeammateSessionMetadata,
+      options?: CloudSessionForkOptions
     ): Promise<CloudSessionActionOutcome> => {
       if (!orgId || remoteSession.eventsEpoch === undefined) return "noop";
       if (store.get(cloudSessionBusyRowsAtom).has(remoteSession.id)) {
         return "noop";
       }
+      // Big-session gate, replay parity: a Take Over whose pre-import would
+      // stream a large transcript parks the same play card (count + ETA) in
+      // the imported copy's pane and transfers nothing until Start. A
+      // current local copy, a resumable pause, or a small delta stays
+      // gate-free — those never surprise with a long transfer.
+      if (!options?.skipDownloadGate) {
+        const gateEndpointUrl = authRef.current?.supabaseUrl;
+        const pausedGateEntry = store
+          .get(cloudSessionPausedDownloadsAtom)
+          .get(remoteSession.id);
+        if (gateEndpointUrl && !pausedGateEntry) {
+          const gateSession = findImportedSession(
+            store.get(sessionsAtom),
+            orgId,
+            remoteSession.sourceSessionId,
+            gateEndpointUrl
+          );
+          const gateCursor = gateSession?.importedFrom;
+          const coveredCount =
+            gateCursor && gateCursor.epoch === remoteSession.eventsEpoch
+              ? gateCursor.count
+              : 0;
+          const pendingEvents = Math.max(
+            0,
+            (remoteSession.eventsCount ?? 0) - coveredCount
+          );
+          const decision = decideCloudDownloadGate(pendingEvents);
+          if (decision.gate) {
+            const pendingLocalId =
+              gateSession?.session_id ??
+              (await deriveImportedSessionId(
+                orgId,
+                remoteSession.sourceSessionId,
+                gateEndpointUrl
+              ));
+            store.set(setCloudDownloadPendingPlayAtom, {
+              localSessionId: pendingLocalId,
+              entry: {
+                rowId: remoteSession.id,
+                orgId,
+                pendingEvents,
+                etaMs: decision.etaMs,
+                kind: "fork",
+              },
+            });
+            openOrReplaceSessionTab({
+              sessionId: pendingLocalId,
+              sessionName: remoteSession.title,
+            });
+            return "noop";
+          }
+        }
+      }
       beginSessionBusy({
         rowId: remoteSession.id,
         entry: { kind: "fork", orgId },
       });
+      let forkPausedCommitted = false;
       try {
         const accessToken = await freshAccessToken();
         if (!accessToken) {
           Message.error(t("collaboration.session.forkFailed"));
           return "failed";
         }
+        // Local-copy-first parity: a Take Over of a session without a
+        // CURRENT local replay copy first runs the standard streamed import
+        // — same sidebar spinner/percent, same pause/resume semantics, and
+        // the fork then assembles from the local copy without a second
+        // download. With org offline sync on this pre-step is a no-op.
+        const sourceEndpointUrl = authRef.current?.supabaseUrl;
+        if (sourceEndpointUrl) {
+          const existing = findImportedSession(
+            store.get(sessionsAtom),
+            orgId,
+            remoteSession.sourceSessionId,
+            sourceEndpointUrl
+          );
+          const cursor = existing?.importedFrom;
+          const cursorCurrent =
+            !!cursor &&
+            cursor.epoch === remoteSession.eventsEpoch &&
+            cursor.seq === (remoteSession.eventsFrozenSeq ?? 0) &&
+            cursor.count === remoteSession.eventsCount &&
+            (cursor.tailHash ?? null) ===
+              (remoteSession.eventsTailHash ?? null);
+          if (!cursorCurrent) {
+            const pausedEntry =
+              store
+                .get(cloudSessionPausedDownloadsAtom)
+                .get(remoteSession.id) ?? null;
+            store.set(clearCloudPausedDownloadAtom, remoteSession.id);
+            const abortController = new AbortController();
+            registerCloudDownloadAbort(remoteSession.id, () =>
+              abortController.abort()
+            );
+            const importSessionId =
+              existing?.session_id ??
+              (await deriveImportedSessionId(
+                orgId,
+                remoteSession.sourceSessionId,
+                sourceEndpointUrl
+              ));
+            store.set(clearCloudDownloadPendingPlayAtom, importSessionId);
+            updateSessionBusy({
+              rowId: remoteSession.id,
+              patch: { localSessionId: importSessionId },
+            });
+            const baseEvents =
+              pausedEntry?.cursor?.count ??
+              (cursor && cursor.epoch === remoteSession.eventsEpoch
+                ? cursor.count
+                : 0);
+            const progressStartedAt = Date.now();
+            let maxLoadedEvents = pausedEntry ? baseEvents : 0;
+            const reporter = createThrottledProgressReporter((payload) =>
+              upsertDownloadProgress(payload)
+            );
+            const reportDownloadProgress = (
+              loadedEvents: number,
+              totalEvents: number | null,
+              phase: "downloading" | "finalizing" = "downloading"
+            ) => {
+              maxLoadedEvents = Math.max(maxLoadedEvents, loadedEvents);
+              reporter.report({
+                localSessionId: importSessionId,
+                progress: {
+                  rowId: remoteSession.id,
+                  orgId,
+                  loadedEvents: maxLoadedEvents,
+                  totalEvents,
+                  baseEvents,
+                  startedAtMs: progressStartedAt,
+                  updatedAtMs: Date.now(),
+                  phase,
+                },
+              });
+            };
+            reportDownloadProgress(
+              baseEvents,
+              remoteSession.eventsCount ?? pausedEntry?.totalEvents ?? null
+            );
+            let pausedCaptured: CloudPausedDownloadCursor | null = null;
+            try {
+              const imported = await importRemoteSession({
+                client: buildCloudSessionFetchClient(accessToken, undefined, {
+                  onTransferProgress: (progress) =>
+                    reportDownloadProgress(
+                      baseEvents + progress.decodedEvents,
+                      progress.totalEvents
+                    ),
+                }),
+                orgId,
+                remoteSession,
+                sourceEndpointUrl,
+                signal: abortController.signal,
+                onProgress: (progress) =>
+                  reportDownloadProgress(
+                    progress.loadedEvents,
+                    progress.totalEvents,
+                    progress.phase ?? "downloading"
+                  ),
+                onPauseState: (state) => {
+                  pausedCaptured = state;
+                },
+                ...(pausedEntry?.cursor
+                  ? { resumeCursor: pausedEntry.cursor }
+                  : {}),
+              });
+              if (imported?.updated && maxLoadedEvents > baseEvents) {
+                recordCloudDownloadSample(
+                  maxLoadedEvents - baseEvents,
+                  Date.now() - progressStartedAt
+                );
+              }
+            } catch (error) {
+              if (abortController.signal.aborted) {
+                const lastProgress = store
+                  .get(cloudSessionDownloadProgressAtom)
+                  .get(importSessionId);
+                const captured =
+                  pausedCaptured as CloudPausedDownloadCursor | null;
+                const heldLoaded =
+                  lastProgress?.loadedEvents ?? captured?.count ?? 0;
+                const heldTotal =
+                  lastProgress?.totalEvents ??
+                  remoteSession.eventsCount ??
+                  null;
+                store.set(setCloudPausedDownloadAtom, {
+                  rowId: remoteSession.id,
+                  entry: {
+                    localSessionId: importSessionId,
+                    orgId,
+                    totalEvents: heldTotal,
+                    loadedEvents: heldLoaded,
+                    cursor: captured,
+                  },
+                });
+                upsertDownloadProgress({
+                  localSessionId: importSessionId,
+                  progress: {
+                    rowId: remoteSession.id,
+                    orgId,
+                    loadedEvents: heldLoaded,
+                    totalEvents: heldTotal,
+                    startedAtMs: lastProgress?.startedAtMs ?? Date.now(),
+                    updatedAtMs: Date.now(),
+                    phase: "paused",
+                  },
+                });
+                forkPausedCommitted = true;
+                return "noop";
+              }
+              throw error;
+            } finally {
+              unregisterCloudDownloadAbort(remoteSession.id);
+              reporter.cancel();
+              if (!forkPausedCommitted) {
+                clearDownloadProgress(importSessionId);
+              }
+            }
+          }
+        }
         const result = await forkTeammateSession({
           client: buildCloudSessionFetchClient(accessToken),
           orgId,
           remoteSession,
+          ...(sourceEndpointUrl ? { sourceEndpointUrl } : {}),
           promptForExecution: true,
         });
         if (!result) {
@@ -689,6 +910,7 @@ export function useCloudSessionActions(
     },
     [
       beginSessionBusy,
+      clearDownloadProgress,
       endSessionBusy,
       freshAccessToken,
       openOrReplaceSessionTab,
@@ -697,6 +919,8 @@ export function useCloudSessionActions(
       orgId,
       store,
       t,
+      updateSessionBusy,
+      upsertDownloadProgress,
     ]
   );
 

@@ -2280,3 +2280,64 @@ fn resumes_codex_meta_parse_from_watermark() {
 
     std::fs::remove_dir_all(&temp_dir).expect("remove temp dir");
 }
+
+#[test]
+fn unresolved_tool_calls_flush_in_file_order_across_reparses() {
+    let temp_dir = std::env::temp_dir().join(format!(
+        "orgii-codex-pending-order-test-{}",
+        std::process::id()
+    ));
+    std::fs::create_dir_all(&temp_dir).expect("create temp dir");
+    let path = temp_dir.join("rollout-pending-order.jsonl");
+
+    let file_order_call_ids = [
+        "call_zulu",
+        "call_echo",
+        "call_romeo",
+        "call_alpha",
+        "call_x1",
+        "call_mike",
+        "call_kilo",
+        "call_bravo",
+        "call_yankee",
+        "call_delta",
+    ];
+    let mut content = String::from(
+        r#"{"timestamp":"2026-07-30T10:00:00.000Z","type":"event_msg","payload":{"type":"user_message","message":"run everything"}}
+{"timestamp":"2026-07-30T10:00:01.000Z","type":"response_item","payload":{"type":"function_call","name":"shell","arguments":"{\"command\":\"echo resolved\"}","call_id":"call_resolved"}}
+{"timestamp":"2026-07-30T10:00:02.000Z","type":"response_item","payload":{"type":"function_call_output","call_id":"call_resolved","output":"resolved"}}
+"#,
+    );
+    for (index, call_id) in file_order_call_ids.iter().enumerate() {
+        content.push_str(&format!(
+            "{{\"timestamp\":\"2026-07-30T10:00:{:02}.000Z\",\"type\":\"response_item\",\"payload\":{{\"type\":\"function_call\",\"name\":\"shell\",\"arguments\":\"{{\\\"command\\\":\\\"sleep {index}\\\"}}\",\"call_id\":\"{call_id}\"}}}}\n",
+            10 + index
+        ));
+    }
+    std::fs::write(&path, content).expect("write fixture");
+
+    let flushed_call_ids = |chunks: &[core_types::activity::ActivityChunk]| -> Vec<String> {
+        chunks
+            .iter()
+            .filter(|chunk| chunk.action_type == imported_history::ACTION_TYPE_TOOL_CALL)
+            .filter_map(|chunk| chunk.result.get("call_id")?.as_str().map(str::to_string))
+            .filter(|call_id| call_id != "call_resolved")
+            .collect()
+    };
+
+    let first = load_codex_app_from_path("codexapp-pending-order", &path).expect("parse");
+    assert_eq!(flushed_call_ids(&first), file_order_call_ids);
+
+    let second = load_codex_app_from_path("codexapp-pending-order", &path).expect("reparse");
+    let first_ids = first
+        .iter()
+        .map(|chunk| &chunk.chunk_id)
+        .collect::<Vec<_>>();
+    let second_ids = second
+        .iter()
+        .map(|chunk| &chunk.chunk_id)
+        .collect::<Vec<_>>();
+    assert_eq!(first_ids, second_ids);
+
+    std::fs::remove_dir_all(&temp_dir).expect("remove temp dir");
+}

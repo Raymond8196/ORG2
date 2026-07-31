@@ -287,12 +287,19 @@ export function useCloudSessionsSection({
     }
     const row = findRow(downloadStartRequest.rowId);
     if (!row) return;
+    const startKind = downloadStartRequest.kind;
     store.set(cloudDownloadStartRequestAtom, null);
     // queueMicrotask to satisfy react-hooks/set-state-in-effect: the
     // resubscribe inside runReplay touches React state, and the request
     // slot was already consumed synchronously above.
-    queueMicrotask(() => runReplay(row, { skipGate: true }));
-  }, [downloadStartRequest, findRow, orgId, runReplay, store]);
+    queueMicrotask(() => {
+      if (startKind === "fork") {
+        void forkSession(row, { skipDownloadGate: true });
+      } else {
+        runReplay(row, { skipGate: true });
+      }
+    });
+  }, [downloadStartRequest, findRow, forkSession, orgId, runReplay, store]);
 
   const runFork = useCallback(
     (row: RemoteTeammateSessionMetadata) => {
