@@ -2,9 +2,14 @@
  * One transcript row — either a date divider or a message.
  *
  * Message bodies render through `MarkDown` (the same component the session
- * transcript uses) so a channel post reads like agent/user output. A
+ * transcript uses) at the transcript's own body typography (`text-sm
+ * leading-6 text-text-1`) so a channel post reads like agent/user output. A
  * tombstoned row renders the italic "message deleted" line instead, matching
  * how `CommentThreadList` keeps a deleted comment's slot in the thread.
+ *
+ * Horizontal inset is `CHAT_ITEM_PADDING_X` — the same token `ChatItemWrap`
+ * applies to every session transcript item — so rows sit on the transcript's
+ * gutter inside the shared max-width column, not on a bespoke one.
  *
  * Edit is inline (`Textarea` + Save / Cancel), the shape the comment plane
  * already uses — no dialog, no separate route.
@@ -18,6 +23,7 @@ import Button from "@src/components/Button";
 import MarkDown from "@src/components/MarkDown";
 import Textarea from "@src/components/Textarea";
 import Tooltip from "@src/components/Tooltip";
+import { CHAT_ITEM_PADDING_X } from "@src/engines/ChatPanel/blocks/primitives/config";
 import type { LocalChannelMessage } from "@src/store/ui/localChannelMessagesAtom";
 import { LOCAL_CHANNEL_MESSAGE_MAX_LENGTH } from "@src/store/ui/localChannelMessagesAtom";
 import { formatLocalClock } from "@src/util/data/formatters/date";
@@ -50,7 +56,7 @@ export const ChannelDateDivider: React.FC<ChannelDateDividerProps> = ({
 
   return (
     <div
-      className="flex items-center gap-3 px-4 py-3"
+      className={`flex items-center gap-3 py-3 ${CHAT_ITEM_PADDING_X}`}
       data-testid="channel-date-divider"
     >
       <div className="h-px flex-1 bg-border-2" />
@@ -100,7 +106,7 @@ const ChannelMessageRow: React.FC<ChannelMessageRowProps> = ({
 
   return (
     <div
-      className={`group/channelmsg flex gap-2 px-4 ${grouped ? "py-0.5" : "pb-1 pt-2"}`}
+      className={`group/channelmsg flex gap-2 ${CHAT_ITEM_PADDING_X} ${grouped ? "py-0.5" : "pb-1 pt-2"}`}
       data-testid="channel-message"
       data-message-id={message.id}
     >
@@ -209,7 +215,7 @@ const ChannelMessageRow: React.FC<ChannelMessageRowProps> = ({
           </div>
         ) : (
           <div
-            className="min-w-0 break-words text-[13px] leading-6 text-text-1"
+            className="min-w-0 break-words text-sm leading-6 text-text-1"
             data-testid="channel-message-body"
           >
             <MarkDown textContent={message.body} skipPreprocess />

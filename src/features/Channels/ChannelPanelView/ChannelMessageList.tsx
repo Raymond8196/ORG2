@@ -11,10 +11,17 @@
  *
  * Date dividers are ordinary rows in the same index space (see
  * `channelFeedRows.ts`) — the virtualizer needs one flat list.
+ *
+ * Width comes from `DETAIL_PANEL_TOKENS.contentMaxWidth` on an inner column
+ * inside a `px-2` scroller — the exact shape `HumanSessionView` and
+ * `ChatHistoryList` use — so a channel row lands on the same 900px centred
+ * column as a session transcript row. Rows measure INSIDE that column, so
+ * `measureElement` reports the constrained height, not the pane-wide one.
  */
 import { useVirtualizer } from "@tanstack/react-virtual";
 import React, { useEffect, useMemo, useRef } from "react";
 
+import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import type { LocalChannelMessage } from "@src/store/ui/localChannelMessagesAtom";
 
 import ChannelMessageRow, { ChannelDateDivider } from "./ChannelMessageRow";
@@ -93,10 +100,12 @@ const ChannelMessageList: React.FC<ChannelMessageListProps> = ({
   return (
     <div
       ref={scrollContainerRef}
-      className="scrollbar-overlay min-h-0 flex-1 overflow-y-auto"
+      className="scrollbar-overlay min-h-0 flex-1 overflow-y-auto px-2"
       data-testid="channel-message-list"
     >
-      <div className="py-2">
+      <div
+        className={`mx-auto min-h-full w-full px-2 pb-36 pt-6 ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
+      >
         {shouldVirtualize ? (
           <div
             className="relative min-w-0"

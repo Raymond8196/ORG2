@@ -1,4 +1,17 @@
 // @vitest-environment jsdom
+//
+// `InputArea` is a rich contenteditable composer (Lexical-style editor, slash
+// menus, draft persistence) and is impractical to type into under jsdom, so it
+// is stubbed here the same way `HumanSessionView.test.ts` stubs it. The stub
+// records the props the surface passes, which keeps the real coverage: the
+// post path is exercised by invoking the surface's own `onSubmitOverride`
+// against the real jotai store, and the cloud gate is asserted through
+// `submitDisabled` instead of through the absence of an input.
+//
+// The old "textarea value is cleared after a send" assertion is gone on
+// purpose: clearing is now `useSubmitMessage`'s optimistic-clear, not this
+// surface's business. What this surface owns — accept / refuse / report — is
+// unit-tested in `channelPostHandler.test.ts`.
 import { Provider, createStore } from "jotai";
 import { act, createElement } from "react";
 import { type Root, createRoot } from "react-dom/client";
@@ -13,6 +26,7 @@ import {
   vi,
 } from "vitest";
 
+import type { SubmitOverrideInput } from "@src/engines/ChatPanel/hooks/useInputArea/types";
 import type { ChatPanelSelectedChannel } from "@src/store/chatPanel/chatPanelTabsAtom";
 import {
   LOCAL_CHANNEL_MESSAGES_STORAGE_KEY,
@@ -26,6 +40,33 @@ import {
 } from "@src/store/ui/localChannelsAtom";
 
 import ChannelPanelView from "./index";
+
+interface StubbedInputAreaProps {
+  sessionId?: string;
+  placeholder?: string;
+  submitDisabled?: boolean;
+  showAgentControls?: boolean;
+  allowFileAttachments?: boolean;
+  enableAgentInterceptors?: boolean;
+  sessionScope?: string;
+  onSubmitOverride?: (input: SubmitOverrideInput) => Promise<boolean>;
+}
+
+const mocks = vi.hoisted(() => ({
+  inputAreaProps: [] as StubbedInputAreaProps[],
+}));
+
+vi.mock("@src/engines/ChatPanel/InputArea", () => ({
+  default: (props: StubbedInputAreaProps) => {
+    mocks.inputAreaProps.push(props);
+    return createElement("div", {
+      "data-testid": "channel-input-area",
+      "data-submit-disabled": String(props.submitDisabled ?? false),
+      "data-session-id": props.sessionId ?? "",
+      "data-placeholder": props.placeholder ?? "",
+    });
+  },
+}));
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (key: string) => key }),
@@ -84,6 +125,14 @@ const LOCAL_TARGET: ChatPanelSelectedChannel = {
   name: "code-review",
 };
 
+const CLOUD_TARGET: ChatPanelSelectedChannel = {
+  scope: "cloud",
+  orgId: "org-1",
+  channelId: "cloud-chan-1",
+  name: "release-notes",
+  visibility: "private",
+};
+
 function makeMessage(
   overrides: Partial<LocalChannelMessage> = {}
 ): LocalChannelMessage {
@@ -113,6 +162,7 @@ describe("ChannelPanelView", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.inputAreaProps.length = 0;
     localStorage.removeItem(LOCAL_CHANNELS_STORAGE_KEY);
     localStorage.removeItem(LOCAL_CHANNEL_MESSAGES_STORAGE_KEY);
     store = createStore();
@@ -150,26 +200,24 @@ describe("ChannelPanelView", () => {
     ).map((node) => node.textContent ?? "");
   }
 
-  function typeIntoComposer(value: string) {
-    const input = container.querySelector<HTMLTextAreaElement>(
-      "[data-testid='channel-composer-input']"
+  function composerElement(): HTMLElement | null {
+    return container.querySelector<HTMLElement>(
+      "[data-testid='channel-input-area']"
     );
-    act(() => {
-      const valueSetter = Object.getOwnPropertyDescriptor(
-        HTMLTextAreaElement.prototype,
-        "value"
-      )?.set;
-      valueSetter?.call(input, value);
-      input?.dispatchEvent(new Event("input", { bubbles: true }));
-    });
   }
 
-  function clickSend() {
-    const button = container.querySelector<HTMLButtonElement>(
-      "[data-testid='channel-composer-send']"
-    );
-    act(() => {
-      button?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+  function latestComposerProps(): StubbedInputAreaProps {
+    const props = mocks.inputAreaProps.at(-1);
+    if (!props) throw new Error("InputArea was never rendered");
+    return props;
+  }
+
+  /** Drives the surface exactly the way `useSubmitMessage` drives it. */
+  async function submit(text: string): Promise<void> {
+    const { onSubmitOverride } = latestComposerProps();
+    if (!onSubmitOverride) throw new Error("no onSubmitOverride");
+    await act(async () => {
+      await onSubmitOverride({ displayText: text });
     });
   }
 
@@ -213,10 +261,49 @@ describe("ChannelPanelView", () => {
     ).toBeGreaterThan(0);
   });
 
-  it("posts a new message through the composer and renders it", () => {
+  it("mounts the session composer, not a bespoke textarea", () => {
     render();
-    typeIntoComposer("rebase onto hotfix-branch");
-    clickSend();
+
+    const composer = composerElement();
+    expect(composer).not.toBeNull();
+    expect(composer?.getAttribute("data-submit-disabled")).toBe("false");
+    expect(composer?.getAttribute("data-session-id")).toBe(
+      "channel-local-chan-1"
+    );
+    expect(composer?.getAttribute("data-placeholder")).toBe(
+      "cloud.channels.feed.composerPlaceholder"
+    );
+    expect(
+      container.querySelector("[data-testid='channel-composer-input']")
+    ).toBeNull();
+  });
+
+  it("keeps the composer human-only — no agent controls, uploads, or interceptors", () => {
+    render();
+
+    expect(latestComposerProps()).toMatchObject({
+      sessionScope: "none",
+      showAgentControls: false,
+      allowFileAttachments: false,
+      enableAgentInterceptors: false,
+    });
+  });
+
+  it("constrains the transcript to the shared detail-panel column", () => {
+    store.set(localChannelMessagesAtom, [makeMessage()]);
+    render();
+
+    const scroller = container.querySelector(
+      "[data-testid='channel-message-list']"
+    );
+    expect(scroller?.className).toContain("px-2");
+    expect(scroller?.firstElementChild?.className).toContain("max-w-[900px]");
+    expect(scroller?.firstElementChild?.className).toContain("mx-auto");
+  });
+
+  it("posts a new message through the composer and renders it", async () => {
+    render();
+    await submit("rebase onto hotfix-branch");
 
     expect(
       store.get(localChannelMessagesAtom).map((message) => message.body)
@@ -224,31 +311,23 @@ describe("ChannelPanelView", () => {
     expect(bodies()).toEqual(["rebase onto hotfix-branch"]);
   });
 
-  it("clears the composer after a successful post", () => {
+  it("rejects a refused post so the composer restores the draft, and shows why", async () => {
     render();
-    typeIntoComposer("ship it");
-    clickSend();
 
-    const input = container.querySelector<HTMLTextAreaElement>(
-      "[data-testid='channel-composer-input']"
-    );
-    expect(input?.value).toBe("");
-  });
-
-  it("keeps the draft and surfaces an error when the post is refused", () => {
-    render();
-    typeIntoComposer("x".repeat(4001));
-    clickSend();
+    const { onSubmitOverride } = latestComposerProps();
+    await act(async () => {
+      // Throwing is `useSubmitMessage`'s restore signal — a resolved `false`
+      // would instead fall through to the agent submit path.
+      await expect(
+        onSubmitOverride?.({ displayText: "x".repeat(4001) })
+      ).rejects.toThrow("cloud.channels.feed.errorTooLong");
+    });
 
     expect(store.get(localChannelMessagesAtom)).toEqual([]);
     expect(
       container.querySelector("[data-testid='channel-composer-error']")
         ?.textContent
     ).toBe("cloud.channels.feed.errorTooLong");
-    const input = container.querySelector<HTMLTextAreaElement>(
-      "[data-testid='channel-composer-input']"
-    );
-    expect(input?.value).toBe("x".repeat(4001));
   });
 
   it("renders a deleted message as a tombstone, not as its old body", () => {
@@ -292,20 +371,18 @@ describe("ChannelPanelView", () => {
       container.querySelector("[data-testid='channel-panel-header']")
     ).toBeNull();
     expect(container.textContent).toContain("cloud.channels.feed.missingTitle");
+    expect(composerElement()).toBeNull();
   });
 
-  it("gates the cloud composer with an explanation instead of an input", () => {
-    render({
-      scope: "cloud",
-      orgId: "org-1",
-      channelId: "cloud-chan-1",
-      name: "release-notes",
-      visibility: "private",
-    });
+  it("gates the cloud composer as a disabled session composer, not a stand-in", () => {
+    render(CLOUD_TARGET);
 
-    expect(
-      container.querySelector("[data-testid='channel-composer-input']")
-    ).toBeNull();
+    const composer = composerElement();
+    expect(composer).not.toBeNull();
+    expect(composer?.getAttribute("data-submit-disabled")).toBe("true");
+    expect(composer?.getAttribute("data-session-id")).toBe(
+      "channel-cloud-org-1-cloud-chan-1"
+    );
     expect(
       container.querySelector("[data-testid='channel-composer-disabled']")
         ?.textContent
@@ -314,5 +391,12 @@ describe("ChannelPanelView", () => {
       container.querySelector("[data-testid='channel-panel-member-count']")
         ?.textContent
     ).toContain("cloud.channels.feed.memberCount");
+  });
+
+  it("never writes to the local store from the cloud surface", async () => {
+    render(CLOUD_TARGET);
+    await submit("this must not land anywhere");
+
+    expect(store.get(localChannelMessagesAtom)).toEqual([]);
   });
 });

@@ -7,29 +7,30 @@
  *    `localChannelMessagesAtom` (this machine, single user) and survive a
  *    restart; edit and tombstone-delete are available on every row.
  *
- *  - **cloud** channels render the identical header + transcript, but the
- *    composer is replaced by an honest disabled notice. `0014_org_channels.sql`
- *    ships the CONTROL plane only — there are no message RPCs to call, so the
- *    surface says so inline rather than pretending to send (and rather than
+ *  - **cloud** channels render the identical header + transcript + composer,
+ *    but the composer is disabled and says why. `0014_org_channels.sql` ships
+ *    the CONTROL plane only — there are no message RPCs to call, so the
+ *    surface is honest inline rather than pretending to send (and rather than
  *    firing a toast on every click).
  *
- * The transcript itself is `ChannelMessageList` (virtualized above a
- * threshold, `HumanSessionView`'s construction); the composer follows the
- * `CommentComposer` shape painted with `inputAreaTokens`. Settings reuses the
- * existing per-scope dialog — this view mounts it, never reimplements it.
+ * Both scopes are built from session parts, not look-alikes: the transcript is
+ * `ChannelMessageList` on `DETAIL_PANEL_TOKENS.contentMaxWidth`, and the
+ * composer is the real `InputArea` in the absolutely positioned footer
+ * `HumanSessionView` uses. Settings reuses the existing per-scope dialog —
+ * this view mounts it, never reimplements it.
  */
 import { useAtomValue, useSetAtom } from "jotai";
 import { MessagesSquare } from "lucide-react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { INPUT_AREA } from "@src/config/inputAreaTokens";
 import LocalChannelSettingsDialog from "@src/features/LocalChannels/components/LocalChannelSettingsDialog";
 import ChannelSettingsDialog from "@src/features/Org2Cloud/channels/components/ChannelSettingsDialog";
 import { useOrgChannels } from "@src/features/Org2Cloud/channels/useOrgChannels";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 import type { ChatPanelSelectedChannel } from "@src/store/chatPanel/chatPanelTabsAtom";
 import {
-  type LocalChannelMessageErrorCode,
   deleteLocalChannelMessageAtom,
   editLocalChannelMessageAtom,
   localChannelMessagesForChannelAtomFamily,
@@ -40,13 +41,14 @@ import { localChannelsAtom } from "@src/store/ui/localChannelsAtom";
 import ChannelComposer from "./ChannelComposer";
 import ChannelMessageList from "./ChannelMessageList";
 import ChannelPanelHeader from "./ChannelPanelHeader";
+import { createChannelPostHandler } from "./channelPostHandler";
 
-const POST_ERROR_KEYS: Record<LocalChannelMessageErrorCode, string> = {
-  empty: "cloud.channels.feed.errorEmpty",
-  tooLong: "cloud.channels.feed.errorTooLong",
-  quota: "cloud.channels.feed.errorQuota",
-  invalid: "cloud.channels.feed.errorGeneric",
-};
+/**
+ * Bottom inset on the empty-state column so the placeholder clears the
+ * absolutely positioned composer footer (matches the transcript's `pb-36`).
+ */
+const EMPTY_STATE_COLUMN_CLASSES =
+  "flex min-h-0 flex-1 items-center justify-center pb-36";
 
 export interface ChannelPanelViewProps {
   channel: ChatPanelSelectedChannel;
@@ -83,16 +85,16 @@ const LocalChannelPanel: React.FC<LocalChannelPanelProps> = ({
     [channelId, channels]
   );
 
-  const handleSubmit = useCallback(
-    (body: string): boolean => {
-      const result = postMessage({ channelId, body });
-      if (result.ok) {
-        setComposerError(null);
-        return true;
-      }
-      setComposerError(t(POST_ERROR_KEYS[result.error]));
-      return false;
-    },
+  // `InputArea` reads its submit handler through `onSubmitOverride`; the
+  // refusal path throws so the composer restores the draft (see
+  // `channelPostHandler.ts`).
+  const handlePost = useMemo(
+    () =>
+      createChannelPostHandler({
+        post: (body) => postMessage({ channelId, body }),
+        translate: (key) => t(key),
+        onError: setComposerError,
+      }),
     [channelId, postMessage, t]
   );
 
@@ -126,40 +128,47 @@ const LocalChannelPanel: React.FC<LocalChannelPanelProps> = ({
     );
   }
 
+  const displayName = channel.name || fallbackName;
+
   return (
     <div className="flex h-full min-h-0 flex-col" data-testid="channel-panel">
       <ChannelPanelHeader
-        name={channel.name || fallbackName}
+        name={displayName}
         topic={channel.topic}
         isPrivate={false}
         memberCount={undefined}
         onOpenSettings={() => setSettingsOpen(true)}
       />
-      {messages.length === 0 ? (
-        <div className="flex min-h-0 flex-1 items-center justify-center">
-          <Placeholder
-            variant="empty"
-            placement="detail-panel"
-            icon={<MessagesSquare size={32} strokeWidth={1.5} />}
-            title={t("cloud.channels.feed.emptyTitle", {
-              name: channel.name || fallbackName,
-            })}
-            subtitle={t("cloud.channels.feed.emptySubtitle")}
+      <div className="relative flex min-h-0 flex-1 flex-col">
+        {messages.length === 0 ? (
+          <div className={EMPTY_STATE_COLUMN_CLASSES}>
+            <Placeholder
+              variant="empty"
+              placement="detail-panel"
+              icon={<MessagesSquare size={32} strokeWidth={1.5} />}
+              title={t("cloud.channels.feed.emptyTitle", {
+                name: displayName,
+              })}
+              subtitle={t("cloud.channels.feed.emptySubtitle")}
+            />
+          </div>
+        ) : (
+          <ChannelMessageList
+            messages={messages}
+            authorLabel={t("cloud.channels.feed.you")}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
           />
-        </div>
-      ) : (
-        <ChannelMessageList
-          messages={messages}
-          authorLabel={t("cloud.channels.feed.you")}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
+        )}
+        <ChannelComposer
+          composerId={`channel-local-${channelId}`}
+          placeholder={t("cloud.channels.feed.composerPlaceholder", {
+            name: displayName,
+          })}
+          onSubmit={handlePost}
+          error={composerError}
         />
-      )}
-      <ChannelComposer
-        channelName={channel.name || fallbackName}
-        onSubmit={handleSubmit}
-        error={composerError}
-      />
+      </div>
       <LocalChannelSettingsDialog
         key={settingsOpen ? `settings-open-${channel.id}` : "settings"}
         open={settingsOpen}
@@ -207,25 +216,35 @@ const CloudChannelPanel: React.FC<CloudChannelPanelProps> = ({
         memberCount={channel?.memberCount}
         onOpenSettings={() => setSettingsOpen(true)}
       />
-      <div className="flex min-h-0 flex-1 items-center justify-center">
-        <Placeholder
-          variant="empty"
-          placement="detail-panel"
-          icon={<MessagesSquare size={32} strokeWidth={1.5} />}
-          title={t("cloud.channels.feed.cloudPendingTitle")}
-          subtitle={t("cloud.channels.feed.cloudPendingSubtitle")}
-        />
-      </div>
-      {/* Honest disabled state: the cloud message RPCs do not exist yet, so
-          the composer explains itself in place instead of accepting text it
-          could never send. */}
-      <div
-        className="shrink-0 px-2 pb-2 pt-1"
-        data-testid="channel-composer-disabled"
-      >
-        <div className="rounded-[12px] border border-dashed border-border-2 bg-fill-1 px-3 py-2.5 text-[12px] text-text-3">
-          {t("cloud.channels.feed.cloudComposerDisabled")}
+      <div className="relative flex min-h-0 flex-1 flex-col">
+        <div className={EMPTY_STATE_COLUMN_CLASSES}>
+          <Placeholder
+            variant="empty"
+            placement="detail-panel"
+            icon={<MessagesSquare size={32} strokeWidth={1.5} />}
+            title={t("cloud.channels.feed.cloudPendingTitle")}
+            subtitle={t("cloud.channels.feed.cloudPendingSubtitle")}
+          />
         </div>
+        {/* Honest disabled state: the cloud message RPCs do not exist yet, so
+            the SAME composer the local scope gets renders inert with the
+            explanation above it, instead of accepting text it could never
+            send. */}
+        <ChannelComposer
+          composerId={`channel-cloud-${orgId}-${channelId}`}
+          placeholder={t("cloud.channels.feed.composerPlaceholder", {
+            name: channel?.name ?? fallbackName,
+          })}
+          onSubmit={null}
+          notice={
+            <div
+              className={`border border-dashed border-border-2 bg-fill-1 px-3 py-2.5 text-[12px] text-text-3 ${INPUT_AREA.borderRadiusClass}`}
+              data-testid="channel-composer-disabled"
+            >
+              {t("cloud.channels.feed.cloudComposerDisabled")}
+            </div>
+          }
+        />
       </div>
       <ChannelSettingsDialog
         key={settingsOpen ? `settings-open-${channelId}` : "settings"}
