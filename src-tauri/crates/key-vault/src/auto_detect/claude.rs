@@ -1,7 +1,9 @@
 use std::collections::HashMap;
 use std::env;
 use std::fs;
-use std::path::{Path, PathBuf};
+#[cfg(target_os = "macos")]
+use std::path::Path;
+use std::path::PathBuf;
 
 use chrono::{Duration as ChronoDuration, Utc};
 use serde::Deserialize;
