@@ -31,6 +31,7 @@ export * from "./sources/zcode";
 export * from "./sources/qoder";
 export * from "./sources/mimoCode";
 export * from "./sources/omp";
+export * from "./sources/pi";
 export * from "./sources/qoderCli";
 
 export interface ExternalHistoryImportedRepo {

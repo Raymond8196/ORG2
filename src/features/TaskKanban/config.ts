@@ -81,6 +81,7 @@ export const KANBAN_AGENT_TYPE_FILTER = {
   QODER_APP: "qoder_app",
   MIMO_CODE_APP: "mimo_code_app",
   OMP_APP: "omp_app",
+  PI_APP: "pi_app",
   QODER_CLI_APP: "qoder_cli_app",
 } as const;
 
@@ -106,6 +107,7 @@ export const EXTERNAL_HISTORY_FILTER_BY_SOURCE: Record<
   qoder: KANBAN_AGENT_TYPE_FILTER.QODER_APP,
   mimo_code: KANBAN_AGENT_TYPE_FILTER.MIMO_CODE_APP,
   omp: KANBAN_AGENT_TYPE_FILTER.OMP_APP,
+  pi: KANBAN_AGENT_TYPE_FILTER.PI_APP,
   qoder_cli: KANBAN_AGENT_TYPE_FILTER.QODER_CLI_APP,
 };
 

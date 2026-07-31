@@ -63,6 +63,7 @@ const IMPORTABLE_HISTORY_SOURCE_IDS: &[&str] = &[
     "qoder",
     "mimo_code",
     "omp",
+    "pi",
     "qoder_cli",
 ];
 
@@ -74,13 +75,13 @@ const IMPORTABLE_HISTORY_SOURCE_IDS: &[&str] = &[
 fn store_kind_for(source_id: &str) -> &'static str {
     match source_id {
         // Importable — ORGII parses these.
-        "claude_code" | "codex_app" | "workbuddy" | "trae" | "cline" | "qoder" | "omp"
+        "claude_code" | "codex_app" | "workbuddy" | "trae" | "cline" | "qoder" | "omp" | "pi"
         | "qoder_cli" => "jsonl",
         "cursor_ide" | "cursor_cli" | "opencode" | "windsurf" | "warp" | "zcode" | "mimo_code" => {
             "sqlite"
         }
         // Known store format, not yet imported.
-        "qwen_code" | "kimi" | "pi" | "droid" => "jsonl",
+        "qwen_code" | "kimi" | "droid" => "jsonl",
         "copilot" | "goose" | "grok" | "openclaw" => "sqlite",
         "aider" => "markdown",
         _ => "",
@@ -172,7 +173,17 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
         true,
         &[".config/mimocode", ".local/share/mimocode"],
     ),
-    source("pi", "Pi", "pi", "pi", &[], "pi", "pi", false, &[".pi"]),
+    source(
+        "pi",
+        "Pi",
+        "pi",
+        "pi",
+        &[],
+        "pi",
+        "pi",
+        true,
+        &[".pi/agent/sessions"],
+    ),
     source(
         "omp",
         "OMP",
@@ -605,6 +616,7 @@ fn importable_history_candidates(source_id: &str) -> Vec<PathBuf> {
             orgtrack_core::sources::mimo_code::history::mimo_code_history_candidate_paths()
         }
         "omp" => orgtrack_core::sources::omp::history::omp_history_candidate_paths(),
+        "pi" => orgtrack_core::sources::pi::history::pi_history_candidate_paths(),
         "qoder_cli" => {
             orgtrack_core::sources::qoder_cli::history::qoder_cli_history_candidate_paths()
         }
@@ -764,6 +776,7 @@ mod tests {
         for (source_id, command, store_kind) in [
             ("mimo_code", "mimo", "sqlite"),
             ("omp", "omp", "jsonl"),
+            ("pi", "pi", "jsonl"),
             ("qoder_cli", "qodercli", "jsonl"),
         ] {
             let source = EXTERNAL_CLI_SOURCES
@@ -774,6 +787,16 @@ mod tests {
             assert_eq!(source.detect_cmd, command);
             assert_eq!(store_kind_for(source_id), store_kind);
         }
+
+        let pi = EXTERNAL_CLI_SOURCES
+            .iter()
+            .find(|source| source.source_id == "pi")
+            .expect("Pi source entry");
+        assert_eq!(pi.history_dirs, &[".pi/agent/sessions"]);
+        assert_eq!(
+            importable_history_candidates("pi"),
+            orgtrack_core::sources::pi::history::pi_history_candidate_paths()
+        );
 
         let trae = EXTERNAL_CLI_SOURCES
             .iter()
