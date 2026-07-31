@@ -35,6 +35,7 @@ import {
   type LocalChannel,
   activeLocalChannelsAtom,
   archivedLocalChannelsAtom,
+  isLocalChannelRegistryHydrationDegraded,
   reconcileLocalChannelMessagesAtom,
   unarchiveLocalChannelAtom,
 } from "@src/store/ui/localChannelsAtom";
@@ -107,6 +108,9 @@ export function useLocalChannelsSection({
   }, [reconcileMessages]);
 
   useEffect(() => {
+    // A degraded registry read hydrates to [] — that empty set is data loss,
+    // not an authoritative "no channels", so it must not close every tab.
+    if (isLocalChannelRegistryHydrationDegraded()) return;
     reconcileChannelTabs({
       scope: "local",
       channels: accessibleChannels.map((channel) => ({
@@ -143,6 +147,17 @@ export function useLocalChannelsSection({
       accessibleChannelIds.has(dialogState.channel.id))
       ? dialogState
       : null;
+
+  // Deriving closed hides the dialog but must not PARK it: retained stale
+  // state would silently reopen a possibly-destructive dialog when the
+  // scope flips back. Drop it once derived closed.
+  useEffect(() => {
+    if (dialogState && activeDialog === null) {
+      queueMicrotask(() => {
+        setDialogState((current) => (current === dialogState ? null : current));
+      });
+    }
+  }, [activeDialog, dialogState]);
 
   const closeDialog = useCallback(() => setDialogState(null), []);
   const openCreateDialog = useCallback(

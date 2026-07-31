@@ -22,6 +22,12 @@ export interface ChannelNameFieldProps {
   value: string;
   onChange: (value: string) => void;
   testId: string;
+  /**
+   * Name/topic form dialogs opt in so typing can start immediately;
+   * without it ModalSystem's fallback lands focus on the header close X.
+   * Confirmation dialogs must NOT autofocus their destructive action.
+   */
+  autoFocus?: boolean;
 }
 
 /** '#'-adorned live-normalizing name input with the n/80 counter. */
@@ -29,6 +35,7 @@ export const ChannelNameField: React.FC<ChannelNameFieldProps> = ({
   value,
   onChange,
   testId,
+  autoFocus = false,
 }) => {
   const { t } = useTranslation("navigation");
   const inputId = useId();
@@ -43,6 +50,7 @@ export const ChannelNameField: React.FC<ChannelNameFieldProps> = ({
         onChange={(next) => onChange(normalizeChannelNameInput(next))}
         placeholder={t("cloud.channels.create.namePlaceholder")}
         maxLength={CHANNEL_NAME_MAX_LENGTH}
+        autoFocus={autoFocus}
         prefix={<span className="text-[13px] text-text-3">#</span>}
         suffix={
           <span className="text-[11px] tabular-nums text-text-4">
@@ -88,18 +96,28 @@ export const ChannelTopicField: React.FC<ChannelTopicFieldProps> = ({
   );
 };
 
+/** The field-label row the name/topic fields render internally. */
+export const ChannelFieldLabel: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => <span className="text-[12px] font-medium text-text-2">{children}</span>;
+
 export interface ChannelDialogErrorNoticeProps {
   message: string | null;
   testId: string;
 }
 
-/** The channels-dialog inline error box (danger-1 background pattern). */
+/**
+ * The channels-dialog inline error box (danger-1 background pattern).
+ * `role="alert"` because it appears dynamically after a failed submit —
+ * without live-region semantics screen readers never hear the failure.
+ */
 export const ChannelDialogErrorNotice: React.FC<
   ChannelDialogErrorNoticeProps
 > = ({ message, testId }) => {
   if (!message) return null;
   return (
     <div
+      role="alert"
       className="rounded-lg bg-danger-1 px-3 py-2 text-[12px] text-danger-6"
       data-testid={testId}
     >
@@ -122,7 +140,7 @@ export const ChannelDeleteConfirmation: React.FC<
 > = ({ warning, acknowledgement, checked, onChange, acknowledgeTestId }) => (
   <>
     <div className="flex items-start gap-2 rounded-lg bg-danger-1 px-3 py-2 text-[12px] text-danger-6">
-      <TriangleAlert size={14} className="mt-0.5 shrink-0" />
+      <TriangleAlert size={14} aria-hidden className="mt-0.5 shrink-0" />
       <span>{warning}</span>
     </div>
     <div data-testid={acknowledgeTestId}>

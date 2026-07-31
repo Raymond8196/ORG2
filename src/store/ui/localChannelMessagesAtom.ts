@@ -332,7 +332,13 @@ export function deleteLocalChannelMessage(
   const current = messages.find((message) => message.id === id);
   if (!current) return fail("invalid");
   if (current.deletedAt !== null) {
-    return { ok: true, messages: [...messages], message: current };
+    // Same array identity: the write atom skips its full-store persist for
+    // a semantic no-op (registry archive/unarchive got this in this PR too).
+    return {
+      ok: true,
+      messages: messages as LocalChannelMessage[],
+      message: current,
+    };
   }
   const updated: LocalChannelMessage = {
     ...current,
@@ -452,8 +458,11 @@ editLocalChannelMessageAtom.debugLabel = "editLocalChannelMessageAtom";
 export const deleteLocalChannelMessageAtom = atom(
   null,
   (get, set, id: string): LocalChannelMessageResult => {
-    const result = deleteLocalChannelMessage(get(localChannelMessagesAtom), id);
-    if (result.ok) set(localChannelMessagesAtom, result.messages);
+    const current = get(localChannelMessagesAtom);
+    const result = deleteLocalChannelMessage(current, id);
+    if (result.ok && result.messages !== current) {
+      set(localChannelMessagesAtom, result.messages);
+    }
     return result;
   }
 );

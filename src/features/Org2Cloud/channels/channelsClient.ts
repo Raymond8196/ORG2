@@ -12,6 +12,8 @@
  */
 import { z } from "zod/v4";
 
+import { createLogger } from "@src/hooks/logger";
+
 import { type CloudEndpoint, ORG2_CLOUD_POSTGREST_SCHEMA } from "../config";
 import {
   fetchWithTransportRetry,
@@ -71,6 +73,8 @@ export function isOrg2ChannelsErrorCode(
 // RPC plumbing
 // ---------------------------------------------------------------------------
 
+const log = createLogger("Org2CloudChannels");
+
 function rpcUrl(functionName: string, endpoint: CloudEndpoint): string {
   return `${endpoint.supabaseUrl}/rest/v1/rpc/${functionName}`;
 }
@@ -83,6 +87,17 @@ async function callChannelsRpc(
   sourceSignal?: AbortSignal
 ): Promise<unknown> {
   const endpoint = endpointForOrg(orgId);
+  // Mutations leave an INFO trace (reads stay quiet): the dual-instance
+  // protocol audits cloud-state changes by log effect, and an unlogged
+  // channel delete/archive is invisible to it.
+  if (!functionName.startsWith("cloud_list_")) {
+    log.info(
+      `channels rpc ${functionName} org=${orgId}` +
+        (typeof body.p_channel_id === "string"
+          ? ` channel=${body.p_channel_id}`
+          : "")
+    );
+  }
   return runCloudRequestWithTimeout(
     async (signal) => {
       const response = await fetchWithTransportRetry(

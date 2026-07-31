@@ -86,6 +86,7 @@ const LocalChannelSettingsDialog: React.FC<LocalChannelSettingsDialogProps> = ({
         data-testid="local-channel-settings-dialog"
       >
         <ChannelNameField
+          autoFocus
           value={name}
           onChange={setName}
           testId="local-channel-settings-name"

@@ -29,6 +29,7 @@ import {
 import {
   ChannelDialogErrorNotice,
   ChannelDialogFooter,
+  ChannelFieldLabel,
   ChannelNameField,
   ChannelTopicField,
 } from "@src/features/DiscussionChannels/components/ChannelDialogPrimitives";
@@ -162,6 +163,7 @@ const ChannelSettingsDialog: React.FC<ChannelSettingsDialogProps> = ({
         data-testid="channel-settings-dialog"
       >
         <ChannelNameField
+          autoFocus
           value={name}
           onChange={setName}
           testId="channel-settings-name"
@@ -174,9 +176,9 @@ const ChannelSettingsDialog: React.FC<ChannelSettingsDialogProps> = ({
         />
 
         <div className="flex flex-col gap-1.5">
-          <span className="text-[12px] font-medium text-text-2">
+          <ChannelFieldLabel>
             {t("cloud.channels.create.postPolicyLabel")}
-          </span>
+          </ChannelFieldLabel>
           <Select
             value={postPolicy}
             options={postPolicyOptions}

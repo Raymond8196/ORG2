@@ -178,6 +178,32 @@ export const closeProjectOrgChatPanelTabsAtom = atom(
 );
 closeProjectOrgChatPanelTabsAtom.debugLabel = "closeProjectOrgChatPanelTabs";
 
+/**
+ * Close cloud channel tabs whose org is no longer in the authoritative
+ * roster. Per-org channel-tab reconciliation only runs while that org is the
+ * ACTIVE sidebar scope; a revoked org can never become active again, so its
+ * channel tabs (private ones included) would otherwise persist forever with
+ * cached names. Keyed by LIVE cloud org ids so an empty roster read cannot
+ * be distinguished from revocation — callers must gate on rosterLoaded.
+ */
+export const closeRevokedCloudChannelChatPanelTabsAtom = atom(
+  null,
+  (get, set, liveCloudOrgIds: readonly string[]) => {
+    const live = new Set(liveCloudOrgIds);
+    const tabIds = get(chatPanelTabsAtom)
+      .tabs.filter(
+        (tab) =>
+          tab.type === "channel" &&
+          tab.channel?.scope === "cloud" &&
+          !live.has(tab.channel.orgId)
+      )
+      .map((tab) => tab.id);
+    for (const tabId of tabIds) set(closeChatPanelTabAtom, tabId);
+  }
+);
+closeRevokedCloudChannelChatPanelTabsAtom.debugLabel =
+  "closeRevokedCloudChannelChatPanelTabs";
+
 export type ReconcileDiscussionChannelTabsInput =
   | {
       scope: "local";
@@ -232,7 +258,7 @@ export const reconcileDiscussionChannelTabsAtom = atom(
             channel.visibility === tab.channel.visibility));
       if (samePayload) return tab;
       payloadChanged = true;
-      return { ...tab, title: `#${channel.name}`, channel };
+      return { ...tab, title: channel.name, channel };
     });
 
     if (payloadChanged) set(chatPanelTabsAtom, { ...state, tabs });

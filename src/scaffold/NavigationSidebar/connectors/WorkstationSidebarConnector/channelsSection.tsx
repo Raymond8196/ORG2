@@ -173,6 +173,18 @@ export function useCloudChannelsSection({
       ? dialogState
       : null;
 
+  // Deriving closed hides the dialog but must not PARK it: with the stale
+  // state retained, switching back to this org hours later would silently
+  // reopen a possibly-destructive dialog. Drop the state once it derives
+  // closed (microtask keeps the render pure for the lint contract).
+  useEffect(() => {
+    if (dialogState && activeDialog === null) {
+      queueMicrotask(() => {
+        setDialogState((current) => (current === dialogState ? null : current));
+      });
+    }
+  }, [activeDialog, dialogState]);
+
   const closeDialog = useCallback(() => setDialogState(null), []);
 
   const openCreateDialog = useCallback(() => {

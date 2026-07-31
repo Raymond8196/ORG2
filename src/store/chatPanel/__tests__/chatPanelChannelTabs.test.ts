@@ -66,7 +66,7 @@ describe("openChannelInChatPanelTabAtom", () => {
     expect(tabs).toHaveLength(1);
     expect(tabs[0]).toMatchObject({
       id: tabId,
-      title: "#code-review",
+      title: "code-review",
       channel: LOCAL_CHANNEL,
     });
     expect(atoms.store.get(atoms.chatPanelTabsAtom).activeTabId).toBe(tabId);
@@ -92,7 +92,7 @@ describe("openChannelInChatPanelTabAtom", () => {
 
     const tabs = channelTabs();
     expect(tabs).toHaveLength(1);
-    expect(tabs[0].title).toBe("#hotfix-branch");
+    expect(tabs[0].title).toBe("hotfix-branch");
     expect(tabs[0].channel).toMatchObject({ name: "hotfix-branch" });
   });
 
@@ -115,8 +115,8 @@ describe("openChannelInChatPanelTabAtom", () => {
     });
 
     expect(channelTabs().map((tab) => tab.title)).toEqual([
-      "#release-notes",
-      "#hotfix-branch",
+      "release-notes",
+      "hotfix-branch",
     ]);
   });
 
@@ -183,9 +183,9 @@ describe("openChannelInChatPanelTabAtom", () => {
 
     expect(closedCloudTabs).toEqual([revokedOrg1Tab]);
     expect(channelTabs().map((tab) => tab.title)).toEqual([
-      "#code-review",
-      "#renamed-visible",
-      "#other-org",
+      "code-review",
+      "renamed-visible",
+      "other-org",
     ]);
     expect(channelTabs()[1]?.channel).toMatchObject({
       name: "renamed-visible",
@@ -201,8 +201,8 @@ describe("openChannelInChatPanelTabAtom", () => {
     );
     expect(closedLocalTabs).toHaveLength(1);
     expect(channelTabs().map((tab) => tab.title)).toEqual([
-      "#renamed-visible",
-      "#other-org",
+      "renamed-visible",
+      "other-org",
     ]);
   });
 });

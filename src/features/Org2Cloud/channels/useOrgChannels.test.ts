@@ -206,7 +206,10 @@ describe("useOrgChannels", () => {
     expect(probe().phase).toBe("unsupported");
     expect(mocks.listCloudChannels).not.toHaveBeenCalled();
     // The capability probe itself ran, with the refreshed token.
-    expect(mocks.getCloudCapabilities).toHaveBeenCalledWith("fresh-token");
+    expect(mocks.getCloudCapabilities).toHaveBeenCalledWith(
+      "fresh-token",
+      expect.objectContaining({ supabaseUrl: expect.any(String) })
+    );
   });
 
   it("loads with the fresh token and splits active vs archived channels", async () => {
@@ -269,6 +272,43 @@ describe("useOrgChannels", () => {
         '[data-testid="channels-probe"][data-phase="ready"]'
       )
     ).toHaveLength(2);
+  });
+
+  it("a version bump during an in-flight listing starts a FRESH request instead of joining the stale one", async () => {
+    const first = deferred<CloudChannelsList>();
+    const second = deferred<CloudChannelsList>();
+    let call = 0;
+    mocks.listCloudChannels.mockImplementation(() => {
+      call += 1;
+      return call === 1 ? first.promise : second.promise;
+    });
+
+    renderProbe("org-a");
+    await flushAsync();
+    expect(mocks.listCloudChannels).toHaveBeenCalledTimes(1);
+
+    // The mutation's realtime bump arrives while the PRE-mutation listing is
+    // still in flight. Joining it would launder the stale (pre-mutation)
+    // result past the seq/channelsKey guards and feed tab reconciliation an
+    // authoritative listing that is missing the just-created channel.
+    act(() => {
+      store.set(bumpOrg2CloudChannelsVersionAtom, "org-a");
+    });
+    await flushAsync();
+    expect(mocks.listCloudChannels).toHaveBeenCalledTimes(2);
+
+    act(() => {
+      first.resolve(channelsPage([makeChannel("c1", "stale-view")]));
+      second.resolve(
+        channelsPage([
+          makeChannel("c1", "stale-view"),
+          makeChannel("c2", "just-created"),
+        ])
+      );
+    });
+    await flushAsync();
+    expect(probe().phase).toBe("ready");
+    expect(probe().channels).toBe("stale-view,just-created");
   });
 
   it("never surfaces archived channels when includeArchived is off", async () => {

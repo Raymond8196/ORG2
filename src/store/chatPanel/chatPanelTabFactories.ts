@@ -213,7 +213,7 @@ export const createChannelTab = defineChatPanelTabFactory<{
     prefix: "channel",
     getKey: (data) => buildChannelTabKey(data.channel),
   },
-  getTitle: (data) => `#${data.channel.name}`,
+  getTitle: (data) => data.channel.name,
   toPayload: (data) => ({ channel: data.channel }),
 });
 

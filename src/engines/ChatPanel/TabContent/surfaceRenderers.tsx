@@ -138,12 +138,14 @@ export function ChannelSurfaceRenderer({
   if (!tab.channel) return null;
   // Keyed per channel so switching the payload in place (rename / re-open)
   // remounts the transcript instead of replaying another channel's scroll.
+  // Cloud keys carry the org id, mirroring `buildChannelTabKey`.
+  const surfaceKey =
+    tab.channel.scope === "cloud"
+      ? `cloud:${tab.channel.orgId}:${tab.channel.channelId}`
+      : `local:${tab.channel.channelId}`;
   return (
     <Suspense fallback={null}>
-      <DiscussionChannelPanelView
-        key={`${tab.channel.scope}:${tab.channel.channelId}`}
-        channel={tab.channel}
-      />
+      <DiscussionChannelPanelView key={surfaceKey} channel={tab.channel} />
     </Suspense>
   );
 }

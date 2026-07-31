@@ -87,11 +87,31 @@ const StoredLocalChannelsSchema: z.ZodType<LocalChannel[]> = z
     })
   );
 
+/**
+ * True when the stored registry payload failed to parse and hydrated to [].
+ * The orphan sweep must NOT treat that empty set as authoritative: purging
+ * against it would permanently delete every channel's messages because of
+ * one corrupt/unreadable REGISTRY read, while the messages key itself was
+ * intact.
+ */
+let localChannelRegistryHydrationDegraded = false;
+
+export function isLocalChannelRegistryHydrationDegraded(): boolean {
+  return localChannelRegistryHydrationDegraded;
+}
+
+export const __LOCAL_CHANNELS_TEST_INTERNALS = {
+  setRegistryHydrationDegraded(value: boolean): void {
+    localChannelRegistryHydrationDegraded = value;
+  },
+};
+
 export const localChannelsAtom = atomWithStorage<LocalChannel[]>(
   LOCAL_CHANNELS_STORAGE_KEY,
   [],
   createZodJsonStorage(StoredLocalChannelsSchema, {
     onInvalid: (key, _rawValue, error) => {
+      localChannelRegistryHydrationDegraded = true;
       console.warn(`[localChannels] invalid stored payload for ${key}`, error);
     },
   }),
@@ -397,11 +417,17 @@ deleteLocalChannelAtom.debugLabel = "deleteLocalChannelAtom";
  * Reconcile the message plane from the authoritative local channel registry.
  * Mounted once by the sidebar coordinator at app startup.
  */
-export const reconcileLocalChannelMessagesAtom = atom(null, (get, set) =>
-  set(
+export const reconcileLocalChannelMessagesAtom = atom(null, (get, set) => {
+  if (localChannelRegistryHydrationDegraded) {
+    console.warn(
+      "[localChannels] skipping orphan sweep: registry hydration was degraded"
+    );
+    return { removed: 0, orphanedChannelIds: [] as string[] };
+  }
+  return set(
     purgeOrphanedLocalChannelMessagesAtom,
     new Set(get(localChannelsAtom).map((channel) => channel.id))
-  )
-);
+  );
+});
 reconcileLocalChannelMessagesAtom.debugLabel =
   "reconcileLocalChannelMessagesAtom";

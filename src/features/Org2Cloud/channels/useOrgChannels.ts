@@ -17,6 +17,7 @@ import {
   org2CloudAuthIdentityKey,
 } from "@src/features/Org2Cloud/org2CloudAuthAtom";
 import { getCloudCapabilities } from "@src/features/Org2Cloud/org2CloudCapabilities";
+import { endpointForOrg } from "@src/features/Org2Cloud/org2CloudOrgEndpointRouter";
 import { createLogger } from "@src/hooks/logger";
 import { onWindowFocusRegained } from "@src/util/core/windowFocus";
 
@@ -54,12 +55,25 @@ const listInFlightByIdentityScope = new Map<
   Promise<CloudChannelsList>
 >();
 
+/**
+ * `forceFresh` evicts any in-flight request before starting. A realtime
+ * bump or user refresh means the caller KNOWS the current listing is
+ * stale; joining a pre-mutation request would launder the stale result
+ * past the seq/`channelsKey` guards and hand it to tab reconciliation as
+ * authoritative — which closes tabs, and closes never self-revert.
+ * Concurrent mounts with no such signal still coalesce.
+ */
 async function listCloudChannelsSingleFlight(
   key: string,
-  load: () => Promise<CloudChannelsList>
+  load: () => Promise<CloudChannelsList>,
+  forceFresh = false
 ): Promise<CloudChannelsList> {
-  const existing = listInFlightByIdentityScope.get(key);
-  if (existing) return existing;
+  if (forceFresh) {
+    listInFlightByIdentityScope.delete(key);
+  } else {
+    const existing = listInFlightByIdentityScope.get(key);
+    if (existing) return existing;
+  }
   const request = load();
   listInFlightByIdentityScope.set(key, request);
   try {
@@ -69,6 +83,16 @@ async function listCloudChannelsSingleFlight(
       listInFlightByIdentityScope.delete(key);
     }
   }
+}
+
+function channelListsEqual(
+  left: CloudChannel[] | null,
+  right: CloudChannel[]
+): boolean {
+  if (!left || left.length !== right.length) return false;
+  return left.every(
+    (channel, index) => JSON.stringify(channel) === JSON.stringify(right[index])
+  );
 }
 
 /**
@@ -127,8 +151,15 @@ export function useOrgChannels(
   // second byte-equivalent copy here kept drifting risk alive.
   const getFreshAccessToken = useFreshChannelAccessToken();
 
+  // A version/nonce change is a staleness SIGNAL: the fetch it triggers must
+  // not join an in-flight pre-mutation request (see the single-flight note).
+  const freshnessRef = useRef<string | null>(null);
   useEffect(() => {
     if (!authIdentityKey || !orgId || !listKey) return;
+    const freshnessStamp = `${listKey}|v${versionForOrg}|n${refreshNonce}`;
+    const forceFresh =
+      freshnessRef.current !== null && freshnessRef.current !== freshnessStamp;
+    freshnessRef.current = freshnessStamp;
     let cancelled = false;
     const seq = ++requestRef.current;
     void (async () => {
@@ -136,16 +167,23 @@ export function useOrgChannels(
       setError(null);
       try {
         const accessToken = await getFreshAccessToken();
-        const capabilities = await getCloudCapabilities(accessToken);
+        const capabilities = await getCloudCapabilities(
+          accessToken,
+          endpointForOrg(orgId)
+        );
         const isSupported = hasOrgChannelsCapability(capabilities);
         if (cancelled || seq !== requestRef.current) return;
         setSupported(isSupported);
         if (!isSupported) return;
-        const page = await listCloudChannelsSingleFlight(listKey, () =>
-          listCloudChannels(accessToken, orgId, { includeArchived })
+        const page = await listCloudChannelsSingleFlight(
+          listKey,
+          () => listCloudChannels(accessToken, orgId, { includeArchived }),
+          forceFresh
         );
         if (cancelled || seq !== requestRef.current) return;
-        setChannels(page.channels);
+        setChannels((previous) =>
+          channelListsEqual(previous, page.channels) ? previous : page.channels
+        );
         setChannelsKey(
           `${authIdentityKey}|${orgId}|${includeArchived ? "a" : ""}`
         );

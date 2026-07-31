@@ -88,6 +88,7 @@ const CreateLocalChannelDialog: React.FC<CreateLocalChannelDialogProps> = ({
         data-testid="local-channel-create-dialog"
       >
         <ChannelNameField
+          autoFocus
           value={name}
           onChange={setName}
           testId="local-channel-create-name"
