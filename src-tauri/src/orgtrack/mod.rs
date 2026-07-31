@@ -4,6 +4,7 @@ pub mod exporter;
 pub mod external_cli_detection;
 pub mod extraction_scheduler;
 pub mod history_commands;
+mod history_scan_coordinator;
 pub mod impact_indexer;
 pub mod importer;
 pub mod paths;
