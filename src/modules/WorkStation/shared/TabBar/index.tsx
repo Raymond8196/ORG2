@@ -41,7 +41,7 @@ import FileTypeIcon from "@src/components/FileTypeIcon";
 import { NoDragRegion } from "@src/components/WindowChrome";
 import SessionRawTranscriptDialog from "@src/engines/ChatPanel/components/SessionRawTranscriptDialog";
 import {
-  COLLAPSED_SIDEBAR_CHROME_OFFSET,
+  getCollapsedSidebarChromeOffset,
   useShouldOffsetWorkStationTopBar,
 } from "@src/hooks/ui/sidebar/useCollapsedSidebarChromeOffset";
 import { requestTeamInboxSessionHandoffAtom } from "@src/modules/MainApp/TeamInbox/store";
@@ -377,7 +377,7 @@ export const TabBar: React.FC<TabBarProps> = memo(
           {
             height: `${TAB_BAR_HEIGHT + 8}px`,
             paddingLeft: shouldOffsetLeftChrome
-              ? COLLAPSED_SIDEBAR_CHROME_OFFSET
+              ? getCollapsedSidebarChromeOffset()
               : undefined,
             WebkitAppRegion: "drag",
           } as React.CSSProperties
