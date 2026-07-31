@@ -482,9 +482,13 @@ fn parse_qwen_session_meta(
     }
 
     let mut tail_state = None;
+    #[cfg(test)]
     let mut lines_processed = 0;
     while let Some(line) = reader.next_line()? {
-        lines_processed += 1;
+        #[cfg(test)]
+        {
+            lines_processed += 1;
+        }
         let trimmed = line.text.trim();
         if trimmed.is_empty() {
             continue;
@@ -886,10 +890,14 @@ fn bounded_json_value(value: &Value) -> Value {
 }
 
 fn value_to_bounded_text(value: &Value) -> String {
-    let raw = value
+    let display_value = value
+        .as_object()
+        .and_then(|object| object.get("output").or_else(|| object.get("result")))
+        .unwrap_or(value);
+    let raw = display_value
         .as_str()
         .map(str::to_string)
-        .or_else(|| serde_json::to_string(value).ok())
+        .or_else(|| serde_json::to_string(display_value).ok())
         .unwrap_or_default();
     truncate_chars(raw.trim(), MAX_TEXT_CHARS_PER_CHUNK)
 }
