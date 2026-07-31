@@ -645,6 +645,7 @@ export function createSessionSeederHelpers(store: E2EStore) {
     status: string;
     createdAt: string;
     updatedAt: string;
+    pinned?: boolean;
   }): Promise<Result<{ sessionId: string }>> => {
     try {
       if (!input.sessionId) {
@@ -659,6 +660,7 @@ export function createSessionSeederHelpers(store: E2EStore) {
         status: input.status,
         createdAt: input.createdAt,
         updatedAt: input.updatedAt,
+        pinned: input.pinned,
       });
       return { ok: true, sessionId: input.sessionId };
     } catch (err) {

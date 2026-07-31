@@ -17,8 +17,8 @@ use super::aggregation::{list_all_sessions, list_native_sidebar_sessions};
 use super::types::{
     ExternalHistorySidebarBatchResponse, ExternalHistorySidebarBucketPage,
     ExternalHistorySidebarResponse, ExternalHistorySidebarSourceRequest,
-    NativeSidebarSessionPageResponse, NativeSidebarSessionStream, SessionFilter,
-    SessionListResponse,
+    NativeSidebarSessionCursor, NativeSidebarSessionPageResponse, NativeSidebarSessionStream,
+    SessionFilter, SessionListResponse,
 };
 
 // ============================================================================
@@ -44,12 +44,14 @@ pub async fn session_aggregate_list(
 #[tauri::command]
 pub async fn session_native_sidebar_page(
     stream: NativeSidebarSessionStream,
-    offset: usize,
+    cursor: Option<NativeSidebarSessionCursor>,
     limit: usize,
 ) -> Result<NativeSidebarSessionPageResponse, String> {
-    tokio::task::spawn_blocking(move || list_native_sidebar_sessions(stream, offset, limit))
-        .await
-        .map_err(|err| format!("Task join error: {err}"))?
+    tokio::task::spawn_blocking(move || {
+        list_native_sidebar_sessions(stream, cursor.as_ref(), limit)
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
 }
 
 const EXTERNAL_HISTORY_SIDEBAR_BUCKET_MAX_LIMIT: usize = 50;

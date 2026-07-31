@@ -14,6 +14,7 @@ describe("session pagination categories", () => {
     );
 
     expect(SESSION_LIST_CATEGORIES).toEqual([
+      "pinned_native",
       "cli_agent",
       "standalone_agent",
       "agent_org_root",
@@ -27,29 +28,34 @@ describe("session pagination categories", () => {
     const state = resetPaginationState();
 
     expect(state["external_history:codex_app"]).toEqual({
-      loaded: 0,
-      hasMore: false,
-      loading: false,
+      sessionIds: [],
+      cursor: null,
+      phase: "ready",
+      generation: 0,
     });
     expect(state["external_history:claude_code"]).toEqual({
-      loaded: 0,
-      hasMore: false,
-      loading: false,
+      sessionIds: [],
+      cursor: null,
+      phase: "ready",
+      generation: 0,
     });
     expect(state["external_history:opencode"]).toEqual({
-      loaded: 0,
-      hasMore: false,
-      loading: false,
+      sessionIds: [],
+      cursor: null,
+      phase: "ready",
+      generation: 0,
     });
     expect(state["external_history:windsurf"]).toEqual({
-      loaded: 0,
-      hasMore: false,
-      loading: false,
+      sessionIds: [],
+      cursor: null,
+      phase: "ready",
+      generation: 0,
     });
     expect(state["external_history:warp"]).toEqual({
-      loaded: 0,
-      hasMore: false,
-      loading: false,
+      sessionIds: [],
+      cursor: null,
+      phase: "ready",
+      generation: 0,
     });
   });
 });

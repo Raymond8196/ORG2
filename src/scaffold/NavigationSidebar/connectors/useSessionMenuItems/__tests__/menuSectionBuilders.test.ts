@@ -62,7 +62,7 @@ function appendTrailingLoadMoreItems(items: NavigationMenuItem[]): void {
 function loadMoreRowFor(
   category: SessionListCategory
 ): NavigationMenuItem | null {
-  if (category === "agent_org_root") return null;
+  if (category !== "external_history:cursor_ide") return null;
   return {
     id: `load-more-${category}`,
     key: `load-more-${category}`,
@@ -198,6 +198,57 @@ describe("session menu section builders", () => {
     ]);
   });
 
+  it("uses one shared Standalone pager after SDE, Wingman, and Custom", () => {
+    const items = buildByAgentMenuItems({
+      unpinnedSessions: [
+        makeSession("sdeagent-one", "2026-06-09T00:00:00.000Z"),
+        makeSession("wingman-one", "2026-06-09T00:00:00.000Z"),
+        makeSession("custom-one", "2026-06-09T00:00:00.000Z"),
+      ],
+      appendPinnedSessions,
+      appendGroupSessions,
+      loadMoreRowFor: (category) =>
+        category === "standalone_agent"
+          ? {
+              id: "load-more-standalone_agent",
+              key: "load-more-standalone_agent",
+              label: "Load more",
+            }
+          : null,
+    });
+
+    expect(getLoadMoreItemIds(items)).toEqual(["load-more-standalone_agent"]);
+    expect(items.map((item) => item.id)).toEqual([
+      "separator-sde",
+      "sdeagent-one",
+      "separator-wingman",
+      "wingman-one",
+      "separator-custom",
+      "custom-one",
+      "load-more-standalone_agent",
+    ]);
+  });
+
+  it("can render a Retry footer even when the failed stream has no rows", () => {
+    const items = buildByAgentMenuItems({
+      unpinnedSessions: [],
+      appendPinnedSessions,
+      appendGroupSessions,
+      loadMoreRowFor: (category) =>
+        category === "standalone_agent"
+          ? {
+              id: "load-more-standalone_agent",
+              key: "load-more-standalone_agent",
+              label: "Retry",
+            }
+          : null,
+    });
+
+    expect(items.map((item) => [item.id, item.label])).toEqual([
+      ["load-more-standalone_agent", "Retry"],
+    ]);
+  });
+
   it("places the Agent Org backend pager after all loaded Agent Org groups", () => {
     const rootA = {
       ...makeSession("sdeagent-org-a", "2026-06-09T00:00:00.000Z"),
@@ -233,7 +284,7 @@ describe("session menu section builders", () => {
     ]);
   });
 
-  it("keeps the Agent Org backend pager when loaded roots are all pinned", () => {
+  it("does not infer Agent Org pagination ownership from pinned roots", () => {
     const items = buildByAgentMenuItems({
       unpinnedSessions: [],
       appendPinnedSessions: (target) => {
@@ -245,19 +296,9 @@ describe("session menu section builders", () => {
         return false;
       },
       appendGroupSessions,
-      loadMoreRowFor: (category) =>
-        category === "agent_org_root"
-          ? {
-              id: "load-more-agent_org_root",
-              key: "load-more-agent_org_root",
-              label: "Load more",
-            }
-          : null,
+      loadMoreRowFor: () => null,
     });
 
-    expect(items.map((item) => item.id)).toEqual([
-      "pinned-org-root",
-      "load-more-agent_org_root",
-    ]);
+    expect(items.map((item) => item.id)).toEqual(["pinned-org-root"]);
   });
 });

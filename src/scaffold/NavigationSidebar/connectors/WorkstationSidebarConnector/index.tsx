@@ -410,6 +410,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     navigateTo,
     openSession,
     promoteActiveSessionCreatorDraft,
+    groupByMode,
     setGroupVisibleCounts,
     tCommon,
     activateChatPanelTab,

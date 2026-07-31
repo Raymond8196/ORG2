@@ -11,6 +11,7 @@ import type {
   ExternalHistorySidebarListRequest,
   ExternalHistorySidebarResponse,
   ExternalHistorySidebarSourceRequest,
+  NativeSidebarSessionCursor,
   NativeSidebarSessionPageResponse,
   NativeSidebarSessionStream,
   SessionAggregateRecord,
@@ -49,6 +50,7 @@ export type {
   ExternalHistorySidebarListRequest,
   ExternalHistorySidebarResponse,
   ExternalHistorySidebarSourceRequest,
+  NativeSidebarSessionCursor,
   NativeSidebarSessionPageResponse,
   NativeSidebarSessionStream,
   SessionAggregateRecord,
@@ -74,10 +76,10 @@ export async function sessionAggregateList(
 
 export async function nativeSidebarSessionPage(
   stream: NativeSidebarSessionStream,
-  offset: number,
+  cursor: NativeSidebarSessionCursor | null,
   limit: number
 ): Promise<NativeSidebarSessionPageResponse> {
-  return rpc.sessionAggregate.nativeSidebarPage({ stream, offset, limit });
+  return rpc.sessionAggregate.nativeSidebarPage({ stream, cursor, limit });
 }
 
 export async function externalHistorySidebarList(
@@ -105,7 +107,20 @@ function getFrontendDispatchCategory(
       ? "cursor_ide"
       : "external_history";
   }
-  return record.category;
+
+  // Zod describes the post-transform category type, but production RPC calls
+  // intentionally skip output parsing. Normalize the Rust wire value here so
+  // native rows do not disappear from frontend category filters in builds.
+  const category = record.category as
+    | DispatchCategory
+    | "cli"
+    | "agent"
+    | "os"
+    | "human";
+  if (category === "cli") return "cli_agent";
+  if (category === "human") return "human_session";
+  if (category === "agent" || category === "os") return "rust_agent";
+  return category;
 }
 
 export function toFrontendSession(record: SessionAggregateRecord): Session {
