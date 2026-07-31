@@ -905,6 +905,7 @@
         "archivedComposerDisabled": "Dieser Kanal ist archiviert. Zum Posten die Archivierung aufheben.",
         "errorPostForbidden": "Nur Channel-Manager können in diesem Channel posten",
         "errorArchived": "Dieser Channel ist archiviert, Senden ist deaktiviert",
+        "errorChannelFull": "Dieser Channel hat sein Nachrichtenlimit erreicht, Senden ist deaktiviert",
         "errorChannelMissing": "Dieser Channel ist nicht mehr verfügbar",
         "errorMessageMissing": "Diese Nachricht ist nicht mehr verfügbar",
         "loadError": "Nachrichten konnten nicht geladen werden",

@@ -271,7 +271,6 @@ describe("useCloudChannelMessages", () => {
         {
           unreadCount: 2,
           nextCursor: "2026-07-31T01:00:00.000Z|m1",
-          hasMore: true,
         }
       )
     );
@@ -456,12 +455,73 @@ describe("useCloudChannelMessages", () => {
 
     expect(probe().ids).toBe("server-1");
     expect(probe().bodies).toBe("ship it");
+    // No `orgChannelMessagesIdempotency` in the probe answer, so no options —
+    // sending `p_client_key` to a pre-0016 backend is a signature mismatch.
     expect(mocks.postCloudChannelMessage).toHaveBeenCalledWith(
       "fresh-token",
       "org-a",
       "chan-1",
-      "ship it"
+      "ship it",
+      undefined
     );
+  });
+
+  it("keys posts when the backend advertises idempotency and drops the optimistic row on its delta echo", async () => {
+    mocks.getCloudCapabilities.mockResolvedValue({
+      orgChannelMessages: true,
+      orgChannelMessagesIdempotency: true,
+    });
+    mocks.listCloudChannelMessages.mockResolvedValueOnce(
+      page([makeMessage({ id: "m1", body: "first" })])
+    );
+    renderProbe("org-a", "chan-1");
+    await flushAsync();
+
+    const pending = deferred<CloudChannelMessage>();
+    mocks.postCloudChannelMessage.mockReturnValue(pending.promise);
+    let ack: Promise<void> | null = null;
+    act(() => {
+      ack = state().postMessage("echo me");
+    });
+    expect(probe().bodies).toBe("first,echo me");
+    // The token fetch sits between the call and the RPC; let it settle so the
+    // generated key can be read off the mock.
+    await flushAsync();
+
+    const options = mocks.postCloudChannelMessage.mock.calls[0][4] as {
+      clientKey?: string;
+    };
+    const clientKey = options?.clientKey;
+    expect(typeof clientKey).toBe("string");
+    expect(clientKey).not.toBe("");
+
+    // The realtime delta beats the post's own ack: the server row arrives
+    // carrying the key, and the pending twin must leave with it — one row on
+    // screen, never two copies of the same message.
+    const serverRow = makeMessage({
+      id: "server-2",
+      body: "echo me",
+      createdAt: "2026-07-31T13:00:00.000Z",
+      stateChangedAt: "2026-07-31T13:00:00.000Z",
+      clientKey,
+    });
+    mocks.listCloudChannelMessages.mockResolvedValueOnce(
+      page([serverRow], { serverTime: "2026-07-31T14:00:00.000Z" })
+    );
+    act(() => {
+      store.set(bumpOrg2CloudChannelMessagesVersionAtom, { orgId: "org-a" });
+    });
+    await flushAsync();
+    expect(probe().ids).toBe("m1,server-2");
+    expect(probe().bodies).toBe("first,echo me");
+
+    // The late ack ships the same identity; merging it changes nothing.
+    await act(async () => {
+      pending.resolve(serverRow);
+      await ack;
+    });
+    expect(probe().ids).toBe("m1,server-2");
+    expect(probe().bodies).toBe("first,echo me");
   });
 
   it("writes the read cursor for the newest row and takes the server's unread count", async () => {

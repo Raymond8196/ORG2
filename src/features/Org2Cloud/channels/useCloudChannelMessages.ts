@@ -117,6 +117,22 @@ export function hasOrgChannelMessagesCapability(
   );
 }
 
+/**
+ * `orgChannelMessagesIdempotency` joins with the 0016 migration: only a
+ * backend that advertises it accepts `p_client_key`, so the post path must
+ * gate on this flag — an older backend rejects the unknown argument.
+ */
+export function hasOrgChannelMessagesIdempotencyCapability(
+  capabilities: unknown
+): boolean {
+  return Boolean(
+    capabilities &&
+    typeof capabilities === "object" &&
+    (capabilities as { orgChannelMessagesIdempotency?: unknown })
+      .orgChannelMessagesIdempotency === true
+  );
+}
+
 /** Ascending by `createdAt`, id as the stable tiebreaker. */
 export function sortChannelMessages(
   messages: readonly CloudChannelMessage[]
@@ -138,15 +154,51 @@ export function sortChannelMessages(
  */
 export function mergeChannelMessageDelta(
   current: readonly CloudChannelMessage[],
-  incoming: readonly CloudChannelMessage[]
+  incoming: readonly CloudChannelMessage[],
+  options?: {
+    /**
+     * Oldest `createdAt` the loaded window is contiguous down to. With older
+     * pages still unloaded, an unknown id OLDER than this floor must not
+     * merge: it would render above the "load earlier" boundary as if the
+     * transcript were contiguous. Known ids always merge (edits/tombstones
+     * of loaded rows).
+     */
+    windowFloor?: string | null;
+  }
 ): CloudChannelMessage[] {
-  if (incoming.length === 0) return [...current];
+  // Same-identity no-op contract: the serverTime overlap re-ships the
+  // trailing window on every delta, and an unchanged transcript must not
+  // churn row identities downstream.
+  if (incoming.length === 0) return current as CloudChannelMessage[];
   const byId = new Map(current.map((message) => [message.id, message]));
+  let changed = false;
   for (const message of incoming) {
     const existing = byId.get(message.id);
-    if (existing && existing.stateChangedAt > message.stateChangedAt) continue;
+    if (existing && existing.stateChangedAt >= message.stateChangedAt) continue;
+    if (
+      !existing &&
+      options?.windowFloor &&
+      message.createdAt < options.windowFloor
+    ) {
+      continue;
+    }
     byId.set(message.id, message);
+    // Echo of an in-flight post (0016 `clientKey`): a realtime delta can
+    // deliver the server row before the post RPC resolves; without this the
+    // transcript renders the same message twice until the ack lands.
+    if (message.clientKey && !isOptimisticChannelMessageId(message.id)) {
+      for (const [id, row] of byId) {
+        if (
+          isOptimisticChannelMessageId(id) &&
+          row.clientKey === message.clientKey
+        ) {
+          byId.delete(id);
+        }
+      }
+    }
+    changed = true;
   }
+  if (!changed) return current as CloudChannelMessage[];
   return sortChannelMessages([...byId.values()]);
 }
 
@@ -160,6 +212,7 @@ function createOptimisticMessage(input: {
   authorUserId: string;
   authorDisplayName?: string;
   authorAvatarUrl?: string;
+  clientKey?: string;
 }): CloudChannelMessage {
   const now = new Date().toISOString();
   return {
@@ -172,6 +225,7 @@ function createOptimisticMessage(input: {
     createdAt: now,
     editedAt: null,
     deletedAt: null,
+    clientKey: input.clientKey ?? null,
     stateChangedAt: now,
     mentionedUserIds: [],
   };
@@ -253,9 +307,18 @@ export function useCloudChannelMessages(
     messagesRef.current = messages;
   }, [messages]);
 
+  const nextCursorRef = useRef(nextCursor);
+  useEffect(() => {
+    nextCursorRef.current = nextCursor;
+  }, [nextCursor]);
+
   // `p_since` cursor for the next delta read, and the last version a delta
   // (or page) already covers.
   const serverTimeRef = useRef<string | null>(null);
+  // Whether the org's home endpoint advertised `orgChannelMessagesIdempotency`
+  // (stamped by the page effect's probe); posts only send `p_client_key` when
+  // it did, since an older backend rejects the unknown argument.
+  const idempotencyRef = useRef(false);
   const versionRef = useRef(version);
   useEffect(() => {
     versionRef.current = version;
@@ -279,6 +342,7 @@ export function useCloudChannelMessages(
     setUnreadCount(0);
     setError(null);
     serverTimeRef.current = null;
+    idempotencyRef.current = false;
     lastReadSentRef.current = null;
   }, [authIdentityKey, orgId, channelId]);
 
@@ -292,6 +356,10 @@ export function useCloudChannelMessages(
     if (!authIdentityKey || !orgId || !channelId) return;
     let cancelled = false;
     const seq = ++requestRef.current;
+    // Stamp the version observed at START: a bump that lands while the page
+    // request is in flight names a write the page snapshot may predate, and
+    // stamping the completion-time version would swallow it.
+    const versionAtStart = versionRef.current;
     void (async () => {
       setFetching(true);
       setError(null);
@@ -305,6 +373,8 @@ export function useCloudChannelMessages(
         );
         const isSupported = hasOrgChannelMessagesCapability(capabilities);
         if (cancelled || seq !== requestRef.current) return;
+        idempotencyRef.current =
+          hasOrgChannelMessagesIdempotencyCapability(capabilities);
         setSupported(isSupported);
         if (!isSupported) return;
         const page = await listCloudChannelMessages(
@@ -317,10 +387,13 @@ export function useCloudChannelMessages(
         // Page mode is DESCENDING keyset; the transcript renders ascending.
         setMessages(sortChannelMessages(page.messages));
         setMessagesKey(`${authIdentityKey}|${orgId}|${channelId}`);
-        setNextCursor(page.hasMore ? page.nextCursor : null);
+        // Page mode signals "older rows exist" via nextCursor itself; the
+        // hasMore field only exists in delta mode (schema defaults it false
+        // here), so gating on it silently disabled pagination end to end.
+        setNextCursor(page.nextCursor ?? null);
         setUnreadCount(page.unreadCount);
         serverTimeRef.current = page.serverTime ?? null;
-        handledVersionRef.current = versionRef.current;
+        handledVersionRef.current = versionAtStart;
       } catch (err) {
         log.warn("cloud channel messages fetch failed:", err);
         if (!cancelled && seq === requestRef.current) {
@@ -338,13 +411,24 @@ export function useCloudChannelMessages(
   // --- Delta reconciliation on a realtime `channelMessages` bump.
   useEffect(() => {
     if (!orgId || !channelId || !listKey) return;
-    // Nothing loaded for THIS scope yet — the page read above covers it, and
-    // it will stamp `handledVersionRef` with the version it observed.
-    if (messagesKey !== listKey) return;
+    if (messagesKey !== listKey) {
+      // Nothing loaded for THIS scope. A version bump arriving here names a
+      // failed (or transiently mis-probed) page load: without a retry the
+      // panel would sit in its error/gated state until the tab is closed —
+      // no signal, focus edge, or reconnect would ever recover it. Bump the
+      // nonce so the FULL page effect (probe included) re-runs; retries stay
+      // strictly event-driven.
+      if (version !== handledVersionRef.current) {
+        handledVersionRef.current = version;
+        if (!fetching) setRefreshNonce((nonce) => nonce + 1);
+      }
+      return;
+    }
     if (version === handledVersionRef.current) return;
     handledVersionRef.current = version;
     let cancelled = false;
     const keyAtStart = listKey;
+    const seqAtStart = requestRef.current;
     void (async () => {
       const since = serverTimeRef.current;
       if (!since) {
@@ -361,7 +445,13 @@ export function useCloudChannelMessages(
           channelId,
           { since }
         );
-        if (cancelled || listKeyRef.current !== keyAtStart) return;
+        if (
+          cancelled ||
+          listKeyRef.current !== keyAtStart ||
+          seqAtStart !== requestRef.current
+        ) {
+          return;
+        }
         if (delta.hasMore) {
           // The delta hit the server cap: merging it would advance the cursor
           // past rows this client never saw. Reload the page instead.
@@ -369,7 +459,13 @@ export function useCloudChannelMessages(
           return;
         }
         setMessages((current) =>
-          current ? mergeChannelMessageDelta(current, delta.messages) : current
+          current
+            ? mergeChannelMessageDelta(current, delta.messages, {
+                windowFloor: nextCursorRef.current
+                  ? current[0]?.createdAt
+                  : null,
+              })
+            : current
         );
         setUnreadCount(delta.unreadCount);
         serverTimeRef.current = delta.serverTime ?? since;
@@ -382,7 +478,15 @@ export function useCloudChannelMessages(
     return () => {
       cancelled = true;
     };
-  }, [version, listKey, messagesKey, orgId, channelId, getFreshAccessToken]);
+  }, [
+    version,
+    listKey,
+    messagesKey,
+    orgId,
+    channelId,
+    fetching,
+    getFreshAccessToken,
+  ]);
 
   // A background window can release its Realtime lease without going hidden,
   // so the `channelMessages` bump that drives the delta above may never
@@ -399,6 +503,11 @@ export function useCloudChannelMessages(
   const loadOlder = useCallback(() => {
     if (!orgId || !channelId || !nextCursor || loadingOlder) return;
     const keyAtStart = listKeyRef.current;
+    // A capped-delta full reload replaces the window AND the cursor while
+    // this page is in flight; letting the stale completion land would merge
+    // a discontiguous island and clobber the fresh cursor with the stale one
+    // — pagination would then permanently skip the rows in between.
+    const seqAtStart = requestRef.current;
     void (async () => {
       setLoadingOlder(true);
       try {
@@ -409,13 +518,21 @@ export function useCloudChannelMessages(
           channelId,
           { cursor: nextCursor, limit: CHANNEL_MESSAGES_PAGE_SIZE }
         );
-        if (listKeyRef.current !== keyAtStart) return;
+        if (
+          listKeyRef.current !== keyAtStart ||
+          seqAtStart !== requestRef.current
+        ) {
+          return;
+        }
         setMessages((current) =>
           current
             ? mergeChannelMessageDelta(current, page.messages)
             : sortChannelMessages(page.messages)
         );
-        setNextCursor(page.hasMore ? page.nextCursor : null);
+        // Page mode signals "older rows exist" via nextCursor itself; the
+        // hasMore field only exists in delta mode (schema defaults it false
+        // here), so gating on it silently disabled pagination end to end.
+        setNextCursor(page.nextCursor ?? null);
       } catch (err) {
         log.warn("cloud channel older page failed:", err);
       } finally {
@@ -428,11 +545,13 @@ export function useCloudChannelMessages(
     async (body: string): Promise<void> => {
       if (!orgId || !channelId) throw new Error("no channel");
       const keyAtStart = listKeyRef.current;
+      const clientKey = idempotencyRef.current ? crypto.randomUUID() : null;
       const optimistic = createOptimisticMessage({
         channelId,
         body,
         authorUserId: authRef.current?.userId ?? "",
         authorDisplayName: authRef.current?.profile?.displayName ?? undefined,
+        clientKey: clientKey ?? undefined,
       });
       setMessages((current) =>
         current ? [...current, optimistic] : [optimistic]
@@ -443,7 +562,8 @@ export function useCloudChannelMessages(
           accessToken,
           orgId,
           channelId,
-          body
+          body,
+          clientKey ? { clientKey } : undefined
         );
         if (listKeyRef.current !== keyAtStart) return;
         setMessages((current) =>
@@ -505,6 +625,7 @@ export function useCloudChannelMessages(
                     ...row,
                     body: "",
                     deletedAt,
+                    mentionedUserIds: [],
                     stateChangedAt: deletedAt,
                   }
                 : row
@@ -542,6 +663,14 @@ export function useCloudChannelMessages(
     if (readTimerRef.current) clearTimeout(readTimerRef.current);
     readTimerRef.current = setTimeout(() => {
       readTimerRef.current = null;
+      // Re-check at fire: a timer armed <debounce before the window hid
+      // would otherwise write a read cursor for rows nobody is seeing.
+      if (
+        typeof document !== "undefined" &&
+        document.visibilityState === "hidden"
+      ) {
+        return;
+      }
       void writeReadCursor();
     }, readCursorDebounceMs);
   }, [readCursorDebounceMs, writeReadCursor]);

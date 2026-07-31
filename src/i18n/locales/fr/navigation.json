@@ -905,6 +905,7 @@
         "archivedComposerDisabled": "Ce canal est archivé. Désarchivez-le pour publier.",
         "errorPostForbidden": "Seuls les gestionnaires du canal peuvent y publier",
         "errorArchived": "Ce canal est archivé, la publication est désactivée",
+        "errorChannelFull": "Ce canal a atteint sa limite de messages, la publication est désactivée",
         "errorChannelMissing": "Ce canal n'est plus disponible",
         "errorMessageMissing": "Ce message n'est plus disponible",
         "loadError": "Impossible de charger les messages",

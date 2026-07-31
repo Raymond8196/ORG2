@@ -995,6 +995,7 @@
         "archivedComposerDisabled": "该频道已归档,取消归档后才能发言。",
         "errorPostForbidden": "只有频道管理员才能在此频道发消息",
         "errorArchived": "此频道已归档，无法发送新消息",
+        "errorChannelFull": "此频道消息数已达上限，无法发送新消息",
         "errorChannelMissing": "此频道已不可用",
         "errorMessageMissing": "该消息已不可用",
         "loadError": "消息加载失败",

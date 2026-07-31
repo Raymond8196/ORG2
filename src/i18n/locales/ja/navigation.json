@@ -903,6 +903,7 @@
         "archivedComposerDisabled": "このチャンネルはアーカイブされています。投稿するにはアーカイブを解除してください。",
         "errorPostForbidden": "このチャンネルに投稿できるのはチャンネル管理者のみです",
         "errorArchived": "このチャンネルはアーカイブ済みのため投稿できません",
+        "errorChannelFull": "このチャンネルはメッセージ数の上限に達したため投稿できません",
         "errorChannelMissing": "このチャンネルは利用できなくなりました",
         "errorMessageMissing": "このメッセージは利用できなくなりました",
         "loadError": "メッセージを読み込めませんでした",

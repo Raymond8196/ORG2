@@ -559,6 +559,7 @@ export function useOrg2CloudRealtime(): void {
           schedulePlaneSignalRefresh("channelMessages", () => {
             bumpChannelMessagesVersion(orgId);
           });
+          return;
       }
     },
     [

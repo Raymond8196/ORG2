@@ -68,6 +68,7 @@ beforeEach(() => {
     offlineSync: false,
     orgChannels: false,
     orgChannelMessages: false,
+    orgChannelMessagesIdempotency: false,
   });
 });
 
@@ -272,6 +273,7 @@ describe("storage segment offload (0006)", () => {
       offlineSync: false,
       orgChannels: false,
       orgChannelMessages: false,
+      orgChannelMessagesIdempotency: false,
     });
   });
 
@@ -358,6 +360,7 @@ describe("storage segment offload (0006)", () => {
       offlineSync: false,
       orgChannels: false,
       orgChannelMessages: false,
+      orgChannelMessagesIdempotency: false,
     });
     await appendSessionEvents("jwt-1", appendInput([makeEvent("f1")], null));
     expect(fetchMock).toHaveBeenCalledTimes(1);

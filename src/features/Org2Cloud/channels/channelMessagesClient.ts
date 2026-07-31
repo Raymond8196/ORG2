@@ -155,7 +155,12 @@ export async function listCloudChannelMessages(
       p_org_id: orgId,
       p_channel_id: channelId,
       p_cursor: options?.cursor ?? null,
-      p_limit: options?.limit ?? CHANNEL_MESSAGES_PAGE_SIZE,
+      // Delta mode is server-capped (200 + hasMore) and ignores p_limit;
+      // sending the page size there misdescribes the read on the wire.
+      p_limit:
+        options?.since != null
+          ? null
+          : (options?.limit ?? CHANNEL_MESSAGES_PAGE_SIZE),
       p_since: options?.since ?? null,
     },
     options?.signal
@@ -172,7 +177,16 @@ export async function postCloudChannelMessage(
   orgId: string,
   channelId: string,
   body: string,
-  options?: { mentionedUserIds?: readonly string[]; signal?: AbortSignal }
+  options?: {
+    mentionedUserIds?: readonly string[];
+    /**
+     * Idempotency key (0016). Only send when the backend advertises
+     * `orgChannelMessagesIdempotency` — an older backend rejects the unknown
+     * argument as a signature mismatch.
+     */
+    clientKey?: string;
+    signal?: AbortSignal;
+  }
 ): Promise<CloudChannelMessage> {
   const payload = await callChannelMessagesRpc(
     "cloud_post_channel_message",
@@ -183,6 +197,9 @@ export async function postCloudChannelMessage(
       p_channel_id: channelId,
       p_body: body,
       p_mentioned_user_ids: [...(options?.mentionedUserIds ?? [])],
+      ...(options?.clientKey != null
+        ? { p_client_key: options.clientKey }
+        : {}),
     },
     options?.signal
   );

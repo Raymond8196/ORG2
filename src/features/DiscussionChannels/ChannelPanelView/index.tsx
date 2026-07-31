@@ -39,7 +39,10 @@ import type { ComposerInputRef } from "@src/components/ComposerInput";
 import { INPUT_AREA } from "@src/config/inputAreaTokens";
 import LocalChannelSettingsDialog from "@src/features/LocalChannels/components/LocalChannelSettingsDialog";
 import ChannelSettingsDialog from "@src/features/Org2Cloud/channels/components/ChannelSettingsDialog";
-import { useCloudChannelMessages } from "@src/features/Org2Cloud/channels/useCloudChannelMessages";
+import {
+  isOptimisticChannelMessageId,
+  useCloudChannelMessages,
+} from "@src/features/Org2Cloud/channels/useCloudChannelMessages";
 import { useOrgChannels } from "@src/features/Org2Cloud/channels/useOrgChannels";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 import { SESSION_TAB_DROP_TARGET_HIGHLIGHT_CLASS } from "@src/shared/dnd/sessionTabDrag";
@@ -335,7 +338,9 @@ const CloudChannelPanel: React.FC<CloudChannelPanelProps> = ({
             ? youLabel
             : (message.authorDisplayName ?? unknownAuthorLabel),
           authorAvatarUrl: message.authorAvatarUrl,
-          canModify: mine,
+          // Optimistic rows have no server id yet; offering edit/delete on
+          // them guarantees ORG2_MESSAGE_NOT_FOUND.
+          canModify: mine && !isOptimisticChannelMessageId(message.id),
         };
       }),
     [currentUserId, messages, unknownAuthorLabel, youLabel]
@@ -353,6 +358,9 @@ const CloudChannelPanel: React.FC<CloudChannelPanelProps> = ({
 
   const handleEdit = useCallback(
     async (messageId: string, body: string): Promise<boolean> => {
+      // The local plane refuses empty edits client-side; mirror it instead
+      // of surfacing the server's generic ORG2_VALIDATION copy.
+      if (body.trim().length === 0) return false;
       try {
         await editMessage(messageId, body);
         setComposerError(null);

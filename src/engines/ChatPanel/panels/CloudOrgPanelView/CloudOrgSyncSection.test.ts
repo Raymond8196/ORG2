@@ -43,6 +43,7 @@ function status(
       offlineSync: false,
       orgChannels: false,
       orgChannelMessages: false,
+      orgChannelMessagesIdempotency: false,
     },
     capabilitiesLoading: false,
     lastSync: { lastPassAtMs: null, lastSuccessAtMs: null },

@@ -18,6 +18,8 @@
  */
 import { z } from "zod/v4";
 
+import { LOCAL_CHANNEL_MESSAGE_MAX_LENGTH } from "@src/store/ui/localChannelMessagesAtom";
+
 import {
   CHANNELS_ERROR_CODES,
   NullableStringSchema,
@@ -25,17 +27,13 @@ import {
 } from "./types";
 
 /** RPC-enforced body ceiling — the same 4000 as the local/comment planes. */
-export const CHANNEL_MESSAGE_MAX_LENGTH = 4000;
+// Derived from the local plane's constant: the shared row editor caps at
+// the LOCAL constant, so an independent 4000 here would drift silently the
+// day the server bound changes.
+export const CHANNEL_MESSAGE_MAX_LENGTH = LOCAL_CHANNEL_MESSAGE_MAX_LENGTH;
 
 /** Rows per page read; matches the RPC's own `p_limit` default. */
 export const CHANNEL_MESSAGES_PAGE_SIZE = 50;
-
-/**
- * Server cap on one delta pull. Reaching it sets `hasMore`, and the client
- * must reload the newest page instead of merging a partial delta (a partial
- * merge would advance the cursor past rows it never saw).
- */
-export const CHANNEL_MESSAGES_DELTA_MAX = 200;
 
 /**
  * The control-plane codes plus the three the message RPCs add. Kept as one
@@ -46,6 +44,8 @@ export const CHANNEL_MESSAGES_ERROR_CODES = [
   ...CHANNELS_ERROR_CODES,
   /** Posting/editing in an archived channel. */
   "ORG2_CHANNEL_ARCHIVED",
+  /** Posting into a channel already at its 10000-row cap (0016). */
+  "ORG2_CHANNEL_MESSAGES_FULL",
   /** `postPolicy: "managers"` and the caller is not one. */
   "ORG2_CHANNEL_POST_FORBIDDEN",
   /** Edit/delete of a message that is gone (or was never the caller's). */
@@ -63,6 +63,7 @@ export const CloudChannelMessageSchema = z
     createdAt: z.string(),
     editedAt: z.string().nullable().catch(null),
     deletedAt: z.string().nullable().catch(null),
+    clientKey: z.string().nullable().catch(null).optional(),
     /** Ordering key for delta reads: max(createdAt, editedAt, deletedAt). */
     stateChangedAt: z.string().nullish(),
     mentionedUserIds: z.array(z.string()).catch([]),
@@ -72,6 +73,9 @@ export const CloudChannelMessageSchema = z
     // Tombstones ship `""`; blank it here too so a body can never leak back
     // into the transcript from a tolerant/older payload.
     body: row.deletedAt === null ? row.body : "",
+    // Same erasure for mentions (0017): they are message content, and a
+    // pre-0017 backend still ships them on tombstones.
+    mentionedUserIds: row.deletedAt === null ? row.mentionedUserIds : [],
     stateChangedAt:
       row.stateChangedAt ?? row.deletedAt ?? row.editedAt ?? row.createdAt,
   }));

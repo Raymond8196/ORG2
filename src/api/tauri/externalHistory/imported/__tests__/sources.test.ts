@@ -175,7 +175,8 @@ describe("imported history source registry", () => {
       getImportedHistorySourceBySessionId("qwencodeapp-session-1")?.sourceId
     ).toBe("qwen_code");
     expect(
-      getImportedHistorySourceBySessionId("kimihistoryapp-cli/group/session")?.sourceId
+      getImportedHistorySourceBySessionId("kimihistoryapp-cli/group/session")
+        ?.sourceId
     ).toBe("kimi");
     expect(getImportedHistorySourceBySessionId("kimiapp-hook-session")).toBe(
       undefined

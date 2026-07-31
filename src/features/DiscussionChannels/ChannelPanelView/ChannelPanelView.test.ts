@@ -78,6 +78,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@src/features/Org2Cloud/channels/useCloudChannelMessages", () => ({
   useCloudChannelMessages: () => mocks.cloudMessages,
+  isOptimisticChannelMessageId: (id: string) => id.startsWith("pending:"),
 }));
 
 // The stub publishes the editor handle the same way the real `InputArea`

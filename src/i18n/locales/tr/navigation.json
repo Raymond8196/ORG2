@@ -903,6 +903,7 @@
         "archivedComposerDisabled": "Bu kanal arşivlendi. Göndermek için arşivden çıkarın.",
         "errorPostForbidden": "Bu kanala yalnızca kanal yöneticileri gönderebilir",
         "errorArchived": "Bu kanal arşivlendi, bu yüzden gönderim kapalı",
+        "errorChannelFull": "Bu kanal mesaj sınırına ulaştı, bu yüzden gönderim kapalı",
         "errorChannelMissing": "Bu kanal artık kullanılamıyor",
         "errorMessageMissing": "Bu mesaj artık kullanılamıyor",
         "loadError": "Mesajlar yüklenemedi",

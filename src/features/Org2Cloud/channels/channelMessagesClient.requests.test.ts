@@ -106,6 +106,41 @@ describe("channelMessagesClient request building", () => {
     expect(message.stateChangedAt).toBe("2026-07-31T00:00:00.000Z");
   });
 
+  it("adds p_client_key only when a clientKey option is given", async () => {
+    mocks.fetchWithTransportRetry.mockResolvedValue(
+      jsonResponse({
+        message: {
+          id: "msg-2",
+          channelId: "chan-1",
+          authorUserId: "user-1",
+          body: "once",
+          createdAt: "2026-07-31T00:00:00.000Z",
+          clientKey: "key-1",
+        },
+      })
+    );
+
+    const message = await postCloudChannelMessage(
+      "token-1",
+      "org-9",
+      "chan-1",
+      "once",
+      { clientKey: "key-1" }
+    );
+
+    // The named-arg set is the RPC signature on the wire: an extra key against
+    // a pre-0016 backend is a signature mismatch, so absence above (the exact
+    // `toEqual` in the previous case) and presence here are both contractual.
+    expect(JSON.parse(String(lastRequest().init.body))).toEqual({
+      p_org_id: "org-9",
+      p_channel_id: "chan-1",
+      p_body: "once",
+      p_mentioned_user_ids: [],
+      p_client_key: "key-1",
+    });
+    expect(message.clientKey).toBe("key-1");
+  });
+
   it("serializes the page read and the delta read as the two cursor params", async () => {
     mocks.fetchWithTransportRetry.mockResolvedValue(
       jsonResponse({ messages: [] })
@@ -147,7 +182,7 @@ describe("channelMessagesClient request building", () => {
     });
   });
 
-  it("keeps a tombstone's slot and never carries its body", async () => {
+  it("keeps a tombstone's slot and never carries its body or mentions", async () => {
     mocks.fetchWithTransportRetry.mockResolvedValue(
       jsonResponse({
         messages: [
@@ -158,6 +193,9 @@ describe("channelMessagesClient request building", () => {
             body: "leaked",
             createdAt: "2026-07-31T00:00:00.000Z",
             deletedAt: "2026-07-31T01:00:00.000Z",
+            // A pre-0017 backend still ships mentions on tombstones; the
+            // read-side erasure must hold regardless of backend age.
+            mentionedUserIds: ["user-2"],
           },
           { id: "malformed-row" },
         ],
@@ -172,6 +210,7 @@ describe("channelMessagesClient request building", () => {
     // One malformed row degrades to nothing instead of blanking the page.
     expect(page.messages).toHaveLength(1);
     expect(page.messages[0].body).toBe("");
+    expect(page.messages[0].mentionedUserIds).toEqual([]);
     expect(page.messages[0].stateChangedAt).toBe("2026-07-31T01:00:00.000Z");
     expect(page.unreadCount).toBe(3);
   });

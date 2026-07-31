@@ -26,6 +26,7 @@ const CloudCapabilitiesWireSchema = z.object({
   offlineSync: z.boolean().nullish().catch(undefined),
   orgChannels: z.boolean().nullish().catch(undefined),
   orgChannelMessages: z.boolean().nullish().catch(undefined),
+  orgChannelMessagesIdempotency: z.boolean().nullish().catch(undefined),
 });
 
 export interface CloudCapabilities {
@@ -43,6 +44,8 @@ export interface CloudCapabilities {
   orgChannels: boolean;
   /** The org-channel MESSAGE plane (post/edit/delete/list/read-cursor). */
   orgChannelMessages: boolean;
+  /** 0016 `p_client_key` on post — a WIRE change, so posts key only when set. */
+  orgChannelMessagesIdempotency: boolean;
 }
 
 const LEGACY_CAPABILITIES: CloudCapabilities = {
@@ -55,6 +58,7 @@ const LEGACY_CAPABILITIES: CloudCapabilities = {
   offlineSync: false,
   orgChannels: false,
   orgChannelMessages: false,
+  orgChannelMessagesIdempotency: false,
 };
 
 export interface CloudCapabilitiesProbeResult {
@@ -105,6 +109,8 @@ async function probeCloudCapabilities(
       offlineSync: parsed.data.offlineSync ?? false,
       orgChannels: parsed.data.orgChannels ?? false,
       orgChannelMessages: parsed.data.orgChannelMessages ?? false,
+      orgChannelMessagesIdempotency:
+        parsed.data.orgChannelMessagesIdempotency ?? false,
     };
     capabilitiesByEndpoint.set(endpointKey, capabilities);
     return { capabilities, confirmed: true };

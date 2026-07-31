@@ -995,6 +995,7 @@
         "archivedComposerDisabled": "該頻道已封存,取消封存後才能發言。",
         "errorPostForbidden": "只有頻道管理員才能在此頻道發訊息",
         "errorArchived": "此頻道已封存，無法傳送新訊息",
+        "errorChannelFull": "此頻道訊息數已達上限，無法傳送新訊息",
         "errorChannelMissing": "此頻道已無法使用",
         "errorMessageMissing": "該訊息已無法使用",
         "loadError": "訊息載入失敗",

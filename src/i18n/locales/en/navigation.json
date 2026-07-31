@@ -932,6 +932,7 @@
         "archivedComposerDisabled": "This channel is archived. Unarchive it to post again.",
         "errorPostForbidden": "Only channel managers can post in this channel",
         "errorArchived": "This channel is archived, so posting is turned off",
+        "errorChannelFull": "This channel has reached its message limit, so posting is turned off",
         "errorChannelMissing": "This channel is no longer available",
         "errorMessageMissing": "That message is no longer available",
         "loadError": "Couldn't load messages",

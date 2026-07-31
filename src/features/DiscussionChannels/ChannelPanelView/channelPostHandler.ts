@@ -85,6 +85,7 @@ export function createChannelPostHandler(
 export const CLOUD_CHANNEL_POST_ERROR_KEYS: Record<string, string> = {
   ORG2_CHANNEL_POST_FORBIDDEN: "cloud.channels.feed.errorPostForbidden",
   ORG2_CHANNEL_ARCHIVED: "cloud.channels.feed.errorArchived",
+  ORG2_CHANNEL_MESSAGES_FULL: "cloud.channels.feed.errorChannelFull",
   ORG2_CHANNEL_NOT_FOUND: "cloud.channels.feed.errorChannelMissing",
   ORG2_NOT_FOUND: "cloud.channels.feed.errorChannelMissing",
   ORG2_MESSAGE_NOT_FOUND: "cloud.channels.feed.errorMessageMissing",
