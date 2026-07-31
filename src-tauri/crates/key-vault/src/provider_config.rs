@@ -643,12 +643,12 @@ mod tests {
     /// the frontend's `ProviderProtocolSchema` zod enum. `get_available_api_providers`
     /// validates its output against that enum in dev, so a protocol added here but
     /// not mirrored there silently fails validation at runtime (see the gemini_api
-    /// regression). This reads the real `validation.ts` so the two can't drift.
+    /// regression). This reads the schema's real owner file so the two can't drift.
     #[test]
     fn every_registry_protocol_is_known_to_the_frontend_zod_enum() {
         // key-vault crate dir -> repo root is three levels up (src-tauri/crates/key-vault).
         let validation_ts = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("../../../src/api/tauri/rpc/schemas/validation.ts");
+            .join("../../../src/api/tauri/rpc/schemas/validationValueObjects.ts");
         let source = std::fs::read_to_string(&validation_ts)
             .unwrap_or_else(|err| panic!("cannot read {}: {err}", validation_ts.display()));
 
@@ -657,7 +657,10 @@ mod tests {
             .split_once("ProviderProtocolSchema = z.enum([")
             .and_then(|(_, rest)| rest.split_once("])"))
             .map(|(members, _)| members)
-            .expect("could not locate ProviderProtocolSchema z.enum([...]) in validation.ts");
+            .expect(
+                "could not locate ProviderProtocolSchema z.enum([...]) in \
+                 validationValueObjects.ts",
+            );
         let frontend_protocols: std::collections::HashSet<&str> = enum_body
             .split(',')
             .map(|token| token.trim().trim_matches(['"', '\'']))

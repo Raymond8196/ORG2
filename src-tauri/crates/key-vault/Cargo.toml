@@ -31,6 +31,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 chrono = { workspace = true }
 tokio = { workspace = true }
+csv = "1.4.0"
 
 # HTTP client — rustls only, mirroring the root crate so cargo unifies
 # features across the workspace and doesn't drag native-tls in.

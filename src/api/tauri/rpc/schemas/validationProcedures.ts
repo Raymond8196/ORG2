@@ -16,6 +16,7 @@ import {
 import {
   ModelContextLengthsSchema,
   ProviderProtocolSchema,
+  QuotaInfoSchema,
   SaveKeyRequestSchema,
 } from "./validationValueObjects";
 
@@ -51,6 +52,110 @@ export const FetchKeyQuotaInput = z.object({
 
 export const RefreshKeyQuotaInput = z.object({
   keyId: z.string(),
+  force: z.boolean().optional().default(false),
+});
+
+export const GetKeyQuotaRefreshStatusInput = z.object({
+  keyId: z.string(),
+});
+
+export const KeyQuotaRefreshAttemptInfoSchema = z.object({
+  generation: z.number().int().nonnegative(),
+  status: z.enum(["running", "succeeded", "failed", "superseded"]),
+  startedAt: z.string(),
+  finishedAt: z.string().nullable(),
+  error: z.string().nullable(),
+});
+
+export const KeyQuotaRefreshStatusInfoSchema = z.object({
+  keyId: z.string(),
+  generation: z.number().int().nonnegative(),
+  freshness: z.enum([
+    "empty",
+    "fresh_success",
+    "fresh_failure",
+    "expired",
+    "refreshing",
+  ]),
+  cacheExpiresAt: z.string().nullable(),
+  lastGood: QuotaInfoSchema.nullable(),
+  lastGoodAt: z.string().nullable(),
+  lastAttempt: KeyQuotaRefreshAttemptInfoSchema.nullable(),
+});
+
+export const CursorBillingUsageInput = z.object({
+  accountId: z.string(),
+  force: z.boolean().optional().default(false),
+});
+
+export const CursorBillingUsageMetricQualitySchema = z.enum([
+  "exact",
+  "derived",
+  "included",
+  "no_charge",
+  "missing",
+  "invalid",
+]);
+
+export const CursorBillingUsageEventSchema = z.object({
+  occurredAt: z.string(),
+  occurredAtMs: z.number().int(),
+  model: z.string(),
+  inputTokens: z.number().int().nonnegative().nullable(),
+  outputTokens: z.number().int().nonnegative().nullable(),
+  cacheReadTokens: z.number().int().nonnegative().nullable(),
+  cacheWriteTokens: z.number().int().nonnegative().nullable(),
+  costUsd: z.number().nonnegative().nullable(),
+  source: z.literal("cursor_billing_export"),
+  quality: z.object({
+    inputTokens: CursorBillingUsageMetricQualitySchema,
+    outputTokens: CursorBillingUsageMetricQualitySchema,
+    cacheReadTokens: CursorBillingUsageMetricQualitySchema,
+    cacheWriteTokens: CursorBillingUsageMetricQualitySchema,
+    costUsd: CursorBillingUsageMetricQualitySchema,
+  }),
+});
+
+export const CursorBillingUsageSnapshotSchema = z.object({
+  accountId: z.string(),
+  fetchedAt: z.string(),
+  lastSyncAttemptAt: z.string().nullable(),
+  source: z.enum(["network", "fresh_cache", "last_good_cache"]),
+  isStale: z.boolean(),
+  export: z.object({
+    events: z.array(CursorBillingUsageEventSchema),
+    dataQuality: z.object({
+      totalRows: z.number().int().nonnegative(),
+      emittedRows: z.number().int().nonnegative(),
+      skippedRows: z.number().int().nonnegative(),
+      completeRows: z.number().int().nonnegative(),
+      partialRows: z.number().int().nonnegative(),
+      missingMetricValues: z.number().int().nonnegative(),
+      invalidMetricValues: z.number().int().nonnegative(),
+    }),
+  }),
+  syncFailure: z
+    .object({
+      kind: z.enum([
+        "invalid_account",
+        "unauthorized",
+        "network",
+        "invalid_export",
+        "cache",
+        "attempt_cooldown",
+      ]),
+      message: z.string(),
+    })
+    .nullable(),
+});
+
+export const CursorArchiveBillingUsageCacheInput = z.object({
+  accountId: z.string(),
+});
+
+export const ArchivedCursorBillingUsageCacheSchema = z.object({
+  archivedLastGood: z.boolean(),
+  archivedAttemptMarker: z.boolean(),
 });
 
 export const GetKeyInput = z.object({

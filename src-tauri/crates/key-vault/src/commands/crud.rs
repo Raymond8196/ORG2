@@ -3,6 +3,9 @@ use std::collections::HashMap;
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine as _};
 use regex::Regex;
 
+use super::validate::{
+    invalidate_key_quota_runtime, key_can_refresh_quota, quota_credential_revision,
+};
 use crate::key_store::{
     AuthMethod, DefaultVariant, HealthStatus, ModelKey, ModelType, ModelVariant, ProviderProtocol,
     KEY_SERVICE,
@@ -104,6 +107,7 @@ pub struct KeyInfo {
     pub created_at: String,
     pub updated_at: String,
     pub enabled: bool,
+    pub can_refresh_quota: bool,
     pub supports_rust_agents: bool,
     pub can_launch_cli: bool,
     pub can_use_native_harness: bool,
@@ -662,6 +666,7 @@ impl From<ModelKey> for KeyInfo {
             can_use_native_harness,
         );
         let can_launch_cli = can_launch_cli(&entry);
+        let can_refresh_quota = key_can_refresh_quota(&entry);
 
         KeyInfo {
             id: entry.id.clone(),
@@ -721,6 +726,7 @@ impl From<ModelKey> for KeyInfo {
             created_at: entry.created_at.to_rfc3339(),
             updated_at: entry.updated_at.to_rfc3339(),
             enabled: entry.enabled,
+            can_refresh_quota,
             supports_rust_agents,
             can_launch_cli,
             can_use_native_harness,
@@ -899,6 +905,7 @@ pub async fn save_key(request: SaveKeyRequest) -> Result<KeyInfo, String> {
             None => None,
         };
 
+        let prior_quota_revision = existing.as_ref().map(quota_credential_revision);
         let mut entry = if let Some(existing) = existing {
             existing
         } else {
@@ -1056,6 +1063,10 @@ pub async fn save_key(request: SaveKeyRequest) -> Result<KeyInfo, String> {
         }
 
         let saved = KEY_SERVICE.save_key(entry)?;
+        let saved_quota_revision = quota_credential_revision(&saved);
+        if prior_quota_revision.as_deref() != Some(saved_quota_revision.as_str()) {
+            invalidate_key_quota_runtime(&saved.id);
+        }
         key_info_from_entry(saved)
     })
     .await
@@ -1067,7 +1078,16 @@ pub async fn save_key(request: SaveKeyRequest) -> Result<KeyInfo, String> {
 pub async fn delete_key(agent_type: String, key_id: Option<String>) -> Result<bool, String> {
     tokio::task::spawn_blocking(move || {
         let agent = ModelType::from_str(&agent_type).ok_or("Unknown agent type".to_string())?;
-        KEY_SERVICE.delete_key(&agent, key_id.as_deref())
+        let deleted_id = KEY_SERVICE
+            .get_key_checked(&agent, key_id.as_deref())?
+            .map(|key| key.id);
+        let deleted = KEY_SERVICE.delete_key(&agent, key_id.as_deref())?;
+        if deleted {
+            if let Some(deleted_id) = deleted_id {
+                invalidate_key_quota_runtime(&deleted_id);
+            }
+        }
+        Ok(deleted)
     })
     .await
     .map_err(|err| format!("Task join error: {}", err))?
@@ -1076,9 +1096,15 @@ pub async fn delete_key(agent_type: String, key_id: Option<String>) -> Result<bo
 /// Delete a key by ID only
 #[tauri::command]
 pub async fn delete_key_by_id(key_id: String) -> Result<bool, String> {
-    tokio::task::spawn_blocking(move || KEY_SERVICE.delete_key_by_id(&key_id))
-        .await
-        .map_err(|err| format!("Task join error: {}", err))?
+    tokio::task::spawn_blocking(move || {
+        let deleted = KEY_SERVICE.delete_key_by_id(&key_id)?;
+        if deleted {
+            invalidate_key_quota_runtime(&key_id);
+        }
+        Ok(deleted)
+    })
+    .await
+    .map_err(|err| format!("Task join error: {}", err))?
 }
 
 /// Update key health status after validation
