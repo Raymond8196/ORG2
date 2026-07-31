@@ -13,6 +13,7 @@ pub mod minimax;
 pub mod openai;
 pub mod opencode_go;
 pub mod openrouter;
+pub mod qoder;
 pub(crate) mod quota_http;
 pub(crate) mod quota_windows;
 pub mod zai_team;
