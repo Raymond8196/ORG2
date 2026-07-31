@@ -19,6 +19,7 @@ import type {
   CliVersionSnapshot,
   CodexOauthExchangeResponse,
   CodexOauthStartResponse,
+  CursorBillingUsageSnapshot,
   FullKeyResponse,
   HealthStatus,
   HousekeeperHealthCheckResponse,
@@ -26,6 +27,7 @@ import type {
   HousekeeperUiContext,
   HousekeeperUiIntentResponse,
   KeyInfo,
+  KeyQuotaRefreshStatusInfo,
   ModelContextLengths,
   ModelType,
   PromptPolishResponse,
@@ -46,6 +48,7 @@ export type {
   ClaudeCodeOauthStartResponse,
   CodexOauthExchangeResponse,
   CodexOauthStartResponse,
+  CursorBillingUsageSnapshot,
   DetectedKey,
   DetectedQuotaInfo,
   FullKeyResponse,
@@ -58,6 +61,7 @@ export type {
   HousekeeperUiIntentRequest,
   HousekeeperUiIntentResponse,
   KeyInfo,
+  KeyQuotaRefreshStatusInfo,
   ModelContextLengths,
   ProviderProtocol,
   PromptPolishRequest,
@@ -135,9 +139,46 @@ export async function fetchKeyQuota(
   });
 }
 
-/** Refresh quota for a stored key without exposing secrets to the frontend. */
-export async function refreshKeyQuota(keyId: string): Promise<KeyInfo | null> {
-  return rpc.validation.refreshKeyQuota({ keyId });
+/**
+ * Refresh quota for a stored key without exposing secrets to the frontend.
+ * `force` bypasses the backend freshness TTL, but not an already-running
+ * single-flight refresh for the same account.
+ */
+export async function refreshKeyQuota(
+  keyId: string,
+  force = false
+): Promise<KeyInfo | null> {
+  return rpc.validation.refreshKeyQuota({ keyId, force });
+}
+
+/** Read quota freshness/last-good diagnostics without provider I/O. */
+export async function getKeyQuotaRefreshStatus(
+  keyId: string
+): Promise<KeyQuotaRefreshStatusInfo | null> {
+  return rpc.validation.getKeyQuotaRefreshStatus({ keyId });
+}
+
+/**
+ * Sync Cursor's exact account-level billing export.
+ *
+ * This source is intentionally separate from local Cursor session context
+ * history so callers cannot accidentally double-count both datasets.
+ */
+export async function syncCursorBillingUsage(
+  accountId: string,
+  force = false
+): Promise<CursorBillingUsageSnapshot> {
+  return rpc.validation.cursorSyncBillingUsage({ accountId, force });
+}
+
+/** Archive the active account cache during logout/removal. */
+export async function archiveCursorBillingUsageCache(
+  accountId: string
+): Promise<{
+  archivedLastGood: boolean;
+  archivedAttemptMarker: boolean;
+}> {
+  return rpc.validation.cursorArchiveBillingUsageCache({ accountId });
 }
 
 /**

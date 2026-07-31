@@ -3918,6 +3918,7 @@ dependencies = [
  "base64 0.22.1",
  "chrono",
  "core_types",
+ "csv",
  "dirs",
  "insta",
  "integrations",
