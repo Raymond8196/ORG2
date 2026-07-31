@@ -174,6 +174,17 @@ export const IMPORTED_HISTORY_SOURCE_DESCRIPTORS: readonly ImportedHistorySource
       supportsWindowedReplay: true,
     },
     {
+      sourceId: "pi",
+      listCategory: "external_history:pi",
+      prefix: "piapp-",
+      iconId: "pi",
+      displayName: "Pi",
+      groupLabel: "Pi",
+      listable: true,
+      replayable: true,
+      supportsWindowedReplay: true,
+    },
+    {
       sourceId: "qoder_cli",
       listCategory: "external_history:qoder_cli",
       prefix: "qodercliapp-",

@@ -14,6 +14,7 @@ export const IMPORTED_HISTORY_SOURCE_IDS = [
   "qoder",
   "mimo_code",
   "omp",
+  "pi",
   "qoder_cli",
 ] as const;
 

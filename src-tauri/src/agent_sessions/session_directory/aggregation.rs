@@ -1094,6 +1094,17 @@ mod tests {
     use crate::agent_sessions::session_directory::status::is_active_status;
     use crate::agent_sessions::session_directory::types::SessionCategory;
 
+    #[test]
+    fn pi_external_history_loader_is_registered_once() {
+        assert_eq!(
+            EXTERNAL_HISTORY_SOURCE_LOADERS
+                .iter()
+                .filter(|loader| loader.source == SOURCE_PI)
+                .count(),
+            1
+        );
+    }
+
     fn make_session(
         id: &str,
         status: &str,

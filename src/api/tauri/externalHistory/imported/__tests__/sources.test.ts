@@ -103,6 +103,7 @@ describe("imported history source registry", () => {
       "qoder",
       "mimo_code",
       "omp",
+      "pi",
       "qoder_cli",
     ]);
     expect(
@@ -122,6 +123,7 @@ describe("imported history source registry", () => {
       "external_history:qoder",
       "external_history:mimo_code",
       "external_history:omp",
+      "external_history:pi",
       "external_history:qoder_cli",
     ]);
     for (const source of IMPORTED_HISTORY_SOURCES) {
@@ -160,6 +162,9 @@ describe("imported history source registry", () => {
       getImportedHistorySourceBySessionId("ompapp-session-1")?.sourceId
     ).toBe("omp");
     expect(
+      getImportedHistorySourceBySessionId("piapp-session-1")?.sourceId
+    ).toBe("pi");
+    expect(
       getImportedHistorySourceBySessionId("qodercliapp-session-1")?.sourceId
     ).toBe("qoder_cli");
   });
@@ -193,6 +198,9 @@ describe("imported history source registry", () => {
       getImportedHistorySourceByListCategory("external_history:warp")
         ?.groupLabel
     ).toBe("Warp");
+    expect(
+      getImportedHistorySourceByListCategory("external_history:pi")?.groupLabel
+    ).toBe("Pi");
   });
 
   it("narrows source-aware list categories", () => {
@@ -215,6 +223,7 @@ describe("imported history source registry", () => {
       true
     );
     expect(isImportedHistoryListCategory("external_history:warp")).toBe(true);
+    expect(isImportedHistoryListCategory("external_history:pi")).toBe(true);
     expect(isImportedHistoryListCategory("external_history")).toBe(false);
   });
 });
