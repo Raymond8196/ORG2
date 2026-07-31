@@ -176,7 +176,7 @@ export function buildSpotlightSessionItems({
     return {
       id: idPrefix ? `${idPrefix}:${session.session_id}` : session.session_id,
       label: sessionName,
-      description: matchedSessionIdentity(session, query),
+      desc: matchedSessionIdentity(session, query),
       icon: resolveSessionRowIcon(session),
       type: "option" as const,
       data: {
@@ -209,7 +209,7 @@ export function buildCloudSessionReferenceItem({
   return {
     id: `${idPrefix}:${reference.orgId}:${reference.ownerUserId}:${reference.sourceSessionId}`,
     label,
-    description: reference.sourceSessionId,
+    desc: reference.sourceSessionId,
     icon,
     type: "option",
     data: { iconTone: "text1" },

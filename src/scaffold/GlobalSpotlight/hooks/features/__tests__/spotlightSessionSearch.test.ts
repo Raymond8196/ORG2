@@ -79,7 +79,7 @@ describe("buildSpotlightSessionItems", () => {
     expect(items[0]).toMatchObject({
       id: `general-session:${SESSION_ID}`,
       label: "Rollout notes",
-      description: SESSION_ID,
+      desc: SESSION_ID,
     });
   });
 
@@ -115,7 +115,7 @@ describe("buildSpotlightSessionItems", () => {
     expect(item).toMatchObject({
       id: `general-cloud-session:bfa7b134-2486-45fa-81ad-a369441fafb4:776dbd69-ac1d-4f72-a0d4-69cb4f2667dd:${SESSION_ID}`,
       label: "Team session",
-      description: SESSION_ID,
+      desc: SESSION_ID,
     });
     expect(item.icon).toBe(TestIcon);
     item.action?.();
