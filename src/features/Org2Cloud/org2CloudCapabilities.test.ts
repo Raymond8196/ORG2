@@ -32,6 +32,7 @@ describe("getCloudCapabilities", () => {
       memberRuntime: false,
       sessionTurnIndex: false,
       offlineSync: false,
+      orgChannels: false,
     });
     expect(await getCloudCapabilities("jwt-1")).toEqual({
       broadcastSignals: true,
@@ -41,6 +42,7 @@ describe("getCloudCapabilities", () => {
       memberRuntime: false,
       sessionTurnIndex: false,
       offlineSync: false,
+      orgChannels: false,
     });
     expect(rawMock).toHaveBeenCalledTimes(1);
   });
@@ -58,6 +60,7 @@ describe("getCloudCapabilities", () => {
       memberRuntime: false,
       sessionTurnIndex: false,
       offlineSync: false,
+      orgChannels: false,
     });
   });
 
@@ -75,6 +78,7 @@ describe("getCloudCapabilities", () => {
       memberRuntime: false,
       sessionTurnIndex: false,
       offlineSync: false,
+      orgChannels: false,
     });
   });
 
@@ -93,6 +97,7 @@ describe("getCloudCapabilities", () => {
       memberRuntime: false,
       sessionTurnIndex: false,
       offlineSync: false,
+      orgChannels: false,
     });
   });
 
@@ -105,6 +110,7 @@ describe("getCloudCapabilities", () => {
       memberRuntime: true,
       sessionTurnIndex: false,
       offlineSync: false,
+      orgChannels: false,
     });
     expect(await getCloudCapabilities("jwt-1")).toEqual({
       broadcastSignals: true,
@@ -114,6 +120,7 @@ describe("getCloudCapabilities", () => {
       memberRuntime: true,
       sessionTurnIndex: false,
       offlineSync: false,
+      orgChannels: false,
     });
   });
 
@@ -127,6 +134,7 @@ describe("getCloudCapabilities", () => {
       memberRuntime: false,
       sessionTurnIndex: false,
       offlineSync: false,
+      orgChannels: false,
     });
     rawMock.mockResolvedValueOnce({ broadcastSignals: true });
     expect(await getCloudCapabilities("jwt-1")).toEqual({
@@ -137,6 +145,7 @@ describe("getCloudCapabilities", () => {
       memberRuntime: false,
       sessionTurnIndex: false,
       offlineSync: false,
+      orgChannels: false,
     });
     expect(rawMock).toHaveBeenCalledTimes(2);
   });
@@ -155,6 +164,7 @@ describe("getCloudCapabilities", () => {
       memberRuntime: false,
       sessionTurnIndex: false,
       offlineSync: false,
+      orgChannels: false,
     });
     expect(await getCloudCapabilities("jwt-1")).toEqual({
       broadcastSignals: false,
@@ -164,6 +174,7 @@ describe("getCloudCapabilities", () => {
       memberRuntime: false,
       sessionTurnIndex: false,
       offlineSync: false,
+      orgChannels: false,
     });
     expect(rawMock).toHaveBeenCalledTimes(1);
   });
@@ -186,6 +197,7 @@ describe("getCloudCapabilities", () => {
       memberRuntime: false,
       sessionTurnIndex: false,
       offlineSync: false,
+      orgChannels: false,
     });
     expect(await second).toEqual({
       broadcastSignals: true,
@@ -195,6 +207,7 @@ describe("getCloudCapabilities", () => {
       memberRuntime: false,
       sessionTurnIndex: false,
       offlineSync: false,
+      orgChannels: false,
     });
     expect(rawMock).toHaveBeenCalledTimes(1);
   });
@@ -213,6 +226,7 @@ describe("getCloudCapabilitiesConfirmed", () => {
       memberRuntime: false,
       sessionTurnIndex: false,
       offlineSync: false,
+      orgChannels: false,
     });
   });
 
@@ -225,6 +239,7 @@ describe("getCloudCapabilitiesConfirmed", () => {
       memberRuntime: true,
       sessionTurnIndex: false,
       offlineSync: false,
+      orgChannels: false,
     });
     const result = await getCloudCapabilitiesConfirmed("jwt-1");
     expect(result.confirmed).toBe(true);
@@ -243,6 +258,7 @@ describe("getCloudCapabilitiesConfirmed", () => {
       memberRuntime: false,
       sessionTurnIndex: false,
       offlineSync: false,
+      orgChannels: false,
     });
   });
 
@@ -273,6 +289,7 @@ describe("getCloudCapabilitiesConfirmed", () => {
       memberRuntime: false,
       sessionTurnIndex: false,
       offlineSync: false,
+      orgChannels: false,
     });
     // A cached hit is, by definition, a confirmed read — no second RPC.
     const result = await getCloudCapabilitiesConfirmed("jwt-1");

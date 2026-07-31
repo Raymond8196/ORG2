@@ -41,6 +41,7 @@ function status(
       memberRuntime: true,
       sessionTurnIndex: false,
       offlineSync: false,
+      orgChannels: false,
     },
     capabilitiesLoading: false,
     lastSync: { lastPassAtMs: null, lastSuccessAtMs: null },

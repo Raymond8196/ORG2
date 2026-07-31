@@ -21,6 +21,7 @@ const labels: ChatPanelTabDisplayLabels = {
     githubPrs: "GitHub PRs",
   },
   sessionFallback: "Chat",
+  channelFallback: "Channels",
 };
 
 function tab(
@@ -36,6 +37,29 @@ describe("resolveChatPanelTabDisplayTitle", () => {
     expect(resolveChatPanelTabDisplayTitle(tab("runtime"), null, labels)).toBe(
       "Runtime"
     );
+  });
+
+  it("renders a channel tab as #name from its payload", () => {
+    expect(
+      resolveChatPanelTabDisplayTitle(
+        {
+          ...tab("channel", "#code-review"),
+          channel: {
+            scope: "local",
+            channelId: "chan-1",
+            name: "code-review",
+          },
+        },
+        null,
+        labels
+      )
+    ).toBe("#code-review");
+  });
+
+  it("falls back to the Channels label for a payload-less channel tab", () => {
+    expect(
+      resolveChatPanelTabDisplayTitle(tab("channel", "#gone"), null, labels)
+    ).toBe("Channels");
   });
 
   it("uses the localized Team Inbox title", () => {

@@ -1,6 +1,26 @@
+/**
+ * Shared "a session was dropped here" surface.
+ *
+ * Two independent drag protocols name the same thing and both end with a
+ * pointer release rather than an HTML5 drop:
+ *
+ *  - `SESSION_TAB_DRAG_*` — a native session TAB leaving the Chat Panel or
+ *    Workstation tab strip. The detail carries the transfer directly.
+ *  - `tab-drag-*` — the generic reference-pill drag every sidebar session row
+ *    and Workstation tab emits. Only the `session://` pills are ours.
+ *
+ * Consumers get one `onDrop(reference, context)`; `context` reports which
+ * protocol delivered it and where the pointer was released, so a surface that
+ * overlaps another drop target (e.g. a channel whose composer already accepts
+ * reference pills on its own) can decline the drops already handled for it.
+ *
+ * Pointer sampling is attached only for the lifetime of an eligible drag and
+ * coalesced to one hit-test per animation frame.
+ */
 import { useEffect, useRef, useState } from "react";
 
 import type { TabDragEventDetail } from "@src/modules/WorkStation/shared/TabBar/tabDragTypes";
+
 import {
   SESSION_TAB_DRAG_CANCEL_EVENT,
   SESSION_TAB_DRAG_END_EVENT,
@@ -10,29 +30,34 @@ import {
   type SessionTabDragStartDetail,
   getSessionReferenceFromDragDetail,
   isPointInsideElement,
-} from "@src/shared/dnd/sessionTabDrag";
+} from "./sessionTabDrag";
 
-interface UseTeamInboxSessionDropTargetOptions {
-  containerRef: React.RefObject<HTMLElement | null>;
-  disabled?: boolean;
-  onDrop: (reference: SessionReferenceOpen) => void;
+/** Which protocol delivered the drop, and where the pointer was released. */
+export interface SessionDropContext {
+  source: "session-tab" | "reference";
+  clientX: number;
+  clientY: number;
 }
 
-interface TeamInboxSessionDropTargetState {
+interface UseSessionDropTargetOptions {
+  containerRef: React.RefObject<HTMLElement | null>;
+  disabled?: boolean;
+  onDrop: (
+    reference: SessionReferenceOpen,
+    context: SessionDropContext
+  ) => void;
+}
+
+interface SessionDropTargetState {
   active: boolean;
   over: boolean;
 }
 
-/**
- * Copy-target for both native Session tabs and generic `session://` tabs.
- * Pointer sampling is attached only for the lifetime of an eligible drag and
- * coalesced to one hit-test per animation frame.
- */
-export function useTeamInboxSessionDropTarget({
+export function useSessionDropTarget({
   containerRef,
   disabled = false,
   onDrop,
-}: UseTeamInboxSessionDropTargetOptions): TeamInboxSessionDropTargetState {
+}: UseSessionDropTargetOptions): SessionDropTargetState {
   const onDropRef = useRef(onDrop);
   const disabledRef = useRef(disabled);
   const referenceRef = useRef<SessionReferenceOpen | null>(null);
@@ -40,7 +65,7 @@ export function useTeamInboxSessionDropTarget({
   const frameRef = useRef<number | null>(null);
   const stopTrackingRef = useRef<() => void>(() => undefined);
   const latestPointRef = useRef<{ x: number; y: number } | null>(null);
-  const [state, setState] = useState<TeamInboxSessionDropTargetState>({
+  const [state, setState] = useState<SessionDropTargetState>({
     active: false,
     over: false,
   });
@@ -96,7 +121,11 @@ export function useTeamInboxSessionDropTarget({
       });
     };
 
-    const finishAt = (clientX?: number, clientY?: number) => {
+    const finishAt = (
+      source: SessionDropContext["source"],
+      clientX?: number,
+      clientY?: number
+    ) => {
       const reference = referenceRef.current;
       const inside =
         reference != null &&
@@ -105,7 +134,9 @@ export function useTeamInboxSessionDropTarget({
         !disabledRef.current &&
         isPointInsideElement(containerRef.current, clientX, clientY);
       stopTracking();
-      if (inside && reference) onDropRef.current(reference);
+      if (inside && reference && clientX != null && clientY != null) {
+        onDropRef.current(reference, { source, clientX, clientY });
+      }
     };
 
     const handleSessionStart = (event: Event) => {
@@ -120,7 +151,7 @@ export function useTeamInboxSessionDropTarget({
       const { clientX, clientY } = (
         event as CustomEvent<SessionTabDragEndDetail>
       ).detail;
-      finishAt(clientX, clientY);
+      finishAt("session-tab", clientX, clientY);
     };
     const handleReferenceStart = (event: Event) => {
       startTracking(
@@ -132,7 +163,7 @@ export function useTeamInboxSessionDropTarget({
     const handleReferenceEnd = (event: Event) => {
       const { pointerX, pointerY } = (event as CustomEvent<TabDragEventDetail>)
         .detail;
-      finishAt(pointerX, pointerY);
+      finishAt("reference", pointerX, pointerY);
     };
 
     document.addEventListener(SESSION_TAB_DRAG_START_EVENT, handleSessionStart);

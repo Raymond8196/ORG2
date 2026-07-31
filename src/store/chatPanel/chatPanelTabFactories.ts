@@ -18,6 +18,7 @@ import type { WorkManagementSection } from "@src/store/workstation/workstationTa
 
 import { defineChatPanelTabFactory } from "./chatPanelTabFactory";
 import {
+  type ChatPanelSelectedChannel,
   type ChatPanelTab,
   type ChatPanelTabsState,
   ORGANIZATION_TAB_ID,
@@ -185,6 +186,32 @@ export const createProjectTab = defineChatPanelTabFactory<{
   },
   getTitle: (data) => data.project.project.name || "Project",
   toPayload: (data) => ({ project: data.project }),
+});
+
+// ---------------------------------------------------------------------------
+// channel — one pill per channel, deduped by scope + channel id
+// ---------------------------------------------------------------------------
+
+/**
+ * Local and cloud channel ids come from different id spaces, so the scope
+ * joins the key: a local channel and a cloud channel that happen to share an
+ * id can never collapse onto one pill.
+ */
+export function buildChannelTabKey(channel: ChatPanelSelectedChannel): string {
+  return `${channel.scope}:${channel.channelId}`;
+}
+
+export const createChannelTab = defineChatPanelTabFactory<{
+  channel: ChatPanelSelectedChannel;
+}>({
+  tabType: "channel",
+  idStrategy: {
+    type: "keyed",
+    prefix: "channel",
+    getKey: (data) => buildChannelTabKey(data.channel),
+  },
+  getTitle: (data) => `#${data.channel.name}`,
+  toPayload: (data) => ({ channel: data.channel }),
 });
 
 // ---------------------------------------------------------------------------

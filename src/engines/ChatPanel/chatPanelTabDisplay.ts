@@ -16,6 +16,7 @@ export interface ChatPanelTabDisplayLabels {
     githubPrs: string;
   };
   sessionFallback: string;
+  channelFallback: string;
 }
 
 function resolveWorkManagementTabTitle(
@@ -68,6 +69,10 @@ export function resolveChatPanelTabDisplayTitle(
       return tab.title;
     case "organization":
       return tab.title || labels.organization;
+    case "channel":
+      // The `#name` label is stamped at open time and refreshed on re-open;
+      // the fallback only covers a payload-less persisted row.
+      return tab.channel ? `#${tab.channel.name}` : labels.channelFallback;
     case "work-item":
     case "project":
     case "explore":

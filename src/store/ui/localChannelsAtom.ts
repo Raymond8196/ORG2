@@ -1,0 +1,352 @@
+/**
+ * Local (non-cloud) org channels — the single-user counterpart of the 0014
+ * cloud control plane, persisted on this machine only.
+ *
+ * The pure reducers below enforce the SAME rules as `cloud_create_channel` /
+ * `cloud_update_channel` so a later migration to a cloud org cannot hit
+ * server-side validation the local UI never surfaced: names normalized via
+ * `normalizeChannelName`, 1..80 chars, case-insensitive uniqueness across
+ * active AND archived channels (archived names stay reserved), at most
+ * `CHANNEL_MAX_ACTIVE_PER_ORG` active channels, topics ≤ 250 chars, archive
+ * is soft (`archivedAt`), delete is hard removal.
+ *
+ * Persistence uses the zod-validated localStorage idiom
+ * (`org2CloudAuthAtom` precedent): garbage bytes parse to the initial empty
+ * list instead of crashing hydration, and a single malformed row degrades
+ * just that row (per-row `safeParse`, mirroring the cloud listing schema's
+ * per-field `.catch`).
+ */
+import { atom } from "jotai";
+import { atomWithStorage } from "jotai/utils";
+import { z } from "zod/v4";
+
+import {
+  normalizeChannelName,
+  validateChannelName,
+} from "@src/features/Org2Cloud/channels/channelName";
+import {
+  CHANNEL_MAX_ACTIVE_PER_ORG,
+  CHANNEL_TOPIC_MAX_LENGTH,
+} from "@src/features/Org2Cloud/channels/types";
+import { createZodJsonStorage } from "@src/util/core/storage/zodStorage";
+
+import {
+  localChannelMessagesAtom,
+  purgeLocalChannelMessages,
+} from "./localChannelMessagesAtom";
+
+export const LOCAL_CHANNELS_STORAGE_KEY = "orgii.localChannels.v1";
+
+/** Same bound as the cloud backend's per-org active-channel quota. */
+export const LOCAL_CHANNEL_MAX_ACTIVE = CHANNEL_MAX_ACTIVE_PER_ORG;
+
+export const LocalChannelSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  topic: z.string().optional(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  archivedAt: z.string().nullable(),
+});
+
+export type LocalChannel = z.output<typeof LocalChannelSchema>;
+
+/** Tolerant list schema: drop malformed rows, keep the rest. */
+const StoredLocalChannelsSchema: z.ZodType<LocalChannel[]> = z
+  .array(z.unknown())
+  .transform((rows) =>
+    rows.flatMap((row) => {
+      const parsed = LocalChannelSchema.safeParse(row);
+      return parsed.success ? [parsed.data] : [];
+    })
+  );
+
+export const localChannelsAtom = atomWithStorage<LocalChannel[]>(
+  LOCAL_CHANNELS_STORAGE_KEY,
+  [],
+  createZodJsonStorage(StoredLocalChannelsSchema),
+  { getOnInit: true }
+);
+localChannelsAtom.debugLabel = "localChannelsAtom";
+
+// ---------------------------------------------------------------------------
+// Pure reducers
+// ---------------------------------------------------------------------------
+
+export type LocalChannelErrorCode = "nameTaken" | "quota" | "invalid";
+
+export type LocalChannelResult =
+  | { ok: true; channels: LocalChannel[]; channel: LocalChannel }
+  | { ok: false; error: LocalChannelErrorCode };
+
+function fail(error: LocalChannelErrorCode): LocalChannelResult {
+  return { ok: false, error };
+}
+
+/**
+ * Names are stored normalized (lowercase), but compare case-folded anyway so
+ * a hand-edited stored value can never open a duplicate-name loophole.
+ * Archived channels count: their names stay reserved (cloud 0014 semantics).
+ */
+function isNameTaken(
+  channels: readonly LocalChannel[],
+  name: string,
+  excludeId?: string
+): boolean {
+  const folded = name.toLowerCase();
+  return channels.some(
+    (channel) =>
+      channel.id !== excludeId && channel.name.toLowerCase() === folded
+  );
+}
+
+function countActive(channels: readonly LocalChannel[]): number {
+  return channels.reduce(
+    (count, channel) => (channel.archivedAt === null ? count + 1 : count),
+    0
+  );
+}
+
+/** `""`/whitespace → undefined (no topic); over-long topics are rejected. */
+function normalizeTopic(
+  raw: string | undefined
+): { ok: true; topic: string | undefined } | { ok: false } {
+  const trimmed = raw?.trim() ?? "";
+  if (trimmed.length === 0) return { ok: true, topic: undefined };
+  if (trimmed.length > CHANNEL_TOPIC_MAX_LENGTH) return { ok: false };
+  return { ok: true, topic: trimmed };
+}
+
+export interface CreateLocalChannelInput {
+  name: string;
+  topic?: string;
+  /** Injectable for tests; defaults to `crypto.randomUUID()`. */
+  id?: string;
+  /** Injectable for tests; defaults to `new Date().toISOString()`. */
+  now?: string;
+}
+
+export function createLocalChannel(
+  channels: readonly LocalChannel[],
+  input: CreateLocalChannelInput
+): LocalChannelResult {
+  const name = normalizeChannelName(input.name);
+  if (validateChannelName(name) !== null) return fail("invalid");
+  const topic = normalizeTopic(input.topic);
+  if (!topic.ok) return fail("invalid");
+  if (isNameTaken(channels, name)) return fail("nameTaken");
+  if (countActive(channels) >= LOCAL_CHANNEL_MAX_ACTIVE) return fail("quota");
+
+  const now = input.now ?? new Date().toISOString();
+  const channel: LocalChannel = {
+    id: input.id ?? crypto.randomUUID(),
+    name,
+    topic: topic.topic,
+    createdAt: now,
+    updatedAt: now,
+    archivedAt: null,
+  };
+  return { ok: true, channels: [...channels, channel], channel };
+}
+
+export interface UpdateLocalChannelInput {
+  /** Omitted = unchanged. */
+  name?: string;
+  /** Omitted = unchanged; empty string clears (0014 update contract). */
+  topic?: string;
+  now?: string;
+}
+
+export function updateLocalChannel(
+  channels: readonly LocalChannel[],
+  id: string,
+  input: UpdateLocalChannelInput
+): LocalChannelResult {
+  const current = channels.find((channel) => channel.id === id);
+  if (!current) return fail("invalid");
+
+  let name = current.name;
+  if (input.name !== undefined) {
+    name = normalizeChannelName(input.name);
+    if (validateChannelName(name) !== null) return fail("invalid");
+    if (isNameTaken(channels, name, id)) return fail("nameTaken");
+  }
+
+  let topic = current.topic;
+  if (input.topic !== undefined) {
+    const normalized = normalizeTopic(input.topic);
+    if (!normalized.ok) return fail("invalid");
+    topic = normalized.topic;
+  }
+
+  const updated: LocalChannel = {
+    ...current,
+    name,
+    topic,
+    updatedAt: input.now ?? new Date().toISOString(),
+  };
+  return {
+    ok: true,
+    channels: channels.map((channel) =>
+      channel.id === id ? updated : channel
+    ),
+    channel: updated,
+  };
+}
+
+/** Soft archive: the row is kept and its name stays reserved. */
+export function archiveLocalChannel(
+  channels: readonly LocalChannel[],
+  id: string,
+  now?: string
+): LocalChannelResult {
+  const current = channels.find((channel) => channel.id === id);
+  if (!current) return fail("invalid");
+  if (current.archivedAt !== null) {
+    return { ok: true, channels: [...channels], channel: current };
+  }
+  const stamp = now ?? new Date().toISOString();
+  const updated: LocalChannel = {
+    ...current,
+    archivedAt: stamp,
+    updatedAt: stamp,
+  };
+  return {
+    ok: true,
+    channels: channels.map((channel) =>
+      channel.id === id ? updated : channel
+    ),
+    channel: updated,
+  };
+}
+
+/** Unarchive re-enters the active quota, so it re-checks the cap. */
+export function unarchiveLocalChannel(
+  channels: readonly LocalChannel[],
+  id: string,
+  now?: string
+): LocalChannelResult {
+  const current = channels.find((channel) => channel.id === id);
+  if (!current) return fail("invalid");
+  if (current.archivedAt === null) {
+    return { ok: true, channels: [...channels], channel: current };
+  }
+  if (countActive(channels) >= LOCAL_CHANNEL_MAX_ACTIVE) return fail("quota");
+  const updated: LocalChannel = {
+    ...current,
+    archivedAt: null,
+    updatedAt: now ?? new Date().toISOString(),
+  };
+  return {
+    ok: true,
+    channels: channels.map((channel) =>
+      channel.id === id ? updated : channel
+    ),
+    channel: updated,
+  };
+}
+
+/** HARD delete — the row is removed outright (cloud admin-delete parity). */
+export function deleteLocalChannel(
+  channels: readonly LocalChannel[],
+  id: string
+): LocalChannelResult {
+  const current = channels.find((channel) => channel.id === id);
+  if (!current) return fail("invalid");
+  return {
+    ok: true,
+    channels: channels.filter((channel) => channel.id !== id),
+    channel: current,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Derived read atoms + reducer-wrapping write atoms
+// ---------------------------------------------------------------------------
+
+function sortByName(channels: LocalChannel[]): LocalChannel[] {
+  return channels.sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/** Non-archived channels, alphabetical (the cloud listing's server sort). */
+export const activeLocalChannelsAtom = atom((get) =>
+  sortByName(
+    get(localChannelsAtom).filter((channel) => channel.archivedAt === null)
+  )
+);
+activeLocalChannelsAtom.debugLabel = "activeLocalChannelsAtom";
+
+export const archivedLocalChannelsAtom = atom((get) =>
+  sortByName(
+    get(localChannelsAtom).filter((channel) => channel.archivedAt !== null)
+  )
+);
+archivedLocalChannelsAtom.debugLabel = "archivedLocalChannelsAtom";
+
+export const createLocalChannelAtom = atom(
+  null,
+  (get, set, input: CreateLocalChannelInput): LocalChannelResult => {
+    const result = createLocalChannel(get(localChannelsAtom), input);
+    if (result.ok) set(localChannelsAtom, result.channels);
+    return result;
+  }
+);
+createLocalChannelAtom.debugLabel = "createLocalChannelAtom";
+
+export const updateLocalChannelAtom = atom(
+  null,
+  (
+    get,
+    set,
+    args: { id: string } & UpdateLocalChannelInput
+  ): LocalChannelResult => {
+    const { id, ...input } = args;
+    const result = updateLocalChannel(get(localChannelsAtom), id, input);
+    if (result.ok) set(localChannelsAtom, result.channels);
+    return result;
+  }
+);
+updateLocalChannelAtom.debugLabel = "updateLocalChannelAtom";
+
+export const archiveLocalChannelAtom = atom(
+  null,
+  (get, set, id: string): LocalChannelResult => {
+    const result = archiveLocalChannel(get(localChannelsAtom), id);
+    if (result.ok) set(localChannelsAtom, result.channels);
+    return result;
+  }
+);
+archiveLocalChannelAtom.debugLabel = "archiveLocalChannelAtom";
+
+export const unarchiveLocalChannelAtom = atom(
+  null,
+  (get, set, id: string): LocalChannelResult => {
+    const result = unarchiveLocalChannel(get(localChannelsAtom), id);
+    if (result.ok) set(localChannelsAtom, result.channels);
+    return result;
+  }
+);
+unarchiveLocalChannelAtom.debugLabel = "unarchiveLocalChannelAtom";
+
+/**
+ * Hard-delete the channel AND purge its message plane. The purge lives here
+ * rather than in the delete dialog so every delete path (dialog today, row
+ * action or bulk cleanup tomorrow) drops the messages too — an orphaned row
+ * set is unreachable through the UI but still costs storage forever. Both
+ * reducers stay pure; only this write atom knows about the two slices.
+ */
+export const deleteLocalChannelAtom = atom(
+  null,
+  (get, set, id: string): LocalChannelResult => {
+    const result = deleteLocalChannel(get(localChannelsAtom), id);
+    if (!result.ok) return result;
+    set(localChannelsAtom, result.channels);
+    const messages = get(localChannelMessagesAtom);
+    const remaining = purgeLocalChannelMessages(messages, id);
+    if (remaining.length !== messages.length) {
+      set(localChannelMessagesAtom, remaining);
+    }
+    return result;
+  }
+);
+deleteLocalChannelAtom.debugLabel = "deleteLocalChannelAtom";

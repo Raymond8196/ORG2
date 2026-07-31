@@ -66,6 +66,8 @@ interface UseWorkstationSidebarMenuDecorationParams {
   setActiveSessionMoreMenuId: DecorateRowActionsParams["setActiveSessionMoreMenuId"];
   subagentParentIds: DecorateRowActionsParams["subagentParentIds"];
   cloudMenuItems: NavigationMenuItem[];
+  /** Local-scope Channels section; empty while a cloud org is active. */
+  localChannelsMenuItems: NavigationMenuItem[];
   sessionSidebarMenuItems: NavigationMenuItem[];
   cloudMySessionsVisibleCount: number;
   activeSidebarKey: WorkstationSidebarKey;
@@ -111,6 +113,7 @@ export function useWorkstationSidebarMenuDecoration({
   setActiveSessionMoreMenuId,
   subagentParentIds,
   cloudMenuItems,
+  localChannelsMenuItems,
   sessionSidebarMenuItems,
   cloudMySessionsVisibleCount,
   activeSidebarKey,
@@ -178,26 +181,31 @@ export function useWorkstationSidebarMenuDecoration({
     tCommon,
     unpinLabel: unpinFolderLabel,
   });
-  const decoratedSessionSidebarMenuItems = useMemo(
-    () =>
-      buildCloudScopedMenuItems({
-        cloudMenuItems,
-        // Cloud rows already carry Replay/Fork actions, so only local rows
-        // use the regular session action decoration.
-        sessionMenuItems: decorateSessionRowActions(sessionSidebarMenuItems),
-        mySessionsLabel: t("cloud.sidebar.mySessions"),
-        mySessionsVisibleCount: cloudMySessionsVisibleCount,
-        loadMoreLabel: tCommon("common:actions.loadMore", "Load more"),
-      }),
-    [
+  const decoratedSessionSidebarMenuItems = useMemo(() => {
+    const scoped = buildCloudScopedMenuItems({
       cloudMenuItems,
-      cloudMySessionsVisibleCount,
-      decorateSessionRowActions,
-      sessionSidebarMenuItems,
-      t,
-      tCommon,
-    ]
-  );
+      // Cloud rows already carry Replay/Fork actions, so only local rows
+      // use the regular session action decoration.
+      sessionMenuItems: decorateSessionRowActions(sessionSidebarMenuItems),
+      mySessionsLabel: t("cloud.sidebar.mySessions"),
+      mySessionsVisibleCount: cloudMySessionsVisibleCount,
+      loadMoreLabel: tCommon("common:actions.loadMore", "Load more"),
+    });
+    // Local-scope Channels lead the list — the mirror of the cloud scope's
+    // channels-above-My-Sessions ordering. Empty whenever a cloud org is
+    // active, so the two channel sections can never co-render.
+    return localChannelsMenuItems.length === 0
+      ? scoped
+      : [...localChannelsMenuItems, ...scoped];
+  }, [
+    cloudMenuItems,
+    cloudMySessionsVisibleCount,
+    decorateSessionRowActions,
+    localChannelsMenuItems,
+    sessionSidebarMenuItems,
+    t,
+    tCommon,
+  ]);
   const sidebarMenuItems =
     activeSidebarKey === "projects" || workItemsContentVisible
       ? projectsSidebarMenuItems
