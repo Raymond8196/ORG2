@@ -21,18 +21,14 @@ use crate::sources::imported_history::{
         ImportedHistoryCacheInput, ImportedHistoryDiscoveredRecord, ImportedHistoryImpactStats,
         RoundUsage, StoredRoundUsage, SOURCE_QWEN_CODE,
     },
-    paths as imported_paths,
+    paths as imported_paths, scan_snapshot,
     watermark::{ImportedParseWatermark, WatermarkedTranscriptReader},
     ImportedHistoryRecentPath, ImportedHistorySessionPage, ImportedToolCall,
 };
 
 pub const QWEN_CODE_SESSION_PREFIX: &str = "qwencodeapp-";
-const QWEN_CODE_PARSER_VERSION: i64 = 1;
+const QWEN_CODE_PARSER_VERSION: i64 = 2;
 
-const MAX_ROOT_ENTRIES: usize = 20_000;
-const MAX_PROJECTS: usize = 20_000;
-const MAX_CHAT_ENTRIES_PER_PROJECT: usize = 20_000;
-const MAX_SESSION_FILES: usize = 20_000;
 const MAX_TRANSCRIPT_BYTES: i64 = 64 * 1024 * 1024;
 const MAX_CHANGED_SESSIONS_PER_SYNC: usize = 256;
 const MAX_CHANGED_BYTES_PER_SYNC: i64 = 64 * 1024 * 1024;
@@ -49,21 +45,6 @@ const MAX_TOOL_CALLS_IN_FLIGHT: usize = 1_024;
 const MAX_TOOL_ARGS_BYTES: usize = 64 * 1024;
 
 pub type QwenCodeRecentPath = ImportedHistoryRecentPath;
-
-#[derive(Debug, Clone, Copy)]
-struct DiscoveryLimits {
-    root_entries: usize,
-    projects: usize,
-    chat_entries_per_project: usize,
-    files: usize,
-}
-
-const DISCOVERY_LIMITS: DiscoveryLimits = DiscoveryLimits {
-    root_entries: MAX_ROOT_ENTRIES,
-    projects: MAX_PROJECTS,
-    chat_entries_per_project: MAX_CHAT_ENTRIES_PER_PROJECT,
-    files: MAX_SESSION_FILES,
-};
 
 #[derive(Debug, Default, Deserialize)]
 #[serde(default)]
@@ -102,6 +83,8 @@ struct QwenUsageMetadata {
     thoughts_token_count: Option<i64>,
     #[serde(rename = "cachedContentTokenCount")]
     cached_content_token_count: Option<i64>,
+    #[serde(rename = "totalTokenCount")]
+    total_token_count: Option<i64>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -212,10 +195,8 @@ impl QwenParseState {
             return;
         };
         let prompt = nonnegative(usage.prompt_token_count);
-        let candidates = nonnegative(usage.candidates_token_count);
-        let thoughts = nonnegative(usage.thoughts_token_count);
         let cache_read = nonnegative(usage.cached_content_token_count).min(prompt);
-        let output = candidates.saturating_add(thoughts);
+        let output = qwen_output_tokens(&usage, prompt);
         if prompt == 0 && output == 0 && cache_read == 0 {
             return;
         }
@@ -389,7 +370,17 @@ fn sync_qwen_code_history_cache(conn: &mut Connection) -> Result<(), String> {
 }
 
 fn sync_qwen_code_history_cache_at_root(conn: &mut Connection, root: &Path) -> Result<(), String> {
-    let discovered = discover_records_with_limits(root, DISCOVERY_LIMITS)?;
+    let previous_snapshots = scan_snapshot::read_dir_snapshots_from_conn(conn, SOURCE_QWEN_CODE);
+    let mut walker =
+        scan_snapshot::SnapshotDirWalker::new(&previous_snapshots, "jsonl", "Qwen Code");
+    let discovered = discover_records(root, &mut walker)?;
+    let next_snapshots = walker.into_snapshots();
+    scan_snapshot::persist_dir_snapshots_if_changed(
+        conn,
+        SOURCE_QWEN_CODE,
+        &previous_snapshots,
+        &next_snapshots,
+    )?;
     let signatures = discovered
         .iter()
         .map(ImportedHistoryDiscoveredRecord::signature)
@@ -423,6 +414,10 @@ fn sync_qwen_code_history_cache_at_root(conn: &mut Connection, root: &Path) -> R
             &record.source_session_id,
         )?;
         let parsed = parse_qwen_session_meta(record, stored.as_ref(), root)?;
+        // Recovery invariant: rounds and watermark are written first, while
+        // the cache signature remains old. Any failure before the final cache
+        // upsert therefore leaves this record eligible on the next demand
+        // scan; a resumed retry reconstructs the same bounded state.
         imported_cache::write_session_rounds_from_conn(
             conn,
             std::slice::from_ref(&parsed.input.session_id),
@@ -526,9 +521,9 @@ fn parse_qwen_session_meta(
     })
 }
 
-fn discover_records_with_limits(
+fn discover_records(
     root: &Path,
-    limits: DiscoveryLimits,
+    walker: &mut scan_snapshot::SnapshotDirWalker<'_>,
 ) -> Result<Vec<ImportedHistoryDiscoveredRecord>, String> {
     let root_metadata = match fs::symlink_metadata(root) {
         Ok(metadata) => metadata,
@@ -542,106 +537,58 @@ fn discover_records_with_limits(
         return Ok(Vec::new());
     }
 
-    let mut records = Vec::new();
-    let project_entries = bounded_read_dir(root, limits.root_entries, "projects root")?;
-    let mut project_count = 0;
-    for project_entry in project_entries {
-        let file_type = project_entry
-            .file_type()
-            .map_err(|err| format!("Failed to inspect Qwen Code project entry: {err}"))?;
-        if file_type.is_symlink() || !file_type.is_dir() {
+    let mut paths = Vec::new();
+    walker.collect_files_bounded(root, &mut paths, 2)?;
+    let mut records = Vec::with_capacity(paths.len());
+    for path in paths {
+        let Some((project_name, file_stem)) = qwen_source_parts(&path, root) else {
             continue;
-        }
-        project_count += 1;
-        if project_count > limits.projects {
-            return Err(format!(
-                "Qwen Code project count exceeds {}",
-                limits.projects
-            ));
-        }
-        let project_name = match project_entry.file_name().into_string() {
-            Ok(name) if !name.is_empty() && name.len() <= MAX_PATH_BYTES => name,
-            _ => continue,
         };
-        let chats = project_entry.path().join("chats");
-        let chats_metadata = match fs::symlink_metadata(&chats) {
-            Ok(metadata) => metadata,
-            Err(err) if err.kind() == std::io::ErrorKind::NotFound => continue,
-            Err(err) => {
-                return Err(format!(
-                    "Failed to inspect Qwen Code chats directory: {err}"
-                ))
-            }
-        };
-        if chats_metadata.file_type().is_symlink() || !chats_metadata.is_dir() {
-            continue;
-        }
-        for chat_entry in bounded_read_dir(
-            &chats,
-            limits.chat_entries_per_project,
-            "project chats directory",
-        )? {
-            let file_type = chat_entry
-                .file_type()
-                .map_err(|err| format!("Failed to inspect Qwen Code chat entry: {err}"))?;
-            if file_type.is_symlink() || !file_type.is_file() {
-                continue;
-            }
-            let path = chat_entry.path();
-            if path
-                .extension()
-                .is_none_or(|extension| extension != "jsonl")
-            {
-                continue;
-            }
-            let Some(file_stem) = path.file_stem().and_then(|value| value.to_str()) else {
-                continue;
-            };
-            if file_stem.is_empty() || file_stem.len() > MAX_SESSION_ID_BYTES {
-                continue;
-            }
-            if records.len() >= limits.files {
-                return Err(format!(
-                    "Qwen Code transcript count exceeds {}",
-                    limits.files
-                ));
-            }
-            let (mtime, size) = imported_paths::file_metadata_signature(&path, "Qwen Code")?;
-            ensure_file_size(size)?;
-            let source_session_id = format!("{project_name}/{file_stem}");
-            records.push(ImportedHistoryDiscoveredRecord {
-                source_session_id: source_session_id.clone(),
-                source_path: path,
-                source_record_key: source_session_id,
-                source_mtime_ms: mtime,
-                source_size_bytes: size,
-                source_fingerprint: String::new(),
-                parser_version: QWEN_CODE_PARSER_VERSION,
-            });
-        }
+        ensure_exact_safe_transcript(&path, root)?;
+        let (mtime, size) = imported_paths::file_metadata_signature(&path, "Qwen Code")?;
+        ensure_file_size(size)?;
+        let source_session_id = format!("{project_name}/{file_stem}");
+        records.push(ImportedHistoryDiscoveredRecord {
+            source_session_id: source_session_id.clone(),
+            source_path: path,
+            source_record_key: source_session_id,
+            source_mtime_ms: mtime,
+            source_size_bytes: size,
+            source_fingerprint: String::new(),
+            parser_version: QWEN_CODE_PARSER_VERSION,
+        });
     }
     Ok(records)
 }
 
-fn bounded_read_dir(
-    dir: &Path,
-    max_entries: usize,
-    label: &str,
-) -> Result<Vec<fs::DirEntry>, String> {
-    let mut entries = Vec::new();
-    let iterator =
-        fs::read_dir(dir).map_err(|err| format!("Failed to read Qwen Code {label}: {err}"))?;
-    for entry in iterator {
-        if entries.len() >= max_entries {
-            return Err(format!(
-                "Qwen Code {label} entry count exceeds {max_entries}"
-            ));
-        }
-        entries
-            .push(entry.map_err(|err| format!("Failed to read Qwen Code {label} entry: {err}"))?);
+fn qwen_source_parts(path: &Path, root: &Path) -> Option<(String, String)> {
+    let relative = path.strip_prefix(root).ok()?;
+    let mut components = relative.components();
+    let project_name = match components.next()? {
+        Component::Normal(name) => name.to_str()?,
+        _ => return None,
+    };
+    if project_name.is_empty() || project_name.len() > MAX_PATH_BYTES {
+        return None;
     }
-    entries.sort_by_key(|entry| entry.file_name());
-    Ok(entries)
+    if !matches!(
+        components.next(),
+        Some(Component::Normal(name)) if name == std::ffi::OsStr::new("chats")
+    ) {
+        return None;
+    }
+    let filename = match components.next()? {
+        Component::Normal(name) => name,
+        _ => return None,
+    };
+    if components.next().is_some() || Path::new(filename).extension()? != "jsonl" {
+        return None;
+    }
+    let file_stem = Path::new(filename).file_stem()?.to_str()?;
+    if file_stem.is_empty() || file_stem.len() > MAX_SESSION_ID_BYTES {
+        return None;
+    }
+    Some((project_name.to_string(), file_stem.to_string()))
 }
 
 fn ensure_exact_safe_transcript(path: &Path, root: &Path) -> Result<(), String> {
@@ -712,6 +659,21 @@ fn bounded_bytes(value: &str, max_bytes: usize) -> Option<String> {
 
 fn nonnegative(value: Option<i64>) -> i64 {
     value.unwrap_or_default().max(0)
+}
+
+fn qwen_output_tokens(usage: &QwenUsageMetadata, prompt: i64) -> i64 {
+    if let Some(total) = usage.total_token_count {
+        return total.saturating_sub(prompt).max(0);
+    }
+    let candidates = nonnegative(usage.candidates_token_count);
+    let thoughts = nonnegative(usage.thoughts_token_count);
+    // Official Qwen Code treats a strictly larger candidate count as
+    // potentially including thoughts. Equality does not prove overlap.
+    if candidates > thoughts {
+        candidates
+    } else {
+        candidates.saturating_add(thoughts)
+    }
 }
 
 fn effective_role<'a>(line_type: &'a str, message_role: &'a str) -> &'a str {

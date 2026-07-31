@@ -23,6 +23,7 @@ pub const SCAN_SNAPSHOT_VERSION: i64 = 1;
 const MAX_SNAPSHOT_DIRECTORIES: usize = 20_000;
 const MAX_SNAPSHOT_ENTRIES_PER_DIRECTORY: usize = 20_000;
 const MAX_SNAPSHOT_FILES: usize = 20_000;
+const MAX_BOUNDED_DISCOVERY_ENTRIES: usize = 50_000;
 
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub struct DirScanSnapshot {
@@ -119,6 +120,7 @@ pub struct SnapshotDirWalker<'a> {
     error_label: &'static str,
     now_ns: i64,
     dirs_visited: usize,
+    bounded_entries_visited: usize,
     pub dirs_enumerated: usize,
     pub dirs_reused: usize,
 }
@@ -139,6 +141,7 @@ impl<'a> SnapshotDirWalker<'a> {
                 .map(|elapsed| elapsed.as_nanos() as i64)
                 .unwrap_or(0),
             dirs_visited: 0,
+            bounded_entries_visited: 0,
             dirs_enumerated: 0,
             dirs_reused: 0,
         }
@@ -151,8 +154,10 @@ impl<'a> SnapshotDirWalker<'a> {
     /// Collect matching files without walking below `max_depth` directory
     /// edges from `dir`. A value of `1`, for example, inspects files directly
     /// under each immediate child but never enters grandchildren. Callers
-    /// that require an exact leaf depth still filter shallower files. Bounded
-    /// callers also reject directory and file symlinks.
+    /// that require an exact leaf depth still filter shallower files.
+    ///
+    /// Bounded walks additionally reject symlink entries and share a global
+    /// 50,000-entry work budget across live enumeration and snapshot reuse.
     pub fn collect_files_bounded(
         &mut self,
         dir: &Path,
@@ -190,7 +195,7 @@ impl<'a> SnapshotDirWalker<'a> {
             .map(|elapsed| elapsed.as_nanos() as i64)
             .unwrap_or(0);
         if dir_mtime_ns > 0 {
-            if let Some(snapshot) = self.previous.get(&key) {
+            if let Some(snapshot) = self.previous.get(&key).cloned() {
                 if snapshot.dir_mtime_ns == dir_mtime_ns
                     && snapshot.dir_mtime_ns < snapshot.scanned_at_ns
                     && snapshot.subdirs.len().saturating_add(snapshot.files.len())
@@ -201,6 +206,11 @@ impl<'a> SnapshotDirWalker<'a> {
                         .chain(snapshot.files.iter())
                         .all(|name| safe_entry_name(name))
                 {
+                    if remaining_depth.is_some() {
+                        self.charge_bounded_entries(
+                            snapshot.subdirs.len().saturating_add(snapshot.files.len()),
+                        )?;
+                    }
                     self.dirs_reused += 1;
                     for name in &snapshot.files {
                         let path = dir.join(name);
@@ -243,6 +253,9 @@ impl<'a> SnapshotDirWalker<'a> {
                     self.error_label, MAX_SNAPSHOT_ENTRIES_PER_DIRECTORY
                 ));
             }
+            if remaining_depth.is_some() {
+                self.charge_bounded_entries(1)?;
+            }
             let entry = entry
                 .map_err(|err| format!("Failed to read {} dir entry: {err}", self.error_label))?;
             let file_name = entry.file_name();
@@ -281,6 +294,17 @@ impl<'a> SnapshotDirWalker<'a> {
             for name in &subdirs {
                 self.collect_files_inner(&dir.join(name), out, next_depth)?;
             }
+        }
+        Ok(())
+    }
+
+    fn charge_bounded_entries(&mut self, count: usize) -> Result<(), String> {
+        self.bounded_entries_visited = self.bounded_entries_visited.saturating_add(count);
+        if self.bounded_entries_visited > MAX_BOUNDED_DISCOVERY_ENTRIES {
+            return Err(format!(
+                "{} discovery exceeds the {}-entry global safety limit",
+                self.error_label, MAX_BOUNDED_DISCOVERY_ENTRIES
+            ));
         }
         Ok(())
     }

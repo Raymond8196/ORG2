@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fs;
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -32,6 +33,12 @@ fn write_session(root: &Path, project: &str, filename: &str, content: &str) -> P
     path
 }
 
+fn discover_without_snapshots(root: &Path) -> Result<Vec<ImportedHistoryDiscoveredRecord>, String> {
+    let snapshots = HashMap::new();
+    let mut walker = scan_snapshot::SnapshotDirWalker::new(&snapshots, "jsonl", "Qwen Code");
+    discover_records(root, &mut walker)
+}
+
 fn user_line(session_id: &str) -> String {
     format!(
         "{{\"uuid\":\"u1\",\"sessionId\":\"{session_id}\",\"timestamp\":\"2026-07-30T10:00:00.000Z\",\"type\":\"user\",\"cwd\":\"/repo\",\"gitBranch\":\"main\",\"message\":{{\"role\":\"user\",\"parts\":[{{\"text\":\"Fix the cache\"}}]}}}}\n"
@@ -46,8 +53,40 @@ fn assistant_line(
     thoughts: i64,
     cached: i64,
 ) -> String {
+    assistant_line_with_total(
+        session_id, timestamp, prompt, candidates, thoughts, cached, None,
+    )
+}
+
+fn assistant_line_with_total(
+    session_id: &str,
+    timestamp: &str,
+    prompt: i64,
+    candidates: i64,
+    thoughts: i64,
+    cached: i64,
+    total: Option<i64>,
+) -> String {
+    let mut usage = json!({
+        "promptTokenCount": prompt,
+        "candidatesTokenCount": candidates,
+        "thoughtsTokenCount": thoughts,
+        "cachedContentTokenCount": cached,
+    });
+    if let Some(total) = total {
+        usage["totalTokenCount"] = json!(total);
+    }
     format!(
-        "{{\"uuid\":\"a-{timestamp}\",\"sessionId\":\"{session_id}\",\"timestamp\":\"{timestamp}\",\"type\":\"assistant\",\"model\":\"qwen3.5-plus\",\"message\":{{\"role\":\"model\",\"parts\":[{{\"text\":\"Done\"}}]}},\"usageMetadata\":{{\"promptTokenCount\":{prompt},\"candidatesTokenCount\":{candidates},\"thoughtsTokenCount\":{thoughts},\"cachedContentTokenCount\":{cached}}}}}\n"
+        "{}\n",
+        json!({
+            "uuid": format!("a-{timestamp}"),
+            "sessionId": session_id,
+            "timestamp": timestamp,
+            "type": "assistant",
+            "model": "qwen3.5-plus",
+            "message": {"role": "model", "parts": [{"text": "Done"}]},
+            "usageMetadata": usage,
+        })
     )
 }
 
@@ -60,7 +99,7 @@ fn base_transcript(session_id: &str) -> String {
 }
 
 #[test]
-fn qwen_preserves_cache_inclusive_input_and_folds_reasoning_into_output() {
+fn qwen_preserves_cache_inclusive_input_and_avoids_overlapping_thoughts() {
     let root = temp_root("usage");
     write_session(
         &root,
@@ -77,8 +116,9 @@ fn qwen_preserves_cache_inclusive_input_and_folds_reasoning_into_output() {
     assert_eq!(page.sessions.len(), 1);
     assert_eq!(page.sessions[0].session_id, "qwencodeapp-session-a");
     assert_eq!(page.sessions[0].name, "Fix the cache");
-    // prompt(100, including 30 cached) + candidates(20) + thoughts(5)
-    assert_eq!(page.sessions[0].total_tokens, 125);
+    // candidates strictly dominates thoughts, so Qwen treats thoughts as
+    // potentially already included.
+    assert_eq!(page.sessions[0].total_tokens, 120);
 
     let session_usage: (i64, i64, i64, i64) = conn
         .query_row(
@@ -89,7 +129,7 @@ fn qwen_preserves_cache_inclusive_input_and_folds_reasoning_into_output() {
             |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?)),
         )
         .expect("read session usage");
-    assert_eq!(session_usage, (100, 25, 30, 0));
+    assert_eq!(session_usage, (100, 20, 30, 0));
 
     let round_usage: (i64, i64, i64, i64) = conn
         .query_row(
@@ -101,8 +141,72 @@ fn qwen_preserves_cache_inclusive_input_and_folds_reasoning_into_output() {
         )
         .expect("read round usage");
     // Per-round input is fresh; cached tokens remain separately visible.
-    assert_eq!(round_usage, (70, 25, 30, 0));
+    assert_eq!(round_usage, (70, 20, 30, 0));
     fs::remove_dir_all(root).ok();
+}
+
+#[test]
+fn total_token_count_is_authoritative_for_output() {
+    let root = temp_root("usage-total");
+    let content = format!(
+        "{}{}",
+        user_line("session-a"),
+        assistant_line_with_total(
+            "session-a",
+            "2026-07-30T10:00:01.000Z",
+            100,
+            70,
+            50,
+            30,
+            Some(180),
+        )
+    );
+    write_session(&root, "repo-a", "session-a.jsonl", &content);
+    let mut conn = fixture_conn();
+    sync_qwen_code_history_cache_at_root(&mut conn, &root).expect("sync Qwen");
+
+    let session_usage: (i64, i64) = conn
+        .query_row(
+            "SELECT input_tokens, output_tokens
+             FROM imported_history_session_cache
+             WHERE source = ?1 AND source_session_id = ?2",
+            rusqlite::params![SOURCE_QWEN_CODE, "repo-a/session-a"],
+            |row| Ok((row.get(0)?, row.get(1)?)),
+        )
+        .expect("read session usage");
+    assert_eq!(session_usage, (100, 80));
+    let round_output: i64 = conn
+        .query_row(
+            "SELECT output_tokens
+             FROM imported_history_round_usage
+             WHERE source = ?1 AND source_session_id = ?2",
+            rusqlite::params![SOURCE_QWEN_CODE, "repo-a/session-a"],
+            |row| row.get(0),
+        )
+        .expect("read round usage");
+    assert_eq!(round_output, 80);
+    fs::remove_dir_all(root).ok();
+}
+
+#[test]
+fn output_fallback_distinguishes_overlap_from_disjoint_thoughts() {
+    let usage = |candidates, thoughts| QwenUsageMetadata {
+        candidates_token_count: Some(candidates),
+        thoughts_token_count: Some(thoughts),
+        ..QwenUsageMetadata::default()
+    };
+    assert_eq!(qwen_output_tokens(&usage(150, 120), 100), 150);
+    assert_eq!(qwen_output_tokens(&usage(50, 120), 100), 170);
+    assert_eq!(qwen_output_tokens(&usage(80, 80), 100), 160);
+    assert_eq!(qwen_output_tokens(&usage(-10, -5), 100), 0);
+
+    let below_prompt_total = QwenUsageMetadata {
+        total_token_count: Some(80),
+        candidates_token_count: Some(1_000),
+        thoughts_token_count: Some(1_000),
+        ..QwenUsageMetadata::default()
+    };
+    assert_eq!(qwen_output_tokens(&below_prompt_total, 100), 0);
 }
 
 #[test]
@@ -133,7 +237,7 @@ fn warm_append_parses_only_the_new_suffix() {
             )
         })
         .expect("append assistant");
-    let record = discover_records_with_limits(&root, DISCOVERY_LIMITS)
+    let record = discover_without_snapshots(&root)
         .expect("discover")
         .pop()
         .expect("record");
@@ -142,7 +246,7 @@ fn warm_append_parses_only_the_new_suffix() {
     assert!(parsed.resumed);
     assert_eq!(parsed.lines_processed, 1);
     assert_eq!(parsed.input.input_tokens, 110);
-    assert_eq!(parsed.input.output_tokens, 30);
+    assert_eq!(parsed.input.output_tokens, 24);
     assert_eq!(parsed.input.cache_read_tokens, 32);
     assert!(parsed.watermark.byte_offset > before.byte_offset);
     fs::remove_dir_all(root).ok();
@@ -181,7 +285,7 @@ fn changed_append_seam_cold_parses_only_that_file() {
         ),
     )
     .expect("rewrite and append");
-    let record = discover_records_with_limits(&root, DISCOVERY_LIMITS)
+    let record = discover_without_snapshots(&root)
         .expect("discover")
         .pop()
         .expect("record");
@@ -190,7 +294,7 @@ fn changed_append_seam_cold_parses_only_that_file() {
 
     assert!(!parsed.resumed);
     assert_eq!(parsed.lines_processed, 3);
-    assert_eq!(parsed.input.output_tokens, 31);
+    assert_eq!(parsed.input.output_tokens, 25);
     fs::remove_dir_all(root).ok();
 }
 
@@ -208,17 +312,9 @@ fn discovery_accepts_only_the_exact_bounded_layout() {
     fs::create_dir_all(&nested).expect("create nested");
     fs::write(nested.join("foreign.jsonl"), base_transcript("foreign")).expect("write nested file");
 
-    let records = discover_records_with_limits(&root, DISCOVERY_LIMITS).expect("discover exact");
+    let records = discover_without_snapshots(&root).expect("discover exact");
     assert_eq!(records.len(), 1);
     assert_eq!(records[0].source_session_id, "repo-a/session-a");
-
-    let tiny_limits = DiscoveryLimits {
-        files: 0,
-        ..DISCOVERY_LIMITS
-    };
-    assert!(discover_records_with_limits(&root, tiny_limits)
-        .expect_err("file cap")
-        .contains("transcript count exceeds"));
     fs::remove_dir_all(root).ok();
 }
 
@@ -276,7 +372,7 @@ fn discovery_does_not_follow_directory_or_file_symlinks() {
     fs::create_dir_all(&chats).expect("create chats");
     symlink(&target, chats.join("linked-file.jsonl")).expect("link file");
 
-    assert!(discover_records_with_limits(&root, DISCOVERY_LIMITS)
+    assert!(discover_without_snapshots(&root)
         .expect("discover")
         .is_empty());
     fs::remove_dir_all(root).ok();
@@ -329,7 +425,7 @@ fn oversized_append_preserves_last_good_cache_and_watermark() {
             .expect("read cache")
             .expect("cache remains");
     assert_eq!(after, before);
-    assert_eq!(cached.output_tokens, 25);
+    assert_eq!(cached.output_tokens, 20);
     fs::remove_dir_all(root).ok();
 }
 
