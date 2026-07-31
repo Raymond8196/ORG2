@@ -232,6 +232,74 @@ fn kimi_code_counts_every_incremental_usage_record_and_tracks_concrete_models() 
 }
 
 #[test]
+fn kimi_code_replays_official_context_shape_without_duplicating_turn_prompt() {
+    let home = TestHome::new("code-replay");
+    let main = home
+        .path()
+        .join(".kimi-code/sessions/work/session/agents/main/wire.jsonl");
+    write_file(
+        &main,
+        concat!(
+            "{\"type\":\"metadata\",\"protocol_version\":\"1.1\",\"created_at\":1779256791085}\n",
+            "{\"type\":\"config.update\",\"cwd\":\"/tmp/work\",\"profileName\":\"agent\",\"time\":1779256791100}\n",
+            "{\"type\":\"turn.prompt\",\"input\":[{\"type\":\"text\",\"text\":\"hi\"}],\"origin\":{\"kind\":\"user\"},\"time\":1779256800000}\n",
+            "{\"type\":\"context.append_message\",\"message\":{\"role\":\"user\",\"content\":[{\"type\":\"text\",\"text\":\"hi\"}],\"toolCalls\":[]},\"time\":1779256800001}\n",
+            "{\"type\":\"context.append_loop_event\",\"event\":{\"type\":\"step.begin\",\"uuid\":\"s1\",\"turnId\":\"t1\",\"step\":0},\"time\":1779256800100}\n",
+            "{\"type\":\"context.append_loop_event\",\"event\":{\"type\":\"content.part\",\"uuid\":\"c1\",\"turnId\":\"t1\",\"step\":0,\"stepUuid\":\"s1\",\"part\":{\"type\":\"text\",\"text\":\"hello\"}},\"time\":1779256800200}\n",
+            "{\"type\":\"context.append_loop_event\",\"event\":{\"type\":\"step.end\",\"uuid\":\"s1\",\"turnId\":\"t1\",\"step\":0},\"time\":1779256800300}\n",
+        ),
+    );
+    write_file(
+        &home
+            .path()
+            .join(".kimi-code/sessions/work/session/agents/agent-0/wire.jsonl"),
+        concat!(
+            "{\"type\":\"metadata\",\"protocol_version\":\"1.1\",\"created_at\":1779256900000}\n",
+            "{\"type\":\"config.update\",\"cwd\":\"/tmp/work\",\"profileName\":\"sub\",\"time\":1779256900001}\n",
+        ),
+    );
+    let mut conn = fixture_conn();
+    sync_kimi_history_cache_in(&mut conn, home.path(), None).expect("sync code replay");
+
+    let placement = conn
+        .query_row(
+            "SELECT listable, repo_path, name FROM imported_history_session_cache
+             WHERE source = ?1 AND source_session_id = ?2",
+            [SOURCE_KIMI, "code/work/session/main"],
+            |row| {
+                Ok((
+                    row.get::<_, i64>(0)?,
+                    row.get::<_, String>(1)?,
+                    row.get::<_, String>(2)?,
+                ))
+            },
+        )
+        .expect("main replay placement");
+    assert_eq!(placement, (1, "/tmp/work".to_string(), "hi".to_string()));
+    let metadata_only_listable: i64 = conn
+        .query_row(
+            "SELECT listable FROM imported_history_session_cache
+             WHERE source = ?1 AND source_session_id = ?2",
+            [SOURCE_KIMI, "code/work/session/agent-0"],
+            |row| row.get(0),
+        )
+        .expect("metadata-only placement");
+    assert_eq!(metadata_only_listable, 0);
+
+    let session_id = format!("{KIMI_SESSION_PREFIX}code/work/session/main");
+    let replay = load_kimi_history_for_session_in(&conn, &session_id, home.path(), None)
+        .expect("load code replay");
+    assert_eq!(replay.len(), 2, "turn.prompt must not duplicate the user");
+    assert_eq!(replay[0].result["message"]["content"], "hi");
+    assert_eq!(replay[1].result["content"], "hello");
+
+    let recent = imported_cache::query_imported_recent_paths_from_conn(&conn, SOURCE_KIMI, 10)
+        .expect("Kimi recent paths");
+    assert_eq!(recent.len(), 1);
+    assert_eq!(recent[0].path, "/tmp/work");
+}
+
+#[test]
 fn append_refresh_reuses_persisted_state_and_advances_watermark() {
     let home = TestHome::new("append");
     let wire = home

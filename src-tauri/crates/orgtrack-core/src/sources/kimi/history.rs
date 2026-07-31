@@ -35,7 +35,7 @@ use crate::sources::imported_history::{
 pub const KIMI_SESSION_PREFIX: &str = "kimihistoryapp-";
 pub type KimiRecentPath = ImportedHistoryRecentPath;
 
-const KIMI_METADATA_PARSER_VERSION: i64 = 4;
+const KIMI_METADATA_PARSER_VERSION: i64 = 5;
 const DEFAULT_MODEL: &str = "kimi-for-coding";
 const MAX_CONFIG_BYTES: u64 = 64 * 1024;
 const MAX_WIRE_FILE_BYTES: i64 = 64 * 1024 * 1024;
@@ -48,6 +48,7 @@ const MAX_MODEL_BYTES: usize = 1_024;
 const MAX_REPLAY_CHUNKS: usize = 20_000;
 const MAX_REPLAY_TEXT_BYTES: usize = 8 * 1024 * 1024;
 const MAX_REPLAY_MESSAGE_CHARS: usize = 50_000;
+const MAX_CODE_OPEN_STEPS: usize = 256;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum KimiLayout {
@@ -112,6 +113,8 @@ struct KimiMetaState {
     created_at_ms: i64,
     updated_at_ms: i64,
     first_user_text: Option<String>,
+    repo_path: Option<String>,
+    has_replayable_content: bool,
     rounds: Vec<KimiRoundState>,
 }
 
@@ -580,7 +583,10 @@ fn layout_from_source_id(source_session_id: &str) -> Result<KimiLayout, String> 
     }
 }
 
-fn session_placement(source_session_id: &str) -> Result<(bool, Option<String>), String> {
+fn session_placement(
+    source_session_id: &str,
+    has_replayable_content: bool,
+) -> Result<(bool, Option<String>), String> {
     match layout_from_source_id(source_session_id)? {
         KimiLayout::Legacy => Ok((true, None)),
         KimiLayout::Code => {
@@ -592,10 +598,11 @@ fn session_placement(source_session_id: &str) -> Result<(bool, Option<String>), 
             }
             let parent_session_id = (parts[3] != "main")
                 .then(|| format!("{KIMI_SESSION_PREFIX}code/{}/{}/main", parts[1], parts[2]));
-            // Kimi Code wires currently expose bounded usage metadata but no
-            // imported replay projection. Keep both main and subagent rows for
-            // usage accounting without surfacing empty conversations.
-            Ok((false, parent_session_id))
+            // Main agents with replayable context appear in the sidebar.
+            // Subagents retain the same bit for stats/fork ownership, but their
+            // parent id keeps them out of the top-level list. Metadata-only
+            // rows remain cached for usage/signatures without empty sessions.
+            Ok((has_replayable_content, parent_session_id))
         }
     }
 }
@@ -764,6 +771,26 @@ impl KimiMetaState {
                     .unwrap_or_default();
                 let timestamp = code_timestamp_ms(&value).unwrap_or(fallback_timestamp_ms);
                 self.observe_timestamp(timestamp);
+                if line_type == "config.update" {
+                    self.repo_path = value
+                        .get("cwd")
+                        .and_then(Value::as_str)
+                        .map(str::trim)
+                        .filter(|path| !path.is_empty() && path.len() <= 4_096)
+                        .map(str::to_string);
+                    return Ok(());
+                }
+                if let Some((role, text)) = code_context_message_text(&value) {
+                    if matches!(role, "user" | "assistant") && !text.is_empty() {
+                        self.has_replayable_content = true;
+                    }
+                    if role == "user" && self.first_user_text.is_none() {
+                        self.first_user_text = Some(imported_history::truncate_name(&text, 200));
+                    }
+                }
+                if code_loop_part(&value).is_some_and(|(_, text)| !text.is_empty()) {
+                    self.has_replayable_content = true;
+                }
                 if line_type == "llm.request" {
                     if let Some(model) = value
                         .get("model")
@@ -868,6 +895,10 @@ impl KimiMetaState {
                 .first_user_text
                 .as_ref()
                 .is_some_and(|text| text.len() > 1_024)
+            || self
+                .repo_path
+                .as_ref()
+                .is_some_and(|path| path.len() > 4_096)
         {
             return Err("Kimi parse state contains an oversized field".to_string());
         }
@@ -902,7 +933,8 @@ impl KimiMetaState {
         self.validate()?;
         let fallback_ms = record.source_mtime_ms / 1_000_000;
         let session_id = format!("{KIMI_SESSION_PREFIX}{}", record.source_session_id);
-        let (listable, parent_session_id) = session_placement(&record.source_session_id)?;
+        let (listable, parent_session_id) =
+            session_placement(&record.source_session_id, self.has_replayable_content)?;
         let mut input_tokens = 0_i64;
         let mut output_tokens = 0_i64;
         let mut cache_read_tokens = 0_i64;
@@ -933,9 +965,12 @@ impl KimiMetaState {
             .last()
             .and_then(|round| round.model.clone())
             .or_else(|| Some(self.default_model.clone()));
-        let name = self
-            .first_user_text
-            .unwrap_or_else(|| record.source_record_key.clone());
+        let name = self.first_user_text.unwrap_or_else(|| {
+            self.repo_path
+                .as_deref()
+                .and_then(imported_history::repo_name_from_path)
+                .unwrap_or_else(|| record.source_record_key.clone())
+        });
         Ok((
             ImportedHistoryCacheInput {
                 source: SOURCE_KIMI,
@@ -963,7 +998,7 @@ impl KimiMetaState {
                 output_tokens,
                 cache_read_tokens,
                 cache_write_tokens,
-                repo_path: None,
+                repo_path: self.repo_path,
                 branch: None,
                 impact: ImportedHistoryImpactStats::default(),
                 listable,
@@ -1053,6 +1088,65 @@ fn first_string<'a>(value: &'a Value, keys: &[&str]) -> Option<&'a str> {
         .filter(|text| !text.is_empty())
 }
 
+fn code_context_message_text(value: &Value) -> Option<(&str, String)> {
+    if value.get("type").and_then(Value::as_str) != Some("context.append_message") {
+        return None;
+    }
+    let message = value.get("message")?;
+    let role = message.get("role")?.as_str()?;
+    let text = code_content_text(message.get("content")?);
+    Some((role, text))
+}
+
+fn code_content_text(content: &Value) -> String {
+    if let Some(text) = content.as_str() {
+        return bounded_replay_fragment(text, MAX_REPLAY_MESSAGE_CHARS, MAX_REPLAY_TEXT_BYTES);
+    }
+    let Some(parts) = content.as_array() else {
+        return String::new();
+    };
+    let mut text = String::new();
+    let mut chars = 0usize;
+    for part in parts {
+        let kind = part.get("type").and_then(Value::as_str).unwrap_or_default();
+        let raw = match kind {
+            "text" => part.get("text").and_then(Value::as_str),
+            "think" => part.get("think").and_then(Value::as_str),
+            _ => None,
+        };
+        let Some(raw) = raw else {
+            continue;
+        };
+        let fragment = bounded_replay_fragment(
+            raw,
+            MAX_REPLAY_MESSAGE_CHARS.saturating_sub(chars),
+            MAX_REPLAY_TEXT_BYTES.saturating_sub(text.len()),
+        );
+        chars = chars.saturating_add(fragment.chars().count());
+        text.push_str(&fragment);
+        if chars >= MAX_REPLAY_MESSAGE_CHARS {
+            break;
+        }
+    }
+    text
+}
+
+fn code_loop_part(value: &Value) -> Option<(&str, &str)> {
+    if value.get("type").and_then(Value::as_str) != Some("context.append_loop_event") {
+        return None;
+    }
+    let event = value.get("event")?;
+    if event.get("type").and_then(Value::as_str) != Some("content.part") {
+        return None;
+    }
+    let part = event.get("part")?;
+    match part.get("type").and_then(Value::as_str)? {
+        "text" => Some(("text", part.get("text")?.as_str()?)),
+        "think" => Some(("think", part.get("think")?.as_str()?)),
+        _ => None,
+    }
+}
+
 fn read_replay(
     path: &Path,
     root: &Path,
@@ -1061,16 +1155,22 @@ fn read_replay(
     layout: KimiLayout,
 ) -> Result<Vec<ActivityChunk>, String> {
     ensure_exact_safe_history_file(path, root, identity_home, layout)?;
-    if layout == KimiLayout::Code {
-        // Kimi Code's wire format exposes usage metadata, not replayable
-        // conversation bodies. Do not scan a potentially large file only to
-        // return an empty transcript.
-        return Ok(Vec::new());
-    }
     let (mtime, size) = imported_paths::file_metadata_signature(path, "Kimi")?;
     if size > MAX_WIRE_FILE_BYTES {
         return Err("Kimi history exceeds the replay safety limit".to_string());
     }
+    if layout == KimiLayout::Code {
+        return read_code_replay(path, session_id, mtime, size);
+    }
+    read_legacy_replay(path, session_id, mtime, size)
+}
+
+fn read_legacy_replay(
+    path: &Path,
+    session_id: &str,
+    mtime: i64,
+    size: i64,
+) -> Result<Vec<ActivityChunk>, String> {
     let mut reader = WatermarkedTranscriptReader::open(
         path,
         "Kimi",
@@ -1151,6 +1251,200 @@ fn read_replay(
     Ok(chunks)
 }
 
+#[derive(Debug)]
+struct PendingCodeStep {
+    created_at: String,
+    thinking: String,
+    thinking_chars: usize,
+    text: String,
+    text_chars: usize,
+}
+
+fn read_code_replay(
+    path: &Path,
+    session_id: &str,
+    mtime: i64,
+    size: i64,
+) -> Result<Vec<ActivityChunk>, String> {
+    let mut reader = WatermarkedTranscriptReader::open(
+        path,
+        "Kimi Code",
+        None,
+        KIMI_METADATA_PARSER_VERSION,
+        mtime,
+        size,
+    )?;
+    let mut chunks = Vec::new();
+    let mut retained_text_bytes = 0usize;
+    let mut pending_text_bytes = 0usize;
+    let mut open_steps = HashMap::<String, PendingCodeStep>::new();
+    let mut step_order = Vec::<String>::new();
+
+    while let Some(line) = reader.next_line()? {
+        let Ok(value) = serde_json::from_str::<Value>(line.text.trim()) else {
+            continue;
+        };
+        let timestamp = code_timestamp_ms(&value).unwrap_or(mtime / 1_000_000);
+        let created_at = imported_history::epoch_ms_to_iso(timestamp);
+
+        if let Some((role, text)) = code_context_message_text(&value) {
+            if matches!(role, "user" | "assistant") && !text.is_empty() {
+                push_replay_message(
+                    &mut chunks,
+                    &mut retained_text_bytes,
+                    session_id,
+                    role,
+                    &created_at,
+                    text,
+                )?;
+            }
+            continue;
+        }
+
+        if value.get("type").and_then(Value::as_str) != Some("context.append_loop_event") {
+            continue;
+        }
+        let Some(event) = value.get("event") else {
+            continue;
+        };
+        match event
+            .get("type")
+            .and_then(Value::as_str)
+            .unwrap_or_default()
+        {
+            "step.begin" => {
+                let Some(step_id) = bounded_code_id(event.get("uuid")) else {
+                    continue;
+                };
+                if open_steps.contains_key(&step_id) || open_steps.len() >= MAX_CODE_OPEN_STEPS {
+                    continue;
+                }
+                open_steps.insert(
+                    step_id.clone(),
+                    PendingCodeStep {
+                        created_at,
+                        thinking: String::new(),
+                        thinking_chars: 0,
+                        text: String::new(),
+                        text_chars: 0,
+                    },
+                );
+                step_order.push(step_id);
+            }
+            "content.part" => {
+                let Some(step_id) = bounded_code_id(event.get("stepUuid")) else {
+                    continue;
+                };
+                let Some((kind, raw)) = code_loop_part(&value) else {
+                    continue;
+                };
+                let Some(step) = open_steps.get_mut(&step_id) else {
+                    continue;
+                };
+                let (target, chars) = if kind == "think" {
+                    (&mut step.thinking, &mut step.thinking_chars)
+                } else {
+                    (&mut step.text, &mut step.text_chars)
+                };
+                append_code_replay_fragment(
+                    target,
+                    chars,
+                    raw,
+                    retained_text_bytes,
+                    &mut pending_text_bytes,
+                )?;
+            }
+            "step.end" => {
+                let Some(step_id) = bounded_code_id(event.get("uuid")) else {
+                    continue;
+                };
+                if let Some(step) = open_steps.remove(&step_id) {
+                    flush_code_step(
+                        &mut chunks,
+                        &mut retained_text_bytes,
+                        &mut pending_text_bytes,
+                        session_id,
+                        step,
+                    )?;
+                }
+            }
+            _ => {}
+        }
+    }
+
+    for step_id in step_order {
+        if let Some(step) = open_steps.remove(&step_id) {
+            flush_code_step(
+                &mut chunks,
+                &mut retained_text_bytes,
+                &mut pending_text_bytes,
+                session_id,
+                step,
+            )?;
+        }
+    }
+    Ok(chunks)
+}
+
+fn bounded_code_id(value: Option<&Value>) -> Option<String> {
+    value?
+        .as_str()
+        .filter(|id| !id.is_empty() && id.len() <= MAX_ID_BYTES)
+        .map(str::to_string)
+}
+
+fn append_code_replay_fragment(
+    target: &mut String,
+    target_chars: &mut usize,
+    raw: &str,
+    retained_text_bytes: usize,
+    pending_text_bytes: &mut usize,
+) -> Result<(), String> {
+    let remaining_chars = MAX_REPLAY_MESSAGE_CHARS.saturating_sub(*target_chars);
+    let reserved_bytes = retained_text_bytes.saturating_add(*pending_text_bytes);
+    let remaining_bytes = MAX_REPLAY_TEXT_BYTES.saturating_sub(reserved_bytes);
+    if remaining_bytes == 0 && !raw.is_empty() {
+        return Err("Kimi replay exceeds the bounded in-memory safety limit".to_string());
+    }
+    let fragment = bounded_replay_fragment(raw, remaining_chars, remaining_bytes);
+    *target_chars = (*target_chars).saturating_add(fragment.chars().count());
+    *pending_text_bytes = (*pending_text_bytes).saturating_add(fragment.len());
+    target.push_str(&fragment);
+    Ok(())
+}
+
+fn flush_code_step(
+    chunks: &mut Vec<ActivityChunk>,
+    retained_text_bytes: &mut usize,
+    pending_text_bytes: &mut usize,
+    session_id: &str,
+    step: PendingCodeStep,
+) -> Result<(), String> {
+    *pending_text_bytes = (*pending_text_bytes)
+        .saturating_sub(step.thinking.len())
+        .saturating_sub(step.text.len());
+    if !step.thinking.is_empty() {
+        push_replay_thinking(
+            chunks,
+            retained_text_bytes,
+            session_id,
+            &step.created_at,
+            step.thinking,
+        )?;
+    }
+    if !step.text.is_empty() {
+        push_replay_message(
+            chunks,
+            retained_text_bytes,
+            session_id,
+            "assistant",
+            &step.created_at,
+            step.text,
+        )?;
+    }
+    Ok(())
+}
+
 fn bounded_replay_fragment(value: &str, max_chars: usize, max_bytes: usize) -> String {
     let mut result = String::new();
     for character in value.chars().take(max_chars) {
@@ -1204,6 +1498,26 @@ fn push_replay_message(
     } else {
         imported_history::assistant_message_chunk(session_id, "kimi", sequence, created_at, &text)
     });
+    Ok(())
+}
+
+fn push_replay_thinking(
+    chunks: &mut Vec<ActivityChunk>,
+    retained_text_bytes: &mut usize,
+    session_id: &str,
+    created_at: &str,
+    text: String,
+) -> Result<(), String> {
+    if chunks.len() >= MAX_REPLAY_CHUNKS
+        || retained_text_bytes.saturating_add(text.len()) > MAX_REPLAY_TEXT_BYTES
+    {
+        return Err("Kimi replay exceeds the bounded in-memory safety limit".to_string());
+    }
+    *retained_text_bytes = (*retained_text_bytes).saturating_add(text.len());
+    let sequence = chunks.len();
+    chunks.push(imported_history::thinking_chunk(
+        session_id, "kimi", sequence, created_at, &text,
+    ));
     Ok(())
 }
 
