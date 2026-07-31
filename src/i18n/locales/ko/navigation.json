@@ -900,7 +900,16 @@
         "githubCardOpen": "GitHub에서 {{name}} 열기",
         "githubIssue": "이슈",
         "githubPullRequest": "풀 리퀘스트",
-        "archivedComposerDisabled": "이 채널은 보관 처리되었습니다. 게시하려면 보관을 해제하세요."
+        "archivedComposerDisabled": "이 채널은 보관 처리되었습니다. 게시하려면 보관을 해제하세요.",
+        "errorPostForbidden": "채널 관리자만 이 채널에 글을 올릴 수 있습니다",
+        "errorArchived": "이 채널은 보관되어 새 메시지를 보낼 수 없습니다",
+        "errorChannelFull": "이 채널은 메시지 한도에 도달하여 새 메시지를 보낼 수 없습니다",
+        "errorChannelMissing": "이 채널은 더 이상 사용할 수 없습니다",
+        "errorMessageMissing": "이 메시지는 더 이상 사용할 수 없습니다",
+        "loadError": "메시지를 불러오지 못했습니다",
+        "loadingMessages": "메시지를 불러오는 중…",
+        "loadOlder": "이전 메시지 불러오기",
+        "unknownAuthor": "팀원"
       }
     }
   }

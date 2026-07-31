@@ -900,7 +900,16 @@
         "githubCardOpen": "Открыть {{name}} на GitHub",
         "githubIssue": "Issue",
         "githubPullRequest": "Pull request",
-        "archivedComposerDisabled": "Этот канал в архиве. Разархивируйте его, чтобы писать."
+        "archivedComposerDisabled": "Этот канал в архиве. Разархивируйте его, чтобы писать.",
+        "errorPostForbidden": "Писать в этот канал могут только его менеджеры",
+        "errorArchived": "Канал архивирован, поэтому отправка отключена",
+        "errorChannelFull": "Канал достиг лимита сообщений, поэтому отправка отключена",
+        "errorChannelMissing": "Этот канал больше недоступен",
+        "errorMessageMissing": "Это сообщение больше недоступно",
+        "loadError": "Не удалось загрузить сообщения",
+        "loadingMessages": "Загрузка сообщений…",
+        "loadOlder": "Загрузить предыдущие сообщения",
+        "unknownAuthor": "Участник команды"
       }
     }
   }

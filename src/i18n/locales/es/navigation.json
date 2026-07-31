@@ -902,7 +902,16 @@
         "githubCardOpen": "Abrir {{name}} en GitHub",
         "githubIssue": "Incidencia",
         "githubPullRequest": "Pull request",
-        "archivedComposerDisabled": "Este canal está archivado. Desarchívalo para publicar."
+        "archivedComposerDisabled": "Este canal está archivado. Desarchívalo para publicar.",
+        "errorPostForbidden": "Solo los gestores del canal pueden publicar aquí",
+        "errorArchived": "Este canal está archivado, así que no se puede publicar",
+        "errorChannelFull": "Este canal alcanzó su límite de mensajes, así que no se puede publicar",
+        "errorChannelMissing": "Este canal ya no está disponible",
+        "errorMessageMissing": "Ese mensaje ya no está disponible",
+        "loadError": "No se pudieron cargar los mensajes",
+        "loadingMessages": "Cargando mensajes…",
+        "loadOlder": "Cargar mensajes anteriores",
+        "unknownAuthor": "Compañero de equipo"
       }
     }
   }

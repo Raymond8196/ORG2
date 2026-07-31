@@ -900,7 +900,16 @@
         "githubCardOpen": "Otwórz {{name}} w GitHubie",
         "githubIssue": "Zgłoszenie",
         "githubPullRequest": "Pull request",
-        "archivedComposerDisabled": "Ten kanał jest zarchiwizowany. Przywróć go, aby publikować."
+        "archivedComposerDisabled": "Ten kanał jest zarchiwizowany. Przywróć go, aby publikować.",
+        "errorPostForbidden": "Tylko menedżerowie kanału mogą tu pisać",
+        "errorArchived": "Ten kanał jest zarchiwizowany, więc pisanie jest wyłączone",
+        "errorChannelFull": "Ten kanał osiągnął limit wiadomości, więc pisanie jest wyłączone",
+        "errorChannelMissing": "Ten kanał nie jest już dostępny",
+        "errorMessageMissing": "Ta wiadomość nie jest już dostępna",
+        "loadError": "Nie udało się wczytać wiadomości",
+        "loadingMessages": "Wczytywanie wiadomości…",
+        "loadOlder": "Wczytaj wcześniejsze wiadomości",
+        "unknownAuthor": "Członek zespołu"
       }
     }
   }

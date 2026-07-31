@@ -28,6 +28,9 @@ import {
 
 import type { ComposerInputRef } from "@src/components/ComposerInput";
 import type { SubmitOverrideInput } from "@src/engines/ChatPanel/hooks/useInputArea/types";
+import { Org2CloudChannelMessagesError } from "@src/features/Org2Cloud/channels/channelMessagesClient";
+import type { CloudChannelMessage } from "@src/features/Org2Cloud/channels/channelMessagesTypes";
+import type { CloudChannelMessagesState } from "@src/features/Org2Cloud/channels/useCloudChannelMessages";
 import type { TabDragEventDetail } from "@src/modules/WorkStation/shared/TabBar/tabDragTypes";
 import {
   SESSION_TAB_DRAG_END_EVENT,
@@ -66,6 +69,16 @@ interface StubbedInputAreaProps {
 const mocks = vi.hoisted(() => ({
   inputAreaProps: [] as StubbedInputAreaProps[],
   insertFilePill: vi.fn(),
+  // The cloud message hook is network-backed; the surface's contract with it
+  // is what this file covers, so the state it hands back is set per test.
+  cloudMessages: {} as CloudChannelMessagesState,
+  /** Set to archive the mocked cloud channel (partitioned, per useOrgChannels). */
+  cloudChannelArchivedAt: null as string | null,
+}));
+
+vi.mock("@src/features/Org2Cloud/channels/useCloudChannelMessages", () => ({
+  useCloudChannelMessages: () => mocks.cloudMessages,
+  isOptimisticChannelMessageId: (id: string) => id.startsWith("pending:"),
 }));
 
 // The stub publishes the editor handle the same way the real `InputArea`
@@ -102,32 +115,34 @@ vi.mock("@src/components/MarkDown", () => ({
 }));
 
 vi.mock("@src/features/Org2Cloud/channels/useOrgChannels", () => ({
-  useOrgChannels: () => ({
-    phase: "ready",
-    channels: [
-      {
-        id: "cloud-chan-1",
-        name: "release-notes",
-        topic: "what shipped",
-        visibility: "private",
-        postPolicy: "everyone",
-        createdBy: "user-self",
-        createdAt: "2026-07-31T00:00:00.000Z",
-        updatedAt: undefined,
-        archivedAt: null,
-        messageCount: 0,
-        lastMessageAt: undefined,
-        memberCount: 4,
-        myRole: "manager",
-      },
-    ],
-    archivedChannels: [],
-    error: null,
-    refreshing: false,
-    refresh: vi.fn(),
-    getFreshAccessToken: vi.fn(),
-    currentUserId: "user-self",
-  }),
+  useOrgChannels: () => {
+    const channel = {
+      id: "cloud-chan-1",
+      name: "release-notes",
+      topic: "what shipped",
+      visibility: "private",
+      postPolicy: "everyone",
+      createdBy: "user-self",
+      createdAt: "2026-07-31T00:00:00.000Z",
+      updatedAt: undefined,
+      archivedAt: mocks.cloudChannelArchivedAt,
+      messageCount: 0,
+      lastMessageAt: undefined,
+      memberCount: 4,
+      myRole: "manager",
+    };
+    const archived = mocks.cloudChannelArchivedAt !== null;
+    return {
+      phase: "ready",
+      channels: archived ? [] : [channel],
+      archivedChannels: archived ? [channel] : [],
+      error: null,
+      refreshing: false,
+      refresh: vi.fn(),
+      getFreshAccessToken: vi.fn(),
+      currentUserId: "user-self",
+    };
+  },
 }));
 
 const NOW = "2026-07-31T00:00:00.000Z";
@@ -154,6 +169,44 @@ const CLOUD_TARGET: ChatPanelSelectedChannel = {
   name: "release-notes",
   visibility: "private",
 };
+
+/** Backend without the message capability: the honest gate stays up. */
+function gatedCloudMessages(): CloudChannelMessagesState {
+  return {
+    phase: "unsupported",
+    messages: [],
+    error: null,
+    refreshing: false,
+    loadingOlder: false,
+    hasOlder: false,
+    unreadCount: 0,
+    loadOlder: vi.fn(),
+    postMessage: vi.fn(),
+    editMessage: vi.fn(),
+    deleteMessage: vi.fn(),
+    markRead: vi.fn(),
+    currentUserId: "user-self",
+  };
+}
+
+function makeCloudMessage(
+  overrides: Partial<CloudChannelMessage> & { id: string }
+): CloudChannelMessage {
+  const createdAt = overrides.createdAt ?? NOW;
+  return {
+    channelId: "cloud-chan-1",
+    authorUserId: "user-self",
+    authorDisplayName: "Ada",
+    authorAvatarUrl: undefined,
+    body: "cloud body",
+    createdAt,
+    editedAt: null,
+    deletedAt: null,
+    stateChangedAt: createdAt,
+    mentionedUserIds: [],
+    ...overrides,
+  };
+}
 
 function makeMessage(
   overrides: Partial<LocalChannelMessage> = {}
@@ -185,6 +238,8 @@ describe("DiscussionChannelPanelView", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.inputAreaProps.length = 0;
+    mocks.cloudMessages = gatedCloudMessages();
+    mocks.cloudChannelArchivedAt = null;
     localStorage.removeItem(LOCAL_CHANNELS_STORAGE_KEY);
     localStorage.removeItem(LOCAL_CHANNEL_MESSAGES_STORAGE_KEY);
     store = createStore();
@@ -565,6 +620,192 @@ describe("DiscussionChannelPanelView", () => {
     // Same drag released over the transcript is ours.
     dragSessionRow(200, 120);
     expect(mocks.insertFilePill).toHaveBeenCalledTimes(1);
+  });
+
+  describe("cloud channel with the message capability", () => {
+    /** Flips the mocked hook into its working state for this test. */
+    function readyCloudMessages(
+      messages: CloudChannelMessage[],
+      overrides: Partial<CloudChannelMessagesState> = {}
+    ): void {
+      mocks.cloudMessages = {
+        ...gatedCloudMessages(),
+        phase: "ready",
+        messages,
+        ...overrides,
+      };
+    }
+
+    it("enables the same session composer instead of the gate notice", () => {
+      readyCloudMessages([]);
+      render(CLOUD_TARGET);
+
+      const composer = composerElement();
+      expect(composer?.getAttribute("data-submit-disabled")).toBe("false");
+      expect(latestComposerProps().acceptDraggedPills).toBe(true);
+      expect(
+        container.querySelector("[data-testid='channel-composer-disabled']")
+      ).toBeNull();
+      // A postable channel is a drop target again.
+      expect(
+        container.querySelector("[data-testid='channel-session-drop-surface']")
+      ).not.toBeNull();
+    });
+
+    it("renders cloud rows through the shared transcript, per author", () => {
+      readyCloudMessages([
+        makeCloudMessage({ id: "c1", body: "mine", authorUserId: "user-self" }),
+        makeCloudMessage({
+          id: "c2",
+          body: "theirs",
+          authorUserId: "user-other",
+          authorDisplayName: "Grace",
+          createdAt: "2026-07-31T06:00:00.000Z",
+        }),
+      ]);
+      render(CLOUD_TARGET);
+
+      expect(bodies()).toEqual(["mine", "theirs"]);
+      expect(
+        Array.from(
+          container.querySelectorAll("[data-testid='channel-message-author']")
+        ).map((node) => node.textContent)
+      ).toEqual(["cloud.channels.feed.you", "Grace"]);
+      // Row actions belong to the author only.
+      expect(
+        container.querySelectorAll("[data-testid='channel-message-edit']")
+      ).toHaveLength(1);
+      expect(
+        container.querySelectorAll("[data-testid='channel-message-delete']")
+      ).toHaveLength(1);
+    });
+
+    it("posts through the hook and never touches the local store", async () => {
+      const postMessage = vi.fn().mockResolvedValue(undefined);
+      readyCloudMessages([], { postMessage });
+      render(CLOUD_TARGET);
+      await submit("  ship the release notes  ");
+
+      expect(postMessage).toHaveBeenCalledWith("ship the release notes");
+      expect(store.get(localChannelMessagesAtom)).toEqual([]);
+    });
+
+    it("surfaces a managers-only refusal inline and rethrows so the draft survives", async () => {
+      const postMessage = vi
+        .fn()
+        .mockRejectedValue(
+          new Org2CloudChannelMessagesError(
+            "post refused (ORG2_CHANNEL_POST_FORBIDDEN)",
+            403
+          )
+        );
+      readyCloudMessages([], { postMessage });
+      render(CLOUD_TARGET);
+
+      const { onSubmitOverride } = latestComposerProps();
+      await act(async () => {
+        await expect(
+          onSubmitOverride?.({ displayText: "hello" })
+        ).rejects.toThrow("cloud.channels.feed.errorPostForbidden");
+      });
+      expect(
+        container.querySelector("[data-testid='channel-composer-error']")
+          ?.textContent
+      ).toBe("cloud.channels.feed.errorPostForbidden");
+    });
+
+    it("surfaces an archived-channel refusal with its own copy", async () => {
+      const postMessage = vi
+        .fn()
+        .mockRejectedValue(
+          new Org2CloudChannelMessagesError(
+            "channel archived (ORG2_CHANNEL_ARCHIVED)",
+            409
+          )
+        );
+      readyCloudMessages([], { postMessage });
+      render(CLOUD_TARGET);
+
+      const { onSubmitOverride } = latestComposerProps();
+      await act(async () => {
+        await expect(
+          onSubmitOverride?.({ displayText: "hello" })
+        ).rejects.toThrow("cloud.channels.feed.errorArchived");
+      });
+      expect(
+        container.querySelector("[data-testid='channel-composer-error']")
+          ?.textContent
+      ).toBe("cloud.channels.feed.errorArchived");
+    });
+
+    it("deletes through the hook from the shared row action", () => {
+      const deleteMessage = vi.fn().mockResolvedValue(undefined);
+      readyCloudMessages([makeCloudMessage({ id: "c1", body: "oops" })], {
+        deleteMessage,
+      });
+      render(CLOUD_TARGET);
+
+      act(() => {
+        container
+          .querySelector<HTMLButtonElement>(
+            "[data-testid='channel-message-delete']"
+          )
+          ?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      });
+      expect(deleteMessage).toHaveBeenCalledWith("c1");
+    });
+
+    it("offers the older page only while one exists", () => {
+      const loadOlder = vi.fn();
+      readyCloudMessages([makeCloudMessage({ id: "c1" })], {
+        hasOlder: true,
+        loadOlder,
+      });
+      render(CLOUD_TARGET);
+
+      const button = container.querySelector<HTMLButtonElement>(
+        "[data-testid='channel-load-older']"
+      );
+      expect(button).not.toBeNull();
+      act(() => {
+        button?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      });
+      expect(loadOlder).toHaveBeenCalledTimes(1);
+
+      readyCloudMessages([makeCloudMessage({ id: "c1" })]);
+      render(CLOUD_TARGET);
+      expect(
+        container.querySelector("[data-testid='channel-load-older']")
+      ).toBeNull();
+    });
+
+    it("keeps an archived cloud channel read-only like the local plane", () => {
+      // The RPC refuses with ORG2_CHANNEL_ARCHIVED regardless, so the working
+      // message plane must not re-enable the composer or the row actions.
+      mocks.cloudChannelArchivedAt = NOW;
+      readyCloudMessages([makeCloudMessage({ id: "c1", body: "history" })]);
+      render(CLOUD_TARGET);
+
+      expect(bodies()).toEqual(["history"]);
+      expect(composerElement()?.getAttribute("data-submit-disabled")).toBe(
+        "true"
+      );
+      expect(latestComposerProps().acceptDraggedPills).toBe(false);
+      expect(
+        container.querySelector("[data-testid='channel-composer-archived']")
+          ?.textContent
+      ).toBe("cloud.channels.feed.archivedComposerDisabled");
+      // The capability gate never fires here — the channel is archived, not old.
+      expect(
+        container.querySelector("[data-testid='channel-composer-disabled']")
+      ).toBeNull();
+      expect(
+        container.querySelector("[data-testid='channel-message-edit']")
+      ).toBeNull();
+      expect(
+        container.querySelector("[data-testid='channel-message-delete']")
+      ).toBeNull();
+    });
   });
 
   it("refuses session drops on a cloud channel instead of half-accepting", () => {
