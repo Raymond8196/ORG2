@@ -280,6 +280,7 @@ pub async fn debug_seed_sidebar_coding_session(
     status: String,
     created_at: String,
     updated_at: String,
+    pinned: Option<bool>,
 ) -> Result<(), String> {
     if !cfg!(debug_assertions) {
         return Err("debug_seed_sidebar_coding_session is only available in debug builds".into());
@@ -291,6 +292,7 @@ pub async fn debug_seed_sidebar_coding_session(
         created_at,
         updated_at,
         session_type: agent_core::session::persistence::session_type::CODING.to_string(),
+        pinned: pinned.unwrap_or(false),
         ..Default::default()
     };
     tokio::task::spawn_blocking(move || agent_core::session::persistence::upsert_session(&record))

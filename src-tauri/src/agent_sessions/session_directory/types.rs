@@ -291,15 +291,31 @@ pub struct SessionListResponse {
 #[derive(Debug, Clone, Copy, Deserialize, Eq, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum NativeSidebarSessionStream {
+    PinnedNative,
     StandaloneAgent,
     AgentOrgRoot,
+    OsAgent,
+    CliAgent,
+    HumanSession,
+}
+
+/// Stable keyset cursor for a native sidebar stream.
+///
+/// Native pages are ordered by `(updated_at DESC, session_id DESC)`. Carrying
+/// both values prevents ties from duplicating or skipping rows, and avoids
+/// deriving a database offset from the frontend's merged entity cache.
+#[derive(Debug, Clone, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NativeSidebarSessionCursor {
+    pub updated_at: String,
+    pub session_id: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NativeSidebarSessionPageResponse {
     pub sessions: Vec<SessionAggregateRecord>,
-    pub next_offset: usize,
+    pub next_cursor: Option<NativeSidebarSessionCursor>,
     pub has_more: bool,
 }
 

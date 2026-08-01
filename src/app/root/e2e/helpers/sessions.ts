@@ -22,8 +22,6 @@ import {
 } from "@src/engines/SessionCore/storage/cacheAdapter";
 import { cliAdapter } from "@src/engines/SessionCore/sync/adapters";
 import { getAdapterForSession } from "@src/engines/SessionCore/sync/types";
-import { sidebarGroupByAtom } from "@src/scaffold/NavigationSidebar/connectors/sidebarGroupByAtom";
-import type { GroupByMode } from "@src/scaffold/NavigationSidebar/connectors/types";
 import {
   chatPanelTabsAtom,
   openOrFocusChatPanelStartPageTabAtom,
@@ -47,11 +45,9 @@ import {
   upsertPendingPlanApproval,
 } from "@src/store/session/planApprovalAtom";
 import { sessionsAtom } from "@src/store/session/sessionAtom/atoms";
-import {
-  loadSessionRoster,
-  loadSessions,
-} from "@src/store/session/sessionAtom/loaders";
+import { loadSessions } from "@src/store/session/sessionAtom/loaders";
 import { upsertSession } from "@src/store/session/sessionAtom/mutations";
+import { sessionPaginationAtom } from "@src/store/session/sessionAtom/paginationAtoms";
 import type { Session } from "@src/store/session/sessionAtom/types";
 import {
   activeSessionIdAtom,
@@ -780,16 +776,45 @@ export function createSessionHelpers(store: E2EStore) {
     }
   };
 
-  const setSidebarGroupBy = async (
-    mode: GroupByMode
-  ): Promise<Result<{ mode: GroupByMode }>> => {
+  const primeSidebarEntityCache = async (): Promise<
+    Result<{ count: number }>
+  > => {
     try {
-      if (mode !== "byTime" && mode !== "byAgent" && mode !== "byWorkspace") {
-        return { ok: false, error: `setSidebarGroupBy: invalid mode ${mode}` };
-      }
-      store.set(sidebarGroupByAtom, mode);
-      await loadSessionRoster({ forceRefresh: true });
-      return { ok: true, mode };
+      await loadSessions({ forceRefresh: true });
+      return {
+        ok: true,
+        count: (store.get(sessionsAtom) as Session[]).length,
+      };
+    } catch (err) {
+      return asError(err);
+    }
+  };
+
+  const inspectSidebarPagination = async (
+    sessionIds: string[] = []
+  ): Promise<Result<{ pagination: Json; sessions: Json[] }>> => {
+    try {
+      const requestedIds = new Set(sessionIds);
+      const sessions = (store.get(sessionsAtom) as Session[])
+        .filter(
+          (session) =>
+            requestedIds.size === 0 || requestedIds.has(session.session_id)
+        )
+        .map((session) => ({
+          sessionId: session.session_id,
+          updatedAt: session.updated_at,
+          pinned: session.pinned ?? false,
+          category: session.category,
+          agentOrgId: session.agentOrgId,
+          agentOrgName: session.agentOrgName,
+          orgId: session.orgId,
+          parentSessionId: session.parentSessionId,
+        }));
+      return {
+        ok: true,
+        pagination: store.get(sessionPaginationAtom) as unknown as Json,
+        sessions: sessions as Json[],
+      };
     } catch (err) {
       return asError(err);
     }
@@ -805,7 +830,8 @@ export function createSessionHelpers(store: E2EStore) {
     resetToNewSession,
     openSession,
     reloadSessionList,
-    setSidebarGroupBy,
+    primeSidebarEntityCache,
+    inspectSidebarPagination,
     launchSession,
     getSessionAggregateRow,
     getSessionAggregateRowFromList,

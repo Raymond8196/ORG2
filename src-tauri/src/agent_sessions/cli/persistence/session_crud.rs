@@ -216,6 +216,50 @@ pub fn list_sessions_page(limit: usize, offset: usize) -> SqliteResult<Vec<CodeS
     rows.collect()
 }
 
+/// One stable-keyset page of unpinned, top-level CLI sessions for the sidebar.
+///
+/// `pinned` and `parent_session_id` are filtered before LIMIT so neither
+/// pinned sessions nor worker/subagent rows consume ordinary CLI capacity.
+pub fn list_unpinned_root_sessions_page(
+    limit: usize,
+    cursor: Option<(&str, &str)>,
+) -> SqliteResult<Vec<CodeSession>> {
+    let conn = get_connection()?;
+    let bounded_limit = limit.min(i64::MAX as usize) as i64;
+    if let Some((updated_at, session_id)) = cursor {
+        let query = format!(
+            "SELECT {} FROM code_sessions cs
+             WHERE cs.pinned = 0
+               AND cs.parent_session_id IS NULL
+               AND (
+                 cs.updated_at < ?1
+                 OR (cs.updated_at = ?1 AND cs.session_id < ?2)
+               )
+             ORDER BY cs.updated_at DESC, cs.session_id DESC
+             LIMIT ?3",
+            SESSION_COLUMNS
+        );
+        let mut stmt = conn.prepare(&query)?;
+        let rows = stmt.query_map(
+            params![updated_at, session_id, bounded_limit],
+            row_to_session,
+        )?;
+        return rows.collect();
+    }
+
+    let query = format!(
+        "SELECT {} FROM code_sessions cs
+         WHERE cs.pinned = 0
+           AND cs.parent_session_id IS NULL
+         ORDER BY cs.updated_at DESC, cs.session_id DESC
+         LIMIT ?1",
+        SESSION_COLUMNS
+    );
+    let mut stmt = conn.prepare(&query)?;
+    let rows = stmt.query_map(params![bounded_limit], row_to_session)?;
+    rows.collect()
+}
+
 /// Update session status.
 pub fn update_status(session_id: &str, status: SessionStatus) -> SqliteResult<bool> {
     let conn = get_connection()?;

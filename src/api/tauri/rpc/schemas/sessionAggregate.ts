@@ -61,13 +61,22 @@ export const SessionAggregateListInput = z.object({
 });
 
 export const NativeSidebarSessionStreamSchema = z.enum([
+  "pinnedNative",
   "standaloneAgent",
   "agentOrgRoot",
+  "osAgent",
+  "cliAgent",
+  "humanSession",
 ]);
+
+export const NativeSidebarSessionCursorSchema = z.object({
+  updatedAt: z.string().min(1),
+  sessionId: z.string().min(1),
+});
 
 export const NativeSidebarSessionPageInput = z.object({
   stream: NativeSidebarSessionStreamSchema,
-  offset: z.number().int().min(0),
+  cursor: NativeSidebarSessionCursorSchema.nullable().optional(),
   limit: z.number().int().min(1).max(50),
 });
 
@@ -247,7 +256,7 @@ export const SessionListResponseSchema = z.object({
 
 export const NativeSidebarSessionPageResponseSchema = z.object({
   sessions: z.array(SessionAggregateRecordSchema),
-  nextOffset: z.number().int().min(0),
+  nextCursor: NativeSidebarSessionCursorSchema.nullable(),
   hasMore: z.boolean(),
 });
 
@@ -300,6 +309,9 @@ export type SessionAggregateRecord = z.output<
 export type SessionListResponse = z.output<typeof SessionListResponseSchema>;
 export type NativeSidebarSessionStream = z.output<
   typeof NativeSidebarSessionStreamSchema
+>;
+export type NativeSidebarSessionCursor = z.output<
+  typeof NativeSidebarSessionCursorSchema
 >;
 export type NativeSidebarSessionPageResponse = z.output<
   typeof NativeSidebarSessionPageResponseSchema

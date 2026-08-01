@@ -343,6 +343,9 @@ export const NavigationMenuLeafRow = React.forwardRef<
         data-testid={item.dataTestId}
         data-menu-item-id={item.id}
         data-selected={isSelected ? "true" : "false"}
+        role="button"
+        tabIndex={item.disabled ? -1 : 0}
+        aria-disabled={item.disabled || undefined}
         className={`group flex h-8 items-center justify-between overflow-hidden rounded-lg transition-colors duration-150 ${
           isChild ? "pl-5 pr-2" : "px-2"
         } ${
@@ -368,6 +371,13 @@ export const NavigationMenuLeafRow = React.forwardRef<
           }
           markClicked();
           onMenuItemClick(item.key, item, event);
+        }}
+        onKeyDown={(event) => {
+          if (item.disabled || (event.key !== "Enter" && event.key !== " ")) {
+            return;
+          }
+          event.preventDefault();
+          event.currentTarget.click();
         }}
         onMouseEnter={(event: React.MouseEvent) =>
           onRowMouseEnter(event, item.routePath)

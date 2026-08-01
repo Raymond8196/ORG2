@@ -55,11 +55,6 @@ pub fn ensure_unified_schema(conn: &Connection) -> SqliteResult<()> {
     );
     try_migrate(
         conn,
-        "CREATE INDEX IF NOT EXISTS idx_agent_sessions_type_updated
-         ON agent_sessions(session_type, updated_at DESC, session_id DESC)",
-    );
-    try_migrate(
-        conn,
         "ALTER TABLE agent_sessions ADD COLUMN parent_session_id TEXT",
     );
     try_migrate(
@@ -114,6 +109,14 @@ pub fn ensure_unified_schema(conn: &Connection) -> SqliteResult<()> {
     try_migrate(
         conn,
         "ALTER TABLE agent_sessions ADD COLUMN pinned INTEGER NOT NULL DEFAULT 0",
+    );
+    try_migrate(
+        conn,
+        "CREATE INDEX IF NOT EXISTS idx_agent_sessions_sidebar
+         ON agent_sessions(
+             pinned, session_type, parent_session_id,
+             updated_at DESC, session_id DESC
+         )",
     );
 
     // Durable marker for the latest backend-observed terminal turn. This is

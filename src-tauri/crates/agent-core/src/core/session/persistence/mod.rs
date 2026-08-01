@@ -33,7 +33,10 @@ pub use crud::{
     update_reply_target_event_id, update_status, update_work_item_link,
     update_worktree_merge_status, upsert_session, UnifiedSessionRecord,
 };
-pub use sidebar::{list_agent_org_root_sessions_page, list_standalone_coding_sessions_page};
+pub use sidebar::{
+    list_agent_org_root_sessions_page, list_standalone_coding_sessions_page,
+    list_unpinned_sessions_by_type_page,
+};
 
 pub use messages::{
     anchor_at_or_after_created_at, append_compact_boundary, clear_messages,

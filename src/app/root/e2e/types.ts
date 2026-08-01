@@ -532,9 +532,10 @@ export interface E2EHelpers {
   reloadSessionList: () => Promise<
     Result<{ count: number; sessionIds: string[] }>
   >;
-  setSidebarGroupBy: (
-    mode: "byTime" | "byAgent" | "byWorkspace"
-  ) => Promise<Result<{ mode: "byTime" | "byAgent" | "byWorkspace" }>>;
+  primeSidebarEntityCache: () => Promise<Result<{ count: number }>>;
+  inspectSidebarPagination: (
+    sessionIds?: string[]
+  ) => Promise<Result<{ pagination: Json; sessions: Json[] }>>;
   getSessionAggregateRow: (
     sessionId: string
   ) => Promise<Result<{ session: Json | null }>>;
@@ -643,6 +644,7 @@ export interface E2EHelpers {
     status: string;
     createdAt: string;
     updatedAt: string;
+    pinned?: boolean;
   }) => Promise<Result<{ sessionId: string }>>;
   debugSeedPendingPlanWire: (input: {
     sessionId: string;
