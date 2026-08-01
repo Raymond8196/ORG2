@@ -19,7 +19,7 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader, Read, Seek, SeekFrom};
 use std::path::Path;
-#[cfg(all(not(unix), not(windows)))]
+#[cfg(not(unix))]
 use std::time::UNIX_EPOCH;
 
 use rusqlite::{params, Connection, OptionalExtension};
@@ -183,22 +183,13 @@ impl BoundaryFingerprint {
     }
 }
 
-fn source_file_identity(_path: &Path, metadata: &std::fs::Metadata) -> Option<String> {
+fn source_file_identity(path: &Path, metadata: &std::fs::Metadata) -> Option<String> {
     #[cfg(unix)]
     {
         use std::os::unix::fs::MetadataExt;
         Some(format!("unix:{}:{}", metadata.dev(), metadata.ino()))
     }
-    #[cfg(windows)]
-    {
-        use std::os::windows::fs::MetadataExt;
-        Some(format!(
-            "windows:{}:{}",
-            metadata.volume_serial_number()?,
-            metadata.file_index()?
-        ))
-    }
-    #[cfg(all(not(unix), not(windows)))]
+    #[cfg(not(unix))]
     {
         // `created` is stable across appends and changes on normal rotation.
         // If the platform/filesystem cannot expose it, disable resume rather
@@ -210,7 +201,7 @@ fn source_file_identity(_path: &Path, metadata: &std::fs::Metadata) -> Option<St
             .ok()?
             .as_nanos();
         let mut path_hasher = PrefixHasher::default();
-        path_hasher.update(_path.to_string_lossy().as_bytes());
+        path_hasher.update(path.to_string_lossy().as_bytes());
         Some(format!(
             "created:{created_ns}:path:{}",
             path_hasher.digest()
