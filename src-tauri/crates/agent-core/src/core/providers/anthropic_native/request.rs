@@ -241,10 +241,7 @@ pub(super) fn apply_headers(
             req
         }
         AnthropicAuthMode::AzureBearer => {
-            let mut req = req.header(
-                "Authorization",
-                format!("Bearer {}", &client.config.api_key),
-            );
+            let mut req = req.header("Authorization", format!("Bearer {}", client.config.api_key));
             if !beta_overridden {
                 req = req.header(
                     "anthropic-beta",
