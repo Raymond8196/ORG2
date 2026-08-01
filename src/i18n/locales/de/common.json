@@ -164,6 +164,50 @@
       "urgent": "Dringend"
     }
   },
+  "windowChrome": {
+    "menus": {
+      "file": "Datei",
+      "edit": "Bearbeiten",
+      "view": "Ansicht",
+      "window": "Fenster",
+      "help": "Hilfe",
+      "aria": "Menü {{label}}"
+    },
+    "items": {
+      "quitOrg2": "ORG-2 beenden",
+      "newSession": "Neue Sitzung",
+      "openFolder": "Ordner öffnen...",
+      "addFolderToWorkspace": "Ordner zum Arbeitsbereich hinzufügen...",
+      "saveWorkspaceAs": "Arbeitsbereich speichern unter...",
+      "closeWindow": "Fenster schließen",
+      "undo": "Rückgängig",
+      "redo": "Wiederholen",
+      "cut": "Ausschneiden",
+      "copy": "Kopieren",
+      "paste": "Einfügen",
+      "selectAll": "Alles auswählen",
+      "commandPalette": "Befehlspalette",
+      "goToFile": "Zu Datei wechseln...",
+      "selectModel": "Modell auswählen...",
+      "switchWorkspace": "Arbeitsbereich wechseln...",
+      "switchBranch": "Branch wechseln...",
+      "switchRunningLocation": "Ausführungsort wechseln...",
+      "settings": "Einstellungen...",
+      "zoomIn": "Vergrößern",
+      "zoomOut": "Verkleinern",
+      "actualSize": "Originalgröße",
+      "minimize": "Minimieren",
+      "maximizeRestore": "Maximieren / Wiederherstellen",
+      "maximizeWorkstation": "Arbeitsstation maximieren",
+      "documentation": "Dokumentation",
+      "reportIssue": "Problem melden"
+    },
+    "controls": {
+      "minimizeWindow": "Fenster minimieren",
+      "maximizeRestoreWindow": "Fenster maximieren oder wiederherstellen",
+      "closeWindow": "Fenster schließen"
+    }
+  },
   "toasts": {
     "replyEmpty": "Antwort darf nicht leer sein",
     "sessionNotFound": "Sitzung nicht gefunden",
@@ -2475,8 +2519,8 @@
     "selectRepoToStart": "Repo auswählen, um zu starten"
   },
   "quitConfirmation": {
-    "title": "ORGII beenden?",
-    "subtitle": "Laufende Sitzungen behalten ihren aktuellen Zustand. Sie können ORGII später erneut öffnen.",
+    "title": "ORG-2 beenden?",
+    "subtitle": "Laufende Sitzungen behalten ihren aktuellen Zustand. Sie können ORG-2 später erneut öffnen.",
     "cancel": "Abbrechen",
     "confirm": "Beenden"
   },

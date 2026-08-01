@@ -164,6 +164,50 @@
       "urgent": "Acil"
     }
   },
+  "windowChrome": {
+    "menus": {
+      "file": "Dosya",
+      "edit": "Düzenle",
+      "view": "Görünüm",
+      "window": "Pencere",
+      "help": "Yardım",
+      "aria": "{{label}} menüsü"
+    },
+    "items": {
+      "quitOrg2": "ORG-2'den Çık",
+      "newSession": "Yeni Oturum",
+      "openFolder": "Klasör Aç...",
+      "addFolderToWorkspace": "Çalışma Alanına Klasör Ekle...",
+      "saveWorkspaceAs": "Çalışma Alanını Farklı Kaydet...",
+      "closeWindow": "Pencereyi Kapat",
+      "undo": "Geri Al",
+      "redo": "Yinele",
+      "cut": "Kes",
+      "copy": "Kopyala",
+      "paste": "Yapıştır",
+      "selectAll": "Tümünü Seç",
+      "commandPalette": "Komut Paleti",
+      "goToFile": "Dosyaya Git...",
+      "selectModel": "Model Seç...",
+      "switchWorkspace": "Çalışma Alanını Değiştir...",
+      "switchBranch": "Dal Değiştir...",
+      "switchRunningLocation": "Çalışma Konumunu Değiştir...",
+      "settings": "Ayarlar...",
+      "zoomIn": "Yakınlaştır",
+      "zoomOut": "Uzaklaştır",
+      "actualSize": "Gerçek Boyut",
+      "minimize": "Küçült",
+      "maximizeRestore": "Büyüt / Geri Yükle",
+      "maximizeWorkstation": "Çalışma İstasyonunu Büyüt",
+      "documentation": "Belgeler",
+      "reportIssue": "Sorun Bildir"
+    },
+    "controls": {
+      "minimizeWindow": "Pencereyi küçült",
+      "maximizeRestoreWindow": "Pencereyi büyüt veya geri yükle",
+      "closeWindow": "Pencereyi kapat"
+    }
+  },
   "toasts": {
     "replyEmpty": "Yanıt boş olamaz",
     "sessionNotFound": "Oturum bulunamadı",
@@ -2472,8 +2516,8 @@
     "selectRepoToStart": "Başlamak için bir Repo seçin"
   },
   "quitConfirmation": {
-    "title": "ORGII'den çıkılsın mı?",
-    "subtitle": "Çalışan oturumlar mevcut durumunu korur. ORGII'yi daha sonra yeniden açabilirsiniz.",
+    "title": "ORG-2'den çıkılsın mı?",
+    "subtitle": "Çalışan oturumlar mevcut durumunu korur. ORG-2'yi daha sonra yeniden açabilirsiniz.",
     "cancel": "İptal",
     "confirm": "Çık"
   },

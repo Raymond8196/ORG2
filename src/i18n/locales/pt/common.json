@@ -164,6 +164,50 @@
       "urgent": "Urgente"
     }
   },
+  "windowChrome": {
+    "menus": {
+      "file": "Arquivo",
+      "edit": "Editar",
+      "view": "Exibir",
+      "window": "Janela",
+      "help": "Ajuda",
+      "aria": "Menu {{label}}"
+    },
+    "items": {
+      "quitOrg2": "Sair do ORG-2",
+      "newSession": "Nova sessão",
+      "openFolder": "Abrir pasta...",
+      "addFolderToWorkspace": "Adicionar pasta ao espaço de trabalho...",
+      "saveWorkspaceAs": "Salvar espaço de trabalho como...",
+      "closeWindow": "Fechar janela",
+      "undo": "Desfazer",
+      "redo": "Refazer",
+      "cut": "Recortar",
+      "copy": "Copiar",
+      "paste": "Colar",
+      "selectAll": "Selecionar tudo",
+      "commandPalette": "Paleta de comandos",
+      "goToFile": "Ir para arquivo...",
+      "selectModel": "Selecionar modelo...",
+      "switchWorkspace": "Alternar espaço de trabalho...",
+      "switchBranch": "Alternar branch...",
+      "switchRunningLocation": "Alternar local de execução...",
+      "settings": "Configurações...",
+      "zoomIn": "Ampliar",
+      "zoomOut": "Reduzir",
+      "actualSize": "Tamanho real",
+      "minimize": "Minimizar",
+      "maximizeRestore": "Maximizar / Restaurar",
+      "maximizeWorkstation": "Maximizar estação de trabalho",
+      "documentation": "Documentação",
+      "reportIssue": "Relatar problema"
+    },
+    "controls": {
+      "minimizeWindow": "Minimizar janela",
+      "maximizeRestoreWindow": "Maximizar ou restaurar janela",
+      "closeWindow": "Fechar janela"
+    }
+  },
   "toasts": {
     "replyEmpty": "A resposta não pode estar vazia",
     "sessionNotFound": "Sessão não encontrada",
@@ -2467,8 +2511,8 @@
     "selectRepoToStart": "Selecione um Repo para começar"
   },
   "quitConfirmation": {
-    "title": "Sair do ORGII?",
-    "subtitle": "As sessões em execução manterão o estado atual. Você poderá reabrir o ORGII mais tarde.",
+    "title": "Sair do ORG-2?",
+    "subtitle": "As sessões em execução manterão o estado atual. Você poderá reabrir o ORG-2 mais tarde.",
     "cancel": "Cancelar",
     "confirm": "Sair"
   },

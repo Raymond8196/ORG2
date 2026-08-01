@@ -1,4 +1,48 @@
 ﻿{
+  "windowChrome": {
+    "menus": {
+      "file": "文件",
+      "edit": "编辑",
+      "view": "查看",
+      "window": "窗口",
+      "help": "帮助",
+      "aria": "{{label}}菜单"
+    },
+    "items": {
+      "quitOrg2": "退出 ORG-2",
+      "newSession": "新建会话",
+      "openFolder": "打开文件夹...",
+      "addFolderToWorkspace": "将文件夹添加到工作区...",
+      "saveWorkspaceAs": "工作区另存为...",
+      "closeWindow": "关闭窗口",
+      "undo": "撤销",
+      "redo": "重做",
+      "cut": "剪切",
+      "copy": "复制",
+      "paste": "粘贴",
+      "selectAll": "全选",
+      "commandPalette": "命令面板",
+      "goToFile": "转到文件...",
+      "selectModel": "选择模型...",
+      "switchWorkspace": "切换工作区...",
+      "switchBranch": "切换分支...",
+      "switchRunningLocation": "切换运行位置...",
+      "settings": "设置...",
+      "zoomIn": "放大",
+      "zoomOut": "缩小",
+      "actualSize": "实际大小",
+      "minimize": "最小化",
+      "maximizeRestore": "最大化 / 还原",
+      "maximizeWorkstation": "最大化工作台",
+      "documentation": "文档",
+      "reportIssue": "报告问题"
+    },
+    "controls": {
+      "minimizeWindow": "最小化窗口",
+      "maximizeRestoreWindow": "最大化或还原窗口",
+      "closeWindow": "关闭窗口"
+    }
+  },
   "toasts": {
     "replyEmpty": "回复不能为空",
     "sessionNotFound": "未找到会话",
@@ -2564,8 +2608,8 @@
     "previewAlt": "预览"
   },
   "quitConfirmation": {
-    "title": "退出 ORGII？",
-    "subtitle": "正在运行的会话会保留当前状态。你可以稍后重新打开 ORGII。",
+    "title": "退出 ORG-2？",
+    "subtitle": "正在运行的会话会保留当前状态。你可以稍后重新打开 ORG-2。",
     "cancel": "取消",
     "confirm": "退出"
   },

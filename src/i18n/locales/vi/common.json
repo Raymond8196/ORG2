@@ -162,6 +162,50 @@
       "urgent": "Khẩn cấp"
     }
   },
+  "windowChrome": {
+    "menus": {
+      "file": "Tệp",
+      "edit": "Chỉnh sửa",
+      "view": "Xem",
+      "window": "Cửa sổ",
+      "help": "Trợ giúp",
+      "aria": "Trình đơn {{label}}"
+    },
+    "items": {
+      "quitOrg2": "Thoát ORG-2",
+      "newSession": "Phiên mới",
+      "openFolder": "Mở thư mục...",
+      "addFolderToWorkspace": "Thêm thư mục vào không gian làm việc...",
+      "saveWorkspaceAs": "Lưu không gian làm việc thành...",
+      "closeWindow": "Đóng cửa sổ",
+      "undo": "Hoàn tác",
+      "redo": "Làm lại",
+      "cut": "Cắt",
+      "copy": "Sao chép",
+      "paste": "Dán",
+      "selectAll": "Chọn tất cả",
+      "commandPalette": "Bảng lệnh",
+      "goToFile": "Đi tới tệp...",
+      "selectModel": "Chọn mô hình...",
+      "switchWorkspace": "Chuyển không gian làm việc...",
+      "switchBranch": "Chuyển nhánh...",
+      "switchRunningLocation": "Chuyển vị trí chạy...",
+      "settings": "Cài đặt...",
+      "zoomIn": "Phóng to",
+      "zoomOut": "Thu nhỏ",
+      "actualSize": "Kích thước thực",
+      "minimize": "Thu nhỏ",
+      "maximizeRestore": "Phóng to / Khôi phục",
+      "maximizeWorkstation": "Phóng to trạm làm việc",
+      "documentation": "Tài liệu",
+      "reportIssue": "Báo cáo sự cố"
+    },
+    "controls": {
+      "minimizeWindow": "Thu nhỏ cửa sổ",
+      "maximizeRestoreWindow": "Phóng to hoặc khôi phục cửa sổ",
+      "closeWindow": "Đóng cửa sổ"
+    }
+  },
   "toasts": {
     "replyEmpty": "Câu trả lời không được để trống",
     "sessionNotFound": "Không tìm thấy phiên",
@@ -2465,8 +2509,8 @@
     "selectRepoToStart": "Chọn một Repo để bắt đầu"
   },
   "quitConfirmation": {
-    "title": "Thoát ORGII?",
-    "subtitle": "Các phiên đang chạy sẽ giữ nguyên trạng thái hiện tại. Bạn có thể mở lại ORGII sau.",
+    "title": "Thoát ORG-2?",
+    "subtitle": "Các phiên đang chạy sẽ giữ nguyên trạng thái hiện tại. Bạn có thể mở lại ORG-2 sau.",
     "cancel": "Hủy",
     "confirm": "Thoát"
   },

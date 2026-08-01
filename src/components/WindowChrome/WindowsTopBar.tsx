@@ -5,8 +5,10 @@ import {
   Menu as TauriMenu,
 } from "@tauri-apps/api/menu";
 import { open } from "@tauri-apps/plugin-shell";
+import type { TFunction } from "i18next";
 import { Minus, Square, X } from "lucide-react";
 import React, { memo, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 
 import {
   closeWindow,
@@ -30,7 +32,7 @@ const WINDOW_CONTROL_BUTTON_CLASS =
 const CLOSE_BUTTON_CLASS =
   "flex h-full w-11 items-center justify-center border-0 bg-transparent p-0 text-text-2 transition-colors hover:bg-danger-6 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger-6/30";
 
-type NativeMenuKey = "orgii" | "file" | "edit" | "view" | "window" | "help";
+type NativeMenuKey = "file" | "edit" | "view" | "window" | "help";
 
 type NativeMenuItem =
   | {
@@ -42,14 +44,7 @@ type NativeMenuItem =
     }
   | { type: "separator" };
 
-const MENU_LABELS: Array<{ key: NativeMenuKey; label: string }> = [
-  { key: "orgii", label: "ORGII" },
-  { key: "file", label: "File" },
-  { key: "edit", label: "Edit" },
-  { key: "view", label: "View" },
-  { key: "window", label: "Window" },
-  { key: "help", label: "Help" },
-];
+const MENU_KEYS: NativeMenuKey[] = ["file", "edit", "view", "window", "help"];
 
 function emitMenuEvent(eventName: string) {
   window.dispatchEvent(new CustomEvent(eventName));
@@ -59,82 +54,80 @@ function handleWindowAction(action: () => Promise<void>) {
   void action();
 }
 
-function getMenuItems(menu: NativeMenuKey): NativeMenuItem[] {
+function getMenuItems(menu: NativeMenuKey, t: TFunction): NativeMenuItem[] {
   switch (menu) {
-    case "orgii":
-      return [
-        {
-          type: "item",
-          text: "Quit ORGII",
-          accelerator: "Ctrl+Q",
-          action: () => emitMenuEvent("native-quit-confirmation-open"),
-        },
-      ];
     case "file":
       return [
         {
           type: "item",
-          text: "New Session",
+          text: t("windowChrome.items.newSession"),
           accelerator: "Ctrl+N",
           action: () => emitMenuEvent("menu-new-session"),
         },
         { type: "separator" },
         {
           type: "item",
-          text: "Open Folder...",
+          text: t("windowChrome.items.openFolder"),
           accelerator: "Ctrl+O",
           action: () => emitMenuEvent("menu-file-open-folder"),
         },
         {
           type: "item",
-          text: "Add Folder to Workspace...",
+          text: t("windowChrome.items.addFolderToWorkspace"),
           action: () => emitMenuEvent("menu-add-folder-to-workspace"),
         },
         { type: "separator" },
         {
           type: "item",
-          text: "Save Workspace As...",
+          text: t("windowChrome.items.saveWorkspaceAs"),
           action: () => emitMenuEvent("menu-save-workspace-as"),
         },
         { type: "separator" },
         {
           type: "item",
-          text: "Close Window",
+          text: t("windowChrome.items.closeWindow"),
           accelerator: "Ctrl+Shift+W",
           action: closeWindow,
+        },
+        { type: "separator" },
+        {
+          type: "item",
+          text: t("windowChrome.items.quitOrg2"),
+          accelerator: "Ctrl+Q",
+          action: () => emitMenuEvent("native-quit-confirmation-open"),
         },
       ];
     case "edit":
       return [
         {
           type: "item",
-          text: "Undo",
+          text: t("windowChrome.items.undo"),
           action: () => document.execCommand("undo"),
         },
         {
           type: "item",
-          text: "Redo",
+          text: t("windowChrome.items.redo"),
           action: () => document.execCommand("redo"),
         },
         { type: "separator" },
         {
           type: "item",
-          text: "Cut",
+          text: t("windowChrome.items.cut"),
           action: () => document.execCommand("cut"),
         },
         {
           type: "item",
-          text: "Copy",
+          text: t("windowChrome.items.copy"),
           action: () => document.execCommand("copy"),
         },
         {
           type: "item",
-          text: "Paste",
+          text: t("windowChrome.items.paste"),
           action: () => document.execCommand("paste"),
         },
         {
           type: "item",
-          text: "Select All",
+          text: t("windowChrome.items.selectAll"),
           action: () => emitMenuEvent("menu-select-all"),
         },
       ];
@@ -142,85 +135,97 @@ function getMenuItems(menu: NativeMenuKey): NativeMenuItem[] {
       return [
         {
           type: "item",
-          text: "Command Palette",
+          text: t("windowChrome.items.commandPalette"),
           action: () => emitMenuEvent("menu-toggle-spotlight"),
         },
         {
           type: "item",
-          text: "Go to File...",
+          text: t("windowChrome.items.goToFile"),
           action: () => emitMenuEvent("menu-open-file-palette"),
         },
         {
           type: "item",
-          text: "Select Model...",
+          text: t("windowChrome.items.selectModel"),
           accelerator: "Ctrl+/",
           action: () => emitMenuEvent("menu-open-model-selector"),
         },
         {
           type: "item",
-          text: "Switch Workspace...",
+          text: t("windowChrome.items.switchWorkspace"),
           accelerator: "Ctrl+.",
           action: () => emitMenuEvent("menu-open-workspace-selector"),
         },
         {
           type: "item",
-          text: "Switch Branch...",
+          text: t("windowChrome.items.switchBranch"),
           accelerator: "Ctrl+Alt+.",
           action: () => emitMenuEvent("menu-open-branch-selector"),
         },
         {
           type: "item",
-          text: "Switch Running Location...",
+          text: t("windowChrome.items.switchRunningLocation"),
           accelerator: "Ctrl+Shift+.",
           action: () => emitMenuEvent("menu-open-location-selector"),
         },
         { type: "separator" },
         {
           type: "item",
-          text: "Settings...",
+          text: t("windowChrome.items.settings"),
           accelerator: "Ctrl+,",
           action: () => emitMenuEvent("menu-open-settings"),
         },
         { type: "separator" },
         {
           type: "item",
-          text: "Zoom In",
+          text: t("windowChrome.items.zoomIn"),
           action: () => emitMenuEvent("menu-zoom-in"),
         },
         {
           type: "item",
-          text: "Zoom Out",
+          text: t("windowChrome.items.zoomOut"),
           action: () => emitMenuEvent("menu-zoom-out"),
         },
         {
           type: "item",
-          text: "Actual Size",
+          text: t("windowChrome.items.actualSize"),
           action: () => emitMenuEvent("menu-zoom-reset"),
         },
       ];
     case "window":
       return [
-        { type: "item", text: "Minimize", action: minWindow },
-        { type: "item", text: "Maximize / Restore", action: maxWindow },
         {
           type: "item",
-          text: "Maximize Workstation",
+          text: t("windowChrome.items.minimize"),
+          action: minWindow,
+        },
+        {
+          type: "item",
+          text: t("windowChrome.items.maximizeRestore"),
+          action: maxWindow,
+        },
+        {
+          type: "item",
+          text: t("windowChrome.items.maximizeWorkstation"),
           accelerator: "Ctrl+Shift+M",
           action: () => emitMenuEvent("menu-maximize-work-station"),
         },
         { type: "separator" },
-        { type: "item", text: "Close Window", action: closeWindow },
+        {
+          type: "item",
+          text: t("windowChrome.items.closeWindow"),
+          action: closeWindow,
+        },
       ];
     case "help":
       return [
         {
           type: "item",
-          text: "Documentation",
+          text: t("windowChrome.items.documentation"),
           action: () => open("https://github.com/YORG-AI/ORGII/wiki"),
         },
         {
           type: "item",
-          text: "Report Issue",
+          text: t("windowChrome.items.reportIssue"),
           action: () => open("https://github.com/YORG-AI/ORGII/issues"),
         },
       ];
@@ -229,10 +234,11 @@ function getMenuItems(menu: NativeMenuKey): NativeMenuItem[] {
 
 async function showNativeStyleMenu(
   menuKey: NativeMenuKey,
-  anchor: HTMLElement
+  anchor: HTMLElement,
+  t: TFunction
 ) {
   const menuItems = await Promise.all(
-    getMenuItems(menuKey).map(async (item) => {
+    getMenuItems(menuKey, t).map(async (item) => {
       if (item.type === "separator") {
         return PredefinedMenuItem.new({ item: "Separator" });
       }
@@ -259,6 +265,8 @@ async function showNativeStyleMenu(
 }
 
 const WindowsTopBarComponent: React.FC = () => {
+  const { t } = useTranslation("common");
+
   const handleMinimize = useCallback(() => {
     handleWindowAction(minWindow);
   }, []);
@@ -273,9 +281,9 @@ const WindowsTopBarComponent: React.FC = () => {
 
   const handleOpenMenu = useCallback(
     (menuKey: NativeMenuKey, event: React.MouseEvent<HTMLButtonElement>) => {
-      void showNativeStyleMenu(menuKey, event.currentTarget);
+      void showNativeStyleMenu(menuKey, event.currentTarget, t);
     },
-    []
+    [t]
   );
 
   return (
@@ -292,17 +300,20 @@ const WindowsTopBarComponent: React.FC = () => {
       }
     >
       <NoDragRegion className={MENU_BAR_CLASS}>
-        {MENU_LABELS.map((menu) => (
-          <button
-            key={menu.key}
-            type="button"
-            className={MENU_BUTTON_CLASS}
-            onClick={(event) => handleOpenMenu(menu.key, event)}
-            aria-label={`${menu.label} menu`}
-          >
-            {menu.label}
-          </button>
-        ))}
+        {MENU_KEYS.map((menuKey) => {
+          const label = t(`windowChrome.menus.${menuKey}`);
+          return (
+            <button
+              key={menuKey}
+              type="button"
+              className={MENU_BUTTON_CLASS}
+              onClick={(event) => handleOpenMenu(menuKey, event)}
+              aria-label={t("windowChrome.menus.aria", { label })}
+            >
+              {label}
+            </button>
+          );
+        })}
       </NoDragRegion>
 
       <div className="h-full min-w-0 flex-1" data-tauri-drag-region />
@@ -315,8 +326,8 @@ const WindowsTopBarComponent: React.FC = () => {
           type="button"
           className={WINDOW_CONTROL_BUTTON_CLASS}
           onClick={handleMinimize}
-          aria-label="Minimize window"
-          title="Minimize"
+          aria-label={t("windowChrome.controls.minimizeWindow")}
+          title={t("windowChrome.items.minimize")}
         >
           <Minus size={ICON_SIZE} strokeWidth={2} />
         </button>
@@ -324,8 +335,8 @@ const WindowsTopBarComponent: React.FC = () => {
           type="button"
           className={WINDOW_CONTROL_BUTTON_CLASS}
           onClick={handleMaximize}
-          aria-label="Maximize or restore window"
-          title="Maximize / Restore"
+          aria-label={t("windowChrome.controls.maximizeRestoreWindow")}
+          title={t("windowChrome.items.maximizeRestore")}
         >
           <Square size={12} strokeWidth={2} />
         </button>
@@ -333,8 +344,8 @@ const WindowsTopBarComponent: React.FC = () => {
           type="button"
           className={CLOSE_BUTTON_CLASS}
           onClick={handleClose}
-          aria-label="Close window"
-          title="Close"
+          aria-label={t("windowChrome.controls.closeWindow")}
+          title={t("windowChrome.items.closeWindow")}
         >
           <X size={ICON_SIZE} strokeWidth={2} />
         </button>

@@ -1,4 +1,48 @@
 ﻿{
+  "windowChrome": {
+    "menus": {
+      "file": "File",
+      "edit": "Edit",
+      "view": "View",
+      "window": "Window",
+      "help": "Help",
+      "aria": "{{label}} menu"
+    },
+    "items": {
+      "quitOrg2": "Quit ORG-2",
+      "newSession": "New Session",
+      "openFolder": "Open Folder...",
+      "addFolderToWorkspace": "Add Folder to Workspace...",
+      "saveWorkspaceAs": "Save Workspace As...",
+      "closeWindow": "Close Window",
+      "undo": "Undo",
+      "redo": "Redo",
+      "cut": "Cut",
+      "copy": "Copy",
+      "paste": "Paste",
+      "selectAll": "Select All",
+      "commandPalette": "Command Palette",
+      "goToFile": "Go to File...",
+      "selectModel": "Select Model...",
+      "switchWorkspace": "Switch Workspace...",
+      "switchBranch": "Switch Branch...",
+      "switchRunningLocation": "Switch Running Location...",
+      "settings": "Settings...",
+      "zoomIn": "Zoom In",
+      "zoomOut": "Zoom Out",
+      "actualSize": "Actual Size",
+      "minimize": "Minimize",
+      "maximizeRestore": "Maximize / Restore",
+      "maximizeWorkstation": "Maximize Workstation",
+      "documentation": "Documentation",
+      "reportIssue": "Report Issue"
+    },
+    "controls": {
+      "minimizeWindow": "Minimize window",
+      "maximizeRestoreWindow": "Maximize or restore window",
+      "closeWindow": "Close window"
+    }
+  },
   "toasts": {
     "replyEmpty": "Reply cannot be empty",
     "sessionNotFound": "Session not found",
@@ -2684,8 +2728,8 @@
     "previewAlt": "Preview"
   },
   "quitConfirmation": {
-    "title": "Quit ORGII?",
-    "subtitle": "Any running sessions will keep their current state. You can reopen ORGII later.",
+    "title": "Quit ORG-2?",
+    "subtitle": "Any running sessions will keep their current state. You can reopen ORG-2 later.",
     "cancel": "Cancel",
     "confirm": "Quit"
   },
