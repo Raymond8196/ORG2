@@ -168,6 +168,50 @@
       "urgent": "Pilny"
     }
   },
+  "windowChrome": {
+    "menus": {
+      "file": "Plik",
+      "edit": "Edycja",
+      "view": "Widok",
+      "window": "Okno",
+      "help": "Pomoc",
+      "aria": "Menu {{label}}"
+    },
+    "items": {
+      "quitOrg2": "Zakończ ORG-2",
+      "newSession": "Nowa sesja",
+      "openFolder": "Otwórz folder...",
+      "addFolderToWorkspace": "Dodaj folder do obszaru roboczego...",
+      "saveWorkspaceAs": "Zapisz obszar roboczy jako...",
+      "closeWindow": "Zamknij okno",
+      "undo": "Cofnij",
+      "redo": "Ponów",
+      "cut": "Wytnij",
+      "copy": "Kopiuj",
+      "paste": "Wklej",
+      "selectAll": "Zaznacz wszystko",
+      "commandPalette": "Paleta poleceń",
+      "goToFile": "Przejdź do pliku...",
+      "selectModel": "Wybierz model...",
+      "switchWorkspace": "Przełącz obszar roboczy...",
+      "switchBranch": "Przełącz gałąź...",
+      "switchRunningLocation": "Przełącz lokalizację uruchomienia...",
+      "settings": "Ustawienia...",
+      "zoomIn": "Powiększ",
+      "zoomOut": "Pomniejsz",
+      "actualSize": "Rozmiar rzeczywisty",
+      "minimize": "Minimalizuj",
+      "maximizeRestore": "Maksymalizuj / Przywróć",
+      "maximizeWorkstation": "Maksymalizuj stację roboczą",
+      "documentation": "Dokumentacja",
+      "reportIssue": "Zgłoś problem"
+    },
+    "controls": {
+      "minimizeWindow": "Minimalizuj okno",
+      "maximizeRestoreWindow": "Maksymalizuj lub przywróć okno",
+      "closeWindow": "Zamknij okno"
+    }
+  },
   "toasts": {
     "replyEmpty": "Odpowiedź nie może być pusta",
     "sessionNotFound": "Nie znaleziono sesji",
@@ -2475,8 +2519,8 @@
     "selectRepoToStart": "Wybierz Repo, aby rozpocząć"
   },
   "quitConfirmation": {
-    "title": "Zamknąć ORGII?",
-    "subtitle": "Uruchomione sesje zachowają swój bieżący stan. Możesz ponownie otworzyć ORGII później.",
+    "title": "Zamknąć ORG-2?",
+    "subtitle": "Uruchomione sesje zachowają swój bieżący stan. Możesz ponownie otworzyć ORG-2 później.",
     "cancel": "Anuluj",
     "confirm": "Zamknij"
   },

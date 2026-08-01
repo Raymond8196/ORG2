@@ -162,6 +162,50 @@
       "urgent": "緊急"
     }
   },
+  "windowChrome": {
+    "menus": {
+      "file": "檔案",
+      "edit": "編輯",
+      "view": "檢視",
+      "window": "視窗",
+      "help": "說明",
+      "aria": "{{label}}選單"
+    },
+    "items": {
+      "quitOrg2": "結束 ORG-2",
+      "newSession": "新增工作階段",
+      "openFolder": "開啟資料夾...",
+      "addFolderToWorkspace": "將資料夾新增至工作區...",
+      "saveWorkspaceAs": "工作區另存新檔...",
+      "closeWindow": "關閉視窗",
+      "undo": "復原",
+      "redo": "重做",
+      "cut": "剪下",
+      "copy": "複製",
+      "paste": "貼上",
+      "selectAll": "全選",
+      "commandPalette": "命令選擇區",
+      "goToFile": "前往檔案...",
+      "selectModel": "選擇模型...",
+      "switchWorkspace": "切換工作區...",
+      "switchBranch": "切換分支...",
+      "switchRunningLocation": "切換執行位置...",
+      "settings": "設定...",
+      "zoomIn": "放大",
+      "zoomOut": "縮小",
+      "actualSize": "實際大小",
+      "minimize": "最小化",
+      "maximizeRestore": "最大化 / 還原",
+      "maximizeWorkstation": "最大化工作站",
+      "documentation": "文件",
+      "reportIssue": "回報問題"
+    },
+    "controls": {
+      "minimizeWindow": "最小化視窗",
+      "maximizeRestoreWindow": "最大化或還原視窗",
+      "closeWindow": "關閉視窗"
+    }
+  },
   "toasts": {
     "replyEmpty": "回覆不能為空",
     "sessionNotFound": "找不到 Session",
@@ -2495,8 +2539,8 @@
     "selectRepoToStart": "選擇一個 Repo 開始"
   },
   "quitConfirmation": {
-    "title": "結束 ORGII？",
-    "subtitle": "正在執行的工作階段會保留目前狀態。你可以稍後重新開啟 ORGII。",
+    "title": "結束 ORG-2？",
+    "subtitle": "正在執行的工作階段會保留目前狀態。你可以稍後重新開啟 ORG-2。",
     "cancel": "取消",
     "confirm": "結束"
   },

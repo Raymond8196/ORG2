@@ -162,6 +162,50 @@
       "urgent": "긴급"
     }
   },
+  "windowChrome": {
+    "menus": {
+      "file": "파일",
+      "edit": "편집",
+      "view": "보기",
+      "window": "창",
+      "help": "도움말",
+      "aria": "{{label}} 메뉴"
+    },
+    "items": {
+      "quitOrg2": "ORG-2 종료",
+      "newSession": "새 세션",
+      "openFolder": "폴더 열기...",
+      "addFolderToWorkspace": "작업 영역에 폴더 추가...",
+      "saveWorkspaceAs": "작업 영역을 다른 이름으로 저장...",
+      "closeWindow": "창 닫기",
+      "undo": "실행 취소",
+      "redo": "다시 실행",
+      "cut": "잘라내기",
+      "copy": "복사",
+      "paste": "붙여넣기",
+      "selectAll": "모두 선택",
+      "commandPalette": "명령 팔레트",
+      "goToFile": "파일로 이동...",
+      "selectModel": "모델 선택...",
+      "switchWorkspace": "작업 영역 전환...",
+      "switchBranch": "브랜치 전환...",
+      "switchRunningLocation": "실행 위치 전환...",
+      "settings": "설정...",
+      "zoomIn": "확대",
+      "zoomOut": "축소",
+      "actualSize": "실제 크기",
+      "minimize": "최소화",
+      "maximizeRestore": "최대화 / 복원",
+      "maximizeWorkstation": "워크스테이션 최대화",
+      "documentation": "문서",
+      "reportIssue": "문제 신고"
+    },
+    "controls": {
+      "minimizeWindow": "창 최소화",
+      "maximizeRestoreWindow": "창 최대화 또는 복원",
+      "closeWindow": "창 닫기"
+    }
+  },
   "toasts": {
     "replyEmpty": "답장을 입력하세요",
     "sessionNotFound": "세션을 찾을 수 없습니다",
@@ -2468,8 +2512,8 @@
     "selectRepoToStart": "Repo를 선택하여 시작"
   },
   "quitConfirmation": {
-    "title": "ORGII를 종료하시겠습니까?",
-    "subtitle": "실행 중인 세션은 현재 상태를 유지합니다. 나중에 ORGII를 다시 열 수 있습니다.",
+    "title": "ORG-2를 종료하시겠습니까?",
+    "subtitle": "실행 중인 세션은 현재 상태를 유지합니다. 나중에 ORG-2를 다시 열 수 있습니다.",
     "cancel": "취소",
     "confirm": "종료"
   },

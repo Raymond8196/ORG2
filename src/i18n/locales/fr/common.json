@@ -164,6 +164,50 @@
       "urgent": "Urgente"
     }
   },
+  "windowChrome": {
+    "menus": {
+      "file": "Fichier",
+      "edit": "Édition",
+      "view": "Affichage",
+      "window": "Fenêtre",
+      "help": "Aide",
+      "aria": "Menu {{label}}"
+    },
+    "items": {
+      "quitOrg2": "Quitter ORG-2",
+      "newSession": "Nouvelle session",
+      "openFolder": "Ouvrir un dossier...",
+      "addFolderToWorkspace": "Ajouter un dossier à l’espace de travail...",
+      "saveWorkspaceAs": "Enregistrer l’espace de travail sous...",
+      "closeWindow": "Fermer la fenêtre",
+      "undo": "Annuler",
+      "redo": "Rétablir",
+      "cut": "Couper",
+      "copy": "Copier",
+      "paste": "Coller",
+      "selectAll": "Tout sélectionner",
+      "commandPalette": "Palette de commandes",
+      "goToFile": "Accéder au fichier...",
+      "selectModel": "Sélectionner un modèle...",
+      "switchWorkspace": "Changer d’espace de travail...",
+      "switchBranch": "Changer de branche...",
+      "switchRunningLocation": "Changer d’emplacement d’exécution...",
+      "settings": "Paramètres...",
+      "zoomIn": "Zoom avant",
+      "zoomOut": "Zoom arrière",
+      "actualSize": "Taille réelle",
+      "minimize": "Réduire",
+      "maximizeRestore": "Agrandir / Restaurer",
+      "maximizeWorkstation": "Agrandir la station de travail",
+      "documentation": "Documentation",
+      "reportIssue": "Signaler un problème"
+    },
+    "controls": {
+      "minimizeWindow": "Réduire la fenêtre",
+      "maximizeRestoreWindow": "Agrandir ou restaurer la fenêtre",
+      "closeWindow": "Fermer la fenêtre"
+    }
+  },
   "toasts": {
     "replyEmpty": "La réponse ne peut pas être vide",
     "sessionNotFound": "Session introuvable",
@@ -2470,8 +2514,8 @@
     "selectRepoToStart": "Sélectionnez un Repo pour commencer"
   },
   "quitConfirmation": {
-    "title": "Quitter ORGII ?",
-    "subtitle": "Les sessions en cours conserveront leur état actuel. Vous pourrez rouvrir ORGII plus tard.",
+    "title": "Quitter ORG-2 ?",
+    "subtitle": "Les sessions en cours conserveront leur état actuel. Vous pourrez rouvrir ORG-2 plus tard.",
     "cancel": "Annuler",
     "confirm": "Quitter"
   },

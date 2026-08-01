@@ -164,6 +164,50 @@
       "urgent": "Urgente"
     }
   },
+  "windowChrome": {
+    "menus": {
+      "file": "Archivo",
+      "edit": "Editar",
+      "view": "Ver",
+      "window": "Ventana",
+      "help": "Ayuda",
+      "aria": "Menú {{label}}"
+    },
+    "items": {
+      "quitOrg2": "Salir de ORG-2",
+      "newSession": "Nueva sesión",
+      "openFolder": "Abrir carpeta...",
+      "addFolderToWorkspace": "Añadir carpeta al espacio de trabajo...",
+      "saveWorkspaceAs": "Guardar espacio de trabajo como...",
+      "closeWindow": "Cerrar ventana",
+      "undo": "Deshacer",
+      "redo": "Rehacer",
+      "cut": "Cortar",
+      "copy": "Copiar",
+      "paste": "Pegar",
+      "selectAll": "Seleccionar todo",
+      "commandPalette": "Paleta de comandos",
+      "goToFile": "Ir al archivo...",
+      "selectModel": "Seleccionar modelo...",
+      "switchWorkspace": "Cambiar espacio de trabajo...",
+      "switchBranch": "Cambiar rama...",
+      "switchRunningLocation": "Cambiar ubicación de ejecución...",
+      "settings": "Configuración...",
+      "zoomIn": "Acercar",
+      "zoomOut": "Alejar",
+      "actualSize": "Tamaño real",
+      "minimize": "Minimizar",
+      "maximizeRestore": "Maximizar / Restaurar",
+      "maximizeWorkstation": "Maximizar estación de trabajo",
+      "documentation": "Documentación",
+      "reportIssue": "Informar de un problema"
+    },
+    "controls": {
+      "minimizeWindow": "Minimizar ventana",
+      "maximizeRestoreWindow": "Maximizar o restaurar ventana",
+      "closeWindow": "Cerrar ventana"
+    }
+  },
   "toasts": {
     "replyEmpty": "La respuesta no puede estar vacía",
     "sessionNotFound": "Sesión no encontrada",
@@ -2467,8 +2511,8 @@
     "selectRepoToStart": "Selecciona un Repo para empezar"
   },
   "quitConfirmation": {
-    "title": "¿Salir de ORGII?",
-    "subtitle": "Las sesiones en ejecución conservarán su estado actual. Puedes volver a abrir ORGII más tarde.",
+    "title": "¿Salir de ORG-2?",
+    "subtitle": "Las sesiones en ejecución conservarán su estado actual. Puedes volver a abrir ORG-2 más tarde.",
     "cancel": "Cancelar",
     "confirm": "Salir"
   },
