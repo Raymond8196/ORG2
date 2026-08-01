@@ -7,9 +7,9 @@ import {
 import { open } from "@tauri-apps/plugin-shell";
 import type { TFunction } from "i18next";
 import { Minus, Square, X } from "lucide-react";
-import React, { memo, useCallback } from "react";
-import { useTranslation } from "react-i18next";
+import React, { memo, useCallback, useMemo, useSyncExternalStore } from "react";
 
+import i18n from "@src/i18n";
 import {
   closeWindow,
   maxWindow,
@@ -33,6 +33,13 @@ const CLOSE_BUTTON_CLASS =
   "flex h-full w-11 items-center justify-center border-0 bg-transparent p-0 text-text-2 transition-colors hover:bg-danger-6 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger-6/30";
 
 type NativeMenuKey = "file" | "edit" | "view" | "window" | "help";
+
+const subscribeToLanguageChange = (onStoreChange: () => void) => {
+  i18n.on("languageChanged", onStoreChange);
+  return () => i18n.off("languageChanged", onStoreChange);
+};
+
+const getActiveLanguage = () => i18n.resolvedLanguage ?? i18n.language ?? "en";
 
 type NativeMenuItem =
   | {
@@ -265,7 +272,15 @@ async function showNativeStyleMenu(
 }
 
 const WindowsTopBarComponent: React.FC = () => {
-  const { t } = useTranslation("common");
+  const activeLanguage = useSyncExternalStore(
+    subscribeToLanguageChange,
+    getActiveLanguage,
+    getActiveLanguage
+  );
+  const t = useMemo(
+    () => i18n.getFixedT(activeLanguage, "common"),
+    [activeLanguage]
+  );
 
   const handleMinimize = useCallback(() => {
     handleWindowAction(minWindow);
