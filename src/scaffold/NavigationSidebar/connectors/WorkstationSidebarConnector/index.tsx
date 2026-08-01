@@ -562,12 +562,11 @@ export const WorkstationSidebarConnector: React.FC = () => {
         onSubmenuOpenChange={handleSubmenuOpenChange}
         onMenuItemContextMenu={resolvedMenuItemContextMenu}
         renderMenuItemWrapper={resolvedRenderMenuItemWrapper}
-        preListContent={
-          <>
-            <div className="shrink-0 px-3 pt-1">{sidebarOrgSelector}</div>
-            {sidebarLayerHeader}
-          </>
+        hostTopBarLeadingContent={sidebarOrgSelector}
+        macTopBarFollowingContent={
+          <div className="shrink-0 px-3 pt-1">{sidebarOrgSelector}</div>
         }
+        preListContent={sidebarLayerHeader}
         onAddNew={handleOpenSpotlight}
         addIcon={Search}
         addLabel={tCommon("actions.search")}
