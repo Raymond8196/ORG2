@@ -1663,6 +1663,11 @@ pub async fn test_agent_org_seed_stale_worker_run(
         .filter(|value| !value.trim().is_empty())
         .map(str::to_string)
         .unwrap_or_else(|| format!("agent-org-stale-root-{}", uuid::Uuid::new_v4()));
+    let fixture_updated_at = obj
+        .get("updated_at")
+        .and_then(|value| value.as_str())
+        .filter(|value| !value.trim().is_empty())
+        .map(str::to_string);
     let workers = match obj.get("workers").and_then(|value| value.as_array()) {
         Some(value) if !value.is_empty() => value.clone(),
         _ => {
@@ -1685,12 +1690,14 @@ pub async fn test_agent_org_seed_stale_worker_run(
         agent_core::coordination::agent_org_tasks::init_schema(&conn)
             .map_err(|err| err.to_string())?;
 
-        let now = chrono::Utc::now().to_rfc3339();
+        let now = fixture_updated_at.unwrap_or_else(|| chrono::Utc::now().to_rfc3339());
         upsert_session(&UnifiedSessionRecord {
             session_id: root_session_id.clone(),
             name: "stale-worker-root".to_string(),
             status: SessionStatus::Running.as_str().to_string(),
-            session_type: session_type::GENERIC.to_string(),
+            // Match the production Agent Org launch path: coordinator roots
+            // are top-level coding sessions, not generic fallback rows.
+            session_type: session_type::CODING.to_string(),
             agent_definition_id: Some(coordinator_agent_id.clone()),
             org_member_id: Some(COORDINATOR_MEMBER_ID.to_string()),
             created_at: now.clone(),

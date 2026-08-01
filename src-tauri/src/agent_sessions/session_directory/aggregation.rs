@@ -10,7 +10,10 @@ use std::collections::HashSet;
 use crate::agent_sessions::cli::persistence as cli_session_persistence;
 use agent_core::coordination::agent_org_runs::{AgentOrgRunRecord, AgentOrgRunStore};
 use agent_core::definitions::orgs::OrgDefinition;
-use agent_core::session::persistence::{self as session_persistence, session_type};
+use agent_core::session::persistence::{
+    self as session_persistence, list_agent_org_root_sessions_page,
+    list_standalone_coding_sessions_page, session_type,
+};
 use chrono::DateTime;
 use core_types::key_source::KeySource;
 use database::db::get_connection;
@@ -51,9 +54,13 @@ use super::conversion::{
     os_session_to_aggregate_record, sde_session_to_aggregate_record, AgentMetadataResolver,
 };
 use super::display::matches_text_query;
-use super::types::{SessionAggregateRecord, SessionFilter, SessionListResponse};
+use super::types::{
+    NativeSidebarSessionPageResponse, NativeSidebarSessionStream, SessionAggregateRecord,
+    SessionFilter, SessionListResponse,
+};
 
 const IMPORTED_HISTORY_PAGE_SIZE: usize = 500;
+pub const NATIVE_SIDEBAR_PAGE_MAX_LIMIT: usize = 50;
 
 enum ExternalHistoryPage {
     Imported(ImportedHistorySessionPage),
@@ -1089,17 +1096,22 @@ fn agent_org_display_name(run: &AgentOrgRunRecord) -> String {
 }
 
 fn annotate_agent_org_root_rows(sessions: &mut [SessionAggregateRecord]) -> Result<(), String> {
-    let root_session_ids: std::collections::HashMap<String, (String, String)> =
-        AgentOrgRunStore::list_runs(usize::MAX)?
-            .into_iter()
-            .filter_map(|run| {
-                let root_session_id = run.root_session_id.clone()?;
-                let org_name = agent_org_display_name(&run);
-                Some((root_session_id, (run.org_id, org_name)))
-            })
-            .collect();
-    if root_session_ids.is_empty() {
+    let requested_root_ids = sessions
+        .iter()
+        .map(|session| session.session_id.clone())
+        .collect::<Vec<_>>();
+    if requested_root_ids.is_empty() {
         return Ok(());
+    }
+    let mut root_session_ids = std::collections::HashMap::new();
+    for run in AgentOrgRunStore::list_runs_for_root_session_ids(&requested_root_ids)? {
+        let Some(root_session_id) = run.root_session_id.clone() else {
+            continue;
+        };
+        let org_name = agent_org_display_name(&run);
+        root_session_ids
+            .entry(root_session_id)
+            .or_insert((run.org_id, org_name));
     }
 
     for session in sessions {
@@ -1111,6 +1123,52 @@ fn annotate_agent_org_root_rows(sessions: &mut [SessionAggregateRecord]) -> Resu
     }
 
     Ok(())
+}
+
+/// Load a bounded page for one native sidebar stream.
+///
+/// The store applies stream membership before LIMIT/OFFSET. We over-fetch one
+/// row to compute `has_more`, then return the next offset derived from rows
+/// actually delivered rather than from the raw database page.
+pub fn list_native_sidebar_sessions(
+    stream: NativeSidebarSessionStream,
+    offset: usize,
+    limit: usize,
+) -> Result<NativeSidebarSessionPageResponse, String> {
+    if limit == 0 || limit > NATIVE_SIDEBAR_PAGE_MAX_LIMIT {
+        return Err(format!(
+            "Native sidebar page limit must be between 1 and {NATIVE_SIDEBAR_PAGE_MAX_LIMIT}"
+        ));
+    }
+    let fetch_limit = limit
+        .checked_add(1)
+        .ok_or_else(|| "Native sidebar page limit overflow".to_string())?;
+    let mut page = match stream {
+        NativeSidebarSessionStream::StandaloneAgent => {
+            list_standalone_coding_sessions_page(fetch_limit, offset)?
+        }
+        NativeSidebarSessionStream::AgentOrgRoot => {
+            list_agent_org_root_sessions_page(fetch_limit, offset)?
+        }
+    };
+    let has_more = page.len() > limit;
+    page.truncate(limit);
+
+    let mut resolver = AgentMetadataResolver::new();
+    let mut sessions = page
+        .into_iter()
+        .map(|session| sde_session_to_aggregate_record(session, &mut resolver))
+        .collect::<Vec<_>>();
+    if stream == NativeSidebarSessionStream::AgentOrgRoot {
+        annotate_agent_org_root_rows(&mut sessions)?;
+    }
+    let next_offset = offset.saturating_add(sessions.len());
+
+    Ok(NativeSidebarSessionPageResponse {
+        sessions,
+        next_offset,
+        has_more,
+    })
 }
 
 // ============================================================================
@@ -1349,5 +1407,18 @@ mod tests {
         let mut sorted_by_name = plain_page_filter();
         sorted_by_name.sort_by = Some("name".to_string());
         assert!(plain_native_page(Some(&sorted_by_name)).unwrap().is_none());
+    }
+
+    #[test]
+    fn native_sidebar_page_rejects_unbounded_limits_before_querying() {
+        for invalid_limit in [0, NATIVE_SIDEBAR_PAGE_MAX_LIMIT + 1] {
+            let error = list_native_sidebar_sessions(
+                NativeSidebarSessionStream::StandaloneAgent,
+                0,
+                invalid_limit,
+            )
+            .expect_err("invalid native sidebar limit must fail");
+            assert!(error.contains("between 1 and 50"));
+        }
     }
 }

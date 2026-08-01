@@ -202,7 +202,7 @@ impl Default for UnifiedSessionRecord {
 /// the `NOT NULL DEFAULT 'own_key'` schema. The row mapper then runs
 /// `KeySource::parse` on the resulting string and rejects any unknown
 /// value — fail-closed, same posture as the CLI side.
-pub(super) const UNIFIED_SESSION_SELECT: &str = r#"
+pub(in crate::core::session::persistence) const UNIFIED_SESSION_SELECT: &str = r#"
     SELECT
         s.session_id, s.name, s.status, s.model, s.account_id, s.user_input,
         COALESCE((SELECT total_tokens FROM orgtrack_core_session_usage WHERE session_id = s.session_id), 0),
@@ -224,7 +224,9 @@ pub(super) const UNIFIED_SESSION_SELECT: &str = r#"
 
 /// Row mapper for unified session records. Must be kept in lock-step with
 /// [`UNIFIED_SESSION_SELECT`].
-pub(super) fn row_to_record(row: &rusqlite::Row) -> rusqlite::Result<UnifiedSessionRecord> {
+pub(in crate::core::session::persistence) fn row_to_record(
+    row: &rusqlite::Row,
+) -> rusqlite::Result<UnifiedSessionRecord> {
     let key_source_str: String = row.get(28)?;
     // Fail-closed on unknown `key_source` values rather than silently
     // mapping to `OwnKey`: a bad value here means the row was written by

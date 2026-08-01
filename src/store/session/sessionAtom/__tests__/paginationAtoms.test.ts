@@ -15,7 +15,9 @@ describe("session pagination categories", () => {
 
     expect(SESSION_LIST_CATEGORIES).toEqual([
       "cli_agent",
-      "rust_agent",
+      "standalone_agent",
+      "agent_org_root",
+      "os_agent",
       "human_session",
       ...importedCategories,
     ]);

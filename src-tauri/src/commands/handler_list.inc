@@ -1173,8 +1173,10 @@ agent_sessions::event_pipeline::commands::es_get_child_sessions,
 agent_sessions::event_pipeline::commands::es_get_parent_session,
 // Debug-only: WDIO subagent-monitor fixture seeding (no-op outside debug builds)
 agent_sessions::event_pipeline::commands::debug_seed_child_session,
+agent_sessions::event_pipeline::commands::debug_seed_sidebar_coding_session,
 // Unified Session API commands
 agent_sessions::session_directory::commands::session_aggregate_list,
+agent_sessions::session_directory::commands::session_native_sidebar_page,
 agent_sessions::session_directory::commands::session_external_history_sidebar_list,
 agent_sessions::session_directory::patch::session_patch,
 // Flow Awareness commands (user activity tracking for intent inference)

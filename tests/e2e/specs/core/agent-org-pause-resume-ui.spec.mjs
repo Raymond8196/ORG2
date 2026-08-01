@@ -494,6 +494,228 @@ describe("Agent Org pause, resume, and sidebar rendered UI", () => {
     }
   }));
 
+  it("Standalone Agent and Agent Org root pagination advance independently", async () => runAgentOrgScenarioWithTimeout("independent-native-sidebar-pagination", async () => {
+    // Debug helpers seed durable preconditions only. The assertions below use
+    // the rendered filter menu and real NavigationMenu Load more clicks.
+    const fixturePrefix = `issue-555-${RUN_ID}`;
+    const futureTimestamp = "2099-07-29T12:00:00Z";
+    const standaloneSessionIds = Array.from(
+      { length: 11 },
+      (_, index) =>
+        `sdeagent-${fixturePrefix}-standalone-${String(index).padStart(2, "0")}`
+    );
+    const rootSessionIds = Array.from(
+      { length: 11 },
+      (_, index) =>
+        `sdeagent-${fixturePrefix}-root-${String(index).padStart(2, "0")}`
+    );
+    const workerSessionIds = Array.from(
+      { length: 11 },
+      (_, index) =>
+        `sdeagent-${fixturePrefix}-worker-${String(index).padStart(2, "0")}`
+    );
+    const runIds = [];
+
+    try {
+      // Seed in the same descending order used by the backend query. If an
+      // app-start refresh overlaps fixture setup, it can only observe rows
+      // belonging to page 1; the deliberately deferred `00` row stays absent
+      // until the explicit pagination click below.
+      for (let index = 10; index >= 0; index -= 1) {
+        unwrap(
+          await invokeE2E("debugSeedSidebarCodingSessionWire", {
+            sessionId: standaloneSessionIds[index],
+            name: `Issue 555 standalone ${String(index).padStart(2, "0")}`,
+            status: "idle",
+            createdAt: futureTimestamp,
+            updatedAt: futureTimestamp,
+          }),
+          `seed standalone sidebar row ${index}`
+        );
+
+        const seededRun = await postJson(
+          "/agent/test/agent-org/stale-workers/seed-run",
+          {
+            org_id: `e2e-agent-org-fixture:${fixturePrefix}-${String(index).padStart(2, "0")}`,
+            coordinator_agent_id: "builtin:sde",
+            root_session_id: rootSessionIds[index],
+            updated_at: futureTimestamp,
+            workers: [
+              {
+                session_id: workerSessionIds[index],
+                member_id: "worker",
+                agent_definition_id: "builtin:sde",
+                status: "idle",
+                updated_at: "2099-07-29T11:00:00Z",
+              },
+            ],
+          }
+        );
+        runIds.push(seededRun.org_run_id);
+      }
+
+      // Deterministic view setup only: grouping is not the behavior under
+      // test. This also refreshes the production sidebar roster without a
+      // full WebView reload, which is unstable in the Tauri WebDriver plugin.
+      unwrap(
+        await invokeE2E("setSidebarGroupBy", "byAgent"),
+        "select by-agent sidebar grouping"
+      );
+
+      const rootPagerSelector =
+        '[data-menu-item-id="load-more-agent_org_root"]';
+      const standalonePagerSelector =
+        '[data-menu-item-id="load-more-standalone_agent"]';
+      const localSdePagerSelector =
+        '[data-menu-item-id="load-more-group-agent:sde"]';
+
+      // The by-agent view has a local group cap in front of backend
+      // pagination. Reveal already-loaded SDE rows first; these clicks do not
+      // advance either backend cursor.
+      for (let revealAttempt = 0; revealAttempt < 10; revealAttempt += 1) {
+        if (await execJS(js.exists(standalonePagerSelector))) break;
+        if (!(await execJS(js.exists(localSdePagerSelector)))) break;
+        if ((await execJS(js.click(localSdePagerSelector))) !== "clicked") {
+          throw new Error("Standalone SDE local pager click failed");
+        }
+      }
+
+      const pagersRendered = await browser
+        .waitUntil(
+          async () =>
+            (await execJS(js.exists(rootPagerSelector))) &&
+            (await execJS(js.exists(standalonePagerSelector))),
+          {
+            timeout: RENDER_TIMEOUT_MS,
+            timeoutMsg:
+              "Independent Agent Org and standalone Agent backend pagers did not render",
+          }
+        )
+        .then(() => true)
+        .catch(() => false);
+      if (!pagersRendered) {
+        const diagnostics = await execJS(`return JSON.stringify((() => ({
+          groupBy: localStorage.getItem("orgii:sidebarGroupBy"),
+          fixtureRows: Array.from(document.querySelectorAll('[data-testid^="sidebar-session-item-sdeagent-${fixturePrefix}"]'))
+            .map((row) => row.getAttribute("data-testid")),
+          loadMoreRows: Array.from(document.querySelectorAll('[data-menu-item-id^="load-more-"]'))
+            .map((row) => row.getAttribute("data-menu-item-id")),
+        }))())`);
+        throw new Error(
+          `Independent Agent Org and standalone Agent backend pagers did not render: ${JSON.stringify(diagnostics)}`
+        );
+      }
+
+      const deferredRootId = rootSessionIds[0];
+      const deferredStandaloneId = standaloneSessionIds[0];
+      if (
+        await execJS(
+          js.exists(`[data-testid="sidebar-session-item-${deferredRootId}"]`)
+        )
+      ) {
+        throw new Error("Agent Org page 2 row rendered before Load more");
+      }
+      if (
+        await execJS(
+          js.exists(
+            `[data-testid="sidebar-session-item-${deferredStandaloneId}"]`
+          )
+        )
+      ) {
+        throw new Error("Standalone Agent page 2 row rendered before Load more");
+      }
+
+      // Advancing Agent Org roots must not advance the standalone cursor.
+      if ((await execJS(js.click(rootPagerSelector))) !== "clicked") {
+        throw new Error("Agent Org backend pager click failed");
+      }
+      await browser.waitUntil(
+        () =>
+          execJS(
+            js.exists(
+              `[data-testid="sidebar-session-item-${deferredRootId}"]`
+            )
+          ),
+        {
+          timeout: RENDER_TIMEOUT_MS,
+          timeoutMsg: "Agent Org page 2 root did not render after Load more",
+        }
+      );
+      if (
+        await execJS(
+          js.exists(
+            `[data-testid="sidebar-session-item-${deferredStandaloneId}"]`
+          )
+        )
+      ) {
+        throw new Error(
+          "Agent Org Load more incorrectly advanced standalone Agent rows"
+        );
+      }
+      if (!(await execJS(js.exists(standalonePagerSelector)))) {
+        throw new Error(
+          "Standalone Agent pager disappeared when only Agent Org advanced"
+        );
+      }
+
+      // Standalone page 2 enters the loaded SDE group. The existing local
+      // group cap may expose its own real Load more row, depending on how many
+      // pre-existing SDE rows the isolated app created.
+      if ((await execJS(js.click(standalonePagerSelector))) !== "clicked") {
+        throw new Error("Standalone Agent backend pager click failed");
+      }
+      await browser.waitUntil(
+        async () =>
+          (await execJS(
+            js.exists(
+              `[data-testid="sidebar-session-item-${deferredStandaloneId}"]`
+            )
+          )) || (await execJS(js.exists(localSdePagerSelector))),
+        {
+          timeout: RENDER_TIMEOUT_MS,
+          timeoutMsg:
+            "Standalone page 2 neither rendered nor exposed a local SDE pager",
+        }
+      );
+      if (
+        !(await execJS(
+          js.exists(
+            `[data-testid="sidebar-session-item-${deferredStandaloneId}"]`
+          )
+        )) &&
+        (await execJS(js.click(localSdePagerSelector))) !== "clicked"
+      ) {
+        throw new Error("Standalone SDE local page 2 reveal click failed");
+      }
+      await browser.waitUntil(
+        () =>
+          execJS(
+            js.exists(
+              `[data-testid="sidebar-session-item-${deferredStandaloneId}"]`
+            )
+          ),
+        {
+          timeout: RENDER_TIMEOUT_MS,
+          timeoutMsg:
+            "Standalone Agent page 2 row did not render after backend and local Load more clicks",
+        }
+      );
+    } finally {
+      for (const orgRunId of runIds) {
+        await postJson("/agent/test/agent-org/run/cleanup", {
+          org_run_id: orgRunId,
+        }).catch(() => {});
+      }
+      for (const sessionId of [
+        ...standaloneSessionIds,
+        ...rootSessionIds,
+        ...workerSessionIds,
+      ]) {
+        await invokeE2E("deleteSessionWire", sessionId).catch(() => {});
+      }
+    }
+  }));
+
   it("Coordinator session remains in sidebar after switching to a member session and back", async () => runAgentOrgScenarioWithTimeout("coordinator-sidebar-after-member-switch", async () => {
     // Regression guard for the bug where switching to a member chat and then back caused the new coordinator session to disappear from the left sidebar.
     //

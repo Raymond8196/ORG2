@@ -31,6 +31,7 @@ pub use ops::{
     update_org_member_id, update_pinned, update_reply_target_event_id, update_status,
     update_work_item_link, upsert_session,
 };
+pub(super) use record::{row_to_record, UNIFIED_SESSION_SELECT};
 pub use record::{session_type, UnifiedSessionRecord};
 pub use workspace::{
     clear_worktree_metadata, load_workspace, save_workspace, save_worktree_metadata,

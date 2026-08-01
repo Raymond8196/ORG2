@@ -62,6 +62,7 @@ function appendTrailingLoadMoreItems(items: NavigationMenuItem[]): void {
 function loadMoreRowFor(
   category: SessionListCategory
 ): NavigationMenuItem | null {
+  if (category === "agent_org_root") return null;
   return {
     id: `load-more-${category}`,
     key: `load-more-${category}`,
@@ -194,6 +195,69 @@ describe("session menu section builders", () => {
 
     expect(getLoadMoreItemIds(items)).toEqual([
       "load-more-external_history:cursor_ide",
+    ]);
+  });
+
+  it("places the Agent Org backend pager after all loaded Agent Org groups", () => {
+    const rootA = {
+      ...makeSession("sdeagent-org-a", "2026-06-09T00:00:00.000Z"),
+      agentOrgId: "org-a",
+      agentOrgName: "Alpha",
+    };
+    const rootB = {
+      ...makeSession("sdeagent-org-b", "2026-06-10T00:00:00.000Z"),
+      agentOrgId: "org-b",
+      agentOrgName: "Beta",
+    };
+
+    const items = buildByAgentMenuItems({
+      unpinnedSessions: [rootB, rootA],
+      appendPinnedSessions,
+      appendGroupSessions,
+      loadMoreRowFor: (category) =>
+        category === "agent_org_root"
+          ? {
+              id: "load-more-agent_org_root",
+              key: "load-more-agent_org_root",
+              label: "Load more",
+            }
+          : null,
+    });
+
+    expect(items.map((item) => item.id)).toEqual([
+      "separator-agent-org:org-a",
+      "sdeagent-org-a",
+      "separator-agent-org:org-b",
+      "sdeagent-org-b",
+      "load-more-agent_org_root",
+    ]);
+  });
+
+  it("keeps the Agent Org backend pager when loaded roots are all pinned", () => {
+    const items = buildByAgentMenuItems({
+      unpinnedSessions: [],
+      appendPinnedSessions: (target) => {
+        target.push({
+          id: "pinned-org-root",
+          key: "pinned-org-root",
+          label: "Pinned root",
+        });
+        return false;
+      },
+      appendGroupSessions,
+      loadMoreRowFor: (category) =>
+        category === "agent_org_root"
+          ? {
+              id: "load-more-agent_org_root",
+              key: "load-more-agent_org_root",
+              label: "Load more",
+            }
+          : null,
+    });
+
+    expect(items.map((item) => item.id)).toEqual([
+      "pinned-org-root",
+      "load-more-agent_org_root",
     ]);
   });
 });

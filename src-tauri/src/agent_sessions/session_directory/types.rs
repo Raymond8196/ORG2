@@ -286,6 +286,23 @@ pub struct SessionListResponse {
     pub sessions: Vec<SessionAggregateRecord>,
 }
 
+/// Independent native sidebar streams. Classification happens in SQL before
+/// pagination so neither stream can consume the other's page capacity.
+#[derive(Debug, Clone, Copy, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum NativeSidebarSessionStream {
+    StandaloneAgent,
+    AgentOrgRoot,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NativeSidebarSessionPageResponse {
+    pub sessions: Vec<SessionAggregateRecord>,
+    pub next_offset: usize,
+    pub has_more: bool,
+}
+
 #[derive(Debug, Clone, Copy, Deserialize, Eq, Hash, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum ExternalHistorySidebarDateBucket {
