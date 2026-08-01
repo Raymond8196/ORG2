@@ -255,6 +255,16 @@ fn codex_initial_window_catalogs_old_turns_and_loads_one_turn_on_demand() {
             .collect::<Vec<_>>(),
         vec!["first", "second"]
     );
+    // The context placeholder must span up to the loaded turn's start. If it
+    // fell back to the previous header's own started_at, the created_at tie
+    // would sort the placeholder before its header in chat and split a
+    // phantom headerless round.
+    let context_placeholder = &turn.chunks[1];
+    assert!(context_placeholder
+        .chunk_id
+        .starts_with("codex-unloaded-turn-"));
+    assert_eq!(context_placeholder.created_at, turn.chunks[2].created_at);
+    assert_ne!(context_placeholder.created_at, turn.chunks[0].created_at);
 
     std::fs::remove_file(&path).expect("remove fixture");
     std::fs::remove_dir(&temp_dir).expect("remove temp dir");

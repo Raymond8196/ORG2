@@ -35,7 +35,10 @@ const CLAUDE_CODE_PROVIDER_SLUG: &str = "claudecode";
 // v7: capture cache_read/cache_write tokens separately (input stays cache-inclusive).
 // v8: emit per-round usage rows (imported_history_round_usage).
 // v9: dedup usage by message.id (one API response spans repeated JSONL lines).
-const CLAUDE_CODE_METADATA_PARSER_VERSION: i64 = 9;
+// v10: harness-injected user lines (isMeta, task-notification origin) no
+// longer open rounds or feed the first-prompt title; user image blocks
+// surface as data-URL attachments on the user bubble.
+const CLAUDE_CODE_METADATA_PARSER_VERSION: i64 = 10;
 
 pub type ClaudeCodeHistorySessionRow = ImportedHistorySessionRow;
 pub type ClaudeCodeHistorySessionPage = ImportedHistorySessionPage;
@@ -111,6 +114,27 @@ struct ClaudeJsonlLine {
     /// Per-message uuid, preserved verbatim across continuation rewrites.
     #[serde(default)]
     uuid: String,
+    /// `true` on harness-injected user lines (command caveats, hook feedback,
+    /// loop ticks) that Claude Code's own UI hides from the conversation.
+    #[serde(default)]
+    is_meta: bool,
+    /// Provenance of a user line. Observed kinds: `human` (typed prompt) and
+    /// `task-notification` (background-task completion wake).
+    #[serde(default)]
+    origin: Option<ClaudeLineOrigin>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ClaudeLineOrigin {
+    #[serde(default)]
+    kind: String,
+}
+
+fn is_harness_injected_user_line(parsed: &ClaudeJsonlLine) -> bool {
+    imported_history::is_harness_injected_user_marker(
+        parsed.is_meta,
+        parsed.origin.as_ref().map(|origin| origin.kind.as_str()),
+    )
 }
 
 #[derive(Debug, Deserialize)]
@@ -305,7 +329,7 @@ fn index_claude_user_turns(
             count_toward_previous_turn(&mut turns);
             continue;
         };
-        if parsed.r#type != "user" {
+        if parsed.r#type != "user" || is_harness_injected_user_line(&parsed) {
             count_toward_previous_turn(&mut turns);
             continue;
         }
@@ -929,8 +953,9 @@ impl ClaudeSessionMetaState {
         {
             self.first_user_uuid = Some(parsed.uuid.trim().to_string());
         }
+        let harness_injected = is_harness_injected_user_line(&parsed);
         if let Some(message) = parsed.message {
-            if self.first_prompt.is_empty() && parsed.r#type == "user" {
+            if self.first_prompt.is_empty() && parsed.r#type == "user" && !harness_injected {
                 if let Some(text) = claude_content_text(&message.content) {
                     // GUI-launched runs prefix the first prompt with the
                     // exec-mode briefing; bridge-only text is no title
@@ -1325,6 +1350,7 @@ fn load_claude_code_history_from_reader<R: BufRead>(
             .as_deref()
             .map(imported_history::normalize_created_at)
             .unwrap_or_else(|| chrono::Utc::now().to_rfc3339());
+        let harness_injected = is_harness_injected_user_line(&parsed);
         let Some(message) = parsed.message else {
             continue;
         };
@@ -1349,20 +1375,28 @@ fn load_claude_code_history_from_reader<R: BufRead>(
                             sequence += 1;
                         }
                     }
-                } else if let Some(text) = claude_content_text(&message.content) {
+                } else {
                     // Strip the GUI exec-mode briefing; a bridge-only message
                     // carries no user-authored text, so emit no bubble.
-                    let text = imported_history::strip_orgii_exec_mode_bridge(&text);
-                    if !text.trim().is_empty() {
+                    let text = claude_content_text(&message.content)
+                        .map(|text| {
+                            imported_history::strip_orgii_exec_mode_bridge(&text).to_string()
+                        })
+                        .unwrap_or_default();
+                    let images = claude_content_image_data_urls(&message.content);
+                    if !harness_injected && (!text.trim().is_empty() || !images.is_empty()) {
                         let mut chunk = imported_history::user_message_chunk(
                             session_id,
                             CLAUDE_CODE_PROVIDER_SLUG,
                             sequence,
                             &created_at,
-                            text,
+                            &text,
                         );
                         if let Some(turn_id) = forced_first_user_id.take() {
                             chunk.chunk_id = turn_id.to_string();
+                        }
+                        if !images.is_empty() {
+                            chunk.result["images"] = json!(images);
                         }
                         chunks.push(chunk);
                         sequence += 1;
@@ -1591,6 +1625,33 @@ fn claude_content_text(content: &Value) -> Option<String> {
         }
         _ => None,
     }
+}
+
+fn claude_content_image_data_urls(content: &Value) -> Vec<String> {
+    let Value::Array(items) = content else {
+        return Vec::new();
+    };
+    items
+        .iter()
+        .filter_map(|item| {
+            if item.get("type").and_then(Value::as_str) != Some("image") {
+                return None;
+            }
+            let source = item.get("source")?;
+            if source.get("type").and_then(Value::as_str) != Some("base64") {
+                return None;
+            }
+            let media_type = source
+                .get("media_type")
+                .and_then(Value::as_str)
+                .unwrap_or("image/png");
+            let data = source.get("data").and_then(Value::as_str)?;
+            if data.is_empty() {
+                return None;
+            }
+            Some(format!("data:{media_type};base64,{data}"))
+        })
+        .collect()
 }
 
 fn claude_tool_result_text(content: &Value) -> Option<Option<(String, String)>> {

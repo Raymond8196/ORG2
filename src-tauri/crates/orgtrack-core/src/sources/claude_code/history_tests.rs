@@ -166,6 +166,170 @@ fn byte_index_discovers_rounds_without_parsing_tool_result_bodies() {
 }
 
 #[test]
+fn harness_injected_user_lines_do_not_open_rounds() {
+    let temp_dir = std::env::temp_dir().join(format!(
+        "orgii-claude-history-synthetic-test-{}",
+        std::process::id()
+    ));
+    std::fs::create_dir_all(&temp_dir).expect("create temp dir");
+    let path = temp_dir.join("claude-synthetic.jsonl");
+    let content = r#"{"type":"user","timestamp":"2026-04-01T07:00:00Z","origin":{"kind":"human"},"message":{"role":"user","content":"real prompt"}}
+{"type":"assistant","timestamp":"2026-04-01T07:00:01Z","message":{"role":"assistant","content":[{"type":"text","text":"working"}]}}
+{"type":"user","timestamp":"2026-04-01T07:00:02Z","origin":{"kind":"task-notification"},"message":{"role":"user","content":"<task-notification>\n<task-id>abc123</task-id>\n<status>completed</status>\n</task-notification>"}}
+{"type":"assistant","timestamp":"2026-04-01T07:00:03Z","message":{"role":"assistant","content":[{"type":"text","text":"task consumed"}]}}
+{"type":"user","timestamp":"2026-04-01T07:00:04Z","isMeta":true,"message":{"role":"user","content":"<local-command-caveat>Caveat: the following was run</local-command-caveat>"}}
+{"type":"assistant","timestamp":"2026-04-01T07:00:05Z","message":{"role":"assistant","content":[{"type":"text","text":"caveat consumed"}]}}
+{"type":"user","timestamp":"2026-04-01T07:01:00Z","message":{"role":"user","content":"second prompt"}}
+{"type":"assistant","timestamp":"2026-04-01T07:01:01Z","message":{"role":"assistant","content":[{"type":"text","text":"second done"}]}}
+"#;
+    std::fs::write(&path, content).expect("write fixture");
+
+    let indexed =
+        index_claude_user_turns("claudecodeapp-synthetic", &path).expect("index user turns");
+    let previews = indexed
+        .iter()
+        .map(|turn| {
+            turn.user_chunk
+                .result
+                .get("message")
+                .and_then(|message| message.get("content"))
+                .and_then(Value::as_str)
+                .unwrap_or_default()
+                .to_string()
+        })
+        .collect::<Vec<_>>();
+    assert_eq!(previews, vec!["real prompt", "second prompt"]);
+    assert_eq!(
+        indexed
+            .iter()
+            .map(|turn| turn.following_line_count)
+            .collect::<Vec<_>>(),
+        vec![5, 1]
+    );
+
+    let chunks =
+        load_claude_code_history_from_path("claudecodeapp-synthetic", &path).expect("parse");
+    let user_texts = chunks
+        .iter()
+        .filter(|chunk| chunk.function == imported_history::FUNCTION_USER_MESSAGE)
+        .map(|chunk| {
+            chunk
+                .result
+                .get("message")
+                .and_then(|message| message.get("content"))
+                .and_then(Value::as_str)
+                .unwrap_or_default()
+                .to_string()
+        })
+        .collect::<Vec<_>>();
+    assert_eq!(user_texts, vec!["real prompt", "second prompt"]);
+    let rendered = chunks
+        .iter()
+        .map(|chunk| chunk.result.to_string())
+        .collect::<Vec<_>>()
+        .join("\n");
+    assert!(!rendered.contains("task-notification"));
+    assert!(!rendered.contains("local-command-caveat"));
+    assert!(rendered.contains("task consumed"));
+
+    std::fs::remove_file(&path).expect("remove fixture");
+    std::fs::remove_dir(&temp_dir).expect("remove temp dir");
+}
+
+#[test]
+fn user_image_blocks_surface_as_data_url_attachments() {
+    let temp_dir = std::env::temp_dir().join(format!(
+        "orgii-claude-history-image-test-{}",
+        std::process::id()
+    ));
+    std::fs::create_dir_all(&temp_dir).expect("create temp dir");
+    let path = temp_dir.join("claude-images.jsonl");
+    let content = r#"{"type":"user","timestamp":"2026-04-01T07:00:00Z","message":{"role":"user","content":[{"type":"text","text":"make a pet from this"},{"type":"image","source":{"type":"base64","media_type":"image/webp","data":"UklGRg=="}}]}}
+{"type":"assistant","timestamp":"2026-04-01T07:00:01Z","message":{"role":"assistant","content":[{"type":"text","text":"working"}]}}
+{"type":"user","timestamp":"2026-04-01T07:01:00Z","message":{"role":"user","content":[{"type":"image","source":{"type":"base64","media_type":"image/png","data":"iVBORw=="}}]}}
+"#;
+    std::fs::write(&path, content).expect("write fixture");
+
+    let chunks = load_claude_code_history_from_path("claudecodeapp-images", &path).expect("parse");
+    let user_chunks = chunks
+        .iter()
+        .filter(|chunk| chunk.function == imported_history::FUNCTION_USER_MESSAGE)
+        .collect::<Vec<_>>();
+    assert_eq!(user_chunks.len(), 2);
+
+    let first_images = user_chunks[0]
+        .result
+        .get("images")
+        .and_then(Value::as_array)
+        .expect("first user chunk images");
+    assert_eq!(
+        first_images
+            .iter()
+            .filter_map(Value::as_str)
+            .collect::<Vec<_>>(),
+        vec!["data:image/webp;base64,UklGRg=="]
+    );
+    assert_eq!(
+        user_chunks[0]
+            .result
+            .pointer("/message/content")
+            .and_then(Value::as_str),
+        Some("make a pet from this")
+    );
+
+    let second_images = user_chunks[1]
+        .result
+        .get("images")
+        .and_then(Value::as_array)
+        .expect("image-only user chunk images");
+    assert_eq!(
+        second_images
+            .iter()
+            .filter_map(Value::as_str)
+            .collect::<Vec<_>>(),
+        vec!["data:image/png;base64,iVBORw=="]
+    );
+
+    std::fs::remove_file(&path).expect("remove fixture");
+    std::fs::remove_dir(&temp_dir).expect("remove temp dir");
+}
+
+#[test]
+fn harness_injected_first_line_does_not_title_session() {
+    let temp_dir = std::env::temp_dir().join(format!(
+        "orgii-claude-history-synthetic-title-test-{}",
+        std::process::id()
+    ));
+    std::fs::create_dir_all(&temp_dir).expect("create temp dir");
+    let path = temp_dir.join("claude-synthetic-title.jsonl");
+    let content = r#"{"type":"user","timestamp":"2026-04-01T07:00:00Z","isMeta":true,"message":{"role":"user","content":"<local-command-caveat>Caveat: the following was run</local-command-caveat>"}}
+{"type":"user","timestamp":"2026-04-01T07:00:01Z","origin":{"kind":"human"},"message":{"role":"user","content":"actual request"}}
+{"type":"assistant","timestamp":"2026-04-01T07:00:02Z","message":{"role":"assistant","model":"claude-sonnet-4","content":[{"type":"text","text":"done"}],"usage":{"input_tokens":1,"output_tokens":1}}}
+"#;
+    std::fs::write(&path, content).expect("write fixture");
+
+    let (source_mtime_ms, source_size_bytes) =
+        imported_paths::file_metadata_signature(&path, "Claude").expect("metadata");
+    let record = ImportedHistoryDiscoveredRecord {
+        source_session_id: "claude-synthetic-title".to_string(),
+        source_path: path.clone(),
+        source_record_key: "claude-synthetic-title".to_string(),
+        source_mtime_ms,
+        source_size_bytes,
+        source_fingerprint: String::new(),
+        parser_version: CLAUDE_CODE_METADATA_PARSER_VERSION,
+    };
+    let meta = parse_claude_session_meta(&record)
+        .expect("parse")
+        .expect("session meta");
+
+    assert_eq!(meta.name, "actual request");
+
+    std::fs::remove_file(&path).expect("remove fixture");
+    std::fs::remove_dir(&temp_dir).expect("remove temp dir");
+}
+
+#[test]
 fn claude_initial_window_placeholders_advertise_fetchable_bodies() {
     let temp_dir = std::env::temp_dir().join(format!(
         "orgii-claude-window-counts-test-{}",
@@ -184,8 +348,7 @@ fn claude_initial_window_placeholders_advertise_fetchable_bodies() {
     }
     std::fs::write(&path, content).expect("write fixture");
 
-    let indexed =
-        index_claude_user_turns("claudecodeapp-counts", &path).expect("index user turns");
+    let indexed = index_claude_user_turns("claudecodeapp-counts", &path).expect("index user turns");
     let file_len = std::fs::metadata(&path).expect("stat fixture").len();
     let mut file = std::fs::File::open(&path).expect("open fixture");
     let mut chunks = Vec::new();

@@ -92,6 +92,21 @@ struct JsonlLine {
     model_id: String,
     git_branch: String,
     message: Option<JsonlMessage>,
+    is_meta: bool,
+    origin: Option<JsonlOrigin>,
+}
+
+#[derive(Debug, Default, Deserialize)]
+#[serde(default)]
+struct JsonlOrigin {
+    kind: String,
+}
+
+fn is_harness_injected_line(parsed: &JsonlLine) -> bool {
+    imported_history::is_harness_injected_user_marker(
+        parsed.is_meta,
+        parsed.origin.as_ref().map(|origin| origin.kind.as_str()),
+    )
 }
 
 #[derive(Debug, Default, Deserialize)]
@@ -106,6 +121,7 @@ struct JsonlMessage {
 struct TranscriptTurn {
     created_at: String,
     message: JsonlMessage,
+    harness_injected: bool,
 }
 
 #[derive(Default)]
@@ -397,6 +413,7 @@ impl SessionMetaState {
             ensure_bounded_state_value("model", parsed.model_id.trim(), MAX_STATE_LABEL_BYTES)?;
             self.model = Some(parsed.model_id.trim().to_string());
         }
+        let harness_injected = is_harness_injected_line(&parsed);
         let Some(message) = parsed.message else {
             return Ok(());
         };
@@ -410,7 +427,7 @@ impl SessionMetaState {
         self.cache_read_tokens = self.cache_read_tokens.saturating_add(cache_read);
         self.cache_write_tokens = self.cache_write_tokens.saturating_add(cache_write);
         let role = effective_role(&parsed.line_type, &message.role);
-        if self.first_user_text.is_none() && role == "user" {
+        if self.first_user_text.is_none() && role == "user" && !harness_injected {
             self.first_user_text = first_content_text(&message.content)
                 .map(|text| imported_history::truncate_name(&text, 200));
         }
@@ -774,10 +791,14 @@ fn read_transcript(config: &AnthropicJsonlSource, path: &Path) -> Result<Transcr
             read.cache_read_tokens = read.cache_read_tokens.saturating_add(cache_read);
             read.cache_write_tokens = read.cache_write_tokens.saturating_add(cache_write);
             let role = effective_role(&parsed.line_type, &message.role);
-            if read.first_user_text.is_none() && role == "user" {
+            if read.first_user_text.is_none()
+                && role == "user"
+                && !is_harness_injected_line(&parsed)
+            {
                 read.first_user_text = first_content_text(&message.content);
             }
         }
+        let harness_injected = is_harness_injected_line(&parsed);
         match parsed.line_type.as_str() {
             "message" | "user" | "assistant" => {
                 if let Some(mut message) = parsed.message.take() {
@@ -787,6 +808,7 @@ fn read_transcript(config: &AnthropicJsonlSource, path: &Path) -> Result<Transcr
                     read.turns.push(TranscriptTurn {
                         created_at,
                         message,
+                        harness_injected,
                     });
                 }
             }
@@ -800,6 +822,7 @@ fn read_transcript(config: &AnthropicJsonlSource, path: &Path) -> Result<Transcr
                             content: json!([{ "type": "thinking", "thinking": text }]),
                             ..JsonlMessage::default()
                         },
+                        harness_injected: false,
                     });
                 }
             }
@@ -843,6 +866,9 @@ fn messages_to_chunks(
         for block in content_blocks(&turn.message.content) {
             match block_type(&block) {
                 "text" => {
+                    if is_user && turn.harness_injected {
+                        continue;
+                    }
                     let text = block
                         .get("text")
                         .and_then(Value::as_str)
@@ -1148,6 +1174,43 @@ mod tests {
     }
 
     #[test]
+    fn harness_injected_user_lines_emit_no_bubble_and_no_title() {
+        let temp_dir = std::env::temp_dir().join(format!(
+            "orgii-anthropic-jsonl-synthetic-test-{}",
+            std::process::id()
+        ));
+        std::fs::create_dir_all(&temp_dir).expect("create temp dir");
+        let path = temp_dir.join("synthetic.jsonl");
+        let content = r#"{"type":"user","timestamp":"2026-04-01T07:00:00Z","isMeta":true,"message":{"role":"user","content":[{"type":"text","text":"<local-command-caveat>Caveat</local-command-caveat>"}]}}
+{"type":"user","timestamp":"2026-04-01T07:00:01Z","origin":{"kind":"task-notification"},"message":{"role":"user","content":[{"type":"text","text":"<task-notification><task-id>t1</task-id></task-notification>"}]}}
+{"type":"user","timestamp":"2026-04-01T07:00:02Z","origin":{"kind":"human"},"message":{"role":"user","content":[{"type":"text","text":"real prompt"}]}}
+{"type":"assistant","timestamp":"2026-04-01T07:00:03Z","message":{"role":"assistant","content":[{"type":"text","text":"done"}]}}
+"#;
+        std::fs::write(&path, content).expect("write fixture");
+
+        let read = read_transcript(&test_config(), &path).expect("read transcript");
+        assert_eq!(read.first_user_text.as_deref(), Some("real prompt"));
+
+        let chunks = messages_to_chunks(&test_config(), "testapp-session", &read.turns);
+        let user_texts = chunks
+            .iter()
+            .filter(|chunk| chunk.function == imported_history::FUNCTION_USER_MESSAGE)
+            .map(|chunk| {
+                chunk
+                    .result
+                    .pointer("/message/content")
+                    .and_then(Value::as_str)
+                    .unwrap_or_default()
+                    .to_string()
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(user_texts, vec!["real prompt"]);
+
+        std::fs::remove_file(&path).expect("remove fixture");
+        std::fs::remove_dir(&temp_dir).expect("remove temp dir");
+    }
+
+    #[test]
     fn tool_results_are_paired_with_calls() {
         let turns = vec![
             TranscriptTurn {
@@ -1157,6 +1220,7 @@ mod tests {
                     content: json!([{"type":"tool_use","id":"call-1","name":"bash","input":{"command":"pwd"}}]),
                     ..JsonlMessage::default()
                 },
+                harness_injected: false,
             },
             TranscriptTurn {
                 created_at: String::new(),
@@ -1165,6 +1229,7 @@ mod tests {
                     content: json!([{"type":"tool_result","tool_use_id":"call-1","content":"/repo"}]),
                     ..JsonlMessage::default()
                 },
+                harness_injected: false,
             },
         ];
         let chunks = messages_to_chunks(&test_config(), "testapp-session", &turns);
