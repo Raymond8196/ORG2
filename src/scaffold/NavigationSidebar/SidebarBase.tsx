@@ -480,7 +480,7 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
     // current layout mode so it visually detaches from the workspace.
     const sidebarBoxShadow = shouldForceVisible
       ? "var(--sidebar-shadow)"
-      : IS_MACOS_HOST && sidebarEdgeDepthEnabled
+      : IS_WINDOWS_HOST || (IS_MACOS_HOST && sidebarEdgeDepthEnabled)
         ? "var(--sidebar-edge-shadow)"
         : "none";
     const sidebarBackdropFilter = "none";
@@ -496,7 +496,9 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
           ...floatingSurfaceOverride,
         }
       : {
-          backgroundColor: "var(--sidebar-bg)",
+          backgroundColor: IS_WINDOWS_HOST
+            ? "color-mix(in srgb, var(--color-bg-2) var(--windows-native-chrome-opacity, 30%), transparent)"
+            : "var(--sidebar-bg)",
           borderColor: "var(--sidebar-border)",
           boxShadow: sidebarBoxShadow,
           backdropFilter: sidebarBackdropFilter,
@@ -516,7 +518,10 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
     // Modern chrome keeps the sidebar flush against the rounded window edge,
     // with only a separator where it meets the content panel.
     const modernSurfaceStyle = {
-      borderTopLeftRadius: "var(--border-radius-window)",
+      // The Windows header spans the full native top edge and owns both top
+      // radii. Rounding the sidebar again below it creates a detached inner
+      // curve; macOS has no HTML topbar, so its sidebar still owns this corner.
+      borderTopLeftRadius: IS_WINDOWS_HOST ? 0 : "var(--border-radius-window)",
       borderBottomLeftRadius: "var(--border-radius-window)",
       borderTopRightRadius: 0,
       borderBottomRightRadius: 0,
