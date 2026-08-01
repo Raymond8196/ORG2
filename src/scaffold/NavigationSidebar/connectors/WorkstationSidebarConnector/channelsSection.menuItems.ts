@@ -8,7 +8,7 @@
  * rendering; the hook maps kinds onto dialogs / RPCs.
  *
  * Channel rows navigate: the section's click resolver opens (or focuses) the
- * row's `ChannelPanelView` tab, and the row takes the ordinary selected state
+ * row's discussion-channel tab, and the row takes the ordinary selected state
  * while that tab is active.
  */
 import type { TFunction } from "i18next";
@@ -86,6 +86,12 @@ export interface ChannelsSectionHeaderParams {
   createLabel: string;
   createTestId: string;
   onCreateClick: (event: MouseEvent<HTMLButtonElement>) => void;
+  /**
+   * Cloud sections pass `phase === "ready"`: offering create while the
+   * capability probe is unresolved (or the list failed) funnels the user
+   * into a submit that can only 404 on a pre-0014 backend.
+   */
+  showCreateAction?: boolean;
 }
 
 /** Separator header carrying the hover `+` create action. */
@@ -95,16 +101,19 @@ export function buildChannelsSectionHeader({
   createLabel,
   createTestId,
   onCreateClick,
+  showCreateAction = true,
 }: ChannelsSectionHeaderParams): NavigationMenuItem {
   const header = separator(sectionId, title);
-  header.rowActions = [
-    {
-      icon: Plus,
-      label: createLabel,
-      dataTestId: createTestId,
-      onClick: onCreateClick,
-    },
-  ];
+  if (showCreateAction) {
+    header.rowActions = [
+      {
+        icon: Plus,
+        label: createLabel,
+        dataTestId: createTestId,
+        onClick: onCreateClick,
+      },
+    ];
+  }
   return header;
 }
 
@@ -273,6 +282,7 @@ export function buildCloudChannelsMenuItems({
       createLabel: t("cloud.channels.createAction"),
       createTestId: "cloud-channels-create",
       onCreateClick,
+      showCreateAction: phase === "ready",
     }),
   ];
 

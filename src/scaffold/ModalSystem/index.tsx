@@ -27,6 +27,13 @@ import { useOverlayLayer } from "@src/store/ui/overlayLayerAtom";
 
 import "./index.scss";
 
+/**
+ * z-index for popup panels (Select dropdowns etc.) that must stack above a
+ * Modal's default overlay (9999). One canonical value — per-dialog copies of
+ * this constant kept drifting into magic numbers.
+ */
+export const MODAL_SELECT_Z_INDEX = 10_000;
+
 export interface ModalProps {
   /** Controls modal visibility */
   visible: boolean;
@@ -57,12 +64,10 @@ export interface ModalProps {
     status?: "danger" | "warning" | "success" | "default";
     loading?: boolean;
     disabled?: boolean;
-    dataTestId?: string;
   };
 
   cancelButtonProps?: {
     disabled?: boolean;
-    dataTestId?: string;
   };
   /** Custom close icon */
   closeIcon?: React.ReactNode;
@@ -202,7 +207,6 @@ const Modal: React.FC<ModalProps> = ({
                     },
                     variant: "secondary",
                     disabled: cancelButtonProps?.disabled,
-                    dataTestId: cancelButtonProps?.dataTestId,
                   },
                 ]
               : undefined
@@ -215,7 +219,6 @@ const Modal: React.FC<ModalProps> = ({
             disabled: isDisabled || isLoading,
             loading: isLoading,
             variant: primaryVariant,
-            dataTestId: okButtonProps?.dataTestId,
           }}
         />
       );

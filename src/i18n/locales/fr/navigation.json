@@ -901,7 +901,17 @@
         "workItemCardOpen": "Ouvrir l’élément de travail {{name}}",
         "githubCardOpen": "Ouvrir {{name}} sur GitHub",
         "githubIssue": "Ticket",
-        "githubPullRequest": "Pull request"
+        "githubPullRequest": "Pull request",
+        "archivedComposerDisabled": "Ce canal est archivé. Désarchivez-le pour publier.",
+        "errorPostForbidden": "Seuls les gestionnaires du canal peuvent y publier",
+        "errorArchived": "Ce canal est archivé, la publication est désactivée",
+        "errorChannelFull": "Ce canal a atteint sa limite de messages, la publication est désactivée",
+        "errorChannelMissing": "Ce canal n'est plus disponible",
+        "errorMessageMissing": "Ce message n'est plus disponible",
+        "loadError": "Impossible de charger les messages",
+        "loadingMessages": "Chargement des messages…",
+        "loadOlder": "Charger les messages précédents",
+        "unknownAuthor": "Coéquipier"
       }
     }
   }

@@ -16,7 +16,7 @@ import {
 import { org2CloudAuthAtom } from "../org2CloudAuthAtom";
 import { bumpOrg2CloudChannelsVersionAtom } from "./channelsAtom";
 import type { CloudChannel, CloudChannelsList } from "./types";
-import { useOrgChannels } from "./useOrgChannels";
+import { __ORG_CHANNELS_INTERNALS, useOrgChannels } from "./useOrgChannels";
 
 const mocks = vi.hoisted(() => ({
   ensureFreshSession: vi.fn(),
@@ -141,6 +141,7 @@ describe("useOrgChannels", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    __ORG_CHANNELS_INTERNALS.reset();
     localStorage.clear();
     // Token refresh hands back a NEW auth object carrying the fresh token —
     // every downstream RPC must use it, never the stale atom token.
@@ -205,7 +206,10 @@ describe("useOrgChannels", () => {
     expect(probe().phase).toBe("unsupported");
     expect(mocks.listCloudChannels).not.toHaveBeenCalled();
     // The capability probe itself ran, with the refreshed token.
-    expect(mocks.getCloudCapabilities).toHaveBeenCalledWith("fresh-token");
+    expect(mocks.getCloudCapabilities).toHaveBeenCalledWith(
+      "fresh-token",
+      expect.objectContaining({ supabaseUrl: expect.any(String) })
+    );
   });
 
   it("loads with the fresh token and splits active vs archived channels", async () => {
@@ -229,6 +233,82 @@ describe("useOrgChannels", () => {
       "org-a",
       { includeArchived: true }
     );
+  });
+
+  it("coalesces identical in-flight list requests from multiple consumers", async () => {
+    const pending = deferred<CloudChannelsList>();
+    mocks.listCloudChannels.mockImplementation(() => pending.promise);
+
+    act(() => {
+      root.render(
+        createElement(
+          Provider,
+          { store },
+          createElement(
+            "div",
+            null,
+            createElement(Probe, {
+              orgId: "org-a",
+              includeArchived: true,
+            }),
+            createElement(Probe, {
+              orgId: "org-a",
+              includeArchived: true,
+            })
+          )
+        )
+      );
+    });
+    await flushAsync();
+
+    expect(mocks.listCloudChannels).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      pending.resolve(channelsPage([makeChannel("c1", "general")]));
+    });
+    await flushAsync();
+    expect(
+      document.querySelectorAll(
+        '[data-testid="channels-probe"][data-phase="ready"]'
+      )
+    ).toHaveLength(2);
+  });
+
+  it("a version bump during an in-flight listing starts a FRESH request instead of joining the stale one", async () => {
+    const first = deferred<CloudChannelsList>();
+    const second = deferred<CloudChannelsList>();
+    let call = 0;
+    mocks.listCloudChannels.mockImplementation(() => {
+      call += 1;
+      return call === 1 ? first.promise : second.promise;
+    });
+
+    renderProbe("org-a");
+    await flushAsync();
+    expect(mocks.listCloudChannels).toHaveBeenCalledTimes(1);
+
+    // The mutation's realtime bump arrives while the PRE-mutation listing is
+    // still in flight. Joining it would launder the stale (pre-mutation)
+    // result past the seq/channelsKey guards and feed tab reconciliation an
+    // authoritative listing that is missing the just-created channel.
+    act(() => {
+      store.set(bumpOrg2CloudChannelsVersionAtom, "org-a");
+    });
+    await flushAsync();
+    expect(mocks.listCloudChannels).toHaveBeenCalledTimes(2);
+
+    act(() => {
+      first.resolve(channelsPage([makeChannel("c1", "stale-view")]));
+      second.resolve(
+        channelsPage([
+          makeChannel("c1", "stale-view"),
+          makeChannel("c2", "just-created"),
+        ])
+      );
+    });
+    await flushAsync();
+    expect(probe().phase).toBe("ready");
+    expect(probe().channels).toBe("stale-view,just-created");
   });
 
   it("never surfaces archived channels when includeArchived is off", async () => {
@@ -312,6 +392,23 @@ describe("useOrgChannels", () => {
     });
     await flushAsync();
     expect(mocks.listCloudChannels).toHaveBeenCalledTimes(2);
+  });
+
+  it("refetches when a blurred desktop window regains focus", async () => {
+    mocks.listCloudChannels
+      .mockResolvedValueOnce(channelsPage([makeChannel("c1", "before")]))
+      .mockResolvedValueOnce(channelsPage([makeChannel("c1", "after")]));
+    renderProbe("org-a");
+    await flushAsync();
+    expect(probe().channels).toBe("before");
+
+    act(() => {
+      window.dispatchEvent(new Event("focus"));
+    });
+    await flushAsync();
+
+    expect(mocks.listCloudChannels).toHaveBeenCalledTimes(2);
+    expect(probe().channels).toBe("after");
   });
 
   it("surfaces a list failure as the error phase with the message", async () => {

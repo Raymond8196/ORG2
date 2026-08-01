@@ -30,6 +30,7 @@ import { installAvailableAppUpdate } from "@src/scaffold/AppUpdater";
 import {
   closeOrganizationChatPanelTabAtom,
   closeProjectOrgChatPanelTabsAtom,
+  closeRevokedCloudChannelChatPanelTabsAtom,
   openRuntimeInChatPanelTabAtom,
   openSessionInNewChatTabAtom,
   patchChatPanelWorkItemTabAtom,
@@ -143,6 +144,9 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
     const cloudOrgsLoaded = useAtomValue(org2CloudOrgsLoadedAtom);
     const closeOrganizationTab = useSetAtom(closeOrganizationChatPanelTabAtom);
     const closeProjectOrgTabs = useSetAtom(closeProjectOrgChatPanelTabsAtom);
+    const closeRevokedCloudChannelTabs = useSetAtom(
+      closeRevokedCloudChannelChatPanelTabsAtom
+    );
     const exploreOpen = useAtomValue(chatPanelExploreOpenAtom);
     const createProjectContext = useAtomValue(
       chatPanelCreateProjectContextAtom
@@ -212,6 +216,15 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
         cancelled = true;
       };
     }, [closeProjectOrgTabs, cloudOrgs, cloudOrgsLoaded]);
+
+    // Channel tabs live in the CLOUD org id space (unlike the project-org
+    // aliases above) and per-org reconciliation only covers the active
+    // sidebar scope; sweep revoked orgs' channel tabs here once the roster
+    // is authoritative.
+    useEffect(() => {
+      if (!cloudOrgsLoaded) return;
+      closeRevokedCloudChannelTabs(cloudOrgs.map((org) => org.orgId));
+    }, [closeRevokedCloudChannelTabs, cloudOrgs, cloudOrgsLoaded]);
     const chatWidthStyleValue =
       chatWidth > 0 ? `var(${CHAT_WIDTH_CSS_VAR})` : chatWidth;
     const { isDragging, panelRef, handleMouseDown } = useChatPanelResize({

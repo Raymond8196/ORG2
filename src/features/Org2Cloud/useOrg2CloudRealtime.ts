@@ -51,7 +51,12 @@ import type { Session } from "@src/store/session/sessionAtom/types";
 import { activeSessionIdAtom } from "@src/store/session/viewAtom";
 import { chatPanelSelectedCloudOrgAtom } from "@src/store/ui/chatPanelAtom";
 
-import { bumpOrg2CloudChannelsVersionAtom } from "./channels/channelsAtom";
+import {
+  bumpOrg2CloudChannelMessagesVersionAtom,
+  bumpOrg2CloudChannelsVersionAtom,
+  org2CloudChannelMessagesVersionAtom,
+  org2CloudChannelsVersionAtom,
+} from "./channels/channelsAtom";
 import { org2CloudSharingFloorAtom } from "./org2CloudAccessSettings";
 import {
   commitRefreshedAuth,
@@ -150,7 +155,8 @@ type SignalPlane =
   | "inbound"
   | "roster"
   | "policy"
-  | "channels";
+  | "channels"
+  | "channelMessages";
 
 const ALL_SIGNAL_PLANES: readonly SignalPlane[] = [
   "coarse",
@@ -160,6 +166,7 @@ const ALL_SIGNAL_PLANES: readonly SignalPlane[] = [
   "roster",
   "policy",
   "channels",
+  "channelMessages",
 ];
 
 function isDocumentHidden(): boolean {
@@ -192,6 +199,21 @@ export function useOrg2CloudRealtime(): void {
   const refetchOrgs = useRefetchOrg2CloudOrgs();
   const setRosterVersion = useSetAtom(org2CloudRosterVersionAtom);
   const bumpChannelsVersion = useSetAtom(bumpOrg2CloudChannelsVersionAtom);
+  const setChannelsVersion = useSetAtom(org2CloudChannelsVersionAtom);
+  const setChannelMessagesVersion = useSetAtom(
+    org2CloudChannelMessagesVersionAtom
+  );
+  const bumpChannelMessagesForOrg = useSetAtom(
+    bumpOrg2CloudChannelMessagesVersionAtom
+  );
+  // The signal carries the org, not the channel, so every open channel of
+  // that org re-runs its bounded delta pull (`p_since`), not a full re-list.
+  const bumpChannelMessagesVersion = useCallback(
+    (orgId: string) => {
+      bumpChannelMessagesForOrg({ orgId });
+    },
+    [bumpChannelMessagesForOrg]
+  );
   const setRosterRealtimeConnected = useSetAtom(
     org2CloudRosterRealtimeConnectedAtom
   );
@@ -259,8 +281,12 @@ export function useOrg2CloudRealtime(): void {
     setCommentsSignal({});
     setPresence({});
     setOutboundPresence({});
+    setChannelsVersion({});
+    setChannelMessagesVersion({});
   }, [
     authIdentityKey,
+    setChannelMessagesVersion,
+    setChannelsVersion,
     setCommentsSignal,
     setMemberNames,
     setOutboundPresence,
@@ -439,6 +465,7 @@ export function useOrg2CloudRealtime(): void {
       "comments",
       "inbound",
       "channels",
+      "channelMessages",
     ]);
     // A blur/visibility event releases the connection. Ignore the tiny
     // event-delivery race during teardown; the next SUBSCRIBED true-edge
@@ -451,12 +478,16 @@ export function useOrg2CloudRealtime(): void {
     // plain-0005 backend) must still converge the sidebar list here — this
     // is the only recovery path short of a reconnect edge.
     bumpChannelsVersion(orgId);
+    // Same reasoning for the open channel transcript: a shadowed per-kind
+    // signal must still converge the message list here.
+    bumpChannelMessagesVersion(orgId);
     maybeRefreshControlPlane(orgId);
   }, [
     activeRealtimeOrgId,
     bumpRemoteSessionsVersion,
     bumpOrgCommentsSignal,
     bumpChannelsVersion,
+    bumpChannelMessagesVersion,
     maybeRefreshControlPlane,
   ]);
   // Per-plane leading/trailing coalescer. A successful subscribe edge marks
@@ -523,6 +554,12 @@ export function useOrg2CloudRealtime(): void {
           schedulePlaneSignalRefresh("channels", () => {
             bumpChannelsVersion(orgId);
           });
+          return;
+        case "channelMessages":
+          schedulePlaneSignalRefresh("channelMessages", () => {
+            bumpChannelMessagesVersion(orgId);
+          });
+          return;
       }
     },
     [
@@ -533,6 +570,7 @@ export function useOrg2CloudRealtime(): void {
       bumpOrgCommentsSignal,
       bumpRosterVersion,
       bumpChannelsVersion,
+      bumpChannelMessagesVersion,
       refreshEntitlementForOrg,
     ]
   );
@@ -559,6 +597,7 @@ export function useOrg2CloudRealtime(): void {
         bumpRemoteSessionsVersion(orgId);
         bumpOrgCommentsSignal(orgId);
         bumpChannelsVersion(orgId);
+        bumpChannelMessagesVersion(orgId);
         return;
       }
       orgFullRecoveryAtRef.current.set(orgId, Date.now());
@@ -581,12 +620,16 @@ export function useOrg2CloudRealtime(): void {
       // Channel lifecycle broadcasts missed while disconnected re-pull here
       // (the list RPC is a single bounded read; no delta cursor to preserve).
       bumpChannelsVersion(orgId);
+      // Messages posted/edited/deleted during the gap arrive through the
+      // channel's own `p_since` delta, which already carries tombstones.
+      bumpChannelMessagesVersion(orgId);
     },
     [
       bumpRemoteSessionsVersion,
       bumpOrgCommentsSignal,
       bumpActiveSessionCommentsSignal,
       bumpChannelsVersion,
+      bumpChannelMessagesVersion,
       refreshEntitlementForOrg,
     ]
   );
@@ -757,7 +800,13 @@ export function useOrg2CloudRealtime(): void {
           // converges within 5 minutes instead of never.
           if (!broadcastSignals) return;
           const kind = parseOrgDbChangeKind(payload);
-          if (!kind) return;
+          if (!kind) {
+            // A kind this build does not know (a newer backend's plane):
+            // fall back to the coarse refresh instead of total silence, so
+            // an unrecognized plane still converges (Layer-5 default).
+            scheduleCoarseSignalRefresh();
+            return;
+          }
           dispatchDbChangeSignal(orgId, kind);
           return;
         }
@@ -828,6 +877,9 @@ export function useOrg2CloudRealtime(): void {
             ? current
             : { ...current, [orgId]: subscribed }
         );
+        // `org2CloudRealtimeClient` logs CHANNEL_ERROR/TIMED_OUT with the raw
+        // status while suppressing normal CLOSED teardown. Do not duplicate
+        // that diagnostic here from the lossy boolean edge.
         if (!subscribed) return;
         bumpRosterVersion(orgId);
         runSignalEdgeRecovery(orgId);
@@ -884,6 +936,7 @@ export function useOrg2CloudRealtime(): void {
     bumpRemoteSessionsVersion,
     bumpRosterVersion,
     dispatchDbChangeSignal,
+    scheduleCoarseSignalRefresh,
     runSignalEdgeRecovery,
   ]);
 

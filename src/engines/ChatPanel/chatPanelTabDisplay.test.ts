@@ -39,7 +39,7 @@ describe("resolveChatPanelTabDisplayTitle", () => {
     );
   });
 
-  it("renders a channel tab as #name from its payload", () => {
+  it("renders a channel tab as its bare name from its payload", () => {
     expect(
       resolveChatPanelTabDisplayTitle(
         {
@@ -53,7 +53,7 @@ describe("resolveChatPanelTabDisplayTitle", () => {
         null,
         labels
       )
-    ).toBe("#code-review");
+    ).toBe("code-review");
   });
 
   it("falls back to the Channels label for a payload-less channel tab", () => {

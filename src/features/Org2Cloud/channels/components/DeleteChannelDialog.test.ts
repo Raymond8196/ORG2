@@ -95,10 +95,7 @@ describe("DeleteChannelDialog", () => {
     Reflect.deleteProperty(actEnvironment, "IS_REACT_ACT_ENVIRONMENT");
   });
 
-  function renderDialog(overrides?: {
-    onClose?: () => void;
-    onDeleted?: () => void;
-  }) {
+  function renderDialog(overrides?: { onClose?: () => void }) {
     act(() => {
       root.render(
         createElement(
@@ -109,7 +106,6 @@ describe("DeleteChannelDialog", () => {
             orgId: "org-1",
             channel: CHANNEL,
             onClose: overrides?.onClose ?? vi.fn(),
-            onDeleted: overrides?.onDeleted,
           })
         )
       );
@@ -135,8 +131,7 @@ describe("DeleteChannelDialog", () => {
   it("keeps the danger action disabled until the acknowledgement is checked", async () => {
     mocks.deleteCloudChannel.mockResolvedValue(undefined);
     const onClose = vi.fn();
-    const onDeleted = vi.fn();
-    renderDialog({ onClose, onDeleted });
+    renderDialog({ onClose });
 
     expect(deleteButton()?.disabled).toBe(true);
 
@@ -161,7 +156,6 @@ describe("DeleteChannelDialog", () => {
       "org-1",
       "chan-1"
     );
-    expect(onDeleted).toHaveBeenCalledTimes(1);
     expect(onClose).toHaveBeenCalledTimes(1);
     expect(store.get(org2CloudChannelsVersionAtom)["org-1"]).toBe(1);
   });

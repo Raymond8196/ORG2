@@ -94,6 +94,7 @@
 body {
   --color-bg-1: #050505;
   --color-bg-2: #0a0a0a;
+  --windows-native-chrome-opacity: 92%;
   --color-bg-3: #171717;
   --color-bg-4: #222222;
   --color-neutral-1: #ffffff;

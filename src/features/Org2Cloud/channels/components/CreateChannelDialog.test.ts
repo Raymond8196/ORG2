@@ -102,10 +102,7 @@ describe("CreateChannelDialog", () => {
     Reflect.deleteProperty(actEnvironment, "IS_REACT_ACT_ENVIRONMENT");
   });
 
-  function renderDialog(overrides?: {
-    onClose?: () => void;
-    onCreated?: (channel: CloudChannel) => void;
-  }) {
+  function renderDialog(overrides?: { onClose?: () => void }) {
     act(() => {
       root.render(
         createElement(
@@ -115,7 +112,6 @@ describe("CreateChannelDialog", () => {
             open: true,
             orgId: "org-1",
             onClose: overrides?.onClose ?? vi.fn(),
-            onCreated: overrides?.onCreated,
           })
         )
       );
@@ -141,8 +137,7 @@ describe("CreateChannelDialog", () => {
   it("live-normalizes the name and submits the normalized value", async () => {
     mocks.createCloudChannel.mockResolvedValue(CREATED_CHANNEL);
     const onClose = vi.fn();
-    const onCreated = vi.fn();
-    renderDialog({ onClose, onCreated });
+    renderDialog({ onClose });
 
     // Slack behavior: leading '#' stripped, lowercased, spaces → hyphens.
     const input = typeName("#Code  Review");
@@ -166,7 +161,6 @@ describe("CreateChannelDialog", () => {
       postPolicy: "everyone",
       memberUserIds: undefined,
     });
-    expect(onCreated).toHaveBeenCalledWith(CREATED_CHANNEL);
     expect(onClose).toHaveBeenCalledTimes(1);
     // Every successful mutation bumps the per-org version so listings refetch.
     expect(store.get(org2CloudChannelsVersionAtom)["org-1"]).toBe(1);

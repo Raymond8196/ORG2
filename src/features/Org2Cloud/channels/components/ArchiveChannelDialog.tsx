@@ -9,6 +9,11 @@ import { useSetAtom } from "jotai";
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import {
+  ChannelDialogErrorNotice,
+  ChannelDialogFooter,
+} from "@src/features/DiscussionChannels/components/ChannelDialogPrimitives";
+
 import { bumpOrg2CloudChannelsVersionAtom } from "../channelsAtom";
 import {
   archiveCloudChannel,
@@ -75,18 +80,18 @@ const ArchiveChannelDialog: React.FC<ArchiveChannelDialogProps> = ({
       visible={open && channel !== null}
       title={t("cloud.channels.archive.title", { name: channel?.name ?? "" })}
       onCancel={onClose}
-      onOk={handleArchive}
-      cancelText={t("cloud.channels.cancel")}
-      okText={t("cloud.channels.archive.confirm")}
-      cancelButtonProps={{
-        disabled: archiving,
-        dataTestId: "channel-archive-cancel",
-      }}
-      okButtonProps={{
-        loading: archiving,
-        disabled: archiving || !channel || !orgId,
-        dataTestId: "channel-archive-confirm",
-      }}
+      footer={
+        <ChannelDialogFooter
+          cancelLabel={t("cloud.channels.cancel")}
+          submitLabel={t("cloud.channels.archive.confirm")}
+          onCancel={onClose}
+          onSubmit={() => void handleArchive()}
+          cancelTestId="channel-archive-cancel"
+          submitTestId="channel-archive-confirm"
+          loading={archiving}
+          disabled={archiving || !channel || !orgId}
+        />
+      }
       width={440}
     >
       <div className="flex flex-col gap-3" data-testid="channel-archive-dialog">
@@ -94,16 +99,16 @@ const ArchiveChannelDialog: React.FC<ArchiveChannelDialogProps> = ({
           {t("cloud.channels.archive.body")}
         </div>
 
-        {errorKind ? (
-          <div
-            className="rounded-lg bg-danger-1 px-3 py-2 text-[12px] text-danger-6"
-            data-testid="channel-archive-error"
-          >
-            {errorKind === "managerRequired"
+        <ChannelDialogErrorNotice
+          message={
+            errorKind === "managerRequired"
               ? t("cloud.channels.archive.managerRequired")
-              : t("cloud.channels.archive.error")}
-          </div>
-        ) : null}
+              : errorKind
+                ? t("cloud.channels.archive.error")
+                : null
+          }
+          testId="channel-archive-error"
+        />
       </div>
     </Modal>
   );

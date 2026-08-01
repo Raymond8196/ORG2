@@ -76,18 +76,25 @@ describe("channels section visibility", () => {
     );
   });
 
-  it("renders the separator header with the create action while usable", () => {
-    for (const phase of ["ready", "loading", "error"] as const) {
-      const onCreateClick = vi.fn();
-      const items = buildCloudChannelsMenuItems(
-        buildParams({ phase, onCreateClick })
-      );
-      expect(items[0]?.id).toBe("separator-cloud-channels");
-      expect(items[0]?.label).toBe("cloud.channels.title");
-      const createAction = items[0]?.rowActions?.[0];
-      expect(createAction?.dataTestId).toBe("cloud-channels-create");
-      createAction?.onClick({} as never);
-      expect(onCreateClick).toHaveBeenCalledOnce();
+  it("attaches the create action only once the phase is ready", () => {
+    const onCreateClick = vi.fn();
+    const items = buildCloudChannelsMenuItems(
+      buildParams({ phase: "ready", onCreateClick })
+    );
+    expect(items[0]?.id).toBe("separator-cloud-channels");
+    expect(items[0]?.label).toBe("cloud.channels.title");
+    const createAction = items[0]?.rowActions?.[0];
+    expect(createAction?.dataTestId).toBe("cloud-channels-create");
+    createAction?.onClick({} as never);
+    expect(onCreateClick).toHaveBeenCalledOnce();
+
+    // While the capability probe is unresolved (or the list failed) the
+    // header renders WITHOUT create: offering it funnels the user into a
+    // submit that can only 404 on a pre-0014 backend.
+    for (const phase of ["loading", "error"] as const) {
+      const gated = buildCloudChannelsMenuItems(buildParams({ phase }));
+      expect(gated[0]?.id).toBe("separator-cloud-channels");
+      expect(gated[0]?.rowActions).toBeUndefined();
     }
   });
 });

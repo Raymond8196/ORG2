@@ -13,13 +13,16 @@ export {
   closeOrganizationChatPanelTabAtom,
   closeOtherChatPanelTabsAtom,
   closeProjectOrgChatPanelTabsAtom,
+  closeRevokedCloudChannelChatPanelTabsAtom,
   closeWorkItemChatPanelTabAtom,
   nextChatPanelTabAtom,
   patchChatPanelWorkItemTabAtom,
   prevChatPanelTabAtom,
+  reconcileDiscussionChannelTabsAtom,
   reorderChatPanelTabsAtom,
   setChatPanelTabTitleAtom,
   toggleChatPanelTabTuiModeAtom,
+  type ReconcileDiscussionChannelTabsInput,
 } from "./chatPanelTabLifecycleAtoms";
 export {
   addChatPanelLaunchpadTabAtom,

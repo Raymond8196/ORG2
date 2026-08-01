@@ -928,7 +928,17 @@
         "workItemCardOpen": "Open work item {{name}}",
         "githubCardOpen": "Open {{name}} on GitHub",
         "githubIssue": "Issue",
-        "githubPullRequest": "Pull request"
+        "githubPullRequest": "Pull request",
+        "archivedComposerDisabled": "This channel is archived. Unarchive it to post again.",
+        "errorPostForbidden": "Only channel managers can post in this channel",
+        "errorArchived": "This channel is archived, so posting is turned off",
+        "errorChannelFull": "This channel has reached its message limit, so posting is turned off",
+        "errorChannelMissing": "This channel is no longer available",
+        "errorMessageMissing": "That message is no longer available",
+        "loadError": "Couldn't load messages",
+        "loadingMessages": "Loading messages…",
+        "loadOlder": "Load earlier messages",
+        "unknownAuthor": "Teammate"
       }
     }
   }

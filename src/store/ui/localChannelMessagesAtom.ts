@@ -29,14 +29,62 @@ import { z } from "zod/v4";
 
 import { createZodJsonStorage } from "@src/util/core/storage/zodStorage";
 
+/** Colon-style key (codebase convention); the dot-style original is adopted below. */
 export const LOCAL_CHANNEL_MESSAGES_STORAGE_KEY =
+  "orgii:localChannelMessages:v1";
+const LEGACY_LOCAL_CHANNEL_MESSAGES_STORAGE_KEY =
   "orgii.localChannelMessages.v1";
+
+// One-time adoption of the briefly-shipped dot-style key.
+try {
+  if (typeof localStorage !== "undefined") {
+    const legacy = localStorage.getItem(
+      LEGACY_LOCAL_CHANNEL_MESSAGES_STORAGE_KEY
+    );
+    if (legacy !== null) {
+      if (localStorage.getItem(LOCAL_CHANNEL_MESSAGES_STORAGE_KEY) === null) {
+        localStorage.setItem(LOCAL_CHANNEL_MESSAGES_STORAGE_KEY, legacy);
+      }
+      localStorage.removeItem(LEGACY_LOCAL_CHANNEL_MESSAGES_STORAGE_KEY);
+    }
+  }
+} catch {
+  // Storage unavailable — nothing to migrate.
+}
 
 /** Same body ceiling as the cloud session-comment plane. */
 export const LOCAL_CHANNEL_MESSAGE_MAX_LENGTH = 4000;
 
-/** Per-channel row cap; posting past it fails with `"quota"`. */
-export const LOCAL_CHANNEL_MESSAGE_MAX_PER_CHANNEL = 5000;
+/** Per-channel live-row cap; posting past it fails with `"quota"`. */
+export const LOCAL_CHANNEL_MESSAGE_MAX_PER_CHANNEL = 500;
+
+/** Whole-store row cap so many archived channels cannot grow memory forever. */
+export const LOCAL_CHANNEL_MESSAGE_MAX_TOTAL = 2_000;
+
+/**
+ * Conservative localStorage payload budget. Browsers commonly allow about
+ * 5 MiB per origin; leave headroom for the channel registry and other app
+ * state instead of relying on a synchronous QuotaExceededError.
+ */
+export const LOCAL_CHANNEL_MESSAGE_STORAGE_BUDGET_BYTES = 4 * 1024 * 1024;
+
+const textEncoder = new TextEncoder();
+const storedBytesByArray = new WeakMap<
+  readonly LocalChannelMessage[],
+  number
+>();
+
+function storedMessageBytes(messages: readonly LocalChannelMessage[]): number {
+  const cached = storedBytesByArray.get(messages);
+  if (cached !== undefined) return cached;
+  const bytes = textEncoder.encode(JSON.stringify(messages)).byteLength;
+  storedBytesByArray.set(messages, bytes);
+  return bytes;
+}
+
+function serializedMessageBytes(message: LocalChannelMessage): number {
+  return textEncoder.encode(JSON.stringify(message)).byteLength;
+}
 
 export const LocalChannelMessageSchema = z.object({
   id: z.string(),
@@ -49,20 +97,32 @@ export const LocalChannelMessageSchema = z.object({
 
 export type LocalChannelMessage = z.output<typeof LocalChannelMessageSchema>;
 
-/** Tolerant list schema: drop malformed rows, keep the rest. */
+/** Tolerant list schema: drop malformed rows (logged), keep the rest. */
 const StoredLocalChannelMessagesSchema: z.ZodType<LocalChannelMessage[]> = z
   .array(z.unknown())
   .transform((rows) =>
     rows.flatMap((row) => {
       const parsed = LocalChannelMessageSchema.safeParse(row);
-      return parsed.success ? [parsed.data] : [];
+      if (!parsed.success) {
+        // Trace per-row drops — the next whole-list write makes them final.
+        console.warn("[localChannelMessages] dropped malformed row", row);
+        return [];
+      }
+      return [parsed.data];
     })
   );
 
 export const localChannelMessagesAtom = atomWithStorage<LocalChannelMessage[]>(
   LOCAL_CHANNEL_MESSAGES_STORAGE_KEY,
   [],
-  createZodJsonStorage(StoredLocalChannelMessagesSchema),
+  createZodJsonStorage(StoredLocalChannelMessagesSchema, {
+    onInvalid: (key, _rawValue, error) => {
+      console.warn(
+        `[localChannelMessages] invalid stored payload for ${key}`,
+        error
+      );
+    },
+  }),
   { getOnInit: true }
 );
 localChannelMessagesAtom.debugLabel = "localChannelMessagesAtom";
@@ -147,6 +207,24 @@ function compactChannelTombstones(
   return messages.filter((message) => !evictIds.has(message.id));
 }
 
+/** Evict oldest tombstones from any channel to reserve one global row slot. */
+function compactGlobalTombstones(
+  messages: readonly LocalChannelMessage[]
+): readonly LocalChannelMessage[] {
+  let toEvict = messages.length - (LOCAL_CHANNEL_MESSAGE_MAX_TOTAL - 1);
+  if (toEvict <= 0) return messages;
+  const evictIds = new Set<string>();
+  for (const message of messages) {
+    if (toEvict === 0) break;
+    if (message.deletedAt !== null) {
+      evictIds.add(message.id);
+      toEvict -= 1;
+    }
+  }
+  if (evictIds.size === 0) return messages;
+  return messages.filter((message) => !evictIds.has(message.id));
+}
+
 export interface PostLocalChannelMessageInput {
   channelId: string;
   body: string;
@@ -169,7 +247,12 @@ export function postLocalChannelMessage(
   ) {
     return fail("quota");
   }
-  const compacted = compactChannelTombstones(messages, input.channelId);
+  const compacted = compactGlobalTombstones(
+    compactChannelTombstones(messages, input.channelId)
+  );
+  if (compacted.length >= LOCAL_CHANNEL_MESSAGE_MAX_TOTAL) {
+    return fail("quota");
+  }
 
   const message: LocalChannelMessage = {
     id: input.id ?? crypto.randomUUID(),
@@ -179,7 +262,19 @@ export function postLocalChannelMessage(
     editedAt: null,
     deletedAt: null,
   };
-  return { ok: true, messages: [...compacted, message], message };
+  const nextMessages = [...compacted, message];
+  // Exact JSON-array byte delta: replace the closing `]` with an optional
+  // comma + one serialized row + `]`. The WeakMap makes steady-state posts
+  // O(new-message bytes) after hydration instead of reserializing up to 4 MiB.
+  const nextBytes =
+    storedMessageBytes(compacted) +
+    serializedMessageBytes(message) +
+    (compacted.length > 0 ? 1 : 0);
+  if (nextBytes > LOCAL_CHANNEL_MESSAGE_STORAGE_BUDGET_BYTES) {
+    return fail("quota");
+  }
+  storedBytesByArray.set(nextMessages, nextBytes);
+  return { ok: true, messages: nextMessages, message };
 }
 
 export interface EditLocalChannelMessageInput {
@@ -206,11 +301,20 @@ export function editLocalChannelMessage(
     body: body.body,
     editedAt: input.now ?? new Date().toISOString(),
   };
+  const nextMessages = messages.map((message) =>
+    message.id === id ? updated : message
+  );
+  const nextBytes =
+    storedMessageBytes(messages) -
+    serializedMessageBytes(current) +
+    serializedMessageBytes(updated);
+  if (nextBytes > LOCAL_CHANNEL_MESSAGE_STORAGE_BUDGET_BYTES) {
+    return fail("quota");
+  }
+  storedBytesByArray.set(nextMessages, nextBytes);
   return {
     ok: true,
-    messages: messages.map((message) =>
-      message.id === id ? updated : message
-    ),
+    messages: nextMessages,
     message: updated,
   };
 }
@@ -228,7 +332,13 @@ export function deleteLocalChannelMessage(
   const current = messages.find((message) => message.id === id);
   if (!current) return fail("invalid");
   if (current.deletedAt !== null) {
-    return { ok: true, messages: [...messages], message: current };
+    // Same array identity: the write atom skips its full-store persist for
+    // a semantic no-op (registry archive/unarchive got this in this PR too).
+    return {
+      ok: true,
+      messages: messages as LocalChannelMessage[],
+      message: current,
+    };
   }
   const updated: LocalChannelMessage = {
     ...current,
@@ -258,6 +368,16 @@ export function purgeLocalChannelMessages(
   return messages.filter((message) => message.channelId !== channelId);
 }
 
+/** Drop rows whose owning channel no longer exists in the control plane. */
+export function purgeOrphanedLocalChannelMessages(
+  messages: readonly LocalChannelMessage[],
+  existingChannelIds: ReadonlySet<string>
+): LocalChannelMessage[] {
+  return messages.filter((message) =>
+    existingChannelIds.has(message.channelId)
+  );
+}
+
 /**
  * One channel's messages, oldest first — the transcript's render order.
  * Tombstoned rows are kept (they render as "message deleted") but their body
@@ -267,12 +387,18 @@ export function selectLocalChannelMessages(
   messages: readonly LocalChannelMessage[],
   channelId: string
 ): LocalChannelMessage[] {
-  return messages
-    .filter((message) => message.channelId === channelId)
-    .map((message) =>
-      message.deletedAt === null ? message : { ...message, body: "" }
-    )
-    .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  return (
+    messages
+      .filter((message) => message.channelId === channelId)
+      .map((message) =>
+        message.deletedAt === null ? message : { ...message, body: "" }
+      )
+      // Codepoint compare: ISO-8601 strings order lexicographically; locale
+      // collation is both slower and locale-dependent for pure timestamps.
+      .sort((a, b) =>
+        a.createdAt < b.createdAt ? -1 : a.createdAt > b.createdAt ? 1 : 0
+      )
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -332,14 +458,17 @@ editLocalChannelMessageAtom.debugLabel = "editLocalChannelMessageAtom";
 export const deleteLocalChannelMessageAtom = atom(
   null,
   (get, set, id: string): LocalChannelMessageResult => {
-    const result = deleteLocalChannelMessage(get(localChannelMessagesAtom), id);
-    if (result.ok) set(localChannelMessagesAtom, result.messages);
+    const current = get(localChannelMessagesAtom);
+    const result = deleteLocalChannelMessage(current, id);
+    if (result.ok && result.messages !== current) {
+      set(localChannelMessagesAtom, result.messages);
+    }
     return result;
   }
 );
 deleteLocalChannelMessageAtom.debugLabel = "deleteLocalChannelMessageAtom";
 
-/** Purge one channel's messages. Wired into the local channel delete path. */
+/** Purge one channel's messages — `deleteLocalChannelAtom` composes this. */
 export const purgeLocalChannelMessagesAtom = atom(
   null,
   (get, set, channelId: string): LocalChannelMessage[] => {
@@ -348,7 +477,47 @@ export const purgeLocalChannelMessagesAtom = atom(
     if (remaining.length !== messages.length) {
       set(localChannelMessagesAtom, remaining);
     }
+    localChannelMessagesForChannelAtomFamily.remove(channelId);
     return remaining;
   }
 );
 purgeLocalChannelMessagesAtom.debugLabel = "purgeLocalChannelMessagesAtom";
+
+/**
+ * Boot/rebuild reconciliation. The caller supplies the authoritative local
+ * control-plane ids; the message plane is persisted once after the full sweep.
+ */
+export const purgeOrphanedLocalChannelMessagesAtom = atom(
+  null,
+  (
+    get,
+    set,
+    existingChannelIds: ReadonlySet<string>
+  ): { removed: number; orphanedChannelIds: string[] } => {
+    const messages = get(localChannelMessagesAtom);
+    const orphanedChannelIds = [
+      ...new Set(
+        messages
+          .filter((message) => !existingChannelIds.has(message.channelId))
+          .map((message) => message.channelId)
+      ),
+    ];
+    if (orphanedChannelIds.length === 0) {
+      return { removed: 0, orphanedChannelIds };
+    }
+    const remaining = purgeOrphanedLocalChannelMessages(
+      messages,
+      existingChannelIds
+    );
+    set(localChannelMessagesAtom, remaining);
+    for (const channelId of orphanedChannelIds) {
+      localChannelMessagesForChannelAtomFamily.remove(channelId);
+    }
+    return {
+      removed: messages.length - remaining.length,
+      orphanedChannelIds,
+    };
+  }
+);
+purgeOrphanedLocalChannelMessagesAtom.debugLabel =
+  "purgeOrphanedLocalChannelMessagesAtom";

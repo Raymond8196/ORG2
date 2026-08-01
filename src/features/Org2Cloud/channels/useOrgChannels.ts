@@ -9,21 +9,22 @@
  * plus a subscription to `org2CloudChannelsVersionAtom`, which the realtime
  * `channels` signal (0014) bumps. Strictly event-driven; no polling.
  */
-import { useAtom, useAtomValue } from "jotai";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useAtomValue } from "jotai";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
-  commitRefreshedAuth,
   org2CloudAuthAtom,
   org2CloudAuthIdentityKey,
 } from "@src/features/Org2Cloud/org2CloudAuthAtom";
 import { getCloudCapabilities } from "@src/features/Org2Cloud/org2CloudCapabilities";
-import { ensureFreshSession } from "@src/features/Org2Cloud/org2CloudClient";
+import { endpointForOrg } from "@src/features/Org2Cloud/org2CloudOrgEndpointRouter";
 import { createLogger } from "@src/hooks/logger";
+import { onWindowFocusRegained } from "@src/util/core/windowFocus";
 
 import { org2CloudChannelsVersionAtom } from "./channelsAtom";
 import { listCloudChannels } from "./channelsClient";
-import type { CloudChannel } from "./types";
+import { useFreshChannelAccessToken } from "./components/useChannelDialogAccess";
+import type { CloudChannel, CloudChannelsList } from "./types";
 
 const log = createLogger("OrgChannels");
 
@@ -49,6 +50,50 @@ export interface OrgChannelsState {
 }
 
 const NO_CHANNELS: CloudChannel[] = [];
+const listInFlightByIdentityScope = new Map<
+  string,
+  Promise<CloudChannelsList>
+>();
+
+/**
+ * `forceFresh` evicts any in-flight request before starting. A realtime
+ * bump or user refresh means the caller KNOWS the current listing is
+ * stale; joining a pre-mutation request would launder the stale result
+ * past the seq/`channelsKey` guards and hand it to tab reconciliation as
+ * authoritative — which closes tabs, and closes never self-revert.
+ * Concurrent mounts with no such signal still coalesce.
+ */
+async function listCloudChannelsSingleFlight(
+  key: string,
+  load: () => Promise<CloudChannelsList>,
+  forceFresh = false
+): Promise<CloudChannelsList> {
+  if (forceFresh) {
+    listInFlightByIdentityScope.delete(key);
+  } else {
+    const existing = listInFlightByIdentityScope.get(key);
+    if (existing) return existing;
+  }
+  const request = load();
+  listInFlightByIdentityScope.set(key, request);
+  try {
+    return await request;
+  } finally {
+    if (listInFlightByIdentityScope.get(key) === request) {
+      listInFlightByIdentityScope.delete(key);
+    }
+  }
+}
+
+function channelListsEqual(
+  left: CloudChannel[] | null,
+  right: CloudChannel[]
+): boolean {
+  if (!left || left.length !== right.length) return false;
+  return left.every(
+    (channel, index) => JSON.stringify(channel) === JSON.stringify(right[index])
+  );
+}
 
 /**
  * `orgChannels` joins `CloudCapabilities` with the plumbing change; read it
@@ -66,7 +111,7 @@ export function useOrgChannels(
   orgId: string | null,
   options?: { includeArchived?: boolean }
 ): OrgChannelsState {
-  const [auth, setAuth] = useAtom(org2CloudAuthAtom);
+  const auth = useAtomValue(org2CloudAuthAtom);
   const includeArchived = options?.includeArchived ?? false;
   const channelsVersion = useAtomValue(org2CloudChannelsVersionAtom);
   const versionForOrg = orgId ? (channelsVersion[orgId] ?? 0) : 0;
@@ -83,13 +128,6 @@ export function useOrgChannels(
   const listKey = authIdentityKey
     ? `${authIdentityKey}|${orgId ?? ""}|${includeArchived ? "a" : ""}`
     : null;
-
-  // Latest auth via ref (panel idiom): token-refresh writes must not
-  // retrigger the fetch effect.
-  const authRef = useRef(auth);
-  useEffect(() => {
-    authRef.current = auth;
-  }, [auth]);
 
   // Cloud fetches may settle after an org/account switch; a monotonic
   // counter drops late completions.
@@ -109,17 +147,19 @@ export function useOrgChannels(
     setError(null);
   }, [authIdentityKey]);
 
-  const getFreshAccessToken = useCallback(async (): Promise<string> => {
-    const current = authRef.current;
-    if (!current) throw new Error("signed out");
-    const fresh = await ensureFreshSession(current);
-    if (!fresh) throw new Error("cloud session refresh failed");
-    commitRefreshedAuth(setAuth, current, fresh);
-    return fresh.accessToken;
-  }, [setAuth]);
+  // One token helper for the whole channels slice (the dialogs' hook) — a
+  // second byte-equivalent copy here kept drifting risk alive.
+  const getFreshAccessToken = useFreshChannelAccessToken();
 
+  // A version/nonce change is a staleness SIGNAL: the fetch it triggers must
+  // not join an in-flight pre-mutation request (see the single-flight note).
+  const freshnessRef = useRef<string | null>(null);
   useEffect(() => {
-    if (!authIdentityKey || !orgId) return;
+    if (!authIdentityKey || !orgId || !listKey) return;
+    const freshnessStamp = `${listKey}|v${versionForOrg}|n${refreshNonce}`;
+    const forceFresh =
+      freshnessRef.current !== null && freshnessRef.current !== freshnessStamp;
+    freshnessRef.current = freshnessStamp;
     let cancelled = false;
     const seq = ++requestRef.current;
     void (async () => {
@@ -127,16 +167,23 @@ export function useOrgChannels(
       setError(null);
       try {
         const accessToken = await getFreshAccessToken();
-        const capabilities = await getCloudCapabilities(accessToken);
+        const capabilities = await getCloudCapabilities(
+          accessToken,
+          endpointForOrg(orgId)
+        );
         const isSupported = hasOrgChannelsCapability(capabilities);
         if (cancelled || seq !== requestRef.current) return;
         setSupported(isSupported);
         if (!isSupported) return;
-        const page = await listCloudChannels(accessToken, orgId, {
-          includeArchived,
-        });
+        const page = await listCloudChannelsSingleFlight(
+          listKey,
+          () => listCloudChannels(accessToken, orgId, { includeArchived }),
+          forceFresh
+        );
         if (cancelled || seq !== requestRef.current) return;
-        setChannels(page.channels);
+        setChannels((previous) =>
+          channelListsEqual(previous, page.channels) ? previous : page.channels
+        );
         setChannelsKey(
           `${authIdentityKey}|${orgId}|${includeArchived ? "a" : ""}`
         );
@@ -155,6 +202,7 @@ export function useOrgChannels(
   }, [
     authIdentityKey,
     orgId,
+    listKey,
     includeArchived,
     refreshNonce,
     versionForOrg,
@@ -165,16 +213,14 @@ export function useOrgChannels(
     setRefreshNonce((nonce) => nonce + 1);
   }, []);
 
-  // Refetch on the hidden → visible edge; the effect above covers mount and
-  // realtime version bumps.
+  // A background window can release its Realtime lease after the blur grace
+  // without becoming document-hidden. Refetch on either focus regain or the
+  // hidden → visible edge so its authoritative list converges even if the
+  // reconnect signal is delayed. Identical concurrent consumers remain
+  // coalesced by the identity-scoped single-flight map above.
   useEffect(() => {
     if (!authIdentityKey) return;
-    const onVisibilityChange = () => {
-      if (document.visibilityState !== "hidden") refresh();
-    };
-    document.addEventListener("visibilitychange", onVisibilityChange);
-    return () =>
-      document.removeEventListener("visibilitychange", onVisibilityChange);
+    return onWindowFocusRegained(refresh);
   }, [authIdentityKey, refresh]);
 
   const visibleChannels =
@@ -196,12 +242,19 @@ export function useOrgChannels(
   }
 
   const list = visibleChannels ?? NO_CHANNELS;
+  const channelPartitions = useMemo(
+    () => ({
+      channels: list.filter((channel) => channel.archivedAt === null),
+      archivedChannels: includeArchived
+        ? list.filter((channel) => channel.archivedAt !== null)
+        : NO_CHANNELS,
+    }),
+    [includeArchived, list]
+  );
   return {
     phase,
-    channels: list.filter((channel) => channel.archivedAt === null),
-    archivedChannels: includeArchived
-      ? list.filter((channel) => channel.archivedAt !== null)
-      : NO_CHANNELS,
+    channels: channelPartitions.channels,
+    archivedChannels: channelPartitions.archivedChannels,
     error,
     refreshing: fetching,
     refresh,
@@ -209,3 +262,7 @@ export function useOrgChannels(
     currentUserId: auth?.userId ?? null,
   };
 }
+
+export const __ORG_CHANNELS_INTERNALS = {
+  reset: () => listInFlightByIdentityScope.clear(),
+};

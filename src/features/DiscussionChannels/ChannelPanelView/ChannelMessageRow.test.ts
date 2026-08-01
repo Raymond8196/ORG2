@@ -267,7 +267,14 @@ describe("ChannelMessageRow references", () => {
     Reflect.deleteProperty(actEnvironment, "IS_REACT_ACT_ENVIRONMENT");
   });
 
-  function render(body: string) {
+  function render(
+    body: string,
+    options: {
+      grouped?: boolean;
+      onEdit?: ((messageId: string, body: string) => boolean) | null;
+      onDelete?: ((messageId: string) => void) | null;
+    } = {}
+  ) {
     act(() => {
       root.render(
         createElement(
@@ -275,10 +282,10 @@ describe("ChannelMessageRow references", () => {
           { store },
           createElement(ChannelMessageRow, {
             message: makeMessage(body),
-            grouped: false,
+            grouped: options.grouped ?? false,
             authorLabel: "You",
-            onEdit: null,
-            onDelete: null,
+            onEdit: options.onEdit ?? null,
+            onDelete: options.onDelete ?? null,
           })
         )
       );
@@ -312,6 +319,42 @@ describe("ChannelMessageRow references", () => {
       container.querySelector("[data-testid='markdown']")?.textContent
     ).toBe("rebasing onto hotfix-branch");
     expect(card()).toBeNull();
+  });
+
+  it("keeps edit and delete actions available on a grouped message", () => {
+    const onEdit = vi.fn(() => true);
+    const onDelete = vi.fn();
+
+    render("second message in the group", {
+      grouped: true,
+      onEdit,
+      onDelete,
+    });
+
+    expect(
+      container.querySelector("[data-testid='channel-message-edit']")
+    ).not.toBeNull();
+    expect(
+      container.querySelector("[data-testid='channel-message-delete']")
+    ).not.toBeNull();
+
+    act(() => {
+      container
+        .querySelector<HTMLElement>("[data-testid='channel-message-delete']")
+        ?.click();
+    });
+    expect(onDelete).toHaveBeenCalledWith("msg-1");
+  });
+
+  it("hides mutation actions when the message plane is read-only", () => {
+    render("archived message", { grouped: true });
+
+    expect(
+      container.querySelector("[data-testid='channel-message-edit']")
+    ).toBeNull();
+    expect(
+      container.querySelector("[data-testid='channel-message-delete']")
+    ).toBeNull();
   });
 
   it("promotes a session reference into a card with its round count", () => {

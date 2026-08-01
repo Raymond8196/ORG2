@@ -7,7 +7,7 @@
  * server-side validation the local UI never surfaced: names normalized via
  * `normalizeChannelName`, 1..80 chars, case-insensitive uniqueness across
  * active AND archived channels (archived names stay reserved), at most
- * `CHANNEL_MAX_ACTIVE_PER_ORG` active channels, topics ≤ 250 chars, archive
+ * `CHANNEL_MAX_ACTIVE_PER_SCOPE` active channels, topics ≤ 250 chars, archive
  * is soft (`archivedAt`), delete is hard removal.
  *
  * Persistence uses the zod-validated localStorage idiom
@@ -21,24 +21,43 @@ import { atomWithStorage } from "jotai/utils";
 import { z } from "zod/v4";
 
 import {
+  CHANNEL_MAX_ACTIVE_PER_SCOPE,
+  CHANNEL_TOPIC_MAX_LENGTH,
   normalizeChannelName,
   validateChannelName,
-} from "@src/features/Org2Cloud/channels/channelName";
-import {
-  CHANNEL_MAX_ACTIVE_PER_ORG,
-  CHANNEL_TOPIC_MAX_LENGTH,
-} from "@src/features/Org2Cloud/channels/types";
+} from "@src/features/DiscussionChannels/channelContract";
 import { createZodJsonStorage } from "@src/util/core/storage/zodStorage";
 
 import {
-  localChannelMessagesAtom,
-  purgeLocalChannelMessages,
+  purgeLocalChannelMessagesAtom,
+  purgeOrphanedLocalChannelMessagesAtom,
 } from "./localChannelMessagesAtom";
 
-export const LOCAL_CHANNELS_STORAGE_KEY = "orgii.localChannels.v1";
+/** Colon-style key (codebase convention); the dot-style original is adopted below. */
+export const LOCAL_CHANNELS_STORAGE_KEY = "orgii:localChannels:v1";
+const LEGACY_LOCAL_CHANNELS_STORAGE_KEY = "orgii.localChannels.v1";
+
+// One-time adoption of the briefly-shipped dot-style key — no data loss for
+// anyone who created channels on an early develop build.
+try {
+  if (typeof localStorage !== "undefined") {
+    const legacy = localStorage.getItem(LEGACY_LOCAL_CHANNELS_STORAGE_KEY);
+    if (legacy !== null) {
+      if (localStorage.getItem(LOCAL_CHANNELS_STORAGE_KEY) === null) {
+        localStorage.setItem(LOCAL_CHANNELS_STORAGE_KEY, legacy);
+      }
+      localStorage.removeItem(LEGACY_LOCAL_CHANNELS_STORAGE_KEY);
+    }
+  }
+} catch {
+  // Storage unavailable — nothing to migrate.
+}
 
 /** Same bound as the cloud backend's per-org active-channel quota. */
-export const LOCAL_CHANNEL_MAX_ACTIVE = CHANNEL_MAX_ACTIVE_PER_ORG;
+export const LOCAL_CHANNEL_MAX_ACTIVE = CHANNEL_MAX_ACTIVE_PER_SCOPE;
+
+/** Bounds archived + active rows retained by this device. */
+export const LOCAL_CHANNEL_MAX_STORED = 1_000;
 
 export const LocalChannelSchema = z.object({
   id: z.string(),
@@ -51,20 +70,51 @@ export const LocalChannelSchema = z.object({
 
 export type LocalChannel = z.output<typeof LocalChannelSchema>;
 
-/** Tolerant list schema: drop malformed rows, keep the rest. */
+/** Tolerant list schema: drop malformed rows (logged), keep the rest. */
 const StoredLocalChannelsSchema: z.ZodType<LocalChannel[]> = z
   .array(z.unknown())
   .transform((rows) =>
     rows.flatMap((row) => {
       const parsed = LocalChannelSchema.safeParse(row);
-      return parsed.success ? [parsed.data] : [];
+      if (!parsed.success) {
+        // A silent per-row drop becomes permanent on the next whole-list
+        // write; leave a trace so a schema change that sheds user data is
+        // diagnosable instead of invisible.
+        console.warn("[localChannels] dropped malformed stored row", row);
+        return [];
+      }
+      return [parsed.data];
     })
   );
+
+/**
+ * True when the stored registry payload failed to parse and hydrated to [].
+ * The orphan sweep must NOT treat that empty set as authoritative: purging
+ * against it would permanently delete every channel's messages because of
+ * one corrupt/unreadable REGISTRY read, while the messages key itself was
+ * intact.
+ */
+let localChannelRegistryHydrationDegraded = false;
+
+export function isLocalChannelRegistryHydrationDegraded(): boolean {
+  return localChannelRegistryHydrationDegraded;
+}
+
+export const __LOCAL_CHANNELS_TEST_INTERNALS = {
+  setRegistryHydrationDegraded(value: boolean): void {
+    localChannelRegistryHydrationDegraded = value;
+  },
+};
 
 export const localChannelsAtom = atomWithStorage<LocalChannel[]>(
   LOCAL_CHANNELS_STORAGE_KEY,
   [],
-  createZodJsonStorage(StoredLocalChannelsSchema),
+  createZodJsonStorage(StoredLocalChannelsSchema, {
+    onInvalid: (key, _rawValue, error) => {
+      localChannelRegistryHydrationDegraded = true;
+      console.warn(`[localChannels] invalid stored payload for ${key}`, error);
+    },
+  }),
   { getOnInit: true }
 );
 localChannelsAtom.debugLabel = "localChannelsAtom";
@@ -135,7 +185,12 @@ export function createLocalChannel(
   const topic = normalizeTopic(input.topic);
   if (!topic.ok) return fail("invalid");
   if (isNameTaken(channels, name)) return fail("nameTaken");
-  if (countActive(channels) >= LOCAL_CHANNEL_MAX_ACTIVE) return fail("quota");
+  if (
+    channels.length >= LOCAL_CHANNEL_MAX_STORED ||
+    countActive(channels) >= LOCAL_CHANNEL_MAX_ACTIVE
+  ) {
+    return fail("quota");
+  }
 
   const now = input.now ?? new Date().toISOString();
   const channel: LocalChannel = {
@@ -203,7 +258,9 @@ export function archiveLocalChannel(
   const current = channels.find((channel) => channel.id === id);
   if (!current) return fail("invalid");
   if (current.archivedAt !== null) {
-    return { ok: true, channels: [...channels], channel: current };
+    // Idempotent no-op keeps the input identity so write atoms can skip the
+    // redundant persist + subscriber notification.
+    return { ok: true, channels: channels as LocalChannel[], channel: current };
   }
   const stamp = now ?? new Date().toISOString();
   const updated: LocalChannel = {
@@ -229,7 +286,8 @@ export function unarchiveLocalChannel(
   const current = channels.find((channel) => channel.id === id);
   if (!current) return fail("invalid");
   if (current.archivedAt === null) {
-    return { ok: true, channels: [...channels], channel: current };
+    // Idempotent no-op — same identity contract as archiveLocalChannel.
+    return { ok: true, channels: channels as LocalChannel[], channel: current };
   }
   if (countActive(channels) >= LOCAL_CHANNEL_MAX_ACTIVE) return fail("quota");
   const updated: LocalChannel = {
@@ -311,8 +369,11 @@ updateLocalChannelAtom.debugLabel = "updateLocalChannelAtom";
 export const archiveLocalChannelAtom = atom(
   null,
   (get, set, id: string): LocalChannelResult => {
-    const result = archiveLocalChannel(get(localChannelsAtom), id);
-    if (result.ok) set(localChannelsAtom, result.channels);
+    const current = get(localChannelsAtom);
+    const result = archiveLocalChannel(current, id);
+    if (result.ok && result.channels !== current) {
+      set(localChannelsAtom, result.channels);
+    }
     return result;
   }
 );
@@ -321,8 +382,11 @@ archiveLocalChannelAtom.debugLabel = "archiveLocalChannelAtom";
 export const unarchiveLocalChannelAtom = atom(
   null,
   (get, set, id: string): LocalChannelResult => {
-    const result = unarchiveLocalChannel(get(localChannelsAtom), id);
-    if (result.ok) set(localChannelsAtom, result.channels);
+    const current = get(localChannelsAtom);
+    const result = unarchiveLocalChannel(current, id);
+    if (result.ok && result.channels !== current) {
+      set(localChannelsAtom, result.channels);
+    }
     return result;
   }
 );
@@ -341,12 +405,29 @@ export const deleteLocalChannelAtom = atom(
     const result = deleteLocalChannel(get(localChannelsAtom), id);
     if (!result.ok) return result;
     set(localChannelsAtom, result.channels);
-    const messages = get(localChannelMessagesAtom);
-    const remaining = purgeLocalChannelMessages(messages, id);
-    if (remaining.length !== messages.length) {
-      set(localChannelMessagesAtom, remaining);
-    }
+    // Compose the message-plane purge atom instead of duplicating its body —
+    // one purge implementation, every delete path included.
+    set(purgeLocalChannelMessagesAtom, id);
     return result;
   }
 );
 deleteLocalChannelAtom.debugLabel = "deleteLocalChannelAtom";
+
+/**
+ * Reconcile the message plane from the authoritative local channel registry.
+ * Mounted once by the sidebar coordinator at app startup.
+ */
+export const reconcileLocalChannelMessagesAtom = atom(null, (get, set) => {
+  if (localChannelRegistryHydrationDegraded) {
+    console.warn(
+      "[localChannels] skipping orphan sweep: registry hydration was degraded"
+    );
+    return { removed: 0, orphanedChannelIds: [] as string[] };
+  }
+  return set(
+    purgeOrphanedLocalChannelMessagesAtom,
+    new Set(get(localChannelsAtom).map((channel) => channel.id))
+  );
+});
+reconcileLocalChannelMessagesAtom.debugLabel =
+  "reconcileLocalChannelMessagesAtom";

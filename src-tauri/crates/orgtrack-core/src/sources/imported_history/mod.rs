@@ -527,6 +527,15 @@ pub fn strip_orgii_exec_mode_bridge(text: &str) -> &str {
     strip_internal_context_blocks(text)
 }
 
+/// Anthropic-family transcripts mark harness-injected user lines with
+/// `isMeta: true` (command caveats, hook feedback, loop ticks) or
+/// `origin.kind == "task-notification"` (background-task completion wakes).
+/// Such lines are transcript plumbing, not conversational rounds: they must
+/// not open a turn, become a round preview, or title the session.
+pub fn is_harness_injected_user_marker(is_meta: bool, origin_kind: Option<&str>) -> bool {
+    is_meta || origin_kind == Some("task-notification")
+}
+
 pub fn user_message_chunk(
     session_id: &str,
     provider_slug: &str,

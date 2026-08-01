@@ -11,11 +11,14 @@
  */
 import Modal from "@/src/scaffold/ModalSystem";
 import { useSetAtom } from "jotai";
-import { TriangleAlert } from "lucide-react";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import Checkbox from "@src/components/Checkbox";
+import {
+  ChannelDeleteConfirmation,
+  ChannelDialogErrorNotice,
+  ChannelDialogFooter,
+} from "@src/features/DiscussionChannels/components/ChannelDialogPrimitives";
 import {
   type LocalChannel,
   deleteLocalChannelAtom,
@@ -25,14 +28,12 @@ export interface DeleteLocalChannelDialogProps {
   open: boolean;
   channel: LocalChannel | null;
   onClose: () => void;
-  onDeleted?: () => void;
 }
 
 const DeleteLocalChannelDialog: React.FC<DeleteLocalChannelDialogProps> = ({
   open,
   channel,
   onClose,
-  onDeleted,
 }) => {
   const { t } = useTranslation("navigation");
   const deleteChannel = useSetAtom(deleteLocalChannelAtom);
@@ -47,56 +48,44 @@ const DeleteLocalChannelDialog: React.FC<DeleteLocalChannelDialogProps> = ({
       setFailed(true);
       return;
     }
-    onDeleted?.();
     onClose();
-  }, [channel, acknowledged, deleteChannel, onDeleted, onClose]);
+  }, [channel, acknowledged, deleteChannel, onClose]);
 
   return (
     <Modal
       visible={open && channel !== null}
       title={t("cloud.channels.delete.title", { name: channel?.name ?? "" })}
       onCancel={onClose}
-      onOk={handleDelete}
-      cancelText={t("cloud.channels.cancel")}
-      okText={t("cloud.channels.delete.confirm")}
-      cancelButtonProps={{
-        dataTestId: "local-channel-delete-cancel",
-      }}
-      okButtonProps={{
-        status: "danger",
-        loading: false,
-        disabled: !acknowledged || !channel,
-        dataTestId: "local-channel-delete-confirm",
-      }}
+      footer={
+        <ChannelDialogFooter
+          cancelLabel={t("cloud.channels.cancel")}
+          submitLabel={t("cloud.channels.delete.confirm")}
+          onCancel={onClose}
+          onSubmit={handleDelete}
+          cancelTestId="local-channel-delete-cancel"
+          submitTestId="local-channel-delete-confirm"
+          submitVariant="danger"
+          disabled={!acknowledged || !channel}
+        />
+      }
       width={440}
     >
       <div
         className="flex flex-col gap-3"
         data-testid="local-channel-delete-dialog"
       >
-        <div className="flex items-start gap-2 rounded-lg bg-danger-1 px-3 py-2 text-[12px] text-danger-6">
-          <TriangleAlert size={14} className="mt-0.5 shrink-0" />
-          <span>{t("cloud.channels.local.deleteWarning")}</span>
-        </div>
+        <ChannelDeleteConfirmation
+          warning={t("cloud.channels.local.deleteWarning")}
+          acknowledgement={t("cloud.channels.delete.acknowledge")}
+          checked={acknowledged}
+          onChange={setAcknowledged}
+          acknowledgeTestId="local-channel-delete-acknowledge"
+        />
 
-        <div data-testid="local-channel-delete-acknowledge">
-          <Checkbox
-            size="small"
-            checked={acknowledged}
-            onChange={(checked) => setAcknowledged(checked)}
-          >
-            {t("cloud.channels.delete.acknowledge")}
-          </Checkbox>
-        </div>
-
-        {failed ? (
-          <div
-            className="rounded-lg bg-danger-1 px-3 py-2 text-[12px] text-danger-6"
-            data-testid="local-channel-delete-error"
-          >
-            {t("cloud.channels.delete.error")}
-          </div>
-        ) : null}
+        <ChannelDialogErrorNotice
+          message={failed ? t("cloud.channels.delete.error") : null}
+          testId="local-channel-delete-error"
+        />
       </div>
     </Modal>
   );

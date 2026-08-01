@@ -16,6 +16,10 @@ import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
+  ChannelDialogErrorNotice,
+  ChannelDialogFooter,
+} from "@src/features/DiscussionChannels/components/ChannelDialogPrimitives";
+import {
   type LocalChannel,
   archiveLocalChannelAtom,
 } from "@src/store/ui/localChannelsAtom";
@@ -51,17 +55,17 @@ const ArchiveLocalChannelDialog: React.FC<ArchiveLocalChannelDialogProps> = ({
       visible={open && channel !== null}
       title={t("cloud.channels.archive.title", { name: channel?.name ?? "" })}
       onCancel={onClose}
-      onOk={handleArchive}
-      cancelText={t("cloud.channels.cancel")}
-      okText={t("cloud.channels.archive.confirm")}
-      cancelButtonProps={{
-        dataTestId: "local-channel-archive-cancel",
-      }}
-      okButtonProps={{
-        loading: false,
-        disabled: !channel,
-        dataTestId: "local-channel-archive-confirm",
-      }}
+      footer={
+        <ChannelDialogFooter
+          cancelLabel={t("cloud.channels.cancel")}
+          submitLabel={t("cloud.channels.archive.confirm")}
+          onCancel={onClose}
+          onSubmit={handleArchive}
+          cancelTestId="local-channel-archive-cancel"
+          submitTestId="local-channel-archive-confirm"
+          disabled={!channel}
+        />
+      }
       width={440}
     >
       <div
@@ -72,14 +76,10 @@ const ArchiveLocalChannelDialog: React.FC<ArchiveLocalChannelDialogProps> = ({
           {t("cloud.channels.local.archiveBody")}
         </div>
 
-        {failed ? (
-          <div
-            className="rounded-lg bg-danger-1 px-3 py-2 text-[12px] text-danger-6"
-            data-testid="local-channel-archive-error"
-          >
-            {t("cloud.channels.archive.error")}
-          </div>
-        ) : null}
+        <ChannelDialogErrorNotice
+          message={failed ? t("cloud.channels.archive.error") : null}
+          testId="local-channel-archive-error"
+        />
       </div>
     </Modal>
   );

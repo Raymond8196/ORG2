@@ -16,15 +16,13 @@ import { useSetAtom } from "jotai";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import Input from "@src/components/Input";
+import { normalizeChannelName } from "@src/features/DiscussionChannels/channelContract";
 import {
-  normalizeChannelName,
-  normalizeChannelNameInput,
-} from "@src/features/Org2Cloud/channels/channelName";
-import {
-  CHANNEL_NAME_MAX_LENGTH,
-  CHANNEL_TOPIC_MAX_LENGTH,
-} from "@src/features/Org2Cloud/channels/types";
+  ChannelDialogErrorNotice,
+  ChannelDialogFooter,
+  ChannelNameField,
+  ChannelTopicField,
+} from "@src/features/DiscussionChannels/components/ChannelDialogPrimitives";
 import {
   type LocalChannel,
   type LocalChannelErrorCode,
@@ -80,68 +78,40 @@ const LocalChannelSettingsDialog: React.FC<LocalChannelSettingsDialogProps> = ({
       visible={open && channel !== null}
       title={t("cloud.channels.settings.title", { name: channel?.name ?? "" })}
       onCancel={onClose}
-      onOk={handleSubmit}
-      cancelText={t("cloud.channels.cancel")}
-      okText={t("cloud.channels.settings.submit")}
-      cancelButtonProps={{
-        dataTestId: "local-channel-settings-cancel",
-      }}
-      okButtonProps={{
-        loading: false,
-        disabled: !canSubmit,
-        dataTestId: "local-channel-settings-submit",
-      }}
+      footer={
+        <ChannelDialogFooter
+          cancelLabel={t("cloud.channels.cancel")}
+          submitLabel={t("cloud.channels.settings.submit")}
+          onCancel={onClose}
+          onSubmit={handleSubmit}
+          cancelTestId="local-channel-settings-cancel"
+          submitTestId="local-channel-settings-submit"
+          disabled={!canSubmit}
+        />
+      }
       width={480}
     >
       <div
         className="flex flex-col gap-3"
         data-testid="local-channel-settings-dialog"
       >
-        <div className="flex flex-col gap-1.5">
-          <label className="text-[12px] font-medium text-text-2">
-            {t("cloud.channels.create.nameLabel")}
-          </label>
-          <Input
-            value={name}
-            onChange={(value) => {
-              setName(normalizeChannelNameInput(value));
-            }}
-            placeholder={t("cloud.channels.create.namePlaceholder")}
-            maxLength={CHANNEL_NAME_MAX_LENGTH}
-            prefix={<span className="text-[13px] text-text-3">#</span>}
-            suffix={
-              <span className="text-[11px] tabular-nums text-text-4">
-                {name.length}/{CHANNEL_NAME_MAX_LENGTH}
-              </span>
-            }
-            data-testid="local-channel-settings-name"
-          />
-        </div>
+        <ChannelNameField
+          autoFocus
+          value={name}
+          onChange={setName}
+          testId="local-channel-settings-name"
+        />
 
-        <div className="flex flex-col gap-1.5">
-          <label className="text-[12px] font-medium text-text-2">
-            {t("cloud.channels.create.topicLabel")}{" "}
-            <span className="font-normal text-text-4">
-              {t("cloud.channels.create.topicOptional")}
-            </span>
-          </label>
-          <Input
-            value={topic}
-            onChange={setTopic}
-            placeholder={t("cloud.channels.create.topicPlaceholder")}
-            maxLength={CHANNEL_TOPIC_MAX_LENGTH}
-            data-testid="local-channel-settings-topic"
-          />
-        </div>
+        <ChannelTopicField
+          value={topic}
+          onChange={setTopic}
+          testId="local-channel-settings-topic"
+        />
 
-        {errorMessage ? (
-          <div
-            className="rounded-lg bg-danger-1 px-3 py-2 text-[12px] text-danger-6"
-            data-testid="local-channel-settings-error"
-          >
-            {errorMessage}
-          </div>
-        ) : null}
+        <ChannelDialogErrorNotice
+          message={errorMessage}
+          testId="local-channel-settings-error"
+        />
       </div>
     </Modal>
   );

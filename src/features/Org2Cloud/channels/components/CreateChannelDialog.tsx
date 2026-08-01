@@ -12,42 +12,35 @@
  * (`ORG2_CONFLICT`) and org quota (`ORG2_QUOTA_EXCEEDED`) from the generic
  * case.
  */
-import Modal from "@/src/scaffold/ModalSystem";
+import Modal, { MODAL_SELECT_Z_INDEX } from "@/src/scaffold/ModalSystem";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import Avatar from "@src/components/Avatar";
 import Checkbox from "@src/components/Checkbox";
-import Input from "@src/components/Input";
 import Radio from "@src/components/Radio";
 import Select from "@src/components/Select";
-
-import { org2CloudAuthAtom } from "../../org2CloudAuthAtom";
 import {
   normalizeChannelName,
-  normalizeChannelNameInput,
   validateChannelName,
-} from "../channelName";
+} from "@src/features/DiscussionChannels/channelContract";
+import {
+  ChannelDialogErrorNotice,
+  ChannelDialogFooter,
+  ChannelNameField,
+  ChannelTopicField,
+} from "@src/features/DiscussionChannels/components/ChannelDialogPrimitives";
+
+import { org2CloudAuthAtom } from "../../org2CloudAuthAtom";
 import { bumpOrg2CloudChannelsVersionAtom } from "../channelsAtom";
 import { createCloudChannel, isOrg2ChannelsErrorCode } from "../channelsClient";
-import type {
-  CloudChannel,
-  CloudChannelPostPolicy,
-  CloudChannelVisibility,
-} from "../types";
-import {
-  CHANNEL_ADD_MEMBERS_MAX_PER_CALL,
-  CHANNEL_NAME_MAX_LENGTH,
-  CHANNEL_TOPIC_MAX_LENGTH,
-} from "../types";
+import type { CloudChannelPostPolicy, CloudChannelVisibility } from "../types";
+import { CHANNEL_ADD_MEMBERS_MAX_PER_CALL } from "../types";
 import {
   useActiveOrgMembers,
   useFreshChannelAccessToken,
 } from "./useChannelDialogAccess";
-
-/** Above the modal wrapper (9999) so the select panel is not swallowed. */
-const MODAL_SELECT_Z_INDEX = 10_000;
 
 type CreateChannelErrorKind = "nameTaken" | "quotaExceeded" | "generic";
 
@@ -55,14 +48,12 @@ export interface CreateChannelDialogProps {
   open: boolean;
   orgId: string | null;
   onClose: () => void;
-  onCreated?: (channel: CloudChannel) => void;
 }
 
 const CreateChannelDialog: React.FC<CreateChannelDialogProps> = ({
   open,
   orgId,
   onClose,
-  onCreated,
 }) => {
   const { t } = useTranslation("navigation");
   const currentUserId = useAtomValue(org2CloudAuthAtom)?.userId ?? null;
@@ -133,7 +124,7 @@ const CreateChannelDialog: React.FC<CreateChannelDialogProps> = ({
     try {
       const accessToken = await getFreshAccessToken();
       const trimmedTopic = topic.trim();
-      const channel = await createCloudChannel(accessToken, orgId, {
+      await createCloudChannel(accessToken, orgId, {
         name: submittedName,
         topic: trimmedTopic.length > 0 ? trimmedTopic : undefined,
         visibility,
@@ -144,7 +135,6 @@ const CreateChannelDialog: React.FC<CreateChannelDialogProps> = ({
             : undefined,
       });
       bumpChannelsVersion(orgId);
-      onCreated?.(channel);
       resetForm();
       onClose();
     } catch (caught) {
@@ -169,7 +159,6 @@ const CreateChannelDialog: React.FC<CreateChannelDialogProps> = ({
     selectedMemberIds,
     getFreshAccessToken,
     bumpChannelsVersion,
-    onCreated,
     resetForm,
     onClose,
   ]);
@@ -204,18 +193,18 @@ const CreateChannelDialog: React.FC<CreateChannelDialogProps> = ({
       visible={open}
       title={t("cloud.channels.create.title")}
       onCancel={handleClose}
-      onOk={handleSubmit}
-      cancelText={t("cloud.channels.cancel")}
-      okText={t("cloud.channels.create.submit")}
-      cancelButtonProps={{
-        disabled: submitting,
-        dataTestId: "channel-create-cancel",
-      }}
-      okButtonProps={{
-        loading: submitting,
-        disabled: !canSubmit,
-        dataTestId: "channel-create-submit",
-      }}
+      footer={
+        <ChannelDialogFooter
+          cancelLabel={t("cloud.channels.cancel")}
+          submitLabel={t("cloud.channels.create.submit")}
+          onCancel={handleClose}
+          onSubmit={() => void handleSubmit()}
+          cancelTestId="channel-create-cancel"
+          submitTestId="channel-create-submit"
+          loading={submitting}
+          disabled={!canSubmit}
+        />
+      }
       bodyClassName="p-0"
       width={760}
     >
@@ -223,51 +212,20 @@ const CreateChannelDialog: React.FC<CreateChannelDialogProps> = ({
         className="flex flex-col gap-5 px-5 py-4"
         data-testid="channel-create-dialog"
       >
-        <div className="grid grid-cols-[112px_minmax(0,1fr)] items-center gap-x-4">
-          <label
-            htmlFor="channel-create-name"
-            className="text-[13px] font-medium text-text-1"
-          >
-            {t("cloud.channels.create.nameLabel")}
-            <span className="ml-0.5 text-danger-6" aria-hidden="true">
-              *
-            </span>
-          </label>
-          <Input
-            id="channel-create-name"
-            required
-            value={name}
-            onChange={(value) => {
-              setName(normalizeChannelNameInput(value));
-            }}
-            placeholder={t("cloud.channels.create.namePlaceholder")}
-            maxLength={CHANNEL_NAME_MAX_LENGTH}
-            prefix={<span className="text-[13px] text-text-3">#</span>}
-            suffix={
-              <span className="text-[11px] tabular-nums text-text-4">
-                {name.length}/{CHANNEL_NAME_MAX_LENGTH}
-              </span>
-            }
-            data-testid="channel-create-name"
-          />
-        </div>
+        <ChannelNameField
+          autoFocus
+          layout="aligned"
+          value={name}
+          onChange={setName}
+          testId="channel-create-name"
+        />
 
-        <div className="grid grid-cols-[112px_minmax(0,1fr)] items-center gap-x-4">
-          <label
-            htmlFor="channel-create-topic"
-            className="text-[13px] font-medium text-text-1"
-          >
-            {t("cloud.channels.create.topicLabel")}
-          </label>
-          <Input
-            id="channel-create-topic"
-            value={topic}
-            onChange={setTopic}
-            placeholder={t("cloud.channels.create.topicPlaceholder")}
-            maxLength={CHANNEL_TOPIC_MAX_LENGTH}
-            data-testid="channel-create-topic"
-          />
-        </div>
+        <ChannelTopicField
+          layout="aligned"
+          value={topic}
+          onChange={setTopic}
+          testId="channel-create-topic"
+        />
 
         <div className="grid grid-cols-[112px_minmax(0,1fr)] items-start gap-x-4">
           <span className="pt-1 text-[13px] font-medium text-text-1">
@@ -415,12 +373,10 @@ const CreateChannelDialog: React.FC<CreateChannelDialogProps> = ({
         {errorMessage ? (
           <div className="grid grid-cols-[112px_minmax(0,1fr)] gap-x-4">
             <span />
-            <div
-              className="rounded-lg bg-danger-1 px-3 py-2 text-[12px] text-danger-6"
-              data-testid="channel-create-error"
-            >
-              {errorMessage}
-            </div>
+            <ChannelDialogErrorNotice
+              message={errorMessage}
+              testId="channel-create-error"
+            />
           </div>
         ) : null}
       </div>
