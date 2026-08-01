@@ -90,6 +90,7 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
     beforeAddNewActions,
     headerActions,
     hostTopBarLeadingContent,
+    macTopBarFollowingContent,
   }) => {
     const sidebarContainerRef = useRef<HTMLDivElement>(null);
     const {
@@ -470,6 +471,7 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
           />
         )}
         {renderTrafficLightsSpace()}
+        {IS_MACOS_HOST ? macTopBarFollowingContent : null}
         {header}
         <div className="flex flex-1 flex-col overflow-hidden">
           {resolvedChildren}
