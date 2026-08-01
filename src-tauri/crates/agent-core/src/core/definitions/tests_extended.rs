@@ -5,6 +5,8 @@
 //!   #[cfg(test)] #[path = "tests_extended.rs"] mod tests_extended;
 
 #[cfg(test)]
+#[allow(clippy::module_inception)]
+// This wrapper keeps the large extended suite isolated when included from resolved.rs.
 mod tests_extended {
     use crate::core::definitions::builtin::{
         get_builtin_agent, get_builtin_agents, is_builtin_agent, ADE_MANAGER_ID,

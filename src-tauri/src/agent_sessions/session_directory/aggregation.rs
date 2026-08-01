@@ -69,17 +69,19 @@ enum ExternalHistoryPage {
     CursorIde(CursorIdeSessionPage),
 }
 
+type ExternalHistoryPageLoader =
+    fn(&mut rusqlite::Connection, usize, usize) -> Result<ExternalHistoryPage, String>;
+
 struct ExternalHistorySourceLoader {
     source: &'static str,
-    load_page: fn(&mut rusqlite::Connection, usize, usize) -> Result<ExternalHistoryPage, String>,
+    load_page: ExternalHistoryPageLoader,
     /// Filtered cache-snapshot reader for continuation pages. Sources whose
     /// page-zero loader filters beyond the generic cache predicate (Cursor
     /// IDE's listable-session check) must re-apply that filter on "Load
     /// more", or offsets computed against page zero's filtered stream
     /// misalign — duplicating rows already shown and surfacing rows page
     /// zero hides. `None` = the generic cache page matches page zero.
-    load_continuation_page:
-        Option<fn(&mut rusqlite::Connection, usize, usize) -> Result<ExternalHistoryPage, String>>,
+    load_continuation_page: Option<ExternalHistoryPageLoader>,
 }
 
 fn load_claude_code_external_history_page(

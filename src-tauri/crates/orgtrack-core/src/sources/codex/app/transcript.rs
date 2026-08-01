@@ -970,20 +970,19 @@ fn observe_codex_catalog_line(
     *lines_since_boundary = 0;
 }
 
+type CodexTranscriptLoad = (
+    Vec<ActivityChunk>,
+    Vec<ProjectedTurnMetadata>,
+    Vec<CodexTurnOffset>,
+);
+
 fn load_codex_app_from_path_with_mode<'a>(
     session_id: &'a str,
     path: &Path,
     mode: CodexTranscriptCollectionMode<'a>,
     start_offset: u64,
     initial_sequence: usize,
-) -> Result<
-    (
-        Vec<ActivityChunk>,
-        Vec<ProjectedTurnMetadata>,
-        Vec<CodexTurnOffset>,
-    ),
-    String,
-> {
+) -> Result<CodexTranscriptLoad, String> {
     let mut file = fs::File::open(path)
         .map_err(|err| format!("Failed to open Codex history {}: {err}", path.display()))?;
     if start_offset > 0 {

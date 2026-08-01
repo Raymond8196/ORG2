@@ -220,10 +220,11 @@ fn kimi_code_home_for(home: &Path, configured: Option<&std::ffi::OsStr>) -> Path
     let canonical_home = fs::canonicalize(home).unwrap_or_else(|_| home.to_path_buf());
     let canonical_candidate =
         fs::canonicalize(&candidate).unwrap_or_else(|_| candidate.to_path_buf());
-    canonical_candidate
-        .starts_with(&canonical_home)
-        .then_some(candidate)
-        .unwrap_or(fallback)
+    if canonical_candidate.starts_with(&canonical_home) {
+        candidate
+    } else {
+        fallback
+    }
 }
 
 fn sync_kimi_history_cache(conn: &mut Connection) -> Result<(), String> {
@@ -397,6 +398,9 @@ fn discover_kimi_records_in(
     })
 }
 
+#[allow(clippy::too_many_arguments)]
+// Scanner roots and output accumulators have distinct lifetimes and ownership;
+// spelling them out keeps filesystem boundaries visible during traversal.
 fn collect_layout_records(
     walker: &mut scan_snapshot::SnapshotDirWalker<'_>,
     root: &Path,
@@ -1081,7 +1085,7 @@ fn legacy_timestamp_ms(value: &Value) -> Option<i64> {
         return None;
     }
     let millis = timestamp * 1000.0;
-    (millis.is_finite() && millis > 0.0 && millis <= i64::MAX as f64).then(|| millis as i64)
+    (millis.is_finite() && millis > 0.0 && millis <= i64::MAX as f64).then_some(millis as i64)
 }
 
 fn code_timestamp_ms(value: &Value) -> Option<i64> {
@@ -1098,7 +1102,7 @@ fn first_string<'a>(value: &'a Value, keys: &[&str]) -> Option<&'a str> {
         .filter(|text| !text.is_empty())
 }
 
-fn code_context_message<'a>(value: &'a Value) -> Option<(&'a str, &'a Value)> {
+fn code_context_message(value: &Value) -> Option<(&str, &Value)> {
     if value.get("type").and_then(Value::as_str) != Some("context.append_message") {
         return None;
     }

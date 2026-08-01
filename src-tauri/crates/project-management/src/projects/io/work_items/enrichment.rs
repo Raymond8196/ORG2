@@ -282,6 +282,8 @@ fn build_member_map(members: &[MemberEntry]) -> HashMap<String, &MemberEntry> {
 }
 
 #[cfg(test)]
+#[allow(clippy::field_reassign_with_default)]
+// Enrichment tests construct sparse updates incrementally for scenario readability.
 mod tests {
     use super::*;
     use crate::projects::io::labels::write_labels;

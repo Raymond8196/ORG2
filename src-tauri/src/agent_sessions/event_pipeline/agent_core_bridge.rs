@@ -415,6 +415,9 @@ fn persist_events_async_adapter(
     });
 }
 
+#[allow(clippy::too_many_arguments)]
+// This adapter implements the persistence callback signature consumed by
+// agent-core, so its event fields must stay aligned with that boundary.
 fn persist_user_message_event_adapter(
     handle: &AppHandle,
     session_id: &str,

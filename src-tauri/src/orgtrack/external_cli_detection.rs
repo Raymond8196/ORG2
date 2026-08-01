@@ -488,6 +488,9 @@ pub const EXTERNAL_CLI_SOURCES: &[ExternalCliSourceSpec] = &[
     ),
 ];
 
+#[allow(clippy::too_many_arguments)]
+// The const constructor keeps every registry column visible in the static
+// source table; a second builder layer would hide omissions at compile time.
 const fn source(
     source_id: &'static str,
     display_name: &'static str,

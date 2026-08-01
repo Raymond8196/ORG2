@@ -164,6 +164,9 @@ pub async fn orgtrack_get_extraction_memory_gate(
 }
 
 #[cfg(test)]
+#[allow(clippy::items_after_test_module)]
+// Tauri commands must remain grouped above validation helpers; the tests cover
+// both sections without changing the production module layout.
 mod tests {
     use super::{is_temporary_diff_path, project_file_session_history};
     use orgtrack_core::canonical::{

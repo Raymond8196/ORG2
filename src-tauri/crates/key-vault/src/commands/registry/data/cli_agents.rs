@@ -14,7 +14,7 @@ const fn home_config(
     CliConfigFileEntry {
         id,
         label,
-        path_kind: CliConfigPathKind::HomeRelative,
+        path_kind: CliConfigPathKind::Home,
         relative_path,
         format,
         secret_bearing,
@@ -31,7 +31,7 @@ const fn xdg_config(
     CliConfigFileEntry {
         id,
         label,
-        path_kind: CliConfigPathKind::XdgConfigRelative,
+        path_kind: CliConfigPathKind::XdgConfig,
         relative_path,
         format,
         secret_bearing,
@@ -48,7 +48,7 @@ const fn app_data_config(
     CliConfigFileEntry {
         id,
         label,
-        path_kind: CliConfigPathKind::AppDataRelative,
+        path_kind: CliConfigPathKind::AppData,
         relative_path,
         format,
         secret_bearing,
