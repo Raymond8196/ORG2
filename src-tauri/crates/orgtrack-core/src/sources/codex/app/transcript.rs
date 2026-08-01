@@ -568,9 +568,19 @@ pub fn load_codex_app_turn_from_path(
             .next()
             .map(|entry| entry.byte_offset)
         {
-            if let Some((previous_user, previous_summary)) =
+            if let Some((previous_user, mut previous_summary)) =
                 load_codex_turn_header(session_id, path, previous_offset)?
             {
+                // The context placeholder spans up to the loaded turn's
+                // start. The header-only summary carries ended_at ==
+                // started_at, and that created_at tie flips the placeholder
+                // before its own header in chat sorting.
+                if let Some(loaded_turn_start) = selected_chunks
+                    .first()
+                    .map(|chunk| chunk.created_at.clone())
+                {
+                    previous_summary.ended_at = Some(loaded_turn_start);
+                }
                 chunks.push(previous_user);
                 chunks.push(build_unloaded_turn_placeholder_chunk(
                     session_id,
