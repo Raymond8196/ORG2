@@ -158,7 +158,7 @@ pub static PROVIDERS: &[ProviderSpec] = &[
         litellm_prefix: None,
         skip_prefixes: &["atlascloud/"],
         default_api_base: Some("https://api.atlascloud.ai/v1"),
-        default_anthropic_api_base: None,
+        default_anthropic_api_base: Some("https://api.atlascloud.ai"),
         is_local: false,
         env_key: Some("ATLASCLOUD_API_KEY"),
     },

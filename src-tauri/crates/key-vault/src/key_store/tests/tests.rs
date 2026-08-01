@@ -1229,6 +1229,41 @@ fn test_cross_type_env_zenmux_as_codex_uses_openai_endpoint() {
 }
 
 #[test]
+fn test_cross_type_env_atlascloud_as_claude_code_uses_anthropic_endpoint() {
+    let temp_dir = tempdir().unwrap();
+    let service = KeyService::new(Some(temp_dir.path().to_path_buf()));
+
+    let mut atlas_key = ModelKey::new(ModelType::AtlascloudApi);
+    atlas_key.api_key = Some("atlas-test-key".to_string());
+    atlas_key.enabled_models = vec!["zai-org/glm-5.1".to_string()];
+    // The stored /v1 URL is OpenAI-protocol; the Anthropic export must
+    // ignore it and use the bare host instead.
+    atlas_key.base_url = Some("https://api.atlascloud.ai/v1".to_string());
+    let key_id = atlas_key.id.clone();
+    service.save_key(atlas_key).unwrap();
+
+    let env = service.get_env_for_agent(&ModelType::ClaudeCode, Some(&key_id));
+    assert_eq!(
+        env.get("ANTHROPIC_API_KEY").map(String::as_str),
+        Some("atlas-test-key"),
+    );
+    assert_eq!(
+        env.get("ANTHROPIC_BASE_URL").map(String::as_str),
+        Some("https://api.atlascloud.ai"),
+    );
+    assert_eq!(
+        env.get("ANTHROPIC_MODEL").map(String::as_str),
+        Some("zai-org/glm-5.1"),
+    );
+    assert_eq!(
+        env.get("CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS")
+            .map(String::as_str),
+        Some("1"),
+    );
+    assert!(!env.contains_key("ATLASCLOUD_API_KEY"));
+}
+
+#[test]
 fn test_atlascloud_provider_exports_canonical_environment() {
     let temp_dir = tempdir().unwrap();
     let service = KeyService::new(Some(temp_dir.path().to_path_buf()));
