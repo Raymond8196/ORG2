@@ -18,7 +18,6 @@ const CLAUDE_CODE_REFRESH_TOKEN_ENV: &str = "CLAUDE_CODE_REFRESH_TOKEN";
 const CLAUDE_CODE_EXPIRES_AT_ENV: &str = "CLAUDE_CODE_EXPIRES_AT";
 const CLAUDE_CODE_EXPIRES_IN_ENV: &str = "CLAUDE_CODE_EXPIRES_IN";
 const CLAUDE_CODE_TOKEN_REFRESH_SKEW_SECONDS: i64 = 60;
-const CLAUDE_CODE_OAUTH_MODELS_URL: &str = "https://api.anthropic.com/v1/models";
 const CLAUDE_CODE_OAUTH_PROFILE_URL: &str = "https://api.anthropic.com/api/oauth/profile";
 const CLAUDE_CODE_OAUTH_BETA: &str = "oauth-2025-04-20";
 const CLAUDE_CODE_OAUTH_USER_AGENT: &str = "claude-cli/2.1.78 (orgii, cli)";
@@ -40,17 +39,6 @@ struct ClaudeAiOauthCredentials {
     scopes: Option<Vec<String>>,
     #[allow(dead_code)]
     subscription_type: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-struct ClaudeCodeOauthModelsResponse {
-    #[serde(default)]
-    data: Vec<ClaudeCodeOauthModelInfo>,
-}
-
-#[derive(Debug, Deserialize)]
-struct ClaudeCodeOauthModelInfo {
-    id: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -347,7 +335,7 @@ fn parse_claude_oauth_credentials(credentials_json: &str) -> Option<ClaudeAiOaut
 }
 
 async fn validate_claude_code_oauth_token(
-    access_token: &str,
+    _access_token: &str,
     expires_at: Option<u64>,
 ) -> (bool, Option<String>, Option<Vec<String>>) {
     if token_is_expired(expires_at) {
@@ -358,21 +346,14 @@ async fn validate_claude_code_oauth_token(
         );
     }
 
-    match fetch_claude_code_oauth_models(access_token).await {
-        Ok(models) => (
-            true,
-            Some("Valid Claude Code OAuth login".to_string()),
-            Some(models),
-        ),
-        Err(message) => (
-            true,
-            Some(format!(
-                "Valid Claude Code OAuth login; model discovery failed: {}",
-                message
-            )),
-            None,
-        ),
-    }
+    // Local detection only establishes that a non-expired OAuth credential is
+    // present. The wizard resolves the account-visible catalog exactly once
+    // through `oauth_model_catalog` after the user selects this credential.
+    (
+        true,
+        Some("Valid Claude Code OAuth login".to_string()),
+        None,
+    )
 }
 
 fn token_is_expired(expires_at: Option<u64>) -> bool {
@@ -384,48 +365,6 @@ fn token_is_expired(expires_at: Option<u64>) -> bool {
         return false;
     };
     Utc::now() + ChronoDuration::seconds(CLAUDE_CODE_TOKEN_REFRESH_SKEW_SECONDS) >= expires_at
-}
-
-async fn fetch_claude_code_oauth_models(access_token: &str) -> Result<Vec<String>, String> {
-    let response = reqwest::Client::new()
-        .get(CLAUDE_CODE_OAUTH_MODELS_URL)
-        .header("Authorization", format!("Bearer {}", access_token.trim()))
-        .header("anthropic-version", "2023-06-01")
-        .header("anthropic-beta", CLAUDE_CODE_OAUTH_BETA)
-        .header("User-Agent", CLAUDE_CODE_OAUTH_USER_AGENT)
-        .header("x-app", "cli")
-        .timeout(std::time::Duration::from_secs(15))
-        .send()
-        .await
-        .map_err(|err| format!("Claude Code OAuth validation request failed: {err}"))?;
-
-    let status = response.status();
-    let body = response
-        .text()
-        .await
-        .map_err(|err| format!("Claude Code OAuth validation body read failed: {err}"))?;
-
-    if !status.is_success() {
-        return Err(format!(
-            "Claude Code OAuth validation failed: HTTP {}: {}",
-            status.as_u16(),
-            body
-        ));
-    }
-
-    parse_claude_code_oauth_models_response(&body)
-}
-
-fn parse_claude_code_oauth_models_response(body: &str) -> Result<Vec<String>, String> {
-    let parsed: ClaudeCodeOauthModelsResponse = serde_json::from_str(body)
-        .map_err(|err| format!("Claude Code OAuth model discovery parse failed: {err}"))?;
-    let mut models = Vec::new();
-    for model in parsed.data {
-        if !model.id.is_empty() && !models.contains(&model.id) {
-            models.push(model.id);
-        }
-    }
-    Ok(models)
 }
 
 async fn fetch_claude_code_oauth_identity(access_token: &str) -> Option<ClaudeCodeAccountIdentity> {
