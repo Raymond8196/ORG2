@@ -21,6 +21,7 @@ import type {
   CodexOauthStartResponse,
   CursorBillingUsagePage,
   CursorBillingUsageSnapshot,
+  DefaultVariantInfo,
   FullKeyResponse,
   HealthStatus,
   HousekeeperHealthCheckResponse,
@@ -31,6 +32,7 @@ import type {
   KeyQuotaRefreshStatusInfo,
   ModelContextLengths,
   ModelType,
+  ModelVariantInfo,
   PromptPolishResponse,
   ProviderProtocol,
   QuotaInfo,
@@ -231,36 +233,38 @@ export async function getCursorNativeModels(
 export interface OAuthModelCatalog {
   models: string[];
   defaultEnabledModels: string[];
+  modelContextLengths: ModelContextLengths;
+  modelVariants: ModelVariantInfo[];
+  defaultVariants: DefaultVariantInfo[];
+  source: "live" | "fallback";
+}
+
+export interface OAuthModelCatalogCredentials {
+  accessToken?: string;
+  refreshToken?: string;
+  idToken?: string;
 }
 
 export async function getOAuthModelCatalog(
-  agentType: string
+  agentType: string,
+  credentials: OAuthModelCatalogCredentials = {}
 ): Promise<OAuthModelCatalog> {
   const catalog = await rpc.validation.oauthModelCatalog({
-    request: { agent_type: agentType },
+    request: {
+      agent_type: agentType,
+      access_token: credentials.accessToken ?? null,
+      refresh_token: credentials.refreshToken ?? null,
+      id_token: credentials.idToken ?? null,
+    },
   });
   return {
     models: catalog.models,
     defaultEnabledModels: catalog.default_enabled_models,
+    modelContextLengths: catalog.model_context_lengths,
+    modelVariants: catalog.model_variants,
+    defaultVariants: catalog.default_variants,
+    source: catalog.source,
   };
-}
-
-export async function getClaudeCodeOAuthModels(
-  accessToken: string
-): Promise<string[]> {
-  return rpc.validation.claudeCodeOauthListModels({ accessToken });
-}
-
-export async function getCodexOAuthModels(
-  accessToken: string,
-  idToken?: string
-): Promise<string[]> {
-  return rpc.validation.codexOauthListModels({
-    request: {
-      access_token: accessToken,
-      id_token: idToken ?? null,
-    },
-  });
 }
 
 /**

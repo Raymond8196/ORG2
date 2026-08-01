@@ -7,7 +7,9 @@
 
 use crate::providers::openai::OpenAIValidator;
 use crate::providers::quota_windows::{quota_from_windows, unix_seconds_to_rfc3339, QuotaWindow};
-use crate::types::{QuotaInfo, ValidationResult};
+use crate::types::{DiscoveredModel, QuotaInfo, ValidationResult};
+use integrations::cli_binary_resolver::{resolve_cli_binary_command, CliBinaryId};
+use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
@@ -33,6 +35,37 @@ struct CodexModelInfo {
     visibility: Option<String>,
     #[serde(default)]
     supported_in_api: Option<bool>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct CodexModelListResponse {
+    #[serde(default)]
+    data: Vec<CodexAppServerModelInfo>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct CodexAppServerModelInfo {
+    id: String,
+    #[serde(default)]
+    model: Option<String>,
+    #[serde(default)]
+    display_name: Option<String>,
+    #[serde(default)]
+    hidden: bool,
+    #[serde(default)]
+    default_reasoning_effort: Option<String>,
+    #[serde(default)]
+    supported_reasoning_efforts: Vec<CodexReasoningEffortInfo>,
+    #[serde(default)]
+    is_default: bool,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct CodexReasoningEffortInfo {
+    reasoning_effort: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -148,19 +181,10 @@ impl CodexValidator {
         match response {
             Ok(resp) => {
                 if resp.status().is_success() {
-                    let mut result = self.parse_usage_response(resp).await;
-                    if result.valid {
-                        match self.list_models(access_token, None).await {
-                            Ok(models) if !models.is_empty() => {
-                                result = result.with_models(models);
-                            }
-                            Ok(_) => {}
-                            Err(err) => {
-                                log::warn!("[CodexValidation] Model discovery failed: {}", err);
-                            }
-                        }
-                    }
-                    result
+                    // Authentication and model discovery are separate
+                    // boundaries. Wizard callers resolve the catalog exactly
+                    // once through `oauth_model_catalog` after this succeeds.
+                    self.parse_usage_response(resp).await
                 } else if resp.status() == reqwest::StatusCode::UNAUTHORIZED
                     || resp.status() == reqwest::StatusCode::FORBIDDEN
                 {
@@ -189,10 +213,89 @@ impl CodexValidator {
         access_token: &str,
         id_token: Option<&str>,
     ) -> Result<Vec<String>, String> {
+        self.discover_models(access_token, None, id_token)
+            .await
+            .map(|models| models.into_iter().map(|model| model.id).collect())
+    }
+
+    /// Discover the account-visible Codex catalog through the public
+    /// app-server protocol. The legacy private HTTP route is retained only as
+    /// a compatibility fallback for machines where the Codex binary cannot be
+    /// launched.
+    pub async fn discover_models(
+        &self,
+        access_token: &str,
+        refresh_token: Option<&str>,
+        id_token: Option<&str>,
+    ) -> Result<Vec<DiscoveredModel>, String> {
         let token = access_token.trim();
         if token.is_empty() {
             return Err("Codex OAuth access token is empty".to_string());
         }
+
+        let app_server_error = match self
+            .list_models_via_app_server(token, refresh_token, id_token)
+            .await
+        {
+            Ok(models) if !models.is_empty() => return Ok(models),
+            Ok(_) => {
+                log::warn!(
+                    "[CodexModels] app-server returned an empty model catalog; using compatibility fallback"
+                );
+                None
+            }
+            Err(err) => {
+                log::warn!(
+                    "[CodexModels] app-server model discovery failed ({err}); using compatibility fallback"
+                );
+                Some(err)
+            }
+        };
+
+        match self.list_models_via_private_backend(token, id_token).await {
+            Ok(models) => Ok(models
+                .into_iter()
+                .map(|id| DiscoveredModel {
+                    id,
+                    ..DiscoveredModel::default()
+                })
+                .collect()),
+            Err(private_error) => {
+                if let Some(auth_error) = app_server_error.filter(|error| {
+                    let lower = error.to_lowercase();
+                    lower.contains("401")
+                        || lower.contains("403")
+                        || lower.contains("unauthorized")
+                        || lower.contains("forbidden")
+                        || lower.contains("invalid token")
+                        || lower.contains("token expired")
+                }) {
+                    Err(auth_error)
+                } else {
+                    Err(private_error)
+                }
+            }
+        }
+    }
+
+    async fn list_models_via_app_server(
+        &self,
+        access_token: &str,
+        refresh_token: Option<&str>,
+        id_token: Option<&str>,
+    ) -> Result<Vec<DiscoveredModel>, String> {
+        let codex_home = write_temporary_codex_home(access_token, refresh_token, id_token).await?;
+        let discovery_result = run_codex_model_list_rpc(&codex_home).await;
+        cleanup_temporary_codex_home(&codex_home, "model discovery").await;
+        discovery_result
+    }
+
+    async fn list_models_via_private_backend(
+        &self,
+        access_token: &str,
+        id_token: Option<&str>,
+    ) -> Result<Vec<String>, String> {
+        let token = access_token.trim();
 
         let mut request = reqwest::Client::new()
             .get(CODEX_MODELS_API_URL)
@@ -306,14 +409,7 @@ impl CodexValidator {
 
         let codex_home = write_temporary_codex_home(token, refresh_token, id_token).await?;
         let quota_result = run_codex_rate_limits_rpc(&codex_home).await;
-        let cleanup_result = tokio::fs::remove_dir_all(&codex_home).await;
-        if let Err(err) = cleanup_result {
-            log::warn!(
-                "[CodexRateLimit] Failed to remove temporary Codex home {}: {}",
-                codex_home.display(),
-                err
-            );
-        }
+        cleanup_temporary_codex_home(&codex_home, "quota fetch").await;
         quota_result
     }
 
@@ -540,13 +636,43 @@ fn parse_codex_models_response(body: &str) -> Result<Vec<String>, String> {
     Ok(models)
 }
 
+fn discovered_models_from_app_server(response: CodexModelListResponse) -> Vec<DiscoveredModel> {
+    let mut models = Vec::new();
+    for model in response.data {
+        if model.hidden {
+            continue;
+        }
+        let id = model.model.filter(|id| !id.is_empty()).unwrap_or(model.id);
+        if id.is_empty() || models.iter().any(|item: &DiscoveredModel| item.id == id) {
+            continue;
+        }
+        let mut supported_efforts = Vec::new();
+        for effort in model.supported_reasoning_efforts {
+            if !effort.reasoning_effort.is_empty()
+                && !supported_efforts.contains(&effort.reasoning_effort)
+            {
+                supported_efforts.push(effort.reasoning_effort);
+            }
+        }
+        models.push(DiscoveredModel {
+            id,
+            display_name: model.display_name,
+            supported_efforts,
+            default_effort: model.default_reasoning_effort,
+            is_default: model.is_default,
+            ..DiscoveredModel::default()
+        });
+    }
+    models
+}
+
 async fn write_temporary_codex_home(
     access_token: &str,
     refresh_token: Option<&str>,
     id_token: Option<&str>,
 ) -> Result<PathBuf, String> {
     let codex_home =
-        std::env::temp_dir().join(format!("orgii-codex-quota-{}", uuid::Uuid::new_v4()));
+        std::env::temp_dir().join(format!("orgii-codex-app-server-{}", uuid::Uuid::new_v4()));
     tokio::fs::create_dir_all(&codex_home)
         .await
         .map_err(|err| format!("Failed to create temporary Codex home: {err}"))?;
@@ -575,8 +701,47 @@ async fn write_temporary_codex_home(
     Ok(codex_home)
 }
 
+async fn cleanup_temporary_codex_home(codex_home: &PathBuf, operation: &str) {
+    if let Err(err) = tokio::fs::remove_dir_all(codex_home).await {
+        log::warn!(
+            "[CodexAppServer] Failed to remove temporary Codex home after {} ({}): {}",
+            operation,
+            codex_home.display(),
+            err
+        );
+    }
+}
+
 async fn run_codex_rate_limits_rpc(codex_home: &PathBuf) -> Result<QuotaInfo, String> {
-    let mut child = Command::new("codex");
+    let payload: CodexRateLimitsResponse = run_codex_app_server_rpc(
+        codex_home,
+        "account/rateLimits/read",
+        serde_json::json!({}),
+        "rate-limit request",
+    )
+    .await?;
+    Ok(quota_from_codex_rate_limits_response(payload))
+}
+
+async fn run_codex_model_list_rpc(codex_home: &PathBuf) -> Result<Vec<DiscoveredModel>, String> {
+    let payload: CodexModelListResponse = run_codex_app_server_rpc(
+        codex_home,
+        "model/list",
+        serde_json::json!({ "limit": 1000, "includeHidden": false }),
+        "model-list request",
+    )
+    .await?;
+    Ok(discovered_models_from_app_server(payload))
+}
+
+async fn run_codex_app_server_rpc<T: DeserializeOwned>(
+    codex_home: &PathBuf,
+    method: &str,
+    params: serde_json::Value,
+    operation: &str,
+) -> Result<T, String> {
+    let codex_binary = resolve_cli_binary_command(CliBinaryId::Codex);
+    let mut child = Command::new(&codex_binary);
     child
         .args(["-s", "read-only", "-a", "untrusted", "app-server"])
         .env("CODEX_HOME", codex_home)
@@ -590,7 +755,7 @@ async fn run_codex_rate_limits_rpc(codex_home: &PathBuf) -> Result<QuotaInfo, St
 
     let mut child = child
         .spawn()
-        .map_err(|err| format!("Failed to start Codex app-server: {err}"))?;
+        .map_err(|err| format!("Failed to start Codex app-server via {codex_binary}: {err}"))?;
 
     let mut stdin = child
         .stdin
@@ -631,16 +796,8 @@ async fn run_codex_rate_limits_rpc(codex_home: &PathBuf) -> Result<QuotaInfo, St
         wait_for_rpc_id::<serde_json::Value>(&mut reader, 1).await?;
 
         write_json_rpc_notification(&mut stdin, "initialized", serde_json::json!({})).await?;
-        write_json_rpc_request(
-            &mut stdin,
-            2,
-            "account/rateLimits/read",
-            serde_json::json!({}),
-        )
-        .await?;
-
-        let payload = wait_for_rpc_id::<CodexRateLimitsResponse>(&mut reader, 2).await?;
-        Ok::<QuotaInfo, String>(quota_from_codex_rate_limits_response(payload))
+        write_json_rpc_request(&mut stdin, 2, method, params).await?;
+        wait_for_rpc_id::<T>(&mut reader, 2).await
     };
 
     let mut result =
@@ -648,13 +805,14 @@ async fn run_codex_rate_limits_rpc(codex_home: &PathBuf) -> Result<QuotaInfo, St
             .await
         {
             Ok(result) => result,
-            Err(_) => Err("Codex app-server rate-limit request timed out".to_string()),
+            Err(_) => Err(format!("Codex app-server {operation} timed out")),
         };
 
     if let Err(err) = child.kill().await {
         log::debug!(
-            "[CodexRateLimit] Failed to kill Codex app-server after quota fetch: {}",
-            err
+            "[CodexAppServer] Failed to kill Codex app-server after {}: {}",
+            operation,
+            err,
         );
     }
     let _ = child.wait().await;
@@ -741,7 +899,7 @@ async fn wait_for_rpc_id<T: for<'de> Deserialize<'de>>(
             .ok_or_else(|| "Codex app-server RPC response omitted result".to_string());
     }
 
-    Err("Codex app-server exited before returning rate limits".to_string())
+    Err("Codex app-server exited before returning the requested response".to_string())
 }
 
 fn quota_from_codex_rate_limits_response(response: CodexRateLimitsResponse) -> QuotaInfo {
@@ -1009,5 +1167,38 @@ mod model_discovery_tests {
     fn codex_models_response_rejects_invalid_json() {
         let err = parse_codex_models_response("not json").unwrap_err();
         assert!(err.contains("parse failed"));
+    }
+
+    #[test]
+    fn app_server_models_preserve_efforts_defaults_and_visibility() {
+        let response: CodexModelListResponse = serde_json::from_value(serde_json::json!({
+            "data": [
+                {
+                    "id": "gpt-5.6-sol",
+                    "model": "gpt-5.6-sol",
+                    "displayName": "GPT-5.6 Sol",
+                    "defaultReasoningEffort": "high",
+                    "supportedReasoningEfforts": [
+                        { "reasoningEffort": "low" },
+                        { "reasoningEffort": "high" },
+                        { "reasoningEffort": "max" }
+                    ],
+                    "isDefault": true
+                },
+                {
+                    "id": "hidden-model",
+                    "hidden": true
+                }
+            ]
+        }))
+        .expect("Codex model/list response");
+
+        let models = discovered_models_from_app_server(response);
+        assert_eq!(models.len(), 1);
+        assert_eq!(models[0].id, "gpt-5.6-sol");
+        assert_eq!(models[0].display_name.as_deref(), Some("GPT-5.6 Sol"));
+        assert_eq!(models[0].default_effort.as_deref(), Some("high"));
+        assert_eq!(models[0].supported_efforts, vec!["low", "high", "max"]);
+        assert!(models[0].is_default);
     }
 }

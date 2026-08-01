@@ -3,9 +3,11 @@ use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use std::sync::LazyLock;
 
-use crate::types::ValidationResult;
+use crate::types::{DiscoveredModel, ValidationResult};
 
-use crate::commands::crud::key_info_from_entry;
+use crate::commands::crud::{
+    key_info_from_entry, oauth_model_metadata, DefaultVariantInfo, ModelVariantInfo,
+};
 use crate::key_store::{AuthMethod, HealthStatus, ModelType, KEY_SERVICE};
 use crate::providers::anthropic::AnthropicValidator;
 use crate::providers::azure_openai::AzureOpenAIValidator;
@@ -41,31 +43,31 @@ pub struct TestModelResult {
 }
 
 #[derive(Debug, Deserialize)]
-struct ClaudeCodeOauthModelsResponse {
-    #[serde(default)]
-    data: Vec<ClaudeCodeOauthModelInfo>,
-}
-
-#[derive(Debug, Deserialize)]
-struct ClaudeCodeOauthModelInfo {
-    id: String,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct CodexOauthListModelsRequest {
-    pub access_token: String,
-    pub id_token: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
 pub struct OAuthModelCatalogRequest {
     pub agent_type: String,
+    #[serde(default)]
+    pub access_token: Option<String>,
+    #[serde(default)]
+    pub refresh_token: Option<String>,
+    #[serde(default)]
+    pub id_token: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
 pub struct OAuthModelCatalogResponse {
     pub models: Vec<String>,
     pub default_enabled_models: Vec<String>,
+    pub model_context_lengths: HashMap<String, u64>,
+    pub model_variants: Vec<ModelVariantInfo>,
+    pub default_variants: Vec<DefaultVariantInfo>,
+    pub source: OAuthModelCatalogSource,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum OAuthModelCatalogSource {
+    Live,
+    Fallback,
 }
 
 #[derive(Debug, Deserialize)]
@@ -81,9 +83,6 @@ struct OpenCodeModelInfo {
 
 use crate::provider_config::get_provider_config;
 
-const CLAUDE_CODE_OAUTH_MODELS_URL: &str = "https://api.anthropic.com/v1/models";
-const CLAUDE_CODE_OAUTH_BETA: &str = "oauth-2025-04-20";
-const CLAUDE_CODE_OAUTH_USER_AGENT: &str = "claude-cli/2.1.78 (orgii, cli)";
 pub const OPENCODE_ZEN_BASE_URL: &str = "https://opencode.ai/zen/v1";
 pub const OPENCODE_GO_BASE_URL: &str = "https://opencode.ai/zen/go/v1";
 
@@ -1279,130 +1278,163 @@ pub async fn cursor_list_models_native(
     Ok(models)
 }
 
-async fn claude_code_oauth_list_models_from_url(
-    access_token: &str,
-    models_url: &str,
-) -> Result<Vec<String>, String> {
-    let token = access_token.trim();
-    if token.is_empty() {
-        return Err("Claude Code OAuth access token is empty".to_string());
+fn oauth_static_catalog(
+    agent_type: &str,
+) -> Option<(&'static [&'static str], &'static [&'static str])> {
+    match agent_type {
+        "claude_code" => Some((
+            super::crud::CLAUDE_CODE_OAUTH_MODELS,
+            super::crud::CLAUDE_CODE_OAUTH_DEFAULT_ENABLED_MODELS,
+        )),
+        "codex" => Some((
+            super::crud::CODEX_OAUTH_MODELS,
+            super::crud::CODEX_OAUTH_DEFAULT_ENABLED_MODELS,
+        )),
+        _ => None,
     }
-
-    let response = reqwest::Client::new()
-        .get(models_url)
-        .header("Authorization", format!("Bearer {token}"))
-        .header("anthropic-version", "2023-06-01")
-        .header("anthropic-beta", CLAUDE_CODE_OAUTH_BETA)
-        .header("User-Agent", CLAUDE_CODE_OAUTH_USER_AGENT)
-        .header("x-app", "cli")
-        .timeout(std::time::Duration::from_secs(15))
-        .send()
-        .await
-        .map_err(|err| format!("Claude Code OAuth model discovery request failed: {err}"))?;
-
-    let status = response.status();
-    let body = response
-        .text()
-        .await
-        .map_err(|err| format!("Claude Code OAuth model discovery body read failed: {err}"))?;
-
-    if !status.is_success() {
-        return Err(format!(
-            "Claude Code OAuth model discovery failed: HTTP {}: {}",
-            status.as_u16(),
-            body
-        ));
-    }
-
-    parse_claude_code_oauth_models_response(&body)
 }
 
-fn merge_default_catalog(mut models: Vec<String>, defaults: &[&str]) -> Vec<String> {
-    for model in defaults {
-        let model = (*model).to_string();
-        if !models.contains(&model) {
-            models.push(model);
-        }
-    }
-    models
+fn fallback_discovered_models(agent_type: &str) -> Result<Vec<DiscoveredModel>, String> {
+    let (models, _) = oauth_static_catalog(agent_type)
+        .ok_or_else(|| format!("Unsupported OAuth model catalog agent type: {agent_type}"))?;
+    Ok(models
+        .iter()
+        .map(|model| DiscoveredModel {
+            id: (*model).to_string(),
+            ..DiscoveredModel::default()
+        })
+        .collect())
 }
 
-fn parse_claude_code_oauth_models_response(body: &str) -> Result<Vec<String>, String> {
-    let parsed: ClaudeCodeOauthModelsResponse = serde_json::from_str(body)
-        .map_err(|err| format!("Claude Code OAuth model discovery parse failed: {err}"))?;
-    let mut models = Vec::new();
-    for model in parsed.data {
-        if !model.id.is_empty() && !models.contains(&model.id) {
-            models.push(model.id);
-        }
+pub(super) fn resolved_oauth_catalog(
+    agent_type: &str,
+    discovered: Vec<DiscoveredModel>,
+    source: OAuthModelCatalogSource,
+) -> Result<OAuthModelCatalogResponse, String> {
+    let (_, fallback_defaults) = oauth_static_catalog(agent_type)
+        .ok_or_else(|| format!("Unsupported OAuth model catalog agent type: {agent_type}"))?;
+    let models: Vec<String> = discovered.iter().map(|model| model.id.clone()).collect();
+    let mut default_enabled_models: Vec<String> = discovered
+        .iter()
+        .filter(|model| model.is_default)
+        .map(|model| model.id.clone())
+        .collect();
+    if default_enabled_models.is_empty() {
+        default_enabled_models = fallback_defaults
+            .iter()
+            .filter(|model| models.iter().any(|available| available.as_str() == **model))
+            .map(|model| (*model).to_string())
+            .collect();
     }
-    Ok(models)
+    if default_enabled_models.is_empty() {
+        default_enabled_models.extend(models.first().cloned());
+    }
+
+    let model_context_lengths = discovered
+        .iter()
+        .filter_map(|model| {
+            model
+                .context_window
+                .filter(|context| *context > 0)
+                .map(|context| (model.id.clone(), context))
+        })
+        .collect();
+    let (model_variants, default_variants) = oauth_model_metadata(agent_type, &discovered);
+
+    Ok(OAuthModelCatalogResponse {
+        models,
+        default_enabled_models,
+        model_context_lengths,
+        model_variants,
+        default_variants,
+        source,
+    })
 }
 
+fn is_oauth_discovery_auth_error(error: &str) -> bool {
+    let lower = error.to_lowercase();
+    lower.contains("401")
+        || lower.contains("403")
+        || lower.contains("unauthorized")
+        || lower.contains("forbidden")
+        || lower.contains("invalid credential")
+        || lower.contains("invalid token")
+        || lower.contains("access denied")
+        || lower.contains("token expired")
+}
+
+/// Resolve one authoritative OAuth catalog for every wizard and refresh entry
+/// point. A successful account-visible response is never unioned with baked
+/// models; the static catalog is used only when discovery is unavailable.
 #[tauri::command]
-pub fn oauth_model_catalog(
+pub async fn oauth_model_catalog(
     request: OAuthModelCatalogRequest,
 ) -> Result<OAuthModelCatalogResponse, String> {
-    match request.agent_type.as_str() {
-        "claude_code" => Ok(OAuthModelCatalogResponse {
-            models: super::crud::CLAUDE_CODE_OAUTH_MODELS
-                .iter()
-                .map(|model| (*model).to_string())
-                .collect(),
-            default_enabled_models: super::crud::CLAUDE_CODE_OAUTH_DEFAULT_ENABLED_MODELS
-                .iter()
-                .map(|model| (*model).to_string())
-                .collect(),
-        }),
-        "codex" => Ok(OAuthModelCatalogResponse {
-            models: super::crud::CODEX_OAUTH_MODELS
-                .iter()
-                .map(|model| (*model).to_string())
-                .collect(),
-            default_enabled_models: super::crud::CODEX_OAUTH_DEFAULT_ENABLED_MODELS
-                .iter()
-                .map(|model| (*model).to_string())
-                .collect(),
-        }),
-        other => Err(format!(
-            "Unsupported OAuth model catalog agent type: {other}"
-        )),
+    let fallback = fallback_discovered_models(&request.agent_type)?;
+    let Some(access_token) = request
+        .access_token
+        .as_deref()
+        .map(str::trim)
+        .filter(|token| !token.is_empty())
+    else {
+        return resolved_oauth_catalog(
+            &request.agent_type,
+            fallback,
+            OAuthModelCatalogSource::Fallback,
+        );
+    };
+
+    let discovered = match request.agent_type.as_str() {
+        "claude_code" => {
+            AnthropicValidator::new()
+                .get_oauth_model_catalog(access_token)
+                .await
+        }
+        "codex" => {
+            CodexValidator::new()
+                .discover_models(
+                    access_token,
+                    request.refresh_token.as_deref(),
+                    request.id_token.as_deref(),
+                )
+                .await
+        }
+        other => {
+            return Err(format!(
+                "Unsupported OAuth model catalog agent type: {other}"
+            ))
+        }
+    };
+
+    match discovered {
+        Ok(models) if !models.is_empty() => {
+            resolved_oauth_catalog(&request.agent_type, models, OAuthModelCatalogSource::Live)
+        }
+        Ok(_) => {
+            log::warn!(
+                "[oauth_model_catalog] {} returned an empty catalog; using fallback",
+                request.agent_type
+            );
+            resolved_oauth_catalog(
+                &request.agent_type,
+                fallback,
+                OAuthModelCatalogSource::Fallback,
+            )
+        }
+        Err(err) if is_oauth_discovery_auth_error(&err) => Err(err),
+        Err(err) => {
+            log::warn!(
+                "[oauth_model_catalog] {} discovery failed ({}); using fallback",
+                request.agent_type,
+                err
+            );
+            resolved_oauth_catalog(
+                &request.agent_type,
+                fallback,
+                OAuthModelCatalogSource::Fallback,
+            )
+        }
     }
-}
-
-#[tauri::command]
-pub async fn claude_code_oauth_list_models(access_token: String) -> Result<Vec<String>, String> {
-    use log::info;
-    info!("[claude_code_oauth_list_models] Fetching models via Anthropic OAuth...");
-    let models = merge_default_catalog(
-        claude_code_oauth_list_models_from_url(&access_token, CLAUDE_CODE_OAUTH_MODELS_URL).await?,
-        super::crud::CLAUDE_CODE_OAUTH_MODELS,
-    );
-    info!(
-        "[claude_code_oauth_list_models] Got {} models from Anthropic OAuth",
-        models.len()
-    );
-    Ok(models)
-}
-
-#[tauri::command]
-pub async fn codex_oauth_list_models(
-    request: CodexOauthListModelsRequest,
-) -> Result<Vec<String>, String> {
-    use log::info;
-    info!("[codex_oauth_list_models] Fetching models via Codex native backend...");
-    let validator = CodexValidator::new();
-    let models = merge_default_catalog(
-        validator
-            .list_models(&request.access_token, request.id_token.as_deref())
-            .await?,
-        super::crud::CODEX_OAUTH_MODELS,
-    );
-    info!(
-        "[codex_oauth_list_models] Got {} models from Codex native backend",
-        models.len()
-    );
-    Ok(models)
 }
 
 /// Force-refresh an OAuth account's access token after the frontend observed a
@@ -1512,32 +1544,20 @@ mod tests {
     }
 
     #[test]
-    fn claude_code_oauth_models_response_parses_and_deduplicates_ids() {
-        let models = parse_claude_code_oauth_models_response(
-            r#"{
-                "data": [
-                    { "id": "claude-sonnet-4-6", "type": "model" },
-                    { "id": "claude-opus-4-7", "type": "model" },
-                    { "id": "claude-sonnet-4-6", "type": "model" },
-                    { "id": "", "type": "model" }
-                ]
-            }"#,
-        )
-        .unwrap();
-
-        assert_eq!(
-            models,
-            vec![
-                "claude-sonnet-4-6".to_string(),
-                "claude-opus-4-7".to_string()
-            ]
-        );
-    }
-
-    #[test]
-    fn claude_code_oauth_models_response_rejects_invalid_json() {
-        let err = parse_claude_code_oauth_models_response("not json").unwrap_err();
-        assert!(err.contains("parse failed"));
+    fn oauth_auth_failures_are_not_hidden_by_the_fallback_catalog() {
+        for error in [
+            "HTTP 401",
+            "HTTP 403",
+            "unauthorized",
+            "forbidden",
+            "invalid credential",
+            "invalid token",
+            "access denied",
+            "token expired",
+        ] {
+            assert!(is_oauth_discovery_auth_error(error), "{error}");
+        }
+        assert!(!is_oauth_discovery_auth_error("request timed out"));
     }
 
     #[test]

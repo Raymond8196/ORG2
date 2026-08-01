@@ -14,7 +14,9 @@ import {
   ModelTypeSchema,
 } from "./validationEnums";
 import {
+  DefaultVariantInfoSchema,
   ModelContextLengthsSchema,
+  ModelVariantInfoSchema,
   ProviderProtocolSchema,
   QuotaInfoSchema,
   SaveKeyRequestSchema,
@@ -357,26 +359,22 @@ export const CursorListModelsNativeInput = z.object({
   sessionToken: z.string(),
 });
 
-export const ClaudeCodeOauthListModelsInput = z.object({
-  accessToken: z.string(),
-});
-
 export const OAuthModelCatalogInput = z.object({
   request: z.object({
     agent_type: z.string(),
+    access_token: z.string().nullable().optional(),
+    refresh_token: z.string().nullable().optional(),
+    id_token: z.string().nullable().optional(),
   }),
 });
 
 export const OAuthModelCatalogResponseSchema = z.object({
   models: z.array(z.string()),
   default_enabled_models: z.array(z.string()),
-});
-
-export const CodexOauthListModelsInput = z.object({
-  request: z.object({
-    access_token: z.string(),
-    id_token: z.string().nullable().optional(),
-  }),
+  model_context_lengths: ModelContextLengthsSchema,
+  model_variants: z.array(ModelVariantInfoSchema),
+  default_variants: z.array(DefaultVariantInfoSchema),
+  source: z.enum(["live", "fallback"]),
 });
 
 export const RefreshOauthTokenInput = z.object({

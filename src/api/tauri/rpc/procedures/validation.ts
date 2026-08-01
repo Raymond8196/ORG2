@@ -157,16 +157,6 @@ export const validation = {
     .output(schemas.validation.OAuthModelCatalogResponseSchema)
     .build(),
 
-  claudeCodeOauthListModels: defineProcedure("claude_code_oauth_list_models")
-    .input(schemas.validation.ClaudeCodeOauthListModelsInput)
-    .output(z.array(z.string()))
-    .build(),
-
-  codexOauthListModels: defineProcedure("codex_oauth_list_models")
-    .input(schemas.validation.CodexOauthListModelsInput)
-    .output(z.array(z.string()))
-    .build(),
-
   refreshOauthToken: defineProcedure("refresh_oauth_token")
     .input(schemas.validation.RefreshOauthTokenInput)
     .build(),

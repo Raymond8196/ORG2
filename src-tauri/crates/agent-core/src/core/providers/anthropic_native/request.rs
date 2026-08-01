@@ -364,6 +364,7 @@ mod tests {
     #[test]
     fn effort_beta_is_gated_per_model() {
         assert!(model_uses_effort_beta("claude-opus-4-8", "anthropic"));
+        assert!(model_uses_effort_beta("claude-opus-5", "anthropic"));
         assert!(model_uses_effort_beta("claude-fable-5", "anthropic"));
         assert!(model_uses_effort_beta("claude-sonnet-4-6", "anthropic"));
         assert!(!model_uses_effort_beta("claude-haiku-4-5", "anthropic"));
@@ -391,6 +392,7 @@ mod tests {
     fn effort_capability_stays_in_lockstep_with_key_vault() {
         for model in [
             "claude-fable-5",
+            "claude-opus-5",
             "claude-opus-4-8",
             "claude-opus-4-7",
             "claude-opus-4-6",

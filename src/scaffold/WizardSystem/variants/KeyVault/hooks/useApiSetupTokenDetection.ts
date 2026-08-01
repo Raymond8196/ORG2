@@ -1,9 +1,8 @@
 import type { TFunction } from "i18next";
-import { type MutableRefObject, useCallback, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 
 import {
   autoDetectKey,
-  getCodexOAuthModels as fetchCodexOAuthModels,
   getOAuthModelCatalog,
   validateKey,
 } from "@src/api/services/keyValidation";
@@ -66,7 +65,6 @@ interface UseApiSetupTokenDetectionOptions {
   isOAuthAgent: boolean;
   isClaudeCode: boolean;
   isCodex: boolean;
-  agentModelsRef: MutableRefObject<string[]>;
   detectedKeys: DetectedKey[];
   selectedCredentialIndex: number;
   setDetectingToken: (value: boolean) => void;
@@ -86,7 +84,6 @@ export function useApiSetupTokenDetection({
   isOAuthAgent,
   isClaudeCode,
   isCodex,
-  agentModelsRef,
   detectedKeys,
   selectedCredentialIndex,
   setDetectingToken,
@@ -124,33 +121,19 @@ export function useApiSetupTokenDetection({
         return;
       }
 
-      const catalog = isClaudeCode
-        ? await getOAuthModelCatalog(CLI_AGENT.CLAUDE_CODE)
-        : isCodex
-          ? await getOAuthModelCatalog(CLI_AGENT.CODEX)
-          : { models: [], defaultEnabledModels: [] };
-      let fallbackModels =
-        isCodex && agentModelsRef.current.length > 0
-          ? agentModelsRef.current
-          : catalog.models;
-      if (isCodex && cred.session_token) {
-        const idToken = cred.env_vars?.OPENAI_ID_TOKEN;
-        try {
-          const discovered = await fetchCodexOAuthModels(
-            cred.session_token,
-            idToken
-          );
-          if (discovered.length > 0) fallbackModels = discovered;
-        } catch (err) {
-          log.warn(
-            "[ApiSetup] Codex OAuth model discovery failed during auto-detect; using fallback models:",
-            err
-          );
-        }
-      }
-      const defaultEnabledModels = catalog.defaultEnabledModels.filter(
-        (modelId) => fallbackModels.includes(modelId)
-      );
+      const catalog =
+        isClaudeCode || isCodex
+          ? await getOAuthModelCatalog(
+              isClaudeCode ? CLI_AGENT.CLAUDE_CODE : CLI_AGENT.CODEX,
+              {
+                accessToken: cred.session_token ?? cred.api_key ?? undefined,
+                refreshToken: isClaudeCode
+                  ? cred.env_vars?.CLAUDE_CODE_REFRESH_TOKEN
+                  : cred.env_vars?.OPENAI_REFRESH_TOKEN,
+                idToken: cred.env_vars?.OPENAI_ID_TOKEN,
+              }
+            )
+          : undefined;
       applyKey(cred, {
         onChange,
         setTokenDetected,
@@ -159,20 +142,13 @@ export function useApiSetupTokenDetection({
         setShowKeySelection,
         isCursor,
         isOAuthAgent,
-        fallbackModels,
-        defaultEnabledModels:
-          isClaudeCode || isCodex
-            ? defaultEnabledModels.length > 0
-              ? defaultEnabledModels
-              : fallbackModels.slice(0, 1)
-            : undefined,
+        oauthCatalog: catalog,
         noValidTokenMsg: t("keyVault.noValidTokenFound"),
         validationFailedMsg: t("keyVault.quickActions.keyValidationFailed"),
       });
     },
     [
       data.agent_type,
-      agentModelsRef,
       isClaudeCode,
       isCodex,
       isOAuthAgent,
