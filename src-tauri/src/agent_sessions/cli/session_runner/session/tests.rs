@@ -1,4 +1,7 @@
-use super::super::env_setup::{opencode_zenmux_model_id, setup_opencode_zenmux_profile};
+use super::super::env_setup::{
+    atlascloud_model_id, opencode_zenmux_model_id, setup_codex_atlascloud_profile,
+    setup_opencode_atlascloud_profile, setup_opencode_zenmux_profile,
+};
 use super::super::input_assembly::cli_exec_mode_bridge;
 use super::super::oauth_setup::{is_api_overloaded_message, is_retryable_overloaded_chunk};
 use super::super::plan_approval::{
@@ -91,6 +94,88 @@ fn setup_opencode_zenmux_profile_writes_config_and_auth() {
     let auth = read_json(&temp_dir.path().join(".local/share/opencode/auth.json"));
     assert_eq!(auth["zenmux"]["type"].as_str(), Some("api"));
     assert_eq!(auth["zenmux"]["key"].as_str(), Some("sk-ai-v1-test"));
+}
+
+#[test]
+fn atlascloud_model_id_prefers_session_model() {
+    let mut key = ModelKey::new(ModelType::AtlascloudApi);
+    key.enabled_models = vec!["zai-org/glm-5.1".to_string()];
+
+    assert_eq!(
+        atlascloud_model_id(Some("deepseek-ai/deepseek-v3.2"), &key),
+        "deepseek-ai/deepseek-v3.2"
+    );
+}
+
+#[test]
+fn setup_codex_atlascloud_profile_writes_provider_model_and_auth() {
+    let temp_dir = tempfile::tempdir().expect("temp Codex profile");
+    let mut key = ModelKey::new(ModelType::AtlascloudApi);
+    key.api_key = Some("atlas-test-key".to_string());
+    key.enabled_models = vec!["zai-org/glm-5.1".to_string()];
+
+    setup_codex_atlascloud_profile(temp_dir.path(), &key, None).expect("setup profile");
+
+    let config = std::fs::read_to_string(temp_dir.path().join("config.toml")).expect("read config");
+    assert!(config.contains("model_provider = \"atlas_coding_plan\""));
+    assert!(config.contains("model = \"zai-org/glm-5.1\""));
+    assert!(config.contains("[model_providers.atlas_coding_plan]"));
+    assert!(config.contains("base_url = \"https://api.atlascloud.ai/v1\""));
+    assert!(config.contains("wire_api = \"chat\""));
+    assert!(config.contains("requires_openai_auth = true"));
+
+    let auth = read_json(&temp_dir.path().join("auth.json"));
+    assert_eq!(auth["OPENAI_API_KEY"].as_str(), Some("atlas-test-key"));
+}
+
+#[test]
+fn setup_opencode_atlascloud_profile_writes_config_and_auth() {
+    let temp_dir = tempfile::tempdir().expect("temp OpenCode profile");
+    let mut key = ModelKey::new(ModelType::AtlascloudApi);
+    key.api_key = Some("atlas-test-key".to_string());
+    key.enabled_models = vec!["zai-org/glm-5.1".to_string()];
+
+    setup_opencode_atlascloud_profile(temp_dir.path(), &key, None).expect("setup profile");
+
+    let config = read_json(&temp_dir.path().join(".config/opencode/opencode.json"));
+    assert_eq!(
+        config["provider"]["atlascloud"]["npm"].as_str(),
+        Some("@ai-sdk/openai-compatible")
+    );
+    assert_eq!(
+        config["provider"]["atlascloud"]["options"]["baseURL"].as_str(),
+        Some("https://api.atlascloud.ai/v1")
+    );
+    assert_eq!(
+        config["provider"]["atlascloud"]["options"]["apiKey"].as_str(),
+        Some("{env:ATLASCLOUD_API_KEY}")
+    );
+    assert_eq!(config["model"].as_str(), Some("atlascloud/zai-org/glm-5.1"));
+    assert!(config["provider"]["atlascloud"]["models"]["zai-org/glm-5.1"].is_object());
+
+    let auth = read_json(&temp_dir.path().join(".local/share/opencode/auth.json"));
+    assert_eq!(auth["atlascloud"]["type"].as_str(), Some("api"));
+    assert_eq!(auth["atlascloud"]["key"].as_str(), Some("atlas-test-key"));
+}
+
+#[test]
+fn cross_type_atlascloud_model_is_preserved_for_codex() {
+    assert_eq!(
+        resolve_session_model(
+            &ModelType::Codex,
+            Some(&ModelType::AtlascloudApi),
+            Some("zai-org/glm-5.1"),
+        ),
+        Some("zai-org/glm-5.1")
+    );
+    assert_eq!(
+        resolve_session_model(
+            &ModelType::ClaudeCode,
+            Some(&ModelType::AtlascloudApi),
+            Some("zai-org/glm-5.1"),
+        ),
+        None
+    );
 }
 
 #[test]

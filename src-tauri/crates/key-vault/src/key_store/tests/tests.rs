@@ -1229,6 +1229,29 @@ fn test_cross_type_env_zenmux_as_codex_uses_openai_endpoint() {
 }
 
 #[test]
+fn test_atlascloud_provider_exports_canonical_environment() {
+    let temp_dir = tempdir().unwrap();
+    let service = KeyService::new(Some(temp_dir.path().to_path_buf()));
+
+    let mut atlas_key = ModelKey::new(ModelType::AtlascloudApi);
+    atlas_key.api_key = Some("atlas-test-key".to_string());
+    atlas_key.base_url = Some("https://api.atlascloud.ai/v1".to_string());
+    let key_id = atlas_key.id.clone();
+    service.save_key(atlas_key).unwrap();
+
+    let env = service.get_env_for_agent(&ModelType::AtlascloudApi, Some(&key_id));
+    assert_eq!(
+        env.get("ATLASCLOUD_API_KEY").map(String::as_str),
+        Some("atlas-test-key")
+    );
+    assert_eq!(
+        env.get("ATLASCLOUD_BASE_URL").map(String::as_str),
+        Some("https://api.atlascloud.ai/v1")
+    );
+    assert!(!env.contains_key("ATLASCLOUD_API_BASE"));
+}
+
+#[test]
 fn test_cross_type_enabled_models_first_wins() {
     // Regression guard: when a key has both `available_models` (raw probe
     // result, possibly containing legacy names the proxy rejects) and

@@ -37,6 +37,19 @@ mod transport_standard;
 use skills_resolve::resolve_sde_skills;
 use spawn_retry::{is_transient_spawn_error, SPAWN_RETRY_ATTEMPTS, SPAWN_RETRY_BASE_DELAY_MS};
 
+fn resolve_session_model<'a>(
+    agent: &ModelType,
+    key_model_type: Option<&ModelType>,
+    session_model: Option<&'a str>,
+) -> Option<&'a str> {
+    let is_cross_type_key = key_model_type.is_some_and(|key_type| key_type != agent);
+    if is_cross_type_key && matches!(agent, ModelType::ClaudeCode) {
+        None
+    } else {
+        session_model
+    }
+}
+
 /// Run a code session: spawn CLI, parse stdout, broadcast events.
 ///
 /// This is spawned as a background Tokio task.
@@ -64,10 +77,10 @@ pub async fn run_session(
             cli_agent_type_str
         )
     })?;
-    // When using a cross-type compatible key (e.g. moonshot_api key for claude_code),
-    // the model override is injected via ANTHROPIC_MODEL / ANTHROPIC_DEFAULT_*_MODEL env vars
-    // in agent_env_builder. Passing --model with a provider-specific name (e.g. "kimi-for-coding")
-    // triggers Claude Code's model validation and fails. Skip --model in that case.
+    // Claude Code cross-type providers inject their model through ANTHROPIC_MODEL
+    // and reject provider-specific values passed to --model. Other compatible
+    // agents retain the user's selected model; their generated provider profile
+    // handles the routing.
     let mut selected_key = session
         .account_id
         .as_deref()
@@ -88,12 +101,7 @@ pub async fn run_session(
         }
     }
     let key_model_type = selected_key.as_ref().map(|key| key.model_type.clone());
-    let is_cross_type_key = key_model_type.as_ref().is_some_and(|kt| kt != &agent);
-    let model = if is_cross_type_key {
-        None
-    } else {
-        session.model.as_deref()
-    };
+    let model = resolve_session_model(&agent, key_model_type.as_ref(), session.model.as_deref());
     let repo_path = session.repo_path.as_deref();
     let account_id = session.account_id.as_deref();
 

@@ -111,6 +111,7 @@ pub enum ModelType {
     // Direct API key providers
     AnthropicApi,
     OpenaiApi,
+    AtlascloudApi,
     DeepseekApi,
     GeminiApi,
     GroqApi,
@@ -178,6 +179,7 @@ impl ModelType {
             // API key providers
             ModelType::AnthropicApi => "anthropic_api",
             ModelType::OpenaiApi => "openai_api",
+            ModelType::AtlascloudApi => "atlascloud_api",
             ModelType::DeepseekApi => "deepseek_api",
             ModelType::GeminiApi => "gemini_api",
             ModelType::GroqApi => "groq_api",
@@ -239,6 +241,7 @@ impl ModelType {
             // API key providers
             "anthropic_api" | "anthropic" => Some(ModelType::AnthropicApi),
             "openai_api" | "openai" => Some(ModelType::OpenaiApi),
+            "atlascloud_api" | "atlascloud" | "atlas_cloud" => Some(ModelType::AtlascloudApi),
             "deepseek_api" | "deepseek" => Some(ModelType::DeepseekApi),
             "gemini_api" | "gemini" | "google" => Some(ModelType::GeminiApi),
             "groq_api" | "groq" => Some(ModelType::GroqApi),
