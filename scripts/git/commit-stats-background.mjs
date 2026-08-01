@@ -37,7 +37,7 @@ function countEslint(jsonStr) {
       const isIgnoredFileOnly =
         messages.length > 0 &&
         messages.every((m) =>
-          m.message?.includes("ignored because of a matching ignore pattern"),
+          m.message?.includes("ignored because of a matching ignore pattern")
         );
       if (isIgnoredFileOnly) return sum;
       return sum + (file.errorCount ?? 0) + (file.warningCount ?? 0);
@@ -58,16 +58,7 @@ function countCircular(jsonStr) {
 
 async function main() {
   const [madgeOut, eslintOut] = await Promise.all([
-    run("npx", [
-      "madge",
-      "--circular",
-      "--json",
-      "--extensions",
-      "ts,tsx",
-      "--ts-config",
-      "tsconfig.json",
-      "src/",
-    ]),
+    run("node", ["scripts/quality/check-circular-dependencies.mjs", "--json"]),
     run("npx", ["eslint", "src/", "--format", "json"]),
   ]);
 
@@ -79,7 +70,7 @@ async function main() {
     writeFileSync(
       STATS_FILE,
       JSON.stringify({ eslint: eslintCount, circular: circularCount }) + "\n",
-      "utf8",
+      "utf8"
     );
   }
 }
