@@ -4,6 +4,10 @@ import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import {
+  HOST_DESKTOP,
+  resolveHostDesktop,
+} from "@src/config/windowChromeRadius";
 import { useAppNavigation } from "@src/hooks/navigation/useAppNavigation";
 import { useSessionView } from "@src/hooks/ui/tabs/useSessionView";
 import { teamInboxUnreadCountAtom } from "@src/modules/MainApp/TeamInbox/store";
@@ -48,6 +52,11 @@ import { useWorkstationSidebarSessionAndProjectMenuItems } from "./sidebarConnec
 import { useWorkstationSidebarSessionInteractionHandlers } from "./sidebarConnector.sessionInteractionHandlers";
 import { SidebarSearchShortcutTooltip } from "./sidebarTabs";
 import type { WorkstationSidebarKey } from "./types";
+
+const HOST_DESKTOP_KIND = resolveHostDesktop();
+const SHOW_ORG_SELECTOR_IN_TOP_CHROME =
+  HOST_DESKTOP_KIND === HOST_DESKTOP.WINDOWS ||
+  HOST_DESKTOP_KIND === HOST_DESKTOP.LINUX;
 
 /**
  * Workstation sidebar coordinator. The bulk of this connector's state,
@@ -562,9 +571,14 @@ export const WorkstationSidebarConnector: React.FC = () => {
         onSubmenuOpenChange={handleSubmenuOpenChange}
         onMenuItemContextMenu={resolvedMenuItemContextMenu}
         renderMenuItemWrapper={resolvedRenderMenuItemWrapper}
+        hostTopBarLeadingContent={
+          SHOW_ORG_SELECTOR_IN_TOP_CHROME ? sidebarOrgSelector : undefined
+        }
         preListContent={
           <>
-            <div className="shrink-0 px-3 pt-1">{sidebarOrgSelector}</div>
+            {!SHOW_ORG_SELECTOR_IN_TOP_CHROME ? (
+              <div className="shrink-0 px-3 pt-1">{sidebarOrgSelector}</div>
+            ) : null}
             {sidebarLayerHeader}
           </>
         }
