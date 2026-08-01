@@ -599,9 +599,7 @@ pub fn setup_menu_events(app: &AppHandle) {
             }
             "recent_clear" => {
                 clear_recent_menu(&app_handle);
-                if let Ok(menu) = create_app_menu(&app_handle) {
-                    let _ = app.set_menu(menu);
-                }
+                let _ = rebuild_menu(&app_handle);
             }
             id if id.starts_with("recent_") && id != "recent_none" && id != "recent_clear" => {
                 // Handle recent item click
@@ -620,6 +618,16 @@ pub fn setup_menu_events(app: &AppHandle) {
 }
 
 /// Rebuild the menu (call after adding/removing recent items)
+#[cfg(windows)]
+pub fn rebuild_menu(_app: &AppHandle) -> Result<(), tauri::Error> {
+    // Windows owns its single-row frameless chrome in `WindowsTopBar`.
+    // Attaching a native application menu adds a second File/Edit/View row
+    // beneath the web header and forces conflicting non-client chrome.
+    Ok(())
+}
+
+/// Rebuild the menu (call after adding/removing recent items)
+#[cfg(not(windows))]
 pub fn rebuild_menu(app: &AppHandle) -> Result<(), tauri::Error> {
     let menu = create_app_menu(app)?;
     app.set_menu(menu)?;

@@ -280,7 +280,7 @@ const WindowsTopBarComponent: React.FC = () => {
 
   return (
     <div
-      className="relative z-50 flex shrink-0 items-center border-b border-border-2 bg-bg-2 text-text-1"
+      className="relative z-50 flex shrink-0 items-center text-text-1"
       data-windows-top-bar="true"
       data-tauri-drag-region
       style={
