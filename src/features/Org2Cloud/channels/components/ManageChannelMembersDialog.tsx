@@ -27,6 +27,7 @@ import Checkbox from "@src/components/Checkbox";
 import Dropdown from "@src/components/Dropdown";
 import type { DropdownOption } from "@src/components/Dropdown/types";
 import { ChannelDialogErrorNotice } from "@src/features/DiscussionChannels/components/ChannelDialogPrimitives";
+import { PanelFooter } from "@src/modules/shared/layouts/blocks";
 
 import { bumpOrg2CloudChannelsVersionAtom } from "../channelsAtom";
 import {
@@ -246,7 +247,30 @@ const ManageChannelMembersDialog: React.FC<ManageChannelMembersDialogProps> = ({
       visible={open && channel !== null}
       title={t("cloud.channels.members.title", { name: channel?.name ?? "" })}
       onCancel={onClose}
-      footer={null}
+      footer={
+        <PanelFooter
+          secondaryActions={[
+            {
+              label: t("cloud.channels.cancel"),
+              onClick: onClose,
+              variant: "secondary",
+              disabled: mutating,
+              dataTestId: "channel-members-cancel",
+            },
+          ]}
+          primaryAction={
+            canManage
+              ? {
+                  label: t("cloud.channels.members.addSubmit"),
+                  onClick: handleAddMembers,
+                  loading: mutating,
+                  disabled: mutating || selectedAddIds.length === 0,
+                  dataTestId: "channel-members-add-submit",
+                }
+              : undefined
+          }
+        />
+      }
       width={480}
     >
       <div
@@ -370,46 +394,31 @@ const ManageChannelMembersDialog: React.FC<ManageChannelMembersDialogProps> = ({
                 {t("cloud.channels.members.addEmpty")}
               </div>
             ) : (
-              <>
-                <div className="flex max-h-40 flex-col divide-y divide-border-2 overflow-y-auto rounded-lg border border-border-2">
-                  {addableMembers.map((member) => {
-                    const checked = selectedAddIds.includes(member.userId);
-                    return (
-                      <div
-                        key={member.userId}
-                        data-testid={`channel-members-add-${member.userId}`}
+              <div className="flex max-h-40 flex-col divide-y divide-border-2 overflow-y-auto rounded-lg border border-border-2">
+                {addableMembers.map((member) => {
+                  const checked = selectedAddIds.includes(member.userId);
+                  return (
+                    <div
+                      key={member.userId}
+                      data-testid={`channel-members-add-${member.userId}`}
+                    >
+                      <Checkbox
+                        size="small"
+                        className="w-full px-2.5 py-1.5 hover:bg-surface-hover"
+                        checked={checked}
+                        disabled={
+                          !checked &&
+                          selectedAddIds.length >=
+                            CHANNEL_ADD_MEMBERS_MAX_PER_CALL
+                        }
+                        onChange={() => handleToggleAddId(member.userId)}
                       >
-                        <Checkbox
-                          size="small"
-                          className="w-full px-2.5 py-1.5 hover:bg-surface-hover"
-                          checked={checked}
-                          disabled={
-                            !checked &&
-                            selectedAddIds.length >=
-                              CHANNEL_ADD_MEMBERS_MAX_PER_CALL
-                          }
-                          onChange={() => handleToggleAddId(member.userId)}
-                        >
-                          {member.displayName ?? member.userId}
-                        </Checkbox>
-                      </div>
-                    );
-                  })}
-                </div>
-                <div>
-                  <Button
-                    htmlType="button"
-                    size="small"
-                    variant="primary"
-                    loading={mutating}
-                    disabled={mutating || selectedAddIds.length === 0}
-                    onClick={handleAddMembers}
-                    data-testid="channel-members-add-submit"
-                  >
-                    {t("cloud.channels.members.addSubmit")}
-                  </Button>
-                </div>
-              </>
+                        {member.displayName ?? member.userId}
+                      </Checkbox>
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </div>
         ) : null}

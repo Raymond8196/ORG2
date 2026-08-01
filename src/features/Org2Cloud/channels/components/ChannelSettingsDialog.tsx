@@ -155,7 +155,18 @@ const ChannelSettingsDialog: React.FC<ChannelSettingsDialogProps> = ({
       visible={open && channel !== null}
       title={t("cloud.channels.settings.title", { name: channel?.name ?? "" })}
       onCancel={onClose}
-      footer={null}
+      footer={
+        <ChannelDialogFooter
+          cancelLabel={t("cloud.channels.cancel")}
+          submitLabel={t("cloud.channels.settings.submit")}
+          onCancel={onClose}
+          onSubmit={() => void handleSubmit()}
+          cancelTestId="channel-settings-cancel"
+          submitTestId="channel-settings-submit"
+          loading={submitting}
+          disabled={!canSubmit}
+        />
+      }
       width={480}
     >
       <div
@@ -192,17 +203,6 @@ const ChannelSettingsDialog: React.FC<ChannelSettingsDialogProps> = ({
         <ChannelDialogErrorNotice
           message={errorMessage}
           testId="channel-settings-error"
-        />
-
-        <ChannelDialogFooter
-          cancelLabel={t("cloud.channels.cancel")}
-          submitLabel={t("cloud.channels.settings.submit")}
-          onCancel={onClose}
-          onSubmit={() => void handleSubmit()}
-          cancelTestId="channel-settings-cancel"
-          submitTestId="channel-settings-submit"
-          loading={submitting}
-          disabled={!canSubmit}
         />
       </div>
     </Modal>

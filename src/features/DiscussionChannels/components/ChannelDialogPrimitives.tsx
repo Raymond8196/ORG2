@@ -8,9 +8,10 @@ import { TriangleAlert } from "lucide-react";
 import React, { useId } from "react";
 import { useTranslation } from "react-i18next";
 
-import Button, { type ButtonVariant } from "@src/components/Button";
+import type { ButtonVariant } from "@src/components/Button";
 import Checkbox from "@src/components/Checkbox";
 import Input from "@src/components/Input";
+import { PanelFooter } from "@src/modules/shared/layouts/blocks";
 
 import {
   CHANNEL_NAME_MAX_LENGTH,
@@ -28,6 +29,8 @@ export interface ChannelNameFieldProps {
    * Confirmation dialogs must NOT autofocus their destructive action.
    */
   autoFocus?: boolean;
+  /** Use the wide-dialog label rail instead of the default stacked field. */
+  layout?: "stacked" | "aligned";
 }
 
 /** '#'-adorned live-normalizing name input with the n/80 counter. */
@@ -36,16 +39,34 @@ export const ChannelNameField: React.FC<ChannelNameFieldProps> = ({
   onChange,
   testId,
   autoFocus = false,
+  layout = "stacked",
 }) => {
   const { t } = useTranslation("navigation");
   const inputId = useId();
   return (
-    <div className="flex flex-col gap-1.5">
-      <label htmlFor={inputId} className="text-[12px] font-medium text-text-2">
+    <div
+      className={
+        layout === "aligned"
+          ? "grid grid-cols-[112px_minmax(0,1fr)] items-center gap-x-4"
+          : "flex flex-col gap-1.5"
+      }
+    >
+      <label
+        htmlFor={inputId}
+        className={
+          layout === "aligned"
+            ? "text-[13px] font-medium text-text-1"
+            : "text-[12px] font-medium text-text-2"
+        }
+      >
         {t("cloud.channels.create.nameLabel")}
+        <span className="ml-0.5 text-danger-6" aria-hidden>
+          *
+        </span>
       </label>
       <Input
         id={inputId}
+        required
         value={value}
         onChange={(next) => onChange(normalizeChannelNameInput(next))}
         placeholder={t("cloud.channels.create.namePlaceholder")}
@@ -67,22 +88,35 @@ export interface ChannelTopicFieldProps {
   value: string;
   onChange: (value: string) => void;
   testId: string;
+  /** Use the wide-dialog label rail instead of the default stacked field. */
+  layout?: "stacked" | "aligned";
 }
 
 export const ChannelTopicField: React.FC<ChannelTopicFieldProps> = ({
   value,
   onChange,
   testId,
+  layout = "stacked",
 }) => {
   const { t } = useTranslation("navigation");
   const inputId = useId();
   return (
-    <div className="flex flex-col gap-1.5">
-      <label htmlFor={inputId} className="text-[12px] font-medium text-text-2">
-        {t("cloud.channels.create.topicLabel")}{" "}
-        <span className="font-normal text-text-4">
-          {t("cloud.channels.create.topicOptional")}
-        </span>
+    <div
+      className={
+        layout === "aligned"
+          ? "grid grid-cols-[112px_minmax(0,1fr)] items-center gap-x-4"
+          : "flex flex-col gap-1.5"
+      }
+    >
+      <label
+        htmlFor={inputId}
+        className={
+          layout === "aligned"
+            ? "text-[13px] font-medium text-text-1"
+            : "text-[12px] font-medium text-text-2"
+        }
+      >
+        {t("cloud.channels.create.topicLabel")}
       </label>
       <Input
         id={inputId}
@@ -163,7 +197,7 @@ export interface ChannelDialogFooterProps {
   disabled?: boolean;
 }
 
-/** The common two-action footer used by the eight confirm/form dialogs. */
+/** The common fixed action footer used by the eight confirm/form dialogs. */
 export const ChannelDialogFooter: React.FC<ChannelDialogFooterProps> = ({
   cancelLabel,
   submitLabel,
@@ -175,24 +209,23 @@ export const ChannelDialogFooter: React.FC<ChannelDialogFooterProps> = ({
   loading = false,
   disabled = false,
 }) => (
-  <div className="flex items-center justify-end gap-2">
-    <Button
-      htmlType="button"
-      variant="secondary"
-      onClick={onCancel}
-      data-testid={cancelTestId}
-    >
-      {cancelLabel}
-    </Button>
-    <Button
-      htmlType="button"
-      variant={submitVariant}
-      loading={loading}
-      disabled={disabled}
-      onClick={onSubmit}
-      data-testid={submitTestId}
-    >
-      {submitLabel}
-    </Button>
-  </div>
+  <PanelFooter
+    secondaryActions={[
+      {
+        label: cancelLabel,
+        onClick: onCancel,
+        variant: "secondary",
+        disabled: loading,
+        dataTestId: cancelTestId,
+      },
+    ]}
+    primaryAction={{
+      label: submitLabel,
+      onClick: onSubmit,
+      variant: submitVariant,
+      loading,
+      disabled,
+      dataTestId: submitTestId,
+    }}
+  />
 );

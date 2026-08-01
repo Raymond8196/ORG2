@@ -56,7 +56,18 @@ const DeleteLocalChannelDialog: React.FC<DeleteLocalChannelDialogProps> = ({
       visible={open && channel !== null}
       title={t("cloud.channels.delete.title", { name: channel?.name ?? "" })}
       onCancel={onClose}
-      footer={null}
+      footer={
+        <ChannelDialogFooter
+          cancelLabel={t("cloud.channels.cancel")}
+          submitLabel={t("cloud.channels.delete.confirm")}
+          onCancel={onClose}
+          onSubmit={handleDelete}
+          cancelTestId="local-channel-delete-cancel"
+          submitTestId="local-channel-delete-confirm"
+          submitVariant="danger"
+          disabled={!acknowledged || !channel}
+        />
+      }
       width={440}
     >
       <div
@@ -74,17 +85,6 @@ const DeleteLocalChannelDialog: React.FC<DeleteLocalChannelDialogProps> = ({
         <ChannelDialogErrorNotice
           message={failed ? t("cloud.channels.delete.error") : null}
           testId="local-channel-delete-error"
-        />
-
-        <ChannelDialogFooter
-          cancelLabel={t("cloud.channels.cancel")}
-          submitLabel={t("cloud.channels.delete.confirm")}
-          onCancel={onClose}
-          onSubmit={handleDelete}
-          cancelTestId="local-channel-delete-cancel"
-          submitTestId="local-channel-delete-confirm"
-          submitVariant="danger"
-          disabled={!acknowledged || !channel}
         />
       </div>
     </Modal>

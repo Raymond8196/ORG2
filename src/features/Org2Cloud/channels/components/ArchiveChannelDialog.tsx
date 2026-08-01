@@ -80,7 +80,18 @@ const ArchiveChannelDialog: React.FC<ArchiveChannelDialogProps> = ({
       visible={open && channel !== null}
       title={t("cloud.channels.archive.title", { name: channel?.name ?? "" })}
       onCancel={onClose}
-      footer={null}
+      footer={
+        <ChannelDialogFooter
+          cancelLabel={t("cloud.channels.cancel")}
+          submitLabel={t("cloud.channels.archive.confirm")}
+          onCancel={onClose}
+          onSubmit={() => void handleArchive()}
+          cancelTestId="channel-archive-cancel"
+          submitTestId="channel-archive-confirm"
+          loading={archiving}
+          disabled={archiving || !channel || !orgId}
+        />
+      }
       width={440}
     >
       <div className="flex flex-col gap-3" data-testid="channel-archive-dialog">
@@ -97,17 +108,6 @@ const ArchiveChannelDialog: React.FC<ArchiveChannelDialogProps> = ({
                 : null
           }
           testId="channel-archive-error"
-        />
-
-        <ChannelDialogFooter
-          cancelLabel={t("cloud.channels.cancel")}
-          submitLabel={t("cloud.channels.archive.confirm")}
-          onCancel={onClose}
-          onSubmit={() => void handleArchive()}
-          cancelTestId="channel-archive-cancel"
-          submitTestId="channel-archive-confirm"
-          loading={archiving}
-          disabled={archiving || !channel || !orgId}
         />
       </div>
     </Modal>

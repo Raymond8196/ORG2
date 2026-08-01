@@ -78,7 +78,17 @@ const LocalChannelSettingsDialog: React.FC<LocalChannelSettingsDialogProps> = ({
       visible={open && channel !== null}
       title={t("cloud.channels.settings.title", { name: channel?.name ?? "" })}
       onCancel={onClose}
-      footer={null}
+      footer={
+        <ChannelDialogFooter
+          cancelLabel={t("cloud.channels.cancel")}
+          submitLabel={t("cloud.channels.settings.submit")}
+          onCancel={onClose}
+          onSubmit={handleSubmit}
+          cancelTestId="local-channel-settings-cancel"
+          submitTestId="local-channel-settings-submit"
+          disabled={!canSubmit}
+        />
+      }
       width={480}
     >
       <div
@@ -101,16 +111,6 @@ const LocalChannelSettingsDialog: React.FC<LocalChannelSettingsDialogProps> = ({
         <ChannelDialogErrorNotice
           message={errorMessage}
           testId="local-channel-settings-error"
-        />
-
-        <ChannelDialogFooter
-          cancelLabel={t("cloud.channels.cancel")}
-          submitLabel={t("cloud.channels.settings.submit")}
-          onCancel={onClose}
-          onSubmit={handleSubmit}
-          cancelTestId="local-channel-settings-cancel"
-          submitTestId="local-channel-settings-submit"
-          disabled={!canSubmit}
         />
       </div>
     </Modal>

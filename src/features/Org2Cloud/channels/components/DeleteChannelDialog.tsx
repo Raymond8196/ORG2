@@ -82,7 +82,19 @@ const DeleteChannelDialog: React.FC<DeleteChannelDialogProps> = ({
       visible={open && channel !== null}
       title={t("cloud.channels.delete.title", { name: channel?.name ?? "" })}
       onCancel={onClose}
-      footer={null}
+      footer={
+        <ChannelDialogFooter
+          cancelLabel={t("cloud.channels.cancel")}
+          submitLabel={t("cloud.channels.delete.confirm")}
+          onCancel={onClose}
+          onSubmit={() => void handleDelete()}
+          cancelTestId="channel-delete-cancel"
+          submitTestId="channel-delete-confirm"
+          submitVariant="danger"
+          loading={deleting}
+          disabled={!acknowledged || deleting || !channel || !orgId}
+        />
+      }
       width={440}
     >
       <div className="flex flex-col gap-3" data-testid="channel-delete-dialog">
@@ -103,18 +115,6 @@ const DeleteChannelDialog: React.FC<DeleteChannelDialogProps> = ({
                 : null
           }
           testId="channel-delete-error"
-        />
-
-        <ChannelDialogFooter
-          cancelLabel={t("cloud.channels.cancel")}
-          submitLabel={t("cloud.channels.delete.confirm")}
-          onCancel={onClose}
-          onSubmit={() => void handleDelete()}
-          cancelTestId="channel-delete-cancel"
-          submitTestId="channel-delete-confirm"
-          submitVariant="danger"
-          loading={deleting}
-          disabled={!acknowledged || deleting || !channel || !orgId}
         />
       </div>
     </Modal>

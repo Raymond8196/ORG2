@@ -55,7 +55,17 @@ const ArchiveLocalChannelDialog: React.FC<ArchiveLocalChannelDialogProps> = ({
       visible={open && channel !== null}
       title={t("cloud.channels.archive.title", { name: channel?.name ?? "" })}
       onCancel={onClose}
-      footer={null}
+      footer={
+        <ChannelDialogFooter
+          cancelLabel={t("cloud.channels.cancel")}
+          submitLabel={t("cloud.channels.archive.confirm")}
+          onCancel={onClose}
+          onSubmit={handleArchive}
+          cancelTestId="local-channel-archive-cancel"
+          submitTestId="local-channel-archive-confirm"
+          disabled={!channel}
+        />
+      }
       width={440}
     >
       <div
@@ -69,16 +79,6 @@ const ArchiveLocalChannelDialog: React.FC<ArchiveLocalChannelDialogProps> = ({
         <ChannelDialogErrorNotice
           message={failed ? t("cloud.channels.archive.error") : null}
           testId="local-channel-archive-error"
-        />
-
-        <ChannelDialogFooter
-          cancelLabel={t("cloud.channels.cancel")}
-          submitLabel={t("cloud.channels.archive.confirm")}
-          onCancel={onClose}
-          onSubmit={handleArchive}
-          cancelTestId="local-channel-archive-cancel"
-          submitTestId="local-channel-archive-confirm"
-          disabled={!channel}
         />
       </div>
     </Modal>
