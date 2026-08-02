@@ -1130,6 +1130,18 @@
       "searchPlaceholder": "搜索端口…",
       "noSearchResults": "没有匹配的端口"
     },
+    "ci": {
+      "openPullRequest": "在 GitHub 中打开 Pull Request",
+      "viewDetails": "查看检查详情",
+      "refresh": "刷新检查",
+      "unavailable": "无法读取检查状态",
+      "sections": {
+        "failed": "失败",
+        "running": "运行中",
+        "skipped": "已跳过",
+        "passed": "已通过"
+      }
+    },
     "noLanguageServicesActive": "没有活跃的 Language Service",
     "linesSelected": "已选择 {{count}} 行",
     "charsSelected": "已选择 {{count}} 个字符",

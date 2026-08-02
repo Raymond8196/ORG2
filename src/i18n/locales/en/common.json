@@ -1142,6 +1142,18 @@
       "searchPlaceholder": "Search ports…",
       "noSearchResults": "No matching ports"
     },
+    "ci": {
+      "openPullRequest": "Open pull request on GitHub",
+      "viewDetails": "View check details",
+      "refresh": "Refresh checks",
+      "unavailable": "Checks could not be read",
+      "sections": {
+        "failed": "Failed",
+        "running": "Running",
+        "skipped": "Skipped",
+        "passed": "Passed"
+      }
+    },
     "noLanguageServicesActive": "No language services active",
     "linesSelected": "{{count}} lines selected",
     "charsSelected": "{{count}} selected",

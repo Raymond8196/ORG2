@@ -20,7 +20,11 @@ import {
   getGitCredentialForRemote,
   getPRLocal,
 } from "@src/api/tauri/github";
-import { clearBranchPullRequestStatusCache } from "@src/services/git/branchPullRequestStatus";
+import {
+  BRANCH_CI_POLL_BASE_MS,
+  BRANCH_CI_POLL_MAX_MS,
+  clearBranchPullRequestStatusCache,
+} from "@src/services/git/branchPullRequestStatus";
 
 import {
   type UseBranchPullRequestStatusOptions,
@@ -142,8 +146,30 @@ describe("useBranchPullRequestStatus", () => {
     act(() => root.unmount());
     container.remove();
     Reflect.deleteProperty(document, "visibilityState");
+    vi.useRealTimers();
     vi.clearAllMocks();
   });
+
+  function runningChecks() {
+    return {
+      sha: "abc",
+      state: "pending",
+      check_runs: [
+        {
+          id: 1,
+          name: "test",
+          status: "in_progress",
+          conclusion: null,
+          details_url: null,
+          started_at: null,
+          completed_at: null,
+          output_title: null,
+          app_name: "CI",
+        },
+      ],
+      statuses: [],
+    };
+  }
 
   afterAll(() => {
     Reflect.deleteProperty(reactActEnvironment, "IS_REACT_ACT_ENVIRONMENT");
@@ -272,6 +298,69 @@ describe("useBranchPullRequestStatus", () => {
 
     expect(latest.pr?.number).toBe(22);
     expect(latest.compareUrl).toContain("feature-new");
+  });
+
+  it("re-reads while checks run and stops once they settle", async () => {
+    vi.useFakeTimers();
+    getChecksLocalMock
+      .mockResolvedValueOnce(runningChecks())
+      .mockResolvedValueOnce(runningChecks());
+
+    await act(async () => {
+      root.render(
+        createElement(Probe, {
+          options: {
+            repoId: "repo-1",
+            repoPath: "/repo",
+            branchName: "feature",
+            poll: true,
+          },
+          onValue: () => undefined,
+        })
+      );
+    });
+    expect(getChecksLocalMock).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(BRANCH_CI_POLL_BASE_MS);
+    });
+    expect(getChecksLocalMock).toHaveBeenCalledTimes(2);
+
+    // Second poll returns the settled default (`success`), so the schedule ends
+    // even though far more than the max interval elapses afterwards.
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(BRANCH_CI_POLL_BASE_MS * 2);
+    });
+    expect(getChecksLocalMock).toHaveBeenCalledTimes(3);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(BRANCH_CI_POLL_MAX_MS * 4);
+    });
+    expect(getChecksLocalMock).toHaveBeenCalledTimes(3);
+  });
+
+  it("never schedules a poll when tracing is not requested", async () => {
+    vi.useFakeTimers();
+    getChecksLocalMock.mockResolvedValue(runningChecks());
+
+    await act(async () => {
+      root.render(
+        createElement(Probe, {
+          options: {
+            repoId: "repo-1",
+            repoPath: "/repo",
+            branchName: "feature",
+          },
+          onValue: () => undefined,
+        })
+      );
+    });
+    expect(getChecksLocalMock).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(BRANCH_CI_POLL_MAX_MS * 4);
+    });
+    expect(getChecksLocalMock).toHaveBeenCalledTimes(1);
   });
 
   it("does not expose a closed PR or request checks for it", async () => {

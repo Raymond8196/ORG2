@@ -6,6 +6,10 @@ import type {
 } from "@src/api/tauri/github";
 
 import {
+  BRANCH_CI_EMPTY_POLL_MAX_ATTEMPTS,
+  BRANCH_CI_EMPTY_POLL_MS,
+  BRANCH_CI_POLL_BASE_MS,
+  BRANCH_CI_POLL_MAX_MS,
   BRANCH_PULL_REQUEST_STATUS_CACHE_MAX_ENTRIES,
   BRANCH_PULL_REQUEST_STATUS_TTL_MS,
   branchPullRequestStatusCacheSize,
@@ -16,6 +20,7 @@ import {
   getCachedBranchPullRequestStatus,
   isBranchPullRequestStatusFresh,
   loadBranchPullRequestStatusCoalesced,
+  nextBranchCiPollDelayMs,
   resolveBranchCiStatus,
   setCachedBranchPullRequestStatus,
 } from "./branchPullRequestStatus";
@@ -56,6 +61,67 @@ describe("branch pull request status", () => {
   afterEach(() => {
     clearBranchPullRequestStatusCache();
     vi.useRealTimers();
+  });
+
+  it("stops polling when there is nothing left to trace", () => {
+    const base = { attempt: 0, checksUnavailable: false };
+
+    // No PR, unreadable checks, and settled checks all end the schedule.
+    expect(
+      nextBranchCiPollDelayMs({ ...base, pr: null, checks: checks("pending") })
+    ).toBeNull();
+    expect(
+      nextBranchCiPollDelayMs({
+        ...base,
+        pr,
+        checks: null,
+        checksUnavailable: true,
+      })
+    ).toBeNull();
+    expect(
+      nextBranchCiPollDelayMs({ ...base, pr, checks: checks("success") })
+    ).toBeNull();
+    expect(
+      nextBranchCiPollDelayMs({ ...base, pr, checks: checks("failure") })
+    ).toBeNull();
+  });
+
+  it("backs off while checks run and caps the interval", () => {
+    const running = { checks: checks("pending"), checksUnavailable: false, pr };
+
+    expect(nextBranchCiPollDelayMs({ ...running, attempt: 0 })).toBe(
+      BRANCH_CI_POLL_BASE_MS
+    );
+    expect(nextBranchCiPollDelayMs({ ...running, attempt: 1 })).toBe(
+      BRANCH_CI_POLL_BASE_MS * 2
+    );
+    expect(nextBranchCiPollDelayMs({ ...running, attempt: 9 })).toBe(
+      BRANCH_CI_POLL_MAX_MS
+    );
+  });
+
+  it("gives an unreported PR a bounded grace period before giving up", () => {
+    const empty = {
+      checks: checks("pending", false),
+      checksUnavailable: false,
+      pr,
+    };
+
+    expect(nextBranchCiPollDelayMs({ ...empty, attempt: 0 })).toBe(
+      BRANCH_CI_EMPTY_POLL_MS
+    );
+    expect(
+      nextBranchCiPollDelayMs({
+        ...empty,
+        attempt: BRANCH_CI_EMPTY_POLL_MAX_ATTEMPTS - 1,
+      })
+    ).toBe(BRANCH_CI_EMPTY_POLL_MS);
+    expect(
+      nextBranchCiPollDelayMs({
+        ...empty,
+        attempt: BRANCH_CI_EMPTY_POLL_MAX_ATTEMPTS,
+      })
+    ).toBeNull();
   });
 
   it("builds GitHub compare links and falls back to the compare picker", () => {

@@ -44,6 +44,7 @@ import {
 } from "@src/store/workstation/codeEditor/search/indexingProgressAtom";
 import { getViewportSize } from "@src/util/ui/window/viewport";
 
+import { CiStatusMenu } from "./CiStatusMenu";
 import GitSyncStatusMenu from "./GitSyncStatusMenu";
 import { PortsStatusMenu } from "./PortsStatusMenu";
 import {
@@ -308,6 +309,10 @@ export const EditorStatusBar: React.FC<EditorStatusBarProps> = memo(
                 )}
               </StatusBarButton>
             </StatusBarTooltip>
+          )}
+
+          {showGitControls && branchName && (
+            <CiStatusMenu branchName={branchName} />
           )}
 
           {showGitControls && branchName && (
