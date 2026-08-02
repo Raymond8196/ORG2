@@ -39,6 +39,34 @@ pub const FUNCTION_GLOB_FILE_SEARCH: &str = "glob_file_search";
 pub const FUNCTION_AWAIT_OUTPUT: &str = "await_output";
 pub const DEFAULT_LIST_LIMIT: usize = 200;
 
+/// Drop one unparsable record from a source sync instead of failing the sync.
+///
+/// A sync that raises leaves `sync_source_cache_from_conn` unreached, so *no*
+/// session of that source is written — and because the record keeps its old
+/// cache signature, the next scan re-reads the same file and fails the same
+/// way. One malformed transcript would permanently cost a provider its entire
+/// sidebar. Skipping keeps that record on its last-known cached row (or absent
+/// if never cached) and still eligible for a later retry, while every other
+/// session in the source syncs normally.
+pub fn skip_unparsable_record<T>(
+    source: &str,
+    source_session_id: &str,
+    outcome: Result<T, String>,
+) -> Option<T> {
+    match outcome {
+        Ok(value) => Some(value),
+        Err(error) => {
+            tracing::warn!(
+                source,
+                source_session_id,
+                error = %error,
+                "imported history: skipping record that failed to parse"
+            );
+            None
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum ImportedHistoryLoader {
     ClaudeCode,

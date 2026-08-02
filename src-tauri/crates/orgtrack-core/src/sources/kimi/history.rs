@@ -276,7 +276,13 @@ fn sync_kimi_history_cache_in(
             SOURCE_KIMI,
             &record.source_session_id,
         )?;
-        let parsed = parse_kimi_meta(record, layout, default_model, stored.as_ref())?;
+        let Some(parsed) = imported_history::skip_unparsable_record(
+            SOURCE_KIMI,
+            &record.source_session_id,
+            parse_kimi_meta(record, layout, default_model, stored.as_ref()),
+        ) else {
+            continue;
+        };
         let session_id = parsed.input.session_id.clone();
         // The session cache signature is the authoritative changed-record
         // marker, so commit it last. If a prior write fails, or the final

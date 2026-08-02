@@ -611,11 +611,13 @@ fn sync_claude_code_history_cache(conn: &mut Connection) -> Result<(), String> {
             .get(&record.source_session_id)
             .cloned()
             .unwrap_or_default();
-        let parse = parse_claude_session_meta_with_title(
-            record,
-            stored_watermark.as_ref(),
-            external_title,
-        )?;
+        let Some(parse) = imported_history::skip_unparsable_record(
+            SOURCE_CLAUDE_CODE,
+            &record.source_session_id,
+            parse_claude_session_meta_with_title(record, stored_watermark.as_ref(), external_title),
+        ) else {
+            continue;
+        };
         imported_history::watermark::write_parse_watermark_from_conn(
             conn,
             SOURCE_CLAUDE_CODE,

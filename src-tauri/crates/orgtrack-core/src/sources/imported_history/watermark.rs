@@ -28,7 +28,13 @@ use serde::{Deserialize, Serialize};
 /// A single JSONL record must fit within this many raw bytes (including its
 /// trailing newline). The reader checks the bound before extending its buffer,
 /// so malformed or hostile files cannot cause unbounded allocation.
-pub const MAX_JSONL_LINE_BYTES: usize = 1024 * 1024;
+///
+/// Real transcripts routinely carry multi-megabyte tool results — a full-file
+/// read or a long command's output lands as one record — so this is a ceiling
+/// on the reader's buffer, not a statement about what a valid record is.
+/// Exceeding it makes [`WatermarkedTranscriptReader::next_line`] skip that one
+/// record; it is never fatal to the parse.
+pub const MAX_JSONL_LINE_BYTES: usize = 16 * 1024 * 1024;
 
 /// Only a fixed window immediately before the committed offset is read when an
 /// append is validated. File identity catches rotation; this boundary catches
@@ -183,6 +189,9 @@ impl BoundaryFingerprint {
     }
 }
 
+// `path` is read only by the non-unix branch; unix identifies the file by
+// dev/ino and never looks at it.
+#[cfg_attr(unix, allow(unused_variables))]
 fn source_file_identity(path: &Path, metadata: &std::fs::Metadata) -> Option<String> {
     #[cfg(unix)]
     {
@@ -236,6 +245,23 @@ fn push_boundary_bytes(window: &mut Vec<u8>, bytes: &[u8]) {
     window.extend_from_slice(bytes);
 }
 
+/// An oversized record being drained. Only its byte length and its trailing
+/// [`BOUNDARY_WINDOW_BYTES`] are retained — that is everything the watermark
+/// needs to describe the seam the record ends at, and it keeps a record of any
+/// size costing a fixed amount of memory.
+#[derive(Debug, Default)]
+struct SkippedRecord {
+    tail: Vec<u8>,
+    len: u64,
+}
+
+impl SkippedRecord {
+    fn push(&mut self, bytes: &[u8]) {
+        push_boundary_bytes(&mut self.tail, bytes);
+        self.len += bytes.len() as u64;
+    }
+}
+
 #[derive(Debug, PartialEq, Eq)]
 pub struct TranscriptLine {
     pub text: String,
@@ -256,6 +282,8 @@ pub struct WatermarkedTranscriptReader {
     resume_state_json: Option<String>,
     buf: Vec<u8>,
     error_label: &'static str,
+    /// Kept only so a skipped oversized record names the file it came from.
+    display_path: String,
 }
 
 impl WatermarkedTranscriptReader {
@@ -321,6 +349,7 @@ impl WatermarkedTranscriptReader {
             resume_state_json,
             buf: Vec::new(),
             error_label,
+            display_path: path.display().to_string(),
         })
     }
 
@@ -328,49 +357,89 @@ impl WatermarkedTranscriptReader {
         self.resume_state_json.as_deref()
     }
 
+    /// Read the next record, skipping any that exceeds [`MAX_JSONL_LINE_BYTES`].
+    ///
+    /// An oversized record is drained rather than buffered, and dropped rather
+    /// than raised: one giant tool result must not cost the caller the rest of
+    /// the file — and, upstream, every other session and every other provider
+    /// in the same pass. Its bytes still feed the boundary window and the
+    /// complete-line offset, so the watermark stays byte-accurate and a later
+    /// resume lands on the same seam as a parse that never skipped anything.
     pub fn next_line(&mut self) -> Result<Option<TranscriptLine>, String> {
-        self.buf.clear();
-        let mut terminated = false;
         loop {
-            let available = self.reader.fill_buf().map_err(|err| {
-                format!("Failed to read {} history line: {err}", self.error_label)
-            })?;
-            if available.is_empty() {
-                break;
+            self.buf.clear();
+            let mut terminated = false;
+            // `Some` once this record passed the cap: from that point its bytes
+            // go straight to the boundary tail instead of `buf`, so peak memory
+            // stays bounded no matter how long the record runs.
+            let mut skipped: Option<SkippedRecord> = None;
+            loop {
+                let available = self.reader.fill_buf().map_err(|err| {
+                    format!("Failed to read {} history line: {err}", self.error_label)
+                })?;
+                if available.is_empty() {
+                    break;
+                }
+                let newline = available.iter().position(|byte| *byte == b'\n');
+                let take = newline.map_or(available.len(), |index| index + 1);
+                if skipped.is_none() && self.buf.len().saturating_add(take) > MAX_JSONL_LINE_BYTES {
+                    // Hand the already-buffered prefix over first so the
+                    // record's bytes reach the boundary tail in file order.
+                    let mut record = SkippedRecord::default();
+                    record.push(&self.buf);
+                    self.buf.clear();
+                    self.buf.shrink_to_fit();
+                    skipped = Some(record);
+                }
+                match skipped.as_mut() {
+                    Some(record) => record.push(&available[..take]),
+                    None => self.buf.extend_from_slice(&available[..take]),
+                }
+                self.reader.consume(take);
+                if newline.is_some() {
+                    terminated = true;
+                    break;
+                }
             }
-            let newline = available.iter().position(|byte| *byte == b'\n');
-            let take = newline.map_or(available.len(), |index| index + 1);
-            if self.buf.len().saturating_add(take) > MAX_JSONL_LINE_BYTES {
-                return Err(format!(
-                    "Failed to read {} history line: record exceeds {} bytes",
-                    self.error_label, MAX_JSONL_LINE_BYTES
-                ));
+
+            if let Some(record) = skipped {
+                // An unterminated oversized record is the live writer's
+                // in-progress tail: leave the watermark untouched, exactly as
+                // an unterminated normal line does.
+                if !terminated {
+                    return Ok(None);
+                }
+                push_boundary_bytes(&mut self.boundary_window, &record.tail);
+                self.complete_offset += record.len;
+                tracing::warn!(
+                    source = self.error_label,
+                    path = %self.display_path,
+                    bytes = record.len,
+                    limit = MAX_JSONL_LINE_BYTES,
+                    "imported history: skipping oversized JSONL record"
+                );
+                continue;
             }
-            self.buf.extend_from_slice(&available[..take]);
-            self.reader.consume(take);
-            if newline.is_some() {
-                terminated = true;
-                break;
+
+            if self.buf.is_empty() {
+                return Ok(None);
             }
-        }
-        if self.buf.is_empty() {
-            return Ok(None);
-        }
-        if terminated {
-            push_boundary_bytes(&mut self.boundary_window, &self.buf);
-            self.complete_offset += self.buf.len() as u64;
-        }
-        let mut end = self.buf.len();
-        if terminated {
-            end -= 1;
-            if end > 0 && self.buf[end - 1] == b'\r' {
+            if terminated {
+                push_boundary_bytes(&mut self.boundary_window, &self.buf);
+                self.complete_offset += self.buf.len() as u64;
+            }
+            let mut end = self.buf.len();
+            if terminated {
                 end -= 1;
+                if end > 0 && self.buf[end - 1] == b'\r' {
+                    end -= 1;
+                }
             }
+            let text = std::str::from_utf8(&self.buf[..end])
+                .map_err(|err| format!("Failed to read {} history line: {err}", self.error_label))?
+                .to_string();
+            return Ok(Some(TranscriptLine { text, terminated }));
         }
-        let text = std::str::from_utf8(&self.buf[..end])
-            .map_err(|err| format!("Failed to read {} history line: {err}", self.error_label))?
-            .to_string();
-        Ok(Some(TranscriptLine { text, terminated }))
     }
 
     pub fn into_watermark(

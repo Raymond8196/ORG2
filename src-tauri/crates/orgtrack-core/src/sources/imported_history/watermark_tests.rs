@@ -203,8 +203,12 @@ fn rotated_file_identity_forces_a_full_reparse() {
     cleanup(&path);
 }
 
+/// A single huge tool result is ordinary in real Claude/Codex transcripts. It
+/// must cost that one record and nothing else — skipping it has to leave the
+/// following lines readable and the watermark landing past both, so a resume
+/// does not re-read the record it already gave up on.
 #[test]
-fn oversized_line_is_rejected_without_advancing_a_watermark() {
+fn oversized_line_is_skipped_without_stopping_the_parse() {
     let path = temp_transcript("oversized", "stable\n");
     let (mtime, size) = stat(&path);
     let mut reader =
@@ -224,7 +228,7 @@ fn oversized_line_is_rejected_without_advancing_a_watermark() {
         .open(&path)
         .and_then(|mut file| {
             std::io::Write::write_all(&mut file, &oversized)?;
-            std::io::Write::write_all(&mut file, b"\n")
+            std::io::Write::write_all(&mut file, b"\nafter\n")
         })
         .expect("append oversized record");
     let (mtime_after, size_after) = stat(&path);
@@ -238,8 +242,81 @@ fn oversized_line_is_rejected_without_advancing_a_watermark() {
     )
     .expect("open appended file");
     assert_eq!(resumed.resume_state_json(), Some("stable-state"));
-    let error = resumed.next_line().expect_err("oversized line rejected");
-    assert!(error.contains("record exceeds"));
+    assert_eq!(read_all(&mut resumed), vec![("after".to_string(), true)]);
+    let after_skip = resumed.into_watermark(1, mtime_after, size_after, "after-state".to_string());
+    assert_eq!(after_skip.byte_offset, size_after);
+
+    // The seam the skip left behind must still validate, or the next scan
+    // would cold-reparse the whole file and skip the same record again.
+    let mut reopened = WatermarkedTranscriptReader::open(
+        &path,
+        "Test",
+        Some(&after_skip),
+        1,
+        mtime_after,
+        size_after,
+    )
+    .expect("reopen after skip");
+    assert_eq!(reopened.resume_state_json(), Some("after-state"));
+    assert!(read_all(&mut reopened).is_empty());
+
+    cleanup(&path);
+}
+
+/// The cap bounds the reader's buffer; it must not silently truncate a record
+/// that merely happens to be large.
+#[test]
+fn a_record_at_the_size_limit_is_still_returned_whole() {
+    let body = "y".repeat(MAX_JSONL_LINE_BYTES - 1);
+    let path = temp_transcript("at-limit", &format!("{body}\n"));
+    let (mtime, size) = stat(&path);
+    let mut reader =
+        WatermarkedTranscriptReader::open(&path, "Test", None, 1, mtime, size).expect("open full");
+    assert_eq!(
+        reader.next_line().expect("read at-limit record"),
+        Some(TranscriptLine {
+            text: body,
+            terminated: true,
+        })
+    );
+    assert_eq!(reader.next_line().expect("read eof"), None);
+
+    cleanup(&path);
+}
+
+/// A live writer part-way through appending a huge record: the tail is not yet
+/// complete, so it must not advance the watermark past bytes a later append
+/// will extend.
+#[test]
+fn unterminated_oversized_tail_does_not_advance_the_watermark() {
+    let path = temp_transcript("oversized-tail", "stable\n");
+    let (mtime, size) = stat(&path);
+    let committed = {
+        let mut reader = WatermarkedTranscriptReader::open(&path, "Test", None, 1, mtime, size)
+            .expect("open full");
+        assert!(read_all(&mut reader).len() == 1);
+        reader.into_watermark(1, mtime, size, "stable-state".to_string())
+    };
+
+    let oversized = vec![b'x'; MAX_JSONL_LINE_BYTES + 1];
+    fs::OpenOptions::new()
+        .append(true)
+        .open(&path)
+        .and_then(|mut file| std::io::Write::write_all(&mut file, &oversized))
+        .expect("append unterminated oversized record");
+    let (mtime_after, size_after) = stat(&path);
+    let mut resumed = WatermarkedTranscriptReader::open(
+        &path,
+        "Test",
+        Some(&committed),
+        1,
+        mtime_after,
+        size_after,
+    )
+    .expect("open appended file");
+    assert!(read_all(&mut resumed).is_empty());
+    let after = resumed.into_watermark(1, mtime_after, size_after, "stable-state".to_string());
+    assert_eq!(after.byte_offset, committed.byte_offset);
 
     cleanup(&path);
 }

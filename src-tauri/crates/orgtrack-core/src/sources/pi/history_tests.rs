@@ -187,7 +187,7 @@ fn exact_leaf_depth_ignores_nested_foreign_jsonl() {
 }
 
 #[test]
-fn oversized_append_preserves_the_last_good_cache_and_watermark() {
+fn oversized_append_is_skipped_and_the_sync_still_succeeds() {
     let root = temp_root("oversized");
     let path = write_session(
         &root,
@@ -211,18 +211,20 @@ fn oversized_append_preserves_the_last_good_cache_and_watermark() {
             file.write_all(b"\n")
         })
         .expect("append oversized record");
-    let error = anthropic_jsonl::list_sessions_paginated(&config, &mut conn, 10, 0)
-        .expect_err("oversized append rejected");
-    assert!(error.contains("record exceeds"));
+    anthropic_jsonl::list_sessions_paginated(&config, &mut conn, 10, 0)
+        .expect("oversized append skipped, scan still succeeds");
 
     let after = watermark::read_parse_watermark_from_conn(&conn, SOURCE_PI, "--repo--/session-a")
-        .expect("read preserved watermark")
+        .expect("read watermark")
         .expect("watermark remains");
     let cached =
         imported_cache::query_cached_session_from_conn(&conn, SOURCE_PI, "--repo--/session-a")
             .expect("read cached row")
             .expect("cached row remains");
-    assert_eq!(after, before);
+    // The skipped record contributed nothing, so the parsed totals are
+    // unchanged — but the watermark must move past it, or every later scan
+    // would re-read and re-skip the same bytes.
     assert_eq!(cached.output_tokens, 7);
+    assert!(after.byte_offset > before.byte_offset);
     fs::remove_dir_all(root).ok();
 }
