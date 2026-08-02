@@ -1,4 +1,5 @@
 import { getImportedHistorySourceBySessionId } from "@src/api/tauri/externalHistory";
+import { rpc } from "@src/api/tauri/rpc";
 import { eventStoreProxy } from "@src/engines/SessionCore/core/store/EventStoreProxy";
 import type { SessionEvent } from "@src/engines/SessionCore/core/types";
 import { processChunksRust } from "@src/engines/SessionCore/ingestion/rustBridge";
@@ -7,7 +8,11 @@ import { createLogger } from "@src/hooks/logger";
 import { COLLAB_SESSION_ACCESS_MODE } from "@src/store/collaboration/types";
 import type { RemoteTeammateSessionMetadata } from "@src/store/collaboration/types";
 import type { Session } from "@src/store/session/sessionAtom/types";
-import { isImportedHistorySession } from "@src/util/session/sessionDispatch";
+import type { ActivityChunk } from "@src/types/session/session";
+import {
+  isCliSession,
+  isImportedHistorySession,
+} from "@src/util/session/sessionDispatch";
 
 import {
   sha256Hex,
@@ -323,7 +328,16 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
       if (!Array.isArray(chunks) || chunks.length === 0) return [];
       return processChunksRust(chunks, sessionId);
     }
-    return eventStoreProxy.getPersistedEvents(sessionId);
+    const persisted = await eventStoreProxy.getPersistedEvents(sessionId);
+    if (persisted.length > 0 || !isCliSession(sessionId)) return persisted;
+    // Live CLI sessions keep their transcript of record in the CLI's native
+    // store (account-profile aware) and never write the events cache, so a
+    // persisted read alone pushes a hollow session: metadata with no replay,
+    // and the pass then stamps the event plane clean. Load the full native
+    // transcript through the same command the session-resume path uses.
+    const chunks = (await rpc.cli.chunks({ sessionId })) as ActivityChunk[];
+    if (!Array.isArray(chunks) || chunks.length === 0) return [];
+    return processChunksRust(chunks, sessionId);
   }
 
   private preparePushEventsForPass(
