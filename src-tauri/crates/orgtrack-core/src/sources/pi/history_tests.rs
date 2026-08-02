@@ -186,6 +186,67 @@ fn exact_leaf_depth_ignores_nested_foreign_jsonl() {
     fs::remove_dir_all(root).ok();
 }
 
+/// Worst case left behind by the outage this fixes: a "Clear + rescan" wipes
+/// the source's cache rows, round usage and watermarks, and the resync that
+/// followed then raised — leaving the source at zero rows.
+///
+/// Recovery must not need a second clear. A record with no stored signature is
+/// always offered as changed, so a plain incremental update re-parses and
+/// re-caches the whole source.
+#[test]
+fn a_wiped_source_recovers_on_a_plain_incremental_update() {
+    let root = temp_root("wiped-recovery");
+    write_session(
+        &root,
+        "--repo--",
+        "session-a.jsonl",
+        &transcript("session-a", 7),
+    );
+    write_session(
+        &root,
+        "--repo--",
+        "session-b.jsonl",
+        &transcript("session-b", 11),
+    );
+    let mut conn = fixture_conn();
+    let config = test_config(&root);
+    anthropic_jsonl::list_sessions_paginated(&config, &mut conn, 10, 0).expect("cold scan");
+    assert!(
+        imported_cache::query_cached_session_from_conn(&conn, SOURCE_PI, "--repo--/session-a")
+            .expect("read cached row")
+            .is_some()
+    );
+
+    // Exactly what Clear + rescan performs before its resync.
+    imported_cache::prune_missing_records_from_conn(&conn, SOURCE_PI, &[]).expect("wipe source");
+    assert!(
+        imported_cache::query_cached_session_from_conn(&conn, SOURCE_PI, "--repo--/session-a")
+            .expect("read wiped row")
+            .is_none()
+    );
+    assert!(
+        watermark::read_parse_watermark_from_conn(&conn, SOURCE_PI, "--repo--/session-a")
+            .expect("read wiped watermark")
+            .is_none()
+    );
+
+    // A plain incremental update — no clear flag anywhere on this path.
+    let page = anthropic_jsonl::list_sessions_paginated(&config, &mut conn, 10, 0)
+        .expect("incremental recovery scan");
+    assert_eq!(page.sessions.len(), 2);
+    for (session, expected_output) in [("session-a", 7), ("session-b", 11)] {
+        let recovered = imported_cache::query_cached_session_from_conn(
+            &conn,
+            SOURCE_PI,
+            &format!("--repo--/{session}"),
+        )
+        .expect("read recovered row")
+        .unwrap_or_else(|| panic!("{session} is back in the cache"));
+        assert_eq!(recovered.output_tokens, expected_output);
+    }
+    fs::remove_dir_all(root).ok();
+}
+
 #[test]
 fn oversized_append_is_skipped_and_the_sync_still_succeeds() {
     let root = temp_root("oversized");
