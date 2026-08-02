@@ -175,6 +175,13 @@ const ZENMUX_ENDPOINTS: &[ProviderEndpointSpec] = &[ProviderEndpointSpec {
     anthropic_base_url: Some("https://zenmux.ai/api/anthropic"),
 }];
 
+const ATLASCLOUD_ENDPOINTS: &[ProviderEndpointSpec] = &[ProviderEndpointSpec {
+    id: "default",
+    label: "Atlas Cloud",
+    base_url: "https://api.atlascloud.ai/v1",
+    anthropic_base_url: Some("https://api.atlascloud.ai"),
+}];
+
 const LONGCAT_ENDPOINTS: &[ProviderEndpointSpec] = &[ProviderEndpointSpec {
     id: "default",
     label: "LongCat",
@@ -357,12 +364,15 @@ pub fn get_provider_config(model_type: &str) -> ProviderConfig {
             true,
             Some("https://api.openai.com/v1"),
         ),
-        "atlascloud_api" => ProviderConfig::new(
+        "atlascloud_api" => ProviderConfig::with_protocols(
             "ATLASCLOUD_API_KEY",
             Some("ATLASCLOUD_BASE_URL"),
             true,
-            Some("https://api.atlascloud.ai/v1"),
-        ),
+            None,
+            &["openai", "anthropic"],
+            "openai",
+        )
+        .with_endpoints(ATLASCLOUD_ENDPOINTS),
         "deepseek_api" => ProviderConfig::new(
             "DEEPSEEK_API_KEY",
             None,
@@ -594,8 +604,12 @@ mod tests {
             config.default_base_url,
             Some("https://api.atlascloud.ai/v1".to_string())
         );
-        assert_eq!(config.supported_protocols, vec!["openai"]);
+        assert_eq!(config.supported_protocols, vec!["openai", "anthropic"]);
         assert_eq!(config.default_protocol, "openai");
+        assert_eq!(
+            config.default_anthropic_base_url(),
+            Some("https://api.atlascloud.ai".to_string())
+        );
     }
 
     #[test]

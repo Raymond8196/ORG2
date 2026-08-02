@@ -10,6 +10,7 @@ const ZENMUX_OPENAI_BASE_URL: &str = "https://zenmux.ai/api/v1";
 const ZENMUX_ANTHROPIC_BASE_URL: &str = "https://zenmux.ai/api/anthropic";
 const LONGCAT_OPENAI_BASE_URL: &str = "https://api.longcat.chat/openai";
 const LONGCAT_ANTHROPIC_BASE_URL: &str = "https://api.longcat.chat/anthropic";
+const ATLASCLOUD_ANTHROPIC_BASE_URL: &str = "https://api.atlascloud.ai";
 
 impl KeyService {
     /// Get environment variables for running an agent
@@ -115,6 +116,14 @@ impl KeyService {
                          official OAuth tokens only authenticate at api.anthropic.com — not exporting ANTHROPIC_BASE_URL",
                         entry.id,
                         entry.base_url
+                    );
+                } else if entry.model_type == ModelType::AtlascloudApi {
+                    // Atlas keys persist the OpenAI-protocol /v1 URL; its
+                    // Anthropic surface lives at the bare host, so the stored
+                    // URL must never reach Claude Code.
+                    env.insert(
+                        "ANTHROPIC_BASE_URL".to_string(),
+                        ATLASCLOUD_ANTHROPIC_BASE_URL.to_string(),
                     );
                 } else if let Some(ref url) = entry.base_url {
                     env.insert("ANTHROPIC_BASE_URL".to_string(), url.clone());

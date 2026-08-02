@@ -102,6 +102,7 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             has_subscription_plan: true,
             compatible_api_providers: &[
                 "anthropic_api",
+                "atlascloud_api",
                 "moonshot_api",
                 "zenmux_api",
                 "longcat_api",
