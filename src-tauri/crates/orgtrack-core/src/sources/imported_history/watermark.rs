@@ -25,16 +25,28 @@ use std::time::UNIX_EPOCH;
 use rusqlite::{params, Connection, OptionalExtension};
 use serde::{Deserialize, Serialize};
 
-/// A single JSONL record must fit within this many raw bytes (including its
-/// trailing newline). The reader checks the bound before extending its buffer,
-/// so malformed or hostile files cannot cause unbounded allocation.
-///
-/// Real transcripts routinely carry multi-megabyte tool results — a full-file
-/// read or a long command's output lands as one record — so this is a ceiling
-/// on the reader's buffer, not a statement about what a valid record is.
-/// Exceeding it makes [`WatermarkedTranscriptReader::next_line`] skip that one
-/// record; it is never fatal to the parse.
+/// Ceiling on the buffer one record may occupy *after* oversized string values
+/// have been truncated away. Because truncation already bounds the payload,
+/// only a record whose JSON *structure* is enormous — or a file with no
+/// newlines at all — can reach this, and such a record is skipped rather than
+/// raised. It is never fatal to the parse.
 pub const MAX_JSONL_LINE_BYTES: usize = 16 * 1024 * 1024;
+
+/// Longest single JSON string value copied verbatim. Past this the value's
+/// interior is dropped as it streams and [`TRUNCATION_MARKER`] is appended, so
+/// the record stays valid JSON and peak memory tracks a record's structure
+/// rather than its payload.
+///
+/// Real transcripts carry multi-megabyte string values — a base64 image in a
+/// `tool_result`, a long command's `custom_tool_call_output`. The parsers keep
+/// at most 50_000 chars of any single value (`MAX_TOOL_OUTPUT_CHARS`,
+/// `MAX_TEXT_CHARS_PER_CHUNK`), so this budget is ~20x what the largest
+/// consumer can retain: truncating here is invisible downstream.
+pub const MAX_JSON_STRING_BYTES: usize = 1024 * 1024;
+
+/// Appended in place of a dropped string interior. Plain ASCII with no `"` or
+/// `\`, so it needs no escaping and cannot itself break the record.
+const TRUNCATION_MARKER: &[u8] = b"...[truncated]";
 
 /// Only a fixed window immediately before the committed offset is read when an
 /// append is validated. File identity catches rotation; this boundary catches
@@ -245,20 +257,142 @@ fn push_boundary_bytes(window: &mut Vec<u8>, bytes: &[u8]) {
     window.extend_from_slice(bytes);
 }
 
-/// An oversized record being drained. Only its byte length and its trailing
-/// [`BOUNDARY_WINDOW_BYTES`] are retained — that is everything the watermark
-/// needs to describe the seam the record ends at, and it keeps a record of any
-/// size costing a fixed amount of memory.
+/// The raw file bytes one record occupies. Only its length and its trailing
+/// [`BOUNDARY_WINDOW_BYTES`] are retained — everything the watermark needs to
+/// describe the seam the record ends at, at fixed cost for any record size.
+///
+/// Tracked separately from the reader's output buffer because truncation makes
+/// the two differ: offsets and fingerprints must describe what is on disk, not
+/// what we chose to keep.
 #[derive(Debug, Default)]
-struct SkippedRecord {
+struct RawRecordSpan {
     tail: Vec<u8>,
     len: u64,
 }
 
-impl SkippedRecord {
+impl RawRecordSpan {
     fn push(&mut self, bytes: &[u8]) {
         push_boundary_bytes(&mut self.tail, bytes);
         self.len += bytes.len() as u64;
+    }
+}
+
+fn is_utf8_continuation(byte: u8) -> bool {
+    (byte & 0b1100_0000) == 0b1000_0000
+}
+
+/// How much of the current string may still be copied, given what the record
+/// has already emitted.
+///
+/// A per-value budget alone does not bound a record: real transcripts carry
+/// records built from several large-but-legal values (a Claude `tool_result`
+/// with multiple images), and enough of those still blow the buffer while no
+/// single one is over budget. Tightening the allowance as the record fills
+/// means string content can never push a record past
+/// [`MAX_JSONL_LINE_BYTES`] — only its structure can, which is the one case
+/// truncation genuinely cannot rescue.
+fn string_budget(emitted: usize) -> usize {
+    MAX_JSON_STRING_BYTES.min(MAX_JSONL_LINE_BYTES.saturating_sub(emitted))
+}
+
+/// Where a byte-level scan of one record currently sits. Only
+/// [`ScanState::InString`] is a legal place to stop copying: the escape states
+/// mark positions where a cut would leave a dangling `\` or a half-written
+/// `\uXXXX`.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+enum ScanState {
+    /// Structural JSON outside any string. Always copied verbatim.
+    #[default]
+    Outside,
+    /// Inside a string value, between complete units.
+    InString,
+    /// Inside a string, having just consumed a backslash.
+    Escape,
+    /// Inside a string, consuming the remaining hex digits of `\uXXXX`.
+    UnicodeEscape(u8),
+}
+
+/// Streaming truncator for oversized JSON string values.
+///
+/// Copies a record through byte by byte, dropping the interior of any string
+/// longer than [`MAX_JSON_STRING_BYTES`]. A cut is taken only in
+/// [`ScanState::InString`] and only on a UTF-8 leading byte, so output is
+/// always valid JSON *and* valid UTF-8 no matter where the budget runs out.
+/// Bytes outside strings pass through untouched, which is what keeps a
+/// truncated record structurally identical to the original: same fields, same
+/// nesting, same timestamps — only the oversized values are shortened.
+#[derive(Debug, Default)]
+struct JsonStringTruncator {
+    state: ScanState,
+    /// Bytes copied so far for the string being scanned.
+    string_bytes: usize,
+    /// Discarding the remainder of the current string.
+    dropping: bool,
+    truncated_values: usize,
+}
+
+impl JsonStringTruncator {
+    fn push(&mut self, bytes: &[u8], out: &mut Vec<u8>) {
+        for &byte in bytes {
+            match self.state {
+                ScanState::Outside => {
+                    out.push(byte);
+                    if byte == b'"' {
+                        self.state = ScanState::InString;
+                        self.string_bytes = 0;
+                        self.dropping = false;
+                    }
+                }
+                ScanState::InString => {
+                    if byte == b'"' {
+                        if self.dropping {
+                            out.extend_from_slice(TRUNCATION_MARKER);
+                            self.dropping = false;
+                        }
+                        out.push(byte);
+                        self.state = ScanState::Outside;
+                        continue;
+                    }
+                    // Decided before the byte is copied, and only here: a
+                    // continuation byte means we are mid-character, so keep
+                    // going until the next character starts.
+                    if !self.dropping
+                        && self.string_bytes >= string_budget(out.len())
+                        && !is_utf8_continuation(byte)
+                    {
+                        self.dropping = true;
+                        self.truncated_values += 1;
+                    }
+                    if byte == b'\\' {
+                        self.state = ScanState::Escape;
+                    }
+                    self.copy(byte, out);
+                }
+                ScanState::Escape => {
+                    self.state = if byte == b'u' {
+                        ScanState::UnicodeEscape(4)
+                    } else {
+                        ScanState::InString
+                    };
+                    self.copy(byte, out);
+                }
+                ScanState::UnicodeEscape(remaining) => {
+                    self.state = match remaining {
+                        0 | 1 => ScanState::InString,
+                        _ => ScanState::UnicodeEscape(remaining - 1),
+                    };
+                    self.copy(byte, out);
+                }
+            }
+        }
+    }
+
+    fn copy(&mut self, byte: u8, out: &mut Vec<u8>) {
+        if self.dropping {
+            return;
+        }
+        out.push(byte);
+        self.string_bytes += 1;
     }
 }
 
@@ -357,22 +491,27 @@ impl WatermarkedTranscriptReader {
         self.resume_state_json.as_deref()
     }
 
-    /// Read the next record, skipping any that exceeds [`MAX_JSONL_LINE_BYTES`].
+    /// Read the next record, truncating oversized string values in place.
     ///
-    /// An oversized record is drained rather than buffered, and dropped rather
-    /// than raised: one giant tool result must not cost the caller the rest of
-    /// the file — and, upstream, every other session and every other provider
-    /// in the same pass. Its bytes still feed the boundary window and the
-    /// complete-line offset, so the watermark stays byte-accurate and a later
-    /// resume lands on the same seam as a parse that never skipped anything.
+    /// A record is never rejected for being large. Its oversized string values
+    /// are shortened as they stream (see [`JsonStringTruncator`]), which keeps
+    /// the record parseable and its structure intact while bounding memory by
+    /// structure rather than payload. Only a record still over
+    /// [`MAX_JSONL_LINE_BYTES`] after that — an enormous JSON structure, or a
+    /// file with no newlines at all — is skipped, and even then the parse
+    /// continues: one unreadable record must not cost the caller the rest of
+    /// the file, nor every other provider loaded in the same pass.
+    ///
+    /// The raw span is tracked alongside the truncated output so the boundary
+    /// window and complete-line offset keep describing the bytes on disk, and
+    /// a later resume lands on exactly the same seam.
     pub fn next_line(&mut self) -> Result<Option<TranscriptLine>, String> {
         loop {
             self.buf.clear();
             let mut terminated = false;
-            // `Some` once this record passed the cap: from that point its bytes
-            // go straight to the boundary tail instead of `buf`, so peak memory
-            // stays bounded no matter how long the record runs.
-            let mut skipped: Option<SkippedRecord> = None;
+            let mut span = RawRecordSpan::default();
+            let mut truncator = JsonStringTruncator::default();
+            let mut overflowed = false;
             loop {
                 let available = self.reader.fill_buf().map_err(|err| {
                     format!("Failed to read {} history line: {err}", self.error_label)
@@ -382,18 +521,14 @@ impl WatermarkedTranscriptReader {
                 }
                 let newline = available.iter().position(|byte| *byte == b'\n');
                 let take = newline.map_or(available.len(), |index| index + 1);
-                if skipped.is_none() && self.buf.len().saturating_add(take) > MAX_JSONL_LINE_BYTES {
-                    // Hand the already-buffered prefix over first so the
-                    // record's bytes reach the boundary tail in file order.
-                    let mut record = SkippedRecord::default();
-                    record.push(&self.buf);
-                    self.buf.clear();
-                    self.buf.shrink_to_fit();
-                    skipped = Some(record);
-                }
-                match skipped.as_mut() {
-                    Some(record) => record.push(&available[..take]),
-                    None => self.buf.extend_from_slice(&available[..take]),
+                span.push(&available[..take]);
+                if !overflowed {
+                    truncator.push(&available[..take], &mut self.buf);
+                    if self.buf.len() > MAX_JSONL_LINE_BYTES {
+                        overflowed = true;
+                        self.buf.clear();
+                        self.buf.shrink_to_fit();
+                    }
                 }
                 self.reader.consume(take);
                 if newline.is_some() {
@@ -402,31 +537,39 @@ impl WatermarkedTranscriptReader {
                 }
             }
 
-            if let Some(record) = skipped {
-                // An unterminated oversized record is the live writer's
-                // in-progress tail: leave the watermark untouched, exactly as
-                // an unterminated normal line does.
-                if !terminated {
-                    return Ok(None);
-                }
-                push_boundary_bytes(&mut self.boundary_window, &record.tail);
-                self.complete_offset += record.len;
+            // Only a newline-terminated record is committed: a live writer may
+            // still be appending to an unterminated tail.
+            if terminated {
+                push_boundary_bytes(&mut self.boundary_window, &span.tail);
+                self.complete_offset += span.len;
+            }
+
+            if overflowed {
                 tracing::warn!(
                     source = self.error_label,
                     path = %self.display_path,
-                    bytes = record.len,
+                    bytes = span.len,
                     limit = MAX_JSONL_LINE_BYTES,
-                    "imported history: skipping oversized JSONL record"
+                    "imported history: skipping record too large to truncate"
                 );
-                continue;
+                if terminated {
+                    continue;
+                }
+                return Ok(None);
             }
 
             if self.buf.is_empty() {
                 return Ok(None);
             }
-            if terminated {
-                push_boundary_bytes(&mut self.boundary_window, &self.buf);
-                self.complete_offset += self.buf.len() as u64;
+            if truncator.truncated_values > 0 {
+                tracing::warn!(
+                    source = self.error_label,
+                    path = %self.display_path,
+                    raw_bytes = span.len,
+                    kept_bytes = self.buf.len(),
+                    values = truncator.truncated_values,
+                    "imported history: truncated oversized JSON string values"
+                );
             }
             let mut end = self.buf.len();
             if terminated {

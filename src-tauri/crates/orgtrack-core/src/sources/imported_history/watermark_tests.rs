@@ -203,12 +203,11 @@ fn rotated_file_identity_forces_a_full_reparse() {
     cleanup(&path);
 }
 
-/// A single huge tool result is ordinary in real Claude/Codex transcripts. It
-/// must cost that one record and nothing else — skipping it has to leave the
-/// following lines readable and the watermark landing past both, so a resume
-/// does not re-read the record it already gave up on.
+/// A record whose JSON structure alone blows the buffer cannot be salvaged by
+/// truncating string values, so it is skipped — but the parse must continue,
+/// with the watermark landing past it so a resume does not re-read it.
 #[test]
-fn oversized_line_is_skipped_without_stopping_the_parse() {
+fn unsalvageable_line_is_skipped_without_stopping_the_parse() {
     let path = temp_transcript("oversized", "stable\n");
     let (mtime, size) = stat(&path);
     let mut reader =
@@ -259,6 +258,148 @@ fn oversized_line_is_skipped_without_stopping_the_parse() {
     .expect("reopen after skip");
     assert_eq!(reopened.resume_state_json(), Some("after-state"));
     assert!(read_all(&mut reopened).is_empty());
+
+    cleanup(&path);
+}
+
+/// The common real-world case: one record carrying a multi-megabyte string
+/// value — a base64 image in a `tool_result`, a long command's output. It must
+/// survive as a parseable record with every structural field intact; only the
+/// oversized value shortens.
+#[test]
+fn oversized_string_value_is_truncated_and_the_record_still_parses() {
+    let payload = "A".repeat(MAX_JSON_STRING_BYTES + 4096);
+    let record = format!(
+        r#"{{"type":"user","uuid":"abc-123","message":{{"role":"user","content":[{{"type":"tool_result","data":"{payload}"}}]}},"tail":"kept"}}"#
+    );
+    let path = temp_transcript("truncate-string", &format!("{record}\n"));
+    let (mtime, size) = stat(&path);
+    let mut reader =
+        WatermarkedTranscriptReader::open(&path, "Test", None, 1, mtime, size).expect("open");
+    let line = reader.next_line().expect("read record").expect("one record");
+
+    let value: serde_json::Value =
+        serde_json::from_str(&line.text).expect("truncated record is valid JSON");
+    assert_eq!(value["type"], "user");
+    assert_eq!(value["uuid"], "abc-123");
+    assert_eq!(value["message"]["role"], "user");
+    // Everything after the truncated value survives — truncation consumes the
+    // value's interior, never the structure around it.
+    assert_eq!(value["tail"], "kept");
+    let data = value["message"]["content"][0]["data"]
+        .as_str()
+        .expect("data is a string");
+    assert!(data.starts_with("AAA"));
+    assert!(data.ends_with("...[truncated]"));
+    assert!(data.len() < payload.len());
+    assert_eq!(reader.next_line().expect("read eof"), None);
+
+    cleanup(&path);
+}
+
+/// A record can blow the buffer in aggregate while every single value stays
+/// under budget — the real Claude `tool_result` carrying several images has
+/// exactly this shape. A per-value budget alone would skip it; the allowance
+/// has to tighten as the record fills so it still parses.
+#[test]
+fn many_under_budget_values_are_truncated_rather_than_overflowing() {
+    let value = "B".repeat(MAX_JSON_STRING_BYTES - 1);
+    let values = (0..24)
+        .map(|index| format!(r#""k{index}":"{value}""#))
+        .collect::<Vec<_>>()
+        .join(",");
+    let record = format!(r#"{{{values},"tail":"kept"}}"#);
+    // Every value is legal on its own, and together they far exceed the cap.
+    assert!(record.len() > MAX_JSONL_LINE_BYTES);
+    let path = temp_transcript("aggregate", &format!("{record}\n"));
+    let (mtime, size) = stat(&path);
+    let mut reader =
+        WatermarkedTranscriptReader::open(&path, "Test", None, 1, mtime, size).expect("open");
+    let line = reader.next_line().expect("read record").expect("one record");
+
+    let parsed: serde_json::Value =
+        serde_json::from_str(&line.text).expect("truncated record is valid JSON");
+    // The record survives with all 24 keys and the trailing field intact.
+    assert_eq!(parsed["tail"], "kept");
+    assert_eq!(parsed["k0"].as_str().expect("k0").len(), value.len());
+    assert!(parsed["k23"].as_str().expect("k23").ends_with("...[truncated]"));
+    assert!(line.text.len() <= MAX_JSONL_LINE_BYTES);
+    assert_eq!(reader.next_line().expect("read eof"), None);
+
+    cleanup(&path);
+}
+
+/// Cuts have to land between complete units. Splitting `\"` leaves a dangling
+/// backslash and splitting `é` leaves half an escape — either one makes
+/// the entire record unparseable. Alignment is swept so the budget runs out at
+/// every offset within the repeating unit.
+#[test]
+fn truncation_never_splits_an_escape_sequence() {
+    let unit = r#"\"é"#;
+    for offset in 0..unit.len() {
+        let payload = format!(
+            "{}{}",
+            "z".repeat(offset),
+            unit.repeat(MAX_JSON_STRING_BYTES / unit.len() + 64)
+        );
+        let record = format!(r#"{{"v":"{payload}","tail":"kept"}}"#);
+        let path = temp_transcript(&format!("escape-{offset}"), &format!("{record}\n"));
+        let (mtime, size) = stat(&path);
+        let mut reader =
+            WatermarkedTranscriptReader::open(&path, "Test", None, 1, mtime, size).expect("open");
+        let line = reader.next_line().expect("read record").expect("one record");
+        let value: serde_json::Value = serde_json::from_str(&line.text).unwrap_or_else(|err| {
+            panic!("offset {offset}: truncated record must stay valid JSON: {err}")
+        });
+        assert_eq!(value["tail"], "kept");
+        assert!(value["v"].as_str().expect("v").ends_with("...[truncated]"));
+        cleanup(&path);
+    }
+}
+
+/// Cutting inside a multi-byte character would make the record invalid UTF-8,
+/// which fails the whole read rather than just that value. Alignment is swept
+/// so the budget runs out at every byte of a 4-byte character.
+#[test]
+fn truncation_never_splits_a_multibyte_character() {
+    for offset in 0..4 {
+        let payload = format!(
+            "{}{}",
+            "z".repeat(offset),
+            "🌍".repeat(MAX_JSON_STRING_BYTES / 4 + 64)
+        );
+        let record = format!(r#"{{"v":"{payload}","tail":"kept"}}"#);
+        let path = temp_transcript(&format!("utf8-{offset}"), &format!("{record}\n"));
+        let (mtime, size) = stat(&path);
+        let mut reader =
+            WatermarkedTranscriptReader::open(&path, "Test", None, 1, mtime, size).expect("open");
+        let line = reader
+            .next_line()
+            .unwrap_or_else(|err| panic!("offset {offset}: must stay valid UTF-8: {err}"))
+            .expect("one record");
+        let value: serde_json::Value =
+            serde_json::from_str(&line.text).expect("truncated record is valid JSON");
+        assert_eq!(value["tail"], "kept");
+        cleanup(&path);
+    }
+}
+
+/// Values under the budget must come through byte for byte — truncation is
+/// strictly an over-budget path, not a lossy default.
+#[test]
+fn values_under_the_budget_pass_through_untouched() {
+    let record = r#"{"type":"user","v":"short \"quoted\" é value","n":42}"#;
+    let path = temp_transcript("untouched", &format!("{record}\n"));
+    let (mtime, size) = stat(&path);
+    let mut reader =
+        WatermarkedTranscriptReader::open(&path, "Test", None, 1, mtime, size).expect("open");
+    assert_eq!(
+        reader.next_line().expect("read record"),
+        Some(TranscriptLine {
+            text: record.to_string(),
+            terminated: true,
+        })
+    );
 
     cleanup(&path);
 }
