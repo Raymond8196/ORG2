@@ -23,6 +23,10 @@
  *    inflate a denominator nothing can ever move.
  *  - `isCloudPushCandidate` drops teammate copies pulled DOWN from an org;
  *    those never round-trip back up.
+ *  - `decidePushAdmission` applies fork provenance and the ownership/tag/
+ *    explicit-share-intent gate.
+ *  - `resolveCloudPushAccess` excludes admitted sessions whose effective
+ *    access remains off.
  *
  * The NUMERATOR is the durable push marker — the same evidence
  * `Org2CloudSessionSyncState.wasCloudPushed` reads — so a session still counts
@@ -34,7 +38,20 @@ import type { Session } from "@src/store/session/sessionAtom/types";
 import { isPrimarySessionListSession } from "@src/util/session/sessionVisibility";
 
 import { normalizeRepoScopeKey } from "../TeamCollaboration/collabSyncUtils";
+import { createSessionForkedFromResolver } from "../TeamCollaboration/forkSession";
 import { peekMatchingOrgRepoScope } from "../TeamCollaboration/repoScopeResolver";
+import {
+  type SessionOrgTags,
+  isSessionTaggedToCloudOrg,
+} from "../TeamCollaboration/sessionOrgTagsAtom";
+import {
+  type CloudAccessSettingsByOrg,
+  type CloudSharingFloorByOrg,
+  hasExplicitCloudShareIntent,
+  resolveCloudPushAccess,
+} from "./org2CloudAccessSettings";
+import { buildCloudOrgSelectorValue } from "./org2CloudOrgsAtom";
+import { decidePushAdmission } from "./org2CloudPushAdmission";
 import { isCloudPushCandidate } from "./org2CloudSessionSync.metadata";
 import { getSessionScopeKeys } from "./org2CloudSyncEngine.repoScopeSync";
 
@@ -42,13 +59,26 @@ import { getSessionScopeKeys } from "./org2CloudSyncEngine.repoScopeSync";
 export type SyncCoverageSession = Pick<
   Session,
   | "session_id"
+  | "orgId"
   | "parentSessionId"
   | "orgMemberId"
   | "agentOrgId"
   | "importedFrom"
   | "repoPath"
   | "repoRemoteUrls"
+  | "forkedFrom"
 >;
+
+export type SyncCoverageEligibilityResolver = (
+  session: SyncCoverageSession
+) => boolean;
+
+export interface OrgSyncCoverageEligibilityState {
+  orgId: string;
+  tags: SessionOrgTags;
+  accessByOrg: CloudAccessSettingsByOrg;
+  floorByOrg: CloudSharingFloorByOrg;
+}
 
 /**
  * Which org repo scope a session syncs under.
@@ -84,6 +114,39 @@ export interface SessionSyncCoverage {
 /** True for local sessions that count toward a coverage denominator. */
 export function isSyncCoverageSession(session: SyncCoverageSession): boolean {
   return isPrimarySessionListSession(session) && isCloudPushCandidate(session);
+}
+
+/**
+ * Replay the push engine's org-admission and effective-access gates for one
+ * coverage snapshot. Repo matching remains a separate resolver because it
+ * has an async/in-flight state; every other denominator rule lives here.
+ */
+export function createOrgSyncCoverageEligibilityResolver({
+  orgId,
+  tags,
+  accessByOrg,
+  floorByOrg,
+}: OrgSyncCoverageEligibilityState): SyncCoverageEligibilityResolver {
+  const settings = accessByOrg[orgId];
+  const floor = floorByOrg[orgId];
+  const forkedFromForSession = createSessionForkedFromResolver();
+  return (session) => {
+    if (!isSyncCoverageSession(session)) return false;
+    const tagged = isSessionTaggedToCloudOrg(tags, session.session_id, orgId);
+    const admission = decidePushAdmission({
+      orgId,
+      session,
+      forkedFrom: forkedFromForSession(session),
+      tagged,
+      ownedByOrg: session.orgId === buildCloudOrgSelectorValue(orgId),
+      shareIntent: hasExplicitCloudShareIntent(settings, session.session_id),
+    });
+    return (
+      admission.admitted &&
+      resolveCloudPushAccess(settings, session.session_id, tagged, floor) !==
+        null
+    );
+  };
 }
 
 /**
@@ -136,14 +199,15 @@ export function pushedSessionIdsForOrg(
 export function computeSessionSyncCoverage(
   sessions: readonly SyncCoverageSession[],
   pushedSessionIds: ReadonlySet<string>,
-  repoScopeForSession: RepoScopeResolver
+  repoScopeForSession: RepoScopeResolver,
+  isEligible: SyncCoverageEligibilityResolver = isSyncCoverageSession
 ): SessionSyncCoverage {
   const byScope = new Map<string, { syncable: number; synced: number }>();
   let syncable = 0;
   let synced = 0;
 
   for (const session of sessions) {
-    if (!isSyncCoverageSession(session)) continue;
+    if (!isEligible(session)) continue;
     // null = outside every org scope, undefined = lookup in flight. Neither
     // is work this org can receive today, so neither moves a number.
     const repoScope = repoScopeForSession(session);

@@ -209,6 +209,38 @@ describe("CloudOrgSyncSection connection block", () => {
 });
 
 describe("CloudOrgSyncSection coverage block", () => {
+  it("shows a loading row instead of a false empty state during the full scan", () => {
+    const root = renderSection({
+      coverageLoading: true,
+    });
+
+    expect(
+      root.querySelector('[data-testid="cloud-org-sync-coverage-loading"]')
+        ?.textContent
+    ).toContain("cloud.orgPanel.loading");
+    expect(
+      root.querySelector('[data-testid="cloud-org-sync-coverage-empty"]')
+    ).toBeNull();
+    expect(root.textContent).not.toContain(
+      "cloud.orgPanel.sync.coverageSummary"
+    );
+  });
+
+  it("reports an unavailable aggregate instead of a false empty state", () => {
+    const root = renderSection({
+      coverageUnavailable: true,
+      coverage: { repos: [], syncable: 0, synced: 0, percent: null },
+    });
+
+    expect(
+      root.querySelector('[data-testid="cloud-org-sync-coverage-unavailable"]')
+        ?.textContent
+    ).toContain("cloud.orgPanel.loadError");
+    expect(
+      root.querySelector('[data-testid="cloud-org-sync-coverage-empty"]')
+    ).toBeNull();
+  });
+
   it("renders exactly one row per org repo scope, in order", () => {
     const root = renderSection();
 

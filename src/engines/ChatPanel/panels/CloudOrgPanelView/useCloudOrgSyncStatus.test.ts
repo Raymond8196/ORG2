@@ -4,6 +4,10 @@ import { createElement } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  org2CloudAccessSettingsAtom,
+  org2CloudSharingFloorAtom,
+} from "@src/features/Org2Cloud/org2CloudAccessSettings";
+import {
   org2CloudPushCursorsAtom,
   org2CloudPushedMetadataAtom,
   org2CloudRepoScopesAtom,
@@ -14,13 +18,24 @@ import type { Session } from "@src/store/session/sessionAtom/types";
 import { createSmokeRoot, dispatch } from "@src/test/reactSmokeHarness";
 
 import type { CloudOrgSyncStatus } from "./useCloudOrgSyncStatus";
-import { useCloudOrgSyncStatus } from "./useCloudOrgSyncStatus";
+import {
+  loadCompleteCoverageRoster,
+  useCloudOrgSyncStatus,
+} from "./useCloudOrgSyncStatus";
 
 const mocks = vi.hoisted(() => ({
   runSyncPassAndWaitForDrain: vi.fn<() => Promise<void>>(),
   schemaVersion: vi.fn<() => Promise<number | null>>(),
   getCloudCapabilities: vi.fn(),
   endpointForOrg: vi.fn(),
+  sessionAggregateList: vi.fn(),
+  toFrontendSessions: vi.fn((sessions: unknown[]) => sessions),
+}));
+
+vi.mock("@src/api/tauri/session", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@src/api/tauri/session")>()),
+  sessionAggregateList: mocks.sessionAggregateList,
+  toFrontendSessions: mocks.toFrontendSessions,
 }));
 
 vi.mock("@src/features/Org2Cloud/org2CloudSyncEngine", () => ({
@@ -86,6 +101,14 @@ beforeEach(() => {
     anonKey: "super-secret-anon-key",
     isOfficial: true,
   });
+  mocks.sessionAggregateList.mockReset();
+  mocks.sessionAggregateList.mockImplementation(async () => ({
+    sessions: getDefaultStore().get(sessionsAtom),
+  }));
+  mocks.toFrontendSessions.mockClear();
+  getDefaultStore().set(org2CloudSharingFloorAtom, {
+    "org-1": "metadata_only",
+  });
 });
 
 afterEach(() => {
@@ -95,6 +118,8 @@ afterEach(() => {
   store.set(org2CloudPushedMetadataAtom, {});
   store.set(org2CloudPushCursorsAtom, {});
   store.set(org2CloudRepoScopesAtom, {});
+  store.set(org2CloudAccessSettingsAtom, {});
+  store.set(org2CloudSharingFloorAtom, {});
 });
 
 /**
@@ -106,10 +131,57 @@ function localSession(
   session_id: string,
   overrides: Partial<Session> = {}
 ): Session {
-  return { session_id, ...overrides } as Session;
+  return {
+    session_id,
+    orgId: "cloud:org-1",
+    ...overrides,
+  } as Session;
 }
 
 describe("useCloudOrgSyncStatus", () => {
+  it("reads every bounded aggregate page instead of the UI roster page", async () => {
+    const all = Array.from({ length: 201 }, (_, index) =>
+      localSession(`session-${index}`)
+    );
+    const loadPage = vi.fn(async (filter: { offset?: number }) => ({
+      sessions: filter.offset === 0 ? all.slice(0, 200) : all.slice(200),
+    }));
+
+    const loaded = await loadCompleteCoverageRoster(
+      {
+        includeExternalHistory: true,
+        disabledExternalHistorySources: ["cursor"],
+      },
+      loadPage as never
+    );
+
+    expect(loaded).toHaveLength(201);
+    expect(loadPage).toHaveBeenCalledTimes(2);
+    expect(loadPage.mock.calls[0]?.[0]).toMatchObject({
+      limit: 200,
+      offset: 0,
+      includeExternalHistory: true,
+      disabledExternalHistorySources: ["cursor"],
+    });
+    expect(loadPage.mock.calls[1]?.[0]).toMatchObject({
+      limit: 200,
+      offset: 200,
+    });
+  });
+
+  it("marks coverage unavailable when the authoritative roster read fails", async () => {
+    mocks.sessionAggregateList.mockRejectedValueOnce(new Error("offline"));
+    const probe = mountStatus();
+    try {
+      await probe.mount();
+      expect(probe.read().coverageLoading).toBe(false);
+      expect(probe.read().coverageUnavailable).toBe(true);
+      expect(probe.read().coverage.syncable).toBe(0);
+    } finally {
+      await probe.root.unmount();
+    }
+  });
+
   it("exposes the backend kind but never the endpoint URL or the anon key", async () => {
     const probe = mountStatus();
     try {

@@ -4,6 +4,7 @@ import {
   type RepoScopeResolver,
   type SyncCoverageSession,
   computeSessionSyncCoverage,
+  createOrgSyncCoverageEligibilityResolver,
   isSyncCoverageSession,
   pushedSessionIdsForOrg,
 } from "./org2CloudSyncCoverage";
@@ -69,6 +70,70 @@ describe("isSyncCoverageSession", () => {
   it("drops a teammate copy imported from an org", () => {
     expect(
       isSyncCoverageSession(session("s1", { importedFrom: IMPORTED_FROM }))
+    ).toBe(false);
+  });
+});
+
+describe("createOrgSyncCoverageEligibilityResolver", () => {
+  it("excludes an ordinary Personal session even when its repo is scoped", () => {
+    const eligible = createOrgSyncCoverageEligibilityResolver({
+      orgId: "org-a",
+      tags: {},
+      accessByOrg: {},
+      floorByOrg: { "org-a": "metadata_only" },
+    });
+
+    expect(eligible(session("personal"))).toBe(false);
+  });
+
+  it("admits an org-owned session at the org sharing floor", () => {
+    const eligible = createOrgSyncCoverageEligibilityResolver({
+      orgId: "org-a",
+      tags: {},
+      accessByOrg: {},
+      floorByOrg: { "org-a": "metadata_only" },
+    });
+
+    expect(eligible(session("owned", { orgId: "cloud:org-a" }))).toBe(true);
+  });
+
+  it("requires effective access for an admitted but unfloored session", () => {
+    const eligible = createOrgSyncCoverageEligibilityResolver({
+      orgId: "org-a",
+      tags: {},
+      accessByOrg: {},
+      floorByOrg: {},
+    });
+
+    expect(eligible(session("owned", { orgId: "cloud:org-a" }))).toBe(false);
+  });
+
+  it("treats an explicit tag as admission and metadata-only access", () => {
+    const eligible = createOrgSyncCoverageEligibilityResolver({
+      orgId: "org-a",
+      tags: { tagged: ["cloud:org-a"] },
+      accessByOrg: {},
+      floorByOrg: {},
+    });
+
+    expect(eligible(session("tagged"))).toBe(true);
+  });
+
+  it("does not admit an untagged fork to a different org", () => {
+    const eligible = createOrgSyncCoverageEligibilityResolver({
+      orgId: "org-a",
+      tags: {},
+      accessByOrg: {},
+      floorByOrg: { "org-a": "metadata_only" },
+    });
+
+    expect(
+      eligible(
+        session("fork", {
+          orgId: "cloud:org-a",
+          forkedFrom: { orgId: "org-b" } as never,
+        })
+      )
     ).toBe(false);
   });
 });

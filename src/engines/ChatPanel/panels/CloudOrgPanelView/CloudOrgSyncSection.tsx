@@ -179,6 +179,8 @@ export function CloudOrgSyncSection({ t, status }: CloudOrgSyncSectionProps) {
   const lastSuccessAtMs = status.lastSync.lastSuccessAtMs;
   const coverage = status.coverage;
   const coverageTitle =
+    status.coverageLoading ||
+    status.coverageUnavailable ||
     coverage.percent === null
       ? t("cloud.orgPanel.sync.coverageTitle")
       : `${t("cloud.orgPanel.sync.coverageTitle")} · ${t(
@@ -270,7 +272,19 @@ export function CloudOrgSyncSection({ t, status }: CloudOrgSyncSectionProps) {
       {/* Totals ride in the title so the body stays strictly one row per
       repo — the whole-device number is context, not a competing row. */}
       <SectionContainer title={coverageTitle}>
-        {coverage.repos.length === 0 ? (
+        {status.coverageLoading ? (
+          <SectionRow
+            dataTestId="cloud-org-sync-coverage-loading"
+            label={t("cloud.orgPanel.loading")}
+            light
+          />
+        ) : status.coverageUnavailable ? (
+          <SectionRow
+            dataTestId="cloud-org-sync-coverage-unavailable"
+            label={t("cloud.orgPanel.loadError")}
+            light
+          />
+        ) : coverage.repos.length === 0 ? (
           <SectionRow
             dataTestId="cloud-org-sync-coverage-empty"
             label={t("cloud.orgPanel.sync.coverageEmpty")}
