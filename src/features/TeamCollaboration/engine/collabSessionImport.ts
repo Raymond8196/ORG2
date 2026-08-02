@@ -12,7 +12,10 @@ import { buildCloudOrgSelectorValue } from "@src/features/Org2Cloud/org2CloudOrg
 import { createLogger } from "@src/hooks/logger";
 import { sessionsAtom } from "@src/store/session/sessionAtom/atoms";
 import { recordGuestImportedSession } from "@src/store/session/sessionAtom/guestImportRegistry";
-import { upsertSession } from "@src/store/session/sessionAtom/mutations";
+import {
+  applyImportedSessionTimestamps,
+  upsertSession,
+} from "@src/store/session/sessionAtom/mutations";
 import { persistSessions } from "@src/store/session/sessionAtom/persistence";
 import type {
   Session,
@@ -459,6 +462,42 @@ async function streamIncrementalRemoteSessionToCache(
   }
 }
 
+/**
+ * Activity time of the OWNER's session, for the imported copy's timestamps.
+ *
+ * The replay copy describes someone else's work; stamping it with the moment
+ * the viewer clicked made every card jump its Started / Last updated to "Now"
+ * on first open, reordered List/Diary around the click, and pulled an old
+ * session back out of the auto-archived column. Cloud metadata carries no
+ * creation timestamp, so `lastActivityAt` is the only source-side time we
+ * have — the same proxy the pre-click cloud card itself renders. Undefined
+ * for pre-`lastActivityAt` rows, which keep whatever local stamp they have.
+ */
+function readSourceActivityAt(
+  remoteSession: ImportRemoteSessionOptions["remoteSession"]
+): string | undefined {
+  const lastActivityAt = remoteSession.lastActivityAt;
+  if (!lastActivityAt) return undefined;
+  return Number.isFinite(Date.parse(lastActivityAt))
+    ? lastActivityAt
+    : undefined;
+}
+
+/**
+ * A session cannot have been created after its own last activity. Keeping the
+ * earlier of the two also heals rows imported before the fix above, whose
+ * `created_at` is the old import-click stamp.
+ */
+function resolveImportedCreatedAt(
+  existingCreatedAt: string | undefined,
+  activityAt: string
+): string {
+  if (!existingCreatedAt) return activityAt;
+  const existingMs = Date.parse(existingCreatedAt);
+  if (!Number.isFinite(existingMs)) return activityAt;
+  return existingMs <= Date.parse(activityAt) ? existingCreatedAt : activityAt;
+}
+
 function resolveImportedSourceDisplay(
   remoteSession: ImportRemoteSessionOptions["remoteSession"],
   existing: Session | undefined
@@ -526,8 +565,21 @@ function refreshImportedSessionPresentation(
     existing.orgId === importedFrom.orgId
       ? buildCloudOrgSelectorValue(importedFrom.orgId)
       : existing.orgId;
+  // Same healing rationale for the source-activity timestamps: a copy imported
+  // before they were tracked carries the old import-click stamp, and a
+  // cursor-current reopen never reaches the write path that would correct it.
+  const activityAt = readSourceActivityAt(remoteSession);
+  const createdAt = activityAt
+    ? resolveImportedCreatedAt(existing.created_at, activityAt)
+    : existing.created_at;
+  const timestampsUnchanged =
+    !activityAt ||
+    (existing.created_at === createdAt &&
+      existing.updated_at === activityAt &&
+      existing.completed_at === activityAt);
   const unchanged =
     existing.orgId === normalizedOrgId &&
+    timestampsUnchanged &&
     existing.name === remoteSession.title &&
     existing.repoPath === repoPath &&
     existing.agentDisplayName === sourcePresentation.agentLabel &&
@@ -547,6 +599,13 @@ function refreshImportedSessionPresentation(
   const refreshed: Session = {
     ...existing,
     ...(normalizedOrgId !== undefined ? { orgId: normalizedOrgId } : {}),
+    ...(activityAt
+      ? {
+          created_at: createdAt,
+          updated_at: activityAt,
+          completed_at: activityAt,
+        }
+      : {}),
     name: remoteSession.title,
     repoPath,
     agentDisplayName: sourcePresentation.agentLabel,
@@ -554,6 +613,14 @@ function refreshImportedSessionPresentation(
     importedFrom: refreshedImportedFrom,
   };
   upsertSession(refreshed);
+  if (activityAt) {
+    // upsertSession pins timestamps; this row's clock is the source's.
+    applyImportedSessionTimestamps(existing.session_id, {
+      created_at: createdAt ?? activityAt,
+      updated_at: activityAt,
+      completed_at: activityAt,
+    });
+  }
   recordGuestImportedSession(refreshed);
   persistSessions(getInstrumentedStore().get(sessionsAtom) as Session[]);
 }
@@ -818,6 +885,13 @@ async function importRemoteSessionInner(
   try {
     throwIfAborted(options.signal);
     const now = new Date().toISOString();
+    // Source-side activity time, NOT `now`: see readSourceActivityAt.
+    // `importedAt` below stays `now` — that one really is about this device.
+    const activityAt = readSourceActivityAt(remoteSession) ?? now;
+    const createdAt = resolveImportedCreatedAt(
+      existing?.created_at,
+      activityAt
+    );
     const importedFrom: SessionImportedFrom = {
       orgId,
       sourceSessionId: remoteSession.sourceSessionId,
@@ -847,9 +921,9 @@ async function importRemoteSessionInner(
     const importedRow: Session = {
       session_id: localSessionId,
       status: "completed",
-      created_at: existing?.created_at ?? now,
-      updated_at: now,
-      completed_at: now,
+      created_at: createdAt,
+      updated_at: activityAt,
+      completed_at: activityAt,
       name: remoteSession.title,
       repoPath: remoteSession.repoPath,
       category: "external_history",
@@ -909,6 +983,13 @@ async function importRemoteSessionInner(
     // No await after the final abort check: the session row, guest registry
     // and persisted list commit synchronously as one local critical section.
     upsertSession(importedRow);
+    // Re-import of an existing copy: upsertSession pins timestamps against
+    // careless reconcile writes, but this row's clock belongs to the source.
+    applyImportedSessionTimestamps(localSessionId, {
+      created_at: createdAt,
+      updated_at: activityAt,
+      completed_at: activityAt,
+    });
     recordGuestImportedSession(importedRow);
     persistSessions(store.get(sessionsAtom) as Session[]);
   } catch (error) {
