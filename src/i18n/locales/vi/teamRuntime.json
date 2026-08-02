@@ -11,7 +11,8 @@
     "recentSessions": "Phiên được chia sẻ gần đây",
     "recentLoading": "Đang tải các phiên được chia sẻ…",
     "recentEmpty": "Chưa có phiên nào được chia sẻ",
-    "members": "Chi tiết theo thành viên"
+    "members": "Chi tiết theo thành viên",
+    "sync": "Đồng bộ"
   },
   "signedOut": {
     "title": "Đăng nhập để xem nhóm của bạn",

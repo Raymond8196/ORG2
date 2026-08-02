@@ -11,7 +11,8 @@
     "recentSessions": "Últimas sesiones compartidas",
     "recentLoading": "Cargando sesiones compartidas…",
     "recentEmpty": "Aún no hay sesiones compartidas",
-    "members": "Desglose por miembro"
+    "members": "Desglose por miembro",
+    "sync": "Sincronización"
   },
   "signedOut": {
     "title": "Inicia sesión para ver tu equipo",

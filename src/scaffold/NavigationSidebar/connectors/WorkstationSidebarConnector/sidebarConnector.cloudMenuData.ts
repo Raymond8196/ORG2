@@ -6,7 +6,7 @@
  * (`cloudScopedExtraSessionIds`).
  *
  * Also mounts the cloud-org "Channels" section (`channelsSection.tsx`): its
- * rows join `cloudMenuItems` between Team Sessions and My Sessions, its
+ * rows join `cloudMenuItems` above Team Sessions and My Sessions, its
  * click resolver runs before the team-sessions one, its selected row (the
  * channel whose surface is the active chat-panel tab) takes precedence over
  * the team-sessions selection, and its dialogs surface through
@@ -32,6 +32,15 @@ interface UseWorkstationSidebarCloudMenuDataParams {
   handleCloudSessionFilterChange: (filter: CloudSessionFilter) => void;
   personalHiddenCloudTaggedIds: ReadonlySet<string> | undefined;
   cloudTaggedSessionIds: ReadonlySet<string> | undefined;
+}
+
+export function mergeCloudSidebarSections(
+  channelsMenuItems: readonly NavigationMenuItem[],
+  cloudSessionMenuItems: readonly NavigationMenuItem[]
+): NavigationMenuItem[] {
+  return channelsMenuItems.length === 0
+    ? [...cloudSessionMenuItems]
+    : [...channelsMenuItems, ...cloudSessionMenuItems];
 }
 
 export function useWorkstationSidebarCloudMenuData({
@@ -77,13 +86,10 @@ export function useWorkstationSidebarCloudMenuData({
     channelsDialogs,
   } = useCloudChannelsSection({ orgId: activeCloudOrgId });
 
-  // Channels sit after Team Sessions (both are org-scoped server data); the
-  // My Sessions separator is appended downstream by buildCloudScopedMenuItems.
+  // Channels lead Team Sessions; the My Sessions separator is appended
+  // downstream by buildCloudScopedMenuItems.
   const mergedCloudMenuItems = useMemo(
-    () =>
-      channelsMenuItems.length === 0
-        ? cloudMenuItems
-        : [...cloudMenuItems, ...channelsMenuItems],
+    () => mergeCloudSidebarSections(channelsMenuItems, cloudMenuItems),
     [channelsMenuItems, cloudMenuItems]
   );
 

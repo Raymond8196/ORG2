@@ -31,11 +31,17 @@ type PersonalRuntimeSection =
   | "scanning"
   | "hooks"
   | "assets";
-export type OrganizationRuntimeSection = "today" | "members";
+export type OrganizationRuntimeSection = "today" | "members" | "sync";
 type RuntimeSection = PersonalRuntimeSection | OrganizationRuntimeSection;
 
 const SessionUsagePanel = lazy(() => import("./SessionUsagePanel"));
 const TeamRuntimePanel = lazy(() => import("./TeamRuntimePanel"));
+// Same tab as org management → Sync; both mount the one wired component so
+// the two surfaces cannot drift.
+const CloudOrgSyncTab = lazy(
+  () =>
+    import("@src/engines/ChatPanel/panels/CloudOrgPanelView/CloudOrgSyncTab")
+);
 const BuilderProfilePanel = lazy(() => import("./BuilderProfilePanel"));
 const RuntimeScanningPanel = lazy(() => import("./RuntimeScanningPanel"));
 const SessionProvenanceHooksPanel = lazy(
@@ -116,6 +122,11 @@ const RuntimeSectionTabs: React.FC<RuntimeSectionTabsProps> = memo(
           label: tTeamRuntime("overview.members"),
           dataTestId: "data-source-view-org-members",
         },
+        {
+          key: "sync",
+          label: tTeamRuntime("overview.sync"),
+          dataTestId: "data-source-view-org-sync",
+        },
       ],
       [tTeamRuntime]
     );
@@ -139,7 +150,7 @@ function RuntimeSectionContent({
 }: {
   activeView: RuntimeSection;
   orgId: string | null;
-}): React.ReactElement {
+}): React.ReactElement | null {
   switch (activeView) {
     case "usage":
       return <SessionUsagePanel />;
@@ -157,6 +168,10 @@ function RuntimeSectionContent({
       return <TeamRuntimePanel orgId={orgId ?? undefined} view="today" />;
     case "members":
       return <TeamRuntimePanel orgId={orgId ?? undefined} view="members" />;
+    case "sync":
+      // Only reachable under a cloud-org scope, which is exactly when orgId is
+      // non-null; the personal scope has no sync tab to fall back to.
+      return orgId === null ? null : <CloudOrgSyncTab orgId={orgId} />;
   }
 }
 

@@ -91,6 +91,17 @@ vi.mock("./TeamRuntimePanel", () => ({
     }),
 }));
 
+vi.mock(
+  "@src/engines/ChatPanel/panels/CloudOrgPanelView/CloudOrgSyncTab",
+  () => ({
+    default: ({ orgId }: { orgId: string }) =>
+      createElement("div", {
+        "data-testid": "runtime-section-org-sync",
+        "data-org-id": orgId,
+      }),
+  })
+);
+
 vi.mock("./SessionUsagePanel", async () => {
   const React = await vi.importActual<typeof import("react")>("react");
   function UsageSectionMock() {
@@ -333,5 +344,17 @@ describe("RuntimeDataSourcePanel", () => {
         .querySelector('[data-testid="runtime-section-organization"]')
         ?.getAttribute("data-view")
     ).toBe("members");
+
+    // Sync is the org-management Sync tab rendered here, so it takes the org
+    // id directly instead of a TeamRuntimePanel view.
+    await selectSection("data-source-view-org-sync");
+    expect(
+      container.querySelector('[data-testid="runtime-section-organization"]')
+    ).toBeNull();
+    expect(
+      container
+        .querySelector('[data-testid="runtime-section-org-sync"]')
+        ?.getAttribute("data-org-id")
+    ).toBe("org-1");
   });
 });

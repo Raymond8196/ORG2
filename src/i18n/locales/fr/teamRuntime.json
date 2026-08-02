@@ -11,7 +11,8 @@
     "recentSessions": "Dernières sessions partagées",
     "recentLoading": "Chargement des sessions partagées…",
     "recentEmpty": "Aucune session partagée",
-    "members": "Détail par membre"
+    "members": "Détail par membre",
+    "sync": "Synchronisation"
   },
   "signedOut": {
     "title": "Connectez-vous pour voir votre équipe",

@@ -175,6 +175,15 @@ export function getSessionForkedFrom(
   return session.forkedFrom ?? readRegistry()[session.session_id]?.forkedFrom;
 }
 
+/** Snapshot resolver for batch scans, avoiding one storage parse per row. */
+export function createSessionForkedFromResolver(): (
+  session: Pick<Session, "session_id" | "forkedFrom">
+) => SessionForkedFrom | undefined {
+  const registry = readRegistry();
+  return (session) =>
+    session.forkedFrom ?? registry[session.session_id]?.forkedFrom;
+}
+
 // ============================================================================
 // The full fork action (engine fork + backend registration + relay arming)
 // ============================================================================

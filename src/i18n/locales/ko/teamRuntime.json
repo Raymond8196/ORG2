@@ -11,7 +11,8 @@
     "recentSessions": "최근 공유 세션",
     "recentLoading": "공유 세션을 불러오는 중…",
     "recentEmpty": "아직 공유된 세션이 없습니다",
-    "members": "구성원별 내역"
+    "members": "구성원별 내역",
+    "sync": "동기화"
   },
   "signedOut": {
     "title": "로그인하고 팀을 확인하세요",

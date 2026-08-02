@@ -1,7 +1,7 @@
 /**
  * Sync tab — last-sync clock plus manual trigger (leading, since that is what
- * a user opens this tab for), then per-org connection health, then the local
- * sync journal ("bug logs").
+ * a user opens this tab for), then per-repo session coverage for the org, then
+ * per-org connection health, then the local sync journal ("bug logs").
  *
  * Presentational by design: every value arrives through `status`
  * (`useCloudOrgSyncStatus`), matching how `CloudOrgSettingsSection` consumes
@@ -17,6 +17,7 @@ import React, { useCallback, useMemo } from "react";
 
 import Button from "@src/components/Button";
 import type { CloudCapabilities } from "@src/features/Org2Cloud/org2CloudCapabilities";
+import type { RepoSyncCoverage } from "@src/features/Org2Cloud/org2CloudSyncCoverage";
 import type { SyncJournalEntry } from "@src/features/Org2Cloud/org2CloudSyncJournal";
 import { useCopyCheck } from "@src/hooks/ui/useCopyCheck";
 import {
@@ -51,6 +52,64 @@ const LEVEL_LABEL_KEYS: Record<SyncJournalEntry["level"], string> = {
   warn: "cloud.orgPanel.sync.levelWarn",
   error: "cloud.orgPanel.sync.levelError",
 };
+
+/**
+ * Coverage bar fill. Floored to a visible sliver whenever ANYTHING is synced:
+ * a large repo makes the first few sessions round to 0%, and an empty bar
+ * beside a non-zero synced count reads as "nothing published".
+ */
+function coverageBarWidth(row: RepoSyncCoverage): string {
+  return `${row.synced > 0 ? Math.max(row.percent, 2) : 0}%`;
+}
+
+interface CoverageRowProps {
+  t: TFunction<"navigation">;
+  row: RepoSyncCoverage;
+}
+
+/** One repo, one row: the org scope left, synced/total + meter + % right. */
+function CoverageRow({ t, row }: CoverageRowProps) {
+  return (
+    <SectionRow
+      dataTestId="cloud-org-sync-coverage-repo"
+      label={
+        // Matches how CloudOrgRepoScopesSection renders the same strings.
+        <span className="min-w-0 truncate" title={row.repoScope}>
+          {row.repoScope}
+        </span>
+      }
+      truncateLabel
+    >
+      <div className="flex items-center justify-end gap-2.5">
+        <span
+          className="text-[12px] tabular-nums text-text-3"
+          data-testid="cloud-org-sync-coverage-repo-count"
+        >
+          {`${row.synced.toLocaleString()}/${row.syncable.toLocaleString()}`}
+        </span>
+        <div
+          className="h-1.5 w-16 shrink-0 overflow-hidden rounded-full bg-fill-2"
+          role="progressbar"
+          aria-valuenow={row.percent}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={t("cloud.orgPanel.sync.coveragePercentLabel")}
+        >
+          <div
+            className="h-full rounded-full bg-success-6 transition-[width] duration-300"
+            style={{ width: coverageBarWidth(row) }}
+          />
+        </div>
+        <span
+          className="w-9 shrink-0 text-right text-[12px] font-medium tabular-nums text-text-2"
+          data-testid="cloud-org-sync-coverage-repo-percent"
+        >
+          {`${row.percent}%`}
+        </span>
+      </div>
+    </SectionRow>
+  );
+}
 
 /** Expiry is a wall-clock comparison, so it stays out of the render body. */
 function isExpired(atMs: number | null): boolean {
@@ -118,6 +177,20 @@ export function CloudOrgSyncSection({ t, status }: CloudOrgSyncSectionProps) {
   const tokenExpiresAtMs = status.tokenExpiresAtMs;
   const tokenExpired = isExpired(tokenExpiresAtMs);
   const lastSuccessAtMs = status.lastSync.lastSuccessAtMs;
+  const coverage = status.coverage;
+  const coverageTitle =
+    status.coverageLoading ||
+    status.coverageUnavailable ||
+    coverage.percent === null
+      ? t("cloud.orgPanel.sync.coverageTitle")
+      : `${t("cloud.orgPanel.sync.coverageTitle")} · ${t(
+          "cloud.orgPanel.sync.coverageSummary",
+          {
+            synced: coverage.synced.toLocaleString(),
+            syncable: coverage.syncable.toLocaleString(),
+            percent: coverage.percent,
+          }
+        )}`;
 
   return (
     <>
@@ -158,20 +231,10 @@ export function CloudOrgSyncSection({ t, status }: CloudOrgSyncSectionProps) {
           label={t("cloud.orgPanel.sync.manualLabel")}
           align="start"
         >
+          {/* Outcome note LEADS the button: the row is right-aligned, so the
+          button stays pinned to the edge and the note grows leftward instead
+          of pushing it around as the text changes. */}
           <div className={`${SECTION_ACTION_GAP_CLASSES} flex-wrap`}>
-            <Button
-              htmlType="button"
-              size="default"
-              variant="primary"
-              disabled={status.running}
-              loading={status.running}
-              data-testid="cloud-org-sync-run"
-              onClick={status.runSync}
-            >
-              {status.running
-                ? t("cloud.orgPanel.sync.manualRunning")
-                : t("cloud.orgPanel.sync.manualAction")}
-            </Button>
             {status.runError ? (
               <span
                 className="text-[12px] text-danger-6"
@@ -189,8 +252,49 @@ export function CloudOrgSyncSection({ t, status }: CloudOrgSyncSectionProps) {
                 {t("cloud.orgPanel.sync.manualSuccess")}
               </span>
             ) : null}
+            <Button
+              htmlType="button"
+              size="default"
+              variant="primary"
+              disabled={status.running}
+              loading={status.running}
+              data-testid="cloud-org-sync-run"
+              onClick={status.runSync}
+            >
+              {status.running
+                ? t("cloud.orgPanel.sync.manualRunning")
+                : t("cloud.orgPanel.sync.manualAction")}
+            </Button>
           </div>
         </SectionRow>
+      </SectionContainer>
+
+      {/* Totals ride in the title so the body stays strictly one row per
+      repo — the whole-device number is context, not a competing row. */}
+      <SectionContainer title={coverageTitle}>
+        {status.coverageLoading ? (
+          <SectionRow
+            dataTestId="cloud-org-sync-coverage-loading"
+            label={t("cloud.orgPanel.loading")}
+            light
+          />
+        ) : status.coverageUnavailable ? (
+          <SectionRow
+            dataTestId="cloud-org-sync-coverage-unavailable"
+            label={t("cloud.orgPanel.loadError")}
+            light
+          />
+        ) : coverage.repos.length === 0 ? (
+          <SectionRow
+            dataTestId="cloud-org-sync-coverage-empty"
+            label={t("cloud.orgPanel.sync.coverageEmpty")}
+            light
+          />
+        ) : (
+          coverage.repos.map((row) => (
+            <CoverageRow key={row.repoScope} t={t} row={row} />
+          ))
+        )}
       </SectionContainer>
 
       <SectionContainer title={t("cloud.orgPanel.sync.connectionTitle")}>
