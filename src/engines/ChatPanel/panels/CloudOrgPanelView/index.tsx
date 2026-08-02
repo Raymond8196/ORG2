@@ -32,7 +32,7 @@ import { WORK_MANAGEMENT_SECTION } from "@src/store/workstation";
 import CloudOrgPanelHeader from "./CloudOrgPanelHeader";
 import CloudOrgRepoScopesSection from "./CloudOrgRepoScopesSection";
 import CloudOrgSettingsSection from "./CloudOrgSettingsSection";
-import CloudOrgSyncSection from "./CloudOrgSyncSection";
+import CloudOrgSyncTab from "./CloudOrgSyncTab";
 import { CloudInvitesCard, CloudMembersSection } from "./ManagementSections";
 import {
   CLOUD_ORG_MANAGEMENT_TAB,
@@ -40,7 +40,6 @@ import {
 } from "./cloudOrgPanelTypes";
 import { useCloudOrgManagement } from "./useCloudOrgManagement";
 import { useCloudOrgPanelState } from "./useCloudOrgPanelState";
-import { useCloudOrgSyncStatus } from "./useCloudOrgSyncStatus";
 import { useOrgOfflineSync } from "./useOrgOfflineSync";
 import { useOrgRuntimeTelemetry } from "./useOrgRuntimeTelemetry";
 
@@ -67,7 +66,6 @@ export const CloudOrgPanelView: React.FC<CloudOrgPanelViewProps> = ({
   const isOwner = org?.role === "owner";
   const panelState = useCloudOrgPanelState(orgId);
   const runtimeSharing = useOrgRuntimeTelemetry(orgId);
-  const syncStatus = useCloudOrgSyncStatus(orgId);
   const offlineSync = useOrgOfflineSync(orgId);
   const management = useCloudOrgManagement({
     orgId,
@@ -145,7 +143,7 @@ export const CloudOrgPanelView: React.FC<CloudOrgPanelViewProps> = ({
               ) : null}
 
               {activeTab === CLOUD_ORG_MANAGEMENT_TAB.SYNC ? (
-                <CloudOrgSyncSection t={t} status={syncStatus} />
+                <CloudOrgSyncTab orgId={orgId} />
               ) : null}
 
               {activeTab === CLOUD_ORG_MANAGEMENT_TAB.MEMBERS ? (

@@ -47,6 +47,25 @@ function status(
     },
     capabilitiesLoading: false,
     lastSync: { lastPassAtMs: null, lastSuccessAtMs: null },
+    coverage: {
+      repos: [
+        {
+          repoScope: "github.com/acme/alpha",
+          syncable: 6,
+          synced: 2,
+          percent: 33,
+        },
+        {
+          repoScope: "github.com/acme/beta",
+          syncable: 2,
+          synced: 2,
+          percent: 100,
+        },
+      ],
+      syncable: 8,
+      synced: 4,
+      percent: 50,
+    },
     entries: [],
     running: false,
     runSucceeded: false,
@@ -189,6 +208,98 @@ describe("CloudOrgSyncSection connection block", () => {
   });
 });
 
+describe("CloudOrgSyncSection coverage block", () => {
+  it("renders exactly one row per org repo scope, in order", () => {
+    const root = renderSection();
+
+    const rows = root.querySelectorAll(
+      '[data-testid="cloud-org-sync-coverage-repo"]'
+    );
+    expect(rows).toHaveLength(2);
+    expect(rows[0]?.textContent).toContain("github.com/acme/alpha");
+    expect(rows[1]?.textContent).toContain("github.com/acme/beta");
+
+    const counts = root.querySelectorAll(
+      '[data-testid="cloud-org-sync-coverage-repo-count"]'
+    );
+    expect(counts[0]?.textContent).toBe("2/6");
+    expect(counts[1]?.textContent).toBe("2/2");
+
+    const percents = root.querySelectorAll(
+      '[data-testid="cloud-org-sync-coverage-repo-percent"]'
+    );
+    expect(percents[0]?.textContent).toBe("33%");
+    expect(percents[1]?.textContent).toBe("100%");
+
+    const bars = root.querySelectorAll('[role="progressbar"]');
+    expect(bars).toHaveLength(2);
+    expect(bars[0]?.getAttribute("aria-valuenow")).toBe("33");
+    expect(bars[1]?.getAttribute("aria-valuenow")).toBe("100");
+  });
+
+  it("shows an empty state when no scoped repo has sessions", () => {
+    const root = renderSection({
+      coverage: { repos: [], syncable: 0, synced: 0, percent: null },
+    });
+
+    expect(
+      root.querySelector('[data-testid="cloud-org-sync-coverage-empty"]')
+        ?.textContent
+    ).toContain("cloud.orgPanel.sync.coverageEmpty");
+    expect(
+      root.querySelector('[data-testid="cloud-org-sync-coverage-repo"]')
+    ).toBeNull();
+    expect(root.querySelector('[role="progressbar"]')).toBeNull();
+  });
+
+  it("keeps a sliver of bar visible for a non-zero but tiny percentage", () => {
+    const root = renderSection({
+      coverage: {
+        repos: [
+          {
+            repoScope: "github.com/acme/alpha",
+            syncable: 400,
+            synced: 1,
+            percent: 0,
+          },
+        ],
+        syncable: 400,
+        synced: 1,
+        percent: 0,
+      },
+    });
+
+    // Rounds to 0% but IS synced — a fully empty bar would read as "none".
+    const fill = root
+      .querySelector('[role="progressbar"]')
+      ?.querySelector("div");
+    expect(fill?.getAttribute("style")).toContain("width:2%");
+  });
+
+  it("leaves the bar truly empty when nothing in the repo is synced", () => {
+    const root = renderSection({
+      coverage: {
+        repos: [
+          {
+            repoScope: "github.com/acme/alpha",
+            syncable: 9,
+            synced: 0,
+            percent: 0,
+          },
+        ],
+        syncable: 9,
+        synced: 0,
+        percent: 0,
+      },
+    });
+
+    const fill = root
+      .querySelector('[role="progressbar"]')
+      ?.querySelector("div");
+    expect(fill?.getAttribute("style")).toContain("width:0%");
+  });
+});
+
 describe("CloudOrgSyncSection last-sync block", () => {
   it("shows the never-synced empty state", () => {
     const root = renderSection();
@@ -261,6 +372,22 @@ describe("CloudOrgSyncSection manual sync", () => {
     expect(
       failed.querySelector('[data-testid="cloud-org-sync-run-success"]')
     ).toBeNull();
+  });
+
+  it("places the outcome note to the LEFT of the primary button", () => {
+    // The control cell right-aligns, so DOM order is what puts the note on
+    // the left and keeps the button pinned to the edge.
+    for (const [testId, root] of [
+      ["cloud-org-sync-run-success", renderSection({ runSucceeded: true })],
+      ["cloud-org-sync-run-error", renderSection({ runError: "network down" })],
+    ] as const) {
+      const note = root.querySelector(`[data-testid="${testId}"]`);
+      const button = root.querySelector('[data-testid="cloud-org-sync-run"]');
+      if (!note || !button) throw new Error(`missing ${testId} or run button`);
+      expect(note.parentElement).toBe(button.parentElement);
+      const siblings = Array.from(note.parentElement?.children ?? []);
+      expect(siblings.indexOf(note)).toBeLessThan(siblings.indexOf(button));
+    }
   });
 
   it("invokes runSync on click without throwing", async () => {

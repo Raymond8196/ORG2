@@ -1,8 +1,16 @@
 // @vitest-environment jsdom
+import { getDefaultStore } from "jotai";
 import { createElement } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import {
+  org2CloudPushCursorsAtom,
+  org2CloudPushedMetadataAtom,
+  org2CloudRepoScopesAtom,
+} from "@src/features/Org2Cloud/org2CloudSyncAtoms";
 import { resetSyncJournalForTests } from "@src/features/Org2Cloud/org2CloudSyncJournal";
+import { sessionsAtom } from "@src/store/session/sessionAtom/atoms";
+import type { Session } from "@src/store/session/sessionAtom/types";
 import { createSmokeRoot, dispatch } from "@src/test/reactSmokeHarness";
 
 import type { CloudOrgSyncStatus } from "./useCloudOrgSyncStatus";
@@ -82,7 +90,24 @@ beforeEach(() => {
 
 afterEach(() => {
   resetSyncJournalForTests();
+  const store = getDefaultStore();
+  store.set(sessionsAtom, []);
+  store.set(org2CloudPushedMetadataAtom, {});
+  store.set(org2CloudPushCursorsAtom, {});
+  store.set(org2CloudRepoScopesAtom, {});
 });
+
+/**
+ * `repoPath` is written as a remote-style scope key on purpose: the resolver
+ * short-circuits those to themselves, so grouping is synchronous here instead
+ * of waiting on a real git-remote lookup.
+ */
+function localSession(
+  session_id: string,
+  overrides: Partial<Session> = {}
+): Session {
+  return { session_id, ...overrides } as Session;
+}
 
 describe("useCloudOrgSyncStatus", () => {
   it("exposes the backend kind but never the endpoint URL or the anon key", async () => {
@@ -153,6 +178,127 @@ describe("useCloudOrgSyncStatus", () => {
       expect(probe.read().capabilities).toBeNull();
       expect(probe.read().capabilitiesLoading).toBe(false);
       expect(mocks.getCloudCapabilities).not.toHaveBeenCalled();
+    } finally {
+      await probe.root.unmount();
+    }
+  });
+
+  it("groups coverage by the org's repo scopes, one row per repo", async () => {
+    const store = getDefaultStore();
+    store.set(org2CloudRepoScopesAtom, {
+      "org-1": ["github.com/acme/alpha", "github.com/acme/beta"],
+    });
+    store.set(sessionsAtom, [
+      localSession("s1", { repoPath: "github.com/acme/alpha" }),
+      localSession("s2", { repoPath: "github.com/acme/alpha" }),
+      localSession("s3", { repoPath: "github.com/acme/alpha" }),
+      localSession("s4", { repoPath: "github.com/acme/beta" }),
+      // Excluded from every denominator: a subagent transcript, a spawned
+      // child, and a teammate copy pulled down from an org.
+      localSession("s1:subagent:0", { repoPath: "github.com/acme/alpha" }),
+      localSession("s5", {
+        repoPath: "github.com/acme/alpha",
+        parentSessionId: "s1",
+      }),
+      localSession("s6", {
+        repoPath: "github.com/acme/alpha",
+        importedFrom: { orgId: "org-1" } as never,
+      }),
+    ]);
+    store.set(org2CloudPushedMetadataAtom, {
+      "org-1:s1": true,
+      // Another org's marker must not lift this org's number.
+      "org-2:s3": true,
+    });
+    // A segments cursor is push evidence too, on the full_replay rung.
+    store.set(org2CloudPushCursorsAtom, {
+      "org-1:s2": {
+        orgId: "org-1",
+        sessionId: "s2",
+        epoch: 1,
+        frozenSeq: 0,
+        pushedCount: 3,
+        frozenEventCount: 0,
+        frozenChainHash: "",
+        tailHash: null,
+      },
+    });
+
+    const probe = mountStatus();
+    try {
+      await probe.mount();
+      expect(probe.read().coverage).toEqual({
+        repos: [
+          {
+            repoScope: "github.com/acme/alpha",
+            syncable: 3,
+            synced: 2,
+            percent: 67,
+          },
+          {
+            repoScope: "github.com/acme/beta",
+            syncable: 1,
+            synced: 0,
+            percent: 0,
+          },
+        ],
+        syncable: 4,
+        synced: 2,
+        percent: 50,
+      });
+    } finally {
+      await probe.root.unmount();
+    }
+  });
+
+  it("omits repos the org has not scoped, and their sessions", async () => {
+    const store = getDefaultStore();
+    store.set(org2CloudRepoScopesAtom, { "org-1": ["github.com/acme/alpha"] });
+    store.set(sessionsAtom, [
+      localSession("s1", { repoPath: "github.com/acme/alpha" }),
+      // Neither of these can ever reach this org — no row, and no drag on the
+      // headline percentage.
+      localSession("s2", { repoPath: "github.com/me/side-project" }),
+      localSession("s3"),
+    ]);
+    store.set(org2CloudPushedMetadataAtom, { "org-1:s1": true });
+
+    const probe = mountStatus();
+    try {
+      await probe.mount();
+      expect(probe.read().coverage).toEqual({
+        repos: [
+          {
+            repoScope: "github.com/acme/alpha",
+            syncable: 1,
+            synced: 1,
+            percent: 100,
+          },
+        ],
+        syncable: 1,
+        synced: 1,
+        percent: 100,
+      });
+    } finally {
+      await probe.root.unmount();
+    }
+  });
+
+  it("reports an empty coverage state when the org has no repo scopes", async () => {
+    const store = getDefaultStore();
+    store.set(sessionsAtom, [
+      localSession("s1", { repoPath: "github.com/acme/alpha" }),
+    ]);
+
+    const probe = mountStatus();
+    try {
+      await probe.mount();
+      expect(probe.read().coverage).toEqual({
+        repos: [],
+        syncable: 0,
+        synced: 0,
+        percent: null,
+      });
     } finally {
       await probe.root.unmount();
     }

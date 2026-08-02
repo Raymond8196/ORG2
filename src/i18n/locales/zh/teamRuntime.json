@@ -11,7 +11,8 @@
     "recentSessions": "最近共享的会话",
     "recentLoading": "正在加载共享会话…",
     "recentEmpty": "还没有共享会话",
-    "members": "成员明细"
+    "members": "成员明细",
+    "sync": "同步"
   },
   "signedOut": {
     "title": "登录后查看团队",

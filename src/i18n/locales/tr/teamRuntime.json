@@ -11,7 +11,8 @@
     "recentSessions": "Son paylaşılan oturumlar",
     "recentLoading": "Paylaşılan oturumlar yükleniyor…",
     "recentEmpty": "Henüz paylaşılan oturum yok",
-    "members": "Üye dökümü"
+    "members": "Üye dökümü",
+    "sync": "Eşitleme"
   },
   "signedOut": {
     "title": "Ekibinizi görmek için giriş yapın",

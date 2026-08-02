@@ -11,7 +11,8 @@
     "recentSessions": "Neueste geteilte Sessions",
     "recentLoading": "Geteilte Sessions werden geladen…",
     "recentEmpty": "Noch keine geteilten Sessions",
-    "members": "Aufschlüsselung nach Mitglied"
+    "members": "Aufschlüsselung nach Mitglied",
+    "sync": "Sync"
   },
   "signedOut": {
     "title": "Melde dich an, um dein Team zu sehen",

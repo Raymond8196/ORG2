@@ -11,7 +11,8 @@
     "recentSessions": "Najnowsze udostępnione sesje",
     "recentLoading": "Wczytywanie udostępnionych sesji…",
     "recentEmpty": "Brak udostępnionych sesji",
-    "members": "Podział według członka"
+    "members": "Podział według członka",
+    "sync": "Synchronizacja"
   },
   "signedOut": {
     "title": "Zaloguj się, aby zobaczyć swój zespół",

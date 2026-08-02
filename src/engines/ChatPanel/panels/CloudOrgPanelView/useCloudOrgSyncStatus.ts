@@ -24,6 +24,17 @@ import type { CloudCapabilities } from "@src/features/Org2Cloud/org2CloudCapabil
 import { getCloudCapabilities } from "@src/features/Org2Cloud/org2CloudCapabilities";
 import { schemaVersion } from "@src/features/Org2Cloud/org2CloudClient";
 import { endpointForOrg } from "@src/features/Org2Cloud/org2CloudOrgEndpointRouter";
+import {
+  org2CloudPushCursorsAtom,
+  org2CloudPushedMetadataAtom,
+  org2CloudRepoScopesAtom,
+} from "@src/features/Org2Cloud/org2CloudSyncAtoms";
+import {
+  type SessionSyncCoverage,
+  computeSessionSyncCoverage,
+  createOrgRepoScopeResolver,
+  pushedSessionIdsForOrg,
+} from "@src/features/Org2Cloud/org2CloudSyncCoverage";
 import { org2CloudSyncEngine } from "@src/features/Org2Cloud/org2CloudSyncEngine";
 import {
   type SyncJournalEntry,
@@ -33,6 +44,8 @@ import {
   useLastSyncState,
   useSyncJournal,
 } from "@src/features/Org2Cloud/org2CloudSyncJournal";
+import { useShareableScopeKeyVersion } from "@src/features/TeamCollaboration/repoScopeResolver";
+import { sessionsAtom } from "@src/store/session/sessionAtom/atoms";
 
 export type SchemaProbeStatus =
   | "checking"
@@ -53,6 +66,8 @@ export interface CloudOrgSyncStatus {
   capabilities: CloudCapabilities | null;
   capabilitiesLoading: boolean;
   lastSync: SyncJournalLastSyncState;
+  /** Per-repo publish coverage across THIS org's repo scopes. */
+  coverage: SessionSyncCoverage;
   entries: readonly SyncJournalEntry[];
   running: boolean;
   runSucceeded: boolean;
@@ -69,6 +84,38 @@ export function useCloudOrgSyncStatus(orgId: string): CloudOrgSyncStatus {
 
   const accessToken = auth?.accessToken ?? null;
   const endpoint = useMemo(() => endpointForOrg(orgId), [orgId]);
+
+  // Coverage is derived, not probed: both marker atoms and the roster are
+  // already-resolved local state, so the numbers track pushes and retracts
+  // live without this diagnostic tab polling anything.
+  const sessions = useAtomValue(sessionsAtom);
+  const pushedMetadata = useAtomValue(org2CloudPushedMetadataAtom);
+  const pushCursors = useAtomValue(org2CloudPushCursorsAtom);
+  // The org's OWN repo scopes are the row set: the panel reports on the repos
+  // this org can receive, not every repo on the device. The mirror is the same
+  // one the push pass matches against, so the rows and the engine agree.
+  const orgScopes = useAtomValue(org2CloudRepoScopesAtom)[orgId];
+  // Scope matching reads the shareable-scope-key and repo-identity caches,
+  // which fill in asynchronously (both bump this one version). The
+  // subscription is what turns a cold cache into rows.
+  const scopeKeyVersion = useShareableScopeKeyVersion();
+  const coverage = useMemo(() => {
+    // The version is an invalidation signal, not an input: reading it here is
+    // what makes it an honest dependency rather than a suppressed lint rule.
+    void scopeKeyVersion;
+    return computeSessionSyncCoverage(
+      sessions,
+      pushedSessionIdsForOrg(orgId, pushedMetadata, pushCursors),
+      createOrgRepoScopeResolver(orgScopes)
+    );
+  }, [
+    orgId,
+    orgScopes,
+    pushCursors,
+    pushedMetadata,
+    scopeKeyVersion,
+    sessions,
+  ]);
 
   const [schemaStatus, setSchemaStatus] =
     useState<SchemaProbeStatus>("checking");
@@ -181,6 +228,7 @@ export function useCloudOrgSyncStatus(orgId: string): CloudOrgSyncStatus {
     capabilities,
     capabilitiesLoading,
     lastSync,
+    coverage,
     entries,
     running,
     runSucceeded,

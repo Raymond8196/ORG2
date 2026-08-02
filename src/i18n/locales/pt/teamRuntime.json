@@ -11,7 +11,8 @@
     "recentSessions": "Sessões compartilhadas recentes",
     "recentLoading": "Carregando sessões compartilhadas…",
     "recentEmpty": "Ainda não há sessões compartilhadas",
-    "members": "Detalhamento por membro"
+    "members": "Detalhamento por membro",
+    "sync": "Sincronização"
   },
   "signedOut": {
     "title": "Entre para ver sua equipe",
