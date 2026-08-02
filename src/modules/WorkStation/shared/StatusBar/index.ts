@@ -39,6 +39,7 @@ export type {
   LspStatus,
 } from "./EditorStatusBar";
 
+export { CiStatusMenu } from "./CiStatusMenu";
 export { PortsStatusMenu } from "./PortsStatusMenu";
 export { WorkspacePortScanner } from "./WorkspacePortScanner";
 
