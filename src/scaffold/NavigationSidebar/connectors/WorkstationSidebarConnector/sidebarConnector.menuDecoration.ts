@@ -65,9 +65,9 @@ interface UseWorkstationSidebarMenuDecorationParams {
   unpinFolderLabel: string;
   setActiveSessionMoreMenuId: DecorateRowActionsParams["setActiveSessionMoreMenuId"];
   subagentParentIds: DecorateRowActionsParams["subagentParentIds"];
-  cloudMenuItems: NavigationMenuItem[];
-  /** Local-scope Channels section; empty while a cloud org is active. */
-  localChannelsMenuItems: NavigationMenuItem[];
+  cloudSessionMenuItems: NavigationMenuItem[];
+  channelSidebarMenuItems: NavigationMenuItem[];
+  channelSidebarVisible: boolean;
   sessionSidebarMenuItems: NavigationMenuItem[];
   cloudMySessionsVisibleCount: number;
   activeSidebarKey: WorkstationSidebarKey;
@@ -112,8 +112,9 @@ export function useWorkstationSidebarMenuDecoration({
   unpinFolderLabel,
   setActiveSessionMoreMenuId,
   subagentParentIds,
-  cloudMenuItems,
-  localChannelsMenuItems,
+  cloudSessionMenuItems,
+  channelSidebarMenuItems,
+  channelSidebarVisible,
   sessionSidebarMenuItems,
   cloudMySessionsVisibleCount,
   activeSidebarKey,
@@ -183,7 +184,7 @@ export function useWorkstationSidebarMenuDecoration({
   });
   const decoratedSessionSidebarMenuItems = useMemo(() => {
     const scoped = buildCloudScopedMenuItems({
-      cloudMenuItems,
+      cloudMenuItems: cloudSessionMenuItems,
       // Cloud rows already carry Replay/Fork actions, so only local rows
       // use the regular session action decoration.
       sessionMenuItems: decorateSessionRowActions(sessionSidebarMenuItems),
@@ -191,17 +192,11 @@ export function useWorkstationSidebarMenuDecoration({
       mySessionsVisibleCount: cloudMySessionsVisibleCount,
       loadMoreLabel: tCommon("common:actions.loadMore", "Load more"),
     });
-    // Local-scope Channels lead the list — the mirror of the cloud scope's
-    // channels-above-My-Sessions ordering. Empty whenever a cloud org is
-    // active, so the two channel sections can never co-render.
-    return localChannelsMenuItems.length === 0
-      ? scoped
-      : [...localChannelsMenuItems, ...scoped];
+    return scoped;
   }, [
-    cloudMenuItems,
+    cloudSessionMenuItems,
     cloudMySessionsVisibleCount,
     decorateSessionRowActions,
-    localChannelsMenuItems,
     sessionSidebarMenuItems,
     t,
     tCommon,
@@ -209,7 +204,9 @@ export function useWorkstationSidebarMenuDecoration({
   const sidebarMenuItems =
     activeSidebarKey === "projects" || workItemsContentVisible
       ? projectsSidebarMenuItems
-      : decoratedSessionSidebarMenuItems;
+      : channelSidebarVisible
+        ? channelSidebarMenuItems
+        : decoratedSessionSidebarMenuItems;
   const handleProjectsMenuItemClick = useProjectsMenuItemClick({
     activateMyStationRouteForProjectTabContent,
     activateMyStationRouteForProjectsContent,
