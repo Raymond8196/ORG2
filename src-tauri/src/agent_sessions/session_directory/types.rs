@@ -358,6 +358,12 @@ pub struct ExternalHistorySidebarBucketPage {
 pub struct ExternalHistorySidebarResponse {
     pub source: String,
     pub buckets: Vec<ExternalHistorySidebarBucketPage>,
+    /// Set when this source's own store could not be read. The other sources in
+    /// the batch still carry their rows, and the caller must treat a failed
+    /// source as "unknown", never as "empty" — an empty page would let the
+    /// sidebar retire every row this source owns.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]

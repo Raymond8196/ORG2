@@ -296,6 +296,8 @@ export const ExternalHistorySidebarResponseSchema = z.object({
       hasMore: z.boolean(),
     })
   ),
+  /** Present when this source's store failed to read. Never treat it as empty. */
+  error: z.string().optional(),
 });
 
 export const ExternalHistorySidebarBatchResponseSchema = z.object({

@@ -77,6 +77,7 @@ pub async fn session_external_history_sidebar_list(
             }
             let mut pages = Vec::with_capacity(source_request.buckets.len());
             let mut seen_buckets = HashSet::with_capacity(source_request.buckets.len());
+            let mut source_error: Option<String> = None;
             for request in source_request.buckets {
                 if !seen_buckets.insert(request.bucket) {
                     return Err("External history sidebar buckets must be unique".to_string());
@@ -96,14 +97,31 @@ pub async fn session_external_history_sidebar_list(
                     );
                 }
                 let limit = request.limit.min(EXTERNAL_HISTORY_SIDEBAR_BUCKET_MAX_LIMIT);
-                let mut page = query_imported_sidebar_page_from_conn(
+                // One provider's unreadable store must not decide whether the
+                // others are visible: this batch is the sidebar's only source
+                // of imported rows, so propagating here retired every source's
+                // rows at once. Contract violations above stay hard errors —
+                // those are caller bugs, not a provider's disk.
+                let mut page = match query_imported_sidebar_page_from_conn(
                     &conn,
                     &source,
                     request.start_ms,
                     request.end_ms,
                     limit,
                     request.offset,
-                )?;
+                ) {
+                    Ok(page) => page,
+                    Err(err) => {
+                        tracing::warn!(
+                            source = %source,
+                            bucket = ?request.bucket,
+                            error = %err,
+                            "external history sidebar: skipping source whose store failed to read"
+                        );
+                        source_error = Some(err);
+                        break;
+                    }
+                };
                 if source == SOURCE_CURSOR_IDE {
                     for session in &mut page.sessions {
                         if !session.session_id.starts_with(CURSORIDE_SESSION_PREFIX) {
@@ -134,7 +152,12 @@ pub async fn session_external_history_sidebar_list(
             }
             sources.push(ExternalHistorySidebarResponse {
                 source,
-                buckets: pages,
+                buckets: if source_error.is_some() {
+                    Vec::new()
+                } else {
+                    pages
+                },
+                error: source_error,
             });
         }
         Ok(ExternalHistorySidebarBatchResponse { sources })
