@@ -552,7 +552,7 @@ describe("DiscussionChannelPanelView", () => {
     expect(
       container.querySelector("[data-testid='channel-panel-member-count']")
         ?.textContent
-    ).toContain("cloud.channels.feed.memberCount");
+    ).toContain("4");
   });
 
   it("never writes to the local store from the cloud surface", async () => {

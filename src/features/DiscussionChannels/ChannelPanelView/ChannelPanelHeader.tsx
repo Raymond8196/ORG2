@@ -35,7 +35,7 @@ const ChannelPanelHeader: React.FC<ChannelPanelHeaderProps> = ({
 
   return (
     <div
-      className={`${PANEL_HEADER_TOKENS.row} border-b border-border-2`}
+      className="flex h-10 shrink-0 items-center gap-2 border-b border-border-2 pl-1.5 pr-2"
       data-testid="channel-panel-header"
     >
       <div className="flex min-w-0 flex-1 items-center gap-2">
@@ -70,12 +70,15 @@ const ChannelPanelHeader: React.FC<ChannelPanelHeaderProps> = ({
             data-testid="channel-panel-member-count"
           >
             <Users size={12} strokeWidth={1.75} aria-hidden />
-            {t("cloud.channels.feed.memberCount", { memberCount })}
+            {memberCount}
           </span>
         )}
         <Button
-          {...PANEL_HEADER_TOKENS.actionButton}
           htmlType="button"
+          variant="tertiary"
+          size="small"
+          iconOnly
+          className="hover:!bg-fill-2"
           icon={
             <Settings2
               size={PANEL_HEADER_TOKENS.buttonIconSize}
