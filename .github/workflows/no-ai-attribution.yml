@@ -7,7 +7,7 @@
 # Direct pushes to develop bypass the PR flow, so the check also runs on
 # push, scanning the full history (which is expected to stay clean).
 
-name: No AI attribution
+name: Check AI attribution
 
 on:
   pull_request:
