@@ -470,8 +470,13 @@ async function streamIncrementalRemoteSessionToCache(
  * on first open, reordered List/Diary around the click, and pulled an old
  * session back out of the auto-archived column. Cloud metadata carries no
  * creation timestamp, so `lastActivityAt` is the only source-side time we
- * have — the same proxy the pre-click cloud card itself renders. Undefined
- * for pre-`lastActivityAt` rows, which keep whatever local stamp they have.
+ * have — the same proxy the pre-click cloud card itself renders.
+ *
+ * Returns undefined for a row carrying no usable `lastActivityAt`, and the
+ * two callers deliberately treat that differently: the refresh path leaves
+ * the existing stamps alone (nothing to adopt, and the row already has some),
+ * while the write path falls back to `now` because `created_at`/`updated_at`
+ * are required on the insert it may be about to make.
  */
 function readSourceActivityAt(
   remoteSession: ImportRemoteSessionOptions["remoteSession"]
@@ -529,6 +534,23 @@ function resolveImportedSourcePresentation(
   });
 }
 
+/**
+ * Re-resolve an existing replay copy's presentation from the current roster
+ * row, without fetching content.
+ *
+ * Three of the four call sites reach here having downloaded NOTHING — the
+ * roster published no segments, a restream returned empty, or the assembler
+ * refused the payload — and they still adopt the source's activity time. That
+ * is deliberate, not an oversight: `updated_at` on a replay copy describes the
+ * OWNER's session activity, not how fresh our local content is. The cloud card
+ * for a session with no local copy at all already renders
+ * `created_at`/`updated_at` from the same `lastActivityAt`
+ * (`cloudRemoteToKanbanTask.ts`), so a copy that adopts it stays consistent
+ * with the card it replaced. Content progress is tracked separately and
+ * explicitly by the `importedFrom` cursor (`epoch`/`seq`/`count`); the two are
+ * not meant to move together, and gating the clock on a successful fetch would
+ * reintroduce exactly the card-jumping this module's timestamps exist to avoid.
+ */
 function refreshImportedSessionPresentation(
   existing: Session,
   remoteSession: ImportRemoteSessionOptions["remoteSession"]
