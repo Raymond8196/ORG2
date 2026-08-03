@@ -73,6 +73,56 @@ describe("loadSidebarSessions", () => {
     expect(loadSidebarSessions).toBe(loadSessionRoster);
   });
 
+  it("keeps healthy imported sources listed when one source's store fails", async () => {
+    mocks.sessionAggregateList.mockResolvedValue({ sessions: [] });
+    mocks.externalHistorySidebarList.mockResolvedValue({
+      sources: IMPORTED_HISTORY_SOURCES.map((source) =>
+        source.sourceId === "cursor_ide"
+          ? { source: source.sourceId, buckets: [], error: "disk on fire" }
+          : {
+              source: source.sourceId,
+              buckets: [
+                {
+                  bucket: "older",
+                  sessions:
+                    source.sourceId === "codex_app"
+                      ? [makeRow("codexapp-healthy", "2026-07-01T00:00:00Z")]
+                      : [],
+                  hasMore: false,
+                },
+              ],
+            }
+      ),
+    });
+
+    await loadSidebarSessions();
+
+    const pagination = mocks.store?.get(sessionPaginationAtom);
+    // The broken source is UNKNOWN, never an authoritative empty page.
+    expect(pagination?.["external_history:cursor_ide"].phase).toBe("error");
+    expect(pagination?.["external_history:cursor_ide"].generation).toBe(0);
+    // Its healthy siblings still publish their rows.
+    expect(pagination?.["external_history:codex_app"].sessionIds).toEqual([
+      "codexapp-healthy",
+    ]);
+  });
+
+  it("does not publish an authoritative empty page when the whole batch rejects", async () => {
+    mocks.sessionAggregateList.mockResolvedValue({ sessions: [] });
+    mocks.externalHistorySidebarList.mockRejectedValue(new Error("ipc down"));
+
+    await loadSidebarSessions();
+
+    const pagination = mocks.store?.get(sessionPaginationAtom);
+    for (const source of IMPORTED_HISTORY_SOURCES) {
+      const state = pagination?.[source.listCategory];
+      expect(state?.phase).toBe("error");
+      // generation must stay 0 — createSidebarRosterMatcher treats any
+      // generation > 0 as authoritative and would hide every imported row.
+      expect(state?.generation).toBe(0);
+    }
+  });
+
   it("refreshes gateway-created native rows without reloading imported sources", async () => {
     const imported = {
       session_id: "claude-code-imported",

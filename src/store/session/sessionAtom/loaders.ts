@@ -275,7 +275,8 @@ function importedHistoryPageResult(
 
 async function loadImportedHistorySourcePages(
   inputs: readonly ImportedHistoryPageInput[],
-  pageSize: number
+  pageSize: number,
+  failures: Map<string, string> = new Map()
 ): Promise<Map<string, FetchPageResult>> {
   const results = new Map<string, FetchPageResult>();
   const pending = inputs.flatMap(({ source, currentBuckets }) => {
@@ -312,6 +313,13 @@ async function loadImportedHistorySourcePages(
       throw new Error(
         `External history sidebar response omitted ${source.sourceId}`
       );
+    }
+    // A source whose store failed to read is UNKNOWN, not empty. Recording it
+    // as an empty page would publish an authoritative page of zero ids and
+    // retire every row that source owns.
+    if (sourceResponse.error) {
+      failures.set(source.sourceId, sourceResponse.error);
+      continue;
     }
     results.set(
       source.sourceId,
@@ -568,33 +576,47 @@ const performSidebarSessionLoad = async (options?: SidebarLoadOptions) => {
     const source = getImportedHistorySourceByListCategory(category);
     return source ? [{ category, source }] : [];
   });
+  // An errored stream must not publish a roster page. `setPaginationFor`
+  // merges, so writing `generation` while leaving `sessionIds` at its cold-start
+  // `[]` makes `createSidebarRosterMatcher` treat that empty set as
+  // authoritative and hide every row the stream owns. Native categories survive
+  // this because they share one `nativeIds` union; imported categories are each
+  // independently authoritative, so for them the blanking is total.
+  const markImportedStreamFailed = (category: SessionListCategory) => {
+    if (generation !== currentSidebarRosterGeneration(store)) return;
+    setPaginationFor(category, { cursor: null, phase: "error" });
+  };
+
   const importedTask = (async () => {
     if (importedCategories.length === 0) return;
+    const failures = new Map<string, string>();
     try {
       const pages = await loadImportedHistorySourcePages(
         importedCategories.map(({ source }) => ({ source })),
-        pageSize
+        pageSize,
+        failures
       );
       for (const { category, source } of importedCategories) {
+        const failure = failures.get(source.sourceId);
+        if (failure) {
+          log.warn(`[SessionAtom] ${category} initial page failed: ${failure}`);
+          markImportedStreamFailed(category);
+          continue;
+        }
         const page = pages.get(source.sourceId);
         if (!page) {
-          throw new Error(
-            `External history sidebar page missing ${source.sourceId}`
+          log.warn(
+            `[SessionAtom] external history sidebar page missing ${source.sourceId}`
           );
+          markImportedStreamFailed(category);
+          continue;
         }
         applyInitialPage(category, page);
       }
     } catch (error) {
       log.warn("[SessionAtom] external history initial pages failed:", error);
-      if (generation === currentSidebarRosterGeneration(store)) {
-        for (const { category } of importedCategories) {
-          setPaginationFor(category, {
-            cursor: null,
-            phase: "error",
-            generation,
-            dateBuckets: emptyDateBucketPagination(),
-          });
-        }
+      for (const { category } of importedCategories) {
+        markImportedStreamFailed(category);
       }
     }
   })();
