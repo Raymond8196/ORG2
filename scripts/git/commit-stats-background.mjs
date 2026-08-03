@@ -23,6 +23,15 @@ function run(cmd, args) {
     proc.stdout?.on("data", (chunk) => {
       stdout += chunk;
     });
+    // Drain stderr even though we discard it. The circular gate prints one
+    // line per unresolved specifier — in --json mode too — which on a tree
+    // whose tsconfig `paths` stopped resolving is ~88KB, past the OS pipe
+    // buffer. An undrained pipe blocks the child mid-write while we await
+    // `close`, and this process is spawned detached with stdio "ignore", so
+    // the deadlock is invisible: COMMIT_STATS.json is never rewritten and
+    // prepare-commit-msg keeps stamping the PREVIOUS run's numbers onto
+    // every later commit. `commit-stats.mjs` drains for the same reason.
+    proc.stderr?.on("data", () => {});
     proc.on("close", () => resolve(stdout));
     proc.on("error", () => resolve(""));
   });

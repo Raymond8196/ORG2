@@ -37,8 +37,19 @@ const result = await madge(join(ROOT, "src"), {
   ...madgeConfig,
   fileExtensions: ["ts", "tsx"],
   tsConfig: join(ROOT, "tsconfig.json"),
-  // Stylesheets are leaves in the TypeScript graph. Traversing them makes
-  // detective-scss misread keyframes and Tailwind directives as imports.
+  // Drop stylesheets from the graph. Load-bearing, not cosmetic: without it
+  // detective-scss reads every animation-name and Tailwind directive as an
+  // import, so 37 bogus specifiers (`modal-scale-in`, `dropIndicatorPulse`,
+  // …) land in warnings().skipped and trip the unresolved gate below on a
+  // perfectly clean tree.
+  //
+  // The cost is real and deliberate. dependency-tree applies `filter` to the
+  // ALREADY-RESOLVED dependency list, so stylesheets vanish as nodes AND
+  // edges, not merely as traversal targets (here: 112 nodes, 143 edges).
+  // They are not leaves — 20 of them carry 56 scss->scss edges — so a cycle
+  // running purely through `@import`s is no longer reported. The previous
+  // `npx madge` invocation did catch that class; it is knowingly given up to
+  // keep this gate usable.
   dependencyFilter: (dependencyPath) => !STYLE_EXTENSION.test(dependencyPath),
 });
 
