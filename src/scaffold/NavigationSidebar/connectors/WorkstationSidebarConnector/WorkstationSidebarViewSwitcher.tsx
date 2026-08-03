@@ -64,7 +64,7 @@ export const WorkstationSidebarViewSwitcher: React.FC<WorkstationSidebarViewSwit
               >
                 <button
                   type="button"
-                  className={`flex h-7 flex-1 items-center justify-center rounded-lg transition-[background-color,color,box-shadow] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-6/30 ${
+                  className={`flex h-7 flex-1 items-center justify-center rounded-full transition-[background-color,color,box-shadow] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-6/30 ${
                     selected
                       ? "cursor-default bg-chat-pane/70 text-primary-6"
                       : "text-text-2 hover:bg-sidebar-selected hover:text-text-1"

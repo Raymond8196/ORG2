@@ -97,6 +97,11 @@ describe("WorkstationSidebarViewSwitcher", () => {
     ).toBe(true);
     expect(
       container
+        .querySelector('[data-testid="sidebar-view-work-items"]')
+        ?.classList.contains("rounded-full")
+    ).toBe(true);
+    expect(
+      container
         .querySelector('[data-testid="sidebar-view-sessions"]')
         ?.getAttribute("aria-current")
     ).toBe("page");
