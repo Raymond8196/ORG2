@@ -3,6 +3,7 @@ import { Check, Mail } from "lucide-react";
 import React from "react";
 
 import Button from "@src/components/Button";
+import { WorkstationToolbarTooltip } from "@src/modules/WorkStation/shared/WorkstationToolbarTooltip";
 import {
   DETAIL_PANEL_TOKENS,
   DetailPanelContainer,
@@ -53,38 +54,45 @@ const TeamInboxDetailLayout: React.FC<TeamInboxDetailLayoutProps> = ({
 }) => {
   const readAction = unread ? (
     onMarkRead ? (
-      <Button
-        variant="tertiary"
-        appearance="ghost"
-        size="mini"
-        icon={<Check size={14} aria-hidden />}
-        onClick={onMarkRead}
-      >
-        {markReadLabel}
-      </Button>
+      <WorkstationToolbarTooltip label={markReadLabel} position="bottom-end">
+        <Button
+          htmlType="button"
+          variant="tertiary"
+          size="small"
+          iconOnly
+          icon={<Check size={14} strokeWidth={2} aria-hidden />}
+          aria-label={markReadLabel}
+          onClick={onMarkRead}
+        />
+      </WorkstationToolbarTooltip>
     ) : null
   ) : onMarkUnread && markUnreadLabel ? (
-    <Button
-      variant="tertiary"
-      appearance="ghost"
-      size="mini"
-      icon={<Mail size={14} aria-hidden />}
-      onClick={onMarkUnread}
-    >
-      {markUnreadLabel}
-    </Button>
+    <WorkstationToolbarTooltip label={markUnreadLabel} position="bottom-end">
+      <Button
+        htmlType="button"
+        variant="tertiary"
+        size="small"
+        iconOnly
+        icon={<Mail size={14} strokeWidth={2} aria-hidden />}
+        aria-label={markUnreadLabel}
+        onClick={onMarkUnread}
+      />
+    </WorkstationToolbarTooltip>
   ) : null;
   const headerOpenAction =
     onOpen && openPlacement === "header" ? (
-      <Button
-        variant="secondary"
-        size="mini"
-        icon={openIcon}
-        onClick={onOpen}
-        data-testid="team-inbox-open-source"
-      >
-        {openLabel}
-      </Button>
+      <WorkstationToolbarTooltip label={openLabel} position="bottom-end">
+        <Button
+          htmlType="button"
+          variant="tertiary"
+          size="small"
+          iconOnly
+          icon={openIcon}
+          aria-label={openLabel}
+          onClick={onOpen}
+          data-testid="team-inbox-open-source"
+        />
+      </WorkstationToolbarTooltip>
     ) : null;
 
   return (
@@ -94,9 +102,13 @@ const TeamInboxDetailLayout: React.FC<TeamInboxDetailLayoutProps> = ({
         subtitle={subtitle}
         icon={icon}
         borderBottom
+        className="!pr-2"
         actions={
           readAction || headerOpenAction ? (
-            <div className="flex items-center gap-1">
+            <div
+              className="flex items-center gap-px"
+              data-testid="team-inbox-detail-actions"
+            >
               {readAction}
               {headerOpenAction}
             </div>

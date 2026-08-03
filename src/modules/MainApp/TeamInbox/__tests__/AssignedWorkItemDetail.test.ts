@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { Globe } from "lucide-react";
 import React, { act, createElement } from "react";
 import { type Root, createRoot } from "react-dom/client";
 import {
@@ -18,6 +19,8 @@ import AssignedWorkItemDetail from "../components/AssignedWorkItemDetail";
 import type { AssignedWorkItem } from "../domain";
 
 const mocks = vi.hoisted(() => ({
+  detailLayoutProps: null as Record<string, unknown> | null,
+  openExternalLink: vi.fn(async () => undefined),
   updateWorkItem: vi.fn(),
   transitionHandoff: vi.fn(),
   workItem: {
@@ -42,6 +45,10 @@ const mocks = vi.hoisted(() => ({
       selected_model_id: "model-1",
     },
   } as WorkItem,
+}));
+
+vi.mock("@src/util/platform/ipcRenderer", () => ({
+  openExternalLink: mocks.openExternalLink,
 }));
 
 vi.mock("react-i18next", () => ({
@@ -148,8 +155,10 @@ vi.mock("@src/modules/ProjectManager/WorkItems/components", () => ({
 }));
 
 vi.mock("../components/TeamInboxDetailLayout", () => ({
-  default: ({ children }: { children?: React.ReactNode }) =>
-    createElement("div", null, children),
+  default: (props: Record<string, unknown>) => {
+    mocks.detailLayoutProps = props;
+    return createElement("div", null, props.children as React.ReactNode);
+  },
 }));
 
 const item: AssignedWorkItem = {
@@ -185,6 +194,7 @@ describe("AssignedWorkItemDetail navigation actions", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.detailLayoutProps = null;
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -222,6 +232,68 @@ describe("AssignedWorkItemDetail navigation actions", () => {
       workItemId: "work-item-1",
       action: "start_agent",
     });
+  });
+
+  it("opens GitHub-backed items in the browser with the globe action", () => {
+    const onNavigate = vi.fn();
+    const githubItem: AssignedWorkItem = {
+      ...item,
+      target: {
+        ...item.target,
+        repository: "git@github.com:org2AI/ORG2.git",
+        workItemId: "42",
+      },
+      payload: { ...item.payload, status: "open" },
+    };
+
+    act(() => {
+      root.render(
+        createElement(AssignedWorkItemDetail, {
+          item: githubItem,
+          onNavigate,
+        })
+      );
+    });
+
+    expect(mocks.detailLayoutProps?.openLabel).toBe("previews.openInBrowser");
+    const openIcon = mocks.detailLayoutProps?.openIcon;
+    expect(React.isValidElement(openIcon)).toBe(true);
+    expect((openIcon as React.ReactElement).type).toBe(Globe);
+
+    act(() => {
+      (mocks.detailLayoutProps?.onOpen as (() => void) | undefined)?.();
+    });
+
+    expect(mocks.openExternalLink).toHaveBeenCalledWith(
+      "https://github.com/org2AI/ORG2/issues/42"
+    );
+    expect(onNavigate).not.toHaveBeenCalled();
+  });
+
+  it("keeps non-GitHub Work Items on the in-app open action", () => {
+    const onNavigate = vi.fn();
+    act(() => {
+      root.render(
+        createElement(AssignedWorkItemDetail, {
+          item,
+          onNavigate,
+        })
+      );
+    });
+
+    expect(mocks.detailLayoutProps?.openLabel).toBe(
+      "teamInbox.actions.openWorkItem"
+    );
+    act(() => {
+      (mocks.detailLayoutProps?.onOpen as (() => void) | undefined)?.();
+    });
+
+    expect(onNavigate).toHaveBeenCalledWith({
+      kind: "open_work_item",
+      projectId: "project-1",
+      workItemId: "work-item-1",
+    });
+    expect(mocks.openExternalLink).not.toHaveBeenCalled();
   });
 
   it("provides editable properties to the shared thread surface", () => {

@@ -198,10 +198,9 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
           activeTab={activeTab}
           onChange={(key) => setActiveTab(key as PrDetailTab)}
           variant="pill"
+          color="fill"
           fillWidth={false}
           size="small"
-          buttonStyle
-          height={28}
         />
         <a
           href={identity.url}

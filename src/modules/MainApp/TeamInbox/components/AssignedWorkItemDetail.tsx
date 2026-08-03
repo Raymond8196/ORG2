@@ -1,4 +1,4 @@
-import { ClipboardList, ExternalLink } from "lucide-react";
+import { ClipboardList, ExternalLink, Globe } from "lucide-react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -7,6 +7,8 @@ import { WorkItemThreadSurface } from "@src/modules/ProjectManager/WorkItems/com
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 import type { Person } from "@src/types/core/shared";
 import type { WorkItem } from "@src/types/core/workItem";
+import { resolveGithubRepoFullName } from "@src/util/git/githubRemote";
+import { openExternalLink } from "@src/util/platform/ipcRenderer";
 
 import {
   type AssignedWorkItem,
@@ -23,6 +25,17 @@ export interface AssignedWorkItemDetailProps {
   onMarkRead?: (item: AssignedWorkItem) => void;
   onMarkUnread?: (item: AssignedWorkItem) => void;
   onWorkItemUpdated?: (workItem: WorkItem) => void;
+}
+
+function buildGitHubIssueUrl(item: AssignedWorkItem): string | null {
+  if (!isGitHubIssueStatus(item.payload.status)) return null;
+  const repository = item.target.repository;
+  const repoFullName = repository
+    ? resolveGithubRepoFullName([repository])
+    : null;
+  const issueNumber = item.target.workItemId.trim().replace(/^#/, "");
+  if (!repoFullName || !/^\d+$/.test(issueNumber)) return null;
+  return `https://github.com/${repoFullName}/issues/${issueNumber}`;
 }
 
 interface AssignedWorkItemThreadProps {
@@ -153,6 +166,7 @@ const AssignedWorkItemDetail: React.FC<AssignedWorkItemDetailProps> = ({
     };
     return issue ? t(keyByIssue[issue]) : null;
   })();
+  const githubIssueUrl = buildGitHubIssueUrl(item);
 
   return (
     <TeamInboxDetailLayout
@@ -163,21 +177,33 @@ const AssignedWorkItemDetail: React.FC<AssignedWorkItemDetailProps> = ({
       unread={item.readAt === null}
       markReadLabel={t("teamInbox.actions.markRead")}
       markUnreadLabel={t("teamInbox.actions.markUnread")}
-      openLabel={t("teamInbox.actions.openWorkItem")}
-      openIcon={<ExternalLink size={14} aria-hidden />}
+      openLabel={t(
+        githubIssueUrl
+          ? "previews.openInBrowser"
+          : "teamInbox.actions.openWorkItem"
+      )}
+      openIcon={
+        githubIssueUrl ? (
+          <Globe size={14} strokeWidth={1.75} aria-hidden />
+        ) : (
+          <ExternalLink size={14} aria-hidden />
+        )
+      }
       openPlacement="header"
       onMarkRead={onMarkRead ? () => onMarkRead(item) : undefined}
       onMarkUnread={onMarkUnread ? () => onMarkUnread(item) : undefined}
       onOpen={
-        onNavigate
-          ? () =>
-              onNavigate({
-                kind: "open_work_item",
-                orgId: item.target.orgId,
-                projectId: item.target.projectId,
-                workItemId: item.target.workItemId,
-              })
-          : undefined
+        githubIssueUrl
+          ? () => void openExternalLink(githubIssueUrl)
+          : onNavigate
+            ? () =>
+                onNavigate({
+                  kind: "open_work_item",
+                  orgId: item.target.orgId,
+                  projectId: item.target.projectId,
+                  workItemId: item.target.workItemId,
+                })
+            : undefined
       }
     >
       {status === "loading" ? (
