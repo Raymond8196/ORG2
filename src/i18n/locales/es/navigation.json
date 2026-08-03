@@ -779,7 +779,7 @@
       "eta": "Quedan unos {{eta}}",
       "finalizing": "Finalizando…",
       "complete": "Descarga completada",
-      "estimate": "Esta sesión tiene {{count}} eventos por descargar (aprox. {{eta}}).",
+      "estimate": "Esta sesión tiene {{count}} eventos por descargar (aprox. {{eta}})",
       "start": "Descargar",
       "pause": "Pausar",
       "paused": "En pausa",

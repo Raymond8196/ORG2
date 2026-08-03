@@ -869,7 +869,7 @@
       "eta": "預計剩餘 {{eta}}",
       "finalizing": "正在整理…",
       "complete": "下載完成",
-      "estimate": "該會話有 {{count}} 個事件待下載（約 {{eta}}）。",
+      "estimate": "該會話有 {{count}} 個事件待下載（約 {{eta}}）",
       "start": "開始下載",
       "pause": "暫停",
       "paused": "已暫停",

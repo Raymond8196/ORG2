@@ -806,7 +806,7 @@
       "eta": "About {{eta}} remaining",
       "finalizing": "Finalizing…",
       "complete": "Download complete",
-      "estimate": "This session has {{count}} events to download (about {{eta}}).",
+      "estimate": "This session has {{count}} events to download (about {{eta}})",
       "start": "Download",
       "pause": "Pause",
       "paused": "Paused",

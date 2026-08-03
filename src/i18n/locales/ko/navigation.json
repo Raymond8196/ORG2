@@ -777,7 +777,7 @@
       "eta": "약 {{eta}} 남음",
       "finalizing": "마무리 중…",
       "complete": "다운로드 완료",
-      "estimate": "이 세션에는 다운로드할 이벤트가 {{count}}개 있습니다(약 {{eta}}).",
+      "estimate": "이 세션에는 다운로드할 이벤트가 {{count}}개 있습니다(약 {{eta}})",
       "start": "다운로드",
       "pause": "일시중지",
       "paused": "일시중지됨",

@@ -777,7 +777,7 @@
       "eta": "Còn khoảng {{eta}}",
       "finalizing": "Đang hoàn tất…",
       "complete": "Tải xuống hoàn tất",
-      "estimate": "Phiên này có {{count}} sự kiện cần tải xuống (khoảng {{eta}}).",
+      "estimate": "Phiên này có {{count}} sự kiện cần tải xuống (khoảng {{eta}})",
       "start": "Tải xuống",
       "pause": "Tạm dừng",
       "paused": "Đã tạm dừng",

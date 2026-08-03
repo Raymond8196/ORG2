@@ -777,7 +777,7 @@
       "eta": "Yaklaşık {{eta}} kaldı",
       "finalizing": "Tamamlanıyor…",
       "complete": "İndirme tamamlandı",
-      "estimate": "Bu oturumda indirilecek {{count}} olay var (yaklaşık {{eta}}).",
+      "estimate": "Bu oturumda indirilecek {{count}} olay var (yaklaşık {{eta}})",
       "start": "İndir",
       "pause": "Duraklat",
       "paused": "Duraklatıldı",

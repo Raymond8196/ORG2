@@ -779,7 +779,7 @@
       "eta": "Environ {{eta}} restant",
       "finalizing": "Finalisation…",
       "complete": "Téléchargement terminé",
-      "estimate": "Cette session compte {{count}} événements à télécharger (environ {{eta}}).",
+      "estimate": "Cette session compte {{count}} événements à télécharger (environ {{eta}})",
       "start": "Télécharger",
       "pause": "Suspendre",
       "paused": "En pause",

@@ -779,7 +779,7 @@
       "eta": "Noch etwa {{eta}}",
       "finalizing": "Wird abgeschlossen…",
       "complete": "Download abgeschlossen",
-      "estimate": "Diese Sitzung hat {{count}} Ereignisse zum Herunterladen (etwa {{eta}}).",
+      "estimate": "Diese Sitzung hat {{count}} Ereignisse zum Herunterladen (etwa {{eta}})",
       "start": "Herunterladen",
       "pause": "Pausieren",
       "paused": "Pausiert",

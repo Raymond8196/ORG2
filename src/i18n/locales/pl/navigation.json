@@ -777,7 +777,7 @@
       "eta": "Pozostało około {{eta}}",
       "finalizing": "Finalizowanie…",
       "complete": "Pobieranie zakończone",
-      "estimate": "Ta sesja ma {{count}} zdarzeń do pobrania (około {{eta}}).",
+      "estimate": "Ta sesja ma {{count}} zdarzeń do pobrania (około {{eta}})",
       "start": "Pobierz",
       "pause": "Wstrzymaj",
       "paused": "Wstrzymano",
