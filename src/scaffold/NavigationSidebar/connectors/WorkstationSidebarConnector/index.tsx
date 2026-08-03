@@ -32,6 +32,10 @@ import SidebarSettingsMenuButton from "../../blocks/SidebarSettingsMenuButton";
 import NavigationSidebar from "../../variants/NavigationSidebar";
 import { DEFAULT_COLLAPSED_SECTION_IDS } from "../workstationSidebarData";
 import { SidebarDialogs } from "./SidebarDialogs";
+import {
+  type WorkstationSidebarViewKey,
+  WorkstationSidebarViewSwitcher,
+} from "./WorkstationSidebarViewSwitcher";
 import { useLocalChannelsSection } from "./localChannelsSection";
 import { useWorkstationSidebarBottomActions } from "./sidebarConnector.bottomActions";
 import { useWorkstationSidebarChatPanelAtoms } from "./sidebarConnector.chatPanelAtoms";
@@ -47,7 +51,10 @@ import { useWorkstationSidebarSelectionAndNavigation } from "./sidebarConnector.
 import { useWorkstationSidebarSessionAndProjectMenuItems } from "./sidebarConnector.sessionAndProjectMenuItems";
 import { useWorkstationSidebarSessionInteractionHandlers } from "./sidebarConnector.sessionInteractionHandlers";
 import { SidebarSearchShortcutTooltip } from "./sidebarTabs";
-import type { WorkstationSidebarKey } from "./types";
+import type {
+  WorkstationSidebarKey,
+  WorkstationSidebarSearchKey,
+} from "./types";
 
 /**
  * Workstation sidebar coordinator. The bulk of this connector's state,
@@ -118,23 +125,37 @@ export const WorkstationSidebarConnector: React.FC = () => {
   const { goToNewSession, navigateTo } = useAppNavigation();
   const [activeSidebarKey, setActiveSidebarKey] =
     useState<WorkstationSidebarKey>("workstation");
+  const [channelsOpen, setChannelsOpen] = useState(false);
   const [activeSessionMoreMenuId, setActiveSessionMoreMenuId] = useState("");
   const [projectsSelectedMenuItemId, setProjectsSelectedMenuItemId] =
     useState("");
   const [workItemsOpen, setWorkItemsOpen] = useState(false);
   const workItemsContentVisible =
     activeSidebarKey === "workstation" && workItemsOpen;
+  const channelSidebarVisible =
+    activeSidebarKey === "workstation" && channelsOpen;
   const projectsSidebarVisible =
     activeSidebarKey === "projects" || workItemsContentVisible;
-  const activeSidebarSearchKey: WorkstationSidebarKey = workItemsContentVisible
-    ? "projects"
-    : activeSidebarKey;
+  const activeSidebarSearchKey: WorkstationSidebarSearchKey =
+    workItemsContentVisible
+      ? "projects"
+      : channelSidebarVisible
+        ? "channels"
+        : activeSidebarKey;
   const [sidebarSearchQueries, setSidebarSearchQueries] = useState<
-    Record<WorkstationSidebarKey, string>
-  >({ workstation: "", projects: "" });
-  const handleSidebarLayerChange = useCallback((key: WorkstationSidebarKey) => {
-    setActiveSidebarKey(key);
+    Record<WorkstationSidebarSearchKey, string>
+  >({ workstation: "", projects: "", channels: "" });
+  const handleViewChange = useCallback((key: WorkstationSidebarViewKey) => {
+    setActiveSidebarKey("workstation");
+    setChannelsOpen(key === "channels");
+    setWorkItemsOpen(key === "work-items");
   }, []);
+  const activeViewKey: WorkstationSidebarViewKey =
+    activeSidebarKey === "projects" || workItemsContentVisible
+      ? "work-items"
+      : channelSidebarVisible
+        ? "channels"
+        : "sessions";
 
   const handleSidebarSearchChange = useCallback(
     (value: string) => {
@@ -208,7 +229,6 @@ export const WorkstationSidebarConnector: React.FC = () => {
     unpinFolderLabel,
     createProjectLabel,
     createWorkItemLabel,
-    workItemsLabel,
     runtimeLabel,
     teamInboxLabel,
     importGithubIssuesLabel,
@@ -220,6 +240,8 @@ export const WorkstationSidebarConnector: React.FC = () => {
 
   const {
     cloudMenuItems,
+    cloudSessionMenuItems,
+    channelMenuItems,
     selectedCloudMenuItemId,
     handleCloudSessionItemClick,
     resetCloudTeamPagination,
@@ -333,6 +355,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     setSidebarCollapsed,
     setActiveSidebarKey,
     setWorkItemsOpen,
+    setChannelsOpen,
     setSelectedOrgId,
     setSidebarSearchQueries,
     setExpandedSubagentParentIds,
@@ -449,8 +472,10 @@ export const WorkstationSidebarConnector: React.FC = () => {
     unpinFolderLabel,
     setActiveSessionMoreMenuId,
     subagentParentIds,
-    cloudMenuItems,
-    localChannelsMenuItems,
+    cloudSessionMenuItems,
+    channelSidebarMenuItems:
+      channelMenuItems.length > 0 ? channelMenuItems : localChannelsMenuItems,
+    channelSidebarVisible,
     sessionSidebarMenuItems,
     cloudMySessionsVisibleCount,
     activeSidebarKey,
@@ -478,17 +503,11 @@ export const WorkstationSidebarConnector: React.FC = () => {
 
   const {
     handleOpenSpotlight,
-    handleSubmenuOpenChange,
-    sidebarLayerHeader,
     sidebarOrgSelector,
     resolvedMenuItemClick,
     resolvedMenuItemContextMenu,
     resolvedRenderMenuItemWrapper,
   } = useWorkstationSidebarChrome({
-    setWorkItemsOpen,
-    handleSidebarLayerChange,
-    projectsSidebarVisible,
-    workItemsLabel,
     activeOrgId,
     orgSelectorOptions,
     addOrgLabel,
@@ -531,6 +550,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
       resolvedOnCollapsedSectionIdsChange,
       sessions,
       workItemsContentVisible,
+      channelSidebarVisible,
       activeSidebarKey,
       projectsWorkItemsLoading,
       projectsSidebarMenuItems,
@@ -546,7 +566,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
       selectedMenuItemId,
       activeSessionId,
       collapsedSectionIds,
-      pinnedMenuItems,
+      pinnedMenuItems: channelSidebarVisible ? [] : pinnedMenuItems,
     });
 
   return (
@@ -556,17 +576,21 @@ export const WorkstationSidebarConnector: React.FC = () => {
         activeKey={activeSidebarKey}
         onChange={() => undefined}
         menuItems={sidebarMenuItems}
-        pinnedMenuItems={pinnedMenuItems}
+        pinnedMenuItems={channelSidebarVisible ? [] : pinnedMenuItems}
         selectedKey={resolvedSelectedMenuItemId}
         onMenuItemClick={resolvedMenuItemClick}
-        onSubmenuOpenChange={handleSubmenuOpenChange}
         onMenuItemContextMenu={resolvedMenuItemContextMenu}
         renderMenuItemWrapper={resolvedRenderMenuItemWrapper}
         hostTopBarLeadingContent={sidebarOrgSelector}
         macTopBarFollowingContent={
           <div className="shrink-0 px-3 pt-1">{sidebarOrgSelector}</div>
         }
-        preListContent={sidebarLayerHeader}
+        preListContent={
+          <WorkstationSidebarViewSwitcher
+            activeKey={activeViewKey}
+            onChange={handleViewChange}
+          />
+        }
         onAddNew={handleOpenSpotlight}
         addIcon={Search}
         addLabel={tCommon("actions.search")}
@@ -586,7 +610,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
           noResultsTitle: noSearchResultsTitle,
           showInput: false,
         }}
-        listTopPadding={!workItemsContentVisible}
+        listTopPadding
         bottomContent={
           <SidebarBottomBar
             leftContent={

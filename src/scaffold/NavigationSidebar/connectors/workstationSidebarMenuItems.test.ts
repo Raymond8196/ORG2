@@ -5,7 +5,6 @@ import {
   KANBAN_MENU_ITEM_ID,
   RUNTIME_MENU_ITEM_ID,
   TEAM_INBOX_MENU_ITEM_ID,
-  WORK_ITEMS_MENU_ITEM_ID,
   WORK_ITEMS_PROJECTS_MENU_ITEM_ID,
 } from "./sidebarConnectorUtils";
 import {
@@ -14,18 +13,10 @@ import {
 } from "./workstationSidebarMenuItems";
 
 describe("buildPinnedMenuItems", () => {
-  it("renders Kanban separately from the expandable Work Items group", () => {
+  it("does not repeat the top-level Work Items tab inside Sessions", () => {
     const items = buildPinnedMenuItems({
       newSessionLabel: "New Session",
       newSessionShortcut: "⌘N",
-      workItemsLabel: "Work Items",
-      workItemDestinations: [
-        {
-          id: WORK_ITEMS_PROJECTS_MENU_ITEM_ID,
-          key: WORK_ITEMS_PROJECTS_MENU_ITEM_ID,
-          label: "Projects",
-        },
-      ],
       kanbanLabel: "Kanban",
       kanbanShortcut: "⌘O",
       runtimeLabel: "Runtime",
@@ -37,12 +28,7 @@ describe("buildPinnedMenuItems", () => {
       KANBAN_MENU_ITEM_ID,
       RUNTIME_MENU_ITEM_ID,
       TEAM_INBOX_MENU_ITEM_ID,
-      WORK_ITEMS_MENU_ITEM_ID,
     ]);
-    expect(items[4]?.children?.map((item) => item.id)).toEqual([
-      WORK_ITEMS_PROJECTS_MENU_ITEM_ID,
-    ]);
-    expect(items[4]?.routePath).toBeUndefined();
     expect(items[3]).toMatchObject({
       label: "Team Inbox",
       dataTestId: "sidebar-team-inbox",
@@ -58,8 +44,6 @@ describe("buildPinnedMenuItems", () => {
     const items = buildPinnedMenuItems({
       newSessionLabel: "New Session",
       newSessionShortcut: "⌘N",
-      workItemsLabel: "Work Items",
-      workItemDestinations: [],
       kanbanLabel: "Kanban",
       kanbanShortcut: "⌘O",
       runtimeLabel: "Runtime",
@@ -78,8 +62,6 @@ describe("buildPinnedMenuItems", () => {
     const items = buildPinnedMenuItems({
       newSessionLabel: "New Session",
       newSessionShortcut: "⌘N",
-      workItemsLabel: "Work Items",
-      workItemDestinations: [],
       kanbanLabel: "Kanban",
       kanbanShortcut: "⌘O",
       runtimeLabel: "Runtime",

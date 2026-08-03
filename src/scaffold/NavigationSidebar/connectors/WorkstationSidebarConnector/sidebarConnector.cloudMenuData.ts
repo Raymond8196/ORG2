@@ -122,6 +122,8 @@ export function useWorkstationSidebarCloudMenuData({
 
   return {
     cloudMenuItems: mergedCloudMenuItems,
+    cloudSessionMenuItems: cloudMenuItems,
+    channelMenuItems: channelsMenuItems,
     // An open channel surface wins over the team-sessions selection: it is
     // the tab the pane is actually showing.
     selectedCloudMenuItemId:

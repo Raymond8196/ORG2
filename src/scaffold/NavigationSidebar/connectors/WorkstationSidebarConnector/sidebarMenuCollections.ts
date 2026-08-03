@@ -63,8 +63,6 @@ export function usePinnedMenuItems({
       buildPinnedMenuItems({
         newSessionLabel,
         newSessionShortcut: getShortcutKeys("new_session"),
-        workItemsLabel: t("labels.workItems"),
-        workItemDestinations,
         kanbanLabel,
         kanbanShortcut: getShortcutKeys("open_kanban"),
         runtimeLabel,
@@ -79,8 +77,6 @@ export function usePinnedMenuItems({
       teamInboxLabel,
       teamInboxUnreadCount,
       teamInboxUnreadAriaLabel,
-      workItemDestinations,
-      t,
     ]
   );
   const projectsPinnedMenuItems = useMemo<NavigationMenuItem[]>(
