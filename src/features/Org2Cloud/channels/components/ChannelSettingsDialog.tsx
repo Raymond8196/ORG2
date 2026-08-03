@@ -194,7 +194,7 @@ const ChannelSettingsDialog: React.FC<ChannelSettingsDialogProps> = ({
             value={postPolicy}
             options={postPolicyOptions}
             onChange={(value) => setPostPolicy(value as CloudChannelPostPolicy)}
-            size="small"
+            size="default"
             panelZIndex={MODAL_SELECT_Z_INDEX}
             dataTestId="channel-settings-post-policy"
           />

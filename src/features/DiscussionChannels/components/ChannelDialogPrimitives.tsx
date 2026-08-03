@@ -66,6 +66,7 @@ export const ChannelNameField: React.FC<ChannelNameFieldProps> = ({
       </label>
       <Input
         id={inputId}
+        size="default"
         required
         value={value}
         onChange={(next) => onChange(normalizeChannelNameInput(next))}
@@ -120,6 +121,7 @@ export const ChannelTopicField: React.FC<ChannelTopicFieldProps> = ({
       </label>
       <Input
         id={inputId}
+        size="default"
         value={value}
         onChange={onChange}
         placeholder={t("cloud.channels.create.topicPlaceholder")}
