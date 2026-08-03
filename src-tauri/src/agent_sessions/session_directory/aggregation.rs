@@ -493,19 +493,33 @@ fn load_imported_history_sessions(
         // pages read that stable cache snapshot directly. Re-running a full
         // provider scan for every offset made pagination multiply filesystem
         // and SQLite work without improving freshness.
-        let page = if page_offset == 0 {
-            (loader.load_page)(&mut conn, page_limit, page_offset)?
+        let loaded = if page_offset == 0 {
+            (loader.load_page)(&mut conn, page_limit, page_offset)
         } else if let Some(load_continuation_page) = loader.load_continuation_page {
-            load_continuation_page(&mut conn, page_limit, page_offset)?
+            load_continuation_page(&mut conn, page_limit, page_offset)
         } else {
-            ExternalHistoryPage::Imported(
-                imported_history_cache::query_imported_session_page_from_conn(
-                    &conn,
-                    loader.source,
-                    page_limit,
-                    page_offset,
-                )?,
+            imported_history_cache::query_imported_session_page_from_conn(
+                &conn,
+                loader.source,
+                page_limit,
+                page_offset,
             )
+            .map(ExternalHistoryPage::Imported)
+        };
+        // One provider's on-disk store must not decide whether the others are
+        // visible. Propagating here dropped every source after the failing one
+        // from the sidebar — and Claude Code, the most likely to hit an
+        // unreadable transcript, is first in the list.
+        let page = match loaded {
+            Ok(page) => page,
+            Err(error) => {
+                tracing::warn!(
+                    source = loader.source,
+                    error = %error,
+                    "session_directory: skipping external history source that failed to load"
+                );
+                continue;
+            }
         };
         append_external_history_page(&mut records, loader.source, page);
     }

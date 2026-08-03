@@ -380,7 +380,7 @@ fn discovery_does_not_follow_directory_or_file_symlinks() {
 }
 
 #[test]
-fn oversized_append_preserves_last_good_cache_and_watermark() {
+fn oversized_append_is_skipped_and_the_sync_still_succeeds() {
     let root = temp_root("oversized");
     let path = write_session(
         &root,
@@ -409,9 +409,8 @@ fn oversized_append_preserves_last_good_cache_and_watermark() {
             file.write_all(b"\n")
         })
         .expect("append oversized record");
-    let error =
-        sync_qwen_code_history_cache_at_root(&mut conn, &root).expect_err("reject oversized line");
-    assert!(error.contains("record exceeds"));
+    sync_qwen_code_history_cache_at_root(&mut conn, &root)
+        .expect("oversized append skipped, sync still succeeds");
 
     let after = imported_history::watermark::read_parse_watermark_from_conn(
         &conn,
@@ -424,8 +423,11 @@ fn oversized_append_preserves_last_good_cache_and_watermark() {
         imported_cache::query_cached_session_from_conn(&conn, SOURCE_QWEN_CODE, "repo-a/session-a")
             .expect("read cache")
             .expect("cache remains");
-    assert_eq!(after, before);
+    // The skipped record contributed nothing, so the parsed totals are
+    // unchanged — but the watermark must move past it, or every later scan
+    // would re-read and re-skip the same bytes.
     assert_eq!(cached.output_tokens, 20);
+    assert!(after.byte_offset > before.byte_offset);
     fs::remove_dir_all(root).ok();
 }
 

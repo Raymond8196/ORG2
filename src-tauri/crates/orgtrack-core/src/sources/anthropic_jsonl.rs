@@ -229,7 +229,13 @@ fn sync_cache(config: &AnthropicJsonlSource, conn: &mut Connection) -> Result<()
                 config.source,
                 &record.source_session_id,
             )?;
-            let parse = parse_session_meta_incremental(config, record, stored.as_ref())?;
+            let Some(parse) = imported_history::skip_unparsable_record(
+                config.source,
+                &record.source_session_id,
+                parse_session_meta_incremental(config, record, stored.as_ref()),
+            ) else {
+                continue;
+            };
             watermark::write_parse_watermark_from_conn(
                 conn,
                 config.source,
@@ -238,7 +244,14 @@ fn sync_cache(config: &AnthropicJsonlSource, conn: &mut Connection) -> Result<()
             )?;
             parse.meta
         } else {
-            parse_session_meta(config, record)?
+            let Some(meta) = imported_history::skip_unparsable_record(
+                config.source,
+                &record.source_session_id,
+                parse_session_meta(config, record),
+            ) else {
+                continue;
+            };
+            meta
         };
         inputs.push(meta_to_cache_input(config, meta));
     }

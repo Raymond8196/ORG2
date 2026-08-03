@@ -413,7 +413,13 @@ fn sync_qwen_code_history_cache_at_root(conn: &mut Connection, root: &Path) -> R
             SOURCE_QWEN_CODE,
             &record.source_session_id,
         )?;
-        let parsed = parse_qwen_session_meta(record, stored.as_ref(), root)?;
+        let Some(parsed) = imported_history::skip_unparsable_record(
+            SOURCE_QWEN_CODE,
+            &record.source_session_id,
+            parse_qwen_session_meta(record, stored.as_ref(), root),
+        ) else {
+            continue;
+        };
         // Recovery invariant: rounds and watermark are written first, while
         // the cache signature remains old. Any failure before the final cache
         // upsert therefore leaves this record eligible on the next demand
