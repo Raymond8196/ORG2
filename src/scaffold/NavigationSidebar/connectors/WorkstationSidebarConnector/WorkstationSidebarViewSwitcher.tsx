@@ -21,6 +21,14 @@ const SWITCHER_ICON_SIZE = 17;
 const SELECTED_VIEW_STYLE: React.CSSProperties = {
   boxShadow: "var(--sidebar-tab-pill-selected-shadow)",
 };
+const SELECTED_VIEW_TRANSFORM: Record<
+  WorkstationSidebarViewKey,
+  React.CSSProperties["transform"]
+> = {
+  "work-items": "translateX(0)",
+  sessions: "translateX(calc(100% + 0.25rem))",
+  channels: "translateX(calc(200% + 0.5rem))",
+};
 
 /** Icon-only primary view switcher rendered below the organization selector. */
 export const WorkstationSidebarViewSwitcher: React.FC<WorkstationSidebarViewSwitcherProps> =
@@ -50,7 +58,20 @@ export const WorkstationSidebarViewSwitcher: React.FC<WorkstationSidebarViewSwit
         aria-label={t("sidebar.tabs.workstation")}
         data-workstation-sidebar-view-switcher
       >
-        <div className="flex items-center gap-1">
+        <div className="relative grid grid-cols-3 gap-1">
+          <div
+            className="pointer-events-none absolute inset-0 grid grid-cols-3 gap-1"
+            aria-hidden
+          >
+            <span
+              className="col-start-1 h-7 rounded-full bg-chat-pane/70 transition-transform duration-150 ease-out motion-reduce:transition-none"
+              style={{
+                ...SELECTED_VIEW_STYLE,
+                transform: SELECTED_VIEW_TRANSFORM[activeKey],
+              }}
+              data-testid="sidebar-view-selection"
+            />
+          </div>
           {items.map((item) => {
             const Icon = item.icon;
             const selected = item.key === activeKey;
@@ -64,12 +85,11 @@ export const WorkstationSidebarViewSwitcher: React.FC<WorkstationSidebarViewSwit
               >
                 <button
                   type="button"
-                  className={`flex h-7 flex-1 items-center justify-center rounded-full transition-[background-color,color,box-shadow] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-6/30 ${
+                  className={`relative z-[1] flex h-7 w-full items-center justify-center rounded-full transition-[background-color,color] duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-6/30 ${
                     selected
-                      ? "cursor-default bg-chat-pane/70 text-primary-6"
+                      ? "cursor-default text-primary-6"
                       : "text-text-2 hover:bg-sidebar-selected hover:text-text-1"
                   }`}
-                  style={selected ? SELECTED_VIEW_STYLE : undefined}
                   aria-label={item.label}
                   aria-current={selected ? "page" : undefined}
                   data-testid={`sidebar-view-${item.key}`}

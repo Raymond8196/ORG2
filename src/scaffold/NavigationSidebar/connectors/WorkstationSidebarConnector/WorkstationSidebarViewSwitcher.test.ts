@@ -105,11 +105,15 @@ describe("WorkstationSidebarViewSwitcher", () => {
         .querySelector('[data-testid="sidebar-view-sessions"]')
         ?.getAttribute("aria-current")
     ).toBe("page");
-    expect(
-      container
-        .querySelector('[data-testid="sidebar-view-sessions"]')
-        ?.classList.contains("bg-chat-pane/70")
-    ).toBe(true);
+    const selection = container.querySelector<HTMLElement>(
+      '[data-testid="sidebar-view-selection"]'
+    );
+    expect(selection?.classList.contains("bg-chat-pane/70")).toBe(true);
+    expect(selection?.classList.contains("duration-150")).toBe(true);
+    expect(selection?.classList.contains("motion-reduce:transition-none")).toBe(
+      true
+    );
+    expect(selection?.style.transform).toBe("translateX(calc(100% + 0.25rem))");
     expect(
       container
         .querySelector('[data-testid="sidebar-view-channels"]')
@@ -130,6 +134,22 @@ describe("WorkstationSidebarViewSwitcher", () => {
       "sidebar-view-sessions",
       "sidebar-view-channels",
     ]);
+
+    act(() => {
+      root.render(
+        createElement(WorkstationSidebarViewSwitcher, {
+          activeKey: "channels",
+          onChange: () => undefined,
+        })
+      );
+    });
+
+    expect(selection?.style.transform).toBe("translateX(calc(200% + 0.5rem))");
+    expect(
+      container
+        .querySelector('[data-testid="sidebar-view-channels"]')
+        ?.getAttribute("aria-current")
+    ).toBe("page");
   });
 
   it("dispatches destination changes", () => {
