@@ -809,6 +809,148 @@ describe("importRemoteSession", () => {
     });
   });
 
+  it("stamps the imported copy with the source's activity time, not the click", async () => {
+    // Regression: a fresh import stamped created_at/updated_at/completed_at
+    // with `now`, so opening a cloud card in Kanban flipped its Started /
+    // Last updated to the moment of the click and dragged the row to the top
+    // of List/Diary.
+    const client = {
+      getSessionEventSegments: vi.fn(async () => sealSnapshot(makeSnapshot())),
+    } satisfies Pick<CollabSyncBackendClient, "getSessionEventSegments">;
+
+    const result = await importRemoteSession({
+      client,
+      orgId: "org-1",
+      remoteSession: makeRemote({ lastActivityAt: "2026-06-01T09:30:00.000Z" }),
+    });
+
+    const record = (store.get(sessionsAtom) as Session[]).find(
+      (session) => session.session_id === result!.localSessionId
+    )!;
+    expect(record.created_at).toBe("2026-06-01T09:30:00.000Z");
+    expect(record.updated_at).toBe("2026-06-01T09:30:00.000Z");
+    expect(record.completed_at).toBe("2026-06-01T09:30:00.000Z");
+    // The import moment still belongs on the provenance cursor.
+    expect(record.importedFrom?.importedAt).not.toBe(
+      "2026-06-01T09:30:00.000Z"
+    );
+  });
+
+  it("falls back to the import moment when the row carries no activity time", async () => {
+    const client = {
+      getSessionEventSegments: vi.fn(async () => sealSnapshot(makeSnapshot())),
+    } satisfies Pick<CollabSyncBackendClient, "getSessionEventSegments">;
+
+    const result = await importRemoteSession({
+      client,
+      orgId: "org-1",
+      remoteSession: makeRemote({ lastActivityAt: undefined }),
+    });
+
+    const record = (store.get(sessionsAtom) as Session[]).find(
+      (session) => session.session_id === result!.localSessionId
+    )!;
+    expect(record.updated_at).toBe(record.importedFrom?.importedAt);
+    expect(record.created_at).toBe(record.updated_at);
+  });
+
+  it("heals an import-click timestamp on a refresh-only reopen", async () => {
+    // Copies imported before the fix above carry the click stamp, and a
+    // cursor-current reopen never reaches the write path — heal them here or
+    // they show the wrong Started / Last updated forever.
+    const client = {
+      getSessionEventSegments: vi.fn(async () => sealSnapshot(makeSnapshot())),
+    } satisfies Pick<CollabSyncBackendClient, "getSessionEventSegments">;
+    const expectedId = await deriveImportedSessionId("org-1", "remote-1");
+    store.set(sessionsAtom, [
+      {
+        session_id: expectedId,
+        status: "completed",
+        created_at: "2026-07-20T12:00:00.000Z",
+        updated_at: "2026-07-20T12:00:00.000Z",
+        completed_at: "2026-07-20T12:00:00.000Z",
+        name: "Remote session",
+        orgId: "cloud:org-1",
+        importedFrom: {
+          orgId: "org-1",
+          sourceSessionId: "remote-1",
+          ownerMemberId: "m2",
+          ownerDisplayName: "Bob",
+          epoch: 1,
+          seq: 1,
+          count: 1,
+          frozenCount: 1,
+          tailHash: undefined,
+          importedAt: "2026-07-20T12:00:00.000Z",
+        },
+      },
+    ]);
+    eventStoreMock.getPersistedEvents.mockResolvedValue([
+      { id: "e1" } as unknown as SessionEvent,
+    ]);
+    eventStoreMock.countPersistedEvents.mockResolvedValue(1);
+
+    const result = await importRemoteSession({
+      client,
+      orgId: "org-1",
+      remoteSession: makeRemote({ lastActivityAt: "2026-06-01T09:30:00.000Z" }),
+    });
+
+    const record = (store.get(sessionsAtom) as Session[]).find(
+      (session) => session.session_id === expectedId
+    )!;
+    expect(result?.updated).toBe(false);
+    expect(client.getSessionEventSegments).not.toHaveBeenCalled();
+    expect(record.created_at).toBe("2026-06-01T09:30:00.000Z");
+    expect(record.updated_at).toBe("2026-06-01T09:30:00.000Z");
+    expect(record.completed_at).toBe("2026-06-01T09:30:00.000Z");
+  });
+
+  it("keeps a created_at that predates the source's last activity", async () => {
+    const client = {
+      getSessionEventSegments: vi.fn(async () => sealSnapshot(makeSnapshot())),
+    } satisfies Pick<CollabSyncBackendClient, "getSessionEventSegments">;
+    const expectedId = await deriveImportedSessionId("org-1", "remote-1");
+    store.set(sessionsAtom, [
+      {
+        session_id: expectedId,
+        status: "completed",
+        created_at: "2026-05-01T08:00:00.000Z",
+        updated_at: "2026-06-01T09:30:00.000Z",
+        completed_at: "2026-06-01T09:30:00.000Z",
+        name: "Remote session",
+        orgId: "cloud:org-1",
+        importedFrom: {
+          orgId: "org-1",
+          sourceSessionId: "remote-1",
+          ownerMemberId: "m2",
+          ownerDisplayName: "Bob",
+          epoch: 1,
+          seq: 1,
+          count: 1,
+          frozenCount: 1,
+          tailHash: undefined,
+          importedAt: "2026-06-01T10:00:00.000Z",
+        },
+      },
+    ]);
+    eventStoreMock.getPersistedEvents.mockResolvedValue([
+      { id: "e1" } as unknown as SessionEvent,
+    ]);
+    eventStoreMock.countPersistedEvents.mockResolvedValue(1);
+
+    await importRemoteSession({
+      client,
+      orgId: "org-1",
+      remoteSession: makeRemote({ lastActivityAt: "2026-06-01T09:30:00.000Z" }),
+    });
+
+    const record = (store.get(sessionsAtom) as Session[]).find(
+      (session) => session.session_id === expectedId
+    )!;
+    expect(record.created_at).toBe("2026-05-01T08:00:00.000Z");
+  });
+
   it("stamps Session.orgId on a MEMBER import so the sidebar org filter matches", async () => {
     const client = {
       getSessionEventSegments: vi.fn(async () => sealSnapshot(makeSnapshot())),
