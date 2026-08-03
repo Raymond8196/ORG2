@@ -1413,8 +1413,56 @@
       "collapse": "Zwiń informacje o obszarze roboczym"
     },
     "pr": {
+      "title": "Pull request",
       "linkedBranch": "Pull request nr {{number}}",
+      "baseBranch": "Baza",
+      "noDescription": "Nie podano opisu.",
+      "loadingConversation": "Wczytywanie…",
+      "reviewNoBody": "Dodano komentarze do przeglądu.",
+      "commentPlaceholder": "Dodaj komentarz…",
+      "comment": "Komentuj",
+      "approve": "Zatwierdź",
+      "requestChanges": "Poproś o zmiany",
+      "reply": "Odpowiedz",
+      "replyPlaceholder": "Odpowiedz…",
+      "reviewThreads": "Komentarze do przeglądu",
+      "details": "Szczegóły",
+      "unknownAuthor": "Nieznany",
+      "activity": {
+        "opened": "otworzył(a) ten pull request",
+        "commented": "dodał(a) komentarz",
+        "approved": "zatwierdził(a) te zmiany",
+        "changesRequested": "poprosił(a) o zmiany",
+        "reviewDismissed": "odrzucił(a) przegląd",
+        "reviewed": "przejrzał(a)"
+      },
+      "summary": {
+        "label": "Podsumowanie pull requestu",
+        "branch": "Gałąź",
+        "reviewers": "Recenzenci",
+        "noReviewers": "Brak recenzentów",
+        "comments": "Komentarze",
+        "commentCount_one": "{{count}} komentarz",
+        "commentCount_few": "{{count}} komentarze",
+        "commentCount_many": "{{count}} komentarzy",
+        "commentCount_other": "{{count}} komentarza",
+        "checks": "Kontrole",
+        "noChecks": "Brak kontroli CI",
+        "checksFailed": "Kontrole nie powiodły się",
+        "status": "Status"
+      },
+      "tabs": {
+        "conversation": "Dyskusja",
+        "commits": "Commity",
+        "checks": "Kontrole",
+        "changes": "Zmiany"
+      },
       "checks": {
+        "none": "Brak zgłoszonych kontroli",
+        "noneHint": "Dla najnowszego commita tego pull requestu nie uruchomiono kontroli CI ani statusów.",
+        "allPassed": "Wszystkie kontrole zakończone pomyślnie",
+        "someFailed": "Niektóre kontrole nie powiodły się",
+        "pending": "Kontrole w toku",
         "passedShort": "Zaliczone",
         "failedShort": "Niepowodzenie",
         "runningShort": "W toku",
@@ -1422,6 +1470,23 @@
         "noneShort": "Brak CI",
         "unavailableShort": "CI niedostępne",
         "branchStatus": "CI pull requestu nr {{number}}: {{status}}"
+      },
+      "commits": {
+        "backToList": "Wszystkie commity",
+        "none": "Brak commitów"
+      },
+      "changes": {
+        "title": "Zmienione pliki",
+        "noFiles": "Brak zmian w plikach",
+        "tooLarge": "Plik jest zbyt duży, aby wyświetlić różnice",
+        "unavailable": "Zmiany niedostępne",
+        "unavailableHint": "Nie udało się rozpoznać bazowego i najnowszego commita pull requestu."
+      },
+      "status": {
+        "open": "Otwarty",
+        "merged": "Scalony",
+        "closed": "Zamknięty",
+        "draft": "Szkic"
       }
     },
     "messages": {

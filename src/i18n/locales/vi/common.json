@@ -1408,8 +1408,54 @@
       "collapse": "Thu gọn thông tin không gian làm việc"
     },
     "pr": {
+      "title": "Pull request",
       "linkedBranch": "Pull request #{{number}}",
+      "baseBranch": "Nhánh gốc",
+      "noDescription": "Không có mô tả.",
+      "loadingConversation": "Đang tải…",
+      "reviewNoBody": "Đã để lại nhận xét đánh giá.",
+      "commentPlaceholder": "Để lại bình luận…",
+      "comment": "Bình luận",
+      "approve": "Phê duyệt",
+      "requestChanges": "Yêu cầu thay đổi",
+      "reply": "Trả lời",
+      "replyPlaceholder": "Trả lời…",
+      "reviewThreads": "Nhận xét đánh giá",
+      "details": "Chi tiết",
+      "unknownAuthor": "Không rõ",
+      "activity": {
+        "opened": "đã mở pull request này",
+        "commented": "đã bình luận",
+        "approved": "đã phê duyệt các thay đổi này",
+        "changesRequested": "đã yêu cầu thay đổi",
+        "reviewDismissed": "đã bỏ qua một đánh giá",
+        "reviewed": "đã đánh giá"
+      },
+      "summary": {
+        "label": "Tóm tắt pull request",
+        "branch": "Nhánh",
+        "reviewers": "Người đánh giá",
+        "noReviewers": "Không có người đánh giá",
+        "comments": "Bình luận",
+        "commentCount_one": "{{count}} bình luận",
+        "commentCount_other": "{{count}} bình luận",
+        "checks": "Kiểm tra",
+        "noChecks": "Không có kiểm tra CI",
+        "checksFailed": "Kiểm tra thất bại",
+        "status": "Trạng thái"
+      },
+      "tabs": {
+        "conversation": "Thảo luận",
+        "commits": "Commit",
+        "checks": "Kiểm tra",
+        "changes": "Thay đổi"
+      },
       "checks": {
+        "none": "Không có kiểm tra nào được báo cáo",
+        "noneHint": "Không có kiểm tra CI hoặc trạng thái nào chạy trên commit đầu của pull request này.",
+        "allPassed": "Tất cả kiểm tra đều đạt",
+        "someFailed": "Một số kiểm tra thất bại",
+        "pending": "Đang kiểm tra",
         "passedShort": "Đạt",
         "failedShort": "Thất bại",
         "runningShort": "Đang chạy",
@@ -1417,6 +1463,23 @@
         "noneShort": "Không có CI",
         "unavailableShort": "CI không khả dụng",
         "branchStatus": "CI của pull request #{{number}}: {{status}}"
+      },
+      "commits": {
+        "backToList": "Tất cả commit",
+        "none": "Không có commit"
+      },
+      "changes": {
+        "title": "Tệp đã thay đổi",
+        "noFiles": "Không có thay đổi tệp",
+        "tooLarge": "Tệp quá lớn để hiển thị diff",
+        "unavailable": "Không thể xem thay đổi",
+        "unavailableHint": "Không thể xác định commit gốc và commit đầu của pull request."
+      },
+      "status": {
+        "open": "Đang mở",
+        "merged": "Đã hợp nhất",
+        "closed": "Đã đóng",
+        "draft": "Bản nháp"
       }
     },
     "messages": {

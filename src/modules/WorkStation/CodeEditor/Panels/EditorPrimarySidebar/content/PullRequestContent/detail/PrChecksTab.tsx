@@ -62,6 +62,7 @@ function CheckRow({
   meta,
   detailsUrl,
 }: CheckRowProps): React.ReactNode {
+  const { t } = useTranslation("common");
   return (
     <div className="flex min-w-0 items-center gap-2.5 border-b border-border-1 px-3 py-2 last:border-b-0">
       <span className="shrink-0">
@@ -86,7 +87,7 @@ function CheckRow({
           target="_blank"
           rel="noopener noreferrer"
           className="shrink-0 text-text-3 hover:text-text-1"
-          title="Details"
+          title={t("git.pr.details", "Details")}
         >
           <ExternalLink size={13} strokeWidth={1.9} />
         </a>

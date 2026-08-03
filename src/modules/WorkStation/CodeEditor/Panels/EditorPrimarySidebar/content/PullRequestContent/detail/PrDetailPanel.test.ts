@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { Provider, createStore } from "jotai";
-import { act, createElement } from "react";
+import { type ReactNode, act, createElement } from "react";
 import { type Root, createRoot } from "react-dom/client";
 import {
   afterAll,
@@ -28,7 +28,16 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
-    t: (key: string, fallback?: string) => fallback ?? key,
+    t: (key: string, fallback?: string | Record<string, unknown>) => {
+      if (typeof fallback === "string") return fallback;
+      if (typeof fallback?.defaultValue !== "string") return key;
+      const count = Number(fallback.count ?? 0);
+      const template =
+        count === 1 || typeof fallback.defaultValue_other !== "string"
+          ? fallback.defaultValue
+          : fallback.defaultValue_other;
+      return template.replace("{{count}}", String(count));
+    },
   }),
 }));
 
@@ -37,6 +46,10 @@ vi.mock("@src/components/TabPill", () => ({
     mocks.tabPillProps = props;
     return createElement("div", { "data-testid": "pr-detail-tabs" });
   },
+}));
+
+vi.mock("@src/components/IntegrationIcon", () => ({
+  default: () => createElement("span", { "data-testid": "github-icon" }),
 }));
 
 vi.mock("../../../hooks/useWorkstationPrDetail", () => ({
@@ -49,8 +62,8 @@ vi.mock("../../../hooks/useWorkstationPrDetail", () => ({
 }));
 
 vi.mock("./PrConversationTab", () => ({
-  PrConversationTab: () =>
-    createElement("div", { "data-testid": "conversation-tab" }),
+  PrConversationTab: ({ summary }: { summary?: ReactNode }) =>
+    createElement("div", { "data-testid": "conversation-tab" }, summary),
 }));
 vi.mock("./PrChangesTab", () => ({
   PrChangesTab: () => createElement("div"),
@@ -95,6 +108,7 @@ describe("PrDetailPanel tabs", () => {
     store.set(workstationSelectedPrAtomFamily(scopeKey), {
       ...initialSelectedPrState,
       loading: false,
+      commits: [{}],
     });
 
     act(() => {
@@ -126,6 +140,17 @@ describe("PrDetailPanel tabs", () => {
     });
     expect(mocks.tabPillProps?.buttonStyle).toBeUndefined();
     expect(mocks.tabPillProps?.height).toBeUndefined();
+    const commitsTab = (
+      mocks.tabPillProps?.tabs as
+        | Array<{
+            key: string;
+            badge?: { props?: { className?: string } };
+          }>
+        | undefined
+    )?.find((tab) => tab.key === "commits");
+    expect(commitsTab?.badge?.props?.className).toContain("font-semibold");
+    expect(commitsTab?.badge?.props?.className).not.toContain("rounded-full");
+    expect(commitsTab?.badge?.props?.className).not.toContain("bg-fill-2");
 
     act(() => {
       (mocks.tabPillProps?.onChange as ((key: string) => void) | undefined)?.(
@@ -135,5 +160,76 @@ describe("PrDetailPanel tabs", () => {
     expect(store.get(workstationPrDetailTabAtomFamily(scopeKey))).toBe(
       "changes"
     );
+  });
+
+  it("keeps the GitHub header at 40px and moves branch details into the Codex-style summary", () => {
+    const store = createStore();
+    const scopeKey = workstationPrScopeKey(undefined, "/repo", 42);
+    store.set(workstationSelectedPrAtomFamily(scopeKey), {
+      ...initialSelectedPrState,
+      loading: false,
+      detail: {
+        additions: 2313,
+        deletions: 217,
+        comments: 1,
+        requested_reviewers: [
+          {
+            login: "reviewer",
+            avatar_url: "https://example.com/reviewer.png",
+          },
+        ],
+      },
+    });
+
+    act(() => {
+      root.render(
+        createElement(
+          Provider,
+          { store },
+          createElement(PrDetailPanel, {
+            identity: {
+              number: 42,
+              title: "Use compact PR metadata",
+              url: "https://github.com/org/repo/pull/42",
+              status: "merged",
+              headBranch: "fix/issue-556-delete-agent-org-workers",
+              baseBranch: "develop",
+            },
+            repoPath: "/repo",
+          })
+        )
+      );
+    });
+
+    const header = container.querySelector("[data-testid='pr-detail-header']");
+    const summary = container.querySelector(
+      "[data-testid='pr-detail-summary']"
+    );
+
+    expect(header?.className).toContain("h-[40px]");
+    expect(header?.textContent).toContain("Use compact PR metadata");
+    expect(header?.textContent).not.toContain("develop");
+    expect(header?.textContent).not.toContain(
+      "fix/issue-556-delete-agent-org-workers"
+    );
+
+    expect(summary?.textContent).toContain("Branch");
+    expect(summary?.textContent).toContain(
+      "fix/issue-556-delete-agent-org-workers"
+    );
+    expect(summary?.textContent).toContain("develop");
+    expect(summary?.textContent).toContain("+2,313");
+    expect(summary?.textContent).toContain("-217");
+    expect(summary?.textContent).toContain("Reviewers");
+    expect(summary?.textContent).toContain("Comments");
+    expect(summary?.textContent).toContain("1 comment");
+    expect(summary?.textContent).toContain("Checks");
+    expect(summary?.textContent).toContain("No CI checks");
+    expect(summary?.textContent).toContain("Status");
+    expect(summary?.textContent).toContain("merged");
+    expect(summary?.className).not.toContain("border-b");
+    expect(summary?.firstElementChild?.className).toContain("px-6");
+    expect(summary?.firstElementChild?.className).toContain("pt-4");
+    expect(summary?.firstElementChild?.className).not.toContain("py-4");
   });
 });

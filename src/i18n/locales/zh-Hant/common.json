@@ -1420,15 +1420,78 @@
       "collapse": "收合工作區資訊"
     },
     "pr": {
-      "linkedBranch": "提取要求 #{{number}}",
+      "title": "拉取請求",
+      "linkedBranch": "拉取請求 #{{number}}",
+      "baseBranch": "基準",
+      "noDescription": "未提供描述。",
+      "loadingConversation": "正在載入…",
+      "reviewNoBody": "留下了審查留言。",
+      "commentPlaceholder": "發表留言…",
+      "comment": "留言",
+      "approve": "核准",
+      "requestChanges": "要求變更",
+      "reply": "回覆",
+      "replyPlaceholder": "回覆…",
+      "reviewThreads": "審查留言",
+      "details": "詳細資料",
+      "unknownAuthor": "未知",
+      "activity": {
+        "opened": "開啟了此拉取請求",
+        "commented": "發表了留言",
+        "approved": "核准了這些變更",
+        "changesRequested": "要求了變更",
+        "reviewDismissed": "駁回了審查",
+        "reviewed": "進行了審查"
+      },
+      "summary": {
+        "label": "拉取請求摘要",
+        "branch": "分支",
+        "reviewers": "審查者",
+        "noReviewers": "無審查者",
+        "comments": "留言",
+        "commentCount_one": "{{count}} 則留言",
+        "commentCount_other": "{{count}} 則留言",
+        "checks": "檢查",
+        "noChecks": "無 CI 檢查",
+        "checksFailed": "檢查失敗",
+        "status": "狀態"
+      },
+      "tabs": {
+        "conversation": "對話",
+        "commits": "提交",
+        "checks": "檢查",
+        "changes": "變更"
+      },
       "checks": {
+        "none": "未回報檢查",
+        "noneHint": "此拉取請求的頭部提交未執行任何 CI 檢查或狀態。",
+        "allPassed": "所有檢查均已通過",
+        "someFailed": "部分檢查失敗",
+        "pending": "檢查進行中",
         "passedShort": "已通過",
         "failedShort": "失敗",
         "runningShort": "執行中",
         "checkingShort": "檢查中",
         "noneShort": "無 CI",
         "unavailableShort": "CI 無法使用",
-        "branchStatus": "提取要求 #{{number}} CI：{{status}}"
+        "branchStatus": "拉取請求 #{{number}} CI：{{status}}"
+      },
+      "commits": {
+        "backToList": "全部提交",
+        "none": "無提交"
+      },
+      "changes": {
+        "title": "檔案變更",
+        "noFiles": "無檔案變更",
+        "tooLarge": "檔案太大，無法顯示差異",
+        "unavailable": "變更無法使用",
+        "unavailableHint": "無法解析拉取請求的基準提交與頭部提交。"
+      },
+      "status": {
+        "open": "開啟",
+        "merged": "已合併",
+        "closed": "已關閉",
+        "draft": "草稿"
       }
     },
     "messages": {

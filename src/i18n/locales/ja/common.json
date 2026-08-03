@@ -1408,8 +1408,54 @@
       "collapse": "ワークステーション情報を折りたたむ"
     },
     "pr": {
+      "title": "プルリクエスト",
       "linkedBranch": "プルリクエスト #{{number}}",
+      "baseBranch": "ベース",
+      "noDescription": "説明はありません。",
+      "loadingConversation": "読み込み中…",
+      "reviewNoBody": "レビューコメントを残しました。",
+      "commentPlaceholder": "コメントを入力…",
+      "comment": "コメント",
+      "approve": "承認",
+      "requestChanges": "変更をリクエスト",
+      "reply": "返信",
+      "replyPlaceholder": "返信…",
+      "reviewThreads": "レビューコメント",
+      "details": "詳細",
+      "unknownAuthor": "不明",
+      "activity": {
+        "opened": "このプルリクエストをオープンしました",
+        "commented": "コメントしました",
+        "approved": "変更を承認しました",
+        "changesRequested": "変更をリクエストしました",
+        "reviewDismissed": "レビューを却下しました",
+        "reviewed": "レビューしました"
+      },
+      "summary": {
+        "label": "プルリクエストの概要",
+        "branch": "ブランチ",
+        "reviewers": "レビュアー",
+        "noReviewers": "レビュアーなし",
+        "comments": "コメント",
+        "commentCount_one": "{{count}} 件のコメント",
+        "commentCount_other": "{{count}} 件のコメント",
+        "checks": "チェック",
+        "noChecks": "CI チェックなし",
+        "checksFailed": "チェックに失敗しました",
+        "status": "ステータス"
+      },
+      "tabs": {
+        "conversation": "会話",
+        "commits": "コミット",
+        "checks": "チェック",
+        "changes": "変更"
+      },
       "checks": {
+        "none": "チェックは報告されていません",
+        "noneHint": "このプルリクエストの先頭コミットでは CI チェックやステータスが実行されていません。",
+        "allPassed": "すべてのチェックに合格しました",
+        "someFailed": "一部のチェックに失敗しました",
+        "pending": "チェック実行中",
         "passedShort": "成功",
         "failedShort": "失敗",
         "runningShort": "実行中",
@@ -1417,6 +1463,23 @@
         "noneShort": "CI なし",
         "unavailableShort": "CI を利用できません",
         "branchStatus": "プルリクエスト #{{number}} CI：{{status}}"
+      },
+      "commits": {
+        "backToList": "すべてのコミット",
+        "none": "コミットなし"
+      },
+      "changes": {
+        "title": "変更されたファイル",
+        "noFiles": "ファイルの変更なし",
+        "tooLarge": "ファイルが大きすぎるため差分を表示できません",
+        "unavailable": "変更を利用できません",
+        "unavailableHint": "プルリクエストのベースコミットと先頭コミットを解決できませんでした。"
+      },
+      "status": {
+        "open": "オープン",
+        "merged": "マージ済み",
+        "closed": "クローズ",
+        "draft": "下書き"
       }
     },
     "messages": {

@@ -1409,8 +1409,54 @@
       "collapse": "Contraer la información del espacio de trabajo"
     },
     "pr": {
+      "title": "Pull request",
       "linkedBranch": "Pull request #{{number}}",
+      "baseBranch": "Base",
+      "noDescription": "No se proporcionó una descripción.",
+      "loadingConversation": "Cargando…",
+      "reviewNoBody": "Dejó comentarios de revisión.",
+      "commentPlaceholder": "Dejar un comentario…",
+      "comment": "Comentar",
+      "approve": "Aprobar",
+      "requestChanges": "Solicitar cambios",
+      "reply": "Responder",
+      "replyPlaceholder": "Responder…",
+      "reviewThreads": "Comentarios de revisión",
+      "details": "Detalles",
+      "unknownAuthor": "Desconocido",
+      "activity": {
+        "opened": "abrió esta pull request",
+        "commented": "comentó",
+        "approved": "aprobó estos cambios",
+        "changesRequested": "solicitó cambios",
+        "reviewDismissed": "descartó una revisión",
+        "reviewed": "revisó"
+      },
+      "summary": {
+        "label": "Resumen de la pull request",
+        "branch": "Rama",
+        "reviewers": "Revisores",
+        "noReviewers": "Sin revisores",
+        "comments": "Comentarios",
+        "commentCount_one": "{{count}} comentario",
+        "commentCount_other": "{{count}} comentarios",
+        "checks": "Comprobaciones",
+        "noChecks": "Sin comprobaciones de CI",
+        "checksFailed": "Las comprobaciones fallaron",
+        "status": "Estado"
+      },
+      "tabs": {
+        "conversation": "Conversación",
+        "commits": "Commits",
+        "checks": "Comprobaciones",
+        "changes": "Cambios"
+      },
       "checks": {
+        "none": "No se informaron comprobaciones",
+        "noneHint": "No se ejecutaron comprobaciones de CI ni estados en el commit de cabecera de esta pull request.",
+        "allPassed": "Todas las comprobaciones pasaron",
+        "someFailed": "Algunas comprobaciones fallaron",
+        "pending": "Comprobaciones en curso",
         "passedShort": "Superada",
         "failedShort": "Fallida",
         "runningShort": "En curso",
@@ -1418,6 +1464,23 @@
         "noneShort": "Sin CI",
         "unavailableShort": "CI no disponible",
         "branchStatus": "CI de la pull request #{{number}}: {{status}}"
+      },
+      "commits": {
+        "backToList": "Todos los commits",
+        "none": "Sin commits"
+      },
+      "changes": {
+        "title": "Archivos modificados",
+        "noFiles": "No hay cambios de archivos",
+        "tooLarge": "El archivo es demasiado grande para mostrar el diff",
+        "unavailable": "Cambios no disponibles",
+        "unavailableHint": "No se pudieron resolver los commits base y de cabecera de la pull request."
+      },
+      "status": {
+        "open": "Abierta",
+        "merged": "Fusionada",
+        "closed": "Cerrada",
+        "draft": "Borrador"
       }
     },
     "messages": {

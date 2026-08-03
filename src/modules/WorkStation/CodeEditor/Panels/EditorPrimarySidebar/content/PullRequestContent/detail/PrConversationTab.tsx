@@ -9,6 +9,7 @@
  * Reuses the shared timeline primitives so it renders identically to the Issue
  * detail view.
  */
+import type { TFunction } from "i18next";
 import { CheckCircle2, FileDiff, XCircle } from "lucide-react";
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -59,11 +60,14 @@ function readString(
 
 // ── Review presentation ──────────────────────────────────────────────────────
 
-function reviewVerb(state: string): { label: string; icon: React.ReactNode } {
+function reviewVerb(
+  state: string,
+  t: TFunction
+): { label: string; icon: React.ReactNode } {
   switch (state) {
     case "APPROVED":
       return {
-        label: "approved these changes",
+        label: t("git.pr.activity.approved", "approved these changes"),
         icon: (
           <CheckCircle2
             size={14}
@@ -74,17 +78,17 @@ function reviewVerb(state: string): { label: string; icon: React.ReactNode } {
       };
     case "CHANGES_REQUESTED":
       return {
-        label: "requested changes",
+        label: t("git.pr.activity.changesRequested", "requested changes"),
         icon: <XCircle size={14} strokeWidth={1.9} className="text-danger-6" />,
       };
     case "DISMISSED":
       return {
-        label: "dismissed a review",
+        label: t("git.pr.activity.reviewDismissed", "dismissed a review"),
         icon: <FileDiff size={14} strokeWidth={1.9} className="text-text-3" />,
       };
     default:
       return {
-        label: "reviewed",
+        label: t("git.pr.activity.reviewed", "reviewed"),
         icon: <FileDiff size={14} strokeWidth={1.9} className="text-text-3" />,
       };
   }
@@ -123,6 +127,7 @@ type TimelineEntry =
   | { kind: "review"; at: string; review: GitHubPrReview };
 
 interface PrConversationTabProps {
+  summary?: React.ReactNode;
   detail: Record<string, unknown> | null;
   identity: PrIdentity;
   conversation: GitHubIssueComment[];
@@ -136,6 +141,7 @@ interface PrConversationTabProps {
 }
 
 export const PrConversationTab: React.FC<PrConversationTabProps> = ({
+  summary,
   detail,
   identity,
   conversation,
@@ -225,6 +231,7 @@ export const PrConversationTab: React.FC<PrConversationTabProps> = ({
   return (
     <div className="allow-select-deep flex h-full min-h-0 select-text flex-col overflow-hidden">
       <div className="min-h-0 flex-1 overflow-y-auto scrollbar-hide">
+        {summary}
         <div
           className={`${DETAIL_PANEL_TOKENS.headerWidth} flex flex-col px-4 py-4`}
         >
@@ -237,7 +244,10 @@ export const PrConversationTab: React.FC<PrConversationTabProps> = ({
                   <TimelineCardHeader
                     avatar={<Avatar size={18} src={author.avatarUrl} />}
                     actor={author.login || identity.title}
-                    action="opened this pull request"
+                    action={t(
+                      "git.pr.activity.opened",
+                      "opened this pull request"
+                    )}
                     timestamp={createdAt}
                   />
                 }
@@ -278,7 +288,7 @@ export const PrConversationTab: React.FC<PrConversationTabProps> = ({
                               <Avatar size={18} src={comment.user.avatar_url} />
                             }
                             actor={comment.user.login}
-                            action="commented"
+                            action={t("git.pr.activity.commented", "commented")}
                             timestamp={comment.created_at}
                           />
                         }
@@ -289,7 +299,7 @@ export const PrConversationTab: React.FC<PrConversationTabProps> = ({
                   );
                 }
                 const { review } = entry;
-                const verb = reviewVerb(review.state);
+                const verb = reviewVerb(review.state, t);
                 const inline = commentsByReview.get(review.id) ?? [];
                 return (
                   <ConnectedTimelineItem key={`r-${review.id}`} isLast={isLast}>

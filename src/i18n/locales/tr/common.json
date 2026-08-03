@@ -1410,8 +1410,54 @@
       "collapse": "Çalışma alanı bilgilerini daralt"
     },
     "pr": {
+      "title": "Pull request",
       "linkedBranch": "Pull request #{{number}}",
+      "baseBranch": "Taban",
+      "noDescription": "Açıklama sağlanmadı.",
+      "loadingConversation": "Yükleniyor…",
+      "reviewNoBody": "İnceleme yorumları bıraktı.",
+      "commentPlaceholder": "Yorum bırak…",
+      "comment": "Yorum yap",
+      "approve": "Onayla",
+      "requestChanges": "Değişiklik iste",
+      "reply": "Yanıtla",
+      "replyPlaceholder": "Yanıtla…",
+      "reviewThreads": "İnceleme yorumları",
+      "details": "Ayrıntılar",
+      "unknownAuthor": "Bilinmiyor",
+      "activity": {
+        "opened": "bu pull request kaydını açtı",
+        "commented": "yorum yaptı",
+        "approved": "bu değişiklikleri onayladı",
+        "changesRequested": "değişiklik istedi",
+        "reviewDismissed": "bir incelemeyi reddetti",
+        "reviewed": "inceledi"
+      },
+      "summary": {
+        "label": "Pull request özeti",
+        "branch": "Dal",
+        "reviewers": "İnceleyenler",
+        "noReviewers": "İnceleyen yok",
+        "comments": "Yorumlar",
+        "commentCount_one": "{{count}} yorum",
+        "commentCount_other": "{{count}} yorum",
+        "checks": "Kontroller",
+        "noChecks": "CI kontrolü yok",
+        "checksFailed": "Kontroller başarısız",
+        "status": "Durum"
+      },
+      "tabs": {
+        "conversation": "Konuşma",
+        "commits": "Commitler",
+        "checks": "Kontroller",
+        "changes": "Değişiklikler"
+      },
       "checks": {
+        "none": "Bildirilen kontrol yok",
+        "noneHint": "Bu pull request kaydının baş commitinde hiçbir CI kontrolü veya durumu çalışmadı.",
+        "allPassed": "Tüm kontroller başarılı",
+        "someFailed": "Bazı kontroller başarısız",
+        "pending": "Kontroller devam ediyor",
         "passedShort": "Başarılı",
         "failedShort": "Başarısız",
         "runningShort": "Çalışıyor",
@@ -1419,6 +1465,23 @@
         "noneShort": "CI yok",
         "unavailableShort": "CI kullanılamıyor",
         "branchStatus": "Pull request #{{number}} CI: {{status}}"
+      },
+      "commits": {
+        "backToList": "Tüm commitler",
+        "none": "Commit yok"
+      },
+      "changes": {
+        "title": "Değiştirilen dosyalar",
+        "noFiles": "Dosya değişikliği yok",
+        "tooLarge": "Dosya farkı gösterilemeyecek kadar büyük",
+        "unavailable": "Değişiklikler kullanılamıyor",
+        "unavailableHint": "Pull request kaydının taban ve baş commitleri çözümlenemedi."
+      },
+      "status": {
+        "open": "Açık",
+        "merged": "Birleştirildi",
+        "closed": "Kapalı",
+        "draft": "Taslak"
       }
     },
     "messages": {

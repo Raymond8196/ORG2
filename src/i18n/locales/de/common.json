@@ -1409,8 +1409,54 @@
       "collapse": "Arbeitsbereichsinformationen einklappen"
     },
     "pr": {
+      "title": "Pull Request",
       "linkedBranch": "Pull Request #{{number}}",
+      "baseBranch": "Basis",
+      "noDescription": "Keine Beschreibung vorhanden.",
+      "loadingConversation": "Wird geladen…",
+      "reviewNoBody": "Hat Review-Kommentare hinterlassen.",
+      "commentPlaceholder": "Kommentar hinterlassen…",
+      "comment": "Kommentieren",
+      "approve": "Genehmigen",
+      "requestChanges": "Änderungen anfordern",
+      "reply": "Antworten",
+      "replyPlaceholder": "Antworten…",
+      "reviewThreads": "Review-Kommentare",
+      "details": "Details",
+      "unknownAuthor": "Unbekannt",
+      "activity": {
+        "opened": "hat diesen Pull Request geöffnet",
+        "commented": "hat kommentiert",
+        "approved": "hat diese Änderungen genehmigt",
+        "changesRequested": "hat Änderungen angefordert",
+        "reviewDismissed": "hat ein Review verworfen",
+        "reviewed": "hat ein Review abgegeben"
+      },
+      "summary": {
+        "label": "Pull-Request-Zusammenfassung",
+        "branch": "Branch",
+        "reviewers": "Reviewer",
+        "noReviewers": "Keine Reviewer",
+        "comments": "Kommentare",
+        "commentCount_one": "{{count}} Kommentar",
+        "commentCount_other": "{{count}} Kommentare",
+        "checks": "Checks",
+        "noChecks": "Keine CI-Checks",
+        "checksFailed": "Checks fehlgeschlagen",
+        "status": "Status"
+      },
+      "tabs": {
+        "conversation": "Unterhaltung",
+        "commits": "Commits",
+        "checks": "Checks",
+        "changes": "Änderungen"
+      },
       "checks": {
+        "none": "Keine Checks gemeldet",
+        "noneHint": "Für den Head-Commit dieses Pull Requests wurden keine CI-Checks oder Statusprüfungen ausgeführt.",
+        "allPassed": "Alle Checks bestanden",
+        "someFailed": "Einige Checks fehlgeschlagen",
+        "pending": "Checks werden ausgeführt",
         "passedShort": "Bestanden",
         "failedShort": "Fehlgeschlagen",
         "runningShort": "Läuft",
@@ -1418,6 +1464,23 @@
         "noneShort": "Keine CI",
         "unavailableShort": "CI nicht verfügbar",
         "branchStatus": "CI für Pull Request #{{number}}: {{status}}"
+      },
+      "commits": {
+        "backToList": "Alle Commits",
+        "none": "Keine Commits"
+      },
+      "changes": {
+        "title": "Geänderte Dateien",
+        "noFiles": "Keine Dateiänderungen",
+        "tooLarge": "Datei ist zu groß für eine Diff-Ansicht",
+        "unavailable": "Änderungen nicht verfügbar",
+        "unavailableHint": "Basis- und Head-Commit des Pull Requests konnten nicht aufgelöst werden."
+      },
+      "status": {
+        "open": "Offen",
+        "merged": "Zusammengeführt",
+        "closed": "Geschlossen",
+        "draft": "Entwurf"
       }
     },
     "messages": {

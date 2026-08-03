@@ -1413,8 +1413,56 @@
       "collapse": "Свернуть сведения о рабочей области"
     },
     "pr": {
+      "title": "Pull request",
       "linkedBranch": "Pull request №{{number}}",
+      "baseBranch": "База",
+      "noDescription": "Описание отсутствует.",
+      "loadingConversation": "Загрузка…",
+      "reviewNoBody": "Оставлены комментарии к ревью.",
+      "commentPlaceholder": "Оставьте комментарий…",
+      "comment": "Комментировать",
+      "approve": "Одобрить",
+      "requestChanges": "Запросить изменения",
+      "reply": "Ответить",
+      "replyPlaceholder": "Ответить…",
+      "reviewThreads": "Комментарии к ревью",
+      "details": "Подробнее",
+      "unknownAuthor": "Неизвестно",
+      "activity": {
+        "opened": "открыл(а) этот pull request",
+        "commented": "оставил(а) комментарий",
+        "approved": "одобрил(а) эти изменения",
+        "changesRequested": "запросил(а) изменения",
+        "reviewDismissed": "отклонил(а) ревью",
+        "reviewed": "провёл(а) ревью"
+      },
+      "summary": {
+        "label": "Сводка pull request",
+        "branch": "Ветка",
+        "reviewers": "Ревьюеры",
+        "noReviewers": "Нет ревьюеров",
+        "comments": "Комментарии",
+        "commentCount_one": "{{count}} комментарий",
+        "commentCount_few": "{{count}} комментария",
+        "commentCount_many": "{{count}} комментариев",
+        "commentCount_other": "{{count}} комментария",
+        "checks": "Проверки",
+        "noChecks": "Нет проверок CI",
+        "checksFailed": "Проверки не пройдены",
+        "status": "Статус"
+      },
+      "tabs": {
+        "conversation": "Обсуждение",
+        "commits": "Коммиты",
+        "checks": "Проверки",
+        "changes": "Изменения"
+      },
       "checks": {
+        "none": "Проверки не найдены",
+        "noneHint": "Для головного коммита этого pull request не запускались проверки CI или статусы.",
+        "allPassed": "Все проверки пройдены",
+        "someFailed": "Некоторые проверки не пройдены",
+        "pending": "Проверки выполняются",
         "passedShort": "Пройдено",
         "failedShort": "Ошибка",
         "runningShort": "Выполняется",
@@ -1422,6 +1470,23 @@
         "noneShort": "Нет CI",
         "unavailableShort": "CI недоступен",
         "branchStatus": "CI для pull request №{{number}}: {{status}}"
+      },
+      "commits": {
+        "backToList": "Все коммиты",
+        "none": "Нет коммитов"
+      },
+      "changes": {
+        "title": "Изменённые файлы",
+        "noFiles": "Нет изменений файлов",
+        "tooLarge": "Файл слишком велик для отображения различий",
+        "unavailable": "Изменения недоступны",
+        "unavailableHint": "Не удалось определить базовый и головной коммиты pull request."
+      },
+      "status": {
+        "open": "Открыт",
+        "merged": "Слит",
+        "closed": "Закрыт",
+        "draft": "Черновик"
       }
     },
     "messages": {

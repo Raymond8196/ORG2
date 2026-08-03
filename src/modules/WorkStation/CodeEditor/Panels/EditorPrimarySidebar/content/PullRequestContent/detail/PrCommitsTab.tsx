@@ -25,7 +25,10 @@ interface PrCommitRow {
   author: GitCommitPerson;
 }
 
-function mapPrCommit(raw: Record<string, unknown>): PrCommitRow | null {
+function mapPrCommit(
+  raw: Record<string, unknown>,
+  unknownAuthor: string
+): PrCommitRow | null {
   const sha = typeof raw.sha === "string" ? raw.sha : "";
   if (!sha) return null;
   const commit = (raw.commit as Record<string, unknown> | undefined) ?? {};
@@ -38,7 +41,7 @@ function mapPrCommit(raw: Record<string, unknown>): PrCommitRow | null {
     summary: message.split("\n")[0] || sha.slice(0, 7),
     message,
     author: {
-      name: typeof authorRaw.name === "string" ? authorRaw.name : "Unknown",
+      name: typeof authorRaw.name === "string" ? authorRaw.name : unknownAuthor,
       email: typeof authorRaw.email === "string" ? authorRaw.email : "",
       date: typeof authorRaw.date === "string" ? authorRaw.date : "",
     },
@@ -64,10 +67,14 @@ export const PrCommitsTab: React.FC<PrCommitsTabProps> = ({
 }) => {
   const { t } = useTranslation("common");
   const [selected, setSelected] = useState<PrCommitRow | null>(null);
+  const unknownAuthor = t("git.pr.unknownAuthor", "Unknown");
 
   const rows = useMemo(
-    () => commits.map(mapPrCommit).filter((c): c is PrCommitRow => c !== null),
-    [commits]
+    () =>
+      commits
+        .map((commit) => mapPrCommit(commit, unknownAuthor))
+        .filter((c): c is PrCommitRow => c !== null),
+    [commits, unknownAuthor]
   );
 
   const handleSelect = useCallback((commit: PrCommitRow) => {

@@ -4,8 +4,8 @@
  * Reconstructs a `PrIdentity` from the tab data and delegates to the existing
  * Source Control `PrDetailPanel`, which self-loads the full PR (Conversation /
  * Commits / Checks / Changes) via `useWorkstationPrDetail`. The panel renders
- * its own header, so this renderer only disables the primary-sidebar toggle in
- * the tab-header strip while the PR fills the main pane.
+ * its compact PR identity into the shared 40px tab-header strip while the PR
+ * body fills the main pane without a second header.
  */
 import React, { memo, useCallback, useMemo } from "react";
 
@@ -58,11 +58,8 @@ const GitHubPrDetailTabRenderer: React.FC<UnifiedTabContentProps> = memo(
 
     const headerContent = useMemo(
       () => (
-        <span className="flex min-w-0 flex-1 items-center gap-2">
-          <PrDetailHeaderContent
-            identity={identity}
-            baseBranch={identity.baseBranch ?? ""}
-          />
+        <span className="flex h-10 min-w-0 flex-1 items-center gap-2">
+          <PrDetailHeaderContent identity={identity} />
         </span>
       ),
       [identity]

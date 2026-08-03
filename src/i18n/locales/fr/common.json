@@ -1409,8 +1409,54 @@
       "collapse": "Réduire les informations de l’espace de travail"
     },
     "pr": {
+      "title": "Pull request",
       "linkedBranch": "Pull request n°{{number}}",
+      "baseBranch": "Base",
+      "noDescription": "Aucune description fournie.",
+      "loadingConversation": "Chargement…",
+      "reviewNoBody": "A laissé des commentaires de revue.",
+      "commentPlaceholder": "Laisser un commentaire…",
+      "comment": "Commenter",
+      "approve": "Approuver",
+      "requestChanges": "Demander des modifications",
+      "reply": "Répondre",
+      "replyPlaceholder": "Répondre…",
+      "reviewThreads": "Commentaires de revue",
+      "details": "Détails",
+      "unknownAuthor": "Inconnu",
+      "activity": {
+        "opened": "a ouvert cette pull request",
+        "commented": "a commenté",
+        "approved": "a approuvé ces modifications",
+        "changesRequested": "a demandé des modifications",
+        "reviewDismissed": "a rejeté une revue",
+        "reviewed": "a effectué une revue"
+      },
+      "summary": {
+        "label": "Résumé de la pull request",
+        "branch": "Branche",
+        "reviewers": "Relecteurs",
+        "noReviewers": "Aucun relecteur",
+        "comments": "Commentaires",
+        "commentCount_one": "{{count}} commentaire",
+        "commentCount_other": "{{count}} commentaires",
+        "checks": "Vérifications",
+        "noChecks": "Aucune vérification CI",
+        "checksFailed": "Échec des vérifications",
+        "status": "Statut"
+      },
+      "tabs": {
+        "conversation": "Conversation",
+        "commits": "Commits",
+        "checks": "Vérifications",
+        "changes": "Modifications"
+      },
       "checks": {
+        "none": "Aucune vérification signalée",
+        "noneHint": "Aucune vérification CI ni aucun statut n’a été exécuté sur le commit de tête de cette pull request.",
+        "allPassed": "Toutes les vérifications ont réussi",
+        "someFailed": "Certaines vérifications ont échoué",
+        "pending": "Vérifications en cours",
         "passedShort": "Réussi",
         "failedShort": "Échec",
         "runningShort": "En cours",
@@ -1418,6 +1464,23 @@
         "noneShort": "Aucune CI",
         "unavailableShort": "CI indisponible",
         "branchStatus": "CI de la pull request n°{{number}} : {{status}}"
+      },
+      "commits": {
+        "backToList": "Tous les commits",
+        "none": "Aucun commit"
+      },
+      "changes": {
+        "title": "Fichiers modifiés",
+        "noFiles": "Aucune modification de fichier",
+        "tooLarge": "Fichier trop volumineux pour afficher le diff",
+        "unavailable": "Modifications indisponibles",
+        "unavailableHint": "Impossible de résoudre les commits de base et de tête de la pull request."
+      },
+      "status": {
+        "open": "Ouverte",
+        "merged": "Fusionnée",
+        "closed": "Fermée",
+        "draft": "Brouillon"
       }
     },
     "messages": {
