@@ -123,10 +123,29 @@ actions in the background, invisible to every existing cell.
   (lookup failure), kill the app mid-transfer (partial persist). The guard
   under test must defer/refuse — any destructive act under injected fault is
   a failure.
-- **Unexplained delta becomes a cell.** The first ledger delta, log line, or
-  resource pattern without a mechanism-level explanation is promoted to a
-  scenario in the CURRENT run — not noted for later. "Background sync noise"
-  is the phrase that hid a data-destroying storm.
+- **Unexplained delta becomes a cell.** The first ledger delta, log line,
+  resource pattern, or store-vs-UI discrepancy without a mechanism-level
+  explanation is promoted to a scenario in the CURRENT run — not noted for
+  later, and not handed to a background task. "Background sync noise" is the
+  phrase that hid a data-destroying storm; "pre-existing behavior" is the
+  phrase that hides everything the current PR did not happen to cause.
+- **Baseline A/B answers attribution, not existence.** Reproducing a symptom on
+  the develop baseline proves the PR under test did not CAUSE it. It proves
+  nothing about whether it is a bug, and it is not a disposition. Write the two
+  conclusions on separate lines — attribution (this PR / not this PR) and
+  verdict (defect / expected, with the mechanism) — and never let the first
+  supply the second. A symptom that survives A/B is either explained
+  mechanically in this run or recorded as an OPEN DEFECT with its evidence in
+  the delivery message; deferring it to a chip is the same escape as "noted for
+  later" above. Corollary signature: **the local store holds N rows and the UI
+  renders 0** is always a defect — chase it to the command and the filter that
+  ate the rows before moving on, because the two ends disagreeing is itself the
+  mechanism-level question. (2026-08-01: instance-2's sidebar OLDER section
+  rendered zero imported rows while `imported_history_session_cache` held 257
+  cursor_ide rows. A/B correctly cleared PRs #628/#576 of causing it; the
+  symptom was then downgraded to a background chip and is STILL unexplained as
+  of 2026-08-03, including after the unrelated #654 import-parse regression was
+  ruled out as its cause.)
 
 ## Ledger commands
 
@@ -209,6 +228,14 @@ rollover or the window silently truncates.
   boot, and positional chunk ids turned the shuffle into a fresh hash chain
   each time. Within one app lifetime everything looked stable; only
   boot-vs-boot comparison of push decisions could see it. (#608 root cause.)
+- **"Pre-existing" used as a verdict**: a symptom reproduces on baseline, is
+  correctly cleared of THIS PR's authorship, and is then silently cleared of
+  being a bug at all — because the run's attention is scoped to the PR, and
+  attribution is the only question the run was asking. Nothing in the protocol
+  catches this: every other discipline here fires on something the run DID,
+  while this one fires on a verdict the run declined to reach. The tell is a
+  finding whose write-up names the PR it exonerates but never names a
+  mechanism.
 - **Waiting for a pass the engine will never run**: the session plane follows
   visible-org demand — an org's push/retract pass runs only while that org is
   the active workspace. A fix whose cleanup rides "the next pass" looks
