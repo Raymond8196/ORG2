@@ -1,3 +1,5 @@
+import { Pin } from "lucide-react";
+
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
 import type { BranchPrSnapshot } from "@src/store/git";
 import type { Session } from "@src/store/session";
@@ -67,6 +69,19 @@ export function buildSessionMenuItem({
   const statusDot =
     inProgress && !pendingAsking ? null : renderStatusDot(statusDotTone);
   const gitIndicator = renderSessionGitIndicator(session, pr);
+  // The section header used to be the ONLY at-rest pin affordance, so pinning
+  // was invisible wherever that header does not render (cloud scope strips
+  // every separator) — and since the list is already recency-sorted, pinning a
+  // recent session moves it zero rows. Mark the row itself so pin state is
+  // legible in every scope and every grouping mode.
+  const pinIndicator = session.pinned ? (
+    <Pin
+      size={11}
+      strokeWidth={2}
+      className="shrink-0 text-text-3"
+      aria-label="Pinned"
+    />
+  ) : null;
 
   return {
     id: session.session_id,
@@ -79,8 +94,9 @@ export function buildSessionMenuItem({
     workingIndicator:
       inProgress && !pendingAsking ? renderBreathingStatusDot() : undefined,
     trailingElement:
-      gitIndicator || statusDot ? (
+      pinIndicator || gitIndicator || statusDot ? (
         <span className="inline-flex items-center gap-1 leading-none">
+          {pinIndicator}
           {gitIndicator}
           {statusDot}
         </span>

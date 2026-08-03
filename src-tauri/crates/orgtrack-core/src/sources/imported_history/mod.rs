@@ -276,6 +276,11 @@ pub struct ImportedHistorySidebarRow {
     pub storage_path: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub model: Option<String>,
+    /// ORGII-owned pin state, read from `imported_history_session_pin`.
+    /// A pin belongs to ORGII, not to the source app, so it is stored beside
+    /// the rebuildable cache rather than on it.
+    #[serde(default)]
+    pub pinned: bool,
     pub total_tokens: i64,
     pub files_changed: i64,
     pub lines_added: i64,

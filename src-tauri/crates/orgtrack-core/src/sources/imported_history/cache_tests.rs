@@ -737,3 +737,68 @@ fn init_source_cache_tables_upgrades_legacy_table_missing_columns() {
         "child-session lookup should use its parent index: {query_plan}"
     );
 }
+
+#[test]
+fn imported_pins_round_trip_and_clear() {
+    let conn = fixture_conn();
+    let ids = super::pinned_imported_session_ids_from_conn(&conn).expect("read pins");
+    assert!(ids.is_empty(), "a fresh store has no pins");
+
+    super::set_imported_session_pinned_from_conn(
+        &conn,
+        "claudecodeapp-abc",
+        true,
+        "2026-08-03T12:00:00Z",
+    )
+    .expect("set pin");
+    let ids = super::pinned_imported_session_ids_from_conn(&conn).expect("read pins");
+    assert!(ids.contains("claudecodeapp-abc"));
+
+    // Re-pinning must not duplicate the row (PRIMARY KEY + upsert).
+    super::set_imported_session_pinned_from_conn(
+        &conn,
+        "claudecodeapp-abc",
+        true,
+        "2026-08-03T13:00:00Z",
+    )
+    .expect("re-pin");
+    assert_eq!(
+        super::pinned_imported_session_ids_from_conn(&conn)
+            .expect("read pins")
+            .len(),
+        1
+    );
+
+    super::set_imported_session_pinned_from_conn(&conn, "claudecodeapp-abc", false, "")
+        .expect("unpin");
+    assert!(super::pinned_imported_session_ids_from_conn(&conn)
+        .expect("read pins")
+        .is_empty());
+}
+
+#[test]
+fn a_source_wide_prune_does_not_erase_pins() {
+    // The whole reason pins live in their own table: `prune_missing_records_from_conn`
+    // deletes every cache row of a source whose store momentarily reads as empty
+    // (unreadable directory, provider not installed yet). A `pinned` column on the
+    // cache row would let that wipe the user's pins.
+    let mut conn = fixture_conn();
+    upsert_imported_session_cache_from_conn(&mut conn, &[input(SOURCE_CODEX_APP, "s1", 10)])
+        .expect("seed cache row");
+    super::set_imported_session_pinned_from_conn(
+        &conn,
+        "codexapp-s1",
+        true,
+        "2026-08-03T12:00:00Z",
+    )
+    .expect("pin");
+
+    super::prune_missing_records_from_conn(&conn, SOURCE_CODEX_APP, &[])
+        .expect("prune everything for the source");
+
+    let pins = super::pinned_imported_session_ids_from_conn(&conn).expect("read pins");
+    assert!(
+        pins.contains("codexapp-s1"),
+        "a prune of the rebuildable projection must not take user pin state with it"
+    );
+}

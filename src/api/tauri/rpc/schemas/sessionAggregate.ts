@@ -280,6 +280,8 @@ export const ExternalHistorySidebarRowSchema = z.object({
   // copy, so this is their only storage path.
   storagePath: z.string().optional(),
   model: z.string().optional(),
+  /** ORGII-owned pin state; imported sessions carry no pin from their source. */
+  pinned: z.boolean().optional(),
   totalTokens: z.number().int().optional(),
   filesChanged: z.number().int().optional(),
   linesAdded: z.number().int().optional(),

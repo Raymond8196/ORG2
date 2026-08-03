@@ -67,6 +67,7 @@ use serde::{Deserialize, Deserializer, Serialize};
 use crate::agent_sessions::cli::persistence as cli_persistence;
 use agent_core::session::persistence as session_persistence;
 use database::db::get_connection;
+use orgtrack_core::sources::imported_history::cache as imported_cache;
 
 /// Deserialize a JSON value into `Some(_)` even if the value is `null`.
 /// Combined with `#[serde(default)]`, this is the canonical recipe to
@@ -126,6 +127,9 @@ pub struct SessionPatch {
 enum SessionLocation {
     Cli,
     Agent,
+    /// Imported history. Owns no native row, so only the fields ORGII stores
+    /// on its own side of the boundary (currently `pinned`) can be patched.
+    Imported,
 }
 
 fn locate_session(session_id: &str) -> SqliteResult<Option<SessionLocation>> {
@@ -151,6 +155,16 @@ fn locate_session(session_id: &str) -> SqliteResult<Option<SessionLocation>> {
         .optional()?;
     if cli_hit.is_some() {
         return Ok(Some(SessionLocation::Cli));
+    }
+    let imported_hit: Option<i64> = conn
+        .query_row(
+            "SELECT 1 FROM imported_history_session_cache WHERE session_id = ?1",
+            params![session_id],
+            |row| row.get(0),
+        )
+        .optional()?;
+    if imported_hit.is_some() {
+        return Ok(Some(SessionLocation::Imported));
     }
     Ok(None)
 }
@@ -234,6 +248,10 @@ pub fn apply_session_patch(session_id: &str, patch: &SessionPatch) -> Result<(),
                 cli_persistence::update_name(session_id, trimmed)
                     .map_err(|err| format!("session_patch update name (cli): {err}"))?;
             }
+            SessionLocation::Imported => {
+                return Err("session_patch: imported sessions do not support name"
+                    .to_string());
+            }
         }
     }
 
@@ -255,6 +273,10 @@ pub fn apply_session_patch(session_id: &str, patch: &SessionPatch) -> Result<(),
                 )
                 .map_err(|err| format!("session_patch update model (cli): {err}"))?;
             }
+            SessionLocation::Imported => {
+                return Err("session_patch: imported sessions do not support model"
+                    .to_string());
+            }
         }
     }
 
@@ -268,6 +290,10 @@ pub fn apply_session_patch(session_id: &str, patch: &SessionPatch) -> Result<(),
             SessionLocation::Cli => {
                 cli_persistence::update_agent_exec_mode(session_id, mode)
                     .map_err(|err| format!("session_patch update agent_exec_mode (cli): {err}"))?;
+            }
+            SessionLocation::Imported => {
+                return Err("session_patch: imported sessions do not support agent_exec_mode"
+                    .to_string());
             }
         }
     }
@@ -290,6 +316,10 @@ pub fn apply_session_patch(session_id: &str, patch: &SessionPatch) -> Result<(),
                 cli_persistence::update_draft_text(session_id, value)
                     .map_err(|err| format!("session_patch update draft_text (cli): {err}"))?;
             }
+            SessionLocation::Imported => {
+                return Err("session_patch: imported sessions do not support draft_text"
+                    .to_string());
+            }
         }
     }
 
@@ -306,6 +336,10 @@ pub fn apply_session_patch(session_id: &str, patch: &SessionPatch) -> Result<(),
                     |err| format!("session_patch update reply_target_event_id (cli): {err}"),
                 )?;
             }
+            SessionLocation::Imported => {
+                return Err("session_patch: imported sessions do not support reply_target_event_id"
+                    .to_string());
+            }
         }
     }
     if let Some(pinned) = patch.pinned {
@@ -317,6 +351,16 @@ pub fn apply_session_patch(session_id: &str, patch: &SessionPatch) -> Result<(),
             SessionLocation::Cli => {
                 cli_persistence::update_pinned(session_id, pinned)
                     .map_err(|err| format!("session_patch update pinned (cli): {err}"))?;
+            }
+            SessionLocation::Imported => {
+                let conn = get_connection()
+                    .map_err(|err| format!("session_patch update pinned (imported): {err}"))?;
+                imported_cache::set_imported_session_pinned_from_conn(
+                    &conn,
+                    session_id,
+                    pinned,
+                    &chrono::Utc::now().to_rfc3339(),
+                )?;
             }
         }
     }
