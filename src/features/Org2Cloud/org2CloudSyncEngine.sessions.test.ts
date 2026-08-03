@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { rpc } from "@src/api/tauri/rpc";
 import type { SessionEvent } from "@src/engines/SessionCore/core/types";
 import type { Session } from "@src/store/session/sessionAtom/types";
 
@@ -88,6 +89,46 @@ describe("Org2CloudSyncEngine session publishing", () => {
       fullChunks,
       "cursoride-thread-1"
     );
+  });
+
+  it("publishes live CLI sessions from the native transcript when the events cache is empty", async () => {
+    eventStoreMock.getPersistedEvents.mockResolvedValueOnce([]);
+    const chunks = [{ id: "cli-chunk" }] as never;
+    const chunksSpy = vi.spyOn(rpc.cli, "chunks").mockResolvedValue(chunks);
+    const converted = [makeEvent("cli-event")];
+    processChunksRustMock.mockResolvedValueOnce(converted);
+
+    const events = await (
+      engine as unknown as {
+        loadPushEvents(sessionId: string): Promise<SessionEvent[]>;
+      }
+    ).loadPushEvents("cliagent-123-native");
+
+    expect(events).toEqual(converted);
+    expect(chunksSpy).toHaveBeenCalledWith({
+      sessionId: "cliagent-123-native",
+    });
+    expect(processChunksRustMock).toHaveBeenCalledWith(
+      chunks,
+      "cliagent-123-native"
+    );
+    chunksSpy.mockRestore();
+  });
+
+  it("prefers the persisted event cache for CLI sessions when it is populated", async () => {
+    const persisted = [makeEvent("persisted-cli-event")];
+    eventStoreMock.getPersistedEvents.mockResolvedValueOnce(persisted);
+    const chunksSpy = vi.spyOn(rpc.cli, "chunks");
+
+    const events = await (
+      engine as unknown as {
+        loadPushEvents(sessionId: string): Promise<SessionEvent[]>;
+      }
+    ).loadPushEvents("cliagent-123-native");
+
+    expect(events).toEqual(persisted);
+    expect(chunksSpy).not.toHaveBeenCalled();
+    chunksSpy.mockRestore();
   });
   it("pushes only scope-matched own sessions (metadata + epoch-1 rewrite)", async () => {
     store.set(sessionsAtom, [
