@@ -1,4 +1,4 @@
-import { createElement } from "react";
+import { createElement, forwardRef } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
@@ -24,6 +24,28 @@ vi.mock("react-i18next", () => ({
         String(fallback[name] ?? "")
       );
     },
+  }),
+}));
+
+vi.mock("@src/modules/shared/components/RichMarkdownEditor", () => ({
+  default: forwardRef(function MockRichMarkdownEditor(
+    {
+      appearance,
+      dataTestId,
+      placeholder,
+    }: {
+      appearance?: string;
+      dataTestId?: string;
+      placeholder?: string;
+    },
+    _ref
+  ) {
+    return createElement("div", {
+      className: "rich-markdown-editor",
+      "data-testid": dataTestId,
+      "data-appearance": appearance,
+      "data-placeholder": placeholder,
+    });
   }),
 }));
 
@@ -59,7 +81,7 @@ describe("IssueDetailExternalLinkButton", () => {
     expect(markup).toContain("enabled:hover:bg-surface-hover");
   });
 
-  it("uses the shared textarea and session-creator button dimensions", () => {
+  it("uses the rich Markdown editor and session-creator button dimensions", () => {
     const markup = renderToStaticMarkup(
       createElement(IssueDetailPanel, {
         issue,
@@ -74,10 +96,12 @@ describe("IssueDetailExternalLinkButton", () => {
       })
     );
 
-    expect(markup).toContain('<textarea placeholder="Leave a comment…"');
     expect(markup).toContain('data-testid="issue-comment-editor"');
-    expect(markup).toContain("textarea-size-default");
-    expect(markup).not.toContain("rich-markdown-editor");
+    expect(markup).toContain('data-appearance="outlined"');
+    expect(markup).toContain('data-placeholder="Leave a comment…"');
+    expect(markup).toContain("rich-markdown-editor");
+    expect(markup).not.toContain("Preview");
+    expect(markup).not.toContain("Raw");
     expect(markup).toContain(
       "flex min-h-9 items-center justify-between gap-1 px-1"
     );

@@ -23,7 +23,6 @@ export {
 export type { MarkdownContentProps } from "./MarkdownContent";
 export { default as RichMarkdownEditor } from "./RichMarkdownEditor";
 export type {
-  RichMarkdownEditorMode,
   RichMarkdownEditorProps,
   RichMarkdownEditorRef,
 } from "./RichMarkdownEditor";

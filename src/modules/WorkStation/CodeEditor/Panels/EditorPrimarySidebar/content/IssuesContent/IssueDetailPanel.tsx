@@ -10,7 +10,6 @@ import Avatar from "@src/components/Avatar";
 import Button from "@src/components/Button";
 import IntegrationIcon from "@src/components/IntegrationIcon";
 import Tag from "@src/components/Tag";
-import Textarea from "@src/components/Textarea";
 import { ISSUE_PANEL_WIDTH_TOKENS } from "@src/config/detailPanelTokens";
 import {
   HEADER_CLASSES,
@@ -28,6 +27,8 @@ import {
   TimelineCardHeader,
   TimelineStack,
 } from "@src/modules/shared/components/ActivityTimeline";
+import RichMarkdownEditor from "@src/modules/shared/components/RichMarkdownEditor";
+import type { RichMarkdownEditorRef } from "@src/modules/shared/components/RichMarkdownEditor";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 
 import { IssueTimelineEventRow } from "./IssueTimelineEvent";
@@ -225,11 +226,21 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = memo(
   }) => {
     const { t } = useTranslation("common");
     const [commentBody, setCommentBody] = useState("");
-    const commentRef = useRef<HTMLTextAreaElement | null>(null);
+    const commentEditorRef = useRef<RichMarkdownEditorRef>(null);
+    const commentDropTargetRef = useRef<HTMLDivElement>(null);
+    const insertDroppedReference = useCallback(
+      (text: string, dropPoint?: { clientX: number; clientY: number }) => {
+        commentEditorRef.current?.insertText(text, {
+          separateFromAdjacentText: true,
+          clientX: dropPoint?.clientX,
+          clientY: dropPoint?.clientY,
+        });
+      },
+      []
+    );
     const { isDragOver: commentDragOver } = useSessionReferenceDropTarget({
-      elementRef: commentRef,
-      value: commentBody,
-      onChange: setCommentBody,
+      elementRef: commentDropTargetRef,
+      onInsertText: insertDroppedReference,
     });
     const isOpen = issue.state === "open";
     const stateLabel = isOpen
@@ -367,28 +378,28 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = memo(
           <div
             className={`${ISSUE_PANEL_WIDTH_TOKENS.headerWidth} flex flex-col gap-2`}
           >
-            <Textarea
-              ref={commentRef}
-              value={commentBody}
-              onChange={setCommentBody}
-              placeholder={t(
-                "git.issues.commentPlaceholder",
-                "Leave a comment…"
-              )}
-              rows={3}
-              size="default"
-              resize="none"
-              className={`min-h-[64px] ${
+            <div
+              ref={commentDropTargetRef}
+              className={`rounded-md ${
                 commentDragOver ? "ring-2 ring-primary-6" : ""
               }`.trim()}
-              data-testid="issue-comment-editor"
-              onKeyDown={(event) => {
-                if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
-                  event.preventDefault();
-                  void handleCommentSubmit();
-                }
-              }}
-            />
+              data-testid="issue-comment-drop-target"
+            >
+              <RichMarkdownEditor
+                ref={commentEditorRef}
+                value={commentBody}
+                onChange={(markdown) => setCommentBody(markdown)}
+                placeholder={t(
+                  "git.issues.commentPlaceholder",
+                  "Leave a comment…"
+                )}
+                minHeight={64}
+                maxHeight={180}
+                appearance="outlined"
+                onSubmit={() => void handleCommentSubmit()}
+                dataTestId="issue-comment-editor"
+              />
+            </div>
             <CloudSessionReferencePreview text={commentBody} />
             <div className="flex min-h-9 items-center justify-between gap-1 px-1">
               {isOpen ? (

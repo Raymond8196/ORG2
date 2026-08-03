@@ -85,14 +85,10 @@ vi.mock("@src/modules/ProjectManager/shared", () => ({
       initialDescription,
       onDescriptionChange,
       editable,
-      descriptionDefaultMode,
-      descriptionShowTabs,
     }: {
       initialDescription: string;
       onDescriptionChange?: (markdown: string, text: string) => void;
       editable?: boolean;
-      descriptionDefaultMode?: string;
-      descriptionShowTabs?: boolean;
     },
     _ref
   ) {
@@ -100,8 +96,6 @@ vi.mock("@src/modules/ProjectManager/shared", () => ({
       value: initialDescription,
       readOnly: !editable,
       "data-testid": "description-editor",
-      "data-default-mode": descriptionDefaultMode ?? "",
-      "data-show-tabs": String(descriptionShowTabs ?? true),
       onChange: (event: React.ChangeEvent<HTMLTextAreaElement>) =>
         onDescriptionChange?.(event.target.value, event.target.value),
     });
@@ -345,8 +339,6 @@ describe("WorkItemContent description editing", () => {
       "[data-testid='description-editor']"
     );
     expect(editor?.readOnly).toBe(false);
-    expect(editor?.getAttribute("data-default-mode")).toBe("");
-    expect(editor?.getAttribute("data-show-tabs")).toBe("true");
     expect(
       container.querySelector("[data-testid='description-footer']")
     ).toBeNull();
@@ -513,11 +505,6 @@ describe("WorkItemContent description editing", () => {
     expect(
       container.querySelector("[data-testid='description-editor']")
     ).not.toBeNull();
-    expect(
-      container
-        .querySelector("[data-testid='description-editor']")
-        ?.getAttribute("data-show-tabs")
-    ).toBe("false");
     expect(
       container.querySelector<HTMLButtonElement>(
         "[data-testid='work-item-description-save']"
