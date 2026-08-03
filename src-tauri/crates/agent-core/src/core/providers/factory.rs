@@ -921,18 +921,17 @@ fn find_api_key_for_provider(
     )))
 }
 
+type AvailableModelCredential = (
+    &'static ProviderSpec,
+    String,
+    Option<String>,
+    ProviderProtocol,
+);
+
 fn find_credential_by_available_model(
     model: &str,
     creds: &[ModelKey],
-) -> Result<
-    Option<(
-        &'static ProviderSpec,
-        String,
-        Option<String>,
-        ProviderProtocol,
-    )>,
-    ProviderError,
-> {
+) -> Result<Option<AvailableModelCredential>, ProviderError> {
     let model_lower = model.to_lowercase();
     for cred in creds {
         if !cred.enabled {

@@ -151,7 +151,7 @@ fn validate_workspace_launch_fields(
     let has_base_ref = worktree_base_ref.is_some_and(|base| !base.trim().is_empty());
 
     if (isolate || has_existing_worktree)
-        && !workspace_path.is_some_and(|path| !path.trim().is_empty())
+        && workspace_path.is_none_or(|path| path.trim().is_empty())
     {
         return Err("Worktree mode requires workspacePath".to_string());
     }

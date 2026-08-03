@@ -137,6 +137,9 @@ pub async fn usage_dashboard_trends(
 }
 
 /// Optional summary/trends and request-log page from one round-store scan.
+#[allow(clippy::too_many_arguments)]
+// Tauri serializes these parameters as the existing frontend command contract;
+// replacing them with a request object would change the wire payload.
 #[tauri::command]
 pub async fn usage_dashboard_overview(
     bucket: Option<String>,

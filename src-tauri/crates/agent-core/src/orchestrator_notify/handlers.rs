@@ -120,10 +120,9 @@ pub(crate) fn parse_issue_line(line: &str) -> Option<core_types::workflow::Revie
         (ReviewCommentSeverity::Warning, r)
     } else if let Some(r) = rest.strip_prefix("[SUGGESTION]") {
         (ReviewCommentSeverity::Suggestion, r)
-    } else if let Some(r) = rest.strip_prefix("[PRAISE]") {
-        (ReviewCommentSeverity::Praise, r)
     } else {
-        return None;
+        let r = rest.strip_prefix("[PRAISE]")?;
+        (ReviewCommentSeverity::Praise, r)
     };
 
     let after_tag = after_tag.trim();
