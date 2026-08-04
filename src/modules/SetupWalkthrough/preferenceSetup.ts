@@ -1,4 +1,5 @@
 import type { SetupWalkthroughProgress } from "@src/config/settingsSchema/setupWalkthroughProgress";
+import { requestSetupGuideHandoff } from "@src/store/settings/setupGuideProgress";
 
 export const PREFERENCE_SETUP_COMPLETION_ID = "preferences";
 
@@ -9,11 +10,11 @@ export const PREFERENCE_SETUP_COMPLETION_ID = "preferences";
 export function completePreferenceSetup(
   progress: SetupWalkthroughProgress
 ): SetupWalkthroughProgress {
-  return {
+  return requestSetupGuideHandoff({
     ...progress,
     currentStepId: PREFERENCE_SETUP_COMPLETION_ID,
     completedStepIds: Array.from(
       new Set([...progress.completedStepIds, PREFERENCE_SETUP_COMPLETION_ID])
     ),
-  };
+  });
 }

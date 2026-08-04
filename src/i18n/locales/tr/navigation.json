@@ -166,15 +166,34 @@
     },
     "guide": {
       "trigger": "Kılavuzu aç",
-      "title": "Kuruluma devam et",
+      "title": "ORGII'yi kullanmaya başlayın",
       "startSession": "Oturum başlat",
-      "setUpTeam": "Ekip kur",
-      "manageWork": "İşi yönet",
-      "openTutorials": "Eğitimleri aç",
       "quickSetup": "Dil ve görünüm",
       "close": "Kılavuzu kapat",
       "progressLabel": "{{total}} kurulum adımından {{completed}} tanesi tamamlandı",
-      "localWorkspace": "Yerel çalışma alanı"
+      "localWorkspace": "Yerel çalışma alanı",
+      "connectOrganization": "Bir kuruluş bağlayın veya oluşturun",
+      "createOrganizationHint": "Bir kuruluş adı girin ve Oluştur’u seçin. Bulut kuruluşu oluşturulduktan sonra rehber sonraki adıma geçer.",
+      "inviteTeammate": "Bir ekip arkadaşı davet edin",
+      "inviteTeammateHint": "Burada bir davet bağlantısı oluşturup ekip arkadaşınıza gönderin.",
+      "invitePermissionHint": "Üye listesini burada görüntüleyebilirsiniz. Daveti bir kuruluş yöneticisi veya sahibi oluşturmalıdır.",
+      "devPanelTitle": "Onboarding test durumları",
+      "devPanelHint": "Davet akışının yalnızca çalışma zamanı önizlemesidir. Arka uç kuruluş verileri değiştirilmez.",
+      "devScenarioLive": "Gerçek veriler",
+      "devScenarioNoOrganization": "Kuruluş yok",
+      "devScenarioMember": "Üye · davet erişimi yok",
+      "devScenarioAdmin": "Yönetici · davet erişimi var",
+      "devScenarioOwner": "Sahip · davet erişimi var",
+      "devScenarioRequiresOrganization": "Rol önizlemeleri için en az bir gerçek bulut kuruluşu gerekir.",
+      "devSimulationActive": "Geliştirme simülasyonu etkin",
+      "devSimulationReadOnly": "Bu üye sayfası önizlemesi salt okunurdur. Kuruluş yönetimi işlemleri devre dışıdır.",
+      "viewTeamActivity": "Ekip kullanımını görüntüle",
+      "viewTeamActivityHint": "Runtime Üyeler görünümünde açıldı. Codex, Claude ve Cursor kullanımını görmek için bir ekip üyesi seçin; veri yoksa önce ekip Runtime eşitlemesini etkinleştirin.",
+      "exploreProduct": "Ana sayfaları keşfedin",
+      "nextStep": "Sonraki adım"
+    },
+    "developerTestPanel": {
+      "title": "Geliştirici test paneli"
     }
   },
   "myRole": {

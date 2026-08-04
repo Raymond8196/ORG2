@@ -20,11 +20,11 @@
 
 ## D2 — Arbitrary Tailwind Value vs Token
 
-| Line                           | Value                     | Verdict          | Reason                                                                                                                                                                                               | Suggested change |
-| ------------------------------ | ------------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
-| `layoutTokens.ts:19–82`        | Setup composition classes | keep with reason | Feature composition is centralized in `SETUP_WALKTHROUGH_LAYOUT_TOKENS`; typography reuses `TYPOGRAPHY`, the native path reuses `DETAIL_PANEL_TOKENS`, and controls retain their component defaults. | —                |
-| `layoutTokens.ts:57–64`        | Classic panel hierarchy   | keep with reason | One outer surface frames the panel; the reused `SectionContainer` keeps row separators but suppresses its nested border/background, avoiding a second card around already bordered controls.         | —                |
-| `SetupPreferencesPanel.tsx:52` | Active-color swatch       | keep with reason | The swatch previews the active repository token via `bg-primary-6`; it does not declare a local color.                                                                                               | —                |
+| Line                           | Value                     | Verdict          | Reason                                                                                                                                                                                                       | Suggested change |
+| ------------------------------ | ------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------- |
+| `layoutTokens.ts:19–82`        | Setup composition classes | keep with reason | Feature composition is centralized in `SETUP_WALKTHROUGH_LAYOUT_TOKENS`; typography reuses `TYPOGRAPHY`, the native path reuses `DETAIL_PANEL_TOKENS`, and controls retain their component defaults.         | —                |
+| `layoutTokens.ts:57–64`        | Classic panel hierarchy   | keep with reason | One outer surface frames the panel; the reused `SectionContainer` keeps row separators but suppresses its nested border/background, while canonical ghost `Select`s remove the repeated input-box treatment. | —                |
+| `SetupPreferencesPanel.tsx:52` | Active-color swatch       | keep with reason | The swatch previews the active repository token via `bg-primary-6`; it does not declare a local color.                                                                                                       | —                |
 
 ## D3 — Hardcoded Sizes / Colors
 
@@ -47,7 +47,7 @@
 
 - **App native** is the default and uses the same section container, rows, controls, typography, and buttons as Settings.
 - **Immersive card** keeps the previously requested cinematic treatment, isolated behind `cinematic*` composition tokens and scoped CSS.
-- **Classic panel** reuses `WizardStepContent`, a border-free `SectionContainer`, vertical `SectionRow`, canonical selectors, and canonical buttons. The duplicate logo/header was removed because the shell already owns ORGII branding.
+- **Classic panel** reuses `WizardStepContent`, a border-free `SectionContainer`, horizontal `SectionRow`, canonical ghost selectors, and canonical buttons. The duplicate logo/header was removed because the shell already owns ORGII branding.
 - The ambient background, hero accent, planet, focus states, and CTA all derive from active theme tokens. Changing the primary-color preference immediately recolors the surface.
 - All presentations render from one `useAppearanceState` instance and share one completion/skip path. Presentation selection is local preview state and resets to App native on remount.
 - The hero now uses the ORG2 pearl-relay mascot (`org2-pearl-relay-mascot.png`) instead of the Codex-like blue cloud/terminal character while preserving the existing layout contract.

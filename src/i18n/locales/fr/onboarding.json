@@ -78,6 +78,8 @@
     },
     "presentation": {
       "label": "Aperçu de la mise en page",
+      "compact": "Version compacte actuelle",
+      "mascot": "Version avec mascotte",
       "native": "Natif de l’app",
       "cinematic": "Carte immersive",
       "classic": "Panneau classique"
@@ -264,6 +266,10 @@
         "chat-panel": {
           "title": "Panneau de discussion",
           "body": "C'est ici que les utilisateurs discutent avec les agents, examinent leurs activités et envoient des instructions de suivi."
+        },
+        "runtime": {
+          "title": "Exécution",
+          "body": "Consultez ici votre utilisation et l’état d’exécution. Dans une organisation, vous pouvez aussi vérifier la synchronisation des membres et ouvrir leurs détails d’utilisation de Codex, Claude et Cursor."
         },
         "station-mode-pill": {
           "title": "Changer de station modes",

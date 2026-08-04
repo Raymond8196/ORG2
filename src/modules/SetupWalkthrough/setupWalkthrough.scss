@@ -9,16 +9,7 @@
     var(--color-primary-5) 22%,
     transparent
   );
-  --setup-card-surface: color-mix(in srgb, var(--color-bg-1) 86%, transparent);
-  --setup-card-border: color-mix(
-    in srgb,
-    var(--color-primary-6) 24%,
-    var(--color-border-1)
-  );
-  --setup-row-surface: color-mix(in srgb, var(--color-fill-2) 76%, transparent);
-  --setup-card-blur: 24px;
   --setup-mascot-motion: 5s;
-
   background:
     radial-gradient(
       ellipse 46% 58% at 18% 88%,
@@ -41,6 +32,34 @@
   isolation: isolate;
 }
 
+.setup-walkthrough-main-panel {
+  background: #f5f8fc;
+}
+
+[data-theme="dark"] .setup-walkthrough-main-panel {
+  background: color-mix(in srgb, var(--color-bg-1) 92%, var(--color-primary-1));
+}
+
+.setup-walkthrough-preview-panel {
+  background:
+    radial-gradient(
+      ellipse 78% 62% at 18% 92%,
+      color-mix(in srgb, var(--color-primary-5) 18%, transparent),
+      transparent 72%
+    ),
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--color-primary-1) 68%, var(--color-bg-1)),
+      color-mix(in srgb, var(--color-primary-1) 32%, var(--color-bg-1))
+    );
+}
+
+.setup-walkthrough-app-preview {
+  box-shadow:
+    0 18px 42px color-mix(in srgb, var(--color-primary-7) 14%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--color-text-1) 6%, transparent);
+}
+
 .setup-walkthrough-brand-accent {
   background: linear-gradient(
     100deg,
@@ -53,24 +72,41 @@
 }
 
 .setup-walkthrough-planet {
+  --setup-planet-overflow: clamp(8rem, 12vw, 14rem);
+  left: calc(var(--setup-planet-overflow) * -1);
+  right: calc(var(--setup-planet-overflow) * -1);
   border-radius: 50% 50% 0 0;
   background:
     radial-gradient(
       ellipse at 58% 0%,
-      color-mix(in srgb, var(--color-primary-6) 76%, var(--color-bg-1)),
+      color-mix(in srgb, var(--color-primary-6) 62%, var(--color-bg-1)),
       transparent 20%
     ),
     linear-gradient(
       100deg,
-      color-mix(in srgb, var(--color-primary-7) 74%, var(--color-text-1)),
-      color-mix(in srgb, var(--color-primary-5) 82%, var(--color-bg-1))
+      color-mix(in srgb, var(--color-primary-7) 58%, var(--color-bg-1)),
+      color-mix(in srgb, var(--color-primary-5) 72%, var(--color-bg-1))
     );
   filter: blur(0.5px);
   box-shadow:
     0 -18px 60px var(--setup-glow-primary-strong),
     0 -2px 18px color-mix(in srgb, var(--color-primary-5) 62%, transparent);
-  opacity: 0.78;
-  transform: scaleX(1.35);
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    #000 0%,
+    #000 62%,
+    rgb(0 0 0 / 82%) 74%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    #000 0%,
+    #000 62%,
+    rgb(0 0 0 / 82%) 74%,
+    transparent 100%
+  );
+  opacity: 0.7;
+  transform: none;
 }
 
 .setup-walkthrough-mascot {
@@ -79,50 +115,6 @@
     0 18px 24px color-mix(in srgb, var(--color-primary-7) 48%, transparent)
   );
   transform-origin: center bottom;
-}
-
-.setup-preferences-card {
-  border: 1px solid var(--setup-card-border);
-  background: var(--setup-card-surface);
-  box-shadow:
-    0 28px 80px color-mix(in srgb, var(--color-bg-1) 72%, transparent),
-    inset 0 1px 0 color-mix(in srgb, var(--color-text-1) 8%, transparent);
-  backdrop-filter: blur(var(--setup-card-blur));
-  -webkit-backdrop-filter: blur(var(--setup-card-blur));
-}
-
-.setup-preference-row {
-  border: 1px solid color-mix(in srgb, var(--color-border-1) 72%, transparent);
-  background: var(--setup-row-surface);
-  transition:
-    border-color 160ms ease,
-    background-color 160ms ease,
-    transform 160ms ease;
-}
-
-.setup-preference-row:hover,
-.setup-preference-row:focus-within {
-  border-color: color-mix(
-    in srgb,
-    var(--color-primary-6) 46%,
-    var(--color-border-1)
-  );
-  background: color-mix(in srgb, var(--color-fill-3) 82%, transparent);
-  transform: translateY(-1px);
-}
-
-.setup-preference-row .select-selector {
-  min-height: 2.5rem;
-}
-
-.setup-preference-cta {
-  background: linear-gradient(
-    100deg,
-    color-mix(in srgb, var(--color-primary-6) 72%, var(--color-bg-1)),
-    var(--color-primary-6)
-  ) !important;
-  box-shadow: 0 12px 28px
-    color-mix(in srgb, var(--color-primary-6) 26%, transparent);
 }
 
 @keyframes setup-mascot-float {
@@ -138,9 +130,5 @@
 @media (prefers-reduced-motion: reduce) {
   .setup-walkthrough-mascot {
     animation: none;
-  }
-
-  .setup-preference-row {
-    transition: none;
   }
 }

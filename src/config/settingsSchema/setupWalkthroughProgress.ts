@@ -12,6 +12,15 @@ export const SETUP_SHARING_LEVELS = [
   "full_replay",
 ] as const;
 
+export const SETUP_GUIDE_HANDOFF_STATES = ["idle", "pending", "shown"] as const;
+
+export const SETUP_GUIDE_PERSISTED_MILESTONES = [
+  "teammate_invited",
+  "product_tour_started",
+  // Original team-activity milestone now backs the team-usage guide task.
+  "team_activity_viewed",
+] as const;
+
 export const SetupToolSummarySchema = z.object({
   agentType: z.enum(["codex", "claude_code", "cursor_cli"]),
   found: z.boolean(),
@@ -34,6 +43,10 @@ export const SetupWalkthroughProgressSchema = z.object({
   inviteLink: z.string().nullable(),
   tutorialId: z.enum(["general-layout", "code-editor"]).nullable(),
   verifiedAt: z.number().nonnegative().nullable(),
+  guideHandoff: z.enum(SETUP_GUIDE_HANDOFF_STATES).default("idle"),
+  guideCompletedMilestones: z
+    .array(z.enum(SETUP_GUIDE_PERSISTED_MILESTONES))
+    .default([]),
 });
 
 export type SetupWalkthroughProgress = z.infer<
@@ -56,6 +69,8 @@ export function createDefaultSetupWalkthroughProgress(): SetupWalkthroughProgres
     inviteLink: null,
     tutorialId: null,
     verifiedAt: null,
+    guideHandoff: "idle",
+    guideCompletedMilestones: [],
   };
 }
 

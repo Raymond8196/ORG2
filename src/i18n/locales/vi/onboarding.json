@@ -78,6 +78,8 @@
     },
     "presentation": {
       "label": "Xem trước bố cục",
+      "compact": "Phiên bản gọn hiện tại",
+      "mascot": "Phiên bản có linh vật",
       "native": "Giao diện gốc",
       "cinematic": "Thẻ điện ảnh",
       "classic": "Bảng cổ điển"
@@ -264,6 +266,10 @@
         "chat-panel": {
           "title": "Bảng trò chuyện",
           "body": "Đây là nơi người dùng trò chuyện với tổng đài viên, xem xét hoạt động và gửi hướng dẫn tiếp theo."
+        },
+        "runtime": {
+          "title": "Thời gian chạy",
+          "body": "Xem mức sử dụng và trạng thái chạy của bạn tại đây. Trong tổ chức, bạn cũng có thể kiểm tra trạng thái đồng bộ của thành viên và mở chi tiết sử dụng Codex, Claude và Cursor."
         },
         "station-mode-pill": {
           "title": "Chuyển trạm chế độ",

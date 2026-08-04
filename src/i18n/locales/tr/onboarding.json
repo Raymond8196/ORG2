@@ -78,6 +78,8 @@
     },
     "presentation": {
       "label": "Düzen önizleme",
+      "compact": "Mevcut kompakt sürüm",
+      "mascot": "Maskotlu sürüm",
       "native": "Uygulama yerel",
       "cinematic": "Sinematik kart",
       "classic": "Klasik panel"
@@ -264,6 +266,10 @@
         "chat-panel": {
           "title": "Sohbet Paneli",
           "body": "Bu, kullanıcıların temsilcilerle sohbet ettiği, etkinliği incelediği ve takip talimatlarını gönderdiği yerdir."
+        },
+        "runtime": {
+          "title": "Çalışma zamanı",
+          "body": "Kendi kullanımınızı ve çalışma durumunu burada görün. Bir kuruluşta üye eşitleme durumunu da inceleyebilir ve Codex, Claude ile Cursor kullanım ayrıntılarını açabilirsiniz."
         },
         "station-mode-pill": {
           "title": "İstasyon değiştir modlar",

@@ -1,7 +1,9 @@
 export const SIDEBAR_GUIDE_MILESTONE = {
   SESSION: "session",
-  TEAM: "team",
-  WORK: "work",
+  ORGANIZATION: "organization",
+  TEAMMATE: "teammate",
+  TEAM_USAGE: "team_usage",
+  PRODUCT_TOUR: "product_tour",
 } as const;
 
 export type SidebarGuideMilestone =
@@ -18,8 +20,10 @@ export interface SidebarGuideProgress {
 
 const MILESTONE_ORDER: readonly SidebarGuideMilestone[] = [
   SIDEBAR_GUIDE_MILESTONE.SESSION,
-  SIDEBAR_GUIDE_MILESTONE.TEAM,
-  SIDEBAR_GUIDE_MILESTONE.WORK,
+  SIDEBAR_GUIDE_MILESTONE.ORGANIZATION,
+  SIDEBAR_GUIDE_MILESTONE.TEAMMATE,
+  SIDEBAR_GUIDE_MILESTONE.TEAM_USAGE,
+  SIDEBAR_GUIDE_MILESTONE.PRODUCT_TOUR,
 ];
 
 export function getSidebarGuideProgress(

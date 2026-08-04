@@ -1,17 +1,21 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { Search } from "lucide-react";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { ROUTES } from "@src/config/routes";
+import { normalizeSetupWalkthroughProgress } from "@src/config/settingsSchema/setupWalkthroughProgress";
+import { createLogger } from "@src/hooks/logger";
 import { useAppNavigation } from "@src/hooks/navigation/useAppNavigation";
 import { useSessionView } from "@src/hooks/ui/tabs/useSessionView";
 import { teamInboxUnreadCountAtom } from "@src/modules/MainApp/TeamInbox/store";
 import { useTeamInboxDataSource } from "@src/modules/MainApp/TeamInbox/useTeamInboxDataSource";
+import {
+  DeveloperTestPanelSlot,
+  isDeveloperTestPanelEnabled,
+} from "@src/scaffold/DeveloperTestPanel";
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
-import { TUTORIALS_OPEN_EVENT } from "@src/scaffold/Tutorials/tutorialRegistry";
-import { hasProjectsAtom } from "@src/store/project";
 import {
   activeSessionCreatorDraftIdAtom,
   deleteSessionCreatorDraftAtom,
@@ -24,13 +28,30 @@ import {
   visitedSessionsAtom,
   workstationActiveSessionIdAtom,
 } from "@src/store/session";
-import { CHAT_PANEL_CREATE_TARGET } from "@src/store/ui/chatPanelAtom";
+import { settingsAtom } from "@src/store/settings/settingsAtom";
+import {
+  SETUP_GUIDE_PERSISTED_MILESTONE,
+  completeSetupGuideMilestone,
+  consumeSetupGuideHandoff,
+  hasCompletedSetupGuideMilestone,
+} from "@src/store/settings/setupGuideProgress";
+import { saveSetupGuideProgressAtom } from "@src/store/settings/setupGuideProgressAtom";
+import {
+  CHAT_PANEL_CREATE_TARGET,
+  CLOUD_ORG_MANAGEMENT_VIEW,
+} from "@src/store/ui/chatPanelAtom";
+import { showGuideHighlightAtom } from "@src/store/ui/guideHighlightAtom";
+import { runtimeNavigationIntentAtom } from "@src/store/ui/runtimeNavigationAtom";
+import {
+  SETUP_GUIDE_DEV_SCENARIO,
+  resolveSetupGuideDevCloudOrg,
+  setupGuideDevScenarioAtom,
+} from "@src/store/ui/setupGuideDevScenarioAtom";
 import {
   clearSessionSidebarRevealAtom,
   sessionSidebarRevealRequestAtom,
   sidebarCollapsedAtom,
 } from "@src/store/ui/sidebarAtom";
-import { WORK_MANAGEMENT_SECTION } from "@src/store/workstation";
 
 import { SidebarBottomBar, SidebarMenuSearchInput } from "../../blocks";
 import SidebarSettingsMenuButton from "../../blocks/SidebarSettingsMenuButton";
@@ -60,11 +81,17 @@ import { useWorkstationSidebarScopeAndPagination } from "./sidebarConnector.scop
 import { useWorkstationSidebarSelectionAndNavigation } from "./sidebarConnector.selectionAndNavigation";
 import { useWorkstationSidebarSessionAndProjectMenuItems } from "./sidebarConnector.sessionAndProjectMenuItems";
 import { useWorkstationSidebarSessionInteractionHandlers } from "./sidebarConnector.sessionInteractionHandlers";
+import { resolveSidebarGuideInviteSpotlight } from "./sidebarGuideInviteNavigation";
+import { resolveSidebarGuideOrganizationNavigation } from "./sidebarGuideOrganizationNavigation";
+import { startSidebarGuideProductTour } from "./sidebarGuideProductTour";
+import { resolveSidebarGuideTeamUsageNavigation } from "./sidebarGuideTeamUsageNavigation";
 import { SidebarSearchShortcutTooltip } from "./sidebarTabs";
 import type {
   WorkstationSidebarKey,
   WorkstationSidebarSearchKey,
 } from "./types";
+
+const logger = createLogger("WorkstationSidebarGuide");
 
 /**
  * Workstation sidebar coordinator. The bulk of this connector's state,
@@ -86,7 +113,18 @@ export const WorkstationSidebarConnector: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const sessions = useAtomValue(sessionsAtom);
-  const hasProjects = useAtomValue(hasProjectsAtom);
+  const setupGuideProgress = normalizeSetupWalkthroughProgress(
+    useAtomValue(settingsAtom)["general.setupWalkthroughProgress"]
+  );
+  const saveSetupGuideProgress = useSetAtom(saveSetupGuideProgressAtom);
+  const showGuideHighlight = useSetAtom(showGuideHighlightAtom);
+  const setRuntimeNavigationIntent = useSetAtom(runtimeNavigationIntentAtom);
+  const setupGuideDevScenario = useAtomValue(setupGuideDevScenarioAtom);
+  const setupGuideDevToolsEnabled = isDeveloperTestPanelEnabled();
+  const activeSetupGuideDevScenario = setupGuideDevToolsEnabled
+    ? setupGuideDevScenario
+    : SETUP_GUIDE_DEV_SCENARIO.LIVE;
+  const guideNavigationRequestId = useRef(0);
   useTeamInboxDataSource();
   const teamInboxUnreadCount = useAtomValue(teamInboxUnreadCountAtom);
   const sessionsLoading = useAtomValue(sessionLoadingAtom);
@@ -210,6 +248,14 @@ export const WorkstationSidebarConnector: React.FC = () => {
     sessions,
     workstationSearchQuery: sidebarSearchQueries.workstation,
   });
+  const guideCloudOrg = useMemo(
+    () =>
+      resolveSetupGuideDevCloudOrg(
+        manageableCloudOrg,
+        activeSetupGuideDevScenario
+      ),
+    [activeSetupGuideDevScenario, manageableCloudOrg]
+  );
 
   const [groupVisibleCounts, setGroupVisibleCounts] = useState<
     Map<string, number>
@@ -580,23 +626,118 @@ export const WorkstationSidebarConnector: React.FC = () => {
       pinnedMenuItems: channelSidebarVisible ? [] : pinnedMenuItems,
     });
 
-  const handleGuideSetUpTeam = useCallback(() => {
+  const handleGuideConnectOrganization = useCallback(() => {
+    guideNavigationRequestId.current = Math.max(
+      guideNavigationRequestId.current + 1,
+      Date.now()
+    );
+    const navigation = resolveSidebarGuideOrganizationNavigation(
+      guideNavigationRequestId.current
+    );
     openCreateTargetInStartPage({
       target: CHAT_PANEL_CREATE_TARGET.COLLAB_ORG,
       title: t("routes.launchpad"),
+      collabOrgCreateIntent: navigation.createIntent,
     });
-  }, [openCreateTargetInStartPage, t]);
-
-  const handleGuideManageWork = useCallback(() => {
-    openWorkManagementTab({
-      section: WORK_MANAGEMENT_SECTION.KANBAN,
-      title: tSessions("simulator.tabs.kanban"),
+    showGuideHighlight({
+      targetId: navigation.spotlight.targetId,
+      title: t("sidebar.guide.connectOrganization"),
+      message: t(navigation.spotlight.messageKey),
     });
-  }, [openWorkManagementTab, tSessions]);
+  }, [openCreateTargetInStartPage, showGuideHighlight, t]);
 
-  const handleGuideOpenTutorials = useCallback(() => {
-    window.dispatchEvent(new CustomEvent(TUTORIALS_OPEN_EVENT));
-  }, []);
+  const handleGuideInviteTeammate = useCallback(() => {
+    if (!guideCloudOrg) {
+      handleGuideConnectOrganization();
+      return;
+    }
+    guideNavigationRequestId.current = Math.max(
+      guideNavigationRequestId.current + 1,
+      Date.now()
+    );
+    openOrganizationTab({
+      organization: {
+        kind: "cloud",
+        cloudOrg: {
+          orgId: guideCloudOrg.orgId,
+          initialView: CLOUD_ORG_MANAGEMENT_VIEW.MEMBERS,
+          initialViewRequestId: guideNavigationRequestId.current,
+        },
+      },
+      title: t("collaboration.manageOrg"),
+    });
+    const spotlight = resolveSidebarGuideInviteSpotlight(guideCloudOrg.role);
+    showGuideHighlight({
+      targetId: spotlight.targetId,
+      title: t("sidebar.guide.inviteTeammate"),
+      message: t(spotlight.messageKey),
+    });
+  }, [
+    handleGuideConnectOrganization,
+    guideCloudOrg,
+    openOrganizationTab,
+    showGuideHighlight,
+    t,
+  ]);
+
+  const handleGuideExploreProduct = useCallback(() => {
+    startSidebarGuideProductTour();
+    void saveSetupGuideProgress((progress) =>
+      completeSetupGuideMilestone(
+        progress,
+        SETUP_GUIDE_PERSISTED_MILESTONE.PRODUCT_TOUR_STARTED
+      )
+    ).catch((error: unknown) => {
+      logger.warn("failed to persist product tour guide milestone", error);
+    });
+  }, [saveSetupGuideProgress]);
+
+  const handleGuideViewTeamUsage = useCallback(() => {
+    guideNavigationRequestId.current = Math.max(
+      guideNavigationRequestId.current + 1,
+      Date.now()
+    );
+    const navigation = resolveSidebarGuideTeamUsageNavigation(
+      guideNavigationRequestId.current,
+      guideCloudOrg?.orgId
+    );
+    if (!navigation) {
+      handleGuideConnectOrganization();
+      return;
+    }
+    setRuntimeNavigationIntent(navigation.intent);
+    openRuntimeTab(runtimeLabel);
+    showGuideHighlight({
+      targetId: navigation.spotlight.targetId,
+      title: t("sidebar.guide.viewTeamActivity"),
+      message: t(navigation.spotlight.messageKey),
+    });
+    void saveSetupGuideProgress((progress) =>
+      completeSetupGuideMilestone(
+        progress,
+        SETUP_GUIDE_PERSISTED_MILESTONE.TEAM_ACTIVITY_VIEWED
+      )
+    ).catch((error: unknown) => {
+      logger.warn("failed to persist team usage guide milestone", error);
+    });
+  }, [
+    guideCloudOrg,
+    handleGuideConnectOrganization,
+    openRuntimeTab,
+    runtimeLabel,
+    saveSetupGuideProgress,
+    setRuntimeNavigationIntent,
+    showGuideHighlight,
+    t,
+  ]);
+
+  const handleGuideAutoOpenConsumed = useCallback(() => {
+    void saveSetupGuideProgress(consumeSetupGuideHandoff).catch(
+      (error: unknown) => {
+        logger.warn("failed to persist setup guide handoff", error);
+      }
+    );
+  }, [saveSetupGuideProgress]);
 
   const handleGuideOpenQuickSetup = useCallback(() => {
     navigateTo(ROUTES.auth.setup.path);
@@ -605,12 +746,21 @@ export const WorkstationSidebarConnector: React.FC = () => {
   const guideCompletion = useMemo<SidebarGuideCompletion>(
     () => ({
       [SIDEBAR_GUIDE_MILESTONE.SESSION]: sessions.length > 0,
-      [SIDEBAR_GUIDE_MILESTONE.TEAM]: Boolean(
-        manageableCloudOrg || manageableLocalOrg
+      [SIDEBAR_GUIDE_MILESTONE.ORGANIZATION]: Boolean(guideCloudOrg),
+      [SIDEBAR_GUIDE_MILESTONE.TEAMMATE]: hasCompletedSetupGuideMilestone(
+        setupGuideProgress,
+        SETUP_GUIDE_PERSISTED_MILESTONE.TEAMMATE_INVITED
       ),
-      [SIDEBAR_GUIDE_MILESTONE.WORK]: hasProjects,
+      [SIDEBAR_GUIDE_MILESTONE.TEAM_USAGE]: hasCompletedSetupGuideMilestone(
+        setupGuideProgress,
+        SETUP_GUIDE_PERSISTED_MILESTONE.TEAM_ACTIVITY_VIEWED
+      ),
+      [SIDEBAR_GUIDE_MILESTONE.PRODUCT_TOUR]: hasCompletedSetupGuideMilestone(
+        setupGuideProgress,
+        SETUP_GUIDE_PERSISTED_MILESTONE.PRODUCT_TOUR_STARTED
+      ),
     }),
-    [hasProjects, manageableCloudOrg, manageableLocalOrg, sessions.length]
+    [guideCloudOrg, sessions.length, setupGuideProgress]
   );
 
   const guideScopeLabel = useMemo(() => {
@@ -652,17 +802,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
             searchLabel={tCommon("actions.search")}
           />
         }
-        beforeAddNewActions={
-          <SidebarGuideButton
-            completion={guideCompletion}
-            scopeLabel={guideScopeLabel}
-            onStartSession={handleGoToNewSession}
-            onSetUpTeam={handleGuideSetUpTeam}
-            onManageWork={handleGuideManageWork}
-            onOpenTutorials={handleGuideOpenTutorials}
-            onOpenQuickSetup={handleGuideOpenQuickSetup}
-          />
-        }
+        beforeAddNewActions={<DeveloperTestPanelSlot />}
         search={{
           value: sidebarSearchQueries[activeSidebarSearchKey],
           filterValue:
@@ -685,7 +825,25 @@ export const WorkstationSidebarConnector: React.FC = () => {
                 compact
               />
             }
-            rightActions={sidebarBottomRightActions}
+            rightActions={
+              <>
+                <SidebarGuideButton
+                  completion={guideCompletion}
+                  scopeLabel={guideScopeLabel}
+                  autoOpenRequested={
+                    setupGuideProgress.guideHandoff === "pending"
+                  }
+                  onAutoOpenConsumed={handleGuideAutoOpenConsumed}
+                  onStartSession={handleGoToNewSession}
+                  onConnectOrganization={handleGuideConnectOrganization}
+                  onInviteTeammate={handleGuideInviteTeammate}
+                  onViewTeamUsage={handleGuideViewTeamUsage}
+                  onExploreProduct={handleGuideExploreProduct}
+                  onOpenQuickSetup={handleGuideOpenQuickSetup}
+                />
+                {sidebarBottomRightActions}
+              </>
+            }
             settingsAction={<SidebarSettingsMenuButton />}
           />
         }

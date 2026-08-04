@@ -39,6 +39,8 @@ export interface OnboardingLayoutProps {
   leftPanelStyle?: React.CSSProperties;
   /** Optional class name for the right panel in split layouts. */
   rightPanelClassName?: string;
+  /** Optional class name for the inner panel in single-column layouts. */
+  singleColumnClassName?: string;
 }
 
 /**
@@ -56,6 +58,7 @@ export const OnboardingLayout: React.FC<OnboardingLayoutProps> = ({
   leftPanelClassName = "",
   leftPanelStyle,
   rightPanelClassName = "",
+  singleColumnClassName = "",
 }) => {
   // Add/remove body class for special styling (e.g., hiding toolbar)
   React.useLayoutEffect(() => {
@@ -159,7 +162,11 @@ export const OnboardingLayout: React.FC<OnboardingLayoutProps> = ({
             </div>
           </>
         ) : (
-          <div className={singleColumnInnerClasses}>{leftContent}</div>
+          <div
+            className={`${singleColumnInnerClasses} ${singleColumnClassName}`.trim()}
+          >
+            {leftContent}
+          </div>
         )}
       </div>
     </div>

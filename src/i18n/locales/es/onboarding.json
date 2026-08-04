@@ -78,6 +78,8 @@
     },
     "presentation": {
       "label": "Vista previa del diseño",
+      "compact": "Versión compacta actual",
+      "mascot": "Versión con mascota",
       "native": "Nativo de la app",
       "cinematic": "Tarjeta cinematográfica",
       "classic": "Panel clásico"
@@ -264,6 +266,10 @@
         "chat-panel": {
           "title": "Panel de chat",
           "body": "Aquí es donde los usuarios conversan con los agentes, revisan la actividad y envían instrucciones de seguimiento."
+        },
+        "runtime": {
+          "title": "Tiempo de ejecución",
+          "body": "Consulta aquí tu uso y el estado de ejecución. En una organización, también puedes revisar la sincronización de los miembros y abrir sus detalles de uso de Codex, Claude y Cursor."
         },
         "station-mode-pill": {
           "title": "Cambiar de estación modos",

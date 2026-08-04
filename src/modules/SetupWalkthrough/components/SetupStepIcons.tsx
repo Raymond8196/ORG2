@@ -1,3 +1,5 @@
+import { SlidersHorizontal } from "lucide-react";
+
 import workModelIcon from "@src/assets/fileTypeIcons/flow.svg";
 import organizationIcon from "@src/assets/fileTypeIcons/folder-cluster.svg";
 import tutorialIcon from "@src/assets/fileTypeIcons/folder-docs.svg";
@@ -8,7 +10,6 @@ import languageIcon from "@src/assets/fileTypeIcons/i18n.svg";
 import toolsIcon from "@src/assets/fileTypeIcons/key.svg";
 import appearanceIcon from "@src/assets/fileTypeIcons/moon.svg";
 import readyIcon from "@src/assets/fileTypeIcons/rocket.svg";
-import basicsIcon from "@src/assets/fileTypeIcons/settings.svg";
 import { createRepositoryAssetIcon } from "@src/components/RepositoryAssetIcon";
 
 export const GoalStepIcon = createRepositoryAssetIcon(goalIcon, "GoalStepIcon");
@@ -24,10 +25,7 @@ export const SharingStepIcon = createRepositoryAssetIcon(
   sharingIcon,
   "SharingStepIcon"
 );
-export const BasicsStepIcon = createRepositoryAssetIcon(
-  basicsIcon,
-  "BasicsStepIcon"
-);
+export const BasicsStepIcon = SlidersHorizontal;
 export const TutorialStepIcon = createRepositoryAssetIcon(
   tutorialIcon,
   "TutorialStepIcon"

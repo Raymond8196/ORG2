@@ -31,7 +31,7 @@ vi.mock("@src/components/LanguageSelector", () => ({
 }));
 
 describe("SetupPreferencesPanel", () => {
-  it("renders four canonical preference controls and terminal actions", () => {
+  it("renders only the three essential preference controls and terminal actions", () => {
     const html = renderToStaticMarkup(
       React.createElement(SetupPreferencesPanel, {
         isClosing: false,
@@ -41,18 +41,15 @@ describe("SetupPreferencesPanel", () => {
     );
 
     expect(html).toContain('data-testid="setup-language"');
-    expect(html).toContain('data-testid="setup-presentation"');
-    expect(html).toContain('data-testid="setup-presentation-native"');
     expect(html).toContain('data-testid="setup-appearance-mode"');
-    expect(html).toContain('data-testid="setup-theme"');
     expect(html).toContain('data-testid="setup-primary-color"');
-    expect(html.match(/role="combobox"/g)).toHaveLength(4);
-    expect(html.match(/aria-haspopup="listbox"/g)).toHaveLength(4);
-    expect(html).toContain("bg-primary-container");
-    expect(html).toContain("!bg-transparent");
-    expect(html.match(/class="section-layout-row/g)).toHaveLength(4);
-    expect(html).not.toContain("setup-preference-row");
-    expect(html).not.toContain("setup-preference-cta");
+    expect(html).not.toContain('data-testid="setup-theme"');
+    expect(html).not.toContain('data-testid="setup-presentation"');
+    expect(html).not.toContain("onboarding:readiness.presentation.compact");
+    expect(html.match(/role="combobox"/g)).toHaveLength(2);
+    expect(html.match(/aria-haspopup="listbox"/g)).toHaveLength(2);
+    expect(html.match(/class="section-layout-row/g)).toHaveLength(3);
+    expect(html).toContain("select-ghost");
     expect(html).toContain('data-testid="setup-finish"');
     expect(html).toContain('data-testid="setup-skip"');
   });
@@ -69,46 +66,6 @@ describe("SetupPreferencesPanel", () => {
     expect(html).toContain('data-testid="setup-finish"');
     expect(html).toContain('data-testid="setup-skip"');
     expect(html.match(/disabled=""/g)).toHaveLength(2);
-  });
-
-  it("can start in the cinematic presentation without changing bindings", () => {
-    const html = renderToStaticMarkup(
-      React.createElement(SetupPreferencesPanel, {
-        isClosing: false,
-        onComplete: vi.fn(),
-        onSkip: vi.fn(),
-        initialPresentation: "cinematic",
-      })
-    );
-
-    expect(html).toContain('data-testid="setup-presentation-cinematic"');
-    expect(html).toContain("setup-preferences-card");
-    expect(html).toContain("setup-preference-row");
-    expect(html).toContain("setup-preference-cta");
-    expect(html).toContain('data-testid="setup-appearance-mode"');
-    expect(html).toContain('data-testid="setup-theme"');
-    expect(html).toContain('data-testid="setup-primary-color"');
-  });
-
-  it("can start in the classic vertical presentation with canonical controls", () => {
-    const html = renderToStaticMarkup(
-      React.createElement(SetupPreferencesPanel, {
-        isClosing: false,
-        onComplete: vi.fn(),
-        onSkip: vi.fn(),
-        initialPresentation: "classic",
-      })
-    );
-
-    expect(html).toContain('data-testid="setup-presentation-classic"');
-    expect(html).toContain("onboarding:readiness.classicPanel.title");
-    expect(html).toContain("onboarding:readiness.classicPanel.description");
-    expect(html).not.toContain("logo.png");
-    expect(html).toContain("!bg-transparent");
-    expect(html.match(/flex-col/g)?.length).toBeGreaterThanOrEqual(4);
-    expect(html).toContain('data-testid="setup-appearance-mode"');
-    expect(html).toContain('data-testid="setup-theme"');
-    expect(html).toContain('data-testid="setup-primary-color"');
-    expect(html).not.toContain("setup-preference-row");
+    expect(html).not.toContain('data-testid="setup-presentation"');
   });
 });

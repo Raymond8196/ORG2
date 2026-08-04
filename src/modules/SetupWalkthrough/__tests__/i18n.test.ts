@@ -99,6 +99,42 @@ describe("setup walkthrough i18n contract", () => {
     }
   });
 
+  it("keeps the sidebar guide key shape complete in every locale", () => {
+    const englishGuide = flatten(enNavigation.sidebar.guide);
+
+    for (const [locale, resources] of Object.entries(LOCALES)) {
+      const translatedGuide = flatten(resources.navigation.sidebar.guide);
+      expect(Object.keys(translatedGuide).sort(), locale).toEqual(
+        Object.keys(englishGuide).sort()
+      );
+      expect(
+        Object.values(translatedGuide).every(
+          (value) => value.trim().length > 0
+        ),
+        locale
+      ).toBe(true);
+    }
+  });
+
+  it("keeps the developer test panel key shape complete in every locale", () => {
+    const englishPanel = flatten(enNavigation.sidebar.developerTestPanel);
+
+    for (const [locale, resources] of Object.entries(LOCALES)) {
+      const translatedPanel = flatten(
+        resources.navigation.sidebar.developerTestPanel
+      );
+      expect(Object.keys(translatedPanel).sort(), locale).toEqual(
+        Object.keys(englishPanel).sort()
+      );
+      expect(
+        Object.values(translatedPanel).every(
+          (value) => value.trim().length > 0
+        ),
+        locale
+      ).toBe(true);
+    }
+  });
+
   it("preserves interpolation variables and rejects migration artifacts", () => {
     for (const [locale, resources] of Object.entries(LOCALES)) {
       const translated = flatten({

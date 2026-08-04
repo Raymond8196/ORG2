@@ -8,16 +8,12 @@ import Message from "@src/components/Message";
 import { ROUTES } from "@src/config/routes";
 import { normalizeSetupWalkthroughProgress } from "@src/config/settingsSchema/setupWalkthroughProgress";
 import { CODEMIRROR_STYLE_NONCE } from "@src/features/CodeMirror/config/nonce";
-import { signalGitHubStarValueMoment } from "@src/features/GitHubStar";
 import { OnboardingLayout } from "@src/modules/shared/layouts";
 import {
   saveSettingsBatchAtom,
   settingsAtom,
 } from "@src/store/settings/settingsAtom";
-import {
-  type SetupWalkthroughOutcome,
-  shouldSignalGitHubStarAfterSetup,
-} from "@src/store/settings/setupWalkthrough";
+import { applicationPreviewStyleAtom } from "@src/store/ui/globalPreferencesPanelAtom";
 
 import SetupPreferencesPanel from "./components/SetupPreferencesPanel";
 import SetupWalkthroughSidebar from "./components/SetupWalkthroughSidebar";
@@ -27,6 +23,8 @@ import {
 } from "./layoutTokens";
 import { completePreferenceSetup } from "./preferenceSetup";
 import "./setupWalkthrough.scss";
+
+type SetupWalkthroughOutcome = "open" | "completed" | "dismissed";
 
 const WALKTHROUGH_STYLES = `
   body.walkthrough-mode .tab-bar { display: none !important; }
@@ -44,6 +42,7 @@ const SetupWalkthrough: React.FC = () => {
     [storedProgress]
   );
   const [isClosing, setIsClosing] = useState(false);
+  const presentation = useAtomValue(applicationPreviewStyleAtom);
   const closingRef = useRef(false);
 
   const closeWalkthrough = useCallback(
@@ -60,9 +59,6 @@ const SetupWalkthrough: React.FC = () => {
           "general.setupWalkthroughOutcome": outcome,
           "general.setupWalkthroughProgress": finalProgress,
         });
-        if (shouldSignalGitHubStarAfterSetup(outcome)) {
-          signalGitHubStarValueMoment();
-        }
         navigate(ROUTES.workStation.base.path, { replace: true });
       } catch {
         Message.error(t("common:status.saveFailed"));
@@ -74,8 +70,17 @@ const SetupWalkthrough: React.FC = () => {
     [navigate, progress, saveSettings, t]
   );
 
-  const leftContent = (
+  const preferences = (
+    <SetupPreferencesPanel
+      isClosing={isClosing}
+      onComplete={() => void closeWalkthrough("completed")}
+      onSkip={() => void closeWalkthrough("dismissed")}
+    />
+  );
+
+  const previewContent = (
     <SetupWalkthroughSidebar
+      presentation={presentation}
       title={
         <Trans
           ns="onboarding"
@@ -93,22 +98,16 @@ const SetupWalkthrough: React.FC = () => {
     />
   );
 
-  const rightContent = (
+  const preferenceContent = (
     <div className={SETUP_WALKTHROUGH_LAYOUT_TOKENS.mainContent}>
-      <div className={SETUP_WALKTHROUGH_LAYOUT_TOKENS.mobileProgress}>
+      <div className={SETUP_WALKTHROUGH_LAYOUT_TOKENS.mobileBrand}>
         <AppLogo size={28} className="rounded-lg" alt="" />
-        <span className={SETUP_WALKTHROUGH_LAYOUT_TOKENS.mobileProgressTitle}>
+        <span className={SETUP_WALKTHROUGH_LAYOUT_TOKENS.mobileBrandTitle}>
           ORGII
         </span>
       </div>
-      <div className={SETUP_WALKTHROUGH_LAYOUT_TOKENS.contentScroll}>
-        <div className={SETUP_WALKTHROUGH_LAYOUT_TOKENS.stepFrame}>
-          <SetupPreferencesPanel
-            isClosing={isClosing}
-            onComplete={() => void closeWalkthrough("completed")}
-            onSkip={() => void closeWalkthrough("dismissed")}
-          />
-        </div>
+      <div className={SETUP_WALKTHROUGH_LAYOUT_TOKENS.stepFrame}>
+        {preferences}
       </div>
     </div>
   );
@@ -125,8 +124,8 @@ const SetupWalkthrough: React.FC = () => {
         leftPanelClassName={SETUP_WALKTHROUGH_LAYOUT_TOKENS.sidebar}
         leftPanelStyle={SETUP_WALKTHROUGH_HERO_PANEL_STYLE}
         rightPanelClassName={SETUP_WALKTHROUGH_LAYOUT_TOKENS.main}
-        leftContent={leftContent}
-        rightContent={rightContent}
+        leftContent={previewContent}
+        rightContent={preferenceContent}
       />
     </>
   );

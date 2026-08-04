@@ -2,6 +2,7 @@ import { atom } from "jotai";
 
 import { sessionByIdAtom } from "@src/store/session/sessionAtom";
 import {
+  type ChatPanelCollabOrgCreateIntent,
   type ChatPanelCreateProjectContext,
   type ChatPanelCreateTarget,
   type ChatPanelSelectedOrganization,
@@ -9,6 +10,7 @@ import {
   type ChatPanelSelectedWorkItem,
   type ChatPanelSelectedWorkspace,
   type WorkspaceOverviewTab,
+  chatPanelCollabOrgCreateIntentAtom,
   chatPanelCreateProjectContextAtom,
   chatPanelCreateTargetAtom,
   chatPanelStartPageOpenAtom,
@@ -87,6 +89,7 @@ interface OpenCreateTargetInStartPageOptions {
   target: ChatPanelCreateTarget;
   title?: string;
   createProjectContext?: ChatPanelCreateProjectContext | null;
+  collabOrgCreateIntent?: ChatPanelCollabOrgCreateIntent | null;
 }
 
 /** Focus Launchpad and show a creator inside its pinned inner navigation. */
@@ -100,6 +103,10 @@ export const openCreateTargetInChatPanelStartPageAtom = atom(
     set(
       chatPanelCreateProjectContextAtom,
       options.createProjectContext ?? null
+    );
+    set(
+      chatPanelCollabOrgCreateIntentAtom,
+      options.collabOrgCreateIntent ?? null
     );
     set(chatPanelStartPageOpenAtom, true);
     return tabId;

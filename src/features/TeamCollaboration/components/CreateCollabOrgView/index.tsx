@@ -1,6 +1,12 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { Cloud, Laptop, LogIn, Plus } from "lucide-react";
-import React, { useCallback, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 
 import { projectApi } from "@src/api/http/project";
@@ -21,24 +27,33 @@ import {
   SectionContainer,
   SectionRow,
 } from "@src/modules/shared/layouts/SectionLayout";
+import { GUIDE_TARGETS } from "@src/scaffold/Tutorials/guideTargets";
 import SelectionGrid from "@src/scaffold/WizardSystem/primitives/SelectionGrid";
 import type { SelectionGridOption } from "@src/scaffold/WizardSystem/primitives/SelectionGrid";
 import { openOrganizationInChatPanelTabAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
+import {
+  CHAT_PANEL_COLLAB_ORG_MODE,
+  CHAT_PANEL_COLLAB_ORG_SOURCE,
+  type ChatPanelCollabOrgMode,
+  type ChatPanelCollabOrgSource,
+  chatPanelCollabOrgCreateIntentAtom,
+} from "@src/store/ui/chatPanelAtom";
+import { clearGuideHighlightTargetAtom } from "@src/store/ui/guideHighlightAtom";
 
-const LOCAL_SOURCE = "local";
+const LOCAL_SOURCE = CHAT_PANEL_COLLAB_ORG_SOURCE.LOCAL;
 // Managed ORG2 Cloud org (create_org / accept_invite against the managed
 // backend — identity comes from the cloud account).
-const CLOUD_SOURCE = "cloud";
-const CREATE_MODE = "create";
-const JOIN_MODE = "join";
+const CLOUD_SOURCE = CHAT_PANEL_COLLAB_ORG_SOURCE.CLOUD;
+const CREATE_MODE = CHAT_PANEL_COLLAB_ORG_MODE.CREATE;
+const JOIN_MODE = CHAT_PANEL_COLLAB_ORG_MODE.JOIN;
 
 const COLLAB_FORM_CONTROL_STYLE = {
   width: "100%",
   maxWidth: "100%",
 } as const;
 
-type CreateOrgSource = typeof LOCAL_SOURCE | typeof CLOUD_SOURCE;
-type CreateCollabOrgMode = typeof CREATE_MODE | typeof JOIN_MODE;
+type CreateOrgSource = ChatPanelCollabOrgSource;
+type CreateCollabOrgMode = ChatPanelCollabOrgMode;
 
 export type CreatedOrgResult = {
   source: typeof LOCAL_SOURCE;
@@ -56,17 +71,55 @@ const CreateCollabOrgView: React.FC<CreateCollabOrgViewProps> = ({
 }) => {
   const { t } = useTranslation(["navigation", "common"]);
   const cloudAuth = useAtomValue(org2CloudAuthAtom);
+  const createIntent = useAtomValue(chatPanelCollabOrgCreateIntentAtom);
+  const setCreateIntent = useSetAtom(chatPanelCollabOrgCreateIntentAtom);
+  const clearGuideHighlightTarget = useSetAtom(clearGuideHighlightTargetAtom);
   const { createOrganization, joinOrganization } =
     useCloudOrgMembershipActions();
 
-  const [source, setSource] = useState<CreateOrgSource | null>(null);
-  const [mode, setMode] = useState<CreateCollabOrgMode>(CREATE_MODE);
+  const [source, setSource] = useState<CreateOrgSource | null>(
+    () => createIntent?.source ?? null
+  );
+  const [mode, setMode] = useState<CreateCollabOrgMode>(
+    () => createIntent?.mode ?? CREATE_MODE
+  );
   const [orgName, setOrgName] = useState("");
   const [inviteInput, setInviteInput] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const openCloudSignIn = useOrg2CloudSignIn();
   const openOrganizationTab = useSetAtom(openOrganizationInChatPanelTabAtom);
+  const orgNameInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!createIntent) return;
+    setSource(createIntent.source);
+    setMode(createIntent.mode);
+    setError(null);
+  }, [createIntent]);
+
+  useEffect(() => {
+    if (
+      !createIntent ||
+      source !== createIntent.source ||
+      mode !== createIntent.mode
+    ) {
+      return;
+    }
+    const input = orgNameInputRef.current;
+    if (!input) return;
+    input.focus();
+    setCreateIntent(null);
+  }, [createIntent, mode, setCreateIntent, source]);
+
+  const clearOrgNameGuide = useCallback(() => {
+    clearGuideHighlightTarget(GUIDE_TARGETS.COLLAB_ORG_NAME_INPUT);
+  }, [clearGuideHighlightTarget]);
+
+  const handleCancel = useCallback(() => {
+    clearOrgNameGuide();
+    onCancel();
+  }, [clearOrgNameGuide, onCancel]);
 
   const sourceOptions = useMemo<SelectionGridOption<CreateOrgSource>[]>(
     () => [
@@ -147,6 +200,7 @@ const CreateCollabOrgView: React.FC<CreateCollabOrgViewProps> = ({
         },
         title: t("navigation:collaboration.manageOrg"),
       });
+      clearOrgNameGuide();
       return;
     }
 
@@ -159,6 +213,7 @@ const CreateCollabOrgView: React.FC<CreateCollabOrgViewProps> = ({
     onCancel();
   }, [
     createOrganization,
+    clearOrgNameGuide,
     inviteInput,
     joinOrganization,
     mode,
@@ -175,6 +230,7 @@ const CreateCollabOrgView: React.FC<CreateCollabOrgViewProps> = ({
     try {
       if (source === LOCAL_SOURCE) {
         const org = await projectApi.createOrg({ name: orgName });
+        clearOrgNameGuide();
         onCreated?.({ source: LOCAL_SOURCE, org });
         return;
       }
@@ -206,7 +262,15 @@ const CreateCollabOrgView: React.FC<CreateCollabOrgViewProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [canSubmit, handleCloudSubmit, onCreated, orgName, source, t]);
+  }, [
+    canSubmit,
+    clearOrgNameGuide,
+    handleCloudSubmit,
+    onCreated,
+    orgName,
+    source,
+    t,
+  ]);
 
   return (
     <div className="flex h-full w-full min-w-0 flex-col overflow-hidden">
@@ -253,7 +317,7 @@ const CreateCollabOrgView: React.FC<CreateCollabOrgViewProps> = ({
                   className="flex flex-wrap items-center gap-2 rounded-md border border-border-1 bg-fill-2 px-3 py-2"
                   data-testid="create-cloud-org-sign-in-hint"
                 >
-                  <span className="min-w-0 flex-1 text-[12px] leading-[18px] text-text-2">
+                  <span className="min-w-0 flex-1 text-xs leading-[18px] text-text-2">
                     {t("navigation:cloud.orgManagement.create.signInFirst")}
                   </span>
                   <Button size="small" onClick={openCloudSignIn}>
@@ -270,15 +334,22 @@ const CreateCollabOrgView: React.FC<CreateCollabOrgViewProps> = ({
                   layout="vertical"
                   required
                 >
-                  <Input
-                    data-testid="create-collab-org-name"
-                    value={orgName}
-                    onChange={setOrgName}
-                    placeholder={t(
-                      "navigation:collaboration.orgNamePlaceholder"
-                    )}
-                    style={COLLAB_FORM_CONTROL_STYLE}
-                  />
+                  <div
+                    className="w-full"
+                    data-guide-target={GUIDE_TARGETS.COLLAB_ORG_NAME_INPUT}
+                  >
+                    <Input
+                      ref={orgNameInputRef}
+                      data-testid="create-collab-org-name"
+                      aria-label={t("navigation:collaboration.orgName")}
+                      value={orgName}
+                      onChange={setOrgName}
+                      placeholder={t(
+                        "navigation:collaboration.orgNamePlaceholder"
+                      )}
+                      style={COLLAB_FORM_CONTROL_STYLE}
+                    />
+                  </div>
                 </SectionRow>
               ) : (
                 <SectionRow
@@ -308,7 +379,7 @@ const CreateCollabOrgView: React.FC<CreateCollabOrgViewProps> = ({
               showHeader={false}
               className={`${SECTION_ACTION_GAP_CLASSES} justify-end`}
             >
-              <Button variant="secondary" size="small" onClick={onCancel}>
+              <Button variant="secondary" size="small" onClick={handleCancel}>
                 {t("common:actions.cancel")}
               </Button>
               <Button

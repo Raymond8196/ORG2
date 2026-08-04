@@ -8,10 +8,16 @@ import {
 describe("getSidebarGuideProgress", () => {
   it("starts at the session milestone with no completed product facts", () => {
     expect(
-      getSidebarGuideProgress({ session: false, team: false, work: false })
+      getSidebarGuideProgress({
+        session: false,
+        organization: false,
+        teammate: false,
+        team_usage: false,
+        product_tour: false,
+      })
     ).toEqual({
       completedCount: 0,
-      totalCount: 3,
+      totalCount: 5,
       percent: 0,
       nextMilestone: SIDEBAR_GUIDE_MILESTONE.SESSION,
     });
@@ -19,21 +25,33 @@ describe("getSidebarGuideProgress", () => {
 
   it("finds the first incomplete milestone without changing later facts", () => {
     expect(
-      getSidebarGuideProgress({ session: true, team: false, work: true })
+      getSidebarGuideProgress({
+        session: true,
+        organization: false,
+        teammate: true,
+        team_usage: false,
+        product_tour: false,
+      })
     ).toEqual({
       completedCount: 2,
-      totalCount: 3,
-      percent: 67,
-      nextMilestone: SIDEBAR_GUIDE_MILESTONE.TEAM,
+      totalCount: 5,
+      percent: 40,
+      nextMilestone: SIDEBAR_GUIDE_MILESTONE.ORGANIZATION,
     });
   });
 
   it("reaches one hundred percent only when every tracked fact exists", () => {
     expect(
-      getSidebarGuideProgress({ session: true, team: true, work: true })
+      getSidebarGuideProgress({
+        session: true,
+        organization: true,
+        teammate: true,
+        team_usage: true,
+        product_tour: true,
+      })
     ).toEqual({
-      completedCount: 3,
-      totalCount: 3,
+      completedCount: 5,
+      totalCount: 5,
       percent: 100,
       nextMilestone: null,
     });

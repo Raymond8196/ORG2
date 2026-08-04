@@ -78,6 +78,8 @@
     },
     "presentation": {
       "label": "Podgląd układu",
+      "compact": "Obecna wersja kompaktowa",
+      "mascot": "Wersja z maskotką",
       "native": "Natywny aplikacji",
       "cinematic": "Karta filmowa",
       "classic": "Panel klasyczny"
@@ -264,6 +266,10 @@
         "chat-panel": {
           "title": "Panel czatu",
           "body": "W tym miejscu użytkownicy prowadzą rozmowy z agentami, przeglądają aktywność i wysyłają dalsze instrukcje."
+        },
+        "runtime": {
+          "title": "Środowisko uruchomieniowe",
+          "body": "Tutaj sprawdzisz własne użycie i stan działania. W organizacji możesz też sprawdzić synchronizację członków oraz otworzyć szczegóły użycia Codex, Claude i Cursor."
         },
         "station-mode-pill": {
           "title": "Stacja przełączania tryby",

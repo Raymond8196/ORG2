@@ -1,67 +1,73 @@
 import { describe, expect, it } from "vitest";
 
-import { HOST_DESKTOP } from "@src/config/windowChromeRadius";
-import { WINDOW_CHROME_TOKENS } from "@src/config/windowChromeTokens";
-import { DEFAULT_SIDEBAR_WIDTH } from "@src/store/ui/sidebarAtom";
-
 import {
+  SETUP_APPLICATION_PREVIEW_TOKENS,
   SETUP_WALKTHROUGH_LAYOUT_TOKENS,
-  resolveSetupSidebarLayout,
 } from "../layoutTokens";
 
 describe("setup walkthrough layout tokens", () => {
-  it("reserves the shared titlebar height below macOS traffic lights", () => {
-    expect(resolveSetupSidebarLayout(HOST_DESKTOP.MACOS)).toEqual({
-      panelWidth: DEFAULT_SIDEBAR_WIDTH,
-      contentTopInset: WINDOW_CHROME_TOKENS.titleBarHeight,
-    });
-  });
-
-  it.each([HOST_DESKTOP.WINDOWS, HOST_DESKTOP.LINUX])(
-    "does not add a native traffic-light inset on %s",
-    (host) => {
-      expect(resolveSetupSidebarLayout(host)).toEqual({
-        panelWidth: DEFAULT_SIDEBAR_WIDTH,
-        contentTopInset: 0,
-      });
-    }
-  );
-
-  it("uses shared responsive, typography, and reduced-motion utilities", () => {
-    expect(SETUP_WALKTHROUGH_LAYOUT_TOKENS.sidebar).toContain("lg:!flex");
-    expect(SETUP_WALKTHROUGH_LAYOUT_TOKENS.card).toContain("!max-w-screen-2xl");
-    expect(SETUP_WALKTHROUGH_LAYOUT_TOKENS.hero).toContain("pb-0");
-    expect(SETUP_WALKTHROUGH_LAYOUT_TOKENS.hero).not.toContain("pb-10");
-    expect(SETUP_WALKTHROUGH_LAYOUT_TOKENS.mobileProgress).toContain(
-      "lg:hidden"
+  it("keeps preview and preferences side by side at desktop widths", () => {
+    expect(SETUP_WALKTHROUGH_LAYOUT_TOKENS.shell).toContain("!flex");
+    expect(SETUP_WALKTHROUGH_LAYOUT_TOKENS.shell).toContain("!items-center");
+    expect(SETUP_WALKTHROUGH_LAYOUT_TOKENS.shell).toContain("!justify-center");
+    expect(SETUP_WALKTHROUGH_LAYOUT_TOKENS.card).toContain("!max-w-6xl");
+    expect(SETUP_WALKTHROUGH_LAYOUT_TOKENS.card).toContain("!rounded-2xl");
+    expect(SETUP_WALKTHROUGH_LAYOUT_TOKENS.main).toContain(
+      "setup-walkthrough-main-panel"
+    );
+    expect(SETUP_WALKTHROUGH_LAYOUT_TOKENS.main).not.toContain("!bg-bg-1");
+    expect(SETUP_WALKTHROUGH_LAYOUT_TOKENS.preferenceList).toContain(
+      "!bg-transparent"
+    );
+    expect(SETUP_WALKTHROUGH_LAYOUT_TOKENS.preferenceList).toContain(
+      "!border-0"
+    );
+    expect(SETUP_WALKTHROUGH_LAYOUT_TOKENS.preferenceControl).toContain(
+      "@[480px]:w-56"
+    );
+    expect(SETUP_WALKTHROUGH_LAYOUT_TOKENS.sidebar).toContain("sm:!flex");
+    expect(SETUP_WALKTHROUGH_LAYOUT_TOKENS.sidebar).toContain("!basis-5/12");
+    expect(SETUP_WALKTHROUGH_LAYOUT_TOKENS.sidebarContent).toContain(
+      "overflow-hidden"
     );
     expect(SETUP_WALKTHROUGH_LAYOUT_TOKENS.mainContent).toContain(
       "overflow-y-auto"
     );
-    expect(SETUP_WALKTHROUGH_LAYOUT_TOKENS.mainContent).toContain("sm:px-8");
-    expect(SETUP_WALKTHROUGH_LAYOUT_TOKENS.stepFrame).toContain(
-      "animate-fade-in"
-    );
     expect(SETUP_WALKTHROUGH_LAYOUT_TOKENS.stepFrame).toContain(
       "motion-reduce:animate-none"
-    );
-    expect(SETUP_WALKTHROUGH_LAYOUT_TOKENS.presentationToolbar).toContain(
-      "max-w-[900px]"
-    );
-    expect(SETUP_WALKTHROUGH_LAYOUT_TOKENS.nativePreferenceList).toContain(
-      "!bg-transparent"
-    );
-    expect(SETUP_WALKTHROUGH_LAYOUT_TOKENS.cinematicPreferenceCard).toContain(
-      "setup-preferences-card"
-    );
-    expect(SETUP_WALKTHROUGH_LAYOUT_TOKENS.classicPreferenceCard).toContain(
-      "bg-bg-1"
-    );
-    expect(SETUP_WALKTHROUGH_LAYOUT_TOKENS.classicPreferenceControl).toBe(
-      "w-full"
     );
     expect(SETUP_WALKTHROUGH_LAYOUT_TOKENS.choiceGrid).toBe(
       "max-sm:!grid-cols-1"
     );
+  });
+
+  it("keeps the compact product preview focused on its primary workspace", () => {
+    const {
+      codeEditor,
+      codeLine,
+      codePanel,
+      composer,
+      contentArea,
+      contentAreaSplit,
+      navigation,
+      summaryList,
+      workspace,
+      workspacePanel,
+    } = SETUP_APPLICATION_PREVIEW_TOKENS;
+
+    expect(navigation).toContain("w-12");
+    expect(contentArea).toContain("grid-cols-1");
+    expect(contentAreaSplit).toContain("grid-cols-2");
+    expect(contentAreaSplit).toContain("overflow-hidden");
+    expect(workspace).toContain("overflow-hidden");
+    expect(codePanel).toContain("overflow-hidden");
+    expect(workspacePanel).toContain("items-center");
+    expect(workspacePanel).toContain("justify-center");
+    expect(composer).toContain("max-w-xs");
+    expect(summaryList).toContain("max-w-xs");
+    expect(codeEditor).toContain("justify-evenly");
+    expect(codeEditor).toContain("text-left");
+    expect(codeLine).toContain("whitespace-nowrap");
+    expect(codeLine).toContain("[&>code]:text-left");
   });
 });

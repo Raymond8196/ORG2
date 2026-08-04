@@ -17,6 +17,9 @@ import { SIDEBAR_GUIDE_MILESTONE } from "../sidebarGuideProgress";
 
 const mocks = vi.hoisted(() => ({
   close: vi.fn(),
+  engineOptions: vi.fn(),
+  isPositioned: true,
+  setIsOpen: vi.fn(),
   toggle: vi.fn(),
 }));
 
@@ -25,15 +28,19 @@ vi.mock("react-i18next", () => ({
 }));
 
 vi.mock("@src/hooks/dropdown", () => ({
-  useDropdownEngine: () => ({
-    isOpen: true,
-    isPositioned: true,
-    toggle: mocks.toggle,
-    close: mocks.close,
-    triggerRef: { current: null },
-    panelRef: { current: null },
-    panelPosition: { top: 32, left: 8 },
-  }),
+  useDropdownEngine: (options: unknown) => {
+    mocks.engineOptions(options);
+    return {
+      isOpen: true,
+      isPositioned: mocks.isPositioned,
+      setIsOpen: mocks.setIsOpen,
+      toggle: mocks.toggle,
+      close: mocks.close,
+      triggerRef: { current: null },
+      panelRef: { current: null },
+      panelPosition: { bottom: 48, left: 8, right: 12 },
+    };
+  },
 }));
 
 vi.mock("@src/modules/WorkStation/shared", () => ({
@@ -49,37 +56,52 @@ describe("SidebarGuideButton", () => {
   let container: HTMLDivElement;
   let root: Root;
   const onStartSession = vi.fn();
-  const onSetUpTeam = vi.fn();
-  const onManageWork = vi.fn();
-  const onOpenTutorials = vi.fn();
+  const onAutoOpenConsumed = vi.fn();
+  const onConnectOrganization = vi.fn();
+  const onInviteTeammate = vi.fn();
+  const onViewTeamUsage = vi.fn();
+  const onExploreProduct = vi.fn();
   const onOpenQuickSetup = vi.fn();
+
+  const renderButton = async (
+    overrides: Partial<React.ComponentProps<typeof SidebarGuideButton>> = {}
+  ) => {
+    await act(async () => {
+      root.render(
+        React.createElement(SidebarGuideButton, {
+          completion: {
+            [SIDEBAR_GUIDE_MILESTONE.SESSION]: true,
+            [SIDEBAR_GUIDE_MILESTONE.ORGANIZATION]: false,
+            [SIDEBAR_GUIDE_MILESTONE.TEAMMATE]: false,
+            [SIDEBAR_GUIDE_MILESTONE.TEAM_USAGE]: false,
+            [SIDEBAR_GUIDE_MILESTONE.PRODUCT_TOUR]: false,
+          },
+          scopeLabel: "ORG2 OSS",
+          autoOpenRequested: false,
+          onAutoOpenConsumed,
+          onStartSession,
+          onConnectOrganization,
+          onInviteTeammate,
+          onViewTeamUsage,
+          onExploreProduct,
+          onOpenQuickSetup,
+          ...overrides,
+        })
+      );
+    });
+  };
 
   beforeAll(() => {
     reactActEnvironment.IS_REACT_ACT_ENVIRONMENT = true;
   });
 
   beforeEach(async () => {
+    mocks.isPositioned = true;
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
 
-    await act(async () => {
-      root.render(
-        React.createElement(SidebarGuideButton, {
-          completion: {
-            [SIDEBAR_GUIDE_MILESTONE.SESSION]: true,
-            [SIDEBAR_GUIDE_MILESTONE.TEAM]: false,
-            [SIDEBAR_GUIDE_MILESTONE.WORK]: false,
-          },
-          scopeLabel: "ORG2 OSS",
-          onStartSession,
-          onSetUpTeam,
-          onManageWork,
-          onOpenTutorials,
-          onOpenQuickSetup,
-        })
-      );
-    });
+    await renderButton();
   });
 
   afterEach(() => {
@@ -92,7 +114,14 @@ describe("SidebarGuideButton", () => {
     Reflect.deleteProperty(reactActEnvironment, "IS_REACT_ACT_ENVIRONMENT");
   });
 
-  it("renders a persistent top-bar trigger and the four guide actions", () => {
+  it("renders a persistent bottom-bar trigger and opens the guide upward", () => {
+    expect(mocks.engineOptions).toHaveBeenCalledWith(
+      expect.objectContaining({
+        defaultOpen: true,
+        placement: "top",
+        align: "right",
+      })
+    );
     expect(
       document.querySelector('[data-testid="sidebar-guide-trigger"]')
     ).not.toBeNull();
@@ -100,32 +129,77 @@ describe("SidebarGuideButton", () => {
       document.querySelector('[data-testid="sidebar-guide-panel"]')
     ).not.toBeNull();
 
+    const panel = document.querySelector<HTMLElement>(
+      '[data-testid="sidebar-guide-panel"]'
+    );
+    expect(panel?.style.bottom).toBe("48px");
+    expect(panel?.style.right).toBe("12px");
+    expect(panel?.style.left).toBe("");
+
     const labels = Array.from(
-      document.querySelectorAll('[role="menuitem"]')
-    ).map((item) => item.textContent);
+      document.querySelectorAll<HTMLElement>('[role="menuitem"]')
+    ).map((item) => item.children.item(1)?.textContent);
     expect(labels).toEqual([
       "sidebar.guide.startSession",
-      "sidebar.guide.setUpTeam",
-      "sidebar.guide.manageWork",
-      "sidebar.guide.openTutorials",
+      "sidebar.guide.connectOrganization",
+      "sidebar.guide.inviteTeammate",
+      "sidebar.guide.viewTeamActivity",
+      "sidebar.guide.exploreProduct",
     ]);
     expect(
       document
         .querySelector('[role="progressbar"]')
         ?.getAttribute("aria-valuenow")
-    ).toBe("33");
+    ).toBe("20");
     expect(document.body.textContent).toContain("ORG2 OSS");
+  });
+
+  it("labels only the first incomplete milestone as the next step", () => {
+    const nextStepRows = Array.from(
+      document.querySelectorAll<HTMLElement>('[role="menuitem"]')
+    ).filter((item) => item.textContent?.includes("sidebar.guide.nextStep"));
+
+    expect(nextStepRows).toHaveLength(1);
+    expect(nextStepRows[0]?.dataset.testid).toBe(
+      "sidebar-guide-task-organization"
+    );
+    expect(nextStepRows[0]?.className).toContain("bg-primary-6/5");
+    expect(nextStepRows[0]?.className).not.toContain("bg-fill-2");
+  });
+
+  it("mounts the panel invisibly until its measured position is ready", async () => {
+    mocks.isPositioned = false;
+    await renderButton();
+
+    const measuringPanel = document.querySelector<HTMLElement>(
+      '[data-testid="sidebar-guide-panel"]'
+    );
+    expect(measuringPanel).not.toBeNull();
+    expect(measuringPanel?.style.visibility).toBe("hidden");
+    expect(measuringPanel?.style.pointerEvents).toBe("none");
+    expect(measuringPanel?.getAttribute("aria-hidden")).toBe("true");
+
+    mocks.isPositioned = true;
+    await renderButton();
+
+    const positionedPanel = document.querySelector<HTMLElement>(
+      '[data-testid="sidebar-guide-panel"]'
+    );
+    expect(positionedPanel?.style.visibility).toBe("");
+    expect(positionedPanel?.style.pointerEvents).toBe("");
+    expect(positionedPanel?.getAttribute("aria-hidden")).toBe("false");
   });
 
   it.each([
     ["sidebar.guide.startSession", onStartSession],
-    ["sidebar.guide.setUpTeam", onSetUpTeam],
-    ["sidebar.guide.manageWork", onManageWork],
-    ["sidebar.guide.openTutorials", onOpenTutorials],
+    ["sidebar.guide.connectOrganization", onConnectOrganization],
+    ["sidebar.guide.inviteTeammate", onInviteTeammate],
+    ["sidebar.guide.viewTeamActivity", onViewTeamUsage],
+    ["sidebar.guide.exploreProduct", onExploreProduct],
   ])("closes before running %s", (label, action) => {
     const item = Array.from(
       document.querySelectorAll<HTMLElement>('[role="menuitem"]')
-    ).find((candidate) => candidate.textContent === label);
+    ).find((candidate) => candidate.textContent?.startsWith(label));
 
     expect(item).toBeDefined();
     act(() => item?.click());
@@ -150,5 +224,23 @@ describe("SidebarGuideButton", () => {
     expect(mocks.close.mock.invocationCallOrder[0]).toBeLessThan(
       onOpenQuickSetup.mock.invocationCallOrder[0]
     );
+  });
+
+  it("stays collapsible after opening by default", () => {
+    const collapseButton = document.querySelector<HTMLButtonElement>(
+      'button[aria-label="sidebar.guide.close"]'
+    );
+
+    expect(collapseButton).not.toBeNull();
+    act(() => collapseButton?.click());
+
+    expect(mocks.close).toHaveBeenCalledOnce();
+  });
+
+  it("consumes a pending handoff after requesting the panel to open", async () => {
+    await renderButton({ autoOpenRequested: true });
+
+    expect(mocks.setIsOpen).toHaveBeenCalledWith(true);
+    expect(onAutoOpenConsumed).toHaveBeenCalledOnce();
   });
 });

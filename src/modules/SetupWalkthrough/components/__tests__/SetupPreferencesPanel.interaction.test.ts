@@ -14,6 +14,11 @@ import {
 
 import SetupPreferencesPanel from "../SetupPreferencesPanel";
 
+const mocks = vi.hoisted(() => ({
+  handleAppearanceModeChange: vi.fn(),
+  setPrimaryColorPreset: vi.fn(),
+}));
+
 interface MockSelectOption {
   label: string;
   value: string;
@@ -34,14 +39,17 @@ vi.mock("react-i18next", () => ({
 vi.mock("@src/modules/MainApp/Settings/sections/useAppearanceState", () => ({
   useAppearanceState: () => ({
     appearanceMode: "dark",
-    appearanceModeOptions: [{ label: "Dark", value: "dark" }],
-    globalThemeId: "orgii-dark",
-    handleAppearanceModeChange: vi.fn(),
-    handleThemeChange: vi.fn(),
-    primaryColorOptions: [{ label: "Blue", value: "blue" }],
+    appearanceModeOptions: [
+      { label: "Dark", value: "dark" },
+      { label: "Light", value: "light" },
+    ],
+    handleAppearanceModeChange: mocks.handleAppearanceModeChange,
+    primaryColorOptions: [
+      { label: "Blue", value: "blue" },
+      { label: "Orange", value: "orange" },
+    ],
     primaryColorPreset: "blue",
-    setPrimaryColorPreset: vi.fn(),
-    themeOptions: [{ label: "ORGII Dark", value: "orgii-dark" }],
+    setPrimaryColorPreset: mocks.setPrimaryColorPreset,
   }),
 }));
 
@@ -80,7 +88,7 @@ vi.mock("@src/components/Select", () => ({
     ),
 }));
 
-describe("SetupPreferencesPanel presentation switching", () => {
+describe("SetupPreferencesPanel interactions", () => {
   let container: HTMLDivElement;
   let root: Root;
   const actEnvironment = globalThis as typeof globalThis & {
@@ -100,13 +108,14 @@ describe("SetupPreferencesPanel presentation switching", () => {
   afterEach(() => {
     act(() => root.unmount());
     container.remove();
+    vi.clearAllMocks();
   });
 
   afterAll(() => {
     Reflect.deleteProperty(actEnvironment, "IS_REACT_ACT_ENVIRONMENT");
   });
 
-  it("switches presentations without resetting preference values or callbacks", async () => {
+  it("writes essential preferences through canonical callbacks and finishes", async () => {
     const onComplete = vi.fn();
 
     await act(async () => {
@@ -119,43 +128,25 @@ describe("SetupPreferencesPanel presentation switching", () => {
       );
     });
 
-    const presentation = container.querySelector<HTMLSelectElement>(
-      '[data-testid="setup-presentation"]'
+    const appearance = container.querySelector<HTMLSelectElement>(
+      '[data-testid="setup-appearance-mode"]'
     );
-    expect(presentation?.value).toBe("native");
-    expect(
-      container.querySelector('[data-testid="setup-presentation-native"]')
-    ).not.toBeNull();
+    const color = container.querySelector<HTMLSelectElement>(
+      '[data-testid="setup-primary-color"]'
+    );
+    act(() => {
+      if (!appearance) return;
+      appearance.value = "light";
+      appearance.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    expect(mocks.handleAppearanceModeChange).toHaveBeenCalledWith("light");
 
     act(() => {
-      if (!presentation) return;
-      presentation.value = "classic";
-      presentation.dispatchEvent(new Event("change", { bubbles: true }));
+      if (!color) return;
+      color.value = "orange";
+      color.dispatchEvent(new Event("change", { bubbles: true }));
     });
-
-    expect(
-      container.querySelector('[data-testid="setup-presentation-classic"]')
-    ).not.toBeNull();
-    expect(
-      container.querySelector<HTMLSelectElement>(
-        '[data-testid="setup-appearance-mode"]'
-      )?.value
-    ).toBe("dark");
-
-    act(() => {
-      if (!presentation) return;
-      presentation.value = "cinematic";
-      presentation.dispatchEvent(new Event("change", { bubbles: true }));
-    });
-
-    expect(
-      container.querySelector('[data-testid="setup-presentation-cinematic"]')
-    ).not.toBeNull();
-    expect(
-      container.querySelector<HTMLSelectElement>(
-        '[data-testid="setup-appearance-mode"]'
-      )?.value
-    ).toBe("dark");
+    expect(mocks.setPrimaryColorPreset).toHaveBeenCalledWith("orange");
 
     act(() => {
       container
@@ -163,15 +154,9 @@ describe("SetupPreferencesPanel presentation switching", () => {
         ?.click();
     });
     expect(onComplete).toHaveBeenCalledOnce();
-
-    act(() => {
-      if (!presentation) return;
-      presentation.value = "native";
-      presentation.dispatchEvent(new Event("change", { bubbles: true }));
-    });
-
     expect(
-      container.querySelector('[data-testid="setup-presentation-native"]')
-    ).not.toBeNull();
+      container.querySelector('[data-testid="setup-presentation"]')
+    ).toBeNull();
+    expect(container.querySelector('[data-testid="setup-theme"]')).toBeNull();
   });
 });

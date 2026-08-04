@@ -78,6 +78,8 @@
     },
     "presentation": {
       "label": "Layout-Vorschau",
+      "compact": "Aktuelle Kompaktversion",
+      "mascot": "Version mit Maskottchen",
       "native": "App-nativ",
       "cinematic": "Filmische Karte",
       "classic": "Klassisches Panel"
@@ -264,6 +266,10 @@
         "chat-panel": {
           "title": "Chat-Panel",
           "body": "Hier führen Benutzer Gespräche mit Agenten, überprüfen Aktivitäten und senden Folgeanweisungen."
+        },
+        "runtime": {
+          "title": "Laufzeit",
+          "body": "Hier siehst du deine Nutzung und den Laufzeitstatus. In einer Organisation kannst du außerdem den Synchronisierungsstatus der Mitglieder prüfen und ihre Codex-, Claude- und Cursor-Nutzung öffnen."
         },
         "station-mode-pill": {
           "title": "Wechseln Sie die Station Modi",

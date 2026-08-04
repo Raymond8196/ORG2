@@ -78,6 +78,8 @@
     },
     "presentation": {
       "label": "레이아웃 미리보기",
+      "compact": "현재 간결한 버전",
+      "mascot": "마스코트 버전",
       "native": "앱 기본",
       "cinematic": "시네마틱 카드",
       "classic": "클래식 패널"
@@ -264,6 +266,10 @@
         "chat-panel": {
           "title": "채팅 패널",
           "body": "여기서 사용자는 에이전트와 대화하고, 활동을 검토하고, 후속 조치를 보냅니다. 지침."
+        },
+        "runtime": {
+          "title": "런타임",
+          "body": "여기에서 개인 사용량과 실행 상태를 확인하세요. 조직에서는 멤버 동기화 상태를 확인하고 Codex, Claude, Cursor 사용량 상세 정보를 열 수도 있습니다."
         },
         "station-mode-pill": {
           "title": "스테이션 모드 전환",

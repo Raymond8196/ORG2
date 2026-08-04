@@ -110,6 +110,8 @@
     },
     "presentation": {
       "label": "Preview layout",
+      "compact": "Current compact version",
+      "mascot": "Version with mascot",
       "native": "App native",
       "cinematic": "Cinematic card",
       "classic": "Classic panel"
@@ -296,6 +298,10 @@
         "chat-panel": {
           "title": "Chat Panel",
           "body": "This is where users have conversations with agents, review activity, and send follow-up instructions."
+        },
+        "runtime": {
+          "title": "Runtime",
+          "body": "View your own usage and runtime status here. In an organization, you can also inspect member sync status and open a member to review Codex, Claude, and Cursor usage."
         },
         "station-mode-pill": {
           "title": "Switch station modes",

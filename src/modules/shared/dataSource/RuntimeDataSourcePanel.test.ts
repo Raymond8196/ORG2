@@ -19,6 +19,8 @@ import {
   org2CloudOrgsLoadedAtom,
   sidebarActiveCloudOrgIdAtom,
 } from "@src/features/Org2Cloud/org2CloudOrgsAtom";
+import { GUIDE_TARGETS } from "@src/scaffold/Tutorials/guideTargets";
+import { runtimeNavigationIntentAtom } from "@src/store/ui/runtimeNavigationAtom";
 
 import RuntimeDataSourcePanel from ".";
 
@@ -193,6 +195,7 @@ describe("RuntimeDataSourcePanel", () => {
     store.set(org2CloudOrgsAtom, []);
     store.set(org2CloudOrgsLoadedAtom, true);
     store.set(sidebarActiveCloudOrgIdAtom, null);
+    store.set(runtimeNavigationIntentAtom, null);
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -356,5 +359,76 @@ describe("RuntimeDataSourcePanel", () => {
         .querySelector('[data-testid="runtime-section-org-sync"]')
         ?.getAttribute("data-org-id")
     ).toBe("org-1");
+  });
+
+  it("consumes a guide intent and opens the requested organization's Members view", async () => {
+    await act(async () => {
+      store.set(org2CloudAuthAtom, {
+        kind: "org2_cloud",
+        supabaseUrl: "https://cloud.example",
+        supabaseAnonKey: "anon",
+        userId: "me",
+        accessToken: "token",
+        refreshToken: "refresh",
+        expiresAt: Math.floor(Date.now() / 1000) + 3600,
+      });
+      store.set(org2CloudOrgsAtom, [
+        { orgId: "org-1", name: "Example Team", role: "member" },
+      ]);
+      store.set(runtimeNavigationIntentAtom, {
+        requestId: 42,
+        orgId: "org-1",
+        view: "members",
+      });
+    });
+    await act(async () => {
+      await vi.dynamicImportSettled();
+      await Promise.resolve();
+    });
+
+    expect(
+      container
+        .querySelector('[data-testid="data-source-view-org-members"]')
+        ?.getAttribute("data-active")
+    ).toBe("true");
+    expect(
+      container
+        .querySelector('[data-testid="runtime-section-organization"]')
+        ?.getAttribute("data-org-id")
+    ).toBe("org-1");
+    expect(
+      container
+        .querySelector('[data-testid="runtime-section-organization"]')
+        ?.getAttribute("data-view")
+    ).toBe("members");
+    expect(
+      container.querySelector(
+        `[data-guide-target="${GUIDE_TARGETS.TEAM_RUNTIME_TABS}"]`
+      )
+    ).not.toBeNull();
+    expect(store.get(runtimeNavigationIntentAtom)).toBeNull();
+  });
+
+  it("drops an intent for a removed organization without changing the personal view", async () => {
+    await act(async () => {
+      store.set(runtimeNavigationIntentAtom, {
+        requestId: 43,
+        orgId: "removed-org",
+        view: "members",
+      });
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(
+      container.querySelector('[data-testid="runtime-section-usage"]')
+    ).not.toBeNull();
+    expect(
+      container.querySelector(
+        `[data-guide-target="${GUIDE_TARGETS.TEAM_RUNTIME_TABS}"]`
+      )
+    ).toBeNull();
+    expect(store.get(runtimeNavigationIntentAtom)).toBeNull();
   });
 });

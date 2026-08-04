@@ -10,6 +10,7 @@ import {
 import React from "react";
 
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
+import { GENERAL_LAYOUT_TOUR_TARGETS } from "@src/scaffold/Tutorials/generalLayoutTourConfig";
 import type { SessionCreatorDraft } from "@src/store/session";
 import { resolveSessionRowIcon } from "@src/util/session/sessionSidebarRow";
 import { formatRelativeTime } from "@src/util/time/formatRelativeTime";
@@ -79,6 +80,7 @@ export function buildPinnedMenuItems({
       icon: Gauge,
       iconName: "gauge",
       dataTestId: "sidebar-runtime",
+      tourTarget: GENERAL_LAYOUT_TOUR_TARGETS.runtimeNavigation,
     },
     {
       id: TEAM_INBOX_MENU_ITEM_ID,

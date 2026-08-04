@@ -1,6 +1,8 @@
 import type React from "react";
 import { describe, expect, it } from "vitest";
 
+import { GENERAL_LAYOUT_TOUR_TARGETS } from "@src/scaffold/Tutorials/generalLayoutTourConfig";
+
 import {
   KANBAN_MENU_ITEM_ID,
   RUNTIME_MENU_ITEM_ID,
@@ -36,6 +38,7 @@ describe("buildPinnedMenuItems", () => {
     expect(items[2]).toMatchObject({
       label: "Runtime",
       dataTestId: "sidebar-runtime",
+      tourTarget: GENERAL_LAYOUT_TOUR_TARGETS.runtimeNavigation,
     });
     expect(items[0]?.openContextMenuOnSelectedClick).toBeUndefined();
   });

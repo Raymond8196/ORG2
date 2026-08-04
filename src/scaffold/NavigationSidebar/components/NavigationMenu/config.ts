@@ -87,6 +87,8 @@ export interface NavigationMenuItem {
   shortcut?: string;
   disabled?: boolean;
   dataTestId?: string;
+  /** Stable target consumed by an in-product guided tour. */
+  tourTarget?: string;
   /**
    * When set, the row becomes draggable. Dropping it onto a chat input or
    * session creator inserts a context pill using the existing tab-drag-end

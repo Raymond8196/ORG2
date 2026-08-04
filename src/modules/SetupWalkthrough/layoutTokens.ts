@@ -1,12 +1,4 @@
-import {
-  HOST_DESKTOP,
-  type HostDesktop,
-  resolveHostDesktop,
-} from "@src/config/windowChromeRadius";
-import { WINDOW_CHROME_TOKENS } from "@src/config/windowChromeTokens";
 import { TYPOGRAPHY } from "@src/config/workstation/tokens";
-import { DETAIL_PANEL_TOKENS } from "@src/modules/shared/layouts/blocks";
-import { DEFAULT_SIDEBAR_WIDTH } from "@src/store/ui/sidebarAtom";
 
 /**
  * Feature composition tokens for the full-screen setup surface.
@@ -16,91 +8,85 @@ import { DEFAULT_SIDEBAR_WIDTH } from "@src/store/ui/sidebarAtom";
  * are not rebuilt across JSX and SCSS.
  */
 export const SETUP_WALKTHROUGH_LAYOUT_TOKENS = {
-  shell: "setup-walkthrough-ambient !overflow-hidden !bg-bg-2 !p-0",
-  card: "setup-walkthrough-card !mx-auto !max-h-none !w-full !max-w-screen-2xl !rounded-none !border-0 !bg-transparent !shadow-none",
-  sidebar:
-    "!hidden !max-w-none !basis-5/12 !shrink-0 !items-stretch !justify-stretch !bg-transparent !p-0 lg:!flex",
-  sidebarContent: "relative flex h-full w-full flex-col overflow-hidden",
-  brandRow: "flex items-center gap-3",
+  shell:
+    "setup-walkthrough-ambient !flex !items-center !justify-center !overflow-hidden !bg-bg-2 !p-0",
+  card: "setup-walkthrough-card !mx-auto !h-5/6 !max-h-none !w-full !max-w-6xl !overflow-hidden !rounded-2xl !border !border-solid !border-border-1 !bg-bg-1 !shadow-xl",
+  heroBrandRow: "flex items-center gap-3",
   brandLogo: "rounded-xl",
-  brandCopy: "min-w-0",
-  brandTitleRow: "flex items-center gap-2",
   brandTitle: `${TYPOGRAPHY.statistic} tracking-tight text-text-1`,
-  brandTag: `${TYPOGRAPHY.badge} uppercase tracking-wide text-text-3`,
-  brandDescription: "max-w-52",
-  progress: "mt-6",
-  progressLabel: `mb-2 flex items-center justify-between gap-3 ${TYPOGRAPHY.contentSubtitle}`,
-  progressLabelText: "font-medium text-text-2",
-  navigation: "mt-5",
-  hero: "relative flex h-full w-full flex-col px-10 pb-0 pt-20 xl:px-20 xl:pt-24",
-  heroCopy: "relative z-10 mt-20 max-w-lg xl:mt-24",
+  sidebar:
+    "setup-walkthrough-preview-panel !hidden !max-w-none !basis-5/12 !shrink-0 !items-stretch !justify-stretch !p-0 sm:!flex",
+  sidebarContent:
+    "relative flex h-full w-full flex-col overflow-hidden sm:z-10",
+  hero: "relative flex h-full w-full flex-col px-8 pb-0 pt-8 lg:px-10 lg:pt-10",
+  heroCopy: "relative z-10 mt-10 max-w-lg lg:mt-14",
   heroTitle:
-    "m-0 text-4xl font-semibold leading-tight tracking-tight text-text-1 xl:text-6xl",
+    "m-0 text-3xl font-semibold leading-tight tracking-tight text-text-1 xl:text-4xl",
   heroBrandAccent: "setup-walkthrough-brand-accent",
   heroDescription:
-    "mt-5 max-w-md text-base leading-7 text-text-2 xl:text-lg xl:leading-8",
-  heroVisual: "relative mt-auto min-h-72 flex-1",
-  heroPlanet: "setup-walkthrough-planet absolute inset-x-0 bottom-0 h-40",
+    "mt-4 max-w-md text-sm leading-6 text-text-2 xl:text-base xl:leading-7",
+  heroVisual: "relative mt-auto min-h-64 flex-1",
+  heroPlanet: "setup-walkthrough-planet absolute bottom-0 h-40",
   heroMascot:
-    "setup-walkthrough-mascot absolute bottom-10 left-1/2 h-64 w-auto -translate-x-1/2 object-contain xl:h-80",
-  main: "!min-w-0 !bg-transparent !p-0",
+    "setup-walkthrough-mascot absolute bottom-8 left-1/2 h-56 w-auto -translate-x-1/2 object-contain xl:h-64",
+  appPreviewWrap: "flex h-full items-end pb-8",
+  main: "setup-walkthrough-main-panel !min-w-0 !p-0",
   mainContent:
     "relative flex h-full w-full flex-col items-center justify-center overflow-y-auto px-5 py-16 sm:px-8 lg:px-10 xl:px-12",
-  mobileProgress: `absolute left-5 top-16 flex items-center gap-3 text-text-1 sm:left-10 lg:hidden ${TYPOGRAPHY.secondary}`,
-  mobileProgressTitle: "font-semibold tracking-tight",
-  contentScroll: "contents",
+  mobileBrand: `absolute left-5 top-16 flex items-center gap-3 text-text-1 sm:left-10 lg:hidden ${TYPOGRAPHY.secondary}`,
+  mobileBrandTitle: "font-semibold tracking-tight",
   stepFrame:
     "animate-fade-in flex w-full justify-center motion-reduce:animate-none",
-  presentationStack: "flex w-full flex-col items-center gap-3",
-  presentationToolbar: `${DETAIL_PANEL_TOKENS.contentWidth} flex justify-end`,
-  presentationField: "w-full max-w-xs",
-  nativePreferenceList: "!bg-transparent",
-  classicPreferenceCard:
-    "w-full max-w-2xl rounded-2xl border border-border-1 bg-bg-1 shadow-sm",
-  classicPreferenceContent: "!max-w-none gap-5 px-6 py-6 sm:px-8 [&>div]:gap-4",
-  classicPreferenceList:
+  preferenceContent: "!max-w-none gap-5 [&>div]:gap-4",
+  preferenceList:
     "!rounded-none !border-0 !bg-transparent !px-0 [&>.section-layout-row]:after:!inset-x-0",
-  classicPreferenceRow: "!min-h-0 !py-3",
-  classicPreferenceControl: "w-full",
-  cinematicPreferenceCard:
-    "setup-preferences-card w-full max-w-2xl rounded-3xl p-6 sm:p-8",
-  cinematicPreferenceContent:
-    "!max-w-none gap-7 [&_h1]:!text-xl [&_h1]:!leading-7 [&>header]:items-center [&>header]:gap-4 [&>div]:gap-5",
-  cinematicPreferenceList:
-    "!flex !flex-col !gap-3 !border-0 !bg-transparent !p-0 [&>.section-layout-row]:after:!hidden",
-  cinematicPreferenceRow:
-    "setup-preference-row !min-h-16 rounded-xl !px-4 !py-3 sm:!min-h-20 sm:!px-5",
-  cinematicPreferenceLabel: "flex items-center gap-3 font-medium text-text-1",
-  cinematicPreferenceIcon:
-    "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-text-2",
-  cinematicPreferenceControl: "w-full sm:w-56",
-  cinematicPreferenceCta: "setup-preference-cta !h-12 !rounded-xl",
-  cinematicPreferenceSecondary: "self-center",
-  footer: "",
+  preferenceRow: "!min-h-14 !py-2.5",
+  preferenceControl: "w-full @[480px]:w-56",
   choiceGrid: "max-sm:!grid-cols-1",
 } as const;
 
+export const SETUP_APPLICATION_PREVIEW_TOKENS = {
+  root: "setup-walkthrough-app-preview mx-auto w-full max-w-md select-none overflow-hidden rounded-xl border border-border-1 bg-bg-1 text-xs text-text-1 shadow-lg",
+  windowBar:
+    "relative flex h-7 items-center gap-1.5 border-b border-border-1 bg-bg-2 px-3",
+  windowDot: "h-1.5 w-1.5 rounded-full bg-fill-4",
+  windowTitle: "absolute left-1/2 -translate-x-1/2 font-medium text-text-3",
+  body: "flex h-52 min-h-0 bg-bg-1",
+  navigation:
+    "flex w-12 shrink-0 flex-col items-center border-r border-border-1 bg-bg-2 py-2",
+  navigationBrand: "mb-1 flex items-center justify-center text-text-1",
+  navigationList:
+    "mt-1 flex flex-col items-center gap-1 border-t border-border-1 pt-1.5",
+  navigationButton: "!h-7 !w-7 !p-0 !text-text-3",
+  navigationButtonSelected: "!h-7 !w-7 !bg-primary-1 !p-0 !text-primary-6",
+  contentArea: "grid min-w-0 flex-1 grid-cols-1 overflow-hidden",
+  contentAreaSplit: "grid min-w-0 flex-1 grid-cols-2 overflow-hidden",
+  workspace: "relative flex min-w-0 overflow-hidden flex-col bg-bg-1",
+  filesToggle:
+    "!absolute !right-2 !top-0.5 !z-10 !h-6 !w-6 !rounded-md !text-text-3",
+  workspacePanel:
+    "animate-fade-in flex min-h-0 flex-1 flex-col items-center justify-center px-5 py-4 motion-reduce:animate-none",
+  agentHeading: "mb-3 block text-center text-sm font-semibold text-text-1",
+  composer: "!mx-auto !w-full !max-w-xs !gap-2 !p-2",
+  composerPrompt: "truncate px-1 py-1 text-left text-text-3",
+  composerBar: "flex items-center justify-between",
+  summaryHeading:
+    "mb-3 flex items-center justify-center gap-2 text-sm text-text-1",
+  summaryList: "mx-auto flex w-full max-w-xs flex-col gap-1.5",
+  summaryRow:
+    "flex min-w-0 items-center gap-2 rounded-lg border border-border-1 bg-bg-2 px-2.5 py-2",
+  summaryRowText:
+    "flex min-w-0 flex-1 flex-col text-left [&>strong]:truncate [&>span]:truncate [&>span]:text-text-3",
+  codePanel:
+    "animate-fade-in flex min-w-0 overflow-hidden border-l border-border-1 bg-bg-1 motion-reduce:animate-none",
+  codeEditor:
+    "flex min-w-0 flex-1 flex-col justify-evenly overflow-hidden py-2 text-left font-mono",
+  codeLine:
+    "flex items-start gap-1 whitespace-nowrap px-2 text-text-3 [&>code]:min-w-0 [&>code]:flex-1 [&>code]:text-left [&>span]:w-4 [&>span]:shrink-0 [&>span]:text-right [&>span]:text-text-4",
+} as const;
+
 export const SETUP_WALKTHROUGH_HERO_PANEL_STYLE: React.CSSProperties = {
-  flex: "0 0 46%",
-  width: "46%",
+  flex: "0 0 43%",
+  width: "43%",
   maxWidth: "none",
 };
-
-export interface SetupSidebarLayout {
-  panelWidth: number;
-  contentTopInset: number;
-}
-
-/**
- * Resolves setup-shell dimensions from the same sidebar and window-chrome
- * tokens used by the main application shell.
- */
-export function resolveSetupSidebarLayout(
-  host: HostDesktop = resolveHostDesktop()
-): SetupSidebarLayout {
-  return {
-    panelWidth: DEFAULT_SIDEBAR_WIDTH,
-    contentTopInset:
-      host === HOST_DESKTOP.MACOS ? WINDOW_CHROME_TOKENS.titleBarHeight : 0,
-  };
-}

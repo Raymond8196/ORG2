@@ -9,8 +9,8 @@ import type { TFunction } from "i18next";
 import { Minus, Square, X } from "lucide-react";
 import React, { memo, useCallback, useMemo, useSyncExternalStore } from "react";
 
-import i18n from "@src/i18n";
 import { SETUP_WALKTHROUGH_TEST_MENU_EVENT } from "@src/config/keyboard/setupWalkthroughShortcut";
+import i18n from "@src/i18n";
 import {
   closeWindow,
   maxWindow,

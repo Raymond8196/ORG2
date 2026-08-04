@@ -1,11 +1,14 @@
 import {
+  BarChart3,
   CheckCircle2,
   ChevronUp,
   Circle,
-  CircleHelp,
+  ListChecks,
+  Map,
   MoreHorizontal,
+  UserPlus,
 } from "lucide-react";
-import React, { type FC, useCallback, useMemo } from "react";
+import React, { type FC, useCallback, useEffect, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
@@ -24,8 +27,6 @@ import { useDropdownEngine } from "@src/hooks/dropdown";
 import {
   OrganizationStepIcon,
   ReadyStepIcon,
-  TutorialStepIcon,
-  WorkModelStepIcon,
 } from "@src/modules/SetupWalkthrough/components/SetupStepIcons";
 import { WorkstationToolbarTooltip } from "@src/modules/WorkStation/shared";
 import type { WizardStepIcon } from "@src/scaffold/WizardSystem/primitives/WizardStepNavigation";
@@ -40,10 +41,13 @@ import {
 interface SidebarGuideButtonProps {
   completion: SidebarGuideCompletion;
   scopeLabel: string;
+  autoOpenRequested: boolean;
+  onAutoOpenConsumed: () => void;
   onStartSession: () => void;
-  onSetUpTeam: () => void;
-  onManageWork: () => void;
-  onOpenTutorials: () => void;
+  onConnectOrganization: () => void;
+  onInviteTeammate: () => void;
+  onViewTeamUsage: () => void;
+  onExploreProduct: () => void;
   onOpenQuickSetup: () => void;
 }
 
@@ -52,6 +56,7 @@ interface GuideTaskRowProps {
   current: boolean;
   icon: WizardStepIcon;
   label: string;
+  nextStepLabel: string;
   testId: string;
   onClick: () => void;
 }
@@ -61,6 +66,7 @@ const GuideTaskRow: FC<GuideTaskRowProps> = ({
   current,
   icon: TaskIcon,
   label,
+  nextStepLabel,
   testId,
   onClick,
 }) => (
@@ -75,8 +81,17 @@ const GuideTaskRow: FC<GuideTaskRowProps> = ({
         <Circle size={DROPDOWN_ITEM.iconSize} />
       )
     }
-    suffix={<TaskIcon size={DROPDOWN_ITEM.iconSize} />}
-    highlighted={current}
+    suffix={
+      <span className="flex items-center gap-1.5">
+        {current && (
+          <span className="rounded-full bg-primary-1 px-1.5 py-0.5 text-[10px] font-medium leading-none text-primary-6">
+            {nextStepLabel}
+          </span>
+        )}
+        <TaskIcon size={DROPDOWN_ITEM.iconSize} />
+      </span>
+    }
+    className={current ? "bg-primary-6/5" : undefined}
     role="menuitem"
     tabIndex={0}
     fullWidth
@@ -97,24 +112,29 @@ const GuideTaskRow: FC<GuideTaskRowProps> = ({
 const SidebarGuideButton: FC<SidebarGuideButtonProps> = ({
   completion,
   scopeLabel,
+  autoOpenRequested,
+  onAutoOpenConsumed,
   onStartSession,
-  onSetUpTeam,
-  onManageWork,
-  onOpenTutorials,
+  onConnectOrganization,
+  onInviteTeammate,
+  onViewTeamUsage,
+  onExploreProduct,
   onOpenQuickSetup,
 }) => {
   const { t } = useTranslation("navigation");
   const {
     isOpen,
     isPositioned,
+    setIsOpen,
     toggle,
     close,
     triggerRef,
     panelRef,
     panelPosition,
   } = useDropdownEngine<HTMLDivElement>({
-    placement: "bottom",
-    align: "left",
+    defaultOpen: true,
+    placement: "top",
+    align: "right",
     gap: DROPDOWN_PANEL.triggerGap,
     captureKeyboardFocus: true,
   });
@@ -122,7 +142,15 @@ const SidebarGuideButton: FC<SidebarGuideButtonProps> = ({
     () => getSidebarGuideProgress(completion),
     [completion]
   );
+  const autoOpenedRef = useRef(false);
   const scopeInitial = scopeLabel.trim().charAt(0).toLocaleUpperCase();
+
+  useEffect(() => {
+    if (!autoOpenRequested || autoOpenedRef.current) return;
+    autoOpenedRef.current = true;
+    setIsOpen(true);
+    onAutoOpenConsumed();
+  }, [autoOpenRequested, onAutoOpenConsumed, setIsOpen]);
 
   const runAction = useCallback(
     (action: () => void) => {
@@ -147,18 +175,32 @@ const SidebarGuideButton: FC<SidebarGuideButtonProps> = ({
       action: onStartSession,
     },
     {
-      milestone: SIDEBAR_GUIDE_MILESTONE.TEAM,
+      milestone: SIDEBAR_GUIDE_MILESTONE.ORGANIZATION,
       icon: OrganizationStepIcon,
-      label: t("sidebar.guide.setUpTeam"),
-      testId: "sidebar-guide-task-team",
-      action: onSetUpTeam,
+      label: t("sidebar.guide.connectOrganization"),
+      testId: "sidebar-guide-task-organization",
+      action: onConnectOrganization,
     },
     {
-      milestone: SIDEBAR_GUIDE_MILESTONE.WORK,
-      icon: WorkModelStepIcon,
-      label: t("sidebar.guide.manageWork"),
-      testId: "sidebar-guide-task-work",
-      action: onManageWork,
+      milestone: SIDEBAR_GUIDE_MILESTONE.TEAMMATE,
+      icon: UserPlus,
+      label: t("sidebar.guide.inviteTeammate"),
+      testId: "sidebar-guide-task-teammate",
+      action: onInviteTeammate,
+    },
+    {
+      milestone: SIDEBAR_GUIDE_MILESTONE.TEAM_USAGE,
+      icon: BarChart3,
+      label: t("sidebar.guide.viewTeamActivity"),
+      testId: "sidebar-guide-task-team-usage",
+      action: onViewTeamUsage,
+    },
+    {
+      milestone: SIDEBAR_GUIDE_MILESTONE.PRODUCT_TOUR,
+      icon: Map,
+      label: t("sidebar.guide.exploreProduct"),
+      testId: "sidebar-guide-task-product-tour",
+      action: onExploreProduct,
     },
   ];
 
@@ -166,7 +208,7 @@ const SidebarGuideButton: FC<SidebarGuideButtonProps> = ({
     <>
       <WorkstationToolbarTooltip
         label={t("sidebar.guide.trigger")}
-        position="bottom"
+        position="top"
         disabled={isOpen}
       >
         <div ref={triggerRef} className="inline-flex">
@@ -177,15 +219,15 @@ const SidebarGuideButton: FC<SidebarGuideButtonProps> = ({
             data-testid="sidebar-guide-trigger"
             size="lg"
             variant={isOpen ? "active" : "default"}
+            className={`rounded-full ${isOpen ? "" : "!text-text-2"}`}
             onClick={toggle}
           >
-            <CircleHelp size={HEADER_ICON_SIZE.md} />
+            <ListChecks size={HEADER_ICON_SIZE.md} strokeWidth={2} />
           </IconButton>
         </div>
       </WorkstationToolbarTooltip>
 
       {isOpen &&
-        isPositioned &&
         createPortal(
           <DropdownPanel
             ref={panelRef}
@@ -193,11 +235,18 @@ const SidebarGuideButton: FC<SidebarGuideButtonProps> = ({
             maxHeight="none"
             role="menu"
             aria-label={t("sidebar.guide.title")}
+            aria-hidden={!isPositioned}
             data-testid="sidebar-guide-panel"
             style={{
               top: panelPosition.top,
               bottom: panelPosition.bottom,
-              left: panelPosition.left,
+              left:
+                panelPosition.right === undefined
+                  ? panelPosition.left
+                  : undefined,
+              right: panelPosition.right,
+              visibility: isPositioned ? undefined : "hidden",
+              pointerEvents: isPositioned ? undefined : "none",
             }}
           >
             <div className="border-0 border-b border-solid border-border-2 px-3 pb-2 pt-2.5">
@@ -250,22 +299,11 @@ const SidebarGuideButton: FC<SidebarGuideButtonProps> = ({
                   current={progress.nextMilestone === task.milestone}
                   icon={task.icon}
                   label={task.label}
+                  nextStepLabel={t("sidebar.guide.nextStep")}
                   testId={task.testId}
                   onClick={() => runAction(task.action)}
                 />
               ))}
-              <div className={DROPDOWN_CLASSES.menuSeparator} />
-              <DropdownItem
-                icon={<Circle size={DROPDOWN_ITEM.iconSize} />}
-                suffix={<TutorialStepIcon size={DROPDOWN_ITEM.iconSize} />}
-                role="menuitem"
-                tabIndex={0}
-                fullWidth
-                dataTestId="sidebar-guide-task-tutorials"
-                onClick={() => runAction(onOpenTutorials)}
-              >
-                {t("sidebar.guide.openTutorials")}
-              </DropdownItem>
             </div>
 
             <div className="flex items-center gap-2 border-0 border-t border-solid border-border-2 px-3 py-2">

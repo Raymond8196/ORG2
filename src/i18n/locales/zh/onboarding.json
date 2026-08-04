@@ -110,6 +110,8 @@
     },
     "presentation": {
       "label": "预览样式",
+      "compact": "当前简洁版",
+      "mascot": "卡通人物版",
       "native": "App 原生",
       "cinematic": "沉浸卡片",
       "classic": "经典面板"
@@ -296,6 +298,10 @@
         "chat-panel": {
           "title": "聊天面板",
           "body": "在这里与 Agent 对话、查看活动，并发送后续指令。"
+        },
+        "runtime": {
+          "title": "运行时",
+          "body": "在这里查看个人用量与运行状态；切换到组织后，还可以查看成员同步状态，并进入成员详情查看 Codex、Claude 和 Cursor 用量。"
         },
         "station-mode-pill": {
           "title": "切换工作站模式",

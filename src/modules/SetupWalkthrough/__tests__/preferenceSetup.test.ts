@@ -21,6 +21,7 @@ describe("preference setup completion", () => {
       ...previous,
       currentStepId: PREFERENCE_SETUP_COMPLETION_ID,
       completedStepIds: ["tools", PREFERENCE_SETUP_COMPLETION_ID],
+      guideHandoff: "pending",
     });
   });
 

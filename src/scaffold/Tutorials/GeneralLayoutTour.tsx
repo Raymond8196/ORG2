@@ -23,7 +23,10 @@ import { useCurrentTheme } from "@src/util/ui/theme/themeUtils";
 import { getViewportSize } from "@src/util/ui/window/viewport";
 
 import { createAnimationFrameScheduler } from "./animationFrameScheduler";
-import { GENERAL_LAYOUT_TOUR_TARGETS } from "./generalLayoutTourConfig";
+import {
+  GENERAL_LAYOUT_TOUR_STEPS,
+  GENERAL_LAYOUT_TOUR_TARGETS,
+} from "./generalLayoutTourConfig";
 
 type GeneralLayoutTourTarget =
   (typeof GENERAL_LAYOUT_TOUR_TARGETS)[keyof typeof GENERAL_LAYOUT_TOUR_TARGETS];
@@ -49,42 +52,7 @@ interface GeneralLayoutTourProps {
   onClose: () => void;
 }
 
-const TOUR_STEPS: TourStep[] = [
-  {
-    id: "chat-panel",
-    target: GENERAL_LAYOUT_TOUR_TARGETS.chatPanel,
-  },
-  {
-    id: "station-mode-pill",
-    target: GENERAL_LAYOUT_TOUR_TARGETS.stationModePill,
-    stationMode: "my-station",
-    demoStationModeSwitch: true,
-  },
-  {
-    id: "dock",
-    target: GENERAL_LAYOUT_TOUR_TARGETS.dock,
-  },
-  {
-    id: "all-tabs",
-    target: GENERAL_LAYOUT_TOUR_TARGETS.dockAllTabs,
-    switchToMyStation: true,
-  },
-  {
-    id: "code-editor",
-    target: GENERAL_LAYOUT_TOUR_TARGETS.dockCodeEditor,
-    switchToMyStation: true,
-  },
-  {
-    id: "browser",
-    target: GENERAL_LAYOUT_TOUR_TARGETS.dockBrowser,
-    switchToMyStation: true,
-  },
-  {
-    id: "projects",
-    target: GENERAL_LAYOUT_TOUR_TARGETS.dockProjects,
-    switchToMyStation: true,
-  },
-];
+const TOUR_STEPS: readonly TourStep[] = GENERAL_LAYOUT_TOUR_STEPS;
 
 const POPOVER_WIDTH = 320;
 const VIEWPORT_PADDING = 16;
