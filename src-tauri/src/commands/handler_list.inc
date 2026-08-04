@@ -581,6 +581,7 @@ project_management::projects::commands::project_write_members,
 //   Work items (CRUD / atomic / batch) + assets.
 project_management::projects::commands::project_read_work_items,
 project_management::projects::commands::project_read_work_items_enriched,
+project_management::projects::commands::project_read_workspace_work_items_data,
 project_management::projects::commands::project_read_work_items_view_data,
 project_management::projects::commands::project_read_work_item,
 project_management::projects::commands::work_item_read_standalone_items,

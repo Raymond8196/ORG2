@@ -36,9 +36,40 @@ describe("WorkItemDetailHeaderBreadcrumb", () => {
     );
 
     expect(markup).toContain('data-integration-icon="github"');
-    expect(markup).toContain("ORG#128 ·");
+    expect(markup).toContain("ORG #128 ·");
     expect(markup).toContain(title);
     expect(markup).toContain('role="button"');
     expect(markup).toContain("flex-1 whitespace-nowrap");
+  });
+
+  it("preserves the full clickable parent hierarchy in detail views", () => {
+    const workItem = {
+      session_id: "work-item-1",
+      name: "Ship unified breadcrumbs",
+      status: "planned",
+      workItemStatus: "planned",
+    } as WorkItem;
+
+    const markup = renderToStaticMarkup(
+      React.createElement(WorkItemDetailHeaderBreadcrumb, {
+        workItem,
+        breadcrumbSegments: [
+          { label: "Projects", onClick: vi.fn() },
+          { label: "Navigation cleanup" },
+        ],
+        breadcrumbProjectName: "Navigation cleanup",
+        shortId: "ORG #42",
+        onClose: vi.fn(),
+        t: (key: string) => key,
+      })
+    );
+
+    expect(markup.indexOf("Projects")).toBeLessThan(
+      markup.indexOf("Navigation cleanup")
+    );
+    expect(markup.indexOf("Navigation cleanup")).toBeLessThan(
+      markup.indexOf("Ship unified breadcrumbs")
+    );
+    expect(markup.match(/role="button"/g)).toHaveLength(2);
   });
 });

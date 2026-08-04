@@ -15,13 +15,10 @@ import { PAGE_ICON_BUTTON } from "@src/components/SettingsTable/SettingsTablePag
 import TabPill, { type TabPillItem } from "@src/components/TabPill";
 import { CollapsibleSection } from "@src/modules/shared/layouts/blocks";
 
-export const GITHUB_WORK_ITEMS_SINGLE_ROW_MIN_WIDTH = 650;
-
-export function shouldUseSingleRowGitHubWorkItemsHeader(
-  containerWidth: number
-): boolean {
-  return containerWidth >= GITHUB_WORK_ITEMS_SINGLE_ROW_MIN_WIDTH;
-}
+export {
+  GITHUB_WORK_ITEMS_SINGLE_ROW_MIN_WIDTH,
+  shouldUseSingleRowGitHubWorkItemsHeader,
+} from "./githubWorkItemsLayout";
 
 export function GitHubWorkItemTableSurface({
   children,

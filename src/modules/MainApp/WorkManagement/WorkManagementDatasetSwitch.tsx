@@ -1,8 +1,8 @@
-import { CircleDot, GitPullRequest, ListTodo } from "lucide-react";
+import { Boxes, CircleDot, GitPullRequest, ListTodo } from "lucide-react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
-import TabPill, { type TabPillItem } from "@src/components/TabPill";
+import Select, { type SelectOption } from "@src/components/Select";
 
 import {
   WORK_MANAGEMENT_DATASET,
@@ -11,82 +11,70 @@ import {
 
 interface WorkManagementDatasetSwitchProps {
   activeDataset: WorkManagementDataset;
-  compact?: boolean;
   onChange: (dataset: WorkManagementDataset) => void;
-}
-
-function DatasetIcon({
-  label,
-  announceLabel,
-  children,
-}: {
-  label: string;
-  announceLabel: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <span className="flex items-center" title={label}>
-      {children}
-      {announceLabel ? <span className="sr-only">{label}</span> : null}
-    </span>
-  );
 }
 
 export function WorkManagementDatasetSwitch({
   activeDataset,
-  compact = false,
   onChange,
 }: WorkManagementDatasetSwitchProps): React.ReactNode {
   const { t } = useTranslation(["projects", "sessions"]);
+  const projectsLabel = t("projects:workspace.projects");
   const workItemsLabel = t("projects:workspace.workItems");
   const issuesLabel = t("sessions:kanban.sidebar.githubIssues");
   const reviewsLabel = t("sessions:kanban.sidebar.githubPrs");
-  const tabs = useMemo<TabPillItem[]>(
+  const options = useMemo<SelectOption[]>(
     () => [
       {
-        key: WORK_MANAGEMENT_DATASET.WORK_ITEMS,
+        value: WORK_MANAGEMENT_DATASET.PROJECTS,
+        label: projectsLabel,
+        triggerLabel: projectsLabel,
+        icon: <Boxes size={14} strokeWidth={1.9} aria-hidden="true" />,
+        dataTestId: "work-dataset-projects",
+      },
+      {
+        value: WORK_MANAGEMENT_DATASET.WORK_ITEMS,
         label: workItemsLabel,
-        icon: (
-          <DatasetIcon label={workItemsLabel} announceLabel={compact}>
-            <ListTodo size={14} strokeWidth={1.9} aria-hidden="true" />
-          </DatasetIcon>
-        ),
+        triggerLabel: workItemsLabel,
+        icon: <ListTodo size={14} strokeWidth={1.9} aria-hidden="true" />,
         dataTestId: "work-dataset-work-items",
       },
       {
-        key: WORK_MANAGEMENT_DATASET.GITHUB_ISSUES,
+        value: WORK_MANAGEMENT_DATASET.GITHUB_ISSUES,
         label: issuesLabel,
-        icon: (
-          <DatasetIcon label={issuesLabel} announceLabel={compact}>
-            <CircleDot size={14} strokeWidth={1.9} aria-hidden="true" />
-          </DatasetIcon>
-        ),
+        triggerLabel: issuesLabel,
+        icon: <CircleDot size={14} strokeWidth={1.9} aria-hidden="true" />,
         dataTestId: "work-dataset-github-issues",
       },
       {
-        key: WORK_MANAGEMENT_DATASET.REVIEWS,
+        value: WORK_MANAGEMENT_DATASET.REVIEWS,
         label: reviewsLabel,
-        icon: (
-          <DatasetIcon label={reviewsLabel} announceLabel={compact}>
-            <GitPullRequest size={14} strokeWidth={1.9} aria-hidden="true" />
-          </DatasetIcon>
-        ),
+        triggerLabel: reviewsLabel,
+        icon: <GitPullRequest size={14} strokeWidth={1.9} aria-hidden="true" />,
         dataTestId: "work-dataset-reviews",
       },
     ],
-    [compact, issuesLabel, reviewsLabel, workItemsLabel]
+    [issuesLabel, projectsLabel, reviewsLabel, workItemsLabel]
   );
 
   return (
-    <TabPill
-      tabs={tabs}
-      activeTab={activeDataset}
-      onChange={(key) => onChange(key as WorkManagementDataset)}
-      variant="pill"
-      color="fill"
-      fillWidth={false}
+    <Select
+      value={activeDataset}
+      options={options}
+      onChange={(value) => {
+        if (Array.isArray(value)) return;
+        onChange(value as WorkManagementDataset);
+      }}
       size="small"
-      iconOnly={compact}
+      variant="ghost"
+      radius="lg"
+      dropdownWidthMode="auto"
+      dropdownMinWidth={180}
+      dropdownAlign="left"
+      className="!w-fit shrink-0"
+      selectorClassName="h-7"
+      style={{ width: "fit-content" }}
+      dataTestId="work-dataset-select"
     />
   );
 }

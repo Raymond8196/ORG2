@@ -31,6 +31,7 @@ import {
 } from "@src/modules/ProjectManager/workspaceAggregate";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 import type { WorkItem as WorkItemExtended } from "@src/types/core/workItem";
+import { mapWithConcurrency } from "@src/util/collections/mapWithConcurrency";
 
 import type {
   AggregatedWorkItem,
@@ -317,10 +318,11 @@ export function useProjectWorkItemsTabContentInteractions({
         entriesByProjectSlug.set(entry.project.slug, currentShortIds);
       }
 
-      await Promise.all(
-        [...entriesByProjectSlug].map(([projectSlug, shortIds]) =>
+      await mapWithConcurrency(
+        [...entriesByProjectSlug],
+        4,
+        ([projectSlug, shortIds]) =>
           projectApi.batchDeleteWorkItems(projectSlug, shortIds)
-        )
       );
       await emit("orgii-data-changed");
       setSelectedWorkItemIds(new Set());

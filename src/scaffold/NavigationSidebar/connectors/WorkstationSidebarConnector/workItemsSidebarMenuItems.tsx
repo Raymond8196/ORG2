@@ -1,4 +1,4 @@
-import { Boxes, CircleDot, GitPullRequest } from "lucide-react";
+import { Boxes, CircleDot, GitPullRequest, ListTodo } from "lucide-react";
 
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
 import {
@@ -38,11 +38,20 @@ export function resolveWorkItemsSidebarMenuItemId({
 }
 
 export function buildWorkItemsSidebarMenuItems(labels: {
+  workItems: string;
   projects: string;
   githubIssues: string;
   githubPrs: string;
 }): NavigationMenuItem[] {
   return [
+    {
+      id: WORK_ITEMS_MENU_ITEM_ID,
+      key: WORK_ITEMS_MENU_ITEM_ID,
+      label: labels.workItems,
+      icon: ListTodo,
+      iconName: "list-todo",
+      dataTestId: "sidebar-work-items",
+    },
     {
       id: WORK_ITEMS_PROJECTS_MENU_ITEM_ID,
       key: WORK_ITEMS_PROJECTS_MENU_ITEM_ID,

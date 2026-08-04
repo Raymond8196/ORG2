@@ -6,20 +6,23 @@ import { WorkManagementDatasetSwitch } from "./WorkManagementDatasetSwitch";
 import { WORK_MANAGEMENT_DATASET } from "./workManagementDataset";
 
 describe("WorkManagementDatasetSwitch", () => {
-  it("keeps every compact dataset control named for assistive technology", () => {
+  it.each([
+    [WORK_MANAGEMENT_DATASET.PROJECTS, "lucide-boxes"],
+    [WORK_MANAGEMENT_DATASET.WORK_ITEMS, "lucide-list-todo"],
+    [WORK_MANAGEMENT_DATASET.GITHUB_ISSUES, "lucide-circle-dot"],
+    [WORK_MANAGEMENT_DATASET.REVIEWS, "lucide-git-pull-request"],
+  ])("renders one simple select for %s", (activeDataset, activeIcon) => {
     const markup = renderToStaticMarkup(
       createElement(WorkManagementDatasetSwitch, {
-        activeDataset: WORK_MANAGEMENT_DATASET.WORK_ITEMS,
-        compact: true,
+        activeDataset,
         onChange: vi.fn(),
       })
     );
 
-    expect(markup).toContain('data-testid="work-dataset-work-items"');
-    expect(markup).toContain('data-testid="work-dataset-github-issues"');
-    expect(markup).toContain('data-testid="work-dataset-reviews"');
-    expect(markup.match(/class="sr-only"/g)).toHaveLength(3);
-    expect(markup).toContain("rounded-[100px]");
-    expect(markup).not.toContain("border border-border-2 bg-bg-2 p-0.5");
+    expect(markup).toContain('data-testid="work-dataset-select"');
+    expect(markup).toContain("select-ghost");
+    expect(markup).toContain(activeIcon);
+    expect(markup).toContain("lucide-chevron-down");
+    expect(markup).not.toContain("rounded-[100px]");
   });
 });

@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   GITHUB_LIST_CACHE_TTL_MS,
   coalesceGitHubListRequest,
+  flushGitHubListCachePersistence,
   getCachedPrDetail,
   getCachedPrs,
   isIssueCacheStale,
@@ -17,7 +18,32 @@ import {
 
 describe("global GitHub list cache", () => {
   afterEach(() => {
+    flushGitHubListCachePersistence();
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
     vi.useRealTimers();
+  });
+
+  it("coalesces bursty list persistence into one storage write", () => {
+    vi.useFakeTimers();
+    const setItem = vi.fn();
+    vi.stubGlobal("localStorage", {
+      getItem: vi.fn(() => null),
+      setItem,
+      removeItem: vi.fn(),
+      clear: vi.fn(),
+      key: vi.fn(() => null),
+      length: 0,
+    });
+    const repoKey = `persist-${crypto.randomUUID()}`;
+
+    updateCachedOpenIssues(repoKey, []);
+    updateCachedClosedIssues(repoKey, []);
+    updateCachedOpenIssues(repoKey, []);
+
+    expect(setItem).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(100);
+    expect(setItem).toHaveBeenCalledTimes(1);
   });
 
   it("keeps list entries fresh for ten minutes", () => {

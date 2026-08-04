@@ -51,6 +51,7 @@ const WorkItemRow: React.FC<WorkItemRowProps> = React.memo(
     statusDisabled = false,
     readonly = false,
     disableProjectEdit = false,
+    hideProjectCell = false,
   }) => {
     const { t } = useTranslation("projects");
     const [contextMenu, setContextMenu] = useState<{
@@ -362,6 +363,7 @@ const WorkItemRow: React.FC<WorkItemRowProps> = React.memo(
               disableProjectEdit ? undefined : handleProjectSelect
             }
             readonly={readonly || isDeleted}
+            hideProjectCell={hideProjectCell}
             t={t}
           />
 

@@ -1,12 +1,14 @@
+import { ListTodo } from "lucide-react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import TabPill from "@src/components/TabPill";
 import type { TabPillItem } from "@src/components/TabPill";
-import KanbanBoard from "@src/features/KanbanBoard";
+import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
 import { MultiSelectBar } from "@src/modules/ProjectManager/WorkItems/components/WorkItemsFooterBars";
 import WorkItemsListSurface from "@src/modules/ProjectManager/WorkItems/components/WorkItemsListSurface";
 import WorkItemsPageHeader from "@src/modules/ProjectManager/WorkItems/components/WorkItemsPageHeader";
+import WorkItemsStatusFilterSelect from "@src/modules/ProjectManager/WorkItems/components/WorkItemsStatusFilterSelect";
 import type {
   StatusCounts,
   StatusFilterType,
@@ -21,6 +23,7 @@ import {
 } from "@src/modules/ProjectManager/WorkItems/workItemsViewModel";
 import { useProjectManagerWorkItemsTabBarRegistration } from "@src/modules/ProjectManager/hooks/useProjectManagerWorkItemsTabBarRegistration";
 import { PROJECT_MANAGER_PLACEHOLDER_PLACEMENT } from "@src/modules/ProjectManager/shared/placeholderTokens";
+import { WorkstationHeaderSectionSeparator } from "@src/modules/WorkStation/shared";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 
 import {
@@ -35,6 +38,8 @@ import type {
 import { useProjectWorkItemsTabContentInteractions } from "./useProjectWorkItemsTabContentInteractions";
 import { useProjectWorkItemsTabContentWorkspaceData } from "./useProjectWorkItemsTabContentWorkspaceData";
 
+const KanbanBoard = React.lazy(() => import("@src/features/KanbanBoard"));
+
 export type {
   ProjectWorkItemSelection,
   ProjectWorkItemsTabContentProps,
@@ -46,6 +51,7 @@ export const ProjectWorkItemsTabContent: React.FC<
   breadcrumbSegments,
   workStationTabId,
   workstationHeaderHost = "project",
+  onOpenProjects,
   onCreateProject,
   onCreateWorkItem,
   onOpenLinearProject,
@@ -267,18 +273,21 @@ export const ProjectWorkItemsTabContent: React.FC<
 
   const headerLeadingControls = useMemo(
     () => (
-      <div className="flex min-w-0 items-center gap-1.5">
+      <div className="contents">
+        <WorkItemsStatusFilterSelect
+          value={statusFilter}
+          onChange={setStatusFilter}
+          statusCounts={statusCounts}
+          filterKeys={statusFilterKeys}
+          dropdownAlign="left"
+        />
+        <WorkstationHeaderSectionSeparator />
         {orgSurfaceControls}
-        {orgSurfaceControls && <span className="text-xs text-text-4">/</span>}
+        {orgSurfaceControls && <WorkstationHeaderSectionSeparator />}
         {workItemsViewSwitch}
-        {kanbanGroupSwitch && <span className="text-xs text-text-4">/</span>}
+        {kanbanGroupSwitch && <WorkstationHeaderSectionSeparator />}
         {kanbanGroupSwitch}
-        {sourceModeSwitch && (
-          <span
-            className="pointer-events-none mx-1 h-4 w-px shrink-0 bg-border-2"
-            aria-hidden
-          />
-        )}
+        {sourceModeSwitch && <WorkstationHeaderSectionSeparator />}
         {sourceModeSwitch}
       </div>
     ),
@@ -286,6 +295,9 @@ export const ProjectWorkItemsTabContent: React.FC<
       kanbanGroupSwitch,
       orgSurfaceControls,
       sourceModeSwitch,
+      statusCounts,
+      statusFilter,
+      statusFilterKeys,
       workItemsViewSwitch,
     ]
   );
@@ -329,13 +341,12 @@ export const ProjectWorkItemsTabContent: React.FC<
       <WorkItemsPageHeader
         projectName={t("projects.columns.workItems")}
         breadcrumbSegments={breadcrumbSegments}
-        activeTab={activeViewTab}
-        statusFilter={statusFilter}
-        onStatusFilterChange={(value) =>
-          setStatusFilter(value as StatusFilterType)
+        identityIcon={
+          <ListTodo size={HEADER_ICON_SIZE.sm} strokeWidth={1.75} />
         }
+        onOpenProjects={onOpenProjects}
+        activeTab={activeViewTab}
         statusCounts={statusCounts}
-        statusFilterKeys={statusFilterKeys}
         onCollapseAll={handleCollapseAll}
         onAddProject={onCreateProject}
         onAddWorkItem={onCreateWorkItem}
@@ -349,20 +360,24 @@ export const ProjectWorkItemsTabContent: React.FC<
       <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide">
         {activeViewTab === "Kanban" ? (
           <div className="h-full min-h-0">
-            <KanbanBoard
-              tasks={kanbanTasks}
-              columnOrder={kanbanColumns}
-              allowColumnReorder={false}
-              allowTaskDrag={kanbanGroupBy === WORK_ITEMS_KANBAN_GROUP.STATUS}
-              onTaskMove={handleKanbanTaskMove}
-              onTaskClick={handleKanbanTaskClick}
-              onAddTask={handleAddKanbanTask}
-              showAddButton={
-                kanbanGroupBy === WORK_ITEMS_KANBAN_GROUP.STATUS &&
-                Boolean(onCreateWorkItem)
-              }
-              className="kanban-board--linear"
-            />
+            <React.Suspense
+              fallback={<Placeholder variant="loading" fillParentHeight />}
+            >
+              <KanbanBoard
+                tasks={kanbanTasks}
+                columnOrder={kanbanColumns}
+                allowColumnReorder={false}
+                allowTaskDrag={kanbanGroupBy === WORK_ITEMS_KANBAN_GROUP.STATUS}
+                onTaskMove={handleKanbanTaskMove}
+                onTaskClick={handleKanbanTaskClick}
+                onAddTask={handleAddKanbanTask}
+                showAddButton={
+                  kanbanGroupBy === WORK_ITEMS_KANBAN_GROUP.STATUS &&
+                  Boolean(onCreateWorkItem)
+                }
+                className="kanban-board--linear"
+              />
+            </React.Suspense>
           </div>
         ) : (
           <WorkItemsListSurface

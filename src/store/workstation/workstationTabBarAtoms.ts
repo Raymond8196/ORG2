@@ -129,6 +129,8 @@ export interface WorkstationTabHeaderSlots {
   content?: ReactNode;
   trailing?: ReactNode;
   sidebarToggleDisabled?: boolean;
+  /** Hide shell-owned leading chrome when the published surface has no sidebar. */
+  shellLeadingChromeHidden?: boolean;
   /** Visually joins this 40px header to a following pane-owned row. */
   joinWithFollowingRow?: boolean;
 }
@@ -149,6 +151,7 @@ function isWorkstationTabHeaderSlots(
       "content" in contribution ||
       "trailing" in contribution ||
       "sidebarToggleDisabled" in contribution ||
+      "shellLeadingChromeHidden" in contribution ||
       "joinWithFollowingRow" in contribution)
   );
 }

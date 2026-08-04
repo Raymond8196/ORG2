@@ -8,6 +8,7 @@ import { deriveGitHubWorkItemsState } from "./useGitHubWorkItemsDerivedState";
 import {
   EMPTY_REPO_ISSUES,
   EMPTY_REPO_PRS,
+  selectGitHubLoadSources,
 } from "./useGitHubWorkItemsLoadLifecycle";
 
 const source: GitHubRepoSource = {
@@ -72,6 +73,53 @@ function derive(selectedRepo: string, selectedRepoPath: string | null) {
 }
 
 describe("GitHub work-items derived state", () => {
+  it("loads only the selected repository unless all repositories are requested", () => {
+    const secondSource: GitHubRepoSource = {
+      ...source,
+      repoId: "repo-2",
+      repoPath: "/repo-2",
+      repoFullName: "acme/repo-2",
+    };
+    const sources = [source, secondSource];
+
+    expect(
+      selectGitHubLoadSources({
+        sources,
+        selectedRepo: "currentWorkstation",
+        selectedRepoPath: "/repo",
+        allReposValue: "all",
+        currentWorkstationValue: "currentWorkstation",
+      })
+    ).toEqual([source]);
+    expect(
+      selectGitHubLoadSources({
+        sources,
+        selectedRepo: "acme/repo-2",
+        selectedRepoPath: "/repo",
+        allReposValue: "all",
+        currentWorkstationValue: "currentWorkstation",
+      })
+    ).toEqual([secondSource]);
+    expect(
+      selectGitHubLoadSources({
+        sources,
+        selectedRepo: "all",
+        selectedRepoPath: "/repo",
+        allReposValue: "all",
+        currentWorkstationValue: "currentWorkstation",
+      })
+    ).toEqual(sources);
+    expect(
+      selectGitHubLoadSources({
+        sources,
+        selectedRepo: "missing/repo",
+        selectedRepoPath: null,
+        allReposValue: "all",
+        currentWorkstationValue: "currentWorkstation",
+      })
+    ).toEqual([]);
+  });
+
   it("resolves current workstation and invalid repo selections", () => {
     expect(derive("currentWorkstation", "/repo")).toMatchObject({
       effectiveSelectedRepo: "acme/repo",

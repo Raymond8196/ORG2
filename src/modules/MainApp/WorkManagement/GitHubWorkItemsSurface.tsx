@@ -90,6 +90,10 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
     issueStates: selectedIssueListStates,
     prStates: selectedPrListStates,
     refreshNonce,
+    selectedRepo,
+    selectedRepoPath,
+    allReposValue: ISSUE_REPO_FILTER.ALL,
+    currentWorkstationValue: ISSUE_REPO_FILTER.CURRENT_WORKSTATION,
   });
   const deferredParsedSearchQuery = useDeferredValue(parsedSearchQuery);
   const {
