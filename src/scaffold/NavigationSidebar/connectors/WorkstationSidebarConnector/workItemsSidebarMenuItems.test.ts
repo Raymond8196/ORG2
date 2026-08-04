@@ -7,8 +7,6 @@ import {
 
 import {
   KANBAN_MENU_ITEM_ID,
-  WORK_ITEMS_GITHUB_ISSUES_MENU_ITEM_ID,
-  WORK_ITEMS_GITHUB_PRS_MENU_ITEM_ID,
   WORK_ITEMS_MENU_ITEM_ID,
   WORK_ITEMS_PROJECTS_MENU_ITEM_ID,
   isWorkManagementMenuItemId,
@@ -22,14 +20,12 @@ describe("buildWorkItemsSidebarMenuItems", () => {
   it("builds the expandable Work Items destinations", () => {
     const items = buildWorkItemsSidebarMenuItems({
       projects: "Projects",
-      githubIssues: "GitHub Issues",
-      githubPrs: "GitHub PRs",
+      workItems: "Work Items",
     });
 
     expect(items.map((item) => item.id)).toEqual([
       WORK_ITEMS_PROJECTS_MENU_ITEM_ID,
-      WORK_ITEMS_GITHUB_ISSUES_MENU_ITEM_ID,
-      WORK_ITEMS_GITHUB_PRS_MENU_ITEM_ID,
+      WORK_ITEMS_MENU_ITEM_ID,
     ]);
   });
 
@@ -45,7 +41,7 @@ describe("buildWorkItemsSidebarMenuItems", () => {
         homeTab: WORK_MANAGEMENT_SECTION.GITHUB_PRS,
         projectsView: WORK_MANAGEMENT_PROJECTS_VIEW.PROJECTS,
       })
-    ).toBe(WORK_ITEMS_GITHUB_PRS_MENU_ITEM_ID);
+    ).toBe(WORK_ITEMS_MENU_ITEM_ID);
     expect(
       resolveWorkItemsSidebarMenuItemId({
         homeTab: WORK_MANAGEMENT_SECTION.KANBAN,

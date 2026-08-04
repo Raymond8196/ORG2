@@ -42,6 +42,7 @@ import {
   type ChatPanelSelectedChannel,
   type ChatPanelTab,
   getWorkManagementFallbackTitle,
+  isWorkManagementListSection,
 } from "./chatPanelTabsModel";
 import { chatPanelTabsAtom } from "./chatPanelTabsState";
 
@@ -151,7 +152,7 @@ interface OpenWorkManagementTabOptions {
   title?: string;
 }
 
-/** Open or focus the Work Management tab for the requested sidebar section. */
+/** Open or focus Kanban, or reuse the single Work tab for a list dataset. */
 export const openWorkManagementChatPanelTabAtom = atom(
   null,
   (get, set, options: OpenWorkManagementTabOptions = {}) => {
@@ -160,16 +161,37 @@ export const openWorkManagementChatPanelTabAtom = atom(
       title = getWorkManagementFallbackTitle(section),
     } = options;
     const state = get(chatPanelTabsAtom);
-    const existingTab = state.tabs.find(
-      (tab) =>
-        tab.type === "work-management" && tab.managementSection === section
-    );
+    const activeTab = state.tabs.find((tab) => tab.id === state.activeTabId);
+    const requestedListSection = isWorkManagementListSection(section);
+    const activeWorkListTab =
+      activeTab?.type === "work-management" &&
+      activeTab.managementSection &&
+      isWorkManagementListSection(activeTab.managementSection)
+        ? activeTab
+        : undefined;
+    const existingTab =
+      (requestedListSection ? activeWorkListTab : undefined) ??
+      state.tabs.find(
+        (tab) =>
+          tab.type === "work-management" &&
+          (requestedListSection
+            ? Boolean(
+                tab.managementSection &&
+                isWorkManagementListSection(tab.managementSection)
+              )
+            : tab.managementSection === WORK_MANAGEMENT_SECTION.KANBAN)
+      );
     if (existingTab) {
-      if (existingTab.title !== title) {
+      if (
+        existingTab.title !== title ||
+        existingTab.managementSection !== section
+      ) {
         set(chatPanelTabsAtom, {
           ...state,
           tabs: state.tabs.map((tab) =>
-            tab.id === existingTab.id ? { ...tab, title } : tab
+            tab.id === existingTab.id
+              ? { ...tab, title, managementSection: section }
+              : tab
           ),
         });
       }

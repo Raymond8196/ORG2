@@ -12,7 +12,7 @@
  *     republish the same controls into the `code` host slot — avoiding a
  *     duplicate header bar.
  */
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { ArrowLeft } from "lucide-react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -28,17 +28,28 @@ import {
   WorkstationHeaderSectionSeparator,
   WorkstationToolbarTooltip,
 } from "@src/modules/WorkStation/shared";
-import { activeWorkManagementSectionAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
 import {
+  activeWorkManagementSectionAtom,
+  setActiveWorkManagementSectionAtom,
+} from "@src/store/chatPanel/chatPanelTabsAtom";
+import {
+  WORK_MANAGEMENT_PROJECTS_VIEW,
   WORK_MANAGEMENT_SECTION,
+  workManagementProjectsViewAtom,
   workstationTabHeaderAtomByHost,
 } from "@src/store/workstation";
 
 import { shouldUseSingleRowGitHubWorkItemsHeader } from "./GitHubWorkItemList";
 import GitHubWorkItemsSurface from "./GitHubWorkItemsSurface";
+import { WorkManagementDatasetSwitch } from "./WorkManagementDatasetSwitch";
 import WorkManagementProjectsSurface from "./WorkManagementProjectsSurface";
 import WorkManagementTaskCreator from "./WorkManagementTaskCreator";
 import "./index.scss";
+import {
+  WORK_MANAGEMENT_DATASET,
+  type WorkManagementDataset,
+  resolveWorkManagementDataset,
+} from "./workManagementDataset";
 
 export interface WorkManagementPageProps {
   /**
@@ -60,6 +71,11 @@ const WorkManagementPage: React.FC<WorkManagementPageProps> = ({
   const singleRowGitHubHeader =
     shouldUseSingleRowGitHubWorkItemsHeader(containerWidth);
   const activeHomeTab = useAtomValue(activeWorkManagementSectionAtom);
+  const projectsView = useAtomValue(workManagementProjectsViewAtom);
+  const setProjectsView = useSetAtom(workManagementProjectsViewAtom);
+  const setActiveWorkManagementSection = useSetAtom(
+    setActiveWorkManagementSectionAtom
+  );
   const headerSlots = useAtomValue(
     workstationTabHeaderAtomByHost.workManagement
   );
@@ -79,6 +95,29 @@ const WorkManagementPage: React.FC<WorkManagementPageProps> = ({
 
   const showViewSwitch =
     activeHomeTab === WORK_MANAGEMENT_SECTION.KANBAN && !githubDetailActive;
+  const activeDataset = resolveWorkManagementDataset({
+    section: activeHomeTab,
+    projectsView,
+  });
+  const compactDatasetSwitch = containerWidth < 760;
+  const handleDatasetChange = React.useCallback(
+    (dataset: WorkManagementDataset) => {
+      if (dataset === WORK_MANAGEMENT_DATASET.WORK_ITEMS) {
+        setProjectsView(WORK_MANAGEMENT_PROJECTS_VIEW.WORK_ITEMS);
+        setActiveWorkManagementSection({
+          section: WORK_MANAGEMENT_SECTION.PROJECTS,
+        });
+        return;
+      }
+      setActiveWorkManagementSection({
+        section:
+          dataset === WORK_MANAGEMENT_DATASET.GITHUB_ISSUES
+            ? WORK_MANAGEMENT_SECTION.GITHUB_ISSUES
+            : WORK_MANAGEMENT_SECTION.GITHUB_PRS,
+      });
+    },
+    [setActiveWorkManagementSection, setProjectsView]
+  );
 
   // Leading header control: GitHub detail "back" button, else the view-switch
   // pill. Shared by the chat-pane and WorkStation published-header slots.
@@ -101,8 +140,24 @@ const WorkManagementPage: React.FC<WorkManagementPageProps> = ({
     if (showViewSwitch) {
       return <FactoryViewPill />;
     }
+    if (activeDataset) {
+      return (
+        <WorkManagementDatasetSwitch
+          activeDataset={activeDataset}
+          compact={compactDatasetSwitch}
+          onChange={handleDatasetChange}
+        />
+      );
+    }
     return null;
-  }, [githubDetailActive, showViewSwitch, t]);
+  }, [
+    activeDataset,
+    compactDatasetSwitch,
+    githubDetailActive,
+    handleDatasetChange,
+    showViewSwitch,
+    t,
+  ]);
 
   const headerLeading = React.useMemo(() => {
     if (!headerLeadingControl) return null;

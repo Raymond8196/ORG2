@@ -77,10 +77,9 @@ export function useWorkstationSidebarPinnedAndRevealData({
     () =>
       buildWorkItemsSidebarMenuItems({
         projects: t("labels.projects"),
-        githubIssues: tSessions("kanban.sidebar.githubIssues"),
-        githubPrs: tSessions("kanban.sidebar.githubPrs"),
+        workItems: t("labels.workItems"),
       }),
-    [t, tSessions]
+    [t]
   );
 
   const { pinnedMenuItems } = usePinnedMenuItems({

@@ -2,7 +2,7 @@
  * Menu-item row-wrapper selection and session-row click routing for
  * `WorkstationSidebarConnector` (`index.tsx`). Builds the three
  * scope-specific row wrappers (session / workstation / projects), the
- * Work Items submenu click handler (kanban, projects, GitHub issues/PRs),
+ * Work Items submenu click handler (kanban, projects, unified Work),
  * and the top-level session-row click router that dispatches to work
  * management, runtime, chat-terminal, new-session, projects, or the
  * default open/replace handler.
@@ -23,8 +23,7 @@ import {
   NEW_SESSION_MENU_ITEM_ID,
   RUNTIME_MENU_ITEM_ID,
   TEAM_INBOX_MENU_ITEM_ID,
-  WORK_ITEMS_GITHUB_ISSUES_MENU_ITEM_ID,
-  WORK_ITEMS_GITHUB_PRS_MENU_ITEM_ID,
+  WORK_ITEMS_MENU_ITEM_ID,
   WORK_ITEMS_PROJECTS_MENU_ITEM_ID,
   getDraftIdFromMenuItemId,
   isWorkManagementMenuItemId,
@@ -110,12 +109,10 @@ export function useWorkstationSidebarMenuItemRouting({
         setWorkManagementProjectsView(WORK_MANAGEMENT_PROJECTS_VIEW.PROJECTS);
         section = WORK_MANAGEMENT_SECTION.PROJECTS;
         title = t("labels.projects");
-      } else if (item.id === WORK_ITEMS_GITHUB_ISSUES_MENU_ITEM_ID) {
-        section = WORK_MANAGEMENT_SECTION.GITHUB_ISSUES;
-        title = tSessions("kanban.sidebar.githubIssues");
-      } else if (item.id === WORK_ITEMS_GITHUB_PRS_MENU_ITEM_ID) {
-        section = WORK_MANAGEMENT_SECTION.GITHUB_PRS;
-        title = tSessions("kanban.sidebar.githubPrs");
+      } else if (item.id === WORK_ITEMS_MENU_ITEM_ID) {
+        setWorkManagementProjectsView(WORK_MANAGEMENT_PROJECTS_VIEW.WORK_ITEMS);
+        section = WORK_MANAGEMENT_SECTION.PROJECTS;
+        title = t("labels.workItems");
       } else if (item.id !== KANBAN_MENU_ITEM_ID) {
         return;
       }

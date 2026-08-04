@@ -16,9 +16,7 @@ const labels: ChatPanelTabDisplayLabels = {
   teamInbox: "Team Inbox",
   workManagement: {
     kanban: "Kanban",
-    projects: "Projects",
-    githubIssues: "GitHub Issues",
-    githubPrs: "GitHub PRs",
+    work: "Work Items",
   },
   sessionFallback: "Chat",
   channelFallback: "Channels",
@@ -68,7 +66,7 @@ describe("resolveChatPanelTabDisplayTitle", () => {
     ).toBe("Team Inbox");
   });
 
-  it("uses the active management destination as the localized tab title", () => {
+  it("keeps Work datasets under one localized tab title", () => {
     expect(
       resolveChatPanelTabDisplayTitle(tab("work-management"), null, labels)
     ).toBe("Kanban");
@@ -78,7 +76,7 @@ describe("resolveChatPanelTabDisplayTitle", () => {
         null,
         labels
       )
-    ).toBe("Projects");
+    ).toBe("Work Items");
     expect(
       resolveChatPanelTabDisplayTitle(
         tab(
@@ -89,14 +87,14 @@ describe("resolveChatPanelTabDisplayTitle", () => {
         null,
         labels
       )
-    ).toBe("GitHub Issues");
+    ).toBe("Work Items");
     expect(
       resolveChatPanelTabDisplayTitle(
         tab("work-management", "Ignored", WORK_MANAGEMENT_SECTION.GITHUB_PRS),
         null,
         labels
       )
-    ).toBe("GitHub PRs");
+    ).toBe("Work Items");
   });
 
   it("keeps the Launchpad tab name isolated from surface titles", () => {

@@ -20,6 +20,7 @@ export {
   prevChatPanelTabAtom,
   reconcileDiscussionChannelTabsAtom,
   reorderChatPanelTabsAtom,
+  setActiveWorkManagementSectionAtom,
   setChatPanelTabTitleAtom,
   toggleChatPanelTabTuiModeAtom,
   type ReconcileDiscussionChannelTabsInput,

@@ -156,6 +156,12 @@ export function getWorkManagementFallbackTitle(
   }
 }
 
+export function isWorkManagementListSection(
+  section: WorkManagementSection
+): boolean {
+  return section !== WORK_MANAGEMENT_SECTION.KANBAN;
+}
+
 export function normalizePersistedChatPanelTabsState(
   value: unknown
 ): ChatPanelTabsState | null {
@@ -216,21 +222,19 @@ export function normalizePersistedChatPanelTabsState(
   const activeMappedTab = mappedTabs.find(
     (tab) => tab.id === candidate.activeTabId
   );
-  const preferredWorkManagementTabIds = new Map<
-    WorkManagementSection,
-    string
-  >();
+  const preferredWorkManagementTabIds = new Map<"kanban" | "work", string>();
   for (const tab of mappedTabs) {
     if (tab.type !== "work-management" || !tab.managementSection) continue;
-    const preferredTabId = preferredWorkManagementTabIds.get(
-      tab.managementSection
-    );
+    const tabGroup = isWorkManagementListSection(tab.managementSection)
+      ? "work"
+      : "kanban";
+    const preferredTabId = preferredWorkManagementTabIds.get(tabGroup);
     if (
       preferredTabId === undefined ||
       (activeMappedTab?.type === "work-management" &&
         activeMappedTab.id === tab.id)
     ) {
-      preferredWorkManagementTabIds.set(tab.managementSection, tab.id);
+      preferredWorkManagementTabIds.set(tabGroup, tab.id);
     }
   }
   const preferredRuntimeTabId =
@@ -258,7 +262,11 @@ export function normalizePersistedChatPanelTabsState(
         (tab.type !== "work-management" ||
           (tab.managementSection !== undefined &&
             tab.id ===
-              preferredWorkManagementTabIds.get(tab.managementSection))) &&
+              preferredWorkManagementTabIds.get(
+                isWorkManagementListSection(tab.managementSection)
+                  ? "work"
+                  : "kanban"
+              ))) &&
         (tab.type !== "runtime" || tab.id === preferredRuntimeTabId) &&
         (tab.type !== "team-inbox" || tab.id === preferredTeamInboxTabId) &&
         (tab.type !== "organization" || tab === preferredOrganizationTab) &&

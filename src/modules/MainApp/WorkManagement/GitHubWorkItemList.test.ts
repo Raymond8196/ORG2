@@ -3,6 +3,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  GitHubWorkItemListFrame,
+  GitHubWorkItemRow,
   GitHubWorkItemSearch,
   GitHubWorkItemSection,
   GitHubWorkItemStateTabs,
@@ -19,12 +21,38 @@ describe("shouldUseSingleRowGitHubWorkItemsHeader", () => {
 });
 
 describe("GitHubWorkItemTableSurface", () => {
-  it("caps GitHub issue and PR tables at the standard panel width", () => {
+  it("uses the full available width for the standard Work table", () => {
     const markup = renderToStaticMarkup(
       createElement(GitHubWorkItemTableSurface, null, "Table")
     );
 
-    expect(markup).toContain("mx-auto w-full max-w-[932px]");
+    expect(markup).toContain("min-h-0 w-full flex-1");
+    expect(markup).not.toContain("max-w-[932px]");
+  });
+});
+
+describe("GitHubWorkItemListFrame", () => {
+  it("renders square full-width table boundaries instead of a floating card", () => {
+    const markup = renderToStaticMarkup(
+      createElement(GitHubWorkItemListFrame, null, "Rows")
+    );
+
+    expect(markup).toContain("border-y border-border-2");
+    expect(markup).not.toContain("rounded-lg");
+  });
+});
+
+describe("GitHubWorkItemRow", () => {
+  it("uses a compact standard table-row height", () => {
+    const markup = renderToStaticMarkup(
+      createElement(GitHubWorkItemRow, {
+        icon: "Icon",
+        content: "Content",
+      })
+    );
+
+    expect(markup).toContain("min-h-[52px]");
+    expect(markup).toContain("items-center");
   });
 });
 

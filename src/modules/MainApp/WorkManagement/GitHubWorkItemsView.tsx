@@ -483,7 +483,7 @@ export function GitHubWorkItemsView({
                 <GitHubWorkItemTableSurface>
                   <div
                     ref={listScrollRef}
-                    className="min-h-0 flex-1 overflow-y-auto p-3 scrollbar-hide"
+                    className="min-h-0 flex-1 overflow-y-auto scrollbar-hide"
                   >
                     {listContent}
                   </div>

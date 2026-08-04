@@ -13,7 +13,6 @@ import Button from "@src/components/Button";
 import { SearchInput } from "@src/components/SearchInput";
 import { PAGE_ICON_BUTTON } from "@src/components/SettingsTable/SettingsTablePagination";
 import TabPill, { type TabPillItem } from "@src/components/TabPill";
-import { DETAIL_PANEL_WIDTH_TOKENS } from "@src/config/detailPanelTokens";
 import { CollapsibleSection } from "@src/modules/shared/layouts/blocks";
 
 export const GITHUB_WORK_ITEMS_SINGLE_ROW_MIN_WIDTH = 650;
@@ -31,7 +30,7 @@ export function GitHubWorkItemTableSurface({
 }): ReactNode {
   return (
     <div
-      className={`${DETAIL_PANEL_WIDTH_TOKENS.headerWidth} flex min-h-0 flex-1 flex-col`}
+      className="flex min-h-0 w-full flex-1 flex-col"
       data-testid="github-work-items-table-surface"
     >
       {children}
@@ -166,7 +165,7 @@ export function GitHubWorkItemListFrame({
   children: ReactNode;
 }): ReactNode {
   return (
-    <div className="bg-bg-0 overflow-hidden rounded-lg border border-border-2">
+    <div className="bg-bg-0 overflow-hidden border-y border-border-2">
       <div
         className="w-full"
         style={height === undefined ? undefined : { height }}
@@ -228,8 +227,8 @@ export function GitHubWorkItemRow({
   actions?: ReactNode;
 }): ReactNode {
   return (
-    <div className="group flex min-h-[72px] w-full items-start gap-2.5 px-3 py-2.5 transition-colors focus-within:bg-fill-1/60 hover:bg-fill-1/60">
-      <span className="mt-1 shrink-0">{icon}</span>
+    <div className="group flex min-h-[52px] w-full items-center gap-2.5 px-3 py-2 transition-colors focus-within:bg-fill-1/60 hover:bg-fill-1/60">
+      <span className="shrink-0">{icon}</span>
       {content}
       {actions}
       {trailing}
