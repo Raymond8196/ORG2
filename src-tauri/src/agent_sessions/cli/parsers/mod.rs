@@ -130,25 +130,6 @@ pub(crate) fn canonicalize_cli_error_message(message: &str) -> String {
     normalized.trim().to_string()
 }
 
-#[cfg(test)]
-mod bounded_error_deduper_tests {
-    use super::{BoundedCliErrorDeduper, MAX_CLI_ERROR_IDENTITIES_PER_TURN};
-
-    #[test]
-    fn error_identity_retention_evicts_oldest_without_dropping_new_errors() {
-        let mut deduper = BoundedCliErrorDeduper::default();
-        for index in 0..MAX_CLI_ERROR_IDENTITIES_PER_TURN {
-            assert!(deduper.admit(format!("error-{index}")).is_some());
-        }
-
-        assert!(deduper.admit("error-0".to_string()).is_none());
-        assert!(deduper.admit("one-too-many".to_string()).is_some());
-        assert!(deduper.admit("error-0".to_string()).is_some());
-        assert_eq!(deduper.seen.len(), MAX_CLI_ERROR_IDENTITIES_PER_TURN);
-        assert_eq!(deduper.order.len(), MAX_CLI_ERROR_IDENTITIES_PER_TURN);
-    }
-}
-
 /// Trait for parsing a CLI agent's stdout line by line.
 pub trait CliAgentParser: Send {
     /// Parse a single line from the CLI's stdout.
@@ -166,5 +147,24 @@ pub trait CliAgentParser: Send {
     /// Returns None if the agent doesn't report one or doesn't support resume.
     fn cli_session_id(&self) -> Option<String> {
         None
+    }
+}
+
+#[cfg(test)]
+mod bounded_error_deduper_tests {
+    use super::{BoundedCliErrorDeduper, MAX_CLI_ERROR_IDENTITIES_PER_TURN};
+
+    #[test]
+    fn error_identity_retention_evicts_oldest_without_dropping_new_errors() {
+        let mut deduper = BoundedCliErrorDeduper::default();
+        for index in 0..MAX_CLI_ERROR_IDENTITIES_PER_TURN {
+            assert!(deduper.admit(format!("error-{index}")).is_some());
+        }
+
+        assert!(deduper.admit("error-0".to_string()).is_none());
+        assert!(deduper.admit("one-too-many".to_string()).is_some());
+        assert!(deduper.admit("error-0".to_string()).is_some());
+        assert_eq!(deduper.seen.len(), MAX_CLI_ERROR_IDENTITIES_PER_TURN);
+        assert_eq!(deduper.order.len(), MAX_CLI_ERROR_IDENTITIES_PER_TURN);
     }
 }
