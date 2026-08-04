@@ -794,13 +794,6 @@
       "paused": "Pausado",
       "resume": "Retomar"
     },
-    "offlineSync": {
-      "label": "Sincronização offline",
-      "help": "Baixa automaticamente todas as sessões compartilhadas desta organização no dispositivo de cada membro: os replays abrem na hora e funcionam offline.",
-      "on": "Ativado",
-      "off": "Desativado",
-      "memberNote": "Ativado por um administrador — as sessões compartilhadas são baixadas automaticamente neste dispositivo."
-    },
     "channels": {
       "title": "Canais",
       "createAction": "Criar canal",
@@ -926,6 +919,13 @@
         "loadOlder": "Carregar mensagens anteriores",
         "unknownAuthor": "Colega de equipe"
       }
+    },
+    "backgroundUpload": {
+      "label": "Envio em segundo plano",
+      "help": "Envia as sessões elegíveis dos membros em segundo plano conforme o nível mínimo de compartilhamento da organização e as configurações de cada sessão, mesmo quando a organização está inativa.",
+      "on": "Ativado",
+      "off": "Desativado",
+      "memberNote": "Ativado por um administrador — as sessões elegíveis são enviadas em segundo plano sem precisar abrir esta organização."
     }
   }
 }

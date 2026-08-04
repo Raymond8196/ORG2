@@ -7,8 +7,9 @@
  * metadata into local stores yet (the panel lists teammates' sessions
  * directly via `listOrgSessions`).
  *
- * Per pass, for every cloud org that has locally-stored repo scopes
- * (`org2CloudRepoScopesAtom`) and sync not disabled
+ * Per pass, the session plane visits the actively viewed org plus every org
+ * whose admin enabled background upload. For each visited org that has
+ * locally-stored repo scopes (`org2CloudRepoScopesAtom`) and sync not disabled
  * (`org2CloudSyncEnabledAtom`), every OWN local session whose resolved repo
  * scope key matches a scope is a push CANDIDATE. Whether a candidate is
  * actually uploaded — and at what level — is decided by the per-session
@@ -85,6 +86,7 @@ import { resolveOrgEndpoint } from "./org2CloudEndpointDirectory";
 import { setOrgEndpointDirectory } from "./org2CloudOrgEndpointRouter";
 import {
   buildCloudOrgSelectorValue,
+  isOrgBackgroundUploadEnabled,
   org2CloudOrgsAtom,
   sidebarActiveCloudOrgIdAtom,
 } from "./org2CloudOrgsAtom";
@@ -314,10 +316,12 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
       fresh
     );
 
-    // The session plane follows visible-org demand. Hydrating every org here
-    // made one open workspace scan/replay sessions across every matching team
-    // and kept inactive-org scope RPCs alive. Switching/opening an org causes
-    // its Realtime subscription to request an immediate full session pass.
+    // The session plane follows visible-org demand unless an admin explicitly
+    // enables background upload. That policy keeps eligible member sessions
+    // publishing without requiring the org to be opened, while ordinary
+    // inactive orgs still incur no session scan or scope RPC. Switching/opening
+    // an org causes its Realtime subscription to request an immediate full
+    // session pass; policy changes arrive through the roster lifecycle key.
     // Sharding Phase A: publish the roster's resolved home endpoints so
     // org-scoped data-plane calls route to each org's home project. Rebuilt
     // every pass — a directory cutover (or rollback) takes effect on the
@@ -329,10 +333,12 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
         resolveOrgEndpoint(org, getCloudEndpoint()),
       ])
     );
-    const activeSessionOrgs = orgs.filter((org) => this.isActiveOrg(org.orgId));
+    const sessionPushOrgs = orgs.filter(
+      (org) => this.isActiveOrg(org.orgId) || isOrgBackgroundUploadEnabled(org)
+    );
     await this.repoScopeSync.hydrateRepoScopes(
       fresh,
-      activeSessionOrgs,
+      sessionPushOrgs,
       generation,
       (gen) => this.generation === gen
     );
@@ -340,7 +346,7 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
 
     const scopesByOrg = store.get(org2CloudRepoScopesAtom);
     const targets = options.pushSessions
-      ? activeSessionOrgs.filter(
+      ? sessionPushOrgs.filter(
           (org) =>
             ((scopesByOrg[org.orgId]?.length ?? 0) > 0 ||
               orgsWithTaggedSessions.has(org.orgId)) &&
@@ -720,12 +726,13 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
       }
     }
 
-    // P2: retract-only reconcile for orgs the user is NOT looking at. The
-    // session plane above follows visible-org demand, so a session that
-    // lost admission in a background org would otherwise stay published
-    // until that org is reopened — possibly never. Once per engine run:
-    // same admission decision, same server-confirmed scope boundary, only
-    // rows THIS client push-marked. See the module header for the rails.
+    // P2: retract-only reconcile for orgs the user is NOT looking at.
+    // Background upload gives opted-in orgs a full session pass, but the
+    // reconcile remains the safety net for every other inactive org — and for
+    // background-upload orgs excluded from `targets` after their final scope
+    // or tag disappears. Once per engine run: same admission decision, same
+    // server-confirmed scope boundary, only rows THIS client push-marked. See
+    // the module header for the rails.
     if (this.reconciledGeneration !== generation) {
       this.reconciledGeneration = generation;
       const cursors = store.get(org2CloudPushCursorsAtom);
