@@ -907,6 +907,17 @@ pub fn delete_session(session_id: &str) -> SqliteResult<bool> {
         {
             tracing::warn!(session_id, error = %err, "[cli-persistence] orgtrack delete mirror failed");
         }
+        let hosted_codex_profile = app_paths::codex_hosted_cli_profile_dir(session_id);
+        if hosted_codex_profile.exists() {
+            if let Err(err) = std::fs::remove_dir_all(&hosted_codex_profile) {
+                tracing::warn!(
+                    session_id,
+                    path = %hosted_codex_profile.display(),
+                    error = %err,
+                    "[cli-persistence] hosted Codex profile delete failed"
+                );
+            }
+        }
     }
     Ok(affected > 0)
 }

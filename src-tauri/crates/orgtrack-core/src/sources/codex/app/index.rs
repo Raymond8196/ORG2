@@ -663,16 +663,30 @@ fn resolve_codex_session_path(conn: &Connection, file_stem: &str) -> Result<Path
 fn codex_sessions_dirs() -> Result<Vec<PathBuf>, String> {
     let home = app_paths::external_history_home_dir();
     let mut dirs = codex_sessions_dir_candidates(&home);
-    // ORGII-managed own-key Codex runs redirect CODEX_HOME into per-account
-    // profile dirs; native-transcript mode reads those rollouts back here.
-    // (Hosted-key Codex keeps the system CODEX_HOME and is covered above.)
+    // ORGII-managed Codex runs redirect CODEX_HOME into isolated profile
+    // directories; native-transcript mode reads those rollouts back here.
+    dirs.extend(codex_managed_sessions_dirs(
+        &app_paths::codex_cli_profile_root(),
+        &app_paths::codex_hosted_cli_profile_root(),
+    ));
+    Ok(dirs)
+}
+
+pub(crate) fn codex_managed_sessions_dirs(
+    account_profiles_root: &Path,
+    hosted_profiles_root: &Path,
+) -> Vec<PathBuf> {
+    let mut dirs = crate::sources::imported_history::managed_roots::profile_root_children(
+        account_profiles_root,
+        &["sessions"],
+    );
     dirs.extend(
         crate::sources::imported_history::managed_roots::profile_root_children(
-            &app_paths::codex_cli_profile_root(),
+            hosted_profiles_root,
             &["sessions"],
         ),
     );
-    Ok(dirs)
+    dirs
 }
 
 pub(crate) fn codex_sessions_dir_candidates(home: &Path) -> Vec<PathBuf> {

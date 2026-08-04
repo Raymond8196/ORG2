@@ -133,6 +133,18 @@ shell_tool = true
         parsed["model_providers"]["orgii"]["requires_openai_auth"].as_bool(),
         Some(false)
     );
+    assert_eq!(
+        parsed["model_providers"]["orgii"]["supports_websockets"].as_bool(),
+        Some(false)
+    );
+    assert_eq!(
+        parsed["model_providers"]["orgii"]["request_max_retries"].as_integer(),
+        Some(CODEX_REQUEST_MAX_RETRIES)
+    );
+    assert_eq!(
+        parsed["model_providers"]["orgii"]["stream_max_retries"].as_integer(),
+        Some(CODEX_STREAM_MAX_RETRIES)
+    );
 }
 
 #[test]
@@ -862,4 +874,31 @@ fn missing_managed_mode_backup_is_never_recreated_from_active_config() {
     );
 
     assert!(result.is_err());
+}
+
+#[test]
+fn hosted_codex_profile_is_owned_valid_toml_and_uses_bounded_internal_retries() {
+    let temp = tempfile::tempdir().unwrap();
+
+    write_codex_hosted_profile(temp.path(), "http://127.0.0.1:43123/").unwrap();
+
+    let content = std::fs::read_to_string(temp.path().join("config.toml")).unwrap();
+    let config: toml::Value = toml::from_str(&content).unwrap();
+    let proxy = &config["model_providers"]["proxy"];
+    assert_eq!(
+        proxy["base_url"].as_str(),
+        Some("http://127.0.0.1:43123/v1")
+    );
+    assert_eq!(proxy["env_key"].as_str(), Some("PROXY_TOKEN"));
+    assert_eq!(proxy["requires_openai_auth"].as_bool(), Some(false));
+    assert_eq!(proxy["wire_api"].as_str(), Some("responses"));
+    assert_eq!(proxy["supports_websockets"].as_bool(), Some(false));
+    assert_eq!(
+        proxy["request_max_retries"].as_integer(),
+        Some(CODEX_REQUEST_MAX_RETRIES)
+    );
+    assert_eq!(
+        proxy["stream_max_retries"].as_integer(),
+        Some(CODEX_STREAM_MAX_RETRIES)
+    );
 }
