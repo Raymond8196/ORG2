@@ -43,6 +43,27 @@ export const invalidateTeamInboxAtom = atom(null, (get, set) => {
 });
 invalidateTeamInboxAtom.debugLabel = "invalidateTeamInboxAtom";
 
+export interface TeamInboxItemFocusRequest {
+  itemKey: string;
+  requestId: number;
+}
+
+const teamInboxItemFocusRequestSequenceAtom = atom(0);
+
+export const teamInboxItemFocusRequestAtom =
+  atom<TeamInboxItemFocusRequest | null>(null);
+teamInboxItemFocusRequestAtom.debugLabel = "teamInboxItemFocusRequestAtom";
+
+export const requestTeamInboxItemFocusAtom = atom(
+  null,
+  (get, set, itemKey: string) => {
+    const requestId = get(teamInboxItemFocusRequestSequenceAtom) + 1;
+    set(teamInboxItemFocusRequestSequenceAtom, requestId);
+    set(teamInboxItemFocusRequestAtom, { itemKey, requestId });
+  }
+);
+requestTeamInboxItemFocusAtom.debugLabel = "requestTeamInboxItemFocusAtom";
+
 export interface TeamInboxSessionHandoffRequest extends SessionReferenceOpen {
   requestId: number;
 }

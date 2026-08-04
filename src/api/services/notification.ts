@@ -2,6 +2,8 @@ import { invoke, isTauri } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import {
   isPermissionGranted,
+  onAction,
+  registerActionTypes,
   requestPermission,
   sendNotification,
 } from "@tauri-apps/plugin-notification";
@@ -41,6 +43,8 @@ export interface NotificationOptions {
   playSound?: boolean;
   context?: NotificationContext;
   summaryLabel?: string;
+  extra?: Record<string, unknown>;
+  actionTypeId?: string;
 }
 
 interface TerminalNotificationOptions {
@@ -77,6 +81,12 @@ export function terminalNotificationEventKey(
 ): string {
   return notificationRunTracker.terminalEventKey(sessionId, status);
 }
+
+export interface SystemNotificationAction {
+  extra: Record<string, unknown>;
+}
+
+export const TEAM_INBOX_NOTIFICATION_ACTION_TYPE_ID = "orgii-team-inbox";
 
 /**
  * Read the native permission tri-state without collapsing "not requested" into
@@ -133,10 +143,18 @@ export const requestNotificationPermission =
 
 export const sendSystemNotification = async (
   title: string,
-  body: string
+  body: string,
+  extra?: Record<string, unknown>,
+  actionTypeId?: string
 ): Promise<boolean> => {
   try {
-    await sendNotification({ title, body });
+    await sendNotification({
+      title,
+      body,
+      extra,
+      actionTypeId,
+      autoCancel: true,
+    });
     return true;
   } catch (error) {
     log.warn("[Notification] Send failed, trying Rust command:", error);
@@ -151,6 +169,39 @@ export const sendSystemNotification = async (
 };
 
 /** Project the authoritative Team Inbox unread count into the dock badge. */
+export const registerTeamInboxNotificationActionType = async (
+  viewLabel: string
+): Promise<void> => {
+  await registerActionTypes([
+    {
+      id: TEAM_INBOX_NOTIFICATION_ACTION_TYPE_ID,
+      actions: [
+        {
+          id: "view-team-inbox",
+          title: viewLabel,
+          foreground: true,
+        },
+      ],
+    },
+  ]);
+};
+
+/**
+ * Listen for native notification activation while the application process is
+ * alive. The returned disposer is safe to call during React effect cleanup.
+ */
+export const listenForSystemNotificationActions = async (
+  handler: (action: SystemNotificationAction) => void
+): Promise<() => void> => {
+  const listener = await onAction((notification) => {
+    handler({ extra: notification.extra ?? {} });
+  });
+  return () => listener.unregister();
+};
+
+/**
+ * Project the authoritative Team Inbox unread count into the dock badge.
+ */
 export const setDockBadge = async (count: number): Promise<boolean> => {
   try {
     await invoke("set_dock_badge", {
@@ -181,7 +232,12 @@ async function deliverNotification(
   Pick<NotificationDeliveryResult, "systemNotificationSent" | "soundPlayed">
 > {
   const systemNotificationSent = decision.sendSystemNotification
-    ? await sendSystemNotification(options.title, options.body)
+    ? await sendSystemNotification(
+        options.title,
+        options.body,
+        options.extra,
+        options.actionTypeId
+      )
     : false;
   const soundPlayed = decision.playSound
     ? await playNotificationSound({
@@ -382,17 +438,21 @@ export const notifyError = async (
 export const notifyTeamInbox = async (
   title: string,
   body: string,
-  settings: NotificationSettings
-): Promise<NotificationDeliveryResult> =>
-  notify(
+  settings: NotificationSettings,
+  extra?: Record<string, unknown>
+): Promise<NotificationDeliveryResult> => {
+  return notify(
     {
       title,
       body,
       category: "teamInbox",
       playSound: true,
+      extra,
+      actionTypeId: TEAM_INBOX_NOTIFICATION_ACTION_TYPE_ID,
     },
     settings
   );
+};
 
 /** Test the native channel and selected sound without changing saved settings. */
 export const sendTestNotification = async (

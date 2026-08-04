@@ -52,6 +52,55 @@
 20. Top-level section headers follow the sidebar Session hierarchy with a denser treatment: 28px headers, uppercase 10px `text-text-2` labels, hover/focus disclosure chevrons, and 8px gaps between sections.
 21. Repository/source labels use only the final path segment (never `owner/repository`), strip URL/query/`.git` decoration, and are capped at the first 10 characters for both pull requests and Work Items. A projectless Work Item falls back to the localized `Issue` type without inventing a repository.
 
+## Assignment notification lifecycle
+
+### Preconditions
+
+- Two users resolve to distinct active member identities in the same project or Cloud Org.
+- Team Inbox notifications are enabled; native delivery additionally requires OS permission.
+- The recipient application is running so its push-driven Team Inbox coordinator can observe the assignment.
+
+### Happy Path
+
+| # | Steps | Expected Result |
+|---|-------|-----------------|
+| 1 | User A assigns a Work Item to user B. | B receives one right-bottom in-app toast naming A and the Work Item, plus the configured native notification/sound and updated Sidebar/Dock unread badges. |
+| 2 | B activates `View` in the toast. | The singleton Team Inbox tab opens or focuses, clears an obstructing filter/search, selects only that assignment, and marks it read through the existing receipt boundary. |
+| 3 | B activates the native notification while ORGII is running. | The app window shows/focuses and the same Team Inbox target is selected; no parallel navigation path is created. |
+| 4 | B opens Team Inbox manually without activating a notification or row. | No unread assignment is implicitly selected or marked read. |
+
+### Edge Cases
+
+| # | Scenario | Steps | Expected Result |
+|---|----------|-------|-----------------|
+| 1 | Historical unread rows | Start ORGII with existing unread assignments. | Rows and badges hydrate, but no toast/native notification is replayed. |
+| 2 | Batched assignments | Two new assignments arrive in one cache revision. | One aggregate notification and toast open Team Inbox without pretending one row is the unique target. |
+| 3 | Duplicate/remount | Re-emit the same item or remount the notification host. | The store-scoped tracker suppresses duplicate delivery. |
+| 4 | Disabled category | Disable Team Inbox notifications, then receive an assignment. | The Inbox row remains authoritative, but no toast, native notification, or sound is produced and the configured Dock badge is cleared. |
+| 5 | Long names/titles | Assign an item with a long sender name or body. | Existing toast wrapping applies and the native body is whitespace-folded and capped at 180 characters. |
+
+### Error / Degraded States
+
+| # | Scenario | Steps | Expected Result |
+|---|----------|-------|-----------------|
+| 1 | Native permission/send failure | Receive an assignment while OS notification delivery is unavailable. | The in-app toast, Inbox row, and Sidebar badge remain usable; failure is logged without rolling back domain state. |
+| 2 | Native action-listener failure | Listener registration rejects. | Assignment delivery continues; the in-app `View` action remains available. |
+| 3 | App fully exited | Assign while the recipient process is not running. | The assignment hydrates as unread on next launch without a fabricated late popup; realtime closed-app delivery remains a server-push/background-runtime requirement. |
+
+### Accessibility
+
+- [ ] Toast `View` is a native keyboard-focusable button with a visible localized label.
+- [ ] The close button retains its accessible name and does not trigger navigation.
+- [ ] Notification-driven selection lands on the existing Inbox detail without creating a second modal/focus trap.
+
+### Acceptance Criteria
+
+- [ ] Ordinary assignment notifications identify the assigning user.
+- [ ] Toast and native activation converge on one Team Inbox focus request.
+- [ ] Manual Inbox opening never marks the first unread row by default.
+- [ ] Only fresh unread arrivals notify; historical, duplicate, read, and unrelated native actions do not.
+- [ ] Listener lifecycle is single-owner and disposed on unmount.
+
 ## Session → Work Item drop
 
 | #   | Steps                                                                                                                        | Expected result                                                                                                                                                  |

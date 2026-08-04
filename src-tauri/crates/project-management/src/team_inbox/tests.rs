@@ -706,3 +706,76 @@ fn assigned_item_projects_durable_handoff_context() {
         other => panic!("expected assigned handoff payload, got {other:?}"),
     }
 }
+
+#[test]
+fn assigned_item_projects_the_actor_from_the_current_assignment_episode() {
+    let connection = database();
+    insert_project(&connection, "project-1", "alpha");
+    insert_work_item(
+        &connection,
+        WorkItemFixture {
+            id: "work-assigned",
+            short_id: "TST-11",
+            title: "Review notification flow",
+            project_id: Some("project-1"),
+            assigned_human_id: Some("member-recipient"),
+            assignee: Some("member-recipient"),
+            assignee_type: Some("member"),
+            updated_at: 30,
+            deleted_at: None,
+        },
+    );
+    connection
+        .execute(
+            "INSERT INTO workitem_extras (work_item_id, extras_json)
+             VALUES ('work-assigned', ?1)",
+            [json!({
+                "history": [
+                    {
+                        "id": "created",
+                        "action": "created",
+                        "timestamp": "2026-07-28T09:00:00Z",
+                        "actorId": "member-creator",
+                        "actorName": "Creator"
+                    },
+                    {
+                        "id": "assigned",
+                        "action": "updated",
+                        "timestamp": "2026-07-28T10:00:00Z",
+                        "actorId": "member-sender",
+                        "actorName": "Ada",
+                        "changes": [{
+                            "field": "assignee",
+                            "oldValue": null,
+                            "newValue": "member-recipient"
+                        }]
+                    },
+                    {
+                        "id": "status",
+                        "action": "updated",
+                        "timestamp": "2026-07-28T11:00:00Z",
+                        "actorId": "member-editor",
+                        "actorName": "Later editor",
+                        "changes": [{
+                            "field": "status",
+                            "oldValue": "todo",
+                            "newValue": "in_progress"
+                        }]
+                    }
+                ]
+            })
+            .to_string()],
+        )
+        .expect("insert assignment history");
+
+    let page = list_page_with_connection(&connection, options(&["member-recipient"], 10))
+        .expect("list assignment");
+    assert_eq!(
+        page.items[0].actor,
+        Some(TeamInboxActor {
+            id: "member-sender".into(),
+            display_name: "Ada".into(),
+            avatar_url: None,
+        })
+    );
+}
