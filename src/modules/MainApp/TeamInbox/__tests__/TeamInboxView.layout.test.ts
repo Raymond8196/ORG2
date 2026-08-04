@@ -203,6 +203,13 @@ describe("TeamInboxView split layout", () => {
       await Promise.resolve();
     });
 
+    act(() => {
+      const onSelectItem = componentProps.list?.onSelectItem as
+        | ((item: AssignedWorkItem) => void)
+        | undefined;
+      onSelectItem?.(assignedItem);
+    });
+
     const onWorkItemUpdated = componentProps.assignedDetail
       ?.onWorkItemUpdated as ((workItem: WorkItem) => void) | undefined;
     expect(onWorkItemUpdated).toBeTypeOf("function");
@@ -334,8 +341,7 @@ describe("TeamInboxView split layout", () => {
       await Promise.resolve();
     });
 
-    expect(markRead).toHaveBeenCalledOnce();
-    expect(markRead).toHaveBeenCalledWith(unreadItem);
+    expect(markRead).not.toHaveBeenCalled();
 
     await act(async () => {
       const onSelectItem = componentProps.list?.onSelectItem as
@@ -345,11 +351,64 @@ describe("TeamInboxView split layout", () => {
       await Promise.resolve();
     });
     expect(markRead).toHaveBeenCalledOnce();
+    expect(markRead).toHaveBeenCalledWith(unreadItem);
 
     await act(async () => {
       resolveMarkRead?.();
       await Promise.resolve();
     });
+  });
+
+  it("focuses and reads only the item explicitly requested by a notification", async () => {
+    const firstItem: AssignedWorkItem = {
+      id: "first",
+      kind: "assigned_work_item",
+      occurredAt: "2026-07-28T00:01:00.000Z",
+      readAt: null,
+      actor: { id: "member-1", displayName: "Yuki" },
+      target: {
+        kind: "work_item",
+        projectId: "demo",
+        workItemId: "AAA-0001",
+      },
+      payload: {
+        title: "First item",
+        status: "todo",
+        priority: "medium",
+        assigneeMemberId: "viewer",
+        updatedAt: "2026-07-28T00:01:00.000Z",
+      },
+    };
+    const requestedItem: AssignedWorkItem = {
+      ...firstItem,
+      id: "requested",
+      target: { ...firstItem.target, workItemId: "AAA-0002" },
+      payload: { ...firstItem.payload, title: "Requested item" },
+    };
+    const markRead = vi.fn().mockResolvedValue(undefined);
+
+    await act(async () => {
+      root.render(
+        createElement(TeamInboxView, {
+          dataSource: {
+            listPage: async () => ({
+              items: [firstItem, requestedItem],
+              nextCursor: null,
+            }),
+            markRead,
+          },
+          focusRequest: {
+            itemKey: "assigned_work_item:requested",
+            requestId: 1,
+          },
+        })
+      );
+      await Promise.resolve();
+    });
+
+    expect(markRead).toHaveBeenCalledOnce();
+    expect(markRead).toHaveBeenCalledWith(requestedItem);
+    expect(componentProps.assignedDetail?.item).toEqual(requestedItem);
   });
 
   it("retries the backing source instead of rereading a failed snapshot", async () => {

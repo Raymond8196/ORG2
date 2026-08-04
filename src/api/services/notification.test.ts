@@ -5,10 +5,12 @@ import type { NotificationSettings } from "@src/types/ui/notification";
 import {
   checkNotificationPermission,
   disposeNotificationRuntime,
+  listenForSystemNotificationActions,
   notifyAgentApproval,
   notifyError,
   notifyTaskCompletion,
   notifyTeamInbox,
+  registerTeamInboxNotificationActionType,
   sendSystemNotification,
   sendTestNotification,
   setDockBadge,
@@ -20,6 +22,8 @@ const mocks = vi.hoisted(() => ({
   playNotificationSound: vi.fn(async () => true),
   requestPermission: vi.fn(),
   sendNotification: vi.fn(async () => undefined),
+  onAction: vi.fn(),
+  registerActionTypes: vi.fn(),
 }));
 
 vi.mock("@tauri-apps/api/core", () => ({
@@ -35,6 +39,8 @@ vi.mock("@tauri-apps/plugin-notification", () => ({
   isPermissionGranted: mocks.isPermissionGranted,
   requestPermission: mocks.requestPermission,
   sendNotification: mocks.sendNotification,
+  onAction: mocks.onAction,
+  registerActionTypes: mocks.registerActionTypes,
 }));
 
 vi.mock("@src/hooks/logger", () => ({
@@ -146,6 +152,67 @@ describe("notification service", () => {
       title: "Title",
       body: "Body",
     });
+  });
+
+  it("preserves navigation metadata and disposes native action listeners", async () => {
+    const unregister = vi.fn();
+    const handler = vi.fn();
+    mocks.onAction.mockResolvedValueOnce({ unregister });
+
+    await sendSystemNotification("Assigned", "Review it", {
+      orgiiTarget: "team-inbox",
+      teamInboxItemKey: "assigned_work_item:WI-1",
+    });
+
+    expect(mocks.sendNotification).toHaveBeenLastCalledWith({
+      title: "Assigned",
+      body: "Review it",
+      extra: {
+        orgiiTarget: "team-inbox",
+        teamInboxItemKey: "assigned_work_item:WI-1",
+      },
+      actionTypeId: undefined,
+      autoCancel: true,
+    });
+
+    const dispose = await listenForSystemNotificationActions(handler);
+    const nativeHandler = mocks.onAction.mock.calls[0]?.[0] as
+      | ((notification: { extra?: Record<string, unknown> }) => void)
+      | undefined;
+    nativeHandler?.({
+      extra: {
+        orgiiTarget: "team-inbox",
+        teamInboxItemKey: "assigned_work_item:WI-1",
+      },
+    });
+    expect(handler).toHaveBeenCalledWith({
+      extra: {
+        orgiiTarget: "team-inbox",
+        teamInboxItemKey: "assigned_work_item:WI-1",
+      },
+    });
+
+    dispose();
+    expect(unregister).toHaveBeenCalledOnce();
+  });
+
+  it("registers a foreground View action for Team Inbox notifications", async () => {
+    mocks.registerActionTypes.mockResolvedValueOnce(undefined);
+
+    await registerTeamInboxNotificationActionType("View");
+
+    expect(mocks.registerActionTypes).toHaveBeenCalledWith([
+      {
+        id: "orgii-team-inbox",
+        actions: [
+          {
+            id: "view-team-inbox",
+            title: "View",
+            foreground: true,
+          },
+        ],
+      },
+    ]);
   });
 
   it("projects positive and cleared dock badge values", async () => {

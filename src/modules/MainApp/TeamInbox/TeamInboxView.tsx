@@ -36,12 +36,14 @@ import {
   selectTeamInboxItems,
   toTeamInboxNavigationIntent,
 } from "./domain";
+import type { TeamInboxItemFocusRequest } from "./store";
 import { performTeamInboxReadTransition } from "./teamInboxReadTransitions";
 
 export interface TeamInboxViewProps {
   dataSource?: TeamInboxDataSource;
   onNavigate?: (intent: TeamInboxNavigationIntent) => void;
   initialFilter?: TeamInboxFilter;
+  focusRequest?: TeamInboxItemFocusRequest | null;
   pageSize?: number;
   viewerMemberIds?: readonly string[];
   pullRequests?: readonly ManagedPrItem[];
@@ -67,10 +69,16 @@ interface LoadState {
   message: string | null;
 }
 
+interface TeamInboxSelectionState {
+  itemId: string | null;
+  supersededFocusRequestId: number | null;
+}
+
 const TeamInboxView: React.FC<TeamInboxViewProps> = ({
   dataSource = EMPTY_TEAM_INBOX_DATA_SOURCE,
   onNavigate,
   initialFilter = "all",
+  focusRequest = null,
   pageSize = 50,
   viewerMemberIds = [],
   pullRequests = [],
@@ -84,10 +92,13 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
   const [items, setItems] = useState<TeamInboxItem[]>([]);
   const [authoritativeUnreadCounts, setAuthoritativeUnreadCounts] =
     useState<TeamInboxUnreadCounts | null>(null);
-  const [requestedItemId, setRequestedItemId] = useState<string | null>(null);
   const [selectedPullRequestKey, setSelectedPullRequestKey] = useState<
     string | null
   >(null);
+  const [selection, setSelection] = useState<TeamInboxSelectionState>({
+    itemId: null,
+    supersededFocusRequestId: null,
+  });
   const [loadState, setLoadState] = useState<LoadState>({
     status: "loading",
     message: null,
@@ -165,9 +176,21 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
     });
   }, [dataSource]);
 
+  const focusRequestActive =
+    focusRequest !== null &&
+    focusRequest.requestId !== selection.supersededFocusRequestId;
+  const visibleFilter = focusRequestActive ? "all" : filter;
+  const visibleQuery = focusRequestActive ? "" : query;
+  const requestedItemId = focusRequestActive
+    ? focusRequest.itemKey
+    : selection.itemId;
   const visibleItems = useMemo(
-    () => searchTeamInboxItems(selectTeamInboxItems(items, filter), query),
-    [filter, items, query]
+    () =>
+      searchTeamInboxItems(
+        selectTeamInboxItems(items, visibleFilter),
+        visibleQuery
+      ),
+    [items, visibleFilter, visibleQuery]
   );
   const loadedUnreadCounts = useMemo(
     () => countUnreadTeamInboxItemsByFilter(items),
@@ -202,11 +225,11 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
     [selectedPullRequest]
   );
   const selectedItem = useMemo(() => {
-    if (visibleItems.length === 0) return null;
+    if (!requestedItemId) return null;
     return (
       visibleItems.find(
         (item) => getTeamInboxItemKey(item) === requestedItemId
-      ) ?? visibleItems[0]
+      ) ?? null
     );
   }, [requestedItemId, visibleItems]);
   const selectedItemId =
@@ -280,11 +303,40 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
 
   const handleSelect = (item: TeamInboxItem) => {
     setSelectedPullRequestKey(null);
-    setRequestedItemId(getTeamInboxItemKey(item));
+    if (focusRequestActive) {
+      setFilter("all");
+      setQuery("");
+    }
+    setSelection({
+      itemId: getTeamInboxItemKey(item),
+      supersededFocusRequestId: focusRequest?.requestId ?? null,
+    });
+  };
+
+  const handleFilterChange = (nextFilter: TeamInboxFilter) => {
+    if (focusRequestActive) setQuery("");
+    setFilter(nextFilter);
+    setSelection((current) => ({
+      ...current,
+      supersededFocusRequestId: focusRequest?.requestId ?? null,
+    }));
+  };
+
+  const handleQueryChange = (nextQuery: string) => {
+    if (focusRequestActive) setFilter("all");
+    setQuery(nextQuery);
+    setSelection((current) => ({
+      ...current,
+      supersededFocusRequestId: focusRequest?.requestId ?? null,
+    }));
   };
 
   const handleSelectPullRequest = (pullRequest: ManagedPrItem) => {
     setSelectedPullRequestKey(getManagedPullRequestKey(pullRequest));
+    setSelection((current) => ({
+      ...current,
+      supersededFocusRequestId: focusRequest?.requestId ?? null,
+    }));
   };
 
   const handleMarkRead = (item: TeamInboxItem) => {
@@ -307,13 +359,13 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
 
   const handleMarkAllRead = () => {
     const filterUnreadCount =
-      filter === "all"
+      visibleFilter === "all"
         ? unreadCounts.all
-        : filter === "mentions"
+        : visibleFilter === "mentions"
           ? unreadCounts.mentions
           : unreadCounts.assigned;
     if (filterUnreadCount === 0) return;
-    void dataSource.markAllRead?.([], filter).catch(() => {
+    void dataSource.markAllRead?.([], visibleFilter).catch(() => {
       setLoadState({
         status: "error",
         message: t("teamInbox.errors.markAllRead"),
@@ -502,19 +554,19 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
               />
             ) : (
               <TeamInboxList
-                filter={filter}
+                filter={visibleFilter}
                 items={visibleItems}
                 selectedItemId={selectedItemId}
                 totalUnread={totalUnread}
                 unreadCounts={unreadCounts}
-                query={query}
+                query={visibleQuery}
                 loading={loadState.status === "loading" || pullRequestsLoading}
                 pullRequests={pullRequests}
                 pullRequestsLoading={pullRequestsLoading}
                 pullRequestsError={pullRequestsError}
                 selectedPullRequestKey={selectedPullRequestKey}
-                onQueryChange={setQuery}
-                onFilterChange={setFilter}
+                onQueryChange={handleQueryChange}
+                onFilterChange={handleFilterChange}
                 onSelectItem={handleSelect}
                 onSelectPullRequest={handleSelectPullRequest}
                 onRefresh={handleRefresh}
