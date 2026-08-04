@@ -24,6 +24,7 @@ export interface ProjectRowProps {
   onCheckedChange?: (id: string, checked: boolean) => void;
   onDelete?: (project: Project) => void;
   readonly?: boolean;
+  variant?: "card" | "table";
 }
 
 const ProjectRow: React.FC<ProjectRowProps> = ({
@@ -35,6 +36,7 @@ const ProjectRow: React.FC<ProjectRowProps> = ({
   onCheckedChange,
   onDelete,
   readonly = false,
+  variant = "card",
 }) => {
   const { t } = useTranslation("projects");
   const [contextMenuPosition, setContextMenuPosition] = useState<{
@@ -107,7 +109,11 @@ const ProjectRow: React.FC<ProjectRowProps> = ({
     <>
       <div
         data-testid={`project-row-${project.id}`}
-        className={`flex min-h-[40px] items-center gap-1 rounded-lg py-0 pl-2 pr-5 transition-colors ${
+        className={`flex min-h-[40px] items-center gap-1 py-0 pl-2 pr-5 transition-colors ${
+          variant === "table"
+            ? "rounded-none border-b border-border-1"
+            : "rounded-lg"
+        } ${
           readonly
             ? "cursor-default hover:bg-transparent"
             : "group/projectRow cursor-pointer hover:bg-fill-1"

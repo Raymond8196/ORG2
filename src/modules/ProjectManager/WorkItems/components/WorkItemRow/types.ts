@@ -19,6 +19,7 @@ export interface WorkItemRowProps {
   onRestore?: (id: string) => void;
   readonly?: boolean;
   compact?: boolean;
+  variant?: "card" | "table";
   availableMembers?: Person[];
   availableProjects?: WorkItemProject[];
   availableMilestones?: WorkItemMilestone[];

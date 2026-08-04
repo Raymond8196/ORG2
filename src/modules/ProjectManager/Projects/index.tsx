@@ -587,7 +587,6 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
             ) : (
               <VirtualizedGroupedList
                 key={collapseAllSignal}
-                className="pb-3"
                 testId="projects-virtual-list"
                 groups={virtualProjectGroups}
                 defaultExpanded={defaultProjectGroupExpanded}
@@ -606,13 +605,15 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
                     expanded={expanded}
                     onExpandedChange={onExpandedChange}
                     virtualizedHeader
+                    variant="table"
                   />
                 )}
-                renderItem={(project, _group, isLastInGroup) => (
-                  <div className={`px-2 ${isLastInGroup ? "pb-3" : "pb-1"}`}>
+                renderItem={(project) => (
+                  <div>
                     <ProjectRow
                       project={project}
                       isSelected={false}
+                      variant="table"
                       isChecked={selectedProjectIds.has(project.id)}
                       showCheckboxes={showCheckboxesOnAllRows}
                       onSelect={handleProjectClick}
