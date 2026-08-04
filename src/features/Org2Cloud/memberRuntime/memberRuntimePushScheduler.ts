@@ -437,12 +437,16 @@ export class MemberRuntimePushScheduler {
         );
         this.orgBackoff.delete(org.orgId);
       } catch (error) {
-        this.noteOrgFailure(org, error);
+        this.noteOrgFailure(org, fresh, error);
       }
     }
   }
 
-  private noteOrgFailure(org: Org2CloudOrg, error: unknown): void {
+  private noteOrgFailure(
+    org: Org2CloudOrg,
+    auth: Org2CloudAuthState,
+    error: unknown
+  ): void {
     if (isMemberRuntimeErrorCode(error, "ORG2_RUNTIME_DISABLED")) {
       // Server-authoritative: stop pushing this org until its roster record
       // changes. No backoff churn against a deliberate off switch.
@@ -466,8 +470,19 @@ export class MemberRuntimePushScheduler {
       notBeforeMs: this.deps.now() + delayMs,
     });
     const code = (error as { code?: MemberRuntimeErrorCode | null })?.code;
+    // The upsert RPC derives the member from this session's JWT, so the
+    // freshly authenticated profile is the authoritative identity for the
+    // failed push. Keep the stable user id visible even when names collide.
+    const memberName =
+      auth.profile?.displayName?.trim() ||
+      auth.profile?.primaryEmail?.trim() ||
+      auth.userId;
+    const memberIdentity =
+      memberName === auth.userId
+        ? auth.userId
+        : `${memberName} (${auth.userId})`;
     log.warn(
-      `member runtime push failed for org ${org.orgId}` +
+      `member runtime push failed for ${memberIdentity} in org ${org.orgId}` +
         `${code ? ` (${code})` : ""}; retrying in ${Math.round(delayMs / 1000)}s`,
       error
     );
@@ -477,7 +492,7 @@ export class MemberRuntimePushScheduler {
       level: "warn",
       kind: "member_runtime",
       orgId: org.orgId,
-      message: `Member runtime push failed; retrying in ${Math.round(delayMs / 1000)}s: ${described.message}`,
+      message: `Member runtime push failed for ${memberIdentity}; retrying in ${Math.round(delayMs / 1000)}s: ${described.message}`,
       code: described.code,
     });
   }

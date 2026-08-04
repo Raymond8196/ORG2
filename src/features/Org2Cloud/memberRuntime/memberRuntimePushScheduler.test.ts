@@ -23,6 +23,10 @@ import type { Org2CloudAuthState } from "../org2CloudAuthAtom";
 import { org2CloudAuthAtom } from "../org2CloudAuthAtom";
 import type { CloudCapabilitiesProbeResult } from "../org2CloudCapabilities";
 import { type Org2CloudOrg, org2CloudOrgsAtom } from "../org2CloudOrgsAtom";
+import {
+  getSyncJournalSnapshot,
+  resetSyncJournalForTests,
+} from "../org2CloudSyncJournal";
 import { MemberRuntimeError } from "./memberRuntimeClient";
 import {
   UTC_DAY_MS,
@@ -212,7 +216,11 @@ interface SchedulerTestAccess {
   capabilityRecheckAtMs: number;
   capabilityUnconfirmedFailures: number;
   runPass: (generation: number) => Promise<void>;
-  noteOrgFailure: (org: Org2CloudOrg, error: unknown) => void;
+  noteOrgFailure: (
+    org: Org2CloudOrg,
+    auth: Org2CloudAuthState,
+    error: unknown
+  ) => void;
   pushOrg: (
     accessToken: string,
     identityKey: string,
@@ -227,6 +235,7 @@ function asPrivate(scheduler: MemberRuntimePushScheduler): SchedulerTestAccess {
 
 beforeEach(() => {
   localStorage.clear();
+  resetSyncJournalForTests();
   mocks.logWarn.mockClear();
 });
 
@@ -424,6 +433,53 @@ describe("capability blackout: confirmed vs. unconfirmed", () => {
   });
 });
 
+describe("failure diagnostics", () => {
+  it("identifies the member at the scheduler boundary by display name and stable user id", async () => {
+    const clock = makeControllableClock(NOW);
+    const auth: Org2CloudAuthState = {
+      ...AUTH,
+      profile: {
+        displayName: "Ada Lovelace",
+        primaryEmail: "ada@example.test",
+      },
+    };
+    const deps = makeDeps({
+      now: clock.now,
+      upsert: vi
+        .fn()
+        .mockRejectedValue(new Error("Cloud request timed out after 15000ms.")),
+    });
+    const store = makeStore([makeOrg()]);
+    store.set(org2CloudAuthAtom, auth);
+    const scheduler = asPrivate(new MemberRuntimePushScheduler(deps));
+
+    scheduler.start(store);
+    clock.advanceBy(30_000);
+    await scheduler.runPass(scheduler.generation);
+
+    expect(getSyncJournalSnapshot()[0]?.message).toBe(
+      "Member runtime push failed for Ada Lovelace (user-1); retrying in 300s: Cloud request timed out after 15000ms."
+    );
+    expect(mocks.logWarn.mock.calls[0]?.[0]).toContain(
+      "member runtime push failed for Ada Lovelace (user-1) in org org-1"
+    );
+  });
+
+  it("falls back to the stable user id when the profile is unavailable", () => {
+    const scheduler = asPrivate(new MemberRuntimePushScheduler(makeDeps()));
+
+    scheduler.noteOrgFailure(
+      makeOrg(),
+      AUTH,
+      new Error("Cloud request timed out after 15000ms.")
+    );
+
+    expect(getSyncJournalSnapshot()[0]?.message).toContain(
+      "Member runtime push failed for user-1;"
+    );
+  });
+});
+
 describe("ORG2_RUNTIME_TOO_LARGE mitigation", () => {
   it("halves the org's usage-days cap on each TOO_LARGE failure, floored at 1", () => {
     // Guard against silent drift of the constant this test's expectations
@@ -438,7 +494,7 @@ describe("ORG2_RUNTIME_TOO_LARGE mitigation", () => {
 
     const expectedCaps = [20, 10, 5, 2, 1, 1];
     for (const expectedCap of expectedCaps) {
-      scheduler.noteOrgFailure(org, tooLarge);
+      scheduler.noteOrgFailure(org, AUTH, tooLarge);
       expect(scheduler.usageDaysCapByOrg.get("org-1")).toBe(expectedCap);
     }
   });
@@ -458,17 +514,19 @@ describe("ORG2_RUNTIME_TOO_LARGE mitigation", () => {
 
     // Five failures walk the cap 40 -> 20 -> 10 -> 5 -> 2 -> 1; none of
     // these should touch the optional-sections drop yet.
-    for (let i = 0; i < 5; i += 1) scheduler.noteOrgFailure(org, tooLarge);
+    for (let i = 0; i < 5; i += 1) {
+      scheduler.noteOrgFailure(org, AUTH, tooLarge);
+    }
     expect(scheduler.dropOptionalSectionsByOrg.has("org-1")).toBe(false);
     expect(dropWarnings()).toHaveLength(0);
 
     // Sixth failure: already at the floor (1) and still too large.
-    scheduler.noteOrgFailure(org, tooLarge);
+    scheduler.noteOrgFailure(org, AUTH, tooLarge);
     expect(scheduler.dropOptionalSectionsByOrg.has("org-1")).toBe(true);
     expect(dropWarnings()).toHaveLength(1);
 
     // A further failure at the floor must not log the transition again.
-    scheduler.noteOrgFailure(org, tooLarge);
+    scheduler.noteOrgFailure(org, AUTH, tooLarge);
     expect(dropWarnings()).toHaveLength(1);
   });
 
