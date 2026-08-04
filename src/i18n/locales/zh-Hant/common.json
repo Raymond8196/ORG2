@@ -419,7 +419,8 @@
     "skipThisVersion": "跳過此版本",
     "later": "稍後",
     "link": "連結",
-    "copyName": "複製名稱"
+    "copyName": "複製名稱",
+    "switchMethod": "切換方式"
   },
   "refreshToast": {
     "successName": "{{name}} 已刷新",

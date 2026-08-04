@@ -139,7 +139,8 @@
       "workstation": "Workstation",
       "viewRam": "Xem RAM",
       "tutorials": "Hướng dẫn",
-      "openSettings": "Mở cài đặt"
+      "openSettings": "Mở cài đặt",
+      "setupChecklist": "Thiết lập nhanh"
     },
     "empty": {
       "noItems": "Không có mục nào",
@@ -162,6 +163,18 @@
       "duration1h": "1 giờ",
       "duration2h": "2 giờ",
       "durationTomorrow": "Ngày mai"
+    },
+    "guide": {
+      "trigger": "Mở hướng dẫn",
+      "title": "Tiếp tục thiết lập",
+      "startSession": "Bắt đầu phiên",
+      "setUpTeam": "Thiết lập nhóm",
+      "manageWork": "Quản lý công việc",
+      "openTutorials": "Mở hướng dẫn sử dụng",
+      "quickSetup": "Ngôn ngữ và giao diện",
+      "close": "Đóng hướng dẫn",
+      "progressLabel": "Đã hoàn thành {{completed}}/{{total}} bước thiết lập",
+      "localWorkspace": "Không gian làm việc cục bộ"
     }
   },
   "myRole": {

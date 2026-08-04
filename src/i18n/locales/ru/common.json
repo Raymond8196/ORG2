@@ -423,7 +423,8 @@
     "skipThisVersion": "Пропустить эту версию",
     "later": "Позже",
     "link": "Связать",
-    "copyName": "Копировать имя"
+    "copyName": "Копировать имя",
+    "switchMethod": "Сменить способ"
   },
   "refreshToast": {
     "successName": "{{name}} обновлено",

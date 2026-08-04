@@ -140,7 +140,8 @@
       "workstation": "工作站",
       "viewRam": "查看 RAM",
       "tutorials": "教程",
-      "openSettings": "打开设置"
+      "openSettings": "打开设置",
+      "setupChecklist": "快速设置"
     },
     "empty": {
       "noItems": "暂无内容",
@@ -163,6 +164,18 @@
       "duration1h": "1 小时",
       "duration2h": "2 小时",
       "durationTomorrow": "明天"
+    },
+    "guide": {
+      "trigger": "打开使用引导",
+      "title": "继续设置",
+      "startSession": "开始会话",
+      "setUpTeam": "设置团队",
+      "manageWork": "管理工作",
+      "openTutorials": "打开页面教程",
+      "quickSetup": "语言与外观",
+      "close": "关闭引导",
+      "progressLabel": "已完成 {{completed}}/{{total}} 项设置",
+      "localWorkspace": "本地工作区"
     }
   },
   "appLauncher": {

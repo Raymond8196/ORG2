@@ -417,7 +417,8 @@
     "skipThisVersion": "이 버전 건너뛰기",
     "later": "나중에",
     "link": "연결",
-    "copyName": "이름 복사"
+    "copyName": "이름 복사",
+    "switchMethod": "방법 전환"
   },
   "refreshToast": {
     "successName": "{{name}} 새로고침됨",

@@ -1,14 +1,17 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import { Search } from "lucide-react";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import { ROUTES } from "@src/config/routes";
 import { useAppNavigation } from "@src/hooks/navigation/useAppNavigation";
 import { useSessionView } from "@src/hooks/ui/tabs/useSessionView";
 import { teamInboxUnreadCountAtom } from "@src/modules/MainApp/TeamInbox/store";
 import { useTeamInboxDataSource } from "@src/modules/MainApp/TeamInbox/useTeamInboxDataSource";
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
+import { TUTORIALS_OPEN_EVENT } from "@src/scaffold/Tutorials/tutorialRegistry";
+import { hasProjectsAtom } from "@src/store/project";
 import {
   activeSessionCreatorDraftIdAtom,
   deleteSessionCreatorDraftAtom,
@@ -21,15 +24,22 @@ import {
   visitedSessionsAtom,
   workstationActiveSessionIdAtom,
 } from "@src/store/session";
+import { CHAT_PANEL_CREATE_TARGET } from "@src/store/ui/chatPanelAtom";
 import {
   clearSessionSidebarRevealAtom,
   sessionSidebarRevealRequestAtom,
   sidebarCollapsedAtom,
 } from "@src/store/ui/sidebarAtom";
+import { WORK_MANAGEMENT_SECTION } from "@src/store/workstation";
 
 import { SidebarBottomBar, SidebarMenuSearchInput } from "../../blocks";
 import SidebarSettingsMenuButton from "../../blocks/SidebarSettingsMenuButton";
 import NavigationSidebar from "../../variants/NavigationSidebar";
+import SidebarGuideButton from "../SidebarGuideButton";
+import {
+  SIDEBAR_GUIDE_MILESTONE,
+  type SidebarGuideCompletion,
+} from "../sidebarGuideProgress";
 import { DEFAULT_COLLAPSED_SECTION_IDS } from "../workstationSidebarData";
 import { SidebarDialogs } from "./SidebarDialogs";
 import {
@@ -76,6 +86,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const sessions = useAtomValue(sessionsAtom);
+  const hasProjects = useAtomValue(hasProjectsAtom);
   useTeamInboxDataSource();
   const teamInboxUnreadCount = useAtomValue(teamInboxUnreadCountAtom);
   const sessionsLoading = useAtomValue(sessionLoadingAtom);
@@ -569,6 +580,48 @@ export const WorkstationSidebarConnector: React.FC = () => {
       pinnedMenuItems: channelSidebarVisible ? [] : pinnedMenuItems,
     });
 
+  const handleGuideSetUpTeam = useCallback(() => {
+    openCreateTargetInStartPage({
+      target: CHAT_PANEL_CREATE_TARGET.COLLAB_ORG,
+      title: t("routes.launchpad"),
+    });
+  }, [openCreateTargetInStartPage, t]);
+
+  const handleGuideManageWork = useCallback(() => {
+    openWorkManagementTab({
+      section: WORK_MANAGEMENT_SECTION.KANBAN,
+      title: tSessions("simulator.tabs.kanban"),
+    });
+  }, [openWorkManagementTab, tSessions]);
+
+  const handleGuideOpenTutorials = useCallback(() => {
+    window.dispatchEvent(new CustomEvent(TUTORIALS_OPEN_EVENT));
+  }, []);
+
+  const handleGuideOpenQuickSetup = useCallback(() => {
+    navigateTo(ROUTES.auth.setup.path);
+  }, [navigateTo]);
+
+  const guideCompletion = useMemo<SidebarGuideCompletion>(
+    () => ({
+      [SIDEBAR_GUIDE_MILESTONE.SESSION]: sessions.length > 0,
+      [SIDEBAR_GUIDE_MILESTONE.TEAM]: Boolean(
+        manageableCloudOrg || manageableLocalOrg
+      ),
+      [SIDEBAR_GUIDE_MILESTONE.WORK]: hasProjects,
+    }),
+    [hasProjects, manageableCloudOrg, manageableLocalOrg, sessions.length]
+  );
+
+  const guideScopeLabel = useMemo(() => {
+    const activeOption = orgSelectorOptions.find(
+      (option) => String(option.value) === String(activeOrgId)
+    );
+    return typeof activeOption?.label === "string"
+      ? activeOption.label
+      : t("sidebar.guide.localWorkspace");
+  }, [activeOrgId, orgSelectorOptions, t]);
+
   return (
     <>
       <NavigationSidebar
@@ -597,6 +650,17 @@ export const WorkstationSidebarConnector: React.FC = () => {
         addTooltipContent={
           <SidebarSearchShortcutTooltip
             searchLabel={tCommon("actions.search")}
+          />
+        }
+        beforeAddNewActions={
+          <SidebarGuideButton
+            completion={guideCompletion}
+            scopeLabel={guideScopeLabel}
+            onStartSession={handleGoToNewSession}
+            onSetUpTeam={handleGuideSetUpTeam}
+            onManageWork={handleGuideManageWork}
+            onOpenTutorials={handleGuideOpenTutorials}
+            onOpenQuickSetup={handleGuideOpenQuickSetup}
           />
         }
         search={{

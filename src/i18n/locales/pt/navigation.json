@@ -141,7 +141,8 @@
       "workstation": "Estação de trabalho",
       "viewRam": "Ver RAM",
       "tutorials": "Tutoriais",
-      "openSettings": "Abrir configurações"
+      "openSettings": "Abrir configurações",
+      "setupChecklist": "Configuração rápida"
     },
     "empty": {
       "noItems": "Nenhum item",
@@ -164,6 +165,18 @@
       "duration1h": "1 hora",
       "duration2h": "2 horas",
       "durationTomorrow": "Amanhã"
+    },
+    "guide": {
+      "trigger": "Abrir guia",
+      "title": "Continuar configuração",
+      "startSession": "Iniciar uma sessão",
+      "setUpTeam": "Configurar uma equipe",
+      "manageWork": "Gerenciar trabalho",
+      "openTutorials": "Abrir tutoriais",
+      "quickSetup": "Idioma e aparência",
+      "close": "Fechar guia",
+      "progressLabel": "{{completed}} de {{total}} etapas concluídas",
+      "localWorkspace": "Espaço de trabalho local"
     }
   },
   "myRole": {

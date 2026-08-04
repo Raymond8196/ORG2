@@ -419,7 +419,8 @@
     "skipThisVersion": "Bu sürümü atla",
     "later": "Daha sonra",
     "link": "Bağla",
-    "copyName": "Adı Kopyala"
+    "copyName": "Adı Kopyala",
+    "switchMethod": "Yöntemi değiştir"
   },
   "refreshToast": {
     "successName": "{{name}} yenilendi",

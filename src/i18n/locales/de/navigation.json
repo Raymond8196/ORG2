@@ -141,7 +141,8 @@
       "workstation": "Arbeitsstation",
       "viewRam": "RAM anzeigen",
       "tutorials": "Tutorials",
-      "openSettings": "Einstellungen öffnen"
+      "openSettings": "Einstellungen öffnen",
+      "setupChecklist": "Schnelleinrichtung"
     },
     "empty": {
       "noItems": "Keine Elemente",
@@ -164,6 +165,18 @@
       "duration1h": "1 Stunde",
       "duration2h": "2 Stunden",
       "durationTomorrow": "Morgen"
+    },
+    "guide": {
+      "trigger": "Anleitung öffnen",
+      "title": "Einrichtung fortsetzen",
+      "startSession": "Sitzung starten",
+      "setUpTeam": "Team einrichten",
+      "manageWork": "Arbeit verwalten",
+      "openTutorials": "Tutorials öffnen",
+      "quickSetup": "Sprache und Darstellung",
+      "close": "Anleitung schließen",
+      "progressLabel": "{{completed}} von {{total}} Einrichtungsschritten abgeschlossen",
+      "localWorkspace": "Lokaler Arbeitsbereich"
     }
   },
   "myRole": {

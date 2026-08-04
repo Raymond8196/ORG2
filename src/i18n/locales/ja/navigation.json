@@ -139,7 +139,8 @@
       "workstation": "ワークステーション",
       "viewRam": "RAM を表示",
       "tutorials": "チュートリアル",
-      "openSettings": "設定を開く"
+      "openSettings": "設定を開く",
+      "setupChecklist": "クイックセットアップ"
     },
     "empty": {
       "noItems": "アイテムがありません",
@@ -162,6 +163,18 @@
       "duration1h": "1 時間",
       "duration2h": "2 時間",
       "durationTomorrow": "明日"
+    },
+    "guide": {
+      "trigger": "ガイドを開く",
+      "title": "設定を続ける",
+      "startSession": "セッションを開始",
+      "setUpTeam": "チームを設定",
+      "manageWork": "作業を管理",
+      "openTutorials": "チュートリアルを開く",
+      "quickSetup": "言語と外観",
+      "close": "ガイドを閉じる",
+      "progressLabel": "{{total}} 件中 {{completed}} 件の設定が完了",
+      "localWorkspace": "ローカルワークスペース"
     }
   },
   "myRole": {

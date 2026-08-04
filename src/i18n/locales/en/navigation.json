@@ -170,7 +170,8 @@
       "workstation": "Workstation",
       "viewRam": "View RAM",
       "tutorials": "Tutorials",
-      "openSettings": "Open Settings"
+      "openSettings": "Open Settings",
+      "setupChecklist": "Quick setup"
     },
     "empty": {
       "noItems": "No items",
@@ -193,6 +194,18 @@
       "duration1h": "1 hour",
       "duration2h": "2 hours",
       "durationTomorrow": "Tomorrow"
+    },
+    "guide": {
+      "trigger": "Open guide",
+      "title": "Continue setup",
+      "startSession": "Start a session",
+      "setUpTeam": "Set up a team",
+      "manageWork": "Manage work",
+      "openTutorials": "Open tutorials",
+      "quickSetup": "Language and appearance",
+      "close": "Close guide",
+      "progressLabel": "{{completed}} of {{total}} setup milestones complete",
+      "localWorkspace": "Local workspace"
     }
   },
   "collaboration": {

@@ -419,7 +419,8 @@
     "skipThisVersion": "Ignorer cette version",
     "later": "Plus tard",
     "link": "Lier",
-    "copyName": "Copier le nom"
+    "copyName": "Copier le nom",
+    "switchMethod": "Changer de méthode"
   },
   "refreshToast": {
     "successName": "{{name}} actualisé",

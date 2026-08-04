@@ -417,7 +417,8 @@
     "skipThisVersion": "Bỏ qua phiên bản này",
     "later": "Để sau",
     "link": "Liên kết",
-    "copyName": "Sao chép tên"
+    "copyName": "Sao chép tên",
+    "switchMethod": "Đổi phương thức"
   },
   "refreshToast": {
     "successName": "Đã làm mới {{name}}",

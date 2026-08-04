@@ -10,6 +10,7 @@ import { Minus, Square, X } from "lucide-react";
 import React, { memo, useCallback, useMemo, useSyncExternalStore } from "react";
 
 import i18n from "@src/i18n";
+import { SETUP_WALKTHROUGH_TEST_MENU_EVENT } from "@src/config/keyboard/setupWalkthroughShortcut";
 import {
   closeWindow,
   maxWindow,
@@ -225,6 +226,13 @@ function getMenuItems(menu: NativeMenuKey, t: TFunction): NativeMenuItem[] {
       ];
     case "help":
       return [
+        {
+          type: "item",
+          text: "Restart Setup Guide",
+          accelerator: "Ctrl+Alt+O",
+          action: () => emitMenuEvent(SETUP_WALKTHROUGH_TEST_MENU_EVENT),
+        },
+        { type: "separator" },
         {
           type: "item",
           text: t("windowChrome.items.documentation"),

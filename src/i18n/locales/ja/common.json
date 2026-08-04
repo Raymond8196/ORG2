@@ -417,7 +417,8 @@
     "skipThisVersion": "このバージョンをスキップ",
     "later": "後で",
     "link": "リンク",
-    "copyName": "名前をコピー"
+    "copyName": "名前をコピー",
+    "switchMethod": "方法を切り替える"
   },
   "refreshToast": {
     "successName": "{{name}} を更新しました",
