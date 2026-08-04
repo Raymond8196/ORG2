@@ -70,8 +70,8 @@ export function buildCloudSectionLoadMoreItem({
 }
 
 /**
- * Cloud scope has three top-level sections: shared team sessions, the pinned
- * rows the viewer lifted out, and everything else of theirs. The *date*
+ * Cloud scope has three top-level sections: the pinned rows the viewer lifted
+ * out, shared team sessions, and everything else of theirs. The *date*
  * grouping separators are removed so every ordinary local row belongs to the
  * single "My sessions" section — but Pinned is not a date bucket, it is user
  * intent, and pinning is a capability of every session in every org. Dropping
@@ -142,10 +142,10 @@ export function buildCloudScopedMenuItems({
     : visibleLocalRows;
 
   return [
-    ...teamItems,
     ...(pinnedItems.length > 0
       ? [separator(CLOUD_PINNED_SECTION_ID, pinnedLabel), ...pinnedItems]
       : []),
+    ...teamItems,
     separator(CLOUD_MY_SESSIONS_SECTION_ID, mySessionsLabel),
     ...mySessionsItems,
   ];

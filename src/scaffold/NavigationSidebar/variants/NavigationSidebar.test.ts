@@ -48,9 +48,38 @@ describe("NavigationSidebar", () => {
     expect(markup).toContain(
       'class="mb-2 px-2 text-[11px] font-medium uppercase tracking-wider text-text-2">Browse</div>'
     );
+    expect(markup).toContain('class="flex flex-col gap-3 px-3 pt-1"');
     expect(markup).toContain('data-sidebar-section-id="work-items-browse"');
     expect(markup).not.toContain(
       'data-test-menu-item="separator-work-items-browse"'
     );
+  });
+
+  it("allows titled pinned sections to be collapsed", () => {
+    const markup = renderToStaticMarkup(
+      createElement(NavigationSidebar, {
+        items: [],
+        activeKey: "",
+        onChange: vi.fn(),
+        menuItems: [],
+        pinnedMenuItems: [
+          { id: "create", key: "create", label: "Create" },
+          {
+            id: "separator-work-items-browse",
+            key: "separator-work-items-browse",
+            label: "Browse",
+          },
+          { id: "projects", key: "projects", label: "Projects" },
+        ],
+        collapsibleSections: true,
+        collapsedSectionIds: new Set(["work-items-browse"]),
+        onCollapsedSectionsChange: vi.fn(),
+      })
+    );
+
+    expect(markup).toContain('data-sidebar-section-toggle="work-items-browse"');
+    expect(markup).toContain('aria-expanded="false"');
+    expect(markup).toContain('data-test-menu-item="create"');
+    expect(markup).not.toContain('data-test-menu-item="projects"');
   });
 });
