@@ -13,7 +13,12 @@ import { useTranslation } from "react-i18next";
 import Checkbox from "@src/components/Checkbox";
 
 import DropdownSelectedCheck from "./DropdownSelectedCheck";
-import { DROPDOWN_CLASSES, DROPDOWN_ITEM } from "./tokens";
+import {
+  createAutoHideScrollbarState,
+  disposeAutoHideScrollbar,
+  revealAutoHideScrollbar,
+} from "./autoHideScrollbar";
+import { DROPDOWN_CLASSES, DROPDOWN_ITEM, DROPDOWN_PANEL } from "./tokens";
 import type { DropdownOption, DropdownSelectValue } from "./types";
 
 export interface DropdownOptionsRendererProps {
@@ -46,6 +51,28 @@ const DropdownOptionsRenderer: React.FC<DropdownOptionsRendererProps> = ({
 }) => {
   const { t } = useTranslation();
   const isMultiple = mode === "multiple";
+  const autoHideScrollbarState = React.useMemo(
+    () => createAutoHideScrollbarState(),
+    []
+  );
+
+  const handleOptionsScroll = React.useCallback(
+    (event: React.UIEvent<HTMLDivElement>) => {
+      revealAutoHideScrollbar(
+        event.currentTarget,
+        autoHideScrollbarState,
+        DROPDOWN_PANEL.scrollbarHideDelayMs
+      );
+    },
+    [autoHideScrollbarState]
+  );
+
+  React.useEffect(
+    () => () => {
+      disposeAutoHideScrollbar(autoHideScrollbarState);
+    },
+    [autoHideScrollbarState]
+  );
 
   let content: React.ReactNode;
 
@@ -64,12 +91,13 @@ const DropdownOptionsRenderer: React.FC<DropdownOptionsRendererProps> = ({
     );
   } else {
     content = (
-      // No `select-options-overlay` here: its `scrollbar-width: thin` makes
-      // newer WebKit ignore the ::-webkit-scrollbar styling entirely and fall
-      // back to an auto-hiding overlay bar, so an overflowing option list
-      // (e.g. the sidebar org selector) shows no scroll affordance at all and
-      // reads as complete.
-      <div className={DROPDOWN_CLASSES.optionsContainerScrollbar}>
+      // Keep the scrollbar gutter stable, but reveal its thumb only while the
+      // user is actively scrolling. This avoids a permanently visible rail
+      // without changing list width when the thumb appears.
+      <div
+        className={DROPDOWN_CLASSES.optionsContainerScrollbar}
+        onScroll={handleOptionsScroll}
+      >
         <div className={DROPDOWN_CLASSES.itemsColumn}>
           {options.map((option, index) => {
             const isSelected = isMultiple
