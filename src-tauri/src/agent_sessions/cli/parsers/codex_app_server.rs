@@ -219,6 +219,11 @@ pub(crate) struct CodexAppServerEventParser {
     error_deduper: super::BoundedCliErrorDeduper,
     /// Held until `turn/completed`, whose error body is authoritative.
     pending_error_message: Option<String>,
+    /// Last `willRetry` error, kept only as a body of last resort. Codex
+    /// retries past these, so it must never be rendered on its own — but a
+    /// `turn/completed` that reports failure without an error body leaves the
+    /// turn with no message at all, and this is the only thing left to say.
+    last_retry_notice: Option<String>,
 }
 
 impl CodexAppServerEventParser {
@@ -233,6 +238,7 @@ impl CodexAppServerEventParser {
             session_start_emitted: false,
             error_deduper: super::BoundedCliErrorDeduper::default(),
             pending_error_message: None,
+            last_retry_notice: None,
         }
     }
 
@@ -396,11 +402,17 @@ impl CodexAppServerEventParser {
                     .map(canonicalize_cli_error_message)
                     .filter(|message| !message.is_empty());
                 let success = status == "completed";
+                // The retry notice is the weakest signal there is: only a turn
+                // that actually failed may borrow it, an interrupted one has a
+                // better reason of its own — and it never outlives the turn.
+                let retry_fallback = self.last_retry_notice.take().filter(|_| status == "failed");
                 let error_message = if success {
                     self.pending_error_message = None;
                     None
                 } else {
-                    terminal_error_message.or_else(|| self.pending_error_message.take())
+                    terminal_error_message
+                        .or_else(|| self.pending_error_message.take())
+                        .or(retry_fallback)
                 };
                 let mut chunk = ActivityChunk::new(&self.session_id, "session_end", "session_end");
                 let mut result = serde_json::json!({
@@ -427,6 +439,7 @@ impl CodexAppServerEventParser {
                     .unwrap_or(false);
                 if will_retry {
                     tracing::warn!("[CodexAppServer] Retryable error: {}", message);
+                    self.last_retry_notice = Some(canonicalize_cli_error_message(message));
                     return vec![];
                 }
                 let message = canonicalize_cli_error_message(message);

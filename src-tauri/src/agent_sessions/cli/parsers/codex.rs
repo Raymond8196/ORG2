@@ -23,6 +23,11 @@ pub struct CodexParser {
     /// terminal event. Keeping it here prevents one failed turn from becoming
     /// both an error card and a failed session-end card.
     pending_error_message: Option<String>,
+    /// Last retry notice, kept only as a body of last resort. Codex recovers
+    /// from these, so it must never be rendered on its own — but when the
+    /// terminal event carries no message it is the only description of what
+    /// went wrong, and `Turn failed` tells the user nothing.
+    last_retry_notice: Option<String>,
 }
 
 impl CodexParser {
@@ -34,6 +39,7 @@ impl CodexParser {
             got_turn_completed: false,
             error_deduper: BoundedCliErrorDeduper::default(),
             pending_error_message: None,
+            last_retry_notice: None,
         }
     }
 
@@ -260,6 +266,7 @@ impl CodexParser {
             "turn.completed" => {
                 self.got_turn_completed = true;
                 self.pending_error_message = None;
+                self.last_retry_notice = None;
 
                 // Extract usage
                 if let Some(usage) = data.get("usage") {
@@ -299,6 +306,7 @@ impl CodexParser {
                     .and_then(|v| v.as_str())
                     .unwrap_or("Unknown error");
                 if is_codex_retry_notice(message) {
+                    self.last_retry_notice = Some(canonicalize_cli_error_message(message));
                     return vec![];
                 }
                 let message = canonicalize_cli_error_message(message);
@@ -321,8 +329,10 @@ impl CodexParser {
                     .filter(|message| !message.is_empty());
                 let error_msg = terminal_error
                     .or_else(|| self.pending_error_message.take())
+                    .or_else(|| self.last_retry_notice.take())
                     .unwrap_or_else(|| "Turn failed".to_string());
                 self.pending_error_message = None;
+                self.last_retry_notice = None;
                 let mut chunk = ActivityChunk::new(&self.session_id, "session_end", "session_end");
                 chunk.result = serde_json::json!({
                     "success": false,
@@ -400,7 +410,13 @@ impl CliAgentParser for CodexParser {
             return vec![];
         }
         let mut chunk = ActivityChunk::new(&self.session_id, "session_end", "session_end");
-        if let Some(message) = self.pending_error_message.take() {
+        // A retry notice only describes a failure if the process actually died;
+        // on a clean exit Codex recovered and there is nothing to report.
+        let failure_message = self
+            .pending_error_message
+            .take()
+            .or_else(|| self.last_retry_notice.take().filter(|_| exit_code != 0));
+        if let Some(message) = failure_message {
             chunk.result = serde_json::json!({
                 "success": false,
                 "exit_code": exit_code,

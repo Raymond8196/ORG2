@@ -86,6 +86,46 @@ mod tests {
     }
 
     #[test]
+    fn test_codex_turn_failed_without_body_falls_back_to_the_retry_notice() {
+        let mut parser = CodexParser::new("test-session");
+        let retry = parser.parse_line(
+            r#"{"type":"error","message":"Reconnecting... (upstream 503 Service Unavailable)"}"#,
+        );
+        assert!(retry.is_empty(), "a retry notice is progress, not an error");
+
+        let chunks = parser.parse_line(r#"{"type":"turn.failed"}"#);
+
+        // Without this fallback the only thing the user sees is "Turn failed".
+        assert_eq!(chunks.len(), 1);
+        assert_eq!(chunks[0].result["success"], false);
+        assert_eq!(
+            chunks[0].result["error_message"],
+            "upstream 503 Service Unavailable"
+        );
+    }
+
+    #[test]
+    fn test_codex_retry_notice_is_dropped_once_the_turn_recovers() {
+        let mut parser = CodexParser::new("test-session");
+        parser.parse_line(r#"{"type":"error","message":"Reconnecting... (upstream 503)"}"#);
+        parser.parse_line(r#"{"type":"turn.completed"}"#);
+
+        let exit_chunks = parser.on_exit(0);
+        assert!(
+            exit_chunks.is_empty(),
+            "a recovered turn must not resurface the notice"
+        );
+
+        // A later turn that dies without ever reconnecting keeps the generic
+        // exit reporting rather than inheriting the previous turn's notice.
+        let mut parser = CodexParser::new("test-session");
+        parser.parse_line(r#"{"type":"error","message":"Reconnecting... (upstream 503)"}"#);
+        let exit_chunks = parser.on_exit(0);
+        assert_eq!(exit_chunks[0].result["success"], true);
+        assert!(exit_chunks[0].result.get("error_message").is_none());
+    }
+
+    #[test]
     fn test_codex_item_completed_command() {
         let mut parser = CodexParser::new("test-session");
         let line = r#"{"type":"item.completed","item":{"type":"command_execution","id":"cmd_1","command":"/bin/bash -lc 'ls -la'","aggregated_output":"total 8\nfile1.txt","exit_code":0,"status":"completed"}}"#;
