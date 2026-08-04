@@ -461,12 +461,23 @@ fn stderr_summary_drops_the_notice_the_parser_already_suppressed() {
         Some("codex_api: 401 Unauthorized")
     );
 
-    // On its own it is not a failure reason either — fall through to the
-    // last-line fallback rather than reporting it as the error.
+    // On its own it is not a failure reason either. The last-line fallback
+    // must not resurrect it — a session that only logged this notice has no
+    // stderr-derived failure message at all.
     let only_notice = VecDeque::from([notice.to_string()]);
     assert_eq!(
-        super::super::finalize::summarize_cli_stderr(&only_notice).as_deref(),
-        Some(notice)
+        super::super::finalize::summarize_cli_stderr(&only_notice),
+        None
+    );
+
+    // A real line behind the notice is still reachable through that fallback.
+    let notice_then_plain = VecDeque::from([
+        "2026-08-03T07:23:44Z INFO codex_core: exiting".to_string(),
+        notice.to_string(),
+    ]);
+    assert_eq!(
+        super::super::finalize::summarize_cli_stderr(&notice_then_plain).as_deref(),
+        Some("2026-08-03T07:23:44Z INFO codex_core: exiting")
     );
 }
 

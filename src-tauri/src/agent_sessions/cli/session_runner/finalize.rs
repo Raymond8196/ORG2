@@ -97,11 +97,15 @@ pub(super) fn summarize_cli_stderr(stderr_lines: &VecDeque<String>) -> Option<St
     }
 
     if meaningful.is_empty() {
+        // Nothing looked like a failure. Fall back to the last real line, but
+        // still never to a notice the parser deliberately suppressed —
+        // otherwise the filter above only holds while some *other* line
+        // happens to match, which is not a property worth having.
         stderr_lines
             .iter()
             .rev()
             .map(|line| line.trim())
-            .find(|line| !line.is_empty())
+            .find(|line| !line.is_empty() && !is_codex_fallback_metadata_notice(line))
             .map(str::to_string)
     } else {
         Some(meaningful.join("\n"))
