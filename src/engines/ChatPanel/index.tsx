@@ -73,6 +73,7 @@ import {
   ChatPanelTabBar,
   useChatPanelTabShortcuts,
 } from "./ChatPanelTabBar";
+import SessionContinueCliHeaderExtras from "./SessionContinueCliHeaderExtras";
 import {
   SessionAlternateSurface,
   SessionHeaderViewControls,
@@ -582,6 +583,11 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
             {/* Session-level cloud notes (Phase F) — renders null for
                   non-cloud sessions, exactly like the fork extras. */}
             <SessionCommentsHeaderExtras session={currentSession ?? null} />
+            <SessionContinueCliHeaderExtras
+              session={currentSession ?? null}
+              sessionId={currentSessionId ?? null}
+              onOpenCliTerminal={handleOpenCliTerminal}
+            />
             <SessionForkHeaderExtras session={currentSession ?? null} />
             <SessionRawToolbarActions
               view={sessionView}

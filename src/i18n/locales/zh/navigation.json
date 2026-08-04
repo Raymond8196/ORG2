@@ -492,6 +492,15 @@
       "parentOpenUnavailable": "无法从此分叉打开源会话。",
       "replayError": "此会话尚无完整回放。请让所有者共享完整回放后重试。",
       "openParentButton": "打开来自 {{name}} 的源会话"
+    },
+    "continueCli": {
+      "headerButton": "在 {{agent}} 中继续",
+      "headerTooltip": "在终端标签页中用 {{agent}} 重新打开此会话（{{command}}）",
+      "notInstalled": "本机未安装 {{agent}}",
+      "missingWorkspace": "会话原目录已不存在，{{agent}} 只能在原目录中恢复该会话",
+      "sourceMissing": "原始会话数据已不在磁盘上",
+      "launchFailed": "打开 {{agent}} 终端失败",
+      "composerPlaceholder": "输入消息以在新的 ORGII 会话中继续 — 也可通过标题栏按钮在 {{agent}} 中原生恢复…"
     }
   },
   "cloud": {

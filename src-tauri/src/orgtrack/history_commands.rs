@@ -606,6 +606,53 @@ pub async fn external_history_rescan_sources(
     external_history_rescan_validated_sources(sources, mode).await
 }
 
+/// [`orgtrack_core::sources::cli_resume::CliResumePlan`] plus the two
+/// freshness checks only the desktop host can answer: whether the recorded
+/// workspace directory and the source transcript/store are still on disk.
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExternalHistoryCliResumePlanWire {
+    #[serde(flatten)]
+    pub plan: orgtrack_core::sources::cli_resume::CliResumePlan,
+    pub display_command: String,
+    pub cwd_exists: bool,
+    pub source_available: bool,
+}
+
+/// Plan how to reopen an imported external session in its own CLI.
+/// `Ok(None)` when the session is unknown, a subagent child, or its source
+/// has no CLI resume entry point (e.g. Cursor IDE composers).
+#[tauri::command]
+pub async fn external_history_cli_resume_plan(
+    session_id: String,
+) -> Result<Option<ExternalHistoryCliResumePlanWire>, String> {
+    tokio::task::spawn_blocking(move || {
+        let conn = open_cache_conn()?;
+        let Some((plan, session)) =
+            orgtrack_core::sources::cli_resume::cli_resume_plan_for_cached_session(
+                &conn,
+                &session_id,
+            )?
+        else {
+            return Ok(None);
+        };
+        let cwd_exists = plan
+            .cwd
+            .as_deref()
+            .is_some_and(|path| Path::new(path).is_dir());
+        let source_available =
+            !session.source_path.is_empty() && Path::new(&session.source_path).exists();
+        Ok(Some(ExternalHistoryCliResumePlanWire {
+            display_command: plan.display_command(),
+            plan,
+            cwd_exists,
+            source_available,
+        }))
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
+}
+
 #[tauri::command]
 pub async fn orgtrack_get_cursor_sessions(
     start_date: String,

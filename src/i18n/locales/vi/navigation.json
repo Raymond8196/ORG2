@@ -400,6 +400,15 @@
       "parentOpenUnavailable": "The source session could not be opened from this fork.",
       "replayError": "Full replay is not available for this session. Ask the owner to share the replay, then retry.",
       "openParentButton": "Mở phiên gốc từ {{name}}"
+    },
+    "continueCli": {
+      "headerButton": "Tiếp tục trong {{agent}}",
+      "headerTooltip": "Mở lại phiên này bằng {{agent}} trong một thẻ terminal ({{command}})",
+      "notInstalled": "{{agent}} chưa được cài đặt trên máy này",
+      "missingWorkspace": "Thư mục gốc của phiên không còn tồn tại — {{agent}} chỉ có thể tiếp tục phiên từ thư mục đó",
+      "sourceMissing": "Dữ liệu gốc của phiên không còn trên ổ đĩa",
+      "launchFailed": "Không thể mở terminal {{agent}}",
+      "composerPlaceholder": "Nhập tin nhắn để tiếp tục trong phiên ORGII mới — hoặc tiếp tục trong {{agent}} bằng nút ở tiêu đề…"
     }
   },
   "cloud": {

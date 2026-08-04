@@ -257,6 +257,15 @@
       "parentOpenUnavailable": "The source session could not be opened from this fork.",
       "replayError": "Full replay is not available for this session. Ask the owner to share the replay, then retry.",
       "openParentButton": "Open source session from {{name}}"
+    },
+    "continueCli": {
+      "headerButton": "Continue in {{agent}}",
+      "headerTooltip": "Reopen this session in {{agent}} in a terminal tab ({{command}})",
+      "notInstalled": "{{agent}} is not installed on this machine",
+      "missingWorkspace": "The session's original folder is gone — {{agent}} can only resume it from there",
+      "sourceMissing": "The original session data is no longer on disk",
+      "launchFailed": "Failed to open the {{agent}} terminal",
+      "composerPlaceholder": "Message to continue in a new ORGII session — or resume in {{agent}} from the header…"
     }
   },
   "myRole": {
