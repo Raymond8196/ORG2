@@ -371,16 +371,21 @@ fn interrupted_turn_records_status() {
 }
 
 #[test]
-fn fatal_error_notification_maps_to_error_chunk_retryable_is_swallowed() {
+fn fatal_error_is_coalesced_into_authoritative_failed_turn() {
     let mut p = parser();
     let fatal = notif(
         &mut p,
         "error",
         json!({"threadId": "t", "turnId": "u", "error": {"message": "boom"}, "willRetry": false}),
     );
-    assert_eq!(fatal.len(), 1);
-    assert_eq!(fatal[0].action_type, "error");
-    assert_eq!(fatal[0].result["error"], "boom");
+    assert!(fatal.is_empty());
+
+    let duplicate_fatal = notif(
+        &mut p,
+        "error",
+        json!({"threadId": "t", "turnId": "u", "error": {"message": "boom, request-id: second"}, "willRetry": false}),
+    );
+    assert!(duplicate_fatal.is_empty());
 
     let retryable = notif(
         &mut p,
@@ -388,6 +393,23 @@ fn fatal_error_notification_maps_to_error_chunk_retryable_is_swallowed() {
         json!({"threadId": "t", "turnId": "u", "error": {"message": "transient"}, "willRetry": true}),
     );
     assert!(retryable.is_empty());
+
+    let terminal = notif(
+        &mut p,
+        "turn/completed",
+        json!({"threadId": "t", "turn": {
+            "id": "u", "items": [], "status": "failed",
+            "error": {"message": "authoritative upstream failure"},
+        }}),
+    );
+    assert_eq!(terminal.len(), 1);
+    assert_eq!(terminal[0].action_type, "session_end");
+    assert_eq!(terminal[0].result["success"], false);
+    assert_eq!(
+        terminal[0].result["error_message"],
+        "authoritative upstream failure"
+    );
+    assert_eq!(p.turn_error(), Some("authoritative upstream failure"));
 }
 
 #[test]
