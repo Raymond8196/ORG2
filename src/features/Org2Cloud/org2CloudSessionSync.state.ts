@@ -156,11 +156,17 @@ export class Org2CloudSessionSyncState {
     const now = Date.now();
     const observed = this.externalHistoryVersions.get(sessionId);
     if (!observed || observed.sourceUpdatedAt !== session.updated_at) {
+      // A sessionsAtom observer can stamp the source change before the first
+      // cloud pass that sees this version. Preserve that timestamp so the
+      // already-armed quiet-window pass may publish immediately instead of
+      // requiring an unrelated second trigger. Direct/manual passes without a
+      // source notification retain the conservative two-observation behavior.
+      const activityAt = this.eventActivityAtMs.get(sessionId) ?? now;
       this.externalHistoryVersions.set(sessionId, {
         sourceUpdatedAt: session.updated_at,
-        observedAt: now,
+        observedAt: activityAt,
       });
-      return false;
+      return now - activityAt >= EXTERNAL_HISTORY_ACTIVITY_DEBOUNCE_MS;
     }
     const changedAt = Math.max(
       observed.observedAt,

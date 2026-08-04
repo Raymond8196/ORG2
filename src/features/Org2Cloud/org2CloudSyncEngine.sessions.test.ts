@@ -858,6 +858,71 @@ describe("Org2CloudSyncEngine session publishing", () => {
     expect(loadFullTranscriptChunks).toHaveBeenCalledTimes(1);
   });
 
+  it("publishes a roster-refreshed external replay in an inactive background org after one quiet timer", async () => {
+    const sessionId = "codexapp-background-thread-1";
+    const source = getImportedHistorySourceBySessionId(sessionId);
+    const loadFullTranscriptChunks = vi
+      .spyOn(source!, "loadFullTranscriptChunks")
+      .mockResolvedValue([] as never);
+    store.set(sidebarActiveCloudOrgIdAtom, null);
+    store.set(org2CloudOrgsAtom, [
+      {
+        orgId: "corg-1",
+        name: "Cloud Team",
+        role: "member",
+        offlineSyncEnabled: true,
+      },
+    ]);
+
+    // Drain the startup pass and isolate the sessionsAtom-driven trigger.
+    await vi.advanceTimersByTimeAsync(0);
+    await engine.runSyncPassAndWaitForDrain();
+    client.upsertSessionMetadata.mockClear();
+    client.rewriteSessionEvents.mockClear();
+    loadFullTranscriptChunks.mockClear();
+    let markBackgroundUpserted!: () => void;
+    const backgroundUpserted = new Promise<void>((resolve) => {
+      markBackgroundUpserted = resolve;
+    });
+    client.upsertSessionMetadata.mockImplementation(async () => {
+      markBackgroundUpserted();
+    });
+
+    store.set(sessionsAtom, [
+      {
+        ...SESSION,
+        session_id: sessionId,
+        orgId: "personal-org",
+        updated_at: "2026-08-04T15:00:00.000Z",
+      },
+    ]);
+
+    await vi.advanceTimersByTimeAsync(
+      EXTERNAL_HISTORY_ACTIVITY_DEBOUNCE_MS - 1
+    );
+    expect(client.upsertSessionMetadata).not.toHaveBeenCalled();
+    expect(loadFullTranscriptChunks).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(2);
+    await backgroundUpserted;
+    expect(client.upsertSessionMetadata).toHaveBeenCalledTimes(1);
+    expect(client.upsertSessionMetadata.mock.calls[0][2]).toBe(sessionId);
+    expect(loadFullTranscriptChunks).toHaveBeenCalledWith(sessionId);
+
+    const passCount = engine.startedPassCount;
+    engine.stop();
+    store.set(sessionsAtom, [
+      {
+        ...SESSION,
+        session_id: sessionId,
+        orgId: "personal-org",
+        updated_at: "2026-08-04T15:01:00.000Z",
+      },
+    ]);
+    await vi.advanceTimersByTimeAsync(EXTERNAL_HISTORY_ACTIVITY_DEBOUNCE_MS);
+    expect(engine.startedPassCount).toBe(passCount);
+  });
+
   it("seeds unchanged external replay state from the server after restart", async () => {
     const sessionId = "cursoride-thread-1";
     const source = getImportedHistorySourceBySessionId(sessionId);
