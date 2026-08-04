@@ -902,3 +902,37 @@ fn hosted_codex_profile_is_owned_valid_toml_and_uses_bounded_internal_retries() 
         Some(CODEX_STREAM_MAX_RETRIES)
     );
 }
+
+#[cfg(unix)]
+#[test]
+fn credential_profile_writes_are_owner_only_from_the_first_byte() {
+    use std::os::unix::fs::PermissionsExt;
+
+    let temp = tempfile::tempdir().unwrap();
+    let path = temp.path().join("auth.json");
+
+    write_cli_profile_file_atomic(&path, b"{\"token\":\"secret\"}").unwrap();
+    assert_eq!(
+        std::fs::metadata(&path).unwrap().permissions().mode() & 0o777,
+        0o600,
+        "credential file must land owner-only without a separate chmod"
+    );
+
+    // Rewriting goes through a fresh temp file; the replacement must be just
+    // as private as the original, and no staging file may survive.
+    write_cli_profile_file_atomic(&path, b"{\"token\":\"rotated\"}").unwrap();
+    assert_eq!(
+        std::fs::metadata(&path).unwrap().permissions().mode() & 0o777,
+        0o600
+    );
+    let leftovers: Vec<_> = std::fs::read_dir(temp.path())
+        .unwrap()
+        .filter_map(Result::ok)
+        .map(|entry| entry.file_name())
+        .filter(|name| name.to_string_lossy().ends_with(".tmp"))
+        .collect();
+    assert!(
+        leftovers.is_empty(),
+        "staging files left behind: {leftovers:?}"
+    );
+}

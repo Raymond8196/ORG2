@@ -56,9 +56,11 @@ pub fn write_codex_hosted_profile(
     file_io::write_sensitive_file_atomic(&config_path, content.as_bytes())
 }
 
-/// Crash-safe replace of a CLI profile file: write a sibling temp file, fsync,
-/// then rename over the target. Callers holding credentials must still apply
-/// [`app_paths::set_sensitive_file_permissions`] and decide for themselves
+/// Crash-safe replace of a CLI profile file: write an owner-only sibling temp
+/// file, fsync, then rename over the target. The payload is never on disk
+/// group- or world-readable, so callers holding credentials only need
+/// [`app_paths::set_sensitive_file_permissions`] to pin the destination's
+/// permissions (and to cover Windows ACLs) — and get to decide for themselves
 /// whether a failure there is fatal.
 pub fn write_cli_profile_file_atomic(path: &std::path::Path, bytes: &[u8]) -> Result<(), String> {
     file_io::write_file_atomic(path, bytes)
