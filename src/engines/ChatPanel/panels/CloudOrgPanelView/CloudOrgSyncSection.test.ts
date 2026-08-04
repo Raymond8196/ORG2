@@ -502,6 +502,94 @@ describe("CloudOrgSyncSection bug logs", () => {
     ).toBeNull();
   });
 
+  it("renders an attributed member as a compact pill with the stable id in its tooltip", () => {
+    const root = renderSection({
+      entries: [
+        entry({
+          kind: "member_runtime",
+          member: { userId: "user-vanta", displayName: "VantaNode" },
+          message: "Runtime push failed; retrying in 300s",
+        }),
+      ],
+    });
+
+    const pill = root.querySelector(
+      '[data-testid="cloud-org-sync-log-member"]'
+    );
+    expect(pill?.textContent).toBe("VVantaNode");
+    expect(pill?.getAttribute("title")).toBe("VantaNode (user-vanta)");
+    expect(
+      root.querySelector('[data-testid="cloud-org-sync-log-entry"]')
+        ?.textContent
+    ).toContain("VantaNode:Runtime push failed; retrying in 300s");
+    expect(
+      root.querySelector('[data-testid="cloud-org-sync-logs-member-filter"]')
+        ?.textContent
+    ).toContain("cloud.sidebar.everyone");
+  });
+
+  it("filters the rendered and copied slice by the selected member", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText },
+    });
+    const root = createSmokeRoot();
+    try {
+      await root.render(
+        createElement(CloudOrgSyncSection, {
+          t,
+          status: status({
+            entries: [
+              entry({
+                id: "sync-vanta",
+                member: { userId: "user-vanta", displayName: "VantaNode" },
+                message: "vanta failure",
+              }),
+              entry({
+                id: "sync-ada",
+                member: { userId: "user-ada", displayName: "Ada" },
+                message: "ada failure",
+              }),
+              entry({ id: "sync-system", message: "system failure" }),
+            ],
+          }),
+        })
+      );
+
+      const filter = root.container.querySelector<HTMLElement>(
+        '[data-testid="cloud-org-sync-logs-member-filter"]'
+      );
+      await dispatch(() => filter?.click());
+      const adaOption = document.body.querySelector<HTMLElement>(
+        '[data-testid="cloud-org-sync-logs-member-user-ada"]'
+      );
+      expect(adaOption).not.toBeNull();
+      await dispatch(() => adaOption?.click());
+
+      const items = root.container.querySelectorAll(
+        '[data-testid="cloud-org-sync-log-entry"]'
+      );
+      expect(items).toHaveLength(1);
+      expect(items[0]?.textContent).toContain("Ada:ada failure");
+      expect(root.container.textContent).not.toContain("vanta failure");
+      expect(root.container.textContent).not.toContain("system failure");
+
+      const copyButton = root.container.querySelector<HTMLButtonElement>(
+        '[data-testid="cloud-org-sync-logs-copy"]'
+      );
+      await dispatch(() => copyButton?.click());
+      await vi.waitFor(() => expect(writeText).toHaveBeenCalledTimes(1));
+      const copiedText = String(writeText.mock.calls[0]?.[0]);
+      expect(copiedText).toContain("member Ada (user-ada)");
+      expect(copiedText).toContain("ada failure");
+      expect(copiedText).not.toContain("vanta failure");
+      expect(copiedText).not.toContain("system failure");
+    } finally {
+      await root.unmount();
+    }
+  });
+
   it("renders at most the newest 50 entries", () => {
     const root = renderSection({
       entries: Array.from({ length: 100 }, (_, index) =>
@@ -547,6 +635,7 @@ describe("formatSyncJournalForCopy", () => {
         level: "warn",
         kind: "org_backoff",
         orgId: "org-1",
+        member: { userId: "user-vanta", displayName: "VantaNode" },
         code: "ORG2_SYNC_DISABLED",
         message: "backed off",
       }),
@@ -556,7 +645,7 @@ describe("formatSyncJournalForCopy", () => {
     const lines = text.split("\n");
     expect(lines).toHaveLength(2);
     expect(lines[0]).toContain(
-      "WARN | org_backoff | org-1 | ORG2_SYNC_DISABLED"
+      "WARN | org_backoff | org-1 | member VantaNode (user-vanta) | ORG2_SYNC_DISABLED"
     );
     expect(lines[0]?.endsWith("backed off")).toBe(true);
     expect(lines[1]).toContain("INFO | sync_pass");

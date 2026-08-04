@@ -13,12 +13,19 @@
  * passed in, rendered, or copied.
  */
 import type { TFunction } from "i18next";
-import React, { useCallback, useMemo } from "react";
+import { UsersRound } from "lucide-react";
+import React, { useCallback, useMemo, useState } from "react";
 
+import Avatar from "@src/components/Avatar";
+import AvatarChip from "@src/components/AvatarChip";
 import Button from "@src/components/Button";
+import Select from "@src/components/Select";
 import type { CloudCapabilities } from "@src/features/Org2Cloud/org2CloudCapabilities";
 import type { RepoSyncCoverage } from "@src/features/Org2Cloud/org2CloudSyncCoverage";
-import type { SyncJournalEntry } from "@src/features/Org2Cloud/org2CloudSyncJournal";
+import type {
+  SyncJournalEntry,
+  SyncJournalMember,
+} from "@src/features/Org2Cloud/org2CloudSyncJournal";
 import { useCopyCheck } from "@src/hooks/ui/useCopyCheck";
 import {
   SECTION_ACTION_GAP_CLASSES,
@@ -32,6 +39,8 @@ import type { CloudOrgSyncStatus } from "./useCloudOrgSyncStatus";
 
 /** Newest slice actually rendered; the buffer itself holds up to 100. */
 const RENDERED_LOG_LIMIT = 50;
+const ALL_MEMBERS_FILTER_VALUE = "all";
+const MEMBER_FILTER_VALUE_PREFIX = "member:";
 
 const CAPABILITY_KEYS = [
   "broadcastSignals",
@@ -125,6 +134,62 @@ function formatAbsolute(atMs: number | null): string {
   }
 }
 
+function memberDisplayName(member: SyncJournalMember): string {
+  return member.displayName?.trim() || member.userId;
+}
+
+function memberInitial(member: SyncJournalMember): string {
+  return memberDisplayName(member).slice(0, 1).toLocaleUpperCase();
+}
+
+function memberFilterValue(userId: string): string {
+  return `${MEMBER_FILTER_VALUE_PREFIX}${userId}`;
+}
+
+interface SyncLogMemberOption {
+  userId: string;
+  displayName: string;
+}
+
+/** Newest label wins when a profile name changes within the local buffer. */
+function buildSyncLogMemberOptions(
+  entries: readonly SyncJournalEntry[]
+): SyncLogMemberOption[] {
+  const byUserId = new Map<string, string>();
+  for (const entry of entries) {
+    if (!entry.member || byUserId.has(entry.member.userId)) continue;
+    byUserId.set(entry.member.userId, memberDisplayName(entry.member));
+  }
+  return [...byUserId].map(([userId, displayName]) => ({
+    userId,
+    displayName,
+  }));
+}
+
+function SyncLogMemberPill({ member }: { member: SyncJournalMember }) {
+  const displayName = memberDisplayName(member);
+  const identityLabel =
+    displayName === member.userId
+      ? member.userId
+      : `${displayName} (${member.userId})`;
+  return (
+    <span
+      className="inline-flex max-w-full shrink-0"
+      title={identityLabel}
+      aria-label={identityLabel}
+      data-testid="cloud-org-sync-log-member"
+    >
+      <AvatarChip
+        size="xs"
+        avatarSize={14}
+        avatarFallback={memberInitial(member)}
+        label={displayName}
+        labelClassName="max-w-36"
+      />
+    </span>
+  );
+}
+
 /** Plain-text rendering of the journal, for the copy button. */
 export function formatSyncJournalForCopy(
   entries: readonly SyncJournalEntry[]
@@ -137,6 +202,14 @@ export function formatSyncJournalForCopy(
         entry.kind,
       ];
       if (entry.orgId) parts.push(entry.orgId);
+      if (entry.member) {
+        const displayName = memberDisplayName(entry.member);
+        parts.push(
+          displayName === entry.member.userId
+            ? `member ${entry.member.userId}`
+            : `member ${displayName} (${entry.member.userId})`
+        );
+      }
       if (entry.code) parts.push(entry.code);
       return `[${parts.join(" | ")}] ${entry.message}`;
     })
@@ -150,9 +223,46 @@ interface CloudOrgSyncSectionProps {
 
 /** Sync-tab connection, last-sync, manual trigger, and journal blocks. */
 export function CloudOrgSyncSection({ t, status }: CloudOrgSyncSectionProps) {
-  const visibleEntries = useMemo(
-    () => status.entries.slice(0, RENDERED_LOG_LIMIT),
+  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
+  const memberOptions = useMemo(
+    () => buildSyncLogMemberOptions(status.entries),
     [status.entries]
+  );
+  const effectiveMemberId =
+    selectedMemberId !== null &&
+    memberOptions.some((option) => option.userId === selectedMemberId)
+      ? selectedMemberId
+      : null;
+  const visibleEntries = useMemo(
+    () =>
+      (effectiveMemberId === null
+        ? status.entries
+        : status.entries.filter(
+            (entry) => entry.member?.userId === effectiveMemberId
+          )
+      ).slice(0, RENDERED_LOG_LIMIT),
+    [effectiveMemberId, status.entries]
+  );
+  const memberFilterOptions = useMemo(
+    () => [
+      {
+        value: ALL_MEMBERS_FILTER_VALUE,
+        label: t("cloud.sidebar.everyone"),
+        icon: <UsersRound size={14} />,
+        dataTestId: "cloud-org-sync-logs-member-all",
+      },
+      ...memberOptions.map((member) => ({
+        value: memberFilterValue(member.userId),
+        label: member.displayName,
+        icon: (
+          <Avatar size={14}>
+            <span aria-hidden>{member.displayName.slice(0, 1)}</span>
+          </Avatar>
+        ),
+        dataTestId: `cloud-org-sync-logs-member-${member.userId}`,
+      })),
+    ],
+    [memberOptions, t]
   );
 
   const copyLog = useCallback(async () => {
@@ -414,6 +524,32 @@ export function CloudOrgSyncSection({ t, status }: CloudOrgSyncSectionProps) {
           light
         >
           <div className={`${SECTION_ACTION_GAP_CLASSES} flex-wrap`}>
+            {memberOptions.length > 0 ? (
+              <div className="w-40 max-w-full">
+                <Select
+                  value={
+                    effectiveMemberId === null
+                      ? ALL_MEMBERS_FILTER_VALUE
+                      : memberFilterValue(effectiveMemberId)
+                  }
+                  options={memberFilterOptions}
+                  size="mini"
+                  radius="pill"
+                  showSearch={memberOptions.length > 8}
+                  dropdownAlign="right"
+                  dropdownMinWidth={180}
+                  dataTestId="cloud-org-sync-logs-member-filter"
+                  onChange={(value) => {
+                    const nextValue = String(value);
+                    setSelectedMemberId(
+                      nextValue === ALL_MEMBERS_FILTER_VALUE
+                        ? null
+                        : nextValue.slice(MEMBER_FILTER_VALUE_PREFIX.length)
+                    );
+                  }}
+                />
+              </div>
+            ) : null}
             <Button
               htmlType="button"
               size="default"
@@ -455,12 +591,12 @@ export function CloudOrgSyncSection({ t, status }: CloudOrgSyncSectionProps) {
               {visibleEntries.map((entry) => (
                 <li
                   key={entry.id}
-                  className="flex flex-col gap-0.5"
+                  className="flex flex-col gap-1.5 rounded-lg border border-border-1 bg-bg-1 px-3 py-2.5"
                   data-testid="cloud-org-sync-log-entry"
                 >
-                  <div className="flex flex-wrap items-center gap-2 text-[11px]">
+                  <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
                     <span
-                      className={`rounded px-1.5 py-0.5 font-medium ${LEVEL_CLASSES[entry.level]}`}
+                      className={`rounded-full px-1.5 py-0.5 font-medium ${LEVEL_CLASSES[entry.level]}`}
                       data-testid={`cloud-org-sync-log-level-${entry.level}`}
                     >
                       {t(LEVEL_LABEL_KEYS[entry.level])}
@@ -482,9 +618,17 @@ export function CloudOrgSyncSection({ t, status }: CloudOrgSyncSectionProps) {
                       </span>
                     ) : null}
                   </div>
-                  <span className="break-words text-[12px] text-text-2">
-                    {entry.message}
-                  </span>
+                  <div className="flex min-w-0 flex-wrap items-center gap-1 text-[12px] text-text-2">
+                    {entry.member ? (
+                      <>
+                        <SyncLogMemberPill member={entry.member} />
+                        <span aria-hidden className="text-text-3">
+                          :
+                        </span>
+                      </>
+                    ) : null}
+                    <span className="min-w-0 break-words">{entry.message}</span>
+                  </div>
                 </li>
               ))}
             </ul>
