@@ -457,25 +457,36 @@ describe("failure diagnostics", () => {
     clock.advanceBy(30_000);
     await scheduler.runPass(scheduler.generation);
 
-    expect(getSyncJournalSnapshot()[0]?.message).toBe(
-      "Member runtime push failed for Ada Lovelace (user-1); retrying in 300s: Cloud request timed out after 15000ms."
-    );
+    expect(getSyncJournalSnapshot()[0]).toMatchObject({
+      member: { userId: "user-1", displayName: "Ada Lovelace" },
+      message:
+        "Member runtime push failed; retrying in 300s: Cloud request timed out after 15000ms.",
+    });
     expect(mocks.logWarn.mock.calls[0]?.[0]).toContain(
       "member runtime push failed for Ada Lovelace (user-1) in org org-1"
     );
   });
 
-  it("falls back to the stable user id when the profile is unavailable", () => {
+  it("falls back to the stable user id without exposing a profile email", () => {
     const scheduler = asPrivate(new MemberRuntimePushScheduler(makeDeps()));
+    const authWithoutDisplayName: Org2CloudAuthState = {
+      ...AUTH,
+      profile: { primaryEmail: "private@example.test" },
+    };
 
     scheduler.noteOrgFailure(
       makeOrg(),
-      AUTH,
+      authWithoutDisplayName,
       new Error("Cloud request timed out after 15000ms.")
     );
 
-    expect(getSyncJournalSnapshot()[0]?.message).toContain(
-      "Member runtime push failed for user-1;"
+    expect(getSyncJournalSnapshot()[0]).toMatchObject({
+      member: { userId: "user-1" },
+      message:
+        "Member runtime push failed; retrying in 300s: Cloud request timed out after 15000ms.",
+    });
+    expect(mocks.logWarn.mock.calls[0]?.[0]).not.toContain(
+      "private@example.test"
     );
   });
 });

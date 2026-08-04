@@ -473,10 +473,7 @@ export class MemberRuntimePushScheduler {
     // The upsert RPC derives the member from this session's JWT, so the
     // freshly authenticated profile is the authoritative identity for the
     // failed push. Keep the stable user id visible even when names collide.
-    const memberName =
-      auth.profile?.displayName?.trim() ||
-      auth.profile?.primaryEmail?.trim() ||
-      auth.userId;
+    const memberName = auth.profile?.displayName?.trim() || auth.userId;
     const memberIdentity =
       memberName === auth.userId
         ? auth.userId
@@ -492,7 +489,11 @@ export class MemberRuntimePushScheduler {
       level: "warn",
       kind: "member_runtime",
       orgId: org.orgId,
-      message: `Member runtime push failed for ${memberIdentity}; retrying in ${Math.round(delayMs / 1000)}s: ${described.message}`,
+      member: {
+        userId: auth.userId,
+        ...(memberName === auth.userId ? {} : { displayName: memberName }),
+      },
+      message: `Member runtime push failed; retrying in ${Math.round(delayMs / 1000)}s: ${described.message}`,
       code: described.code,
     });
   }
