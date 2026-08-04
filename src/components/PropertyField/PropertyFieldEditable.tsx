@@ -39,6 +39,7 @@ export interface FieldRowProps {
   usePencil?: boolean;
   suffix?: React.ReactNode;
   variant?: FieldRowVariant;
+  compactPill?: boolean;
   borderless?: boolean;
   clearLabel?: string;
   onClear?: () => void;
@@ -57,6 +58,7 @@ export const FieldRow: React.FC<FieldRowProps> = ({
   usePencil = false,
   suffix,
   variant = "row",
+  compactPill = false,
   borderless = false,
   onClick,
 }) => {
@@ -81,7 +83,7 @@ export const FieldRow: React.FC<FieldRowProps> = ({
           shape="round"
           icon={iconContent}
           onClick={onClick}
-          className={`max-w-[220px] ${pillBorderClass} ${
+          className={`max-w-[220px] ${compactPill ? "!px-2" : ""} ${pillBorderClass} ${
             isActive ? "!border-primary-6 !bg-fill-2 !text-primary-6" : ""
           }`}
           data-field-row

@@ -208,6 +208,7 @@ export function WorkManagementTable({
               maxWidthClassName="max-w-[140px]"
               triggerVariant="pill"
               fieldVariant="pill"
+              compactPill
               placement="portal"
               borderless
             />

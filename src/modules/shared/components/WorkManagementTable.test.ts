@@ -150,6 +150,7 @@ describe("WorkManagementTable", () => {
     );
 
     expect(markup).toContain('data-testid="shared-status-select"');
+    expect(markup).toContain("!px-2");
     expect(markup).toContain('data-value="open"');
     expect(markup).toContain(
       'class="inline-flex min-w-0 max-w-full items-center gap-1"'

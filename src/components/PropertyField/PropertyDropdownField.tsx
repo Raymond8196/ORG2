@@ -43,6 +43,7 @@ interface PropertyDropdownFieldProps<T extends string> {
   onActiveChange?: (active: boolean) => void;
   maxWidthClassName?: string;
   valueClassName?: string;
+  compactPill?: boolean;
   onClear?: () => void | Promise<void>;
   borderless?: boolean;
   renderOptions?: (searchQuery: string, close: () => void) => React.ReactNode;
@@ -68,6 +69,7 @@ export function PropertyDropdownField<T extends string>({
   onActiveChange,
   maxWidthClassName,
   valueClassName,
+  compactPill = false,
   onClear,
   borderless = false,
   renderOptions,
@@ -173,6 +175,7 @@ export function PropertyDropdownField<T extends string>({
           ) : undefined
         }
         variant={fieldVariant}
+        compactPill={compactPill}
         borderless={borderless}
         onClear={readonly ? undefined : onClear}
         onClick={() => {
