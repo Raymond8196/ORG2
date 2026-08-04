@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import type { Org2CloudOrg } from "./org2CloudOrgsAtom";
-import { buildOrg2CloudSyncRosterKey } from "./useOrg2CloudSyncEngine";
+import {
+  buildOrg2CloudSyncRosterKey,
+  shouldEnableExternalHistoryBackgroundScan,
+} from "./useOrg2CloudSyncEngine";
 
 describe("buildOrg2CloudSyncRosterKey", () => {
   const org: Org2CloudOrg = {
@@ -24,5 +27,25 @@ describe("buildOrg2CloudSyncRosterKey", () => {
     expect(buildOrg2CloudSyncRosterKey([org, other])).toBe(
       buildOrg2CloudSyncRosterKey([other, org])
     );
+  });
+
+  it("requires a loaded signed-in roster with at least one background org", () => {
+    const backgroundOrg = { ...org, offlineSyncEnabled: true };
+    expect(
+      shouldEnableExternalHistoryBackgroundScan("identity-1", true, [
+        backgroundOrg,
+      ])
+    ).toBe(true);
+    expect(
+      shouldEnableExternalHistoryBackgroundScan(null, true, [backgroundOrg])
+    ).toBe(false);
+    expect(
+      shouldEnableExternalHistoryBackgroundScan("identity-1", false, [
+        backgroundOrg,
+      ])
+    ).toBe(false);
+    expect(
+      shouldEnableExternalHistoryBackgroundScan("identity-1", true, [org])
+    ).toBe(false);
   });
 });
