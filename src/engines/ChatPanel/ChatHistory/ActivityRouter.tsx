@@ -20,7 +20,7 @@ import {
 import {
   chatRequiresItemIndex,
   chatShowsStatusLine,
-  getChatLazyComponent,
+  getChatComponent,
 } from "@src/engines/SessionCore/rendering/registry/events";
 import { createLogger } from "@src/hooks/logger";
 import { getRegistryEventType } from "@src/lib/activityData/activityNormalizers";
@@ -329,7 +329,7 @@ const ActivityChatItem: React.FC<ActivityChatItemProps> = memo(
         }
       }
 
-      const EventComponent = getChatLazyComponent(eventType);
+      const EventComponent = getChatComponent(eventType);
 
       if (EventComponent) {
         const extras: Record<string, unknown> = {};
