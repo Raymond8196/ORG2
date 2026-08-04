@@ -60,12 +60,6 @@ export function getManagedPullRequestKey(pullRequest: ManagedPrItem): string {
   return `${pullRequest.repo}#${pullRequest.id}`;
 }
 
-export interface PullRequestTodoSections {
-  reviewRequested: ManagedPrItem[];
-  authoredByViewer: ManagedPrItem[];
-  otherTodos: ManagedPrItem[];
-}
-
 function isSameGitHubLogin(
   left: string | null | undefined,
   right: string | null | undefined
@@ -226,34 +220,5 @@ export function managedItemMatchesQuery(
     getSearchableParts(item).some((part) =>
       part.toLowerCase().includes(freeText)
     )
-  );
-}
-
-/**
- * Orders open PRs into the three collapsible Work Management sections.
- * GitHub's requested-reviewer list is outstanding-only, so a completed review
- * naturally leaves the first section without an extra per-PR reviews request.
- */
-export function groupPullRequestsIntoTodoSections(
-  items: readonly ManagedGitHubItem[]
-): PullRequestTodoSections {
-  return items.reduce<PullRequestTodoSections>(
-    (sections, item) => {
-      if (
-        item.kind !== GITHUB_ITEM_KIND.PR ||
-        item.state !== GITHUB_QUERY_STATE.OPEN
-      ) {
-        return sections;
-      }
-      if (item.reviewRequestedFromViewer) {
-        sections.reviewRequested.push(item);
-      } else if (item.authoredByViewer) {
-        sections.authoredByViewer.push(item);
-      } else {
-        sections.otherTodos.push(item);
-      }
-      return sections;
-    },
-    { reviewRequested: [], authoredByViewer: [], otherTodos: [] }
   );
 }

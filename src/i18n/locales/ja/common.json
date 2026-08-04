@@ -488,6 +488,16 @@
     "empty": "空",
     "launching": "起動中..."
   },
+  "workManagementTable": {
+    "columns": {
+      "id": "ID",
+      "titleContext": "タイトル / コンテキスト",
+      "status": "ステータス",
+      "assignee": "担当者",
+      "updated": "更新"
+    },
+    "selectRow": "{{id}} を選択"
+  },
   "pagination": {
     "totalItems": "{{count}} 件",
     "pageOf": "{{current}} / {{total}} ページ",

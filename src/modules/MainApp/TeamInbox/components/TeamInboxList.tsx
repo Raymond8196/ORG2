@@ -28,7 +28,6 @@ import SearchInput from "@src/components/SearchInput";
 import {
   type ManagedPrItem,
   getManagedPullRequestKey,
-  groupPullRequestsIntoTodoSections,
 } from "@src/modules/MainApp/WorkManagement/githubManagedItemModel";
 import {
   CollapsibleSection,
@@ -91,6 +90,28 @@ const PULL_REQUEST_ICONS: Record<PrStatusIconName, LucideIcon> = {
   closed: GitPullRequestClosed,
   draft: GitPullRequestDraft,
 };
+
+interface TeamInboxPullRequestSections {
+  reviewRequested: ManagedPrItem[];
+  authoredByViewer: ManagedPrItem[];
+}
+
+function groupTeamInboxPullRequests(
+  pullRequests: readonly ManagedPrItem[]
+): TeamInboxPullRequestSections {
+  return pullRequests.reduce<TeamInboxPullRequestSections>(
+    (sections, pullRequest) => {
+      if (pullRequest.state !== "open") return sections;
+      if (pullRequest.reviewRequestedFromViewer) {
+        sections.reviewRequested.push(pullRequest);
+      } else if (pullRequest.authoredByViewer) {
+        sections.authoredByViewer.push(pullRequest);
+      }
+      return sections;
+    },
+    { reviewRequested: [], authoredByViewer: [] }
+  );
+}
 
 // Temporarily hidden until GitHub OAuth failures can name the affected
 // repositories and offer a useful recovery path. Keep the warning UI in place
@@ -196,7 +217,7 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
     );
   }, [pullRequests, query]);
   const pullRequestSections = useMemo(
-    () => groupPullRequestsIntoTodoSections(visiblePullRequests),
+    () => groupTeamInboxPullRequests(visiblePullRequests),
     [visiblePullRequests]
   );
   const showPullRequests = filter === "all";

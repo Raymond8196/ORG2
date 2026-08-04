@@ -36,6 +36,7 @@ import {
 import { toWorkItemPartialUpdate } from "../workItemPartialUpdate";
 import {
   countWorkItemsByStatus,
+  filterWorkItemsBySearchQuery,
   getWorkItemNavigation,
   groupWorkItemsForStatusFilter,
 } from "../workItemsViewModel";
@@ -320,23 +321,7 @@ export function useWorkItemsData({
       return workItems;
     }
 
-    const search = searchQuery.toLowerCase().trim();
-    if (!search) {
-      return workItems;
-    }
-
-    return workItems.filter((workItem) => {
-      const name = workItem.name?.toLowerCase() || "";
-      const labels =
-        workItem.labels?.map((label) => label.name.toLowerCase()).join(" ") ||
-        "";
-      const assignee = workItem.assignee?.name?.toLowerCase() || "";
-      return (
-        name.includes(search) ||
-        labels.includes(search) ||
-        assignee.includes(search)
-      );
-    });
+    return filterWorkItemsBySearchQuery(workItems, searchQuery);
   }, [workItems, searchQuery, debouncedSearchQuery]);
 
   const selectedWorkItem = useMemo(

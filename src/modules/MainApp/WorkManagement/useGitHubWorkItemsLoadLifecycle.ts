@@ -452,6 +452,14 @@ export function useGitHubWorkItemsLoadLifecycle({
     ) => setRepoIssueMap(update),
     []
   );
+  const updatePrMap = useCallback(
+    (
+      update: (
+        current: Record<string, RepoPrState>
+      ) => Record<string, RepoPrState>
+    ) => setRepoPrMap(update),
+    []
+  );
   const setListError = useCallback((error: string | null) => {
     setLoadError(error);
   }, []);
@@ -463,6 +471,7 @@ export function useGitHubWorkItemsLoadLifecycle({
     loading,
     loadError,
     updateIssueMap,
+    updatePrMap,
     setListError,
   };
 }

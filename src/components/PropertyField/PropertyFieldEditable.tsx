@@ -86,10 +86,14 @@ export const FieldRow: React.FC<FieldRowProps> = ({
           }`}
           data-field-row
         >
-          <span className={`min-w-0 truncate leading-[18px] ${valueClassName}`}>
-            {value}
+          <span className="inline-flex min-w-0 max-w-full items-center gap-1">
+            <span
+              className={`min-w-0 truncate leading-[18px] ${valueClassName}`}
+            >
+              {value}
+            </span>
+            {suffix}
           </span>
-          {suffix}
         </Button>
       </div>
     );

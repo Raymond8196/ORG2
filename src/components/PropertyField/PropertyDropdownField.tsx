@@ -1,3 +1,4 @@
+import { ChevronDown } from "lucide-react";
 import React, { useCallback, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -162,6 +163,15 @@ export function PropertyDropdownField<T extends string>({
         isSelected={selected}
         isActive={isOpen}
         showChevron
+        suffix={
+          fieldVariant === "pill" && !readonly ? (
+            <ChevronDown
+              className="ml-1 shrink-0"
+              size={12}
+              strokeWidth={1.8}
+            />
+          ) : undefined
+        }
         variant={fieldVariant}
         borderless={borderless}
         onClear={readonly ? undefined : onClear}

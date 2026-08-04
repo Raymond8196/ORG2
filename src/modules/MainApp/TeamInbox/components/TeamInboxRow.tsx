@@ -2,11 +2,13 @@ import { ListChecks, MessageSquareMore } from "lucide-react";
 import { forwardRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
+import IntegrationIcon from "@src/components/IntegrationIcon";
 import { formatRelativeTime } from "@src/util/time/formatRelativeTime";
 
 import {
   type TeamInboxItem,
   humanizeToken,
+  isGitHubIssueStatus,
   workItemPriorityLabelKey,
   workItemStatusLabelKey,
 } from "../domain";
@@ -41,6 +43,9 @@ const TeamInboxRow = forwardRef<HTMLButtonElement, TeamInboxRowProps>(
   ({ item, itemKey, selected, onSelect }, ref) => {
     const { t } = useTranslation();
     const isMention = item.kind === "comment_mention";
+    const isGitHubIssue =
+      item.kind === "assigned_work_item" &&
+      isGitHubIssueStatus(item.payload.status);
     const title = isMention
       ? item.target.kind === "session_comment"
         ? item.target.sessionTitle
@@ -124,11 +129,19 @@ const TeamInboxRow = forwardRef<HTMLButtonElement, TeamInboxRowProps>(
         leading={
           isMention ? (
             <MessageSquareMore size={14} strokeWidth={1.8} />
+          ) : isGitHubIssue ? (
+            <IntegrationIcon type="github" size={14} />
           ) : (
             <ListChecks size={14} strokeWidth={1.8} />
           )
         }
-        leadingClassName={isMention ? "text-primary-6" : "text-success-6"}
+        leadingClassName={
+          isMention
+            ? "text-primary-6"
+            : isGitHubIssue
+              ? "text-text-2"
+              : "text-success-6"
+        }
         onClick={() => onSelect(item)}
       />
     );

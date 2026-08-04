@@ -30,13 +30,20 @@ describe("SettingsTable sticky toolbar contract", () => {
     expect(maskRule).not.toMatch(/\bposition\s*:/);
   });
 
-  it("sizes inline search on a flex wrapper so actions stay inside the table", () => {
+  it("lets inline search fill the space between filters and actions", () => {
     expect(settingsTableSource).toContain(
-      '<div className="min-w-0 flex-1 @[640px]:w-52 @[640px]:flex-none">'
+      '<div className="order-1 flex w-full min-w-0 items-center justify-end gap-2 @[640px]:order-2 @[640px]:flex-1">'
     );
+    expect(settingsTableSource).toContain('<div className="min-w-0 flex-1">');
     expect(settingsTableSource).toContain('className="w-full min-w-0"');
     expect(settingsTableSource).toContain(
       'className="flex shrink-0 items-center gap-2"'
+    );
+  });
+
+  it("pins the final table column on surfaces narrower than 1300px", () => {
+    expect(tableStyles).toMatch(
+      /@media \(max-width: 1300px\)[\s\S]*\.table-settings\.table-settings-pin-last-column[\s\S]*position:\s*sticky;[\s\S]*right:\s*0;/
     );
   });
 });

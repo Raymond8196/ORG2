@@ -18,6 +18,7 @@ import type { RepoFilterOption } from "./githubWorkItemsTypes";
 import { useGitHubIssueDetail } from "./useGitHubIssueDetail";
 import { useGitHubIssueMutations } from "./useGitHubIssueMutations";
 import { useGitHubWorkItemActions } from "./useGitHubWorkItemActions";
+import { useGitHubWorkItemStatusMutations } from "./useGitHubWorkItemStatusMutations";
 import { useGitHubWorkItemsDerivedState } from "./useGitHubWorkItemsDerivedState";
 import { useGitHubWorkItemsLoadLifecycle } from "./useGitHubWorkItemsLoadLifecycle";
 import {
@@ -28,13 +29,11 @@ import {
 
 interface GitHubWorkItemsSurfaceProps {
   scope: Extract<GitHubQueryScope, "issue" | "pr">;
-  singleRowHeader: boolean;
   onDetailViewChange: (open: boolean, onBack: (() => void) | null) => void;
 }
 
 const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
   scope,
-  singleRowHeader,
   onDetailViewChange,
 }) => {
   const { t } = useTranslation(["sessions", "common"]);
@@ -83,6 +82,7 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
     loading,
     loadError,
     updateIssueMap,
+    updatePrMap,
     setListError,
   } = useGitHubWorkItemsLoadLifecycle({
     repos,
@@ -171,6 +171,16 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
     onCreated: () => setCreateFormOpen(false),
     createErrorMessage: t("chat.panels.manageIssues.createIssueFailed"),
   });
+  const { updateIssueStatus, updatePrStatus } =
+    useGitHubWorkItemStatusMutations({
+      repoSources,
+      updateIssueMap,
+      updatePrMap,
+      setListError,
+      updateErrorMessage: t("chat.panels.manageIssues.statusUpdateFailed", {
+        defaultValue: "Failed to update GitHub status",
+      }),
+    });
 
   const handlePreviousPage = useCallback(() => {
     setCurrentPage((page) => Math.max(1, page - 1));
@@ -196,7 +206,6 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
   return (
     <GitHubWorkItemsView
       scope={scope}
-      singleRowHeader={singleRowHeader}
       loading={loading}
       loadError={loadError}
       loadingMore={loadingMore}
@@ -228,8 +237,10 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
       onOpenIssueInBrowser={openIssueInBrowser}
       onOpenIssueInMyStation={openIssueInMyStation}
       onAddIssue={addIssue}
+      onIssueStatusChange={updateIssueStatus}
       onOpenPr={openPr}
       onAddPr={addPr}
+      onPrStatusChange={updatePrStatus}
       onBackFromDetail={closeDetail}
       onCloseIssueDetail={closeCurrentIssue}
       onReopenIssueDetail={reopenCurrentIssue}

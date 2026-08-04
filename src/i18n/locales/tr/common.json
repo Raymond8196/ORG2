@@ -490,6 +490,16 @@
     "empty": "Boş",
     "launching": "Başlatılıyor..."
   },
+  "workManagementTable": {
+    "columns": {
+      "id": "Kimlik",
+      "titleContext": "Başlık / bağlam",
+      "status": "Durum",
+      "assignee": "Sorumlu",
+      "updated": "Güncellendi"
+    },
+    "selectRow": "{{id}} öğesini seç"
+  },
   "pagination": {
     "totalItems": "{{count}} öğe",
     "pageOf": "Sayfa {{current}} / {{total}}",

@@ -67,6 +67,18 @@ export async function listOpenPRsLocal(
   return listPRsLocal(repoFullName, "open", perPage);
 }
 
+export async function updatePRStateLocal(
+  repoFullName: string,
+  prNumber: number,
+  state: PullRequestListState
+): Promise<OpenPRItem> {
+  return invokeWithAuth<OpenPRItem>("github_update_pr_state", {
+    repoFullName,
+    prNumber,
+    state,
+  });
+}
+
 /**
  * Which fetch strategy the backend used to resolve a PR head into a SHA.
  * Mirrors the Rust `PrBaseSource` enum (serialized camelCase).

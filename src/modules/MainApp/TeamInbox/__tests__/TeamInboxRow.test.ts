@@ -38,6 +38,14 @@ vi.mock("react-i18next", () => ({
   }),
 }));
 
+vi.mock("@src/components/IntegrationIcon", () => ({
+  default: ({ type, size }: { type: string; size: number }) =>
+    createElement("span", {
+      "data-integration-icon": type,
+      "data-icon-size": size,
+    }),
+}));
+
 const assignedItem: AssignedWorkItem = {
   id: "assigned-1",
   kind: "assigned_work_item",
@@ -162,6 +170,32 @@ describe("TeamInboxRow", () => {
 
     expect(container.textContent).toContain("Assigned to me · Issue");
     expect(container.textContent).not.toContain("orgii-issu");
+  });
+
+  it("uses the GitHub SVG for GitHub issue rows", () => {
+    act(() => {
+      root.render(
+        createElement(TeamInboxRow, {
+          item: {
+            ...assignedItem,
+            payload: {
+              ...assignedItem.payload,
+              status: "open",
+            },
+          },
+          itemKey: "assigned_work_item:assigned-1",
+          selected: false,
+          onSelect: vi.fn(),
+        })
+      );
+    });
+
+    const githubIcon = container.querySelector(
+      '[data-integration-icon="github"]'
+    );
+    expect(githubIcon).not.toBeNull();
+    expect(githubIcon?.getAttribute("data-icon-size")).toBe("14");
+    expect(container.querySelector(".lucide-list-checks")).toBeNull();
   });
 
   it("keeps the compact comment preview for mention rows", () => {

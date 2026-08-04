@@ -197,6 +197,13 @@ fn parse_open_pr_item(item: &Value) -> OpenPRItem {
     }
 }
 
+fn validate_pull_request_state(state: String) -> Result<String, String> {
+    match state.as_str() {
+        "open" | "closed" => Ok(state),
+        _ => Err("pull request state must be open or closed".to_string()),
+    }
+}
+
 #[cfg(test)]
 mod open_pr_item_tests {
     use super::*;
@@ -255,6 +262,19 @@ mod open_pr_item_tests {
         assert_eq!(serialized["author_avatar_url"], Value::Null);
         assert_eq!(serialized["requested_reviewer_logins"], json!([]));
     }
+
+    #[test]
+    fn accepts_only_mutable_pull_request_states() {
+        assert_eq!(
+            validate_pull_request_state("open".to_string()).unwrap(),
+            "open"
+        );
+        assert_eq!(
+            validate_pull_request_state("closed".to_string()).unwrap(),
+            "closed"
+        );
+        assert!(validate_pull_request_state("merged".to_string()).is_err());
+    }
 }
 
 #[command]
@@ -263,10 +283,7 @@ pub async fn github_list_prs(
     state: String,
     per_page: Option<u64>,
 ) -> Result<Vec<OpenPRItem>, String> {
-    let state = match state.as_str() {
-        "open" | "closed" => state,
-        _ => return Err("pull request state must be open or closed".to_string()),
-    };
+    let state = validate_pull_request_state(state)?;
     let limit = per_page.unwrap_or(30).min(100);
     log::info!("[GitHub][Cmd] list_prs repo={repo_full_name} state={state} per_page={limit}");
     let client = make_client()?;
@@ -284,6 +301,24 @@ pub async fn github_list_prs(
         items.len()
     );
     Ok(items)
+}
+
+#[command]
+pub async fn github_update_pr_state(
+    repo_full_name: String,
+    pr_number: u64,
+    state: String,
+) -> Result<OpenPRItem, String> {
+    let state = validate_pull_request_state(state)?;
+    log::info!("[GitHub][Cmd] update_pr_state repo={repo_full_name} pr={pr_number} state={state}");
+    let client = make_client()?;
+    let data = client
+        .patch(
+            &format!("/repos/{repo_full_name}/pulls/{pr_number}"),
+            json!({ "state": state }),
+        )
+        .await?;
+    Ok(parse_open_pr_item(&data))
 }
 
 #[command]

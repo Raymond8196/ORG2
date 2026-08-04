@@ -2,9 +2,9 @@
  * useProjectWorkItemsTabContentWorkspaceData
  *
  * Owns the workspace work-item data source for ProjectWorkItemsTabContent:
- * fetching the active/completed buckets, incremental "completed" section
- * loading, and the local/external workspace-source toggle. Extracted to
- * keep the tab-content component under the 600-line limit.
+ * fetching the active/completed buckets, on-demand completed-filter loading,
+ * and the local/external workspace-source toggle. Extracted to keep the
+ * tab-content component under the 600-line limit.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -54,7 +54,6 @@ export function useProjectWorkItemsTabContentWorkspaceData({
   const loadedRef = useRef(false);
   const loadGenerationRef = useRef(0);
   const completedItemsLoadedRef = useRef(false);
-  const completedSectionExpandedRef = useRef(false);
   const [completedItemsLoading, setCompletedItemsLoading] = useState(false);
   const completedItemsLoadingRef = useRef(false);
   const completedLoadGenerationRef = useRef(0);
@@ -89,9 +88,7 @@ export function useProjectWorkItemsTabContentWorkspaceData({
       setLoading(true);
       setError(null);
       try {
-        const shouldLoadCompleted =
-          completedItemsLoadedRef.current ||
-          completedSectionExpandedRef.current;
+        const shouldLoadCompleted = completedItemsLoadedRef.current;
         const readBucket = shouldLoadCompleted
           ? undefined
           : WORKSPACE_ACTIVE_READ_BUCKET;
@@ -223,7 +220,6 @@ export function useProjectWorkItemsTabContentWorkspaceData({
     completedItemsError,
     loadWorkItems,
     loadCompletedWorkItems,
-    completedSectionExpandedRef,
     workspaceSourceMode,
     setWorkspaceSourceMode,
     includeExternalSources,
