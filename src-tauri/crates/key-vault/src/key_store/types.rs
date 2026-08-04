@@ -544,6 +544,22 @@ impl ModelKey {
         }
     }
 
+    /// Whether this credential is a native OAuth account for the target CLI.
+    /// Cross-provider keys and native API keys must never enter OAuth retry,
+    /// token rotation, or OAuth health bookkeeping.
+    pub fn is_native_oauth_for(&self, target: &ModelType) -> bool {
+        self.auth_method == AuthMethod::Oauth
+            && &self.model_type == target
+            && matches!(target, ModelType::Codex | ModelType::ClaudeCode)
+    }
+
+    /// Whether this credential is handled by one of KeyService's OAuth
+    /// refresh implementations.
+    pub fn is_refreshable_native_oauth(&self) -> bool {
+        self.auth_method == AuthMethod::Oauth
+            && matches!(self.model_type, ModelType::Codex | ModelType::ClaudeCode)
+    }
+
     /// Mask sensitive data for display
     pub fn mask_api_key(&self) -> Option<String> {
         self.api_key.as_ref().map(|key| {
@@ -576,6 +592,28 @@ impl ModelKey {
                 )
             }
         })
+    }
+}
+
+/// Result of an explicit OAuth refresh attempt.
+///
+/// `AlreadyRotated` means another concurrent caller refreshed the access
+/// token while this caller waited for the per-key lock. `NotApplicable`
+/// makes API-key and cross-provider credentials impossible to mistake for a
+/// successful refresh.
+#[derive(Debug, Clone)]
+pub enum OAuthRefreshOutcome {
+    Refreshed(Box<ModelKey>),
+    AlreadyRotated(Box<ModelKey>),
+    NotApplicable,
+}
+
+impl OAuthRefreshOutcome {
+    pub fn into_key(self) -> Option<ModelKey> {
+        match self {
+            Self::Refreshed(key) | Self::AlreadyRotated(key) => Some(*key),
+            Self::NotApplicable => None,
+        }
     }
 }
 

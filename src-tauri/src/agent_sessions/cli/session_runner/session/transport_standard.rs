@@ -14,7 +14,6 @@ use crate::api::websocket_handler;
 use key_vault::key_store::ModelType;
 
 use super::super::super::persistence;
-use super::super::super::persistence::CodeSession;
 use super::super::super::types::SessionStatus;
 use super::super::command::create_parser;
 use super::super::helpers::{
@@ -38,13 +37,15 @@ pub(super) struct StandardOutcome {
     pub(super) cli_session_id_out: Option<String>,
     pub(super) retryable_oauth_message: Option<String>,
     pub(super) retryable_overload_message: Option<String>,
+    pub(super) terminal_error_message: Option<String>,
 }
 
 #[allow(clippy::too_many_arguments)]
 pub(super) async fn run_standard_branch(
     mut child: Child,
     session_id: String,
-    session: &CodeSession,
+    oauth_retry_eligible: bool,
+    overload_retry_eligible: bool,
     agent: ModelType,
     mode: Option<&str>,
     account_id: Option<&str>,
@@ -58,6 +59,7 @@ pub(super) async fn run_standard_branch(
 ) -> StandardOutcome {
     let mut retryable_oauth_message: Option<String> = None;
     let mut retryable_overload_message: Option<String> = None;
+    let mut terminal_error_message: Option<String> = None;
     let mut replay_unsafe_output_seen = false;
 
     // ── Standard agents: read stdout line by line through CliAgentParser ──
@@ -140,10 +142,16 @@ pub(super) async fn run_standard_branch(
                         if cli_plan_approval_gate_triggered {
                             continue;
                         }
+
+                        // Retain the structured terminal body before deciding
+                        // whether this attempt is safe to retry. Intermediate
+                        // attempts overwrite this outcome on the next pass;
+                        // the last exhausted attempt must not lose its body.
+                        super::record_terminal_cli_error(&mut terminal_error_message, &chunk);
+
                         if !replay_unsafe_output_seen {
                             if let Some(message) = is_retryable_cli_oauth_failure_chunk(
-                                &agent,
-                                session.key_source,
+                                oauth_retry_eligible,
                                 &chunk,
                             ) {
                                 retryable_oauth_message = Some(message);
@@ -151,9 +159,11 @@ pub(super) async fn run_standard_branch(
                             }
                         }
 
-                        if let Some(message) = is_retryable_overloaded_chunk(&chunk) {
-                            retryable_overload_message = Some(message);
-                            break;
+                        if overload_retry_eligible {
+                            if let Some(message) = is_retryable_overloaded_chunk(&chunk) {
+                                retryable_overload_message = Some(message);
+                                break;
+                            }
                         }
 
                         if is_cli_chunk_replay_unsafe(&chunk) {
@@ -387,8 +397,7 @@ pub(super) async fn run_standard_branch(
 
     if retryable_oauth_message.is_none()
         && is_cli_oauth_stderr_retry_candidate(
-            &agent,
-            session.key_source,
+            oauth_retry_eligible,
             exit_code,
             replay_unsafe_output_seen,
         )
@@ -406,17 +415,20 @@ pub(super) async fn run_standard_branch(
     {
         let exit_chunks = parser.on_exit(exit_code);
         for chunk in &exit_chunks {
+            super::record_terminal_cli_error(&mut terminal_error_message, chunk);
             if !replay_unsafe_output_seen {
                 if let Some(message) =
-                    is_retryable_cli_oauth_failure_chunk(&agent, session.key_source, chunk)
+                    is_retryable_cli_oauth_failure_chunk(oauth_retry_eligible, chunk)
                 {
                     retryable_oauth_message = Some(message);
                     break;
                 }
             }
-            if let Some(message) = is_retryable_overloaded_chunk(chunk) {
-                retryable_overload_message = Some(message);
-                break;
+            if overload_retry_eligible {
+                if let Some(message) = is_retryable_overloaded_chunk(chunk) {
+                    retryable_overload_message = Some(message);
+                    break;
+                }
             }
             if let Some(snap_id) = &pre_message_snapshot_id {
                 snapshot_cli_file_edit(&session_id, snap_id, chunk, &snapshot_working_dir).await;
@@ -462,5 +474,6 @@ pub(super) async fn run_standard_branch(
         cli_session_id_out,
         retryable_oauth_message,
         retryable_overload_message,
+        terminal_error_message,
     }
 }

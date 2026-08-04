@@ -1,6 +1,8 @@
 use super::super::env_setup::{
-    atlascloud_model_id, opencode_zenmux_model_id, setup_codex_atlascloud_profile,
+    atlascloud_model_id, clear_codex_compatible_profile, codex_needs_compatible_profile,
+    opencode_zenmux_model_id, setup_codex_compatible_profile, setup_codex_hosted_profile,
     setup_opencode_atlascloud_profile, setup_opencode_zenmux_profile,
+    validate_codex_own_key_provider,
 };
 use super::super::input_assembly::cli_exec_mode_bridge;
 use super::super::oauth_setup::{is_api_overloaded_message, is_retryable_overloaded_chunk};
@@ -11,9 +13,9 @@ use super::super::plan_approval::{
 use super::*;
 use core_types::activity::ActivityChunk;
 use core_types::providers::{CODEX_ID_TOKEN_ENV_KEY, CODEX_REFRESH_TOKEN_ENV_KEY};
-use key_vault::key_store::ModelKey;
+use key_vault::key_store::{AuthMethod, ModelKey};
 use serde_json::Value;
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 use std::path::Path;
 use std::sync::Mutex as StdMutex;
 
@@ -108,24 +110,470 @@ fn atlascloud_model_id_prefers_session_model() {
 }
 
 #[test]
-fn setup_codex_atlascloud_profile_writes_provider_model_and_auth() {
+fn setup_codex_compatible_profile_writes_responses_provider_without_websocket() {
     let temp_dir = tempfile::tempdir().expect("temp Codex profile");
-    let mut key = ModelKey::new(ModelType::AtlascloudApi);
-    key.api_key = Some("atlas-test-key".to_string());
-    key.enabled_models = vec!["zai-org/glm-5.1".to_string()];
+    let mut key = ModelKey::new(ModelType::ZenmuxApi);
+    key.api_key = Some("zenmux-test-key".to_string());
+    key.enabled_models = vec!["z-ai/glm-5.2".to_string()];
+    let mut env = HashMap::from([
+        ("OPENAI_API_KEY".to_string(), "zenmux-test-key".to_string()),
+        (
+            "OPENAI_BASE_URL".to_string(),
+            "https://stale.example/v1".to_string(),
+        ),
+    ]);
 
-    setup_codex_atlascloud_profile(temp_dir.path(), &key, None).expect("setup profile");
+    setup_codex_compatible_profile(temp_dir.path(), &key, None, &mut env).expect("setup profile");
 
     let config = std::fs::read_to_string(temp_dir.path().join("config.toml")).expect("read config");
-    assert!(config.contains("model_provider = \"atlas_coding_plan\""));
-    assert!(config.contains("model = \"zai-org/glm-5.1\""));
-    assert!(config.contains("[model_providers.atlas_coding_plan]"));
-    assert!(config.contains("base_url = \"https://api.atlascloud.ai/v1\""));
-    assert!(config.contains("wire_api = \"chat\""));
-    assert!(config.contains("requires_openai_auth = true"));
+    assert!(config.contains("model_provider = \"orgii_compatible\""));
+    assert!(config.contains("model = \"z-ai/glm-5.2\""));
+    assert!(config.contains("[model_providers.orgii_compatible]"));
+    assert!(config.contains("base_url = \"https://zenmux.ai/api/v1\""));
+    assert!(config.contains("env_key = \"OPENAI_API_KEY\""));
+    assert!(config.contains("wire_api = \"responses\""));
+    assert!(config.contains("requires_openai_auth = false"));
+    assert!(config.contains("supports_websockets = false"));
+    assert!(config.contains("request_max_retries = 2"));
+    assert!(config.contains("stream_max_retries = 2"));
+    assert!(!config.contains("zenmux-test-key"));
+    assert!(!env.contains_key("OPENAI_BASE_URL"));
+    assert_eq!(
+        env.get("OPENAI_API_KEY").map(String::as_str),
+        Some("zenmux-test-key")
+    );
+}
 
-    let auth = read_json(&temp_dir.path().join("auth.json"));
-    assert_eq!(auth["OPENAI_API_KEY"].as_str(), Some("atlas-test-key"));
+#[test]
+fn codex_compatible_profile_uses_zenmux_default_base_url_and_namespaced_model() {
+    let temp_dir = tempfile::tempdir().expect("temp Codex profile");
+    let key = ModelKey::new(ModelType::ZenmuxApi);
+    let mut env = HashMap::new();
+
+    setup_codex_compatible_profile(temp_dir.path(), &key, Some("z-ai/glm-5.2"), &mut env)
+        .expect("setup compatible profile");
+
+    let config = std::fs::read_to_string(temp_dir.path().join("config.toml")).expect("read config");
+    assert!(config.contains("base_url = \"https://zenmux.ai/api/v1\""));
+    assert!(config.contains("model = \"z-ai/glm-5.2\""));
+}
+
+#[test]
+fn codex_own_key_provider_gate_uses_the_central_compatibility_contract() {
+    for model_type in [ModelType::Codex, ModelType::OpenaiApi, ModelType::ZenmuxApi] {
+        let key = ModelKey::new(model_type.clone());
+        assert!(
+            validate_codex_own_key_provider(&key).is_ok(),
+            "expected {} to be compatible with Codex",
+            model_type.as_str()
+        );
+    }
+
+    for model_type in [
+        ModelType::AnthropicApi,
+        ModelType::GeminiApi,
+        ModelType::ClaudeCode,
+        ModelType::AtlascloudApi,
+        ModelType::ZhipuApi,
+    ] {
+        let key = ModelKey::new(model_type.clone());
+        assert!(
+            validate_codex_own_key_provider(&key).is_err(),
+            "expected {} to be rejected for Codex",
+            model_type.as_str()
+        );
+    }
+}
+
+#[test]
+fn direct_openai_keys_keep_the_builtin_codex_provider() {
+    // No override and the official endpoint both mean "just use Codex's own
+    // `openai` provider" — no synthetic table, no capability downgrade.
+    assert!(!codex_needs_compatible_profile(&ModelKey::new(
+        ModelType::OpenaiApi
+    )));
+
+    let mut official = ModelKey::new(ModelType::OpenaiApi);
+    official.base_url = Some("https://api.openai.com/v1/".to_string());
+    assert!(!codex_needs_compatible_profile(&official));
+
+    let mut blank = ModelKey::new(ModelType::OpenaiApi);
+    blank.base_url = Some("   ".to_string());
+    assert!(!codex_needs_compatible_profile(&blank));
+
+    // A gateway/proxy endpoint still needs the custom provider table.
+    let mut gateway = ModelKey::new(ModelType::OpenaiApi);
+    gateway.base_url = Some("https://gateway.internal/v1".to_string());
+    assert!(codex_needs_compatible_profile(&gateway));
+
+    // Third parties always need it.
+    assert!(codex_needs_compatible_profile(&ModelKey::new(
+        ModelType::ZenmuxApi
+    )));
+}
+
+#[test]
+fn clearing_a_stale_compatible_profile_spares_codex_authored_config() {
+    let temp_dir = tempfile::tempdir().expect("temp Codex profile");
+    let config_path = temp_dir.path().join("config.toml");
+
+    clear_codex_compatible_profile(temp_dir.path()).expect("absent profile is not an error");
+
+    std::fs::write(&config_path, "model_provider = \"orgii_compatible\"\n").expect("seed profile");
+    clear_codex_compatible_profile(temp_dir.path()).expect("stale ORGII profile removed");
+    assert!(
+        !config_path.exists(),
+        "an endpoint override that was later cleared must not keep routing"
+    );
+
+    std::fs::write(&config_path, "model = \"gpt-5.1-codex\"\n").expect("seed foreign config");
+    clear_codex_compatible_profile(temp_dir.path()).expect("foreign config preserved");
+    assert!(config_path.exists());
+}
+
+#[test]
+fn codex_compatible_profile_rejects_an_unresolved_model() {
+    let temp_dir = tempfile::tempdir().expect("temp Codex profile");
+    let key = ModelKey::new(ModelType::ZenmuxApi);
+    let mut env = HashMap::new();
+
+    let error = setup_codex_compatible_profile(temp_dir.path(), &key, None, &mut env)
+        .expect_err("missing model must fail closed");
+
+    assert!(error.contains("explicit Responses-compatible model"));
+    assert!(!temp_dir.path().join("config.toml").exists());
+}
+
+#[test]
+fn hosted_codex_profile_is_session_scoped_and_fails_closed() {
+    with_temp_orgii_home(|_| {
+        let mut env = HashMap::from([("PROXY_TOKEN".to_string(), "hosted-test-token".to_string())]);
+
+        setup_codex_hosted_profile("hosted-session-1", Some("http://127.0.0.1:43123"), &mut env)
+            .expect("setup hosted profile");
+
+        let profile = app_paths::codex_hosted_cli_profile_dir("hosted-session-1");
+        assert_eq!(
+            env.get("CODEX_HOME").map(String::as_str),
+            Some(profile.to_string_lossy().as_ref())
+        );
+        let config = std::fs::read_to_string(profile.join("config.toml")).unwrap();
+        assert!(config.contains("base_url = \"http://127.0.0.1:43123/v1\""));
+        assert!(config.contains("supports_websockets = false"));
+        assert!(config.contains("request_max_retries = 2"));
+        assert!(config.contains("stream_max_retries = 2"));
+
+        let mut missing_token = HashMap::new();
+        assert!(setup_codex_hosted_profile(
+            "hosted-session-2",
+            Some("http://127.0.0.1:43123"),
+            &mut missing_token,
+        )
+        .is_err());
+        assert!(!missing_token.contains_key("CODEX_HOME"));
+        assert!(!app_paths::codex_hosted_cli_profile_dir("hosted-session-2").exists());
+
+        let blocked_profile = app_paths::codex_hosted_cli_profile_dir("hosted-session-3");
+        std::fs::create_dir_all(blocked_profile.parent().unwrap()).unwrap();
+        std::fs::write(&blocked_profile, b"not a directory").unwrap();
+        let mut blocked_env =
+            HashMap::from([("PROXY_TOKEN".to_string(), "hosted-test-token".to_string())]);
+        assert!(setup_codex_hosted_profile(
+            "hosted-session-3",
+            Some("http://127.0.0.1:43123"),
+            &mut blocked_env,
+        )
+        .is_err());
+        assert!(!blocked_env.contains_key("CODEX_HOME"));
+    });
+}
+
+#[test]
+fn codex_api_key_profile_must_not_be_written_as_oauth_tokens() {
+    with_temp_orgii_home(|_| {
+        let account_id = "zhipu-api-key-shape";
+        let mut key = ModelKey::new(ModelType::ZhipuApi);
+        key.api_key = Some("zhipu-test-key".to_string());
+        let mut env = HashMap::new();
+        env.insert("OPENAI_API_KEY".to_string(), "zhipu-test-key".to_string());
+
+        super::super::oauth_setup::write_codex_cli_auth_file(account_id, &key, &env)
+            .expect("write Codex API-key auth profile");
+
+        let auth = read_json(&app_paths::codex_cli_profile_dir(account_id).join("auth.json"));
+        assert_eq!(auth["OPENAI_API_KEY"].as_str(), Some("zhipu-test-key"));
+        assert!(auth.get("tokens").is_none());
+    });
+}
+
+#[test]
+fn codex_auth_payload_matches_credential_type_matrix() {
+    use super::super::oauth_setup::codex_cli_auth_payload;
+
+    for model_type in [
+        ModelType::Codex,
+        ModelType::ZhipuApi,
+        ModelType::ZenmuxApi,
+        ModelType::AtlascloudApi,
+    ] {
+        let mut key = ModelKey::new(model_type);
+        key.api_key = Some("provider-api-key".to_string());
+        let payload = codex_cli_auth_payload(&key, &HashMap::new()).unwrap();
+        assert_eq!(payload["OPENAI_API_KEY"].as_str(), Some("provider-api-key"));
+        assert!(payload.get("tokens").is_none());
+    }
+
+    let mut oauth_key = ModelKey::new(ModelType::Codex);
+    oauth_key.auth_method = AuthMethod::Oauth;
+    oauth_key.session_token = Some("oauth-access".to_string());
+    oauth_key.env_vars.insert(
+        CODEX_REFRESH_TOKEN_ENV_KEY.to_string(),
+        "oauth-refresh".to_string(),
+    );
+    oauth_key
+        .env_vars
+        .insert(CODEX_ID_TOKEN_ENV_KEY.to_string(), "oauth-id".to_string());
+    let payload = codex_cli_auth_payload(&oauth_key, &HashMap::new()).unwrap();
+    assert!(payload["OPENAI_API_KEY"].is_null());
+    assert_eq!(
+        payload["tokens"]["access_token"].as_str(),
+        Some("oauth-access")
+    );
+    assert_eq!(
+        payload["tokens"]["refresh_token"].as_str(),
+        Some("oauth-refresh")
+    );
+    assert_eq!(payload["tokens"]["id_token"].as_str(), Some("oauth-id"));
+}
+
+#[test]
+fn zenmux_auth_json_stays_api_key_shaped_when_profile_is_rewritten() {
+    use super::super::oauth_setup::write_codex_cli_auth_file;
+
+    with_temp_orgii_home(|_| {
+        let account_id = "zenmux-rewrite-shape";
+        let profile_dir = app_paths::codex_cli_profile_dir(account_id);
+        let mut key = ModelKey::new(ModelType::ZenmuxApi);
+        key.api_key = Some("zenmux-test-key".to_string());
+        key.enabled_models = vec!["z-ai/glm-5.2".to_string()];
+        let mut env = HashMap::new();
+        env.insert("OPENAI_API_KEY".to_string(), "zenmux-test-key".to_string());
+        setup_codex_compatible_profile(&profile_dir, &key, None, &mut env).unwrap();
+        write_codex_cli_auth_file(account_id, &key, &env).unwrap();
+
+        let auth = read_json(&profile_dir.join("auth.json"));
+        assert_eq!(auth["OPENAI_API_KEY"].as_str(), Some("zenmux-test-key"));
+        assert!(auth.get("tokens").is_none());
+    });
+}
+
+#[test]
+fn oauth_retry_eligibility_requires_matching_native_oauth_credential() {
+    use super::super::oauth_setup::is_cli_oauth_retry_eligible;
+
+    let mut codex_oauth = ModelKey::new(ModelType::Codex);
+    codex_oauth.auth_method = AuthMethod::Oauth;
+    let codex_api_key = ModelKey::new(ModelType::Codex);
+    let mut claude_oauth = ModelKey::new(ModelType::ClaudeCode);
+    claude_oauth.auth_method = AuthMethod::Oauth;
+    let claude_api_key = ModelKey::new(ModelType::ClaudeCode);
+    let zhipu_api_key = ModelKey::new(ModelType::ZhipuApi);
+    let zenmux_api_key = ModelKey::new(ModelType::ZenmuxApi);
+
+    assert!(is_cli_oauth_retry_eligible(
+        &ModelType::Codex,
+        KeySource::OwnKey,
+        Some(&codex_oauth)
+    ));
+    assert!(is_cli_oauth_retry_eligible(
+        &ModelType::ClaudeCode,
+        KeySource::OwnKey,
+        Some(&claude_oauth)
+    ));
+
+    for (target, key) in [
+        (&ModelType::Codex, &codex_api_key),
+        (&ModelType::Codex, &zhipu_api_key),
+        (&ModelType::Codex, &zenmux_api_key),
+        (&ModelType::Codex, &claude_oauth),
+        (&ModelType::ClaudeCode, &claude_api_key),
+        (&ModelType::ClaudeCode, &zhipu_api_key),
+        (&ModelType::ClaudeCode, &zenmux_api_key),
+        (&ModelType::ClaudeCode, &codex_oauth),
+    ] {
+        assert!(!is_cli_oauth_retry_eligible(
+            target,
+            KeySource::OwnKey,
+            Some(key)
+        ));
+    }
+    assert!(!is_cli_oauth_retry_eligible(
+        &ModelType::Codex,
+        KeySource::HostedKey,
+        Some(&codex_oauth)
+    ));
+}
+
+#[test]
+fn app_server_auth_error_chunk_uses_the_native_oauth_retry_gate() {
+    use super::super::oauth_setup::is_retryable_cli_oauth_failure_chunk;
+
+    let mut chunk = ActivityChunk::new("session-1", "error", "error");
+    chunk.result = serde_json::json!({
+        "observation": "401 Unauthorized: OAuth access token expired",
+        "error": "401 Unauthorized: OAuth access token expired",
+        "success": false,
+    });
+
+    assert!(is_retryable_cli_oauth_failure_chunk(true, &chunk).is_some());
+    assert!(is_retryable_cli_oauth_failure_chunk(false, &chunk).is_none());
+}
+
+#[test]
+fn stderr_summary_collapses_timestamped_retries_but_keeps_distinct_failures() {
+    let lines = VecDeque::from([
+        "2026-08-03T07:23:34Z ERROR Reconnecting... 1/5 (unexpected status 402 Payment Required, url: https://zenmux.ai/api/v1/responses, cf-ray: first)".to_string(),
+        "2026-08-03T07:23:39Z ERROR Reconnecting... 2/5 (unexpected status 402 Payment Required, url: https://zenmux.ai/api/v1/responses, cf-ray: second)".to_string(),
+        "2026-08-03T07:23:42Z ERROR unexpected status 402 Payment Required, url: https://zenmux.ai/api/v1/responses, cf-ray: final".to_string(),
+        "2026-08-03T07:23:43Z ERROR codex_api: 401 Unauthorized".to_string(),
+    ]);
+
+    assert_eq!(
+        super::super::finalize::summarize_cli_stderr(&lines).as_deref(),
+        Some(
+            "unexpected status 402 Payment Required, url: https://zenmux.ai/api/v1/responses\ncodex_api: 401 Unauthorized"
+        )
+    );
+}
+
+#[test]
+fn stderr_summary_drops_the_notice_the_parser_already_suppressed() {
+    let notice = "2026-08-03T07:23:30Z WARN Model metadata for `z-ai/glm-5.2` not found. Defaulting to fallback metadata; this can degrade performance and cause issues.";
+    let lines = VecDeque::from([
+        notice.to_string(),
+        "2026-08-03T07:23:43Z ERROR codex_api: 401 Unauthorized".to_string(),
+    ]);
+
+    // `not found` would otherwise re-promote a notice Codex recovers from into
+    // the persisted failure message.
+    assert_eq!(
+        super::super::finalize::summarize_cli_stderr(&lines).as_deref(),
+        Some("codex_api: 401 Unauthorized")
+    );
+
+    // On its own it is not a failure reason either — fall through to the
+    // last-line fallback rather than reporting it as the error.
+    let only_notice = VecDeque::from([notice.to_string()]);
+    assert_eq!(
+        super::super::finalize::summarize_cli_stderr(&only_notice).as_deref(),
+        Some(notice)
+    );
+}
+
+#[test]
+fn stderr_summary_falls_back_to_last_nonempty_line() {
+    let lines = VecDeque::from([
+        "Reading additional input from stdin...".to_string(),
+        "".to_string(),
+    ]);
+    assert_eq!(
+        super::super::finalize::summarize_cli_stderr(&lines).as_deref(),
+        Some("Reading additional input from stdin...")
+    );
+}
+
+#[test]
+fn structured_cli_error_wins_over_non_diagnostic_stderr() {
+    let lines = VecDeque::from(["Reading additional input from stdin...".to_string()]);
+
+    assert_eq!(
+        super::super::finalize::resolve_cli_failure_message(
+            None,
+            Some("unexpected status 402 Payment Required".to_string()),
+            &lines,
+        )
+        .as_deref(),
+        Some("unexpected status 402 Payment Required")
+    );
+}
+
+#[test]
+fn terminal_cli_error_is_extracted_from_error_and_failed_session_end_chunks() {
+    let mut error_chunk = ActivityChunk::new("session-1", "error", "error");
+    error_chunk.result = serde_json::json!({
+        "error": "unexpected status 402 Payment Required, cf-ray: volatile-id",
+        "success": false,
+    });
+    assert_eq!(
+        super::terminal_cli_error_from_chunk(&error_chunk).as_deref(),
+        Some("unexpected status 402 Payment Required")
+    );
+
+    let mut end_chunk = ActivityChunk::new("session-1", "session_end", "session_end");
+    end_chunk.result = serde_json::json!({
+        "success": false,
+        "error_message": "provider rejected the request",
+    });
+    assert_eq!(
+        super::terminal_cli_error_from_chunk(&end_chunk).as_deref(),
+        Some("provider rejected the request")
+    );
+}
+
+#[test]
+fn failed_session_end_replaces_an_earlier_provisional_error() {
+    let mut terminal_error = None;
+    let mut error_chunk = ActivityChunk::new("session-1", "error", "error");
+    error_chunk.result = serde_json::json!({
+        "error": "earlier transport error",
+        "success": false,
+    });
+    super::record_terminal_cli_error(&mut terminal_error, &error_chunk);
+    assert_eq!(terminal_error.as_deref(), Some("earlier transport error"));
+
+    let mut end_chunk = ActivityChunk::new("session-1", "session_end", "session_end");
+    end_chunk.result = serde_json::json!({
+        "success": false,
+        "error_message": "authoritative upstream failure",
+    });
+    super::record_terminal_cli_error(&mut terminal_error, &end_chunk);
+    assert_eq!(
+        terminal_error.as_deref(),
+        Some("authoritative upstream failure")
+    );
+}
+
+#[test]
+fn codex_uses_native_overload_retries_without_whole_turn_replay() {
+    assert!(!super::is_app_overload_retry_eligible(&ModelType::Codex));
+    assert!(super::is_app_overload_retry_eligible(
+        &ModelType::ClaudeCode
+    ));
+}
+
+#[test]
+fn exhausted_overload_builds_one_visible_terminal_error_chunk() {
+    assert!(exhausted_overload_error_chunk(
+        "session-1",
+        MAX_OVERLOAD_RETRIES - 1,
+        "429 Too Many Requests",
+    )
+    .is_none());
+
+    let (message, chunk) = exhausted_overload_error_chunk(
+        "session-1",
+        MAX_OVERLOAD_RETRIES,
+        "429 Too Many Requests, request-id: volatile",
+    )
+    .expect("exhausted overload should produce a terminal error");
+
+    assert_eq!(message, "429 Too Many Requests");
+    assert_eq!(chunk.action_type, "error");
+    assert_eq!(chunk.function, "error");
+    assert_eq!(
+        terminal_cli_error_from_chunk(&chunk).as_deref(),
+        Some(message.as_str())
+    );
 }
 
 #[test]
@@ -159,14 +607,21 @@ fn setup_opencode_atlascloud_profile_writes_config_and_auth() {
 }
 
 #[test]
-fn cross_type_atlascloud_model_is_preserved_for_codex() {
+fn atlas_model_string_is_preserved_before_the_codex_provider_gate_rejects_it() {
     assert_eq!(
         resolve_session_model(
             &ModelType::Codex,
             Some(&ModelType::AtlascloudApi),
             Some("zai-org/glm-5.1"),
-        ),
+        )
+        .as_deref(),
         Some("zai-org/glm-5.1")
+    );
+    assert!(
+        super::super::env_setup::validate_codex_own_key_provider(&ModelKey::new(
+            ModelType::AtlascloudApi,
+        ))
+        .is_err()
     );
     assert_eq!(
         resolve_session_model(
@@ -175,6 +630,23 @@ fn cross_type_atlascloud_model_is_preserved_for_codex() {
             Some("zai-org/glm-5.1"),
         ),
         None
+    );
+}
+
+#[test]
+fn codex_rejects_chat_only_providers_and_zenmux_preserves_aggregator_namespace() {
+    for provider in [ModelType::ZhipuApi, ModelType::AtlascloudApi] {
+        let key = ModelKey::new(provider);
+        let error = super::super::env_setup::validate_codex_own_key_provider(&key)
+            .expect_err("Chat Completions must not be treated as Codex Responses");
+        assert!(error.contains("Responses-compatible"));
+    }
+    assert_eq!(
+        super::super::env_setup::normalize_codex_provider_model_id(
+            "z-ai/glm-5.2",
+            &ModelType::ZenmuxApi,
+        ),
+        "z-ai/glm-5.2"
     );
 }
 

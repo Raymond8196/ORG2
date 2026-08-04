@@ -1191,7 +1191,7 @@ async fn refresh_oauth_key_for_quota(
     key: &crate::key_store::ModelKey,
 ) -> Result<crate::key_store::ModelKey, String> {
     let rejected_access_token = key.session_token.clone().unwrap_or_default();
-    match key.model_type {
+    let outcome = match key.model_type {
         ModelType::ClaudeCode => {
             KEY_SERVICE
                 .refresh_claude_code_oauth_key(&key.id, &rejected_access_token)
@@ -1206,7 +1206,10 @@ async fn refresh_oauth_key_for_quota(
             "OAuth quota refresh is not supported for {}",
             other.as_str()
         )),
-    }
+    }?;
+    outcome
+        .into_key()
+        .ok_or_else(|| format!("Key {} is not a native OAuth account", key.id))
 }
 
 fn is_unauthorized_quota_error(error_message: &str) -> bool {
