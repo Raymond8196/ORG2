@@ -189,6 +189,7 @@ export function useWorkstationSidebarMenuDecoration({
       // use the regular session action decoration.
       sessionMenuItems: decorateSessionRowActions(sessionSidebarMenuItems),
       mySessionsLabel: t("cloud.sidebar.mySessions"),
+      pinnedLabel: tCommon("sessions:chat.historyPinned", "Pinned"),
       mySessionsVisibleCount: cloudMySessionsVisibleCount,
       loadMoreLabel: tCommon("common:actions.loadMore", "Load more"),
     });

@@ -5,6 +5,7 @@ import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/compone
 import {
   CLOUD_MY_SESSIONS_LOAD_MORE_ID,
   CLOUD_MY_SESSIONS_SECTION_ID,
+  CLOUD_PINNED_SECTION_ID,
   buildCloudScopedMenuItems,
 } from "./cloudScopedMenuItems";
 
@@ -166,6 +167,89 @@ describe("buildCloudScopedMenuItems", () => {
     expect(result.slice(-21).map((item) => item.id)).toEqual([
       ...Array.from({ length: 20 }, (_, index) => `session-${index}`),
       CLOUD_MY_SESSIONS_LOAD_MORE_ID,
+    ]);
+  });
+
+  it("keeps the Pinned section under a cloud scope", () => {
+    const teamItems: NavigationMenuItem[] = [
+      {
+        id: "separator-cloud-team-sessions",
+        key: "separator-cloud-team-sessions",
+        label: "Team sessions",
+      },
+    ];
+
+    const result = buildCloudScopedMenuItems({
+      cloudMenuItems: teamItems,
+      sessionMenuItems: [
+        { id: "separator-pinned", key: "separator-pinned", label: "Pinned" },
+        { id: "session-pinned", key: "session-pinned", label: "Pinned one" },
+        { id: "separator-today", key: "separator-today", label: "Today" },
+        { id: "session-today", key: "session-today", label: "Today one" },
+      ],
+      mySessionsLabel: "My sessions",
+      pinnedLabel: "Pinned",
+    });
+
+    // Pinned is user intent, not a date bucket: it survives the flattening
+    // that removes Today/Older, and its rows do not leak into My sessions.
+    expect(result.map((item) => item.id)).toEqual([
+      "separator-cloud-team-sessions",
+      `separator-${CLOUD_PINNED_SECTION_ID}`,
+      "session-pinned",
+      `separator-${CLOUD_MY_SESSIONS_SECTION_ID}`,
+      "session-today",
+    ]);
+  });
+
+  it("omits the Pinned section when nothing is pinned", () => {
+    const result = buildCloudScopedMenuItems({
+      cloudMenuItems: [
+        {
+          id: "separator-cloud-team-sessions",
+          key: "separator-cloud-team-sessions",
+          label: "Team sessions",
+        },
+      ],
+      sessionMenuItems: [
+        { id: "separator-today", key: "separator-today", label: "Today" },
+        { id: "session-today", key: "session-today", label: "Today one" },
+      ],
+      mySessionsLabel: "My sessions",
+    });
+
+    expect(
+      result.some((item) => item.id === `separator-${CLOUD_PINNED_SECTION_ID}`)
+    ).toBe(false);
+  });
+
+  it("does not mistake a date group's own pager for a backend stream pager", () => {
+    // `load-more-group-*` and `load-more-<category>` share a prefix; only the
+    // latter means "the backend can fetch another page".
+    const result = buildCloudScopedMenuItems({
+      cloudMenuItems: [
+        {
+          id: "separator-cloud-team-sessions",
+          key: "separator-cloud-team-sessions",
+          label: "Team sessions",
+        },
+      ],
+      sessionMenuItems: [
+        { id: "separator-today", key: "separator-today", label: "Today" },
+        { id: "session-today", key: "session-today", label: "Today one" },
+        {
+          id: "load-more-group-time:today",
+          key: "load-more-group-time:today",
+          label: "Show more",
+        },
+      ],
+      mySessionsLabel: "My sessions",
+    });
+
+    expect(result.map((item) => item.id)).toEqual([
+      "separator-cloud-team-sessions",
+      `separator-${CLOUD_MY_SESSIONS_SECTION_ID}`,
+      "session-today",
     ]);
   });
 });
