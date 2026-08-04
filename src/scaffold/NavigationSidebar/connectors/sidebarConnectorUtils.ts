@@ -24,6 +24,8 @@ export const KANBAN_MENU_ITEM_ID = "kanban";
 export const RUNTIME_MENU_ITEM_ID = "runtime";
 export const TEAM_INBOX_MENU_ITEM_ID = "team-inbox";
 export const WORK_ITEMS_PROJECTS_MENU_ITEM_ID = "work-items:projects";
+export const WORK_ITEMS_GITHUB_ISSUES_MENU_ITEM_ID = "work-items:github-issues";
+export const WORK_ITEMS_GITHUB_PRS_MENU_ITEM_ID = "work-items:github-prs";
 export const COLLAB_ADD_ORG_MENU_ITEM_ID = "colleagues-add-org";
 export const SESSION_CREATOR_DRAFT_MENU_PREFIX = "session-creator-draft:";
 
