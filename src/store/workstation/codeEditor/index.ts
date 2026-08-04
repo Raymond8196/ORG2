@@ -38,6 +38,9 @@ export * from "./sourceControlFilterModeAtom";
 // Source Control worktree scope (host vs linked worktree)
 export * from "./sourceControlScopeAtom";
 
+// Source Control state contracts
+export * from "./sourceControlTypes";
+
 // Pinned Terminal tab target selection
 export * from "./terminalTargetAtom";
 
