@@ -876,10 +876,7 @@ describe("ChatPanel navigation tabs", () => {
       openTeamInboxInChatPanelTabAtom,
       "Team Inbox"
     );
-    const focusedTabId = store.set(
-      openTeamInboxInChatPanelTabAtom,
-      "Team Inbox"
-    );
+    const focusedTabId = store.set(openTeamInboxInChatPanelTabAtom, "Inbox");
 
     expect(focusedTabId).toBe(teamInboxTabId);
     expect(store.get(chatPanelTabsAtom).activeTabId).toBe(teamInboxTabId);
@@ -890,7 +887,7 @@ describe("ChatPanel navigation tabs", () => {
     ).toEqual([
       expect.objectContaining({
         id: teamInboxTabId,
-        title: "Team Inbox",
+        title: "Inbox",
       }),
     ]);
   });

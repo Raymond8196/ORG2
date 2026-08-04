@@ -91,7 +91,7 @@ export const createTeamInboxTab = defineChatPanelTabFactory<{ title?: string }>(
   {
     tabType: "team-inbox",
     idStrategy: { type: "fixed", id: TEAM_INBOX_TAB_ID },
-    getTitle: (data) => data.title ?? "Team Inbox",
+    getTitle: (data) => data.title ?? "Inbox",
   }
 );
 

@@ -97,7 +97,7 @@ export function useTeamInboxNotifications(): void {
   const store = useStore();
   const cache = useAtomValue(teamInboxCacheAtom);
   const settings = useAtomValue(notificationSettingsAtom);
-  const teamInboxTitle = t("teamInbox.title");
+  const teamInboxTabTitle = t("navigation:labels.inbox");
   const viewActionLabel = t("common:actions.view");
 
   useEffect(() => {
@@ -112,7 +112,7 @@ export function useTeamInboxNotifications(): void {
         listenForSystemNotificationActions(({ extra }) => {
           const target = parseTeamInboxNotificationTarget(extra);
           if (!target) return;
-          openTeamInboxTarget(store, teamInboxTitle, target.itemKey);
+          openTeamInboxTarget(store, teamInboxTabTitle, target.itemKey);
           void focusCurrentWindow();
         })
       )
@@ -131,7 +131,7 @@ export function useTeamInboxNotifications(): void {
       disposed = true;
       stopListening?.();
     };
-  }, [store, teamInboxTitle, viewActionLabel]);
+  }, [store, teamInboxTabTitle, viewActionLabel]);
 
   useEffect(() => {
     const badgeCount =
@@ -174,7 +174,11 @@ export function useTeamInboxNotifications(): void {
         action: {
           label: viewActionLabel,
           onClick: () =>
-            openTeamInboxTarget(store, teamInboxTitle, target?.itemKey ?? null),
+            openTeamInboxTarget(
+              store,
+              teamInboxTabTitle,
+              target?.itemKey ?? null
+            ),
         },
       });
     }
@@ -186,7 +190,7 @@ export function useTeamInboxNotifications(): void {
     settings,
     store,
     t,
-    teamInboxTitle,
+    teamInboxTabTitle,
     viewActionLabel,
   ]);
 }

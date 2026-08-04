@@ -193,8 +193,9 @@ describe("useTeamInboxNotifications", () => {
       "assigned_work_item:new"
     );
     expect(
-      store.get(chatPanelTabsAtom).tabs.some((tab) => tab.type === "team-inbox")
-    ).toBe(true);
+      store.get(chatPanelTabsAtom).tabs.find((tab) => tab.type === "team-inbox")
+        ?.title
+    ).toBe("navigation:labels.inbox");
     expect(mocks.setDockBadge).toHaveBeenLastCalledWith(2);
   });
 
@@ -238,8 +239,9 @@ describe("useTeamInboxNotifications", () => {
       "assigned_work_item:old"
     );
     expect(
-      store.get(chatPanelTabsAtom).tabs.some((tab) => tab.type === "team-inbox")
-    ).toBe(true);
+      store.get(chatPanelTabsAtom).tabs.find((tab) => tab.type === "team-inbox")
+        ?.title
+    ).toBe("navigation:labels.inbox");
     expect(mocks.windowShow).toHaveBeenCalledOnce();
     expect(mocks.windowSetFocus).toHaveBeenCalledOnce();
   });

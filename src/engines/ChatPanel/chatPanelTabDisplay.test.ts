@@ -13,7 +13,7 @@ const labels: ChatPanelTabDisplayLabels = {
   launchpad: "Launchpad",
   runtime: "Runtime",
   organization: "Manage ORG",
-  teamInbox: "Team Inbox",
+  teamInbox: "Inbox",
   workManagement: {
     kanban: "Kanban",
     work: "Work Items",
@@ -60,10 +60,10 @@ describe("resolveChatPanelTabDisplayTitle", () => {
     ).toBe("Channels");
   });
 
-  it("uses the localized Team Inbox title", () => {
+  it("uses the same localized Inbox title as the sidebar", () => {
     expect(
       resolveChatPanelTabDisplayTitle(tab("team-inbox"), null, labels)
-    ).toBe("Team Inbox");
+    ).toBe("Inbox");
   });
 
   it("keeps Work datasets under one localized tab title", () => {

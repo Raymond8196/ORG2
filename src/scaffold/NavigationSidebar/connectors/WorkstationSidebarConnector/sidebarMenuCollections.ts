@@ -13,14 +13,15 @@ import { toChatPanelTuiSessionId } from "@src/util/ui/terminal/chatPanelTuiSessi
 
 import { separator } from "../useSessionMenuItems/menuItemBuilders";
 import {
+  buildChannelsPinnedMenuItems,
   buildDraftMenuItems,
   buildPinnedMenuItems,
   buildProjectsPinnedMenuItems,
 } from "../workstationSidebarMenuItems";
-import type { WorkstationSidebarKey } from "./types";
+import type { WorkstationSidebarViewKey } from "./WorkstationSidebarViewSwitcher";
 
 interface UsePinnedMenuItemsParams {
-  activeSidebarKey: WorkstationSidebarKey;
+  activeViewKey: WorkstationSidebarViewKey;
   createProjectLabel: string;
   createWorkItemLabel: string;
   importGithubIssuesLabel: string;
@@ -35,11 +36,10 @@ interface UsePinnedMenuItemsParams {
 
 interface UsePinnedMenuItemsResult {
   pinnedMenuItems: NavigationMenuItem[];
-  sessionPinnedMenuItems: NavigationMenuItem[];
 }
 
 export function usePinnedMenuItems({
-  activeSidebarKey,
+  activeViewKey,
   createProjectLabel,
   createWorkItemLabel,
   importGithubIssuesLabel,
@@ -86,22 +86,39 @@ export function usePinnedMenuItems({
         createProjectLabel,
         createWorkItemLabel,
         importGithubIssuesLabel,
+        teamInboxLabel,
+        teamInboxUnreadCount,
+        teamInboxUnreadAriaLabel,
         workItemDestinations,
       }),
     [
       createProjectLabel,
       createWorkItemLabel,
       importGithubIssuesLabel,
+      teamInboxLabel,
+      teamInboxUnreadCount,
+      teamInboxUnreadAriaLabel,
       t,
       workItemDestinations,
     ]
   );
+  const channelsPinnedMenuItems = useMemo(
+    () =>
+      buildChannelsPinnedMenuItems({
+        teamInboxLabel,
+        teamInboxUnreadCount,
+        teamInboxUnreadAriaLabel,
+      }),
+    [teamInboxLabel, teamInboxUnreadAriaLabel, teamInboxUnreadCount]
+  );
   const pinnedMenuItems =
-    activeSidebarKey === "projects"
+    activeViewKey === "work-items"
       ? projectsPinnedMenuItems
-      : sessionPinnedMenuItems;
+      : activeViewKey === "channels"
+        ? channelsPinnedMenuItems
+        : sessionPinnedMenuItems;
 
-  return { pinnedMenuItems, sessionPinnedMenuItems };
+  return { pinnedMenuItems };
 }
 
 export function useSessionSidebarMenuItems({

@@ -131,11 +131,18 @@ openRuntimeInChatPanelTabAtom.debugLabel = "openRuntimeInChatPanelTab";
 /** Open or focus the singleton Team Inbox tab. */
 export const openTeamInboxInChatPanelTabAtom = atom(
   null,
-  (get, set, title: string = "Team Inbox") => {
-    const existingTab = get(chatPanelTabsAtom).tabs.find(
-      (tab) => tab.type === "team-inbox"
-    );
+  (get, set, title: string = "Inbox") => {
+    const state = get(chatPanelTabsAtom);
+    const existingTab = state.tabs.find((tab) => tab.type === "team-inbox");
     if (existingTab) {
+      if (existingTab.title !== title) {
+        set(chatPanelTabsAtom, {
+          ...state,
+          tabs: state.tabs.map((tab) =>
+            tab.id === existingTab.id ? { ...tab, title } : tab
+          ),
+        });
+      }
       set(activateChatPanelTabAtom, existingTab.id);
       return existingTab.id;
     }

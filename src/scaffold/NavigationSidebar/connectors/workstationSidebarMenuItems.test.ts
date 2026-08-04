@@ -8,6 +8,7 @@ import {
   WORK_ITEMS_PROJECTS_MENU_ITEM_ID,
 } from "./sidebarConnectorUtils";
 import {
+  buildChannelsPinnedMenuItems,
   buildPinnedMenuItems,
   buildProjectsPinnedMenuItems,
 } from "./workstationSidebarMenuItems";
@@ -20,7 +21,7 @@ describe("buildPinnedMenuItems", () => {
       kanbanLabel: "Kanban",
       kanbanShortcut: "⌘O",
       runtimeLabel: "Runtime",
-      teamInboxLabel: "Team Inbox",
+      teamInboxLabel: "Inbox",
     });
 
     expect(items.map((item) => item.id)).toEqual([
@@ -30,7 +31,7 @@ describe("buildPinnedMenuItems", () => {
       TEAM_INBOX_MENU_ITEM_ID,
     ]);
     expect(items[3]).toMatchObject({
-      label: "Team Inbox",
+      label: "Inbox",
       dataTestId: "sidebar-team-inbox",
     });
     expect(items[2]).toMatchObject({
@@ -81,6 +82,7 @@ describe("buildPinnedMenuItems", () => {
       createProjectLabel: "Create Project",
       createWorkItemLabel: "Create Work Item",
       importGithubIssuesLabel: "Import GitHub Issues",
+      teamInboxLabel: "Inbox",
       workItemDestinations: [
         {
           id: WORK_ITEMS_PROJECTS_MENU_ITEM_ID,
@@ -95,5 +97,21 @@ describe("buildPinnedMenuItems", () => {
       label: "Browse",
     });
     expect(items.at(-1)?.id).toBe(WORK_ITEMS_PROJECTS_MENU_ITEM_ID);
+    expect(
+      items.find((item) => item.id === TEAM_INBOX_MENU_ITEM_ID)
+    ).toMatchObject({
+      label: "Inbox",
+      dataTestId: "sidebar-team-inbox",
+    });
+  });
+
+  it("keeps the same Inbox entry available in Channels", () => {
+    expect(buildChannelsPinnedMenuItems({ teamInboxLabel: "Inbox" })).toEqual([
+      expect.objectContaining({
+        id: TEAM_INBOX_MENU_ITEM_ID,
+        label: "Inbox",
+        dataTestId: "sidebar-team-inbox",
+      }),
+    ]);
   });
 });

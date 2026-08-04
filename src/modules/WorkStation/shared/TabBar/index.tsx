@@ -35,6 +35,7 @@ import React, {
   useState,
 } from "react";
 import { createPortal } from "react-dom";
+import { useTranslation } from "react-i18next";
 
 import { useActionSystemOptional } from "@src/ActionSystem";
 import FileTypeIcon from "@src/components/FileTypeIcon";
@@ -217,6 +218,7 @@ export const TabBar: React.FC<TabBarProps> = memo(
     collapseInactiveTabLabelsOnOverflow = false,
     dataTourTarget,
   }) => {
+    const { t } = useTranslation();
     const actionSystem = useActionSystemOptional();
     const dispatch = actionSystem?.dispatch;
     const shouldOffsetLeftChrome = useShouldOffsetWorkStationTopBar();
@@ -343,9 +345,9 @@ export const TabBar: React.FC<TabBarProps> = memo(
           return;
         }
         requestSessionHandoff({ sessionId, title: tab.title });
-        openTeamInbox();
+        openTeamInbox(t("navigation:labels.inbox"));
       },
-      [openTeamInbox, requestSessionHandoff]
+      [openTeamInbox, requestSessionHandoff, t]
     );
     const handleCloseRawTranscript = useCallback(() => {
       setRawTranscriptSessionId(null);
