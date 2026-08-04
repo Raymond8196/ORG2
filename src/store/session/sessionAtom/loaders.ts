@@ -246,6 +246,7 @@ function importedHistoryPageResult(
         updated_time: row.updatedAt,
         category: "external_history",
         readOnly: true,
+        pinned: row.pinned ?? false,
         is_active: row.isActive ?? false,
         background: false,
         repoPath: row.repoPath,

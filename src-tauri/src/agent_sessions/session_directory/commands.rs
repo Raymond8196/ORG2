@@ -9,6 +9,7 @@ use std::collections::HashSet;
 use database::db::get_connection;
 use orgtrack_core::sources::cursor_ide::history::CURSORIDE_SESSION_PREFIX;
 use orgtrack_core::sources::imported_history::{
+    cache as imported_cache,
     cache::query_imported_sidebar_page_from_conn,
     metadata::{is_imported_history_source, SOURCE_CURSOR_IDE},
 };
@@ -65,6 +66,9 @@ pub async fn session_external_history_sidebar_list(
     tokio::task::spawn_blocking(move || {
         let conn =
             get_connection().map_err(|err| format!("Failed to open ORGII session cache: {err}"))?;
+        // One read for the whole batch: pins are a small ORGII-owned set, and
+        // a per-row lookup would turn a page render into N queries.
+        let pinned_ids = imported_cache::pinned_imported_session_ids_from_conn(&conn)?;
         let mut sources = Vec::with_capacity(requests.len());
         let mut seen_sources = HashSet::with_capacity(requests.len());
         for source_request in requests {
@@ -129,6 +133,9 @@ pub async fn session_external_history_sidebar_list(
                                 format!("{CURSORIDE_SESSION_PREFIX}{}", session.session_id);
                         }
                     }
+                }
+                for session in &mut page.sessions {
+                    session.pinned = pinned_ids.contains(&session.session_id);
                 }
                 // Live status decoration happens at this desktop boundary
                 // (not in the core query): hook-derived state first, then
