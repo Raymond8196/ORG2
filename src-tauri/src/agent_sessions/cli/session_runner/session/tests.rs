@@ -803,3 +803,144 @@ fn overloaded_chunk_detection() {
     }));
     assert!(is_retryable_overloaded_chunk(&no_error).is_none());
 }
+
+/// The whole point of the collector: a child can exit with its stderr still
+/// sitting unread in the pipe, and every consumer of the buffer runs after
+/// `wait()`. Reading without draining is how a session that failed loudly
+/// reports nothing at all.
+///
+/// The writer emits its 200 lines in one `printf` rather than a loop on
+/// purpose: a slow writer gives the reader task a poll between every line and
+/// it keeps up trivially. Dumped in a single write, the reader is still
+/// working through the pipe when the child is already reaped — without the
+/// drain this buffer ends around line 127, and the last line, the one a real
+/// CLI puts its error on, is exactly what gets lost.
+///
+/// Hence the line numbers come from Rust and not from `seq` (which is not
+/// POSIX): passing them as `"$@"` keeps it a single `printf`, and the test
+/// stands on that shape. A `while` loop around `printf` costs 200 writes and
+/// passes whether or not `drain` exists.
+#[cfg(unix)]
+#[tokio::test]
+async fn stderr_collector_has_the_whole_output_once_drained() {
+    let numbers: Vec<String> = (1..=200).map(|n| n.to_string()).collect();
+    let mut child = tokio::process::Command::new("sh")
+        .arg("-c")
+        .arg(r#"exec >&2; printf 'line %s\n' "$@""#)
+        // `sh -c` assigns the first operand to $0, so the numbers start at $1.
+        .arg("stderr-writer")
+        .args(&numbers)
+        .stderr(std::process::Stdio::piped())
+        .spawn()
+        .expect("spawn stderr writer");
+
+    let mut collector = CliStderrCollector::new();
+    collector.attach(
+        child.stderr.take().expect("stderr was piped"),
+        "test-session".to_string(),
+    );
+
+    let status = child.wait().await.expect("wait for stderr writer");
+    assert!(status.success());
+
+    collector.drain().await;
+
+    let lines = collector.lines();
+    let buf = lines.lock().await;
+    // The buffer is a bounded ring, so the last line written is the assertion
+    // that matters: it can only be there if the reader ran to EOF.
+    assert_eq!(buf.len(), MAX_STDERR_LINES);
+    assert_eq!(buf.back().map(String::as_str), Some("line 200"));
+    assert_eq!(buf.front().map(String::as_str), Some("line 181"));
+}
+
+/// A CLI that leaves its stderr with a process outliving it keeps the pipe open
+/// after the child itself is reaped, so `drain` gives up on a deadline — and has
+/// to abort the reader when it does. Dropping the handle would only detach the
+/// task, leaving it, the pipe fd and a buffer handle alive for as long as that
+/// process lives, once per attempt.
+///
+/// `start_paused` makes the deadline free: with the reader parked on the pipe
+/// the runtime has nothing left to run, so the clock jumps to the timeout. The
+/// reader's own `Arc` clone is the proof it stopped — the count can only drop
+/// back once the task's future has been dropped.
+#[cfg(unix)]
+#[tokio::test(start_paused = true)]
+async fn a_reader_the_grandchild_holds_open_is_aborted_not_detached() {
+    // The backgrounded sleep inherits stderr and outlives the shell, so the
+    // write end is still open once the child is gone. Its own process group is
+    // the only handle on it afterwards — the shell's exit orphans it.
+    let mut child = tokio::process::Command::new("sh")
+        .arg("-c")
+        .arg("exec >&2; echo dying; sleep 300 &")
+        .stderr(std::process::Stdio::piped())
+        .process_group(0)
+        .spawn()
+        .expect("spawn stderr writer");
+    let group = child.id().expect("child pid before wait") as libc::pid_t;
+
+    let mut collector = CliStderrCollector::new();
+    collector.attach(
+        child.stderr.take().expect("stderr was piped"),
+        "test-session".to_string(),
+    );
+    assert!(child.wait().await.expect("wait for stderr writer").success());
+
+    let lines = collector.lines();
+    assert_eq!(
+        Arc::strong_count(&lines),
+        3,
+        "the collector, the reader task and this handle"
+    );
+
+    collector.drain().await;
+
+    assert_eq!(
+        Arc::strong_count(&lines),
+        2,
+        "a reader that outlived the deadline must be aborted, not detached"
+    );
+
+    // SAFETY: signalling a process group this test created.
+    unsafe { libc::kill(-group, libc::SIGKILL) };
+}
+
+#[cfg(unix)]
+#[tokio::test]
+async fn draining_the_stderr_collector_twice_is_a_no_op() {
+    let mut child = tokio::process::Command::new("sh")
+        .arg("-c")
+        .arg("echo boom >&2")
+        .stderr(std::process::Stdio::piped())
+        .spawn()
+        .expect("spawn stderr writer");
+
+    let mut collector = CliStderrCollector::new();
+    collector.attach(
+        child.stderr.take().expect("stderr was piped"),
+        "test-session".to_string(),
+    );
+    let _ = child.wait().await;
+
+    // Both transports drain, and the run loop drains again for the finalizer.
+    collector.drain().await;
+    collector.drain().await;
+
+    let lines = collector.lines();
+    assert_eq!(
+        lines.lock().await.back().map(String::as_str),
+        Some("boom"),
+        "the second drain must not discard what the first collected"
+    );
+}
+
+/// A collector that was never attached to a child (spawn failed before the
+/// pipe was taken) must not make the caller wait out the drain timeout.
+#[tokio::test]
+async fn draining_an_unattached_stderr_collector_returns_immediately() {
+    let mut collector = CliStderrCollector::new();
+    tokio::time::timeout(tokio::time::Duration::from_secs(1), collector.drain())
+        .await
+        .expect("drain of an unattached collector must not block");
+    assert!(collector.lines().lock().await.is_empty());
+}

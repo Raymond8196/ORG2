@@ -3,11 +3,7 @@
 //! Experimental; gated by the launch-profile transport="app-server" setting
 //! (see `super::super::launch_profiles::uses_codex_app_server`).
 
-use std::collections::VecDeque;
-use std::sync::Arc;
-
 use tokio::process::Child;
-use tokio::sync::Mutex;
 
 use crate::api::websocket_handler;
 
@@ -45,7 +41,7 @@ pub(super) async fn run_codex_app_server_branch(
     mut cli_session_id_out: Option<String>,
     sequence: &mut i64,
     mut codex_app_server_turn_ok: bool,
-    attempt_stderr_lines: Arc<Mutex<VecDeque<String>>>,
+    attempt_stderr: &mut super::CliStderrCollector,
 ) -> Result<AppServerOutcome, String> {
     // ── Codex app-server: long-lived JSON-RPC over stdio ──
     // (experimental; gate = launch-profile transport="app-server").
@@ -183,13 +179,18 @@ pub(super) async fn run_codex_app_server_branch(
         .map_err(|err| format!("Wait error: {}", err))?;
     let exit_code = status.code().unwrap_or(-1);
 
+    // The child is gone; collect the rest of its stderr before the OAuth probe
+    // below reads it.
+    attempt_stderr.drain().await;
+
     if retryable_oauth_message.is_none()
         && oauth_retry_eligible
         && !timed_out
         && !codex_app_server_turn_ok
         && !replay_unsafe_output_seen
     {
-        let stderr = attempt_stderr_lines.lock().await;
+        let stderr = attempt_stderr.lines();
+        let stderr = stderr.lock().await;
         retryable_oauth_message = stderr
             .iter()
             .find(|line| is_cli_oauth_failure_message(line))

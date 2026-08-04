@@ -42,6 +42,84 @@ use spawn_retry::{is_transient_spawn_error, SPAWN_RETRY_ATTEMPTS, SPAWN_RETRY_BA
 const MAX_OVERLOAD_RETRIES: u32 = 3;
 const OVERLOAD_RETRY_BASE_DELAY_SECS: u64 = 2;
 
+const MAX_STDERR_LINES: usize = 20;
+
+/// How long to keep waiting for the stderr reader once the child is gone. A
+/// CLI that hands its stderr to a surviving grandchild keeps the pipe open
+/// forever, and no diagnostic is worth hanging the turn on.
+const STDERR_DRAIN_TIMEOUT: tokio::time::Duration = tokio::time::Duration::from_secs(3);
+
+/// The child's stderr, collected by a background reader.
+///
+/// The reader must be drained before the buffer is read. A child exiting only
+/// closes the write end of the pipe; it says nothing about whether the reader
+/// task has been scheduled to pick up what is still sitting in it. Reading
+/// straight after `wait()` is how a session that failed loudly on stderr ends
+/// up reporting no reason at all.
+struct CliStderrCollector {
+    lines: Arc<Mutex<VecDeque<String>>>,
+    reader: Option<tokio::task::JoinHandle<()>>,
+}
+
+impl CliStderrCollector {
+    fn new() -> Self {
+        Self {
+            lines: Arc::new(Mutex::new(VecDeque::with_capacity(MAX_STDERR_LINES))),
+            reader: None,
+        }
+    }
+
+    /// The buffer itself, for readers that have already drained (or that run
+    /// after the turn, once draining is guaranteed).
+    fn lines(&self) -> Arc<Mutex<VecDeque<String>>> {
+        Arc::clone(&self.lines)
+    }
+
+    fn attach(&mut self, stderr: tokio::process::ChildStderr, session_id: String) {
+        let sink = Arc::clone(&self.lines);
+        self.reader = Some(tokio::spawn(async move {
+            use tokio::io::AsyncBufReadExt;
+            let mut reader = BufReader::new(stderr).lines();
+            while let Ok(Some(line)) = reader.next_line().await {
+                tracing::warn!("[CodeSession][stderr][{}] {}", session_id, line);
+                let mut buf = sink.lock().await;
+                if buf.len() >= MAX_STDERR_LINES {
+                    buf.pop_front();
+                }
+                buf.push_back(line);
+            }
+        }));
+    }
+
+    /// Wait for the reader to hit EOF so the buffer holds everything the child
+    /// wrote. Idempotent — every consumer may call it, and only the first one
+    /// pays. Whatever was collected before the deadline stays in the buffer.
+    ///
+    /// On timeout the reader is aborted rather than abandoned: dropping a
+    /// `JoinHandle` only detaches the task. A reader parked on a pipe that a
+    /// surviving grandchild still holds would then keep itself, the
+    /// `ChildStderr` fd and a buffer handle alive for as long as that
+    /// grandchild lives — once per attempt, for the life of the process.
+    async fn drain(&mut self) {
+        let Some(mut reader) = self.reader.take() else {
+            return;
+        };
+        if tokio::time::timeout(STDERR_DRAIN_TIMEOUT, &mut reader)
+            .await
+            .is_err()
+        {
+            tracing::warn!(
+                "[CodeSession] stderr still open {}s after the child exited; using what was collected so far",
+                STDERR_DRAIN_TIMEOUT.as_secs()
+            );
+            reader.abort();
+            // Awaited so the fd is closed by the time the caller reads the
+            // buffer, not whenever the cancelled task happens to be dropped.
+            let _ = reader.await;
+        }
+    }
+}
+
 fn terminal_cli_error_from_chunk(chunk: &core_types::activity::ActivityChunk) -> Option<String> {
     let is_error = chunk.action_type == "error" || chunk.function == "error";
     let is_failed_session_end = (chunk.action_type == "session_end"
@@ -471,7 +549,6 @@ pub async fn run_session(
         ModelType::Copilot | ModelType::Kiro | ModelType::OpenCode
     );
 
-    const MAX_STDERR_LINES: usize = 20;
     let mut stderr_lines: Arc<Mutex<VecDeque<String>>>;
     let mut exit_code: i32;
     let mut oauth_retry_used = false;
@@ -542,9 +619,8 @@ pub async fn run_session(
     let session_timeout = tokio::time::Duration::from_secs(4 * 60 * 60);
 
     loop {
-        let attempt_stderr_lines: Arc<Mutex<VecDeque<String>>> =
-            Arc::new(Mutex::new(VecDeque::with_capacity(MAX_STDERR_LINES)));
-        stderr_lines = Arc::clone(&attempt_stderr_lines);
+        let mut attempt_stderr = CliStderrCollector::new();
+        stderr_lines = attempt_stderr.lines();
         let mut spawn_cmd = Command::new(program);
         spawn_cmd
             .args(args)
@@ -601,21 +677,10 @@ pub async fn run_session(
             }
         }
 
-        let stderr = child.stderr.take().expect("stderr was piped");
-        let stderr_session_id = session_id.clone();
-        let stderr_lines_writer = Arc::clone(&attempt_stderr_lines);
-        tokio::spawn(async move {
-            use tokio::io::AsyncBufReadExt;
-            let mut reader = BufReader::new(stderr).lines();
-            while let Ok(Some(line)) = reader.next_line().await {
-                tracing::warn!("[CodeSession][stderr][{}] {}", stderr_session_id, line);
-                let mut buf = stderr_lines_writer.lock().await;
-                if buf.len() >= MAX_STDERR_LINES {
-                    buf.pop_front();
-                }
-                buf.push_back(line);
-            }
-        });
+        attempt_stderr.attach(
+            child.stderr.take().expect("stderr was piped"),
+            session_id.clone(),
+        );
 
         let retryable_oauth_message: Option<String>;
         let retryable_overload_message: Option<String>;
@@ -638,7 +703,7 @@ pub async fn run_session(
                 cli_session_id_out,
                 &mut sequence,
                 codex_app_server_turn_ok,
-                Arc::clone(&attempt_stderr_lines),
+                &mut attempt_stderr,
             )
             .await?;
             exit_code = outcome.exit_code;
@@ -685,7 +750,7 @@ pub async fn run_session(
                 snapshot_working_dir.clone(),
                 cli_session_id_out,
                 &mut sequence,
-                Arc::clone(&attempt_stderr_lines),
+                &mut attempt_stderr,
             )
             .await;
             exit_code = outcome.exit_code;
@@ -696,6 +761,10 @@ pub async fn run_session(
             retryable_oauth_message = outcome.retryable_oauth_message;
             retryable_overload_message = outcome.retryable_overload_message;
         }
+
+        // Whatever the transport did or did not read, the finalizer reads this
+        // buffer for every agent. A no-op if the transport already drained.
+        attempt_stderr.drain().await;
 
         if timed_out {
             tracing::error!(

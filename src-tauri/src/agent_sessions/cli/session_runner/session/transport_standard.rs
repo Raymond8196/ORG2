@@ -2,13 +2,10 @@
 //! `CliAgentParser`, handling plan-approval gating and oauth/overload retry
 //! signal detection.
 
-use std::collections::VecDeque;
 use std::path::{Path, PathBuf};
-use std::sync::Arc;
 
 use tokio::io::BufReader;
 use tokio::process::Child;
-use tokio::sync::Mutex;
 
 use crate::api::websocket_handler;
 use key_vault::key_store::ModelType;
@@ -55,7 +52,7 @@ pub(super) async fn run_standard_branch(
     snapshot_working_dir: String,
     mut cli_session_id_out: Option<String>,
     sequence: &mut i64,
-    attempt_stderr_lines: Arc<Mutex<VecDeque<String>>>,
+    attempt_stderr: &mut super::CliStderrCollector,
 ) -> StandardOutcome {
     let mut retryable_oauth_message: Option<String> = None;
     let mut retryable_overload_message: Option<String> = None;
@@ -395,6 +392,10 @@ pub(super) async fn run_standard_branch(
         .and_then(|status| status.code())
         .unwrap_or(-1);
 
+    // The child is gone; collect the rest of its stderr before anything reads
+    // it. The OAuth probe below is the whole reason the retry exists.
+    attempt_stderr.drain().await;
+
     if retryable_oauth_message.is_none()
         && is_cli_oauth_stderr_retry_candidate(
             oauth_retry_eligible,
@@ -402,7 +403,8 @@ pub(super) async fn run_standard_branch(
             replay_unsafe_output_seen,
         )
     {
-        let buf = attempt_stderr_lines.lock().await;
+        let buf = attempt_stderr.lines();
+        let buf = buf.lock().await;
         retryable_oauth_message = buf
             .iter()
             .find(|line| is_cli_oauth_failure_message(line))
