@@ -19,12 +19,14 @@ import {
   isGitHubIssueStatus,
 } from "@src/modules/ProjectManager/WorkItems/workItemIdentity";
 import ProjectManagerBreadcrumb from "@src/modules/ProjectManager/shared/components/ProjectManagerBreadcrumb";
+import type { ProjectManagerBreadcrumbSegment } from "@src/modules/ProjectManager/shared/components/ProjectManagerBreadcrumb";
 import { WorkstationToolbarTooltip } from "@src/modules/WorkStation/shared";
 import type { WorkItem as WorkItemExtended } from "@src/types/core/workItem";
 
 export interface WorkItemDetailHeaderProps {
   workItem: WorkItemExtended;
   pendingUpdates: Partial<WorkItemExtended>;
+  breadcrumbSegments?: readonly ProjectManagerBreadcrumbSegment[];
   breadcrumbProjectName?: string;
   breadcrumbIcon?: ReactNode;
   shortId?: string | null;
@@ -43,6 +45,7 @@ export interface WorkItemDetailHeaderProps {
 type WorkItemDetailHeaderBreadcrumbProps = Pick<
   WorkItemDetailHeaderProps,
   | "workItem"
+  | "breadcrumbSegments"
   | "breadcrumbProjectName"
   | "breadcrumbIcon"
   | "shortId"
@@ -149,6 +152,7 @@ function WorkItemBreadcrumbTitle({
 
 export function WorkItemDetailHeaderBreadcrumb({
   workItem,
+  breadcrumbSegments,
   breadcrumbProjectName,
   breadcrumbIcon,
   shortId,
@@ -185,40 +189,40 @@ export function WorkItemDetailHeaderBreadcrumb({
       fillAvailableWidth={isGitHubIssue}
     />
   );
-  const segments = breadcrumbProjectName
-    ? [
-        {
-          label: breadcrumbProjectName,
-          onClick: onClose,
-          title: onClose
-            ? `${t("common:actions.back")}: ${breadcrumbProjectName}`
-            : breadcrumbProjectName,
-        },
-        {
-          label: title,
-          content: titleContent,
-          fillAvailableWidth: isGitHubIssue,
-          icon: identityIcon ?? (
-            <Box size={HEADER_ICON_SIZE.sm} strokeWidth={1.75} />
-          ),
-        },
-      ]
-    : [
-        {
-          label: title,
-          content: titleContent,
-          fillAvailableWidth: isGitHubIssue,
-          icon: identityIcon ?? (
-            <ListChecks size={HEADER_ICON_SIZE.sm} strokeWidth={1.75} />
-          ),
-        },
-      ];
+  const fallbackParentSegments: readonly ProjectManagerBreadcrumbSegment[] =
+    breadcrumbProjectName ? [{ label: breadcrumbProjectName }] : [];
+  const parentSegments = (breadcrumbSegments ?? fallbackParentSegments).map(
+    (segment, index, segments) =>
+      index === segments.length - 1 && onClose
+        ? {
+            ...segment,
+            onClick: onClose,
+            title: `${t("common:actions.back")}: ${segment.label}`,
+          }
+        : segment
+  );
+  const segments: readonly ProjectManagerBreadcrumbSegment[] = [
+    ...parentSegments,
+    {
+      label: title,
+      content: titleContent,
+      fillAvailableWidth: isGitHubIssue,
+      icon:
+        identityIcon ??
+        (parentSegments.length > 0 ? (
+          <Box size={HEADER_ICON_SIZE.sm} strokeWidth={1.75} />
+        ) : (
+          <ListChecks size={HEADER_ICON_SIZE.sm} strokeWidth={1.75} />
+        )),
+    },
+  ];
 
   return <ProjectManagerBreadcrumb segments={segments} />;
 }
 
 type WorkItemDetailHeaderActionsProps = Omit<
   WorkItemDetailHeaderProps,
+  | "breadcrumbSegments"
   | "breadcrumbProjectName"
   | "breadcrumbIcon"
   | "shortId"
@@ -330,6 +334,7 @@ export function WorkItemDetailHeaderActions({
 
 export function WorkItemDetailHeader(props: WorkItemDetailHeaderProps) {
   const {
+    breadcrumbSegments,
     breadcrumbProjectName,
     breadcrumbIcon,
     shortId,
@@ -344,6 +349,7 @@ export function WorkItemDetailHeader(props: WorkItemDetailHeaderProps) {
     <>
       <WorkItemDetailHeaderBreadcrumb
         workItem={workItem}
+        breadcrumbSegments={breadcrumbSegments}
         breadcrumbProjectName={breadcrumbProjectName}
         breadcrumbIcon={breadcrumbIcon}
         shortId={shortId}

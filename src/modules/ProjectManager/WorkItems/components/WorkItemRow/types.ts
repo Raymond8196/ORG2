@@ -38,6 +38,8 @@ export interface WorkItemRowProps {
    * item between projects is not yet supported.
    */
   disableProjectEdit?: boolean;
+  /** Hide redundant project identity in a fixed project-scoped list. */
+  hideProjectCell?: boolean;
 }
 
 export interface DueDateInfo {

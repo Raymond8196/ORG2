@@ -54,6 +54,8 @@ interface WorkItemsListContentProps {
   collapseAllSignal?: number;
   /** Render project cells read-only (cross-project Work Items page). */
   disableProjectEdit?: boolean;
+  /** Hide redundant project identity in a fixed project-scoped list. */
+  hideProjectCell?: boolean;
   compactRows?: boolean;
   showEmptySections?: boolean;
   defaultCollapsedStatuses?: readonly string[];
@@ -103,6 +105,7 @@ const WorkItemsListContent: FC<WorkItemsListContentProps> = ({
   statusDisabled = false,
   collapseAllSignal = 0,
   disableProjectEdit = false,
+  hideProjectCell = false,
   compactRows = false,
   showEmptySections = false,
   defaultCollapsedStatuses = [],
@@ -271,6 +274,7 @@ const WorkItemsListContent: FC<WorkItemsListContentProps> = ({
                     }
                     statusDisabled={statusDisabled || isDeletedGroup}
                     disableProjectEdit={disableProjectEdit}
+                    hideProjectCell={hideProjectCell}
                   />
                 </div>
               );

@@ -40,6 +40,7 @@ import WorkItemSection from "@src/modules/ProjectManager/WorkItems/components/Wo
 import { MultiSelectBar } from "@src/modules/ProjectManager/WorkItems/components/WorkItemsFooterBars";
 import { getProjectStatusConfig } from "@src/modules/ProjectManager/config/manage";
 import { useProjectManagerWorkItemsTabBarRegistration } from "@src/modules/ProjectManager/hooks/useProjectManagerWorkItemsTabBarRegistration";
+import type { ProjectManagerBreadcrumbSegment } from "@src/modules/ProjectManager/shared/components/ProjectManagerBreadcrumb";
 import VirtualizedGroupedList from "@src/modules/ProjectManager/shared/components/VirtualizedGroupedList";
 import { PROJECT_MANAGER_PLACEHOLDER_PLACEMENT } from "@src/modules/ProjectManager/shared/placeholderTokens";
 import {
@@ -47,6 +48,7 @@ import {
   type WorkspaceProject,
   loadWorkspaceLinearProjects,
 } from "@src/modules/ProjectManager/workspaceAggregate";
+import { WorkstationHeaderSectionSeparator } from "@src/modules/WorkStation/shared";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 import { ContentSearchPalette } from "@src/scaffold/GlobalSpotlight/palettes";
 import { projectListRefreshAtom } from "@src/store/project/projectAtom";
@@ -72,7 +74,7 @@ const log = createLogger("ProjectsPage");
 const SECTION_BASE_CONFIG = getProjectStatusConfig("planned");
 
 export interface ProjectsPageProps {
-  breadcrumbSegments?: readonly { label: string }[];
+  breadcrumbSegments?: readonly ProjectManagerBreadcrumbSegment[];
   /** Callback to open a project as a tab (in the unified tab system) */
   onOpenProject?: (
     projectId: string,
@@ -499,18 +501,21 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
     setWorkspaceSourceMode(key as WorkspaceSourceMode);
   }, []);
 
-  const groupModeSelect = (
-    <Select
-      value={groupMode}
-      onChange={handleGroupModeChange}
-      options={groupModeOptions}
-      size="small"
-      variant="ghost"
-      radius="lg"
-      dropdownWidthMode="auto"
-      dropdownAlign="right"
-      className="w-auto"
-    />
+  const groupModeSelect = useMemo(
+    () => (
+      <Select
+        value={groupMode}
+        onChange={handleGroupModeChange}
+        options={groupModeOptions}
+        size="small"
+        variant="ghost"
+        radius="lg"
+        dropdownWidthMode="auto"
+        dropdownAlign="left"
+        className="w-auto"
+      />
+    ),
+    [groupMode, groupModeOptions, handleGroupModeChange]
   );
 
   const sourceModeSwitch = useMemo(() => {
@@ -533,21 +538,18 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
     workspaceSourceTabs,
   ]);
 
-  const headerLeadingControls = useMemo(() => {
-    if (!orgSurfaceControls && !sourceModeSwitch) return undefined;
-    if (!orgSurfaceControls) return sourceModeSwitch;
-    if (!sourceModeSwitch) return orgSurfaceControls;
-    return (
-      <>
+  const headerLeadingControls = useMemo(
+    () => (
+      <div className="contents">
         {orgSurfaceControls}
-        <span
-          className="pointer-events-none mx-1.5 h-4 w-px shrink-0 bg-border-2"
-          aria-hidden
-        />
+        {orgSurfaceControls && <WorkstationHeaderSectionSeparator />}
+        {groupModeSelect}
+        {sourceModeSwitch && <WorkstationHeaderSectionSeparator />}
         {sourceModeSwitch}
-      </>
-    );
-  }, [orgSurfaceControls, sourceModeSwitch]);
+      </div>
+    ),
+    [groupModeSelect, orgSurfaceControls, sourceModeSwitch]
+  );
 
   const virtualProjectGroups = useMemo(
     () =>
@@ -591,7 +593,6 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
         onAddProject={onAddProject}
         refreshLoading={loading}
         leadingControls={headerLeadingControls}
-        trailingControls={groupModeSelect}
         publishToWorkstationHeader={publishToWorkstationHeader}
         workstationHeaderHost={workstationHeaderHost}
       />

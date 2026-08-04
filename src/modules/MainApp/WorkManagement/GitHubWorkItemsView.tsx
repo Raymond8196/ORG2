@@ -3,10 +3,12 @@ import { useTranslation } from "react-i18next";
 
 import type { SelectOption } from "@src/components/Select";
 import { usePublishWorkstationTabHeader } from "@src/hooks/workStation";
+import ProjectManagerBreadcrumb from "@src/modules/ProjectManager/shared/components/ProjectManagerBreadcrumb";
 import {
   IssueDetailExternalLinkButton,
   IssueDetailHeaderContent,
   IssueDetailPanel,
+  getIssueDetailTitle,
 } from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/IssuesContent/IssueDetailPanel";
 import {
   DetailPanelContainer,
@@ -98,6 +100,43 @@ interface GitHubWorkItemsViewProps {
   ) => void;
 }
 
+export function GitHubIssueDetailBreadcrumb({
+  issue,
+  parentLabel,
+  onBack,
+}: {
+  issue: IssueDetailState["issue"];
+  parentLabel: string;
+  onBack: () => void;
+}): React.ReactNode {
+  return (
+    <ProjectManagerBreadcrumb
+      segments={[
+        {
+          label: parentLabel,
+          onClick: onBack,
+          title: parentLabel,
+        },
+        {
+          label: getIssueDetailTitle(issue),
+          content: <IssueDetailHeaderContent issue={issue} />,
+          fillAvailableWidth: true,
+        },
+      ]}
+    />
+  );
+}
+
+export function shouldJoinGitHubWorkItemsHeader({
+  detailOpen,
+  singleRowHeader,
+}: {
+  detailOpen: boolean;
+  singleRowHeader: boolean;
+}): boolean {
+  return detailOpen || !singleRowHeader;
+}
+
 export function GitHubWorkItemsView({
   scope,
   singleRowHeader,
@@ -142,6 +181,10 @@ export function GitHubWorkItemsView({
   onCreateIssue,
 }: GitHubWorkItemsViewProps): React.ReactNode {
   const { t } = useTranslation(["sessions", "common"]);
+  const datasetLabel =
+    scope === GITHUB_QUERY_SCOPE.ISSUE
+      ? t("kanban.sidebar.githubIssues")
+      : t("kanban.sidebar.githubPrs");
   const listScrollRef = useRef<HTMLDivElement>(null);
   const activeState =
     scope === GITHUB_QUERY_SCOPE.PR &&
@@ -179,9 +222,11 @@ export function GitHubWorkItemsView({
   const headerContent = useMemo(
     () =>
       issueDetail ? (
-        <span className="flex min-w-0 items-center gap-2 text-[13px] font-medium text-text-1">
-          <IssueDetailHeaderContent issue={issueDetail.issue} />
-        </span>
+        <GitHubIssueDetailBreadcrumb
+          issue={issueDetail.issue}
+          parentLabel={datasetLabel}
+          onBack={onBackFromDetail}
+        />
       ) : (
         <div className="flex min-w-0 flex-1 items-center gap-2">
           <RepoFilterPill
@@ -217,12 +262,14 @@ export function GitHubWorkItemsView({
     [
       effectiveSelectedRepo,
       activeState,
+      datasetLabel,
       handleStateChange,
       issuePersonalFilterOptions,
       issueDetail,
       singleRowHeader,
       onSearchQueryChange,
       onIssuePersonalFiltersSelect,
+      onBackFromDetail,
       stateTabs,
       onRepoSelect,
       repoOptions,
@@ -268,7 +315,10 @@ export function GitHubWorkItemsView({
     () => ({
       content: headerContent,
       trailing: headerTrailing,
-      joinWithFollowingRow: !issueDetail && !singleRowHeader,
+      joinWithFollowingRow: shouldJoinGitHubWorkItemsHeader({
+        detailOpen: Boolean(issueDetail),
+        singleRowHeader,
+      }),
     }),
     [headerContent, headerTrailing, issueDetail, singleRowHeader]
   );
@@ -286,8 +336,7 @@ export function GitHubWorkItemsView({
     await onNextPage();
     listScrollRef.current?.scrollTo({ top: 0 });
   };
-  const pullRequestTodoSections =
-    groupPullRequestsIntoTodoSections(filteredItems);
+  const pullRequestTodoSections = groupPullRequestsIntoTodoSections(pagedItems);
   const pagedIssues = pagedItems.filter(
     (item): item is ManagedIssueItem => item.kind === GITHUB_ITEM_KIND.ISSUE
   );
@@ -488,7 +537,7 @@ export function GitHubWorkItemsView({
                     {listContent}
                   </div>
                 </GitHubWorkItemTableSurface>
-                {scope !== GITHUB_QUERY_SCOPE.PR && filteredItems.length > 0 ? (
+                {filteredItems.length > 0 ? (
                   <GitHubWorkItemPagination
                     totalLabel={t("common:pagination.pageOf", {
                       current: currentPage,

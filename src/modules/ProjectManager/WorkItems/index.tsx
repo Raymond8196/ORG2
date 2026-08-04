@@ -19,6 +19,7 @@ import { useProjectOrgCloudPermissions } from "@src/features/Org2Cloud/useProjec
 import { useCurrentUserMemberIds } from "@src/hooks/project/useCurrentUserMemberId";
 import type { WorkstationTabHeaderHost } from "@src/hooks/workStation";
 import type { LinkedRepoOption } from "@src/modules/ProjectManager/shared";
+import type { ProjectManagerBreadcrumbSegment } from "@src/modules/ProjectManager/shared/components/ProjectManagerBreadcrumb";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 import { ContentSearchPalette } from "@src/scaffold/GlobalSpotlight/palettes";
 import { reposAtom } from "@src/store/repo";
@@ -70,7 +71,7 @@ const WORK_ITEMS_VIEW_TABS: readonly WorkItemsViewTab[] = ["List", "Kanban"];
 export type { EmbeddedWorkItemDetailState } from "./hooks/useWorkItemsTabBarState";
 
 export interface WorkItemsPageProps {
-  breadcrumbSegments?: readonly { label: string }[];
+  breadcrumbSegments?: readonly ProjectManagerBreadcrumbSegment[];
   /** Project ID from the active tab */
   projectId: string;
   /** Project name from the active tab (for display) */
@@ -162,8 +163,17 @@ const WorkItemsPage: React.FC<WorkItemsPageProps> = ({
   workstationHeaderHost = "project",
 }) => {
   const { t } = useTranslation("projects");
+  const interactiveBreadcrumbSegments = useMemo(
+    () =>
+      breadcrumbSegments?.map((segment, index) =>
+        index === 0 && onOpenProjects && !segment.onClick
+          ? { ...segment, onClick: onOpenProjects }
+          : segment
+      ),
+    [breadcrumbSegments, onOpenProjects]
+  );
   const { canAdminister: canAdministerProjectOrg } =
-    useProjectOrgCloudPermissions();
+    useProjectOrgCloudPermissions(isActive);
   const activeWorkspaceRootPath = useAtomValue(activeWorkspaceRootPathAtom);
   const allRepos = useAtomValue(reposAtom);
   const availableRepos = useMemo<LinkedRepoOption[]>(
@@ -420,6 +430,7 @@ const WorkItemsPage: React.FC<WorkItemsPageProps> = ({
       onOpenSession={onOpenChatSession}
       onWorkItemNameUpdated={onEmbeddedWorkItemNameUpdated}
       onExpandWorkItemToTab={onExpandWorkItemToTab}
+      breadcrumbSegments={interactiveBreadcrumbSegments}
       breadcrumbProjectName={headerTitle}
       breadcrumbIcon={projectIdentityIcon}
       titleEditable={
@@ -599,15 +610,14 @@ const WorkItemsPage: React.FC<WorkItemsPageProps> = ({
   const resolvedProjectDescription =
     displayProject.description ?? projectData.project?.description;
 
-  // When a work item is selected, the detail's own header (with the
-  // `Project > Item` breadcrumb) replaces the page header. Otherwise the
-  // page header with view tabs / status filter is shown.
+  // When a work item is selected, the detail keeps the page's full parent
+  // hierarchy and appends the item. Otherwise the page header is shown.
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
       {!isDetailOpen && (
         <WorkItemsPageHeader
           projectName={headerTitle}
-          breadcrumbSegments={breadcrumbSegments}
+          breadcrumbSegments={interactiveBreadcrumbSegments}
           identityIcon={projectIdentityIcon}
           onOpenProjects={onOpenProjects}
           activeTab={state.activeTab}

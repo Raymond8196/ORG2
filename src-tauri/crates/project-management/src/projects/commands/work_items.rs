@@ -20,6 +20,7 @@ use super::super::io;
 use super::super::types::{
     BatchDeleteResult, BatchUpdateResult, EnrichedWorkItem, WorkItemData, WorkItemFrontmatter,
     WorkItemHandoffTransition, WorkItemPartialUpdate, WorkItemReadBucket, WorkItemsViewData,
+    WorkspaceWorkItemsData,
 };
 
 // ---------------------------------------------------------------------
@@ -63,9 +64,23 @@ pub async fn project_read_work_items_enriched(
     .map_err(|err| format!("Task join error: {}", err))?
 }
 
+/// One backend task for the workspace list instead of one command and one
+/// blocking SQLite task per project.
+#[tauri::command]
+pub async fn project_read_workspace_work_items_data(
+    org_id: Option<String>,
+    read_bucket: Option<WorkItemReadBucket>,
+) -> Result<WorkspaceWorkItemsData, String> {
+    tokio::task::spawn_blocking(move || {
+        io::read_workspace_work_items_data(org_id.as_deref(), read_bucket)
+    })
+    .await
+    .map_err(|err| format!("Task join error: {}", err))?
+}
+
 /// One-shot endpoint for the WorkItems page: enriched items + status
-/// counts (computed BEFORE filtering, for the filter badges) +
-/// Kanban / Gantt / Calendar projections + items grouped by status.
+/// counts (computed BEFORE filtering, for the filter badges) + only the
+/// requested view projection.
 ///
 /// Optional `status_filter` and `search_query` are applied
 /// server-side so we don't ship items the UI is going to discard
@@ -76,13 +91,15 @@ pub async fn project_read_work_items_view_data(
     org_id: Option<String>,
     status_filter: Option<String>,
     search_query: Option<String>,
+    view: Option<String>,
 ) -> Result<WorkItemsViewData, String> {
     tokio::task::spawn_blocking(move || {
-        io::read_work_items_view_data_scoped(
+        io::read_work_items_view_data_scoped_for_view(
             &project_slug,
             org_id.as_deref(),
             status_filter.as_deref(),
             search_query.as_deref(),
+            view.as_deref(),
         )
     })
     .await

@@ -21,15 +21,20 @@ import { parseGithubRepoFullName } from "@src/services/git/operations/createPull
 import { fetchIssues } from "@src/services/git/operations/githubIssues";
 import { REPO_KIND } from "@src/store/repo";
 import type { Repo } from "@src/store/repo/types";
+import { mapWithConcurrency } from "@src/util/collections/mapWithConcurrency";
 
 import type {
   GitHubIssuePageState,
   GitHubQueryScope,
 } from "./githubWorkItemsSearchQuery";
-import type { GitHubRepoSource } from "./githubWorkItemsTypes";
+import {
+  type GitHubRepoSource,
+  getGitHubListCacheKey,
+} from "./githubWorkItemsTypes";
 
 export const ISSUE_PAGE_SIZE = 50;
 const PR_PAGE_SIZE = 50;
+const GITHUB_SOURCE_CONCURRENCY = 4;
 
 export interface RepoIssueState {
   openIssues: GitHubIssue[];
@@ -100,7 +105,7 @@ export function mergeUniqueIssues(
 }
 
 function getCachedRepoIssues(source: GitHubRepoSource): RepoIssueState {
-  const cached = getCachedIssues(source.repoPath);
+  const cached = getCachedIssues(getGitHubListCacheKey(source));
   if (!cached) return EMPTY_REPO_ISSUES;
   return {
     openIssues: cached.openIssues,
@@ -115,8 +120,9 @@ function getCachedRepoIssues(source: GitHubRepoSource): RepoIssueState {
 }
 
 function getCachedRepoPrs(source: GitHubRepoSource): RepoPrState {
-  const open = getCachedPrs(source.repoPath, "open");
-  const closed = getCachedPrs(source.repoPath, "closed");
+  const cacheKey = getGitHubListCacheKey(source);
+  const open = getCachedPrs(cacheKey, "open");
+  const closed = getCachedPrs(cacheKey, "closed");
   return {
     openPrs: open?.prs ?? [],
     closedPrs: closed?.prs ?? [],
@@ -131,11 +137,16 @@ async function resolveGitHubRepoSource(
   repo: Repo
 ): Promise<GitHubRepoSource | null> {
   if (repo.kind !== REPO_KIND.GIT || !repo.path) return null;
-  const remoteUrl =
-    repo.repo_url ??
-    (
-      await getGitRemotes({ repo_id: repo.id, repo_path: repo.path })
-    )?.remotes?.find((remote) => remote.name === "origin")?.url;
+  let remoteUrl = repo.repo_url;
+  if (!remoteUrl) {
+    try {
+      remoteUrl = (
+        await getGitRemotes({ repo_id: repo.id, repo_path: repo.path })
+      )?.remotes?.find((remote) => remote.name === "origin")?.url;
+    } catch {
+      return null;
+    }
+  }
   if (!remoteUrl) return null;
   const repoFullName = parseGithubRepoFullName(remoteUrl);
   if (!repoFullName) return null;
@@ -154,15 +165,13 @@ async function loadRepoIssues(
   states: GitHubIssuePageState[],
   force: boolean
 ): Promise<RepoIssueLoadResult> {
+  const cacheKey = getGitHubListCacheKey(source);
   const cached = getCachedRepoIssues(source);
-  if (
-    !force &&
-    states.every((state) => !isIssueCacheStale(source.repoPath, state))
-  ) {
+  if (!force && states.every((state) => !isIssueCacheStale(cacheKey, state))) {
     return { source, ...cached, error: null };
   }
   const results = await coalesceGitHubListRequest(
-    `work-management:issues:${states.join(",")}:${source.repoPath}`,
+    `work-management:issues:${states.join(",")}:${cacheKey}`,
     () =>
       Promise.all(
         states.map((state) =>
@@ -181,9 +190,8 @@ async function loadRepoIssues(
   const closedResult = resultByState.get("closed");
   const openIssues = openResult?.data?.issues ?? cached.openIssues;
   const closedIssues = closedResult?.data?.issues ?? cached.closedIssues;
-  if (openResult?.data) updateCachedOpenIssues(source.repoPath, openIssues);
-  if (closedResult?.data)
-    updateCachedClosedIssues(source.repoPath, closedIssues);
+  if (openResult?.data) updateCachedOpenIssues(cacheKey, openIssues);
+  if (closedResult?.data) updateCachedClosedIssues(cacheKey, closedIssues);
   return {
     source,
     openIssues,
@@ -203,16 +211,17 @@ async function loadRepoPrs(
   state: PullRequestListState,
   force: boolean
 ): Promise<RepoPrLoadResult> {
-  const cached = getCachedPrs(source.repoPath, state);
-  if (cached && !force && !isPrCacheStale(source.repoPath, state)) {
+  const cacheKey = getGitHubListCacheKey(source);
+  const cached = getCachedPrs(cacheKey, state);
+  if (cached && !force && !isPrCacheStale(cacheKey, state)) {
     return { source, state, prs: cached.prs, loaded: true, error: null };
   }
   try {
     const prs = await coalesceGitHubListRequest(
-      `work-management:prs:${state}:${source.repoPath}`,
+      `work-management:prs:${state}:${cacheKey}`,
       () => listPRsLocal(source.repoFullName, state, PR_PAGE_SIZE)
     );
-    setCachedPrs(source.repoPath, prs, state);
+    setCachedPrs(cacheKey, prs, state);
     return { source, state, prs, loaded: true, error: null };
   } catch (error: unknown) {
     return {
@@ -225,18 +234,52 @@ async function loadRepoPrs(
   }
 }
 
+export function selectGitHubLoadSources({
+  sources,
+  selectedRepo,
+  selectedRepoPath,
+  allReposValue,
+  currentWorkstationValue,
+}: {
+  sources: GitHubRepoSource[];
+  selectedRepo: string;
+  selectedRepoPath: string | null;
+  allReposValue: string;
+  currentWorkstationValue: string;
+}): GitHubRepoSource[] {
+  if (selectedRepo === allReposValue) return sources;
+  if (selectedRepo === currentWorkstationValue) {
+    const currentSource = sources.find(
+      (source) => source.repoPath === selectedRepoPath
+    );
+    return currentSource ? [currentSource] : [];
+  }
+  const selectedSource = sources.find(
+    (source) => source.repoFullName === selectedRepo
+  );
+  return selectedSource ? [selectedSource] : [];
+}
+
 export function useGitHubWorkItemsLoadLifecycle({
   repos,
   scope,
   issueStates,
   prStates,
   refreshNonce,
+  selectedRepo = "__all__",
+  selectedRepoPath = null,
+  allReposValue = "__all__",
+  currentWorkstationValue = "__current__",
 }: {
   repos: Repo[];
   scope: Extract<GitHubQueryScope, "issue" | "pr">;
   issueStates: GitHubIssuePageState[];
   prStates: PullRequestListState[];
   refreshNonce: number;
+  selectedRepo?: string;
+  selectedRepoPath?: string | null;
+  allReposValue?: string;
+  currentWorkstationValue?: string;
 }) {
   const [repoSources, setRepoSources] = useState<GitHubRepoSource[]>([]);
   const [repoIssueMap, setRepoIssueMap] = useState<
@@ -273,7 +316,11 @@ export function useGitHubWorkItemsLoadLifecycle({
           (login) => ({ login, error: null }),
           (error: unknown) => ({ login: null, error: String(error) })
         ),
-        Promise.all(gitRepos.map(resolveGitHubRepoSource)),
+        mapWithConcurrency(
+          gitRepos,
+          GITHUB_SOURCE_CONCURRENCY,
+          resolveGitHubRepoSource
+        ),
       ]);
       if (cancelled) return;
       const viewerLoginError = viewerResult.error;
@@ -282,6 +329,15 @@ export function useGitHubWorkItemsLoadLifecycle({
         .map((source) => ({ ...source, viewerLogin: viewerResult.login }));
       if (cancelled) return;
       setRepoSources(resolvedSources);
+      if (!viewerResult.login) {
+        setRepoIssueMap({});
+        setRepoPrMap({});
+        setLoadError(
+          viewerLoginError ?? "GitHub viewer identity is unavailable"
+        );
+        setLoading(false);
+        return;
+      }
       setRepoIssueMap(
         scope === "issue"
           ? Object.fromEntries(
@@ -306,21 +362,28 @@ export function useGitHubWorkItemsLoadLifecycle({
         setLoading(false);
         return;
       }
+      const sourcesToLoad = selectGitHubLoadSources({
+        sources: resolvedSources,
+        selectedRepo,
+        selectedRepoPath,
+        allReposValue,
+        currentWorkstationValue,
+      });
       const [issueResults, prResults] = await Promise.all([
         scope === "issue"
-          ? Promise.all(
-              resolvedSources.map((source) =>
-                loadRepoIssues(source, issueStates, forceRefresh)
-              )
+          ? mapWithConcurrency(
+              sourcesToLoad,
+              GITHUB_SOURCE_CONCURRENCY,
+              (source) => loadRepoIssues(source, issueStates, forceRefresh)
             )
           : Promise.resolve([]),
         scope === "pr"
-          ? Promise.all(
-              resolvedSources.flatMap((source) =>
-                prStates.map((state) =>
-                  loadRepoPrs(source, state, forceRefresh)
-                )
-              )
+          ? mapWithConcurrency(
+              sourcesToLoad.flatMap((source) =>
+                prStates.map((state) => ({ source, state }))
+              ),
+              GITHUB_SOURCE_CONCURRENCY,
+              ({ source, state }) => loadRepoPrs(source, state, forceRefresh)
             )
           : Promise.resolve([]),
       ]);
@@ -369,7 +432,17 @@ export function useGitHubWorkItemsLoadLifecycle({
     return () => {
       cancelled = true;
     };
-  }, [gitRepos, issueStates, prStates, refreshNonce, scope]);
+  }, [
+    allReposValue,
+    currentWorkstationValue,
+    gitRepos,
+    issueStates,
+    prStates,
+    refreshNonce,
+    scope,
+    selectedRepo,
+    selectedRepoPath,
+  ]);
 
   const updateIssueMap = useCallback(
     (

@@ -11,13 +11,13 @@ import {
 } from "./workManagementDataset";
 
 describe("resolveWorkManagementDataset", () => {
-  it("projects only actionable records into the Work dataset switch", () => {
+  it("projects each list surface into the Work dataset switch", () => {
     expect(
       resolveWorkManagementDataset({
         section: WORK_MANAGEMENT_SECTION.PROJECTS,
         projectsView: WORK_MANAGEMENT_PROJECTS_VIEW.PROJECTS,
       })
-    ).toBeNull();
+    ).toBe(WORK_MANAGEMENT_DATASET.PROJECTS);
     expect(
       resolveWorkManagementDataset({
         section: WORK_MANAGEMENT_SECTION.PROJECTS,

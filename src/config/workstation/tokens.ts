@@ -189,16 +189,22 @@ export const SPLIT_BUTTON = {
 // Header Class Strings
 // ============================================
 
+/** Shared left inset for content inside My Station's 40px header bars. */
+export const HEADER_CONTENT_LEFT_PADDING_CLASS = "pl-2";
+/** Shared right inset for content inside My Station's 40px header bars. */
+export const HEADER_CONTENT_RIGHT_PADDING_CLASS = "pr-2";
+/** Shared balanced edge inset for standalone 40px header bars. */
+export const HEADER_CONTENT_HORIZONTAL_PADDING_CLASS = `${HEADER_CONTENT_LEFT_PADDING_CLASS} ${HEADER_CONTENT_RIGHT_PADDING_CLASS}`;
+
 /** Shared 40px file-bar row geometry (used by FileHeader + search rows). */
-export const FILE_BAR_ROW_CLASSES =
-  "work-station-file-bar flex h-[40px] flex-shrink-0 items-center gap-1.5 px-2";
+export const FILE_BAR_ROW_CLASSES = `work-station-file-bar flex h-[40px] flex-shrink-0 items-center gap-1.5 ${HEADER_CONTENT_HORIZONTAL_PADDING_CLASS}`;
 
 export const HEADER_CLASSES = {
   /**
    * File bar header (top bar showing file path / URL / preview info).
    * Used by: FileHeader, WebUrlBar
    *
-   * Height: 40px, horizontal layout, shrink-proof, 8px left / 4px right padding.
+   * Height: 40px, horizontal layout, shrink-proof, 8px edge padding.
    */
   fileBar: FILE_BAR_ROW_CLASSES,
 
@@ -206,10 +212,9 @@ export const HEADER_CLASSES = {
    * Page-level header (bordered, with background).
    * Used by: ProjectsPageHeader, WorkItemsPageHeader
    *
-   * Height: 40px, bottom border, 12px horizontal padding.
+   * Height: 40px, bottom border, 8px edge padding.
    */
-  pageHeader:
-    "flex h-[40px] flex-shrink-0 items-center gap-2 border-b border-border-2 px-3",
+  pageHeader: `flex h-[40px] flex-shrink-0 items-center gap-2 border-b border-border-2 ${HEADER_CONTENT_HORIZONTAL_PADDING_CLASS}`,
 
   /**
    * Section title header (inline title for property groups, no border/bg).

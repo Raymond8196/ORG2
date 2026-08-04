@@ -13,3 +13,8 @@ export interface GitHubRepoSource {
   repoFullName: string;
   viewerLogin: string | null;
 }
+
+export function getGitHubListCacheKey(source: GitHubRepoSource): string {
+  const identity = source.viewerLogin?.trim().toLowerCase() || "unknown-viewer";
+  return `${identity}:${source.repoPath}`;
+}
