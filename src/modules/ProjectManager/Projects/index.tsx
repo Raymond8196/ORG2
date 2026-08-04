@@ -18,12 +18,15 @@ import React, {
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
+import { STORY_SYNC_ADAPTER } from "@src/api/http/integrations/syncConnections";
 import {
   type LabelEntry,
   type MemberEntry,
   projectApi,
   projectDataToUI,
+  projectSyncApi,
 } from "@src/api/http/project";
+import Message from "@src/components/Message";
 import Select from "@src/components/Select";
 import type { SelectOption } from "@src/components/Select";
 import TabPill from "@src/components/TabPill";
@@ -121,6 +124,9 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
     new Set()
   );
   const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [unlinkingProjectId, setUnlinkingProjectId] = useState<string | null>(
+    null
+  );
   const [workspaceSourceMode, setWorkspaceSourceMode] =
     useState<WorkspaceSourceMode>("local_only");
 
@@ -260,6 +266,15 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
   const isProjectDeletable = useCallback(
     (project: WorkspaceProject) =>
       project.workspaceSource?.source !== WORKSPACE_SOURCE.LINEAR &&
+      canAdministerProjectOrg(project.orgId),
+    [canAdministerProjectOrg]
+  );
+
+  const isProjectSourceUnlinkable = useCallback(
+    (project: WorkspaceProject) =>
+      project.workspaceSource?.source !== WORKSPACE_SOURCE.LINEAR &&
+      project.syncAdapterId === STORY_SYNC_ADAPTER.GITHUB &&
+      Boolean(project.slug) &&
       canAdministerProjectOrg(project.orgId),
     [canAdministerProjectOrg]
   );
@@ -412,6 +427,53 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
       await loadFileProjects();
     },
     [loadFileProjects]
+  );
+
+  const handleUnlinkProjectSource = useCallback(
+    async (project: WorkspaceProject) => {
+      if (
+        unlinkingProjectId !== null ||
+        !project.slug ||
+        !isProjectSourceUnlinkable(project)
+      ) {
+        return;
+      }
+
+      const confirmed = await confirmDestructiveAction({
+        title: t("settings.sync.adapterPicker.detachProjectTitle", {
+          project: project.name,
+        }),
+        message: t("settings.sync.adapterPicker.detachProjectDescription"),
+        okLabel: t("settings.sync.adapterPicker.detachProjectMenuLabel"),
+        cancelLabel: t("common:actions.cancel"),
+      });
+      if (!confirmed) return;
+
+      setUnlinkingProjectId(project.id);
+      try {
+        await projectSyncApi.detachAdapter(project.slug);
+        setSelectedProjectIds((previous) => {
+          const next = new Set(previous);
+          next.delete(project.id);
+          return next;
+        });
+        await loadFileProjects();
+        Message.success(
+          t("settings.sync.adapterPicker.detachProjectSuccess", {
+            project: project.name,
+          })
+        );
+      } catch (error) {
+        Message.error(
+          t("settings.sync.errors.detachFailed", {
+            error: error instanceof Error ? error.message : String(error),
+          })
+        );
+      } finally {
+        setUnlinkingProjectId(null);
+      }
+    },
+    [isProjectSourceUnlinkable, loadFileProjects, t, unlinkingProjectId]
   );
 
   const handleGroupModeChange = useCallback(
@@ -618,6 +680,12 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
                       showCheckboxes={showCheckboxesOnAllRows}
                       onSelect={handleProjectClick}
                       onCheckedChange={handleProjectCheckedChange}
+                      onUnlinkSource={
+                        isProjectSourceUnlinkable(project)
+                          ? () => void handleUnlinkProjectSource(project)
+                          : undefined
+                      }
+                      unlinkingSource={unlinkingProjectId === project.id}
                       onDelete={
                         isProjectDeletable(project)
                           ? handleDeleteProject

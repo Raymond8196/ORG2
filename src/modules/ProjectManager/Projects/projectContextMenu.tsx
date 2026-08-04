@@ -7,6 +7,7 @@ import {
   ExternalLink,
   Flag,
   HeartPulse,
+  Link2Off,
   MoreHorizontal,
   Tag,
   Trash2,
@@ -56,6 +57,7 @@ interface ProjectContextMenuOptions {
   propertyFields?: ProjectPropertyAction[];
   onOpen?: () => void;
   onCopy?: () => void;
+  onUnlinkSource?: () => void;
   onDelete?: () => void;
   includeBaseActions?: boolean;
 }
@@ -410,6 +412,7 @@ export function getProjectContextMenuItems(options: ProjectContextMenuOptions) {
     t,
     onOpen,
     onCopy,
+    onUnlinkSource,
     onDelete,
     includeBaseActions = true,
   } = options;
@@ -439,6 +442,17 @@ export function getProjectContextMenuItems(options: ProjectContextMenuOptions) {
     { id: "divider-properties", label: "", divider: true },
     ...propertyItems,
   ];
+  if (onUnlinkSource) {
+    items.push(
+      { id: "divider-unlink-source", label: "", divider: true },
+      {
+        id: "unlink-source",
+        label: t("settings.sync.adapterPicker.detachProjectMenuLabel"),
+        icon: createElement(Link2Off, { size: DROPDOWN_ITEM.iconSize }),
+        action: onUnlinkSource,
+      }
+    );
+  }
   if (onDelete) {
     items.push(
       { id: "divider-delete", label: "", divider: true },

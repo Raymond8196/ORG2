@@ -79,7 +79,7 @@ const WorkItemSection: React.FC<WorkItemSectionProps> = ({
         aria-expanded={isExpanded}
         className={`group ${virtualizedHeader ? "" : "sticky top-0 z-10"} flex w-full cursor-pointer items-center gap-1 text-left transition-colors ${
           isTable
-            ? "h-9 rounded-none border-0 border-b border-border-1 bg-fill-1 px-2 hover:bg-fill-2"
+            ? "h-9 rounded-none border-0 border-b border-border-1 bg-workstation-bg px-2 hover:bg-fill-1"
             : `rounded-lg border-[0.5px] border-border-1 ${
                 compact
                   ? "h-8 bg-fill-2 px-1.5 hover:bg-fill-3"

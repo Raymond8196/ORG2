@@ -21,4 +21,20 @@ describe("getProjectContextMenuItems", () => {
     item?.action?.();
     expect(onDelete).toHaveBeenCalledOnce();
   });
+
+  it("includes unlink only when the row provides a synced-source handler", () => {
+    const onUnlinkSource = vi.fn();
+    const items = getProjectContextMenuItems({
+      project,
+      t,
+      onUnlinkSource,
+    });
+    const item = items.find((candidate) => candidate.id === "unlink-source");
+
+    expect(item?.label).toBe(
+      "settings.sync.adapterPicker.detachProjectMenuLabel"
+    );
+    item?.action?.();
+    expect(onUnlinkSource).toHaveBeenCalledOnce();
+  });
 });
