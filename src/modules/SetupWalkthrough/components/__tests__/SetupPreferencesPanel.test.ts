@@ -31,6 +31,14 @@ vi.mock("@src/components/LanguageSelector", () => ({
 }));
 
 describe("SetupPreferencesPanel", () => {
+  const getFinishButtonMarkup = (html: string): string => {
+    const match = html.match(
+      /<button(?=[^>]*data-testid="setup-finish")[\s\S]*?<\/button>/
+    );
+    expect(match).not.toBeNull();
+    return match?.[0] ?? "";
+  };
+
   it("renders only the three essential preference controls and terminal actions", () => {
     const html = renderToStaticMarkup(
       React.createElement(SetupPreferencesPanel, {
@@ -67,5 +75,35 @@ describe("SetupPreferencesPanel", () => {
     expect(html).toContain('data-testid="setup-skip"');
     expect(html.match(/disabled=""/g)).toHaveLength(2);
     expect(html).not.toContain('data-testid="setup-presentation"');
+  });
+
+  it("replaces the fixed-width trailing arrow with an equal-width spinner", () => {
+    const render = (isClosing: boolean) =>
+      getFinishButtonMarkup(
+        renderToStaticMarkup(
+          React.createElement(SetupPreferencesPanel, {
+            isClosing,
+            onComplete: vi.fn(),
+            onSkip: vi.fn(),
+          })
+        )
+      );
+
+    const idle = render(false);
+    const closing = render(true);
+    const iconSlotPattern =
+      /<span class="([^"]*pointer-events-none[^"]*ml-2[^"]*)"><svg([^>]*)>/;
+    const idleSlot = idle.match(iconSlotPattern);
+    const closingSlot = closing.match(iconSlotPattern);
+
+    expect(idleSlot?.[1]).toBe(closingSlot?.[1]);
+    expect(idleSlot?.[2]).toContain('width="16"');
+    expect(closingSlot?.[2]).toContain('width="16"');
+    expect(idle).toContain("lucide-arrow-right");
+    expect(idle).not.toContain("animate-spin");
+    expect(closing).toContain("animate-spin");
+    expect(idle.match(/<svg/g)).toHaveLength(1);
+    expect(closing.match(/<svg/g)).toHaveLength(1);
+    expect(idle).not.toContain("→");
   });
 });

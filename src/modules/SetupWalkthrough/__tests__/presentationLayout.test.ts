@@ -16,6 +16,7 @@ import SetupWalkthrough from "../index";
 import { SETUP_WALKTHROUGH_PRESENTATION } from "../presentation";
 
 const mocks = vi.hoisted(() => ({
+  messageError: vi.fn(),
   navigate: vi.fn(),
   previewStyle: "compact",
   previewStyleAtom: Symbol("applicationPreviewStyleAtom"),
@@ -42,6 +43,10 @@ vi.mock("react-router-dom", () => ({
 
 vi.mock("@src/components/AppLogo", () => ({
   default: () => React.createElement("span", { "data-testid": "app-logo" }),
+}));
+
+vi.mock("@src/components/Message", () => ({
+  default: { error: mocks.messageError },
 }));
 
 vi.mock("@src/features/GitHubStar", () => ({
@@ -85,9 +90,49 @@ vi.mock("../components/SetupWalkthroughSidebar", () => ({
 }));
 
 vi.mock("../components/SetupPreferencesPanel", () => ({
-  default: () =>
-    React.createElement("div", { "data-testid": "setup-preferences" }),
+  default: ({
+    isClosing,
+    onComplete,
+    onSkip,
+  }: {
+    isClosing: boolean;
+    onComplete: () => void;
+    onSkip: () => void;
+  }) =>
+    React.createElement(
+      "div",
+      {
+        "data-testid": "setup-preferences",
+        "data-closing": String(isClosing),
+      },
+      React.createElement(
+        "button",
+        {
+          "data-testid": "setup-finish",
+          disabled: isClosing,
+          onClick: onComplete,
+        },
+        "finish"
+      ),
+      React.createElement(
+        "button",
+        {
+          "data-testid": "setup-skip",
+          disabled: isClosing,
+          onClick: onSkip,
+        },
+        "skip"
+      )
+    ),
 }));
+
+const createDeferred = () => {
+  let resolve!: () => void;
+  const promise = new Promise<void>((resolvePromise) => {
+    resolve = resolvePromise;
+  });
+  return { promise, resolve };
+};
 
 describe("SetupWalkthrough presentation layout", () => {
   let container: HTMLDivElement;
@@ -156,5 +201,128 @@ describe("SetupWalkthrough presentation layout", () => {
         ?.dataset.presentation
     ).toBe(SETUP_WALKTHROUGH_PRESENTATION.MASCOT);
     expect(mocks.saveSettings).not.toHaveBeenCalled();
+  });
+
+  it("keeps completion closing until persistence succeeds and ignores duplicate terminal actions", async () => {
+    const save = createDeferred();
+    mocks.saveSettings.mockReturnValueOnce(save.promise);
+    const finish = container.querySelector<HTMLButtonElement>(
+      '[data-testid="setup-finish"]'
+    );
+    const skip = container.querySelector<HTMLButtonElement>(
+      '[data-testid="setup-skip"]'
+    );
+
+    await act(async () => {
+      finish?.click();
+      finish?.click();
+      skip?.click();
+      await Promise.resolve();
+    });
+
+    expect(mocks.saveSettings).toHaveBeenCalledOnce();
+    expect(mocks.saveSettings).toHaveBeenCalledWith({
+      "general.setupWalkthroughOutcome": "completed",
+      "general.setupWalkthroughProgress": expect.objectContaining({
+        completedStepIds: ["preferences"],
+        currentStepId: "preferences",
+        guideHandoff: "pending",
+      }),
+    });
+    expect(mocks.navigate).not.toHaveBeenCalled();
+    expect(
+      container.querySelector<HTMLElement>('[data-testid="setup-preferences"]')
+        ?.dataset.closing
+    ).toBe("true");
+    expect(
+      container.querySelector<HTMLButtonElement>('[data-testid="setup-finish"]')
+        ?.disabled
+    ).toBe(true);
+    expect(
+      container.querySelector<HTMLButtonElement>('[data-testid="setup-skip"]')
+        ?.disabled
+    ).toBe(true);
+
+    await act(async () => save.resolve());
+
+    expect(mocks.navigate).toHaveBeenCalledOnce();
+    expect(mocks.navigate).toHaveBeenCalledWith("/orgii/workstation", {
+      replace: true,
+    });
+  });
+
+  it("uses the same guarded closing transition for skip without completing preferences", async () => {
+    const save = createDeferred();
+    mocks.saveSettings.mockReturnValueOnce(save.promise);
+    const finish = container.querySelector<HTMLButtonElement>(
+      '[data-testid="setup-finish"]'
+    );
+    const skip = container.querySelector<HTMLButtonElement>(
+      '[data-testid="setup-skip"]'
+    );
+
+    await act(async () => {
+      skip?.click();
+      skip?.click();
+      finish?.click();
+      await Promise.resolve();
+    });
+
+    expect(mocks.saveSettings).toHaveBeenCalledOnce();
+    expect(mocks.saveSettings).toHaveBeenCalledWith({
+      "general.setupWalkthroughOutcome": "dismissed",
+      "general.setupWalkthroughProgress": expect.objectContaining({
+        completedStepIds: [],
+        currentStepId: "goal",
+        guideHandoff: "idle",
+      }),
+    });
+    expect(
+      container.querySelector<HTMLElement>('[data-testid="setup-preferences"]')
+        ?.dataset.closing
+    ).toBe("true");
+    expect(mocks.navigate).not.toHaveBeenCalled();
+
+    await act(async () => save.resolve());
+
+    expect(mocks.navigate).toHaveBeenCalledOnce();
+  });
+
+  it("restores idle controls after a failed save and allows a successful retry", async () => {
+    mocks.saveSettings.mockRejectedValueOnce(new Error("save failed"));
+    const finish = container.querySelector<HTMLButtonElement>(
+      '[data-testid="setup-finish"]'
+    );
+
+    await act(async () => {
+      finish?.click();
+      await Promise.resolve();
+    });
+
+    expect(mocks.navigate).not.toHaveBeenCalled();
+    expect(mocks.messageError).toHaveBeenCalledWith("common:status.saveFailed");
+    expect(
+      container.querySelector<HTMLElement>('[data-testid="setup-preferences"]')
+        ?.dataset.closing
+    ).toBe("false");
+    expect(
+      container.querySelector<HTMLButtonElement>('[data-testid="setup-finish"]')
+        ?.disabled
+    ).toBe(false);
+    expect(
+      container.querySelector<HTMLButtonElement>('[data-testid="setup-skip"]')
+        ?.disabled
+    ).toBe(false);
+
+    mocks.saveSettings.mockResolvedValueOnce(undefined);
+    await act(async () => {
+      container
+        .querySelector<HTMLButtonElement>('[data-testid="setup-finish"]')
+        ?.click();
+      await Promise.resolve();
+    });
+
+    expect(mocks.saveSettings).toHaveBeenCalledTimes(2);
+    expect(mocks.navigate).toHaveBeenCalledOnce();
   });
 });
