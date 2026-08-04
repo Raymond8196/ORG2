@@ -490,6 +490,16 @@
     "empty": "空",
     "launching": "啟動中..."
   },
+  "workManagementTable": {
+    "columns": {
+      "id": "ID",
+      "titleContext": "標題 / 上下文",
+      "status": "狀態",
+      "assignee": "負責人",
+      "updated": "更新時間"
+    },
+    "selectRow": "選擇 {{id}}"
+  },
   "pagination": {
     "totalItems": "共 {{count}} 項",
     "pageOf": "第 {{current}} / {{total}} 頁",

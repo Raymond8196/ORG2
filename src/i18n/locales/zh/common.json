@@ -327,6 +327,16 @@
     "empty": "空",
     "launching": "启动中..."
   },
+  "workManagementTable": {
+    "columns": {
+      "id": "ID",
+      "titleContext": "标题 / 上下文",
+      "status": "状态",
+      "assignee": "负责人",
+      "updated": "更新时间"
+    },
+    "selectRow": "选择 {{id}}"
+  },
   "pagination": {
     "totalItems": "共 {{count}} 项",
     "pageOf": "第 {{current}} / {{total}} 页",

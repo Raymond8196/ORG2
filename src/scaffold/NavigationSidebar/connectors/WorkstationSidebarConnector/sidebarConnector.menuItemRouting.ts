@@ -63,7 +63,6 @@ interface UseWorkstationSidebarMenuItemRoutingParams {
   openRuntimeTab: (title: string) => void;
   runtimeLabel: string;
   openTeamInboxTab: (title: string) => void;
-  teamInboxLabel: string;
   activateChatPanelTab: (tabId: string) => void;
   handleMenuItemClick: (key: string, item: NavigationMenuItem) => void;
   workItemsContentVisible: boolean;
@@ -84,7 +83,6 @@ export function useWorkstationSidebarMenuItemRouting({
   openRuntimeTab,
   runtimeLabel,
   openTeamInboxTab,
-  teamInboxLabel,
   activateChatPanelTab,
   handleMenuItemClick,
   workItemsContentVisible,
@@ -140,7 +138,7 @@ export function useWorkstationSidebarMenuItemRouting({
         return;
       }
       if (item.id === TEAM_INBOX_MENU_ITEM_ID) {
-        openTeamInboxTab(teamInboxLabel);
+        openTeamInboxTab(item.label);
         return;
       }
       if (isChatTerminalSidebarItem(item.id)) {
@@ -177,15 +175,26 @@ export function useWorkstationSidebarMenuItemRouting({
       openRuntimeTab,
       openTeamInboxTab,
       runtimeLabel,
-      teamInboxLabel,
       sessionMap,
       workItemsContentVisible,
     ]
+  );
+
+  const handleProjectsScopeMenuItemClick = useCallback(
+    (key: string, item: NavigationMenuItem, event: React.MouseEvent) => {
+      if (item.id === TEAM_INBOX_MENU_ITEM_ID) {
+        handleSessionMenuItemClick(key, item, event);
+        return;
+      }
+      handleProjectsMenuItemClick(key, item);
+    },
+    [handleProjectsMenuItemClick, handleSessionMenuItemClick]
   );
 
   return {
     renderWorkstationMenuItemWrapper,
     renderProjectsMenuItemWrapper,
     handleSessionMenuItemClick,
+    handleProjectsScopeMenuItemClick,
   };
 }

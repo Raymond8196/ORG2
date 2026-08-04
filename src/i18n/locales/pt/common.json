@@ -490,6 +490,16 @@
     "empty": "Vazio",
     "launching": "Iniciando..."
   },
+  "workManagementTable": {
+    "columns": {
+      "id": "ID",
+      "titleContext": "Título / contexto",
+      "status": "Status",
+      "assignee": "Responsável",
+      "updated": "Atualizado"
+    },
+    "selectRow": "Selecionar {{id}}"
+  },
   "pagination": {
     "totalItems": "{{count}} itens",
     "pageOf": "Página {{current}} de {{total}}",

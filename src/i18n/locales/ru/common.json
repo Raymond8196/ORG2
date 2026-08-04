@@ -494,6 +494,16 @@
     "empty": "Пусто",
     "launching": "Запуск..."
   },
+  "workManagementTable": {
+    "columns": {
+      "id": "ID",
+      "titleContext": "Заголовок / контекст",
+      "status": "Статус",
+      "assignee": "Исполнитель",
+      "updated": "Обновлено"
+    },
+    "selectRow": "Выбрать {{id}}"
+  },
   "pagination": {
     "totalItems": "{{count}} записей",
     "pageOf": "Стр. {{current}} из {{total}}",

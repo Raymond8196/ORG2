@@ -138,17 +138,19 @@ describe("GitHub work-items derived state", () => {
     expect(state.closedIssuesLoaded).toBe(false);
   });
 
-  it("orders open PRs with personal work before other todos", () => {
+  it("keeps open PRs in updated order without personal-work sections", () => {
     const openPr = (
       number: number,
       authorLogin: string,
-      requestedReviewerLogins: string[]
+      requestedReviewerLogins: string[],
+      updatedAt: string
     ): OpenPRItem => ({
       ...mergedPr,
       number,
       state: "open",
       author_login: authorLogin,
       requested_reviewer_logins: requestedReviewerLogins,
+      updated_at: updatedAt,
     });
     const state = deriveGitHubWorkItemsState({
       repoSources: [source],
@@ -157,9 +159,9 @@ describe("GitHub work-items derived state", () => {
         [source.repoFullName]: {
           ...EMPTY_REPO_PRS,
           openPrs: [
-            openPr(8, "teammate", ["viewer"]),
-            openPr(9, "viewer", []),
-            openPr(10, "teammate", []),
+            openPr(8, "teammate", ["viewer"], "2026-07-20T08:00:00.000Z"),
+            openPr(9, "viewer", [], "2026-07-20T10:00:00.000Z"),
+            openPr(10, "teammate", [], "2026-07-20T09:00:00.000Z"),
           ],
           openLoaded: true,
           closedPrs: [mergedPr],
@@ -174,15 +176,6 @@ describe("GitHub work-items derived state", () => {
       currentWorkstationValue: "currentWorkstation",
     });
 
-    expect(state.filteredItems.map((item) => item.id)).toEqual([8, 9, 10]);
-    expect(
-      state.pullRequestTodoSections.reviewRequested.map((item) => item.id)
-    ).toEqual([8]);
-    expect(
-      state.pullRequestTodoSections.authoredByViewer.map((item) => item.id)
-    ).toEqual([9]);
-    expect(
-      state.pullRequestTodoSections.otherTodos.map((item) => item.id)
-    ).toEqual([10]);
+    expect(state.filteredItems.map((item) => item.id)).toEqual([9, 10, 8]);
   });
 });

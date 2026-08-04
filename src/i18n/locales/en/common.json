@@ -332,6 +332,16 @@
     "empty": "Empty",
     "launching": "Launching..."
   },
+  "workManagementTable": {
+    "columns": {
+      "id": "ID",
+      "titleContext": "Title / Context",
+      "status": "Status",
+      "assignee": "Assignee",
+      "updated": "Updated"
+    },
+    "selectRow": "Select {{id}}"
+  },
   "pagination": {
     "totalItems": "{{count}} items",
     "pageOf": "Page {{current}} of {{total}}",

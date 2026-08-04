@@ -189,7 +189,7 @@ const TabPill = memo(function TabPill({
     launchpad: t("navigation:routes.launchpad"),
     runtime: t("sessions:chat.startPage.tabs.runtime"),
     organization: t("navigation:collaboration.manageOrg"),
-    teamInbox: t("navigation:labels.teamInbox", "Team Inbox"),
+    teamInbox: t("navigation:labels.inbox"),
     channelFallback: t("navigation:cloud.channels.title"),
     workManagement: {
       kanban: t("sessions:simulator.tabs.kanban"),
@@ -665,9 +665,7 @@ export function ChatPanelTabBar(): React.ReactNode {
   const handleCreateWorkItem = useCallback(
     (reference: SessionReferenceOpen) => {
       requestSessionHandoff(reference);
-      openTeamInbox(
-        t("navigation:labels.teamInbox", { defaultValue: "Team Inbox" })
-      );
+      openTeamInbox(t("navigation:labels.inbox"));
     },
     [openTeamInbox, requestSessionHandoff, t]
   );

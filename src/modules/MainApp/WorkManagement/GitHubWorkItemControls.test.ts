@@ -4,9 +4,10 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   IssuePersonalFilterDropdown,
-  ManagedIssueRow,
-  ManagedPrRow,
-  RepoFilterPill,
+  ManagedIssueActionsCell,
+  ManagedIssueAssigneeCell,
+  ManagedIssueContextMeta,
+  ManagedPrActionsCell,
 } from "./GitHubWorkItemControls";
 import {
   GITHUB_ITEM_KIND,
@@ -81,84 +82,78 @@ const draftPr: ManagedPrItem = {
   updatedAt: "2026-07-21T08:10:00Z",
 };
 
-describe("ManagedPrRow", () => {
-  it("uses the GitHub draft icon without a Draft tag", () => {
+describe("ManagedIssueContextMeta", () => {
+  it("shows linked pull requests and comments before context tags", () => {
     const markup = renderToStaticMarkup(
-      createElement(ManagedPrRow, {
-        pr: draftPr,
-        addLabel: "Add",
-        onOpenPr: vi.fn(),
-        onAddPr: vi.fn(),
+      createElement(ManagedIssueContextMeta, {
+        issue: linkedIssue,
       })
     );
 
-    expect(markup).toContain("lucide-git-pull-request-draft");
-    expect(markup).not.toContain(">Draft<");
+    expect(markup).toContain("lucide-git-pull-request");
+    expect(markup).toContain("lucide-message-circle");
+    expect(markup).toContain("text-primary-6");
+    expect(markup).toContain(">2<");
+    expect(markup).toContain(">4<");
   });
 });
 
-describe("ManagedIssueRow", () => {
-  it("shows linked pull requests alongside the comment count", () => {
+describe("ManagedIssueAssigneeCell", () => {
+  it("renders issue-assignee avatars and names together", () => {
     const markup = renderToStaticMarkup(
-      createElement(ManagedIssueRow, {
+      createElement(ManagedIssueAssigneeCell, {
+        issue: {
+          ...linkedIssue,
+          rawIssue: {
+            ...linkedIssue.rawIssue,
+            assignees: [
+              { login: "octocat", avatar_url: "https://example.com/o.png" },
+            ],
+          },
+        },
+      })
+    );
+
+    expect(markup).toContain("octocat");
+    expect(markup).toContain("https://example.com/o.png");
+  });
+});
+
+describe("GitHub work-item row actions", () => {
+  it("keeps issue Add and More actions visible", () => {
+    const markup = renderToStaticMarkup(
+      createElement(ManagedIssueActionsCell, {
         issue: linkedIssue,
         addLabel: "Add",
         openInBrowserLabel: "Open in browser",
         openInMyStationLabel: "Open in My Station",
         moreActionsLabel: "More actions",
-        onOpenIssue: vi.fn(),
         onOpenIssueInBrowser: vi.fn(),
         onOpenIssueInMyStation: vi.fn(),
         onAddIssue: vi.fn(),
       })
     );
 
-    expect(markup).toContain('aria-label="2 linked pull requests"');
-    expect(markup).toContain("lucide-git-pull-request");
-    expect(markup).toContain("lucide-message-square");
+    expect(markup).toContain(">Add</span>");
+    expect(markup).toContain('aria-label="More actions"');
+    expect(markup).not.toContain("opacity-0");
+  });
+
+  it("keeps pull-request Add actions visible", () => {
+    const markup = renderToStaticMarkup(
+      createElement(ManagedPrActionsCell, {
+        pr: draftPr,
+        addLabel: "Add",
+        onAddPr: vi.fn(),
+      })
+    );
+
+    expect(markup).toContain(">Add</span>");
+    expect(markup).not.toContain("opacity-0");
   });
 });
 
 describe("GitHub work-item header controls", () => {
-  it("hugs and shortens the selected repository trigger", () => {
-    const markup = renderToStaticMarkup(
-      createElement(RepoFilterPill, {
-        options: [
-          { key: "all", label: "All repositories" },
-          { key: "org2ai/ORG2", label: "org2ai/ORG2" },
-        ],
-        selectedRepo: "org2ai/ORG2",
-        allReposLabel: "All repositories",
-        onSelectRepo: vi.fn(),
-      })
-    );
-
-    expect(markup).toContain("lucide-code-xml");
-    expect(markup).toContain(">ORG2<");
-    expect(markup).not.toContain("org2ai/ORG2");
-    expect(markup).toContain("select-ghost");
-    expect(markup).toContain("!w-fit shrink-0");
-    expect(markup).toContain('style="width:fit-content"');
-  });
-
-  it("limits long selected repository names to their first 15 characters", () => {
-    const markup = renderToStaticMarkup(
-      createElement(RepoFilterPill, {
-        options: [
-          {
-            key: "org2ai/12345678901234567890",
-            label: "org2ai/12345678901234567890",
-          },
-        ],
-        selectedRepo: "org2ai/12345678901234567890",
-        allReposLabel: "All repositories",
-        onSelectRepo: vi.fn(),
-      })
-    );
-
-    expect(markup).toContain(">123456789012345…<");
-  });
-
   it("renders Filter as a secondary icon-only button", () => {
     const markup = renderToStaticMarkup(
       createElement(IssuePersonalFilterDropdown, {
@@ -172,5 +167,6 @@ describe("GitHub work-item header controls", () => {
     expect(markup).toContain("lucide-funnel");
     expect(markup).toContain('aria-label="Filter (1)"');
     expect(markup).not.toContain(">Filter<");
+    expect(markup).toContain("height:32px");
   });
 });

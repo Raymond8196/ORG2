@@ -488,6 +488,16 @@
     "empty": "Trống",
     "launching": "Đang khởi chạy..."
   },
+  "workManagementTable": {
+    "columns": {
+      "id": "ID",
+      "titleContext": "Tiêu đề / ngữ cảnh",
+      "status": "Trạng thái",
+      "assignee": "Người phụ trách",
+      "updated": "Đã cập nhật"
+    },
+    "selectRow": "Chọn {{id}}"
+  },
   "pagination": {
     "totalItems": "{{count}} mục",
     "pageOf": "Trang {{current}} / {{total}}",

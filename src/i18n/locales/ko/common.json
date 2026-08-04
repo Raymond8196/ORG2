@@ -488,6 +488,16 @@
     "empty": "비어 있음",
     "launching": "시작 중..."
   },
+  "workManagementTable": {
+    "columns": {
+      "id": "ID",
+      "titleContext": "제목 / 컨텍스트",
+      "status": "상태",
+      "assignee": "담당자",
+      "updated": "업데이트"
+    },
+    "selectRow": "{{id}} 선택"
+  },
   "pagination": {
     "totalItems": "{{count}}개 항목",
     "pageOf": "{{current}} / {{total}} 페이지",

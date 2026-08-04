@@ -490,6 +490,16 @@
     "empty": "Vide",
     "launching": "Lancement..."
   },
+  "workManagementTable": {
+    "columns": {
+      "id": "ID",
+      "titleContext": "Titre / contexte",
+      "status": "Statut",
+      "assignee": "Responsable",
+      "updated": "Mis à jour"
+    },
+    "selectRow": "Sélectionner {{id}}"
+  },
   "pagination": {
     "totalItems": "{{count}} éléments",
     "pageOf": "Page {{current}} sur {{total}}",
