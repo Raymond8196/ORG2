@@ -259,5 +259,24 @@ export const IMPORTED_HISTORY_SOURCE_DESCRIPTORS: readonly ImportedHistorySource
       listable: true,
       replayable: true,
       supportsWindowedReplay: true,
+      cliResume: {
+        agentType: "kimi_cli",
+        displayName: "Kimi",
+      },
+    },
+    {
+      sourceId: "copilot",
+      listCategory: "external_history:copilot",
+      prefix: "copilotapp-",
+      iconId: "copilot",
+      displayName: "Copilot CLI",
+      groupLabel: "Copilot CLI",
+      listable: true,
+      replayable: true,
+      supportsWindowedReplay: true,
+      cliResume: {
+        agentType: "copilot",
+        displayName: "Copilot CLI",
+      },
     },
   ];

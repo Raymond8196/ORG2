@@ -42,6 +42,7 @@ pub mod claude_code;
 pub mod cli_resume;
 pub mod cline;
 pub mod codex;
+pub mod copilot;
 pub mod cursor_cli;
 pub mod cursor_ide;
 pub mod imported_history;

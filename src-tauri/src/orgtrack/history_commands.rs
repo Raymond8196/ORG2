@@ -9,6 +9,7 @@ use orgtrack_core::pricing;
 use orgtrack_core::sources::claude_code::history as claude_code_history;
 use orgtrack_core::sources::cline::history as cline_history;
 use orgtrack_core::sources::codex::app as codex_app;
+use orgtrack_core::sources::copilot::history as copilot_history;
 use orgtrack_core::sources::cursor_cli::history as cursor_cli_history;
 use orgtrack_core::sources::cursor_ide::{
     db as cursor_db, disk_reads as cursor_disk_reads, history as cursor_db_history,
@@ -1066,6 +1067,18 @@ pub async fn claude_code_recent_paths(
     tokio::task::spawn_blocking(move || {
         let mut conn = open_cache_conn()?;
         claude_code_history::list_claude_code_recent_paths(&mut conn, limit)
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
+}
+
+#[tauri::command]
+pub async fn copilot_history_chunks(
+    session_id: String,
+) -> Result<Vec<core_types::activity::ActivityChunk>, String> {
+    tokio::task::spawn_blocking(move || {
+        let conn = open_cache_conn()?;
+        copilot_history::load_copilot_history_for_session(&conn, &session_id)
     })
     .await
     .map_err(|err| format!("Task join error: {err}"))?

@@ -17,6 +17,7 @@ export const IMPORTED_HISTORY_SOURCE_IDS = [
   "pi",
   "qoder_cli",
   "qwen_code",
+  "copilot",
   "kimi",
 ] as const;
 

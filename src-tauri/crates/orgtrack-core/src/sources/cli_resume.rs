@@ -28,8 +28,8 @@ use super::imported_history::cache::{
     query_cached_session_by_session_id_from_conn, ImportedHistoryCachedSession,
 };
 use super::imported_history::metadata::{
-    SOURCE_CLAUDE_CODE, SOURCE_CLINE, SOURCE_CODEX_APP, SOURCE_CURSOR_CLI, SOURCE_MIMO_CODE,
-    SOURCE_OMP, SOURCE_OPENCODE,
+    SOURCE_CLAUDE_CODE, SOURCE_CLINE, SOURCE_CODEX_APP, SOURCE_COPILOT, SOURCE_CURSOR_CLI,
+    SOURCE_KIMI, SOURCE_MIMO_CODE, SOURCE_OMP, SOURCE_OPENCODE,
 };
 
 /// How to hand an imported external session back to the CLI that owns it.
@@ -172,8 +172,7 @@ pub fn cli_resume_plan(
         // OpenCode keeps every session in one central SQLite db keyed by
         // `ses_*` ids; `--session <id>` reopens one from anywhere.
         SOURCE_OPENCODE => {
-            if !is_plain_session_token(source_session_id)
-                || !source_session_id.starts_with("ses_")
+            if !is_plain_session_token(source_session_id) || !source_session_id.starts_with("ses_")
             {
                 return None;
             }
@@ -190,8 +189,7 @@ pub fn cli_resume_plan(
         // MiMo Code is an OpenCode fork with the same `ses_*` central store
         // and the same `--session <id>` flag (verified against `mimo --help`).
         SOURCE_MIMO_CODE => {
-            if !is_plain_session_token(source_session_id)
-                || !source_session_id.starts_with("ses_")
+            if !is_plain_session_token(source_session_id) || !source_session_id.starts_with("ses_")
             {
                 return None;
             }
@@ -219,6 +217,40 @@ pub fn cli_resume_plan(
                 native_session_id: source_session_id.to_string(),
                 cwd,
                 requires_cwd: false,
+            })
+        }
+        // Copilot CLI resumes globally by id. The detached form is the
+        // syntax documented by the current binary (`copilot --help`).
+        SOURCE_COPILOT => {
+            if !is_uuid_like(source_session_id) {
+                return None;
+            }
+            Some(CliResumePlan {
+                source: SOURCE_COPILOT,
+                cli_agent_type: "copilot",
+                default_binary: "copilot",
+                resume_args: vec!["--resume".to_string(), source_session_id.to_string()],
+                native_session_id: source_session_id.to_string(),
+                cwd,
+                requires_cwd: false,
+            })
+        }
+        // The hardened Kimi importer namespaces legacy CLI and Kimi Code
+        // records (`cli/<group>/<id>` and `code/<workspace>/<id>/main`).
+        // The owning CLI accepts only the native id, and its picker is
+        // cwd-scoped, so resume runs from the recorded workspace. Subagent
+        // identities are deliberately rejected: the CLI resumes the parent
+        // conversation as a whole.
+        SOURCE_KIMI => {
+            let native_session_id = kimi_native_session_id(source_session_id)?;
+            Some(CliResumePlan {
+                source: SOURCE_KIMI,
+                cli_agent_type: "kimi_cli",
+                default_binary: "kimi",
+                resume_args: vec!["--session".to_string(), native_session_id.to_string()],
+                native_session_id: native_session_id.to_string(),
+                cwd,
+                requires_cwd: true,
             })
         }
         // oh-my-pi (pi family) looks bare ids up in the *current project's*
@@ -251,6 +283,16 @@ fn is_plain_session_token(value: &str) -> bool {
         && value
             .bytes()
             .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'_' | b'-' | b'.'))
+}
+
+fn kimi_native_session_id(source_session_id: &str) -> Option<&str> {
+    let parts = source_session_id.split('/').collect::<Vec<_>>();
+    let native_session_id = match parts.as_slice() {
+        ["cli", group, session_id] if is_plain_session_token(group) => *session_id,
+        ["code", workspace, session_id, "main"] if is_plain_session_token(workspace) => *session_id,
+        _ => return None,
+    };
+    is_plain_session_token(native_session_id).then_some(native_session_id)
 }
 
 /// Resolve a canonical (prefixed) session id against the imported-history
@@ -364,7 +406,10 @@ mod tests {
     #[test]
     fn unsupported_sources_yield_no_plan() {
         for source in ["cursor_ide", "windsurf", "warp", "trae", "definitely_not"] {
-            assert!(cli_resume_plan(source, UUID, None, None).is_none(), "{source}");
+            assert!(
+                cli_resume_plan(source, UUID, None, None).is_none(),
+                "{source}"
+            );
         }
     }
 
@@ -391,6 +436,41 @@ mod tests {
         assert_eq!(plan.default_binary, "cline");
         assert_eq!(plan.resume_args, vec!["--id", "1784035830913_lu2zm"]);
         assert!(!plan.requires_cwd);
+    }
+
+    #[test]
+    fn copilot_plan_uses_the_documented_resume_flag() {
+        let plan = cli_resume_plan(SOURCE_COPILOT, UUID, Some("/tmp/project"), None).expect("plan");
+        assert_eq!(plan.cli_agent_type, "copilot");
+        assert_eq!(plan.resume_args, vec!["--resume", UUID]);
+        assert!(!plan.requires_cwd);
+        assert_eq!(plan.display_command(), format!("copilot --resume {UUID}"));
+        assert!(cli_resume_plan(SOURCE_COPILOT, "not-a-uuid", None, None).is_none());
+    }
+
+    #[test]
+    fn kimi_plan_uses_session_flag_and_requires_cwd() {
+        let plan = cli_resume_plan(
+            SOURCE_KIMI,
+            "code/wd_project_hash/abc12345/main",
+            Some("/tmp/project"),
+            None,
+        )
+        .expect("plan");
+        assert_eq!(plan.cli_agent_type, "kimi_cli");
+        assert_eq!(plan.default_binary, "kimi");
+        assert_eq!(plan.resume_args, vec!["--session", "abc12345"]);
+        assert_eq!(plan.native_session_id, "abc12345");
+        assert!(plan.requires_cwd);
+        assert!(cli_resume_plan(SOURCE_KIMI, "cli/project/legacy-session", None, None).is_some());
+        assert!(cli_resume_plan(
+            SOURCE_KIMI,
+            "code/wd_project_hash/abc12345/agent-0",
+            None,
+            None
+        )
+        .is_none());
+        assert!(cli_resume_plan(SOURCE_KIMI, "code/project/has space/main", None, None).is_none());
     }
 
     #[test]
@@ -517,9 +597,11 @@ mod tests {
         assert_eq!(opencode_plan.resume_args, vec!["--session", "ses_123"]);
         assert_eq!(opencode_session.source_path, "/tmp/source");
 
-        assert!(cli_resume_plan_for_cached_session(&conn, "windsurfapp-cascade-1")
-            .expect("query")
-            .is_none());
+        assert!(
+            cli_resume_plan_for_cached_session(&conn, "windsurfapp-cascade-1")
+                .expect("query")
+                .is_none()
+        );
         assert!(cli_resume_plan_for_cached_session(&conn, "unknown-id")
             .expect("query")
             .is_none());

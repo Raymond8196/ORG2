@@ -946,12 +946,14 @@ pub(crate) fn chunk_role(chunk: &ActivityChunk) -> String {
     }
 }
 
-/// The seven imported sources whose owning CLI can reopen a session by id.
+/// Imported sources whose owning CLI can reopen a session by id.
 /// Maps a canonical (prefixed) session id back to its source so `resume`
 /// scans exactly one provider instead of all of them.
 fn resume_source_for_session_id(session_id: &str) -> Option<&'static str> {
     use orgtrack_core::sources::imported_history::metadata;
-    use orgtrack_core::sources::{claude_code, cline, codex, cursor_cli, mimo_code, omp, opencode};
+    use orgtrack_core::sources::{
+        claude_code, cline, codex, copilot, cursor_cli, kimi, mimo_code, omp, opencode,
+    };
     if session_id.starts_with(claude_code::SESSION_PREFIX) {
         Some(metadata::SOURCE_CLAUDE_CODE)
     } else if session_id.starts_with(codex::SESSION_PREFIX) {
@@ -966,6 +968,10 @@ fn resume_source_for_session_id(session_id: &str) -> Option<&'static str> {
         Some(metadata::SOURCE_CLINE)
     } else if session_id.starts_with(omp::history::OMP_SESSION_PREFIX) {
         Some(metadata::SOURCE_OMP)
+    } else if session_id.starts_with(copilot::SESSION_PREFIX) {
+        Some(metadata::SOURCE_COPILOT)
+    } else if session_id.starts_with(kimi::history::KIMI_SESSION_PREFIX) {
+        Some(metadata::SOURCE_KIMI)
     } else {
         None
     }
@@ -989,8 +995,8 @@ pub(crate) fn cmd_resume(opts: &Options) -> Result<(), String> {
     let Some(source) = resume_source_for_session_id(&session_id) else {
         return Err(format!(
             "'{session_id}' is not from a CLI-resumable source — resume supports \
-             claude_code, codex_app, cursor_cli, opencode, mimo_code, cline, and \
-             omp session ids"
+             claude_code, codex_app, cursor_cli, opencode, mimo_code, cline, omp, \
+             copilot, and kimi session ids"
         ));
     };
 
@@ -1063,10 +1069,7 @@ pub(crate) fn cmd_resume(opts: &Options) -> Result<(), String> {
         if status.success() {
             Ok(())
         } else {
-            Err(format!(
-                "{} exited with {status}",
-                plan.default_binary
-            ))
+            Err(format!("{} exited with {status}", plan.default_binary))
         }
     }
 }

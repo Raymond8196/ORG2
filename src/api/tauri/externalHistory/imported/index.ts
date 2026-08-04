@@ -10,6 +10,7 @@ import {
 } from "../sources/claudeCode";
 import { clineHistoryChunks } from "../sources/cline";
 import { codexAppChunks, codexAppInitialWindow } from "../sources/codexApp";
+import { copilotHistoryChunks } from "../sources/copilot";
 import { cursorCliHistoryChunks } from "../sources/cursorCli";
 import { kimiHistoryChunks } from "../sources/kimi";
 import { mimoCodeHistoryChunks } from "../sources/mimoCode";
@@ -217,6 +218,13 @@ export const IMPORTED_HISTORY_SOURCES: readonly ImportedHistorySource[] = [
     statTranscript: (sessionId) => importedHistoryStat("qwen_code", sessionId),
     loadPreviewChunks: loadGenericPreviewChunks,
     loadFullTranscriptChunks: qwenCodeHistoryChunks,
+  },
+  {
+    ...descriptorFor("copilot"),
+    dispatchCategory: "external_history",
+    statTranscript: (sessionId) => importedHistoryStat("copilot", sessionId),
+    loadPreviewChunks: loadGenericPreviewChunks,
+    loadFullTranscriptChunks: copilotHistoryChunks,
   },
   {
     ...descriptorFor("kimi"),
