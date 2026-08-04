@@ -1039,6 +1039,38 @@ describe("ChatPanel navigation tabs", () => {
     ).toHaveLength(1);
   });
 
+  it("keeps the Work Item creator selected after switching back to Launchpad", async () => {
+    const {
+      CHAT_PANEL_CREATE_TARGET,
+      chatPanelCreateTargetAtom,
+      chatPanelStartPageOpenAtom,
+      chatPanelTabsAtom,
+      openCreateTargetInChatPanelStartPageAtom,
+      openSessionInNewChatTabAtom,
+      store,
+      syncActiveChatPanelTabStateAtom,
+    } = await loadChatPanelTabAtoms();
+    const launchpadTabId = store.get(chatPanelTabsAtom).activeTabId;
+
+    store.set(openSessionInNewChatTabAtom, {
+      sessionId: "session-a",
+      sessionName: "Session A",
+    });
+    store.set(openCreateTargetInChatPanelStartPageAtom, {
+      target: CHAT_PANEL_CREATE_TARGET.WORK_ITEM,
+    });
+
+    // Mirrors ChatPanel's layout effect after the active tab changes from the
+    // session back to Launchpad.
+    store.set(syncActiveChatPanelTabStateAtom);
+
+    expect(store.get(chatPanelTabsAtom).activeTabId).toBe(launchpadTabId);
+    expect(store.get(chatPanelStartPageOpenAtom)).toBe(true);
+    expect(store.get(chatPanelCreateTargetAtom)).toBe(
+      CHAT_PANEL_CREATE_TARGET.WORK_ITEM
+    );
+  });
+
   it("collapses persisted duplicate start-page tabs into one", async () => {
     const { normalizePersistedChatPanelTabsState } =
       await loadChatPanelTabAtoms();
