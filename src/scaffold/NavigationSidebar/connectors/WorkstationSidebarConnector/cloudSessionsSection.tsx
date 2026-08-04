@@ -39,6 +39,11 @@ import {
   readHiddenRemoteSessionIds,
   writeHiddenRemoteSessionIds,
 } from "@src/features/Org2Cloud/cloudHiddenRemoteSessions";
+import {
+  readPinnedRemoteSessionIds,
+  togglePinnedRemoteSession,
+  writePinnedRemoteSessionIds,
+} from "@src/features/Org2Cloud/cloudPinnedRemoteSessions";
 import { dismissCloudReferenceOpeningToast } from "@src/features/Org2Cloud/cloudReferenceOpeningToast";
 import {
   buildCloudRemoteItemId,
@@ -126,6 +131,9 @@ export function useCloudSessionsSection({
   );
   const [hiddenRemoteSessionIds, setHiddenRemoteSessionIds] = useState(
     readHiddenRemoteSessionIds
+  );
+  const [pinnedRemoteSessionIds, setPinnedRemoteSessionIds] = useState(
+    readPinnedRemoteSessionIds
   );
 
   const { localOwnSessionIds, cloudLocalSessionIds } =
@@ -466,6 +474,16 @@ export function useCloudSessionsSection({
     [sessions]
   );
 
+  // A pin is the viewer's own view state: it never touches the shared cloud
+  // row, and two viewers of the same session pin independently.
+  const toggleRemoteSessionPin = useCallback((orgId: string, rowId: string) => {
+    setPinnedRemoteSessionIds((current) => {
+      const next = togglePinnedRemoteSession(current, orgId, rowId);
+      writePinnedRemoteSessionIds(next);
+      return next;
+    });
+  }, []);
+
   const handleCloudRemoteItemRemove = useCallback(
     (item: NavigationMenuItem): boolean => {
       const parsed = parseCloudRemoteItemId(item.id);
@@ -485,6 +503,8 @@ export function useCloudSessionsSection({
     runFork,
     hideRemoteSession,
     busySessionRows,
+    pinnedRemoteSessionIds,
+    toggleRemoteSessionPin,
   });
 
   const cloudMenuItems = useCloudTeamSessionMenuItems({

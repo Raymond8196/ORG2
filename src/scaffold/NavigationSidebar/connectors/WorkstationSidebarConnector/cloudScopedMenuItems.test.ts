@@ -182,8 +182,12 @@ describe("buildCloudScopedMenuItems", () => {
     const result = buildCloudScopedMenuItems({
       cloudMenuItems: teamItems,
       sessionMenuItems: [
-        { id: "separator-pinned", key: "separator-pinned", label: "Pinned" },
-        { id: "session-pinned", key: "session-pinned", label: "Pinned one" },
+        {
+          id: "session-pinned",
+          key: "session-pinned",
+          label: "Pinned one",
+          pinned: true,
+        },
         { id: "separator-today", key: "separator-today", label: "Today" },
         { id: "session-today", key: "session-today", label: "Today one" },
       ],
@@ -248,6 +252,46 @@ describe("buildCloudScopedMenuItems", () => {
 
     expect(result.map((item) => item.id)).toEqual([
       "separator-cloud-team-sessions",
+      `separator-${CLOUD_MY_SESSIONS_SECTION_ID}`,
+      "session-today",
+    ]);
+  });
+
+  it("lifts a pinned team session into the same Pinned section", () => {
+    const result = buildCloudScopedMenuItems({
+      cloudMenuItems: [
+        {
+          id: "separator-cloud-team-sessions",
+          key: "separator-cloud-team-sessions",
+          label: "Team sessions",
+        },
+        {
+          id: "cloudremote-org-1|row-9",
+          key: "cloudremote-org-1|row-9",
+          label: "Teammate session",
+          pinned: true,
+        },
+        {
+          id: "cloudremote-org-1|row-8",
+          key: "cloudremote-org-1|row-8",
+          label: "Another teammate session",
+        },
+      ],
+      sessionMenuItems: [
+        { id: "separator-today", key: "separator-today", label: "Today" },
+        { id: "session-today", key: "session-today", label: "Today one" },
+      ],
+      mySessionsLabel: "My sessions",
+      pinnedLabel: "Pinned",
+    });
+
+    // One Pinned section holds both kinds — a pin means "keep this where I can
+    // see it", which is not a promise scoped to one section.
+    expect(result.map((item) => item.id)).toEqual([
+      "separator-cloud-team-sessions",
+      "cloudremote-org-1|row-8",
+      `separator-${CLOUD_PINNED_SECTION_ID}`,
+      "cloudremote-org-1|row-9",
       `separator-${CLOUD_MY_SESSIONS_SECTION_ID}`,
       "session-today",
     ]);

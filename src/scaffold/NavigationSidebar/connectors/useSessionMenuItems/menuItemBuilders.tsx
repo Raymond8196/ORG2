@@ -89,6 +89,7 @@ export function buildSessionMenuItem({
     label: displayName,
     searchText: getSessionSearchText(session, untitledSession),
     dataTestId: `sidebar-session-item-${session.session_id}`,
+    pinned: session.pinned === true,
     icon: resolveSessionRowIcon(session),
     subtitle: liveDetail && pendingAsking ? liveDetail : undefined,
     workingIndicator:

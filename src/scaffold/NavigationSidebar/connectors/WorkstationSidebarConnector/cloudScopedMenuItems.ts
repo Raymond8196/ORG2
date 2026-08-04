@@ -21,7 +21,6 @@ interface BuildCloudScopedMenuItemsParams {
   loadMoreLabel?: string;
 }
 
-const PINNED_SEPARATOR_ID = "separator-pinned";
 const LOCAL_GROUP_PAGER_PREFIX = "load-more-group-";
 
 export function isSessionPaginationMenuItem(item: NavigationMenuItem): boolean {
@@ -89,30 +88,30 @@ export function buildCloudScopedMenuItems({
 }: BuildCloudScopedMenuItemsParams): NavigationMenuItem[] {
   if (cloudMenuItems.length === 0) return [...sessionMenuItems];
 
-  // Walk in order tracking which separator each row follows, so the pinned
-  // block can be lifted out whole. A flat `filter` cannot do this: once the
-  // separators are gone there is no way to tell a pinned row from any other.
+  // Rows carry their own `pinned` flag, so the pinned block is lifted by
+  // identity rather than by which separator happens to precede a row — and
+  // the same rule then works for a teammate's row, which lives in a
+  // different section entirely.
   const pinnedItems: NavigationMenuItem[] = [];
   const localRows: NavigationMenuItem[] = [];
   const backendPaginationItems: NavigationMenuItem[] = [];
-  let inPinnedGroup = false;
   for (const item of sessionMenuItems) {
-    if (item.id.startsWith("separator-")) {
-      inPinnedGroup = item.id === PINNED_SEPARATOR_ID;
-      continue;
-    }
+    if (item.id.startsWith("separator-")) continue;
     if (isBackendStreamPager(item)) {
       backendPaginationItems.push(item);
-      continue;
-    }
-    if (inPinnedGroup) {
-      pinnedItems.push(item);
       continue;
     }
     // A date group's own "show more" pager is meaningless once that group is
     // flattened into My sessions — the section's own pager governs from here.
     if (item.id.startsWith(LOCAL_GROUP_PAGER_PREFIX)) continue;
-    localRows.push(item);
+    (item.pinned ? pinnedItems : localRows).push(item);
+  }
+  // Team rows keep their section, except the ones the viewer pinned: pinning
+  // means "keep this where I can see it", which is not a per-section promise.
+  const teamItems: NavigationMenuItem[] = [];
+  for (const item of cloudMenuItems) {
+    if (item.pinned) pinnedItems.push(item);
+    else teamItems.push(item);
   }
   const visibleLocalRows = localRows.slice(0, mySessionsVisibleCount);
   const hasHiddenLoadedRows = localRows.length > visibleLocalRows.length;
@@ -143,7 +142,7 @@ export function buildCloudScopedMenuItems({
     : visibleLocalRows;
 
   return [
-    ...cloudMenuItems,
+    ...teamItems,
     ...(pinnedItems.length > 0
       ? [separator(CLOUD_PINNED_SECTION_ID, pinnedLabel), ...pinnedItems]
       : []),

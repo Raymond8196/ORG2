@@ -11,11 +11,12 @@ import {
   Menu as TauriMenu,
 } from "@tauri-apps/api/menu";
 import type { TFunction } from "i18next";
-import { GitFork, Loader2, MoreHorizontal } from "lucide-react";
+import { GitFork, Loader2, MoreHorizontal, Pin, PinOff } from "lucide-react";
 import { useCallback } from "react";
 
 import Message from "@src/components/Message";
 import { resolveAgentIcon } from "@src/config/agentIcons";
+import { isRemoteSessionPinned } from "@src/features/Org2Cloud/cloudPinnedRemoteSessions";
 import { buildCloudRemoteItemId } from "@src/features/Org2Cloud/cloudRemoteItemId";
 import type { CloudSessionBusyEntry } from "@src/features/Org2Cloud/cloudSessionBusyAtom";
 import {
@@ -84,6 +85,9 @@ interface UseCloudSessionRowItemBuilderParams {
   hideRemoteSession: (row: RemoteTeammateSessionMetadata) => void;
   /** Per-row in-flight replay/fork registry — busy rows render a spinner. */
   busySessionRows: ReadonlyMap<string, CloudSessionBusyEntry>;
+  /** Viewer-local pin keys (`<orgId>|<rowId>`); never a property of the shared row. */
+  pinnedRemoteSessionIds: ReadonlySet<string>;
+  toggleRemoteSessionPin: (orgId: string, rowId: string) => void;
 }
 
 export type BuildCloudSessionRowItem = (
@@ -99,6 +103,8 @@ export function useCloudSessionRowItemBuilder({
   runFork,
   hideRemoteSession,
   busySessionRows,
+  pinnedRemoteSessionIds,
+  toggleRemoteSessionPin,
 }: UseCloudSessionRowItemBuilderParams): BuildCloudSessionRowItem {
   const buildRowItem = useCallback(
     (threadRow: CloudSessionThreadRow, asParentOf?: NavigationMenuItem[]) => {
@@ -193,9 +199,23 @@ export function useCloudSessionRowItemBuilder({
           localSessionId={busy.localSessionId}
         />
       ) : undefined;
+      const isPinned = isRemoteSessionPinned(
+        pinnedRemoteSessionIds,
+        row.orgId,
+        row.id
+      );
+      const pinIndicator = isPinned ? (
+        <Pin
+          size={11}
+          strokeWidth={2}
+          className="shrink-0 text-text-3"
+          aria-label="Pinned"
+        />
+      ) : null;
       const trailingElement =
-        busyIndicator || viewerChips || commentsBadge ? (
+        pinIndicator || busyIndicator || viewerChips || commentsBadge ? (
           <span className="inline-flex items-center gap-1">
+            {pinIndicator}
             {busyIndicator}
             {viewerChips}
             {commentsBadge}
@@ -209,6 +229,7 @@ export function useCloudSessionRowItemBuilder({
         label: displayTitle,
         searchText: `${displayTitle} ${row.ownerDisplayName}`,
         dataTestId: `sidebar-cloud-session-item-${bareSessionId}`,
+        pinned: isPinned,
         // Prefer the source/agent brand used by regular sessions. Cloud
         // scope is context, not the session's icon identity.
         icon: sessionIcon,
@@ -243,6 +264,15 @@ export function useCloudSessionRowItemBuilder({
             label: t("cloud.orgPanel.fork"),
             onClick: () => runFork(row),
           },
+          // One click on hover, matching a local row: a teammate's session is
+          // pinned often enough that burying it in the overflow menu is a tax.
+          {
+            icon: isPinned ? PinOff : Pin,
+            label: isPinned
+              ? tCommon("sessions:chat.unpinSession", "Unpin")
+              : tCommon("sessions:chat.pinSession", "Pin"),
+            onClick: () => toggleRemoteSessionPin(row.orgId, row.id),
+          },
           {
             icon: MoreHorizontal,
             label: tCommon("actions.more"),
@@ -262,17 +292,25 @@ export function useCloudSessionRowItemBuilder({
                       });
                   },
                 }),
+                MenuItem.new({
+                  text: isPinned
+                    ? tCommon("sessions:chat.unpinSession", "Unpin")
+                    : tCommon("sessions:chat.pinSession", "Pin"),
+                  action: () => toggleRemoteSessionPin(row.orgId, row.id),
+                }),
                 PredefinedMenuItem.new({ item: "Separator" }),
                 MenuItem.new({
                   text: tCommon("actions.remove", "Remove"),
                   action: () => hideRemoteSession(row),
                 }),
-              ]).then(async ([copyItem, menuSeparator, removeItem]) => {
-                const menu = await TauriMenu.new({
-                  items: [copyItem, menuSeparator, removeItem],
-                });
-                await menu.popup();
-              });
+              ]).then(
+                async ([copyItem, pinItem, menuSeparator, removeItem]) => {
+                  const menu = await TauriMenu.new({
+                    items: [copyItem, pinItem, menuSeparator, removeItem],
+                  });
+                  await menu.popup();
+                }
+              );
             },
           },
         ];
@@ -282,6 +320,8 @@ export function useCloudSessionRowItemBuilder({
     [
       busySessionRows,
       hideRemoteSession,
+      pinnedRemoteSessionIds,
+      toggleRemoteSessionPin,
       presenceMap,
       runFork,
       selfUserId,
