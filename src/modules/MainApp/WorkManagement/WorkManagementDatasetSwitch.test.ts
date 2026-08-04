@@ -19,5 +19,7 @@ describe("WorkManagementDatasetSwitch", () => {
     expect(markup).toContain('data-testid="work-dataset-github-issues"');
     expect(markup).toContain('data-testid="work-dataset-reviews"');
     expect(markup.match(/class="sr-only"/g)).toHaveLength(3);
+    expect(markup).toContain("rounded-[100px]");
+    expect(markup).not.toContain("border border-border-2 bg-bg-2 p-0.5");
   });
 });

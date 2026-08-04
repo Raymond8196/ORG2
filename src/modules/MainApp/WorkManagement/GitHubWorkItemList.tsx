@@ -151,8 +151,6 @@ export function GitHubWorkItemStateTabs({
       iconOnly
       fillWidth={false}
       size="small"
-      buttonStyle
-      height={28}
     />
   );
 }

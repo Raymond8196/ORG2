@@ -144,7 +144,9 @@ describe("GitHubWorkItemStateTabs", () => {
     expect(markup).toContain("text-purple-6");
     expect(markup).toContain('class="sr-only">Open</span>');
     expect(markup).toContain('class="sr-only">Closed</span>');
-    expect(markup).toContain("rounded-lg border border-border-2 bg-bg-2 p-0.5");
-    expect(markup).toContain('style="height:28px"');
+    expect(markup).toContain("rounded-[100px]");
+    expect(markup).not.toContain(
+      "rounded-lg border border-border-2 bg-bg-2 p-0.5"
+    );
   });
 });

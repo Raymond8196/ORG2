@@ -87,8 +87,6 @@ export function WorkManagementDatasetSwitch({
       fillWidth={false}
       size="small"
       iconOnly={compact}
-      buttonStyle
-      height={28}
     />
   );
 }
