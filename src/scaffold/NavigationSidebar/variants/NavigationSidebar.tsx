@@ -163,6 +163,64 @@ function filterMenuItems(
   return filteredItems;
 }
 
+interface NavigationMenuSection {
+  id: string;
+  title?: string;
+  items: NavigationMenuItem[];
+  headerActions?: readonly NavigationMenuRowAction[];
+}
+
+function groupMenuItemsIntoSections(
+  items: readonly NavigationMenuItem[]
+): NavigationMenuSection[] {
+  const result: NavigationMenuSection[] = [];
+  let currentSection: NavigationMenuItem[] = [];
+  let currentTitle: string | undefined;
+  let currentId = "default";
+  let currentHeaderActions: readonly NavigationMenuRowAction[] | undefined;
+
+  items.forEach((item, index) => {
+    if (item.id?.startsWith("separator-")) {
+      if (index > 0) {
+        result.push({
+          id: currentId,
+          title: currentTitle,
+          items: currentSection,
+          headerActions: currentHeaderActions,
+        });
+        currentSection = [];
+      }
+      currentId = item.id.replace("separator-", "");
+      currentTitle = item.label || undefined;
+      currentHeaderActions =
+        item.rowActions && item.rowActions.length > 0
+          ? item.rowActions
+          : undefined;
+    } else {
+      currentSection.push(item);
+    }
+  });
+
+  if (currentSection.length > 0 || currentTitle) {
+    result.push({
+      id: currentId,
+      title: currentTitle,
+      items: currentSection,
+      headerActions: currentHeaderActions,
+    });
+  }
+
+  return result;
+}
+
+function NavigationSidebarSectionHeader({ title }: { title: string }) {
+  return (
+    <div className="mb-2 px-2 text-[11px] font-medium uppercase tracking-wider text-text-2">
+      {title}
+    </div>
+  );
+}
+
 // ============================================
 // Component
 // ============================================
@@ -216,54 +274,16 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = React.memo(
     );
     const hasSearchInput = Boolean(search?.value.trim());
 
-    // Memoize section grouping — only recompute when menuItems changes
     // Separator items (id starts with "separator-") split the list into sections.
     // If a separator has a non-empty label, it becomes the section title.
-    const sections = useMemo(() => {
-      const result: {
-        id: string;
-        title?: string;
-        items: NavigationMenuItem[];
-        headerActions?: readonly NavigationMenuRowAction[];
-      }[] = [];
-      let currentSection: NavigationMenuItem[] = [];
-      let currentTitle: string | undefined;
-      let currentId = "default";
-      let currentHeaderActions: readonly NavigationMenuRowAction[] | undefined;
-
-      filteredMenuItems.forEach((item, index) => {
-        if (item.id?.startsWith("separator-")) {
-          if (index > 0) {
-            result.push({
-              id: currentId,
-              title: currentTitle,
-              items: currentSection,
-              headerActions: currentHeaderActions,
-            });
-            currentSection = [];
-          }
-          currentId = item.id.replace("separator-", "");
-          currentTitle = item.label || undefined;
-          currentHeaderActions =
-            item.rowActions && item.rowActions.length > 0
-              ? item.rowActions
-              : undefined;
-        } else {
-          currentSection.push(item);
-        }
-      });
-
-      if (currentSection.length > 0 || currentTitle) {
-        result.push({
-          id: currentId,
-          title: currentTitle,
-          items: currentSection,
-          headerActions: currentHeaderActions,
-        });
-      }
-
-      return result;
-    }, [filteredMenuItems]);
+    const pinnedSections = useMemo(
+      () => groupMenuItemsIntoSections(filteredPinnedMenuItems),
+      [filteredPinnedMenuItems]
+    );
+    const sections = useMemo(
+      () => groupMenuItemsIntoSections(filteredMenuItems),
+      [filteredMenuItems]
+    );
 
     const [uncontrolledCollapsed, setUncontrolledCollapsed] = useState<
       Set<string>
@@ -324,12 +344,12 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = React.memo(
 
     const resolvedDefaultOpenKeys = useMemo(() => {
       if (defaultOpenKeys.length > 0) return defaultOpenKeys;
-      return sections.flatMap((section) =>
+      return [...pinnedSections, ...sections].flatMap((section) =>
         section.items.flatMap((item) =>
           item.children && item.children.length > 0 ? [item.key] : []
         )
       );
-    }, [defaultOpenKeys, sections]);
+    }, [defaultOpenKeys, pinnedSections, sections]);
 
     // Stable handler refs — avoid inline arrow wrappers
     const handleMenuItemClick = useCallback(
@@ -415,18 +435,25 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = React.memo(
           </div>
         )}
 
-        {filteredPinnedMenuItems.length > 0 && (
-          <div className="px-3 pt-1">
-            <NavigationMenu
-              items={filteredPinnedMenuItems}
-              selectedKeys={selectedKeys}
-              collapsed={false}
-              defaultOpenKeys={resolvedDefaultOpenKeys}
-              onMenuItemClick={handleMenuItemClick}
-              onSubmenuOpenChange={onSubmenuOpenChange}
-              onMenuItemContextMenu={handleMenuItemContextMenu}
-              renderMenuItemWrapper={renderMenuItemWrapper}
-            />
+        {pinnedSections.length > 0 && (
+          <div className="flex flex-col gap-2 px-3 pt-1">
+            {pinnedSections.map((section) => (
+              <div key={section.id} data-sidebar-section-id={section.id}>
+                {section.title && (
+                  <NavigationSidebarSectionHeader title={section.title} />
+                )}
+                <NavigationMenu
+                  items={section.items}
+                  selectedKeys={selectedKeys}
+                  collapsed={false}
+                  defaultOpenKeys={resolvedDefaultOpenKeys}
+                  onMenuItemClick={handleMenuItemClick}
+                  onSubmenuOpenChange={onSubmenuOpenChange}
+                  onMenuItemContextMenu={handleMenuItemContextMenu}
+                  renderMenuItemWrapper={renderMenuItemWrapper}
+                />
+              </div>
+            ))}
           </div>
         )}
 
@@ -516,9 +543,7 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = React.memo(
                         )}
                       </div>
                     ) : (
-                      <div className="mb-2 px-2 text-[11px] font-medium uppercase tracking-wider text-text-2">
-                        {section.title}
-                      </div>
+                      <NavigationSidebarSectionHeader title={section.title} />
                     ))}
                   {!isSectionCollapsed && (
                     <NavigationMenu

@@ -38,6 +38,7 @@ interface BuildPinnedMenuItemsParams {
 }
 
 interface BuildProjectsPinnedMenuItemsParams {
+  browseLabel: string;
   createProjectLabel: string;
   createWorkItemLabel: string;
   importGithubIssuesLabel: string;
@@ -103,6 +104,7 @@ export function buildPinnedMenuItems({
 }
 
 export function buildProjectsPinnedMenuItems({
+  browseLabel,
   createProjectLabel,
   createWorkItemLabel,
   importGithubIssuesLabel,
@@ -132,6 +134,11 @@ export function buildProjectsPinnedMenuItems({
       icon: Github,
       iconName: "github",
       dataTestId: "sidebar-import-github-issues",
+    },
+    {
+      id: "separator-work-items-browse",
+      key: "separator-work-items-browse",
+      label: browseLabel,
     },
     ...workItemDestinations,
   ];

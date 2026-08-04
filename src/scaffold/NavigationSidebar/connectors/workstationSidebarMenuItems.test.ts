@@ -77,6 +77,7 @@ describe("buildPinnedMenuItems", () => {
 
   it("keeps destination navigation available inside the Work Items layer", () => {
     const items = buildProjectsPinnedMenuItems({
+      browseLabel: "Browse",
       createProjectLabel: "Create Project",
       createWorkItemLabel: "Create Work Item",
       importGithubIssuesLabel: "Import GitHub Issues",
@@ -89,6 +90,10 @@ describe("buildPinnedMenuItems", () => {
       ],
     });
 
+    expect(items.at(-2)).toMatchObject({
+      id: "separator-work-items-browse",
+      label: "Browse",
+    });
     expect(items.at(-1)?.id).toBe(WORK_ITEMS_PROJECTS_MENU_ITEM_ID);
   });
 });

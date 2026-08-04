@@ -82,6 +82,7 @@ export function usePinnedMenuItems({
   const projectsPinnedMenuItems = useMemo<NavigationMenuItem[]>(
     () =>
       buildProjectsPinnedMenuItems({
+        browseLabel: t("common:actions.browse"),
         createProjectLabel,
         createWorkItemLabel,
         importGithubIssuesLabel,
@@ -91,6 +92,7 @@ export function usePinnedMenuItems({
       createProjectLabel,
       createWorkItemLabel,
       importGithubIssuesLabel,
+      t,
       workItemDestinations,
     ]
   );
