@@ -122,6 +122,8 @@ pub struct CreateWorkItemRequest {
     pub start_date: Option<String>,
     pub target_date: Option<String>,
     pub created_by: Option<String>,
+    #[serde(default)]
+    pub starred: bool,
     pub schedule: Option<WorkItemSchedule>,
     pub orchestrator_config: Option<OrchestratorConfig>,
     /// Optional parsed checklist written atomically with creation.
@@ -160,7 +162,7 @@ fn build_frontmatter(short_id: &str, request: &CreateWorkItemRequest) -> WorkIte
         created_at: now.clone(),
         updated_at: now,
         deleted_at: None,
-        starred: false,
+        starred: request.starred,
         todos: request.todos.clone(),
         comments: vec![],
         history: vec![],

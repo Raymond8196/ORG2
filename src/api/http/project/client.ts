@@ -475,6 +475,7 @@ export interface WorkItemCreateRequest {
   startDate?: string;
   targetDate?: string;
   createdBy?: string;
+  starred?: boolean;
   schedule?: WorkItemFrontmatter["schedule"];
   orchestratorConfig?: WorkItemFrontmatter["orchestrator_config"];
   todos?: WorkItemFrontmatter["todos"];

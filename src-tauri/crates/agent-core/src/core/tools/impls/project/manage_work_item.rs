@@ -498,14 +498,14 @@ impl WorkItemTool {
 
         run_blocking("create_standalone_work_item", move || {
             let short_id = io::allocate_standalone_short_id(org_id.as_deref())?;
-            let now = chrono::Utc::now().to_rfc3339();
-            let frontmatter = WorkItemFrontmatter {
-                id: short_id.clone(),
-                short_id: short_id.clone(),
+            // Canonical work.create: the application service owns row
+            // construction and audits the creation.
+            let request = project_management::work_service::CreateWorkItemRequest {
                 title: title.clone(),
-                project,
-                status,
-                priority,
+                body: body.clone(),
+                project_id: project,
+                status: Some(status),
+                priority: Some(priority),
                 assignee,
                 assignee_type: None,
                 labels,
@@ -514,27 +514,19 @@ impl WorkItemTool {
                 start_date,
                 target_date,
                 created_by: Some("agent".to_string()),
-                created_at: now.clone(),
-                updated_at: now,
-                deleted_at: None,
                 starred,
-                todos: Self::todos_to_entries(todos, &[]),
-                comments: vec![],
-                history: vec![],
-                delegations: vec![],
-                linked_sessions: vec![],
-                handoff: None,
-                proof_of_work: None,
-                orchestrator_config,
-                orchestrator_state: None,
-                follow_up_items: vec![],
                 schedule,
-                routine_source: None,
-                execution_lock: None,
-                close_out: None,
-                work_products: vec![],
+                orchestrator_config,
+                todos: Self::todos_to_entries(todos, &[]),
+                handoff: None,
+                linked_sessions: vec![],
             };
-            io::write_standalone_work_item(org_id.as_deref(), &short_id, &frontmatter, &body)?;
+            project_management::work_service::create_standalone_work_item(
+                org_id.as_deref(),
+                &short_id,
+                &request,
+                None,
+            )?;
             Ok(format!(
                 "Created standalone work item '{}' [{}]",
                 title, short_id
