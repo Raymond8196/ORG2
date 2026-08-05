@@ -1,9 +1,10 @@
-import { ClipboardList, ExternalLink, Globe } from "lucide-react";
+import { ClipboardList, Globe, SquareArrowOutUpRight } from "lucide-react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import type { WorkItemHandoffTransition } from "@src/api/http/project";
 import { WorkItemThreadSurface } from "@src/modules/ProjectManager/WorkItems/components";
+import GitHubIssueHeaderContent from "@src/modules/shared/components/GitHubIssueHeaderContent";
 import { LoadingBar, Placeholder } from "@src/modules/shared/layouts/blocks";
 import type { Person } from "@src/types/core/shared";
 import type { WorkItem } from "@src/types/core/workItem";
@@ -14,6 +15,7 @@ import {
   type AssignedWorkItem,
   type TeamInboxNavigationIntent,
   isGitHubIssueStatus,
+  parseGitHubIssueNumber,
 } from "../domain";
 import { useTeamInboxWorkItem } from "../useTeamInboxWorkItem";
 import type { TeamInboxWorkItemIssue } from "../useTeamInboxWorkItem";
@@ -27,14 +29,48 @@ export interface AssignedWorkItemDetailProps {
   onWorkItemUpdated?: (workItem: WorkItem) => void;
 }
 
-function buildGitHubIssueUrl(item: AssignedWorkItem): string | null {
-  if (!isGitHubIssueStatus(item.payload.status)) return null;
+function getGitHubIssueNumber(
+  item: AssignedWorkItem,
+  workItem: WorkItem | null
+): number | undefined {
+  const shortIdNumber = parseGitHubIssueNumber(item.target.workItemId);
+  if (shortIdNumber !== undefined) return shortIdNumber;
+
+  const workItemShortIdNumber = parseGitHubIssueNumber(workItem?.shortId);
+  if (workItemShortIdNumber !== undefined) return workItemShortIdNumber;
+
+  const urlMatch = workItem?.session_id.match(/\/issues\/(\d+)(?:\/|$)/);
+  return urlMatch ? Number(urlMatch[1]) : undefined;
+}
+
+function buildGitHubIssueUrl(
+  item: AssignedWorkItem,
+  workItem: WorkItem | null,
+  issueNumber: number | undefined
+): string | null {
+  if (!isGitHubIssueStatus(item.payload.status) || issueNumber === undefined) {
+    return null;
+  }
+
+  if (/^https?:\/\//.test(workItem?.session_id ?? "")) {
+    try {
+      const directUrl = new URL(workItem?.session_id ?? "");
+      if (
+        directUrl.hostname === "github.com" &&
+        directUrl.pathname.match(/\/issues\/\d+(?:\/|$)/)
+      ) {
+        return directUrl.toString();
+      }
+    } catch {
+      // Fall through to the repository-derived URL.
+    }
+  }
+
   const repository = item.target.repository;
   const repoFullName = repository
     ? resolveGithubRepoFullName([repository])
     : null;
-  const issueNumber = item.target.workItemId.trim().replace(/^#/, "");
-  if (!repoFullName || !/^\d+$/.test(issueNumber)) return null;
+  if (!repoFullName) return null;
   return `https://github.com/${repoFullName}/issues/${issueNumber}`;
 }
 
@@ -166,13 +202,26 @@ const AssignedWorkItemDetail: React.FC<AssignedWorkItemDetailProps> = ({
     };
     return issue ? t(keyByIssue[issue]) : null;
   })();
-  const githubIssueUrl = buildGitHubIssueUrl(item);
+  const isGitHubIssue = isGitHubIssueStatus(item.payload.status);
+  const githubIssueNumber = getGitHubIssueNumber(item, workItem);
+  const githubIssueUrl = buildGitHubIssueUrl(item, workItem, githubIssueNumber);
+  const detailTitle = workItem?.name ?? item.payload.title;
+  const githubIssueHeader = isGitHubIssue ? (
+    <GitHubIssueHeaderContent
+      issue={{
+        number: githubIssueNumber,
+        state: item.payload.status === "closed" ? "closed" : "open",
+        title: detailTitle,
+      }}
+    />
+  ) : undefined;
 
   return (
     <TeamInboxDetailLayout
-      title={workItem?.name ?? item.payload.title}
+      title={detailTitle}
       subtitle={t("teamInbox.detail.assignedSubtitle")}
       icon={ClipboardList}
+      headerContent={githubIssueHeader}
       contentLayout="fill"
       unread={item.readAt === null}
       markReadLabel={t("teamInbox.actions.markRead")}
@@ -186,7 +235,7 @@ const AssignedWorkItemDetail: React.FC<AssignedWorkItemDetailProps> = ({
         githubIssueUrl ? (
           <Globe size={14} strokeWidth={1.75} aria-hidden />
         ) : (
-          <ExternalLink size={14} aria-hidden />
+          <SquareArrowOutUpRight size={14} strokeWidth={1.75} aria-hidden />
         )
       }
       openPlacement="header"

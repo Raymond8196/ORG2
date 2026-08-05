@@ -14,6 +14,7 @@ export type { TeamInboxUnreadCounts } from "./selectors";
 export {
   humanizeToken,
   isGitHubIssueStatus,
+  parseGitHubIssueNumber,
   workItemPriorityLabelKey,
   workItemStatusLabelKey,
 } from "./labels";

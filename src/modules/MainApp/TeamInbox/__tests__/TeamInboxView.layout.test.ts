@@ -112,6 +112,27 @@ function createPullRequest(): ManagedPrItem {
   };
 }
 
+const partialLoadItem: AssignedWorkItem = {
+  id: "partial-load-item",
+  kind: "assigned_work_item",
+  occurredAt: "2026-08-05T00:00:00.000Z",
+  readAt: null,
+  actor: { id: "member-1", displayName: "Yuki" },
+  target: {
+    kind: "work_item",
+    projectId: "demo",
+    workItemId: "AAA-0001",
+  },
+  payload: {
+    title: "Available work item",
+    status: "todo",
+    priority: "medium",
+    assigneeMemberId: "member-1",
+    assigneeName: "Yuki",
+    updatedAt: "2026-08-05T00:00:00.000Z",
+  },
+};
+
 describe("TeamInboxView split layout", () => {
   let container: HTMLDivElement;
   let root: Root;
@@ -166,6 +187,71 @@ describe("TeamInboxView split layout", () => {
     expect(splitViewProps.current?.minListWidth).toBe(280);
     expect(splitViewProps.current?.maxListWidth).toBe(480);
     expect(componentProps.list?.loading).toBe(true);
+  });
+
+  it("allows the partial-load notice to be closed", async () => {
+    await act(async () => {
+      root.render(
+        createElement(TeamInboxView, {
+          dataSource: {
+            listPage: async () => ({
+              items: [partialLoadItem],
+              nextCursor: null,
+              issue: { code: "partial_load" as const },
+            }),
+          },
+        })
+      );
+      await Promise.resolve();
+    });
+
+    expect(
+      container.querySelector('[data-testid="team-inbox-load-notice"]')
+    ).not.toBeNull();
+
+    act(() => {
+      container
+        .querySelector<HTMLButtonElement>(
+          'button[aria-label="common:actions.close"]'
+        )
+        ?.click();
+    });
+
+    expect(
+      container.querySelector('[data-testid="team-inbox-load-notice"]')
+    ).toBeNull();
+  });
+
+  it("automatically closes the partial-load notice after three seconds", async () => {
+    vi.useFakeTimers();
+    try {
+      await act(async () => {
+        root.render(
+          createElement(TeamInboxView, {
+            dataSource: {
+              listPage: async () => ({
+                items: [partialLoadItem],
+                nextCursor: null,
+                issue: { code: "partial_load" as const },
+              }),
+            },
+          })
+        );
+        await Promise.resolve();
+      });
+
+      expect(
+        container.querySelector('[data-testid="team-inbox-load-notice"]')
+      ).not.toBeNull();
+
+      act(() => vi.advanceTimersByTime(3000));
+
+      expect(
+        container.querySelector('[data-testid="team-inbox-load-notice"]')
+      ).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("projects successful detail edits back into the matching Inbox row", async () => {

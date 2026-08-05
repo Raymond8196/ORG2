@@ -9,6 +9,7 @@ import {
   type TeamInboxItem,
   humanizeToken,
   isGitHubIssueStatus,
+  parseGitHubIssueNumber,
   workItemPriorityLabelKey,
   workItemStatusLabelKey,
 } from "../domain";
@@ -46,6 +47,10 @@ const TeamInboxRow = forwardRef<HTMLButtonElement, TeamInboxRowProps>(
     const isGitHubIssue =
       item.kind === "assigned_work_item" &&
       isGitHubIssueStatus(item.payload.status);
+    const issueNumber =
+      item.kind === "assigned_work_item" && isGitHubIssue
+        ? parseGitHubIssueNumber(item.target.workItemId)
+        : undefined;
     const title = isMention
       ? item.target.kind === "session_comment"
         ? item.target.sessionTitle
@@ -111,7 +116,7 @@ const TeamInboxRow = forwardRef<HTMLButtonElement, TeamInboxRowProps>(
         selected={selected}
         role="option"
         ariaLabel={t("teamInbox.row.ariaLabel", {
-          title,
+          title: issueNumber === undefined ? title : `#${issueNumber} ${title}`,
           status: readLabel,
         })}
         tabIndex={selected ? 0 : -1}
@@ -122,6 +127,7 @@ const TeamInboxRow = forwardRef<HTMLButtonElement, TeamInboxRowProps>(
           "data-unread": unread,
         }}
         title={title}
+        titlePrefix={issueNumber === undefined ? undefined : `#${issueNumber}`}
         time={relativeTime}
         preview={summary}
         metadata={<span className="truncate">{meta}</span>}

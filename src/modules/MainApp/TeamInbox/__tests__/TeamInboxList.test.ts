@@ -212,7 +212,10 @@ describe("TeamInboxList pagination", () => {
     expect(markup).toContain("Existing assigned work");
     expect(markup).not.toContain("Unrelated open PR");
     expect(markup).toContain("https://example.com/author.png");
-    expect(markup).toContain("#42 · desktop-re · feat/team-inbox");
+    expect(markup).toContain(">#42</span>");
+    expect(markup).toMatch(/class="[^"]*font-semibold[^"]*"[^>]*>#42<\/span>/);
+    expect(markup).toContain("desktop-re · feat/team-inbox");
+    expect(markup).not.toContain("#42 · desktop-re");
     expect(markup).not.toContain(">orgii/desktop-repository<");
     expect(markup).toContain("teamInbox.filters.assigned · ORG2 issue");
     expect(markup).not.toContain("orgii-issu");

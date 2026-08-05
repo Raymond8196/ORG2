@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import { useTranslation } from "react-i18next";
 
+import InlineAlert from "@src/components/InlineAlert";
 import {
   type ManagedPrItem,
   getManagedPullRequestKey,
@@ -104,6 +105,9 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
     message: null,
   });
   const [reloadRevision, setReloadRevision] = useState(0);
+  const [dismissedLoadNoticeKey, setDismissedLoadNoticeKey] = useState<
+    string | null
+  >(null);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const mountedRef = useRef(true);
@@ -168,6 +172,16 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
 
     return () => abortController.abort();
   }, [dataSource, issueMessage, pageSize, reloadRevision, t]);
+
+  const loadNoticeKey =
+    (loadState.status === "error" || loadState.status === "warning") &&
+    loadState.message
+      ? `${reloadRevision}:${loadState.status}:${loadState.message}`
+      : null;
+
+  const dismissLoadNotice = useCallback(() => {
+    setDismissedLoadNoticeKey(loadNoticeKey);
+  }, [loadNoticeKey]);
 
   useEffect(() => {
     if (!dataSource.subscribe) return;
@@ -492,18 +506,23 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
       onNavigate={onNavigate}
     >
       <div className="flex h-full min-h-0 flex-col">
-        {(loadState.status === "error" || loadState.status === "warning") &&
+        {loadNoticeKey &&
+        dismissedLoadNoticeKey !== loadNoticeKey &&
         (items.length > 0 || pullRequests.length > 0) ? (
-          <div
+          <InlineAlert
+            type={loadState.status === "warning" ? "warning" : "danger"}
+            hideIcon
+            onClose={dismissLoadNotice}
+            autoCloseMs={3000}
             role="status"
-            className={`shrink-0 border-b px-3 py-2 text-xs ${
-              loadState.status === "warning"
-                ? "border-warning-3 bg-warning-6/10 text-warning-6"
-                : "border-danger-3 bg-danger-1 text-danger-6"
+            dataTestId="team-inbox-load-notice"
+            closeAriaLabel={t("common:actions.close")}
+            className={`shrink-0 !rounded-none !border-x-0 !border-t-0 !px-3 !py-2 ${
+              loadState.status === "warning" ? "bg-warning-6/10" : "bg-danger-1"
             }`}
           >
             {loadState.message}
-          </div>
+          </InlineAlert>
         ) : null}
         <SplitViewLayout
           className="min-h-0 flex-1 rounded-page"

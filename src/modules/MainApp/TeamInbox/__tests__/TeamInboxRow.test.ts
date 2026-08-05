@@ -178,6 +178,10 @@ describe("TeamInboxRow", () => {
         createElement(TeamInboxRow, {
           item: {
             ...assignedItem,
+            target: {
+              ...assignedItem.target,
+              workItemId: "61",
+            },
             payload: {
               ...assignedItem.payload,
               status: "open",
@@ -200,6 +204,17 @@ describe("TeamInboxRow", () => {
     expect(githubIcon?.parentElement?.parentElement?.className).toContain(
       "items-center"
     );
+    const issueNumber = Array.from(container.querySelectorAll("span")).find(
+      (element) => element.textContent === "#61"
+    );
+    expect(issueNumber?.className).toContain("shrink-0");
+    expect(issueNumber?.className).toContain("font-semibold");
+    expect(issueNumber?.className).toContain("text-text-3");
+    expect(
+      Array.from(container.querySelectorAll("span")).find(
+        (element) => element.textContent === assignedItem.payload.title
+      )?.className
+    ).toContain("truncate");
     expect(container.querySelector(".lucide-list-checks")).toBeNull();
   });
 

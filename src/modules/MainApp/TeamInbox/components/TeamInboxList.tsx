@@ -334,6 +334,7 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
           id={key}
           selected={selectedPullRequestKey === key}
           title={pullRequest.title}
+          titlePrefix={`#${pullRequest.id}`}
           time={pullRequest.timeAgo}
           metadata={
             <>
@@ -343,7 +344,7 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
                 hideOnError
               />
               <span className="truncate">
-                #{pullRequest.id} · {compactRepositoryLabel(pullRequest.repo)} ·{" "}
+                {compactRepositoryLabel(pullRequest.repo)} ·{" "}
                 {pullRequest.sourceBranch}
               </span>
             </>

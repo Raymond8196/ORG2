@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { Globe } from "lucide-react";
+import { Globe, SquareArrowOutUpRight } from "lucide-react";
 import React, { act, createElement } from "react";
 import { type Root, createRoot } from "react-dom/client";
 import {
@@ -259,6 +259,15 @@ describe("AssignedWorkItemDetail navigation actions", () => {
     const openIcon = mocks.detailLayoutProps?.openIcon;
     expect(React.isValidElement(openIcon)).toBe(true);
     expect((openIcon as React.ReactElement).type).toBe(Globe);
+    const headerContent = mocks.detailLayoutProps?.headerContent;
+    expect(React.isValidElement(headerContent)).toBe(true);
+    expect(
+      (headerContent as React.ReactElement<{ issue: unknown }>).props.issue
+    ).toEqual({
+      number: 42,
+      state: "open",
+      title: "Add Team Inbox",
+    });
 
     act(() => {
       (mocks.detailLayoutProps?.onOpen as (() => void) | undefined)?.();
@@ -268,6 +277,39 @@ describe("AssignedWorkItemDetail navigation actions", () => {
       "https://github.com/org2AI/ORG2/issues/42"
     );
     expect(onNavigate).not.toHaveBeenCalled();
+  });
+
+  it("keeps the GitHub issue header when repository metadata is unavailable", () => {
+    const githubItem: AssignedWorkItem = {
+      ...item,
+      target: {
+        ...item.target,
+        workItemId: "61",
+      },
+      payload: { ...item.payload, status: "open" },
+    };
+
+    act(() => {
+      root.render(
+        createElement(AssignedWorkItemDetail, {
+          item: githubItem,
+          onNavigate: vi.fn(),
+        })
+      );
+    });
+
+    const headerContent = mocks.detailLayoutProps?.headerContent;
+    expect(React.isValidElement(headerContent)).toBe(true);
+    expect(
+      (headerContent as React.ReactElement<{ issue: unknown }>).props.issue
+    ).toEqual({
+      number: 61,
+      state: "open",
+      title: "Add Team Inbox",
+    });
+    expect(mocks.detailLayoutProps?.openLabel).toBe(
+      "teamInbox.actions.openWorkItem"
+    );
   });
 
   it("keeps non-GitHub Work Items on the in-app open action", () => {
@@ -284,6 +326,10 @@ describe("AssignedWorkItemDetail navigation actions", () => {
     expect(mocks.detailLayoutProps?.openLabel).toBe(
       "teamInbox.actions.openWorkItem"
     );
+    expect(mocks.detailLayoutProps?.headerContent).toBeUndefined();
+    const openIcon = mocks.detailLayoutProps?.openIcon;
+    expect(React.isValidElement(openIcon)).toBe(true);
+    expect((openIcon as React.ReactElement).type).toBe(SquareArrowOutUpRight);
     act(() => {
       (mocks.detailLayoutProps?.onOpen as (() => void) | undefined)?.();
     });

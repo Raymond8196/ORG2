@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { ClipboardList, ExternalLink } from "lucide-react";
+import { ClipboardList, SquareArrowOutUpRight } from "lucide-react";
 import { act, createElement } from "react";
 import { type Root, createRoot } from "react-dom/client";
 import {
@@ -59,7 +59,9 @@ describe("TeamInboxDetailLayout header actions", () => {
           markReadLabel: "Mark read",
           markUnreadLabel: "Mark unread",
           openLabel: "Open work item",
-          openIcon: createElement(ExternalLink, { "aria-hidden": true }),
+          openIcon: createElement(SquareArrowOutUpRight, {
+            "aria-hidden": true,
+          }),
           openPlacement: "header",
           onMarkUnread,
           onOpen,
@@ -98,6 +100,7 @@ describe("TeamInboxDetailLayout header actions", () => {
     expect(actions?.className).toContain("gap-px");
     expect(header?.className).toContain("h-10");
     expect(header?.className).toContain("items-center");
+    expect(header?.className).toContain("!pl-4");
     expect(header?.className).toContain("!pr-2");
 
     markUnread?.click();
@@ -119,7 +122,9 @@ describe("TeamInboxDetailLayout header actions", () => {
             markReadLabel: "Mark read",
             markUnreadLabel: "Mark unread",
             openLabel: "Open work item",
-            openIcon: createElement(ExternalLink, { "aria-hidden": true }),
+            openIcon: createElement(SquareArrowOutUpRight, {
+              "aria-hidden": true,
+            }),
             openPlacement: "header",
             onMarkUnread: vi.fn(),
             onOpen: vi.fn(),
