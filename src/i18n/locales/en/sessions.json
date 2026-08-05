@@ -2420,7 +2420,8 @@
       "plan": "Plan",
       "debug": "Debug",
       "review": "Review",
-      "wingman": "Wingman"
+      "wingman": "Wingman",
+      "project": "Project"
     },
     "runningLocation": {
       "local": "This Mac",

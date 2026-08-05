@@ -2393,7 +2393,8 @@
       "plan": "Plan",
       "debug": "Debug",
       "review": "Review",
-      "wingman": "僚机"
+      "wingman": "僚机",
+      "project": "Project"
     },
     "runningLocation": {
       "local": "本机",

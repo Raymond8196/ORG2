@@ -44,6 +44,11 @@ interface PatchOptions {
   accountId?: string;
   agentExecMode?: string;
   /**
+   * Persistent product mode (orgtrack/v1 §5.2): build|plan|ask|project.
+   * Validated as a closed enum on the Rust side; agent sessions only.
+   */
+  productMode?: string;
+  /**
    * Three-state per-session draft text (P3):
    *   undefined → leave column alone
    *   null      → clear the draft (composer was emptied / message sent)
@@ -280,6 +285,29 @@ export function useSessionExecModeField(sessionId: string) {
   return {
     agentExecMode: session?.agentExecMode,
     setMode,
+    isPatching,
+    error,
+  };
+}
+
+/**
+ * Read+write the per-session product mode (`orgtrack/v1` §5.2:
+ * build|plan|ask|project). `undefined` = build. Only agent sessions
+ * carry a product mode — the Rust side rejects CLI/imported sessions,
+ * so callers must not render a Project selector for those.
+ */
+export function useSessionProductModeField(sessionId: string) {
+  const session = useAtomValue(sessionByIdAtom(sessionId));
+  const { patch, isPatching, error } = usePatchSession();
+
+  const setProductMode = useCallback(
+    (mode: string) => patch(sessionId, { productMode: mode }),
+    [patch, sessionId]
+  );
+
+  return {
+    productMode: session?.productMode,
+    setProductMode,
     isPatching,
     error,
   };
