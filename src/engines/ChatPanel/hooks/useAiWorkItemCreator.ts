@@ -245,6 +245,12 @@ export function useAiWorkItemCreator({
       workItemId: shortId,
       projectSlug: selectedProjectSlug || undefined,
       agentRole: "custom" as const,
+      // The draft-fill session must run an agent that registers
+      // manage_work_item; the composer's selected agent (usually SDE)
+      // does not carry the PM tools and would silently fail to fill
+      // the draft it was launched for. The item's assignee is
+      // unaffected — it stays whatever was resolved above.
+      agentDefinitionId: WORK_ITEM_DEFAULT_AGENT_DEF_ID,
       metadata: {
         shortId,
         projectSlug: selectedProjectSlug,

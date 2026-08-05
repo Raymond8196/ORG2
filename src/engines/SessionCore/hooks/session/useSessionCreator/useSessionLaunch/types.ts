@@ -26,6 +26,14 @@ export interface SessionLaunchWorkItemContext extends Partial<SessionLaunchOrgCo
    * defaults to build and the PM tools are policy-denied.
    */
   productMode?: string;
+  /**
+   * Agent definition override for the launched session. The AI
+   * work-item creator needs an agent that actually registers
+   * `manage_work_item` (builtin:os) — launching whatever agent the
+   * composer happens to have selected (usually SDE) produces a session
+   * that cannot fill the draft it was created for.
+   */
+  agentDefinitionId?: string;
   metadata?: Record<string, unknown>;
 }
 
