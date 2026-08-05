@@ -384,9 +384,12 @@ const InputAreaInteractive: React.FC<InputAreaProps> = memo(
     // Cursor IDE sessions are read-only; no interactive model/mode pill.
     const modelPill =
       !showAgentControls || (isCursorIde && sessionId) ? null : <ModelPill />;
+    // Always visible in-session: the composer picker is the only surface
+    // that can move a session onto the Project product mode (§5.2), and a
+    // hidden-at-Build pill would make that entry unreachable.
     const modePill =
       !showAgentControls || (isCursorIde && sessionId) ? null : (
-        <ModePill hideWhenDefault resetToDefaultOnClick />
+        <ModePill resetToDefaultOnClick />
       );
     const clearReplyInfo = useCallback(
       () => setReplyInfo({ isReply: false }),

@@ -89,6 +89,11 @@ function patchWouldChangeSession(
   )
     return true;
   if (
+    options.productMode !== undefined &&
+    before.productMode !== options.productMode
+  )
+    return true;
+  if (
     options.draftText !== undefined &&
     before.draftText !== normalizedOptionalText(options.draftText)
   )
@@ -154,6 +159,8 @@ function usePatchSession(): {
         optimistic.accountId = options.accountId;
       if (options.agentExecMode !== undefined)
         optimistic.agentExecMode = options.agentExecMode;
+      if (options.productMode !== undefined)
+        optimistic.productMode = options.productMode;
       // Three-state fields: `null` clears (write `undefined` into the
       // optimistic session, since the Session type uses `undefined` for
       // "no value"); a string sets; a property left absent on `options`
@@ -184,6 +191,7 @@ function usePatchSession(): {
             model: options.model,
             accountId: options.accountId,
             agentExecMode: options.agentExecMode,
+            productMode: options.productMode,
             // Forward the tri-state values verbatim. zod's
             // `.nullable().optional()` lines up with the Rust double-
             // Option deserialize: undefined skips, null clears, string

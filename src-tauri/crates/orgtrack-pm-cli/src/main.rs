@@ -51,6 +51,17 @@ fn parse_args(args: &[String]) -> Result<Parsed, CliError> {
                 i += 1;
                 continue;
             }
+            if name == "help" {
+                return Err(CliError::new(
+                    ErrorCode::InvalidArgument,
+                    "org2-pm is JSON-envelope only. Commands: context show | \
+                     work list|show|create|update|claim|transition|note|relate | \
+                     routine list|validate|apply|run|status|enable|disable. \
+                     Common flags: --scope <project> --mode project --actor \
+                     <kind:id> --session-ref <provider:id> --idempotency-key <k>"
+                        .to_string(),
+                ));
+            }
             let value = args.get(i + 1).ok_or_else(|| {
                 CliError::new(
                     ErrorCode::InvalidArgument,
