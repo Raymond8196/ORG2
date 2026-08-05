@@ -88,6 +88,18 @@ pub fn init_pm_service_tables(conn: &Connection) -> SqliteResult<()> {
         CREATE INDEX IF NOT EXISTS idx_pm_audit_seq
             ON pm_audit_events(seq);
 
+        CREATE TABLE IF NOT EXISTS pm_relations (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            entity_type TEXT NOT NULL,               -- work_item
+            entity_id   TEXT NOT NULL,               -- store id (short_id scoped)
+            kind        TEXT NOT NULL,               -- portable relation kind
+            target_ref  TEXT NOT NULL,               -- e.g. session://codex_app/abc
+            created_at  INTEGER NOT NULL,            -- unix ms
+            actor_id    TEXT
+        );
+        CREATE INDEX IF NOT EXISTS idx_pm_relations_entity
+            ON pm_relations(entity_type, entity_id);
+
         CREATE TABLE IF NOT EXISTS pm_idempotency (
             actor_id      TEXT NOT NULL,
             operation     TEXT NOT NULL,
