@@ -4,7 +4,6 @@ import { useCallback, useMemo } from "react";
 import {
   type LinkedSession,
   type WorkItemData,
-  type WorkItemFrontmatter,
   projectApi,
   workItemDataToUI,
 } from "@src/api/http/project";
@@ -199,7 +198,6 @@ export function useAiWorkItemCreator({
     const selectedProjectSlug = selectedProject?.slug ?? "";
     const selectedProjectId = selectedProject?.meta.id ?? draft.projectId ?? "";
     const selectedProjectName = selectedProject?.meta.name ?? "";
-    const now = new Date().toISOString();
     // Project-scoped ids go through the collab-aware allocator (design
     // §16.5): server counter under a collab-synced org, local counter
     // otherwise. Standalone work items have no project row, so they use
@@ -215,24 +213,21 @@ export function useAiWorkItemCreator({
       : await allocateCloudAwareStandaloneWorkItemId(standaloneOrgId);
     const title = draft.name.trim() || AI_WORK_ITEM_DEFAULT_TITLE;
     const description = draft.description.trim();
-    const frontmatter: WorkItemFrontmatter = {
-      id: shortId,
-      short_id: shortId,
+
+    // Canonical work.create: the Rust service owns row construction.
+    const request = {
       title,
-      project: selectedProjectId || undefined,
+      body: description,
+      projectId: selectedProjectId || undefined,
       status: draft.status || "planned",
       priority: draft.priority || "none",
       assignee: assignee.assigneeId,
-      assignee_type: assignee.assigneeType,
+      assigneeType: assignee.assigneeType,
       labels: draft.labelIds,
       milestone: draft.milestoneId,
-      start_date: draft.startDate,
-      target_date: draft.targetDate,
-      created_at: now,
-      updated_at: now,
-      starred: false,
-      todos: [],
-      orchestrator_config: {
+      startDate: draft.startDate,
+      targetDate: draft.targetDate,
+      orchestratorConfig: {
         ...(draft.orchestratorConfig ?? {
           review_enabled: false,
           follow_up_enabled: false,
@@ -247,27 +242,13 @@ export function useAiWorkItemCreator({
       schedule: draft.schedule ?? undefined,
     };
 
-    if (selectedProjectSlug) {
-      await projectApi.writeWorkItem(
-        selectedProjectSlug,
-        shortId,
-        frontmatter,
-        description
-      );
-    } else {
-      await projectApi.writeStandaloneWorkItem(
-        shortId,
-        frontmatter,
-        description,
-        standaloneOrgId ? { orgId: standaloneOrgId } : undefined
-      );
-    }
-
-    const item: WorkItemData = {
-      frontmatter,
-      body: description,
-      filename: `${shortId}.md`,
-    };
+    const item: WorkItemData = selectedProjectSlug
+      ? await projectApi.createWorkItem(selectedProjectSlug, shortId, request)
+      : await projectApi.createStandaloneWorkItem(
+          shortId,
+          request,
+          standaloneOrgId ? { orgId: standaloneOrgId } : undefined
+        );
 
     return {
       workItemId: shortId,
@@ -323,12 +304,12 @@ export function useAiWorkItemCreator({
           { linkedSessions: [linkedSession] }
         );
       } else {
-        // Same org scope as the creating write — an orgless rewrite would
-        // re-home the item to personal-org and detach it from collab sync.
-        await projectApi.writeStandaloneWorkItem(
+        // Partial update in the same org scope as the creating write — an
+        // orgless whole-row rewrite would re-home the item to personal-org
+        // and detach it from collab sync, and could race concurrent edits.
+        await projectApi.updateStandaloneWorkItemPartial(
           metadata.shortId,
-          updatedItem.frontmatter,
-          updatedItem.body,
+          { linkedSessions: [linkedSession] },
           metadata.orgId ? { orgId: metadata.orgId } : undefined
         );
       }

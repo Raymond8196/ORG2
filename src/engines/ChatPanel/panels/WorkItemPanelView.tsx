@@ -182,14 +182,13 @@ export const WorkItemPanelView: React.FC<WorkItemPanelViewProps> = ({
             selectedWorkItem.workItem,
             updates
           );
-          // Keep the item under its owning org — the Rust upsert
-          // overwrites org_id on conflict, so an orgless write would
-          // re-home a collab-org item to personal-org and detach it
-          // from sync.
-          await projectApi.writeStandaloneWorkItem(
+          // Atomic partial update, kept under the owning org — an orgless
+          // whole-row write would re-home a collab-org item to
+          // personal-org and detach it from sync, and a client-side merge
+          // could silently drop concurrent edits.
+          await projectApi.updateStandaloneWorkItemPartial(
             selectedWorkItem.shortId,
-            toStandaloneFrontmatter(updatedWorkItem, selectedWorkItem.shortId),
-            updatedWorkItem.spec ?? "",
+            payload,
             selectedWorkItem.orgId
               ? { orgId: selectedWorkItem.orgId }
               : undefined

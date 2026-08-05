@@ -457,6 +457,66 @@ export async function readStandaloneWorkItem(
   });
 }
 
+/**
+ * Creation DTO for the canonical `work.create` service operation.
+ * Mirrors Rust `work_service::CreateWorkItemRequest` (camelCase wire).
+ */
+export interface WorkItemCreateRequest {
+  title: string;
+  body?: string;
+  projectId?: string;
+  status?: string;
+  priority?: string;
+  assignee?: string;
+  assigneeType?: string;
+  labels?: string[];
+  milestone?: string;
+  parent?: string;
+  startDate?: string;
+  targetDate?: string;
+  createdBy?: string;
+  schedule?: WorkItemFrontmatter["schedule"];
+  orchestratorConfig?: WorkItemFrontmatter["orchestrator_config"];
+  todos?: WorkItemFrontmatter["todos"];
+  handoff?: WorkItemFrontmatter["handoff"];
+  linkedSessions?: WorkItemFrontmatter["linked_sessions"];
+}
+
+/**
+ * Canonical `work.create`: the service owns frontmatter construction;
+ * callers describe the work and supply a pre-allocated short id (collab
+ * orgs mint ids server-side). Prefer this over `writeWorkItem` for new
+ * items — the whole-row write is reserved for sync/merge internals.
+ */
+export async function createWorkItem(
+  projectSlug: string,
+  shortId: string,
+  request: WorkItemCreateRequest
+): Promise<WorkItemData> {
+  const result = await invoke<WorkItemData>("project_create_work_item", {
+    projectSlug,
+    shortId,
+    request,
+  });
+  invalidateCache();
+  return result;
+}
+
+/** Canonical `work.create` for an org-scoped standalone item. */
+export async function createStandaloneWorkItem(
+  shortId: string,
+  request: WorkItemCreateRequest,
+  options?: ProjectScopeOptions
+): Promise<WorkItemData> {
+  const result = await invoke<WorkItemData>("work_item_create_standalone", {
+    ...scopeInvokePayload(options),
+    shortId,
+    request,
+  });
+  invalidateCache();
+  return result;
+}
+
 export async function writeWorkItem(
   projectSlug: string,
   shortId: string,

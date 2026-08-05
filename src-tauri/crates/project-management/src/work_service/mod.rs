@@ -27,7 +27,10 @@ mod tests;
 pub use state::WorkItemState;
 
 use crate::projects::io as project_io;
-use crate::projects::types::{WorkItemData, WorkItemMutationActor};
+use crate::projects::types::{
+    LinkedSession, OrchestratorConfig, TodoEntry, WorkItemData, WorkItemFrontmatter,
+    WorkItemHandoff, WorkItemMutationActor, WorkItemSchedule,
+};
 
 /// Typed error sentinels understood by upper layers.
 pub mod error {
@@ -93,4 +96,144 @@ pub fn transition_project_work_item(
         },
     )?;
     project_io::read_work_item(project_slug, short_id)
+}
+
+/// Creation DTO for the canonical `work.create` application operation.
+///
+/// Deliberately NOT the 32-field `WorkItemFrontmatter`: callers describe
+/// the work; the service owns row construction. Short-id allocation stays
+/// with the caller because collab-synced orgs mint ids on the server
+/// (design §16.5) and that allocator currently lives client-side.
+#[derive(Debug, Clone, Default, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CreateWorkItemRequest {
+    pub title: String,
+    #[serde(default)]
+    pub body: String,
+    pub project_id: Option<String>,
+    pub status: Option<String>,
+    pub priority: Option<String>,
+    pub assignee: Option<String>,
+    pub assignee_type: Option<String>,
+    #[serde(default)]
+    pub labels: Vec<String>,
+    pub milestone: Option<String>,
+    pub parent: Option<String>,
+    pub start_date: Option<String>,
+    pub target_date: Option<String>,
+    pub created_by: Option<String>,
+    pub schedule: Option<WorkItemSchedule>,
+    pub orchestrator_config: Option<OrchestratorConfig>,
+    /// Optional parsed checklist written atomically with creation.
+    #[serde(default)]
+    pub todos: Vec<TodoEntry>,
+    /// Optional human handoff written atomically with initial assignment.
+    pub handoff: Option<WorkItemHandoff>,
+    /// Durable session provenance written in the same operation.
+    #[serde(default)]
+    pub linked_sessions: Vec<LinkedSession>,
+}
+
+fn build_frontmatter(short_id: &str, request: &CreateWorkItemRequest) -> WorkItemFrontmatter {
+    let now = chrono::Utc::now().to_rfc3339();
+    WorkItemFrontmatter {
+        id: short_id.to_string(),
+        short_id: short_id.to_string(),
+        title: request.title.clone(),
+        project: request.project_id.clone(),
+        status: request
+            .status
+            .clone()
+            .unwrap_or_else(|| "backlog".to_string()),
+        priority: request
+            .priority
+            .clone()
+            .unwrap_or_else(|| "none".to_string()),
+        assignee: request.assignee.clone(),
+        assignee_type: request.assignee_type.clone(),
+        labels: request.labels.clone(),
+        milestone: request.milestone.clone(),
+        parent: request.parent.clone(),
+        start_date: request.start_date.clone(),
+        target_date: request.target_date.clone(),
+        created_by: request.created_by.clone(),
+        created_at: now.clone(),
+        updated_at: now,
+        deleted_at: None,
+        starred: false,
+        todos: request.todos.clone(),
+        comments: vec![],
+        history: vec![],
+        delegations: vec![],
+        linked_sessions: request.linked_sessions.clone(),
+        handoff: request.handoff.clone(),
+        proof_of_work: None,
+        orchestrator_config: request.orchestrator_config.clone(),
+        orchestrator_state: None,
+        follow_up_items: vec![],
+        schedule: request.schedule.clone(),
+        routine_source: None,
+        execution_lock: None,
+        close_out: None,
+        work_products: vec![],
+    }
+}
+
+/// Audit a creation. Residual: the audit row commits in its own small
+/// transaction right after the insert (the crud write path doesn't take
+/// in-tx hooks yet); the crash window between the two is the documented
+/// gap that closes when crud converges onto the serviced choke point.
+fn audit_create(
+    entity_id: &str,
+    project_slug: Option<&str>,
+    org_id: Option<&str>,
+    actor: Option<&WorkItemMutationActor>,
+) -> Result<(), String> {
+    let mut connection = project_io::helpers::conn()?;
+    let tx = connection
+        .transaction()
+        .map_err(|err| format!("pm audit tx: {}", err))?;
+    let seq = audit::bump_change_seq(&tx)?;
+    audit::append_audit_event(
+        &tx,
+        &audit::AuditEventRow {
+            operation: "work.create",
+            entity_type: "work_item",
+            entity_id,
+            project_slug,
+            org_id,
+            actor,
+            revision: 0,
+            seq,
+            payload: serde_json::json!({}),
+        },
+    )?;
+    tx.commit().map_err(|err| format!("pm audit commit: {}", err))
+}
+
+/// Canonical `work.create` for a project-scoped item. The single Rust
+/// construction site replacing per-caller `WorkItemFrontmatter` literals.
+pub fn create_project_work_item(
+    project_slug: &str,
+    short_id: &str,
+    request: &CreateWorkItemRequest,
+    actor: Option<&WorkItemMutationActor>,
+) -> Result<WorkItemData, String> {
+    let frontmatter = build_frontmatter(short_id, request);
+    project_io::write_work_item(project_slug, short_id, &frontmatter, &request.body)?;
+    audit_create(short_id, Some(project_slug), None, actor)?;
+    project_io::read_work_item(project_slug, short_id)
+}
+
+/// Canonical `work.create` for an org-scoped standalone item.
+pub fn create_standalone_work_item(
+    org_id: Option<&str>,
+    short_id: &str,
+    request: &CreateWorkItemRequest,
+    actor: Option<&WorkItemMutationActor>,
+) -> Result<WorkItemData, String> {
+    let frontmatter = build_frontmatter(short_id, request);
+    project_io::write_standalone_work_item(org_id, short_id, &frontmatter, &request.body)?;
+    audit_create(short_id, None, org_id, actor)?;
+    project_io::read_standalone_work_item(org_id, short_id)
 }

@@ -86,6 +86,8 @@ export const projectApi = {
   readWorkItemsEnriched: client.readWorkItemsEnriched,
   readWorkspaceWorkItemsData: client.readWorkspaceWorkItemsData,
   readWorkItemsViewData: client.readWorkItemsViewData,
+  createWorkItem: client.createWorkItem,
+  createStandaloneWorkItem: client.createStandaloneWorkItem,
   writeWorkItem: client.writeWorkItem,
   writeStandaloneWorkItem: client.writeStandaloneWorkItem,
   deleteWorkItem: client.deleteWorkItem,
