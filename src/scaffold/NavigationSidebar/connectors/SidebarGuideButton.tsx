@@ -1,7 +1,7 @@
 import {
   BarChart3,
   CheckCircle2,
-  ChevronUp,
+  ChevronDown,
   Circle,
   ListChecks,
   Map,
@@ -132,7 +132,7 @@ const SidebarGuideButton: FC<SidebarGuideButtonProps> = ({
     panelRef,
     panelPosition,
   } = useDropdownEngine<HTMLDivElement>({
-    defaultOpen: true,
+    defaultOpen: false,
     placement: "top",
     align: "right",
     gap: DROPDOWN_PANEL.triggerGap,
@@ -273,7 +273,7 @@ const SidebarGuideButton: FC<SidebarGuideButtonProps> = ({
                   variant="default"
                   onClick={close}
                 >
-                  <ChevronUp size={HEADER_ICON_SIZE.sm} />
+                  <ChevronDown size={HEADER_ICON_SIZE.sm} />
                 </IconButton>
               </div>
               <div className="mt-2 flex items-center gap-2">

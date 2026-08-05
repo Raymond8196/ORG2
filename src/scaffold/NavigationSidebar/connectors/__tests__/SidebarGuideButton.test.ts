@@ -114,10 +114,10 @@ describe("SidebarGuideButton", () => {
     Reflect.deleteProperty(reactActEnvironment, "IS_REACT_ACT_ENVIRONMENT");
   });
 
-  it("renders a persistent bottom-bar trigger and opens the guide upward", () => {
+  it("configures the persistent bottom-bar guide to be closed by default", () => {
     expect(mocks.engineOptions).toHaveBeenCalledWith(
       expect.objectContaining({
-        defaultOpen: true,
+        defaultOpen: false,
         placement: "top",
         align: "right",
       })
@@ -226,15 +226,23 @@ describe("SidebarGuideButton", () => {
     );
   });
 
-  it("stays collapsible after opening by default", () => {
+  it("uses a downward collapse icon for the upward-opening panel", () => {
     const collapseButton = document.querySelector<HTMLButtonElement>(
       'button[aria-label="sidebar.guide.close"]'
     );
 
     expect(collapseButton).not.toBeNull();
+    expect(
+      collapseButton?.querySelector(".lucide-chevron-down")
+    ).not.toBeNull();
     act(() => collapseButton?.click());
 
     expect(mocks.close).toHaveBeenCalledOnce();
+  });
+
+  it("does not request auto-open after the one-time handoff was consumed", () => {
+    expect(mocks.setIsOpen).not.toHaveBeenCalled();
+    expect(onAutoOpenConsumed).not.toHaveBeenCalled();
   });
 
   it("consumes a pending handoff after requesting the panel to open", async () => {
