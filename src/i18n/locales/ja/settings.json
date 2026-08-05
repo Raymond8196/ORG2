@@ -1023,7 +1023,13 @@
     "tableSize": "サイズ",
     "tablePercentage": "割合",
     "scanFailed": "ディスク使用量のスキャンに失敗しました",
-    "openFolderFailed": "フォルダを開けませんでした"
+    "openFolderFailed": "フォルダを開けませんでした",
+    "browserCache": "ブラウザーキャッシュ",
+    "browserCacheDesc": "使用中 {{used}} · {{cleanable}} を安全に消去できます",
+    "cleanBrowserCache": "クリーンアップ",
+    "browserCacheCleaned": "ブラウザーストレージを {{size}} 解放しました",
+    "browserCacheAlreadyClean": "ブラウザーキャッシュはすでにクリーンです",
+    "browserCacheCleanFailed": "ブラウザーキャッシュを消去できませんでした"
   },
   "agentSessions": {
     "title": "Agent Session",

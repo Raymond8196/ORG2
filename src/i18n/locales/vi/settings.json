@@ -988,7 +988,13 @@
     "tableSize": "Kích thước",
     "tablePercentage": "Tỷ lệ",
     "scanFailed": "Không quét được dung lượng",
-    "openFolderFailed": "Không mở được thư mục"
+    "openFolderFailed": "Không mở được thư mục",
+    "browserCache": "Bộ nhớ đệm trình duyệt",
+    "browserCacheDesc": "Đã dùng {{used}} · có thể dọn an toàn {{cleanable}}",
+    "cleanBrowserCache": "Dọn dẹp",
+    "browserCacheCleaned": "Đã giải phóng {{size}} bộ nhớ trình duyệt",
+    "browserCacheAlreadyClean": "Bộ nhớ đệm trình duyệt đã sạch",
+    "browserCacheCleanFailed": "Không thể dọn bộ nhớ đệm trình duyệt"
   },
   "dependencies": {
     "systemDependencies": "Dependencies hệ thống",

@@ -1026,7 +1026,13 @@
     "tableSize": "Rozmiar",
     "tablePercentage": "Proc.",
     "scanFailed": "Nie udało się przeskanować zużycia dysku",
-    "openFolderFailed": "Nie udało się otworzyć folderu"
+    "openFolderFailed": "Nie udało się otworzyć folderu",
+    "browserCache": "Pamięć podręczna przeglądarki",
+    "browserCacheDesc": "Użyto {{used}} · {{cleanable}} można bezpiecznie wyczyścić",
+    "cleanBrowserCache": "Wyczyść",
+    "browserCacheCleaned": "Zwolniono {{size}} pamięci przeglądarki",
+    "browserCacheAlreadyClean": "Pamięć podręczna przeglądarki jest już czysta",
+    "browserCacheCleanFailed": "Nie udało się wyczyścić pamięci podręcznej przeglądarki"
   },
   "agentSessions": {
     "title": "Sesje Agent",

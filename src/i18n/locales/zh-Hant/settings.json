@@ -996,7 +996,13 @@
     "tableSize": "大小",
     "tablePercentage": "佔比",
     "scanFailed": "掃描磁盤佔用失敗",
-    "openFolderFailed": "打開文件夾失敗"
+    "openFolderFailed": "打開文件夾失敗",
+    "browserCache": "瀏覽器快取",
+    "browserCacheDesc": "已使用 {{used}} · 可安全清理 {{cleanable}}",
+    "cleanBrowserCache": "清理",
+    "browserCacheCleaned": "已釋放 {{size}} 瀏覽器儲存空間",
+    "browserCacheAlreadyClean": "瀏覽器快取已是乾淨狀態",
+    "browserCacheCleanFailed": "清理瀏覽器快取失敗"
   },
   "dependencies": {
     "systemDependencies": "系統 Dependencies",

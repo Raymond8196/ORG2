@@ -1023,7 +1023,13 @@
     "tableSize": "Größe",
     "tablePercentage": "Proz.",
     "scanFailed": "Speichernutzung konnte nicht geprüft werden",
-    "openFolderFailed": "Ordner konnte nicht geöffnet werden"
+    "openFolderFailed": "Ordner konnte nicht geöffnet werden",
+    "browserCache": "Browser-Cache",
+    "browserCacheDesc": "{{used}} verwendet · {{cleanable}} können sicher bereinigt werden",
+    "cleanBrowserCache": "Bereinigen",
+    "browserCacheCleaned": "{{size}} Browserspeicher freigegeben",
+    "browserCacheAlreadyClean": "Der Browser-Cache ist bereits bereinigt",
+    "browserCacheCleanFailed": "Browser-Cache konnte nicht bereinigt werden"
   },
   "agentSessions": {
     "title": "Agent Session",

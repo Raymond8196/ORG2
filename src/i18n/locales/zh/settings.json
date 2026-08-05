@@ -1005,7 +1005,13 @@
     "tableSize": "大小",
     "tablePercentage": "占比",
     "scanFailed": "扫描磁盘占用失败",
-    "openFolderFailed": "打开文件夹失败"
+    "openFolderFailed": "打开文件夹失败",
+    "browserCache": "浏览器缓存",
+    "browserCacheDesc": "已使用 {{used}} · 可安全清理 {{cleanable}}",
+    "cleanBrowserCache": "清理",
+    "browserCacheCleaned": "已释放 {{size}} 浏览器存储空间",
+    "browserCacheAlreadyClean": "浏览器缓存已是干净状态",
+    "browserCacheCleanFailed": "清理浏览器缓存失败"
   },
   "dependencies": {
     "systemDependencies": "系统 Dependencies",

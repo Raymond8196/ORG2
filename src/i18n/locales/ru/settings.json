@@ -1023,7 +1023,13 @@
     "tableSize": "Размер",
     "tablePercentage": "Проц.",
     "scanFailed": "Не удалось проверить использование диска",
-    "openFolderFailed": "Не удалось открыть папку"
+    "openFolderFailed": "Не удалось открыть папку",
+    "browserCache": "Кэш браузера",
+    "browserCacheDesc": "Использовано {{used}} · {{cleanable}} можно безопасно очистить",
+    "cleanBrowserCache": "Очистить",
+    "browserCacheCleaned": "Освобождено {{size}} хранилища браузера",
+    "browserCacheAlreadyClean": "Кэш браузера уже очищен",
+    "browserCacheCleanFailed": "Не удалось очистить кэш браузера"
   },
   "agentSessions": {
     "title": "Agent Session",

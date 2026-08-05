@@ -988,7 +988,13 @@
     "tableSize": "Taille",
     "tablePercentage": "Pourc.",
     "scanFailed": "Échec de l'analyse du stockage",
-    "openFolderFailed": "Impossible d'ouvrir le dossier"
+    "openFolderFailed": "Impossible d'ouvrir le dossier",
+    "browserCache": "Cache du navigateur",
+    "browserCacheDesc": "{{used}} utilisés · {{cleanable}} peuvent être nettoyés en toute sécurité",
+    "cleanBrowserCache": "Nettoyer",
+    "browserCacheCleaned": "{{size}} de stockage du navigateur libérés",
+    "browserCacheAlreadyClean": "Le cache du navigateur est déjà propre",
+    "browserCacheCleanFailed": "Impossible de nettoyer le cache du navigateur"
   },
   "dependencies": {
     "systemDependencies": "Dependencies système",

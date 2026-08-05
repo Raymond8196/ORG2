@@ -988,7 +988,13 @@
     "tableSize": "Tamaño",
     "tablePercentage": "Porc.",
     "scanFailed": "Error al analizar el almacenamiento",
-    "openFolderFailed": "No se pudo abrir la carpeta"
+    "openFolderFailed": "No se pudo abrir la carpeta",
+    "browserCache": "Caché del navegador",
+    "browserCacheDesc": "{{used}} usados · {{cleanable}} se pueden limpiar de forma segura",
+    "cleanBrowserCache": "Limpiar",
+    "browserCacheCleaned": "Se liberaron {{size}} de almacenamiento del navegador",
+    "browserCacheAlreadyClean": "La caché del navegador ya está limpia",
+    "browserCacheCleanFailed": "No se pudo limpiar la caché del navegador"
   },
   "dependencies": {
     "systemDependencies": "Dependencies del sistema",

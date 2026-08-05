@@ -988,7 +988,13 @@
     "tableSize": "Boyut",
     "tablePercentage": "Yüzde",
     "scanFailed": "Disk kullanımı taranamadı",
-    "openFolderFailed": "Klasör açılamadı"
+    "openFolderFailed": "Klasör açılamadı",
+    "browserCache": "Tarayıcı önbelleği",
+    "browserCacheDesc": "{{used}} kullanılıyor · {{cleanable}} güvenle temizlenebilir",
+    "cleanBrowserCache": "Temizle",
+    "browserCacheCleaned": "{{size}} tarayıcı depolama alanı boşaltıldı",
+    "browserCacheAlreadyClean": "Tarayıcı önbelleği zaten temiz",
+    "browserCacheCleanFailed": "Tarayıcı önbelleği temizlenemedi"
   },
   "dependencies": {
     "systemDependencies": "Sistem Dependencies",

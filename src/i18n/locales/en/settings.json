@@ -1040,7 +1040,13 @@
     "tableSize": "Size",
     "tablePercentage": "Perc.",
     "scanFailed": "Failed to scan disk usage",
-    "openFolderFailed": "Failed to open folder"
+    "openFolderFailed": "Failed to open folder",
+    "browserCache": "Browser cache",
+    "browserCacheDesc": "{{used}} used · {{cleanable}} can be safely cleaned",
+    "cleanBrowserCache": "Clean up",
+    "browserCacheCleaned": "Freed {{size}} of browser storage",
+    "browserCacheAlreadyClean": "Browser cache is already clean",
+    "browserCacheCleanFailed": "Failed to clean browser cache"
   },
   "agentSessions": {
     "title": "Agent Sessions",

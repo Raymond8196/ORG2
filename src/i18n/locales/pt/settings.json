@@ -1023,7 +1023,13 @@
     "tableSize": "Tamanho",
     "tablePercentage": "Perc.",
     "scanFailed": "Falha ao escanear o uso do disco",
-    "openFolderFailed": "Falha ao abrir a pasta"
+    "openFolderFailed": "Falha ao abrir a pasta",
+    "browserCache": "Cache do navegador",
+    "browserCacheDesc": "{{used}} usados · {{cleanable}} podem ser limpos com segurança",
+    "cleanBrowserCache": "Limpar",
+    "browserCacheCleaned": "Foram libertados {{size}} de armazenamento do navegador",
+    "browserCacheAlreadyClean": "O cache do navegador já está limpo",
+    "browserCacheCleanFailed": "Falha ao limpar o cache do navegador"
   },
   "agentSessions": {
     "title": "Sessões de Agent",
