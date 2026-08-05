@@ -9,7 +9,7 @@
  * publishes into `workstationSelectedPrAtom`) and renders each tab from that
  * shared state. Reuses commit-history + issue-timeline formatting throughout.
  */
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom } from "jotai";
 import {
   CheckCircle2,
   ChevronRight,
@@ -24,7 +24,7 @@ import {
   MessagesSquare,
   SquareArrowOutUpRight,
 } from "lucide-react";
-import React, { useEffect, useMemo } from "react";
+import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import type {
@@ -39,7 +39,6 @@ import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
 import { PanelHeader, Placeholder } from "@src/modules/shared/layouts/blocks";
 import {
   type PrIdentity,
-  workstationPrDetailTabAtomFamily,
   workstationPrScopeKey,
   workstationSelectedPrAtomFamily,
 } from "@src/store/workstation/codeEditor/workstationSelectedPrAtom";
@@ -291,9 +290,55 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
 }) => {
   const { t } = useTranslation("common");
   const scopeKey = workstationPrScopeKey(repoId, repoPath, identity.number);
-  const state = useAtomValue(workstationSelectedPrAtomFamily(scopeKey));
-  const [activeTab, setActiveTab] = useAtom(
-    workstationPrDetailTabAtomFamily(scopeKey)
+  const [state, setState] = useAtom(workstationSelectedPrAtomFamily(scopeKey));
+  const detailViewState = state.viewState;
+  const setDetailViewState = useCallback(
+    (
+      update: (current: typeof detailViewState) => typeof detailViewState
+    ): void => {
+      setState((current) => ({
+        ...current,
+        viewState: update(current.viewState),
+      }));
+    },
+    [setState]
+  );
+  const activeTab = detailViewState.activeTab;
+  const setActiveTab = useCallback(
+    (nextTab: typeof activeTab) => {
+      setDetailViewState((current) => ({
+        ...current,
+        activeTab: nextTab,
+      }));
+    },
+    [setDetailViewState]
+  );
+  const setConversationDraft = useCallback(
+    (conversationDraft: string) => {
+      setDetailViewState((current) => ({
+        ...current,
+        conversationDraft,
+      }));
+    },
+    [setDetailViewState]
+  );
+  const setSelectedCommitSha = useCallback(
+    (selectedCommitSha: string | null) => {
+      setDetailViewState((current) => ({
+        ...current,
+        selectedCommitSha,
+      }));
+    },
+    [setDetailViewState]
+  );
+  const setSelectedChangedFilePath = useCallback(
+    (selectedChangedFilePath: string | null) => {
+      setDetailViewState((current) => ({
+        ...current,
+        selectedChangedFilePath,
+      }));
+    },
+    [setDetailViewState]
   );
 
   const { repoFullName, addComment, submitReview, replyInlineComment } =
@@ -302,11 +347,6 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
       repoId,
       pr: identity,
     });
-
-  // Reset to Conversation when switching to a different PR.
-  useEffect(() => {
-    setActiveTab("conversation");
-  }, [identity.number, setActiveTab]);
 
   const baseBranch =
     state.baseRef ?? identity.baseBranch ?? t("git.pr.baseBranch", "base");
@@ -450,6 +490,8 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
             loading={state.loading}
             submittingComment={state.submittingComment}
             submittingReview={state.submittingReview}
+            draft={detailViewState.conversationDraft}
+            onDraftChange={setConversationDraft}
             onAddComment={addComment}
             onSubmitReview={submitReview}
           />
@@ -461,6 +503,9 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
             repoPath={repoPath}
             repoId={repoId}
             loading={state.loading}
+            checks={state.checks}
+            selectedCommitSha={detailViewState.selectedCommitSha}
+            onSelectedCommitShaChange={setSelectedCommitSha}
             onFileSelect={onFileSelect}
           />
         )}
@@ -476,6 +521,8 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
             files={state.files}
             loading={state.loading}
             reviewComments={state.reviewComments}
+            selectedFilePath={detailViewState.selectedChangedFilePath}
+            onSelectedFilePathChange={setSelectedChangedFilePath}
             onFileSelect={onFileSelect}
             onReplyInlineComment={replyInlineComment}
           />

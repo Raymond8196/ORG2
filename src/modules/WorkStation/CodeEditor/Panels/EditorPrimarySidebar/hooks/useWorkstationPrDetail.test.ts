@@ -216,6 +216,17 @@ describe("useWorkstationPrDetail cache mutations", () => {
     expect(
       store.get(workstationSelectedPrAtomFamily(SCOPE_KEY)).conversation
     ).toEqual([COMMENT]);
+    act(() => {
+      store.set(workstationSelectedPrAtomFamily(SCOPE_KEY), (current) => ({
+        ...current,
+        viewState: {
+          ...current.viewState,
+          activeTab: "commits",
+          conversationDraft: "Preserve this draft",
+          selectedCommitSha: "abc1234",
+        },
+      }));
+    });
     // Wait for the background reconciliation to actually land before
     // unmounting, so its cache write isn't racing the remount below.
     await waitForStore(
@@ -240,6 +251,13 @@ describe("useWorkstationPrDetail cache mutations", () => {
     expect(
       store.get(workstationSelectedPrAtomFamily(SCOPE_KEY)).conversation
     ).toEqual([COMMENT]);
+    expect(
+      store.get(workstationSelectedPrAtomFamily(SCOPE_KEY)).viewState
+    ).toMatchObject({
+      activeTab: "commits",
+      conversationDraft: "Preserve this draft",
+      selectedCommitSha: "abc1234",
+    });
     // One call for the initial load, one for the post-mutation
     // reconciliation — the remount reads the still-fresh cache and does not
     // trigger a third.

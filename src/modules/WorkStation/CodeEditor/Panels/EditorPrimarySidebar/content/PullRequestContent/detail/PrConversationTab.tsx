@@ -137,6 +137,8 @@ interface PrConversationTabProps {
   loading: boolean;
   submittingComment: boolean;
   submittingReview: boolean;
+  draft?: string;
+  onDraftChange?: (draft: string) => void;
   onAddComment: (body: string) => Promise<void>;
   onSubmitReview: (event: PrReviewEvent, body: string) => Promise<void>;
 }
@@ -151,11 +153,24 @@ export const PrConversationTab: React.FC<PrConversationTabProps> = ({
   loading,
   submittingComment,
   submittingReview,
+  draft: controlledDraft,
+  onDraftChange,
   onAddComment,
   onSubmitReview,
 }) => {
   const { t } = useTranslation("common");
-  const [draft, setDraft] = useState("");
+  const [internalDraft, setInternalDraft] = useState("");
+  const draft = controlledDraft ?? internalDraft;
+  const updateDraft = useCallback(
+    (nextDraft: string) => {
+      if (controlledDraft !== undefined) {
+        onDraftChange?.(nextDraft);
+        return;
+      }
+      setInternalDraft(nextDraft);
+    },
+    [controlledDraft, onDraftChange]
+  );
   const editorRef = useRef<RichMarkdownEditorRef>(null);
   const dropTargetRef = useRef<HTMLDivElement>(null);
   const insertDroppedReference = useCallback(
@@ -215,16 +230,16 @@ export const PrConversationTab: React.FC<PrConversationTabProps> = ({
     const value = draft.trim();
     if (!value || submittingComment) return;
     await onAddComment(value);
-    setDraft("");
-  }, [draft, submittingComment, onAddComment]);
+    updateDraft("");
+  }, [draft, submittingComment, onAddComment, updateDraft]);
 
   const handleReview = useCallback(
     async (event: PrReviewEvent) => {
       if (submittingReview) return;
       await onSubmitReview(event, draft.trim());
-      setDraft("");
+      updateDraft("");
     },
-    [draft, submittingReview, onSubmitReview]
+    [draft, submittingReview, onSubmitReview, updateDraft]
   );
 
   const lastIndex = timeline.length; // description card is index -1 conceptually
@@ -355,7 +370,7 @@ export const PrConversationTab: React.FC<PrConversationTabProps> = ({
               <RichMarkdownEditor
                 ref={editorRef}
                 value={draft}
-                onChange={(markdown) => setDraft(markdown)}
+                onChange={updateDraft}
                 placeholder={t("git.pr.commentPlaceholder", "Leave a comment…")}
                 minHeight={140}
                 maxHeight={500}

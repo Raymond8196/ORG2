@@ -70,6 +70,8 @@ interface PrChangesTabProps {
   files: PrFile[];
   loading: boolean;
   reviewComments: GitHubReviewComment[];
+  selectedFilePath?: string | null;
+  onSelectedFilePathChange?: (path: string | null) => void;
   onFileSelect?: (path: string) => void;
   onReplyInlineComment?: (commentId: number, body: string) => Promise<void>;
 }
@@ -82,6 +84,8 @@ export const PrChangesTab: React.FC<PrChangesTabProps> = ({
   files,
   loading,
   reviewComments,
+  selectedFilePath: controlledSelectedFilePath,
+  onSelectedFilePathChange,
   onFileSelect,
   onReplyInlineComment,
 }) => {
@@ -137,16 +141,32 @@ export const PrChangesTab: React.FC<PrChangesTabProps> = ({
   // the user's pick while it's still in the changed-file set, else the first
   // file. Falling back keeps a valid selection as files load without a
   // set-state-in-effect.
-  const [userSelectedPath, setUserSelectedPath] = useState<string | null>(null);
+  const [internalSelectedFilePath, setInternalSelectedFilePath] = useState<
+    string | null
+  >(null);
+  const requestedFilePath =
+    controlledSelectedFilePath !== undefined
+      ? controlledSelectedFilePath
+      : internalSelectedFilePath;
+  const updateSelectedFilePath = useCallback(
+    (path: string | null) => {
+      if (controlledSelectedFilePath !== undefined) {
+        onSelectedFilePathChange?.(path);
+        return;
+      }
+      setInternalSelectedFilePath(path);
+    },
+    [controlledSelectedFilePath, onSelectedFilePathChange]
+  );
   const selectedFilePath = useMemo(() => {
     if (
-      userSelectedPath &&
-      files.some((f) => f.filename === userSelectedPath)
+      requestedFilePath &&
+      files.some((f) => f.filename === requestedFilePath)
     ) {
-      return userSelectedPath;
+      return requestedFilePath;
     }
     return files[0]?.filename ?? null;
-  }, [userSelectedPath, files]);
+  }, [requestedFilePath, files]);
 
   const selectedFile = useMemo(
     () => files.find((f) => f.filename === selectedFilePath) ?? null,
@@ -204,7 +224,7 @@ export const PrChangesTab: React.FC<PrChangesTabProps> = ({
               <GitFileList
                 files={gitFiles}
                 selectedFileId={selectedFilePath}
-                onFileSelect={setUserSelectedPath}
+                onFileSelect={updateSelectedFilePath}
               />
             </div>
             <VerticalResizeHandle onMouseDown={handleFileListResize} />

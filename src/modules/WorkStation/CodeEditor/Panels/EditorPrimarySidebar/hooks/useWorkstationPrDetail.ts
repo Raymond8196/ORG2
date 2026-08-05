@@ -506,7 +506,10 @@ export function useWorkstationPrDetail({
   // Cleanup on unmount.
   useEffect(() => {
     return () => {
-      setSelectedPr(initialSelectedPrState);
+      setSelectedPr((current) => ({
+        ...initialSelectedPrState,
+        viewState: current.viewState,
+      }));
       setCallbacks({
         addComment: null,
         submitReview: null,

@@ -14,6 +14,7 @@ import {
 } from "vitest";
 
 import {
+  initialPrDetailViewState,
   initialSelectedPrState,
   workstationPrDetailTabAtomFamily,
   workstationPrScopeKey,
@@ -21,6 +22,12 @@ import {
 } from "@src/store/workstation/codeEditor/workstationSelectedPrAtom";
 
 import { PrDetailPanel } from "./PrDetailPanel";
+
+const childProps = vi.hoisted(() => ({
+  changes: null as Record<string, unknown> | null,
+  commits: null as Record<string, unknown> | null,
+  conversation: null as Record<string, unknown> | null,
+}));
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
@@ -51,17 +58,31 @@ vi.mock("../../../hooks/useWorkstationPrDetail", () => ({
 }));
 
 vi.mock("./PrConversationTab", () => ({
-  PrConversationTab: ({ summary }: { summary?: ReactNode }) =>
-    createElement("div", { "data-testid": "conversation-tab" }, summary),
+  PrConversationTab: (
+    props: Record<string, unknown> & { summary?: ReactNode }
+  ) => {
+    childProps.conversation = props;
+    return createElement(
+      "div",
+      { "data-testid": "conversation-tab" },
+      props.summary
+    );
+  },
 }));
 vi.mock("./PrChangesTab", () => ({
-  PrChangesTab: () => createElement("div"),
+  PrChangesTab: (props: Record<string, unknown>) => {
+    childProps.changes = props;
+    return createElement("div", { "data-testid": "changes-tab" });
+  },
 }));
 vi.mock("./PrChecksTab", () => ({
   PrChecksTab: () => createElement("div"),
 }));
 vi.mock("./PrCommitsTab", () => ({
-  PrCommitsTab: () => createElement("div"),
+  PrCommitsTab: (props: Record<string, unknown>) => {
+    childProps.commits = props;
+    return createElement("div", { "data-testid": "commits-tab" });
+  },
 }));
 
 describe("PrDetailPanel tabs", () => {
@@ -76,6 +97,9 @@ describe("PrDetailPanel tabs", () => {
   });
 
   beforeEach(() => {
+    childProps.changes = null;
+    childProps.commits = null;
+    childProps.conversation = null;
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -145,6 +169,66 @@ describe("PrDetailPanel tabs", () => {
     expect(container.querySelector('[role="tabpanel"]')?.id).toBe(
       "pr-detail-tabpanel-changes"
     );
+  });
+
+  it("restores the per-PR sub-tab and nested selection after remount", () => {
+    const store = createStore();
+    const scopeKey = workstationPrScopeKey(undefined, "/repo", 42);
+    store.set(workstationSelectedPrAtomFamily(scopeKey), {
+      ...initialSelectedPrState,
+      viewState: {
+        ...initialPrDetailViewState,
+        activeTab: "commits",
+        conversationDraft: "Keep this review draft",
+        selectedCommitSha: "abc1234",
+        selectedChangedFilePath: "src/index.ts",
+      },
+      loading: false,
+      commits: [{ sha: "abc1234" }],
+    });
+    const panel = createElement(PrDetailPanel, {
+      identity: {
+        number: 42,
+        title: "Preserve Inbox context",
+        url: "https://github.com/org/repo/pull/42",
+        status: "open",
+        headBranch: "feature/preserve-inbox",
+        baseBranch: "main",
+      },
+      repoPath: "/repo",
+      showHeader: false,
+    });
+
+    act(() => {
+      root.render(createElement(Provider, { store }, panel));
+    });
+
+    expect(
+      container.querySelector<HTMLButtonElement>(
+        '#pr-detail-tab-commits[aria-selected="true"]'
+      )
+    ).not.toBeNull();
+    expect(childProps.commits?.selectedCommitSha).toBe("abc1234");
+
+    act(() => root.unmount());
+    root = createRoot(container);
+    act(() => {
+      root.render(createElement(Provider, { store }, panel));
+    });
+
+    expect(
+      container.querySelector<HTMLButtonElement>(
+        '#pr-detail-tab-commits[aria-selected="true"]'
+      )
+    ).not.toBeNull();
+    expect(childProps.commits?.selectedCommitSha).toBe("abc1234");
+    expect(
+      store.get(workstationSelectedPrAtomFamily(scopeKey)).viewState
+    ).toMatchObject({
+      activeTab: "commits",
+      conversationDraft: "Keep this review draft",
+      selectedChangedFilePath: "src/index.ts",
+    });
   });
 
   it("keeps the GitHub header at 40px and moves branch details into the Codex-style summary", () => {

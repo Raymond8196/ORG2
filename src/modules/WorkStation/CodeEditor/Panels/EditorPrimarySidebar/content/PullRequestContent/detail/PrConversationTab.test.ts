@@ -31,6 +31,7 @@ vi.mock("@src/modules/shared/components/RichMarkdownEditor", async () => {
           "data-max-height": props.maxHeight,
           "data-appearance": props.appearance,
           "data-toolbar-mode": props.toolbarMode,
+          "data-value": props.value,
         });
       }
     ),
@@ -76,5 +77,38 @@ describe("PrConversationTab", () => {
     expect(editor?.getAttribute("data-appearance")).toBe("plain");
     expect(editor?.getAttribute("data-toolbar-mode")).toBe("inline");
     expect(composer?.querySelector(".flex-shrink-0")).toBeNull();
+  });
+
+  it("restores a controlled review draft", () => {
+    const markup = renderToStaticMarkup(
+      createElement(PrConversationTab, {
+        detail: null,
+        identity: {
+          number: 42,
+          title: "Preserve the draft",
+          url: "https://github.com/org/repo/pull/42",
+          status: "open",
+          headBranch: "feature/comments",
+        },
+        conversation: [],
+        reviews: [],
+        reviewComments: [],
+        loading: false,
+        submittingComment: false,
+        submittingReview: false,
+        draft: "Do not lose this review",
+        onDraftChange: vi.fn(),
+        onAddComment: vi.fn().mockResolvedValue(undefined),
+        onSubmitReview: vi.fn().mockResolvedValue(undefined),
+      })
+    );
+    const container = document.createElement("div");
+    container.innerHTML = markup;
+
+    expect(
+      container
+        .querySelector('[data-testid="pr-comment-editor"]')
+        ?.getAttribute("data-value")
+    ).toBe("Do not lose this review");
   });
 });
