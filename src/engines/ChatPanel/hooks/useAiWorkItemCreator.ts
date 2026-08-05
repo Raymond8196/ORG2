@@ -30,7 +30,9 @@ import {
 import type { WorkItemDraft } from "@src/store/workstation/projectManager";
 import { getDispatchCategory } from "@src/util/session/sessionDispatch";
 
-const WORK_ITEM_DEFAULT_AGENT_DEF_ID = "builtin:work-item-manager";
+// Work Item Manager persona was retired; the generic OS Agent carries
+// manage_work_item/manage_project as ordinary built-in tools.
+const WORK_ITEM_DEFAULT_AGENT_DEF_ID = "builtin:os";
 const AI_WORK_ITEM_DEFAULT_TITLE = "AI Work Item Draft";
 
 interface AiWorkItemLaunchMetadata {

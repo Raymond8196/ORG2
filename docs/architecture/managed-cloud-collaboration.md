@@ -123,8 +123,9 @@ detail views and ChatPanel. Lock release is serialized as explicit JSON
 
 ## Create with AI
 
-Create with AI uses `builtin:work-item-manager` by default and follows one
-durable-draft invariant:
+Create with AI uses `builtin:os` by default (the Work Item Manager persona was
+retired; `manage_work_item`/`manage_project` are ordinary built-in tools) and
+follows one durable-draft invariant:
 
 1. Before launch, the UI allocates a cloud-aware Work Item ID and writes one
    draft in the selected Project or organization-scoped standalone store.

@@ -187,23 +187,24 @@ impl UnifiedMessageProcessor {
         }
 
         // The ChatPanel "Create with AI" flow persists a draft before launch
-        // so the planning session has a durable Work Item target. The generic
-        // session runtime carries that linkage, but it was not previously
-        // visible to Work Item Manager; the model could therefore create a
-        // second item and strand the original "AI Work Item Draft". Keep this
-        // volatile (session-specific) and narrowly scoped to the manager.
-        if self.runtime.agent_definition_id.as_deref()
-            == Some(crate::core::definitions::WORK_ITEM_MANAGER_AGENT_ID)
+        // so the planning session has a durable Work Item target. Any agent
+        // launched through that flow (session agent_role "custom") needs the
+        // linkage in its prompt, or the model can create a second item and
+        // strand the original "AI Work Item Draft". Orchestrator-launched
+        // sessions carry work item context in their launch prompt and are
+        // excluded here. Keep this volatile (session-specific).
         {
             let linked_session =
                 tokio::task::block_in_place(|| super::unified_persistence::get_session(session_id));
             match linked_session {
                 Ok(Some(session)) => {
-                    if let Some(work_item_id) = session.work_item_id.as_deref() {
-                        dynamic_sections.push(render_linked_work_item_context(
-                            work_item_id,
-                            session.project_slug.as_deref(),
-                        ));
+                    if session.agent_role.as_deref() == Some("custom") {
+                        if let Some(work_item_id) = session.work_item_id.as_deref() {
+                            dynamic_sections.push(render_linked_work_item_context(
+                                work_item_id,
+                                session.project_slug.as_deref(),
+                            ));
+                        }
                     }
                 }
                 Ok(None) => {}

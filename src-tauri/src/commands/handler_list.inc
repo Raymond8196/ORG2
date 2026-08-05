@@ -939,13 +939,6 @@ agent_core::state::commands::session::org_tasks::agent_org_send_group_chat_messa
 agent_core::state::commands::session::org_tasks::agent_org_send_user_message_to_member,
 agent_core::state::commands::session::org_tasks::agent_org_pause_run,
 agent_core::state::commands::session::org_tasks::agent_org_resume_run,
-// Automation (trigger->action rules)
-agent_core::state::commands::automation::agent_automation_list_rules,
-agent_core::state::commands::automation::agent_automation_add_rule,
-agent_core::state::commands::automation::agent_automation_update_rule,
-agent_core::state::commands::automation::agent_automation_remove_rule,
-agent_core::state::commands::automation::agent_automation_get_status,
-agent_core::state::commands::automation::agent_automation_fire_webhook,
 agent_core::specialization::policies::policies_list,
 agent_core::specialization::policies::policies_read,
 agent_core::specialization::policies::policies_create,
