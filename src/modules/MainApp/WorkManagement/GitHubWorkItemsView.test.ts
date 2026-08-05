@@ -6,7 +6,9 @@ import type { GitHubIssue } from "@src/api/tauri/github";
 
 import {
   GitHubIssueDetailBreadcrumb,
+  GitHubPrDetailBreadcrumb,
   GitHubWorkItemsView,
+  toGitHubPrDetailIdentity,
 } from "./GitHubWorkItemsView";
 import { GITHUB_ITEM_KIND, type ManagedPrItem } from "./githubManagedItemModel";
 import { parseGitHubSearchQuery } from "./githubWorkItemsSearchQuery";
@@ -80,6 +82,40 @@ describe("GitHubIssueDetailBreadcrumb", () => {
   });
 });
 
+describe("GitHubPrDetailBreadcrumb", () => {
+  it("maps and renders the PR as a second-level Work Items breadcrumb", () => {
+    const pullRequest = createPullRequest(98, {
+      state: "merged",
+      rawPr: {
+        ...createPullRequest(98).rawPr,
+        state: "closed",
+      },
+    });
+    const identity = toGitHubPrDetailIdentity(pullRequest);
+
+    expect(identity).toMatchObject({
+      number: 98,
+      title: "Pull request 98",
+      status: "merged",
+      headBranch: "feature-98",
+      baseBranch: "develop",
+    });
+
+    const markup = renderToStaticMarkup(
+      React.createElement(GitHubPrDetailBreadcrumb, {
+        identity,
+        parentLabel: "GitHub PRs",
+        onBack: vi.fn(),
+      })
+    );
+
+    expect(markup.indexOf("GitHub PRs")).toBeLessThan(markup.indexOf("#98"));
+    expect(markup).toContain('role="button"');
+    expect(markup).toContain("Pull request 98");
+    expect(markup).toContain("merged");
+  });
+});
+
 describe("GitHubWorkItemsView pull requests", () => {
   it("renders one continuous PR list without todo section headers", () => {
     const pullRequests = [
@@ -104,6 +140,11 @@ describe("GitHubWorkItemsView pull requests", () => {
             remoteUrl: "https://github.com/org2ai/ORG2.git",
             repoFullName: "org2ai/ORG2",
             viewerLogin: "viewer",
+            permissions: {
+              role_name: "write",
+              can_manage_issues: true,
+              can_manage_pull_requests: true,
+            },
           },
         ],
         repoOptions: [{ key: "org2ai/ORG2", label: "org2ai/ORG2" }],
@@ -119,6 +160,7 @@ describe("GitHubWorkItemsView pull requests", () => {
         createFormOpen: false,
         creatingIssue: false,
         issueDetail: null,
+        prDetail: null,
         updateSearchQuery: vi.fn(),
         onSearchQueryChange: vi.fn(),
         onRepoSelect: vi.fn(),
@@ -131,6 +173,14 @@ describe("GitHubWorkItemsView pull requests", () => {
         onOpenIssueInMyStation: vi.fn(),
         onAddIssue: vi.fn(),
         onIssueStatusChange: vi.fn().mockResolvedValue(undefined),
+        getIssueAssigneeControlState: vi.fn(() => ({
+          users: [],
+          loading: false,
+          error: null,
+          updating: false,
+        })),
+        onLoadIssueAssignees: vi.fn(),
+        onIssueAssigneesChange: vi.fn(),
         onOpenPr: vi.fn(),
         onAddPr: vi.fn(),
         onPrStatusChange: vi.fn().mockResolvedValue(undefined),

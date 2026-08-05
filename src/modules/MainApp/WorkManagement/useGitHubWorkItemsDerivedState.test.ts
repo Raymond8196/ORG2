@@ -18,6 +18,7 @@ const source: GitHubRepoSource = {
   remoteUrl: "https://github.com/acme/repo.git",
   repoFullName: "acme/repo",
   viewerLogin: "viewer",
+  permissions: null,
 };
 const issue = {
   number: 42,

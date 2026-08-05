@@ -21,6 +21,8 @@ export const WORK_MANAGEMENT_TABLE_MAX_WIDTH_CLASS = {
   wide: ISSUE_PANEL_WIDTH_TOKENS.headerWidth,
 } as const;
 
+export const WORK_MANAGEMENT_TITLE_COLUMN_MAX_WIDTH = 550;
+
 export type WorkManagementTableMaxWidth =
   keyof typeof WORK_MANAGEMENT_TABLE_MAX_WIDTH_CLASS;
 
@@ -33,6 +35,7 @@ export interface WorkManagementTableStatusSelect {
   options: PropertyDropdownOption<string>[];
   onChange: (value: string) => void | Promise<void>;
   readonly?: boolean;
+  readonlyReason?: string;
   dataTestId?: string;
 }
 
@@ -127,9 +130,12 @@ export function WorkManagementTable({
         label: t("workManagementTable.columns.titleContext", {
           defaultValue: "Title / Context",
         }),
-        width: SETTINGS_TABLE_COL.fill,
+        width: `${WORK_MANAGEMENT_TITLE_COLUMN_MAX_WIDTH}px`,
         renderCell: (row) => (
-          <div className="w-full min-w-0 py-1">
+          <div
+            className="w-full min-w-0 py-1"
+            style={{ maxWidth: WORK_MANAGEMENT_TITLE_COLUMN_MAX_WIDTH }}
+          >
             <div
               className={`truncate font-semibold text-text-1 ${
                 row.titleLinkOnRowHover
@@ -202,16 +208,24 @@ export function WorkManagementTable({
         width: SETTINGS_TABLE_COL.valueLg,
         renderCell: (row) =>
           row.statusSelect ? (
-            <PropertyDropdownField
-              {...row.statusSelect}
-              searchable={false}
-              maxWidthClassName="max-w-[140px]"
-              triggerVariant="pill"
-              fieldVariant="pill"
-              compactPill
-              placement="portal"
-              borderless
-            />
+            <div
+              title={
+                row.statusSelect.readonly
+                  ? row.statusSelect.readonlyReason
+                  : undefined
+              }
+            >
+              <PropertyDropdownField
+                {...row.statusSelect}
+                searchable={false}
+                maxWidthClassName="max-w-[140px]"
+                triggerVariant="pill"
+                fieldVariant="pill"
+                compactPill
+                placement="portal"
+                borderless
+              />
+            </div>
           ) : (
             row.status
           ),

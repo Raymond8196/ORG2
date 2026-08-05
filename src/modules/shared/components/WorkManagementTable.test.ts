@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   WORK_MANAGEMENT_TABLE_MAX_WIDTH_CLASS,
+  WORK_MANAGEMENT_TITLE_COLUMN_MAX_WIDTH,
   WorkManagementTable,
 } from "./WorkManagementTable";
 
@@ -28,6 +29,7 @@ describe("WorkManagementTable", () => {
     expect(WORK_MANAGEMENT_TABLE_MAX_WIDTH_CLASS.wide).toContain(
       "max-w-[1232px]"
     );
+    expect(WORK_MANAGEMENT_TITLE_COLUMN_MAX_WIDTH).toBe(550);
 
     const markup = renderToStaticMarkup(
       createElement(WorkManagementTable, {
@@ -44,6 +46,8 @@ describe("WorkManagementTable", () => {
     expect(markup).toContain(">ID<");
     expect(markup).toContain("table-th-sortable");
     expect(markup).toContain("Title / Context");
+    expect(markup).toContain('style="width:550px"');
+    expect(markup).toContain('style="max-width:550px"');
     expect(markup).toContain("Assignee");
     expect(markup).toContain(">Status<");
     expect(markup).toContain(">Updated<");

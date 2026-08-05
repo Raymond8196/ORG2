@@ -1,10 +1,6 @@
 import { useCallback } from "react";
 
-import {
-  type GitHubIssue,
-  type OpenPRItem,
-  updatePRStateLocal,
-} from "@src/api/tauri/github";
+import { updatePRStateLocal } from "@src/api/tauri/github";
 import Message from "@src/components/Message";
 import {
   setCachedPrs,
@@ -17,6 +13,15 @@ import {
 } from "@src/services/git/operations/githubIssues";
 
 import type { ManagedIssueItem, ManagedPrItem } from "./githubManagedItemModel";
+import {
+  canManageIssueStatus,
+  canManagePrStatus,
+  findGitHubRepoSource,
+} from "./githubWorkItemPermissions";
+import {
+  replaceIssueInRepoState,
+  replacePrInRepoState,
+} from "./githubWorkItemStateUpdates";
 import {
   type GitHubRepoSource,
   getGitHubListCacheKey,
@@ -44,45 +49,7 @@ type UpdatePrMap = (
   update: (current: Record<string, RepoPrState>) => Record<string, RepoPrState>
 ) => void;
 
-function withoutNumber<T extends { number: number }>(
-  items: T[],
-  number: number
-): T[] {
-  return items.filter((item) => item.number !== number);
-}
-
-export function replaceIssueInRepoState(
-  state: RepoIssueState,
-  issue: GitHubIssue
-): RepoIssueState {
-  const openIssues = withoutNumber(state.openIssues, issue.number);
-  const closedIssues = withoutNumber(state.closedIssues, issue.number);
-  if (issue.state === "open") openIssues.unshift(issue);
-  else closedIssues.unshift(issue);
-  return { ...state, openIssues, closedIssues };
-}
-
-export function replacePrInRepoState(
-  state: RepoPrState,
-  pullRequest: OpenPRItem
-): RepoPrState {
-  const openPrs = withoutNumber(state.openPrs, pullRequest.number);
-  const closedPrs = withoutNumber(state.closedPrs, pullRequest.number);
-  if (pullRequest.state === "open") openPrs.unshift(pullRequest);
-  else closedPrs.unshift(pullRequest);
-  return { ...state, openPrs, closedPrs };
-}
-
-function findSource(
-  sources: GitHubRepoSource[],
-  repoFullName: string,
-  repoPath: string
-): GitHubRepoSource | undefined {
-  return sources.find(
-    (source) =>
-      source.repoFullName === repoFullName && source.repoPath === repoPath
-  );
-}
+export { replaceIssueInRepoState, replacePrInRepoState };
 
 export function useGitHubWorkItemStatusMutations({
   repoSources,
@@ -90,12 +57,14 @@ export function useGitHubWorkItemStatusMutations({
   updatePrMap,
   setListError,
   updateErrorMessage,
+  permissionErrorMessage,
 }: {
   repoSources: GitHubRepoSource[];
   updateIssueMap: UpdateIssueMap;
   updatePrMap: UpdatePrMap;
   setListError: (error: string | null) => void;
   updateErrorMessage: string;
+  permissionErrorMessage: string;
 }) {
   const updateIssueStatus = useCallback(
     async (item: ManagedIssueItem, value: ManagedIssueStatusValue) => {
@@ -110,8 +79,17 @@ export function useGitHubWorkItemStatusMutations({
       ) {
         return;
       }
-      const source = findSource(repoSources, item.repo, item.repoPath);
+      const source = findGitHubRepoSource(
+        repoSources,
+        item.repo,
+        item.repoPath
+      );
       if (!source) return;
+      if (!canManageIssueStatus(item, source)) {
+        setListError(permissionErrorMessage);
+        Message.error(permissionErrorMessage);
+        return;
+      }
       const result =
         value === "open"
           ? await reopenIssue({
@@ -147,13 +125,28 @@ export function useGitHubWorkItemStatusMutations({
       });
       setListError(null);
     },
-    [repoSources, setListError, updateErrorMessage, updateIssueMap]
+    [
+      permissionErrorMessage,
+      repoSources,
+      setListError,
+      updateErrorMessage,
+      updateIssueMap,
+    ]
   );
 
   const updatePrStatus = useCallback(
     async (item: ManagedPrItem, value: ManagedPrStatusValue) => {
-      const source = findSource(repoSources, item.repo, item.repoPath);
+      const source = findGitHubRepoSource(
+        repoSources,
+        item.repo,
+        item.repoPath
+      );
       if (!source || item.state === "merged" || item.state === value) return;
+      if (!canManagePrStatus(item, source)) {
+        setListError(permissionErrorMessage);
+        Message.error(permissionErrorMessage);
+        return;
+      }
       try {
         const pullRequest = await updatePRStateLocal(item.repo, item.id, value);
         updatePrMap((current) => {
@@ -178,7 +171,13 @@ export function useGitHubWorkItemStatusMutations({
         Message.error(message);
       }
     },
-    [repoSources, setListError, updateErrorMessage, updatePrMap]
+    [
+      permissionErrorMessage,
+      repoSources,
+      setListError,
+      updateErrorMessage,
+      updatePrMap,
+    ]
   );
 
   return { updateIssueStatus, updatePrStatus };

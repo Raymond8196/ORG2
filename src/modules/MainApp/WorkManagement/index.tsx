@@ -224,7 +224,13 @@ const WorkManagementPage: React.FC<WorkManagementPageProps> = ({
     <div className="work-management-page flex h-full min-h-0 w-full flex-col overflow-hidden">
       <div className="relative min-h-0 flex-1 overflow-hidden">
         <React.Suspense
-          fallback={<Placeholder variant="loading" fillParentHeight />}
+          fallback={
+            <Placeholder
+              variant="loading"
+              placement="detail-panel"
+              fillParentHeight
+            />
+          }
         >
           {activeHomeTab === WORK_MANAGEMENT_SECTION.PROJECTS ? (
             <WorkManagementProjectsSurface />

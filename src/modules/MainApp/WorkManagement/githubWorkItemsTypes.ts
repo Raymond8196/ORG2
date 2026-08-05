@@ -1,3 +1,5 @@
+import type { GitHubRepoPermissions } from "@src/api/tauri/github";
+
 export type IssueRepoFilter = string;
 
 export interface RepoFilterOption {
@@ -12,6 +14,7 @@ export interface GitHubRepoSource {
   remoteUrl: string;
   repoFullName: string;
   viewerLogin: string | null;
+  permissions: GitHubRepoPermissions | null;
 }
 
 export function getGitHubListCacheKey(source: GitHubRepoSource): string {

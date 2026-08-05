@@ -12,9 +12,11 @@ import type { SelectOption } from "@src/components/Select";
 import { reposAtom, selectedRepoPathAtom } from "@src/store/repo";
 
 import { GitHubWorkItemsView } from "./GitHubWorkItemsView";
+import type { ManagedIssueItem, ManagedPrItem } from "./githubManagedItemModel";
 import { GITHUB_QUERY_SCOPE } from "./githubWorkItemsSearchQuery";
 import type { GitHubQueryScope } from "./githubWorkItemsSearchQuery";
 import type { RepoFilterOption } from "./githubWorkItemsTypes";
+import { useGitHubIssueAssigneeMutations } from "./useGitHubIssueAssigneeMutations";
 import { useGitHubIssueDetail } from "./useGitHubIssueDetail";
 import { useGitHubIssueMutations } from "./useGitHubIssueMutations";
 import { useGitHubWorkItemActions } from "./useGitHubWorkItemActions";
@@ -37,6 +39,7 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
   onDetailViewChange,
 }) => {
   const { t } = useTranslation(["sessions", "common"]);
+  const permissionErrorMessage = t("common:errors.messages.forbidden");
   const repos = useAtomValue(reposAtom);
   const selectedRepoPath = useAtomValue(selectedRepoPathAtom);
   const {
@@ -45,17 +48,51 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
     addIssue,
     addCreatedIssue,
     addPr,
-    openPr,
   } = useGitHubWorkItemActions();
   const [createFormOpen, setCreateFormOpen] = useState(false);
+  const [prDetail, setPrDetail] = useState<ManagedPrItem | null>(null);
   const {
     detail: issueDetail,
-    closeDetail,
-    openDetail,
+    closeDetail: closeIssueDetail,
+    openDetail: openIssueDetail,
     closeCurrentIssue,
     reopenCurrentIssue,
     addComment: addIssueDetailComment,
-  } = useGitHubIssueDetail({ onDetailViewChange });
+    reconcileCurrentIssue,
+  } = useGitHubIssueDetail();
+  const closeSelectedDetail = useCallback(() => {
+    closeIssueDetail();
+    setPrDetail(null);
+  }, [closeIssueDetail]);
+  const handleOpenIssueDetail = useCallback(
+    (issue: ManagedIssueItem) => {
+      setPrDetail(null);
+      openIssueDetail(issue);
+    },
+    [openIssueDetail]
+  );
+  const handleOpenPrDetail = useCallback(
+    (pullRequest: ManagedPrItem) => {
+      closeIssueDetail();
+      setPrDetail(pullRequest);
+    },
+    [closeIssueDetail]
+  );
+  const activeIssueDetail =
+    scope === GITHUB_QUERY_SCOPE.ISSUE ? issueDetail : null;
+  const activePrDetail = scope === GITHUB_QUERY_SCOPE.PR ? prDetail : null;
+  const detailOpen = activeIssueDetail !== null || activePrDetail !== null;
+
+  useEffect(() => {
+    onDetailViewChange(detailOpen, detailOpen ? closeSelectedDetail : null);
+  }, [closeSelectedDetail, detailOpen, onDetailViewChange]);
+
+  useEffect(
+    () => () => {
+      onDetailViewChange(false, null);
+    },
+    [onDetailViewChange]
+  );
   const {
     selectedRepo,
     refreshNonce,
@@ -73,7 +110,7 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
     refresh: handleRefresh,
   } = useGitHubWorkItemsViewState({
     scope,
-    onScopeChange: closeDetail,
+    onScopeChange: closeSelectedDetail,
   });
   const {
     repoSources,
@@ -180,7 +217,31 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
       updateErrorMessage: t("chat.panels.manageIssues.statusUpdateFailed", {
         defaultValue: "Failed to update GitHub status",
       }),
+      permissionErrorMessage,
     });
+  const {
+    getIssueAssigneeControlState,
+    loadAssignableUsers,
+    updateIssueAssignees,
+  } = useGitHubIssueAssigneeMutations({
+    repoSources,
+    updateIssueMap,
+    setListError,
+    updateErrorMessage: t("chat.panels.manageIssues.updateIssueFailed", {
+      defaultValue: "Failed to update GitHub issue",
+    }),
+    permissionErrorMessage,
+  });
+  const handleIssueAssigneesChange = useCallback(
+    async (
+      issue: Parameters<typeof updateIssueAssignees>[0],
+      assignees: string[]
+    ) => {
+      const updatedIssue = await updateIssueAssignees(issue, assignees);
+      if (updatedIssue) reconcileCurrentIssue(updatedIssue);
+    },
+    [reconcileCurrentIssue, updateIssueAssignees]
+  );
 
   const handlePreviousPage = useCallback(() => {
     setCurrentPage((page) => Math.max(1, page - 1));
@@ -225,7 +286,8 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
       hasMoreFilteredIssues={hasMoreFilteredIssues}
       createFormOpen={createFormOpen}
       creatingIssue={creatingIssue}
-      issueDetail={issueDetail}
+      issueDetail={activeIssueDetail}
+      prDetail={activePrDetail}
       updateSearchQuery={updateSearchQuery}
       onSearchQueryChange={handleSearchQueryChange}
       onRepoSelect={handleRepoSelect}
@@ -233,15 +295,18 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
       onRefresh={handleRefresh}
       onPreviousPage={handlePreviousPage}
       onNextPage={handleNextPage}
-      onOpenIssue={openDetail}
+      onOpenIssue={handleOpenIssueDetail}
       onOpenIssueInBrowser={openIssueInBrowser}
       onOpenIssueInMyStation={openIssueInMyStation}
       onAddIssue={addIssue}
       onIssueStatusChange={updateIssueStatus}
-      onOpenPr={openPr}
+      getIssueAssigneeControlState={getIssueAssigneeControlState}
+      onLoadIssueAssignees={loadAssignableUsers}
+      onIssueAssigneesChange={handleIssueAssigneesChange}
+      onOpenPr={handleOpenPrDetail}
       onAddPr={addPr}
       onPrStatusChange={updatePrStatus}
-      onBackFromDetail={closeDetail}
+      onBackFromDetail={closeSelectedDetail}
       onCloseIssueDetail={closeCurrentIssue}
       onReopenIssueDetail={reopenCurrentIssue}
       onAddIssueDetailComment={addIssueDetailComment}

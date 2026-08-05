@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { getGitRemotes } from "@src/api/http/git/remotes";
-import { getGitHubViewerLogin, listPRsLocal } from "@src/api/tauri/github";
+import {
+  getGitHubRepoPermissionsLocal,
+  getGitHubViewerLogin,
+  listPRsLocal,
+} from "@src/api/tauri/github";
+import type { GitHubRepoPermissions } from "@src/api/tauri/github";
 import type {
   GitHubIssue,
   OpenPRItem,
@@ -157,7 +162,24 @@ async function resolveGitHubRepoSource(
     remoteUrl,
     repoFullName,
     viewerLogin: null,
+    permissions: null,
   };
+}
+
+export async function loadRepoPermissions(
+  source: GitHubRepoSource,
+  viewerLogin: string,
+  permissionRequests: Map<string, Promise<GitHubRepoPermissions | null>>
+): Promise<[string, GitHubRepoPermissions | null]> {
+  const key = `${viewerLogin.toLowerCase()}:${source.repoFullName}`;
+  let permissionRequest = permissionRequests.get(key);
+  if (!permissionRequest) {
+    permissionRequest = getGitHubRepoPermissionsLocal(
+      source.repoFullName
+    ).catch(() => null);
+    permissionRequests.set(key, permissionRequest);
+  }
+  return [source.repoFullName, await permissionRequest];
 }
 
 async function loadRepoIssues(
@@ -289,6 +311,10 @@ export function useGitHubWorkItemsLoadLifecycle({
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const handledRefreshNonceRef = useRef(0);
+  const permissionRequestsRef = useRef<
+    Map<string, Promise<GitHubRepoPermissions | null>>
+  >(new Map());
+  const permissionViewerRef = useRef<string | null>(null);
   const gitRepos = useMemo(
     () => repos.filter((repo) => repo.kind === REPO_KIND.GIT && repo.path),
     [repos]
@@ -298,10 +324,13 @@ export function useGitHubWorkItemsLoadLifecycle({
     let cancelled = false;
     const forceRefresh = refreshNonce !== handledRefreshNonceRef.current;
     handledRefreshNonceRef.current = refreshNonce;
+    if (forceRefresh) permissionRequestsRef.current.clear();
     void (async () => {
       setLoading(true);
       setLoadError(null);
       if (gitRepos.length === 0) {
+        permissionRequestsRef.current.clear();
+        permissionViewerRef.current = null;
         setRepoSources([]);
         setRepoIssueMap({});
         setRepoPrMap({});
@@ -328,8 +357,10 @@ export function useGitHubWorkItemsLoadLifecycle({
         .filter((source): source is GitHubRepoSource => Boolean(source))
         .map((source) => ({ ...source, viewerLogin: viewerResult.login }));
       if (cancelled) return;
-      setRepoSources(resolvedSources);
       if (!viewerResult.login) {
+        permissionRequestsRef.current.clear();
+        permissionViewerRef.current = null;
+        setRepoSources(resolvedSources);
         setRepoIssueMap({});
         setRepoPrMap({});
         setLoadError(
@@ -337,6 +368,21 @@ export function useGitHubWorkItemsLoadLifecycle({
         );
         setLoading(false);
         return;
+      }
+      if (permissionViewerRef.current !== viewerResult.login) {
+        permissionRequestsRef.current.clear();
+        permissionViewerRef.current = viewerResult.login;
+      }
+      const permissionKeyPrefix = `${viewerResult.login.toLowerCase()}:`;
+      const activePermissionKeys = new Set(
+        resolvedSources.map(
+          (source) => `${permissionKeyPrefix}${source.repoFullName}`
+        )
+      );
+      for (const key of permissionRequestsRef.current.keys()) {
+        if (!activePermissionKeys.has(key)) {
+          permissionRequestsRef.current.delete(key);
+        }
       }
       setRepoIssueMap(
         scope === "issue"
@@ -359,6 +405,7 @@ export function useGitHubWorkItemsLoadLifecycle({
           : {}
       );
       if (resolvedSources.length === 0) {
+        setRepoSources([]);
         setLoading(false);
         return;
       }
@@ -369,7 +416,14 @@ export function useGitHubWorkItemsLoadLifecycle({
         allReposValue,
         currentWorkstationValue,
       });
-      const [issueResults, prResults] = await Promise.all([
+      const [permissionResults, issueResults, prResults] = await Promise.all([
+        mapWithConcurrency(sourcesToLoad, GITHUB_SOURCE_CONCURRENCY, (source) =>
+          loadRepoPermissions(
+            source,
+            viewerResult.login,
+            permissionRequestsRef.current
+          )
+        ),
         scope === "issue"
           ? mapWithConcurrency(
               sourcesToLoad,
@@ -388,6 +442,13 @@ export function useGitHubWorkItemsLoadLifecycle({
           : Promise.resolve([]),
       ]);
       if (cancelled) return;
+      const permissionByRepo = new Map(permissionResults);
+      setRepoSources(
+        resolvedSources.map((source) => ({
+          ...source,
+          permissions: permissionByRepo.get(source.repoFullName) ?? null,
+        }))
+      );
       if (scope === "issue") {
         setRepoIssueMap(
           Object.fromEntries(

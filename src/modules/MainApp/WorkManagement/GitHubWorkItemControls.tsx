@@ -4,9 +4,11 @@ import {
   Link2,
   MessageCircle,
   MoreHorizontal,
+  UserRound,
 } from "lucide-react";
 import React, { useCallback, useState } from "react";
 
+import type { GitHubIssueUser } from "@src/api/tauri/github";
 import Avatar from "@src/components/Avatar";
 import Button from "@src/components/Button";
 import Dropdown from "@src/components/Dropdown";
@@ -14,6 +16,8 @@ import {
   DROPDOWN_CLASSES,
   DROPDOWN_WIDTHS,
 } from "@src/components/Dropdown/tokens";
+import { PropertyDropdownField } from "@src/components/PropertyField/PropertyDropdownField";
+import { Option } from "@src/components/PropertyField/PropertyFieldEditable";
 import type { SelectOption } from "@src/components/Select";
 
 import {
@@ -81,24 +85,149 @@ export function ManagedIssueContextMeta({
   );
 }
 
+export function toggleIssueAssigneeLogins(
+  assignees: GitHubIssueUser[],
+  login: string
+): string[] {
+  const normalizedLogin = login.toLowerCase();
+  const selected = assignees.some(
+    (assignee) => assignee.login.toLowerCase() === normalizedLogin
+  );
+  return selected
+    ? assignees
+        .filter((assignee) => assignee.login.toLowerCase() !== normalizedLogin)
+        .map((assignee) => assignee.login)
+    : [...assignees.map((assignee) => assignee.login), login];
+}
+
 export function ManagedIssueAssigneeCell({
   issue,
+  assignableUsers,
+  canManage,
+  loading,
+  loadError,
+  updating,
+  noneLabel,
+  loadingLabel,
+  searchPlaceholder,
+  readonlyReason,
+  onOpen,
+  onChange,
 }: {
   issue: ManagedIssueItem;
+  assignableUsers: GitHubIssueUser[];
+  canManage: boolean;
+  loading: boolean;
+  loadError: string | null;
+  updating: boolean;
+  noneLabel: string;
+  loadingLabel: string;
+  searchPlaceholder: string;
+  readonlyReason: string;
+  onOpen: (issue: ManagedIssueItem) => void | Promise<void>;
+  onChange: (
+    issue: ManagedIssueItem,
+    assignees: string[]
+  ) => void | Promise<void>;
 }): React.ReactNode {
+  const [open, setOpen] = useState(false);
   const assignees = issue.rawIssue.assignees;
-  if (assignees.length === 0) return <span className="text-text-3">—</span>;
   const names = assignees.map((assignee) => assignee.login).join(", ");
+  const triggerIcon = assignees[0] ? (
+    <Avatar size={16} src={assignees[0].avatar_url}>
+      {assignees[0].login.charAt(0).toUpperCase()}
+    </Avatar>
+  ) : (
+    <UserRound size={14} strokeWidth={1.8} />
+  );
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen);
+    if (nextOpen) void onOpen(issue);
+  };
   return (
-    <div className="flex max-w-40 items-center gap-1.5" title={names}>
-      <div className="flex shrink-0 -space-x-1">
-        {assignees.slice(0, 3).map((assignee) => (
-          <Avatar key={assignee.login} size={20} src={assignee.avatar_url}>
-            {assignee.login.charAt(0).toUpperCase()}
-          </Avatar>
-        ))}
-      </div>
-      <span className="truncate text-text-2">{names}</span>
+    <div title={canManage ? names || noneLabel : readonlyReason}>
+      <PropertyDropdownField
+        value={names || "__none__"}
+        label={names || noneLabel}
+        icon={triggerIcon}
+        selected={assignees.length > 0}
+        active={open}
+        onActiveChange={handleOpenChange}
+        readonly={!canManage || updating}
+        searchable
+        searchPlaceholder={searchPlaceholder}
+        maxWidthClassName="max-w-40"
+        triggerVariant="pill"
+        fieldVariant="pill"
+        compactPill
+        placement="portal"
+        borderless
+        dataTestId={`github-issue-assignee-${issue.id}`}
+        renderOptions={(searchQuery, close) => {
+          if (loading) {
+            return (
+              <div className="px-2.5 py-2 text-xs text-text-3">
+                {loadingLabel}
+              </div>
+            );
+          }
+          if (loadError) {
+            return (
+              <div className="px-2.5 py-2 text-xs text-danger-6">
+                {loadError}
+              </div>
+            );
+          }
+          const usersByLogin = new Map<string, GitHubIssueUser>();
+          for (const user of [...assignees, ...assignableUsers]) {
+            usersByLogin.set(user.login.toLowerCase(), user);
+          }
+          const query = searchQuery.trim().toLowerCase();
+          const users = Array.from(usersByLogin.values()).filter(
+            (user) => !query || user.login.toLowerCase().includes(query)
+          );
+          const selectedLogins = new Set(
+            assignees.map((assignee) => assignee.login.toLowerCase())
+          );
+          return (
+            <>
+              <Option
+                icon={<UserRound size={14} strokeWidth={1.8} />}
+                label={noneLabel}
+                isSelected={assignees.length === 0}
+                onClick={() => {
+                  void onChange(issue, []);
+                  close();
+                }}
+                dataTestId={`github-issue-assignee-${issue.id}-option-none`}
+              />
+              {users.map((user) => {
+                const selected = selectedLogins.has(user.login.toLowerCase());
+                return (
+                  <Option
+                    key={user.login}
+                    label={user.login}
+                    isSelected={selected}
+                    onClick={() => {
+                      void onChange(
+                        issue,
+                        toggleIssueAssigneeLogins(assignees, user.login)
+                      );
+                      close();
+                    }}
+                    dataTestId={`github-issue-assignee-${issue.id}-option-${user.login}`}
+                  >
+                    <Avatar size={16} src={user.avatar_url}>
+                      {user.login.charAt(0).toUpperCase()}
+                    </Avatar>
+                    <span className="flex-1 truncate">{user.login}</span>
+                  </Option>
+                );
+              })}
+            </>
+          );
+        }}
+      />
     </div>
   );
 }

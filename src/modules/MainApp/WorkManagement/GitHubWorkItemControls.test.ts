@@ -8,6 +8,7 @@ import {
   ManagedIssueAssigneeCell,
   ManagedIssueContextMeta,
   ManagedPrActionsCell,
+  toggleIssueAssigneeLogins,
 } from "./GitHubWorkItemControls";
 import {
   GITHUB_ITEM_KIND,
@@ -99,6 +100,20 @@ describe("ManagedIssueContextMeta", () => {
 });
 
 describe("ManagedIssueAssigneeCell", () => {
+  it("toggles one assignee without dropping the others", () => {
+    const assignees = [
+      { login: "ada", avatar_url: "ada.png" },
+      { login: "grace", avatar_url: "grace.png" },
+    ];
+
+    expect(toggleIssueAssigneeLogins(assignees, "GRACE")).toEqual(["ada"]);
+    expect(toggleIssueAssigneeLogins(assignees, "linus")).toEqual([
+      "ada",
+      "grace",
+      "linus",
+    ]);
+  });
+
   it("renders issue-assignee avatars and names together", () => {
     const markup = renderToStaticMarkup(
       createElement(ManagedIssueAssigneeCell, {
@@ -111,11 +126,45 @@ describe("ManagedIssueAssigneeCell", () => {
             ],
           },
         },
+        assignableUsers: [],
+        canManage: true,
+        loading: false,
+        loadError: null,
+        updating: false,
+        noneLabel: "None",
+        loadingLabel: "Loading...",
+        searchPlaceholder: "Search...",
+        readonlyReason: "No permission",
+        onOpen: vi.fn(),
+        onChange: vi.fn(),
       })
     );
 
     expect(markup).toContain("octocat");
     expect(markup).toContain("https://example.com/o.png");
+  });
+
+  it("keeps the assignee selector inert without repository permission", () => {
+    const markup = renderToStaticMarkup(
+      createElement(ManagedIssueAssigneeCell, {
+        issue: linkedIssue,
+        assignableUsers: [],
+        canManage: false,
+        loading: false,
+        loadError: null,
+        updating: false,
+        noneLabel: "None",
+        loadingLabel: "Loading...",
+        searchPlaceholder: "Search...",
+        readonlyReason: "No permission",
+        onOpen: vi.fn(),
+        onChange: vi.fn(),
+      })
+    );
+
+    expect(markup).toContain('title="No permission"');
+    expect(markup).toContain("disabled");
+    expect(markup).not.toContain("lucide-chevron-down");
   });
 });
 
