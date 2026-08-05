@@ -46,7 +46,6 @@ export * from "./workStationAtom";
 export * from "./routeToolbarAtom";
 export * from "./dragDropAtom";
 export * from "./todoAtom";
-export * from "./workflowEditorAtom";
 export * from "./addToAgentAtom";
 export * from "./integrationsToolbarAtom";
 export * from "./kanbanViewStateAtom";
