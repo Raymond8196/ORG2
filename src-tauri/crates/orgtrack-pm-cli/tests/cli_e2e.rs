@@ -321,6 +321,89 @@ fn idempotency_replays_and_conflicts() {
 }
 
 #[test]
+fn routine_lifecycle_runs_through_the_cli() {
+    let _sandbox = test_env::sandbox();
+    seed("demo");
+    let fixture_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../../docs/orgtrack-pm-protocol/fixtures/routine-spec.json");
+    let fixture_arg = fixture_path.to_string_lossy().to_string();
+    let base = [
+        "--mode",
+        "project",
+        "--scope",
+        "demo",
+        "--actor",
+        "agent:cli-tester",
+        "--session-ref",
+        "claude_code:session_routine",
+    ];
+
+    // validate + apply (idempotent revision).
+    let (exit, validated) =
+        run_cli(&[&["routine", "validate", "--file", &fixture_arg], &base[..]].concat());
+    assert_eq!(exit, 0, "validate: {validated}");
+    let (exit, applied) =
+        run_cli(&[&["routine", "apply", "--file", &fixture_arg], &base[..]].concat());
+    assert_eq!(exit, 0, "apply: {applied}");
+    assert_eq!(applied["data"]["revision"], 1);
+    let (exit, reapplied) =
+        run_cli(&[&["routine", "apply", "--file", &fixture_arg], &base[..]].concat());
+    assert_eq!(exit, 0, "re-apply: {reapplied}");
+    assert_eq!(reapplied["data"]["revision"], 1, "same body keeps revision");
+
+    // run with inputs -> materialized graph.
+    let (exit, run) = run_cli(
+        &[
+            &[
+                "routine",
+                "run",
+                "interaction-impact-analysis",
+                "--input",
+                "requirement_id=REQ-042",
+            ],
+            &base[..],
+        ]
+        .concat(),
+    );
+    assert_eq!(exit, 0, "run: {run}");
+    let run_id = run["data"]["runId"].as_str().expect("runId").to_string();
+    assert_eq!(run["data"]["steps"].as_array().map(Vec::len), Some(3));
+
+    // status: running; the dependent steps are open, the first is ready.
+    let (exit, status) = run_cli(&[&["routine", "status", &run_id], &base[..]].concat());
+    assert_eq!(exit, 0, "status: {status}");
+    assert_eq!(status["data"]["status"], "running");
+
+    // Complete the first step through the portable lifecycle.
+    let first_step = run["data"]["steps"][0]["workItemId"]
+        .as_str()
+        .expect("step id")
+        .to_string();
+    let (exit, claimed) = run_cli(&[&["work", "claim", &first_step], &base[..]].concat());
+    assert_eq!(exit, 0, "claim: {claimed}");
+    let (exit, done) = run_cli(
+        &[
+            &["work", "transition", &first_step, "--to", "completed"],
+            &base[..],
+        ]
+        .concat(),
+    );
+    assert_eq!(exit, 0, "transition: {done}");
+
+    // Projection stays running (downstream became ready), and the step
+    // shows completed in the durable view.
+    let (exit, status) = run_cli(&[&["routine", "status", &run_id], &base[..]].concat());
+    assert_eq!(exit, 0, "status after completion: {status}");
+    assert_eq!(status["data"]["status"], "running");
+    let items = status["data"]["workItems"].as_array().expect("workItems");
+    let first = items
+        .iter()
+        .find(|item| item["shortId"] == first_step.as_str())
+        .expect("first step in view");
+    assert_eq!(first["portableState"], "completed");
+}
+
+#[test]
 fn wire_validation_maps_to_stable_codes() {
     let _sandbox = test_env::sandbox();
     seed("demo");

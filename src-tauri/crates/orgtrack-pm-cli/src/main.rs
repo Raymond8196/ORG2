@@ -31,14 +31,17 @@ fn main() {
 
 /// Minimal flag parser: `--flag value` pairs plus positionals. `--json`
 /// is accepted for wire-compat but JSON is already the only output mode.
-struct Parsed {
-    positionals: Vec<String>,
-    flags: std::collections::HashMap<String, String>,
+/// `--input k=v` repeats and accumulates.
+pub struct Parsed {
+    pub positionals: Vec<String>,
+    pub flags: std::collections::HashMap<String, String>,
+    pub inputs: Vec<(String, String)>,
 }
 
 fn parse_args(args: &[String]) -> Result<Parsed, CliError> {
     let mut positionals = Vec::new();
     let mut flags = std::collections::HashMap::new();
+    let mut inputs = Vec::new();
     let mut i = 0;
     while i < args.len() {
         let arg = &args[i];
@@ -54,14 +57,28 @@ fn parse_args(args: &[String]) -> Result<Parsed, CliError> {
                     format!("Flag --{} requires a value", name),
                 )
             })?;
-            flags.insert(name.to_string(), value.clone());
+            if name == "input" {
+                let (key, val) = value.split_once('=').ok_or_else(|| {
+                    CliError::new(
+                        ErrorCode::InvalidArgument,
+                        format!("--input expects key=value, got '{}'", value),
+                    )
+                })?;
+                inputs.push((key.to_string(), val.to_string()));
+            } else {
+                flags.insert(name.to_string(), value.clone());
+            }
             i += 2;
         } else {
             positionals.push(arg.clone());
             i += 1;
         }
     }
-    Ok(Parsed { positionals, flags })
+    Ok(Parsed {
+        positionals,
+        flags,
+        inputs,
+    })
 }
 
 /// Idempotent schema init on the canonical store path — the same steps
@@ -99,10 +116,9 @@ fn run(args: &[String]) -> i32 {
     match parsed.positionals.first().map(String::as_str) {
         Some("context") => commands::cmd_context(&context),
         Some("work") => commands::dispatch_work(&context, &parsed.positionals[1..], flags),
-        Some("routine") => emit_error(CliError::new(
-            ErrorCode::UnsupportedCapability,
-            "routine commands land with Phase 4 of the migration",
-        )),
+        Some("routine") => {
+            commands::dispatch_routine(&context, &parsed.positionals[1..], flags, &parsed.inputs)
+        }
         Some(other) => emit_error(CliError::new(
             ErrorCode::InvalidArgument,
             format!(

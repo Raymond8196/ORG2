@@ -345,6 +345,190 @@ pub fn invoke(
     })
 }
 
+/// List routine definitions (name, revision, enabled, hash).
+pub fn list_routines() -> Result<Vec<serde_json::Value>, String> {
+    let connection = project_io::helpers::conn()?;
+    let mut statement = connection
+        .prepare(
+            "SELECT name, routine_id, revision, enabled, spec_hash, updated_at
+             FROM pm_routines ORDER BY name",
+        )
+        .map_err(|err| format!("routine list: {err}"))?;
+    let rows = statement
+        .query_map([], |row| {
+            Ok(serde_json::json!({
+                "name": row.get::<_, String>(0)?,
+                "routineId": row.get::<_, String>(1)?,
+                "revision": row.get::<_, i64>(2)?,
+                "enabled": row.get::<_, i64>(3)? != 0,
+                "specHash": row.get::<_, String>(4)?,
+                "updatedAt": row.get::<_, i64>(5)?,
+            }))
+        })
+        .map_err(|err| format!("routine list: {err}"))?
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|err| format!("routine list: {err}"))?;
+    Ok(rows)
+}
+
+/// Enable/disable automatic activations. Manual `routine run` stays
+/// available on disabled routines by contract.
+pub fn set_enabled(name: &str, enabled: bool) -> Result<(), String> {
+    let connection = project_io::helpers::conn()?;
+    let changed = connection
+        .execute(
+            "UPDATE pm_routines SET enabled = ?2, updated_at = ?3 WHERE name = ?1",
+            rusqlite::params![name, enabled as i64, chrono::Utc::now().timestamp_millis()],
+        )
+        .map_err(|err| format!("routine set_enabled: {err}"))?;
+    if changed == 0 {
+        return Err(format!("Routine '{}' not found", name));
+    }
+    Ok(())
+}
+
+/// Durable run-status view: the run row plus each generated WorkItem's
+/// state, with the overall status recomputed by the ordered decision
+/// procedure from design §11 (cancel machinery lands in Phase 5, so the
+/// cancel rules short-circuit to the stored status for now).
+pub fn run_status(run_id: &str) -> Result<serde_json::Value, String> {
+    let connection = project_io::helpers::conn()?;
+    let (routine_name, revision, snapshot_hash, scope_id, stored_status, root_id): (
+        String,
+        i64,
+        String,
+        String,
+        String,
+        Option<String>,
+    ) = connection
+        .query_row(
+            "SELECT routine_name, routine_revision, snapshot_hash, scope_id, status,
+                    root_work_item_id
+             FROM pm_routine_runs WHERE id = ?1",
+            rusqlite::params![run_id],
+            |row| {
+                Ok((
+                    row.get(0)?,
+                    row.get(1)?,
+                    row.get(2)?,
+                    row.get(3)?,
+                    row.get(4)?,
+                    row.get(5)?,
+                ))
+            },
+        )
+        .map_err(|err| match err {
+            rusqlite::Error::QueryReturnedNoRows => format!("Run '{}' not found", run_id),
+            other => format!("routine status: {other}"),
+        })?;
+
+    // Generated children: reverse lookup on the generated_by relation.
+    let mut statement = connection
+        .prepare(
+            "SELECT entity_id FROM pm_relations
+             WHERE kind = 'generated_by' AND target_ref = ?1
+             ORDER BY id",
+        )
+        .map_err(|err| format!("routine status: {err}"))?;
+    let child_ids: Vec<String> = statement
+        .query_map(rusqlite::params![format!("run://{run_id}")], |row| {
+            row.get(0)
+        })
+        .map_err(|err| format!("routine status: {err}"))?
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|err| format!("routine status: {err}"))?;
+    drop(statement);
+    drop(connection);
+
+    let mut items = Vec::new();
+    let mut portable_states = Vec::new();
+    for child_id in &child_ids {
+        let item = project_io::read_work_item(&scope_id, child_id)?;
+        let portable = work_service::state::map_legacy_status(&item.frontmatter.status);
+        portable_states.push(portable);
+        items.push(serde_json::json!({
+            "shortId": child_id,
+            "title": item.frontmatter.title,
+            "status": item.frontmatter.status,
+            "portableState": portable.map(|state| state.as_str()),
+        }));
+    }
+
+    let status = project_run_status(&stored_status, &portable_states, &child_ids, &scope_id)?;
+
+    Ok(serde_json::json!({
+        "apiVersion": "orgtrack/v1",
+        "kind": "RoutineRun",
+        "id": run_id,
+        "routineName": routine_name,
+        "routineRevision": revision,
+        "snapshotHash": snapshot_hash,
+        "scopeId": scope_id,
+        "status": status,
+        "rootWorkItemId": root_id,
+        "workItems": items,
+    }))
+}
+
+/// Ordered first-match projection (§11). Rules 1-3 (queue pending /
+/// cancel) short-circuit to the stored status until Phase 5 lands the
+/// cancel machinery; rules 4-7 compute from the generated items.
+fn project_run_status(
+    stored: &str,
+    portable_states: &[Option<work_service::WorkItemState>],
+    child_ids: &[String],
+    scope_id: &str,
+) -> Result<String, String> {
+    use work_service::WorkItemState::*;
+    if stored == "pending" || stored.starts_with("cancel") || stored == "cancelled" {
+        return Ok(stored.to_string());
+    }
+    if portable_states.iter().any(|s| *s == Some(Failed)) {
+        return Ok("failed".into());
+    }
+    if !portable_states.is_empty() && portable_states.iter().all(|s| *s == Some(Completed)) {
+        return Ok("succeeded".into());
+    }
+    let any_in_progress = portable_states.iter().any(|s| *s == Some(InProgress));
+    if any_in_progress {
+        return Ok("running".into());
+    }
+    // Ready open work: open with all dependencies completed.
+    let connection = project_io::helpers::conn()?;
+    for (index, child_id) in child_ids.iter().enumerate() {
+        if portable_states[index] != Some(Open) {
+            continue;
+        }
+        let mut statement = connection
+            .prepare(
+                "SELECT target_ref FROM pm_relations
+                 WHERE kind = 'depends_on' AND entity_type = 'work_item' AND entity_id = ?1",
+            )
+            .map_err(|err| format!("routine status: {err}"))?;
+        let dependencies: Vec<String> = statement
+            .query_map(rusqlite::params![child_id], |row| row.get(0))
+            .map_err(|err| format!("routine status: {err}"))?
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|err| format!("routine status: {err}"))?;
+        let all_done = dependencies.iter().all(|target| {
+            target
+                .strip_prefix(&format!("work://{scope_id}/"))
+                .map(|dep_id| {
+                    child_ids
+                        .iter()
+                        .position(|c| c == dep_id)
+                        .map(|position| portable_states[position] == Some(Completed))
+                        .unwrap_or(true)
+                })
+                .unwrap_or(true)
+        });
+        if all_done {
+            return Ok("running".into());
+        }
+    }
+    Ok("blocked".into())
+}
+
 #[cfg(test)]
 #[path = "tests.rs"]
 mod tests;
