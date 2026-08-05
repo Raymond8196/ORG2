@@ -12,7 +12,7 @@ use database::db::get_projects_connection;
 /// handles concurrent access cheaply, and SQLite's connection cost is
 /// dominated by the file-open syscall — negligible for an interactive
 /// app.
-pub(super) fn conn() -> Result<rusqlite::Connection, String> {
+pub(crate) fn conn() -> Result<rusqlite::Connection, String> {
     let connection = get_projects_connection().map_err(|err| format!("DB error: {}", err))?;
     #[cfg(test)]
     crate::projects::schema::init_project_tables(&connection)

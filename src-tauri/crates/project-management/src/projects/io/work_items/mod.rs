@@ -56,8 +56,8 @@ mod workspace;
 pub(crate) use atomic::update_standalone_work_item_partial_with_revisions;
 pub use atomic::{
     update_standalone_work_item_partial, update_work_item_atomic, update_work_item_atomic_as,
-    update_work_item_atomic_with_revisions, update_work_item_partial,
-    update_work_item_partial_with_revisions,
+    update_work_item_atomic_serviced, update_work_item_atomic_with_revisions,
+    update_work_item_partial, update_work_item_partial_with_revisions, AtomicServiceOptions,
 };
 pub use batch::{batch_delete_work_items, batch_update_work_items};
 pub(crate) use crud::purge_work_item;

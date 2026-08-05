@@ -14,6 +14,7 @@ pub mod orchestrator;
 pub mod projects;
 pub mod sync;
 pub mod team_inbox;
+pub mod work_service;
 
 #[cfg(test)]
 mod test_support;

@@ -6,7 +6,7 @@
 
 mod assets;
 mod git_folder_sync;
-mod helpers;
+pub(crate) mod helpers;
 mod labels;
 mod members;
 mod milestones;
@@ -57,10 +57,10 @@ pub use work_items::{
     read_workspace_work_items_data, release_execution_lock, restore_work_item,
     transition_standalone_work_item_handoff, transition_work_item_handoff,
     update_standalone_work_item_partial, update_work_item_atomic,
-    update_work_item_atomic_with_revisions, update_work_item_partial,
-    update_work_item_partial_enriched, update_work_item_partial_with_revisions,
-    write_standalone_work_item, write_work_item, FieldRevision, SyncMetadata,
-    REVISION_SOURCE_LOCAL,
+    update_work_item_atomic_serviced, update_work_item_atomic_with_revisions,
+    update_work_item_partial, update_work_item_partial_enriched,
+    update_work_item_partial_with_revisions, write_standalone_work_item, write_work_item,
+    AtomicServiceOptions, FieldRevision, SyncMetadata, REVISION_SOURCE_LOCAL,
 };
 pub(crate) use work_items::{purge_work_item, write_work_item_remote};
 pub(crate) use work_items::{
