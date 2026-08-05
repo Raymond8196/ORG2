@@ -230,6 +230,35 @@ where
     Ok(value)
 }
 
+/// Closure-form atomic RMW for a standalone (org-scoped) work item —
+/// the standalone counterpart to [`update_work_item_atomic`]. Shares the
+/// same `BEGIN IMMEDIATE` boundary, history writer, audit + watermark
+/// emission, and collab-bridge push as the partial-update path, so
+/// callers stop doing client-side read-modify-write + whole-row writes
+/// (the lost-update race).
+pub fn update_standalone_work_item_atomic<T, F>(
+    org_id: Option<&str>,
+    short_id: &str,
+    mutator: F,
+) -> Result<T, String>
+where
+    F: FnOnce(&mut WorkItemFrontmatter, &mut String) -> Result<T, String>,
+{
+    let org_id = org_id.unwrap_or("personal-org");
+    let (value, changed_fields, payload_tail_changed) =
+        update_standalone_work_item_atomic_as(org_id, short_id, None, |fm, body| mutator(fm, body))?;
+    if !changed_fields.is_empty() || payload_tail_changed {
+        let data = super::crud::read_standalone_work_item(Some(org_id), short_id)?;
+        crate::sync::collab_bridge::record_work_item_write(
+            org_id,
+            None,
+            &data.frontmatter.id,
+            data.frontmatter.deleted_at.is_some(),
+        )?;
+    }
+    Ok(value)
+}
+
 pub(super) fn update_standalone_work_item_atomic_as<T, F>(
     org_id: &str,
     short_id: &str,
