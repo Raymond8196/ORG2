@@ -2600,6 +2600,7 @@
     "taskCompletedTitle": "Task completed",
     "taskCompletedBody": "“{{name}}” completed — ready for review",
     "taskCompletedToast": "“{{name}}” completed. Open the Session to review the result.",
+    "openSessionAction": "Open Session",
     "taskFailedTitle": "Task failed",
     "taskFailedBody": "“{{name}}” failed{{detail}}",
     "taskCancelledToast": "“{{name}}” was cancelled"

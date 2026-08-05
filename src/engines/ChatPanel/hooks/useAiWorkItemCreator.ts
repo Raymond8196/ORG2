@@ -1,4 +1,5 @@
 import { emit } from "@tauri-apps/api/event";
+import { useSetAtom } from "jotai";
 import { useCallback, useMemo } from "react";
 
 import {
@@ -15,14 +16,11 @@ import {
 } from "@src/features/Org2Cloud/cloudShortId";
 import i18n from "@src/i18n";
 import type { AgentDefinition } from "@src/modules/MainApp/AgentOrgs/types";
+import { openOrFocusSessionInChatPanelTabAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
 import { SESSION_TARGET_KIND } from "@src/store/session";
 import type { SessionCreatorState } from "@src/store/session/creatorStateAtom";
 import {
-  CHAT_PANEL_CONTENT_MODE,
-  CHAT_PANEL_CREATE_TARGET,
-  type ChatPanelContentMode,
   type ChatPanelCreateProjectContext,
-  type ChatPanelCreateTarget,
   type ChatPanelSelectedProject,
   type ChatPanelSelectedWorkItem,
 } from "@src/store/ui/chatPanelAtom";
@@ -76,16 +74,11 @@ interface UseAiWorkItemCreatorOptions {
    */
   createProjectContext: ChatPanelCreateProjectContext | null;
   creatorState: SessionCreatorState;
-  dispatchClearSession: () => void;
   setActiveSessionId: (sessionId: string | null) => void;
-  setContentMode: (mode: ChatPanelContentMode) => void;
-  setCreateTarget: (target: ChatPanelCreateTarget) => void;
   setSelectedProject: (project: ChatPanelSelectedProject | null) => void;
   setSelectedWorkItem: (workItem: ChatPanelSelectedWorkItem | null) => void;
-  setShowWorkItemAgentCreator: (enabled: boolean) => void;
   setWorkItemCreateDraft: (draft: WorkItemDraft | null) => void;
   setWorkstationActiveSessionId: (sessionId: string | null) => void;
-  sessionCreatorAvailable: boolean;
   workItemCreateDraft: WorkItemDraft | null;
 }
 
@@ -93,18 +86,16 @@ export function useAiWorkItemCreator({
   allAgentDefs,
   createProjectContext,
   creatorState,
-  dispatchClearSession,
   setActiveSessionId,
-  setContentMode,
-  setCreateTarget,
   setSelectedProject,
   setSelectedWorkItem,
-  setShowWorkItemAgentCreator,
   setWorkItemCreateDraft,
   setWorkstationActiveSessionId,
-  sessionCreatorAvailable,
   workItemCreateDraft,
 }: UseAiWorkItemCreatorOptions) {
+  const openOrFocusSessionTab = useSetAtom(
+    openOrFocusSessionInChatPanelTabAtom
+  );
   const resolveAiWorkItemAssignee = useCallback(
     (draft: WorkItemDraft): ResolvedAiWorkItemAssignee | null => {
       if (draft.assigneeType === "agent" && draft.assigneeId) {
@@ -327,24 +318,26 @@ export function useAiWorkItemCreator({
         orgId: metadata.orgId,
         workItem,
       });
-      setShowWorkItemAgentCreator(sessionCreatorAvailable);
       setWorkItemCreateDraft(null);
-      setCreateTarget(CHAT_PANEL_CREATE_TARGET.AGENT_SESSION);
-      setContentMode(CHAT_PANEL_CONTENT_MODE.NON_SESSION);
-      dispatchClearSession();
-      setWorkstationActiveSessionId(null);
-      setActiveSessionId(null);
+      // Land the user IN the launched session instead of bouncing them
+      // back to the start page's Session tab: after "create a work item
+      // with AI" the only honest answer to "what is happening now?" is
+      // the agent session doing the work — it also surfaces the item
+      // via the active-WorkItem pill. The old reset left a blank
+      // composer and a toast minutes later.
+      setActiveSessionId(info.sessionId);
+      setWorkstationActiveSessionId(info.sessionId);
+      openOrFocusSessionTab({
+        sessionId: info.sessionId,
+        sessionName: metadata.item.frontmatter.title,
+      });
       await emit("orgii-data-changed");
     },
     [
-      dispatchClearSession,
-      sessionCreatorAvailable,
+      openOrFocusSessionTab,
       setActiveSessionId,
-      setContentMode,
-      setCreateTarget,
       setSelectedProject,
       setSelectedWorkItem,
-      setShowWorkItemAgentCreator,
       setWorkItemCreateDraft,
       setWorkstationActiveSessionId,
     ]

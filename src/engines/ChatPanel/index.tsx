@@ -443,16 +443,11 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       allAgentDefs,
       createProjectContext,
       creatorState,
-      dispatchClearSession,
       setActiveSessionId,
-      setContentMode,
-      setCreateTarget,
       setSelectedProject,
       setSelectedWorkItem,
-      setShowWorkItemAgentCreator,
       setWorkItemCreateDraft,
       setWorkstationActiveSessionId,
-      sessionCreatorAvailable: Boolean(SessionCreatorSlot),
       workItemCreateDraft,
     });
 
