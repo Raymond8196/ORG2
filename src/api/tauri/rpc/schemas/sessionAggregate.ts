@@ -280,6 +280,9 @@ export const ExternalHistorySidebarRowSchema = z.object({
   // copy, so this is their only storage path.
   storagePath: z.string().optional(),
   model: z.string().optional(),
+  // Stable continuation-family identity elected by the imported-history
+  // cache. Used only for sidebar de-duplication of force-revealed siblings.
+  continuationLineageId: z.string().optional(),
   /** ORGII-owned pin state; imported sessions carry no pin from their source. */
   pinned: z.boolean().optional(),
   totalTokens: z.number().int().optional(),

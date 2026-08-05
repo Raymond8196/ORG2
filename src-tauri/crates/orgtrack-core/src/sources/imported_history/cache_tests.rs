@@ -404,6 +404,74 @@ fn continuation_election_demotes_all_but_newest_sibling() {
 }
 
 #[test]
+fn continuation_election_connects_compaction_epochs_transitively() {
+    let mut conn = fixture_conn();
+    let mut root = input(SOURCE_CODEX_APP, "root", 100);
+    root.source_metadata_json =
+        continuation_metadata_json(Some("first-user-root"), &["compact-a".to_string()]);
+    let mut middle = input(SOURCE_CODEX_APP, "middle", 200);
+    middle.source_metadata_json = continuation_metadata_json(
+        Some("first-user-middle"),
+        &["compact-a".to_string(), "compact-b".to_string()],
+    );
+    let mut newest = input(SOURCE_CODEX_APP, "newest", 300);
+    newest.source_metadata_json =
+        continuation_metadata_json(Some("first-user-newest"), &["compact-b".to_string()]);
+    upsert_imported_session_cache_from_conn(&mut conn, &[root, middle, newest]).expect("upsert");
+
+    let demoted =
+        demote_superseded_continuations_from_conn(&conn, SOURCE_CODEX_APP).expect("election");
+
+    assert_eq!(demoted, 2);
+    assert!(!listable_of(&conn, SOURCE_CODEX_APP, "root"));
+    assert!(!listable_of(&conn, SOURCE_CODEX_APP, "middle"));
+    assert!(listable_of(&conn, SOURCE_CODEX_APP, "newest"));
+    for source_session_id in ["root", "middle", "newest"] {
+        let metadata_json: String = conn
+            .query_row(
+                "SELECT source_metadata_json FROM imported_history_session_cache
+                 WHERE source = ?1 AND source_session_id = ?2",
+                rusqlite::params![SOURCE_CODEX_APP, source_session_id],
+                |row| row.get(0),
+            )
+            .expect("metadata");
+        assert_eq!(
+            continuation_lineage_id_from_metadata_json(&metadata_json).as_deref(),
+            Some("first-user-root")
+        );
+    }
+
+    let page = query_imported_sidebar_page_from_conn(&conn, SOURCE_CODEX_APP, None, None, 10, 0)
+        .expect("sidebar page");
+    assert_eq!(page.sessions.len(), 1);
+    assert_eq!(page.sessions[0].session_id, "codex_app-newest");
+    assert_eq!(
+        page.sessions[0].continuation_lineage_id.as_deref(),
+        Some("first-user-root")
+    );
+
+    // A later continuation preserves the elected id even when its own group
+    // key would sort before the original id.
+    let mut later = input(SOURCE_CODEX_APP, "later", 400);
+    later.source_metadata_json =
+        continuation_metadata_json(Some("000-new-first-user"), &["compact-b".to_string()]);
+    upsert_imported_session_cache_from_conn(&mut conn, &[later]).expect("upsert later");
+    demote_superseded_continuations_from_conn(&conn, SOURCE_CODEX_APP).expect("second election");
+    let later_metadata: String = conn
+        .query_row(
+            "SELECT source_metadata_json FROM imported_history_session_cache
+             WHERE source = ?1 AND source_session_id = 'later'",
+            [SOURCE_CODEX_APP],
+            |row| row.get(0),
+        )
+        .expect("later metadata");
+    assert_eq!(
+        continuation_lineage_id_from_metadata_json(&later_metadata).as_deref(),
+        Some("first-user-root")
+    );
+}
+
+#[test]
 fn continuation_election_never_promotes_and_skips_subagents() {
     let mut conn = fixture_conn();
     let group = continuation_group_metadata_json(Some("family-a"));
@@ -627,6 +695,28 @@ fn continuation_group_metadata_json_shapes() {
             .get(CONTINUATION_GROUP_KEY_FIELD)
             .and_then(|v| v.as_str()),
         Some("uuid-1")
+    );
+}
+
+#[test]
+fn continuation_metadata_bounds_and_deduplicates_markers() {
+    let markers = (0..100)
+        .map(|index| format!("marker-{index}"))
+        .collect::<Vec<_>>();
+    let json = continuation_metadata_json(Some("marker-0"), &markers).expect("metadata");
+    let parsed: serde_json::Value = serde_json::from_str(&json).expect("parse");
+    let stored = parsed
+        .get(CONTINUATION_MARKERS_FIELD)
+        .and_then(serde_json::Value::as_array)
+        .expect("markers");
+    assert_eq!(stored.len(), MAX_CONTINUATION_MARKERS);
+    assert_eq!(stored[0].as_str(), Some("marker-0"));
+    assert_eq!(
+        stored
+            .iter()
+            .filter(|marker| marker.as_str() == Some("marker-0"))
+            .count(),
+        1
     );
 }
 
