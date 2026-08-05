@@ -12,7 +12,7 @@ import {
   getManagedPullRequestKey,
 } from "@src/modules/MainApp/WorkManagement/githubManagedItemModel";
 import SplitViewLayout from "@src/modules/shared/layouts/SplitViewLayout";
-import { Placeholder } from "@src/modules/shared/layouts/blocks";
+import { LoadingBar, Placeholder } from "@src/modules/shared/layouts/blocks";
 import { normalizePrStatus } from "@src/shared/pr/prStatus";
 import type { PrIdentity } from "@src/store/workstation/codeEditor/workstationSelectedPrAtom";
 import type { WorkItem } from "@src/types/core/workItem";
@@ -424,15 +424,7 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
   const detail = (() => {
     if (selectedPullRequest && selectedPullRequestIdentity) {
       return (
-        <React.Suspense
-          fallback={
-            <Placeholder
-              variant="loading"
-              placement="detail-panel"
-              fillParentHeight
-            />
-          }
-        >
+        <React.Suspense fallback={<LoadingBar />}>
           <PullRequestDetailPanel
             identity={selectedPullRequestIdentity}
             repoPath={selectedPullRequest.repoPath}
@@ -442,14 +434,7 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
       );
     }
     if (loadState.status === "loading") {
-      return (
-        <Placeholder
-          variant="loading"
-          placement="detail-panel"
-          title={t("teamInbox.loading")}
-          fillParentHeight
-        />
-      );
+      return <LoadingBar />;
     }
     if (loadState.status === "error" && items.length === 0) {
       return (
@@ -531,18 +516,9 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
           listPanelBackgroundClassName="bg-chat-pane"
           mainContentClassName="bg-chat-pane"
           listContent={
-            loadState.status === "loading" &&
+            loadState.status === "error" &&
             items.length === 0 &&
             pullRequests.length === 0 ? (
-              <Placeholder
-                variant="loading"
-                placement="sidebar"
-                title={t("teamInbox.loading")}
-                fillParentHeight
-              />
-            ) : loadState.status === "error" &&
-              items.length === 0 &&
-              pullRequests.length === 0 ? (
               <Placeholder
                 variant="error"
                 placement="sidebar"

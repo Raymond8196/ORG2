@@ -32,6 +32,7 @@ import {
 import {
   CollapsibleSection,
   ListPanelScrollArea,
+  LoadingBar,
   PANEL_HEADER_TOKENS,
   PanelHeader,
   Placeholder,
@@ -133,7 +134,7 @@ function TeamInboxListSection({
         title={title}
         compact
         headerRowClassName="mb-px h-7"
-        titleButtonClassName="group/section-title h-7 w-full gap-2 pl-2 text-[10px] font-medium uppercase tracking-wider text-text-2 hover:text-text-1"
+        titleButtonClassName="group/section-title h-7 w-full gap-2 pl-2 text-xs font-medium uppercase tracking-wider text-text-2 hover:text-text-1"
         titleClassName="order-first min-w-0 truncate text-left"
         chevronContainerClassName="order-last hidden shrink-0 items-center leading-none group-hover/section-title:inline-flex group-focus-visible/section-title:inline-flex"
         chevronSize={14}
@@ -237,13 +238,13 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
   const showPullRequestsErrorDetails =
     Boolean(pullRequestsError) && pullRequestsErrorUi.detailed;
   const activeFilterUnread = unreadCounts[filter];
+  const showLoadingBar = loading || pullRequestsLoading || loadingMore;
   const loadMoreAction =
     hasMore && onLoadMore ? (
       <div className="flex shrink-0 justify-center px-3 pb-2 pt-1">
         <Button
           variant="tertiary"
           size="small"
-          loading={loadingMore}
           disabled={loadingMore}
           onClick={onLoadMore}
         >
@@ -422,8 +423,7 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
                 size="small"
                 icon={<RefreshCw size={14} strokeWidth={2} />}
                 iconOnly
-                loading={loading}
-                loadingSpinIcon
+                disabled={showLoadingBar}
                 className="shrink-0"
                 aria-label={t("common:actions.refresh")}
                 title={t("common:actions.refresh")}
@@ -483,16 +483,17 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
           variant="sidebar"
           value={query}
           onChange={onQueryChange}
-          placeholder={t("teamInbox.search.placeholder")}
-          ariaLabel={t("teamInbox.search.ariaLabel")}
+          placeholder={t("common:actions.search")}
+          ariaLabel={t("common:actions.search")}
           showClearButton
           className="min-w-0 flex-1"
         />
       </div>
+      {showLoadingBar ? <LoadingBar /> : null}
 
       {items.length === 0 && !hasPullRequestSurface ? (
         <div className="flex min-h-0 flex-1 flex-col">
-          {hasQuery ? (
+          {showLoadingBar ? null : hasQuery ? (
             <Placeholder
               variant="no-results"
               placement="sidebar"
@@ -567,15 +568,6 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
                 ) : null}
               </InlineAlert>
             ) : null}
-            {pullRequestsLoading &&
-            actionablePullRequestCount === 0 &&
-            showPullRequests ? (
-              <Placeholder
-                variant="loading"
-                placement="sidebar"
-                title={t("teamInbox.loading")}
-              />
-            ) : null}
             {showPullRequests &&
             pullRequestSections.reviewRequested.length > 0 ? (
               <TeamInboxListSection
@@ -594,14 +586,7 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
                 {renderPullRequestRows(pullRequestSections.authoredByViewer)}
               </TeamInboxListSection>
             ) : null}
-            {items.length > 0 ? (
-              <TeamInboxListSection
-                title={t("teamInbox.sections.otherTodos")}
-                testId="team-inbox-other-todos"
-              >
-                {inboxRows}
-              </TeamInboxListSection>
-            ) : null}
+            {items.length > 0 ? inboxRows : null}
           </div>
           {loadMoreAction}
         </ListPanelScrollArea>

@@ -195,6 +195,11 @@ describe("TeamInboxRow", () => {
     );
     expect(githubIcon).not.toBeNull();
     expect(githubIcon?.getAttribute("data-icon-size")).toBe("14");
+    expect(githubIcon?.parentElement?.className).toContain("h-4");
+    expect(githubIcon?.parentElement?.className).not.toContain("mt-1");
+    expect(githubIcon?.parentElement?.parentElement?.className).toContain(
+      "items-center"
+    );
     expect(container.querySelector(".lucide-list-checks")).toBeNull();
   });
 

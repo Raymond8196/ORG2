@@ -48,6 +48,7 @@ vi.mock("@src/modules/shared/layouts/SplitViewLayout", () => ({
 }));
 
 vi.mock("@src/modules/shared/layouts/blocks", () => ({
+  LoadingBar: () => createElement("div", { "data-testid": "loading-bar" }),
   Placeholder: (props: Record<string, unknown>) => {
     componentProps.placeholder = props;
     return null;
@@ -164,6 +165,7 @@ describe("TeamInboxView split layout", () => {
     expect(splitViewProps.current?.listWidth).toBe(360);
     expect(splitViewProps.current?.minListWidth).toBe(280);
     expect(splitViewProps.current?.maxListWidth).toBe(480);
+    expect(componentProps.list?.loading).toBe(true);
   });
 
   it("projects successful detail edits back into the matching Inbox row", async () => {

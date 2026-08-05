@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import type { WorkItemHandoffTransition } from "@src/api/http/project";
 import { WorkItemThreadSurface } from "@src/modules/ProjectManager/WorkItems/components";
-import { Placeholder } from "@src/modules/shared/layouts/blocks";
+import { LoadingBar, Placeholder } from "@src/modules/shared/layouts/blocks";
 import type { Person } from "@src/types/core/shared";
 import type { WorkItem } from "@src/types/core/workItem";
 import { resolveGithubRepoFullName } from "@src/util/git/githubRemote";
@@ -207,12 +207,7 @@ const AssignedWorkItemDetail: React.FC<AssignedWorkItemDetailProps> = ({
       }
     >
       {status === "loading" ? (
-        <Placeholder
-          variant="loading"
-          placement="detail-panel"
-          title={t("teamInbox.loading")}
-          fillParentHeight
-        />
+        <LoadingBar />
       ) : status === "ready" && workItem ? (
         <AssignedWorkItemThread
           item={item}
