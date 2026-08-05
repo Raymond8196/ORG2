@@ -102,13 +102,16 @@ const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>(
       );
     }
 
+    const hasConstrainedHeight = maxHeight !== undefined;
+
     return (
       <div
-        className={`rich-text-editor ${isDark ? "dark" : "light"} ${className}`.trim()}
+        className={`rich-text-editor ${
+          hasConstrainedHeight ? "rich-text-editor-scroll-contained" : ""
+        } ${isDark ? "dark" : "light"} ${className}`.trim()}
         style={{
           minHeight,
           maxHeight,
-          overflowY: maxHeight ? "auto" : undefined,
         }}
       >
         {toolbarMode === "inline" && (

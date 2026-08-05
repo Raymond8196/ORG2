@@ -1,5 +1,7 @@
 .rich-text-editor {
   position: relative;
+  display: flex;
+  flex-direction: column;
   width: 100%;
   background: transparent;
   border: none;
@@ -13,6 +15,20 @@
   .rich-text-editor-wrapper {
     width: 100%;
     height: 100%;
+  }
+
+  &.rich-text-editor-scroll-contained {
+    .rich-text-editor-wrapper {
+      min-height: 0;
+      flex: 1 1 auto;
+      height: auto;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+
+    .rich-text-editor-toolbar-inline {
+      flex: 0 0 auto;
+    }
   }
 
   .ProseMirror {
