@@ -1582,7 +1582,49 @@
         "unpinned": "取消置頂了此 issue",
         "transferred": "轉移了此 issue",
         "convertedToDiscussion": "將此 issue 轉換為討論",
-        "mentioned": "提及了此 issue"
+        "mentioned": "提及了此 issue",
+        "commentDeleted": "刪除了一則評論",
+        "subscribed": "訂閱了此 issue",
+        "unsubscribed": "取消訂閱了此 issue",
+        "addedToProject": "將此 issue 新增到專案",
+        "movedInProject": "在專案中移動了此 issue",
+        "removedFromProject": "將此 issue 從專案中移除",
+        "archived": "封存了此 issue",
+        "unarchived": "取消封存了此 issue",
+        "merged": "合併了此拉取請求",
+        "committed": "向此拉取請求提交了變更",
+        "headRefDeleted": "刪除了頭部分支",
+        "headRefRestored": "還原了頭部分支",
+        "headRefForcePushed": "強制推送了頭部分支",
+        "baseRefChanged": "變更了基礎分支",
+        "automaticBaseChangeFailed": "無法自動變更基礎分支",
+        "automaticBaseChangeSucceeded": "自動變更了基礎分支",
+        "deployed": "部署了此拉取請求",
+        "deploymentEnvironmentChanged": "變更了部署環境",
+        "readyForReview": "將此拉取請求標記為可供審查",
+        "reviewRequested": "請求了審查",
+        "reviewRequestRemoved": "移除了審查請求",
+        "reviewed": "審查了這些變更",
+        "reviewDismissed": "駁回了審查",
+        "userBlocked": "封鎖了此使用者"
+      },
+      "composer": {
+        "addComment": "新增評論",
+        "commentingAs": "正以 @{{login}} 身分操作",
+        "identityUnavailable": "GitHub 身分無法使用",
+        "commentPlaceholder": "使用 Markdown 撰寫評論",
+        "submitComment": "評論",
+        "closeIssue": "關閉 issue",
+        "closeAsCompleted": "以已完成關閉",
+        "closeAsNotPlanned": "以不計畫關閉",
+        "closeAsDuplicate": "作為重複項關閉",
+        "duplicateSearchPlaceholder": "搜尋 issue",
+        "duplicateEmpty": "沒有符合的 issue",
+        "duplicateLoadFailed": "無法載入 issue",
+        "reopenIssue": "重新開啟 issue",
+        "commentFailed": "新增評論失敗",
+        "bodyUpdateFailed": "更新 issue 描述失敗",
+        "statusFailed": "更新 issue 狀態失敗"
       }
     }
   },
@@ -2635,5 +2677,15 @@
     "downloadedOfTotal": "{{downloaded}} / {{total}}",
     "preparingDownload": "正在準備下載…",
     "downloadingAndInstalling": "正在下載並安裝更新 (v{{version}})…"
+  },
+  "workManagementTable": {
+    "columns": {
+      "id": "ID",
+      "titleContext": "標題 / 上下文",
+      "status": "狀態",
+      "assignee": "負責人",
+      "updated": "更新時間"
+    },
+    "selectRow": "選擇 {{id}}"
   }
 }

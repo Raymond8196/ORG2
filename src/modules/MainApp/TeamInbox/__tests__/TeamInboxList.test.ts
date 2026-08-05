@@ -15,7 +15,7 @@ vi.mock("react-i18next", () => ({
   }),
 }));
 
-function renderEmptyList(query: string): string {
+function renderEmptyList(query: string, loading = false): string {
   return renderToStaticMarkup(
     createElement(TeamInboxList, {
       filter: "all",
@@ -24,7 +24,7 @@ function renderEmptyList(query: string): string {
       totalUnread: 0,
       unreadCounts: { all: 0, mentions: 0, assigned: 0 },
       query,
-      loading: false,
+      loading,
       onQueryChange: vi.fn(),
       onFilterChange: vi.fn(),
       onSelectItem: vi.fn(),
@@ -117,6 +117,19 @@ describe("TeamInboxList pagination", () => {
     expect(markup).toContain('aria-pressed="true"');
     expect(markup).toContain("!bg-fill-2 !text-text-1");
     expect(markup).toContain("border-0 bg-transparent text-text-2");
+    expect(markup).toContain('placeholder="common:actions.search"');
+    expect(markup).toContain('aria-label="common:actions.search"');
+    expect(markup).not.toContain("teamInbox.search.");
+  });
+
+  it("shows one reusable progress line below search while loading", () => {
+    const markup = renderEmptyList("", true);
+
+    expect(markup).toContain('role="progressbar"');
+    expect(markup).toContain("progress-bar--indeterminate");
+    expect(markup).toContain("h-0.5");
+    expect(markup).not.toContain("teamInbox.loading");
+    expect(markup).not.toContain("placeholders.nothingHereYet");
   });
 
   it("temporarily hides pull-request refresh warnings", () => {
@@ -152,7 +165,7 @@ describe("TeamInboxList pagination", () => {
     expect(renderEmptyList("")).not.toContain("aria-activedescendant");
   });
 
-  it("places actionable pull requests above the collapsible other todos section", () => {
+  it("places actionable pull requests above inbox rows without an extra title row", () => {
     const markup = renderToStaticMarkup(
       createElement(TeamInboxList, {
         filter: "all",
@@ -190,17 +203,19 @@ describe("TeamInboxList pagination", () => {
     const authoredIndex = markup.indexOf(
       'data-testid="team-inbox-pr-authored"'
     );
-    const otherTodosIndex = markup.indexOf(
-      'data-testid="team-inbox-other-todos"'
-    );
+    const inboxRowIndex = markup.indexOf("Existing assigned work");
 
     expect(reviewRequestedIndex).toBeGreaterThanOrEqual(0);
     expect(authoredIndex).toBeGreaterThan(reviewRequestedIndex);
-    expect(otherTodosIndex).toBeGreaterThan(authoredIndex);
+    expect(inboxRowIndex).toBeGreaterThan(authoredIndex);
+    expect(markup).not.toContain('data-testid="team-inbox-other-todos"');
     expect(markup).toContain("Existing assigned work");
     expect(markup).not.toContain("Unrelated open PR");
     expect(markup).toContain("https://example.com/author.png");
-    expect(markup).toContain("#42 · desktop-re · feat/team-inbox");
+    expect(markup).toContain(">#42</span>");
+    expect(markup).toMatch(/class="[^"]*font-semibold[^"]*"[^>]*>#42<\/span>/);
+    expect(markup).toContain("desktop-re · feat/team-inbox");
+    expect(markup).not.toContain("#42 · desktop-re");
     expect(markup).not.toContain(">orgii/desktop-repository<");
     expect(markup).toContain("teamInbox.filters.assigned · ORG2 issue");
     expect(markup).not.toContain("orgii-issu");
@@ -211,10 +226,10 @@ describe("TeamInboxList pagination", () => {
     expect(markup).toMatch(/class="[^"]*text-text-3[^"]*"[^>]*>5h<\/span>/);
     expect(markup).toContain("text-text-2");
     expect(markup.match(/data-team-inbox-list-item="true"/g)).toHaveLength(3);
-    expect(markup.match(/class="mb-2 last:mb-0"/g)).toHaveLength(3);
+    expect(markup.match(/class="mb-2 last:mb-0"/g)).toHaveLength(2);
     expect(markup).toContain("mb-px h-7");
     expect(markup).toContain(
-      "text-[10px] font-medium uppercase tracking-wider text-text-2"
+      "text-xs font-medium uppercase tracking-wider text-text-2"
     );
     expect(markup).toContain("rounded-lg");
     expect(markup).toContain("hover:bg-surface-hover");

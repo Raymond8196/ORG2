@@ -116,10 +116,10 @@ export function coalesceGitHubListRequest<T>(
 // a `304 Not Modified` back when nothing changed. Only the bounded list caches
 // are persisted (not the heavier per-PR detail cache).
 
-const STORAGE_KEY_ISSUES = "orgii.ghcache.issues.v1";
+const STORAGE_KEY_ISSUES = "orgii.ghcache.issues.v2";
 // v2 adds author + outstanding-reviewer identity to every PR list item.
 // A key bump prevents v1 entries from being silently classified as unrelated.
-const STORAGE_KEY_PRS = "orgii.ghcache.prs.v2";
+const STORAGE_KEY_PRS = "orgii.ghcache.prs.v3";
 
 function safeLocalStorage(): Storage | null {
   try {
@@ -159,6 +159,30 @@ function persist<T>(storageKey: string, cache: Map<string, T>): void {
   }
 }
 
+const pendingPersistence = new Map<string, Map<string, unknown>>();
+let persistenceTimer: ReturnType<typeof setTimeout> | null = null;
+
+function flushPendingPersistence(): void {
+  if (persistenceTimer) {
+    clearTimeout(persistenceTimer);
+    persistenceTimer = null;
+  }
+  for (const [storageKey, cache] of pendingPersistence) {
+    persist(storageKey, cache);
+  }
+  pendingPersistence.clear();
+}
+
+function schedulePersist<T>(storageKey: string, cache: Map<string, T>): void {
+  pendingPersistence.set(storageKey, cache as Map<string, unknown>);
+  if (persistenceTimer) return;
+  persistenceTimer = setTimeout(flushPendingPersistence, 100);
+}
+
+export function flushGitHubListCachePersistence(): void {
+  flushPendingPersistence();
+}
+
 hydrate(STORAGE_KEY_ISSUES, issueCache, MAX_REPOS);
 hydrate(STORAGE_KEY_PRS, prCache, MAX_PR_LISTS);
 
@@ -194,7 +218,7 @@ export function updateCachedOpenIssues(
     openCachedAt: Date.now(),
     closedCachedAt: existing?.closedCachedAt ?? null,
   });
-  persist(STORAGE_KEY_ISSUES, issueCache);
+  schedulePersist(STORAGE_KEY_ISSUES, issueCache);
 }
 
 export function updateCachedClosedIssues(
@@ -208,7 +232,7 @@ export function updateCachedClosedIssues(
     openCachedAt: existing?.openCachedAt ?? null,
     closedCachedAt: Date.now(),
   });
-  persist(STORAGE_KEY_ISSUES, issueCache);
+  schedulePersist(STORAGE_KEY_ISSUES, issueCache);
 }
 
 // ── Pull Requests ─────────────────────────────────────────────────────────────
@@ -249,7 +273,7 @@ export function setCachedPrs(
     },
     MAX_PR_LISTS
   );
-  persist(STORAGE_KEY_PRS, prCache);
+  schedulePersist(STORAGE_KEY_PRS, prCache);
 }
 
 // ── Pull Request detail ─────────────────────────────────────────────────────

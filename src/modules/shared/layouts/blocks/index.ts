@@ -129,6 +129,9 @@ export type { ListPanelTabPillRowProps } from "./ListPanelTabPillRow";
 export { default as ListPanelScrollArea } from "./ListPanelScrollArea";
 export type { ListPanelScrollAreaProps } from "./ListPanelScrollArea";
 
+export { default as LoadingBar } from "./LoadingBar";
+export type { LoadingBarProps } from "./LoadingBar";
+
 export { Placeholder, PLACEHOLDER_TOKENS } from "./Placeholder";
 export type {
   PlaceholderProps,

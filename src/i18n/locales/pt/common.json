@@ -1571,7 +1571,49 @@
         "unpinned": "desafixou esta issue",
         "transferred": "transferiu esta issue",
         "convertedToDiscussion": "converteu esta issue em uma discussão",
-        "mentioned": "mencionou esta issue"
+        "mentioned": "mencionou esta issue",
+        "commentDeleted": "excluiu um comentário",
+        "subscribed": "assinou esta issue",
+        "unsubscribed": "cancelou a assinatura desta issue",
+        "addedToProject": "adicionou esta issue a um projeto",
+        "movedInProject": "moveu esta issue em um projeto",
+        "removedFromProject": "removeu esta issue de um projeto",
+        "archived": "arquivou esta issue",
+        "unarchived": "desarquivou esta issue",
+        "merged": "mesclou esta pull request",
+        "committed": "fez commit nesta pull request",
+        "headRefDeleted": "excluiu a branch de origem",
+        "headRefRestored": "restaurou a branch de origem",
+        "headRefForcePushed": "forçou o push da branch de origem",
+        "baseRefChanged": "alterou a branch base",
+        "automaticBaseChangeFailed": "não conseguiu alterar automaticamente a branch base",
+        "automaticBaseChangeSucceeded": "alterou automaticamente a branch base",
+        "deployed": "implantou esta pull request",
+        "deploymentEnvironmentChanged": "alterou o ambiente de implantação",
+        "readyForReview": "marcou esta pull request como pronta para revisão",
+        "reviewRequested": "solicitou uma revisão",
+        "reviewRequestRemoved": "removeu uma solicitação de revisão",
+        "reviewed": "revisou estas alterações",
+        "reviewDismissed": "dispensou uma revisão",
+        "userBlocked": "bloqueou este usuário"
+      },
+      "composer": {
+        "addComment": "Adicionar um comentário",
+        "commentingAs": "Comentando como @{{login}}",
+        "identityUnavailable": "Identidade do GitHub indisponível",
+        "commentPlaceholder": "Use Markdown para formatar seu comentário",
+        "submitComment": "Comentar",
+        "closeIssue": "Fechar issue",
+        "closeAsCompleted": "Fechar como concluído",
+        "closeAsNotPlanned": "Fechar como não planejado",
+        "closeAsDuplicate": "Fechar como duplicado",
+        "duplicateSearchPlaceholder": "Pesquisar issues",
+        "duplicateEmpty": "Nenhuma issue correspondente",
+        "duplicateLoadFailed": "Falha ao carregar issues",
+        "reopenIssue": "Reabrir issue",
+        "commentFailed": "Não foi possível adicionar o comentário",
+        "bodyUpdateFailed": "Não foi possível atualizar a descrição da issue",
+        "statusFailed": "Não foi possível atualizar o status da issue"
       }
     }
   },
@@ -2607,5 +2649,15 @@
     "downloadedOfTotal": "{{downloaded}} de {{total}}",
     "preparingDownload": "Preparando download…",
     "downloadingAndInstalling": "Baixando e instalando atualização (v{{version}})…"
+  },
+  "workManagementTable": {
+    "columns": {
+      "id": "ID",
+      "titleContext": "Título / contexto",
+      "status": "Status",
+      "assignee": "Responsável",
+      "updated": "Atualizado"
+    },
+    "selectRow": "Selecionar {{id}}"
   }
 }

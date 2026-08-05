@@ -2,9 +2,9 @@
  * useProjectWorkItemsTabContentWorkspaceData
  *
  * Owns the workspace work-item data source for ProjectWorkItemsTabContent:
- * fetching the active/completed buckets, incremental "completed" section
- * loading, and the local/external workspace-source toggle. Extracted to
- * keep the tab-content component under the 600-line limit.
+ * fetching the active/completed buckets, on-demand completed-filter loading,
+ * and the local/external workspace-source toggle. Extracted to keep the
+ * tab-content component under the 600-line limit.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -52,8 +52,8 @@ export function useProjectWorkItemsTabContentWorkspaceData({
   const [loading, setLoading] = useState(true);
   const [loaded, setLoaded] = useState(false);
   const loadedRef = useRef(false);
+  const loadGenerationRef = useRef(0);
   const completedItemsLoadedRef = useRef(false);
-  const completedSectionExpandedRef = useRef(false);
   const [completedItemsLoading, setCompletedItemsLoading] = useState(false);
   const completedItemsLoadingRef = useRef(false);
   const completedLoadGenerationRef = useRef(0);
@@ -83,39 +83,33 @@ export function useProjectWorkItemsTabContentWorkspaceData({
 
   const loadWorkItems = useCallback(
     async (cancelled?: () => boolean) => {
+      const loadGeneration = loadGenerationRef.current + 1;
+      loadGenerationRef.current = loadGeneration;
       setLoading(true);
       setError(null);
       try {
-        const [projects, orgs, linearWorkItems] = await Promise.all([
-          projectApi.readProjects({ orgId }),
-          projectApi.readOrgs(),
+        const shouldLoadCompleted = completedItemsLoadedRef.current;
+        const readBucket = shouldLoadCompleted
+          ? undefined
+          : WORKSPACE_ACTIVE_READ_BUCKET;
+        const [workspaceData, linearWorkItems] = await Promise.all([
+          projectApi.readWorkspaceWorkItemsData({ orgId, readBucket }),
           includeExternalSources ? loadWorkspaceLinearWorkItems() : [],
         ]);
-        const orgNameById = new Map(orgs.map((org) => [org.id, org.name]));
-        const shouldLoadCompleted =
-          completedItemsLoadedRef.current ||
-          completedSectionExpandedRef.current;
-        const [activeEntries, completedEntries] = await Promise.all([
-          readWorkspaceBucket({
-            projects,
-            orgNameById,
-            orgId,
-            readBucket: WORKSPACE_ACTIVE_READ_BUCKET,
-            linearWorkItems,
-          }),
-          shouldLoadCompleted
-            ? readWorkspaceBucket({
-                projects,
-                orgNameById,
-                orgId,
-                readBucket: WORKSPACE_COMPLETED_READ_BUCKET,
-                linearWorkItems,
-              })
-            : Promise.resolve([]),
-        ]);
-        if (cancelled?.()) return;
+        const entries = readWorkspaceBucket({
+          workspaceData,
+          orgId,
+          readBucket,
+          linearWorkItems,
+        });
+        if (cancelled?.() || loadGenerationRef.current !== loadGeneration) {
+          return;
+        }
+        const orgNameById = new Map(
+          workspaceData.orgs.map((org) => [org.id, org.name])
+        );
         setProjectOptions(
-          projects.map((project) => ({
+          workspaceData.projectEntries.map(({ project }) => ({
             id: project.meta.id,
             name: project.meta.name,
             slug: project.slug,
@@ -125,14 +119,14 @@ export function useProjectWorkItemsTabContentWorkspaceData({
         );
         setWorkItemsByProject((currentEntries) => {
           if (shouldLoadCompleted) {
-            return [...activeEntries, ...completedEntries];
+            return entries;
           }
           const completedEntriesToPreserve = completedItemsLoadedRef.current
             ? currentEntries.filter((entry) =>
                 isWorkspaceCompletedWorkItem(entry.item)
               )
             : [];
-          return [...activeEntries, ...completedEntriesToPreserve];
+          return [...entries, ...completedEntriesToPreserve];
         });
         if (shouldLoadCompleted) {
           completedItemsLoadedRef.current = true;
@@ -140,7 +134,9 @@ export function useProjectWorkItemsTabContentWorkspaceData({
         loadedRef.current = true;
         setLoaded(true);
       } catch (err) {
-        if (cancelled?.()) return;
+        if (cancelled?.() || loadGenerationRef.current !== loadGeneration) {
+          return;
+        }
         if (!loadedRef.current) {
           setWorkItemsByProject([]);
         }
@@ -148,7 +144,9 @@ export function useProjectWorkItemsTabContentWorkspaceData({
           err instanceof Error ? err.message : t("projects.loadProjectsFailed")
         );
       } finally {
-        if (!cancelled?.()) setLoading(false);
+        if (!cancelled?.() && loadGenerationRef.current === loadGeneration) {
+          setLoading(false);
+        }
       }
     },
     [includeExternalSources, orgId, t]
@@ -179,15 +177,15 @@ export function useProjectWorkItemsTabContentWorkspaceData({
     setCompletedItemsLoading(true);
     setCompletedItemsError(null);
     try {
-      const [projects, orgs, linearWorkItems] = await Promise.all([
-        projectApi.readProjects({ orgId }),
-        projectApi.readOrgs(),
+      const [workspaceData, linearWorkItems] = await Promise.all([
+        projectApi.readWorkspaceWorkItemsData({
+          orgId,
+          readBucket: WORKSPACE_COMPLETED_READ_BUCKET,
+        }),
         includeExternalSources ? loadWorkspaceLinearWorkItems() : [],
       ]);
-      const orgNameById = new Map(orgs.map((org) => [org.id, org.name]));
-      const completedEntries = await readWorkspaceBucket({
-        projects,
-        orgNameById,
+      const completedEntries = readWorkspaceBucket({
+        workspaceData,
         orgId,
         readBucket: WORKSPACE_COMPLETED_READ_BUCKET,
         linearWorkItems,
@@ -222,7 +220,6 @@ export function useProjectWorkItemsTabContentWorkspaceData({
     completedItemsError,
     loadWorkItems,
     loadCompletedWorkItems,
-    completedSectionExpandedRef,
     workspaceSourceMode,
     setWorkspaceSourceMode,
     includeExternalSources,

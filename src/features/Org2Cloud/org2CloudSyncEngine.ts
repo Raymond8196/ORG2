@@ -58,6 +58,7 @@ import { createLogger } from "@src/hooks/logger";
 import { sessionsAtom } from "@src/store/session/sessionAtom/atoms";
 import type { Session } from "@src/store/session/sessionAtom/types";
 import { chatPanelSelectedCloudOrgAtom } from "@src/store/ui/chatPanelAtom";
+import { isImportedHistorySession } from "@src/util/session/sessionDispatch";
 
 import type { ProjectSyncBridge } from "../TeamCollaboration/engine/projectSyncBridge";
 import { tauriProjectSyncBridge } from "../TeamCollaboration/engine/projectSyncBridge";
@@ -138,7 +139,10 @@ import {
   findVanishedPushedSessionIds,
   resolveLocalSessionIdsViaAggregateList,
 } from "./org2CloudSyncEngine.vanishedSessions";
-import { Org2CloudSyncLifecycle } from "./org2CloudSyncLifecycle";
+import {
+  type CloudStore,
+  Org2CloudSyncLifecycle,
+} from "./org2CloudSyncLifecycle";
 
 export {
   DATA_CHANGED_DEBOUNCE_MS,
@@ -161,6 +165,9 @@ export type { Org2CloudSchemaVersionProbe } from "./org2CloudSyncEngine.schemaGa
 const log = createLogger("Org2CloudSyncEngine");
 
 export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
+  /** Last roster version for each locally owned external-history session. */
+  private readonly externalHistoryRosterVersions = new Map<string, string>();
+  private sessionRosterUnsubscribe: (() => void) | null = null;
   /** Per-org entitlement backoff deadlines + notification state, split out
    * to `Org2CloudOrgBackoffTracker` — see that module for the per-map
    * rationale (kept together there since a policy signal touches more than
@@ -220,6 +227,57 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
     this.sessionColdStart = new Org2CloudSessionColdStart(client);
     this.schemaGate = new Org2CloudSchemaGate(probeSchemaVersion);
     this.resolveLocalSessionIds = resolveLocalSessionIds;
+  }
+
+  override start(store: CloudStore): void {
+    if (this.sessionRosterUnsubscribe) return;
+    super.start(store);
+    this.captureExternalHistoryRosterActivity(store);
+    this.sessionRosterUnsubscribe = store.sub(sessionsAtom, () => {
+      this.captureExternalHistoryRosterActivity(store);
+    });
+  }
+
+  override stop(): void {
+    this.sessionRosterUnsubscribe?.();
+    this.sessionRosterUnsubscribe = null;
+    this.externalHistoryRosterVersions.clear();
+    super.stop();
+  }
+
+  /**
+   * Imported providers refresh sessionsAtom directly instead of writing the
+   * EventStore. Convert only meaningful source-version changes into the same
+   * bounded quiet-window trigger used by native event notifications.
+   */
+  private captureExternalHistoryRosterActivity(store: CloudStore): void {
+    const nextVersions = new Map<string, string>();
+    const changedSessionIds: string[] = [];
+    for (const session of store.get(sessionsAtom)) {
+      if (
+        !isImportedHistorySession(session.session_id) ||
+        !isCloudPushCandidate(session)
+      ) {
+        continue;
+      }
+      const version = session.updated_at ?? "";
+      nextVersions.set(session.session_id, version);
+      if (
+        this.externalHistoryRosterVersions.get(session.session_id) !== version
+      ) {
+        changedSessionIds.push(session.session_id);
+      }
+    }
+    this.externalHistoryRosterVersions.clear();
+    for (const [sessionId, version] of nextVersions) {
+      this.externalHistoryRosterVersions.set(sessionId, version);
+    }
+    if (changedSessionIds.length === 0) return;
+    for (const sessionId of changedSessionIds) {
+      this.noteSessionEventActivity(sessionId);
+    }
+    // One timer coalesces every changed imported session into one cloud pass.
+    this.scheduleActivityPass(changedSessionIds[0]!);
   }
 
   protected override resetSyncState(): void {

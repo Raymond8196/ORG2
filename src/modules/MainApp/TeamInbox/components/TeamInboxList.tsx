@@ -28,11 +28,11 @@ import SearchInput from "@src/components/SearchInput";
 import {
   type ManagedPrItem,
   getManagedPullRequestKey,
-  groupPullRequestsIntoTodoSections,
 } from "@src/modules/MainApp/WorkManagement/githubManagedItemModel";
 import {
   CollapsibleSection,
   ListPanelScrollArea,
+  LoadingBar,
   PANEL_HEADER_TOKENS,
   PanelHeader,
   Placeholder,
@@ -92,6 +92,28 @@ const PULL_REQUEST_ICONS: Record<PrStatusIconName, LucideIcon> = {
   draft: GitPullRequestDraft,
 };
 
+interface TeamInboxPullRequestSections {
+  reviewRequested: ManagedPrItem[];
+  authoredByViewer: ManagedPrItem[];
+}
+
+function groupTeamInboxPullRequests(
+  pullRequests: readonly ManagedPrItem[]
+): TeamInboxPullRequestSections {
+  return pullRequests.reduce<TeamInboxPullRequestSections>(
+    (sections, pullRequest) => {
+      if (pullRequest.state !== "open") return sections;
+      if (pullRequest.reviewRequestedFromViewer) {
+        sections.reviewRequested.push(pullRequest);
+      } else if (pullRequest.authoredByViewer) {
+        sections.authoredByViewer.push(pullRequest);
+      }
+      return sections;
+    },
+    { reviewRequested: [], authoredByViewer: [] }
+  );
+}
+
 // Temporarily hidden until GitHub OAuth failures can name the affected
 // repositories and offer a useful recovery path. Keep the warning UI in place
 // so it can be restored without rebuilding its shared styling and behavior.
@@ -112,7 +134,7 @@ function TeamInboxListSection({
         title={title}
         compact
         headerRowClassName="mb-px h-7"
-        titleButtonClassName="group/section-title h-7 w-full gap-2 pl-2 text-[10px] font-medium uppercase tracking-wider text-text-2 hover:text-text-1"
+        titleButtonClassName="group/section-title h-7 w-full gap-2 pl-2 text-xs font-medium uppercase tracking-wider text-text-2 hover:text-text-1"
         titleClassName="order-first min-w-0 truncate text-left"
         chevronContainerClassName="order-last hidden shrink-0 items-center leading-none group-hover/section-title:inline-flex group-focus-visible/section-title:inline-flex"
         chevronSize={14}
@@ -196,7 +218,7 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
     );
   }, [pullRequests, query]);
   const pullRequestSections = useMemo(
-    () => groupPullRequestsIntoTodoSections(visiblePullRequests),
+    () => groupTeamInboxPullRequests(visiblePullRequests),
     [visiblePullRequests]
   );
   const showPullRequests = filter === "all";
@@ -216,13 +238,13 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
   const showPullRequestsErrorDetails =
     Boolean(pullRequestsError) && pullRequestsErrorUi.detailed;
   const activeFilterUnread = unreadCounts[filter];
+  const showLoadingBar = loading || pullRequestsLoading || loadingMore;
   const loadMoreAction =
     hasMore && onLoadMore ? (
       <div className="flex shrink-0 justify-center px-3 pb-2 pt-1">
         <Button
           variant="tertiary"
           size="small"
-          loading={loadingMore}
           disabled={loadingMore}
           onClick={onLoadMore}
         >
@@ -312,6 +334,7 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
           id={key}
           selected={selectedPullRequestKey === key}
           title={pullRequest.title}
+          titlePrefix={`#${pullRequest.id}`}
           time={pullRequest.timeAgo}
           metadata={
             <>
@@ -321,7 +344,7 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
                 hideOnError
               />
               <span className="truncate">
-                #{pullRequest.id} · {compactRepositoryLabel(pullRequest.repo)} ·{" "}
+                {compactRepositoryLabel(pullRequest.repo)} ·{" "}
                 {pullRequest.sourceBranch}
               </span>
             </>
@@ -401,8 +424,7 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
                 size="small"
                 icon={<RefreshCw size={14} strokeWidth={2} />}
                 iconOnly
-                loading={loading}
-                loadingSpinIcon
+                disabled={showLoadingBar}
                 className="shrink-0"
                 aria-label={t("common:actions.refresh")}
                 title={t("common:actions.refresh")}
@@ -462,18 +484,20 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
           variant="sidebar"
           value={query}
           onChange={onQueryChange}
-          placeholder={t("teamInbox.search.placeholder")}
-          ariaLabel={t("teamInbox.search.ariaLabel")}
+          placeholder={t("common:actions.search")}
+          ariaLabel={t("common:actions.search")}
           showClearButton
           className="min-w-0 flex-1"
         />
       </div>
+      {showLoadingBar ? <LoadingBar /> : null}
 
       {items.length === 0 && !hasPullRequestSurface ? (
         <div className="flex min-h-0 flex-1 flex-col">
-          {hasQuery ? (
+          {showLoadingBar ? null : hasQuery ? (
             <Placeholder
-              variant="empty"
+              variant="no-results"
+              placement="sidebar"
               title={t("teamInbox.empty.noResults.title")}
               subtitle={t("teamInbox.empty.noResults.subtitle", {
                 query: query.trim(),
@@ -483,6 +507,7 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
           ) : (
             <Placeholder
               variant="empty"
+              placement="sidebar"
               title={t(`teamInbox.empty.${filter}.title`, {
                 defaultValue: t("teamInbox.empty.title"),
               })}
@@ -544,11 +569,6 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
                 ) : null}
               </InlineAlert>
             ) : null}
-            {pullRequestsLoading &&
-            actionablePullRequestCount === 0 &&
-            showPullRequests ? (
-              <Placeholder variant="loading" title={t("teamInbox.loading")} />
-            ) : null}
             {showPullRequests &&
             pullRequestSections.reviewRequested.length > 0 ? (
               <TeamInboxListSection
@@ -567,14 +587,7 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
                 {renderPullRequestRows(pullRequestSections.authoredByViewer)}
               </TeamInboxListSection>
             ) : null}
-            {items.length > 0 ? (
-              <TeamInboxListSection
-                title={t("teamInbox.sections.otherTodos")}
-                testId="team-inbox-other-todos"
-              >
-                {inboxRows}
-              </TeamInboxListSection>
-            ) : null}
+            {items.length > 0 ? inboxRows : null}
           </div>
           {loadMoreAction}
         </ListPanelScrollArea>

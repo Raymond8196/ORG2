@@ -1570,7 +1570,49 @@
         "unpinned": "님이 이 issue의 고정을 해제했습니다",
         "transferred": "님이 이 issue를 이전했습니다",
         "convertedToDiscussion": "님이 이 issue를 토론으로 전환했습니다",
-        "mentioned": "님이 이 issue를 언급했습니다"
+        "mentioned": "님이 이 issue를 언급했습니다",
+        "commentDeleted": "님이 댓글을 삭제했습니다",
+        "subscribed": "님이 이 issue를 구독했습니다",
+        "unsubscribed": "님이 이 issue 구독을 취소했습니다",
+        "addedToProject": "님이 이 issue를 프로젝트에 추가했습니다",
+        "movedInProject": "님이 프로젝트에서 이 issue를 이동했습니다",
+        "removedFromProject": "님이 이 issue를 프로젝트에서 제거했습니다",
+        "archived": "님이 이 issue를 보관했습니다",
+        "unarchived": "님이 이 issue의 보관을 해제했습니다",
+        "merged": "님이 이 풀 리퀘스트를 병합했습니다",
+        "committed": "님이 이 풀 리퀘스트에 커밋했습니다",
+        "headRefDeleted": "님이 헤드 브랜치를 삭제했습니다",
+        "headRefRestored": "님이 헤드 브랜치를 복원했습니다",
+        "headRefForcePushed": "님이 헤드 브랜치를 강제 푸시했습니다",
+        "baseRefChanged": "님이 베이스 브랜치를 변경했습니다",
+        "automaticBaseChangeFailed": "님이 베이스 브랜치를 자동으로 변경하지 못했습니다",
+        "automaticBaseChangeSucceeded": "님이 베이스 브랜치를 자동으로 변경했습니다",
+        "deployed": "님이 이 풀 리퀘스트를 배포했습니다",
+        "deploymentEnvironmentChanged": "님이 배포 환경을 변경했습니다",
+        "readyForReview": "님이 이 풀 리퀘스트를 리뷰 준비 상태로 표시했습니다",
+        "reviewRequested": "님이 리뷰를 요청했습니다",
+        "reviewRequestRemoved": "님이 리뷰 요청을 제거했습니다",
+        "reviewed": "님이 이 변경 사항을 리뷰했습니다",
+        "reviewDismissed": "님이 리뷰를 기각했습니다",
+        "userBlocked": "님이 이 사용자를 차단했습니다"
+      },
+      "composer": {
+        "addComment": "댓글 추가",
+        "commentingAs": "@{{login}} 계정으로 작업 중",
+        "identityUnavailable": "GitHub 사용자 정보를 사용할 수 없습니다",
+        "commentPlaceholder": "Markdown으로 댓글 작성",
+        "submitComment": "댓글",
+        "closeIssue": "issue 닫기",
+        "closeAsCompleted": "완료로 닫기",
+        "closeAsNotPlanned": "계획되지 않음으로 닫기",
+        "closeAsDuplicate": "중복으로 닫기",
+        "duplicateSearchPlaceholder": "issue 검색",
+        "duplicateEmpty": "일치하는 issue가 없습니다",
+        "duplicateLoadFailed": "issue를 불러오지 못했습니다",
+        "reopenIssue": "issue 다시 열기",
+        "commentFailed": "댓글을 추가하지 못했습니다",
+        "bodyUpdateFailed": "issue 설명을 업데이트하지 못했습니다",
+        "statusFailed": "issue 상태를 업데이트하지 못했습니다"
       }
     }
   },
@@ -2608,5 +2650,15 @@
     "downloadedOfTotal": "{{downloaded}} / {{total}}",
     "preparingDownload": "다운로드 준비 중…",
     "downloadingAndInstalling": "업데이트 다운로드 및 설치 중 (v{{version}})…"
+  },
+  "workManagementTable": {
+    "columns": {
+      "id": "ID",
+      "titleContext": "제목 / 컨텍스트",
+      "status": "상태",
+      "assignee": "담당자",
+      "updated": "업데이트"
+    },
+    "selectRow": "{{id}} 선택"
   }
 }

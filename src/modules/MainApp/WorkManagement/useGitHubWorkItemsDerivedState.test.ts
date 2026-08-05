@@ -8,6 +8,7 @@ import { deriveGitHubWorkItemsState } from "./useGitHubWorkItemsDerivedState";
 import {
   EMPTY_REPO_ISSUES,
   EMPTY_REPO_PRS,
+  selectGitHubLoadSources,
 } from "./useGitHubWorkItemsLoadLifecycle";
 
 const source: GitHubRepoSource = {
@@ -17,6 +18,7 @@ const source: GitHubRepoSource = {
   remoteUrl: "https://github.com/acme/repo.git",
   repoFullName: "acme/repo",
   viewerLogin: "viewer",
+  permissions: null,
 };
 const issue = {
   number: 42,
@@ -72,6 +74,53 @@ function derive(selectedRepo: string, selectedRepoPath: string | null) {
 }
 
 describe("GitHub work-items derived state", () => {
+  it("loads only the selected repository unless all repositories are requested", () => {
+    const secondSource: GitHubRepoSource = {
+      ...source,
+      repoId: "repo-2",
+      repoPath: "/repo-2",
+      repoFullName: "acme/repo-2",
+    };
+    const sources = [source, secondSource];
+
+    expect(
+      selectGitHubLoadSources({
+        sources,
+        selectedRepo: "currentWorkstation",
+        selectedRepoPath: "/repo",
+        allReposValue: "all",
+        currentWorkstationValue: "currentWorkstation",
+      })
+    ).toEqual([source]);
+    expect(
+      selectGitHubLoadSources({
+        sources,
+        selectedRepo: "acme/repo-2",
+        selectedRepoPath: "/repo",
+        allReposValue: "all",
+        currentWorkstationValue: "currentWorkstation",
+      })
+    ).toEqual([secondSource]);
+    expect(
+      selectGitHubLoadSources({
+        sources,
+        selectedRepo: "all",
+        selectedRepoPath: "/repo",
+        allReposValue: "all",
+        currentWorkstationValue: "currentWorkstation",
+      })
+    ).toEqual(sources);
+    expect(
+      selectGitHubLoadSources({
+        sources,
+        selectedRepo: "missing/repo",
+        selectedRepoPath: null,
+        allReposValue: "all",
+        currentWorkstationValue: "currentWorkstation",
+      })
+    ).toEqual([]);
+  });
+
   it("resolves current workstation and invalid repo selections", () => {
     expect(derive("currentWorkstation", "/repo")).toMatchObject({
       effectiveSelectedRepo: "acme/repo",
@@ -90,17 +139,19 @@ describe("GitHub work-items derived state", () => {
     expect(state.closedIssuesLoaded).toBe(false);
   });
 
-  it("orders open PRs with personal work before other todos", () => {
+  it("keeps open PRs in updated order without personal-work sections", () => {
     const openPr = (
       number: number,
       authorLogin: string,
-      requestedReviewerLogins: string[]
+      requestedReviewerLogins: string[],
+      updatedAt: string
     ): OpenPRItem => ({
       ...mergedPr,
       number,
       state: "open",
       author_login: authorLogin,
       requested_reviewer_logins: requestedReviewerLogins,
+      updated_at: updatedAt,
     });
     const state = deriveGitHubWorkItemsState({
       repoSources: [source],
@@ -109,9 +160,9 @@ describe("GitHub work-items derived state", () => {
         [source.repoFullName]: {
           ...EMPTY_REPO_PRS,
           openPrs: [
-            openPr(8, "teammate", ["viewer"]),
-            openPr(9, "viewer", []),
-            openPr(10, "teammate", []),
+            openPr(8, "teammate", ["viewer"], "2026-07-20T08:00:00.000Z"),
+            openPr(9, "viewer", [], "2026-07-20T10:00:00.000Z"),
+            openPr(10, "teammate", [], "2026-07-20T09:00:00.000Z"),
           ],
           openLoaded: true,
           closedPrs: [mergedPr],
@@ -126,15 +177,6 @@ describe("GitHub work-items derived state", () => {
       currentWorkstationValue: "currentWorkstation",
     });
 
-    expect(state.filteredItems.map((item) => item.id)).toEqual([8, 9, 10]);
-    expect(
-      state.pullRequestTodoSections.reviewRequested.map((item) => item.id)
-    ).toEqual([8]);
-    expect(
-      state.pullRequestTodoSections.authoredByViewer.map((item) => item.id)
-    ).toEqual([9]);
-    expect(
-      state.pullRequestTodoSections.otherTodos.map((item) => item.id)
-    ).toEqual([10]);
+    expect(state.filteredItems.map((item) => item.id)).toEqual([9, 10, 8]);
   });
 });

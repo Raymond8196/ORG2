@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 
 import type {
   GitHubIssue,
@@ -23,26 +23,35 @@ export interface IssueDetailState {
   error: string | null;
 }
 
-export function useGitHubIssueDetail({
-  onDetailViewChange,
-}: {
-  onDetailViewChange: (open: boolean, onBack: (() => void) | null) => void;
-}) {
+export function reconcileIssueDetailIssue(
+  current: IssueDetailState | null,
+  issue: GitHubIssue
+): IssueDetailState | null {
+  if (current?.issue.html_url !== issue.html_url) return current;
+  return {
+    ...current,
+    issue,
+    source: {
+      ...current.source,
+      rawIssue: issue,
+      title: issue.title,
+      state: issue.state,
+      labels: issue.labels,
+      comments: issue.comments,
+      updatedAt: issue.updated_at,
+    },
+    error: null,
+  };
+}
+
+export function useGitHubIssueDetail() {
   const [detail, setDetail] = useState<IssueDetailState | null>(null);
   const closeDetail = useCallback(() => setDetail(null), []);
-  const detailOpen = Boolean(detail);
-
-  useEffect(() => {
-    onDetailViewChange(detailOpen, detailOpen ? closeDetail : null);
-  }, [closeDetail, detailOpen, onDetailViewChange]);
-
-  useEffect(
-    () => () => {
-      onDetailViewChange(false, null);
-    },
-    [onDetailViewChange]
+  const reconcileCurrentIssue = useCallback(
+    (issue: GitHubIssue) =>
+      setDetail((current) => reconcileIssueDetailIssue(current, issue)),
+    []
   );
-
   const openDetail = useCallback((issue: ManagedIssueItem) => {
     setDetail({
       source: issue,
@@ -151,11 +160,11 @@ export function useGitHubIssueDetail({
 
   return {
     detail,
-    detailOpen,
     closeDetail,
     openDetail,
     closeCurrentIssue,
     reopenCurrentIssue,
     addComment,
+    reconcileCurrentIssue,
   };
 }

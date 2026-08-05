@@ -2,11 +2,14 @@ import { ListChecks, MessageSquareMore } from "lucide-react";
 import { forwardRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
+import IntegrationIcon from "@src/components/IntegrationIcon";
 import { formatRelativeTime } from "@src/util/time/formatRelativeTime";
 
 import {
   type TeamInboxItem,
   humanizeToken,
+  isGitHubIssueStatus,
+  parseGitHubIssueNumber,
   workItemPriorityLabelKey,
   workItemStatusLabelKey,
 } from "../domain";
@@ -41,6 +44,13 @@ const TeamInboxRow = forwardRef<HTMLButtonElement, TeamInboxRowProps>(
   ({ item, itemKey, selected, onSelect }, ref) => {
     const { t } = useTranslation();
     const isMention = item.kind === "comment_mention";
+    const isGitHubIssue =
+      item.kind === "assigned_work_item" &&
+      isGitHubIssueStatus(item.payload.status);
+    const issueNumber =
+      item.kind === "assigned_work_item" && isGitHubIssue
+        ? parseGitHubIssueNumber(item.target.workItemId)
+        : undefined;
     const title = isMention
       ? item.target.kind === "session_comment"
         ? item.target.sessionTitle
@@ -106,7 +116,7 @@ const TeamInboxRow = forwardRef<HTMLButtonElement, TeamInboxRowProps>(
         selected={selected}
         role="option"
         ariaLabel={t("teamInbox.row.ariaLabel", {
-          title,
+          title: issueNumber === undefined ? title : `#${issueNumber} ${title}`,
           status: readLabel,
         })}
         tabIndex={selected ? 0 : -1}
@@ -117,6 +127,7 @@ const TeamInboxRow = forwardRef<HTMLButtonElement, TeamInboxRowProps>(
           "data-unread": unread,
         }}
         title={title}
+        titlePrefix={issueNumber === undefined ? undefined : `#${issueNumber}`}
         time={relativeTime}
         preview={summary}
         metadata={<span className="truncate">{meta}</span>}
@@ -124,11 +135,19 @@ const TeamInboxRow = forwardRef<HTMLButtonElement, TeamInboxRowProps>(
         leading={
           isMention ? (
             <MessageSquareMore size={14} strokeWidth={1.8} />
+          ) : isGitHubIssue ? (
+            <IntegrationIcon type="github" size={14} />
           ) : (
             <ListChecks size={14} strokeWidth={1.8} />
           )
         }
-        leadingClassName={isMention ? "text-primary-6" : "text-success-6"}
+        leadingClassName={
+          isMention
+            ? "text-primary-6"
+            : isGitHubIssue
+              ? "text-text-2"
+              : "text-success-6"
+        }
         onClick={() => onSelect(item)}
       />
     );

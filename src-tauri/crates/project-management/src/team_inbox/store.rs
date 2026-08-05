@@ -10,7 +10,9 @@ use super::{
     schema::init_team_inbox_tables, TeamInboxActor, TeamInboxCursor, TeamInboxFilter,
     TeamInboxItem, TeamInboxItemKind, TeamInboxPage, TeamInboxPayload, TeamInboxTarget,
 };
-use crate::projects::types::{WorkItemHandoff, WorkItemHandoffStatus};
+use crate::projects::types::{
+    WorkItemHandoff, WorkItemHandoffStatus, WorkItemHistoryAction, WorkItemHistoryEvent,
+};
 
 const ASSIGNED_SOURCE_KIND: &str = "work_item_assigned";
 const COMMENT_MENTION_SOURCE_KIND: &str = "work_item_comment_mention";
@@ -61,6 +63,53 @@ fn handoff_actor(handoff: &WorkItemHandoff) -> TeamInboxActor {
         display_name,
         avatar_url: None,
     }
+}
+
+#[derive(serde::Deserialize)]
+struct AssignmentHistoryProjection {
+    #[serde(default)]
+    history: Vec<WorkItemHistoryEvent>,
+}
+
+fn history_event_actor(event: &WorkItemHistoryEvent) -> Option<TeamInboxActor> {
+    let actor_id = event
+        .actor_id
+        .as_deref()
+        .map(str::trim)
+        .filter(|value| !value.is_empty());
+    let actor_name = event
+        .actor_name
+        .as_deref()
+        .map(str::trim)
+        .filter(|value| !value.is_empty());
+    let id = actor_id.or(actor_name)?;
+    Some(TeamInboxActor {
+        id: id.to_string(),
+        display_name: actor_name.unwrap_or(id).to_string(),
+        avatar_url: None,
+    })
+}
+
+/// Resolve the actor that produced the current human-assignment episode from
+/// the canonical Work Item history. Later status/body edits must not replace
+/// the assignment actor shown by Team Inbox.
+fn assignment_actor(extras_json: Option<&str>, assignee_member_id: &str) -> Option<TeamInboxActor> {
+    let history = serde_json::from_str::<AssignmentHistoryProjection>(extras_json?)
+        .ok()?
+        .history;
+    let assignment_event = history.iter().rev().find(|event| {
+        event.changes.iter().any(|change| {
+            change.field == "assignee" && change.new_value.as_str() == Some(assignee_member_id)
+        })
+    });
+    if let Some(event) = assignment_event {
+        return history_event_actor(event);
+    }
+
+    history
+        .iter()
+        .find(|event| event.action == WorkItemHistoryAction::Created)
+        .and_then(history_event_actor)
 }
 
 #[derive(Debug, Clone)]
@@ -227,12 +276,16 @@ fn list_assigned_items(
             let body: String = row.get(12)?;
             let extras_json: Option<String> = row.get(13)?;
             let handoff = handoff_from_extras(extras_json.as_deref());
+            let actor = handoff
+                .as_ref()
+                .map(handoff_actor)
+                .or_else(|| assignment_actor(extras_json.as_deref(), &assignee_member_id));
             Ok(TeamInboxItem {
                 id: assigned_item_id(&work_item_id),
                 kind: TeamInboxItemKind::WorkItemAssigned,
                 occurred_at: row.get(10)?,
                 read_at: row.get(11)?,
-                actor: handoff.as_ref().map(handoff_actor),
+                actor,
                 target: TeamInboxTarget::WorkItem {
                     work_item_id,
                     org_id: row.get(1)?,

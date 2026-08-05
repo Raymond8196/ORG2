@@ -1,9 +1,9 @@
 /** Shared activity timeline primitives used by work items, work logs, issues, and PRs. */
-import { Check, Clipboard } from "lucide-react";
+import { Check, Copy } from "lucide-react";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
-import Button from "@src/components/Button";
+import Button, { type ButtonProps } from "@src/components/Button";
 import { useCopyCheck } from "@src/hooks/ui";
 import { copyText } from "@src/util/data/clipboard";
 import { formatDate } from "@src/util/data/formatters/date";
@@ -13,6 +13,42 @@ export {
   MarkdownContent,
   normalizeMarkdownContent,
 } from "@src/modules/shared/components/MarkdownContent";
+
+export interface ActivityHeaderActionButtonProps extends Omit<
+  ButtonProps,
+  | "variant"
+  | "appearance"
+  | "size"
+  | "iconOnly"
+  | "children"
+  | "title"
+  | "aria-label"
+> {
+  icon: React.ReactNode;
+  label: string;
+}
+
+/** Canonical icon action for activity-card and thread-section headers. */
+export function ActivityHeaderActionButton({
+  icon,
+  label,
+  className = "",
+  ...buttonProps
+}: ActivityHeaderActionButtonProps): React.ReactNode {
+  return (
+    <Button
+      variant="tertiary"
+      appearance="ghost"
+      size="mini"
+      iconOnly
+      icon={icon}
+      title={label}
+      aria-label={label}
+      className={`shrink-0 text-text-3 hover:bg-fill-2 hover:text-text-1 ${className}`.trim()}
+      {...buttonProps}
+    />
+  );
+}
 
 export function TimelineCopyButton({
   body,
@@ -28,21 +64,16 @@ export function TimelineCopyButton({
   if (!body.trim()) return null;
 
   return (
-    <Button
-      variant="tertiary"
-      appearance="ghost"
-      size="mini"
-      iconOnly
+    <ActivityHeaderActionButton
       icon={
         copied ? (
           <Check size={12} strokeWidth={1.75} />
         ) : (
-          <Clipboard size={12} strokeWidth={1.75} />
+          <Copy size={12} strokeWidth={1.75} />
         )
       }
-      title={copied ? t("status.copied") : t("actions.copy")}
-      aria-label={copied ? t("status.copied") : t("actions.copy")}
-      className="shrink-0 text-text-3 hover:bg-fill-2 hover:text-text-1"
+      label={copied ? t("status.copied") : t("actions.copy")}
+      data-testid="timeline-copy-button"
       onClick={(event) => {
         event.stopPropagation();
         handleCopy();
@@ -166,7 +197,7 @@ export function TimelineCard({
   );
 }
 
-/** Compact bordered event row used between full timeline cards. */
+/** Compact event row used between full timeline cards. */
 export function TimelineEventCard({
   icon,
   children,
@@ -175,7 +206,7 @@ export function TimelineEventCard({
   children?: React.ReactNode;
 }): React.ReactNode {
   return (
-    <div className="flex min-w-0 items-start gap-2 rounded-lg border border-border-1 bg-primary-container px-3 py-2 text-[12px] text-text-3">
+    <div className="flex min-w-0 items-start gap-2 px-2.5 text-[12px] text-text-3">
       <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-fill-2 text-text-2">
         {icon}
       </span>

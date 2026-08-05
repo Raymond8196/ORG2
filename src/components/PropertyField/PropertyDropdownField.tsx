@@ -1,3 +1,4 @@
+import { ChevronDown } from "lucide-react";
 import React, { useCallback, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -42,6 +43,7 @@ interface PropertyDropdownFieldProps<T extends string> {
   onActiveChange?: (active: boolean) => void;
   maxWidthClassName?: string;
   valueClassName?: string;
+  compactPill?: boolean;
   onClear?: () => void | Promise<void>;
   borderless?: boolean;
   renderOptions?: (searchQuery: string, close: () => void) => React.ReactNode;
@@ -67,6 +69,7 @@ export function PropertyDropdownField<T extends string>({
   onActiveChange,
   maxWidthClassName,
   valueClassName,
+  compactPill = false,
   onClear,
   borderless = false,
   renderOptions,
@@ -162,8 +165,19 @@ export function PropertyDropdownField<T extends string>({
         isSelected={selected}
         isActive={isOpen}
         showChevron
+        suffix={
+          fieldVariant === "pill" && !readonly ? (
+            <ChevronDown
+              className="ml-1 shrink-0"
+              size={12}
+              strokeWidth={1.8}
+            />
+          ) : undefined
+        }
         variant={fieldVariant}
+        compactPill={compactPill}
         borderless={borderless}
+        disabled={readonly}
         onClear={readonly ? undefined : onClear}
         onClick={() => {
           if (!readonly) toggleOpen();
@@ -171,39 +185,42 @@ export function PropertyDropdownField<T extends string>({
       />
     );
 
-  const optionsContent = renderOptions ? (
-    renderOptions(searchQuery, close)
-  ) : (
-    <>
-      {filtered.map((option) => (
-        <Option
-          key={option.value}
-          icon={option.icon}
-          iconColor={option.iconColor}
-          label={option.label}
-          isSelected={option.value === value}
-          onClick={() => handleSelect(option.value)}
-          dataTestId={
-            dataTestId ? `${dataTestId}-option-${option.value}` : undefined
-          }
-        />
-      ))}
-    </>
-  );
-
-  const dropdownContent = (
-    <>
-      {searchable && (
-        <DropdownSearch
-          value={searchQuery}
-          onChange={setSearchQuery}
-          placeholder={searchPlaceholder}
-          autoFocus
-        />
-      )}
-      <div className={DROPDOWN_CLASSES.optionsContainer}>{optionsContent}</div>
-    </>
-  );
+  const dropdownContent = () => {
+    const optionsContent = renderOptions ? (
+      renderOptions(searchQuery, close)
+    ) : (
+      <>
+        {filtered.map((option) => (
+          <Option
+            key={option.value}
+            icon={option.icon}
+            iconColor={option.iconColor}
+            label={option.label}
+            isSelected={option.value === value}
+            onClick={() => handleSelect(option.value)}
+            dataTestId={
+              dataTestId ? `${dataTestId}-option-${option.value}` : undefined
+            }
+          />
+        ))}
+      </>
+    );
+    return (
+      <>
+        {searchable && (
+          <DropdownSearch
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder={searchPlaceholder}
+            autoFocus
+          />
+        )}
+        <div className={DROPDOWN_CLASSES.optionsContainer}>
+          {optionsContent}
+        </div>
+      </>
+    );
+  };
 
   return (
     <div
@@ -231,7 +248,7 @@ export function PropertyDropdownField<T extends string>({
           data-property-dropdown
           className={`absolute ${fieldVariant === "pill" ? "left-0" : "left-2 right-2"} top-full mt-1 flex flex-col ${fieldVariant === "pill" ? DROPDOWN_WIDTHS.wideMenuClass : ""} ${DROPDOWN_CLASSES.panelAnimated}`}
         >
-          {dropdownContent}
+          {dropdownContent()}
         </div>
       )}
 
@@ -253,7 +270,7 @@ export function PropertyDropdownField<T extends string>({
               right: dropdownPosition.right,
             }}
           >
-            {dropdownContent}
+            {dropdownContent()}
           </div>,
           document.body
         )}

@@ -17,6 +17,12 @@ import * as client from "./client";
 
 export * from "./types";
 export type {
+  ProjectScopeOptions,
+  WorkItemReadBucket,
+  WorkItemsReadOptions,
+  WorkItemsViewOptions,
+} from "./client";
+export type {
   AdapterAuthMethod,
   AdapterDescriptor,
   OAuthDeviceFlow,
@@ -78,6 +84,7 @@ export const projectApi = {
   readStandaloneWorkItems: client.readStandaloneWorkItems,
   readWorkItems: client.readWorkItems,
   readWorkItemsEnriched: client.readWorkItemsEnriched,
+  readWorkspaceWorkItemsData: client.readWorkspaceWorkItemsData,
   readWorkItemsViewData: client.readWorkItemsViewData,
   writeWorkItem: client.writeWorkItem,
   writeStandaloneWorkItem: client.writeStandaloneWorkItem,

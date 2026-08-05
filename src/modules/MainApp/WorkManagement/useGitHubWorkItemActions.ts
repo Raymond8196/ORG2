@@ -6,14 +6,10 @@ import type { GitHubIssue } from "@src/api/tauri/github";
 import Message from "@src/components/Message";
 import { useWorkStationTabs } from "@src/hooks/workStation/tabs";
 import { fetchIssueTimeline } from "@src/services/git/operations/githubIssues";
-import { WorkStationViewService } from "@src/services/workStation/WorkStationViewService";
 import { addToAgentAtom } from "@src/store/ui/addToAgentAtom";
 import { workstationSelectedIssueAtomFamily } from "@src/store/workstation/codeEditor/workstationIssueAtom";
 import { workstationRepoScopeKey } from "@src/store/workstation/codeEditor/workstationPrAtom";
-import {
-  createGitHubIssueDetailTab,
-  createGitHubPrDetailTab,
-} from "@src/store/workstation/tabs";
+import { createGitHubIssueDetailTab } from "@src/store/workstation/tabs";
 import { openExternalLink } from "@src/util/platform/ipcRenderer";
 
 import type { ManagedIssueItem, ManagedPrItem } from "./githubManagedItemModel";
@@ -119,31 +115,11 @@ export function useGitHubWorkItemActions() {
     [setAddToAgent, t]
   );
 
-  const openPr = useCallback(
-    (pr: ManagedPrItem) => {
-      openTab(
-        createGitHubPrDetailTab({
-          prNumber: pr.id,
-          prTitle: pr.title,
-          prUrl: pr.rawPr.url,
-          prStatus: pr.state,
-          headBranch: pr.sourceBranch,
-          baseBranch: pr.targetBranch,
-          repoPath: pr.repoPath,
-          repoId: pr.repoId,
-        })
-      );
-      void WorkStationViewService.openStationMode("my-station");
-    },
-    [openTab]
-  );
-
   return {
     openIssueInBrowser,
     openIssueInMyStation,
     addIssue,
     addCreatedIssue,
     addPr,
-    openPr,
   };
 }

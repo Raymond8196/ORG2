@@ -1,6 +1,5 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import {
-  ArrowUpRight,
   CheckCircle2,
   ChevronsLeft,
   ChevronsRight,
@@ -15,6 +14,7 @@ import {
   LayoutList,
   LoaderCircle,
   type LucideIcon,
+  SquareArrowOutUpRight,
   SquareTerminal,
   X,
   XCircle,
@@ -259,7 +259,7 @@ function WorkstationItemRow({
       ) : null}
       {item.status ? <RailItemStatus status={item.status} /> : null}
       {item.external ? (
-        <ArrowUpRight
+        <SquareArrowOutUpRight
           aria-hidden
           className="shrink-0 text-text-3"
           size={13}

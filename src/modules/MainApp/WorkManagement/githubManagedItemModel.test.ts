@@ -5,7 +5,6 @@ import type { GitHubIssue, OpenPRItem } from "@src/api/tauri/github";
 import {
   GITHUB_ITEM_KIND,
   formatGitHubItemTimeAgo,
-  groupPullRequestsIntoTodoSections,
   managedItemMatchesQuery,
   managedItemMatchesRepo,
   mapIssueToManagedItem,
@@ -21,6 +20,7 @@ const source: GitHubRepoSource = {
   remoteUrl: "https://github.com/acme/repo.git",
   repoFullName: "acme/repo",
   viewerLogin: "viewer",
+  permissions: null,
 };
 const issue = {
   number: 42,
@@ -86,6 +86,17 @@ describe("GitHub managed-item model", () => {
     ).toBe(false);
   });
 
+  it("matches both displayed IDs and title text", () => {
+    const item = mapIssueToManagedItem(issue, source);
+
+    expect(managedItemMatchesQuery(item, parseGitHubSearchQuery("#42"))).toBe(
+      true
+    );
+    expect(
+      managedItemMatchesQuery(item, parseGitHubSearchQuery("Fix crash"))
+    ).toBe(true);
+  });
+
   it("preserves merged PR query semantics and time boundaries", () => {
     const item = mapPrToManagedItem(pr, source);
     expect(
@@ -97,49 +108,5 @@ describe("GitHub managed-item model", () => {
     expect(formatGitHubItemTimeAgo("2026-06-20T12:00:00.000Z", now)).toBe(
       "1mo"
     );
-  });
-
-  it("orders open PRs into requested, authored, and other todo sections", () => {
-    const requested = mapPrToManagedItem(
-      {
-        ...pr,
-        number: 8,
-        state: "open",
-        author_login: "teammate",
-        requested_reviewer_logins: ["VIEWER"],
-      },
-      source
-    );
-    const authored = mapPrToManagedItem(
-      {
-        ...pr,
-        number: 9,
-        state: "open",
-        author_login: "Viewer",
-        requested_reviewer_logins: [],
-      },
-      source
-    );
-    const alreadyReviewed = mapPrToManagedItem(
-      {
-        ...pr,
-        number: 10,
-        state: "open",
-        author_login: "teammate",
-        requested_reviewer_logins: [],
-      },
-      source
-    );
-
-    const sections = groupPullRequestsIntoTodoSections([
-      requested,
-      authored,
-      alreadyReviewed,
-      mapPrToManagedItem(pr, source),
-    ]);
-
-    expect(sections.reviewRequested.map((item) => item.id)).toEqual([8]);
-    expect(sections.authoredByViewer.map((item) => item.id)).toEqual([9]);
-    expect(sections.otherTodos.map((item) => item.id)).toEqual([10]);
   });
 });

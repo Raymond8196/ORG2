@@ -81,6 +81,9 @@ export const DROPDOWN_PANEL = {
   /** Animation duration */
   animationDuration: "0.2s",
 
+  /** Keep the scrollbar thumb visible briefly after option-list scrolling stops. */
+  scrollbarHideDelayMs: 700,
+
   /** Background and border (use Tailwind classes) */
   bgClass: "bg-bg-2",
   borderClass: "border border-solid border-border-2",

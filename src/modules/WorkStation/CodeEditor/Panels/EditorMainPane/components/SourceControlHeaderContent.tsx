@@ -11,11 +11,10 @@ import type { TFunction } from "i18next";
 import {
   ArrowLeft,
   ArrowRight,
-  ArrowUpRight,
   CircleDot,
-  ExternalLink,
   ListChevronsDownUp,
   RefreshCw,
+  SquareArrowOutUpRight,
 } from "lucide-react";
 import React from "react";
 import type { ReactNode } from "react";
@@ -150,7 +149,7 @@ export const SourceControlHeaderContent: React.FC<
             title={t("common:actions.openOnGitHub", "Open on GitHub")}
             onClick={(e) => e.stopPropagation()}
           >
-            <ExternalLink size={HEADER_ICON_SIZE.sm} />
+            <SquareArrowOutUpRight size={HEADER_ICON_SIZE.sm} />
           </a>
         )}
         {historySelection &&
@@ -164,7 +163,7 @@ export const SourceControlHeaderContent: React.FC<
               className="flex-shrink-0"
               onClick={() => onOpenHistoryInNewTab(historySelection)}
               title={t("common:actions.openInNewTab")}
-              icon={<ArrowUpRight size={HEADER_ICON_SIZE.sm} />}
+              icon={<SquareArrowOutUpRight size={HEADER_ICON_SIZE.sm} />}
             />
           )}
 

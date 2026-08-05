@@ -1579,7 +1579,49 @@
         "unpinned": "odpiął/odpięła to issue",
         "transferred": "przeniósł/przeniosła to issue",
         "convertedToDiscussion": "przekształcił(a) to issue w dyskusję",
-        "mentioned": "wspomniał(a) o tym issue"
+        "mentioned": "wspomniał(a) o tym issue",
+        "commentDeleted": "usunął(-ęła) komentarz",
+        "subscribed": "zasubskrybował(a) ten issue",
+        "unsubscribed": "anulował(a) subskrypcję tego issue",
+        "addedToProject": "dodał(a) ten issue do projektu",
+        "movedInProject": "przeniósł/przeniosła ten issue w projekcie",
+        "removedFromProject": "usunął(-ęła) ten issue z projektu",
+        "archived": "zarchiwizował(a) ten issue",
+        "unarchived": "cofnął/cofnęła archiwizację tego issue",
+        "merged": "scalił(a) ten pull request",
+        "committed": "dodał(a) commit do tego pull requesta",
+        "headRefDeleted": "usunął(-ęła) gałąź źródłową",
+        "headRefRestored": "przywrócił(a) gałąź źródłową",
+        "headRefForcePushed": "wykonał(a) force push gałęzi źródłowej",
+        "baseRefChanged": "zmienił(a) gałąź bazową",
+        "automaticBaseChangeFailed": "nie udało mu/jej się automatycznie zmienić gałęzi bazowej",
+        "automaticBaseChangeSucceeded": "automatycznie zmienił(a) gałąź bazową",
+        "deployed": "wdrożył(a) ten pull request",
+        "deploymentEnvironmentChanged": "zmienił(a) środowisko wdrożenia",
+        "readyForReview": "oznaczył(a) ten pull request jako gotowy do przeglądu",
+        "reviewRequested": "poprosił(a) o przegląd",
+        "reviewRequestRemoved": "usunął(-ęła) prośbę o przegląd",
+        "reviewed": "przejrzał(a) te zmiany",
+        "reviewDismissed": "odrzucił(a) przegląd",
+        "userBlocked": "zablokował(a) tego użytkownika"
+      },
+      "composer": {
+        "addComment": "Dodaj komentarz",
+        "commentingAs": "Komentujesz jako @{{login}}",
+        "identityUnavailable": "Tożsamość GitHub jest niedostępna",
+        "commentPlaceholder": "Użyj Markdown do sformatowania komentarza",
+        "submitComment": "Komentuj",
+        "closeIssue": "Zamknij issue",
+        "closeAsCompleted": "Zamknij jako ukończone",
+        "closeAsNotPlanned": "Zamknij jako nieplanowane",
+        "closeAsDuplicate": "Zamknij jako duplikat",
+        "duplicateSearchPlaceholder": "Szukaj issue",
+        "duplicateEmpty": "Brak pasujących issue",
+        "duplicateLoadFailed": "Nie udało się wczytać issue",
+        "reopenIssue": "Otwórz issue ponownie",
+        "commentFailed": "Nie udało się dodać komentarza",
+        "bodyUpdateFailed": "Nie udało się zaktualizować opisu issue",
+        "statusFailed": "Nie udało się zaktualizować statusu issue"
       }
     }
   },
@@ -2617,5 +2659,15 @@
     "downloadedOfTotal": "{{downloaded}} z {{total}}",
     "preparingDownload": "Przygotowywanie pobierania…",
     "downloadingAndInstalling": "Pobieranie i instalowanie aktualizacji (v{{version}})…"
+  },
+  "workManagementTable": {
+    "columns": {
+      "id": "ID",
+      "titleContext": "Tytuł / kontekst",
+      "status": "Status",
+      "assignee": "Przypisany",
+      "updated": "Zaktualizowano"
+    },
+    "selectRow": "Wybierz {{id}}"
   }
 }

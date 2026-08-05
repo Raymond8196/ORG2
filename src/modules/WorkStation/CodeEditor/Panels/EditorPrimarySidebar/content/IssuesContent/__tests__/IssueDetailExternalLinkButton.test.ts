@@ -7,8 +7,8 @@ import type { GitHubIssue } from "@src/api/tauri/github";
 import {
   IssueDetailExternalLinkButton,
   IssueDetailPanel,
-  IssueTimelineItems,
 } from "../IssueDetailPanel";
+import { IssueTimelineItems } from "../IssueTimelineItems";
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
@@ -25,6 +25,11 @@ vi.mock("react-i18next", () => ({
       );
     },
   }),
+}));
+
+vi.mock("@src/components/IntegrationIcon", () => ({
+  default: ({ type }: { type: string }) =>
+    createElement("span", { "data-integration-icon": type }),
 }));
 
 vi.mock("@src/modules/shared/components/RichMarkdownEditor", () => ({
@@ -50,6 +55,7 @@ vi.mock("@src/modules/shared/components/RichMarkdownEditor", () => ({
 }));
 
 const issue: GitHubIssue = {
+  id: 100_042,
   number: 42,
   title: "Match the comment composer",
   body: "Issue body",
@@ -61,7 +67,7 @@ const issue: GitHubIssue = {
   closed_at: null,
   user: { login: "octocat", avatar_url: "" },
   labels: [],
-  assignees: [],
+  assignees: [{ login: "reviewer", avatar_url: "" }],
   comments: 0,
   milestone: null,
 };
@@ -77,7 +83,7 @@ describe("IssueDetailExternalLinkButton", () => {
     );
     expect(markup).toContain('target="_blank"');
     expect(markup).toContain('aria-label="Open on GitHub"');
-    expect(markup).toContain('class="lucide lucide-globe');
+    expect(markup).toContain('class="lucide lucide-square-arrow-out-up-right');
     expect(markup).toContain("enabled:hover:bg-surface-hover");
   });
 
@@ -89,7 +95,6 @@ describe("IssueDetailExternalLinkButton", () => {
         timelineLoading: false,
         submittingComment: false,
         showHeader: false,
-        onClose: vi.fn(),
         onCloseIssue: vi.fn(),
         onReopenIssue: vi.fn(),
         onAddComment: vi.fn().mockResolvedValue(undefined),
@@ -97,6 +102,10 @@ describe("IssueDetailExternalLinkButton", () => {
     );
 
     expect(markup).toContain('data-testid="issue-comment-editor"');
+    expect(markup).toContain('data-testid="work-item-thread-section"');
+    expect(markup).toContain('data-testid="work-item-property-pills"');
+    expect(markup).toContain("example issues");
+    expect(markup).toContain("reviewer");
     expect(markup).toContain('data-appearance="outlined"');
     expect(markup).toContain('data-placeholder="Leave a comment…"');
     expect(markup).toContain("rich-markdown-editor");
@@ -105,9 +114,12 @@ describe("IssueDetailExternalLinkButton", () => {
     expect(markup).toContain(
       "flex min-h-9 items-center justify-between gap-1 px-1"
     );
-    expect(markup.match(/border-radius:100px/g)).toHaveLength(2);
-    expect(markup.match(/height:28px/g)).toHaveLength(2);
-    expect(markup.match(/padding:0 12px/g)).toHaveLength(2);
+    const issueActionRow = markup.slice(
+      markup.indexOf("flex min-h-9 items-center justify-between gap-1 px-1")
+    );
+    expect(issueActionRow.match(/border-radius:100px/g)).toHaveLength(2);
+    expect(issueActionRow.match(/height:28px/g)).toHaveLength(2);
+    expect(issueActionRow.match(/padding:0 12px/g)).toHaveLength(2);
   });
 
   it("shares GitHub comments and activity events as one timeline block", () => {

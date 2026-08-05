@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { ClipboardList, ExternalLink } from "lucide-react";
+import { ClipboardList, Globe, SquareArrowOutUpRight } from "lucide-react";
 import { act, createElement } from "react";
 import { type Root, createRoot } from "react-dom/client";
 import {
@@ -45,8 +45,9 @@ describe("TeamInboxDetailLayout header actions", () => {
     Reflect.deleteProperty(actEnvironment, "IS_REACT_ACT_ENVIRONMENT");
   });
 
-  it("renders mark-unread and open as icon-only tertiary actions", () => {
+  it("renders read, browser, and open actions in order", () => {
     const onMarkUnread = vi.fn();
+    const onOpenInBrowser = vi.fn();
     const onOpen = vi.fn();
 
     act(() => {
@@ -59,7 +60,14 @@ describe("TeamInboxDetailLayout header actions", () => {
           markReadLabel: "Mark read",
           markUnreadLabel: "Mark unread",
           openLabel: "Open work item",
-          openIcon: createElement(ExternalLink, { "aria-hidden": true }),
+          openIcon: createElement(SquareArrowOutUpRight, {
+            "aria-hidden": true,
+          }),
+          headerAuxiliaryAction: {
+            label: "Open in browser",
+            icon: createElement(Globe, { "aria-hidden": true }),
+            onClick: onOpenInBrowser,
+          },
           openPlacement: "header",
           onMarkUnread,
           onOpen,
@@ -73,11 +81,15 @@ describe("TeamInboxDetailLayout header actions", () => {
     const open = container.querySelector<HTMLButtonElement>(
       'button[aria-label="Open work item"]'
     );
+    const openInBrowser = container.querySelector<HTMLButtonElement>(
+      'button[aria-label="Open in browser"]'
+    );
 
     expect(markUnread).not.toBeNull();
+    expect(openInBrowser).not.toBeNull();
     expect(open).not.toBeNull();
 
-    for (const button of [markUnread, open]) {
+    for (const button of [markUnread, openInBrowser, open]) {
       expect(button?.textContent).toBe("");
       expect(button?.className).toContain("bg-transparent");
       expect(button?.className).toContain("text-text-2");
@@ -96,13 +108,21 @@ describe("TeamInboxDetailLayout header actions", () => {
     );
     const header = actions?.parentElement?.parentElement;
     expect(actions?.className).toContain("gap-px");
+    expect(
+      Array.from(actions?.querySelectorAll("button") ?? []).map((button) =>
+        button.getAttribute("aria-label")
+      )
+    ).toEqual(["Mark unread", "Open in browser", "Open work item"]);
     expect(header?.className).toContain("h-10");
     expect(header?.className).toContain("items-center");
-    expect(header?.className).toContain("!pr-2");
+    expect(header?.className).toContain("!pl-4");
+    expect(header?.className).toContain("!pr-[7px]");
 
     markUnread?.click();
+    openInBrowser?.click();
     open?.click();
     expect(onMarkUnread).toHaveBeenCalledOnce();
+    expect(onOpenInBrowser).toHaveBeenCalledOnce();
     expect(onOpen).toHaveBeenCalledOnce();
   });
 
@@ -119,7 +139,9 @@ describe("TeamInboxDetailLayout header actions", () => {
             markReadLabel: "Mark read",
             markUnreadLabel: "Mark unread",
             openLabel: "Open work item",
-            openIcon: createElement(ExternalLink, { "aria-hidden": true }),
+            openIcon: createElement(SquareArrowOutUpRight, {
+              "aria-hidden": true,
+            }),
             openPlacement: "header",
             onMarkUnread: vi.fn(),
             onOpen: vi.fn(),

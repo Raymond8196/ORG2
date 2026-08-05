@@ -7,8 +7,8 @@
 import {
   CheckCircle2,
   CircleSlash,
-  ExternalLink,
   Loader,
+  SquareArrowOutUpRight,
   XCircle,
 } from "lucide-react";
 import React from "react";
@@ -89,7 +89,7 @@ function CheckRow({
           className="shrink-0 text-text-3 hover:text-text-1"
           title={t("git.pr.details", "Details")}
         >
-          <ExternalLink size={13} strokeWidth={1.9} />
+          <SquareArrowOutUpRight size={13} strokeWidth={1.9} />
         </a>
       ) : null}
     </div>

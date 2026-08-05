@@ -11,6 +11,7 @@ export interface TeamInboxListItemProps {
   id: string;
   selected: boolean;
   title: string;
+  titlePrefix?: string;
   time?: string;
   preview?: string;
   metadata?: ReactNode;
@@ -31,6 +32,7 @@ const TeamInboxListItem = forwardRef<HTMLButtonElement, TeamInboxListItemProps>(
       id,
       selected,
       title,
+      titlePrefix,
       time,
       preview,
       metadata,
@@ -57,48 +59,53 @@ const TeamInboxListItem = forwardRef<HTMLButtonElement, TeamInboxListItemProps>(
       aria-current={ariaCurrent}
       tabIndex={tabIndex}
       data-team-inbox-list-item
-      className={`${getListItemClasses(selected)} w-full min-w-0 !items-start text-left`}
+      className={`${getListItemClasses(selected)} !block w-full min-w-0 text-left`}
       onClick={onClick}
     >
-      <span
-        className={`mt-1 flex h-5 w-5 shrink-0 items-center justify-center ${leadingClassName}`}
-        aria-hidden
-      >
-        {leading}
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="flex min-w-0 items-center gap-2">
-          {unread ? (
-            <span
-              className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary-6"
-              aria-hidden
-            />
+      <span className="flex h-4 min-w-0 items-center gap-2">
+        <span
+          className={`flex h-4 w-5 shrink-0 items-center justify-center ${leadingClassName}`}
+          aria-hidden
+        >
+          {leading}
+        </span>
+        {unread ? (
+          <span
+            className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary-6"
+            aria-hidden
+          />
+        ) : null}
+        <span className="flex min-w-0 flex-1 items-center gap-1.5">
+          {titlePrefix ? (
+            <span className="shrink-0 text-xs font-semibold text-text-3">
+              {titlePrefix}
+            </span>
           ) : null}
           <span
-            className={`truncate text-xs text-text-1 ${unread ? "font-semibold" : "font-medium"}`}
+            className={`min-w-0 flex-1 truncate text-xs text-text-1 ${unread ? "font-semibold" : "font-medium"}`}
           >
             {title}
           </span>
-          {time ? (
-            <span className="ml-auto shrink-0 text-xs font-normal text-text-3">
-              {time}
-            </span>
-          ) : null}
         </span>
-        {preview ? (
-          <span
-            className="mt-0.5 line-clamp-2 block max-h-10 overflow-hidden text-xs font-normal leading-5 text-text-1"
-            title={preview}
-          >
-            {preview}
-          </span>
-        ) : null}
-        {metadata ? (
-          <span className="mt-1 flex min-w-0 items-center gap-1.5 text-xs font-normal text-text-2">
-            {metadata}
+        {time ? (
+          <span className="ml-auto shrink-0 text-xs font-normal text-text-3">
+            {time}
           </span>
         ) : null}
       </span>
+      {preview ? (
+        <span
+          className="mt-0.5 line-clamp-2 block max-h-10 overflow-hidden pl-7 text-xs font-normal leading-5 text-text-1"
+          title={preview}
+        >
+          {preview}
+        </span>
+      ) : null}
+      {metadata ? (
+        <span className="mt-1 flex min-w-0 items-center gap-1.5 pl-7 text-xs font-normal text-text-2">
+          {metadata}
+        </span>
+      ) : null}
     </button>
   )
 );

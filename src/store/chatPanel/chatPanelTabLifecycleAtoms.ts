@@ -9,13 +9,17 @@ import {
   chatPanelSelectedProjectOrgAtom,
   chatPanelSelectedWorkItemAtom,
 } from "@src/store/ui/chatPanelAtom";
+import type { WorkManagementSection } from "@src/store/workstation";
 
 import { buildDefaultLaunchpadTab } from "./chatPanelTabFactories";
 import {
   activateChatPanelTabAtom,
   transitionChatPanelTabPresentationAtom,
 } from "./chatPanelTabPresentationAtoms";
-import type { ChatPanelSelectedChannel } from "./chatPanelTabsModel";
+import {
+  type ChatPanelSelectedChannel,
+  getWorkManagementFallbackTitle,
+} from "./chatPanelTabsModel";
 import { chatPanelTabsAtom } from "./chatPanelTabsState";
 import { disposeWorkManagementStateAtom } from "./disposeWorkManagementStateAtom";
 
@@ -32,6 +36,33 @@ export const clearChatPanelTabCliCommandAtom = atom(
   }
 );
 clearChatPanelTabCliCommandAtom.debugLabel = "clearChatPanelTabCliCommand";
+
+/** Change the dataset shown by the active Work tab without opening another tab. */
+export const setActiveWorkManagementSectionAtom = atom(
+  null,
+  (
+    get,
+    set,
+    {
+      section,
+      title = getWorkManagementFallbackTitle(section),
+    }: { section: WorkManagementSection; title?: string }
+  ) => {
+    const state = get(chatPanelTabsAtom);
+    const activeTab = state.tabs.find((tab) => tab.id === state.activeTabId);
+    if (activeTab?.type !== "work-management") return;
+    set(chatPanelTabsAtom, {
+      ...state,
+      tabs: state.tabs.map((tab) =>
+        tab.id === activeTab.id
+          ? { ...tab, managementSection: section, title }
+          : tab
+      ),
+    });
+  }
+);
+setActiveWorkManagementSectionAtom.debugLabel =
+  "setActiveWorkManagementSection";
 
 /** Close a tab by ID. If it was active, move to the nearest neighbour. */
 export const closeChatPanelTabAtom = atom(null, (get, set, tabId: string) => {

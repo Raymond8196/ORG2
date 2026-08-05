@@ -13,10 +13,12 @@ import {
 } from "vitest";
 
 import {
+  ActivityHeaderActionButton,
   MARKDOWN_CONTENT_PREVIEW_MAX_HEIGHT,
   MarkdownContent,
   TimelineCard,
   TimelineCardHeader,
+  TimelineCopyButton,
   TimelineEventCard,
 } from ".";
 
@@ -186,7 +188,38 @@ describe("activity timeline", () => {
     expect(time?.getAttribute("title")).not.toBe(timestamp);
   });
 
-  it("uses the shared compact container treatment for timeline events", () => {
+  it("uses one icon-only action contract for activity headers", () => {
+    act(() => {
+      root.render(
+        createElement(ActivityHeaderActionButton, {
+          icon: createElement("span", null, "Icon"),
+          label: "Edit",
+        })
+      );
+    });
+
+    const button = container.querySelector("button");
+    expect(button?.getAttribute("aria-label")).toBe("Edit");
+    expect(button?.title).toBe("Edit");
+    expect(button?.className).toContain("text-text-3");
+    expect(button?.className).toContain("hover:bg-fill-2");
+  });
+
+  it("builds timeline copy on the canonical action with the copy icon", () => {
+    act(() => {
+      root.render(createElement(TimelineCopyButton, { body: "Copy me" }));
+    });
+
+    const button = container.querySelector<HTMLButtonElement>(
+      "[data-testid='timeline-copy-button']"
+    );
+    expect(button?.getAttribute("aria-label")).toBe("actions.copy");
+    expect(button?.className).toContain("hover:bg-fill-2");
+    expect(button?.querySelector(".lucide-copy")).not.toBeNull();
+    expect(button?.querySelector(".lucide-clipboard")).toBeNull();
+  });
+
+  it("uses a bare compact row with a first-line-aligned icon surface", () => {
     act(() => {
       root.render(
         createElement(
@@ -198,13 +231,21 @@ describe("activity timeline", () => {
     });
 
     const card = container.firstElementChild;
-    expect(card?.className).toContain("rounded-lg");
-    expect(card?.className).toContain("border-border-1");
-    expect(card?.className).toContain("bg-primary-container");
+    expect(card?.className).not.toContain("rounded-lg");
+    expect(card?.className).not.toContain("border-border-1");
+    expect(card?.className).not.toContain("bg-primary-container");
+    expect(card?.className).toContain("items-start");
+    expect(card?.className).toContain("px-2.5");
+    expect(card?.className).not.toContain("py-2");
     expect(card?.textContent).toContain("Event");
 
     const icon = card?.firstElementChild;
     expect(icon?.className).toContain("size-5");
+    expect(icon?.className).toContain("rounded-full");
+    expect(icon?.className).toContain("bg-fill-2");
     expect(icon?.className).not.toContain("mt-0.5");
+
+    const content = card?.lastElementChild;
+    expect(content?.className).toContain("leading-5");
   });
 });

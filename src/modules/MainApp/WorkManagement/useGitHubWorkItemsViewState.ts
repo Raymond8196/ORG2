@@ -49,16 +49,27 @@ interface ViewState {
 
 type ViewStateByScope = Record<OpsGitHubViewScope, ViewState>;
 
+const GLUED_GITHUB_QUALIFIER_PATTERN =
+  /\b(is:(?:issue|pr|pull-request|open|closed|merged))(?=\S)/gi;
+
+function restoreGitHubQualifierBoundaries(rawQuery: string): string {
+  return rawQuery.replace(GLUED_GITHUB_QUALIFIER_PATTERN, "$1 ");
+}
+
 export function normalizeGitHubSearchQueryForScope(
   scope: OpsGitHubViewScope,
   rawQuery: string
 ): string {
-  const query = parseGitHubSearchQuery(rawQuery);
+  const repairedQuery = restoreGitHubQualifierBoundaries(rawQuery);
+  const query = parseGitHubSearchQuery(repairedQuery);
   query.scope = scope;
   if (scope === GITHUB_QUERY_SCOPE.PR) {
     query.state = GITHUB_QUERY_STATE.OPEN;
   }
-  return serializeGitHubSearchQuery(query);
+  const normalizedQuery = serializeGitHubSearchQuery(query);
+  const needsEditableSeparator =
+    query.freeText.length === 0 || /\s$/.test(repairedQuery);
+  return needsEditableSeparator ? `${normalizedQuery} ` : normalizedQuery;
 }
 
 function getInitialViewState(scope: OpsGitHubViewScope): ViewState {

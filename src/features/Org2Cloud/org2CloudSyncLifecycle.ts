@@ -311,7 +311,7 @@ export abstract class Org2CloudSyncLifecycle {
   // window with an agent streaming is still producing local writes, and
   // teammates must see the transcript advance. Only inbound-only nudges wait
   // for visibility.
-  private scheduleActivityPass(sessionId: string): void {
+  protected scheduleActivityPass(sessionId: string): void {
     if (!this.started) return;
     const externalHistory = isImportedHistorySession(sessionId);
     const timer = externalHistory

@@ -6,6 +6,7 @@
 
 export { BackgroundLayer } from "./BackgroundLayer";
 export {
+  ActivityHeaderActionButton,
   ActivityTimestamp,
   ConnectedTimelineItem,
   TimelineCard,
@@ -14,6 +15,7 @@ export {
   TimelineEventCard,
   TimelineStack,
 } from "./ActivityTimeline";
+export type { ActivityHeaderActionButtonProps } from "./ActivityTimeline";
 export type { MarkdownEditorProps } from "./MarkdownEditor";
 export {
   MARKDOWN_CONTENT_PREVIEW_MAX_HEIGHT,

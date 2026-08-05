@@ -170,7 +170,7 @@ describe("buildCloudScopedMenuItems", () => {
     ]);
   });
 
-  it("keeps the Pinned section under a cloud scope", () => {
+  it("keeps the Pinned section above Team and My sessions", () => {
     const teamItems: NavigationMenuItem[] = [
       {
         id: "separator-cloud-team-sessions",
@@ -196,11 +196,12 @@ describe("buildCloudScopedMenuItems", () => {
     });
 
     // Pinned is user intent, not a date bucket: it survives the flattening
-    // that removes Today/Older, and its rows do not leak into My sessions.
+    // that removes Today/Older, stays at the top, and does not leak into My
+    // sessions.
     expect(result.map((item) => item.id)).toEqual([
-      "separator-cloud-team-sessions",
       `separator-${CLOUD_PINNED_SECTION_ID}`,
       "session-pinned",
+      "separator-cloud-team-sessions",
       `separator-${CLOUD_MY_SESSIONS_SECTION_ID}`,
       "session-today",
     ]);
@@ -286,12 +287,13 @@ describe("buildCloudScopedMenuItems", () => {
     });
 
     // One Pinned section holds both kinds — a pin means "keep this where I can
-    // see it", which is not a promise scoped to one section.
+    // see it", which is not a promise scoped to one section. It stays above
+    // both Team and My sessions.
     expect(result.map((item) => item.id)).toEqual([
-      "separator-cloud-team-sessions",
-      "cloudremote-org-1|row-8",
       `separator-${CLOUD_PINNED_SECTION_ID}`,
       "cloudremote-org-1|row-9",
+      "separator-cloud-team-sessions",
+      "cloudremote-org-1|row-8",
       `separator-${CLOUD_MY_SESSIONS_SECTION_ID}`,
       "session-today",
     ]);

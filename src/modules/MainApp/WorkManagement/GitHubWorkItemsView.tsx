@@ -1,32 +1,47 @@
-import React, { useCallback, useMemo, useRef } from "react";
+import {
+  CheckCircle2,
+  CircleDot,
+  CircleSlash,
+  Copy,
+  GitMerge,
+  GitPullRequestDraft,
+} from "lucide-react";
+import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { SelectOption } from "@src/components/Select";
+import type { SettingsTableSelectFilter } from "@src/components/SettingsTable";
 import { usePublishWorkstationTabHeader } from "@src/hooks/workStation";
+import type { WorkItemExternalAssigneeConfig } from "@src/modules/ProjectManager/WorkItems/components/WorkItemProperties/types";
+import ProjectManagerBreadcrumb from "@src/modules/ProjectManager/shared/components/ProjectManagerBreadcrumb";
 import {
   IssueDetailExternalLinkButton,
-  IssueDetailHeaderContent,
   IssueDetailPanel,
+  getIssueDetailTitle,
 } from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/IssuesContent/IssueDetailPanel";
+import { PrDetailHeaderContent } from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/PullRequestContent/detail/PrDetailHeaderContent";
+import GitHubIssueHeaderContent from "@src/modules/shared/components/GitHubIssueHeaderContent";
+import {
+  WorkManagementTable,
+  type WorkManagementTableRow,
+} from "@src/modules/shared/components/WorkManagementTable";
 import {
   DetailPanelContainer,
   Placeholder,
 } from "@src/modules/shared/layouts/blocks";
+import { normalizePrStatus } from "@src/shared/pr/prStatus";
+import type { PrIdentity } from "@src/store/workstation/codeEditor/workstationSelectedPrAtom";
 
 import { CreateIssueModal } from "./CreateIssueModal";
 import {
   IssuePersonalFilterDropdown,
-  ManagedIssueRow,
-  ManagedPrRow,
-  RepoFilterPill,
+  ManagedIssueActionsCell,
+  ManagedIssueAssigneeCell,
+  ManagedIssueContextMeta,
+  ManagedPrActionsCell,
 } from "./GitHubWorkItemControls";
 import {
-  GitHubWorkItemListFrame,
-  GitHubWorkItemPagination,
-  GitHubWorkItemSearch,
-  GitHubWorkItemSection,
   GitHubWorkItemStateTabs,
-  GitHubWorkItemTableSurface,
   GitHubWorkItemToolbarActions,
 } from "./GitHubWorkItemList";
 import {
@@ -34,9 +49,17 @@ import {
   type ManagedGitHubItem,
   type ManagedIssueItem,
   type ManagedPrItem,
-  groupPullRequestsIntoTodoSections,
 } from "./githubManagedItemModel";
-import { canAdvanceGitHubWorkItemsPage } from "./githubWorkItemsPagination";
+import {
+  canManageIssueAssignees,
+  canManageIssueStatus,
+  canManagePrStatus,
+  findGitHubRepoSource,
+} from "./githubWorkItemPermissions";
+import {
+  GITHUB_WORK_ITEMS_PAGE_SIZE,
+  canAdvanceGitHubWorkItemsPage,
+} from "./githubWorkItemsPagination";
 import {
   GITHUB_QUERY_SCOPE,
   GITHUB_QUERY_STATE,
@@ -48,11 +71,21 @@ import type {
   IssueRepoFilter,
   RepoFilterOption,
 } from "./githubWorkItemsTypes";
+import type { IssueAssigneeControlState } from "./useGitHubIssueAssigneeMutations";
 import type { IssueDetailState } from "./useGitHubIssueDetail";
+import type {
+  ManagedIssueStatusValue,
+  ManagedPrStatusValue,
+} from "./useGitHubWorkItemStatusMutations";
+
+const PrDetailPanel = React.lazy(() =>
+  import("@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/PullRequestContent/detail/PrDetailPanel").then(
+    (module) => ({ default: module.PrDetailPanel })
+  )
+);
 
 interface GitHubWorkItemsViewProps {
   scope: Extract<GitHubQueryScope, "issue" | "pr">;
-  singleRowHeader: boolean;
   loading: boolean;
   loadError: string | null;
   loadingMore: boolean;
@@ -73,6 +106,7 @@ interface GitHubWorkItemsViewProps {
   createFormOpen: boolean;
   creatingIssue: boolean;
   issueDetail: IssueDetailState | null;
+  prDetail: ManagedPrItem | null;
   updateSearchQuery: (mutate: (query: ParsedGitHubSearchQuery) => void) => void;
   onSearchQueryChange: (query: string) => void;
   onRepoSelect: (repo: IssueRepoFilter) => void;
@@ -84,8 +118,24 @@ interface GitHubWorkItemsViewProps {
   onOpenIssueInBrowser: (issue: ManagedIssueItem) => void;
   onOpenIssueInMyStation: (issue: ManagedIssueItem) => void;
   onAddIssue: (issue: ManagedIssueItem) => void;
+  onIssueStatusChange: (
+    issue: ManagedIssueItem,
+    status: ManagedIssueStatusValue
+  ) => Promise<void>;
+  getIssueAssigneeControlState: (
+    issue: ManagedIssueItem
+  ) => IssueAssigneeControlState;
+  onLoadIssueAssignees: (issue: ManagedIssueItem) => void | Promise<void>;
+  onIssueAssigneesChange: (
+    issue: ManagedIssueItem,
+    assignees: string[]
+  ) => void | Promise<void>;
   onOpenPr: (pr: ManagedPrItem) => void;
   onAddPr: (pr: ManagedPrItem) => void;
+  onPrStatusChange: (
+    pr: ManagedPrItem,
+    status: ManagedPrStatusValue
+  ) => Promise<void>;
   onBackFromDetail: () => void;
   onCloseIssueDetail: () => Promise<void>;
   onReopenIssueDetail: () => Promise<void>;
@@ -98,9 +148,77 @@ interface GitHubWorkItemsViewProps {
   ) => void;
 }
 
+export function GitHubIssueDetailBreadcrumb({
+  issue,
+  parentLabel,
+  onBack,
+}: {
+  issue: IssueDetailState["issue"];
+  parentLabel: string;
+  onBack: () => void;
+}): React.ReactNode {
+  return (
+    <ProjectManagerBreadcrumb
+      segments={[
+        {
+          label: parentLabel,
+          onClick: onBack,
+          title: parentLabel,
+        },
+        {
+          label: getIssueDetailTitle(issue),
+          content: <GitHubIssueHeaderContent issue={issue} />,
+          fillAvailableWidth: true,
+        },
+      ]}
+    />
+  );
+}
+
+export function toGitHubPrDetailIdentity(pr: ManagedPrItem): PrIdentity {
+  return {
+    number: pr.id,
+    title: pr.title,
+    url: pr.rawPr.url,
+    status: normalizePrStatus({
+      state: pr.state,
+      merged: pr.state === GITHUB_QUERY_STATE.MERGED,
+      draft: pr.rawPr.draft,
+    }),
+    headBranch: pr.sourceBranch,
+    baseBranch: pr.targetBranch,
+  };
+}
+
+export function GitHubPrDetailBreadcrumb({
+  identity,
+  parentLabel,
+  onBack,
+}: {
+  identity: PrIdentity;
+  parentLabel: string;
+  onBack: () => void;
+}): React.ReactNode {
+  return (
+    <ProjectManagerBreadcrumb
+      segments={[
+        {
+          label: parentLabel,
+          onClick: onBack,
+          title: parentLabel,
+        },
+        {
+          label: `#${identity.number} ${identity.title}`,
+          content: <PrDetailHeaderContent identity={identity} />,
+          fillAvailableWidth: true,
+        },
+      ]}
+    />
+  );
+}
+
 export function GitHubWorkItemsView({
   scope,
-  singleRowHeader,
   loading,
   loadError,
   loadingMore,
@@ -121,6 +239,7 @@ export function GitHubWorkItemsView({
   createFormOpen,
   creatingIssue,
   issueDetail,
+  prDetail,
   updateSearchQuery,
   onSearchQueryChange,
   onRepoSelect,
@@ -132,8 +251,13 @@ export function GitHubWorkItemsView({
   onOpenIssueInBrowser,
   onOpenIssueInMyStation,
   onAddIssue,
+  onIssueStatusChange,
+  getIssueAssigneeControlState,
+  onLoadIssueAssignees,
+  onIssueAssigneesChange,
   onOpenPr,
   onAddPr,
+  onPrStatusChange,
   onBackFromDetail,
   onCloseIssueDetail,
   onReopenIssueDetail,
@@ -142,7 +266,10 @@ export function GitHubWorkItemsView({
   onCreateIssue,
 }: GitHubWorkItemsViewProps): React.ReactNode {
   const { t } = useTranslation(["sessions", "common"]);
-  const listScrollRef = useRef<HTMLDivElement>(null);
+  const datasetLabel =
+    scope === GITHUB_QUERY_SCOPE.ISSUE
+      ? t("kanban.sidebar.githubIssues")
+      : t("kanban.sidebar.githubPrs");
   const activeState =
     scope === GITHUB_QUERY_SCOPE.PR &&
     parsedSearchQuery.state === GITHUB_QUERY_STATE.MERGED
@@ -161,6 +288,54 @@ export function GitHubWorkItemsView({
     ],
     [t]
   );
+  const readonlyReason = t("common:errors.messages.forbidden");
+  const prDetailIdentity = useMemo(
+    () => (prDetail ? toGitHubPrDetailIdentity(prDetail) : null),
+    [prDetail]
+  );
+  const issueDetailAssigneeConfig = useMemo<
+    WorkItemExternalAssigneeConfig | undefined
+  >(() => {
+    if (!issueDetail) return undefined;
+    const source = findGitHubRepoSource(
+      repoSources,
+      issueDetail.source.repo,
+      issueDetail.source.repoPath
+    );
+    const control = getIssueAssigneeControlState(issueDetail.source);
+    const usersByLogin = new Map(
+      [...issueDetail.issue.assignees, ...control.users].map((user) => [
+        user.login.toLowerCase(),
+        user,
+      ])
+    );
+    const canManage = canManageIssueAssignees(source);
+    return {
+      currentAssigneeIds: issueDetail.issue.assignees.map(
+        (assignee) => assignee.login
+      ),
+      options: Array.from(usersByLogin.values()).map((user) => ({
+        id: user.login,
+        label: user.login,
+        avatar: user.avatar_url,
+      })),
+      loading: control.loading,
+      error: control.error,
+      disabled: !canManage || control.updating,
+      readonlyReason: canManage ? t("common:status.loading") : readonlyReason,
+      onOpen: () => onLoadIssueAssignees(issueDetail.source),
+      onChangeAssigneeIds: (assigneeIds) =>
+        onIssueAssigneesChange(issueDetail.source, assigneeIds),
+    };
+  }, [
+    getIssueAssigneeControlState,
+    issueDetail,
+    onIssueAssigneesChange,
+    onLoadIssueAssignees,
+    readonlyReason,
+    repoSources,
+    t,
+  ]);
   const handleStateChange = useCallback(
     (state: string) => {
       if (
@@ -176,181 +351,288 @@ export function GitHubWorkItemsView({
     [updateSearchQuery]
   );
 
-  const headerContent = useMemo(
-    () =>
-      issueDetail ? (
-        <span className="flex min-w-0 items-center gap-2 text-[13px] font-medium text-text-1">
-          <IssueDetailHeaderContent issue={issueDetail.issue} />
-        </span>
-      ) : (
-        <div className="flex min-w-0 flex-1 items-center gap-2">
-          <RepoFilterPill
-            options={repoOptions}
-            selectedRepo={effectiveSelectedRepo}
-            allReposLabel={t("chat.manageIssues.allRepositories")}
-            onSelectRepo={onRepoSelect}
+  const headerContribution = useMemo(() => {
+    if (issueDetail) {
+      return {
+        content: (
+          <GitHubIssueDetailBreadcrumb
+            issue={issueDetail.issue}
+            parentLabel={datasetLabel}
+            onBack={onBackFromDetail}
           />
-          {scope === GITHUB_QUERY_SCOPE.ISSUE ? (
-            <GitHubWorkItemStateTabs
-              tabs={stateTabs}
-              activeTab={activeState}
-              onChange={handleStateChange}
-            />
-          ) : null}
-          {scope === GITHUB_QUERY_SCOPE.ISSUE ? (
-            <IssuePersonalFilterDropdown
-              options={issuePersonalFilterOptions}
-              selectedFilters={selectedIssuePersonalFilters}
-              filterLabel={t("common:actions.filter")}
-              onSelect={onIssuePersonalFiltersSelect}
-            />
-          ) : null}
-          {singleRowHeader ? (
-            <GitHubWorkItemSearch
-              value={searchQuery}
-              onChange={onSearchQueryChange}
-              placeholder={t("chat.panels.manageIssues.searchPlaceholder")}
-            />
-          ) : null}
-        </div>
-      ),
-    [
-      effectiveSelectedRepo,
-      activeState,
-      handleStateChange,
-      issuePersonalFilterOptions,
-      issueDetail,
-      singleRowHeader,
-      onSearchQueryChange,
-      onIssuePersonalFiltersSelect,
-      stateTabs,
-      onRepoSelect,
-      repoOptions,
-      searchQuery,
-      scope,
-      selectedIssuePersonalFilters,
-      t,
-    ]
-  );
-  const headerTrailing = useMemo(
-    () =>
-      issueDetail ? (
-        <IssueDetailExternalLinkButton issue={issueDetail.issue} />
-      ) : (
-        <div className="flex shrink-0 items-center gap-px">
-          <GitHubWorkItemToolbarActions
-            refreshLabel={t("common:actions.refresh")}
-            refreshing={loading}
-            createAction={
-              scope === GITHUB_QUERY_SCOPE.ISSUE
-                ? {
-                    label: t("chat.panels.manageIssues.createIssueTrigger"),
-                    disabled: repoSources.length === 0,
-                    onClick: () => onSetCreateFormOpen(true),
-                  }
-                : undefined
-            }
-            onRefresh={onRefresh}
+        ),
+        trailing: <IssueDetailExternalLinkButton issue={issueDetail.issue} />,
+        joinWithFollowingRow: true,
+      };
+    }
+    if (prDetailIdentity) {
+      return {
+        content: (
+          <GitHubPrDetailBreadcrumb
+            identity={prDetailIdentity}
+            parentLabel={datasetLabel}
+            onBack={onBackFromDetail}
           />
-        </div>
-      ),
-    [
-      issueDetail,
-      loading,
-      onRefresh,
-      onSetCreateFormOpen,
-      repoSources.length,
-      scope,
-      t,
-    ]
-  );
-  const headerContribution = useMemo(
-    () => ({
-      content: headerContent,
-      trailing: headerTrailing,
-      joinWithFollowingRow: !issueDetail && !singleRowHeader,
-    }),
-    [headerContent, headerTrailing, issueDetail, singleRowHeader]
-  );
+        ),
+        joinWithFollowingRow: true,
+      };
+    }
+    return null;
+  }, [datasetLabel, issueDetail, onBackFromDetail, prDetailIdentity]);
   usePublishWorkstationTabHeader({
     host: "workManagement",
     content: headerContribution,
   });
 
-  const handlePreviousPage = () => {
-    onPreviousPage();
-    listScrollRef.current?.scrollTo({ top: 0 });
-  };
-
-  const handleNextPage = async () => {
-    await onNextPage();
-    listScrollRef.current?.scrollTo({ top: 0 });
-  };
-  const pullRequestTodoSections =
-    groupPullRequestsIntoTodoSections(filteredItems);
-  const pagedIssues = pagedItems.filter(
-    (item): item is ManagedIssueItem => item.kind === GITHUB_ITEM_KIND.ISSUE
+  const tableSelectFilters = useMemo<SettingsTableSelectFilter[]>(
+    () => [
+      {
+        key: "repository",
+        value: effectiveSelectedRepo,
+        defaultValue: repoOptions[0]?.key ?? effectiveSelectedRepo,
+        options: repoOptions.map((option) => ({
+          value: option.key,
+          label: option.label,
+        })),
+        onChange: (value) => onRepoSelect(String(value)),
+        minWidth: 190,
+        variant: "default",
+      },
+    ],
+    [effectiveSelectedRepo, onRepoSelect, repoOptions]
   );
-  const renderPrRows = (items: ManagedPrItem[]) =>
-    items.map((item) => (
-      <div key={`pr-${item.repo}-${item.id}`} className="w-full">
-        <ManagedPrRow
-          pr={item}
-          addLabel={t("chat.panels.manageIssues.addToChat")}
-          onOpenPr={onOpenPr}
-          onAddPr={onAddPr}
-        />
-      </div>
-    ));
-  const visibleRows =
-    scope === GITHUB_QUERY_SCOPE.PR ? (
-      <>
-        {pullRequestTodoSections.reviewRequested.length > 0 ? (
-          <GitHubWorkItemSection
-            label={t("chat.panels.manageIssues.pullRequests.reviewRequested")}
-            testId="github-pr-review-requested"
-          >
-            {renderPrRows(pullRequestTodoSections.reviewRequested)}
-          </GitHubWorkItemSection>
-        ) : null}
-        {pullRequestTodoSections.authoredByViewer.length > 0 ? (
-          <GitHubWorkItemSection
-            label={t("chat.panels.manageIssues.pullRequests.authoredByMe")}
-            testId="github-pr-authored"
-          >
-            {renderPrRows(pullRequestTodoSections.authoredByViewer)}
-          </GitHubWorkItemSection>
-        ) : null}
-        {pullRequestTodoSections.otherTodos.length > 0 ? (
-          <GitHubWorkItemSection
-            label={t("chat.panels.manageIssues.pullRequests.otherTodos")}
-            testId="github-pr-other-todos"
-          >
-            {renderPrRows(pullRequestTodoSections.otherTodos)}
-          </GitHubWorkItemSection>
-        ) : null}
-      </>
-    ) : (
-      <div className="divide-y divide-border-2">
-        {pagedIssues.map((item) => (
-          <div key={`issue-${item.repo}-${item.id}`} className="w-full">
-            <ManagedIssueRow
+
+  const tableRows = useMemo<ManagedGitHubItem[]>(() => {
+    if (scope === GITHUB_QUERY_SCOPE.PR) {
+      return pagedItems.filter(
+        (item): item is ManagedPrItem => item.kind === GITHUB_ITEM_KIND.PR
+      );
+    }
+    return pagedItems.filter(
+      (item): item is ManagedIssueItem => item.kind === GITHUB_ITEM_KIND.ISSUE
+    );
+  }, [pagedItems, scope]);
+  const settingsRows = useMemo<WorkManagementTableRow[]>(
+    () =>
+      tableRows.map((item) => {
+        const source = findGitHubRepoSource(
+          repoSources,
+          item.repo,
+          item.repoPath
+        );
+        const updated = (
+          <span title={item.updatedAt}>{item.timeAgo || "—"}</span>
+        );
+        if (item.kind === GITHUB_ITEM_KIND.PR) {
+          const prStatusValue: ManagedPrStatusValue =
+            item.state === GITHUB_QUERY_STATE.OPEN ? "open" : "closed";
+          const prStatusLabel =
+            item.state === GITHUB_QUERY_STATE.MERGED
+              ? t("common:pullRequests.status.merged", {
+                  defaultValue: "Merged",
+                })
+              : item.rawPr.draft
+                ? t("common:pullRequests.status.draft", {
+                    defaultValue: "Draft",
+                  })
+                : prStatusValue === "open"
+                  ? t("chat.panels.manageIssues.stateOpen")
+                  : t("chat.panels.manageIssues.stateClosed");
+          const prStatusIcon =
+            item.state === GITHUB_QUERY_STATE.MERGED ? (
+              <GitMerge size={14} strokeWidth={1.8} />
+            ) : item.rawPr.draft ? (
+              <GitPullRequestDraft size={14} strokeWidth={1.8} />
+            ) : prStatusValue === "open" ? (
+              <CircleDot size={14} strokeWidth={1.8} />
+            ) : (
+              <CheckCircle2 size={14} strokeWidth={1.8} />
+            );
+          return {
+            key: `${item.kind}-${item.repo}-${item.id}`,
+            id: `#${item.id}`,
+            idSortValue: item.id,
+            title: item.title,
+            titleLinkOnRowHover: true,
+            metadata: [
+              item.repo,
+              item.author,
+              `${item.sourceBranch} → ${item.targetBranch}`,
+            ],
+            fillLastMetadata: true,
+            statusSelect: {
+              value: prStatusValue,
+              label: prStatusLabel,
+              icon: prStatusIcon,
+              iconColor:
+                item.state === GITHUB_QUERY_STATE.MERGED
+                  ? "var(--color-purple-6)"
+                  : prStatusValue === "open"
+                    ? "var(--color-success-6)"
+                    : "var(--color-text-3)",
+              valueClassName:
+                item.state === GITHUB_QUERY_STATE.MERGED
+                  ? "text-purple-6"
+                  : prStatusValue === "open"
+                    ? "text-success-6"
+                    : "text-text-2",
+              options: [
+                {
+                  value: "open",
+                  label: t("chat.panels.manageIssues.stateOpen"),
+                  icon: <CircleDot size={14} strokeWidth={1.8} />,
+                  iconColor: "var(--color-success-6)",
+                },
+                {
+                  value: "closed",
+                  label: t("chat.panels.manageIssues.stateClosed"),
+                  icon: <CheckCircle2 size={14} strokeWidth={1.8} />,
+                  iconColor: "var(--color-text-3)",
+                },
+              ],
+              onChange: (value) =>
+                onPrStatusChange(item, value as ManagedPrStatusValue),
+              readonly:
+                item.state === GITHUB_QUERY_STATE.MERGED ||
+                !canManagePrStatus(item, source),
+              readonlyReason,
+              dataTestId: `github-pr-status-${item.id}`,
+            },
+            updated,
+            actions: (
+              <ManagedPrActionsCell
+                pr={item}
+                addLabel={t("chat.panels.manageIssues.addToChat")}
+                onAddPr={onAddPr}
+              />
+            ),
+            onClick: () => onOpenPr(item),
+          };
+        }
+        const issueStatusValue: ManagedIssueStatusValue =
+          item.state === "open"
+            ? "open"
+            : item.rawIssue.state_reason === "duplicate"
+              ? "closed_duplicate"
+              : item.rawIssue.state_reason === "not_planned"
+                ? "closed_not_planned"
+                : "closed_completed";
+        const issueStatusOptions = [
+          {
+            value: "open",
+            label: t("chat.panels.manageIssues.stateOpen"),
+            icon: <CircleDot size={14} strokeWidth={1.8} />,
+            iconColor: "var(--color-success-6)",
+          },
+          {
+            value: "closed_completed",
+            label: t("chat.panels.manageIssues.closeAsCompleted", {
+              defaultValue: "Close as completed",
+            }),
+            icon: <CheckCircle2 size={14} strokeWidth={1.8} />,
+            iconColor: "var(--color-text-3)",
+          },
+          {
+            value: "closed_not_planned",
+            label: t("chat.panels.manageIssues.closeAsNotPlanned", {
+              defaultValue: "Close as not planned",
+            }),
+            icon: <CircleSlash size={14} strokeWidth={1.8} />,
+            iconColor: "var(--color-text-3)",
+          },
+          ...(issueStatusValue === "closed_duplicate"
+            ? [
+                {
+                  value: "closed_duplicate" as const,
+                  label: t("common:git.issues.composer.closeAsDuplicate"),
+                  icon: <Copy size={14} strokeWidth={1.8} />,
+                  iconColor: "var(--color-text-3)",
+                },
+              ]
+            : []),
+        ];
+        const selectedIssueStatus = issueStatusOptions.find(
+          (option) => option.value === issueStatusValue
+        )!;
+        const assigneeControl = getIssueAssigneeControlState(item);
+        return {
+          key: `${item.kind}-${item.repo}-${item.id}`,
+          id: `#${item.id}`,
+          idSortValue: item.id,
+          title: item.title,
+          titleLinkOnRowHover: true,
+          contextLeading: <ManagedIssueContextMeta issue={item} />,
+          metadata: [item.repo, item.author],
+          tags: item.labels.map((label) => label.name),
+          assignee: (
+            <ManagedIssueAssigneeCell
+              issue={item}
+              assignableUsers={assigneeControl.users}
+              canManage={canManageIssueAssignees(source)}
+              loading={assigneeControl.loading}
+              loadError={assigneeControl.error}
+              updating={assigneeControl.updating}
+              noneLabel={t("common:common.none")}
+              loadingLabel={t("common:status.loading")}
+              searchPlaceholder={t("common:common.searchPlaceholder")}
+              readonlyReason={readonlyReason}
+              onOpen={onLoadIssueAssignees}
+              onChange={onIssueAssigneesChange}
+            />
+          ),
+          statusSelect: {
+            value: issueStatusValue,
+            label:
+              item.state === "open"
+                ? t("chat.panels.manageIssues.stateOpen")
+                : t("chat.panels.manageIssues.stateClosed"),
+            icon: selectedIssueStatus.icon,
+            iconColor: selectedIssueStatus.iconColor,
+            valueClassName:
+              item.state === "open" ? "text-success-6" : "text-text-2",
+            options: issueStatusOptions,
+            onChange: (value) =>
+              onIssueStatusChange(item, value as ManagedIssueStatusValue),
+            readonly: !canManageIssueStatus(item, source),
+            readonlyReason,
+            dataTestId: `github-issue-status-${item.id}`,
+          },
+          updated,
+          actions: (
+            <ManagedIssueActionsCell
               issue={item}
               addLabel={t("chat.panels.manageIssues.addToChat")}
               openInBrowserLabel={t("common:previews.openInBrowser")}
               openInMyStationLabel={t("controlTower.sidebar.openInMyStation")}
               moreActionsLabel={t("common:actions.moreActions")}
-              onOpenIssue={onOpenIssue}
               onOpenIssueInBrowser={onOpenIssueInBrowser}
               onOpenIssueInMyStation={onOpenIssueInMyStation}
               onAddIssue={onAddIssue}
             />
-          </div>
-        ))}
-      </div>
-    );
+          ),
+          onClick: () => onOpenIssue(item),
+        };
+      }),
+    [
+      getIssueAssigneeControlState,
+      onAddIssue,
+      onAddPr,
+      onIssueAssigneesChange,
+      onIssueStatusChange,
+      onLoadIssueAssignees,
+      onOpenIssue,
+      onOpenIssueInBrowser,
+      onOpenIssueInMyStation,
+      onOpenPr,
+      onPrStatusChange,
+      readonlyReason,
+      repoSources,
+      t,
+      tableRows,
+    ]
+  );
 
-  const listContent = (() => {
+  const tableEmptyState = (() => {
     if (
       scope !== GITHUB_QUERY_SCOPE.PR &&
       loading &&
@@ -369,6 +651,7 @@ export function GitHubWorkItemsView({
       return (
         <Placeholder
           variant="error"
+          placement="detail-panel"
           subtitle={loadError}
           action={{ label: t("common:actions.retry"), onClick: onRefresh }}
           fillParentHeight
@@ -377,7 +660,13 @@ export function GitHubWorkItemsView({
     }
 
     if (!loading && repoSources.length === 0) {
-      return <Placeholder variant="empty" fillParentHeight />;
+      return (
+        <Placeholder
+          variant="empty"
+          placement="detail-panel"
+          fillParentHeight
+        />
+      );
     }
 
     if (
@@ -385,38 +674,30 @@ export function GitHubWorkItemsView({
       !loading &&
       filteredItems.length === 0
     ) {
-      return <Placeholder variant="no-results" fillParentHeight />;
+      return (
+        <Placeholder
+          variant="no-results"
+          placement="detail-panel"
+          fillParentHeight
+        />
+      );
     }
 
     return (
-      <GitHubWorkItemListFrame
-        height={
-          scope === GITHUB_QUERY_SCOPE.PR && filteredItems.length === 0
-            ? 180
+      <Placeholder
+        variant={loading ? "loading" : loadError ? "error" : "no-results"}
+        placement="detail-panel"
+        subtitle={loadError ?? undefined}
+        action={
+          loadError
+            ? {
+                label: t("common:actions.retry"),
+                onClick: onRefresh,
+              }
             : undefined
         }
-      >
-        {scope === GITHUB_QUERY_SCOPE.PR && filteredItems.length === 0 ? (
-          <Placeholder
-            variant={loading ? "loading" : loadError ? "error" : "no-results"}
-            subtitle={loadError ?? undefined}
-            action={
-              loadError
-                ? {
-                    label: t("common:actions.retry"),
-                    onClick: onRefresh,
-                  }
-                : undefined
-            }
-            fillParentHeight
-          />
-        ) : (
-          // Keep paginated rows in normal document flow. Their wrapped titles
-          // and metadata have dynamic heights, and native WebView zoom can put
-          // virtualizer measurements in a different coordinate space.
-          visibleRows
-        )}
-      </GitHubWorkItemListFrame>
+        fillParentHeight
+      />
     );
   })();
 
@@ -427,13 +708,31 @@ export function GitHubWorkItemsView({
       timelineLoading={issueDetail.timelineLoading}
       submittingComment={issueDetail.submittingComment}
       showHeader={false}
-      contentPadding="default"
-      onClose={onBackFromDetail}
       onCloseIssue={onCloseIssueDetail}
       onReopenIssue={onReopenIssueDetail}
       onAddComment={onAddIssueDetailComment}
+      assigneeConfig={issueDetailAssigneeConfig}
     />
   ) : null;
+  const prDetailContent =
+    prDetail && prDetailIdentity ? (
+      <React.Suspense
+        fallback={
+          <Placeholder
+            variant="loading"
+            placement="detail-panel"
+            fillParentHeight
+          />
+        }
+      >
+        <PrDetailPanel
+          identity={prDetailIdentity}
+          repoPath={prDetail.repoPath}
+          repoId={prDetail.repoId}
+          showHeader={false}
+        />
+      </React.Suspense>
+    ) : null;
 
   return (
     <div
@@ -467,49 +766,90 @@ export function GitHubWorkItemsView({
             onCancel={() => onSetCreateFormOpen(false)}
           />
           <div className="bg-bg-0 flex min-w-0 flex-1 flex-col">
-            {issueDetailContent ?? (
-              <>
-                {!singleRowHeader ? (
-                  <div className="flex h-10 shrink-0 items-center border-b border-border-2 px-3">
-                    <GitHubWorkItemSearch
-                      value={searchQuery}
-                      onChange={onSearchQueryChange}
-                      placeholder={t(
-                        "chat.panels.manageIssues.searchPlaceholder"
-                      )}
+            {issueDetailContent ?? prDetailContent ?? (
+              <WorkManagementTable
+                rows={settingsRows}
+                searchBar={{
+                  searchValue: searchQuery,
+                  searchPlaceholder: t(
+                    "chat.panels.manageIssues.searchPlaceholder"
+                  ),
+                  onSearchChange: onSearchQueryChange,
+                  onSearchClear: () => onSearchQueryChange(""),
+                  tabPills:
+                    scope === GITHUB_QUERY_SCOPE.ISSUE ? (
+                      <GitHubWorkItemStateTabs
+                        tabs={stateTabs}
+                        activeTab={activeState}
+                        onChange={handleStateChange}
+                      />
+                    ) : undefined,
+                  rightContent: (
+                    <GitHubWorkItemToolbarActions
+                      refreshLabel={t("common:actions.refresh")}
+                      refreshing={loading}
+                      createAction={
+                        scope === GITHUB_QUERY_SCOPE.ISSUE
+                          ? {
+                              label: t(
+                                "chat.panels.manageIssues.createIssueTrigger"
+                              ),
+                              disabled: repoSources.length === 0,
+                              onClick: () => onSetCreateFormOpen(true),
+                            }
+                          : undefined
+                      }
+                      onRefresh={onRefresh}
                     />
-                  </div>
-                ) : null}
-                <GitHubWorkItemTableSurface>
-                  <div
-                    ref={listScrollRef}
-                    className="min-h-0 flex-1 overflow-y-auto p-3 scrollbar-hide"
-                  >
-                    {listContent}
-                  </div>
-                </GitHubWorkItemTableSurface>
-                {scope !== GITHUB_QUERY_SCOPE.PR && filteredItems.length > 0 ? (
-                  <GitHubWorkItemPagination
-                    totalLabel={t("common:pagination.pageOf", {
-                      current: currentPage,
-                      total: hasMoreFilteredIssues
-                        ? `${totalLoadedPages}+`
-                        : totalLoadedPages,
-                    })}
-                    previousLabel={t("common:actions.previous")}
-                    nextLabel={t("common:actions.next")}
-                    loadingNext={loadingMore}
-                    canGoPrevious={currentPage > 1}
-                    canGoNext={canAdvanceGitHubWorkItemsPage({
-                      currentPage,
-                      loadedPageCount: totalLoadedPages,
-                      hasMoreRemoteItems: hasMoreFilteredIssues,
-                    })}
-                    onPrevious={handlePreviousPage}
-                    onNext={() => void handleNextPage()}
-                  />
-                ) : null}
-              </>
+                  ),
+                }}
+                selectFilters={tableSelectFilters}
+                selectFiltersExtra={
+                  scope === GITHUB_QUERY_SCOPE.ISSUE ? (
+                    <IssuePersonalFilterDropdown
+                      options={issuePersonalFilterOptions}
+                      selectedFilters={selectedIssuePersonalFilters}
+                      filterLabel={t("common:actions.filter")}
+                      onSelect={onIssuePersonalFiltersSelect}
+                    />
+                  ) : undefined
+                }
+                loading={loading}
+                noDataElement={tableEmptyState}
+                maxWidth="wide"
+                testId={`github-${scope}-table`}
+                pagination={
+                  filteredItems.length > 0
+                    ? {
+                        pageIndex: currentPage - 1,
+                        pageSize: GITHUB_WORK_ITEMS_PAGE_SIZE,
+                        total: filteredItems.length,
+                        pageCount: totalLoadedPages,
+                        canPreviousPage: currentPage > 1,
+                        canNextPage:
+                          !loadingMore &&
+                          canAdvanceGitHubWorkItemsPage({
+                            currentPage,
+                            loadedPageCount: totalLoadedPages,
+                            hasMoreRemoteItems: hasMoreFilteredIssues,
+                          }),
+                        onPageChange: (pageIndex) => {
+                          if (pageIndex < currentPage - 1) {
+                            onPreviousPage();
+                          } else if (pageIndex > currentPage - 1) {
+                            void onNextPage();
+                          }
+                        },
+                        pageLabel: t("common:pagination.pageOf", {
+                          current: currentPage,
+                          total: hasMoreFilteredIssues
+                            ? `${totalLoadedPages}+`
+                            : totalLoadedPages,
+                        }),
+                      }
+                    : undefined
+                }
+              />
             )}
           </div>
         </section>

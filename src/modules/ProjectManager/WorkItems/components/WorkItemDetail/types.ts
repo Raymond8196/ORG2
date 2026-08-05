@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import type { WorkstationTabHeaderHost } from "@src/hooks/workStation";
+import type { ProjectManagerBreadcrumbSegment } from "@src/modules/ProjectManager/shared/components/ProjectManagerBreadcrumb";
 import type { Person } from "@src/types/core/shared";
 import type {
   WorkItem as WorkItemExtended,
@@ -53,6 +54,8 @@ export interface WorkItemDetailProps {
   onExpandToTab?: (pendingUpdates: Partial<WorkItemExtended>) => void;
   initialPendingUpdates?: Partial<WorkItemExtended>;
   surface?: WorkItemDetailSurface;
+  /** Full parent path. The last segment returns to the containing list. */
+  breadcrumbSegments?: readonly ProjectManagerBreadcrumbSegment[];
   breadcrumbProjectName?: string;
   breadcrumbIcon?: ReactNode;
   titleEditable?: boolean;

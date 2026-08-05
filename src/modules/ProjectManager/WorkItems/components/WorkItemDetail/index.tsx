@@ -71,6 +71,7 @@ const WorkItemDetail: React.FC<WorkItemDetailProps> = ({
   onExpandToTab,
   initialPendingUpdates,
   surface = WORK_ITEM_DETAIL_SURFACE.main,
+  breadcrumbSegments,
   breadcrumbProjectName,
   breadcrumbIcon,
   titleEditable,
@@ -299,6 +300,7 @@ const WorkItemDetail: React.FC<WorkItemDetailProps> = ({
     () => (
       <WorkItemDetailHeaderBreadcrumb
         workItem={displayWorkItem}
+        breadcrumbSegments={breadcrumbSegments}
         breadcrumbProjectName={breadcrumbProjectName}
         breadcrumbIcon={breadcrumbIcon}
         shortId={displayShortId}
@@ -313,6 +315,7 @@ const WorkItemDetail: React.FC<WorkItemDetailProps> = ({
     ),
     [
       displayWorkItem,
+      breadcrumbSegments,
       breadcrumbProjectName,
       breadcrumbIcon,
       displayShortId,

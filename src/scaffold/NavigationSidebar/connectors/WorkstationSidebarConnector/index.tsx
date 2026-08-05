@@ -183,8 +183,6 @@ export const WorkstationSidebarConnector: React.FC = () => {
     activeSidebarKey === "workstation" && workItemsOpen;
   const channelSidebarVisible =
     activeSidebarKey === "workstation" && channelsOpen;
-  const projectsSidebarVisible =
-    activeSidebarKey === "projects" || workItemsContentVisible;
   const activeSidebarSearchKey: WorkstationSidebarSearchKey =
     workItemsContentVisible
       ? "projects"
@@ -394,8 +392,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     cloudMenuItems,
     menuItems,
     sessionCreatorDrafts,
-    projectsSidebarVisible,
-    activeSidebarKey,
+    activeViewKey,
     createProjectLabel,
     createWorkItemLabel,
     importGithubIssuesLabel,
@@ -594,7 +591,6 @@ export const WorkstationSidebarConnector: React.FC = () => {
     openRuntimeTab,
     runtimeLabel,
     openTeamInboxTab,
-    teamInboxLabel,
     activateChatPanelTab,
     handleMenuItemClick,
     handleProjectsMenuItemClick,
@@ -623,7 +619,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
       selectedMenuItemId,
       activeSessionId,
       collapsedSectionIds,
-      pinnedMenuItems: channelSidebarVisible ? [] : pinnedMenuItems,
+      pinnedMenuItems,
     });
 
   const handleGuideConnectOrganization = useCallback(() => {
@@ -779,7 +775,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
         activeKey={activeSidebarKey}
         onChange={() => undefined}
         menuItems={sidebarMenuItems}
-        pinnedMenuItems={channelSidebarVisible ? [] : pinnedMenuItems}
+        pinnedMenuItems={pinnedMenuItems}
         selectedKey={resolvedSelectedMenuItemId}
         onMenuItemClick={resolvedMenuItemClick}
         onMenuItemContextMenu={resolvedMenuItemContextMenu}

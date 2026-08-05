@@ -11,13 +11,13 @@
  * fresh read.
  */
 import {
-  ArrowUpRight,
   CheckCircle2,
   CircleDashed,
   CircleSlash,
   GitPullRequest,
   Loader,
   RefreshCw,
+  SquareArrowOutUpRight,
   XCircle,
 } from "lucide-react";
 import React, { memo, useCallback, useMemo } from "react";
@@ -165,7 +165,7 @@ const CheckRow: React.FC<CheckRowProps> = memo(({ item, onOpenDetails }) => {
               onOpenDetails(item.detailsUrl as string);
             }}
           >
-            <ArrowUpRight size={MENU_ICON_SIZE} />
+            <SquareArrowOutUpRight size={MENU_ICON_SIZE} />
           </button>
         )}
       </div>

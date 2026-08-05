@@ -58,7 +58,6 @@ interface UseWorkstationSidebarChromeParams {
   openRuntimeTab: MenuItemRoutingParams["openRuntimeTab"];
   runtimeLabel: string;
   openTeamInboxTab: MenuItemRoutingParams["openTeamInboxTab"];
-  teamInboxLabel: string;
   activateChatPanelTab: MenuItemRoutingParams["activateChatPanelTab"];
   handleMenuItemClick: MenuItemRoutingParams["handleMenuItemClick"];
   handleProjectsMenuItemClick: MenuItemRoutingParams["handleProjectsMenuItemClick"];
@@ -95,7 +94,6 @@ export function useWorkstationSidebarChrome({
   openRuntimeTab,
   runtimeLabel,
   openTeamInboxTab,
-  teamInboxLabel,
   activateChatPanelTab,
   handleMenuItemClick,
   handleProjectsMenuItemClick,
@@ -122,6 +120,7 @@ export function useWorkstationSidebarChrome({
     renderWorkstationMenuItemWrapper,
     renderProjectsMenuItemWrapper,
     handleSessionMenuItemClick,
+    handleProjectsScopeMenuItemClick,
   } = useWorkstationSidebarMenuItemRouting({
     sessionMap,
     cloudRemoteRowMap,
@@ -135,7 +134,6 @@ export function useWorkstationSidebarChrome({
     openRuntimeTab,
     runtimeLabel,
     openTeamInboxTab,
-    teamInboxLabel,
     activateChatPanelTab,
     handleMenuItemClick,
     workItemsContentVisible,
@@ -159,7 +157,7 @@ export function useWorkstationSidebarChrome({
 
   const resolvedMenuItemClick =
     activeSidebarKey === "projects"
-      ? handleProjectsMenuItemClick
+      ? handleProjectsScopeMenuItemClick
       : handleSessionMenuItemClick;
 
   const resolvedMenuItemContextMenu =

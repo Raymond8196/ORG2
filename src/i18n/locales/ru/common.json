@@ -1579,7 +1579,49 @@
         "unpinned": "открепил(а) этот issue",
         "transferred": "перенёс(ла) этот issue",
         "convertedToDiscussion": "преобразовал(а) этот issue в обсуждение",
-        "mentioned": "упомянул(а) этот issue"
+        "mentioned": "упомянул(а) этот issue",
+        "commentDeleted": "удалил(а) комментарий",
+        "subscribed": "подписался(-ась) на этот issue",
+        "unsubscribed": "отписался(-ась) от этого issue",
+        "addedToProject": "добавил(а) этот issue в проект",
+        "movedInProject": "переместил(а) этот issue в проекте",
+        "removedFromProject": "удалил(а) этот issue из проекта",
+        "archived": "архивировал(а) этот issue",
+        "unarchived": "разархивировал(а) этот issue",
+        "merged": "объединил(а) этот пул-реквест",
+        "committed": "добавил(а) коммит в этот пул-реквест",
+        "headRefDeleted": "удалил(а) исходную ветку",
+        "headRefRestored": "восстановил(а) исходную ветку",
+        "headRefForcePushed": "принудительно отправил(а) исходную ветку",
+        "baseRefChanged": "изменил(а) базовую ветку",
+        "automaticBaseChangeFailed": "не смог(ла) автоматически изменить базовую ветку",
+        "automaticBaseChangeSucceeded": "автоматически изменил(а) базовую ветку",
+        "deployed": "развернул(а) этот пул-реквест",
+        "deploymentEnvironmentChanged": "изменил(а) среду развертывания",
+        "readyForReview": "пометил(а) этот пул-реквест как готовый к проверке",
+        "reviewRequested": "запросил(а) проверку",
+        "reviewRequestRemoved": "удалил(а) запрос на проверку",
+        "reviewed": "проверил(а) эти изменения",
+        "reviewDismissed": "отклонил(а) проверку",
+        "userBlocked": "заблокировал(а) этого пользователя"
+      },
+      "composer": {
+        "addComment": "Добавить комментарий",
+        "commentingAs": "Вы действуете как @{{login}}",
+        "identityUnavailable": "Профиль GitHub недоступен",
+        "commentPlaceholder": "Используйте Markdown для форматирования комментария",
+        "submitComment": "Комментировать",
+        "closeIssue": "Закрыть issue",
+        "closeAsCompleted": "Закрыть как выполненную",
+        "closeAsNotPlanned": "Закрыть как незапланированную",
+        "closeAsDuplicate": "Закрыть как дубликат",
+        "duplicateSearchPlaceholder": "Искать issue",
+        "duplicateEmpty": "Нет подходящих issue",
+        "duplicateLoadFailed": "Не удалось загрузить issue",
+        "reopenIssue": "Открыть issue снова",
+        "commentFailed": "Не удалось добавить комментарий",
+        "bodyUpdateFailed": "Не удалось обновить описание issue",
+        "statusFailed": "Не удалось обновить статус issue"
       }
     }
   },
@@ -2617,5 +2659,15 @@
     "downloadedOfTotal": "{{downloaded}} из {{total}}",
     "preparingDownload": "Подготовка загрузки…",
     "downloadingAndInstalling": "Загрузка и установка обновления (v{{version}})…"
+  },
+  "workManagementTable": {
+    "columns": {
+      "id": "ID",
+      "titleContext": "Заголовок / контекст",
+      "status": "Статус",
+      "assignee": "Исполнитель",
+      "updated": "Обновлено"
+    },
+    "selectRow": "Выбрать {{id}}"
   }
 }

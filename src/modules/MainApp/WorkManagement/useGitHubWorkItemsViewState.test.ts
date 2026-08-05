@@ -38,4 +38,19 @@ describe("GitHub work-items view state model", () => {
       )
     ).toBe("is:pr is:open author:@me sidebar");
   });
+
+  it("keeps an editable separator after qualifiers and typed search terms", () => {
+    expect(
+      normalizeGitHubSearchQueryForScope("issue", "is:issue is:open")
+    ).toBe("is:issue is:open ");
+    expect(
+      normalizeGitHubSearchQueryForScope("issue", "is:issue is:open 68 ")
+    ).toBe("is:issue is:open 68 ");
+  });
+
+  it("repairs text typed directly after a state qualifier", () => {
+    expect(
+      normalizeGitHubSearchQueryForScope("issue", "is:issue is:open68")
+    ).toBe("is:issue is:open 68");
+  });
 });

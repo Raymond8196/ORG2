@@ -1570,7 +1570,49 @@
         "unpinned": "がこの issue の固定を解除しました",
         "transferred": "がこの issue を移管しました",
         "convertedToDiscussion": "がこの issue をディスカッションに変換しました",
-        "mentioned": "がこの issue に言及しました"
+        "mentioned": "がこの issue に言及しました",
+        "commentDeleted": "がコメントを削除しました",
+        "subscribed": "がこの issue を購読しました",
+        "unsubscribed": "がこの issue の購読を解除しました",
+        "addedToProject": "がこの issue をプロジェクトに追加しました",
+        "movedInProject": "がプロジェクト内でこの issue を移動しました",
+        "removedFromProject": "がこの issue をプロジェクトから削除しました",
+        "archived": "がこの issue をアーカイブしました",
+        "unarchived": "がこの issue のアーカイブを解除しました",
+        "merged": "がこのプルリクエストをマージしました",
+        "committed": "がこのプルリクエストにコミットしました",
+        "headRefDeleted": "がヘッドブランチを削除しました",
+        "headRefRestored": "がヘッドブランチを復元しました",
+        "headRefForcePushed": "がヘッドブランチを強制プッシュしました",
+        "baseRefChanged": "がベースブランチを変更しました",
+        "automaticBaseChangeFailed": "がベースブランチを自動変更できませんでした",
+        "automaticBaseChangeSucceeded": "がベースブランチを自動変更しました",
+        "deployed": "がこのプルリクエストをデプロイしました",
+        "deploymentEnvironmentChanged": "がデプロイ環境を変更しました",
+        "readyForReview": "がこのプルリクエストをレビュー可能にしました",
+        "reviewRequested": "がレビューをリクエストしました",
+        "reviewRequestRemoved": "がレビューリクエストを削除しました",
+        "reviewed": "がこれらの変更をレビューしました",
+        "reviewDismissed": "がレビューを却下しました",
+        "userBlocked": "がこのユーザーをブロックしました"
+      },
+      "composer": {
+        "addComment": "コメントを追加",
+        "commentingAs": "@{{login}} として操作中",
+        "identityUnavailable": "GitHub のユーザー情報を取得できません",
+        "commentPlaceholder": "Markdown でコメントを入力",
+        "submitComment": "コメント",
+        "closeIssue": "issue を閉じる",
+        "closeAsCompleted": "完了として閉じる",
+        "closeAsNotPlanned": "計画外として閉じる",
+        "closeAsDuplicate": "重複として閉じる",
+        "duplicateSearchPlaceholder": "issue を検索",
+        "duplicateEmpty": "一致する issue はありません",
+        "duplicateLoadFailed": "issue の読み込みに失敗しました",
+        "reopenIssue": "issue を再度開く",
+        "commentFailed": "コメントを追加できませんでした",
+        "bodyUpdateFailed": "issue の説明を更新できませんでした",
+        "statusFailed": "issue のステータスを更新できませんでした"
       }
     }
   },
@@ -2610,5 +2652,15 @@
     "downloadedOfTotal": "{{downloaded}} / {{total}}",
     "preparingDownload": "ダウンロードを準備中…",
     "downloadingAndInstalling": "アップデートをダウンロードしてインストール中 (v{{version}})…"
+  },
+  "workManagementTable": {
+    "columns": {
+      "id": "ID",
+      "titleContext": "タイトル / コンテキスト",
+      "status": "ステータス",
+      "assignee": "担当者",
+      "updated": "更新"
+    },
+    "selectRow": "{{id}} を選択"
   }
 }

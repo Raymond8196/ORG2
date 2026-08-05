@@ -1571,7 +1571,49 @@
         "unpinned": "a désépinglé cette issue",
         "transferred": "a transféré cette issue",
         "convertedToDiscussion": "a converti cette issue en discussion",
-        "mentioned": "a mentionné cette issue"
+        "mentioned": "a mentionné cette issue",
+        "commentDeleted": "a supprimé un commentaire",
+        "subscribed": "s’est abonné à cette issue",
+        "unsubscribed": "s’est désabonné de cette issue",
+        "addedToProject": "a ajouté cette issue à un projet",
+        "movedInProject": "a déplacé cette issue dans un projet",
+        "removedFromProject": "a retiré cette issue d’un projet",
+        "archived": "a archivé cette issue",
+        "unarchived": "a désarchivé cette issue",
+        "merged": "a fusionné cette pull request",
+        "committed": "a ajouté un commit à cette pull request",
+        "headRefDeleted": "a supprimé la branche source",
+        "headRefRestored": "a restauré la branche source",
+        "headRefForcePushed": "a forcé la mise à jour de la branche source",
+        "baseRefChanged": "a modifié la branche de base",
+        "automaticBaseChangeFailed": "n’a pas pu modifier automatiquement la branche de base",
+        "automaticBaseChangeSucceeded": "a modifié automatiquement la branche de base",
+        "deployed": "a déployé cette pull request",
+        "deploymentEnvironmentChanged": "a modifié l’environnement de déploiement",
+        "readyForReview": "a marqué cette pull request comme prête à être révisée",
+        "reviewRequested": "a demandé une révision",
+        "reviewRequestRemoved": "a supprimé une demande de révision",
+        "reviewed": "a révisé ces modifications",
+        "reviewDismissed": "a rejeté une révision",
+        "userBlocked": "a bloqué cet utilisateur"
+      },
+      "composer": {
+        "addComment": "Ajouter un commentaire",
+        "commentingAs": "Commentaire en tant que @{{login}}",
+        "identityUnavailable": "Identité GitHub indisponible",
+        "commentPlaceholder": "Utilisez Markdown pour mettre en forme votre commentaire",
+        "submitComment": "Commenter",
+        "closeIssue": "Fermer l’issue",
+        "closeAsCompleted": "Fermer comme terminé",
+        "closeAsNotPlanned": "Fermer comme non planifié",
+        "closeAsDuplicate": "Fermer comme doublon",
+        "duplicateSearchPlaceholder": "Rechercher des issues",
+        "duplicateEmpty": "Aucune issue correspondante",
+        "duplicateLoadFailed": "Impossible de charger les issues",
+        "reopenIssue": "Rouvrir l’issue",
+        "commentFailed": "Impossible d’ajouter le commentaire",
+        "bodyUpdateFailed": "Impossible de mettre à jour la description de l’issue",
+        "statusFailed": "Impossible de mettre à jour le statut de l’issue"
       }
     }
   },
@@ -2610,5 +2652,15 @@
     "downloadedOfTotal": "{{downloaded}} sur {{total}}",
     "preparingDownload": "Préparation du téléchargement…",
     "downloadingAndInstalling": "Téléchargement et installation de la mise à jour (v{{version}})…"
+  },
+  "workManagementTable": {
+    "columns": {
+      "id": "ID",
+      "titleContext": "Titre / contexte",
+      "status": "Statut",
+      "assignee": "Responsable",
+      "updated": "Mis à jour"
+    },
+    "selectRow": "Sélectionner {{id}}"
   }
 }

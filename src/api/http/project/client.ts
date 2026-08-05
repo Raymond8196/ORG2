@@ -35,6 +35,7 @@ import type {
   WorkItemHandoffTransition,
   WorkItemPartialUpdate,
   WorkItemsViewData,
+  WorkspaceWorkItemsData,
 } from "./types";
 
 // ============================================
@@ -357,10 +358,19 @@ export async function readWorkItemsEnriched(
   );
 }
 
+export async function readWorkspaceWorkItemsData(
+  options?: WorkItemsReadOptions
+): Promise<WorkspaceWorkItemsData> {
+  return invoke("project_read_workspace_work_items_data", {
+    ...scopeInvokePayload(options),
+    readBucket: options?.readBucket ?? null,
+  });
+}
+
 /**
  * One-shot endpoint for the WorkItems page: enriched items + status
- * counts (computed before filtering, for the filter badges) + Kanban /
- * Gantt / Calendar projections + items grouped by status.
+ * counts (computed before filtering, for the filter badges) + only the
+ * requested view projection.
  *
  * Filter args bypass the cache so the dynamic search/status query
  * always hits Rust; the no-filter call is cached because it's the
@@ -369,13 +379,14 @@ export async function readWorkItemsEnriched(
 export interface WorkItemsViewOptions extends ProjectScopeOptions {
   statusFilter?: string;
   searchQuery?: string;
+  view?: "list" | "kanban" | "gantt" | "calendar";
 }
 
 export async function readWorkItemsViewData(
   projectSlug: string,
   options?: WorkItemsViewOptions
 ): Promise<WorkItemsViewData> {
-  const { statusFilter, searchQuery } = options ?? {};
+  const { statusFilter, searchQuery, view } = options ?? {};
   const scopePayload = scopeInvokePayload(options);
   const scopeSegment = scopeCacheSegment(options);
   const hasFilters =
@@ -388,16 +399,20 @@ export async function readWorkItemsViewData(
       ...scopePayload,
       statusFilter: statusFilter ?? null,
       searchQuery: searchQuery ?? null,
+      view: view ?? null,
     });
   }
 
-  return cachedRead(`${projectSlug}:workitems-view:${scopeSegment}`, () =>
-    invoke("project_read_work_items_view_data", {
-      projectSlug,
-      ...scopePayload,
-      statusFilter: null,
-      searchQuery: null,
-    })
+  return cachedRead(
+    `${projectSlug}:workitems-view:${scopeSegment}:${view ?? "all"}`,
+    () =>
+      invoke("project_read_work_items_view_data", {
+        projectSlug,
+        ...scopePayload,
+        statusFilter: null,
+        searchQuery: null,
+        view: view ?? null,
+      })
   );
 }
 

@@ -11,9 +11,7 @@ export interface ChatPanelTabDisplayLabels {
   teamInbox: string;
   workManagement: {
     kanban: string;
-    projects: string;
-    githubIssues: string;
-    githubPrs: string;
+    work: string;
   };
   sessionFallback: string;
   channelFallback: string;
@@ -25,11 +23,9 @@ function resolveWorkManagementTabTitle(
 ): string {
   switch (tab.managementSection) {
     case WORK_MANAGEMENT_SECTION.PROJECTS:
-      return labels.projects;
     case WORK_MANAGEMENT_SECTION.GITHUB_ISSUES:
-      return labels.githubIssues;
     case WORK_MANAGEMENT_SECTION.GITHUB_PRS:
-      return labels.githubPrs;
+      return labels.work;
     case WORK_MANAGEMENT_SECTION.KANBAN:
     default:
       return labels.kanban;

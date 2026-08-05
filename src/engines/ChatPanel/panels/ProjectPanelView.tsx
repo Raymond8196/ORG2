@@ -253,7 +253,9 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
     setWorkItemsLoading(true);
     setWorkItemsError(null);
     try {
-      const viewData = await projectApi.readWorkItemsViewData(projectSlug);
+      const viewData = await projectApi.readWorkItemsViewData(projectSlug, {
+        view: "list",
+      });
       setWorkItemShortIds(
         new Map(viewData.items.map((item) => [item.id, item.shortId]))
       );

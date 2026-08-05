@@ -169,7 +169,6 @@ const SourceControlMainContent: React.FC<SourceControlMainContentProps> = ({
           timeline={selectedIssueState.timeline}
           timelineLoading={selectedIssueState.timelineLoading}
           submittingComment={selectedIssueState.submittingComment}
-          onClose={() => undefined}
           onCloseIssue={handleCloseIssue}
           onReopenIssue={handleReopenIssue}
           onAddComment={handleAddIssueComment}

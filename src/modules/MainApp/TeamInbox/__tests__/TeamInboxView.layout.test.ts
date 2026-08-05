@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { Globe } from "lucide-react";
 import React, { act, createElement } from "react";
 import { type Root, createRoot } from "react-dom/client";
 import {
@@ -27,7 +28,12 @@ const componentProps = vi.hoisted(() => ({
   placeholder: null as Record<string, unknown> | null,
   prDetail: null as Record<string, unknown> | null,
 }));
+const openExternalLink = vi.hoisted(() => vi.fn(async () => undefined));
 const translate = vi.hoisted(() => vi.fn((key: string) => key));
+
+vi.mock("@src/util/platform/ipcRenderer", () => ({
+  openExternalLink,
+}));
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
@@ -48,6 +54,7 @@ vi.mock("@src/modules/shared/layouts/SplitViewLayout", () => ({
 }));
 
 vi.mock("@src/modules/shared/layouts/blocks", () => ({
+  LoadingBar: () => createElement("div", { "data-testid": "loading-bar" }),
   Placeholder: (props: Record<string, unknown>) => {
     componentProps.placeholder = props;
     return null;
@@ -111,6 +118,27 @@ function createPullRequest(): ManagedPrItem {
   };
 }
 
+const partialLoadItem: AssignedWorkItem = {
+  id: "partial-load-item",
+  kind: "assigned_work_item",
+  occurredAt: "2026-08-05T00:00:00.000Z",
+  readAt: null,
+  actor: { id: "member-1", displayName: "Yuki" },
+  target: {
+    kind: "work_item",
+    projectId: "demo",
+    workItemId: "AAA-0001",
+  },
+  payload: {
+    title: "Available work item",
+    status: "todo",
+    priority: "medium",
+    assigneeMemberId: "member-1",
+    assigneeName: "Yuki",
+    updatedAt: "2026-08-05T00:00:00.000Z",
+  },
+};
+
 describe("TeamInboxView split layout", () => {
   let container: HTMLDivElement;
   let root: Root;
@@ -164,6 +192,72 @@ describe("TeamInboxView split layout", () => {
     expect(splitViewProps.current?.listWidth).toBe(360);
     expect(splitViewProps.current?.minListWidth).toBe(280);
     expect(splitViewProps.current?.maxListWidth).toBe(480);
+    expect(componentProps.list?.loading).toBe(true);
+  });
+
+  it("allows the partial-load notice to be closed", async () => {
+    await act(async () => {
+      root.render(
+        createElement(TeamInboxView, {
+          dataSource: {
+            listPage: async () => ({
+              items: [partialLoadItem],
+              nextCursor: null,
+              issue: { code: "partial_load" as const },
+            }),
+          },
+        })
+      );
+      await Promise.resolve();
+    });
+
+    expect(
+      container.querySelector('[data-testid="team-inbox-load-notice"]')
+    ).not.toBeNull();
+
+    act(() => {
+      container
+        .querySelector<HTMLButtonElement>(
+          'button[aria-label="common:actions.close"]'
+        )
+        ?.click();
+    });
+
+    expect(
+      container.querySelector('[data-testid="team-inbox-load-notice"]')
+    ).toBeNull();
+  });
+
+  it("automatically closes the partial-load notice after three seconds", async () => {
+    vi.useFakeTimers();
+    try {
+      await act(async () => {
+        root.render(
+          createElement(TeamInboxView, {
+            dataSource: {
+              listPage: async () => ({
+                items: [partialLoadItem],
+                nextCursor: null,
+                issue: { code: "partial_load" as const },
+              }),
+            },
+          })
+        );
+        await Promise.resolve();
+      });
+
+      expect(
+        container.querySelector('[data-testid="team-inbox-load-notice"]')
+      ).not.toBeNull();
+
+      act(() => vi.advanceTimersByTime(3000));
+
+      expect(
+        container.querySelector('[data-testid="team-inbox-load-notice"]')
+      ).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("projects successful detail edits back into the matching Inbox row", async () => {
@@ -201,6 +295,13 @@ describe("TeamInboxView split layout", () => {
         })
       );
       await Promise.resolve();
+    });
+
+    act(() => {
+      const onSelectItem = componentProps.list?.onSelectItem as
+        | ((item: AssignedWorkItem) => void)
+        | undefined;
+      onSelectItem?.(assignedItem);
     });
 
     const onWorkItemUpdated = componentProps.assignedDetail
@@ -288,6 +389,21 @@ describe("TeamInboxView split layout", () => {
         baseBranch: "main",
       },
     });
+    const headerActions = componentProps.prDetail
+      ?.headerActions as React.ReactElement<{
+      label: string;
+      icon: React.ReactElement;
+      onClick: () => void;
+      testId: string;
+    }>;
+    expect(React.isValidElement(headerActions)).toBe(true);
+    expect(headerActions.props.label).toBe("previews.openInBrowser");
+    expect(headerActions.props.icon.type).toBe(Globe);
+    expect(headerActions.props.testId).toBe("team-inbox-open-github-pr");
+    act(() => headerActions.props.onClick());
+    expect(openExternalLink).toHaveBeenCalledWith(
+      "https://github.com/orgii/desktop/pull/42"
+    );
   });
 
   it("marks an unread item as read when its detail becomes visible", async () => {
@@ -334,8 +450,7 @@ describe("TeamInboxView split layout", () => {
       await Promise.resolve();
     });
 
-    expect(markRead).toHaveBeenCalledOnce();
-    expect(markRead).toHaveBeenCalledWith(unreadItem);
+    expect(markRead).not.toHaveBeenCalled();
 
     await act(async () => {
       const onSelectItem = componentProps.list?.onSelectItem as
@@ -345,11 +460,64 @@ describe("TeamInboxView split layout", () => {
       await Promise.resolve();
     });
     expect(markRead).toHaveBeenCalledOnce();
+    expect(markRead).toHaveBeenCalledWith(unreadItem);
 
     await act(async () => {
       resolveMarkRead?.();
       await Promise.resolve();
     });
+  });
+
+  it("focuses and reads only the item explicitly requested by a notification", async () => {
+    const firstItem: AssignedWorkItem = {
+      id: "first",
+      kind: "assigned_work_item",
+      occurredAt: "2026-07-28T00:01:00.000Z",
+      readAt: null,
+      actor: { id: "member-1", displayName: "Yuki" },
+      target: {
+        kind: "work_item",
+        projectId: "demo",
+        workItemId: "AAA-0001",
+      },
+      payload: {
+        title: "First item",
+        status: "todo",
+        priority: "medium",
+        assigneeMemberId: "viewer",
+        updatedAt: "2026-07-28T00:01:00.000Z",
+      },
+    };
+    const requestedItem: AssignedWorkItem = {
+      ...firstItem,
+      id: "requested",
+      target: { ...firstItem.target, workItemId: "AAA-0002" },
+      payload: { ...firstItem.payload, title: "Requested item" },
+    };
+    const markRead = vi.fn().mockResolvedValue(undefined);
+
+    await act(async () => {
+      root.render(
+        createElement(TeamInboxView, {
+          dataSource: {
+            listPage: async () => ({
+              items: [firstItem, requestedItem],
+              nextCursor: null,
+            }),
+            markRead,
+          },
+          focusRequest: {
+            itemKey: "assigned_work_item:requested",
+            requestId: 1,
+          },
+        })
+      );
+      await Promise.resolve();
+    });
+
+    expect(markRead).toHaveBeenCalledOnce();
+    expect(markRead).toHaveBeenCalledWith(requestedItem);
+    expect(componentProps.assignedDetail?.item).toEqual(requestedItem);
   });
 
   it("retries the backing source instead of rereading a failed snapshot", async () => {

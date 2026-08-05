@@ -36,16 +36,14 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { useAtomValue, useSetAtom } from "jotai";
 import {
-  Boxes,
   BriefcaseBusiness,
-  CircleDot,
   Columns3,
   Gauge,
-  GitPullRequest,
   Hash,
   Inbox,
   Info,
   LayoutGrid,
+  ListTodo,
   Lock,
   MessageSquarePlus,
   Plus,
@@ -191,13 +189,11 @@ const TabPill = memo(function TabPill({
     launchpad: t("navigation:routes.launchpad"),
     runtime: t("sessions:chat.startPage.tabs.runtime"),
     organization: t("navigation:collaboration.manageOrg"),
-    teamInbox: t("navigation:labels.teamInbox", "Team Inbox"),
+    teamInbox: t("navigation:labels.inbox"),
     channelFallback: t("navigation:cloud.channels.title"),
     workManagement: {
       kanban: t("sessions:simulator.tabs.kanban"),
-      projects: t("navigation:labels.projects"),
-      githubIssues: t("sessions:kanban.sidebar.githubIssues"),
-      githubPrs: t("sessions:kanban.sidebar.githubPrs"),
+      work: t("navigation:labels.workItems"),
     },
     sessionFallback: t("chat.defaultTitle"),
   });
@@ -273,13 +269,9 @@ const TabPill = memo(function TabPill({
     );
   } else if (tab.type === "work-management") {
     const WorkManagementIcon =
-      tab.managementSection === WORK_MANAGEMENT_SECTION.PROJECTS
-        ? Boxes
-        : tab.managementSection === WORK_MANAGEMENT_SECTION.GITHUB_ISSUES
-          ? CircleDot
-          : tab.managementSection === WORK_MANAGEMENT_SECTION.GITHUB_PRS
-            ? GitPullRequest
-            : Columns3;
+      tab.managementSection === WORK_MANAGEMENT_SECTION.KANBAN
+        ? Columns3
+        : ListTodo;
     icon = React.createElement(WorkManagementIcon, {
       size: 16,
       strokeWidth: 1.75,
@@ -673,9 +665,7 @@ export function ChatPanelTabBar(): React.ReactNode {
   const handleCreateWorkItem = useCallback(
     (reference: SessionReferenceOpen) => {
       requestSessionHandoff(reference);
-      openTeamInbox(
-        t("navigation:labels.teamInbox", { defaultValue: "Team Inbox" })
-      );
+      openTeamInbox(t("navigation:labels.inbox"));
     },
     [openTeamInbox, requestSessionHandoff, t]
   );

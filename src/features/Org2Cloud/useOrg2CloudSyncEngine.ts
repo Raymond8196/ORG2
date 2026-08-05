@@ -11,9 +11,10 @@
  *    re-lists collab state under the new identity instead of trusting
  *    another account's in-memory cursors for the same org ids.
  */
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { useEffect } from "react";
 
+import { externalHistoryBackgroundScanEnabledAtom } from "@src/store/session/dataSourceConfigAtom";
 import { getInstrumentedStore } from "@src/util/core/state/instrumentedStore";
 
 import { memberRuntimePushScheduler } from "./memberRuntime/memberRuntimePushScheduler";
@@ -49,12 +50,41 @@ export function buildOrg2CloudSyncRosterKey(
   );
 }
 
+export function shouldEnableExternalHistoryBackgroundScan(
+  authIdentityKey: string | null,
+  orgsLoaded: boolean,
+  orgs: readonly Org2CloudOrg[]
+): boolean {
+  return Boolean(
+    authIdentityKey && orgsLoaded && orgs.some(isOrgBackgroundUploadEnabled)
+  );
+}
+
 export function useOrg2CloudSyncEngine(): void {
   const auth = useAtomValue(org2CloudAuthAtom);
   const authIdentityKey = auth ? org2CloudAuthIdentityKey(auth) : null;
   const orgs = useAtomValue(org2CloudOrgsAtom);
   const orgsLoaded = useAtomValue(org2CloudOrgsLoadedAtom);
+  const setExternalHistoryBackgroundScanEnabled = useSetAtom(
+    externalHistoryBackgroundScanEnabledAtom
+  );
   const rosterKey = buildOrg2CloudSyncRosterKey(orgs);
+  const externalHistoryBackgroundScanEnabled =
+    shouldEnableExternalHistoryBackgroundScan(
+      authIdentityKey,
+      orgsLoaded,
+      orgs
+    );
+
+  useEffect(() => {
+    setExternalHistoryBackgroundScanEnabled(
+      externalHistoryBackgroundScanEnabled
+    );
+    return () => setExternalHistoryBackgroundScanEnabled(false);
+  }, [
+    externalHistoryBackgroundScanEnabled,
+    setExternalHistoryBackgroundScanEnabled,
+  ]);
 
   useEffect(() => {
     // stop() is idempotent and also covers the A→B switch (no null between):

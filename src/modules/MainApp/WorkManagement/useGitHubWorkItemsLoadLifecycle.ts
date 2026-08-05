@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { getGitRemotes } from "@src/api/http/git/remotes";
-import { getGitHubViewerLogin, listPRsLocal } from "@src/api/tauri/github";
+import {
+  getGitHubRepoPermissionsLocal,
+  getGitHubViewerLogin,
+  listPRsLocal,
+} from "@src/api/tauri/github";
+import type { GitHubRepoPermissions } from "@src/api/tauri/github";
 import type {
   GitHubIssue,
   OpenPRItem,
@@ -21,15 +26,20 @@ import { parseGithubRepoFullName } from "@src/services/git/operations/createPull
 import { fetchIssues } from "@src/services/git/operations/githubIssues";
 import { REPO_KIND } from "@src/store/repo";
 import type { Repo } from "@src/store/repo/types";
+import { mapWithConcurrency } from "@src/util/collections/mapWithConcurrency";
 
 import type {
   GitHubIssuePageState,
   GitHubQueryScope,
 } from "./githubWorkItemsSearchQuery";
-import type { GitHubRepoSource } from "./githubWorkItemsTypes";
+import {
+  type GitHubRepoSource,
+  getGitHubListCacheKey,
+} from "./githubWorkItemsTypes";
 
 export const ISSUE_PAGE_SIZE = 50;
 const PR_PAGE_SIZE = 50;
+const GITHUB_SOURCE_CONCURRENCY = 4;
 
 export interface RepoIssueState {
   openIssues: GitHubIssue[];
@@ -100,7 +110,7 @@ export function mergeUniqueIssues(
 }
 
 function getCachedRepoIssues(source: GitHubRepoSource): RepoIssueState {
-  const cached = getCachedIssues(source.repoPath);
+  const cached = getCachedIssues(getGitHubListCacheKey(source));
   if (!cached) return EMPTY_REPO_ISSUES;
   return {
     openIssues: cached.openIssues,
@@ -115,8 +125,9 @@ function getCachedRepoIssues(source: GitHubRepoSource): RepoIssueState {
 }
 
 function getCachedRepoPrs(source: GitHubRepoSource): RepoPrState {
-  const open = getCachedPrs(source.repoPath, "open");
-  const closed = getCachedPrs(source.repoPath, "closed");
+  const cacheKey = getGitHubListCacheKey(source);
+  const open = getCachedPrs(cacheKey, "open");
+  const closed = getCachedPrs(cacheKey, "closed");
   return {
     openPrs: open?.prs ?? [],
     closedPrs: closed?.prs ?? [],
@@ -131,11 +142,16 @@ async function resolveGitHubRepoSource(
   repo: Repo
 ): Promise<GitHubRepoSource | null> {
   if (repo.kind !== REPO_KIND.GIT || !repo.path) return null;
-  const remoteUrl =
-    repo.repo_url ??
-    (
-      await getGitRemotes({ repo_id: repo.id, repo_path: repo.path })
-    )?.remotes?.find((remote) => remote.name === "origin")?.url;
+  let remoteUrl = repo.repo_url;
+  if (!remoteUrl) {
+    try {
+      remoteUrl = (
+        await getGitRemotes({ repo_id: repo.id, repo_path: repo.path })
+      )?.remotes?.find((remote) => remote.name === "origin")?.url;
+    } catch {
+      return null;
+    }
+  }
   if (!remoteUrl) return null;
   const repoFullName = parseGithubRepoFullName(remoteUrl);
   if (!repoFullName) return null;
@@ -146,7 +162,24 @@ async function resolveGitHubRepoSource(
     remoteUrl,
     repoFullName,
     viewerLogin: null,
+    permissions: null,
   };
+}
+
+export async function loadRepoPermissions(
+  source: GitHubRepoSource,
+  viewerLogin: string,
+  permissionRequests: Map<string, Promise<GitHubRepoPermissions | null>>
+): Promise<[string, GitHubRepoPermissions | null]> {
+  const key = `${viewerLogin.toLowerCase()}:${source.repoFullName}`;
+  let permissionRequest = permissionRequests.get(key);
+  if (!permissionRequest) {
+    permissionRequest = getGitHubRepoPermissionsLocal(
+      source.repoFullName
+    ).catch(() => null);
+    permissionRequests.set(key, permissionRequest);
+  }
+  return [source.repoFullName, await permissionRequest];
 }
 
 async function loadRepoIssues(
@@ -154,15 +187,13 @@ async function loadRepoIssues(
   states: GitHubIssuePageState[],
   force: boolean
 ): Promise<RepoIssueLoadResult> {
+  const cacheKey = getGitHubListCacheKey(source);
   const cached = getCachedRepoIssues(source);
-  if (
-    !force &&
-    states.every((state) => !isIssueCacheStale(source.repoPath, state))
-  ) {
+  if (!force && states.every((state) => !isIssueCacheStale(cacheKey, state))) {
     return { source, ...cached, error: null };
   }
   const results = await coalesceGitHubListRequest(
-    `work-management:issues:${states.join(",")}:${source.repoPath}`,
+    `work-management:issues:${states.join(",")}:${cacheKey}`,
     () =>
       Promise.all(
         states.map((state) =>
@@ -181,9 +212,8 @@ async function loadRepoIssues(
   const closedResult = resultByState.get("closed");
   const openIssues = openResult?.data?.issues ?? cached.openIssues;
   const closedIssues = closedResult?.data?.issues ?? cached.closedIssues;
-  if (openResult?.data) updateCachedOpenIssues(source.repoPath, openIssues);
-  if (closedResult?.data)
-    updateCachedClosedIssues(source.repoPath, closedIssues);
+  if (openResult?.data) updateCachedOpenIssues(cacheKey, openIssues);
+  if (closedResult?.data) updateCachedClosedIssues(cacheKey, closedIssues);
   return {
     source,
     openIssues,
@@ -203,16 +233,17 @@ async function loadRepoPrs(
   state: PullRequestListState,
   force: boolean
 ): Promise<RepoPrLoadResult> {
-  const cached = getCachedPrs(source.repoPath, state);
-  if (cached && !force && !isPrCacheStale(source.repoPath, state)) {
+  const cacheKey = getGitHubListCacheKey(source);
+  const cached = getCachedPrs(cacheKey, state);
+  if (cached && !force && !isPrCacheStale(cacheKey, state)) {
     return { source, state, prs: cached.prs, loaded: true, error: null };
   }
   try {
     const prs = await coalesceGitHubListRequest(
-      `work-management:prs:${state}:${source.repoPath}`,
+      `work-management:prs:${state}:${cacheKey}`,
       () => listPRsLocal(source.repoFullName, state, PR_PAGE_SIZE)
     );
-    setCachedPrs(source.repoPath, prs, state);
+    setCachedPrs(cacheKey, prs, state);
     return { source, state, prs, loaded: true, error: null };
   } catch (error: unknown) {
     return {
@@ -225,18 +256,52 @@ async function loadRepoPrs(
   }
 }
 
+export function selectGitHubLoadSources({
+  sources,
+  selectedRepo,
+  selectedRepoPath,
+  allReposValue,
+  currentWorkstationValue,
+}: {
+  sources: GitHubRepoSource[];
+  selectedRepo: string;
+  selectedRepoPath: string | null;
+  allReposValue: string;
+  currentWorkstationValue: string;
+}): GitHubRepoSource[] {
+  if (selectedRepo === allReposValue) return sources;
+  if (selectedRepo === currentWorkstationValue) {
+    const currentSource = sources.find(
+      (source) => source.repoPath === selectedRepoPath
+    );
+    return currentSource ? [currentSource] : [];
+  }
+  const selectedSource = sources.find(
+    (source) => source.repoFullName === selectedRepo
+  );
+  return selectedSource ? [selectedSource] : [];
+}
+
 export function useGitHubWorkItemsLoadLifecycle({
   repos,
   scope,
   issueStates,
   prStates,
   refreshNonce,
+  selectedRepo = "__all__",
+  selectedRepoPath = null,
+  allReposValue = "__all__",
+  currentWorkstationValue = "__current__",
 }: {
   repos: Repo[];
   scope: Extract<GitHubQueryScope, "issue" | "pr">;
   issueStates: GitHubIssuePageState[];
   prStates: PullRequestListState[];
   refreshNonce: number;
+  selectedRepo?: string;
+  selectedRepoPath?: string | null;
+  allReposValue?: string;
+  currentWorkstationValue?: string;
 }) {
   const [repoSources, setRepoSources] = useState<GitHubRepoSource[]>([]);
   const [repoIssueMap, setRepoIssueMap] = useState<
@@ -246,6 +311,10 @@ export function useGitHubWorkItemsLoadLifecycle({
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const handledRefreshNonceRef = useRef(0);
+  const permissionRequestsRef = useRef<
+    Map<string, Promise<GitHubRepoPermissions | null>>
+  >(new Map());
+  const permissionViewerRef = useRef<string | null>(null);
   const gitRepos = useMemo(
     () => repos.filter((repo) => repo.kind === REPO_KIND.GIT && repo.path),
     [repos]
@@ -255,10 +324,13 @@ export function useGitHubWorkItemsLoadLifecycle({
     let cancelled = false;
     const forceRefresh = refreshNonce !== handledRefreshNonceRef.current;
     handledRefreshNonceRef.current = refreshNonce;
+    if (forceRefresh) permissionRequestsRef.current.clear();
     void (async () => {
       setLoading(true);
       setLoadError(null);
       if (gitRepos.length === 0) {
+        permissionRequestsRef.current.clear();
+        permissionViewerRef.current = null;
         setRepoSources([]);
         setRepoIssueMap({});
         setRepoPrMap({});
@@ -273,7 +345,11 @@ export function useGitHubWorkItemsLoadLifecycle({
           (login) => ({ login, error: null }),
           (error: unknown) => ({ login: null, error: String(error) })
         ),
-        Promise.all(gitRepos.map(resolveGitHubRepoSource)),
+        mapWithConcurrency(
+          gitRepos,
+          GITHUB_SOURCE_CONCURRENCY,
+          resolveGitHubRepoSource
+        ),
       ]);
       if (cancelled) return;
       const viewerLoginError = viewerResult.error;
@@ -281,7 +357,33 @@ export function useGitHubWorkItemsLoadLifecycle({
         .filter((source): source is GitHubRepoSource => Boolean(source))
         .map((source) => ({ ...source, viewerLogin: viewerResult.login }));
       if (cancelled) return;
-      setRepoSources(resolvedSources);
+      if (!viewerResult.login) {
+        permissionRequestsRef.current.clear();
+        permissionViewerRef.current = null;
+        setRepoSources(resolvedSources);
+        setRepoIssueMap({});
+        setRepoPrMap({});
+        setLoadError(
+          viewerLoginError ?? "GitHub viewer identity is unavailable"
+        );
+        setLoading(false);
+        return;
+      }
+      if (permissionViewerRef.current !== viewerResult.login) {
+        permissionRequestsRef.current.clear();
+        permissionViewerRef.current = viewerResult.login;
+      }
+      const permissionKeyPrefix = `${viewerResult.login.toLowerCase()}:`;
+      const activePermissionKeys = new Set(
+        resolvedSources.map(
+          (source) => `${permissionKeyPrefix}${source.repoFullName}`
+        )
+      );
+      for (const key of permissionRequestsRef.current.keys()) {
+        if (!activePermissionKeys.has(key)) {
+          permissionRequestsRef.current.delete(key);
+        }
+      }
       setRepoIssueMap(
         scope === "issue"
           ? Object.fromEntries(
@@ -303,28 +405,50 @@ export function useGitHubWorkItemsLoadLifecycle({
           : {}
       );
       if (resolvedSources.length === 0) {
+        setRepoSources([]);
         setLoading(false);
         return;
       }
-      const [issueResults, prResults] = await Promise.all([
+      const sourcesToLoad = selectGitHubLoadSources({
+        sources: resolvedSources,
+        selectedRepo,
+        selectedRepoPath,
+        allReposValue,
+        currentWorkstationValue,
+      });
+      const [permissionResults, issueResults, prResults] = await Promise.all([
+        mapWithConcurrency(sourcesToLoad, GITHUB_SOURCE_CONCURRENCY, (source) =>
+          loadRepoPermissions(
+            source,
+            viewerResult.login,
+            permissionRequestsRef.current
+          )
+        ),
         scope === "issue"
-          ? Promise.all(
-              resolvedSources.map((source) =>
-                loadRepoIssues(source, issueStates, forceRefresh)
-              )
+          ? mapWithConcurrency(
+              sourcesToLoad,
+              GITHUB_SOURCE_CONCURRENCY,
+              (source) => loadRepoIssues(source, issueStates, forceRefresh)
             )
           : Promise.resolve([]),
         scope === "pr"
-          ? Promise.all(
-              resolvedSources.flatMap((source) =>
-                prStates.map((state) =>
-                  loadRepoPrs(source, state, forceRefresh)
-                )
-              )
+          ? mapWithConcurrency(
+              sourcesToLoad.flatMap((source) =>
+                prStates.map((state) => ({ source, state }))
+              ),
+              GITHUB_SOURCE_CONCURRENCY,
+              ({ source, state }) => loadRepoPrs(source, state, forceRefresh)
             )
           : Promise.resolve([]),
       ]);
       if (cancelled) return;
+      const permissionByRepo = new Map(permissionResults);
+      setRepoSources(
+        resolvedSources.map((source) => ({
+          ...source,
+          permissions: permissionByRepo.get(source.repoFullName) ?? null,
+        }))
+      );
       if (scope === "issue") {
         setRepoIssueMap(
           Object.fromEntries(
@@ -369,7 +493,17 @@ export function useGitHubWorkItemsLoadLifecycle({
     return () => {
       cancelled = true;
     };
-  }, [gitRepos, issueStates, prStates, refreshNonce, scope]);
+  }, [
+    allReposValue,
+    currentWorkstationValue,
+    gitRepos,
+    issueStates,
+    prStates,
+    refreshNonce,
+    scope,
+    selectedRepo,
+    selectedRepoPath,
+  ]);
 
   const updateIssueMap = useCallback(
     (
@@ -377,6 +511,14 @@ export function useGitHubWorkItemsLoadLifecycle({
         current: Record<string, RepoIssueState>
       ) => Record<string, RepoIssueState>
     ) => setRepoIssueMap(update),
+    []
+  );
+  const updatePrMap = useCallback(
+    (
+      update: (
+        current: Record<string, RepoPrState>
+      ) => Record<string, RepoPrState>
+    ) => setRepoPrMap(update),
     []
   );
   const setListError = useCallback((error: string | null) => {
@@ -390,6 +532,7 @@ export function useGitHubWorkItemsLoadLifecycle({
     loading,
     loadError,
     updateIssueMap,
+    updatePrMap,
     setListError,
   };
 }
