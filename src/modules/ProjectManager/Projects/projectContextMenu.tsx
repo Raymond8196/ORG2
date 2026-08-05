@@ -4,11 +4,11 @@ import {
   CircleDot,
   Code2,
   Copy,
-  ExternalLink,
   Flag,
   HeartPulse,
   Link2Off,
   MoreHorizontal,
+  SquareArrowOutUpRight,
   Tag,
   Trash2,
   User,
@@ -423,7 +423,9 @@ export function getProjectContextMenuItems(options: ProjectContextMenuOptions) {
     {
       id: "open",
       label: t("common:actions.open"),
-      icon: createElement(ExternalLink, { size: DROPDOWN_ITEM.iconSize }),
+      icon: createElement(SquareArrowOutUpRight, {
+        size: DROPDOWN_ITEM.iconSize,
+      }),
       secondary:
         project.completionPercentage === undefined
           ? undefined

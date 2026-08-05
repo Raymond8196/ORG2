@@ -1,10 +1,10 @@
 import {
   ArrowDown,
   ArrowUp,
-  ArrowUpRight,
   Box,
   Info,
   ListChecks,
+  SquareArrowOutUpRight,
   Trash2,
 } from "lucide-react";
 import { type ReactNode, useRef, useState } from "react";
@@ -284,7 +284,7 @@ export function WorkItemDetailHeaderActions({
             iconOnly
             onClick={() => onExpandToTab(pendingUpdates)}
             aria-label={t("common:actions.openInNewTab")}
-            icon={<ArrowUpRight size={HEADER_ICON_SIZE.md} />}
+            icon={<SquareArrowOutUpRight size={HEADER_ICON_SIZE.md} />}
           />
         </WorkstationToolbarTooltip>
       )}

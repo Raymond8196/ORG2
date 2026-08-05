@@ -1,4 +1,4 @@
-import { ExternalLink, Layout } from "lucide-react";
+import { Layout, SquareArrowOutUpRight } from "lucide-react";
 import React, {
   forwardRef,
   useCallback,
@@ -71,7 +71,7 @@ const NonEmbeddedUrlNotice: React.FC<{ url: string }> = ({ url }) => {
           variant="secondary"
           size="small"
           onClick={() => window.open(url, "_blank", "noopener,noreferrer")}
-          icon={<ExternalLink size={14} />}
+          icon={<SquareArrowOutUpRight size={14} />}
         >
           {t("canvasCard.openExternal", "Open in Browser")}
         </Button>

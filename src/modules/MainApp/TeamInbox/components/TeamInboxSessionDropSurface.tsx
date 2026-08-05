@@ -1,5 +1,11 @@
 import { useAtomValue, useSetAtom } from "jotai";
-import { ExternalLink, Inbox, Link2, RotateCcw, X } from "lucide-react";
+import {
+  Inbox,
+  Link2,
+  RotateCcw,
+  SquareArrowOutUpRight,
+  X,
+} from "lucide-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -367,7 +373,7 @@ const TeamInboxSessionDropSurface: React.FC<
             <Button
               variant="secondary"
               size="mini"
-              icon={<ExternalLink size={14} aria-hidden />}
+              icon={<SquareArrowOutUpRight size={14} aria-hidden />}
               onClick={openCreated}
             >
               {t("teamInbox.drop.open")}

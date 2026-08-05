@@ -2,7 +2,14 @@
  * Ports status-bar menu: workspace vs external listening ports.
  */
 import { useAtomValue, useSetAtom } from "jotai";
-import { Copy, Globe, Loader2, Search, Trash2, Unplug } from "lucide-react";
+import {
+  Copy,
+  Loader2,
+  Search,
+  SquareArrowOutUpRight,
+  Trash2,
+  Unplug,
+} from "lucide-react";
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -125,7 +132,7 @@ const PortRow: React.FC<PortRowProps> = memo(
               onOpen(port);
             }}
           >
-            <Globe size={MENU_ICON_SIZE} />
+            <SquareArrowOutUpRight size={MENU_ICON_SIZE} />
           </button>
           <button
             type="button"
