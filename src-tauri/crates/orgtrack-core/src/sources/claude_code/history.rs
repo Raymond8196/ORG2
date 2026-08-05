@@ -401,15 +401,32 @@ fn load_claude_turn_range(
     end_offset: u64,
     turn_id: &str,
 ) -> Result<Vec<ActivityChunk>, String> {
+    load_claude_turn_range_with_sequence(
+        file,
+        session_id,
+        start_offset,
+        end_offset,
+        usize::try_from(start_offset).unwrap_or(usize::MAX),
+        Some(turn_id),
+    )
+}
+
+fn load_claude_turn_range_with_sequence(
+    file: &mut fs::File,
+    session_id: &str,
+    start_offset: u64,
+    end_offset: u64,
+    start_sequence: usize,
+    forced_first_user_id: Option<&str>,
+) -> Result<Vec<ActivityChunk>, String> {
     file.seek(SeekFrom::Start(start_offset))
         .map_err(|err| format!("Failed to seek Claude history: {err}"))?;
     let take = file.take(end_offset.saturating_sub(start_offset));
-    let start_sequence = usize::try_from(start_offset).unwrap_or(usize::MAX);
     load_claude_code_history_from_reader(
         session_id,
         BufReader::new(take),
         start_sequence,
-        Some(turn_id),
+        forced_first_user_id,
     )
 }
 
@@ -427,13 +444,13 @@ pub fn load_claude_code_initial_window_for_session(
         });
     }
 
-    let file_len = fs::metadata(&path)
+    let file_len = fs::metadata(path.as_path())
         .map_err(|err| format!("Failed to stat Claude history {}: {err}", path.display()))?
         .len();
     let first_loaded_turn = indexed
         .len()
         .saturating_sub(recent_turn_count.max(1).min(indexed.len()));
-    let mut file = fs::File::open(&path)
+    let mut file = fs::File::open(path.as_path())
         .map_err(|err| format!("Failed to open Claude history {}: {err}", path.display()))?;
     let mut chunks = Vec::with_capacity(indexed.len().saturating_mul(2));
     for (index, turn) in indexed.iter().enumerate() {
@@ -475,7 +492,7 @@ pub fn load_claude_code_turn_windows_for_session(
     let file_stem = claude_file_stem_from_session_id(session_id)?;
     let path = resolve_claude_session_path(conn, file_stem)?;
     let indexed = index_claude_user_turns(session_id, &path)?;
-    let file_len = fs::metadata(&path)
+    let file_len = fs::metadata(path.as_path())
         .map_err(|err| format!("Failed to stat Claude history {}: {err}", path.display()))?
         .len();
     let positions = indexed
@@ -483,7 +500,7 @@ pub fn load_claude_code_turn_windows_for_session(
         .enumerate()
         .map(|(index, turn)| (turn.start_offset, index))
         .collect::<HashMap<_, _>>();
-    let mut file = fs::File::open(&path)
+    let mut file = fs::File::open(path.as_path())
         .map_err(|err| format!("Failed to open Claude history {}: {err}", path.display()))?;
 
     turn_ids
@@ -518,6 +535,68 @@ pub fn load_claude_code_turn_windows_for_session(
         .collect()
 }
 
+pub fn load_claude_code_cloud_turn_windows_for_session(
+    conn: &Connection,
+    session_id: &str,
+    turn_ids: &[String],
+    start_sequence: usize,
+) -> Result<Vec<imported_history::window::ImportedHistoryTurnWindow>, String> {
+    let file_stem = claude_file_stem_from_session_id(session_id)?;
+    let path = resolve_claude_session_path(conn, file_stem)?;
+    load_claude_code_cloud_turn_windows_from_path(session_id, &path, turn_ids, start_sequence)
+}
+
+fn load_claude_code_cloud_turn_windows_from_path(
+    session_id: &str,
+    path: &Path,
+    turn_ids: &[String],
+    start_sequence: usize,
+) -> Result<Vec<imported_history::window::ImportedHistoryTurnWindow>, String> {
+    let file_len = fs::metadata(path)
+        .map_err(|err| format!("Failed to stat Claude history {}: {err}", path.display()))?
+        .len();
+    let offsets = turn_ids
+        .iter()
+        .map(|turn_id| {
+            claude_window_turn_offset(turn_id)
+                .ok_or_else(|| format!("Invalid Claude cloud turn id: {turn_id}"))
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    if offsets
+        .windows(2)
+        .any(|pair| pair[0] >= pair[1] || pair[1] >= file_len)
+        || offsets.first().is_some_and(|offset| *offset >= file_len)
+    {
+        return Err("Claude cloud turn offsets are out of order or out of bounds".to_string());
+    }
+    let mut file = fs::File::open(path)
+        .map_err(|err| format!("Failed to open Claude history {}: {err}", path.display()))?;
+    let mut next_sequence = start_sequence;
+
+    turn_ids
+        .iter()
+        .enumerate()
+        .map(|(index, turn_id)| {
+            let offset = offsets[index];
+            let end_offset = offsets.get(index + 1).copied().unwrap_or(file_len);
+            let chunks = load_claude_turn_range_with_sequence(
+                &mut file,
+                session_id,
+                offset,
+                end_offset,
+                next_sequence,
+                None,
+            )?;
+            next_sequence = next_sequence.saturating_add(chunks.len());
+            Ok(imported_history::window::ImportedHistoryTurnWindow {
+                loaded_event_count: chunks.len(),
+                chunks,
+                turn_id: turn_id.clone(),
+            })
+        })
+        .collect()
+}
+
 pub fn load_claude_code_turn_index_for_session(
     conn: &Connection,
     session_id: &str,
@@ -532,6 +611,18 @@ pub fn load_claude_code_turn_index_for_session(
     let mut projected = project_activity_chunks(&chunks);
     overlay_indexed_body_counts(&mut projected, &indexed);
     Ok(projected)
+}
+
+pub fn load_claude_code_turn_ids_for_session(
+    conn: &Connection,
+    session_id: &str,
+) -> Result<Vec<String>, String> {
+    let file_stem = claude_file_stem_from_session_id(session_id)?;
+    let path = resolve_claude_session_path(conn, file_stem)?;
+    Ok(index_claude_user_turns(session_id, &path)?
+        .into_iter()
+        .map(|turn| turn.user_chunk.chunk_id)
+        .collect())
 }
 
 /// Cheap freshness probe for one session's transcript: `(mtime_ms, size_bytes)`.

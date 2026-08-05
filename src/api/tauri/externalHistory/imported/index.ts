@@ -26,6 +26,11 @@ import { windsurfHistoryChunks } from "../sources/windsurf";
 import { workBuddyHistoryChunks } from "../sources/workbuddy";
 import { zcodeHistoryChunks } from "../sources/zcode";
 import {
+  type ImportedHistoryCloudTurnWindow,
+  importedHistoryCloudTurnIds,
+  importedHistoryCloudTurnWindows,
+} from "./cloudReplay";
+import {
   IMPORTED_HISTORY_SOURCE_DESCRIPTORS,
   type ImportedHistoryListCategory,
   type ImportedHistorySourceDescriptor,
@@ -40,6 +45,7 @@ export type {
   ImportedHistorySourceId,
 };
 export { IMPORTED_HISTORY_SOURCE_DESCRIPTORS };
+export type { ImportedHistoryCloudTurnWindow };
 export {
   importedHistoryInitialWindow,
   importedHistoryTurnWindows,
@@ -55,6 +61,17 @@ export interface ImportedHistorySource extends ImportedHistorySourceDescriptor {
   loadPreviewChunks(sessionId: string): Promise<ActivityChunk[]>;
   /** Complete source transcript used for cloud replay/fork publication. */
   loadFullTranscriptChunks(sessionId: string): Promise<ActivityChunk[]>;
+  /**
+   * Bounded turn-addressable read used by Cloud after an authoritative full
+   * anchor exists. Unsupported providers omit both methods and retain the
+   * complete-transcript fallback.
+   */
+  loadCloudTurnIds?(sessionId: string): Promise<string[]>;
+  loadCloudTurnWindows?(
+    sessionId: string,
+    turnIds: string[],
+    startSequence: number
+  ): Promise<ImportedHistoryCloudTurnWindow[]>;
   /**
    * Optional freshness probe (one backend `stat`). When present, the replay
    * auto-refresh compares it against the previous tick and skips the full
@@ -104,6 +121,9 @@ export const IMPORTED_HISTORY_SOURCES: readonly ImportedHistorySource[] = [
       ).chunks;
     },
     loadFullTranscriptChunks: cursorIdeChunks,
+    loadCloudTurnIds: importedHistoryCloudTurnIds,
+    loadCloudTurnWindows: (sessionId, turnIds, startSequence) =>
+      importedHistoryCloudTurnWindows({ sessionId, turnIds, startSequence }),
   },
   {
     ...descriptorFor("cursor_cli"),
@@ -120,6 +140,9 @@ export const IMPORTED_HISTORY_SOURCES: readonly ImportedHistorySource[] = [
       return (await codexAppInitialWindow(sessionId)).chunks;
     },
     loadFullTranscriptChunks: codexAppChunks,
+    loadCloudTurnIds: importedHistoryCloudTurnIds,
+    loadCloudTurnWindows: (sessionId, turnIds, startSequence) =>
+      importedHistoryCloudTurnWindows({ sessionId, turnIds, startSequence }),
   },
   {
     ...descriptorFor("claude_code"),
@@ -127,6 +150,9 @@ export const IMPORTED_HISTORY_SOURCES: readonly ImportedHistorySource[] = [
     loadPreviewChunks: loadGenericPreviewChunks,
     loadFullTranscriptChunks: claudeCodeHistoryChunks,
     statTranscript: claudeCodeHistoryStat,
+    loadCloudTurnIds: importedHistoryCloudTurnIds,
+    loadCloudTurnWindows: (sessionId, turnIds, startSequence) =>
+      importedHistoryCloudTurnWindows({ sessionId, turnIds, startSequence }),
   },
   {
     ...descriptorFor("opencode"),

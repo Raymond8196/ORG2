@@ -36,7 +36,10 @@ import type {
   PreparedPushEvents,
   PreparedPushPlan,
 } from "./org2CloudSessionSync.types";
-import type { CollabSessionPushCursor } from "./org2CloudSyncAtoms";
+import type {
+  CollabSessionPushCursor,
+  ImportedReplayCheckpoint,
+} from "./org2CloudSyncAtoms";
 import {
   type CloudSessionTurnSummary,
   isOrg2SyncErrorCode,
@@ -64,6 +67,22 @@ export const SESSION_SEGMENT_UPLOAD_BATCH_SIZE = 16;
 
 /** Hash only a bounded event window at once; large CLI histories can be GBs. */
 const EVENT_HASH_CONCURRENCY = 16;
+const IMPORTED_INCREMENTAL_TURN_LIMIT = 50;
+const IMPORTED_INCREMENTAL_SEGMENT_LIMIT = 16;
+
+interface ImportedReplayAnchorDraft {
+  turnIds: string[];
+  lastTurnStartEventIndex: number;
+  lastTurnStartChunkIndex: number;
+}
+
+interface LoadedPushEvents {
+  events: SessionEvent[];
+  anchorDraft?: ImportedReplayAnchorDraft;
+  precomputedEventHashes?: string[];
+  precomputedLocalFrozenEventCount?: number;
+  baseChunkCount?: number;
+}
 
 /** Per-session transient retry policy (org entitlement failures back off elsewhere). */
 export const SESSION_PUSH_RETRY_BASE_MS = 60_000;
@@ -110,6 +129,108 @@ async function hashEventsBounded(events: SessionEvent[]): Promise<string[]> {
     }
   }
   return hashes;
+}
+
+async function hashStringList(values: readonly string[]): Promise<string> {
+  return sha256Hex(values.join("\n"));
+}
+
+function trimMerkleFrontier(
+  frontier: Array<string | null>
+): Array<string | null> {
+  const trimmed = [...frontier];
+  while (trimmed.at(-1) == null) trimmed.pop();
+  return trimmed;
+}
+
+async function buildMerkleFrontier(
+  eventHashes: readonly string[]
+): Promise<Array<string | null>> {
+  const frontier: Array<string | null> = [];
+  let level = [...eventHashes];
+  let height = 0;
+  while (level.length > 0) {
+    if (level.length % 2 === 1) {
+      frontier[height] = level[level.length - 1];
+      level = level.slice(0, -1);
+    }
+    const parents: string[] = [];
+    for (
+      let start = 0;
+      start < level.length;
+      start += EVENT_HASH_CONCURRENCY * 2
+    ) {
+      const batch = level.slice(start, start + EVENT_HASH_CONCURRENCY * 2);
+      parents.push(
+        ...(await Promise.all(
+          Array.from({ length: batch.length / 2 }, (_, index) =>
+            hashStringList([batch[index * 2], batch[index * 2 + 1]])
+          )
+        ))
+      );
+    }
+    level = parents;
+    height += 1;
+  }
+  return trimMerkleFrontier(frontier);
+}
+
+async function appendMerkleFrontier(
+  current: readonly (string | null)[],
+  currentCount: number,
+  eventHashes: readonly string[]
+): Promise<Array<string | null>> {
+  const frontier = [...current];
+  let count = currentCount;
+  for (const eventHash of eventHashes) {
+    let node = eventHash;
+    let height = 0;
+    while (Math.floor(count / 2 ** height) % 2 === 1) {
+      const left = frontier[height];
+      if (!left) throw new Error("Invalid imported replay Merkle frontier");
+      node = await hashStringList([left, node]);
+      frontier[height] = null;
+      height += 1;
+    }
+    frontier[height] = node;
+    count += 1;
+  }
+  return trimMerkleFrontier(frontier);
+}
+
+async function merkleFrontierCommitment(
+  frontier: readonly (string | null)[],
+  eventCount: number
+): Promise<string> {
+  return sha256Hex(
+    stableStringify({ eventCount, frontier: trimMerkleFrontier([...frontier]) })
+  );
+}
+
+function isValidMerkleFrontier(
+  frontier: readonly (string | null)[],
+  eventCount: number
+): boolean {
+  if (
+    !Number.isSafeInteger(eventCount) ||
+    eventCount < 0 ||
+    frontier.length > 54
+  ) {
+    return false;
+  }
+  let remaining = eventCount;
+  for (const node of frontier) {
+    if (Boolean(node) !== (remaining % 2 === 1)) return false;
+    remaining = Math.floor(remaining / 2);
+  }
+  return remaining === 0;
+}
+
+function lastUserChunkIndex(chunks: readonly ActivityChunk[]): number {
+  for (let index = chunks.length - 1; index >= 0; index -= 1) {
+    if (chunks[index].function === "user_message") return index;
+  }
+  return -1;
 }
 /**
  * Owns one session's metadata/event push plane, including persisted cursors,
@@ -319,64 +440,405 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
     broadcastOrgControlChangedToPeers(orgId, "sessions");
   }
 
-  /** Load the complete native or external-history transcript for upload. */
-  async loadPushEvents(sessionId: string): Promise<SessionEvent[]> {
+  private async loadFullPushEvents(
+    sessionId: string
+  ): Promise<LoadedPushEvents> {
     if (isImportedHistorySession(sessionId)) {
       const source = getImportedHistorySourceBySessionId(sessionId);
-      if (!source) return [];
+      if (!source) return { events: [] };
       const chunks = await source.loadFullTranscriptChunks(sessionId);
-      if (!Array.isArray(chunks) || chunks.length === 0) return [];
-      return processChunksRust(chunks, sessionId);
+      if (!Array.isArray(chunks) || chunks.length === 0) {
+        return { events: [] };
+      }
+      const events = await processChunksRust(chunks, sessionId);
+      if (!source.loadCloudTurnIds || !source.loadCloudTurnWindows) {
+        return { events };
+      }
+      try {
+        // Source turn ids are provider-native seek cursors. They intentionally
+        // need not equal normalized event ids (Codex uses byte offsets here),
+        // so prove the final turn boundary by normalizing its exact window and
+        // matching it against the authoritative transcript suffix.
+        const turnIds = await source.loadCloudTurnIds(sessionId);
+        if (
+          turnIds.some((turnId) => !turnId) ||
+          new Set(turnIds).size !== turnIds.length
+        ) {
+          return { events };
+        }
+        const lastTurnId = turnIds.at(-1);
+        if (lastTurnId) {
+          const lastTurnStartChunkIndex = lastUserChunkIndex(chunks);
+          if (lastTurnStartChunkIndex < 0) return { events };
+          const windows = await source.loadCloudTurnWindows(
+            sessionId,
+            [lastTurnId],
+            lastTurnStartChunkIndex
+          );
+          if (
+            windows.length === 1 &&
+            windows[0].turnId === lastTurnId &&
+            windows[0].chunks.length > 0
+          ) {
+            const lastTurnEvents = await processChunksRust(
+              windows[0].chunks,
+              sessionId
+            );
+            const lastTurnStartEventIndex =
+              events.length - lastTurnEvents.length;
+            if (
+              lastTurnEvents.length > 0 &&
+              lastTurnStartEventIndex >= 0 &&
+              stableStringify(events.slice(lastTurnStartEventIndex)) ===
+                stableStringify(lastTurnEvents)
+            ) {
+              return {
+                events,
+                anchorDraft: {
+                  turnIds,
+                  lastTurnStartEventIndex,
+                  lastTurnStartChunkIndex,
+                },
+              };
+            }
+          }
+        }
+      } catch (error) {
+        log.warn(
+          `could not establish incremental replay anchor for ${sessionId}; ` +
+            "using the authoritative full path",
+          error
+        );
+      }
+      return { events };
     }
     const persisted = await eventStoreProxy.getPersistedEvents(sessionId);
-    if (persisted.length > 0 || !isCliSession(sessionId)) return persisted;
+    if (persisted.length > 0 || !isCliSession(sessionId)) {
+      return { events: persisted };
+    }
     // Live CLI sessions keep their transcript of record in the CLI's native
     // store (account-profile aware) and never write the events cache, so a
     // persisted read alone pushes a hollow session: metadata with no replay,
     // and the pass then stamps the event plane clean. Load the full native
     // transcript through the same command the session-resume path uses.
     const chunks = (await rpc.cli.chunks({ sessionId })) as ActivityChunk[];
-    if (!Array.isArray(chunks) || chunks.length === 0) return [];
-    return processChunksRust(chunks, sessionId);
+    if (!Array.isArray(chunks) || chunks.length === 0) return { events: [] };
+    return { events: await processChunksRust(chunks, sessionId) };
+  }
+
+  /** Authoritative complete loader retained for first anchor and recovery. */
+  async loadPushEvents(sessionId: string): Promise<SessionEvent[]> {
+    return (await this.loadFullPushEvents(sessionId)).events;
+  }
+
+  private async tryLoadIncrementalImportedPushEvents(
+    sessionId: string,
+    cursor: CollabSessionPushCursor
+  ): Promise<(LoadedPushEvents & { baseEventCount: number }) | null> {
+    const checkpoint = cursor.importedReplay;
+    if (!checkpoint || checkpoint.version !== 1) return null;
+    const source = getImportedHistorySourceBySessionId(sessionId);
+    if (!source?.loadCloudTurnIds || !source.loadCloudTurnWindows) return null;
+    if (
+      !isValidMerkleFrontier(
+        checkpoint.frozenHashFrontier,
+        cursor.frozenEventCount
+      )
+    ) {
+      return null;
+    }
+    if (
+      (await merkleFrontierCommitment(
+        checkpoint.frozenHashFrontier,
+        cursor.frozenEventCount
+      )) !== cursor.frozenChainHash
+    ) {
+      return null;
+    }
+
+    const turnIds = await source.loadCloudTurnIds(sessionId);
+    if (
+      turnIds.some((turnId) => !turnId) ||
+      new Set(turnIds).size !== turnIds.length
+    ) {
+      return null;
+    }
+    const reloadIndex = turnIds.indexOf(checkpoint.reloadTurnId);
+    if (reloadIndex < 0) return null;
+    if (
+      (await hashStringList(turnIds.slice(0, reloadIndex))) !==
+      checkpoint.prefixTurnIdsHash
+    ) {
+      return null;
+    }
+    const reloadTurnIds = turnIds.slice(reloadIndex);
+    if (
+      reloadTurnIds.length === 0 ||
+      reloadTurnIds.length > IMPORTED_INCREMENTAL_TURN_LIMIT
+    ) {
+      return null;
+    }
+    const windows = await source.loadCloudTurnWindows(
+      sessionId,
+      reloadTurnIds,
+      checkpoint.retainedChunkCount
+    );
+    if (
+      windows.length !== reloadTurnIds.length ||
+      windows.some(
+        (window, index) =>
+          window.turnId !== reloadTurnIds[index] || window.chunks.length === 0
+      )
+    ) {
+      return null;
+    }
+
+    const events: SessionEvent[] = [];
+    let lastTurnStartEventIndex = 0;
+    let precedingChunkCount = 0;
+    let lastTurnStartChunkIndex = 0;
+    for (let index = 0; index < windows.length; index += 1) {
+      if (index === windows.length - 1) {
+        lastTurnStartEventIndex = events.length;
+        lastTurnStartChunkIndex = precedingChunkCount;
+      }
+      events.push(
+        ...(await processChunksRust(windows[index].chunks, sessionId))
+      );
+      precedingChunkCount += windows[index].chunks.length;
+    }
+    const expectedBase =
+      cursor.frozenEventCount - checkpoint.frozenOverlapCount;
+    if (
+      expectedBase < 0 ||
+      checkpoint.retainedEventCount !== expectedBase ||
+      checkpoint.frozenOverlapCount > events.length
+    ) {
+      return null;
+    }
+    const perEventHashes = await hashEventsBounded(events);
+    if (
+      (await hashStringList(
+        perEventHashes.slice(0, checkpoint.frozenOverlapCount)
+      )) !== checkpoint.frozenOverlapHash
+    ) {
+      return null;
+    }
+    const totalEventCount = checkpoint.retainedEventCount + events.length;
+    if (totalEventCount < cursor.pushedCount) return null;
+
+    const localFrozenEventCount = computeFrozenEventCount(events);
+    const priorFrozenInsideWindow =
+      cursor.frozenEventCount - checkpoint.retainedEventCount;
+    if (localFrozenEventCount < priorFrozenInsideWindow) return null;
+    const newFrozenEvents = events.slice(
+      priorFrozenInsideWindow,
+      localFrozenEventCount
+    );
+    if (
+      splitFrozenIntoSegments(newFrozenEvents, cursor.frozenSeq + 1).length >
+      IMPORTED_INCREMENTAL_SEGMENT_LIMIT
+    ) {
+      return null;
+    }
+    return {
+      baseEventCount: checkpoint.retainedEventCount,
+      baseChunkCount: checkpoint.retainedChunkCount,
+      events,
+      anchorDraft: {
+        turnIds,
+        lastTurnStartEventIndex,
+        lastTurnStartChunkIndex,
+      },
+      precomputedEventHashes: perEventHashes,
+      precomputedLocalFrozenEventCount: localFrozenEventCount,
+    };
+  }
+
+  private async buildImportedReplayCheckpoint(
+    draft: ImportedReplayAnchorDraft | undefined,
+    baseEventCount: number,
+    baseChunkCount: number,
+    events: readonly SessionEvent[],
+    perEventHashes: readonly string[],
+    frozenEventCount: number,
+    frozenHashFrontier: Array<string | null> | undefined
+  ): Promise<ImportedReplayCheckpoint | undefined> {
+    if (!draft || draft.turnIds.length === 0 || !frozenHashFrontier) {
+      return undefined;
+    }
+    const retainedEventCount = baseEventCount + draft.lastTurnStartEventIndex;
+    if (frozenEventCount < retainedEventCount) return undefined;
+    const frozenOverlapCount = frozenEventCount - retainedEventCount;
+    if (draft.lastTurnStartEventIndex + frozenOverlapCount > events.length) {
+      return undefined;
+    }
+    return {
+      version: 1,
+      reloadTurnId: draft.turnIds[draft.turnIds.length - 1],
+      prefixTurnIdsHash: await hashStringList(draft.turnIds.slice(0, -1)),
+      retainedEventCount,
+      retainedChunkCount: baseChunkCount + draft.lastTurnStartChunkIndex,
+      frozenOverlapCount,
+      frozenOverlapHash: await hashStringList(
+        perEventHashes.slice(
+          draft.lastTurnStartEventIndex,
+          draft.lastTurnStartEventIndex + frozenOverlapCount
+        )
+      ),
+      frozenHashFrontier,
+    };
+  }
+
+  private createPreparedPushEvents(
+    stampAtRead: number,
+    mode: "full" | "incremental",
+    baseEventCount: number,
+    loaded: LoadedPushEvents,
+    cursor?: CollabSessionPushCursor
+  ): PreparedPushEvents {
+    const { events, anchorDraft } = loaded;
+    let planPromise: Promise<PreparedPushPlan> | null = null;
+    const plan = (): Promise<PreparedPushPlan> => {
+      if (!planPromise) {
+        planPromise = (async () => {
+          const perEventHashes =
+            loaded.precomputedEventHashes ?? (await hashEventsBounded(events));
+          const localFrozenEventCount =
+            loaded.precomputedLocalFrozenEventCount ??
+            computeFrozenEventCount(events);
+          const frozenEventCount = baseEventCount + localFrozenEventCount;
+          const totalEventCount = baseEventCount + events.length;
+          const tailEvents = events.slice(localFrozenEventCount);
+          const tailHash =
+            tailEvents.length > 0 ? await computeSegmentHash(tailEvents) : null;
+          const usesIncrementalHash =
+            Boolean(anchorDraft) ||
+            (mode === "incremental" && Boolean(cursor?.importedReplay));
+          const frozenHashMode = usesIncrementalHash ? "merkle-v1" : "flat-v1";
+          let frozenHashFrontier: Array<string | null> | undefined;
+          let frozenChainHash: string;
+          if (mode === "incremental" && cursor) {
+            const priorFrozenInsideWindow =
+              cursor.frozenEventCount - baseEventCount;
+            const newFrozenHashes = perEventHashes.slice(
+              priorFrozenInsideWindow,
+              localFrozenEventCount
+            );
+            const currentFrontier = cursor.importedReplay?.frozenHashFrontier;
+            if (!currentFrontier) {
+              throw new Error(
+                "Incremental imported replay lost its hash frontier"
+              );
+            }
+            frozenHashFrontier = await appendMerkleFrontier(
+              currentFrontier,
+              cursor.frozenEventCount,
+              newFrozenHashes
+            );
+            frozenChainHash = await merkleFrontierCommitment(
+              frozenHashFrontier,
+              frozenEventCount
+            );
+          } else if (usesIncrementalHash) {
+            frozenHashFrontier = await buildMerkleFrontier(
+              perEventHashes.slice(0, localFrozenEventCount)
+            );
+            frozenChainHash = await merkleFrontierCommitment(
+              frozenHashFrontier,
+              frozenEventCount
+            );
+          } else {
+            frozenChainHash = await this.computeFrozenChainHash(
+              perEventHashes,
+              localFrozenEventCount
+            );
+          }
+          return {
+            perEventHashes,
+            frozenHashMode,
+            totalEventCount,
+            frozenEventCount,
+            localFrozenEventCount,
+            tailEvents,
+            tailHash,
+            frozenChainHash,
+            importedReplay: await this.buildImportedReplayCheckpoint(
+              anchorDraft,
+              baseEventCount,
+              loaded.baseChunkCount ?? 0,
+              events,
+              perEventHashes,
+              frozenEventCount,
+              frozenHashFrontier
+            ),
+          };
+        })();
+      }
+      return planPromise;
+    };
+    return { stampAtRead, mode, baseEventCount, events, plan };
+  }
+
+  private async computeFrozenHashAtCount(
+    perEventHashes: string[],
+    frozenEventCount: number,
+    mode: PreparedPushPlan["frozenHashMode"]
+  ): Promise<string> {
+    if (mode === "flat-v1") {
+      return this.computeFrozenChainHash(perEventHashes, frozenEventCount);
+    }
+    const frontier = await buildMerkleFrontier(
+      perEventHashes.slice(0, frozenEventCount)
+    );
+    return merkleFrontierCommitment(frontier, frozenEventCount);
   }
 
   private preparePushEventsForPass(
-    sessionId: string
+    sessionId: string,
+    cursor?: CollabSessionPushCursor,
+    forceFull = false
   ): Promise<PreparedPushEvents> {
-    const cached = this.passPushPrepareCache.get(sessionId);
+    const cursorKey =
+      !forceFull && cursor?.importedReplay
+        ? stableStringify(cursor.importedReplay)
+        : "full";
+    const prepareKey = `${sessionId}:${cursorKey}`;
+    const cached = this.passPushPrepareCache.get(prepareKey);
     if (cached) return cached;
     const prepared = (async (): Promise<PreparedPushEvents> => {
       const stampAtRead = this.eventActivityStamps.get(sessionId) ?? 0;
-      const events = await this.loadPushEvents(sessionId);
-      let planPromise: Promise<PreparedPushPlan> | null = null;
-      const plan = (): Promise<PreparedPushPlan> => {
-        if (!planPromise) {
-          planPromise = (async () => {
-            const perEventHashes = await hashEventsBounded(events);
-            const frozenEventCount = computeFrozenEventCount(events);
-            const tailEvents = events.slice(frozenEventCount);
-            const tailHash =
-              tailEvents.length > 0
-                ? await computeSegmentHash(tailEvents)
-                : null;
-            const frozenChainHash = await this.computeFrozenChainHash(
-              perEventHashes,
-              frozenEventCount
+      if (!forceFull && cursor && isImportedHistorySession(sessionId)) {
+        try {
+          const incremental = await this.tryLoadIncrementalImportedPushEvents(
+            sessionId,
+            cursor
+          );
+          if (incremental) {
+            return this.createPreparedPushEvents(
+              stampAtRead,
+              "incremental",
+              incremental.baseEventCount,
+              incremental,
+              cursor
             );
-            return {
-              perEventHashes,
-              frozenEventCount,
-              tailEvents,
-              tailHash,
-              frozenChainHash,
-            };
-          })();
+          }
+        } catch (error) {
+          log.warn(
+            `incremental replay preparation failed for ${sessionId}; ` +
+              "using the authoritative full path",
+            error
+          );
         }
-        return planPromise;
-      };
-      return { stampAtRead, events, plan };
+      }
+      return this.createPreparedPushEvents(
+        stampAtRead,
+        "full",
+        0,
+        await this.loadFullPushEvents(sessionId)
+      );
     })();
-    this.passPushPrepareCache.set(sessionId, prepared);
+    this.passPushPrepareCache.set(prepareKey, prepared);
     return prepared;
   }
 
@@ -451,9 +913,9 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
       );
       return;
     }
-    const { stampAtRead, events, plan } =
-      await this.preparePushEventsForPass(sessionId);
     const cursor = this.getCursor(orgId, sessionId);
+    const prepared = await this.preparePushEventsForPass(sessionId, cursor);
+    const { stampAtRead, mode, baseEventCount, events } = prepared;
     if (!cursor && events.length === 0) {
       await this.upsertMetadataIfChanged(
         auth,
@@ -467,8 +929,9 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
     }
     const shrinkKey = `${orgId}:${sessionId}`;
     let confirmedShrink = false;
-    if (cursor && events.length < cursor.pushedCount) {
-      if (events.length === 0) {
+    const preparedPlan = await prepared.plan();
+    if (cursor && preparedPlan.totalEventCount < cursor.pushedCount) {
+      if (preparedPlan.totalEventCount === 0) {
         // A hollow local read can NEVER authorize erasing the cloud copy.
         // An empty store (wiped cache, missing provider DB, rebuilding
         // import) reads zero on EVERY pass, so consecutive-pass
@@ -486,18 +949,24 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
         );
         return;
       }
-      if (this.sessionShrinkCandidates.get(shrinkKey) === events.length) {
+      if (
+        this.sessionShrinkCandidates.get(shrinkKey) ===
+        preparedPlan.totalEventCount
+      ) {
         this.sessionShrinkCandidates.delete(shrinkKey);
         confirmedShrink = true;
         log.info(
-          `persisted read for ${sessionId} returned ${events.length} events ` +
+          `persisted read for ${sessionId} returned ${preparedPlan.totalEventCount} events ` +
             `on consecutive passes while the cloud cursor covers ` +
             `${cursor.pushedCount}; re-anchoring via epoch rewrite`
         );
       } else {
-        this.sessionShrinkCandidates.set(shrinkKey, events.length);
+        this.sessionShrinkCandidates.set(
+          shrinkKey,
+          preparedPlan.totalEventCount
+        );
         log.warn(
-          `persisted read for ${sessionId} returned ${events.length} events ` +
+          `persisted read for ${sessionId} returned ${preparedPlan.totalEventCount} events ` +
             `but the cloud cursor covers ${cursor.pushedCount}; skipping`
         );
         return;
@@ -508,22 +977,93 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
 
     const {
       perEventHashes,
+      frozenHashMode,
+      totalEventCount,
       frozenEventCount,
+      localFrozenEventCount,
       tailEvents,
       tailHash,
       frozenChainHash,
-    } = await plan();
+      importedReplay,
+    } = preparedPlan;
+
+    if (cursor && mode === "incremental") {
+      const priorFrozenInsideWindow = cursor.frozenEventCount - baseEventCount;
+      const newFrozenEvents = events.slice(
+        priorFrozenInsideWindow,
+        localFrozenEventCount
+      );
+      if (
+        newFrozenEvents.length === 0 &&
+        tailHash === cursor.tailHash &&
+        totalEventCount === cursor.pushedCount
+      ) {
+        await this.upsertMetadataIfChanged(
+          auth,
+          orgId,
+          session,
+          scopeKey,
+          access
+        );
+        if (importedReplay) {
+          this.setCursor({
+            ...cursor,
+            frozenChainHash,
+            importedReplay,
+          });
+        }
+        this.markEventPlaneClean(orgId, session, stampAtRead);
+        return;
+      }
+      await this.upsertMetadataIfChanged(
+        auth,
+        orgId,
+        session,
+        scopeKey,
+        access
+      );
+      try {
+        await this.appendIncrementalSession(
+          auth,
+          orgId,
+          sessionId,
+          cursor,
+          newFrozenEvents,
+          preparedPlan
+        );
+      } catch (error) {
+        if (!isOrg2SyncErrorCode(error, "ORG2_CONFLICT")) throw error;
+        const fullPrepared = await this.preparePushEventsForPass(
+          sessionId,
+          cursor,
+          true
+        );
+        const fullPlan = await fullPrepared.plan();
+        await this.rewriteSession(auth, orgId, session, scopeKey, access, {
+          events: fullPrepared.events,
+          ...fullPlan,
+          newEpoch: null,
+        });
+      }
+      broadcastOrgControlChangedToPeers(orgId, "sessions");
+      this.markEventPlaneClean(orgId, session, stampAtRead);
+      void this.publishTurnIndexBestEffort(auth, orgId, session, stampAtRead);
+      return;
+    }
 
     if (cursor) {
       let frozenIntact =
         !confirmedShrink && frozenEventCount >= cursor.frozenEventCount;
+      const cursorHashMode = cursor.importedReplay ? "merkle-v1" : "flat-v1";
+      frozenIntact = frozenIntact && cursorHashMode === frozenHashMode;
       if (frozenIntact && cursor.frozenEventCount > 0) {
         const chainAtCursor =
           cursor.frozenEventCount === frozenEventCount
             ? frozenChainHash
-            : await this.computeFrozenChainHash(
+            : await this.computeFrozenHashAtCount(
                 perEventHashes,
-                cursor.frozenEventCount
+                cursor.frozenEventCount,
+                frozenHashMode
               );
         frozenIntact = chainAtCursor === cursor.frozenChainHash;
       }
@@ -550,7 +1090,7 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
         if (
           newFrozenEvents.length === 0 &&
           tailHash === cursor.tailHash &&
-          events.length === cursor.pushedCount
+          totalEventCount === cursor.pushedCount
         ) {
           await this.upsertMetadataIfChanged(
             auth,
@@ -583,10 +1123,14 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
             {
               events,
               perEventHashes,
+              frozenHashMode,
+              totalEventCount,
               frozenEventCount,
+              localFrozenEventCount,
               frozenChainHash,
               tailEvents,
               tailHash,
+              importedReplay,
             }
           );
           broadcastOrgControlChangedToPeers(orgId, "sessions");
@@ -603,10 +1147,14 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
           await this.rewriteSession(auth, orgId, session, scopeKey, access, {
             events,
             perEventHashes,
+            frozenHashMode,
+            totalEventCount,
             frozenEventCount,
+            localFrozenEventCount,
             frozenChainHash,
             tailEvents,
             tailHash,
+            importedReplay,
             newEpoch: null,
           });
           this.markEventPlaneClean(orgId, session, stampAtRead);
@@ -623,10 +1171,14 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
       await this.rewriteSession(auth, orgId, session, scopeKey, access, {
         events,
         perEventHashes,
+        frozenHashMode,
+        totalEventCount,
         frozenEventCount,
+        localFrozenEventCount,
         frozenChainHash,
         tailEvents,
         tailHash,
+        importedReplay,
         newEpoch: cursor.epoch + 1,
       });
       this.markEventPlaneClean(orgId, session, stampAtRead);
@@ -637,10 +1189,14 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
     await this.rewriteSession(auth, orgId, session, scopeKey, access, {
       events,
       perEventHashes,
+      frozenHashMode,
+      totalEventCount,
       frozenEventCount,
+      localFrozenEventCount,
       frozenChainHash,
       tailEvents,
       tailHash,
+      importedReplay,
       newEpoch: 1,
     });
     this.markEventPlaneClean(orgId, session, stampAtRead);
@@ -711,6 +1267,49 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
   }
 
   /**
+   * One bounded append for a validated imported-history suffix. Large deltas
+   * never enter this path: preparation falls back to the authoritative full
+   * planner before any network mutation.
+   */
+  private async appendIncrementalSession(
+    auth: Org2CloudAuthState,
+    orgId: string,
+    sessionId: string,
+    cursor: CollabSessionPushCursor,
+    newFrozenEvents: SessionEvent[],
+    plan: PreparedPushPlan
+  ): Promise<void> {
+    const frozenSegments = splitFrozenIntoSegments(
+      newFrozenEvents,
+      cursor.frozenSeq + 1
+    );
+    if (frozenSegments.length > IMPORTED_INCREMENTAL_SEGMENT_LIMIT) {
+      throw new Error("Incremental imported replay exceeded its segment bound");
+    }
+    await this.client.appendSessionEvents(auth.accessToken, {
+      orgId,
+      sessionId,
+      expectedEpoch: cursor.epoch,
+      expectedFrozenSeq: cursor.frozenSeq,
+      expectedTailHash: cursor.tailHash,
+      newFrozenSegments: frozenSegments,
+      tail: plan.tailEvents.length > 0 ? plan.tailEvents : null,
+      totalCount: plan.totalEventCount,
+    });
+    this.setCursor({
+      orgId,
+      sessionId,
+      epoch: cursor.epoch,
+      frozenSeq: cursor.frozenSeq + frozenSegments.length,
+      pushedCount: plan.totalEventCount,
+      frozenEventCount: plan.frozenEventCount,
+      frozenChainHash: plan.frozenChainHash,
+      tailHash: plan.tailHash,
+      ...(plan.importedReplay ? { importedReplay: plan.importedReplay } : {}),
+    });
+  }
+
+  /**
    * Extend an established epoch in statement-timeout-safe batches. Every
    * acknowledged batch advances the durable cursor, so a transport failure or
    * app restart resumes after the last committed segment instead of reloading,
@@ -722,14 +1321,7 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
     sessionId: string,
     initialCursor: CollabSessionPushCursor,
     frozenSegments: ReturnType<typeof splitFrozenIntoSegments>,
-    plan: {
-      events: SessionEvent[];
-      perEventHashes: string[];
-      frozenEventCount: number;
-      frozenChainHash: string;
-      tailEvents: SessionEvent[];
-      tailHash: string | null;
-    }
+    plan: PreparedPushPlan & { events: SessionEvent[] }
   ): Promise<CollabSessionPushCursor> {
     let cursor = initialCursor;
     // An empty frozen delta still needs one append to replace the mutable tail
@@ -754,14 +1346,15 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
       const nextChainHash =
         nextFrozenEventCount === plan.frozenEventCount
           ? plan.frozenChainHash
-          : await this.computeFrozenChainHash(
+          : await this.computeFrozenHashAtCount(
               plan.perEventHashes,
-              nextFrozenEventCount
+              nextFrozenEventCount,
+              plan.frozenHashMode
             );
       const nextTail = finalBatch ? plan.tailEvents : [];
       const nextTailHash = finalBatch ? plan.tailHash : null;
       const nextPushedCount = finalBatch
-        ? plan.events.length
+        ? plan.totalEventCount
         : nextFrozenEventCount;
 
       await this.client.appendSessionEvents(auth.accessToken, {
@@ -783,6 +1376,9 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
         frozenEventCount: nextFrozenEventCount,
         frozenChainHash: nextChainHash,
         tailHash: nextTailHash,
+        ...(finalBatch && plan.importedReplay
+          ? { importedReplay: plan.importedReplay }
+          : {}),
       };
       this.setCursor(cursor);
     }
@@ -796,13 +1392,8 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
     session: Session,
     scopeKey: string | null,
     access: CloudPushAccess,
-    plan: {
+    plan: PreparedPushPlan & {
       events: SessionEvent[];
-      perEventHashes: string[];
-      frozenEventCount: number;
-      frozenChainHash: string;
-      tailEvents: SessionEvent[];
-      tailHash: string | null;
       newEpoch: number | null;
     }
   ): Promise<void> {
@@ -831,9 +1422,10 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
         const initialChainHash =
           initialFrozenEventCount === plan.frozenEventCount
             ? plan.frozenChainHash
-            : await this.computeFrozenChainHash(
+            : await this.computeFrozenHashAtCount(
                 plan.perEventHashes,
-                initialFrozenEventCount
+                initialFrozenEventCount,
+                plan.frozenHashMode
               );
         await this.client.rewriteSessionEvents(auth.accessToken, {
           orgId,
@@ -844,7 +1436,7 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
             !progressive && plan.tailEvents.length > 0 ? plan.tailEvents : null,
           totalCount: progressive
             ? initialFrozenEventCount
-            : plan.events.length,
+            : plan.totalEventCount,
         });
         const cursor: CollabSessionPushCursor = {
           orgId,
@@ -853,10 +1445,13 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
           frozenSeq: initialSegments.length,
           pushedCount: progressive
             ? initialFrozenEventCount
-            : plan.events.length,
+            : plan.totalEventCount,
           frozenEventCount: initialFrozenEventCount,
           frozenChainHash: initialChainHash,
           tailHash: progressive ? null : plan.tailHash,
+          ...(!progressive && plan.importedReplay
+            ? { importedReplay: plan.importedReplay }
+            : {}),
         };
         this.setCursor(cursor);
         if (progressive) {

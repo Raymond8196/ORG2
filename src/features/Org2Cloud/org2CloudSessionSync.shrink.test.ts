@@ -56,7 +56,14 @@ async function pushPass(
 ): Promise<void> {
   sync.beginPass();
   sync.noteSessionEventActivity(SESSION.session_id);
-  vi.spyOn(sync, "loadPushEvents").mockResolvedValueOnce(events);
+  vi.spyOn(
+    sync as unknown as {
+      loadFullPushEvents: (
+        sessionId: string
+      ) => Promise<{ events: SessionEvent[] }>;
+    },
+    "loadFullPushEvents"
+  ).mockResolvedValueOnce({ events });
   await sync.pushSession(AUTH, ORG_ID, SESSION, SCOPE_KEY, ACCESS);
 }
 

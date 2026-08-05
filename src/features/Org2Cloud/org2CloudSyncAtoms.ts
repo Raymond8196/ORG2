@@ -30,8 +30,8 @@ function cloudStorageKey(name: string): string {
 /**
  * Owner-side segments push cursor, per (orgId, sessionId) — design §7.3.
  * The per-event hash vector itself is NOT persisted: `frozenChainHash` is a
- * sha256 chain over the frozen region's per-event hashes, which detects
- * frozen-region mutation with O(1) storage. Losing a cursor (reinstall,
+ * compact commitment over the frozen region's per-event hashes, which detects
+ * frozen-region mutation without retaining the transcript. Losing a cursor (reinstall,
  * cleared storage) is safe — the next push re-anchors through the server
  * OCC check (rewrite at server epoch + 1). Inherited verbatim from the
  * retired self-hosted engine (cloud-parity Phase E moved the type here).
@@ -47,10 +47,34 @@ export interface CollabSessionPushCursor {
   pushedCount: number;
   /** Events covered by the frozen region (local frozen-line position). */
   frozenEventCount: number;
-  /** sha256 over the concatenated per-event hashes of the frozen region. */
+  /** Integrity commitment over the per-event hashes of the frozen region. */
   frozenChainHash: string;
   /** segment_hash of the last pushed tail (null = tail was empty). */
   tailHash: string | null;
+  /**
+   * Source-local checkpoint for bounded imported-history refreshes. It is
+   * optional so existing/native cursors retain their current wire behavior;
+   * losing or invalidating it only forces one authoritative full re-anchor.
+   */
+  importedReplay?: ImportedReplayCheckpoint;
+}
+
+export interface ImportedReplayCheckpoint {
+  version: 1;
+  /** Last user turn, reloaded because it may have been the mutable tail. */
+  reloadTurnId: string;
+  /** Hash of every ordered turn id strictly before reloadTurnId. */
+  prefixTurnIdsHash: string;
+  /** Absolute normalized-event count before reloadTurnId. */
+  retainedEventCount: number;
+  /** Absolute provider chunk sequence before reloadTurnId. */
+  retainedChunkCount: number;
+  /** Frozen events inside reloadTurnId covered by the current cloud cursor. */
+  frozenOverlapCount: number;
+  /** Hash aggregate of those overlap events. */
+  frozenOverlapHash: string;
+  /** Binary Merkle frontier for exactly `frozenEventCount` event hashes. */
+  frozenHashFrontier: Array<string | null>;
 }
 
 const RepoScopesSchema = z.record(z.string(), z.array(z.string()));
@@ -82,6 +106,18 @@ const CloudPushCursorSchema = z.object({
   frozenEventCount: z.number(),
   frozenChainHash: z.string(),
   tailHash: z.string().nullable(),
+  importedReplay: z
+    .object({
+      version: z.literal(1),
+      reloadTurnId: z.string(),
+      prefixTurnIdsHash: z.string(),
+      retainedEventCount: z.number().int().nonnegative(),
+      retainedChunkCount: z.number().int().nonnegative(),
+      frozenOverlapCount: z.number().int().nonnegative(),
+      frozenOverlapHash: z.string(),
+      frozenHashFrontier: z.array(z.string().nullable()).max(54),
+    })
+    .optional(),
 }) satisfies z.ZodType<CollabSessionPushCursor>;
 
 const CloudPushCursorsSchema = z.record(z.string(), CloudPushCursorSchema);

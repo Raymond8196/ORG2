@@ -24,8 +24,9 @@ mod transcript;
 pub use index::{
     codex_thread_id_from_file_stem, list_codex_app_recent_paths,
     list_codex_app_reconciliation_sessions, list_codex_app_sessions_paginated,
-    load_codex_app_for_session, load_codex_app_initial_window_for_session,
-    load_codex_app_turn_for_session,
+    load_codex_app_cloud_turn_for_session, load_codex_app_for_session,
+    load_codex_app_initial_window_for_session, load_codex_app_turn_for_session,
+    load_codex_app_turn_ids_for_session,
 };
 pub use meta::{resolve_codex_transcript_for_thread_id_near_path, CodexTranscriptLocator};
 pub(crate) use normalize::normalize_codex_tool_calls;
