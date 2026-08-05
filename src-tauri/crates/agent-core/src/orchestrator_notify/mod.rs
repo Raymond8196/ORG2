@@ -236,6 +236,25 @@ pub async fn notify_orchestrator_session_terminal(
                 slug,
                 &work_item_id,
                 |frontmatter| {
+                    // Stale-signal rejection (design §12.4): a terminal
+                    // event from a session that no longer holds the
+                    // execution claim must not complete a newer episode.
+                    if let Some(active_session) = frontmatter
+                        .execution_lock
+                        .as_ref()
+                        .and_then(|lock| lock.active_session_id.as_deref())
+                    {
+                        if active_session != session_id_owned {
+                            tracing::warn!(
+                                "[orchestrator] ignoring stale terminal from session {} \
+                                 (active claim: {}) for work_item {}",
+                                session_id_owned,
+                                active_session,
+                                frontmatter.short_id
+                            );
+                            return state_machine::TransitionResult::Ignored;
+                        }
+                    }
                     let linked_status = match status {
                         AgentSessionStatus::Completed => {
                             LinkedSessionStatus::Completed
@@ -448,6 +467,10 @@ pub async fn notify_orchestrator_session_terminal(
                 TransitionResult::AwaitingUser => {
                     tracing::debug!("[orchestrator] Session {} awaiting user action", session_id);
                     notify_inbox_awaiting_user(&work_item_id_for_launch);
+                }
+                TransitionResult::Ignored => {
+                    // Stale terminal from a session that lost the claim —
+                    // already logged inside the mutator; no follow-on.
                 }
             }
         }
