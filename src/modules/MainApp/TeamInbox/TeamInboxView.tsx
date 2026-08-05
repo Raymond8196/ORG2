@@ -536,6 +536,7 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
             pullRequests.length === 0 ? (
               <Placeholder
                 variant="loading"
+                placement="sidebar"
                 title={t("teamInbox.loading")}
                 fillParentHeight
               />
@@ -544,6 +545,7 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
               pullRequests.length === 0 ? (
               <Placeholder
                 variant="error"
+                placement="sidebar"
                 title={t("teamInbox.errors.loadTitle")}
                 subtitle={loadState.message ?? undefined}
                 action={{

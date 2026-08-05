@@ -209,6 +209,7 @@ const AssignedWorkItemDetail: React.FC<AssignedWorkItemDetailProps> = ({
       {status === "loading" ? (
         <Placeholder
           variant="loading"
+          placement="detail-panel"
           title={t("teamInbox.loading")}
           fillParentHeight
         />
@@ -231,8 +232,10 @@ const AssignedWorkItemDetail: React.FC<AssignedWorkItemDetailProps> = ({
       ) : (
         <Placeholder
           variant="error"
+          placement="detail-panel"
           title={t("teamInbox.errors.loadTitle")}
           subtitle={issueMessage ?? t("teamInbox.errors.workItemLoad")}
+          onRetry={refreshWorkItem}
           fillParentHeight
         />
       )}

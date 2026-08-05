@@ -10,6 +10,10 @@ const tableStyles = readFileSync(
   resolve(__dirname, "../Table/index.scss"),
   "utf8"
 );
+const tableSource = readFileSync(
+  resolve(__dirname, "../Table/index.tsx"),
+  "utf8"
+);
 
 describe("SettingsTable sticky toolbar contract", () => {
   it("uses one explicit sticky class for every page-scrolled toolbar", () => {
@@ -44,6 +48,15 @@ describe("SettingsTable sticky toolbar contract", () => {
   it("pins the final table column on surfaces narrower than 1300px", () => {
     expect(tableStyles).toMatch(
       /@media \(max-width: 1300px\)[\s\S]*\.table-settings\.table-settings-pin-last-column[\s\S]*position:\s*sticky;[\s\S]*right:\s*0;/
+    );
+  });
+
+  it("centers an empty-state component through the full table body height", () => {
+    expect(tableSource).toContain(
+      'tableRows.length === 0 && "table-has-empty-state"'
+    );
+    expect(tableStyles).toMatch(
+      /\.table-settings\.table-settings-fill-height[\s\S]*&\.table-has-empty-state[\s\S]*\.table-empty[\s\S]*height:\s*100%;/
     );
   });
 });

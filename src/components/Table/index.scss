@@ -752,6 +752,16 @@
     overflow-y: auto;
     overflow-x: auto;
   }
+
+  &.table-has-empty-state {
+    .table,
+    .table-tbody,
+    .table-tbody > tr,
+    .table-tbody > tr > td,
+    .table-empty {
+      height: 100%;
+    }
+  }
 }
 
 .table-settings.table-settings-contained-scroll {

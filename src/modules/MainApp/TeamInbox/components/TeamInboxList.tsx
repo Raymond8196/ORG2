@@ -494,7 +494,8 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
         <div className="flex min-h-0 flex-1 flex-col">
           {hasQuery ? (
             <Placeholder
-              variant="empty"
+              variant="no-results"
+              placement="sidebar"
               title={t("teamInbox.empty.noResults.title")}
               subtitle={t("teamInbox.empty.noResults.subtitle", {
                 query: query.trim(),
@@ -504,6 +505,7 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
           ) : (
             <Placeholder
               variant="empty"
+              placement="sidebar"
               title={t(`teamInbox.empty.${filter}.title`, {
                 defaultValue: t("teamInbox.empty.title"),
               })}
@@ -568,7 +570,11 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
             {pullRequestsLoading &&
             actionablePullRequestCount === 0 &&
             showPullRequests ? (
-              <Placeholder variant="loading" title={t("teamInbox.loading")} />
+              <Placeholder
+                variant="loading"
+                placement="sidebar"
+                title={t("teamInbox.loading")}
+              />
             ) : null}
             {showPullRequests &&
             pullRequestSections.reviewRequested.length > 0 ? (
