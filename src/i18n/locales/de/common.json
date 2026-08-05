@@ -1443,7 +1443,7 @@
         "reviewed": "hat ein Review abgegeben"
       },
       "summary": {
-        "label": "Pull-Request-Zusammenfassung",
+        "label": "Zusammenfassung zum pull request",
         "branch": "Branch",
         "reviewers": "Reviewer",
         "noReviewers": "Keine Reviewer",

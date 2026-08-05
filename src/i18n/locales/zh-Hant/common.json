@@ -116,8 +116,8 @@
       "markAllRead": "無法將所有項目標記為已讀，請再試一次。",
       "identity": "無法將你的帳戶與專案成員配對，請檢查專案個人資料中的電子郵件。",
       "partialLoad": "部分團隊收件匣來源無法重新整理，現有項目仍會繼續顯示",
-      "pullRequestsPartialLoad": "部分拉取請求無法重新整理",
-      "pullRequestsPartialLoadHelp": "現有項目仍會繼續顯示；請重新整理以再次載入缺少的拉取請求",
+      "pullRequestsPartialLoad": "部分 pull request 無法重新整理",
+      "pullRequestsPartialLoadHelp": "現有項目仍會繼續顯示；請重新整理以再次載入缺少的 pull request",
       "workItemContext": "部分專案內容暫時無法使用，工作項目仍可繼續操作。",
       "workItemLoad": "無法載入此工作項目，請再試一次。",
       "workItemUpdate": "無法儲存工作項目的最新變更，請再試一次。"
@@ -1430,8 +1430,8 @@
       "collapse": "收合工作區資訊"
     },
     "pr": {
-      "title": "拉取請求",
-      "linkedBranch": "拉取請求 #{{number}}",
+      "title": "Pull request",
+      "linkedBranch": "Pull request #{{number}}",
       "baseBranch": "基準",
       "noDescription": "未提供描述。",
       "loadingConversation": "正在載入…",
@@ -1446,7 +1446,7 @@
       "details": "詳細資料",
       "unknownAuthor": "未知",
       "activity": {
-        "opened": "開啟了此拉取請求",
+        "opened": "開啟了此 pull request",
         "commented": "發表了留言",
         "approved": "核准了這些變更",
         "changesRequested": "要求了變更",
@@ -1454,7 +1454,7 @@
         "reviewed": "進行了審查"
       },
       "summary": {
-        "label": "拉取請求摘要",
+        "label": "pull request 摘要",
         "branch": "分支",
         "reviewers": "審查者",
         "noReviewers": "無審查者",
@@ -1474,7 +1474,7 @@
       },
       "checks": {
         "none": "未回報檢查",
-        "noneHint": "此拉取請求的頭部提交未執行任何 CI 檢查或狀態。",
+        "noneHint": "此 pull request 的頭部提交未執行任何 CI 檢查或狀態。",
         "allPassed": "所有檢查均已通過",
         "someFailed": "部分檢查失敗",
         "pending": "檢查進行中",
@@ -1484,7 +1484,7 @@
         "checkingShort": "檢查中",
         "noneShort": "無 CI",
         "unavailableShort": "CI 無法使用",
-        "branchStatus": "拉取請求 #{{number}} CI：{{status}}"
+        "branchStatus": "Pull request #{{number}} CI：{{status}}"
       },
       "commits": {
         "backToList": "全部提交",
@@ -1495,7 +1495,7 @@
         "noFiles": "無檔案變更",
         "tooLarge": "檔案太大，無法顯示差異",
         "unavailable": "變更無法使用",
-        "unavailableHint": "無法解析拉取請求的基準提交與頭部提交。"
+        "unavailableHint": "無法解析 pull request 的基準提交與頭部提交。"
       },
       "status": {
         "open": "開啟",
@@ -1600,17 +1600,17 @@
         "removedFromProject": "將此 issue 從專案中移除",
         "archived": "封存了此 issue",
         "unarchived": "取消封存了此 issue",
-        "merged": "合併了此拉取請求",
-        "committed": "向此拉取請求提交了變更",
+        "merged": "合併了此 pull request",
+        "committed": "向此 pull request 提交了變更",
         "headRefDeleted": "刪除了頭部分支",
         "headRefRestored": "還原了頭部分支",
         "headRefForcePushed": "強制推送了頭部分支",
         "baseRefChanged": "變更了基礎分支",
         "automaticBaseChangeFailed": "無法自動變更基礎分支",
         "automaticBaseChangeSucceeded": "自動變更了基礎分支",
-        "deployed": "部署了此拉取請求",
+        "deployed": "部署了此 pull request",
         "deploymentEnvironmentChanged": "變更了部署環境",
-        "readyForReview": "將此拉取請求標記為可供審查",
+        "readyForReview": "將此 pull request 標記為可供審查",
         "reviewRequested": "請求了審查",
         "reviewRequestRemoved": "移除了審查請求",
         "reviewed": "審查了這些變更",

@@ -1284,8 +1284,8 @@
       "collapse": "折叠工作区信息"
     },
     "pr": {
-      "title": "拉取请求",
-      "linkedBranch": "拉取请求 #{{number}}",
+      "title": "Pull request",
+      "linkedBranch": "Pull request #{{number}}",
       "baseBranch": "基准",
       "noDescription": "未提供描述。",
       "loadingConversation": "正在加载…",
@@ -1300,7 +1300,7 @@
       "details": "详情",
       "unknownAuthor": "未知",
       "activity": {
-        "opened": "打开了此拉取请求",
+        "opened": "打开了此 pull request",
         "commented": "发表了评论",
         "approved": "批准了这些更改",
         "changesRequested": "请求了更改",
@@ -1308,7 +1308,7 @@
         "reviewed": "进行了审查"
       },
       "summary": {
-        "label": "拉取请求摘要",
+        "label": "pull request 摘要",
         "branch": "分支",
         "reviewers": "审查者",
         "noReviewers": "无审查者",
@@ -1328,7 +1328,7 @@
       },
       "checks": {
         "none": "未报告检查",
-        "noneHint": "此拉取请求的头提交未运行任何 CI 检查或状态。",
+        "noneHint": "此 pull request 的头提交未运行任何 CI 检查或状态。",
         "allPassed": "所有检查均已通过",
         "someFailed": "部分检查失败",
         "pending": "检查进行中",
@@ -1338,7 +1338,7 @@
         "checkingShort": "检查中",
         "noneShort": "无 CI",
         "unavailableShort": "CI 不可用",
-        "branchStatus": "拉取请求 #{{number}} CI：{{status}}"
+        "branchStatus": "Pull request #{{number}} CI：{{status}}"
       },
       "commits": {
         "backToList": "全部提交",
@@ -1349,7 +1349,7 @@
         "noFiles": "无文件更改",
         "tooLarge": "文件太大，无法显示差异",
         "unavailable": "更改不可用",
-        "unavailableHint": "无法解析拉取请求的基准提交和头提交。"
+        "unavailableHint": "无法解析 pull request 的基准提交和头提交。"
       },
       "status": {
         "open": "打开",
@@ -1455,17 +1455,17 @@
         "removedFromProject": "将此 issue 从项目中移除",
         "archived": "归档了此 issue",
         "unarchived": "取消归档了此 issue",
-        "merged": "合并了此拉取请求",
-        "committed": "向此拉取请求提交了更改",
+        "merged": "合并了此 pull request",
+        "committed": "向此 pull request 提交了更改",
         "headRefDeleted": "删除了头部分支",
         "headRefRestored": "恢复了头部分支",
         "headRefForcePushed": "强制推送了头部分支",
         "baseRefChanged": "更改了基础分支",
         "automaticBaseChangeFailed": "无法自动更改基础分支",
         "automaticBaseChangeSucceeded": "自动更改了基础分支",
-        "deployed": "部署了此拉取请求",
+        "deployed": "部署了此 pull request",
         "deploymentEnvironmentChanged": "更改了部署环境",
-        "readyForReview": "将此拉取请求标记为可供审查",
+        "readyForReview": "将此 pull request 标记为可供审查",
         "reviewRequested": "请求了审查",
         "reviewRequestRemoved": "移除了审查请求",
         "reviewed": "审查了这些更改",
@@ -2664,8 +2664,8 @@
       "markAllRead": "全部标记已读失败，请重试。",
       "identity": "当前账户无法匹配到项目成员，请检查项目个人资料中的邮箱。",
       "partialLoad": "部分团队收件箱来源刷新失败，当前可用事项仍会保留显示",
-      "pullRequestsPartialLoad": "部分拉取请求刷新失败",
-      "pullRequestsPartialLoadHelp": "当前可用事项仍会保留显示；请刷新以重新加载缺少的拉取请求",
+      "pullRequestsPartialLoad": "部分 pull request 刷新失败",
+      "pullRequestsPartialLoadHelp": "当前可用事项仍会保留显示；请刷新以重新加载缺少的 pull request",
       "workItemContext": "部分项目上下文暂不可用，工作项仍可继续查看和操作。",
       "workItemLoad": "无法加载此工作项，请重试。",
       "workItemUpdate": "无法保存刚才的工作项修改，请重试。"

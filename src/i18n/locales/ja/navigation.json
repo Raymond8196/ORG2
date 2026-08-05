@@ -905,7 +905,7 @@
         "workItemCardOpen": "作業項目 {{name}} を開く",
         "githubCardOpen": "{{name}} を GitHub で開く",
         "githubIssue": "Issue",
-        "githubPullRequest": "プルリクエスト",
+        "githubPullRequest": "Pull request",
         "archivedComposerDisabled": "このチャンネルはアーカイブされています。投稿するにはアーカイブを解除してください。",
         "errorPostForbidden": "このチャンネルに投稿できるのはチャンネル管理者のみです",
         "errorArchived": "このチャンネルはアーカイブ済みのため投稿できません",

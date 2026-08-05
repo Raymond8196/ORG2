@@ -117,8 +117,8 @@
       "markAllRead": "Impossible de marquer tous les éléments comme lus. Réessayez.",
       "identity": "Votre compte n’a pas pu être associé à un membre du projet. Vérifiez l’e-mail de votre profil de projet.",
       "partialLoad": "Certaines sources de la boîte de réception d’équipe n’ont pas pu être actualisées. Les éléments disponibles restent affichés",
-      "pullRequestsPartialLoad": "Certaines demandes de tirage n’ont pas pu être actualisées",
-      "pullRequestsPartialLoadHelp": "Les éléments disponibles restent affichés ; actualisez pour tenter de charger à nouveau les demandes de tirage manquantes",
+      "pullRequestsPartialLoad": "Certaines pull requests n’ont pas pu être actualisées",
+      "pullRequestsPartialLoadHelp": "Les éléments disponibles restent affichés ; actualisez pour tenter de charger à nouveau les pull requests manquantes",
       "workItemContext": "Une partie du contexte du projet n’est pas disponible. L’élément de travail reste utilisable.",
       "workItemLoad": "Impossible de charger cet élément de travail. Réessayez.",
       "workItemUpdate": "Impossible d’enregistrer la dernière modification de l’élément de travail. Réessayez."

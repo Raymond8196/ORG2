@@ -44,7 +44,7 @@
   },
   "github": {
     "title": "GitHub 연결",
-    "description": "GitHub 계정을 연결하여 ORGII에서 직접 저장소에 액세스하고, 커밋을 생성하고, 풀 리퀘스트를 관리하세요.",
+    "description": "GitHub 계정을 연결하여 ORGII에서 직접 저장소에 액세스하고, 커밋을 생성하고, pull request를 관리하세요.",
     "connectButton": "GitHub 계정 연결",
     "hint": "나중에 설정 > 통합에서도 GitHub를 연결할 수 있습니다"
   },

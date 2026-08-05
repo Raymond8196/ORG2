@@ -44,7 +44,7 @@
   },
   "github": {
     "title": "连接 GitHub",
-    "description": "连接您的 GitHub 账户，直接从 ORGII 访问仓库、创建提交和管理拉取请求。",
+    "description": "连接您的 GitHub 账户，直接从 ORGII 访问仓库、创建提交和管理 pull request。",
     "connectButton": "连接 GitHub 账户",
     "hint": "您也可以稍后在设置 > 集成中连接 GitHub"
   },

@@ -116,8 +116,8 @@
       "markAllRead": "모든 항목을 읽음으로 표시할 수 없습니다. 다시 시도해 주세요.",
       "identity": "계정을 프로젝트 구성원과 일치시킬 수 없습니다. 프로젝트 프로필의 이메일을 확인하세요.",
       "partialLoad": "일부 팀 수신함 소스를 새로 고칠 수 없습니다. 사용 가능한 항목은 계속 표시됩니다",
-      "pullRequestsPartialLoad": "일부 풀 리퀘스트를 새로 고칠 수 없습니다",
-      "pullRequestsPartialLoadHelp": "사용 가능한 항목은 계속 표시됩니다. 새로 고쳐 누락된 풀 리퀘스트를 다시 불러오세요",
+      "pullRequestsPartialLoad": "일부 pull request를 새로 고칠 수 없습니다",
+      "pullRequestsPartialLoadHelp": "사용 가능한 항목은 계속 표시됩니다. 새로 고쳐 누락된 pull request를 다시 불러오세요",
       "workItemContext": "일부 프로젝트 정보를 사용할 수 없습니다. 작업 항목은 계속 사용할 수 있습니다.",
       "workItemLoad": "이 작업 항목을 불러올 수 없습니다. 다시 시도해 주세요.",
       "workItemUpdate": "작업 항목의 최신 변경 사항을 저장할 수 없습니다. 다시 시도해 주세요."
@@ -610,8 +610,8 @@
     "history": "기록",
     "execution": "실행",
     "gitHistory": "Git 기록",
-    "noPullRequest": "풀 리퀘스트 없음",
-    "pullRequest": "풀 리퀘스트",
+    "noPullRequest": "pull request 없음",
+    "pullRequest": "Pull request",
     "operationLog": "작업 로그",
     "gitDashboard": "대시보드",
     "changedFiles": "변경된 파일",
@@ -1418,8 +1418,8 @@
       "collapse": "워크스테이션 정보 접기"
     },
     "pr": {
-      "title": "풀 리퀘스트",
-      "linkedBranch": "풀 리퀘스트 #{{number}}",
+      "title": "Pull request",
+      "linkedBranch": "Pull request #{{number}}",
       "baseBranch": "베이스",
       "noDescription": "설명이 없습니다.",
       "loadingConversation": "불러오는 중…",
@@ -1434,7 +1434,7 @@
       "details": "세부 정보",
       "unknownAuthor": "알 수 없음",
       "activity": {
-        "opened": "이 풀 리퀘스트를 열었습니다",
+        "opened": "이 pull request를 열었습니다",
         "commented": "댓글을 남겼습니다",
         "approved": "변경 사항을 승인했습니다",
         "changesRequested": "변경을 요청했습니다",
@@ -1442,7 +1442,7 @@
         "reviewed": "리뷰했습니다"
       },
       "summary": {
-        "label": "풀 리퀘스트 요약",
+        "label": "pull request 요약",
         "branch": "브랜치",
         "reviewers": "리뷰어",
         "noReviewers": "리뷰어 없음",
@@ -1462,7 +1462,7 @@
       },
       "checks": {
         "none": "보고된 검사가 없습니다",
-        "noneHint": "이 풀 리퀘스트의 헤드 커밋에서 실행된 CI 검사나 상태가 없습니다.",
+        "noneHint": "이 pull request의 헤드 커밋에서 실행된 CI 검사나 상태가 없습니다.",
         "allPassed": "모든 검사 통과",
         "someFailed": "일부 검사 실패",
         "pending": "검사 진행 중",
@@ -1472,7 +1472,7 @@
         "checkingShort": "확인 중",
         "noneShort": "CI 없음",
         "unavailableShort": "CI를 사용할 수 없음",
-        "branchStatus": "풀 리퀘스트 #{{number}} CI: {{status}}"
+        "branchStatus": "Pull request #{{number}} CI: {{status}}"
       },
       "commits": {
         "backToList": "모든 커밋",
@@ -1483,7 +1483,7 @@
         "noFiles": "파일 변경 없음",
         "tooLarge": "파일이 너무 커서 차이를 표시할 수 없습니다",
         "unavailable": "변경 사항을 사용할 수 없음",
-        "unavailableHint": "풀 리퀘스트의 베이스 및 헤드 커밋을 확인할 수 없습니다."
+        "unavailableHint": "pull request의 베이스 및 헤드 커밋을 확인할 수 없습니다."
       },
       "status": {
         "open": "열림",
@@ -1588,17 +1588,17 @@
         "removedFromProject": "님이 이 issue를 프로젝트에서 제거했습니다",
         "archived": "님이 이 issue를 보관했습니다",
         "unarchived": "님이 이 issue의 보관을 해제했습니다",
-        "merged": "님이 이 풀 리퀘스트를 병합했습니다",
-        "committed": "님이 이 풀 리퀘스트에 커밋했습니다",
+        "merged": "님이 이 pull request를 병합했습니다",
+        "committed": "님이 이 pull request에 커밋했습니다",
         "headRefDeleted": "님이 헤드 브랜치를 삭제했습니다",
         "headRefRestored": "님이 헤드 브랜치를 복원했습니다",
         "headRefForcePushed": "님이 헤드 브랜치를 강제 푸시했습니다",
         "baseRefChanged": "님이 베이스 브랜치를 변경했습니다",
         "automaticBaseChangeFailed": "님이 베이스 브랜치를 자동으로 변경하지 못했습니다",
         "automaticBaseChangeSucceeded": "님이 베이스 브랜치를 자동으로 변경했습니다",
-        "deployed": "님이 이 풀 리퀘스트를 배포했습니다",
+        "deployed": "님이 이 pull request를 배포했습니다",
         "deploymentEnvironmentChanged": "님이 배포 환경을 변경했습니다",
-        "readyForReview": "님이 이 풀 리퀘스트를 리뷰 준비 상태로 표시했습니다",
+        "readyForReview": "님이 이 pull request를 리뷰 준비 상태로 표시했습니다",
         "reviewRequested": "님이 리뷰를 요청했습니다",
         "reviewRequestRemoved": "님이 리뷰 요청을 제거했습니다",
         "reviewed": "님이 이 변경 사항을 리뷰했습니다",

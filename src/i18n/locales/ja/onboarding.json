@@ -44,7 +44,7 @@
   },
   "github": {
     "title": "GitHub を接続",
-    "description": "GitHub アカウントを接続して、リポジトリへのアクセス、コミットの作成、プルリクエストの管理を ORGII から直接行えます。",
+    "description": "GitHub アカウントを接続して、リポジトリへのアクセス、コミットの作成、pull request の管理を ORGII から直接行えます。",
     "connectButton": "GitHub アカウントを接続",
     "hint": "後から設定 > 連携からも GitHub を接続できます"
   },

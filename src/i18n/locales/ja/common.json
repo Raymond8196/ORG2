@@ -116,8 +116,8 @@
       "markAllRead": "すべての項目を既読にできませんでした。再試行してください。",
       "identity": "アカウントをプロジェクトメンバーに一致させられませんでした。プロジェクトのプロフィールのメールアドレスを確認してください。",
       "partialLoad": "一部のチーム受信トレイのソースを更新できませんでした。利用可能な項目は引き続き表示されます",
-      "pullRequestsPartialLoad": "一部のプルリクエストを更新できませんでした",
-      "pullRequestsPartialLoadHelp": "利用可能な項目は引き続き表示されます。更新して不足しているプルリクエストの再読み込みを試してください",
+      "pullRequestsPartialLoad": "一部の pull request を更新できませんでした",
+      "pullRequestsPartialLoadHelp": "利用可能な項目は引き続き表示されます。更新して不足している pull request の再読み込みを試してください",
       "workItemContext": "一部のプロジェクト情報が利用できません。作業項目は引き続き使用できます。",
       "workItemLoad": "この作業項目を読み込めませんでした。再試行してください。",
       "workItemUpdate": "作業項目への最新の変更を保存できませんでした。再試行してください。"
@@ -610,8 +610,8 @@
     "history": "履歴",
     "execution": "実行",
     "gitHistory": "Git 履歴",
-    "noPullRequest": "プルリクエストがありません",
-    "pullRequest": "プルリクエスト",
+    "noPullRequest": "pull request がありません",
+    "pullRequest": "Pull request",
     "operationLog": "操作ログ",
     "gitDashboard": "ダッシュボード",
     "changedFiles": "変更されたファイル",
@@ -1418,8 +1418,8 @@
       "collapse": "ワークステーション情報を折りたたむ"
     },
     "pr": {
-      "title": "プルリクエスト",
-      "linkedBranch": "プルリクエスト #{{number}}",
+      "title": "Pull request",
+      "linkedBranch": "Pull request #{{number}}",
       "baseBranch": "ベース",
       "noDescription": "説明はありません。",
       "loadingConversation": "読み込み中…",
@@ -1434,7 +1434,7 @@
       "details": "詳細",
       "unknownAuthor": "不明",
       "activity": {
-        "opened": "このプルリクエストをオープンしました",
+        "opened": "この pull request をオープンしました",
         "commented": "コメントしました",
         "approved": "変更を承認しました",
         "changesRequested": "変更をリクエストしました",
@@ -1442,7 +1442,7 @@
         "reviewed": "レビューしました"
       },
       "summary": {
-        "label": "プルリクエストの概要",
+        "label": "pull request の概要",
         "branch": "ブランチ",
         "reviewers": "レビュアー",
         "noReviewers": "レビュアーなし",
@@ -1462,7 +1462,7 @@
       },
       "checks": {
         "none": "チェックは報告されていません",
-        "noneHint": "このプルリクエストの先頭コミットでは CI チェックやステータスが実行されていません。",
+        "noneHint": "この pull request の先頭コミットでは CI チェックやステータスが実行されていません。",
         "allPassed": "すべてのチェックに合格しました",
         "someFailed": "一部のチェックに失敗しました",
         "pending": "チェック実行中",
@@ -1472,7 +1472,7 @@
         "checkingShort": "確認中",
         "noneShort": "CI なし",
         "unavailableShort": "CI を利用できません",
-        "branchStatus": "プルリクエスト #{{number}} CI：{{status}}"
+        "branchStatus": "Pull request #{{number}} CI：{{status}}"
       },
       "commits": {
         "backToList": "すべてのコミット",
@@ -1483,7 +1483,7 @@
         "noFiles": "ファイルの変更なし",
         "tooLarge": "ファイルが大きすぎるため差分を表示できません",
         "unavailable": "変更を利用できません",
-        "unavailableHint": "プルリクエストのベースコミットと先頭コミットを解決できませんでした。"
+        "unavailableHint": "pull request のベースコミットと先頭コミットを解決できませんでした。"
       },
       "status": {
         "open": "オープン",
@@ -1588,17 +1588,17 @@
         "removedFromProject": "がこの issue をプロジェクトから削除しました",
         "archived": "がこの issue をアーカイブしました",
         "unarchived": "がこの issue のアーカイブを解除しました",
-        "merged": "がこのプルリクエストをマージしました",
-        "committed": "がこのプルリクエストにコミットしました",
+        "merged": "がこの pull request をマージしました",
+        "committed": "がこの pull request にコミットしました",
         "headRefDeleted": "がヘッドブランチを削除しました",
         "headRefRestored": "がヘッドブランチを復元しました",
         "headRefForcePushed": "がヘッドブランチを強制プッシュしました",
         "baseRefChanged": "がベースブランチを変更しました",
         "automaticBaseChangeFailed": "がベースブランチを自動変更できませんでした",
         "automaticBaseChangeSucceeded": "がベースブランチを自動変更しました",
-        "deployed": "がこのプルリクエストをデプロイしました",
+        "deployed": "がこの pull request をデプロイしました",
         "deploymentEnvironmentChanged": "がデプロイ環境を変更しました",
-        "readyForReview": "がこのプルリクエストをレビュー可能にしました",
+        "readyForReview": "がこの pull request をレビュー可能にしました",
         "reviewRequested": "がレビューをリクエストしました",
         "reviewRequestRemoved": "がレビューリクエストを削除しました",
         "reviewed": "がこれらの変更をレビューしました",
