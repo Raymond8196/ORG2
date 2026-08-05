@@ -69,7 +69,7 @@ vi.mock("../components", () => ({
   CommentMentionDetail: () => null,
   TeamInboxList: (props: Record<string, unknown>) => {
     componentProps.list = props;
-    return null;
+    return createElement("div", { "data-testid": "team-inbox-list" });
   },
 }));
 
@@ -214,6 +214,13 @@ describe("TeamInboxView split layout", () => {
     expect(
       container.querySelector('[data-testid="team-inbox-load-notice"]')
     ).not.toBeNull();
+    const list = container.querySelector('[data-testid="team-inbox-list"]');
+    const notice = container.querySelector(
+      '[data-testid="team-inbox-load-notice"]'
+    );
+    expect(list?.parentElement?.nextElementSibling).toBe(notice);
+    expect(notice?.className).toContain("!border-b-0");
+    expect(notice?.className).not.toContain("!border-t-0");
 
     act(() => {
       container

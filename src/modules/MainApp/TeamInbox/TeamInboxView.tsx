@@ -513,30 +513,32 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
     );
   })();
 
+  const loadNotice =
+    loadNoticeKey &&
+    dismissedLoadNoticeKey !== loadNoticeKey &&
+    (items.length > 0 || pullRequests.length > 0) ? (
+      <InlineAlert
+        type={loadState.status === "warning" ? "warning" : "danger"}
+        hideIcon
+        onClose={dismissLoadNotice}
+        autoCloseMs={3000}
+        role="status"
+        dataTestId="team-inbox-load-notice"
+        closeAriaLabel={t("common:actions.close")}
+        className={`shrink-0 !rounded-none !border-x-0 !border-b-0 !px-3 !py-2 ${
+          loadState.status === "warning" ? "bg-warning-6/10" : "bg-danger-1"
+        }`}
+      >
+        {loadState.message}
+      </InlineAlert>
+    ) : null;
+
   return (
     <TeamInboxSessionDropSurface
       dataSource={dataSource}
       onNavigate={onNavigate}
     >
       <div className="flex h-full min-h-0 flex-col">
-        {loadNoticeKey &&
-        dismissedLoadNoticeKey !== loadNoticeKey &&
-        (items.length > 0 || pullRequests.length > 0) ? (
-          <InlineAlert
-            type={loadState.status === "warning" ? "warning" : "danger"}
-            hideIcon
-            onClose={dismissLoadNotice}
-            autoCloseMs={3000}
-            role="status"
-            dataTestId="team-inbox-load-notice"
-            closeAriaLabel={t("common:actions.close")}
-            className={`shrink-0 !rounded-none !border-x-0 !border-t-0 !px-3 !py-2 ${
-              loadState.status === "warning" ? "bg-warning-6/10" : "bg-danger-1"
-            }`}
-          >
-            {loadState.message}
-          </InlineAlert>
-        ) : null}
         <SplitViewLayout
           className="min-h-0 flex-1 rounded-page"
           listWidth={360}
@@ -563,30 +565,39 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
                 fillParentHeight
               />
             ) : (
-              <TeamInboxList
-                filter={visibleFilter}
-                items={visibleItems}
-                selectedItemId={selectedItemId}
-                totalUnread={totalUnread}
-                unreadCounts={unreadCounts}
-                query={visibleQuery}
-                loading={loadState.status === "loading" || pullRequestsLoading}
-                pullRequests={pullRequests}
-                pullRequestsLoading={pullRequestsLoading}
-                pullRequestsError={pullRequestsError}
-                selectedPullRequestKey={selectedPullRequestKey}
-                onQueryChange={handleQueryChange}
-                onFilterChange={handleFilterChange}
-                onSelectItem={handleSelect}
-                onSelectPullRequest={handleSelectPullRequest}
-                onRefresh={handleRefresh}
-                onMarkAllRead={
-                  dataSource.markAllRead ? handleMarkAllRead : undefined
-                }
-                hasMore={hasMore}
-                loadingMore={loadingMore}
-                onLoadMore={dataSource.loadMore ? handleLoadMore : undefined}
-              />
+              <div className="flex h-full min-h-0 flex-col">
+                <div className="min-h-0 flex-1">
+                  <TeamInboxList
+                    filter={visibleFilter}
+                    items={visibleItems}
+                    selectedItemId={selectedItemId}
+                    totalUnread={totalUnread}
+                    unreadCounts={unreadCounts}
+                    query={visibleQuery}
+                    loading={
+                      loadState.status === "loading" || pullRequestsLoading
+                    }
+                    pullRequests={pullRequests}
+                    pullRequestsLoading={pullRequestsLoading}
+                    pullRequestsError={pullRequestsError}
+                    selectedPullRequestKey={selectedPullRequestKey}
+                    onQueryChange={handleQueryChange}
+                    onFilterChange={handleFilterChange}
+                    onSelectItem={handleSelect}
+                    onSelectPullRequest={handleSelectPullRequest}
+                    onRefresh={handleRefresh}
+                    onMarkAllRead={
+                      dataSource.markAllRead ? handleMarkAllRead : undefined
+                    }
+                    hasMore={hasMore}
+                    loadingMore={loadingMore}
+                    onLoadMore={
+                      dataSource.loadMore ? handleLoadMore : undefined
+                    }
+                  />
+                </div>
+                {loadNotice}
+              </div>
             )
           }
           mainContent={detail}
