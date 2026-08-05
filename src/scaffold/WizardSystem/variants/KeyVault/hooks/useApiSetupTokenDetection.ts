@@ -1,5 +1,5 @@
 import type { TFunction } from "i18next";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useRef } from "react";
 
 import {
   autoDetectKey,
@@ -94,6 +94,7 @@ export function useApiSetupTokenDetection({
   setDetectedKeys,
   setSelectedCredentialIndex,
 }: UseApiSetupTokenDetectionOptions) {
+  const detectionInFlightRef = useRef(false);
   // OpenCode's Zen/Go endpoints come from the Rust provider registry, same as
   // every other provider's — autodetect must not re-hardcode their URLs.
   const { config: openCodeConfig } = useProviderConfig(CLI_AGENT.OPENCODE);
@@ -163,6 +164,8 @@ export function useApiSetupTokenDetection({
   );
 
   const handleAutoDetectToken = useCallback(async () => {
+    if (detectionInFlightRef.current) return;
+    detectionInFlightRef.current = true;
     setDetectingToken(true);
     setTokenError(null);
     setTokenDetected(false);
@@ -228,11 +231,12 @@ export function useApiSetupTokenDetection({
         return;
       }
 
-      applySelectedKey(candidateKeys[0]);
+      await applySelectedKey(candidateKeys[0]);
     } catch (err) {
       log.error("[ApiSetup] Failed to auto-detect credentials:", err);
       setTokenError(t("keyVault.failedToDetectKeys"));
     } finally {
+      detectionInFlightRef.current = false;
       setDetectingToken(false);
     }
   }, [
@@ -250,12 +254,33 @@ export function useApiSetupTokenDetection({
     t,
   ]);
 
-  const handleConfirmKeySelection = useCallback(() => {
+  const handleConfirmKeySelection = useCallback(async () => {
+    if (detectionInFlightRef.current) return;
     const selected = detectedKeys[selectedCredentialIndex];
-    if (selected) {
-      applySelectedKey(selected);
+    if (!selected) return;
+
+    detectionInFlightRef.current = true;
+    setShowKeySelection(false);
+    setDetectingToken(true);
+    setTokenError(null);
+    try {
+      await applySelectedKey(selected);
+    } catch (err) {
+      log.error("[ApiSetup] Failed to apply detected credential:", err);
+      setTokenError(t("keyVault.failedToDetectKeys"));
+    } finally {
+      detectionInFlightRef.current = false;
+      setDetectingToken(false);
     }
-  }, [detectedKeys, selectedCredentialIndex, applySelectedKey]);
+  }, [
+    applySelectedKey,
+    detectedKeys,
+    selectedCredentialIndex,
+    setDetectingToken,
+    setShowKeySelection,
+    setTokenError,
+    t,
+  ]);
 
   return { handleAutoDetectToken, handleConfirmKeySelection };
 }
