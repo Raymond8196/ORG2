@@ -220,6 +220,9 @@ export function useSessionLaunch(
               ...(resolvedWorkItemContext.workItemId
                 ? { workItemId: resolvedWorkItemContext.workItemId }
                 : {}),
+              ...(resolvedWorkItemContext.productMode
+                ? { productMode: resolvedWorkItemContext.productMode }
+                : {}),
               agentRole: resolvedWorkItemContext.agentRole,
               projectSlug: resolvedWorkItemContext.projectSlug,
             }

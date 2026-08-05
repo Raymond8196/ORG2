@@ -437,13 +437,19 @@ pub fn update_work_item_link(
     with_sessions_writer(|| {
         let conn = get_connection()?;
         let updated = conn.execute(
+            // Linking to a Work Item makes this a Project session — the same
+            // rule the launch resolver applies when work_item_id is present.
+            // Without this, a post-hoc-linked session keeps product_mode NULL
+            // and the PM tools stay policy-denied while the linked-work-item
+            // prompt block tells the model to call them.
             "UPDATE agent_sessions
              SET org_id = ?2,
                  project_id = COALESCE(?3, project_id),
                  project_name = COALESCE(?4, project_name),
                  work_item_id = ?5,
                  project_slug = ?6,
-                 agent_role = COALESCE(?7, agent_role)
+                 agent_role = COALESCE(?7, agent_role),
+                 product_mode = 'project'
              WHERE session_id = ?1",
             params![
                 session_id,

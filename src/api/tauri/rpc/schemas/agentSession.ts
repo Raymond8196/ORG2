@@ -368,6 +368,7 @@ const SessionLaunchParamsSchema = z
     projectId: z.string().optional(),
     projectName: z.string().optional(),
     workItemId: z.string().optional(),
+    productMode: z.string().optional(),
     agentRole: z.string().optional(),
     worktreePath: z.string().optional(),
     projectSlug: z.string().optional(),

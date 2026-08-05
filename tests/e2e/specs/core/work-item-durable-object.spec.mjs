@@ -1661,6 +1661,9 @@ describe("Work Item durable object runtime invariants", function () {
         workspacePath: E2E_REPO_PATH,
         agentDefinitionId: "builtin:os",
         agentExecMode: "ask",
+        // PM tools are product-mode gated (orgtrack/v1 §5.2); without
+        // this the probe session would have them policy-denied.
+        productMode: "project",
         agentRole: "orchestrator",
       }),
       "launchSession(work item manager batch)"
@@ -1868,6 +1871,9 @@ describe("Work Item durable object runtime invariants", function () {
         workspacePath: repo.path,
         agentDefinitionId: "builtin:os",
         agentExecMode: "ask",
+        // PM tools are product-mode gated (orgtrack/v1 §5.2); without
+        // this the probe session would have them policy-denied.
+        productMode: "project",
         agentRole: "orchestrator",
       }),
       "launchSession(work item manager auto-create project execute)"

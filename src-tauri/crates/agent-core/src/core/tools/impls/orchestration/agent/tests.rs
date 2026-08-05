@@ -221,12 +221,14 @@ fn test_fresh_registry_management_tools_require_management_capability() {
     ));
 }
 
-// ── Parent exec-mode overlay on worker policies ─────────────────────
+// ── Parent mode overlay on worker policies ──────────────────────────
 //
 // The worker policy is built from the parent's BASE policy (captured at
-// init, no per-turn exec-mode layer). `overlay_parent_exec_mode` must
-// re-apply the parent's CURRENT mode so a Plan-mode parent cannot
-// escape its read-only guarantee through `builtin:general`.
+// init, no per-turn mode layers). `overlay_parent_modes` must re-apply
+// the parent's CURRENT exec + product modes so a Plan-mode parent
+// cannot escape its read-only guarantee through `builtin:general`, and
+// a non-Project parent cannot escape the PM deny-delta by delegating
+// `manage_work_item` / `manage_project` to a specialist subagent.
 
 #[test]
 fn plan_mode_parent_overlay_makes_worker_policy_read_only() {
@@ -234,9 +236,10 @@ fn plan_mode_parent_overlay_makes_worker_policy_read_only() {
     use crate::session::AgentExecMode;
     use crate::tools::policy::ResolvedToolPolicy;
 
-    let overlaid = AgentTool::overlay_parent_exec_mode(
+    let overlaid = AgentTool::overlay_parent_modes(
         ResolvedToolPolicy::permissive(),
         Some(AgentExecMode::Plan),
+        Some("project"),
     );
     for denied in ["edit_file", "run_shell", "apply_patch", "delete_file"] {
         assert!(
@@ -260,19 +263,58 @@ fn build_or_absent_parent_mode_leaves_worker_policy_untouched() {
     use crate::session::AgentExecMode;
     use crate::tools::policy::ResolvedToolPolicy;
 
-    let build = AgentTool::overlay_parent_exec_mode(
+    let build = AgentTool::overlay_parent_modes(
         ResolvedToolPolicy::permissive(),
         Some(AgentExecMode::Build),
+        Some("project"),
     );
     assert!(
         build.is_allowed("edit_file"),
         "Build-mode parent keeps write tools for workers"
     );
 
-    let absent = AgentTool::overlay_parent_exec_mode(ResolvedToolPolicy::permissive(), None);
+    let absent =
+        AgentTool::overlay_parent_modes(ResolvedToolPolicy::permissive(), None, Some("project"));
     assert!(
         absent.is_allowed("edit_file"),
         "no parent mode => no overlay"
+    );
+}
+
+#[test]
+fn non_project_parent_overlay_denies_pm_tools_for_workers() {
+    use super::AgentTool;
+    use crate::tools::policy::ResolvedToolPolicy;
+
+    // None and non-project product modes both subtract the PM surface,
+    // even when the worker's own policy (inherited or fresh-registry
+    // allowlist) would grant it.
+    for product_mode in [None, Some("build"), Some("plan")] {
+        let overlaid = AgentTool::overlay_parent_modes(
+            ResolvedToolPolicy::permissive(),
+            None,
+            product_mode,
+        );
+        for denied in [tool_names::MANAGE_WORK_ITEM, tool_names::MANAGE_PROJECT] {
+            assert!(
+                !overlaid.is_allowed(denied),
+                "{product_mode:?} parent must deny {denied} for workers"
+            );
+        }
+        assert!(
+            overlaid.is_allowed("read_file"),
+            "non-PM tools must survive the product-mode overlay"
+        );
+    }
+
+    let project = AgentTool::overlay_parent_modes(
+        ResolvedToolPolicy::permissive(),
+        None,
+        Some("project"),
+    );
+    assert!(
+        project.is_allowed(tool_names::MANAGE_WORK_ITEM),
+        "Project parent keeps the PM surface for workers"
     );
 }
 

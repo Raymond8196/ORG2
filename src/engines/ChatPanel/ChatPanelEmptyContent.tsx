@@ -3,6 +3,7 @@ import { useAtomValue } from "jotai";
 import React, { Suspense } from "react";
 
 import type { SelectOption } from "@src/components/Select";
+import { PRODUCT_MODE_PROJECT } from "@src/config/sessionCreatorConfig";
 import type { SessionLaunchSuccessInfo } from "@src/engines/SessionCore/hooks/session/useSessionCreator/useSessionLaunch/types";
 import { SESSION_CREATOR_LAUNCH_MODE } from "@src/features/SessionCreator/types";
 import type { CreatedOrgResult } from "@src/features/TeamCollaboration/components/CreateCollabOrgView";
@@ -231,6 +232,10 @@ export function ChatPanelEmptyContent({
               projectDraftOrgId ??
               createProjectContext?.orgId ??
               STORY_PERSONAL_ORG_FILTER_ID,
+            // The whole flow is "create a project via manage_project" —
+            // without a workItemId the resolver would default to build
+            // and the PM tools would be policy-denied (§5.2 deny-delta).
+            productMode: PRODUCT_MODE_PROJECT,
           }}
         />
       ) : null;

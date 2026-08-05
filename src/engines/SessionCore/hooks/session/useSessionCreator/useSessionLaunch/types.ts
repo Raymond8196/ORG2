@@ -19,6 +19,13 @@ export interface SessionLaunchWorkItemContext extends Partial<SessionLaunchOrgCo
   workItemId?: string;
   projectSlug?: string;
   agentRole?: string;
+  /**
+   * orgtrack/v1 §5.2 product-mode axis for the launched session. Flows
+   * whose whole purpose is PM mutation (Create Project with AI) must set
+   * "project" explicitly — without a workItemId the backend resolver
+   * defaults to build and the PM tools are policy-denied.
+   */
+  productMode?: string;
   metadata?: Record<string, unknown>;
 }
 
