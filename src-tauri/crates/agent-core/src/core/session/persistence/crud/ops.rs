@@ -465,6 +465,25 @@ pub fn update_work_item_link(
     })
 }
 
+/// Link the bootstrap-created root WorkItem to a Project session
+/// (orgtrack/v1 §7.2). Narrower than [`update_work_item_link`]: the
+/// session is already `product_mode='project'` and carries its own
+/// org/project fields; only the missing `work_item_id` is filled, and
+/// only if still unset — a concurrent link wins and this becomes a
+/// no-op.
+pub fn link_bootstrap_work_item(session_id: &str, work_item_id: &str) -> SqliteResult<bool> {
+    with_sessions_writer(|| {
+        let conn = get_connection()?;
+        let updated = conn.execute(
+            "UPDATE agent_sessions
+             SET work_item_id = ?2
+             WHERE session_id = ?1 AND work_item_id IS NULL",
+            params![session_id, work_item_id],
+        )?;
+        Ok(updated > 0)
+    })
+}
+
 /// Set the canonical Agent Org roster member id for a session.
 pub fn update_org_member_id(session_id: &str, org_member_id: &str) -> SqliteResult<bool> {
     let changed = with_sessions_writer(|| -> SqliteResult<bool> {

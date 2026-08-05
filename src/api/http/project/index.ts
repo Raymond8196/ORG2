@@ -18,6 +18,8 @@ import * as client from "./client";
 export * from "./types";
 export type {
   ProjectScopeOptions,
+  RoutineRunStatus,
+  RoutineRunSummary,
   WorkItemReadBucket,
   WorkItemsReadOptions,
   WorkItemsViewOptions,
@@ -108,6 +110,8 @@ export const projectApi = {
   deleteRoutine: client.deleteRoutine,
   listRoutineFires: client.listRoutineFires,
   fireRoutine: client.fireRoutine,
+  listRoutineRuns: client.listRoutineRuns,
+  routineRunStatus: client.routineRunStatus,
   // Batch
   batchDeleteWorkItems: client.batchDeleteWorkItems,
   batchUpdateWorkItems: client.batchUpdateWorkItems,

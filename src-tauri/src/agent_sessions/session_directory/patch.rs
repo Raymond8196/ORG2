@@ -430,6 +430,7 @@ pub async fn session_patch(
     patch: SessionPatch,
 ) -> Result<(), String> {
     let identity_changed = patch.model.is_some();
+    let switched_to_project = patch.product_mode.as_deref() == Some("project");
     let renamed = patch
         .name
         .as_deref()
@@ -451,6 +452,27 @@ pub async fn session_patch(
     .map_err(|err| format!("session_patch task join error: {err}"))??;
     if identity_changed {
         state.invalidate_session(&patched_session_id).await;
+    }
+    if switched_to_project {
+        // Convert to Project (orgtrack/v1 §7.2): entering the Project
+        // product mode must invalidate Plan mode's snapshot/restore
+        // state, otherwise the pending-approval restore path would
+        // bounce a later turn back to the pre-Plan exec mode.
+        if let Some(session) = state.get_session(&patched_session_id).await {
+            let had_slot = session.plan_slot_cache.get(&patched_session_id).is_some();
+            let _ = session.pre_plan_mode_cache.take(&patched_session_id);
+            session.plan_slot_cache.clear(&patched_session_id);
+            if had_slot {
+                agent_core::bus::broadcast_event(
+                    "agent:exit_plan_mode",
+                    serde_json::json!({
+                        "sessionId": &patched_session_id,
+                        "source": "convert_to_project",
+                        "nextMode": agent_core::session::AgentExecMode::Build.as_str(),
+                    }),
+                );
+            }
+        }
     }
     if let Some(name) = renamed.as_deref() {
         agent_core::lifecycle::emit_session_renamed(

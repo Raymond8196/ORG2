@@ -753,6 +753,54 @@ export async function listRoutineFires(
   );
 }
 
+/** A row from `pm_routine_runs` (portable Routine domain, orgtrack/v1). */
+export interface RoutineRunSummary {
+  id: string;
+  routineName: string;
+  routineRevision: number;
+  scopeId: string;
+  status: string;
+  rootWorkItemId?: string | null;
+  createdBy?: string | null;
+  createdAt: number;
+  updatedAt: number;
+}
+
+/** Per-run projection: run row + generated WorkItems' portable states. */
+export interface RoutineRunStatus {
+  id: string;
+  routineName: string;
+  routineRevision: number;
+  snapshotHash: string;
+  scopeId: string;
+  status: string;
+  rootWorkItemId?: string | null;
+  workItems: Array<{
+    shortId: string;
+    title: string;
+    status: string;
+    portableState?: string | null;
+  }>;
+}
+
+/** List portable routine runs, newest first. Uncached: run status moves
+ *  with work-item transitions, and the surface refetches on focus. */
+export async function listRoutineRuns(options?: {
+  scopeId?: string;
+  limit?: number;
+}): Promise<RoutineRunSummary[]> {
+  return invoke("project_list_routine_runs", {
+    scopeId: options?.scopeId ?? null,
+    limit: options?.limit,
+  });
+}
+
+export async function routineRunStatus(
+  runId: string
+): Promise<RoutineRunStatus> {
+  return invoke("project_routine_run_status", { runId });
+}
+
 export async function fireRoutine(
   routineId: string
 ): Promise<RoutineFireResult> {

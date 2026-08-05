@@ -27,6 +27,7 @@ import {
   WORK_ITEMS_GITHUB_PRS_MENU_ITEM_ID,
   WORK_ITEMS_MENU_ITEM_ID,
   WORK_ITEMS_PROJECTS_MENU_ITEM_ID,
+  WORK_ITEMS_RUNS_MENU_ITEM_ID,
   getDraftIdFromMenuItemId,
   isWorkManagementMenuItemId,
 } from "../sidebarConnectorUtils";
@@ -119,6 +120,9 @@ export function useWorkstationSidebarMenuItemRouting({
       } else if (item.id === WORK_ITEMS_GITHUB_PRS_MENU_ITEM_ID) {
         section = WORK_MANAGEMENT_SECTION.GITHUB_PRS;
         title = tSessions("kanban.sidebar.githubPrs");
+      } else if (item.id === WORK_ITEMS_RUNS_MENU_ITEM_ID) {
+        section = WORK_MANAGEMENT_SECTION.RUNS;
+        title = tSessions("kanban.sidebar.runs");
       } else if (item.id !== KANBAN_MENU_ITEM_ID) {
         return;
       }

@@ -513,6 +513,44 @@ pub fn set_enabled(name: &str, enabled: bool) -> Result<(), String> {
     Ok(())
 }
 
+/// List routine runs, newest first, optionally filtered to one scope.
+/// Row-level listing for the Runs surface — per-run WorkItem projection
+/// stays in [`run_status`], which the UI calls on expand.
+pub fn list_runs(
+    scope_id: Option<&str>,
+    limit: usize,
+) -> Result<Vec<serde_json::Value>, String> {
+    let connection = project_io::helpers::conn()?;
+    let mut statement = connection
+        .prepare(
+            "SELECT id, routine_name, routine_revision, scope_id, status,
+                    root_work_item_id, created_by, created_at, updated_at
+             FROM pm_routine_runs
+             WHERE (?1 IS NULL OR scope_id = ?1)
+             ORDER BY created_at DESC, id DESC
+             LIMIT ?2",
+        )
+        .map_err(|err| format!("routine list_runs: {err}"))?;
+    let rows = statement
+        .query_map(rusqlite::params![scope_id, limit as i64], |row| {
+            Ok(serde_json::json!({
+                "id": row.get::<_, String>(0)?,
+                "routineName": row.get::<_, String>(1)?,
+                "routineRevision": row.get::<_, i64>(2)?,
+                "scopeId": row.get::<_, String>(3)?,
+                "status": row.get::<_, String>(4)?,
+                "rootWorkItemId": row.get::<_, Option<String>>(5)?,
+                "createdBy": row.get::<_, Option<String>>(6)?,
+                "createdAt": row.get::<_, i64>(7)?,
+                "updatedAt": row.get::<_, i64>(8)?,
+            }))
+        })
+        .map_err(|err| format!("routine list_runs: {err}"))?
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|err| format!("routine list_runs: {err}"))?;
+    Ok(rows)
+}
+
 /// Durable run-status view: the run row plus each generated WorkItem's
 /// state, with the overall status recomputed by the ordered decision
 /// procedure from design §11 (cancel machinery lands in Phase 5, so the

@@ -4,6 +4,7 @@ import type { SessionContinuation } from "@src/store/session/sessionTabPlacement
 import type { ChatHistoryDisplayMode } from "@src/store/ui/chatPanelAtom";
 
 import SessionContentView from "./SessionContentView";
+import SessionContextBar from "./components/SessionContextBar";
 import type { SessionViewMode } from "./hooks/useSessionViewMode";
 
 const BenchmarkPanel = React.lazy(() =>
@@ -67,6 +68,10 @@ export function ChatPanelContent({
               alternateActive ? "hidden" : "flex"
             }`}
           >
+            {/* Repo/branch context + active WorkItem for Project
+                sessions (orgtrack/v1 §7.2). Renders null when the
+                session has neither. */}
+            <SessionContextBar />
             <SessionContentView
               sessionId={currentSessionId}
               onRegisterSearchOpen={handleRegisterSearchOpen}

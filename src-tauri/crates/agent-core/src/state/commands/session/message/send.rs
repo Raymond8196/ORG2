@@ -356,6 +356,15 @@ pub(crate) async fn send_message_impl(
         }
     }
 
+    // ── 4b. Project root WorkItem bootstrap (orgtrack/v1 §7.2) ──────────
+    //
+    // The first accepted non-empty submission of a Project session with
+    // no active WorkItem creates and links its root. Resumes replay an
+    // already-accepted submission, so they never bootstrap.
+    if !is_resume {
+        super::project_bootstrap::ensure_project_root_work_item(&session_id, &content).await;
+    }
+
     // ── 5. Build the processing closure ──────────────────────────────────
     let sid_for_closure = session_id.clone();
     let content_for_closure = content.clone();

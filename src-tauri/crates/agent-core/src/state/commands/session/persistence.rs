@@ -860,6 +860,87 @@ pub async fn agent_link_session_to_work_item(
     shared::to_json_value(updated_record).map_err(|err| err.to_string())
 }
 
+/// `Track this` (orgtrack/v1 §7.2, Build→Project) and
+/// `Convert to Project` (Plan→Project): switch the session onto the
+/// Project product mode, derive the runtime exec mode the same way the
+/// composer picker does (project → build), invalidate Plan mode's
+/// snapshot/restore state, and create-or-replay the root WorkItem from
+/// the already-recorded first user input. Earlier turns stay untouched
+/// as provenance. Returns `{ productMode, agentExecMode, workItemId }`.
+#[tauri::command]
+pub async fn agent_track_session_as_project(
+    app: tauri::AppHandle,
+    state: tauri::State<'_, crate::state::AgentAppState>,
+    session_id: String,
+) -> Result<serde_json::Value, String> {
+    let sid = session_id.clone();
+    let (work_item_id, exec_mode) = tokio::task::spawn_blocking(move || {
+        let record = session_persistence::get_session(&sid)
+            .map_err(|err| err.to_string())?
+            .ok_or_else(|| format!("Session not found: {sid}"))?;
+
+        session_persistence::update_product_mode(&sid, "project")
+            .map_err(|err| format!("track session: set product_mode: {err}"))?;
+
+        // Same derivation the ModePill applies: Project pins the exec
+        // mode to Build (a read-only Plan session would otherwise keep
+        // its deny layer while claiming to do project work).
+        let exec_mode = crate::session::AgentExecMode::Build;
+        if record.agent_exec_mode.as_deref() != Some(exec_mode.as_str()) {
+            session_persistence::update_agent_exec_mode(&sid, exec_mode.as_str())
+                .map_err(|err| format!("track session: set exec mode: {err}"))?;
+        }
+
+        // Root creation at conversion time, from the recorded first
+        // user input. An empty session converts mode-only; the
+        // first-submission bootstrap covers the root later.
+        let content = record.user_input.clone().unwrap_or_default();
+        let work_item_id = if record.work_item_id.is_some() {
+            record.work_item_id
+        } else if content.trim().is_empty() {
+            None
+        } else {
+            super::message::project_bootstrap::bootstrap_root_work_item(&sid, &content)?
+        };
+        Ok::<_, String>((work_item_id, exec_mode))
+    })
+    .await
+    .map_err(|err| err.to_string())??;
+
+    // Convert to Project invalidates the Plan snapshot/restore state so
+    // a pending approval can't bounce later turns back to the old mode.
+    if let Some(session) = state.get_session(&session_id).await {
+        let had_slot = session.plan_slot_cache.get(&session_id).is_some();
+        let _ = session.pre_plan_mode_cache.take(&session_id);
+        session.plan_slot_cache.clear(&session_id);
+        if had_slot {
+            crate::bus::broadcast_event(
+                "agent:exit_plan_mode",
+                serde_json::json!({
+                    "sessionId": &session_id,
+                    "source": "convert_to_project",
+                    "nextMode": exec_mode.as_str(),
+                }),
+            );
+        }
+    }
+
+    {
+        use tauri::Emitter;
+        let ts = chrono::Utc::now().to_rfc3339();
+        let _ = app.emit(
+            project_management::projects::events::DATA_CHANGED_EVENT,
+            &ts,
+        );
+    }
+
+    Ok(serde_json::json!({
+        "productMode": "project",
+        "agentExecMode": exec_mode.as_str(),
+        "workItemId": work_item_id,
+    }))
+}
+
 fn link_session_to_work_item_sync(
     session_id: &str,
     org_id: Option<&str>,

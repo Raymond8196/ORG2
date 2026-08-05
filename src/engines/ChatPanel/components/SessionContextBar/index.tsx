@@ -7,13 +7,17 @@
  * displayed as a static badge — the runner is locked at the agent-core
  * layer once the worktree is created and cannot be switched in the UI.
  */
-import { useAtomValue } from "jotai";
-import { GitFork, Monitor } from "lucide-react";
-import React, { memo } from "react";
+import { useAtomValue, useSetAtom } from "jotai";
+import { FolderKanban, GitFork, Monitor } from "lucide-react";
+import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useSessionId } from "@src/engines/SessionCore/hooks/session";
+import { useChannelWorkItem } from "@src/features/DiscussionChannels/ChannelPanelView/useChannelWorkItem";
+import { getWorkItemStatusConfig } from "@src/modules/ProjectManager/config/manage";
+import { openWorkItemInChatPanelTabAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
 import { sessionByIdAtom } from "@src/store/session/sessionAtom";
+import type { WorkItemStatus } from "@src/types/core/workItem";
 import { formatBranchLabel } from "@src/util/git/branchLabel";
 import { basename } from "@src/util/path";
 
@@ -58,6 +62,74 @@ const WorktreePill: React.FC<WorktreePillProps> = ({ branch }) => {
   );
 };
 
+interface ActiveWorkItemPillProps {
+  shortId: string;
+  projectSlug?: string;
+}
+
+// Active WorkItem indicator for Project sessions (orgtrack/v1 §7.2):
+// shortId + live status, click opens the real Work Item panel. Items
+// without a project scope (session-bootstrap standalone roots) render
+// as a static badge — there is no project surface to open for them yet.
+const ActiveWorkItemPill: React.FC<ActiveWorkItemPillProps> = ({
+  shortId,
+  projectSlug,
+}) => {
+  const openWorkItem = useSetAtom(openWorkItemInChatPanelTabAtom);
+  const { resolved } = useChannelWorkItem({
+    projectSlug: projectSlug ?? "",
+    shortId,
+  });
+
+  const status = resolved?.workItem.status;
+  const statusLabel = status
+    ? getWorkItemStatusConfig(status as WorkItemStatus).label
+    : null;
+
+  const handleOpen = useCallback(() => {
+    if (!resolved || !projectSlug) return;
+    openWorkItem({
+      workItem: resolved.workItem,
+      shortId: resolved.workItem.shortId ?? shortId,
+      projectId: resolved.projectId,
+      projectSlug,
+      projectName: resolved.projectName,
+      orgId: resolved.orgId,
+    });
+  }, [openWorkItem, projectSlug, resolved, shortId]);
+
+  const body = (
+    <>
+      <FolderKanban size={11} strokeWidth={2} className="shrink-0" />
+      <span className="truncate">{shortId}</span>
+      {statusLabel && (
+        <span className="truncate text-text-3">· {statusLabel}</span>
+      )}
+    </>
+  );
+
+  if (!projectSlug || !resolved) {
+    return (
+      <span
+        data-testid="session-active-work-item-pill"
+        className="inline-flex h-[22px] max-w-[240px] items-center gap-1 truncate rounded px-1.5 text-[11px] font-medium text-primary-6"
+      >
+        {body}
+      </span>
+    );
+  }
+  return (
+    <button
+      type="button"
+      data-testid="session-active-work-item-pill"
+      onClick={handleOpen}
+      className="inline-flex h-[22px] max-w-[240px] items-center gap-1 truncate rounded px-1.5 text-[11px] font-medium text-primary-6 transition-colors hover:bg-fill-1"
+    >
+      {body}
+    </button>
+  );
+};
+
 // ── Main component ────────────────────────────────────────────────────────────
 
 const SessionContextBar: React.FC = memo(() => {
@@ -69,10 +141,14 @@ const SessionContextBar: React.FC = memo(() => {
   const worktreeBranch = session?.worktreeBranch;
   const sessionBranch = session?.branch;
   const baseBranch = session?.baseBranch;
+  // Project sessions surface their active WorkItem here even without a
+  // repo context (e.g. an OS-agent Home session tracked as a project).
+  const workItemId =
+    session?.productMode === "project" ? session?.workItemId : undefined;
 
-  if (!sessionId || !repoPath) return null;
+  if (!sessionId || (!repoPath && !workItemId)) return null;
 
-  const repoLabel = basename(repoPath);
+  const repoLabel = repoPath ? basename(repoPath) : null;
   const branchLabel =
     formatBranchLabel(sessionBranch) || formatBranchLabel(baseBranch);
   const worktreeLabel = formatBranchLabel(worktreeBranch);
@@ -80,27 +156,42 @@ const SessionContextBar: React.FC = memo(() => {
   return (
     <div className="flex h-[32px] shrink-0 items-center gap-0.5 border-b border-border-1 px-3">
       {/* Repo name */}
-      <BarPill
-        label={repoLabel}
-        icon={
-          <Monitor
-            size={11}
-            strokeWidth={1.75}
-            className="shrink-0 text-text-3"
-          />
-        }
-      />
+      {repoLabel && (
+        <BarPill
+          label={repoLabel}
+          icon={
+            <Monitor
+              size={11}
+              strokeWidth={1.75}
+              className="shrink-0 text-text-3"
+            />
+          }
+        />
+      )}
 
       {/* Separator */}
-      {(branchLabel || worktreeLabel) && (
+      {repoLabel && (branchLabel || worktreeLabel) && (
         <span className="mx-0.5 text-[11px] text-text-4">/</span>
       )}
 
       {/* Base branch */}
-      {branchLabel && !worktreeLabel && <BarPill label={branchLabel} dimmed />}
+      {repoLabel && branchLabel && !worktreeLabel && (
+        <BarPill label={branchLabel} dimmed />
+      )}
 
       {/* Worktree pill (interactive) */}
       {worktreePath && worktreeLabel && <WorktreePill branch={worktreeLabel} />}
+
+      {/* Active WorkItem (Project sessions) */}
+      {workItemId && (
+        <>
+          <span className="mx-0.5 text-[11px] text-text-4">·</span>
+          <ActiveWorkItemPill
+            shortId={workItemId}
+            projectSlug={session?.projectSlug ?? undefined}
+          />
+        </>
+      )}
     </div>
   );
 });
