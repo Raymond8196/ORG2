@@ -7,5 +7,5 @@ export const WORK_ITEM_THREAD_TOKENS = {
   contentColumn:
     "mx-auto flex w-full max-w-[920px] flex-col gap-3 px-5 py-5 pb-24",
   metadataBand:
-    "flex min-w-0 items-center gap-2 overflow-x-auto rounded-xl border border-border-1 bg-fill-1 px-3 py-2 scrollbar-hide",
+    "flex min-w-0 items-center gap-2 overflow-x-auto scrollbar-hide",
 } as const;

@@ -17,30 +17,8 @@ interface GitHubIssueThreadSurfaceProps {
   assigneeConfig?: WorkItemExternalAssigneeConfig;
 }
 
-interface GitHubIssueRepository {
-  fullName: string;
-  name: string;
-}
-
-function getGitHubIssueRepository(
-  issueUrl: string
-): GitHubIssueRepository | null {
-  try {
-    const pathSegments = new URL(issueUrl).pathname.split("/").filter(Boolean);
-    if (pathSegments.length < 4 || pathSegments[2] !== "issues") return null;
-    const [owner, repository] = pathSegments;
-    return {
-      fullName: `${owner}/${repository}`,
-      name: repository,
-    };
-  } catch {
-    return null;
-  }
-}
-
 /** Convert a remote GitHub issue into the shared Work Item thread contract. */
 export function mapGitHubIssueToThreadWorkItem(issue: GitHubIssue): WorkItem {
-  const repository = getGitHubIssueRepository(issue.html_url);
   const primaryAssignee = issue.assignees[0];
 
   return {
@@ -75,12 +53,6 @@ export function mapGitHubIssueToThreadWorkItem(issue: GitHubIssue): WorkItem {
     })),
     milestone: issue.milestone
       ? { id: issue.milestone, name: issue.milestone }
-      : undefined,
-    project: repository
-      ? {
-          id: repository.fullName,
-          name: `${repository.name} issues`,
-        }
       : undefined,
     todos: [],
     linkedSessions: [],
@@ -120,12 +92,9 @@ const GitHubIssueThreadSurface: React.FC<GitHubIssueThreadSurfaceProps> = ({
   return (
     <WorkItemThreadSurface
       workItem={workItem}
-      propertyFields={["project", "status", "assignee"]}
+      propertyFields={["status", "assignee"]}
       propertyProps={{
         onUpdate: handleUpdate,
-        availableProjects: workItem.project ? [workItem.project] : [],
-        projectIconType: "github",
-        projectReadonly: true,
         assigneeReadonly: !assigneeConfig,
         externalAssigneeConfig: assigneeConfig,
         showMoreMenu: false,

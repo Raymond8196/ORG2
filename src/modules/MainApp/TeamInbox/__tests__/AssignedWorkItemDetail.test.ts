@@ -449,6 +449,7 @@ describe("AssignedWorkItemDetail navigation actions", () => {
         loading: false,
       },
       githubIssueInteraction: mocks.githubIssueState.interaction,
+      propertyFields: ["status", "assignee"],
       propertyProps: {
         externalStatusConfig: {
           currentStatusId: "open",

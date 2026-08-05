@@ -56,10 +56,6 @@ describe("mapGitHubIssueToThreadWorkItem", () => {
       spec: issue.body,
       status: "open",
       workItemStatus: "open",
-      project: {
-        id: "org2AI/ORG2",
-        name: "ORG2 issues",
-      },
       createdBy: {
         id: "octocat",
         name: "octocat",
@@ -75,16 +71,14 @@ describe("mapGitHubIssueToThreadWorkItem", () => {
     });
   });
 
-  it("keeps the thread usable when the issue URL has no repository path", () => {
+  it("keeps the thread usable without optional assignee and milestone data", () => {
     expect(
       mapGitHubIssueToThreadWorkItem({
         ...issue,
-        html_url: "not-a-url",
         assignees: [],
         milestone: null,
       })
     ).toMatchObject({
-      project: undefined,
       assignee: undefined,
       milestone: undefined,
     });
@@ -122,6 +116,22 @@ describe("mapGitHubIssueToThreadWorkItem", () => {
     expect(assigneeButton).toContain("reviewer");
     expect(assigneeButton).toContain("https://example.com/reviewer.png");
     expect(assigneeButton).not.toContain("disabled");
+  });
+
+  it("omits the redundant repository field from GitHub issue metadata", () => {
+    const markup = renderToStaticMarkup(
+      React.createElement(GitHubIssueThreadSurface, {
+        issue,
+        timeline: [],
+        timelineLoading: false,
+        onStatusChange: vi.fn(),
+      })
+    );
+
+    expect(markup).not.toContain("ORG2 issues");
+    expect(markup).toContain(
+      `data-testid="work-item-property-status-${issue.html_url}"`
+    );
   });
 
   it("toggles external assignees without duplicating login casing", () => {
