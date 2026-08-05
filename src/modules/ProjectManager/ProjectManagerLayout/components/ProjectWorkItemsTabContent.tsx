@@ -2,7 +2,6 @@ import { ListTodo } from "lucide-react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import Avatar from "@src/components/Avatar";
 import Checkbox from "@src/components/Checkbox";
 import IntegrationIcon from "@src/components/IntegrationIcon";
 import type { SettingsTableSelectFilter } from "@src/components/SettingsTable";
@@ -38,6 +37,7 @@ import { useProjectManagerWorkItemsTabBarRegistration } from "@src/modules/Proje
 import { PROJECT_MANAGER_PLACEHOLDER_PLACEMENT } from "@src/modules/ProjectManager/shared/placeholderTokens";
 import { WORKSPACE_SOURCE } from "@src/modules/ProjectManager/workspaceAggregate";
 import { WorkstationHeaderSectionSeparator } from "@src/modules/WorkStation/shared";
+import { WorkManagementAssigneeCell } from "@src/modules/shared/components/WorkManagementAssigneeCell";
 import {
   WorkManagementTable,
   type WorkManagementTableRow,
@@ -150,6 +150,7 @@ export const ProjectWorkItemsTabContent: React.FC<
   const {
     kanbanTasks,
     kanbanColumns,
+    workItemPeople,
     selectableFilteredWorkItemCount,
     selectedWorkItemIds,
     bulkDeleting,
@@ -201,24 +202,26 @@ export const ProjectWorkItemsTabContent: React.FC<
 
         return {
           key: workItem.session_id,
+          selection: (
+            <Checkbox
+              checked={selectedWorkItemIds.has(workItem.session_id)}
+              size="small"
+              className={
+                selectedWorkItemIds.size > 0
+                  ? "shrink-0"
+                  : "shrink-0 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100"
+              }
+              ariaLabel={t("common:workManagementTable.selectRow", {
+                id: displayId,
+              })}
+              onChange={(checked) =>
+                handleCheckedChange(workItem.session_id, checked)
+              }
+            />
+          ),
           idSortValue: displayId,
           id: (
             <div className="flex min-w-0 items-center gap-1.5">
-              <Checkbox
-                checked={selectedWorkItemIds.has(workItem.session_id)}
-                size="small"
-                className={
-                  selectedWorkItemIds.size > 0
-                    ? "shrink-0"
-                    : "shrink-0 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100"
-                }
-                ariaLabel={t("common:workManagementTable.selectRow", {
-                  id: displayId,
-                })}
-                onChange={(checked) =>
-                  handleCheckedChange(workItem.session_id, checked)
-                }
-              />
               {sourceIntegration ? (
                 <IntegrationIcon
                   type={sourceIntegration}
@@ -230,31 +233,40 @@ export const ProjectWorkItemsTabContent: React.FC<
             </div>
           ),
           title: workItem.name || t("workItems.untitledWorkItem"),
+          titleLinkOnRowHover: true,
           metadata: workItem.project?.name
             ? [workItem.project.name]
             : undefined,
           tags,
-          assignee: workItem.assignee ? (
-            <div
-              className="flex max-w-40 items-center gap-1.5"
-              title={workItem.assignee.name}
-            >
-              <Avatar
-                size={20}
-                src={workItem.assignee.avatar}
-                style={{
-                  backgroundColor:
-                    workItem.assignee.color || "var(--color-fill-3)",
-                }}
-              >
-                {workItem.assignee.name.charAt(0).toUpperCase()}
-              </Avatar>
-              <span className="truncate text-text-2">
-                {workItem.assignee.name}
-              </span>
-            </div>
-          ) : (
-            <span className="text-text-3">—</span>
+          assignee: (
+            <WorkManagementAssigneeCell
+              currentAssigneeIds={
+                workItem.assignee ? [workItem.assignee.id] : []
+              }
+              options={workItemPeople.map((person) => ({
+                id: person.id,
+                label: person.name,
+                avatar: person.avatar,
+              }))}
+              noneLabel={t("workItems.properties.noAssignee")}
+              loadingLabel={t("common:status.loading")}
+              searchPlaceholder={t("properties.searchAssignee")}
+              readonlyReason={t("common:errors.messages.forbidden")}
+              disabled={
+                workItem.workspaceSource?.source === WORKSPACE_SOURCE.LINEAR ||
+                !workItem.project
+              }
+              dataTestId={`work-item-assignee-${workItem.session_id}`}
+              onChangeAssigneeIds={(assigneeIds) => {
+                const assignee = workItemPeople.find(
+                  (person) => person.id === assigneeIds[0]
+                );
+                return handleUpdateWorkItem(workItem.session_id, {
+                  assignee,
+                  assigneeType: assignee ? "human" : undefined,
+                });
+              }}
+            />
           ),
           statusSelect: statusOption
             ? {
@@ -299,6 +311,7 @@ export const ProjectWorkItemsTabContent: React.FC<
       selectedWorkItemIds,
       t,
       visibleWorkItems,
+      workItemPeople,
     ]
   );
 
@@ -425,6 +438,7 @@ export const ProjectWorkItemsTabContent: React.FC<
         }),
         onChange: (value) => setStatusFilter(value as StatusFilterType),
         minWidth: 172,
+        variant: "default",
       },
     ];
     if (allowExternalSources) {
@@ -439,6 +453,7 @@ export const ProjectWorkItemsTabContent: React.FC<
         onChange: (value) =>
           setWorkspaceSourceMode(value as WorkspaceSourceMode),
         minWidth: 150,
+        variant: "default",
       });
     }
     return filters;

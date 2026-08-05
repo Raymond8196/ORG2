@@ -68,7 +68,6 @@ const WorkItemDetail: React.FC<WorkItemDetailProps> = ({
   shortId,
   onRefreshWorkItem,
   onOpenSession,
-  onExpandToTab,
   initialPendingUpdates,
   surface = WORK_ITEM_DETAIL_SURFACE.main,
   breadcrumbSegments,
@@ -102,7 +101,6 @@ const WorkItemDetail: React.FC<WorkItemDetailProps> = ({
 
   const {
     displayWorkItem,
-    pendingUpdates,
     hasPendingChanges,
     handleLocalUpdate,
     handleImmediateUpdate,
@@ -330,26 +328,22 @@ const WorkItemDetail: React.FC<WorkItemDetailProps> = ({
     () => (
       <WorkItemDetailHeaderActions
         workItem={workItem}
-        pendingUpdates={pendingUpdates}
         propertiesOpen={propertiesOpen}
         hasPrev={hasPrev}
         hasNext={hasNext}
         onNavigate={onNavigate}
         onDeleteWorkItem={onDeleteWorkItem}
-        onExpandToTab={onExpandToTab}
         onToggleProperties={onToggleProperties}
         t={t}
       />
     ),
     [
       workItem,
-      pendingUpdates,
       propertiesOpen,
       hasPrev,
       hasNext,
       onNavigate,
       onDeleteWorkItem,
-      onExpandToTab,
       onToggleProperties,
       t,
     ]

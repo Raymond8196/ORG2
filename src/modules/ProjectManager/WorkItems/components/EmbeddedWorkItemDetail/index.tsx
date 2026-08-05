@@ -41,12 +41,6 @@ interface EmbeddedWorkItemDetailProps {
   onRefreshWorkItem: () => Promise<void>;
   onOpenSession?: (sessionId: string, title?: string) => void;
   onWorkItemNameUpdated?: (workItemName: string) => void;
-  onExpandWorkItemToTab?: (
-    workItemId: string,
-    workItemName: string,
-    pendingUpdates?: Record<string, unknown>,
-    workItemStatus?: string
-  ) => void;
   breadcrumbSegments?: readonly ProjectManagerBreadcrumbSegment[];
   breadcrumbProjectName: string;
   breadcrumbIcon?: React.ReactNode;
@@ -77,7 +71,6 @@ const EmbeddedWorkItemDetail: React.FC<EmbeddedWorkItemDetailProps> = ({
   onRefreshWorkItem,
   onOpenSession,
   onWorkItemNameUpdated,
-  onExpandWorkItemToTab,
   breadcrumbSegments,
   breadcrumbProjectName,
   breadcrumbIcon,
@@ -96,23 +89,6 @@ const EmbeddedWorkItemDetail: React.FC<EmbeddedWorkItemDetailProps> = ({
       onUpdateWorkItem(workItem.session_id, updates);
     },
     [onUpdateWorkItem, onWorkItemNameUpdated, workItem]
-  );
-
-  const handleExpandToTab = useCallback(
-    (pendingUpdates: Partial<WorkItemExtended>) => {
-      if (!workItem || !onExpandWorkItemToTab) return;
-
-      onExpandWorkItemToTab(
-        workItem.session_id,
-        workItem.name || "Work Item",
-        Object.keys(pendingUpdates).length > 0
-          ? (pendingUpdates as Record<string, unknown>)
-          : undefined,
-        workItem.workItemStatus ?? workItem.status
-      );
-      onClose();
-    },
-    [onClose, onExpandWorkItemToTab, workItem]
   );
 
   if (!workItem) return null;
@@ -140,7 +116,6 @@ const EmbeddedWorkItemDetail: React.FC<EmbeddedWorkItemDetailProps> = ({
         shortId={shortId}
         onRefreshWorkItem={onRefreshWorkItem}
         onOpenSession={onOpenSession}
-        onExpandToTab={onExpandWorkItemToTab ? handleExpandToTab : undefined}
         surface={WORK_ITEM_DETAIL_SURFACE.nested}
         breadcrumbSegments={breadcrumbSegments}
         breadcrumbProjectName={breadcrumbProjectName}

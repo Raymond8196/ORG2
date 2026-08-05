@@ -11,6 +11,10 @@ import {
   WORK_MANAGEMENT_SECTION,
   type WorkManagementSection,
 } from "@src/store/workstation/workstationTabBarAtoms";
+import type {
+  GitHubIssueDetailTabData,
+  GitHubPrDetailTabData,
+} from "@src/types/githubDetail";
 
 export type ChatPanelTabType =
   | "session"
@@ -22,6 +26,8 @@ export type ChatPanelTabType =
   | "workspace"
   | "organization"
   | "work-item"
+  | "github-issue"
+  | "github-pr"
   | "project"
   | "explore"
   | "channel";
@@ -91,6 +97,10 @@ export interface ChatPanelTab {
    * Writable in place — the work-item panel edits/refreshes this payload.
    */
   workItem?: ChatPanelSelectedWorkItem;
+  /** For GitHub issue tabs opened from a chat-pane Work Management parent. */
+  githubIssue?: GitHubIssueDetailTabData;
+  /** For GitHub PR tabs opened from a chat-pane Work Management parent. */
+  githubPr?: GitHubPrDetailTabData;
   /**
    * For "project" tabs: the linked project plus its slug/org context. The
    * panel self-fetches the project's work items from `project.projectSlug`.
@@ -128,6 +138,8 @@ const PERSISTED_CHAT_PANEL_TAB_TYPES = new Set<ChatPanelTabType>([
   "workspace",
   "organization",
   "work-item",
+  "github-issue",
+  "github-pr",
   "project",
   "explore",
   "channel",

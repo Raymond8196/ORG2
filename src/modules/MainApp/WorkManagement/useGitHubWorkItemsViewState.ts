@@ -5,7 +5,6 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
 
@@ -105,10 +104,8 @@ export function getSelectedGitHubPersonalFilters(
 
 export function useGitHubWorkItemsViewState({
   scope,
-  onScopeChange,
 }: {
   scope: Extract<GitHubQueryScope, "issue" | "pr">;
-  onScopeChange: () => void;
 }) {
   const [selectedRepo, setSelectedRepo] = useAtom(selectedRepoAtom);
   const [refreshNonce, setRefreshNonce] = useState(0);
@@ -116,7 +113,6 @@ export function useGitHubWorkItemsViewState({
     issue: getInitialViewState("issue"),
     pr: getInitialViewState("pr"),
   }));
-  const previousScopeRef = useRef(scope);
   const { searchQuery, currentPage } = viewByScope[scope];
   const parsedSearchQuery = useMemo(() => {
     const query = parseGitHubSearchQuery(searchQuery);
@@ -138,13 +134,6 @@ export function useGitHubWorkItemsViewState({
     () => getSelectedGitHubPersonalFilters(parsedSearchQuery),
     [parsedSearchQuery]
   );
-
-  useEffect(() => {
-    if (previousScopeRef.current !== scope) {
-      previousScopeRef.current = scope;
-      onScopeChange();
-    }
-  }, [onScopeChange, scope]);
 
   useEffect(() => {
     setCachedOpsGitHubView(scope, { searchQuery, currentPage });

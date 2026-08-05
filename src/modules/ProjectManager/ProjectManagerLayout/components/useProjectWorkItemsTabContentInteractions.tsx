@@ -325,6 +325,7 @@ export function useProjectWorkItemsTabContentInteractions({
   return {
     kanbanTasks,
     kanbanColumns,
+    workItemPeople,
     selectableFilteredWorkItemCount,
     selectedWorkItemIds,
     bulkDeleting,

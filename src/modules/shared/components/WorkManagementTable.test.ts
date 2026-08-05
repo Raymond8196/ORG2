@@ -49,6 +49,7 @@ describe("WorkManagementTable", () => {
     expect(markup).toContain('style="width:550px"');
     expect(markup).toContain('style="max-width:550px"');
     expect(markup).toContain("Assignee");
+    expect(markup).toContain("flex w-full justify-start");
     expect(markup).toContain(">Status<");
     expect(markup).toContain(">Updated<");
     expect(markup).toContain("maintenance");
@@ -125,6 +126,29 @@ describe("WorkManagementTable", () => {
     expect(markup).toContain(`title="${title}"`);
     expect(markup).toContain(`>${title}</div>`);
     expect(markup).not.toContain(`${title.slice(0, 49)}…`);
+  });
+
+  it("renders row selection in a separate leading column", () => {
+    const markup = renderToStaticMarkup(
+      createElement(WorkManagementTable, {
+        rows: [
+          {
+            ...rows[0],
+            selection: createElement("input", {
+              type: "checkbox",
+              "aria-label": "Select WI-1",
+            }),
+          },
+        ],
+      })
+    );
+
+    expect(markup).toContain("data-work-management-selection");
+    expect(markup).toContain('aria-label="Select WI-1"');
+    expect(markup.indexOf('aria-label="Select WI-1"')).toBeLessThan(
+      markup.indexOf(">WI-1<")
+    );
+    expect(markup).toContain("table-td-align-center");
   });
 
   it("renders status selects through the shared row contract", () => {

@@ -4,7 +4,6 @@ import {
   Box,
   Info,
   ListChecks,
-  SquareArrowOutUpRight,
   Trash2,
 } from "lucide-react";
 import { type ReactNode, useRef, useState } from "react";
@@ -25,7 +24,6 @@ import type { WorkItem as WorkItemExtended } from "@src/types/core/workItem";
 
 export interface WorkItemDetailHeaderProps {
   workItem: WorkItemExtended;
-  pendingUpdates: Partial<WorkItemExtended>;
   breadcrumbSegments?: readonly ProjectManagerBreadcrumbSegment[];
   breadcrumbProjectName?: string;
   breadcrumbIcon?: ReactNode;
@@ -37,7 +35,6 @@ export interface WorkItemDetailHeaderProps {
   onTitleChange?: (title: string) => void;
   onNavigate: (direction: "prev" | "next") => void;
   onDeleteWorkItem?: (id: string) => void;
-  onExpandToTab?: (pendingUpdates: Partial<WorkItemExtended>) => void;
   onToggleProperties?: () => void;
   t: (key: string) => string;
 }
@@ -232,13 +229,11 @@ type WorkItemDetailHeaderActionsProps = Omit<
 
 export function WorkItemDetailHeaderActions({
   workItem,
-  pendingUpdates,
   propertiesOpen,
   hasPrev,
   hasNext,
   onNavigate,
   onDeleteWorkItem,
-  onExpandToTab,
   onToggleProperties,
   t,
 }: WorkItemDetailHeaderActionsProps) {
@@ -268,25 +263,12 @@ export function WorkItemDetailHeaderActions({
           icon={<ArrowDown size={HEADER_ICON_SIZE.sm} />}
         />
       </WorkstationToolbarTooltip>
-      {(onExpandToTab || onDeleteWorkItem || onToggleProperties) && (
+      {(onDeleteWorkItem || onToggleProperties) && (
         <div
           className="pointer-events-none mx-1.5 h-4 w-px shrink-0 bg-border-2"
           role="separator"
           aria-hidden
         />
-      )}
-      {onExpandToTab && (
-        <WorkstationToolbarTooltip label={t("common:actions.openInNewTab")}>
-          <Button
-            htmlType="button"
-            variant="tertiary"
-            size="small"
-            iconOnly
-            onClick={() => onExpandToTab(pendingUpdates)}
-            aria-label={t("common:actions.openInNewTab")}
-            icon={<SquareArrowOutUpRight size={HEADER_ICON_SIZE.md} />}
-          />
-        </WorkstationToolbarTooltip>
       )}
       {onDeleteWorkItem && (
         <WorkstationToolbarTooltip label={t("workItems.deleteWorkItem")}>

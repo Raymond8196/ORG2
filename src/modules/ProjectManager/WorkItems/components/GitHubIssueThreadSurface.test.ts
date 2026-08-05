@@ -7,11 +7,17 @@ import type { GitHubIssue } from "@src/api/tauri/github";
 import GitHubIssueThreadSurface, {
   mapGitHubIssueToThreadWorkItem,
 } from "./GitHubIssueThreadSurface";
+import type { GitHubIssueInteractionConfig } from "./WorkItemContent/types";
 import { toggleExternalAssigneeIds } from "./WorkItemProperties/AssigneePropertyField";
 
 vi.mock("@src/components/IntegrationIcon", () => ({
   default: ({ type }: { type: string }) =>
     React.createElement("span", { "data-integration-icon": type }),
+}));
+
+vi.mock("@src/modules/shared/components/RichMarkdownEditor", () => ({
+  default: ({ dataTestId }: { dataTestId?: string }) =>
+    React.createElement("div", { "data-testid": dataTestId }),
 }));
 
 const issue: GitHubIssue = {
@@ -46,6 +52,29 @@ const issue: GitHubIssue = {
   comments: 1,
   milestone: "v1",
 };
+
+function createInteraction(): GitHubIssueInteractionConfig {
+  return {
+    viewer: issue.user,
+    issueState: issue.state,
+    duplicateCandidates: [],
+    duplicateCandidatesLoaded: false,
+    loadingDuplicateCandidates: false,
+    duplicateCandidatesError: false,
+    loading: false,
+    canComment: true,
+    canEditBody: true,
+    canManageStatus: true,
+    submittingComment: false,
+    updatingBody: false,
+    updatingStatus: false,
+    error: null,
+    onAddComment: vi.fn().mockResolvedValue(undefined),
+    onUpdateBody: vi.fn().mockResolvedValue(undefined),
+    onLoadDuplicateCandidates: vi.fn().mockResolvedValue(undefined),
+    onStatusChange: vi.fn().mockResolvedValue(undefined),
+  };
+}
 
 describe("mapGitHubIssueToThreadWorkItem", () => {
   it("preserves GitHub identity and metadata for the canonical thread", () => {
@@ -90,7 +119,7 @@ describe("mapGitHubIssueToThreadWorkItem", () => {
         issue,
         timeline: [],
         timelineLoading: false,
-        onStatusChange: vi.fn(),
+        interaction: createInteraction(),
         assigneeConfig: {
           currentAssigneeIds: ["reviewer"],
           options: [
@@ -124,13 +153,17 @@ describe("mapGitHubIssueToThreadWorkItem", () => {
         issue,
         timeline: [],
         timelineLoading: false,
-        onStatusChange: vi.fn(),
+        interaction: createInteraction(),
       })
     );
 
     expect(markup).not.toContain("ORG2 issues");
     expect(markup).toContain(
       `data-testid="work-item-property-status-${issue.html_url}"`
+    );
+    expect(markup).toContain('data-testid="github-issue-inline-composer"');
+    expect(markup).not.toContain(
+      'data-testid="work-item-thread-secondary-navigation"'
     );
   });
 

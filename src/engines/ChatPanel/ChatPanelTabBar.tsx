@@ -37,8 +37,10 @@ import { CSS } from "@dnd-kit/utilities";
 import { useAtomValue, useSetAtom } from "jotai";
 import {
   BriefcaseBusiness,
+  CircleDot,
   Columns3,
   Gauge,
+  GitPullRequest,
   Hash,
   Inbox,
   Info,
@@ -277,6 +279,22 @@ const TabPill = memo(function TabPill({
       strokeWidth: 1.75,
       className: `shrink-0 ${iconColorClass}`,
     });
+  } else if (tab.type === "github-issue") {
+    icon = (
+      <CircleDot
+        size={16}
+        strokeWidth={1.75}
+        className={`shrink-0 ${iconColorClass}`}
+      />
+    );
+  } else if (tab.type === "github-pr") {
+    icon = (
+      <GitPullRequest
+        size={16}
+        strokeWidth={1.75}
+        className={`shrink-0 ${iconColorClass}`}
+      />
+    );
   } else if (
     tab.type === "project" &&
     tab.project?.projectSyncAdapterId === STORY_SYNC_ADAPTER.GITHUB

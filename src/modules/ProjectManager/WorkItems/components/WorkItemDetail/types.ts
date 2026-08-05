@@ -51,7 +51,6 @@ export interface WorkItemDetailProps {
   shortId?: string | null;
   onRefreshWorkItem?: () => void;
   onOpenSession?: (sessionId: string, title?: string) => void;
-  onExpandToTab?: (pendingUpdates: Partial<WorkItemExtended>) => void;
   initialPendingUpdates?: Partial<WorkItemExtended>;
   surface?: WorkItemDetailSurface;
   /** Full parent path. The last segment returns to the containing list. */

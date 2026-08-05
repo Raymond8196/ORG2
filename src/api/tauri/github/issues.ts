@@ -207,6 +207,3 @@ export async function listRepoAssigneesLocal(
     repoFullName,
   });
 }
-
-/** @deprecated Use listRepoAssigneesLocal. */
-export const listRepoCollaboratorsLocal = listRepoAssigneesLocal;

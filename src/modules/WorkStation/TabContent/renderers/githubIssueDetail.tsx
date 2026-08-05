@@ -5,8 +5,7 @@
  * callbacks from `workstationIssueCallbackAtom`, then delegates to the
  * existing `IssueDetailPanel` component.
  */
-import { useAtomValue, useSetAtom } from "jotai";
-import React, { memo, useCallback, useMemo } from "react";
+import React, { memo, useMemo } from "react";
 
 import { usePublishWorkstationTabHeader } from "@src/hooks/workStation";
 import {
@@ -14,18 +13,8 @@ import {
   IssueDetailPanel,
 } from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/IssuesContent/IssueDetailPanel";
 import GitHubIssueHeaderContent from "@src/modules/shared/components/GitHubIssueHeaderContent";
+import { useGitHubIssueDetailState } from "@src/modules/shared/hooks/useGitHubIssueDetailState";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
-import {
-  addIssueComment,
-  closeIssue,
-  issueCommentToTimelineItem,
-  reopenIssue,
-} from "@src/services/git/operations/githubIssues";
-import {
-  workstationIssueCallbackAtomFamily,
-  workstationSelectedIssueAtomFamily,
-} from "@src/store/workstation/codeEditor/workstationIssueAtom";
-import { workstationRepoScopeKey } from "@src/store/workstation/codeEditor/workstationPrAtom";
 import type { GitHubIssueDetailTabData } from "@src/store/workstation/tabs";
 
 import type { UnifiedTabContentProps } from "../types";
@@ -33,108 +22,7 @@ import type { UnifiedTabContentProps } from "../types";
 const GitHubIssueDetailTabRenderer: React.FC<UnifiedTabContentProps> = memo(
   ({ tab }) => {
     const tabData = tab.data as unknown as GitHubIssueDetailTabData;
-    const scopeKey = workstationRepoScopeKey(undefined, tabData.repoPath);
-    const selectedState = useAtomValue(
-      workstationSelectedIssueAtomFamily(scopeKey)
-    );
-    const callbacks = useAtomValue(
-      workstationIssueCallbackAtomFamily(scopeKey)
-    );
-    const setSelectedState = useSetAtom(
-      workstationSelectedIssueAtomFamily(scopeKey)
-    );
-
-    const handleCloseIssue = useCallback(() => {
-      const issue = selectedState.issue;
-      if (!issue) return;
-      if (callbacks.closeIssue) {
-        void callbacks.closeIssue(issue.number);
-        return;
-      }
-      const remoteUrl = tabData.remoteUrl;
-      if (!remoteUrl) return;
-      void (async () => {
-        const result = await closeIssue({
-          remoteUrl,
-          issueNumber: issue.number,
-        });
-        if (result.data) {
-          setSelectedState((prev) =>
-            prev.issue?.number === issue.number
-              ? { ...prev, issue: result.data }
-              : prev
-          );
-        } else {
-          setSelectedState((prev) => ({ ...prev, error: result.error }));
-        }
-      })();
-    }, [selectedState.issue, callbacks, tabData.remoteUrl, setSelectedState]);
-
-    const handleReopenIssue = useCallback(() => {
-      const issue = selectedState.issue;
-      if (!issue) return;
-      if (callbacks.reopenIssue) {
-        void callbacks.reopenIssue(issue.number);
-        return;
-      }
-      const remoteUrl = tabData.remoteUrl;
-      if (!remoteUrl) return;
-      void (async () => {
-        const result = await reopenIssue({
-          remoteUrl,
-          issueNumber: issue.number,
-        });
-        if (result.data) {
-          setSelectedState((prev) =>
-            prev.issue?.number === issue.number
-              ? { ...prev, issue: result.data }
-              : prev
-          );
-        } else {
-          setSelectedState((prev) => ({ ...prev, error: result.error }));
-        }
-      })();
-    }, [selectedState.issue, callbacks, tabData.remoteUrl, setSelectedState]);
-
-    const handleAddComment = useCallback(
-      async (body: string) => {
-        const issue = selectedState.issue;
-        if (!issue) return;
-        if (callbacks.addComment) {
-          await callbacks.addComment(issue.number, body);
-          return;
-        }
-        if (!tabData.remoteUrl) {
-          throw new Error("missing_remote_url");
-        }
-        setSelectedState((prev) => ({ ...prev, submittingComment: true }));
-        const result = await addIssueComment({
-          remoteUrl: tabData.remoteUrl,
-          issueNumber: issue.number,
-          body,
-        });
-        if (result.data) {
-          const comment = result.data;
-          setSelectedState((prev) => ({
-            ...prev,
-            issue:
-              prev.issue?.number === issue.number
-                ? { ...prev.issue, comments: prev.issue.comments + 1 }
-                : prev.issue,
-            timeline: [...prev.timeline, issueCommentToTimelineItem(comment)],
-            submittingComment: false,
-          }));
-        } else {
-          setSelectedState((prev) => ({
-            ...prev,
-            error: result.error,
-            submittingComment: false,
-          }));
-          throw new Error(result.error);
-        }
-      },
-      [selectedState.issue, callbacks, tabData.remoteUrl, setSelectedState]
-    );
+    const { selectedState, interaction } = useGitHubIssueDetailState(tabData);
 
     const headerContent = useMemo(
       () => (
@@ -164,8 +52,15 @@ const GitHubIssueDetailTabRenderer: React.FC<UnifiedTabContentProps> = memo(
     if (!selectedState.issue) {
       return (
         <Placeholder
-          variant="empty"
+          variant={
+            selectedState.loading
+              ? "loading"
+              : selectedState.error
+                ? "error"
+                : "empty"
+          }
           placement="detail-panel"
+          subtitle={selectedState.error ?? undefined}
           fillParentHeight
         />
       );
@@ -176,11 +71,8 @@ const GitHubIssueDetailTabRenderer: React.FC<UnifiedTabContentProps> = memo(
         issue={selectedState.issue}
         timeline={selectedState.timeline}
         timelineLoading={selectedState.timelineLoading}
-        submittingComment={selectedState.submittingComment}
+        interaction={interaction}
         showHeader={false}
-        onCloseIssue={handleCloseIssue}
-        onReopenIssue={handleReopenIssue}
-        onAddComment={handleAddComment}
       />
     );
   }

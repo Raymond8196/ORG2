@@ -46,6 +46,16 @@ const TeamInboxView = React.lazy(
 const DiscussionChannelPanelView = React.lazy(
   () => import("@src/features/DiscussionChannels/ChannelPanelView")
 );
+const GitHubIssuePanelView = React.lazy(() =>
+  import("../panels/GitHubIssuePanelView").then((m) => ({
+    default: m.GitHubIssuePanelView,
+  }))
+);
+const GitHubPrPanelView = React.lazy(() =>
+  import("../panels/GitHubPrPanelView").then((m) => ({
+    default: m.GitHubPrPanelView,
+  }))
+);
 
 export interface ChatPanelSurfaceRendererProps {
   tab: ChatPanelTab;
@@ -77,6 +87,28 @@ export function ProjectSurfaceRenderer({
   return (
     <Suspense fallback={null}>
       <ProjectPanelView selectedProject={tab.project} />
+    </Suspense>
+  );
+}
+
+export function GitHubIssueSurfaceRenderer({
+  tab,
+}: ChatPanelSurfaceRendererProps): React.ReactNode {
+  if (!tab.githubIssue) return null;
+  return (
+    <Suspense fallback={null}>
+      <GitHubIssuePanelView detail={tab.githubIssue} />
+    </Suspense>
+  );
+}
+
+export function GitHubPrSurfaceRenderer({
+  tab,
+}: ChatPanelSurfaceRendererProps): React.ReactNode {
+  if (!tab.githubPr) return null;
+  return (
+    <Suspense fallback={null}>
+      <GitHubPrPanelView detail={tab.githubPr} />
     </Suspense>
   );
 }

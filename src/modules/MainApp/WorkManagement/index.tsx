@@ -13,19 +13,13 @@
  *     duplicate header bar.
  */
 import { useAtomValue, useSetAtom } from "jotai";
-import { ArrowLeft } from "lucide-react";
 import React from "react";
-import { useTranslation } from "react-i18next";
 
-import Button from "@src/components/Button";
 import { usePublishChatPanelHeader } from "@src/engines/ChatPanel/header";
 import FactoryViewPill from "@src/features/TaskKanban/components/FactoryViewPill";
 import KanbanOrgScopeSelect from "@src/features/TaskKanban/components/KanbanOrgScopeSelect";
 import { usePublishWorkstationTabHeader } from "@src/hooks/workStation";
-import {
-  WorkstationHeaderSectionSeparator,
-  WorkstationToolbarTooltip,
-} from "@src/modules/WorkStation/shared";
+import { WorkstationHeaderSectionSeparator } from "@src/modules/WorkStation/shared";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 import {
   activeWorkManagementSectionAtom,
@@ -69,7 +63,6 @@ export interface WorkManagementPageProps {
 const WorkManagementPage: React.FC<WorkManagementPageProps> = ({
   embedded = false,
 }) => {
-  const { t } = useTranslation("common");
   const activeHomeTab = useAtomValue(activeWorkManagementSectionAtom);
   const projectsView = useAtomValue(workManagementProjectsViewAtom);
   const setProjectsView = useSetAtom(workManagementProjectsViewAtom);
@@ -79,26 +72,12 @@ const WorkManagementPage: React.FC<WorkManagementPageProps> = ({
   const headerSlots = useAtomValue(
     workstationTabHeaderAtomByHost.workManagement
   );
-  const [githubDetailOpen, setGitHubDetailOpen] = React.useState(false);
-  const githubDetailBackRef = React.useRef<(() => void) | null>(null);
-  const handleGitHubDetailViewChange = React.useCallback(
-    (open: boolean, onBack: (() => void) | null) => {
-      githubDetailBackRef.current = open ? onBack : null;
-      setGitHubDetailOpen(open);
-    },
-    []
-  );
-  const githubDetailActive =
-    githubDetailOpen &&
-    (activeHomeTab === WORK_MANAGEMENT_SECTION.GITHUB_ISSUES ||
-      activeHomeTab === WORK_MANAGEMENT_SECTION.GITHUB_PRS);
-
-  const showViewSwitch =
-    activeHomeTab === WORK_MANAGEMENT_SECTION.KANBAN && !githubDetailActive;
+  const showViewSwitch = activeHomeTab === WORK_MANAGEMENT_SECTION.KANBAN;
   const activeDataset = resolveWorkManagementDataset({
     section: activeHomeTab,
     projectsView,
   });
+  const detailHost = embedded ? "workstation" : "chat";
   const handleDatasetChange = React.useCallback(
     (dataset: WorkManagementDataset) => {
       if (dataset === WORK_MANAGEMENT_DATASET.PROJECTS) {
@@ -125,24 +104,8 @@ const WorkManagementPage: React.FC<WorkManagementPageProps> = ({
     [setActiveWorkManagementSection, setProjectsView]
   );
 
-  // Leading header control: GitHub detail "back" button, else the view-switch
-  // pill. Shared by the chat-pane and WorkStation published-header slots.
+  // Leading header control shared by the chat-pane and WorkStation slots.
   const headerLeadingControl = React.useMemo(() => {
-    if (githubDetailActive) {
-      return (
-        <WorkstationToolbarTooltip label={t("actions.back")}>
-          <Button
-            htmlType="button"
-            variant="tertiary"
-            size="small"
-            iconOnly
-            icon={<ArrowLeft size={14} strokeWidth={2.25} />}
-            aria-label={t("actions.back")}
-            onClick={() => githubDetailBackRef.current?.()}
-          />
-        </WorkstationToolbarTooltip>
-      );
-    }
     if (showViewSwitch) {
       return <FactoryViewPill />;
     }
@@ -155,13 +118,7 @@ const WorkManagementPage: React.FC<WorkManagementPageProps> = ({
       );
     }
     return null;
-  }, [
-    activeDataset,
-    githubDetailActive,
-    handleDatasetChange,
-    showViewSwitch,
-    t,
-  ]);
+  }, [activeDataset, handleDatasetChange, showViewSwitch]);
 
   const headerLeading = React.useMemo(() => {
     if (!headerLeadingControl) return null;
@@ -233,17 +190,11 @@ const WorkManagementPage: React.FC<WorkManagementPageProps> = ({
           }
         >
           {activeHomeTab === WORK_MANAGEMENT_SECTION.PROJECTS ? (
-            <WorkManagementProjectsSurface />
+            <WorkManagementProjectsSurface detailHost={detailHost} />
           ) : activeHomeTab === WORK_MANAGEMENT_SECTION.GITHUB_ISSUES ? (
-            <GitHubWorkItemsSurface
-              scope="issue"
-              onDetailViewChange={handleGitHubDetailViewChange}
-            />
+            <GitHubWorkItemsSurface scope="issue" detailHost={detailHost} />
           ) : activeHomeTab === WORK_MANAGEMENT_SECTION.GITHUB_PRS ? (
-            <GitHubWorkItemsSurface
-              scope="pr"
-              onDetailViewChange={handleGitHubDetailViewChange}
-            />
+            <GitHubWorkItemsSurface scope="pr" detailHost={detailHost} />
           ) : (
             <>
               <TaskKanban />

@@ -49,6 +49,8 @@ async function loadChatPanelTabAtoms() {
     normalizePersistedChatPanelTabsState,
     openOrganizationInChatPanelTabAtom,
     openCreateTargetInChatPanelStartPageAtom,
+    openGitHubIssueInChatPanelTabAtom,
+    openGitHubPrInChatPanelTabAtom,
     openWorkManagementChatPanelTabAtom,
     openOrFocusChatPanelStartPageTabAtom,
     openRuntimeInChatPanelTabAtom,
@@ -117,6 +119,8 @@ async function loadChatPanelTabAtoms() {
     normalizePersistedChatPanelTabsState,
     openOrganizationInChatPanelTabAtom,
     openCreateTargetInChatPanelStartPageAtom,
+    openGitHubIssueInChatPanelTabAtom,
+    openGitHubPrInChatPanelTabAtom,
     openWorkManagementChatPanelTabAtom,
     openOrFocusChatPanelStartPageTabAtom,
     openRuntimeInChatPanelTabAtom,
@@ -1551,5 +1555,68 @@ describe("setChatPanelTabTitleAtom", () => {
     });
 
     expect(store.get(chatPanelTabsAtom)).toBe(stateBefore);
+  });
+});
+
+describe("GitHub chat-panel detail tabs", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.resetModules();
+    localStorage.clear();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("opens and deduplicates issues and pull requests by repository", async () => {
+    const {
+      chatPanelTabsAtom,
+      openGitHubIssueInChatPanelTabAtom,
+      openGitHubPrInChatPanelTabAtom,
+      store,
+    } = await loadChatPanelTabAtoms();
+    const issue = {
+      issueNumber: 681,
+      issueTitle: "Fix assignment feedback",
+      repoPath: "/workspace/ORG2",
+      remoteUrl: "https://github.com/org2ai/ORG2.git",
+      stateScopeKey: "/workspace/ORG2:681",
+    };
+    const issueTabId = store.set(openGitHubIssueInChatPanelTabAtom, issue);
+    expect(
+      store.set(openGitHubIssueInChatPanelTabAtom, {
+        ...issue,
+        issueTitle: "Updated title",
+      })
+    ).toBe(issueTabId);
+
+    const prTabId = store.set(openGitHubPrInChatPanelTabAtom, {
+      prNumber: 61,
+      prTitle: "Agent reliability",
+      prUrl: "https://github.com/org2ai/ORG2/pull/61",
+      prStatus: "open",
+      headBranch: "fix/agents",
+      baseBranch: "main",
+      repoPath: "/workspace/ORG2",
+      repoId: "repo-1",
+    });
+
+    expect(store.get(chatPanelTabsAtom)).toEqual(
+      expect.objectContaining({
+        activeTabId: prTabId,
+        tabs: expect.arrayContaining([
+          expect.objectContaining({
+            id: issueTabId,
+            type: "github-issue",
+            title: "#681 Updated title",
+          }),
+          expect.objectContaining({
+            id: prTabId,
+            type: "github-pr",
+          }),
+        ]),
+      })
+    );
   });
 });

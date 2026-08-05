@@ -115,7 +115,7 @@ describe("ManagedIssueAssigneeCell", () => {
     ]);
   });
 
-  it("renders issue-assignee avatars and names together", () => {
+  it("renders a larger avatar-only issue-assignee trigger", () => {
     const markup = renderToStaticMarkup(
       createElement(ManagedIssueAssigneeCell, {
         issue: {
@@ -141,8 +141,47 @@ describe("ManagedIssueAssigneeCell", () => {
       })
     );
 
-    expect(markup).toContain("octocat");
+    expect(markup).toContain('aria-label="octocat"');
+    expect(markup).toContain("width:24px;height:24px");
     expect(markup).toContain("https://example.com/o.png");
+    expect(markup).toContain("lucide-chevron-down");
+    expect(markup).toContain("bg-bg-2");
+    expect(markup).toContain("w-12");
+    expect(markup).toContain("px-px");
+  });
+
+  it("keeps the full assignee pill styling while an update is pending", () => {
+    const markup = renderToStaticMarkup(
+      createElement(ManagedIssueAssigneeCell, {
+        issue: {
+          ...linkedIssue,
+          rawIssue: {
+            ...linkedIssue.rawIssue,
+            assignees: [
+              { login: "octocat", avatar_url: "https://example.com/o.png" },
+            ],
+          },
+        },
+        assignableUsers: [],
+        canManage: true,
+        loading: false,
+        loadError: null,
+        updating: true,
+        noneLabel: "None",
+        loadingLabel: "Loading...",
+        searchPlaceholder: "Search...",
+        readonlyReason: "No permission",
+        onOpen: vi.fn(),
+        onChange: vi.fn(),
+      })
+    );
+
+    expect(markup).toContain('aria-disabled="true"');
+    expect(markup).toContain("lucide-chevron-down");
+    expect(markup).toContain("bg-bg-2");
+    expect(markup).toContain("w-12");
+    expect(markup).toContain("px-px");
+    expect(markup).not.toContain("opacity-80");
   });
 
   it("keeps the assignee selector inert without repository permission", () => {
@@ -176,16 +215,15 @@ describe("GitHub work-item row actions", () => {
         issue: linkedIssue,
         addLabel: "Add",
         openInBrowserLabel: "Open in browser",
-        openInMyStationLabel: "Open in My Station",
         moreActionsLabel: "More actions",
         onOpenIssueInBrowser: vi.fn(),
-        onOpenIssueInMyStation: vi.fn(),
         onAddIssue: vi.fn(),
       })
     );
 
     expect(markup).toContain(">Add</span>");
     expect(markup).toContain('aria-label="More actions"');
+    expect(markup).not.toContain("Open in My Station");
     expect(markup).not.toContain("opacity-0");
   });
 

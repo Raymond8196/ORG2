@@ -6,6 +6,7 @@ import type {
 } from "@src/api/tauri/github";
 import type { WorkItem } from "@src/types/core/workItem";
 
+import type { GitHubIssueInteractionConfig } from "./WorkItemContent/types";
 import type { WorkItemExternalAssigneeConfig } from "./WorkItemProperties/types";
 import WorkItemThreadSurface from "./WorkItemThreadSurface";
 
@@ -13,7 +14,7 @@ interface GitHubIssueThreadSurfaceProps {
   issue: GitHubIssue;
   timeline: GitHubIssueTimelineItem[];
   timelineLoading: boolean;
-  onStatusChange: (status: GitHubIssue["state"]) => void | Promise<void>;
+  interaction: GitHubIssueInteractionConfig;
   assigneeConfig?: WorkItemExternalAssigneeConfig;
 }
 
@@ -69,7 +70,7 @@ const GitHubIssueThreadSurface: React.FC<GitHubIssueThreadSurfaceProps> = ({
   issue,
   timeline,
   timelineLoading,
-  onStatusChange,
+  interaction,
   assigneeConfig,
 }) => {
   const workItem = useMemo(
@@ -83,10 +84,10 @@ const GitHubIssueThreadSurface: React.FC<GitHubIssueThreadSurfaceProps> = ({
         (nextStatus === "open" || nextStatus === "closed") &&
         nextStatus !== issue.state
       ) {
-        void onStatusChange(nextStatus);
+        void interaction.onStatusChange(nextStatus);
       }
     },
-    [issue.state, onStatusChange]
+    [interaction, issue.state]
   );
 
   return (
@@ -95,6 +96,19 @@ const GitHubIssueThreadSurface: React.FC<GitHubIssueThreadSurfaceProps> = ({
       propertyFields={["status", "assignee"]}
       propertyProps={{
         onUpdate: handleUpdate,
+        externalStatusConfig: {
+          currentStatusId: issue.state,
+          options: [
+            { id: "open", label: "Open" },
+            { id: "closed", label: "Closed" },
+          ],
+          disabled: !interaction.canManageStatus || interaction.updatingStatus,
+          onChangeStatusId: (statusId) => {
+            if (statusId === "open" || statusId === "closed") {
+              return interaction.onStatusChange(statusId);
+            }
+          },
+        },
         assigneeReadonly: !assigneeConfig,
         externalAssigneeConfig: assigneeConfig,
         showMoreMenu: false,
@@ -103,6 +117,7 @@ const GitHubIssueThreadSurface: React.FC<GitHubIssueThreadSurfaceProps> = ({
         items: timeline,
         loading: timelineLoading,
       }}
+      githubIssueInteraction={interaction}
     />
   );
 };

@@ -18,11 +18,17 @@ import {
   WORK_MANAGEMENT_SECTION,
   type WorkManagementSection,
 } from "@src/store/workstation/workstationTabBarAtoms";
+import type {
+  GitHubIssueDetailTabData,
+  GitHubPrDetailTabData,
+} from "@src/types/githubDetail";
 
 import {
   buildChannelTabKey,
   createChannelTab,
   createExploreTab,
+  createGitHubIssueTab,
+  createGitHubPrTab,
   createLaunchpadTab,
   createOrganizationTab,
   createProjectTab,
@@ -459,6 +465,72 @@ export const openWorkItemInChatPanelTabAtom = atom(
   }
 );
 openWorkItemInChatPanelTabAtom.debugLabel = "openWorkItemInChatPanelTab";
+
+/** Open or focus a GitHub issue detail tab inside the chat pane. */
+export const openGitHubIssueInChatPanelTabAtom = atom(
+  null,
+  (get, set, issue: GitHubIssueDetailTabData) => {
+    const existingTab = get(chatPanelTabsAtom).tabs.find(
+      (tab) =>
+        tab.type === "github-issue" &&
+        tab.githubIssue?.repoPath === issue.repoPath &&
+        tab.githubIssue.issueNumber === issue.issueNumber
+    );
+    if (existingTab) {
+      set(chatPanelTabsAtom, (prev) => ({
+        ...prev,
+        tabs: prev.tabs.map((tab) =>
+          tab.id === existingTab.id
+            ? {
+                ...tab,
+                title: `#${issue.issueNumber} ${issue.issueTitle}`,
+                githubIssue: issue,
+              }
+            : tab
+        ),
+      }));
+      set(activateChatPanelTabAtom, existingTab.id);
+      return existingTab.id;
+    }
+    const tab = createGitHubIssueTab(issue);
+    set(appendAndActivateChatPanelTabAtom, { tab });
+    return tab.id;
+  }
+);
+openGitHubIssueInChatPanelTabAtom.debugLabel = "openGitHubIssueInChatPanelTab";
+
+/** Open or focus a GitHub pull-request detail tab inside the chat pane. */
+export const openGitHubPrInChatPanelTabAtom = atom(
+  null,
+  (get, set, pr: GitHubPrDetailTabData) => {
+    const existingTab = get(chatPanelTabsAtom).tabs.find(
+      (tab) =>
+        tab.type === "github-pr" &&
+        tab.githubPr?.repoPath === pr.repoPath &&
+        tab.githubPr.prNumber === pr.prNumber
+    );
+    if (existingTab) {
+      set(chatPanelTabsAtom, (prev) => ({
+        ...prev,
+        tabs: prev.tabs.map((tab) =>
+          tab.id === existingTab.id
+            ? {
+                ...tab,
+                title: `#${pr.prNumber} ${pr.prTitle}`,
+                githubPr: pr,
+              }
+            : tab
+        ),
+      }));
+      set(activateChatPanelTabAtom, existingTab.id);
+      return existingTab.id;
+    }
+    const tab = createGitHubPrTab(pr);
+    set(appendAndActivateChatPanelTabAtom, { tab });
+    return tab.id;
+  }
+);
+openGitHubPrInChatPanelTabAtom.debugLabel = "openGitHubPrInChatPanelTab";
 
 /** Open or focus a dedicated tab for a project (deduped by slug). */
 export const openProjectInChatPanelTabAtom = atom(

@@ -237,6 +237,3 @@ export async function fetchRepoAssignees(
     return { error: String(e) };
   }
 }
-
-/** @deprecated Use fetchRepoAssignees. */
-export const fetchRepoCollaborators = fetchRepoAssignees;

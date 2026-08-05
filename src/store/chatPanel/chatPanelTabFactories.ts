@@ -15,6 +15,10 @@ import type {
   ChatPanelSelectedWorkspace,
 } from "@src/store/ui/chatPanelAtom";
 import type { WorkManagementSection } from "@src/store/workstation/workstationTabBarAtoms";
+import type {
+  GitHubIssueDetailTabData,
+  GitHubPrDetailTabData,
+} from "@src/types/githubDetail";
 
 import { defineChatPanelTabFactory } from "./chatPanelTabFactory";
 import {
@@ -170,6 +174,34 @@ export const createWorkItemTab = defineChatPanelTabFactory<{
   getTitle: (data) => data.workItem.workItem.name || "Work item",
   toPayload: (data) => ({ workItem: data.workItem }),
 });
+
+// ---------------------------------------------------------------------------
+// GitHub details — one pill per repo + issue/PR number
+// ---------------------------------------------------------------------------
+
+export const createGitHubIssueTab =
+  defineChatPanelTabFactory<GitHubIssueDetailTabData>({
+    tabType: "github-issue",
+    idStrategy: {
+      type: "keyed",
+      prefix: "github-issue",
+      getKey: (data) => `${data.repoPath}:${data.issueNumber}`,
+    },
+    getTitle: (data) => `#${data.issueNumber} ${data.issueTitle}`,
+    toPayload: (data) => ({ githubIssue: data }),
+  });
+
+export const createGitHubPrTab =
+  defineChatPanelTabFactory<GitHubPrDetailTabData>({
+    tabType: "github-pr",
+    idStrategy: {
+      type: "keyed",
+      prefix: "github-pr",
+      getKey: (data) => `${data.repoPath}:${data.prNumber}`,
+    },
+    getTitle: (data) => `#${data.prNumber} ${data.prTitle}`,
+    toPayload: (data) => ({ githubPr: data }),
+  });
 
 // ---------------------------------------------------------------------------
 // project — one pill per project, deduped by slug

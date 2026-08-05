@@ -12,14 +12,31 @@ function withoutNumber<T extends { number: number }>(
   return items.filter((item) => item.number !== number);
 }
 
+function replaceOrPrepend<T extends { number: number }>(
+  items: T[],
+  item: T
+): T[] {
+  const index = items.findIndex(
+    (candidate) => candidate.number === item.number
+  );
+  if (index < 0) return [item, ...items];
+  return items.map((candidate, candidateIndex) =>
+    candidateIndex === index ? item : candidate
+  );
+}
+
 export function replaceIssueInRepoState(
   state: RepoIssueState,
   issue: GitHubIssue
 ): RepoIssueState {
-  const openIssues = withoutNumber(state.openIssues, issue.number);
-  const closedIssues = withoutNumber(state.closedIssues, issue.number);
-  if (issue.state === "open") openIssues.unshift(issue);
-  else closedIssues.unshift(issue);
+  const openIssues =
+    issue.state === "open"
+      ? replaceOrPrepend(state.openIssues, issue)
+      : withoutNumber(state.openIssues, issue.number);
+  const closedIssues =
+    issue.state === "closed"
+      ? replaceOrPrepend(state.closedIssues, issue)
+      : withoutNumber(state.closedIssues, issue.number);
   return { ...state, openIssues, closedIssues };
 }
 
@@ -27,9 +44,13 @@ export function replacePrInRepoState(
   state: RepoPrState,
   pullRequest: OpenPRItem
 ): RepoPrState {
-  const openPrs = withoutNumber(state.openPrs, pullRequest.number);
-  const closedPrs = withoutNumber(state.closedPrs, pullRequest.number);
-  if (pullRequest.state === "open") openPrs.unshift(pullRequest);
-  else closedPrs.unshift(pullRequest);
+  const openPrs =
+    pullRequest.state === "open"
+      ? replaceOrPrepend(state.openPrs, pullRequest)
+      : withoutNumber(state.openPrs, pullRequest.number);
+  const closedPrs =
+    pullRequest.state === "closed"
+      ? replaceOrPrepend(state.closedPrs, pullRequest)
+      : withoutNumber(state.closedPrs, pullRequest.number);
   return { ...state, openPrs, closedPrs };
 }

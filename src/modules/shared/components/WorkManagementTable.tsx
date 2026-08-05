@@ -41,6 +41,7 @@ export interface WorkManagementTableStatusSelect {
 
 export interface WorkManagementTableRow {
   key: string;
+  selection?: ReactNode;
   id: ReactNode;
   /** Primitive value used by the sortable ID column. Falls back to `id` or `key`. */
   idSortValue?: string | number;
@@ -101,12 +102,14 @@ export function WorkManagementTable({
   const { t } = useTranslation("common");
   const hasActions = rows.some((row) => row.actions !== undefined);
   const hasAssignees = rows.some((row) => row.assignee !== undefined);
+  const hasSelection = rows.some((row) => row.selection !== undefined);
   const columns = useMemo<SettingsTableColumn<WorkManagementTableRow>[]>(() => {
     const tableColumns: SettingsTableColumn<WorkManagementTableRow>[] = [
       {
         key: "id",
         label: t("workManagementTable.columns.id", { defaultValue: "ID" }),
         width: SETTINGS_TABLE_COL.hug,
+        align: "left",
         sorter: (left, right) => {
           const getSortValue = (row: WorkManagementTableRow) =>
             row.idSortValue ??
@@ -120,7 +123,7 @@ export function WorkManagementTable({
           );
         },
         renderCell: (row) => (
-          <div className="min-w-0 truncate py-1 font-medium tabular-nums text-text-2">
+          <div className="min-w-0 self-start truncate py-1 text-left font-medium tabular-nums text-text-2">
             {row.id}
           </div>
         ),
@@ -133,13 +136,13 @@ export function WorkManagementTable({
         width: `${WORK_MANAGEMENT_TITLE_COLUMN_MAX_WIDTH}px`,
         renderCell: (row) => (
           <div
-            className="w-full min-w-0 py-1"
+            className="group/title w-full min-w-0 py-1"
             style={{ maxWidth: WORK_MANAGEMENT_TITLE_COLUMN_MAX_WIDTH }}
           >
             <div
               className={`truncate font-semibold text-text-1 ${
                 row.titleLinkOnRowHover
-                  ? "transition-colors group-hover:text-primary-6 group-hover:underline group-hover:underline-offset-2"
+                  ? "transition-colors group-hover/title:text-primary-6 group-hover/title:underline group-hover/title:underline-offset-2"
                   : ""
               }`}
               title={row.title}
@@ -189,6 +192,22 @@ export function WorkManagementTable({
         ),
       },
     ];
+    if (hasSelection) {
+      tableColumns.unshift({
+        key: "selection",
+        label: "",
+        width: SETTINGS_TABLE_COL.hug,
+        align: "center",
+        renderCell: (row) => (
+          <div
+            className="flex w-full items-center justify-center"
+            data-work-management-selection
+          >
+            {row.selection}
+          </div>
+        ),
+      });
+    }
     if (hasAssignees) {
       tableColumns.push({
         key: "assignee",
@@ -196,7 +215,10 @@ export function WorkManagementTable({
           defaultValue: "Assignee",
         }),
         width: SETTINGS_TABLE_COL.hug,
-        renderCell: (row) => row.assignee,
+        align: "left",
+        renderCell: (row) => (
+          <div className="flex w-full justify-start">{row.assignee}</div>
+        ),
       });
     }
     tableColumns.push(
@@ -251,7 +273,7 @@ export function WorkManagementTable({
       });
     }
     return tableColumns;
-  }, [hasActions, hasAssignees, t]);
+  }, [hasActions, hasAssignees, hasSelection, t]);
   const footer = pagination ? (
     <div className="flex h-12 shrink-0 items-center border-t border-border-1 px-4">
       <SettingsTablePagination

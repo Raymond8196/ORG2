@@ -232,6 +232,8 @@ export const activateChatPanelTabAtom = atom(
       tab.type === "workspace" ||
       tab.type === "organization" ||
       tab.type === "work-item" ||
+      tab.type === "github-issue" ||
+      tab.type === "github-pr" ||
       tab.type === "project" ||
       tab.type === "explore"
     ) {

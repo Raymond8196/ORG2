@@ -2,14 +2,7 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
-import type { GitHubIssue } from "@src/api/tauri/github";
-
-import {
-  GitHubIssueDetailBreadcrumb,
-  GitHubPrDetailBreadcrumb,
-  GitHubWorkItemsView,
-  toGitHubPrDetailIdentity,
-} from "./GitHubWorkItemsView";
+import { GitHubWorkItemsView } from "./GitHubWorkItemsView";
 import { GITHUB_ITEM_KIND, type ManagedPrItem } from "./githubManagedItemModel";
 import { parseGitHubSearchQuery } from "./githubWorkItemsSearchQuery";
 
@@ -57,65 +50,6 @@ function createPullRequest(
   };
 }
 
-describe("GitHubIssueDetailBreadcrumb", () => {
-  it("renders a clickable dataset parent before the issue", () => {
-    const issue = {
-      number: 634,
-      title: "Unify breadcrumb navigation",
-      state: "open",
-    } as unknown as GitHubIssue;
-
-    const markup = renderToStaticMarkup(
-      React.createElement(GitHubIssueDetailBreadcrumb, {
-        issue,
-        parentLabel: "GitHub Issues",
-        onBack: vi.fn(),
-      })
-    );
-
-    expect(markup.indexOf("GitHub Issues")).toBeLessThan(
-      markup.indexOf("#634")
-    );
-    expect(markup).toContain('role="button"');
-    expect(markup).toContain("Unify breadcrumb navigation");
-    expect(markup).toContain("mx-0.5 flex-shrink-0 text-fill-4");
-  });
-});
-
-describe("GitHubPrDetailBreadcrumb", () => {
-  it("maps and renders the PR as a second-level Work Items breadcrumb", () => {
-    const pullRequest = createPullRequest(98, {
-      state: "merged",
-      rawPr: {
-        ...createPullRequest(98).rawPr,
-        state: "closed",
-      },
-    });
-    const identity = toGitHubPrDetailIdentity(pullRequest);
-
-    expect(identity).toMatchObject({
-      number: 98,
-      title: "Pull request 98",
-      status: "merged",
-      headBranch: "feature-98",
-      baseBranch: "develop",
-    });
-
-    const markup = renderToStaticMarkup(
-      React.createElement(GitHubPrDetailBreadcrumb, {
-        identity,
-        parentLabel: "GitHub PRs",
-        onBack: vi.fn(),
-      })
-    );
-
-    expect(markup.indexOf("GitHub PRs")).toBeLessThan(markup.indexOf("#98"));
-    expect(markup).toContain('role="button"');
-    expect(markup).toContain("Pull request 98");
-    expect(markup).toContain("merged");
-  });
-});
-
 describe("GitHubWorkItemsView pull requests", () => {
   it("renders one continuous PR list without todo section headers", () => {
     const pullRequests = [
@@ -159,8 +93,6 @@ describe("GitHubWorkItemsView pull requests", () => {
         hasMoreFilteredIssues: false,
         createFormOpen: false,
         creatingIssue: false,
-        issueDetail: null,
-        prDetail: null,
         updateSearchQuery: vi.fn(),
         onSearchQueryChange: vi.fn(),
         onRepoSelect: vi.fn(),
@@ -170,7 +102,6 @@ describe("GitHubWorkItemsView pull requests", () => {
         onNextPage: vi.fn().mockResolvedValue(undefined),
         onOpenIssue: vi.fn(),
         onOpenIssueInBrowser: vi.fn(),
-        onOpenIssueInMyStation: vi.fn(),
         onAddIssue: vi.fn(),
         onIssueStatusChange: vi.fn().mockResolvedValue(undefined),
         getIssueAssigneeControlState: vi.fn(() => ({
@@ -184,10 +115,6 @@ describe("GitHubWorkItemsView pull requests", () => {
         onOpenPr: vi.fn(),
         onAddPr: vi.fn(),
         onPrStatusChange: vi.fn().mockResolvedValue(undefined),
-        onBackFromDetail: vi.fn(),
-        onCloseIssueDetail: vi.fn().mockResolvedValue(undefined),
-        onReopenIssueDetail: vi.fn().mockResolvedValue(undefined),
-        onAddIssueDetailComment: vi.fn().mockResolvedValue(undefined),
         onSetCreateFormOpen: vi.fn(),
         onCreateIssue: vi.fn(),
       })
@@ -205,8 +132,10 @@ describe("GitHubWorkItemsView pull requests", () => {
     expect(markup).toContain("border border-solid border-border-2 bg-bg-2");
     expect(markup).toContain("lucide-refresh-cw");
     expect(markup).toContain("Pull request 1");
-    expect(markup).toContain("group-hover:text-primary-6");
-    expect(markup).toContain("group-hover:underline");
+    expect(markup).toContain("group/title");
+    expect(markup).toContain("group-hover/title:text-primary-6");
+    expect(markup).toContain("group-hover/title:underline");
+    expect(markup).not.toContain("group-hover:text-primary-6");
     expect(markup).toContain("Pull request 2");
     expect(markup).toContain("Pull request 3");
     expect(markup).not.toContain("https://example.com/avatar.png");

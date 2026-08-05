@@ -7,7 +7,7 @@ import {
   updateCachedOpenIssues,
 } from "@src/services/git/githubListCache";
 import {
-  fetchRepoCollaborators,
+  fetchRepoAssignees,
   updateIssue,
 } from "@src/services/git/operations/githubIssues";
 
@@ -33,13 +33,13 @@ type UpdateIssueMap = (
   ) => Record<string, RepoIssueState>
 ) => void;
 
-interface RepoCollaboratorState {
+interface RepoAssigneeState {
   users: GitHubIssueUser[];
   loading: boolean;
   error: string | null;
 }
 
-export interface IssueAssigneeControlState extends RepoCollaboratorState {
+export interface IssueAssigneeControlState extends RepoAssigneeState {
   updating: boolean;
 }
 
@@ -54,21 +54,56 @@ function getViewerPrefix(source: GitHubRepoSource): string {
   return `${source.viewerLogin?.trim().toLowerCase() || "unknown-viewer"}:`;
 }
 
+export function resolveIssueAssigneeUsers(
+  item: ManagedIssueItem,
+  assignableUsers: GitHubIssueUser[],
+  assigneeLogins: string[]
+): GitHubIssueUser[] {
+  const usersByLogin = new Map(
+    [...item.rawIssue.assignees, ...assignableUsers].map((user) => [
+      user.login.toLowerCase(),
+      user,
+    ])
+  );
+  return assigneeLogins.map(
+    (login) =>
+      usersByLogin.get(login.toLowerCase()) ?? { login, avatar_url: "" }
+  );
+}
+
+export function issueHasAssigneeLogins(
+  issue: GitHubIssue,
+  assigneeLogins: string[]
+): boolean {
+  const actual = issue.assignees
+    .map((assignee) => assignee.login.toLowerCase())
+    .sort();
+  const expected = assigneeLogins.map((login) => login.toLowerCase()).sort();
+  return (
+    actual.length === expected.length &&
+    actual.every((login, index) => login === expected[index])
+  );
+}
+
 export function useGitHubIssueAssigneeMutations({
   repoSources,
   updateIssueMap,
   setListError,
   updateErrorMessage,
+  updateNotAppliedMessage,
+  updateSuccessMessage,
   permissionErrorMessage,
 }: {
   repoSources: GitHubRepoSource[];
   updateIssueMap: UpdateIssueMap;
   setListError: (error: string | null) => void;
   updateErrorMessage: string;
+  updateNotAppliedMessage: string;
+  updateSuccessMessage: string;
   permissionErrorMessage: string;
 }) {
-  const [collaboratorsByRepo, setCollaboratorsByRepo] = useState<
-    Record<string, RepoCollaboratorState>
+  const [assigneesByRepo, setAssigneesByRepo] = useState<
+    Record<string, RepoAssigneeState>
   >({});
   const [updatingIssueKeys, setUpdatingIssueKeys] = useState<Set<string>>(
     () => new Set()
@@ -81,6 +116,27 @@ export function useGitHubIssueAssigneeMutations({
       .find((source) => source.viewerLogin)
       ?.viewerLogin?.trim()
       .toLowerCase() ?? null;
+
+  const applyIssueUpdate = useCallback(
+    (source: GitHubRepoSource, issue: GitHubIssue) => {
+      updateIssueMap((current) => {
+        const key = getRepoIssueMapKey(source);
+        const nextState = replaceIssueInRepoState(
+          current[key] ?? EMPTY_REPO_ISSUES,
+          issue
+        );
+        const cacheKey = getGitHubListCacheKey(source);
+        if (nextState.openLoaded) {
+          updateCachedOpenIssues(cacheKey, nextState.openIssues);
+        }
+        if (nextState.closedLoaded) {
+          updateCachedClosedIssues(cacheKey, nextState.closedIssues);
+        }
+        return { ...current, [key]: nextState };
+      });
+    },
+    [updateIssueMap]
+  );
 
   const loadAssignableUsers = useCallback(
     async (item: ManagedIssueItem) => {
@@ -99,7 +155,7 @@ export function useGitHubIssueAssigneeMutations({
       }
       if (attemptedReposRef.current.has(key)) return;
       attemptedReposRef.current.add(key);
-      setCollaboratorsByRepo((current) => ({
+      setAssigneesByRepo((current) => ({
         ...Object.fromEntries(
           Object.entries(current).filter(([entryKey]) =>
             entryKey.startsWith(viewerPrefix)
@@ -108,9 +164,9 @@ export function useGitHubIssueAssigneeMutations({
         [key]: { users: current[key]?.users ?? [], loading: true, error: null },
       }));
       const viewerAtStart = source.viewerLogin?.trim().toLowerCase() ?? null;
-      const result = await fetchRepoCollaborators(source.remoteUrl);
+      const result = await fetchRepoAssignees(source.remoteUrl);
       if (activeViewerRef.current !== viewerAtStart) return;
-      setCollaboratorsByRepo((current) => ({
+      setAssigneesByRepo((current) => ({
         ...current,
         [key]: result.data
           ? { users: result.data, loading: false, error: null }
@@ -148,6 +204,16 @@ export function useGitHubIssueAssigneeMutations({
       updatingIssueKeysRef.current.add(mutationKey);
       setUpdatingIssueKeys(new Set(updatingIssueKeysRef.current));
       const viewerAtStart = source.viewerLogin?.trim().toLowerCase() ?? null;
+      const previousIssue = item.rawIssue;
+      const optimisticIssue: GitHubIssue = {
+        ...previousIssue,
+        assignees: resolveIssueAssigneeUsers(
+          item,
+          assigneesByRepo[getGitHubListCacheKey(source)]?.users ?? [],
+          assignees
+        ),
+      };
+      applyIssueUpdate(source, optimisticIssue);
       try {
         const result = await updateIssue({
           remoteUrl: source.remoteUrl,
@@ -155,28 +221,25 @@ export function useGitHubIssueAssigneeMutations({
           updates: { assignees },
         });
         if (!result.data) {
+          applyIssueUpdate(source, previousIssue);
           const error = result.error ?? updateErrorMessage;
           setListError(error);
           Message.error(error);
           return null;
         }
-        if (activeViewerRef.current !== viewerAtStart) return null;
-        updateIssueMap((current) => {
-          const key = getRepoIssueMapKey(source);
-          const nextState = replaceIssueInRepoState(
-            current[key] ?? EMPTY_REPO_ISSUES,
-            result.data
-          );
-          const cacheKey = getGitHubListCacheKey(source);
-          if (nextState.openLoaded) {
-            updateCachedOpenIssues(cacheKey, nextState.openIssues);
-          }
-          if (nextState.closedLoaded) {
-            updateCachedClosedIssues(cacheKey, nextState.closedIssues);
-          }
-          return { ...current, [key]: nextState };
-        });
+        if (activeViewerRef.current !== viewerAtStart) {
+          applyIssueUpdate(source, previousIssue);
+          return null;
+        }
+        if (!issueHasAssigneeLogins(result.data, assignees)) {
+          applyIssueUpdate(source, previousIssue);
+          setListError(updateNotAppliedMessage);
+          Message.error(updateNotAppliedMessage);
+          return null;
+        }
+        applyIssueUpdate(source, result.data);
         setListError(null);
+        Message.success(updateSuccessMessage);
         return result.data;
       } finally {
         updatingIssueKeysRef.current.delete(mutationKey);
@@ -186,11 +249,14 @@ export function useGitHubIssueAssigneeMutations({
       }
     },
     [
+      applyIssueUpdate,
+      assigneesByRepo,
       permissionErrorMessage,
       repoSources,
       setListError,
       updateErrorMessage,
-      updateIssueMap,
+      updateNotAppliedMessage,
+      updateSuccessMessage,
     ]
   );
 
@@ -202,7 +268,7 @@ export function useGitHubIssueAssigneeMutations({
         item.repoPath
       );
       const state = source
-        ? collaboratorsByRepo[getGitHubListCacheKey(source)]
+        ? assigneesByRepo[getGitHubListCacheKey(source)]
         : undefined;
       return {
         users: state?.users ?? [],
@@ -214,7 +280,7 @@ export function useGitHubIssueAssigneeMutations({
           : false,
       };
     },
-    [collaboratorsByRepo, repoSources, updatingIssueKeys]
+    [assigneesByRepo, repoSources, updatingIssueKeys]
   );
 
   return {

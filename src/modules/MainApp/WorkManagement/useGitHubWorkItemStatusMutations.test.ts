@@ -32,6 +32,18 @@ describe("GitHub work-item status replacement", () => {
     expect(next.closedIssues).toEqual([updated]);
   });
 
+  it("preserves row order when issue fields change without a state move", () => {
+    const first = issue(41, "open");
+    const original = issue(42, "open");
+    const updated = { ...original, title: "Updated title" };
+    const next = replaceIssueInRepoState(
+      { ...EMPTY_REPO_ISSUES, openIssues: [first, original] },
+      updated
+    );
+
+    expect(next.openIssues).toEqual([first, updated]);
+  });
+
   it("moves the canonical PR response between state lists", () => {
     const original = pullRequest(61, "closed");
     const updated = pullRequest(61, "open");

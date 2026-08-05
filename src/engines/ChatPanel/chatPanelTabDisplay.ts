@@ -71,6 +71,8 @@ export function resolveChatPanelTabDisplayTitle(
       // only covers a payload-less persisted row.
       return tab.channel ? tab.channel.name : labels.channelFallback;
     case "work-item":
+    case "github-issue":
+    case "github-pr":
     case "project":
     case "explore":
       // Each of these tabs stamps its entity / surface name onto `tab.title`

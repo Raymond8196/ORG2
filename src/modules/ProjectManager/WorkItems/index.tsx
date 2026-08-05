@@ -30,6 +30,7 @@ import {
   type ProjectDetailSurfaceView,
 } from "@src/store/workstation/tabs";
 import type { WorkItemStatus } from "@src/types/core/workItem";
+import type { WorkItem } from "@src/types/core/workItem";
 import { confirmDestructiveAction } from "@src/util/dialogs/confirmDestructiveAction";
 
 import { ProjectDetailSurfacePillSwitch } from "../ProjectManagerLayout/components/ProjectDetailSurfacePillSwitch";
@@ -111,7 +112,8 @@ export interface WorkItemsPageProps {
     workItemId: string,
     workItemName: string,
     pendingUpdates?: Record<string, unknown>,
-    workItemStatus?: string
+    workItemStatus?: string,
+    workItem?: WorkItem
   ) => void;
   /** Notify parent tab system when the embedded work item title changes */
   onEmbeddedWorkItemNameUpdated?: (workItemName: string) => void;
@@ -282,6 +284,25 @@ const WorkItemsPage: React.FC<WorkItemsPageProps> = ({
     },
     [confirmWorkItemDelete, data.workItems, handlers]
   );
+  const handleOpenWorkItem = useCallback(
+    (workItemId: string) => {
+      const workItem = data.workItems.find(
+        (candidate) => candidate.session_id === workItemId
+      );
+      if (!workItem || !onExpandWorkItemToTab) {
+        handlers.handleSelect(workItemId);
+        return;
+      }
+      onExpandWorkItemToTab(
+        workItem.session_id,
+        workItem.name || t("workItems.untitled"),
+        undefined,
+        workItem.workItemStatus ?? workItem.status,
+        workItem
+      );
+    },
+    [data.workItems, handlers, onExpandWorkItemToTab, t]
+  );
 
   const {
     selectedIds,
@@ -429,7 +450,6 @@ const WorkItemsPage: React.FC<WorkItemsPageProps> = ({
       onRefreshWorkItem={data.refresh}
       onOpenSession={onOpenChatSession}
       onWorkItemNameUpdated={onEmbeddedWorkItemNameUpdated}
-      onExpandWorkItemToTab={onExpandWorkItemToTab}
       breadcrumbSegments={interactiveBreadcrumbSegments}
       breadcrumbProjectName={headerTitle}
       breadcrumbIcon={projectIdentityIcon}
@@ -704,7 +724,7 @@ const WorkItemsPage: React.FC<WorkItemsPageProps> = ({
           overviewStats={data.overviewStats}
           checkedWorkItemIds={selectedIds}
           onCheckedChange={handleCheckedChange}
-          onSelectWorkItem={handlers.handleSelect}
+          onSelectWorkItem={handleOpenWorkItem}
           onUpdateWorkItem={handlers.handleUpdate}
           onDeleteWorkItem={handleDeleteWorkItem}
           onRestoreWorkItem={handlers.handleRestore}
@@ -715,11 +735,11 @@ const WorkItemsPage: React.FC<WorkItemsPageProps> = ({
           onProjectDescriptionChange={handleProjectDescriptionChange}
           onProjectPropertiesChange={handleLocalProjectUpdate}
           onKanbanTaskMove={handlers.handleKanbanTaskMove}
-          onKanbanTaskClick={handlers.handleKanbanTaskClick}
+          onKanbanTaskClick={(task) => handleOpenWorkItem(task.id)}
           onAddKanbanTask={handlers.handleAddTask}
-          onGanttTaskClick={handlers.handleGanttTaskClick}
+          onGanttTaskClick={(task) => handleOpenWorkItem(task.id)}
           onGanttTaskUpdate={handlers.handleGanttTaskUpdate}
-          onCalendarEventClick={handlers.handleCalendarEventClick}
+          onCalendarEventClick={(event) => handleOpenWorkItem(event.id)}
           kanbanGroupBy={kanbanGroupBy}
           pinnedKanbanColumnIds={pinnedKanbanColumnIds}
           kanbanTasks={data.kanbanTasks}

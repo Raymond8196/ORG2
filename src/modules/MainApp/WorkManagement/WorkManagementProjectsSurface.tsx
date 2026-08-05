@@ -9,7 +9,9 @@ import React, {
 } from "react";
 import { useTranslation } from "react-i18next";
 
+import { useWorkStationTabs } from "@src/hooks/workStation/tabs";
 import type { LinearProjectSelection } from "@src/modules/ProjectManager/Panels/ProjectManagerSidebar/content/WorkspaceTreeContent";
+import type { ProjectWorkItemSelection } from "@src/modules/ProjectManager/ProjectManagerLayout/components/ProjectWorkItemsTabContent";
 import type { ActiveRepoView } from "@src/modules/ProjectManager/ProjectManagerLayout/types";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 import {
@@ -26,8 +28,12 @@ import {
   STORY_ORG_SCOPE,
   STORY_PERSONAL_ORG_FILTER_ID,
   WORK_MANAGEMENT_PROJECTS_VIEW,
+  createWorkItemDetailTab,
   workManagementProjectsViewAtom,
 } from "@src/store/workstation";
+import type { WorkItem } from "@src/types/core/workItem";
+
+import type { WorkManagementDetailHost } from "./workManagementDetailHost";
 
 const LinearProjectsPage = React.lazy(
   () => import("@src/modules/ProjectManager/LinearProjects")
@@ -75,7 +81,9 @@ function isRepoView(view: ProjectsSurfaceView): view is RepoView {
   return view.kind === "repo";
 }
 
-const WorkManagementProjectsSurface: React.FC = memo(() => {
+const WorkManagementProjectsSurface: React.FC<{
+  detailHost: WorkManagementDetailHost;
+}> = memo(({ detailHost }) => {
   const { t } = useTranslation("projects");
   const [workManagementProjectsView, setWorkManagementProjectsView] = useAtom(
     workManagementProjectsViewAtom
@@ -89,10 +97,11 @@ const WorkManagementProjectsSurface: React.FC = memo(() => {
     string | undefined
   >(undefined);
   const bumpProjectListRefresh = useSetAtom(projectListRefreshAtom);
+  const { openTab } = useWorkStationTabs();
+  const openWorkItemInChatPanel = useSetAtom(openWorkItemInChatPanelTabAtom);
 
   const setStationMode = useSetAtom(stationModeAtom);
   const setStationChatVisible = useSetAtom(activeStationChatVisibleAtom);
-  const openWorkItemTab = useSetAtom(openWorkItemInChatPanelTabAtom);
   const openCreateTargetInStartPage = useSetAtom(
     openCreateTargetInChatPanelStartPageAtom
   );
@@ -192,6 +201,80 @@ const WorkManagementProjectsSurface: React.FC = memo(() => {
     setStationChatVisible("my-station", true);
   }, [openCreateTargetInStartPage, setStationChatVisible, setStationMode]);
 
+  const handleOpenProjectWorkItem = useCallback(
+    (
+      project: SelectedProjectView,
+      workItemId: string,
+      workItemName: string,
+      pendingUpdates?: Record<string, unknown>,
+      workItemStatus?: string,
+      workItem?: WorkItem
+    ) => {
+      const projectSlug = selectedProjectSlug ?? project.projectSlug;
+      if (detailHost === "chat") {
+        if (!workItem || !projectSlug) return;
+        openWorkItemInChatPanel({
+          workItem,
+          shortId: workItem.shortId || workItemId,
+          projectId: project.projectId,
+          projectName: project.projectName,
+          projectSlug,
+        });
+        return;
+      }
+      openTab(
+        createWorkItemDetailTab(
+          project.projectId,
+          project.projectName,
+          workItemId,
+          workItemName,
+          projectSlug,
+          pendingUpdates,
+          undefined,
+          workItemStatus
+        )
+      );
+    },
+    [detailHost, openTab, openWorkItemInChatPanel, selectedProjectSlug]
+  );
+
+  const handleOpenAggregatedWorkItem = useCallback(
+    (selection: ProjectWorkItemSelection) => {
+      if (detailHost === "chat") {
+        if (
+          !selection.projectId ||
+          !selection.projectName ||
+          !selection.projectSlug
+        ) {
+          return;
+        }
+        openWorkItemInChatPanel({
+          workItem: selection.workItem,
+          shortId: selection.shortId,
+          orgId: selection.orgId,
+          orgName: selection.orgName,
+          projectId: selection.projectId,
+          projectName: selection.projectName,
+          projectSlug: selection.projectSlug,
+        });
+        return;
+      }
+      openTab(
+        createWorkItemDetailTab(
+          selection.projectId,
+          selection.projectName,
+          selection.workItem.session_id,
+          selection.workItem.name || t("workItems.untitled"),
+          selection.projectSlug,
+          undefined,
+          undefined,
+          selection.workItem.workItemStatus ?? selection.workItem.status
+        )
+      );
+    },
+    [detailHost, openTab, openWorkItemInChatPanel, t]
+  );
+
   const content = useMemo(() => {
     if (view.kind === "project") {
       return (
@@ -215,6 +298,22 @@ const WorkManagementProjectsSurface: React.FC = memo(() => {
           onCreateWorkItem={handleCreateWorkItem}
           onProjectDeleted={handleProjectDeleted}
           onOpenRepoSettings={handleOpenSettings}
+          onExpandWorkItemToTab={(
+            workItemId,
+            workItemName,
+            pendingUpdates,
+            workItemStatus,
+            workItem
+          ) =>
+            handleOpenProjectWorkItem(
+              view,
+              workItemId,
+              workItemName,
+              pendingUpdates,
+              workItemStatus,
+              workItem
+            )
+          }
         />
       );
     }
@@ -245,19 +344,7 @@ const WorkManagementProjectsSurface: React.FC = memo(() => {
             onCreateWorkItem={handleCreateWorkItem}
             onOpenLinearProject={handleOpenLinearProjects}
             allowExternalSources={activeOrgScope === STORY_ORG_SCOPE.ALL}
-            onOpenWorkItem={(selection) => {
-              openWorkItemTab({
-                workItem: selection.workItem,
-                shortId: selection.shortId,
-                orgId: selection.orgId,
-                orgName: selection.orgName,
-                projectId: selection.projectId ?? "",
-                projectName: selection.projectName ?? "",
-                projectSlug: selection.projectSlug ?? "",
-              });
-              setStationMode("my-station");
-              setStationChatVisible("my-station", true);
-            }}
+            onOpenWorkItem={handleOpenAggregatedWorkItem}
           />
         );
       case "linear-projects":
@@ -298,9 +385,8 @@ const WorkManagementProjectsSurface: React.FC = memo(() => {
     handleProjectDeleted,
     handleCreateProject,
     handleCreateWorkItem,
-    openWorkItemTab,
-    setStationChatVisible,
-    setStationMode,
+    handleOpenAggregatedWorkItem,
+    handleOpenProjectWorkItem,
     selectedProjectSlug,
     activeOrgScope,
     scopedOrgId,

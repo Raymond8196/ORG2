@@ -5,18 +5,14 @@
  * unmounts it when the user leaves Source Control so diff editors, file
  * content, and subscriptions are released.
  */
-import { useAtomValue } from "jotai";
-import React, { Suspense, memo, useCallback } from "react";
+import React, { Suspense, memo } from "react";
 
 import {
   NoTabsPlaceholder,
   type QuickAction,
 } from "@src/modules/WorkStation/shared";
+import { useGitHubIssueDetailState } from "@src/modules/shared/hooks/useGitHubIssueDetailState";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
-import {
-  workstationIssueCallbackAtomFamily,
-  workstationSelectedIssueAtomFamily,
-} from "@src/store/workstation/codeEditor/workstationIssueAtom";
 import { workstationRepoScopeKey } from "@src/store/workstation/codeEditor/workstationPrAtom";
 import type { GitFile } from "@src/types/git/types";
 
@@ -70,33 +66,12 @@ const SourceControlMainPane: React.FC<SourceControlMainPaneProps> = ({
   onGitDiffUnsavedChange,
 }) => {
   const scopeKey = workstationRepoScopeKey(repoId, repoPath);
-  const selectedIssueState = useAtomValue(
-    workstationSelectedIssueAtomFamily(scopeKey)
-  );
-  const issueCallbacks = useAtomValue(
-    workstationIssueCallbackAtomFamily(scopeKey)
-  );
-
-  const handleCloseIssue = useCallback(() => {
-    if (selectedIssueState.issue && issueCallbacks.closeIssue) {
-      void issueCallbacks.closeIssue(selectedIssueState.issue.number);
-    }
-  }, [selectedIssueState.issue, issueCallbacks]);
-
-  const handleReopenIssue = useCallback(() => {
-    if (selectedIssueState.issue && issueCallbacks.reopenIssue) {
-      void issueCallbacks.reopenIssue(selectedIssueState.issue.number);
-    }
-  }, [selectedIssueState.issue, issueCallbacks]);
-
-  const handleAddIssueComment = useCallback(
-    async (body: string) => {
-      if (selectedIssueState.issue && issueCallbacks.addComment) {
-        await issueCallbacks.addComment(selectedIssueState.issue.number, body);
-      }
-    },
-    [selectedIssueState.issue, issueCallbacks]
-  );
+  const { selectedState: selectedIssueState, interaction } =
+    useGitHubIssueDetailState({
+      repoPath,
+      repoId: repoId ?? undefined,
+      stateScopeKey: scopeKey,
+    });
 
   const { mode, staged, focusPath, historySelection, allFiles, focusGitFile } =
     deriveSourceControlMainProps({
@@ -123,11 +98,8 @@ const SourceControlMainPane: React.FC<SourceControlMainPaneProps> = ({
           issue={selectedIssueState.issue}
           timeline={selectedIssueState.timeline}
           timelineLoading={selectedIssueState.timelineLoading}
-          submittingComment={selectedIssueState.submittingComment}
+          interaction={interaction}
           showHeader={false}
-          onCloseIssue={handleCloseIssue}
-          onReopenIssue={handleReopenIssue}
-          onAddComment={handleAddIssueComment}
         />
       </Suspense>
     );

@@ -4,7 +4,10 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { WorkItem } from "@src/types/core/workItem";
 
-import { WorkItemDetailHeaderBreadcrumb } from "./WorkItemDetailHeader";
+import {
+  WorkItemDetailHeaderActions,
+  WorkItemDetailHeaderBreadcrumb,
+} from "./WorkItemDetailHeader";
 
 vi.mock("@src/components/IntegrationIcon", () => ({
   default: ({ type, size }: { type: string; size: number }) =>
@@ -12,6 +15,11 @@ vi.mock("@src/components/IntegrationIcon", () => ({
       "data-integration-icon": type,
       "data-icon-size": size,
     }),
+}));
+
+vi.mock("@src/modules/WorkStation/shared", () => ({
+  WorkstationToolbarTooltip: ({ children }: { children: React.ReactNode }) =>
+    children,
 }));
 
 describe("WorkItemDetailHeaderBreadcrumb", () => {
@@ -71,5 +79,30 @@ describe("WorkItemDetailHeaderBreadcrumb", () => {
       markup.indexOf("Ship unified breadcrumbs")
     );
     expect(markup.match(/role="button"/g)).toHaveLength(2);
+  });
+});
+
+describe("WorkItemDetailHeaderActions", () => {
+  it("omits the redundant open-in-new-tab action", () => {
+    const workItem = {
+      session_id: "work-item-1",
+      name: "Ship dedicated tabs",
+      status: "planned",
+    } as WorkItem;
+    const markup = renderToStaticMarkup(
+      React.createElement(WorkItemDetailHeaderActions, {
+        workItem,
+        propertiesOpen: true,
+        hasPrev: false,
+        hasNext: false,
+        onNavigate: vi.fn(),
+        onDeleteWorkItem: vi.fn(),
+        t: (key: string) => key,
+      })
+    );
+
+    expect(markup).toContain("lucide-trash-2");
+    expect(markup).not.toContain("lucide-square-arrow-out-up-right");
+    expect(markup).not.toContain("common:actions.openInNewTab");
   });
 });
