@@ -88,6 +88,34 @@ pub fn init_pm_service_tables(conn: &Connection) -> SqliteResult<()> {
         CREATE INDEX IF NOT EXISTS idx_pm_audit_seq
             ON pm_audit_events(seq);
 
+        CREATE TABLE IF NOT EXISTS pm_routines (
+            name        TEXT PRIMARY KEY,            -- portable unique name
+            routine_id  TEXT NOT NULL,               -- metadata.id (stable)
+            spec_json   TEXT NOT NULL,               -- canonical portable spec
+            spec_hash   TEXT NOT NULL,
+            revision    INTEGER NOT NULL,
+            enabled     INTEGER NOT NULL DEFAULT 1,  -- gates automatic activations only
+            created_at  INTEGER NOT NULL,            -- unix ms
+            updated_at  INTEGER NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS pm_routine_runs (
+            id               TEXT PRIMARY KEY,        -- run_<ulid-ish>
+            routine_name     TEXT NOT NULL,
+            routine_revision INTEGER NOT NULL,
+            snapshot_json    TEXT NOT NULL,           -- immutable canonical spec
+            snapshot_hash    TEXT NOT NULL,
+            scope_id         TEXT NOT NULL,           -- project slug (v1 local)
+            status           TEXT NOT NULL,           -- ordered projection, design §11
+            inputs_json      TEXT,
+            root_work_item_id TEXT,
+            created_by       TEXT,
+            created_at       INTEGER NOT NULL,
+            updated_at       INTEGER NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_pm_routine_runs_routine
+            ON pm_routine_runs(routine_name);
+
         CREATE TABLE IF NOT EXISTS pm_relations (
             id          INTEGER PRIMARY KEY AUTOINCREMENT,
             entity_type TEXT NOT NULL,               -- work_item
