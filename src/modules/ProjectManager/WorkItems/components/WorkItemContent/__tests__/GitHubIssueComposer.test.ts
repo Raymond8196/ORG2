@@ -37,18 +37,21 @@ vi.mock("@src/modules/shared/components/RichMarkdownEditor", () => ({
     editable,
     dataTestId,
     toolbarMode,
+    minHeight,
   }: {
     value: string;
     onChange?: (markdown: string) => void;
     editable?: boolean;
     dataTestId?: string;
     toolbarMode?: string;
+    minHeight?: number;
   }) =>
     createElement("textarea", {
       value,
       readOnly: !editable,
       "data-testid": dataTestId,
       "data-toolbar-mode": toolbarMode,
+      "data-min-height": minHeight,
       onChange: (event: React.ChangeEvent<HTMLTextAreaElement>) =>
         onChange?.(event.target.value),
     }),
@@ -127,6 +130,7 @@ describe("GitHubIssueComposer", () => {
       "[data-testid='github-issue-comment-editor']"
     );
     expect(editor?.dataset.toolbarMode).toBe("inline");
+    expect(editor?.dataset.minHeight).toBe("140");
     act(() => {
       const valueSetter = Object.getOwnPropertyDescriptor(
         HTMLTextAreaElement.prototype,
