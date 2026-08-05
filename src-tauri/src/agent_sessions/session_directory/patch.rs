@@ -101,6 +101,11 @@ pub struct SessionPatch {
     /// Per-session execution mode. Only legal for `agent_sessions`
     /// rows; rejected for CLI sessions.
     pub agent_exec_mode: Option<String>,
+    /// Persistent product mode (`orgtrack/v1` §5.2):
+    /// `build | plan | ask | project`. Only legal for `agent_sessions`
+    /// rows; validated against the closed enum.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub product_mode: Option<String>,
     /// Per-session unsent draft text (P3). Three-state — see the
     /// "three-state fields" section in module docs.
     #[serde(
@@ -223,6 +228,7 @@ pub fn apply_session_patch(session_id: &str, patch: &SessionPatch) -> Result<(),
     if patch.name.is_none()
         && patch.model.is_none()
         && patch.agent_exec_mode.is_none()
+        && patch.product_mode.is_none()
         && patch.draft_text.is_none()
         && patch.reply_target_event_id.is_none()
         && patch.pinned.is_none()
@@ -294,6 +300,27 @@ pub fn apply_session_patch(session_id: &str, patch: &SessionPatch) -> Result<(),
             SessionLocation::Imported => {
                 return Err("session_patch: imported sessions do not support agent_exec_mode"
                     .to_string());
+            }
+        }
+    }
+
+    if let Some(product_mode) = patch.product_mode.as_deref() {
+        // Closed enum (orgtrack/v1 §5.2); a typo must not silently
+        // grant or drop the Project mutation surface.
+        if !matches!(product_mode, "build" | "plan" | "ask" | "project") {
+            return Err(format!(
+                "session_patch: unknown product_mode '{product_mode}' (expected build|plan|ask|project)"
+            ));
+        }
+        match location {
+            SessionLocation::Agent => {
+                session_persistence::update_product_mode(session_id, product_mode)
+                    .map_err(|err| format!("session_patch update product_mode (agent): {err}"))?;
+            }
+            SessionLocation::Cli | SessionLocation::Imported => {
+                return Err(
+                    "session_patch: only agent sessions carry a product_mode".to_string()
+                );
             }
         }
     }

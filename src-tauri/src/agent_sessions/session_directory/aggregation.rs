@@ -1462,6 +1462,7 @@ mod tests {
             agent_icon_id: None,
             agent_display_name: None,
             agent_exec_mode: None,
+            product_mode: None,
             draft_text: None,
             reply_target_event_id: None,
             pinned: false,

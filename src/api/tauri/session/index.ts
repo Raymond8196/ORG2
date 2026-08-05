@@ -173,6 +173,7 @@ export function toFrontendSession(record: SessionAggregateRecord): Session {
     agentIconId: importedSource?.iconId ?? record.agentIconId,
     agentDisplayName: importedSource?.displayName ?? record.agentDisplayName,
     agentExecMode: normalizeAgentExecMode(record.agentExecMode) ?? undefined,
+    productMode: record.productMode,
     draftText: record.draftText,
     replyTargetEventId: record.replyTargetEventId,
     pinned: record.pinned,
