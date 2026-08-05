@@ -15,9 +15,13 @@ import {
   ChevronRight,
   CircleDot,
   CircleUserRound,
+  FileDiff,
   GitBranch,
+  GitCommitHorizontal,
   GitMerge,
+  ListChecks,
   MessageCircle,
+  MessagesSquare,
   SquareArrowOutUpRight,
 } from "lucide-react";
 import React, { useEffect, useMemo } from "react";
@@ -29,12 +33,11 @@ import type {
   PrFile,
 } from "@src/api/tauri/github";
 import Avatar from "@src/components/Avatar";
-import TabPill from "@src/components/TabPill";
-import type { TabPillItem } from "@src/components/TabPill";
+import Button from "@src/components/Button";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
+import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
 import { PanelHeader, Placeholder } from "@src/modules/shared/layouts/blocks";
 import {
-  type PrDetailTab,
   type PrIdentity,
   workstationPrDetailTabAtomFamily,
   workstationPrScopeKey,
@@ -54,7 +57,7 @@ interface PrDetailPanelProps {
   identity: PrIdentity;
   repoPath: string;
   repoId?: string;
-  /** Optional host-owned actions rendered in the PR identity title row. */
+  /** Host-owned action group replacing the default GitHub link action. */
   headerActions?: React.ReactNode;
   /**
    * Render the internal status·#number·title header row. Set false
@@ -68,6 +71,30 @@ interface PrDetailPanelProps {
 interface PrSummaryReviewer {
   login: string;
   avatarUrl: string;
+}
+
+export function PrDetailExternalLinkButton({
+  identity,
+  title = "Open on GitHub",
+}: {
+  identity: PrIdentity;
+  title?: string;
+}): React.ReactNode {
+  return (
+    <Button
+      href={identity.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      variant="tertiary"
+      size="small"
+      iconOnly
+      icon={
+        <SquareArrowOutUpRight size={HEADER_ICON_SIZE.sm} strokeWidth={1.75} />
+      }
+      title={title}
+      aria-label={title}
+    />
+  );
 }
 
 function readNumber(
@@ -167,7 +194,7 @@ export function PrDetailSummary({
       aria-label={t("git.pr.summary.label", "Pull request summary")}
     >
       <div
-        className={`${DETAIL_PANEL_TOKENS.headerWidth} grid grid-cols-[96px_minmax(0,1fr)] gap-x-4 gap-y-2.5 px-6 pt-4 text-[13px]`}
+        className={`${DETAIL_PANEL_TOKENS.headerWidth} grid grid-cols-[96px_minmax(0,1fr)] items-center gap-x-4 gap-y-2.5 px-6 pt-4 text-[13px]`}
       >
         <div className="flex items-center gap-2 text-text-3">
           <GitBranch size={14} strokeWidth={1.75} />
@@ -195,12 +222,20 @@ export function PrDetailSummary({
           <CircleUserRound size={14} strokeWidth={1.75} />
           <span>{t("git.pr.summary.reviewers", "Reviewers")}</span>
         </div>
-        <div className="flex min-h-5 min-w-0 items-center gap-1 text-text-1">
+        <div
+          className="flex min-h-5 min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-text-1"
+          data-testid="pr-summary-reviewers"
+        >
           {reviewers.length > 0 ? (
             <>
               {reviewers.slice(0, 5).map((reviewer) => (
-                <span key={reviewer.login} title={reviewer.login}>
+                <span
+                  key={reviewer.login}
+                  className="inline-flex min-w-0 items-center gap-1.5"
+                  title={reviewer.login}
+                >
                   <Avatar size={20} src={reviewer.avatarUrl} />
+                  <span className="truncate">{reviewer.login}</span>
                 </span>
               ))}
               {reviewers.length > 5 ? (
@@ -276,41 +311,33 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
   const baseBranch =
     state.baseRef ?? identity.baseBranch ?? t("git.pr.baseBranch", "base");
 
-  const tabs: TabPillItem[] = useMemo(
+  const tabs = useMemo(
     () => [
       {
-        key: "conversation",
+        key: "conversation" as const,
         label: t("git.pr.tabs.conversation", "Conversation"),
-        badge:
-          state.conversation.length + state.reviews.length > 0 ? (
-            <span className="shrink-0 text-[10px] font-semibold tabular-nums text-text-2">
-              {state.conversation.length + state.reviews.length}
-            </span>
-          ) : undefined,
+        icon: <MessagesSquare size={15} strokeWidth={1.8} />,
+        count: state.conversation.length + state.reviews.length,
       },
       {
-        key: "changes",
-        label: t("git.pr.tabs.changes", "Changes"),
-        badge:
-          state.files.length > 0 ? (
-            <span className="shrink-0 text-[10px] font-semibold tabular-nums text-text-2">
-              {state.files.length}
-            </span>
-          ) : undefined,
-      },
-      {
-        key: "commits",
+        key: "commits" as const,
         label: t("git.pr.tabs.commits", "Commits"),
-        badge:
-          state.commits.length > 0 ? (
-            <span className="shrink-0 text-[10px] font-semibold tabular-nums text-text-2">
-              {state.commits.length}
-            </span>
-          ) : undefined,
+        icon: <GitCommitHorizontal size={15} strokeWidth={1.8} />,
+        count: state.commits.length,
       },
       {
-        key: "checks",
+        key: "checks" as const,
         label: t("git.pr.tabs.checks", "Checks"),
+        icon: <ListChecks size={15} strokeWidth={1.8} />,
+        count:
+          (state.checks?.check_runs.length ?? 0) +
+          (state.checks?.statuses.length ?? 0),
+      },
+      {
+        key: "changes" as const,
+        label: t("git.pr.changes.title", "Files changed"),
+        icon: <FileDiff size={15} strokeWidth={1.8} />,
+        count: state.files.length,
       },
     ],
     [
@@ -318,6 +345,7 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
       state.conversation.length,
       state.reviews.length,
       state.commits.length,
+      state.checks,
       state.files.length,
     ]
   );
@@ -337,36 +365,54 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
       {/* Header */}
       {showHeader ? (
         <PanelHeader
-          borderBottom
           className={DETAIL_PANEL_TOKENS.headerPadding}
           dataTestId="pr-detail-header"
-          actions={headerActions}
+          actions={
+            headerActions ?? (
+              <PrDetailExternalLinkButton
+                identity={identity}
+                title={t("actions.openOnGitHub", "Open on GitHub")}
+              />
+            )
+          }
         >
           <PrDetailHeaderContent identity={identity} />
         </PanelHeader>
       ) : null}
 
-      {/* Sub-tab bar */}
-      <div className="flex shrink-0 items-center gap-1 py-1 pl-3 pr-2">
-        <TabPill
-          tabs={tabs}
-          activeTab={activeTab}
-          onChange={(key) => setActiveTab(key as PrDetailTab)}
-          variant="pill"
-          color="fill"
-          fillWidth={false}
-          size="small"
-        />
-        <a
-          href={identity.url}
-          target="_blank"
-          rel="noreferrer"
-          className="ml-auto flex h-7 w-7 shrink-0 items-center justify-center rounded text-text-3 transition-colors hover:bg-fill-2 hover:text-text-1"
-          aria-label={t("actions.openOnGitHub", "Open on GitHub")}
-          title={t("actions.openOnGitHub", "Open on GitHub")}
-        >
-          <SquareArrowOutUpRight size={14} strokeWidth={2} />
-        </a>
+      {/* GitHub-style PR navigation */}
+      <div
+        role="tablist"
+        aria-label={t("git.pr.summary.label", "Pull request summary")}
+        className="flex h-10 shrink-0 items-end gap-1 border-b border-border-2 bg-bg-2 px-3"
+      >
+        {tabs.map((tab) => {
+          const selected = activeTab === tab.key;
+          return (
+            <button
+              key={tab.key}
+              type="button"
+              role="tab"
+              id={`pr-detail-tab-${tab.key}`}
+              aria-controls={`pr-detail-tabpanel-${tab.key}`}
+              aria-selected={selected}
+              className={`relative -mb-px flex h-9 shrink-0 items-center gap-1.5 rounded-t-md border px-3 text-[12px] font-medium transition-colors ${
+                selected
+                  ? "border-border-2 bg-bg-2 text-text-1 after:absolute after:-bottom-px after:left-0 after:right-0 after:h-px after:bg-bg-2"
+                  : "border-transparent text-text-3 hover:bg-fill-1 hover:text-text-1"
+              }`}
+              onClick={() => setActiveTab(tab.key)}
+            >
+              <span className="shrink-0" aria-hidden>
+                {tab.icon}
+              </span>
+              <span>{tab.label}</span>
+              <span className="inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-fill-2 px-1.5 text-[10px] font-semibold tabular-nums text-text-2">
+                {tab.count}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       {/* Error banner */}
@@ -377,7 +423,12 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
       ) : null}
 
       {/* Active tab */}
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+      <div
+        role="tabpanel"
+        id={`pr-detail-tabpanel-${activeTab}`}
+        aria-labelledby={`pr-detail-tab-${activeTab}`}
+        className="flex min-h-0 flex-1 flex-col overflow-hidden"
+      >
         {activeTab === "conversation" && (
           <PrConversationTab
             summary={

@@ -22,10 +22,6 @@ import {
 
 import { PrDetailPanel } from "./PrDetailPanel";
 
-const mocks = vi.hoisted(() => ({
-  tabPillProps: null as Record<string, unknown> | null,
-}));
-
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string, fallback?: string | Record<string, unknown>) => {
@@ -39,13 +35,6 @@ vi.mock("react-i18next", () => ({
       return template.replace("{{count}}", String(count));
     },
   }),
-}));
-
-vi.mock("@src/components/TabPill", () => ({
-  default: (props: Record<string, unknown>) => {
-    mocks.tabPillProps = props;
-    return createElement("div", { "data-testid": "pr-detail-tabs" });
-  },
 }));
 
 vi.mock("@src/components/IntegrationIcon", () => ({
@@ -87,7 +76,6 @@ describe("PrDetailPanel tabs", () => {
   });
 
   beforeEach(() => {
-    mocks.tabPillProps = null;
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -102,7 +90,7 @@ describe("PrDetailPanel tabs", () => {
     Reflect.deleteProperty(actEnvironment, "IS_REACT_ACT_ENVIRONMENT");
   });
 
-  it("uses the standard pill treatment instead of the inline button group", () => {
+  it("renders GitHub-style PR navigation with icons, counts, and tab semantics", () => {
     const store = createStore();
     const scopeKey = workstationPrScopeKey(undefined, "/repo", 42);
     store.set(workstationSelectedPrAtomFamily(scopeKey), {
@@ -119,7 +107,7 @@ describe("PrDetailPanel tabs", () => {
           createElement(PrDetailPanel, {
             identity: {
               number: 42,
-              title: "Use shared TabPill",
+              title: "Use GitHub-style navigation",
               url: "https://github.com/org/repo/pull/42",
               status: "open",
               headBranch: "feature/tab-pill",
@@ -132,33 +120,30 @@ describe("PrDetailPanel tabs", () => {
       );
     });
 
-    expect(mocks.tabPillProps).toMatchObject({
-      variant: "pill",
-      color: "fill",
-      fillWidth: false,
-      size: "small",
-    });
-    expect(mocks.tabPillProps?.buttonStyle).toBeUndefined();
-    expect(mocks.tabPillProps?.height).toBeUndefined();
-    const commitsTab = (
-      mocks.tabPillProps?.tabs as
-        | Array<{
-            key: string;
-            badge?: { props?: { className?: string } };
-          }>
-        | undefined
-    )?.find((tab) => tab.key === "commits");
-    expect(commitsTab?.badge?.props?.className).toContain("font-semibold");
-    expect(commitsTab?.badge?.props?.className).not.toContain("rounded-full");
-    expect(commitsTab?.badge?.props?.className).not.toContain("bg-fill-2");
+    const tabList = container.querySelector('[role="tablist"]');
+    const tabs = Array.from(
+      tabList?.querySelectorAll<HTMLButtonElement>('[role="tab"]') ?? []
+    );
+    expect(tabs.map((tab) => tab.textContent)).toEqual([
+      "Conversation0",
+      "Commits1",
+      "Checks0",
+      "Files changed0",
+    ]);
+    expect(tabs[0]?.getAttribute("aria-selected")).toBe("true");
+    expect(tabs[0]?.className).toContain("rounded-t-md");
+    expect(tabList?.className).toContain("border-b");
+    expect(tabList?.className).not.toContain("border-t");
 
     act(() => {
-      (mocks.tabPillProps?.onChange as ((key: string) => void) | undefined)?.(
-        "changes"
-      );
+      tabs[3]?.click();
     });
     expect(store.get(workstationPrDetailTabAtomFamily(scopeKey))).toBe(
       "changes"
+    );
+    expect(tabs[3]?.getAttribute("aria-selected")).toBe("true");
+    expect(container.querySelector('[role="tabpanel"]')?.id).toBe(
+      "pr-detail-tabpanel-changes"
     );
   });
 
@@ -196,9 +181,6 @@ describe("PrDetailPanel tabs", () => {
               baseBranch: "develop",
             },
             repoPath: "/repo",
-            headerActions: createElement("button", {
-              "data-testid": "host-header-action",
-            }),
           })
         )
       );
@@ -212,9 +194,18 @@ describe("PrDetailPanel tabs", () => {
     expect(header?.className).toContain("h-10");
     expect(header?.className).toContain("!pl-4");
     expect(header?.className).toContain("!pr-[7px]");
+    expect(header?.className).not.toContain("border-b");
+    const externalLink = header?.querySelector(
+      'a[aria-label="Open on GitHub"]'
+    );
+    expect(externalLink?.getAttribute("href")).toBe(
+      "https://github.com/org/repo/pull/42"
+    );
+    expect(externalLink?.getAttribute("target")).toBe("_blank");
+    expect(externalLink?.getAttribute("style")).toContain("height: 28px");
     expect(
-      header?.querySelector('[data-testid="host-header-action"]')
-    ).not.toBeNull();
+      container.querySelectorAll('a[aria-label="Open on GitHub"]')
+    ).toHaveLength(1);
     expect(header?.textContent).toContain("Use compact PR metadata");
     expect(header?.textContent).not.toContain("develop");
     expect(header?.textContent).not.toContain(
@@ -229,6 +220,14 @@ describe("PrDetailPanel tabs", () => {
     expect(summary?.textContent).toContain("+2,313");
     expect(summary?.textContent).toContain("-217");
     expect(summary?.textContent).toContain("Reviewers");
+    const reviewers = summary?.querySelector(
+      "[data-testid='pr-summary-reviewers']"
+    );
+    expect(reviewers?.textContent).toContain("reviewer");
+    expect(reviewers?.querySelector("img")?.getAttribute("src")).toBe(
+      "https://example.com/reviewer.png"
+    );
+    expect(reviewers?.className).toContain("items-center");
     expect(summary?.textContent).toContain("Comments");
     expect(summary?.textContent).toContain("1 comment");
     expect(summary?.textContent).toContain("Checks");
@@ -238,6 +237,7 @@ describe("PrDetailPanel tabs", () => {
     expect(summary?.className).not.toContain("border-b");
     expect(summary?.firstElementChild?.className).toContain("px-6");
     expect(summary?.firstElementChild?.className).toContain("pt-4");
+    expect(summary?.firstElementChild?.className).toContain("items-center");
     expect(summary?.firstElementChild?.className).not.toContain("py-4");
   });
 });

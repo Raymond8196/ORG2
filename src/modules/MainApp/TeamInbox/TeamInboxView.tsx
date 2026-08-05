@@ -1,4 +1,4 @@
-import { Globe } from "lucide-react";
+import { Globe, SquareArrowOutUpRight } from "lucide-react";
 import React, {
   useCallback,
   useEffect,
@@ -54,6 +54,8 @@ export interface TeamInboxViewProps {
   pullRequestsLoading?: boolean;
   pullRequestsError?: string | null;
   onRefreshPullRequests?: () => void;
+  /** Explicit header action; row selection always stays in the right pane. */
+  onOpenPullRequestTab?: (pullRequest: ManagedPrItem) => void;
 }
 
 const PullRequestDetailPanel = React.lazy(() =>
@@ -89,6 +91,7 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
   pullRequestsLoading = false,
   pullRequestsError = null,
   onRefreshPullRequests,
+  onOpenPullRequestTab,
 }) => {
   const { t } = useTranslation();
   const [filter, setFilter] = useState<TeamInboxFilter>(initialFilter);
@@ -447,14 +450,36 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
             repoPath={selectedPullRequest.repoPath}
             repoId={selectedPullRequest.repoId}
             headerActions={
-              <TeamInboxHeaderIconAction
-                label={t("previews.openInBrowser")}
-                icon={<Globe size={14} strokeWidth={1.75} aria-hidden />}
-                onClick={() =>
-                  void openExternalLink(selectedPullRequestIdentity.url)
-                }
-                testId="team-inbox-open-github-pr"
-              />
+              <div
+                className="flex items-center gap-px"
+                data-testid="team-inbox-pr-detail-actions"
+              >
+                <TeamInboxHeaderIconAction
+                  label={t("previews.openInBrowser")}
+                  icon={<Globe size={14} strokeWidth={1.75} aria-hidden />}
+                  onClick={() =>
+                    void openExternalLink(selectedPullRequestIdentity.url)
+                  }
+                  testId="team-inbox-open-github-pr"
+                />
+                {onOpenPullRequestTab ? (
+                  <TeamInboxHeaderIconAction
+                    label={t(
+                      "teamInbox.actions.openPullRequest",
+                      "Open pull request"
+                    )}
+                    icon={
+                      <SquareArrowOutUpRight
+                        size={14}
+                        strokeWidth={1.75}
+                        aria-hidden
+                      />
+                    }
+                    onClick={() => onOpenPullRequestTab(selectedPullRequest)}
+                    testId="team-inbox-open-pr-tab"
+                  />
+                ) : null}
+              </div>
             }
           />
         </React.Suspense>

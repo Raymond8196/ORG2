@@ -12,6 +12,7 @@ import React, { memo, useCallback, useMemo } from "react";
 import { usePublishWorkstationTabHeader } from "@src/hooks/workStation";
 import { useWorkStationTabs } from "@src/hooks/workStation/tabs/useWorkStationTabs";
 import {
+  PrDetailExternalLinkButton,
   PrDetailHeaderContent,
   PrDetailPanel,
 } from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/PullRequestContent/detail/PrDetailPanel";
@@ -65,9 +66,19 @@ const GitHubPrDetailTabRenderer: React.FC<UnifiedTabContentProps> = memo(
       [identity]
     );
 
+    const headerTrailing = useMemo(
+      () => <PrDetailExternalLinkButton identity={identity} />,
+      [identity]
+    );
+
     usePublishWorkstationTabHeader({
       host: "code",
-      content: { content: headerContent, sidebarToggleDisabled: true },
+      content: {
+        content: headerContent,
+        trailing: headerTrailing,
+        sidebarToggleDisabled: true,
+        joinWithFollowingRow: true,
+      },
     });
 
     return (

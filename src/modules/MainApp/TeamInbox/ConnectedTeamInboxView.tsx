@@ -1,5 +1,8 @@
-import { useAtomValue } from "jotai";
-import React from "react";
+import { useAtomValue, useSetAtom } from "jotai";
+import React, { useCallback } from "react";
+
+import type { ManagedPrItem } from "@src/modules/MainApp/WorkManagement/githubManagedItemModel";
+import { openGitHubPrInChatPanelTabAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
 
 import TeamInboxView from "./TeamInboxView";
 import { teamInboxItemFocusRequestAtom } from "./store";
@@ -12,6 +15,22 @@ const ConnectedTeamInboxView: React.FC = () => {
   const pullRequests = useTeamInboxPullRequests();
   const focusRequest = useAtomValue(teamInboxItemFocusRequestAtom);
   const navigate = useTeamInboxNavigation();
+  const openPrInChatPanel = useSetAtom(openGitHubPrInChatPanelTabAtom);
+  const openPullRequestTab = useCallback(
+    (pullRequest: ManagedPrItem) => {
+      openPrInChatPanel({
+        prNumber: pullRequest.id,
+        prTitle: pullRequest.title,
+        prUrl: pullRequest.rawPr.url,
+        prStatus: pullRequest.rawPr.draft ? "draft" : pullRequest.state,
+        headBranch: pullRequest.sourceBranch,
+        baseBranch: pullRequest.targetBranch,
+        repoPath: pullRequest.repoPath,
+        repoId: pullRequest.repoId,
+      });
+    },
+    [openPrInChatPanel]
+  );
   return (
     <TeamInboxView
       dataSource={dataSource}
@@ -22,6 +41,7 @@ const ConnectedTeamInboxView: React.FC = () => {
       pullRequestsLoading={pullRequests.loading}
       pullRequestsError={pullRequests.error}
       onRefreshPullRequests={pullRequests.refresh}
+      onOpenPullRequestTab={openPullRequestTab}
     />
   );
 };

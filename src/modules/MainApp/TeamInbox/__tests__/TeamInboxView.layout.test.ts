@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { Globe } from "lucide-react";
+import { Globe, SquareArrowOutUpRight } from "lucide-react";
 import React, { act, createElement } from "react";
 import { type Root, createRoot } from "react-dom/client";
 import {
@@ -357,6 +357,7 @@ describe("TeamInboxView split layout", () => {
 
   it("opens a selected pull request in the Team Inbox right pane", async () => {
     const pullRequest = createPullRequest();
+    const onOpenPullRequestTab = vi.fn();
 
     await act(async () => {
       root.render(
@@ -365,6 +366,7 @@ describe("TeamInboxView split layout", () => {
             listPage: async () => ({ items: [], nextCursor: null }),
           },
           pullRequests: [pullRequest],
+          onOpenPullRequestTab,
         })
       );
       await Promise.resolve();
@@ -396,21 +398,36 @@ describe("TeamInboxView split layout", () => {
         baseBranch: "main",
       },
     });
+    expect(onOpenPullRequestTab).not.toHaveBeenCalled();
     const headerActions = componentProps.prDetail
       ?.headerActions as React.ReactElement<{
-      label: string;
-      icon: React.ReactElement;
-      onClick: () => void;
-      testId: string;
+      className: string;
+      children: React.ReactNode;
     }>;
     expect(React.isValidElement(headerActions)).toBe(true);
-    expect(headerActions.props.label).toBe("previews.openInBrowser");
-    expect(headerActions.props.icon.type).toBe(Globe);
-    expect(headerActions.props.testId).toBe("team-inbox-open-github-pr");
-    act(() => headerActions.props.onClick());
+    expect(headerActions.props.className).toContain("gap-px");
+    const [browserAction, tabAction] = React.Children.toArray(
+      headerActions.props.children
+    ) as Array<
+      React.ReactElement<{
+        label: string;
+        icon: React.ReactElement;
+        onClick: () => void;
+        testId: string;
+      }>
+    >;
+    expect(browserAction.props.label).toBe("previews.openInBrowser");
+    expect(browserAction.props.icon.type).toBe(Globe);
+    expect(browserAction.props.testId).toBe("team-inbox-open-github-pr");
+    expect(tabAction.props.label).toBe("teamInbox.actions.openPullRequest");
+    expect(tabAction.props.icon.type).toBe(SquareArrowOutUpRight);
+    expect(tabAction.props.testId).toBe("team-inbox-open-pr-tab");
+    act(() => browserAction.props.onClick());
     expect(openExternalLink).toHaveBeenCalledWith(
       "https://github.com/orgii/desktop/pull/42"
     );
+    act(() => tabAction.props.onClick());
+    expect(onOpenPullRequestTab).toHaveBeenCalledWith(pullRequest);
   });
 
   it("marks an unread item as read when its detail becomes visible", async () => {
