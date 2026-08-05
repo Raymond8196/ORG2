@@ -6,6 +6,8 @@
 //! - OAuth tokens from local databases
 
 mod claude;
+#[cfg(any(windows, test))]
+mod claude_windows;
 mod codex;
 mod copilot;
 mod cursor;

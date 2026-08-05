@@ -3937,10 +3937,12 @@ dependencies = [
  "tokio",
  "tokio-rustls",
  "tracing",
+ "unicode-normalization",
  "url",
  "urlencoding",
  "uuid",
  "windows-sys 0.60.2",
+ "zeroize",
 ]
 
 [[package]]

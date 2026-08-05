@@ -43,6 +43,8 @@ tracing = "0.1.37"
 uuid = { version = "1", features = ["v4"] }
 dirs = "6.0"
 sha2 = "0.10"
+unicode-normalization = "0.1"
+zeroize = "1.8"
 
 # `auto_detect/cursor.rs` reads the Cursor IDE's SQLite vault to capture the
 # user's existing session token; the encoded value is base64.
@@ -66,6 +68,7 @@ libc = "0.2"
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.60", features = [
     "Win32_Foundation",
+    "Win32_Security_Credentials",
     "Win32_System_Diagnostics_ToolHelp",
     "Win32_System_Threading",
 ] }

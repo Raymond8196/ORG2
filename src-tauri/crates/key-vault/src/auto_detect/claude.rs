@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::env;
 use std::fs;
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", windows))]
 use std::path::Path;
 use std::path::PathBuf;
 
@@ -21,6 +21,7 @@ const CLAUDE_CODE_TOKEN_REFRESH_SKEW_SECONDS: i64 = 60;
 const CLAUDE_CODE_OAUTH_PROFILE_URL: &str = "https://api.anthropic.com/api/oauth/profile";
 const CLAUDE_CODE_OAUTH_BETA: &str = "oauth-2025-04-20";
 const CLAUDE_CODE_OAUTH_USER_AGENT: &str = "claude-cli/2.1.78 (orgii, cli)";
+pub(super) const CLAUDE_SECURESTORAGE_CONFIG_DIR_ENV: &str = "CLAUDE_SECURESTORAGE_CONFIG_DIR";
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -233,7 +234,18 @@ async fn read_claude_config(path: &std::path::PathBuf) -> Option<DetectedKey> {
 }
 
 async fn detect_claude_code_oauth() -> Option<DetectedKey> {
-    let credentials_json = read_local_claude_credentials()?;
+    // Credential Manager can require multiple bounded reads for Claude's
+    // chunked format, so keep all local credential I/O off the async executor.
+    let credentials_json = match tokio::task::spawn_blocking(read_local_claude_credentials).await {
+        Ok(credentials) => credentials?,
+        Err(err) => {
+            tracing::warn!(
+                error = %err,
+                "auto_detect::claude: local OAuth credential task failed; skipping"
+            );
+            return None;
+        }
+    };
     let credentials = parse_claude_oauth_credentials(&credentials_json)?;
     let access_token = credentials.access_token?.trim().to_string();
     if access_token.is_empty() {
@@ -308,14 +320,26 @@ fn read_local_claude_credentials() -> Option<String> {
 
 fn get_claude_credentials_paths() -> Vec<PathBuf> {
     let mut paths = vec![];
-    if let Ok(config_dir) = env::var("CLAUDE_CONFIG_DIR") {
+    if let Ok(config_dir) = env::var(CLAUDE_SECURESTORAGE_CONFIG_DIR_ENV) {
         let trimmed = config_dir.trim();
         if !trimmed.is_empty() {
             paths.push(PathBuf::from(trimmed).join(".credentials.json"));
         }
     }
+    if let Ok(config_dir) = env::var("CLAUDE_CONFIG_DIR") {
+        let trimmed = config_dir.trim();
+        if !trimmed.is_empty() {
+            let path = PathBuf::from(trimmed).join(".credentials.json");
+            if !paths.contains(&path) {
+                paths.push(path);
+            }
+        }
+    }
     if let Some(home) = get_home_dir() {
-        paths.push(home.join(".claude/.credentials.json"));
+        let path = home.join(".claude/.credentials.json");
+        if !paths.contains(&path) {
+            paths.push(path);
+        }
     }
     paths
 }
@@ -483,7 +507,12 @@ fn read_claude_keychain_credentials() -> Option<String> {
     None
 }
 
-#[cfg(not(target_os = "macos"))]
+#[cfg(windows)]
+fn read_claude_keychain_credentials() -> Option<String> {
+    super::claude_windows::read_credentials()
+}
+
+#[cfg(not(any(target_os = "macos", windows)))]
 fn read_claude_keychain_credentials() -> Option<String> {
     None
 }
@@ -491,23 +520,37 @@ fn read_claude_keychain_credentials() -> Option<String> {
 #[cfg(target_os = "macos")]
 fn get_claude_keychain_config_dirs() -> Vec<PathBuf> {
     let mut config_dirs = Vec::new();
-    if let Ok(config_dir) = env::var("CLAUDE_CONFIG_DIR") {
+    if let Ok(config_dir) = env::var(CLAUDE_SECURESTORAGE_CONFIG_DIR_ENV) {
         let trimmed = config_dir.trim();
         if !trimmed.is_empty() {
             config_dirs.push(PathBuf::from(trimmed));
         }
     }
+    if let Ok(config_dir) = env::var("CLAUDE_CONFIG_DIR") {
+        let trimmed = config_dir.trim();
+        if !trimmed.is_empty() {
+            let path = PathBuf::from(trimmed);
+            if !config_dirs.contains(&path) {
+                config_dirs.push(path);
+            }
+        }
+    }
     if let Some(home) = get_home_dir() {
-        config_dirs.push(home.join(".claude"));
+        let path = home.join(".claude");
+        if !config_dirs.contains(&path) {
+            config_dirs.push(path);
+        }
     }
     config_dirs
 }
 
-#[cfg(target_os = "macos")]
-fn scoped_claude_keychain_service(config_dir: &Path) -> String {
+#[cfg(any(target_os = "macos", windows))]
+pub(super) fn scoped_claude_keychain_service(config_dir: &Path) -> String {
     use sha2::{Digest, Sha256};
+    use unicode_normalization::UnicodeNormalization;
 
-    let suffix = Sha256::digest(config_dir.to_string_lossy().as_bytes());
+    let normalized = config_dir.to_string_lossy().nfc().collect::<String>();
+    let suffix = Sha256::digest(normalized.as_bytes());
     format!("Claude Code-credentials-{:x}", suffix)
         .chars()
         .take("Claude Code-credentials-".len() + 8)
