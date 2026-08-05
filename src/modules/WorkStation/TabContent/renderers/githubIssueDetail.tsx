@@ -11,9 +11,9 @@ import React, { memo, useCallback, useMemo } from "react";
 import { usePublishWorkstationTabHeader } from "@src/hooks/workStation";
 import {
   IssueDetailExternalLinkButton,
-  IssueDetailHeaderContent,
   IssueDetailPanel,
 } from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/IssuesContent/IssueDetailPanel";
+import GitHubIssueHeaderContent from "@src/modules/shared/components/GitHubIssueHeaderContent";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 import {
   addIssueComment,
@@ -138,7 +138,7 @@ const GitHubIssueDetailTabRenderer: React.FC<UnifiedTabContentProps> = memo(
 
     const headerContent = useMemo(
       () => (
-        <IssueDetailHeaderContent
+        <GitHubIssueHeaderContent
           issue={selectedState.issue}
           fallbackTitle={tab.title}
         />

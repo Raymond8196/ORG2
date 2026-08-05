@@ -206,7 +206,9 @@ describe("PrDetailPanel tabs", () => {
       "[data-testid='pr-detail-summary']"
     );
 
-    expect(header?.className).toContain("h-[40px]");
+    expect(header?.className).toContain("h-10");
+    expect(header?.className).toContain("!pl-4");
+    expect(header?.className).toContain("!pr-2");
     expect(header?.textContent).toContain("Use compact PR metadata");
     expect(header?.textContent).not.toContain("develop");
     expect(header?.textContent).not.toContain(

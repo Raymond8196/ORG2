@@ -11,7 +11,6 @@
  */
 import { useAtom, useAtomValue } from "jotai";
 import {
-  ArrowUpRight,
   CheckCircle2,
   ChevronRight,
   CircleDot,
@@ -19,6 +18,7 @@ import {
   GitBranch,
   GitMerge,
   MessageCircle,
+  SquareArrowOutUpRight,
 } from "lucide-react";
 import React, { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -32,8 +32,7 @@ import Avatar from "@src/components/Avatar";
 import TabPill from "@src/components/TabPill";
 import type { TabPillItem } from "@src/components/TabPill";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
-import { HEADER_CLASSES } from "@src/config/workstation/tokens";
-import { Placeholder } from "@src/modules/shared/layouts/blocks";
+import { PanelHeader, Placeholder } from "@src/modules/shared/layouts/blocks";
 import {
   type PrDetailTab,
   type PrIdentity,
@@ -334,12 +333,13 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
     <div className="allow-select-deep flex h-full min-h-0 flex-col overflow-hidden">
       {/* Header */}
       {showHeader ? (
-        <div
-          className={HEADER_CLASSES.pageHeader}
-          data-testid="pr-detail-header"
+        <PanelHeader
+          borderBottom
+          className={DETAIL_PANEL_TOKENS.headerPadding}
+          dataTestId="pr-detail-header"
         >
           <PrDetailHeaderContent identity={identity} />
-        </div>
+        </PanelHeader>
       ) : null}
 
       {/* Sub-tab bar */}
@@ -361,7 +361,7 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
           aria-label={t("actions.openOnGitHub", "Open on GitHub")}
           title={t("actions.openOnGitHub", "Open on GitHub")}
         >
-          <ArrowUpRight size={14} strokeWidth={2} />
+          <SquareArrowOutUpRight size={14} strokeWidth={2} />
         </a>
       </div>
 

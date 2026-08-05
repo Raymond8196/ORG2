@@ -1,4 +1,4 @@
-import { CheckCircle2, CircleDot, Globe } from "lucide-react";
+import { SquareArrowOutUpRight } from "lucide-react";
 import React, { memo, useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -7,7 +7,6 @@ import type {
   GitHubIssueTimelineItem,
 } from "@src/api/tauri/github";
 import Button from "@src/components/Button";
-import IntegrationIcon from "@src/components/IntegrationIcon";
 import { ISSUE_PANEL_WIDTH_TOKENS } from "@src/config/detailPanelTokens";
 import {
   HEADER_CLASSES,
@@ -17,6 +16,7 @@ import { CloudSessionReferencePreview } from "@src/features/Org2Cloud/CloudSessi
 import { useSessionReferenceDropTarget } from "@src/features/Org2Cloud/useSessionReferenceDropTarget";
 import { GitHubIssueThreadSurface } from "@src/modules/ProjectManager/WorkItems/components";
 import type { WorkItemExternalAssigneeConfig } from "@src/modules/ProjectManager/WorkItems/components/WorkItemProperties/types";
+import GitHubIssueHeaderContent from "@src/modules/shared/components/GitHubIssueHeaderContent";
 import RichMarkdownEditor from "@src/modules/shared/components/RichMarkdownEditor";
 import type { RichMarkdownEditorRef } from "@src/modules/shared/components/RichMarkdownEditor";
 
@@ -32,62 +32,8 @@ interface IssueDetailPanelProps {
   assigneeConfig?: WorkItemExternalAssigneeConfig;
 }
 
-function IssueStateIcon({ isOpen }: { isOpen: boolean }): React.ReactNode {
-  if (isOpen) return <CircleDot size={14} strokeWidth={1.8} />;
-  return <CheckCircle2 size={14} strokeWidth={1.8} />;
-}
-
-function getIssueStateClassName(issue: GitHubIssue): string {
-  return issue.state === "open" ? "text-success-6" : "text-purple-6";
-}
-
 export function getIssueDetailTitle(issue: GitHubIssue): string {
   return `#${issue.number} ${issue.title}`;
-}
-
-export function IssueDetailHeaderContent({
-  issue,
-  fallbackTitle,
-}: {
-  issue: GitHubIssue | null;
-  fallbackTitle?: string;
-}): React.ReactNode {
-  if (!issue) {
-    return fallbackTitle ? (
-      <span className="flex min-w-0 flex-1 items-center gap-2">
-        <IntegrationIcon
-          type="github"
-          size={HEADER_ICON_SIZE.sm}
-          className="shrink-0"
-        />
-        <span className="min-w-0 select-text truncate text-[13px] font-medium text-text-1">
-          {fallbackTitle}
-        </span>
-      </span>
-    ) : null;
-  }
-
-  return (
-    <span className="flex min-w-0 flex-1 items-center gap-2">
-      <IntegrationIcon
-        type="github"
-        size={HEADER_ICON_SIZE.sm}
-        className="shrink-0"
-      />
-      <span className={`shrink-0 ${getIssueStateClassName(issue)}`}>
-        <IssueStateIcon isOpen={issue.state === "open"} />
-      </span>
-      <span className="shrink-0 select-text text-[11px] text-text-3">
-        #{issue.number}
-      </span>
-      <span
-        className="min-w-0 flex-1 select-text truncate text-[13px] font-medium text-text-1"
-        title={issue.title}
-      >
-        {issue.title}
-      </span>
-    </span>
-  );
 }
 
 export function IssueDetailExternalLinkButton({
@@ -105,7 +51,9 @@ export function IssueDetailExternalLinkButton({
       variant="tertiary"
       size="small"
       iconOnly
-      icon={<Globe size={HEADER_ICON_SIZE.sm} strokeWidth={1.75} />}
+      icon={
+        <SquareArrowOutUpRight size={HEADER_ICON_SIZE.sm} strokeWidth={1.75} />
+      }
       title={title}
       aria-label={title}
     />
@@ -166,7 +114,7 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = memo(
       <div className="allow-select-deep flex h-full min-h-0 select-text flex-col overflow-hidden">
         {showHeader && (
           <div className={HEADER_CLASSES.pageHeader}>
-            <IssueDetailHeaderContent issue={issue} />
+            <GitHubIssueHeaderContent issue={issue} />
             <IssueDetailExternalLinkButton issue={issue} />
           </div>
         )}

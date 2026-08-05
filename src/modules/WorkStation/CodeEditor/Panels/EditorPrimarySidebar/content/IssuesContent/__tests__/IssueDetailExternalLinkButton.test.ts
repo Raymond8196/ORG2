@@ -82,7 +82,7 @@ describe("IssueDetailExternalLinkButton", () => {
     );
     expect(markup).toContain('target="_blank"');
     expect(markup).toContain('aria-label="Open on GitHub"');
-    expect(markup).toContain('class="lucide lucide-globe');
+    expect(markup).toContain('class="lucide lucide-square-arrow-out-up-right');
     expect(markup).toContain("enabled:hover:bg-surface-hover");
   });
 

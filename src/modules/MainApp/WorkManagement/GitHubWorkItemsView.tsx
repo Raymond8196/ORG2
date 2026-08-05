@@ -15,11 +15,11 @@ import type { WorkItemExternalAssigneeConfig } from "@src/modules/ProjectManager
 import ProjectManagerBreadcrumb from "@src/modules/ProjectManager/shared/components/ProjectManagerBreadcrumb";
 import {
   IssueDetailExternalLinkButton,
-  IssueDetailHeaderContent,
   IssueDetailPanel,
   getIssueDetailTitle,
 } from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/IssuesContent/IssueDetailPanel";
 import { PrDetailHeaderContent } from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/PullRequestContent/detail/PrDetailHeaderContent";
+import GitHubIssueHeaderContent from "@src/modules/shared/components/GitHubIssueHeaderContent";
 import {
   WorkManagementTable,
   type WorkManagementTableRow,
@@ -166,7 +166,7 @@ export function GitHubIssueDetailBreadcrumb({
         },
         {
           label: getIssueDetailTitle(issue),
-          content: <IssueDetailHeaderContent issue={issue} />,
+          content: <GitHubIssueHeaderContent issue={issue} />,
           fillAvailableWidth: true,
         },
       ]}
@@ -208,11 +208,7 @@ export function GitHubPrDetailBreadcrumb({
         },
         {
           label: `#${identity.number} ${identity.title}`,
-          content: (
-            <span className="flex min-w-0 flex-1 items-center gap-2">
-              <PrDetailHeaderContent identity={identity} />
-            </span>
-          ),
+          content: <PrDetailHeaderContent identity={identity} />,
           fillAvailableWidth: true,
         },
       ]}
