@@ -257,9 +257,10 @@ mod tests_extended {
     #[test]
     fn get_builtin_agents_count_matches_registry() {
         // ADE Manager, base, os, sde, ds, ai-research, wingman,
-        // explore, general, memory-extractor, memory-consolidator
-        // (gui-control merged into ADE Manager; work-item-manager retired —
-        // manage_work_item/manage_project are ordinary tools on OS Agent)
+        // explore, general, memory-extractor, memory-consolidator.
+        // Historical: gui-control merged into ADE Manager; the dedicated
+        // PM persona was retired (Orgtrack migration Phase 1) — its
+        // tools are ordinary built-ins on OS Agent.
         let agents = get_builtin_agents();
         assert_eq!(agents.len(), 11);
     }
