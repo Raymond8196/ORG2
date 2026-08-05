@@ -12,7 +12,6 @@ import type { WorkspaceSnapshot } from "@src/services/context/workspaceSnapshot"
 import type { SessionStatus } from "@src/types/session/session";
 
 import type {
-  AgentExecModeConfig,
   AgentStatusInfo,
   DeleteSessionReceipt,
   FileResolution,
@@ -398,10 +397,6 @@ export async function revertFile(
 
 export async function getTodos(sessionId: string): Promise<TodoItem[]> {
   return rpc.agentSession.getTodos({ sessionId });
-}
-
-export async function listModes(): Promise<AgentExecModeConfig[]> {
-  return rpc.agentSession.listModes();
 }
 
 export async function resolveReview(sessionId: string): Promise<number> {

@@ -1,7 +1,6 @@
 import { z } from "zod/v4";
 
 import type {
-  AgentExecModeConfig,
   AgentStatusInfo,
   DeleteSessionReceipt,
   FileResolution,
@@ -322,12 +321,6 @@ export const TodoItemSchema = z.object({
   activeForm: z.string().optional(),
   status: z.enum(["pending", "in_progress", "completed", "cancelled"]),
 }) as z.ZodType<TodoItem, TodoItem>;
-
-export const AgentExecModeConfigSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  description: z.string(),
-}) as z.ZodType<AgentExecModeConfig, AgentExecModeConfig>;
 
 export const FileResolutionInput = z.object({
   sessionId: z.string(),
