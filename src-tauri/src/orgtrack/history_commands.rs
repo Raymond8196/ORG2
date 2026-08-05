@@ -934,6 +934,9 @@ pub async fn imported_history_cloud_turn_windows(
                 .collect();
         }
         if session_id.starts_with(orgtrack_core::sources::cursor_ide::CURSORIDE_SESSION_PREFIX) {
+            // start_sequence is intentionally unused here: Cursor chunk ids
+            // come from stable bubble ids in the provider DB, not from a
+            // position-derived sequence, so windows are position-independent.
             return turn_ids
                 .into_iter()
                 .map(|turn_id| {

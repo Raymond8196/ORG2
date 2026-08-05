@@ -27,6 +27,14 @@ import type { CloudPushAccess } from "./org2CloudAccessSettings";
 import type { Org2CloudAuthState } from "./org2CloudAuthAtom";
 import { broadcastOrgControlChangedToPeers } from "./org2CloudControlBus";
 import {
+  EVENT_HASH_CONCURRENCY,
+  appendMerkleFrontier,
+  buildMerkleFrontier,
+  hashStringList,
+  isValidMerkleFrontier,
+  merkleFrontierCommitment,
+} from "./org2CloudMerkleFrontier";
+import {
   buildCloudSessionMetadata,
   metadataPayloadForHash,
 } from "./org2CloudSessionSync.metadata";
@@ -65,8 +73,6 @@ const HEAD_READ_AFTER_SEQ = 2_147_483_647;
  */
 export const SESSION_SEGMENT_UPLOAD_BATCH_SIZE = 16;
 
-/** Hash only a bounded event window at once; large CLI histories can be GBs. */
-const EVENT_HASH_CONCURRENCY = 16;
 const IMPORTED_INCREMENTAL_TURN_LIMIT = 50;
 const IMPORTED_INCREMENTAL_SEGMENT_LIMIT = 16;
 
@@ -129,101 +135,6 @@ async function hashEventsBounded(events: SessionEvent[]): Promise<string[]> {
     }
   }
   return hashes;
-}
-
-async function hashStringList(values: readonly string[]): Promise<string> {
-  return sha256Hex(values.join("\n"));
-}
-
-function trimMerkleFrontier(
-  frontier: Array<string | null>
-): Array<string | null> {
-  const trimmed = [...frontier];
-  while (trimmed.at(-1) == null) trimmed.pop();
-  return trimmed;
-}
-
-async function buildMerkleFrontier(
-  eventHashes: readonly string[]
-): Promise<Array<string | null>> {
-  const frontier: Array<string | null> = [];
-  let level = [...eventHashes];
-  let height = 0;
-  while (level.length > 0) {
-    if (level.length % 2 === 1) {
-      frontier[height] = level[level.length - 1];
-      level = level.slice(0, -1);
-    }
-    const parents: string[] = [];
-    for (
-      let start = 0;
-      start < level.length;
-      start += EVENT_HASH_CONCURRENCY * 2
-    ) {
-      const batch = level.slice(start, start + EVENT_HASH_CONCURRENCY * 2);
-      parents.push(
-        ...(await Promise.all(
-          Array.from({ length: batch.length / 2 }, (_, index) =>
-            hashStringList([batch[index * 2], batch[index * 2 + 1]])
-          )
-        ))
-      );
-    }
-    level = parents;
-    height += 1;
-  }
-  return trimMerkleFrontier(frontier);
-}
-
-async function appendMerkleFrontier(
-  current: readonly (string | null)[],
-  currentCount: number,
-  eventHashes: readonly string[]
-): Promise<Array<string | null>> {
-  const frontier = [...current];
-  let count = currentCount;
-  for (const eventHash of eventHashes) {
-    let node = eventHash;
-    let height = 0;
-    while (Math.floor(count / 2 ** height) % 2 === 1) {
-      const left = frontier[height];
-      if (!left) throw new Error("Invalid imported replay Merkle frontier");
-      node = await hashStringList([left, node]);
-      frontier[height] = null;
-      height += 1;
-    }
-    frontier[height] = node;
-    count += 1;
-  }
-  return trimMerkleFrontier(frontier);
-}
-
-async function merkleFrontierCommitment(
-  frontier: readonly (string | null)[],
-  eventCount: number
-): Promise<string> {
-  return sha256Hex(
-    stableStringify({ eventCount, frontier: trimMerkleFrontier([...frontier]) })
-  );
-}
-
-function isValidMerkleFrontier(
-  frontier: readonly (string | null)[],
-  eventCount: number
-): boolean {
-  if (
-    !Number.isSafeInteger(eventCount) ||
-    eventCount < 0 ||
-    frontier.length > 54
-  ) {
-    return false;
-  }
-  let remaining = eventCount;
-  for (const node of frontier) {
-    if (Boolean(node) !== (remaining % 2 === 1)) return false;
-    remaining = Math.floor(remaining / 2);
-  }
-  return remaining === 0;
 }
 
 function lastUserChunkIndex(chunks: readonly ActivityChunk[]): number {
@@ -794,6 +705,37 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
     return merkleFrontierCommitment(frontier, frozenEventCount);
   }
 
+  /**
+   * True when a commitment over this pass's per-event hashes at the cursor's
+   * frozen line reproduces the cursor's stored chain hash in either hash
+   * mode. The cursor's likely mode is tried first; the second pass only runs
+   * across a flat↔merkle transition, which is rare and bounded to in-memory
+   * hashing of the already-loaded hash vector.
+   */
+  private async frozenChainMatchesCursor(
+    cursor: CollabSessionPushCursor,
+    plan: PreparedPushPlan
+  ): Promise<boolean> {
+    const preferred: PreparedPushPlan["frozenHashMode"] = cursor.importedReplay
+      ? "merkle-v1"
+      : "flat-v1";
+    const other: PreparedPushPlan["frozenHashMode"] =
+      preferred === "merkle-v1" ? "flat-v1" : "merkle-v1";
+    for (const mode of [preferred, other]) {
+      const chainAtCursor =
+        cursor.frozenEventCount === plan.frozenEventCount &&
+        mode === plan.frozenHashMode
+          ? plan.frozenChainHash
+          : await this.computeFrozenHashAtCount(
+              plan.perEventHashes,
+              cursor.frozenEventCount,
+              mode
+            );
+      if (chainAtCursor === cursor.frozenChainHash) return true;
+    }
+    return false;
+  }
+
   private preparePushEventsForPass(
     sessionId: string,
     cursor?: CollabSessionPushCursor,
@@ -929,9 +871,12 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
     }
     const shrinkKey = `${orgId}:${sessionId}`;
     let confirmedShrink = false;
-    const preparedPlan = await prepared.plan();
-    if (cursor && preparedPlan.totalEventCount < cursor.pushedCount) {
-      if (preparedPlan.totalEventCount === 0) {
+    // Equals the plan's totalEventCount without forcing the plan: the shrink
+    // dance below returns without pushing on its first observation, and
+    // hashing a GB-scale transcript just to skip would defeat this pass.
+    const observedTotalEventCount = baseEventCount + events.length;
+    if (cursor && observedTotalEventCount < cursor.pushedCount) {
+      if (observedTotalEventCount === 0) {
         // A hollow local read can NEVER authorize erasing the cloud copy.
         // An empty store (wiped cache, missing provider DB, rebuilding
         // import) reads zero on EVERY pass, so consecutive-pass
@@ -950,23 +895,19 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
         return;
       }
       if (
-        this.sessionShrinkCandidates.get(shrinkKey) ===
-        preparedPlan.totalEventCount
+        this.sessionShrinkCandidates.get(shrinkKey) === observedTotalEventCount
       ) {
         this.sessionShrinkCandidates.delete(shrinkKey);
         confirmedShrink = true;
         log.info(
-          `persisted read for ${sessionId} returned ${preparedPlan.totalEventCount} events ` +
+          `persisted read for ${sessionId} returned ${observedTotalEventCount} events ` +
             `on consecutive passes while the cloud cursor covers ` +
             `${cursor.pushedCount}; re-anchoring via epoch rewrite`
         );
       } else {
-        this.sessionShrinkCandidates.set(
-          shrinkKey,
-          preparedPlan.totalEventCount
-        );
+        this.sessionShrinkCandidates.set(shrinkKey, observedTotalEventCount);
         log.warn(
-          `persisted read for ${sessionId} returned ${preparedPlan.totalEventCount} events ` +
+          `persisted read for ${sessionId} returned ${observedTotalEventCount} events ` +
             `but the cloud cursor covers ${cursor.pushedCount}; skipping`
         );
         return;
@@ -975,6 +916,7 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
       this.sessionShrinkCandidates.delete(shrinkKey);
     }
 
+    const preparedPlan = await prepared.plan();
     const {
       perEventHashes,
       frozenHashMode,
@@ -1054,18 +996,19 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
     if (cursor) {
       let frozenIntact =
         !confirmedShrink && frozenEventCount >= cursor.frozenEventCount;
-      const cursorHashMode = cursor.importedReplay ? "merkle-v1" : "flat-v1";
-      frozenIntact = frozenIntact && cursorHashMode === frozenHashMode;
       if (frozenIntact && cursor.frozenEventCount > 0) {
-        const chainAtCursor =
-          cursor.frozenEventCount === frozenEventCount
-            ? frozenChainHash
-            : await this.computeFrozenHashAtCount(
-                perEventHashes,
-                cursor.frozenEventCount,
-                frozenHashMode
-              );
-        frozenIntact = chainAtCursor === cursor.frozenChainHash;
+        // The cursor's commitment may be in either hash mode: flat-v1 cursors
+        // predate the imported-replay checkpoint, a failed turn-id probe
+        // downgrades a checkpointed cursor, and an interrupted batch append
+        // persists a merkle commitment without its checkpoint. Both modes
+        // commit to the same per-event hashes, so intactness accepts a match
+        // in either — an intact history rides the delta append and adopts
+        // this plan's mode there; a mode change alone must never force the
+        // O(total) epoch rewrite.
+        frozenIntact = await this.frozenChainMatchesCursor(
+          cursor,
+          preparedPlan
+        );
       }
 
       if (!frozenIntact) {
@@ -1099,6 +1042,14 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
             scopeKey,
             access
           );
+          if (importedReplay && frozenChainHash !== cursor.frozenChainHash) {
+            // Same content in an upgraded hash mode: converge the local
+            // cursor (a checkpoint plus its merkle commitment) so the next
+            // delta takes the bounded path — no network write is needed.
+            // The downgrade direction deliberately keeps the cursor: a
+            // still-valid checkpoint must survive a transiently failed probe.
+            this.setCursor({ ...cursor, frozenChainHash, importedReplay });
+          }
           this.markEventPlaneClean(orgId, session, stampAtRead);
           return;
         }

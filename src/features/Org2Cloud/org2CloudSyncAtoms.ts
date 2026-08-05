@@ -23,6 +23,8 @@ import { z } from "zod/v4";
 
 import { createZodJsonStorage } from "@src/util/core/storage/zodStorage";
 
+import { MERKLE_FRONTIER_MAX_HEIGHT } from "./org2CloudMerkleFrontier";
+
 function cloudStorageKey(name: string): string {
   return `orgii:org2-cloud-v1:${name}`;
 }
@@ -115,7 +117,9 @@ const CloudPushCursorSchema = z.object({
       retainedChunkCount: z.number().int().nonnegative(),
       frozenOverlapCount: z.number().int().nonnegative(),
       frozenOverlapHash: z.string(),
-      frozenHashFrontier: z.array(z.string().nullable()).max(54),
+      frozenHashFrontier: z
+        .array(z.string().nullable())
+        .max(MERKLE_FRONTIER_MAX_HEIGHT),
     })
     .optional(),
 }) satisfies z.ZodType<CollabSessionPushCursor>;

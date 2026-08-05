@@ -626,8 +626,12 @@ pub(crate) fn load_codex_app_cloud_turn_from_path(
     turn_id: &str,
     start_sequence: usize,
 ) -> Result<Vec<ActivityChunk>, String> {
+    // Error like the Claude reader does: an unparseable id means the caller's
+    // checkpoint is stale or corrupt, and the frontend maps a reader error to
+    // the authoritative full path. A silent empty window would instead be
+    // indistinguishable from a legitimately empty turn.
     let Some(user_offset) = codex_lazy_turn_offset(turn_id) else {
-        return Ok(Vec::new());
+        return Err(format!("Invalid Codex cloud turn id: {turn_id}"));
     };
     let start_offset = codex_cloud_turn_start_offset(path, user_offset)?;
     let (chunks, _, _) = load_codex_app_from_path_with_mode(
@@ -2108,6 +2112,18 @@ mod window_cache_tests {
 
         std::fs::remove_file(&path).expect("remove fixture");
         std::fs::remove_dir(&temp_dir).expect("remove temp dir");
+    }
+
+    #[test]
+    fn cloud_turn_rejects_an_unparseable_turn_id() {
+        let error = load_codex_app_cloud_turn_from_path(
+            "codexapp-cloud-window",
+            Path::new("unused.jsonl"),
+            "not-a-codex-turn-id",
+            0,
+        )
+        .expect_err("invalid id must error, not read as empty");
+        assert!(error.contains("Invalid Codex cloud turn id"));
     }
 
     #[test]
