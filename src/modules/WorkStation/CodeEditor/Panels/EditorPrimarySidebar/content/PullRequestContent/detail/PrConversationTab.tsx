@@ -22,6 +22,7 @@ import type {
 } from "@src/api/tauri/github";
 import Avatar from "@src/components/Avatar";
 import Button from "@src/components/Button";
+import ComposerShell from "@src/components/ComposerShell";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import { CloudSessionReferencePreview } from "@src/features/Org2Cloud/CloudSessionReferencePreview";
 import { useSessionReferenceDropTarget } from "@src/features/Org2Cloud/useSessionReferenceDropTarget";
@@ -230,7 +231,10 @@ export const PrConversationTab: React.FC<PrConversationTabProps> = ({
 
   return (
     <div className="allow-select-deep flex h-full min-h-0 select-text flex-col overflow-hidden">
-      <div className="min-h-0 flex-1 overflow-y-auto scrollbar-hide">
+      <div
+        className="min-h-0 flex-1 overflow-y-auto scrollbar-hide"
+        data-testid="pr-conversation-scroll"
+      >
         {summary}
         <div
           className={`${DETAIL_PANEL_TOKENS.headerWidth} flex flex-col px-4 py-4`}
@@ -334,67 +338,77 @@ export const PrConversationTab: React.FC<PrConversationTabProps> = ({
             )}
           </TimelineStack>
         </div>
-      </div>
 
-      {/* Composer */}
-      <div className="bg-surface-1 flex-shrink-0 border-t border-border-1 px-4 py-3">
-        <div
-          className={`${DETAIL_PANEL_TOKENS.headerWidth} flex flex-col gap-2`}
-        >
-          <div
-            ref={dropTargetRef}
-            className={`rounded-md ${
-              isDragOver ? "ring-2 ring-primary-6" : ""
-            }`.trim()}
-            data-testid="pr-comment-drop-target"
+        <div className={`${DETAIL_PANEL_TOKENS.headerWidth} px-4 pb-4`}>
+          <section
+            data-testid="pr-comment-composer"
+            aria-label={t("git.pr.commentPlaceholder", "Leave a comment…")}
           >
-            <RichMarkdownEditor
-              ref={editorRef}
-              value={draft}
-              onChange={(markdown) => setDraft(markdown)}
-              placeholder={t("git.pr.commentPlaceholder", "Leave a comment…")}
-              minHeight={64}
-              maxHeight={180}
-              appearance="outlined"
-              onSubmit={() => void handleComment()}
-              dataTestId="pr-comment-editor"
-            />
-          </div>
-          <CloudSessionReferencePreview text={draft} />
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <Button
-                htmlType="button"
-                variant="secondary"
-                size="mini"
-                loading={submittingReview}
-                disabled={submittingReview}
-                onClick={() => void handleReview("APPROVE")}
-              >
-                {t("git.pr.approve", "Approve")}
-              </Button>
-              <Button
-                htmlType="button"
-                variant="secondary"
-                size="mini"
-                loading={submittingReview}
-                disabled={submittingReview || !draft.trim()}
-                onClick={() => void handleReview("REQUEST_CHANGES")}
-              >
-                {t("git.pr.requestChanges", "Request changes")}
-              </Button>
-            </div>
-            <Button
-              htmlType="button"
-              variant="primary"
-              size="mini"
-              loading={submittingComment}
-              disabled={!draft.trim() || submittingComment}
-              onClick={() => void handleComment()}
+            <ComposerShell
+              ref={dropTargetRef}
+              variant="default"
+              className={`!gap-0 overflow-visible !p-0 ${
+                isDragOver ? "!ring-2 !ring-primary-6" : ""
+              }`.trim()}
+              data-testid="pr-comment-drop-target"
             >
-              {t("git.pr.comment", "Comment")}
-            </Button>
-          </div>
+              <RichMarkdownEditor
+                ref={editorRef}
+                value={draft}
+                onChange={(markdown) => setDraft(markdown)}
+                placeholder={t("git.pr.commentPlaceholder", "Leave a comment…")}
+                minHeight={140}
+                maxHeight={500}
+                appearance="plain"
+                toolbarMode="inline"
+                editable={!submittingComment && !submittingReview}
+                onSubmit={() => void handleComment()}
+                dataTestId="pr-comment-editor"
+              />
+              <div className="px-3 pb-2">
+                <CloudSessionReferencePreview text={draft} />
+              </div>
+              <div className="flex min-h-11 flex-wrap items-center justify-between gap-2 border-t border-border-2 px-2 py-1.5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    htmlType="button"
+                    variant="secondary"
+                    size="default"
+                    shape="round"
+                    loading={submittingReview}
+                    disabled={submittingReview}
+                    onClick={() => void handleReview("APPROVE")}
+                  >
+                    {t("git.pr.approve", "Approve")}
+                  </Button>
+                  <Button
+                    htmlType="button"
+                    variant="secondary"
+                    size="default"
+                    shape="round"
+                    loading={submittingReview}
+                    disabled={submittingReview || !draft.trim()}
+                    onClick={() => void handleReview("REQUEST_CHANGES")}
+                  >
+                    {t("git.pr.requestChanges", "Request changes")}
+                  </Button>
+                </div>
+                <div className="flex flex-wrap items-center justify-end gap-2">
+                  <Button
+                    htmlType="button"
+                    variant="primary"
+                    size="default"
+                    shape="round"
+                    loading={submittingComment}
+                    disabled={!draft.trim() || submittingComment}
+                    onClick={() => void handleComment()}
+                  >
+                    {t("git.pr.comment", "Comment")}
+                  </Button>
+                </div>
+              </div>
+            </ComposerShell>
+          </section>
         </div>
       </div>
     </div>
