@@ -254,6 +254,73 @@ fn external_shell_agent_completes_a_work_item_end_to_end() {
 }
 
 #[test]
+fn idempotency_replays_and_conflicts() {
+    let _sandbox = test_env::sandbox();
+    seed("demo");
+    let base = [
+        "--mode",
+        "project",
+        "--scope",
+        "demo",
+        "--actor",
+        "agent:cli-tester",
+        "--session-ref",
+        "claude_code:session_idem",
+    ];
+
+    let claim_args = [
+        &["work", "claim", "AAA-0001", "--idempotency-key", "sess:claim"],
+        &base[..],
+    ]
+    .concat();
+    let (exit, first) = run_cli(&claim_args);
+    assert_eq!(exit, 0, "first claim: {first}");
+    assert_eq!(first["data"]["frontmatter"]["status"], "in_progress");
+
+    // Exact replay: returns the stored response instead of re-executing
+    // (a re-run would fail INVALID_TRANSITION — already in_progress).
+    let (exit, replay) = run_cli(&claim_args);
+    assert_eq!(exit, 0, "replayed claim: {replay}");
+    assert_eq!(replay["data"]["frontmatter"]["status"], "in_progress");
+
+    let (exit, done) = run_cli(
+        &[
+            &[
+                "work",
+                "transition",
+                "AAA-0001",
+                "--to",
+                "completed",
+                "--idempotency-key",
+                "sess:finish",
+            ],
+            &base[..],
+        ]
+        .concat(),
+    );
+    assert_eq!(exit, 0, "transition: {done}");
+
+    // Same key, different canonical request -> conflict.
+    let (exit, conflict) = run_cli(
+        &[
+            &[
+                "work",
+                "transition",
+                "AAA-0001",
+                "--to",
+                "open",
+                "--idempotency-key",
+                "sess:finish",
+            ],
+            &base[..],
+        ]
+        .concat(),
+    );
+    assert_eq!(exit, 4, "conflict: {conflict}");
+    assert_eq!(conflict["error"]["code"], "IDEMPOTENCY_CONFLICT");
+}
+
+#[test]
 fn wire_validation_maps_to_stable_codes() {
     let _sandbox = test_env::sandbox();
     seed("demo");

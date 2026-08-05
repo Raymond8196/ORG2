@@ -73,6 +73,31 @@ pub fn dispatch_work(
     }
 }
 
+/// Idempotency guard for mutation commands (§14.4): when the caller
+/// passed `--idempotency-key`, the operation runs at most once per
+/// `(actor, operation, scope, key)`; a replay returns the stored wire
+/// data without re-executing.
+fn guarded(
+    actor_id: &str,
+    operation: &'static str,
+    scope: &str,
+    idempotency_key: Option<&String>,
+    canonical: serde_json::Value,
+    execute: impl FnOnce() -> Result<serde_json::Value, String>,
+) -> Result<serde_json::Value, CliError> {
+    match idempotency_key {
+        None => execute().map_err(CliError::from_service),
+        Some(key) => {
+            match work_service::run_idempotent(actor_id, operation, scope, key, &canonical, execute)
+            {
+                Ok(work_service::IdempotencyOutcome::Fresh(value))
+                | Ok(work_service::IdempotencyOutcome::Replayed(value)) => Ok(value),
+                Err(err) => Err(CliError::from_service(err)),
+            }
+        }
+    }
+}
+
 fn require_short_id(short_id: Option<&String>) -> Result<String, CliError> {
     short_id.cloned().ok_or_else(|| {
         CliError::new(
@@ -171,10 +196,13 @@ fn cmd_work_create(context: &ExecutionContext, flags: &HashMap<String, String>) 
             "work create requires --title",
         ));
     };
-    let short_id = match pio::allocate_short_id(&scope) {
-        Ok(short_id) => short_id,
-        Err(err) => return emit_error(CliError::from_service(err)),
-    };
+    let canonical = serde_json::json!({
+        "op": "work.create",
+        "title": title,
+        "body": flags.get("body"),
+        "status": flags.get("status"),
+        "priority": flags.get("priority"),
+    });
     let request = work_service::CreateWorkItemRequest {
         title: title.clone(),
         body: flags.get("body").cloned().unwrap_or_default(),
@@ -183,12 +211,30 @@ fn cmd_work_create(context: &ExecutionContext, flags: &HashMap<String, String>) 
         created_by: Some(actor.id.clone()),
         ..Default::default()
     };
-    match work_service::create_project_work_item(&scope, &short_id, &request, Some(&actor)) {
-        Ok(item) => {
-            let revision = work_service::read_project_work_item_revision(&scope, &short_id).ok();
-            emit_success(item_to_wire(&item, revision), revision, None)
-        }
-        Err(err) => emit_error(CliError::from_service(err)),
+    let scope_for_exec = scope.clone();
+    let actor_for_exec = actor.clone();
+    let result = guarded(
+        &actor.id,
+        "work.create",
+        &scope,
+        flags.get("idempotency-key"),
+        canonical,
+        move || {
+            let short_id = pio::allocate_short_id(&scope_for_exec)?;
+            let item = work_service::create_project_work_item(
+                &scope_for_exec,
+                &short_id,
+                &request,
+                Some(&actor_for_exec),
+            )?;
+            let revision =
+                work_service::read_project_work_item_revision(&scope_for_exec, &short_id).ok();
+            Ok(item_to_wire(&item, revision))
+        },
+    );
+    match result {
+        Ok(wire) => emit_success(wire, None, None),
+        Err(err) => emit_error(err),
     }
 }
 
@@ -266,34 +312,63 @@ fn cmd_work_claim(
         .get("expected-revision")
         .and_then(|value| value.parse::<i64>().ok());
 
-    // Acquire the claim record first (CAS — fails when another session
-    // holds it), then the strict open -> in_progress transition; roll the
-    // lock back if the transition is rejected.
-    if let Err(err) = pio::acquire_execution_lock(
+    let canonical = serde_json::json!({
+        "op": "work.claim",
+        "shortId": short_id,
+        "sessionRef": format!("{}:{}", session_ref.provider, session_ref.external_id),
+        "expectedRevision": expected_revision,
+    });
+    let scope_for_exec = scope.clone();
+    let short_id_for_exec = short_id.clone();
+    let session_id = session_ref.external_id.clone();
+    let actor_for_exec = actor.clone();
+    let result = guarded(
+        &actor.id,
+        "work.claim",
         &scope,
-        &short_id,
-        &session_ref.external_id,
-        Some("custom"),
-        WorkItemExecutionLockReason::ManualStart,
-    ) {
-        return emit_error(CliError::from_service(err));
-    }
-    match work_service::transition_project_work_item(
-        &scope,
-        &short_id,
-        "in_progress",
-        Some("claimed"),
-        Some(&actor),
-        expected_revision,
-    ) {
-        Ok(item) => {
-            let revision = work_service::read_project_work_item_revision(&scope, &short_id).ok();
-            emit_success(item_to_wire(&item, revision), revision, None)
-        }
-        Err(err) => {
-            let _ = pio::release_execution_lock(&scope, &short_id, &session_ref.external_id);
-            emit_error(CliError::from_service(err))
-        }
+        flags.get("idempotency-key"),
+        canonical,
+        move || {
+            // Acquire the claim record first (CAS — fails when another
+            // session holds it), then the strict open -> in_progress
+            // transition; roll the lock back if the transition is rejected.
+            pio::acquire_execution_lock(
+                &scope_for_exec,
+                &short_id_for_exec,
+                &session_id,
+                Some("custom"),
+                WorkItemExecutionLockReason::ManualStart,
+            )?;
+            match work_service::transition_project_work_item(
+                &scope_for_exec,
+                &short_id_for_exec,
+                "in_progress",
+                Some("claimed"),
+                Some(&actor_for_exec),
+                expected_revision,
+            ) {
+                Ok(item) => {
+                    let revision = work_service::read_project_work_item_revision(
+                        &scope_for_exec,
+                        &short_id_for_exec,
+                    )
+                    .ok();
+                    Ok(item_to_wire(&item, revision))
+                }
+                Err(err) => {
+                    let _ = pio::release_execution_lock(
+                        &scope_for_exec,
+                        &short_id_for_exec,
+                        &session_id,
+                    );
+                    Err(err)
+                }
+            }
+        },
+    );
+    match result {
+        Ok(wire) => emit_success(wire, None, None),
+        Err(err) => emit_error(err),
     }
 }
 
@@ -346,19 +421,44 @@ fn cmd_work_transition(
     let expected_revision = flags
         .get("expected-revision")
         .and_then(|value| value.parse::<i64>().ok());
-    match work_service::transition_project_work_item(
+    let canonical = serde_json::json!({
+        "op": "work.transition",
+        "shortId": short_id,
+        "to": to_state,
+        "reason": flags.get("reason"),
+        "expectedRevision": expected_revision,
+    });
+    let scope_for_exec = scope.clone();
+    let short_id_for_exec = short_id.clone();
+    let to_state_owned = to_state.clone();
+    let reason = flags.get("reason").cloned();
+    let actor_for_exec = actor.clone();
+    let result = guarded(
+        &actor.id,
+        "work.transition",
         &scope,
-        &short_id,
-        to_state,
-        flags.get("reason").map(String::as_str),
-        Some(&actor),
-        expected_revision,
-    ) {
-        Ok(item) => {
-            let revision = work_service::read_project_work_item_revision(&scope, &short_id).ok();
-            emit_success(item_to_wire(&item, revision), revision, None)
-        }
-        Err(err) => emit_error(CliError::from_service(err)),
+        flags.get("idempotency-key"),
+        canonical,
+        move || {
+            let item = work_service::transition_project_work_item(
+                &scope_for_exec,
+                &short_id_for_exec,
+                &to_state_owned,
+                reason.as_deref(),
+                Some(&actor_for_exec),
+                expected_revision,
+            )?;
+            let revision = work_service::read_project_work_item_revision(
+                &scope_for_exec,
+                &short_id_for_exec,
+            )
+            .ok();
+            Ok(item_to_wire(&item, revision))
+        },
+    );
+    match result {
+        Ok(wire) => emit_success(wire, None, None),
+        Err(err) => emit_error(err),
     }
 }
 

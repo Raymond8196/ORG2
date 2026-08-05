@@ -143,6 +143,22 @@ impl CliError {
                 "currentRevision": current,
             }));
         }
+        if let Some(rest) = err.strip_prefix(pm::IDEMPOTENCY_CONFLICT) {
+            let mut parts = rest.trim_start_matches(':').split(':');
+            let operation = parts.next().unwrap_or_default().to_string();
+            let key = parts.next().unwrap_or_default().to_string();
+            return CliError::new(
+                ErrorCode::IdempotencyConflict,
+                format!(
+                    "Idempotency key '{}' was already used with a different canonical request",
+                    key
+                ),
+            )
+            .with_details(serde_json::json!({
+                "idempotencyKey": key,
+                "operation": operation,
+            }));
+        }
         if let Some(rest) = err.strip_prefix(pm::INVALID_TRANSITION) {
             let mut parts = rest.trim_start_matches(':').split(':');
             let from = parts.next().unwrap_or_default().to_string();

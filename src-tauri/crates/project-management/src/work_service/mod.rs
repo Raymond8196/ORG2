@@ -37,6 +37,7 @@ pub mod error {
     pub const PREFIX: &str = "PM_ERR:";
     pub const REVISION_CONFLICT: &str = "PM_ERR:REVISION_CONFLICT";
     pub const INVALID_TRANSITION: &str = "PM_ERR:INVALID_TRANSITION";
+    pub const IDEMPOTENCY_CONFLICT: &str = "PM_ERR:IDEMPOTENCY_CONFLICT";
 
     pub fn revision_conflict(expected: i64, current: i64) -> String {
         format!("{}:{}:{}", REVISION_CONFLICT, expected, current)
@@ -45,6 +46,85 @@ pub mod error {
     pub fn invalid_transition(from: &str, to: &str) -> String {
         format!("{}:{}:{}", INVALID_TRANSITION, from, to)
     }
+}
+
+/// Outcome of an idempotency-guarded operation.
+pub enum IdempotencyOutcome {
+    /// The operation executed now.
+    Fresh(serde_json::Value),
+    /// Same key + same canonical request seen before: the stored
+    /// response is returned and the operation did NOT run again.
+    Replayed(serde_json::Value),
+}
+
+/// Idempotency guard over `(actor, operation, scope, key)` per the frozen
+/// wire contract §14.4. Same key + same canonical request replays the
+/// stored response; same key + different request is a conflict.
+///
+/// Residual (documented): the record is written after the operation
+/// commits rather than inside its transaction, so a crash between the
+/// two can re-run the operation on retry. The window closes when the
+/// mutation handlers take in-tx hooks; local single-writer CLI usage is
+/// unaffected in practice.
+pub fn run_idempotent(
+    actor_id: &str,
+    operation: &str,
+    scope_id: &str,
+    key: &str,
+    canonical_request: &serde_json::Value,
+    execute: impl FnOnce() -> Result<serde_json::Value, String>,
+) -> Result<IdempotencyOutcome, String> {
+    let canonical =
+        serde_json::to_string(canonical_request).map_err(|err| format!("canonicalize: {err}"))?;
+    let connection = project_io::helpers::conn()?;
+    let existing: Option<(String, Option<String>)> = connection
+        .query_row(
+            "SELECT request_hash, response_json FROM pm_idempotency
+             WHERE actor_id = ?1 AND operation = ?2 AND scope_id = ?3 AND idem_key = ?4",
+            rusqlite::params![actor_id, operation, scope_id, key],
+            |row| Ok((row.get(0)?, row.get(1)?)),
+        )
+        .map(Some)
+        .or_else(|err| match err {
+            rusqlite::Error::QueryReturnedNoRows => Ok(None),
+            other => Err(format!("pm idempotency: {other}")),
+        })?;
+
+    if let Some((stored_request, stored_response)) = existing {
+        if stored_request != canonical {
+            return Err(format!(
+                "{}:{}:{}",
+                error::IDEMPOTENCY_CONFLICT,
+                operation,
+                key
+            ));
+        }
+        let response = stored_response
+            .and_then(|raw| serde_json::from_str(&raw).ok())
+            .unwrap_or(serde_json::Value::Null);
+        return Ok(IdempotencyOutcome::Replayed(response));
+    }
+
+    let response = execute()?;
+    let response_raw =
+        serde_json::to_string(&response).map_err(|err| format!("serialize response: {err}"))?;
+    connection
+        .execute(
+            "INSERT OR IGNORE INTO pm_idempotency
+                (actor_id, operation, scope_id, idem_key, request_hash, response_json, created_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+            rusqlite::params![
+                actor_id,
+                operation,
+                scope_id,
+                key,
+                canonical,
+                response_raw,
+                chrono::Utc::now().timestamp_millis(),
+            ],
+        )
+        .map_err(|err| format!("pm idempotency record: {err}"))?;
+    Ok(IdempotencyOutcome::Fresh(response))
 }
 
 /// Strict, audited status transition for a project-scoped work item.
