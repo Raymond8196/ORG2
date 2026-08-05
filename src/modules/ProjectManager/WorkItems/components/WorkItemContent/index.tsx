@@ -4,7 +4,6 @@ import { useTranslation } from "react-i18next";
 
 import { type WorkItemHandoff, projectApi } from "@src/api/http/project";
 import Avatar from "@src/components/Avatar";
-import Button from "@src/components/Button";
 import TabPill from "@src/components/TabPill";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import { useWorkItemImageInsert } from "@src/hooks/project";
@@ -14,6 +13,7 @@ import {
 } from "@src/modules/ProjectManager/shared";
 import { IssueTimelineItems } from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/IssuesContent/IssueTimelineItems";
 import {
+  ActivityHeaderActionButton,
   ConnectedTimelineItem,
   MarkdownContent,
   TimelineCard,
@@ -434,14 +434,9 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
 
   const descriptionActions =
     isThread && canEditDescription && !isEditingThreadDescription ? (
-      <Button
-        variant="tertiary"
-        appearance="ghost"
-        size="mini"
-        iconOnly
+      <ActivityHeaderActionButton
         icon={<Pencil size={12} aria-hidden />}
-        title={t("common:actions.edit")}
-        aria-label={t("common:actions.edit")}
+        label={t("common:actions.edit")}
         onClick={() => {
           setDescriptionSaveErrorWorkItemId(null);
           setDescriptionEditWorkItemId(workItem.session_id);

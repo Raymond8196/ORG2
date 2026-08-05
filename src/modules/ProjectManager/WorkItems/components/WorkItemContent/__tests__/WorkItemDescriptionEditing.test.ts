@@ -164,6 +164,19 @@ vi.mock("../GitHubIssueComposer", () => ({
 }));
 
 vi.mock("@src/modules/shared/components/ActivityTimeline", () => ({
+  ActivityHeaderActionButton: ({
+    icon,
+    label,
+    ...buttonProps
+  }: React.ButtonHTMLAttributes<HTMLButtonElement> & {
+    icon: React.ReactNode;
+    label: string;
+  }) =>
+    createElement(
+      "button",
+      { ...buttonProps, title: label, "aria-label": label },
+      icon
+    ),
   MarkdownContent: ({
     body,
     clamped = true,
