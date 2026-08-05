@@ -14,6 +14,8 @@ import {
 
 import {
   ActivityHeaderActionButton,
+  ActivityTimestamp,
+  ConnectedTimelineItem,
   MARKDOWN_CONTENT_PREVIEW_MAX_HEIGHT,
   MarkdownContent,
   TimelineCard,
@@ -23,7 +25,10 @@ import {
 } from ".";
 
 vi.mock("react-i18next", () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
+  useTranslation: () => ({
+    t: (key: string) => key,
+    i18n: { resolvedLanguage: "en" },
+  }),
 }));
 
 vi.mock("@src/components/MarkDown", () => ({
@@ -75,6 +80,7 @@ describe("activity timeline", () => {
 
   afterEach(() => {
     act(() => root.unmount());
+    vi.useRealTimers();
     container.remove();
     vi.unstubAllGlobals();
     if (scrollHeightDescriptor) {
@@ -167,6 +173,36 @@ describe("activity timeline", () => {
     );
   });
 
+  it("connects through the full height of a multi-line timeline event", () => {
+    act(() => {
+      root.render(
+        createElement(
+          ConnectedTimelineItem,
+          null,
+          createElement(
+            TimelineEventCard,
+            { icon: createElement("span", null, "I") },
+            createElement(
+              "span",
+              null,
+              "First line",
+              createElement("br"),
+              "Second line"
+            )
+          )
+        )
+      );
+    });
+
+    const connector = container.querySelector<HTMLElement>(
+      '[data-testid="timeline-connector"]'
+    );
+    expect(connector?.className).toContain("absolute");
+    expect(connector?.className).toContain("top-5");
+    expect(connector?.className).toContain("bottom-0");
+    expect(connector?.nextElementSibling?.className).toContain("z-10");
+  });
+
   it("uses one actor/action/timestamp header contract", () => {
     const timestamp = "2026-07-21T12:00:00Z";
 
@@ -186,6 +222,38 @@ describe("activity timeline", () => {
     expect(time?.getAttribute("dateTime")).toBe(timestamp);
     expect(time?.textContent).toBe("20:00");
     expect(time?.getAttribute("title")).not.toBe(timestamp);
+  });
+
+  it("omits the year from current-year activity timestamps", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-05T12:00:00Z"));
+
+    act(() => {
+      root.render(
+        createElement(ActivityTimestamp, {
+          timestamp: "2026-06-24T15:32:00Z",
+        })
+      );
+    });
+
+    const time = container.querySelector("time");
+    expect(time?.textContent).not.toContain("2026");
+    expect(time?.getAttribute("title")).toContain("2026");
+  });
+
+  it("retains the year for activity from an earlier year", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-05T12:00:00Z"));
+
+    act(() => {
+      root.render(
+        createElement(ActivityTimestamp, {
+          timestamp: "2025-06-24T15:32:00Z",
+        })
+      );
+    });
+
+    expect(container.querySelector("time")?.textContent).toContain("2025");
   });
 
   it("uses one icon-only action contract for activity headers", () => {

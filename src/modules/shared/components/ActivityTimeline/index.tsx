@@ -6,7 +6,11 @@ import { useTranslation } from "react-i18next";
 import Button, { type ButtonProps } from "@src/components/Button";
 import { useCopyCheck } from "@src/hooks/ui";
 import { copyText } from "@src/util/data/clipboard";
-import { formatDate } from "@src/util/data/formatters/date";
+import {
+  formatDate,
+  formatSmartDateTime,
+  toIntlLocaleTag,
+} from "@src/util/data/formatters/date";
 
 export {
   MARKDOWN_CONTENT_PREVIEW_MAX_HEIGHT,
@@ -90,10 +94,19 @@ export function ActivityTimestamp({
   timestamp: string;
   label?: string;
 }): React.ReactNode {
+  const { t, i18n } = useTranslation("common");
   const fullLabel = formatDate(timestamp);
+  const displayLabel =
+    label ??
+    formatSmartDateTime(timestamp, {
+      yesterdayLabel: t("relativeDate.yesterday", {
+        defaultValue: "Yesterday",
+      }),
+      locale: toIntlLocaleTag(i18n?.resolvedLanguage),
+    });
   return (
     <time dateTime={timestamp} title={fullLabel} className="whitespace-nowrap">
-      {label ?? fullLabel}
+      {displayLabel}
     </time>
   );
 }
@@ -149,11 +162,16 @@ export function ConnectedTimelineItem({
   isLast?: boolean;
 }): React.ReactNode {
   return (
-    <div className="flex min-w-0 flex-col">
-      {children}
+    <div className="relative flex min-w-0 flex-col">
       {!isLast ? (
-        <div className="-mt-px ml-5 h-3 border-l border-border-1" aria-hidden />
+        <div
+          className="pointer-events-none absolute bottom-0 left-5 top-5 border-l border-border-1"
+          data-testid="timeline-connector"
+          aria-hidden
+        />
       ) : null}
+      <div className="relative z-10 min-w-0">{children}</div>
+      {!isLast ? <div className="-mt-px h-3 shrink-0" aria-hidden /> : null}
     </div>
   );
 }
