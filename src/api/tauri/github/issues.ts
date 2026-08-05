@@ -200,10 +200,13 @@ export async function listRepoLabelsLocal(
   });
 }
 
-export async function listRepoCollaboratorsLocal(
+export async function listRepoAssigneesLocal(
   repoFullName: string
 ): Promise<GitHubIssueUser[]> {
-  return invokeWithAuth<GitHubIssueUser[]>("github_list_repo_collaborators", {
+  return invokeWithAuth<GitHubIssueUser[]>("github_list_repo_assignees", {
     repoFullName,
   });
 }
+
+/** @deprecated Use listRepoAssigneesLocal. */
+export const listRepoCollaboratorsLocal = listRepoAssigneesLocal;

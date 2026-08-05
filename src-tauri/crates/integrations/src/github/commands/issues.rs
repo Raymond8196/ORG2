@@ -1,8 +1,9 @@
 //! GitHub Issues commands: list/get/create/update, comments, labels, and
-//! collaborators.
+//! assignable users.
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::collections::HashSet;
 
 use crate::github::client::GitHubClient;
 
@@ -156,7 +157,6 @@ struct UpdateIssueFields {
     state_reason: Option<String>,
     duplicate_issue_id: Option<u64>,
     labels: Option<Vec<String>>,
-    assignees: Option<Vec<String>>,
 }
 
 fn build_update_issue_payload(fields: UpdateIssueFields) -> Value {
@@ -179,10 +179,114 @@ fn build_update_issue_payload(fields: UpdateIssueFields) -> Value {
     if let Some(labels) = fields.labels {
         payload["labels"] = serde_json::json!(labels);
     }
-    if let Some(assignees) = fields.assignees {
-        payload["assignees"] = serde_json::json!(assignees);
-    }
     payload
+}
+
+fn normalize_assignee_logins(logins: Vec<String>) -> Vec<String> {
+    let mut seen = HashSet::new();
+    logins
+        .into_iter()
+        .filter_map(|login| {
+            let login = login.trim();
+            if login.is_empty() || !seen.insert(login.to_lowercase()) {
+                return None;
+            }
+            Some(login.to_string())
+        })
+        .collect()
+}
+
+fn issue_assignee_logins(issue: &Value) -> Vec<String> {
+    issue["assignees"]
+        .as_array()
+        .map(|assignees| {
+            assignees
+                .iter()
+                .filter_map(|assignee| assignee["login"].as_str().map(str::to_string))
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+fn assignee_login_keys(logins: &[String]) -> HashSet<String> {
+    logins.iter().map(|login| login.to_lowercase()).collect()
+}
+
+fn assignee_login_sets_match(left: &[String], right: &[String]) -> bool {
+    assignee_login_keys(left) == assignee_login_keys(right)
+}
+
+async fn set_issue_assignees(
+    client: &GitHubClient,
+    issue_path: &str,
+    current_issue: Value,
+    desired_logins: Vec<String>,
+) -> Result<Value, String> {
+    let desired_logins = normalize_assignee_logins(desired_logins);
+    let desired_keys = assignee_login_keys(&desired_logins);
+    let current_logins = issue_assignee_logins(&current_issue);
+    let current_keys = assignee_login_keys(&current_logins);
+    let additions = desired_logins
+        .iter()
+        .filter(|login| !current_keys.contains(&login.to_lowercase()))
+        .cloned()
+        .collect::<Vec<_>>();
+
+    let assignees_path = format!("{issue_path}/assignees");
+    let mut result = current_issue;
+    if !additions.is_empty() {
+        result = client
+            .post(
+                &assignees_path,
+                serde_json::json!({ "assignees": additions }),
+            )
+            .await?;
+
+        let added_logins = issue_assignee_logins(&result);
+        let added_keys = assignee_login_keys(&added_logins);
+        let missing = desired_logins
+            .iter()
+            .filter(|login| !added_keys.contains(&login.to_lowercase()))
+            .cloned()
+            .collect::<Vec<_>>();
+        if !missing.is_empty() {
+            return Err(format!(
+                "GitHub did not apply the requested assignee addition(s): {}",
+                missing.join(", ")
+            ));
+        }
+    }
+
+    let applied_logins = issue_assignee_logins(&result);
+    let removals = applied_logins
+        .iter()
+        .filter(|login| !desired_keys.contains(&login.to_lowercase()))
+        .cloned()
+        .collect::<Vec<_>>();
+    if !removals.is_empty() {
+        result = client
+            .delete_with_body(
+                &assignees_path,
+                serde_json::json!({ "assignees": removals }),
+            )
+            .await?;
+    }
+
+    let returned_logins = issue_assignee_logins(&result);
+    if !assignee_login_sets_match(&returned_logins, &desired_logins) {
+        return Err(format!(
+            "GitHub did not apply the exact assignee change (requested: [{}], returned: [{}])",
+            desired_logins.join(", "),
+            returned_logins.join(", ")
+        ));
+    }
+
+    log::info!(
+        "[GitHub][Cmd] set_issue_assignees requested={} returned={}",
+        desired_logins.len(),
+        returned_logins.len()
+    );
+    Ok(result)
 }
 
 fn linked_pull_requests_query(issues: &[GitHubIssue]) -> String {
@@ -446,6 +550,7 @@ pub async fn github_update_issue(
 ) -> Result<GitHubIssue, String> {
     log::info!("[GitHub][Cmd] update_issue repo={repo_full_name} issue={issue_number}");
     let client = make_client()?;
+    let issue_path = format!("/repos/{repo_full_name}/issues/{issue_number}");
     let payload = build_update_issue_payload(UpdateIssueFields {
         title,
         body,
@@ -453,15 +558,15 @@ pub async fn github_update_issue(
         state_reason,
         duplicate_issue_id,
         labels,
-        assignees,
     });
-    let result = client
-        .patch(
-            &format!("/repos/{repo_full_name}/issues/{issue_number}"),
-            payload,
-        )
-        .await
-        .map_err(|e| e.to_string())?;
+    let mut result = if payload.as_object().is_some_and(|fields| fields.is_empty()) {
+        client.get(&issue_path).await?
+    } else {
+        client.patch(&issue_path, payload).await?
+    };
+    if let Some(assignees) = assignees {
+        result = set_issue_assignees(&client, &issue_path, result, assignees).await?;
+    }
     Ok(parse_issue(&result))
 }
 
@@ -556,15 +661,11 @@ pub async fn github_list_repo_labels(repo_full_name: String) -> Result<Vec<Issue
 }
 
 #[tauri::command]
-pub async fn github_list_repo_collaborators(
-    repo_full_name: String,
-) -> Result<Vec<IssueUser>, String> {
-    log::info!("[GitHub][Cmd] list_repo_collaborators repo={repo_full_name}");
+pub async fn github_list_repo_assignees(repo_full_name: String) -> Result<Vec<IssueUser>, String> {
+    log::info!("[GitHub][Cmd] list_repo_assignees repo={repo_full_name}");
     let client = make_client()?;
     let result = client
-        .get(&format!(
-            "/repos/{repo_full_name}/collaborators?per_page=100"
-        ))
+        .get(&format!("/repos/{repo_full_name}/assignees?per_page=100"))
         .await
         .map_err(|e| e.to_string())?;
     Ok(result
@@ -574,13 +675,52 @@ pub async fn github_list_repo_collaborators(
 }
 
 #[cfg(test)]
-mod issue_timeline_tests {
+mod issue_tests {
     use serde_json::json;
 
     use super::{
-        apply_linked_pull_request_counts, build_update_issue_payload, linked_pull_requests_query,
-        parse_issue, parse_issue_timeline_item, UpdateIssueFields,
+        apply_linked_pull_request_counts, assignee_login_sets_match, build_update_issue_payload,
+        issue_assignee_logins, linked_pull_requests_query, normalize_assignee_logins, parse_issue,
+        parse_issue_timeline_item, UpdateIssueFields,
     };
+
+    #[test]
+    fn normalizes_assignee_logins_case_insensitively() {
+        assert_eq!(
+            normalize_assignee_logins(vec![
+                " Neonforge98 ".to_string(),
+                "neonforge98".to_string(),
+                "".to_string(),
+                "Harry19081".to_string(),
+            ]),
+            vec!["Neonforge98".to_string(), "Harry19081".to_string()]
+        );
+    }
+
+    #[test]
+    fn compares_assignee_sets_without_case_or_order() {
+        assert!(assignee_login_sets_match(
+            &["Harry19081".to_string(), "Neonforge98".to_string()],
+            &["neonforge98".to_string(), "harry19081".to_string()]
+        ));
+        assert!(!assignee_login_sets_match(
+            &["Neonforge98".to_string()],
+            &["Neonforge98".to_string(), "Harry19081".to_string()]
+        ));
+    }
+
+    #[test]
+    fn extracts_assignee_logins_from_issue_response() {
+        assert_eq!(
+            issue_assignee_logins(&json!({
+                "assignees": [
+                    { "login": "Neonforge98" },
+                    { "login": "Harry19081" }
+                ]
+            })),
+            vec!["Neonforge98".to_string(), "Harry19081".to_string()]
+        );
+    }
 
     #[test]
     fn serializes_close_as_duplicate_payload() {

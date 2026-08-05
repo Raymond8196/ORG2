@@ -28,6 +28,7 @@ export {
   fetchIssueTimeline,
   issueCommentToTimelineItem,
   fetchRepoLabels,
+  fetchRepoAssignees,
   fetchRepoCollaborators,
 } from "./githubIssues";
 export type {
