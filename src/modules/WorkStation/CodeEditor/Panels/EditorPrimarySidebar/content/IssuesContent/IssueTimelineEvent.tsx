@@ -49,6 +49,48 @@ import {
 
 const EVENT_ICON_PROPS = { size: 13, strokeWidth: 1.8 } as const;
 
+const LOCALIZED_EVENT_DESCRIPTIONS: Record<
+  string,
+  readonly [key: string, defaultValue: string]
+> = {
+  comment_deleted: ["commentDeleted", "deleted a comment"],
+  subscribed: ["subscribed", "subscribed to this issue"],
+  unsubscribed: ["unsubscribed", "unsubscribed from this issue"],
+  added_to_project: ["addedToProject", "added this issue to a project"],
+  moved_columns_in_project: ["movedInProject", "moved this issue in a project"],
+  removed_from_project: [
+    "removedFromProject",
+    "removed this issue from a project",
+  ],
+  archived: ["archived", "archived this issue"],
+  unarchived: ["unarchived", "unarchived this issue"],
+  merged: ["merged", "merged this pull request"],
+  committed: ["committed", "committed to this pull request"],
+  head_ref_deleted: ["headRefDeleted", "deleted the head branch"],
+  head_ref_restored: ["headRefRestored", "restored the head branch"],
+  head_ref_force_pushed: ["headRefForcePushed", "force-pushed the head branch"],
+  base_ref_changed: ["baseRefChanged", "changed the base branch"],
+  automatic_base_change_failed: [
+    "automaticBaseChangeFailed",
+    "could not automatically change the base branch",
+  ],
+  automatic_base_change_succeeded: [
+    "automaticBaseChangeSucceeded",
+    "automatically changed the base branch",
+  ],
+  deployed: ["deployed", "deployed this pull request"],
+  deployment_environment_changed: [
+    "deploymentEnvironmentChanged",
+    "changed the deployment environment",
+  ],
+  ready_for_review: ["readyForReview", "marked this pull request ready"],
+  review_requested: ["reviewRequested", "requested a review"],
+  review_request_removed: ["reviewRequestRemoved", "removed a review request"],
+  reviewed: ["reviewed", "reviewed these changes"],
+  review_dismissed: ["reviewDismissed", "dismissed a review"],
+  user_blocked: ["userBlocked", "blocked this user"],
+};
+
 function humanizeEventName(event: string): string {
   return event.replace(/[_-]/g, " ");
 }
@@ -95,6 +137,7 @@ function TimelineEventIcon({ event }: { event: string }): React.ReactNode {
       return <PinOff {...EVENT_ICON_PROPS} />;
     case "mentioned":
     case "commented":
+    case "comment_deleted":
       return <MessageSquare {...EVENT_ICON_PROPS} />;
     case "marked_as_duplicate":
       return <CopyCheck {...EVENT_ICON_PROPS} />;
@@ -360,8 +403,14 @@ export function IssueTimelineEventDescription({
       );
     case "mentioned":
       return <>{t("git.issues.activity.mentioned", "mentioned this issue")}</>;
-    default:
+    default: {
+      const localizedEvent = LOCALIZED_EVENT_DESCRIPTIONS[item.event];
+      if (localizedEvent) {
+        const [key, defaultValue] = localizedEvent;
+        return <>{t(`git.issues.activity.${key}`, defaultValue)}</>;
+      }
       return <>{humanizeEventName(item.event)}</>;
+    }
   }
 }
 

@@ -196,6 +196,9 @@ describe("PrDetailPanel tabs", () => {
               baseBranch: "develop",
             },
             repoPath: "/repo",
+            headerActions: createElement("button", {
+              "data-testid": "host-header-action",
+            }),
           })
         )
       );
@@ -208,7 +211,10 @@ describe("PrDetailPanel tabs", () => {
 
     expect(header?.className).toContain("h-10");
     expect(header?.className).toContain("!pl-4");
-    expect(header?.className).toContain("!pr-2");
+    expect(header?.className).toContain("!pr-[7px]");
+    expect(
+      header?.querySelector('[data-testid="host-header-action"]')
+    ).not.toBeNull();
     expect(header?.textContent).toContain("Use compact PR metadata");
     expect(header?.textContent).not.toContain("develop");
     expect(header?.textContent).not.toContain(

@@ -55,6 +55,7 @@ vi.mock("@src/modules/shared/components/RichMarkdownEditor", () => ({
 }));
 
 const issue: GitHubIssue = {
+  id: 100_042,
   number: 42,
   title: "Match the comment composer",
   body: "Issue body",

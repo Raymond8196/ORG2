@@ -61,6 +61,8 @@ export interface RichTextEditorProps {
   autoFocus?: boolean;
   className?: string;
   toolbarClassName?: string;
+  /** Formatting toolbar placement. Defaults to selection-based floating controls. */
+  toolbarMode?: "floating" | "inline" | "none";
   /** Match the editable document typography to the shared Markdown preview. */
   matchMarkdownPreview?: boolean;
   minHeight?: number;

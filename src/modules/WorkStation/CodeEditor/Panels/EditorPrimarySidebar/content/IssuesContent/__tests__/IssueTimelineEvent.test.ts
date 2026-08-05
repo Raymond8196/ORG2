@@ -8,14 +8,18 @@ import { IssueTimelineEventRow } from "../IssueTimelineEvent";
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
-    t: (key: string, fallback?: string | Record<string, unknown>) =>
-      typeof fallback === "string"
+    t: (key: string, fallback?: string | Record<string, unknown>) => {
+      if (key === "git.issues.activity.commentDeleted") {
+        return "localized deleted comment";
+      }
+      return typeof fallback === "string"
         ? fallback
         : typeof fallback?.defaultValue === "string"
           ? fallback.defaultValue.replace(/{{(\w+)}}/g, (_, name: string) =>
               String(fallback[name] ?? "")
             )
-          : key,
+          : key;
+    },
   }),
 }));
 
@@ -116,6 +120,18 @@ describe("IssueTimelineEventRow", () => {
     );
 
     expect(markup).toContain("future event type");
+  });
+
+  it("localizes deleted-comment activity instead of humanizing the event id", () => {
+    const markup = renderToStaticMarkup(
+      createElement(IssueTimelineEventRow, {
+        item: timelineItem({ event: "comment_deleted" }),
+      })
+    );
+
+    expect(markup).toContain("localized deleted comment");
+    expect(markup).not.toContain("comment deleted");
+    expect(markup).toContain("lucide-message-square");
   });
 
   it.each([

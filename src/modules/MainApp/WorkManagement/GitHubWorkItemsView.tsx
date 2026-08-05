@@ -2,6 +2,7 @@ import {
   CheckCircle2,
   CircleDot,
   CircleSlash,
+  Copy,
   GitMerge,
   GitPullRequestDraft,
 } from "lucide-react";
@@ -511,9 +512,11 @@ export function GitHubWorkItemsView({
         const issueStatusValue: ManagedIssueStatusValue =
           item.state === "open"
             ? "open"
-            : item.rawIssue.state_reason === "not_planned"
-              ? "closed_not_planned"
-              : "closed_completed";
+            : item.rawIssue.state_reason === "duplicate"
+              ? "closed_duplicate"
+              : item.rawIssue.state_reason === "not_planned"
+                ? "closed_not_planned"
+                : "closed_completed";
         const issueStatusOptions = [
           {
             value: "open",
@@ -537,6 +540,16 @@ export function GitHubWorkItemsView({
             icon: <CircleSlash size={14} strokeWidth={1.8} />,
             iconColor: "var(--color-text-3)",
           },
+          ...(issueStatusValue === "closed_duplicate"
+            ? [
+                {
+                  value: "closed_duplicate" as const,
+                  label: t("common:git.issues.composer.closeAsDuplicate"),
+                  icon: <Copy size={14} strokeWidth={1.8} />,
+                  iconColor: "var(--color-text-3)",
+                },
+              ]
+            : []),
         ];
         const selectedIssueStatus = issueStatusOptions.find(
           (option) => option.value === issueStatusValue

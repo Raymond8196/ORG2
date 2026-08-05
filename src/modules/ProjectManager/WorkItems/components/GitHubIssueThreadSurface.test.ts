@@ -15,6 +15,7 @@ vi.mock("@src/components/IntegrationIcon", () => ({
 }));
 
 const issue: GitHubIssue = {
+  id: 100_042,
   number: 42,
   title: "Use one issue detail surface",
   body: "Share the Inbox thread composition.",

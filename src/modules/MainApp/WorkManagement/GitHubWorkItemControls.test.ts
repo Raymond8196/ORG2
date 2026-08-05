@@ -25,6 +25,7 @@ const linkedIssue: ManagedIssueItem = {
   remoteUrl: "https://github.com/org2ai/ORG2.git",
   viewerLogin: "viewer",
   rawIssue: {
+    id: 100_042,
     number: 42,
     title: "Fix linked pull request visibility",
     body: null,

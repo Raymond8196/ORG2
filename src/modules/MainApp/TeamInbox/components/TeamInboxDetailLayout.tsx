@@ -13,6 +13,9 @@ import {
 } from "@src/modules/shared/layouts/blocks";
 import type { InfoCardRow } from "@src/modules/shared/layouts/blocks";
 
+import TeamInboxHeaderIconAction from "./TeamInboxHeaderIconAction";
+import type { TeamInboxHeaderIconActionProps } from "./TeamInboxHeaderIconAction";
+
 export interface TeamInboxDetailLayoutProps {
   title: string;
   subtitle: string;
@@ -30,6 +33,7 @@ export interface TeamInboxDetailLayoutProps {
   markUnreadLabel?: string;
   openLabel: string;
   openIcon: React.ReactNode;
+  headerAuxiliaryAction?: TeamInboxHeaderIconActionProps;
   onMarkRead?: () => void;
   onMarkUnread?: () => void;
   onOpen?: () => void;
@@ -49,6 +53,7 @@ const TeamInboxDetailLayout: React.FC<TeamInboxDetailLayoutProps> = ({
   markUnreadLabel,
   openLabel,
   openIcon,
+  headerAuxiliaryAction,
   onMarkRead,
   onMarkUnread,
   onOpen,
@@ -97,6 +102,9 @@ const TeamInboxDetailLayout: React.FC<TeamInboxDetailLayoutProps> = ({
         />
       </WorkstationToolbarTooltip>
     ) : null;
+  const auxiliaryAction = headerAuxiliaryAction ? (
+    <TeamInboxHeaderIconAction {...headerAuxiliaryAction} />
+  ) : null;
 
   return (
     <DetailPanelContainer>
@@ -107,12 +115,13 @@ const TeamInboxDetailLayout: React.FC<TeamInboxDetailLayoutProps> = ({
         borderBottom
         className={DETAIL_PANEL_TOKENS.headerPadding}
         actions={
-          readAction || headerOpenAction ? (
+          readAction || auxiliaryAction || headerOpenAction ? (
             <div
               className="flex items-center gap-px"
               data-testid="team-inbox-detail-actions"
             >
               {readAction}
+              {auxiliaryAction}
               {headerOpenAction}
             </div>
           ) : undefined

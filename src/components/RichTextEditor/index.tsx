@@ -8,6 +8,8 @@ import {
 } from "react";
 import { useTranslation } from "react-i18next";
 
+import ProgressBar from "@src/components/ProgressBar";
+
 import { FloatingToolbar } from "./FloatingToolbar";
 import "./index.scss";
 import type { RichTextEditorProps, RichTextEditorRef } from "./types";
@@ -20,6 +22,7 @@ const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>(
     {
       className = "",
       toolbarClassName = "",
+      toolbarMode = "floating",
       minHeight = 120,
       maxHeight,
       onImageInsert,
@@ -83,10 +86,18 @@ const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>(
     if (!editor) {
       return (
         <div
-          className={`rich-text-editor loading ${className}`.trim()}
+          className={`rich-text-editor loading overflow-hidden ${className}`.trim()}
           style={{ minHeight }}
         >
-          <div className="loading-placeholder">{t("editor.loading")}</div>
+          <ProgressBar
+            percent={0}
+            indeterminate
+            ariaLabel={t("editor.loading")}
+            height="h-0.5"
+            width="w-full"
+            trackColor="bg-transparent"
+            className="absolute inset-x-0 top-0 rounded-none"
+          />
         </div>
       );
     }
@@ -100,7 +111,17 @@ const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>(
           overflowY: maxHeight ? "auto" : undefined,
         }}
       >
-        {showToolbar && (
+        {toolbarMode === "inline" && (
+          <FloatingToolbar
+            editor={editor}
+            placement="inline"
+            onImagePickerOpen={
+              onImageInsert ? () => fileInputRef.current?.click() : undefined
+            }
+            className={toolbarClassName}
+          />
+        )}
+        {toolbarMode === "floating" && showToolbar && (
           <FloatingToolbar
             editor={editor}
             position={toolbarPosition}

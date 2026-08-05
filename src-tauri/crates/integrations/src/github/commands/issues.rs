@@ -24,6 +24,7 @@ pub struct IssueUser {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct GitHubIssue {
+    pub id: u64,
     pub number: u64,
     pub title: String,
     pub body: Option<String>,
@@ -122,6 +123,7 @@ fn parse_issue_label(v: &Value) -> IssueLabel {
 
 fn parse_issue(v: &Value) -> GitHubIssue {
     GitHubIssue {
+        id: v["id"].as_u64().unwrap_or(0),
         number: v["number"].as_u64().unwrap_or(0),
         title: v["title"].as_str().unwrap_or("").to_string(),
         body: v["body"].as_str().map(|s| s.to_string()),
@@ -144,6 +146,43 @@ fn parse_issue(v: &Value) -> GitHubIssue {
         linked_pull_requests_count: 0,
         milestone: v["milestone"]["title"].as_str().map(|s| s.to_string()),
     }
+}
+
+#[derive(Default)]
+struct UpdateIssueFields {
+    title: Option<String>,
+    body: Option<String>,
+    state: Option<String>,
+    state_reason: Option<String>,
+    duplicate_issue_id: Option<u64>,
+    labels: Option<Vec<String>>,
+    assignees: Option<Vec<String>>,
+}
+
+fn build_update_issue_payload(fields: UpdateIssueFields) -> Value {
+    let mut payload = serde_json::json!({});
+    if let Some(title) = fields.title {
+        payload["title"] = serde_json::json!(title);
+    }
+    if let Some(body) = fields.body {
+        payload["body"] = serde_json::json!(body);
+    }
+    if let Some(state) = fields.state {
+        payload["state"] = serde_json::json!(state);
+    }
+    if let Some(state_reason) = fields.state_reason {
+        payload["state_reason"] = serde_json::json!(state_reason);
+    }
+    if let Some(duplicate_issue_id) = fields.duplicate_issue_id {
+        payload["duplicate_issue_id"] = serde_json::json!(duplicate_issue_id);
+    }
+    if let Some(labels) = fields.labels {
+        payload["labels"] = serde_json::json!(labels);
+    }
+    if let Some(assignees) = fields.assignees {
+        payload["assignees"] = serde_json::json!(assignees);
+    }
+    payload
 }
 
 fn linked_pull_requests_query(issues: &[GitHubIssue]) -> String {
@@ -284,6 +323,7 @@ pub async fn github_list_issues(
     assignee: Option<String>,
     page: Option<u32>,
     per_page: Option<u32>,
+    include_linked_pull_requests: Option<bool>,
 ) -> Result<GitHubIssueListResponse, String> {
     log::info!("[GitHub][Cmd] list_issues repo={repo_full_name} state={state:?}");
     let client = make_client()?;
@@ -338,7 +378,9 @@ pub async fn github_list_issues(
         "[GitHub][Cmd] list_issues returned {} issues (has_more={has_more})",
         issues.len()
     );
-    enrich_linked_pull_request_counts(&client, &repo_full_name, &mut issues).await;
+    if include_linked_pull_requests.unwrap_or(true) {
+        enrich_linked_pull_request_counts(&client, &repo_full_name, &mut issues).await;
+    }
     Ok(GitHubIssueListResponse {
         total_count: issues.len() as u64,
         issues,
@@ -398,30 +440,21 @@ pub async fn github_update_issue(
     body: Option<String>,
     state: Option<String>,
     state_reason: Option<String>,
+    duplicate_issue_id: Option<u64>,
     labels: Option<Vec<String>>,
     assignees: Option<Vec<String>>,
 ) -> Result<GitHubIssue, String> {
     log::info!("[GitHub][Cmd] update_issue repo={repo_full_name} issue={issue_number}");
     let client = make_client()?;
-    let mut payload = serde_json::json!({});
-    if let Some(t) = title {
-        payload["title"] = serde_json::json!(t);
-    }
-    if let Some(b) = body {
-        payload["body"] = serde_json::json!(b);
-    }
-    if let Some(s) = state {
-        payload["state"] = serde_json::json!(s);
-    }
-    if let Some(sr) = state_reason {
-        payload["state_reason"] = serde_json::json!(sr);
-    }
-    if let Some(l) = labels {
-        payload["labels"] = serde_json::json!(l);
-    }
-    if let Some(a) = assignees {
-        payload["assignees"] = serde_json::json!(a);
-    }
+    let payload = build_update_issue_payload(UpdateIssueFields {
+        title,
+        body,
+        state,
+        state_reason,
+        duplicate_issue_id,
+        labels,
+        assignees,
+    });
     let result = client
         .patch(
             &format!("/repos/{repo_full_name}/issues/{issue_number}"),
@@ -545,9 +578,28 @@ mod issue_timeline_tests {
     use serde_json::json;
 
     use super::{
-        apply_linked_pull_request_counts, linked_pull_requests_query, parse_issue,
-        parse_issue_timeline_item,
+        apply_linked_pull_request_counts, build_update_issue_payload, linked_pull_requests_query,
+        parse_issue, parse_issue_timeline_item, UpdateIssueFields,
     };
+
+    #[test]
+    fn serializes_close_as_duplicate_payload() {
+        let payload = build_update_issue_payload(UpdateIssueFields {
+            state: Some("closed".to_string()),
+            state_reason: Some("duplicate".to_string()),
+            duplicate_issue_id: Some(987_654),
+            ..Default::default()
+        });
+
+        assert_eq!(
+            payload,
+            json!({
+                "state": "closed",
+                "state_reason": "duplicate",
+                "duplicate_issue_id": 987_654
+            })
+        );
+    }
 
     #[test]
     fn maps_batched_linked_pull_request_counts_to_issues() {

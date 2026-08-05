@@ -24,6 +24,7 @@ const source: GitHubRepoSource = {
 };
 
 const issue: GitHubIssue = {
+  id: 100_042,
   number: 42,
   title: "Assign from issue detail",
   body: null,

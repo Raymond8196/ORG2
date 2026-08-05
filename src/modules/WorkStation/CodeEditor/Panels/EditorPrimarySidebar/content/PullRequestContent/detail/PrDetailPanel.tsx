@@ -54,6 +54,8 @@ interface PrDetailPanelProps {
   identity: PrIdentity;
   repoPath: string;
   repoId?: string;
+  /** Optional host-owned actions rendered in the PR identity title row. */
+  headerActions?: React.ReactNode;
   /**
    * Render the internal status·#number·title header row. Set false
    * when the host publishes this info elsewhere (e.g. the My Station PR tab
@@ -248,6 +250,7 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
   identity,
   repoPath,
   repoId,
+  headerActions,
   showHeader = true,
   onFileSelect,
 }) => {
@@ -337,6 +340,7 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
           borderBottom
           className={DETAIL_PANEL_TOKENS.headerPadding}
           dataTestId="pr-detail-header"
+          actions={headerActions}
         >
           <PrDetailHeaderContent identity={identity} />
         </PanelHeader>

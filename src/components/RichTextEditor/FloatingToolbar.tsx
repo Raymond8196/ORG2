@@ -26,7 +26,8 @@ import { useTranslation } from "react-i18next";
 
 interface FloatingToolbarProps {
   editor: Editor;
-  position: { top: number; left: number };
+  position?: { top: number; left: number };
+  placement?: "floating" | "inline";
   onImagePickerOpen?: () => void;
   className?: string;
 }
@@ -34,6 +35,7 @@ interface FloatingToolbarProps {
 export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
   editor,
   position,
+  placement = "floating",
   onImagePickerOpen,
   className = "",
 }) => {
@@ -94,16 +96,22 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
         ? "H3"
         : "Aa";
 
-  return createPortal(
+  const toolbar = (
     <div
       ref={toolbarRef}
-      className={`rich-text-editor-toolbar ${className}`.trim()}
-      style={{
-        position: "fixed",
-        top: position.top,
-        left: position.left,
-        zIndex: 99999,
-      }}
+      className={`rich-text-editor-toolbar ${
+        placement === "inline" ? "rich-text-editor-toolbar-inline" : ""
+      } ${className}`.trim()}
+      style={
+        placement === "floating" && position
+          ? {
+              position: "fixed",
+              top: position.top,
+              left: position.left,
+              zIndex: 99999,
+            }
+          : undefined
+      }
       onMouseDown={(event) => event.preventDefault()}
       role="toolbar"
       aria-label={t("creator.toolbar.formatting", "Text formatting")}
@@ -342,7 +350,10 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
       >
         <RemoveFormatting size={16} />
       </button>
-    </div>,
-    document.body
+    </div>
   );
+
+  return placement === "inline"
+    ? toolbar
+    : createPortal(toolbar, document.body);
 };

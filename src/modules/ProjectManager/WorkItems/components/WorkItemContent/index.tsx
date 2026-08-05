@@ -20,6 +20,7 @@ import {
   TimelineCardHeader,
   TimelineStack,
 } from "@src/modules/shared/components/ActivityTimeline";
+import RichMarkdownEditor from "@src/modules/shared/components/RichMarkdownEditor";
 import {
   DetailPanelContainer,
   PanelFooter,
@@ -45,6 +46,7 @@ import {
   type WorkItemThreadView,
   WorkItemThreadViewAction,
 } from "../WorkItemThread";
+import GitHubIssueComposer from "./GitHubIssueComposer";
 import HistoryTab from "./HistoryTab";
 import OutputTab from "./OutputTab";
 import ThreadTodoChecklist from "./ThreadTodoChecklist";
@@ -174,6 +176,7 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
   projectSlug,
   shortId,
   githubIssueTimeline,
+  githubIssueInteraction,
   onStartAgent,
   isStartingAgent,
   onCancelAgent,
@@ -248,7 +251,9 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
   const isGitHubWorkItem =
     displayStatus === WORK_ITEM_STATUS.GITHUB_OPEN ||
     displayStatus === WORK_ITEM_STATUS.GITHUB_CLOSED;
-  const canEditDescription = Boolean(onUpdateWorkItem) && !isGitHubWorkItem;
+  const canEditDescription = isGitHubWorkItem
+    ? Boolean(githubIssueInteraction?.canEditBody)
+    : Boolean(onUpdateWorkItem);
   const loadedGitHubTimeline = useGitHubIssueTimeline({
     enabled: isGitHubWorkItem && !githubIssueTimeline,
     repoPath,
@@ -266,6 +271,8 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
   const [descriptionEditWorkItemId, setDescriptionEditWorkItemId] = useState<
     string | null
   >(null);
+  const [descriptionSaveErrorWorkItemId, setDescriptionSaveErrorWorkItemId] =
+    useState<string | null>(null);
   const [threadViewSelection, setThreadViewSelection] = useState<{
     workItemId: string;
     view: WorkItemThreadView;
@@ -291,7 +298,7 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
   );
   const isThread = presentation === "thread";
   const activeThreadView =
-    threadViewSelection.workItemId === workItem.session_id
+    !isGitHubWorkItem && threadViewSelection.workItemId === workItem.session_id
       ? threadViewSelection.view
       : "overview";
   const isEditingThreadDescription =
@@ -381,6 +388,7 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
   ) : null;
 
   const handleDescriptionDraftChange = (markdown: string) => {
+    setDescriptionSaveErrorWorkItemId(null);
     setDescriptionDraftState((current) => {
       if (current?.workItemId === workItem.session_id) {
         return { ...current, value: markdown };
@@ -396,12 +404,32 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
   const handleCancelDescription = () => {
     setDescriptionDraftState(null);
     setDescriptionEditWorkItemId(null);
+    setDescriptionSaveErrorWorkItemId(null);
   };
 
-  const handleSaveDescription = () => {
+  const handleSaveDescription = async () => {
+    if (!descriptionHasChanges) return;
+    if (isGitHubWorkItem) {
+      if (
+        !githubIssueInteraction?.canEditBody ||
+        githubIssueInteraction.updatingBody
+      ) {
+        return;
+      }
+      try {
+        await githubIssueInteraction.onUpdateBody(descriptionDraft);
+        setDescriptionDraftState(null);
+        setDescriptionEditWorkItemId(null);
+        setDescriptionSaveErrorWorkItemId(null);
+      } catch {
+        setDescriptionSaveErrorWorkItemId(workItem.session_id);
+      }
+      return;
+    }
     handleDescriptionChange(descriptionDraft);
     setDescriptionDraftState(null);
     setDescriptionEditWorkItemId(null);
+    setDescriptionSaveErrorWorkItemId(null);
   };
 
   const descriptionActions =
@@ -410,12 +438,16 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
         variant="tertiary"
         appearance="ghost"
         size="mini"
+        iconOnly
         icon={<Pencil size={12} aria-hidden />}
-        onClick={() => setDescriptionEditWorkItemId(workItem.session_id)}
+        title={t("common:actions.edit")}
+        aria-label={t("common:actions.edit")}
+        onClick={() => {
+          setDescriptionSaveErrorWorkItemId(null);
+          setDescriptionEditWorkItemId(workItem.session_id);
+        }}
         data-testid="work-item-description-edit"
-      >
-        {t("common:actions.edit")}
-      </Button>
+      />
     ) : null;
 
   const descriptionSection = (
@@ -439,13 +471,17 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
                   {
                     label: t("common:actions.cancel"),
                     onClick: handleCancelDescription,
+                    disabled: githubIssueInteraction?.updatingBody,
                     dataTestId: "work-item-description-cancel",
                   },
                 ]}
                 primaryAction={{
                   label: t("common:actions.save"),
-                  onClick: handleSaveDescription,
-                  disabled: !descriptionHasChanges,
+                  onClick: () => void handleSaveDescription(),
+                  disabled:
+                    !descriptionHasChanges ||
+                    githubIssueInteraction?.updatingBody,
+                  loading: githubIssueInteraction?.updatingBody,
                   dataTestId: "work-item-description-save",
                 }}
               />
@@ -496,12 +532,34 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
               </span>
             </div>
           )}
-          {isGitHubWorkItem || (isThread && !isEditingThreadDescription) ? (
+          {(isGitHubWorkItem || isThread) && !isEditingThreadDescription ? (
             <MarkdownContent
               body={displayedDescription}
               emptyText="No description provided."
               className="text-[14px] leading-6 text-text-1 [&_.chat-markdown-body]:text-[14px] [&_.chat-markdown-body]:leading-6"
             />
+          ) : isGitHubWorkItem ? (
+            <>
+              <RichMarkdownEditor
+                value={descriptionDraft}
+                onChange={handleDescriptionDraftChange}
+                onSubmit={() => void handleSaveDescription()}
+                placeholder={t("workItems.descriptionPlaceholder")}
+                minHeight={120}
+                maxHeight={360}
+                appearance="plain"
+                toolbarMode="inline"
+                editable={
+                  canEditDescription && !githubIssueInteraction?.updatingBody
+                }
+                dataTestId="github-issue-description-editor"
+              />
+              {descriptionSaveErrorWorkItemId === workItem.session_id ? (
+                <p className="px-3 pb-2 text-xs text-danger-6" role="status">
+                  {t("common:git.issues.composer.bodyUpdateFailed")}
+                </p>
+              ) : null}
+            </>
           ) : (
             <ProjectContentEditor
               key={workItem.session_id}
@@ -672,21 +730,25 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
             {descriptionSection}
             {todosSection}
             {threadLowerSection}
-            <nav
-              className="flex min-h-8 items-center justify-end"
-              aria-label={t("workItems.activity.discussionTitle")}
-              data-testid="work-item-thread-secondary-navigation"
-            >
-              <WorkItemThreadViewAction
-                activeView="overview"
-                onChange={(view) =>
-                  setThreadViewSelection({
-                    workItemId: workItem.session_id,
-                    view,
-                  })
-                }
-              />
-            </nav>
+            {isGitHubWorkItem && githubIssueInteraction ? (
+              <GitHubIssueComposer interaction={githubIssueInteraction} />
+            ) : (
+              <nav
+                className="flex min-h-8 items-center justify-end"
+                aria-label={t("workItems.activity.discussionTitle")}
+                data-testid="work-item-thread-secondary-navigation"
+              >
+                <WorkItemThreadViewAction
+                  activeView="overview"
+                  onChange={(view) =>
+                    setThreadViewSelection({
+                      workItemId: workItem.session_id,
+                      view,
+                    })
+                  }
+                />
+              </nav>
+            )}
           </>
         ) : (
           historyContent

@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { Globe } from "lucide-react";
 import React, { act, createElement } from "react";
 import { type Root, createRoot } from "react-dom/client";
 import {
@@ -27,7 +28,12 @@ const componentProps = vi.hoisted(() => ({
   placeholder: null as Record<string, unknown> | null,
   prDetail: null as Record<string, unknown> | null,
 }));
+const openExternalLink = vi.hoisted(() => vi.fn(async () => undefined));
 const translate = vi.hoisted(() => vi.fn((key: string) => key));
+
+vi.mock("@src/util/platform/ipcRenderer", () => ({
+  openExternalLink,
+}));
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
@@ -383,6 +389,21 @@ describe("TeamInboxView split layout", () => {
         baseBranch: "main",
       },
     });
+    const headerActions = componentProps.prDetail
+      ?.headerActions as React.ReactElement<{
+      label: string;
+      icon: React.ReactElement;
+      onClick: () => void;
+      testId: string;
+    }>;
+    expect(React.isValidElement(headerActions)).toBe(true);
+    expect(headerActions.props.label).toBe("previews.openInBrowser");
+    expect(headerActions.props.icon.type).toBe(Globe);
+    expect(headerActions.props.testId).toBe("team-inbox-open-github-pr");
+    act(() => headerActions.props.onClick());
+    expect(openExternalLink).toHaveBeenCalledWith(
+      "https://github.com/orgii/desktop/pull/42"
+    );
   });
 
   it("marks an unread item as read when its detail becomes visible", async () => {

@@ -16,6 +16,7 @@ import type { GitHubIssueTimelineItem } from "@src/api/tauri/github";
 import type { WorkItem } from "@src/types/core/workItem";
 
 import WorkItemContent from "..";
+import type { GitHubIssueInteractionConfig } from "../types";
 
 const mocks = vi.hoisted(() => ({
   handleDescriptionChange: vi.fn(),
@@ -108,6 +109,37 @@ vi.mock("@src/modules/ProjectManager/shared", () => ({
   }),
 }));
 
+vi.mock("@src/modules/shared/components/RichMarkdownEditor", () => ({
+  default: ({
+    value,
+    onChange,
+    editable,
+    dataTestId,
+    toolbarMode,
+    onSubmit,
+  }: {
+    value: string;
+    onChange?: (markdown: string) => void;
+    editable?: boolean;
+    dataTestId?: string;
+    toolbarMode?: string;
+    onSubmit?: () => void;
+  }) =>
+    createElement("textarea", {
+      value,
+      readOnly: !editable,
+      "data-testid": dataTestId,
+      "data-toolbar-mode": toolbarMode,
+      onChange: (event: React.ChangeEvent<HTMLTextAreaElement>) =>
+        onChange?.(event.target.value),
+      onKeyDown: (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+          onSubmit?.();
+        }
+      },
+    }),
+}));
+
 vi.mock(
   "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/IssuesContent/IssueTimelineItems",
   () => ({
@@ -122,6 +154,14 @@ vi.mock(
       }),
   })
 );
+
+vi.mock("../GitHubIssueComposer", () => ({
+  default: ({ interaction }: { interaction: GitHubIssueInteractionConfig }) =>
+    createElement("div", {
+      "data-testid": "mock-github-issue-composer",
+      "data-viewer": interaction.viewer?.login,
+    }),
+}));
 
 vi.mock("@src/modules/shared/components/ActivityTimeline", () => ({
   MarkdownContent: ({
@@ -285,6 +325,35 @@ const baseWorkItem: WorkItem = {
   todos: [],
 };
 
+function createGitHubIssueInteraction(
+  overrides: Partial<GitHubIssueInteractionConfig> = {}
+): GitHubIssueInteractionConfig {
+  return {
+    viewer: {
+      login: "github-viewer",
+      avatar_url: "https://example.com/github-viewer.png",
+    },
+    issueState: "open",
+    duplicateCandidates: [],
+    duplicateCandidatesLoaded: false,
+    loadingDuplicateCandidates: false,
+    duplicateCandidatesError: false,
+    loading: false,
+    canComment: true,
+    canEditBody: true,
+    canManageStatus: true,
+    submittingComment: false,
+    updatingBody: false,
+    updatingStatus: false,
+    error: null,
+    onAddComment: vi.fn(async () => undefined),
+    onUpdateBody: vi.fn(async () => undefined),
+    onLoadDuplicateCandidates: vi.fn(async () => undefined),
+    onStatusChange: vi.fn(async () => undefined),
+    ...overrides,
+  };
+}
+
 describe("WorkItemContent description editing", () => {
   let container: HTMLDivElement;
   let root: Root;
@@ -314,9 +383,9 @@ describe("WorkItemContent description editing", () => {
     Reflect.deleteProperty(actEnvironment, "IS_REACT_ACT_ENVIRONMENT");
   });
 
-  function changeDescription(value: string) {
+  function changeDescription(value: string, testId = "description-editor") {
     const editor = container.querySelector<HTMLTextAreaElement>(
-      "[data-testid='description-editor']"
+      `[data-testid='${testId}']`
     );
     act(() => {
       const valueSetter = Object.getOwnPropertyDescriptor(
@@ -419,6 +488,213 @@ describe("WorkItemContent description editing", () => {
     expect(
       container.querySelector("[data-testid='description-footer']")
     ).toBeNull();
+  });
+
+  it("hides the GitHub issue body edit action without permission", () => {
+    act(() => {
+      root.render(
+        createElement(WorkItemContent, {
+          workItem: { ...baseWorkItem, status: "open", workItemStatus: "open" },
+          presentation: "thread",
+          githubIssueTimeline: { items: [], loading: false },
+          githubIssueInteraction: createGitHubIssueInteraction({
+            canEditBody: false,
+            canManageStatus: false,
+          }),
+        })
+      );
+    });
+
+    expect(
+      container.querySelector("[data-testid='work-item-description-edit']")
+    ).toBeNull();
+    expect(
+      container.querySelector("[data-testid='github-read-only-description']")
+        ?.textContent
+    ).toBe(baseWorkItem.spec);
+  });
+
+  it("edits a GitHub issue body with the shared Markdown editor when permitted", async () => {
+    const onUpdateBody = vi.fn(async () => undefined);
+    const githubIssueInteraction = createGitHubIssueInteraction({
+      onUpdateBody,
+    });
+
+    act(() => {
+      root.render(
+        createElement(WorkItemContent, {
+          workItem: { ...baseWorkItem, status: "open", workItemStatus: "open" },
+          presentation: "thread",
+          githubIssueTimeline: { items: [], loading: false },
+          githubIssueInteraction,
+        })
+      );
+    });
+
+    const editButton = container.querySelector<HTMLButtonElement>(
+      "[data-testid='work-item-description-edit']"
+    );
+    expect(editButton?.textContent).toBe("");
+    expect(editButton?.getAttribute("aria-label")).toBe("common:actions.edit");
+    expect(editButton?.title).toBe("common:actions.edit");
+    act(() => editButton?.click());
+
+    const editor = container.querySelector<HTMLTextAreaElement>(
+      "[data-testid='github-issue-description-editor']"
+    );
+    expect(editor?.value).toBe(baseWorkItem.spec);
+    expect(editor?.dataset.toolbarMode).toBe("inline");
+
+    changeDescription(
+      "## Updated GitHub description",
+      "github-issue-description-editor"
+    );
+
+    await act(async () => {
+      container
+        .querySelector<HTMLButtonElement>(
+          "[data-testid='work-item-description-save']"
+        )
+        ?.click();
+      await Promise.resolve();
+    });
+
+    expect(onUpdateBody).toHaveBeenCalledWith("## Updated GitHub description");
+    expect(
+      container.querySelector("[data-testid='github-issue-description-editor']")
+    ).toBeNull();
+  });
+
+  it("saves a previously empty GitHub issue body from the editor shortcut", async () => {
+    const onUpdateBody = vi.fn(async () => undefined);
+    act(() => {
+      root.render(
+        createElement(WorkItemContent, {
+          workItem: {
+            ...baseWorkItem,
+            spec: "",
+            status: "open",
+            workItemStatus: "open",
+          },
+          presentation: "thread",
+          githubIssueTimeline: { items: [], loading: false },
+          githubIssueInteraction: createGitHubIssueInteraction({
+            onUpdateBody,
+          }),
+        })
+      );
+    });
+    act(() => {
+      container
+        .querySelector<HTMLButtonElement>(
+          "[data-testid='work-item-description-edit']"
+        )
+        ?.click();
+    });
+    changeDescription(
+      "First GitHub description",
+      "github-issue-description-editor"
+    );
+
+    await act(async () => {
+      container
+        .querySelector<HTMLTextAreaElement>(
+          "[data-testid='github-issue-description-editor']"
+        )
+        ?.dispatchEvent(
+          new KeyboardEvent("keydown", {
+            key: "Enter",
+            metaKey: true,
+            bubbles: true,
+          })
+        );
+      await Promise.resolve();
+    });
+
+    expect(onUpdateBody).toHaveBeenCalledWith("First GitHub description");
+  });
+
+  it("allows an authorized user to clear the GitHub issue body", async () => {
+    const onUpdateBody = vi.fn(async () => undefined);
+    act(() => {
+      root.render(
+        createElement(WorkItemContent, {
+          workItem: { ...baseWorkItem, status: "open", workItemStatus: "open" },
+          presentation: "thread",
+          githubIssueTimeline: { items: [], loading: false },
+          githubIssueInteraction: createGitHubIssueInteraction({
+            onUpdateBody,
+          }),
+        })
+      );
+    });
+    act(() => {
+      container
+        .querySelector<HTMLButtonElement>(
+          "[data-testid='work-item-description-edit']"
+        )
+        ?.click();
+    });
+    changeDescription("", "github-issue-description-editor");
+
+    await act(async () => {
+      container
+        .querySelector<HTMLButtonElement>(
+          "[data-testid='work-item-description-save']"
+        )
+        ?.click();
+      await Promise.resolve();
+    });
+
+    expect(onUpdateBody).toHaveBeenCalledWith("");
+  });
+
+  it("keeps a GitHub issue body draft visible when the update fails", async () => {
+    const githubIssueInteraction = createGitHubIssueInteraction({
+      onUpdateBody: vi.fn(async () => {
+        throw new Error("update failed");
+      }),
+    });
+
+    act(() => {
+      root.render(
+        createElement(WorkItemContent, {
+          workItem: { ...baseWorkItem, status: "open", workItemStatus: "open" },
+          presentation: "thread",
+          githubIssueTimeline: { items: [], loading: false },
+          githubIssueInteraction,
+        })
+      );
+    });
+    act(() => {
+      container
+        .querySelector<HTMLButtonElement>(
+          "[data-testid='work-item-description-edit']"
+        )
+        ?.click();
+    });
+    changeDescription(
+      "Unsaved GitHub description",
+      "github-issue-description-editor"
+    );
+
+    await act(async () => {
+      container
+        .querySelector<HTMLButtonElement>(
+          "[data-testid='work-item-description-save']"
+        )
+        ?.click();
+      await Promise.resolve();
+    });
+
+    expect(
+      container.querySelector<HTMLTextAreaElement>(
+        "[data-testid='github-issue-description-editor']"
+      )?.value
+    ).toBe("Unsaved GitHub description");
+    expect(container.textContent).toContain(
+      "common:git.issues.composer.bodyUpdateFailed"
+    );
   });
 
   it("reuses a provided GitHub timeline without enabling another load", () => {
@@ -629,6 +905,41 @@ describe("WorkItemContent description editing", () => {
       container.querySelector("[data-testid='github-read-only-description']")
     ).not.toBeNull();
     expect(container.querySelector("[data-testid='mock-activity']")).toBeNull();
+  });
+
+  it("keeps GitHub comments and status actions inline without Discussion navigation", () => {
+    const githubIssueInteraction = createGitHubIssueInteraction();
+
+    act(() => {
+      root.render(
+        createElement(WorkItemContent, {
+          workItem: {
+            ...baseWorkItem,
+            status: "open",
+            workItemStatus: "open",
+          },
+          presentation: "thread",
+          githubIssueTimeline: { items: [], loading: false },
+          githubIssueInteraction,
+        })
+      );
+    });
+
+    expect(
+      container
+        .querySelector("[data-testid='mock-github-issue-composer']")
+        ?.getAttribute("data-viewer")
+    ).toBe("github-viewer");
+    expect(
+      container.querySelector(
+        "[data-testid='work-item-thread-secondary-navigation']"
+      )
+    ).toBeNull();
+    expect(
+      container.querySelector(
+        "[data-testid='work-item-thread-open-discussion']"
+      )
+    ).toBeNull();
   });
 
   it("keeps the current secondary view on refresh and resets on item switch", () => {

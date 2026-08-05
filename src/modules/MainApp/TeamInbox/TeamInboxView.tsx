@@ -1,3 +1,4 @@
+import { Globe } from "lucide-react";
 import React, {
   useCallback,
   useEffect,
@@ -17,12 +18,14 @@ import { LoadingBar, Placeholder } from "@src/modules/shared/layouts/blocks";
 import { normalizePrStatus } from "@src/shared/pr/prStatus";
 import type { PrIdentity } from "@src/store/workstation/codeEditor/workstationSelectedPrAtom";
 import type { WorkItem } from "@src/types/core/workItem";
+import { openExternalLink } from "@src/util/platform/ipcRenderer";
 
 import {
   AssignedWorkItemDetail,
   CommentMentionDetail,
   TeamInboxList,
 } from "./components";
+import TeamInboxHeaderIconAction from "./components/TeamInboxHeaderIconAction";
 import TeamInboxSessionDropSurface from "./components/TeamInboxSessionDropSurface";
 import {
   type TeamInboxDataSource,
@@ -443,6 +446,16 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
             identity={selectedPullRequestIdentity}
             repoPath={selectedPullRequest.repoPath}
             repoId={selectedPullRequest.repoId}
+            headerActions={
+              <TeamInboxHeaderIconAction
+                label={t("previews.openInBrowser")}
+                icon={<Globe size={14} strokeWidth={1.75} aria-hidden />}
+                onClick={() =>
+                  void openExternalLink(selectedPullRequestIdentity.url)
+                }
+                testId="team-inbox-open-github-pr"
+              />
+            }
           />
         </React.Suspense>
       );

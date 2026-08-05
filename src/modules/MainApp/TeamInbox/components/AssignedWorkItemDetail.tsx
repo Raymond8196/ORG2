@@ -2,7 +2,9 @@ import { ClipboardList, Globe, SquareArrowOutUpRight } from "lucide-react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
+import { getGitRemotes } from "@src/api/http/git/remotes";
 import type { WorkItemHandoffTransition } from "@src/api/http/project";
+import type { GitHubIssue } from "@src/api/tauri/github";
 import { WorkItemThreadSurface } from "@src/modules/ProjectManager/WorkItems/components";
 import GitHubIssueHeaderContent from "@src/modules/shared/components/GitHubIssueHeaderContent";
 import { LoadingBar, Placeholder } from "@src/modules/shared/layouts/blocks";
@@ -17,6 +19,10 @@ import {
   isGitHubIssueStatus,
   parseGitHubIssueNumber,
 } from "../domain";
+import {
+  type TeamInboxGitHubIssueState,
+  useTeamInboxGitHubIssue,
+} from "../useTeamInboxGitHubIssue";
 import { useTeamInboxWorkItem } from "../useTeamInboxWorkItem";
 import type { TeamInboxWorkItemIssue } from "../useTeamInboxWorkItem";
 import TeamInboxDetailLayout from "./TeamInboxDetailLayout";
@@ -46,7 +52,8 @@ function getGitHubIssueNumber(
 function buildGitHubIssueUrl(
   item: AssignedWorkItem,
   workItem: WorkItem | null,
-  issueNumber: number | undefined
+  issueNumber: number | undefined,
+  repoFullName: string | null
 ): string | null {
   if (!isGitHubIssueStatus(item.payload.status) || issueNumber === undefined) {
     return null;
@@ -66,10 +73,6 @@ function buildGitHubIssueUrl(
     }
   }
 
-  const repository = item.target.repository;
-  const repoFullName = repository
-    ? resolveGithubRepoFullName([repository])
-    : null;
   if (!repoFullName) return null;
   return `https://github.com/${repoFullName}/issues/${issueNumber}`;
 }
@@ -82,6 +85,7 @@ interface AssignedWorkItemThreadProps {
   currentUser: Person | null;
   issueMessage: string | null;
   issueTone: "warning" | "error" | null;
+  githubIssue: TeamInboxGitHubIssueState;
   updateWorkItem: (updates: Partial<WorkItem>) => void;
   transitionHandoff: (
     transition: WorkItemHandoffTransition
@@ -98,11 +102,13 @@ const AssignedWorkItemThread: React.FC<AssignedWorkItemThreadProps> = ({
   currentUser,
   issueMessage,
   issueTone,
+  githubIssue,
   updateWorkItem,
   transitionHandoff,
   refreshWorkItem,
   onNavigate,
 }) => {
+  const { t } = useTranslation("common");
   const isGitHubIssue = isGitHubIssueStatus(item.payload.status);
 
   return (
@@ -125,6 +131,34 @@ const AssignedWorkItemThread: React.FC<AssignedWorkItemThreadProps> = ({
             workItem={workItem}
             propertyProps={{
               onUpdate: updateWorkItem,
+              externalStatusConfig: isGitHubIssue
+                ? {
+                    currentStatusId: githubIssue.interaction.issueState,
+                    options: [
+                      {
+                        id: "open",
+                        label: t("git.issues.status.open"),
+                        color: "var(--color-success-6)",
+                      },
+                      {
+                        id: "closed",
+                        label: t("git.issues.status.closed"),
+                        color: "var(--color-text-3)",
+                      },
+                    ],
+                    loading: githubIssue.timelineLoading,
+                    disabled: !githubIssue.interaction.canManageStatus,
+                    onChangeStatusId: async (statusId) => {
+                      try {
+                        await githubIssue.interaction.onStatusChange(
+                          statusId as GitHubIssue["state"]
+                        );
+                      } catch {
+                        // The inline interaction owns and renders the error.
+                      }
+                    },
+                  }
+                : undefined,
               availableProjects: workItem.project ? [workItem.project] : [],
               availableMilestones: workItem.milestone
                 ? [workItem.milestone]
@@ -142,6 +176,17 @@ const AssignedWorkItemThread: React.FC<AssignedWorkItemThreadProps> = ({
             repoPath={repoPath}
             projectSlug={item.target.projectId || null}
             shortId={item.target.workItemId}
+            githubIssueTimeline={
+              isGitHubIssue
+                ? {
+                    items: githubIssue.timeline,
+                    loading: githubIssue.timelineLoading,
+                  }
+                : undefined
+            }
+            githubIssueInteraction={
+              isGitHubIssue ? githubIssue.interaction : undefined
+            }
             onStartAgent={
               onNavigate
                 ? () =>
@@ -204,13 +249,97 @@ const AssignedWorkItemDetail: React.FC<AssignedWorkItemDetailProps> = ({
   })();
   const isGitHubIssue = isGitHubIssueStatus(item.payload.status);
   const githubIssueNumber = getGitHubIssueNumber(item, workItem);
-  const githubIssueUrl = buildGitHubIssueUrl(item, workItem, githubIssueNumber);
-  const detailTitle = workItem?.name ?? item.payload.title;
+  const inlineRepoFullName = resolveGithubRepoFullName(
+    [item.target.repository, repoPath].filter(
+      (candidate): candidate is string => Boolean(candidate)
+    )
+  );
+  const remoteResolutionKey =
+    isGitHubIssue && !inlineRepoFullName && repoPath ? repoPath : null;
+  const [remoteResolution, setRemoteResolution] = React.useState<{
+    key: string;
+    repoFullName: string | null;
+  } | null>(null);
+  React.useEffect(() => {
+    if (!remoteResolutionKey || !repoPath) return;
+    let cancelled = false;
+
+    void getGitRemotes({ repo_id: "default", repo_path: repoPath })
+      .then((result) => {
+        if (cancelled) return;
+        const origin = result?.remotes?.find(
+          (remote) => remote.name === "origin"
+        );
+        const fallback = result?.remotes?.[0];
+        setRemoteResolution({
+          key: remoteResolutionKey,
+          repoFullName: resolveGithubRepoFullName(
+            [
+              origin?.url,
+              origin?.fetch_url,
+              fallback?.url,
+              fallback?.fetch_url,
+            ].filter((candidate): candidate is string => Boolean(candidate))
+          ),
+        });
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setRemoteResolution({ key: remoteResolutionKey, repoFullName: null });
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [remoteResolutionKey, repoPath]);
+  const resolvedRepoFullName =
+    inlineRepoFullName ??
+    (remoteResolution?.key === remoteResolutionKey
+      ? remoteResolution.repoFullName
+      : null);
+  const githubIssueUrl = buildGitHubIssueUrl(
+    item,
+    workItem,
+    githubIssueNumber,
+    resolvedRepoFullName
+  );
+  const handleGitHubStatusChanged = React.useCallback(
+    (state: GitHubIssue["state"]) => {
+      updateWorkItem({ status: state, workItemStatus: state });
+    },
+    [updateWorkItem]
+  );
+  const githubIssue = useTeamInboxGitHubIssue({
+    enabled: isGitHubIssue,
+    repoFullName: resolvedRepoFullName,
+    issueNumber: githubIssueNumber,
+    fallbackState: item.payload.status === "closed" ? "closed" : "open",
+    onStatusChanged: handleGitHubStatusChanged,
+  });
+  const githubIssueAuthor = githubIssue.issue?.user ?? null;
+  const displayWorkItem =
+    workItem && githubIssue.issue && githubIssueAuthor
+      ? {
+          ...workItem,
+          status: githubIssue.issue.state,
+          workItemStatus: githubIssue.issue.state,
+          spec: githubIssue.issue.body ?? "",
+          updated_time: githubIssue.issue.updated_at,
+          user_id: githubIssueAuthor.login,
+          createdBy: {
+            id: githubIssueAuthor.login,
+            name: githubIssueAuthor.login,
+            avatar: githubIssueAuthor.avatar_url,
+          },
+        }
+      : workItem;
+  const detailTitle =
+    githubIssue.issue?.title ?? workItem?.name ?? item.payload.title;
   const githubIssueHeader = isGitHubIssue ? (
     <GitHubIssueHeaderContent
       issue={{
         number: githubIssueNumber,
-        state: item.payload.status === "closed" ? "closed" : "open",
+        state: githubIssue.interaction.issueState,
         title: detailTitle,
       }}
     />
@@ -226,41 +355,41 @@ const AssignedWorkItemDetail: React.FC<AssignedWorkItemDetailProps> = ({
       unread={item.readAt === null}
       markReadLabel={t("teamInbox.actions.markRead")}
       markUnreadLabel={t("teamInbox.actions.markUnread")}
-      openLabel={t(
-        githubIssueUrl
-          ? "previews.openInBrowser"
-          : "teamInbox.actions.openWorkItem"
-      )}
+      openLabel={t("teamInbox.actions.openWorkItem")}
       openIcon={
-        githubIssueUrl ? (
-          <Globe size={14} strokeWidth={1.75} aria-hidden />
-        ) : (
-          <SquareArrowOutUpRight size={14} strokeWidth={1.75} aria-hidden />
-        )
+        <SquareArrowOutUpRight size={14} strokeWidth={1.75} aria-hidden />
+      }
+      headerAuxiliaryAction={
+        githubIssueUrl
+          ? {
+              label: t("previews.openInBrowser"),
+              icon: <Globe size={14} strokeWidth={1.75} aria-hidden />,
+              onClick: () => void openExternalLink(githubIssueUrl),
+              testId: "team-inbox-open-github",
+            }
+          : undefined
       }
       openPlacement="header"
       onMarkRead={onMarkRead ? () => onMarkRead(item) : undefined}
       onMarkUnread={onMarkUnread ? () => onMarkUnread(item) : undefined}
       onOpen={
-        githubIssueUrl
-          ? () => void openExternalLink(githubIssueUrl)
-          : onNavigate
-            ? () =>
-                onNavigate({
-                  kind: "open_work_item",
-                  orgId: item.target.orgId,
-                  projectId: item.target.projectId,
-                  workItemId: item.target.workItemId,
-                })
-            : undefined
+        onNavigate
+          ? () =>
+              onNavigate({
+                kind: "open_work_item",
+                orgId: item.target.orgId,
+                projectId: item.target.projectId,
+                workItemId: item.target.workItemId,
+              })
+          : undefined
       }
     >
       {status === "loading" ? (
         <LoadingBar />
-      ) : status === "ready" && workItem ? (
+      ) : status === "ready" && displayWorkItem ? (
         <AssignedWorkItemThread
           item={item}
-          workItem={workItem}
+          workItem={displayWorkItem}
           repoPath={repoPath}
           members={members}
           currentUser={currentUser}
@@ -268,6 +397,7 @@ const AssignedWorkItemDetail: React.FC<AssignedWorkItemDetailProps> = ({
           issueTone={
             issue === "context_unavailable" ? "warning" : issue ? "error" : null
           }
+          githubIssue={githubIssue}
           updateWorkItem={updateWorkItem}
           transitionHandoff={transitionHandoff}
           refreshWorkItem={refreshWorkItem}

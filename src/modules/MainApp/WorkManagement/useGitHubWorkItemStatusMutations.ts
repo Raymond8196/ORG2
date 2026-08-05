@@ -37,7 +37,8 @@ import {
 export type ManagedIssueStatusValue =
   | "open"
   | "closed_completed"
-  | "closed_not_planned";
+  | "closed_not_planned"
+  | "closed_duplicate";
 export type ManagedPrStatusValue = "open" | "closed";
 
 type UpdateIssueMap = (
@@ -72,13 +73,21 @@ export function useGitHubWorkItemStatusMutations({
         (value === "open" && item.state === "open") ||
         (value === "closed_completed" &&
           item.state === "closed" &&
-          item.rawIssue.state_reason !== "not_planned") ||
+          item.rawIssue.state_reason !== "not_planned" &&
+          item.rawIssue.state_reason !== "duplicate") ||
         (value === "closed_not_planned" &&
           item.state === "closed" &&
-          item.rawIssue.state_reason === "not_planned")
+          item.rawIssue.state_reason === "not_planned") ||
+        (value === "closed_duplicate" &&
+          item.state === "closed" &&
+          item.rawIssue.state_reason === "duplicate")
       ) {
         return;
       }
+      // The canonical target is selected from the issue detail's nested
+      // duplicate picker. The list only displays this state for an issue that
+      // is already marked duplicate; it never initiates the mutation itself.
+      if (value === "closed_duplicate") return;
       const source = findGitHubRepoSource(
         repoSources,
         item.repo,
