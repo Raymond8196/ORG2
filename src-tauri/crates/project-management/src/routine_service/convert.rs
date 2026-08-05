@@ -228,13 +228,33 @@ pub fn convert_definition(
 
 /// Convert every legacy definition currently in the store, applying the
 /// expressible ones into `pm_routines` and reporting the rest.
-pub fn convert_all() -> Result<ConversionReport, String> {
+///
+/// With `disable_converted_legacy`, successfully converted legacy rows
+/// are disabled in the same pass so the legacy scheduler can never fire
+/// them again — the portable scheduler is their only driver from then
+/// on (no double-fire window). Skipped definitions stay enabled on the
+/// legacy path until they become expressible.
+pub fn convert_all(disable_converted_legacy: bool) -> Result<ConversionReport, String> {
     let definitions = crate::projects::io::list_routines()?;
     let mut report = ConversionReport::default();
     for definition in &definitions {
         match convert_definition(definition) {
             Ok((file, warnings)) => {
                 let applied = super::apply(&file)?;
+                // Host-local scope binding: scheduled invokes need a
+                // target project. CreateWorkItem routines carried it on
+                // the legacy policy; DirectSession ones did not — those
+                // stay manual-only until the operator binds a scope.
+                if let Some(scope) = definition
+                    .output_policy
+                    .create_work_item_project_slug
+                    .as_deref()
+                {
+                    super::set_default_scope(&applied.name, scope)?;
+                }
+                if disable_converted_legacy && definition.enabled {
+                    crate::projects::io::disable_routine(&definition.id)?;
+                }
                 report.converted.push(ConvertedRoutine {
                     legacy_id: definition.id.clone(),
                     name: applied.name,

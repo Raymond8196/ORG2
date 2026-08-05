@@ -346,6 +346,131 @@ pub fn invoke(
     })
 }
 
+/// Set the host-local default scope binding used by scheduled invokes.
+/// Deliberately outside the portable spec/hash — scope is deployment
+/// configuration, not work-method knowledge.
+pub fn set_default_scope(name: &str, scope: &str) -> Result<(), String> {
+    let connection = project_io::helpers::conn()?;
+    let changed = connection
+        .execute(
+            "UPDATE pm_routines SET default_scope = ?2 WHERE name = ?1",
+            rusqlite::params![name, scope],
+        )
+        .map_err(|err| format!("routine set_default_scope: {err}"))?;
+    if changed == 0 {
+        return Err(format!("Routine '{}' not found", name));
+    }
+    Ok(())
+}
+
+/// One schedule-activation candidate for the host scheduler tick.
+#[derive(Debug)]
+pub struct ScheduledCandidate {
+    pub name: String,
+    pub cron: String,
+    pub timezone: String,
+    pub concurrency: spec::ConcurrencyPolicy,
+    pub catch_up: spec::CatchUpPolicy,
+    pub default_scope: Option<String>,
+    pub last_evaluated_at: Option<i64>,
+}
+
+/// Enabled routines with schedule activations, for the host scheduler.
+pub fn scheduled_candidates() -> Result<Vec<ScheduledCandidate>, String> {
+    let connection = project_io::helpers::conn()?;
+    let mut statement = connection
+        .prepare(
+            "SELECT name, spec_json, default_scope, last_evaluated_at
+             FROM pm_routines WHERE enabled = 1",
+        )
+        .map_err(|err| format!("scheduled candidates: {err}"))?;
+    let rows: Vec<(String, String, Option<String>, Option<i64>)> = statement
+        .query_map([], |row| {
+            Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?))
+        })
+        .map_err(|err| format!("scheduled candidates: {err}"))?
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|err| format!("scheduled candidates: {err}"))?;
+    let mut candidates = Vec::new();
+    for (name, spec_json, default_scope, last_evaluated_at) in rows {
+        let Ok(file) = serde_json::from_str::<spec::RoutineSpecFile>(&spec_json) else {
+            continue;
+        };
+        for activation in &file.spec.activations {
+            if let spec::Activation::Schedule {
+                cron,
+                timezone,
+                policies,
+            } = activation
+            {
+                candidates.push(ScheduledCandidate {
+                    name: name.clone(),
+                    cron: cron.clone(),
+                    timezone: timezone.clone(),
+                    concurrency: policies
+                        .concurrency_policy
+                        .unwrap_or(spec::ConcurrencyPolicy::Skip),
+                    catch_up: policies.catch_up.unwrap_or(spec::CatchUpPolicy::None),
+                    default_scope: default_scope.clone(),
+                    last_evaluated_at,
+                });
+            }
+        }
+    }
+    Ok(candidates)
+}
+
+/// Persist the scheduler watermark after an evaluation pass.
+pub fn mark_evaluated(name: &str, evaluated_at: i64, next_fire_at: Option<i64>) -> Result<(), String> {
+    let connection = project_io::helpers::conn()?;
+    connection
+        .execute(
+            "UPDATE pm_routines SET last_evaluated_at = ?2, next_fire_at = ?3 WHERE name = ?1",
+            rusqlite::params![name, evaluated_at, next_fire_at],
+        )
+        .map_err(|err| format!("routine mark_evaluated: {err}"))?;
+    Ok(())
+}
+
+/// True when the routine has a non-terminal run (running or pending).
+pub fn has_active_run(name: &str) -> Result<bool, String> {
+    let connection = project_io::helpers::conn()?;
+    let count: i64 = connection
+        .query_row(
+            "SELECT COUNT(*) FROM pm_routine_runs
+             WHERE routine_name = ?1 AND status IN ('running', 'pending')",
+            rusqlite::params![name],
+            |row| row.get(0),
+        )
+        .map_err(|err| format!("routine has_active_run: {err}"))?;
+    Ok(count > 0)
+}
+
+/// Audit a suppressed automatic fire (skip/coalesce/queue while active).
+pub fn audit_suppressed_fire(name: &str, policy: &str, scheduled_at: i64) -> Result<(), String> {
+    let mut connection = project_io::helpers::conn()?;
+    let tx = connection
+        .transaction()
+        .map_err(|err| format!("suppressed fire tx: {err}"))?;
+    let seq = work_service::audit::bump_change_seq(&tx)?;
+    work_service::audit::append_audit_event(
+        &tx,
+        &work_service::audit::AuditEventRow {
+            operation: "routine.fire_suppressed",
+            entity_type: "routine",
+            entity_id: name,
+            project_slug: None,
+            org_id: None,
+            actor: None,
+            revision: 0,
+            seq,
+            payload: serde_json::json!({ "policy": policy, "scheduledAt": scheduled_at }),
+        },
+    )?;
+    tx.commit()
+        .map_err(|err| format!("suppressed fire commit: {err}"))
+}
+
 /// List routine definitions (name, revision, enabled, hash).
 pub fn list_routines() -> Result<Vec<serde_json::Value>, String> {
     let connection = project_io::helpers::conn()?;

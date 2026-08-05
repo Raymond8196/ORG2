@@ -38,6 +38,7 @@ pub use routines::{
     create_routine_fire, create_routine_fire_for_policy, create_routine_fire_for_policy_with_key,
     delete_routine, disable_routine, find_started_fire_by_session, find_started_fire_by_work_item,
     list_enabled_routines, list_routine_fires, list_routines, mark_routine_fire_failed,
+    read_pm_change_seq,
     mark_routine_fire_started, mark_routine_fire_succeeded, mark_routine_fire_work_item_created,
     mark_routine_fire_work_item_started, read_routine, take_next_queued_fire,
     update_routine_schedule_marks, upsert_routine,

@@ -95,6 +95,12 @@ pub fn init_pm_service_tables(conn: &Connection) -> SqliteResult<()> {
             spec_hash   TEXT NOT NULL,
             revision    INTEGER NOT NULL,
             enabled     INTEGER NOT NULL DEFAULT 1,  -- gates automatic activations only
+            -- Host-local execution binding (NOT part of the portable spec
+            -- or its hash): the project scope scheduled invokes run in.
+            default_scope     TEXT,
+            -- Scheduler watermarks (unix ms).
+            last_evaluated_at INTEGER,
+            next_fire_at      INTEGER,
             created_at  INTEGER NOT NULL,            -- unix ms
             updated_at  INTEGER NOT NULL
         );
