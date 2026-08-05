@@ -6,6 +6,7 @@ import type {
   WorkItemHandoffTransition,
   WorkItemHistoryAction,
 } from "@src/api/http/project";
+import type { GitHubIssueTimelineItem } from "@src/api/tauri/github";
 import type { Person } from "@src/types/core/shared";
 import type { WorkItem as WorkItemExtended } from "@src/types/core/workItem";
 
@@ -33,6 +34,15 @@ export interface WorkItemContentProps {
   repoPath?: string | null;
   projectSlug?: string | null;
   shortId?: string | null;
+  /**
+   * Reuse activity already owned by the surrounding GitHub detail controller.
+   * When omitted, project-backed Work Items resolve and load their own issue
+   * timeline from `repoPath` + `shortId`.
+   */
+  githubIssueTimeline?: {
+    items: GitHubIssueTimelineItem[];
+    loading: boolean;
+  };
   onStartAgent?: (instructions?: string) => void;
   isStartingAgent?: boolean;
   onCancelAgent?: () => void;

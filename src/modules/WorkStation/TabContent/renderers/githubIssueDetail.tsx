@@ -9,7 +9,6 @@ import { useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback, useMemo } from "react";
 
 import { usePublishWorkstationTabHeader } from "@src/hooks/workStation";
-import { useWorkStationTabs } from "@src/hooks/workStation/tabs/useWorkStationTabs";
 import {
   IssueDetailExternalLinkButton,
   IssueDetailHeaderContent,
@@ -33,7 +32,6 @@ import type { UnifiedTabContentProps } from "../types";
 
 const GitHubIssueDetailTabRenderer: React.FC<UnifiedTabContentProps> = memo(
   ({ tab }) => {
-    const { closeTab } = useWorkStationTabs();
     const tabData = tab.data as unknown as GitHubIssueDetailTabData;
     const scopeKey = workstationRepoScopeKey(undefined, tabData.repoPath);
     const selectedState = useAtomValue(
@@ -45,10 +43,6 @@ const GitHubIssueDetailTabRenderer: React.FC<UnifiedTabContentProps> = memo(
     const setSelectedState = useSetAtom(
       workstationSelectedIssueAtomFamily(scopeKey)
     );
-
-    const handleClose = useCallback(() => {
-      closeTab(tab.id);
-    }, [closeTab, tab.id]);
 
     const handleCloseIssue = useCallback(() => {
       const issue = selectedState.issue;
@@ -184,7 +178,6 @@ const GitHubIssueDetailTabRenderer: React.FC<UnifiedTabContentProps> = memo(
         timelineLoading={selectedState.timelineLoading}
         submittingComment={selectedState.submittingComment}
         showHeader={false}
-        onClose={handleClose}
         onCloseIssue={handleCloseIssue}
         onReopenIssue={handleReopenIssue}
         onAddComment={handleAddComment}

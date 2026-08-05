@@ -1,0 +1,80 @@
+import React from "react";
+import { useTranslation } from "react-i18next";
+
+import type { GitHubIssueTimelineItem } from "@src/api/tauri/github";
+import Avatar from "@src/components/Avatar";
+import {
+  ConnectedTimelineItem,
+  MarkdownContent,
+  TimelineCard,
+  TimelineCardHeader,
+} from "@src/modules/shared/components/ActivityTimeline";
+import { Placeholder } from "@src/modules/shared/layouts/blocks";
+
+import { IssueTimelineEventRow } from "./IssueTimelineEvent";
+
+interface IssueTimelineItemsProps {
+  timeline: GitHubIssueTimelineItem[];
+  timelineLoading: boolean;
+}
+
+/**
+ * Shared renderer for the GitHub activity that follows an issue description.
+ * Keeping this separate from the issue shell lets every detail entry point use
+ * the canonical Work Item thread without introducing a component cycle.
+ */
+export function IssueTimelineItems({
+  timeline,
+  timelineLoading,
+}: IssueTimelineItemsProps): React.ReactNode {
+  const { t } = useTranslation("common");
+
+  if (timelineLoading) {
+    return (
+      <ConnectedTimelineItem isLast>
+        <Placeholder
+          variant="loading"
+          placement="sidebar"
+          title={t("git.issues.loadingTimeline", "Loading activity…")}
+        />
+      </ConnectedTimelineItem>
+    );
+  }
+
+  return timeline.map((item, index) => {
+    const isLast = index === timeline.length - 1;
+    const key = `${item.event}-${item.id ?? item.created_at ?? index}-${index}`;
+
+    if (item.event !== "commented") {
+      return (
+        <ConnectedTimelineItem key={key} isLast={isLast}>
+          <IssueTimelineEventRow item={item} />
+        </ConnectedTimelineItem>
+      );
+    }
+
+    const body = item.body ?? "";
+    const actorName = item.actor?.login ?? "GitHub";
+    return (
+      <ConnectedTimelineItem key={key} isLast={isLast}>
+        <TimelineCard
+          copyBody={body}
+          header={
+            <TimelineCardHeader
+              avatar={
+                item.actor ? (
+                  <Avatar size={18} src={item.actor.avatar_url} />
+                ) : null
+              }
+              actor={actorName}
+              action={t("git.issues.activity.commented", "commented")}
+              timestamp={item.created_at}
+            />
+          }
+        >
+          <MarkdownContent body={body} />
+        </TimelineCard>
+      </ConnectedTimelineItem>
+    );
+  });
+}

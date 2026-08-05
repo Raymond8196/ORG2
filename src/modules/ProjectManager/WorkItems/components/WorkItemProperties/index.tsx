@@ -114,8 +114,10 @@ const WorkItemProperties: React.FC<WorkItemPropertiesProps> = ({
   availableOrgs = [],
   projectIconType,
   projectReadonly = false,
+  assigneeReadonly = false,
   showTime = true,
   externalStatusConfig,
+  externalAssigneeConfig,
   fieldVariant = "row",
   pillLayout = "nowrap",
   visibleFields = DEFAULT_VISIBLE_FIELDS,
@@ -312,6 +314,8 @@ const WorkItemProperties: React.FC<WorkItemPropertiesProps> = ({
             t={t}
             fieldVariant={fieldVariant}
             visibleFields={visibleFieldSet}
+            assigneeReadonly={assigneeReadonly}
+            externalAssigneeConfig={externalAssigneeConfig}
           />
           <DatesScheduleSection
             workItem={workItem}
@@ -414,6 +418,8 @@ const WorkItemProperties: React.FC<WorkItemPropertiesProps> = ({
               availableOrgs={availableOrgs}
               handlers={handlers}
               t={t}
+              assigneeReadonly={assigneeReadonly}
+              externalAssigneeConfig={externalAssigneeConfig}
             />
             <div className="mx-4 my-2 h-px bg-border-1" />
             <ScheduleEditor

@@ -12,7 +12,7 @@ import {
   ProjectContentEditor,
   type ProjectContentEditorRef,
 } from "@src/modules/ProjectManager/shared";
-import { IssueTimelineItems } from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/IssuesContent/IssueDetailPanel";
+import { IssueTimelineItems } from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/IssuesContent/IssueTimelineItems";
 import {
   ConnectedTimelineItem,
   MarkdownContent,
@@ -173,6 +173,7 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
   repoPath,
   projectSlug,
   shortId,
+  githubIssueTimeline,
   onStartAgent,
   isStartingAgent,
   onCancelAgent,
@@ -248,12 +249,15 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
     displayStatus === WORK_ITEM_STATUS.GITHUB_OPEN ||
     displayStatus === WORK_ITEM_STATUS.GITHUB_CLOSED;
   const canEditDescription = Boolean(onUpdateWorkItem) && !isGitHubWorkItem;
-  const { timeline: githubTimeline, timelineLoading: githubTimelineLoading } =
-    useGitHubIssueTimeline({
-      enabled: isGitHubWorkItem,
-      repoPath,
-      shortId: shortId ?? workItem.shortId,
-    });
+  const loadedGitHubTimeline = useGitHubIssueTimeline({
+    enabled: isGitHubWorkItem && !githubIssueTimeline,
+    repoPath,
+    shortId: shortId ?? workItem.shortId,
+  });
+  const githubTimeline =
+    githubIssueTimeline?.items ?? loadedGitHubTimeline.timeline;
+  const githubTimelineLoading =
+    githubIssueTimeline?.loading ?? loadedGitHubTimeline.timelineLoading;
   const [descriptionDraftState, setDescriptionDraftState] = useState<{
     workItemId: string;
     base: string;

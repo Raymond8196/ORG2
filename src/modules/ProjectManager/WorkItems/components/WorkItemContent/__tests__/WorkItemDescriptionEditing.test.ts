@@ -12,6 +12,7 @@ import {
   vi,
 } from "vitest";
 
+import type { GitHubIssueTimelineItem } from "@src/api/tauri/github";
 import type { WorkItem } from "@src/types/core/workItem";
 
 import WorkItemContent from "..";
@@ -19,6 +20,11 @@ import WorkItemContent from "..";
 const mocks = vi.hoisted(() => ({
   handleDescriptionChange: vi.fn(),
   transitionWorkItemHandoff: vi.fn(),
+  useGitHubIssueTimeline: vi.fn(({ enabled }: { enabled: boolean }) => ({
+    timeline: enabled ? [{ event: "commented" }] : [],
+    timelineLoading: false,
+    timelineError: null,
+  })),
 }));
 
 vi.mock("@src/api/http/project", () => ({
@@ -103,7 +109,7 @@ vi.mock("@src/modules/ProjectManager/shared", () => ({
 }));
 
 vi.mock(
-  "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/IssuesContent/IssueDetailPanel",
+  "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/IssuesContent/IssueTimelineItems",
   () => ({
     IssueTimelineItems: ({
       timeline,
@@ -262,11 +268,7 @@ vi.mock("../hooks/useWorkItemContentState", () => ({
 }));
 
 vi.mock("../hooks/useGitHubIssueTimeline", () => ({
-  useGitHubIssueTimeline: ({ enabled }: { enabled: boolean }) => ({
-    timeline: enabled ? [{ event: "commented" }] : [],
-    timelineLoading: false,
-    timelineError: null,
-  }),
+  useGitHubIssueTimeline: mocks.useGitHubIssueTimeline,
 }));
 
 const baseWorkItem: WorkItem = {
@@ -297,6 +299,7 @@ describe("WorkItemContent description editing", () => {
   beforeEach(() => {
     mocks.handleDescriptionChange.mockReset();
     mocks.transitionWorkItemHandoff.mockReset();
+    mocks.useGitHubIssueTimeline.mockClear();
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -416,6 +419,32 @@ describe("WorkItemContent description editing", () => {
     expect(
       container.querySelector("[data-testid='description-footer']")
     ).toBeNull();
+  });
+
+  it("reuses a provided GitHub timeline without enabling another load", () => {
+    act(() => {
+      root.render(
+        createElement(WorkItemContent, {
+          workItem: { ...baseWorkItem, status: "open", workItemStatus: "open" },
+          githubIssueTimeline: {
+            items: [
+              { event: "commented" },
+              { event: "assigned" },
+            ] as GitHubIssueTimelineItem[],
+            loading: false,
+          },
+        })
+      );
+    });
+
+    expect(mocks.useGitHubIssueTimeline).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false })
+    );
+    expect(
+      container
+        .querySelector("[data-testid='github-timeline-items']")
+        ?.getAttribute("data-count")
+    ).toBe("2");
   });
 
   it("accepts a pending handoff addressed to another current-user member alias", async () => {

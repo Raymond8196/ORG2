@@ -125,7 +125,6 @@ const SourceControlMainPane: React.FC<SourceControlMainPaneProps> = ({
           timelineLoading={selectedIssueState.timelineLoading}
           submittingComment={selectedIssueState.submittingComment}
           showHeader={false}
-          onClose={() => undefined}
           onCloseIssue={handleCloseIssue}
           onReopenIssue={handleReopenIssue}
           onAddComment={handleAddIssueComment}
