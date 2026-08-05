@@ -707,9 +707,12 @@ body.drag-over::after {
     0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* Auto-hiding thin scrollbar for dropdown option lists. The gutter remains
- * stable, while the thumb appears during scroll and fades after it stops.
- * Do not add `scrollbar-width`: newer WebKit then ignores these pseudo rules. */
+/* Visible thin scrollbar for dropdown option lists (Settings > Timezone,
+ * table selectors, etc.). Tailwind has no first-class scrollbar pseudo
+ * utilities, so we expose this as a global helper class. No `scrollbar-width`
+ * here: once WebKit/Chromium support it, its presence makes them IGNORE the
+ * ::-webkit-scrollbar rules below and fall back to an auto-hiding overlay
+ * bar — an overflowing dropdown then shows no scroll affordance at all. */
 .dropdown-options-scrollbar {
   &::-webkit-scrollbar {
     width: 6px;
@@ -720,23 +723,12 @@ body.drag-over::after {
   }
 
   &::-webkit-scrollbar-thumb {
-    background: transparent;
-    border-radius: 3px;
-    transition: background-color 160ms ease;
-  }
-
-  &.dropdown-options-scrollbar--active::-webkit-scrollbar-thumb {
     background: var(--color-fill-3);
+    border-radius: 3px;
   }
 
-  &.dropdown-options-scrollbar--active::-webkit-scrollbar-thumb:hover {
+  &::-webkit-scrollbar-thumb:hover {
     background: var(--color-fill-4);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .dropdown-options-scrollbar::-webkit-scrollbar-thumb {
-    transition: none;
   }
 }
 
