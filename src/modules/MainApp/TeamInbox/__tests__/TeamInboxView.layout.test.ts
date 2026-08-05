@@ -18,6 +18,10 @@ import type { WorkItem } from "@src/types/core/workItem";
 import type { ManagedPrItem } from "../../WorkManagement/githubManagedItemModel";
 import TeamInboxView from "../TeamInboxView";
 import type { AssignedWorkItem } from "../domain";
+import {
+  INITIAL_TEAM_INBOX_VIEW_STATE,
+  type TeamInboxViewState,
+} from "../store";
 
 const splitViewProps = vi.hoisted(() => ({
   current: null as Record<string, unknown> | null,
@@ -25,6 +29,7 @@ const splitViewProps = vi.hoisted(() => ({
 const componentProps = vi.hoisted(() => ({
   assignedDetail: null as Record<string, unknown> | null,
   list: null as Record<string, unknown> | null,
+  listRenderCount: 0,
   placeholder: null as Record<string, unknown> | null,
   prDetail: null as Record<string, unknown> | null,
 }));
@@ -69,6 +74,7 @@ vi.mock("../components", () => ({
   CommentMentionDetail: () => null,
   TeamInboxList: (props: Record<string, unknown>) => {
     componentProps.list = props;
+    componentProps.listRenderCount += 1;
     return createElement("div", { "data-testid": "team-inbox-list" });
   },
 }));
@@ -154,6 +160,7 @@ describe("TeamInboxView split layout", () => {
     splitViewProps.current = null;
     componentProps.assignedDetail = null;
     componentProps.list = null;
+    componentProps.listRenderCount = 0;
     componentProps.placeholder = null;
     componentProps.prDetail = null;
     container = document.createElement("div");
@@ -193,6 +200,59 @@ describe("TeamInboxView split layout", () => {
     expect(splitViewProps.current?.minListWidth).toBe(280);
     expect(splitViewProps.current?.maxListWidth).toBe(480);
     expect(componentProps.list?.loading).toBe(true);
+  });
+
+  it("paints a retained list snapshot before revalidation settles", () => {
+    const listPage = vi.fn(() => new Promise<never>(() => undefined));
+
+    act(() => {
+      root.render(
+        createElement(TeamInboxView, {
+          dataSource: {
+            getSnapshot: () => ({
+              items: [partialLoadItem],
+              nextCursor: null,
+              loading: true,
+              unreadCounts: { all: 1, mentions: 0, assigned: 1 },
+            }),
+            listPage,
+          },
+        })
+      );
+    });
+
+    expect(componentProps.list?.items).toEqual([partialLoadItem]);
+    expect(componentProps.list?.loading).toBe(false);
+    expect(componentProps.list?.unreadCounts).toEqual({
+      all: 1,
+      mentions: 0,
+      assigned: 1,
+    });
+    expect(listPage).toHaveBeenCalledOnce();
+  });
+
+  it("does not rerender the retained list for an unchanged snapshot", async () => {
+    const page = {
+      items: [partialLoadItem],
+      nextCursor: null,
+      loading: false,
+      unreadCounts: { all: 1, mentions: 0, assigned: 1 },
+    };
+
+    await act(async () => {
+      root.render(
+        createElement(TeamInboxView, {
+          dataSource: {
+            getSnapshot: () => page,
+            listPage: async () => page,
+          },
+        })
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(componentProps.listRenderCount).toBe(1);
   });
 
   it("allows the partial-load notice to be closed", async () => {
@@ -428,6 +488,74 @@ describe("TeamInboxView split layout", () => {
     );
     act(() => tabAction.props.onClick());
     expect(onOpenPullRequestTab).toHaveBeenCalledWith(pullRequest);
+  });
+
+  it("restores the selected Inbox detail after the surface remounts", async () => {
+    const pullRequest = createPullRequest();
+    let savedViewState: TeamInboxViewState = {
+      ...INITIAL_TEAM_INBOX_VIEW_STATE,
+      filter: "assigned",
+      query: "lifecycle",
+    };
+    const dataSource = {
+      listPage: async () => ({ items: [], nextCursor: null }),
+    };
+
+    await act(async () => {
+      root.render(
+        createElement(TeamInboxView, {
+          dataSource,
+          pullRequests: [pullRequest],
+          viewState: savedViewState,
+          onViewStateChange: (nextState) => {
+            savedViewState = nextState;
+          },
+        })
+      );
+      await Promise.resolve();
+    });
+
+    act(() => {
+      const onSelectPullRequest = componentProps.list?.onSelectPullRequest as
+        | ((pullRequest: ManagedPrItem) => void)
+        | undefined;
+      onSelectPullRequest?.(pullRequest);
+    });
+    expect(savedViewState).toMatchObject({
+      filter: "assigned",
+      query: "lifecycle",
+      selectedPullRequestKey: "orgii/desktop#42",
+    });
+
+    act(() => root.unmount());
+    root = createRoot(container);
+    componentProps.prDetail = null;
+
+    await act(async () => {
+      root.render(
+        createElement(TeamInboxView, {
+          dataSource,
+          pullRequests: [pullRequest],
+          viewState: savedViewState,
+          onViewStateChange: (nextState) => {
+            savedViewState = nextState;
+          },
+        })
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(componentProps.list?.filter).toBe("assigned");
+    expect(componentProps.list?.query).toBe("lifecycle");
+    expect(componentProps.list?.selectedPullRequestKey).toBe(
+      "orgii/desktop#42"
+    );
+    expect(componentProps.prDetail).toMatchObject({
+      repoPath: "/repos/orgii",
+      repoId: "repo-1",
+      identity: { number: 42 },
+    });
   });
 
   it("marks an unread item as read when its detail becomes visible", async () => {
