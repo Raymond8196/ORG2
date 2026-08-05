@@ -76,7 +76,22 @@ pub(crate) fn bootstrap_root_work_item(
         return Ok(None);
     }
 
-    let org_id = record.org_id.clone();
+    // The standalone store's org FK only accepts rows that exist in the
+    // local `orgs` table. Session rows carry looser scopes: the implicit
+    // personal org (`personal-org`, no row — same normalization as
+    // `WorkItemTool::new`) and cloud sidebar scopes (`cloud:<uuid>`,
+    // also not local rows). Anything without a local org row falls back
+    // to the NULL (personal) standalone scope instead of failing the
+    // insert.
+    let org_id = record
+        .org_id
+        .clone()
+        .filter(|org| org != project_management::projects::types::PERSONAL_ORG_ID)
+        .filter(|org| {
+            project_management::projects::io::read_project_orgs()
+                .map(|orgs| orgs.iter().any(|row| &row.id == org))
+                .unwrap_or(false)
+        });
     let session_ref = format!("org2:{session_id}");
     let actor = WorkItemMutationActor {
         id: session_ref.clone(),
