@@ -97,6 +97,11 @@ interface TeamInboxPullRequestSections {
   authoredByViewer: ManagedPrItem[];
 }
 
+interface TeamInboxItemSections {
+  mentions: TeamInboxItem[];
+  assigned: TeamInboxItem[];
+}
+
 function groupTeamInboxPullRequests(
   pullRequests: readonly ManagedPrItem[]
 ): TeamInboxPullRequestSections {
@@ -111,6 +116,19 @@ function groupTeamInboxPullRequests(
       return sections;
     },
     { reviewRequested: [], authoredByViewer: [] }
+  );
+}
+
+function groupTeamInboxItems(
+  items: readonly TeamInboxItem[]
+): TeamInboxItemSections {
+  return items.reduce<TeamInboxItemSections>(
+    (sections, item) => {
+      if (item.kind === "comment_mention") sections.mentions.push(item);
+      else sections.assigned.push(item);
+      return sections;
+    },
+    { mentions: [], assigned: [] }
   );
 }
 
@@ -197,10 +215,20 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
     });
   }
   const rowRefs = useRef(new Map<string, HTMLButtonElement>());
+  const inboxItemSections = useMemo(() => groupTeamInboxItems(items), [items]);
+  const orderedInboxItems = useMemo(
+    () =>
+      filter === "all"
+        ? [...inboxItemSections.mentions, ...inboxItemSections.assigned]
+        : items,
+    [filter, inboxItemSections, items]
+  );
   const selectedIndex = useMemo(
     () =>
-      items.findIndex((item) => getTeamInboxItemKey(item) === selectedItemId),
-    [items, selectedItemId]
+      orderedInboxItems.findIndex(
+        (item) => getTeamInboxItemKey(item) === selectedItemId
+      ),
+    [orderedInboxItems, selectedItemId]
   );
   const visiblePullRequests = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -281,22 +309,22 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
 
   const selectAt = useCallback(
     (index: number) => {
-      const item = items[index];
+      const item = orderedInboxItems[index];
       if (!item) return;
       onSelectItem(item);
       rowRefs.current.get(getTeamInboxItemKey(item))?.focus();
     },
-    [items, onSelectItem]
+    [onSelectItem, orderedInboxItems]
   );
 
   const handleListKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
-      if (items.length === 0) return;
+      if (orderedInboxItems.length === 0) return;
       const currentIndex = selectedIndex >= 0 ? selectedIndex : 0;
       let nextIndex: number | null = null;
       switch (event.key) {
         case "ArrowDown":
-          nextIndex = Math.min(currentIndex + 1, items.length - 1);
+          nextIndex = Math.min(currentIndex + 1, orderedInboxItems.length - 1);
           break;
         case "ArrowUp":
           nextIndex = Math.max(currentIndex - 1, 0);
@@ -305,7 +333,7 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
           nextIndex = 0;
           break;
         case "End":
-          nextIndex = items.length - 1;
+          nextIndex = orderedInboxItems.length - 1;
           break;
         default:
           return;
@@ -313,7 +341,7 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
       event.preventDefault();
       selectAt(nextIndex);
     },
-    [items.length, selectAt, selectedIndex]
+    [orderedInboxItems.length, selectAt, selectedIndex]
   );
   const renderPullRequestRows = (pullRequestItems: ManagedPrItem[]) =>
     pullRequestItems.map((pullRequest) => {
@@ -361,14 +389,18 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
         />
       );
     });
-  const inboxRows = (
+  const renderInboxRows = (
+    rowItems: readonly TeamInboxItem[],
+    label: string,
+    sectioned = false
+  ) => (
     <div
-      className={LIST_PANEL_SECTIONS.sectionGroupItems}
+      className={sectioned ? undefined : LIST_PANEL_SECTIONS.sectionGroupItems}
       role="listbox"
-      aria-label={t("teamInbox.itemsLabel")}
+      aria-label={label}
       onKeyDown={handleListKeyDown}
     >
-      {items.map((item) => {
+      {rowItems.map((item) => {
         const key = getTeamInboxItemKey(item);
         return (
           <TeamInboxRow
@@ -587,7 +619,36 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
                 {renderPullRequestRows(pullRequestSections.authoredByViewer)}
               </TeamInboxListSection>
             ) : null}
-            {items.length > 0 ? inboxRows : null}
+            {filter === "all" ? (
+              <>
+                {inboxItemSections.mentions.length > 0 ? (
+                  <TeamInboxListSection
+                    title={t("teamInbox.filters.mentions")}
+                    testId="team-inbox-mentions"
+                  >
+                    {renderInboxRows(
+                      inboxItemSections.mentions,
+                      t("teamInbox.filters.mentions"),
+                      true
+                    )}
+                  </TeamInboxListSection>
+                ) : null}
+                {inboxItemSections.assigned.length > 0 ? (
+                  <TeamInboxListSection
+                    title={t("teamInbox.filters.assigned")}
+                    testId="team-inbox-assigned"
+                  >
+                    {renderInboxRows(
+                      inboxItemSections.assigned,
+                      t("teamInbox.filters.assigned"),
+                      true
+                    )}
+                  </TeamInboxListSection>
+                ) : null}
+              </>
+            ) : items.length > 0 ? (
+              renderInboxRows(items, t("teamInbox.itemsLabel"))
+            ) : null}
           </div>
           {loadMoreAction}
         </ListPanelScrollArea>

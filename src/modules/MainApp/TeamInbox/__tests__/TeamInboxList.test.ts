@@ -165,7 +165,7 @@ describe("TeamInboxList pagination", () => {
     expect(renderEmptyList("")).not.toContain("aria-activedescendant");
   });
 
-  it("places actionable pull requests above inbox rows without an extra title row", () => {
+  it("places actionable pull requests and assigned work under matching sections", () => {
     const markup = renderToStaticMarkup(
       createElement(TeamInboxList, {
         filter: "all",
@@ -203,12 +203,17 @@ describe("TeamInboxList pagination", () => {
     const authoredIndex = markup.indexOf(
       'data-testid="team-inbox-pr-authored"'
     );
+    const assignedSectionIndex = markup.indexOf(
+      'data-testid="team-inbox-assigned"'
+    );
     const inboxRowIndex = markup.indexOf("Existing assigned work");
 
     expect(reviewRequestedIndex).toBeGreaterThanOrEqual(0);
     expect(authoredIndex).toBeGreaterThan(reviewRequestedIndex);
-    expect(inboxRowIndex).toBeGreaterThan(authoredIndex);
+    expect(assignedSectionIndex).toBeGreaterThan(authoredIndex);
+    expect(inboxRowIndex).toBeGreaterThan(assignedSectionIndex);
     expect(markup).not.toContain('data-testid="team-inbox-other-todos"');
+    expect(markup).toContain("teamInbox.filters.assigned");
     expect(markup).toContain("Existing assigned work");
     expect(markup).not.toContain("Unrelated open PR");
     expect(markup).toContain("https://example.com/author.png");
@@ -226,7 +231,7 @@ describe("TeamInboxList pagination", () => {
     expect(markup).toMatch(/class="[^"]*text-text-3[^"]*"[^>]*>5h<\/span>/);
     expect(markup).toContain("text-text-2");
     expect(markup.match(/data-team-inbox-list-item="true"/g)).toHaveLength(3);
-    expect(markup.match(/class="mb-2 last:mb-0"/g)).toHaveLength(2);
+    expect(markup.match(/class="mb-2 last:mb-0"/g)).toHaveLength(3);
     expect(markup).toContain("mb-px h-7");
     expect(markup).toContain(
       "text-xs font-medium uppercase tracking-wider text-text-2"

@@ -39,7 +39,7 @@
 7. `Mark all as read` in the header marks **only the active filter's** unread items (Mentions view never marks Assigned, and vice versa).
 8. Empty state copy is filter-specific (`No mentions` vs `Nothing assigned to you`), falling back to the generic empty copy for `All`.
 9. A `SearchInput` toolbar row filters the loaded items live; typing a non-matching query shows a dedicated `No matches` empty state (distinct from the filter-empty copy); clearing the query restores the list.
-10. Work Items and mentions render as one flat ordered list under `Other todos`, without `Today` / `Yesterday` / `This week` / `Earlier` subgroups; Arrow/Home/End keyboard navigation follows that visible order.
+10. In the `All` filter, mentions and assigned Work Items render under their localized source headers after the actionable PR sections, without date-based subgroups; Arrow/Home/End keyboard navigation follows that visible section order. The dedicated `Mentions` and `Assigned` filters keep a flat list because the active filter already names the source.
 11. Selecting an assigned item lazily loads the full Work Item body and renders it as Markdown; while loading / on failure / when empty it falls back to the stored summary even though that summary is not duplicated in the list row. Selecting a mention renders the comment body as Markdown. Stale body responses are discarded when the selection changes.
 12. A read item's detail exposes a `Mark as unread` action; invoking it returns the row + Sidebar unread badge to the unread state (local assignment deletes the SQLite receipt; cloud mention deletes the managed-cloud receipt). Re-marking read still works after refresh or on another device.
 13. When a source still has a next page, the list shows a `Load more` control—even when the active filter/search has no visible first-page result; invoking it appends the next page (local cursor round-trips with the `work_item_assigned:` prefix intact) and de-duplicates against the loaded set. The control hides once no source has more.
@@ -62,30 +62,30 @@
 
 ### Happy Path
 
-| # | Steps | Expected Result |
-|---|-------|-----------------|
-| 1 | User A assigns a Work Item to user B. | B receives one right-bottom in-app toast naming A and the Work Item, plus the configured native notification/sound and updated Sidebar/Dock unread badges. |
-| 2 | B activates `View` in the toast. | The singleton Team Inbox tab opens or focuses, clears an obstructing filter/search, selects only that assignment, and marks it read through the existing receipt boundary. |
-| 3 | B activates the native notification while ORGII is running. | The app window shows/focuses and the same Team Inbox target is selected; no parallel navigation path is created. |
-| 4 | B opens Team Inbox manually without activating a notification or row. | No unread assignment is implicitly selected or marked read. |
+| #   | Steps                                                                 | Expected Result                                                                                                                                                            |
+| --- | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | User A assigns a Work Item to user B.                                 | B receives one right-bottom in-app toast naming A and the Work Item, plus the configured native notification/sound and updated Sidebar/Dock unread badges.                 |
+| 2   | B activates `View` in the toast.                                      | The singleton Team Inbox tab opens or focuses, clears an obstructing filter/search, selects only that assignment, and marks it read through the existing receipt boundary. |
+| 3   | B activates the native notification while ORGII is running.           | The app window shows/focuses and the same Team Inbox target is selected; no parallel navigation path is created.                                                           |
+| 4   | B opens Team Inbox manually without activating a notification or row. | No unread assignment is implicitly selected or marked read.                                                                                                                |
 
 ### Edge Cases
 
-| # | Scenario | Steps | Expected Result |
-|---|----------|-------|-----------------|
-| 1 | Historical unread rows | Start ORGII with existing unread assignments. | Rows and badges hydrate, but no toast/native notification is replayed. |
-| 2 | Batched assignments | Two new assignments arrive in one cache revision. | One aggregate notification and toast open Team Inbox without pretending one row is the unique target. |
-| 3 | Duplicate/remount | Re-emit the same item or remount the notification host. | The store-scoped tracker suppresses duplicate delivery. |
-| 4 | Disabled category | Disable Team Inbox notifications, then receive an assignment. | The Inbox row remains authoritative, but no toast, native notification, or sound is produced and the configured Dock badge is cleared. |
-| 5 | Long names/titles | Assign an item with a long sender name or body. | Existing toast wrapping applies and the native body is whitespace-folded and capped at 180 characters. |
+| #   | Scenario               | Steps                                                         | Expected Result                                                                                                                        |
+| --- | ---------------------- | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Historical unread rows | Start ORGII with existing unread assignments.                 | Rows and badges hydrate, but no toast/native notification is replayed.                                                                 |
+| 2   | Batched assignments    | Two new assignments arrive in one cache revision.             | One aggregate notification and toast open Team Inbox without pretending one row is the unique target.                                  |
+| 3   | Duplicate/remount      | Re-emit the same item or remount the notification host.       | The store-scoped tracker suppresses duplicate delivery.                                                                                |
+| 4   | Disabled category      | Disable Team Inbox notifications, then receive an assignment. | The Inbox row remains authoritative, but no toast, native notification, or sound is produced and the configured Dock badge is cleared. |
+| 5   | Long names/titles      | Assign an item with a long sender name or body.               | Existing toast wrapping applies and the native body is whitespace-folded and capped at 180 characters.                                 |
 
 ### Error / Degraded States
 
-| # | Scenario | Steps | Expected Result |
-|---|----------|-------|-----------------|
-| 1 | Native permission/send failure | Receive an assignment while OS notification delivery is unavailable. | The in-app toast, Inbox row, and Sidebar badge remain usable; failure is logged without rolling back domain state. |
-| 2 | Native action-listener failure | Listener registration rejects. | Assignment delivery continues; the in-app `View` action remains available. |
-| 3 | App fully exited | Assign while the recipient process is not running. | The assignment hydrates as unread on next launch without a fabricated late popup; realtime closed-app delivery remains a server-push/background-runtime requirement. |
+| #   | Scenario                       | Steps                                                                | Expected Result                                                                                                                                                      |
+| --- | ------------------------------ | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Native permission/send failure | Receive an assignment while OS notification delivery is unavailable. | The in-app toast, Inbox row, and Sidebar badge remain usable; failure is logged without rolling back domain state.                                                   |
+| 2   | Native action-listener failure | Listener registration rejects.                                       | Assignment delivery continues; the in-app `View` action remains available.                                                                                           |
+| 3   | App fully exited               | Assign while the recipient process is not running.                   | The assignment hydrates as unread on next launch without a fabricated late popup; realtime closed-app delivery remains a server-push/background-runtime requirement. |
 
 ### Accessibility
 
