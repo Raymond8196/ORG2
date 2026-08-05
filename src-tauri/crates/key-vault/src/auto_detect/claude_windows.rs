@@ -9,12 +9,10 @@ use base64::{engine::general_purpose::STANDARD, Engine as _};
 use serde::Deserialize;
 use zeroize::Zeroizing;
 
-#[cfg(windows)]
-use super::claude::{scoped_claude_keychain_service, CLAUDE_SECURESTORAGE_CONFIG_DIR_ENV};
-
 const CREDENTIAL_ACCOUNT: &str = "claude-code-user";
 const CREDENTIAL_CHUNK_BYTES: usize = 2_400;
 const CREDENTIAL_MAX_CHUNKS: usize = 256;
+pub(super) const CLAUDE_SECURESTORAGE_CONFIG_DIR_ENV: &str = "CLAUDE_SECURESTORAGE_CONFIG_DIR";
 
 #[derive(Debug, Deserialize)]
 struct CredentialManifest {
@@ -47,6 +45,18 @@ fn credential_services() -> Vec<String> {
         .unwrap_or_default();
     services.push("Claude Code-credentials".to_string());
     services
+}
+
+fn scoped_claude_keychain_service(config_dir: &std::path::Path) -> String {
+    use sha2::{Digest, Sha256};
+    use unicode_normalization::UnicodeNormalization;
+
+    let normalized = config_dir.to_string_lossy().nfc().collect::<String>();
+    let suffix = Sha256::digest(normalized.as_bytes());
+    format!("Claude Code-credentials-{:x}", suffix)
+        .chars()
+        .take("Claude Code-credentials-".len() + 8)
+        .collect()
 }
 
 fn read_credentials_with<F>(services: &[String], mut read_credential: F) -> Option<String>
