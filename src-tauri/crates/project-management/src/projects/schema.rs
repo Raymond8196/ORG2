@@ -122,6 +122,21 @@ pub fn init_pm_service_tables(conn: &Connection) -> SqliteResult<()> {
         CREATE INDEX IF NOT EXISTS idx_pm_routine_runs_routine
             ON pm_routine_runs(routine_name);
 
+        CREATE TABLE IF NOT EXISTS pm_provider_bindings (
+            work_item_id      TEXT NOT NULL,          -- workitems.id
+            provider          TEXT NOT NULL,          -- adapter id (linear/github/...)
+            external_id       TEXT NOT NULL,
+            role              TEXT NOT NULL DEFAULT 'primary',
+            authority         TEXT NOT NULL DEFAULT 'provider',
+            provider_revision TEXT,
+            sync_state        TEXT NOT NULL DEFAULT 'clean',
+            created_at        INTEGER NOT NULL,       -- unix ms
+            updated_at        INTEGER NOT NULL,
+            PRIMARY KEY (work_item_id, provider)
+        );
+        CREATE INDEX IF NOT EXISTS idx_pm_bindings_external
+            ON pm_provider_bindings(provider, external_id);
+
         CREATE TABLE IF NOT EXISTS pm_relations (
             id          INTEGER PRIMARY KEY AUTOINCREMENT,
             entity_type TEXT NOT NULL,               -- work_item

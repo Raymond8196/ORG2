@@ -24,7 +24,7 @@ pub(crate) fn conn() -> Result<rusqlite::Connection, String> {
 /// `updated_at` columns, which are stored as integers (the legacy file
 /// layer used ISO-8601 strings; the wire types continue to expose
 /// strings via `to_iso8601`).
-pub(super) fn now_ms() -> i64 {
+pub(crate) fn now_ms() -> i64 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map(|dur| dur.as_millis() as i64)

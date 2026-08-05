@@ -437,4 +437,28 @@ fn wire_validation_maps_to_stable_codes() {
     );
     assert_eq!(exit, 4, "envelope: {envelope}");
     assert_eq!(envelope["error"]["code"], "INVALID_TRANSITION");
+
+    // Hook short names are not canonical provider ids (decisions §5).
+    let (exit, envelope) = run_cli(
+        &[
+            &[
+                "work",
+                "claim",
+                "AAA-0001",
+                "--session-ref",
+                "claude:session_x",
+            ],
+            &base[..],
+        ]
+        .concat(),
+    );
+    assert_eq!(exit, 2, "envelope: {envelope}");
+    assert_eq!(envelope["error"]["code"], "INVALID_ARGUMENT");
+    assert!(
+        envelope["error"]["message"]
+            .as_str()
+            .unwrap_or_default()
+            .contains("claude_code"),
+        "message points at the canonical id: {envelope}"
+    );
 }

@@ -308,6 +308,17 @@ fn cmd_work_claim(
             "work claim requires --session-ref <provider:id> (claim records the executing session)",
         ));
     };
+    if let Err(err) = project_management::provider_host::validate_session_ref(
+        &session_ref.provider,
+        &session_ref.external_id,
+    ) {
+        return emit_error(
+            CliError::new(ErrorCode::InvalidArgument, err).with_details(serde_json::json!({
+                "field": "--session-ref",
+                "provider": session_ref.provider,
+            })),
+        );
+    }
     let expected_revision = flags
         .get("expected-revision")
         .and_then(|value| value.parse::<i64>().ok());
@@ -534,6 +545,21 @@ fn cmd_work_relate(
             "work relate requires --type <relation> and --target <ref>",
         ));
     };
+    // session:// targets must name a registered provenance provider in
+    // the canonical namespace (reference-only validation, §15.6).
+    if let Some(rest) = target.strip_prefix("session://") {
+        let (provider, external_id) = rest.split_once('/').unwrap_or((rest, ""));
+        if let Err(err) =
+            project_management::provider_host::validate_session_ref(provider, external_id)
+        {
+            return emit_error(
+                CliError::new(ErrorCode::InvalidArgument, err).with_details(serde_json::json!({
+                    "field": "--target",
+                    "provider": provider,
+                })),
+            );
+        }
+    }
     match work_service::relate_project_work_item(&scope, &short_id, kind, target, Some(&actor)) {
         Ok(()) => emit_success(
             serde_json::json!({ "related": true, "kind": kind, "targetRef": target }),
