@@ -12,6 +12,7 @@
 //! completes; conversion is one-way and disables definitions it cannot
 //! express portably, with a written report.
 
+pub mod convert;
 pub mod spec;
 
 use crate::projects::io as project_io;

@@ -112,6 +112,68 @@ fn invoke_validates_inputs_against_the_snapshot_contract() {
 }
 
 #[test]
+fn legacy_conversion_expresses_create_and_direct_modes_and_skips_updates() {
+    use crate::projects::types::{
+        RoutineCatchUpPolicy, RoutineConcurrencyPolicy, RoutineDefinition, RoutineOutputMode,
+        RoutineOutputPolicy, RoutineResourceSelection, RoutineRunTarget, RoutineRunTemplate,
+        RoutineTrigger, RoutineWorkspaceTarget,
+    };
+    let _sandbox = test_env::sandbox();
+
+    let legacy = |mode: RoutineOutputMode, name: &str| RoutineDefinition {
+        id: format!("legacy-{name}"),
+        name: name.to_string(),
+        description: "legacy description".to_string(),
+        enabled: true,
+        trigger: RoutineTrigger::Cron {
+            cron: "0 9 * * 1-5".to_string(),
+        },
+        run_template: RoutineRunTemplate {
+            prompt: "Do the thing".to_string(),
+            target: RoutineRunTarget::AgentDefinition {
+                agent_definition_id: Some("builtin:sde".to_string()),
+            },
+            resources: RoutineResourceSelection {
+                key_source: None,
+                account_id: Some("acct-1".to_string()),
+                model: Some("some-model".to_string()),
+                native_harness_type: None,
+            },
+            workspace: RoutineWorkspaceTarget::None,
+            mode: None,
+            name: None,
+        },
+        output_policy: RoutineOutputPolicy {
+            mode,
+            concurrency_policy: RoutineConcurrencyPolicy::QueueIfActive,
+            catch_up_policy: RoutineCatchUpPolicy::RunOnce,
+            ..RoutineOutputPolicy::default()
+        },
+        last_evaluated_at: None,
+        next_fire_at: None,
+        created_at: String::new(),
+        updated_at: String::new(),
+    };
+
+    // Expressible: single-step portable routine with binding warnings.
+    let (file, warnings) =
+        convert::convert_definition(&legacy(RoutineOutputMode::CreateWorkItem, "Daily Sync"))
+            .expect("convertible");
+    assert!(spec::validate(&file).is_empty());
+    assert_eq!(file.spec.steps.len(), 1);
+    assert!(warnings.iter().any(|w| w.contains("execution binding")));
+    assert!(warnings.iter().any(|w| w.contains("agent target")));
+    let applied = apply(&file).expect("apply converted");
+    assert_eq!(applied.revision, 1);
+
+    // Not expressible yet: UpdateExistingWorkItem.
+    let mut updater = legacy(RoutineOutputMode::UpdateExistingWorkItem, "Refresher");
+    updater.output_policy.update_work_item_short_id = Some("AAA-0009".to_string());
+    let reason = convert::convert_definition(&updater).expect_err("must skip");
+    assert!(reason.contains("Phase 5"), "{reason}");
+}
+
+#[test]
 fn apply_rejects_invalid_specs_with_structured_violations() {
     let _sandbox = test_env::sandbox();
     let mut file = fixture();
