@@ -1,5 +1,10 @@
 import type { z } from "zod/v4";
 
+import {
+  removeBrowserStorageItemSafely,
+  setBrowserStorageItemWithRecovery,
+} from "./quotaRecovery";
+
 export interface ZodSyncStorage<T> {
   getItem: (key: string, initialValue: T) => T;
   setItem: (key: string, value: T) => void;
@@ -56,7 +61,12 @@ export function createZodJsonStorage<T>(
 
   return {
     getItem: (key, initialValue) => {
-      const rawValue = localStorage.getItem(key);
+      let rawValue: string | null;
+      try {
+        rawValue = localStorage.getItem(key);
+      } catch {
+        return initialValue;
+      }
       if (rawValue === null) return initialValue;
 
       try {
@@ -64,20 +74,29 @@ export function createZodJsonStorage<T>(
       } catch (error) {
         options.onInvalid?.(key, rawValue, error);
         if (options.writeDefaultOnInvalid) {
-          localStorage.setItem(key, serialize(initialValue));
+          const writeResult = setBrowserStorageItemWithRecovery(
+            key,
+            serialize(initialValue)
+          );
+          if (!writeResult.persisted) {
+            onWriteError(key, writeResult.error);
+          }
         }
         return initialValue;
       }
     },
     setItem: (key, value) => {
       try {
-        localStorage.setItem(key, serialize(value));
+        const result = setBrowserStorageItemWithRecovery(key, serialize(value));
+        if (!result.persisted) onWriteError(key, result.error);
       } catch (error) {
         onWriteError(key, error);
       }
     },
     removeItem: (key) => {
-      localStorage.removeItem(key);
+      if (!removeBrowserStorageItemSafely(key)) {
+        onWriteError(key, new Error("Failed to remove localStorage item"));
+      }
     },
     subscribe: (key, callback, initialValue) => {
       if (typeof window === "undefined") return () => {};
