@@ -83,9 +83,9 @@ INSERT INTO agent_sessions (
     worktree_branch, base_branch, merge_status,
     project_slug, agent_definition_id, org_member_id, parent_session_id, parent_event_id,
     workspace_additional_json, key_source, agent_exec_mode, native_harness_type,
-    draft_text, reply_target_event_id, pinned
+    draft_text, reply_target_event_id, pinned, product_mode
 )
-VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24, ?25, ?26, ?27, ?28, ?29, ?30, ?31, ?32, ?33)
+VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24, ?25, ?26, ?27, ?28, ?29, ?30, ?31, ?32, ?33, ?34)
 ON CONFLICT(session_id) DO UPDATE SET
     name                       = excluded.name,
     status                     = excluded.status,
@@ -150,7 +150,12 @@ ON CONFLICT(session_id) DO UPDATE SET
     reply_target_event_id      = agent_sessions.reply_target_event_id,
     -- `pinned` is user-set metadata. Only the explicit `update_pinned`
     -- helper writes it; upserts must preserve whatever the user set last.
-    pinned                     = agent_sessions.pinned
+    pinned                     = agent_sessions.pinned,
+    -- `product_mode` (orgtrack/v1 §5.2) is resolved once at create
+    -- (launch-from-work/routine → 'project') or by the explicit
+    -- `update_product_mode` path; background upserts must never
+    -- downgrade a Project session — same posture as agent_exec_mode.
+    product_mode               = COALESCE(agent_sessions.product_mode, excluded.product_mode)
 "#;
 
 /// Upsert a unified session.
@@ -194,6 +199,7 @@ pub fn upsert_session(record: &UnifiedSessionRecord) -> SqliteResult<()> {
                 record.draft_text,
                 record.reply_target_event_id,
                 record.pinned as i64,
+                record.product_mode,
             ],
         )?;
         Ok(())
@@ -595,6 +601,27 @@ pub fn update_agent_exec_mode(session_id: &str, mode: &str) -> SqliteResult<bool
     Ok(changed)
 }
 
+/// Explicitly set the session's product mode (`orgtrack/v1` §5.2:
+/// build | plan | ask | project). Only user selection and the
+/// launch-from-work/routine resolver drive this — never exec mode,
+/// never background upserts (which preserve the column on conflict).
+///
+/// Does not bump `updated_at` (see invariant note above).
+pub fn update_product_mode(session_id: &str, mode: &str) -> SqliteResult<bool> {
+    let changed = with_sessions_writer(|| -> SqliteResult<bool> {
+        let conn = get_connection()?;
+        let affected = conn.execute(
+            "UPDATE agent_sessions SET product_mode = ?2 WHERE session_id = ?1",
+            params![session_id, mode],
+        )?;
+        Ok(affected > 0)
+    })?;
+    if changed {
+        notify_session_mirror(session_id);
+    }
+    Ok(changed)
+}
+
 /// Update the per-session unsent draft text. `text = None` clears the
 /// column (i.e. "no draft"); `Some("")` is treated the same as `None`
 /// so a debounced patch coming from an empty editor doesn't keep an
@@ -954,7 +981,8 @@ mod tests {
             native_harness_type TEXT,
             draft_text TEXT,
             reply_target_event_id TEXT,
-            pinned INTEGER NOT NULL DEFAULT 0
+            pinned INTEGER NOT NULL DEFAULT 0,
+            product_mode TEXT
         );
         CREATE TABLE session_token_usage (
             id INTEGER PRIMARY KEY AUTOINCREMENT,

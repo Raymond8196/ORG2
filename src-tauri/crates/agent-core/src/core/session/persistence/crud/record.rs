@@ -125,6 +125,15 @@ pub struct UnifiedSessionRecord {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub agent_exec_mode: Option<String>,
 
+    /// Persistent product mode (`orgtrack/v1` §5.2): `build | plan | ask
+    /// | project`. The ONLY source of truth for whether this session may
+    /// mutate WorkItems/Routines — never inferred from exec mode, query
+    /// length or agent judgment. `None` = never resolved = `build`.
+    /// Resolver precedence (frozen decisions §1): launched from a
+    /// WorkItem/Routine → `project`; explicit user selection; else build.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub product_mode: Option<String>,
+
     /// Per-session unsent draft text (P3). Whatever is currently sitting
     /// in the chat composer for this session, persisted across navigation
     /// and app restarts. Cleared on send. Mirrored on `code_sessions`
@@ -185,6 +194,7 @@ impl Default for UnifiedSessionRecord {
             workspace_additional_json: default_workspace_additional_json(),
             key_source: KeySource::default(),
             agent_exec_mode: None,
+            product_mode: None,
             draft_text: None,
             reply_target_event_id: None,
             pinned: false,
@@ -218,7 +228,8 @@ pub(in crate::core::session::persistence) const UNIFIED_SESSION_SELECT: &str = r
         s.native_harness_type,
         s.draft_text,
         s.reply_target_event_id,
-        COALESCE(s.pinned, 0)
+        COALESCE(s.pinned, 0),
+        s.product_mode
     FROM agent_sessions s
 "#;
 
@@ -272,6 +283,7 @@ pub(in crate::core::session::persistence) fn row_to_record(
         workspace_additional_json: row.get(27)?,
         key_source,
         agent_exec_mode: row.get(29)?,
+        product_mode: row.get(34)?,
         draft_text: row.get(31)?,
         reply_target_event_id: row.get(32)?,
         pinned: {
@@ -285,7 +297,7 @@ pub(in crate::core::session::persistence) fn row_to_record(
 mod tests {
     use super::*;
 
-    // Column layout MUST mirror `UNIFIED_SESSION_SELECT` (34 columns) —
+    // Column layout MUST mirror `UNIFIED_SESSION_SELECT` (35 columns) —
     // these fixtures drift silently when production columns are added.
     const VALID_ROW_SELECT: &str = r#"
         SELECT
@@ -302,7 +314,8 @@ mod tests {
             NULL,
             NULL,
             NULL,
-            0
+            0,
+            NULL
     "#;
 
     #[test]
@@ -338,7 +351,8 @@ mod tests {
                     NULL,
                     'half-typed reply',
                     'evt-42',
-                    0
+                    0,
+                    'project'
                 "#,
                 [],
                 row_to_record,
@@ -346,6 +360,7 @@ mod tests {
             .unwrap();
         assert_eq!(record.key_source, KeySource::HostedKey);
         assert_eq!(record.agent_exec_mode.as_deref(), Some("plan"));
+        assert_eq!(record.product_mode.as_deref(), Some("project"));
         assert_eq!(record.draft_text.as_deref(), Some("half-typed reply"));
         assert_eq!(record.reply_target_event_id.as_deref(), Some("evt-42"));
     }
