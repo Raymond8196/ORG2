@@ -1,5 +1,6 @@
 import React from "react";
 
+import { CHAT_PANEL_TAB_FIRST_ICON_LEFT_PADDING_CLASS } from "@src/engines/ChatPanel/header";
 import { IssueDetailPanel } from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/IssuesContent/IssueDetailPanel";
 import GitHubDetailSkeleton from "@src/modules/shared/components/GitHubDetailSkeleton";
 import { useGitHubIssueDetailState } from "@src/modules/shared/hooks/useGitHubIssueDetailState";
@@ -34,6 +35,7 @@ export function GitHubIssuePanelView({
       timeline={selectedState.timeline}
       timelineLoading={selectedState.timelineLoading}
       interaction={interaction}
+      headerClassName={CHAT_PANEL_TAB_FIRST_ICON_LEFT_PADDING_CLASS}
       assigneeConfig={assigneeConfig}
     />
   );
