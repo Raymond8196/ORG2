@@ -12,6 +12,7 @@ import {
   IssueDetailExternalLinkButton,
   IssueDetailPanel,
 } from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/IssuesContent/IssueDetailPanel";
+import GitHubDetailSkeleton from "@src/modules/shared/components/GitHubDetailSkeleton";
 import GitHubIssueHeaderContent from "@src/modules/shared/components/GitHubIssueHeaderContent";
 import { useGitHubIssueDetailState } from "@src/modules/shared/hooks/useGitHubIssueDetailState";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
@@ -51,15 +52,15 @@ const GitHubIssueDetailTabRenderer: React.FC<UnifiedTabContentProps> = memo(
     });
 
     if (!selectedState.issue) {
+      if (
+        !selectedState.error &&
+        (selectedState.loading || tabData.remoteUrl)
+      ) {
+        return <GitHubDetailSkeleton kind="issue" showHeader={false} />;
+      }
       return (
         <Placeholder
-          variant={
-            selectedState.loading
-              ? "loading"
-              : selectedState.error
-                ? "error"
-                : "empty"
-          }
+          variant={selectedState.error ? "error" : "empty"}
           placement="detail-panel"
           subtitle={selectedState.error ?? undefined}
           fillParentHeight

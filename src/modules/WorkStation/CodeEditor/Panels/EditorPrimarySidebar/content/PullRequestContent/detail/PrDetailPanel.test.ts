@@ -143,6 +143,7 @@ describe("PrDetailPanel tabs", () => {
     store.set(workstationSelectedPrAtomFamily(scopeKey), {
       ...initialSelectedPrState,
       loading: false,
+      detail: {},
       commits: [{}],
     });
 
@@ -222,6 +223,7 @@ describe("PrDetailPanel tabs", () => {
         selectedChangedFilePath: "src/index.ts",
       },
       loading: false,
+      detail: {},
       commits: [{ sha: "abc1234" }],
     });
     const panel = createElement(PrDetailPanel, {
@@ -370,5 +372,36 @@ describe("PrDetailPanel tabs", () => {
     expect(summary?.firstElementChild?.className).toContain("pt-4");
     expect(summary?.firstElementChild?.className).toContain("items-center");
     expect(summary?.firstElementChild?.className).not.toContain("py-4");
+  });
+
+  it("shows the PR skeleton on the first render before detail loading starts", () => {
+    const store = createStore();
+
+    act(() => {
+      root.render(
+        createElement(
+          Provider,
+          { store },
+          createElement(PrDetailPanel, {
+            identity: {
+              number: 42,
+              title: "Avoid the content-to-loading flash",
+              url: "https://github.com/org/repo/pull/42",
+              status: "open",
+              headBranch: "fix/loading-flash",
+              baseBranch: "main",
+            },
+            repoPath: "/repo",
+            showHeader: false,
+          })
+        )
+      );
+    });
+
+    expect(
+      container.querySelector("[data-testid='github-pr-detail-skeleton']")
+    ).not.toBeNull();
+    expect(container.querySelector('[role="tablist"]')).toBeNull();
+    expect(container.querySelector(".animate-spin")).toBeNull();
   });
 });
