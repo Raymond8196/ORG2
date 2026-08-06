@@ -44,7 +44,7 @@ import { openExternalLink } from "@src/util/platform/ipcRenderer";
 import { formatRelativeTime } from "@src/util/time/formatRelativeTime";
 import { classNames } from "@src/util/ui/classNames";
 
-import { StatusBarButton } from "./StatusBarBase";
+import { StatusBarButton, StatusBarLabel } from "./StatusBarBase";
 import { StatusBarTooltip } from "./StatusBarTooltip";
 
 const MENU_ICON_SIZE = DROPDOWN_ITEM.iconSize;
@@ -292,9 +292,9 @@ export const CiStatusMenu: React.FC<CiStatusMenuProps> = memo(
             dataTestId="status-bar-ci"
           >
             <BranchCiIcon status={ciStatus} />
-            <span className="font-medium tabular-nums text-text-1">
+            <StatusBarLabel emphasis numeric className="text-text-1">
               {triggerLabel}
-            </span>
+            </StatusBarLabel>
           </StatusBarButton>
         </StatusBarTooltip>
 
