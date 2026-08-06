@@ -179,6 +179,11 @@ impl GitHubClient {
         self.request(Method::POST, path, Some(body)).await
     }
 
+    /// PUT request to the GitHub REST API with a JSON body.
+    pub async fn put(&self, path: &str, body: Value) -> Result<Value, String> {
+        self.request(Method::PUT, path, Some(body)).await
+    }
+
     /// PATCH request to the GitHub REST API with a JSON body.
     pub async fn patch(&self, path: &str, body: Value) -> Result<Value, String> {
         self.request(Method::PATCH, path, Some(body)).await

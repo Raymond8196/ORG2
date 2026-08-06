@@ -41,6 +41,7 @@ import {
   Placeholder,
   ScrollTrail,
 } from "@src/modules/shared/layouts/blocks";
+import { resolvePullRequestDetailStatus } from "@src/shared/pr/prLevelActions";
 import {
   type PrIdentity,
   workstationPrScopeKey,
@@ -53,6 +54,7 @@ import { PrChecksTab } from "./PrChecksTab";
 import { PrCommitsTab } from "./PrCommitsTab";
 import { PrConversationTab } from "./PrConversationTab";
 import { PrDetailHeaderContent } from "./PrDetailHeaderContent";
+import { PrLevelActions } from "./PrLevelActions";
 
 export { PrDetailHeaderContent } from "./PrDetailHeaderContent";
 
@@ -370,12 +372,33 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
     []
   );
 
-  const { repoFullName, addComment, submitReview, replyInlineComment } =
-    useWorkstationPrDetail({
-      repoPath,
-      repoId,
-      pr: identity,
-    });
+  const {
+    repoFullName,
+    addComment,
+    submitReview,
+    replyInlineComment,
+    mergePullRequest,
+    setPullRequestAutoMerge,
+    updatePullRequestState,
+    updateRequestedReviewers,
+    loadReviewerCandidates,
+    reviewerCandidates,
+    loadingReviewerCandidates,
+    reviewerCandidatesError,
+    prActionPending,
+  } = useWorkstationPrDetail({
+    repoPath,
+    repoId,
+    pr: identity,
+  });
+
+  const currentIdentity = useMemo(
+    () => ({
+      ...identity,
+      status: resolvePullRequestDetailStatus(state.detail, identity.status),
+    }),
+    [identity, state.detail]
+  );
 
   const baseBranch =
     state.baseRef ?? identity.baseBranch ?? t("git.pr.baseBranch", "base");
@@ -445,9 +468,25 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
             )
           }
         >
-          <PrDetailHeaderContent identity={identity} />
+          <PrDetailHeaderContent identity={currentIdentity} />
         </PanelHeader>
       ) : null}
+
+      <PrLevelActions
+        identity={currentIdentity}
+        detail={state.detail}
+        checks={state.checks}
+        disabled={!repoFullName}
+        pending={prActionPending}
+        reviewerCandidates={reviewerCandidates}
+        loadingReviewerCandidates={loadingReviewerCandidates}
+        reviewerCandidatesError={reviewerCandidatesError}
+        onLoadReviewerCandidates={loadReviewerCandidates}
+        onMerge={mergePullRequest}
+        onSetAutoMerge={setPullRequestAutoMerge}
+        onStateChange={updatePullRequestState}
+        onRequestedReviewersChange={updateRequestedReviewers}
+      />
 
       {/* GitHub-style PR navigation */}
       <div
@@ -506,7 +545,7 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
             <PrConversationTab
               summary={
                 <PrDetailSummary
-                  identity={identity}
+                  identity={currentIdentity}
                   baseBranch={baseBranch}
                   detail={state.detail}
                   conversationCount={state.conversation.length}
@@ -516,7 +555,7 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
                 />
               }
               detail={state.detail}
-              identity={identity}
+              identity={currentIdentity}
               conversation={state.conversation}
               reviews={state.reviews}
               reviewComments={state.reviewComments}

@@ -54,7 +54,13 @@ const apiMocks = vi.hoisted(() => ({
   listPRFilesLocal: vi.fn(),
   listPrReviewCommentsLocal: vi.fn(),
   listPrReviewsLocal: vi.fn(),
+  listRepoAssigneesLocal: vi.fn(),
+  mergePRLocal: vi.fn(),
+  removePRReviewersLocal: vi.fn(),
+  requestPRReviewersLocal: vi.fn(),
   replyPrReviewCommentLocal: vi.fn(),
+  setPRAutoMergeLocal: vi.fn(),
+  updatePRStateLocal: vi.fn(),
 }));
 
 vi.mock("@src/api/http/git/remotes", () => ({
@@ -72,7 +78,13 @@ vi.mock("@src/api/tauri/github", () => ({
   listPRFilesLocal: apiMocks.listPRFilesLocal,
   listPrReviewCommentsLocal: apiMocks.listPrReviewCommentsLocal,
   listPrReviewsLocal: apiMocks.listPrReviewsLocal,
+  listRepoAssigneesLocal: apiMocks.listRepoAssigneesLocal,
+  mergePRLocal: apiMocks.mergePRLocal,
+  removePRReviewersLocal: apiMocks.removePRReviewersLocal,
+  requestPRReviewersLocal: apiMocks.requestPRReviewersLocal,
   replyPrReviewCommentLocal: apiMocks.replyPrReviewCommentLocal,
+  setPRAutoMergeLocal: apiMocks.setPRAutoMergeLocal,
+  updatePRStateLocal: apiMocks.updatePRStateLocal,
 }));
 
 const REPO_PATH = "C:\\repo";
@@ -161,7 +173,17 @@ describe("useWorkstationPrDetail cache mutations", () => {
     apiMocks.listPrReviewCommentsLocal.mockResolvedValue([]);
     apiMocks.listPRCommitsLocal.mockResolvedValue([]);
     apiMocks.listPRFilesLocal.mockResolvedValue([]);
+    apiMocks.listRepoAssigneesLocal.mockResolvedValue([]);
     apiMocks.createIssueCommentLocal.mockResolvedValue(COMMENT);
+    apiMocks.mergePRLocal.mockResolvedValue({
+      sha: "merged-sha",
+      merged: true,
+      message: "merged",
+    });
+    apiMocks.setPRAutoMergeLocal.mockResolvedValue({ enabled: true });
+    apiMocks.updatePRStateLocal.mockResolvedValue({});
+    apiMocks.requestPRReviewersLocal.mockResolvedValue([]);
+    apiMocks.removePRReviewersLocal.mockResolvedValue([]);
     // Only invoked when a bundle's headSha is truthy — most tests here use
     // the null-headSha default and never touch this, but any test opting
     // into a real headSha needs it to resolve (a bare `vi.fn()` returns
@@ -518,6 +540,77 @@ describe("useWorkstationPrDetail cache mutations", () => {
       REPO_FULL_NAME,
       PR_D.number,
       expect.objectContaining({ commitId: "sha-new" })
+    );
+  });
+
+  it("publishes one shared dispatcher for PR-level merge, auto-merge, state, and reviewer mutations", async () => {
+    const ACTION_PR: PrIdentity = { ...PR, number: 111_105 };
+    const scopeKey = workstationPrScopeKey(
+      REPO_ID,
+      REPO_PATH,
+      ACTION_PR.number
+    );
+    apiMocks.getPRLocal.mockResolvedValue({
+      state: "open",
+      head: { sha: "expected-head" },
+      base: { ref: "develop" },
+      user: { login: "author" },
+      requested_reviewers: [{ login: "old-reviewer", avatar_url: "" }],
+    });
+
+    await act(async () => {
+      root?.render(
+        React.createElement(
+          Provider,
+          { store },
+          React.createElement(Harness, { pr: ACTION_PR })
+        )
+      );
+    });
+    await waitForStore(
+      store,
+      () =>
+        store.get(workstationPrDetailCallbackAtomFamily(scopeKey))
+          .mergePullRequest !== null
+    );
+    const callbacks = store.get(
+      workstationPrDetailCallbackAtomFamily(scopeKey)
+    );
+
+    await act(async () => {
+      await callbacks.mergePullRequest?.("squash");
+      await callbacks.setPullRequestAutoMerge?.(true, "rebase");
+      await callbacks.updatePullRequestState?.("closed");
+      await callbacks.updateRequestedReviewers?.(["new-reviewer"]);
+    });
+
+    expect(apiMocks.mergePRLocal).toHaveBeenCalledWith(
+      REPO_FULL_NAME,
+      ACTION_PR.number,
+      "squash",
+      "expected-head"
+    );
+    expect(apiMocks.setPRAutoMergeLocal).toHaveBeenCalledWith(
+      REPO_FULL_NAME,
+      ACTION_PR.number,
+      true,
+      "rebase",
+      "expected-head"
+    );
+    expect(apiMocks.updatePRStateLocal).toHaveBeenCalledWith(
+      REPO_FULL_NAME,
+      ACTION_PR.number,
+      "closed"
+    );
+    expect(apiMocks.requestPRReviewersLocal).toHaveBeenCalledWith(
+      REPO_FULL_NAME,
+      ACTION_PR.number,
+      ["new-reviewer"]
+    );
+    expect(apiMocks.removePRReviewersLocal).toHaveBeenCalledWith(
+      REPO_FULL_NAME,
+      ACTION_PR.number,
+      ["old-reviewer"]
     );
   });
 });
