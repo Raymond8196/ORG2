@@ -122,7 +122,7 @@ export function useElementDimensions(
 
     // Set up ResizeObserver for accurate tracking
     let resizeObserver: ResizeObserver | null = null;
-    if (element) {
+    if (element && typeof ResizeObserver !== "undefined") {
       resizeObserver = new ResizeObserver(measureDimensions);
       resizeObserver.observe(element);
     }
