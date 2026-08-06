@@ -1054,6 +1054,164 @@ describe("Org2CloudSyncEngine session publishing", () => {
     loadCloudTurnWindows.mockRestore();
   });
 
+  it("forces a full authoritative reread after the incremental pass budget", async () => {
+    const { IMPORTED_INCREMENTAL_REANCHOR_EVERY } =
+      await import("./org2CloudSessionSync");
+    const sessionId = "cursoride-reanchor-cadence-thread-1";
+    type CloudReplaySource = ImportedHistorySource &
+      Required<
+        Pick<ImportedHistorySource, "loadCloudTurnIds" | "loadCloudTurnWindows">
+      >;
+    const source = getImportedHistorySourceBySessionId(
+      sessionId
+    ) as CloudReplaySource;
+    const turnChunks = {
+      "turn-a": [{ chunk_id: "raw-a", function: "user_message" }],
+      "turn-b": [{ chunk_id: "raw-b", function: "user_message" }],
+      "turn-c": [{ chunk_id: "raw-c", function: "user_message" }],
+      "turn-d": [{ chunk_id: "raw-d", function: "user_message" }],
+    } as const;
+    const turnEvents = {
+      "turn-a": [makeEvent("event-a-user"), makeEvent("event-a-result")],
+      "turn-b": [makeEvent("event-b-user"), makeEvent("event-b-result")],
+      "turn-c": [makeEvent("event-c-user"), makeEvent("event-c-result")],
+      "turn-d": [makeEvent("event-d-user"), makeEvent("event-d-result")],
+    } as const;
+    let authoritativeChunks: Array<{
+      readonly chunk_id: string;
+      readonly function: string;
+    }> = [...turnChunks["turn-a"], ...turnChunks["turn-b"]];
+    let authoritativeEvents = [
+      ...turnEvents["turn-a"],
+      ...turnEvents["turn-b"],
+    ];
+    const loadFullTranscriptChunks = vi
+      .spyOn(source, "loadFullTranscriptChunks")
+      .mockImplementation(async () => authoritativeChunks as never);
+    const loadCloudTurnIds = vi
+      .spyOn(source, "loadCloudTurnIds")
+      .mockResolvedValue(["turn-a", "turn-b"]);
+    const loadCloudTurnWindows = vi
+      .spyOn(source, "loadCloudTurnWindows")
+      .mockImplementation(async (_sessionId, turnIds) =>
+        turnIds.map((turnId) => ({
+          turnId,
+          chunks: turnChunks[turnId as keyof typeof turnChunks] as never,
+        }))
+      );
+    processChunksRustMock.mockImplementation(async (chunks) => {
+      if (chunks === authoritativeChunks) return authoritativeEvents;
+      const turnId = Object.entries(turnChunks).find(
+        ([, candidate]) => candidate[0]?.chunk_id === chunks[0]?.chunk_id
+      )?.[0] as keyof typeof turnEvents | undefined;
+      return turnId ? [...turnEvents[turnId]] : [];
+    });
+    store.set(sessionsAtom, [
+      { ...SESSION, session_id: sessionId, orgId: "personal-org" },
+    ]);
+
+    await engine.runSyncPass();
+    vi.setSystemTime(Date.now() + EXTERNAL_HISTORY_ACTIVITY_DEBOUNCE_MS + 1);
+    await engine.runSyncPass();
+
+    // One bounded pass advances the cadence counter.
+    authoritativeChunks = [
+      ...turnChunks["turn-a"],
+      ...turnChunks["turn-b"],
+      ...turnChunks["turn-c"],
+    ];
+    authoritativeEvents = [
+      ...turnEvents["turn-a"],
+      ...turnEvents["turn-b"],
+      ...turnEvents["turn-c"],
+    ];
+    loadCloudTurnIds.mockResolvedValue(["turn-a", "turn-b", "turn-c"]);
+    loadFullTranscriptChunks.mockClear();
+    store.set(sessionsAtom, [
+      {
+        ...SESSION,
+        session_id: sessionId,
+        orgId: "personal-org",
+        updated_at: "2026-08-04T15:01:00.000Z",
+      },
+    ]);
+    await engine.runSyncPass();
+    vi.setSystemTime(Date.now() + EXTERNAL_HISTORY_ACTIVITY_DEBOUNCE_MS + 1);
+    await engine.runSyncPass();
+    expect(loadFullTranscriptChunks).not.toHaveBeenCalled();
+    const key = `corg-1:${sessionId}`;
+    expect(
+      store.get(org2CloudPushCursorsAtom)[key].importedReplay
+        ?.incrementalPassCount
+    ).toBe(1);
+
+    // An exhausted budget declines the checkpoint: the next delta pays one
+    // full authoritative read, still appends (intact prefix never rewrites),
+    // and the fresh checkpoint restarts the cadence at zero.
+    store.set(org2CloudPushCursorsAtom, (current) => {
+      const cursor = current[key];
+      return {
+        ...current,
+        [key]: {
+          ...cursor,
+          importedReplay: cursor.importedReplay && {
+            ...cursor.importedReplay,
+            incrementalPassCount: IMPORTED_INCREMENTAL_REANCHOR_EVERY,
+          },
+        },
+      };
+    });
+    authoritativeChunks = [
+      ...turnChunks["turn-a"],
+      ...turnChunks["turn-b"],
+      ...turnChunks["turn-c"],
+      ...turnChunks["turn-d"],
+    ];
+    authoritativeEvents = [
+      ...turnEvents["turn-a"],
+      ...turnEvents["turn-b"],
+      ...turnEvents["turn-c"],
+      ...turnEvents["turn-d"],
+    ];
+    loadCloudTurnIds.mockResolvedValue([
+      "turn-a",
+      "turn-b",
+      "turn-c",
+      "turn-d",
+    ]);
+    loadFullTranscriptChunks.mockClear();
+    client.rewriteSessionEvents.mockClear();
+    client.appendSessionEvents.mockClear();
+    store.set(sessionsAtom, [
+      {
+        ...SESSION,
+        session_id: sessionId,
+        orgId: "personal-org",
+        updated_at: "2026-08-04T15:02:00.000Z",
+      },
+    ]);
+    await engine.runSyncPass();
+    vi.setSystemTime(Date.now() + EXTERNAL_HISTORY_ACTIVITY_DEBOUNCE_MS + 1);
+    await engine.runSyncPass();
+
+    expect(loadFullTranscriptChunks).toHaveBeenCalledTimes(1);
+    expect(client.rewriteSessionEvents).not.toHaveBeenCalled();
+    expect(client.appendSessionEvents).toHaveBeenCalledTimes(1);
+    expect(
+      client.appendSessionEvents.mock.calls[0][1].newFrozenSegments.flatMap(
+        (segment: { events: unknown[] }) => segment.events
+      )
+    ).toEqual(turnEvents["turn-d"]);
+    expect(
+      store.get(org2CloudPushCursorsAtom)[key].importedReplay
+        ?.incrementalPassCount
+    ).toBe(0);
+
+    loadFullTranscriptChunks.mockRestore();
+    loadCloudTurnIds.mockRestore();
+    loadCloudTurnWindows.mockRestore();
+  });
+
   it("upgrades a pre-checkpoint flat cursor with a delta append, never an epoch rewrite", async () => {
     const sessionId = "cursoride-flat-migration-thread-1";
     type CloudReplaySource = ImportedHistorySource &
