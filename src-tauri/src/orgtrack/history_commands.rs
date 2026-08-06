@@ -49,6 +49,7 @@ const IMPORTED_TURN_PROJECTION_CACHE_CAPACITY: usize = 8;
 const IMPORTED_TURN_PROJECTION_LIMIT_PER_SESSION: usize = 4_096;
 const CODEX_INITIAL_RECENT_TURN_COUNT: usize = 1;
 const IMPORTED_INITIAL_RECENT_TURN_COUNT: usize = 1;
+const IMPORTED_CLOUD_TURN_WINDOW_LIMIT: usize = 50;
 
 /// Fidelity of a projection entering the cache. Window pre-warms are built
 /// without parsing every round body (empty `modified_files`, fabricated
@@ -836,6 +837,121 @@ pub async fn imported_history_turn_windows(
             imported_history::window::load_turn_windows_for_session(&conn, &session_id, &turn_ids)?
                 .ok_or_else(|| format!("Unknown imported history session: {session_id}"))
         }
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
+}
+
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ImportedHistoryCloudTurnWindow {
+    pub turn_id: String,
+    pub chunks: Vec<core_types::activity::ActivityChunk>,
+}
+
+/// Ordered user-turn ids for providers whose source readers can seek to one
+/// turn without materializing the complete transcript. This is intentionally
+/// a capability-gated surface: callers must retain the authoritative full
+/// loader as the fallback for unsupported or rewritten sources.
+#[tauri::command]
+pub async fn imported_history_cloud_turn_ids(session_id: String) -> Result<Vec<String>, String> {
+    tokio::task::spawn_blocking(move || {
+        if session_id.starts_with(orgtrack_core::sources::claude_code::SESSION_PREFIX) {
+            let conn = open_cache_conn()?;
+            return claude_code_history::load_claude_code_turn_ids_for_session(&conn, &session_id);
+        }
+        if session_id.starts_with(orgtrack_core::sources::codex::SESSION_PREFIX) {
+            let conn = open_cache_conn()?;
+            return codex_app::load_codex_app_turn_ids_for_session(&conn, &session_id);
+        }
+        if session_id.starts_with(orgtrack_core::sources::cursor_ide::CURSORIDE_SESSION_PREFIX) {
+            return cursor_db_history::load_turn_ids_for_session(&session_id);
+        }
+        Err(format!(
+            "Session {session_id} does not support incremental cloud replay windows"
+        ))
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
+}
+
+/// Load exact user-bounded turns for incremental cloud replay preparation.
+/// The limit bounds one IPC response; a larger delta safely falls back to the
+/// existing full authoritative loader in the frontend.
+#[tauri::command]
+pub async fn imported_history_cloud_turn_windows(
+    session_id: String,
+    mut turn_ids: Vec<String>,
+    start_sequence: usize,
+) -> Result<Vec<ImportedHistoryCloudTurnWindow>, String> {
+    if turn_ids.len() > IMPORTED_CLOUD_TURN_WINDOW_LIMIT {
+        return Err(format!(
+            "At most {IMPORTED_CLOUD_TURN_WINDOW_LIMIT} cloud replay turns can be loaded at once"
+        ));
+    }
+    if turn_ids.iter().any(|turn_id| turn_id.len() > 1_024) {
+        return Err("Imported history turn id is too long".to_string());
+    }
+    let mut seen = HashSet::with_capacity(turn_ids.len());
+    turn_ids.retain(|turn_id| seen.insert(turn_id.clone()));
+    if turn_ids.is_empty() {
+        return Ok(Vec::new());
+    }
+    tokio::task::spawn_blocking(move || {
+        if session_id.starts_with(orgtrack_core::sources::claude_code::SESSION_PREFIX) {
+            let conn = open_cache_conn()?;
+            return claude_code_history::load_claude_code_cloud_turn_windows_for_session(
+                &conn,
+                &session_id,
+                &turn_ids,
+                start_sequence,
+            )
+            .map(|windows| {
+                windows
+                    .into_iter()
+                    .map(|window| ImportedHistoryCloudTurnWindow {
+                        turn_id: window.turn_id,
+                        chunks: window.chunks,
+                    })
+                    .collect()
+            });
+        }
+        if session_id.starts_with(orgtrack_core::sources::codex::SESSION_PREFIX) {
+            let conn = open_cache_conn()?;
+            let mut next_sequence = start_sequence;
+            return turn_ids
+                .into_iter()
+                .map(|turn_id| {
+                    let chunks = codex_app::load_codex_app_cloud_turn_for_session(
+                        &conn,
+                        &session_id,
+                        &turn_id,
+                        next_sequence,
+                    )?;
+                    next_sequence = next_sequence.saturating_add(chunks.len());
+                    Ok(ImportedHistoryCloudTurnWindow { turn_id, chunks })
+                })
+                .collect();
+        }
+        if session_id.starts_with(orgtrack_core::sources::cursor_ide::CURSORIDE_SESSION_PREFIX) {
+            // start_sequence is intentionally unused here: Cursor chunk ids
+            // come from stable bubble ids in the provider DB, not from a
+            // position-derived sequence, so windows are position-independent.
+            return turn_ids
+                .into_iter()
+                .map(|turn_id| {
+                    let window =
+                        cursor_db_history::load_turn_window_for_session(&session_id, &turn_id)?;
+                    Ok(ImportedHistoryCloudTurnWindow {
+                        turn_id,
+                        chunks: window.chunks,
+                    })
+                })
+                .collect();
+        }
+        Err(format!(
+            "Session {session_id} does not support incremental cloud replay windows"
+        ))
     })
     .await
     .map_err(|err| format!("Task join error: {err}"))?

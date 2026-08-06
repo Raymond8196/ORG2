@@ -24,8 +24,9 @@ use super::meta::{
     resume_codex_session_meta_with_title, session_meta_to_cache_input, CodexSessionMetaParse,
 };
 use super::transcript::{
-    load_codex_app_from_path, load_codex_app_initial_window_from_path,
-    load_codex_app_turn_from_path, CodexAppInitialWindow, CodexAppTurnWindow,
+    load_codex_app_cloud_turn_from_path, load_codex_app_from_path,
+    load_codex_app_initial_window_from_path, load_codex_app_turn_from_path,
+    load_codex_app_turn_ids_from_path, CodexAppInitialWindow, CodexAppTurnWindow,
 };
 use super::{
     CodexAppRecentPath, CodexAppSessionPage, CodexAppSourceMetadata,
@@ -114,6 +115,26 @@ pub fn load_codex_app_turn_for_session(
     let mut window = load_codex_app_turn_from_path(session_id, &path, turn_id)?;
     link_codex_subagent_chunks(conn, session_id, &mut window.chunks)?;
     Ok(window)
+}
+
+pub fn load_codex_app_turn_ids_for_session(
+    conn: &Connection,
+    session_id: &str,
+) -> Result<Vec<String>, String> {
+    let file_stem = codex_file_stem_from_session_id(session_id)?;
+    let path = resolve_codex_session_path(conn, file_stem)?;
+    load_codex_app_turn_ids_from_path(&path)
+}
+
+pub fn load_codex_app_cloud_turn_for_session(
+    conn: &Connection,
+    session_id: &str,
+    turn_id: &str,
+    start_sequence: usize,
+) -> Result<Vec<ActivityChunk>, String> {
+    let file_stem = codex_file_stem_from_session_id(session_id)?;
+    let path = resolve_codex_session_path(conn, file_stem)?;
+    load_codex_app_cloud_turn_from_path(session_id, &path, turn_id, start_sequence)
 }
 
 #[derive(Debug, Clone)]
