@@ -68,7 +68,7 @@ describe("CloudSessionDownloadProgressCard", () => {
     expect(markup).toContain('aria-valuenow="54"');
     expect(markup).toContain("h-0.5");
     expect(markup).toContain("!rounded-none");
-    expect(markup).toContain("min-w-10 flex-1");
+    expect(markup).toContain("absolute -left-3 -right-3 -top-2");
     expect(markup).toContain(
       'data-testid="cloud-session-download-progress-pill"'
     );
