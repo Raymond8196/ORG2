@@ -124,7 +124,34 @@ const CloudPushCursorSchema = z.object({
     .optional(),
 }) satisfies z.ZodType<CollabSessionPushCursor>;
 
-const CloudPushCursorsSchema = z.record(z.string(), CloudPushCursorSchema);
+/**
+ * Per-entry tolerant store parse. `createZodJsonStorage` answers a failed
+ * whole-store parse with the initial value — for this store that would reset
+ * EVERY push cursor, and a full reset re-anchors every previously pushed
+ * session through an epoch rewrite on its next pass (fleet-wide churn in the
+ * #608 shape). One malformed entry (disk corruption, or a future checkpoint
+ * version rolled back to this build) must instead cost exactly one cursor:
+ * losing one is the designed recovery — that session alone re-anchors
+ * through the server OCC check.
+ */
+export const CloudPushCursorsSchema = z
+  .record(z.string(), z.unknown())
+  .transform((entries) => {
+    const cursors: Record<string, CollabSessionPushCursor> = {};
+    for (const [key, value] of Object.entries(entries)) {
+      const parsed = CloudPushCursorSchema.safeParse(value);
+      if (parsed.success) {
+        cursors[key] = parsed.data;
+      } else {
+        // Rate limiting is unnecessary: this runs once per storage load.
+        console.warn(
+          `[org2CloudSyncAtoms] dropped invalid push cursor "${key}"; ` +
+            "its session re-anchors on the next pass"
+        );
+      }
+    }
+    return cursors;
+  });
 
 /** Keyed by `${orgId}:${sessionId}` (cloud org ids, no collision risk). */
 export const org2CloudPushCursorsAtom = atomWithStorage<
