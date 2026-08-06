@@ -832,6 +832,29 @@ pub fn query_cached_session_by_session_id_including_superseded_from_conn(
     query_cached_session_by_session_id_impl(conn, session_id, true)
 }
 
+/**
+ * Continuation-family status for one cached session id: its elected lineage
+ * (when stamped) and whether a strictly newer continuation sibling exists.
+ * `None` = the id is not in the imported cache at all — callers must treat
+ * that as "unknown", never as superseded (a rebuilding cache reads absent).
+ */
+pub fn cached_session_continuation_status_from_conn(
+    conn: &Connection,
+    session_id: &str,
+) -> Result<Option<(Option<String>, bool)>, String> {
+    let Some((source, session)) =
+        query_cached_session_by_session_id_including_superseded_from_conn(conn, session_id)?
+    else {
+        return Ok(None);
+    };
+    let lineage = session
+        .source_metadata_json
+        .as_deref()
+        .and_then(continuation_lineage_id_from_metadata_json);
+    let superseded = has_newer_continuation_sibling(conn, &source, &session)?;
+    Ok(Some((lineage, superseded)))
+}
+
 fn query_cached_session_by_session_id_impl(
     conn: &Connection,
     session_id: &str,

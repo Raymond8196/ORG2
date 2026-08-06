@@ -957,6 +957,51 @@ pub async fn imported_history_cloud_turn_windows(
     .map_err(|err| format!("Task join error: {err}"))?
 }
 
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ImportedContinuationStatus {
+    pub session_id: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub lineage_id: Option<String>,
+    pub superseded: bool,
+}
+
+/// Continuation-family status for the cloud engine's superseded-row
+/// reconciliation: which push-marked sessions the imported cache reports as
+/// demoted, plus the lineage that identifies their listable winner. Ids not
+/// present in the cache are OMITTED — absence means "unknown" (a rebuilding
+/// cache reads empty), never "superseded".
+#[tauri::command]
+pub async fn imported_history_continuation_statuses(
+    session_ids: Vec<String>,
+) -> Result<Vec<ImportedContinuationStatus>, String> {
+    if session_ids.len() > 200 {
+        return Err("At most 200 continuation statuses can be resolved at once".to_string());
+    }
+    tokio::task::spawn_blocking(move || {
+        let conn = open_cache_conn()?;
+        let mut out = Vec::with_capacity(session_ids.len());
+        for session_id in session_ids {
+            let Some((lineage_id, superseded)) =
+                orgtrack_core::sources::imported_history::cache::cached_session_continuation_status_from_conn(
+                    &conn,
+                    &session_id,
+                )?
+            else {
+                continue;
+            };
+            out.push(ImportedContinuationStatus {
+                session_id,
+                lineage_id,
+                superseded,
+            });
+        }
+        Ok(out)
+    })
+    .await
+    .map_err(|err| format!("Task join error: {err}"))?
+}
+
 #[tauri::command]
 pub async fn codex_app_chunks(
     session_id: String,
