@@ -89,7 +89,7 @@ const permissionRequestsByStore = new WeakMap<
   Map<string, Promise<GitHubRepoPermissions | null>>
 >();
 
-interface RepoIssueLoadResult extends RepoIssueState {
+export interface RepoIssueLoadResult extends RepoIssueState {
   source: GitHubRepoSource;
   error: string | null;
 }
@@ -218,6 +218,23 @@ export function mergeUniqueIssues(
     ...existingIssues,
     ...incomingIssues.filter((issue) => !seenIssueNumbers.has(issue.number)),
   ];
+}
+
+export function mergeRepoIssueLoadResults(
+  current: Record<string, RepoIssueState>,
+  resolvedSources: readonly GitHubRepoSource[],
+  results: readonly RepoIssueLoadResult[]
+): Record<string, RepoIssueState> {
+  const next = Object.fromEntries(
+    resolvedSources.map((source) => {
+      const key = getRepoIssueMapKey(source);
+      return [key, current[key] ?? EMPTY_REPO_ISSUES];
+    })
+  );
+  for (const { source, error: _error, ...state } of results) {
+    next[getRepoIssueMapKey(source)] = state;
+  }
+  return isEqual(current, next) ? current : next;
 }
 
 function getCachedRepoIssues(source: GitHubRepoSource): RepoIssueState {
@@ -615,14 +632,8 @@ export function useGitHubWorkItemsLoadLifecycle({
         }))
       );
       if (scope === "issue") {
-        setIfChanged(
-          setRepoIssueMap,
-          Object.fromEntries(
-            issueResults.map(({ source, error: _error, ...state }) => [
-              getRepoIssueMapKey(source),
-              state,
-            ])
-          )
+        setRepoIssueMap((current) =>
+          mergeRepoIssueLoadResults(current, resolvedSources, issueResults)
         );
       } else {
         setRepoPrMap((current) => {
