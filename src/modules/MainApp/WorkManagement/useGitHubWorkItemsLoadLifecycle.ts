@@ -134,7 +134,15 @@ export function getGitHubLifecycleRetentionKey(
     scope,
     ...repos
       .filter((repo) => repo.kind === REPO_KIND.GIT && repo.path)
-      .map((repo) => [repo.id, repo.path, repo.repo_url ?? "", repo.name])
+      .map(
+        (repo) =>
+          [
+            repo.id ?? "",
+            repo.path ?? "",
+            repo.repo_url ?? "",
+            repo.name,
+          ] as const
+      )
       .sort(([leftId], [rightId]) => leftId.localeCompare(rightId)),
   ]);
 }
@@ -196,7 +204,7 @@ export function retainGitHubWorkItemsLifecycleSnapshot({
 
 function setIfChanged<T>(
   setValue: Dispatch<SetStateAction<T>>,
-  nextValue: T
+  nextValue: NoInfer<T>
 ): void {
   setValue((current) => (isEqual(current, nextValue) ? current : nextValue));
 }

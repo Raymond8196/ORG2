@@ -155,7 +155,10 @@ function semanticStateSetter<T>(
 ): Dispatch<SetStateAction<T>> {
   return (update) => {
     setValue((current) => {
-      const next = typeof update === "function" ? update(current) : update;
+      const next =
+        typeof update === "function"
+          ? (update as (previous: T) => T)(current)
+          : update;
       return isEqual(current, next) ? current : next;
     });
   };
