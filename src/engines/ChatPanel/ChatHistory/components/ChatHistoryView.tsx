@@ -409,22 +409,25 @@ const ChatHistoryView: React.FC<ChatHistoryViewProps> = ({
               )}
 
             {/* One pinned top-overlay slot: pagination shimmer and the
-                download progress/play card stack instead of overpainting
-                each other at the same z. A round-first skeleton renders the
-                transcript while segments are still streaming in — the
-                download card stays pinned above it; the empty/loading
-                branch mounts its own card. */}
+                download progress/play surface stack instead of overpainting
+                each other. Transcript items and pinned headers create local
+                z-layers up to 70, so this status-only layer sits above chat
+                content but below app modals (z-10000+). */}
             {(isLoadingMore ||
               (hasCloudDownloadProgress &&
                 activeProjectionHistory.length > 0)) && (
               <div
-                className={`absolute left-0 right-0 top-0 z-20 mx-auto ${surfaceBgClass} p-2 ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
+                className={`pointer-events-none absolute left-0 right-0 top-0 z-[9999] mx-auto p-2 ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
               >
                 {hasCloudDownloadProgress &&
                   activeProjectionHistory.length > 0 && (
                     <CloudSessionDownloadProgressCard sessionId={activeId} />
                   )}
-                {isLoadingMore && <ChatLoadingBlock />}
+                {isLoadingMore && (
+                  <div className={`pointer-events-auto ${surfaceBgClass}`}>
+                    <ChatLoadingBlock />
+                  </div>
+                )}
               </div>
             )}
 
