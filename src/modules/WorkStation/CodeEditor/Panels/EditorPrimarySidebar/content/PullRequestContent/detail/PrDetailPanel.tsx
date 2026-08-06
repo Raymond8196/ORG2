@@ -36,11 +36,8 @@ import Avatar from "@src/components/Avatar";
 import Button from "@src/components/Button";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
-import {
-  PanelHeader,
-  Placeholder,
-  ScrollTrail,
-} from "@src/modules/shared/layouts/blocks";
+import GitHubDetailSkeleton from "@src/modules/shared/components/GitHubDetailSkeleton";
+import { PanelHeader, ScrollTrail } from "@src/modules/shared/layouts/blocks";
 import { resolvePullRequestDetailStatus } from "@src/shared/pr/prLevelActions";
 import {
   type PrIdentity,
@@ -442,14 +439,8 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
     ]
   );
 
-  if (state.loading) {
-    return (
-      <Placeholder
-        variant="loading"
-        placement="detail-panel"
-        fillParentHeight
-      />
-    );
+  if (state.loading || (state.detail === null && state.error === null)) {
+    return <GitHubDetailSkeleton kind="pr" showHeader={showHeader} />;
   }
 
   return (
