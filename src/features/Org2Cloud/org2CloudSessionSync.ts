@@ -75,6 +75,16 @@ export const SESSION_SEGMENT_UPLOAD_BATCH_SIZE = 16;
 
 const IMPORTED_INCREMENTAL_TURN_LIMIT = 50;
 const IMPORTED_INCREMENTAL_SEGMENT_LIMIT = 16;
+/**
+ * Force one full authoritative reread after this many consecutive bounded
+ * passes. A historical rewrite that preserves every provider turn id outside
+ * the reread overlap cannot be detected from the compact checkpoint alone;
+ * the periodic full read bounds that blind spot at ~64 appended turns while
+ * amortizing its O(total) read cost to under 2% of passes. The reread never
+ * uploads by itself: an intact prefix rides the ordinary delta append and
+ * only a genuine chain mismatch pays the epoch rewrite.
+ */
+export const IMPORTED_INCREMENTAL_REANCHOR_EVERY = 64;
 
 interface ImportedReplayAnchorDraft {
   turnIds: string[];
@@ -448,6 +458,18 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
   ): Promise<(LoadedPushEvents & { baseEventCount: number }) | null> {
     const checkpoint = cursor.importedReplay;
     if (!checkpoint || checkpoint.version !== 1) return null;
+    // Cadence gate: after enough bounded passes, decline the checkpoint so
+    // this pass takes the full authoritative read, which validates the whole
+    // frozen prefix against the cursor's chain commitment and stamps a fresh
+    // checkpoint (pass count 0). This is the only detector for a historical
+    // rewrite that preserves every provider turn id outside the reread
+    // overlap; without it that blind spot is unbounded.
+    if (
+      (checkpoint.incrementalPassCount ?? 0) >=
+      IMPORTED_INCREMENTAL_REANCHOR_EVERY
+    ) {
+      return null;
+    }
     const source = getImportedHistorySourceBySessionId(sessionId);
     if (!source?.loadCloudTurnIds || !source.loadCloudTurnWindows) return null;
     if (
@@ -573,7 +595,8 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
     events: readonly SessionEvent[],
     perEventHashes: readonly string[],
     frozenEventCount: number,
-    frozenHashFrontier: Array<string | null> | undefined
+    frozenHashFrontier: Array<string | null> | undefined,
+    incrementalPassCount: number
   ): Promise<ImportedReplayCheckpoint | undefined> {
     if (!draft || draft.turnIds.length === 0 || !frozenHashFrontier) {
       return undefined;
@@ -598,6 +621,7 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
         )
       ),
       frozenHashFrontier,
+      incrementalPassCount,
     };
   }
 
@@ -681,7 +705,12 @@ export class Org2CloudSessionSync extends Org2CloudSessionSyncState {
               events,
               perEventHashes,
               frozenEventCount,
-              frozenHashFrontier
+              frozenHashFrontier,
+              // A full read resets the re-anchor cadence; each bounded pass
+              // advances it toward the next forced authoritative reread.
+              mode === "incremental"
+                ? (cursor?.importedReplay?.incrementalPassCount ?? 0) + 1
+                : 0
             ),
           };
         })();

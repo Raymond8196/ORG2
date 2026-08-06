@@ -77,6 +77,15 @@ export interface ImportedReplayCheckpoint {
   frozenOverlapHash: string;
   /** Binary Merkle frontier for exactly `frozenEventCount` event hashes. */
   frozenHashFrontier: Array<string | null>;
+  /**
+   * Bounded incremental passes since the last full authoritative read. A
+   * historical rewrite that preserves every provider turn id outside the
+   * reread overlap is invisible to the compact checkpoint; forcing one full
+   * reread every `IMPORTED_INCREMENTAL_REANCHOR_EVERY` passes turns that
+   * blind spot from unbounded into a bounded window. Absent on checkpoints
+   * written before this field existed — read as 0.
+   */
+  incrementalPassCount?: number;
 }
 
 const RepoScopesSchema = z.record(z.string(), z.array(z.string()));
@@ -120,6 +129,7 @@ const CloudPushCursorSchema = z.object({
       frozenHashFrontier: z
         .array(z.string().nullable())
         .max(MERKLE_FRONTIER_MAX_HEIGHT),
+      incrementalPassCount: z.number().int().nonnegative().optional(),
     })
     .optional(),
 }) satisfies z.ZodType<CollabSessionPushCursor>;
