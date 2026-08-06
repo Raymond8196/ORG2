@@ -21,7 +21,10 @@
 import { atomWithStorage } from "jotai/utils";
 import { z } from "zod/v4";
 
-import { createZodJsonStorage } from "@src/util/core/storage/zodStorage";
+import {
+  createZodJsonStorage,
+  tolerantRecordSchema,
+} from "@src/util/core/storage/zodStorage";
 
 import { MERKLE_FRONTIER_MAX_HEIGHT } from "./org2CloudMerkleFrontier";
 
@@ -79,7 +82,10 @@ export interface ImportedReplayCheckpoint {
   frozenHashFrontier: Array<string | null>;
 }
 
-const RepoScopesSchema = z.record(z.string(), z.array(z.string()));
+const RepoScopesSchema = tolerantRecordSchema(
+  "repo scope",
+  z.array(z.string())
+);
 
 /** Cloud orgId → locally-known repo scopes (normalized remote keys). */
 export const org2CloudRepoScopesAtom = atomWithStorage<
@@ -89,7 +95,10 @@ export const org2CloudRepoScopesAtom = atomWithStorage<
 });
 org2CloudRepoScopesAtom.debugLabel = "org2CloudRepoScopesAtom";
 
-const SyncEnabledSchema = z.record(z.string(), z.boolean());
+const SyncEnabledSchema = tolerantRecordSchema(
+  "sync-enabled flag",
+  z.boolean()
+);
 
 /** Cloud orgId → sync toggle; missing key = enabled (default ON). */
 export const org2CloudSyncEnabledAtom = atomWithStorage<
@@ -125,33 +134,14 @@ const CloudPushCursorSchema = z.object({
 }) satisfies z.ZodType<CollabSessionPushCursor>;
 
 /**
- * Per-entry tolerant store parse. `createZodJsonStorage` answers a failed
- * whole-store parse with the initial value — for this store that would reset
- * EVERY push cursor, and a full reset re-anchors every previously pushed
- * session through an epoch rewrite on its next pass (fleet-wide churn in the
- * #608 shape). One malformed entry (disk corruption, or a future checkpoint
- * version rolled back to this build) must instead cost exactly one cursor:
- * losing one is the designed recovery — that session alone re-anchors
- * through the server OCC check.
+ * Per-entry tolerant: a whole-store reset would re-anchor every pushed
+ * session through an epoch rewrite (fleet-wide churn in the #608 shape);
+ * dropping one cursor re-anchors one session, the designed recovery.
  */
-export const CloudPushCursorsSchema = z
-  .record(z.string(), z.unknown())
-  .transform((entries) => {
-    const cursors: Record<string, CollabSessionPushCursor> = {};
-    for (const [key, value] of Object.entries(entries)) {
-      const parsed = CloudPushCursorSchema.safeParse(value);
-      if (parsed.success) {
-        cursors[key] = parsed.data;
-      } else {
-        // Rate limiting is unnecessary: this runs once per storage load.
-        console.warn(
-          `[org2CloudSyncAtoms] dropped invalid push cursor "${key}"; ` +
-            "its session re-anchors on the next pass"
-        );
-      }
-    }
-    return cursors;
-  });
+export const CloudPushCursorsSchema = tolerantRecordSchema(
+  "push cursor",
+  CloudPushCursorSchema
+);
 
 /** Keyed by `${orgId}:${sessionId}` (cloud org ids, no collision risk). */
 export const org2CloudPushCursorsAtom = atomWithStorage<
@@ -164,7 +154,10 @@ export const org2CloudPushCursorsAtom = atomWithStorage<
 );
 org2CloudPushCursorsAtom.debugLabel = "org2CloudPushCursorsAtom";
 
-const PushedMetadataSchema = z.record(z.string(), z.literal(true));
+const PushedMetadataSchema = tolerantRecordSchema(
+  "pushed-metadata marker",
+  z.literal(true)
+);
 
 /**
  * Persisted "we put a live metadata row on the server" marker, keyed
@@ -185,7 +178,10 @@ export const org2CloudPushedMetadataAtom = atomWithStorage<
 );
 org2CloudPushedMetadataAtom.debugLabel = "org2CloudPushedMetadataAtom";
 
-const CollabStateCursorsSchema = z.record(z.string(), z.string());
+const CollabStateCursorsSchema = tolerantRecordSchema(
+  "collab state cursor",
+  z.string()
+);
 
 /**
  * Cloud orgId → ISO delta cursor for `cloud_list_org_collab_state`

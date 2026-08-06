@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod/v4";
 
-import { createZodJsonStorage } from "./zodStorage";
+import { createZodJsonStorage, tolerantRecordSchema } from "./zodStorage";
 
 const ListSchema = z.array(z.string());
 
@@ -60,5 +60,45 @@ describe("createZodJsonStorage", () => {
     expect(removeSpy).toHaveBeenCalledWith("storage", listeners[0]);
     addSpy.mockRestore();
     removeSpy.mockRestore();
+  });
+});
+
+describe("tolerantRecordSchema", () => {
+  it("drops only invalid entries and keeps the rest", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const schema = tolerantRecordSchema("thing", z.object({ n: z.number() }));
+    expect(
+      schema.parse({
+        good: { n: 1 },
+        wrongShape: { n: "nope" },
+        notAnObject: "garbage",
+        alsoGood: { n: 2 },
+      })
+    ).toEqual({ good: { n: 1 }, alsoGood: { n: 2 } });
+    expect(warn).toHaveBeenCalledTimes(2);
+    warn.mockRestore();
+  });
+
+  it("parses an empty record and still fails non-record roots", () => {
+    const schema = tolerantRecordSchema("thing", z.string());
+    expect(schema.parse({})).toEqual({});
+    // A non-record root is unrecoverable garbage: the whole-store initial
+    // value fallback in createZodJsonStorage is the right behavior there.
+    expect(schema.safeParse("not-a-record").success).toBe(false);
+    expect(schema.safeParse(null).success).toBe(false);
+  });
+
+  it("composes through createZodJsonStorage so one bad entry never resets the store", () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const storage = createZodJsonStorage(
+      tolerantRecordSchema("token list", z.array(z.string()))
+    );
+    localStorage.setItem(
+      "tags",
+      JSON.stringify({ keep: ["cloud:org-1"], drop: 42 })
+    );
+    expect(storage.getItem("tags", {})).toEqual({ keep: ["cloud:org-1"] });
+    expect(warn).toHaveBeenCalledTimes(1);
+    warn.mockRestore();
   });
 });
