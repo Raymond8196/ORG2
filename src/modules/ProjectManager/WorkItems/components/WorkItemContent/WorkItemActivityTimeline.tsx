@@ -159,7 +159,7 @@ function SingleTimelineEntry({
           />
         }
       >
-        <MarkdownContent body={body} />
+        <MarkdownContent body={body} fadeFrom="from-chat-pane" />
       </TimelineCard>
     );
   }

@@ -8,8 +8,8 @@ import {
   MarkdownContent,
   TimelineCard,
   TimelineCardHeader,
+  TimelineLoadingSkeleton,
 } from "@src/modules/shared/components/ActivityTimeline";
-import { Placeholder } from "@src/modules/shared/layouts/blocks";
 
 import { IssueTimelineEventRow } from "./IssueTimelineEvent";
 
@@ -51,10 +51,8 @@ export function IssueTimelineItems({
             : undefined
         }
       >
-        <Placeholder
-          variant="loading"
-          placement="sidebar"
-          title={t("git.issues.loadingTimeline", "Loading activity…")}
+        <TimelineLoadingSkeleton
+          label={t("git.issues.loadingTimeline", "Loading activity…")}
         />
       </ConnectedTimelineItem>
     );
@@ -103,7 +101,7 @@ export function IssueTimelineItems({
             />
           }
         >
-          <MarkdownContent body={body} />
+          <MarkdownContent body={body} fadeFrom="from-chat-pane" />
         </TimelineCard>
       </ConnectedTimelineItem>
     );
