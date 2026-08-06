@@ -78,13 +78,17 @@ vi.mock("@src/modules/shared/layouts/blocks", async (importOriginal) => {
 
 vi.mock("./PrConversationTab", () => ({
   PrConversationTab: (
-    props: Record<string, unknown> & { summary?: ReactNode }
+    props: Record<string, unknown> & {
+      summary?: ReactNode;
+      levelActions?: ReactNode;
+    }
   ) => {
     childProps.conversation = props;
     return createElement(
       "div",
       { "data-testid": "conversation-tab" },
-      props.summary
+      props.summary,
+      props.levelActions
     );
   },
 }));
@@ -183,6 +187,9 @@ describe("PrDetailPanel tabs", () => {
     expect(actions?.textContent).toContain("Close pull request");
     expect(actions?.className).not.toContain("bg-");
     expect(actions?.className).not.toContain("border");
+    expect(
+      container.querySelector('[role="tabpanel"]')?.contains(actions)
+    ).toBe(true);
 
     act(() => {
       tabs[3]?.click();
