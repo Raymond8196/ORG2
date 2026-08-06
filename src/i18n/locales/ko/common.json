@@ -417,7 +417,8 @@
     "skipThisVersion": "이 버전 건너뛰기",
     "later": "나중에",
     "link": "연결",
-    "copyName": "이름 복사"
+    "copyName": "이름 복사",
+    "switchMethod": "방법 전환"
   },
   "refreshToast": {
     "successName": "{{name}} 새로고침됨",
@@ -487,16 +488,6 @@
     "testing": "테스트 중...",
     "empty": "비어 있음",
     "launching": "시작 중..."
-  },
-  "workManagementTable": {
-    "columns": {
-      "id": "ID",
-      "titleContext": "제목 / 컨텍스트",
-      "status": "상태",
-      "assignee": "담당자",
-      "updated": "업데이트"
-    },
-    "selectRow": "{{id}} 선택"
   },
   "pagination": {
     "totalItems": "{{count}}개 항목",
@@ -2659,5 +2650,15 @@
     "downloadedOfTotal": "{{downloaded}} / {{total}}",
     "preparingDownload": "다운로드 준비 중…",
     "downloadingAndInstalling": "업데이트 다운로드 및 설치 중 (v{{version}})…"
+  },
+  "workManagementTable": {
+    "columns": {
+      "id": "ID",
+      "titleContext": "제목 / 컨텍스트",
+      "status": "상태",
+      "assignee": "담당자",
+      "updated": "업데이트"
+    },
+    "selectRow": "{{id}} 선택"
   }
 }

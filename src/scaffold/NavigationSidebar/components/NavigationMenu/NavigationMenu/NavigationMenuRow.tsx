@@ -117,6 +117,7 @@ export const NavigationMenuParentRow = React.forwardRef<
       )}
       <div
         data-testid={item.dataTestId}
+        data-tour-target={item.tourTarget}
         data-menu-item-id={item.id}
         role="button"
         tabIndex={item.disabled ? -1 : 0}
@@ -341,6 +342,7 @@ export const NavigationMenuLeafRow = React.forwardRef<
       )}
       <div
         data-testid={item.dataTestId}
+        data-tour-target={item.tourTarget}
         data-menu-item-id={item.id}
         data-selected={isSelected ? "true" : "false"}
         role="button"

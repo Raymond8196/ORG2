@@ -417,7 +417,8 @@
     "skipThisVersion": "Bỏ qua phiên bản này",
     "later": "Để sau",
     "link": "Liên kết",
-    "copyName": "Sao chép tên"
+    "copyName": "Sao chép tên",
+    "switchMethod": "Đổi phương thức"
   },
   "refreshToast": {
     "successName": "Đã làm mới {{name}}",
@@ -487,16 +488,6 @@
     "testing": "Đang kiểm tra...",
     "empty": "Trống",
     "launching": "Đang khởi chạy..."
-  },
-  "workManagementTable": {
-    "columns": {
-      "id": "ID",
-      "titleContext": "Tiêu đề / ngữ cảnh",
-      "status": "Trạng thái",
-      "assignee": "Người phụ trách",
-      "updated": "Đã cập nhật"
-    },
-    "selectRow": "Chọn {{id}}"
   },
   "pagination": {
     "totalItems": "{{count}} mục",
@@ -2656,5 +2647,15 @@
     "downloadedOfTotal": "{{downloaded}} trên {{total}}",
     "preparingDownload": "Đang chuẩn bị tải xuống…",
     "downloadingAndInstalling": "Đang tải và cài đặt bản cập nhật (v{{version}})…"
+  },
+  "workManagementTable": {
+    "columns": {
+      "id": "ID",
+      "titleContext": "Tiêu đề / ngữ cảnh",
+      "status": "Trạng thái",
+      "assignee": "Người phụ trách",
+      "updated": "Đã cập nhật"
+    },
+    "selectRow": "Chọn {{id}}"
   }
 }

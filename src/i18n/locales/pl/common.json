@@ -423,7 +423,8 @@
     "skipThisVersion": "Pomiń tę wersję",
     "later": "Później",
     "link": "Połącz",
-    "copyName": "Kopiuj nazwę"
+    "copyName": "Kopiuj nazwę",
+    "switchMethod": "Zmień metodę"
   },
   "refreshToast": {
     "successName": "Odświeżono: {{name}}",
@@ -493,16 +494,6 @@
     "testing": "Testowanie...",
     "empty": "Puste",
     "launching": "Uruchamianie..."
-  },
-  "workManagementTable": {
-    "columns": {
-      "id": "ID",
-      "titleContext": "Tytuł / kontekst",
-      "status": "Status",
-      "assignee": "Przypisany",
-      "updated": "Zaktualizowano"
-    },
-    "selectRow": "Wybierz {{id}}"
   },
   "pagination": {
     "totalItems": "{{count}} elementów",
@@ -2668,5 +2659,15 @@
     "downloadedOfTotal": "{{downloaded}} z {{total}}",
     "preparingDownload": "Przygotowywanie pobierania…",
     "downloadingAndInstalling": "Pobieranie i instalowanie aktualizacji (v{{version}})…"
+  },
+  "workManagementTable": {
+    "columns": {
+      "id": "ID",
+      "titleContext": "Tytuł / kontekst",
+      "status": "Status",
+      "assignee": "Przypisany",
+      "updated": "Zaktualizowano"
+    },
+    "selectRow": "Wybierz {{id}}"
   }
 }

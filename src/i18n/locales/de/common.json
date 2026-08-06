@@ -419,7 +419,8 @@
     "skipThisVersion": "Diese Version überspringen",
     "later": "Später",
     "link": "Verknüpfen",
-    "copyName": "Namen kopieren"
+    "copyName": "Namen kopieren",
+    "switchMethod": "Methode wechseln"
   },
   "refreshToast": {
     "successName": "{{name}} aktualisiert",
@@ -489,16 +490,6 @@
     "testing": "Testen...",
     "empty": "Leer",
     "launching": "Wird gestartet..."
-  },
-  "workManagementTable": {
-    "columns": {
-      "id": "ID",
-      "titleContext": "Titel / Kontext",
-      "status": "Status",
-      "assignee": "Zugewiesen an",
-      "updated": "Aktualisiert"
-    },
-    "selectRow": "{{id}} auswählen"
   },
   "pagination": {
     "totalItems": "{{count}} Einträge",
@@ -2666,5 +2657,15 @@
     "downloadedOfTotal": "{{downloaded}} von {{total}}",
     "preparingDownload": "Download wird vorbereitet…",
     "downloadingAndInstalling": "Update wird heruntergeladen und installiert (v{{version}})…"
+  },
+  "workManagementTable": {
+    "columns": {
+      "id": "ID",
+      "titleContext": "Titel / Kontext",
+      "status": "Status",
+      "assignee": "Zugewiesen an",
+      "updated": "Aktualisiert"
+    },
+    "selectRow": "{{id}} auswählen"
   }
 }

@@ -419,7 +419,8 @@
     "skipThisVersion": "Bu sürümü atla",
     "later": "Daha sonra",
     "link": "Bağla",
-    "copyName": "Adı Kopyala"
+    "copyName": "Adı Kopyala",
+    "switchMethod": "Yöntemi değiştir"
   },
   "refreshToast": {
     "successName": "{{name}} yenilendi",
@@ -489,16 +490,6 @@
     "testing": "Test ediliyor...",
     "empty": "Boş",
     "launching": "Başlatılıyor..."
-  },
-  "workManagementTable": {
-    "columns": {
-      "id": "Kimlik",
-      "titleContext": "Başlık / bağlam",
-      "status": "Durum",
-      "assignee": "Sorumlu",
-      "updated": "Güncellendi"
-    },
-    "selectRow": "{{id}} öğesini seç"
   },
   "pagination": {
     "totalItems": "{{count}} öğe",
@@ -2663,5 +2654,15 @@
     "downloadedOfTotal": "{{downloaded}} / {{total}}",
     "preparingDownload": "İndirme hazırlanıyor…",
     "downloadingAndInstalling": "Güncelleme indiriliyor ve yükleniyor (v{{version}})…"
+  },
+  "workManagementTable": {
+    "columns": {
+      "id": "Kimlik",
+      "titleContext": "Başlık / bağlam",
+      "status": "Durum",
+      "assignee": "Sorumlu",
+      "updated": "Güncellendi"
+    },
+    "selectRow": "{{id}} öğesini seç"
   }
 }

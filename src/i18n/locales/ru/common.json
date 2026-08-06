@@ -423,7 +423,8 @@
     "skipThisVersion": "Пропустить эту версию",
     "later": "Позже",
     "link": "Связать",
-    "copyName": "Копировать имя"
+    "copyName": "Копировать имя",
+    "switchMethod": "Сменить способ"
   },
   "refreshToast": {
     "successName": "{{name}} обновлено",
@@ -493,16 +494,6 @@
     "testing": "Тестирование...",
     "empty": "Пусто",
     "launching": "Запуск..."
-  },
-  "workManagementTable": {
-    "columns": {
-      "id": "ID",
-      "titleContext": "Заголовок / контекст",
-      "status": "Статус",
-      "assignee": "Исполнитель",
-      "updated": "Обновлено"
-    },
-    "selectRow": "Выбрать {{id}}"
   },
   "pagination": {
     "totalItems": "{{count}} записей",
@@ -2668,5 +2659,15 @@
     "downloadedOfTotal": "{{downloaded}} из {{total}}",
     "preparingDownload": "Подготовка загрузки…",
     "downloadingAndInstalling": "Загрузка и установка обновления (v{{version}})…"
+  },
+  "workManagementTable": {
+    "columns": {
+      "id": "ID",
+      "titleContext": "Заголовок / контекст",
+      "status": "Статус",
+      "assignee": "Исполнитель",
+      "updated": "Обновлено"
+    },
+    "selectRow": "Выбрать {{id}}"
   }
 }

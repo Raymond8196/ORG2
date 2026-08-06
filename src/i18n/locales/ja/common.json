@@ -417,7 +417,8 @@
     "skipThisVersion": "このバージョンをスキップ",
     "later": "後で",
     "link": "リンク",
-    "copyName": "名前をコピー"
+    "copyName": "名前をコピー",
+    "switchMethod": "方法を切り替える"
   },
   "refreshToast": {
     "successName": "{{name}} を更新しました",
@@ -487,16 +488,6 @@
     "testing": "テスト中...",
     "empty": "空",
     "launching": "起動中..."
-  },
-  "workManagementTable": {
-    "columns": {
-      "id": "ID",
-      "titleContext": "タイトル / コンテキスト",
-      "status": "ステータス",
-      "assignee": "担当者",
-      "updated": "更新"
-    },
-    "selectRow": "{{id}} を選択"
   },
   "pagination": {
     "totalItems": "{{count}} 件",
@@ -2661,5 +2652,15 @@
     "downloadedOfTotal": "{{downloaded}} / {{total}}",
     "preparingDownload": "ダウンロードを準備中…",
     "downloadingAndInstalling": "アップデートをダウンロードしてインストール中 (v{{version}})…"
+  },
+  "workManagementTable": {
+    "columns": {
+      "id": "ID",
+      "titleContext": "タイトル / コンテキスト",
+      "status": "ステータス",
+      "assignee": "担当者",
+      "updated": "更新"
+    },
+    "selectRow": "{{id}} を選択"
   }
 }

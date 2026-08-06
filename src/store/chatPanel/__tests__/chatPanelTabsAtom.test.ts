@@ -72,7 +72,10 @@ async function loadChatPanelTabAtoms() {
   } = await import("../chatPanelTerminalAtom");
   const {
     activeChatPanelSurfaceAtom,
+    CHAT_PANEL_COLLAB_ORG_MODE,
+    CHAT_PANEL_COLLAB_ORG_SOURCE,
     chatPanelCreateProjectContextAtom,
+    chatPanelCollabOrgCreateIntentAtom,
     chatPanelCreateTargetAtom,
     chatPanelMaximizedAtom,
     chatPanelNavigateAtom,
@@ -96,11 +99,14 @@ async function loadChatPanelTabAtoms() {
     activeSessionIdAtom,
     addChatPanelLaunchpadTabAtom,
     CHAT_PANEL_CREATE_TARGET,
+    CHAT_PANEL_COLLAB_ORG_MODE,
+    CHAT_PANEL_COLLAB_ORG_SOURCE,
     CHAT_PANEL_SURFACE_KIND,
     chatPanelTabsAtom,
     chatPanelMaximizedAtom,
     chatPanelNavigateAtom,
     chatPanelCreateProjectContextAtom,
+    chatPanelCollabOrgCreateIntentAtom,
     chatPanelCreateTargetAtom,
     chatPanelStartPageOpenAtom,
     closeChatPanelTabAtom,
@@ -908,7 +914,14 @@ describe("ChatPanel navigation tabs", () => {
     const launchpadTabId = store.get(chatPanelTabsAtom).activeTabId;
 
     const managementTabId = store.set(openOrganizationInChatPanelTabAtom, {
-      organization: { kind: "cloud", cloudOrg: { orgId: "org-a" } },
+      organization: {
+        kind: "cloud",
+        cloudOrg: {
+          orgId: "org-a",
+          initialView: "members",
+          initialViewRequestId: 1,
+        },
+      },
       title: "Manage ORG",
     });
 
@@ -921,14 +934,43 @@ describe("ChatPanel navigation tabs", () => {
           title: "Manage ORG",
           organization: {
             kind: "cloud",
-            cloudOrg: { orgId: "org-a" },
+            cloudOrg: {
+              orgId: "org-a",
+              initialView: "members",
+              initialViewRequestId: 1,
+            },
           },
         }),
       ]),
     });
     expect(store.get(activeChatPanelSurfaceAtom)).toEqual({
       kind: CHAT_PANEL_SURFACE_KIND.CLOUD_ORG,
-      cloudOrg: { orgId: "org-a" },
+      cloudOrg: {
+        orgId: "org-a",
+        initialView: "members",
+        initialViewRequestId: 1,
+      },
+    });
+
+    const refocusedTabId = store.set(openOrganizationInChatPanelTabAtom, {
+      organization: {
+        kind: "cloud",
+        cloudOrg: {
+          orgId: "org-a",
+          initialView: "members",
+          initialViewRequestId: 2,
+        },
+      },
+      title: "Manage ORG",
+    });
+    expect(refocusedTabId).toBe(managementTabId);
+    expect(store.get(activeChatPanelSurfaceAtom)).toEqual({
+      kind: CHAT_PANEL_SURFACE_KIND.CLOUD_ORG,
+      cloudOrg: {
+        orgId: "org-a",
+        initialView: "members",
+        initialViewRequestId: 2,
+      },
     });
 
     const switchedTabId = store.set(openOrganizationInChatPanelTabAtom, {
@@ -999,7 +1041,10 @@ describe("ChatPanel navigation tabs", () => {
 
   it("opens creator targets inside the singleton start page", async () => {
     const {
+      CHAT_PANEL_COLLAB_ORG_MODE,
+      CHAT_PANEL_COLLAB_ORG_SOURCE,
       CHAT_PANEL_CREATE_TARGET,
+      chatPanelCollabOrgCreateIntentAtom,
       chatPanelCreateProjectContextAtom,
       chatPanelCreateTargetAtom,
       chatPanelStartPageOpenAtom,
@@ -1021,6 +1066,11 @@ describe("ChatPanel navigation tabs", () => {
         orgId: "org-a",
         scopeBreadcrumbLabel: "ORG A",
       },
+      collabOrgCreateIntent: {
+        requestId: 7,
+        source: CHAT_PANEL_COLLAB_ORG_SOURCE.CLOUD,
+        mode: CHAT_PANEL_COLLAB_ORG_MODE.CREATE,
+      },
     });
 
     expect(openedTabId).toBe(launchpadTabId);
@@ -1032,12 +1082,23 @@ describe("ChatPanel navigation tabs", () => {
       orgId: "org-a",
       scopeBreadcrumbLabel: "ORG A",
     });
+    expect(store.get(chatPanelCollabOrgCreateIntentAtom)).toEqual({
+      requestId: 7,
+      source: CHAT_PANEL_COLLAB_ORG_SOURCE.CLOUD,
+      mode: CHAT_PANEL_COLLAB_ORG_MODE.CREATE,
+    });
     expect(store.get(chatPanelStartPageOpenAtom)).toBe(true);
     expect(
       store
         .get(chatPanelTabsAtom)
         .tabs.filter((tab) => tab.type === "start-page")
     ).toHaveLength(1);
+
+    store.set(openCreateTargetInChatPanelStartPageAtom, {
+      target: CHAT_PANEL_CREATE_TARGET.COLLAB_ORG,
+      title: "Launchpad",
+    });
+    expect(store.get(chatPanelCollabOrgCreateIntentAtom)).toBeNull();
   });
 
   it("keeps the Work Item creator selected after switching back to Launchpad", async () => {

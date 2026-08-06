@@ -419,7 +419,8 @@
     "skipThisVersion": "Omitir esta versión",
     "later": "Más tarde",
     "link": "Vincular",
-    "copyName": "Copiar nombre"
+    "copyName": "Copiar nombre",
+    "switchMethod": "Cambiar método"
   },
   "refreshToast": {
     "successName": "{{name}} actualizado",
@@ -489,16 +490,6 @@
     "testing": "Probando...",
     "empty": "Vacío",
     "launching": "Lanzando..."
-  },
-  "workManagementTable": {
-    "columns": {
-      "id": "ID",
-      "titleContext": "Título / contexto",
-      "status": "Estado",
-      "assignee": "Responsable",
-      "updated": "Actualizado"
-    },
-    "selectRow": "Seleccionar {{id}}"
   },
   "pagination": {
     "totalItems": "{{count}} elementos",
@@ -2658,5 +2649,15 @@
     "downloadedOfTotal": "{{downloaded}} de {{total}}",
     "preparingDownload": "Preparando descarga…",
     "downloadingAndInstalling": "Descargando e instalando actualización (v{{version}})…"
+  },
+  "workManagementTable": {
+    "columns": {
+      "id": "ID",
+      "titleContext": "Título / contexto",
+      "status": "Estado",
+      "assignee": "Responsable",
+      "updated": "Actualizado"
+    },
+    "selectRow": "Seleccionar {{id}}"
   }
 }
