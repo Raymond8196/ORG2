@@ -12,6 +12,8 @@
     "recentLoading": "Wczytywanie udostępnionych sesji…",
     "recentEmpty": "Brak udostępnionych sesji",
     "members": "Podział według członka",
+    "activeToday": "Aktywni dzisiaj",
+    "inactiveToday": "Nieaktywni dzisiaj",
     "sync": "Synchronizacja"
   },
   "signedOut": {

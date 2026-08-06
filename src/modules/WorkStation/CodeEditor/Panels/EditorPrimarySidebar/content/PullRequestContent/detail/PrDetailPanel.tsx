@@ -36,12 +36,10 @@ import Avatar from "@src/components/Avatar";
 import Button from "@src/components/Button";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
-import {
-  PanelHeader,
-  Placeholder,
-  ScrollTrail,
-} from "@src/modules/shared/layouts/blocks";
+import GitHubDetailSkeleton from "@src/modules/shared/components/GitHubDetailSkeleton";
+import { PanelHeader, ScrollTrail } from "@src/modules/shared/layouts/blocks";
 import { resolvePullRequestDetailStatus } from "@src/shared/pr/prLevelActions";
+import { getPrStatusVariant } from "@src/shared/pr/prStatus";
 import {
   type PrIdentity,
   workstationPrScopeKey,
@@ -192,6 +190,7 @@ export function PrDetailSummary({
     files.reduce((total, file) => total + file.deletions, 0);
   const commentCount = readNumber(detail, "comments") ?? conversationCount;
   const statusLabel = t(`git.pr.status.${identity.status}`, identity.status);
+  const statusColorClass = getPrStatusVariant(identity.status).textClass;
 
   return (
     <section
@@ -274,13 +273,21 @@ export function PrDetailSummary({
 
         <div className="flex items-center gap-2 text-text-3">
           {identity.status === "merged" ? (
-            <GitMerge size={14} strokeWidth={1.75} />
+            <GitMerge
+              size={14}
+              strokeWidth={1.75}
+              className={statusColorClass}
+            />
           ) : (
-            <CircleDot size={14} strokeWidth={1.75} />
+            <CircleDot
+              size={14}
+              strokeWidth={1.75}
+              className={statusColorClass}
+            />
           )}
           <span>{t("git.pr.summary.status", "Status")}</span>
         </div>
-        <div className="capitalize text-text-1">{statusLabel}</div>
+        <div className={`capitalize ${statusColorClass}`}>{statusLabel}</div>
       </div>
     </section>
   );
@@ -442,14 +449,8 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
     ]
   );
 
-  if (state.loading) {
-    return (
-      <Placeholder
-        variant="loading"
-        placement="detail-panel"
-        fillParentHeight
-      />
-    );
+  if (state.loading || (state.detail === null && state.error === null)) {
+    return <GitHubDetailSkeleton kind="pr" showHeader={showHeader} />;
   }
 
   return (
@@ -471,22 +472,6 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
           <PrDetailHeaderContent identity={currentIdentity} />
         </PanelHeader>
       ) : null}
-
-      <PrLevelActions
-        identity={currentIdentity}
-        detail={state.detail}
-        checks={state.checks}
-        disabled={!repoFullName}
-        pending={prActionPending}
-        reviewerCandidates={reviewerCandidates}
-        loadingReviewerCandidates={loadingReviewerCandidates}
-        reviewerCandidatesError={reviewerCandidatesError}
-        onLoadReviewerCandidates={loadReviewerCandidates}
-        onMerge={mergePullRequest}
-        onSetAutoMerge={setPullRequestAutoMerge}
-        onStateChange={updatePullRequestState}
-        onRequestedReviewersChange={updateRequestedReviewers}
-      />
 
       {/* GitHub-style PR navigation */}
       <div
@@ -543,6 +528,23 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
         >
           {activeTab === "conversation" && (
             <PrConversationTab
+              levelActions={
+                <PrLevelActions
+                  identity={currentIdentity}
+                  detail={state.detail}
+                  checks={state.checks}
+                  disabled={!repoFullName}
+                  pending={prActionPending}
+                  reviewerCandidates={reviewerCandidates}
+                  loadingReviewerCandidates={loadingReviewerCandidates}
+                  reviewerCandidatesError={reviewerCandidatesError}
+                  onLoadReviewerCandidates={loadReviewerCandidates}
+                  onMerge={mergePullRequest}
+                  onSetAutoMerge={setPullRequestAutoMerge}
+                  onStateChange={updatePullRequestState}
+                  onRequestedReviewersChange={updateRequestedReviewers}
+                />
+              }
               summary={
                 <PrDetailSummary
                   identity={currentIdentity}

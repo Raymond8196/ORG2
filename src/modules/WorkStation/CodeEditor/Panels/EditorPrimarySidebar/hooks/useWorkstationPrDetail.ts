@@ -406,7 +406,8 @@ export function useWorkstationPrDetail({
           repoFullName,
           pr.number,
           event,
-          body || undefined
+          body || undefined,
+          latestHeadShaRef.current ?? undefined
         );
         updateCachedPrDetail(key, (cached) => ({
           reviews: upsertById(cached.reviews, review),

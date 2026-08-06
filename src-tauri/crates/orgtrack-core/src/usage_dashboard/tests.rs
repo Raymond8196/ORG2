@@ -768,6 +768,60 @@ fn daily_rollup_window_clips_rounds() {
 }
 
 #[test]
+fn daily_rollup_derives_a_true_rolling_24h_snapshot_in_the_same_scan() {
+    let conn = fixture_conn();
+    insert_code_session(
+        &conn,
+        "rolling-claude",
+        "claude",
+        "Rolling window",
+        "2026-07-18T12:00:00+00:00",
+    );
+    insert_turn(
+        &conn,
+        "rolling-claude",
+        "claude-sonnet-4-5",
+        (100, 10, 0, 0),
+        "2026-07-17T11:59:59.999Z",
+    );
+    insert_turn(
+        &conn,
+        "rolling-claude",
+        "claude-sonnet-4-5",
+        (200, 20, 30, 40),
+        "2026-07-17T12:00:00Z",
+    );
+    recompute_session_usage(&conn, "rolling-claude")
+        .unwrap()
+        .expect("rolling session projected");
+
+    let end_ms = ms("2026-07-18T12:00:00Z");
+    let rollup = usage_daily_rollup(&conn, ms("2026-07-01T00:00:00Z"), end_ms)
+        .expect("daily + rolling rollup");
+
+    assert_eq!(rollup.recent_usage_24h.start_ms, ms("2026-07-17T12:00:00Z"));
+    assert_eq!(rollup.recent_usage_24h.end_ms, end_ms);
+    assert_eq!(rollup.recent_usage_24h.summary.input_tokens, 200);
+    assert_eq!(rollup.recent_usage_24h.summary.output_tokens, 20);
+    assert_eq!(rollup.recent_usage_24h.summary.cache_read_tokens, 30);
+    assert_eq!(rollup.recent_usage_24h.summary.cache_write_tokens, 40);
+    assert_eq!(rollup.recent_usage_24h.summary.session_count, 1);
+    assert_eq!(rollup.recent_usage_24h.summary.request_count, 1);
+    assert_eq!(rollup.recent_usage_24h.trends.len(), 1);
+    assert_eq!(
+        rollup.recent_usage_24h.trends[0].bucket_ms,
+        ms("2026-07-17T12:00:00Z")
+    );
+
+    // The daily sync window still contains both rounds; the rolling snapshot
+    // alone excludes the row one millisecond before the 24h boundary.
+    assert_eq!(
+        rollup.days.iter().map(|row| row.input_tokens).sum::<i64>(),
+        300
+    );
+}
+
+#[test]
 fn daily_rollup_skips_zero_usage_cells() {
     let conn = seeded_conn();
     // A zero-token turn on an otherwise idle day: the cell would carry a
@@ -1022,6 +1076,16 @@ fn daily_rollup_serializes_camel_case() {
     let json = serde_json::to_value(DailyRollup {
         days: vec![row],
         total_sessions: 42,
+        recent_usage_24h: RecentUsageSnapshot {
+            start_ms: 1_784_332_800_000,
+            end_ms: 1_784_419_200_000,
+            summary: UsageSummary::default(),
+            trends: vec![UsageTrendPoint {
+                bucket_ms: 1_784_332_800_000,
+                input_tokens: 5,
+                ..UsageTrendPoint::default()
+            }],
+        },
     })
     .expect("serialize rollup");
     assert_eq!(json["totalSessions"], 42);
@@ -1036,4 +1100,7 @@ fn daily_rollup_serializes_camel_case() {
     assert_eq!(row["costUsd"], 0.5);
     assert_eq!(row["sessions"], 1);
     assert_eq!(row["requests"], 2);
+    assert_eq!(json["recentUsage24h"]["startMs"], 1_784_332_800_000_i64);
+    assert_eq!(json["recentUsage24h"]["endMs"], 1_784_419_200_000_i64);
+    assert_eq!(json["recentUsage24h"]["trends"][0]["inputTokens"], 5);
 }

@@ -20,6 +20,7 @@ export interface PropertyDropdownOption<T extends string> {
   label: string;
   icon?: React.ReactNode;
   iconColor?: string;
+  disabled?: boolean;
 }
 
 export type PropertyDropdownPlacement = "inline" | "portal";
@@ -223,6 +224,7 @@ export function PropertyDropdownField<T extends string>({
             iconColor={option.iconColor}
             label={option.label}
             isSelected={option.value === value}
+            disabled={option.disabled}
             onClick={() => handleSelect(option.value)}
             dataTestId={
               dataTestId ? `${dataTestId}-option-${option.value}` : undefined

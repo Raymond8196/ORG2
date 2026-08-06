@@ -12,6 +12,8 @@
     "recentLoading": "正在加载共享会话…",
     "recentEmpty": "还没有共享会话",
     "members": "成员明细",
+    "activeToday": "今日活跃",
+    "inactiveToday": "今日未活跃",
     "sync": "同步"
   },
   "signedOut": {

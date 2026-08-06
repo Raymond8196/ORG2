@@ -554,6 +554,8 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
                 maxHeight={360}
                 appearance="plain"
                 toolbarMode="inline"
+                toolbarSize="mini"
+                toolbarDropdownPosition="top-start"
                 editable={
                   canEditDescription && !githubIssueInteraction?.updatingBody
                 }
@@ -742,8 +744,19 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
   );
 
   if (isThread) {
+    const githubIssueComposer =
+      activeThreadView === "overview" &&
+      isGitHubWorkItem &&
+      githubIssueInteraction ? (
+        <GitHubIssueComposer interaction={githubIssueInteraction} />
+      ) : undefined;
+
     return (
-      <WorkItemThreadLayout path={headerPath} properties={headerProperties}>
+      <WorkItemThreadLayout
+        path={headerPath}
+        properties={headerProperties}
+        floatingFooter={githubIssueComposer}
+      >
         {activeThreadView === "overview" ? (
           <>
             {handoffNotice}
@@ -752,13 +765,7 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
               {todosSection}
             </ScrollTrailTarget>
             {threadLowerSection}
-            {isGitHubWorkItem && githubIssueInteraction ? (
-              <ScrollTrailTarget
-                label={t("common:git.issues.composer.addComment")}
-              >
-                <GitHubIssueComposer interaction={githubIssueInteraction} />
-              </ScrollTrailTarget>
-            ) : (
+            {!isGitHubWorkItem || !githubIssueInteraction ? (
               <ScrollTrailTarget
                 label={t("workItems.activity.discussionTitle")}
               >
@@ -778,7 +785,7 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
                   />
                 </nav>
               </ScrollTrailTarget>
-            )}
+            ) : null}
           </>
         ) : (
           historyContent

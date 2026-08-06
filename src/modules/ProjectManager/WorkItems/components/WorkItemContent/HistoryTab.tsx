@@ -126,6 +126,8 @@ const HistoryTab: React.FC<HistoryTabProps> = ({
             maxHeight={120}
             appearance="plain"
             matchMarkdownPreview={false}
+            toolbarSize="mini"
+            toolbarDropdownPosition="top-start"
             dataTestId="work-item-comment-editor"
           />
           {submitButton}
@@ -150,6 +152,8 @@ const HistoryTab: React.FC<HistoryTabProps> = ({
           minHeight={60}
           maxHeight={120}
           appearance="outlined"
+          toolbarSize="mini"
+          toolbarDropdownPosition="top-start"
           dataTestId="work-item-comment-editor"
         />
         <div className="mt-2 flex items-center justify-end">{submitButton}</div>

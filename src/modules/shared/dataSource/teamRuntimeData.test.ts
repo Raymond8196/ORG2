@@ -7,6 +7,7 @@ import type {
 import type { RemoteTeammateSessionMetadata } from "@src/store/collaboration/types";
 
 import {
+  aggregateMemberRecentUsageTrends,
   buildOrgRuntimeTodaySnapshot,
   clampTelemetryInterval,
   foldMemberUsageSummary,
@@ -21,6 +22,24 @@ import {
   telemetrySelectValue,
   utcDayStartMs,
 } from "./teamRuntimeData";
+
+function usageSummary(realTotalTokens: number, costUsd: number) {
+  return {
+    sessionCount: 1,
+    requestCount: 1,
+    inputTokens: realTotalTokens,
+    outputTokens: 0,
+    cacheReadTokens: 0,
+    cacheWriteTokens: 0,
+    realTotalTokens,
+    totalTokens: realTotalTokens,
+    costUsd,
+    estimatedCostUsd: costUsd,
+    recordedCostUsd: 0,
+    cacheHitRate: 0,
+    byBucket: [],
+  };
+}
 
 function usageDay(over: Partial<MemberUsageDay> = {}): MemberUsageDay {
   return {
@@ -309,6 +328,64 @@ describe("buildOrgRuntimeTodaySnapshot", () => {
     expect(snapshot.currentSystems).toBe(2);
     expect(snapshot.averageCpuPercent).toBe(30);
     expect(snapshot.averageRamPercent).toBe(50);
+  });
+});
+
+describe("aggregateMemberRecentUsageTrends", () => {
+  it("merges matching member hours, clips the display window, and sorts", () => {
+    const startMs = Date.parse("2026-07-28T12:30:00Z");
+    const endMs = Date.parse("2026-07-29T12:30:00Z");
+    const firstHour = Date.parse("2026-07-28T12:00:00Z");
+    const laterHour = Date.parse("2026-07-29T10:00:00Z");
+    const outsideHour = Date.parse("2026-07-28T11:00:00Z");
+    const trend = (bucketMs: number, inputTokens: number, costUsd: number) => ({
+      bucketMs,
+      inputTokens,
+      outputTokens: 1,
+      cacheReadTokens: 2,
+      cacheWriteTokens: 3,
+      costUsd,
+    });
+    const withTrends = (userId: string, trends: ReturnType<typeof trend>[]) =>
+      member(userId, {
+        stats: {
+          totalSessions: 1,
+          recentUsage24h: {
+            startMs,
+            endMs,
+            summary: usageSummary(1, 1),
+            trends,
+          },
+        },
+      });
+
+    const points = aggregateMemberRecentUsageTrends(
+      [
+        withTrends("ada", [trend(laterHour, 10, 1), trend(firstHour, 20, 2)]),
+        withTrends("lin", [trend(laterHour, 30, 3), trend(outsideHour, 99, 9)]),
+      ],
+      startMs,
+      endMs
+    );
+
+    expect(points.map((point) => point.bucketMs)).toEqual([
+      firstHour,
+      laterHour,
+    ]);
+    expect(points[1]).toEqual({
+      bucketMs: laterHour,
+      inputTokens: 40,
+      outputTokens: 2,
+      cacheReadTokens: 4,
+      cacheWriteTokens: 6,
+      costUsd: 4,
+    });
+  });
+
+  it("is empty-safe for invalid bounds and peers without snapshots", () => {
+    expect(aggregateMemberRecentUsageTrends([member("ada")], 10, 0)).toEqual(
+      []
+    );
   });
 });
 

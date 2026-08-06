@@ -71,7 +71,7 @@ export interface DropdownProps {
   /**
    * Placement relative to the trigger. Vertical placements flip to their
    * mirror side automatically when the requested side cannot fit the panel.
-   * @default 'bottom-start'
+   * @default 'bottom-end'
    */
   position?: DropdownPosition;
 
@@ -147,7 +147,7 @@ export interface DropdownProps {
 const Dropdown: React.FC<DropdownProps> = ({
   droplist,
   children,
-  position = "bottom-start",
+  position = "bottom-end",
   trigger = "click",
   hoverCloseDelayMs = 100,
   popupVisible: controlledVisible,

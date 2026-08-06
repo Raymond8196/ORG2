@@ -12,6 +12,8 @@
     "recentLoading": "正在載入共享工作階段…",
     "recentEmpty": "尚無共享工作階段",
     "members": "成員明細",
+    "activeToday": "今日活躍",
+    "inactiveToday": "今日未活躍",
     "sync": "同步"
   },
   "signedOut": {

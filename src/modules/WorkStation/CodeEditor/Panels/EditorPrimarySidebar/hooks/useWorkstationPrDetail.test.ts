@@ -543,6 +543,58 @@ describe("useWorkstationPrDetail cache mutations", () => {
     );
   });
 
+  it("anchors a submitted review to the displayed head commit", async () => {
+    const REVIEW_PR: PrIdentity = { ...PR, number: 111_106 };
+    const scopeKey = workstationPrScopeKey(
+      REPO_ID,
+      REPO_PATH,
+      REVIEW_PR.number
+    );
+    apiMocks.getPRLocal.mockResolvedValue({
+      head: { sha: "displayed-head" },
+      base: { ref: "develop" },
+    });
+    apiMocks.createPrReviewLocal.mockResolvedValue({
+      id: 71,
+      body: "Looks good.",
+      state: "APPROVED",
+      submitted_at: "2026-08-06T09:00:00.000Z",
+      commit_id: "displayed-head",
+      html_url: `${REVIEW_PR.url}#pullrequestreview-71`,
+      user: { login: "reviewer", avatar_url: "" },
+    });
+
+    await act(async () => {
+      root?.render(
+        React.createElement(
+          Provider,
+          { store },
+          React.createElement(Harness, { pr: REVIEW_PR })
+        )
+      );
+    });
+    await waitForStore(
+      store,
+      () =>
+        store.get(workstationPrDetailCallbackAtomFamily(scopeKey))
+          .submitReview !== null
+    );
+
+    await act(async () => {
+      await store
+        .get(workstationPrDetailCallbackAtomFamily(scopeKey))
+        .submitReview?.("APPROVE", "Looks good.");
+    });
+
+    expect(apiMocks.createPrReviewLocal).toHaveBeenCalledWith(
+      REPO_FULL_NAME,
+      REVIEW_PR.number,
+      "APPROVE",
+      "Looks good.",
+      "displayed-head"
+    );
+  });
+
   it("publishes one shared dispatcher for PR-level merge, auto-merge, state, and reviewer mutations", async () => {
     const ACTION_PR: PrIdentity = { ...PR, number: 111_105 };
     const scopeKey = workstationPrScopeKey(

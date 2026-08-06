@@ -162,6 +162,8 @@ describe("mapGitHubIssueToThreadWorkItem", () => {
       `data-testid="work-item-property-status-${issue.html_url}"`
     );
     expect(markup).toContain('data-testid="github-issue-inline-composer"');
+    expect(markup).toContain('data-testid="work-item-thread-floating-footer"');
+    expect(markup).toContain("padding-bottom:240px");
     expect(markup).not.toContain(
       'data-testid="work-item-thread-secondary-navigation"'
     );
@@ -183,7 +185,7 @@ describe("mapGitHubIssueToThreadWorkItem", () => {
     );
     expect(
       markup.match(/data-scroll-trail-target/g)?.length
-    ).toBeGreaterThanOrEqual(4);
+    ).toBeGreaterThanOrEqual(3);
   });
 
   it("toggles external assignees without duplicating login casing", () => {

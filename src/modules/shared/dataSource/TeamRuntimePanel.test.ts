@@ -187,10 +187,23 @@ vi.mock("@src/components/SettingsTable", () => ({
 }));
 
 vi.mock("./UsageTrendChart", () => ({
-  default: ({ points }: { points: unknown[] }) =>
+  default: ({
+    points,
+    hourly,
+    startMs,
+    endMs,
+  }: {
+    points: unknown[];
+    hourly?: boolean;
+    startMs?: number | null;
+    endMs?: number | null;
+  }) =>
     createElement("div", {
       "data-testid": "team-usage-trend-chart",
       "data-points": JSON.stringify(points),
+      "data-hourly": hourly ? "true" : "false",
+      "data-start-ms": startMs == null ? "" : String(startMs),
+      "data-end-ms": endMs == null ? "" : String(endMs),
     }),
 }));
 
@@ -342,6 +355,42 @@ function usageDay(over: Partial<MemberUsageDay> = {}): MemberUsageDay {
     sessions: 1,
     requests: 4,
     ...over,
+  };
+}
+
+function recentUsage24h(
+  inputTokens: number,
+  costUsd: number,
+  bucketMs = Math.floor(Date.now() / 3_600_000) * 3_600_000
+): NonNullable<MemberRuntimeListEntry["stats"]>["recentUsage24h"] {
+  return {
+    startMs: Date.now() - 86_400_000,
+    endMs: Date.now(),
+    summary: {
+      sessionCount: 1,
+      requestCount: 1,
+      inputTokens,
+      outputTokens: 0,
+      cacheReadTokens: 0,
+      cacheWriteTokens: 0,
+      realTotalTokens: inputTokens,
+      totalTokens: inputTokens,
+      costUsd,
+      estimatedCostUsd: costUsd,
+      recordedCostUsd: 0,
+      cacheHitRate: 0,
+      byBucket: [],
+    },
+    trends: [
+      {
+        bucketMs,
+        inputTokens,
+        outputTokens: 0,
+        cacheReadTokens: 0,
+        cacheWriteTokens: 0,
+        costUsd,
+      },
+    ],
   };
 }
 
@@ -562,6 +611,10 @@ describe("TeamRuntimePanel roster", () => {
       member({
         userId: "user-a",
         displayName: "Ada",
+        stats: {
+          totalSessions: 128,
+          recentUsage24h: recentUsage24h(1_000, 4),
+        },
         recentDays: [
           usageDay({
             day: today,
@@ -577,6 +630,10 @@ describe("TeamRuntimePanel roster", () => {
       member({
         userId: "user-b",
         displayName: "Lin",
+        stats: {
+          totalSessions: 64,
+          recentUsage24h: recentUsage24h(2_000, 6),
+        },
         recentDays: [
           usageDay({
             day: today,
@@ -631,6 +688,23 @@ describe("TeamRuntimePanel roster", () => {
     expect(titleRow?.textContent).toContain("overview.today");
     expect(titleRow?.textContent).not.toContain("overview.todayUtc");
     expect(titleRow?.textContent).not.toContain("overview.person");
+    const initialChart = container.querySelector(
+      '[data-testid="team-usage-trend-chart"]'
+    );
+    expect(initialChart?.getAttribute("data-hourly")).toBe("true");
+    const initialPoints = JSON.parse(
+      initialChart?.getAttribute("data-points") ?? "[]"
+    ) as Array<{ inputTokens: number; costUsd: number }>;
+    expect(initialPoints).toHaveLength(1);
+    expect(initialPoints[0]).toMatchObject({ inputTokens: 3_000, costUsd: 10 });
+    expect(
+      container.querySelectorAll('[data-testid^="team-runtime-member-usage-"]')
+    ).toHaveLength(2);
+    expect(
+      container.querySelector(
+        '[data-testid="team-runtime-member-usage-user-b"]'
+      )?.textContent
+    ).toContain("2.0K");
 
     const personSelect = container.querySelector<HTMLSelectElement>(
       '[data-testid="team-runtime-person-select"]'
@@ -650,6 +724,17 @@ describe("TeamRuntimePanel roster", () => {
         '[data-testid^="team-runtime-recent-session-"]'
       )
     ).toHaveLength(3);
+    const selectedPoints = JSON.parse(
+      container
+        .querySelector('[data-testid="team-usage-trend-chart"]')
+        ?.getAttribute("data-points") ?? "[]"
+    ) as Array<{ inputTokens: number; costUsd: number }>;
+    expect(selectedPoints[0]).toMatchObject({ inputTokens: 2_000, costUsd: 6 });
+    expect(
+      container
+        .querySelector('[data-testid="team-runtime-member-usage-user-b"]')
+        ?.getAttribute("aria-pressed")
+    ).toBe("true");
 
     await act(async () => {
       container
@@ -703,7 +788,67 @@ describe("TeamRuntimePanel roster", () => {
     expect(weekLine?.textContent).toContain("3.5K");
   });
 
-  it("greys a card whose report is older than twice the org interval", async () => {
+  it("puts the title and refresh on one row and groups members by today's activity", async () => {
+    const yesterday = utcDayFromMs(Date.now() - 86_400_000);
+    mocks.listMemberRuntime.mockResolvedValue([
+      member({
+        userId: "active",
+        recentDays: [usageDay()],
+      }),
+      member({
+        userId: "zero-today",
+        recentDays: [
+          usageDay({
+            totalTokens: 0,
+            costUsd: 0,
+            sessions: 0,
+            requests: 0,
+          }),
+        ],
+      }),
+      member({
+        userId: "yesterday",
+        recentDays: [usageDay({ day: yesterday })],
+      }),
+    ]);
+    await seedAtoms(AUTH, [org()]);
+    await mount({ view: "members" });
+
+    const titleRow = container.querySelector(
+      '[data-testid="team-runtime-members-title-row"]'
+    );
+    expect(titleRow?.firstElementChild?.tagName).toBe("H3");
+    expect(titleRow?.textContent).toContain("overview.members");
+    expect(
+      titleRow?.querySelector('[data-testid="team-runtime-refresh"]')
+    ).not.toBeNull();
+    expect(
+      container.querySelectorAll('[data-testid="team-runtime-refresh"]')
+    ).toHaveLength(1);
+
+    const active = container.querySelector(
+      '[data-testid="team-runtime-active-today"]'
+    );
+    const inactive = container.querySelector(
+      '[data-testid="team-runtime-inactive-today"]'
+    );
+    expect(active?.textContent).toContain("overview.activeToday");
+    expect(
+      active?.querySelector('[data-testid="team-member-card-active"]')
+    ).not.toBeNull();
+    expect(
+      active?.querySelectorAll('[data-testid^="team-member-card-"]')
+    ).toHaveLength(1);
+    expect(inactive?.textContent).toContain("overview.inactiveToday");
+    expect(
+      inactive?.querySelector('[data-testid="team-member-card-zero-today"]')
+    ).not.toBeNull();
+    expect(
+      inactive?.querySelector('[data-testid="team-member-card-yesterday"]')
+    ).not.toBeNull();
+  });
+
+  it("keeps stale cards fully visible while preserving freshness metadata", async () => {
     mocks.listMemberRuntime.mockResolvedValue([
       member({ userId: "fresh" }),
       member({
@@ -731,8 +876,9 @@ describe("TeamRuntimePanel roster", () => {
     );
     expect(fresh?.getAttribute("data-stale")).toBe("false");
     expect(sleepy?.getAttribute("data-stale")).toBe("true");
-    expect(sleepy?.className).toContain("opacity-60");
+    expect(sleepy?.className).not.toContain("opacity-60");
     expect(silent?.getAttribute("data-stale")).toBe("true");
+    expect(silent?.className).not.toContain("opacity-60");
     expect(silent?.textContent).toContain("card.neverReported");
   });
 
@@ -775,10 +921,17 @@ describe("TeamRuntimePanel roster", () => {
 });
 
 describe("TeamRuntimePanel drilldown", () => {
-  it("fetches a 30d range and maps days onto UTC-midnight trend points", async () => {
+  it("defaults to 7d daily usage and switches to the inline rolling-24h view", async () => {
     const today = utcDayFromMs(Date.now());
     const yesterday = utcDayFromMs(Date.now() - 86_400_000);
-    mocks.listMemberRuntime.mockResolvedValue([member()]);
+    mocks.listMemberRuntime.mockResolvedValue([
+      member({
+        stats: {
+          totalSessions: 128,
+          recentUsage24h: recentUsage24h(77, 1.5),
+        },
+      }),
+    ]);
     mocks.getMemberUsage.mockResolvedValue([
       usageDay({ day: yesterday, inputTokens: 10, costUsd: 1 }),
       usageDay({ day: today, inputTokens: 20, costUsd: 2 }),
@@ -807,7 +960,12 @@ describe("TeamRuntimePanel drilldown", () => {
     expect(orgId).toBe("org-1");
     expect(userId).toBe("user-a");
     expect(toDay).toBe(today);
-    expect(fromDay).toBe(utcDayFromMs(Date.now() - 29 * 86_400_000));
+    expect(fromDay).toBe(utcDayFromMs(Date.now() - 6 * 86_400_000));
+
+    const rangeSelect = container.querySelector<HTMLSelectElement>(
+      '[data-testid="team-member-usage-range"]'
+    );
+    expect(rangeSelect?.value).toBe("7");
 
     const chart = container.querySelector(
       '[data-testid="team-usage-trend-chart"]'
@@ -821,6 +979,35 @@ describe("TeamRuntimePanel drilldown", () => {
     expect(points[0].bucketMs).toBe(utcDayStartMs(yesterday));
     expect(points[1].bucketMs).toBe(utcDayStartMs(today));
     expect(points[1].inputTokens).toBe(25);
+
+    const detailHeader = container.querySelector(
+      '[data-testid="team-member-detail-header"]'
+    );
+    expect(
+      detailHeader?.querySelector('[data-testid="team-member-back"]')
+    ).not.toBeNull();
+    expect(
+      detailHeader?.querySelector('[data-testid="team-runtime-refresh"]')
+    ).not.toBeNull();
+    expect(
+      container.querySelectorAll('[data-testid="team-runtime-refresh"]')
+    ).toHaveLength(1);
+
+    await act(async () => {
+      if (!rangeSelect) return;
+      rangeSelect.value = "24h";
+      rangeSelect.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    const hourlyChart = container.querySelector(
+      '[data-testid="team-usage-trend-chart"]'
+    );
+    expect(hourlyChart?.getAttribute("data-hourly")).toBe("true");
+    expect(
+      JSON.parse(hourlyChart?.getAttribute("data-points") ?? "[]")[0]
+        ?.inputTokens
+    ).toBe(77);
+    expect(mocks.getMemberUsage).toHaveBeenCalledTimes(1);
+    expect(container.querySelector('[data-testid="tab-pill"]')).toBeNull();
 
     // Member without a shared profile degrades gracefully.
     expect(
@@ -837,6 +1024,38 @@ describe("TeamRuntimePanel drilldown", () => {
     expect(
       container.querySelector('[data-testid="team-runtime-grid"]')
     ).not.toBeNull();
+  });
+
+  it("shows an empty 24h state for a peer that has not pushed the additive snapshot yet", async () => {
+    mocks.listMemberRuntime.mockResolvedValue([member()]);
+    mocks.getMemberUsage.mockResolvedValue([usageDay()]);
+    await seedAtoms(AUTH, [org()]);
+    await mount({ view: "members" });
+
+    await act(async () => {
+      container
+        .querySelector<HTMLButtonElement>(
+          '[data-testid="team-member-card-user-a"]'
+        )
+        ?.click();
+    });
+    await drainMicrotasks();
+
+    const rangeSelect = container.querySelector<HTMLSelectElement>(
+      '[data-testid="team-member-usage-range"]'
+    );
+    await act(async () => {
+      if (!rangeSelect) return;
+      rangeSelect.value = "24h";
+      rangeSelect.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+
+    expect(
+      container.querySelector('[data-testid="placeholder-empty"]')?.textContent
+    ).toContain("detail.usageEmpty");
+    expect(
+      container.querySelector('[data-testid="placeholder-loading"]')
+    ).toBeNull();
   });
 });
 

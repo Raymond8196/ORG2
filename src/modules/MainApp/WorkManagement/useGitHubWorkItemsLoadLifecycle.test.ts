@@ -4,10 +4,12 @@ import type { GitHubRepoPermissions } from "@src/api/tauri/github";
 
 import type { GitHubRepoSource } from "./githubWorkItemsTypes";
 import {
+  EMPTY_REPO_ISSUES,
   EMPTY_REPO_PRS,
   type GitHubWorkItemsLifecycleSnapshot,
   getGitHubLifecycleRetentionKey,
   loadRepoPermissions,
+  mergeRepoIssueLoadResults,
   retainGitHubWorkItemsLifecycleSnapshot,
 } from "./useGitHubWorkItemsLoadLifecycle";
 
@@ -67,6 +69,38 @@ describe("GitHub work-item permission loading", () => {
 });
 
 describe("GitHub work-item lifecycle retention", () => {
+  it("preserves cached issue lists for resolved repositories not loaded in the current pass", () => {
+    const secondSource: GitHubRepoSource = {
+      ...source,
+      repoId: "repo-2",
+      repoPath: "/repo-2",
+      repoFullName: "acme/repo-2",
+    };
+    const cachedSecondState = {
+      ...EMPTY_REPO_ISSUES,
+      openLoaded: true,
+    };
+    const loadedFirstState = {
+      ...EMPTY_REPO_ISSUES,
+      closedLoaded: true,
+    };
+
+    const next = mergeRepoIssueLoadResults(
+      {
+        [source.repoFullName]: EMPTY_REPO_ISSUES,
+        [secondSource.repoFullName]: cachedSecondState,
+        "acme/removed-repo": EMPTY_REPO_ISSUES,
+      },
+      [source, secondSource],
+      [{ source, ...loadedFirstState, error: null }]
+    );
+
+    expect(next).toEqual({
+      [source.repoFullName]: loadedFirstState,
+      [secondSource.repoFullName]: cachedSecondState,
+    });
+  });
+
   it("uses a stable scope key independent of repository input order", () => {
     const first = {
       id: "repo-1",

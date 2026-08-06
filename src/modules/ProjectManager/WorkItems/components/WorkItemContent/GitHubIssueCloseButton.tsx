@@ -5,6 +5,7 @@ import {
   CircleDot,
   CircleSlash,
   Copy,
+  Loader2,
 } from "lucide-react";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -17,7 +18,6 @@ import {
   DROPDOWN_ITEM,
   DROPDOWN_WIDTHS,
 } from "@src/components/Dropdown/tokens";
-import { LoadingBar } from "@src/modules/shared/layouts/blocks";
 
 import type {
   GitHubIssueInteractionConfig,
@@ -106,8 +106,16 @@ const GitHubIssueCloseButton: React.FC<GitHubIssueCloseButtonProps> = ({
         autoFocus
       />
       {interaction.loadingDuplicateCandidates ? (
-        <div className="px-2 py-3">
-          <LoadingBar />
+        <div
+          className={DROPDOWN_CLASSES.listMessage}
+          data-testid="github-issue-duplicate-loading"
+        >
+          <Loader2
+            size={DROPDOWN_ITEM.iconSize}
+            className="animate-spin"
+            aria-hidden
+          />
+          <span>{t("actions.loading")}</span>
         </div>
       ) : interaction.duplicateCandidatesError ? (
         <div className={DROPDOWN_CLASSES.listMessage} role="status">
@@ -162,6 +170,8 @@ const GitHubIssueCloseButton: React.FC<GitHubIssueCloseButtonProps> = ({
         <DropdownItem
           icon={<CircleDot size={DROPDOWN_ITEM.iconSize} aria-hidden />}
           onClick={closeMenu}
+          disabled={interaction.issueState === "open"}
+          dataTestId="github-issue-status-open"
         >
           {t("git.issues.status.open")}
         </DropdownItem>

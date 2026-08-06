@@ -39,6 +39,7 @@ import {
   type MemberRuntimeSchedulerDeps,
 } from "./memberRuntimePushScheduler";
 import {
+  MEMBER_STATUS_MAX_BYTES,
   MEMBER_USAGE_DAYS_MAX_PER_PUSH,
   SHARE_RUNTIME_SETTING_KEY,
 } from "./types";
@@ -149,6 +150,32 @@ function makeRollupDays(count: number): DailyRollupResult["days"] {
   }));
 }
 
+function makeRecentUsage24h(
+  overrides: Partial<DailyRollupResult["recentUsage24h"]> = {}
+): DailyRollupResult["recentUsage24h"] {
+  return {
+    startMs: NOW - UTC_DAY_MS,
+    endMs: NOW,
+    summary: {
+      sessionCount: 0,
+      requestCount: 0,
+      inputTokens: 0,
+      outputTokens: 0,
+      cacheReadTokens: 0,
+      cacheWriteTokens: 0,
+      realTotalTokens: 0,
+      totalTokens: 0,
+      costUsd: 0,
+      estimatedCostUsd: 0,
+      recordedCostUsd: 0,
+      cacheHitRate: 0,
+      byBucket: [],
+    },
+    trends: [],
+    ...overrides,
+  };
+}
+
 function makeDeps(
   overrides: Partial<MemberRuntimeSchedulerDeps> = {}
 ): MemberRuntimeSchedulerDeps {
@@ -171,7 +198,11 @@ function makeDeps(
       sampledOverMs: 1000,
       sampledAtMs: NOW,
     }),
-    getDailyRollup: vi.fn().mockResolvedValue({ days: [], totalSessions: 0 }),
+    getDailyRollup: vi.fn().mockResolvedValue({
+      days: [],
+      totalSessions: 0,
+      recentUsage24h: makeRecentUsage24h(),
+    }),
     getProfileOverview: vi.fn().mockResolvedValue(makeProfileOverview()),
     detectInstalledAgents: vi.fn().mockResolvedValue([]),
     upsert: vi.fn().mockResolvedValue(undefined),
@@ -545,9 +576,11 @@ describe("ORG2_RUNTIME_TOO_LARGE mitigation", () => {
     const upsert = vi.fn().mockResolvedValue(undefined);
     const deps = makeDeps({
       now: () => NOW,
-      getDailyRollup: vi
-        .fn()
-        .mockResolvedValue({ days: makeRollupDays(5), totalSessions: 5 }),
+      getDailyRollup: vi.fn().mockResolvedValue({
+        days: makeRollupDays(5),
+        totalSessions: 5,
+        recentUsage24h: makeRecentUsage24h(),
+      }),
       upsert,
     });
     const scheduler = asPrivate(new MemberRuntimePushScheduler(deps));
@@ -565,13 +598,127 @@ describe("ORG2_RUNTIME_TOO_LARGE mitigation", () => {
     expect(input.usageDays).toHaveLength(2);
   });
 
+  it("shares the bounded rolling-24h snapshot inside status stats", async () => {
+    const upsert = vi.fn().mockResolvedValue(undefined);
+    const trends = Array.from({ length: 25 }, (_, index) => ({
+      bucketMs: NOW - (24 - index) * 60 * 60_000,
+      inputTokens: 999_999_999,
+      outputTokens: 999_999_999,
+      cacheReadTokens: 999_999_999,
+      cacheWriteTokens: 999_999_999,
+      costUsd: 999_999.1234,
+    }));
+    const recentUsage24h = makeRecentUsage24h({
+      summary: {
+        sessionCount: 999_999,
+        requestCount: 999_999,
+        inputTokens: 999_999_999,
+        outputTokens: 999_999_999,
+        cacheReadTokens: 999_999_999,
+        cacheWriteTokens: 999_999_999,
+        realTotalTokens: 3_999_999_996,
+        totalTokens: 3_999_999_996,
+        costUsd: 999_999.1234,
+        estimatedCostUsd: 999_999.1234,
+        recordedCostUsd: 0,
+        cacheHitRate: 0.5,
+        byBucket: ["claude", "codex", "cursor", "org2", "other"].map(
+          (bucket) => ({
+            bucket,
+            sessionCount: 999_999,
+            realTotalTokens: 999_999_999,
+            costUsd: 999_999.1234,
+          })
+        ),
+      },
+      trends,
+    });
+    const deps = makeDeps({
+      now: () => NOW,
+      getDailyRollup: vi.fn().mockResolvedValue({
+        days: [],
+        totalSessions: 42,
+        recentUsage24h,
+      }),
+      upsert,
+    });
+    const scheduler = asPrivate(new MemberRuntimePushScheduler(deps));
+
+    await scheduler.pushOrg(
+      "token-1",
+      "identity-recent-usage",
+      makeOrg(),
+      async () => null
+    );
+
+    const input = upsert.mock.calls[0][2] as {
+      status?: { stats?: unknown };
+    };
+    expect(input.status?.stats).toEqual({
+      totalSessions: 42,
+      recentUsage24h,
+    });
+    expect(
+      new TextEncoder().encode(JSON.stringify(input.status)).byteLength
+    ).toBeLessThan(MEMBER_STATUS_MAX_BYTES);
+  });
+
+  it("drops only the additive snapshot when status would approach the server cap", async () => {
+    const upsert = vi.fn().mockResolvedValue(undefined);
+    const recentUsage24h = makeRecentUsage24h({
+      trends: Array.from({ length: 25 }, (_, index) => ({
+        bucketMs: NOW - index * 60 * 60_000,
+        inputTokens: 10,
+        outputTokens: 10,
+        cacheReadTokens: 10,
+        cacheWriteTokens: 10,
+        costUsd: 1,
+      })),
+    });
+    const deps = makeDeps({
+      now: () => NOW,
+      getMachine: vi.fn().mockResolvedValue({
+        deviceId: "device-1",
+        machineLabel: "x".repeat(5_000),
+        osName: "macOS",
+        osVersion: "15.0",
+        chipType: "Apple M3",
+        appVersion: "1.0.0",
+      }),
+      getDailyRollup: vi.fn().mockResolvedValue({
+        days: [],
+        totalSessions: 42,
+        recentUsage24h,
+      }),
+      upsert,
+    });
+    const scheduler = asPrivate(new MemberRuntimePushScheduler(deps));
+
+    await scheduler.pushOrg(
+      "token-1",
+      "identity-large-status",
+      makeOrg(),
+      async () => null
+    );
+
+    const status = upsert.mock.calls[0][2].status as {
+      stats?: { totalSessions: number; recentUsage24h?: unknown };
+    };
+    expect(status.stats).toEqual({ totalSessions: 42 });
+    expect(
+      new TextEncoder().encode(JSON.stringify(status)).byteLength
+    ).toBeLessThan(MEMBER_STATUS_MAX_BYTES);
+  });
+
   it("pushOrg drops profile/installed-agents once flagged, even though both changed", async () => {
     const upsert = vi.fn().mockResolvedValue(undefined);
     const deps = makeDeps({
       now: () => NOW,
-      getDailyRollup: vi
-        .fn()
-        .mockResolvedValue({ days: makeRollupDays(1), totalSessions: 1 }),
+      getDailyRollup: vi.fn().mockResolvedValue({
+        days: makeRollupDays(1),
+        totalSessions: 1,
+        recentUsage24h: makeRecentUsage24h(),
+      }),
       getProfileOverview: vi
         .fn()
         .mockResolvedValue(makeProfileOverview({ code: "EAWH", sessions: 10 })),
