@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::time::{Duration, UNIX_EPOCH};
+use std::time::Duration;
 
 use rusqlite::Connection;
 
@@ -209,6 +209,9 @@ fn bounded_walker_does_not_follow_symlinked_files_or_directories() {
 #[test]
 fn bounded_walker_does_not_follow_a_symlink_from_a_reused_snapshot() {
     use std::os::unix::fs::symlink;
+    // Only this unix-gated test needs it; a top-level import is an unused
+    // import under `-D warnings` on Windows.
+    use std::time::UNIX_EPOCH;
 
     let root = temp_tree("bounded-reused-symlink");
     let outside = temp_tree("bounded-reused-symlink-outside");
