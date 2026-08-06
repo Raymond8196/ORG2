@@ -10,7 +10,8 @@ export function GitHubIssuePanelView({
 }: {
   detail: GitHubIssueDetailTabData;
 }): React.ReactNode {
-  const { selectedState, interaction } = useGitHubIssueDetailState(detail);
+  const { selectedState, interaction, assigneeConfig } =
+    useGitHubIssueDetailState(detail);
 
   if (!selectedState.issue) {
     return (
@@ -35,6 +36,7 @@ export function GitHubIssuePanelView({
       timeline={selectedState.timeline}
       timelineLoading={selectedState.timelineLoading}
       interaction={interaction}
+      assigneeConfig={assigneeConfig}
     />
   );
 }

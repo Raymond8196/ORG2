@@ -22,7 +22,8 @@ import type { UnifiedTabContentProps } from "../types";
 const GitHubIssueDetailTabRenderer: React.FC<UnifiedTabContentProps> = memo(
   ({ tab }) => {
     const tabData = tab.data as unknown as GitHubIssueDetailTabData;
-    const { selectedState, interaction } = useGitHubIssueDetailState(tabData);
+    const { selectedState, interaction, assigneeConfig } =
+      useGitHubIssueDetailState(tabData);
 
     const headerContent = useMemo(
       () => (
@@ -72,6 +73,7 @@ const GitHubIssueDetailTabRenderer: React.FC<UnifiedTabContentProps> = memo(
         timeline={selectedState.timeline}
         timelineLoading={selectedState.timelineLoading}
         interaction={interaction}
+        assigneeConfig={assigneeConfig}
         showHeader={false}
       />
     );
