@@ -11,13 +11,14 @@ import {
 describe("parseCanvasRevisionDeltaMetadata", () => {
   it("extracts complete metadata without decoding the streamed source", () => {
     const parsed = parseCanvasRevisionDeltaMetadata(
-      '{"target_event_id":"tool-call-original","mode":"react","title":"Coffee \\"M\\"","content":"function App() {'
+      '{"agent_steps":["替换按钮文案","核对原有交互"],"target_event_id":"tool-call-original","mode":"react","title":"Coffee \\"M\\"","content":"function App() {'
     );
 
     expect(parsed).toEqual({
       targetEventId: "tool-call-original",
       mode: "react",
       title: 'Coffee "M"',
+      agentSteps: ["替换按钮文案", "核对原有交互"],
     });
   });
 
@@ -30,7 +31,30 @@ describe("parseCanvasRevisionDeltaMetadata", () => {
       targetEventId: "tool-call-original",
       mode: undefined,
       title: undefined,
+      agentSteps: undefined,
     });
+  });
+
+  it("waits for the complete agent step array and handles escaped labels", () => {
+    expect(
+      parseCanvasRevisionDeltaMetadata('{"agent_steps":["替换\\"按钮')
+        .agentSteps
+    ).toBeUndefined();
+
+    expect(
+      parseCanvasRevisionDeltaMetadata(
+        '{"agent_steps":["替换\\"按钮","核对[交互]"]}'
+      ).agentSteps
+    ).toEqual(['替换"按钮', "核对[交互]"]);
+  });
+
+  it("finds late agent steps through the bounded suffix window", () => {
+    const largeContent = "x".repeat(20_000);
+    expect(
+      parseCanvasRevisionDeltaMetadata(
+        `{"content":"${largeContent}","agent_steps":["验证结果"]}`
+      ).agentSteps
+    ).toEqual(["验证结果"]);
   });
 });
 

@@ -33,6 +33,8 @@ pub struct ReviseInlineCanvasTool;
 
 const MAX_CANVAS_REVISION_EDITS: usize = 16;
 const MAX_CANVAS_REVISION_EDIT_CHARS: usize = 32_768;
+const MAX_CANVAS_REVISION_AGENT_STEPS: usize = 6;
+const MAX_CANVAS_REVISION_AGENT_STEP_CHARS: usize = 80;
 const MAX_CANVAS_REVISION_CHAIN_DEPTH: usize = 32;
 
 fn format_canvas_acceptance(
@@ -84,7 +86,24 @@ fn canvas_parameters(revision: bool) -> Value {
     });
 
     if revision {
-        schema["required"] = serde_json::json!(["target_event_id", "mode"]);
+        schema["required"] = serde_json::json!(["target_event_id", "mode", "agent_steps"]);
+        schema["properties"]
+            .as_object_mut()
+            .expect("canvas properties are an object")
+            .insert(
+                "agent_steps".to_string(),
+                serde_json::json!({
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": MAX_CANVAS_REVISION_AGENT_STEPS,
+                    "description": "Ordered short, factual, user-visible labels describing the concrete operations for this revision. Generate these labels for the current request in the user's language; do not use a fixed template and do not include private reasoning. Emit agent_steps before edits or content so progress can appear while the remaining arguments stream.",
+                    "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": MAX_CANVAS_REVISION_AGENT_STEP_CHARS
+                    }
+                }),
+            );
         schema["properties"]
             .as_object_mut()
             .expect("canvas properties are an object")
@@ -180,6 +199,31 @@ fn validate_canvas_revision_edits(edits: &[Value]) -> Result<(), ToolError> {
     Ok(())
 }
 
+fn validate_canvas_revision_agent_steps(params: &Value) -> Result<(), ToolError> {
+    let steps = params
+        .get("agent_steps")
+        .and_then(Value::as_array)
+        .ok_or_else(|| ToolError::InvalidParams("missing required field: agent_steps".into()))?;
+    if steps.is_empty() || steps.len() > MAX_CANVAS_REVISION_AGENT_STEPS {
+        return Err(ToolError::InvalidParams(format!(
+            "field \"agent_steps\" must contain 1 to {MAX_CANVAS_REVISION_AGENT_STEPS} labels"
+        )));
+    }
+
+    for (index, step) in steps.iter().enumerate() {
+        let label = step.as_str().ok_or_else(|| {
+            ToolError::InvalidParams(format!("agent_steps[{index}] must be a string"))
+        })?;
+        let character_count = label.trim().chars().count();
+        if character_count == 0 || character_count > MAX_CANVAS_REVISION_AGENT_STEP_CHARS {
+            return Err(ToolError::InvalidParams(format!(
+                "agent_steps[{index}] must contain 1 to {MAX_CANVAS_REVISION_AGENT_STEP_CHARS} characters"
+            )));
+        }
+    }
+    Ok(())
+}
+
 fn validate_canvas_payload(params: &Value, allow_edits: bool) -> Result<(), ToolError> {
     let mode = params
         .get("mode")
@@ -187,6 +231,13 @@ fn validate_canvas_payload(params: &Value, allow_edits: bool) -> Result<(), Tool
         .ok_or_else(|| ToolError::InvalidParams("missing required field: mode".into()))?;
 
     let edits = canvas_revision_edits(params);
+    if allow_edits {
+        validate_canvas_revision_agent_steps(params)?;
+    } else if params.get("agent_steps").is_some() {
+        return Err(ToolError::InvalidParams(
+            "field \"agent_steps\" is only available on revise_inline_canvas".into(),
+        ));
+    }
     if edits.is_some() && !allow_edits {
         return Err(ToolError::InvalidParams(
             "field \"edits\" is only available on revise_inline_canvas".into(),
@@ -524,7 +575,11 @@ impl Tool for ReviseInlineCanvasTool {
          exact literal find/replace operations applied to the current materialized source.\n\
          Include enough surrounding source in find to make it unique; set all=true only\n\
          when every occurrence should change. For structural revisions, return the complete\n\
-         replacement content instead. Before calling this tool, send one short factual\n\
+         replacement content instead. Generate agent_steps for the current request: 1 to 6\n\
+         short factual user-visible operation labels in the user's language, ordered and\n\
+         specific to the requested change, never a fixed template or private reasoning. Emit agent_steps before edits\n\
+         or content so they can appear while the remaining arguments stream. Before calling\n\
+         this tool, send one short factual\n\
          user-visible update naming the concrete change; do not expose private chain-of-thought.\n\
          Preserve unrelated content, behavior, local state,\n\
          and styling. Supports html, url, a2ui, and react modes. A successful\n\
@@ -618,8 +673,8 @@ impl Tool for ReviseInlineCanvasTool {
 mod tests {
     use super::{
         apply_canvas_revision_edits, canvas_acceptance, format_canvas_acceptance,
-        load_materialized_canvas_args, validate_revision_target, RenderInlineCanvasTool,
-        ReviseInlineCanvasTool,
+        load_materialized_canvas_args, validate_canvas_payload, validate_revision_target,
+        RenderInlineCanvasTool, ReviseInlineCanvasTool,
     };
     use crate::tools::names as tool_names;
     use crate::tools::traits::{CallContext, Tool, ToolError};
@@ -683,9 +738,10 @@ mod tests {
             .expect("revise_inline_canvas properties");
         assert!(revision_properties.contains_key("target_event_id"));
         assert!(revision_properties.contains_key("edits"));
+        assert!(revision_properties.contains_key("agent_steps"));
         assert_eq!(
             revision_schema["required"],
-            json!(["target_event_id", "mode"])
+            json!(["target_event_id", "mode", "agent_steps"])
         );
         assert_eq!(revision_schema["additionalProperties"], false);
     }
@@ -714,6 +770,50 @@ mod tests {
         assert!(description.contains("user-visible update"));
         assert!(description.contains("do not expose private chain-of-thought"));
         assert!(description.contains("prefer edits"));
+        assert!(description.contains("never a fixed template"));
+        assert!(description.contains("user's language"));
+        assert!(description.contains("Emit agent_steps before edits"));
+    }
+
+    #[test]
+    fn revision_requires_bounded_agent_generated_steps() {
+        let missing = validate_canvas_payload(
+            &json!({
+                "target_event_id": "canvas-a",
+                "mode": "react",
+                "content": "function App() { return null; }"
+            }),
+            true,
+        );
+        assert!(matches!(
+            missing,
+            Err(ToolError::InvalidParams(message)) if message.contains("agent_steps")
+        ));
+
+        let whitespace = validate_canvas_payload(
+            &json!({
+                "target_event_id": "canvas-a",
+                "mode": "react",
+                "agent_steps": ["   "],
+                "content": "function App() { return null; }"
+            }),
+            true,
+        );
+        assert!(matches!(
+            whitespace,
+            Err(ToolError::InvalidParams(message)) if message.contains("agent_steps[0]")
+        ));
+
+        assert!(validate_canvas_payload(
+            &json!({
+                "target_event_id": "canvas-a",
+                "mode": "react",
+                "agent_steps": ["替换按钮文案", "核对原有交互"],
+                "content": "function App() { return null; }"
+            }),
+            true,
+        )
+        .is_ok());
     }
 
     #[test]
@@ -795,6 +895,7 @@ mod tests {
                 json!({
                     "target_event_id": "  ",
                     "mode": "react",
+                    "agent_steps": ["定位目标"],
                     "content": "function App() { return null; }"
                 }),
                 &CallContext::new("call-revision", "session-a"),

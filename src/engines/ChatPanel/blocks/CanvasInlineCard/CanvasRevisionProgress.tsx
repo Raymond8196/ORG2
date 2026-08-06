@@ -55,7 +55,11 @@ const CanvasRevisionProgress: React.FC<CanvasRevisionProgressProps> = ({
           {t("canvasApp.revisionTitle", "Updating {{title}}", { title })}
         </span>
         <span className="block truncate text-[11px] text-text-3">{detail}</span>
-        <CanvasRevisionSteps phase={draft.phase} className="mt-1" />
+        <CanvasRevisionSteps
+          phase={draft.phase}
+          steps={draft.agentSteps ?? []}
+          className="mt-1"
+        />
       </span>
     </div>
   );

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  getCanvasRevisionAgentSteps,
   getCanvasRevisionTargetId,
   isCanvasRevisionPayload,
   isCanvasRevisionToolName,
@@ -37,5 +38,23 @@ describe("Canvas revision identity", () => {
         eventId: "event-c",
       })
     ).toBe(false);
+  });
+
+  it("accepts only bounded agent-generated progress labels", () => {
+    expect(
+      getCanvasRevisionAgentSteps({
+        agent_steps: ["  替换按钮文案  ", "核对原有交互"],
+      })
+    ).toEqual(["替换按钮文案", "核对原有交互"]);
+    expect(getCanvasRevisionAgentSteps({})).toBeNull();
+    expect(getCanvasRevisionAgentSteps({ agent_steps: ["   "] })).toBeNull();
+    expect(
+      getCanvasRevisionAgentSteps({ agent_steps: ["x".repeat(81)] })
+    ).toBeNull();
+    expect(
+      getCanvasRevisionAgentSteps({
+        agent_steps: ["1", "2", "3", "4", "5", "6", "7"],
+      })
+    ).toBeNull();
   });
 });

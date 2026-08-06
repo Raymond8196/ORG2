@@ -2829,9 +2829,6 @@
     "revisionReplacementSummary": "完整替換 · {{amount}} 個字元 · 保留原 Canvas",
     "revisionUrlSummary": "已更新 URL · 保留原 Canvas",
     "revisionGenericSummary": "已在原 Canvas 上完成更新",
-    "revisionStepsLabel": "Canvas 更新進度",
-    "revisionStepTarget": "定位原 Canvas",
-    "revisionStepGenerate": "產生修改",
-    "revisionStepApply": "套用並驗證"
+    "revisionStepsLabel": "Canvas 更新進度"
   }
 }

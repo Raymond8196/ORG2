@@ -207,6 +207,9 @@ mod tests {
         assert!(prompt.contains("render_inline_canvas"));
         assert!(prompt.contains("revise_inline_canvas"));
         assert!(prompt.contains("target_event_id"));
+        assert!(prompt.contains("`agent_steps`"));
+        assert!(prompt.contains("never a fixed template"));
+        assert!(prompt.contains("user's language"));
         assert!(prompt.contains("compact exact `edits`"));
         assert!(prompt.contains("user-visible update"));
         assert!(prompt.contains("Do not expose private chain-of-thought"));

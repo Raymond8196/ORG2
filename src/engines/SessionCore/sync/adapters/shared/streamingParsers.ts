@@ -30,6 +30,7 @@ export interface CanvasRevisionDeltaMetadata {
   targetEventId?: string;
   mode?: string;
   title?: string;
+  agentSteps?: unknown[];
 }
 
 const CANVAS_REVISION_METADATA_PREFIX_CHARS = 16_384;
@@ -49,19 +50,65 @@ function parseCompleteJsonStringField(
   }
 }
 
+function parseCompleteJsonArrayField(
+  jsonWindow: string,
+  field: string
+): unknown[] | undefined {
+  const fieldMatch = new RegExp(`"${field}"\\s*:\\s*\\[`).exec(jsonWindow);
+  if (!fieldMatch) return undefined;
+
+  const start = fieldMatch.index + fieldMatch[0].lastIndexOf("[");
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let index = start; index < jsonWindow.length; index += 1) {
+    const character = jsonWindow[index];
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (character === "\\") {
+        escaped = true;
+      } else if (character === '"') {
+        inString = false;
+      }
+      continue;
+    }
+    if (character === '"') {
+      inString = true;
+    } else if (character === "[") {
+      depth += 1;
+    } else if (character === "]") {
+      depth -= 1;
+      if (depth === 0) {
+        try {
+          const parsed = JSON.parse(jsonWindow.slice(start, index + 1));
+          return Array.isArray(parsed) ? parsed : undefined;
+        } catch {
+          return undefined;
+        }
+      }
+    }
+  }
+  return undefined;
+}
+
 /**
- * Read only the small metadata prefix of a potentially megabyte-sized Canvas
+ * Read only bounded metadata windows of a potentially megabyte-sized Canvas
  * tool argument stream. The generated source itself is intentionally not
- * decoded per token; progress uses the accumulated character count instead.
+ * decoded per token; a suffix window covers metadata emitted after content.
  */
 export function parseCanvasRevisionDeltaMetadata(
   argsJson: string
 ): CanvasRevisionDeltaMetadata {
   const prefix = argsJson.slice(0, CANVAS_REVISION_METADATA_PREFIX_CHARS);
+  const suffix = argsJson.slice(-CANVAS_REVISION_METADATA_PREFIX_CHARS);
   return {
     targetEventId: parseCompleteJsonStringField(prefix, "target_event_id"),
     mode: parseCompleteJsonStringField(prefix, "mode"),
     title: parseCompleteJsonStringField(prefix, "title"),
+    agentSteps:
+      parseCompleteJsonArrayField(prefix, "agent_steps") ??
+      parseCompleteJsonArrayField(suffix, "agent_steps"),
   };
 }
 

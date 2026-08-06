@@ -10,6 +10,7 @@ export interface CanvasRevisionDraft {
   targetEventId?: string;
   mode?: string;
   title?: string;
+  agentSteps?: string[];
   receivedCharacters: number;
   phase: CanvasRevisionDraftPhase;
   startedAt: number;

@@ -5,6 +5,7 @@ export const CANVAS_REVISION_TOOL_NAME = "revise_inline_canvas";
 export const CANVAS_REVISION_TARGET_EVENT_ID_ARG = "target_event_id";
 export const LEGACY_CANVAS_REVISION_EVENT_ID_ARG = "revises_event_id";
 export const CANVAS_REVISION_EDITS_ARG = "edits";
+export const CANVAS_REVISION_AGENT_STEPS_ARG = "agent_steps";
 
 export interface CanvasRevisionTextEdit {
   /** Exact literal text to find in the current materialized Canvas source. */
@@ -17,6 +18,8 @@ export interface CanvasRevisionTextEdit {
 
 const MAX_CANVAS_REVISION_EDITS = 16;
 const MAX_CANVAS_REVISION_EDIT_CHARS = 32_768;
+export const MAX_CANVAS_REVISION_AGENT_STEPS = 6;
+export const MAX_CANVAS_REVISION_AGENT_STEP_CHARS = 80;
 
 export function isCanvasToolName(value: string | undefined): boolean {
   return (
@@ -76,6 +79,33 @@ export function getCanvasRevisionTextEdits(
     });
   }
   return edits;
+}
+
+export function getCanvasRevisionAgentSteps(
+  args: Record<string, unknown> | undefined
+): string[] | null {
+  const raw = args?.[CANVAS_REVISION_AGENT_STEPS_ARG];
+  if (
+    !Array.isArray(raw) ||
+    raw.length === 0 ||
+    raw.length > MAX_CANVAS_REVISION_AGENT_STEPS
+  ) {
+    return null;
+  }
+
+  const steps: string[] = [];
+  for (const candidate of raw) {
+    if (typeof candidate !== "string") return null;
+    const label = candidate.trim();
+    if (
+      label.length === 0 ||
+      Array.from(label).length > MAX_CANVAS_REVISION_AGENT_STEP_CHARS
+    ) {
+      return null;
+    }
+    steps.push(label);
+  }
+  return steps;
 }
 
 function countLiteralOccurrences(source: string, find: string): number {

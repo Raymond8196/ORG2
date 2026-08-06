@@ -79,6 +79,11 @@ describe("Canvas DOM component message", () => {
     expect(message.agentContent).toContain("[Canvas Design Selection]");
     expect(message.agentContent).toContain("revise_inline_canvas exactly once");
     expect(message.agentContent).toContain('target_event_id set to "event-a"');
+    expect(message.agentContent).toContain(
+      "agent_steps before edits or content"
+    );
+    expect(message.agentContent).toContain("never a fixed template");
+    expect(message.agentContent).toContain("user's language");
     expect(message.agentContent).toContain("prefer the compact edits field");
     expect(message.agentContent).toContain(
       "Return complete replacement content only when"

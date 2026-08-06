@@ -4,7 +4,11 @@
  * Handlers for message, thinking, and tool call delta events.
  * Also handles agent:streaming_complete from Rust StreamingBuffer.
  */
-import { CANVAS_REVISION_TOOL_NAME } from "@src/engines/ChatPanel/blocks/CanvasInlineCard/canvasRevision";
+import {
+  CANVAS_REVISION_AGENT_STEPS_ARG,
+  CANVAS_REVISION_TOOL_NAME,
+  getCanvasRevisionAgentSteps,
+} from "@src/engines/ChatPanel/blocks/CanvasInlineCard/canvasRevision";
 import { createLogger } from "@src/hooks/logger";
 import { bufferCanvasRevisionDraft } from "@src/store/session/canvasRevisionDraftAtom";
 
@@ -178,12 +182,16 @@ export function handleToolCallDelta(
     const store = ctx.getDefaultStore();
     if (store) {
       const metadata = parseCanvasRevisionDeltaMetadata(buffer.argsJson);
+      const agentSteps = getCanvasRevisionAgentSteps({
+        [CANVAS_REVISION_AGENT_STEPS_ARG]: metadata.agentSteps,
+      });
       bufferCanvasRevisionDraft(store, {
         sessionId,
         toolCallId: buffer.toolCallId,
         targetEventId: metadata.targetEventId,
         mode: metadata.mode,
         title: metadata.title,
+        agentSteps: agentSteps ?? undefined,
         receivedCharacters: buffer.argsJson.length,
         phase: "receiving",
       });

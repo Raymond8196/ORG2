@@ -118,18 +118,20 @@ const CanvasRevisionActivity: React.FC<CanvasRevisionActivityProps> = ({
           title={title}
           className={isFailed ? "text-text-3" : ""}
         >
-          {title}
+          <span className="block min-w-0 truncate">{title}</span>
         </EventBlockHeaderTitle>
         <EventBlockHeaderSubtitle
           title={detail}
           className={isFailed ? "text-text-3" : ""}
         >
-          {detail}
+          <span className="block min-w-0 truncate">{detail}</span>
         </EventBlockHeaderSubtitle>
       </EventBlockHeader>
-      <div className="ml-[14px] border-l border-border-1 py-0.5 pl-3">
-        <CanvasRevisionSteps phase={phase} />
-      </div>
+      {summary.agentSteps.length > 0 && (
+        <div className="ml-[14px] min-w-0 border-l border-border-1 py-0.5 pl-3">
+          <CanvasRevisionSteps phase={phase} steps={summary.agentSteps} />
+        </div>
+      )}
     </div>
   );
 };

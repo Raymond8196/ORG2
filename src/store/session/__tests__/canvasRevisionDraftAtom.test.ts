@@ -21,6 +21,7 @@ describe("canvasRevisionDraftAtom", () => {
       sessionId: "session-a",
       toolCallId: "revision-a",
       targetEventId: "canvas-a",
+      agentSteps: ["替换按钮文案", "核对原有交互"],
       phase: "receiving" as const,
     };
 
@@ -46,6 +47,7 @@ describe("canvasRevisionDraftAtom", () => {
     bufferCanvasRevisionDraft(store, {
       sessionId: "session-a",
       toolCallId: "revision-a",
+      agentSteps: ["替换按钮文案", "核对原有交互"],
       receivedCharacters: 10,
       phase: "receiving",
     });
@@ -55,6 +57,7 @@ describe("canvasRevisionDraftAtom", () => {
       toolCallId: "revision-a",
       receivedCharacters: 42,
       phase: "applying",
+      agentSteps: ["替换按钮文案", "核对原有交互"],
     });
 
     clearCanvasRevisionDraft(store, "session-a", "older-revision");

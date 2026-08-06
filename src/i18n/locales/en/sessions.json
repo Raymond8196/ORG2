@@ -2940,9 +2940,6 @@
     "revisionReplacementSummary": "Full replacement · {{amount}} characters · same Canvas",
     "revisionUrlSummary": "URL updated · same Canvas",
     "revisionGenericSummary": "Existing Canvas updated in place",
-    "revisionStepsLabel": "Canvas update progress",
-    "revisionStepTarget": "Locate existing Canvas",
-    "revisionStepGenerate": "Generate change",
-    "revisionStepApply": "Apply and validate"
+    "revisionStepsLabel": "Canvas update progress"
   }
 }

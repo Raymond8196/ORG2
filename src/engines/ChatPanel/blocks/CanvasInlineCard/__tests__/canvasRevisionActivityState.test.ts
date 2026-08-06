@@ -7,29 +7,27 @@ import {
 
 describe("Canvas revision activity state", () => {
   it("moves the factual work steps through receiving, applying, and completion", () => {
-    expect(getCanvasRevisionStepStates("receiving")).toEqual({
-      target: "complete",
-      generate: "active",
-      apply: "pending",
-    });
-    expect(getCanvasRevisionStepStates("applying")).toEqual({
-      target: "complete",
-      generate: "complete",
-      apply: "active",
-    });
-    expect(getCanvasRevisionStepStates("completed")).toEqual({
-      target: "complete",
-      generate: "complete",
-      apply: "complete",
-    });
+    expect(getCanvasRevisionStepStates("receiving", 2)).toEqual([
+      "active",
+      "pending",
+    ]);
+    expect(getCanvasRevisionStepStates("applying", 2)).toEqual([
+      "active",
+      "pending",
+    ]);
+    expect(getCanvasRevisionStepStates("completed", 2)).toEqual([
+      "complete",
+      "complete",
+    ]);
   });
 
-  it("marks the apply step failed without claiming the Canvas changed", () => {
-    expect(getCanvasRevisionStepStates("failed")).toEqual({
-      target: "complete",
-      generate: "complete",
-      apply: "failed",
-    });
+  it("marks failure without claiming later agent steps ran", () => {
+    expect(getCanvasRevisionStepStates("failed", 3)).toEqual([
+      "failed",
+      "pending",
+      "pending",
+    ]);
+    expect(getCanvasRevisionStepStates("completed", 0)).toEqual([]);
   });
 
   it("summarizes compact edits without exposing source contents", () => {
@@ -40,12 +38,14 @@ describe("Canvas revision activity state", () => {
           { find: "Start", replace: "Start setup" },
           { find: "13px", replace: "15px" },
         ],
+        agent_steps: ["替换按钮文案", "核对原有交互"],
       })
     ).toEqual({
       title: "Coffee sketch",
       changeKind: "targeted",
       editCount: 2,
       payloadCharacters: 0,
+      agentSteps: ["替换按钮文案", "核对原有交互"],
     });
   });
 

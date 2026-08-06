@@ -1,4 +1,7 @@
-import { getCanvasRevisionTextEdits } from "./canvasRevision";
+import {
+  getCanvasRevisionAgentSteps,
+  getCanvasRevisionTextEdits,
+} from "./canvasRevision";
 
 export type CanvasRevisionActivityPhase =
   | "receiving"
@@ -13,12 +16,6 @@ export type CanvasRevisionStepState =
   | "pending"
   | "failed";
 
-export interface CanvasRevisionStepStates {
-  target: CanvasRevisionStepState;
-  generate: CanvasRevisionStepState;
-  apply: CanvasRevisionStepState;
-}
-
 export type CanvasRevisionChangeKind =
   | "targeted"
   | "replacement"
@@ -30,22 +27,28 @@ export interface CanvasRevisionActivitySummary {
   changeKind: CanvasRevisionChangeKind;
   editCount: number;
   payloadCharacters: number;
+  agentSteps: string[];
 }
 
 export function getCanvasRevisionStepStates(
-  phase: CanvasRevisionActivityPhase
-): CanvasRevisionStepStates {
+  phase: CanvasRevisionActivityPhase,
+  stepCount: number
+): CanvasRevisionStepState[] {
+  if (stepCount <= 0) return [];
+
   switch (phase) {
     case "receiving":
-      return { target: "complete", generate: "active", apply: "pending" };
     case "applying":
-      return { target: "complete", generate: "complete", apply: "active" };
+      return Array.from({ length: stepCount }, (_, index) =>
+        index === 0 ? "active" : "pending"
+      );
     case "completed":
-      return { target: "complete", generate: "complete", apply: "complete" };
+      return Array.from({ length: stepCount }, () => "complete");
     case "failed":
-      return { target: "complete", generate: "complete", apply: "failed" };
     case "cancelled":
-      return { target: "complete", generate: "failed", apply: "pending" };
+      return Array.from({ length: stepCount }, (_, index) =>
+        index === 0 ? "failed" : "pending"
+      );
   }
 }
 
@@ -70,5 +73,6 @@ export function summarizeCanvasRevisionActivity(
           : "unknown",
     editCount: edits?.length ?? 0,
     payloadCharacters: content?.length ?? 0,
+    agentSteps: getCanvasRevisionAgentSteps(args) ?? [],
   };
 }

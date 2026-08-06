@@ -2928,9 +2928,6 @@
     "revisionReplacementSummary": "完整替换 · {{amount}} 个字符 · 保留原 Canvas",
     "revisionUrlSummary": "已更新 URL · 保留原 Canvas",
     "revisionGenericSummary": "已在原 Canvas 上完成更新",
-    "revisionStepsLabel": "Canvas 更新进度",
-    "revisionStepTarget": "定位原 Canvas",
-    "revisionStepGenerate": "生成修改",
-    "revisionStepApply": "应用并校验"
+    "revisionStepsLabel": "Canvas 更新进度"
   }
 }

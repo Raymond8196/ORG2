@@ -12,6 +12,7 @@ import {
 
 interface CanvasRevisionStepsProps {
   phase: CanvasRevisionActivityPhase;
+  steps: readonly string[];
   className?: string;
 }
 
@@ -37,45 +38,37 @@ const StepIcon: React.FC<{ state: CanvasRevisionStepState }> = ({ state }) => {
 
 const CanvasRevisionSteps: React.FC<CanvasRevisionStepsProps> = ({
   phase,
+  steps,
   className = "",
 }) => {
   const { t } = useTranslation("sessions");
-  const states = getCanvasRevisionStepStates(phase);
-  const steps = [
-    {
-      key: "target",
-      label: t("canvasApp.revisionStepTarget", "Locate existing Canvas"),
-      state: states.target,
-    },
-    {
-      key: "generate",
-      label: t("canvasApp.revisionStepGenerate", "Generate change"),
-      state: states.generate,
-    },
-    {
-      key: "apply",
-      label: t("canvasApp.revisionStepApply", "Apply and validate"),
-      state: states.apply,
-    },
-  ] as const;
+  if (steps.length === 0) return null;
+  const states = getCanvasRevisionStepStates(phase, steps.length);
 
   return (
     <ol
       className={`flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 ${className}`.trim()}
       aria-label={t("canvasApp.revisionStepsLabel", "Canvas update progress")}
     >
-      {steps.map((step) => (
-        <li
-          key={step.key}
-          className={`chat-block-xs flex min-w-0 items-center gap-1 ${
-            step.state === "pending" ? "text-text-4" : "text-text-3"
-          }`}
-          data-step-state={step.state}
-        >
-          <StepIcon state={step.state} />
-          <span className="whitespace-nowrap">{step.label}</span>
-        </li>
-      ))}
+      {steps.map((label, index) => {
+        const state = states[index] ?? "pending";
+        return (
+          <li
+            key={`${index}-${label}`}
+            className={`chat-block-xs flex min-w-0 max-w-full items-center gap-1 ${
+              state === "pending" ? "text-text-4" : "text-text-3"
+            }`}
+            data-step-state={state}
+          >
+            <span className="shrink-0">
+              <StepIcon state={state} />
+            </span>
+            <span className="min-w-0 truncate" title={label}>
+              {label}
+            </span>
+          </li>
+        );
+      })}
     </ol>
   );
 };

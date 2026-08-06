@@ -59,7 +59,7 @@ describe("Canvas revision streaming lifecycle", () => {
         toolCallId: "revision-a",
         index: 0,
         argumentsDelta:
-          '{"target_event_id":"canvas-a","mode":"react","title":"Coffee","edits":[',
+          '{"agent_steps":["替换按钮文案","核对原有交互"],"target_event_id":"canvas-a","mode":"react","title":"Coffee","edits":[',
       },
       "session-a",
       ctx
@@ -70,6 +70,7 @@ describe("Canvas revision streaming lifecycle", () => {
       targetEventId: "canvas-a",
       mode: "react",
       title: "Coffee",
+      agentSteps: ["替换按钮文案", "核对原有交互"],
       phase: "receiving",
     });
 
@@ -82,6 +83,7 @@ describe("Canvas revision streaming lifecycle", () => {
         args: {
           target_event_id: "canvas-a",
           mode: "react",
+          agent_steps: ["替换按钮文案", "核对原有交互"],
           edits: [{ find: "Start", replace: "Start setup" }],
         },
       },

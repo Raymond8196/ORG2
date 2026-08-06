@@ -54,6 +54,7 @@ describe("CanvasRevisionActivity", () => {
             { find: "Start", replace: "Start setup" },
             { find: "13px", replace: "15px" },
           ],
+          agent_steps: ["替换按钮文案", "核对原有交互"],
         },
       })
     );
@@ -62,8 +63,16 @@ describe("CanvasRevisionActivity", () => {
     expect(markup).toContain("Updated Coffee sketch");
     expect(markup).toContain('title="Updated Coffee sketch"');
     expect(markup).toContain("truncate");
+    expect(markup).toContain(
+      '<span class="block min-w-0 truncate">Updated Coffee sketch</span>'
+    );
     expect(markup).toContain("2 targeted changes");
-    expect(markup.match(/data-step-state="complete"/g)).toHaveLength(3);
+    expect(markup).toContain(
+      '<span class="block min-w-0 truncate">2 targeted changes · same Canvas</span>'
+    );
+    expect(markup).toContain("替换按钮文案");
+    expect(markup).toContain("核对原有交互");
+    expect(markup.match(/data-step-state="complete"/g)).toHaveLength(2);
   });
 
   it("shows a failed apply step and the validated failure detail", () => {
@@ -71,7 +80,11 @@ describe("CanvasRevisionActivity", () => {
       createElement(CanvasRevisionActivity, {
         eventId: "revision-a",
         status: "failed",
-        args: { title: "Coffee sketch", content: "function App() {}" },
+        args: {
+          title: "Coffee sketch",
+          agent_steps: ["替换完整画布", "验证结果"],
+          content: "function App() {}",
+        },
         errorDetail: "Exact source no longer matches",
       })
     );
@@ -79,6 +92,35 @@ describe("CanvasRevisionActivity", () => {
     expect(markup).toContain("Couldn’t update Coffee sketch");
     expect(markup).toContain("Exact source no longer matches");
     expect(markup).toContain('data-step-state="failed"');
+  });
+
+  it("does not fabricate fixed steps for legacy revision events", () => {
+    const markup = renderToStaticMarkup(
+      createElement(CanvasRevisionActivity, {
+        eventId: "revision-legacy",
+        status: "success",
+        args: { title: "Legacy", content: "function App() {}" },
+      })
+    );
+
+    expect(markup).not.toContain("Canvas update progress");
+    expect(markup).not.toContain("Locate existing Canvas");
+    expect(markup).not.toContain("Generate change");
+    expect(markup).not.toContain("Apply and validate");
+  });
+
+  it("truncates an individual agent label instead of overflowing", () => {
+    const label = "一个需要在窄布局中被截断但仍能通过标题查看的动态步骤";
+    const markup = renderToStaticMarkup(
+      createElement(CanvasRevisionActivity, {
+        eventId: "revision-a",
+        status: "success",
+        args: { agent_steps: [label], content: "function App() {}" },
+      })
+    );
+
+    expect(markup).toContain(`title="${label}"`);
+    expect(markup).toContain('class="min-w-0 truncate"');
   });
 
   it("reuses event replay navigation to open the corresponding Canvas", () => {
