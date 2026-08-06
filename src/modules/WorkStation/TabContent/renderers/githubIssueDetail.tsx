@@ -46,7 +46,7 @@ const GitHubIssueDetailTabRenderer: React.FC<UnifiedTabContentProps> = memo(
       content: {
         content: headerContent,
         trailing: headerTrailing,
-        sidebarToggleDisabled: true,
+        shellLeadingChromeHidden: true,
       },
     });
 
