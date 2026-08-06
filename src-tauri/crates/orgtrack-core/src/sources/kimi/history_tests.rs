@@ -528,22 +528,28 @@ fn failed_core_projection_keeps_the_record_retry_eligible() {
 
 #[test]
 fn kimi_code_home_override_stays_inside_external_history_identity() {
-    let home = Path::new("/isolated/history-home");
-    assert_eq!(kimi_code_home_for(home, None), home.join(".kimi-code"));
+    // Absolute fixtures must be platform-absolute: a unix-rooted "/x" is not
+    // absolute on Windows (`is_absolute` needs a drive prefix there), which
+    // silently routed the inside-home case through the fallback branch.
+    let base = std::env::temp_dir().join("orgii-kimi-home-identity-test");
+    let home = base.join("history-home");
+    assert_eq!(kimi_code_home_for(&home, None), home.join(".kimi-code"));
     assert_eq!(
-        kimi_code_home_for(home, Some(OsStr::new("custom-kimi"))),
+        kimi_code_home_for(&home, Some(OsStr::new("custom-kimi"))),
         home.join("custom-kimi")
     );
+    let inside = home.join("custom-kimi");
     assert_eq!(
-        kimi_code_home_for(home, Some(OsStr::new("/isolated/history-home/custom-kimi"))),
+        kimi_code_home_for(&home, Some(inside.as_os_str())),
         home.join("custom-kimi")
     );
+    let outside = base.join("primary-user").join(".kimi-code");
     assert_eq!(
-        kimi_code_home_for(home, Some(OsStr::new("/primary-user/.kimi-code"))),
+        kimi_code_home_for(&home, Some(outside.as_os_str())),
         home.join(".kimi-code")
     );
     assert_eq!(
-        kimi_code_home_for(home, Some(OsStr::new("../escape"))),
+        kimi_code_home_for(&home, Some(OsStr::new("../escape"))),
         home.join(".kimi-code")
     );
 }
