@@ -423,7 +423,8 @@
     "skipThisVersion": "Pomiń tę wersję",
     "later": "Później",
     "link": "Połącz",
-    "copyName": "Kopiuj nazwę"
+    "copyName": "Kopiuj nazwę",
+    "switchMethod": "Zmień metodę"
   },
   "refreshToast": {
     "successName": "Odświeżono: {{name}}",
@@ -493,16 +494,6 @@
     "testing": "Testowanie...",
     "empty": "Puste",
     "launching": "Uruchamianie..."
-  },
-  "workManagementTable": {
-    "columns": {
-      "id": "ID",
-      "titleContext": "Tytuł / kontekst",
-      "status": "Status",
-      "assignee": "Przypisany",
-      "updated": "Zaktualizowano"
-    },
-    "selectRow": "Wybierz {{id}}"
   },
   "pagination": {
     "totalItems": "{{count}} elementów",
@@ -1497,6 +1488,61 @@
         "merged": "Scalony",
         "closed": "Zamknięty",
         "draft": "Szkic"
+      },
+      "actions": {
+        "label": "Działania pull request",
+        "confirmMergeTitle": "Scalić pull request?",
+        "confirmMergeMessage": "GitHub scali gałąź źródłową bieżącego pull request z gałęzią bazową.",
+        "merge": "Scal pull request",
+        "squash": "Połącz commity i scal",
+        "rebase": "Wykonaj rebase i scal",
+        "mergeSuccess": "Pull request scalony",
+        "mergeRequested": "Zażądano scalenia",
+        "removedFromQueue": "Usunięto z kolejki scalania",
+        "autoMergeEnabled": "Automatyczne scalanie włączone",
+        "autoMergeDisabled": "Automatyczne scalanie wyłączone",
+        "confirmCloseTitle": "Zamknąć pull request?",
+        "confirmCloseMessage": "Pull request pozostanie dostępny i będzie można go później ponownie otworzyć.",
+        "close": "Zamknij pull request",
+        "closeSuccess": "Pull request zamknięty",
+        "reopen": "Otwórz ponownie pull request",
+        "reopenSuccess": "Pull request otwarty ponownie",
+        "enableAutoMerge": "Włącz automatyczne scalanie",
+        "mergeWhenReady": "Scal, gdy będzie gotowy",
+        "disableAutoMerge": "Wyłącz automatyczne scalanie",
+        "removeFromMergeQueue": "Usuń z kolejki scalania",
+        "merged": "Scalony",
+        "closed": "Zamknięty",
+        "draft": "Wersja robocza",
+        "inMergeQueue": "W kolejce scalania",
+        "approvalRequired": "Wymagane zatwierdzenie",
+        "changesRequested": "Zażądano zmian",
+        "resolveConflicts": "Rozwiąż konflikty",
+        "checksFailed": "Kontrole nie powiodły się",
+        "checksPending": "Kontrole oczekują",
+        "mergeBlocked": "Scalanie zablokowane",
+        "searchReviewers": "Szukaj recenzentów",
+        "reviewersLoadFailed": "Nie udało się wczytać recenzentów",
+        "noReviewers": "Brak dostępnych recenzentów",
+        "reviewersUpdated": "Recenzenci zaktualizowani",
+        "reviewersCount_one": "{{count}} recenzent",
+        "reviewersCount_few": "{{count}} recenzentów",
+        "reviewersCount_many": "{{count}} recenzentów",
+        "reviewersCount_other": "{{count}} recenzenta",
+        "reviewers": "Recenzenci",
+        "tooltips": {
+          "merge": "Scal ten pull request w GitHub",
+          "alreadyMerged": "Ten pull request jest już scalony",
+          "reopenBeforeMerging": "Otwórz ponownie ten pull request przed scaleniem",
+          "markReady": "Oznacz ten pull request jako gotowy do recenzji przed scaleniem",
+          "mergeQueue": "GitHub scali ten pull request za pośrednictwem kolejki scalania",
+          "approvalRequired": "GitHub wymaga zatwierdzenia recenzji przed scaleniem",
+          "changesRequested": "Żądane zmiany muszą zostać rozwiązane przed scaleniem",
+          "resolveConflicts": "Rozwiąż konflikty przed scaleniem",
+          "checksFailed": "Wymagane kontrole muszą przejść przed scaleniem",
+          "checksPending": "Poczekaj na wymagane kontrole lub włącz automatyczne scalanie",
+          "mergeBlocked": "GitHub zgłasza niespełnione wymagania scalania"
+        }
       }
     },
     "messages": {
@@ -2668,5 +2714,15 @@
     "downloadedOfTotal": "{{downloaded}} z {{total}}",
     "preparingDownload": "Przygotowywanie pobierania…",
     "downloadingAndInstalling": "Pobieranie i instalowanie aktualizacji (v{{version}})…"
+  },
+  "workManagementTable": {
+    "columns": {
+      "id": "ID",
+      "titleContext": "Tytuł / kontekst",
+      "status": "Status",
+      "assignee": "Przypisany",
+      "updated": "Zaktualizowano"
+    },
+    "selectRow": "Wybierz {{id}}"
   }
 }

@@ -419,7 +419,8 @@
     "skipThisVersion": "跳過此版本",
     "later": "稍後",
     "link": "連結",
-    "copyName": "複製名稱"
+    "copyName": "複製名稱",
+    "switchMethod": "切換方式"
   },
   "refreshToast": {
     "successName": "{{name}} 已刷新",
@@ -489,16 +490,6 @@
     "testing": "測試中...",
     "empty": "空",
     "launching": "啟動中..."
-  },
-  "workManagementTable": {
-    "columns": {
-      "id": "ID",
-      "titleContext": "標題 / 上下文",
-      "status": "狀態",
-      "assignee": "負責人",
-      "updated": "更新時間"
-    },
-    "selectRow": "選擇 {{id}}"
   },
   "pagination": {
     "totalItems": "共 {{count}} 項",
@@ -1502,6 +1493,59 @@
         "merged": "已合併",
         "closed": "已關閉",
         "draft": "草稿"
+      },
+      "actions": {
+        "label": "pull request 操作",
+        "confirmMergeTitle": "合併 pull request？",
+        "confirmMergeMessage": "GitHub 會將目前 pull request 的來源分支合併到目標分支。",
+        "merge": "合併 pull request",
+        "squash": "壓縮並合併",
+        "rebase": "變基並合併",
+        "mergeSuccess": "pull request 已合併",
+        "mergeRequested": "已要求合併",
+        "removedFromQueue": "已從合併佇列中移除",
+        "autoMergeEnabled": "已啟用自動合併",
+        "autoMergeDisabled": "已停用自動合併",
+        "confirmCloseTitle": "關閉 pull request？",
+        "confirmCloseMessage": "此 pull request 將保留，稍後可重新開啟。",
+        "close": "關閉 pull request",
+        "closeSuccess": "pull request 已關閉",
+        "reopen": "重新開啟 pull request",
+        "reopenSuccess": "pull request 已重新開啟",
+        "enableAutoMerge": "啟用自動合併",
+        "mergeWhenReady": "準備完成後合併",
+        "disableAutoMerge": "停用自動合併",
+        "removeFromMergeQueue": "從合併佇列中移除",
+        "merged": "已合併",
+        "closed": "已關閉",
+        "draft": "草稿",
+        "inMergeQueue": "在合併佇列中",
+        "approvalRequired": "需要核准",
+        "changesRequested": "已要求變更",
+        "resolveConflicts": "解決衝突",
+        "checksFailed": "檢查失敗",
+        "checksPending": "檢查待定",
+        "mergeBlocked": "合併受阻",
+        "searchReviewers": "搜尋審查者",
+        "reviewersLoadFailed": "無法載入審查者",
+        "noReviewers": "沒有可用的審查者",
+        "reviewersUpdated": "審查者已更新",
+        "reviewersCount_one": "{{count}} 名審查者",
+        "reviewersCount_other": "{{count}} 名審查者",
+        "reviewers": "審查者",
+        "tooltips": {
+          "merge": "在 GitHub 上合併此 pull request",
+          "alreadyMerged": "此 pull request 已合併",
+          "reopenBeforeMerging": "請先重新開啟此 pull request 再進行合併",
+          "markReady": "請先將此 pull request 標記為可供審查再進行合併",
+          "mergeQueue": "GitHub 將透過合併佇列合併此 pull request",
+          "approvalRequired": "GitHub 要求審查核准後才能合併",
+          "changesRequested": "必須解決要求的變更後才能合併",
+          "resolveConflicts": "請先解決合併衝突",
+          "checksFailed": "必須通過必要檢查後才能合併",
+          "checksPending": "等待必要檢查完成或啟用自動合併",
+          "mergeBlocked": "GitHub 回報存在未滿足的合併要求"
+        }
       }
     },
     "messages": {
@@ -2686,5 +2730,15 @@
     "downloadedOfTotal": "{{downloaded}} / {{total}}",
     "preparingDownload": "正在準備下載…",
     "downloadingAndInstalling": "正在下載並安裝更新 (v{{version}})…"
+  },
+  "workManagementTable": {
+    "columns": {
+      "id": "ID",
+      "titleContext": "標題 / 上下文",
+      "status": "狀態",
+      "assignee": "負責人",
+      "updated": "更新時間"
+    },
+    "selectRow": "選擇 {{id}}"
   }
 }

@@ -233,6 +233,20 @@ async fn read_claude_config(path: &std::path::PathBuf) -> Option<DetectedKey> {
 }
 
 async fn detect_claude_code_oauth() -> Option<DetectedKey> {
+    #[cfg(windows)]
+    // Credential Manager can require multiple bounded reads for Claude's
+    // chunked format, so keep all local credential I/O off the async executor.
+    let credentials_json = match tokio::task::spawn_blocking(read_local_claude_credentials).await {
+        Ok(credentials) => credentials?,
+        Err(err) => {
+            tracing::warn!(
+                error = %err,
+                "auto_detect::claude: local OAuth credential task failed; skipping"
+            );
+            return None;
+        }
+    };
+    #[cfg(not(windows))]
     let credentials_json = read_local_claude_credentials()?;
     let credentials = parse_claude_oauth_credentials(&credentials_json)?;
     let access_token = credentials.access_token?.trim().to_string();
@@ -306,6 +320,34 @@ fn read_local_claude_credentials() -> Option<String> {
     None
 }
 
+#[cfg(windows)]
+fn get_claude_credentials_paths() -> Vec<PathBuf> {
+    let mut paths = vec![];
+    if let Ok(config_dir) = env::var(super::claude_windows::CLAUDE_SECURESTORAGE_CONFIG_DIR_ENV) {
+        let trimmed = config_dir.trim();
+        if !trimmed.is_empty() {
+            paths.push(PathBuf::from(trimmed).join(".credentials.json"));
+        }
+    }
+    if let Ok(config_dir) = env::var("CLAUDE_CONFIG_DIR") {
+        let trimmed = config_dir.trim();
+        if !trimmed.is_empty() {
+            let path = PathBuf::from(trimmed).join(".credentials.json");
+            if !paths.contains(&path) {
+                paths.push(path);
+            }
+        }
+    }
+    if let Some(home) = get_home_dir() {
+        let path = home.join(".claude/.credentials.json");
+        if !paths.contains(&path) {
+            paths.push(path);
+        }
+    }
+    paths
+}
+
+#[cfg(not(windows))]
 fn get_claude_credentials_paths() -> Vec<PathBuf> {
     let mut paths = vec![];
     if let Ok(config_dir) = env::var("CLAUDE_CONFIG_DIR") {
@@ -483,7 +525,12 @@ fn read_claude_keychain_credentials() -> Option<String> {
     None
 }
 
-#[cfg(not(target_os = "macos"))]
+#[cfg(windows)]
+fn read_claude_keychain_credentials() -> Option<String> {
+    super::claude_windows::read_credentials()
+}
+
+#[cfg(not(any(target_os = "macos", windows)))]
 fn read_claude_keychain_credentials() -> Option<String> {
     None
 }

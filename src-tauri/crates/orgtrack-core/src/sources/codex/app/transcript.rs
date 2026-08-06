@@ -241,6 +241,7 @@ enum CodexTranscriptCollectionMode<'a> {
     Full,
     Initial { recent_turn_count: usize },
     Turn { turn_id: &'a str },
+    FirstTurn,
 }
 
 struct CompletedCodexTurn {
@@ -320,6 +321,11 @@ impl<'a> CodexTranscriptCollector<'a> {
                 } else {
                     self.current.clear();
                 }
+                return;
+            }
+            CodexTranscriptCollectionMode::FirstTurn => {
+                self.output.append(&mut self.current);
+                self.selected_turn_found = true;
                 return;
             }
             CodexTranscriptCollectionMode::Initial { .. } => {}
@@ -497,6 +503,16 @@ pub fn load_codex_app_from_path(
     Ok(chunks)
 }
 
+pub(crate) fn load_codex_app_turn_ids_from_path(path: &Path) -> Result<Vec<String>, String> {
+    let signature = codex_transcript_file_signature(path)?;
+    let mut catalog = load_codex_turn_catalog(path, signature)?;
+    catalog.sort_unstable_by_key(|entry| entry.byte_offset);
+    Ok(catalog
+        .into_iter()
+        .map(|entry| codex_lazy_turn_id(entry.byte_offset))
+        .collect())
+}
+
 pub fn load_codex_app_initial_window_from_path(
     session_id: &str,
     path: &Path,
@@ -602,6 +618,65 @@ pub fn load_codex_app_turn_from_path(
         turn_id: turn_id.to_string(),
         loaded_event_count,
     })
+}
+
+pub(crate) fn load_codex_app_cloud_turn_from_path(
+    session_id: &str,
+    path: &Path,
+    turn_id: &str,
+    start_sequence: usize,
+) -> Result<Vec<ActivityChunk>, String> {
+    // Error like the Claude reader does: an unparseable id means the caller's
+    // checkpoint is stale or corrupt, and the frontend maps a reader error to
+    // the authoritative full path. A silent empty window would instead be
+    // indistinguishable from a legitimately empty turn.
+    let Some(user_offset) = codex_lazy_turn_offset(turn_id) else {
+        return Err(format!("Invalid Codex cloud turn id: {turn_id}"));
+    };
+    let start_offset = codex_cloud_turn_start_offset(path, user_offset)?;
+    let (chunks, _, _) = load_codex_app_from_path_with_mode(
+        session_id,
+        path,
+        CodexTranscriptCollectionMode::FirstTurn,
+        start_offset,
+        start_sequence,
+    )?;
+    Ok(chunks)
+}
+
+fn codex_cloud_turn_start_offset(path: &Path, user_offset: u64) -> Result<u64, String> {
+    if user_offset == 0 {
+        return Ok(0);
+    }
+    let read_start = user_offset.saturating_sub(CODEX_REVERSE_SCAN_MAX_LINE_BYTES as u64);
+    let read_len = usize::try_from(user_offset - read_start).unwrap_or_default();
+    let mut file = fs::File::open(path)
+        .map_err(|err| format!("Failed to open Codex history {}: {err}", path.display()))?;
+    file.seek(SeekFrom::Start(read_start)).map_err(|err| {
+        format!(
+            "Failed to seek Codex history {} to {read_start}: {err}",
+            path.display()
+        )
+    })?;
+    let mut prefix = vec![0u8; read_len];
+    file.read_exact(&mut prefix)
+        .map_err(|err| format!("Failed to read Codex turn prefix: {err}"))?;
+    let mut line_end = prefix.len();
+    while line_end > 0 && matches!(prefix[line_end - 1], b'\n' | b'\r') {
+        line_end -= 1;
+    }
+    let line_start = prefix[..line_end]
+        .iter()
+        .rposition(|byte| *byte == b'\n')
+        .map_or(0, |index| index + 1);
+    let Ok(previous) = serde_json::from_slice::<CodexJsonlLine>(&prefix[line_start..line_end])
+    else {
+        return Ok(user_offset);
+    };
+    if previous.payload.get("type").and_then(Value::as_str) == Some("task_started") {
+        return Ok(read_start.saturating_add(line_start as u64));
+    }
+    Ok(user_offset)
 }
 
 fn codex_lazy_turn_sequence(byte_offset: u64) -> usize {
@@ -1210,9 +1285,27 @@ fn load_codex_app_from_path_with_mode<'a>(
                 }
             }
             "task_complete" => {
+                let task_error_message = codex_task_error_message(&parsed.payload);
+                if let Some(error_message) = task_error_message.as_deref() {
+                    let mut error_chunk = ActivityChunk::new(session_id, "error", "error");
+                    error_chunk.chunk_id = format!("codex-error-{sequence}");
+                    error_chunk.created_at = created_at.clone();
+                    error_chunk.result = json!({
+                        "error": error_message,
+                        "observation": error_message,
+                        "success": false,
+                    });
+                    collector.current.push(error_chunk);
+                    sequence += 1;
+                }
                 if let Some(turn_id) =
                     lifecycle_turn_id(&parsed.payload, active_task_turn_id.as_deref())
                 {
+                    let lifecycle_action = if task_error_message.is_some() {
+                        imported_history::ACTION_TYPE_TASK_FAILED
+                    } else {
+                        imported_history::ACTION_TYPE_TASK_COMPLETED
+                    };
                     collector
                         .current
                         .push(imported_history::task_lifecycle_chunk(
@@ -1220,7 +1313,7 @@ fn load_codex_app_from_path_with_mode<'a>(
                             CODEX_PROVIDER_SLUG,
                             sequence,
                             &created_at,
-                            imported_history::ACTION_TYPE_TASK_COMPLETED,
+                            lifecycle_action,
                             turn_id,
                         ));
                     sequence += 1;
@@ -1328,6 +1421,26 @@ fn lifecycle_turn_id<'a>(payload: &'a Value, active_turn_id: Option<&'a str>) ->
         .get("turn_id")
         .and_then(Value::as_str)
         .or(active_turn_id)
+}
+
+fn codex_task_error_message(payload: &Value) -> Option<String> {
+    let error = payload.get("error")?;
+    if error.is_null() {
+        return None;
+    }
+
+    let message = error
+        .as_str()
+        .or_else(|| error.get("message").and_then(Value::as_str))
+        .map(str::trim)
+        .filter(|message| !message.is_empty());
+    Some(match message {
+        Some(message) => message.to_string(),
+        None if error.as_object().is_some_and(|object| object.is_empty()) => {
+            "Codex task failed".to_string()
+        }
+        None => format!("Codex task failed: {error}"),
+    })
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -1971,6 +2084,85 @@ fn reasoning_text_from_payload(payload: &Value) -> Option<String> {
 #[cfg(test)]
 mod window_cache_tests {
     use super::*;
+
+    #[test]
+    fn cloud_turn_ids_are_source_offsets_in_transcript_order() {
+        let temp_dir = std::env::temp_dir().join(format!(
+            "orgii-codex-cloud-turn-ids-test-{}",
+            std::process::id()
+        ));
+        std::fs::create_dir_all(&temp_dir).expect("create temp dir");
+        let path = temp_dir.join("rollout.jsonl");
+        let first = r#"{"timestamp":"2026-08-05T10:00:00Z","payload":{"type":"user_message","message":"first"}}"#;
+        let assistant = r#"{"timestamp":"2026-08-05T10:00:01Z","payload":{"type":"assistant_message","message":"reply"}}"#;
+        let second = r#"{"timestamp":"2026-08-05T10:01:00Z","payload":{"type":"user_message","message":"second"}}"#;
+        std::fs::write(&path, format!("{first}\n{assistant}\n{second}\n")).expect("write fixture");
+
+        let ids = load_codex_app_turn_ids_from_path(&path).expect("load turn ids");
+        let second_offset = first.len() + 1 + assistant.len() + 1;
+        assert_eq!(
+            ids,
+            vec![
+                "codex-user-0".to_string(),
+                format!("codex-user-{second_offset}")
+            ]
+        );
+
+        std::fs::remove_file(&path).expect("remove fixture");
+        std::fs::remove_dir(&temp_dir).expect("remove temp dir");
+    }
+
+    #[test]
+    fn cloud_turn_windows_preserve_full_sequence_ids() {
+        let temp_dir = std::env::temp_dir().join(format!(
+            "orgii-codex-cloud-turn-window-test-{}",
+            std::process::id()
+        ));
+        std::fs::create_dir_all(&temp_dir).expect("create temp dir");
+        let path = temp_dir.join("rollout.jsonl");
+        let content = r#"{"timestamp":"2026-08-05T10:00:00Z","payload":{"type":"task_started","turn_id":"provider-turn-1"}}
+{"timestamp":"2026-08-05T10:00:01Z","payload":{"type":"user_message","message":"first"}}
+{"timestamp":"2026-08-05T10:01:00Z","payload":{"type":"task_started","turn_id":"provider-turn-2"}}
+{"timestamp":"2026-08-05T10:01:01Z","payload":{"type":"user_message","message":"second"}}
+"#;
+        std::fs::write(&path, content).expect("write fixture");
+
+        let full =
+            load_codex_app_from_path("codexapp-cloud-window", &path).expect("load full transcript");
+        let ids = load_codex_app_turn_ids_from_path(&path).expect("load turn ids");
+        let mut cloud = Vec::new();
+        let mut next_sequence = 0usize;
+        for turn_id in ids {
+            let chunks = load_codex_app_cloud_turn_from_path(
+                "codexapp-cloud-window",
+                &path,
+                &turn_id,
+                next_sequence,
+            )
+            .expect("load cloud turn");
+            next_sequence += chunks.len();
+            cloud.extend(chunks);
+        }
+        assert_eq!(
+            serde_json::to_value(cloud).expect("serialize cloud chunks"),
+            serde_json::to_value(full).expect("serialize full chunks")
+        );
+
+        std::fs::remove_file(&path).expect("remove fixture");
+        std::fs::remove_dir(&temp_dir).expect("remove temp dir");
+    }
+
+    #[test]
+    fn cloud_turn_rejects_an_unparseable_turn_id() {
+        let error = load_codex_app_cloud_turn_from_path(
+            "codexapp-cloud-window",
+            Path::new("unused.jsonl"),
+            "not-a-codex-turn-id",
+            0,
+        )
+        .expect_err("invalid id must error, not read as empty");
+        assert!(error.contains("Invalid Codex cloud turn id"));
+    }
 
     #[test]
     fn codex_turn_offset_cache_bounds_sessions_and_turns() {

@@ -32,6 +32,7 @@ import {
 import type { RemoteTeammateSessionMetadata } from "@src/store/collaboration/types";
 
 const DAY_MS = 86_400_000;
+const HOUR_MS = 3_600_000;
 
 // ---------------------------------------------------------------------------
 // Org record accessor (safe against the pre-plumbing orgs atom)
@@ -123,7 +124,7 @@ export function parseTelemetryOption(value: string): {
 // Staleness
 // ---------------------------------------------------------------------------
 
-/** Grey-out threshold: a report older than 2× the org interval is stale. */
+/** Freshness threshold: a report older than 2× the org interval is stale. */
 export function staleAfterMs(telemetry: OrgRuntimeTelemetry | null): number {
   const interval = clampTelemetryInterval(
     telemetry?.intervalMinutes ?? RUNTIME_TELEMETRY_DEFAULT_INTERVAL_MINUTES
@@ -189,6 +190,28 @@ export function foldRecentDays(
   return headline;
 }
 
+/**
+ * Whether a member has meaningful usage in the current UTC day.
+ *
+ * This is the shared definition behind both the overview's active-member
+ * count and the Members breakdown groups. A zero-valued day row is not
+ * activity; any request, session, token, or cost is.
+ */
+export function hasMemberActivityToday(
+  recentDays: readonly MemberUsageDay[],
+  nowMs: number
+): boolean {
+  const today = utcDayFromMs(nowMs);
+  return recentDays.some(
+    (row) =>
+      row.day === today &&
+      (row.requests > 0 ||
+        row.sessions > 0 ||
+        row.totalTokens > 0 ||
+        row.costUsd > 0)
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Today org snapshot + recent shared sessions
 // ---------------------------------------------------------------------------
@@ -228,21 +251,11 @@ export function buildOrgRuntimeTodaySnapshot(
   let currentSystems = 0;
 
   for (const member of members) {
-    let memberActiveToday = false;
     for (const row of member.recentDays) {
       if (row.day !== today) continue;
       usageRows.push(row);
-      if (
-        !memberActiveToday &&
-        (row.requests > 0 ||
-          row.sessions > 0 ||
-          row.totalTokens > 0 ||
-          row.costUsd > 0)
-      ) {
-        memberActiveToday = true;
-      }
     }
-    if (memberActiveToday) activeMembers += 1;
+    if (hasMemberActivityToday(member.recentDays, nowMs)) activeMembers += 1;
 
     if (isRuntimeStale(member.reportedAt, telemetry, nowMs)) continue;
     currentSystems += 1;
@@ -270,6 +283,58 @@ export function buildOrgRuntimeTodaySnapshot(
     averageCpuPercent: safeAverage(cpuPercents),
     averageRamPercent: safeAverage(ramPercents),
   };
+}
+
+/**
+ * Merge members' latest rolling-24h hourly series for the viewer's current
+ * display window. Member reports can land at slightly different instants, so
+ * the chart clips by hour bucket and adds matching buckets rather than
+ * assuming every peer reported on the same boundary.
+ */
+export function aggregateMemberRecentUsageTrends(
+  members: readonly MemberRuntimeListEntry[],
+  startMs: number,
+  endMs: number
+): UsageTrendPoint[] {
+  if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs < startMs) {
+    return [];
+  }
+  const firstBucketMs = Math.floor(startMs / HOUR_MS) * HOUR_MS;
+  const lastBucketMs = Math.floor(endMs / HOUR_MS) * HOUR_MS;
+  const byHour = new Map<number, UsageTrendPoint>();
+
+  for (const member of members) {
+    for (const point of member.stats?.recentUsage24h?.trends ?? []) {
+      if (
+        !Number.isFinite(point.bucketMs) ||
+        point.bucketMs < firstBucketMs ||
+        point.bucketMs > lastBucketMs
+      ) {
+        continue;
+      }
+      let aggregate = byHour.get(point.bucketMs);
+      if (!aggregate) {
+        aggregate = {
+          bucketMs: point.bucketMs,
+          inputTokens: 0,
+          outputTokens: 0,
+          cacheReadTokens: 0,
+          cacheWriteTokens: 0,
+          costUsd: 0,
+        };
+        byHour.set(point.bucketMs, aggregate);
+      }
+      aggregate.inputTokens += point.inputTokens;
+      aggregate.outputTokens += point.outputTokens;
+      aggregate.cacheReadTokens += point.cacheReadTokens;
+      aggregate.cacheWriteTokens += point.cacheWriteTokens;
+      aggregate.costUsd += point.costUsd;
+    }
+  }
+
+  return [...byHour.values()].sort(
+    (left, right) => left.bucketMs - right.bucketMs
+  );
 }
 
 /**

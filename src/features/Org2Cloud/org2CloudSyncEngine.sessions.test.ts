@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { ImportedHistorySource } from "@src/api/tauri/externalHistory";
 import { rpc } from "@src/api/tauri/rpc";
 import type { SessionEvent } from "@src/engines/SessionCore/core/types";
 import type { Session } from "@src/store/session/sessionAtom/types";
@@ -856,6 +857,775 @@ describe("Org2CloudSyncEngine session publishing", () => {
 
     expect(client.upsertSessionMetadata).toHaveBeenCalledTimes(1);
     expect(loadFullTranscriptChunks).toHaveBeenCalledTimes(1);
+  });
+
+  it("replays only the mutable turn and appended turns after an imported full anchor", async () => {
+    const sessionId = "cursoride-incremental-thread-1";
+    type CloudReplaySource = ImportedHistorySource &
+      Required<
+        Pick<ImportedHistorySource, "loadCloudTurnIds" | "loadCloudTurnWindows">
+      >;
+    const source = getImportedHistorySourceBySessionId(
+      sessionId
+    ) as CloudReplaySource;
+    const turnChunks = {
+      "turn-a": [{ chunk_id: "raw-a", function: "user_message" }],
+      "turn-b": [{ chunk_id: "raw-b", function: "user_message" }],
+      "turn-c": [{ chunk_id: "raw-c", function: "user_message" }],
+      "turn-d": [{ chunk_id: "raw-d", function: "user_message" }],
+    } as const;
+    const turnEvents = {
+      "turn-a": [makeEvent("event-a-user"), makeEvent("event-a-result")],
+      "turn-b": [makeEvent("event-b-user"), makeEvent("event-b-result")],
+      "turn-c": [makeEvent("event-c-user"), makeEvent("event-c-result")],
+      "turn-d": [makeEvent("event-d-user"), makeEvent("event-d-result")],
+    } as const;
+    let authoritativeChunks: Array<{
+      readonly chunk_id: string;
+      readonly function: string;
+    }> = [...turnChunks["turn-a"], ...turnChunks["turn-b"]];
+    let authoritativeEvents = [
+      ...turnEvents["turn-a"],
+      ...turnEvents["turn-b"],
+    ];
+    const loadFullTranscriptChunks = vi
+      .spyOn(source, "loadFullTranscriptChunks")
+      .mockImplementation(async () => authoritativeChunks as never);
+    const loadCloudTurnIds = vi
+      .spyOn(source, "loadCloudTurnIds")
+      .mockResolvedValue(["turn-a", "turn-b"]);
+    const loadCloudTurnWindows = vi
+      .spyOn(source, "loadCloudTurnWindows")
+      .mockImplementation(async (_sessionId, turnIds) =>
+        turnIds.map((turnId) => ({
+          turnId,
+          chunks: turnChunks[turnId as keyof typeof turnChunks] as never,
+        }))
+      );
+    processChunksRustMock.mockImplementation(async (chunks) => {
+      if (chunks === authoritativeChunks) return authoritativeEvents;
+      const turnId = Object.entries(turnChunks).find(
+        ([, candidate]) => candidate[0]?.chunk_id === chunks[0]?.chunk_id
+      )?.[0] as keyof typeof turnEvents | undefined;
+      return turnId ? [...turnEvents[turnId]] : [];
+    });
+    store.set(sessionsAtom, [
+      { ...SESSION, session_id: sessionId, orgId: "personal-org" },
+    ]);
+
+    await engine.runSyncPass();
+    vi.setSystemTime(Date.now() + EXTERNAL_HISTORY_ACTIVITY_DEBOUNCE_MS + 1);
+    await engine.runSyncPass();
+
+    const anchored = store.get(org2CloudPushCursorsAtom)[`corg-1:${sessionId}`];
+    expect(anchored.importedReplay).toMatchObject({
+      reloadTurnId: "turn-b",
+      retainedEventCount: 2,
+      retainedChunkCount: 1,
+      frozenOverlapCount: 2,
+    });
+    expect(anchored.importedReplay?.frozenHashFrontier.length).toBeGreaterThan(
+      0
+    );
+    expect(client.rewriteSessionEvents).toHaveBeenCalledTimes(1);
+
+    loadFullTranscriptChunks.mockClear();
+    loadCloudTurnIds.mockResolvedValue(["turn-a", "turn-b", "turn-c"]);
+    client.appendSessionEvents.mockClear();
+    store.set(sessionsAtom, [
+      {
+        ...SESSION,
+        session_id: sessionId,
+        orgId: "personal-org",
+        updated_at: "2026-08-04T15:01:00.000Z",
+      },
+    ]);
+    await engine.runSyncPass();
+    vi.setSystemTime(Date.now() + EXTERNAL_HISTORY_ACTIVITY_DEBOUNCE_MS + 1);
+    await engine.runSyncPass();
+
+    expect(loadFullTranscriptChunks).not.toHaveBeenCalled();
+    expect(loadCloudTurnWindows).toHaveBeenLastCalledWith(
+      sessionId,
+      ["turn-b", "turn-c"],
+      1
+    );
+    expect(client.appendSessionEvents).toHaveBeenCalledTimes(1);
+    expect(client.appendSessionEvents.mock.calls[0][1]).toMatchObject({
+      expectedEpoch: anchored.epoch,
+      expectedFrozenSeq: anchored.frozenSeq,
+      totalCount: 6,
+    });
+    expect(
+      client.appendSessionEvents.mock.calls[0][1].newFrozenSegments.flatMap(
+        (segment) => segment.events
+      )
+    ).toEqual(turnEvents["turn-c"]);
+    const advanced = store.get(org2CloudPushCursorsAtom)[`corg-1:${sessionId}`];
+    expect(advanced).toMatchObject({ pushedCount: 6, frozenEventCount: 6 });
+    expect(advanced.importedReplay).toMatchObject({
+      reloadTurnId: "turn-c",
+      retainedEventCount: 4,
+      retainedChunkCount: 2,
+      frozenOverlapCount: 2,
+    });
+
+    // A changed source prefix invalidates the provider cursor even when its
+    // normalized event bytes happen to remain equal. Recovery is one full
+    // authoritative read, after which the new prefix is checkpointed.
+    authoritativeChunks = [
+      ...turnChunks["turn-a"],
+      ...turnChunks["turn-b"],
+      ...turnChunks["turn-c"],
+    ];
+    authoritativeEvents = [
+      ...turnEvents["turn-a"],
+      ...turnEvents["turn-b"],
+      ...turnEvents["turn-c"],
+    ];
+    loadFullTranscriptChunks.mockClear();
+    loadCloudTurnIds.mockResolvedValue(["turn-x", "turn-b", "turn-c"]);
+    store.set(sessionsAtom, [
+      {
+        ...SESSION,
+        session_id: sessionId,
+        orgId: "personal-org",
+        updated_at: "2026-08-04T15:02:00.000Z",
+      },
+    ]);
+    await engine.runSyncPass();
+    vi.setSystemTime(Date.now() + EXTERNAL_HISTORY_ACTIVITY_DEBOUNCE_MS + 1);
+    await engine.runSyncPass();
+    expect(loadFullTranscriptChunks).toHaveBeenCalledTimes(1);
+
+    // If another writer wins OCC after incremental preparation, recovery must
+    // discard the bounded suffix and re-read the full source before rewriting
+    // at the server's epoch. A suffix must never be used as a rewrite body.
+    authoritativeChunks = [
+      ...turnChunks["turn-a"],
+      ...turnChunks["turn-b"],
+      ...turnChunks["turn-c"],
+      ...turnChunks["turn-d"],
+    ];
+    authoritativeEvents = [
+      ...turnEvents["turn-a"],
+      ...turnEvents["turn-b"],
+      ...turnEvents["turn-c"],
+      ...turnEvents["turn-d"],
+    ];
+    loadFullTranscriptChunks.mockClear();
+    loadCloudTurnIds.mockResolvedValue([
+      "turn-x",
+      "turn-b",
+      "turn-c",
+      "turn-d",
+    ]);
+    client.appendSessionEvents.mockClear();
+    client.rewriteSessionEvents.mockClear();
+    client.appendSessionEvents.mockRejectedValueOnce(conflictError());
+    client.getSessionEvents.mockResolvedValueOnce({
+      epoch: 5,
+      frozenSeq: 9,
+      tailHash: "server-tail",
+      count: 9,
+      segments: [],
+    });
+    store.set(sessionsAtom, [
+      {
+        ...SESSION,
+        session_id: sessionId,
+        orgId: "personal-org",
+        updated_at: "2026-08-04T15:03:00.000Z",
+      },
+    ]);
+    await engine.runSyncPass();
+    vi.setSystemTime(Date.now() + EXTERNAL_HISTORY_ACTIVITY_DEBOUNCE_MS + 1);
+    await engine.runSyncPass();
+    expect(client.appendSessionEvents).toHaveBeenCalledTimes(1);
+    expect(loadFullTranscriptChunks).toHaveBeenCalledTimes(1);
+    expect(client.rewriteSessionEvents).toHaveBeenCalledTimes(1);
+    expect(client.rewriteSessionEvents.mock.calls[0][1]).toMatchObject({
+      newEpoch: 6,
+      totalCount: 8,
+    });
+
+    loadFullTranscriptChunks.mockRestore();
+    loadCloudTurnIds.mockRestore();
+    loadCloudTurnWindows.mockRestore();
+  });
+
+  it("forces a full authoritative reread after the incremental pass budget", async () => {
+    const { IMPORTED_INCREMENTAL_REANCHOR_EVERY } =
+      await import("./org2CloudSessionSync");
+    const sessionId = "cursoride-reanchor-cadence-thread-1";
+    type CloudReplaySource = ImportedHistorySource &
+      Required<
+        Pick<ImportedHistorySource, "loadCloudTurnIds" | "loadCloudTurnWindows">
+      >;
+    const source = getImportedHistorySourceBySessionId(
+      sessionId
+    ) as CloudReplaySource;
+    const turnChunks = {
+      "turn-a": [{ chunk_id: "raw-a", function: "user_message" }],
+      "turn-b": [{ chunk_id: "raw-b", function: "user_message" }],
+      "turn-c": [{ chunk_id: "raw-c", function: "user_message" }],
+      "turn-d": [{ chunk_id: "raw-d", function: "user_message" }],
+    } as const;
+    const turnEvents = {
+      "turn-a": [makeEvent("event-a-user"), makeEvent("event-a-result")],
+      "turn-b": [makeEvent("event-b-user"), makeEvent("event-b-result")],
+      "turn-c": [makeEvent("event-c-user"), makeEvent("event-c-result")],
+      "turn-d": [makeEvent("event-d-user"), makeEvent("event-d-result")],
+    } as const;
+    let authoritativeChunks: Array<{
+      readonly chunk_id: string;
+      readonly function: string;
+    }> = [...turnChunks["turn-a"], ...turnChunks["turn-b"]];
+    let authoritativeEvents = [
+      ...turnEvents["turn-a"],
+      ...turnEvents["turn-b"],
+    ];
+    const loadFullTranscriptChunks = vi
+      .spyOn(source, "loadFullTranscriptChunks")
+      .mockImplementation(async () => authoritativeChunks as never);
+    const loadCloudTurnIds = vi
+      .spyOn(source, "loadCloudTurnIds")
+      .mockResolvedValue(["turn-a", "turn-b"]);
+    const loadCloudTurnWindows = vi
+      .spyOn(source, "loadCloudTurnWindows")
+      .mockImplementation(async (_sessionId, turnIds) =>
+        turnIds.map((turnId) => ({
+          turnId,
+          chunks: turnChunks[turnId as keyof typeof turnChunks] as never,
+        }))
+      );
+    processChunksRustMock.mockImplementation(async (chunks) => {
+      if (chunks === authoritativeChunks) return authoritativeEvents;
+      const turnId = Object.entries(turnChunks).find(
+        ([, candidate]) => candidate[0]?.chunk_id === chunks[0]?.chunk_id
+      )?.[0] as keyof typeof turnEvents | undefined;
+      return turnId ? [...turnEvents[turnId]] : [];
+    });
+    store.set(sessionsAtom, [
+      { ...SESSION, session_id: sessionId, orgId: "personal-org" },
+    ]);
+
+    await engine.runSyncPass();
+    vi.setSystemTime(Date.now() + EXTERNAL_HISTORY_ACTIVITY_DEBOUNCE_MS + 1);
+    await engine.runSyncPass();
+
+    // One bounded pass advances the cadence counter.
+    authoritativeChunks = [
+      ...turnChunks["turn-a"],
+      ...turnChunks["turn-b"],
+      ...turnChunks["turn-c"],
+    ];
+    authoritativeEvents = [
+      ...turnEvents["turn-a"],
+      ...turnEvents["turn-b"],
+      ...turnEvents["turn-c"],
+    ];
+    loadCloudTurnIds.mockResolvedValue(["turn-a", "turn-b", "turn-c"]);
+    loadFullTranscriptChunks.mockClear();
+    store.set(sessionsAtom, [
+      {
+        ...SESSION,
+        session_id: sessionId,
+        orgId: "personal-org",
+        updated_at: "2026-08-04T15:01:00.000Z",
+      },
+    ]);
+    await engine.runSyncPass();
+    vi.setSystemTime(Date.now() + EXTERNAL_HISTORY_ACTIVITY_DEBOUNCE_MS + 1);
+    await engine.runSyncPass();
+    expect(loadFullTranscriptChunks).not.toHaveBeenCalled();
+    const key = `corg-1:${sessionId}`;
+    expect(
+      store.get(org2CloudPushCursorsAtom)[key].importedReplay
+        ?.incrementalPassCount
+    ).toBe(1);
+
+    // An exhausted budget declines the checkpoint: the next delta pays one
+    // full authoritative read, still appends (intact prefix never rewrites),
+    // and the fresh checkpoint restarts the cadence at zero.
+    store.set(org2CloudPushCursorsAtom, (current) => {
+      const cursor = current[key];
+      return {
+        ...current,
+        [key]: {
+          ...cursor,
+          importedReplay: cursor.importedReplay && {
+            ...cursor.importedReplay,
+            incrementalPassCount: IMPORTED_INCREMENTAL_REANCHOR_EVERY,
+          },
+        },
+      };
+    });
+    authoritativeChunks = [
+      ...turnChunks["turn-a"],
+      ...turnChunks["turn-b"],
+      ...turnChunks["turn-c"],
+      ...turnChunks["turn-d"],
+    ];
+    authoritativeEvents = [
+      ...turnEvents["turn-a"],
+      ...turnEvents["turn-b"],
+      ...turnEvents["turn-c"],
+      ...turnEvents["turn-d"],
+    ];
+    loadCloudTurnIds.mockResolvedValue([
+      "turn-a",
+      "turn-b",
+      "turn-c",
+      "turn-d",
+    ]);
+    loadFullTranscriptChunks.mockClear();
+    client.rewriteSessionEvents.mockClear();
+    client.appendSessionEvents.mockClear();
+    store.set(sessionsAtom, [
+      {
+        ...SESSION,
+        session_id: sessionId,
+        orgId: "personal-org",
+        updated_at: "2026-08-04T15:02:00.000Z",
+      },
+    ]);
+    await engine.runSyncPass();
+    vi.setSystemTime(Date.now() + EXTERNAL_HISTORY_ACTIVITY_DEBOUNCE_MS + 1);
+    await engine.runSyncPass();
+
+    expect(loadFullTranscriptChunks).toHaveBeenCalledTimes(1);
+    expect(client.rewriteSessionEvents).not.toHaveBeenCalled();
+    expect(client.appendSessionEvents).toHaveBeenCalledTimes(1);
+    expect(
+      client.appendSessionEvents.mock.calls[0][1].newFrozenSegments.flatMap(
+        (segment: { events: unknown[] }) => segment.events
+      )
+    ).toEqual(turnEvents["turn-d"]);
+    expect(
+      store.get(org2CloudPushCursorsAtom)[key].importedReplay
+        ?.incrementalPassCount
+    ).toBe(0);
+
+    loadFullTranscriptChunks.mockRestore();
+    loadCloudTurnIds.mockRestore();
+    loadCloudTurnWindows.mockRestore();
+  });
+
+  it("upgrades a pre-checkpoint flat cursor with a delta append, never an epoch rewrite", async () => {
+    const sessionId = "cursoride-flat-migration-thread-1";
+    type CloudReplaySource = ImportedHistorySource &
+      Required<
+        Pick<ImportedHistorySource, "loadCloudTurnIds" | "loadCloudTurnWindows">
+      >;
+    const source = getImportedHistorySourceBySessionId(
+      sessionId
+    ) as CloudReplaySource;
+    const turnChunks = {
+      "turn-a": [{ chunk_id: "raw-a", function: "user_message" }],
+      "turn-b": [{ chunk_id: "raw-b", function: "user_message" }],
+      "turn-c": [{ chunk_id: "raw-c", function: "user_message" }],
+      "turn-d": [{ chunk_id: "raw-d", function: "user_message" }],
+    } as const;
+    const turnEvents = {
+      "turn-a": [makeEvent("event-a-user"), makeEvent("event-a-result")],
+      "turn-b": [makeEvent("event-b-user"), makeEvent("event-b-result")],
+      "turn-c": [makeEvent("event-c-user"), makeEvent("event-c-result")],
+      "turn-d": [makeEvent("event-d-user"), makeEvent("event-d-result")],
+    } as const;
+    let authoritativeChunks: Array<{
+      readonly chunk_id: string;
+      readonly function: string;
+    }> = [...turnChunks["turn-a"], ...turnChunks["turn-b"]];
+    let authoritativeEvents = [
+      ...turnEvents["turn-a"],
+      ...turnEvents["turn-b"],
+    ];
+    const loadFullTranscriptChunks = vi
+      .spyOn(source, "loadFullTranscriptChunks")
+      .mockImplementation(async () => authoritativeChunks as never);
+    // Duplicate ids disable the anchor probe, so the first push persists a
+    // pre-checkpoint flat-v1 cursor exactly like one written before this
+    // feature existed.
+    const loadCloudTurnIds = vi
+      .spyOn(source, "loadCloudTurnIds")
+      .mockResolvedValue(["turn-a", "turn-a"]);
+    const loadCloudTurnWindows = vi
+      .spyOn(source, "loadCloudTurnWindows")
+      .mockImplementation(async (_sessionId, turnIds) =>
+        turnIds.map((turnId) => ({
+          turnId,
+          chunks: turnChunks[turnId as keyof typeof turnChunks] as never,
+        }))
+      );
+    processChunksRustMock.mockImplementation(async (chunks) => {
+      if (chunks === authoritativeChunks) return authoritativeEvents;
+      const turnId = Object.entries(turnChunks).find(
+        ([, candidate]) => candidate[0]?.chunk_id === chunks[0]?.chunk_id
+      )?.[0] as keyof typeof turnEvents | undefined;
+      return turnId ? [...turnEvents[turnId]] : [];
+    });
+    store.set(sessionsAtom, [
+      { ...SESSION, session_id: sessionId, orgId: "personal-org" },
+    ]);
+
+    await engine.runSyncPass();
+    vi.setSystemTime(Date.now() + EXTERNAL_HISTORY_ACTIVITY_DEBOUNCE_MS + 1);
+    await engine.runSyncPass();
+
+    const flatCursor = store.get(org2CloudPushCursorsAtom)[
+      `corg-1:${sessionId}`
+    ];
+    expect(flatCursor).toMatchObject({ epoch: 1, pushedCount: 4 });
+    expect(flatCursor.importedReplay).toBeUndefined();
+    expect(client.rewriteSessionEvents).toHaveBeenCalledTimes(1);
+
+    // The probe recovers and one turn is appended. Migration to the merkle
+    // checkpoint must ride the ordinary delta append: re-uploading the whole
+    // intact history would spend O(total) network on every legacy cursor.
+    authoritativeChunks = [
+      ...turnChunks["turn-a"],
+      ...turnChunks["turn-b"],
+      ...turnChunks["turn-c"],
+    ];
+    authoritativeEvents = [
+      ...turnEvents["turn-a"],
+      ...turnEvents["turn-b"],
+      ...turnEvents["turn-c"],
+    ];
+    loadCloudTurnIds.mockResolvedValue(["turn-a", "turn-b", "turn-c"]);
+    client.rewriteSessionEvents.mockClear();
+    client.appendSessionEvents.mockClear();
+    store.set(sessionsAtom, [
+      {
+        ...SESSION,
+        session_id: sessionId,
+        orgId: "personal-org",
+        updated_at: "2026-08-04T15:01:00.000Z",
+      },
+    ]);
+    await engine.runSyncPass();
+    vi.setSystemTime(Date.now() + EXTERNAL_HISTORY_ACTIVITY_DEBOUNCE_MS + 1);
+    await engine.runSyncPass();
+
+    expect(client.rewriteSessionEvents).not.toHaveBeenCalled();
+    expect(client.appendSessionEvents).toHaveBeenCalledTimes(1);
+    expect(client.appendSessionEvents.mock.calls[0][1]).toMatchObject({
+      expectedEpoch: 1,
+      totalCount: 6,
+    });
+    expect(
+      client.appendSessionEvents.mock.calls[0][1].newFrozenSegments.flatMap(
+        (segment) => segment.events
+      )
+    ).toEqual(turnEvents["turn-c"]);
+    const upgraded = store.get(org2CloudPushCursorsAtom)[`corg-1:${sessionId}`];
+    expect(upgraded).toMatchObject({ epoch: 1, pushedCount: 6 });
+    expect(upgraded.importedReplay).toMatchObject({ reloadTurnId: "turn-c" });
+
+    // The upgraded checkpoint must actually enable the bounded path.
+    authoritativeChunks = [
+      ...turnChunks["turn-a"],
+      ...turnChunks["turn-b"],
+      ...turnChunks["turn-c"],
+      ...turnChunks["turn-d"],
+    ];
+    authoritativeEvents = [
+      ...turnEvents["turn-a"],
+      ...turnEvents["turn-b"],
+      ...turnEvents["turn-c"],
+      ...turnEvents["turn-d"],
+    ];
+    loadCloudTurnIds.mockResolvedValue([
+      "turn-a",
+      "turn-b",
+      "turn-c",
+      "turn-d",
+    ]);
+    loadFullTranscriptChunks.mockClear();
+    client.appendSessionEvents.mockClear();
+    store.set(sessionsAtom, [
+      {
+        ...SESSION,
+        session_id: sessionId,
+        orgId: "personal-org",
+        updated_at: "2026-08-04T15:02:00.000Z",
+      },
+    ]);
+    await engine.runSyncPass();
+    vi.setSystemTime(Date.now() + EXTERNAL_HISTORY_ACTIVITY_DEBOUNCE_MS + 1);
+    await engine.runSyncPass();
+
+    expect(loadFullTranscriptChunks).not.toHaveBeenCalled();
+    expect(client.rewriteSessionEvents).not.toHaveBeenCalled();
+    expect(client.appendSessionEvents).toHaveBeenCalledTimes(1);
+    expect(client.appendSessionEvents.mock.calls[0][1]).toMatchObject({
+      totalCount: 8,
+    });
+
+    loadFullTranscriptChunks.mockRestore();
+    loadCloudTurnIds.mockRestore();
+    loadCloudTurnWindows.mockRestore();
+  });
+
+  it("keeps an intact history on the append path when the turn-id probe fails transiently", async () => {
+    const sessionId = "cursoride-transient-probe-thread-1";
+    type CloudReplaySource = ImportedHistorySource &
+      Required<
+        Pick<ImportedHistorySource, "loadCloudTurnIds" | "loadCloudTurnWindows">
+      >;
+    const source = getImportedHistorySourceBySessionId(
+      sessionId
+    ) as CloudReplaySource;
+    const turnChunks = {
+      "turn-a": [{ chunk_id: "raw-a", function: "user_message" }],
+      "turn-b": [{ chunk_id: "raw-b", function: "user_message" }],
+      "turn-c": [{ chunk_id: "raw-c", function: "user_message" }],
+      "turn-d": [{ chunk_id: "raw-d", function: "user_message" }],
+    } as const;
+    const turnEvents = {
+      "turn-a": [makeEvent("event-a-user"), makeEvent("event-a-result")],
+      "turn-b": [makeEvent("event-b-user"), makeEvent("event-b-result")],
+      "turn-c": [makeEvent("event-c-user"), makeEvent("event-c-result")],
+      "turn-d": [makeEvent("event-d-user"), makeEvent("event-d-result")],
+    } as const;
+    let authoritativeChunks: Array<{
+      readonly chunk_id: string;
+      readonly function: string;
+    }> = [...turnChunks["turn-a"], ...turnChunks["turn-b"]];
+    let authoritativeEvents = [
+      ...turnEvents["turn-a"],
+      ...turnEvents["turn-b"],
+    ];
+    const loadFullTranscriptChunks = vi
+      .spyOn(source, "loadFullTranscriptChunks")
+      .mockImplementation(async () => authoritativeChunks as never);
+    const loadCloudTurnIds = vi
+      .spyOn(source, "loadCloudTurnIds")
+      .mockResolvedValue(["turn-a", "turn-b"]);
+    const loadCloudTurnWindows = vi
+      .spyOn(source, "loadCloudTurnWindows")
+      .mockImplementation(async (_sessionId, turnIds) =>
+        turnIds.map((turnId) => ({
+          turnId,
+          chunks: turnChunks[turnId as keyof typeof turnChunks] as never,
+        }))
+      );
+    processChunksRustMock.mockImplementation(async (chunks) => {
+      if (chunks === authoritativeChunks) return authoritativeEvents;
+      const turnId = Object.entries(turnChunks).find(
+        ([, candidate]) => candidate[0]?.chunk_id === chunks[0]?.chunk_id
+      )?.[0] as keyof typeof turnEvents | undefined;
+      return turnId ? [...turnEvents[turnId]] : [];
+    });
+    store.set(sessionsAtom, [
+      { ...SESSION, session_id: sessionId, orgId: "personal-org" },
+    ]);
+
+    await engine.runSyncPass();
+    vi.setSystemTime(Date.now() + EXTERNAL_HISTORY_ACTIVITY_DEBOUNCE_MS + 1);
+    await engine.runSyncPass();
+    expect(
+      store.get(org2CloudPushCursorsAtom)[`corg-1:${sessionId}`].importedReplay
+    ).toBeDefined();
+    expect(client.rewriteSessionEvents).toHaveBeenCalledTimes(1);
+
+    // One turn is appended while the id probe fails for the whole pass (the
+    // incremental attempt and the full-path re-anchor both reject). A read
+    // hiccup is not evidence of history mutation: the pass must fall back to
+    // one full READ and a delta append, never a full re-UPLOAD.
+    authoritativeChunks = [
+      ...turnChunks["turn-a"],
+      ...turnChunks["turn-b"],
+      ...turnChunks["turn-c"],
+    ];
+    authoritativeEvents = [
+      ...turnEvents["turn-a"],
+      ...turnEvents["turn-b"],
+      ...turnEvents["turn-c"],
+    ];
+    loadCloudTurnIds
+      .mockRejectedValueOnce(new Error("transient: source db is locked"))
+      .mockRejectedValueOnce(new Error("transient: source db is locked"));
+    loadFullTranscriptChunks.mockClear();
+    client.rewriteSessionEvents.mockClear();
+    client.appendSessionEvents.mockClear();
+    store.set(sessionsAtom, [
+      {
+        ...SESSION,
+        session_id: sessionId,
+        orgId: "personal-org",
+        updated_at: "2026-08-04T15:01:00.000Z",
+      },
+    ]);
+    await engine.runSyncPass();
+    vi.setSystemTime(Date.now() + EXTERNAL_HISTORY_ACTIVITY_DEBOUNCE_MS + 1);
+    await engine.runSyncPass();
+
+    expect(loadFullTranscriptChunks).toHaveBeenCalledTimes(1);
+    expect(client.rewriteSessionEvents).not.toHaveBeenCalled();
+    expect(client.appendSessionEvents).toHaveBeenCalledTimes(1);
+    expect(
+      client.appendSessionEvents.mock.calls[0][1].newFrozenSegments.flatMap(
+        (segment) => segment.events
+      )
+    ).toEqual(turnEvents["turn-c"]);
+    // Without a probe there is no checkpoint to carry: the cursor downgrades
+    // to flat-v1 consistently instead of keeping a stale merkle checkpoint.
+    const downgraded = store.get(org2CloudPushCursorsAtom)[
+      `corg-1:${sessionId}`
+    ];
+    expect(downgraded).toMatchObject({ epoch: 1, pushedCount: 6 });
+    expect(downgraded.importedReplay).toBeUndefined();
+
+    // Once the probe recovers, the next delta re-anchors the checkpoint —
+    // again via the ordinary append, with no rewrite anywhere in the cycle.
+    authoritativeChunks = [
+      ...turnChunks["turn-a"],
+      ...turnChunks["turn-b"],
+      ...turnChunks["turn-c"],
+      ...turnChunks["turn-d"],
+    ];
+    authoritativeEvents = [
+      ...turnEvents["turn-a"],
+      ...turnEvents["turn-b"],
+      ...turnEvents["turn-c"],
+      ...turnEvents["turn-d"],
+    ];
+    loadCloudTurnIds.mockResolvedValue([
+      "turn-a",
+      "turn-b",
+      "turn-c",
+      "turn-d",
+    ]);
+    client.appendSessionEvents.mockClear();
+    store.set(sessionsAtom, [
+      {
+        ...SESSION,
+        session_id: sessionId,
+        orgId: "personal-org",
+        updated_at: "2026-08-04T15:02:00.000Z",
+      },
+    ]);
+    await engine.runSyncPass();
+    vi.setSystemTime(Date.now() + EXTERNAL_HISTORY_ACTIVITY_DEBOUNCE_MS + 1);
+    await engine.runSyncPass();
+
+    expect(client.rewriteSessionEvents).not.toHaveBeenCalled();
+    expect(client.appendSessionEvents).toHaveBeenCalledTimes(1);
+    const reanchored = store.get(org2CloudPushCursorsAtom)[
+      `corg-1:${sessionId}`
+    ];
+    expect(reanchored).toMatchObject({ epoch: 1, pushedCount: 8 });
+    expect(reanchored.importedReplay).toMatchObject({ reloadTurnId: "turn-d" });
+
+    loadFullTranscriptChunks.mockRestore();
+    loadCloudTurnIds.mockRestore();
+    loadCloudTurnWindows.mockRestore();
+  });
+
+  it("survives a JSON persistence round trip of the imported replay checkpoint", async () => {
+    const sessionId = "cursoride-roundtrip-thread-1";
+    type CloudReplaySource = ImportedHistorySource &
+      Required<
+        Pick<ImportedHistorySource, "loadCloudTurnIds" | "loadCloudTurnWindows">
+      >;
+    const source = getImportedHistorySourceBySessionId(
+      sessionId
+    ) as CloudReplaySource;
+    const turnChunks = {
+      "turn-a": [{ chunk_id: "raw-a", function: "user_message" }],
+      "turn-b": [{ chunk_id: "raw-b", function: "user_message" }],
+      "turn-c": [{ chunk_id: "raw-c", function: "user_message" }],
+    } as const;
+    const turnEvents = {
+      "turn-a": [makeEvent("event-a-user"), makeEvent("event-a-result")],
+      "turn-b": [makeEvent("event-b-user"), makeEvent("event-b-result")],
+      "turn-c": [makeEvent("event-c-user"), makeEvent("event-c-result")],
+    } as const;
+    let authoritativeChunks: Array<{
+      readonly chunk_id: string;
+      readonly function: string;
+    }> = [...turnChunks["turn-a"], ...turnChunks["turn-b"]];
+    let authoritativeEvents = [
+      ...turnEvents["turn-a"],
+      ...turnEvents["turn-b"],
+    ];
+    const loadFullTranscriptChunks = vi
+      .spyOn(source, "loadFullTranscriptChunks")
+      .mockImplementation(async () => authoritativeChunks as never);
+    const loadCloudTurnIds = vi
+      .spyOn(source, "loadCloudTurnIds")
+      .mockResolvedValue(["turn-a", "turn-b"]);
+    const loadCloudTurnWindows = vi
+      .spyOn(source, "loadCloudTurnWindows")
+      .mockImplementation(async (_sessionId, turnIds) =>
+        turnIds.map((turnId) => ({
+          turnId,
+          chunks: turnChunks[turnId as keyof typeof turnChunks] as never,
+        }))
+      );
+    processChunksRustMock.mockImplementation(async (chunks) => {
+      if (chunks === authoritativeChunks) return authoritativeEvents;
+      const turnId = Object.entries(turnChunks).find(
+        ([, candidate]) => candidate[0]?.chunk_id === chunks[0]?.chunk_id
+      )?.[0] as keyof typeof turnEvents | undefined;
+      return turnId ? [...turnEvents[turnId]] : [];
+    });
+    store.set(sessionsAtom, [
+      { ...SESSION, session_id: sessionId, orgId: "personal-org" },
+    ]);
+
+    await engine.runSyncPass();
+    vi.setSystemTime(Date.now() + EXTERNAL_HISTORY_ACTIVITY_DEBOUNCE_MS + 1);
+    await engine.runSyncPass();
+    expect(
+      store.get(org2CloudPushCursorsAtom)[`corg-1:${sessionId}`].importedReplay
+    ).toBeDefined();
+
+    // The merkle frontier is built with array holes at even heights; the
+    // storage layer persists them as JSON null. The commitment recomputed
+    // from the reloaded null form must still match the stored chain hash,
+    // otherwise every app restart silently loses the bounded path.
+    store.set(
+      org2CloudPushCursorsAtom,
+      JSON.parse(JSON.stringify(store.get(org2CloudPushCursorsAtom)))
+    );
+
+    authoritativeChunks = [
+      ...turnChunks["turn-a"],
+      ...turnChunks["turn-b"],
+      ...turnChunks["turn-c"],
+    ];
+    authoritativeEvents = [
+      ...turnEvents["turn-a"],
+      ...turnEvents["turn-b"],
+      ...turnEvents["turn-c"],
+    ];
+    loadCloudTurnIds.mockResolvedValue(["turn-a", "turn-b", "turn-c"]);
+    loadFullTranscriptChunks.mockClear();
+    client.appendSessionEvents.mockClear();
+    store.set(sessionsAtom, [
+      {
+        ...SESSION,
+        session_id: sessionId,
+        orgId: "personal-org",
+        updated_at: "2026-08-04T15:01:00.000Z",
+      },
+    ]);
+    await engine.runSyncPass();
+    vi.setSystemTime(Date.now() + EXTERNAL_HISTORY_ACTIVITY_DEBOUNCE_MS + 1);
+    await engine.runSyncPass();
+
+    expect(loadFullTranscriptChunks).not.toHaveBeenCalled();
+    expect(client.appendSessionEvents).toHaveBeenCalledTimes(1);
+    expect(client.appendSessionEvents.mock.calls[0][1]).toMatchObject({
+      totalCount: 6,
+    });
+
+    loadFullTranscriptChunks.mockRestore();
+    loadCloudTurnIds.mockRestore();
+    loadCloudTurnWindows.mockRestore();
   });
 
   it("publishes a roster-refreshed external replay in an inactive background org after one quiet timer", async () => {

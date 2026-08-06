@@ -125,20 +125,11 @@ pub(crate) fn cli_agent_registry() -> Vec<CliAgentEntry> {
             brand_color: "#10A37F",
             docs_url: "https://developers.openai.com/codex/config-basic",
             has_subscription_plan: true,
-            compatible_api_providers: &[
-                "openai_api",
-                "atlascloud_api",
-                "openrouter_api",
-                "azure_openai_api",
-                "deepseek_api",
-                "groq_api",
-                "xai_api",
-                "dashscope_api",
-                "moonshot_api",
-                "zenmux_api",
-                "longcat_api",
-                "vllm_api",
-            ],
+            // Codex requires the Responses wire API. Generic OpenAI Chat
+            // compatibility is insufficient; keep this list limited to
+            // providers whose `/responses` route is explicitly supported or
+            // has been verified by ORGII.
+            compatible_api_providers: &["openai_api", "zenmux_api"],
             config_files: vec![home_config("config", "Config", ".codex/config.toml", CliConfigFormat::Toml, false)],
             is_complex_setup: false,
             default_setup_method: None,

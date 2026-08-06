@@ -4,7 +4,7 @@
 //! converts them into ORGII's canonical `ActivityChunk` shape for read-only
 //! replay.
 
-use std::collections::{BTreeSet, HashMap, HashSet};
+use std::collections::{BTreeSet, HashMap, HashSet, VecDeque};
 use std::fs;
 use std::io::{BufRead, BufReader, Read, Seek, SeekFrom};
 use std::path::{Path, PathBuf};
@@ -38,7 +38,10 @@ const CLAUDE_CODE_PROVIDER_SLUG: &str = "claudecode";
 // v10: harness-injected user lines (isMeta, task-notification origin) no
 // longer open rounds or feed the first-prompt title; user image blocks
 // surface as data-URL attachments on the user bubble.
-const CLAUDE_CODE_METADATA_PARSER_VERSION: i64 = 10;
+// v11: capture compact-boundary ancestry markers so continuation families
+// survive Claude Code rewriting the first user message during compaction.
+const CLAUDE_CODE_METADATA_PARSER_VERSION: i64 = 11;
+const MAX_COMPACT_BOUNDARY_MARKERS: usize = imported_cache::MAX_CONTINUATION_MARKERS - 1;
 
 pub type ClaudeCodeHistorySessionRow = ImportedHistorySessionRow;
 pub type ClaudeCodeHistorySessionPage = ImportedHistorySessionPage;
@@ -74,6 +77,9 @@ struct ClaudeCodeHistoryMeta {
     /// field, but message uuids are preserved — so this is a stable group key
     /// uniting a conversation's continuation siblings for dedupe.
     first_user_uuid: Option<String>,
+    /// Compact-boundary uuids retained by continuation rewrites. Together
+    /// with `first_user_uuid` these form a bounded ancestry marker set.
+    continuation_markers: Vec<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -81,6 +87,8 @@ struct ClaudeCodeHistoryMeta {
 struct ClaudeJsonlLine {
     #[serde(default)]
     r#type: String,
+    #[serde(default)]
+    subtype: String,
     #[serde(default)]
     summary: String,
     /// `ai-title` records: the auto-generated title shown in the Claude Code app.
@@ -401,15 +409,32 @@ fn load_claude_turn_range(
     end_offset: u64,
     turn_id: &str,
 ) -> Result<Vec<ActivityChunk>, String> {
+    load_claude_turn_range_with_sequence(
+        file,
+        session_id,
+        start_offset,
+        end_offset,
+        usize::try_from(start_offset).unwrap_or(usize::MAX),
+        Some(turn_id),
+    )
+}
+
+fn load_claude_turn_range_with_sequence(
+    file: &mut fs::File,
+    session_id: &str,
+    start_offset: u64,
+    end_offset: u64,
+    start_sequence: usize,
+    forced_first_user_id: Option<&str>,
+) -> Result<Vec<ActivityChunk>, String> {
     file.seek(SeekFrom::Start(start_offset))
         .map_err(|err| format!("Failed to seek Claude history: {err}"))?;
     let take = file.take(end_offset.saturating_sub(start_offset));
-    let start_sequence = usize::try_from(start_offset).unwrap_or(usize::MAX);
     load_claude_code_history_from_reader(
         session_id,
         BufReader::new(take),
         start_sequence,
-        Some(turn_id),
+        forced_first_user_id,
     )
 }
 
@@ -427,13 +452,13 @@ pub fn load_claude_code_initial_window_for_session(
         });
     }
 
-    let file_len = fs::metadata(&path)
+    let file_len = fs::metadata(path.as_path())
         .map_err(|err| format!("Failed to stat Claude history {}: {err}", path.display()))?
         .len();
     let first_loaded_turn = indexed
         .len()
         .saturating_sub(recent_turn_count.max(1).min(indexed.len()));
-    let mut file = fs::File::open(&path)
+    let mut file = fs::File::open(path.as_path())
         .map_err(|err| format!("Failed to open Claude history {}: {err}", path.display()))?;
     let mut chunks = Vec::with_capacity(indexed.len().saturating_mul(2));
     for (index, turn) in indexed.iter().enumerate() {
@@ -475,7 +500,7 @@ pub fn load_claude_code_turn_windows_for_session(
     let file_stem = claude_file_stem_from_session_id(session_id)?;
     let path = resolve_claude_session_path(conn, file_stem)?;
     let indexed = index_claude_user_turns(session_id, &path)?;
-    let file_len = fs::metadata(&path)
+    let file_len = fs::metadata(path.as_path())
         .map_err(|err| format!("Failed to stat Claude history {}: {err}", path.display()))?
         .len();
     let positions = indexed
@@ -483,7 +508,7 @@ pub fn load_claude_code_turn_windows_for_session(
         .enumerate()
         .map(|(index, turn)| (turn.start_offset, index))
         .collect::<HashMap<_, _>>();
-    let mut file = fs::File::open(&path)
+    let mut file = fs::File::open(path.as_path())
         .map_err(|err| format!("Failed to open Claude history {}: {err}", path.display()))?;
 
     turn_ids
@@ -518,6 +543,68 @@ pub fn load_claude_code_turn_windows_for_session(
         .collect()
 }
 
+pub fn load_claude_code_cloud_turn_windows_for_session(
+    conn: &Connection,
+    session_id: &str,
+    turn_ids: &[String],
+    start_sequence: usize,
+) -> Result<Vec<imported_history::window::ImportedHistoryTurnWindow>, String> {
+    let file_stem = claude_file_stem_from_session_id(session_id)?;
+    let path = resolve_claude_session_path(conn, file_stem)?;
+    load_claude_code_cloud_turn_windows_from_path(session_id, &path, turn_ids, start_sequence)
+}
+
+fn load_claude_code_cloud_turn_windows_from_path(
+    session_id: &str,
+    path: &Path,
+    turn_ids: &[String],
+    start_sequence: usize,
+) -> Result<Vec<imported_history::window::ImportedHistoryTurnWindow>, String> {
+    let file_len = fs::metadata(path)
+        .map_err(|err| format!("Failed to stat Claude history {}: {err}", path.display()))?
+        .len();
+    let offsets = turn_ids
+        .iter()
+        .map(|turn_id| {
+            claude_window_turn_offset(turn_id)
+                .ok_or_else(|| format!("Invalid Claude cloud turn id: {turn_id}"))
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    if offsets
+        .windows(2)
+        .any(|pair| pair[0] >= pair[1] || pair[1] >= file_len)
+        || offsets.first().is_some_and(|offset| *offset >= file_len)
+    {
+        return Err("Claude cloud turn offsets are out of order or out of bounds".to_string());
+    }
+    let mut file = fs::File::open(path)
+        .map_err(|err| format!("Failed to open Claude history {}: {err}", path.display()))?;
+    let mut next_sequence = start_sequence;
+
+    turn_ids
+        .iter()
+        .enumerate()
+        .map(|(index, turn_id)| {
+            let offset = offsets[index];
+            let end_offset = offsets.get(index + 1).copied().unwrap_or(file_len);
+            let chunks = load_claude_turn_range_with_sequence(
+                &mut file,
+                session_id,
+                offset,
+                end_offset,
+                next_sequence,
+                None,
+            )?;
+            next_sequence = next_sequence.saturating_add(chunks.len());
+            Ok(imported_history::window::ImportedHistoryTurnWindow {
+                loaded_event_count: chunks.len(),
+                chunks,
+                turn_id: turn_id.clone(),
+            })
+        })
+        .collect()
+}
+
 pub fn load_claude_code_turn_index_for_session(
     conn: &Connection,
     session_id: &str,
@@ -532,6 +619,18 @@ pub fn load_claude_code_turn_index_for_session(
     let mut projected = project_activity_chunks(&chunks);
     overlay_indexed_body_counts(&mut projected, &indexed);
     Ok(projected)
+}
+
+pub fn load_claude_code_turn_ids_for_session(
+    conn: &Connection,
+    session_id: &str,
+) -> Result<Vec<String>, String> {
+    let file_stem = claude_file_stem_from_session_id(session_id)?;
+    let path = resolve_claude_session_path(conn, file_stem)?;
+    Ok(index_claude_user_turns(session_id, &path)?
+        .into_iter()
+        .map(|turn| turn.user_chunk.chunk_id)
+        .collect())
 }
 
 /// Cheap freshness probe for one session's transcript: `(mtime_ms, size_bytes)`.
@@ -878,6 +977,9 @@ struct ClaudeSessionMetaState {
     // same way Codex does, instead of listing it as a top-level session.
     parent_source_session_id: Option<String>,
     first_user_uuid: Option<String>,
+    /// Keep the newest compact boundaries; the first-user marker consumes the
+    /// remaining slot in the 64-marker cache metadata budget.
+    compact_boundary_uuids: VecDeque<String>,
 }
 
 impl ClaudeSessionMetaState {
@@ -954,6 +1056,22 @@ impl ClaudeSessionMetaState {
             && !parsed.uuid.trim().is_empty()
         {
             self.first_user_uuid = Some(parsed.uuid.trim().to_string());
+        }
+        if parsed.r#type == "system"
+            && parsed.subtype == "compact_boundary"
+            && !parsed.uuid.trim().is_empty()
+        {
+            let marker = parsed.uuid.trim();
+            if !self
+                .compact_boundary_uuids
+                .iter()
+                .any(|existing| existing == marker)
+            {
+                if self.compact_boundary_uuids.len() >= MAX_COMPACT_BOUNDARY_MARKERS {
+                    self.compact_boundary_uuids.pop_front();
+                }
+                self.compact_boundary_uuids.push_back(marker.to_string());
+            }
         }
         let harness_injected = is_harness_injected_user_line(&parsed);
         if let Some(message) = parsed.message {
@@ -1096,6 +1214,7 @@ impl ClaudeSessionMetaState {
                 .parent_source_session_id
                 .map(|uuid| format!("{CLAUDE_CODE_SESSION_PREFIX}{uuid}")),
             first_user_uuid: self.first_user_uuid,
+            continuation_markers: self.compact_boundary_uuids.into_iter().collect(),
         })
     }
 }
@@ -1209,8 +1328,9 @@ fn session_meta_to_cache_input(meta: ClaudeCodeHistoryMeta) -> ImportedHistoryCa
         branch: meta.branch,
         impact: meta.impact,
         listable: true,
-        source_metadata_json: imported_cache::continuation_group_metadata_json(
+        source_metadata_json: imported_cache::continuation_metadata_json(
             meta.first_user_uuid.as_deref(),
+            &meta.continuation_markers,
         ),
         parent_session_id: meta.parent_session_id,
     }

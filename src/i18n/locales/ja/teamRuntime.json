@@ -12,6 +12,8 @@
     "recentLoading": "共有セッションを読み込み中…",
     "recentEmpty": "共有セッションはまだありません",
     "members": "メンバー別の内訳",
+    "activeToday": "今日アクティブ",
+    "inactiveToday": "今日非アクティブ",
     "sync": "同期"
   },
   "signedOut": {

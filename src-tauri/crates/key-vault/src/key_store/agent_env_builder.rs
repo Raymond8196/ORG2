@@ -483,8 +483,9 @@ impl KeyService {
                 env.insert("OPENAI_API_KEY".to_string(), proxy_token.to_string());
                 env.insert("PROXY_TOKEN".to_string(), proxy_token.to_string());
                 // Note: OPENAI_BASE_URL is NOT set for proxy mode.
-                // The base URL is configured in ~/.codex/config.toml under
-                // [model_providers.proxy], and selected via `-c model_provider="proxy"`.
+                // The base URL is configured in the hosted session's isolated
+                // CODEX_HOME under [model_providers.proxy], and selected via
+                // `-c model_provider="proxy"`.
                 // This matches the market-worker's approach.
             }
             ModelType::Copilot => {

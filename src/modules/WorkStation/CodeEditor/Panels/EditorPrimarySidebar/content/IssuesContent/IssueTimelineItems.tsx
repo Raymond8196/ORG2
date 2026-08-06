@@ -8,14 +8,25 @@ import {
   MarkdownContent,
   TimelineCard,
   TimelineCardHeader,
+  TimelineLoadingSkeleton,
 } from "@src/modules/shared/components/ActivityTimeline";
-import { Placeholder } from "@src/modules/shared/layouts/blocks";
 
 import { IssueTimelineEventRow } from "./IssueTimelineEvent";
 
 interface IssueTimelineItemsProps {
   timeline: GitHubIssueTimelineItem[];
   timelineLoading: boolean;
+  navigationEnabled?: boolean;
+}
+
+export function getIssueTimelineTrailLabel(
+  item: GitHubIssueTimelineItem
+): string {
+  const actor = item.actor?.login ?? "GitHub";
+  if (item.event === "commented" && item.body?.trim()) {
+    return `${actor}: ${item.body}`;
+  }
+  return `${actor} · ${item.event.replace(/[_-]/g, " ")}`;
 }
 
 /**
@@ -26,16 +37,22 @@ interface IssueTimelineItemsProps {
 export function IssueTimelineItems({
   timeline,
   timelineLoading,
+  navigationEnabled = false,
 }: IssueTimelineItemsProps): React.ReactNode {
   const { t } = useTranslation("common");
 
   if (timelineLoading) {
     return (
-      <ConnectedTimelineItem isLast>
-        <Placeholder
-          variant="loading"
-          placement="sidebar"
-          title={t("git.issues.loadingTimeline", "Loading activity…")}
+      <ConnectedTimelineItem
+        isLast
+        trailLabel={
+          navigationEnabled
+            ? t("git.issues.loadingTimeline", "Loading activity…")
+            : undefined
+        }
+      >
+        <TimelineLoadingSkeleton
+          label={t("git.issues.loadingTimeline", "Loading activity…")}
         />
       </ConnectedTimelineItem>
     );
@@ -47,7 +64,13 @@ export function IssueTimelineItems({
 
     if (item.event !== "commented") {
       return (
-        <ConnectedTimelineItem key={key} isLast={isLast}>
+        <ConnectedTimelineItem
+          key={key}
+          isLast={isLast}
+          trailLabel={
+            navigationEnabled ? getIssueTimelineTrailLabel(item) : undefined
+          }
+        >
           <IssueTimelineEventRow item={item} />
         </ConnectedTimelineItem>
       );
@@ -56,7 +79,13 @@ export function IssueTimelineItems({
     const body = item.body ?? "";
     const actorName = item.actor?.login ?? "GitHub";
     return (
-      <ConnectedTimelineItem key={key} isLast={isLast}>
+      <ConnectedTimelineItem
+        key={key}
+        isLast={isLast}
+        trailLabel={
+          navigationEnabled ? getIssueTimelineTrailLabel(item) : undefined
+        }
+      >
         <TimelineCard
           copyBody={body}
           header={
@@ -72,7 +101,7 @@ export function IssueTimelineItems({
             />
           }
         >
-          <MarkdownContent body={body} />
+          <MarkdownContent body={body} fadeFrom="from-chat-pane" />
         </TimelineCard>
       </ConnectedTimelineItem>
     );

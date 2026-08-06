@@ -647,13 +647,13 @@ fn project_run_status(
     if stored == "pending" || stored.starts_with("cancel") || stored == "cancelled" {
         return Ok(stored.to_string());
     }
-    if portable_states.iter().any(|s| *s == Some(Failed)) {
+    if portable_states.contains(&Some(Failed)) {
         return Ok("failed".into());
     }
     if !portable_states.is_empty() && portable_states.iter().all(|s| *s == Some(Completed)) {
         return Ok("succeeded".into());
     }
-    let any_in_progress = portable_states.iter().any(|s| *s == Some(InProgress));
+    let any_in_progress = portable_states.contains(&Some(InProgress));
     if any_in_progress {
         return Ok("running".into());
     }

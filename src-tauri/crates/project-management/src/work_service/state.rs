@@ -65,19 +65,23 @@ pub fn map_legacy_status(raw: &str) -> Option<WorkItemState> {
 /// `in_progress -> open` release edge and the reopen edges.
 pub fn is_transition_allowed(from: WorkItemState, to: WorkItemState) -> bool {
     use WorkItemState::*;
-    match (from, to) {
-        (Open, InProgress) | (Open, Cancelled) => true,
-        (InProgress, Open)
-        | (InProgress, Blocked)
-        | (InProgress, Completed)
-        | (InProgress, Failed)
-        | (InProgress, Cancelled) => true,
-        (Blocked, Open) | (Blocked, InProgress) | (Blocked, Cancelled) => true,
-        (Completed, Open) => true,
-        (Failed, Open) | (Failed, Cancelled) => true,
-        (Cancelled, Open) => true,
-        _ => false,
-    }
+    matches!(
+        (from, to),
+        (Open, InProgress)
+            | (Open, Cancelled)
+            | (InProgress, Open)
+            | (InProgress, Blocked)
+            | (InProgress, Completed)
+            | (InProgress, Failed)
+            | (InProgress, Cancelled)
+            | (Blocked, Open)
+            | (Blocked, InProgress)
+            | (Blocked, Cancelled)
+            | (Completed, Open)
+            | (Failed, Open)
+            | (Failed, Cancelled)
+            | (Cancelled, Open)
+    )
 }
 
 /// Validate a legacy-status change against the portable FSM.

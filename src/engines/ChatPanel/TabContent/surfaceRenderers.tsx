@@ -10,6 +10,7 @@
 import { useSetAtom } from "jotai";
 import React, { Suspense, useCallback } from "react";
 
+import GitHubDetailSkeleton from "@src/modules/shared/components/GitHubDetailSkeleton";
 import {
   type ChatPanelTab,
   closeAndDestroyChatPanelTabAtom,
@@ -96,7 +97,7 @@ export function GitHubIssueSurfaceRenderer({
 }: ChatPanelSurfaceRendererProps): React.ReactNode {
   if (!tab.githubIssue) return null;
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<GitHubDetailSkeleton kind="issue" showHeader />}>
       <GitHubIssuePanelView detail={tab.githubIssue} />
     </Suspense>
   );
@@ -107,7 +108,7 @@ export function GitHubPrSurfaceRenderer({
 }: ChatPanelSurfaceRendererProps): React.ReactNode {
   if (!tab.githubPr) return null;
   return (
-    <Suspense fallback={null}>
+    <Suspense fallback={<GitHubDetailSkeleton kind="pr" showHeader />}>
       <GitHubPrPanelView detail={tab.githubPr} />
     </Suspense>
   );

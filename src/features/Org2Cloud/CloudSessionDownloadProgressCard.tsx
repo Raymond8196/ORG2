@@ -51,12 +51,27 @@ const DownloadBar: React.FC<{
   percent: number | null;
   paused?: boolean;
   className: string;
-}> = ({ percent, paused = false, className }) => (
+  compact?: boolean;
+  ariaLabel?: string;
+  ariaValuetext?: string;
+}> = ({
+  percent,
+  paused = false,
+  className,
+  compact = false,
+  ariaLabel,
+  ariaValuetext,
+}) => (
   <ProgressBar
     percent={percent ?? 0}
     indeterminate={percent === null}
+    ariaLabel={ariaLabel}
+    ariaValuetext={ariaValuetext}
     color={paused ? "bg-fill-4" : "bg-primary-6"}
+    height={compact ? "h-0.5" : undefined}
     width={className}
+    trackColor={compact ? "bg-transparent" : undefined}
+    className={compact ? "!rounded-none" : undefined}
   />
 );
 
@@ -112,7 +127,7 @@ const PendingPlay: React.FC<{
   }
   return (
     <div
-      className="mx-1 mb-2 flex items-center justify-between gap-2 rounded-md border border-border-2 bg-bg-2 p-3 text-xs text-text-2"
+      className="pointer-events-auto mx-1 mb-2 flex items-center justify-between gap-2 rounded-md border border-border-2 bg-bg-2 p-3 text-xs text-text-2"
       data-testid="cloud-session-download-pending"
     >
       <span className="tabular-nums text-text-3">{estimate}</span>
@@ -204,70 +219,92 @@ const CardProgress: React.FC<{
   const finalizing = progress.phase === "finalizing";
   const paused = progress.phase === "paused";
   const completed = progress.phase === "completed";
+  const statusLabel = finalizing
+    ? t("cloud.download.finalizing")
+    : completed
+      ? t("cloud.download.complete")
+      : paused
+        ? t("cloud.download.paused")
+        : t("cloud.download.title");
+  const eventsLabel =
+    progress.totalEvents !== null
+      ? t("cloud.download.events", {
+          loaded: progress.loadedEvents,
+          total: progress.totalEvents,
+        })
+      : null;
+  const etaLabel =
+    etaMs !== null && !finalizing && !paused && !completed
+      ? t("cloud.download.eta", { eta: formatCloudDownloadEta(etaMs) })
+      : null;
+  const progressValueText = [
+    statusLabel,
+    percent !== null ? `${percent}%` : null,
+    eventsLabel,
+    etaLabel,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+  const showStatusInPill =
+    finalizing || paused || completed || (!eventsLabel && percent === null);
+
   return (
     <div
-      className="mx-1 mb-2 rounded-md border border-border-2 bg-bg-2 p-3"
+      className="pointer-events-auto mx-1 mb-2 flex items-center gap-2"
       data-testid="cloud-session-download-progress"
     >
-      <div className="flex items-center justify-between gap-2 text-xs text-text-2">
-        <span>
-          {finalizing
-            ? t("cloud.download.finalizing")
-            : completed
-              ? t("cloud.download.complete")
-              : paused
-                ? t("cloud.download.paused")
-                : t("cloud.download.title")}
-        </span>
-        <span className="inline-flex items-center gap-2">
-          {percent !== null && (
-            <span className="tabular-nums text-text-3">{percent}%</span>
-          )}
-          {!finalizing &&
-            !completed &&
-            (paused ? (
-              <Button
-                variant="secondary"
-                size="mini"
-                data-testid="cloud-session-download-resume"
-                onClick={() =>
-                  requestStart({
-                    rowId: progress.rowId,
-                    orgId: progress.orgId,
-                  })
-                }
-              >
-                {t("cloud.download.resume")}
-              </Button>
-            ) : (
-              <Button
-                variant="tertiary"
-                size="mini"
-                data-testid="cloud-session-download-pause"
-                onClick={() => cancelCloudSessionDownload(progress.rowId)}
-              >
-                {t("cloud.download.pause")}
-              </Button>
-            ))}
-        </span>
-      </div>
-      <div className="mt-2">
-        <DownloadBar percent={percent} paused={paused} className="w-full" />
-      </div>
-      <div className="mt-1.5 flex items-center justify-between gap-2 text-[11px] text-text-3">
-        <span className="tabular-nums">
-          {progress.totalEvents !== null
-            ? t("cloud.download.events", {
-                loaded: progress.loadedEvents,
-                total: progress.totalEvents,
-              })
-            : null}
-        </span>
-        {etaMs !== null && !finalizing && !paused && !completed && (
-          <span>
-            {t("cloud.download.eta", { eta: formatCloudDownloadEta(etaMs) })}
+      <DownloadBar
+        percent={percent}
+        paused={paused}
+        className="min-w-10 flex-1"
+        compact
+        ariaLabel={statusLabel}
+        ariaValuetext={progressValueText}
+      />
+      <div
+        className="inline-flex min-w-0 max-w-[75%] shrink-0 items-center gap-2 rounded-full border border-border-2/80 bg-bg-2/95 px-3 py-1 text-[11px] text-text-3 shadow-lg backdrop-blur-md"
+        data-testid="cloud-session-download-progress-pill"
+      >
+        {showStatusInPill && (
+          <span className="shrink-0 text-text-2">{statusLabel}</span>
+        )}
+        {percent !== null && (
+          <span className="shrink-0 font-medium tabular-nums text-text-2">
+            {percent}%
           </span>
         )}
+        {eventsLabel && (
+          <span className="min-w-0 truncate tabular-nums" title={eventsLabel}>
+            {eventsLabel}
+          </span>
+        )}
+        {etaLabel && <span className="shrink-0">{etaLabel}</span>}
+        {!finalizing &&
+          !completed &&
+          (paused ? (
+            <Button
+              variant="secondary"
+              size="mini"
+              data-testid="cloud-session-download-resume"
+              onClick={() =>
+                requestStart({
+                  rowId: progress.rowId,
+                  orgId: progress.orgId,
+                })
+              }
+            >
+              {t("cloud.download.resume")}
+            </Button>
+          ) : (
+            <Button
+              variant="tertiary"
+              size="mini"
+              data-testid="cloud-session-download-pause"
+              onClick={() => cancelCloudSessionDownload(progress.rowId)}
+            >
+              {t("cloud.download.pause")}
+            </Button>
+          ))}
       </div>
     </div>
   );

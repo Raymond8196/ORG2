@@ -24,7 +24,7 @@ import {
   MessagesSquare,
   SquareArrowOutUpRight,
 } from "lucide-react";
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
 import type {
@@ -36,7 +36,10 @@ import Avatar from "@src/components/Avatar";
 import Button from "@src/components/Button";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
-import { PanelHeader, Placeholder } from "@src/modules/shared/layouts/blocks";
+import GitHubDetailSkeleton from "@src/modules/shared/components/GitHubDetailSkeleton";
+import { PanelHeader, ScrollTrail } from "@src/modules/shared/layouts/blocks";
+import { resolvePullRequestDetailStatus } from "@src/shared/pr/prLevelActions";
+import { getPrStatusVariant } from "@src/shared/pr/prStatus";
 import {
   type PrIdentity,
   workstationPrScopeKey,
@@ -49,6 +52,7 @@ import { PrChecksTab } from "./PrChecksTab";
 import { PrCommitsTab } from "./PrCommitsTab";
 import { PrConversationTab } from "./PrConversationTab";
 import { PrDetailHeaderContent } from "./PrDetailHeaderContent";
+import { PrLevelActions } from "./PrLevelActions";
 
 export { PrDetailHeaderContent } from "./PrDetailHeaderContent";
 
@@ -186,6 +190,7 @@ export function PrDetailSummary({
     files.reduce((total, file) => total + file.deletions, 0);
   const commentCount = readNumber(detail, "comments") ?? conversationCount;
   const statusLabel = t(`git.pr.status.${identity.status}`, identity.status);
+  const statusColorClass = getPrStatusVariant(identity.status).textClass;
 
   return (
     <section
@@ -268,13 +273,21 @@ export function PrDetailSummary({
 
         <div className="flex items-center gap-2 text-text-3">
           {identity.status === "merged" ? (
-            <GitMerge size={14} strokeWidth={1.75} />
+            <GitMerge
+              size={14}
+              strokeWidth={1.75}
+              className={statusColorClass}
+            />
           ) : (
-            <CircleDot size={14} strokeWidth={1.75} />
+            <CircleDot
+              size={14}
+              strokeWidth={1.75}
+              className={statusColorClass}
+            />
           )}
           <span>{t("git.pr.summary.status", "Status")}</span>
         </div>
-        <div className="capitalize text-text-1">{statusLabel}</div>
+        <div className={`capitalize ${statusColorClass}`}>{statusLabel}</div>
       </div>
     </section>
   );
@@ -289,6 +302,9 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
   onFileSelect,
 }) => {
   const { t } = useTranslation("common");
+  const tabContentRef = useRef<HTMLDivElement>(null);
+  const trailScrollContainerRef = useRef<HTMLElement>(null);
+  const trailContentRef = useRef<HTMLElement>(null);
   const scopeKey = workstationPrScopeKey(repoId, repoPath, identity.number);
   const [state, setState] = useAtom(workstationSelectedPrAtomFamily(scopeKey));
   const detailViewState = state.viewState;
@@ -340,13 +356,56 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
     },
     [setDetailViewState]
   );
+  const setTabContentNode = useCallback(
+    (node: HTMLDivElement | null) => {
+      tabContentRef.current = node;
+      if (activeTab !== "conversation") {
+        trailScrollContainerRef.current = node;
+        trailContentRef.current = node;
+      }
+    },
+    [activeTab]
+  );
+  const setConversationScrollNode = useCallback(
+    (node: HTMLDivElement | null) => {
+      trailScrollContainerRef.current = node ?? tabContentRef.current;
+    },
+    []
+  );
+  const setConversationContentNode = useCallback(
+    (node: HTMLDivElement | null) => {
+      trailContentRef.current = node ?? tabContentRef.current;
+    },
+    []
+  );
 
-  const { repoFullName, addComment, submitReview, replyInlineComment } =
-    useWorkstationPrDetail({
-      repoPath,
-      repoId,
-      pr: identity,
-    });
+  const {
+    repoFullName,
+    addComment,
+    submitReview,
+    replyInlineComment,
+    mergePullRequest,
+    setPullRequestAutoMerge,
+    updatePullRequestState,
+    updateRequestedReviewers,
+    loadReviewerCandidates,
+    reviewerCandidates,
+    loadingReviewerCandidates,
+    reviewerCandidatesError,
+    prActionPending,
+  } = useWorkstationPrDetail({
+    repoPath,
+    repoId,
+    pr: identity,
+  });
+
+  const currentIdentity = useMemo(
+    () => ({
+      ...identity,
+      status: resolvePullRequestDetailStatus(state.detail, identity.status),
+    }),
+    [identity, state.detail]
+  );
 
   const baseBranch =
     state.baseRef ?? identity.baseBranch ?? t("git.pr.baseBranch", "base");
@@ -390,14 +449,8 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
     ]
   );
 
-  if (state.loading) {
-    return (
-      <Placeholder
-        variant="loading"
-        placement="detail-panel"
-        fillParentHeight
-      />
-    );
+  if (state.loading || (state.detail === null && state.error === null)) {
+    return <GitHubDetailSkeleton kind="pr" showHeader={showHeader} />;
   }
 
   return (
@@ -416,7 +469,7 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
             )
           }
         >
-          <PrDetailHeaderContent identity={identity} />
+          <PrDetailHeaderContent identity={currentIdentity} />
         </PanelHeader>
       ) : null}
 
@@ -467,66 +520,103 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
         role="tabpanel"
         id={`pr-detail-tabpanel-${activeTab}`}
         aria-labelledby={`pr-detail-tab-${activeTab}`}
-        className="flex min-h-0 flex-1 flex-col overflow-hidden"
+        className="flex min-h-0 flex-1 overflow-hidden"
       >
-        {activeTab === "conversation" && (
-          <PrConversationTab
-            summary={
-              <PrDetailSummary
-                identity={identity}
-                baseBranch={baseBranch}
-                detail={state.detail}
-                conversationCount={state.conversation.length}
-                reviews={state.reviews}
-                files={state.files}
-                checks={state.checks}
-              />
-            }
-            detail={state.detail}
-            identity={identity}
-            conversation={state.conversation}
-            reviews={state.reviews}
-            reviewComments={state.reviewComments}
-            loading={state.loading}
-            submittingComment={state.submittingComment}
-            submittingReview={state.submittingReview}
-            draft={detailViewState.conversationDraft}
-            onDraftChange={setConversationDraft}
-            onAddComment={addComment}
-            onSubmitReview={submitReview}
+        <div
+          ref={setTabContentNode}
+          className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden"
+        >
+          {activeTab === "conversation" && (
+            <PrConversationTab
+              levelActions={
+                <PrLevelActions
+                  identity={currentIdentity}
+                  detail={state.detail}
+                  checks={state.checks}
+                  disabled={!repoFullName}
+                  pending={prActionPending}
+                  reviewerCandidates={reviewerCandidates}
+                  loadingReviewerCandidates={loadingReviewerCandidates}
+                  reviewerCandidatesError={reviewerCandidatesError}
+                  onLoadReviewerCandidates={loadReviewerCandidates}
+                  onMerge={mergePullRequest}
+                  onSetAutoMerge={setPullRequestAutoMerge}
+                  onStateChange={updatePullRequestState}
+                  onRequestedReviewersChange={updateRequestedReviewers}
+                />
+              }
+              summary={
+                <PrDetailSummary
+                  identity={currentIdentity}
+                  baseBranch={baseBranch}
+                  detail={state.detail}
+                  conversationCount={state.conversation.length}
+                  reviews={state.reviews}
+                  files={state.files}
+                  checks={state.checks}
+                />
+              }
+              detail={state.detail}
+              identity={currentIdentity}
+              conversation={state.conversation}
+              reviews={state.reviews}
+              reviewComments={state.reviewComments}
+              loading={state.loading}
+              submittingComment={state.submittingComment}
+              submittingReview={state.submittingReview}
+              draft={detailViewState.conversationDraft}
+              onDraftChange={setConversationDraft}
+              onAddComment={addComment}
+              onSubmitReview={submitReview}
+              trailScrollContainerRef={setConversationScrollNode}
+              trailContentRef={setConversationContentNode}
+            />
+          )}
+          {activeTab === "commits" && (
+            <PrCommitsTab
+              commits={state.commits}
+              prNumber={identity.number}
+              repoPath={repoPath}
+              repoId={repoId}
+              loading={state.loading}
+              checks={state.checks}
+              selectedCommitSha={detailViewState.selectedCommitSha}
+              onSelectedCommitShaChange={setSelectedCommitSha}
+              onFileSelect={onFileSelect}
+            />
+          )}
+          {activeTab === "checks" && (
+            <PrChecksTab checks={state.checks} loading={state.loading} />
+          )}
+          {activeTab === "changes" && (
+            <PrChangesTab
+              repoFullName={repoFullName}
+              detail={state.detail}
+              headSha={state.headSha}
+              baseRef={state.baseRef}
+              files={state.files}
+              loading={state.loading}
+              reviewComments={state.reviewComments}
+              selectedFilePath={detailViewState.selectedChangedFilePath}
+              onSelectedFilePathChange={setSelectedChangedFilePath}
+              onFileSelect={onFileSelect}
+              onReplyInlineComment={replyInlineComment}
+            />
+          )}
+        </div>
+        <div
+          className="relative w-11 shrink-0"
+          data-testid="pr-detail-navigation-rail"
+        >
+          <ScrollTrail
+            key={activeTab}
+            scrollContainerRef={trailScrollContainerRef}
+            contentRef={trailContentRef}
+            ariaLabel={t("git.pr.navigationTrail", "Pull request navigation")}
+            placement="rail"
+            testId="pr-detail-navigation-trail"
           />
-        )}
-        {activeTab === "commits" && (
-          <PrCommitsTab
-            commits={state.commits}
-            prNumber={identity.number}
-            repoPath={repoPath}
-            repoId={repoId}
-            loading={state.loading}
-            checks={state.checks}
-            selectedCommitSha={detailViewState.selectedCommitSha}
-            onSelectedCommitShaChange={setSelectedCommitSha}
-            onFileSelect={onFileSelect}
-          />
-        )}
-        {activeTab === "checks" && (
-          <PrChecksTab checks={state.checks} loading={state.loading} />
-        )}
-        {activeTab === "changes" && (
-          <PrChangesTab
-            repoFullName={repoFullName}
-            detail={state.detail}
-            headSha={state.headSha}
-            baseRef={state.baseRef}
-            files={state.files}
-            loading={state.loading}
-            reviewComments={state.reviewComments}
-            selectedFilePath={detailViewState.selectedChangedFilePath}
-            onSelectedFilePathChange={setSelectedChangedFilePath}
-            onFileSelect={onFileSelect}
-            onReplyInlineComment={replyInlineComment}
-          />
-        )}
+        </div>
       </div>
     </div>
   );

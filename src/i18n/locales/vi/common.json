@@ -417,7 +417,8 @@
     "skipThisVersion": "Bỏ qua phiên bản này",
     "later": "Để sau",
     "link": "Liên kết",
-    "copyName": "Sao chép tên"
+    "copyName": "Sao chép tên",
+    "switchMethod": "Đổi phương thức"
   },
   "refreshToast": {
     "successName": "Đã làm mới {{name}}",
@@ -487,16 +488,6 @@
     "testing": "Đang kiểm tra...",
     "empty": "Trống",
     "launching": "Đang khởi chạy..."
-  },
-  "workManagementTable": {
-    "columns": {
-      "id": "ID",
-      "titleContext": "Tiêu đề / ngữ cảnh",
-      "status": "Trạng thái",
-      "assignee": "Người phụ trách",
-      "updated": "Đã cập nhật"
-    },
-    "selectRow": "Chọn {{id}}"
   },
   "pagination": {
     "totalItems": "{{count}} mục",
@@ -1490,6 +1481,59 @@
         "merged": "Đã hợp nhất",
         "closed": "Đã đóng",
         "draft": "Bản nháp"
+      },
+      "actions": {
+        "label": "Thao tác pull request",
+        "confirmMergeTitle": "Hợp nhất pull request?",
+        "confirmMergeMessage": "GitHub sẽ hợp nhất nhánh nguồn của pull request hiện tại vào nhánh gốc.",
+        "merge": "Hợp nhất pull request",
+        "squash": "Gộp commit và hợp nhất",
+        "rebase": "Rebase và hợp nhất",
+        "mergeSuccess": "Đã hợp nhất pull request",
+        "mergeRequested": "Đã yêu cầu hợp nhất",
+        "removedFromQueue": "Đã xóa khỏi hàng đợi hợp nhất",
+        "autoMergeEnabled": "Đã bật tự động hợp nhất",
+        "autoMergeDisabled": "Đã tắt tự động hợp nhất",
+        "confirmCloseTitle": "Đóng pull request?",
+        "confirmCloseMessage": "Pull request vẫn sẽ khả dụng và có thể được mở lại sau.",
+        "close": "Đóng pull request",
+        "closeSuccess": "Đã đóng pull request",
+        "reopen": "Mở lại pull request",
+        "reopenSuccess": "Đã mở lại pull request",
+        "enableAutoMerge": "Bật tự động hợp nhất",
+        "mergeWhenReady": "Hợp nhất khi sẵn sàng",
+        "disableAutoMerge": "Tắt tự động hợp nhất",
+        "removeFromMergeQueue": "Xóa khỏi hàng đợi hợp nhất",
+        "merged": "Đã hợp nhất",
+        "closed": "Đã đóng",
+        "draft": "Bản nháp",
+        "inMergeQueue": "Trong hàng đợi hợp nhất",
+        "approvalRequired": "Cần phê duyệt",
+        "changesRequested": "Đã yêu cầu thay đổi",
+        "resolveConflicts": "Giải quyết xung đột",
+        "checksFailed": "Kiểm tra thất bại",
+        "checksPending": "Đang chờ kiểm tra",
+        "mergeBlocked": "Hợp nhất bị chặn",
+        "searchReviewers": "Tìm người đánh giá",
+        "reviewersLoadFailed": "Không thể tải người đánh giá",
+        "noReviewers": "Không có người đánh giá khả dụng",
+        "reviewersUpdated": "Đã cập nhật người đánh giá",
+        "reviewersCount_one": "{{count}} người đánh giá",
+        "reviewersCount_other": "{{count}} người đánh giá",
+        "reviewers": "Người đánh giá",
+        "tooltips": {
+          "merge": "Hợp nhất pull request này trên GitHub",
+          "alreadyMerged": "Pull request này đã được hợp nhất",
+          "reopenBeforeMerging": "Mở lại pull request này trước khi hợp nhất",
+          "markReady": "Đánh dấu pull request này là sẵn sàng để đánh giá trước khi hợp nhất",
+          "mergeQueue": "GitHub sẽ hợp nhất pull request này qua hàng đợi hợp nhất",
+          "approvalRequired": "GitHub yêu cầu phê duyệt đánh giá trước khi hợp nhất",
+          "changesRequested": "Phải giải quyết các thay đổi được yêu cầu trước khi hợp nhất",
+          "resolveConflicts": "Giải quyết xung đột trước khi hợp nhất",
+          "checksFailed": "Các kiểm tra bắt buộc phải đạt trước khi hợp nhất",
+          "checksPending": "Chờ kiểm tra bắt buộc hoặc bật tự động hợp nhất",
+          "mergeBlocked": "GitHub báo cáo các yêu cầu hợp nhất chưa được đáp ứng"
+        }
       }
     },
     "messages": {
@@ -2656,5 +2700,15 @@
     "downloadedOfTotal": "{{downloaded}} trên {{total}}",
     "preparingDownload": "Đang chuẩn bị tải xuống…",
     "downloadingAndInstalling": "Đang tải và cài đặt bản cập nhật (v{{version}})…"
+  },
+  "workManagementTable": {
+    "columns": {
+      "id": "ID",
+      "titleContext": "Tiêu đề / ngữ cảnh",
+      "status": "Trạng thái",
+      "assignee": "Người phụ trách",
+      "updated": "Đã cập nhật"
+    },
+    "selectRow": "Chọn {{id}}"
   }
 }

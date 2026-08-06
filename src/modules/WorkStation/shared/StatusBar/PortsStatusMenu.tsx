@@ -38,7 +38,7 @@ import { requestNewBrowserSessionAtom } from "@src/store/workstation/workstation
 import { copyText } from "@src/util/data/clipboard";
 import { classNames } from "@src/util/ui/classNames";
 
-import { StatusBarButton } from "./StatusBarBase";
+import { StatusBarButton, StatusBarLabel } from "./StatusBarBase";
 import { StatusBarTooltip } from "./StatusBarTooltip";
 import {
   refreshWorkspacePortScan,
@@ -290,7 +290,9 @@ export const PortsStatusMenu: React.FC = memo(() => {
           dataTestId="status-bar-ports"
         >
           <Unplug size={13} className="text-text-1" />
-          <span className="font-medium text-text-1">{workspaceCount}</span>
+          <StatusBarLabel emphasis numeric className="text-text-1">
+            {workspaceCount}
+          </StatusBarLabel>
         </StatusBarButton>
       </StatusBarTooltip>
 

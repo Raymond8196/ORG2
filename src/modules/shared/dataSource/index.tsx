@@ -1,6 +1,15 @@
 import { useAtomValue } from "jotai";
+import { useAtomCallback } from "jotai/utils";
 import { Cloud, Laptop } from "lucide-react";
-import React, { Suspense, lazy, memo, useMemo, useState } from "react";
+import React, {
+  Suspense,
+  lazy,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 
 import OrganizationScopeHeader from "@src/components/OrganizationScopeHeader";
@@ -22,7 +31,9 @@ import {
   Placeholder,
   ScrollPreservation,
 } from "@src/modules/shared/layouts/blocks";
+import { GUIDE_TARGETS } from "@src/scaffold/Tutorials/guideTargets";
 import { DEFAULT_SESSION_ORG_ID } from "@src/store/session";
+import { runtimeNavigationIntentAtom } from "@src/store/ui/runtimeNavigationAtom";
 
 type PersonalRuntimeSection =
   | "usage"
@@ -132,12 +143,18 @@ const RuntimeSectionTabs: React.FC<RuntimeSectionTabsProps> = memo(
     );
 
     return (
-      <OrganizationTabSwitch
-        activeTab={activeView}
-        tabs={organizationScope ? organizationTabs : personalTabs}
-        onChange={(key) => onChange(key as RuntimeSection)}
-        size="large"
-      />
+      <div
+        data-guide-target={
+          organizationScope ? GUIDE_TARGETS.TEAM_RUNTIME_TABS : undefined
+        }
+      >
+        <OrganizationTabSwitch
+          activeTab={activeView}
+          tabs={organizationScope ? organizationTabs : personalTabs}
+          onChange={(key) => onChange(key as RuntimeSection)}
+          size="large"
+        />
+      </div>
     );
   }
 );
@@ -181,6 +198,15 @@ const RuntimeDataSourcePanel: React.FC = () => {
   const cloudOrgs = useAtomValue(org2CloudOrgsAtom);
   const cloudOrgsLoaded = useAtomValue(org2CloudOrgsLoadedAtom);
   const sidebarCloudOrgId = useAtomValue(sidebarActiveCloudOrgIdAtom);
+  const runtimeNavigationIntent = useAtomValue(runtimeNavigationIntentAtom);
+  const consumeRuntimeNavigationIntent = useAtomCallback(
+    useCallback((get, set, requestId: number) => {
+      const current = get(runtimeNavigationIntentAtom);
+      if (current?.requestId !== requestId) return null;
+      set(runtimeNavigationIntentAtom, null);
+      return current;
+    }, [])
+  );
   const [scopeValue, setScopeValue] = useState(() =>
     sidebarCloudOrgId
       ? buildCloudOrgSelectorValue(sidebarCloudOrgId)
@@ -190,6 +216,36 @@ const RuntimeDataSourcePanel: React.FC = () => {
     useState<PersonalRuntimeSection>("usage");
   const [organizationView, setOrganizationView] =
     useState<OrganizationRuntimeSection>("today");
+
+  useEffect(() => {
+    if (!runtimeNavigationIntent || !cloudOrgsLoaded) return;
+
+    let cancelled = false;
+    const requestId = runtimeNavigationIntent.requestId;
+    const requestedOrgId = runtimeNavigationIntent.orgId;
+    const requestedView = runtimeNavigationIntent.view;
+    const requestedOrgExists = cloudOrgs.some(
+      (org) => org.orgId === requestedOrgId
+    );
+    queueMicrotask(() => {
+      if (cancelled) return;
+      const consumedIntent = consumeRuntimeNavigationIntent(requestId);
+      if (!consumedIntent) return;
+      if (auth === null || !requestedOrgExists) return;
+      setScopeValue(buildCloudOrgSelectorValue(requestedOrgId));
+      setOrganizationView(requestedView);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    auth,
+    cloudOrgs,
+    cloudOrgsLoaded,
+    consumeRuntimeNavigationIntent,
+    runtimeNavigationIntent,
+  ]);
 
   const requestedCloudOrgId = parseCloudOrgSelectorValue(scopeValue);
   const requestedOrgExists =

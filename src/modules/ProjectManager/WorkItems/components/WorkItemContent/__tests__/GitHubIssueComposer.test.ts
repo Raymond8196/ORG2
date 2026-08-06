@@ -131,6 +131,23 @@ describe("GitHubIssueComposer", () => {
     );
     expect(editor?.dataset.toolbarMode).toBe("inline");
     expect(editor?.dataset.minHeight).toBe("140");
+    const levelActions = container.querySelector(
+      "[data-testid='github-issue-level-actions']"
+    );
+    const input = container.querySelector(
+      "[data-testid='github-issue-comment-input']"
+    );
+    expect(levelActions?.nextElementSibling).toBe(input);
+    expect(input?.contains(levelActions as Node)).toBe(false);
+    expect(levelActions?.className).not.toContain("border-");
+    expect(
+      input?.querySelector("[data-testid='github-issue-comment-submit']")
+    ).not.toBeNull();
+    expect(
+      levelActions?.querySelector(
+        "[data-testid='github-issue-comment-status-action']"
+      )
+    ).not.toBeNull();
     act(() => {
       const valueSetter = Object.getOwnPropertyDescriptor(
         HTMLTextAreaElement.prototype,
@@ -201,6 +218,11 @@ describe("GitHubIssueComposer", () => {
     expect(
       document.querySelector("[data-testid='github-issue-close-menu']")
     ).not.toBeNull();
+    expect(
+      document
+        .querySelector("[data-testid='github-issue-status-open']")
+        ?.getAttribute("aria-disabled")
+    ).toBe("true");
     expect(config.onLoadDuplicateCandidates).not.toHaveBeenCalled();
 
     await act(async () => {
@@ -215,6 +237,34 @@ describe("GitHubIssueComposer", () => {
     expect(
       document.querySelector("[data-testid='github-issue-duplicate-picker']")
     ).not.toBeNull();
+  });
+
+  it("uses an inline spinner while duplicate issues load", async () => {
+    const config = interaction({ loadingDuplicateCandidates: true });
+    act(() => {
+      root.render(createElement(GitHubIssueComposer, { interaction: config }));
+    });
+
+    await act(async () => {
+      container
+        .querySelectorAll<HTMLButtonElement>(".button-split-wrapper button")[1]
+        ?.click();
+      await Promise.resolve();
+    });
+    act(() => {
+      document
+        .querySelector<HTMLElement>(
+          "[data-testid='github-issue-close-duplicate']"
+        )
+        ?.click();
+    });
+
+    const loading = document.querySelector(
+      "[data-testid='github-issue-duplicate-loading']"
+    );
+    expect(loading?.querySelector(".animate-spin")).not.toBeNull();
+    expect(loading?.textContent).toContain("actions.loading");
+    expect(config.onLoadDuplicateCandidates).not.toHaveBeenCalled();
   });
 
   it("closes as a duplicate with the selected canonical issue database ID", async () => {

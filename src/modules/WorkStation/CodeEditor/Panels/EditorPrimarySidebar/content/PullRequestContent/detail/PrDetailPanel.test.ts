@@ -54,18 +54,41 @@ vi.mock("../../../hooks/useWorkstationPrDetail", () => ({
     addComment: vi.fn(),
     submitReview: vi.fn(),
     replyInlineComment: vi.fn(),
+    mergePullRequest: vi.fn(),
+    setPullRequestAutoMerge: vi.fn(),
+    updatePullRequestState: vi.fn(),
+    updateRequestedReviewers: vi.fn(),
+    loadReviewerCandidates: vi.fn().mockResolvedValue(undefined),
+    reviewerCandidates: [],
+    loadingReviewerCandidates: false,
+    reviewerCandidatesError: null,
+    prActionPending: false,
   }),
 }));
 
+vi.mock("@src/modules/shared/layouts/blocks", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@src/modules/shared/layouts/blocks")>();
+  return {
+    ...actual,
+    ScrollTrail: ({ testId }: { testId?: string }) =>
+      createElement("nav", { "data-testid": testId }),
+  };
+});
+
 vi.mock("./PrConversationTab", () => ({
   PrConversationTab: (
-    props: Record<string, unknown> & { summary?: ReactNode }
+    props: Record<string, unknown> & {
+      summary?: ReactNode;
+      levelActions?: ReactNode;
+    }
   ) => {
     childProps.conversation = props;
     return createElement(
       "div",
       { "data-testid": "conversation-tab" },
-      props.summary
+      props.summary,
+      props.levelActions
     );
   },
 }));
@@ -120,6 +143,7 @@ describe("PrDetailPanel tabs", () => {
     store.set(workstationSelectedPrAtomFamily(scopeKey), {
       ...initialSelectedPrState,
       loading: false,
+      detail: {},
       commits: [{}],
     });
 
@@ -158,6 +182,15 @@ describe("PrDetailPanel tabs", () => {
     expect(tabs[0]?.className).toContain("rounded-t-md");
     expect(tabList?.className).toContain("border-b");
     expect(tabList?.className).not.toContain("border-t");
+    const actions = container.querySelector("[data-testid='pr-level-actions']");
+    expect(actions?.textContent).toContain("Enable auto-merge");
+    expect(actions?.textContent).toContain("Reviewers");
+    expect(actions?.textContent).toContain("Close pull request");
+    expect(actions?.className).not.toContain("bg-");
+    expect(actions?.className).not.toContain("border");
+    expect(
+      container.querySelector('[role="tabpanel"]')?.contains(actions)
+    ).toBe(true);
 
     act(() => {
       tabs[3]?.click();
@@ -169,6 +202,12 @@ describe("PrDetailPanel tabs", () => {
     expect(container.querySelector('[role="tabpanel"]')?.id).toBe(
       "pr-detail-tabpanel-changes"
     );
+    expect(
+      container.querySelector('[data-testid="pr-detail-navigation-rail"]')
+    ).not.toBeNull();
+    expect(
+      container.querySelector('[data-testid="pr-detail-navigation-trail"]')
+    ).not.toBeNull();
   });
 
   it("restores the per-PR sub-tab and nested selection after remount", () => {
@@ -184,6 +223,7 @@ describe("PrDetailPanel tabs", () => {
         selectedChangedFilePath: "src/index.ts",
       },
       loading: false,
+      detail: {},
       commits: [{ sha: "abc1234" }],
     });
     const panel = createElement(PrDetailPanel, {
@@ -291,6 +331,11 @@ describe("PrDetailPanel tabs", () => {
       container.querySelectorAll('a[aria-label="Open on GitHub"]')
     ).toHaveLength(1);
     expect(header?.textContent).toContain("Use compact PR metadata");
+    const mergedBadge = Array.from(header?.querySelectorAll("span") ?? []).find(
+      (element) => element.textContent?.trim() === "merged"
+    );
+    expect(mergedBadge?.className).toContain("bg-purple-1");
+    expect(mergedBadge?.className).toContain("text-purple-6");
     expect(header?.textContent).not.toContain("develop");
     expect(header?.textContent).not.toContain(
       "fix/issue-556-delete-agent-org-workers"
@@ -318,10 +363,45 @@ describe("PrDetailPanel tabs", () => {
     expect(summary?.textContent).toContain("No CI checks");
     expect(summary?.textContent).toContain("Status");
     expect(summary?.textContent).toContain("merged");
+    const summaryStatus = Array.from(
+      summary?.querySelectorAll("div") ?? []
+    ).find((element) => element.textContent?.trim() === "merged");
+    expect(summaryStatus?.className).toContain("text-purple-6");
     expect(summary?.className).not.toContain("border-b");
     expect(summary?.firstElementChild?.className).toContain("px-6");
     expect(summary?.firstElementChild?.className).toContain("pt-4");
     expect(summary?.firstElementChild?.className).toContain("items-center");
     expect(summary?.firstElementChild?.className).not.toContain("py-4");
+  });
+
+  it("shows the PR skeleton on the first render before detail loading starts", () => {
+    const store = createStore();
+
+    act(() => {
+      root.render(
+        createElement(
+          Provider,
+          { store },
+          createElement(PrDetailPanel, {
+            identity: {
+              number: 42,
+              title: "Avoid the content-to-loading flash",
+              url: "https://github.com/org/repo/pull/42",
+              status: "open",
+              headBranch: "fix/loading-flash",
+              baseBranch: "main",
+            },
+            repoPath: "/repo",
+            showHeader: false,
+          })
+        )
+      );
+    });
+
+    expect(
+      container.querySelector("[data-testid='github-pr-detail-skeleton']")
+    ).not.toBeNull();
+    expect(container.querySelector('[role="tablist"]')).toBeNull();
+    expect(container.querySelector(".animate-spin")).toBeNull();
   });
 });

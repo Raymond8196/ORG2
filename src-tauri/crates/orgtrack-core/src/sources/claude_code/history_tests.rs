@@ -133,6 +133,23 @@ fn byte_index_discovers_rounds_without_parsing_tool_result_bodies() {
     assert!(!rendered.contains("third"));
     assert!(!rendered.contains(&large_output));
 
+    let full = load_claude_code_history_from_path("claudecodeapp-window", &path)
+        .expect("load full transcript");
+    let turn_ids = indexed
+        .iter()
+        .map(|turn| claude_window_turn_id(turn.start_offset))
+        .collect::<Vec<_>>();
+    let cloud =
+        load_claude_code_cloud_turn_windows_from_path("claudecodeapp-window", &path, &turn_ids, 0)
+            .expect("load exact cloud turns")
+            .into_iter()
+            .flat_map(|window| window.chunks)
+            .collect::<Vec<_>>();
+    assert_eq!(
+        serde_json::to_value(cloud).expect("serialize cloud chunks"),
+        serde_json::to_value(full).expect("serialize full chunks")
+    );
+
     // Body-size surrogate: round 1 is followed by tool_use + tool_result +
     // text (3 lines); rounds 2 and 3 by one assistant line each. Placeholder
     // rounds surface these as bodyEventCount — without them the flat-view
@@ -857,6 +874,7 @@ fn captures_first_user_uuid_as_continuation_group_key() {
     // contribute a key.
     let content = r#"{"type":"custom-title","customTitle":"My convo","sessionId":"d0641111-1111-1111-1111-111111111111"}
 {"type":"user","uuid":"b7b5ae5f-0000-0000-0000-000000000001","sessionId":"d0641111-1111-1111-1111-111111111111","cwd":"/tmp/project","gitBranch":"main","timestamp":"2026-07-17T10:00:00.000Z","message":{"role":"user","content":"first message"}}
+{"type":"system","subtype":"compact_boundary","uuid":"eeb66522-0000-0000-0000-000000000001","sessionId":"d0641111-1111-1111-1111-111111111111","timestamp":"2026-07-17T10:00:30.000Z"}
 {"type":"user","uuid":"b7b5ae5f-0000-0000-0000-000000000002","sessionId":"d0641111-1111-1111-1111-111111111111","cwd":"/tmp/project","gitBranch":"main","timestamp":"2026-07-17T10:01:00.000Z","message":{"role":"user","content":"second message"}}
 "#;
     std::fs::write(&path, content).expect("write fixture");
@@ -879,6 +897,10 @@ fn captures_first_user_uuid_as_continuation_group_key() {
         meta.first_user_uuid.as_deref(),
         Some("b7b5ae5f-0000-0000-0000-000000000001")
     );
+    assert_eq!(
+        meta.continuation_markers,
+        vec!["eeb66522-0000-0000-0000-000000000001"]
+    );
 
     let cache_input = session_meta_to_cache_input(meta);
     let metadata_json = cache_input.source_metadata_json.expect("metadata json");
@@ -888,6 +910,19 @@ fn captures_first_user_uuid_as_continuation_group_key() {
             .get(imported_cache::CONTINUATION_GROUP_KEY_FIELD)
             .and_then(|value| value.as_str()),
         Some("b7b5ae5f-0000-0000-0000-000000000001")
+    );
+    assert_eq!(
+        parsed
+            .get(imported_cache::CONTINUATION_MARKERS_FIELD)
+            .and_then(Value::as_array)
+            .expect("continuation markers")
+            .iter()
+            .filter_map(Value::as_str)
+            .collect::<Vec<_>>(),
+        vec![
+            "b7b5ae5f-0000-0000-0000-000000000001",
+            "eeb66522-0000-0000-0000-000000000001"
+        ]
     );
 
     std::fs::remove_file(&path).expect("remove fixture");

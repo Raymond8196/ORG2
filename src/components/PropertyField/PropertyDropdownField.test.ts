@@ -22,4 +22,26 @@ describe("PropertyDropdownField", () => {
 
     expect(renderOptions).not.toHaveBeenCalled();
   });
+
+  it("renders disabled options as unavailable", () => {
+    const markup = renderToStaticMarkup(
+      React.createElement(PropertyDropdownField, {
+        value: "open",
+        label: "Open",
+        icon: null,
+        active: true,
+        searchable: false,
+        options: [
+          { value: "open", label: "Open", disabled: true },
+          { value: "closed", label: "Closed" },
+        ],
+        dataTestId: "status",
+      })
+    );
+
+    expect(markup).toMatch(
+      /data-testid="status-option-open"[^>]*disabled=""[^>]*aria-disabled="true"/
+    );
+    expect(markup).toContain('data-testid="status-option-closed"');
+  });
 });

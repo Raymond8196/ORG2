@@ -419,7 +419,8 @@
     "skipThisVersion": "Ignorar esta versão",
     "later": "Mais tarde",
     "link": "Vincular",
-    "copyName": "Copiar nome"
+    "copyName": "Copiar nome",
+    "switchMethod": "Alterar método"
   },
   "refreshToast": {
     "successName": "{{name}} atualizado",
@@ -489,16 +490,6 @@
     "testing": "Testando...",
     "empty": "Vazio",
     "launching": "Iniciando..."
-  },
-  "workManagementTable": {
-    "columns": {
-      "id": "ID",
-      "titleContext": "Título / contexto",
-      "status": "Status",
-      "assignee": "Responsável",
-      "updated": "Atualizado"
-    },
-    "selectRow": "Selecionar {{id}}"
   },
   "pagination": {
     "totalItems": "{{count}} itens",
@@ -1491,6 +1482,59 @@
         "merged": "Mesclado",
         "closed": "Fechado",
         "draft": "Rascunho"
+      },
+      "actions": {
+        "label": "Ações do pull request",
+        "confirmMergeTitle": "Mesclar o pull request?",
+        "confirmMergeMessage": "O GitHub mesclará o branch de origem do pull request atual no branch base.",
+        "merge": "Mesclar pull request",
+        "squash": "Combinar commits e mesclar",
+        "rebase": "Rebase e mesclar",
+        "mergeSuccess": "Pull request mesclado",
+        "mergeRequested": "Mesclagem solicitada",
+        "removedFromQueue": "Removido da fila de mesclagem",
+        "autoMergeEnabled": "Mesclagem automática ativada",
+        "autoMergeDisabled": "Mesclagem automática desativada",
+        "confirmCloseTitle": "Fechar o pull request?",
+        "confirmCloseMessage": "O pull request continuará disponível e poderá ser reaberto depois.",
+        "close": "Fechar pull request",
+        "closeSuccess": "Pull request fechado",
+        "reopen": "Reabrir pull request",
+        "reopenSuccess": "Pull request reaberto",
+        "enableAutoMerge": "Ativar mesclagem automática",
+        "mergeWhenReady": "Mesclar quando estiver pronto",
+        "disableAutoMerge": "Desativar mesclagem automática",
+        "removeFromMergeQueue": "Remover da fila de mesclagem",
+        "merged": "Mesclado",
+        "closed": "Fechado",
+        "draft": "Rascunho",
+        "inMergeQueue": "Na fila de mesclagem",
+        "approvalRequired": "Aprovação necessária",
+        "changesRequested": "Alterações solicitadas",
+        "resolveConflicts": "Resolver conflitos",
+        "checksFailed": "Verificações falharam",
+        "checksPending": "Verificações pendentes",
+        "mergeBlocked": "Mesclagem bloqueada",
+        "searchReviewers": "Pesquisar revisores",
+        "reviewersLoadFailed": "Não foi possível carregar os revisores",
+        "noReviewers": "Nenhum revisor disponível",
+        "reviewersUpdated": "Revisores atualizados",
+        "reviewersCount_one": "{{count}} revisor",
+        "reviewersCount_other": "{{count}} revisores",
+        "reviewers": "Revisores",
+        "tooltips": {
+          "merge": "Mesclar este pull request no GitHub",
+          "alreadyMerged": "Este pull request já foi mesclado",
+          "reopenBeforeMerging": "Reabra este pull request antes de mesclar",
+          "markReady": "Marque este pull request como pronto para revisão antes de mesclar",
+          "mergeQueue": "O GitHub mesclará este pull request pela fila de mesclagem",
+          "approvalRequired": "O GitHub exige aprovação de revisão antes da mesclagem",
+          "changesRequested": "As alterações solicitadas devem ser resolvidas antes da mesclagem",
+          "resolveConflicts": "Resolva os conflitos antes da mesclagem",
+          "checksFailed": "As verificações obrigatórias devem passar antes da mesclagem",
+          "checksPending": "Aguarde as verificações obrigatórias ou ative a mesclagem automática",
+          "mergeBlocked": "O GitHub informa requisitos de mesclagem não atendidos"
+        }
       }
     },
     "messages": {
@@ -2658,5 +2702,15 @@
     "downloadedOfTotal": "{{downloaded}} de {{total}}",
     "preparingDownload": "Preparando download…",
     "downloadingAndInstalling": "Baixando e instalando atualização (v{{version}})…"
+  },
+  "workManagementTable": {
+    "columns": {
+      "id": "ID",
+      "titleContext": "Título / contexto",
+      "status": "Status",
+      "assignee": "Responsável",
+      "updated": "Atualizado"
+    },
+    "selectRow": "Selecionar {{id}}"
   }
 }

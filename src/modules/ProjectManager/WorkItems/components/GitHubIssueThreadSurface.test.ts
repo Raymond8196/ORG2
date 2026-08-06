@@ -162,9 +162,30 @@ describe("mapGitHubIssueToThreadWorkItem", () => {
       `data-testid="work-item-property-status-${issue.html_url}"`
     );
     expect(markup).toContain('data-testid="github-issue-inline-composer"');
+    expect(markup).toContain('data-testid="work-item-thread-floating-footer"');
+    expect(markup).toContain("padding-bottom:240px");
     expect(markup).not.toContain(
       'data-testid="work-item-thread-secondary-navigation"'
     );
+  });
+
+  it("contributes semantic stops to the shared issue and work-item trail", () => {
+    const markup = renderToStaticMarkup(
+      React.createElement(GitHubIssueThreadSurface, {
+        issue,
+        timeline: [],
+        timelineLoading: false,
+        interaction: createInteraction(),
+      })
+    );
+
+    expect(markup).toContain("data-scroll-trail-target");
+    expect(markup).toContain(
+      'data-scroll-trail-label="Use one issue detail surface"'
+    );
+    expect(
+      markup.match(/data-scroll-trail-target/g)?.length
+    ).toBeGreaterThanOrEqual(3);
   });
 
   it("toggles external assignees without duplicating login casing", () => {

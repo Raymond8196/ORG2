@@ -122,6 +122,45 @@ describe("NavigationMenuRow", () => {
     expect(markup).toContain('tabindex="-1"');
   });
 
+  it("renders guided-tour targets on parent and leaf rows", () => {
+    const item = { ...baseItem, tourTarget: "runtime-navigation" };
+    const parentMarkup = renderToStaticMarkup(
+      createElement(NavigationMenuParentRow, {
+        item: {
+          ...item,
+          children: [{ ...baseItem, id: "child", key: "child" }],
+        },
+        isChild: false,
+        isOpen: false,
+        submenuSelected: false,
+        collapsed: false,
+        t: (key: string) => key,
+        renderIcon: () => null,
+        renderMenuItem: () => createElement("div"),
+        onRowMouseEnter: vi.fn(),
+        onRowActionClick: vi.fn(),
+        onToggleSubmenu: vi.fn(),
+      })
+    );
+    const leafMarkup = renderToStaticMarkup(
+      createElement(NavigationMenuLeafRow, {
+        item,
+        isChild: false,
+        isSelected: false,
+        collapsed: false,
+        t: (key: string) => key,
+        renderIcon: () => null,
+        onMenuItemClick: vi.fn(),
+        onRowMouseEnter: vi.fn(),
+        onRowActionClick: vi.fn(),
+      })
+    );
+
+    for (const markup of [parentMarkup, leafMarkup]) {
+      expect(markup).toContain('data-tour-target="runtime-navigation"');
+    }
+  });
+
   it("activates enabled leaf rows with Enter and Space", async () => {
     const container = document.createElement("div");
     document.body.appendChild(container);

@@ -101,6 +101,7 @@ import type {
 } from "./types";
 import {
   MEMBER_AGENTS_DETECT_MIN_INTERVAL_MS,
+  MEMBER_STATUS_MAX_BYTES,
   MEMBER_USAGE_DAYS_MAX_PER_PUSH,
   MEMBER_USAGE_ROLLUP_WINDOW_DAYS,
   SHARE_RUNTIME_SETTING_KEY,
@@ -116,6 +117,35 @@ export const MEMBER_RUNTIME_CAPABILITY_RECHECK_MS = 6 * 60 * 60 * 1000;
 /** Pass-level floor after a failed token refresh (org backoffs are per-org;
  * an auth failure blocks the whole pass and must not tight-loop). */
 const AUTH_RETRY_DELAY_MS = 5 * 60_000;
+/** Leave room for jsonb's canonical text spacing at the server-side cap. */
+const MEMBER_STATUS_SIZE_SAFETY_BYTES = 512;
+
+function statusWithBoundedRecentUsage(
+  machine: Awaited<ReturnType<typeof getMemberRuntimeMachineCached>>,
+  sample: Awaited<ReturnType<typeof collectMemberRuntimeSample>>,
+  rollup: DailyRollupResult
+): NonNullable<UpsertMemberRuntimeInput["status"]> {
+  const status: NonNullable<UpsertMemberRuntimeInput["status"]> = {
+    machine,
+    sample,
+    stats: {
+      totalSessions: rollup.totalSessions,
+      recentUsage24h: rollup.recentUsage24h,
+    },
+  };
+  const bytes = new TextEncoder().encode(JSON.stringify(status)).byteLength;
+  if (bytes <= MEMBER_STATUS_MAX_BYTES - MEMBER_STATUS_SIZE_SAFETY_BYTES) {
+    return status;
+  }
+  // Status is the heartbeat. If unusual machine labels plus the additive
+  // snapshot approach the server cap, keep the pre-feature census payload
+  // rather than turning every future push into ORG2_RUNTIME_TOO_LARGE.
+  return {
+    machine,
+    sample,
+    stats: { totalSessions: rollup.totalSessions },
+  };
+}
 
 /** Non-DOM contexts (workers and node-side tests) behave as visible. */
 function isDocumentHidden(): boolean {
@@ -545,7 +575,8 @@ export class MemberRuntimePushScheduler {
     const sample = await this.deps.getSample(nowMs);
 
     // Usage: recompute the rolling UTC-day window, delta-push changed rows.
-    // The same scan carries the lifetime session census for status.stats.
+    // The same scan carries the lifetime census and bounded rolling-24h
+    // snapshot for status.stats, so hourly sharing adds no second DB pass.
     const windowStartMs =
       utcDayFloorMs(nowMs) - (MEMBER_USAGE_ROLLUP_WINDOW_DAYS - 1) * UTC_DAY_MS;
     const rollup = await this.deps.getDailyRollup(windowStartMs, nowMs);
@@ -596,11 +627,7 @@ export class MemberRuntimePushScheduler {
     }
 
     const input: UpsertMemberRuntimeInput = {
-      status: {
-        machine,
-        sample,
-        stats: { totalSessions: rollup.totalSessions },
-      },
+      status: statusWithBoundedRecentUsage(machine, sample, rollup),
       ...(usagePlan.days.length > 0 ? { usageDays: usagePlan.days } : {}),
       ...(profilePart ? { profile: profilePart } : {}),
     };

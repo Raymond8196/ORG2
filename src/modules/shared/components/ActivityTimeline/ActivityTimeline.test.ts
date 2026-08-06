@@ -22,6 +22,7 @@ import {
   TimelineCardHeader,
   TimelineCopyButton,
   TimelineEventCard,
+  TimelineLoadingSkeleton,
 } from ".";
 
 vi.mock("react-i18next", () => ({
@@ -144,7 +145,44 @@ describe("activity timeline", () => {
     ).not.toBeNull();
   });
 
-  it("uses the Settings container treatment for timeline cards", () => {
+  it("supports matching the preview fade to its surrounding surface", () => {
+    contentHeight = 600;
+
+    act(() => {
+      root.render(
+        createElement(MarkdownContent, {
+          body: "Long body",
+          fadeFrom: "from-chat-pane",
+        })
+      );
+    });
+
+    expect(
+      container.querySelector<HTMLElement>(".pointer-events-none")?.className
+    ).toContain("from-chat-pane");
+  });
+
+  it("renders timeline loading as a text-free accessible skeleton", () => {
+    act(() => {
+      root.render(
+        createElement(TimelineLoadingSkeleton, {
+          label: "Loading activity…",
+        })
+      );
+    });
+
+    const skeleton = container.querySelector<HTMLElement>(
+      "[data-testid='timeline-loading-skeleton']"
+    );
+    expect(skeleton?.getAttribute("role")).toBe("status");
+    expect(skeleton?.getAttribute("aria-label")).toBe("Loading activity…");
+    expect(skeleton?.getAttribute("aria-busy")).toBe("true");
+    expect(skeleton?.textContent).toBe("");
+    expect(skeleton?.className).toContain("animate-pulse");
+    expect(skeleton?.querySelectorAll("[aria-hidden='true']")).toHaveLength(6);
+  });
+
+  it("matches the timeline body to the page and fills only the header", () => {
     act(() => {
       root.render(
         createElement(
@@ -165,9 +203,13 @@ describe("activity timeline", () => {
     const card = container.firstElementChild;
     expect(card?.className).toContain("rounded-xl");
     expect(card?.className).toContain("border-border-1");
-    expect(card?.className).toContain("bg-primary-container");
+    expect(card?.className).toContain("bg-chat-pane");
+    expect(card?.className).not.toContain("bg-primary-container");
     expect(card?.className).toContain("overflow-hidden");
     expect(card?.className).not.toContain("shadow-sm");
+    expect(card?.firstElementChild?.className).toContain(
+      "bg-primary-container"
+    );
     expect(card?.lastElementChild?.getAttribute("data-testid")).toBe(
       "timeline-footer"
     );
@@ -201,6 +243,22 @@ describe("activity timeline", () => {
     expect(connector?.className).toContain("top-5");
     expect(connector?.className).toContain("bottom-0");
     expect(connector?.nextElementSibling?.className).toContain("z-10");
+  });
+
+  it("can expose a bounded semantic stop to an owning scroll trail", () => {
+    act(() => {
+      root.render(
+        createElement(
+          ConnectedTimelineItem,
+          { trailLabel: `Issue update ${"x".repeat(140)}` },
+          createElement("span", null, "Update")
+        )
+      );
+    });
+
+    const item = container.firstElementChild;
+    expect(item?.hasAttribute("data-scroll-trail-target")).toBe(true);
+    expect(item?.getAttribute("data-scroll-trail-label")).toHaveLength(120);
   });
 
   it("uses one actor/action/timestamp header contract", () => {

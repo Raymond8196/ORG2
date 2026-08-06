@@ -7,7 +7,13 @@
  * (`privacy.shareRuntimeWithOrg`), not here.
  */
 import { RefreshCw } from "lucide-react";
-import { type ReactNode, useCallback, useEffect, useState } from "react";
+import {
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 
 import { externalCliSourcesDetect } from "@src/api/tauri/externalHistory/detection";
@@ -33,6 +39,7 @@ import TeamMemberCard, {
 } from "./TeamMemberCard";
 import TeamMemberDetail from "./TeamMemberDetail";
 import TeamRuntimeToday from "./TeamRuntimeToday";
+import { hasMemberActivityToday } from "./teamRuntimeData";
 import { useTeamRuntimeRoster } from "./useTeamRuntimeRoster";
 
 const EMPTY_AGENT_CATALOG: AgentCatalog = new Map<string, AgentCatalogEntry>();
@@ -226,6 +233,18 @@ export default function TeamRuntimePanel({
         null)
       : null;
 
+  const membersByActivity = useMemo(() => {
+    const active: MemberRuntimeListEntry[] = [];
+    const inactive: MemberRuntimeListEntry[] = [];
+    for (const member of roster.members) {
+      (hasMemberActivityToday(member.recentDays, nowMs)
+        ? active
+        : inactive
+      ).push(member);
+    }
+    return { active, inactive };
+  }, [nowMs, roster.members]);
+
   // Stable across renders (setState setters never change identity) so the
   // `TeamMemberCard` React.memo comparison isn't busted by a fresh closure
   // every render — each card calls back with its own userId instead of
@@ -310,6 +329,12 @@ export default function TeamRuntimePanel({
             agentCatalog={agentCatalog}
             language={language}
             onBack={() => setOpenMemberId(null)}
+            headerAction={
+              <RuntimeRefreshButton
+                onRefresh={roster.refresh}
+                refreshing={roster.refreshing}
+              />
+            }
           />
         );
       } else if (view === "today") {
@@ -328,26 +353,60 @@ export default function TeamRuntimePanel({
         );
       } else {
         content = (
-          <div className="flex flex-col gap-3">
-            <h3 className={SECTION_SUBHEADING_CLASSES}>
-              {t("overview.members")}
-            </h3>
+          <div className="flex flex-col gap-5">
+            <div
+              className="flex min-h-9 flex-wrap items-center justify-between gap-3"
+              data-testid="team-runtime-members-title-row"
+            >
+              <h3 className={SECTION_SUBHEADING_CLASSES}>
+                {t("overview.members")}
+              </h3>
+              <div
+                className="flex shrink-0 items-center"
+                data-testid="team-runtime-controls"
+              >
+                <RuntimeRefreshButton
+                  onRefresh={roster.refresh}
+                  refreshing={roster.refreshing}
+                />
+              </div>
+            </div>
             {roster.members.length > 0 ? (
               <div
-                className="grid grid-cols-1 gap-3 @[640px]:grid-cols-2"
+                className="flex flex-col gap-5"
                 data-testid="team-runtime-grid"
               >
-                {roster.members.map((member) => (
-                  <TeamMemberCard
-                    key={member.userId}
-                    entry={member}
-                    telemetry={roster.telemetry}
-                    nowMs={nowMs}
-                    agentCatalog={agentCatalog}
-                    isSelf={member.userId === roster.currentUserId}
-                    onOpen={handleOpenMember}
-                  />
-                ))}
+                {(
+                  [
+                    ["active", membersByActivity.active],
+                    ["inactive", membersByActivity.inactive],
+                  ] as const
+                ).map(([activity, members]) =>
+                  members.length > 0 ? (
+                    <section
+                      key={activity}
+                      className="flex flex-col gap-3"
+                      data-testid={`team-runtime-${activity}-today`}
+                    >
+                      <h4 className={SECTION_SUBHEADING_CLASSES}>
+                        {t(`overview.${activity}Today`)}
+                      </h4>
+                      <div className="grid grid-cols-1 gap-3 @[640px]:grid-cols-2">
+                        {members.map((member) => (
+                          <TeamMemberCard
+                            key={member.userId}
+                            entry={member}
+                            telemetry={roster.telemetry}
+                            nowMs={nowMs}
+                            agentCatalog={agentCatalog}
+                            isSelf={member.userId === roster.currentUserId}
+                            onOpen={handleOpenMember}
+                          />
+                        ))}
+                      </div>
+                    </section>
+                  ) : null
+                )}
               </div>
             ) : (
               <div
@@ -371,7 +430,10 @@ export default function TeamRuntimePanel({
   return (
     <div className={SECTION_GAP_CLASSES} data-testid="team-runtime-panel">
       {roster.phase !== "signedOut" &&
-      !(roster.phase === "ready" && view === "today") ? (
+      !(
+        roster.phase === "ready" &&
+        (view === "today" || view === "members")
+      ) ? (
         <div
           className="flex min-h-9 items-center justify-end"
           data-testid="team-runtime-controls"

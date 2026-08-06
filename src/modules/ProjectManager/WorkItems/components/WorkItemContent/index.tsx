@@ -24,6 +24,7 @@ import RichMarkdownEditor from "@src/modules/shared/components/RichMarkdownEdito
 import {
   DetailPanelContainer,
   PanelFooter,
+  ScrollTrailTarget,
   SessionTable,
   type SessionTableItem,
 } from "@src/modules/shared/layouts/blocks";
@@ -452,6 +453,14 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
           !isGitHubWorkItem ||
           (!githubTimelineLoading && githubTimeline.length === 0)
         }
+        trailLabel={
+          isThread
+            ? workItem.name ||
+              t("common:labels.description", {
+                defaultValue: "Description",
+              })
+            : undefined
+        }
       >
         <TimelineCard
           copyBody={normalizedRawDescription}
@@ -531,6 +540,7 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
             <MarkdownContent
               body={displayedDescription}
               emptyText="No description provided."
+              fadeFrom="from-chat-pane"
               className="text-[14px] leading-6 text-text-1 [&_.chat-markdown-body]:text-[14px] [&_.chat-markdown-body]:leading-6"
             />
           ) : isGitHubWorkItem ? (
@@ -544,6 +554,8 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
                 maxHeight={360}
                 appearance="plain"
                 toolbarMode="inline"
+                toolbarSize="mini"
+                toolbarDropdownPosition="top-start"
                 editable={
                   canEditDescription && !githubIssueInteraction?.updatingBody
                 }
@@ -582,6 +594,7 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
         <IssueTimelineItems
           timeline={githubTimeline}
           timelineLoading={githubTimelineLoading}
+          navigationEnabled={isThread}
         />
       ) : null}
     </TimelineStack>
@@ -711,39 +724,68 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
 
   const threadLowerSection = (
     <>
-      {sectionPolicy.showInlineWorkflow ? agentWorkflow : null}
-      {sectionPolicy.showInlineOutput ? outputContent : null}
+      {sectionPolicy.showInlineWorkflow ? (
+        <ScrollTrailTarget
+          enabled={isThread}
+          label={t("workItems.agentWorkflow.title")}
+        >
+          {agentWorkflow}
+        </ScrollTrailTarget>
+      ) : null}
+      {sectionPolicy.showInlineOutput ? (
+        <ScrollTrailTarget
+          enabled={isThread}
+          label={t("common:labels.output", { defaultValue: "Output" })}
+        >
+          {outputContent}
+        </ScrollTrailTarget>
+      ) : null}
     </>
   );
 
   if (isThread) {
+    const githubIssueComposer =
+      activeThreadView === "overview" &&
+      isGitHubWorkItem &&
+      githubIssueInteraction ? (
+        <GitHubIssueComposer interaction={githubIssueInteraction} />
+      ) : undefined;
+
     return (
-      <WorkItemThreadLayout path={headerPath} properties={headerProperties}>
+      <WorkItemThreadLayout
+        path={headerPath}
+        properties={headerProperties}
+        floatingFooter={githubIssueComposer}
+      >
         {activeThreadView === "overview" ? (
           <>
             {handoffNotice}
             {descriptionSection}
-            {todosSection}
+            <ScrollTrailTarget label={t("workItems.todos.title")}>
+              {todosSection}
+            </ScrollTrailTarget>
             {threadLowerSection}
-            {isGitHubWorkItem && githubIssueInteraction ? (
-              <GitHubIssueComposer interaction={githubIssueInteraction} />
-            ) : (
-              <nav
-                className="flex min-h-8 items-center justify-end"
-                aria-label={t("workItems.activity.discussionTitle")}
-                data-testid="work-item-thread-secondary-navigation"
+            {!isGitHubWorkItem || !githubIssueInteraction ? (
+              <ScrollTrailTarget
+                label={t("workItems.activity.discussionTitle")}
               >
-                <WorkItemThreadViewAction
-                  activeView="overview"
-                  onChange={(view) =>
-                    setThreadViewSelection({
-                      workItemId: workItem.session_id,
-                      view,
-                    })
-                  }
-                />
-              </nav>
-            )}
+                <nav
+                  className="flex min-h-8 items-center justify-end"
+                  aria-label={t("workItems.activity.discussionTitle")}
+                  data-testid="work-item-thread-secondary-navigation"
+                >
+                  <WorkItemThreadViewAction
+                    activeView="overview"
+                    onChange={(view) =>
+                      setThreadViewSelection({
+                        workItemId: workItem.session_id,
+                        view,
+                      })
+                    }
+                  />
+                </nav>
+              </ScrollTrailTarget>
+            ) : null}
           </>
         ) : (
           historyContent

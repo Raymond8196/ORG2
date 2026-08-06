@@ -167,6 +167,8 @@ export interface Session {
   repoRemoteUrls?: string[];
   /** Path to the file or directory where this session's persisted data lives. */
   storagePath?: string;
+  /** Imported-history continuation family used to suppress duplicate sidebar siblings. */
+  continuationLineageId?: string;
   /** Worktree path for isolated parallel sessions */
   worktreePath?: string;
   /** Branch name inside the worktree (e.g. `agent/abc123`) */

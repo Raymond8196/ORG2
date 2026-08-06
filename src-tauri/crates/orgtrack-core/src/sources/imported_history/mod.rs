@@ -282,6 +282,11 @@ pub struct ImportedHistorySidebarRow {
     pub storage_path: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub model: Option<String>,
+    /// Continuation-family identity elected from source metadata. Sidebar
+    /// consumers use it only to avoid rendering both a force-revealed active
+    /// sibling and the family's canonical roster row.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub continuation_lineage_id: Option<String>,
     /// ORGII-owned pin state, read from `imported_history_session_pin`.
     /// A pin belongs to ORGII, not to the source app, so it is stored beside
     /// the rebuildable cache rather than on it.

@@ -46,6 +46,7 @@ import { tuiModeAtom } from "@src/store/session/tuiModeAtom";
 import { resolvedBackgroundConfigAtom } from "@src/store/ui/backgroundConfigAtom";
 import {
   CHAT_PANEL_CREATE_TARGET,
+  chatPanelCollabOrgCreateIntentAtom,
   chatPanelContentModeAtom,
   chatPanelCreateProjectContextAtom,
   chatPanelCreateTargetAtom,
@@ -126,6 +127,9 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
 
     const [contentMode, setContentMode] = useAtom(chatPanelContentModeAtom);
     const [createTarget, setCreateTarget] = useAtom(chatPanelCreateTargetAtom);
+    const setCollabOrgCreateIntent = useSetAtom(
+      chatPanelCollabOrgCreateIntentAtom
+    );
     const startPageOpen = useAtomValue(chatPanelStartPageOpenAtom);
     const [workItemCreateDraft, setWorkItemCreateDraft] =
       useState<WorkItemDraft | null>(null);
@@ -385,6 +389,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       useChatPanelCreateTarget({
         allAgentDefs,
         sessionCreatorAvailable: Boolean(SessionCreatorSlot),
+        setCollabOrgCreateIntent,
         setCreateTarget,
         setCreatorState,
         setShowProjectAgentCreator,

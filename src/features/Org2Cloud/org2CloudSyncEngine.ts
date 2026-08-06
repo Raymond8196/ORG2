@@ -135,8 +135,11 @@ import {
 } from "./org2CloudSyncEngine.schemaGate";
 import { Org2CloudSessionColdStart } from "./org2CloudSyncEngine.sessionColdStart";
 import {
+  type ContinuationStatusResolver,
   type LocalSessionIdResolver,
+  findSupersededPushedSessions,
   findVanishedPushedSessionIds,
+  resolveContinuationStatusesViaCache,
   resolveLocalSessionIdsViaAggregateList,
 } from "./org2CloudSyncEngine.vanishedSessions";
 import {
@@ -196,19 +199,24 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
   /** Confirms vanished-session suspects against every local store; a
    * constructor seam so engine tests can fake local resolution. */
   private readonly resolveLocalSessionIds: LocalSessionIdResolver;
+  /** Continuation status of push-marked suspects; same seam pattern. */
+  private readonly resolveContinuationStatuses: ContinuationStatusResolver;
   /** Per-org timestamp of the last vanished-session GC sweep. */
   private readonly lastVanishedSweepAtMs = new Map<string, number>();
   /** `${orgId}:${sessionId}` → consecutive sweeps confirmed absent. A
    * suspect retracts only at VANISHED_SESSION_RETRACT_CONFIRMATIONS, so one
    * empty lookup during a cache rebuild cannot mass-retract live rows. */
   private readonly vanishedStrikes = new Map<string, number>();
+  /** Same two-strike discipline for superseded-continuation retracts. */
+  private readonly supersededStrikes = new Map<string, number>();
 
   constructor(
     client: Org2CloudSyncClientDeps = org2CloudSyncClient,
     projectsClient: Org2CloudProjectsClientDeps = org2CloudProjectsClient,
     projectSyncBridge: ProjectSyncBridge = tauriProjectSyncBridge,
     probeSchemaVersion: Org2CloudSchemaVersionProbe = schemaVersion,
-    resolveLocalSessionIds: LocalSessionIdResolver = resolveLocalSessionIdsViaAggregateList
+    resolveLocalSessionIds: LocalSessionIdResolver = resolveLocalSessionIdsViaAggregateList,
+    resolveContinuationStatuses: ContinuationStatusResolver = resolveContinuationStatusesViaCache
   ) {
     super();
     this.client = client;
@@ -227,6 +235,7 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
     this.sessionColdStart = new Org2CloudSessionColdStart(client);
     this.schemaGate = new Org2CloudSchemaGate(probeSchemaVersion);
     this.resolveLocalSessionIds = resolveLocalSessionIds;
+    this.resolveContinuationStatuses = resolveContinuationStatuses;
   }
 
   override start(store: CloudStore): void {
@@ -863,12 +872,15 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
     if (now - lastSweepAt < VANISHED_SESSION_SWEEP_INTERVAL_MS) return;
     this.lastVanishedSweepAtMs.set(orgId, now);
 
+    const markedSessionIds = this.sessionSync.markedSessionIds(orgId);
+    const liveSessions = store.get(sessionsAtom);
+    const liveSessionIds = new Set(
+      liveSessions.map((session) => session.session_id)
+    );
     const vanishedIds = await findVanishedPushedSessionIds({
       orgId,
-      markedSessionIds: this.sessionSync.markedSessionIds(orgId),
-      liveSessionIds: new Set(
-        store.get(sessionsAtom).map((session) => session.session_id)
-      ),
+      markedSessionIds,
+      liveSessionIds,
       resolveSessionIds: this.resolveLocalSessionIds,
     });
     if (this.generation !== generation) return;
@@ -907,6 +919,69 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
         // Markers survive a failed retract, so the next sweep retries.
         log.warn(
           `cloud retract failed for vanished session ${sessionId}:`,
+          error
+        );
+      }
+    }
+
+    // Continuation-superseded reconcile: a compaction demotes the old
+    // sibling out of the roster while its Team Sessions row lingers as a
+    // stale duplicate of the family. Retract it ONLY when the family's
+    // listable winner is itself replay-pushed to this org — the conversation
+    // stays represented by exactly one live row. NOTE the deliberate content
+    // tradeoff: the demoted row is the only cloud replay of the pre-compact
+    // detail; the winner carries the compacted continuation. The source
+    // transcript stays on the owner's disk and can always be re-shared.
+    const superseded = await findSupersededPushedSessions({
+      orgId,
+      markedSessionIds,
+      liveSessionIds,
+      resolveStatuses: this.resolveContinuationStatuses,
+    });
+    if (this.generation !== generation) return;
+    const supersededNow = new Set(superseded.map((entry) => entry.sessionId));
+    for (const key of this.supersededStrikes.keys()) {
+      if (!key.startsWith(`${orgId}:`)) continue;
+      if (!supersededNow.has(key.slice(orgId.length + 1))) {
+        this.supersededStrikes.delete(key);
+      }
+    }
+    for (const { sessionId, lineageId } of superseded) {
+      if (this.generation !== generation) return;
+      const winner = liveSessions.find(
+        (session) =>
+          session.session_id !== sessionId &&
+          session.continuationLineageId === lineageId &&
+          this.sessionSync.hasReplayPushed(orgId, session.session_id)
+      );
+      if (!winner) continue;
+      const strikeKey = `${orgId}:${sessionId}`;
+      const strikes = (this.supersededStrikes.get(strikeKey) ?? 0) + 1;
+      if (strikes < VANISHED_SESSION_RETRACT_CONFIRMATIONS) {
+        this.supersededStrikes.set(strikeKey, strikes);
+        log.info(
+          `superseded-continuation suspect ${sessionId} org ${orgId} ` +
+            `(winner ${winner.session_id}, ` +
+            `${strikes}/${VANISHED_SESSION_RETRACT_CONFIRMATIONS}); ` +
+            `deferring retract to the next sweep`
+        );
+        continue;
+      }
+      try {
+        log.info(
+          `cloud retract [superseded continuation]: session ${sessionId} ` +
+            `org ${orgId} (winner ${winner.session_id})`
+        );
+        await this.sessionSync.retractSession(fresh, orgId, sessionId);
+        this.supersededStrikes.delete(strikeKey);
+      } catch (error) {
+        if (this.generation !== generation) return;
+        if (isCloudSyncBackoffError(error)) {
+          this.orgBackoff.backOffOrg(orgId, error);
+          return;
+        }
+        log.warn(
+          `cloud retract failed for superseded continuation ${sessionId}:`,
           error
         );
       }

@@ -55,6 +55,7 @@ export * from "./modelSelectorAtom";
 export * from "./settingsToolbarAtom";
 export * from "./globalTabsTypes";
 export * from "./guideHighlightAtom";
+export * from "./globalPreferencesPanelAtom";
 
 // WorkStation / Chat / Simulator / Workspace Folders (formerly workspaceAtom barrel)
 export * from "./simulatorAtom";

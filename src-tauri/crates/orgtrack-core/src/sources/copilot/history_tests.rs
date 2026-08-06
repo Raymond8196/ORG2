@@ -86,9 +86,15 @@ fn build_fixture_root(tag: &str) -> PathBuf {
             r#"{"type":"user.message","data":{"content":"junk"},"id":"j1","timestamp":"2026-07-29T08:00:00.000Z","parentId":null}"#,
         ],
     );
-    // Junk: draft placeholder dir.
-    fs::create_dir_all(root.join("pending-session:draft:1966e2f4-b455-4969-a6ed-bcbc28a59056"))
-        .expect("create draft junk dir");
+    // Junk: draft placeholder dir. The exact macOS shape uses ':', which NTFS
+    // cannot create (it denotes an alternate data stream), so Windows
+    // exercises the same not-a-plain-session-id rejection with a legal
+    // separator while unix keeps the literal provider shape.
+    #[cfg(unix)]
+    let draft_junk = "pending-session:draft:1966e2f4-b455-4969-a6ed-bcbc28a59056";
+    #[cfg(not(unix))]
+    let draft_junk = "pending-session-draft-1966e2f4-b455-4969-a6ed-bcbc28a59056";
+    fs::create_dir_all(root.join(draft_junk)).expect("create draft junk dir");
     // Metadata-only dir (aborted/help invocation): plain id, no events.jsonl.
     let aborted = root.join("3c3c3c3c-1234-4123-8123-123412341234");
     fs::create_dir_all(&aborted).expect("create aborted dir");

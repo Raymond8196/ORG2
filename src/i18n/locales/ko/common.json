@@ -417,7 +417,8 @@
     "skipThisVersion": "이 버전 건너뛰기",
     "later": "나중에",
     "link": "연결",
-    "copyName": "이름 복사"
+    "copyName": "이름 복사",
+    "switchMethod": "방법 전환"
   },
   "refreshToast": {
     "successName": "{{name}} 새로고침됨",
@@ -487,16 +488,6 @@
     "testing": "테스트 중...",
     "empty": "비어 있음",
     "launching": "시작 중..."
-  },
-  "workManagementTable": {
-    "columns": {
-      "id": "ID",
-      "titleContext": "제목 / 컨텍스트",
-      "status": "상태",
-      "assignee": "담당자",
-      "updated": "업데이트"
-    },
-    "selectRow": "{{id}} 선택"
   },
   "pagination": {
     "totalItems": "{{count}}개 항목",
@@ -1490,6 +1481,59 @@
         "merged": "병합됨",
         "closed": "닫힘",
         "draft": "초안"
+      },
+      "actions": {
+        "label": "pull request 작업",
+        "confirmMergeTitle": "pull request를 병합할까요?",
+        "confirmMergeMessage": "GitHub가 현재 pull request의 소스 브랜치를 기본 브랜치에 병합합니다.",
+        "merge": "pull request 병합",
+        "squash": "스쿼시 후 병합",
+        "rebase": "리베이스 후 병합",
+        "mergeSuccess": "pull request를 병합했습니다",
+        "mergeRequested": "병합을 요청했습니다",
+        "removedFromQueue": "병합 대기열에서 제거했습니다",
+        "autoMergeEnabled": "자동 병합을 활성화했습니다",
+        "autoMergeDisabled": "자동 병합을 비활성화했습니다",
+        "confirmCloseTitle": "pull request를 닫을까요?",
+        "confirmCloseMessage": "pull request는 계속 사용할 수 있으며 나중에 다시 열 수 있습니다.",
+        "close": "pull request 닫기",
+        "closeSuccess": "pull request를 닫았습니다",
+        "reopen": "pull request 다시 열기",
+        "reopenSuccess": "pull request를 다시 열었습니다",
+        "enableAutoMerge": "자동 병합 활성화",
+        "mergeWhenReady": "준비되면 병합",
+        "disableAutoMerge": "자동 병합 비활성화",
+        "removeFromMergeQueue": "병합 대기열에서 제거",
+        "merged": "병합됨",
+        "closed": "닫힘",
+        "draft": "초안",
+        "inMergeQueue": "병합 대기열에 있음",
+        "approvalRequired": "승인 필요",
+        "changesRequested": "변경 요청됨",
+        "resolveConflicts": "충돌 해결",
+        "checksFailed": "검사 실패",
+        "checksPending": "검사 대기 중",
+        "mergeBlocked": "병합 차단됨",
+        "searchReviewers": "리뷰어 검색",
+        "reviewersLoadFailed": "리뷰어를 불러올 수 없습니다",
+        "noReviewers": "사용 가능한 리뷰어가 없습니다",
+        "reviewersUpdated": "리뷰어를 업데이트했습니다",
+        "reviewersCount_one": "리뷰어 {{count}}명",
+        "reviewersCount_other": "리뷰어 {{count}}명",
+        "reviewers": "리뷰어",
+        "tooltips": {
+          "merge": "GitHub에서 이 pull request 병합",
+          "alreadyMerged": "이 pull request는 이미 병합되었습니다",
+          "reopenBeforeMerging": "병합하기 전에 이 pull request를 다시 여세요",
+          "markReady": "병합하기 전에 이 pull request를 리뷰 준비 상태로 표시하세요",
+          "mergeQueue": "GitHub가 병합 대기열을 통해 이 pull request를 병합합니다",
+          "approvalRequired": "GitHub에서 병합 전에 리뷰 승인을 요구합니다",
+          "changesRequested": "병합하기 전에 요청된 변경 사항을 해결해야 합니다",
+          "resolveConflicts": "병합하기 전에 충돌을 해결하세요",
+          "checksFailed": "병합하기 전에 필수 검사를 통과해야 합니다",
+          "checksPending": "필수 검사를 기다리거나 자동 병합을 활성화하세요",
+          "mergeBlocked": "GitHub에서 충족되지 않은 병합 요구 사항을 보고했습니다"
+        }
       }
     },
     "messages": {
@@ -2659,5 +2703,15 @@
     "downloadedOfTotal": "{{downloaded}} / {{total}}",
     "preparingDownload": "다운로드 준비 중…",
     "downloadingAndInstalling": "업데이트 다운로드 및 설치 중 (v{{version}})…"
+  },
+  "workManagementTable": {
+    "columns": {
+      "id": "ID",
+      "titleContext": "제목 / 컨텍스트",
+      "status": "상태",
+      "assignee": "담당자",
+      "updated": "업데이트"
+    },
+    "selectRow": "{{id}} 선택"
   }
 }
