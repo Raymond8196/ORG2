@@ -73,8 +73,25 @@ const GitHubIssueComposer: React.FC<GitHubIssueComposerProps> = ({
     <section
       data-testid="github-issue-inline-composer"
       aria-label={t("git.issues.composer.addComment")}
+      className="flex flex-col gap-2"
     >
-      <ComposerShell variant="default" className="!gap-0 overflow-visible !p-0">
+      {interaction.canManageStatus ? (
+        <div
+          className="flex min-h-9 flex-wrap items-center gap-2 px-1"
+          data-testid="github-issue-level-actions"
+        >
+          <GitHubIssueCloseButton
+            interaction={interaction}
+            onStatusChange={handleStatusChange}
+          />
+        </div>
+      ) : null}
+
+      <ComposerShell
+        variant="default"
+        className="!gap-0 overflow-visible !p-0"
+        data-testid="github-issue-comment-input"
+      >
         <RichMarkdownEditor
           value={commentBody}
           onChange={(markdown) => setCommentBody(markdown)}
@@ -84,6 +101,8 @@ const GitHubIssueComposer: React.FC<GitHubIssueComposerProps> = ({
           maxHeight={500}
           appearance="plain"
           toolbarMode="inline"
+          toolbarSize="mini"
+          toolbarDropdownPosition="top-start"
           editable={interaction.canComment && !interaction.submittingComment}
           dataTestId="github-issue-comment-editor"
         />
@@ -118,26 +137,18 @@ const GitHubIssueComposer: React.FC<GitHubIssueComposerProps> = ({
             </span>
           )}
 
-          <div className="flex flex-wrap items-center justify-end gap-2">
-            {interaction.canManageStatus ? (
-              <GitHubIssueCloseButton
-                interaction={interaction}
-                onStatusChange={handleStatusChange}
-              />
-            ) : null}
-            <Button
-              htmlType="button"
-              variant="primary"
-              size="default"
-              shape="round"
-              loading={interaction.submittingComment}
-              disabled={!hasComment || !interaction.canComment}
-              onClick={() => void handleComment()}
-              data-testid="github-issue-comment-submit"
-            >
-              {t("git.issues.composer.submitComment")}
-            </Button>
-          </div>
+          <Button
+            htmlType="button"
+            variant="primary"
+            size="default"
+            shape="round"
+            loading={interaction.submittingComment}
+            disabled={!hasComment || !interaction.canComment}
+            onClick={() => void handleComment()}
+            data-testid="github-issue-comment-submit"
+          >
+            {t("git.issues.composer.submitComment")}
+          </Button>
         </div>
       </ComposerShell>
     </section>

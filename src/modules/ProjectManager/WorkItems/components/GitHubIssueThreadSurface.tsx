@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 
 import type {
   GitHubIssue,
@@ -73,6 +74,7 @@ const GitHubIssueThreadSurface: React.FC<GitHubIssueThreadSurfaceProps> = ({
   interaction,
   assigneeConfig,
 }) => {
+  const { t } = useTranslation("common");
   const workItem = useMemo(
     () => mapGitHubIssueToThreadWorkItem(issue),
     [issue]
@@ -99,8 +101,16 @@ const GitHubIssueThreadSurface: React.FC<GitHubIssueThreadSurfaceProps> = ({
         externalStatusConfig: {
           currentStatusId: issue.state,
           options: [
-            { id: "open", label: "Open" },
-            { id: "closed", label: "Closed" },
+            {
+              id: "open",
+              label: t("git.issues.status.open"),
+              color: "var(--color-success-6)",
+            },
+            {
+              id: "closed",
+              label: t("git.issues.status.closed"),
+              color: "var(--color-purple-6)",
+            },
           ],
           disabled: !interaction.canManageStatus || interaction.updatingStatus,
           onChangeStatusId: (statusId) => {
