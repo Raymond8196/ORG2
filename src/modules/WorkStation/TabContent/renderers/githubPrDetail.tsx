@@ -92,7 +92,7 @@ const GitHubPrDetailTabRenderer: React.FC<UnifiedTabContentProps> = memo(
       content: {
         content: headerContent,
         trailing: headerTrailing,
-        sidebarToggleDisabled: true,
+        shellLeadingChromeHidden: true,
         joinWithFollowingRow: true,
       },
     });
