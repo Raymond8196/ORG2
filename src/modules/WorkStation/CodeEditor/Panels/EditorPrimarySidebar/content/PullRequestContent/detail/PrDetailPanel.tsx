@@ -193,10 +193,7 @@ export function PrDetailSummary({
     files.reduce((total, file) => total + file.deletions, 0);
   const commentCount = readNumber(detail, "comments") ?? conversationCount;
   const statusLabel = t(`git.pr.status.${identity.status}`, identity.status);
-  const statusColorClass = getPrStatusVariant(identity.status).dotClass.replace(
-    "bg-",
-    "text-"
-  );
+  const statusColorClass = getPrStatusVariant(identity.status).textClass;
 
   return (
     <section

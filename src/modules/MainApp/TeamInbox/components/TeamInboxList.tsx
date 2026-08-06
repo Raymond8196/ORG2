@@ -352,10 +352,7 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
         draft: pullRequest.rawPr.draft,
       });
       const PullRequestIcon = PULL_REQUEST_ICONS[getPrStatusIconName(status)];
-      const statusIconClass = getPrStatusVariant(status).dotClass.replace(
-        "bg-",
-        "text-"
-      );
+      const statusIconClass = getPrStatusVariant(status).textClass;
       return (
         <TeamInboxListItem
           key={key}

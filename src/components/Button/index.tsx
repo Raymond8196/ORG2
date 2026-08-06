@@ -216,7 +216,8 @@ function getStyleClasses(variant: ButtonVariant, appearance: ButtonAppearance) {
           return "border border-dashed border-success-6/50 bg-transparent text-success-6";
         return "border-0 bg-transparent text-success-6";
       case "merged":
-        if (appearance === "solid") return "border-0 text-white bg-purple-6";
+        if (appearance === "solid")
+          return "border-0 bg-merged text-merged-contrast";
         if (appearance === "outline")
           return "border border-purple-6 bg-transparent text-purple-6";
         if (appearance === "dashed")
@@ -237,7 +238,7 @@ function getStyleClasses(variant: ButtonVariant, appearance: ButtonAppearance) {
         case "success":
           return "enabled:hover:bg-success-5 enabled:active:bg-success-6";
         case "merged":
-          return "enabled:hover:bg-purple-5 enabled:active:bg-purple-7";
+          return "enabled:hover:bg-merged-hover enabled:active:bg-merged-active";
         case "secondary":
           return "enabled:hover:bg-fill-3";
         case "tertiary":
@@ -409,8 +410,9 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           case "danger":
           case "warning":
           case "success":
-          case "merged":
             return "text-white";
+          case "merged":
+            return "text-merged-contrast";
           case "secondary":
             return "text-text-1";
           case "tertiary":
@@ -457,8 +459,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
               : "enabled:hover:bg-success-5";
           case "merged":
             return dropdownVisible
-              ? "bg-purple-5 enabled:hover:bg-purple-5"
-              : "enabled:hover:bg-purple-5";
+              ? "bg-merged-hover enabled:hover:bg-merged-hover"
+              : "enabled:hover:bg-merged-hover";
           case "secondary":
           case "tertiary":
             break;
