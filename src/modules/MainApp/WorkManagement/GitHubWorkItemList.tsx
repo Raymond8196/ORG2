@@ -69,7 +69,7 @@ export function GitHubWorkItemStateTabs({
           <CircleDot size={14} strokeWidth={1.8} aria-hidden="true" />
         </span>
       ) : (
-        <span className="text-purple-6 flex items-center">
+        <span className="flex items-center text-purple-6">
           <CheckCircle2 size={14} strokeWidth={1.8} aria-hidden="true" />
         </span>
       ),
