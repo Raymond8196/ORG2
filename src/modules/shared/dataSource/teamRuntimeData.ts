@@ -32,6 +32,7 @@ import {
 import type { RemoteTeammateSessionMetadata } from "@src/store/collaboration/types";
 
 const DAY_MS = 86_400_000;
+const HOUR_MS = 3_600_000;
 
 // ---------------------------------------------------------------------------
 // Org record accessor (safe against the pre-plumbing orgs atom)
@@ -282,6 +283,58 @@ export function buildOrgRuntimeTodaySnapshot(
     averageCpuPercent: safeAverage(cpuPercents),
     averageRamPercent: safeAverage(ramPercents),
   };
+}
+
+/**
+ * Merge members' latest rolling-24h hourly series for the viewer's current
+ * display window. Member reports can land at slightly different instants, so
+ * the chart clips by hour bucket and adds matching buckets rather than
+ * assuming every peer reported on the same boundary.
+ */
+export function aggregateMemberRecentUsageTrends(
+  members: readonly MemberRuntimeListEntry[],
+  startMs: number,
+  endMs: number
+): UsageTrendPoint[] {
+  if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs < startMs) {
+    return [];
+  }
+  const firstBucketMs = Math.floor(startMs / HOUR_MS) * HOUR_MS;
+  const lastBucketMs = Math.floor(endMs / HOUR_MS) * HOUR_MS;
+  const byHour = new Map<number, UsageTrendPoint>();
+
+  for (const member of members) {
+    for (const point of member.stats?.recentUsage24h?.trends ?? []) {
+      if (
+        !Number.isFinite(point.bucketMs) ||
+        point.bucketMs < firstBucketMs ||
+        point.bucketMs > lastBucketMs
+      ) {
+        continue;
+      }
+      let aggregate = byHour.get(point.bucketMs);
+      if (!aggregate) {
+        aggregate = {
+          bucketMs: point.bucketMs,
+          inputTokens: 0,
+          outputTokens: 0,
+          cacheReadTokens: 0,
+          cacheWriteTokens: 0,
+          costUsd: 0,
+        };
+        byHour.set(point.bucketMs, aggregate);
+      }
+      aggregate.inputTokens += point.inputTokens;
+      aggregate.outputTokens += point.outputTokens;
+      aggregate.cacheReadTokens += point.cacheReadTokens;
+      aggregate.cacheWriteTokens += point.cacheWriteTokens;
+      aggregate.costUsd += point.costUsd;
+    }
+  }
+
+  return [...byHour.values()].sort(
+    (left, right) => left.bucketMs - right.bucketMs
+  );
 }
 
 /**

@@ -66,12 +66,15 @@ const SourceControlMainPane: React.FC<SourceControlMainPaneProps> = ({
   onGitDiffUnsavedChange,
 }) => {
   const scopeKey = workstationRepoScopeKey(repoId, repoPath);
-  const { selectedState: selectedIssueState, interaction } =
-    useGitHubIssueDetailState({
-      repoPath,
-      repoId: repoId ?? undefined,
-      stateScopeKey: scopeKey,
-    });
+  const {
+    selectedState: selectedIssueState,
+    interaction,
+    assigneeConfig,
+  } = useGitHubIssueDetailState({
+    repoPath,
+    repoId: repoId ?? undefined,
+    stateScopeKey: scopeKey,
+  });
 
   const { mode, staged, focusPath, historySelection, allFiles, focusGitFile } =
     deriveSourceControlMainProps({
@@ -99,6 +102,7 @@ const SourceControlMainPane: React.FC<SourceControlMainPaneProps> = ({
           timeline={selectedIssueState.timeline}
           timelineLoading={selectedIssueState.timelineLoading}
           interaction={interaction}
+          assigneeConfig={assigneeConfig}
           showHeader={false}
         />
       </Suspense>

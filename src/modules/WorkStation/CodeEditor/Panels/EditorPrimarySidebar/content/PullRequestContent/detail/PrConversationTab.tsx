@@ -23,9 +23,13 @@ import type {
 import Avatar from "@src/components/Avatar";
 import Button from "@src/components/Button";
 import ComposerShell from "@src/components/ComposerShell";
+import Radio from "@src/components/Radio";
+import type { RadioValue } from "@src/components/Radio";
+import Textarea from "@src/components/Textarea";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import { CloudSessionReferencePreview } from "@src/features/Org2Cloud/CloudSessionReferencePreview";
 import { useSessionReferenceDropTarget } from "@src/features/Org2Cloud/useSessionReferenceDropTarget";
+import { useElementDimensions } from "@src/hooks/ui/layout/useElementDimensions";
 import {
   ConnectedTimelineItem,
   MarkdownContent,
@@ -36,6 +40,7 @@ import {
 import RichMarkdownEditor from "@src/modules/shared/components/RichMarkdownEditor";
 import type { RichMarkdownEditorRef } from "@src/modules/shared/components/RichMarkdownEditor";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
+import Modal from "@src/scaffold/ModalSystem";
 import type { PrIdentity } from "@src/store/workstation/codeEditor/workstationSelectedPrAtom";
 
 interface PrAuthor {
@@ -129,6 +134,7 @@ type TimelineEntry =
 
 interface PrConversationTabProps {
   summary?: React.ReactNode;
+  levelActions?: React.ReactNode;
   detail: Record<string, unknown> | null;
   identity: PrIdentity;
   conversation: GitHubIssueComment[];
@@ -147,6 +153,7 @@ interface PrConversationTabProps {
 
 export const PrConversationTab: React.FC<PrConversationTabProps> = ({
   summary,
+  levelActions,
   detail,
   identity,
   conversation,
@@ -164,6 +171,10 @@ export const PrConversationTab: React.FC<PrConversationTabProps> = ({
 }) => {
   const { t } = useTranslation("common");
   const [internalDraft, setInternalDraft] = useState("");
+  const [reviewModalVisible, setReviewModalVisible] = useState(false);
+  const [reviewDecision, setReviewDecision] =
+    useState<PrReviewEvent>("COMMENT");
+  const [reviewBody, setReviewBody] = useState("");
   const draft = controlledDraft ?? internalDraft;
   const updateDraft = useCallback(
     (nextDraft: string) => {
@@ -177,6 +188,11 @@ export const PrConversationTab: React.FC<PrConversationTabProps> = ({
   );
   const editorRef = useRef<RichMarkdownEditorRef>(null);
   const dropTargetRef = useRef<HTMLDivElement>(null);
+  const composerDockRef = useRef<HTMLDivElement>(null);
+  const measuredComposerHeight = useElementDimensions(composerDockRef, {
+    dimension: "height",
+  });
+  const composerBottomInset = Math.max(240, measuredComposerHeight);
   const insertDroppedReference = useCallback(
     (text: string, dropPoint?: { clientX: number; clientY: number }) => {
       editorRef.current?.insertText(text, {
@@ -237,25 +253,57 @@ export const PrConversationTab: React.FC<PrConversationTabProps> = ({
     updateDraft("");
   }, [draft, submittingComment, onAddComment, updateDraft]);
 
-  const handleReview = useCallback(
-    async (event: PrReviewEvent) => {
-      if (submittingReview) return;
-      await onSubmitReview(event, draft.trim());
-      updateDraft("");
-    },
-    [draft, submittingReview, onSubmitReview, updateDraft]
-  );
+  const resetReviewModal = useCallback(() => {
+    setReviewDecision("COMMENT");
+    setReviewBody("");
+  }, []);
+
+  const closeReviewModal = useCallback(() => {
+    if (submittingReview) return;
+    setReviewModalVisible(false);
+    resetReviewModal();
+  }, [resetReviewModal, submittingReview]);
+
+  const handleReviewDecisionChange = useCallback((value: RadioValue) => {
+    setReviewDecision(value as PrReviewEvent);
+  }, []);
+
+  const handleReview = useCallback(async () => {
+    const body = reviewBody.trim();
+    if (
+      submittingReview ||
+      (reviewDecision !== "APPROVE" && body.length === 0)
+    ) {
+      return;
+    }
+    await onSubmitReview(reviewDecision, body);
+    setReviewModalVisible(false);
+    resetReviewModal();
+  }, [
+    onSubmitReview,
+    resetReviewModal,
+    reviewBody,
+    reviewDecision,
+    submittingReview,
+  ]);
+
+  const reviewBodyRequired = reviewDecision !== "APPROVE";
+  const submitReviewDisabled =
+    submittingReview || (reviewBodyRequired && !reviewBody.trim());
 
   const lastIndex = timeline.length; // description card is index -1 conceptually
 
   return (
-    <div className="allow-select-deep flex h-full min-h-0 select-text flex-col overflow-hidden">
+    <div className="allow-select-deep relative flex h-full min-h-0 select-text flex-col overflow-hidden">
       <div
         ref={trailScrollContainerRef}
         className="min-h-0 flex-1 overflow-y-auto scrollbar-hide"
         data-testid="pr-conversation-scroll"
       >
-        <div ref={trailContentRef}>
+        <div
+          ref={trailContentRef}
+          style={{ paddingBottom: composerBottomInset }}
+        >
           {summary}
           <div
             className={`${DETAIL_PANEL_TOKENS.headerWidth} flex flex-col px-4 py-4`}
@@ -373,90 +421,156 @@ export const PrConversationTab: React.FC<PrConversationTabProps> = ({
               )}
             </TimelineStack>
           </div>
-
-          <div
-            className={`${DETAIL_PANEL_TOKENS.headerWidth} px-4 pb-4`}
-            data-scroll-trail-target
-            data-scroll-trail-label={t(
-              "git.pr.commentPlaceholder",
-              "Leave a comment…"
-            )}
-          >
-            <section
-              data-testid="pr-comment-composer"
-              aria-label={t("git.pr.commentPlaceholder", "Leave a comment…")}
-            >
-              <ComposerShell
-                ref={dropTargetRef}
-                variant="default"
-                className={`!gap-0 overflow-visible !p-0 ${
-                  isDragOver ? "!ring-2 !ring-primary-6" : ""
-                }`.trim()}
-                data-testid="pr-comment-drop-target"
-              >
-                <RichMarkdownEditor
-                  ref={editorRef}
-                  value={draft}
-                  onChange={updateDraft}
-                  placeholder={t(
-                    "git.pr.commentPlaceholder",
-                    "Leave a comment…"
-                  )}
-                  minHeight={140}
-                  maxHeight={500}
-                  appearance="plain"
-                  toolbarMode="inline"
-                  editable={!submittingComment && !submittingReview}
-                  onSubmit={() => void handleComment()}
-                  dataTestId="pr-comment-editor"
-                />
-                <div className="px-3 pb-2">
-                  <CloudSessionReferencePreview text={draft} />
-                </div>
-                <div className="flex min-h-11 flex-wrap items-center justify-between gap-2 border-t border-border-2 px-2 py-1.5">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Button
-                      htmlType="button"
-                      variant="secondary"
-                      size="default"
-                      shape="round"
-                      loading={submittingReview}
-                      disabled={submittingReview}
-                      onClick={() => void handleReview("APPROVE")}
-                    >
-                      {t("git.pr.approve", "Approve")}
-                    </Button>
-                    <Button
-                      htmlType="button"
-                      variant="secondary"
-                      size="default"
-                      shape="round"
-                      loading={submittingReview}
-                      disabled={submittingReview || !draft.trim()}
-                      onClick={() => void handleReview("REQUEST_CHANGES")}
-                    >
-                      {t("git.pr.requestChanges", "Request changes")}
-                    </Button>
-                  </div>
-                  <div className="flex flex-wrap items-center justify-end gap-2">
-                    <Button
-                      htmlType="button"
-                      variant="primary"
-                      size="default"
-                      shape="round"
-                      loading={submittingComment}
-                      disabled={!draft.trim() || submittingComment}
-                      onClick={() => void handleComment()}
-                    >
-                      {t("git.pr.comment", "Comment")}
-                    </Button>
-                  </div>
-                </div>
-              </ComposerShell>
-            </section>
-          </div>
         </div>
       </div>
+
+      <div
+        ref={composerDockRef}
+        className="absolute bottom-0 left-0 right-0 z-50 flex w-full flex-shrink-0 flex-col items-center px-2 pb-2 pt-1"
+        data-testid="pr-floating-composer"
+      >
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 top-[-28px] bg-gradient-to-t from-chat-pane via-chat-pane/90 to-transparent"
+        />
+        <div
+          className={`${DETAIL_PANEL_TOKENS.headerWidth} relative z-10 w-full px-2`}
+        >
+          <section
+            data-testid="pr-comment-composer"
+            aria-label={t("git.pr.commentPlaceholder", "Leave a comment…")}
+            className="flex flex-col gap-2"
+          >
+            {levelActions}
+
+            <ComposerShell
+              ref={dropTargetRef}
+              variant="default"
+              className={`!gap-0 overflow-visible !p-0 ${
+                isDragOver ? "!ring-2 !ring-primary-6" : ""
+              }`.trim()}
+              data-testid="pr-comment-drop-target"
+            >
+              <RichMarkdownEditor
+                ref={editorRef}
+                value={draft}
+                onChange={updateDraft}
+                placeholder={t("git.pr.commentPlaceholder", "Leave a comment…")}
+                minHeight={140}
+                maxHeight={500}
+                appearance="plain"
+                toolbarMode="inline"
+                toolbarSize="mini"
+                toolbarDropdownPosition="top-start"
+                editable={!submittingComment && !submittingReview}
+                onSubmit={() => void handleComment()}
+                dataTestId="pr-comment-editor"
+              />
+              <div className="px-3 pb-2">
+                <CloudSessionReferencePreview text={draft} />
+              </div>
+              <div className="flex min-h-11 flex-wrap items-center justify-between gap-2 border-t border-border-2 px-2 py-1.5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button
+                    htmlType="button"
+                    variant="secondary"
+                    size="default"
+                    shape="round"
+                    disabled={submittingReview}
+                    onClick={() => setReviewModalVisible(true)}
+                    data-testid="pr-submit-review"
+                  >
+                    {t("git.pr.submitReview", "Submit review")}
+                  </Button>
+                </div>
+                <div className="flex flex-wrap items-center justify-end gap-2">
+                  <Button
+                    htmlType="button"
+                    variant="primary"
+                    size="default"
+                    shape="round"
+                    loading={submittingComment}
+                    disabled={!draft.trim() || submittingComment}
+                    onClick={() => void handleComment()}
+                  >
+                    {t("git.pr.comment", "Comment")}
+                  </Button>
+                </div>
+              </div>
+            </ComposerShell>
+          </section>
+        </div>
+      </div>
+
+      <Modal
+        visible={reviewModalVisible}
+        title={t("git.pr.submitReview", "Submit review")}
+        width={640}
+        bodyClassName="px-5 py-4"
+        footerTopBorder={false}
+        primaryButtonSize="default"
+        secondaryButtonSize="default"
+        okText={t("git.pr.submitReview", "Submit review")}
+        cancelText={t("actions.cancel", "Cancel")}
+        onCancel={closeReviewModal}
+        onOk={handleReview}
+        closable={!submittingReview}
+        maskClosable={!submittingReview}
+        escToExit={!submittingReview}
+        okButtonProps={{
+          loading: submittingReview,
+          disabled: submitReviewDisabled,
+        }}
+        cancelButtonProps={{ disabled: submittingReview }}
+      >
+        <div className="flex flex-col gap-5">
+          <p className="text-[13px] leading-5 text-text-3">
+            {t(
+              "git.pr.reviewHeadNotice",
+              "The review applies only if the displayed head commit still matches."
+            )}
+          </p>
+
+          <fieldset className="flex flex-col gap-2">
+            <legend className="mb-2 text-[13px] font-medium text-text-1">
+              {t("git.pr.reviewDecision", "Review decision")}
+            </legend>
+            <Radio.Group
+              value={reviewDecision}
+              onChange={handleReviewDecisionChange}
+              disabled={submittingReview}
+              direction="horizontal"
+              className="flex-wrap gap-x-5 gap-y-2"
+            >
+              <Radio value="COMMENT">{t("git.pr.comment", "Comment")}</Radio>
+              <Radio value="APPROVE">{t("git.pr.approve", "Approve")}</Radio>
+              <Radio value="REQUEST_CHANGES">
+                {t("git.pr.requestChanges", "Request changes")}
+              </Radio>
+            </Radio.Group>
+          </fieldset>
+
+          <label
+            htmlFor="pr-review-comment"
+            className="flex flex-col gap-2 text-[13px] font-medium text-text-1"
+          >
+            {t("git.pr.reviewComment", "Review comment")}
+            <Textarea
+              id="pr-review-comment"
+              data-testid="pr-review-comment"
+              value={reviewBody}
+              onChange={setReviewBody}
+              placeholder={t(
+                "git.pr.reviewCommentPlaceholder",
+                "Add a comment…"
+              )}
+              rows={7}
+              resize="vertical"
+              disabled={submittingReview}
+            />
+          </label>
+        </div>
+      </Modal>
     </div>
   );
 };

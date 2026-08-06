@@ -347,6 +347,7 @@ export interface OptionProps {
   iconColor?: string;
   label: string;
   isSelected?: boolean;
+  disabled?: boolean;
   onClick: () => void;
   children?: React.ReactNode;
   /** Stable selector for rendered UI tests. */
@@ -358,6 +359,7 @@ export const Option: React.FC<OptionProps> = ({
   iconColor,
   label,
   isSelected,
+  disabled = false,
   onClick,
   children,
   dataTestId,
@@ -367,13 +369,16 @@ export const Option: React.FC<OptionProps> = ({
     data-testid={dataTestId}
     className={[
       DROPDOWN_CLASSES.item,
-      DROPDOWN_CLASSES.itemHover,
+      !disabled && DROPDOWN_CLASSES.itemHover,
       "w-full justify-between text-left",
       isSelected && DROPDOWN_CLASSES.itemSelected,
+      disabled && DROPDOWN_CLASSES.itemDisabled,
     ]
       .filter(Boolean)
       .join(" ")}
     onClick={onClick}
+    disabled={disabled}
+    aria-disabled={disabled}
   >
     {children ? (
       <>

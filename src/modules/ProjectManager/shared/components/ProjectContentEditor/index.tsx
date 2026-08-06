@@ -389,6 +389,8 @@ const ProjectContentEditor = forwardRef<
               maxHeight={descriptionMaxHeight}
               editable={editable}
               toolbarClassName="work-item-toolbar"
+              toolbarSize="mini"
+              toolbarDropdownPosition="top-start"
               className={`noDrag flex-1 cursor-text rounded-md text-[14px] text-text-1 ${descriptionClassName}`.trim()}
             />
             <ContextMenuPortal

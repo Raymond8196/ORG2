@@ -207,9 +207,10 @@ pub async fn usage_dashboard_rounds(
     .map_err(|err| format!("Task join error: {err}"))?
 }
 
-/// Per-(UTC day, bucket) rollup for the member-runtime cloud push. Unlike the
-/// scoped desktop views above, this always spans ALL sources (the `other`
-/// bucket included) so the totals a member shares with their org are complete.
+/// Per-(UTC day, bucket) rollup plus rolling-24h snapshot for the
+/// member-runtime cloud push. Unlike the scoped desktop views above, this
+/// always spans ALL sources (the `other` bucket included) so the totals a
+/// member shares with their org are complete.
 #[tauri::command]
 pub async fn usage_dashboard_daily_rollup(
     start_ms: i64,

@@ -24,8 +24,11 @@ use std::collections::{BTreeMap, HashSet};
 use rusqlite::Connection;
 use serde::Serialize;
 
+use super::accumulator::UsageHeadlineAccumulator;
 use super::rounds::visit_rounds_windowed;
-use super::{TrendBucket, UsageFilter};
+use super::{TrendBucket, UsageFilter, UsageSummary, UsageTrendPoint};
+
+const RECENT_USAGE_WINDOW_MS: i64 = 86_400_000;
 
 /// One (UTC-day-floor, bucket) aggregate row.
 #[derive(Debug, Clone, Default, PartialEq, Serialize)]
@@ -60,6 +63,22 @@ pub struct DailyRollup {
     /// retains the windowed daily rows, so the lifetime figure has to ride
     /// along from the client.
     pub total_sessions: i64,
+    /// Rolling 24-hour headline + hourly series derived during the same
+    /// bounded round scan. The member-runtime scheduler attaches this to the
+    /// opaque status stats blob, so team viewers can render an accurate 24h
+    /// chart without another local scan or a cloud schema migration.
+    pub recent_usage_24h: RecentUsageSnapshot,
+}
+
+/// A bounded local usage snapshot suitable for the member-runtime status
+/// payload. Empty hourly buckets are omitted here and filled by the chart.
+#[derive(Debug, Clone, Default, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RecentUsageSnapshot {
+    pub start_ms: i64,
+    pub end_ms: i64,
+    pub summary: UsageSummary,
+    pub trends: Vec<UsageTrendPoint>,
 }
 
 #[derive(Default)]
@@ -95,6 +114,7 @@ pub fn usage_daily_rollup(
     start_ms: i64,
     end_ms: i64,
 ) -> Result<DailyRollup, String> {
+    let recent_start_ms = start_ms.max(end_ms.saturating_sub(RECENT_USAGE_WINDOW_MS));
     let filter = UsageFilter {
         bucket: None,
         start_ms: Some(start_ms),
@@ -107,11 +127,15 @@ pub fn usage_daily_rollup(
 
     // BTreeMap keys give the required (day, bucket) output ordering for free.
     let mut cells: BTreeMap<(i64, String), RollupCell> = BTreeMap::new();
+    let mut recent = UsageHeadlineAccumulator::new(TrendBucket::Hour, true, true);
     visit_rounds_windowed(conn, &filter, |round| {
         // Rounds without a usable timestamp cannot be attributed to a UTC
         // day (mirrors the trend accumulator's `created_at_ms > 0` gate).
         if round.created_at_ms <= 0 {
             return Ok(());
+        }
+        if round.created_at_ms >= recent_start_ms {
+            recent.observe(&round);
         }
         let day_start_ms = TrendBucket::Day.floor(round.created_at_ms);
         let cell = cells
@@ -147,8 +171,16 @@ pub fn usage_daily_rollup(
         })
         .collect();
 
+    let (recent_summary, recent_trends) = recent.finish();
+
     Ok(DailyRollup {
         days,
         total_sessions: total_session_count(conn)?,
+        recent_usage_24h: RecentUsageSnapshot {
+            start_ms: recent_start_ms,
+            end_ms,
+            summary: recent_summary,
+            trends: recent_trends,
+        },
     })
 }
