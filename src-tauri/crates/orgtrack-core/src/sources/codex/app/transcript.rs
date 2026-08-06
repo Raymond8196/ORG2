@@ -1285,9 +1285,27 @@ fn load_codex_app_from_path_with_mode<'a>(
                 }
             }
             "task_complete" => {
+                let task_error_message = codex_task_error_message(&parsed.payload);
+                if let Some(error_message) = task_error_message.as_deref() {
+                    let mut error_chunk = ActivityChunk::new(session_id, "error", "error");
+                    error_chunk.chunk_id = format!("codex-error-{sequence}");
+                    error_chunk.created_at = created_at.clone();
+                    error_chunk.result = json!({
+                        "error": error_message,
+                        "observation": error_message,
+                        "success": false,
+                    });
+                    collector.current.push(error_chunk);
+                    sequence += 1;
+                }
                 if let Some(turn_id) =
                     lifecycle_turn_id(&parsed.payload, active_task_turn_id.as_deref())
                 {
+                    let lifecycle_action = if task_error_message.is_some() {
+                        imported_history::ACTION_TYPE_TASK_FAILED
+                    } else {
+                        imported_history::ACTION_TYPE_TASK_COMPLETED
+                    };
                     collector
                         .current
                         .push(imported_history::task_lifecycle_chunk(
@@ -1295,7 +1313,7 @@ fn load_codex_app_from_path_with_mode<'a>(
                             CODEX_PROVIDER_SLUG,
                             sequence,
                             &created_at,
-                            imported_history::ACTION_TYPE_TASK_COMPLETED,
+                            lifecycle_action,
                             turn_id,
                         ));
                     sequence += 1;
@@ -1403,6 +1421,26 @@ fn lifecycle_turn_id<'a>(payload: &'a Value, active_turn_id: Option<&'a str>) ->
         .get("turn_id")
         .and_then(Value::as_str)
         .or(active_turn_id)
+}
+
+fn codex_task_error_message(payload: &Value) -> Option<String> {
+    let error = payload.get("error")?;
+    if error.is_null() {
+        return None;
+    }
+
+    let message = error
+        .as_str()
+        .or_else(|| error.get("message").and_then(Value::as_str))
+        .map(str::trim)
+        .filter(|message| !message.is_empty());
+    Some(match message {
+        Some(message) => message.to_string(),
+        None if error.as_object().is_some_and(|object| object.is_empty()) => {
+            "Codex task failed".to_string()
+        }
+        None => format!("Codex task failed: {error}"),
+    })
 }
 
 #[allow(clippy::too_many_arguments)]
