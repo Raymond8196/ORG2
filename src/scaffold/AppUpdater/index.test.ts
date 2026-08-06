@@ -197,6 +197,27 @@ describe("AppUpdater", () => {
     );
   });
 
+  it("offers an update-now action on the available-update notice", async () => {
+    const update = createUpdate();
+    mocks.check.mockResolvedValue(update);
+
+    await checkForUpdatesManually();
+
+    const checkNotices = mocks.messageInfo.mock.calls
+      .filter(([message]) => message?.id === "app-update-check")
+      .map(([message]) => message);
+    const availableNotice = checkNotices[checkNotices.length - 1];
+
+    expect(availableNotice).toEqual(
+      expect.objectContaining({
+        title: "Update available",
+        content: "Version 1.1.22 is ready to install.",
+        action: expect.objectContaining({ label: "Update now" }),
+      })
+    );
+    expect(typeof availableNotice?.action?.onClick).toBe("function");
+  });
+
   it("clears a stale available update after a failed manual check", async () => {
     const update = createUpdate();
     mocks.check
