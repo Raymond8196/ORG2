@@ -24,7 +24,7 @@ import {
   MessagesSquare,
   SquareArrowOutUpRight,
 } from "lucide-react";
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
 import type {
@@ -36,7 +36,11 @@ import Avatar from "@src/components/Avatar";
 import Button from "@src/components/Button";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
-import { PanelHeader, Placeholder } from "@src/modules/shared/layouts/blocks";
+import {
+  PanelHeader,
+  Placeholder,
+  ScrollTrail,
+} from "@src/modules/shared/layouts/blocks";
 import { resolvePullRequestDetailStatus } from "@src/shared/pr/prLevelActions";
 import {
   type PrIdentity,
@@ -291,6 +295,9 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
   onFileSelect,
 }) => {
   const { t } = useTranslation("common");
+  const tabContentRef = useRef<HTMLDivElement>(null);
+  const trailScrollContainerRef = useRef<HTMLElement>(null);
+  const trailContentRef = useRef<HTMLElement>(null);
   const scopeKey = workstationPrScopeKey(repoId, repoPath, identity.number);
   const [state, setState] = useAtom(workstationSelectedPrAtomFamily(scopeKey));
   const detailViewState = state.viewState;
@@ -341,6 +348,28 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
       }));
     },
     [setDetailViewState]
+  );
+  const setTabContentNode = useCallback(
+    (node: HTMLDivElement | null) => {
+      tabContentRef.current = node;
+      if (activeTab !== "conversation") {
+        trailScrollContainerRef.current = node;
+        trailContentRef.current = node;
+      }
+    },
+    [activeTab]
+  );
+  const setConversationScrollNode = useCallback(
+    (node: HTMLDivElement | null) => {
+      trailScrollContainerRef.current = node ?? tabContentRef.current;
+    },
+    []
+  );
+  const setConversationContentNode = useCallback(
+    (node: HTMLDivElement | null) => {
+      trailContentRef.current = node ?? tabContentRef.current;
+    },
+    []
   );
 
   const {
@@ -506,66 +535,86 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
         role="tabpanel"
         id={`pr-detail-tabpanel-${activeTab}`}
         aria-labelledby={`pr-detail-tab-${activeTab}`}
-        className="flex min-h-0 flex-1 flex-col overflow-hidden"
+        className="flex min-h-0 flex-1 overflow-hidden"
       >
-        {activeTab === "conversation" && (
-          <PrConversationTab
-            summary={
-              <PrDetailSummary
-                identity={currentIdentity}
-                baseBranch={baseBranch}
-                detail={state.detail}
-                conversationCount={state.conversation.length}
-                reviews={state.reviews}
-                files={state.files}
-                checks={state.checks}
-              />
-            }
-            detail={state.detail}
-            identity={currentIdentity}
-            conversation={state.conversation}
-            reviews={state.reviews}
-            reviewComments={state.reviewComments}
-            loading={state.loading}
-            submittingComment={state.submittingComment}
-            submittingReview={state.submittingReview}
-            draft={detailViewState.conversationDraft}
-            onDraftChange={setConversationDraft}
-            onAddComment={addComment}
-            onSubmitReview={submitReview}
+        <div
+          ref={setTabContentNode}
+          className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden"
+        >
+          {activeTab === "conversation" && (
+            <PrConversationTab
+              summary={
+                <PrDetailSummary
+                  identity={currentIdentity}
+                  baseBranch={baseBranch}
+                  detail={state.detail}
+                  conversationCount={state.conversation.length}
+                  reviews={state.reviews}
+                  files={state.files}
+                  checks={state.checks}
+                />
+              }
+              detail={state.detail}
+              identity={currentIdentity}
+              conversation={state.conversation}
+              reviews={state.reviews}
+              reviewComments={state.reviewComments}
+              loading={state.loading}
+              submittingComment={state.submittingComment}
+              submittingReview={state.submittingReview}
+              draft={detailViewState.conversationDraft}
+              onDraftChange={setConversationDraft}
+              onAddComment={addComment}
+              onSubmitReview={submitReview}
+              trailScrollContainerRef={setConversationScrollNode}
+              trailContentRef={setConversationContentNode}
+            />
+          )}
+          {activeTab === "commits" && (
+            <PrCommitsTab
+              commits={state.commits}
+              prNumber={identity.number}
+              repoPath={repoPath}
+              repoId={repoId}
+              loading={state.loading}
+              checks={state.checks}
+              selectedCommitSha={detailViewState.selectedCommitSha}
+              onSelectedCommitShaChange={setSelectedCommitSha}
+              onFileSelect={onFileSelect}
+            />
+          )}
+          {activeTab === "checks" && (
+            <PrChecksTab checks={state.checks} loading={state.loading} />
+          )}
+          {activeTab === "changes" && (
+            <PrChangesTab
+              repoFullName={repoFullName}
+              detail={state.detail}
+              headSha={state.headSha}
+              baseRef={state.baseRef}
+              files={state.files}
+              loading={state.loading}
+              reviewComments={state.reviewComments}
+              selectedFilePath={detailViewState.selectedChangedFilePath}
+              onSelectedFilePathChange={setSelectedChangedFilePath}
+              onFileSelect={onFileSelect}
+              onReplyInlineComment={replyInlineComment}
+            />
+          )}
+        </div>
+        <div
+          className="relative w-11 shrink-0"
+          data-testid="pr-detail-navigation-rail"
+        >
+          <ScrollTrail
+            key={activeTab}
+            scrollContainerRef={trailScrollContainerRef}
+            contentRef={trailContentRef}
+            ariaLabel={t("git.pr.navigationTrail", "Pull request navigation")}
+            placement="rail"
+            testId="pr-detail-navigation-trail"
           />
-        )}
-        {activeTab === "commits" && (
-          <PrCommitsTab
-            commits={state.commits}
-            prNumber={identity.number}
-            repoPath={repoPath}
-            repoId={repoId}
-            loading={state.loading}
-            checks={state.checks}
-            selectedCommitSha={detailViewState.selectedCommitSha}
-            onSelectedCommitShaChange={setSelectedCommitSha}
-            onFileSelect={onFileSelect}
-          />
-        )}
-        {activeTab === "checks" && (
-          <PrChecksTab checks={state.checks} loading={state.loading} />
-        )}
-        {activeTab === "changes" && (
-          <PrChangesTab
-            repoFullName={repoFullName}
-            detail={state.detail}
-            headSha={state.headSha}
-            baseRef={state.baseRef}
-            files={state.files}
-            loading={state.loading}
-            reviewComments={state.reviewComments}
-            selectedFilePath={detailViewState.selectedChangedFilePath}
-            onSelectedFilePathChange={setSelectedChangedFilePath}
-            onFileSelect={onFileSelect}
-            onReplyInlineComment={replyInlineComment}
-          />
-        )}
+        </div>
       </div>
     </div>
   );

@@ -210,6 +210,9 @@ vi.mock("@src/modules/shared/components/ActivityTimeline", () => ({
 vi.mock("@src/modules/shared/layouts/blocks", () => ({
   DetailPanelContainer: ({ children }: { children?: React.ReactNode }) =>
     createElement("div", null, children),
+  ScrollTrail: () => null,
+  ScrollTrailTarget: ({ children }: { children?: React.ReactNode }) =>
+    createElement("div", null, children),
   SessionTable: () => null,
   PanelFooter: ({
     secondaryActions = [],

@@ -25,6 +25,7 @@ conversation comments, submitted review bodies, and inline review threads.
 | 3   | Click the `Open on GitHub` icon button.                     | Opens `detail.htmlUrl` (falls back to `prUrl`) in a new tab (`target="_blank"`, `rel="noreferrer"`). No in-app navigation/regression.                                                                     |
 | 4   | Read the stats row for additions=104, deletions=45, files=3 | Shows `+104` (green) `-45` (red) in a subtle pill, then a `FileDiff` icon + "3 files".                                                                                                                    |
 | 5   | Select a commit in the list below.                          | Existing behavior unchanged — row highlights, `onHistorySelectionChange` fires with the commit selection.                                                                                                 |
+| 6   | Open a GitHub PR detail in WorkStation or Team Inbox.       | A permanent borderless right-side trail is visible; Conversation markers navigate the description, comments, reviews, and composer.                                                                       |
 
 ## Edge Cases
 
@@ -61,6 +62,7 @@ conversation comments, submitted review bodies, and inline review threads.
 | 2   | Long comment or review body     | Open Conversation with a body taller than 15 lines       | Each body truncates with a visible control and expands independently without changing adjacent timeline cards              |
 | 3   | Long inline review-thread reply | Expand Review comments and open a reply over 15 lines    | Reply uses the same 15-line preview and always-visible expand/collapse control                                             |
 | 4   | Conversation container styling  | Open a PR with description, comments, and review threads | Timeline and review-thread cards use the Settings container background, rounded border, and no shadow                      |
+| 5   | PR trail across tabs            | Switch among Conversation, Commits, Checks, and Changes  | The right-side trail rail remains mounted; sparse tabs retain an always-visible root marker                                |
 
 ## PR-level actions
 
@@ -86,6 +88,7 @@ conversation comments, submitted review bodies, and inline review threads.
 - [ ] Title and branch chip expose full text via `title` when visually
       truncated.
 - [ ] Color is not the only signal — each status also has a distinct text label.
+- [ ] The PR navigation trail is a labeled `<nav>` with keyboard-focusable markers and `aria-current` on the active destination.
 
 ## Acceptance Criteria
 
@@ -100,3 +103,5 @@ conversation comments, submitted review bodies, and inline review threads.
       empty states) is unchanged from before the polish.
 - [ ] Reduced motion: card uses only color/opacity hover transitions — no
       motion-dependent affordances.
+- [ ] GitHub Issue and PR details use the same always-visible, backgroundless,
+      borderless trail treatment in WorkStation, Chat tabs, and Team Inbox.

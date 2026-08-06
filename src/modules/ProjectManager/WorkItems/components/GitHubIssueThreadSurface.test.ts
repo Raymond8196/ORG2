@@ -167,6 +167,25 @@ describe("mapGitHubIssueToThreadWorkItem", () => {
     );
   });
 
+  it("contributes semantic stops to the shared issue and work-item trail", () => {
+    const markup = renderToStaticMarkup(
+      React.createElement(GitHubIssueThreadSurface, {
+        issue,
+        timeline: [],
+        timelineLoading: false,
+        interaction: createInteraction(),
+      })
+    );
+
+    expect(markup).toContain("data-scroll-trail-target");
+    expect(markup).toContain(
+      'data-scroll-trail-label="Use one issue detail surface"'
+    );
+    expect(
+      markup.match(/data-scroll-trail-target/g)?.length
+    ).toBeGreaterThanOrEqual(4);
+  });
+
   it("toggles external assignees without duplicating login casing", () => {
     expect(toggleExternalAssigneeIds(["Ada", "Grace"], "ada")).toEqual([
       "Grace",

@@ -66,6 +66,16 @@ vi.mock("../../../hooks/useWorkstationPrDetail", () => ({
   }),
 }));
 
+vi.mock("@src/modules/shared/layouts/blocks", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@src/modules/shared/layouts/blocks")>();
+  return {
+    ...actual,
+    ScrollTrail: ({ testId }: { testId?: string }) =>
+      createElement("nav", { "data-testid": testId }),
+  };
+});
+
 vi.mock("./PrConversationTab", () => ({
   PrConversationTab: (
     props: Record<string, unknown> & { summary?: ReactNode }
@@ -184,6 +194,12 @@ describe("PrDetailPanel tabs", () => {
     expect(container.querySelector('[role="tabpanel"]')?.id).toBe(
       "pr-detail-tabpanel-changes"
     );
+    expect(
+      container.querySelector('[data-testid="pr-detail-navigation-rail"]')
+    ).not.toBeNull();
+    expect(
+      container.querySelector('[data-testid="pr-detail-navigation-trail"]')
+    ).not.toBeNull();
   });
 
   it("restores the per-PR sub-tab and nested selection after remount", () => {
