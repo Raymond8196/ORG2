@@ -160,6 +160,10 @@ export function useGitHubIssueDetailState({
     generation: number;
     promise: Promise<void>;
   } | null>(null);
+  const assigneeMutationRef = useRef<{
+    key: string;
+    generation: number;
+  } | null>(null);
 
   useEffect(() => {
     selectedIssueRef.current = selectedState.issue;
@@ -419,6 +423,15 @@ export function useGitHubIssueDetailState({
         return;
       }
 
+      const generation = requestGenerationRef.current;
+      if (
+        assigneeMutationRef.current?.key === requestKey &&
+        assigneeMutationRef.current.generation === generation
+      ) {
+        return;
+      }
+      assigneeMutationRef.current = { key: requestKey, generation };
+
       const previousAssignees = issue.assignees;
       const optimisticAssignees = resolveGitHubAssigneeUsers(
         previousAssignees,
@@ -431,7 +444,8 @@ export function useGitHubIssueDetailState({
           : current
       );
       setSelectedState((current) =>
-        current.issue?.number === issue.number
+        requestGenerationRef.current === generation &&
+        current.issue?.id === issue.id
           ? {
               ...current,
               issue: { ...current.issue, assignees: optimisticAssignees },
@@ -449,12 +463,14 @@ export function useGitHubIssueDetailState({
           throw new Error("GitHub did not apply the assignee update.");
         }
         setSelectedState((current) =>
-          current.issue?.number === issue.number
+          requestGenerationRef.current === generation &&
+          current.issue?.id === issue.id
             ? { ...current, issue: updatedIssue }
             : current
         );
         setResolution((current) =>
-          current?.key === requestKey
+          current?.key === requestKey &&
+          requestGenerationRef.current === generation
             ? {
                 ...current,
                 updatingAssignees: false,
@@ -465,7 +481,8 @@ export function useGitHubIssueDetailState({
         callbacks.refreshIssues?.();
       } catch (error) {
         setSelectedState((current) =>
-          current.issue?.number === issue.number
+          requestGenerationRef.current === generation &&
+          current.issue?.id === issue.id
             ? {
                 ...current,
                 issue: { ...current.issue, assignees: previousAssignees },
@@ -473,7 +490,8 @@ export function useGitHubIssueDetailState({
             : current
         );
         setResolution((current) =>
-          current?.key === requestKey
+          current?.key === requestKey &&
+          requestGenerationRef.current === generation
             ? {
                 ...current,
                 updatingAssignees: false,
@@ -482,6 +500,13 @@ export function useGitHubIssueDetailState({
               }
             : current
         );
+      } finally {
+        if (
+          assigneeMutationRef.current?.key === requestKey &&
+          assigneeMutationRef.current.generation === generation
+        ) {
+          assigneeMutationRef.current = null;
+        }
       }
     },
     [
