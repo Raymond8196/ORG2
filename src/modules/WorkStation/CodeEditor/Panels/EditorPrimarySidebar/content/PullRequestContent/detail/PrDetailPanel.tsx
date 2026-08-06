@@ -42,6 +42,7 @@ import {
   ScrollTrail,
 } from "@src/modules/shared/layouts/blocks";
 import { resolvePullRequestDetailStatus } from "@src/shared/pr/prLevelActions";
+import { getPrStatusVariant } from "@src/shared/pr/prStatus";
 import {
   type PrIdentity,
   workstationPrScopeKey,
@@ -192,6 +193,10 @@ export function PrDetailSummary({
     files.reduce((total, file) => total + file.deletions, 0);
   const commentCount = readNumber(detail, "comments") ?? conversationCount;
   const statusLabel = t(`git.pr.status.${identity.status}`, identity.status);
+  const statusColorClass = getPrStatusVariant(identity.status).dotClass.replace(
+    "bg-",
+    "text-"
+  );
 
   return (
     <section
@@ -274,13 +279,21 @@ export function PrDetailSummary({
 
         <div className="flex items-center gap-2 text-text-3">
           {identity.status === "merged" ? (
-            <GitMerge size={14} strokeWidth={1.75} />
+            <GitMerge
+              size={14}
+              strokeWidth={1.75}
+              className={statusColorClass}
+            />
           ) : (
-            <CircleDot size={14} strokeWidth={1.75} />
+            <CircleDot
+              size={14}
+              strokeWidth={1.75}
+              className={statusColorClass}
+            />
           )}
           <span>{t("git.pr.summary.status", "Status")}</span>
         </div>
-        <div className="capitalize text-text-1">{statusLabel}</div>
+        <div className={`capitalize ${statusColorClass}`}>{statusLabel}</div>
       </div>
     </section>
   );

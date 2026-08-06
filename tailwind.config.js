@@ -71,6 +71,7 @@ module.exports = {
         danger: colorScale("danger", COLOR_STEPS_6),
         success: colorScale("success", COLOR_STEPS_6),
         warning: colorScale("warning", COLOR_STEPS_6),
+        purple: colorScale("purple", COLOR_STEPS_7),
       },
       spacing: {
         180: "180px",

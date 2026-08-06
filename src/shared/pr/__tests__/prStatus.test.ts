@@ -44,8 +44,8 @@ describe("getPrStatusVariant", () => {
       dotClass: "bg-success-6",
     });
     expect(getPrStatusVariant("merged")).toEqual({
-      badgeClass: "bg-primary-1 text-primary-6",
-      dotClass: "bg-primary-6",
+      badgeClass: "bg-purple-1 text-purple-6",
+      dotClass: "bg-purple-6",
     });
     expect(getPrStatusVariant("closed")).toEqual({
       badgeClass: "bg-danger-1 text-danger-6",

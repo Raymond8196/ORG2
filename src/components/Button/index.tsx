@@ -10,6 +10,7 @@
  *                 "danger"    = destructive
  *                 "warning"   = caution-required
  *                 "success"   = positive confirmation
+ *                 "merged"    = completed GitHub merge
  *
  *   appearance  — visual treatment
  *                 "solid"   = filled background
@@ -39,7 +40,8 @@ export type ButtonVariant =
   | "tertiary"
   | "danger"
   | "warning"
-  | "success";
+  | "success"
+  | "merged";
 
 export type ButtonAppearance = "solid" | "outline" | "dashed" | "ghost";
 
@@ -153,6 +155,7 @@ function defaultAppearanceFor(variant: ButtonVariant): ButtonAppearance {
     case "danger":
     case "warning":
     case "success":
+    case "merged":
       return "solid";
     case "secondary":
       return "outline";
@@ -212,6 +215,13 @@ function getStyleClasses(variant: ButtonVariant, appearance: ButtonAppearance) {
         if (appearance === "dashed")
           return "border border-dashed border-success-6/50 bg-transparent text-success-6";
         return "border-0 bg-transparent text-success-6";
+      case "merged":
+        if (appearance === "solid") return "border-0 text-white bg-purple-6";
+        if (appearance === "outline")
+          return "border border-purple-6 bg-transparent text-purple-6";
+        if (appearance === "dashed")
+          return "border border-dashed border-purple-6/50 bg-transparent text-purple-6";
+        return "border-0 bg-transparent text-purple-6";
     }
   })();
 
@@ -226,6 +236,8 @@ function getStyleClasses(variant: ButtonVariant, appearance: ButtonAppearance) {
           return "enabled:hover:bg-warning-5 enabled:active:bg-warning-6";
         case "success":
           return "enabled:hover:bg-success-5 enabled:active:bg-success-6";
+        case "merged":
+          return "enabled:hover:bg-purple-5 enabled:active:bg-purple-7";
         case "secondary":
           return "enabled:hover:bg-fill-3";
         case "tertiary":
@@ -250,6 +262,8 @@ function getStyleClasses(variant: ButtonVariant, appearance: ButtonAppearance) {
         return "enabled:hover:text-warning-5";
       case "success":
         return "enabled:hover:text-success-5";
+      case "merged":
+        return "enabled:hover:text-purple-5";
       case "secondary":
         return "enabled:hover:text-text-1";
       case "tertiary":
@@ -395,6 +409,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           case "danger":
           case "warning":
           case "success":
+          case "merged":
             return "text-white";
           case "secondary":
             return "text-text-1";
@@ -411,6 +426,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           return "text-warning-6";
         case "success":
           return "text-success-6";
+        case "merged":
+          return "text-purple-6";
         case "secondary":
           return "text-text-1";
         case "tertiary":
@@ -420,10 +437,32 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     const splitDropdownStateClass = (() => {
       if (isDisabled) return "";
-      if (resolvedAppearance === "solid" && variant === "primary") {
-        return dropdownVisible
-          ? "bg-primary-5 enabled:hover:bg-primary-5"
-          : "enabled:hover:bg-primary-5";
+      if (resolvedAppearance === "solid") {
+        switch (variant) {
+          case "primary":
+            return dropdownVisible
+              ? "bg-primary-5 enabled:hover:bg-primary-5"
+              : "enabled:hover:bg-primary-5";
+          case "danger":
+            return dropdownVisible
+              ? "bg-danger-5 enabled:hover:bg-danger-5"
+              : "enabled:hover:bg-danger-5";
+          case "warning":
+            return dropdownVisible
+              ? "bg-warning-5 enabled:hover:bg-warning-5"
+              : "enabled:hover:bg-warning-5";
+          case "success":
+            return dropdownVisible
+              ? "bg-success-5 enabled:hover:bg-success-5"
+              : "enabled:hover:bg-success-5";
+          case "merged":
+            return dropdownVisible
+              ? "bg-purple-5 enabled:hover:bg-purple-5"
+              : "enabled:hover:bg-purple-5";
+          case "secondary":
+          case "tertiary":
+            break;
+        }
       }
       return "enabled:hover:bg-fill-3";
     })();

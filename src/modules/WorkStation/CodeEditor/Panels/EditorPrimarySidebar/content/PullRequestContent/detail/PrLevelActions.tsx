@@ -221,7 +221,7 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
     >
       <Button
         htmlType="button"
-        variant="success"
+        variant={presentation.status === "merged" ? "merged" : "success"}
         size="default"
         shape="round"
         icon={<GitMerge size={14} aria-hidden />}

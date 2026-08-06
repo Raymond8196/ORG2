@@ -13,7 +13,7 @@
  * tokens, the label key onto `t(...)`, and the icon name onto a real icon.
  *
  * Semantic colors per PR state (kept consistent across every surface):
- *   open → success (green), merged → primary, closed → danger (red),
+ *   open → success (green), merged → GitHub purple, closed → danger (red),
  *   draft → warning (amber), unknown → neutral.
  */
 import type { PrStatus } from "@src/api/http/project/types/agentWorkflow";
@@ -36,8 +36,8 @@ export type PrStatusIconName = "pull-request" | "merge" | "closed" | "draft";
 const PR_STATUS_VARIANTS: Record<string, PrStatusVariant> = {
   open: { badgeClass: "bg-success-1 text-success-6", dotClass: "bg-success-6" },
   merged: {
-    badgeClass: "bg-primary-1 text-primary-6",
-    dotClass: "bg-primary-6",
+    badgeClass: "bg-purple-1 text-purple-6",
+    dotClass: "bg-purple-6",
   },
   closed: { badgeClass: "bg-danger-1 text-danger-6", dotClass: "bg-danger-6" },
   draft: {
