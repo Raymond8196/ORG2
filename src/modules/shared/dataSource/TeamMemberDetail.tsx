@@ -1,8 +1,9 @@
 /**
  * Runtime → Team drilldown for one member: builder-profile card (axes +
  * confidence, reusing `AxisMeter` and the type-gallery card surface), a usage
- * range fetched via `getMemberUsage` and folded into the existing chart /
- * stat-card props, installed agents with labels, and machine details.
+ * daily range fetched via `getMemberUsage` (or the inline rolling-24h
+ * snapshot) and folded into the existing chart / stat-card props, installed
+ * agents with labels, and machine details.
  *
  * Rendered as a second layer over the roster (the `BuilderTypesPanel`
  * back-button idiom of this folder).
@@ -50,8 +51,8 @@ import { formatInt } from "./usageFormat";
 const SOURCE_ALL = "all";
 const UsageTrendChart = lazy(() => import("./UsageTrendChart"));
 
-const RANGE_OPTIONS = [7, 30, 90] as const;
-type MemberUsageRangeDays = (typeof RANGE_OPTIONS)[number];
+const RANGE_OPTIONS = ["24h", 7, 30, 90] as const;
+type MemberUsageRange = (typeof RANGE_OPTIONS)[number];
 
 interface TeamMemberDetailProps {
   entry: MemberRuntimeListEntry;
@@ -75,7 +76,7 @@ export default function TeamMemberDetail({
     keyPrefix: "kanban.dataSource",
   });
 
-  const [rangeDays, setRangeDays] = useState<MemberUsageRangeDays>(30);
+  const [usageRange, setUsageRange] = useState<MemberUsageRange>(7);
   const [bucket, setBucket] = useState<TeamUsageBucket | null>(null);
   const [days, setDays] = useState<MemberUsageDay[] | null>(null);
   const [range, setRange] = useState<{ fromDay: string; toDay: string } | null>(
@@ -97,12 +98,19 @@ export default function TeamMemberDetail({
   useEffect(() => {
     let cancelled = false;
     const seq = ++requestRef.current;
+    if (usageRange === "24h") {
+      setLoading(false);
+      setError(null);
+      return () => {
+        cancelled = true;
+      };
+    }
     void (async () => {
       setLoading(true);
       setError(null);
       try {
         const accessToken = await getFreshAccessToken();
-        const nextRange = memberUsageDayRange(Date.now(), rangeDays);
+        const nextRange = memberUsageDayRange(Date.now(), usageRange);
         const rows = await getMemberUsage(
           accessToken,
           orgId,
@@ -124,18 +132,42 @@ export default function TeamMemberDetail({
     return () => {
       cancelled = true;
     };
-  }, [entry.userId, orgId, rangeDays, retryNonce, getFreshAccessToken]);
+  }, [entry.userId, orgId, usageRange, retryNonce, getFreshAccessToken]);
+
+  const hourlySnapshot = entry.stats?.recentUsage24h ?? null;
+  const hourly = usageRange === "24h";
 
   const summary = useMemo(
-    () => (days ? foldMemberUsageSummary(days, bucket) : null),
-    [days, bucket]
+    () =>
+      hourly
+        ? (hourlySnapshot?.summary ?? null)
+        : days
+          ? foldMemberUsageSummary(days, bucket)
+          : null,
+    [bucket, days, hourly, hourlySnapshot]
   );
   const trendPoints = useMemo(
-    () => (days ? memberUsageDaysToTrendPoints(days, bucket) : []),
-    [days, bucket]
+    () =>
+      hourly
+        ? (hourlySnapshot?.trends ?? [])
+        : days
+          ? memberUsageDaysToTrendPoints(days, bucket)
+          : [],
+    [bucket, days, hourly, hourlySnapshot]
   );
-  const chartStartMs = range ? utcDayStartMs(range.fromDay) : null;
-  const chartEndMs = range ? utcDayStartMs(range.toDay) : null;
+  const chartStartMs = hourly
+    ? (hourlySnapshot?.startMs ?? null)
+    : range
+      ? utcDayStartMs(range.fromDay)
+      : null;
+  const chartEndMs = hourly
+    ? (hourlySnapshot?.endMs ?? null)
+    : range
+      ? utcDayStartMs(range.toDay)
+      : null;
+  const hasUsageData = hourly
+    ? hourlySnapshot !== null
+    : days !== null && days.length > 0;
 
   const bucketTabs = useMemo<TabPillItem[]>(
     () => [
@@ -151,9 +183,12 @@ export default function TeamMemberDetail({
     () =>
       RANGE_OPTIONS.map((preset) => ({
         value: String(preset),
-        label: t(`detail.range.${preset}`),
+        label:
+          preset === "24h"
+            ? tUsage("usage.range.24h")
+            : t(`detail.range.${preset}`),
       })),
-    [t]
+    [t, tUsage]
   );
 
   const displayName = entry.displayName ?? entry.userId;
@@ -256,31 +291,45 @@ export default function TeamMemberDetail({
       <div className="flex min-h-9 flex-wrap items-center justify-between gap-2">
         <h3 className={SECTION_SUBHEADING_CLASSES}>{t("detail.usageTitle")}</h3>
         <div className="flex min-w-0 items-center gap-2">
-          <TabPill
-            activeTab={bucket ?? SOURCE_ALL}
-            tabs={bucketTabs}
-            onChange={(key) =>
-              setBucket(key === SOURCE_ALL ? null : (key as TeamUsageBucket))
-            }
-            variant="pill"
-            size="mini"
-            colorScheme="ghost"
-            fillWidth={false}
-          />
-          <span
-            aria-hidden
-            className="pointer-events-none h-4 w-px shrink-0 bg-border-2"
-          />
+          {!hourly ? (
+            <>
+              <TabPill
+                activeTab={bucket ?? SOURCE_ALL}
+                tabs={bucketTabs}
+                onChange={(key) =>
+                  setBucket(
+                    key === SOURCE_ALL ? null : (key as TeamUsageBucket)
+                  )
+                }
+                variant="pill"
+                size="mini"
+                colorScheme="ghost"
+                fillWidth={false}
+              />
+              <span
+                aria-hidden
+                className="pointer-events-none h-4 w-px shrink-0 bg-border-2"
+              />
+            </>
+          ) : null}
           <Select
-            value={String(rangeDays)}
-            onChange={(value) =>
-              setRangeDays(
-                Number.parseInt(String(value), 10) as MemberUsageRangeDays
-              )
-            }
+            value={String(usageRange)}
+            onChange={(value) => {
+              const next = RANGE_OPTIONS.find(
+                (option) => String(option) === String(value)
+              );
+              if (next === undefined) return;
+              if (next === "24h") {
+                setBucket(null);
+                setUsageRange("24h");
+                return;
+              }
+              setUsageRange(next);
+            }}
             options={rangeOptions}
             variant="ghost"
             size="small"
+            dataTestId="team-member-usage-range"
           />
         </div>
       </div>
@@ -293,9 +342,9 @@ export default function TeamMemberDetail({
           subtitle={error}
           onRetry={() => setRetryNonce((nonce) => nonce + 1)}
         />
-      ) : loading || !summary ? (
+      ) : loading ? (
         <Placeholder variant="loading" placement="detail-panel" />
-      ) : days && days.length === 0 ? (
+      ) : !hasUsageData || !summary ? (
         <Placeholder
           variant="empty"
           placement="detail-panel"
@@ -311,7 +360,7 @@ export default function TeamMemberDetail({
           >
             <UsageTrendChart
               points={trendPoints}
-              hourly={false}
+              hourly={hourly}
               startMs={chartStartMs}
               endMs={chartEndMs}
               dataEndMs={chartEndMs}
