@@ -223,6 +223,13 @@ export class Org2CloudSessionSyncState {
     }));
   }
 
+  /** True when this device holds a replay cursor covering pushed events —
+   * the winner-side guard for superseded-continuation retraction. */
+  hasReplayPushed(orgId: string, sessionId: string): boolean {
+    const cursor = this.getCursor(orgId, sessionId);
+    return Boolean(cursor && cursor.pushedCount > 0);
+  }
+
   protected async computeFrozenChainHash(
     perEventHashes: string[],
     frozenEventCount: number
