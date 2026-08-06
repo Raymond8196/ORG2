@@ -9,6 +9,10 @@ const IMAGE_ATTR_RE = /([\w:-]+)\s*=\s*(["'])(.*?)\2/g;
 /** Fifteen lines at the GitHub timeline body's 20px line height. */
 export const MARKDOWN_CONTENT_PREVIEW_MAX_HEIGHT = 300;
 
+export type MarkdownContentFadeFrom =
+  | "from-primary-container"
+  | "from-chat-pane";
+
 function sanitizeMarkdownImageAlt(value: string): string {
   return value.split("[").join("").split("]").join("");
 }
@@ -35,6 +39,8 @@ export interface MarkdownContentProps {
   emptyText?: string;
   clamped?: boolean;
   maxHeight?: number;
+  /** Tailwind `from-*` class matching the surface behind the preview fade. */
+  fadeFrom?: MarkdownContentFadeFrom;
   className?: string;
 }
 
@@ -44,6 +50,7 @@ export const MarkdownContent = memo(function MarkdownContent({
   emptyText,
   clamped = true,
   maxHeight = MARKDOWN_CONTENT_PREVIEW_MAX_HEIGHT,
+  fadeFrom = "from-primary-container",
   className = "",
 }: MarkdownContentProps) {
   if (!body.trim()) {
@@ -67,11 +74,7 @@ export const MarkdownContent = memo(function MarkdownContent({
   if (!clamped) return content;
 
   return (
-    <ClampedContent
-      maxHeight={maxHeight}
-      fadeFrom="from-primary-container"
-      alwaysShowControl
-    >
+    <ClampedContent maxHeight={maxHeight} fadeFrom={fadeFrom} alwaysShowControl>
       {content}
     </ClampedContent>
   );

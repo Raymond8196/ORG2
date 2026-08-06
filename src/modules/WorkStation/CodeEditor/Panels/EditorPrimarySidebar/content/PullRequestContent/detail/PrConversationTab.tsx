@@ -35,11 +35,11 @@ import {
   MarkdownContent,
   TimelineCard,
   TimelineCardHeader,
+  TimelineLoadingSkeleton,
   TimelineStack,
 } from "@src/modules/shared/components/ActivityTimeline";
 import RichMarkdownEditor from "@src/modules/shared/components/RichMarkdownEditor";
 import type { RichMarkdownEditorRef } from "@src/modules/shared/components/RichMarkdownEditor";
-import { Placeholder } from "@src/modules/shared/layouts/blocks";
 import Modal from "@src/scaffold/ModalSystem";
 import type { PrIdentity } from "@src/store/workstation/codeEditor/workstationSelectedPrAtom";
 
@@ -334,16 +334,15 @@ export const PrConversationTab: React.FC<PrConversationTabProps> = ({
                       "git.pr.noDescription",
                       "No description provided."
                     )}
+                    fadeFrom="from-chat-pane"
                   />
                 </TimelineCard>
               </ConnectedTimelineItem>
 
               {loading && timeline.length === 0 ? (
                 <ConnectedTimelineItem isLast>
-                  <Placeholder
-                    variant="loading"
-                    placement="sidebar"
-                    title={t("git.pr.loadingConversation", "Loading…")}
+                  <TimelineLoadingSkeleton
+                    label={t("git.pr.loadingConversation", "Loading…")}
                   />
                 </ConnectedTimelineItem>
               ) : (
@@ -376,7 +375,10 @@ export const PrConversationTab: React.FC<PrConversationTabProps> = ({
                             />
                           }
                         >
-                          <MarkdownContent body={comment.body} />
+                          <MarkdownContent
+                            body={comment.body}
+                            fadeFrom="from-chat-pane"
+                          />
                         </TimelineCard>
                       </ConnectedTimelineItem>
                     );
@@ -407,7 +409,10 @@ export const PrConversationTab: React.FC<PrConversationTabProps> = ({
                         }
                       >
                         {review.body.trim() ? (
-                          <MarkdownContent body={review.body} />
+                          <MarkdownContent
+                            body={review.body}
+                            fadeFrom="from-chat-pane"
+                          />
                         ) : (
                           <div className="text-[12px] italic text-text-3">
                             {t("git.pr.reviewNoBody", "Left review comments.")}

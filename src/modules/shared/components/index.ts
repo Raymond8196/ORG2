@@ -13,6 +13,7 @@ export {
   TimelineCardHeader,
   TimelineCopyButton,
   TimelineEventCard,
+  TimelineLoadingSkeleton,
   TimelineStack,
 } from "./ActivityTimeline";
 export type { ActivityHeaderActionButtonProps } from "./ActivityTimeline";
