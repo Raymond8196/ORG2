@@ -12,6 +12,8 @@
     "recentLoading": "Geteilte Sessions werden geladen…",
     "recentEmpty": "Noch keine geteilten Sessions",
     "members": "Aufschlüsselung nach Mitglied",
+    "activeToday": "Heute aktiv",
+    "inactiveToday": "Heute inaktiv",
     "sync": "Sync"
   },
   "signedOut": {

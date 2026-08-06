@@ -703,7 +703,67 @@ describe("TeamRuntimePanel roster", () => {
     expect(weekLine?.textContent).toContain("3.5K");
   });
 
-  it("greys a card whose report is older than twice the org interval", async () => {
+  it("puts the title and refresh on one row and groups members by today's activity", async () => {
+    const yesterday = utcDayFromMs(Date.now() - 86_400_000);
+    mocks.listMemberRuntime.mockResolvedValue([
+      member({
+        userId: "active",
+        recentDays: [usageDay()],
+      }),
+      member({
+        userId: "zero-today",
+        recentDays: [
+          usageDay({
+            totalTokens: 0,
+            costUsd: 0,
+            sessions: 0,
+            requests: 0,
+          }),
+        ],
+      }),
+      member({
+        userId: "yesterday",
+        recentDays: [usageDay({ day: yesterday })],
+      }),
+    ]);
+    await seedAtoms(AUTH, [org()]);
+    await mount({ view: "members" });
+
+    const titleRow = container.querySelector(
+      '[data-testid="team-runtime-members-title-row"]'
+    );
+    expect(titleRow?.firstElementChild?.tagName).toBe("H3");
+    expect(titleRow?.textContent).toContain("overview.members");
+    expect(
+      titleRow?.querySelector('[data-testid="team-runtime-refresh"]')
+    ).not.toBeNull();
+    expect(
+      container.querySelectorAll('[data-testid="team-runtime-refresh"]')
+    ).toHaveLength(1);
+
+    const active = container.querySelector(
+      '[data-testid="team-runtime-active-today"]'
+    );
+    const inactive = container.querySelector(
+      '[data-testid="team-runtime-inactive-today"]'
+    );
+    expect(active?.textContent).toContain("overview.activeToday");
+    expect(
+      active?.querySelector('[data-testid="team-member-card-active"]')
+    ).not.toBeNull();
+    expect(
+      active?.querySelectorAll('[data-testid^="team-member-card-"]')
+    ).toHaveLength(1);
+    expect(inactive?.textContent).toContain("overview.inactiveToday");
+    expect(
+      inactive?.querySelector('[data-testid="team-member-card-zero-today"]')
+    ).not.toBeNull();
+    expect(
+      inactive?.querySelector('[data-testid="team-member-card-yesterday"]')
+    ).not.toBeNull();
+  });
+
+  it("keeps stale cards fully visible while preserving freshness metadata", async () => {
     mocks.listMemberRuntime.mockResolvedValue([
       member({ userId: "fresh" }),
       member({
@@ -731,8 +791,9 @@ describe("TeamRuntimePanel roster", () => {
     );
     expect(fresh?.getAttribute("data-stale")).toBe("false");
     expect(sleepy?.getAttribute("data-stale")).toBe("true");
-    expect(sleepy?.className).toContain("opacity-60");
+    expect(sleepy?.className).not.toContain("opacity-60");
     expect(silent?.getAttribute("data-stale")).toBe("true");
+    expect(silent?.className).not.toContain("opacity-60");
     expect(silent?.textContent).toContain("card.neverReported");
   });
 
@@ -821,6 +882,19 @@ describe("TeamRuntimePanel drilldown", () => {
     expect(points[0].bucketMs).toBe(utcDayStartMs(yesterday));
     expect(points[1].bucketMs).toBe(utcDayStartMs(today));
     expect(points[1].inputTokens).toBe(25);
+
+    const detailHeader = container.querySelector(
+      '[data-testid="team-member-detail-header"]'
+    );
+    expect(
+      detailHeader?.querySelector('[data-testid="team-member-back"]')
+    ).not.toBeNull();
+    expect(
+      detailHeader?.querySelector('[data-testid="team-runtime-refresh"]')
+    ).not.toBeNull();
+    expect(
+      container.querySelectorAll('[data-testid="team-runtime-refresh"]')
+    ).toHaveLength(1);
 
     // Member without a shared profile degrades gracefully.
     expect(

@@ -12,6 +12,8 @@
     "recentLoading": "Paylaşılan oturumlar yükleniyor…",
     "recentEmpty": "Henüz paylaşılan oturum yok",
     "members": "Üye dökümü",
+    "activeToday": "Bugün aktif",
+    "inactiveToday": "Bugün etkin değil",
     "sync": "Eşitleme"
   },
   "signedOut": {
