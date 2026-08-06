@@ -1,12 +1,14 @@
 /**
  * Runtime → organization → Today's analytical surface.
  *
- * Usage is folded from the roster's inline UTC-day aggregates. Recent
- * sessions are a read-only projection of the existing Team Sessions cache,
- * so this component owns no network request, timer, subscription, or cache.
+ * Headlines are folded from the roster's inline UTC-day aggregates; the
+ * rolling chart and member breakdown use its bounded `stats.recentUsage24h`
+ * snapshot. Recent sessions are a read-only projection of the existing Team
+ * Sessions cache, so this component owns no network request, timer,
+ * subscription, or cache.
  */
 import { MessageSquareText } from "lucide-react";
-import { type ReactNode, memo, useMemo } from "react";
+import { type ReactNode, Suspense, lazy, memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import Avatar from "@src/components/Avatar";
@@ -15,6 +17,7 @@ import type {
   MemberRuntimeListEntry,
   OrgRuntimeTelemetry,
 } from "@src/features/Org2Cloud/memberRuntime/types";
+import { MEMBER_RECENT_USAGE_WINDOW_MS } from "@src/features/Org2Cloud/memberRuntime/types";
 import type { CloudRemoteSessionsFetchState } from "@src/features/Org2Cloud/org2CloudRemoteSessionsAtom";
 import {
   SECTION_SUBHEADING_CLASSES,
@@ -24,6 +27,7 @@ import type { RemoteTeammateSessionMetadata } from "@src/store/collaboration/typ
 import { formatRelativeTime } from "@src/util/time/formatRelativeTime";
 
 import {
+  aggregateMemberRecentUsageTrends,
   buildOrgRuntimeTodaySnapshot,
   recentSharedSessions,
 } from "./teamRuntimeData";
@@ -37,6 +41,7 @@ import {
 
 const ALL_MEMBERS = "all";
 const RECENT_SESSION_LIMIT = 5;
+const UsageTrendChart = lazy(() => import("./UsageTrendChart"));
 
 interface TodayMetricProps {
   label: string;
@@ -134,6 +139,29 @@ function TeamRuntimeToday({
       ),
     [snapshot.usage.byBucket]
   );
+  const usageStartMs = nowMs - MEMBER_RECENT_USAGE_WINDOW_MS;
+  const usageTrendPoints = useMemo(
+    () => aggregateMemberRecentUsageTrends(scopedMembers, usageStartMs, nowMs),
+    [scopedMembers, usageStartMs, nowMs]
+  );
+  const memberUsage = useMemo(
+    () =>
+      members
+        .map((member) => ({
+          member,
+          summary: member.stats?.recentUsage24h?.summary ?? null,
+        }))
+        .sort((left, right) => {
+          const tokenDelta =
+            (right.summary?.realTotalTokens ?? 0) -
+            (left.summary?.realTotalTokens ?? 0);
+          if (tokenDelta !== 0) return tokenDelta;
+          return (left.member.displayName ?? left.member.userId).localeCompare(
+            right.member.displayName ?? right.member.userId
+          );
+        }),
+    [members]
+  );
 
   const systemSecondary = [
     snapshot.averageCpuPercent == null
@@ -226,6 +254,91 @@ function TeamRuntimeToday({
         </span>
         {systemSecondary ? <span>{systemSecondary}</span> : null}
       </div>
+
+      <section
+        className="flex min-w-0 flex-col gap-3"
+        data-testid="team-runtime-usage-trend"
+      >
+        <div className="flex items-center justify-between gap-3">
+          <h3 className={SECTION_SUBHEADING_CLASSES}>
+            {tUsage("usage.trends.title")}
+          </h3>
+          <span className="shrink-0 text-xs text-text-3">
+            {tUsage("usage.range.24h")}
+          </span>
+        </div>
+        <Suspense
+          fallback={<div aria-hidden className="h-72 rounded-xl bg-fill-1" />}
+        >
+          <UsageTrendChart
+            points={usageTrendPoints}
+            hourly
+            startMs={usageStartMs}
+            endMs={nowMs}
+            dataEndMs={nowMs}
+            language={language}
+          />
+        </Suspense>
+      </section>
+
+      <section
+        className="flex min-w-0 flex-col gap-3"
+        data-testid="team-runtime-member-usage"
+      >
+        <div className="flex items-center justify-between gap-3">
+          <h3 className={SECTION_SUBHEADING_CLASSES}>
+            {t("overview.members")}
+          </h3>
+          <span className="shrink-0 text-xs text-text-3">
+            {tUsage("usage.range.24h")}
+          </span>
+        </div>
+        <SectionContainer>
+          {memberUsage.length === 0 ? (
+            <div className="px-4 py-8 text-center text-sm text-text-3">
+              {t("detail.usageEmpty")}
+            </div>
+          ) : (
+            memberUsage.map(({ member, summary }) => {
+              const displayName = member.displayName ?? member.userId;
+              const selected = selectedMemberId === member.userId;
+              return (
+                <button
+                  key={member.userId}
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() =>
+                    onSelectMember(selected ? null : member.userId)
+                  }
+                  className={`flex w-full items-center gap-3 border-b border-border-1 px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-fill-1 ${
+                    selected ? "bg-fill-1" : ""
+                  }`}
+                  data-testid={`team-runtime-member-usage-${member.userId}`}
+                >
+                  <Avatar size={28} src={member.avatarUrl ?? undefined}>
+                    {displayName.slice(0, 1).toUpperCase()}
+                  </Avatar>
+                  <span className="min-w-0 flex-1 truncate text-sm text-text-2">
+                    {displayName}
+                  </span>
+                  <span className="shrink-0 text-right text-xs text-text-3">
+                    {summary ? (
+                      <>
+                        <span className="font-medium text-text-1">
+                          {formatTokensShort(summary.realTotalTokens)}
+                        </span>{" "}
+                        · {formatUsd(summary.costUsd, 2)}
+                      </>
+                    ) : (
+                      "—"
+                    )}
+                  </span>
+                </button>
+              );
+            })
+          )}
+        </SectionContainer>
+      </section>
 
       <div className="grid grid-cols-1 gap-4 @[720px]:grid-cols-2">
         <section className="flex min-w-0 flex-col gap-3">
