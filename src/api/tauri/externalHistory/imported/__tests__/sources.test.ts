@@ -139,6 +139,13 @@ describe("imported history source registry", () => {
     }
   });
 
+  it("enables bounded cloud replay only for providers with exact turn seeks", () => {
+    const capable = IMPORTED_HISTORY_SOURCES.filter(
+      (source) => source.loadCloudTurnIds && source.loadCloudTurnWindows
+    ).map((source) => source.sourceId);
+    expect(capable).toEqual(["cursor_ide", "codex_app", "claude_code"]);
+  });
+
   it("resolves source metadata by session id prefix", () => {
     expect(
       getImportedHistorySourceBySessionId("codexapp-rollout-1")?.sourceId

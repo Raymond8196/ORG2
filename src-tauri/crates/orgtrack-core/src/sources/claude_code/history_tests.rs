@@ -133,6 +133,23 @@ fn byte_index_discovers_rounds_without_parsing_tool_result_bodies() {
     assert!(!rendered.contains("third"));
     assert!(!rendered.contains(&large_output));
 
+    let full = load_claude_code_history_from_path("claudecodeapp-window", &path)
+        .expect("load full transcript");
+    let turn_ids = indexed
+        .iter()
+        .map(|turn| claude_window_turn_id(turn.start_offset))
+        .collect::<Vec<_>>();
+    let cloud =
+        load_claude_code_cloud_turn_windows_from_path("claudecodeapp-window", &path, &turn_ids, 0)
+            .expect("load exact cloud turns")
+            .into_iter()
+            .flat_map(|window| window.chunks)
+            .collect::<Vec<_>>();
+    assert_eq!(
+        serde_json::to_value(cloud).expect("serialize cloud chunks"),
+        serde_json::to_value(full).expect("serialize full chunks")
+    );
+
     // Body-size surrogate: round 1 is followed by tool_use + tool_result +
     // text (3 lines); rounds 2 and 3 by one assistant line each. Placeholder
     // rounds surface these as bodyEventCount — without them the flat-view

@@ -610,6 +610,24 @@ pub fn load_turn_window_for_session(
     })
 }
 
+pub fn load_turn_ids_for_session(session_id: &str) -> Result<Vec<String>, String> {
+    let composer_id = strip_session_prefix(session_id);
+    let Some(cursor_conn) = open_cursor_db() else {
+        return Ok(Vec::new());
+    };
+    let composer = load_composer_for_order(&cursor_conn, composer_id)?;
+    let order = load_complete_bubble_order(
+        &cursor_conn,
+        composer_id,
+        &composer.full_conversation_headers_only,
+    )?;
+    Ok(order
+        .into_iter()
+        .filter(|header| header.bubble_type == CURSOR_BUBBLE_TYPE_USER)
+        .map(|header| header.bubble_id)
+        .collect())
+}
+
 #[cfg(test)]
 #[path = "history_tests.rs"]
 mod tests;

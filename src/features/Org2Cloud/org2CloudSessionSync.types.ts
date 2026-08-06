@@ -5,6 +5,7 @@
  */
 import type { SessionEvent } from "@src/engines/SessionCore/core/types";
 
+import type { ImportedReplayCheckpoint } from "./org2CloudSyncAtoms";
 import * as org2CloudSyncClient from "./org2CloudSyncClient";
 
 /** Client seam so tests inject fetch-free fakes. */
@@ -25,14 +26,24 @@ export type Org2CloudSyncClientDeps = Pick<
 
 export interface PreparedPushPlan {
   perEventHashes: string[];
+  frozenHashMode: "flat-v1" | "merkle-v1";
+  /** Absolute event count, including any validated omitted prefix. */
+  totalEventCount: number;
+  /** Absolute frozen line, including any validated omitted prefix. */
   frozenEventCount: number;
+  /** Frozen line within `PreparedPushEvents.events`. */
+  localFrozenEventCount: number;
   tailEvents: SessionEvent[];
   tailHash: string | null;
   frozenChainHash: string;
+  importedReplay?: ImportedReplayCheckpoint;
 }
 
 export interface PreparedPushEvents {
   stampAtRead: number;
+  mode: "full" | "incremental";
+  /** Absolute count of validated events omitted from `events`. */
+  baseEventCount: number;
   events: SessionEvent[];
   plan(): Promise<PreparedPushPlan>;
 }
