@@ -11,10 +11,7 @@ import { useAppNavigation } from "@src/hooks/navigation/useAppNavigation";
 import { useSessionView } from "@src/hooks/ui/tabs/useSessionView";
 import { teamInboxUnreadCountAtom } from "@src/modules/MainApp/TeamInbox/store";
 import { useTeamInboxDataSource } from "@src/modules/MainApp/TeamInbox/useTeamInboxDataSource";
-import {
-  DeveloperTestPanelSlot,
-  isDeveloperTestPanelEnabled,
-} from "@src/scaffold/DeveloperTestPanel";
+import { isDeveloperTestPanelEnabled } from "@src/scaffold/DeveloperTestPanel";
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
 import {
   activeSessionCreatorDraftIdAtom,
@@ -798,7 +795,6 @@ export const WorkstationSidebarConnector: React.FC = () => {
             searchLabel={tCommon("actions.search")}
           />
         }
-        beforeAddNewActions={<DeveloperTestPanelSlot />}
         search={{
           value: sidebarSearchQueries[activeSidebarSearchKey],
           filterValue:
