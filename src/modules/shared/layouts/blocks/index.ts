@@ -40,6 +40,17 @@ export {
 export { SESSION_HISTORY_LIST_TOKENS } from "./sessionHistoryListTokens";
 export { default as ScrollFadeContainer } from "./ScrollFadeContainer";
 export { default as ScrollPreservation } from "./ScrollPreservation";
+export {
+  default as ScrollTrail,
+  MAX_SCROLL_TRAIL_MARKERS,
+  SCROLL_TRAIL_TARGET_SELECTOR,
+  ScrollTrailTarget,
+  getScrollTrailMarkerWidthClass,
+  normalizeScrollTrailLabel,
+  resolveActiveScrollTrailIndex,
+  sampleScrollTrailIndices,
+} from "./ScrollTrail";
+export type { ScrollTrailProps, ScrollTrailTargetProps } from "./ScrollTrail";
 export type { ScrollPreservationProps } from "./ScrollPreservation";
 export type { ScrollFadeContainerProps } from "./ScrollFadeContainer";
 export { SCROLL_FADE_TOKENS } from "../tokens/scrollFadeTokens";

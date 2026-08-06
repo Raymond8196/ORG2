@@ -24,6 +24,7 @@ import RichMarkdownEditor from "@src/modules/shared/components/RichMarkdownEdito
 import {
   DetailPanelContainer,
   PanelFooter,
+  ScrollTrailTarget,
   SessionTable,
   type SessionTableItem,
 } from "@src/modules/shared/layouts/blocks";
@@ -452,6 +453,14 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
           !isGitHubWorkItem ||
           (!githubTimelineLoading && githubTimeline.length === 0)
         }
+        trailLabel={
+          isThread
+            ? workItem.name ||
+              t("common:labels.description", {
+                defaultValue: "Description",
+              })
+            : undefined
+        }
       >
         <TimelineCard
           copyBody={normalizedRawDescription}
@@ -582,6 +591,7 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
         <IssueTimelineItems
           timeline={githubTimeline}
           timelineLoading={githubTimelineLoading}
+          navigationEnabled={isThread}
         />
       ) : null}
     </TimelineStack>
@@ -711,8 +721,22 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
 
   const threadLowerSection = (
     <>
-      {sectionPolicy.showInlineWorkflow ? agentWorkflow : null}
-      {sectionPolicy.showInlineOutput ? outputContent : null}
+      {sectionPolicy.showInlineWorkflow ? (
+        <ScrollTrailTarget
+          enabled={isThread}
+          label={t("workItems.agentWorkflow.title")}
+        >
+          {agentWorkflow}
+        </ScrollTrailTarget>
+      ) : null}
+      {sectionPolicy.showInlineOutput ? (
+        <ScrollTrailTarget
+          enabled={isThread}
+          label={t("common:labels.output", { defaultValue: "Output" })}
+        >
+          {outputContent}
+        </ScrollTrailTarget>
+      ) : null}
     </>
   );
 
@@ -723,26 +747,36 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
           <>
             {handoffNotice}
             {descriptionSection}
-            {todosSection}
+            <ScrollTrailTarget label={t("workItems.todos.title")}>
+              {todosSection}
+            </ScrollTrailTarget>
             {threadLowerSection}
             {isGitHubWorkItem && githubIssueInteraction ? (
-              <GitHubIssueComposer interaction={githubIssueInteraction} />
-            ) : (
-              <nav
-                className="flex min-h-8 items-center justify-end"
-                aria-label={t("workItems.activity.discussionTitle")}
-                data-testid="work-item-thread-secondary-navigation"
+              <ScrollTrailTarget
+                label={t("common:git.issues.composer.addComment")}
               >
-                <WorkItemThreadViewAction
-                  activeView="overview"
-                  onChange={(view) =>
-                    setThreadViewSelection({
-                      workItemId: workItem.session_id,
-                      view,
-                    })
-                  }
-                />
-              </nav>
+                <GitHubIssueComposer interaction={githubIssueInteraction} />
+              </ScrollTrailTarget>
+            ) : (
+              <ScrollTrailTarget
+                label={t("workItems.activity.discussionTitle")}
+              >
+                <nav
+                  className="flex min-h-8 items-center justify-end"
+                  aria-label={t("workItems.activity.discussionTitle")}
+                  data-testid="work-item-thread-secondary-navigation"
+                >
+                  <WorkItemThreadViewAction
+                    activeView="overview"
+                    onChange={(view) =>
+                      setThreadViewSelection({
+                        workItemId: workItem.session_id,
+                        view,
+                      })
+                    }
+                  />
+                </nav>
+              </ScrollTrailTarget>
             )}
           </>
         ) : (

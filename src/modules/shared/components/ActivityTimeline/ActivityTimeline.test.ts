@@ -203,6 +203,22 @@ describe("activity timeline", () => {
     expect(connector?.nextElementSibling?.className).toContain("z-10");
   });
 
+  it("can expose a bounded semantic stop to an owning scroll trail", () => {
+    act(() => {
+      root.render(
+        createElement(
+          ConnectedTimelineItem,
+          { trailLabel: `Issue update ${"x".repeat(140)}` },
+          createElement("span", null, "Update")
+        )
+      );
+    });
+
+    const item = container.firstElementChild;
+    expect(item?.hasAttribute("data-scroll-trail-target")).toBe(true);
+    expect(item?.getAttribute("data-scroll-trail-label")).toHaveLength(120);
+  });
+
   it("uses one actor/action/timestamp header contract", () => {
     const timestamp = "2026-07-21T12:00:00Z";
 

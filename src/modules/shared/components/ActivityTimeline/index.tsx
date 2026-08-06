@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 
 import Button, { type ButtonProps } from "@src/components/Button";
 import { useCopyCheck } from "@src/hooks/ui";
+import { normalizeScrollTrailLabel } from "@src/modules/shared/layouts/blocks/ScrollTrail";
 import { copyText } from "@src/util/data/clipboard";
 import {
   formatDate,
@@ -157,12 +158,20 @@ export function TimelineStack({
 export function ConnectedTimelineItem({
   children,
   isLast,
+  trailLabel,
 }: {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   isLast?: boolean;
+  trailLabel?: string;
 }): React.ReactNode {
   return (
-    <div className="relative flex min-w-0 flex-col">
+    <div
+      className="relative flex min-w-0 flex-col"
+      data-scroll-trail-target={trailLabel ? true : undefined}
+      data-scroll-trail-label={
+        trailLabel ? normalizeScrollTrailLabel(trailLabel) : undefined
+      }
+    >
       {!isLast ? (
         <div
           className="pointer-events-none absolute bottom-0 left-5 top-5 border-l border-border-1"
