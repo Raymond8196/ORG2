@@ -22,6 +22,10 @@ import { getSessionSearchText } from "@src/util/session/sessionSearch";
 import { isPrimarySessionListSession } from "@src/util/session/sessionVisibility";
 
 import {
+  continuationLineagesForRevealedSessions,
+  isRosterSiblingOfRevealedContinuation,
+} from "./continuationVisibility";
+import {
   DEFAULT_GROUP_VISIBLE_COUNT,
   type DateGroupKey,
 } from "./dateGroupingHelpers";
@@ -243,12 +247,26 @@ export function useSessionMenuItems({
     () => createSidebarRosterMatcher(pagination),
     [pagination]
   );
+  const revealedContinuationLineages = useMemo(
+    () =>
+      continuationLineagesForRevealedSessions(
+        sortedSessions,
+        revealedSessionIds
+      ),
+    [revealedSessionIds, sortedSessions]
+  );
 
   const visibleSessions = useMemo(
     () =>
       sortedSessions.filter((session) => {
         const explicitlyRevealed = revealedSessionIds.has(session.session_id);
+        const hiddenRosterSibling = isRosterSiblingOfRevealedContinuation(
+          session,
+          revealedSessionIds,
+          revealedContinuationLineages
+        );
         return (
+          !hiddenRosterSibling &&
           isPrimarySessionListSession(session) &&
           (explicitlyRevealed ||
             (isInSidebarRoster(session) &&
@@ -269,6 +287,7 @@ export function useSessionMenuItems({
       includeExternal,
       isInSidebarRoster,
       revealedSessionIds,
+      revealedContinuationLineages,
       selectedOrgIds,
       sortedSessions,
     ]

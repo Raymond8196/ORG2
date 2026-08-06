@@ -4,7 +4,7 @@
 //! converts them into ORGII's canonical `ActivityChunk` shape for read-only
 //! replay.
 
-use std::collections::{BTreeSet, HashMap, HashSet};
+use std::collections::{BTreeSet, HashMap, HashSet, VecDeque};
 use std::fs;
 use std::io::{BufRead, BufReader, Read, Seek, SeekFrom};
 use std::path::{Path, PathBuf};
@@ -38,7 +38,10 @@ const CLAUDE_CODE_PROVIDER_SLUG: &str = "claudecode";
 // v10: harness-injected user lines (isMeta, task-notification origin) no
 // longer open rounds or feed the first-prompt title; user image blocks
 // surface as data-URL attachments on the user bubble.
-const CLAUDE_CODE_METADATA_PARSER_VERSION: i64 = 10;
+// v11: capture compact-boundary ancestry markers so continuation families
+// survive Claude Code rewriting the first user message during compaction.
+const CLAUDE_CODE_METADATA_PARSER_VERSION: i64 = 11;
+const MAX_COMPACT_BOUNDARY_MARKERS: usize = imported_cache::MAX_CONTINUATION_MARKERS - 1;
 
 pub type ClaudeCodeHistorySessionRow = ImportedHistorySessionRow;
 pub type ClaudeCodeHistorySessionPage = ImportedHistorySessionPage;
@@ -74,6 +77,9 @@ struct ClaudeCodeHistoryMeta {
     /// field, but message uuids are preserved — so this is a stable group key
     /// uniting a conversation's continuation siblings for dedupe.
     first_user_uuid: Option<String>,
+    /// Compact-boundary uuids retained by continuation rewrites. Together
+    /// with `first_user_uuid` these form a bounded ancestry marker set.
+    continuation_markers: Vec<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -81,6 +87,8 @@ struct ClaudeCodeHistoryMeta {
 struct ClaudeJsonlLine {
     #[serde(default)]
     r#type: String,
+    #[serde(default)]
+    subtype: String,
     #[serde(default)]
     summary: String,
     /// `ai-title` records: the auto-generated title shown in the Claude Code app.
@@ -969,6 +977,9 @@ struct ClaudeSessionMetaState {
     // same way Codex does, instead of listing it as a top-level session.
     parent_source_session_id: Option<String>,
     first_user_uuid: Option<String>,
+    /// Keep the newest compact boundaries; the first-user marker consumes the
+    /// remaining slot in the 64-marker cache metadata budget.
+    compact_boundary_uuids: VecDeque<String>,
 }
 
 impl ClaudeSessionMetaState {
@@ -1045,6 +1056,22 @@ impl ClaudeSessionMetaState {
             && !parsed.uuid.trim().is_empty()
         {
             self.first_user_uuid = Some(parsed.uuid.trim().to_string());
+        }
+        if parsed.r#type == "system"
+            && parsed.subtype == "compact_boundary"
+            && !parsed.uuid.trim().is_empty()
+        {
+            let marker = parsed.uuid.trim();
+            if !self
+                .compact_boundary_uuids
+                .iter()
+                .any(|existing| existing == marker)
+            {
+                if self.compact_boundary_uuids.len() >= MAX_COMPACT_BOUNDARY_MARKERS {
+                    self.compact_boundary_uuids.pop_front();
+                }
+                self.compact_boundary_uuids.push_back(marker.to_string());
+            }
         }
         let harness_injected = is_harness_injected_user_line(&parsed);
         if let Some(message) = parsed.message {
@@ -1187,6 +1214,7 @@ impl ClaudeSessionMetaState {
                 .parent_source_session_id
                 .map(|uuid| format!("{CLAUDE_CODE_SESSION_PREFIX}{uuid}")),
             first_user_uuid: self.first_user_uuid,
+            continuation_markers: self.compact_boundary_uuids.into_iter().collect(),
         })
     }
 }
@@ -1300,8 +1328,9 @@ fn session_meta_to_cache_input(meta: ClaudeCodeHistoryMeta) -> ImportedHistoryCa
         branch: meta.branch,
         impact: meta.impact,
         listable: true,
-        source_metadata_json: imported_cache::continuation_group_metadata_json(
+        source_metadata_json: imported_cache::continuation_metadata_json(
             meta.first_user_uuid.as_deref(),
+            &meta.continuation_markers,
         ),
         parent_session_id: meta.parent_session_id,
     }

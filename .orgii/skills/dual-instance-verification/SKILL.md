@@ -122,7 +122,24 @@ actions in the background, invisible to every existing cell.
   a local source DB mid-run (hollow read), block the identity endpoint
   (lookup failure), kill the app mid-transfer (partial persist). The guard
   under test must defer/refuse — any destructive act under injected fault is
-  a failure.
+  a failure. When the change ADDS a fault point (a new read, probe, or IPC
+  call), inject THAT fault — the rotation list only covers yesterday's
+  failure modes.
+- **Upgrade cell: persisted state must cross the version boundary.** Any
+  change that reads durable state written by earlier builds (push cursors,
+  cache metadata, parser output, settings) gets one cell where the OLD build
+  writes the state and the NEW build operates on it: run a pre-change binary
+  (a dated `org2-main.exe` or a develop build) through the flow first, then
+  swap binaries over the SAME homes and continue. Assert the new build rides
+  the ordinary incremental path — no epoch rewrite, no refuse, no silent
+  re-derive — and that a second cycle (new build writes, new build reads)
+  is idempotent. A fresh-anchor test with only the new binary proves nothing
+  about migration: PR #692's costliest bug (every legacy flat cursor forced
+  an O(total) epoch rewrite) was invisible to every run that built its state
+  with the new code. Second-order cycles count too: state the new build
+  STAMPS must survive the new build's own next scan/rescan before the
+  invariant is real (PR #693's lineage stamp was erased by the very next
+  rescan's metadata rewrite).
 - **Unexplained delta becomes a cell.** The first ledger delta, log line,
   resource pattern, or store-vs-UI discrepancy without a mechanism-level
   explanation is promoted to a scenario in the CURRENT run — not noted for
@@ -228,6 +245,12 @@ rollover or the window silently truncates.
   boot, and positional chunk ids turned the shuffle into a fresh hash chain
   each time. Within one app lifetime everything looked stable; only
   boot-vs-boot comparison of push decisions could see it. (#608 root cause.)
+- **Fresh-state runs cannot see migration bugs**: every cell that builds its
+  own state with the binary under test samples only the post-change state
+  space. Bugs that live in the TRANSITION — legacy cursor meets new hash
+  mode, old parser rows meet new election, stamped metadata meets the next
+  rescan — need the upgrade cell above. The tell is a verification report
+  whose every artifact was created during the run itself.
 - **"Pre-existing" used as a verdict**: a symptom reproduces on baseline, is
   correctly cleared of THIS PR's authorship, and is then silently cleared of
   being a bug at all — because the run's attention is scoped to the PR, and

@@ -44,7 +44,11 @@ vi.mock("../persistence", () => ({
   persistSessions: mocks.persistSessions,
 }));
 
-function makeRow(sessionId: string, updatedAt: string) {
+function makeRow(
+  sessionId: string,
+  updatedAt: string,
+  continuationLineageId?: string
+) {
   return {
     sessionId,
     name: sessionId,
@@ -52,6 +56,7 @@ function makeRow(sessionId: string, updatedAt: string) {
     updatedAt,
     repoPath: "/tmp/project",
     storagePath: `/tmp/store/${sessionId}.jsonl`,
+    continuationLineageId,
   };
 }
 
@@ -86,7 +91,13 @@ describe("loadSidebarSessions", () => {
                   bucket: "older",
                   sessions:
                     source.sourceId === "codex_app"
-                      ? [makeRow("codexapp-healthy", "2026-07-01T00:00:00Z")]
+                      ? [
+                          makeRow(
+                            "codexapp-healthy",
+                            "2026-07-01T00:00:00Z",
+                            "continuation-root"
+                          ),
+                        ]
                       : [],
                   hasMore: false,
                 },
@@ -105,6 +116,12 @@ describe("loadSidebarSessions", () => {
     expect(pagination?.["external_history:codex_app"].sessionIds).toEqual([
       "codexapp-healthy",
     ]);
+    expect(
+      mocks.store
+        ?.get(sessionsAtom)
+        .find((session) => session.session_id === "codexapp-healthy")
+        ?.continuationLineageId
+    ).toBe("continuation-root");
   });
 
   it("does not publish an authoritative empty page when the whole batch rejects", async () => {
