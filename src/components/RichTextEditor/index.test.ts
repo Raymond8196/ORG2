@@ -32,10 +32,20 @@ vi.mock("@tiptap/react", () => ({
 }));
 
 vi.mock("./FloatingToolbar", () => ({
-  FloatingToolbar: ({ placement }: { placement?: string }) =>
+  FloatingToolbar: ({
+    placement,
+    size,
+    dropdownPosition,
+  }: {
+    placement?: string;
+    size?: string;
+    dropdownPosition?: string;
+  }) =>
     createElement("div", {
       role: "toolbar",
       "data-placement": placement,
+      "data-size": size,
+      "data-dropdown-position": dropdownPosition,
     }),
 }));
 
@@ -127,5 +137,25 @@ describe("RichTextEditor scroll containment", () => {
         .querySelector(".rich-text-editor")
         ?.classList.contains("rich-text-editor-scroll-contained")
     ).toBe(false);
+  });
+
+  it("forwards the requested toolbar control size", () => {
+    act(() => {
+      root.render(
+        createElement(RichTextEditor, {
+          toolbarMode: "inline",
+          toolbarSize: "mini",
+          toolbarDropdownPosition: "top-start",
+        })
+      );
+    });
+
+    expect(
+      container.querySelector<HTMLElement>("[role='toolbar']")?.dataset.size
+    ).toBe("mini");
+    expect(
+      container.querySelector<HTMLElement>("[role='toolbar']")?.dataset
+        .dropdownPosition
+    ).toBe("top-start");
   });
 });

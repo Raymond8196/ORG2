@@ -23,6 +23,8 @@ const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>(
       className = "",
       toolbarClassName = "",
       toolbarMode = "floating",
+      toolbarSize = "small",
+      toolbarDropdownPosition = "bottom-start",
       minHeight = 120,
       maxHeight,
       onImageInsert,
@@ -122,6 +124,8 @@ const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>(
               onImageInsert ? () => fileInputRef.current?.click() : undefined
             }
             className={toolbarClassName}
+            size={toolbarSize}
+            dropdownPosition={toolbarDropdownPosition}
           />
         )}
         {toolbarMode === "floating" && showToolbar && (
@@ -132,6 +136,8 @@ const RichTextEditor = forwardRef<RichTextEditorRef, RichTextEditorProps>(
               onImageInsert ? () => fileInputRef.current?.click() : undefined
             }
             className={toolbarClassName}
+            size={toolbarSize}
+            dropdownPosition={toolbarDropdownPosition}
           />
         )}
         <EditorContent editor={editor} className="rich-text-editor-wrapper" />

@@ -1,3 +1,4 @@
+import type { TFunction } from "i18next";
 import {
   CircleDot,
   GitMerge,
@@ -22,7 +23,6 @@ import {
   DROPDOWN_WIDTHS,
 } from "@src/components/Dropdown/tokens";
 import Message from "@src/components/Message";
-import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import {
   presentPullRequestActions,
   readRequestedReviewers,
@@ -47,6 +47,50 @@ interface PrLevelActionsProps {
   ) => Promise<void>;
   onStateChange: (state: "open" | "closed") => Promise<void>;
   onRequestedReviewersChange: (reviewers: string[]) => Promise<void>;
+}
+
+const ACTION_LABEL_KEYS: Record<string, string> = {
+  "Merge pull request": "merge",
+  "Squash and merge": "squash",
+  "Rebase and merge": "rebase",
+  "Enable auto-merge": "enableAutoMerge",
+  "Merge when ready": "mergeWhenReady",
+  "Disable auto-merge": "disableAutoMerge",
+  "Remove from merge queue": "removeFromMergeQueue",
+  Merged: "merged",
+  Closed: "closed",
+  Draft: "draft",
+  "In merge queue": "inMergeQueue",
+  "Approval required": "approvalRequired",
+  "Changes requested": "changesRequested",
+  "Resolve conflicts": "resolveConflicts",
+  "Checks failed": "checksFailed",
+  "Checks pending": "checksPending",
+  "Merge blocked": "mergeBlocked",
+};
+
+const ACTION_TOOLTIP_KEYS: Record<string, string> = {
+  "Merge this pull request on GitHub": "merge",
+  "This pull request is already merged": "alreadyMerged",
+  "Reopen this pull request before merging": "reopenBeforeMerging",
+  "Mark this pull request ready for review before merging": "markReady",
+  "GitHub will merge this pull request through the merge queue": "mergeQueue",
+  "GitHub requires review approval before merging": "approvalRequired",
+  "Requested changes must be resolved before merging": "changesRequested",
+  "Resolve merge conflicts before merging": "resolveConflicts",
+  "Required checks must pass before merging": "checksFailed",
+  "Wait for required checks or enable auto-merge": "checksPending",
+  "GitHub reports unmet merge requirements": "mergeBlocked",
+};
+
+function localizedActionLabel(t: TFunction, label: string): string {
+  const key = ACTION_LABEL_KEYS[label];
+  return key ? t(`git.pr.actions.${key}`, label) : label;
+}
+
+function localizedActionTooltip(t: TFunction, tooltip: string): string {
+  const key = ACTION_TOOLTIP_KEYS[tooltip];
+  return key ? t(`git.pr.actions.tooltips.${key}`, tooltip) : tooltip;
 }
 
 export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
@@ -186,10 +230,7 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
               onClick={() => void toggleAutoMerge()}
               dataTestId="pr-auto-merge-action"
             >
-              {t(
-                `git.pr.actions.${presentation.autoMergeAction.kind}AutoMerge`,
-                presentation.autoMergeAction.label
-              )}
+              {localizedActionLabel(t, presentation.autoMergeAction.label)}
             </DropdownItem>
             <div className={DROPDOWN_CLASSES.menuSeparatorInset} />
           </>
@@ -202,7 +243,7 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
             onClick={() => void merge(method)}
             dataTestId={`pr-merge-${method}`}
           >
-            {t(`git.pr.actions.${method}`, label)}
+            {localizedActionLabel(t, label)}
           </DropdownItem>
         ))}
       </div>
@@ -215,7 +256,7 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
 
   return (
     <section
-      className={`${DETAIL_PANEL_TOKENS.headerWidth} flex flex-wrap items-center gap-2 px-6 py-3`}
+      className="flex min-h-9 flex-wrap items-center gap-2 px-1"
       aria-label={t("git.pr.actions.label", "Pull request actions")}
       data-testid="pr-level-actions"
     >
@@ -227,13 +268,12 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
         icon={<GitMerge size={14} aria-hidden />}
         loading={pending}
         disabled={primaryDisabled}
-        title={presentation.tooltip}
+        title={localizedActionTooltip(t, presentation.tooltip)}
         onClick={runPrimaryMergeAction}
         dropdownMenu={
           <Dropdown
             droplist={mergePanel}
             trigger="click"
-            position="bottom-start"
             popupVisible={mergeMenuVisible}
             onVisibleChange={setMergeMenuVisible}
             getPopupContainer={() => document.body}
@@ -252,8 +292,8 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
         aria-expanded={mergeMenuVisible}
         data-testid="pr-merge-action"
       >
-        {t(
-          "git.pr.actions.primary",
+        {localizedActionLabel(
+          t,
           presentation.autoMergeAction?.kind === "disable" ||
             (!presentation.directMergeAvailable &&
               presentation.autoMergeAction?.kind === "enable")
@@ -281,7 +321,6 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
             : t("git.pr.actions.noReviewers", "No reviewers available")
         }
         disabled={interactionDisabled || presentation.status !== "open"}
-        position="bottom-start"
         popupVisible={reviewerMenuVisible}
         onVisibleChange={(visible) => {
           setReviewerMenuVisible(visible);

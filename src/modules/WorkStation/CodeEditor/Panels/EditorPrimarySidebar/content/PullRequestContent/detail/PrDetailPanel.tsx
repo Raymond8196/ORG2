@@ -472,22 +472,6 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
         </PanelHeader>
       ) : null}
 
-      <PrLevelActions
-        identity={currentIdentity}
-        detail={state.detail}
-        checks={state.checks}
-        disabled={!repoFullName}
-        pending={prActionPending}
-        reviewerCandidates={reviewerCandidates}
-        loadingReviewerCandidates={loadingReviewerCandidates}
-        reviewerCandidatesError={reviewerCandidatesError}
-        onLoadReviewerCandidates={loadReviewerCandidates}
-        onMerge={mergePullRequest}
-        onSetAutoMerge={setPullRequestAutoMerge}
-        onStateChange={updatePullRequestState}
-        onRequestedReviewersChange={updateRequestedReviewers}
-      />
-
       {/* GitHub-style PR navigation */}
       <div
         role="tablist"
@@ -543,6 +527,23 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
         >
           {activeTab === "conversation" && (
             <PrConversationTab
+              levelActions={
+                <PrLevelActions
+                  identity={currentIdentity}
+                  detail={state.detail}
+                  checks={state.checks}
+                  disabled={!repoFullName}
+                  pending={prActionPending}
+                  reviewerCandidates={reviewerCandidates}
+                  loadingReviewerCandidates={loadingReviewerCandidates}
+                  reviewerCandidatesError={reviewerCandidatesError}
+                  onLoadReviewerCandidates={loadReviewerCandidates}
+                  onMerge={mergePullRequest}
+                  onSetAutoMerge={setPullRequestAutoMerge}
+                  onStateChange={updatePullRequestState}
+                  onRequestedReviewersChange={updateRequestedReviewers}
+                />
+              }
               summary={
                 <PrDetailSummary
                   identity={currentIdentity}
