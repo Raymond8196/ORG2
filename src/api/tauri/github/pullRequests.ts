@@ -7,7 +7,11 @@ import { invoke } from "@tauri-apps/api/core";
 import { appendPullRequestAttributionFooter } from "@src/services/git/operations/commitAttribution";
 
 import { invokeWithAuth } from "./client";
-import type { LocalFindPRResponse, LocalPRResponse } from "./types";
+import type {
+  GitHubIssueUser,
+  LocalFindPRResponse,
+  LocalPRResponse,
+} from "./types";
 
 export async function createPRLocal(
   repoFullName: string,
@@ -76,6 +80,75 @@ export async function updatePRStateLocal(
     repoFullName,
     prNumber,
     state,
+  });
+}
+
+export type PullRequestMergeMethod = "merge" | "squash" | "rebase";
+
+export interface PullRequestMergeResult {
+  sha: string;
+  merged: boolean;
+  message: string;
+}
+
+export interface PullRequestAutoMergeResult {
+  enabled: boolean;
+}
+
+export async function mergePRLocal(
+  repoFullName: string,
+  prNumber: number,
+  method: PullRequestMergeMethod,
+  expectedHeadSha?: string
+): Promise<PullRequestMergeResult> {
+  return invokeWithAuth<PullRequestMergeResult>("github_merge_pr", {
+    repoFullName,
+    prNumber,
+    method,
+    expectedHeadSha: expectedHeadSha ?? null,
+  });
+}
+
+export async function setPRAutoMergeLocal(
+  repoFullName: string,
+  prNumber: number,
+  enabled: boolean,
+  method?: PullRequestMergeMethod,
+  expectedHeadSha?: string
+): Promise<PullRequestAutoMergeResult> {
+  return invokeWithAuth<PullRequestAutoMergeResult>(
+    "github_set_pr_auto_merge",
+    {
+      repoFullName,
+      prNumber,
+      enabled,
+      method: method ?? null,
+      expectedHeadSha: expectedHeadSha ?? null,
+    }
+  );
+}
+
+export async function requestPRReviewersLocal(
+  repoFullName: string,
+  prNumber: number,
+  reviewers: string[]
+): Promise<GitHubIssueUser[]> {
+  return invokeWithAuth<GitHubIssueUser[]>("github_request_pr_reviewers", {
+    repoFullName,
+    prNumber,
+    reviewers,
+  });
+}
+
+export async function removePRReviewersLocal(
+  repoFullName: string,
+  prNumber: number,
+  reviewers: string[]
+): Promise<GitHubIssueUser[]> {
+  return invokeWithAuth<GitHubIssueUser[]>("github_remove_pr_reviewers", {
+    repoFullName,
+    prNumber,
+    reviewers,
   });
 }
 

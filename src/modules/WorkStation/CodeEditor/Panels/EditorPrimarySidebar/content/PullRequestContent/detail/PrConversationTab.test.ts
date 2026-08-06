@@ -77,6 +77,9 @@ describe("PrConversationTab", () => {
     expect(editor?.getAttribute("data-appearance")).toBe("plain");
     expect(editor?.getAttribute("data-toolbar-mode")).toBe("inline");
     expect(composer?.querySelector(".flex-shrink-0")).toBeNull();
+    expect(composer?.textContent).toContain("Approve");
+    expect(composer?.textContent).toContain("Request changes");
+    expect(composer?.textContent).toContain("Comment");
   });
 
   it("restores a controlled review draft", () => {

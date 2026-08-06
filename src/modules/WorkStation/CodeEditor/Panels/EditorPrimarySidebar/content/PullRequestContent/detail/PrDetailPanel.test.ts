@@ -54,6 +54,15 @@ vi.mock("../../../hooks/useWorkstationPrDetail", () => ({
     addComment: vi.fn(),
     submitReview: vi.fn(),
     replyInlineComment: vi.fn(),
+    mergePullRequest: vi.fn(),
+    setPullRequestAutoMerge: vi.fn(),
+    updatePullRequestState: vi.fn(),
+    updateRequestedReviewers: vi.fn(),
+    loadReviewerCandidates: vi.fn().mockResolvedValue(undefined),
+    reviewerCandidates: [],
+    loadingReviewerCandidates: false,
+    reviewerCandidatesError: null,
+    prActionPending: false,
   }),
 }));
 
@@ -158,6 +167,12 @@ describe("PrDetailPanel tabs", () => {
     expect(tabs[0]?.className).toContain("rounded-t-md");
     expect(tabList?.className).toContain("border-b");
     expect(tabList?.className).not.toContain("border-t");
+    const actions = container.querySelector("[data-testid='pr-level-actions']");
+    expect(actions?.textContent).toContain("Enable auto-merge");
+    expect(actions?.textContent).toContain("Reviewers");
+    expect(actions?.textContent).toContain("Close pull request");
+    expect(actions?.className).not.toContain("bg-");
+    expect(actions?.className).not.toContain("border");
 
     act(() => {
       tabs[3]?.click();

@@ -7,6 +7,7 @@
  * its compact PR identity into the shared 40px tab-header strip while the PR
  * body fills the main pane without a second header.
  */
+import { useAtomValue } from "jotai";
 import React, { memo, useCallback, useMemo } from "react";
 
 import { usePublishWorkstationTabHeader } from "@src/hooks/workStation";
@@ -16,7 +17,12 @@ import {
   PrDetailHeaderContent,
   PrDetailPanel,
 } from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/PullRequestContent/detail/PrDetailPanel";
+import { resolvePullRequestDetailStatus } from "@src/shared/pr/prLevelActions";
 import type { PrIdentity } from "@src/store/workstation/codeEditor/workstationSelectedPrAtom";
+import {
+  workstationPrScopeKey,
+  workstationSelectedPrAtomFamily,
+} from "@src/store/workstation/codeEditor/workstationSelectedPrAtom";
 import { createFileTab } from "@src/store/workstation/tabs";
 import type { GitHubPrDetailTabData } from "@src/store/workstation/tabs";
 
@@ -26,6 +32,12 @@ const GitHubPrDetailTabRenderer: React.FC<UnifiedTabContentProps> = memo(
   ({ tab }) => {
     const tabData = tab.data as unknown as GitHubPrDetailTabData;
     const { openTab } = useWorkStationTabs();
+    const scopeKey = workstationPrScopeKey(
+      tabData.repoId,
+      tabData.repoPath,
+      tabData.prNumber
+    );
+    const selectedPr = useAtomValue(workstationSelectedPrAtomFamily(scopeKey));
 
     const handleFileSelect = useCallback(
       (path: string) => {
@@ -43,7 +55,10 @@ const GitHubPrDetailTabRenderer: React.FC<UnifiedTabContentProps> = memo(
         number: tabData.prNumber,
         title: tabData.prTitle,
         url: tabData.prUrl,
-        status: tabData.prStatus,
+        status: resolvePullRequestDetailStatus(
+          selectedPr.detail,
+          tabData.prStatus
+        ),
         headBranch: tabData.headBranch,
         baseBranch: tabData.baseBranch,
       }),
@@ -52,6 +67,7 @@ const GitHubPrDetailTabRenderer: React.FC<UnifiedTabContentProps> = memo(
         tabData.prTitle,
         tabData.prUrl,
         tabData.prStatus,
+        selectedPr.detail,
         tabData.headBranch,
         tabData.baseBranch,
       ]
