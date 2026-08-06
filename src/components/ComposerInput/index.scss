@@ -153,6 +153,20 @@
   }
 }
 
+// A contextual reference is owned by the surrounding surface rather than the
+// editable document, but visually shares the first line with the editor. Drop
+// the ordinary leading inset so the placeholder/caret follows the shared
+// editor pill at the same spacing as a real inline ComposerPill.
+.composer-input.chat-input-editor-leading:not(.chat-input-compact) {
+  .composer-input-content {
+    padding-left: 0;
+
+    &.is-empty::before {
+      left: 0;
+    }
+  }
+}
+
 .composer-input.chat-input-editor.chat-input-compact {
   box-sizing: border-box;
   min-height: 0 !important;

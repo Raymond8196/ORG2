@@ -71,6 +71,15 @@ export interface InputEditorProps {
   compact?: boolean;
   /** Called synchronously before a newline is inserted. */
   onBeforeNewline?: () => void;
+  /** Focus the contenteditable host after mount. */
+  autoFocus?: boolean;
+  /**
+   * Non-document context rendered on the editor's first line before the
+   * contenteditable surface. This intentionally stays outside the serialized
+   * composer value (for example, a Canvas element selection that is submitted
+   * through a dedicated override payload).
+   */
+  leadingContent?: React.ReactNode;
 }
 
 // ============================================
@@ -104,6 +113,8 @@ const InputEditor: React.FC<InputEditorProps> = memo(
     slashTriggerMode = "command",
     compact = false,
     onBeforeNewline,
+    autoFocus = false,
+    leadingContent,
   }) => {
     const wrapperRef = useRef<HTMLDivElement>(null);
     const { sendOnEnter } = useAtomValue(chatAppearanceAtom);
@@ -164,7 +175,9 @@ const InputEditor: React.FC<InputEditorProps> = memo(
       <div
         ref={wrapperRef}
         className={
-          compact ? "relative h-full min-h-0 w-full" : "relative w-full min-w-0"
+          compact
+            ? "relative flex h-full min-h-0 w-full min-w-0 items-center"
+            : "relative flex w-full min-w-0 items-start"
         }
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}
@@ -172,6 +185,14 @@ const InputEditor: React.FC<InputEditorProps> = memo(
         onFocus={onFocus}
         onBlur={onBlur}
       >
+        {leadingContent && (
+          <div
+            data-composer-leading-content
+            className={`flex shrink-0 items-center pl-3 text-sm leading-5 ${compact ? "h-full" : "pt-0.5"}`}
+          >
+            {leadingContent}
+          </div>
+        )}
         <ComposerInput
           ref={composerInputRef}
           placeholder={placeholder}
@@ -181,11 +202,13 @@ const InputEditor: React.FC<InputEditorProps> = memo(
           onAtMentionClose={onAtMentionClose}
           onSubmit={onSubmit}
           requireCmdEnter={!sendOnEnter}
-          autoFocus={false}
+          autoFocus={autoFocus}
           className={
             compact
-              ? "chat-input-editor chat-input-compact h-full max-h-9 min-h-0"
-              : "chat-input-editor max-h-[140px] min-h-[60px] overflow-y-auto"
+              ? "chat-input-editor chat-input-compact h-full max-h-9 min-h-0 min-w-0 flex-1"
+              : `chat-input-editor max-h-[140px] min-h-[60px] min-w-0 flex-1 overflow-y-auto ${
+                  leadingContent ? "chat-input-editor-leading" : ""
+                }`.trim()
           }
           minHeight={compact ? 0 : 60}
           maxHeight={compact ? 36 : 140}

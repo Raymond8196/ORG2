@@ -3,8 +3,9 @@
  *
  * Helper functions for finalizing streaming content and common event accessors.
  */
-import type { StreamRefs } from "../../shared/types";
-import type { AgentWSEvent } from "../../shared/types";
+import { clearCanvasRevisionDraft } from "@src/store/session/canvasRevisionDraftAtom";
+
+import type { AgentWSEvent, StreamRefs } from "../../shared/types";
 import type { EventHandlerContext } from "./types";
 
 const STOPPED_TURNS_PER_SESSION_LIMIT = 20;
@@ -125,6 +126,9 @@ export function resetAllStreamingState(ctx: EventHandlerContext): void {
   if (ctx.streamingCompleteHandledRef) {
     ctx.streamingCompleteHandledRef.current = false;
   }
+  const sessionId = ctx.filterSessionIdRef.current;
+  const store = ctx.getDefaultStore();
+  if (sessionId && store) clearCanvasRevisionDraft(store, sessionId);
 }
 
 export function getToolCallId(event: AgentWSEvent): string | undefined {

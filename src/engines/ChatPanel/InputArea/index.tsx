@@ -38,6 +38,11 @@ import { useEditorExpansion } from "./hooks/useEditorExpansion";
 import { useInputAreaMenus } from "./hooks/useInputAreaMenus";
 import { useInputAreaVoice } from "./hooks/useInputAreaVoice";
 import { useStopOnDoubleEscape } from "./hooks/useStopOnDoubleEscape";
+import {
+  type InputAreaPresentation,
+  isContextualInputAreaPresentation,
+  shouldUseCompactComposerLayout,
+} from "./inputAreaPresentation";
 import { openedTabMentionOptionsAtom } from "./openedTabMentionOptionsAtom";
 
 interface InputAreaProps {
@@ -87,6 +92,8 @@ interface InputAreaProps {
   allowFileAttachments?: boolean;
   /** Enable agent-only submit interceptors such as /compact and MCP tools. */
   enableAgentInterceptors?: boolean;
+  /** Focus the shared composer editor when this InputArea mounts. */
+  autoFocus?: boolean;
   /** Limit the slash menu to the supplied item categories. */
   slashItemCategories?: ReadonlyArray<SlashItemCategory>;
   /**
@@ -94,6 +101,8 @@ interface InputAreaProps {
    * open upward even in queue-edit mode (there is no room beneath it).
    */
   bottomAnchored?: boolean;
+  /** Contextual composers used by element-selection surfaces. */
+  presentation?: InputAreaPresentation;
 }
 
 /**
@@ -151,8 +160,10 @@ const InputAreaInteractive: React.FC<InputAreaProps> = memo(
     showAgentControls = true,
     allowFileAttachments = true,
     enableAgentInterceptors = true,
+    autoFocus = false,
     slashItemCategories,
     bottomAnchored = false,
+    presentation = "default",
   }) => {
     const { t } = useTranslation("sessions");
 
@@ -245,6 +256,9 @@ const InputAreaInteractive: React.FC<InputAreaProps> = memo(
     const mentionTreePosition = chatPanelPosition === "left" ? "right" : "left";
     const voiceFeatureEnabled = useAtomValue(voiceInputEnabledAtom);
     const isChatPanelMaximized = useAtomValue(chatPanelMaximizedAtom);
+    const isContextualCompact = presentation === "contextual-compact";
+    const isContextualPanel = presentation === "contextual";
+    const isContextual = isContextualInputAreaPresentation(presentation);
 
     const {
       showPlusSlashMenu,
@@ -347,13 +361,17 @@ const InputAreaInteractive: React.FC<InputAreaProps> = memo(
 
     const isCursorCompactRow = useMemo(
       () =>
-        isChatPanelMaximized &&
-        !isEditMode &&
-        !hasImages &&
-        !isCiteCode &&
-        !replyInfo.isReply &&
-        !editorMultiline,
+        shouldUseCompactComposerLayout({
+          presentation,
+          isChatPanelMaximized,
+          isEditMode,
+          hasImages,
+          isCiteCode,
+          isReply: replyInfo.isReply,
+          editorMultiline,
+        }),
       [
+        presentation,
         isChatPanelMaximized,
         isEditMode,
         hasImages,
@@ -384,12 +402,18 @@ const InputAreaInteractive: React.FC<InputAreaProps> = memo(
 
     // Cursor IDE sessions are read-only; no interactive model/mode pill.
     const modelPill =
-      !showAgentControls || (isCursorIde && sessionId) ? null : <ModelPill />;
+      !showAgentControls ||
+      isContextualCompact ||
+      (isCursorIde && sessionId) ? null : (
+        <ModelPill />
+      );
     // Always visible in-session: the composer picker is the only surface
     // that can move a session onto the Project product mode (§5.2), and a
     // hidden-at-Build pill would make that entry unreachable.
     const modePill =
-      !showAgentControls || (isCursorIde && sessionId) ? null : (
+      !showAgentControls ||
+      isContextualCompact ||
+      (isCursorIde && sessionId) ? null : (
         <ModePill resetToDefaultOnClick />
       );
     const clearReplyInfo = useCallback(
@@ -418,15 +442,17 @@ const InputAreaInteractive: React.FC<InputAreaProps> = memo(
         onDrop={handleContainerDrop}
       >
         <div className="relative flex flex-col gap-0.5">
-          <InputAreaTopRows
-            isEditMode={isEditMode}
-            omitChatHeader={omitChatHeader}
-            topRowPills={topRowPills}
-            topRowTrailingContent={topRowTrailingContent}
-            composerInputRef={composerInputRef}
-            sessionId={sessionId}
-            skillWorkspacePaths={skillWorkspacePaths}
-          />
+          {!isContextual && (
+            <InputAreaTopRows
+              isEditMode={isEditMode}
+              omitChatHeader={omitChatHeader}
+              topRowPills={topRowPills}
+              topRowTrailingContent={topRowTrailingContent}
+              composerInputRef={composerInputRef}
+              sessionId={sessionId}
+              skillWorkspacePaths={skillWorkspacePaths}
+            />
+          )}
           <QuietEditStatus
             isEditMode={isEditMode}
             quietEditSurface={quietEditSurface}
@@ -567,7 +593,10 @@ const InputAreaInteractive: React.FC<InputAreaProps> = memo(
                 showVoiceUi={showVoiceUi}
                 voice={voice}
                 currentRepoPath={currentRepoPath}
-                isCursorCompactRow={isCursorCompactRow}
+                isCompactRow={isCursorCompactRow}
+                contextualCompact={isContextualCompact}
+                contextualPanel={isContextualPanel}
+                inlineLeadingContent={isContextual ? topRowPills : undefined}
                 suppressToolbarHover={suppressToolbarHover}
                 placeholder={placeholder}
                 trailingHint={
@@ -585,6 +614,7 @@ const InputAreaInteractive: React.FC<InputAreaProps> = memo(
                 submitDisabled={submitDisabled}
                 showAgentControls={showAgentControls}
                 showImageAttachments={allowFileAttachments}
+                autoFocus={autoFocus}
               />
             )}
           </ComposerShell>
@@ -615,8 +645,8 @@ const InputAreaInteractive: React.FC<InputAreaProps> = memo(
           onModeSelect={handleModeSelect}
           slashCommandKeyboardHandlerRef={slashCommandKeyboardHandlerRef}
           onImageUpload={allowFileAttachments ? handleUploadClick : undefined}
-          showActionFlyouts={showAgentControls}
-          showModeRows={showAgentControls}
+          showActionFlyouts={showAgentControls && !isContextualCompact}
+          showModeRows={showAgentControls && !isContextualCompact}
           showPlusSlashMenu={showPlusSlashMenu}
           plusSlashQuery={plusSlashQuery}
           onPlusSlashClose={handlePlusSlashClose}

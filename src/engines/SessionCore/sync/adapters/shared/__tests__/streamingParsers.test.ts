@@ -3,9 +3,36 @@ import { describe, expect, it } from "vitest";
 import {
   buildToolArgsFromParsed,
   extractThinkContent,
+  parseCanvasRevisionDeltaMetadata,
   parsePartialToolArgs,
   stripThinkTags,
 } from "../streamingParsers";
+
+describe("parseCanvasRevisionDeltaMetadata", () => {
+  it("extracts complete metadata without decoding the streamed source", () => {
+    const parsed = parseCanvasRevisionDeltaMetadata(
+      '{"target_event_id":"tool-call-original","mode":"react","title":"Coffee \\"M\\"","content":"function App() {'
+    );
+
+    expect(parsed).toEqual({
+      targetEventId: "tool-call-original",
+      mode: "react",
+      title: 'Coffee "M"',
+    });
+  });
+
+  it("leaves fields undefined until their JSON strings close", () => {
+    expect(
+      parseCanvasRevisionDeltaMetadata(
+        '{"target_event_id":"tool-call-original","mode":"rea'
+      )
+    ).toEqual({
+      targetEventId: "tool-call-original",
+      mode: undefined,
+      title: undefined,
+    });
+  });
+});
 
 describe("stripThinkTags", () => {
   it("removes a complete <think>...</think> block", () => {

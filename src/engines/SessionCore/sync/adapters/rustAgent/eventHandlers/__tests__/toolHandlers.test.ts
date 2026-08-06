@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { openInSimulatorCanvas } from "@src/engines/ChatPanel/blocks/CanvasInlineCard/openInSimulatorCanvas";
 import type { SessionEvent } from "@src/engines/SessionCore/core/types";
 import type { AgentWSEvent } from "@src/engines/SessionCore/sync/adapters/shared/types";
 
-import { handleToolResult } from "../toolHandlers";
+import { handleToolCall, handleToolResult } from "../toolHandlers";
 import type { EventHandlerContext } from "../types";
 
 const { events, updateByIdSpy, getEventsSpy } = vi.hoisted(() => {
@@ -92,6 +93,7 @@ describe("rust agent tool result handler", () => {
     events.clear();
     updateByIdSpy.mockClear();
     getEventsSpy.mockClear();
+    vi.mocked(openInSimulatorCanvas).mockClear();
   });
 
   it("does not downgrade an authoritative completed subagent parent card back to running", async () => {
@@ -110,5 +112,31 @@ describe("rust agent tool result handler", () => {
 
     expect(updateByIdSpy).not.toHaveBeenCalled();
     expect(events.get("parent-agent-call")?.displayStatus).toBe("completed");
+  });
+
+  it("dispatches revise_inline_canvas with its target identity intact", () => {
+    const event: AgentWSEvent = {
+      type: "agent:tool_call",
+      sessionId: "session-1",
+      tool: "revise_inline_canvas",
+      toolCallId: "call-revision-1",
+      args: {
+        target_event_id: "tool-call-original",
+        mode: "react",
+        content: "function App() { return <div>Updated</div>; }",
+        title: "Updated Canvas",
+      },
+    };
+
+    handleToolCall(event, "session-1", "session-1", createCtx());
+
+    expect(openInSimulatorCanvas).toHaveBeenCalledWith(
+      "session-1",
+      expect.objectContaining({
+        eventId: "tool-call-call-revision-1",
+        revisesEventId: "tool-call-original",
+        content: expect.stringContaining("Updated"),
+      })
+    );
   });
 });

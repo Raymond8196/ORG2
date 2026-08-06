@@ -28,6 +28,8 @@ fn tool_name_constants_are_stable_wire_strings() {
     assert_eq!(ASK_USER_PERMISSIONS, "ask_user_permissions");
     assert_eq!(MANAGE_SECRETS, "manage_secrets");
     assert_eq!(WRITE_ENV_FILE, "write_env_file");
+    assert_eq!(RENDER_INLINE_CANVAS, "render_inline_canvas");
+    assert_eq!(REVISE_INLINE_CANVAS, "revise_inline_canvas");
 
     // ── Project ──
     assert_eq!(MANAGE_PROJECT, "manage_project");

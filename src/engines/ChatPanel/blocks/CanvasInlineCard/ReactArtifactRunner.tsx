@@ -11,6 +11,11 @@ export interface ReactArtifactRunnerProps {
   onError?: (error: ReactArtifactError) => void;
 }
 
+// react-live retranspiles whenever `scope` changes by reference. A module-level
+// immutable scope keeps parent-only renders (such as Canvas hover overlays)
+// from replacing the preview DOM and resetting the generated app's state.
+const REACT_LIVE_SCOPE = Object.freeze({ React });
+
 export function normalizeReactLiveSource(source: string): string {
   let code = source.replace(
     /^\s*import\s+React(?:\s*,\s*\{[^}]*\})?\s+from\s+["']react["'];?\s*$/gm,
@@ -73,7 +78,7 @@ const ReactArtifactRunner: React.FC<ReactArtifactRunnerProps> = ({
     <LiveProvider
       code={normalizeReactLiveSource(source)}
       noInline
-      scope={{ React }}
+      scope={REACT_LIVE_SCOPE}
     >
       <div
         className="h-full min-h-0 w-full overflow-auto overscroll-contain bg-bg-1 p-4 text-text-1 [scrollbar-gutter:stable]"

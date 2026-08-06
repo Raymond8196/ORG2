@@ -4,13 +4,16 @@
  * Handlers for message, thinking, and tool call delta events.
  * Also handles agent:streaming_complete from Rust StreamingBuffer.
  */
+import { CANVAS_REVISION_TOOL_NAME } from "@src/engines/ChatPanel/blocks/CanvasInlineCard/canvasRevision";
 import { createLogger } from "@src/hooks/logger";
+import { bufferCanvasRevisionDraft } from "@src/store/session/canvasRevisionDraftAtom";
 
 import {
   appendBoundedToolCallArgs,
   makeRoomForToolCallDelta,
   mergeStreamingText,
 } from "../../shared/streamTextAccumulator";
+import { parseCanvasRevisionDeltaMetadata } from "../../shared/streamingParsers";
 import { capStreamContent } from "../../shared/subagentTracking";
 import type { AgentWSEvent, StreamRefs } from "../../shared/types";
 import {
@@ -169,6 +172,22 @@ export function handleToolCallDelta(
 
   if (!buffer.toolCallId || !buffer.messageId) {
     return;
+  }
+
+  if (buffer.toolName === CANVAS_REVISION_TOOL_NAME) {
+    const store = ctx.getDefaultStore();
+    if (store) {
+      const metadata = parseCanvasRevisionDeltaMetadata(buffer.argsJson);
+      bufferCanvasRevisionDraft(store, {
+        sessionId,
+        toolCallId: buffer.toolCallId,
+        targetEventId: metadata.targetEventId,
+        mode: metadata.mode,
+        title: metadata.title,
+        receivedCharacters: buffer.argsJson.length,
+        phase: "receiving",
+      });
+    }
   }
 
   // Tool-call deltas stay ephemeral; the authoritative tool_call event is written by Rust.

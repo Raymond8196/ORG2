@@ -1262,9 +1262,6 @@
         "stateOpen": "Open",
         "stateClosed": "Closed",
         "stateAll": "All states",
-        "closeAsCompleted": "Close as completed",
-        "closeAsNotPlanned": "Close as not planned",
-        "statusUpdateFailed": "Failed to update GitHub status",
         "assignedToMe": "Assigned to me",
         "createdByMe": "Created by me",
         "pullRequests": {
@@ -2932,6 +2929,20 @@
   "canvasApp": {
     "empty": "No canvas rendered yet",
     "sidebarTitle": "Canvases",
-    "noCanvases": "No canvases yet"
+    "noCanvases": "No canvases yet",
+    "revisionCanvas": "Canvas",
+    "revisionTitle": "Updating {{title}}",
+    "revisionReceiving": "Generating the change · {{amount}} characters",
+    "revisionApplying": "Applying the validated change…",
+    "revisionDoneTitle": "Updated {{title}}",
+    "revisionFailedTitle": "Couldn’t update {{title}}",
+    "revisionTargetedSummary": "{{amount}} targeted changes · same Canvas",
+    "revisionReplacementSummary": "Full replacement · {{amount}} characters · same Canvas",
+    "revisionUrlSummary": "URL updated · same Canvas",
+    "revisionGenericSummary": "Existing Canvas updated in place",
+    "revisionStepsLabel": "Canvas update progress",
+    "revisionStepTarget": "Locate existing Canvas",
+    "revisionStepGenerate": "Generate change",
+    "revisionStepApply": "Apply and validate"
   }
 }

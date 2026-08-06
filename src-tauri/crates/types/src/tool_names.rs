@@ -162,6 +162,10 @@ pub const TOOL_SEARCH: &str = "tool_search";
 /// inside the chat panel as a sandboxed inline canvas card. Supported by
 /// both OS Agent and SDE Agent. Mode values: "html" | "url" | "a2ui" | "react".
 pub const RENDER_INLINE_CANVAS: &str = "render_inline_canvas";
+/// Replaces an existing logical inline Canvas while preserving its identity.
+/// The target event id is required and validated against the dispatching
+/// session before the revision is accepted.
+pub const REVISE_INLINE_CANVAS: &str = "revise_inline_canvas";
 
 // ── Plan Mode ───────────────────────────────────────────────────────
 /// Writes markdown plan content to the session's plan file AND submits it

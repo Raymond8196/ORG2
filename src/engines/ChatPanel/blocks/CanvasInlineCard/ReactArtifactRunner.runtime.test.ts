@@ -63,4 +63,44 @@ describe("ReactArtifactRunner runtime", () => {
       await root.unmount();
     }
   });
+
+  it("keeps the live preview DOM and its state across parent rerenders", async () => {
+    const root = createSmokeRoot();
+    const source = `
+      const { useState } = React;
+      function App() {
+        const [count, setCount] = useState(0);
+        return React.createElement(
+          "button",
+          { type: "button", onClick: () => setCount((value) => value + 1) },
+          "Count " + count
+        );
+      }
+    `;
+
+    try {
+      await root.render(
+        React.createElement(ReactArtifactRunner, {
+          source,
+          onError: vi.fn(),
+        })
+      );
+      const originalButton = root.container.querySelector("button");
+      await dispatch(() => originalButton?.click());
+      expect(originalButton?.textContent).toBe("Count 1");
+
+      await root.render(
+        React.createElement(ReactArtifactRunner, {
+          source,
+          onError: vi.fn(),
+        })
+      );
+
+      const buttonAfterParentRender = root.container.querySelector("button");
+      expect(buttonAfterParentRender).toBe(originalButton);
+      expect(buttonAfterParentRender?.textContent).toBe("Count 1");
+    } finally {
+      await root.unmount();
+    }
+  });
 });

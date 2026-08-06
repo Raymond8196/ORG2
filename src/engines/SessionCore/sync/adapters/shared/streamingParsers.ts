@@ -26,6 +26,45 @@ export interface PartialToolArgs {
   reason?: string;
 }
 
+export interface CanvasRevisionDeltaMetadata {
+  targetEventId?: string;
+  mode?: string;
+  title?: string;
+}
+
+const CANVAS_REVISION_METADATA_PREFIX_CHARS = 16_384;
+
+function parseCompleteJsonStringField(
+  jsonPrefix: string,
+  field: string
+): string | undefined {
+  const match = jsonPrefix.match(
+    new RegExp(`"${field}"\\s*:\\s*"((?:[^"\\\\]|\\\\.)*)"`)
+  );
+  if (!match?.[1]) return undefined;
+  try {
+    return JSON.parse(`"${match[1]}"`) as string;
+  } catch {
+    return match[1].replace(/\\"/g, '"').replace(/\\\\/g, "\\");
+  }
+}
+
+/**
+ * Read only the small metadata prefix of a potentially megabyte-sized Canvas
+ * tool argument stream. The generated source itself is intentionally not
+ * decoded per token; progress uses the accumulated character count instead.
+ */
+export function parseCanvasRevisionDeltaMetadata(
+  argsJson: string
+): CanvasRevisionDeltaMetadata {
+  const prefix = argsJson.slice(0, CANVAS_REVISION_METADATA_PREFIX_CHARS);
+  return {
+    targetEventId: parseCompleteJsonStringField(prefix, "target_event_id"),
+    mode: parseCompleteJsonStringField(prefix, "mode"),
+    title: parseCompleteJsonStringField(prefix, "title"),
+  };
+}
+
 /**
  * Mapping from PartialToolArgs keys to tool argument keys.
  * Used by buildToolArgsFromParsed to convert parsed args to event args.

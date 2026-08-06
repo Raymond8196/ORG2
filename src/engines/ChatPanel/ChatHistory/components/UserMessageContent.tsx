@@ -43,6 +43,8 @@ import {
 } from "@src/config/pillTokens";
 import type { PillType } from "@src/config/pillTokens";
 import { normalizeUserMessageText } from "@src/engines/ChatPanel/ChatItems/normalizeUserMessageText";
+import CanvasDomComponentPreview from "@src/features/DomSelection/CanvasDomComponentPreview";
+import { parseCanvasDomComponent } from "@src/features/DomSelection/domComponentPayload";
 import { sessionByIdAtom } from "@src/store/session/sessionAtom";
 import { openExternalLink } from "@src/util/platform/ipcRenderer";
 import { resolveSessionRowIcon } from "@src/util/session/sessionSidebarRow";
@@ -613,6 +615,12 @@ const UserMessageContent: React.FC<UserMessageContentProps> = memo(
       [normalizedText]
     );
     const hasImages = images && images.length > 0;
+    const canvasSelectionJson = segments.find(
+      (segment): segment is PillSegment =>
+        segment.kind === "pill" &&
+        segment.pillType === "dom-component" &&
+        parseCanvasDomComponent(segment.terminalText) !== null
+    )?.terminalText;
 
     // Fast path: no pills and no images, render plain text
     const hasPills = segments.some((s) => s.kind === "pill");
@@ -623,6 +631,9 @@ const UserMessageContent: React.FC<UserMessageContentProps> = memo(
     return (
       <div className="flex flex-col gap-2">
         {hasImages && <ChatImageThumbnailRow images={images} />}
+        {canvasSelectionJson && (
+          <CanvasDomComponentPreview jsonText={canvasSelectionJson} />
+        )}
         {normalizedText && normalizedText !== "(image)" && (
           <span
             className="whitespace-pre-wrap break-words text-[14px] text-text-1"

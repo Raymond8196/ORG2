@@ -5,6 +5,11 @@
  * Shell process / exec-output handlers live in shellHandlers.ts.
  */
 import { switchModeForSession } from "@src/engines/ChatPanel/InputArea/ModeSwitchCard/useModeSwitchActions";
+import {
+  getCanvasRevisionTargetId,
+  isCanvasRevisionToolName,
+  isCanvasToolName,
+} from "@src/engines/ChatPanel/blocks/CanvasInlineCard/canvasRevision";
 import { openInSimulatorCanvas } from "@src/engines/ChatPanel/blocks/CanvasInlineCard/openInSimulatorCanvas";
 import type {
   CanvasInlineMode,
@@ -12,6 +17,10 @@ import type {
 } from "@src/engines/ChatPanel/blocks/CanvasInlineCard/types";
 import { eventStoreProxy } from "@src/engines/SessionCore/core/store/EventStoreProxy";
 import { createLogger } from "@src/hooks/logger";
+import {
+  clearCanvasRevisionDraft,
+  markCanvasRevisionDraftApplying,
+} from "@src/store/session/canvasRevisionDraftAtom";
 import { clearMcpProgressForCallAtom } from "@src/store/session/mcpProgressAtom";
 
 import { makeToolResultEvent } from "../../shared/eventBuilders";
@@ -83,6 +92,18 @@ export function handleToolCall(
     }
   }
 
+  if (isCanvasRevisionToolName(event.tool)) {
+    const store = ctx.getDefaultStore();
+    if (store) {
+      markCanvasRevisionDraftApplying(
+        store,
+        sessionId,
+        toolCallId,
+        event.args ? JSON.stringify(event.args).length : 0
+      );
+    }
+  }
+
   // Rust pushes the authoritative `tool-call-${toolCallId}` event into the
   // EventStore before broadcasting `agent:tool_call`. Do not synthesize or
   // upsert a duplicate frontend event here: a delayed broadcast handler can
@@ -104,7 +125,7 @@ export function handleToolCall(
   // Dispatch canvas-inline-event from tool_call (not tool_result) so the
   // full args payload is available — tool_result only carries a 4000-char
   // preview of the result string, not the original args.
-  if (event.tool === "render_inline_canvas" && event.args) {
+  if (isCanvasToolName(event.tool) && event.args) {
     dispatchCanvasInlineEventFromArgs(sessionId, event.args, toolCallId);
   }
 }
@@ -121,6 +142,7 @@ export async function handleToolResult(
   if (toolCallId) {
     const store = ctx.getDefaultStore();
     if (store) {
+      clearCanvasRevisionDraft(store, sessionId, toolCallId);
       store.set(clearMcpProgressForCallAtom, {
         sessionId,
         toolCallId,
@@ -199,7 +221,7 @@ function isCanvasInlineMode(value: unknown): value is CanvasInlineMode {
 }
 
 /**
- * Dispatch a canvas-inline-event from a `render_inline_canvas` tool_call's
+ * Dispatch a canvas-inline-event from a Canvas create/revise tool_call's
  * args object. Reading from args (not the tool_result string) guarantees the
  * full content is available — the Rust broadcast truncates tool_result to
  * 4 000 chars, which would corrupt large HTML payloads.
@@ -217,6 +239,7 @@ function dispatchCanvasInlineEventFromArgs(
     title: typeof args.title === "string" ? args.title : undefined,
     streaming: typeof args.streaming === "boolean" ? args.streaming : undefined,
     eventId: `tool-call-${toolCallId}`,
+    revisesEventId: getCanvasRevisionTargetId(args) ?? undefined,
   };
 
   openInSimulatorCanvas(sessionId, payload);
