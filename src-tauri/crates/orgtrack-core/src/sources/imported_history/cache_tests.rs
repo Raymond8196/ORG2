@@ -472,6 +472,109 @@ fn continuation_election_connects_compaction_epochs_transitively() {
 }
 
 #[test]
+fn continuation_election_survives_a_family_split_after_stamping() {
+    // Deleting intermediate transcripts can disconnect a family's marker
+    // graph AFTER the lineage was stamped. A later rescan reinserts an old
+    // sibling as a fresh listable row with no stamp to inherit; only the
+    // stamped lineage on the surviving member (whose value is the canonical
+    // member's group key) reconnects the halves. Without lineage as a
+    // connectivity key the election would list both halves' winners and the
+    // duplicate row this feature removes would return.
+    let mut conn = fixture_conn();
+    let mut root = input(SOURCE_CODEX_APP, "root", 100);
+    root.source_metadata_json =
+        continuation_metadata_json(Some("first-user-root"), &["compact-a".to_string()]);
+    let mut middle = input(SOURCE_CODEX_APP, "middle", 200);
+    middle.source_metadata_json = continuation_metadata_json(
+        Some("first-user-middle"),
+        &["compact-a".to_string(), "compact-b".to_string()],
+    );
+    let mut newest = input(SOURCE_CODEX_APP, "newest", 300);
+    newest.source_metadata_json =
+        continuation_metadata_json(Some("first-user-newest"), &["compact-b".to_string()]);
+    upsert_imported_session_cache_from_conn(&mut conn, &[root.clone(), middle, newest])
+        .expect("upsert");
+    demote_superseded_continuations_from_conn(&conn, SOURCE_CODEX_APP).expect("first election");
+
+    // The intermediate transcript ages out and the old sibling's row is
+    // dropped with it; a later rescan reinserts the old sibling from its
+    // still-present file as a brand-new listable row without any stamp.
+    for gone in ["middle", "root"] {
+        conn.execute(
+            "DELETE FROM imported_history_session_cache
+             WHERE source = ?1 AND source_session_id = ?2",
+            rusqlite::params![SOURCE_CODEX_APP, gone],
+        )
+        .expect("drop row");
+    }
+    upsert_imported_session_cache_from_conn(&mut conn, &[root]).expect("reinsert root");
+
+    demote_superseded_continuations_from_conn(&conn, SOURCE_CODEX_APP).expect("second election");
+
+    assert!(!listable_of(&conn, SOURCE_CODEX_APP, "root"));
+    assert!(listable_of(&conn, SOURCE_CODEX_APP, "newest"));
+    let root_metadata: String = conn
+        .query_row(
+            "SELECT source_metadata_json FROM imported_history_session_cache
+             WHERE source = ?1 AND source_session_id = 'root'",
+            [SOURCE_CODEX_APP],
+            |row| row.get(0),
+        )
+        .expect("root metadata");
+    assert_eq!(
+        continuation_lineage_id_from_metadata_json(&root_metadata).as_deref(),
+        Some("first-user-root")
+    );
+}
+
+#[test]
+fn rescan_upsert_preserves_a_stamped_lineage_id() {
+    // A rescan replaces `source_metadata_json` with freshly parsed metadata
+    // that never carries the elected lineage. The upsert must carry the stamp
+    // over, or every rescan erodes the id the reveal/dedupe paths compare.
+    let mut conn = fixture_conn();
+    let mut row = input(SOURCE_CODEX_APP, "stamped", 100);
+    row.source_metadata_json = Some(
+        serde_json::json!({
+            CONTINUATION_GROUP_KEY_FIELD: "first-user-a",
+            CONTINUATION_MARKERS_FIELD: ["first-user-a", "compact-a"],
+            CONTINUATION_LINEAGE_ID_FIELD: "elected-lineage",
+        })
+        .to_string(),
+    );
+    upsert_imported_session_cache_from_conn(&mut conn, &[row.clone()]).expect("initial upsert");
+
+    row.source_metadata_json =
+        continuation_metadata_json(Some("first-user-a"), &["compact-a".to_string()]);
+    upsert_imported_session_cache_from_conn(&mut conn, &[row.clone()]).expect("rescan upsert");
+    let metadata: String = conn
+        .query_row(
+            "SELECT source_metadata_json FROM imported_history_session_cache
+             WHERE source = ?1 AND source_session_id = 'stamped'",
+            [SOURCE_CODEX_APP],
+            |row| row.get(0),
+        )
+        .expect("metadata");
+    assert_eq!(
+        continuation_lineage_id_from_metadata_json(&metadata).as_deref(),
+        Some("elected-lineage")
+    );
+
+    // A rewrite that loses continuation identity drops the stamp with it.
+    row.source_metadata_json = None;
+    upsert_imported_session_cache_from_conn(&mut conn, &[row]).expect("keyless upsert");
+    let metadata: String = conn
+        .query_row(
+            "SELECT source_metadata_json FROM imported_history_session_cache
+             WHERE source = ?1 AND source_session_id = 'stamped'",
+            [SOURCE_CODEX_APP],
+            |row| row.get(0),
+        )
+        .expect("metadata");
+    assert_eq!(metadata, "");
+}
+
+#[test]
 fn continuation_election_never_promotes_and_skips_subagents() {
     let mut conn = fixture_conn();
     let group = continuation_group_metadata_json(Some("family-a"));

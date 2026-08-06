@@ -127,7 +127,7 @@ pub fn upsert_imported_session_cache_from_conn(
     let updated_at = Utc::now().to_rfc3339();
     {
         let mut stmt = tx
-            .prepare(
+            .prepare(&format!(
                 "INSERT INTO imported_history_session_cache (
                     source, source_session_id, session_id, source_path, source_record_key,
                     source_mtime_ms, source_size_bytes, source_fingerprint, parser_version,
@@ -163,10 +163,22 @@ pub fn upsert_imported_session_cache_from_conn(
                     lines_removed = excluded.lines_removed,
                     touched_files_json = excluded.touched_files_json,
                     listable = excluded.listable,
-                    source_metadata_json = excluded.source_metadata_json,
+                    source_metadata_json = CASE
+                        WHEN json_valid(excluded.source_metadata_json)
+                             AND json_valid(imported_history_session_cache.source_metadata_json)
+                             AND json_extract(imported_history_session_cache.source_metadata_json,
+                                              '$.{CONTINUATION_LINEAGE_ID_FIELD}') IS NOT NULL
+                             AND json_extract(excluded.source_metadata_json,
+                                              '$.{CONTINUATION_LINEAGE_ID_FIELD}') IS NULL
+                        THEN json_set(excluded.source_metadata_json,
+                                      '$.{CONTINUATION_LINEAGE_ID_FIELD}',
+                                      json_extract(imported_history_session_cache.source_metadata_json,
+                                                   '$.{CONTINUATION_LINEAGE_ID_FIELD}'))
+                        ELSE excluded.source_metadata_json
+                    END,
                     parent_session_id = excluded.parent_session_id,
                     updated_at = excluded.updated_at",
-            )
+            ))
             .map_err(|err| format!("Failed to prepare imported history cache upsert: {err}"))?;
         for input in inputs {
             let touched_files_json = serde_json::to_string(&input.impact.touched_files)
@@ -1266,10 +1278,20 @@ pub fn demote_superseded_continuations_from_conn(
         }
 
         fn find(&mut self, index: usize) -> usize {
-            if self.parent[index] != index {
-                self.parent[index] = self.find(self.parent[index]);
+            // Iterative with path compression: a pathological union order can
+            // chain O(component) parents, and recursing that deep on the sync
+            // thread is an avoidable stack risk.
+            let mut root = index;
+            while self.parent[root] != root {
+                root = self.parent[root];
             }
-            self.parent[index]
+            let mut current = index;
+            while self.parent[current] != root {
+                let next = self.parent[current];
+                self.parent[current] = root;
+                current = next;
+            }
+            root
         }
 
         fn union(&mut self, left: usize, right: usize) {
@@ -1300,7 +1322,20 @@ pub fn demote_superseded_continuations_from_conn(
     let mut sets = DisjointSet::new(election_rows.len());
     let mut marker_owner: HashMap<String, usize> = HashMap::new();
     for (index, row) in election_rows.iter().enumerate() {
-        for marker in &row.metadata.markers {
+        // A stamped lineage id joins the connectivity keys alongside the raw
+        // ancestry markers. Deleting an intermediate transcript can split a
+        // family's marker graph into disconnected halves AFTER both halves
+        // were stamped; without this key the election would list both halves'
+        // winners (the duplicate row returns) while the exact-id lookup keeps
+        // treating them as one family via the shared lineage. Lineage ids are
+        // themselves member uuids (a canonical group key), so they share the
+        // marker namespace without colliding across conversations.
+        for marker in row
+            .metadata
+            .markers
+            .iter()
+            .chain(row.metadata.lineage_id.as_ref())
+        {
             if let Some(owner) = marker_owner.get(marker).copied() {
                 sets.union(index, owner);
             } else {
