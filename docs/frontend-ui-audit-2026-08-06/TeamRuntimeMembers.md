@@ -1,37 +1,40 @@
 # Frontend UI Audit — Team Runtime Members
 
-## Scope
+**File:** `src/modules/shared/dataSource/TeamRuntimePanel.tsx` (440 LOC)
+**Date:** 2026-08-06
+**Auditor:** Codex PR audit
 
-The Runtime → Team member breakdown and individual-member headers, activity
-grouping, and stale-card presentation.
+## D1 — Raw HTML vs Design System
 
-The configured `frontend-ui-audit` skill file was unavailable at both documented
-locations, so this report applies the repository's audit format and the existing
-Team Runtime Today/header conventions directly.
+| Line    | Element                           | Verdict          | Reason                                                                                                                                             | Suggested change |
+| ------- | --------------------------------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| 357–407 | Member grouping and header layout | keep with reason | The native `section`, `h3`, and `h4` elements provide the correct document hierarchy; refresh remains the existing design-system `Button` wrapper. | —                |
 
-## Findings
+## D2 — Arbitrary Tailwind Value vs Token
 
-| Line                       | Element                        | Verdict          | Reason                                                                                                                                          | Suggested change                                                                                  |
-| -------------------------- | ------------------------------ | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `TeamRuntimePanel.tsx:357` | Member breakdown title row     | fix              | The title and refresh action were rendered in separate rows, unlike the adjacent Today surface and the requested compact header hierarchy.      | Keep the heading and shared refresh button in one responsive `justify-between` row.               |
-| `TeamMemberDetail.tsx:179` | Individual-member header       | fix              | Back and refresh were split across stacked control rows, leaving excess whitespace before the member identity.                                  | Keep Back and the injected shared refresh action in one `justify-between` row.                    |
-| `TeamRuntimePanel.tsx:386` | Today-activity member sections | fix              | A single undifferentiated grid made active and inactive members harder to scan.                                                                 | Preserve the semantic `section`/heading split driven by the same UTC-day activity rule as Today.  |
-| `TeamRuntimePanel.tsx:394` | Responsive member grids        | keep with reason | The existing one-to-two-column container breakpoint fits the card minimum width and is already established by this surface.                     | Keep the existing container-query breakpoint for both activity groups.                            |
-| `TeamMemberCard.tsx:117`   | Stale member card presentation | fix              | Applying `opacity-60` to the whole interactive card made reported data and the card action appear disabled even though both remained available. | Keep cards fully opaque; retain non-visual freshness metadata for diagnostics and future signals. |
-| `TeamRuntimePanel.tsx:368` | Refresh action                 | keep with reason | The existing `RuntimeRefreshButton` supplies the shared Button treatment, accessible label/title, loading spin, and duplicate-request guard.    | Continue reusing the shared local action instead of introducing breakdown-specific button markup. |
+| Line    | Value           | Verdict          | Reason                                                                                                                         | Suggested change |
+| ------- | --------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------ | ---------------- |
+| 357–423 | Member surfaces | keep with reason | Spacing, background, border, and text colors use project Tailwind tokens; no raw CSS-variable or color utility was introduced. | —                |
 
-## Verdict counts
+## D3 — Hardcoded Sizes / Colors
 
-- fix: 4
-- keep with reason: 2
-- abstract: 0
+| Line | Value                  | Verdict          | Reason                                                                                                                                             | Suggested change |
+| ---- | ---------------------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| 394  | `@[640px]:grid-cols-2` | keep with reason | This is the existing container breakpoint for the member-card minimum width and keeps the layout responsive to the panel rather than the viewport. | —                |
 
-## Accessibility and visual-system notes
+## D4 — Accessibility
 
-The breakdown uses ordered heading levels (`h3` followed by `h4`) and semantic
-sections. The detail header keeps two native labeled buttons in a predictable
-left/right navigation row. Member cards remain native enabled buttons and no
-longer rely on reduced opacity to communicate state. The refresh control retains
-an accessible label, and the layout continues to use existing spacing, color,
-border, radius, and heading tokens. No arbitrary colors or new one-off pixel
-values were added.
+| Line    | Element         | Verdict          | Reason                                                                                                                                                | Suggested change |
+| ------- | --------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| 357–407 | Activity groups | keep with reason | The breakdown preserves ordered heading levels and semantic sections; refresh keeps its accessible label, loading state, and duplicate-request guard. | —                |
+
+## D5 — Visual Patterns Observed
+
+- Pattern: the Members view now matches the adjacent Today view's compact title/action row and shared section-heading token.
+- Pattern: active-today and inactive-today groups reuse the same card grid rather than duplicating member-card markup.
+
+## Summary
+
+- 0 fixes recommended
+- 4 kept with documented reason
+- 0 abstract candidates (>= 3 occurrences)
