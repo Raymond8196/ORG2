@@ -70,4 +70,84 @@ describe("FloatingToolbar", () => {
       toolbar?.querySelector("[aria-label='creator.toolbar.bold']")
     ).not.toBeNull();
   });
+
+  it("applies the mini control size when requested", () => {
+    const editor = {
+      isActive: vi.fn(() => false),
+    } as unknown as Editor;
+
+    act(() => {
+      root.render(
+        createElement(FloatingToolbar, {
+          editor,
+          placement: "inline",
+          size: "mini",
+        })
+      );
+    });
+
+    expect(
+      container
+        .querySelector("[role='toolbar']")
+        ?.classList.contains("rich-text-editor-toolbar-mini")
+    ).toBe(true);
+  });
+
+  it("opens formatting choices in the shared dropdown panel", async () => {
+    const run = vi.fn();
+    const chain = {
+      focus: vi.fn(() => chain),
+      setParagraph: vi.fn(() => chain),
+      run,
+    };
+    const editor = {
+      isActive: vi.fn(() => false),
+      chain: vi.fn(() => chain),
+    } as unknown as Editor;
+
+    act(() => {
+      root.render(
+        createElement(FloatingToolbar, {
+          editor,
+          placement: "inline",
+          dropdownPosition: "top-start",
+        })
+      );
+    });
+
+    const headingTrigger = container.querySelector<HTMLButtonElement>(
+      "[aria-label='creator.toolbar.normalText']"
+    );
+    await act(async () => {
+      headingTrigger?.click();
+      await Promise.resolve();
+      await new Promise<void>((resolve) =>
+        requestAnimationFrame(() => resolve())
+      );
+    });
+
+    expect(headingTrigger?.getAttribute("aria-expanded")).toBe("true");
+    const listbox = document.querySelector<HTMLElement>(
+      "[role='listbox'][aria-label='creator.toolbar.normalText']"
+    );
+    expect(listbox).not.toBeNull();
+    expect(listbox?.classList.contains("rounded-lg")).toBe(true);
+    const paragraphOption = listbox?.querySelector<HTMLElement>(
+      "[role='option'][aria-selected='true']"
+    );
+    expect(paragraphOption).not.toBeNull();
+    expect(listbox?.parentElement?.style.zIndex).toBe("99999");
+
+    await act(async () => {
+      paragraphOption?.click();
+      await Promise.resolve();
+      await new Promise<void>((resolve) =>
+        requestAnimationFrame(() => resolve())
+      );
+    });
+
+    expect(chain.setParagraph).toHaveBeenCalledOnce();
+    expect(run).toHaveBeenCalledOnce();
+    expect(headingTrigger?.getAttribute("aria-expanded")).toBe("false");
+  });
 });
