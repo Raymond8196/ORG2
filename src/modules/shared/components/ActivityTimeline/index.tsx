@@ -261,11 +261,11 @@ export function TimelineEventCard({
   children?: React.ReactNode;
 }): React.ReactNode {
   return (
-    <div className="flex min-w-0 items-start gap-2 px-2.5 text-[12px] text-text-3">
+    <div className="flex min-w-0 items-center gap-2 px-2.5 text-[11px] text-text-3">
       <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-fill-2 text-text-2">
         {icon}
       </span>
-      <div className="min-w-0 flex-1 leading-5">{children}</div>
+      <div className="min-w-0 flex-1 leading-4">{children}</div>
     </div>
   );
 }

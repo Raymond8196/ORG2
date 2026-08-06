@@ -345,7 +345,7 @@ describe("activity timeline", () => {
     expect(button?.querySelector(".lucide-clipboard")).toBeNull();
   });
 
-  it("uses a bare compact row with a first-line-aligned icon surface", () => {
+  it("uses a smaller compact row with vertically centered content", () => {
     act(() => {
       root.render(
         createElement(
@@ -360,7 +360,8 @@ describe("activity timeline", () => {
     expect(card?.className).not.toContain("rounded-lg");
     expect(card?.className).not.toContain("border-border-1");
     expect(card?.className).not.toContain("bg-primary-container");
-    expect(card?.className).toContain("items-start");
+    expect(card?.className).toContain("items-center");
+    expect(card?.className).toContain("text-[11px]");
     expect(card?.className).toContain("px-2.5");
     expect(card?.className).not.toContain("py-2");
     expect(card?.textContent).toContain("Event");
@@ -372,6 +373,6 @@ describe("activity timeline", () => {
     expect(icon?.className).not.toContain("mt-0.5");
 
     const content = card?.lastElementChild;
-    expect(content?.className).toContain("leading-5");
+    expect(content?.className).toContain("leading-4");
   });
 });
