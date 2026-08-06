@@ -44,11 +44,22 @@ describe("ReactArtifactRunner runtime", () => {
     }
   });
 
-  it("provides a bounded native scroll container for tall sketches", async () => {
+  it("keeps tall and fixed-width sketches reachable inside the bounded scroll container", async () => {
     const root = createSmokeRoot();
     const source = `
       function App() {
-        return React.createElement("div", { style: { height: 1200 } }, "Tall sketch");
+        return React.createElement(
+          "div",
+          {
+            style: {
+              display: "grid",
+              gridTemplateColumns: "220px 330px minmax(450px, 1fr)",
+              height: 1200,
+              overflow: "hidden"
+            }
+          },
+          "Tall and wide sketch"
+        );
       }
     `;
 
@@ -58,7 +69,12 @@ describe("ReactArtifactRunner runtime", () => {
       const scrollContainer = root.container.querySelector(
         '[data-testid="react-artifact-scroll"]'
       );
+      const preview = root.container.querySelector(
+        '[data-testid="react-artifact-preview"]'
+      );
       expect(scrollContainer?.classList.contains("overflow-auto")).toBe(true);
+      expect(preview?.classList.contains("w-fit")).toBe(true);
+      expect(preview?.classList.contains("min-w-full")).toBe(true);
     } finally {
       await root.unmount();
     }

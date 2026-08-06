@@ -84,7 +84,12 @@ const ReactArtifactRunner: React.FC<ReactArtifactRunnerProps> = ({
         className="h-full min-h-0 w-full overflow-auto overscroll-contain bg-bg-1 p-4 text-text-1 [scrollbar-gutter:stable]"
         data-testid="react-artifact-scroll"
       >
-        <LivePreview className="min-h-full min-w-0" />
+        {/* Let a fixed/min-width artifact establish scrollable overflow before
+            its own root-level overflow rules can clip the narrow viewport. */}
+        <LivePreview
+          className="min-h-full w-fit min-w-full"
+          data-testid="react-artifact-preview"
+        />
         <LiveError
           className="hidden"
           onChange={(message: string) => {
