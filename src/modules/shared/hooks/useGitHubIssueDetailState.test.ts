@@ -28,6 +28,7 @@ const mocks = vi.hoisted(() => ({
   getGitHubViewerLogin: vi.fn(),
   listIssueTimelineLocal: vi.fn(),
   listIssuesLocal: vi.fn(),
+  listRepoAssigneesLocal: vi.fn(),
   updateIssueLocal: vi.fn(),
 }));
 
@@ -61,7 +62,7 @@ const issue: GitHubIssue = {
 };
 
 function Probe() {
-  const { interaction } = useGitHubIssueDetailState({
+  const { interaction, assigneeConfig } = useGitHubIssueDetailState({
     issueNumber: issue.number,
     repoPath: "/repos/ORG2",
     stateScopeKey: "issue-detail-test",
@@ -74,6 +75,9 @@ function Probe() {
       "data-loading": String(interaction.loading),
       "data-viewer": interaction.viewer?.login,
       "data-duplicate-count": String(interaction.duplicateCandidates.length),
+      "data-assignee-disabled": String(assigneeConfig?.disabled),
+      "data-assignee-options": String(assigneeConfig?.options.length ?? 0),
+      "data-assignees": assigneeConfig?.currentAssigneeIds.join(","),
     },
     createElement(
       "button",
@@ -86,6 +90,25 @@ function Probe() {
         },
       },
       "Load duplicates"
+    ),
+    createElement(
+      "button",
+      {
+        type: "button",
+        "data-testid": "load-assignees",
+        onClick: () => void assigneeConfig?.onOpen?.(),
+      },
+      "Load assignees"
+    ),
+    createElement(
+      "button",
+      {
+        type: "button",
+        "data-testid": "assign-collaborator",
+        onClick: () =>
+          void assigneeConfig?.onChangeAssigneeIds(["collaborator"]),
+      },
+      "Assign collaborator"
     )
   );
 }
@@ -110,6 +133,7 @@ describe("useGitHubIssueDetailState", () => {
       can_manage_issues: true,
       can_manage_pull_requests: false,
     });
+    mocks.listRepoAssigneesLocal.mockResolvedValue([]);
     store.set(workstationSelectedIssueAtomFamily("issue-detail-test"), {
       issue,
       timeline: [],
@@ -227,6 +251,63 @@ describe("useGitHubIssueDetailState", () => {
           .querySelector("[data-testid='issue-detail-state']")
           ?.getAttribute("data-duplicate-count")
       ).toBe("1");
+    });
+  });
+
+  it("loads and updates assignees when repository permissions allow it", async () => {
+    const collaborator = {
+      login: "collaborator",
+      avatar_url: "https://example.com/collaborator.png",
+    };
+    mocks.listRepoAssigneesLocal.mockResolvedValue([collaborator]);
+    mocks.updateIssueLocal.mockResolvedValue({
+      ...issue,
+      assignees: [collaborator],
+    });
+
+    await act(async () => {
+      root.render(createElement(Provider, { store }, createElement(Probe)));
+    });
+    await vi.waitFor(() => {
+      expect(
+        container
+          .querySelector("[data-testid='issue-detail-state']")
+          ?.getAttribute("data-assignee-disabled")
+      ).toBe("false");
+    });
+
+    await act(async () => {
+      container
+        .querySelector<HTMLButtonElement>("[data-testid='load-assignees']")
+        ?.click();
+      await Promise.resolve();
+    });
+    await vi.waitFor(() => {
+      expect(mocks.listRepoAssigneesLocal).toHaveBeenCalledWith("org2AI/ORG2");
+      expect(
+        container
+          .querySelector("[data-testid='issue-detail-state']")
+          ?.getAttribute("data-assignee-options")
+      ).toBe("1");
+    });
+
+    await act(async () => {
+      container
+        .querySelector<HTMLButtonElement>("[data-testid='assign-collaborator']")
+        ?.click();
+      await Promise.resolve();
+    });
+    await vi.waitFor(() => {
+      expect(mocks.updateIssueLocal).toHaveBeenCalledWith(
+        "org2AI/ORG2",
+        issue.number,
+        { assignees: ["collaborator"] }
+      );
+      expect(
+        container
+          .querySelector("[data-testid='issue-detail-state']")
+          ?.getAttribute("data-assignees")
+      ).toBe("collaborator");
     });
   });
 });

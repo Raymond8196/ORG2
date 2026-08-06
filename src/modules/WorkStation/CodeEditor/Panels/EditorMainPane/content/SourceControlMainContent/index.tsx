@@ -92,12 +92,15 @@ const SourceControlMainContent: React.FC<SourceControlMainContentProps> = ({
   emptyFocusActions,
 }) => {
   const scopeKey = workstationRepoScopeKey(repoId, repoPath);
-  const { selectedState: selectedIssueState, interaction } =
-    useGitHubIssueDetailState({
-      repoPath: repoPath ?? "",
-      repoId,
-      stateScopeKey: scopeKey,
-    });
+  const {
+    selectedState: selectedIssueState,
+    interaction,
+    assigneeConfig,
+  } = useGitHubIssueDetailState({
+    repoPath: repoPath ?? "",
+    repoId,
+    stateScopeKey: scopeKey,
+  });
 
   // `historySelection` keeps a stable reference across renders (it comes from
   // the persisted tab payload), so memoizing on it directly gives a stable
@@ -144,6 +147,7 @@ const SourceControlMainContent: React.FC<SourceControlMainContentProps> = ({
           timeline={selectedIssueState.timeline}
           timelineLoading={selectedIssueState.timelineLoading}
           interaction={interaction}
+          assigneeConfig={assigneeConfig}
         />
       </Suspense>
     );

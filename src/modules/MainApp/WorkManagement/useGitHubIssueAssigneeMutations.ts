@@ -3,6 +3,10 @@ import { useCallback, useRef, useState } from "react";
 import type { GitHubIssue, GitHubIssueUser } from "@src/api/tauri/github";
 import Message from "@src/components/Message";
 import {
+  issueHasAssigneeLogins,
+  resolveGitHubAssigneeUsers,
+} from "@src/modules/shared/githubIssueAssignees";
+import {
   updateCachedClosedIssues,
   updateCachedOpenIssues,
 } from "@src/services/git/githubListCache";
@@ -59,31 +63,14 @@ export function resolveIssueAssigneeUsers(
   assignableUsers: GitHubIssueUser[],
   assigneeLogins: string[]
 ): GitHubIssueUser[] {
-  const usersByLogin = new Map(
-    [...item.rawIssue.assignees, ...assignableUsers].map((user) => [
-      user.login.toLowerCase(),
-      user,
-    ])
-  );
-  return assigneeLogins.map(
-    (login) =>
-      usersByLogin.get(login.toLowerCase()) ?? { login, avatar_url: "" }
+  return resolveGitHubAssigneeUsers(
+    item.rawIssue.assignees,
+    assignableUsers,
+    assigneeLogins
   );
 }
 
-export function issueHasAssigneeLogins(
-  issue: GitHubIssue,
-  assigneeLogins: string[]
-): boolean {
-  const actual = issue.assignees
-    .map((assignee) => assignee.login.toLowerCase())
-    .sort();
-  const expected = assigneeLogins.map((login) => login.toLowerCase()).sort();
-  return (
-    actual.length === expected.length &&
-    actual.every((login, index) => login === expected[index])
-  );
-}
+export { issueHasAssigneeLogins };
 
 export function useGitHubIssueAssigneeMutations({
   repoSources,
