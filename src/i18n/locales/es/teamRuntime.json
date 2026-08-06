@@ -12,6 +12,8 @@
     "recentLoading": "Cargando sesiones compartidas…",
     "recentEmpty": "Aún no hay sesiones compartidas",
     "members": "Desglose por miembro",
+    "activeToday": "Activos hoy",
+    "inactiveToday": "Inactivos hoy",
     "sync": "Sincronización"
   },
   "signedOut": {

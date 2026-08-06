@@ -12,6 +12,8 @@
     "recentLoading": "Đang tải các phiên được chia sẻ…",
     "recentEmpty": "Chưa có phiên nào được chia sẻ",
     "members": "Chi tiết theo thành viên",
+    "activeToday": "Hoạt động hôm nay",
+    "inactiveToday": "Không hoạt động hôm nay",
     "sync": "Đồng bộ"
   },
   "signedOut": {

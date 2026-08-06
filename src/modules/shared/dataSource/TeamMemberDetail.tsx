@@ -9,7 +9,15 @@
  * back-button idiom of this folder).
  */
 import { ChevronLeft, Terminal } from "lucide-react";
-import { Suspense, lazy, useEffect, useMemo, useRef, useState } from "react";
+import {
+  type ReactNode,
+  Suspense,
+  lazy,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 
 import Avatar from "@src/components/Avatar";
@@ -61,6 +69,7 @@ interface TeamMemberDetailProps {
   agentCatalog: AgentCatalog;
   language: string;
   onBack: () => void;
+  headerAction?: ReactNode;
 }
 
 export default function TeamMemberDetail({
@@ -70,6 +79,7 @@ export default function TeamMemberDetail({
   agentCatalog,
   language,
   onBack,
+  headerAction,
 }: TeamMemberDetailProps) {
   const { t } = useTranslation("teamRuntime");
   const { t: tUsage } = useTranslation("sessions", {
@@ -201,7 +211,10 @@ export default function TeamMemberDetail({
 
   return (
     <div className="flex flex-col gap-4" data-testid="team-member-detail">
-      <div className="flex items-center justify-between gap-2">
+      <div
+        className="flex min-h-9 items-center justify-between gap-2"
+        data-testid="team-member-detail-header"
+      >
         <Button
           variant="tertiary"
           size="small"
@@ -211,6 +224,14 @@ export default function TeamMemberDetail({
         >
           {t("detail.back")}
         </Button>
+        {headerAction ? (
+          <div
+            className="flex shrink-0 items-center"
+            data-testid="team-runtime-controls"
+          >
+            {headerAction}
+          </div>
+        ) : null}
       </div>
 
       <div className="flex items-center gap-3">

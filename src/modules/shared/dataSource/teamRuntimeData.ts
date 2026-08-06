@@ -124,7 +124,7 @@ export function parseTelemetryOption(value: string): {
 // Staleness
 // ---------------------------------------------------------------------------
 
-/** Grey-out threshold: a report older than 2× the org interval is stale. */
+/** Freshness threshold: a report older than 2× the org interval is stale. */
 export function staleAfterMs(telemetry: OrgRuntimeTelemetry | null): number {
   const interval = clampTelemetryInterval(
     telemetry?.intervalMinutes ?? RUNTIME_TELEMETRY_DEFAULT_INTERVAL_MINUTES
@@ -190,6 +190,28 @@ export function foldRecentDays(
   return headline;
 }
 
+/**
+ * Whether a member has meaningful usage in the current UTC day.
+ *
+ * This is the shared definition behind both the overview's active-member
+ * count and the Members breakdown groups. A zero-valued day row is not
+ * activity; any request, session, token, or cost is.
+ */
+export function hasMemberActivityToday(
+  recentDays: readonly MemberUsageDay[],
+  nowMs: number
+): boolean {
+  const today = utcDayFromMs(nowMs);
+  return recentDays.some(
+    (row) =>
+      row.day === today &&
+      (row.requests > 0 ||
+        row.sessions > 0 ||
+        row.totalTokens > 0 ||
+        row.costUsd > 0)
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Today org snapshot + recent shared sessions
 // ---------------------------------------------------------------------------
@@ -229,21 +251,11 @@ export function buildOrgRuntimeTodaySnapshot(
   let currentSystems = 0;
 
   for (const member of members) {
-    let memberActiveToday = false;
     for (const row of member.recentDays) {
       if (row.day !== today) continue;
       usageRows.push(row);
-      if (
-        !memberActiveToday &&
-        (row.requests > 0 ||
-          row.sessions > 0 ||
-          row.totalTokens > 0 ||
-          row.costUsd > 0)
-      ) {
-        memberActiveToday = true;
-      }
     }
-    if (memberActiveToday) activeMembers += 1;
+    if (hasMemberActivityToday(member.recentDays, nowMs)) activeMembers += 1;
 
     if (isRuntimeStale(member.reportedAt, telemetry, nowMs)) continue;
     currentSystems += 1;

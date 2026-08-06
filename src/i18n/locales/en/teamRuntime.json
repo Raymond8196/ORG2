@@ -12,6 +12,8 @@
     "recentLoading": "Loading shared sessions…",
     "recentEmpty": "No shared sessions yet",
     "members": "Member breakdown",
+    "activeToday": "Active today",
+    "inactiveToday": "Inactive today",
     "sync": "Sync"
   },
   "signedOut": {

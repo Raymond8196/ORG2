@@ -12,6 +12,8 @@
     "recentLoading": "공유 세션을 불러오는 중…",
     "recentEmpty": "아직 공유된 세션이 없습니다",
     "members": "구성원별 내역",
+    "activeToday": "오늘 활동함",
+    "inactiveToday": "오늘 활동 없음",
     "sync": "동기화"
   },
   "signedOut": {
