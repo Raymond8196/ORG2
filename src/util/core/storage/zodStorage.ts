@@ -1,9 +1,38 @@
-import type { z } from "zod/v4";
+import { z } from "zod/v4";
 
 import {
   removeBrowserStorageItemSafely,
   setBrowserStorageItemWithRecovery,
 } from "./quotaRecovery";
+
+/**
+ * Record schema that parses every entry independently and DROPS invalid
+ * entries instead of failing the whole record. `createZodJsonStorage`
+ * answers a failed whole-store parse with the initial value, so for a
+ * record-shaped store one corrupted entry (disk damage, or a future
+ * entry shape rolled back onto this build) would otherwise reset EVERY
+ * entry at load — for cloud push state that scale of loss converts into
+ * fleet-wide re-anchors or retracts. Losing one entry is the designed,
+ * self-healing recovery; losing the store is an incident.
+ */
+export function tolerantRecordSchema<V>(
+  label: string,
+  valueSchema: z.ZodType<V>
+) {
+  return z.record(z.string(), z.unknown()).transform((entries) => {
+    const valid: Record<string, V> = {};
+    for (const [key, value] of Object.entries(entries)) {
+      const parsed = valueSchema.safeParse(value);
+      if (parsed.success) {
+        valid[key] = parsed.data;
+      } else {
+        // Once per storage load per bad entry — no rate limit needed.
+        console.warn(`[zodStorage] dropped invalid ${label} entry "${key}"`);
+      }
+    }
+    return valid;
+  });
+}
 
 export interface ZodSyncStorage<T> {
   getItem: (key: string, initialValue: T) => T;
