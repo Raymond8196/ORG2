@@ -32,7 +32,10 @@ fn render_linked_work_item_context(work_item_id: &str, project_slug: Option<&str
     format!(
         "## Linked Work Item\n\n\
          This planning session is already linked to Work Item `short_id` {}. \
-         {} Update this linked draft instead of creating a duplicate unless the user explicitly asks for multiple Work Items. \
+         {} \
+         Scope rule: the linked item is THIS session's original deliverable. \
+         When the user iterates on that same request (refine, expand, correct, retitle), update the linked draft instead of creating a duplicate. \
+         When the user asks for a NEW or additional Work Item — a different topic, an example, \"another one\" — create a fresh item with `manage_work_item(action=create_item)` and leave the linked item untouched; never repurpose it by overwriting its title and body with unrelated content. \
          Keep the current session linked after every update. \
          Apply all of this silently: never announce the linkage, ids, or drafting mechanics to the user (no \"this session is already linked to…\") — just acknowledge the request and do the work.",
         serde_json::to_string(work_item_id).expect("work item id is JSON serializable"),
