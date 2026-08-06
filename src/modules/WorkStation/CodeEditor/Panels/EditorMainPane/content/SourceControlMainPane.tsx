@@ -41,6 +41,7 @@ export interface SourceControlMainPaneProps {
   gitFilesByPath: Map<string, GitFile>;
   sourceControlFiles: GitFile[];
   sourceControlFilterMode: string;
+  activeRepoRoot: string;
   gitDiffLoading: boolean;
   sourceControlCollapseAllSignal?: number;
   sourceControlQuickActions: QuickAction[];
@@ -57,6 +58,7 @@ const SourceControlMainPane: React.FC<SourceControlMainPaneProps> = ({
   gitFilesByPath,
   sourceControlFiles,
   sourceControlFilterMode,
+  activeRepoRoot,
   gitDiffLoading,
   sourceControlCollapseAllSignal,
   sourceControlQuickActions,
@@ -76,13 +78,14 @@ const SourceControlMainPane: React.FC<SourceControlMainPaneProps> = ({
     stateScopeKey: scopeKey,
   });
 
-  const { mode, staged, focusPath, historySelection, allFiles, focusGitFile } =
+  const { mode, staged, historySelection, allFiles, focusGitFile, hasFocus } =
     deriveSourceControlMainProps({
       tabData,
       gitFilesByPath,
       sourceControlFiles,
       sourceControlFilterMode,
       repoPath,
+      activeRepoRoot,
     });
 
   if (sourceControlFilterMode === "issues") {
@@ -127,7 +130,7 @@ const SourceControlMainPane: React.FC<SourceControlMainPaneProps> = ({
         <SourceControlMainContent
           mode={mode}
           focusGitFile={focusGitFile}
-          hasFocus={Boolean(focusPath)}
+          hasFocus={hasFocus}
           onForceReload={onForceReload}
           onFileSelect={onFileSelect}
           onCloseFocus={onCloseFocus}
