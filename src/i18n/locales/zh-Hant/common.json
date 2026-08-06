@@ -1663,9 +1663,9 @@
       },
       "composer": {
         "addComment": "新增評論",
-        "commentingAs": "正以 @{{login}} 身分操作",
+        "commentingAs": "正以 {{login}} 身分操作",
         "identityUnavailable": "GitHub 身分無法使用",
-        "commentPlaceholder": "使用 Markdown 撰寫評論",
+        "commentPlaceholder": "撰寫評論…",
         "submitComment": "評論",
         "closeIssue": "關閉 issue",
         "closeAsCompleted": "以已完成關閉",

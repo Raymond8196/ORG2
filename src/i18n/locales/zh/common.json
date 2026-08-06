@@ -1528,9 +1528,9 @@
       },
       "composer": {
         "addComment": "添加评论",
-        "commentingAs": "正在以 @{{login}} 身份操作",
+        "commentingAs": "正在以 {{login}} 身份操作",
         "identityUnavailable": "GitHub 身份不可用",
-        "commentPlaceholder": "使用 Markdown 撰写评论",
+        "commentPlaceholder": "撰写评论…",
         "submitComment": "评论",
         "closeIssue": "关闭 issue",
         "closeAsCompleted": "以已完成关闭",

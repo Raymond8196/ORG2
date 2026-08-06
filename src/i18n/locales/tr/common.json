@@ -1653,9 +1653,9 @@
       },
       "composer": {
         "addComment": "Yorum ekle",
-        "commentingAs": "@{{login}} olarak işlem yapılıyor",
+        "commentingAs": "{{login}} olarak işlem yapılıyor",
         "identityUnavailable": "GitHub kimliği kullanılamıyor",
-        "commentPlaceholder": "Yorumunuzu Markdown ile biçimlendirin",
+        "commentPlaceholder": "Yorum yazın…",
         "submitComment": "Yorum yap",
         "closeIssue": "Issue kaydını kapat",
         "closeAsCompleted": "Tamamlandı olarak kapat",

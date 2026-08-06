@@ -1651,9 +1651,9 @@
       },
       "composer": {
         "addComment": "댓글 추가",
-        "commentingAs": "@{{login}} 계정으로 작업 중",
+        "commentingAs": "{{login}} 계정으로 작업 중",
         "identityUnavailable": "GitHub 사용자 정보를 사용할 수 없습니다",
-        "commentPlaceholder": "Markdown으로 댓글 작성",
+        "commentPlaceholder": "댓글 작성…",
         "submitComment": "댓글",
         "closeIssue": "issue 닫기",
         "closeAsCompleted": "완료로 닫기",
