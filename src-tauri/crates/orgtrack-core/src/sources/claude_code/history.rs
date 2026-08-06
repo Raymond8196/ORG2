@@ -40,7 +40,9 @@ const CLAUDE_CODE_PROVIDER_SLUG: &str = "claudecode";
 // surface as data-URL attachments on the user bubble.
 // v11: capture compact-boundary ancestry markers so continuation families
 // survive Claude Code rewriting the first user message during compaction.
-const CLAUDE_CODE_METADATA_PARSER_VERSION: i64 = 11;
+// v12: name subagent rows from their small `.meta.json` sidecar instead of
+// the shared beginning of each child prompt.
+const CLAUDE_CODE_METADATA_PARSER_VERSION: i64 = 12;
 const MAX_COMPACT_BOUNDARY_MARKERS: usize = imported_cache::MAX_CONTINUATION_MARKERS - 1;
 
 pub type ClaudeCodeHistorySessionRow = ImportedHistorySessionRow;
@@ -187,6 +189,12 @@ struct ClaudeSessionMetadataFile {
     name: String,
     #[serde(default)]
     name_source: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ClaudeSubagentMetadataFile {
+    #[serde(default)]
+    description: String,
 }
 
 #[derive(Debug, Clone)]
@@ -778,7 +786,10 @@ fn discover_claude_code_history_records(
             };
             let (source_mtime_ms, source_size_bytes) =
                 imported_paths::file_metadata_signature(&path, "Claude")?;
-            if let Some(title) = title_index.get(&file_stem) {
+            let subagent_title = claude_subagent_metadata_title(&path);
+            if let Some(title) = subagent_title.as_ref() {
+                external_titles.insert(file_stem.clone(), title.clone());
+            } else if let Some(title) = title_index.get(&file_stem) {
                 external_titles.insert(
                     file_stem.clone(),
                     imported_history::truncate_name(&title.name, 200),
@@ -790,7 +801,11 @@ fn discover_claude_code_history_records(
                 source_record_key: file_stem.clone(),
                 source_mtime_ms,
                 source_size_bytes,
-                source_fingerprint: claude_source_fingerprint(&file_stem, &title_index),
+                source_fingerprint: claude_source_fingerprint(
+                    &file_stem,
+                    &title_index,
+                    subagent_title.as_deref(),
+                ),
                 parser_version: CLAUDE_CODE_METADATA_PARSER_VERSION,
             });
         }
@@ -817,6 +832,22 @@ fn is_claude_workflow_journal_path(path: &Path) -> bool {
     components
         .windows(2)
         .any(|pair| pair == ["subagents", "workflows"])
+}
+
+fn claude_subagent_metadata_title(path: &Path) -> Option<String> {
+    if !path
+        .ancestors()
+        .any(|ancestor| ancestor.file_name().and_then(|name| name.to_str()) == Some("subagents"))
+    {
+        return None;
+    }
+    // This file is optional Claude Code metadata. A missing, unreadable, or
+    // malformed sidecar must not prevent the transcript itself from loading.
+    let metadata_path = path.with_extension("meta.json");
+    let contents = fs::read_to_string(metadata_path).ok()?;
+    let metadata = serde_json::from_str::<ClaudeSubagentMetadataFile>(&contents).ok()?;
+    let description = metadata.description.trim();
+    (!description.is_empty()).then(|| imported_history::truncate_name(description, 200))
 }
 
 fn collect_claude_session_files(
@@ -902,7 +933,11 @@ fn load_claude_session_titles(
 fn claude_source_fingerprint(
     file_stem: &str,
     title_index: &HashMap<String, ClaudeSessionTitle>,
+    subagent_title: Option<&str>,
 ) -> String {
+    if let Some(title) = subagent_title {
+        return format!("subagent-meta:{title}");
+    }
     title_index
         .get(file_stem)
         .map(|title| {
