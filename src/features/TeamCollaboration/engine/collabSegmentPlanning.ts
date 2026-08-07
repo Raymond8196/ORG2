@@ -223,17 +223,42 @@ export function computeFrozenEventCount(
   const lastCreatedAt = Date.parse(events[events.length - 1]?.createdAt ?? "");
   const sessionStillAppending =
     Number.isFinite(lastCreatedAt) && lastCreatedAt >= horizonFloor;
-  if (sessionStillAppending) {
-    const pendingScanFloor = Math.max(
-      0,
-      events.length - FREEZE_PENDING_TOOL_MAX_HOLDBACK_EVENTS
-    );
-    for (let index = pendingScanFloor; index < line; index += 1) {
-      if (isUnresolvedToolCallStart(events[index])) {
-        line = index;
-        break;
-      }
+  const holdbackScanFloor = Math.max(
+    0,
+    events.length - FREEZE_PENDING_TOOL_MAX_HOLDBACK_EVENTS
+  );
+  // Position-unstable trailing events must never freeze. Some reader-emitted
+  // chunks FLOAT at the stream end (observed: a synthetic task_create pinned
+  // at count-2 whose positional seq — embedded in the event id — shifts on
+  // every append); freezing one guarantees a chain mismatch on the next read
+  // while the file grows, which is exactly the every-pass epoch-rewrite
+  // bleed. Floaters betray themselves by timestamp inversion: an event
+  // created long before the maximum createdAt already seen upstream is
+  // sitting far from its chronological position. The horizon-sized slack
+  // keeps ms-level interleaving inversions (parallel writers, clock jitter)
+  // from triggering. This holdback applies even to quiescent sessions — a
+  // floater frozen while quiet would still move (and pay a rewrite) on the
+  // next reactivation append.
+  let maxSeenCreatedAtMs = 0;
+  for (let index = 0; index < holdbackScanFloor; index += 1) {
+    const t = Date.parse(events[index]?.createdAt ?? "");
+    if (Number.isFinite(t) && t > maxSeenCreatedAtMs) maxSeenCreatedAtMs = t;
+  }
+  for (let index = holdbackScanFloor; index < line; index += 1) {
+    const event = events[index];
+    const t = Date.parse(event?.createdAt ?? "");
+    const floating =
+      Number.isFinite(t) &&
+      maxSeenCreatedAtMs > 0 &&
+      t < maxSeenCreatedAtMs - FREEZE_MUTATION_HORIZON_MS;
+    if (
+      floating ||
+      (sessionStillAppending && isUnresolvedToolCallStart(event))
+    ) {
+      line = index;
+      break;
     }
+    if (Number.isFinite(t) && t > maxSeenCreatedAtMs) maxSeenCreatedAtMs = t;
   }
   let held = 0;
   while (line > 0 && held < FREEZE_HORIZON_MAX_EVENTS) {

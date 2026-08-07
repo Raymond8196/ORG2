@@ -250,6 +250,54 @@ describe("computeFrozenEventCount frozen line + stuck-sentinel skip-over", () =>
     expect(computeFrozenEventCount(events, now)).toBe(201);
   });
 
+  it("never freezes a floating trailing event sitting far before its neighbors", () => {
+    // Reader-emitted synthetic chunks float at the stream end: their
+    // createdAt is hours old but their position tracks the growing tail,
+    // so freezing one guarantees a chain mismatch on the next read.
+    const now = Date.parse("2026-07-25T12:00:00Z");
+    const events = [
+      event({ createdAt: "2026-07-25T10:00:00Z" }),
+      event({ createdAt: "2026-07-25T10:30:00Z" }),
+      event({ createdAt: "2026-07-25T11:00:00Z" }),
+      event({
+        functionName: "task_create",
+        createdAt: "2026-07-25T08:00:00Z",
+        result: { status: "created" },
+      }),
+      event({ createdAt: "2026-07-25T11:55:00Z" }),
+    ];
+    expect(computeFrozenEventCount(events, now)).toBe(3);
+  });
+
+  it("holds a floater back even when the session is quiescent", () => {
+    // A floater frozen while the session sleeps still moves (and pays an
+    // epoch rewrite) on the next reactivation append — hold it always.
+    const now = Date.parse("2026-07-25T12:00:00Z");
+    const events = [
+      event({ createdAt: "2026-07-25T09:00:00Z" }),
+      event({ createdAt: "2026-07-25T10:00:00Z" }),
+      event({
+        functionName: "task_create",
+        createdAt: "2026-07-25T07:00:00Z",
+        result: { status: "created" },
+      }),
+      event({ createdAt: "2026-07-25T10:00:05Z" }),
+    ];
+    expect(computeFrozenEventCount(events, now)).toBe(2);
+  });
+
+  it("tolerates small timestamp inversions from interleaved writers", () => {
+    // ms/second-level inversions are normal (parallel writers, clock
+    // jitter); only horizon-scale displacement marks a floater.
+    const now = Date.parse("2026-07-25T12:00:00Z");
+    const events = [
+      event({ createdAt: "2026-07-25T11:00:10Z" }),
+      event({ createdAt: "2026-07-25T11:00:09Z" }),
+      event({ createdAt: "2026-07-25T11:00:11Z" }),
+    ];
+    expect(computeFrozenEventCount(events, now)).toBe(3);
+  });
+
   it("counts a missing displayStatus as terminal (hash chain catches mutation)", () => {
     const events = [event({ displayStatus: undefined as never }), event({})];
     expect(computeFrozenEventCount(events)).toBe(2);
