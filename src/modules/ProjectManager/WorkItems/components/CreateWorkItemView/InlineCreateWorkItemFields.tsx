@@ -471,7 +471,7 @@ export function useInlineCreateWorkItemFields({
       separatorVisible={false}
       descriptionPlaceholder={tSessions("creator.placeholderDefault")}
       onImageInsert={handleImageInsert}
-      descriptionClassName="no-bottom-border"
+      descriptionClassName="no-bottom-border [&_.ProseMirror]:!pl-1.5"
       descriptionMaxHeight="100%"
       repoPath={repoPath}
       className="flex min-h-0 flex-1 flex-col"
