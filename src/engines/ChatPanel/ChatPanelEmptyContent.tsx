@@ -1,12 +1,14 @@
 import type { TFunction } from "i18next";
-import { useAtomValue } from "jotai";
-import React, { Suspense } from "react";
+import { useAtomValue, useSetAtom } from "jotai";
+import React, { Suspense, useCallback } from "react";
 
 import type { SelectOption } from "@src/components/Select";
+import { PRODUCT_MODE_PROJECT } from "@src/config/sessionCreatorConfig";
 import type { SessionLaunchSuccessInfo } from "@src/engines/SessionCore/hooks/session/useSessionCreator/useSessionLaunch/types";
 import { SESSION_CREATOR_LAUNCH_MODE } from "@src/features/SessionCreator/types";
 import type { CreatedOrgResult } from "@src/features/TeamCollaboration/components/CreateCollabOrgView";
 import type { CreatedWorkItemResult } from "@src/modules/ProjectManager/WorkItems/components/CreateWorkItemView";
+import { openOrFocusSessionInChatPanelTabAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
 import {
   CHAT_PANEL_CREATE_TARGET,
   type ChatPanelCreateProjectContext,
@@ -137,6 +139,19 @@ export function ChatPanelEmptyContent({
 }: ChatPanelEmptyContentProps): React.ReactNode {
   const projectDrafts = useAtomValue(projectDraftsAtom);
   const projectDraftOrgId = projectDrafts.get(PROJECT_CREATOR_DRAFT_ID)?.orgId;
+  // Create-Project-with-AI lands the user IN the launched session (same
+  // rationale as the AI work-item flow): a background launch that resets
+  // to a blank creator with a toast minutes later reads as "nothing
+  // happened".
+  const openOrFocusSessionTab = useSetAtom(
+    openOrFocusSessionInChatPanelTabAtom
+  );
+  const handleProjectCreatorSessionStart = useCallback(
+    (info: SessionLaunchSuccessInfo) => {
+      openOrFocusSessionTab({ sessionId: info.sessionId });
+    },
+    [openOrFocusSessionTab]
+  );
   const renderWorkItemCreator = (showInlineAiModePanel: boolean) => {
     return (
       <WorkspaceScopedContent>
@@ -226,11 +241,16 @@ export function ChatPanelEmptyContent({
           launchMode={SESSION_CREATOR_LAUNCH_MODE.START_BACKGROUND}
           onOpenCliTerminal={handleOpenCliTerminal}
           onRegionNoticeChange={handleRegionNoticeChange}
+          onSessionStart={handleProjectCreatorSessionStart}
           workItemContext={{
             orgId:
               projectDraftOrgId ??
               createProjectContext?.orgId ??
               STORY_PERSONAL_ORG_FILTER_ID,
+            // The whole flow is "create a project via manage_project" —
+            // without a workItemId the resolver would default to build
+            // and the PM tools would be policy-denied (§5.2 deny-delta).
+            productMode: PRODUCT_MODE_PROJECT,
           }}
         />
       ) : null;

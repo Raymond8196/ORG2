@@ -1,7 +1,6 @@
 import { z } from "zod/v4";
 
 import type {
-  AgentExecModeConfig,
   AgentStatusInfo,
   DeleteSessionReceipt,
   FileResolution,
@@ -197,6 +196,12 @@ export const LinkSessionToWorkItemInput = z.object({
   agentRole: z.string().optional(),
 });
 
+export const TrackSessionAsProjectResult = z.object({
+  productMode: z.string(),
+  agentExecMode: z.string(),
+  workItemId: z.string().nullable().optional(),
+});
+
 export const QuestionResponseInput = z.object({
   sessionId: z.string(),
   requestId: z.string(),
@@ -323,12 +328,6 @@ export const TodoItemSchema = z.object({
   status: z.enum(["pending", "in_progress", "completed", "cancelled"]),
 }) as z.ZodType<TodoItem, TodoItem>;
 
-export const AgentExecModeConfigSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  description: z.string(),
-}) as z.ZodType<AgentExecModeConfig, AgentExecModeConfig>;
-
 export const FileResolutionInput = z.object({
   sessionId: z.string(),
   filePath: z.string(),
@@ -375,6 +374,7 @@ const SessionLaunchParamsSchema = z
     projectId: z.string().optional(),
     projectName: z.string().optional(),
     workItemId: z.string().optional(),
+    productMode: z.string().optional(),
     agentRole: z.string().optional(),
     worktreePath: z.string().optional(),
     projectSlug: z.string().optional(),

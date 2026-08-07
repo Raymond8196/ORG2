@@ -50,6 +50,7 @@ const WorkManagementProjectsSurface = React.lazy(
 const WorkManagementTaskCreator = React.lazy(
   () => import("./WorkManagementTaskCreator")
 );
+const RoutineRunsSurface = React.lazy(() => import("./RoutineRunsSurface"));
 
 export interface WorkManagementPageProps {
   /**
@@ -195,6 +196,8 @@ const WorkManagementPage: React.FC<WorkManagementPageProps> = ({
             <GitHubWorkItemsSurface scope="issue" detailHost={detailHost} />
           ) : activeHomeTab === WORK_MANAGEMENT_SECTION.GITHUB_PRS ? (
             <GitHubWorkItemsSurface scope="pr" detailHost={detailHost} />
+          ) : activeHomeTab === WORK_MANAGEMENT_SECTION.RUNS ? (
+            <RoutineRunsSurface />
           ) : (
             <>
               <TaskKanban />

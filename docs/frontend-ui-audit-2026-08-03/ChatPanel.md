@@ -6,27 +6,27 @@
 
 ## D1 — Raw HTML vs Design System
 
-| Line | Element | Verdict | Reason | Suggested change |
-| --- | --- | --- | --- | --- |
-| — | Add-ORG intent wiring | keep with reason | The change subscribes to and clears transient navigation intent; it renders no new element and leaves the existing `ChatPanelStartPage` composition intact. | — |
+| Line | Element               | Verdict          | Reason                                                                                                                                                      | Suggested change |
+| ---- | --------------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| —    | Add-ORG intent wiring | keep with reason | The change subscribes to and clears transient navigation intent; it renders no new element and leaves the existing `ChatPanelStartPage` composition intact. | —                |
 
 ## D2 — Arbitrary Tailwind Value vs Token
 
-| Line | Value | Verdict | Reason | Suggested change |
-| --- | --- | --- | --- | --- |
-| — | None in changed surface | keep with reason | No class or style value was added. | — |
+| Line | Value                   | Verdict          | Reason                             | Suggested change |
+| ---- | ----------------------- | ---------------- | ---------------------------------- | ---------------- |
+| —    | None in changed surface | keep with reason | No class or style value was added. | —                |
 
 ## D3 — Hardcoded Sizes / Colors
 
-| Line | Value | Verdict | Reason | Suggested change |
-| --- | --- | --- | --- | --- |
-| — | None in changed surface | keep with reason | No visual constant was added. | — |
+| Line | Value                   | Verdict          | Reason                        | Suggested change |
+| ---- | ----------------------- | ---------------- | ----------------------------- | ---------------- |
+| —    | None in changed surface | keep with reason | No visual constant was added. | —                |
 
 ## D4 — Accessibility
 
-| Line | Element | Verdict | Reason | Suggested change |
-| --- | --- | --- | --- | --- |
-| 116 | One-shot intent setter | keep with reason | Manual creator selection clears the guide preset before navigation, so a stale programmatic focus request cannot alter a later ordinary Add ORG form. | — |
+| Line | Element                | Verdict          | Reason                                                                                                                                                | Suggested change |
+| ---- | ---------------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| 116  | One-shot intent setter | keep with reason | Manual creator selection clears the guide preset before navigation, so a stale programmatic focus request cannot alter a later ordinary Add ORG form. | —                |
 
 ## D5 — Visual Patterns Observed
 

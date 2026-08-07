@@ -78,6 +78,7 @@ export function useWorkstationSidebarPinnedAndRevealData({
         projects: t("labels.projects"),
         githubIssues: tSessions("kanban.sidebar.githubIssues"),
         githubPrs: tSessions("kanban.sidebar.githubPrs"),
+        runs: tSessions("kanban.sidebar.runs"),
       }),
     [t, tSessions]
   );

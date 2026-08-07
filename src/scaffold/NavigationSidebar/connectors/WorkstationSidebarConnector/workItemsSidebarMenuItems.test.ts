@@ -11,6 +11,7 @@ import {
   WORK_ITEMS_GITHUB_PRS_MENU_ITEM_ID,
   WORK_ITEMS_MENU_ITEM_ID,
   WORK_ITEMS_PROJECTS_MENU_ITEM_ID,
+  WORK_ITEMS_RUNS_MENU_ITEM_ID,
   isWorkManagementMenuItemId,
 } from "../sidebarConnectorUtils";
 import {
@@ -25,6 +26,7 @@ describe("buildWorkItemsSidebarMenuItems", () => {
       projects: "Projects",
       githubIssues: "GitHub Issues",
       githubPrs: "GitHub PRs",
+      runs: "Runs",
     });
 
     expect(items.map((item) => item.id)).toEqual([
@@ -32,6 +34,7 @@ describe("buildWorkItemsSidebarMenuItems", () => {
       WORK_ITEMS_GITHUB_ISSUES_MENU_ITEM_ID,
       WORK_ITEMS_MENU_ITEM_ID,
       WORK_ITEMS_PROJECTS_MENU_ITEM_ID,
+      WORK_ITEMS_RUNS_MENU_ITEM_ID,
     ]);
     expect(items[0]).toMatchObject({
       label: "GitHub PRs",

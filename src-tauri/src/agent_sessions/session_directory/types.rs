@@ -136,6 +136,11 @@ pub struct SessionAggregateRecord {
     /// commits a value.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub agent_exec_mode: Option<String>,
+    /// Persistent product mode (`orgtrack/v1` §5.2):
+    /// `build | plan | ask | project`. Source of truth for whether the
+    /// session may mutate WorkItems/Routines. `None` = build.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub product_mode: Option<String>,
     /// Per-session unsent draft text. The contents the user has
     /// typed into the chat composer for this session but not yet sent.
     /// Persisted across navigation and app restarts. `None` means "no

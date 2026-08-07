@@ -457,6 +457,67 @@ export async function readStandaloneWorkItem(
   });
 }
 
+/**
+ * Creation DTO for the canonical `work.create` service operation.
+ * Mirrors Rust `work_service::CreateWorkItemRequest` (camelCase wire).
+ */
+export interface WorkItemCreateRequest {
+  title: string;
+  body?: string;
+  projectId?: string;
+  status?: string;
+  priority?: string;
+  assignee?: string;
+  assigneeType?: string;
+  labels?: string[];
+  milestone?: string;
+  parent?: string;
+  startDate?: string;
+  targetDate?: string;
+  createdBy?: string;
+  starred?: boolean;
+  schedule?: WorkItemFrontmatter["schedule"];
+  orchestratorConfig?: WorkItemFrontmatter["orchestrator_config"];
+  todos?: WorkItemFrontmatter["todos"];
+  handoff?: WorkItemFrontmatter["handoff"];
+  linkedSessions?: WorkItemFrontmatter["linked_sessions"];
+}
+
+/**
+ * Canonical `work.create`: the service owns frontmatter construction;
+ * callers describe the work and supply a pre-allocated short id (collab
+ * orgs mint ids server-side). Prefer this over `writeWorkItem` for new
+ * items — the whole-row write is reserved for sync/merge internals.
+ */
+export async function createWorkItem(
+  projectSlug: string,
+  shortId: string,
+  request: WorkItemCreateRequest
+): Promise<WorkItemData> {
+  const result = await invoke<WorkItemData>("project_create_work_item", {
+    projectSlug,
+    shortId,
+    request,
+  });
+  invalidateCache();
+  return result;
+}
+
+/** Canonical `work.create` for an org-scoped standalone item. */
+export async function createStandaloneWorkItem(
+  shortId: string,
+  request: WorkItemCreateRequest,
+  options?: ProjectScopeOptions
+): Promise<WorkItemData> {
+  const result = await invoke<WorkItemData>("work_item_create_standalone", {
+    ...scopeInvokePayload(options),
+    shortId,
+    request,
+  });
+  invalidateCache();
+  return result;
+}
+
 export async function writeWorkItem(
   projectSlug: string,
   shortId: string,
@@ -690,6 +751,54 @@ export async function listRoutineFires(
   return cachedRead(`__routines__:${routineId}:fires`, () =>
     invoke("project_list_routine_fires", { routineId })
   );
+}
+
+/** A row from `pm_routine_runs` (portable Routine domain, orgtrack/v1). */
+export interface RoutineRunSummary {
+  id: string;
+  routineName: string;
+  routineRevision: number;
+  scopeId: string;
+  status: string;
+  rootWorkItemId?: string | null;
+  createdBy?: string | null;
+  createdAt: number;
+  updatedAt: number;
+}
+
+/** Per-run projection: run row + generated WorkItems' portable states. */
+export interface RoutineRunStatus {
+  id: string;
+  routineName: string;
+  routineRevision: number;
+  snapshotHash: string;
+  scopeId: string;
+  status: string;
+  rootWorkItemId?: string | null;
+  workItems: Array<{
+    shortId: string;
+    title: string;
+    status: string;
+    portableState?: string | null;
+  }>;
+}
+
+/** List portable routine runs, newest first. Uncached: run status moves
+ *  with work-item transitions, and the surface refetches on focus. */
+export async function listRoutineRuns(options?: {
+  scopeId?: string;
+  limit?: number;
+}): Promise<RoutineRunSummary[]> {
+  return invoke("project_list_routine_runs", {
+    scopeId: options?.scopeId ?? null,
+    limit: options?.limit,
+  });
+}
+
+export async function routineRunStatus(
+  runId: string
+): Promise<RoutineRunStatus> {
+  return invoke("project_routine_run_status", { runId });
 }
 
 export async function fireRoutine(

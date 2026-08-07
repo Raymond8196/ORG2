@@ -6,27 +6,27 @@
 
 ## D1 — Raw HTML vs Design System
 
-| Line | Element | Verdict | Reason | Suggested change |
-|---|---|---|---|---|
-| — | — | keep with reason | The route composes `OnboardingLayout`, `AppLogo`, and `SetupPreferencesPanel`; it introduces no raw interactive controls. | — |
+| Line | Element | Verdict          | Reason                                                                                                                    | Suggested change |
+| ---- | ------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| —    | —       | keep with reason | The route composes `OnboardingLayout`, `AppLogo`, and `SetupPreferencesPanel`; it introduces no raw interactive controls. | —                |
 
 ## D2 — Arbitrary Tailwind Value vs Token
 
-| Line | Value | Verdict | Reason | Suggested change |
-|---|---|---|---|---|
-| — | — | keep with reason | The component references centralized setup layout tokens and adds no arbitrary Tailwind color value. | — |
+| Line | Value | Verdict          | Reason                                                                                               | Suggested change |
+| ---- | ----- | ---------------- | ---------------------------------------------------------------------------------------------------- | ---------------- |
+| —    | —     | keep with reason | The component references centralized setup layout tokens and adds no arbitrary Tailwind color value. | —                |
 
 ## D3 — Hardcoded Sizes / Colors
 
-| Line | Value | Verdict | Reason | Suggested change |
-|---|---|---|---|---|
-| — | — | keep with reason | Layout geometry is owned by `layoutTokens.ts`; the component contains no pixel-literal class or raw color. | — |
+| Line | Value | Verdict          | Reason                                                                                                     | Suggested change |
+| ---- | ----- | ---------------- | ---------------------------------------------------------------------------------------------------------- | ---------------- |
+| —    | —     | keep with reason | Layout geometry is owned by `layoutTokens.ts`; the component contains no pixel-literal class or raw color. | —                |
 
 ## D4 — Accessibility
 
-| Line | Element | Verdict | Reason | Suggested change |
-|---|---|---|---|---|
-| 95 | Left preview / right preferences composition | keep with reason | The preview is supplied as complementary branded content, while all editable controls remain in the right preferences component with their existing localized names and focus order. | — |
+| Line | Element                                      | Verdict          | Reason                                                                                                                                                                               | Suggested change |
+| ---- | -------------------------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------- |
+| 95   | Left preview / right preferences composition | keep with reason | The preview is supplied as complementary branded content, while all editable controls remain in the right preferences component with their existing localized names and focus order. | —                |
 
 ## D5 — Visual Patterns Observed
 

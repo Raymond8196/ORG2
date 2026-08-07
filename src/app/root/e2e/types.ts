@@ -346,11 +346,6 @@ export interface E2EHelpers {
   >;
   getDesktopConfig: () => Promise<Result<{ config: Json }>>;
   setDesktopConfig: (config: Json) => Promise<{ ok: true } | Err>;
-  listAutomationRules: () => Promise<Result<{ rules: Json[] }>>;
-  addAutomationRule: (ruleJson: string) => Promise<Result<{ ruleId: string }>>;
-  removeAutomationRule: (
-    ruleId: string
-  ) => Promise<Result<{ removed: boolean }>>;
   listPolicies: (
     workspacePath?: string
   ) => Promise<Result<{ policies: Json[] }>>;

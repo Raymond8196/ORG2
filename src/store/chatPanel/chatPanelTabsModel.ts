@@ -163,6 +163,8 @@ export function getWorkManagementFallbackTitle(
       return "GitHub Issues";
     case WORK_MANAGEMENT_SECTION.GITHUB_PRS:
       return "GitHub PRs";
+    case WORK_MANAGEMENT_SECTION.RUNS:
+      return "Runs";
     case WORK_MANAGEMENT_SECTION.KANBAN:
       return "Kanban";
   }

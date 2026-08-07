@@ -24,7 +24,6 @@ import type { CreatedOrgResult } from "@src/features/TeamCollaboration/component
 import SessionForkHeaderExtras from "@src/features/TeamCollaboration/components/SessionForkHeaderExtras";
 import { useShouldOffsetChatPanelHeader } from "@src/hooks/ui/sidebar/useCollapsedSidebarChromeOffset";
 import { allAgentDefsAtom } from "@src/modules/MainApp/AgentOrgs/store/builtInAgentsAtom";
-import { FocusedChatWorkstationRail } from "@src/modules/shared/layouts/FocusedChatWorkstationRail";
 import { getChatPanelBackgroundStyle } from "@src/modules/shared/layouts/viewContainerTokens";
 import { installAvailableAppUpdate } from "@src/scaffold/AppUpdater";
 import {
@@ -80,6 +79,7 @@ import {
   SessionHeaderViewControls,
   SessionRawToolbarActions,
 } from "./components/SessionViewSwitcher";
+import SessionWorkstationRail from "./components/SessionWorkstationRail";
 import { shouldMountFocusedChatWorkstationControls } from "./focusedChatWorkstationLayout";
 import { FocusedChatWorkstationMinimapPortalContext } from "./focusedChatWorkstationMinimapPortal";
 import { useAiWorkItemCreator } from "./hooks/useAiWorkItemCreator";
@@ -448,16 +448,11 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       allAgentDefs,
       createProjectContext,
       creatorState,
-      dispatchClearSession,
       setActiveSessionId,
-      setContentMode,
-      setCreateTarget,
       setSelectedProject,
       setSelectedWorkItem,
-      setShowWorkItemAgentCreator,
       setWorkItemCreateDraft,
       setWorkstationActiveSessionId,
-      sessionCreatorAvailable: Boolean(SessionCreatorSlot),
       workItemCreateDraft,
     });
 
@@ -660,9 +655,10 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
           embedded={embedded}
           focusedWorkstationRail={
             showFocusedWorkstationControls ? (
-              <FocusedChatWorkstationRail
+              <SessionWorkstationRail
                 compactMenuHost={focusedWorkstationMenuHost}
                 conversationMinimapHostRef={focusedWorkstationMinimapHostRef}
+                session={currentSession}
               />
             ) : null
           }

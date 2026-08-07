@@ -310,6 +310,7 @@ pub async fn test_agent_org_launch_coordinator(
         apply_agent_org_member_overrides_for_future: false,
         isolate: false,
         mode: None,
+        product_mode: None,
         org_id: None,
         project_id: None,
         project_name: None,

@@ -118,9 +118,6 @@ export const E2EBootstrap: FC = () => {
       getSettingsRegistryKeys,
       getDesktopConfig,
       setDesktopConfig,
-      listAutomationRules,
-      addAutomationRule,
-      removeAutomationRule,
     } = createConfigHelpers();
 
     const refreshAgentDefs = async (): Promise<Result<{ defs: Json[] }>> => {
@@ -411,9 +408,6 @@ export const E2EBootstrap: FC = () => {
       runWorkItemSchedulerOnce,
       getDesktopConfig,
       setDesktopConfig,
-      listAutomationRules,
-      addAutomationRule,
-      removeAutomationRule,
       listPolicies,
       createPolicy,
       readPolicy,

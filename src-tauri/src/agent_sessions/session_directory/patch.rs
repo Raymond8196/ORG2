@@ -101,6 +101,11 @@ pub struct SessionPatch {
     /// Per-session execution mode. Only legal for `agent_sessions`
     /// rows; rejected for CLI sessions.
     pub agent_exec_mode: Option<String>,
+    /// Persistent product mode (`orgtrack/v1` §5.2):
+    /// `build | plan | ask | project`. Only legal for `agent_sessions`
+    /// rows; validated against the closed enum.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub product_mode: Option<String>,
     /// Per-session unsent draft text (P3). Three-state — see the
     /// "three-state fields" section in module docs.
     #[serde(
@@ -223,6 +228,7 @@ pub fn apply_session_patch(session_id: &str, patch: &SessionPatch) -> Result<(),
     if patch.name.is_none()
         && patch.model.is_none()
         && patch.agent_exec_mode.is_none()
+        && patch.product_mode.is_none()
         && patch.draft_text.is_none()
         && patch.reply_target_event_id.is_none()
         && patch.pinned.is_none()
@@ -294,6 +300,27 @@ pub fn apply_session_patch(session_id: &str, patch: &SessionPatch) -> Result<(),
             SessionLocation::Imported => {
                 return Err("session_patch: imported sessions do not support agent_exec_mode"
                     .to_string());
+            }
+        }
+    }
+
+    if let Some(product_mode) = patch.product_mode.as_deref() {
+        // Closed enum (orgtrack/v1 §5.2); a typo must not silently
+        // grant or drop the Project mutation surface.
+        if !matches!(product_mode, "build" | "plan" | "ask" | "project") {
+            return Err(format!(
+                "session_patch: unknown product_mode '{product_mode}' (expected build|plan|ask|project)"
+            ));
+        }
+        match location {
+            SessionLocation::Agent => {
+                session_persistence::update_product_mode(session_id, product_mode)
+                    .map_err(|err| format!("session_patch update product_mode (agent): {err}"))?;
+            }
+            SessionLocation::Cli | SessionLocation::Imported => {
+                return Err(
+                    "session_patch: only agent sessions carry a product_mode".to_string()
+                );
             }
         }
     }
@@ -403,6 +430,7 @@ pub async fn session_patch(
     patch: SessionPatch,
 ) -> Result<(), String> {
     let identity_changed = patch.model.is_some();
+    let switched_to_project = patch.product_mode.as_deref() == Some("project");
     let renamed = patch
         .name
         .as_deref()
@@ -424,6 +452,27 @@ pub async fn session_patch(
     .map_err(|err| format!("session_patch task join error: {err}"))??;
     if identity_changed {
         state.invalidate_session(&patched_session_id).await;
+    }
+    if switched_to_project {
+        // Convert to Project (orgtrack/v1 §7.2): entering the Project
+        // product mode must invalidate Plan mode's snapshot/restore
+        // state, otherwise the pending-approval restore path would
+        // bounce a later turn back to the pre-Plan exec mode.
+        if let Some(session) = state.get_session(&patched_session_id).await {
+            let had_slot = session.plan_slot_cache.get(&patched_session_id).is_some();
+            let _ = session.pre_plan_mode_cache.take(&patched_session_id);
+            session.plan_slot_cache.clear(&patched_session_id);
+            if had_slot {
+                agent_core::bus::broadcast_event(
+                    "agent:exit_plan_mode",
+                    serde_json::json!({
+                        "sessionId": &patched_session_id,
+                        "source": "convert_to_project",
+                        "nextMode": agent_core::session::AgentExecMode::Build.as_str(),
+                    }),
+                );
+            }
+        }
     }
     if let Some(name) = renamed.as_deref() {
         agent_core::lifecycle::emit_session_renamed(

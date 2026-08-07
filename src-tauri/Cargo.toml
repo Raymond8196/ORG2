@@ -28,6 +28,7 @@ members = [
     "crates/lsp",
     "crates/orgtrack-cli",
     "crates/orgtrack-core",
+    "crates/orgtrack-pm-cli",
     "crates/orgtrack-protocol",
     "crates/orgtrack-graph",
     "crates/orgtrack-sync",

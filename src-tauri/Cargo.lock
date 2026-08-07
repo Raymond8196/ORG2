@@ -5230,6 +5230,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "orgtrack-pm-cli"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "database",
+ "project_management",
+ "rusqlite",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "test_helpers",
+]
+
+[[package]]
 name = "orgtrack_cli"
 version = "0.1.0"
 dependencies = [

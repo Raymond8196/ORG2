@@ -394,6 +394,9 @@ export function createSessionHelpers(store: E2EStore) {
           launchParams.agentDefinitionId ?? launchParams.agent_definition_id,
         agent_org_id: launchParams.agentOrgId ?? launchParams.agent_org_id,
         work_item_id: launchParams.workItemId ?? launchParams.work_item_id,
+        // The wire name for the exec mode is `mode`; specs historically
+        // pass `agentExecMode`, which serde would silently drop.
+        mode: launchParams.mode ?? launchParams.agentExecMode,
         agent_role: launchParams.agentRole ?? launchParams.agent_role,
         worktree_path: launchParams.worktreePath ?? launchParams.worktree_path,
         project_slug: launchParams.projectSlug ?? launchParams.project_slug,

@@ -91,6 +91,7 @@ export const WORK_MANAGEMENT_SECTION = {
   PROJECTS: "projects",
   GITHUB_ISSUES: "github-issues",
   GITHUB_PRS: "github-prs",
+  RUNS: "runs",
 } as const;
 
 export type WorkManagementSection =

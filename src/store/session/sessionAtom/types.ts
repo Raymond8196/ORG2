@@ -221,6 +221,15 @@ export interface Session {
    */
   agentExecMode?: string;
   /**
+   * Persistent product mode (`orgtrack/v1` §5.2):
+   * `build | plan | ask | project`. The single source of truth for
+   * whether this session exposes the WorkItem/Routine mutation surface.
+   * `undefined` = build. Distinct from `agentExecMode` (the runtime
+   * tool-policy axis); resolved server-side (launch-from-work/routine →
+   * project) or set explicitly via `rpc.sessionAggregate.patch`.
+   */
+  productMode?: string;
+  /**
    * Per-session unsent draft text (P3). The text the user has typed
    * into the chat composer for this session but not yet sent. `undefined`
    * means "no draft" — the composer renders empty. Mirrors the

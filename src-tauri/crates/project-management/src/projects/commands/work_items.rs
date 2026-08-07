@@ -215,6 +215,71 @@ pub async fn project_purge_expired_deleted_work_items(
         .map_err(|err| format!("Task join error: {}", err))?
 }
 
+/// Canonical `work.create` for a project-scoped item: the caller
+/// supplies a creation DTO plus a pre-allocated short id (collab orgs
+/// mint ids server-side, design §16.5); frontmatter construction is
+/// service-owned. Replaces UI-side `WorkItemFrontmatter` literals fed
+/// into the whole-row write.
+#[tauri::command]
+pub async fn project_create_work_item(
+    project_slug: String,
+    short_id: String,
+    request: crate::work_service::CreateWorkItemRequest,
+) -> Result<WorkItemData, String> {
+    tokio::task::spawn_blocking(move || {
+        crate::work_service::create_project_work_item(&project_slug, &short_id, &request, None)
+    })
+    .await
+    .map_err(|err| format!("Task join error: {}", err))?
+}
+
+/// Canonical `work.create` for an org-scoped standalone item.
+#[tauri::command]
+pub async fn work_item_create_standalone(
+    org_id: Option<String>,
+    short_id: String,
+    request: crate::work_service::CreateWorkItemRequest,
+) -> Result<WorkItemData, String> {
+    tokio::task::spawn_blocking(move || {
+        crate::work_service::create_standalone_work_item(
+            org_id.as_deref(),
+            &short_id,
+            &request,
+            None,
+        )
+    })
+    .await
+    .map_err(|err| format!("Task join error: {}", err))?
+}
+
+/// Strict, audited status transition through the work application
+/// service (`work.transition`, design §9.3/§13.2): portable-FSM
+/// validation is a hard reject here, `expected_revision` enables
+/// optimistic concurrency against `local_version`, and the reason is
+/// recorded in the audit stream. Non-lifecycle fields stay on the
+/// partial-update path.
+#[tauri::command]
+pub async fn project_transition_work_item(
+    project_slug: String,
+    short_id: String,
+    to_status: String,
+    reason: Option<String>,
+    expected_revision: Option<i64>,
+) -> Result<WorkItemData, String> {
+    tokio::task::spawn_blocking(move || {
+        crate::work_service::transition_project_work_item(
+            &project_slug,
+            &short_id,
+            &to_status,
+            reason.as_deref(),
+            None,
+            expected_revision,
+        )
+    })
+    .await
+    .map_err(|err| format!("Task join error: {}", err))?
+}
+
 /// Atomic read-modify-write for a single field-set patch. Runs
 /// inside a `BEGIN IMMEDIATE` transaction so concurrent partial
 /// updates serialize at the SQLite level. Returns the *enriched*

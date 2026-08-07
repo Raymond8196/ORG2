@@ -159,6 +159,9 @@ export const SessionPatchInput = z.object({
       model: z.string().optional(),
       accountId: z.string().optional(),
       agentExecMode: z.string().optional(),
+      // Product mode (orgtrack/v1 §5.2): build|plan|ask|project.
+      // Validated as a closed enum on the Rust side.
+      productMode: z.string().optional(),
       // `.nullable().optional()` is the zod equivalent of the Rust
       // `Option<Option<String>>`: undefined = leave alone, null = clear,
       // string = set.
@@ -172,6 +175,7 @@ export const SessionPatchInput = z.object({
         p.name !== undefined ||
         p.model !== undefined ||
         p.agentExecMode !== undefined ||
+        p.productMode !== undefined ||
         p.draftText !== undefined ||
         p.replyTargetEventId !== undefined ||
         p.pinned !== undefined,
@@ -234,6 +238,9 @@ export const SessionAggregateRecordSchema = z.object({
   // strict enum) so the wire format tolerates new modes added on the
   // Rust side without a coordinated frontend release.
   agentExecMode: z.string().optional(),
+  // Persistent product mode (orgtrack/v1 §5.2): build|plan|ask|project.
+  // Absent = build. Source of truth for the Project mutation surface.
+  productMode: z.string().optional(),
   // Per-session unsent draft text (P3). The chat composer mirrors this
   // into ComposerInput on session activation. Cleared on send. Persisted via
   // debounced `session_patch` calls — see `useSessionDraftField`.

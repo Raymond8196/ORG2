@@ -329,6 +329,7 @@
       "manageItems": "管理项目",
       "sessionsView": "Sessions View",
       "workitemView": "Workitem View",
+      "runs": "运行记录",
       "views": "视图",
       "cliAgent": "CLI Agent",
       "rustAgent": "Rust Agent",
@@ -1057,6 +1058,10 @@
       "entryCount_other": "{{count}} 条记录",
       "copySuccess": "已复制原始记录",
       "copyFailed": "无法复制原始记录"
+    },
+    "trackAsProject": {
+      "menuItem": "追踪为项目",
+      "success": "会话已作为项目追踪"
     },
     "linkWorkItem": {
       "menuItem": "关联到工作项…",
@@ -2393,7 +2398,8 @@
       "plan": "Plan",
       "debug": "Debug",
       "review": "Review",
-      "wingman": "僚机"
+      "wingman": "僚机",
+      "project": "Project"
     },
     "runningLocation": {
       "local": "本机",

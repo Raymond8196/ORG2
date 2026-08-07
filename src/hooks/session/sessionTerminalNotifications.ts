@@ -57,6 +57,25 @@ export function deliverSessionTerminalNotification(
         }),
         duration: 0,
         closable: true,
+        // The copy says "open the Session" — give it an actual door.
+        action: {
+          label: t("notifications.openSessionAction", {
+            defaultValue: "Open Session",
+          }),
+          onClick: () => {
+            void Promise.all([
+              import("@src/util/core/state/instrumentedStore"),
+              import("@src/store/chatPanel/chatPanelTabsAtom"),
+            ]).then(([storeModule, tabsModule]) => {
+              storeModule
+                .getInstrumentedStore()
+                .set(tabsModule.openOrFocusSessionInChatPanelTabAtom, {
+                  sessionId: event.sessionId,
+                  sessionName: event.sessionName,
+                });
+            });
+          },
+        },
       });
     });
     return;

@@ -1,4 +1,4 @@
-﻿{
+{
   "windowChrome": {
     "menus": {
       "file": "文件",
@@ -2578,6 +2578,7 @@
     "taskCompletedTitle": "任务已完成",
     "taskCompletedBody": "“{{name}}”已完成，可以查看结果",
     "taskCompletedToast": "“{{name}}”已完成，请打开会话查看结果。",
+    "openSessionAction": "打开会话",
     "taskFailedTitle": "任务失败",
     "taskFailedBody": "“{{name}}”失败{{detail}}",
     "taskCancelledToast": "“{{name}}”已取消"

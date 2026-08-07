@@ -6,27 +6,27 @@
 
 ## D1 — Raw HTML vs Design System
 
-| Line | Element | Verdict | Reason | Suggested change |
-|---|---|---|---|---|
-| — | Preference controls and terminal actions | pass | The component uses `LanguageSelector`, `Select`, `Button`, `SectionContainer`, and `SectionRow`; no raw interactive element was introduced. | — |
+| Line | Element                                  | Verdict | Reason                                                                                                                                      | Suggested change |
+| ---- | ---------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| —    | Preference controls and terminal actions | pass    | The component uses `LanguageSelector`, `Select`, `Button`, `SectionContainer`, and `SectionRow`; no raw interactive element was introduced. | —                |
 
 ## D2 — Arbitrary Tailwind Value vs Token
 
-| Line | Value | Verdict | Reason | Suggested change |
-|---|---|---|---|---|
-| — | — | pass | No arbitrary color or CSS-variable Tailwind values. | — |
+| Line | Value | Verdict | Reason                                              | Suggested change |
+| ---- | ----- | ------- | --------------------------------------------------- | ---------------- |
+| —    | —     | pass    | No arbitrary color or CSS-variable Tailwind values. | —                |
 
 ## D3 — Hardcoded Sizes / Colors
 
-| Line | Value | Verdict | Reason | Suggested change |
-|---|---|---|---|---|
-| — | — | pass | Sizing and color remain owned by shared layout tokens and component variants. | — |
+| Line | Value | Verdict | Reason                                                                        | Suggested change |
+| ---- | ----- | ------- | ----------------------------------------------------------------------------- | ---------------- |
+| —    | —     | pass    | Sizing and color remain owned by shared layout tokens and component variants. | —                |
 
 ## D4 — Accessibility
 
-| Line | Element | Verdict | Reason | Suggested change |
-|---|---|---|---|---|
-| — | Heading and preference controls | pass | The intro has a semantic level-one heading; its Lucide icon is decorative, and each selector has a localized accessible name. | — |
+| Line | Element                         | Verdict | Reason                                                                                                                        | Suggested change |
+| ---- | ------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| —    | Heading and preference controls | pass    | The intro has a semantic level-one heading; its Lucide icon is decorative, and each selector has a localized accessible name. | —                |
 
 ## D5 — Visual Patterns Observed
 

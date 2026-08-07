@@ -81,6 +81,10 @@ export const agentSession = {
     .input(schemas.agentSession.LinkSessionToWorkItemInput)
     .output(schemas.agentSession.SessionMetaSchema)
     .build(),
+  trackSessionAsProject: defineProcedure("agent_track_session_as_project")
+    .input(schemas.agentSession.SessionIdInput)
+    .output(schemas.agentSession.TrackSessionAsProjectResult)
+    .build(),
   respondQuestion: defineProcedure("agent_question_response")
     .input(schemas.agentSession.QuestionResponseInput)
     .build(),
@@ -147,9 +151,6 @@ export const agentSession = {
   getTodos: defineProcedure("agent_get_todos")
     .input(schemas.agentSession.SessionIdInput)
     .output(z.array(schemas.agentSession.TodoItemSchema))
-    .build(),
-  listModes: defineProcedure("agent_list_modes")
-    .output(z.array(schemas.agentSession.AgentExecModeConfigSchema))
     .build(),
   resolveReview: defineProcedure("agent_resolve_review")
     .input(schemas.agentSession.SessionIdInput)
