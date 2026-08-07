@@ -641,6 +641,16 @@ describe("DiscussionChannelPanelView", () => {
       };
     }
 
+    it("uses the shared loading placeholder while messages load", () => {
+      readyCloudMessages([], { phase: "loading" });
+      render(CLOUD_TARGET);
+
+      expect(container.querySelector("[aria-busy='true']")).not.toBeNull();
+      expect(container.textContent).not.toContain(
+        "cloud.channels.feed.loadingMessages"
+      );
+    });
+
     it("enables the same session composer instead of the gate notice", () => {
       readyCloudMessages([]);
       render(CLOUD_TARGET);
