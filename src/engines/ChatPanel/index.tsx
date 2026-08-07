@@ -424,6 +424,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       handleCancelWorkItemCreate,
       handleChatPanelProjectCreated,
       handleChatPanelWorkItemCreated,
+      handleProjectAgentCreatorToggle,
       handleWorkItemAgentCreatorToggle,
     } = useProjectWorkItemHandlers({
       bumpProjectListRefresh,
@@ -504,6 +505,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
         handleStartPageAddApiKey={handleStartPageAddApiKey}
         handleStartPageInstallLatestUpdate={handleStartPageInstallLatestUpdate}
         handleStartPageSessionStart={handleStartPageSessionStart}
+        handleProjectAgentCreatorToggle={handleProjectAgentCreatorToggle}
         handleWorkItemAgentCreatorToggle={handleWorkItemAgentCreatorToggle}
         resolveAiWorkItemContext={resolveAiWorkItemContext}
         SessionCreatorSlot={SessionCreatorSlot}

@@ -97,6 +97,7 @@ interface ChatPanelEmptyContentProps {
   handleCreateTargetChange: (target: ChatPanelCreateTarget) => void;
   handleStartPageInstallLatestUpdate: () => void;
   handleStartPageSessionStart: (info: SessionLaunchSuccessInfo) => void;
+  handleProjectAgentCreatorToggle: (enabled: boolean) => void;
   handleWorkItemAgentCreatorToggle: (enabled: boolean) => void;
   resolveAiWorkItemContext: NonNullable<
     React.ComponentProps<SessionCreatorSlot>["resolveWorkItemContext"]
@@ -129,6 +130,7 @@ export function ChatPanelEmptyContent({
   handleCreateTargetChange,
   handleStartPageInstallLatestUpdate,
   handleStartPageSessionStart,
+  handleProjectAgentCreatorToggle,
   handleWorkItemAgentCreatorToggle,
   resolveAiWorkItemContext,
   SessionCreatorSlot,
@@ -231,60 +233,65 @@ export function ChatPanelEmptyContent({
     ) : null;
 
   const renderProjectCreator = () => {
-    const sessionCreatorContent =
-      showProjectAgentCreator && SessionCreatorSlot ? (
-        <SessionCreatorSlot
-          className="min-h-0 flex-1"
-          variant={creatorVariant}
-          centerFullScreenContent
-          hidePresenceButton
-          launchMode={SESSION_CREATOR_LAUNCH_MODE.START_BACKGROUND}
-          onOpenCliTerminal={handleOpenCliTerminal}
-          onRegionNoticeChange={handleRegionNoticeChange}
-          onSessionStart={handleProjectCreatorSessionStart}
-          workItemContext={{
-            orgId:
-              projectDraftOrgId ??
-              createProjectContext?.orgId ??
-              STORY_PERSONAL_ORG_FILTER_ID,
-            // The whole flow is "create a project via manage_project" —
-            // without a workItemId the resolver would default to build
-            // and the PM tools would be policy-denied (§5.2 deny-delta).
-            productMode: PRODUCT_MODE_PROJECT,
-          }}
-        />
-      ) : null;
-
     return (
       <WorkspaceScopedContent>
         {({ workspaceName, workspacePath }) => (
           <div
-            className={`flex w-full min-w-0 flex-col overflow-hidden ${creatorClassName}`}
+            className={`flex w-full min-w-0 overflow-hidden ${creatorClassName}`}
           >
-            <div className="shrink-0 overflow-hidden">
-              <Suspense fallback={null}>
-                <CreateProjectView
-                  tabId={PROJECT_CREATOR_DRAFT_ID}
-                  repoPath={workspacePath ?? undefined}
-                  repoName={workspaceName}
-                  scopeBreadcrumbLabel={
-                    createProjectContext?.scopeBreadcrumbLabel ??
-                    t("projects:orgs.personalOrg")
-                  }
-                  orgId={
-                    createProjectContext?.orgId ?? STORY_PERSONAL_ORG_FILTER_ID
-                  }
-                  onSetUnsaved={() => undefined}
-                  onProjectCreated={handleChatPanelProjectCreated}
-                  aiGenerateMode={showProjectAgentCreator}
-                />
-              </Suspense>
-            </div>
-            {sessionCreatorContent ? (
-              <div className="min-h-0 flex-1 overflow-hidden pt-6">
-                {sessionCreatorContent}
-              </div>
-            ) : null}
+            <Suspense fallback={null}>
+              <CreateProjectView
+                tabId={PROJECT_CREATOR_DRAFT_ID}
+                repoPath={workspacePath ?? undefined}
+                repoName={workspaceName}
+                scopeBreadcrumbLabel={
+                  createProjectContext?.scopeBreadcrumbLabel ??
+                  t("projects:orgs.personalOrg")
+                }
+                orgId={
+                  createProjectContext?.orgId ?? STORY_PERSONAL_ORG_FILTER_ID
+                }
+                onSetUnsaved={() => undefined}
+                onProjectCreated={handleChatPanelProjectCreated}
+                aiGenerateMode={showProjectAgentCreator}
+                centerLauncherContent={showStartPage}
+                renderAgentComposer={
+                  SessionCreatorSlot
+                    ? (headerContent, pinnedActionsContent) => (
+                        <SessionCreatorSlot
+                          className={
+                            showStartPage ? "shrink-0" : "min-h-0 flex-1"
+                          }
+                          variant={creatorVariant}
+                          centerFullScreenContent
+                          composerHeaderContent={headerContent}
+                          pinnedActionsContent={pinnedActionsContent}
+                          innerClassName={
+                            showStartPage ? "pb-2 pt-1" : undefined
+                          }
+                          hidePresenceButton
+                          launchMode={
+                            SESSION_CREATOR_LAUNCH_MODE.START_BACKGROUND
+                          }
+                          onOpenCliTerminal={handleOpenCliTerminal}
+                          onRegionNoticeChange={handleRegionNoticeChange}
+                          onSessionStart={handleProjectCreatorSessionStart}
+                          workItemContext={{
+                            orgId:
+                              projectDraftOrgId ??
+                              createProjectContext?.orgId ??
+                              STORY_PERSONAL_ORG_FILTER_ID,
+                            // The whole flow is "create a project via manage_project" —
+                            // without a workItemId the resolver would default to build
+                            // and the PM tools would be policy-denied (§5.2 deny-delta).
+                            productMode: PRODUCT_MODE_PROJECT,
+                          }}
+                        />
+                      )
+                    : undefined
+                }
+              />
+            </Suspense>
           </div>
         )}
       </WorkspaceScopedContent>
@@ -350,10 +357,12 @@ export function ChatPanelEmptyContent({
         onAddApiKey={handleStartPageAddApiKey}
         onCreateTarget={handleCreateTargetChange}
         onInstallLatestUpdate={handleStartPageInstallLatestUpdate}
+        onProjectAgentModeChange={handleProjectAgentCreatorToggle}
         onWorkItemAgentModeChange={handleWorkItemAgentCreatorToggle}
         moreLauncher={moreLauncher}
         sessionLauncher={sessionLauncher}
         t={t}
+        projectAgentMode={showProjectAgentCreator}
         workItemAgentMode={showWorkItemAgentCreator}
         workItemLauncher={renderWorkItemCreator(true)}
       />

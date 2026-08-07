@@ -30,7 +30,9 @@ const createTargetProps = {
     { value: CHAT_PANEL_CREATE_TARGET.COLLAB_ORG, label: "Add ORG" },
   ],
   onCreateTarget: vi.fn(),
+  onProjectAgentModeChange: vi.fn(),
   onWorkItemAgentModeChange: vi.fn(),
+  projectAgentMode: true,
   workItemAgentMode: true,
 };
 
@@ -84,6 +86,14 @@ describe("ChatPanelStartPage", () => {
     expect(markup).toContain(
       'data-testid="chat-panel-start-page-trailing-separator"'
     );
+    expect(markup).toContain(
+      'data-testid="chat-panel-start-page-project-mode-separator"'
+    );
+    expect(markup).toContain(
+      'data-testid="chat-panel-start-page-project-mode-toggle"'
+    );
+    expect(markup).toContain("common:terminology.agent");
+    expect(markup).toContain('aria-pressed="true"');
     expect(
       markup.indexOf('data-testid="chat-panel-start-page-tab-more"')
     ).toBeLessThan(
@@ -95,7 +105,26 @@ describe("ChatPanelStartPage", () => {
       markup.indexOf('data-testid="chat-panel-start-page-create-target-select"')
     );
     expect(
+      markup.indexOf('data-testid="chat-panel-start-page-create-target-select"')
+    ).toBeLessThan(
+      markup.indexOf(
+        'data-testid="chat-panel-start-page-project-mode-separator"'
+      )
+    );
+    expect(
+      markup.indexOf(
+        'data-testid="chat-panel-start-page-project-mode-separator"'
+      )
+    ).toBeLessThan(
+      markup.indexOf('data-testid="chat-panel-start-page-project-mode-toggle"')
+    );
+    expect(
       markup.match(/data-testid="chat-panel-start-page-trailing-separator"/g)
+    ).toHaveLength(1);
+    expect(
+      markup.match(
+        /data-testid="chat-panel-start-page-project-mode-separator"/g
+      )
     ).toHaveLength(1);
     expect(markup).not.toContain("Agent session");
     expect(markup).not.toContain("Create Work Item");
@@ -228,6 +257,30 @@ describe("ChatPanelStartPage", () => {
     );
     expect(markup).not.toContain(
       'data-testid="chat-panel-start-page-new-work-item"'
+    );
+  });
+
+  it("only shows the Project mode toggle for the Project target", () => {
+    mocks.useAvailableAppUpdate.mockReturnValue(null);
+    const t = ((key: string) => key) as TFunction<
+      ["sessions", "common", "projects", "navigation"]
+    >;
+
+    const markup = renderToStaticMarkup(
+      createElement(ChatPanelStartPage, {
+        ...createTargetProps,
+        createTarget: CHAT_PANEL_CREATE_TARGET.MANAGE_AGENTS,
+        onAddApiKey: vi.fn(),
+        onInstallLatestUpdate: vi.fn(),
+        t,
+      })
+    );
+
+    expect(markup).not.toContain(
+      'data-testid="chat-panel-start-page-project-mode-toggle"'
+    );
+    expect(markup).not.toContain(
+      'data-testid="chat-panel-start-page-project-mode-separator"'
     );
   });
 
