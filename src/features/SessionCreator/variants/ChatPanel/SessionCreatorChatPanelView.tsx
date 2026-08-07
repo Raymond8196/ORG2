@@ -81,6 +81,7 @@ interface SessionCreatorChatPanelViewProps {
     React.SetStateAction<SessionLaunchWorkItemContext | null>
   >;
   onCategoryPickerOpen: () => void;
+  onCreateWorkItem?: () => void;
   onFileUpload: React.ChangeEventHandler<HTMLInputElement>;
   onLaunch: () => void;
   onShareScreen: () => Promise<unknown>;
@@ -130,6 +131,7 @@ const SessionCreatorChatPanelView: React.FC<
   leadingActionSlot,
   onAttachedWorkItemContextChange,
   onCategoryPickerOpen,
+  onCreateWorkItem,
   onFileUpload,
   onLaunch,
   onShareScreen,
@@ -323,8 +325,8 @@ const SessionCreatorChatPanelView: React.FC<
                     {!hideWorkItemAttachmentControl && (
                       <WorkItemAttachmentControl
                         currentWorkItemContext={workItemContext}
+                        onCreateWorkItem={onCreateWorkItem}
                         panelHostRef={workItemPanelHostRef}
-                        repoPath={sessionInfoProps.repoPath}
                         onWorkItemContextChange={
                           onAttachedWorkItemContextChange
                         }
@@ -378,12 +380,14 @@ const SessionCreatorChatPanelView: React.FC<
             </div>
           )}
 
-          {!hideSessionSetupControls && (
-            <div
-              ref={workItemPanelHostRef}
-              className={`mx-auto w-full ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
-            />
-          )}
+          {!hideSessionSetupControls &&
+            !hideWorkItemAttachmentControl &&
+            !onCreateWorkItem && (
+              <div
+                ref={workItemPanelHostRef}
+                className={`mx-auto w-full ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
+              />
+            )}
 
           {!hideSessionSetupControls &&
             orgMembersPanelProps &&
