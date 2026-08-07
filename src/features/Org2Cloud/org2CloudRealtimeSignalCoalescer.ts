@@ -7,6 +7,15 @@
  */
 export const REALTIME_SIGNAL_COALESCE_MS = 750;
 
+/**
+ * Sessions-plane override: a streaming session bumps the org signal about
+ * once per second (server-side per-kind debounce), and each refresh re-lists
+ * the org plus pulls collab state. The leading edge keeps an isolated change
+ * instant; this wider window caps a sustained storm — own pushes or a
+ * teammate's — at 4 listing pulls per minute instead of ~40.
+ */
+export const SESSIONS_SIGNAL_COALESCE_MS = 15_000;
+
 interface TimerHost {
   now(): number;
   setTimeout(
@@ -43,16 +52,20 @@ export class Org2CloudRealtimeSignalCoalescer<Plane> {
     for (const plane of planes) this.handledAt.set(plane, now);
   }
 
-  schedule(plane: Plane, refresh: () => void): void {
+  schedule(
+    plane: Plane,
+    refresh: () => void,
+    windowMs: number = this.windowMs
+  ): void {
     const now = this.timers.now();
     const lastHandledAt = this.handledAt.get(plane);
     const elapsed =
-      lastHandledAt === undefined ? this.windowMs : now - lastHandledAt;
+      lastHandledAt === undefined ? windowMs : now - lastHandledAt;
     const run = () => {
       this.handledAt.set(plane, this.timers.now());
       refresh();
     };
-    if (elapsed >= this.windowMs) {
+    if (elapsed >= windowMs) {
       run();
       return;
     }
@@ -62,7 +75,7 @@ export class Org2CloudRealtimeSignalCoalescer<Plane> {
       this.timers.setTimeout(() => {
         this.trailingTimers.delete(plane);
         run();
-      }, this.windowMs - elapsed)
+      }, windowMs - elapsed)
     );
   }
 

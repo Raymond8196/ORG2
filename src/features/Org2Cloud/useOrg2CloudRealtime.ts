@@ -112,7 +112,10 @@ import {
 import { useOrg2CloudRealtimeLease } from "./org2CloudRealtimeLease";
 import { decideSubscribedEdgeRecovery } from "./org2CloudRealtimeRecovery";
 import { resolveActiveRealtimeOrgId } from "./org2CloudRealtimeScope";
-import { Org2CloudRealtimeSignalCoalescer } from "./org2CloudRealtimeSignalCoalescer";
+import {
+  Org2CloudRealtimeSignalCoalescer,
+  SESSIONS_SIGNAL_COALESCE_MS,
+} from "./org2CloudRealtimeSignalCoalescer";
 import {
   bumpRemoteSessionsInvalidation,
   org2CloudRemoteSessionsAtom,
@@ -496,11 +499,15 @@ export function useOrg2CloudRealtime(): void {
   // the initial recovery as handled, so the next real server signal waits at
   // most the short live window rather than the old 60-second throttle.
   const schedulePlaneSignalRefresh = useCallback(
-    (plane: SignalPlane, refresh: () => void) => {
-      signalCoalescerRef.current.schedule(plane, () => {
-        if (isDocumentHidden()) return;
-        refresh();
-      });
+    (plane: SignalPlane, refresh: () => void, windowMs?: number) => {
+      signalCoalescerRef.current.schedule(
+        plane,
+        () => {
+          if (isDocumentHidden()) return;
+          refresh();
+        },
+        windowMs
+      );
     },
     []
   );
@@ -523,10 +530,14 @@ export function useOrg2CloudRealtime(): void {
       if (!isDocumentHidden()) maybeRefreshControlPlane(orgId);
       switch (kind) {
         case "sessions":
-          schedulePlaneSignalRefresh("sessions", () => {
-            org2CloudSyncEngine.invalidateOrgInbound(orgId);
-            bumpRemoteSessionsVersion(orgId);
-          });
+          schedulePlaneSignalRefresh(
+            "sessions",
+            () => {
+              org2CloudSyncEngine.invalidateOrgInbound(orgId);
+              bumpRemoteSessionsVersion(orgId);
+            },
+            SESSIONS_SIGNAL_COALESCE_MS
+          );
           return;
         case "comments":
           schedulePlaneSignalRefresh("comments", () => {
