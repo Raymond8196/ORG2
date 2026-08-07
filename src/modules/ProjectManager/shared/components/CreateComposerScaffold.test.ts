@@ -2,10 +2,11 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
+import { CreatorContentLayout } from "@src/modules/shared/layouts/blocks";
+
 import {
   CreateComposerAgentFrame,
   CreateComposerHeader,
-  CreateComposerLauncher,
   CreateComposerPinnedActions,
   CreateComposerTitleInput,
   ManualCreateComposer,
@@ -63,7 +64,7 @@ describe("CreateComposerScaffold", () => {
   it("shares centered, Agent, header, and pinned-action layout primitives", () => {
     const markup = renderToStaticMarkup(
       createElement(
-        CreateComposerLauncher,
+        CreatorContentLayout,
         {
           centered: true,
           centeredDataTestId: "centered-create",
@@ -88,6 +89,7 @@ describe("CreateComposerScaffold", () => {
     expect(markup).toContain('data-testid="create-header"');
     expect(markup).toContain('data-testid="create-actions"');
     expect(markup).toContain("my-auto");
-    expect(markup).toContain("shrink-0 pt-6");
+    expect(markup).toContain("shrink-0 flex-col py-6");
+    expect(markup).not.toContain("shrink-0 pt-6");
   });
 });

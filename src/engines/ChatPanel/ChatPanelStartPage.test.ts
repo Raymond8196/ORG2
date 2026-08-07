@@ -132,6 +132,9 @@ describe("ChatPanelStartPage", () => {
       'data-testid="chat-panel-start-page-more-launcher"'
     );
     expect(markup).toContain('data-testid="embedded-more-creator"');
+    expect(markup).toContain(
+      'class="flex h-full min-h-0 w-full flex-col overflow-hidden" data-testid="chat-panel-start-page-more-launcher"><div data-testid="embedded-more-creator"'
+    );
 
     const updateIndex = markup.indexOf(
       'data-testid="chat-panel-start-page-install-latest-update"'
@@ -306,6 +309,11 @@ describe("ChatPanelStartPage", () => {
     expect(markup).toContain(
       'data-testid="chat-panel-start-page-session-launcher"'
     );
+    expect(markup).toContain(
+      'data-testid="chat-panel-start-page-session-centered-launcher"'
+    );
+    expect(markup).toContain("my-auto");
+    expect(markup).toContain("py-6");
     expect(markup).toContain('data-testid="chat-panel-start-page-tabs"');
     expect(markup).toContain('data-testid="chat-panel-start-page-tab-session"');
     expect(markup).toContain(

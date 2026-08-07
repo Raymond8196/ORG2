@@ -13,13 +13,15 @@ import { createLogger } from "@src/hooks/logger";
 import {
   CreateComposerAgentFrame,
   CreateComposerHeader,
-  CreateComposerLauncher,
   CreateComposerPinnedActions,
   DetailSplitLayout,
   ManualCreateComposer,
 } from "@src/modules/ProjectManager/shared";
 import { WorkstationToolbarTooltip } from "@src/modules/WorkStation/shared";
-import { PANEL_HEADER_TOKENS } from "@src/modules/shared/layouts/blocks";
+import {
+  CreatorContentLayout,
+  PANEL_HEADER_TOKENS,
+} from "@src/modules/shared/layouts/blocks";
 import type { WorkItemDraft } from "@src/store/workstation/projectManager";
 import type { Person } from "@src/types/core/shared";
 import type {
@@ -330,7 +332,7 @@ const CreateWorkItemView: React.FC<CreateWorkItemViewProps> = ({
         </>
       }
       leftContent={
-        <CreateComposerLauncher
+        <CreatorContentLayout
           centered={centerLauncherContent}
           centeredDataTestId="create-work-item-centered-launcher"
         >
@@ -384,7 +386,7 @@ const CreateWorkItemView: React.FC<CreateWorkItemViewProps> = ({
               <InlineCreateWorkItemFields state={inlineFields} />
             </div>
           )}
-        </CreateComposerLauncher>
+        </CreatorContentLayout>
       }
       rightContent={
         resolvedPropertiesOpen ? (

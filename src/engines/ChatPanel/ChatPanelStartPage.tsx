@@ -15,6 +15,7 @@ import Select, { type SelectOption } from "@src/components/Select";
 import TabPill from "@src/components/TabPill";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import ImportSharedSessionDialog from "@src/features/Org2Cloud/ImportSharedSessionDialog";
+import { CreatorContentLayout } from "@src/modules/shared/layouts/blocks";
 import { useAvailableAppUpdate } from "@src/scaffold/AppUpdater";
 import {
   CHAT_PANEL_CREATE_TARGET,
@@ -410,13 +411,7 @@ export function ChatPanelStartPage({
           ) : null}
         </div>
       </div>
-      <div
-        className={`min-h-0 flex-1 ${
-          activeView === "work-item" || activeView === "more"
-            ? "overflow-hidden"
-            : "overflow-y-auto"
-        }`}
-      >
+      <div className="min-h-0 flex-1 overflow-hidden">
         {activeView === "work-item" ? (
           <div
             className="flex h-full min-h-0 w-full"
@@ -429,10 +424,13 @@ export function ChatPanelStartPage({
             className="flex h-full min-h-0 w-full flex-col overflow-hidden"
             data-testid="chat-panel-start-page-more-launcher"
           >
-            <div className="min-h-0 flex-1 overflow-hidden">{moreLauncher}</div>
+            {moreLauncher}
           </div>
         ) : (
-          <div className="flex min-h-full items-center justify-center">
+          <CreatorContentLayout
+            centered
+            centeredDataTestId="chat-panel-start-page-session-centered-launcher"
+          >
             {sessionLauncher ? (
               <div
                 className="w-full"
@@ -441,7 +439,7 @@ export function ChatPanelStartPage({
                 {sessionLauncher}
               </div>
             ) : null}
-          </div>
+          </CreatorContentLayout>
         )}
       </div>
       <div
