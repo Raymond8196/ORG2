@@ -182,6 +182,7 @@ export const ProjectWorkItemsTabContent: React.FC<
     () =>
       visibleWorkItems.map((workItem) => {
         const status = getWorkItemStatus(workItem);
+        const isSelected = selectedWorkItemIds.has(workItem.session_id);
         const statusOptions = isGitHubIssueStatus(status)
           ? GITHUB_ISSUE_STATUS_OPTIONS
           : WORK_ITEM_STATUS_OPTIONS;
@@ -204,13 +205,11 @@ export const ProjectWorkItemsTabContent: React.FC<
           key: workItem.session_id,
           selection: (
             <Checkbox
-              checked={selectedWorkItemIds.has(workItem.session_id)}
+              checked={isSelected}
               size="small"
-              className={
-                selectedWorkItemIds.size > 0
-                  ? "shrink-0"
-                  : "shrink-0 opacity-0 transition-opacity focus-within:opacity-100 group-hover:opacity-100"
-              }
+              className={`shrink-0 ${
+                isSelected ? "" : "[&_[data-checkbox-icon]]:!bg-bg-2"
+              }`}
               ariaLabel={t("common:workManagementTable.selectRow", {
                 id: displayId,
               })}
