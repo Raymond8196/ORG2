@@ -51,14 +51,32 @@ varied 6.5→9.0/min — the decoupling the fix was meant to produce.
 - **Cleanup**: test session deleted on instance 2; the cloud row is left to
   the ordinary two-strike vanished-sweep (design path, not forced).
 
+## Two-boot determinism cell — PASS (added 11:09-11:15)
+
+Instance 1 cold-booted twice on the same binary with unchanged local state,
+each boot audited over its first ~2.5 minutes of passes:
+
+|                       | Boot 1 (11:09:00)                                                                                     | Boot 2 (11:12:16)           |
+| --------------------- | ----------------------------------------------------------------------------------------------------- | --------------------------- |
+| Epoch rewrites        | **0**                                                                                                 | **0**                       |
+| Destructive-verb hits | 1 — "retract reconcile: covering 2 background org(s)" (coverage announcement, no retraction executed) | identical single line       |
+| ERROR lines           | 4 (known TeamInbox notification-registration noise, present on every boot of every build today)       | 4 (same)                    |
+| Realtime ready        | subscribed 16s after launch                                                                           | subscribed 15s after launch |
+
+Liveness beside the absence: the sweep pass demonstrably ran on both boots
+(the coverage line is emitted by it), and the earlier storm window proved the
+same binary's push/pull planes active — the zeros are audited quiet, not a
+dead engine.
+
 ## UNCOVERED (recorded per protocol §6)
 
 - **Cloud ground-truth ledger diff** — needs the Supabase service key, which
   lives only in Vercel env. Not run; the log-level destructive audit above is
   the substitute, which is weaker (it cannot see rows nobody logged about).
-- **Two-boot determinism cell** and **fault-injection cell** — not run in this
-  round (the change is receiver-side coalescing only, with no new read/probe
-  fault point), so the rotation's targets are unchanged from the last run.
+- **Fault-injection cell** — not run this round; the change is receiver-side
+  coalescing with no new read/probe fault point, so the rotation's targets
+  are unchanged from the last run. The backoff-hold contract change is
+  covered by the rewritten engine unit test.
 - **B→A direction** — instance 2 runs an unpatched bundle by design (it is the
   sender). The reverse direction would test instance 2's receiver code, which
   is not the code under test.
