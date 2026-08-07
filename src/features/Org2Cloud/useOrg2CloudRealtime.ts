@@ -129,8 +129,10 @@ const log = createLogger("Org2CloudRealtime");
  * `org_change_signals`, defined in the consolidated baseline with
  * `REPLICA IDENTITY FULL`, membership in `supabase_realtime`, and an
  * `is_org_member(org_id)` SELECT policy — the row-level authorization
- * Realtime needs. Server triggers bump one row per org on every
- * projects / work-items / comments change.
+ * Realtime needs. Server triggers bump one row per org on
+ * projects / work-items / comments / SESSIONS changes (session-row
+ * writes were verified to broadcast on 2026-08-06 — an earlier version
+ * of this comment under-claimed the coverage).
  */
 const CHANGE_SIGNALS_TABLE = "org_change_signals";
 
@@ -579,10 +581,17 @@ export function useOrg2CloudRealtime(): void {
   // signal channel's SUBSCRIBED edge. 0005: the org broadcast channel's edge.
   const runSignalEdgeRecovery = useCallback(
     (orgId: string) => {
-      const now = Date.now();
-      signalCoalescerRef.current.markHandled(ALL_SIGNAL_PLANES);
-      controlPlaneRefreshAtRef.current = now;
+      // Hidden check FIRST: an edge that races a visibility flip must not
+      // stamp the control-plane throttle or mark the coalescer handled while
+      // skipping the actual refreshes — that claimed a recovery that never
+      // ran and muted the next real one for up to the 5-min window.
       if (isDocumentHidden()) return;
+      signalCoalescerRef.current.markHandled(ALL_SIGNAL_PLANES);
+      controlPlaneRefreshAtRef.current = Date.now();
+      // Broadcast signals are at-most-once: a frame lost with no follow-up
+      // signal would otherwise never arm any convergence path. One trailing
+      // coarse refresh per control-plane window bounds that staleness.
+      armCoarseSignalSafetyNet();
       // A LONG gap forces complete listings so tombstone-free absences
       // (revoked projects / retention shifts) are observed; a short gap or
       // a rejoin storm keeps the delta cursors, which already merge
@@ -625,6 +634,7 @@ export function useOrg2CloudRealtime(): void {
       bumpChannelMessagesVersion(orgId);
     },
     [
+      armCoarseSignalSafetyNet,
       bumpRemoteSessionsVersion,
       bumpOrgCommentsSignal,
       bumpActiveSessionCommentsSignal,
@@ -881,6 +891,12 @@ export function useOrg2CloudRealtime(): void {
         // status while suppressing normal CLOSED teardown. Do not duplicate
         // that diagnostic here from the lossy boolean edge.
         if (!subscribed) return;
+        // The 0005 path previously logged NOTHING on success — "is realtime
+        // up" was unanswerable from logs (legacy postgres_changes logs its
+        // subscribe at the same spot). One line per true-edge, like legacy.
+        log.info(
+          `realtime: org broadcast channel subscribed for active org ${orgId}`
+        );
         bumpRosterVersion(orgId);
         runSignalEdgeRecovery(orgId);
       },
