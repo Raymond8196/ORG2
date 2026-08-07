@@ -13,6 +13,7 @@ use super::helpers::{
 use super::resolve_agent_id_for_execute;
 use crate::coordination::agent_org_runs::{AgentOrgContextMember, AgentOrgRunContext};
 use crate::definitions::builtin::{EXPLORE_AGENT_ID, GENERAL_AGENT_ID};
+use crate::tools::names as tool_names;
 use crate::tools::traits::ToolError;
 
 fn resolve_session_id(resume: Option<String>, prefix: &str, agent_id: &str) -> String {
@@ -188,8 +189,6 @@ fn test_fresh_registry_management_tools_require_management_capability() {
     use super::policy::agent_supports_builtin_tool;
     use crate::definitions::capabilities::{CapabilitySet, ManagementCapability};
     use crate::definitions::{AgentDefinition, AgentToolSelection};
-    use crate::tools::names as tool_names;
-
     let agent_without_management = AgentDefinition {
         id: "custom:no-management".to_string(),
         tools: AgentToolSelection {
