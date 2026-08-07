@@ -461,7 +461,7 @@ export const PrConversationTab: React.FC<PrConversationTabProps> = ({
                 value={draft}
                 onChange={updateDraft}
                 placeholder={t("git.pr.commentPlaceholder", "Leave a comment…")}
-                minHeight={140}
+                minHeight={100}
                 maxHeight={500}
                 appearance="plain"
                 toolbarMode="inline"
@@ -474,7 +474,7 @@ export const PrConversationTab: React.FC<PrConversationTabProps> = ({
               <div className="px-3 pb-2">
                 <CloudSessionReferencePreview text={draft} />
               </div>
-              <div className="flex min-h-11 flex-wrap items-center justify-between gap-2 border-t border-border-2 px-2 py-1.5">
+              <div className="flex min-h-11 flex-wrap items-center justify-between gap-2 px-2 py-1.5">
                 <div className="flex flex-wrap items-center gap-2">
                   <Button
                     htmlType="button"

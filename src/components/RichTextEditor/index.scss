@@ -470,11 +470,10 @@
   &.rich-text-editor-toolbar-inline {
     width: 100%;
     max-width: none;
-    min-height: 40px;
+    min-height: 32px;
     flex-wrap: wrap;
-    padding: 5px 6px;
+    padding: 3px 6px;
     border: 0;
-    border-bottom: 1px solid var(--color-border-2);
     border-radius: 0;
     background: transparent;
     box-shadow: none;
@@ -486,8 +485,8 @@
   }
 
   &.rich-text-editor-toolbar-mini .toolbar-btn {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
   }
 
   .toolbar-btn {
@@ -528,13 +527,6 @@
         text-align: center;
       }
     }
-  }
-
-  .toolbar-divider {
-    width: 1px;
-    height: 16px;
-    margin: 0 4px;
-    background: var(--color-border-2);
   }
 }
 

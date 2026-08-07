@@ -46,6 +46,7 @@ interface FloatingToolbarProps {
 }
 
 const getToolbarPopupContainer = () => document.body;
+const TOOLBAR_ICON_SIZE = 14;
 const TOOLBAR_DROPDOWN_STYLE: React.CSSProperties = {
   zIndex: DROPDOWN_PANEL.portalSubmenuZIndex,
 };
@@ -173,11 +174,9 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
           aria-expanded={showHeadingDropdown}
         >
           <span className="heading-label">{currentHeading}</span>
-          <ChevronDown size={12} />
+          <ChevronDown size={TOOLBAR_ICON_SIZE} />
         </button>
       </Dropdown>
-
-      <div className="toolbar-divider" />
 
       <button
         type="button"
@@ -186,7 +185,7 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
         title={t("creator.toolbar.bold")}
         aria-label={t("creator.toolbar.bold")}
       >
-        <Bold size={16} />
+        <Bold size={TOOLBAR_ICON_SIZE} />
       </button>
       <button
         type="button"
@@ -195,7 +194,7 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
         title={t("creator.toolbar.italic")}
         aria-label={t("creator.toolbar.italic")}
       >
-        <Italic size={16} />
+        <Italic size={TOOLBAR_ICON_SIZE} />
       </button>
       <button
         type="button"
@@ -204,7 +203,7 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
         title={t("creator.toolbar.strikethrough")}
         aria-label={t("creator.toolbar.strikethrough")}
       >
-        <Strikethrough size={16} />
+        <Strikethrough size={TOOLBAR_ICON_SIZE} />
       </button>
       <button
         type="button"
@@ -213,10 +212,8 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
         title={t("creator.toolbar.underline")}
         aria-label={t("creator.toolbar.underline")}
       >
-        <UnderlineIcon size={16} />
+        <UnderlineIcon size={TOOLBAR_ICON_SIZE} />
       </button>
-
-      <div className="toolbar-divider" />
 
       <button
         type="button"
@@ -225,7 +222,7 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
         title={t("creator.toolbar.inlineCode")}
         aria-label={t("creator.toolbar.inlineCode")}
       >
-        <Code size={16} />
+        <Code size={TOOLBAR_ICON_SIZE} />
       </button>
       <button
         type="button"
@@ -234,7 +231,7 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
         title={t("creator.toolbar.highlight")}
         aria-label={t("creator.toolbar.highlight")}
       >
-        <Highlighter size={16} />
+        <Highlighter size={TOOLBAR_ICON_SIZE} />
       </button>
 
       <Dropdown
@@ -303,7 +300,7 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
           aria-haspopup="dialog"
           aria-expanded={showLinkInput}
         >
-          <LinkIcon size={16} />
+          <LinkIcon size={TOOLBAR_ICON_SIZE} />
         </button>
       </Dropdown>
 
@@ -314,7 +311,7 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
         title={t("creator.toolbar.quote")}
         aria-label={t("creator.toolbar.quote")}
       >
-        <Quote size={16} />
+        <Quote size={TOOLBAR_ICON_SIZE} />
       </button>
 
       <Dropdown
@@ -378,8 +375,8 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
           aria-haspopup="listbox"
           aria-expanded={showListDropdown}
         >
-          <List size={16} />
-          <ChevronDown size={12} />
+          <List size={TOOLBAR_ICON_SIZE} />
+          <ChevronDown size={TOOLBAR_ICON_SIZE} />
         </button>
       </Dropdown>
 
@@ -391,7 +388,7 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
           title={t("creator.toolbar.insertImage")}
           aria-label={t("creator.toolbar.insertImage")}
         >
-          <ImageIcon size={16} />
+          <ImageIcon size={TOOLBAR_ICON_SIZE} />
         </button>
       )}
       <button
@@ -403,7 +400,7 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
         title={t("creator.toolbar.clearFormatting")}
         aria-label={t("creator.toolbar.clearFormatting")}
       >
-        <RemoveFormatting size={16} />
+        <RemoveFormatting size={TOOLBAR_ICON_SIZE} />
       </button>
     </div>
   );
