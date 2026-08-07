@@ -248,7 +248,11 @@ export abstract class Org2CloudSyncLifecycle {
   ): void {
     if (!this.started) return;
     if (orgId) {
-      this.clearOrgBackoff(orgId);
+      // Ordinary change signals must NOT reopen a quota/disabled cool-down —
+      // any teammate activity would turn the 5/30-minute backoff into a
+      // per-signal retry. Full recovery (resumeOrg, edge recovery, online)
+      // is the deliberate escape hatch.
+      if (options.full) this.clearOrgBackoff(orgId);
       this.pendingInboundOrgIds.add(orgId);
       if (options.full) {
         this.pendingFullInboundOrgIds.add(orgId);

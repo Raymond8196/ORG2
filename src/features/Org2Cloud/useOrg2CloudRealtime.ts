@@ -86,6 +86,7 @@ import { org2CloudMemberNamesAtom } from "./org2CloudMemberNamesAtom";
 import { clearCloudOrgMembersCache } from "./org2CloudMembersCoordinator";
 import { endpointForOrigin } from "./org2CloudOrgEndpointRouter";
 import {
+  org2CloudMemberRuntimeVersionAtom,
   org2CloudOrgsAtom,
   org2CloudRosterRealtimeConnectedAtom,
   org2CloudRosterVersionAtom,
@@ -161,7 +162,8 @@ type SignalPlane =
   | "roster"
   | "policy"
   | "channels"
-  | "channelMessages";
+  | "channelMessages"
+  | "memberRuntime";
 
 const ALL_SIGNAL_PLANES: readonly SignalPlane[] = [
   "coarse",
@@ -172,6 +174,7 @@ const ALL_SIGNAL_PLANES: readonly SignalPlane[] = [
   "policy",
   "channels",
   "channelMessages",
+  "memberRuntime",
 ];
 
 function isDocumentHidden(): boolean {
@@ -231,6 +234,16 @@ export function useOrg2CloudRealtime(): void {
     },
     [setRosterVersion]
   );
+  const setMemberRuntimeVersion = useSetAtom(org2CloudMemberRuntimeVersionAtom);
+  const bumpMemberRuntimeVersion = useCallback(
+    (orgId: string) => {
+      setMemberRuntimeVersion((current) => ({
+        ...current,
+        [orgId]: (current[orgId] ?? 0) + 1,
+      }));
+    },
+    [setMemberRuntimeVersion]
+  );
   const setRemoteSessionsVersion = useSetAtom(
     org2CloudRemoteSessionsVersionAtom
   );
@@ -279,6 +292,7 @@ export function useOrg2CloudRealtime(): void {
     clearCloudOrgMembersCache(store);
     setMemberNames({});
     setRosterVersion({});
+    setMemberRuntimeVersion({});
     setRosterRealtimeConnected({});
     setRemoteSessions({});
     setRemoteSessionsVersion({});
@@ -294,6 +308,7 @@ export function useOrg2CloudRealtime(): void {
     setChannelsVersion,
     setCommentsSignal,
     setMemberNames,
+    setMemberRuntimeVersion,
     setOutboundPresence,
     setPresence,
     setRemoteSessions,
@@ -584,6 +599,14 @@ export function useOrg2CloudRealtime(): void {
             bumpChannelMessagesVersion(orgId);
           });
           return;
+        case "member_runtime":
+          // Telemetry heartbeats only move the Team Runtime roster. Routing
+          // them to their own plane keeps a teammate's 15-minute push from
+          // triggering the coarse full-plane fallback on every client.
+          schedulePlaneSignalRefresh("memberRuntime", () => {
+            bumpMemberRuntimeVersion(orgId);
+          });
+          return;
       }
     },
     [
@@ -593,6 +616,7 @@ export function useOrg2CloudRealtime(): void {
       scheduleSessionsPlaneRefresh,
       bumpOrgCommentsSignal,
       bumpRosterVersion,
+      bumpMemberRuntimeVersion,
       bumpChannelsVersion,
       bumpChannelMessagesVersion,
       refreshEntitlementForOrg,
@@ -854,7 +878,10 @@ export function useOrg2CloudRealtime(): void {
           } else if (kind === "scopes") {
             org2CloudSyncEngine.resumeOrg(orgId);
           } else if (kind === "sessions") {
-            bumpRemoteSessionsVersion(orgId);
+            // Sent after EVERY successful peer push (250ms sender collapse
+            // only) — a streaming teammate makes this a per-push storm, so
+            // it must ride the same coalesced plane as the server signal.
+            scheduleSessionsPlaneRefresh(orgId);
           }
           return;
         }
