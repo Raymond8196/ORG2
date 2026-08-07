@@ -28,6 +28,7 @@ import type {
   SourceControlHistorySelection,
   WorkStationTab,
 } from "@src/store/workstation/tabs";
+import type { DiffViewMode } from "@src/types/git/types";
 
 export interface SourceControlHeaderContentProps {
   /** The active `source-control` tab (host guarantees the type). */
@@ -40,7 +41,9 @@ export interface SourceControlHeaderContentProps {
   sourceControlHeaderLeadingSlot?: ReactNode;
   sourceControlHeaderTrailingSlot?: ReactNode;
   sourceControlRefreshSpinClass: string | undefined;
+  diffViewMode: DiffViewMode;
   t: TFunction;
+  onDiffViewModeChange: (mode: DiffViewMode) => void;
   onModeChange: (mode: "focus" | "all-changes") => void;
   onOpenHistoryInNewTab: (selection: SourceControlHistorySelection) => void;
   onReviewPrevFile: () => void;
@@ -60,7 +63,9 @@ export const SourceControlHeaderContent: React.FC<
   sourceControlHeaderLeadingSlot,
   sourceControlHeaderTrailingSlot,
   sourceControlRefreshSpinClass,
+  diffViewMode,
   t,
+  onDiffViewModeChange,
   onModeChange,
   onOpenHistoryInNewTab,
   onReviewPrevFile,
@@ -197,16 +202,35 @@ export const SourceControlHeaderContent: React.FC<
         )}
 
         {showCollapseAll && (
-          <Button
-            htmlType="button"
-            variant="tertiary"
-            size="small"
-            iconOnly
-            className="flex-shrink-0"
-            onClick={onCollapseAll}
-            title={t("actions.collapseAll")}
-            icon={<ListChevronsDownUp size={HEADER_ICON_SIZE.md} />}
-          />
+          <>
+            <TabPill
+              activeTab={diffViewMode}
+              tabs={[
+                { key: "unified", label: t("workstation.unified") },
+                { key: "split", label: t("workstation.split") },
+              ]}
+              onChange={(key) => onDiffViewModeChange(key as DiffViewMode)}
+              variant="pill"
+              color="fill"
+              fillWidth={false}
+              size="small"
+            />
+            <span
+              className="mx-1.5 h-4 w-px shrink-0 bg-border-2"
+              role="separator"
+              aria-hidden
+            />
+            <Button
+              htmlType="button"
+              variant="tertiary"
+              size="small"
+              iconOnly
+              className="flex-shrink-0"
+              onClick={onCollapseAll}
+              title={t("actions.collapseAll")}
+              icon={<ListChevronsDownUp size={HEADER_ICON_SIZE.md} />}
+            />
+          </>
         )}
         <Button
           htmlType="button"

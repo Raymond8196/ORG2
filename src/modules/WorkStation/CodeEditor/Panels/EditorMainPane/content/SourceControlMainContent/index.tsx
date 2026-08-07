@@ -206,7 +206,6 @@ const SourceControlMainContent: React.FC<SourceControlMainContentProps> = ({
           onFileSelect={onFileSelect}
           onClose={onCloseFocus}
           onUnsavedChange={onGitDiffUnsavedChange}
-          emptyActions={emptyFocusActions}
         />
       ) : (
         <AllChangesView
