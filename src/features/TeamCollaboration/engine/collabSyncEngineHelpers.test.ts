@@ -169,6 +169,87 @@ describe("computeFrozenEventCount frozen line + stuck-sentinel skip-over", () =>
     expect(computeFrozenEventCount(events, now)).toBe(20);
   });
 
+  function unresolvedToolStart(createdAt: string): SessionEvent {
+    // Rust stamps unpaired starts "completed" (orphan kindness); the pairing
+    // merge can still land and rewrite this event in place.
+    return event({
+      functionName: "run_shell",
+      uiCanonical: "run_shell",
+      actionType: "tool_call",
+      callId: "call-bg-1",
+      args: { command: "sleep 600" },
+      result: {},
+      displayStatus: "completed",
+      createdAt,
+    });
+  }
+
+  it("holds the freeze line at an unresolved tool start while the session is appending", () => {
+    const now = Date.parse("2026-07-25T12:00:00Z");
+    const old = "2026-07-25T11:00:00Z";
+    const events = [
+      event({ createdAt: old }),
+      unresolvedToolStart(old),
+      event({ createdAt: old }),
+      event({ createdAt: "2026-07-25T11:55:00Z" }),
+    ];
+    expect(computeFrozenEventCount(events, now)).toBe(1);
+  });
+
+  it("treats a null result like an empty one for pairing detection", () => {
+    const now = Date.parse("2026-07-25T12:00:00Z");
+    const old = "2026-07-25T11:00:00Z";
+    const events = [
+      event({
+        actionType: "tool_call",
+        result: null as never,
+        createdAt: old,
+      }),
+      event({ createdAt: "2026-07-25T11:55:00Z" }),
+    ];
+    expect(computeFrozenEventCount(events, now)).toBe(0);
+  });
+
+  it("freezes through unresolved tool starts once the session is quiescent", () => {
+    const now = Date.parse("2026-07-25T12:00:00Z");
+    const old = "2026-07-25T11:00:00Z";
+    const events = [
+      event({ createdAt: old }),
+      unresolvedToolStart(old),
+      event({ createdAt: old }),
+    ];
+    expect(computeFrozenEventCount(events, now)).toBe(3);
+  });
+
+  it("does not hold the line for a tool call whose pairing already merged", () => {
+    const now = Date.parse("2026-07-25T12:00:00Z");
+    const old = "2026-07-25T11:00:00Z";
+    const events = [
+      event({ createdAt: old }),
+      event({
+        actionType: "tool_call",
+        callId: "call-bg-1",
+        args: { command: "echo hi" },
+        result: { content: "hi" },
+        createdAt: old,
+      }),
+      event({ createdAt: old }),
+      event({ createdAt: "2026-07-25T11:55:00Z" }),
+    ];
+    expect(computeFrozenEventCount(events, now)).toBe(3);
+  });
+
+  it("bounds unresolved-start holdback so a deep abandoned call cannot pin a live session", () => {
+    const now = Date.parse("2026-07-25T12:00:00Z");
+    const old = "2026-07-25T11:00:00Z";
+    const events = [
+      unresolvedToolStart(old),
+      ...Array.from({ length: 200 }, () => event({ createdAt: old })),
+      event({ createdAt: "2026-07-25T11:59:00Z" }),
+    ];
+    expect(computeFrozenEventCount(events, now)).toBe(201);
+  });
+
   it("counts a missing displayStatus as terminal (hash chain catches mutation)", () => {
     const events = [event({ displayStatus: undefined as never }), event({})];
     expect(computeFrozenEventCount(events)).toBe(2);
