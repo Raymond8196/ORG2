@@ -218,4 +218,24 @@ describe("WorkManagementTable", () => {
     expect(markup).toContain("Page 1 of 2+");
     expect(markup).not.toContain("select-selector");
   });
+
+  it("renders controlled ID and updated-time sort headers", () => {
+    const markup = renderToStaticMarkup(
+      createElement(WorkManagementTable, {
+        rows: [
+          {
+            ...rows[0],
+            idSortValue: 1,
+          },
+        ],
+        sort: { column: "updated", order: "descend" },
+        onSortChange: () => undefined,
+      })
+    );
+
+    expect(markup).toContain('data-sort-column="id"');
+    expect(markup).toContain('data-sort-column="updated"');
+    expect(markup).toContain('aria-label="ID" aria-pressed="false"');
+    expect(markup).toContain('aria-label="Updated" aria-pressed="true"');
+  });
 });

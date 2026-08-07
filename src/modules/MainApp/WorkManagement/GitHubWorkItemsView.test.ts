@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import { GitHubWorkItemsView } from "./GitHubWorkItemsView";
 import { GITHUB_ITEM_KIND, type ManagedPrItem } from "./githubManagedItemModel";
 import { parseGitHubSearchQuery } from "./githubWorkItemsSearchQuery";
+import { DEFAULT_GITHUB_ISSUES_SORT } from "./githubWorkItemsSort";
 
 vi.mock("@src/components/IntegrationIcon", () => ({
   default: ({ type }: { type: string }) =>
@@ -91,6 +92,7 @@ describe("GitHubWorkItemsView pull requests", () => {
         currentPage: 1,
         totalLoadedPages: 1,
         hasMoreFilteredIssues: false,
+        sort: DEFAULT_GITHUB_ISSUES_SORT,
         createFormOpen: false,
         creatingIssue: false,
         updateSearchQuery: vi.fn(),
@@ -100,6 +102,7 @@ describe("GitHubWorkItemsView pull requests", () => {
         onRefresh: vi.fn(),
         onPreviousPage: vi.fn(),
         onNextPage: vi.fn().mockResolvedValue(undefined),
+        onSortChange: vi.fn(),
         onOpenIssue: vi.fn(),
         onOpenIssueInBrowser: vi.fn(),
         onAddIssue: vi.fn(),
@@ -125,6 +128,10 @@ describe("GitHubWorkItemsView pull requests", () => {
     expect(markup).toContain("Title / Context");
     expect(markup).toContain(">Status<");
     expect(markup).toContain(">Updated<");
+    expect(markup).toContain('data-sort-column="id"');
+    expect(markup).toContain('data-sort-column="updated"');
+    expect(markup).toContain('aria-label="ID" aria-pressed="true"');
+    expect(markup).toContain('aria-label="Updated" aria-pressed="false"');
     expect(markup).toContain("feature-1 → develop");
     expect(markup).toContain("flex-1");
     expect(markup).toContain("select-size-default");
