@@ -479,6 +479,10 @@ export function useOrg2CloudRealtime(): void {
   const runCoarseSignalRefresh = useCallback(() => {
     const orgId = activeRealtimeOrgId;
     if (!orgId) return;
+    // Hidden check FIRST (same reorder as the edge-recovery fix): the
+    // safety-net timer calls this directly, and a hidden-skipped run must
+    // not mark the planes handled while doing none of the refreshes.
+    if (isDocumentHidden()) return;
     signalCoalescerRef.current.markHandled([
       "coarse",
       "sessions",
@@ -487,10 +491,6 @@ export function useOrg2CloudRealtime(): void {
       "channels",
       "channelMessages",
     ]);
-    // A blur/visibility event releases the connection. Ignore the tiny
-    // event-delivery race during teardown; the next SUBSCRIBED true-edge
-    // performs the authoritative full recovery.
-    if (isDocumentHidden()) return;
     org2CloudSyncEngine.invalidateOrgInbound(orgId);
     bumpRemoteSessionsVersion(orgId);
     bumpOrgCommentsSignal(orgId);
