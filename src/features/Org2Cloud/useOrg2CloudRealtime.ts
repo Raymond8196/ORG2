@@ -115,7 +115,7 @@ import { decideSubscribedEdgeRecovery } from "./org2CloudRealtimeRecovery";
 import { resolveActiveRealtimeOrgId } from "./org2CloudRealtimeScope";
 import {
   Org2CloudRealtimeSignalCoalescer,
-  SESSIONS_SIGNAL_COALESCE_MS,
+  STORM_SIGNAL_COALESCE_MS,
 } from "./org2CloudRealtimeSignalCoalescer";
 import {
   bumpRemoteSessionsInvalidation,
@@ -527,7 +527,13 @@ export function useOrg2CloudRealtime(): void {
     []
   );
   const scheduleCoarseSignalRefresh = useCallback(() => {
-    schedulePlaneSignalRefresh("coarse", runCoarseSignalRefresh);
+    // The coarse refresh is the heaviest bundle (every plane at once), and on
+    // legacy backends it fires for EVERY change kind — storm window required.
+    schedulePlaneSignalRefresh(
+      "coarse",
+      runCoarseSignalRefresh,
+      STORM_SIGNAL_COALESCE_MS
+    );
   }, [schedulePlaneSignalRefresh, runCoarseSignalRefresh]);
   // Slow convergence net for narrowed dispatch: one trailing full coarse
   // refresh per control-plane TTL window while signals keep arriving.
@@ -551,7 +557,7 @@ export function useOrg2CloudRealtime(): void {
           org2CloudSyncEngine.invalidateOrgInbound(orgId);
           bumpRemoteSessionsVersion(orgId);
         },
-        SESSIONS_SIGNAL_COALESCE_MS
+        STORM_SIGNAL_COALESCE_MS
       );
     },
     [schedulePlaneSignalRefresh, bumpRemoteSessionsVersion]
@@ -566,15 +572,23 @@ export function useOrg2CloudRealtime(): void {
           scheduleSessionsPlaneRefresh(orgId);
           return;
         case "comments":
-          schedulePlaneSignalRefresh("comments", () => {
-            bumpOrgCommentsSignal(orgId);
-          });
+          schedulePlaneSignalRefresh(
+            "comments",
+            () => {
+              bumpOrgCommentsSignal(orgId);
+            },
+            STORM_SIGNAL_COALESCE_MS
+          );
           return;
         case "projects":
         case "workItems":
-          schedulePlaneSignalRefresh("inbound", () => {
-            org2CloudSyncEngine.invalidateOrgInbound(orgId);
-          });
+          schedulePlaneSignalRefresh(
+            "inbound",
+            () => {
+              org2CloudSyncEngine.invalidateOrgInbound(orgId);
+            },
+            STORM_SIGNAL_COALESCE_MS
+          );
           return;
         case "roster":
           schedulePlaneSignalRefresh("roster", () => {
@@ -590,11 +604,17 @@ export function useOrg2CloudRealtime(): void {
           });
           return;
         case "channels":
-          schedulePlaneSignalRefresh("channels", () => {
-            bumpChannelsVersion(orgId);
-          });
+          schedulePlaneSignalRefresh(
+            "channels",
+            () => {
+              bumpChannelsVersion(orgId);
+            },
+            STORM_SIGNAL_COALESCE_MS
+          );
           return;
         case "channelMessages":
+          // Live-chat delta (p_since, server-capped): the short window is a
+          // deliberate latency choice, and the pull is bounded.
           schedulePlaneSignalRefresh("channelMessages", () => {
             bumpChannelMessagesVersion(orgId);
           });

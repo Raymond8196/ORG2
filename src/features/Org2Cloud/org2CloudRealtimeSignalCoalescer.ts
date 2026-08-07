@@ -8,13 +8,16 @@
 export const REALTIME_SIGNAL_COALESCE_MS = 750;
 
 /**
- * Sessions-plane override: a streaming session bumps the org signal about
- * once per second (server-side per-kind debounce), and each refresh re-lists
- * the org plus pulls collab state. The leading edge keeps an isolated change
- * instant; this wider window caps a sustained storm — own pushes or a
- * teammate's — at 4 listing pulls per minute instead of ~40.
+ * Storm-plane override: the server debounces broadcasts at one per second
+ * per (org, kind), so the default 750ms window gives zero sustained
+ * protection — every signal of a storm executes. Planes whose refresh is a
+ * full listing or a multi-RPC pass (sessions, comments, channels, inbound,
+ * coarse) use this wider window instead: the leading edge keeps an isolated
+ * change instant, a sustained storm costs 4 refreshes per minute instead of
+ * ~60. Live-chat deltas (channelMessages) and admin-paced planes
+ * (roster/policy) deliberately keep the short window.
  */
-export const SESSIONS_SIGNAL_COALESCE_MS = 15_000;
+export const STORM_SIGNAL_COALESCE_MS = 15_000;
 
 interface TimerHost {
   now(): number;
