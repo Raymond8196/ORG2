@@ -524,20 +524,31 @@ export function useOrg2CloudRealtime(): void {
     }, CONTROL_PLANE_REFRESH_THROTTLE_MS);
   }, [runCoarseSignalRefresh]);
 
+  // Single callback for every sessions-plane schedule: the coalescer keeps
+  // the FIRST-armed refresh for a pending trailing window, so all entry
+  // points (db-change signals, comment broadcasts) must request the same
+  // full refresh or a weaker one could swallow a stronger one's work.
+  const scheduleSessionsPlaneRefresh = useCallback(
+    (orgId: string) => {
+      schedulePlaneSignalRefresh(
+        "sessions",
+        () => {
+          org2CloudSyncEngine.invalidateOrgInbound(orgId);
+          bumpRemoteSessionsVersion(orgId);
+        },
+        SESSIONS_SIGNAL_COALESCE_MS
+      );
+    },
+    [schedulePlaneSignalRefresh, bumpRemoteSessionsVersion]
+  );
+
   const dispatchDbChangeSignal = useCallback(
     (orgId: string, kind: Org2CloudDbChangeKind) => {
       armCoarseSignalSafetyNet();
       if (!isDocumentHidden()) maybeRefreshControlPlane(orgId);
       switch (kind) {
         case "sessions":
-          schedulePlaneSignalRefresh(
-            "sessions",
-            () => {
-              org2CloudSyncEngine.invalidateOrgInbound(orgId);
-              bumpRemoteSessionsVersion(orgId);
-            },
-            SESSIONS_SIGNAL_COALESCE_MS
-          );
+          scheduleSessionsPlaneRefresh(orgId);
           return;
         case "comments":
           schedulePlaneSignalRefresh("comments", () => {
@@ -579,7 +590,7 @@ export function useOrg2CloudRealtime(): void {
       armCoarseSignalSafetyNet,
       maybeRefreshControlPlane,
       schedulePlaneSignalRefresh,
-      bumpRemoteSessionsVersion,
+      scheduleSessionsPlaneRefresh,
       bumpOrgCommentsSignal,
       bumpRosterVersion,
       bumpChannelsVersion,
@@ -857,10 +868,13 @@ export function useOrg2CloudRealtime(): void {
         const sessionId = payload.sessionId;
         if (typeof sessionId !== "string" || !sessionId) return;
         if (isDocumentHidden()) return;
+        // The open thread stays live; the listing (comment/task counters)
+        // rides the coalesced sessions plane so a comment storm cannot
+        // re-list the org per broadcast.
         setCommentsSignal((current) =>
           bumpCommentsSignalKey(current, sessionCommentsKey(orgId, sessionId))
         );
-        bumpRemoteSessionsVersion(orgId);
+        scheduleSessionsPlaneRefresh(orgId);
       },
       onSync: (state) => {
         const byUser: Record<string, Org2CloudPresenceEntry> = {};
@@ -961,6 +975,7 @@ export function useOrg2CloudRealtime(): void {
     setOutboundPresence,
     setCommentsSignal,
     bumpRemoteSessionsVersion,
+    scheduleSessionsPlaneRefresh,
     bumpRosterVersion,
     dispatchDbChangeSignal,
     scheduleCoarseSignalRefresh,
