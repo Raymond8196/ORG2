@@ -1,4 +1,4 @@
-﻿{
+{
   "windowChrome": {
     "menus": {
       "file": "File",
@@ -1563,9 +1563,9 @@
       },
       "composer": {
         "addComment": "Add a comment",
-        "commentingAs": "Commenting as @{{login}}",
+        "commentingAs": "Commenting as {{login}}",
         "identityUnavailable": "GitHub identity unavailable",
-        "commentPlaceholder": "Use Markdown to format your comment",
+        "commentPlaceholder": "Write a comment…",
         "submitComment": "Comment",
         "closeIssue": "Close issue",
         "closeAsCompleted": "Close as completed",

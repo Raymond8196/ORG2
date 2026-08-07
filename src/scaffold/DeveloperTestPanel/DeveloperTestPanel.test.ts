@@ -19,26 +19,15 @@ import {
   setupGuideDevScenarioAtom,
 } from "@src/store/ui/setupGuideDevScenarioAtom";
 
-import { DeveloperTestPanelSlot, isDeveloperTestPanelEnabled } from ".";
+import { DeveloperTestPanel, isDeveloperTestPanelEnabled } from ".";
 import { DEVELOPER_TEST_MODULES } from "./moduleRegistry";
 
 const mocks = vi.hoisted(() => ({
   close: vi.fn(),
-  toggle: vi.fn(),
-  dropdownEngine: vi.fn(),
 }));
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (key: string) => key }),
-}));
-
-vi.mock("@src/hooks/dropdown", () => ({
-  useDropdownEngine: mocks.dropdownEngine,
-}));
-
-vi.mock("@src/modules/WorkStation/shared", () => ({
-  WorkstationToolbarTooltip: ({ children }: { children: React.ReactNode }) =>
-    children,
 }));
 
 const reactActEnvironment = globalThis as typeof globalThis & {
@@ -56,7 +45,16 @@ describe("DeveloperTestPanel", () => {
         React.createElement(
           Provider,
           { store },
-          React.createElement(DeveloperTestPanelSlot)
+          React.createElement(DeveloperTestPanel, {
+            panelRef: { current: null },
+            panelPosition: {
+              top: 32,
+              left: 8,
+              width: 320,
+              maxHeight: 480,
+            },
+            onClose: mocks.close,
+          })
         )
       );
     });
@@ -68,15 +66,6 @@ describe("DeveloperTestPanel", () => {
 
   beforeEach(() => {
     vi.stubEnv("NODE_ENV", "development");
-    mocks.dropdownEngine.mockReturnValue({
-      isOpen: true,
-      isPositioned: true,
-      toggle: mocks.toggle,
-      close: mocks.close,
-      triggerRef: { current: null },
-      panelRef: { current: null },
-      panelPosition: { top: 32, left: 8, maxHeight: 480 },
-    });
     store = createStore();
     store.set(setupGuideDevScenarioAtom, SETUP_GUIDE_DEV_SCENARIO.LIVE);
     store.set(org2CloudOrgsAtom, []);
@@ -102,12 +91,11 @@ describe("DeveloperTestPanel", () => {
     expect(DEVELOPER_TEST_MODULES.map((module) => module.id)).toEqual([
       "onboarding",
     ]);
-    expect(
-      document.querySelector('[data-testid="developer-test-panel-trigger"]')
-    ).not.toBeNull();
-    expect(
-      document.querySelector('[data-testid="developer-test-panel"]')
-    ).not.toBeNull();
+    const panel = document.querySelector(
+      '[data-testid="developer-test-panel"]'
+    );
+    expect(panel).not.toBeNull();
+    expect(document.activeElement).toBe(panel);
     expect(document.body.textContent).toContain(
       "sidebar.developerTestPanel.title"
     );
@@ -132,6 +120,20 @@ describe("DeveloperTestPanel", () => {
     );
     expect(mocks.close).not.toHaveBeenCalled();
     expect(document.body.textContent).toContain("DEV");
+  });
+
+  it("delegates its close action to the Settings menu owner", async () => {
+    await renderPanel();
+
+    const closeButton = Array.from(
+      document.body.querySelectorAll("button")
+    ).find(
+      (button) => button.getAttribute("aria-label") === "sidebar.guide.close"
+    );
+
+    expect(closeButton).toBeDefined();
+    act(() => closeButton?.click());
+    expect(mocks.close).toHaveBeenCalledOnce();
   });
 
   it("requires a real cloud organization for role scenarios", async () => {
@@ -166,8 +168,7 @@ describe("DeveloperTestPanel", () => {
 
     expect(isDeveloperTestPanelEnabled()).toBe(false);
     expect(
-      document.querySelector('[data-testid="developer-test-panel-trigger"]')
+      document.querySelector('[data-testid="developer-test-panel"]')
     ).toBeNull();
-    expect(mocks.dropdownEngine).not.toHaveBeenCalled();
   });
 });

@@ -1,19 +1,17 @@
 import { useAtomValue } from "jotai";
-import { ChevronDown, ChevronRight, FlaskConical, X } from "lucide-react";
-import React, { type FC, useState } from "react";
+import { ChevronDown, ChevronRight, X } from "lucide-react";
+import React, { type FC, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
 import { DropdownItem, DropdownPanel } from "@src/components/Dropdown/exports";
 import {
   DROPDOWN_ITEM,
-  DROPDOWN_PANEL,
   DROPDOWN_WIDTHS,
 } from "@src/components/Dropdown/tokens";
 import IconButton from "@src/components/IconButton";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
-import { useDropdownEngine } from "@src/hooks/dropdown";
-import { WorkstationToolbarTooltip } from "@src/modules/WorkStation/shared";
+import type { DropdownEnginePosition } from "@src/hooks/dropdown";
 import {
   SETUP_GUIDE_DEV_SCENARIO,
   setupGuideDevScenarioAtom,
@@ -63,104 +61,86 @@ const DeveloperTestModuleSection: FC<{
   );
 };
 
-const DeveloperTestPanelButton: FC = () => {
+interface DeveloperTestPanelProps {
+  panelRef: React.RefObject<HTMLDivElement | null>;
+  panelPosition: DropdownEnginePosition;
+  onClose: () => void;
+}
+
+const DeveloperTestPanelContent: FC<DeveloperTestPanelProps> = ({
+  panelRef,
+  panelPosition,
+  onClose,
+}) => {
   const { t } = useTranslation("navigation");
   const setupGuideDevScenario = useAtomValue(setupGuideDevScenarioAtom);
   const simulationActive =
     setupGuideDevScenario !== SETUP_GUIDE_DEV_SCENARIO.LIVE;
-  const {
-    isOpen,
-    isPositioned,
-    toggle,
-    close,
-    triggerRef,
-    panelRef,
-    panelPosition,
-  } = useDropdownEngine<HTMLDivElement>({
-    placement: "bottom",
-    align: "left",
-    gap: DROPDOWN_PANEL.triggerGap,
-    captureKeyboardFocus: true,
-  });
   const panelTitle = t("sidebar.developerTestPanel.title");
 
-  return (
-    <>
-      <WorkstationToolbarTooltip
-        label={panelTitle}
-        position="bottom"
-        disabled={isOpen}
-      >
-        <div ref={triggerRef} className="inline-flex">
-          <IconButton
-            aria-label={panelTitle}
-            aria-haspopup="dialog"
-            aria-expanded={isOpen}
-            data-testid="developer-test-panel-trigger"
-            size="lg"
-            variant={isOpen || simulationActive ? "active" : "default"}
-            className="relative rounded-full"
-            onClick={toggle}
-          >
-            <FlaskConical size={HEADER_ICON_SIZE.md} strokeWidth={2} />
-            {simulationActive ? (
-              <span
-                className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-primary-6"
-                aria-hidden
-              />
-            ) : null}
-          </IconButton>
-        </div>
-      </WorkstationToolbarTooltip>
+  useEffect(() => {
+    const panelElement = panelRef.current;
+    if (!panelElement) return;
+    const activeElement = document.activeElement;
+    if (
+      activeElement instanceof HTMLElement &&
+      panelElement.contains(activeElement)
+    ) {
+      return;
+    }
+    panelElement.tabIndex = -1;
+    panelElement.focus({ preventScroll: true });
+  }, [panelRef]);
 
-      {isOpen &&
-        isPositioned &&
-        createPortal(
-          <DropdownPanel
-            ref={panelRef}
-            className={`${DROPDOWN_WIDTHS.fileTreeClass} fixed flex flex-col overflow-hidden !p-0`}
-            maxHeight={panelPosition.maxHeight}
-            role="dialog"
-            aria-label={panelTitle}
-            data-testid="developer-test-panel"
-            style={{
-              top: panelPosition.top,
-              bottom: panelPosition.bottom,
-              left: panelPosition.left,
-            }}
-          >
-            <div className="flex shrink-0 items-center gap-2 border-0 border-b border-solid border-border-2 px-3 py-2.5">
-              <span className="min-w-0 flex-1 truncate text-sm font-semibold text-text-1">
-                {panelTitle}
-              </span>
-              {simulationActive ? (
-                <span className="rounded-full bg-primary-1 px-1.5 py-0.5 text-[10px] font-medium leading-none text-primary-6">
-                  DEV
-                </span>
-              ) : null}
-              <IconButton
-                aria-label={t("sidebar.guide.close")}
-                size="sm"
-                variant="default"
-                onClick={close}
-              >
-                <X size={HEADER_ICON_SIZE.sm} />
-              </IconButton>
-            </div>
-            <div className="min-h-0 overflow-y-auto py-1">
-              {DEVELOPER_TEST_MODULES.map((module) => (
-                <DeveloperTestModuleSection key={module.id} module={module} />
-              ))}
-            </div>
-          </DropdownPanel>,
-          document.body
-        )}
-    </>
+  return createPortal(
+    <DropdownPanel
+      ref={panelRef}
+      className={`${DROPDOWN_WIDTHS.fileTreeClass} fixed flex flex-col overflow-hidden !p-0`}
+      maxHeight={panelPosition.maxHeight}
+      role="dialog"
+      aria-label={panelTitle}
+      data-testid="developer-test-panel"
+      style={{
+        top: panelPosition.top,
+        bottom: panelPosition.bottom,
+        left: panelPosition.left,
+      }}
+    >
+      <div className="flex shrink-0 items-center gap-2 border-0 border-b border-solid border-border-2 px-3 py-2.5">
+        <span className="min-w-0 flex-1 truncate text-sm font-semibold text-text-1">
+          {panelTitle}
+        </span>
+        {simulationActive ? (
+          <span className="rounded-full bg-primary-1 px-1.5 py-0.5 text-[10px] font-medium leading-none text-primary-6">
+            DEV
+          </span>
+        ) : null}
+        <IconButton
+          aria-label={t("sidebar.guide.close")}
+          size="sm"
+          variant="default"
+          onClick={onClose}
+        >
+          <X size={HEADER_ICON_SIZE.sm} />
+        </IconButton>
+      </div>
+      <div className="min-h-0 overflow-y-auto py-1">
+        {DEVELOPER_TEST_MODULES.map((module) => (
+          <DeveloperTestModuleSection key={module.id} module={module} />
+        ))}
+      </div>
+    </DropdownPanel>,
+    document.body
   );
 };
 
-/** Parent render gate: production builds never mount dropdown hooks or UI. */
-export const DeveloperTestPanelSlot: FC = () =>
-  isDeveloperTestPanelEnabled() ? <DeveloperTestPanelButton /> : null;
+/**
+ * Panel-only development surface. The Settings menu owns its launcher and
+ * positioning so the flask no longer occupies permanent sidebar chrome.
+ */
+export const DeveloperTestPanel: FC<DeveloperTestPanelProps> = (props) =>
+  isDeveloperTestPanelEnabled() ? (
+    <DeveloperTestPanelContent {...props} />
+  ) : null;
 
-export default DeveloperTestPanelButton;
+export default DeveloperTestPanel;

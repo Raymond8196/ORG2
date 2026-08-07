@@ -35,6 +35,19 @@ describe("resolveWorkItemThreadHeaderPolicy", () => {
 });
 
 describe("work item thread metadata presentation", () => {
+  it("keeps card titles tinted while card bodies match the chat pane", () => {
+    expect(WORK_ITEM_THREAD_TOKENS.card.split(" ")).toContain("bg-chat-pane");
+    expect(WORK_ITEM_THREAD_TOKENS.cardBody.split(" ")).toContain(
+      "bg-chat-pane"
+    );
+    expect(WORK_ITEM_THREAD_TOKENS.cardHeader.split(" ")).toContain(
+      "bg-primary-container"
+    );
+    expect(WORK_ITEM_THREAD_TOKENS.collapsibleHeader.split(" ")).toContain(
+      "bg-primary-container"
+    );
+  });
+
   it("uses an unframed control row without vertical padding", () => {
     const classNames = WORK_ITEM_THREAD_TOKENS.metadataBand.split(" ");
 

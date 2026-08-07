@@ -11,6 +11,7 @@ import SettingsTable, {
   SettingsTablePagination,
   type SettingsTableProps,
 } from "@src/components/SettingsTable";
+import { SortIcon } from "@src/components/Table/helpers";
 import {
   DETAIL_PANEL_WIDTH_TOKENS,
   ISSUE_PANEL_WIDTH_TOKENS,
@@ -25,6 +26,14 @@ export const WORK_MANAGEMENT_TITLE_COLUMN_MAX_WIDTH = 550;
 
 export type WorkManagementTableMaxWidth =
   keyof typeof WORK_MANAGEMENT_TABLE_MAX_WIDTH_CLASS;
+
+export type WorkManagementTableSortColumn = "id" | "updated";
+export type WorkManagementTableSortOrder = "ascend" | "descend";
+
+export interface WorkManagementTableSort {
+  column: WorkManagementTableSortColumn;
+  order: WorkManagementTableSortOrder;
+}
 
 export interface WorkManagementTableStatusSelect {
   value: string;
@@ -82,8 +91,49 @@ interface WorkManagementTableProps {
   pageSize?: number;
   pageSizeOptions?: number[];
   pagination?: WorkManagementTablePagination;
+  /** Controlled cross-page sorting for remotely paginated surfaces. */
+  sort?: WorkManagementTableSort;
+  onSortChange?: (sort: WorkManagementTableSort) => void;
   maxWidth?: WorkManagementTableMaxWidth;
   testId?: string;
+}
+
+interface SortableColumnLabelProps {
+  column: WorkManagementTableSortColumn;
+  label: string;
+  sort: WorkManagementTableSort;
+  onSortChange: (sort: WorkManagementTableSort) => void;
+}
+
+function SortableColumnLabel({
+  column,
+  label,
+  sort,
+  onSortChange,
+}: SortableColumnLabelProps): ReactNode {
+  const active = sort.column === column;
+  const sorted = active ? (sort.order === "descend" ? "desc" : "asc") : false;
+
+  return (
+    <button
+      type="button"
+      className="-my-2 inline-flex items-center gap-2 py-2 text-left"
+      aria-label={label}
+      aria-pressed={active}
+      data-sort-column={column}
+      onClick={() =>
+        onSortChange({
+          column,
+          order: !active || sort.order === "ascend" ? "descend" : "ascend",
+        })
+      }
+    >
+      <span>{label}</span>
+      <span className="table-sorter">
+        <SortIcon size={14} sorted={sorted} />
+      </span>
+    </button>
+  );
 }
 
 export function WorkManagementTable({
@@ -96,6 +146,8 @@ export function WorkManagementTable({
   pageSize,
   pageSizeOptions,
   pagination,
+  sort,
+  onSortChange,
   maxWidth = "standard",
   testId = "work-management-table",
 }: WorkManagementTableProps): ReactNode {
@@ -104,24 +156,42 @@ export function WorkManagementTable({
   const hasAssignees = rows.some((row) => row.assignee !== undefined);
   const hasSelection = rows.some((row) => row.selection !== undefined);
   const columns = useMemo<SettingsTableColumn<WorkManagementTableRow>[]>(() => {
+    const idLabel = t("workManagementTable.columns.id", {
+      defaultValue: "ID",
+    });
+    const updatedLabel = t("workManagementTable.columns.updated", {
+      defaultValue: "Updated",
+    });
+    const controlledSort = sort && onSortChange;
     const tableColumns: SettingsTableColumn<WorkManagementTableRow>[] = [
       {
         key: "id",
-        label: t("workManagementTable.columns.id", { defaultValue: "ID" }),
+        label: controlledSort ? (
+          <SortableColumnLabel
+            column="id"
+            label={idLabel}
+            sort={sort}
+            onSortChange={onSortChange}
+          />
+        ) : (
+          idLabel
+        ),
         width: SETTINGS_TABLE_COL.hug,
         align: "left",
-        sorter: (left, right) => {
-          const getSortValue = (row: WorkManagementTableRow) =>
-            row.idSortValue ??
-            (typeof row.id === "string" || typeof row.id === "number"
-              ? row.id
-              : row.key);
-          return String(getSortValue(left)).localeCompare(
-            String(getSortValue(right)),
-            undefined,
-            { numeric: true, sensitivity: "base" }
-          );
-        },
+        sorter: controlledSort
+          ? undefined
+          : (left, right) => {
+              const getSortValue = (row: WorkManagementTableRow) =>
+                row.idSortValue ??
+                (typeof row.id === "string" || typeof row.id === "number"
+                  ? row.id
+                  : row.key);
+              return String(getSortValue(left)).localeCompare(
+                String(getSortValue(right)),
+                undefined,
+                { numeric: true, sensitivity: "base" }
+              );
+            },
         renderCell: (row) => (
           <div className="min-w-0 self-start truncate py-1 text-left font-medium tabular-nums text-text-2">
             {row.id}
@@ -254,9 +324,16 @@ export function WorkManagementTable({
       },
       {
         key: "updated",
-        label: t("workManagementTable.columns.updated", {
-          defaultValue: "Updated",
-        }),
+        label: controlledSort ? (
+          <SortableColumnLabel
+            column="updated"
+            label={updatedLabel}
+            sort={sort}
+            onSortChange={onSortChange}
+          />
+        ) : (
+          updatedLabel
+        ),
         width: SETTINGS_TABLE_COL.valueMd,
         renderCell: (row) => (
           <span className="whitespace-nowrap text-text-3">{row.updated}</span>
@@ -273,7 +350,7 @@ export function WorkManagementTable({
       });
     }
     return tableColumns;
-  }, [hasActions, hasAssignees, hasSelection, t]);
+  }, [hasActions, hasAssignees, hasSelection, onSortChange, sort, t]);
   const footer = pagination ? (
     <div className="flex h-12 shrink-0 items-center border-t border-border-1 px-4">
       <SettingsTablePagination

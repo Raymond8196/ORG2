@@ -1662,9 +1662,9 @@
       },
       "composer": {
         "addComment": "Dodaj komentarz",
-        "commentingAs": "Komentujesz jako @{{login}}",
+        "commentingAs": "Komentujesz jako {{login}}",
         "identityUnavailable": "Tożsamość GitHub jest niedostępna",
-        "commentPlaceholder": "Użyj Markdown do sformatowania komentarza",
+        "commentPlaceholder": "Napisz komentarz…",
         "submitComment": "Komentuj",
         "closeIssue": "Zamknij issue",
         "closeAsCompleted": "Zamknij jako ukończone",

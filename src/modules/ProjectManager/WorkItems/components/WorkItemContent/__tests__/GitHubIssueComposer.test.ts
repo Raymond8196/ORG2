@@ -20,7 +20,7 @@ vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string, options?: { login?: string }) =>
       key === "git.issues.composer.commentingAs"
-        ? `Commenting as @${options?.login}`
+        ? `Commenting as ${options?.login}`
         : key,
   }),
 }));
@@ -37,6 +37,7 @@ vi.mock("@src/modules/shared/components/RichMarkdownEditor", () => ({
     editable,
     dataTestId,
     toolbarMode,
+    toolbarClassName,
     minHeight,
   }: {
     value: string;
@@ -44,6 +45,7 @@ vi.mock("@src/modules/shared/components/RichMarkdownEditor", () => ({
     editable?: boolean;
     dataTestId?: string;
     toolbarMode?: string;
+    toolbarClassName?: string;
     minHeight?: number;
   }) =>
     createElement("textarea", {
@@ -51,6 +53,7 @@ vi.mock("@src/modules/shared/components/RichMarkdownEditor", () => ({
       readOnly: !editable,
       "data-testid": dataTestId,
       "data-toolbar-mode": toolbarMode,
+      "data-toolbar-class-name": toolbarClassName,
       "data-min-height": minHeight,
       onChange: (event: React.ChangeEvent<HTMLTextAreaElement>) =>
         onChange?.(event.target.value),
@@ -118,7 +121,8 @@ describe("GitHubIssueComposer", () => {
       root.render(createElement(GitHubIssueComposer, { interaction: config }));
     });
 
-    expect(container.textContent).toContain("@viewer");
+    expect(container.textContent).toContain("viewer");
+    expect(container.textContent).not.toContain("@viewer");
     expect(container.textContent).not.toContain(
       "git.issues.composer.addComment"
     );
@@ -130,7 +134,10 @@ describe("GitHubIssueComposer", () => {
       "[data-testid='github-issue-comment-editor']"
     );
     expect(editor?.dataset.toolbarMode).toBe("inline");
-    expect(editor?.dataset.minHeight).toBe("140");
+    expect(editor?.dataset.toolbarClassName).toBe(
+      "!min-h-0 !border-b-0 !pb-0.5 [&_svg]:size-3.5"
+    );
+    expect(editor?.dataset.minHeight).toBe("100");
     const levelActions = container.querySelector(
       "[data-testid='github-issue-level-actions']"
     );
@@ -143,6 +150,10 @@ describe("GitHubIssueComposer", () => {
     expect(
       input?.querySelector("[data-testid='github-issue-comment-submit']")
     ).not.toBeNull();
+    expect(
+      input?.querySelector("[data-testid='github-issue-comment-submit']")
+        ?.parentElement?.className
+    ).not.toContain("border-t");
     expect(
       levelActions?.querySelector(
         "[data-testid='github-issue-comment-status-action']"

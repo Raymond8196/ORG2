@@ -1662,9 +1662,9 @@
       },
       "composer": {
         "addComment": "Добавить комментарий",
-        "commentingAs": "Вы действуете как @{{login}}",
+        "commentingAs": "Вы действуете как {{login}}",
         "identityUnavailable": "Профиль GitHub недоступен",
-        "commentPlaceholder": "Используйте Markdown для форматирования комментария",
+        "commentPlaceholder": "Напишите комментарий…",
         "submitComment": "Комментировать",
         "closeIssue": "Закрыть issue",
         "closeAsCompleted": "Закрыть как выполненную",

@@ -1651,9 +1651,9 @@
       },
       "composer": {
         "addComment": "コメントを追加",
-        "commentingAs": "@{{login}} として操作中",
+        "commentingAs": "{{login}} として操作中",
         "identityUnavailable": "GitHub のユーザー情報を取得できません",
-        "commentPlaceholder": "Markdown でコメントを入力",
+        "commentPlaceholder": "コメントを入力…",
         "submitComment": "コメント",
         "closeIssue": "issue を閉じる",
         "closeAsCompleted": "完了として閉じる",

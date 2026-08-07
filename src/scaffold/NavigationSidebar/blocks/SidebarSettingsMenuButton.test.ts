@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { Provider } from "jotai";
+import { Provider, createStore } from "jotai";
 import React, { act } from "react";
 import { type Root, createRoot } from "react-dom/client";
 import {
@@ -12,6 +12,8 @@ import {
   it,
   vi,
 } from "vitest";
+
+import { devModeEnabledAtom } from "@src/store/platform/devModeAtom";
 
 import SidebarSettingsMenuButton from "./SidebarSettingsMenuButton";
 
@@ -67,12 +69,16 @@ const reactActEnvironment = globalThis as typeof globalThis & {
 describe("SidebarSettingsMenuButton", () => {
   let container: HTMLDivElement;
   let root: Root;
+  let store: ReturnType<typeof createStore>;
 
   beforeAll(() => {
     reactActEnvironment.IS_REACT_ACT_ENVIRONMENT = true;
   });
 
   beforeEach(async () => {
+    vi.stubEnv("NODE_ENV", "development");
+    store = createStore();
+    store.set(devModeEnabledAtom, true);
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -81,7 +87,7 @@ describe("SidebarSettingsMenuButton", () => {
       root.render(
         React.createElement(
           Provider,
-          null,
+          { store },
           React.createElement(SidebarSettingsMenuButton)
         )
       );
@@ -92,6 +98,7 @@ describe("SidebarSettingsMenuButton", () => {
     act(() => root.unmount());
     container.remove();
     vi.clearAllMocks();
+    vi.unstubAllEnvs();
   });
 
   afterAll(() => {
@@ -123,5 +130,35 @@ describe("SidebarSettingsMenuButton", () => {
 
     expect(mocks.navigateTo).toHaveBeenCalledWith("/orgii/app/walkthrough");
     expect(mocks.closeDropdown).toHaveBeenCalled();
+  });
+
+  it("moves the onboarding test panel into the Dev Mode menu list", () => {
+    expect(
+      document.querySelector('[data-testid="developer-test-panel-trigger"]')
+    ).toBeNull();
+
+    const developerTestsButton = document.querySelector<HTMLButtonElement>(
+      '[data-testid="sidebar-open-developer-test-panel"]'
+    );
+    expect(developerTestsButton).not.toBeNull();
+
+    act(() => developerTestsButton?.click());
+
+    expect(mocks.closeDropdown).toHaveBeenCalled();
+    expect(
+      document.querySelector('[data-testid="developer-test-panel"]')
+    ).not.toBeNull();
+  });
+
+  it("hides the onboarding test panel entry when Dev Mode is off", async () => {
+    await act(async () => {
+      store.set(devModeEnabledAtom, false);
+    });
+
+    expect(
+      document.querySelector(
+        '[data-testid="sidebar-open-developer-test-panel"]'
+      )
+    ).toBeNull();
   });
 });

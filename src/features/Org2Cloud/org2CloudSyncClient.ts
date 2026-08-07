@@ -240,19 +240,37 @@ function parseListingRows(
 ): RemoteTeammateSessionMetadata[] {
   const parsed: RemoteTeammateSessionMetadata[] = [];
   let dropped = 0;
+  let firstDrop = "";
   for (const row of rows) {
     const result = RemoteTeammateSessionMetadataSchema.safeParse(row);
     if (result.success) {
       parsed.push(result.data);
     } else {
       dropped += 1;
+      // Name the first casualty: a bare count is unattributable once the
+      // row ages out of the listing, and "which session, which field" is
+      // the entire diagnosis (a dropped row is invisible to teammates).
+      if (dropped === 1) {
+        const record = row as Record<string, unknown> | null;
+        const rowId =
+          typeof record?.sourceSessionId === "string"
+            ? record.sourceSessionId
+            : typeof record?.id === "string"
+              ? record.id
+              : "<no id>";
+        const issue = result.error.issues[0];
+        firstDrop =
+          `${rowId.slice(0, 64)} ` +
+          `(${issue ? `${issue.path.join(".") || "<root>"}: ${issue.message}` : "unknown issue"})`;
+      }
     }
   }
   if (dropped > 0) {
     log.rateLimited(
       `listing-malformed-${orgId}`,
       60_000,
-      `cloud_list_org_sessions dropped ${dropped} malformed row(s) for org ${orgId}`
+      `cloud_list_org_sessions dropped ${dropped} malformed row(s) for ` +
+        `org ${orgId}; first: ${firstDrop}`
     );
   }
   return parsed;

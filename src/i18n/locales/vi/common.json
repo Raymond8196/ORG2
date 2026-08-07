@@ -1651,9 +1651,9 @@
       },
       "composer": {
         "addComment": "Thêm bình luận",
-        "commentingAs": "Đang thao tác với tư cách @{{login}}",
+        "commentingAs": "Đang thao tác với tư cách {{login}}",
         "identityUnavailable": "Không thể tải danh tính GitHub",
-        "commentPlaceholder": "Dùng Markdown để định dạng bình luận",
+        "commentPlaceholder": "Viết bình luận…",
         "submitComment": "Bình luận",
         "closeIssue": "Đóng issue",
         "closeAsCompleted": "Đóng là đã hoàn thành",

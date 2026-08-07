@@ -385,6 +385,11 @@ describe("DiscussionChannelPanelView", () => {
 
   it("renders the header with the channel name and topic", () => {
     render();
+    const header = container.querySelector(
+      "[data-testid='channel-panel-header']"
+    );
+    expect(header?.className).not.toContain("pl-1.5");
+    expect(header?.firstElementChild?.className).toContain("pl-[15px]");
     expect(
       container.querySelector("[data-testid='channel-panel-title']")
         ?.textContent

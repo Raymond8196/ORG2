@@ -139,7 +139,49 @@ describe("GitHub work-items derived state", () => {
     expect(state.closedIssuesLoaded).toBe(false);
   });
 
-  it("keeps open PRs in updated order without personal-work sections", () => {
+  it("sorts the loaded result set before slicing the requested page", () => {
+    const openIssues = Array.from({ length: 30 }, (_, index) => {
+      const id = index + 1;
+      const reverseDay = String(30 - index).padStart(2, "0");
+      return {
+        ...issue,
+        number: id,
+        updated_at: `2026-07-${reverseDay}T12:00:00.000Z`,
+      } as GitHubIssue;
+    });
+    const input = {
+      repoSources: [source],
+      repoIssueMap: {
+        [source.repoFullName]: {
+          ...EMPTY_REPO_ISSUES,
+          openIssues,
+          openLoaded: true,
+        },
+      },
+      repoPrMap: {},
+      parsedSearchQuery: parseGitHubSearchQuery("is:issue is:open"),
+      selectedRepo: "all",
+      selectedRepoPath: "/repo",
+      currentPage: 2,
+      allReposValue: "all",
+      currentWorkstationValue: "currentWorkstation",
+    };
+
+    const defaultPage = deriveGitHubWorkItemsState(input);
+    expect(defaultPage.pagedItems.map((item) => item.id)).toEqual([
+      5, 4, 3, 2, 1,
+    ]);
+
+    const updatedPage = deriveGitHubWorkItemsState({
+      ...input,
+      sort: { column: "updated", order: "descend" },
+    });
+    expect(updatedPage.pagedItems.map((item) => item.id)).toEqual([
+      26, 27, 28, 29, 30,
+    ]);
+  });
+
+  it("defaults PRs to largest number and supports updated-time sorting", () => {
     const openPr = (
       number: number,
       authorLogin: string,
@@ -153,7 +195,7 @@ describe("GitHub work-items derived state", () => {
       requested_reviewer_logins: requestedReviewerLogins,
       updated_at: updatedAt,
     });
-    const state = deriveGitHubWorkItemsState({
+    const input = {
       repoSources: [source],
       repoIssueMap: {},
       repoPrMap: {
@@ -175,8 +217,27 @@ describe("GitHub work-items derived state", () => {
       currentPage: 1,
       allReposValue: "all",
       currentWorkstationValue: "currentWorkstation",
-    });
+    };
 
-    expect(state.filteredItems.map((item) => item.id)).toEqual([9, 10, 8]);
+    const defaultState = deriveGitHubWorkItemsState(input);
+    expect(defaultState.filteredItems.map((item) => item.id)).toEqual([
+      10, 9, 8,
+    ]);
+
+    const newestFirstState = deriveGitHubWorkItemsState({
+      ...input,
+      sort: { column: "updated", order: "descend" },
+    });
+    expect(newestFirstState.filteredItems.map((item) => item.id)).toEqual([
+      9, 10, 8,
+    ]);
+
+    const oldestFirstState = deriveGitHubWorkItemsState({
+      ...input,
+      sort: { column: "updated", order: "ascend" },
+    });
+    expect(oldestFirstState.filteredItems.map((item) => item.id)).toEqual([
+      8, 10, 9,
+    ]);
   });
 });

@@ -97,11 +97,12 @@ const GitHubIssueComposer: React.FC<GitHubIssueComposerProps> = ({
           onChange={(markdown) => setCommentBody(markdown)}
           onSubmit={() => void handleComment()}
           placeholder={t("git.issues.composer.commentPlaceholder")}
-          minHeight={140}
+          minHeight={100}
           maxHeight={500}
           appearance="plain"
           toolbarMode="inline"
           toolbarSize="mini"
+          toolbarClassName="!min-h-0 !border-b-0 !pb-0.5 [&_svg]:size-3.5"
           toolbarDropdownPosition="top-start"
           editable={interaction.canComment && !interaction.submittingComment}
           dataTestId="github-issue-comment-editor"
@@ -115,7 +116,7 @@ const GitHubIssueComposer: React.FC<GitHubIssueComposerProps> = ({
           </p>
         ) : null}
 
-        <div className="flex min-h-11 flex-wrap items-center justify-between gap-2 border-t border-border-2 px-2 py-1.5">
+        <div className="flex min-h-11 flex-wrap items-center justify-between gap-2 px-2 py-1.5">
           {interaction.viewer ? (
             <div
               className="flex min-w-0 items-center gap-2"
@@ -128,7 +129,7 @@ const GitHubIssueComposer: React.FC<GitHubIssueComposerProps> = ({
                 {interaction.viewer.login.charAt(0).toUpperCase()}
               </Avatar>
               <span className="truncate text-xs text-text-2">
-                @{interaction.viewer.login}
+                {interaction.viewer.login}
               </span>
             </div>
           ) : (

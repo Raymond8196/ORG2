@@ -62,6 +62,8 @@ interface PrDetailPanelProps {
   repoId?: string;
   /** Host-owned action group replacing the default GitHub link action. */
   headerActions?: React.ReactNode;
+  /** Optional host-specific header spacing and surface overrides. */
+  headerClassName?: string;
   /**
    * Render the internal status·#number·title header row. Set false
    * when the host publishes this info elsewhere (e.g. the My Station PR tab
@@ -298,6 +300,7 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
   repoPath,
   repoId,
   headerActions,
+  headerClassName,
   showHeader = true,
   onFileSelect,
 }) => {
@@ -458,7 +461,7 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
       {/* Header */}
       {showHeader ? (
         <PanelHeader
-          className={DETAIL_PANEL_TOKENS.headerPadding}
+          className={headerClassName ?? DETAIL_PANEL_TOKENS.headerPadding}
           dataTestId="pr-detail-header"
           actions={
             headerActions ?? (

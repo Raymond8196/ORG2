@@ -14,6 +14,11 @@ import { reposAtom, selectedRepoPathAtom } from "@src/store/repo";
 import { GitHubWorkItemsView } from "./GitHubWorkItemsView";
 import { GITHUB_QUERY_SCOPE } from "./githubWorkItemsSearchQuery";
 import type { GitHubQueryScope } from "./githubWorkItemsSearchQuery";
+import {
+  DEFAULT_GITHUB_ISSUES_SORT,
+  DEFAULT_GITHUB_PULL_REQUESTS_SORT,
+  type GitHubWorkItemsSort,
+} from "./githubWorkItemsSort";
 import type { RepoFilterOption } from "./githubWorkItemsTypes";
 import { useGitHubIssueAssigneeMutations } from "./useGitHubIssueAssigneeMutations";
 import { useGitHubIssueMutations } from "./useGitHubIssueMutations";
@@ -50,6 +55,13 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
     addPr,
   } = useGitHubWorkItemActions({ detailHost });
   const [createFormOpen, setCreateFormOpen] = useState(false);
+  const [workItemsSortByScope, setWorkItemsSortByScope] = useState<
+    Record<Extract<GitHubQueryScope, "issue" | "pr">, GitHubWorkItemsSort>
+  >({
+    issue: DEFAULT_GITHUB_ISSUES_SORT,
+    pr: DEFAULT_GITHUB_PULL_REQUESTS_SORT,
+  });
+  const workItemsSort = workItemsSortByScope[scope];
   const {
     selectedRepo,
     refreshNonce,
@@ -107,6 +119,7 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
     currentPage,
     allReposValue: ISSUE_REPO_FILTER.ALL,
     currentWorkstationValue: ISSUE_REPO_FILTER.CURRENT_WORKSTATION,
+    sort: workItemsSort,
   });
 
   const issuePersonalFilterOptions = useMemo<SelectOption[]>(
@@ -209,6 +222,17 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
     setCurrentPage((page) => Math.max(1, page - 1));
   }, [setCurrentPage]);
 
+  const handleSortChange = useCallback(
+    (nextSort: GitHubWorkItemsSort) => {
+      setWorkItemsSortByScope((current) => ({
+        ...current,
+        [scope]: nextSort,
+      }));
+      setCurrentPage(1);
+    },
+    [scope, setCurrentPage]
+  );
+
   const handleNextPage = useCallback(async () => {
     if (currentPage < totalLoadedPages) {
       setCurrentPage((page) => page + 1);
@@ -246,6 +270,7 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
       currentPage={currentPage}
       totalLoadedPages={totalLoadedPages}
       hasMoreFilteredIssues={hasMoreFilteredIssues}
+      sort={workItemsSort}
       createFormOpen={createFormOpen}
       creatingIssue={creatingIssue}
       updateSearchQuery={updateSearchQuery}
@@ -255,6 +280,7 @@ const GitHubWorkItemsSurface: React.FC<GitHubWorkItemsSurfaceProps> = ({
       onRefresh={handleRefresh}
       onPreviousPage={handlePreviousPage}
       onNextPage={handleNextPage}
+      onSortChange={handleSortChange}
       onOpenIssue={openIssueInTab}
       onOpenIssueInBrowser={openIssueInBrowser}
       onAddIssue={addIssue}

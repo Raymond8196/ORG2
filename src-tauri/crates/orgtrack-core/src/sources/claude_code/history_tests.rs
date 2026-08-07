@@ -686,6 +686,7 @@ fn maps_claude_subagent_sidechain_to_parent_session_id() {
         .expect("session meta");
 
     assert_eq!(meta.session_id, format!("claudecodeapp-{file_stem}"));
+    assert_eq!(meta.name, "explore the codebase");
     assert_eq!(
         meta.parent_session_id.as_deref(),
         Some(format!("claudecodeapp-{parent_uuid}").as_str())
@@ -699,6 +700,125 @@ fn maps_claude_subagent_sidechain_to_parent_session_id() {
     );
 
     std::fs::remove_file(&path).expect("remove fixture");
+    std::fs::remove_dir_all(&temp_dir).expect("remove temp dir");
+}
+
+#[test]
+fn prefers_claude_subagent_metadata_description_over_prompt() {
+    let temp_dir = std::env::temp_dir().join(format!(
+        "orgii-claude-subagent-title-test-{}",
+        std::process::id()
+    ));
+    std::fs::remove_dir_all(&temp_dir).ok();
+    let projects_dir = temp_dir.join("projects");
+    let parent_uuid = "59fd4d4f-d556-412f-8b56-88cb8feebb39";
+    let child_source_id = "agent-a45f5a98a73073100";
+    let child_path = projects_dir
+        .join("-Users-example-proj")
+        .join(parent_uuid)
+        .join("subagents")
+        .join(format!("{child_source_id}.jsonl"));
+    std::fs::create_dir_all(child_path.parent().expect("child parent"))
+        .expect("create subagents dir");
+    std::fs::write(
+        &child_path,
+        format!(
+            r#"{{"type":"user","isSidechain":true,"sessionId":"{parent_uuid}","timestamp":"2026-08-06T18:00:02Z","message":{{"role":"user","content":"You are auditing part of the codebase. Your domain: work service transaction boundaries."}}}}
+"#
+        ),
+    )
+    .expect("write child fixture");
+    std::fs::write(
+        child_path.with_extension("meta.json"),
+        r#"{"agentType":"general-purpose","description":"Audit work service transactions","spawnDepth":1}"#,
+    )
+    .expect("write child metadata fixture");
+
+    let previous = HashMap::new();
+    let mut walker =
+        imported_history::scan_snapshot::SnapshotDirWalker::new(&previous, "jsonl", "Claude");
+    let discovery =
+        discover_claude_code_history_records(std::slice::from_ref(&projects_dir), &mut walker)
+            .expect("discover");
+    let record = discovery
+        .records
+        .iter()
+        .find(|record| record.source_session_id == child_source_id)
+        .expect("child record");
+    let title = discovery
+        .external_titles
+        .get(child_source_id)
+        .expect("metadata title");
+    assert_eq!(title, "Audit work service transactions");
+    assert_eq!(
+        record.source_fingerprint,
+        "subagent-meta:Audit work service transactions"
+    );
+
+    let meta = parse_claude_session_meta_with_title(record, None, title.clone())
+        .expect("parse child")
+        .meta
+        .expect("child meta");
+    assert_eq!(meta.name, "Audit work service transactions");
+    assert_eq!(
+        meta.parent_session_id.as_deref(),
+        Some(format!("claudecodeapp-{parent_uuid}").as_str())
+    );
+
+    std::fs::remove_dir_all(&temp_dir).expect("remove temp dir");
+}
+
+#[test]
+fn claude_subagent_metadata_change_invalidates_fingerprint() {
+    let temp_dir = std::env::temp_dir().join(format!(
+        "orgii-claude-subagent-title-fingerprint-test-{}",
+        std::process::id()
+    ));
+    std::fs::remove_dir_all(&temp_dir).ok();
+    let projects_dir = temp_dir.join("projects");
+    let child_path = projects_dir.join("-Users-example-proj/session/subagents/agent-a1.jsonl");
+    std::fs::create_dir_all(child_path.parent().expect("child parent"))
+        .expect("create subagents dir");
+    std::fs::write(
+        &child_path,
+        r#"{"type":"user","isSidechain":true,"sessionId":"parent","timestamp":"2026-08-06T18:00:02Z","message":{"role":"user","content":"shared prompt"}}
+"#,
+    )
+    .expect("write child fixture");
+    let metadata_path = child_path.with_extension("meta.json");
+    std::fs::write(
+        &metadata_path,
+        r#"{"description":"Audit work service transactions"}"#,
+    )
+    .expect("write first metadata");
+
+    let discover = || {
+        let previous = HashMap::new();
+        let mut walker =
+            imported_history::scan_snapshot::SnapshotDirWalker::new(&previous, "jsonl", "Claude");
+        discover_claude_code_history_records(std::slice::from_ref(&projects_dir), &mut walker)
+            .expect("discover")
+    };
+    let first = discover();
+    let first_fingerprint = first.records[0].source_fingerprint.clone();
+
+    std::fs::write(
+        &metadata_path,
+        r#"{"description":"Audit product mode implementation"}"#,
+    )
+    .expect("rewrite metadata");
+    let second = discover();
+    assert_ne!(first_fingerprint, second.records[0].source_fingerprint);
+    assert_eq!(
+        second.external_titles.get("agent-a1").map(String::as_str),
+        Some("Audit product mode implementation")
+    );
+
+    std::fs::write(&metadata_path, "{malformed").expect("write malformed metadata");
+    let malformed = discover();
+    assert!(!malformed.external_titles.contains_key("agent-a1"));
+    assert!(malformed.records[0].source_fingerprint.is_empty());
+
     std::fs::remove_dir_all(&temp_dir).expect("remove temp dir");
 }
 

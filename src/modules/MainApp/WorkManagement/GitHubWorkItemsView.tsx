@@ -54,6 +54,7 @@ import {
   type GitHubQueryScope,
   type ParsedGitHubSearchQuery,
 } from "./githubWorkItemsSearchQuery";
+import type { GitHubWorkItemsSort } from "./githubWorkItemsSort";
 import type {
   GitHubRepoSource,
   IssueRepoFilter,
@@ -84,6 +85,7 @@ interface GitHubWorkItemsViewProps {
   currentPage: number;
   totalLoadedPages: number;
   hasMoreFilteredIssues: boolean;
+  sort: GitHubWorkItemsSort;
   createFormOpen: boolean;
   creatingIssue: boolean;
   updateSearchQuery: (mutate: (query: ParsedGitHubSearchQuery) => void) => void;
@@ -93,6 +95,7 @@ interface GitHubWorkItemsViewProps {
   onRefresh: () => void;
   onPreviousPage: () => void;
   onNextPage: () => Promise<void>;
+  onSortChange: (sort: GitHubWorkItemsSort) => void;
   onOpenIssue: (issue: ManagedIssueItem) => void;
   onOpenIssueInBrowser: (issue: ManagedIssueItem) => void;
   onAddIssue: (issue: ManagedIssueItem) => void;
@@ -141,6 +144,7 @@ export function GitHubWorkItemsView({
   currentPage,
   totalLoadedPages,
   hasMoreFilteredIssues,
+  sort,
   createFormOpen,
   creatingIssue,
   updateSearchQuery,
@@ -150,6 +154,7 @@ export function GitHubWorkItemsView({
   onRefresh,
   onPreviousPage,
   onNextPage,
+  onSortChange,
   onOpenIssue,
   onOpenIssueInBrowser,
   onAddIssue,
@@ -593,6 +598,8 @@ export function GitHubWorkItemsView({
               }
               loading={loading}
               noDataElement={tableEmptyState}
+              sort={sort}
+              onSortChange={onSortChange}
               maxWidth="wide"
               testId={`github-${scope}-table`}
               pagination={

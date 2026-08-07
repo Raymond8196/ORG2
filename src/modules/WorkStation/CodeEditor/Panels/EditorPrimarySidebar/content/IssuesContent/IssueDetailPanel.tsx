@@ -21,6 +21,7 @@ interface IssueDetailPanelProps {
   timelineLoading: boolean;
   interaction: GitHubIssueInteractionConfig;
   showHeader?: boolean;
+  headerClassName?: string;
   assigneeConfig?: WorkItemExternalAssigneeConfig;
 }
 
@@ -59,12 +60,13 @@ export const IssueDetailPanel: React.FC<IssueDetailPanelProps> = memo(
     timelineLoading,
     interaction,
     showHeader = true,
+    headerClassName = "",
     assigneeConfig,
   }) => {
     return (
       <div className="allow-select-deep flex h-full min-h-0 select-text flex-col overflow-hidden">
         {showHeader && (
-          <div className={HEADER_CLASSES.pageHeader}>
+          <div className={`${HEADER_CLASSES.pageHeader} ${headerClassName}`}>
             <GitHubIssueHeaderContent issue={issue} />
             <IssueDetailExternalLinkButton issue={issue} />
           </div>

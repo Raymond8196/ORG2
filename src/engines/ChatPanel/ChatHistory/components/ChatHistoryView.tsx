@@ -337,6 +337,18 @@ const ChatHistoryView: React.FC<ChatHistoryViewProps> = ({
             )
           : pinnedHeaderLayer}
 
+        {/* Anchor cloud-download progress to the chat-pane header edge instead
+            of the virtualized body below SessionHeader. Transcript items and
+            pinned headers create local z-layers up to 70, so this status-only
+            layer sits above chat content but below app modals (z-10000+). */}
+        {hasCloudDownloadProgress && activeProjectionHistory.length > 0 && (
+          <div
+            className={`pointer-events-none absolute left-0 right-0 top-0 z-[9999] mx-auto p-2 ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
+          >
+            <CloudSessionDownloadProgressCard sessionId={activeId} />
+          </div>
+        )}
+
         <div className="flex min-h-0 flex-1 flex-col">
           {agentOrgOverviewOpen && agentOrgOverviewPanel && (
             <div
@@ -408,26 +420,13 @@ const ChatHistoryView: React.FC<ChatHistoryViewProps> = ({
                 />
               )}
 
-            {/* One pinned top-overlay slot: pagination shimmer and the
-                download progress/play surface stack instead of overpainting
-                each other. Transcript items and pinned headers create local
-                z-layers up to 70, so this status-only layer sits above chat
-                content but below app modals (z-10000+). */}
-            {(isLoadingMore ||
-              (hasCloudDownloadProgress &&
-                activeProjectionHistory.length > 0)) && (
+            {isLoadingMore && (
               <div
                 className={`pointer-events-none absolute left-0 right-0 top-0 z-[9999] mx-auto p-2 ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
               >
-                {hasCloudDownloadProgress &&
-                  activeProjectionHistory.length > 0 && (
-                    <CloudSessionDownloadProgressCard sessionId={activeId} />
-                  )}
-                {isLoadingMore && (
-                  <div className={`pointer-events-auto ${surfaceBgClass}`}>
-                    <ChatLoadingBlock />
-                  </div>
-                )}
+                <div className={`pointer-events-auto ${surfaceBgClass}`}>
+                  <ChatLoadingBlock />
+                </div>
               </div>
             )}
 

@@ -28,7 +28,11 @@ vi.mock("@src/modules/shared/hooks/useGitHubIssueDetailState", () => ({
 vi.mock(
   "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/IssuesContent/IssueDetailPanel",
   () => ({
-    IssueDetailPanel: () => createElement("div", { "data-testid": "issue" }),
+    IssueDetailPanel: ({ headerClassName }: { headerClassName?: string }) =>
+      createElement("div", {
+        "data-testid": "issue",
+        "data-header-class-name": headerClassName,
+      }),
   })
 );
 
@@ -50,5 +54,24 @@ describe("GitHubIssuePanelView loading", () => {
     expect(markup).toContain('data-testid="github-issue-detail-skeleton"');
     expect(markup).toContain('aria-busy="true"');
     expect(markup).not.toContain("animate-spin");
+  });
+
+  it("aligns the issue header with the chat tab icon", () => {
+    Reflect.set(mocks.selectedState, "issue", {});
+    try {
+      const markup = renderToStaticMarkup(
+        createElement(GitHubIssuePanelView, {
+          detail: {
+            issueNumber: 586,
+            issueTitle: "Align the issue header",
+            repoPath: "/repo",
+          },
+        })
+      );
+
+      expect(markup).toContain('data-header-class-name="!pl-5"');
+    } finally {
+      Reflect.set(mocks.selectedState, "issue", null);
+    }
   });
 });
