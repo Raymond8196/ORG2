@@ -55,7 +55,7 @@ export const FieldRow: React.FC<FieldRowProps> = ({
   value,
   valueClassName = "",
   isSelected,
-  isActive,
+  isActive = false,
   showChevron = true,
   usePencil = false,
   suffix,

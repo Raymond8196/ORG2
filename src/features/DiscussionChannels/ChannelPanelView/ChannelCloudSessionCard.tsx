@@ -158,7 +158,7 @@ const ChannelCloudSessionCard: React.FC<ChannelCloudSessionCardProps> = ({
 
 export interface ChannelSessionReferenceCardProps {
   sessionId: string;
-  fallbackTitle?: string;
+  fallbackTitle: string;
   cloudOrgId: string;
   onOpenLocal: (sessionId: string, fallbackTitle?: string) => void;
 }
