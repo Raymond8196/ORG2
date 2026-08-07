@@ -198,6 +198,8 @@ describe("ChatPanelStartPage", () => {
     expect(markup).toContain("navigation:cloud.share.importEntry");
     expect(markup).toContain("border-border-2");
     expect(markup).toContain("hover:border-border-3");
+    expect(markup).toContain("!bg-bg-2");
+    expect(markup).toContain("enabled:hover:!bg-surface-hover");
     expect(markup).not.toContain("group-hover:bg-fill-3");
   });
 

@@ -7,7 +7,7 @@ import {
   Flag,
   HeartPulse,
   Link2Off,
-  MoreHorizontal,
+  ListChevronsUpDown,
   SquareArrowOutUpRight,
   Tag,
   Trash2,
@@ -400,7 +400,9 @@ export function getProjectPropertyContextMenuItems({
     {
       id: "more-properties",
       label: t("workItems.contextMenu.moreProperties"),
-      icon: createElement(MoreHorizontal, { size: DROPDOWN_ITEM.iconSize }),
+      icon: createElement(ListChevronsUpDown, {
+        size: DROPDOWN_ITEM.iconSize,
+      }),
       submenu: moreItems,
     },
   ];

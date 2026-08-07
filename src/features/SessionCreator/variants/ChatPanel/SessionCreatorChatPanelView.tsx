@@ -6,6 +6,7 @@ import type { DispatchCategory } from "@src/api/tauri/session";
 import type { CliAgentType } from "@src/api/types/keys";
 import Button from "@src/components/Button";
 import type { ComposerInputRef } from "@src/components/ComposerInput";
+import { pillControlStateClass } from "@src/components/CompoundPill/config";
 import InlineAlert from "@src/components/InlineAlert";
 import SelectorPill from "@src/components/SelectorPill";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
@@ -341,11 +342,7 @@ const SessionCreatorChatPanelView: React.FC<
                         aria-expanded={isOrgMembersPanelOpen}
                         aria-controls="session-creator-org-members-panel"
                         onClick={onToggleOrgMembers}
-                        className={
-                          isOrgMembersPanelOpen
-                            ? "shrink-0 !bg-fill-1 !text-primary-6"
-                            : "shrink-0"
-                        }
+                        className={`shrink-0 ${pillControlStateClass(isOrgMembersPanelOpen)}`}
                         data-testid="session-creator-org-members-toggle"
                       >
                         {t("creator.orgMembers.configButton")}

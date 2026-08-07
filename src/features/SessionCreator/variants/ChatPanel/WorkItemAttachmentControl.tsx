@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { type WorkItemData, projectApi } from "@src/api/http/project";
 import Button from "@src/components/Button";
 import Checkbox from "@src/components/Checkbox";
+import { pillControlStateClass } from "@src/components/CompoundPill/config";
 import DropdownSearch from "@src/components/Dropdown/DropdownSearch";
 import { DropdownPanel } from "@src/components/Dropdown/exports";
 import {
@@ -407,9 +408,7 @@ const WorkItemAttachmentControl: React.FC<WorkItemAttachmentControlProps> = ({
         aria-expanded={isOpen}
         aria-haspopup="menu"
         onClick={toggle}
-        className={
-          triggerActive ? "shrink-0 !bg-fill-1 !text-primary-6" : "shrink-0"
-        }
+        className={`shrink-0 ${pillControlStateClass(triggerActive)}`}
         data-testid="session-creator-work-item-toggle"
       >
         {t("projects:workItems.addWorkItem")}

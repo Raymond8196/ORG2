@@ -1,3 +1,5 @@
+import { ListChevronsUpDown } from "lucide-react";
+import { isValidElement } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 import type { ProjectData } from "../shared/components/PropertiesPanel/types";
@@ -36,5 +38,14 @@ describe("getProjectContextMenuItems", () => {
     );
     item?.action?.();
     expect(onUnlinkSource).toHaveBeenCalledOnce();
+  });
+
+  it("uses the expand-properties icon for the More properties entry", () => {
+    const items = getProjectContextMenuItems({ project, t });
+    const moreProperties = items.find((item) => item.id === "more-properties");
+
+    expect(isValidElement(moreProperties?.icon)).toBe(true);
+    if (!isValidElement(moreProperties?.icon)) return;
+    expect(moreProperties.icon.type).toBe(ListChevronsUpDown);
   });
 });

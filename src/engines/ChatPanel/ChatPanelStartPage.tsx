@@ -10,6 +10,7 @@ import {
 import React, { useCallback, useState } from "react";
 
 import Button from "@src/components/Button";
+import { PILL_CONTROL_IDLE_SURFACE_CLASS } from "@src/components/CompoundPill/config";
 import Select, { type SelectOption } from "@src/components/Select";
 import TabPill from "@src/components/TabPill";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
@@ -34,7 +35,7 @@ interface ChatPanelStartPageAction {
 const START_PAGE_ACTION_TONE_CLASS: Record<StartPageActionTone, string> = {
   primary:
     "border-primary-6/20 bg-primary-6/5 hover:border-primary-6/30 hover:bg-primary-6/10",
-  neutral: "border-border-2 hover:border-border-3",
+  neutral: `border-border-2 hover:border-border-3 ${PILL_CONTROL_IDLE_SURFACE_CLASS}`,
   success:
     "border-success-6/20 bg-success-6/5 hover:border-success-6/30 hover:bg-success-6/10",
   warning:
