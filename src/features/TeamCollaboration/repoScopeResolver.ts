@@ -49,6 +49,11 @@ import {
 export const MAX_RESOLVER_CACHE_ENTRIES = 256;
 const shareableScopeKeyCache = new Map<string, string[] | null>();
 const shareableScopeKeyInFlight = new Map<string, Promise<string[] | null>>();
+// Transport failures are deliberately NOT cached as results, but a short
+// negative-cache window keeps a render-path caller from re-firing the
+// git-remotes IPC on every external re-render while the backend is down.
+const SHAREABLE_SCOPE_FAILURE_TTL_MS = 30_000;
+const shareableScopeKeyFailureAtMs = new Map<string, number>();
 
 interface RepoNetworkScopeCacheEntry {
   value: string | null;
@@ -201,6 +206,13 @@ export async function resolveShareableScopeKeys(
   if (cached !== undefined) return cached;
   const pending = shareableScopeKeyInFlight.get(normalizedInput);
   if (pending) return pending;
+  const failedAtMs = shareableScopeKeyFailureAtMs.get(normalizedInput);
+  if (
+    failedAtMs !== undefined &&
+    Date.now() - failedAtMs < SHAREABLE_SCOPE_FAILURE_TTL_MS
+  ) {
+    return null;
+  }
 
   // Deferred body (then-callback, not an IIFE) so the closure can compare
   // against `task` itself without tripping TS2454 (used before assigned).
@@ -212,9 +224,12 @@ export async function resolveShareableScopeKeys(
       });
       if (data === undefined) {
         // Transport failure (git server down / repo unknown): report "no
-        // keys" but do NOT cache — the next consumer retries.
+        // keys" but do NOT cache the result — retries resume after the
+        // short negative-cache window.
+        shareableScopeKeyFailureAtMs.set(normalizedInput, Date.now());
         return null;
       }
+      shareableScopeKeyFailureAtMs.delete(normalizedInput);
       const remotes = data.remotes ?? [];
       // Origin-first ordering: the checkout's own remote stays the PRIMARY
       // identity (single-key consumers, fork-relay preference); the rest
@@ -269,6 +284,7 @@ export function primeShareableScopeKey(input: string): void {
 export function clearShareableScopeKeyCache(): void {
   shareableScopeKeyCache.clear();
   shareableScopeKeyInFlight.clear();
+  shareableScopeKeyFailureAtMs.clear();
   repoNetworkScopeCache.clear();
   repoNetworkScopeInFlight.clear();
   networkLookupFailureStreaks.clear();
