@@ -62,6 +62,9 @@ import { LOCAL_CHANNEL_MESSAGE_MAX_LENGTH } from "@src/store/ui/localChannelMess
 import { formatLocalClock } from "@src/util/data/formatters/date";
 import { formatRelativeTime } from "@src/util/time/formatRelativeTime";
 
+import ChannelCloudSessionCard, {
+  ChannelSessionReferenceCard,
+} from "./ChannelCloudSessionCard";
 import ChannelGitHubCard from "./ChannelGitHubCard";
 import ChannelSessionCard from "./ChannelSessionCard";
 import ChannelWorkItemCard from "./ChannelWorkItemCard";
@@ -145,19 +148,36 @@ const ChannelMessagePillBody: React.FC<{ body: string; label: string }> = ({
 
 /**
  * One promoted reference. The dispatch lives here rather than inside a single
- * mega-card so each kind keeps its own data dependencies: only the work-item
- * card subscribes to the project read, only the session card to session state.
+ * mega-card so each kind keeps its own data dependencies: the work-item card
+ * owns its project read, the local card reads local session state, and the
+ * cloud card selects one exact remote roster row.
  */
 const ReferenceCard: React.FC<{
   reference: ChannelMessageReference;
-  onOpenSession: (sessionId: string) => void;
-}> = ({ reference, onOpenSession }) => {
+  onOpenSession: (sessionId: string, fallbackTitle?: string) => void;
+  cloudOrgId?: string;
+}> = ({ reference, onOpenSession, cloudOrgId }) => {
   if (reference.kind === "session") {
-    return (
+    return cloudOrgId ? (
+      <ChannelSessionReferenceCard
+        sessionId={reference.sessionId}
+        fallbackTitle={reference.title}
+        cloudOrgId={cloudOrgId}
+        onOpenLocal={onOpenSession}
+      />
+    ) : (
       <ChannelSessionCard
         sessionId={reference.sessionId}
         fallbackTitle={reference.title}
         onOpen={onOpenSession}
+      />
+    );
+  }
+  if (reference.kind === "cloudSession") {
+    return (
+      <ChannelCloudSessionCard
+        reference={reference.reference}
+        fallbackTitle={reference.title}
       />
     );
   }
@@ -185,6 +205,8 @@ export interface ChannelMessageRowProps {
   grouped: boolean;
   /** Fallback author label when the row carries none (already localized). */
   authorLabel: string;
+  /** Enables safe recovery of legacy source-only pills in a cloud channel. */
+  cloudOrgId?: string;
   /**
    * Null when the surface has no writable message plane (a backend without
    * the message capability). Cloud edits are async, so the handler may hand
@@ -200,6 +222,7 @@ const ChannelMessageRow: React.FC<ChannelMessageRowProps> = ({
   message,
   grouped,
   authorLabel,
+  cloudOrgId,
   onEdit,
   onDelete,
 }) => {
@@ -224,11 +247,11 @@ const ChannelMessageRow: React.FC<ChannelMessageRowProps> = ({
   );
 
   const handleOpenSession = useCallback(
-    (sessionId: string) => {
+    (sessionId: string, fallbackTitle?: string) => {
       const session = store.get(sessionByIdAtom(sessionId));
       openSession({
         sessionId,
-        sessionName: session?.name,
+        sessionName: session?.name ?? fallbackTitle,
         repoPath: session?.repoPath,
       });
     },
@@ -403,6 +426,7 @@ const ChannelMessageRow: React.FC<ChannelMessageRowProps> = ({
                 key={channelReferenceKey(reference)}
                 reference={reference}
                 onOpenSession={handleOpenSession}
+                cloudOrgId={cloudOrgId}
               />
             ))}
           </div>

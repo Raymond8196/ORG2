@@ -1,9 +1,9 @@
 /**
  * A session referenced by a posted channel message, rendered as a card.
  *
- * Chrome (border, width, hover, chevron, degraded variant) comes from
- * `ChannelReferenceCard`, shared with the work-item and GitHub cards. What is
- * local to this file is the session's own body.
+ * Chrome (border, width, hover, chevron) comes from `ChannelReferenceCard`,
+ * shared with the work-item and GitHub cards. What is local to this file is
+ * the session's own body and its snapshot-only fallback.
  *
  * Visual grammar follows the Kanban `TaskCard` — agent icon + title row, then
  * a footer meta strip — but the card is built here rather than imported:
@@ -53,7 +53,6 @@ import {
   ChannelReferenceCard,
   ChannelReferenceCardMeta,
   ChannelReferenceCardMetaItem,
-  ChannelReferenceCardMissing,
   ChannelReferenceCardTitle,
 } from "./ChannelReferenceCard";
 
@@ -70,9 +69,9 @@ const CARD_TEST_ID = "channel-session-card";
 
 export interface ChannelSessionCardProps {
   sessionId: string;
-  /** Title as posted — the only thing left when the session is gone. */
+  /** Title as posted — enough to keep a cold/sidebar-only row identifiable. */
   fallbackTitle: string;
-  onOpen: (sessionId: string) => void;
+  onOpen: (sessionId: string, fallbackTitle?: string) => void;
 }
 
 /**
@@ -109,21 +108,33 @@ const ChannelSessionCard: React.FC<ChannelSessionCardProps> = ({
     [session]
   );
 
-  const handleOpen = useCallback(() => onOpen(sessionId), [onOpen, sessionId]);
+  const handleOpen = useCallback(
+    () => onOpen(sessionId, session?.name ?? fallbackTitle),
+    [fallbackTitle, onOpen, session?.name, sessionId]
+  );
 
-  // A reference outlives the session it names — an imported history that was
-  // cleared, another device's session. Say so instead of rendering a husk.
+  // `sessionsAtom` is not the complete sidebar roster: paginated and fetched
+  // child rows can be dragged before they enter that atom. The stable id is
+  // still a valid navigation target, so lack of live enrichment must not turn
+  // a sidebar-created reference into a false "unavailable" card.
   if (!session || !task) {
     return (
-      <ChannelReferenceCardMissing
+      <ChannelReferenceCard
         testId={CARD_TEST_ID}
         identity={{
           "data-session-id": sessionId,
-          "data-session-missing": "true",
+          "data-session-snapshot": "true",
         }}
-        title={fallbackTitle}
-        note={t("cloud.channels.feed.sessionCardMissing")}
-      />
+        ariaLabel={t("cloud.channels.feed.sessionCardOpen", {
+          name: fallbackTitle,
+        })}
+        onOpen={handleOpen}
+      >
+        <ChannelReferenceCardTitle
+          icon={renderAgentIcon(undefined)}
+          title={fallbackTitle}
+        />
+      </ChannelReferenceCard>
     );
   }
 

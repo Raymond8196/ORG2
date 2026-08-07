@@ -13,10 +13,9 @@
  *  - **resolved** — a `button`, because it opens something. Border-only (no
  *    fill) so a run of cards does not read as a stack of blocks, with a
  *    trailing chevron for the affordance.
- *  - **degraded** — a `div`, dashed, muted, no chevron. A reference outlives
- *    the thing it names (a cleared history, another device's session, a
- *    project this machine has never synced), and saying so is more honest than
- *    rendering a husk that goes nowhere when clicked.
+ *  - **degraded** — a `div`, dashed, muted, no chevron. Used only when the
+ *    target has no valid navigation path (for example, an unreadable work
+ *    item), so the UI never presents a dead button.
  */
 import { ChevronRight } from "lucide-react";
 import React from "react";

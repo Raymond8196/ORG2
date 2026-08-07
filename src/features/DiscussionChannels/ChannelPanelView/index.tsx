@@ -453,6 +453,7 @@ const CloudChannelPanel: React.FC<CloudChannelPanelProps> = ({
           <ChannelMessageList
             messages={feedMessages}
             authorLabel={youLabel}
+            cloudOrgId={orgId}
             onEdit={canPost ? handleEdit : null}
             onDelete={canPost ? handleDelete : null}
             header={
