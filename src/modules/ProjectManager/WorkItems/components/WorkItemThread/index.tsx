@@ -44,7 +44,7 @@ export const WorkItemThreadLayout: React.FC<WorkItemThreadLayoutProps> = ({
       <div className="relative flex min-h-0 flex-1 overflow-hidden">
         <div
           ref={scrollContainerRef}
-          className="scrollbar-overlay min-h-0 min-w-0 flex-1 overflow-y-auto @container"
+          className="min-h-0 min-w-0 flex-1 overflow-y-auto scrollbar-hide @container"
           data-testid="work-item-thread-section"
         >
           <div

@@ -541,7 +541,6 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
               body={displayedDescription}
               emptyText="No description provided."
               fadeFrom="from-chat-pane"
-              className="text-[14px] leading-6 text-text-1 [&_.chat-markdown-body]:text-[14px] [&_.chat-markdown-body]:leading-6"
             />
           ) : isGitHubWorkItem ? (
             <>

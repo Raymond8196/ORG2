@@ -6,6 +6,7 @@ import { getGitRemotes } from "@src/api/http/git/remotes";
 import type { WorkItemHandoffTransition } from "@src/api/http/project";
 import type { GitHubIssue } from "@src/api/tauri/github";
 import { WorkItemThreadSurface } from "@src/modules/ProjectManager/WorkItems/components";
+import GitHubDetailSkeleton from "@src/modules/shared/components/GitHubDetailSkeleton";
 import GitHubIssueHeaderContent from "@src/modules/shared/components/GitHubIssueHeaderContent";
 import { LoadingBar, Placeholder } from "@src/modules/shared/layouts/blocks";
 import type { Person } from "@src/types/core/shared";
@@ -316,6 +317,12 @@ const AssignedWorkItemDetail: React.FC<AssignedWorkItemDetailProps> = ({
     fallbackState: item.payload.status === "closed" ? "closed" : "open",
     onStatusChanged: handleGitHubStatusChanged,
   });
+  const githubIssueHydrating =
+    isGitHubIssue &&
+    !githubIssue.issue &&
+    (githubIssue.timelineLoading ||
+      (Boolean(remoteResolutionKey) &&
+        remoteResolution?.key !== remoteResolutionKey));
   const githubIssueAuthor = githubIssue.issue?.user ?? null;
   const displayWorkItem =
     workItem && githubIssue.issue && githubIssueAuthor
@@ -384,7 +391,9 @@ const AssignedWorkItemDetail: React.FC<AssignedWorkItemDetailProps> = ({
           : undefined
       }
     >
-      {status === "loading" ? (
+      {isGitHubIssue && (status === "loading" || githubIssueHydrating) ? (
+        <GitHubDetailSkeleton kind="issue" showHeader={false} />
+      ) : status === "loading" ? (
         <LoadingBar />
       ) : status === "ready" && displayWorkItem ? (
         <AssignedWorkItemThread

@@ -234,7 +234,8 @@
     // editing mode that the shared Markdown renderer uses in Preview mode.
     &.rich-text-editor-markdown-preview {
       padding: 8px 12px;
-      line-height: 1.6;
+      font-size: var(--chat-font-size, 13px);
+      line-height: var(--chat-line-height, 1.6);
       letter-spacing: -0.01em;
 
       > *:first-child {
@@ -388,7 +389,7 @@
           "Consolas",
           monospace
         );
-        font-size: 12px;
+        font-size: var(--chat-code-font-size, 13px);
         font-weight: 500;
         white-space: break-spaces;
       }
