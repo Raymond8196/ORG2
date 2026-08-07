@@ -39,6 +39,8 @@ export interface ChannelMessageListProps {
   messages: readonly ChannelFeedMessage[];
   /** Author label for rows that carry none of their own (local plane). */
   authorLabel: string;
+  /** Present for cloud feeds so legacy source-only pills can recover scope. */
+  cloudOrgId?: string;
   onEdit:
     | ((messageId: string, body: string) => boolean | Promise<boolean>)
     | null;
@@ -54,6 +56,7 @@ export interface ChannelMessageListProps {
 const ChannelMessageList: React.FC<ChannelMessageListProps> = ({
   messages,
   authorLabel,
+  cloudOrgId,
   onEdit,
   onDelete,
   header,
@@ -112,6 +115,7 @@ const ChannelMessageList: React.FC<ChannelMessageListProps> = ({
         message={row.message}
         grouped={row.grouped}
         authorLabel={authorLabel}
+        cloudOrgId={cloudOrgId}
         onEdit={onEdit}
         onDelete={onDelete}
       />

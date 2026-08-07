@@ -5,6 +5,8 @@
 // have been lifted out of it.
 import { describe, expect, it } from "vitest";
 
+import { buildCloudSessionReference } from "@src/features/Org2Cloud/cloudSessionReference";
+
 import {
   type ChannelMessageReference,
   splitChannelMessageBody,
@@ -13,6 +15,11 @@ import {
 const PR_URL = "https://github.com/org2AI/ORG2/pull/606";
 const ISSUE_URL = "https://github.com/org2AI/ORG2/issues/443";
 const WORK_ITEM_PILL = "[workitem:workitem://auth/AUTH-12/1700000000000]";
+const CLOUD_SESSION_REFERENCE = buildCloudSessionReference({
+  orgId: "org-1",
+  ownerUserId: "owner-1",
+  sourceSessionId: "remote-session-1",
+});
 
 function kinds(references: ChannelMessageReference[]): string[] {
   return references.map((reference) => reference.kind);
@@ -36,6 +43,53 @@ describe("splitChannelMessageBody", () => {
       expect(references).toEqual([
         { kind: "session", sessionId: "sess-1", title: "Triage" },
       ]);
+    });
+
+    it("lifts a canonical cloud session without truncating its identity", () => {
+      const { text, references } = splitChannelMessageBody(
+        `review ${CLOUD_SESSION_REFERENCE} before standup`
+      );
+
+      expect(text).toBe("review before standup");
+      expect(references).toEqual([
+        {
+          kind: "cloudSession",
+          reference: {
+            version: 1,
+            orgId: "org-1",
+            ownerUserId: "owner-1",
+            sourceSessionId: "remote-session-1",
+          },
+        },
+      ]);
+    });
+
+    it("recovers cloud references serialized by the old local-pill path", () => {
+      const { text, references } = splitChannelMessageBody(
+        `Remote-review [session:${CLOUD_SESSION_REFERENCE}]`
+      );
+
+      expect(text).toBe("");
+      expect(references).toEqual([
+        {
+          kind: "cloudSession",
+          reference: expect.objectContaining({
+            orgId: "org-1",
+            ownerUserId: "owner-1",
+            sourceSessionId: "remote-session-1",
+          }),
+          title: "Remote-review",
+        },
+      ]);
+    });
+
+    it("de-duplicates canonical and legacy forms of one cloud session", () => {
+      const { references } = splitChannelMessageBody(
+        `${CLOUD_SESSION_REFERENCE} and Remote [session:${CLOUD_SESSION_REFERENCE}]`
+      );
+
+      expect(references).toHaveLength(1);
+      expect(references[0]?.kind).toBe("cloudSession");
     });
   });
 
@@ -270,6 +324,14 @@ describe("splitChannelMessageBody", () => {
 
       expect(text).toBe("landed for via");
       expect(kinds(references)).toEqual(["session", "workItem", "github"]);
+    });
+
+    it("preserves card order across GitHub and cloud URLs", () => {
+      const { references } = splitChannelMessageBody(
+        `${PR_URL} then ${CLOUD_SESSION_REFERENCE}`
+      );
+
+      expect(kinds(references)).toEqual(["github", "cloudSession"]);
     });
 
     it("keeps unrelated pills inline for the read-only composer", () => {
