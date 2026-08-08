@@ -245,6 +245,28 @@ describe("SidebarGuideButton", () => {
     expect(onAutoOpenConsumed).not.toHaveBeenCalled();
   });
 
+  it("removes the guide once every milestone is complete", async () => {
+    await renderButton({
+      completion: {
+        [SIDEBAR_GUIDE_MILESTONE.SESSION]: true,
+        [SIDEBAR_GUIDE_MILESTONE.ORGANIZATION]: true,
+        [SIDEBAR_GUIDE_MILESTONE.TEAMMATE]: true,
+        [SIDEBAR_GUIDE_MILESTONE.TEAM_USAGE]: true,
+        [SIDEBAR_GUIDE_MILESTONE.PRODUCT_TOUR]: true,
+      },
+      autoOpenRequested: true,
+    });
+
+    expect(
+      document.querySelector('[data-testid="sidebar-guide-trigger"]')
+    ).toBeNull();
+    expect(
+      document.querySelector('[data-testid="sidebar-guide-panel"]')
+    ).toBeNull();
+    expect(mocks.setIsOpen).not.toHaveBeenCalled();
+    expect(onAutoOpenConsumed).not.toHaveBeenCalled();
+  });
+
   it("consumes a pending handoff after requesting the panel to open", async () => {
     await renderButton({ autoOpenRequested: true });
 
