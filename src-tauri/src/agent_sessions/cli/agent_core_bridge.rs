@@ -55,6 +55,7 @@ fn run(
             project_slug: params.project_slug,
             work_item_id: params.work_item_id,
             agent_role: params.agent_role,
+            product_mode: params.product_mode,
         };
 
         let session = cli_agent_create(create_params).await?;

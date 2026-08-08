@@ -345,3 +345,86 @@ fn run_idempotent_concurrent_same_key_executes_exactly_once() {
         assert_eq!(value["made"], true);
     }
 }
+
+#[test]
+fn noted_by_actor_since_sees_only_matching_note_rows() {
+    let _sandbox = test_env::sandbox();
+    seed("demo", "p1");
+    // Production items carry id == short_id; audit rows key entity_id on
+    // the item id, which the receipt-fallback check queries by short id.
+    let fm = work_item_fixture("AAA-0002", "AAA-0002", "Receipt probe");
+    write_work_item("demo", "AAA-0002", &fm, "body").expect("seed probe item");
+    let actor = crate::projects::types::WorkItemMutationActor {
+        id: "agent:os".to_string(),
+        name: "os".to_string(),
+    };
+    let before_ms = chrono::Utc::now().timestamp_millis() - 1;
+
+    assert!(!work_item_noted_by_actor_since("AAA-0002", "agent:os", before_ms).expect("query"));
+
+    // A non-note mutation by the same actor must not satisfy the check.
+    transition_project_work_item("demo", "AAA-0002", "in_progress", None, Some(&actor), None)
+        .expect("transition");
+    assert!(!work_item_noted_by_actor_since("AAA-0002", "agent:os", before_ms).expect("query"));
+
+    note_project_work_item("demo", "AAA-0002", "progress", "half way", Some(&actor))
+        .expect("note");
+    assert!(work_item_noted_by_actor_since("AAA-0002", "agent:os", before_ms).expect("query"));
+
+    // Different actor and a window after the write both miss.
+    assert!(
+        !work_item_noted_by_actor_since("AAA-0002", "agent:sde", before_ms).expect("query")
+    );
+    let after_ms = chrono::Utc::now().timestamp_millis() + 1;
+    assert!(!work_item_noted_by_actor_since("AAA-0002", "agent:os", after_ms).expect("query"));
+}
+
+#[test]
+fn root_bootstrap_is_idempotent_and_falls_back_to_personal_scope() {
+    let _sandbox = test_env::sandbox();
+
+    let first = bootstrap_root_standalone_item(
+        "cliagent-boot-1",
+        Some("cloud:no-such-org"),
+        "Ship the export flow\nwith full history",
+    )
+    .expect("bootstrap");
+    let replay = bootstrap_root_standalone_item(
+        "cliagent-boot-1",
+        Some("cloud:no-such-org"),
+        "different retry content",
+    )
+    .expect("replayed bootstrap");
+    assert_eq!(first, replay, "same session must replay the same root");
+
+    let item = crate::projects::io::read_standalone_work_item(None, &first).expect("read root");
+    assert_eq!(item.frontmatter.title, "Ship the export flow");
+    assert!(item.body.contains("with full history"));
+
+    let other = bootstrap_root_standalone_item("cliagent-boot-2", None, "Second session root")
+        .expect("bootstrap 2");
+    assert_ne!(first, other, "distinct sessions get distinct roots");
+}
+
+#[test]
+fn standalone_note_audits_as_work_note() {
+    let _sandbox = test_env::sandbox();
+    let fm = work_item_fixture("SA-0001", "SA-0001", "Standalone receipt probe");
+    crate::projects::io::write_standalone_work_item(None, "SA-0001", &fm, "body")
+        .expect("seed standalone item");
+    let actor = crate::projects::types::WorkItemMutationActor {
+        id: "agent:os".to_string(),
+        name: "os".to_string(),
+    };
+    let before_ms = chrono::Utc::now().timestamp_millis() - 1;
+
+    note_standalone_work_item(None, "SA-0001", "progress", "receipt", Some(&actor))
+        .expect("note");
+
+    // Standalone notes must stamp the canonical `work.note` operation —
+    // the receipt-fallback dedup query depends on it (a `work.patch`
+    // label made the fallback double-post on standalone items).
+    let (operation, _, _) = last_audit_row();
+    assert_eq!(operation, "work.note");
+    assert!(work_item_noted_by_actor_since("SA-0001", "agent:os", before_ms).expect("query"));
+}

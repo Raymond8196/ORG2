@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { projectApi, workItemDataToUI } from "@src/api/http/project";
+import { useProjectDataChanged } from "@src/hooks/project";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 import { activeWorkspaceRootPathAtom } from "@src/store/workspace";
 import type { WorkItem } from "@src/types/core/workItem";
@@ -45,6 +46,19 @@ export function StandaloneWorkItemDetailPage({
   useEffect(() => {
     void loadWorkItem();
   }, [loadWorkItem]);
+
+  // Linked-session status mirrors, receipt fallbacks, and CLI writes land
+  // through the data-changed signal after this tab has mounted. Without a
+  // subscription the page keeps its open-time snapshot forever.
+  useProjectDataChanged(
+    useCallback(
+      (change) => {
+        if (change?.workItemId && change.workItemId !== workItemId) return;
+        void loadWorkItem();
+      },
+      [loadWorkItem, workItemId]
+    )
+  );
 
   useEffect(() => {
     const workItemStatus = workItem?.workItemStatus ?? workItem?.status;

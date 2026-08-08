@@ -679,15 +679,79 @@ fn standalone_items_are_reachable_without_scope() {
         "claude_code:session_e2e_sta",
     ];
 
-    // The scope guard stays intact for project-routed commands.
-    let (exit, gated) = run_cli(&[&["work", "show", "STA-0001"], &base[..]].concat());
-    assert_eq!(exit, 3, "scope-less show without --standalone: {gated}");
-    assert_eq!(gated["error"]["code"], "CONTEXT_REQUIRED");
+    // A bare id with no resolvable project scope routes to the org's
+    // standalone store — a session bound to a standalone root item can
+    // address it without knowing the `--standalone` flag (the Discussion
+    // forward and delivery-mandate instructions all use bare ids).
+    let (exit, bare) = run_cli(&[&["work", "show", "STA-0001"], &base[..]].concat());
+    assert_eq!(exit, 0, "scope-less bare-id show: {bare}");
+    assert_eq!(bare["data"]["frontmatter"]["short_id"], "STA-0001");
+
+    let (exit, bare_noted) = run_cli(
+        &[
+            &["work", "note", "STA-0001", "--kind", "comment", "--body", "bare-id receipt"],
+            &base[..],
+        ]
+        .concat(),
+    );
+    assert_eq!(exit, 0, "scope-less bare-id note: {bare_noted}");
 
     // `--standalone` routes to the org-scoped store without any scope.
     let (exit, shown) = run_cli(&[&["work", "show", "STA-0001", "--standalone"], &base[..]].concat());
     assert_eq!(exit, 0, "show envelope: {shown}");
     assert_eq!(shown["data"]["frontmatter"]["short_id"], "STA-0001");
+
+    let (exit, listed) = run_cli(&[&["work", "list", "--standalone"], &base[..]].concat());
+    assert_eq!(exit, 0, "list envelope: {listed}");
+    assert_eq!(listed["data"]["items"][0]["frontmatter"]["short_id"], "STA-0001");
+
+    // Progress note lands in the standalone item's comment thread.
+    let (exit, noted) = run_cli(
+        &[
+            &["work", "note", "STA-0001", "--standalone", "--kind", "progress", "--body", "half way"],
+            &base[..],
+        ]
+        .concat(),
+    );
+    assert_eq!(exit, 0, "note envelope: {noted}");
+    let item = project_management::projects::io::read_standalone_work_item(None, "STA-0001")
+        .expect("noted read back");
+    assert!(
+        item.frontmatter
+            .comments
+            .iter()
+            .any(|comment| comment.content == "[progress] half way" && comment.author == "cli-tester"),
+        "note must land in comments: {:?}",
+        item.frontmatter.comments
+    );
+
+    // `--body-file` sidesteps shell quoting for agent-authored bodies.
+    let body_path = std::env::temp_dir().join("orgii-cli-e2e-body.md");
+    std::fs::write(&body_path, "literal `backticks` and $(no expansion)").expect("write body file");
+    let body_path_str = body_path.to_string_lossy().to_string();
+    let (exit, filed) = run_cli(
+        &[
+            &["work", "update", "STA-0001", "--standalone", "--body-file", &body_path_str],
+            &base[..],
+        ]
+        .concat(),
+    );
+    assert_eq!(exit, 0, "body-file envelope: {filed}");
+    assert_eq!(
+        filed["data"]["body"],
+        "literal `backticks` and $(no expansion)"
+    );
+
+    // A sub item created with --parent records the parent linkage.
+    let (exit, child) = run_cli(
+        &[
+            &["work", "create", "--standalone", "--title", "Child task", "--parent", "STA-0001"],
+            &base[..],
+        ]
+        .concat(),
+    );
+    assert_eq!(exit, 0, "child envelope: {child}");
+    assert_eq!(child["data"]["frontmatter"]["parent"], "STA-0001");
 
     // Fill the draft the way the AI work-item filler does.
     let (exit, updated) = run_cli(

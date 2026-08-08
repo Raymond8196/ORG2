@@ -47,6 +47,7 @@ import {
   useSessionProductModeField,
 } from "@src/hooks/session/useSessionPatch";
 import { creatorDefaultExecModeAtom } from "@src/store/session/creatorDefaultExecModeAtom";
+import { creatorDefaultProductModeAtom } from "@src/store/session/creatorDefaultProductModeAtom";
 import {
   isAgentSession,
   isCliSession,
@@ -87,6 +88,8 @@ const ModePill: React.FC<ModePillProps> = memo(
     // below based on the current usage mode.
     const creatorDefault = useAtomValue(creatorDefaultExecModeAtom);
     const setCreatorDefault = useSetAtom(creatorDefaultExecModeAtom);
+    const creatorProductDefault = useAtomValue(creatorDefaultProductModeAtom);
+    const setCreatorProductDefault = useSetAtom(creatorDefaultProductModeAtom);
     const { agentExecMode: sessionMode, setMode: setSessionMode } =
       useSessionExecModeField(sessionId ?? "");
     const { productMode, setProductMode } = useSessionProductModeField(
@@ -103,21 +106,28 @@ const ModePill: React.FC<ModePillProps> = memo(
 
     // Product-mode axis (orgtrack/v1 §5.2): when the session is in
     // Project mode the pill displays Project regardless of the derived
-    // exec mode. Only agent sessions carry a product mode, and the
-    // creator/controlled variants stay exec-only until the Project
-    // bootstrap flow lands there.
+    // exec mode. Agent and CLI sessions both carry the product-mode axis
+    // (code_sessions grew a product_mode column for external-CLI Project
+    // parity); imported rows stay exec-only — the Rust side still
+    // hard-rejects product-mode patches there. The uncontrolled creator
+    // offers Project too: its selection persists in the creator default
+    // atoms and launch stamps `productMode` on the new session.
+    const isCreatorMode = !isControlled && !isInSessionMode;
     const isProjectSession =
-      isInSessionMode && productMode === PRODUCT_MODE_PROJECT;
-    // Only agent sessions carry a product mode: the Rust side hard-rejects
-    // product-mode patches on CLI/imported rows, so CLI sessions get an
-    // exec-only picker (useSessionProductModeField's documented contract).
+      (isInSessionMode && productMode === PRODUCT_MODE_PROJECT) ||
+      (isCreatorMode && creatorProductDefault === PRODUCT_MODE_PROJECT);
     const carriesProductMode =
-      isInSessionMode && Boolean(sessionId && isAgentSession(sessionId));
+      isInSessionMode &&
+      Boolean(
+        sessionId && (isAgentSession(sessionId) || isCliSession(sessionId))
+      );
     const pickerModes: ComposerModeEntry[] = isInSessionMode
       ? carriesProductMode
         ? COMPOSER_MODES
         : AGENT_EXEC_MODES
-      : AGENT_EXEC_MODES;
+      : isCreatorMode
+        ? COMPOSER_MODES
+        : AGENT_EXEC_MODES;
 
     const currentOption = isProjectSession
       ? (COMPOSER_MODES.find((opt) => opt.id === PRODUCT_MODE_PROJECT) ??
@@ -169,6 +179,9 @@ const ModePill: React.FC<ModePillProps> = memo(
             setSessionMode(derivedExecMode).catch(() => {});
           } else {
             setCreatorDefault(derivedExecMode);
+            setCreatorProductDefault(
+              selected === PRODUCT_MODE_PROJECT ? PRODUCT_MODE_PROJECT : null
+            );
           }
         }
         onModeChange?.(derivedExecMode);
@@ -180,6 +193,7 @@ const ModePill: React.FC<ModePillProps> = memo(
         setSessionMode,
         setProductMode,
         setCreatorDefault,
+        setCreatorProductDefault,
         onModeChange,
       ]
     );

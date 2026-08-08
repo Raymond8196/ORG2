@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next";
 import { type WorkItemHandoff, projectApi } from "@src/api/http/project";
 import Avatar from "@src/components/Avatar";
 import TabPill from "@src/components/TabPill";
-import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import { useWorkItemImageInsert } from "@src/hooks/project";
 import {
   ProjectContentEditor,
@@ -28,20 +27,16 @@ import {
   SessionTable,
   type SessionTableItem,
 } from "@src/modules/shared/layouts/blocks";
-import {
-  type LinkedSession,
-  WORK_ITEM_STATUS,
-  type WorkItemStatus,
-} from "@src/types/core/workItem";
+import { type LinkedSession, WORK_ITEM_STATUS } from "@src/types/core/workItem";
 import {
   formatReplayDateLabel,
   toIntlLocaleTag,
 } from "@src/util/data/formatters/date";
 
-import AgentWorkflow from "../AgentWorkflow";
 import { ROLE_I18N_KEYS, STATUS_I18N_KEYS } from "../AgentWorkflow/types";
 import TodoChecklist from "../TodoChecklist";
 import WorkItemContentStack from "../WorkItemContentStack";
+import WorkItemSubItems, { useWorkItemFamily } from "../WorkItemSubItems";
 import {
   WorkItemThreadLayout,
   type WorkItemThreadView,
@@ -178,8 +173,8 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
   shortId,
   githubIssueTimeline,
   githubIssueInteraction,
-  onStartAgent,
-  isStartingAgent,
+  orgId,
+  onOpenSubItem,
   onCancelAgent,
   onRetry,
   onAcceptAsIs,
@@ -191,9 +186,6 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
   onRefreshWorkflow,
   onTransitionHandoff,
   activeAgentSessionId,
-  activeAgentRole,
-  isLockedByOther,
-  lockHolderName,
   onCreatePr,
 }) => {
   const { t } = useTranslation(["projects", "common"]);
@@ -203,6 +195,12 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
     projectSlug: projectSlug ?? null,
     editorRef,
   });
+
+  const subItemFamily = useWorkItemFamily(
+    shortId ?? workItem.shortId ?? "",
+    projectSlug,
+    orgId
+  );
 
   const {
     currentUser,
@@ -224,7 +222,6 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
     handleDescriptionChange,
     handleTodosChange,
     handleCommentSubmit,
-    handleStartAgentAndOpenChat,
   } = useWorkItemContentState({
     workItem,
     onUpdateWorkItem,
@@ -233,9 +230,6 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
     teamMembers,
     projectSlug,
     shortId,
-    onStartAgent,
-    onOpenSession,
-    activeAgentSessionId,
   });
 
   const creatorName =
@@ -614,31 +608,16 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
     />
   );
 
-  const agentWorkflow = (
-    <AgentWorkflow
-      orchestratorState={workItem.orchestratorState}
-      orchestratorConfig={workItem.orchestratorConfig}
-      proofOfWork={workItem.proofOfWork}
-      workItemStatus={
-        workItem.workItemStatus ?? (workItem.status as WorkItemStatus)
-      }
-      executionLock={workItem.executionLock}
-      linkedSessions={workItem.linkedSessions}
-      onStartAgent={handleStartAgentAndOpenChat}
-      isStartingAgent={isStartingAgent}
-      onCancel={onCancelAgent}
-      onRetry={onRetry}
-      onAcceptAsIs={onAcceptAsIs}
-      onCreateFollowUp={onCreateFollowUp}
-      onOpenSession={onOpenSession}
-      onOpenFileAtLine={onOpenFileAtLine}
-      onRefresh={onRefreshWorkflow}
-      activeAgentSessionId={activeAgentSessionId}
-      activeAgentRole={activeAgentRole}
-      isLockedByOther={isLockedByOther}
-      lockHolderName={lockHolderName}
-      presentation={presentation}
-    />
+  const subItemsSection = (
+    <ScrollTrailTarget enabled={isThread} label={t("workItems.subItems.title")}>
+      <WorkItemSubItems
+        family={subItemFamily}
+        parentShortId={shortId ?? workItem.shortId ?? ""}
+        projectSlug={projectSlug}
+        orgId={orgId}
+        onOpenWorkItem={onOpenSubItem}
+      />
+    </ScrollTrailTarget>
   );
 
   const outputContent = (
@@ -702,18 +681,14 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
         />
       </div>
 
-      {activeSessionTab === "session" && (
-        <>
-          <div className={DETAIL_PANEL_TOKENS.sectionGap}>{agentWorkflow}</div>
-          {sectionPolicy.showLinkedSessionsTable ? (
-            <LinkedSessionsList
-              sessions={workItem.linkedSessions ?? []}
-              activeAgentSessionId={activeAgentSessionId}
-              onOpenSession={onOpenSession}
-            />
-          ) : null}
-        </>
-      )}
+      {activeSessionTab === "session" &&
+        (sectionPolicy.showLinkedSessionsTable ? (
+          <LinkedSessionsList
+            sessions={workItem.linkedSessions ?? []}
+            activeAgentSessionId={activeAgentSessionId}
+            onOpenSession={onOpenSession}
+          />
+        ) : null)}
 
       {activeSessionTab === "output" && outputContent}
 
@@ -723,12 +698,18 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
 
   const threadLowerSection = (
     <>
-      {sectionPolicy.showInlineWorkflow ? (
+      {(workItem.linkedSessions?.length ?? 0) > 0 ? (
         <ScrollTrailTarget
           enabled={isThread}
-          label={t("workItems.agentWorkflow.title")}
+          label={t("workItems.linkedSessions.title", {
+            defaultValue: "Sessions",
+          })}
         >
-          {agentWorkflow}
+          <LinkedSessionsList
+            sessions={workItem.linkedSessions ?? []}
+            activeAgentSessionId={activeAgentSessionId}
+            onOpenSession={onOpenSession}
+          />
         </ScrollTrailTarget>
       ) : null}
       {sectionPolicy.showInlineOutput ? (
@@ -763,6 +744,7 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
             <ScrollTrailTarget label={t("workItems.todos.title")}>
               {todosSection}
             </ScrollTrailTarget>
+            {subItemsSection}
             {threadLowerSection}
             {!isGitHubWorkItem ? (
               <ScrollTrailTarget
@@ -810,9 +792,12 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
         }
         todosContent={todosSection}
         lowerContent={
-          sectionPolicy.showTabbedLowerSection
-            ? tabbedLowerSection
-            : threadLowerSection
+          <>
+            {subItemsSection}
+            {sectionPolicy.showTabbedLowerSection
+              ? tabbedLowerSection
+              : threadLowerSection}
+          </>
         }
         scrollable
       />

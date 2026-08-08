@@ -261,19 +261,18 @@ pub struct WorkItemFrontmatter {
     pub handoff: Option<WorkItemHandoff>,
     // --- Agent Workflow Fields ---
     //
-    // `linked_sessions` and `orchestrator_state` are persisted in SQLite
-    // (`orchestrator_runs` / `orchestrator_linked_sessions`), NOT in the
-    // `.md` frontmatter. We keep the in-memory fields so existing mutator
-    // closures work unchanged, but they are skipped during YAML
-    // serialization. Deserialization is preserved so legacy `.md` files
-    // can still be parsed during the one-time migration.
-    #[serde(default, skip_serializing)]
+    // `linked_sessions` and `orchestrator_state` are execution state.
+    // They serialize normally (IPC reads must carry them — the detail
+    // surfaces render the Execution Log from this struct), but the
+    // git-folder `.md` export strips them at its own boundary so the
+    // synced markdown stays free of run-time state.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub linked_sessions: Vec<LinkedSession>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub proof_of_work: Option<ProofOfWork>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub orchestrator_config: Option<OrchestratorConfig>,
-    #[serde(default, skip_serializing)]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     pub orchestrator_state: Option<OrchestratorState>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub follow_up_items: Vec<FollowUpRef>,

@@ -159,7 +159,7 @@ pub(crate) struct AgentRunLaunchResult {
 /// session workspace: `org2-pm` locks its identity to this file when
 /// present, so an agent inside the workspace can never act as a human
 /// or as another session.
-pub(crate) fn write_agent_session_marker(
+pub fn write_agent_session_marker(
     workspace_path: &str,
     session_id: &str,
     agent_definition_id: Option<&str>,
@@ -184,7 +184,7 @@ pub(crate) fn write_agent_session_marker(
         "actor": format!("agent:{agent}"),
         "productMode": product_mode,
         "scope": project_slug,
-        "org": org_id.filter(|org| *org != project_management::projects::types::PERSONAL_ORG_ID),
+        "org": project_management::projects::io::resolve_local_org_scope(org_id),
         "capabilities": capabilities,
         "issuedAt": chrono::Utc::now().to_rfc3339(),
     });

@@ -256,9 +256,31 @@ pub fn update_standalone_work_item_atomic_by<T, F>(
 where
     F: FnOnce(&mut WorkItemFrontmatter, &mut String) -> Result<T, String>,
 {
+    update_standalone_work_item_atomic_serviced(
+        org_id,
+        actor,
+        AtomicServiceOptions::default(),
+        short_id,
+        mutator,
+    )
+}
+
+/// Standalone counterpart of [`update_work_item_atomic_serviced`]: same
+/// atomic RMW, but the caller stamps the canonical audit operation
+/// (e.g. `work.note`) instead of the default `work.patch`.
+pub fn update_standalone_work_item_atomic_serviced<T, F>(
+    org_id: Option<&str>,
+    actor: Option<&crate::projects::types::WorkItemMutationActor>,
+    service: AtomicServiceOptions,
+    short_id: &str,
+    mutator: F,
+) -> Result<T, String>
+where
+    F: FnOnce(&mut WorkItemFrontmatter, &mut String) -> Result<T, String>,
+{
     let org_id = org_id.unwrap_or("personal-org");
     let (value, changed_fields, payload_tail_changed) =
-        update_standalone_work_item_atomic_as(org_id, short_id, actor, |fm, body| {
+        update_standalone_work_item_atomic_as(org_id, short_id, actor, service, |fm, body| {
             mutator(fm, body)
         })?;
     if !changed_fields.is_empty() || payload_tail_changed {
@@ -277,6 +299,7 @@ pub(super) fn update_standalone_work_item_atomic_as<T, F>(
     org_id: &str,
     short_id: &str,
     actor: Option<&crate::projects::types::WorkItemMutationActor>,
+    service: AtomicServiceOptions,
     mutator: F,
 ) -> Result<(T, Vec<&'static str>, bool), String>
 where
@@ -287,7 +310,7 @@ where
         short_id,
         HashMap::new(),
         actor,
-        AtomicServiceOptions::default(),
+        service,
         mutator,
     )
 }

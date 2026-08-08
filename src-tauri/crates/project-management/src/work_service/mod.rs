@@ -882,6 +882,44 @@ pub fn note_project_work_item(
     )
 }
 
+pub fn note_standalone_work_item(
+    org_id: Option<&str>,
+    short_id: &str,
+    kind: &str,
+    body: &str,
+    actor: Option<&WorkItemMutationActor>,
+) -> Result<(), String> {
+    let author = actor
+        .map(|a| a.name.clone())
+        .unwrap_or_else(|| "agent".to_string());
+    let note_body = if kind == "comment" {
+        body.to_string()
+    } else {
+        format!("[{}] {}", kind, body)
+    };
+    project_io::update_standalone_work_item_atomic_serviced(
+        org_id,
+        actor,
+        project_io::AtomicServiceOptions {
+            operation: Some("work.note"),
+            reason: Some(kind.to_string()),
+            ..Default::default()
+        },
+        short_id,
+        move |frontmatter, _item_body| {
+            let now = chrono::Utc::now().to_rfc3339();
+            frontmatter.comments.push(crate::projects::types::CommentEntry {
+                id: format!("note-{}", chrono::Utc::now().timestamp_millis()),
+                author,
+                content: note_body,
+                created_at: now,
+                mentioned_user_ids: vec![],
+            });
+            Ok(())
+        },
+    )
+}
+
 const PORTABLE_RELATION_KINDS: &[&str] = &[
     "depends_on",
     "relates_to",
@@ -966,6 +1004,106 @@ pub fn list_work_item_relations(short_id: &str) -> Result<Vec<serde_json::Value>
         .collect::<Result<Vec<_>, _>>()
         .map_err(|err| format!("pm relations: {}", err))?;
     Ok(rows)
+}
+
+const ROOT_BOOTSTRAP_OPERATION: &str = "work.bootstrap";
+const ROOT_BOOTSTRAP_TITLE_MAX_CHARS: usize = 80;
+
+fn derive_root_bootstrap_title(content: &str) -> String {
+    let first_line = content.trim().lines().next().unwrap_or("").trim();
+    let title: String = first_line.chars().take(ROOT_BOOTSTRAP_TITLE_MAX_CHARS).collect();
+    if title.is_empty() {
+        "Untitled project".to_string()
+    } else {
+        title
+    }
+}
+
+/// Idempotent root-WorkItem creation for a Project session (orgtrack/v1
+/// §7.2), shared by the native message-accept path and the CLI session
+/// follow-up path. `raw_org_scope` may carry looser session-plane scopes
+/// (`cloud:<uuid>`, `personal-org`); anything without a local org row
+/// falls back to the personal standalone scope. Returns the root's short
+/// id; the caller owns linking it back onto its own session row.
+pub fn bootstrap_root_standalone_item(
+    session_id: &str,
+    raw_org_scope: Option<&str>,
+    content: &str,
+) -> Result<String, String> {
+    let org_id = crate::projects::io::resolve_local_org_scope(raw_org_scope);
+    let session_ref = format!("org2:{session_id}");
+    let actor = WorkItemMutationActor {
+        id: session_ref.clone(),
+        name: "ORG2 host".to_string(),
+    };
+    let scope_id = org_id.clone().unwrap_or_else(|| "standalone".to_string());
+
+    // Canonical request deliberately excludes the message content: the
+    // key is "this session's root", and a retry after a create-then-
+    // link-failure may arrive with different content but must replay
+    // the SAME stored root instead of conflicting or duplicating.
+    let canonical = serde_json::json!({ "sessionRef": session_ref });
+    let org_for_execute = org_id.clone();
+    let title = derive_root_bootstrap_title(content);
+    let body = content.to_string();
+    let actor_for_execute = actor.clone();
+    let outcome = run_idempotent(
+        &session_ref,
+        ROOT_BOOTSTRAP_OPERATION,
+        &scope_id,
+        session_id,
+        &canonical,
+        move || {
+            let short_id = crate::projects::io::allocate_standalone_short_id(
+                org_for_execute.as_deref(),
+            )?;
+            let request = CreateWorkItemRequest {
+                title,
+                body,
+                created_by: Some(actor_for_execute.id.clone()),
+                ..Default::default()
+            };
+            create_standalone_work_item(
+                org_for_execute.as_deref(),
+                &short_id,
+                &request,
+                Some(&actor_for_execute),
+            )?;
+            Ok(serde_json::json!({ "shortId": short_id }))
+        },
+    )?;
+
+    let response = match outcome {
+        IdempotencyOutcome::Fresh(value) | IdempotencyOutcome::Replayed(value) => value,
+    };
+    response
+        .get("shortId")
+        .and_then(|value| value.as_str())
+        .map(str::to_string)
+        .ok_or_else(|| format!("bootstrap response missing shortId: {response}"))
+}
+
+/// True when `actor_id` appended a `work.note` audit row on the item at or
+/// after `since_unix_ms`. The turn-end receipt fallback uses this to decide
+/// whether the agent already delivered a Discussion receipt this turn.
+pub fn work_item_noted_by_actor_since(
+    short_id: &str,
+    actor_id: &str,
+    since_unix_ms: i64,
+) -> Result<bool, String> {
+    let connection = project_io::helpers::conn()?;
+    connection
+        .query_row(
+            "SELECT EXISTS(
+                SELECT 1 FROM pm_audit_events
+                WHERE entity_type = 'work_item' AND entity_id = ?1
+                  AND actor_id = ?2 AND operation = 'work.note'
+                  AND occurred_at >= ?3)",
+            rusqlite::params![short_id, actor_id, since_unix_ms],
+            |row| row.get::<_, i64>(0),
+        )
+        .map(|value| value != 0)
+        .map_err(|err| format!("pm audit read: {err}"))
 }
 
 /// Canonical `work.create` for an org-scoped standalone item.

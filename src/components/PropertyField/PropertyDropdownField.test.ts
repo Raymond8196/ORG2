@@ -75,10 +75,9 @@ describe("PropertyDropdownField", () => {
 
   it("opens inline property menus above bottom-docked creator rows", () => {
     const markup = renderToStaticMarkup(
-      React.createElement(
-        PropertyDropdownDirectionProvider,
-        { direction: "up" },
-        React.createElement(PropertyDropdownField, {
+      React.createElement(PropertyDropdownDirectionProvider, {
+        direction: "up",
+        children: React.createElement(PropertyDropdownField, {
           value: "open",
           label: "Open",
           icon: null,
@@ -86,8 +85,8 @@ describe("PropertyDropdownField", () => {
           searchable: false,
           placement: "inline",
           options: [{ value: "open", label: "Open" }],
-        })
-      )
+        }),
+      })
     );
 
     expect(markup).toContain("bottom-full mb-1");

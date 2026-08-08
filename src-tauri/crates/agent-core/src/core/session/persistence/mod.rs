@@ -11,6 +11,7 @@
 //! - Message storage uses `agent_messages` (shared)
 
 mod crud;
+pub(crate) mod linked_work_item;
 mod messages;
 mod sidebar;
 

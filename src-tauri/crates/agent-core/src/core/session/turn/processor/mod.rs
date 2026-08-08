@@ -26,6 +26,7 @@ pub(super) mod member_idle;
 mod post_turn_dispatch;
 pub(super) mod prefetch;
 mod prompt;
+mod receipt_fallback;
 
 use serde_json::Value;
 use std::sync::atomic::Ordering;
@@ -505,6 +506,9 @@ impl UnifiedMessageProcessor {
             .turn_id
             .clone()
             .unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
+        // Anchor for the receipt-fallback audit window: CLI writes during
+        // this turn carry occurred_at >= this instant.
+        let turn_started_at_ms = chrono::Utc::now().timestamp_millis();
 
         // 0b. Restore persisted SM state on first turn (lazy init)
         if self.sm_config.enabled {
@@ -1025,6 +1029,7 @@ impl UnifiedMessageProcessor {
             result: &result,
             tool_calls_count,
             final_turn_state,
+            turn_started_at_ms,
         })
         .await;
 

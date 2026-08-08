@@ -322,10 +322,8 @@ fn configure_orgtrack_environment(cmd: &mut tokio::process::Command, session_id:
     if let Some(slug) = record.project_slug.as_deref() {
         cmd.env("ORGII_SCOPE", slug);
     }
-    if let Some(org) = record
-        .org_id
-        .as_deref()
-        .filter(|org| *org != project_management::projects::types::PERSONAL_ORG_ID)
+    if let Some(org) =
+        project_management::projects::io::resolve_local_org_scope(record.org_id.as_deref())
     {
         cmd.env("ORGII_ORG", org);
     }

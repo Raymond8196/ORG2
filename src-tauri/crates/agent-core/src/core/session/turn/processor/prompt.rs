@@ -32,14 +32,25 @@ fn render_orgtrack_cli_brief(product_mode: Option<&str>, project_slug: Option<&s
          The work system is also reachable from your shell through the `org2-pm` CLI. \
          Use `--output json`; run `org2-pm --help` or `org2-pm <command> --help` for anything beyond the core set.\n\n\
          - `org2-pm work show <id>` / `org2-pm work list [--status <state>] [--ready]`\n\
-         - `org2-pm work create --title \"...\" [--body ...]`\n\
-         - `org2-pm work update <id> [--title ...] [--body ...] [--expected-revision N]`\n\
+         - `org2-pm work create --title \"...\" [--body ...] [--parent <id>]`\n\
+         - `org2-pm work update <id> [--title ...] [--body ...|--body-file <path>] [--expected-revision N]`\n\
          - `org2-pm work transition <id> --to <state> --reason \"...\"`\n\
          - `org2-pm work claim <id>` / `org2-pm work release <id>`\n\
-         - `org2-pm work note <id> --body \"...\"`\n\n\
+         - `org2-pm work note <id> --kind <comment|progress|blocker|decision|handoff|review> --body \"...\"`\n\n\
+         For multi-line or code-bearing bodies, write the text to a file in your working \
+         directory and pass `--body-file <path>` — inline --body goes through the shell, \
+         which mangles backticks and $().\n\n\
          Rules:\n\
          - Your session identity is injected; never pass --actor yourself.\n\
          - {}\n\
+         - Split the work into sub items (`work create --parent <id>`) whenever the plan has \
+         more than one independently completable step; keep single-step work on the item itself.\n\
+         - When you finish working an item, post exactly ONE receipt on it — \
+         `org2-pm work note <id> --kind progress --body \"...\"` — stating the outcome, not the \
+         process. Do NOT post progress updates or plans as notes while you work. Chat text is \
+         not delivered to the work item; only notes land on it.\n\
+         - If blocked, run `org2-pm work transition <id> --to blocked --reason \"...\"` and post \
+         one note explaining the blocker.\n\
          - Your harness's built-in planning tools (task lists, todos) are local scratch state — \
          they do NOT update the work system. Only `org2-pm` writes count.",
         scope_line
@@ -68,6 +79,13 @@ fn render_linked_work_item_context(work_item_id: &str, project_slug: Option<&str
          {} \
          Use the `org2-pm` CLI from your shell to read and fill it: `org2-pm work show <id>{}` to read, \
          `org2-pm work update <id>{} --title \"...\" --body \"...\"` to fill or refine the draft. \
+         ⚠️ Every deliverable of this session MUST land on the Work Item through `org2-pm` — \
+         whatever the user asks for here IS this item's content: write it into the item body \
+         (and sub items via `org2-pm work create{} --parent {}` when the work has multiple \
+         independently completable steps), then post one receipt with \
+         `org2-pm work note <id>{} --kind progress --body \"...\"`. \
+         Chat replies are conversation, not delivery; a turn that ends with the work only in \
+         chat has delivered nothing, even when the content itself is correct. \
          Scope rule: the linked item is THIS session's original deliverable. \
          When the user iterates on that same request (refine, expand, correct, retitle), update the linked draft instead of creating a duplicate. \
          When the user asks for a NEW or additional Work Item — a different topic, an example, \"another one\" — create a fresh item with `org2-pm work create{} --title \"...\"` and leave the linked item untouched; never repurpose it by overwriting its title and body with unrelated content. \
@@ -75,6 +93,9 @@ fn render_linked_work_item_context(work_item_id: &str, project_slug: Option<&str
         serde_json::to_string(work_item_id).expect("work item id is JSON serializable"),
         scope_instruction,
         standalone_flag,
+        standalone_flag,
+        standalone_flag,
+        serde_json::to_string(work_item_id).expect("work item id is JSON serializable"),
         standalone_flag,
         standalone_flag,
     )

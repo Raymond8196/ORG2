@@ -537,6 +537,15 @@ async function selectChatPanelWorkItemCreateTarget(
   );
 }
 
+function workItemCreatedAtMs(item) {
+  const raw = item.frontmatter?.created_at ?? item.frontmatter?.createdAt;
+  if (!raw) return 0;
+  const numeric = Number(raw);
+  if (Number.isFinite(numeric) && numeric > 1_000_000_000_000) return numeric;
+  const parsed = Date.parse(raw);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
 async function collectStandaloneItemsAcrossOrgs(label) {
   const rows = [];
   const personal = unwrap(
@@ -2032,6 +2041,10 @@ describe("Work Item durable object runtime invariants", function () {
     );
     const generatedTitle = `E2E AI-created linked Work Item ${RUN_ID}`;
     const generatedBody = `Created through the rendered Create with AI flow ${RUN_ID}.`;
+    // Time fence for the new-item scans: background DB derivation can land
+    // pre-existing (seeded) rows between scans, so "new" additionally means
+    // "created after this test started composing".
+    const composeFenceMs = Date.now() - 10_000;
     const prompt =
       `Update the linked draft Work Item to the exact title "${generatedTitle}" ` +
       `and exact description "${generatedBody}". Keep it standalone, planned, ` +
@@ -2082,7 +2095,11 @@ describe("Work Item durable object runtime invariants", function () {
         const newRows = rows.filter(({ item }) => {
           const shortId =
             item.frontmatter?.short_id ?? item.frontmatter?.shortId ?? null;
-          return shortId && !beforeIds.has(shortId);
+          return (
+            shortId &&
+            !beforeIds.has(shortId) &&
+            workItemCreatedAtMs(item) >= composeFenceMs
+          );
         });
         latestNewItems = newRows.map(({ item }) => item);
         if (newRows.length !== 1) return false;
@@ -2174,6 +2191,7 @@ describe("Work Item durable object runtime invariants", function () {
     );
     const newlyCreatedIds = finalRows
       .filter((row) => (row.orgId ?? null) === (draftOrgId ?? null))
+      .filter(({ item }) => workItemCreatedAtMs(item) >= composeFenceMs)
       .map(
         ({ item }) =>
           item.frontmatter?.short_id ?? item.frontmatter?.shortId ?? null

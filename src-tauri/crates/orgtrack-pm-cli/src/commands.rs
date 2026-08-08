@@ -100,6 +100,42 @@ fn guarded(
     }
 }
 
+/// Body text from `--body` or `--body-file <path>` (file wins). Shell
+/// quoting mangles backticks/`$()` in inline bodies; agents write the
+/// body to a file and pass the path instead.
+fn resolve_body_flag(flags: &HashMap<String, String>) -> Result<Option<String>, CliError> {
+    if let Some(path) = flags.get("body-file").filter(|value| !value.trim().is_empty()) {
+        return std::fs::read_to_string(path)
+            .map(Some)
+            .map_err(|err| {
+                CliError::new(
+                    ErrorCode::InvalidArgument,
+                    format!("--body-file {path}: {err}"),
+                )
+            });
+    }
+    Ok(flags.get("body").cloned())
+}
+
+/// Route a bare short id to the org's standalone store when it cannot be
+/// served from a project scope: either no scope resolves at all, or the
+/// resolved project has no such item while a standalone row exists. Lets
+/// a session bound to a standalone root item (Project-mode bootstrap)
+/// address it without knowing the `--standalone` flag.
+fn standalone_fallback_item(
+    context: &ExecutionContext,
+    short_id: &str,
+) -> Option<WorkItemData> {
+    let org = context.org_id.as_deref();
+    match context.require_scope() {
+        Err(_) => pio::read_standalone_work_item(org, short_id).ok(),
+        Ok(scope) => match pio::read_work_item(scope, short_id) {
+            Ok(_) => None,
+            Err(_) => pio::read_standalone_work_item(org, short_id).ok(),
+        },
+    }
+}
+
 fn require_short_id(short_id: Option<&String>) -> Result<String, CliError> {
     short_id.cloned().ok_or_else(|| {
         CliError::new(
@@ -110,13 +146,20 @@ fn require_short_id(short_id: Option<&String>) -> Result<String, CliError> {
 }
 
 fn cmd_work_list(context: &ExecutionContext, flags: &HashMap<String, String>) -> i32 {
-    let scope = match context.require_scope() {
-        Ok(scope) => scope.to_string(),
-        Err(err) => return emit_error(err),
-    };
-    let items = match pio::read_all_work_items(&scope) {
-        Ok(items) => items,
-        Err(err) => return emit_error(CliError::from_service(err)),
+    let items = if flags.contains_key("standalone") {
+        match pio::read_standalone_work_items(context.org_id.as_deref()) {
+            Ok(items) => items,
+            Err(err) => return emit_error(CliError::from_service(err)),
+        }
+    } else {
+        let scope = match context.require_scope() {
+            Ok(scope) => scope.to_string(),
+            Err(err) => return emit_error(err),
+        };
+        match pio::read_all_work_items(&scope) {
+            Ok(items) => items,
+            Err(err) => return emit_error(CliError::from_service(err)),
+        }
     };
     let status_filter = match flags.get("status") {
         None => None,
@@ -221,6 +264,14 @@ fn cmd_work_show(
         let wire = item_to_wire(&item, None);
         return emit_success(wire, None, None);
     }
+    if let Some(item) = standalone_fallback_item(context, &short_id) {
+        let relations = work_service::list_work_item_relations(&short_id).unwrap_or_default();
+        let mut wire = item_to_wire(&item, None);
+        if let Some(object) = wire.as_object_mut() {
+            object.insert("relations".into(), serde_json::json!(relations));
+        }
+        return emit_success(wire, None, None);
+    }
     let scope = match context.require_scope() {
         Ok(scope) => scope.to_string(),
         Err(err) => return emit_error(err),
@@ -261,15 +312,24 @@ fn cmd_work_create(context: &ExecutionContext, flags: &HashMap<String, String>) 
             last_run: None,
         }),
     };
+    let parent = flags
+        .get("parent")
+        .filter(|value| !value.trim().is_empty())
+        .cloned();
+    let body_flag = match resolve_body_flag(flags) {
+        Ok(body) => body,
+        Err(err) => return emit_error(err),
+    };
     if flags.contains_key("standalone") {
         let org = context.org_id.clone();
         let request = work_service::CreateWorkItemRequest {
             title: title.clone(),
-            body: flags.get("body").cloned().unwrap_or_default(),
+            body: body_flag.clone().unwrap_or_default(),
             status: flags.get("status").cloned(),
             priority: flags.get("priority").cloned(),
             created_by: Some(actor.id.clone()),
             schedule: schedule.clone(),
+            parent: parent.clone(),
             ..Default::default()
         };
         let result = (|| {
@@ -296,17 +356,18 @@ fn cmd_work_create(context: &ExecutionContext, flags: &HashMap<String, String>) 
     let canonical = serde_json::json!({
         "op": "work.create",
         "title": title,
-        "body": flags.get("body"),
+        "body": body_flag,
         "status": flags.get("status"),
         "priority": flags.get("priority"),
     });
     let request = work_service::CreateWorkItemRequest {
         title: title.clone(),
-        body: flags.get("body").cloned().unwrap_or_default(),
+        body: body_flag.clone().unwrap_or_default(),
         status: flags.get("status").cloned(),
         priority: flags.get("priority").cloned(),
         created_by: Some(actor.id.clone()),
         schedule,
+        parent,
         ..Default::default()
     };
     let scope_for_exec = scope.clone();
@@ -344,6 +405,10 @@ fn cmd_work_update(
     if let Err(err) = context.require_project_mode("work.update") {
         return emit_error(err);
     }
+    let body_flag = match resolve_body_flag(flags) {
+        Ok(body) => body,
+        Err(err) => return emit_error(err),
+    };
     if flags.contains_key("standalone") {
         let short_id = match require_short_id(short_id) {
             Ok(short_id) => short_id,
@@ -358,7 +423,7 @@ fn cmd_work_update(
             org.as_deref(),
             &short_id,
             flags.get("title").map(String::as_str),
-            flags.get("body").map(String::as_str),
+            body_flag.as_deref(),
             flags.get("priority").map(String::as_str),
             Some(&actor),
         ) {
@@ -366,10 +431,6 @@ fn cmd_work_update(
             Err(err) => return emit_error(CliError::from_service(err)),
         }
     }
-    let scope = match context.require_scope() {
-        Ok(scope) => scope.to_string(),
-        Err(err) => return emit_error(err),
-    };
     let short_id = match require_short_id(short_id) {
         Ok(short_id) => short_id,
         Err(err) => return emit_error(err),
@@ -386,6 +447,23 @@ fn cmd_work_update(
             "work update does not change state; use work transition --to <state>",
         ));
     }
+    if standalone_fallback_item(context, &short_id).is_some() {
+        return match work_service::patch_standalone_work_item(
+            context.org_id.as_deref(),
+            &short_id,
+            flags.get("title").map(String::as_str),
+            body_flag.as_deref(),
+            flags.get("priority").map(String::as_str),
+            Some(&actor),
+        ) {
+            Ok(item) => emit_success(item_to_wire(&item, None), None, None),
+            Err(err) => emit_error(CliError::from_service(err)),
+        };
+    }
+    let scope = match context.require_scope() {
+        Ok(scope) => scope.to_string(),
+        Err(err) => return emit_error(err),
+    };
     let expected_revision = flags
         .get("expected-revision")
         .and_then(|value| value.parse::<i64>().ok());
@@ -393,7 +471,7 @@ fn cmd_work_update(
         "op": "work.update",
         "shortId": short_id,
         "title": flags.get("title"),
-        "body": flags.get("body"),
+        "body": body_flag,
         "priority": flags.get("priority"),
         "expectedRevision": expected_revision,
     });
@@ -404,7 +482,7 @@ fn cmd_work_update(
         .as_ref()
         .map(|session| session.external_id.clone());
     let title = flags.get("title").cloned();
-    let body = flags.get("body").cloned();
+    let body = body_flag.clone();
     let priority = flags.get("priority").cloned();
     let result = guarded(
         &actor.id.clone(),
@@ -753,10 +831,49 @@ fn cmd_work_note(
     if let Err(err) = context.require_project_mode("work.note") {
         return emit_error(err);
     }
-    let scope = match context.require_scope() {
-        Ok(scope) => scope.to_string(),
-        Err(err) => return emit_error(err),
-    };
+    if flags.contains_key("standalone") {
+        let short_id = match require_short_id(short_id) {
+            Ok(short_id) => short_id,
+            Err(err) => return emit_error(err),
+        };
+        let actor = match mutation_actor(context) {
+            Ok(actor) => actor,
+            Err(err) => return emit_error(err),
+        };
+        let body = match resolve_body_flag(flags) {
+            Ok(Some(body)) if !body.trim().is_empty() => body,
+            Ok(_) => {
+                return emit_error(CliError::new(
+                    ErrorCode::InvalidArgument,
+                    "work note requires --body or --body-file",
+                ))
+            }
+            Err(err) => return emit_error(err),
+        };
+        let body = body.as_str();
+        let kind = flags.get("kind").map(String::as_str).unwrap_or("comment");
+        const KINDS: &[&str] =
+            &["comment", "progress", "blocker", "decision", "handoff", "review"];
+        if !KINDS.contains(&kind) {
+            return emit_error(CliError::new(
+                ErrorCode::InvalidArgument,
+                format!(
+                    "Unknown note kind '{}'; expected comment|progress|blocker|decision|handoff|review",
+                    kind
+                ),
+            ));
+        }
+        return match work_service::note_standalone_work_item(
+            context.org_id.as_deref(),
+            &short_id,
+            kind,
+            body,
+            Some(&actor),
+        ) {
+            Ok(()) => emit_success(serde_json::json!({ "appended": true, "kind": kind }), None, None),
+            Err(err) => emit_error(CliError::from_service(err)),
+        };
+    }
     let short_id = match require_short_id(short_id) {
         Ok(short_id) => short_id,
         Err(err) => return emit_error(err),
@@ -765,12 +882,17 @@ fn cmd_work_note(
         Ok(actor) => actor,
         Err(err) => return emit_error(err),
     };
-    let Some(body) = flags.get("body").filter(|value| !value.trim().is_empty()) else {
-        return emit_error(CliError::new(
-            ErrorCode::InvalidArgument,
-            "work note requires --body",
-        ));
+    let body = match resolve_body_flag(flags) {
+        Ok(Some(body)) if !body.trim().is_empty() => body,
+        Ok(_) => {
+            return emit_error(CliError::new(
+                ErrorCode::InvalidArgument,
+                "work note requires --body or --body-file",
+            ))
+        }
+        Err(err) => return emit_error(err),
     };
+    let body = body.as_str();
     let kind = flags
         .get("kind")
         .map(String::as_str)
@@ -785,6 +907,24 @@ fn cmd_work_note(
             ),
         ));
     }
+    if standalone_fallback_item(context, &short_id).is_some() {
+        return match work_service::note_standalone_work_item(
+            context.org_id.as_deref(),
+            &short_id,
+            kind,
+            body,
+            Some(&actor),
+        ) {
+            Ok(()) => {
+                emit_success(serde_json::json!({ "appended": true, "kind": kind }), None, None)
+            }
+            Err(err) => emit_error(CliError::from_service(err)),
+        };
+    }
+    let scope = match context.require_scope() {
+        Ok(scope) => scope.to_string(),
+        Err(err) => return emit_error(err),
+    };
     match work_service::note_project_work_item(&scope, &short_id, kind, body, Some(&actor)) {
         Ok(()) => emit_success(serde_json::json!({ "appended": true, "kind": kind }), None, None),
         Err(err) => emit_error(CliError::from_service(err)),

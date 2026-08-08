@@ -32,6 +32,15 @@
 - **Projects-channel JWT 过期恢复慢**：多 GoTrueClient 告警 + 过期后至多约一个刷新周期不推；自愈但值得并入 token 单一持有者清理
 - UNCOVERED：S3 envelope 卡片的渲染态视觉断言（store/transcript 已证,视觉未截图）；`--schedule-cron` 真机排程触发未跑
 
+## Sub-item 与 Discussion 实测（2026-08-07 深夜，真机·真 Opus）
+
+围绕 sub-item 与 Discussion 机制（`--parent`/`--stage`、"Post exactly ONE comment per run"、turn-end fallback、mention 副作用纪律）落地并实测三轮：
+
+- **机械面**：`work create --parent` / `work note --standalone` / `work list --standalone` 补齐（cli_e2e 覆盖 parent 链接与 note 落 comments）
+- **纪律面**：CLI brief 恢复拆分判据（"more than one independently completable step"）+ 恰好一条回执（outcome 不 process）+ blocked 转移；linked-work-item context 增 ⚠️ 交付强制块（"Chat replies are conversation, not delivery"）
+- **实测轮次**：WI-0016（无强制块）＝agent 全量产出丢聊天、零 CLI 调用 → 强制块后 WI-0017＝body 填 381 字 + 恰好一条 `[progress]` 回执（Discussion UI 渲染验证）；WI-0018＝**自主拆 3 子项**（WI-0019/20/21 各 600-900 字内容,audit 8 条全带 agent:os）+ 父项闭环总览 + 恰好一条回执
+- **Gap（挂单）**：详情页无 Sub-items 区块，parent 关系仅在库中，agent 只能在父 body 手写引用
+
 ## 探针清理
 
-`WI-0013` 已在云端打 tombstone（v2, deleted_at 2026-08-07T20:50:30Z），两实例经拉取收敛删除（见任务日志）。隔离 e2e home `/tmp/orgii-e2e-live-InJVUz` 与 wdio shard homes 为一次性沙箱。
+`WI-0013` 已在云端打 tombstone（v2, deleted_at 2026-08-07T20:50:30Z），两实例经拉取收敛删除（见任务日志）。隔离 e2e home 与 wdio shard homes 为一次性沙箱已删。真机演示数据 `WI-0015`（rail 探针）与 `WI-0017`~`WI-0021`（纪律探针,bfa7b134 org）留作用户查看,自行处置。

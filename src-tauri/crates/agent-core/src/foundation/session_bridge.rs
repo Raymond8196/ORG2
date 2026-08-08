@@ -62,6 +62,10 @@ pub struct CliLaunchParams {
     pub project_slug: Option<String>,
     pub work_item_id: Option<String>,
     pub agent_role: Option<String>,
+    /// Product-mode axis (orgtrack/v1 §5.2), persisted on the CLI session
+    /// row so Project-mode CLI sessions bootstrap a root Work Item and
+    /// get the `work.mutate` capability surface.
+    pub product_mode: Option<String>,
 
     // Run-side params
     pub user_input: String,
