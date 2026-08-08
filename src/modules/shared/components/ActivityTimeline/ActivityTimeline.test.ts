@@ -113,6 +113,20 @@ describe("activity timeline", () => {
     expect(container.querySelector("button")).toBeNull();
   });
 
+  it("uses the configurable chat body typography token for Markdown", () => {
+    contentHeight = 120;
+
+    act(() => {
+      root.render(createElement(MarkdownContent, { body: "Body text" }));
+    });
+
+    const body = container.querySelector<HTMLElement>(".chat-text");
+    expect(body).not.toBeNull();
+    expect(body?.className).toContain("text-text-1");
+    expect(body?.className).not.toContain("text-[12px]");
+    expect(body?.className).not.toContain("leading-5");
+  });
+
   it("collapses long Markdown with an always-visible shared control", () => {
     contentHeight = 600;
 

@@ -85,7 +85,8 @@ export type Org2CloudDbChangeKind =
   | "roster"
   | "policy"
   | "channels"
-  | "channelMessages";
+  | "channelMessages"
+  | "member_runtime";
 
 export function parseOrgDbChangeKind(
   payload: Record<string, unknown>
@@ -98,7 +99,8 @@ export function parseOrgDbChangeKind(
     kind === "roster" ||
     kind === "policy" ||
     kind === "channels" ||
-    kind === "channelMessages"
+    kind === "channelMessages" ||
+    kind === "member_runtime"
     ? kind
     : null;
 }

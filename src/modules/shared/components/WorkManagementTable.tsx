@@ -270,7 +270,7 @@ export function WorkManagementTable({
         align: "center",
         renderCell: (row) => (
           <div
-            className="flex w-full items-center justify-center"
+            className="flex h-7 w-full items-center justify-center"
             data-work-management-selection
           >
             {row.selection}
@@ -386,7 +386,11 @@ export function WorkManagementTable({
         footer={footer}
         onRowClick={(row) => row.onClick?.()}
         rowClassName="group"
-        className="[&_.table-row:not(:last-child)_.table-td]:!border-b [&_.table-row:not(:last-child)_.table-td]:!border-border-1 [&_.table-row_.table-td:first-child]:!align-top [&_.table-row_.table-td:first-child_.table-td-inner]:!items-start [&_.table-td-inner]:!h-auto [&_.table-td-inner]:w-full [&_.table-td]:!h-auto [&_.table-td]:!py-2"
+        className={`[&_.table-row:not(:last-child)_.table-td]:!border-b [&_.table-row:not(:last-child)_.table-td]:!border-border-1 [&_.table-row_.table-td:first-child]:!align-top [&_.table-row_.table-td:first-child_.table-td-inner]:!items-start [&_.table-td-inner]:!h-auto [&_.table-td-inner]:w-full [&_.table-td]:!h-auto [&_.table-td]:!py-2 ${
+          hasSelection
+            ? "[&_.table-row_.table-td:nth-child(2)]:!align-top [&_.table-row_.table-td:nth-child(2)_.table-td-inner]:!items-start"
+            : ""
+        }`}
       />
     </div>
   );

@@ -93,6 +93,35 @@ describe("FloatingToolbar", () => {
     ).toBe(true);
   });
 
+  it("uses compact 14px controls without visual separators", () => {
+    const editor = {
+      isActive: vi.fn(() => false),
+    } as unknown as Editor;
+
+    act(() => {
+      root.render(
+        createElement(FloatingToolbar, {
+          editor,
+          placement: "inline",
+          size: "mini",
+        })
+      );
+    });
+
+    const toolbar = container.querySelector<HTMLElement>("[role='toolbar']");
+    expect(toolbar?.querySelector(".toolbar-divider")).toBeNull();
+    expect(
+      toolbar
+        ?.querySelector("[aria-label='creator.toolbar.bold'] svg")
+        ?.getAttribute("width")
+    ).toBe("14");
+    expect(
+      toolbar
+        ?.querySelector("[aria-label='creator.toolbar.lists'] svg")
+        ?.getAttribute("width")
+    ).toBe("14");
+  });
+
   it("opens formatting choices in the shared dropdown panel", async () => {
     const run = vi.fn();
     const chain = {

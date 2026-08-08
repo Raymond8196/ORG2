@@ -44,4 +44,31 @@ describe("PropertyDropdownField", () => {
     );
     expect(markup).toContain('data-testid="status-option-closed"');
   });
+
+  it("uses the shared background states for pill triggers", () => {
+    const idleMarkup = renderToStaticMarkup(
+      React.createElement(PropertyDropdownField, {
+        value: "open",
+        label: "Open",
+        icon: null,
+        active: false,
+        fieldVariant: "pill",
+      })
+    );
+    const activeMarkup = renderToStaticMarkup(
+      React.createElement(PropertyDropdownField, {
+        value: "open",
+        label: "Open",
+        icon: null,
+        active: true,
+        searchable: false,
+        fieldVariant: "pill",
+      })
+    );
+
+    expect(idleMarkup).toContain("!bg-bg-2");
+    expect(idleMarkup).toContain("enabled:hover:!bg-surface-hover");
+    expect(activeMarkup).toContain("!bg-surface-hover");
+    expect(activeMarkup).toContain("!border-primary-6");
+  });
 });

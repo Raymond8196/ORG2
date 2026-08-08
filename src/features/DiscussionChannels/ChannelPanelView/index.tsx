@@ -423,32 +423,37 @@ const CloudChannelPanel: React.FC<CloudChannelPanelProps> = ({
         ) : null}
         {feedMessages.length === 0 ? (
           <div className={EMPTY_STATE_COLUMN_CLASSES}>
-            <Placeholder
-              variant="empty"
-              placement="detail-panel"
-              icon={<MessagesSquare size={32} strokeWidth={1.5} />}
-              title={
-                gated
-                  ? t("cloud.channels.feed.cloudPendingTitle")
-                  : phase === "ready"
-                    ? t("cloud.channels.feed.emptyTitle", { name: displayName })
-                    : phase === "error"
-                      ? t("cloud.channels.feed.loadError")
-                      : t("cloud.channels.feed.loadingMessages")
-              }
-              subtitle={
-                gated
-                  ? t("cloud.channels.feed.cloudPendingSubtitle")
-                  : phase === "ready"
-                    ? t("cloud.channels.feed.emptySubtitle")
-                    : undefined
-              }
-            />
+            {phase === "loading" || phase === "signedOut" ? (
+              <Placeholder variant="loading" placement="detail-panel" />
+            ) : (
+              <Placeholder
+                variant="empty"
+                placement="detail-panel"
+                icon={<MessagesSquare size={32} strokeWidth={1.5} />}
+                title={
+                  gated
+                    ? t("cloud.channels.feed.cloudPendingTitle")
+                    : phase === "ready"
+                      ? t("cloud.channels.feed.emptyTitle", {
+                          name: displayName,
+                        })
+                      : t("cloud.channels.feed.loadError")
+                }
+                subtitle={
+                  gated
+                    ? t("cloud.channels.feed.cloudPendingSubtitle")
+                    : phase === "ready"
+                      ? t("cloud.channels.feed.emptySubtitle")
+                      : undefined
+                }
+              />
+            )}
           </div>
         ) : (
           <ChannelMessageList
             messages={feedMessages}
             authorLabel={youLabel}
+            cloudOrgId={orgId}
             onEdit={canPost ? handleEdit : null}
             onDelete={canPost ? handleDelete : null}
             header={

@@ -51,6 +51,7 @@ vi.mock("@src/features/Org2Cloud/org2CloudOrgsAtom", async () => {
   return {
     org2CloudOrgsAtom: atom([]),
     org2CloudOrgsLoadedAtom: atom(true),
+    org2CloudMemberRuntimeVersionAtom: atom({}),
   };
 });
 

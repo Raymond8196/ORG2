@@ -17,7 +17,6 @@ import type { GitHubReviewComment, PrFile } from "@src/api/tauri/github";
 import type { GitFileStatus } from "@src/config/gitStatus";
 import { CodeMirrorDiff } from "@src/features/CodeMirror";
 import {
-  type DiffViewMode,
   FileHeader,
   GIT_FILE_LIST_MAX_WIDTH,
   GIT_FILE_LIST_MIN_WIDTH,
@@ -32,6 +31,7 @@ import {
   editorWordWrapAtom,
 } from "@src/store/ui/editorSettingsAtom";
 import { activeStatusBarCallbacksAtom } from "@src/store/ui/workStationAtom";
+import { diffViewModeAtom } from "@src/store/workstation/codeEditor";
 import type { GitFile } from "@src/types/git/types";
 
 import { PrReviewThreadsPanel } from "./PrReviewThreadsPanel";
@@ -92,7 +92,7 @@ export const PrChangesTab: React.FC<PrChangesTabProps> = ({
   const { t } = useTranslation("common");
 
   const [fileListCollapsed, setFileListCollapsed] = useState(false);
-  const [viewMode, setViewMode] = useState<DiffViewMode>("unified");
+  const [viewMode, setViewMode] = useAtom(diffViewModeAtom);
   const [lineNumbers, setLineNumbers] = useAtom(editorLineNumbersAtom);
   const [wordWrap, setWordWrap] = useAtom(editorWordWrapAtom);
   const [highlightActiveLine, setHighlightActiveLine] = useAtom(

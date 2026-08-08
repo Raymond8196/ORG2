@@ -71,33 +71,6 @@ export function CreateComposerPinnedActions({
   );
 }
 
-export function CreateComposerLauncher({
-  centered = false,
-  centeredDataTestId,
-  children,
-}: {
-  centered?: boolean;
-  centeredDataTestId: string;
-  children?: ReactNode;
-}) {
-  return (
-    <div
-      className={`flex h-full min-h-0 flex-col ${
-        centered ? "overflow-y-auto" : "overflow-hidden"
-      }`}
-    >
-      <div
-        className={
-          centered ? "my-auto flex w-full shrink-0 flex-col" : "contents"
-        }
-        data-testid={centered ? centeredDataTestId : undefined}
-      >
-        {children}
-      </div>
-    </div>
-  );
-}
-
 export function CreateComposerAgentFrame({
   centered = false,
   children,
@@ -107,9 +80,7 @@ export function CreateComposerAgentFrame({
 }) {
   return (
     <div
-      className={
-        centered ? "shrink-0 pt-6" : "min-h-0 flex-1 overflow-hidden pt-6"
-      }
+      className={centered ? "shrink-0" : "min-h-0 flex-1 overflow-hidden pt-6"}
     >
       {children}
     </div>
@@ -155,10 +126,10 @@ export function ManualCreateComposer({
 
   return (
     <div
-      className={`session-creator-chat-panel-wrapper pt-6 ${
+      className={`session-creator-chat-panel-wrapper ${
         centered
           ? `${DETAIL_PANEL_TOKENS.headerWidth} shrink-0 px-4`
-          : "min-h-0 flex-1 overflow-hidden"
+          : "min-h-0 flex-1 overflow-hidden pt-6"
       }`}
       data-testid={dataTestId}
     >

@@ -1,9 +1,12 @@
 /**
  * Splitting a posted channel body into prose and reference cards.
  *
- * Three kinds of reference are promoted OUT of the sentence and rendered as
- * cards below the prose — sessions, work items, and GitHub issues/PRs. Each is
- * stored inside the body as ordinary pill syntax (`title [session:<id>]`,
+ * Four kinds of reference are promoted OUT of the sentence and rendered as
+ * cards below the prose — local sessions, cloud sessions, work items, and
+ * GitHub issues/PRs. Local references are stored as ordinary pill syntax; a
+ * cloud reference keeps its canonical `orgii://cloud/session/ref?...` tuple
+ * because its source session id is not globally unique. The other references
+ * are stored inside the body as ordinary pill syntax (`title [session:<id>]`,
  * `title [workitem:workitem://<slug>/<shortId>/<ts>]`,
  * `owner/repo#1 [pr:https://github.com/...]`) because that is what the
  * composer serializes.
@@ -29,12 +32,25 @@
 import { serializePillNode } from "@src/components/ComposerInput";
 import { parseGitHubPillUrl } from "@src/components/ComposerInput/githubUrl";
 import { parsePillTextToSnapshot } from "@src/engines/ChatPanel/InputArea/utils/pillContentParser";
+import {
+  type CloudSessionReference,
+  parseCloudSessionReference,
+  scanCloudSessionReferences,
+} from "@src/features/Org2Cloud/cloudSessionReference";
 
 export interface ChannelSessionReference {
   kind: "session";
   sessionId: string;
   /** Title snapshot as posted — the fallback when the session is gone. */
   title: string;
+}
+
+export interface ChannelCloudSessionReference {
+  kind: "cloudSession";
+  /** Full org + owner + source identity; a bare source id is not global. */
+  reference: CloudSessionReference;
+  /** Present on legacy pill-shaped references, absent on canonical bare refs. */
+  title?: string;
 }
 
 export interface ChannelWorkItemReference {
@@ -56,6 +72,7 @@ export interface ChannelGitHubReference {
 
 export type ChannelMessageReference =
   | ChannelSessionReference
+  | ChannelCloudSessionReference
   | ChannelWorkItemReference
   | ChannelGitHubReference;
 
@@ -71,6 +88,10 @@ export function channelReferenceKey(
   reference: ChannelMessageReference
 ): string {
   if (reference.kind === "session") return `session:${reference.sessionId}`;
+  if (reference.kind === "cloudSession") {
+    const { orgId, ownerUserId, sourceSessionId } = reference.reference;
+    return `cloudSession:${orgId}/${ownerUserId}/${sourceSessionId}`;
+  }
   if (reference.kind === "workItem") {
     return `workItem:${reference.projectSlug}/${reference.shortId}`;
   }
@@ -146,15 +167,33 @@ function isMarkdownLinkPart(
 }
 
 /**
- * Pulls bare GitHub issue/PR URLs out of one prose segment, appending each to
- * `collect`. Returns the segment with the lifted URLs removed.
+ * Pulls bare cloud-session and GitHub issue/PR references out of one prose
+ * segment, appending each to `collect` in source order. Returns the segment
+ * with the lifted references removed.
  */
-function liftGitHubUrlsFromProse(
+function liftReferencesFromProse(
   prose: string,
-  collect: (reference: ChannelGitHubReference) => void
+  collect: (reference: ChannelMessageReference) => void
 ): string {
-  let result = "";
-  let lastIndex = 0;
+  const cloudSpans = scanCloudSessionReferences(prose)
+    .filter((span) => !isMarkdownLinkPart(prose, span.start, span.end))
+    .map((span) => ({
+      start: span.start,
+      // Match the existing GitHub-card behavior: punctuation that merely
+      // terminates a bare reference leaves with the promoted attachment.
+      end:
+        span.end +
+        (prose.slice(span.end).match(/^[.,;:!?'\u0022]+/u)?.[0].length ?? 0),
+      reference: {
+        kind: "cloudSession" as const,
+        reference: span.reference,
+      },
+    }));
+  const githubSpans: Array<{
+    start: number;
+    end: number;
+    reference: ChannelGitHubReference;
+  }> = [];
 
   for (const match of prose.matchAll(PROSE_URL_TOKEN_REGEX)) {
     const start = match.index;
@@ -166,11 +205,20 @@ function liftGitHubUrlsFromProse(
     const reference = gitHubReferenceFromUrl(
       raw.replace(URL_TRAILING_PUNCTUATION_REGEX, "")
     );
-    if (!reference) continue;
+    if (reference) githubSpans.push({ start, end, reference });
+  }
 
-    result += prose.slice(lastIndex, start);
-    lastIndex = end;
-    collect(reference);
+  const spans = [...cloudSpans, ...githubSpans].sort(
+    (left, right) => left.start - right.start
+  );
+  let result = "";
+  let lastIndex = 0;
+
+  for (const span of spans) {
+    if (span.start < lastIndex) continue;
+    result += prose.slice(lastIndex, span.start);
+    lastIndex = span.end;
+    collect(span.reference);
   }
 
   return result + prose.slice(lastIndex);
@@ -246,6 +294,17 @@ export function splitChannelMessageBody(body: string): ChannelMessageBodyParts {
     const usedPathAsLabel = label === basename;
 
     if (attrs.iconType === "session") {
+      // Older channel posts serialized a teammate drag through the LOCAL
+      // session-pill branch, producing `[session:orgii://cloud/…]`. Preserve
+      // the full tuple before the local-id parser can truncate it to `orgii:`.
+      const cloudReference = parseCloudSessionReference(attrs.filePath);
+      if (cloudReference) {
+        return {
+          kind: "cloudSession",
+          reference: cloudReference,
+          title: label || undefined,
+        };
+      }
       const sessionId = sessionIdFromPillPath(attrs.filePath);
       if (!sessionId) return null;
       return { kind: "session", sessionId, title: label || sessionId };
@@ -313,7 +372,7 @@ export function splitChannelMessageBody(body: string): ChannelMessageBodyParts {
     .map((segment) =>
       segment.fromPill
         ? segment.text
-        : liftGitHubUrlsFromProse(segment.text, collect)
+        : liftReferencesFromProse(segment.text, collect)
     )
     .join("");
 

@@ -56,7 +56,7 @@ export const MarkdownContent = memo(function MarkdownContent({
   if (!body.trim()) {
     return (
       <div
-        className={`select-text text-[12px] italic leading-5 text-text-3 ${className}`.trim()}
+        className={`chat-text select-text italic text-text-3 ${className}`.trim()}
       >
         {emptyText}
       </div>
@@ -65,7 +65,7 @@ export const MarkdownContent = memo(function MarkdownContent({
 
   const content = (
     <div
-      className={`chat-block-content w-full min-w-0 select-text text-[12px] leading-5 text-text-2 [&_.chat-markdown-body]:select-text [&_.chat-markdown-body]:text-[12px] [&_.chat-markdown-body]:leading-5 ${className}`.trim()}
+      className={`chat-text w-full min-w-0 select-text text-text-1 [&_.chat-markdown-body]:select-text ${className}`.trim()}
     >
       <Markdown textContent={normalizeMarkdownContent(body)} skipPreprocess />
     </div>

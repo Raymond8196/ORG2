@@ -154,6 +154,9 @@ export function ChatPanelEmptyContent({
     },
     [openOrFocusSessionTab]
   );
+  const handleCreateWorkItem = useCallback(() => {
+    handleCreateTargetChange(CHAT_PANEL_CREATE_TARGET.WORK_ITEM);
+  }, [handleCreateTargetChange]);
   const renderWorkItemCreator = (showInlineAiModePanel: boolean) => {
     return (
       <WorkspaceScopedContent>
@@ -226,6 +229,7 @@ export function ChatPanelEmptyContent({
         variant={creatorVariant}
         innerClassName="pb-2 pt-1"
         hidePresenceButton
+        onCreateWorkItem={handleCreateWorkItem}
         onOpenCliTerminal={handleOpenCliTerminal}
         onRegionNoticeChange={handleRegionNoticeChange}
         onSessionStart={handleStartPageSessionStart}

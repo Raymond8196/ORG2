@@ -535,8 +535,8 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
           continue;
         }
         const scopeKeys = getSessionScopeKeys(session);
-        // undefined = git-remote resolution still in flight; the next pass
-        // (60s / activity) picks the session up once the keys land.
+        // undefined = git-remote resolution still in flight; the next
+        // event-driven pass picks the session up once the keys land.
         if (scopeKeys === undefined) continue;
         // Repo scope is the HARD boundary — a tag never bypasses it (the
         // server rejects out-of-scope upserts with ORG2_SCOPE_FORBIDDEN

@@ -10,7 +10,6 @@ export type { DetailSplitLayoutProps } from "./DetailSplitLayout";
 export {
   CreateComposerAgentFrame,
   CreateComposerHeader,
-  CreateComposerLauncher,
   CreateComposerPinnedActions,
   CreateComposerTitleInput,
   ManualCreateComposer,

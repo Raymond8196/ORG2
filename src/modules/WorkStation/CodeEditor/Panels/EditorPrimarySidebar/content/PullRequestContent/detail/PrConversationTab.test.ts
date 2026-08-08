@@ -101,6 +101,7 @@ describe("PrConversationTab", () => {
     const input = composer?.querySelector(
       '[data-testid="pr-comment-drop-target"]'
     );
+    const actionRow = input?.lastElementChild;
 
     expect(composer).not.toBeNull();
     expect(scrollRegion?.contains(composer)).toBe(false);
@@ -110,7 +111,7 @@ describe("PrConversationTab", () => {
     expect(scrollRegion?.firstElementChild?.getAttribute("style")).toContain(
       "padding-bottom:240px"
     );
-    expect(editor?.getAttribute("data-min-height")).toBe("140");
+    expect(editor?.getAttribute("data-min-height")).toBe("100");
     expect(editor?.getAttribute("data-max-height")).toBe("500");
     expect(editor?.getAttribute("data-appearance")).toBe("plain");
     expect(editor?.getAttribute("data-toolbar-mode")).toBe("inline");
@@ -121,6 +122,7 @@ describe("PrConversationTab", () => {
     expect(input?.contains(levelActions as Node)).toBe(false);
     expect(input?.textContent).toContain("Submit review");
     expect(input?.textContent).toContain("Comment");
+    expect(actionRow?.className).not.toContain("border-t");
     expect(levelActions?.textContent).toContain("Enable auto-merge");
     expect(composer?.textContent).toContain("Submit review");
     expect(composer?.textContent).toContain("Comment");

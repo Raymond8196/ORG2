@@ -119,4 +119,22 @@ describe("WorkItemThreadLayout floating footer", () => {
       )
     ).toBeNull();
   });
+
+  it("hides the native scrollbar when the navigation guide is present", () => {
+    act(() => {
+      root.render(
+        createElement(
+          WorkItemThreadLayout,
+          null,
+          createElement("div", null, "Timeline")
+        )
+      );
+    });
+
+    const scrollSection = container.querySelector(
+      '[data-testid="work-item-thread-section"]'
+    );
+    expect(scrollSection?.classList.contains("scrollbar-hide")).toBe(true);
+    expect(scrollSection?.classList.contains("scrollbar-overlay")).toBe(false);
+  });
 });

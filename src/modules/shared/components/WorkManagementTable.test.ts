@@ -144,11 +144,20 @@ describe("WorkManagementTable", () => {
     );
 
     expect(markup).toContain("data-work-management-selection");
+    expect(markup).toContain(
+      'class="flex h-7 w-full items-center justify-center"'
+    );
     expect(markup).toContain('aria-label="Select WI-1"');
     expect(markup.indexOf('aria-label="Select WI-1"')).toBeLessThan(
       markup.indexOf(">WI-1<")
     );
     expect(markup).toContain("table-td-align-center");
+    expect(markup).toContain(
+      "[&amp;_.table-row_.table-td:nth-child(2)]:!align-top"
+    );
+    expect(markup).toContain(
+      "[&amp;_.table-row_.table-td:first-child]:!align-top"
+    );
   });
 
   it("renders status selects through the shared row contract", () => {

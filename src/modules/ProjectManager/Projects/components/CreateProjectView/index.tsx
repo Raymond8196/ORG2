@@ -34,7 +34,6 @@ import { useUndoStackWithRestore } from "@src/hooks/ui";
 import {
   CreateComposerAgentFrame,
   CreateComposerHeader,
-  CreateComposerLauncher,
   CreateComposerPinnedActions,
   CreateComposerTitleInput,
   DetailSplitLayout,
@@ -46,6 +45,7 @@ import {
   type ProjectData,
   ProjectPropertyFields,
 } from "@src/modules/ProjectManager/shared";
+import { CreatorContentLayout } from "@src/modules/shared/layouts/blocks";
 import { reposAtom } from "@src/store/repo";
 import {
   type ProjectDraft,
@@ -422,7 +422,7 @@ const CreateProjectView: React.FC<CreateProjectViewProps> = ({
       hideHeader
       publishHeaderToWorkstation={publishHeaderToWorkstation}
       leftContent={
-        <CreateComposerLauncher
+        <CreatorContentLayout
           centered={centerLauncherContent}
           centeredDataTestId="create-project-centered-launcher"
         >
@@ -451,7 +451,7 @@ const CreateProjectView: React.FC<CreateProjectViewProps> = ({
               }
             />
           )}
-        </CreateComposerLauncher>
+        </CreatorContentLayout>
       }
     />
   );

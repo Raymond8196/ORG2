@@ -253,6 +253,8 @@ describe("AssignedWorkItemDetail navigation actions", () => {
     mocks.threadWorkItem = null;
     mocks.threadProps = null;
     mocks.githubIssueState.issue = null;
+    mocks.githubIssueState.timelineLoading = false;
+    mocks.githubIssueState.interaction.loading = false;
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -457,6 +459,32 @@ describe("AssignedWorkItemDetail navigation actions", () => {
         },
       },
     });
+  });
+
+  it("shows the GitHub detail skeleton while the issue author is loading", () => {
+    const githubItem: AssignedWorkItem = {
+      ...item,
+      target: {
+        ...item.target,
+        repository: "git@github.com:org2AI/ORG2.git",
+        workItemId: "132",
+      },
+      payload: { ...item.payload, status: "open" },
+    };
+    mocks.githubIssueState.timelineLoading = true;
+    mocks.githubIssueState.interaction.loading = true;
+
+    act(() => {
+      root.render(createElement(AssignedWorkItemDetail, { item: githubItem }));
+    });
+
+    expect(
+      container.querySelector("[data-testid='github-issue-detail-skeleton']")
+    ).not.toBeNull();
+    expect(
+      container.querySelector("[data-testid='work-item-content']")
+    ).toBeNull();
+    expect(mocks.threadWorkItem).toBeNull();
   });
 
   it("keeps non-GitHub Work Items on the in-app open action", () => {

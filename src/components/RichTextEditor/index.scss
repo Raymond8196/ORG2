@@ -234,7 +234,8 @@
     // editing mode that the shared Markdown renderer uses in Preview mode.
     &.rich-text-editor-markdown-preview {
       padding: 8px 12px;
-      line-height: 1.6;
+      font-size: var(--chat-font-size, 13px);
+      line-height: var(--chat-line-height, 1.6);
       letter-spacing: -0.01em;
 
       > *:first-child {
@@ -388,7 +389,7 @@
           "Consolas",
           monospace
         );
-        font-size: 12px;
+        font-size: var(--chat-code-font-size, 13px);
         font-weight: 500;
         white-space: break-spaces;
       }
@@ -469,11 +470,10 @@
   &.rich-text-editor-toolbar-inline {
     width: 100%;
     max-width: none;
-    min-height: 40px;
+    min-height: 32px;
     flex-wrap: wrap;
-    padding: 5px 6px;
+    padding: 3px 6px;
     border: 0;
-    border-bottom: 1px solid var(--color-border-2);
     border-radius: 0;
     background: transparent;
     box-shadow: none;
@@ -485,8 +485,8 @@
   }
 
   &.rich-text-editor-toolbar-mini .toolbar-btn {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
   }
 
   .toolbar-btn {
@@ -527,13 +527,6 @@
         text-align: center;
       }
     }
-  }
-
-  .toolbar-divider {
-    width: 1px;
-    height: 16px;
-    margin: 0 4px;
-    background: var(--color-border-2);
   }
 }
 

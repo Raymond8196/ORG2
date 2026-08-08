@@ -1,4 +1,4 @@
-import { MoreHorizontal } from "lucide-react";
+import { ListChevronsUpDown } from "lucide-react";
 import React, {
   useCallback,
   useEffect,
@@ -9,6 +9,7 @@ import React, {
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
+import { pillControlStateClass } from "@src/components/CompoundPill/config";
 import { DROPDOWN_ITEM } from "@src/components/Dropdown/tokens";
 import { DEFAULT_LABELS } from "@src/modules/ProjectManager/config/manage";
 import type { ContextMenuItem } from "@src/types/core/shared";
@@ -344,10 +345,10 @@ const WorkItemProperties: React.FC<WorkItemPropertiesProps> = ({
               size="small"
               shape="circle"
               iconOnly
-              icon={<MoreHorizontal size={DROPDOWN_ITEM.iconSize} />}
+              icon={<ListChevronsUpDown size={DROPDOWN_ITEM.iconSize} />}
               onClick={handleMoreClick}
               aria-label={t("workItems.contextMenu.moreProperties")}
-              className="!h-7 !w-7 !min-w-7 !rounded-full !border !border-solid !border-border-2 !bg-bg-2 !p-0 !text-text-2 !shadow-none hover:!bg-surface-hover"
+              className={`!h-7 !w-7 !min-w-7 !rounded-full !border !border-solid !border-border-2 !p-0 !text-text-2 ${pillControlStateClass(Boolean(moreMenuPosition))}`}
             />
           )}
         </div>
