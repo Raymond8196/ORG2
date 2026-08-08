@@ -127,7 +127,7 @@ type ChatPanelTabStationAccess = "always" | "wide-only";
  * Minimum viewport width at which standalone Chat Panel surfaces may share
  * the workbench with a Station pane.
  */
-export const CHAT_PANEL_STATION_WIDE_VIEWPORT_MIN_PX = 1600;
+export const CHAT_PANEL_STATION_WIDE_VIEWPORT_MIN_PX = 1920;
 
 /**
  * When a Chat Panel tab can share the workbench with a Station surface.

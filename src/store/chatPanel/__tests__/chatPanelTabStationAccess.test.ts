@@ -8,8 +8,8 @@ import {
 } from "../chatPanelTabsAtom";
 
 describe("Chat Panel tab Station access", () => {
-  it("uses 1600px as the wide Station breakpoint", () => {
-    expect(CHAT_PANEL_STATION_WIDE_VIEWPORT_MIN_PX).toBe(1600);
+  it("uses 1920px as the wide Station breakpoint", () => {
+    expect(CHAT_PANEL_STATION_WIDE_VIEWPORT_MIN_PX).toBe(1920);
   });
 
   it.each<ChatPanelTabType>(["session", "terminal", "start-page", "channel"])(

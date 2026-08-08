@@ -66,7 +66,7 @@ describe("useViewportWidth", () => {
       "1200"
     );
 
-    window.innerWidth = 1599;
+    window.innerWidth = 1919;
     act(() => {
       window.dispatchEvent(new Event("resize"));
       window.dispatchEvent(new Event("resize"));
@@ -79,10 +79,10 @@ describe("useViewportWidth", () => {
 
     act(() => pendingFrame?.(0));
     expect(container.firstElementChild?.getAttribute("data-width")).toBe(
-      "1599"
+      "1919"
     );
 
-    window.innerWidth = 1600;
+    window.innerWidth = 1920;
     act(() => window.dispatchEvent(new Event("resize")));
     expect(requestFrame).toHaveBeenCalledTimes(2);
 
