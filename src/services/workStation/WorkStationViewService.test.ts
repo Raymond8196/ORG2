@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import { ROUTES } from "@src/config/routes";
 import {
+  CHAT_PANEL_STATION_WIDE_VIEWPORT_MIN_PX,
   buildInitialChatPanelTabsState,
   chatPanelTabsAtom,
   openRuntimeInChatPanelTabAtom,
@@ -58,7 +59,7 @@ describe("WorkStationViewService work-management tabs", () => {
     expect(navigationEvents).toEqual([{ path: ROUTES.workStation.base.path }]);
   });
 
-  it("rejects Station-opening actions for wide-only tabs below 1440px", async () => {
+  it("rejects Station-opening actions for wide-only tabs below the threshold", async () => {
     const store = getInstrumentedStore();
     store.set(openRuntimeInChatPanelTabAtom, "Runtime");
 
@@ -72,10 +73,10 @@ describe("WorkStationViewService work-management tabs", () => {
     expect(store.get(stationModeAtom)).toBe("agent-station");
   });
 
-  it("allows Station-opening actions for wide-only tabs at 1440px", async () => {
+  it("allows Station-opening actions for wide-only tabs at the threshold", async () => {
     const store = getInstrumentedStore();
     store.set(openRuntimeInChatPanelTabAtom, "Runtime");
-    window.innerWidth = 1440;
+    window.innerWidth = CHAT_PANEL_STATION_WIDE_VIEWPORT_MIN_PX;
 
     expect(await WorkStationViewService.toggleChatPanelMaximized()).toBe(true);
     expect(store.get(chatPanelMaximizedAtom)).toBe(true);

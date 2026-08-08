@@ -8,6 +8,10 @@ import {
 } from "../chatPanelTabsAtom";
 
 describe("Chat Panel tab Station access", () => {
+  it("uses 1600px as the wide Station breakpoint", () => {
+    expect(CHAT_PANEL_STATION_WIDE_VIEWPORT_MIN_PX).toBe(1600);
+  });
+
   it.each<ChatPanelTabType>(["session", "terminal", "start-page", "channel"])(
     "keeps Station access available for %s tabs at every viewport width",
     (type) => {
@@ -46,11 +50,19 @@ describe("Chat Panel tab Station access", () => {
     expect(resolveChatPanelMaximizedForLayout(false, "work-item", 1200)).toBe(
       true
     );
-    expect(resolveChatPanelMaximizedForLayout(false, "work-item", 1440)).toBe(
-      false
-    );
-    expect(resolveChatPanelMaximizedForLayout(true, "work-item", 1440)).toBe(
-      true
-    );
+    expect(
+      resolveChatPanelMaximizedForLayout(
+        false,
+        "work-item",
+        CHAT_PANEL_STATION_WIDE_VIEWPORT_MIN_PX
+      )
+    ).toBe(false);
+    expect(
+      resolveChatPanelMaximizedForLayout(
+        true,
+        "work-item",
+        CHAT_PANEL_STATION_WIDE_VIEWPORT_MIN_PX
+      )
+    ).toBe(true);
   });
 });

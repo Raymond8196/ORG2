@@ -42,6 +42,7 @@ async function loadChatPanelTabAtoms() {
     activeWorkManagementSectionAtom,
     addChatPanelTerminalTabAtom,
     addChatPanelLaunchpadTabAtom,
+    CHAT_PANEL_STATION_WIDE_VIEWPORT_MIN_PX,
     chatPanelTabsAtom,
     isChatPanelTabStationAvailable,
     closeChatPanelTabAtom,
@@ -106,6 +107,7 @@ async function loadChatPanelTabAtoms() {
     CHAT_PANEL_CREATE_TARGET,
     CHAT_PANEL_COLLAB_ORG_MODE,
     CHAT_PANEL_COLLAB_ORG_SOURCE,
+    CHAT_PANEL_STATION_WIDE_VIEWPORT_MIN_PX,
     CHAT_PANEL_SURFACE_KIND,
     chatPanelTabsAtom,
     isChatPanelTabStationAvailable,
@@ -602,6 +604,7 @@ describe("openWorkManagementChatPanelTabAtom", () => {
   it("guards the Station toggle until Kanban has a wide viewport", async () => {
     const {
       activeChatPanelTabAtom,
+      CHAT_PANEL_STATION_WIDE_VIEWPORT_MIN_PX,
       chatPanelMaximizedAtom,
       isChatPanelTabStationAvailable,
       openWorkManagementChatPanelTabAtom,
@@ -615,9 +618,17 @@ describe("openWorkManagementChatPanelTabAtom", () => {
     expect(store.get(chatPanelMaximizedAtom)).toBe(false);
 
     expect(
-      isChatPanelTabStationAvailable(store.get(activeChatPanelTabAtom), 1439)
+      isChatPanelTabStationAvailable(
+        store.get(activeChatPanelTabAtom),
+        CHAT_PANEL_STATION_WIDE_VIEWPORT_MIN_PX - 1
+      )
     ).toBe(false);
-    expect(store.set(toggleActiveChatPanelMaximizedAtom, 1439)).toBe(false);
+    expect(
+      store.set(
+        toggleActiveChatPanelMaximizedAtom,
+        CHAT_PANEL_STATION_WIDE_VIEWPORT_MIN_PX - 1
+      )
+    ).toBe(false);
     expect(store.get(chatPanelMaximizedAtom)).toBe(false);
 
     // Reconciliation leaves the user's preference untouched; the effective
@@ -628,11 +639,16 @@ describe("openWorkManagementChatPanelTabAtom", () => {
       resolveChatPanelMaximizedForLayout(
         store.get(chatPanelMaximizedAtom),
         store.get(activeChatPanelTabAtom),
-        1439
+        CHAT_PANEL_STATION_WIDE_VIEWPORT_MIN_PX - 1
       )
     ).toBe(true);
 
-    expect(store.set(toggleActiveChatPanelMaximizedAtom, 1440)).toBe(true);
+    expect(
+      store.set(
+        toggleActiveChatPanelMaximizedAtom,
+        CHAT_PANEL_STATION_WIDE_VIEWPORT_MIN_PX
+      )
+    ).toBe(true);
     expect(store.get(chatPanelMaximizedAtom)).toBe(true);
   });
 
