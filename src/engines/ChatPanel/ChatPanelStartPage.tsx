@@ -176,7 +176,9 @@ function StartPageActionGrid({
   return (
     <div
       className={`@container/startactions ${
-        presentation === "card" ? cardWidthClass : ""
+        presentation === "card"
+          ? `hidden @[640px]/focusedchat:block ${cardWidthClass}`
+          : ""
       } ${className}`}
     >
       <div

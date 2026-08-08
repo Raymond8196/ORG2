@@ -37,7 +37,11 @@ const SessionCreatorAgentHero = memo(
               aria-level={1}
               className="flex max-w-full flex-wrap items-center justify-center gap-1 whitespace-normal break-words text-[18px] font-normal leading-relaxed tracking-tight text-text-1 sm:text-[20px]"
             >
-              {question && <span>{question}</span>}
+              {question && (
+                <span className="hidden @[640px]/focusedchat:inline">
+                  {question}
+                </span>
+              )}
               <SelectorPill
                 ref={ref}
                 icon={avatarIcon}
@@ -58,7 +62,11 @@ const SessionCreatorAgentHero = memo(
                 labelClassName="!whitespace-normal !break-words !text-[18px] !font-bold !leading-relaxed !tracking-tight !text-text-1 group-hover/pill:!text-primary-6 group-hover/pill:underline group-hover/pill:underline-offset-4 sm:!text-[20px]"
                 chevronClassName="transition-colors group-hover/pill:!text-primary-6"
               />
-              {questionSuffix && <span>{questionSuffix}</span>}
+              {questionSuffix && (
+                <span className="hidden @[640px]/focusedchat:inline">
+                  {questionSuffix}
+                </span>
+              )}
             </div>
           </div>
         );

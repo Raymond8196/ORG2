@@ -19,6 +19,7 @@ describe("SessionCreatorAgentHero", () => {
     );
 
     expect(markup).toContain("What do you want to build with");
+    expect(markup).toContain("hidden @[640px]/focusedchat:inline");
     expect(markup).toContain("?</span>");
     expect(markup).toContain("A very long Ghost agent name");
     expect(markup).not.toContain(

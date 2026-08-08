@@ -81,6 +81,7 @@ describe("ChatPanelStartPage", () => {
     expect(markup).toContain("px-3 py-2.5");
     expect(markup).toContain("border-warning-6/20");
     expect(markup).toContain("text-warning-6");
+    expect(markup).toContain("hidden @[640px]/focusedchat:block");
     expect(markup).toContain("@[620px]/startactions:grid-cols-3");
     expect(markup).toContain(
       'data-testid="chat-panel-start-page-create-target-select"'
