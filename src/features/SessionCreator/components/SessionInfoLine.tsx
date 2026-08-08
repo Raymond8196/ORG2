@@ -121,6 +121,8 @@ export interface SessionInfoLineProps {
    * fullScreen ChatPanel creator) immediately under the composer input.
    */
   fullWidth?: boolean;
+  /** Direction used by anchored repo, branch, and location menus. */
+  dropdownDirection?: "up" | "down";
   /**
    * When provided, adds a third segment for selecting the running location
    * (This Mac / New Worktree / Cloud) — modelled after Cursor's context bar.
@@ -266,6 +268,7 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
   branchLoading,
   pillVariant = "default",
   fullWidth: _fullWidth = false,
+  dropdownDirection = "down",
   worktreeLocation,
   selectedWorktreePath,
   worktreeSourceLabel,
@@ -316,9 +319,7 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
   } = useDropdownEngine<HTMLButtonElement, LocationRow>({
     gap: 6,
     align: "left",
-    // Default: open downward; flip up only if the panel would clip
-    // against the bottom of the viewport.
-    placement: "auto",
+    placement: dropdownDirection === "up" ? "top" : "bottom",
     listNavigation: {
       items: LOCATION_ROWS,
       onSelect: handleLocationRowSelect,
@@ -629,6 +630,7 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
           onSelect={handleRepoSelected}
           currentRepoId={repoId}
           anchorRef={repoTriggerRef}
+          placement={dropdownDirection === "up" ? "top" : "bottom"}
           leadingRepos={systemPathSourceItems}
           repoFilter={orgScopeRepoFilter ?? undefined}
         />
@@ -658,6 +660,7 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
             currentBranchName={branchName}
             groupWorktreeBranches={false}
             anchorRef={branchTriggerRef}
+            placement={dropdownDirection === "up" ? "top" : "bottom"}
           />
         ) : (
           <BranchPalette

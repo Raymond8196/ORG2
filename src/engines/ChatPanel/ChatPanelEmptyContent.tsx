@@ -157,7 +157,11 @@ export function ChatPanelEmptyContent({
   const handleCreateWorkItem = useCallback(() => {
     handleCreateTargetChange(CHAT_PANEL_CREATE_TARGET.WORK_ITEM);
   }, [handleCreateTargetChange]);
-  const renderWorkItemCreator = (showInlineAiModePanel: boolean) => {
+  const renderWorkItemCreator = (
+    suggestionPills?: React.ReactNode,
+    manualMiddleContent?: React.ReactNode,
+    creatorModeControl?: React.ReactNode
+  ) => {
     return (
       <WorkspaceScopedContent>
         {({ workspacePath }) => {
@@ -179,25 +183,20 @@ export function ChatPanelEmptyContent({
                   aiGenerateMode={showWorkItemAgentCreator}
                   onAiGenerateModeChange={handleWorkItemAgentCreatorToggle}
                   showAiModePanel={false}
-                  centerLauncherContent={showInlineAiModePanel}
                   showFooter
                   chatPanelFooter
+                  middleContent={manualMiddleContent}
+                  creatorModeControl={creatorModeControl}
                   renderAgentComposer={
                     SessionCreatorSlot
                       ? (headerContent, pinnedActionsContent) => (
                           <SessionCreatorSlot
-                            className={
-                              showInlineAiModePanel
-                                ? "shrink-0"
-                                : "min-h-0 flex-1"
-                            }
+                            className="h-full min-h-0 flex-1"
                             variant={creatorVariant}
-                            centerFullScreenContent
+                            layout="launchpad"
+                            heroFooterSlot={suggestionPills}
                             composerHeaderContent={headerContent}
                             pinnedActionsContent={pinnedActionsContent}
-                            innerClassName={
-                              showInlineAiModePanel ? "pb-2 pt-1" : undefined
-                            }
                             hidePresenceButton
                             hideWorkItemAttachmentControl
                             includeHumanSession={false}
@@ -222,12 +221,17 @@ export function ChatPanelEmptyContent({
     );
   };
 
-  const renderSessionLauncher = (className: string) =>
+  const renderSessionLauncher = (
+    className: string,
+    layout: "default" | "launchpad" = "default",
+    heroFooterSlot?: React.ReactNode
+  ) =>
     SessionCreatorSlot ? (
       <SessionCreatorSlot
         className={className}
         variant={creatorVariant}
-        innerClassName="pb-2 pt-1"
+        layout={layout}
+        heroFooterSlot={heroFooterSlot}
         hidePresenceButton
         onCreateWorkItem={handleCreateWorkItem}
         onOpenCliTerminal={handleOpenCliTerminal}
@@ -236,7 +240,11 @@ export function ChatPanelEmptyContent({
       />
     ) : null;
 
-  const renderProjectCreator = () => {
+  const renderProjectCreator = (
+    suggestionPills?: React.ReactNode,
+    manualMiddleContent?: React.ReactNode,
+    creatorModeControl?: React.ReactNode
+  ) => {
     return (
       <WorkspaceScopedContent>
         {({ workspaceName, workspacePath }) => (
@@ -258,21 +266,18 @@ export function ChatPanelEmptyContent({
                 onSetUnsaved={() => undefined}
                 onProjectCreated={handleChatPanelProjectCreated}
                 aiGenerateMode={showProjectAgentCreator}
-                centerLauncherContent={showStartPage}
+                middleContent={manualMiddleContent}
+                creatorModeControl={creatorModeControl}
                 renderAgentComposer={
                   SessionCreatorSlot
                     ? (headerContent, pinnedActionsContent) => (
                         <SessionCreatorSlot
-                          className={
-                            showStartPage ? "shrink-0" : "min-h-0 flex-1"
-                          }
+                          className="h-full min-h-0 flex-1"
                           variant={creatorVariant}
-                          centerFullScreenContent
+                          layout="launchpad"
+                          heroFooterSlot={suggestionPills}
                           composerHeaderContent={headerContent}
                           pinnedActionsContent={pinnedActionsContent}
-                          innerClassName={
-                            showStartPage ? "pb-2 pt-1" : undefined
-                          }
                           hidePresenceButton
                           launchMode={
                             SESSION_CREATOR_LAUNCH_MODE.START_BACKGROUND
@@ -336,7 +341,8 @@ export function ChatPanelEmptyContent({
   );
 
   if (showStartPage) {
-    const sessionLauncher = renderSessionLauncher("shrink-0");
+    const sessionLauncher = (heroFooterSlot: React.ReactNode) =>
+      renderSessionLauncher("h-full", "launchpad", heroFooterSlot);
     const moreCreateTarget =
       createTarget === CHAT_PANEL_CREATE_TARGET.PROJECT ||
       createTarget === CHAT_PANEL_CREATE_TARGET.GITHUB_ISSUES_PROJECT ||
@@ -344,9 +350,17 @@ export function ChatPanelEmptyContent({
       createTarget === CHAT_PANEL_CREATE_TARGET.COLLAB_ORG
         ? createTarget
         : CHAT_PANEL_CREATE_TARGET.PROJECT;
-    const moreLauncher =
+    const moreLauncher = (
+      suggestionPills: React.ReactNode,
+      manualMiddleContent: React.ReactNode,
+      creatorModeControl?: React.ReactNode
+    ) =>
       moreCreateTarget === CHAT_PANEL_CREATE_TARGET.PROJECT
-        ? renderProjectCreator()
+        ? renderProjectCreator(
+            suggestionPills,
+            manualMiddleContent,
+            creatorModeControl
+          )
         : moreCreateTarget === CHAT_PANEL_CREATE_TARGET.GITHUB_ISSUES_PROJECT
           ? renderGithubIssuesCreator()
           : moreCreateTarget === CHAT_PANEL_CREATE_TARGET.COLLAB_ORG
@@ -368,7 +382,17 @@ export function ChatPanelEmptyContent({
         t={t}
         projectAgentMode={showProjectAgentCreator}
         workItemAgentMode={showWorkItemAgentCreator}
-        workItemLauncher={renderWorkItemCreator(true)}
+        workItemLauncher={(
+          suggestionPills,
+          manualMiddleContent,
+          creatorModeControl
+        ) =>
+          renderWorkItemCreator(
+            suggestionPills,
+            manualMiddleContent,
+            creatorModeControl
+          )
+        }
       />
     );
   }
@@ -382,7 +406,7 @@ export function ChatPanelEmptyContent({
   }
 
   if (createTarget === CHAT_PANEL_CREATE_TARGET.WORK_ITEM) {
-    return renderWorkItemCreator(false);
+    return renderWorkItemCreator();
   }
 
   if (createTarget === CHAT_PANEL_CREATE_TARGET.COLLAB_ORG) {

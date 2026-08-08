@@ -2,6 +2,7 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
+import { PropertyDropdownDirectionProvider } from "./PropertyDropdownDirection";
 import { PropertyDropdownField } from "./PropertyDropdownField";
 
 describe("PropertyDropdownField", () => {
@@ -70,5 +71,26 @@ describe("PropertyDropdownField", () => {
     expect(idleMarkup).toContain("enabled:hover:!bg-surface-hover");
     expect(activeMarkup).toContain("!bg-surface-hover");
     expect(activeMarkup).toContain("!border-primary-6");
+  });
+
+  it("opens inline property menus above bottom-docked creator rows", () => {
+    const markup = renderToStaticMarkup(
+      React.createElement(
+        PropertyDropdownDirectionProvider,
+        { direction: "up" },
+        React.createElement(PropertyDropdownField, {
+          value: "open",
+          label: "Open",
+          icon: null,
+          active: true,
+          searchable: false,
+          placement: "inline",
+          options: [{ value: "open", label: "Open" }],
+        })
+      )
+    );
+
+    expect(markup).toContain("bottom-full mb-1");
+    expect(markup).not.toContain("top-full mt-1");
   });
 });

@@ -1,10 +1,14 @@
 import { ChevronDown } from "lucide-react";
 import React, { forwardRef, memo } from "react";
 
+import SelectorPill from "@src/components/SelectorPill";
+
 export interface SessionCreatorAgentHeroProps {
   name: string;
   description: string;
   avatarIcon: React.ReactNode;
+  question?: string;
+  questionSuffix?: string;
   active?: boolean;
   danger?: boolean;
   onClick: () => void;
@@ -17,12 +21,49 @@ const SessionCreatorAgentHero = memo(
         name,
         description,
         avatarIcon,
+        question,
+        questionSuffix,
         active = false,
         danger = false,
         onClick,
       },
       ref
     ) => {
+      if (question || questionSuffix) {
+        return (
+          <div className="flex w-full min-w-0 justify-center px-4 text-center">
+            <div
+              role="heading"
+              aria-level={1}
+              className="flex max-w-full flex-wrap items-center justify-center gap-1 whitespace-normal break-words text-[18px] font-normal leading-relaxed tracking-tight text-text-1 sm:text-[20px]"
+            >
+              {question && <span>{question}</span>}
+              <SelectorPill
+                ref={ref}
+                icon={avatarIcon}
+                label={name}
+                labelContent={
+                  <span className="whitespace-normal break-words">{name}</span>
+                }
+                active={active}
+                danger={danger}
+                size="lg"
+                variant="ghost"
+                trailingChevron
+                onClick={onClick}
+                ariaLabel={name}
+                ariaExpanded={active}
+                dataTestId="session-creator-agent-selector"
+                className="!flex !min-h-0 !bg-transparent !p-2 !text-[18px] !font-normal !leading-relaxed !tracking-tight !text-text-1 sm:!text-[20px]"
+                labelClassName="!whitespace-normal !break-words !text-[18px] !font-bold !leading-relaxed !tracking-tight !text-text-1 group-hover/pill:!text-primary-6 group-hover/pill:underline group-hover/pill:underline-offset-4 sm:!text-[20px]"
+                chevronClassName="transition-colors group-hover/pill:!text-primary-6"
+              />
+              {questionSuffix && <span>{questionSuffix}</span>}
+            </div>
+          </div>
+        );
+      }
+
       return (
         <button
           ref={ref}

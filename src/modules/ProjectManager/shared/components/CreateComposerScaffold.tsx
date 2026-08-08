@@ -5,6 +5,7 @@ import ComposerBar from "@src/components/ComposerBar";
 import ComposerShell from "@src/components/ComposerShell";
 import Input from "@src/components/Input";
 import { GHOST_INPUT_PLACEHOLDER_CLASS } from "@src/components/Input/tokens";
+import { PropertyDropdownDirectionProvider } from "@src/components/PropertyField/PropertyDropdownDirection";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 
 export interface CreateComposerTitleInputProps {
@@ -62,28 +63,14 @@ export function CreateComposerPinnedActions({
   dataTestId: string;
 }) {
   return (
-    <div
-      className="flex min-w-0 flex-nowrap items-center gap-1.5"
-      data-testid={dataTestId}
-    >
-      {children}
-    </div>
-  );
-}
-
-export function CreateComposerAgentFrame({
-  centered = false,
-  children,
-}: {
-  centered?: boolean;
-  children?: ReactNode;
-}) {
-  return (
-    <div
-      className={centered ? "shrink-0" : "min-h-0 flex-1 overflow-hidden pt-6"}
-    >
-      {children}
-    </div>
+    <PropertyDropdownDirectionProvider direction="up">
+      <div
+        className="flex min-w-0 flex-nowrap items-center gap-1.5"
+        data-testid={dataTestId}
+      >
+        {children}
+      </div>
+    </PropertyDropdownDirectionProvider>
   );
 }
 
@@ -94,7 +81,6 @@ export interface ManualCreateEditorRef {
 }
 
 export interface ManualCreateComposerProps {
-  centered?: boolean;
   dataTestId?: string;
   editorContent: ReactNode;
   editorRef: RefObject<ManualCreateEditorRef | null>;
@@ -105,7 +91,6 @@ export interface ManualCreateComposerProps {
 
 /** Shared manual-create shell for Project and Work Item composers. */
 export function ManualCreateComposer({
-  centered = false,
   dataTestId,
   editorContent,
   editorRef,
@@ -126,16 +111,15 @@ export function ManualCreateComposer({
 
   return (
     <div
-      className={`session-creator-chat-panel-wrapper ${
-        centered
-          ? `${DETAIL_PANEL_TOKENS.headerWidth} shrink-0 px-4`
-          : "min-h-0 flex-1 overflow-hidden pt-6"
-      }`}
+      className={`session-creator-chat-panel-wrapper ${DETAIL_PANEL_TOKENS.headerWidth} w-full shrink-0 px-4`}
       data-testid={dataTestId}
     >
       <div
-        className={`mx-auto flex min-h-0 w-full flex-col ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
+        className={`mx-auto flex min-h-0 w-full flex-col gap-3 ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
       >
+        <div className="flex w-full min-w-0 items-center overflow-x-auto px-1 py-0.5 scrollbar-hide">
+          {pinnedActionsContent}
+        </div>
         <div className="session-creator-chat-panel-fullscreen-composer relative w-full">
           <ComposerShell className="session-creator-chat-panel-fullscreen-input-shell relative z-10 !pt-1.5">
             {headerContent}
@@ -144,20 +128,9 @@ export function ManualCreateComposer({
               onAddContent={() => editorRef.current?.triggerAtMention()}
               onUpload={() => fileInputRef.current?.click()}
               onOpenSkillsTools={() => editorRef.current?.triggerSlashContext()}
-              dropdownDirection="down"
+              dropdownDirection="up"
               toolbarItemGap={false}
               showContextInfo={false}
-              pills={
-                <>
-                  <div
-                    aria-hidden
-                    className="mx-1 h-4 w-px shrink-0 bg-border-2"
-                  />
-                  <div className="flex min-w-0 items-center overflow-x-auto scrollbar-hide">
-                    {pinnedActionsContent}
-                  </div>
-                </>
-              }
               submitButton={submitButton}
             />
             <input

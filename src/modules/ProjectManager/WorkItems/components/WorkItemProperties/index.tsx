@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 import Button from "@src/components/Button";
 import { pillControlStateClass } from "@src/components/CompoundPill/config";
 import { DROPDOWN_ITEM } from "@src/components/Dropdown/tokens";
+import { usePropertyDropdownDirection } from "@src/components/PropertyField/PropertyDropdownDirection";
 import { DEFAULT_LABELS } from "@src/modules/ProjectManager/config/manage";
 import type { ContextMenuItem } from "@src/types/core/shared";
 import type {
@@ -125,6 +126,7 @@ const WorkItemProperties: React.FC<WorkItemPropertiesProps> = ({
   showMoreMenu = false,
 }) => {
   const { t } = useTranslation("projects");
+  const dropdownDirection = usePropertyDropdownDirection();
   const [openPicker, setOpenPicker] = useState<WorkItemPropertyPicker>(null);
   const [moreMenuPosition, setMoreMenuPosition] = useState<{
     x: number;
@@ -179,12 +181,18 @@ const WorkItemProperties: React.FC<WorkItemPropertiesProps> = ({
     t,
   });
 
-  const handleMoreClick = useCallback((event: React.MouseEvent) => {
-    event.preventDefault();
-    event.stopPropagation();
-    const rect = event.currentTarget.getBoundingClientRect();
-    setMoreMenuPosition({ x: rect.left, y: rect.bottom + 6 });
-  }, []);
+  const handleMoreClick = useCallback(
+    (event: React.MouseEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const rect = event.currentTarget.getBoundingClientRect();
+      setMoreMenuPosition({
+        x: rect.left,
+        y: dropdownDirection === "up" ? rect.top - 6 : rect.bottom + 6,
+      });
+    },
+    [dropdownDirection]
+  );
 
   const handleMoreContextAction = useCallback(
     (action: string, value?: string) => {
@@ -357,6 +365,7 @@ const WorkItemProperties: React.FC<WorkItemPropertiesProps> = ({
             items={moreMenuItems}
             position={moreMenuPosition}
             onClose={() => setMoreMenuPosition(null)}
+            openDirection={dropdownDirection}
           />
         )}
       </section>

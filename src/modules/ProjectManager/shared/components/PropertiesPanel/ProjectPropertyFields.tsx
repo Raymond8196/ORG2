@@ -12,6 +12,7 @@ import React, { useCallback, useMemo, useState } from "react";
 import Button from "@src/components/Button";
 import { pillControlStateClass } from "@src/components/CompoundPill/config";
 import { DROPDOWN_ITEM } from "@src/components/Dropdown/tokens";
+import { usePropertyDropdownDirection } from "@src/components/PropertyField/PropertyDropdownDirection";
 import {
   FieldRow,
   type FieldRowVariant,
@@ -98,6 +99,7 @@ const ProjectPropertyFields: React.FC<ProjectPropertyFieldsProps> = ({
   visibleFields = DEFAULT_VISIBLE_FIELDS,
   showMoreMenu = false,
 }) => {
+  const dropdownDirection = usePropertyDropdownDirection();
   const {
     t,
     openPicker,
@@ -147,12 +149,18 @@ const ProjectPropertyFields: React.FC<ProjectPropertyFieldsProps> = ({
     y: number;
   } | null>(null);
 
-  const handleMoreClick = useCallback((event: React.MouseEvent) => {
-    event.preventDefault();
-    event.stopPropagation();
-    const rect = event.currentTarget.getBoundingClientRect();
-    setMoreMenuPosition({ x: rect.left, y: rect.bottom + 6 });
-  }, []);
+  const handleMoreClick = useCallback(
+    (event: React.MouseEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const rect = event.currentTarget.getBoundingClientRect();
+      setMoreMenuPosition({
+        x: rect.left,
+        y: dropdownDirection === "up" ? rect.top - 6 : rect.bottom + 6,
+      });
+    },
+    [dropdownDirection]
+  );
 
   const handleMorePropertyAction = useCallback(
     (field: Exclude<ProjectPropertyFieldKey, "completion">, value?: string) => {
@@ -391,6 +399,7 @@ const ProjectPropertyFields: React.FC<ProjectPropertyFieldsProps> = ({
           items={moreMenuItems}
           position={moreMenuPosition}
           onClose={() => setMoreMenuPosition(null)}
+          openDirection={dropdownDirection}
         />
       )}
     </>
