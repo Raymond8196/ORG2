@@ -46,7 +46,7 @@ export function CreateComposerHeader({
 }) {
   return (
     <div data-testid={dataTestId}>
-      <div className="flex h-10 items-center px-1 py-0">{children}</div>
+      <div className="flex h-8 items-center px-1 py-0">{children}</div>
       <div className="px-2" aria-hidden>
         <div className="border-t border-border-2" />
       </div>
