@@ -536,7 +536,8 @@ where
             project_id    = ?13,
             created_at    = ?14,
             updated_at    = ?15,
-            local_version = ?16
+            local_version = ?16,
+            deleted_at    = ?18
          WHERE id = ?17",
         params![
             frontmatter.title,
@@ -556,6 +557,10 @@ where
             now,
             next_version,
             &core.work_item_id,
+            frontmatter
+                .deleted_at
+                .as_deref()
+                .map(crate::projects::io::helpers::from_iso8601),
         ],
     ))?;
 

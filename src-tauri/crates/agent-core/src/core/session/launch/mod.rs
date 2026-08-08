@@ -152,6 +152,7 @@ pub(crate) struct AgentRunLaunchResult {
     pub project_slug: Option<String>,
     pub work_item_id: Option<String>,
     pub agent_role: Option<String>,
+    pub product_mode: Option<String>,
 }
 
 async fn generate_title_before_first_turn(
@@ -498,6 +499,10 @@ pub(crate) async fn launch_rust_agent_run(
         .and_then(|value| value.as_str())
         .ok_or("create_session_impl did not return sessionId")?
         .to_string();
+    let resolved_product_mode = create_result
+        .get("productMode")
+        .and_then(|value| value.as_str())
+        .map(str::to_string);
 
     if let (Some(project_slug_value), Some(work_item_id_value)) =
         (project_slug.as_deref(), work_item_id.as_deref())
@@ -710,6 +715,7 @@ pub(crate) async fn launch_rust_agent_run(
             project_slug,
             work_item_id,
             agent_role,
+            product_mode: resolved_product_mode.clone(),
         });
     }
 
@@ -837,5 +843,6 @@ pub(crate) async fn launch_rust_agent_run(
         project_slug,
         work_item_id,
         agent_role,
+        product_mode: resolved_product_mode,
     })
 }

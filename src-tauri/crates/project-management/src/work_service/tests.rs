@@ -221,3 +221,127 @@ fn legacy_paths_flag_violations_without_blocking() {
         "violation must be visible in the audit stream: {payload}"
     );
 }
+
+#[test]
+fn create_refuses_to_overwrite_an_existing_id_in_any_scope() {
+    let _sandbox = test_env::sandbox();
+    tests_support::seed_project("demo", "p1");
+
+    let first = CreateWorkItemRequest {
+        title: "First".to_string(),
+        ..Default::default()
+    };
+    create_project_work_item("demo", "AAA-0001", &first, None).expect("first create");
+
+    let clobber = CreateWorkItemRequest {
+        title: "Second".to_string(),
+        ..Default::default()
+    };
+    let same_scope =
+        create_project_work_item("demo", "AAA-0001", &clobber, None).expect_err("must refuse");
+    assert!(same_scope.starts_with(error::ALREADY_EXISTS), "{same_scope}");
+
+    let cross_scope = create_standalone_work_item(None, "AAA-0001", &clobber, None)
+        .expect_err("cross-scope must refuse");
+    assert!(cross_scope.starts_with(error::ALREADY_EXISTS), "{cross_scope}");
+
+    let survivor = read_work_item("demo", "AAA-0001").expect("survivor");
+    assert_eq!(survivor.frontmatter.title, "First");
+}
+
+#[test]
+fn claim_with_expected_revision_succeeds_in_one_transaction() {
+    let _sandbox = test_env::sandbox();
+    tests_support::seed_project("demo", "p1");
+    let request = CreateWorkItemRequest {
+        title: "Claimable".to_string(),
+        status: Some("open".to_string()),
+        ..Default::default()
+    };
+    create_project_work_item("demo", "AAA-0001", &request, None).expect("create");
+    let revision = read_project_work_item_revision("demo", "AAA-0001").expect("revision");
+
+    let claimed = claim_project_work_item(
+        "demo",
+        "AAA-0001",
+        "session-1",
+        Some("custom"),
+        crate::projects::types::WorkItemExecutionLockReason::ManualStart,
+        None,
+        Some(revision),
+    )
+    .expect("claim with the observed revision must succeed");
+    assert_eq!(claimed.frontmatter.status, "in_progress");
+    assert_eq!(
+        claimed
+            .frontmatter
+            .execution_lock
+            .as_ref()
+            .and_then(|lock| lock.active_session_id.as_deref()),
+        Some("session-1")
+    );
+
+    let contended = claim_project_work_item(
+        "demo",
+        "AAA-0001",
+        "session-2",
+        Some("custom"),
+        crate::projects::types::WorkItemExecutionLockReason::ManualStart,
+        None,
+        None,
+    )
+    .expect_err("second session must lose the claim");
+    assert!(
+        contended.contains("active execution session"),
+        "{contended}"
+    );
+
+    let stale = claim_project_work_item(
+        "demo",
+        "AAA-0001",
+        "session-1",
+        Some("custom"),
+        crate::projects::types::WorkItemExecutionLockReason::ManualStart,
+        None,
+        Some(revision),
+    )
+    .expect_err("stale revision must conflict");
+    assert!(stale.starts_with(error::REVISION_CONFLICT), "{stale}");
+}
+
+#[test]
+fn run_idempotent_concurrent_same_key_executes_exactly_once() {
+    let _sandbox = test_env::sandbox();
+    tests_support::seed_project("demo", "p1");
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::sync::Arc;
+
+    let executions = Arc::new(AtomicUsize::new(0));
+    let request = serde_json::json!({"op": "probe"});
+
+    let spawn_call = |executions: Arc<AtomicUsize>, request: serde_json::Value| {
+        std::thread::spawn(move || {
+            run_idempotent("actor", "work.probe", "demo", "k1", &request, move || {
+                executions.fetch_add(1, Ordering::SeqCst);
+                std::thread::sleep(std::time::Duration::from_millis(300));
+                Ok(serde_json::json!({"made": true}))
+            })
+        })
+    };
+
+    let a = spawn_call(executions.clone(), request.clone());
+    let b = spawn_call(executions.clone(), request.clone());
+    let ra = a.join().expect("thread a").expect("outcome a");
+    let rb = b.join().expect("thread b").expect("outcome b");
+
+    assert_eq!(executions.load(Ordering::SeqCst), 1, "exactly one execution");
+    let fresh = matches!(ra, IdempotencyOutcome::Fresh(_)) as u8
+        + matches!(rb, IdempotencyOutcome::Fresh(_)) as u8;
+    assert_eq!(fresh, 1, "one fresh, one replayed");
+    for outcome in [ra, rb] {
+        let value = match outcome {
+            IdempotencyOutcome::Fresh(v) | IdempotencyOutcome::Replayed(v) => v,
+        };
+        assert_eq!(value["made"], true);
+    }
+}

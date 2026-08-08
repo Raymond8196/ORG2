@@ -26,6 +26,20 @@ pub fn acquire_execution_lock(
         ..AtomicServiceOptions::default()
     };
     update_work_item_atomic_serviced(project_slug, short_id, None, service, |frontmatter, _body| {
+        apply_execution_claim(frontmatter, short_id, session_id, agent_role, reason)
+    })
+}
+
+/// Pure frontmatter mutation shared by the standalone lock acquisition
+/// and the single-transaction `work.claim` service handler.
+pub(crate) fn apply_execution_claim(
+    frontmatter: &mut crate::projects::types::WorkItemFrontmatter,
+    short_id: &str,
+    session_id: &str,
+    agent_role: Option<&str>,
+    reason: WorkItemExecutionLockReason,
+) -> Result<(), String> {
+    {
         if let Some(lock) = frontmatter.execution_lock.as_ref() {
             if let Some(active_session_id) = lock.active_session_id.as_deref() {
                 if active_session_id != session_id {
@@ -93,7 +107,7 @@ pub fn acquire_execution_lock(
         });
         frontmatter.updated_at = now;
         Ok(())
-    })
+    }
 }
 
 pub fn release_execution_lock(

@@ -152,6 +152,7 @@ pub(crate) async fn create_session_impl(
         native_harness_type: resolved_native_harness_type,
         ..Default::default()
     };
+    let resolved_product_mode = session.product_mode.clone();
 
     tokio::task::spawn_blocking(move || session_persistence::upsert_session(&session))
         .await
@@ -220,5 +221,6 @@ pub(crate) async fn create_session_impl(
     Ok(serde_json::json!({
         "sessionId": session_id,
         "workspacePath": workspace_path,
+        "productMode": resolved_product_mode,
     }))
 }

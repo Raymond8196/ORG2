@@ -177,7 +177,13 @@ pub async fn project_write_work_item(
     body: String,
 ) -> Result<(), String> {
     tokio::task::spawn_blocking(move || {
-        io::write_work_item(&project_slug, &short_id, &frontmatter, &body)
+        crate::work_service::overwrite_project_work_item(
+            &project_slug,
+            &short_id,
+            &frontmatter,
+            &body,
+            None,
+        )
     })
     .await
     .map_err(|err| format!("Task join error: {}", err))?
@@ -191,7 +197,13 @@ pub async fn work_item_write_standalone_item(
     body: String,
 ) -> Result<(), String> {
     tokio::task::spawn_blocking(move || {
-        io::write_standalone_work_item(org_id.as_deref(), &short_id, &frontmatter, &body)
+        crate::work_service::overwrite_standalone_work_item(
+            org_id.as_deref(),
+            &short_id,
+            &frontmatter,
+            &body,
+            None,
+        )
     })
     .await
     .map_err(|err| format!("Task join error: {}", err))?

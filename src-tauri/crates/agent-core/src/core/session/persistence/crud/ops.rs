@@ -1099,6 +1099,7 @@ mod tests {
                 record.draft_text,
                 record.reply_target_event_id,
                 record.pinned as i64,
+                record.product_mode,
             ],
         )
         .unwrap();

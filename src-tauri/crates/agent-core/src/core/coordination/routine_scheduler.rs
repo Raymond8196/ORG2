@@ -114,7 +114,9 @@ async fn portable_tick(now: DateTime<Utc>) -> Result<(), String> {
                     routines::audit_suppressed_fire(&name, "no_scope_binding", scheduled_millis)?;
                     return Ok(());
                 };
-                let run = routines::invoke(&name, &scope, &Default::default(), None)?;
+                let invoke_key = format!("{}:{}", name, scheduled_millis);
+                let run =
+                    routines::invoke(&name, &scope, &Default::default(), None, Some(&invoke_key))?;
                 info!(
                     "[routine-scheduler] portable routine {} fired run {}",
                     name, run.run_id

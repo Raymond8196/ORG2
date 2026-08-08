@@ -142,3 +142,17 @@ seq INTEGER NOT NULL)`；
 - 云端 `orgii_acquire_work_item_lock` 保持为 human 协作**编辑锁**：编辑锁 ≠
   工作 claim，两者并存但互不代理；Phase 2a 落地时在 service 层写清依赖关系
   （持有编辑锁不阻止 claim，claim 不授予编辑权）。
+
+## 修订记录
+
+### 2026-08-07 — S0 conformance 收敛（PR #737）
+
+- `execution-context.schema.json`：`scopeId` 与 `actor` 增加 null 分支——未初始化 workspace 下的裸 `org2 context` 输出 null 是合法状态，schema 此前与实现矛盾（实现自 Phase 3 起即输出 null）。
+- 错误 fixture 文案与实现对齐（byte-golden 前置）：`actor-required`（补 `<kind:id>` 格式提示）、`idempotency-conflict`（去尾词 "body"）、`invalid-transition`（统一为信封映射的通用句式）、`project-mode-required`（"WorkItem mutation" → "WorkItem/Routine mutation"）。
+- claim 竞争的第二分支（active linked session）修正为 `ALREADY_CLAIMED`（此前误落 `STORE_UNAVAILABLE`，违反 §3 的 claim 竞争优先规则）。
+- `ALREADY_EXISTS` 获得生产者：`work.create` 全局存在性守卫（跨 scope 短 ID 碰撞从静默覆盖改为结构化拒绝）。
+
+### 2026-08-07 — S1 载荷形态裁决（PR #737）
+
+- `work.*` 成功载荷本轮**维持存储形态**（`frontmatter` + `portableState` + `revision`）。阻塞：`work-item.schema.json` 的 `id` 要求 `^work_[A-Za-z0-9]+$` 持久 id，而存储沿用 `id = short_id`（如 `AAA-0001`）；在 id 方案迁移落地前切换会产出无法通过自身 schema 的载荷。schema 与 6 个 success fixture 明确标记为 **id 迁移后的目标形态**，`commands.rs` 头部 residual 注记为唯一真相点的状态就此解除——真相点移至本条。
+- 分页（`--cursor`/`meta.nextCursor`）、portable `--status` 词表、`work assign/release`、`org2 project` 命令族（无 delete）已实装并入 conformance 覆盖。

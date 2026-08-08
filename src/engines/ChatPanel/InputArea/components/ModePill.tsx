@@ -108,8 +108,15 @@ const ModePill: React.FC<ModePillProps> = memo(
     // bootstrap flow lands there.
     const isProjectSession =
       isInSessionMode && productMode === PRODUCT_MODE_PROJECT;
+    // Only agent sessions carry a product mode: the Rust side hard-rejects
+    // product-mode patches on CLI/imported rows, so CLI sessions get an
+    // exec-only picker (useSessionProductModeField's documented contract).
+    const carriesProductMode =
+      isInSessionMode && Boolean(sessionId && isAgentSession(sessionId));
     const pickerModes: ComposerModeEntry[] = isInSessionMode
-      ? COMPOSER_MODES
+      ? carriesProductMode
+        ? COMPOSER_MODES
+        : AGENT_EXEC_MODES
       : AGENT_EXEC_MODES;
 
     const currentOption = isProjectSession
@@ -153,9 +160,13 @@ const ModePill: React.FC<ModePillProps> = memo(
             // otherwise). Both patches are fire-and-forget — the hooks
             // do optimistic store writes before awaiting the RPC, so
             // the pill repaints with the new value on the same frame.
-            // Errors are surfaced via the hooks' own state.
-            void setProductMode(selected);
-            void setSessionMode(derivedExecMode);
+            // Swallow the rejection here: usePatchSession rethrows after
+            // rolling back its optimistic write, and an uncaught RPC
+            // error would escalate to the full-screen ErrorBoundary.
+            if (carriesProductMode) {
+              setProductMode(selected).catch(() => {});
+            }
+            setSessionMode(derivedExecMode).catch(() => {});
           } else {
             setCreatorDefault(derivedExecMode);
           }
@@ -165,6 +176,7 @@ const ModePill: React.FC<ModePillProps> = memo(
       [
         isControlled,
         isInSessionMode,
+        carriesProductMode,
         setSessionMode,
         setProductMode,
         setCreatorDefault,

@@ -44,6 +44,7 @@ pub use routines::{
     update_routine_schedule_marks, upsert_routine,
 };
 pub use work_items::orchestrator_view;
+pub(crate) use work_items::{allocate_short_id_in_tx, apply_execution_claim, resolve_project_scope_in_tx, write_work_item_in_tx};
 pub use work_items::{
     acquire_execution_lock, allocate_short_id, allocate_standalone_short_id, apply_remote_merge,
     batch_delete_work_items, batch_update_work_items, delete_work_item, find_by_external_ref,

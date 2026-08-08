@@ -173,8 +173,21 @@ fn external_shell_agent_completes_a_work_item_end_to_end() {
     assert_eq!(exit, 0, "list envelope: {listed}");
     assert_eq!(listed["data"]["items"][0]["frontmatter"]["short_id"], "AAA-0001");
 
-    // Claim: lock + strict open -> in_progress.
-    let (exit, claimed) = run_cli(&[&["work", "claim", "AAA-0001"], &base[..]].concat());
+    // Claim with the observed revision: lock + strict open -> in_progress
+    // and the OCC precondition hold in ONE transaction.
+    let shown_revision = {
+        let (exit, shown) = run_cli(&[&["work", "show", "AAA-0001"], &base[..]].concat());
+        assert_eq!(exit, 0, "show envelope: {shown}");
+        shown["data"]["revision"].as_i64().expect("revision")
+    };
+    let revision_flag = shown_revision.to_string();
+    let (exit, claimed) = run_cli(
+        &[
+            &["work", "claim", "AAA-0001", "--expected-revision", &revision_flag],
+            &base[..],
+        ]
+        .concat(),
+    );
     assert_eq!(exit, 0, "claim envelope: {claimed}");
     assert_eq!(claimed["data"]["frontmatter"]["status"], "in_progress");
     assert_eq!(
@@ -461,4 +474,117 @@ fn wire_validation_maps_to_stable_codes() {
             .contains("claude_code"),
         "message points at the canonical id: {envelope}"
     );
+}
+
+#[test]
+fn assign_release_pagination_and_portable_filter() {
+    let _sandbox = test_env::sandbox();
+    seed("demo");
+    for n in 2..=4 {
+        let short_id = format!("AAA-000{n}");
+        write_work_item(
+            "demo",
+            &short_id,
+            &work_item_fixture(&short_id, &short_id, &format!("Item {n}")),
+            "body",
+        )
+        .expect("seed extra item");
+    }
+    let base = [
+        "--mode",
+        "project",
+        "--scope",
+        "demo",
+        "--actor",
+        "agent:cli-tester",
+        "--session-ref",
+        "claude_code:session_e2e_2",
+    ];
+
+    let (exit, page1) = run_cli(&[&["work", "list", "--status", "open", "--limit", "2"], &base[..]].concat());
+    assert_eq!(exit, 0, "{page1}");
+    assert_eq!(page1["data"]["items"].as_array().expect("items").len(), 2);
+    let cursor = page1["meta"]["nextCursor"].as_str().expect("nextCursor").to_string();
+
+    let (exit, page2) = run_cli(
+        &[&["work", "list", "--status", "open", "--limit", "2", "--cursor", &cursor], &base[..]]
+            .concat(),
+    );
+    assert_eq!(exit, 0, "{page2}");
+    assert_eq!(page2["data"]["items"].as_array().expect("items").len(), 2);
+    assert!(page2["meta"].get("nextCursor").is_none(), "{page2}");
+    assert_ne!(
+        page1["data"]["items"][0]["frontmatter"]["short_id"],
+        page2["data"]["items"][0]["frontmatter"]["short_id"]
+    );
+
+    let (exit, bad) = run_cli(&[&["work", "list", "--status", "backlog"], &base[..]].concat());
+    assert_eq!(exit, 2, "legacy vocabulary is rejected: {bad}");
+    assert_eq!(bad["error"]["code"], "INVALID_ARGUMENT");
+
+    let (exit, assigned) = run_cli(
+        &[&["work", "assign", "AAA-0002", "--assignee", "agent:builtin-os"], &base[..]].concat(),
+    );
+    assert_eq!(exit, 0, "{assigned}");
+    assert_eq!(assigned["data"]["frontmatter"]["assignee"], "builtin-os");
+    assert_eq!(assigned["data"]["frontmatter"]["assignee_type"], "agent");
+
+    let (exit, claimed) = run_cli(&[&["work", "claim", "AAA-0002"], &base[..]].concat());
+    assert_eq!(exit, 0, "{claimed}");
+
+    let (exit, released) = run_cli(&[&["work", "release", "AAA-0002"], &base[..]].concat());
+    assert_eq!(exit, 0, "{released}");
+    assert_eq!(released["data"]["frontmatter"]["status"], "open");
+    assert!(released["data"]["frontmatter"]["execution_lock"].is_null(), "{released}");
+
+    let (exit, foreign) = run_cli(
+        &[
+            &["work", "claim", "AAA-0002"],
+            &base[..8],
+            &["--session-ref", "claude_code:session_e2e_other"][..],
+        ]
+        .concat(),
+    );
+    assert_eq!(exit, 0, "{foreign}");
+    let (exit, denied) = run_cli(&[&["work", "release", "AAA-0002"], &base[..]].concat());
+    assert_eq!(exit, 4, "release by non-holder must fail: {denied}");
+    assert_eq!(denied["error"]["code"], "ALREADY_CLAIMED");
+}
+
+#[test]
+fn project_family_creates_reads_and_updates_through_the_boundary() {
+    let _sandbox = test_env::sandbox();
+    seed("demo");
+    let base = ["--mode", "project", "--actor", "human:vince"];
+
+    let (exit, created) = run_cli(
+        &[&["project", "create", "--name", "Dog Walker MVP", "--description", "walkies"], &base[..]]
+            .concat(),
+    );
+    assert_eq!(exit, 0, "{created}");
+    assert_eq!(created["data"]["slug"], "dog-walker-mvp");
+    assert_eq!(created["data"]["orgId"], "personal-org");
+
+    let (exit, dup) = run_cli(
+        &[&["project", "create", "--name", "Dog Walker MVP"], &base[..]].concat(),
+    );
+    assert_eq!(exit, 4, "duplicate slug must refuse: {dup}");
+    assert_eq!(dup["error"]["code"], "ALREADY_EXISTS");
+
+    let (exit, shown) = run_cli(&["project", "show", "dog-walker-mvp"]);
+    assert_eq!(exit, 0, "{shown}");
+    assert_eq!(shown["data"]["description"], "walkies");
+
+    let (exit, updated) = run_cli(
+        &[&["project", "update", "dog-walker-mvp", "--status", "active"], &base[..]].concat(),
+    );
+    assert_eq!(exit, 0, "{updated}");
+    assert_eq!(updated["data"]["status"], "active");
+
+    let (exit, found) = run_cli(&["project", "find", "dog"]);
+    assert_eq!(exit, 0, "{found}");
+    assert_eq!(found["data"]["items"].as_array().expect("items").len(), 1);
+
+    let (exit, gated) = run_cli(&["project", "create", "--name", "Nope"]);
+    assert_eq!(exit, 5, "mutation outside project mode: {gated}");
 }
