@@ -15,12 +15,7 @@ use std::collections::HashSet;
 
 #[test]
 fn management_tools_are_not_supported_on_sde_worker_kind() {
-    for tool_name in [
-        tool_names::MANAGE_SESSION,
-        tool_names::MANAGE_PROJECT,
-        tool_names::MANAGE_WORK_ITEM,
-        tool_names::MANAGE_AGENT_DEF,
-    ] {
+    for tool_name in [tool_names::MANAGE_SESSION, tool_names::MANAGE_AGENT_DEF] {
         let agents = supported_agents_for(tool_name);
         assert!(agents.contains(&AgentKind::Os), "{tool_name} on OS");
         assert!(agents.contains(&AgentKind::Custom), "{tool_name} on Custom");
@@ -36,8 +31,6 @@ fn non_management_tools_supported_on_every_parent_agent_kind() {
         !matches!(
             entry.name,
             tool_names::MANAGE_SESSION
-                | tool_names::MANAGE_PROJECT
-                | tool_names::MANAGE_WORK_ITEM
                 | tool_names::MANAGE_AGENT_DEF
                 | tool_names::CONTROL_ORGII
         )
@@ -122,7 +115,7 @@ fn derive_capabilities_no_longer_gate_tools() {
         "control_desktop_with_peekaboo must NOT be disabled just because desktop capability is absent"
     );
     assert!(
-        !disabled.contains(tool_names::MANAGE_PROJECT),
+        !disabled.contains(tool_names::MANAGE_SESSION),
         "derive_disabled_tools only applies explicit restrict/exclude lists; capability defaults own management gating"
     );
 }

@@ -244,9 +244,23 @@ pub fn update_standalone_work_item_atomic<T, F>(
 where
     F: FnOnce(&mut WorkItemFrontmatter, &mut String) -> Result<T, String>,
 {
+    update_standalone_work_item_atomic_by(org_id, None, short_id, mutator)
+}
+
+pub fn update_standalone_work_item_atomic_by<T, F>(
+    org_id: Option<&str>,
+    actor: Option<&crate::projects::types::WorkItemMutationActor>,
+    short_id: &str,
+    mutator: F,
+) -> Result<T, String>
+where
+    F: FnOnce(&mut WorkItemFrontmatter, &mut String) -> Result<T, String>,
+{
     let org_id = org_id.unwrap_or("personal-org");
     let (value, changed_fields, payload_tail_changed) =
-        update_standalone_work_item_atomic_as(org_id, short_id, None, |fm, body| mutator(fm, body))?;
+        update_standalone_work_item_atomic_as(org_id, short_id, actor, |fm, body| {
+            mutator(fm, body)
+        })?;
     if !changed_fields.is_empty() || payload_tail_changed {
         let data = super::crud::read_standalone_work_item(Some(org_id), short_id)?;
         crate::sync::collab_bridge::record_work_item_write(

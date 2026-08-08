@@ -27,8 +27,8 @@ import {
 import type { WorkItemDraft } from "@src/store/workstation/projectManager";
 import { getDispatchCategory } from "@src/util/session/sessionDispatch";
 
-// Work Item Manager persona was retired; the generic OS Agent carries
-// manage_work_item/manage_project as ordinary built-in tools.
+// Work Item Manager persona was retired; the generic OS Agent fills
+// the draft through the injected `org2-pm` CLI from its shell.
 const WORK_ITEM_DEFAULT_AGENT_DEF_ID = "builtin:os";
 const AI_WORK_ITEM_DEFAULT_TITLE = "AI Work Item Draft";
 
@@ -244,11 +244,12 @@ export function useAiWorkItemCreator({
     return {
       workItemId: shortId,
       projectSlug: selectedProjectSlug || undefined,
+      orgId: standaloneOrgId,
       agentRole: "custom" as const,
-      // The draft-fill session must run an agent that registers
-      // manage_work_item; the composer's selected agent (usually SDE)
-      // does not carry the PM tools and would silently fail to fill
-      // the draft it was launched for. The item's assignee is
+      agentExecMode: "build",
+      // The draft-fill session runs OS Agent: it always carries
+      // run_shell, and the launch injects the org2-pm identity so the
+      // linked-work-item brief can be acted on. The item's assignee is
       // unaffected — it stays whatever was resolved above.
       agentDefinitionId: WORK_ITEM_DEFAULT_AGENT_DEF_ID,
       metadata: {

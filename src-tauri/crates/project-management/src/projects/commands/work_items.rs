@@ -295,12 +295,16 @@ pub async fn project_transition_work_item(
     expected_revision: Option<i64>,
 ) -> Result<WorkItemData, String> {
     tokio::task::spawn_blocking(move || {
+        let actor = crate::projects::types::WorkItemMutationActor {
+            id: "human:desktop".to_string(),
+            name: "Desktop".to_string(),
+        };
         crate::work_service::transition_project_work_item(
             &project_slug,
             &short_id,
             &to_status,
             reason.as_deref(),
-            None,
+            Some(&actor),
             expected_revision,
         )
     })

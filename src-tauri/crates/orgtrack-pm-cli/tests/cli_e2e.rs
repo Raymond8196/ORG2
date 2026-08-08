@@ -549,6 +549,18 @@ fn assign_release_pagination_and_portable_filter() {
     let (exit, denied) = run_cli(&[&["work", "release", "AAA-0002"], &base[..]].concat());
     assert_eq!(exit, 4, "release by non-holder must fail: {denied}");
     assert_eq!(denied["error"]["code"], "ALREADY_CLAIMED");
+
+    let (exit, foreign_update) = run_cli(
+        &[&["work", "update", "AAA-0002", "--title", "hijack"], &base[..]].concat(),
+    );
+    assert_eq!(exit, 4, "update on a foreign-claimed item must fail: {foreign_update}");
+    assert_eq!(foreign_update["error"]["code"], "ALREADY_CLAIMED");
+
+    let (exit, foreign_transition) = run_cli(
+        &[&["work", "transition", "AAA-0002", "--to", "completed"], &base[..]].concat(),
+    );
+    assert_eq!(exit, 4, "transition on a foreign-claimed item must fail: {foreign_transition}");
+    assert_eq!(foreign_transition["error"]["code"], "ALREADY_CLAIMED");
 }
 
 #[test]
@@ -587,4 +599,136 @@ fn project_family_creates_reads_and_updates_through_the_boundary() {
 
     let (exit, gated) = run_cli(&["project", "create", "--name", "Nope"]);
     assert_eq!(exit, 5, "mutation outside project mode: {gated}");
+}
+
+#[test]
+fn session_marker_locks_identity_fail_closed() {
+    let _sandbox = test_env::sandbox();
+    seed("demo");
+    let home = std::env::var("ORGII_HOME").expect("sandbox sets ORGII_HOME");
+    let workspace = std::path::Path::new(&home).join("marker-workspace");
+    std::fs::create_dir_all(workspace.join(".orgii")).expect("workspace dirs");
+    std::fs::write(
+        workspace.join(".orgii/agent_session_context.json"),
+        serde_json::json!({
+            "apiVersion": "orgtrack/v1",
+            "sessionRef": "org2:session_marker_1",
+            "actor": "agent:os",
+            "productMode": "project",
+            "scope": "demo",
+            "capabilities": ["work.read", "work.mutate"],
+            "issuedAt": "2026-08-07T00:00:00Z",
+        })
+        .to_string(),
+    )
+    .expect("marker written");
+
+    let run_in_workspace = |args: &[&str]| {
+        let exe = env!("CARGO_BIN_EXE_org2-pm");
+        let output = Command::new(exe)
+            .args(args)
+            .current_dir(&workspace)
+            .output()
+            .expect("spawn org2-pm");
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let value: serde_json::Value =
+            serde_json::from_str(stdout.trim()).unwrap_or_else(|err| panic!("{stdout}: {err}"));
+        (output.status.code().unwrap_or(-1), value)
+    };
+
+    let (exit, context) = run_in_workspace(&["context"]);
+    assert_eq!(exit, 0, "{context}");
+    assert_eq!(context["data"]["mode"], "project");
+    assert_eq!(context["data"]["scopeId"], "demo");
+    assert_eq!(context["data"]["actor"]["kind"], "agent");
+    assert_eq!(context["data"]["actor"]["id"], "os");
+
+    let (exit, created) = run_in_workspace(&["work", "create", "--title", "marker item"]);
+    assert_eq!(exit, 0, "identity injected from the marker: {created}");
+
+    let (exit, denied) = run_in_workspace(&["work", "create", "--title", "spoof", "--actor", "human:vince"]);
+    assert_eq!(exit, 8, "actor spoofing must be refused: {denied}");
+    assert_eq!(denied["error"]["code"], "PERMISSION_DENIED");
+
+    let (exit, foreign) = run_in_workspace(&["work", "claim", "AAA-0001", "--session-ref", "claude_code:other"]);
+    assert_eq!(exit, 8, "session override must be refused: {foreign}");
+}
+
+#[test]
+fn standalone_items_are_reachable_without_scope() {
+    let _sandbox = test_env::sandbox();
+    let connection = database::db::get_projects_connection().expect("projects connection");
+    project_management::projects::schema::init_project_tables(&connection).expect("schema");
+    drop(connection);
+
+    let fixture = work_item_fixture("s1", "STA-0001", "Standalone draft");
+    project_management::projects::io::write_standalone_work_item(
+        None,
+        "STA-0001",
+        &fixture,
+        "draft body",
+    )
+    .expect("seed standalone");
+
+    let base = [
+        "--mode",
+        "project",
+        "--actor",
+        "agent:cli-tester",
+        "--session-ref",
+        "claude_code:session_e2e_sta",
+    ];
+
+    // The scope guard stays intact for project-routed commands.
+    let (exit, gated) = run_cli(&[&["work", "show", "STA-0001"], &base[..]].concat());
+    assert_eq!(exit, 3, "scope-less show without --standalone: {gated}");
+    assert_eq!(gated["error"]["code"], "CONTEXT_REQUIRED");
+
+    // `--standalone` routes to the org-scoped store without any scope.
+    let (exit, shown) = run_cli(&[&["work", "show", "STA-0001", "--standalone"], &base[..]].concat());
+    assert_eq!(exit, 0, "show envelope: {shown}");
+    assert_eq!(shown["data"]["frontmatter"]["short_id"], "STA-0001");
+
+    // Fill the draft the way the AI work-item filler does.
+    let (exit, updated) = run_cli(
+        &[
+            &[
+                "work",
+                "update",
+                "STA-0001",
+                "--standalone",
+                "--title",
+                "Filled title",
+                "--body",
+                "Filled body",
+            ],
+            &base[..],
+        ]
+        .concat(),
+    );
+    assert_eq!(exit, 0, "update envelope: {updated}");
+    assert_eq!(updated["data"]["frontmatter"]["title"], "Filled title");
+
+    let item = project_management::projects::io::read_standalone_work_item(None, "STA-0001")
+        .expect("read back");
+    assert_eq!(item.frontmatter.title, "Filled title");
+    assert_eq!(item.body, "Filled body");
+
+    // "Another one" allocates a fresh standalone id.
+    let (exit, created) = run_cli(
+        &[
+            &["work", "create", "--standalone", "--title", "Another one"],
+            &base[..],
+        ]
+        .concat(),
+    );
+    assert_eq!(exit, 0, "create envelope: {created}");
+    let new_id = created["data"]["frontmatter"]["short_id"]
+        .as_str()
+        .expect("short id")
+        .to_string();
+    assert_ne!(new_id, "STA-0001");
+    let item = project_management::projects::io::read_standalone_work_item(None, &new_id)
+        .expect("created read back");
+    assert_eq!(item.frontmatter.title, "Another one");
 }

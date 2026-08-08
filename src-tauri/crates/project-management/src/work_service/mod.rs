@@ -233,6 +233,32 @@ pub fn run_idempotent(
     }
 }
 
+/// L3 ownership guard v1: a work item claimed by one session may not
+/// have its lifecycle or content advanced by a different session. Human
+/// direct operation passes no session and is exempt (actor/org policy
+/// applies instead); agent-plane callers pass their session id.
+fn guard_claim_holder(
+    frontmatter: &WorkItemFrontmatter,
+    caller_session: Option<&str>,
+) -> Result<(), String> {
+    let Some(caller) = caller_session else {
+        return Ok(());
+    };
+    if let Some(holder) = frontmatter
+        .execution_lock
+        .as_ref()
+        .and_then(|lock| lock.active_session_id.as_deref())
+    {
+        if holder != caller {
+            return Err(format!(
+                "Work item '{}' is claimed by another session: {}",
+                frontmatter.short_id, holder
+            ));
+        }
+    }
+    Ok(())
+}
+
 /// OCC-capable non-lifecycle patch (`work.update` on the wire): title,
 /// body and priority only — state changes stay with transition/claim.
 pub fn patch_project_work_item(
@@ -243,10 +269,12 @@ pub fn patch_project_work_item(
     priority: Option<&str>,
     actor: Option<&WorkItemMutationActor>,
     expected_revision: Option<i64>,
+    caller_session: Option<&str>,
 ) -> Result<WorkItemData, String> {
     let title_owned = title.map(str::to_string);
     let body_owned = body.map(str::to_string);
     let priority_owned = priority.map(str::to_string);
+    let caller_owned = caller_session.map(str::to_string);
     project_io::update_work_item_atomic_serviced(
         project_slug,
         short_id,
@@ -257,6 +285,7 @@ pub fn patch_project_work_item(
             ..Default::default()
         },
         move |frontmatter, current_body| {
+            guard_claim_holder(frontmatter, caller_owned.as_deref())?;
             if let Some(title) = title_owned {
                 frontmatter.title = title;
             }
@@ -271,6 +300,36 @@ pub fn patch_project_work_item(
         },
     )?;
     project_io::read_work_item(project_slug, short_id)
+}
+
+/// Standalone counterpart of [`patch_project_work_item`]: OCC-capable
+/// non-lifecycle patch for an org-scoped item, used by the agent-plane
+/// CLI to fill drafts that have no project.
+pub fn patch_standalone_work_item(
+    org_id: Option<&str>,
+    short_id: &str,
+    title: Option<&str>,
+    body: Option<&str>,
+    priority: Option<&str>,
+    actor: Option<&WorkItemMutationActor>,
+) -> Result<WorkItemData, String> {
+    let title_owned = title.map(str::to_string);
+    let body_owned = body.map(str::to_string);
+    let priority_owned = priority.map(str::to_string);
+    project_io::update_standalone_work_item_atomic_by(org_id, actor, short_id, move |frontmatter, current_body| {
+        if let Some(title) = title_owned {
+            frontmatter.title = title;
+        }
+        if let Some(body) = body_owned {
+            *current_body = body;
+        }
+        if let Some(priority) = priority_owned {
+            frontmatter.priority = priority;
+        }
+        frontmatter.updated_at = chrono::Utc::now().to_rfc3339();
+        Ok(())
+    })?;
+    project_io::read_standalone_work_item(org_id, short_id)
 }
 
 /// Audited assignment (`work.assign`): ownership only, no run trigger —
@@ -518,8 +577,32 @@ pub fn transition_project_work_item(
     actor: Option<&WorkItemMutationActor>,
     expected_revision: Option<i64>,
 ) -> Result<WorkItemData, String> {
+    transition_project_work_item_scoped(
+        project_slug,
+        short_id,
+        to_status,
+        reason,
+        actor,
+        expected_revision,
+        None,
+    )
+}
+
+/// Session-scoped transition: the agent plane passes its session id and
+/// the L3 claim-holder guard applies; the human plane passes None.
+#[allow(clippy::too_many_arguments)]
+pub fn transition_project_work_item_scoped(
+    project_slug: &str,
+    short_id: &str,
+    to_status: &str,
+    reason: Option<&str>,
+    actor: Option<&WorkItemMutationActor>,
+    expected_revision: Option<i64>,
+    caller_session: Option<&str>,
+) -> Result<WorkItemData, String> {
     let to_status_owned = to_status.to_string();
     let reason_owned = reason.map(|value| value.to_string());
+    let caller_owned = caller_session.map(str::to_string);
     project_io::update_work_item_atomic_serviced(
         project_slug,
         short_id,
@@ -531,6 +614,7 @@ pub fn transition_project_work_item(
             reason: reason_owned,
         },
         move |frontmatter, _body| {
+            guard_claim_holder(frontmatter, caller_owned.as_deref())?;
             if frontmatter.status == to_status_owned {
                 return Err(error::invalid_transition(
                     &frontmatter.status,

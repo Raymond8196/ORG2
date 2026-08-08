@@ -19,7 +19,7 @@ use std::collections::HashMap;
 
 use project_management::projects::io as pio;
 use project_management::projects::types::{
-    WorkItemData, WorkItemExecutionLockReason, WorkItemMutationActor, WorkItemPartialUpdate,
+    WorkItemData, WorkItemExecutionLockReason, WorkItemMutationActor, WorkItemSchedule,
 };
 use project_management::work_service;
 
@@ -56,7 +56,7 @@ pub fn dispatch_work(
 ) -> i32 {
     match positionals.first().map(String::as_str) {
         Some("list") => cmd_work_list(context, flags),
-        Some("show") => cmd_work_show(context, positionals.get(1)),
+        Some("show") => cmd_work_show(context, positionals.get(1), flags),
         Some("create") => cmd_work_create(context, flags),
         Some("update") => cmd_work_update(context, positionals.get(1), flags),
         Some("assign") => cmd_work_assign(context, positionals.get(1), flags),
@@ -203,13 +203,26 @@ fn parse_portable_state(raw: &str) -> Result<work_service::WorkItemState, CliErr
     }
 }
 
-fn cmd_work_show(context: &ExecutionContext, short_id: Option<&String>) -> i32 {
-    let scope = match context.require_scope() {
-        Ok(scope) => scope.to_string(),
-        Err(err) => return emit_error(err),
-    };
+fn cmd_work_show(
+    context: &ExecutionContext,
+    short_id: Option<&String>,
+    flags: &HashMap<String, String>,
+) -> i32 {
     let short_id = match require_short_id(short_id) {
         Ok(short_id) => short_id,
+        Err(err) => return emit_error(err),
+    };
+    if flags.contains_key("standalone") {
+        let org = context.org_id.as_deref();
+        let item = match pio::read_standalone_work_item(org, &short_id) {
+            Ok(item) => item,
+            Err(err) => return emit_error(CliError::from_service(err)),
+        };
+        let wire = item_to_wire(&item, None);
+        return emit_success(wire, None, None);
+    }
+    let scope = match context.require_scope() {
+        Ok(scope) => scope.to_string(),
         Err(err) => return emit_error(err),
     };
     let item = match pio::read_work_item(&scope, &short_id) {
@@ -229,10 +242,6 @@ fn cmd_work_create(context: &ExecutionContext, flags: &HashMap<String, String>) 
     if let Err(err) = context.require_project_mode("work.create") {
         return emit_error(err);
     }
-    let scope = match context.require_scope() {
-        Ok(scope) => scope.to_string(),
-        Err(err) => return emit_error(err),
-    };
     let actor = match mutation_actor(context) {
         Ok(actor) => actor,
         Err(err) => return emit_error(err),
@@ -242,6 +251,47 @@ fn cmd_work_create(context: &ExecutionContext, flags: &HashMap<String, String>) 
             ErrorCode::InvalidArgument,
             "work create requires --title",
         ));
+    };
+    let schedule = match (flags.get("schedule-cron"), flags.get("schedule-at")) {
+        (None, None) => None,
+        (cron, at) => Some(WorkItemSchedule {
+            at: at.cloned(),
+            cron: cron.cloned(),
+            enabled: true,
+            last_run: None,
+        }),
+    };
+    if flags.contains_key("standalone") {
+        let org = context.org_id.clone();
+        let request = work_service::CreateWorkItemRequest {
+            title: title.clone(),
+            body: flags.get("body").cloned().unwrap_or_default(),
+            status: flags.get("status").cloned(),
+            priority: flags.get("priority").cloned(),
+            created_by: Some(actor.id.clone()),
+            schedule: schedule.clone(),
+            ..Default::default()
+        };
+        let result = (|| {
+            let short_id = pio::allocate_standalone_short_id(org.as_deref())
+                .map_err(CliError::from_service)?;
+            let item = work_service::create_standalone_work_item(
+                org.as_deref(),
+                &short_id,
+                &request,
+                Some(&actor),
+            )
+            .map_err(CliError::from_service)?;
+            Ok::<_, CliError>(item_to_wire(&item, None))
+        })();
+        return match result {
+            Ok(wire) => emit_success(wire, None, None),
+            Err(err) => emit_error(err),
+        };
+    }
+    let scope = match context.require_scope() {
+        Ok(scope) => scope.to_string(),
+        Err(err) => return emit_error(err),
     };
     let canonical = serde_json::json!({
         "op": "work.create",
@@ -256,6 +306,7 @@ fn cmd_work_create(context: &ExecutionContext, flags: &HashMap<String, String>) 
         status: flags.get("status").cloned(),
         priority: flags.get("priority").cloned(),
         created_by: Some(actor.id.clone()),
+        schedule,
         ..Default::default()
     };
     let scope_for_exec = scope.clone();
@@ -293,6 +344,28 @@ fn cmd_work_update(
     if let Err(err) = context.require_project_mode("work.update") {
         return emit_error(err);
     }
+    if flags.contains_key("standalone") {
+        let short_id = match require_short_id(short_id) {
+            Ok(short_id) => short_id,
+            Err(err) => return emit_error(err),
+        };
+        let actor = match mutation_actor(context) {
+            Ok(actor) => actor,
+            Err(err) => return emit_error(err),
+        };
+        let org = context.org_id.clone();
+        match work_service::patch_standalone_work_item(
+            org.as_deref(),
+            &short_id,
+            flags.get("title").map(String::as_str),
+            flags.get("body").map(String::as_str),
+            flags.get("priority").map(String::as_str),
+            Some(&actor),
+        ) {
+            Ok(item) => return emit_success(item_to_wire(&item, None), None, None),
+            Err(err) => return emit_error(CliError::from_service(err)),
+        }
+    }
     let scope = match context.require_scope() {
         Ok(scope) => scope.to_string(),
         Err(err) => return emit_error(err),
@@ -326,6 +399,10 @@ fn cmd_work_update(
     });
     let scope_for_exec = scope.clone();
     let short_id_for_exec = short_id.clone();
+    let caller_session = context
+        .session_ref
+        .as_ref()
+        .map(|session| session.external_id.clone());
     let title = flags.get("title").cloned();
     let body = flags.get("body").cloned();
     let priority = flags.get("priority").cloned();
@@ -344,6 +421,7 @@ fn cmd_work_update(
                 priority.as_deref(),
                 Some(&actor),
                 expected_revision,
+                caller_session.as_deref(),
             )?;
             let revision =
                 work_service::read_project_work_item_revision(&scope_for_exec, &short_id_for_exec)
@@ -633,6 +711,10 @@ fn cmd_work_transition(
     let to_state_owned = to_state.clone();
     let reason = flags.get("reason").cloned();
     let actor_for_exec = actor.clone();
+    let caller_session = context
+        .session_ref
+        .as_ref()
+        .map(|session| session.external_id.clone());
     let result = guarded(
         &actor.id,
         "work.transition",
@@ -640,13 +722,14 @@ fn cmd_work_transition(
         flags.get("idempotency-key"),
         canonical,
         move || {
-            let item = work_service::transition_project_work_item(
+            let item = work_service::transition_project_work_item_scoped(
                 &scope_for_exec,
                 &short_id_for_exec,
                 &to_state_owned,
                 reason.as_deref(),
                 Some(&actor_for_exec),
                 expected_revision,
+                caller_session.as_deref(),
             )?;
             let revision = work_service::read_project_work_item_revision(
                 &scope_for_exec,

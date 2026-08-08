@@ -801,7 +801,26 @@ pub fn allocate_standalone_short_id(org_id: Option<&str>) -> Result<String, Stri
     if let Some(max_existing) = max_existing_standalone_work_item_number(&tx, org_id, prefix)? {
         next_id = (max_existing as i64).saturating_add(1);
     }
-    let short_id = format!("{}-{:04}", prefix, next_id);
+    // `workitems.id` is a GLOBAL primary key (`id = short_id` until the
+    // id migration), while the counter above is per-org: another org may
+    // already own the candidate. Walk past global collisions so creation
+    // never trips the work.create existence guard.
+    let short_id = loop {
+        let candidate = format!("{}-{:04}", prefix, next_id);
+        let taken: bool = map_db(
+            tx.query_row(
+                "SELECT 1 FROM workitems WHERE id = ?1",
+                params![&candidate],
+                |_| Ok(true),
+            )
+            .optional(),
+        )?
+        .unwrap_or(false);
+        if !taken {
+            break candidate;
+        }
+        next_id = next_id.saturating_add(1);
+    };
     map_db(tx.commit())?;
     Ok(short_id)
 }

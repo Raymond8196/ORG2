@@ -10,6 +10,7 @@ import type {
   CommandArtifact,
   CommandResultData,
   FileCardData,
+  OrgtrackEnvelopeData,
   ProjectCardData,
   WebsiteCardData,
   WorkItemCardData,
@@ -427,5 +428,97 @@ export function parseAgentMessageCard(
     deliveredCount,
     wakeMode,
     deliveries,
+  };
+}
+
+const ORGTRACK_OP_LABELS: Record<string, string> = {
+  "work.create": "Created work item",
+  "work.update": "Updated work item",
+  "work.transition": "Transitioned work item",
+  "work.claim": "Claimed work item",
+  "work.release": "Released work item",
+  "work.assign": "Assigned work item",
+  "work.note": "Noted work item",
+  "project.create": "Created project",
+  "project.update": "Updated project",
+};
+
+function inferOrgtrackOperation(command: string): string {
+  const tokens = command.trim().split(/\s+/);
+  const idx = tokens.findIndex((t) => t.endsWith("org2-pm") || t === "org2");
+  if (idx < 0) return "";
+  const noun = tokens[idx + 1];
+  const verb = tokens[idx + 2];
+  if (!noun || !verb) return noun ?? "";
+  return `${noun}.${verb}`;
+}
+
+export function parseOrgtrackEnvelope(
+  args: Record<string, unknown>,
+  result: Record<string, unknown>
+): OrgtrackEnvelopeData | null {
+  const command =
+    (typeof args.command === "string" ? args.command : null) ??
+    (typeof args.cmd === "string" ? args.cmd : null);
+  if (!command || !/\borg2-pm\b|\borg2\b/.test(command)) return null;
+
+  const stdout =
+    (typeof result.stdout === "string" ? result.stdout : null) ??
+    (typeof result.output === "string" ? result.output : null) ??
+    (typeof result.content === "string" ? result.content : null) ??
+    "";
+  const trimmed = stdout.trim();
+  if (!trimmed.startsWith("{")) return null;
+
+  let envelope: Record<string, unknown>;
+  try {
+    const parsed: unknown = JSON.parse(trimmed);
+    if (!parsed || typeof parsed !== "object") return null;
+    envelope = parsed as Record<string, unknown>;
+  } catch {
+    return null;
+  }
+  if (envelope.apiVersion !== "orgtrack/v1") return null;
+
+  const rawExit = result.exit_code ?? result.exitCode ?? result.code;
+  const exitCode =
+    typeof rawExit === "number" ? rawExit : envelope.ok === true ? 0 : -1;
+  const operation =
+    ORGTRACK_OP_LABELS[inferOrgtrackOperation(command)] ??
+    inferOrgtrackOperation(command) ??
+    "org2-pm";
+
+  if (envelope.ok === true) {
+    const data = (envelope.data ?? {}) as Record<string, unknown>;
+    const fm = (data.frontmatter ?? {}) as Record<string, unknown>;
+    const items = Array.isArray(data.items) ? data.items : null;
+    return {
+      command,
+      ok: true,
+      operation,
+      exitCode,
+      shortId:
+        (typeof fm.short_id === "string" ? fm.short_id : undefined) ??
+        (typeof data.slug === "string" ? data.slug : undefined),
+      title:
+        (typeof fm.title === "string" ? fm.title : undefined) ??
+        (typeof data.name === "string" ? data.name : undefined),
+      status:
+        (typeof fm.status === "string" ? fm.status : undefined) ??
+        (typeof data.status === "string" ? data.status : undefined),
+      itemCount: items ? items.length : undefined,
+    };
+  }
+
+  const error = (envelope.error ?? {}) as Record<string, unknown>;
+  return {
+    command,
+    ok: false,
+    operation,
+    exitCode,
+    errorCode: typeof error.code === "string" ? error.code : undefined,
+    errorMessage: typeof error.message === "string" ? error.message : undefined,
+    retryable:
+      typeof error.retryable === "boolean" ? error.retryable : undefined,
   };
 }

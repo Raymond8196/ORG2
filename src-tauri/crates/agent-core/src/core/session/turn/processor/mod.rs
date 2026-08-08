@@ -253,21 +253,12 @@ impl UnifiedMessageProcessor {
     }
 
     /// Tool policy actually used for this turn, including the exec-mode
-    /// and product-mode overlays (`orgtrack/v1` §5.1: only Project
-    /// sessions expose the WorkItem/Routine mutation tools).
+    /// overlay. Product mode is not a tool overlay: `org2-pm` enforces
+    /// it at the application boundary via the injected ORGII_MODE.
     fn effective_tool_policy(&self) -> Arc<ResolvedToolPolicy> {
-        let product_mode = tokio::task::block_in_place(|| {
-            unified_persistence::get_session(&self.session.id)
-                .ok()
-                .flatten()
-                .and_then(|record| record.product_mode)
-        });
         match self.agent_mode {
-            Some(mode) => Arc::new(self.policy.with_modes(mode, product_mode.as_deref())),
-            None => match ResolvedToolPolicy::product_mode_layer(product_mode.as_deref()) {
-                Some(layer) => Arc::new(self.policy.with_extra_layer(layer)),
-                None => Arc::clone(&self.policy),
-            },
+            Some(mode) => Arc::new(self.policy.with_exec_mode(mode)),
+            None => Arc::clone(&self.policy),
         }
     }
 

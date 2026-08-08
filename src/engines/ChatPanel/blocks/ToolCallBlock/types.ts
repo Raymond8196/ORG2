@@ -185,6 +185,25 @@ export interface CommandResultData {
 }
 
 /**
+ * Parsed `org2-pm` CLI envelope surfaced from a shell tool call, so an
+ * agent-plane work-system write renders as a work card instead of a raw
+ * terminal block (design S3 envelope renderer).
+ */
+export interface OrgtrackEnvelopeData {
+  command: string;
+  ok: boolean;
+  operation: string;
+  exitCode: number;
+  shortId?: string;
+  title?: string;
+  status?: string;
+  errorCode?: string;
+  errorMessage?: string;
+  retryable?: boolean;
+  itemCount?: number;
+}
+
+/**
  * Inter-agent message sent via the Agent Team messaging tool.
  * Rendered as a compact speech-bubble card with recipient, kind, and summary.
  */
@@ -242,6 +261,7 @@ export type StyledOutput =
   | { type: "workItemCard"; card: WorkItemCardData }
   | { type: "projectCard"; card: ProjectCardData }
   | { type: "commandResult"; card: CommandResultData }
+  | { type: "orgtrackEnvelope"; card: OrgtrackEnvelopeData }
   | { type: "agentMessageCard"; card: AgentMessageCardData };
 
 export interface OutputContentProps {

@@ -229,6 +229,9 @@ export function useSessionLaunch(
                       resolvedWorkItemContext.agentDefinitionId,
                   }
                 : {}),
+              ...(resolvedWorkItemContext.agentExecMode
+                ? { mode: resolvedWorkItemContext.agentExecMode }
+                : {}),
               agentRole: resolvedWorkItemContext.agentRole,
               projectSlug: resolvedWorkItemContext.projectSlug,
             }

@@ -78,8 +78,8 @@ pub(crate) fn bootstrap_root_work_item(
 
     // The standalone store's org FK only accepts rows that exist in the
     // local `orgs` table. Session rows carry looser scopes: the implicit
-    // personal org (`personal-org`, no row — same normalization as
-    // `WorkItemTool::new`) and cloud sidebar scopes (`cloud:<uuid>`,
+    // personal org (`personal-org`, no row) and cloud sidebar
+    // scopes (`cloud:<uuid>`,
     // also not local rows). Anything without a local org row falls back
     // to the NULL (personal) standalone scope instead of failing the
     // insert.

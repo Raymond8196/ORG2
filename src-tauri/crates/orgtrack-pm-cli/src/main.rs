@@ -46,7 +46,7 @@ fn parse_args(args: &[String]) -> Result<Parsed, CliError> {
     while i < args.len() {
         let arg = &args[i];
         if let Some(name) = arg.strip_prefix("--") {
-            if name == "json" || name == "ready" {
+            if name == "json" || name == "ready" || name == "standalone" {
                 flags.insert(name.to_string(), "true".to_string());
                 i += 1;
                 continue;

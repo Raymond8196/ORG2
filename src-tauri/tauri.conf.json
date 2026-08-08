@@ -42,7 +42,7 @@
     }
   },
   "bundle": {
-    "externalBin": [],
+    "externalBin": ["binaries/org2-pm"],
     "resources": {
       "resources/drag-icons/": "resources/drag-icons/"
     },
