@@ -1,6 +1,7 @@
 import React, { useId, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
+import { CHAT_COMPOSER_BOTTOM_DOCK_PADDING_CLASS } from "@src/config/composerStackTokens";
 import { useElementDimensions } from "@src/hooks/ui/layout/useElementDimensions";
 import {
   DetailPanelContainer,
@@ -72,7 +73,7 @@ export const WorkItemThreadLayout: React.FC<WorkItemThreadLayoutProps> = ({
         {floatingFooter ? (
           <div
             ref={floatingFooterRef}
-            className="absolute bottom-0 left-0 right-11 z-50 flex flex-col items-center px-2 pb-2 pt-1"
+            className={`absolute bottom-0 left-0 right-11 z-50 flex flex-col items-center px-2 pt-1 ${CHAT_COMPOSER_BOTTOM_DOCK_PADDING_CLASS}`}
             data-testid="work-item-thread-floating-footer"
           >
             <div

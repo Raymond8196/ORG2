@@ -1,5 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
 
+import { CHAT_COMPOSER_BOTTOM_DOCK_PADDING_CLASS } from "@src/config/composerStackTokens";
+
 /**
  * Keep creator hero content slightly above center while reserving enough room
  * for the docked composer and its action rows on shorter windows.
@@ -7,6 +9,11 @@ import type { CSSProperties, ReactNode } from "react";
 export const CREATOR_MIDDLE_POSITION_STYLE: CSSProperties = {
   top: "clamp(9rem, 42%, calc(100% - 20rem))",
 };
+
+/**
+ * Keep every launchpad composer the same distance from the bottom edge.
+ */
+export const CREATOR_BOTTOM_DOCK_PADDING_CLASS = `${CHAT_COMPOSER_BOTTOM_DOCK_PADDING_CLASS} pt-4`;
 
 export interface CreatorContentLayoutProps {
   children?: ReactNode;
@@ -47,7 +54,7 @@ export default function CreatorContentLayout({
         {middleContent}
       </div>
       <div
-        className="relative z-10 mt-auto flex w-full shrink-0 flex-col py-4"
+        className={`relative z-10 mt-auto flex w-full shrink-0 flex-col ${CREATOR_BOTTOM_DOCK_PADDING_CLASS}`}
         data-testid={contentDataTestId}
       >
         {children}

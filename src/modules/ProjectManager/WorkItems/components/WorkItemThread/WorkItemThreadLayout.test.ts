@@ -82,6 +82,7 @@ describe("WorkItemThreadLayout floating footer", () => {
     );
     expect(footer?.className).toContain("absolute");
     expect(footer?.className).toContain("bottom-0");
+    expect(footer?.className).toContain("pb-3");
     expect(content?.getAttribute("style")).toContain("padding-bottom: 240px");
     expect(observe).toHaveBeenCalledWith(footer);
 

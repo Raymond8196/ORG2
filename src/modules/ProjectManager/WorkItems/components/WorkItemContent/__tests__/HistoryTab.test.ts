@@ -177,6 +177,7 @@ describe("HistoryTab discussion and activity presentation", () => {
     const commentDock = container.querySelector(
       "[data-testid='work-item-thread-comment-dock']"
     );
+    expect(commentDock?.className).toContain("pb-3");
     expect(commentDock?.className).toContain("bg-transparent");
     expect(commentDock?.className).not.toContain("bg-bg-1");
     expect(commentDock?.className).not.toContain("border-t");
@@ -226,6 +227,10 @@ describe("HistoryTab discussion and activity presentation", () => {
     ).toBeNull();
     expect(editor?.getAttribute("data-appearance")).toBe("outlined");
     expect(editor?.getAttribute("data-min-height")).toBe("60");
+    expect(
+      container.querySelector("[data-testid='work-item-default-comment-dock']")
+        ?.className
+    ).toContain("pb-3");
   });
 
   it("keeps machine events in a collapsed activity-history disclosure", () => {
