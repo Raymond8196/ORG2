@@ -722,9 +722,9 @@ activeChatPanelSurfaceAtom.debugLabel = "activeChatPanelSurfaceAtom";
 
 /**
  * The user's persisted preference for whether the chat-panel slot covers the
- * entire main content area. The active tab's Station capability may force the
- * effective layout full-screen temporarily; that presentation layer snapshots
- * and restores this preference without changing the underlying Station mode.
+ * entire main content area. The active tab and viewport may force the effective
+ * layout full-screen temporarily, but that layout is derived without mutating
+ * this preference or the underlying Station mode.
  */
 export const chatPanelMaximizedAtom = atomWithStorage<boolean>(
   "orgii:chatPanelMaximized",

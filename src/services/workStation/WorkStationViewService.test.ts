@@ -28,6 +28,11 @@ describe("WorkStationViewService work-management tabs", () => {
   };
 
   beforeEach(() => {
+    Object.defineProperty(window, "innerWidth", {
+      configurable: true,
+      value: 1024,
+      writable: true,
+    });
     createInstrumentedStore();
     const store = getInstrumentedStore();
     store.set(stationModeAtom, "agent-station");
@@ -53,17 +58,32 @@ describe("WorkStationViewService work-management tabs", () => {
     expect(navigationEvents).toEqual([{ path: ROUTES.workStation.base.path }]);
   });
 
-  it("rejects Station-opening actions for Station-free chat tabs", async () => {
+  it("rejects Station-opening actions for wide-only tabs below 1440px", async () => {
     const store = getInstrumentedStore();
     store.set(openRuntimeInChatPanelTabAtom, "Runtime");
 
-    expect(store.get(chatPanelMaximizedAtom)).toBe(true);
+    expect(store.get(chatPanelMaximizedAtom)).toBe(false);
     expect(await WorkStationViewService.toggleChatPanelMaximized()).toBe(false);
     expect(await WorkStationViewService.showWorkStation()).toBe(false);
     expect(await WorkStationViewService.openStationMode("my-station")).toBe(
       false
     );
-    expect(store.get(chatPanelMaximizedAtom)).toBe(true);
+    expect(store.get(chatPanelMaximizedAtom)).toBe(false);
     expect(store.get(stationModeAtom)).toBe("agent-station");
+  });
+
+  it("allows Station-opening actions for wide-only tabs at 1440px", async () => {
+    const store = getInstrumentedStore();
+    store.set(openRuntimeInChatPanelTabAtom, "Runtime");
+    window.innerWidth = 1440;
+
+    expect(await WorkStationViewService.toggleChatPanelMaximized()).toBe(true);
+    expect(store.get(chatPanelMaximizedAtom)).toBe(true);
+    expect(await WorkStationViewService.showWorkStation()).toBe(true);
+    expect(store.get(chatPanelMaximizedAtom)).toBe(false);
+    expect(await WorkStationViewService.openStationMode("my-station")).toBe(
+      true
+    );
+    expect(store.get(stationModeAtom)).toBe("my-station");
   });
 });

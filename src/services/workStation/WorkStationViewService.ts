@@ -119,14 +119,14 @@ export const WorkStationViewService = {
       await import("@src/store/chatPanel/chatPanelTabsAtom");
 
     const store = getStore();
-    return store.set(toggleActiveChatPanelMaximizedAtom);
+    return store.set(toggleActiveChatPanelMaximizedAtom, window.innerWidth);
   },
 
   async showWorkStation(): Promise<boolean> {
     if (!isWorkbenchRoute()) return false;
 
     const [
-      { activeChatPanelTabStationAvailableAtom },
+      { activeChatPanelTabAtom, isChatPanelTabStationAvailable },
       { stationModeAtom },
       {
         activeStationChatVisibleAtom,
@@ -140,7 +140,14 @@ export const WorkStationViewService = {
     ]);
 
     const store = getStore();
-    if (!store.get(activeChatPanelTabStationAvailableAtom)) return false;
+    if (
+      !isChatPanelTabStationAvailable(
+        store.get(activeChatPanelTabAtom),
+        window.innerWidth
+      )
+    ) {
+      return false;
+    }
     if (store.get(chatPanelMaximizedAtom)) {
       store.set(chatPanelMaximizedAtom, false);
     }
@@ -176,7 +183,7 @@ export const WorkStationViewService = {
 
   async openStationMode(mode: StationMode): Promise<boolean> {
     const [
-      { activeChatPanelTabStationAvailableAtom },
+      { activeChatPanelTabAtom, isChatPanelTabStationAvailable },
       { activeStationChatVisibleAtom },
       { stationModeAtom },
     ] = await Promise.all([
@@ -188,7 +195,10 @@ export const WorkStationViewService = {
     const store = getStore();
     if (
       isWorkbenchRoute() &&
-      !store.get(activeChatPanelTabStationAvailableAtom)
+      !isChatPanelTabStationAvailable(
+        store.get(activeChatPanelTabAtom),
+        window.innerWidth
+      )
     ) {
       return false;
     }
