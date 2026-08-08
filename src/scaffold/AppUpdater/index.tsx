@@ -172,6 +172,10 @@ function notifyCheckSuccess(
       title: "Update available",
       content: `Version ${update.version} is ready to install.`,
       duration: UPDATE_TOAST_DURATION_MS,
+      action: {
+        label: "Update now",
+        onClick: () => void installAvailableAppUpdate(),
+      },
     });
     return;
   }
