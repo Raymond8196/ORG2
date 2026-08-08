@@ -37,7 +37,8 @@
 - Pattern: disabled Station access uses the shared button's native disabled treatment rather than adding a one-off color or opacity class.
 - Pattern: full-screen ownership is derived from the active tab capability; the header and workbench layout consume the same decision.
 - Pattern: standalone tabs unlock Station splitting only at the shared `1600px` wide-desktop threshold; conversation tabs keep their existing behavior.
-- Pattern: one parent viewport subscription feeds AppShell, AppLayout, and ChatPanel instead of adding parallel resize listeners.
+- Pattern: one parent viewport subscription feeds AppShell, AppLayout, and ChatPanel instead of adding parallel resize listeners; resize bursts are coalesced to one update per animation frame and pending work is canceled on unmount.
+- Pattern: narrow-layout focus owns one `ResizeObserver`; at idle it observes only the stable main-content width and adds the animated workbench target only during a direct divider drag.
 - Pattern: tab and close-control hover layers now share the same transition duration, preventing the scrim from flashing ahead of the tab surface.
 
 ## Summary
