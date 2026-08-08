@@ -21,6 +21,8 @@ import {
 } from "@src/components/Dropdown/tokens";
 import { getViewportSize } from "@src/util/ui/window/viewport";
 
+import { usePropertyDropdownDirection } from "./PropertyDropdownDirection";
+
 // ============================================
 // FieldRow - Interactive row that opens dropdowns
 // ============================================
@@ -232,6 +234,7 @@ export const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
   widthMode = "match-parent",
   align = "left",
 }) => {
+  const dropdownDirection = usePropertyDropdownDirection();
   const [searchQuery, setSearchQuery] = useState("");
   const [portalPosition, setPortalPosition] = useState<{
     top: number;
@@ -283,7 +286,7 @@ export const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
       window.removeEventListener("resize", updatePosition);
       window.removeEventListener("scroll", updatePosition, true);
     };
-  }, [resolvedAlign, shouldPortal]);
+  }, [dropdownDirection, resolvedAlign, shouldPortal]);
 
   const dropdownContent = (
     <>
@@ -304,7 +307,9 @@ export const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
       <>
         <div
           ref={anchorRef}
-          className={`absolute ${positionClass} top-full mt-1 h-0 w-0`}
+          className={`absolute ${positionClass} ${
+            dropdownDirection === "up" ? "bottom-full mb-1" : "top-full mt-1"
+          } h-0 w-0`}
         />
         {portalPosition &&
           createPortal(
@@ -316,6 +321,7 @@ export const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
                 top: portalPosition.top,
                 left: portalPosition.left,
                 right: portalPosition.right,
+                translate: dropdownDirection === "up" ? "0 -100%" : undefined,
               }}
             >
               {dropdownContent}
@@ -330,7 +336,9 @@ export const SearchableDropdown: React.FC<SearchableDropdownProps> = ({
     <div
       ref={dropdownRef}
       data-property-dropdown
-      className={`absolute ${positionClass} top-full mt-1 flex flex-col ${widthClass} ${DROPDOWN_CLASSES.panelAnimated} ${className}`}
+      className={`absolute ${positionClass} ${
+        dropdownDirection === "up" ? "bottom-full mb-1" : "top-full mt-1"
+      } flex flex-col ${widthClass} ${DROPDOWN_CLASSES.panelAnimated} ${className}`}
     >
       {dropdownContent}
     </div>

@@ -9,6 +9,7 @@ import {
 } from "@src/components/Dropdown/tokens";
 import { useDropdownEngine } from "@src/hooks/dropdown";
 
+import { usePropertyDropdownDirection } from "./PropertyDropdownDirection";
 import {
   FieldRow,
   type FieldRowVariant,
@@ -83,6 +84,7 @@ export function PropertyDropdownField<T extends string>({
   renderOptions,
   dataTestId,
 }: PropertyDropdownFieldProps<T>) {
+  const dropdownDirection = usePropertyDropdownDirection();
   const [internalOpen, setInternalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const controlledOpen = active ?? internalOpen;
@@ -106,7 +108,7 @@ export function PropertyDropdownField<T extends string>({
     onOpenChange: handleOpenChange,
     gap: 4,
     align: "right",
-    placement: "bottom",
+    placement: dropdownDirection === "up" ? "top" : "bottom",
   });
 
   const close = useCallback(() => setOpen(false), [setOpen]);
@@ -277,7 +279,9 @@ export function PropertyDropdownField<T extends string>({
           <div
             ref={dropdownRef}
             data-property-dropdown
-            className={`absolute ${fieldVariant === "pill" ? "left-0" : "left-2 right-2"} top-full mt-1 flex flex-col ${fieldVariant === "pill" ? DROPDOWN_WIDTHS.wideMenuClass : ""} ${DROPDOWN_CLASSES.panelAnimated}`}
+            className={`absolute ${fieldVariant === "pill" ? "left-0" : "left-2 right-2"} ${
+              dropdownDirection === "up" ? "bottom-full mb-1" : "top-full mt-1"
+            } flex flex-col ${fieldVariant === "pill" ? DROPDOWN_WIDTHS.wideMenuClass : ""} ${DROPDOWN_CLASSES.panelAnimated}`}
           >
             {dropdownContent()}
           </div>

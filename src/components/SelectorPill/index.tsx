@@ -73,6 +73,7 @@ interface SelectorPillContentProps {
   hoverIcon?: React.ReactNode;
   iconColor: string;
   chevronColor: string;
+  chevronClassName?: string;
   labelColor: string;
   labelClassName?: string;
   iconSize: number;
@@ -90,6 +91,7 @@ const SelectorPillContent: React.FC<SelectorPillContentProps> = ({
   hoverIcon,
   iconColor,
   chevronColor,
+  chevronClassName,
   labelColor,
   labelClassName,
   iconSize,
@@ -159,7 +161,7 @@ const SelectorPillContent: React.FC<SelectorPillContentProps> = ({
 
       {trailingChevron && !textOnly && (
         <span
-          className={`inline-flex shrink-0 items-center justify-center ${chevronColor}`}
+          className={`inline-flex shrink-0 items-center justify-center ${chevronColor} ${chevronClassName ?? ""}`}
         >
           {active ? (
             <ChevronUp size={14} strokeWidth={2} />
@@ -210,8 +212,11 @@ export interface SelectorPillProps {
   onFocus?: React.FocusEventHandler<HTMLButtonElement>;
   onBlur?: React.FocusEventHandler<HTMLButtonElement>;
   ariaLabel?: string;
+  ariaExpanded?: boolean;
   className?: string;
   labelClassName?: string;
+  /** Additional classes for the persistent trailing chevron. */
+  chevronClassName?: string;
   labelStyle?: React.CSSProperties;
   dataTestId?: string;
   disabled?: boolean;
@@ -231,6 +236,7 @@ export const SelectorPill = forwardRef<HTMLButtonElement, SelectorPillProps>(
       active = false,
       danger = false,
       size = "sm",
+      variant = "default",
       trailingChevron = false,
       textOnly = false,
       hoverIcon,
@@ -241,29 +247,35 @@ export const SelectorPill = forwardRef<HTMLButtonElement, SelectorPillProps>(
       onFocus,
       onBlur,
       ariaLabel,
+      ariaExpanded,
       className = "",
       labelClassName,
+      chevronClassName,
       labelStyle,
       dataTestId,
       disabled,
     },
     ref
   ) => {
+    const idleColor = "text-text-1";
     const labelColor = danger
       ? "text-primary-6"
       : active
         ? "text-primary-6"
-        : "text-text-1";
+        : idleColor;
     const iconSize = ICON_SIZES[size];
-    const iconColor = danger ? "text-primary-6" : "text-text-1";
+    const iconColor = danger ? "text-primary-6" : idleColor;
     const chevronColor = danger
       ? "text-primary-6"
       : active
         ? "text-primary-6"
-        : "text-text-1";
-    const variantClasses = active
-      ? PILL_CONTROL_ACTIVE_SURFACE_CLASS
-      : PILL_CONTROL_HOVER_CLASS;
+        : idleColor;
+    const variantClasses =
+      variant === "ghost"
+        ? ""
+        : active
+          ? PILL_CONTROL_ACTIVE_SURFACE_CLASS
+          : PILL_CONTROL_HOVER_CLASS;
 
     // Controlled tooltip visibility so that opening the dropdown (active=true)
     // immediately hides the tooltip instead of leaving it covering the panel.
@@ -291,6 +303,7 @@ export const SelectorPill = forwardRef<HTMLButtonElement, SelectorPillProps>(
         onBlur={onBlur}
         disabled={disabled}
         aria-label={ariaLabel}
+        aria-expanded={ariaExpanded}
         data-testid={dataTestId}
         title={tooltip ? undefined : (title ?? label)}
         className={`group/pill flex min-w-0 items-center rounded-full transition-colors duration-200 focus:outline-none ${buttonSizeClass} ${labelClassName ? "font-normal" : "font-medium"} ${variantClasses} ${className}`}
@@ -306,6 +319,7 @@ export const SelectorPill = forwardRef<HTMLButtonElement, SelectorPillProps>(
           hoverIcon={hoverIcon}
           iconColor={iconColor}
           chevronColor={chevronColor}
+          chevronClassName={chevronClassName}
           labelColor={labelColor}
           labelClassName={labelClassName}
           iconSize={iconSize}

@@ -68,4 +68,10 @@
     background: var(--color-chat-container);
     box-shadow: none;
   }
+
+  .session-creator-chat-panel-fullscreen-repo-row-above {
+    margin-top: 0;
+    margin-bottom: -6px;
+    border-radius: 12px 12px 0 0;
+  }
 }

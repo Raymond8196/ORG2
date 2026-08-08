@@ -69,6 +69,8 @@ export interface ProjectContentEditorProps {
   descriptionMaxHeight?: number | string;
   repoPath?: string | null;
   dataTestId?: string;
+  /** Direction used by @ mention and slash-command menus. */
+  dropdownDirection?: "up" | "down";
 }
 
 export const ProjectContentTitleInput = forwardRef<
@@ -141,6 +143,7 @@ const ProjectContentEditor = forwardRef<
       descriptionMaxHeight,
       repoPath,
       dataTestId,
+      dropdownDirection = "down",
     },
     ref
   ) => {
@@ -403,12 +406,12 @@ const ProjectContentEditor = forwardRef<
               keyboardOpened={contextMenuKeyboardOpened}
               repoPath={repoPath ?? undefined}
               keyboardHandlerRef={contextMenuKeyboardHandlerRef}
-              placement="down"
+              placement={dropdownDirection}
             />
             <SlashCommandPortal
               visible={showSlashMenu}
               containerRef={editorContainerRef}
-              placement="down"
+              placement={dropdownDirection}
               items={skillSlashItems}
               loading={slashLoading}
               currentMode={currentMode}

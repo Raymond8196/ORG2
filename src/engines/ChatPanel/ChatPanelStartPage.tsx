@@ -1,16 +1,9 @@
 import type { TFunction } from "i18next";
-import {
-  ArrowLeftRight,
-  ChevronLeft,
-  ChevronRight,
-  Download,
-  Import,
-  KeyRound,
-} from "lucide-react";
+import { ChevronRight, Download, Import, KeyRound } from "lucide-react";
 import React, { useCallback, useState } from "react";
 
-import Button from "@src/components/Button";
 import { PILL_CONTROL_IDLE_SURFACE_CLASS } from "@src/components/CompoundPill/config";
+import SegmentedTextPill from "@src/components/SegmentedTextPill";
 import Select, { type SelectOption } from "@src/components/Select";
 import TabPill from "@src/components/TabPill";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
@@ -23,6 +16,7 @@ import {
 } from "@src/store/ui/chatPanelAtom";
 
 type StartPageActionTone = "primary" | "neutral" | "success" | "warning";
+type StartPageActionPresentation = "card" | "pill";
 type StartPageView = "session" | "work-item" | "more";
 
 interface ChatPanelStartPageAction {
@@ -43,35 +37,52 @@ const START_PAGE_ACTION_TONE_CLASS: Record<StartPageActionTone, string> = {
     "border-warning-6/20 bg-warning-6/5 hover:border-warning-6/30 hover:bg-warning-6/10",
 };
 
-interface StartPageHint {
-  id: string;
-  textBefore: string;
-  command: string;
-  textAfter: string;
-}
+const START_PAGE_ACTION_CARD_TONE_CLASS: Record<StartPageActionTone, string> = {
+  primary:
+    "border-primary-6/20 hover:border-primary-6/30 hover:bg-surface-hover",
+  neutral: "border-border-2 hover:border-border-3 hover:bg-surface-hover",
+  success:
+    "border-success-6/20 hover:border-success-6/30 hover:bg-surface-hover",
+  warning:
+    "border-warning-6/20 hover:border-warning-6/30 hover:bg-surface-hover",
+};
+
+const START_PAGE_ACTION_ICON_TONE_CLASS: Record<StartPageActionTone, string> = {
+  primary: "text-primary-6",
+  neutral: "text-text-2",
+  success: "text-success-6",
+  warning: "text-warning-6",
+};
 
 interface ChatPanelStartPageProps {
   className?: string;
   createTarget: ChatPanelCreateTarget;
   createTargetOptions: SelectOption[];
-  moreLauncher?: React.ReactNode;
+  moreLauncher?: (
+    suggestionPills: React.ReactNode,
+    manualMiddleContent: React.ReactNode,
+    creatorModeControl?: React.ReactNode
+  ) => React.ReactNode;
   onAddApiKey: () => void;
   onCreateTarget: (target: ChatPanelCreateTarget) => void;
   onInstallLatestUpdate: () => void;
   onProjectAgentModeChange: (enabled: boolean) => void;
   onWorkItemAgentModeChange: (enabled: boolean) => void;
   projectAgentMode: boolean;
-  sessionLauncher?: React.ReactNode;
+  sessionLauncher?: (heroFooterSlot: React.ReactNode) => React.ReactNode;
   t: TFunction<["sessions", "common", "projects", "navigation"]>;
   workItemAgentMode: boolean;
-  workItemLauncher?: React.ReactNode;
+  workItemLauncher?: (
+    suggestionPills: React.ReactNode,
+    manualMiddleContent: React.ReactNode,
+    creatorModeControl: React.ReactNode
+  ) => React.ReactNode;
 }
 
 interface StartPageCreatorModeToggleProps {
   agentMode: boolean;
   dataTestId: string;
   onChange: (enabled: boolean) => void;
-  separatorDataTestId: string;
   t: TFunction<["sessions", "common", "projects", "navigation"]>;
 }
 
@@ -79,69 +90,51 @@ function StartPageCreatorModeToggle({
   agentMode,
   dataTestId,
   onChange,
-  separatorDataTestId,
   t,
 }: StartPageCreatorModeToggleProps): React.ReactNode {
   return (
-    <>
-      <span
-        className="h-5 w-px shrink-0 bg-border-2"
-        role="separator"
-        aria-hidden
-        data-testid={separatorDataTestId}
-      />
-      <Button
-        htmlType="button"
-        variant="tertiary"
-        appearance="ghost"
-        size="large"
-        shape="round"
-        iconPosition="right"
-        icon={<ArrowLeftRight size={12} strokeWidth={1.8} aria-hidden />}
-        onClick={() => onChange(!agentMode)}
-        className="!h-9 !px-1 !text-[16px] !font-normal text-text-2"
-        aria-pressed={agentMode}
-        data-testid={dataTestId}
-      >
-        {agentMode
-          ? t("common:terminology.agent")
-          : t("common:tooltips.manual")}
-      </Button>
-    </>
+    <SegmentedTextPill
+      ariaLabel={`${t("common:terminology.agent")} / ${t(
+        "common:tooltips.manual"
+      )}`}
+      dataTestId={dataTestId}
+      value={agentMode ? "agent" : "manual"}
+      options={[
+        { value: "agent", label: t("common:terminology.agent") },
+        { value: "manual", label: t("common:tooltips.manual") },
+      ]}
+      onChange={(value) => onChange(value === "agent")}
+    />
   );
 }
 
-const START_PAGE_HINTS: StartPageHint[] = [
-  {
-    id: "skill",
-    textBefore: "chat.startPage.hints.skill.before",
-    command: "/",
-    textAfter: "chat.startPage.hints.skill.after",
-  },
-  {
-    id: "ask",
-    textBefore: "chat.startPage.hints.ask.before",
-    command: "/Ask",
-    textAfter: "chat.startPage.hints.ask.after",
-  },
-  {
-    id: "plan",
-    textBefore: "chat.startPage.hints.plan.before",
-    command: "/Plan",
-    textAfter: "chat.startPage.hints.plan.after",
-  },
-  {
-    id: "switch",
-    textBefore: "chat.startPage.hints.switch.before",
-    command: "< >",
-    textAfter: "chat.startPage.hints.switch.after",
-  },
-];
 function StartPageActionCard({
   action,
+  presentation = "pill",
 }: {
   action: ChatPanelStartPageAction;
+  presentation?: StartPageActionPresentation;
 }): React.ReactNode {
+  if (presentation === "card") {
+    return (
+      <button
+        type="button"
+        className={`group flex min-h-[84px] w-full flex-col items-start justify-between rounded-xl border bg-transparent px-3 py-2.5 text-left shadow-sm transition-colors focus-visible:border-primary-6 focus-visible:outline-none ${START_PAGE_ACTION_CARD_TONE_CLASS[action.tone]}`}
+        onClick={action.onClick}
+        data-testid={`chat-panel-start-page-${action.id}`}
+      >
+        <span
+          className={`flex h-6 w-6 shrink-0 items-center justify-center ${START_PAGE_ACTION_ICON_TONE_CLASS[action.tone]}`}
+        >
+          {action.icon}
+        </span>
+        <span className="block text-[12px] font-medium leading-4 text-text-1">
+          {action.title}
+        </span>
+      </button>
+    );
+  }
+
   return (
     <button
       type="button"
@@ -168,75 +161,41 @@ function StartPageActionCard({
   );
 }
 
-function StartPageCommandPill({
-  command,
+function StartPageActionGrid({
+  actions,
+  className = "",
+  presentation = "pill",
 }: {
-  command: string;
+  actions: ChatPanelStartPageAction[];
+  className?: string;
+  presentation?: StartPageActionPresentation;
 }): React.ReactNode {
-  return (
-    <span className="mx-0.5 inline-flex rounded-md bg-fill-2 px-1.5 py-0.5 text-[12px] font-medium leading-none text-text-2">
-      {command}
-    </span>
-  );
-}
+  const cardWidthClass =
+    actions.length >= 3 ? "max-w-[600px]" : "max-w-[400px]";
 
-function StartPageHintNavButton({
-  label,
-  children,
-  onClick,
-}: {
-  label: string;
-  children: React.ReactNode;
-  onClick: () => void;
-}): React.ReactNode {
   return (
-    <button
-      type="button"
-      aria-label={label}
-      className="inline-flex h-6 w-6 items-center justify-center rounded-md border-0 bg-transparent p-0 text-text-3 opacity-0 transition-colors hover:bg-fill-2 hover:text-text-1 group-focus-within:opacity-100 group-hover:opacity-100"
-      onClick={onClick}
+    <div
+      className={`@container/startactions ${
+        presentation === "card" ? cardWidthClass : ""
+      } ${className}`}
     >
-      {children}
-    </button>
-  );
-}
-
-function StartPageHintLine({
-  t,
-}: {
-  t: TFunction<["sessions", "common", "projects", "navigation"]>;
-}): React.ReactNode {
-  const [hintIndex, setHintIndex] = useState(0);
-  const hint = START_PAGE_HINTS[hintIndex];
-  const switchHint = useCallback((direction: "previous" | "next") => {
-    setHintIndex((currentIndex) => {
-      const delta = direction === "previous" ? -1 : 1;
-      return (
-        (currentIndex + delta + START_PAGE_HINTS.length) %
-        START_PAGE_HINTS.length
-      );
-    });
-  }, []);
-
-  return (
-    <div className="group flex items-center justify-center gap-1 px-1 text-center text-[13px] leading-6 text-text-3">
-      <StartPageHintNavButton
-        label={t("chat.startPage.hints.previous")}
-        onClick={() => switchHint("previous")}
+      <div
+        className={
+          presentation === "card"
+            ? `grid grid-cols-1 gap-2.5 @[360px]/startactions:grid-cols-2 ${
+                actions.length >= 3 ? "@[620px]/startactions:grid-cols-3" : ""
+              }`
+            : "grid grid-cols-1 gap-3 @[420px]/startactions:grid-cols-2 @[800px]/startactions:grid-cols-3"
+        }
       >
-        <ChevronLeft size={14} strokeWidth={1.8} />
-      </StartPageHintNavButton>
-      <p className="min-w-0 flex-1 truncate">
-        <span>{t(hint.textBefore)} </span>
-        <StartPageCommandPill command={hint.command} />
-        <span> {t(hint.textAfter)}</span>
-      </p>
-      <StartPageHintNavButton
-        label={t("chat.startPage.hints.next")}
-        onClick={() => switchHint("next")}
-      >
-        <ChevronRight size={14} strokeWidth={1.8} />
-      </StartPageHintNavButton>
+        {actions.map((action) => (
+          <StartPageActionCard
+            key={action.id}
+            action={action}
+            presentation={presentation}
+          />
+        ))}
+      </div>
     </div>
   );
 }
@@ -298,6 +257,55 @@ export function ChatPanelStartPage({
       : createTarget === CHAT_PANEL_CREATE_TARGET.WORK_ITEM
         ? "work-item"
         : "more";
+  const suggestionPills = (
+    <StartPageActionGrid
+      actions={utilityActions}
+      className="mx-auto w-full"
+      presentation="card"
+    />
+  );
+  const manualMiddleContent = (
+    <div
+      className="flex w-full flex-col items-center justify-center gap-4"
+      data-testid="chat-panel-start-page-manual-middle-content"
+    >
+      <h1 className="text-center text-[18px] font-normal leading-relaxed tracking-tight text-text-1 sm:text-[20px]">
+        {t("creator.manualLaunchpadQuestion")}
+      </h1>
+      {suggestionPills}
+    </div>
+  );
+  const workItemModeControl = (
+    <StartPageCreatorModeToggle
+      agentMode={workItemAgentMode}
+      dataTestId="chat-panel-start-page-work-item-mode-toggle"
+      onChange={onWorkItemAgentModeChange}
+      t={t}
+    />
+  );
+  const projectModeControl = (
+    <StartPageCreatorModeToggle
+      agentMode={projectAgentMode}
+      dataTestId="chat-panel-start-page-project-mode-toggle"
+      onChange={onProjectAgentModeChange}
+      t={t}
+    />
+  );
+  const sessionLauncherContent = sessionLauncher?.(suggestionPills);
+  const workItemLauncherContent = workItemLauncher?.(
+    suggestionPills,
+    manualMiddleContent,
+    workItemModeControl
+  );
+  const moreLauncherContent = moreLauncher?.(
+    suggestionPills,
+    manualMiddleContent,
+    createTarget === CHAT_PANEL_CREATE_TARGET.PROJECT
+      ? projectModeControl
+      : undefined
+  );
+  const showUtilityActionsFooter =
+    activeView === "more" && createTarget !== CHAT_PANEL_CREATE_TARGET.PROJECT;
   const handleViewChange = useCallback(
     (key: string) => {
       if (key === "session") {
@@ -358,55 +366,34 @@ export function ChatPanelStartPage({
             fillWidth={false}
             className="h-10"
           />
-          {activeView === "more" || activeView === "work-item" ? (
+          {activeView === "more" ? (
             <div
               className="flex -translate-y-1 items-center gap-2"
               data-testid="chat-panel-start-page-trailing-control"
             >
-              {activeView === "more" ? (
-                <>
-                  <span
-                    className="h-5 w-px shrink-0 bg-border-2"
-                    role="separator"
-                    aria-hidden
-                    data-testid="chat-panel-start-page-trailing-separator"
-                  />
-                  <Select
-                    value={selectedMoreTarget}
-                    options={createTargetOptions}
-                    onChange={(value) => {
-                      if (!Array.isArray(value)) {
-                        onCreateTarget(value as ChatPanelCreateTarget);
-                      }
-                    }}
-                    size="large"
-                    variant="ghost"
-                    radius="pill"
-                    dropdownMinWidth={168}
-                    dropdownWidthMode="auto"
-                    className="w-auto"
-                    selectorClassName="max-w-[240px] !gap-2 !px-1 !text-[16px] !leading-6 [&_.select-suffix]:!ml-0"
-                    dataTestId="chat-panel-start-page-create-target-select"
-                  />
-                  {createTarget === CHAT_PANEL_CREATE_TARGET.PROJECT ? (
-                    <StartPageCreatorModeToggle
-                      agentMode={projectAgentMode}
-                      dataTestId="chat-panel-start-page-project-mode-toggle"
-                      onChange={onProjectAgentModeChange}
-                      separatorDataTestId="chat-panel-start-page-project-mode-separator"
-                      t={t}
-                    />
-                  ) : null}
-                </>
-              ) : (
-                <StartPageCreatorModeToggle
-                  agentMode={workItemAgentMode}
-                  dataTestId="chat-panel-start-page-work-item-mode-toggle"
-                  onChange={onWorkItemAgentModeChange}
-                  separatorDataTestId="chat-panel-start-page-trailing-separator"
-                  t={t}
-                />
-              )}
+              <span
+                className="h-5 w-px shrink-0 bg-border-2"
+                role="separator"
+                aria-hidden
+                data-testid="chat-panel-start-page-trailing-separator"
+              />
+              <Select
+                value={selectedMoreTarget}
+                options={createTargetOptions}
+                onChange={(value) => {
+                  if (!Array.isArray(value)) {
+                    onCreateTarget(value as ChatPanelCreateTarget);
+                  }
+                }}
+                size="large"
+                variant="ghost"
+                radius="pill"
+                dropdownMinWidth={168}
+                dropdownWidthMode="auto"
+                className="w-auto"
+                selectorClassName="max-w-[240px] !gap-2 !px-1 !text-[16px] !leading-6 [&_.select-suffix]:!ml-0"
+                dataTestId="chat-panel-start-page-create-target-select"
+              />
             </div>
           ) : null}
         </div>
@@ -417,53 +404,39 @@ export function ChatPanelStartPage({
             className="flex h-full min-h-0 w-full"
             data-testid="chat-panel-start-page-work-item-launcher"
           >
-            {workItemLauncher}
+            {workItemLauncherContent}
           </div>
         ) : activeView === "more" ? (
           <div
             className="flex h-full min-h-0 w-full flex-col overflow-hidden"
             data-testid="chat-panel-start-page-more-launcher"
           >
-            {moreLauncher}
+            {moreLauncherContent}
           </div>
         ) : (
           <CreatorContentLayout
-            centered
-            centeredDataTestId="chat-panel-start-page-session-centered-launcher"
+            placement="fill"
+            contentDataTestId="chat-panel-start-page-session-content"
           >
-            {sessionLauncher ? (
+            {sessionLauncherContent ? (
               <div
-                className="w-full"
+                className="h-full w-full"
                 data-testid="chat-panel-start-page-session-launcher"
               >
-                {sessionLauncher}
+                {sessionLauncherContent}
               </div>
             ) : null}
           </CreatorContentLayout>
         )}
       </div>
-      <div
-        className={`shrink-0 px-4 pb-5 pt-2 ${DETAIL_PANEL_TOKENS.headerWidth}`}
-        data-testid="chat-panel-start-page-utility-actions"
-      >
-        <div className="flex w-full flex-col gap-3">
-          {activeView === "session" ? (
-            <div data-testid="chat-panel-start-page-hints">
-              <StartPageHintLine t={t} />
-            </div>
-          ) : null}
-          <div
-            className="@container/startactions"
-            data-testid="chat-panel-start-page-actions"
-          >
-            <div className="grid grid-cols-1 gap-3 @[420px]/startactions:grid-cols-2 @[800px]/startactions:grid-cols-3">
-              {utilityActions.map((action) => (
-                <StartPageActionCard key={action.id} action={action} />
-              ))}
-            </div>
-          </div>
+      {showUtilityActionsFooter && (
+        <div
+          className={`shrink-0 px-4 pb-5 pt-2 ${DETAIL_PANEL_TOKENS.headerWidth}`}
+          data-testid="chat-panel-start-page-utility-actions"
+        >
+          <StartPageActionGrid actions={utilityActions} className="w-full" />
         </div>
-      </div>
+      )}
       {isImportSessionDialogOpen && (
         <ImportSharedSessionDialog
           visible

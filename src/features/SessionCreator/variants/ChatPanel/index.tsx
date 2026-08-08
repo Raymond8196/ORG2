@@ -73,6 +73,7 @@ const SessionCreatorChatPanelContent: React.FC<
   centerFullScreenContent = false,
   className = "",
   composerHeaderContent,
+  heroFooterSlot,
   pinnedActionsContent,
   innerClassName,
   footerSlot,
@@ -89,6 +90,7 @@ const SessionCreatorChatPanelContent: React.FC<
   onSessionStart,
   hidePresenceButton = false,
   launchMode,
+  layout = "default",
   variant = "default",
   workItemContext,
   resolveWorkItemContext,
@@ -430,9 +432,12 @@ const SessionCreatorChatPanelContent: React.FC<
           composerHeaderContent
         )
       }
+      heroFooterSlot={heroFooterSlot}
       composerInputRef={composerInputRef}
       editorAreaProps={{
         variant: "chatPanelFullScreen",
+        editorMinHeight: layout === "launchpad" ? 44 : undefined,
+        editorMaxHeight: layout === "launchpad" ? 160 : undefined,
         uploadedFiles: isHumanMode ? [] : uploadedFiles,
         onRemoveFile: handleRemoveFile,
         composerInputRef,
@@ -500,6 +505,7 @@ const SessionCreatorChatPanelContent: React.FC<
       isCliTuiMode={isCliTuiMode}
       isFullScreenVariant={isFullScreenVariant}
       isLoading={isHumanMode ? humanCreating : isLoading}
+      isLaunchpadLayout={layout === "launchpad"}
       isOrgMembersPanelOpen={isOrgMembersPanelOpen}
       isWingmanMode={isWingmanMode}
       leadingActionSlot={leadingActionSlot}

@@ -32,7 +32,6 @@ import { useKeyboardSave } from "@src/hooks/keyboard";
 import { createLogger } from "@src/hooks/logger";
 import { useUndoStackWithRestore } from "@src/hooks/ui";
 import {
-  CreateComposerAgentFrame,
   CreateComposerHeader,
   CreateComposerPinnedActions,
   CreateComposerTitleInput,
@@ -84,8 +83,10 @@ export interface CreateProjectViewProps {
   onProjectCreated: (options?: { keepOpen?: boolean }) => void;
   /** Show the Agent composer instead of the manual Project composer. */
   aiGenerateMode?: boolean;
-  /** Center the creator composer within the available launcher space. */
-  centerLauncherContent?: boolean;
+  /** Optional content centered in the page above the bottom-docked manual composer. */
+  middleContent?: React.ReactNode;
+  /** Agent/Manual segmented control rendered with the creator setup pills. */
+  creatorModeControl?: React.ReactNode;
   /** Render Session Creator in Agent mode with Project fields in its composer. */
   renderAgentComposer?: (
     headerContent: React.ReactNode,
@@ -110,7 +111,8 @@ const CreateProjectView: React.FC<CreateProjectViewProps> = ({
   onSetUnsaved,
   onProjectCreated,
   aiGenerateMode = false,
-  centerLauncherContent = false,
+  middleContent,
+  creatorModeControl,
   renderAgentComposer,
   publishHeaderToWorkstation = false,
 }) => {
@@ -357,6 +359,7 @@ const CreateProjectView: React.FC<CreateProjectViewProps> = ({
       dropdownWidthMode="min-match"
       dropdownMinWidth={220}
       panelZIndex={10000}
+      placement="top"
       dataTestId="create-project-org-select"
       className="w-auto max-w-[220px] [&_.select-selector]:!h-7 [&_.select-selector]:!rounded-full [&_.select-selector]:!bg-bg-2 [&_.select-selector]:!px-3 [&_.select-selector]:!text-[13px] [&_.select-selector]:!font-medium [&_.select-selector]:!shadow-none [&_.select-suffix]:!hidden"
     />
@@ -393,6 +396,7 @@ const CreateProjectView: React.FC<CreateProjectViewProps> = ({
 
   const projectPinnedActions = (
     <CreateComposerPinnedActions dataTestId="create-project-pinned-actions">
+      {creatorModeControl}
       {orgBreadcrumbPill}
       {propertyPills}
     </CreateComposerPinnedActions>
@@ -412,6 +416,7 @@ const CreateProjectView: React.FC<CreateProjectViewProps> = ({
       repoPath={repoPath}
       className="flex min-h-0 flex-1 flex-col"
       dataTestId="create-project-editor"
+      dropdownDirection="up"
     />
   );
 
@@ -423,16 +428,14 @@ const CreateProjectView: React.FC<CreateProjectViewProps> = ({
       publishHeaderToWorkstation={publishHeaderToWorkstation}
       leftContent={
         <CreatorContentLayout
-          centered={centerLauncherContent}
-          centeredDataTestId="create-project-centered-launcher"
+          placement={aiGenerateMode && renderAgentComposer ? "fill" : "bottom"}
+          contentDataTestId="create-project-creator-content"
+          middleContent={middleContent}
         >
           {aiGenerateMode && renderAgentComposer ? (
-            <CreateComposerAgentFrame centered={centerLauncherContent}>
-              {renderAgentComposer(composerHeaderContent, projectPinnedActions)}
-            </CreateComposerAgentFrame>
+            renderAgentComposer(composerHeaderContent, projectPinnedActions)
           ) : (
             <ManualCreateComposer
-              centered={centerLauncherContent}
               dataTestId="create-project-manual-composer"
               editorRef={editorRef}
               headerContent={composerHeaderContent}

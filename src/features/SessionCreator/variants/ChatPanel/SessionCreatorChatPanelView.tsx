@@ -14,6 +14,7 @@ import type { ScrollNavState } from "@src/engines/ChatPanel/ChatHistory";
 import CollapsedInlineRow from "@src/engines/ChatPanel/InputArea/components/CollapsedInlineRow";
 import PinnedActionsBar from "@src/engines/ChatPanel/InputArea/components/PinnedActionsBar";
 import type { SessionLaunchWorkItemContext } from "@src/engines/SessionCore/hooks/session/useSessionCreator/useSessionLaunch/types";
+import { CREATOR_MIDDLE_POSITION_STYLE } from "@src/modules/shared/layouts/blocks";
 import {
   type AgentSelection,
   DispatchCategoryPalette,
@@ -63,6 +64,7 @@ interface SessionCreatorChatPanelViewProps {
   fileInputRef: React.RefObject<HTMLInputElement | null>;
   footerSlot?: React.ReactNode;
   headerLayout: SessionCreatorChatPanelHeaderLayout;
+  heroFooterSlot?: React.ReactNode;
   heroContent: SessionCreatorAgentHeroContent;
   heroIcon: React.ReactNode;
   hidePresenceButton: boolean;
@@ -72,6 +74,7 @@ interface SessionCreatorChatPanelViewProps {
   isCategorySelectorOpen: boolean;
   isCliTuiMode: boolean;
   isFullScreenVariant: boolean;
+  isLaunchpadLayout: boolean;
   isLoading: boolean;
   hideSessionSetupControls: boolean;
   isOrgMembersPanelOpen: boolean;
@@ -115,6 +118,7 @@ const SessionCreatorChatPanelView: React.FC<
   fileInputRef,
   footerSlot,
   headerLayout,
+  heroFooterSlot,
   heroContent,
   heroIcon,
   hidePresenceButton,
@@ -124,6 +128,7 @@ const SessionCreatorChatPanelView: React.FC<
   isCategorySelectorOpen,
   isCliTuiMode,
   isFullScreenVariant,
+  isLaunchpadLayout,
   isLoading,
   hideSessionSetupControls,
   isOrgMembersPanelOpen,
@@ -146,7 +151,14 @@ const SessionCreatorChatPanelView: React.FC<
   workItemPanelHostRef,
 }) => {
   const { t } = useTranslation("sessions");
-  const sessionInfoLine = <SessionInfoLine {...sessionInfoProps} />;
+  const sessionInfoLine = (
+    <SessionInfoLine
+      {...sessionInfoProps}
+      dropdownDirection={
+        isLaunchpadLayout ? "up" : sessionInfoProps.dropdownDirection
+      }
+    />
+  );
   const repoPills = (
     <div className="flex w-full justify-center">
       <div
@@ -154,6 +166,17 @@ const SessionCreatorChatPanelView: React.FC<
       >
         {sessionInfoLine}
       </div>
+    </div>
+  );
+  const repoPillsRow = !hideRepoLine && headerLayout !== "compact" && (
+    <div
+      className={`session-creator-chat-panel-fullscreen-repo-row px-1 ${
+        isLaunchpadLayout
+          ? "session-creator-chat-panel-fullscreen-repo-row-above pb-3 pt-2"
+          : "pb-2 pt-3"
+      }`}
+    >
+      {repoPills}
     </div>
   );
   const compactHeader = headerLayout === "compact" && (
@@ -190,104 +213,192 @@ const SessionCreatorChatPanelView: React.FC<
       ) : null,
     [browserElementScrollNav]
   );
+  const sessionSetupActions = !hideSessionSetupControls ? (
+    <div
+      className={`mx-auto flex w-full items-center ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
+    >
+      <PinnedActionsBar
+        composerInputRef={composerInputRef}
+        manageButtonPlacement="before-actions"
+        managePanelAlign="left"
+        trailingContent={pinnedActionsContent}
+        leadingContent={
+          <>
+            {browserElementRowContent}
+            {leadingActionSlot}
+            {cliLaunchModeSwitch}
+            {cliLaunchModeSwitch && (
+              <div aria-hidden className="mx-1 h-4 w-px shrink-0 bg-border-2" />
+            )}
+            {!hideWorkItemAttachmentControl && (
+              <WorkItemAttachmentControl
+                currentWorkItemContext={workItemContext}
+                onCreateWorkItem={onCreateWorkItem}
+                panelHostRef={workItemPanelHostRef}
+                onWorkItemContextChange={onAttachedWorkItemContextChange}
+              />
+            )}
+            {orgMembersPanelProps && (
+              <Button
+                variant="secondary"
+                appearance="outline"
+                size="small"
+                shape="round"
+                icon={<Network size={14} strokeWidth={1.75} />}
+                title={t("creator.orgMembers.configButton")}
+                aria-label={t("creator.orgMembers.configButton")}
+                aria-expanded={isOrgMembersPanelOpen}
+                aria-controls="session-creator-org-members-panel"
+                onClick={onToggleOrgMembers}
+                className={`shrink-0 ${pillControlStateClass(isOrgMembersPanelOpen)}`}
+                data-testid="session-creator-org-members-toggle"
+              >
+                {t("creator.orgMembers.configButton")}
+              </Button>
+            )}
+          </>
+        }
+      />
+    </div>
+  ) : null;
+  const agentHero = headerLayout !== "compact" && (
+    <SessionCreatorAgentHero
+      ref={agentHeroRef}
+      name={heroContent.name}
+      description={heroContent.description}
+      avatarIcon={heroIcon}
+      question={isLaunchpadLayout ? t("creator.launchpadQuestion") : undefined}
+      questionSuffix={
+        isLaunchpadLayout
+          ? t("creator.launchpadQuestionSuffix", { defaultValue: "" })
+          : undefined
+      }
+      active={isCategorySelectorOpen}
+      danger={heroContent.danger}
+      onClick={onCategoryPickerOpen}
+    />
+  );
+  const launchpadMiddleContent = isLaunchpadLayout ? (
+    <div
+      className="absolute inset-x-0 flex -translate-y-1/2 flex-col items-center gap-4"
+      style={CREATOR_MIDDLE_POSITION_STYLE}
+    >
+      {agentHero}
+      {heroFooterSlot && (
+        <div className="session-creator-chat-panel-launchpad-suggestions w-full">
+          {heroFooterSlot}
+        </div>
+      )}
+    </div>
+  ) : null;
 
   return (
     <div
-      className={`session-creator-chat-panel-wrapper ${className}`}
+      className={`session-creator-chat-panel-wrapper ${
+        isLaunchpadLayout ? "h-full" : ""
+      } ${className}`}
       data-testid="session-creator-chat-panel"
     >
       <div
-        className={`session-creator-chat-panel-content flex min-h-0 flex-1 items-center justify-center px-4 ${DETAIL_PANEL_TOKENS.headerWidth} ${
-          innerClassName ??
-          (isFullScreenVariant
-            ? centerFullScreenContent
-              ? "pb-[10vh]"
-              : "pb-[18vh]"
-            : "pb-[4vh]")
+        className={`session-creator-chat-panel-content flex min-h-0 flex-1 px-4 ${DETAIL_PANEL_TOKENS.headerWidth} ${
+          isLaunchpadLayout
+            ? "session-creator-chat-panel-launchpad-content flex-col py-4"
+            : `items-center justify-center ${
+                innerClassName ??
+                (isFullScreenVariant
+                  ? centerFullScreenContent
+                    ? "pb-[10vh]"
+                    : "pb-[18vh]"
+                  : "pb-[4vh]")
+              }`
         }`}
       >
-        <div className="flex w-full flex-col items-stretch gap-3">
+        <div
+          className={`flex w-full flex-col items-stretch gap-3 ${
+            isLaunchpadLayout
+              ? "session-creator-chat-panel-launchpad-stack relative min-h-0 flex-1"
+              : ""
+          }`}
+        >
+          {launchpadMiddleContent}
           {isCliTuiMode ? (
             <>
-              {headerLayout !== "compact" && (
-                <SessionCreatorAgentHero
-                  ref={agentHeroRef}
-                  name={heroContent.name}
-                  description={heroContent.description}
-                  avatarIcon={heroIcon}
-                  active={isCategorySelectorOpen}
-                  danger={heroContent.danger}
-                  onClick={onCategoryPickerOpen}
-                />
-              )}
+              {!isLaunchpadLayout && agentHero}
               <div
-                className={`session-creator-chat-panel-fullscreen-composer w-full ${
-                  headerLayout === "compact"
-                    ? "session-creator-chat-panel-fullscreen-composer-compact"
-                    : ""
-                }`}
+                className={
+                  isLaunchpadLayout
+                    ? "mt-auto flex w-full flex-col gap-3"
+                    : "contents"
+                }
               >
-                {compactHeader}
-                {tuiComposerHeader}
-                <div className="rounded-xl bg-chat-container p-3">
-                  <button
-                    type="button"
-                    onClick={onLaunch}
-                    disabled={!canLaunch || isLoading}
-                    className="flex w-full items-center justify-center rounded-full bg-primary-6 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-primary-7 disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    {t("creator.start")}
-                  </button>
-                </div>
-                {!hideRepoLine && headerLayout !== "compact" && (
-                  <div className="session-creator-chat-panel-fullscreen-repo-row px-1 pb-2 pt-3">
-                    {repoPills}
+                {isLaunchpadLayout && sessionSetupActions}
+                <div
+                  className={`session-creator-chat-panel-fullscreen-composer w-full ${
+                    headerLayout === "compact"
+                      ? "session-creator-chat-panel-fullscreen-composer-compact"
+                      : ""
+                  }`}
+                >
+                  {compactHeader}
+                  {tuiComposerHeader}
+                  {isLaunchpadLayout && repoPillsRow}
+                  <div className="rounded-xl bg-chat-container p-3">
+                    <button
+                      type="button"
+                      onClick={onLaunch}
+                      disabled={!canLaunch || isLoading}
+                      className="flex w-full items-center justify-center rounded-full bg-primary-6 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-primary-7 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      {t("creator.start")}
+                    </button>
                   </div>
-                )}
+                  {!isLaunchpadLayout && repoPillsRow}
+                </div>
               </div>
             </>
           ) : (
             <>
-              {headerLayout !== "compact" && (
-                <SessionCreatorAgentHero
-                  ref={agentHeroRef}
-                  name={heroContent.name}
-                  description={heroContent.description}
-                  avatarIcon={heroIcon}
-                  active={isCategorySelectorOpen}
-                  danger={heroContent.danger}
-                  onClick={onCategoryPickerOpen}
-                />
-              )}
-              {isWingmanMode && (
-                <button
-                  type="button"
-                  className="flex items-center gap-1.5 rounded-full border border-dashed border-border-2 px-3 py-1.5 text-[12px] text-text-3 transition-colors hover:border-primary-4 hover:text-primary-6"
-                  onClick={() => {
-                    void onShareScreen();
-                  }}
-                >
-                  <Airplay size={13} strokeWidth={1.75} />
-                  {t("chat.shareScreen")}
-                </button>
-              )}
+              {!isLaunchpadLayout && agentHero}
               <div
-                className={`session-creator-chat-panel-fullscreen-composer w-full ${
-                  headerLayout === "compact"
-                    ? "session-creator-chat-panel-fullscreen-composer-compact"
-                    : ""
-                }`}
+                className={
+                  isLaunchpadLayout
+                    ? "mt-auto flex w-full flex-col gap-3"
+                    : "contents"
+                }
               >
-                {compactHeader}
-                <EditorArea
-                  {...editorAreaProps}
-                  headerContent={editorHeaderContent}
-                />
-                {!hideRepoLine && headerLayout !== "compact" && (
-                  <div className="session-creator-chat-panel-fullscreen-repo-row px-1 pb-2 pt-3">
-                    {repoPills}
-                  </div>
+                {isWingmanMode && (
+                  <button
+                    type="button"
+                    className="flex items-center gap-1.5 rounded-full border border-dashed border-border-2 px-3 py-1.5 text-[12px] text-text-3 transition-colors hover:border-primary-4 hover:text-primary-6"
+                    onClick={() => {
+                      void onShareScreen();
+                    }}
+                  >
+                    <Airplay size={13} strokeWidth={1.75} />
+                    {t("chat.shareScreen")}
+                  </button>
                 )}
+                {isLaunchpadLayout && sessionSetupActions}
+                <div
+                  className={`session-creator-chat-panel-fullscreen-composer w-full ${
+                    headerLayout === "compact"
+                      ? "session-creator-chat-panel-fullscreen-composer-compact"
+                      : ""
+                  }`}
+                >
+                  {compactHeader}
+                  {isLaunchpadLayout && repoPillsRow}
+                  <EditorArea
+                    {...editorAreaProps}
+                    headerContent={editorHeaderContent}
+                    dropdownDirection={
+                      isLaunchpadLayout
+                        ? "up"
+                        : editorAreaProps.dropdownDirection
+                    }
+                  />
+                  {!isLaunchpadLayout && repoPillsRow}
+                </div>
               </div>
             </>
           )}
@@ -302,59 +413,7 @@ const SessionCreatorChatPanelView: React.FC<
             </div>
           )}
 
-          {!hideSessionSetupControls && (
-            <div
-              className={`mx-auto flex w-full items-center ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
-            >
-              <PinnedActionsBar
-                composerInputRef={composerInputRef}
-                manageButtonPlacement="before-actions"
-                managePanelAlign="left"
-                trailingContent={pinnedActionsContent}
-                leadingContent={
-                  <>
-                    {browserElementRowContent}
-                    {leadingActionSlot}
-                    {cliLaunchModeSwitch}
-                    {cliLaunchModeSwitch && (
-                      <div
-                        aria-hidden
-                        className="mx-1 h-4 w-px shrink-0 bg-border-2"
-                      />
-                    )}
-                    {!hideWorkItemAttachmentControl && (
-                      <WorkItemAttachmentControl
-                        currentWorkItemContext={workItemContext}
-                        onCreateWorkItem={onCreateWorkItem}
-                        panelHostRef={workItemPanelHostRef}
-                        onWorkItemContextChange={
-                          onAttachedWorkItemContextChange
-                        }
-                      />
-                    )}
-                    {orgMembersPanelProps && (
-                      <Button
-                        variant="secondary"
-                        appearance="outline"
-                        size="small"
-                        shape="round"
-                        icon={<Network size={14} strokeWidth={1.75} />}
-                        title={t("creator.orgMembers.configButton")}
-                        aria-label={t("creator.orgMembers.configButton")}
-                        aria-expanded={isOrgMembersPanelOpen}
-                        aria-controls="session-creator-org-members-panel"
-                        onClick={onToggleOrgMembers}
-                        className={`shrink-0 ${pillControlStateClass(isOrgMembersPanelOpen)}`}
-                        data-testid="session-creator-org-members-toggle"
-                      >
-                        {t("creator.orgMembers.configButton")}
-                      </Button>
-                    )}
-                  </>
-                }
-              />
-            </div>
-          )}
+          {!isLaunchpadLayout && sessionSetupActions}
 
           {!hideSessionSetupControls && cliVersionAlert && (
             <div
@@ -401,7 +460,9 @@ const SessionCreatorChatPanelView: React.FC<
             <div className="flex w-full items-center justify-center gap-2 pt-1">
               <PresenceMenuButton
                 variant="detailed"
-                dropdownPosition="bottom-start"
+                dropdownPosition={
+                  isLaunchpadLayout ? "top-start" : "bottom-start"
+                }
               />
             </div>
           )}

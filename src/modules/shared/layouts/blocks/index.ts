@@ -22,7 +22,10 @@ export {
 } from "./sessionTableItem";
 export type { BrowseCardProps } from "./BrowseCard";
 
-export { default as CreatorContentLayout } from "./CreatorContentLayout";
+export {
+  CREATOR_MIDDLE_POSITION_STYLE,
+  default as CreatorContentLayout,
+} from "./CreatorContentLayout";
 export type { CreatorContentLayoutProps } from "./CreatorContentLayout";
 
 export { default as CollapsibleSection } from "./CollapsibleSection";

@@ -8,7 +8,6 @@ export type { ClaimIdentityModalProps } from "./ClaimIdentityModal";
 export { default as DetailSplitLayout } from "./DetailSplitLayout";
 export type { DetailSplitLayoutProps } from "./DetailSplitLayout";
 export {
-  CreateComposerAgentFrame,
   CreateComposerHeader,
   CreateComposerPinnedActions,
   CreateComposerTitleInput,
