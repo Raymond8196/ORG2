@@ -69,9 +69,13 @@ export {
 } from "./chatPanelTabFactory";
 export {
   activateChatPanelTabAtom,
+  activeChatPanelTabStationAvailableAtom,
+  effectiveChatPanelMaximizedAtom,
   syncActiveChatPanelTabStateAtom,
+  toggleActiveChatPanelMaximizedAtom,
 } from "./chatPanelTabPresentationAtoms";
 export {
+  isChatPanelTabStationAvailable,
   normalizePersistedChatPanelTabsState,
   type ChatPanelSelectedChannel,
   type ChatPanelTab,

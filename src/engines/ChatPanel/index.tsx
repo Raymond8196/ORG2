@@ -30,10 +30,13 @@ import {
   closeOrganizationChatPanelTabAtom,
   closeProjectOrgChatPanelTabsAtom,
   closeRevokedCloudChannelChatPanelTabsAtom,
+  effectiveChatPanelMaximizedAtom,
+  isChatPanelTabStationAvailable,
   openRuntimeInChatPanelTabAtom,
   openSessionInNewChatTabAtom,
   patchChatPanelWorkItemTabAtom,
   syncActiveChatPanelTabStateAtom,
+  toggleActiveChatPanelMaximizedAtom,
 } from "@src/store/chatPanel/chatPanelTabsAtom";
 import { projectListRefreshAtom } from "@src/store/project/projectAtom";
 import { sessionCreatorStateAtom } from "@src/store/session";
@@ -50,7 +53,6 @@ import {
   chatPanelCreateProjectContextAtom,
   chatPanelCreateTargetAtom,
   chatPanelExploreOpenAtom,
-  chatPanelMaximizedAtom,
   chatPanelSelectedCloudOrgAtom,
   chatPanelSelectedProjectAtom,
   chatPanelSelectedProjectOrgAtom,
@@ -58,7 +60,6 @@ import {
   chatPanelSelectedWorkspaceAtom,
   chatPanelStartPageOpenAtom,
   chatWidthAtom,
-  toggleChatPanelMaximizedAtom,
 } from "@src/store/ui/chatPanelAtom";
 import type { WorkItemDraft } from "@src/store/workstation/projectManager";
 import { isHumanSession } from "@src/util/session/sessionDispatch";
@@ -125,7 +126,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       humanSession: humanSessionActive,
     });
 
-    const [contentMode, setContentMode] = useAtom(chatPanelContentModeAtom);
+    const contentMode = useAtomValue(chatPanelContentModeAtom);
     const [createTarget, setCreateTarget] = useAtom(chatPanelCreateTargetAtom);
     const setCollabOrgCreateIntent = useSetAtom(
       chatPanelCollabOrgCreateIntentAtom
@@ -167,10 +168,9 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       if (selectedWorkItem) patchWorkItemTab(selectedWorkItem);
     }, [selectedWorkItem, patchWorkItemTab]);
 
-    const isChatFocus = useAtomValue(chatPanelMaximizedAtom);
+    const isChatFocus = useAtomValue(effectiveChatPanelMaximizedAtom);
     const syncActiveTabState = useSetAtom(syncActiveChatPanelTabStateAtom);
-    const toggleChatFocus = useSetAtom(toggleChatPanelMaximizedAtom);
-    const showChatFocusToggle = true;
+    const toggleChatFocus = useSetAtom(toggleActiveChatPanelMaximizedAtom);
     const rawChatWidth = useAtomValue(chatWidthAtom);
     const viewportWidth = useViewportWidth();
     const chatMaxWidth = getChatMaxWidth(viewportWidth);
@@ -282,6 +282,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
     });
     const isStandaloneToolTabActive =
       activeTab?.type === "work-management" || activeTab?.type === "runtime";
+    const stationAvailable = isChatPanelTabStationAvailable(activeTab);
     const [focusedWorkstationMenuHost, setFocusedWorkstationMenuHost] =
       useState<HTMLSpanElement | null>(null);
     const focusedWorkstationMenuHostRef = useCallback(
@@ -567,7 +568,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
         shouldOffsetHeaderForCollapsedSidebar={
           shouldOffsetHeaderForCollapsedSidebar
         }
-        showChatFocusToggle={showChatFocusToggle}
+        stationAvailable={stationAvailable}
         showHeader={contentState.showHeader || isStandaloneToolTabActive}
         showSessionContent={
           contentState.showSessionContent && !isStandaloneToolTabActive

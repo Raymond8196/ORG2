@@ -38,10 +38,12 @@ async function loadChatPanelTabAtoms() {
     await import("@src/store/ui/workManagementCreatorAtom");
   const {
     activateChatPanelTabAtom,
+    activeChatPanelTabStationAvailableAtom,
     activeWorkManagementSectionAtom,
     addChatPanelTerminalTabAtom,
     addChatPanelLaunchpadTabAtom,
     chatPanelTabsAtom,
+    effectiveChatPanelMaximizedAtom,
     closeChatPanelTabAtom,
     closeOtherChatPanelTabsAtom,
     closeProjectOrgChatPanelTabsAtom,
@@ -64,6 +66,7 @@ async function loadChatPanelTabAtoms() {
     setActiveWorkManagementSectionAtom,
     setChatPanelTabTitleAtom,
     syncActiveChatPanelTabStateAtom,
+    toggleActiveChatPanelMaximizedAtom,
   } = await import("../chatPanelTabsAtom");
   const {
     createChatPanelTerminalAtom,
@@ -93,6 +96,7 @@ async function loadChatPanelTabAtoms() {
 
   return {
     activateChatPanelTabAtom,
+    activeChatPanelTabStationAvailableAtom,
     activeWorkManagementSectionAtom,
     addChatPanelTerminalTabAtom,
     activeChatPanelSurfaceAtom,
@@ -103,6 +107,7 @@ async function loadChatPanelTabAtoms() {
     CHAT_PANEL_COLLAB_ORG_SOURCE,
     CHAT_PANEL_SURFACE_KIND,
     chatPanelTabsAtom,
+    effectiveChatPanelMaximizedAtom,
     chatPanelMaximizedAtom,
     chatPanelNavigateAtom,
     chatPanelCreateProjectContextAtom,
@@ -144,6 +149,7 @@ async function loadChatPanelTabAtoms() {
     setActiveWorkManagementSectionAtom,
     setChatPanelTabTitleAtom,
     syncActiveChatPanelTabStateAtom,
+    toggleActiveChatPanelMaximizedAtom,
     terminalSessionsAtom,
     updateTerminalSessionInfoAtom,
     sessionViewAtom,
@@ -428,6 +434,41 @@ describe("closeWorkItemChatPanelTabAtom", () => {
     ).toBe(false);
     expect(store.get(chatPanelSelectedWorkItemAtom)).toBeNull();
   });
+
+  it("restores a session's split Station layout after visiting a work item", async () => {
+    const {
+      activateChatPanelTabAtom,
+      activeChatPanelTabStationAvailableAtom,
+      chatPanelMaximizedAtom,
+      openSessionInNewChatTabAtom,
+      openWorkItemInChatPanelTabAtom,
+      store,
+    } = await loadChatPanelTabAtoms();
+    const sessionTabId = store.set(openSessionInNewChatTabAtom, {
+      sessionId: "session-with-station",
+      sessionName: "Session with Station",
+    });
+    store.set(chatPanelMaximizedAtom, false);
+
+    store.set(openWorkItemInChatPanelTabAtom, {
+      shortId: "ORG-2",
+      projectSlug: "project-one",
+      projectId: "project-one",
+      projectName: "Project One",
+      workItem: {
+        session_id: "ORG-2",
+        name: "Full-screen work item",
+      },
+    } as never);
+
+    expect(store.get(activeChatPanelTabStationAvailableAtom)).toBe(false);
+    expect(store.get(chatPanelMaximizedAtom)).toBe(true);
+
+    store.set(activateChatPanelTabAtom, sessionTabId);
+
+    expect(store.get(activeChatPanelTabStationAvailableAtom)).toBe(true);
+    expect(store.get(chatPanelMaximizedAtom)).toBe(false);
+  });
 });
 
 describe("closeProjectOrgChatPanelTabsAtom", () => {
@@ -513,7 +554,7 @@ describe("openWorkManagementChatPanelTabAtom", () => {
     vi.useRealTimers();
   });
 
-  it("opens Kanban as a singleton default-fullscreen management tab", async () => {
+  it("opens Kanban as a singleton Station-free management tab", async () => {
     const {
       chatPanelMaximizedAtom,
       chatPanelTabsAtom,
@@ -538,24 +579,34 @@ describe("openWorkManagementChatPanelTabAtom", () => {
     );
   });
 
-  it("keeps a manual Workstation restore while Kanban remains active", async () => {
+  it("keeps the Station unavailable while Kanban remains active", async () => {
     const {
+      activeChatPanelTabStationAvailableAtom,
       chatPanelMaximizedAtom,
+      effectiveChatPanelMaximizedAtom,
       openWorkManagementChatPanelTabAtom,
       store,
       syncActiveChatPanelTabStateAtom,
+      toggleActiveChatPanelMaximizedAtom,
     } = await loadChatPanelTabAtoms();
 
     store.set(openWorkManagementChatPanelTabAtom, {});
     expect(store.get(chatPanelMaximizedAtom)).toBe(true);
 
+    expect(store.get(activeChatPanelTabStationAvailableAtom)).toBe(false);
+    expect(store.set(toggleActiveChatPanelMaximizedAtom)).toBe(false);
+    expect(store.get(chatPanelMaximizedAtom)).toBe(true);
+
+    // A legacy direct writer cannot reveal the Station, and reconciliation
+    // repairs the stored preference for the next transition.
     store.set(chatPanelMaximizedAtom, false);
+    expect(store.get(effectiveChatPanelMaximizedAtom)).toBe(true);
     store.set(syncActiveChatPanelTabStateAtom);
 
-    expect(store.get(chatPanelMaximizedAtom)).toBe(false);
+    expect(store.get(chatPanelMaximizedAtom)).toBe(true);
   });
 
-  it("preserves a manual Workstation restore after leaving Kanban", async () => {
+  it("restores the session's prior full-screen state after leaving Kanban", async () => {
     const {
       activateChatPanelTabAtom,
       chatPanelMaximizedAtom,
@@ -570,7 +621,7 @@ describe("openWorkManagementChatPanelTabAtom", () => {
     store.set(chatPanelMaximizedAtom, false);
     store.set(activateChatPanelTabAtom, primaryTabId);
 
-    expect(store.get(chatPanelMaximizedAtom)).toBe(false);
+    expect(store.get(chatPanelMaximizedAtom)).toBe(true);
   });
 
   it("keeps Kanban separate while reusing one tab for every Work dataset", async () => {
@@ -852,7 +903,7 @@ describe("ChatPanel navigation tabs", () => {
     ).toHaveLength(1);
   });
 
-  it("opens Runtime as its own singleton tab without replacing or maximizing other tabs", async () => {
+  it("opens Runtime as its own singleton Station-free tab", async () => {
     const {
       chatPanelMaximizedAtom,
       chatPanelTabsAtom,
@@ -868,7 +919,7 @@ describe("ChatPanel navigation tabs", () => {
 
     expect(focusedTabId).toBe(runtimeTabId);
     expect(store.get(chatPanelTabsAtom).activeTabId).toBe(runtimeTabId);
-    expect(store.get(chatPanelMaximizedAtom)).toBe(false);
+    expect(store.get(chatPanelMaximizedAtom)).toBe(true);
     expect(store.get(chatPanelTabsAtom).tabs.map((tab) => tab.id)).toEqual([
       ...existingTabIds,
       runtimeTabId,
@@ -879,8 +930,12 @@ describe("ChatPanel navigation tabs", () => {
   });
 
   it("opens Team Inbox as its own singleton tab", async () => {
-    const { chatPanelTabsAtom, openTeamInboxInChatPanelTabAtom, store } =
-      await loadChatPanelTabAtoms();
+    const {
+      chatPanelMaximizedAtom,
+      chatPanelTabsAtom,
+      openTeamInboxInChatPanelTabAtom,
+      store,
+    } = await loadChatPanelTabAtoms();
 
     const teamInboxTabId = store.set(
       openTeamInboxInChatPanelTabAtom,
@@ -890,6 +945,7 @@ describe("ChatPanel navigation tabs", () => {
 
     expect(focusedTabId).toBe(teamInboxTabId);
     expect(store.get(chatPanelTabsAtom).activeTabId).toBe(teamInboxTabId);
+    expect(store.get(chatPanelMaximizedAtom)).toBe(true);
     expect(
       store
         .get(chatPanelTabsAtom)

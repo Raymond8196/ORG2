@@ -5,8 +5,12 @@ import { ROUTES } from "@src/config/routes";
 import {
   buildInitialChatPanelTabsState,
   chatPanelTabsAtom,
+  openRuntimeInChatPanelTabAtom,
 } from "@src/store/chatPanel/chatPanelTabsAtom";
-import { stationChatVisibilityAtom } from "@src/store/ui/chatPanelAtom";
+import {
+  chatPanelMaximizedAtom,
+  stationChatVisibilityAtom,
+} from "@src/store/ui/chatPanelAtom";
 import { stationModeAtom } from "@src/store/ui/simulatorAtom";
 import {
   createInstrumentedStore,
@@ -47,5 +51,19 @@ describe("WorkStationViewService work-management tabs", () => {
     await WorkStationViewService.openKanbanTab();
 
     expect(navigationEvents).toEqual([{ path: ROUTES.workStation.base.path }]);
+  });
+
+  it("rejects Station-opening actions for Station-free chat tabs", async () => {
+    const store = getInstrumentedStore();
+    store.set(openRuntimeInChatPanelTabAtom, "Runtime");
+
+    expect(store.get(chatPanelMaximizedAtom)).toBe(true);
+    expect(await WorkStationViewService.toggleChatPanelMaximized()).toBe(false);
+    expect(await WorkStationViewService.showWorkStation()).toBe(false);
+    expect(await WorkStationViewService.openStationMode("my-station")).toBe(
+      false
+    );
+    expect(store.get(chatPanelMaximizedAtom)).toBe(true);
+    expect(store.get(stationModeAtom)).toBe("agent-station");
   });
 });

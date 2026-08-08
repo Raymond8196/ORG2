@@ -121,9 +121,35 @@ export interface ChatPanelTabsState {
 /** Fixed id of the shared cloud/local organization management tab. */
 export const ORGANIZATION_TAB_ID = "chat-organization-management";
 
-const DEFAULT_FULLSCREEN_CHAT_PANEL_TAB_TYPES = new Set<ChatPanelTabType>([
-  "work-management",
-]);
+type ChatPanelTabStationAccess = "available" | "unavailable";
+
+/**
+ * Whether a Chat Panel tab can share the workbench with a Station surface.
+ *
+ * This record is intentionally exhaustive: a new tab type must make an
+ * explicit layout decision instead of silently inheriting an unsafe default.
+ * Conversation-oriented tabs can remain docked beside the Station; standalone
+ * management and detail surfaces own the full content area.
+ */
+const CHAT_PANEL_TAB_STATION_ACCESS: Record<
+  ChatPanelTabType,
+  ChatPanelTabStationAccess
+> = {
+  session: "available",
+  terminal: "available",
+  "start-page": "available",
+  channel: "available",
+  runtime: "unavailable",
+  "team-inbox": "unavailable",
+  "work-management": "unavailable",
+  workspace: "unavailable",
+  organization: "unavailable",
+  "work-item": "unavailable",
+  "github-issue": "unavailable",
+  "github-pr": "unavailable",
+  project: "unavailable",
+  explore: "unavailable",
+};
 
 /**
  * Tab types safe to restore from persisted state. Terminals are process-bound,
@@ -145,12 +171,12 @@ const PERSISTED_CHAT_PANEL_TAB_TYPES = new Set<ChatPanelTabType>([
   "channel",
 ]);
 
-export function isChatPanelTabDefaultFullscreen(
+export function isChatPanelTabStationAvailable(
   tabOrType: ChatPanelTab | ChatPanelTabType | null | undefined
 ): boolean {
   const type =
     typeof tabOrType === "string" ? tabOrType : (tabOrType?.type ?? null);
-  return type !== null && DEFAULT_FULLSCREEN_CHAT_PANEL_TAB_TYPES.has(type);
+  return type === null || CHAT_PANEL_TAB_STATION_ACCESS[type] === "available";
 }
 
 export function getWorkManagementFallbackTitle(

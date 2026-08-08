@@ -42,7 +42,10 @@ import {
 import { GUIDE_TARGETS } from "@src/scaffold/Tutorials/guideTargets";
 import { TUTORIALS_OPEN_EVENT } from "@src/scaffold/Tutorials/tutorialRegistry";
 import { resolvedBackgroundConfigAtom } from "@src/store";
-import { activeChatPanelTabAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
+import {
+  activeChatPanelTabAtom,
+  effectiveChatPanelMaximizedAtom,
+} from "@src/store/chatPanel/chatPanelTabsAtom";
 import { useSyncStatusBridge } from "@src/store/sync";
 import {
   type ChatPanelMode,
@@ -190,6 +193,9 @@ const AppShell = () => {
 
   const stationMode = useAtomValue(stationModeAtom);
   const chatPanelMaximized = useAtomValue(chatPanelMaximizedAtom);
+  const effectiveChatPanelMaximized = useAtomValue(
+    effectiveChatPanelMaximizedAtom
+  );
   const stationChatVisibility = useAtomValue(stationChatVisibilityAtom);
   const sidebarCollapsed = useAtomValue(sidebarCollapsedAtom);
   const sidebarWidth = useAtomValue(sidebarWidthAtom);
@@ -386,7 +392,7 @@ const AppShell = () => {
       ? sidebarWidth || DEFAULT_SIDEBAR_WIDTH
       : 0;
 
-  const effectiveChatFocus = chatPanelMaximized;
+  const effectiveChatFocus = effectiveChatPanelMaximized;
 
   return (
     <TerminalProvider>

@@ -14,16 +14,46 @@ import {
   chatPanelMaximizedAtom,
   chatPanelNavigateAtom,
   chatPanelStartPageOpenAtom,
+  toggleChatPanelMaximizedAtom,
 } from "@src/store/ui/chatPanelAtom";
 
 import {
   type ChatPanelTab,
-  isChatPanelTabDefaultFullscreen,
+  isChatPanelTabStationAvailable,
 } from "./chatPanelTabsModel";
-import { chatPanelTabsAtom } from "./chatPanelTabsState";
+import {
+  activeChatPanelTabAtom,
+  chatPanelTabsAtom,
+} from "./chatPanelTabsState";
 
-/** Maximize-state snapshot taken before entering a default-fullscreen tab. */
-const defaultFullscreenTabPriorMaximizedAtom = atom<boolean | null>(null);
+/** Maximize-state snapshot taken before entering a Station-free tab. */
+const stationUnavailableTabPriorMaximizedAtom = atom<boolean | null>(null);
+
+/** Whether the active tab may reveal a Station beside the chat pane. */
+export const activeChatPanelTabStationAvailableAtom = atom((get) => {
+  return isChatPanelTabStationAvailable(get(activeChatPanelTabAtom));
+});
+activeChatPanelTabStationAvailableAtom.debugLabel =
+  "activeChatPanelTabStationAvailable";
+
+/**
+ * Layout-authoritative maximize state. Station-free tabs remain full-screen
+ * even if an unrelated legacy writer changes the user's stored preference.
+ */
+export const effectiveChatPanelMaximizedAtom = atom(
+  (get) =>
+    get(chatPanelMaximizedAtom) || !get(activeChatPanelTabStationAvailableAtom)
+);
+effectiveChatPanelMaximizedAtom.debugLabel = "effectiveChatPanelMaximized";
+
+/** User toggle guarded by the active tab's Station capability. */
+export const toggleActiveChatPanelMaximizedAtom = atom(null, (get, set) => {
+  if (!get(activeChatPanelTabStationAvailableAtom)) return false;
+  set(toggleChatPanelMaximizedAtom);
+  return true;
+});
+toggleActiveChatPanelMaximizedAtom.debugLabel =
+  "toggleActiveChatPanelMaximized";
 
 export const transitionChatPanelTabPresentationAtom = atom(
   null,
@@ -38,14 +68,17 @@ export const transitionChatPanelTabPresentationAtom = atom(
       nextTab: ChatPanelTab | null | undefined;
     }
   ) => {
-    const previousDefaultFullscreen =
-      isChatPanelTabDefaultFullscreen(previousTab);
-    const nextDefaultFullscreen = isChatPanelTabDefaultFullscreen(nextTab);
+    const previousStationAvailable =
+      isChatPanelTabStationAvailable(previousTab);
+    const nextStationAvailable = isChatPanelTabStationAvailable(nextTab);
 
-    if (nextDefaultFullscreen) {
-      if (!previousDefaultFullscreen) {
+    if (!nextStationAvailable) {
+      if (
+        previousStationAvailable &&
+        get(stationUnavailableTabPriorMaximizedAtom) === null
+      ) {
         set(
-          defaultFullscreenTabPriorMaximizedAtom,
+          stationUnavailableTabPriorMaximizedAtom,
           get(chatPanelMaximizedAtom)
         );
       }
@@ -55,15 +88,12 @@ export const transitionChatPanelTabPresentationAtom = atom(
       return;
     }
 
-    if (previousDefaultFullscreen) {
-      const priorMaximized = get(defaultFullscreenTabPriorMaximizedAtom);
-      // A manual Workstation restore while Kanban is active is an
-      // explicit override. Preserve it instead of restoring an older
-      // maximized state when the user later changes tabs.
-      if (get(chatPanelMaximizedAtom) && priorMaximized !== null) {
+    if (!previousStationAvailable) {
+      const priorMaximized = get(stationUnavailableTabPriorMaximizedAtom);
+      if (priorMaximized !== null) {
         set(chatPanelMaximizedAtom, priorMaximized);
       }
-      set(defaultFullscreenTabPriorMaximizedAtom, null);
+      set(stationUnavailableTabPriorMaximizedAtom, null);
     }
   }
 );
@@ -151,8 +181,9 @@ const syncChatPanelTabNavigationAtom = atom(
 
 /**
  * Reconcile legacy surface state after hydration or layout changes.
- * Presentation defaults are applied only on tab entry so a manual Workstation
- * restore is not overwritten while Kanban remains active.
+ * Station-free tabs are repaired to full-screen here as a hydration/layout
+ * safety net; the effective layout atom also enforces the invariant at read
+ * time so legacy direct writes cannot flash the Station open.
  */
 export const syncActiveChatPanelTabStateAtom = atom(null, (get, set) => {
   const state = get(chatPanelTabsAtom);
@@ -171,11 +202,13 @@ export const syncActiveChatPanelTabStateAtom = atom(null, (get, set) => {
     set(syncChatPanelTabNavigationAtom, activeTab);
   }
 
-  if (
-    isChatPanelTabDefaultFullscreen(activeTab) &&
-    get(defaultFullscreenTabPriorMaximizedAtom) === null
-  ) {
-    set(defaultFullscreenTabPriorMaximizedAtom, get(chatPanelMaximizedAtom));
+  if (!isChatPanelTabStationAvailable(activeTab)) {
+    if (get(stationUnavailableTabPriorMaximizedAtom) === null) {
+      set(stationUnavailableTabPriorMaximizedAtom, get(chatPanelMaximizedAtom));
+    }
+    if (!get(chatPanelMaximizedAtom)) {
+      set(chatPanelMaximizedAtom, true);
+    }
   }
 });
 syncActiveChatPanelTabStateAtom.debugLabel = "syncActiveChatPanelTabState";
