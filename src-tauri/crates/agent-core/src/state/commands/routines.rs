@@ -232,6 +232,7 @@ async fn create_work_item_from_routine(
             .unwrap_or_else(|| routine.run_template.prompt.clone());
 
         let frontmatter = types::WorkItemFrontmatter {
+            stage: None,
             id: short_id.clone(),
             short_id: short_id.clone(),
             title,

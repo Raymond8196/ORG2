@@ -833,6 +833,7 @@ pub async fn test_sync_conflict_seed_work_item(
             labels: Vec::new(),
             milestone: None,
             parent: None,
+            stage: None,
             start_date: None,
             target_date: None,
             created_by: None,

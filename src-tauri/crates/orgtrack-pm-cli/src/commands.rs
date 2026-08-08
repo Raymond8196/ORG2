@@ -316,6 +316,21 @@ fn cmd_work_create(context: &ExecutionContext, flags: &HashMap<String, String>) 
         .get("parent")
         .filter(|value| !value.trim().is_empty())
         .cloned();
+    let stage = match flags.get("stage") {
+        None => None,
+        Some(raw) => match raw.trim().parse::<u32>() {
+            Ok(value) if value >= 1 => Some(value),
+            _ => {
+                return emit_error(
+                    CliError::new(
+                        ErrorCode::InvalidArgument,
+                        format!("Invalid --stage '{}'; expected a positive integer", raw),
+                    )
+                    .with_details(serde_json::json!({ "field": "--stage", "value": raw })),
+                )
+            }
+        },
+    };
     let body_flag = match resolve_body_flag(flags) {
         Ok(body) => body,
         Err(err) => return emit_error(err),
@@ -330,6 +345,7 @@ fn cmd_work_create(context: &ExecutionContext, flags: &HashMap<String, String>) 
             created_by: Some(actor.id.clone()),
             schedule: schedule.clone(),
             parent: parent.clone(),
+            stage,
             ..Default::default()
         };
         let result = (|| {
@@ -368,6 +384,7 @@ fn cmd_work_create(context: &ExecutionContext, flags: &HashMap<String, String>) 
         created_by: Some(actor.id.clone()),
         schedule,
         parent,
+        stage,
         ..Default::default()
     };
     let scope_for_exec = scope.clone();
@@ -409,6 +426,22 @@ fn cmd_work_update(
         Ok(body) => body,
         Err(err) => return emit_error(err),
     };
+    let stage_update: Option<Option<u32>> = match flags.get("stage") {
+        None => None,
+        Some(raw) if raw.trim() == "none" => Some(None),
+        Some(raw) => match raw.trim().parse::<u32>() {
+            Ok(value) if value >= 1 => Some(Some(value)),
+            _ => {
+                return emit_error(
+                    CliError::new(
+                        ErrorCode::InvalidArgument,
+                        format!("Invalid --stage '{}'; expected a positive integer or 'none'", raw),
+                    )
+                    .with_details(serde_json::json!({ "field": "--stage", "value": raw })),
+                )
+            }
+        },
+    };
     if flags.contains_key("standalone") {
         let short_id = match require_short_id(short_id) {
             Ok(short_id) => short_id,
@@ -425,6 +458,7 @@ fn cmd_work_update(
             flags.get("title").map(String::as_str),
             body_flag.as_deref(),
             flags.get("priority").map(String::as_str),
+            stage_update,
             Some(&actor),
         ) {
             Ok(item) => return emit_success(item_to_wire(&item, None), None, None),
@@ -454,6 +488,7 @@ fn cmd_work_update(
             flags.get("title").map(String::as_str),
             body_flag.as_deref(),
             flags.get("priority").map(String::as_str),
+            stage_update,
             Some(&actor),
         ) {
             Ok(item) => emit_success(item_to_wire(&item, None), None, None),
@@ -497,6 +532,7 @@ fn cmd_work_update(
                 title.as_deref(),
                 body.as_deref(),
                 priority.as_deref(),
+                stage_update,
                 Some(&actor),
                 expected_revision,
                 caller_session.as_deref(),
@@ -655,10 +691,6 @@ fn cmd_work_claim(
     if let Err(err) = context.require_project_mode("work.claim") {
         return emit_error(err);
     }
-    let scope = match context.require_scope() {
-        Ok(scope) => scope.to_string(),
-        Err(err) => return emit_error(err),
-    };
     let short_id = match require_short_id(short_id) {
         Ok(short_id) => short_id,
         Err(err) => return emit_error(err),
@@ -687,6 +719,26 @@ fn cmd_work_claim(
     let expected_revision = flags
         .get("expected-revision")
         .and_then(|value| value.parse::<i64>().ok());
+    if flags.contains_key("standalone")
+        || standalone_fallback_item(context, &short_id).is_some()
+    {
+        return match work_service::claim_standalone_work_item(
+            context.org_id.as_deref(),
+            &short_id,
+            &session_ref.external_id,
+            Some("custom"),
+            WorkItemExecutionLockReason::ManualStart,
+            Some(&actor),
+            expected_revision,
+        ) {
+            Ok(item) => emit_success(item_to_wire(&item, None), None, None),
+            Err(err) => emit_error(CliError::from_service(err)),
+        };
+    }
+    let scope = match context.require_scope() {
+        Ok(scope) => scope.to_string(),
+        Err(err) => return emit_error(err),
+    };
 
     let canonical = serde_json::json!({
         "op": "work.claim",
@@ -736,10 +788,6 @@ fn cmd_work_transition(
     if let Err(err) = context.require_project_mode("work.transition") {
         return emit_error(err);
     }
-    let scope = match context.require_scope() {
-        Ok(scope) => scope.to_string(),
-        Err(err) => return emit_error(err),
-    };
     let short_id = match require_short_id(short_id) {
         Ok(short_id) => short_id,
         Err(err) => return emit_error(err),
@@ -777,6 +825,30 @@ fn cmd_work_transition(
     let expected_revision = flags
         .get("expected-revision")
         .and_then(|value| value.parse::<i64>().ok());
+    if flags.contains_key("standalone")
+        || standalone_fallback_item(context, &short_id).is_some()
+    {
+        let caller_session = context
+            .session_ref
+            .as_ref()
+            .map(|session| session.external_id.clone());
+        return match work_service::transition_standalone_work_item(
+            context.org_id.as_deref(),
+            &short_id,
+            to_state,
+            flags.get("reason").map(String::as_str),
+            Some(&actor),
+            expected_revision,
+            caller_session.as_deref(),
+        ) {
+            Ok(item) => emit_success(item_to_wire(&item, None), None, None),
+            Err(err) => emit_error(CliError::from_service(err)),
+        };
+    }
+    let scope = match context.require_scope() {
+        Ok(scope) => scope.to_string(),
+        Err(err) => return emit_error(err),
+    };
     let canonical = serde_json::json!({
         "op": "work.transition",
         "shortId": short_id,

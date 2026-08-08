@@ -714,6 +714,31 @@ where
     if scheduler_changed {
         crate::projects::events::notify_work_item_schedule_changed();
     }
+    if status_changed {
+        use crate::work_service::state::{map_legacy_status, WorkItemState};
+        let was_terminal = matches!(
+            map_legacy_status(&core.status),
+            Some(WorkItemState::Completed | WorkItemState::Failed | WorkItemState::Cancelled)
+        );
+        let is_terminal = matches!(
+            map_legacy_status(&frontmatter.status),
+            Some(WorkItemState::Completed | WorkItemState::Failed | WorkItemState::Cancelled)
+        );
+        if is_terminal && !was_terminal {
+            crate::projects::events::notify_work_item_terminal(
+                crate::projects::events::WorkItemTerminalEvent {
+                    org_id: next_org_id.clone(),
+                    project_slug: match scope {
+                        AtomicWorkItemScope::Project(slug) => Some(slug.to_string()),
+                        AtomicWorkItemScope::Standalone { .. } => None,
+                    },
+                    short_id: core.short_id.clone(),
+                    parent: frontmatter.parent.clone(),
+                    status: frontmatter.status.clone(),
+                },
+            );
+        }
+    }
     Ok((result, changed_fields, payload_tail_changed))
 }
 
@@ -728,6 +753,7 @@ fn payload_tail_fingerprint(fm: &WorkItemFrontmatter) -> serde_json::Value {
     serde_json::json!({
         "project": fm.project,
         "parent": fm.parent,
+        "stage": fm.stage,
         "assignee_type": fm.assignee_type,
         "starred": fm.starred,
         "created_by": fm.created_by,
@@ -821,6 +847,7 @@ fn touches_payload_tail(updates: &WorkItemPartialUpdate) -> bool {
         || updates.assignee_type.is_some()
         || updates.project.is_some()
         || updates.created_by.is_some()
+        || updates.stage.is_some()
 }
 
 /// Build the JSON payload that gets persisted to
@@ -959,6 +986,9 @@ fn update_work_item_partial_scoped(
             }
             if let Some(milestone) = updates.milestone.as_ref() {
                 fm.milestone = milestone.clone();
+            }
+            if let Some(stage) = updates.stage.as_ref() {
+                fm.stage = *stage;
             }
             if let Some(start_date) = updates.start_date.as_ref() {
                 fm.start_date = start_date.clone();
@@ -1163,6 +1193,7 @@ fn build_frontmatter(
         labels,
         milestone: core.milestone.clone(),
         parent: core.parent.clone(),
+        stage: extras.stage,
         start_date: core.start_date.clone(),
         target_date: core.target_date.clone(),
         created_by: extras.created_by.clone(),

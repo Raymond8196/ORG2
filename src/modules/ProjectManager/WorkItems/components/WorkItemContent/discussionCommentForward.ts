@@ -55,6 +55,36 @@ export function buildDiscussionForwardMessage({
 }
 
 /**
+ * One-click retry of a failed linked run: the
+ * failed session is resumed with a retry brief so it can finish the
+ * remaining work and deliver through org2-pm. Fire-and-forget; failures
+ * (session gone, other device) only log.
+ */
+export function retryFailedLinkedSession({
+  shortId,
+  sessionId,
+}: {
+  shortId: string;
+  sessionId: string;
+}): void {
+  if (!shortId || !sessionId) return;
+  const content = [
+    `[Retry] The previous run on ${shortId} did not finish successfully.`,
+    "",
+    `Re-read the item with \`org2-pm work show ${shortId}\`, finish the remaining work,`,
+    "and deliver through org2-pm with exactly one Discussion receipt.",
+  ].join("\n");
+  void SessionService.sendMessage({
+    sessionId,
+    content,
+    displayText: `↻ Retry ${shortId}`,
+    turnIntentSource: "user_submit",
+  }).catch((error) => {
+    logger.warn(`Retry forward to ${sessionId} failed: ${String(error)}`);
+  });
+}
+
+/**
  * Fire-and-forget forward. Failures (session busy, session not on this
  * device) only log — the comment itself is already durably on the item.
  */

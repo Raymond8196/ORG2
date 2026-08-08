@@ -68,6 +68,52 @@ export function useWorkItemFamily(
 
 const DONE_SUB_ITEM_STATUSES = new Set(["completed", "cancelled", "done"]);
 
+interface SubItemStageGroup {
+  key: string;
+  /** Group header label; null when the set has no staged items at all. */
+  label: string | null;
+  items: WorkItemData[];
+}
+
+/**
+ * Stage grouping: headers appear only when at least one
+ * child carries a stage; staged groups sort ascending with unstaged
+ * children trailing under "NO STAGE".
+ */
+export function groupSubItemsByStage(
+  children: WorkItemData[]
+): SubItemStageGroup[] {
+  const anyStaged = children.some(
+    (child) => child.frontmatter.stage !== undefined
+  );
+  if (!anyStaged) {
+    return [{ key: "all", label: null, items: children }];
+  }
+  const byStage = new Map<number, WorkItemData[]>();
+  const unstaged: WorkItemData[] = [];
+  for (const child of children) {
+    const stage = child.frontmatter.stage;
+    if (stage === undefined) {
+      unstaged.push(child);
+      continue;
+    }
+    const bucket = byStage.get(stage) ?? [];
+    bucket.push(child);
+    byStage.set(stage, bucket);
+  }
+  const groups: SubItemStageGroup[] = [...byStage.entries()]
+    .sort(([a], [b]) => a - b)
+    .map(([stage, items]) => ({
+      key: `stage-${stage}`,
+      label: `Stage ${stage}`,
+      items,
+    }));
+  if (unstaged.length > 0) {
+    groups.push({ key: "no-stage", label: "No stage", items: unstaged });
+  }
+  return groups;
+}
+
 interface WorkItemSubItemsProps {
   family: WorkItemFamily;
   parentShortId: string;
@@ -172,25 +218,34 @@ const WorkItemSubItems: React.FC<WorkItemSubItemsProps> = ({
         </div>
       </div>
       {children.length > 0 && (
-        <div className="max-h-40 space-y-1 overflow-y-auto">
-          {children.map((child) => (
-            <button
-              type="button"
-              key={child.frontmatter.short_id}
-              className="flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-fill-2"
-              onClick={() => onOpenWorkItem?.(child)}
-              data-testid={`work-item-sub-item-${child.frontmatter.short_id}`}
-            >
-              <span className="shrink-0 rounded bg-fill-2 px-1.5 py-px font-mono text-[10px] text-text-3">
-                {child.frontmatter.short_id}
-              </span>
-              <span className="min-w-0 flex-1 truncate text-[12px] text-text-1">
-                {child.frontmatter.title}
-              </span>
-              <span className="shrink-0 rounded-full bg-fill-2 px-2 py-px text-[10px] text-text-3">
-                {child.frontmatter.status}
-              </span>
-            </button>
+        <div className="max-h-48 space-y-1 overflow-y-auto">
+          {groupSubItemsByStage(children).map((group) => (
+            <React.Fragment key={group.key}>
+              {group.label && (
+                <div className="px-2 pt-1 text-[10px] font-medium uppercase tracking-wide text-text-4">
+                  {group.label}
+                </div>
+              )}
+              {group.items.map((child) => (
+                <button
+                  type="button"
+                  key={child.frontmatter.short_id}
+                  className="flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-fill-2"
+                  onClick={() => onOpenWorkItem?.(child)}
+                  data-testid={`work-item-sub-item-${child.frontmatter.short_id}`}
+                >
+                  <span className="shrink-0 rounded bg-fill-2 px-1.5 py-px font-mono text-[10px] text-text-3">
+                    {child.frontmatter.short_id}
+                  </span>
+                  <span className="min-w-0 flex-1 truncate text-[12px] text-text-1">
+                    {child.frontmatter.title}
+                  </span>
+                  <span className="shrink-0 rounded-full bg-fill-2 px-2 py-px text-[10px] text-text-3">
+                    {child.frontmatter.status}
+                  </span>
+                </button>
+              ))}
+            </React.Fragment>
           ))}
         </div>
       )}

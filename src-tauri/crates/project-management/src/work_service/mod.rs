@@ -261,12 +261,14 @@ fn guard_claim_holder(
 
 /// OCC-capable non-lifecycle patch (`work.update` on the wire): title,
 /// body and priority only — state changes stay with transition/claim.
+#[allow(clippy::too_many_arguments)]
 pub fn patch_project_work_item(
     project_slug: &str,
     short_id: &str,
     title: Option<&str>,
     body: Option<&str>,
     priority: Option<&str>,
+    stage: Option<Option<u32>>,
     actor: Option<&WorkItemMutationActor>,
     expected_revision: Option<i64>,
     caller_session: Option<&str>,
@@ -295,6 +297,9 @@ pub fn patch_project_work_item(
             if let Some(priority) = priority_owned {
                 frontmatter.priority = priority;
             }
+            if let Some(stage) = stage {
+                frontmatter.stage = stage;
+            }
             frontmatter.updated_at = chrono::Utc::now().to_rfc3339();
             Ok(())
         },
@@ -305,12 +310,14 @@ pub fn patch_project_work_item(
 /// Standalone counterpart of [`patch_project_work_item`]: OCC-capable
 /// non-lifecycle patch for an org-scoped item, used by the agent-plane
 /// CLI to fill drafts that have no project.
+#[allow(clippy::too_many_arguments)]
 pub fn patch_standalone_work_item(
     org_id: Option<&str>,
     short_id: &str,
     title: Option<&str>,
     body: Option<&str>,
     priority: Option<&str>,
+    stage: Option<Option<u32>>,
     actor: Option<&WorkItemMutationActor>,
 ) -> Result<WorkItemData, String> {
     let title_owned = title.map(str::to_string);
@@ -325,6 +332,9 @@ pub fn patch_standalone_work_item(
         }
         if let Some(priority) = priority_owned {
             frontmatter.priority = priority;
+        }
+        if let Some(stage) = stage {
+            frontmatter.stage = stage;
         }
         frontmatter.updated_at = chrono::Utc::now().to_rfc3339();
         Ok(())
@@ -561,6 +571,47 @@ pub fn claim_project_work_item(
     project_io::read_work_item(project_slug, short_id)
 }
 
+/// Standalone-org counterpart to [`claim_project_work_item`]: same
+/// execution-claim semantics and `in_progress` entry for org-scoped
+/// items that live outside any project.
+#[allow(clippy::too_many_arguments)]
+pub fn claim_standalone_work_item(
+    org_id: Option<&str>,
+    short_id: &str,
+    session_id: &str,
+    agent_role: Option<&str>,
+    reason: crate::projects::types::WorkItemExecutionLockReason,
+    actor: Option<&WorkItemMutationActor>,
+    expected_revision: Option<i64>,
+) -> Result<WorkItemData, String> {
+    let short_id_owned = short_id.to_string();
+    let session_owned = session_id.to_string();
+    let role_owned = agent_role.map(|value| value.to_string());
+    project_io::update_standalone_work_item_atomic_serviced(
+        org_id,
+        actor,
+        project_io::AtomicServiceOptions {
+            expected_local_version: expected_revision,
+            operation: Some("work.claim"),
+            strict_fsm: true,
+            reason: Some("claimed".to_string()),
+        },
+        short_id,
+        move |frontmatter, _body| {
+            project_io::apply_execution_claim(
+                frontmatter,
+                &short_id_owned,
+                &session_owned,
+                role_owned.as_deref(),
+                reason,
+            )?;
+            frontmatter.status = "in_progress".to_string();
+            Ok(())
+        },
+    )?;
+    project_io::read_standalone_work_item(org_id, short_id)
+}
+
 /// Strict, audited status transition for a project-scoped work item.
 ///
 /// This is the `work.transition` application operation from the frozen
@@ -637,6 +688,52 @@ pub fn transition_project_work_item_scoped(
     project_io::read_work_item(project_slug, short_id)
 }
 
+/// Standalone-org counterpart to [`transition_project_work_item_scoped`]:
+/// same claim guard, FSM strictness, release edge, and audit label.
+pub fn transition_standalone_work_item(
+    org_id: Option<&str>,
+    short_id: &str,
+    to_status: &str,
+    reason: Option<&str>,
+    actor: Option<&WorkItemMutationActor>,
+    expected_revision: Option<i64>,
+    caller_session: Option<&str>,
+) -> Result<WorkItemData, String> {
+    let to_status_owned = to_status.to_string();
+    let reason_owned = reason.map(|value| value.to_string());
+    let caller_owned = caller_session.map(str::to_string);
+    project_io::update_standalone_work_item_atomic_serviced(
+        org_id,
+        actor,
+        project_io::AtomicServiceOptions {
+            expected_local_version: expected_revision,
+            operation: Some("work.transition"),
+            strict_fsm: true,
+            reason: reason_owned,
+        },
+        short_id,
+        move |frontmatter, _body| {
+            guard_claim_holder(frontmatter, caller_owned.as_deref())?;
+            if frontmatter.status == to_status_owned {
+                return Err(error::invalid_transition(
+                    &frontmatter.status,
+                    &to_status_owned,
+                ));
+            }
+            let releases_to_open = matches!(
+                state::map_legacy_status(&to_status_owned),
+                Some(state::WorkItemState::Open)
+            );
+            frontmatter.status = to_status_owned.clone();
+            if releases_to_open {
+                frontmatter.execution_lock = None;
+            }
+            Ok(())
+        },
+    )?;
+    project_io::read_standalone_work_item(org_id, short_id)
+}
+
 /// Creation DTO for the canonical `work.create` application operation.
 ///
 /// Deliberately NOT the 32-field `WorkItemFrontmatter`: callers describe
@@ -658,6 +755,8 @@ pub struct CreateWorkItemRequest {
     pub labels: Vec<String>,
     pub milestone: Option<String>,
     pub parent: Option<String>,
+    #[serde(default)]
+    pub stage: Option<u32>,
     pub start_date: Option<String>,
     pub target_date: Option<String>,
     pub created_by: Option<String>,
@@ -702,6 +801,7 @@ fn build_frontmatter(short_id: &str, request: &CreateWorkItemRequest) -> WorkIte
         labels: request.labels.clone(),
         milestone: request.milestone.clone(),
         parent: request.parent.clone(),
+        stage: request.stage,
         start_date: request.start_date.clone(),
         target_date: request.target_date.clone(),
         created_by: request.created_by.clone(),

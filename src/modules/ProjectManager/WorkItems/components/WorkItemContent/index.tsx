@@ -1,4 +1,4 @@
-import { Bot, Pencil, Repeat, Terminal } from "lucide-react";
+import { Bot, Pencil, Repeat, RotateCcw, Terminal } from "lucide-react";
 import React, { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -20,6 +20,10 @@ import {
   TimelineStack,
 } from "@src/modules/shared/components/ActivityTimeline";
 import RichMarkdownEditor from "@src/modules/shared/components/RichMarkdownEditor";
+import {
+  formatTokensShort,
+  formatUsd,
+} from "@src/modules/shared/dataSource/usageFormat";
 import {
   DetailPanelContainer,
   PanelFooter,
@@ -48,6 +52,7 @@ import OutputTab from "./OutputTab";
 import ThreadTodoChecklist from "./ThreadTodoChecklist";
 import WorkItemHandoffNotice from "./WorkItemHandoffNotice";
 import { normalizeLegacyEscapedMarkdown } from "./descriptionMarkdown";
+import { retryFailedLinkedSession } from "./discussionCommentForward";
 import { useGitHubIssueTimeline } from "./hooks/useGitHubIssueTimeline";
 import { useWorkItemContentState } from "./hooks/useWorkItemContentState";
 import { resolveWorkItemContentSectionPolicy } from "./presentation";
@@ -55,6 +60,7 @@ import type { SessionTab, WorkItemContentProps } from "./types";
 
 interface LinkedSessionsListProps {
   sessions: LinkedSession[];
+  shortId?: string | null;
   activeAgentSessionId?: string | null;
   onOpenSession?: (sessionId: string) => void;
 }
@@ -74,6 +80,7 @@ function getLinkedSessionTitle(session: LinkedSession): string {
 
 const LinkedSessionsList: React.FC<LinkedSessionsListProps> = ({
   sessions,
+  shortId,
   activeAgentSessionId,
   onOpenSession,
 }) => {
@@ -141,14 +148,74 @@ const LinkedSessionsList: React.FC<LinkedSessionsListProps> = ({
             monthStyle: "short",
           }
         ),
+        tokensLabel:
+          session.total_tokens > 0
+            ? formatTokensShort(session.total_tokens)
+            : undefined,
+        tokensValue:
+          session.total_tokens > 0 ? session.total_tokens : undefined,
         active: session.session_id === activeAgentSessionId,
         testId: `work-item-linked-session-${session.session_id}`,
+        rowAction:
+          session.status === "failed" && shortId ? (
+            <button
+              type="button"
+              className="flex cursor-pointer items-center gap-1 rounded-md px-1.5 py-1 text-[11px] text-text-3 transition-colors hover:bg-fill-2 hover:text-text-1"
+              onClick={() => {
+                retryFailedLinkedSession({
+                  shortId,
+                  sessionId: session.session_id,
+                });
+                onOpenSession?.(session.session_id);
+              }}
+              aria-label={t("workItems.sessions.retry", {
+                defaultValue: "Retry",
+              })}
+              data-testid={`work-item-session-retry-${session.session_id}`}
+            >
+              <RotateCcw size={12} />
+              {t("workItems.sessions.retry", { defaultValue: "Retry" })}
+            </button>
+          ) : undefined,
       };
     });
-  }, [activeAgentSessionId, dateTimeLabelOptions, sessions, t]);
+  }, [
+    activeAgentSessionId,
+    dateTimeLabelOptions,
+    onOpenSession,
+    sessions,
+    shortId,
+    t,
+  ]);
+
+  const totalTokens = sessions.reduce(
+    (sum, session) => sum + (session.total_tokens || 0),
+    0
+  );
+  const totalCost = sessions.reduce(
+    (sum, session) => sum + (session.cost_usd || 0),
+    0
+  );
 
   return (
     <div data-testid="work-item-linked-sessions">
+      {sessions.length > 0 && (
+        <div
+          className="mb-1 flex items-center gap-3 px-1 text-[11px] text-text-4"
+          data-testid="work-item-usage-summary"
+        >
+          <span>
+            {t("workItems.sessions.runsCount", {
+              defaultValue: "{{count}} runs",
+              count: sessions.length,
+            })}
+          </span>
+          {totalTokens > 0 && (
+            <span>{formatTokensShort(totalTokens)} tokens</span>
+          )}
+          {totalCost > 0 && <span>{formatUsd(totalCost, 2)}</span>}
+        </div>
+      )}
       <SessionTable
         items={tableItems}
         onSelect={(item) => onOpenSession?.(item.id)}
@@ -685,6 +752,7 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
         (sectionPolicy.showLinkedSessionsTable ? (
           <LinkedSessionsList
             sessions={workItem.linkedSessions ?? []}
+            shortId={shortId ?? workItem.shortId}
             activeAgentSessionId={activeAgentSessionId}
             onOpenSession={onOpenSession}
           />
@@ -707,6 +775,7 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
         >
           <LinkedSessionsList
             sessions={workItem.linkedSessions ?? []}
+            shortId={shortId ?? workItem.shortId}
             activeAgentSessionId={activeAgentSessionId}
             onOpenSession={onOpenSession}
           />

@@ -49,6 +49,7 @@ fn work_item_fixture(id: &str, short_id: &str, title: &str) -> WorkItemFrontmatt
         labels: vec![],
         milestone: None,
         parent: None,
+        stage: None,
         start_date: None,
         target_date: None,
         created_by: None,

@@ -237,6 +237,8 @@ pub struct WorkItemFrontmatter {
     pub milestone: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub parent: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stage: Option<u32>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub start_date: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -481,6 +483,8 @@ pub struct WorkItemPartialUpdate {
         skip_serializing_if = "Option::is_none"
     )]
     pub milestone: Option<Option<String>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stage: Option<Option<u32>>,
     #[serde(
         default,
         deserialize_with = "deserialize_optional_update",

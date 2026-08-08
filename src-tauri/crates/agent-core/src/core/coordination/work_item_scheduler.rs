@@ -511,6 +511,7 @@ mod tests {
             labels: vec![],
             milestone: None,
             parent: None,
+        stage: None,
             start_date: start_date.map(|s| s.to_string()),
             target_date: None,
             created_by: None,

@@ -36,6 +36,7 @@ pub fn create_follow_up(
         labels: parent.labels.clone(),
         milestone: parent.milestone.clone(),
         parent: Some(parent_short_id.to_string()),
+        stage: None,
         start_date: None,
         target_date: parent.target_date.clone(),
         created_by: Some("orchestrator".to_string()),

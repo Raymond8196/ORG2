@@ -47,6 +47,7 @@ fn work_item_fixture(id: &str, short_id: &str, title: &str) -> WorkItemFrontmatt
         labels: vec![],
         milestone: None,
         parent: None,
+        stage: None,
         start_date: None,
         target_date: None,
         created_by: None,
@@ -695,6 +696,38 @@ fn standalone_items_are_reachable_without_scope() {
         .concat(),
     );
     assert_eq!(exit, 0, "scope-less bare-id note: {bare_noted}");
+
+    // Stage round-trips through create and update (barrier grouping).
+    let (exit, staged) = run_cli(
+        &[
+            &["work", "create", "--standalone", "--title", "Staged child", "--parent", "STA-0001", "--stage", "2"],
+            &base[..],
+        ]
+        .concat(),
+    );
+    assert_eq!(exit, 0, "staged create: {staged}");
+    assert_eq!(staged["data"]["frontmatter"]["stage"], 2);
+    let staged_id = staged["data"]["frontmatter"]["short_id"]
+        .as_str()
+        .expect("short id")
+        .to_string();
+    let (exit, restaged) = run_cli(
+        &[&["work", "update", &staged_id, "--stage", "1"], &base[..]].concat(),
+    );
+    assert_eq!(exit, 0, "stage update: {restaged}");
+    assert_eq!(restaged["data"]["frontmatter"]["stage"], 1);
+
+    // The full lifecycle works on bare ids too: claim enters
+    // in_progress, transition completes — the path an agent takes to
+    // finish a standalone sub-item (which closes the parent barrier).
+    let (exit, claimed) = run_cli(&[&["work", "claim", "STA-0001"], &base[..]].concat());
+    assert_eq!(exit, 0, "scope-less bare-id claim: {claimed}");
+    assert_eq!(claimed["data"]["frontmatter"]["status"], "in_progress");
+    let (exit, done) = run_cli(
+        &[&["work", "transition", "STA-0001", "--to", "completed"], &base[..]].concat(),
+    );
+    assert_eq!(exit, 0, "scope-less bare-id transition: {done}");
+    assert_eq!(done["data"]["frontmatter"]["status"], "completed");
 
     // `--standalone` routes to the org-scoped store without any scope.
     let (exit, shown) = run_cli(&[&["work", "show", "STA-0001", "--standalone"], &base[..]].concat());
