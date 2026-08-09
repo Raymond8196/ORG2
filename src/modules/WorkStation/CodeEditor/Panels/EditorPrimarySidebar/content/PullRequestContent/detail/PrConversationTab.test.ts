@@ -115,6 +115,7 @@ describe("PrConversationTab", () => {
     expect(floatingComposer?.className).toContain("absolute");
     expect(floatingComposer?.className).toContain("bottom-0");
     expect(floatingComposer?.className).toContain("pb-3");
+    expect(composer?.parentElement?.className).toContain("px-4");
     expect(scrollRegion?.firstElementChild?.getAttribute("style")).toContain(
       "padding-bottom:240px"
     );
@@ -132,6 +133,7 @@ describe("PrConversationTab", () => {
     expect(submitReviewButton?.style.height).toBe("28px");
     expect(commentButton?.style.height).toBe("28px");
     expect(actionRow?.className).not.toContain("border-t");
+    expect(actionRow?.className).toContain("px-4");
     expect(levelActions?.textContent).toContain("Enable auto-merge");
     expect(composer?.textContent).toContain("Submit review");
     expect(composer?.textContent).toContain("Comment");

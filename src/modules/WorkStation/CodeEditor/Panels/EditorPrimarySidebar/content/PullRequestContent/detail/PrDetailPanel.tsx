@@ -471,7 +471,7 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
       <div
         role="tablist"
         aria-label={t("git.pr.summary.label", "Pull request summary")}
-        className="flex h-10 shrink-0 items-end gap-1 border-b border-border-2 bg-bg-2 px-3"
+        className="flex shrink-0 items-end gap-px border-b border-border-2 bg-bg-2 px-3"
       >
         {tabs.map((tab) => {
           const selected = activeTab === tab.key;
@@ -483,10 +483,10 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
               id={`pr-detail-tab-${tab.key}`}
               aria-controls={`pr-detail-tabpanel-${tab.key}`}
               aria-selected={selected}
-              className={`relative -mb-px flex h-9 shrink-0 items-center gap-1.5 rounded-t-md border px-3 text-[12px] font-medium transition-colors ${
+              className={`relative -mb-px flex shrink-0 items-center gap-1.5 rounded-t-md border px-3 py-1.5 text-[12px] font-medium transition-colors ${
                 selected
                   ? "border-border-2 bg-bg-2 text-text-1 after:absolute after:-bottom-px after:left-0 after:right-0 after:h-px after:bg-bg-2"
-                  : "border-transparent text-text-3 hover:bg-fill-1 hover:text-text-1"
+                  : "border-transparent text-text-2 hover:bg-fill-1 hover:text-text-1"
               }`}
               onClick={() => setActiveTab(tab.key)}
             >

@@ -432,7 +432,7 @@ export const PrConversationTab: React.FC<PrConversationTabProps> = ({
 
       <div
         ref={composerDockRef}
-        className={`absolute bottom-0 left-0 right-0 z-50 flex w-full flex-shrink-0 flex-col items-center px-2 pt-1 ${COMPOSER_BOTTOM_DOCK_PADDING_CLASS}`}
+        className={`absolute bottom-0 left-0 right-0 z-50 flex w-full flex-shrink-0 flex-col items-center pt-1 ${COMPOSER_BOTTOM_DOCK_PADDING_CLASS}`}
         data-testid="pr-floating-composer"
       >
         <div
@@ -440,7 +440,7 @@ export const PrConversationTab: React.FC<PrConversationTabProps> = ({
           className="pointer-events-none absolute inset-x-0 bottom-0 top-[-28px] bg-gradient-to-t from-chat-pane via-chat-pane/90 to-transparent"
         />
         <div
-          className={`${DETAIL_PANEL_TOKENS.headerWidth} relative z-10 w-full px-2`}
+          className={`${DETAIL_PANEL_TOKENS.headerWidth} relative z-10 w-full px-4`}
         >
           <section
             data-testid="pr-comment-composer"
@@ -475,7 +475,7 @@ export const PrConversationTab: React.FC<PrConversationTabProps> = ({
               <div className="px-3 pb-2">
                 <CloudSessionReferencePreview text={draft} />
               </div>
-              <div className="flex min-h-11 flex-wrap items-center justify-between gap-2 px-2 py-1.5">
+              <div className="flex min-h-11 flex-wrap items-center justify-between gap-2 px-4 py-1.5">
                 <div className="flex flex-wrap items-center gap-2">
                   <Button
                     htmlType="button"

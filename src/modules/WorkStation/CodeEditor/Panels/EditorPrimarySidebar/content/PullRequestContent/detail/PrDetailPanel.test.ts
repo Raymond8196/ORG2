@@ -180,8 +180,19 @@ describe("PrDetailPanel tabs", () => {
     ]);
     expect(tabs[0]?.getAttribute("aria-selected")).toBe("true");
     expect(tabs[0]?.className).toContain("rounded-t-md");
+    expect(tabs[0]?.className).toContain("text-text-1");
+    for (const tab of tabs.slice(1)) {
+      expect(tab.className).toContain("text-text-2");
+      expect(tab.className).not.toContain("text-text-3");
+    }
     expect(tabList?.className).toContain("border-b");
     expect(tabList?.className).not.toContain("border-t");
+    expect(tabList?.className).toContain("gap-px");
+    expect(tabList?.className).not.toContain("h-10");
+    for (const tab of tabs) {
+      expect(tab.className).toContain("py-1.5");
+      expect(tab.className).not.toContain("h-9");
+    }
     const actions = container.querySelector("[data-testid='pr-level-actions']");
     expect(actions?.textContent).toContain("Enable auto-merge");
     expect(actions?.textContent).toContain("Reviewers");
