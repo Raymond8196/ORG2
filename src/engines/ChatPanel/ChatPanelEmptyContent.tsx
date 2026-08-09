@@ -47,6 +47,14 @@ const BenchmarkRunBuilder = React.lazy(() =>
 );
 
 type SessionCreatorSlot = NonNullable<ChatPanelProps["sessionCreatorSlot"]>;
+type SessionCreatorSlotProps = React.ComponentProps<SessionCreatorSlot>;
+
+interface EmbeddedAgentComposerOptions {
+  heroFooterSlot?: React.ReactNode;
+  onSessionStart: NonNullable<SessionCreatorSlotProps["onSessionStart"]>;
+  resolveWorkItemContext?: SessionCreatorSlotProps["resolveWorkItemContext"];
+  workItemContext?: SessionCreatorSlotProps["workItemContext"];
+}
 
 interface DefaultAiWorkItemAssignee {
   id: string;
@@ -159,6 +167,38 @@ export function ChatPanelEmptyContent({
   const handleCreateWorkItem = useCallback(() => {
     handleCreateTargetChange(CHAT_PANEL_CREATE_TARGET.WORK_ITEM);
   }, [handleCreateTargetChange]);
+  const createEmbeddedAgentComposer = SessionCreatorSlot
+    ? ({
+        heroFooterSlot,
+        onSessionStart,
+        resolveWorkItemContext,
+        workItemContext,
+      }: EmbeddedAgentComposerOptions) =>
+        function renderEmbeddedComposer(
+          composerHeaderContent: React.ReactNode,
+          pinnedActionsContent: React.ReactNode
+        ) {
+          return (
+            <SessionCreatorSlot
+              className="h-full min-h-0 flex-1"
+              variant={creatorVariant}
+              layout="launchpad"
+              heroFooterSlot={heroFooterSlot}
+              composerHeaderContent={composerHeaderContent}
+              pinnedActionsContent={pinnedActionsContent}
+              hidePresenceButton
+              hideWorkItemAttachmentControl
+              includeHumanSession={false}
+              launchMode={SESSION_CREATOR_LAUNCH_MODE.START_BACKGROUND}
+              onOpenCliTerminal={handleOpenCliTerminal}
+              onRegionNoticeChange={handleRegionNoticeChange}
+              onSessionStart={onSessionStart}
+              resolveWorkItemContext={resolveWorkItemContext}
+              workItemContext={workItemContext}
+            />
+          );
+        }
+    : undefined;
   const renderWorkItemCreator = (
     suggestionPills?: React.ReactNode,
     manualMiddleContent?: React.ReactNode,
@@ -189,30 +229,11 @@ export function ChatPanelEmptyContent({
                   chatPanelFooter
                   middleContent={manualMiddleContent}
                   creatorModeControl={creatorModeControl}
-                  renderAgentComposer={
-                    SessionCreatorSlot
-                      ? (headerContent, pinnedActionsContent) => (
-                          <SessionCreatorSlot
-                            className="h-full min-h-0 flex-1"
-                            variant={creatorVariant}
-                            layout="launchpad"
-                            heroFooterSlot={suggestionPills}
-                            composerHeaderContent={headerContent}
-                            pinnedActionsContent={pinnedActionsContent}
-                            hidePresenceButton
-                            hideWorkItemAttachmentControl
-                            includeHumanSession={false}
-                            launchMode={
-                              SESSION_CREATOR_LAUNCH_MODE.START_BACKGROUND
-                            }
-                            onOpenCliTerminal={handleOpenCliTerminal}
-                            onRegionNoticeChange={handleRegionNoticeChange}
-                            onSessionStart={handleAiWorkItemSessionStart}
-                            resolveWorkItemContext={resolveAiWorkItemContext}
-                          />
-                        )
-                      : undefined
-                  }
+                  renderAgentComposer={createEmbeddedAgentComposer?.({
+                    heroFooterSlot: suggestionPills,
+                    onSessionStart: handleAiWorkItemSessionStart,
+                    resolveWorkItemContext: resolveAiWorkItemContext,
+                  })}
                   defaultAiAssignee={defaultAiWorkItemAssignee}
                 />
               </Suspense>
@@ -270,40 +291,23 @@ export function ChatPanelEmptyContent({
                 aiGenerateMode={showProjectAgentCreator}
                 middleContent={manualMiddleContent}
                 creatorModeControl={creatorModeControl}
-                renderAgentComposer={
-                  SessionCreatorSlot
-                    ? (headerContent, pinnedActionsContent) => (
-                        <SessionCreatorSlot
-                          className="h-full min-h-0 flex-1"
-                          variant={creatorVariant}
-                          layout="launchpad"
-                          heroFooterSlot={suggestionPills}
-                          composerHeaderContent={headerContent}
-                          pinnedActionsContent={pinnedActionsContent}
-                          hidePresenceButton
-                          launchMode={
-                            SESSION_CREATOR_LAUNCH_MODE.START_BACKGROUND
-                          }
-                          onOpenCliTerminal={handleOpenCliTerminal}
-                          onRegionNoticeChange={handleRegionNoticeChange}
-                          onSessionStart={handleProjectCreatorSessionStart}
-                          workItemContext={{
-                            orgId:
-                              projectDraftOrgId ??
-                              createProjectContext?.orgId ??
-                              STORY_PERSONAL_ORG_FILTER_ID,
-                            // The whole flow is "create a project via org2-pm" —
-                            // without a workItemId the resolver would default to build
-                            // and org2-pm would refuse project.mutate (§5.2). The
-                            // exec-mode pin keeps run_shell available: read-only
-                            // modes deny the shell the CLI rides on.
-                            productMode: PRODUCT_MODE_PROJECT,
-                            agentExecMode: "build",
-                          }}
-                        />
-                      )
-                    : undefined
-                }
+                renderAgentComposer={createEmbeddedAgentComposer?.({
+                  heroFooterSlot: suggestionPills,
+                  onSessionStart: handleProjectCreatorSessionStart,
+                  workItemContext: {
+                    orgId:
+                      projectDraftOrgId ??
+                      createProjectContext?.orgId ??
+                      STORY_PERSONAL_ORG_FILTER_ID,
+                    // The whole flow is "create a project via org2-pm" —
+                    // without a workItemId the resolver would default to build
+                    // and org2-pm would refuse project.mutate (§5.2). The
+                    // exec-mode pin keeps run_shell available: read-only
+                    // modes deny the shell the CLI rides on.
+                    productMode: PRODUCT_MODE_PROJECT,
+                    agentExecMode: "build",
+                  },
+                })}
               />
             </Suspense>
           </div>
