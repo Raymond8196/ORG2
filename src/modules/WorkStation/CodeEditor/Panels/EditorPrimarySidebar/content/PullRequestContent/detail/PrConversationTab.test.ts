@@ -27,6 +27,8 @@ vi.mock("@src/hooks/ui/layout/useElementDimensions", () => ({
 vi.mock("@src/modules/shared/components/RichMarkdownEditor", async () => {
   const { forwardRef } = await import("react");
   return {
+    RICH_MARKDOWN_COMPOSER_TOOLBAR_CLASS:
+      "!min-h-0 !border-b-0 !pb-0.5 [&_svg]:size-3.5",
     default: forwardRef<HTMLDivElement, Record<string, unknown>>(
       function MockRichMarkdownEditor(props, ref) {
         return createElement("div", {
@@ -133,7 +135,9 @@ describe("PrConversationTab", () => {
     expect(submitReviewButton?.style.height).toBe("28px");
     expect(commentButton?.style.height).toBe("28px");
     expect(actionRow?.className).not.toContain("border-t");
-    expect(actionRow?.className).toContain("px-4");
+    expect(input?.className).toContain("px-1.5");
+    expect(input?.className).toContain("pb-1.5");
+    expect(actionRow?.className).toContain("px-1");
     expect(levelActions?.textContent).toContain("Enable auto-merge");
     expect(composer?.textContent).toContain("Submit review");
     expect(composer?.textContent).toContain("Comment");

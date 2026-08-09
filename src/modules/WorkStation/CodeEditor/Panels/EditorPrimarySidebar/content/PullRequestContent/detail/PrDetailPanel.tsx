@@ -2,7 +2,7 @@
  * PrDetailPanel
  *
  * GitHub-style tabbed Pull Request detail rendered in the Source Control main
- * pane: a header (status pill · #number · title) over
+ * pane: a header (status icon · #number · title) over
  * a Conversation / Commits / Checks / Changes sub-tab bar.
  *
  * Mounts `useWorkstationPrDetail` (which parallel-fetches every source and
@@ -18,7 +18,6 @@ import {
   FileDiff,
   GitBranch,
   GitCommitHorizontal,
-  GitMerge,
   Globe,
   ListChecks,
   MessageCircle,
@@ -51,7 +50,7 @@ import { PrChangesTab } from "./PrChangesTab";
 import { PrChecksTab } from "./PrChecksTab";
 import { PrCommitsTab } from "./PrCommitsTab";
 import { PrConversationTab } from "./PrConversationTab";
-import { PrDetailHeaderContent } from "./PrDetailHeaderContent";
+import { PrDetailHeaderContent, PrStatusIcon } from "./PrDetailHeaderContent";
 import { PrLevelActions } from "./PrLevelActions";
 
 export { PrDetailHeaderContent } from "./PrDetailHeaderContent";
@@ -189,7 +188,6 @@ export function PrDetailSummary({
     readNumber(detail, "deletions") ??
     files.reduce((total, file) => total + file.deletions, 0);
   const commentCount = readNumber(detail, "comments") ?? conversationCount;
-  const statusLabel = t(`git.pr.status.${identity.status}`, identity.status);
   const statusColorClass = getPrStatusVariant(identity.status).textClass;
 
   return (
@@ -271,23 +269,20 @@ export function PrDetailSummary({
         </div>
         <div className="text-text-1">{checksLabel(checks, t)}</div>
 
-        <div className="flex items-center gap-2 text-text-3">
-          {identity.status === "merged" ? (
-            <GitMerge
-              size={14}
-              strokeWidth={1.75}
-              className={statusColorClass}
-            />
-          ) : (
-            <CircleDot
-              size={14}
-              strokeWidth={1.75}
-              className={statusColorClass}
-            />
-          )}
+        <div
+          className="flex items-center gap-2 text-text-3"
+          data-testid="pr-summary-status-label"
+        >
+          <CircleDot size={14} strokeWidth={1.75} />
           <span>{t("git.pr.summary.status", "Status")}</span>
         </div>
-        <div className={`capitalize ${statusColorClass}`}>{statusLabel}</div>
+        <div
+          className={`inline-flex items-center gap-1 capitalize ${statusColorClass}`}
+          data-testid="pr-summary-status"
+        >
+          <PrStatusIcon status={identity.status} />
+          <span>{identity.status}</span>
+        </div>
       </div>
     </section>
   );

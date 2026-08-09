@@ -465,6 +465,7 @@ export function useInlineCreateWorkItemFields({
       descriptionPlaceholder={tSessions("creator.placeholderDefault")}
       onImageInsert={handleImageInsert}
       descriptionClassName="no-bottom-border [&_.ProseMirror]:!pl-1.5"
+      descriptionToolbarMode={aiGenerateMode ? "floating" : "inline"}
       descriptionMaxHeight="100%"
       repoPath={repoPath}
       className="flex min-h-0 flex-1 flex-col"

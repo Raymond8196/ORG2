@@ -22,7 +22,7 @@ import type {
 } from "@src/api/tauri/github";
 import Avatar from "@src/components/Avatar";
 import Button from "@src/components/Button";
-import ComposerShell from "@src/components/ComposerShell";
+import ComposerSurface from "@src/components/ComposerSurface";
 import Radio from "@src/components/Radio";
 import type { RadioValue } from "@src/components/Radio";
 import Textarea from "@src/components/Textarea";
@@ -39,8 +39,10 @@ import {
   TimelineLoadingSkeleton,
   TimelineStack,
 } from "@src/modules/shared/components/ActivityTimeline";
-import RichMarkdownEditor from "@src/modules/shared/components/RichMarkdownEditor";
-import type { RichMarkdownEditorRef } from "@src/modules/shared/components/RichMarkdownEditor";
+import RichMarkdownEditor, {
+  RICH_MARKDOWN_COMPOSER_TOOLBAR_CLASS,
+  type RichMarkdownEditorRef,
+} from "@src/modules/shared/components/RichMarkdownEditor";
 import Modal from "@src/scaffold/ModalSystem";
 import type { PrIdentity } from "@src/store/workstation/codeEditor/workstationSelectedPrAtom";
 
@@ -449,13 +451,39 @@ export const PrConversationTab: React.FC<PrConversationTabProps> = ({
           >
             {levelActions}
 
-            <ComposerShell
+            <ComposerSurface
               ref={dropTargetRef}
               variant="default"
-              className={`!gap-0 overflow-visible !p-0 ${
+              className={`overflow-visible ${
                 isDragOver ? "!ring-2 !ring-primary-6" : ""
               }`.trim()}
               data-testid="pr-comment-drop-target"
+              leadingActions={
+                <Button
+                  htmlType="button"
+                  variant="secondary"
+                  size="small"
+                  shape="round"
+                  disabled={submittingReview}
+                  onClick={() => setReviewModalVisible(true)}
+                  data-testid="pr-submit-review"
+                >
+                  {t("git.pr.submitReview", "Submit review")}
+                </Button>
+              }
+              trailingActions={
+                <Button
+                  htmlType="button"
+                  variant="primary"
+                  size="small"
+                  shape="round"
+                  loading={submittingComment}
+                  disabled={!draft.trim() || submittingComment}
+                  onClick={() => void handleComment()}
+                >
+                  {t("git.pr.comment", "Comment")}
+                </Button>
+              }
             >
               <RichMarkdownEditor
                 ref={editorRef}
@@ -467,43 +495,14 @@ export const PrConversationTab: React.FC<PrConversationTabProps> = ({
                 appearance="plain"
                 toolbarMode="inline"
                 toolbarSize="mini"
+                toolbarClassName={RICH_MARKDOWN_COMPOSER_TOOLBAR_CLASS}
                 toolbarDropdownPosition="top-start"
                 editable={!submittingComment && !submittingReview}
                 onSubmit={() => void handleComment()}
                 dataTestId="pr-comment-editor"
               />
-              <div className="px-3 pb-2">
-                <CloudSessionReferencePreview text={draft} />
-              </div>
-              <div className="flex min-h-11 flex-wrap items-center justify-between gap-2 px-4 py-1.5">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Button
-                    htmlType="button"
-                    variant="secondary"
-                    size="small"
-                    shape="round"
-                    disabled={submittingReview}
-                    onClick={() => setReviewModalVisible(true)}
-                    data-testid="pr-submit-review"
-                  >
-                    {t("git.pr.submitReview", "Submit review")}
-                  </Button>
-                </div>
-                <div className="flex flex-wrap items-center justify-end gap-2">
-                  <Button
-                    htmlType="button"
-                    variant="primary"
-                    size="small"
-                    shape="round"
-                    loading={submittingComment}
-                    disabled={!draft.trim() || submittingComment}
-                    onClick={() => void handleComment()}
-                  >
-                    {t("git.pr.comment", "Comment")}
-                  </Button>
-                </div>
-              </div>
-            </ComposerShell>
+              <CloudSessionReferencePreview text={draft} className="px-1.5" />
+            </ComposerSurface>
           </section>
         </div>
       </div>

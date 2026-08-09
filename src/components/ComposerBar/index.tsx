@@ -21,9 +21,9 @@ import AddActionsDropdown from "@src/features/SessionCreator/components/AddActio
 
 export interface ComposerBarProps {
   /** + button: open add-content selector (@-mentions, files) */
-  onAddContent: () => void;
+  onAddContent?: () => void;
   /** + button: open upload picker */
-  onUpload: () => void;
+  onUpload?: () => void;
   /** + button: open Skills & Tools slash menu */
   onOpenSkillsTools?: () => void;
   /** Direction the + menu opens */
@@ -92,32 +92,33 @@ const ComposerBar: React.FC<ComposerBarProps> = memo(
         ? "flex items-center gap-0.5"
         : "flex items-center gap-1";
 
-    const addButton = hideAddButton ? null : onOpenSkillsTools ? (
-      <button
-        type="button"
-        onClick={onOpenSkillsTools}
-        onMouseDown={(e) => e.preventDefault()}
-        className={[
-          `flex items-center justify-center rounded-full text-text-1 transition-colors duration-200 focus:outline-none ${PILL_CONTROL_IDLE_SURFACE_CLASS}`,
-          INPUT_AREA_BUTTONS.iconButtonSizeClass,
-        ].join(" ")}
-        aria-label="Skills & Tools"
-        data-composer-plus-menu-trigger="true"
-        data-testid="composer-skills-tools-button"
-      >
-        <Plus
-          size={INPUT_AREA_BUTTONS.iconSize}
-          strokeWidth={1.75}
-          className="text-text-1"
+    const addButton =
+      hideAddButton || !onAddContent || !onUpload ? null : onOpenSkillsTools ? (
+        <button
+          type="button"
+          onClick={onOpenSkillsTools}
+          onMouseDown={(e) => e.preventDefault()}
+          className={[
+            `flex items-center justify-center rounded-full text-text-1 transition-colors duration-200 focus:outline-none ${PILL_CONTROL_IDLE_SURFACE_CLASS}`,
+            INPUT_AREA_BUTTONS.iconButtonSizeClass,
+          ].join(" ")}
+          aria-label="Skills & Tools"
+          data-composer-plus-menu-trigger="true"
+          data-testid="composer-skills-tools-button"
+        >
+          <Plus
+            size={INPUT_AREA_BUTTONS.iconSize}
+            strokeWidth={1.75}
+            className="text-text-1"
+          />
+        </button>
+      ) : (
+        <AddActionsDropdown
+          onAddContent={onAddContent}
+          onUpload={onUpload}
+          dropdownDirection={dropdownDirection}
         />
-      </button>
-    ) : (
-      <AddActionsDropdown
-        onAddContent={onAddContent}
-        onUpload={onUpload}
-        dropdownDirection={dropdownDirection}
-      />
-    );
+      );
 
     const toolbarRow = (
       <div

@@ -380,11 +380,14 @@ describe("PrDetailPanel tabs", () => {
       container.querySelectorAll('a[aria-label="Open on GitHub"]')
     ).toHaveLength(1);
     expect(header?.textContent).toContain("Use compact PR metadata");
-    const mergedBadge = Array.from(header?.querySelectorAll("span") ?? []).find(
-      (element) => element.textContent?.trim() === "merged"
+    const mergedStatus = header?.querySelector(
+      "[data-testid='pr-detail-status']"
     );
-    expect(mergedBadge?.className).toContain("bg-purple-1");
-    expect(mergedBadge?.className).toContain("text-purple-6");
+    expect(mergedStatus?.className).toContain("text-purple-6");
+    expect(mergedStatus?.className).not.toContain("bg-purple-1");
+    expect(mergedStatus?.className).not.toContain("rounded-full");
+    expect(mergedStatus?.querySelector(".lucide-git-merge")).not.toBeNull();
+    expect(mergedStatus?.textContent).toBe("");
     expect(header?.textContent).not.toContain("develop");
     expect(header?.textContent).not.toContain(
       "fix/issue-556-delete-agent-org-workers"
@@ -412,10 +415,24 @@ describe("PrDetailPanel tabs", () => {
     expect(summary?.textContent).toContain("No CI checks");
     expect(summary?.textContent).toContain("Status");
     expect(summary?.textContent).toContain("merged");
-    const summaryStatus = Array.from(
-      summary?.querySelectorAll("div") ?? []
-    ).find((element) => element.textContent?.trim() === "merged");
+    const summaryStatus = summary?.querySelector(
+      "[data-testid='pr-summary-status']"
+    );
     expect(summaryStatus?.className).toContain("text-purple-6");
+    expect(summaryStatus?.className).not.toContain("rounded-full");
+    expect(summaryStatus?.className).not.toContain("bg-purple-1");
+    expect(summaryStatus?.textContent).toBe("merged");
+    expect(summaryStatus?.querySelector(".lucide-git-merge")).not.toBeNull();
+    const summaryStatusLabel = summary?.querySelector(
+      "[data-testid='pr-summary-status-label']"
+    );
+    expect(summaryStatusLabel?.className).toContain("text-text-3");
+    expect(
+      summaryStatusLabel?.querySelector(".lucide-circle-dot")
+    ).not.toBeNull();
+    expect(
+      summaryStatusLabel?.querySelector(".lucide-circle-dot")?.className
+    ).not.toContain("text-purple-6");
     expect(summary?.className).not.toContain("border-b");
     expect(summary?.firstElementChild?.className).toContain("px-6");
     expect(summary?.firstElementChild?.className).toContain("pt-4");

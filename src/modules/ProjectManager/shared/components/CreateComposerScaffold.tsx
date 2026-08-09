@@ -1,8 +1,7 @@
 import type { ReactNode, RefObject } from "react";
 import { useCallback, useRef } from "react";
 
-import ComposerBar from "@src/components/ComposerBar";
-import ComposerShell from "@src/components/ComposerShell";
+import ComposerSurface from "@src/components/ComposerSurface";
 import Input from "@src/components/Input";
 import { GHOST_INPUT_PLACEHOLDER_CLASS } from "@src/components/Input/tokens";
 import { PropertyDropdownDirectionProvider } from "@src/components/PropertyField/PropertyDropdownDirection";
@@ -121,28 +120,28 @@ export function ManualCreateComposer({
           {pinnedActionsContent}
         </div>
         <div className="session-creator-chat-panel-fullscreen-composer relative w-full">
-          <ComposerShell className="session-creator-chat-panel-fullscreen-input-shell composer-breathing relative z-10 !pt-1.5">
+          <ComposerSurface
+            className="session-creator-chat-panel-fullscreen-input-shell composer-breathing relative z-10 !pt-1.5"
+            onAddContent={() => editorRef.current?.triggerAtMention()}
+            onUpload={() => fileInputRef.current?.click()}
+            onOpenSkillsTools={() => editorRef.current?.triggerSlashContext()}
+            dropdownDirection="up"
+            toolbarItemGap={false}
+            showContextInfo={false}
+            trailingActions={submitButton}
+          >
             {headerContent}
             <div className="min-h-0 px-1">{editorContent}</div>
-            <ComposerBar
-              onAddContent={() => editorRef.current?.triggerAtMention()}
-              onUpload={() => fileInputRef.current?.click()}
-              onOpenSkillsTools={() => editorRef.current?.triggerSlashContext()}
-              dropdownDirection="up"
-              toolbarItemGap={false}
-              showContextInfo={false}
-              submitButton={submitButton}
-            />
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              className="hidden"
-              onChange={handleFilesSelected}
-              tabIndex={-1}
-              aria-hidden
-            />
-          </ComposerShell>
+          </ComposerSurface>
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            className="hidden"
+            onChange={handleFilesSelected}
+            tabIndex={-1}
+            aria-hidden
+          />
         </div>
       </div>
     </div>
