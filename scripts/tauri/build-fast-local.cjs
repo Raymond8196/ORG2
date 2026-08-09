@@ -100,6 +100,10 @@ function createPnpmExecCommand(binaryName, args) {
 }
 
 const configOverride = JSON.stringify({
+  plugins: {
+    // Local artifacts must not install a published release over themselves.
+    updater: { active: false },
+  },
   build: {
     beforeBuildCommand: "webpack --mode production",
   },

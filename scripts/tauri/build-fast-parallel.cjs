@@ -285,14 +285,20 @@ async function main() {
       ? {
           productName: instanceProfile.productName,
           identifier: instanceProfile.identifier,
-          plugins: {
+        }
+      : {}),
+    plugins: {
+      ...(instanceProfile
+        ? {
             "deep-link": {
               desktop: { schemes: instanceProfile.deepLinkSchemes },
             },
-            updater: { active: false },
-          },
-        }
-      : {}),
+          }
+        : {}),
+      // A branch build must never replace itself with a published release.
+      // Production builds continue to use the updater from tauri.conf.json.
+      updater: { active: false },
+    },
     build: {
       // Empty string = skip beforeBuildCommand; artifacts already on disk.
       beforeBuildCommand: "",
