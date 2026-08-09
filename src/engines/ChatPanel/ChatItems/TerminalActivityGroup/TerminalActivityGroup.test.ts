@@ -1,8 +1,23 @@
-import { describe, expect, it } from "vitest";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { describe, expect, it, vi } from "vitest";
 
 import { makeSessionEvent } from "@src/engines/SessionCore/rendering/props/__tests__/fixtures";
 
-import { buildGroupSummary } from ".";
+import TerminalActivityGroup, { buildGroupSummary } from ".";
+
+vi.mock("@src/engines/ChatPanel/hooks/useChatEventReplay", () => ({
+  useChatEventReplay: () => ({
+    replayEventById: vi.fn(),
+    canReplay: false,
+  }),
+}));
+
+vi.mock("react-i18next", () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+  }),
+}));
 
 const translateSummary = (
   key: string,
@@ -54,5 +69,63 @@ describe("buildGroupSummary", () => {
     expect(buildGroupSummary(events, translateSummary)).toBe(
       "2 commands, 4 MCP calls"
     );
+  });
+
+  it("keeps a created Work Item card visible when the command stack is collapsed", () => {
+    const stdout = JSON.stringify({
+      apiVersion: "orgtrack/v1",
+      ok: true,
+      data: {
+        body: "",
+        filename: "WI-0100",
+        frontmatter: {
+          id: "WI-0100",
+          short_id: "WI-0100",
+          title: "Visible create result",
+          status: "backlog",
+          priority: "none",
+          labels: [],
+          todos: [],
+          starred: false,
+          created_at: "2026-08-09T00:00:00Z",
+          updated_at: "2026-08-09T00:00:00Z",
+        },
+      },
+    });
+    const baseEvent = makeSessionEvent({
+      action_type: "tool_call",
+      function: "run_shell",
+      uiCanonical: "run_shell",
+      args: {
+        command:
+          "org2-pm work create --standalone --title 'Visible create result'",
+      },
+      result: { shellReplayBacked: true },
+      shellExitCode: 0,
+    });
+    const event = {
+      ...baseEvent,
+      shellReplay: {
+        ref: {
+          sessionId: baseEvent.sessionId,
+          callId: "call-create-work-item",
+          formatVersion: 1,
+        },
+        bookmark: { visibleThroughSequence: 1, visibleBytes: stdout.length },
+        terminalPreview: stdout,
+        status: "complete" as const,
+      },
+    };
+
+    const markup = renderToStaticMarkup(
+      createElement(TerminalActivityGroup, {
+        events: [event],
+        closedByBoundary: true,
+      })
+    );
+
+    expect(markup).toContain('data-testid="created-work-item-card"');
+    expect(markup).toContain('data-work-item-id="WI-0100"');
+    expect(markup).toContain("Visible create result");
   });
 });

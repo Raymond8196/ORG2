@@ -2,6 +2,7 @@
  * Rich card parsers — derive structured card data from tool args + results
  * for file, website, work-item, and project tool calls.
  */
+import type { WorkItemData } from "@src/api/http/project";
 import { normalizeHttpUrlCandidate } from "@src/util/url/validation";
 
 import type {
@@ -453,21 +454,98 @@ function inferOrgtrackOperation(command: string): string {
   return `${noun}.${verb}`;
 }
 
-export function parseOrgtrackEnvelope(
+export interface OrgtrackEnvelopeContext {
+  projectSlug?: string;
+  projectName?: string;
+  projectId?: string;
+  orgId?: string;
+}
+
+function extractShellResult(
   args: Record<string, unknown>,
   result: Record<string, unknown>
-): OrgtrackEnvelopeData | null {
+): {
+  command: string | null;
+  stdout: string;
+  exitCode: number | undefined;
+} {
+  const output = asRecord(result.output);
+  const success = asRecord(output?.success) ?? asRecord(result.success);
+  const failure = asRecord(output?.failure) ?? asRecord(result.failure);
+  const payload = success ?? failure ?? result;
   const command =
-    (typeof args.command === "string" ? args.command : null) ??
-    (typeof args.cmd === "string" ? args.cmd : null);
+    getString(args.command) ??
+    getString(args.cmd) ??
+    getString(payload.command) ??
+    null;
+  const stdout =
+    getString(payload.stdout) ??
+    getString(result.stdout) ??
+    (typeof result.output === "string" ? result.output : null) ??
+    getString(result.content) ??
+    "";
+  const rawExit =
+    payload.exit_code ??
+    payload.exitCode ??
+    result.exit_code ??
+    result.exitCode ??
+    result.code;
+  return {
+    command,
+    stdout,
+    exitCode:
+      typeof rawExit === "number"
+        ? rawExit
+        : success
+          ? 0
+          : failure
+            ? -1
+            : undefined,
+  };
+}
+
+function parseScopeFlag(command: string): string | undefined {
+  const match = command.match(
+    /(?:^|\s)--scope(?:=|\s+)(?:"([^"]+)"|'([^']+)'|([^\s]+))/
+  );
+  return match?.[1] ?? match?.[2] ?? match?.[3];
+}
+
+function hasStandaloneFlag(command: string): boolean {
+  return /(?:^|\s)--standalone(?:\s|$)/.test(command);
+}
+
+function parseCreatedWorkItem(data: unknown): WorkItemData | undefined {
+  const item = asRecord(data);
+  const frontmatter = asRecord(item?.frontmatter);
+  if (
+    !item ||
+    !frontmatter ||
+    typeof item.body !== "string" ||
+    !getString(item.filename) ||
+    !getString(frontmatter.id) ||
+    !getString(frontmatter.short_id) ||
+    !getString(frontmatter.title) ||
+    !getString(frontmatter.status) ||
+    !getString(frontmatter.priority) ||
+    !getString(frontmatter.created_at) ||
+    !getString(frontmatter.updated_at)
+  ) {
+    return undefined;
+  }
+  return item as unknown as WorkItemData;
+}
+
+export function parseOrgtrackEnvelope(
+  args: Record<string, unknown>,
+  result: Record<string, unknown>,
+  context: OrgtrackEnvelopeContext = {}
+): OrgtrackEnvelopeData | null {
+  const shell = extractShellResult(args, result);
+  const { command } = shell;
   if (!command || !/\borg2-pm\b|\borg2\b/.test(command)) return null;
 
-  const stdout =
-    (typeof result.stdout === "string" ? result.stdout : null) ??
-    (typeof result.output === "string" ? result.output : null) ??
-    (typeof result.content === "string" ? result.content : null) ??
-    "";
-  const trimmed = stdout.trim();
+  const trimmed = shell.stdout.trim();
   if (!trimmed.startsWith("{")) return null;
 
   let envelope: Record<string, unknown>;
@@ -480,21 +558,33 @@ export function parseOrgtrackEnvelope(
   }
   if (envelope.apiVersion !== "orgtrack/v1") return null;
 
-  const rawExit = result.exit_code ?? result.exitCode ?? result.code;
-  const exitCode =
-    typeof rawExit === "number" ? rawExit : envelope.ok === true ? 0 : -1;
-  const operation =
-    ORGTRACK_OP_LABELS[inferOrgtrackOperation(command)] ??
-    inferOrgtrackOperation(command) ??
-    "org2-pm";
+  const exitCode = shell.exitCode ?? (envelope.ok === true ? 0 : -1);
+  const operationId = inferOrgtrackOperation(command);
+  const operation = ORGTRACK_OP_LABELS[operationId] ?? operationId ?? "org2-pm";
 
   if (envelope.ok === true) {
     const data = (envelope.data ?? {}) as Record<string, unknown>;
     const fm = (data.frontmatter ?? {}) as Record<string, unknown>;
     const items = Array.isArray(data.items) ? data.items : null;
+    const workItem =
+      operationId === "work.create"
+        ? parseCreatedWorkItem(envelope.data)
+        : undefined;
+    const explicitProjectSlug = parseScopeFlag(command);
+    const projectSlug = explicitProjectSlug ?? context.projectSlug;
+    const projectContextMatches =
+      !explicitProjectSlug || explicitProjectSlug === context.projectSlug;
+    const projectId =
+      getString(fm.project) ??
+      (projectContextMatches ? context.projectId : undefined);
+    const isStandalone =
+      operationId === "work.create"
+        ? hasStandaloneFlag(command) || (!projectSlug && !projectId)
+        : undefined;
     return {
       command,
       ok: true,
+      operationId,
       operation,
       exitCode,
       shortId:
@@ -507,6 +597,15 @@ export function parseOrgtrackEnvelope(
         (typeof fm.status === "string" ? fm.status : undefined) ??
         (typeof data.status === "string" ? data.status : undefined),
       itemCount: items ? items.length : undefined,
+      workItem,
+      projectSlug: isStandalone ? undefined : projectSlug,
+      projectName:
+        isStandalone || !projectContextMatches
+          ? undefined
+          : context.projectName,
+      projectId: isStandalone ? undefined : projectId,
+      orgId: context.orgId,
+      isStandalone,
     };
   }
 
@@ -514,6 +613,7 @@ export function parseOrgtrackEnvelope(
   return {
     command,
     ok: false,
+    operationId,
     operation,
     exitCode,
     errorCode: typeof error.code === "string" ? error.code : undefined,

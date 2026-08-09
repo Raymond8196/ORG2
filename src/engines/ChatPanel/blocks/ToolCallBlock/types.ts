@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import type { WorkItemData } from "@src/api/http/project";
 import type {
   PayloadRef,
   ToolUsageMetadata,
@@ -192,6 +193,7 @@ export interface CommandResultData {
 export interface OrgtrackEnvelopeData {
   command: string;
   ok: boolean;
+  operationId: string;
   operation: string;
   exitCode: number;
   shortId?: string;
@@ -201,6 +203,14 @@ export interface OrgtrackEnvelopeData {
   errorMessage?: string;
   retryable?: boolean;
   itemCount?: number;
+  /** Canonical create result used to open the real Work Item detail surface. */
+  workItem?: WorkItemData;
+  /** Resolved navigation context; empty for standalone items. */
+  projectSlug?: string;
+  projectName?: string;
+  projectId?: string;
+  orgId?: string;
+  isStandalone?: boolean;
 }
 
 /**
