@@ -143,16 +143,21 @@ describe("GitHubIssueComposer", () => {
     const levelActions = container.querySelector(
       "[data-testid='github-issue-level-actions']"
     );
+    const composer = container.querySelector(
+      "[data-testid='github-issue-inline-composer']"
+    );
     const input = container.querySelector(
       "[data-testid='github-issue-comment-input']"
     );
     expect(levelActions?.nextElementSibling).toBe(input);
+    expect(composer?.className).toContain("gap-1.5");
     expect(input?.contains(levelActions as Node)).toBe(false);
     expect(levelActions?.className).not.toContain("border-");
     expect(
       input?.querySelector("[data-testid='github-issue-comment-submit']")
     ).not.toBeNull();
     expect(input?.className).toContain("px-1.5");
+    expect(input?.className).toContain("!pt-1.5");
     expect(input?.className).toContain("pb-1.5");
     expect(
       input?.querySelector("[data-testid='github-issue-comment-submit']")

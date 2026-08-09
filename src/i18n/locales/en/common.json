@@ -1380,7 +1380,6 @@
         "inMergeQueue": "In merge queue",
         "approvalRequired": "Approval required",
         "changesRequested": "Changes requested",
-        "resolveConflicts": "Resolve conflicts",
         "checksFailed": "Checks failed",
         "checksPending": "Checks pending",
         "mergeBlocked": "Merge blocked",

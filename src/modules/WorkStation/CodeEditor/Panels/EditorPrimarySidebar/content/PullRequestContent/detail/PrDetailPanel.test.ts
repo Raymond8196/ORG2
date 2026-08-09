@@ -32,6 +32,9 @@ const childProps = vi.hoisted(() => ({
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string, fallback?: string | Record<string, unknown>) => {
+      if (key === "git.pr.actions.resolveConflicts") {
+        return "Localized conflict label";
+      }
       if (typeof fallback === "string") return fallback;
       if (typeof fallback?.defaultValue !== "string") return key;
       const count = Number(fallback.count ?? 0);
@@ -198,6 +201,11 @@ describe("PrDetailPanel tabs", () => {
     expect(actions?.textContent).toContain("Reviewers");
     expect(actions?.textContent).toContain("Close");
     expect(actions?.textContent).not.toContain("Close pull request");
+    const closeAction = actions?.querySelector<HTMLButtonElement>(
+      '[data-testid="pr-state-action"]'
+    );
+    expect(closeAction?.className).toContain("text-text-1");
+    expect(closeAction?.className).not.toContain("text-danger-6");
     expect(
       actions?.querySelector<HTMLButtonElement>(
         '[data-testid="pr-merge-action"]'
@@ -256,6 +264,54 @@ describe("PrDetailPanel tabs", () => {
     ).toBeNull();
     expect(
       container.querySelector('[data-testid="pr-detail-navigation-trail"]')
+    ).toBeNull();
+  });
+
+  it("renders GraphQL merge conflicts as a disabled danger action", () => {
+    const store = createStore();
+    const scopeKey = workstationPrScopeKey(undefined, "/repo", 42);
+    store.set(workstationSelectedPrAtomFamily(scopeKey), {
+      ...initialSelectedPrState,
+      loading: false,
+      detail: {
+        state: "open",
+        mergeable: true,
+        mergeable_state: "clean",
+        merge_state_status: "DIRTY",
+      },
+    });
+
+    act(() => {
+      root.render(
+        createElement(
+          Provider,
+          { store },
+          createElement(PrDetailPanel, {
+            identity: {
+              number: 42,
+              title: "Expose merge conflicts",
+              url: "https://github.com/org/repo/pull/42",
+              status: "open",
+              headBranch: "feature/conflicts",
+              baseBranch: "main",
+            },
+            repoPath: "/repo",
+            showHeader: false,
+          })
+        )
+      );
+    });
+
+    const conflictAction = container.querySelector<HTMLButtonElement>(
+      '[data-testid="pr-merge-action"]'
+    );
+    expect(conflictAction?.textContent).toBe("Merge conflicts");
+    expect(conflictAction?.disabled).toBe(true);
+    expect(conflictAction?.className).toContain("!opacity-100");
+    expect(conflictAction?.className).toContain("text-danger-6");
+    expect(conflictAction?.querySelector(".lucide-circle-x")).not.toBeNull();
+    expect(
+      conflictAction?.parentElement?.querySelector(".lucide-chevron-down")
     ).toBeNull();
   });
 

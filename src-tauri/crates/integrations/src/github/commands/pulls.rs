@@ -388,6 +388,21 @@ impl PullRequestMergeAutomationContext {
     }
 }
 
+/// Adds GraphQL-only merge metadata to the REST pull-request detail payload.
+fn apply_pull_request_merge_context(
+    detail: &mut Value,
+    context: PullRequestMergeAutomationContext,
+) {
+    detail["merge_queue_required"] = json!(context.merge_queue_enabled);
+    detail["is_in_merge_queue"] = json!(context.merge_queue_entry_id.is_some());
+    if let Some(merge_state_status) = context.merge_state_status {
+        detail["merge_state_status"] = json!(merge_state_status);
+    }
+    if let Some(review_decision) = context.review_decision {
+        detail["review_decision"] = json!(review_decision);
+    }
+}
+
 async fn get_pull_request_merge_automation_context(
     client: &GitHubClient,
     pull_request_id: &str,
@@ -720,6 +735,26 @@ mod pr_action_payload_tests {
     }
 
     #[test]
+    fn pr_detail_enrichment_preserves_graphql_merge_state() {
+        let mut detail = json!({ "mergeable_state": "unknown" });
+
+        apply_pull_request_merge_context(
+            &mut detail,
+            PullRequestMergeAutomationContext {
+                merge_queue_enabled: true,
+                merge_queue_entry_id: Some("queue-entry".to_string()),
+                merge_state_status: Some("DIRTY".to_string()),
+                review_decision: Some("CHANGES_REQUESTED".to_string()),
+            },
+        );
+
+        assert_eq!(detail["merge_queue_required"], json!(true));
+        assert_eq!(detail["is_in_merge_queue"], json!(true));
+        assert_eq!(detail["merge_state_status"], json!("DIRTY"));
+        assert_eq!(detail["review_decision"], json!("CHANGES_REQUESTED"));
+    }
+
+    #[test]
     fn reviewer_logins_are_trimmed_and_deduplicated_case_insensitively() {
         assert_eq!(
             normalize_reviewer_logins(vec![
@@ -1005,13 +1040,7 @@ pub async fn github_get_pr(repo_full_name: String, pr_number: u64) -> Result<Val
 
     if let Some(result) = merge_context {
         match result {
-            Ok(context) => {
-                detail["merge_queue_required"] = json!(context.merge_queue_enabled);
-                detail["is_in_merge_queue"] = json!(context.merge_queue_entry_id.is_some());
-                if let Some(review_decision) = context.review_decision {
-                    detail["review_decision"] = json!(review_decision);
-                }
-            }
+            Ok(context) => apply_pull_request_merge_context(&mut detail, context),
             Err(error) => {
                 log::warn!("[GitHub][Cmd] get_pr merge metadata failed: {error}");
             }

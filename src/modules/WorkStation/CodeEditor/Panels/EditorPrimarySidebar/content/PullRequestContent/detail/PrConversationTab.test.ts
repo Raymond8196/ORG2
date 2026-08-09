@@ -112,6 +112,7 @@ describe("PrConversationTab", () => {
     ).find((button) => button.textContent?.trim() === "Comment");
 
     expect(composer).not.toBeNull();
+    expect(composer?.className).toContain("gap-1.5");
     expect(scrollRegion?.contains(composer)).toBe(false);
     expect(floatingComposer?.contains(composer)).toBe(true);
     expect(floatingComposer?.className).toContain("absolute");
@@ -136,6 +137,7 @@ describe("PrConversationTab", () => {
     expect(commentButton?.style.height).toBe("28px");
     expect(actionRow?.className).not.toContain("border-t");
     expect(input?.className).toContain("px-1.5");
+    expect(input?.className).toContain("!pt-1.5");
     expect(input?.className).toContain("pb-1.5");
     expect(actionRow?.className).toContain("px-1");
     expect(levelActions?.textContent).toContain("Enable auto-merge");

@@ -1332,7 +1332,6 @@
         "inMergeQueue": "在合并队列中",
         "approvalRequired": "需要批准",
         "changesRequested": "已请求更改",
-        "resolveConflicts": "解决冲突",
         "checksFailed": "检查失败",
         "checksPending": "检查待定",
         "mergeBlocked": "合并受阻",

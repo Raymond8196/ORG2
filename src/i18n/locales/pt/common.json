@@ -1515,7 +1515,6 @@
         "inMergeQueue": "Na fila de mesclagem",
         "approvalRequired": "Aprovação necessária",
         "changesRequested": "Alterações solicitadas",
-        "resolveConflicts": "Resolver conflitos",
         "checksFailed": "Verificações falharam",
         "checksPending": "Verificações pendentes",
         "mergeBlocked": "Mesclagem bloqueada",

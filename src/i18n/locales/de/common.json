@@ -1515,7 +1515,6 @@
         "inMergeQueue": "In der Merge-Warteschlange",
         "approvalRequired": "Genehmigung erforderlich",
         "changesRequested": "Änderungen angefordert",
-        "resolveConflicts": "Konflikte beheben",
         "checksFailed": "Checks fehlgeschlagen",
         "checksPending": "Checks ausstehend",
         "mergeBlocked": "Zusammenführung blockiert",

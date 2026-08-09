@@ -1516,7 +1516,6 @@
         "inMergeQueue": "Birleştirme kuyruğunda",
         "approvalRequired": "Onay gerekli",
         "changesRequested": "Değişiklik istendi",
-        "resolveConflicts": "Çakışmaları çöz",
         "checksFailed": "Kontroller başarısız",
         "checksPending": "Kontroller bekleniyor",
         "mergeBlocked": "Birleştirme engellendi",

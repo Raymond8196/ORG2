@@ -1526,7 +1526,6 @@
         "inMergeQueue": "在合併佇列中",
         "approvalRequired": "需要核准",
         "changesRequested": "已要求變更",
-        "resolveConflicts": "解決衝突",
         "checksFailed": "檢查失敗",
         "checksPending": "檢查待定",
         "mergeBlocked": "合併受阻",

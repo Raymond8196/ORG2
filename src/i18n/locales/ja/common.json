@@ -1514,7 +1514,6 @@
         "inMergeQueue": "マージキュー内",
         "approvalRequired": "承認が必要",
         "changesRequested": "変更がリクエストされました",
-        "resolveConflicts": "競合を解決",
         "checksFailed": "チェックに失敗しました",
         "checksPending": "チェック待ち",
         "mergeBlocked": "マージがブロックされています",

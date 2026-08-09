@@ -1521,7 +1521,6 @@
         "inMergeQueue": "W kolejce scalania",
         "approvalRequired": "Wymagane zatwierdzenie",
         "changesRequested": "Zażądano zmian",
-        "resolveConflicts": "Rozwiąż konflikty",
         "checksFailed": "Kontrole nie powiodły się",
         "checksPending": "Kontrole oczekują",
         "mergeBlocked": "Scalanie zablokowane",

@@ -76,7 +76,7 @@ const GitHubIssueComposer: React.FC<GitHubIssueComposerProps> = ({
     <section
       data-testid="github-issue-inline-composer"
       aria-label={t("git.issues.composer.addComment")}
-      className="flex flex-col gap-2"
+      className="flex flex-col gap-1.5"
     >
       {interaction.canManageStatus ? (
         <div
@@ -92,7 +92,7 @@ const GitHubIssueComposer: React.FC<GitHubIssueComposerProps> = ({
 
       <ComposerSurface
         variant="default"
-        className="overflow-visible"
+        className="overflow-visible !pt-1.5"
         data-testid="github-issue-comment-input"
         leadingActions={
           interaction.viewer ? (

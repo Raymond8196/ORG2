@@ -447,14 +447,14 @@ export const PrConversationTab: React.FC<PrConversationTabProps> = ({
           <section
             data-testid="pr-comment-composer"
             aria-label={t("git.pr.commentPlaceholder", "Leave a comment…")}
-            className="flex flex-col gap-2"
+            className="flex flex-col gap-1.5"
           >
             {levelActions}
 
             <ComposerSurface
               ref={dropTargetRef}
               variant="default"
-              className={`overflow-visible ${
+              className={`overflow-visible !pt-1.5 ${
                 isDragOver ? "!ring-2 !ring-primary-6" : ""
               }`.trim()}
               data-testid="pr-comment-drop-target"

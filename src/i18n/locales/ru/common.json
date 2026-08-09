@@ -1521,7 +1521,6 @@
         "inMergeQueue": "В очереди слияния",
         "approvalRequired": "Требуется одобрение",
         "changesRequested": "Запрошены изменения",
-        "resolveConflicts": "Разрешить конфликты",
         "checksFailed": "Проверки не пройдены",
         "checksPending": "Проверки ожидаются",
         "mergeBlocked": "Слияние заблокировано",

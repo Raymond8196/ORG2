@@ -1514,7 +1514,6 @@
         "inMergeQueue": "병합 대기열에 있음",
         "approvalRequired": "승인 필요",
         "changesRequested": "변경 요청됨",
-        "resolveConflicts": "충돌 해결",
         "checksFailed": "검사 실패",
         "checksPending": "검사 대기 중",
         "mergeBlocked": "병합 차단됨",

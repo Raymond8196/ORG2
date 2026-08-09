@@ -1514,7 +1514,6 @@
         "inMergeQueue": "Trong hàng đợi hợp nhất",
         "approvalRequired": "Cần phê duyệt",
         "changesRequested": "Đã yêu cầu thay đổi",
-        "resolveConflicts": "Giải quyết xung đột",
         "checksFailed": "Kiểm tra thất bại",
         "checksPending": "Đang chờ kiểm tra",
         "mergeBlocked": "Hợp nhất bị chặn",

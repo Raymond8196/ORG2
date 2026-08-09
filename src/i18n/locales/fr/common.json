@@ -1515,7 +1515,6 @@
         "inMergeQueue": "Dans la file de fusion",
         "approvalRequired": "Approbation requise",
         "changesRequested": "Modifications demandées",
-        "resolveConflicts": "Résoudre les conflits",
         "checksFailed": "Vérifications échouées",
         "checksPending": "Vérifications en attente",
         "mergeBlocked": "Fusion bloquée",

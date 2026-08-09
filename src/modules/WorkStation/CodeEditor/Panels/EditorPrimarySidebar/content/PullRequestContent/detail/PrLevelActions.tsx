@@ -4,6 +4,7 @@ import {
   GitMerge,
   GitPullRequestClosed,
   UserRound,
+  XCircle,
 } from "lucide-react";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -63,7 +64,6 @@ const ACTION_LABEL_KEYS: Record<string, string> = {
   "In merge queue": "inMergeQueue",
   "Approval required": "approvalRequired",
   "Changes requested": "changesRequested",
-  "Resolve conflicts": "resolveConflicts",
   "Checks failed": "checksFailed",
   "Checks pending": "checksPending",
   "Merge blocked": "mergeBlocked",
@@ -262,34 +262,54 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
     >
       <Button
         htmlType="button"
-        variant={presentation.status === "merged" ? "merged" : "success"}
+        variant={
+          presentation.hasConflicts
+            ? "danger"
+            : presentation.status === "merged"
+              ? "merged"
+              : "success"
+        }
+        appearance={presentation.hasConflicts ? "outline" : undefined}
         size="small"
         shape="round"
-        icon={<GitMerge size={14} aria-hidden />}
+        icon={
+          presentation.hasConflicts ? (
+            <XCircle size={14} aria-hidden />
+          ) : (
+            <GitMerge size={14} aria-hidden />
+          )
+        }
         loading={pending}
         disabled={primaryDisabled}
+        className={primaryDisabled ? "!opacity-100" : undefined}
         title={localizedActionTooltip(t, presentation.tooltip)}
         onClick={runPrimaryMergeAction}
         dropdownMenu={
-          <Dropdown
-            droplist={mergePanel}
-            trigger="click"
-            popupVisible={mergeMenuVisible}
-            onVisibleChange={setMergeMenuVisible}
-            getPopupContainer={() => document.body}
-            avoidViewportOverflow
-          >
-            <div />
-          </Dropdown>
+          presentation.hasConflicts ? undefined : (
+            <Dropdown
+              droplist={mergePanel}
+              trigger="click"
+              popupVisible={mergeMenuVisible}
+              onVisibleChange={setMergeMenuVisible}
+              getPopupContainer={() => document.body}
+              avoidViewportOverflow
+            >
+              <div />
+            </Dropdown>
+          )
         }
-        onDropdownClick={(event) => {
-          event.stopPropagation();
-          setMergeMenuVisible((visible) => !visible);
-        }}
+        onDropdownClick={
+          presentation.hasConflicts
+            ? undefined
+            : (event) => {
+                event.stopPropagation();
+                setMergeMenuVisible((visible) => !visible);
+              }
+        }
         dropdownVisible={mergeMenuVisible}
         splitWidthMode="hug"
         splitDropdownWidth={28}
-        aria-expanded={mergeMenuVisible}
+        aria-expanded={presentation.hasConflicts ? undefined : mergeMenuVisible}
         data-testid="pr-merge-action"
       >
         {localizedActionLabel(
@@ -363,7 +383,7 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
       {canChangeState ? (
         <Button
           htmlType="button"
-          variant={nextState === "closed" ? "danger" : "secondary"}
+          variant="secondary"
           appearance="outline"
           size="small"
           shape="round"
