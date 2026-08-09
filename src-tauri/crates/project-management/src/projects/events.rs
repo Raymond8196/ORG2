@@ -42,9 +42,8 @@ pub struct WorkItemTerminalEvent {
     pub status: String,
 }
 
-static WORK_ITEM_TERMINAL_NOTIFIER: OnceLock<
-    Box<dyn Fn(WorkItemTerminalEvent) + Send + Sync>,
-> = OnceLock::new();
+static WORK_ITEM_TERMINAL_NOTIFIER: OnceLock<Box<dyn Fn(WorkItemTerminalEvent) + Send + Sync>> =
+    OnceLock::new();
 
 /// App-level registration for terminal-transition observers (the
 /// child-done parent wake). First call wins.
