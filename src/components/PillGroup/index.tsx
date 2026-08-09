@@ -28,6 +28,8 @@ import SelectorPill from "@src/components/SelectorPill";
 import type { TooltipProps } from "@src/components/Tooltip";
 
 const HOVER_LEAVE_DELAY_MS = 200;
+const GHOST_PILL_HOVER_SURFACE_CLASS = "enabled:hover:!bg-fill-3";
+const GHOST_PILL_ACTIVE_SURFACE_CLASS = "!bg-fill-3";
 
 export interface PillGroupSegmentButtonProps {
   active: boolean;
@@ -65,6 +67,8 @@ export interface PillGroupSegment {
   tooltipFramedWide?: boolean;
   /** Tooltip placement relative to the segment. Defaults to `top`. */
   tooltipPosition?: TooltipProps["position"];
+  /** Delay before showing the segment tooltip. */
+  tooltipMouseEnterDelay?: number;
   /** ARIA label for the underlying button */
   ariaLabel?: string;
   /** Whether this segment's dropdown/selector is open. Forces pill styling. */
@@ -114,6 +118,7 @@ interface PillGroupSegmentRowProps {
   hoveredIndex: number | null;
   segmentClassName?: string;
   variant: PillGroupVariant;
+  strongSurface: boolean;
   onEnter: (index: number) => void;
   onLeave: (index: number) => void;
 }
@@ -126,6 +131,7 @@ const PillGroupSegmentRow: React.FC<PillGroupSegmentRowProps> = ({
   hoveredIndex,
   segmentClassName,
   variant,
+  strongSurface,
   onEnter,
   onLeave,
 }) => {
@@ -135,6 +141,14 @@ const PillGroupSegmentRow: React.FC<PillGroupSegmentRowProps> = ({
   const isHovered = hoveredIndex === index;
   const isActive = !!segment.active;
   const isPillStyled = isHovered || isActive;
+  const usesFill3Surface = strongSurface || variant === "ghost";
+  const resolvedSegmentClassName = `${segmentClassName ?? ""} ${
+    usesFill3Surface
+      ? isActive
+        ? GHOST_PILL_ACTIVE_SURFACE_CLASS
+        : GHOST_PILL_HOVER_SURFACE_CLASS
+      : ""
+  }`.trim();
 
   let previousVisibleIndex = -1;
   for (let i = index - 1; i >= 0; i--) {
@@ -163,7 +177,7 @@ const PillGroupSegmentRow: React.FC<PillGroupSegmentRowProps> = ({
 
   const buttonProps: PillGroupSegmentButtonProps = {
     active: isActive,
-    segmentClassName: segmentClassName ?? "",
+    segmentClassName: resolvedSegmentClassName,
     onMouseEnter: () => onEnter(index),
     onMouseLeave: () => onLeave(index),
     onFocus: () => onEnter(index),
@@ -189,9 +203,10 @@ const PillGroupSegmentRow: React.FC<PillGroupSegmentRowProps> = ({
       tooltipFramed={segment.tooltipFramed}
       tooltipFramedWide={segment.tooltipFramedWide}
       tooltipPosition={segment.tooltipPosition ?? undefined}
+      tooltipMouseEnterDelay={segment.tooltipMouseEnterDelay}
       ariaLabel={segment.ariaLabel}
       dataTestId={segment.dataTestId}
-      className={segmentClassName ?? ""}
+      className={resolvedSegmentClassName}
       labelStyle={
         segment.maxLabelWidth ? { maxWidth: segment.maxLabelWidth } : undefined
       }
@@ -241,10 +256,18 @@ export interface PillGroupProps {
    *   SessionCreator repo/branch/location row sitting under the composer.
    */
   variant?: PillGroupVariant;
+  /** Use a higher-contrast hover/open surface for prominent selector rows. */
+  strongSurface?: boolean;
 }
 
 const PillGroup: React.FC<PillGroupProps> = memo(
-  ({ segments, className, segmentClassName, variant = "default" }) => {
+  ({
+    segments,
+    className,
+    segmentClassName,
+    variant = "default",
+    strongSurface = false,
+  }) => {
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
     const [groupHovered, setGroupHovered] = useState(false);
     const leaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -305,6 +328,7 @@ const PillGroup: React.FC<PillGroupProps> = memo(
             hoveredIndex={hoveredIndex}
             segmentClassName={segmentClassName}
             variant={variant}
+            strongSurface={strongSurface}
             onEnter={handleEnter}
             onLeave={handleLeave}
           />

@@ -191,6 +191,8 @@ export interface SelectorPillProps {
   tooltipFramedWide?: boolean;
   /** Tooltip position — defaults to "top" */
   tooltipPosition?: TooltipPosition;
+  /** Delay before showing the tooltip. Defaults to 400 ms. */
+  tooltipMouseEnterDelay?: number;
   /** Whether the pill is in an open/active state */
   active?: boolean;
   /** Render label in danger color to signal a missing required selection */
@@ -233,6 +235,7 @@ export const SelectorPill = forwardRef<HTMLButtonElement, SelectorPillProps>(
       tooltipFramed = false,
       tooltipFramedWide = false,
       tooltipPosition = "top",
+      tooltipMouseEnterDelay = 400,
       active = false,
       danger = false,
       size = "sm",
@@ -333,7 +336,7 @@ export const SelectorPill = forwardRef<HTMLButtonElement, SelectorPillProps>(
         <Tooltip
           content={tooltip}
           position={tooltipPosition}
-          mouseEnterDelay={400}
+          mouseEnterDelay={tooltipMouseEnterDelay}
           popupVisible={tooltipVisible}
           onVisibleChange={handleTooltipVisibleChange}
           framedPanel={tooltipFramed}

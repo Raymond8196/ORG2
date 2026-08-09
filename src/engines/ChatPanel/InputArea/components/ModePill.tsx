@@ -260,7 +260,7 @@ const ModePill: React.FC<ModePillProps> = memo(
               <X size={14} strokeWidth={1.75} />
             ) : undefined
           }
-          className={`h-[28px] text-[13px] ${toneClassName}`}
+          className={toneClassName}
           size="sm"
         />
 

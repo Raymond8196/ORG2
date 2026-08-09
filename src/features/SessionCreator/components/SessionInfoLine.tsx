@@ -620,6 +620,7 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
         segments={segments}
         className="flex-wrap"
         variant={pillVariant}
+        strongSurface
       />
 
       {/* Repo Selector */}
