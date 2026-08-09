@@ -258,7 +258,6 @@ describe("AssignedWorkItemDetail navigation actions", () => {
     Reflect.deleteProperty(actEnvironment, "IS_REACT_ACT_ENVIRONMENT");
   });
 
-
   it("shows separate browser and Work Item actions for GitHub-backed items", async () => {
     const onNavigate = vi.fn();
     const githubItem: AssignedWorkItem = {

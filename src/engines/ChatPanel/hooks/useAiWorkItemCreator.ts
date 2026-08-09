@@ -13,8 +13,8 @@ import {
   allocateCloudAwareStandaloneWorkItemId,
   allocateCloudAwareWorkItemId,
 } from "@src/features/Org2Cloud/cloudShortId";
-import i18n from "@src/i18n";
 import { useWorkStationTabs } from "@src/hooks/workStation";
+import i18n from "@src/i18n";
 import type { AgentDefinition } from "@src/modules/MainApp/AgentOrgs/types";
 import { openSessionInNewChatTabAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
 import { SESSION_TARGET_KIND } from "@src/store/session";

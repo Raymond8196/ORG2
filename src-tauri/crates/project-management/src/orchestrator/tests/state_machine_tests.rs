@@ -370,3 +370,33 @@ fn complete_linked_session_falls_back_to_pending() {
     assert_eq!(fm.linked_sessions[0].session_id, "real-sess-id");
     assert_eq!(fm.linked_sessions[0].status, LinkedSessionStatus::Completed);
 }
+
+#[test]
+fn complete_linked_session_prefers_latest_running_duplicate() {
+    let mut fm = make_frontmatter();
+    add_linked_session(
+        &mut fm,
+        "sess-1",
+        AgentRole::Coding,
+        LinkedSessionType::Native,
+    );
+    fm.linked_sessions[0].status = LinkedSessionStatus::Completed;
+    add_linked_session(
+        &mut fm,
+        "sess-1",
+        AgentRole::Coding,
+        LinkedSessionType::Native,
+    );
+
+    complete_linked_session(
+        &mut fm,
+        "sess-1",
+        LinkedSessionStatus::Completed,
+        0.25,
+        750,
+    );
+
+    assert_eq!(fm.linked_sessions[0].total_tokens, 0);
+    assert_eq!(fm.linked_sessions[1].status, LinkedSessionStatus::Completed);
+    assert_eq!(fm.linked_sessions[1].total_tokens, 750);
+}

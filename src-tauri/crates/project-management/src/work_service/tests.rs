@@ -282,6 +282,27 @@ fn claim_with_expected_revision_succeeds_in_one_transaction() {
         Some("session-1")
     );
 
+    let reclaimed = claim_project_work_item(
+        "demo",
+        "AAA-0001",
+        "session-1",
+        Some("custom"),
+        crate::projects::types::WorkItemExecutionLockReason::FollowUp,
+        None,
+        None,
+    )
+    .expect("the active session may resume its own claim");
+    assert_eq!(
+        reclaimed
+            .frontmatter
+            .linked_sessions
+            .iter()
+            .filter(|linked| linked.session_id == "session-1")
+            .count(),
+        1,
+        "resuming one durable session must not append a duplicate run"
+    );
+
     let contended = claim_project_work_item(
         "demo",
         "AAA-0001",

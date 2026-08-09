@@ -64,31 +64,49 @@ pub(crate) fn apply_execution_claim(
 
         let now = chrono::Utc::now().to_rfc3339();
         let role = parse_agent_role(agent_role);
-        match frontmatter.linked_sessions.iter_mut().rev().find(|linked| {
-            linked.session_id == PENDING_SESSION_PLACEHOLDER
-                && linked.status == LinkedSessionStatus::Running
-        }) {
-            Some(pending) => {
-                pending.session_id = session_id.to_string();
-                pending.agent_role = role.clone();
-                pending.session_type = LinkedSessionType::Native;
-                pending.started_at = now.clone();
+        match frontmatter
+            .linked_sessions
+            .iter_mut()
+            .rev()
+            .find(|linked| linked.session_id == session_id)
+        {
+            Some(existing) => {
+                // A barrier wake resumes the same durable Session. Reuse its
+                // timeline row instead of appending a duplicate with the same
+                // ID; terminal mirroring keys by Session ID.
+                existing.agent_role = role.clone();
+                existing.session_type = LinkedSessionType::Native;
+                existing.status = LinkedSessionStatus::Running;
+                existing.completed_at = None;
             }
             None => {
-                frontmatter.linked_sessions.push(LinkedSession {
-                    session_id: session_id.to_string(),
-                    session_type: LinkedSessionType::Native,
-                    agent_role: role.clone(),
-                    started_at: now.clone(),
-                    completed_at: None,
-                    status: LinkedSessionStatus::Running,
-                    cost_usd: 0.0,
-                    total_tokens: 0,
-                    parent_session_id: None,
-                    sub_agent_name: None,
-                    sub_agent_instance: None,
-                    result_preview: None,
-                });
+                match frontmatter.linked_sessions.iter_mut().rev().find(|linked| {
+                    linked.session_id == PENDING_SESSION_PLACEHOLDER
+                        && linked.status == LinkedSessionStatus::Running
+                }) {
+                    Some(pending) => {
+                        pending.session_id = session_id.to_string();
+                        pending.agent_role = role.clone();
+                        pending.session_type = LinkedSessionType::Native;
+                        pending.started_at = now.clone();
+                    }
+                    None => {
+                        frontmatter.linked_sessions.push(LinkedSession {
+                            session_id: session_id.to_string(),
+                            session_type: LinkedSessionType::Native,
+                            agent_role: role.clone(),
+                            started_at: now.clone(),
+                            completed_at: None,
+                            status: LinkedSessionStatus::Running,
+                            cost_usd: 0.0,
+                            total_tokens: 0,
+                            parent_session_id: None,
+                            sub_agent_name: None,
+                            sub_agent_instance: None,
+                            result_preview: None,
+                        });
+                    }
+                }
             }
         }
 

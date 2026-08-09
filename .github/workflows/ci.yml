@@ -73,6 +73,9 @@ jobs:
           workspaces: "./src-tauri -> target"
           shared-key: "ci-macos"
 
+      - name: Stage org2-pm sidecar
+        run: node scripts/tauri/prepare-sidecars.cjs --profile debug
+
       # Clippy runs the full compiler front-end, so it subsumes `cargo check`.
       # Check every target and reject new warnings now that the workspace
       # baseline is clean.

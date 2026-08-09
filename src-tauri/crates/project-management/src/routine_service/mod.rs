@@ -614,7 +614,7 @@ fn reconcile_running_run(run_id: &str, scope_id: &str) -> Result<bool, String> {
         return Ok(true);
     }
 
-    let outcome = if states.iter().any(|state| *state == Some(Failed)) {
+    let outcome = if states.contains(&Some(Failed)) {
         "failed"
     } else if states.iter().all(|state| *state == Some(Completed)) {
         "succeeded"

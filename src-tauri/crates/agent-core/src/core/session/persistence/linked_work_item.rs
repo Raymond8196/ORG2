@@ -107,6 +107,31 @@ fn apply_linked_session_upsert(
         }
         None => frontmatter.linked_sessions.push(linked),
     }
+
+    // Older claim paths could append the same durable Session more than once
+    // when a barrier wake resumed it. Keep the first canonical row and drop
+    // stale duplicates whenever the authoritative Session record is mirrored.
+    let mut found = false;
+    frontmatter.linked_sessions.retain(|candidate| {
+        if candidate.session_id != session.session_id {
+            return true;
+        }
+        if found {
+            return false;
+        }
+        found = true;
+        true
+    });
+
+    if linked_session_status(&session.status) != LinkedSessionStatus::Running
+        && frontmatter
+            .execution_lock
+            .as_ref()
+            .and_then(|lock| lock.active_session_id.as_deref())
+            == Some(session.session_id.as_str())
+    {
+        frontmatter.execution_lock = None;
+    }
     frontmatter.updated_at = chrono::Utc::now().to_rfc3339();
 }
 
@@ -195,5 +220,63 @@ pub(crate) fn mirror_session_status_to_linked_work_item(session_id: &str) {
             error = %error,
             "[linked-session-mirror] failed to mirror session status"
         ),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use project_management::projects::types::{
+        WorkItemExecutionLock, WorkItemExecutionLockReason, WorkItemFrontmatter,
+    };
+
+    use super::*;
+
+    fn work_item() -> WorkItemFrontmatter {
+        serde_json::from_value(serde_json::json!({
+            "id": "WI-0001",
+            "short_id": "WI-0001",
+            "title": "Linked session mirror",
+            "created_at": "2026-01-01T00:00:00Z",
+            "updated_at": "2026-01-01T00:00:00Z"
+        }))
+        .expect("minimal work item")
+    }
+
+    fn session(status: &str) -> UnifiedSessionRecord {
+        UnifiedSessionRecord {
+            session_id: "session-1".to_string(),
+            name: "Run".to_string(),
+            status: status.to_string(),
+            created_at: "2026-01-01T00:00:00Z".to_string(),
+            updated_at: "2026-01-01T00:01:00Z".to_string(),
+            session_type: super::super::session_type::GENERIC.to_string(),
+            ..UnifiedSessionRecord::default()
+        }
+    }
+
+    #[test]
+    fn terminal_mirror_deduplicates_session_and_releases_its_lock() {
+        let mut frontmatter = work_item();
+        let running = session("running");
+        let linked = linked_session_from_record(&running, Some("custom"));
+        frontmatter.linked_sessions = vec![linked.clone(), linked];
+        frontmatter.execution_lock = Some(WorkItemExecutionLock {
+            active_session_id: Some(running.session_id.clone()),
+            active_agent_org_run_id: None,
+            execution_target: None,
+            locked_at: Some(running.created_at.clone()),
+            lock_reason: Some(WorkItemExecutionLockReason::FollowUp),
+            locked_by_member_id: None,
+        });
+
+        let completed = session("completed");
+        apply_linked_session_upsert(&mut frontmatter, &completed, Some("custom"));
+
+        assert_eq!(frontmatter.linked_sessions.len(), 1);
+        assert_eq!(
+            frontmatter.linked_sessions[0].status,
+            LinkedSessionStatus::Completed
+        );
+        assert!(frontmatter.execution_lock.is_none());
     }
 }

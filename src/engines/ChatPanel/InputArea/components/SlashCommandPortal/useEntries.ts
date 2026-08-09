@@ -238,5 +238,12 @@ export function useEntries({
     }
 
     return { entries: result, totalFlat: idx };
-  }, [items, searchQuery, showActionFlyouts, hasImageUpload, showModeRows]);
+  }, [
+    items,
+    searchQuery,
+    showActionFlyouts,
+    hasImageUpload,
+    showModeRows,
+    includeProjectMode,
+  ]);
 }

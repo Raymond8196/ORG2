@@ -827,10 +827,9 @@ fn build_frontmatter(short_id: &str, request: &CreateWorkItemRequest) -> WorkIte
     }
 }
 
-/// Audit a creation. Residual: the audit row commits in its own small
-/// transaction right after the insert (the crud write path doesn't take
-/// in-tx hooks yet); the crash window between the two is the documented
-/// gap that closes when crud converges onto the serviced choke point.
+// Audit residual: the audit row commits in its own small transaction right
+// after the insert (the crud write path doesn't take in-tx hooks yet); the
+// crash window closes when crud converges onto the serviced choke point.
 
 /// The `workitems` PK is a single global column, so a same-id row in any
 /// other scope would be silently reassigned by the upsert. Creation must
