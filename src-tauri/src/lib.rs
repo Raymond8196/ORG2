@@ -1195,6 +1195,9 @@ pub fn run() {
                 app_handle
                     .state::<::terminal::pty_commands::pty::PtyState>()
                     .shutdown_kill_all();
+                // Terminate benchmark evaluator subprocesses still running so
+                // they don't outlive the app as orphans.
+                benchmark::terminate_running_evaluators_sync();
             }
             _ => {}
         }
