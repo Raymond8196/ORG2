@@ -477,7 +477,9 @@ const SessionCreatorChatPanelContent: React.FC<
           : undefined,
         requestModelOpen: isHumanMode ? false : requestModelOpen,
         onModelOpenHandled: () => setRequestModelOpen(false),
-        shellClassName: "session-creator-chat-panel-fullscreen-input-shell",
+        shellClassName: `session-creator-chat-panel-fullscreen-input-shell ${
+          layout === "launchpad" ? "composer-breathing" : ""
+        }`.trim(),
         initialContent: initialRestoreText || initialContent || undefined,
         autoFocus: !isHumanMode,
         showSlashMenu,

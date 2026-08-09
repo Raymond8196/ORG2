@@ -36,6 +36,7 @@ describe("CreateComposerScaffold", () => {
     expect(markup).toContain(
       "session-creator-chat-panel-fullscreen-input-shell"
     );
+    expect(markup).toContain("composer-breathing");
     expect(markup).toContain("Title field");
     expect(markup).toContain("Description field");
     expect(markup).toContain("Property pills");

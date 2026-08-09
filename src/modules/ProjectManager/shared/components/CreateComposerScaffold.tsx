@@ -121,7 +121,7 @@ export function ManualCreateComposer({
           {pinnedActionsContent}
         </div>
         <div className="session-creator-chat-panel-fullscreen-composer relative w-full">
-          <ComposerShell className="session-creator-chat-panel-fullscreen-input-shell relative z-10 !pt-1.5">
+          <ComposerShell className="session-creator-chat-panel-fullscreen-input-shell composer-breathing relative z-10 !pt-1.5">
             {headerContent}
             <div className="min-h-0 px-1">{editorContent}</div>
             <ComposerBar

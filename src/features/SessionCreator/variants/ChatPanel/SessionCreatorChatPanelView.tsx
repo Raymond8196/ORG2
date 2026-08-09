@@ -175,7 +175,7 @@ const SessionCreatorChatPanelView: React.FC<
     <div
       className={`session-creator-chat-panel-fullscreen-repo-row px-1 ${
         isLaunchpadLayout
-          ? "session-creator-chat-panel-fullscreen-repo-row-above pb-3 pt-2"
+          ? "session-creator-chat-panel-fullscreen-repo-row-above pb-2.5 pt-1.5"
           : "pb-2 pt-3"
       }`}
     >
