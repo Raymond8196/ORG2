@@ -142,7 +142,10 @@ pub fn convert_definition(
                 .to_string(),
         );
     }
-    if !matches!(definition.run_template.workspace, RoutineWorkspaceTarget::None) {
+    if !matches!(
+        definition.run_template.workspace,
+        RoutineWorkspaceTarget::None
+    ) {
         warnings.push(
             "workspace/worktree target dropped from the portable spec; re-express as an execution binding"
                 .to_string(),
@@ -161,9 +164,9 @@ pub fn convert_definition(
     }
 
     let activation = match &definition.trigger {
-        RoutineTrigger::Cron { cron } => Activation::Schedule {
+        RoutineTrigger::Cron { cron, timezone } => Activation::Schedule {
             cron: cron.clone(),
-            timezone: "UTC".to_string(),
+            timezone: timezone.clone(),
             policies,
         },
         RoutineTrigger::OneTime { at } => {
