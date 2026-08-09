@@ -61,23 +61,12 @@ pub struct UpdateMetadata {
     raw_json: serde_json::Value,
 }
 
-fn updater_is_active(config: Option<&serde_json::Value>) -> bool {
-    config
-        .and_then(|value| value.get("active"))
-        .and_then(serde_json::Value::as_bool)
-        .unwrap_or(true)
-}
-
 #[tauri::command]
 pub async fn check_app_update(
     webview: Webview,
     channel: UpdateChannel,
     timeout_ms: Option<u64>,
 ) -> Result<Option<UpdateMetadata>, String> {
-    if !updater_is_active(webview.config().plugins.0.get("updater")) {
-        return Ok(None);
-    }
-
     let endpoint = Url::parse(channel.manifest_url()).map_err(|err| err.to_string())?;
 
     let mut builder = webview
@@ -102,24 +91,4 @@ pub async fn check_app_update(
         raw_json: update.raw_json.clone(),
         rid: webview.resources_table().add(update),
     }))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::updater_is_active;
-
-    #[test]
-    fn explicit_inactive_config_disables_channel_checks() {
-        let config = serde_json::json!({ "active": false });
-        assert!(!updater_is_active(Some(&config)));
-    }
-
-    #[test]
-    fn missing_active_flag_keeps_release_updates_enabled() {
-        let config = serde_json::json!({
-            "endpoints": ["https://example.com/latest.json"]
-        });
-        assert!(updater_is_active(Some(&config)));
-        assert!(updater_is_active(None));
-    }
 }

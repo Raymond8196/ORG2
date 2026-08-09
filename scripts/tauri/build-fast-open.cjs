@@ -119,10 +119,6 @@ const appPath = path.join(targetDir, "dev-build/bundle/macos/ORG2.app");
 const binaryPath = path.join(targetDir, "dev-build/org2");
 
 const configOverride = JSON.stringify({
-  plugins: {
-    // Keep the explicitly opened branch build pinned to its local artifact.
-    updater: { active: false },
-  },
   bundle: {
     createUpdaterArtifacts: false,
   },
