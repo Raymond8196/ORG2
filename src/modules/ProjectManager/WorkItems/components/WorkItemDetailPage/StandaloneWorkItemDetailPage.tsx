@@ -20,6 +20,7 @@ const EMPTY_RELATION_MAPS = {
 
 export function StandaloneWorkItemDetailPage({
   workItemId,
+  orgId,
   onClose,
   onOpenChatSession,
   pendingUpdates,
@@ -36,12 +37,15 @@ export function StandaloneWorkItemDetailPage({
   const loadWorkItem = useCallback(async () => {
     setLoading(true);
     try {
-      const item = await projectApi.readStandaloneWorkItem(workItemId);
+      const item = await projectApi.readStandaloneWorkItem(
+        workItemId,
+        orgId ? { orgId } : undefined
+      );
       setWorkItem(workItemDataToUI(item, EMPTY_RELATION_MAPS));
     } finally {
       setLoading(false);
     }
-  }, [workItemId]);
+  }, [orgId, workItemId]);
 
   useEffect(() => {
     void loadWorkItem();
@@ -76,11 +80,12 @@ export function StandaloneWorkItemDetailPage({
       // silently dropped by a client-side merge + whole-row write.
       await projectApi.updateStandaloneWorkItemPartial(
         workItemId,
-        standaloneWorkItemUpdatesToPartial(updates, updates.spec)
+        standaloneWorkItemUpdatesToPartial(updates, updates.spec),
+        orgId ? { orgId } : undefined
       );
       await loadWorkItem();
     },
-    [loadWorkItem, onWorkItemNameUpdated, workItem, workItemId]
+    [loadWorkItem, onWorkItemNameUpdated, orgId, workItem, workItemId]
   );
 
   if (!workItem) {
@@ -110,6 +115,7 @@ export function StandaloneWorkItemDetailPage({
       showTime
       repoPath={activeWorkspaceRootPath || null}
       projectSlug={null}
+      orgId={orgId}
       shortId={workItemId}
       onRefreshWorkItem={loadWorkItem}
       onOpenSession={onOpenChatSession}
