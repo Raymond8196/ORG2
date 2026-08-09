@@ -1,14 +1,18 @@
 import {
   CheckCircle2,
+  CircleDashed,
   CircleDot,
   CircleSlash,
   Copy,
   GitMerge,
   GitPullRequestDraft,
+  LoaderCircle,
+  XCircle,
 } from "lucide-react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
+import type { PullRequestCiStatus } from "@src/api/tauri/github";
 import type { SelectOption } from "@src/components/Select";
 import type { SettingsTableSelectFilter } from "@src/components/SettingsTable";
 import {
@@ -123,6 +127,49 @@ interface GitHubWorkItemsViewProps {
     title: string,
     body: string
   ) => void;
+}
+
+function PrCiStatusCell({
+  prNumber,
+  status,
+  label,
+}: {
+  prNumber: number;
+  status: PullRequestCiStatus;
+  label: string;
+}): React.ReactNode {
+  const icon =
+    status === "success" ? (
+      <CheckCircle2 size={14} strokeWidth={1.8} />
+    ) : status === "failure" ? (
+      <XCircle size={14} strokeWidth={1.8} />
+    ) : status === "pending" ? (
+      <LoaderCircle size={14} strokeWidth={1.8} className="animate-spin" />
+    ) : status === "none" ? (
+      <CircleSlash size={14} strokeWidth={1.8} />
+    ) : (
+      <CircleDashed size={14} strokeWidth={1.8} />
+    );
+  const colorClass =
+    status === "success"
+      ? "text-success-6"
+      : status === "failure"
+        ? "text-danger-6"
+        : status === "pending"
+          ? "text-warning-6"
+          : "text-text-3";
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap ${colorClass}`}
+      title={label}
+      aria-label={label}
+      data-testid={`github-pr-ci-${prNumber}`}
+    >
+      {icon}
+      <span>{label}</span>
+    </span>
+  );
 }
 
 export function GitHubWorkItemsView({
@@ -267,6 +314,16 @@ export function GitHubWorkItemsView({
             ) : (
               <CheckCircle2 size={14} strokeWidth={1.8} />
             );
+          const prCiLabel =
+            item.rawPr.ci_status === "success"
+              ? t("common:git.pr.checks.passedShort")
+              : item.rawPr.ci_status === "failure"
+                ? t("common:git.pr.checks.failedShort")
+                : item.rawPr.ci_status === "pending"
+                  ? t("common:git.pr.checks.runningShort")
+                  : item.rawPr.ci_status === "none"
+                    ? t("common:git.pr.checks.noneShort")
+                    : t("common:git.pr.checks.unavailableShort");
           return {
             key: `${item.kind}-${item.repo}-${item.id}`,
             id: `#${item.id}`,
@@ -321,6 +378,13 @@ export function GitHubWorkItemsView({
               readonlyReason,
               dataTestId: `github-pr-status-${item.id}`,
             },
+            ciStatus: (
+              <PrCiStatusCell
+                prNumber={item.id}
+                status={item.rawPr.ci_status}
+                label={prCiLabel}
+              />
+            ),
             updated,
             actions: (
               <ManagedPrActionsCell
@@ -552,7 +616,7 @@ export function GitHubWorkItemsView({
             onCreateIssue={onCreateIssue}
             onCancel={() => onSetCreateFormOpen(false)}
           />
-          <div className="bg-bg-0 flex min-w-0 flex-1 flex-col">
+          <div className="flex min-w-0 flex-1 flex-col bg-chat-pane">
             <WorkManagementTable
               rows={settingsRows}
               searchBar={{
@@ -604,6 +668,7 @@ export function GitHubWorkItemsView({
               sort={sort}
               onSortChange={onSortChange}
               maxWidth="wide"
+              surfaceVariant="transparent"
               testId={`github-${scope}-table`}
               pagination={
                 filteredItems.length > 0

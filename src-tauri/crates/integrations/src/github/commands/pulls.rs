@@ -3,7 +3,7 @@
 
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use tauri::command;
 
 use super::super::client::GitHubClient;
@@ -52,6 +52,23 @@ query PullRequestMergeAutomation($id: ID!) {
       mergeQueueEntry { id }
       mergeStateStatus
       reviewDecision
+    }
+  }
+}
+"#;
+
+const PULL_REQUEST_CI_STATUS_QUERY: &str = r#"
+query PullRequestCiStatuses($ids: [ID!]!) {
+  nodes(ids: $ids) {
+    ... on PullRequest {
+      number
+      commits(last: 1) {
+        nodes {
+          commit {
+            statusCheckRollup { state }
+          }
+        }
+      }
     }
   }
 }
@@ -196,6 +213,16 @@ pub async fn github_find_pull_request(
 }
 
 /// Response item for a single PR in `github_list_prs`.
+#[derive(Debug, Serialize, PartialEq, Eq, Clone, Copy)]
+#[serde(rename_all = "lowercase")]
+pub enum PullRequestCiStatus {
+    Success,
+    Failure,
+    Pending,
+    None,
+    Unavailable,
+}
+
 #[derive(Debug, Serialize)]
 pub struct OpenPRItem {
     pub number: u64,
@@ -210,6 +237,7 @@ pub struct OpenPRItem {
     pub head_branch: String,
     pub base_branch: String,
     pub draft: bool,
+    pub ci_status: PullRequestCiStatus,
     pub created_at: String,
     pub updated_at: String,
 }
@@ -238,8 +266,71 @@ fn parse_open_pr_item(item: &Value) -> OpenPRItem {
         head_branch: item["head"]["ref"].as_str().unwrap_or("").to_string(),
         base_branch: item["base"]["ref"].as_str().unwrap_or("").to_string(),
         draft: item["draft"].as_bool().unwrap_or(false),
+        ci_status: PullRequestCiStatus::Unavailable,
         created_at: item["created_at"].as_str().unwrap_or("").to_string(),
         updated_at: item["updated_at"].as_str().unwrap_or("").to_string(),
+    }
+}
+
+fn parse_pull_request_ci_status(node: &Value) -> PullRequestCiStatus {
+    let rollup = &node["commits"]["nodes"][0]["commit"]["statusCheckRollup"];
+    if rollup.is_null() {
+        return PullRequestCiStatus::None;
+    }
+    match rollup["state"].as_str() {
+        Some("SUCCESS") => PullRequestCiStatus::Success,
+        Some("FAILURE" | "ERROR") => PullRequestCiStatus::Failure,
+        Some("PENDING" | "EXPECTED") => PullRequestCiStatus::Pending,
+        _ => PullRequestCiStatus::Unavailable,
+    }
+}
+
+fn apply_pull_request_ci_statuses(items: &mut [OpenPRItem], response: &Value) {
+    let statuses = response["data"]["nodes"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .filter_map(|node| {
+            node["number"]
+                .as_u64()
+                .map(|number| (number, parse_pull_request_ci_status(node)))
+        })
+        .collect::<HashMap<_, _>>();
+    for item in items {
+        if let Some(status) = statuses.get(&item.number) {
+            item.ci_status = *status;
+        }
+    }
+}
+
+async fn enrich_pull_request_ci_statuses(
+    client: &GitHubClient,
+    repo_full_name: &str,
+    source_items: &[Value],
+    items: &mut [OpenPRItem],
+) {
+    let ids = source_items
+        .iter()
+        .filter_map(|item| item["node_id"].as_str())
+        .collect::<Vec<_>>();
+    if ids.is_empty() {
+        return;
+    }
+    match client
+        .graphql(PULL_REQUEST_CI_STATUS_QUERY, json!({ "ids": ids }))
+        .await
+    {
+        Ok(response) => {
+            if let Some(error) = graphql_error(&response) {
+                log::warn!(
+                    "[GitHub][Cmd] PR CI GraphQL query returned errors for {repo_full_name}: {error}"
+                );
+            }
+            apply_pull_request_ci_statuses(items, &response);
+        }
+        Err(error) => {
+            log::warn!("[GitHub][Cmd] PR CI enrichment failed for {repo_full_name}: {error}");
+        }
     }
 }
 
@@ -738,6 +829,7 @@ mod open_pr_item_tests {
             json!(["viewer", "second-reviewer"])
         );
         assert_eq!(serialized["state"], "open");
+        assert_eq!(serialized["ci_status"], "unavailable");
     }
 
     #[test]
@@ -756,6 +848,71 @@ mod open_pr_item_tests {
         assert_eq!(serialized["author_login"], "");
         assert_eq!(serialized["author_avatar_url"], Value::Null);
         assert_eq!(serialized["requested_reviewer_logins"], json!([]));
+    }
+
+    #[test]
+    fn maps_batched_pull_request_ci_rollups() {
+        assert!(PULL_REQUEST_CI_STATUS_QUERY.contains("nodes(ids: $ids)"));
+
+        let mut items = vec![
+            parse_open_pr_item(&json!({ "number": 17 })),
+            parse_open_pr_item(&json!({ "number": 18 })),
+            parse_open_pr_item(&json!({ "number": 19 })),
+            parse_open_pr_item(&json!({ "number": 20 })),
+        ];
+
+        apply_pull_request_ci_statuses(
+            &mut items,
+            &json!({
+                "data": {
+                    "nodes": [
+                        {
+                            "number": 17,
+                            "commits": {
+                                "nodes": [{
+                                    "commit": {
+                                        "statusCheckRollup": { "state": "SUCCESS" }
+                                    }
+                                }]
+                            }
+                        },
+                        {
+                            "number": 18,
+                            "commits": {
+                                "nodes": [{
+                                    "commit": {
+                                        "statusCheckRollup": { "state": "PENDING" }
+                                    }
+                                }]
+                            }
+                        },
+                        {
+                            "number": 19,
+                            "commits": {
+                                "nodes": [{
+                                    "commit": { "statusCheckRollup": null }
+                                }]
+                            }
+                        },
+                        {
+                            "number": 20,
+                            "commits": {
+                                "nodes": [{
+                                    "commit": {
+                                        "statusCheckRollup": { "state": "FAILURE" }
+                                    }
+                                }]
+                            }
+                        }
+                    ]
+                }
+            }),
+        );
+
+        assert_eq!(items[0].ci_status, PullRequestCiStatus::Success);
+        assert_eq!(items[1].ci_status, PullRequestCiStatus::Pending);
+        assert_eq!(items[2].ci_status, PullRequestCiStatus::None);
+        assert_eq!(items[3].ci_status, PullRequestCiStatus::Failure);
     }
 
     #[test]
@@ -787,10 +944,9 @@ pub async fn github_list_prs(
             "/repos/{repo_full_name}/pulls?state={state}&sort=updated&direction=desc&per_page={limit}"
         ))
         .await?;
-    let items: Vec<OpenPRItem> = data
-        .as_array()
-        .map(|arr| arr.iter().map(parse_open_pr_item).collect())
-        .unwrap_or_default();
+    let source_items = data.as_array().cloned().unwrap_or_default();
+    let mut items: Vec<OpenPRItem> = source_items.iter().map(parse_open_pr_item).collect();
+    enrich_pull_request_ci_statuses(&client, &repo_full_name, &source_items, &mut items).await;
     log::info!(
         "[GitHub][Cmd] list_prs state={state} found {} PRs",
         items.len()

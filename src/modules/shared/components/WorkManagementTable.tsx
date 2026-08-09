@@ -10,6 +10,7 @@ import SettingsTable, {
   type SettingsTableColumn,
   SettingsTablePagination,
   type SettingsTableProps,
+  type SettingsTableSurfaceVariant,
 } from "@src/components/SettingsTable";
 import { SortIcon } from "@src/components/Table/helpers";
 import {
@@ -64,6 +65,7 @@ export interface WorkManagementTableRow {
   assignee?: ReactNode;
   status?: ReactNode;
   statusSelect?: WorkManagementTableStatusSelect;
+  ciStatus?: ReactNode;
   updated: ReactNode;
   actions?: ReactNode;
   onClick?: () => void;
@@ -95,6 +97,7 @@ interface WorkManagementTableProps {
   sort?: WorkManagementTableSort;
   onSortChange?: (sort: WorkManagementTableSort) => void;
   maxWidth?: WorkManagementTableMaxWidth;
+  surfaceVariant?: SettingsTableSurfaceVariant;
   testId?: string;
 }
 
@@ -149,11 +152,13 @@ export function WorkManagementTable({
   sort,
   onSortChange,
   maxWidth = "standard",
+  surfaceVariant = "default",
   testId = "work-management-table",
 }: WorkManagementTableProps): ReactNode {
   const { t } = useTranslation("common");
   const hasActions = rows.some((row) => row.actions !== undefined);
   const hasAssignees = rows.some((row) => row.assignee !== undefined);
+  const hasCiStatus = rows.some((row) => row.ciStatus !== undefined);
   const hasSelection = rows.some((row) => row.selection !== undefined);
   const columns = useMemo<SettingsTableColumn<WorkManagementTableRow>[]>(() => {
     const idLabel = t("workManagementTable.columns.id", {
@@ -291,55 +296,61 @@ export function WorkManagementTable({
         ),
       });
     }
-    tableColumns.push(
-      {
-        key: "status",
-        label: t("workManagementTable.columns.status", {
-          defaultValue: "Status",
-        }),
-        width: SETTINGS_TABLE_COL.valueLg,
-        renderCell: (row) =>
-          row.statusSelect ? (
-            <div
-              title={
-                row.statusSelect.readonly
-                  ? row.statusSelect.readonlyReason
-                  : undefined
-              }
-            >
-              <PropertyDropdownField
-                {...row.statusSelect}
-                searchable={false}
-                maxWidthClassName="max-w-[140px]"
-                triggerVariant="pill"
-                fieldVariant="pill"
-                compactPill
-                placement="portal"
-                borderless
-              />
-            </div>
-          ) : (
-            row.status
-          ),
-      },
-      {
-        key: "updated",
-        label: controlledSort ? (
-          <SortableColumnLabel
-            column="updated"
-            label={updatedLabel}
-            sort={sort}
-            onSortChange={onSortChange}
-          />
+    tableColumns.push({
+      key: "status",
+      label: t("workManagementTable.columns.status", {
+        defaultValue: "Status",
+      }),
+      width: SETTINGS_TABLE_COL.valueLg,
+      renderCell: (row) =>
+        row.statusSelect ? (
+          <div
+            title={
+              row.statusSelect.readonly
+                ? row.statusSelect.readonlyReason
+                : undefined
+            }
+          >
+            <PropertyDropdownField
+              {...row.statusSelect}
+              searchable={false}
+              maxWidthClassName="max-w-[140px]"
+              triggerVariant="pill"
+              fieldVariant="pill"
+              compactPill
+              placement="portal"
+              borderless
+            />
+          </div>
         ) : (
-          updatedLabel
+          row.status
         ),
+    });
+    if (hasCiStatus) {
+      tableColumns.push({
+        key: "ciStatus",
+        label: "CI",
         width: SETTINGS_TABLE_COL.valueMd,
-        renderCell: (row) => (
-          <span className="whitespace-nowrap text-text-3">{row.updated}</span>
-        ),
-      }
-    );
+        renderCell: (row) => row.ciStatus,
+      });
+    }
+    tableColumns.push({
+      key: "updated",
+      label: controlledSort ? (
+        <SortableColumnLabel
+          column="updated"
+          label={updatedLabel}
+          sort={sort}
+          onSortChange={onSortChange}
+        />
+      ) : (
+        updatedLabel
+      ),
+      width: SETTINGS_TABLE_COL.valueMd,
+      renderCell: (row) => (
+        <span className="whitespace-nowrap text-text-3">{row.updated}</span>
+      ),
+    });
     if (hasActions) {
       tableColumns.push({
         key: "actions",
@@ -350,7 +361,15 @@ export function WorkManagementTable({
       });
     }
     return tableColumns;
-  }, [hasActions, hasAssignees, hasSelection, onSortChange, sort, t]);
+  }, [
+    hasActions,
+    hasAssignees,
+    hasCiStatus,
+    hasSelection,
+    onSortChange,
+    sort,
+    t,
+  ]);
   const footer = pagination ? (
     <div className="flex h-12 shrink-0 items-center border-t border-border-1 px-4">
       <SettingsTablePagination
@@ -381,6 +400,7 @@ export function WorkManagementTable({
         inlineHeaderToolbar={Boolean(
           searchBar || selectFilters?.length || selectFiltersExtra
         )}
+        surfaceVariant={surfaceVariant}
         pageSize={pageSize}
         pageSizeOptions={pageSizeOptions}
         footer={footer}

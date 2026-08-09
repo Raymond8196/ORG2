@@ -36,6 +36,7 @@ function createPullRequest(
       head_branch: `feature-${id}`,
       base_branch: "develop",
       draft: false,
+      ci_status: "success",
       created_at: "2026-08-04T10:00:00Z",
       updated_at: "2026-08-04T11:00:00Z",
     },
@@ -129,6 +130,7 @@ describe("GitHubWorkItemsView pull requests", () => {
     expect(markup).toContain("settings-table-root");
     expect(markup).toContain("Title / Context");
     expect(markup).toContain(">Status<");
+    expect(markup).toContain(">CI<");
     expect(markup).toContain(">Updated<");
     expect(markup).toContain('data-sort-column="id"');
     expect(markup).toContain('data-sort-column="updated"');
@@ -149,6 +151,9 @@ describe("GitHubWorkItemsView pull requests", () => {
     expect(markup).toContain("Pull request 3");
     expect(markup).not.toContain("https://example.com/avatar.png");
     expect(markup).toContain('data-testid="github-pr-status-1"');
+    expect(markup).toContain('data-testid="github-pr-ci-1"');
+    expect(markup).toContain("lucide-circle-check");
+    expect(markup).toContain("text-success-6");
     expect(markup).toContain("lucide-circle-dot");
     expect(markup).not.toContain("github-pr-review-requested");
     expect(markup).not.toContain("github-pr-authored");

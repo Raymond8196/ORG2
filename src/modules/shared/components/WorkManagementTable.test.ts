@@ -66,6 +66,18 @@ describe("WorkManagementTable", () => {
     );
   });
 
+  it("supports a transparent surface for chat-pane tables", () => {
+    const markup = renderToStaticMarkup(
+      createElement(WorkManagementTable, {
+        rows: rows.slice(0, 1),
+        surfaceVariant: "transparent",
+      })
+    );
+
+    expect(markup).toContain("settings-table-root-transparent");
+    expect(markup).not.toContain("bg-primary-container");
+  });
+
   it("renders filters through the native SettingsTable toolbar props", () => {
     const markup = renderToStaticMarkup(
       createElement(WorkManagementTable, {
