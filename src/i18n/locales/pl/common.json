@@ -1508,7 +1508,6 @@
         "autoMergeDisabled": "Automatyczne scalanie wyłączone",
         "confirmCloseTitle": "Zamknąć pull request?",
         "confirmCloseMessage": "Pull request pozostanie dostępny i będzie można go później ponownie otworzyć.",
-        "close": "Zamknij pull request",
         "closeSuccess": "Pull request zamknięty",
         "reopen": "Otwórz ponownie pull request",
         "reopenSuccess": "Pull request otwarty ponownie",

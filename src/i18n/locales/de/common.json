@@ -1502,7 +1502,6 @@
         "autoMergeDisabled": "Automatisches Zusammenführen deaktiviert",
         "confirmCloseTitle": "Pull Request schließen?",
         "confirmCloseMessage": "Der Pull Request bleibt verfügbar und kann später erneut geöffnet werden.",
-        "close": "Pull Request schließen",
         "closeSuccess": "Pull Request geschlossen",
         "reopen": "Pull Request erneut öffnen",
         "reopenSuccess": "Pull Request erneut geöffnet",

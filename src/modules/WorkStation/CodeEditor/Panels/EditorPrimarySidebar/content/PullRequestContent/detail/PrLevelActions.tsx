@@ -207,7 +207,7 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
           "git.pr.actions.confirmCloseMessage",
           "The pull request will remain available and can be reopened later."
         ),
-        okLabel: t("git.pr.actions.close", "Close pull request"),
+        okLabel: "Close",
         cancelLabel: t("actions.cancel", "Cancel"),
       });
       if (!confirmed) return;
@@ -379,7 +379,7 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
           data-testid="pr-state-action"
         >
           {nextState === "closed"
-            ? t("git.pr.actions.close", "Close pull request")
+            ? "Close"
             : t("git.pr.actions.reopen", "Reopen pull request")}
         </Button>
       ) : null}

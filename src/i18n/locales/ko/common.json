@@ -1501,7 +1501,6 @@
         "autoMergeDisabled": "자동 병합을 비활성화했습니다",
         "confirmCloseTitle": "pull request를 닫을까요?",
         "confirmCloseMessage": "pull request는 계속 사용할 수 있으며 나중에 다시 열 수 있습니다.",
-        "close": "pull request 닫기",
         "closeSuccess": "pull request를 닫았습니다",
         "reopen": "pull request 다시 열기",
         "reopenSuccess": "pull request를 다시 열었습니다",

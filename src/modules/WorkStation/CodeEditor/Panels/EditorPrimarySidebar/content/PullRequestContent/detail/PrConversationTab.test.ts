@@ -78,7 +78,7 @@ describe("PrConversationTab", () => {
         levelActions: createElement(
           "div",
           { "data-testid": "pr-level-actions" },
-          "Enable auto-merge Reviewers Close pull request"
+          "Enable auto-merge Reviewers Close"
         ),
         onAddComment: vi.fn().mockResolvedValue(undefined),
         onSubmitReview: vi.fn().mockResolvedValue(undefined),

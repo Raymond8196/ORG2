@@ -1503,7 +1503,6 @@
         "autoMergeDisabled": "Otomatik birleştirme devre dışı bırakıldı",
         "confirmCloseTitle": "Pull request kapatılsın mı?",
         "confirmCloseMessage": "Pull request erişilebilir kalacak ve daha sonra yeniden açılabilecek.",
-        "close": "Pull request'i kapat",
         "closeSuccess": "Pull request kapatıldı",
         "reopen": "Pull request'i yeniden aç",
         "reopenSuccess": "Pull request yeniden açıldı",

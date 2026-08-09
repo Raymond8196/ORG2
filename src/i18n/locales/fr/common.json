@@ -1502,7 +1502,6 @@
         "autoMergeDisabled": "Fusion automatique désactivée",
         "confirmCloseTitle": "Fermer la pull request ?",
         "confirmCloseMessage": "La pull request restera disponible et pourra être rouverte ultérieurement.",
-        "close": "Fermer la pull request",
         "closeSuccess": "Pull request fermée",
         "reopen": "Rouvrir la pull request",
         "reopenSuccess": "Pull request rouverte",

@@ -1367,7 +1367,6 @@
         "autoMergeDisabled": "Auto-merge disabled",
         "confirmCloseTitle": "Close pull request?",
         "confirmCloseMessage": "The pull request will remain available and can be reopened later.",
-        "close": "Close pull request",
         "closeSuccess": "Pull request closed",
         "reopen": "Reopen pull request",
         "reopenSuccess": "Pull request reopened",

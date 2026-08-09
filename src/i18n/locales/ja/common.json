@@ -1501,7 +1501,6 @@
         "autoMergeDisabled": "自動マージを無効にしました",
         "confirmCloseTitle": "pull request を閉じますか？",
         "confirmCloseMessage": "pull request は引き続き利用でき、後で再度開くことができます。",
-        "close": "pull request を閉じる",
         "closeSuccess": "pull request を閉じました",
         "reopen": "pull request を再度開く",
         "reopenSuccess": "pull request を再度開きました",

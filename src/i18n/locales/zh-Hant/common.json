@@ -1513,7 +1513,6 @@
         "autoMergeDisabled": "已停用自動合併",
         "confirmCloseTitle": "關閉 pull request？",
         "confirmCloseMessage": "此 pull request 將保留，稍後可重新開啟。",
-        "close": "關閉 pull request",
         "closeSuccess": "pull request 已關閉",
         "reopen": "重新開啟 pull request",
         "reopenSuccess": "pull request 已重新開啟",

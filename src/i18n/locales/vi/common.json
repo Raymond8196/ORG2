@@ -1501,7 +1501,6 @@
         "autoMergeDisabled": "Đã tắt tự động hợp nhất",
         "confirmCloseTitle": "Đóng pull request?",
         "confirmCloseMessage": "Pull request vẫn sẽ khả dụng và có thể được mở lại sau.",
-        "close": "Đóng pull request",
         "closeSuccess": "Đã đóng pull request",
         "reopen": "Mở lại pull request",
         "reopenSuccess": "Đã mở lại pull request",

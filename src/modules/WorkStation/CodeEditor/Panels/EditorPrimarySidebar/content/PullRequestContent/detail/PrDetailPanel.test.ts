@@ -196,7 +196,8 @@ describe("PrDetailPanel tabs", () => {
     const actions = container.querySelector("[data-testid='pr-level-actions']");
     expect(actions?.textContent).toContain("Enable auto-merge");
     expect(actions?.textContent).toContain("Reviewers");
-    expect(actions?.textContent).toContain("Close pull request");
+    expect(actions?.textContent).toContain("Close");
+    expect(actions?.textContent).not.toContain("Close pull request");
     expect(
       actions?.querySelector<HTMLButtonElement>(
         '[data-testid="pr-merge-action"]'

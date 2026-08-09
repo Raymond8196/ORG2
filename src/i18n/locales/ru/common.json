@@ -1508,7 +1508,6 @@
         "autoMergeDisabled": "Автоматическое слияние отключено",
         "confirmCloseTitle": "Закрыть pull request?",
         "confirmCloseMessage": "Pull request останется доступным, и его можно будет открыть снова.",
-        "close": "Закрыть pull request",
         "closeSuccess": "Pull request закрыт",
         "reopen": "Открыть pull request снова",
         "reopenSuccess": "Pull request открыт снова",
