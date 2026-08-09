@@ -286,15 +286,19 @@ export function GitHubWorkItemsView({
               iconColor:
                 item.state === GITHUB_QUERY_STATE.MERGED
                   ? "var(--color-purple-6)"
-                  : prStatusValue === "open"
-                    ? "var(--color-success-6)"
-                    : "var(--color-text-3)",
+                  : item.rawPr.draft
+                    ? "var(--color-text-2)"
+                    : prStatusValue === "open"
+                      ? "var(--color-success-6)"
+                      : "var(--color-text-3)",
               valueClassName:
                 item.state === GITHUB_QUERY_STATE.MERGED
                   ? "text-purple-6"
-                  : prStatusValue === "open"
-                    ? "text-success-6"
-                    : "text-text-2",
+                  : item.rawPr.draft
+                    ? "text-text-2"
+                    : prStatusValue === "open"
+                      ? "text-success-6"
+                      : "text-text-2",
               options: [
                 {
                   value: "open",
@@ -558,14 +562,13 @@ export function GitHubWorkItemsView({
                 ),
                 onSearchChange: onSearchQueryChange,
                 onSearchClear: () => onSearchQueryChange(""),
-                tabPills:
-                  scope === GITHUB_QUERY_SCOPE.ISSUE ? (
-                    <GitHubWorkItemStateTabs
-                      tabs={stateTabs}
-                      activeTab={activeState}
-                      onChange={handleStateChange}
-                    />
-                  ) : undefined,
+                tabPills: (
+                  <GitHubWorkItemStateTabs
+                    tabs={stateTabs}
+                    activeTab={activeState}
+                    onChange={handleStateChange}
+                  />
+                ),
                 rightContent: (
                   <GitHubWorkItemToolbarActions
                     refreshLabel={t("common:actions.refresh")}

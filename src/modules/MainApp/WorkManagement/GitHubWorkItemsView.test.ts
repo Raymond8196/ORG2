@@ -124,6 +124,8 @@ describe("GitHubWorkItemsView pull requests", () => {
     );
 
     expect(markup).toContain('data-testid="github-pr-table"');
+    expect(markup).toContain('data-testid="github-work-items-state-open"');
+    expect(markup).toContain('data-testid="github-work-items-state-closed"');
     expect(markup).toContain("settings-table-root");
     expect(markup).toContain("Title / Context");
     expect(markup).toContain(">Status<");
@@ -151,5 +153,67 @@ describe("GitHubWorkItemsView pull requests", () => {
     expect(markup).not.toContain("github-pr-review-requested");
     expect(markup).not.toContain("github-pr-authored");
     expect(markup).not.toContain("github-pr-other-todos");
+  });
+
+  it("renders draft PR status with neutral text-2 styling", () => {
+    const basePr = createPullRequest(4);
+    const draftPr = createPullRequest(4, {
+      rawPr: { ...basePr.rawPr, draft: true },
+    });
+    const markup = renderToStaticMarkup(
+      React.createElement(GitHubWorkItemsView, {
+        scope: "pr",
+        loading: false,
+        loadError: null,
+        loadingMore: false,
+        allItemsCount: 1,
+        filteredItems: [draftPr],
+        pagedItems: [draftPr],
+        repoSources: [],
+        repoOptions: [{ key: "all", label: "All repositories" }],
+        effectiveSelectedRepo: "all",
+        selectedRepoSourceForCreate: null,
+        searchQuery: "is:pr is:open",
+        parsedSearchQuery: parseGitHubSearchQuery("is:pr is:open"),
+        issuePersonalFilterOptions: [],
+        selectedIssuePersonalFilters: [],
+        currentPage: 1,
+        totalLoadedPages: 1,
+        hasMoreFilteredIssues: false,
+        sort: DEFAULT_GITHUB_ISSUES_SORT,
+        createFormOpen: false,
+        creatingIssue: false,
+        updateSearchQuery: vi.fn(),
+        onSearchQueryChange: vi.fn(),
+        onRepoSelect: vi.fn(),
+        onIssuePersonalFiltersSelect: vi.fn(),
+        onRefresh: vi.fn(),
+        onPreviousPage: vi.fn(),
+        onNextPage: vi.fn().mockResolvedValue(undefined),
+        onSortChange: vi.fn(),
+        onOpenIssue: vi.fn(),
+        onOpenIssueInBrowser: vi.fn(),
+        onAddIssue: vi.fn(),
+        onIssueStatusChange: vi.fn().mockResolvedValue(undefined),
+        getIssueAssigneeControlState: vi.fn(() => ({
+          users: [],
+          loading: false,
+          error: null,
+          updating: false,
+        })),
+        onLoadIssueAssignees: vi.fn(),
+        onIssueAssigneesChange: vi.fn(),
+        onOpenPr: vi.fn(),
+        onAddPr: vi.fn(),
+        onPrStatusChange: vi.fn().mockResolvedValue(undefined),
+        onSetCreateFormOpen: vi.fn(),
+        onCreateIssue: vi.fn(),
+      })
+    );
+
+    expect(markup).toContain('data-testid="github-pr-status-4"');
+    expect(markup).toContain("lucide-git-pull-request-draft");
+    expect(markup).toContain('style="color:var(--color-text-2)"');
+    expect(markup).toContain("text-text-2");
   });
 });
