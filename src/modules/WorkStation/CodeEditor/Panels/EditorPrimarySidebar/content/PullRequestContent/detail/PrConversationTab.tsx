@@ -26,6 +26,7 @@ import ComposerShell from "@src/components/ComposerShell";
 import Radio from "@src/components/Radio";
 import type { RadioValue } from "@src/components/Radio";
 import Textarea from "@src/components/Textarea";
+import { COMPOSER_BOTTOM_DOCK_PADDING_CLASS } from "@src/config/composerStackTokens";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import { CloudSessionReferencePreview } from "@src/features/Org2Cloud/CloudSessionReferencePreview";
 import { useSessionReferenceDropTarget } from "@src/features/Org2Cloud/useSessionReferenceDropTarget";
@@ -431,7 +432,7 @@ export const PrConversationTab: React.FC<PrConversationTabProps> = ({
 
       <div
         ref={composerDockRef}
-        className="absolute bottom-0 left-0 right-0 z-50 flex w-full flex-shrink-0 flex-col items-center px-2 pb-2 pt-1"
+        className={`absolute bottom-0 left-0 right-0 z-50 flex w-full flex-shrink-0 flex-col items-center px-2 pt-1 ${COMPOSER_BOTTOM_DOCK_PADDING_CLASS}`}
         data-testid="pr-floating-composer"
       >
         <div
@@ -479,7 +480,7 @@ export const PrConversationTab: React.FC<PrConversationTabProps> = ({
                   <Button
                     htmlType="button"
                     variant="secondary"
-                    size="default"
+                    size="small"
                     shape="round"
                     disabled={submittingReview}
                     onClick={() => setReviewModalVisible(true)}
@@ -492,7 +493,7 @@ export const PrConversationTab: React.FC<PrConversationTabProps> = ({
                   <Button
                     htmlType="button"
                     variant="primary"
-                    size="default"
+                    size="small"
                     shape="round"
                     loading={submittingComment}
                     disabled={!draft.trim() || submittingComment}

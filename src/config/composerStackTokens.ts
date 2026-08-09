@@ -12,8 +12,8 @@
 // Shell — outer bar above composer (width, border, background)
 // ==============================================
 
-/** Shared distance between every bottom-docked composer and the page edge. */
-export const CHAT_COMPOSER_BOTTOM_DOCK_PADDING_CLASS = "pb-3";
+/** Shared distance between every bottom-docked input/composer and the page edge. */
+export const COMPOSER_BOTTOM_DOCK_PADDING_CLASS = "pb-3";
 
 /** Shell border — stacks above input; no bottom border. Matches composer card border weight. */
 export const CHAT_COMPOSER_STACK_BAR_SHELL_CLASSES =

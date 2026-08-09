@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import Avatar from "@src/components/Avatar";
 import Button from "@src/components/Button";
 import ComposerShell from "@src/components/ComposerShell";
-import { CHAT_COMPOSER_BOTTOM_DOCK_PADDING_CLASS } from "@src/config/composerStackTokens";
+import { COMPOSER_BOTTOM_DOCK_PADDING_CLASS } from "@src/config/composerStackTokens";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import RichMarkdownEditor from "@src/modules/shared/components/RichMarkdownEditor";
 import { ScrollTrailTarget } from "@src/modules/shared/layouts/blocks";
@@ -144,7 +144,7 @@ const HistoryTab: React.FC<HistoryTabProps> = ({
     </div>
   ) : (
     <div
-      className={`mt-auto flex flex-col gap-2 ${CHAT_COMPOSER_BOTTOM_DOCK_PADDING_CLASS}`}
+      className={`mt-auto flex flex-col gap-2 ${COMPOSER_BOTTOM_DOCK_PADDING_CLASS}`}
       data-testid="work-item-default-comment-dock"
     >
       <div className="min-w-0 flex-1">
@@ -225,7 +225,7 @@ const HistoryTab: React.FC<HistoryTabProps> = ({
         {canComment ? (
           <ScrollTrailTarget label={t("workItems.activity.commentPlaceholder")}>
             <div
-              className={`sticky bottom-0 z-10 bg-transparent pt-2 ${CHAT_COMPOSER_BOTTOM_DOCK_PADDING_CLASS}`}
+              className={`sticky bottom-0 z-10 bg-transparent pt-2 ${COMPOSER_BOTTOM_DOCK_PADDING_CLASS}`}
               data-testid="work-item-thread-comment-dock"
             >
               {composer}

@@ -102,12 +102,19 @@ describe("PrConversationTab", () => {
       '[data-testid="pr-comment-drop-target"]'
     );
     const actionRow = input?.lastElementChild;
+    const submitReviewButton = input?.querySelector<HTMLButtonElement>(
+      '[data-testid="pr-submit-review"]'
+    );
+    const commentButton = Array.from(
+      input?.querySelectorAll<HTMLButtonElement>("button") ?? []
+    ).find((button) => button.textContent?.trim() === "Comment");
 
     expect(composer).not.toBeNull();
     expect(scrollRegion?.contains(composer)).toBe(false);
     expect(floatingComposer?.contains(composer)).toBe(true);
     expect(floatingComposer?.className).toContain("absolute");
     expect(floatingComposer?.className).toContain("bottom-0");
+    expect(floatingComposer?.className).toContain("pb-3");
     expect(scrollRegion?.firstElementChild?.getAttribute("style")).toContain(
       "padding-bottom:240px"
     );
@@ -122,6 +129,8 @@ describe("PrConversationTab", () => {
     expect(input?.contains(levelActions as Node)).toBe(false);
     expect(input?.textContent).toContain("Submit review");
     expect(input?.textContent).toContain("Comment");
+    expect(submitReviewButton?.style.height).toBe("28px");
+    expect(commentButton?.style.height).toBe("28px");
     expect(actionRow?.className).not.toContain("border-t");
     expect(levelActions?.textContent).toContain("Enable auto-merge");
     expect(composer?.textContent).toContain("Submit review");

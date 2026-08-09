@@ -186,6 +186,21 @@ describe("PrDetailPanel tabs", () => {
     expect(actions?.textContent).toContain("Enable auto-merge");
     expect(actions?.textContent).toContain("Reviewers");
     expect(actions?.textContent).toContain("Close pull request");
+    expect(
+      actions?.querySelector<HTMLButtonElement>(
+        '[data-testid="pr-merge-action"]'
+      )?.style.height
+    ).toBe("28px");
+    expect(
+      actions?.querySelector<HTMLButtonElement>(
+        '[data-testid="pr-reviewer-action"]'
+      )?.style.height
+    ).toBe("28px");
+    expect(
+      actions?.querySelector<HTMLButtonElement>(
+        '[data-testid="pr-state-action"]'
+      )?.style.height
+    ).toBe("28px");
     expect(actions?.className).not.toContain("bg-");
     expect(actions?.className).not.toContain("border");
     expect(

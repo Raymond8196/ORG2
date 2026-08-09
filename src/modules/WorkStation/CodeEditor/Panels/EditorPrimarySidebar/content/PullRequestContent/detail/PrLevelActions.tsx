@@ -263,7 +263,7 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
       <Button
         htmlType="button"
         variant={presentation.status === "merged" ? "merged" : "success"}
-        size="default"
+        size="small"
         shape="round"
         icon={<GitMerge size={14} aria-hidden />}
         loading={pending}
@@ -344,7 +344,7 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
           htmlType="button"
           variant="secondary"
           appearance="outline"
-          size="default"
+          size="small"
           shape="round"
           icon={<UserRound size={14} aria-hidden />}
           disabled={interactionDisabled || presentation.status !== "open"}
@@ -365,7 +365,7 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
           htmlType="button"
           variant={nextState === "closed" ? "danger" : "secondary"}
           appearance="outline"
-          size="default"
+          size="small"
           shape="round"
           icon={
             nextState === "closed" ? (
