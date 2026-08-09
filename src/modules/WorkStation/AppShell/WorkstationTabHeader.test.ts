@@ -63,7 +63,7 @@ describe("WorkstationTabHeader", () => {
     expect(markup).not.toContain("lucide-list");
   });
 
-  it("uses the compact published-header gutter for Source Control", () => {
+  it("removes the published-header gutter for Source Control", () => {
     const store = createStore();
     store.set(activeStatusBarAppAtom, "code");
     store.set(workstationTabHeaderAtomByHost.code, {
@@ -80,6 +80,27 @@ describe("WorkstationTabHeader", () => {
     );
 
     expect(markup).toContain("develop");
+    expect(markup).toContain("pl-0");
+    expect(markup).not.toContain("pl-2");
+    expect(markup).not.toContain("pl-[15px]");
+  });
+
+  it("uses a compact My Station gutter without changing the shared default", () => {
+    const store = createStore();
+    store.set(activeStatusBarAppAtom, "code");
+    store.set(workstationTabHeaderAtomByHost.code, {
+      content: React.createElement("span", null, "My Station content"),
+    });
+
+    const markup = renderToStaticMarkup(
+      React.createElement(
+        Provider,
+        { store },
+        React.createElement(WorkstationTabHeader)
+      )
+    );
+
+    expect(markup).toContain("My Station content");
     expect(markup).toContain("pl-2");
     expect(markup).not.toContain("pl-[15px]");
   });

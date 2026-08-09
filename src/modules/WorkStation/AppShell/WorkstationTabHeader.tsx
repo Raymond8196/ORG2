@@ -47,10 +47,8 @@ const WorkstationTabHeader: React.FC = memo(() => {
   const isSourceControlTab =
     activeApp === "code" && activeTab?.type === "source-control";
   const publishedHeaderPaddingLeftClassName = isSourceControlTab
-    ? "pl-2"
-    : activeApp === "browser"
-      ? "pl-1"
-      : undefined;
+    ? "pl-0"
+    : "pl-2";
 
   // Launchpad: keep the strip for stable row height but render it empty —
   // no sidebar toggle, no search/lab actions, nothing to publish.
