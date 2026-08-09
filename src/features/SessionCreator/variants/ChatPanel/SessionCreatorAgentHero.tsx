@@ -31,7 +31,7 @@ const SessionCreatorAgentHero = memo(
     ) => {
       if (question || questionSuffix) {
         return (
-          <div className="flex w-full min-w-0 justify-center px-4 text-center">
+          <div className="session-creator-agent-hero-question flex w-full min-w-0 justify-center px-4 text-center">
             <div
               role="heading"
               aria-level={1}

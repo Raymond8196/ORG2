@@ -283,7 +283,7 @@ const SessionCreatorChatPanelView: React.FC<
   );
   const launchpadMiddleContent = isLaunchpadLayout ? (
     <div
-      className="absolute inset-x-0 flex -translate-y-1/2 flex-col items-center gap-4"
+      className="session-creator-chat-panel-launchpad-middle absolute inset-x-0 flex -translate-y-1/2 flex-col items-center gap-4"
       style={CREATOR_MIDDLE_POSITION_STYLE}
     >
       {agentHero}
@@ -294,6 +294,34 @@ const SessionCreatorChatPanelView: React.FC<
       )}
     </div>
   ) : null;
+  const composerDockClassName = isLaunchpadLayout
+    ? "mt-auto flex w-full shrink-0 flex-col gap-3"
+    : "contents";
+  const composerFrameClassName = `session-creator-chat-panel-fullscreen-composer w-full ${
+    headerLayout === "compact"
+      ? "session-creator-chat-panel-fullscreen-composer-compact"
+      : ""
+  }`;
+  const composerBody = isCliTuiMode ? (
+    <div className="rounded-xl bg-chat-container p-3">
+      <button
+        type="button"
+        onClick={onLaunch}
+        disabled={!canLaunch || isLoading}
+        className="flex w-full items-center justify-center rounded-full bg-primary-6 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-primary-7 disabled:cursor-not-allowed disabled:opacity-40"
+      >
+        {t("creator.start")}
+      </button>
+    </div>
+  ) : (
+    <EditorArea
+      {...editorAreaProps}
+      headerContent={editorHeaderContent}
+      dropdownDirection={
+        isLaunchpadLayout ? "up" : editorAreaProps.dropdownDirection
+      }
+    />
+  );
 
   return (
     <div
@@ -324,87 +352,29 @@ const SessionCreatorChatPanelView: React.FC<
           }`}
         >
           {launchpadMiddleContent}
-          {isCliTuiMode ? (
-            <>
-              {!isLaunchpadLayout && agentHero}
-              <div
-                className={
-                  isLaunchpadLayout
-                    ? "mt-auto flex w-full flex-col gap-3"
-                    : "contents"
-                }
+          {!isLaunchpadLayout && agentHero}
+          <div className={composerDockClassName}>
+            {!isCliTuiMode && isWingmanMode && (
+              <button
+                type="button"
+                className="flex items-center gap-1.5 rounded-full border border-dashed border-border-2 px-3 py-1.5 text-[12px] text-text-3 transition-colors hover:border-primary-4 hover:text-primary-6"
+                onClick={() => {
+                  void onShareScreen();
+                }}
               >
-                {isLaunchpadLayout && sessionSetupActions}
-                <div
-                  className={`session-creator-chat-panel-fullscreen-composer w-full ${
-                    headerLayout === "compact"
-                      ? "session-creator-chat-panel-fullscreen-composer-compact"
-                      : ""
-                  }`}
-                >
-                  {compactHeader}
-                  {tuiComposerHeader}
-                  {isLaunchpadLayout && repoPillsRow}
-                  <div className="rounded-xl bg-chat-container p-3">
-                    <button
-                      type="button"
-                      onClick={onLaunch}
-                      disabled={!canLaunch || isLoading}
-                      className="flex w-full items-center justify-center rounded-full bg-primary-6 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-primary-7 disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                      {t("creator.start")}
-                    </button>
-                  </div>
-                  {!isLaunchpadLayout && repoPillsRow}
-                </div>
-              </div>
-            </>
-          ) : (
-            <>
-              {!isLaunchpadLayout && agentHero}
-              <div
-                className={
-                  isLaunchpadLayout
-                    ? "mt-auto flex w-full flex-col gap-3"
-                    : "contents"
-                }
-              >
-                {isWingmanMode && (
-                  <button
-                    type="button"
-                    className="flex items-center gap-1.5 rounded-full border border-dashed border-border-2 px-3 py-1.5 text-[12px] text-text-3 transition-colors hover:border-primary-4 hover:text-primary-6"
-                    onClick={() => {
-                      void onShareScreen();
-                    }}
-                  >
-                    <Airplay size={13} strokeWidth={1.75} />
-                    {t("chat.shareScreen")}
-                  </button>
-                )}
-                {isLaunchpadLayout && sessionSetupActions}
-                <div
-                  className={`session-creator-chat-panel-fullscreen-composer w-full ${
-                    headerLayout === "compact"
-                      ? "session-creator-chat-panel-fullscreen-composer-compact"
-                      : ""
-                  }`}
-                >
-                  {compactHeader}
-                  {isLaunchpadLayout && repoPillsRow}
-                  <EditorArea
-                    {...editorAreaProps}
-                    headerContent={editorHeaderContent}
-                    dropdownDirection={
-                      isLaunchpadLayout
-                        ? "up"
-                        : editorAreaProps.dropdownDirection
-                    }
-                  />
-                  {!isLaunchpadLayout && repoPillsRow}
-                </div>
-              </div>
-            </>
-          )}
+                <Airplay size={13} strokeWidth={1.75} />
+                {t("chat.shareScreen")}
+              </button>
+            )}
+            {isLaunchpadLayout && sessionSetupActions}
+            <div className={composerFrameClassName}>
+              {compactHeader}
+              {isCliTuiMode && tuiComposerHeader}
+              {isLaunchpadLayout && repoPillsRow}
+              {composerBody}
+              {!isLaunchpadLayout && repoPillsRow}
+            </div>
+          </div>
 
           {!hideSessionSetupControls && showMissingGitAlert && (
             <div
