@@ -1,9 +1,10 @@
 import { emit } from "@tauri-apps/api/event";
 import { ListTree, Plus } from "lucide-react";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { type WorkItemData, projectApi } from "@src/api/http/project";
+import Select, { type SelectOption } from "@src/components/Select";
 import {
   allocateCloudAwareStandaloneWorkItemId,
   allocateCloudAwareWorkItemId,
@@ -114,6 +115,21 @@ export function groupSubItemsByStage(
   return groups;
 }
 
+/**
+ * Keep quick-add compact while making every existing stage and the next
+ * sequential stage directly selectable. Filling gaps keeps recovery from a
+ * deleted or moved stage possible without requiring a separate editor.
+ */
+export function getSubItemStageNumbers(children: WorkItemData[]): number[] {
+  const maxStage = children.reduce(
+    (max, child) => Math.max(max, child.frontmatter.stage ?? 0),
+    0
+  );
+  return Array.from({ length: Math.max(1, maxStage + 1) }, (_, index) =>
+    Number(index + 1)
+  );
+}
+
 interface WorkItemSubItemsProps {
   family: WorkItemFamily;
   parentShortId: string;
@@ -133,7 +149,25 @@ const WorkItemSubItems: React.FC<WorkItemSubItemsProps> = ({
   const { children, parent } = family;
   const [adding, setAdding] = useState(false);
   const [draftTitle, setDraftTitle] = useState("");
+  const [draftStage, setDraftStage] = useState<number | null>(null);
   const [creating, setCreating] = useState(false);
+
+  const stageOptions = useMemo<SelectOption[]>(
+    () => [
+      {
+        label: t("workItems.subItems.noStage", { defaultValue: "No stage" }),
+        value: "none",
+      },
+      ...getSubItemStageNumbers(children).map((stage) => ({
+        label: t("workItems.subItems.stage", {
+          defaultValue: "Stage {{stage}}",
+          stage,
+        }),
+        value: stage,
+      })),
+    ],
+    [children, t]
+  );
 
   const doneCount = children.filter((child) =>
     DONE_SUB_ITEM_STATUSES.has(child.frontmatter.status)
@@ -149,6 +183,7 @@ const WorkItemSubItems: React.FC<WorkItemSubItemsProps> = ({
         await projectApi.createWorkItem(projectSlug, shortId, {
           title,
           parent: parentShortId,
+          stage: draftStage ?? undefined,
           status: "planned",
         });
       } else {
@@ -157,11 +192,17 @@ const WorkItemSubItems: React.FC<WorkItemSubItemsProps> = ({
         );
         await projectApi.createStandaloneWorkItem(
           shortId,
-          { title, parent: parentShortId, status: "planned" },
+          {
+            title,
+            parent: parentShortId,
+            stage: draftStage ?? undefined,
+            status: "planned",
+          },
           orgId ? { orgId } : undefined
         );
       }
       setDraftTitle("");
+      setDraftStage(null);
       setAdding(false);
       await emit("orgii-data-changed", {
         work_item_id: parentShortId,
@@ -173,7 +214,7 @@ const WorkItemSubItems: React.FC<WorkItemSubItemsProps> = ({
     } finally {
       setCreating(false);
     }
-  }, [creating, draftTitle, orgId, parentShortId, projectSlug]);
+  }, [creating, draftStage, draftTitle, orgId, parentShortId, projectSlug]);
 
   if (!parentShortId) return null;
 
@@ -262,27 +303,46 @@ const WorkItemSubItems: React.FC<WorkItemSubItemsProps> = ({
         </button>
       )}
       {adding && (
-        <input
-          autoFocus
-          value={draftTitle}
-          disabled={creating}
-          placeholder={t("workItems.subItems.titlePlaceholder", {
-            defaultValue: "Sub-item title, press Enter to create",
-          })}
-          className="mt-1 w-full rounded-md border border-border-1 bg-bg-1 px-2 py-1.5 text-[12px] text-text-1 outline-none placeholder:text-text-4 focus:border-primary-6"
-          onChange={(event) => setDraftTitle(event.target.value)}
-          onBlur={() => {
-            if (!creating) setAdding(false);
-          }}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") void handleCreateSubItem();
-            if (event.key === "Escape") {
-              setAdding(false);
-              setDraftTitle("");
-            }
-          }}
-          data-testid="work-item-sub-item-title-input"
-        />
+        <div className="mt-1 flex items-center gap-1">
+          <input
+            autoFocus
+            value={draftTitle}
+            disabled={creating}
+            placeholder={t("workItems.subItems.titlePlaceholder", {
+              defaultValue: "Sub-item title, press Enter to create",
+            })}
+            className="min-w-0 flex-1 rounded-md border border-border-1 bg-bg-1 px-2 py-1.5 text-[12px] text-text-1 outline-none placeholder:text-text-4 focus:border-primary-6"
+            onChange={(event) => setDraftTitle(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") void handleCreateSubItem();
+              if (event.key === "Escape") {
+                setAdding(false);
+                setDraftTitle("");
+                setDraftStage(null);
+              }
+            }}
+            data-testid="work-item-sub-item-title-input"
+          />
+          <div className="w-24 shrink-0">
+            <Select
+              value={draftStage ?? "none"}
+              options={stageOptions}
+              disabled={creating}
+              size="mini"
+              radius="md"
+              dropdownWidthMode="auto"
+              className="w-full"
+              ariaLabel={t("workItems.subItems.stagePicker", {
+                defaultValue: "Sub-item stage",
+              })}
+              dataTestId="work-item-sub-item-stage-select"
+              onChange={(value) => {
+                if (Array.isArray(value)) return;
+                setDraftStage(value === "none" ? null : Number(value));
+              }}
+            />
+          </div>
+        </div>
       )}
     </div>
   );
