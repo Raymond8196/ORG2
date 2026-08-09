@@ -6,7 +6,10 @@
 //! as the durable turn intent, then acknowledges delivery. A process crash at
 //! any boundary is reconciled from the persisted Session/intent state.
 
-use std::time::Duration;
+use std::{
+    sync::{Arc, OnceLock},
+    time::Duration,
+};
 
 use project_management::projects::types::{
     WorkItemDispatchLease, WorkItemExecutionLockReason, WorkItemRunTarget, WorkItemRunTrigger,
@@ -19,18 +22,60 @@ use tracing::{debug, error, info, warn};
 use crate::foundation::session_bridge::TurnIntentBridgeStatus;
 
 const LEASE_MS: i64 = 30_000;
-const IDLE_POLL_MS: u64 = 750;
+// Normal delivery is event-driven: in-process commits notify `DISPATCH_WAKE`
+// and external CLI/desktop commits advance the PM watermark, which wakes this
+// loop within the watermark observer's short window. Keep a coarse final
+// safety net for corrupted/missed signals without turning an idle desktop
+// into a recurring SQLite scan.
+const CRASH_RECOVERY_POLL_MS: u64 = 5 * 60_000;
+const BLOCKED_PATH_RECHECK_MS: u64 = 5_000;
 const MAX_BATCH: usize = 8;
+static DISPATCH_WAKE: OnceLock<Arc<tokio::sync::Notify>> = OnceLock::new();
 
-/// Start the single durable dispatcher loop. The first claim is immediate so
-/// fully-quit recovery does not wait for the polling interval.
+/// Wake the process-local dispatcher after the cross-process PM watermark
+/// observes a durable outbox write.
+pub fn wake_from_watermark() {
+    if let Some(wake) = DISPATCH_WAKE.get() {
+        wake.notify_one();
+    }
+}
+
+/// Start the single durable dispatcher loop. The first readiness probe is
+/// immediate so fully-quit recovery does not wait for the recovery interval.
 pub fn spawn(app: tauri::AppHandle) {
     let worker_id = format!("desktop_{}", uuid::Uuid::new_v4().simple());
+    let wake = Arc::clone(DISPATCH_WAKE.get_or_init(|| Arc::new(tokio::sync::Notify::new())));
+    let notifier = Arc::clone(&wake);
+    project_management::projects::events::register_work_item_dispatch_ready_notifier(Box::new(
+        move || notifier.notify_one(),
+    ));
     tauri::async_runtime::spawn(async move {
         info!(worker_id, "[work-run-dispatcher] started");
         reconcile_interrupted_session_runs(&app).await;
         crate::orchestrator_notify::reconcile_terminal_routine_dispatches(&app).await;
         loop {
+            let ready =
+                match tokio::task::spawn_blocking(work_run_service::has_claimable_dispatch).await {
+                    Ok(Ok(ready)) => ready,
+                    Ok(Err(err)) => {
+                        error!(error = %err, "[work-run-dispatcher] readiness probe failed");
+                        false
+                    }
+                    Err(err) => {
+                        error!(error = %err, "[work-run-dispatcher] readiness task failed");
+                        false
+                    }
+                };
+
+            if !ready {
+                let delay = dispatcher_wait_duration().await;
+                tokio::select! {
+                    _ = wake.notified() => {}
+                    _ = tokio::time::sleep(delay) => {}
+                }
+                continue;
+            }
+
             let mut handled = 0usize;
             for _ in 0..MAX_BATCH {
                 let claim_worker_id = worker_id.clone();
@@ -94,13 +139,34 @@ pub fn spawn(app: tauri::AppHandle) {
                 }
             }
 
-            if handled == 0 {
-                tokio::time::sleep(Duration::from_millis(IDLE_POLL_MS)).await;
-            } else {
+            if handled > 0 {
                 tokio::task::yield_now().await;
             }
         }
     });
+}
+
+async fn dispatcher_wait_duration() -> Duration {
+    let due_at = tokio::task::spawn_blocking(work_run_service::next_dispatch_due_at_ms)
+        .await
+        .ok()
+        .and_then(Result::ok)
+        .flatten();
+    let Some(due_at) = due_at else {
+        return Duration::from_millis(CRASH_RECOVERY_POLL_MS);
+    };
+    let now = chrono::Utc::now().timestamp_millis();
+    if due_at <= now {
+        // A ready deadline with no claimable row is normally a path-lock
+        // conflict. Recheck read-only at a coarse cadence until the terminal
+        // signal releases the lock; never spin or reserve SQLite's writer.
+        return Duration::from_millis(BLOCKED_PATH_RECHECK_MS);
+    }
+    Duration::from_millis(
+        u64::try_from(due_at - now)
+            .unwrap_or(CRASH_RECOVERY_POLL_MS)
+            .min(CRASH_RECOVERY_POLL_MS),
+    )
 }
 
 /// Close the crash window between dispatch acknowledgement and provider

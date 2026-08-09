@@ -299,6 +299,9 @@ pub(super) fn post(request: DiscussionPostRequest) -> Result<DiscussionPostResul
     )?;
     tx.commit()
         .map_err(|err| format!("Discussion commit: {err}"))?;
+    if run.is_some() {
+        crate::projects::events::notify_work_item_dispatch_ready();
+    }
     Ok(DiscussionPostResult {
         comment,
         run,

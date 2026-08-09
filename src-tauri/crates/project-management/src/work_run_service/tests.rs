@@ -111,6 +111,48 @@ fn enqueue_captures_immutable_work_item_context() {
 }
 
 #[test]
+fn readiness_probe_tracks_durable_deadlines_without_claiming() {
+    let _sandbox = test_env::sandbox();
+    seed();
+    assert!(!has_claimable_dispatch().expect("empty readiness"));
+    assert_eq!(next_dispatch_due_at_ms().expect("empty deadline"), None);
+
+    let before_enqueue = now_ms();
+    enqueue(request("manual:readiness")).expect("enqueue");
+    assert!(has_claimable_dispatch().expect("pending readiness"));
+    assert!(next_dispatch_due_at_ms()
+        .expect("pending deadline")
+        .is_some_and(|due_at| due_at >= before_enqueue && due_at <= now_ms()));
+
+    claim_next_dispatch("readiness-worker", 30_000)
+        .expect("claim")
+        .expect("lease");
+    assert!(!has_claimable_dispatch().expect("leased readiness"));
+    assert!(next_dispatch_due_at_ms()
+        .expect("lease deadline")
+        .is_some_and(|due_at| due_at > now_ms()));
+}
+
+#[test]
+fn readiness_probe_never_competes_for_the_sqlite_writer_reservation() {
+    let _sandbox = test_env::sandbox();
+    seed();
+    let mut writer = conn().expect("writer connection");
+    let tx = writer
+        .transaction_with_behavior(TransactionBehavior::Immediate)
+        .expect("reserve writer");
+    // Avoid the test-only `conn()` schema idempotency pass: production schema
+    // initialization is process-once, while this assertion isolates the
+    // dispatcher's steady-state query under a concurrent writer.
+    let reader = database::db::get_projects_connection().expect("reader connection");
+
+    // A second IMMEDIATE transaction would block/fail here. The readiness
+    // path remains a plain read and can inspect the empty queue concurrently.
+    assert!(!has_claimable_dispatch_on(&reader).expect("readiness under writer"));
+    tx.commit().expect("release writer");
+}
+
+#[test]
 fn path_lock_serializes_runs_until_terminal_release() {
     let _sandbox = test_env::sandbox();
     seed();

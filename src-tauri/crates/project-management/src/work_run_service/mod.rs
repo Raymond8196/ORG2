@@ -474,6 +474,7 @@ fn enqueue_with_initial_delay(
     let tx = db(connection.transaction_with_behavior(TransactionBehavior::Immediate))?;
     let run = enqueue_in_transaction(&tx, request, initial_delay_ms)?;
     db(tx.commit())?;
+    crate::projects::events::notify_work_item_dispatch_ready();
     Ok(run)
 }
 
@@ -947,24 +948,11 @@ pub fn claim_dispatch_for_run(
     })
 }
 
-/// Lease the oldest ready dispatch. Expired leases are reclaimed by the same
-/// query, so process death cannot strand a Run in `dispatching` forever.
-pub fn claim_next_dispatch(
-    worker_id: &str,
-    requested_lease_ms: i64,
-) -> Result<Option<WorkItemDispatchLease>, String> {
-    if worker_id.trim().is_empty() {
-        return Err(format!("{}:worker_id is required", error::INVALID_REQUEST));
-    }
-    let lease_ms = if requested_lease_ms <= 0 {
-        DEFAULT_LEASE_MS
-    } else {
-        requested_lease_ms.min(MAX_LEASE_MS)
-    };
-    let mut connection = conn()?;
-    let tx = db(connection.transaction_with_behavior(TransactionBehavior::Immediate))?;
-    let now = now_ms();
-    let candidate: Option<(String, String, i64)> = db(tx
+fn select_claimable_dispatch(
+    connection: &Connection,
+    now: i64,
+) -> Result<Option<(String, String, i64)>, String> {
+    db(connection
         .query_row(
             "SELECT d.id, d.run_id, d.delivery_attempt
              FROM pm_dispatch_outbox d
@@ -989,7 +977,62 @@ pub fn claim_next_dispatch(
             params![now],
             |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)),
         )
-        .optional())?;
+        .optional())
+}
+
+/// Cheap read-only readiness probe used before entering an `IMMEDIATE`
+/// transaction. An idle dispatcher therefore never takes SQLite's writer
+/// reservation merely to discover an empty queue.
+fn has_claimable_dispatch_on(connection: &Connection) -> Result<bool, String> {
+    Ok(select_claimable_dispatch(connection, now_ms())?.is_some())
+}
+
+pub fn has_claimable_dispatch() -> Result<bool, String> {
+    let connection = conn()?;
+    has_claimable_dispatch_on(&connection)
+}
+
+/// Earliest persisted dispatch/lease deadline. The dispatcher sleeps until
+/// this instant (bounded by its crash-recovery interval) and can still be
+/// interrupted immediately by an in-process outbox commit or the
+/// cross-process PM watermark.
+pub fn next_dispatch_due_at_ms() -> Result<Option<i64>, String> {
+    let connection = conn()?;
+    db(connection.query_row(
+        "SELECT MIN(
+             CASE
+               WHEN d.status IN ('pending', 'retry_wait') THEN d.available_at
+               WHEN d.status = 'leased' THEN d.lease_expires_at
+               ELSE NULL
+             END
+         )
+         FROM pm_dispatch_outbox d
+         JOIN pm_work_item_runs r ON r.id = d.run_id
+         WHERE d.status IN ('pending', 'retry_wait', 'leased')
+           AND r.status IN ('queued', 'deferred', 'dispatching')",
+        [],
+        |row| row.get(0),
+    ))
+}
+
+/// Lease the oldest ready dispatch. Expired leases are reclaimed by the same
+/// query, so process death cannot strand a Run in `dispatching` forever.
+pub fn claim_next_dispatch(
+    worker_id: &str,
+    requested_lease_ms: i64,
+) -> Result<Option<WorkItemDispatchLease>, String> {
+    if worker_id.trim().is_empty() {
+        return Err(format!("{}:worker_id is required", error::INVALID_REQUEST));
+    }
+    let lease_ms = if requested_lease_ms <= 0 {
+        DEFAULT_LEASE_MS
+    } else {
+        requested_lease_ms.min(MAX_LEASE_MS)
+    };
+    let mut connection = conn()?;
+    let tx = db(connection.transaction_with_behavior(TransactionBehavior::Immediate))?;
+    let now = now_ms();
+    let candidate = select_claimable_dispatch(&tx, now)?;
     let Some((dispatch_id, run_id, previous_attempts)) = candidate else {
         db(tx.commit())?;
         return Ok(None);
@@ -1362,6 +1405,7 @@ pub fn record_dispatch_failure(
         }),
     )?;
     db(tx.commit())?;
+    crate::projects::events::notify_work_item_dispatch_ready();
     let persisted = read(&run_id)?;
     if let Err(err) = crate::work_item_features::subscriptions::notify_run_terminal(&persisted) {
         tracing::warn!(run_id = %persisted.id, error = %err, "failed to project Run failure into Inbox");
@@ -1402,6 +1446,7 @@ pub fn record_run_terminal(
     if existing.status.is_terminal() {
         release_path_lock(&tx, run_id)?;
         db(tx.commit())?;
+        crate::projects::events::notify_work_item_dispatch_ready();
         return Ok(existing);
     }
 
@@ -1462,6 +1507,7 @@ pub fn record_run_terminal(
         }),
     )?;
     db(tx.commit())?;
+    crate::projects::events::notify_work_item_dispatch_ready();
     let persisted = read(run_id)?;
     if let Err(err) = crate::work_item_features::subscriptions::notify_run_terminal(&persisted) {
         tracing::warn!(run_id = %persisted.id, error = %err, "failed to project Run failure into Inbox");

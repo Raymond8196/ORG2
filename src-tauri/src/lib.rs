@@ -853,6 +853,12 @@ pub fn run() {
                         .and_then(Result::ok)
                         .unwrap_or(-1);
                         if seq >= 0 && seq != last_seq {
+                            // The same durable watermark covers WorkItemRun
+                            // outbox writes made by another desktop/CLI
+                            // process. Wake the dispatcher; its read-only
+                            // readiness probe avoids a writer lock for PM
+                            // changes unrelated to dispatch.
+                            agent_core::coordination::work_item_run_dispatcher::wake_from_watermark();
                             let _ = watermark_handle.emit(
                                 project_management::projects::events::DATA_CHANGED_EVENT,
                                 serde_json::json!({ "source": "pm-watermark" }),
