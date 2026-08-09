@@ -187,7 +187,7 @@ CachedFileChip.displayName = "CachedFileChip";
  * message toolbar whenever the mouse was anywhere in the pane.
  */
 const DISPLAY_CONTAINER_BASE =
-  "relative w-fit max-w-[min(600px,100%)] rounded-2xl bg-fill-2 px-3 py-2 transition-colors hover:bg-fill-3";
+  "relative w-fit max-w-[min(600px,100%)] rounded-2xl bg-fill-2 px-3 py-2";
 
 // ============================================
 // Component
