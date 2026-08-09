@@ -246,7 +246,15 @@ pub fn complete_linked_session(
     let idx = frontmatter
         .linked_sessions
         .iter()
-        .position(|ls| ls.session_id == session_id)
+        .rposition(|ls| {
+            ls.session_id == session_id && ls.status == LinkedSessionStatus::Running
+        })
+        .or_else(|| {
+            frontmatter
+                .linked_sessions
+                .iter()
+                .rposition(|ls| ls.session_id == session_id)
+        })
         .or_else(|| {
             tracing::warn!(
                 "[state_machine] No linked session for '{}', falling back to pending placeholder",

@@ -1,7 +1,6 @@
 //! Shared project service: project + work-item operations.
 //!
 //! Used by:
-//! - Agent `ProjectTool`
 //! - Tauri commands for frontend project/work-item operations
 //!
 //! Wraps `project_management::projects::io` (global SQLite store)

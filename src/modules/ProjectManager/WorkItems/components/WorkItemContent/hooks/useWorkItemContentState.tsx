@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { TabPillItem } from "@src/components/TabPill";
@@ -14,6 +14,7 @@ import type {
   WorkItem as WorkItemExtended,
 } from "@src/types/core/workItem";
 
+import { forwardDiscussionCommentToLinkedSession } from "../discussionCommentForward";
 import { SESSION_TAB_KEYS, type SessionTab } from "../types";
 import { useWorkItemTimeline } from "../useWorkItemTimeline";
 import { normalizeWorkItemMentionIds } from "../workItemMentions";
@@ -28,9 +29,6 @@ interface UseWorkItemContentStateOptions {
   teamMembers?: Person[];
   projectSlug?: string | null;
   shortId?: string | null;
-  onStartAgent?: (instructions?: string) => void;
-  onOpenSession?: (sessionId: string) => void;
-  activeAgentSessionId?: string | null;
 }
 
 export function useWorkItemContentState(
@@ -43,10 +41,7 @@ export function useWorkItemContentState(
     currentUserProp,
     teamMembers = [],
     projectSlug,
-    shortId: _shortId,
-    onStartAgent,
-    onOpenSession,
-    activeAgentSessionId,
+    shortId,
   } = options;
 
   const { t } = useTranslation("projects");
@@ -80,43 +75,6 @@ export function useWorkItemContentState(
 
   const currentPhase = workItem.orchestratorState?.current_phase ?? "idle";
   const isAgentRunning = currentPhase === "sde" || currentPhase === "review";
-
-  const pendingOpenChatRef = useRef(false);
-
-  const handleStartAgentAndOpenChat = useMemo(
-    () =>
-      onStartAgent
-        ? (instructions?: string) => {
-            pendingOpenChatRef.current = true;
-            onStartAgent(instructions);
-          }
-        : undefined,
-    [onStartAgent]
-  );
-
-  useEffect(() => {
-    if (
-      pendingOpenChatRef.current &&
-      activeAgentSessionId &&
-      activeAgentSessionId !== "pending" &&
-      onOpenSession
-    ) {
-      pendingOpenChatRef.current = false;
-      onOpenSession(activeAgentSessionId);
-    }
-  }, [activeAgentSessionId, onOpenSession]);
-
-  const prevSessionIdRef = useRef(activeAgentSessionId);
-  useEffect(() => {
-    if (
-      pendingOpenChatRef.current &&
-      prevSessionIdRef.current &&
-      !activeAgentSessionId
-    ) {
-      pendingOpenChatRef.current = false;
-    }
-    prevSessionIdRef.current = activeAgentSessionId;
-  }, [activeAgentSessionId]);
 
   const sessionTabItems: TabPillItem[] = useMemo(
     () =>
@@ -252,6 +210,12 @@ export function useWorkItemContentState(
       onUpdateWorkItem?.({
         comments: [...(workItem.comments ?? []), newComment],
       } as Partial<WorkItemExtended>);
+      forwardDiscussionCommentToLinkedSession({
+        shortId: shortId ?? workItem.shortId ?? "",
+        author: currentUser.name ?? currentUser.id,
+        comment: newComment.content,
+        linkedSessions: workItem.linkedSessions,
+      });
       setCommentText("");
       setMentionedUserIds([]);
     } catch (err) {
@@ -264,9 +228,11 @@ export function useWorkItemContentState(
     isSubmittingComment,
     workItem,
     currentUser.id,
+    currentUser.name,
     mentionedUserIds,
     teamMembers,
     onUpdateWorkItem,
+    shortId,
   ]);
 
   return {
@@ -283,7 +249,6 @@ export function useWorkItemContentState(
     isSubmittingComment,
     currentPhase,
     isAgentRunning,
-    handleStartAgentAndOpenChat,
     sessionTabItems,
     resolvedDescription,
     rawDescription,

@@ -104,8 +104,8 @@ pub fn create_session(
              proxy_session_id, background, key_source, additional_directories,
              parent_session_id, org_member_id, org_id, project_id, project_name,
              project_slug, work_item_id, agent_role, created_at, updated_at,
-             transcript_source)
-         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24, ?25, ?26, ?27, ?28, ?29)",
+             transcript_source, product_mode)
+         VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24, ?25, ?26, ?27, ?28, ?29, ?30)",
         params![
             session_id, name, SessionStatus::Pending.as_ref(), flow, runner, params.cli_agent_type,
             params.model, params.tier, params.account_id,
@@ -114,6 +114,7 @@ pub fn create_session(
             additional_dirs_json, params.parent_session_id, params.org_member_id,
             org_id, params.project_id, params.project_name, params.project_slug,
             params.work_item_id, params.agent_role, ts, ts, transcript_source,
+            params.product_mode,
         ],
     )?;
 
@@ -139,7 +140,7 @@ const SESSION_COLUMNS: &str =
      COALESCE(cs.org_id, 'personal-org'), cs.project_id, cs.project_name,
      cs.project_slug, cs.work_item_id, cs.agent_role,
      cs.created_at, cs.updated_at,
-     COALESCE(cs.transcript_source, 'chunks')";
+     COALESCE(cs.transcript_source, 'chunks'), cs.product_mode";
 
 /// Get a session by ID.
 pub fn get_session(session_id: &str) -> SqliteResult<Option<CodeSession>> {
@@ -777,6 +778,37 @@ pub fn update_model_and_account(
 /// Update the per-session execution mode on a CLI session row.
 /// Mirrors `agent_core::session::persistence::update_agent_exec_mode`.
 /// Does not bump `updated_at`; this is composer control state, not activity.
+/// Link the Project root Work Item created by the bootstrap flow.
+/// Guarded on `work_item_id IS NULL` so a concurrent duplicate submit
+/// can never repoint an already-linked session (same contract as the
+/// agent-side `link_bootstrap_work_item`).
+pub fn link_bootstrap_work_item(session_id: &str, work_item_id: &str) -> SqliteResult<bool> {
+    let conn = get_connection()?;
+    let affected = conn.execute(
+        "UPDATE code_sessions
+         SET work_item_id = ?2, updated_at = ?3
+         WHERE session_id = ?1 AND work_item_id IS NULL",
+        params![session_id, work_item_id, now_iso()],
+    )?;
+    if affected > 0 {
+        sync_orgtrack_mirror(session_id);
+    }
+    Ok(affected > 0)
+}
+
+/// Set the product-mode axis (validated upstream by `session_patch`).
+pub fn update_product_mode(session_id: &str, product_mode: &str) -> SqliteResult<bool> {
+    let conn = get_connection()?;
+    let affected = conn.execute(
+        "UPDATE code_sessions SET product_mode = ?2, updated_at = ?3 WHERE session_id = ?1",
+        params![session_id, product_mode, now_iso()],
+    )?;
+    if affected > 0 {
+        sync_orgtrack_mirror(session_id);
+    }
+    Ok(affected > 0)
+}
+
 pub fn update_agent_exec_mode(session_id: &str, mode: &str) -> SqliteResult<bool> {
     let parsed = AgentExecMode::parse(mode).ok_or_else(|| {
         rusqlite::Error::ToSqlConversionFailure(
@@ -1039,5 +1071,6 @@ fn row_to_session(row: &rusqlite::Row) -> rusqlite::Result<CodeSession> {
         created_at: row.get(39)?,
         updated_at: row.get(40)?,
         transcript_source: row.get(41)?,
+        product_mode: row.get(42)?,
     })
 }

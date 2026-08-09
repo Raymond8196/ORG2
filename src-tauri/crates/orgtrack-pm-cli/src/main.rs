@@ -46,7 +46,7 @@ fn parse_args(args: &[String]) -> Result<Parsed, CliError> {
     while i < args.len() {
         let arg = &args[i];
         if let Some(name) = arg.strip_prefix("--") {
-            if name == "json" || name == "ready" {
+            if name == "json" || name == "ready" || name == "standalone" {
                 flags.insert(name.to_string(), "true".to_string());
                 i += 1;
                 continue;
@@ -127,19 +127,20 @@ fn run(args: &[String]) -> i32 {
     match parsed.positionals.first().map(String::as_str) {
         Some("context") => commands::cmd_context(&context),
         Some("work") => commands::dispatch_work(&context, &parsed.positionals[1..], flags),
+        Some("project") => commands::dispatch_project(&context, &parsed.positionals[1..], flags),
         Some("routine") => {
             commands::dispatch_routine(&context, &parsed.positionals[1..], flags, &parsed.inputs)
         }
         Some(other) => emit_error(CliError::new(
             ErrorCode::InvalidArgument,
             format!(
-                "Unknown command '{}'; expected context|work|routine",
+                "Unknown command '{}'; expected context|work|project|routine",
                 other
             ),
         )),
         None => emit_error(CliError::new(
             ErrorCode::InvalidArgument,
-            "Usage: org2 <context|work|routine> ... (JSON envelope on stdout)",
+            "Usage: org2 <context|work|project|routine> ... (JSON envelope on stdout)",
         )),
     }
 }

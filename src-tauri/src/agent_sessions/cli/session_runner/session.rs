@@ -522,6 +522,13 @@ pub async fn run_session(
 
     super::env_setup::apply_system_proxy_passthrough(&mut env_vars);
 
+    super::env_setup::inject_orgtrack_environment(
+        &session,
+        &session_id,
+        working_dir,
+        &mut env_vars,
+    );
+
     sanitize_cli_oauth_env_for_child(&agent, &mut env_vars);
 
     // Log environment variables for debugging (redact token values)

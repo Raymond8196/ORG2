@@ -13,6 +13,7 @@ pub mod lineage;
 pub mod orchestrator;
 pub mod projects;
 pub mod provider_host;
+pub mod project_service;
 pub mod routine_service;
 pub mod sync;
 pub mod team_inbox;

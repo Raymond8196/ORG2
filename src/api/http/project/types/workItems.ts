@@ -189,6 +189,7 @@ export interface WorkItemFrontmatter {
   labels: string[];
   milestone?: string;
   parent?: string;
+  stage?: number;
   start_date?: string;
   target_date?: string;
   created_by?: string;
@@ -236,6 +237,7 @@ export interface WorkItemPartialUpdate {
   assigneeType?: string | null;
   labels?: string[];
   milestone?: string | null;
+  stage?: number | null;
   startDate?: string | null;
   targetDate?: string | null;
   todos?: TodoEntry[];

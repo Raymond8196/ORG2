@@ -656,6 +656,7 @@ fn frontmatter_from_wire(
         labels: tail(payload, "labels"),
         milestone: string_field(payload, "milestone"),
         parent: string_field(payload, "parentId"),
+        stage: payload.get("stage").and_then(|value| value.as_u64()).map(|value| value as u32),
         start_date: string_field(payload, "startDate"),
         target_date: string_field(payload, "targetDate"),
         created_by: string_field(payload, "createdBy"),

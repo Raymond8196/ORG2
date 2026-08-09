@@ -130,6 +130,10 @@ pub fn init_cli_agent_tables(conn: &Connection) -> SqliteResult<()> {
         .ok();
     conn.execute("ALTER TABLE code_sessions ADD COLUMN agent_role TEXT", [])
         .ok();
+    // Product-mode axis (orgtrack/v1 §5.2) for CLI sessions: parity with
+    // agent_sessions so external CLIs can enter Project mode.
+    conn.execute("ALTER TABLE code_sessions ADD COLUMN product_mode TEXT", [])
+        .ok();
 
     // Schema update: add hosted_token column for proxy token release on session cleanup
     conn.execute("ALTER TABLE code_sessions ADD COLUMN hosted_token TEXT", [])

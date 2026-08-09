@@ -246,6 +246,7 @@ pub(super) async fn materialize_org_member_sessions(
                 project_slug: project_slug.clone(),
                 work_item_id: work_item_id.clone(),
                 agent_role: None,
+                product_mode: work_item_id.as_ref().map(|_| "project".to_string()),
                 user_input: String::new(),
                 ide_context: None,
                 mode: agent_exec_mode.clone(),

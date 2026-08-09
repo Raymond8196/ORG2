@@ -317,9 +317,13 @@ pub fn apply_session_patch(session_id: &str, patch: &SessionPatch) -> Result<(),
                 session_persistence::update_product_mode(session_id, product_mode)
                     .map_err(|err| format!("session_patch update product_mode (agent): {err}"))?;
             }
-            SessionLocation::Cli | SessionLocation::Imported => {
+            SessionLocation::Cli => {
+                cli_persistence::update_product_mode(session_id, product_mode)
+                    .map_err(|err| format!("session_patch update product_mode (cli): {err}"))?;
+            }
+            SessionLocation::Imported => {
                 return Err(
-                    "session_patch: only agent sessions carry a product_mode".to_string()
+                    "session_patch: imported sessions do not carry a product_mode".to_string()
                 );
             }
         }

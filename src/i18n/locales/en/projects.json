@@ -502,6 +502,7 @@
       "title": "Agent Workflow",
       "startAgent": "Start Agent",
       "startAgentAndChat": "Start Agent & Open Chat",
+      "noWorkspaceForAgent": "Open a repository workspace before starting an agent on this item.",
       "running": "Running...",
       "pendingLaunch": "Pending launch...",
       "completed": "Completed",
@@ -634,7 +635,16 @@
       "cycles": "cycles"
     },
     "viewWorkItems": "View work items",
-    "fromRoutine": "From routine: {{name}}"
+    "fromRoutine": "From routine: {{name}}",
+    "subItems": {
+      "title": "Sub-items",
+      "parent": "Parent"
+    },
+    "sessionRail": {
+      "notOnDeviceTitle": "Session not on this device",
+      "notOnDeviceHint": "This session ran on another device. Its transcript is not synced here.",
+      "finalOutput": "Final output"
+    }
   },
   "settings": {
     "sidebarGeneral": "General",

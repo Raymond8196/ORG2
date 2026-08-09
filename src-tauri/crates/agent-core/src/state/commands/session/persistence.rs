@@ -13,7 +13,6 @@ use crate::session::{SessionListFilter, SessionStatus};
 use crate::state::control_flow::CancelReason;
 use crate::state::{AgentAppState, AgentSession};
 use crate::tools::file_history;
-use core_types::workflow::{AgentRole, LinkedSession, LinkedSessionStatus, LinkedSessionType};
 use database::db::{get_connection, with_sessions_writer};
 use rusqlite::{params, Connection, OptionalExtension};
 use serde::Serialize;
@@ -993,7 +992,12 @@ fn link_session_to_work_item_sync(
     .then_some(())
     .ok_or_else(|| format!("Session not found: {session_id}"))?;
 
-    upsert_linked_session_on_work_item(project_slug, work_item_id, &session, agent_role)?;
+    session_persistence::linked_work_item::upsert_linked_session_on_work_item(
+        project_slug,
+        work_item_id,
+        &session,
+        agent_role,
+    )?;
 
     session_persistence::get_session(session_id)
         .map_err(|err| err.to_string())?
@@ -1022,107 +1026,6 @@ fn remove_linked_session_from_work_item(
     .map(|_| ())
 }
 
-fn upsert_linked_session_on_work_item(
-    project_slug: &str,
-    work_item_id: &str,
-    session: &session_persistence::UnifiedSessionRecord,
-    agent_role: Option<&str>,
-) -> Result<(), String> {
-    project_management::projects::io::update_work_item_atomic(
-        project_slug,
-        work_item_id,
-        |frontmatter, _body| {
-            let linked = linked_session_from_record(session, agent_role);
-            match frontmatter
-                .linked_sessions
-                .iter_mut()
-                .find(|candidate| candidate.session_id == session.session_id)
-            {
-                Some(existing) => {
-                    existing.session_type = linked.session_type;
-                    existing.agent_role = linked.agent_role;
-                    existing.status = linked.status;
-                    existing.completed_at = linked.completed_at;
-                    existing.total_tokens = linked.total_tokens;
-                    if existing.result_preview.is_none() {
-                        existing.result_preview = linked.result_preview;
-                    }
-                }
-                None => frontmatter.linked_sessions.push(linked),
-            }
-            frontmatter.updated_at = chrono::Utc::now().to_rfc3339();
-            Ok(())
-        },
-    )
-    .map(|_| ())
-}
-
-fn linked_session_from_record(
-    session: &session_persistence::UnifiedSessionRecord,
-    agent_role: Option<&str>,
-) -> LinkedSession {
-    let status = linked_session_status(&session.status);
-    let completed_at = matches!(
-        status,
-        LinkedSessionStatus::Completed
-            | LinkedSessionStatus::Failed
-            | LinkedSessionStatus::Cancelled
-    )
-    .then(|| session.updated_at.clone());
-    LinkedSession {
-        session_id: session.session_id.clone(),
-        session_type: linked_session_type(&session.session_type),
-        agent_role: parse_agent_role(agent_role.or(session.agent_role.as_deref())),
-        started_at: session.created_at.clone(),
-        completed_at,
-        status,
-        cost_usd: 0.0,
-        total_tokens: session.total_tokens.max(0) as u64,
-        parent_session_id: session.parent_session_id.clone(),
-        sub_agent_name: None,
-        sub_agent_instance: None,
-        result_preview: session
-            .name
-            .is_empty()
-            .then(|| session.user_input.clone())
-            .flatten()
-            .or_else(|| Some(session.name.clone())),
-    }
-}
-
-fn linked_session_status(raw: &str) -> LinkedSessionStatus {
-    match SessionStatus::parse(raw) {
-        Some(SessionStatus::Failed) => LinkedSessionStatus::Failed,
-        Some(SessionStatus::Cancelled | SessionStatus::Abandoned | SessionStatus::Timeout) => {
-            LinkedSessionStatus::Cancelled
-        }
-        Some(
-            SessionStatus::Running | SessionStatus::WaitingForUser | SessionStatus::WaitingForFunds,
-        ) => LinkedSessionStatus::Running,
-        _ => LinkedSessionStatus::Completed,
-    }
-}
-
-fn linked_session_type(session_type: &str) -> LinkedSessionType {
-    match session_type {
-        session_persistence::session_type::CODING
-        | session_persistence::session_type::GENERIC
-        | session_persistence::session_type::DESKTOP
-        | session_persistence::session_type::SUBAGENT
-        | session_persistence::session_type::ORG_MEMBER => LinkedSessionType::Native,
-        _ => LinkedSessionType::Native,
-    }
-}
-
-fn parse_agent_role(raw: Option<&str>) -> AgentRole {
-    match raw.unwrap_or_default() {
-        "review" => AgentRole::Review,
-        "orchestrator" => AgentRole::Orchestrator,
-        "custom" => AgentRole::Custom,
-        "sub_agent" => AgentRole::SubAgent,
-        _ => AgentRole::Coding,
-    }
-}
 
 #[cfg(test)]
 mod tests {

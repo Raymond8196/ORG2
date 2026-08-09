@@ -31,6 +31,8 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@src/api/http/project", () => ({
   projectApi: {
     transitionWorkItemHandoff: mocks.transitionWorkItemHandoff,
+    readWorkItems: () => Promise.resolve([]),
+    readStandaloneWorkItems: () => Promise.resolve([]),
   },
 }));
 
@@ -44,6 +46,7 @@ vi.mock("react-i18next", () => ({
 
 vi.mock("@src/hooks/project", () => ({
   useWorkItemImageInsert: () => ({ handleImageInsert: vi.fn() }),
+  useProjectDataChanged: () => undefined,
 }));
 
 vi.mock("@src/components/Avatar", () => ({
@@ -260,9 +263,6 @@ vi.mock("@src/modules/shared/layouts/blocks", () => ({
     ),
 }));
 
-vi.mock("../../AgentWorkflow", () => ({
-  default: () => createElement("div", { "data-testid": "mock-agent-workflow" }),
-}));
 vi.mock("../../TodoChecklist", () => ({ default: () => null }));
 vi.mock("../ThreadTodoChecklist", () => ({
   default: () => createElement("div", { "data-testid": "mock-thread-todos" }),
@@ -886,9 +886,6 @@ describe("WorkItemContent description editing", () => {
     expect(
       container.querySelector("[data-testid='mock-thread-todos']")
     ).not.toBeNull();
-    expect(
-      container.querySelector("[data-testid='mock-agent-workflow']")
-    ).not.toBeNull();
     expect(container.querySelector("[data-testid='mock-activity']")).toBeNull();
 
     act(() => discussionAction?.click());
@@ -910,9 +907,6 @@ describe("WorkItemContent description editing", () => {
     ).toBeNull();
     expect(
       container.querySelector("[data-testid='mock-thread-todos']")
-    ).toBeNull();
-    expect(
-      container.querySelector("[data-testid='mock-agent-workflow']")
     ).toBeNull();
 
     act(() => backAction?.click());

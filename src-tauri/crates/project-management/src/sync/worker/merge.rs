@@ -546,6 +546,7 @@ fn build_inbound_create_frontmatter(
         labels,
         milestone: pick_string("milestone"),
         parent: None,
+        stage: None,
         start_date: pick_string("start_date"),
         target_date: pick_string("target_date"),
         created_by: pick_string("created_by"),

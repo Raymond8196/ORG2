@@ -290,10 +290,13 @@ export function ChatPanelEmptyContent({
                               projectDraftOrgId ??
                               createProjectContext?.orgId ??
                               STORY_PERSONAL_ORG_FILTER_ID,
-                            // The whole flow is "create a project via manage_project" —
+                            // The whole flow is "create a project via org2-pm" —
                             // without a workItemId the resolver would default to build
-                            // and the PM tools would be policy-denied (§5.2 deny-delta).
+                            // and org2-pm would refuse project.mutate (§5.2). The
+                            // exec-mode pin keeps run_shell available: read-only
+                            // modes deny the shell the CLI rides on.
                             productMode: PRODUCT_MODE_PROJECT,
+                            agentExecMode: "build",
                           }}
                         />
                       )

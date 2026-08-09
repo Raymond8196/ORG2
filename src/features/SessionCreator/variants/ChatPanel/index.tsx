@@ -215,6 +215,7 @@ const SessionCreatorChatPanelContent: React.FC<
     handleSlashSelect,
     handleModeSelect,
     currentMode,
+    includeProjectMode,
     filteredSlashItems,
     slashLoading,
   } = useSessionCreator({
@@ -490,6 +491,7 @@ const SessionCreatorChatPanelContent: React.FC<
         onSlashSelect: handleSlashSelect,
         onModeSelect: handleModeSelect,
         currentMode,
+        includeProjectMode: isHumanMode ? false : includeProjectMode,
         filteredSlashItems,
         slashLoading,
         dropdownDirection,

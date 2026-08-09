@@ -17,7 +17,7 @@ import ComposerShell from "@src/components/ComposerShell";
 import Message from "@src/components/Message";
 import { VoiceInputButton, VoiceRecordingBar } from "@src/components/Voice";
 import { capPillText, storePillText } from "@src/config/pillTokens";
-import type { AgentExecMode } from "@src/config/sessionCreatorConfig";
+import type { ComposerModeEntry } from "@src/config/sessionCreatorConfig";
 import ContextMenuPortal from "@src/engines/ChatPanel/InputArea/components/ContextMenuPortal";
 import SlashCommandPortal from "@src/engines/ChatPanel/InputArea/components/SlashCommandPortal";
 import { type VoiceInputError, useVoiceInput } from "@src/hooks/voice";
@@ -158,8 +158,9 @@ export interface EditorAreaProps {
   onSlashCommand?: (query: string) => void;
   onSlashCommandClose?: () => void;
   onSlashSelect?: (item: SlashItem) => void;
-  onModeSelect?: (mode: AgentExecMode) => void;
-  currentMode?: AgentExecMode;
+  onModeSelect?: (mode: ComposerModeEntry["id"]) => void;
+  currentMode?: ComposerModeEntry["id"];
+  includeProjectMode?: boolean;
   filteredSlashItems?: SlashItem[];
   slashLoading?: boolean;
   /** Fetch+filter slash items without opening the inline "/" menu. */
@@ -223,6 +224,7 @@ const EditorArea: React.FC<EditorAreaProps> = ({
   onSlashCommandClose,
   onSlashSelect,
   onModeSelect,
+  includeProjectMode,
   currentMode = "build",
   filteredSlashItems = [],
   slashLoading = false,
@@ -615,6 +617,7 @@ const EditorArea: React.FC<EditorAreaProps> = ({
             items={filteredSlashItems}
             loading={slashLoading}
             currentMode={currentMode}
+            includeProjectMode={includeProjectMode}
             searchQuery={slashQuery}
             onClose={onSlashCommandClose ?? handlePlusSlashClose}
             onSelect={(item) => onSlashSelect?.(item)}
@@ -635,6 +638,7 @@ const EditorArea: React.FC<EditorAreaProps> = ({
             items={filteredSlashItems}
             loading={slashLoading}
             currentMode={currentMode}
+            includeProjectMode={includeProjectMode}
             searchQuery={plusSlashQuery}
             onClose={handlePlusSlashClose}
             onSelect={(item) => {

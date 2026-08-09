@@ -63,6 +63,8 @@ pub(super) struct ExtrasPayload {
     pub delegations: Vec<DelegationEntry>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub handoff: Option<WorkItemHandoff>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub stage: Option<u32>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub linked_sessions: Vec<LinkedSession>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -111,6 +113,7 @@ impl ExtrasPayload {
             history: fm.history.clone(),
             delegations: fm.delegations.clone(),
             handoff: fm.handoff.clone(),
+            stage: fm.stage,
             linked_sessions: fm.linked_sessions.clone(),
             proof_of_work: fm.proof_of_work.clone(),
             orchestrator_config: fm.orchestrator_config.clone(),

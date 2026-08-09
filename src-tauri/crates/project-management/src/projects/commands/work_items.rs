@@ -177,7 +177,13 @@ pub async fn project_write_work_item(
     body: String,
 ) -> Result<(), String> {
     tokio::task::spawn_blocking(move || {
-        io::write_work_item(&project_slug, &short_id, &frontmatter, &body)
+        crate::work_service::overwrite_project_work_item(
+            &project_slug,
+            &short_id,
+            &frontmatter,
+            &body,
+            None,
+        )
     })
     .await
     .map_err(|err| format!("Task join error: {}", err))?
@@ -191,7 +197,13 @@ pub async fn work_item_write_standalone_item(
     body: String,
 ) -> Result<(), String> {
     tokio::task::spawn_blocking(move || {
-        io::write_standalone_work_item(org_id.as_deref(), &short_id, &frontmatter, &body)
+        crate::work_service::overwrite_standalone_work_item(
+            org_id.as_deref(),
+            &short_id,
+            &frontmatter,
+            &body,
+            None,
+        )
     })
     .await
     .map_err(|err| format!("Task join error: {}", err))?
@@ -283,12 +295,16 @@ pub async fn project_transition_work_item(
     expected_revision: Option<i64>,
 ) -> Result<WorkItemData, String> {
     tokio::task::spawn_blocking(move || {
+        let actor = crate::projects::types::WorkItemMutationActor {
+            id: "human:desktop".to_string(),
+            name: "Desktop".to_string(),
+        };
         crate::work_service::transition_project_work_item(
             &project_slug,
             &short_id,
             &to_status,
             reason.as_deref(),
-            None,
+            Some(&actor),
             expected_revision,
         )
     })

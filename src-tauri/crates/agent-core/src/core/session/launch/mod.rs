@@ -152,6 +152,50 @@ pub(crate) struct AgentRunLaunchResult {
     pub project_slug: Option<String>,
     pub work_item_id: Option<String>,
     pub agent_role: Option<String>,
+    pub product_mode: Option<String>,
+}
+
+/// Write the fail-closed session-context marker (design M6) into the
+/// session workspace: `org2-pm` locks its identity to this file when
+/// present, so an agent inside the workspace can never act as a human
+/// or as another session.
+pub fn write_agent_session_marker(
+    workspace_path: &str,
+    session_id: &str,
+    agent_definition_id: Option<&str>,
+    product_mode: Option<&str>,
+    project_slug: Option<&str>,
+    org_id: Option<&str>,
+) {
+    if workspace_path.trim().is_empty() {
+        return;
+    }
+    let agent = agent_definition_id
+        .unwrap_or("os")
+        .trim_start_matches("builtin:");
+    let capabilities: Vec<&str> = if product_mode == Some("project") {
+        vec!["work.read", "work.mutate", "routine.invoke", "project.mutate"]
+    } else {
+        vec!["work.read"]
+    };
+    let marker = serde_json::json!({
+        "apiVersion": "orgtrack/v1",
+        "sessionRef": format!("org2:{session_id}"),
+        "actor": format!("agent:{agent}"),
+        "productMode": product_mode,
+        "scope": project_slug,
+        "org": project_management::projects::io::resolve_local_org_scope(org_id),
+        "capabilities": capabilities,
+        "issuedAt": chrono::Utc::now().to_rfc3339(),
+    });
+    let dir = std::path::Path::new(workspace_path).join(".orgii");
+    if std::fs::create_dir_all(&dir).is_err() {
+        return;
+    }
+    let path = dir.join("agent_session_context.json");
+    if let Ok(raw) = serde_json::to_string_pretty(&marker) {
+        let _ = std::fs::write(path, raw);
+    }
 }
 
 async fn generate_title_before_first_turn(
@@ -498,6 +542,10 @@ pub(crate) async fn launch_rust_agent_run(
         .and_then(|value| value.as_str())
         .ok_or("create_session_impl did not return sessionId")?
         .to_string();
+    let resolved_product_mode = create_result
+        .get("productMode")
+        .and_then(|value| value.as_str())
+        .map(str::to_string);
 
     if let (Some(project_slug_value), Some(work_item_id_value)) =
         (project_slug.as_deref(), work_item_id.as_deref())
@@ -710,6 +758,7 @@ pub(crate) async fn launch_rust_agent_run(
             project_slug,
             work_item_id,
             agent_role,
+            product_mode: resolved_product_mode.clone(),
         });
     }
 
@@ -741,6 +790,18 @@ pub(crate) async fn launch_rust_agent_run(
             return Err(err);
         }
     };
+
+    write_agent_session_marker(
+        &prepared_workspace
+            .worktree_path
+            .clone()
+            .unwrap_or_else(|| workspace_path.clone()),
+        &session_id,
+        agent_definition_id.as_deref(),
+        resolved_product_mode.as_deref(),
+        project_slug.as_deref(),
+        Some(request.org_context.org_id.as_str()),
+    );
 
     if has_initial_content {
         let state_for_send = state.clone();
@@ -837,5 +898,6 @@ pub(crate) async fn launch_rust_agent_run(
         project_slug,
         work_item_id,
         agent_role,
+        product_mode: resolved_product_mode,
     })
 }

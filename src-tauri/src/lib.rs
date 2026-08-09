@@ -832,6 +832,19 @@ pub fn run() {
                                 project_management::projects::events::DATA_CHANGED_EVENT,
                                 serde_json::json!({ "source": "pm-watermark" }),
                             );
+                            // Fold CLI-committed status transitions into the
+                            // child-done wake pipeline; in-process writes were
+                            // already delivered by the terminal notifier and
+                            // dedupe at the barrier level.
+                            let bridge_handle = watermark_handle.clone();
+                            let after_seq = last_seq;
+                            let _ = tokio::task::spawn_blocking(move || {
+                                agent_core::coordination::child_done_wake::process_audit_window(
+                                    &bridge_handle,
+                                    after_seq,
+                                )
+                            })
+                            .await;
                         }
                         if seq >= 0 {
                             last_seq = seq;
@@ -858,6 +871,11 @@ pub fn run() {
                     );
                 },
             ));
+
+            // Child-done parent wake: when the last open
+            // sub-item settles, note the parent's Discussion and resume its
+            // linked session with the barrier summary.
+            agent_core::coordination::child_done_wake::register(app.handle().clone());
 
             // Restore previously-enabled channels (e.g. feishu was toggled on last run)
             let app_handle_for_restore = app.handle().clone();

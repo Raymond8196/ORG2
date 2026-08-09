@@ -25,7 +25,7 @@ pub use members::{
 pub use milestones::{read_milestones, write_milestones};
 pub use orgs::{
     configure_project_org_collab_sync, configure_project_org_git_folder_sync, create_project_org,
-    delete_project_org, read_project_org, read_project_orgs,
+    delete_project_org, read_project_org, read_project_orgs, resolve_local_org_scope,
 };
 pub use projects::{
     delete_project, derive_work_item_prefix, normalize_custom_work_item_prefix, read_all_projects,
@@ -44,6 +44,7 @@ pub use routines::{
     update_routine_schedule_marks, upsert_routine,
 };
 pub use work_items::orchestrator_view;
+pub(crate) use work_items::{allocate_short_id_in_tx, apply_execution_claim, resolve_project_scope_in_tx, write_work_item_in_tx};
 pub use work_items::{
     acquire_execution_lock, allocate_short_id, allocate_standalone_short_id, apply_remote_merge,
     batch_delete_work_items, batch_update_work_items, delete_work_item, find_by_external_ref,
@@ -57,7 +58,9 @@ pub use work_items::{
     read_work_items_view_data_scoped, read_work_items_view_data_scoped_for_view,
     read_workspace_work_items_data, release_execution_lock, restore_work_item,
     transition_standalone_work_item_handoff, transition_work_item_handoff,
-    update_standalone_work_item_atomic, update_standalone_work_item_partial,
+    update_standalone_work_item_atomic, update_standalone_work_item_atomic_by,
+    update_standalone_work_item_atomic_serviced,
+    update_standalone_work_item_partial,
     update_work_item_atomic, update_work_item_atomic_serviced,
     update_work_item_atomic_with_revisions, update_work_item_partial,
     update_work_item_partial_enriched, update_work_item_partial_with_revisions,

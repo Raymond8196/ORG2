@@ -176,9 +176,14 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
     ]
   );
 
-  usePublishChatPanelHeader({
-    content: { content: headerContent },
-  });
+  // Memoize the published-header payload — a fresh object literal every
+  // render re-publishes on every commit and can drive an unbounded update
+  // loop through the header atom's subscriber (see WorkItemPanelView).
+  const publishedHeader = useMemo(
+    () => ({ content: headerContent }),
+    [headerContent]
+  );
+  usePublishChatPanelHeader({ content: publishedHeader });
 
   useEffect(() => {
     if (!projectSlug) return;

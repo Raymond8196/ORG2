@@ -192,6 +192,7 @@ const InputAreaInteractive: React.FC<InputAreaProps> = memo(
       handleSlashAppendSelect,
       handleModeSelect,
       currentMode,
+      includeProjectMode,
       filteredSlashItems,
       slashLoading,
       slashQuery,
@@ -607,6 +608,7 @@ const InputAreaInteractive: React.FC<InputAreaProps> = memo(
           slashLoading={slashLoading}
           addressCommentsFlyout={addressCommentsFlyout}
           currentMode={currentMode}
+          includeProjectMode={includeProjectMode}
           slashQuery={slashQuery}
           onSlashCommandClose={handleSlashCommandClose}
           onSlashSelect={handleSlashSelect}

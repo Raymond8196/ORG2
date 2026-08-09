@@ -489,6 +489,7 @@ export interface WorkItemCreateRequest {
   labels?: string[];
   milestone?: string;
   parent?: string;
+  stage?: number;
   startDate?: string;
   targetDate?: string;
   createdBy?: string;

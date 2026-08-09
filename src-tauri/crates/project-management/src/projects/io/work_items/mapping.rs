@@ -76,6 +76,7 @@ pub(super) fn assemble_work_item(
         labels,
         milestone: core.milestone,
         parent: core.parent,
+        stage: extras.stage,
         start_date: core.start_date,
         target_date: core.target_date,
         created_by: extras.created_by,

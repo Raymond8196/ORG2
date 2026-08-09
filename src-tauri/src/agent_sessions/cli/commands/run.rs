@@ -308,6 +308,43 @@ pub async fn cli_agent_message(request: CliMessageRequest) -> Result<CliRunRecei
         "cli_agent_message: loaded session"
     );
 
+    // Project-session root bootstrap (orgtrack/v1 §7.2), CLI parity with
+    // the native message-accept path: the first non-empty submission of a
+    // Project-mode session creates and links its root Work Item. Failures
+    // are logged, never turned into a send error.
+    if session.product_mode.as_deref() == Some("project")
+        && session.work_item_id.is_none()
+        && !content.trim().is_empty()
+    {
+        let sid = session_id.clone();
+        let org = session.org_id.clone();
+        let body = content.clone();
+        let bootstrapped = tokio::task::spawn_blocking(move || {
+            let short_id = project_management::work_service::bootstrap_root_standalone_item(
+                &sid,
+                Some(org.as_str()),
+                &body,
+            )?;
+            persistence::link_bootstrap_work_item(&sid, &short_id)
+                .map_err(|err| format!("link bootstrap work item (cli): {err}"))?;
+            Ok::<String, String>(short_id)
+        })
+        .await
+        .map_err(|e| format!("Task error: {}", e))?;
+        match bootstrapped {
+            Ok(short_id) => {
+                tracing::info!(
+                    session_id = %session_id,
+                    short_id,
+                    "[project-bootstrap] created and linked root work item (cli)"
+                );
+            }
+            Err(err) => {
+                tracing::warn!(session_id = %session_id, error = %err, "[project-bootstrap] cli bootstrap failed");
+            }
+        }
+    }
+
     let target_account_id = account_id.as_deref().or(session.account_id.as_deref());
 
     // If the user switched model/account, persist the change so run_session picks it up.

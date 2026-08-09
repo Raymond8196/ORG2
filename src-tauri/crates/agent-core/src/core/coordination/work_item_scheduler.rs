@@ -297,7 +297,10 @@ pub fn migrate_cron_schedules() -> Result<usize, String> {
                 name: format!("Recurring: {}", fm.title),
                 description: format!("Migrated from work item {} recurring schedule", fm.short_id),
                 enabled: true,
-                trigger: RoutineTrigger::Cron { cron },
+                trigger: RoutineTrigger::Cron {
+                    cron,
+                    timezone: "UTC".to_string(),
+                },
                 run_template: RoutineRunTemplate {
                     prompt: fm.title.clone(),
                     target: RoutineRunTarget::AgentDefinition {
@@ -321,6 +324,11 @@ pub fn migrate_cron_schedules() -> Result<usize, String> {
                 },
                 last_evaluated_at: None,
                 next_fire_at: None,
+                last_fire_at: None,
+                last_fire_status: None,
+                last_fire_error: None,
+                last_fire_session_id: None,
+                last_fire_work_item_id: None,
                 created_at: String::new(),
                 updated_at: String::new(),
             };
@@ -511,6 +519,7 @@ mod tests {
             labels: vec![],
             milestone: None,
             parent: None,
+            stage: None,
             start_date: start_date.map(|s| s.to_string()),
             target_date: None,
             created_by: None,

@@ -416,6 +416,30 @@ fn write_work_item_with_scope(
     stamp_local_revisions: bool,
 ) -> Result<(), String> {
     let mut connection = conn()?;
+    let tx = map_db(connection.transaction())?;
+    write_work_item_in_tx(
+        &tx,
+        project_id,
+        org_id,
+        short_id,
+        frontmatter,
+        body,
+        stamp_local_revisions,
+    )?;
+    map_db(tx.commit())?;
+    crate::projects::events::notify_work_item_schedule_changed();
+    Ok(())
+}
+
+pub(crate) fn write_work_item_in_tx(
+    tx: &rusqlite::Transaction,
+    project_id: Option<String>,
+    org_id: &str,
+    short_id: &str,
+    frontmatter: &WorkItemFrontmatter,
+    body: &str,
+    stamp_local_revisions: bool,
+) -> Result<(), String> {
     let now = now_ms();
     let mut next_frontmatter = frontmatter.clone();
     next_frontmatter.project = project_id.clone();
@@ -430,7 +454,6 @@ fn write_work_item_with_scope(
         from_iso8601(&next_frontmatter.updated_at)
     };
     let deleted_at = next_frontmatter.deleted_at.as_deref().map(from_iso8601);
-    let tx = map_db(connection.transaction())?;
     let existing_item: Option<PriorSyncSnapshot> = map_db(
         tx.query_row(
             "SELECT id, title, body, status, priority, assignee, milestone,
@@ -593,27 +616,44 @@ fn write_work_item_with_scope(
         params![&next_frontmatter.id, extras_json],
     ))?;
 
-    map_db(tx.commit())?;
-    crate::projects::events::notify_work_item_schedule_changed();
     Ok(())
 }
 
 /// Move a work item to the recoverable delete bin.
 pub fn delete_work_item(project_slug: &str, short_id: &str) -> Result<(), String> {
-    let mut existing = read_work_item(project_slug, short_id)?;
+    let existing = read_work_item(project_slug, short_id)?;
     if existing.frontmatter.deleted_at.is_some() {
         return Ok(());
     }
-
-    let deleted_at = chrono::Utc::now().to_rfc3339();
-    append_deleted_event(&mut existing.frontmatter, &deleted_at);
-    existing.frontmatter.deleted_at = Some(deleted_at.clone());
-    existing.frontmatter.updated_at = deleted_at;
-    write_work_item(
+    super::atomic::update_work_item_atomic_serviced(
         project_slug,
         short_id,
-        &existing.frontmatter,
-        &existing.body,
+        None,
+        super::atomic::AtomicServiceOptions {
+            operation: Some("work.delete"),
+            ..Default::default()
+        },
+        |frontmatter, _body| {
+            let deleted_at = chrono::Utc::now().to_rfc3339();
+            append_deleted_event(frontmatter, &deleted_at);
+            frontmatter.deleted_at = Some(deleted_at.clone());
+            frontmatter.updated_at = deleted_at;
+            Ok(())
+        },
+    )?;
+    let connection = conn()?;
+    let project_id = resolve_project_id(&connection, project_slug)?;
+    let org_id: String = map_db(connection.query_row(
+        "SELECT org_id FROM projects WHERE id = ?1",
+        params![&project_id],
+        |row| row.get(0),
+    ))?;
+    drop(connection);
+    crate::sync::collab_bridge::record_work_item_write(
+        &org_id,
+        Some(project_slug),
+        &existing.frontmatter.id,
+        true,
     )
 }
 
@@ -640,20 +680,39 @@ pub(crate) fn purge_work_item(project_slug: &str, short_id: &str) -> Result<(), 
 }
 
 pub fn restore_work_item(project_slug: &str, short_id: &str) -> Result<WorkItemData, String> {
-    let mut existing = read_work_item(project_slug, short_id)?;
+    let existing = read_work_item(project_slug, short_id)?;
     if existing.frontmatter.deleted_at.is_none() {
         return Ok(existing);
     }
-
-    let restored_at = chrono::Utc::now().to_rfc3339();
-    append_restored_event(&mut existing.frontmatter, &restored_at);
-    existing.frontmatter.deleted_at = None;
-    existing.frontmatter.updated_at = restored_at;
-    write_work_item(
+    super::atomic::update_work_item_atomic_serviced(
         project_slug,
         short_id,
-        &existing.frontmatter,
-        &existing.body,
+        None,
+        super::atomic::AtomicServiceOptions {
+            operation: Some("work.restore"),
+            ..Default::default()
+        },
+        |frontmatter, _body| {
+            let restored_at = chrono::Utc::now().to_rfc3339();
+            append_restored_event(frontmatter, &restored_at);
+            frontmatter.deleted_at = None;
+            frontmatter.updated_at = restored_at;
+            Ok(())
+        },
+    )?;
+    let connection = conn()?;
+    let project_id = resolve_project_id(&connection, project_slug)?;
+    let org_id: String = map_db(connection.query_row(
+        "SELECT org_id FROM projects WHERE id = ?1",
+        params![&project_id],
+        |row| row.get(0),
+    ))?;
+    drop(connection);
+    crate::sync::collab_bridge::record_work_item_write(
+        &org_id,
+        Some(project_slug),
+        &existing.frontmatter.id,
+        false,
     )?;
     read_work_item(project_slug, short_id)
 }
@@ -687,6 +746,15 @@ pub fn allocate_short_id(project_slug: &str) -> Result<String, String> {
     let mut connection = conn()?;
     let tx =
         map_db(connection.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate))?;
+    let short_id = allocate_short_id_in_tx(&tx, project_slug)?;
+    map_db(tx.commit())?;
+    Ok(short_id)
+}
+
+pub(crate) fn allocate_short_id_in_tx(
+    tx: &rusqlite::Transaction,
+    project_slug: &str,
+) -> Result<String, String> {
 
     let (project_id, org_id, prefix, mut next_id) = map_db(
         tx.query_row(
@@ -705,7 +773,7 @@ pub fn allocate_short_id(project_slug: &str) -> Result<String, String> {
     )?
     .ok_or_else(|| format!("Project '{}' not found", project_slug))?;
 
-    if let Some(max_existing) = max_existing_work_item_number(&tx, &org_id, &prefix)? {
+    if let Some(max_existing) = max_existing_work_item_number(tx, &org_id, &prefix)? {
         let min_next = (max_existing as i64).saturating_add(1);
         if next_id < min_next {
             next_id = min_next;
@@ -720,7 +788,6 @@ pub fn allocate_short_id(project_slug: &str) -> Result<String, String> {
         params![bumped, now_ms(), project_id],
     ))?;
 
-    map_db(tx.commit())?;
     Ok(short_id)
 }
 
@@ -734,7 +801,26 @@ pub fn allocate_standalone_short_id(org_id: Option<&str>) -> Result<String, Stri
     if let Some(max_existing) = max_existing_standalone_work_item_number(&tx, org_id, prefix)? {
         next_id = (max_existing as i64).saturating_add(1);
     }
-    let short_id = format!("{}-{:04}", prefix, next_id);
+    // `workitems.id` is a GLOBAL primary key (`id = short_id` until the
+    // id migration), while the counter above is per-org: another org may
+    // already own the candidate. Walk past global collisions so creation
+    // never trips the work.create existence guard.
+    let short_id = loop {
+        let candidate = format!("{}-{:04}", prefix, next_id);
+        let taken: bool = map_db(
+            tx.query_row(
+                "SELECT 1 FROM workitems WHERE id = ?1",
+                params![&candidate],
+                |_| Ok(true),
+            )
+            .optional(),
+        )?
+        .unwrap_or(false);
+        if !taken {
+            break candidate;
+        }
+        next_id = next_id.saturating_add(1);
+    };
     map_db(tx.commit())?;
     Ok(short_id)
 }
@@ -868,6 +954,27 @@ impl PriorSyncSnapshot {
 ///
 /// Generic over the connection type so it works inside both bare
 /// `Connection` and an active `Transaction`.
+pub(crate) fn resolve_project_scope_in_tx(
+    tx: &rusqlite::Transaction,
+    project_slug: &str,
+) -> Result<(String, String), String> {
+    let project_id = map_db(
+        tx.query_row(
+            "SELECT id FROM projects WHERE slug = ?1",
+            params![project_slug],
+            |row| row.get::<_, String>(0),
+        )
+        .optional(),
+    )?
+    .ok_or_else(|| format!("Project '{}' not found", project_slug))?;
+    let org_id: String = map_db(tx.query_row(
+        "SELECT org_id FROM projects WHERE id = ?1",
+        params![&project_id],
+        |row| row.get(0),
+    ))?;
+    Ok((project_id, org_id))
+}
+
 fn resolve_project_id<C>(connection: &C, slug: &str) -> Result<String, String>
 where
     C: ConnectionLike,

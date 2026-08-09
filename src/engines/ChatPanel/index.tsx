@@ -460,7 +460,6 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       creatorState,
       setActiveSessionId,
       setSelectedProject,
-      setSelectedWorkItem,
       setWorkItemCreateDraft,
       setWorkstationActiveSessionId,
       workItemCreateDraft,

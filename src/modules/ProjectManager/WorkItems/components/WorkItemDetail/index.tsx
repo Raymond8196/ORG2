@@ -7,10 +7,15 @@ import React, {
 } from "react";
 import { useTranslation } from "react-i18next";
 
+import type { WorkItemData as WorkItemDataPayload } from "@src/api/http/project";
 import { HEADER_CLASSES } from "@src/config/workstation/tokens";
-import { usePublishWorkstationTabHeader } from "@src/hooks/workStation";
+import {
+  usePublishWorkstationTabHeader,
+  useWorkStationTabs,
+} from "@src/hooks/workStation";
 import { useAgentDefinitions } from "@src/modules/MainApp/AgentOrgs/hooks/useAgentDefinitions";
 import { useAgentOrgs } from "@src/modules/MainApp/AgentOrgs/hooks/useAgentOrgs";
+import { createWorkItemDetailTab } from "@src/store/workstation/tabs";
 import {
   WORK_ITEM_STATUS,
   type WorkItemPriority,
@@ -122,18 +127,14 @@ const WorkItemDetail: React.FC<WorkItemDetailProps> = ({
   const displayShortId = formatWorkItemShortId(shortId, displayStatus);
 
   const {
-    isStartingAgent,
     activeAgentSessionId,
     activeAgentRole,
-    handleStartAgent,
     handleRetry,
     handleCancelAgent,
     handleAcceptAsIs,
     handleCreateFollowUp,
     worktreePath,
     projectRepoPath,
-    isLockedByOther,
-    lockHolderName,
   } = useWorkItemOrchestrator({
     workItem,
     displayWorkItem,
@@ -148,6 +149,25 @@ const WorkItemDetail: React.FC<WorkItemDetailProps> = ({
 
   const { handleOpenFileDiff, handleOpenFileAtLine, handleReviewAllFiles } =
     useWorkItemFileActions(repoPath);
+
+  const { openTab: openStationTab } = useWorkStationTabs();
+  const handleOpenSubItem = useCallback(
+    (item: WorkItemDataPayload) => {
+      openStationTab(
+        createWorkItemDetailTab(
+          undefined,
+          undefined,
+          item.frontmatter.short_id,
+          item.frontmatter.title || item.frontmatter.short_id,
+          projectSlug ?? undefined,
+          undefined,
+          undefined,
+          item.frontmatter.status
+        )
+      );
+    },
+    [openStationTab, projectSlug]
+  );
 
   const handleOpenSessionWithContext = useCallback(
     (sessionId: string) => {
@@ -391,14 +411,10 @@ const WorkItemDetail: React.FC<WorkItemDetailProps> = ({
         repoPath={repoPath}
         projectSlug={projectSlug}
         shortId={shortId}
-        isStartingAgent={isStartingAgent}
         activeAgentSessionId={activeAgentSessionId}
-        activeAgentRole={activeAgentRole}
-        isLockedByOther={isLockedByOther}
-        lockHolderName={lockHolderName}
+        onOpenSubItem={handleOpenSubItem}
         onUpdateWorkItem={handleLocalUpdate}
         onUpdateWorkItemImmediate={handleImmediateUpdate}
-        onStartAgent={handleStartAgent}
         onCancelAgent={handleCancelAgent}
         onRetry={handleRetry}
         onAcceptAsIs={handleAcceptAsIs}

@@ -55,7 +55,9 @@ mod workspace;
 
 pub(crate) use atomic::update_standalone_work_item_partial_with_revisions;
 pub use atomic::{
-    update_standalone_work_item_atomic, update_standalone_work_item_partial,
+    update_standalone_work_item_atomic, update_standalone_work_item_atomic_by,
+    update_standalone_work_item_atomic_serviced,
+    update_standalone_work_item_partial,
     update_work_item_atomic, update_work_item_atomic_as, update_work_item_atomic_serviced,
     update_work_item_atomic_with_revisions, update_work_item_partial,
     update_work_item_partial_with_revisions, AtomicServiceOptions,
@@ -63,6 +65,7 @@ pub use atomic::{
 pub use batch::{batch_delete_work_items, batch_update_work_items};
 pub(crate) use crud::purge_work_item;
 pub(crate) use crud::write_work_item_remote;
+pub(crate) use crud::{allocate_short_id_in_tx, resolve_project_scope_in_tx, write_work_item_in_tx};
 pub use crud::{
     allocate_short_id, allocate_standalone_short_id, delete_work_item, move_work_item,
     purge_expired_deleted_work_items, read_all_work_items, read_all_work_items_scoped,
@@ -77,6 +80,7 @@ pub use enrichment::{
     read_work_item_enriched_scoped, update_work_item_partial_enriched,
 };
 pub use execution_lock::{acquire_execution_lock, release_execution_lock};
+pub(crate) use execution_lock::apply_execution_claim;
 pub use handoff::{transition_standalone_work_item_handoff, transition_work_item_handoff};
 pub(crate) use sync_metadata::read_standalone_sync_metadata;
 pub use sync_metadata::{
