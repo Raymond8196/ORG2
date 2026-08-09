@@ -131,7 +131,6 @@ const FlatFileItem: React.FC<FlatFileItemProps> = memo(
         isSelected={isSelected}
         gitStatus={gitStatus}
         onClick={handleClick}
-        rounded={false}
       >
         <GitStatusBadge status={gitStatus} isDirectory={false} />
       </TreeRowBase>
@@ -194,7 +193,6 @@ const TreeFileItem: React.FC<TreeFileItemProps> = memo(
         isSelected={isSelected}
         gitStatus={gitStatus}
         onClick={handleClick}
-        rounded={false}
       >
         <GitStatusBadge status={gitStatus} isDirectory={isDirectory} />
       </TreeRowBase>
