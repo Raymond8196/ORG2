@@ -232,7 +232,7 @@ export function WorkManagementTable({
                   return (
                     <span
                       key={index}
-                      className={`inline-flex min-w-0 items-center gap-1 text-[11px] text-text-3 ${
+                      className={`inline-flex min-w-0 items-center gap-1 text-[11px] text-text-1 ${
                         fillsRemaining ? "flex-1" : "shrink-0"
                       }`}
                     >
@@ -252,7 +252,7 @@ export function WorkManagementTable({
                 {row.tags?.map((tag, index) => (
                   <span
                     key={`${tag}-${index}`}
-                    className="inline-flex max-w-40 shrink-0 truncate rounded border border-border-1 px-1.5 py-0.5 text-[10px] font-normal leading-none text-text-3"
+                    className="inline-flex max-w-40 shrink-0 truncate rounded border border-border-1 px-1.5 py-0.5 text-[10px] font-normal leading-none text-text-1"
                     title={tag}
                   >
                     {tag}

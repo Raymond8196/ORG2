@@ -55,6 +55,8 @@ describe("WorkManagementTable", () => {
     expect(markup).toContain(">Status<");
     expect(markup).toContain(">Updated<");
     expect(markup).toContain("maintenance");
+    expect(markup).toContain("text-[11px] text-text-1");
+    expect(markup).toContain("leading-none text-text-1");
     expect(markup.indexOf("2 links")).toBeLessThan(
       markup.indexOf("maintenance")
     );

@@ -95,7 +95,7 @@ describe("ManagedIssueContextMeta", () => {
 
     expect(markup).toContain("lucide-git-pull-request");
     expect(markup).toContain("lucide-message-circle");
-    expect(markup).toContain("text-primary-6");
+    expect(markup).toContain("text-text-1");
     expect(markup).toContain(">2<");
     expect(markup).toContain(">4<");
   });
