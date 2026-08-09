@@ -206,6 +206,28 @@ describe("PrDetailPanel tabs", () => {
     expect(
       container.querySelector('[role="tabpanel"]')?.contains(actions)
     ).toBe(true);
+    expect(
+      container.querySelector('[data-testid="pr-detail-navigation-rail"]')
+    ).not.toBeNull();
+    expect(
+      container.querySelector('[data-testid="pr-detail-navigation-trail"]')
+    ).not.toBeNull();
+
+    for (const tabIndex of [1, 2, 3]) {
+      act(() => {
+        tabs[tabIndex]?.click();
+      });
+      expect(
+        container.querySelector('[data-testid="pr-detail-navigation-rail"]')
+      ).toBeNull();
+    }
+
+    act(() => {
+      tabs[0]?.click();
+    });
+    expect(
+      container.querySelector('[data-testid="pr-detail-navigation-rail"]')
+    ).not.toBeNull();
 
     act(() => {
       tabs[3]?.click();
@@ -219,10 +241,10 @@ describe("PrDetailPanel tabs", () => {
     );
     expect(
       container.querySelector('[data-testid="pr-detail-navigation-rail"]')
-    ).not.toBeNull();
+    ).toBeNull();
     expect(
       container.querySelector('[data-testid="pr-detail-navigation-trail"]')
-    ).not.toBeNull();
+    ).toBeNull();
   });
 
   it("restores the per-PR sub-tab and nested selection after remount", () => {

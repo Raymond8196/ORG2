@@ -359,16 +359,9 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
     },
     [setDetailViewState]
   );
-  const setTabContentNode = useCallback(
-    (node: HTMLDivElement | null) => {
-      tabContentRef.current = node;
-      if (activeTab !== "conversation") {
-        trailScrollContainerRef.current = node;
-        trailContentRef.current = node;
-      }
-    },
-    [activeTab]
-  );
+  const setTabContentNode = useCallback((node: HTMLDivElement | null) => {
+    tabContentRef.current = node;
+  }, []);
   const setConversationScrollNode = useCallback(
     (node: HTMLDivElement | null) => {
       trailScrollContainerRef.current = node ?? tabContentRef.current;
@@ -607,19 +600,20 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
             />
           )}
         </div>
-        <div
-          className="relative w-11 shrink-0"
-          data-testid="pr-detail-navigation-rail"
-        >
-          <ScrollTrail
-            key={activeTab}
-            scrollContainerRef={trailScrollContainerRef}
-            contentRef={trailContentRef}
-            ariaLabel={t("git.pr.navigationTrail", "Pull request navigation")}
-            placement="rail"
-            testId="pr-detail-navigation-trail"
-          />
-        </div>
+        {activeTab === "conversation" ? (
+          <div
+            className="relative w-11 shrink-0"
+            data-testid="pr-detail-navigation-rail"
+          >
+            <ScrollTrail
+              scrollContainerRef={trailScrollContainerRef}
+              contentRef={trailContentRef}
+              ariaLabel={t("git.pr.navigationTrail", "Pull request navigation")}
+              placement="rail"
+              testId="pr-detail-navigation-trail"
+            />
+          </div>
+        ) : null}
       </div>
     </div>
   );
