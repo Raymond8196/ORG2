@@ -128,6 +128,8 @@ describe("GitHubWorkItemsView pull requests", () => {
     expect(markup).toContain('data-testid="github-work-items-state-open"');
     expect(markup).toContain('data-testid="github-work-items-state-closed"');
     expect(markup).toContain("settings-table-root");
+    expect(markup).toContain("bg-bg-0");
+    expect(markup).not.toContain("bg-chat-pane");
     expect(markup).toContain("Title / Context");
     expect(markup).toContain(">Status<");
     expect(markup).toContain(">CI<");

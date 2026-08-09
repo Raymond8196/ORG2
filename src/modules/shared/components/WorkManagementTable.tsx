@@ -10,7 +10,6 @@ import SettingsTable, {
   type SettingsTableColumn,
   SettingsTablePagination,
   type SettingsTableProps,
-  type SettingsTableSurfaceVariant,
 } from "@src/components/SettingsTable";
 import { SortIcon } from "@src/components/Table/helpers";
 import {
@@ -97,7 +96,6 @@ interface WorkManagementTableProps {
   sort?: WorkManagementTableSort;
   onSortChange?: (sort: WorkManagementTableSort) => void;
   maxWidth?: WorkManagementTableMaxWidth;
-  surfaceVariant?: SettingsTableSurfaceVariant;
   testId?: string;
 }
 
@@ -152,7 +150,6 @@ export function WorkManagementTable({
   sort,
   onSortChange,
   maxWidth = "standard",
-  surfaceVariant = "default",
   testId = "work-management-table",
 }: WorkManagementTableProps): ReactNode {
   const { t } = useTranslation("common");
@@ -400,13 +397,12 @@ export function WorkManagementTable({
         inlineHeaderToolbar={Boolean(
           searchBar || selectFilters?.length || selectFiltersExtra
         )}
-        surfaceVariant={surfaceVariant}
         pageSize={pageSize}
         pageSizeOptions={pageSizeOptions}
         footer={footer}
         onRowClick={(row) => row.onClick?.()}
         rowClassName="group"
-        className={`[&_.table-row:not(:last-child)_.table-td]:!border-b [&_.table-row:not(:last-child)_.table-td]:!border-border-1 [&_.table-row_.table-td:first-child]:!align-top [&_.table-row_.table-td:first-child_.table-td-inner]:!items-start [&_.table-td-inner]:!h-auto [&_.table-td-inner]:w-full [&_.table-td]:!h-auto [&_.table-td]:!py-2 ${
+        className={`[&_.table-fixed-header]:scrollbar-hide [&_.table-row:not(:last-child)_.table-td]:!border-b [&_.table-row:not(:last-child)_.table-td]:!border-border-1 [&_.table-row_.table-td:first-child]:!align-top [&_.table-row_.table-td:first-child_.table-td-inner]:!items-start [&_.table-scroll]:scrollbar-hide [&_.table-td-inner]:!h-auto [&_.table-td-inner]:w-full [&_.table-td]:!h-auto [&_.table-td]:!py-2 ${
           hasSelection
             ? "[&_.table-row_.table-td:nth-child(2)]:!align-top [&_.table-row_.table-td:nth-child(2)_.table-td-inner]:!items-start"
             : ""

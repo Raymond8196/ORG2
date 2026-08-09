@@ -616,7 +616,7 @@ export function GitHubWorkItemsView({
             onCreateIssue={onCreateIssue}
             onCancel={() => onSetCreateFormOpen(false)}
           />
-          <div className="flex min-w-0 flex-1 flex-col bg-chat-pane">
+          <div className="bg-bg-0 flex min-w-0 flex-1 flex-col">
             <WorkManagementTable
               rows={settingsRows}
               searchBar={{
@@ -668,7 +668,6 @@ export function GitHubWorkItemsView({
               sort={sort}
               onSortChange={onSortChange}
               maxWidth="wide"
-              surfaceVariant="transparent"
               testId={`github-${scope}-table`}
               pagination={
                 filteredItems.length > 0

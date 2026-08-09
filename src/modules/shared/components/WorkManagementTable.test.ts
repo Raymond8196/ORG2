@@ -42,6 +42,8 @@ describe("WorkManagementTable", () => {
     expect(markup).toContain("max-w-[1232px]");
     expect(markup).toContain("px-4");
     expect(markup).toContain("settings-table-root");
+    expect(markup).toContain("[&amp;_.table-fixed-header]:scrollbar-hide");
+    expect(markup).toContain("[&amp;_.table-scroll]:scrollbar-hide");
     expect(markup).not.toContain("table-settings-header-border");
     expect(markup).toContain(">ID<");
     expect(markup).toContain("table-th-sortable");
@@ -64,18 +66,6 @@ describe("WorkManagementTable", () => {
     expect(markup).toContain(
       "[&amp;_.table-row_.table-td:first-child]:!align-top"
     );
-  });
-
-  it("supports a transparent surface for chat-pane tables", () => {
-    const markup = renderToStaticMarkup(
-      createElement(WorkManagementTable, {
-        rows: rows.slice(0, 1),
-        surfaceVariant: "transparent",
-      })
-    );
-
-    expect(markup).toContain("settings-table-root-transparent");
-    expect(markup).not.toContain("bg-primary-container");
   });
 
   it("renders filters through the native SettingsTable toolbar props", () => {
