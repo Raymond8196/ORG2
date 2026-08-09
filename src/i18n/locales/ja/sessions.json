@@ -893,6 +893,9 @@
       "addApiKey": {
         "title": "API キーを追加"
       },
+      "showRuntime": {
+        "title": "ランタイムを表示"
+      },
       "installLatestUpdate": {
         "title": "最新アップデートをインストール"
       },

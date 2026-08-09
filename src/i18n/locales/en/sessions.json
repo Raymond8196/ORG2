@@ -949,6 +949,9 @@
       "addApiKey": {
         "title": "Add API key"
       },
+      "showRuntime": {
+        "title": "Show runtime"
+      },
       "installLatestUpdate": {
         "title": "Install latest update"
       },

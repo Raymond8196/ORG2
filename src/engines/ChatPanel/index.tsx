@@ -393,6 +393,9 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
     const handleStartPageInstallLatestUpdate = useCallback(() => {
       void installAvailableAppUpdate();
     }, []);
+    const handleShowRuntime = useCallback(() => {
+      openRuntimeTab(t("sessions:chat.startPage.tabs.runtime"));
+    }, [openRuntimeTab, t]);
 
     const { createTargetOptions, handleCreateTargetChange } =
       useChatPanelCreateTarget({
@@ -512,6 +515,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
         handleRegionNoticeChange={handleRegionNoticeChange}
         handleStartPageAddApiKey={handleStartPageAddApiKey}
         handleStartPageInstallLatestUpdate={handleStartPageInstallLatestUpdate}
+        handleStartPageShowRuntime={handleShowRuntime}
         handleStartPageSessionStart={handleStartPageSessionStart}
         handleProjectAgentCreatorToggle={handleProjectAgentCreatorToggle}
         handleWorkItemAgentCreatorToggle={handleWorkItemAgentCreatorToggle}
@@ -531,9 +535,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       <ChatPanelPlusMenu
         onOpenLaunchpad={handleOpenLaunchpadTab}
         onOpenKanban={handleOpenKanbanTab}
-        onOpenRuntime={() =>
-          openRuntimeTab(t("sessions:chat.startPage.tabs.runtime"))
-        }
+        onOpenRuntime={handleShowRuntime}
         onNewWorkItem={handleStartPageNewWorkItem}
       />
     );

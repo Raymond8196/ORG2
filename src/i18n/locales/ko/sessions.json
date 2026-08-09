@@ -893,6 +893,9 @@
       "addApiKey": {
         "title": "API 키 추가"
       },
+      "showRuntime": {
+        "title": "런타임 보기"
+      },
       "installLatestUpdate": {
         "title": "최신 업데이트 설치"
       },

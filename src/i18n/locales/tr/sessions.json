@@ -894,6 +894,9 @@
       "addApiKey": {
         "title": "API key ekle"
       },
+      "showRuntime": {
+        "title": "Çalışma zamanını göster"
+      },
       "installLatestUpdate": {
         "title": "En son güncellemeyi yükle"
       },

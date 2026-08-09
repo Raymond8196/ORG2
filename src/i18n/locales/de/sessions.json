@@ -892,6 +892,9 @@
       "addApiKey": {
         "title": "API key hinzufügen"
       },
+      "showRuntime": {
+        "title": "Laufzeit anzeigen"
+      },
       "installLatestUpdate": {
         "title": "Neueste Aktualisierung installieren"
       },

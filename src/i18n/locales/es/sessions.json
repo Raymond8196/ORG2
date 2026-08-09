@@ -894,6 +894,9 @@
       "addApiKey": {
         "title": "Añadir clave API"
       },
+      "showRuntime": {
+        "title": "Mostrar entorno de ejecución"
+      },
       "installLatestUpdate": {
         "title": "Instalar la última actualización"
       },

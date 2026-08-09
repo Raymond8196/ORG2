@@ -1,5 +1,5 @@
 import type { TFunction } from "i18next";
-import { ChevronRight, Download, Import, KeyRound } from "lucide-react";
+import { ChevronRight, Download, Gauge, Import, KeyRound } from "lucide-react";
 import React, { useCallback, useState } from "react";
 
 import { PILL_CONTROL_IDLE_SURFACE_CLASS } from "@src/components/CompoundPill/config";
@@ -66,6 +66,7 @@ interface ChatPanelStartPageProps {
   onAddApiKey: () => void;
   onCreateTarget: (target: ChatPanelCreateTarget) => void;
   onInstallLatestUpdate: () => void;
+  onShowRuntime: () => void;
   onProjectAgentModeChange: (enabled: boolean) => void;
   onWorkItemAgentModeChange: (enabled: boolean) => void;
   projectAgentMode: boolean;
@@ -119,12 +120,12 @@ function StartPageActionCard({
     return (
       <button
         type="button"
-        className={`group flex min-h-[84px] w-full flex-col items-start justify-between rounded-xl border bg-transparent px-3 py-2.5 text-left shadow-sm transition-colors focus-visible:border-primary-6 focus-visible:outline-none ${START_PAGE_ACTION_CARD_TONE_CLASS[action.tone]}`}
+        className={`group flex min-h-[68px] w-full flex-col items-start justify-between rounded-lg border bg-transparent px-2.5 py-2 text-left shadow-sm transition-colors focus-visible:border-primary-6 focus-visible:outline-none ${START_PAGE_ACTION_CARD_TONE_CLASS[action.tone]}`}
         onClick={action.onClick}
         data-testid={`chat-panel-start-page-${action.id}`}
       >
         <span
-          className={`flex h-6 w-6 shrink-0 items-center justify-center ${START_PAGE_ACTION_ICON_TONE_CLASS[action.tone]}`}
+          className={`flex h-5 w-5 shrink-0 items-center justify-center ${START_PAGE_ACTION_ICON_TONE_CLASS[action.tone]}`}
         >
           {action.icon}
         </span>
@@ -171,7 +172,17 @@ function StartPageActionGrid({
   presentation?: StartPageActionPresentation;
 }): React.ReactNode {
   const cardWidthClass =
-    actions.length >= 3 ? "max-w-[600px]" : "max-w-[400px]";
+    actions.length >= 4
+      ? "max-w-[600px]"
+      : actions.length === 3
+        ? "max-w-[480px]"
+        : "max-w-[320px]";
+  const cardColumnClass =
+    actions.length >= 4
+      ? "@[560px]/startactions:grid-cols-4"
+      : actions.length === 3
+        ? "@[440px]/startactions:grid-cols-3"
+        : "";
 
   return (
     <div
@@ -184,9 +195,7 @@ function StartPageActionGrid({
       <div
         className={
           presentation === "card"
-            ? `grid grid-cols-1 gap-2.5 @[360px]/startactions:grid-cols-2 ${
-                actions.length >= 3 ? "@[620px]/startactions:grid-cols-3" : ""
-              }`
+            ? `grid grid-cols-1 gap-2 @[300px]/startactions:grid-cols-2 ${cardColumnClass}`
             : "grid grid-cols-1 gap-3 @[420px]/startactions:grid-cols-2 @[800px]/startactions:grid-cols-3"
         }
       >
@@ -210,6 +219,7 @@ export function ChatPanelStartPage({
   onAddApiKey,
   onCreateTarget,
   onInstallLatestUpdate,
+  onShowRuntime,
   onProjectAgentModeChange,
   onWorkItemAgentModeChange,
   projectAgentMode,
@@ -235,6 +245,13 @@ export function ChatPanelStartPage({
     onClick: onAddApiKey,
     tone: "neutral",
   };
+  const showRuntimeAction: ChatPanelStartPageAction = {
+    id: "show-runtime",
+    title: t("chat.startPage.showRuntime.title"),
+    icon: <Gauge size={16} strokeWidth={1.8} />,
+    onClick: onShowRuntime,
+    tone: "neutral",
+  };
   const utilityActions: ChatPanelStartPageAction[] = availableUpdate?.available
     ? [
         {
@@ -246,8 +263,9 @@ export function ChatPanelStartPage({
         },
         importSessionAction,
         addApiKeyAction,
+        showRuntimeAction,
       ]
-    : [importSessionAction, addApiKeyAction];
+    : [importSessionAction, addApiKeyAction, showRuntimeAction];
   const selectedMoreTarget = createTargetOptions.some(
     (option) => option.value === createTarget
   )

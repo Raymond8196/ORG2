@@ -940,6 +940,9 @@
       "addApiKey": {
         "title": "添加 API 密钥"
       },
+      "showRuntime": {
+        "title": "查看运行时"
+      },
       "installLatestUpdate": {
         "title": "安装最新更新"
       },
