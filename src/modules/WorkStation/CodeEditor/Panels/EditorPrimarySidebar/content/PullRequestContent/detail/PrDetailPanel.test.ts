@@ -364,6 +364,7 @@ describe("PrDetailPanel tabs", () => {
     );
     expect(externalLink?.getAttribute("target")).toBe("_blank");
     expect(externalLink?.getAttribute("style")).toContain("height: 28px");
+    expect(externalLink?.querySelector(".lucide-globe")).not.toBeNull();
     expect(
       container.querySelectorAll('a[aria-label="Open on GitHub"]')
     ).toHaveLength(1);

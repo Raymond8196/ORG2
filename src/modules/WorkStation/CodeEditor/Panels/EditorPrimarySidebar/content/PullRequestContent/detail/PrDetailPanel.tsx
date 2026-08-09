@@ -19,10 +19,10 @@ import {
   GitBranch,
   GitCommitHorizontal,
   GitMerge,
+  Globe,
   ListChecks,
   MessageCircle,
   MessagesSquare,
-  SquareArrowOutUpRight,
 } from "lucide-react";
 import React, { useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
@@ -93,9 +93,7 @@ export function PrDetailExternalLinkButton({
       variant="tertiary"
       size="small"
       iconOnly
-      icon={
-        <SquareArrowOutUpRight size={HEADER_ICON_SIZE.sm} strokeWidth={1.75} />
-      }
+      icon={<Globe size={HEADER_ICON_SIZE.sm} strokeWidth={1.75} />}
       title={title}
       aria-label={title}
     />
