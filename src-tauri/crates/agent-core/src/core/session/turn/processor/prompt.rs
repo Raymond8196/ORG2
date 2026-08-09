@@ -19,7 +19,10 @@ use crate::core::session::prompt::cache::SkillListingCacheKey;
 use crate::core::session::prompt::sections::build_agent_org_context_section_with_task_snapshot;
 use crate::core::session::types::{SystemPromptConfig, ToolSummary};
 
-fn render_orgtrack_cli_brief(product_mode: Option<&str>, project_slug: Option<&str>) -> Option<String> {
+fn render_orgtrack_cli_brief(
+    product_mode: Option<&str>,
+    project_slug: Option<&str>,
+) -> Option<String> {
     if product_mode != Some("project") {
         return None;
     }

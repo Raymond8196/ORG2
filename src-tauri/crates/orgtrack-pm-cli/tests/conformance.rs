@@ -63,7 +63,11 @@ fn assert_valid(validator: &jsonschema::Validator, value: &serde_json::Value, la
         .iter_errors(value)
         .map(|err| format!("{}: {}", err.instance_path, err))
         .collect();
-    assert!(errors.is_empty(), "{label} failed schema validation:\n{}", errors.join("\n"));
+    assert!(
+        errors.is_empty(),
+        "{label} failed schema validation:\n{}",
+        errors.join("\n")
+    );
 }
 
 #[test]
@@ -75,14 +79,32 @@ fn real_envelopes_validate_against_frozen_schemas() {
     let (exit, bare_context) = run_cli(&["context"]);
     assert_eq!(exit, 0, "{bare_context}");
     assert_valid(&envelope_schema, &bare_context, "bare context envelope");
-    assert_valid(&context_schema, &bare_context["data"], "bare context data (null scope/actor)");
+    assert_valid(
+        &context_schema,
+        &bare_context["data"],
+        "bare context data (null scope/actor)",
+    );
 
     let (exit, project_context) = run_cli(&[
-        "context", "--mode", "project", "--scope", "demo", "--actor", "human:conformance",
+        "context",
+        "--mode",
+        "project",
+        "--scope",
+        "demo",
+        "--actor",
+        "human:conformance",
     ]);
     assert_eq!(exit, 0, "{project_context}");
-    assert_valid(&envelope_schema, &project_context, "project context envelope");
-    assert_valid(&context_schema, &project_context["data"], "project context data");
+    assert_valid(
+        &envelope_schema,
+        &project_context,
+        "project context envelope",
+    );
+    assert_valid(
+        &context_schema,
+        &project_context["data"],
+        "project context data",
+    );
 
     let (exit, gated) = run_cli(&["work", "create", "--title", "x", "--scope", "demo"]);
     assert_eq!(exit, 5, "{gated}");
@@ -108,7 +130,10 @@ fn error_fixtures_match_the_implementation_strings() {
         );
         checked += 1;
     }
-    assert!(checked >= 18, "expected the 18 frozen error fixtures, found {checked}");
+    assert!(
+        checked >= 18,
+        "expected the 18 frozen error fixtures, found {checked}"
+    );
 }
 
 fn expected_retryable(code: &str) -> bool {

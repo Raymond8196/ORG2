@@ -740,6 +740,12 @@ pub fn run() {
                 "[HousekeeperCompaction] opt-in MiniCPM context worker initialized"
             );
 
+            // Durable WorkItemRun outbox consumer. This starts before the
+            // legacy schedulers so every producer can converge on one
+            // crash-safe delivery path during migration.
+            agent_core::coordination::work_item_run_dispatcher::spawn(app.handle().clone());
+            tracing::info!("[work-run-dispatcher] started");
+
             // Spawn work item schedule executor
             {
                 let scheduler_handle = app.handle().clone();
@@ -817,7 +823,26 @@ pub fn run() {
                 let watermark_handle = app.handle().clone();
                 tauri::async_runtime::spawn(async move {
                     use tauri::Emitter;
-                    let mut last_seq: i64 = -1;
+                    const STAGE_BARRIER_CONSUMER: &str = "stage_barrier_dispatch_v1";
+                    let initial_seq = tokio::task::spawn_blocking(
+                        project_management::projects::io::read_pm_change_seq,
+                    )
+                    .await
+                    .ok()
+                    .and_then(Result::ok)
+                    .unwrap_or(0)
+                    .max(0);
+                    let mut last_seq = initial_seq;
+                    let mut stage_cursor = tokio::task::spawn_blocking(move || {
+                        project_management::work_run_service::initialize_consumer_cursor(
+                            STAGE_BARRIER_CONSUMER,
+                            initial_seq,
+                        )
+                    })
+                    .await
+                    .ok()
+                    .and_then(Result::ok)
+                    .unwrap_or(initial_seq);
                     loop {
                         tokio::time::sleep(std::time::Duration::from_secs(2)).await;
                         let seq = tokio::task::spawn_blocking(
@@ -827,24 +852,45 @@ pub fn run() {
                         .ok()
                         .and_then(Result::ok)
                         .unwrap_or(-1);
-                        if seq >= 0 && last_seq >= 0 && seq != last_seq {
+                        if seq >= 0 && seq != last_seq {
                             let _ = watermark_handle.emit(
                                 project_management::projects::events::DATA_CHANGED_EVENT,
                                 serde_json::json!({ "source": "pm-watermark" }),
                             );
-                            // Fold CLI-committed status transitions into the
-                            // child-done wake pipeline; in-process writes were
-                            // already delivered by the terminal notifier and
-                            // dedupe at the barrier level.
-                            let bridge_handle = watermark_handle.clone();
-                            let after_seq = last_seq;
-                            let _ = tokio::task::spawn_blocking(move || {
-                                agent_core::coordination::child_done_wake::process_audit_window(
-                                    &bridge_handle,
-                                    after_seq,
-                                )
-                            })
-                            .await;
+                        }
+                        if seq > stage_cursor {
+                            match agent_core::coordination::child_done_wake::process_audit_window(
+                                &watermark_handle,
+                                stage_cursor,
+                            )
+                            .await
+                            {
+                                Ok(_) => {
+                                    let through_seq = seq;
+                                    match tokio::task::spawn_blocking(move || {
+                                        project_management::work_run_service::advance_consumer_cursor(
+                                            STAGE_BARRIER_CONSUMER,
+                                            through_seq,
+                                        )
+                                    })
+                                    .await
+                                    {
+                                        Ok(Ok(cursor)) => stage_cursor = cursor,
+                                        Ok(Err(err)) => tracing::warn!(
+                                            "[child-done-wake] cursor advance failed: {}",
+                                            err
+                                        ),
+                                        Err(err) => tracing::warn!(
+                                            "[child-done-wake] cursor task failed: {}",
+                                            err
+                                        ),
+                                    }
+                                }
+                                Err(err) => tracing::warn!(
+                                    "[child-done-wake] audit window failed: {}",
+                                    err
+                                ),
+                            }
                         }
                         if seq >= 0 {
                             last_seq = seq;
