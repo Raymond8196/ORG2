@@ -80,6 +80,22 @@ fn standalone_run_canonicalizes_cloud_org_scope() {
             .len(),
         1
     );
+
+    let lease = claim_next_dispatch("standalone-worker", 30_000)
+        .expect("claim")
+        .expect("dispatch");
+    acknowledge_dispatch_started(&lease.dispatch_id, &lease.lease_token, "session-cloud-run")
+        .expect("ack");
+    record_run_terminal(
+        &run.id,
+        Some("session-cloud-run"),
+        WorkItemRunTerminalOutcome::Succeeded,
+        WorkItemRunUsage::default(),
+        None,
+    )
+    .expect("terminal");
+    let item = io::read_standalone_work_item(Some(org_id), "WI-0001").expect("work item");
+    assert_eq!(item.frontmatter.status, "in_review");
 }
 
 #[test]
@@ -368,7 +384,7 @@ fn transient_dispatch_failure_defers_but_auth_failure_dead_letters() {
 }
 
 #[test]
-fn session_terminal_updates_run_without_completing_work_item() {
+fn session_terminal_moves_work_item_to_review_without_completing_it() {
     let _sandbox = test_env::sandbox();
     seed();
     let queued = enqueue(request("manual:1")).expect("enqueue");
@@ -394,7 +410,149 @@ fn session_terminal_updates_run_without_completing_work_item() {
     assert_eq!(terminal.usage.total_tokens, 4321);
 
     let item = io::read_work_item("demo", "AAA-0001").expect("work item");
+    assert_eq!(item.frontmatter.status, "in_review");
+}
+
+#[test]
+fn failed_run_does_not_request_review() {
+    let _sandbox = test_env::sandbox();
+    seed();
+    let queued = enqueue(request("manual:failed-review")).expect("enqueue");
+    let lease = claim_next_dispatch("desktop-1", 30_000)
+        .expect("claim")
+        .expect("dispatch");
+    acknowledge_dispatch_started(
+        &lease.dispatch_id,
+        &lease.lease_token,
+        "session-failed-review",
+    )
+    .expect("ack");
+
+    record_run_terminal(
+        &queued.id,
+        Some("session-failed-review"),
+        WorkItemRunTerminalOutcome::Failed,
+        WorkItemRunUsage::default(),
+        Some("provider failed"),
+    )
+    .expect("terminal");
+
+    let item = io::read_work_item("demo", "AAA-0001").expect("work item");
     assert_eq!(item.frontmatter.status, "backlog");
+}
+
+#[test]
+fn succeeded_run_preserves_explicitly_completed_work_item() {
+    let _sandbox = test_env::sandbox();
+    seed();
+    work_service::transition_project_work_item("demo", "AAA-0001", "in_progress", None, None, None)
+        .expect("start work");
+    work_service::transition_project_work_item("demo", "AAA-0001", "completed", None, None, None)
+        .expect("complete explicitly");
+
+    let queued = enqueue(request("manual:completed-preserved")).expect("enqueue");
+    let lease = claim_next_dispatch("desktop-1", 30_000)
+        .expect("claim")
+        .expect("dispatch");
+    acknowledge_dispatch_started(
+        &lease.dispatch_id,
+        &lease.lease_token,
+        "session-completed-preserved",
+    )
+    .expect("ack");
+    record_run_terminal(
+        &queued.id,
+        Some("session-completed-preserved"),
+        WorkItemRunTerminalOutcome::Succeeded,
+        WorkItemRunUsage::default(),
+        None,
+    )
+    .expect("terminal");
+
+    let item = io::read_work_item("demo", "AAA-0001").expect("work item");
+    assert_eq!(item.frontmatter.status, "completed");
+}
+
+#[test]
+fn stale_succeeded_run_does_not_override_a_newer_execution_claim() {
+    let _sandbox = test_env::sandbox();
+    seed();
+    work_service::claim_project_work_item(
+        "demo",
+        "AAA-0001",
+        "session-newer",
+        Some("coding"),
+        crate::projects::types::WorkItemExecutionLockReason::ManualStart,
+        None,
+        None,
+    )
+    .expect("newer claim");
+
+    let queued = enqueue(request("manual:stale-success")).expect("enqueue");
+    let lease = claim_next_dispatch("desktop-1", 30_000)
+        .expect("claim")
+        .expect("dispatch");
+    acknowledge_dispatch_started(&lease.dispatch_id, &lease.lease_token, "session-older")
+        .expect("ack");
+    record_run_terminal(
+        &queued.id,
+        Some("session-older"),
+        WorkItemRunTerminalOutcome::Succeeded,
+        WorkItemRunUsage::default(),
+        None,
+    )
+    .expect("terminal");
+
+    let item = io::read_work_item("demo", "AAA-0001").expect("work item");
+    assert_eq!(item.frontmatter.status, "in_progress");
+    assert_eq!(
+        item.frontmatter
+            .execution_lock
+            .and_then(|lock| lock.active_session_id)
+            .as_deref(),
+        Some("session-newer")
+    );
+}
+
+#[test]
+fn duplicate_terminal_does_not_reapply_review_after_human_reopens_work() {
+    let _sandbox = test_env::sandbox();
+    seed();
+    let queued = enqueue(request("manual:terminal-replay")).expect("enqueue");
+    let lease = claim_next_dispatch("desktop-1", 30_000)
+        .expect("claim")
+        .expect("dispatch");
+    acknowledge_dispatch_started(&lease.dispatch_id, &lease.lease_token, "session-replay")
+        .expect("ack");
+    record_run_terminal(
+        &queued.id,
+        Some("session-replay"),
+        WorkItemRunTerminalOutcome::Succeeded,
+        WorkItemRunUsage::default(),
+        None,
+    )
+    .expect("terminal");
+    work_service::transition_project_work_item(
+        "demo",
+        "AAA-0001",
+        "in_progress",
+        Some("changes requested"),
+        None,
+        None,
+    )
+    .expect("human reopens work");
+
+    record_run_terminal(
+        &queued.id,
+        Some("session-replay"),
+        WorkItemRunTerminalOutcome::Succeeded,
+        WorkItemRunUsage::default(),
+        None,
+    )
+    .expect("duplicate terminal");
+
+    let item = io::read_work_item("demo", "AAA-0001").expect("work item");
+    assert_eq!(item.frontmatter.status, "in_progress");
 }
 
 #[test]

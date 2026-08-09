@@ -63,7 +63,7 @@ pub fn init_project_tables(conn: &Connection) -> SqliteResult<()> {
 ///   `(actor, operation, scope, key)` per the frozen wire contract §14.4.
 /// - `pm_work_item_runs`: execution truth kept separate from both Work Item
 ///   lifecycle and Session lifecycle. A terminal Run never implies a terminal
-///   Work Item.
+///   Work Item; a successful Run may only request human review.
 /// - `pm_dispatch_outbox`: lease-based at-least-once delivery. The Run service
 ///   and outbox row are always mutated in one transaction.
 pub fn init_pm_service_tables(conn: &Connection) -> SqliteResult<()> {

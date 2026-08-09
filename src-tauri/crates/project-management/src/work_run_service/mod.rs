@@ -3,7 +3,8 @@
 //! This module is the single persistence boundary for execution episodes and
 //! dispatch delivery. Enqueue writes the Run and outbox row atomically;
 //! workers claim with expiring leases; every acknowledgement checks the lease
-//! token. Work Item lifecycle is intentionally absent from this module.
+//! token. Run terminal state never completes product intent; a successful Run
+//! only projects the Work Item to `in_review` for explicit human acceptance.
 
 use rusqlite::{params, Connection, OptionalExtension, Transaction, TransactionBehavior};
 use sha2::{Digest, Sha256};
@@ -39,6 +40,7 @@ const DEFAULT_LEASE_MS: i64 = 30_000;
 const MAX_LEASE_MS: i64 = 5 * 60_000;
 const MAX_RUN_ATTEMPTS: u32 = 10;
 const PATH_LOCK_TTL_MS: i64 = 7 * 24 * 60 * 60 * 1_000;
+const REVIEW_PROJECTION_SETTLED_OPERATION: &str = "work_run.review_projection_settled";
 
 #[derive(Debug)]
 struct WorkItemExecutionContext {
@@ -1447,6 +1449,17 @@ pub fn record_run_terminal(
         release_path_lock(&tx, run_id)?;
         db(tx.commit())?;
         crate::projects::events::notify_work_item_dispatch_ready();
+        if existing.status == WorkItemRunStatus::Succeeded {
+            match review_projection_is_settled(run_id) {
+                Ok(false) => project_succeeded_run_for_review(&existing),
+                Ok(true) => {}
+                Err(error) => tracing::warn!(
+                    run_id,
+                    error = %error,
+                    "failed to read Work Item review projection receipt"
+                ),
+            }
+        }
         return Ok(existing);
     }
 
@@ -1509,10 +1522,109 @@ pub fn record_run_terminal(
     db(tx.commit())?;
     crate::projects::events::notify_work_item_dispatch_ready();
     let persisted = read(run_id)?;
+    if persisted.status == WorkItemRunStatus::Succeeded {
+        project_succeeded_run_for_review(&persisted);
+    }
     if let Err(err) = crate::work_item_features::subscriptions::notify_run_terminal(&persisted) {
-        tracing::warn!(run_id = %persisted.id, error = %err, "failed to project Run failure into Inbox");
+        tracing::warn!(run_id = %persisted.id, error = %err, "failed to project Run terminal into Inbox");
     }
     Ok(persisted)
+}
+
+fn project_succeeded_run_for_review(run: &WorkItemRun) {
+    let projection = match work_service::project_run_success_to_review(
+        run.project_slug.as_deref(),
+        &run.org_id,
+        &run.work_item_id,
+        run.session_id.as_deref(),
+    ) {
+        Ok(projection) => projection,
+        Err(error) => {
+            // Run finality is authoritative and must not be rolled back when
+            // its human-lifecycle projection temporarily fails. A repeated
+            // terminal reconciliation can retry until a receipt is written.
+            tracing::warn!(
+                run_id = %run.id,
+                work_item_id = %run.work_item_id,
+                error = %error,
+                "failed to move successful Work Item Run into review"
+            );
+            return;
+        }
+    };
+    match projection {
+        work_service::RunSuccessReviewProjection::Transitioned => {
+            tracing::info!(
+                run_id = %run.id,
+                work_item_id = %run.work_item_id,
+                "successful Work Item Run is awaiting review"
+            );
+        }
+        work_service::RunSuccessReviewProjection::AlreadyInReview
+        | work_service::RunSuccessReviewProjection::PreservedStatus
+        | work_service::RunSuccessReviewProjection::Superseded => {}
+    }
+
+    if let Err(error) = mark_review_projection_settled(run, projection) {
+        tracing::warn!(
+            run_id = %run.id,
+            error = %error,
+            "failed to persist Work Item review projection receipt"
+        );
+    }
+}
+
+fn review_projection_is_settled(run_id: &str) -> Result<bool, String> {
+    let connection = conn()?;
+    Ok(db(connection
+        .query_row(
+            "SELECT 1 FROM pm_audit_events
+             WHERE entity_type = 'work_item_run' AND entity_id = ?1 AND operation = ?2
+             LIMIT 1",
+            params![run_id, REVIEW_PROJECTION_SETTLED_OPERATION],
+            |_| Ok(()),
+        )
+        .optional())?
+    .is_some())
+}
+
+fn mark_review_projection_settled(
+    run: &WorkItemRun,
+    projection: work_service::RunSuccessReviewProjection,
+) -> Result<(), String> {
+    let mut connection = conn()?;
+    let tx = db(connection.transaction_with_behavior(TransactionBehavior::Immediate))?;
+    let exists = db(tx
+        .query_row(
+            "SELECT 1 FROM pm_audit_events
+             WHERE entity_type = 'work_item_run' AND entity_id = ?1 AND operation = ?2
+             LIMIT 1",
+            params![&run.id, REVIEW_PROJECTION_SETTLED_OPERATION],
+            |_| Ok(()),
+        )
+        .optional())?
+    .is_some();
+    if !exists {
+        let outcome = match projection {
+            work_service::RunSuccessReviewProjection::Transitioned => "transitioned",
+            work_service::RunSuccessReviewProjection::AlreadyInReview => "already_in_review",
+            work_service::RunSuccessReviewProjection::PreservedStatus => "preserved_status",
+            work_service::RunSuccessReviewProjection::Superseded => "superseded",
+        };
+        append_audit(
+            &tx,
+            &run.id,
+            REVIEW_PROJECTION_SETTLED_OPERATION,
+            run.generation as i64,
+            run.project_slug.as_deref(),
+            &run.org_id,
+            serde_json::json!({
+                "workItemId": run.work_item_id,
+                "outcome": outcome,
+            }),
+        )?;
+    }
+    db(tx.commit())
 }
 
 /// Compatibility lookup for legacy Session-terminal callers. Multiple Runs
