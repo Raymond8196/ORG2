@@ -28,8 +28,9 @@ pub use orgs::{
     delete_project_org, read_project_org, read_project_orgs, resolve_local_org_scope,
 };
 pub use projects::{
-    delete_project, derive_work_item_prefix, normalize_custom_work_item_prefix, read_all_projects,
-    read_all_projects_scoped, read_project, read_project_scoped, write_project,
+    delete_project, derive_work_item_prefix, move_project_to_org,
+    normalize_custom_work_item_prefix, read_all_projects, read_all_projects_scoped, read_project,
+    read_project_scoped, write_project,
 };
 pub(crate) use projects::{
     read_project_field_revisions, write_project_remote, PROJECT_SYNC_FIELDS,

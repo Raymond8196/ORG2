@@ -70,6 +70,7 @@ export const projectApi = {
   readProjects: client.readProjects,
   readProject: client.readProject,
   writeProject: client.writeProject,
+  moveProject: client.moveProject,
   deleteProject: client.deleteProject,
   // Labels
   readLabels: client.readLabels,
