@@ -310,6 +310,16 @@ describe("WorkItemAttachmentControl", () => {
     ).toBe("");
     expect(
       container.querySelector(
+        '[data-testid="session-creator-work-item-picker-back"]'
+      )?.className
+    ).toContain("border-border-2");
+    expect(
+      container.querySelector(
+        '[data-testid="session-creator-work-item-picker-refresh"]'
+      )?.className
+    ).toContain("border-border-2");
+    expect(
+      container.querySelector(
         '[data-testid="session-creator-work-item-picker-refresh"]'
       )?.parentElement
     ).toBe(
