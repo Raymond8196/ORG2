@@ -7,7 +7,7 @@ import {
   parseGifMetadata,
   readGifLogicalScreen,
 } from "../gifMetadata";
-import { ImageOptimizationError, optimizeImage } from "../imageOptimizer";
+import { optimizeImage } from "../imageOptimizer";
 
 function pushUint16Le(bytes: number[], value: number): void {
   bytes.push(value & 0xff, (value >> 8) & 0xff);
@@ -102,12 +102,13 @@ describe("GIF metadata inspection", () => {
   });
 
   it("rejects an unsafe animation before invoking the browser image decoder", async () => {
-    const file = new File([createGif(2048, 2048, 3)], "oversized.gif", {
+    const gif = createGif(2048, 2048, 3);
+    const file = new File([gif.buffer as ArrayBuffer], "oversized.gif", {
       type: "image/gif",
     });
 
-    await expect(optimizeImage(file)).rejects.toMatchObject<
-      Partial<ImageOptimizationError>
-    >({ code: "GIF_LIMIT_EXCEEDED" });
+    await expect(optimizeImage(file)).rejects.toMatchObject({
+      code: "GIF_LIMIT_EXCEEDED",
+    });
   });
 });
