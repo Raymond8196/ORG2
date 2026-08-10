@@ -20,6 +20,8 @@ crate::setup::sidecar_setup::sidecar_list_status,
 crate::setup::sidecar_setup::sidecar_install,
 // App updater commands - channel-aware (stable/beta) update check
 crate::app_update::check_app_update,
+crate::app_update::get_app_build_provenance,
+crate::app_update::install_app_update_separately,
 // Integration commands - External IDE
 integrations::external_ide::open_in_external_ide,
 integrations::external_ide::show_in_folder,
