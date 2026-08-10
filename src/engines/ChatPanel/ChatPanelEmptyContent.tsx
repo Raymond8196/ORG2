@@ -281,12 +281,9 @@ export function ChatPanelEmptyContent({
                 repoPath={workspacePath ?? undefined}
                 repoName={workspaceName}
                 scopeBreadcrumbLabel={
-                  createProjectContext?.scopeBreadcrumbLabel ??
-                  t("projects:orgs.personalOrg")
+                  createProjectContext?.scopeBreadcrumbLabel
                 }
-                orgId={
-                  createProjectContext?.orgId ?? STORY_PERSONAL_ORG_FILTER_ID
-                }
+                orgId={createProjectContext?.orgId}
                 onSetUnsaved={() => undefined}
                 onProjectCreated={handleChatPanelProjectCreated}
                 aiGenerateMode={showProjectAgentCreator}

@@ -32,6 +32,20 @@ describe("DetailTabStrip", () => {
     expect(markup).not.toContain("overflow-y-hidden");
   });
 
+  it("renders a count label that communicates a capped result", () => {
+    const markup = renderToStaticMarkup(
+      createElement(DetailTabStrip, {
+        activeTab: "changes",
+        ariaLabel: "Pull request views",
+        idPrefix: "pr-detail",
+        onChange: vi.fn(),
+        tabs: [{ key: "changes", label: "Files changed", count: "3000+" }],
+      })
+    );
+
+    expect(markup).toContain(">3000+</span>");
+  });
+
   it("keeps host controls in a trailing slot", () => {
     const markup = renderToStaticMarkup(
       createElement(DetailTabStrip, {
@@ -45,5 +59,25 @@ describe("DetailTabStrip", () => {
     );
 
     expect(markup).toContain(">Filter</button>");
+  });
+
+  it("embeds tabs in a header without creating another bordered row", () => {
+    const markup = renderToStaticMarkup(
+      createElement(DetailTabStrip, {
+        activeTab: "overview",
+        ariaLabel: "Project views",
+        idPrefix: "project-detail",
+        onChange: vi.fn(),
+        tabs: [{ key: "overview", label: "Overview" }],
+        variant: "header",
+      })
+    );
+
+    expect(markup).toContain("h-full min-w-0");
+    expect(markup).not.toContain("overflow-x-auto");
+    expect(markup).not.toMatch(/role="tablist"[^>]*border-b/);
+    expect(markup).toMatch(
+      /aria-selected="true"[^>]*after:-bottom-px[^>]*after:bg-bg-2/
+    );
   });
 });

@@ -299,6 +299,59 @@ pub fn record_project_write(
     )
 }
 
+/// Enqueue the replication handoff for an atomic project organization move.
+///
+/// The source organization receives a project tombstone (the server cascades
+/// it to child work items), while the destination receives fresh project and
+/// work-item snapshots. This accepts the caller's transaction connection so
+/// the ownership change and its outbox intent commit or roll back together.
+pub(crate) fn record_project_org_move_in_connection(
+    conn: &Connection,
+    source_org_id: &str,
+    destination_org_id: &str,
+    project_id: &str,
+    project_slug: &str,
+    work_item_ids: &[String],
+) -> Result<(), String> {
+    if is_collab_org(conn, source_org_id)? {
+        append_collab_row(
+            conn,
+            source_org_id,
+            project_slug,
+            EntityType::Project,
+            project_id,
+            OutboxOp::Delete,
+            None,
+        )?;
+    }
+
+    if !is_collab_org(conn, destination_org_id)? {
+        return Ok(());
+    }
+
+    append_collab_row(
+        conn,
+        destination_org_id,
+        project_slug,
+        EntityType::Project,
+        project_id,
+        OutboxOp::Update,
+        None,
+    )?;
+    for work_item_id in work_item_ids {
+        append_collab_row(
+            conn,
+            destination_org_id,
+            project_slug,
+            EntityType::WorkItem,
+            work_item_id,
+            OutboxOp::Update,
+            None,
+        )?;
+    }
+    Ok(())
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct CollabPendingEntity {

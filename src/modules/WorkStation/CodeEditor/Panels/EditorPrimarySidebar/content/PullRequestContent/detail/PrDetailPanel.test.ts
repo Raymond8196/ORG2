@@ -22,6 +22,7 @@ import {
 } from "@src/store/workstation/codeEditor/workstationSelectedPrAtom";
 
 import { PrDetailPanel } from "./PrDetailPanel";
+import { formatPrFilesCount } from "./prFilesDisplay";
 
 const childProps = vi.hoisted(() => ({
   changes: null as Record<string, unknown> | null,
@@ -120,6 +121,12 @@ describe("PrDetailPanel tabs", () => {
 
   beforeAll(() => {
     actEnvironment.IS_REACT_ACT_ENVIRONMENT = true;
+  });
+
+  it("marks the GitHub PR-files ceiling as a lower bound", () => {
+    expect(formatPrFilesCount(2999)).toBe(2999);
+    expect(formatPrFilesCount(3000)).toBe("3000+");
+    expect(formatPrFilesCount(3200)).toBe("3000+");
   });
 
   beforeEach(() => {
@@ -239,9 +246,19 @@ describe("PrDetailPanel tabs", () => {
       act(() => {
         tabs[tabIndex]?.click();
       });
+      const activePanel = container.querySelector<HTMLElement>(
+        '[role="tabpanel"][aria-hidden="false"]'
+      );
+      const conversationPanel = container.querySelector<HTMLElement>(
+        "#pr-detail-tabpanel-conversation"
+      );
+      expect(activePanel?.id).toBe(
+        `pr-detail-tabpanel-${["commits", "checks", "changes"][tabIndex - 1]}`
+      );
       expect(
         container.querySelector('[data-testid="pr-detail-navigation-rail"]')
-      ).toBeNull();
+      ).not.toBeNull();
+      expect(conversationPanel?.style.display).toBe("none");
     }
 
     act(() => {
@@ -258,15 +275,19 @@ describe("PrDetailPanel tabs", () => {
       "changes"
     );
     expect(tabs[3]?.getAttribute("aria-selected")).toBe("true");
-    expect(container.querySelector('[role="tabpanel"]')?.id).toBe(
-      "pr-detail-tabpanel-changes"
-    );
+    expect(
+      container.querySelector('[role="tabpanel"][aria-hidden="false"]')?.id
+    ).toBe("pr-detail-tabpanel-changes");
     expect(
       container.querySelector('[data-testid="pr-detail-navigation-rail"]')
-    ).toBeNull();
+    ).not.toBeNull();
     expect(
       container.querySelector('[data-testid="pr-detail-navigation-trail"]')
-    ).toBeNull();
+    ).not.toBeNull();
+    expect(
+      container.querySelector<HTMLElement>("#pr-detail-tabpanel-conversation")
+        ?.style.display
+    ).toBe("none");
   });
 
   it("renders GraphQL merge conflicts as a disabled danger action", () => {

@@ -260,6 +260,19 @@ export async function writeProject(
   return result;
 }
 
+export async function moveProject(
+  slug: string,
+  destinationOrgId: string
+): Promise<ProjectData> {
+  const result = await invoke<ProjectData>("project_move_project", {
+    slug,
+    destinationOrgId,
+  });
+  invalidateCache(slug);
+  invalidateCache("__projects__");
+  return result;
+}
+
 export async function deleteProject(slug: string): Promise<void> {
   const result = await invoke<void>("project_delete_project", { slug });
   invalidateCache(slug);
