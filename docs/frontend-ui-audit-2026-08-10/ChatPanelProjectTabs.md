@@ -25,3 +25,22 @@ Audited the Chat Panel project/work-item tab treatment, the Project detail view 
 - Remaining cross-file sweep candidates: 0
 
 The configured `frontend-ui-audit` skill file was unavailable in both the referenced user-global and workspace locations. This report follows the repository's documented audit table convention and covers the changed UI surfaces directly.
+
+## Consolidated detail-header follow-up
+
+| Line                                                                                                                     | Element                             | Verdict          | Reason                                                                                                                                                             | Suggested change                                                                                |
+| ------------------------------------------------------------------------------------------------------------------------ | ----------------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
+| `src/modules/shared/layouts/blocks/DetailHeaderTabs.tsx:9`                                                               | Shared title/breadcrumb + tabs row  | abstract         | Projects and Pull Requests need the same compact 40px composition, with a separator between entity identity and view navigation.                                   | Keep future tabbed detail headers on this composition instead of rebuilding the flex structure. |
+| `src/modules/shared/layouts/blocks/DetailTabStrip.tsx:29`                                                                | Header-embedded tab variant         | fix              | A full-width tab row added redundant height. The header variant reuses the existing tab semantics and masks the active tab's bottom edge inside the shared border. | Keep the active-edge mask covered by the shared component test.                                 |
+| `src/engines/ChatPanel/panels/ProjectPanelView.tsx:181`                                                                  | Project breadcrumb identity         | fix              | The organization/project breadcrumb is the useful identity; repeating it in a second row wastes vertical space.                                                    | Render the full breadcrumb left of the separator and remove the duplicate row.                  |
+| `src/engines/ChatPanel/panels/ProjectPanelView.tsx:647`                                                                  | Project header controls             | keep with reason | View tabs share the center of the 40px bar while grouping, status, and properties remain right-aligned and retain their existing control components.               | No change.                                                                                      |
+| `src/engines/ChatPanel/panels/WorkItemPanelView.tsx:453`                                                                 | Work-item breadcrumb identity       | fix              | The existing editable breadcrumb already owns project/work-item identity and should replace a separate title or trail row.                                         | Keep the breadcrumb in the published header and preserve its back/rename behavior.              |
+| `src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/PullRequestContent/detail/PrDetailPanel.tsx:470` | Pull Request combined-header option | keep with reason | Workstation callers retain the established two-row layout, while Chat Panel can opt into the compact shared row without duplicating the PR detail implementation.  | Keep `combineHeaderAndTabs` opt-in unless Workstation product requirements also adopt one row.  |
+| `src/engines/ChatPanel/panels/GitHubIssuePanelView.tsx:52`                                                               | GitHub Issue published header       | fix              | Publishing issue identity/actions into shell chrome eliminates the duplicate pane-owned header in loading and loaded states.                                       | Continue suppressing the internal issue header when rendered in Chat Panel.                     |
+
+### Follow-up verdict counts
+
+- Fix: 4
+- Keep with reason: 2
+- Abstract: 1
+- Remaining cross-file sweep candidates: 0
