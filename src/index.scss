@@ -545,8 +545,18 @@ html[data-host-desktop="windows"] .sidebar-base {
   background: transparent;
 }
 
-// The work surface overlaps the sidebar edge like Codex: only the inner
-// top-left corner is rounded, while the sidebar keeps its native edge depth.
+// Match the surface revealed beneath the rounded work area to the translucent
+// Windows chrome used by the top bar and navigation sidebar. Falling through
+// to the opaque root background makes the corner look like a separate layer.
+html[data-host-desktop="windows"] .windows-main-page-underlay {
+  background: color-mix(
+    in srgb,
+    var(--color-bg-2) var(--windows-native-chrome-opacity, 30%),
+    transparent
+  );
+}
+
+// Only the inner top-left corner of the main work surface is rounded.
 html[data-host-desktop="windows"] .windows-main-page-surface {
   overflow: hidden;
   border-top-left-radius: var(--radius-page);
