@@ -152,7 +152,7 @@ const SessionCreatorChatPanelView: React.FC<
   showMissingGitAlert,
   workItemContext,
 }) => {
-  const { t } = useTranslation("sessions");
+  const { t } = useTranslation(["sessions", "common"]);
   const sessionInfoLine = (
     <SessionInfoLine
       {...sessionInfoProps}
@@ -301,6 +301,10 @@ const SessionCreatorChatPanelView: React.FC<
       }`}
       layoutActionCount={Children.count(heroFooterSlot) + 1}
       presentation="card"
+      collapsible={!isLaunchpadWorkItemPickerOpen}
+      controlAlignment="center"
+      collapseLabel={t("common:actions.collapse")}
+      expandLabel={t("common:actions.expand")}
     >
       <WorkItemAttachmentControl
         composerInputRef={composerInputRef}
