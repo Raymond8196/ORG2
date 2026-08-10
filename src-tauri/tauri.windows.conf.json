@@ -14,10 +14,7 @@
         "decorations": false,
         "hiddenTitle": true,
         "backgroundColor": "#00000000",
-        "transparent": true,
-        "windowEffects": {
-          "effects": ["acrylic"]
-        }
+        "transparent": true
       }
     ]
   },

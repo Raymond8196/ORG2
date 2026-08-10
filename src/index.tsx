@@ -2,7 +2,10 @@ import { createRoot } from "react-dom/client";
 
 import { initializeSharedServiceAuthStorage } from "@src/api/http/auth/sharedAuthStorage";
 import { configureIdeServerForIdentifier } from "@src/config/ideServer";
-import { applyHostDesktopWindowChromeRadius } from "@src/config/windowChromeRadius";
+import {
+  applyHostDesktopWindowChromeRadius,
+  applyWindowsNativeChromeAttribute,
+} from "@src/config/windowChromeRadius";
 import { configureCloudAuthCallbackForIdentifier } from "@src/features/Org2Cloud/config";
 import { installGlobalTauriSelectAllShortcut } from "@src/hooks/keyboard/useTauriSelectAllShortcut";
 import { createLogger, initializeLogging } from "@src/hooks/logger/useLogger";
@@ -212,7 +215,7 @@ async function initializeApp() {
   // locale bundles are still loading.
   const initPromise = Promise.all([
     initTheme(),
-    initializeTauriAPIs(),
+    initializeTauriAPIs().then(() => applyWindowsNativeChromeAttribute()),
     initBackgroundImage(),
     appModulePromise,
   ]);
