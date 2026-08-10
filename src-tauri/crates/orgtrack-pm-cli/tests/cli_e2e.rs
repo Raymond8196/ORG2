@@ -92,8 +92,10 @@ fn seed(slug: &str) {
 
 fn run_cli(args: &[&str]) -> (i32, serde_json::Value) {
     let exe = env!("CARGO_BIN_EXE_org2-pm");
+    let home = std::env::var_os("ORGII_HOME").expect("sandbox sets ORGII_HOME");
     let output = Command::new(exe)
         .args(args)
+        .current_dir(home)
         .output()
         .expect("spawn org2-pm");
     let stdout = String::from_utf8_lossy(&output.stdout);

@@ -44,12 +44,11 @@ impl jsonschema::Retrieve for InDirRetriever {
 }
 
 fn run_cli(args: &[&str]) -> (i32, serde_json::Value) {
+    let home = std::env::var_os("ORGII_HOME").expect("sandbox sets ORGII_HOME");
     let output = Command::new(env!("CARGO_BIN_EXE_org2-pm"))
         .args(args)
-        .env(
-            "ORGII_HOME",
-            std::env::var("ORGII_HOME").expect("sandbox sets ORGII_HOME"),
-        )
+        .env("ORGII_HOME", &home)
+        .current_dir(home)
         .output()
         .expect("spawn org2-pm");
     let stdout = String::from_utf8_lossy(&output.stdout);
