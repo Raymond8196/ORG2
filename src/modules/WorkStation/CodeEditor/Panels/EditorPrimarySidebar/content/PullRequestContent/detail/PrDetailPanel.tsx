@@ -37,6 +37,7 @@ import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
 import GitHubDetailSkeleton from "@src/modules/shared/components/GitHubDetailSkeleton";
 import {
+  DetailHeaderTabs,
   DetailTabStrip,
   PanelHeader,
   ScrollTrail,
@@ -73,6 +74,8 @@ interface PrDetailPanelProps {
    * lifts it into the 40px tab-header strip via {@link PrDetailHeaderContent}).
    */
   showHeader?: boolean;
+  /** Place the title and detail tabs together in the same 40px header row. */
+  combineHeaderAndTabs?: boolean;
   onFileSelect?: (path: string) => void;
 }
 
@@ -299,6 +302,7 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
   headerActions,
   headerClassName,
   showHeader = true,
+  combineHeaderAndTabs = false,
   onFileSelect,
 }) => {
   const { t } = useTranslation("common");
@@ -453,6 +457,7 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
         <PanelHeader
           className={headerClassName ?? DETAIL_PANEL_TOKENS.headerPadding}
           dataTestId="pr-detail-header"
+          borderBottom={combineHeaderAndTabs}
           actions={
             headerActions ?? (
               <PrDetailExternalLinkButton
@@ -462,18 +467,36 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
             )
           }
         >
-          <PrDetailHeaderContent identity={currentIdentity} />
+          {combineHeaderAndTabs ? (
+            <DetailHeaderTabs
+              title={<PrDetailHeaderContent identity={currentIdentity} />}
+              tabs={
+                <DetailTabStrip
+                  activeTab={activeTab}
+                  ariaLabel={t("git.pr.summary.label", "Pull request summary")}
+                  idPrefix="pr-detail"
+                  tabs={tabs}
+                  onChange={setActiveTab}
+                  variant="header"
+                />
+              }
+            />
+          ) : (
+            <PrDetailHeaderContent identity={currentIdentity} />
+          )}
         </PanelHeader>
       ) : null}
 
       {/* GitHub-style PR navigation */}
-      <DetailTabStrip
-        activeTab={activeTab}
-        ariaLabel={t("git.pr.summary.label", "Pull request summary")}
-        idPrefix="pr-detail"
-        tabs={tabs}
-        onChange={setActiveTab}
-      />
+      {!combineHeaderAndTabs || !showHeader ? (
+        <DetailTabStrip
+          activeTab={activeTab}
+          ariaLabel={t("git.pr.summary.label", "Pull request summary")}
+          idPrefix="pr-detail"
+          tabs={tabs}
+          onChange={setActiveTab}
+        />
+      ) : null}
 
       {/* Error banner */}
       {state.error ? (

@@ -75,6 +75,7 @@ import {
 import ProjectManagerBreadcrumb from "@src/modules/ProjectManager/shared/components/ProjectManagerBreadcrumb";
 import { WorkstationToolbarTooltip } from "@src/modules/WorkStation/shared";
 import {
+  DetailHeaderTabs,
   DetailPanelContainer,
   DetailTabStrip,
   Placeholder,
@@ -177,7 +178,7 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
       : selectedProject.projectSyncAdapterId;
   const isGitHubSyncedProject =
     projectSyncAdapterId === STORY_SYNC_ADAPTER.GITHUB;
-  const headerContent = useMemo(
+  const projectHeaderBreadcrumb = useMemo(
     () => (
       <ProjectManagerBreadcrumb
         segments={[
@@ -231,19 +232,6 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
     ),
     [propertiesOpen, propertiesToggleLabel, toggleProperties]
   );
-
-  // Memoize the published-header payload — a fresh object literal every
-  // render re-publishes on every commit and can drive an unbounded update
-  // loop through the header atom's subscriber (see WorkItemPanelView).
-  const publishedHeader = useMemo(
-    () => ({
-      content: headerContent,
-      trailing: headerTrailing,
-      joinWithFollowingRow: true,
-    }),
-    [headerContent, headerTrailing]
-  );
-  usePublishChatPanelHeader({ content: publishedHeader });
 
   useEffect(() => {
     if (!projectSlug) return;
@@ -603,24 +591,28 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
     </PropertiesRailFrame>
   );
 
-  const panelTabItems = PROJECT_PANEL_TABS.map((tab) => ({
-    key: tab,
-    label:
-      tab === "overview"
-        ? t("projects:orgs.management.overview")
-        : tab === "list"
-          ? t("projects:workItems.tabs.list")
-          : t("projects:workItems.tabs.kanban"),
-    icon:
-      tab === "overview" ? (
-        <LayoutDashboard size={15} strokeWidth={1.8} />
-      ) : tab === "list" ? (
-        <List size={15} strokeWidth={1.8} />
-      ) : (
-        <Columns3 size={15} strokeWidth={1.8} />
-      ),
-    count: tab === "overview" ? undefined : workItems.length,
-  }));
+  const panelTabItems = useMemo(
+    () =>
+      PROJECT_PANEL_TABS.map((tab) => ({
+        key: tab,
+        label:
+          tab === "overview"
+            ? t("projects:orgs.management.overview")
+            : tab === "list"
+              ? t("projects:workItems.tabs.list")
+              : t("projects:workItems.tabs.kanban"),
+        icon:
+          tab === "overview" ? (
+            <LayoutDashboard size={15} strokeWidth={1.8} />
+          ) : tab === "list" ? (
+            <List size={15} strokeWidth={1.8} />
+          ) : (
+            <Columns3 size={15} strokeWidth={1.8} />
+          ),
+        count: tab === "overview" ? undefined : workItems.length,
+      })),
+    [t, workItems.length]
+  );
   const kanbanGroupTabs = useMemo<TabPillItem[]>(
     () => [
       {
@@ -638,6 +630,80 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
     ],
     [t]
   );
+
+  const projectHeaderTabs = useMemo(
+    () => (
+      <DetailTabStrip
+        tabs={panelTabItems}
+        activeTab={activePanelTab}
+        onChange={setActivePanelTab}
+        ariaLabel={t("projects:workspace.views")}
+        idPrefix="chat-panel-project-detail"
+        variant="header"
+      />
+    ),
+    [activePanelTab, panelTabItems, t]
+  );
+  const projectHeaderContent = useMemo(
+    () => (
+      <DetailHeaderTabs
+        title={projectHeaderBreadcrumb}
+        tabs={projectHeaderTabs}
+      />
+    ),
+    [projectHeaderBreadcrumb, projectHeaderTabs]
+  );
+  const projectHeaderTrailing = useMemo(
+    () => (
+      <div className="flex shrink-0 items-center gap-1">
+        {activePanelTab !== "overview" ? (
+          <>
+            {activePanelTab === "kanban" ? (
+              <TabPill
+                tabs={kanbanGroupTabs}
+                activeTab={kanbanGroupBy}
+                onChange={(key) =>
+                  setKanbanGroupBy(key as WorkItemsKanbanGroup)
+                }
+                variant="pill"
+                color="fill"
+                fillWidth={false}
+                size="small"
+              />
+            ) : null}
+            <WorkItemsStatusFilterSelect
+              value={statusFilter}
+              onChange={setStatusFilter}
+              statusCounts={statusCounts}
+              filterKeys={statusFilterKeys}
+            />
+          </>
+        ) : null}
+        {headerTrailing}
+      </div>
+    ),
+    [
+      activePanelTab,
+      headerTrailing,
+      kanbanGroupBy,
+      kanbanGroupTabs,
+      statusCounts,
+      statusFilter,
+      statusFilterKeys,
+    ]
+  );
+
+  // Memoize the published-header payload — a fresh object literal every
+  // render re-publishes on every commit and can drive an unbounded update
+  // loop through the header atom's subscriber (see WorkItemPanelView).
+  const publishedHeader = useMemo(
+    () => ({
+      content: projectHeaderContent,
+      trailing: projectHeaderTrailing,
+    }),
+    [projectHeaderContent, projectHeaderTrailing]
+  );
+  usePublishChatPanelHeader({ content: publishedHeader });
 
   const handleSelectWorkItem = useCallback(
     (workItemId: string) => {
@@ -805,38 +871,6 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
       className="flex min-h-0 flex-1 flex-col"
       data-testid="chat-panel-project-section"
     >
-      <DetailTabStrip
-        tabs={panelTabItems}
-        activeTab={activePanelTab}
-        onChange={setActivePanelTab}
-        ariaLabel={t("projects:workspace.views")}
-        idPrefix="chat-panel-project-detail"
-        trailing={
-          activePanelTab !== "overview" ? (
-            <div className="flex shrink-0 items-center gap-1">
-              {activePanelTab === "kanban" ? (
-                <TabPill
-                  tabs={kanbanGroupTabs}
-                  activeTab={kanbanGroupBy}
-                  onChange={(key) =>
-                    setKanbanGroupBy(key as WorkItemsKanbanGroup)
-                  }
-                  variant="pill"
-                  color="fill"
-                  fillWidth={false}
-                  size="small"
-                />
-              ) : null}
-              <WorkItemsStatusFilterSelect
-                value={statusFilter}
-                onChange={setStatusFilter}
-                statusCounts={statusCounts}
-                filterKeys={statusFilterKeys}
-              />
-            </div>
-          ) : null
-        }
-      />
       <div
         className={`min-h-0 flex-1 ${
           activePanelTab === "overview"

@@ -46,4 +46,24 @@ describe("DetailTabStrip", () => {
 
     expect(markup).toContain(">Filter</button>");
   });
+
+  it("embeds tabs in a header without creating another bordered row", () => {
+    const markup = renderToStaticMarkup(
+      createElement(DetailTabStrip, {
+        activeTab: "overview",
+        ariaLabel: "Project views",
+        idPrefix: "project-detail",
+        onChange: vi.fn(),
+        tabs: [{ key: "overview", label: "Overview" }],
+        variant: "header",
+      })
+    );
+
+    expect(markup).toContain("h-full min-w-0");
+    expect(markup).not.toContain("overflow-x-auto");
+    expect(markup).not.toMatch(/role="tablist"[^>]*border-b/);
+    expect(markup).toMatch(
+      /aria-selected="true"[^>]*after:-bottom-px[^>]*after:bg-bg-2/
+    );
+  });
 });

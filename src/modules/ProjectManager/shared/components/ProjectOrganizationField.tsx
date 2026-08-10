@@ -35,7 +35,7 @@ const ProjectOrganizationField: FC<ProjectOrganizationFieldProps> = ({
   options,
   onChange,
   disabled = false,
-  searchPlaceholder = "Search organizations",
+  searchPlaceholder,
   dataTestId,
 }) => {
   const [open, setOpen] = useState(false);

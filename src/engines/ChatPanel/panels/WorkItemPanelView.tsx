@@ -36,6 +36,7 @@ import {
 } from "@src/modules/ProjectManager/shared";
 import { WorkstationToolbarTooltip } from "@src/modules/WorkStation/shared";
 import {
+  DetailHeaderTabs,
   WorkstationTrailIconButton,
   WorkstationTrailSurface,
 } from "@src/modules/shared/layouts/blocks";
@@ -449,7 +450,7 @@ export const WorkItemPanelView: React.FC<WorkItemPanelViewProps> = ({
     ]
   );
 
-  const headerContent = useMemo(
+  const workItemHeaderBreadcrumb = useMemo(
     () => (
       <WorkItemDetailHeaderBreadcrumb
         workItem={selectedWorkItem.workItem}
@@ -488,6 +489,10 @@ export const WorkItemPanelView: React.FC<WorkItemPanelViewProps> = ({
       t,
     ]
   );
+  const workItemHeaderContent = useMemo(
+    () => <DetailHeaderTabs title={workItemHeaderBreadcrumb} />,
+    [workItemHeaderBreadcrumb]
+  );
 
   // Memoize the published-header payload. A fresh `{ content, trailing }`
   // object literal every render makes `usePublishChatPanelHeader`'s
@@ -495,8 +500,8 @@ export const WorkItemPanelView: React.FC<WorkItemPanelViewProps> = ({
   // subscriber re-render cascades back into this panel, that becomes an
   // unbounded synchronous update loop (React "maximum update depth").
   const publishedHeader = useMemo(
-    () => ({ content: headerContent, trailing: headerActions }),
-    [headerContent, headerActions]
+    () => ({ content: workItemHeaderContent, trailing: headerActions }),
+    [workItemHeaderContent, headerActions]
   );
   usePublishChatPanelHeader({ content: publishedHeader });
 

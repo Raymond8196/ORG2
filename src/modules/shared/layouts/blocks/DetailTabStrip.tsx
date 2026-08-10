@@ -17,6 +17,8 @@ export interface DetailTabStripProps<Key extends string = string> {
   tabs: readonly DetailTabStripItem<Key>[];
   className?: string;
   trailing?: ReactNode;
+  /** Full-width content row or compact tabs embedded in a 40px header. */
+  variant?: "row" | "header";
 }
 
 /**
@@ -32,12 +34,18 @@ export default function DetailTabStrip<Key extends string>({
   tabs,
   className = "",
   trailing,
+  variant = "row",
 }: DetailTabStripProps<Key>) {
+  const isHeaderVariant = variant === "header";
   return (
     <div
       role="tablist"
       aria-label={ariaLabel}
-      className={`flex shrink-0 items-end gap-px border-b border-border-2 bg-bg-2 px-3 ${className}`.trim()}
+      className={`flex shrink-0 items-end gap-px ${
+        isHeaderVariant
+          ? "h-full min-w-0"
+          : "border-b border-border-2 bg-bg-2 px-3"
+      } ${className}`.trim()}
     >
       {tabs.map((tab) => {
         const selected = activeTab === tab.key;
@@ -53,7 +61,7 @@ export default function DetailTabStrip<Key extends string>({
             data-testid={tab.dataTestId}
             className={`relative -mb-px flex shrink-0 items-center gap-1.5 rounded-t-md border px-3 py-1.5 text-[12px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
               selected
-                ? "border-border-2 bg-bg-2 text-text-1 after:absolute after:-bottom-px after:left-0 after:right-0 after:h-px after:bg-bg-2"
+                ? "z-10 border-border-2 bg-bg-2 text-text-1 after:absolute after:-bottom-px after:left-0 after:right-0 after:h-px after:bg-bg-2"
                 : "border-transparent text-text-2 hover:bg-fill-1 hover:text-text-1"
             }`}
             onClick={() => onChange(tab.key)}
