@@ -1,5 +1,12 @@
-import { useSetAtom } from "jotai";
-import { Box, Columns3, LayoutDashboard, List } from "lucide-react";
+import { useAtomValue, useSetAtom } from "jotai";
+import {
+  Box,
+  ChevronsRight,
+  Columns3,
+  Info,
+  LayoutDashboard,
+  List,
+} from "lucide-react";
 import React, {
   useCallback,
   useEffect,
@@ -12,11 +19,15 @@ import { useTranslation } from "react-i18next";
 import { STORY_SYNC_ADAPTER } from "@src/api/http/integrations/syncConnections";
 import {
   type MemberEntry,
+  type ProjectOrg,
   enrichedWorkItemToUI,
   projectApi,
 } from "@src/api/http/project";
 import { projectSyncApi } from "@src/api/http/project/sync";
+import Button from "@src/components/Button";
 import IntegrationIcon from "@src/components/IntegrationIcon";
+import Message from "@src/components/Message";
+import type { SelectOption } from "@src/components/Select";
 import TabPill from "@src/components/TabPill";
 import type { TabPillItem } from "@src/components/TabPill";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
@@ -25,6 +36,8 @@ import { usePublishChatPanelHeader } from "@src/engines/ChatPanel/header";
 import KanbanBoard from "@src/features/KanbanBoard";
 import type { KanbanTask, TaskStatus } from "@src/features/KanbanBoard";
 import { allocateCloudAwareWorkItemId } from "@src/features/Org2Cloud/cloudShortId";
+import { org2CloudOrgsAtom } from "@src/features/Org2Cloud/org2CloudOrgsAtom";
+import { useProjectOrgCloudPermissions } from "@src/features/Org2Cloud/useProjectOrgCloudPermissions";
 import { createLogger } from "@src/hooks/logger";
 import {
   useCurrentUserMemberIds,
@@ -50,19 +63,28 @@ import {
   groupWorkItemsForStatusFilter,
   workItemsToKanbanTasks,
 } from "@src/modules/ProjectManager/WorkItems/workItemsViewModel";
+import { filterSelectableProjectOrgs } from "@src/modules/ProjectManager/projectOrgVisibility";
 import {
-  PROJECT_PROPERTY_CONCISE_FIELDS,
   ProjectContentEditor,
   type ProjectData,
+  ProjectOrganizationField,
   ProjectPropertyFields,
+  PropertiesPanel,
+  PropertiesRailFrame,
 } from "@src/modules/ProjectManager/shared";
 import ProjectManagerBreadcrumb from "@src/modules/ProjectManager/shared/components/ProjectManagerBreadcrumb";
+import { WorkstationToolbarTooltip } from "@src/modules/WorkStation/shared";
 import {
   DetailPanelContainer,
   DetailTabStrip,
   Placeholder,
+  WorkstationTrailIconButton,
+  WorkstationTrailSurface,
 } from "@src/modules/shared/layouts/blocks";
-import { openWorkItemInChatPanelTabAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
+import {
+  openProjectInChatPanelTabAtom,
+  openWorkItemInChatPanelTabAtom,
+} from "@src/store/chatPanel/chatPanelTabsAtom";
 import { type ChatPanelSelectedProject } from "@src/store/ui/chatPanelAtom";
 import type { WorkItem } from "@src/types/core/workItem";
 
@@ -88,6 +110,9 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
 }) => {
   const { t } = useTranslation(["projects", "common"]);
   const openWorkItemTab = useSetAtom(openWorkItemInChatPanelTabAtom);
+  const openProjectTab = useSetAtom(openProjectInChatPanelTabAtom);
+  const cloudOrgs = useAtomValue(org2CloudOrgsAtom);
+  const { canAdminister } = useProjectOrgCloudPermissions();
   const sidebarProjectDescription = getProjectOverviewDescription(
     selectedProject.project
   );
@@ -112,7 +137,10 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
     projectSlug: string;
     adapterId: string | null;
   } | null>(null);
-  const propertiesRef = useRef<HTMLDivElement>(null);
+  const [projectOrgs, setProjectOrgs] = useState<ProjectOrg[]>([]);
+  const [movingProject, setMovingProject] = useState(false);
+  const [propertiesOpen, setPropertiesOpen] = useState(true);
+  const propertiesRef = useRef<HTMLElement>(null);
 
   const projectProperties = useMemo<ProjectData>(
     () => ({
@@ -177,12 +205,43 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
     ]
   );
 
+  const toggleProperties = useCallback(() => {
+    setPropertiesOpen((current) => !current);
+  }, []);
+  const propertiesToggleLabel = propertiesOpen
+    ? t("projects:workItems.hideProperties")
+    : t("projects:workItems.showProperties");
+  const headerTrailing = useMemo(
+    () => (
+      <WorkstationToolbarTooltip label={propertiesToggleLabel}>
+        <Button
+          htmlType="button"
+          variant="tertiary"
+          size="small"
+          iconOnly
+          className={
+            propertiesOpen ? "!bg-surface-selected !text-primary-6" : ""
+          }
+          onClick={toggleProperties}
+          aria-label={propertiesToggleLabel}
+          data-testid="chat-panel-project-properties-toggle"
+          icon={<Info size={HEADER_ICON_SIZE.sm} />}
+        />
+      </WorkstationToolbarTooltip>
+    ),
+    [propertiesOpen, propertiesToggleLabel, toggleProperties]
+  );
+
   // Memoize the published-header payload — a fresh object literal every
   // render re-publishes on every commit and can drive an unbounded update
   // loop through the header atom's subscriber (see WorkItemPanelView).
   const publishedHeader = useMemo(
-    () => ({ content: headerContent }),
-    [headerContent]
+    () => ({
+      content: headerContent,
+      trailing: headerTrailing,
+      joinWithFollowingRow: true,
+    }),
+    [headerContent, headerTrailing]
   );
   usePublishChatPanelHeader({ content: publishedHeader });
 
@@ -210,6 +269,18 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
       cancelled = true;
     };
   }, [projectSlug]);
+
+  const loadProjectOrgs = useCallback(async () => {
+    try {
+      setProjectOrgs(await projectApi.readOrgs());
+    } catch (error) {
+      logger.warn("Failed to load project organizations", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadProjectOrgs();
+  }, [loadProjectOrgs]);
 
   useEffect(() => {
     let cancelled = false;
@@ -415,17 +486,121 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
     onBatchDeleteComplete: loadProjectWorkItems,
   });
 
-  const inlineProperties = (
-    <div ref={propertiesRef}>
-      <ProjectPropertyFields
-        project={projectProperties}
-        containerRef={propertiesRef}
-        fieldVariant="pill"
-        visibleFields={PROJECT_PROPERTY_CONCISE_FIELDS}
-        availableRepos={projectProperties.linkedRepos}
-        showMoreMenu
-      />
-    </div>
+  const selectableProjectOrgs = useMemo(
+    () => filterSelectableProjectOrgs(projectOrgs, cloudOrgs),
+    [cloudOrgs, projectOrgs]
+  );
+  const projectOrgOptions = useMemo<SelectOption[]>(
+    () =>
+      selectableProjectOrgs.map((org) => ({
+        value: org.id,
+        label: org.name,
+        triggerLabel: org.name,
+        dataTestId: `project-org-option-${org.id}`,
+      })),
+    [selectableProjectOrgs]
+  );
+  const canMoveProject = canAdminister(selectedProject.orgId);
+  const selectedProjectOrgLabel =
+    selectableProjectOrgs.find((org) => org.id === selectedProject.orgId)
+      ?.name ??
+    selectedProject.orgName ??
+    selectedProject.orgId;
+
+  const handleProjectOrgChange = useCallback(
+    (value: string | number | (string | number)[]) => {
+      if (Array.isArray(value) || movingProject || !projectSlug) return;
+      const destinationOrgId = String(value);
+      if (destinationOrgId === selectedProject.orgId) return;
+
+      void (async () => {
+        setMovingProject(true);
+        try {
+          await projectApi.moveProject(projectSlug, destinationOrgId);
+          const destinationOrg = selectableProjectOrgs.find(
+            (org) => org.id === destinationOrgId
+          );
+          openProjectTab({
+            ...selectedProject,
+            orgId: destinationOrgId,
+            orgName: destinationOrg?.name ?? destinationOrgId,
+          });
+          Message.success(
+            `Moved project to ${destinationOrg?.name ?? destinationOrgId}`
+          );
+        } catch (error) {
+          logger.error("Failed to move project", error);
+          Message.error(
+            error instanceof Error ? error.message : "Failed to move project"
+          );
+        } finally {
+          setMovingProject(false);
+        }
+      })();
+    },
+    [
+      movingProject,
+      openProjectTab,
+      projectSlug,
+      selectableProjectOrgs,
+      selectedProject,
+    ]
+  );
+
+  const propertiesPanel = (
+    <PropertiesRailFrame
+      width={300}
+      minWidth={280}
+      maxWidth={320}
+      className="p-2"
+      floatingContent
+    >
+      <WorkstationTrailSurface className="flex self-start">
+        <PropertiesPanel
+          title={t("projects:properties.projectProperties")}
+          containerRef={propertiesRef}
+          fitContent
+          headerVariant="workstation-trail"
+          headerActions={
+            <WorkstationToolbarTooltip label={propertiesToggleLabel}>
+              <WorkstationTrailIconButton
+                onClick={toggleProperties}
+                aria-label={propertiesToggleLabel}
+                data-testid="chat-panel-project-properties-collapse"
+              >
+                <ChevronsRight size={14} strokeWidth={1.75} />
+              </WorkstationTrailIconButton>
+            </WorkstationToolbarTooltip>
+          }
+        >
+          <div
+            title={
+              canMoveProject
+                ? undefined
+                : "Only an organization owner or admin can move this project"
+            }
+          >
+            <ProjectOrganizationField
+              label={t("projects:orgs.sectionTitle")}
+              value={selectedProject.orgId}
+              valueLabel={selectedProjectOrgLabel}
+              options={projectOrgOptions}
+              onChange={handleProjectOrgChange}
+              disabled={!canMoveProject || movingProject}
+              dataTestId="project-org-select"
+            />
+          </div>
+          {!isGitHubSyncedProject ? (
+            <ProjectPropertyFields
+              project={projectProperties}
+              containerRef={propertiesRef}
+              availableRepos={projectProperties.linkedRepos}
+              withGroupInset={false}
+            />
+          ) : null}
+        </PropertiesPanel>
+      </WorkstationTrailSurface>
+    </PropertiesRailFrame>
   );
 
   const panelTabItems = PROJECT_PANEL_TABS.map((tab) => ({
@@ -663,7 +838,7 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
         }
       />
       <div
-        className={`min-h-0 flex-1 px-4 py-4 ${
+        className={`min-h-0 flex-1 ${
           activePanelTab === "overview"
             ? "overflow-y-auto overflow-x-hidden scrollbar-hide"
             : "overflow-hidden"
@@ -683,14 +858,15 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
       data-testid="chat-panel-project-detail"
     >
       <DetailPanelContainer className="relative">
-        <WorkItemContentStack
-          propertiesContent={
-            isGitHubSyncedProject ? undefined : inlineProperties
-          }
-          descriptionContent={descriptionContent}
-          descriptionFlexible
-          descriptionClassName="min-h-0 flex flex-1 flex-col"
-        />
+        <div className="flex min-h-0 flex-1 overflow-hidden">
+          <WorkItemContentStack
+            descriptionContent={descriptionContent}
+            descriptionFlexible
+            className="min-w-0"
+            descriptionClassName="min-h-0 flex flex-1 flex-col"
+          />
+          {propertiesOpen ? propertiesPanel : null}
+        </div>
         {activePanelTab !== "overview" ? (
           <MultiSelectBar
             selectedCount={selectedIds.size}

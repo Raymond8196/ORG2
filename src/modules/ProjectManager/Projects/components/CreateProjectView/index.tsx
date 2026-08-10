@@ -28,9 +28,9 @@ import {
   projectDataToUI,
 } from "@src/api/http/project";
 import Message from "@src/components/Message";
-import Select from "@src/components/Select";
 import type { SelectOption } from "@src/components/Select";
 import { org2CloudOrgsAtom } from "@src/features/Org2Cloud/org2CloudOrgsAtom";
+import { sidebarSelectedOrgIdAtom } from "@src/features/Organizations/sidebarOrgScopeAtom";
 import LaunchButton from "@src/features/SessionCreator/components/LaunchButton";
 import { useKeyboardSave } from "@src/hooks/keyboard";
 import { createLogger } from "@src/hooks/logger";
@@ -46,6 +46,7 @@ import {
   ProjectContentEditor,
   type ProjectContentEditorRef,
   type ProjectData,
+  ProjectOrganizationSelect,
   ProjectPropertyFields,
 } from "@src/modules/ProjectManager/shared";
 import { CreatorContentLayout } from "@src/modules/shared/layouts/blocks";
@@ -60,7 +61,10 @@ import {
 } from "@src/store/workstation/projectManager";
 import type { Project } from "@src/types/core/project";
 
-import { filterSelectableProjectOrgs } from "../../../projectOrgVisibility";
+import {
+  filterSelectableProjectOrgs,
+  resolveDefaultProjectOrgId,
+} from "../../../projectOrgVisibility";
 
 // ============================================
 // Types
@@ -87,8 +91,8 @@ export interface CreateProjectViewProps {
   repoName?: string;
   /** Scope label for breadcrumb display. */
   scopeBreadcrumbLabel?: string;
-  /** Native ORGII org that owns the created project. */
-  orgId: string;
+  /** Optional scoped-surface org; otherwise the global sidebar org is used. */
+  orgId?: string;
   /** Mark this tab as having unsaved changes */
   onSetUnsaved: (hasUnsaved: boolean) => void;
   /** Called after project is successfully created */
@@ -132,6 +136,7 @@ const CreateProjectView: React.FC<CreateProjectViewProps> = ({
   const [saving, setSaving] = useState(false);
   const [availableOrgs, setAvailableOrgs] = useState<ProjectOrg[]>([]);
   const cloudOrgs = useAtomValue(org2CloudOrgsAtom);
+  const globalOrgSelectorValue = useAtomValue(sidebarSelectedOrgIdAtom);
 
   // Read draft from atom (survives tab switches)
   const draftsMap = useAtomValue(projectDraftsAtom);
@@ -160,12 +165,11 @@ const CreateProjectView: React.FC<CreateProjectViewProps> = ({
   useEffect(() => {
     if (!initialisedRef.current && !draftsMap.has(tabId)) {
       const initial = createDefaultProjectDraft();
-      initial.orgId = orgId;
       if (repoPath) initial.linkedRepoPaths = [repoPath];
       setDraft({ tabId, draft: initial });
       initialisedRef.current = true;
     }
-  }, [tabId, draftsMap, setDraft, repoPath, orgId]);
+  }, [tabId, draftsMap, setDraft, repoPath]);
 
   useEffect(() => {
     let cancelled = false;
@@ -345,11 +349,42 @@ const CreateProjectView: React.FC<CreateProjectViewProps> = ({
     [availableOrgs, cloudOrgs]
   );
 
+  const defaultOrgId = useMemo(
+    () =>
+      resolveDefaultProjectOrgId(
+        orgId,
+        globalOrgSelectorValue,
+        availableOrgs,
+        selectableOrgs
+      ),
+    [availableOrgs, globalOrgSelectorValue, orgId, selectableOrgs]
+  );
+
   useEffect(() => {
-    if (availableOrgs.length === 0 || !draft.orgId) return;
-    if (selectableOrgs.some((org) => org.id === draft.orgId)) return;
-    patchDraft({ tabId, patch: { orgId: "personal-org" } });
-  }, [availableOrgs.length, draft.orgId, patchDraft, selectableOrgs, tabId]);
+    if (availableOrgs.length === 0) return;
+    const selectedOrgIsValid = selectableOrgs.some(
+      (org) => org.id === draft.orgId
+    );
+    const followsDefault = draft.orgSelectionMode !== "manual";
+    if (
+      selectedOrgIsValid &&
+      (!followsDefault || draft.orgId === defaultOrgId)
+    ) {
+      return;
+    }
+    patchDraft({
+      tabId,
+      patch: { orgId: defaultOrgId, orgSelectionMode: "auto" },
+    });
+  }, [
+    availableOrgs.length,
+    defaultOrgId,
+    draft.orgId,
+    draft.orgSelectionMode,
+    patchDraft,
+    selectableOrgs,
+    tabId,
+  ]);
 
   const orgOptions = useMemo<SelectOption[]>(
     () =>
@@ -370,26 +405,19 @@ const CreateProjectView: React.FC<CreateProjectViewProps> = ({
   const handleOrgChange = useCallback(
     (value: string | number | (string | number)[]) => {
       if (Array.isArray(value)) return;
-      updateDraft({ orgId: String(value) });
+      updateDraft({ orgId: String(value), orgSelectionMode: "manual" });
     },
     [updateDraft]
   );
 
-  const orgBreadcrumbPill = (
-    <Select
+  const orgTrailSelect = (
+    <ProjectOrganizationSelect
       value={draft.orgId}
       options={orgOptions}
       onChange={handleOrgChange}
       placeholder={selectedOrgLabel}
-      size="small"
-      radius="pill"
-      showSearch
-      dropdownWidthMode="min-match"
-      dropdownMinWidth={220}
-      panelZIndex={10000}
       placement="top"
       dataTestId="create-project-org-select"
-      className="w-auto max-w-[220px] [&_.select-selector]:!h-7 [&_.select-selector]:!rounded-full [&_.select-selector]:!bg-bg-2 [&_.select-selector]:!px-3 [&_.select-selector]:!text-[13px] [&_.select-selector]:!font-medium [&_.select-selector]:!shadow-none [&_.select-suffix]:!hidden"
     />
   );
 
@@ -425,7 +453,7 @@ const CreateProjectView: React.FC<CreateProjectViewProps> = ({
   const projectPinnedActions = (
     <CreateComposerPinnedActions dataTestId="create-project-pinned-actions">
       {creatorModeControl}
-      {orgBreadcrumbPill}
+      {orgTrailSelect}
       {propertyPills}
     </CreateComposerPinnedActions>
   );

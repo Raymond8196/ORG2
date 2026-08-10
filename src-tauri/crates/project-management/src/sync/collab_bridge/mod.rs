@@ -59,5 +59,6 @@ pub use outbox::{
     record_work_item_write, CollabAckResult, CollabPendingEntity, CollabPushItem,
 };
 pub(crate) use outbox::{
-    record_property_definitions_touch, record_work_item_payload_touch_in_connection,
+    record_project_org_move_in_connection, record_property_definitions_touch,
+    record_work_item_payload_touch_in_connection,
 };

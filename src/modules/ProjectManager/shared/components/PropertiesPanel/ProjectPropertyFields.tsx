@@ -57,6 +57,8 @@ export interface ProjectPropertyFieldsProps {
   visibleFields?: ProjectPropertyFieldKey[];
   /** Render hidden fields behind a more-properties menu. */
   showMoreMenu?: boolean;
+  /** Keep the legacy group inset around row-style fields. */
+  withGroupInset?: boolean;
 }
 
 export const PROJECT_PROPERTY_CONCISE_FIELDS: ProjectPropertyFieldKey[] = [
@@ -98,6 +100,7 @@ const ProjectPropertyFields: React.FC<ProjectPropertyFieldsProps> = ({
   fieldVariant = "row",
   visibleFields = DEFAULT_VISIBLE_FIELDS,
   showMoreMenu = false,
+  withGroupInset = true,
 }) => {
   const dropdownDirection = usePropertyDropdownDirection();
   const {
@@ -254,7 +257,7 @@ const ProjectPropertyFields: React.FC<ProjectPropertyFieldsProps> = ({
         className={
           fieldVariant === "pill"
             ? "flex flex-nowrap items-center gap-2"
-            : "flex flex-col px-2"
+            : `flex flex-col ${withGroupInset ? "px-2" : ""}`
         }
       >
         <StatusHealthPriorityFields

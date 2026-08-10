@@ -38,6 +38,18 @@ export { default as DetailPanelContainer } from "./DetailPanelContainer";
 export type { DetailPanelContainerProps } from "./DetailPanelContainer";
 export { default as DetailTabStrip } from "./DetailTabStrip";
 export type { DetailTabStripItem, DetailTabStripProps } from "./DetailTabStrip";
+export {
+  default as WorkstationTrailSurface,
+  WorkstationTrailBody,
+  WorkstationTrailHeader,
+  WorkstationTrailIconButton,
+  WORKSTATION_TRAIL_ICON_BUTTON_CLASS,
+  WORKSTATION_TRAIL_SURFACE_CLASS,
+} from "./WorkstationTrailSurface";
+export type {
+  WorkstationTrailHeaderProps,
+  WorkstationTrailSurfaceProps,
+} from "./WorkstationTrailSurface";
 
 export {
   CARD_ROW_TOKENS,
