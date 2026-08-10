@@ -22,9 +22,12 @@ vi.mock("@src/api/http/project", () => ({
   projectApi: projectApiMocks,
 }));
 
-function enrichedWorkItem(index: number): EnrichedWorkItem {
+function enrichedWorkItem(
+  index: number,
+  shortId: string = `WI-${index}`
+): EnrichedWorkItem {
   return {
-    shortId: `WI-${index}`,
+    shortId,
     title: `Work item ${index}`,
     status: "planned",
     priority: "medium",
@@ -73,6 +76,35 @@ describe("work item picker model", () => {
     } as unknown as WorkspaceWorkItemsData;
 
     expect(workspaceWorkItemsToPickerOptions(data)).toHaveLength(500);
+  });
+
+  it("prefixes every numeric identifier with a hash", () => {
+    const data = {
+      projectEntries: [
+        {
+          project: {
+            slug: "project",
+            meta: { id: "project-id", name: "Project", org_id: "org-id" },
+          },
+          workItems: [
+            enrichedWorkItem(1, "123"),
+            enrichedWorkItem(2, "ABC-12"),
+          ],
+        },
+      ],
+      standaloneWorkItems: [],
+      orgs: [],
+    } as unknown as WorkspaceWorkItemsData;
+
+    expect(
+      workspaceWorkItemsToPickerOptions(data).map((option) => ({
+        identifier: option.identifier,
+        pillName: option.pillName,
+      }))
+    ).toEqual([
+      { identifier: "#123", pillName: "#123 Work item 1" },
+      { identifier: "ABC-12", pillName: "ABC-12 Work item 2" },
+    ]);
   });
 
   it("filters by source and query before applying the render cap", () => {

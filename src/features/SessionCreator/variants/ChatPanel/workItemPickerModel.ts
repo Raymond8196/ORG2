@@ -42,6 +42,11 @@ export interface WorkItemPickerOption {
 
 let workspaceWorkItemRequest: Promise<WorkItemPickerOption[]> | null = null;
 
+function formatPickerIdentifier(identifier: string | number): string {
+  const value = String(identifier).trim();
+  return /^\d+$/.test(value) ? `#${value}` : value;
+}
+
 function formatTodoLines(
   todos: ReadonlyArray<{ status: string; content: string }>
 ): string {
@@ -87,11 +92,12 @@ function projectWorkItemOption(
   item: EnrichedWorkItem
 ): WorkItemPickerOption {
   const path = `${project.slug}/${item.shortId}`;
+  const identifier = formatPickerIdentifier(item.shortId);
   return {
     key: `workitem:${path}`,
     kind: "workitem",
     title: item.title,
-    identifier: item.shortId,
+    identifier,
     detail: `${project.meta.name} · ${item.status}`,
     searchableText: [
       item.shortId,
@@ -104,7 +110,7 @@ function projectWorkItemOption(
       .join(" ")
       .toLowerCase(),
     pillPath: path,
-    pillName: `${item.shortId} ${item.title}`,
+    pillName: `${identifier} ${item.title}`,
     contextText: formatWorkItemContext({
       shortId: item.shortId,
       title: item.title,
@@ -128,11 +134,12 @@ function projectWorkItemOption(
 function standaloneWorkItemOption(item: WorkItemData): WorkItemPickerOption {
   const shortId = item.frontmatter.short_id || item.frontmatter.id;
   const path = `standalone/${shortId}`;
+  const identifier = formatPickerIdentifier(shortId);
   return {
     key: `workitem:${path}`,
     kind: "workitem",
     title: item.frontmatter.title,
-    identifier: shortId,
+    identifier,
     detail: item.frontmatter.status,
     searchableText: [
       shortId,
@@ -144,7 +151,7 @@ function standaloneWorkItemOption(item: WorkItemData): WorkItemPickerOption {
       .join(" ")
       .toLowerCase(),
     pillPath: path,
-    pillName: `${shortId} ${item.frontmatter.title}`,
+    pillName: `${identifier} ${item.frontmatter.title}`,
     contextText: formatWorkItemContext({
       shortId,
       title: item.frontmatter.title,
@@ -201,7 +208,7 @@ export function githubWorkItemsToPickerOptions({
       key: `github_issue:${issue.html_url}`,
       kind: "github_issue" as const,
       title: issue.title,
-      identifier: `#${issue.number}`,
+      identifier: formatPickerIdentifier(issue.number),
       detail: repoName,
       sourceNumber: issue.number,
       openedBy: issue.user.login || undefined,
@@ -217,18 +224,19 @@ export function githubWorkItemsToPickerOptions({
         .join(" ")
         .toLowerCase(),
       pillPath: issue.html_url,
-      pillName: `#${issue.number} ${issue.title}`,
+      pillName: `${formatPickerIdentifier(issue.number)} ${issue.title}`,
     })),
     ...prs.map((pr) => {
       const prStatus = normalizePrStatus({
         state: pr.state,
         draft: pr.draft,
       });
+      const identifier = formatPickerIdentifier(pr.number);
       return {
         key: `github_pr:${pr.url}`,
         kind: "github_pr" as const,
         title: pr.title,
-        identifier: `#${pr.number}`,
+        identifier,
         detail: repoName,
         sourceNumber: pr.number,
         openedBy: pr.author_login || undefined,
@@ -246,7 +254,7 @@ export function githubWorkItemsToPickerOptions({
           .join(" ")
           .toLowerCase(),
         pillPath: pr.url,
-        pillName: `#${pr.number} ${pr.title}`,
+        pillName: `${identifier} ${pr.title}`,
         prStatus,
         ciStatus: pr.ci_status,
       };
