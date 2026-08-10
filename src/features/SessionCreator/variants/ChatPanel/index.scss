@@ -121,6 +121,15 @@
     }
   }
 
+  @media (min-height: 1000px) {
+    &.session-creator-chat-panel-work-item-picker-open {
+      .session-creator-chat-panel-launchpad-suggestions {
+        max-height: 520px;
+        flex: 0 1 520px;
+      }
+    }
+  }
+
   .work-item-picker-list {
     scrollbar-width: none;
 
