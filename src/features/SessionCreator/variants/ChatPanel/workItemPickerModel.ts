@@ -31,6 +31,7 @@ export interface WorkItemPickerOption {
   searchableText: string;
   pillPath: string;
   pillName: string;
+  sourceNumber?: number;
   openedBy?: string;
   statusLabel?: string;
   prStatus?: string;
@@ -202,6 +203,7 @@ export function githubWorkItemsToPickerOptions({
       title: issue.title,
       identifier: `#${issue.number}`,
       detail: repoName,
+      sourceNumber: issue.number,
       openedBy: issue.user.login || undefined,
       statusLabel: issue.state,
       searchableText: [
@@ -228,6 +230,7 @@ export function githubWorkItemsToPickerOptions({
         title: pr.title,
         identifier: `#${pr.number}`,
         detail: repoName,
+        sourceNumber: pr.number,
         openedBy: pr.author_login || undefined,
         statusLabel: prStatus,
         searchableText: [
@@ -248,7 +251,7 @@ export function githubWorkItemsToPickerOptions({
         ciStatus: pr.ci_status,
       };
     }),
-  ];
+  ].sort((left, right) => (right.sourceNumber ?? 0) - (left.sourceNumber ?? 0));
 }
 
 export function filterWorkItemPickerOptions(

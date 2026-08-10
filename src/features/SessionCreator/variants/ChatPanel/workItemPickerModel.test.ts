@@ -118,6 +118,50 @@ describe("work item picker model", () => {
     });
   });
 
+  it("ranks GitHub issues and pull requests by descending number", () => {
+    const options = githubWorkItemsToPickerOptions({
+      issues: [
+        {
+          id: 41,
+          number: 41,
+          title: "Older issue",
+          body: null,
+          state: "open",
+          state_reason: null,
+          html_url: "https://github.com/acme/repo/issues/41",
+          created_at: "2026-08-10T00:00:00Z",
+          updated_at: "2026-08-10T00:00:00Z",
+          closed_at: null,
+          user: { login: "issue-author", avatar_url: "" },
+          labels: [],
+          assignees: [],
+          comments: 0,
+          milestone: null,
+        },
+      ],
+      prs: [
+        {
+          number: 43,
+          title: "Newer PR",
+          state: "open",
+          draft: false,
+          ci_status: "success",
+          author_login: "pr-author",
+          author_avatar_url: null,
+          requested_reviewer_logins: [],
+          url: "https://github.com/acme/repo/pull/43",
+          head_branch: "newer",
+          base_branch: "main",
+          created_at: "2026-08-10T00:00:00Z",
+          updated_at: "2026-08-10T00:00:00Z",
+        } satisfies OpenPRItem,
+      ],
+      repoFullName: "acme/repo",
+    });
+
+    expect(options.map((option) => option.identifier)).toEqual(["#43", "#41"]);
+  });
+
   it("shares concurrent workspace reads", async () => {
     let resolveRead: ((data: WorkspaceWorkItemsData) => void) | undefined;
     projectApiMocks.readWorkspaceWorkItemsData.mockReturnValue(

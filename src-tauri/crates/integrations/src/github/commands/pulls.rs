@@ -65,7 +65,16 @@ query PullRequestCiStatuses($ids: [ID!]!) {
       commits(last: 1) {
         nodes {
           commit {
-            statusCheckRollup { state }
+            statusCheckRollup {
+              state
+              contexts(first: 100) {
+                nodes {
+                  __typename
+                  ... on CheckRun { conclusion }
+                  ... on StatusContext { state }
+                }
+              }
+            }
           }
         }
       }
@@ -276,6 +285,23 @@ fn parse_pull_request_ci_status(node: &Value) -> PullRequestCiStatus {
     let rollup = &node["commits"]["nodes"][0]["commit"]["statusCheckRollup"];
     if rollup.is_null() {
         return PullRequestCiStatus::None;
+    }
+    let has_failed_context = rollup["contexts"]["nodes"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .any(|context| match context["__typename"].as_str() {
+            Some("CheckRun") => matches!(
+                context["conclusion"].as_str(),
+                Some("FAILURE" | "TIMED_OUT" | "ACTION_REQUIRED" | "CANCELLED" | "STARTUP_FAILURE")
+            ),
+            Some("StatusContext") => {
+                matches!(context["state"].as_str(), Some("FAILURE" | "ERROR"))
+            }
+            _ => false,
+        });
+    if has_failed_context {
+        return PullRequestCiStatus::Failure;
     }
     match rollup["state"].as_str() {
         Some("SUCCESS") => PullRequestCiStatus::Success,
@@ -888,12 +914,14 @@ mod open_pr_item_tests {
     #[test]
     fn maps_batched_pull_request_ci_rollups() {
         assert!(PULL_REQUEST_CI_STATUS_QUERY.contains("nodes(ids: $ids)"));
+        assert!(PULL_REQUEST_CI_STATUS_QUERY.contains("contexts(first: 100)"));
 
         let mut items = vec![
             parse_open_pr_item(&json!({ "number": 17 })),
             parse_open_pr_item(&json!({ "number": 18 })),
             parse_open_pr_item(&json!({ "number": 19 })),
             parse_open_pr_item(&json!({ "number": 20 })),
+            parse_open_pr_item(&json!({ "number": 21 })),
         ];
 
         apply_pull_request_ci_statuses(
@@ -917,6 +945,30 @@ mod open_pr_item_tests {
                                 "nodes": [{
                                     "commit": {
                                         "statusCheckRollup": { "state": "PENDING" }
+                                    }
+                                }]
+                            }
+                        },
+                        {
+                            "number": 21,
+                            "commits": {
+                                "nodes": [{
+                                    "commit": {
+                                        "statusCheckRollup": {
+                                            "state": "PENDING",
+                                            "contexts": {
+                                                "nodes": [
+                                                    {
+                                                        "__typename": "CheckRun",
+                                                        "conclusion": "FAILURE"
+                                                    },
+                                                    {
+                                                        "__typename": "CheckRun",
+                                                        "conclusion": null
+                                                    }
+                                                ]
+                                            }
+                                        }
                                     }
                                 }]
                             }
@@ -948,6 +1000,7 @@ mod open_pr_item_tests {
         assert_eq!(items[1].ci_status, PullRequestCiStatus::Pending);
         assert_eq!(items[2].ci_status, PullRequestCiStatus::None);
         assert_eq!(items[3].ci_status, PullRequestCiStatus::Failure);
+        assert_eq!(items[4].ci_status, PullRequestCiStatus::Failure);
     }
 
     #[test]

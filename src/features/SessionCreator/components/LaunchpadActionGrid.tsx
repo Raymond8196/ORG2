@@ -45,6 +45,7 @@ interface LaunchpadActionCardProps extends Omit<
   React.ButtonHTMLAttributes<HTMLButtonElement>,
   "onClick"
 > {
+  "data-testid"?: string;
   action: LaunchpadAction;
   presentation?: LaunchpadActionPresentation;
 }
@@ -53,7 +54,7 @@ export const LaunchpadActionCard = forwardRef<
   HTMLButtonElement,
   LaunchpadActionCardProps
 >(function LaunchpadActionCard(
-  { action, presentation = "pill", ...buttonProps },
+  { action, presentation = "pill", "data-testid": dataTestId, ...buttonProps },
   ref
 ) {
   if (presentation === "card") {
@@ -64,9 +65,7 @@ export const LaunchpadActionCard = forwardRef<
         type="button"
         className={`group flex min-h-[68px] w-full flex-col items-start justify-between rounded-lg border bg-transparent px-2.5 py-2 text-left shadow-sm transition-colors focus-visible:border-primary-6 focus-visible:outline-none ${ACTION_CARD_TONE_CLASS[action.tone]}`}
         onClick={action.onClick}
-        data-testid={
-          buttonProps["data-testid"] ?? `chat-panel-start-page-${action.id}`
-        }
+        data-testid={dataTestId ?? `chat-panel-start-page-${action.id}`}
       >
         <span
           className={`flex h-5 w-5 shrink-0 items-center justify-center ${ACTION_ICON_TONE_CLASS[action.tone]}`}
@@ -87,9 +86,7 @@ export const LaunchpadActionCard = forwardRef<
       type="button"
       className={`group flex w-full items-center gap-2 rounded-full border px-2 py-1.5 text-left transition-colors focus-visible:border-primary-6 focus-visible:outline-none ${ACTION_TONE_CLASS[action.tone]}`}
       onClick={action.onClick}
-      data-testid={
-        buttonProps["data-testid"] ?? `chat-panel-start-page-${action.id}`
-      }
+      data-testid={dataTestId ?? `chat-panel-start-page-${action.id}`}
     >
       <span
         className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-bg-2 text-text-2 transition-colors ${
