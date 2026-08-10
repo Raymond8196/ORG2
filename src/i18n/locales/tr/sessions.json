@@ -848,7 +848,8 @@
       "insert": "Ekle"
     },
     "compactArgHint": "<özet için isteğe bağlı odak>",
-    "compactCommandDescription": "Eski bağlamı özetleyerek yer açar. İsteğe bağlı: /compact <özet odağı>"
+    "compactCommandDescription": "Eski bağlamı özetleyerek yer açar. İsteğe bağlı: /compact <özet odağı>",
+    "canvasCommandDescription": "Yeni bir etkileşimli Canvas oluşturur. İsteğe bağlı: /canvas <oluşturulacak içerik>"
   },
   "listPanel": {
     "showingOf": "{{total}} içinden {{filtered}} gösteriliyor",

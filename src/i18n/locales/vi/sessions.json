@@ -845,7 +845,8 @@
       "insert": "Chèn"
     },
     "compactArgHint": "<trọng tâm tóm tắt (tùy chọn)>",
-    "compactCommandDescription": "Tóm tắt ngữ cảnh cũ để giải phóng dung lượng. Tùy chọn: /compact <trọng tâm tóm tắt>"
+    "compactCommandDescription": "Tóm tắt ngữ cảnh cũ để giải phóng dung lượng. Tùy chọn: /compact <trọng tâm tóm tắt>",
+    "canvasCommandDescription": "Tạo một Canvas tương tác mới. Tùy chọn: /canvas <nội dung cần tạo>"
   },
   "listPanel": {
     "showingOf": "Hiển thị {{filtered}} / {{total}}",

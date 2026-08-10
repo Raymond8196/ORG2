@@ -847,7 +847,8 @@
       "insert": "Inserir"
     },
     "compactArgHint": "<foco opcional do resumo>",
-    "compactCommandDescription": "Resume o contexto antigo para liberar espaço. Opcional: /compact <foco do resumo>"
+    "compactCommandDescription": "Resume o contexto antigo para liberar espaço. Opcional: /compact <foco do resumo>",
+    "canvasCommandDescription": "Crie um novo Canvas interativo. Opcional: /canvas <o que criar>"
   },
   "listPanel": {
     "showingOf": "Mostrando {{filtered}} de {{total}}",

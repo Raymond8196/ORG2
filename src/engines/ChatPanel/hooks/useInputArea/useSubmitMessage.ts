@@ -36,6 +36,7 @@ import {
   parseCompactSlashCommand,
   useManualCompact,
 } from "../useManualCompact";
+import { resolveAgentMessageContent } from "./agentMessageContent";
 import { resolveMcpSlashCommand } from "./mcpSlashCommand";
 import type {
   CiteCodeSnapshot,
@@ -313,7 +314,6 @@ export function useSubmitMessage({
       const terminalTexts =
         refs.composerInputRef.current.getTerminalPillTexts();
       const terminalEntries = Object.entries(terminalTexts);
-      let agentContent: string | undefined;
       // The text the LLM sees must not carry the editor-internal `::base64`
       // pill payload. `displayText` keeps the full serialized form for history
       // rendering / re-editing; `base` is the agent-facing copy.
@@ -379,14 +379,13 @@ export function useSubmitMessage({
         contextBlocks.push(...sessionRefs);
       }
 
-      if (contextBlocks.length > 0) {
-        agentContent = base + "\n\n" + contextBlocks.join("\n\n");
-      } else if (hasSkillPills || base !== displayText) {
-        // `base !== displayText` means base64 pill payload was stripped — send
-        // the cleaned copy so the LLM never receives the raw blob even if no
-        // context/skill block was produced.
-        agentContent = base;
-      }
+      const agentContent = resolveAgentMessageContent({
+        displayText,
+        agentBase: base,
+        hasTransformedPills: hasSkillPills,
+        contextBlocks,
+        enableAgentInterceptors,
+      });
 
       const imageDataUrls = imageAttachment.images.map((img) => img.dataUrl);
       const submitKey = JSON.stringify({

@@ -30,6 +30,7 @@ import {
 import { FileTreeHoverPreview } from "@src/components/FileTreePreview/exports";
 import UserActionButton from "@src/engines/ChatPanel/InputArea/components/UserActionButton";
 import { useCanvasForTurn } from "@src/engines/ChatPanel/blocks/CanvasInlineCard/useCanvasForTurn";
+import { buildBuiltinSlashItems } from "@src/engines/ChatPanel/hooks/useInputArea/builtinSlashItems";
 import { useSlashItemsCache } from "@src/engines/ChatPanel/hooks/useInputArea/useSlashItemsCache";
 import { EditorTabService } from "@src/services/workStation/EditorTabService";
 import {
@@ -45,18 +46,20 @@ import {
 import type { SlashItem } from "@src/types/extensions";
 import { SLASH_ACTIONS } from "@src/types/extensions";
 
-import { buildMcpToolCommand } from "../SlashCommandPortal/slashItemUtils";
+import {
+  buildMcpToolCommand,
+  buildSlashActionCommand,
+  insertAtomicSlashActionPill,
+} from "../SlashCommandPortal/slashItemUtils";
 import PinActionsPanel, { actionKey } from "./PinActionsPanel";
 
-const BUILTIN_SLASH_ITEMS: SlashItem[] = [
-  {
-    name: SLASH_ACTIONS.SETUP_REPO,
-    description: "Auto-detect the repo and launch a one-click setup session",
-    category: "action",
-    source: "builtin",
-    acceptsArgs: false,
-  },
-];
+const SETUP_REPO_SLASH_ITEM: SlashItem = {
+  name: SLASH_ACTIONS.SETUP_REPO,
+  description: "Auto-detect the repo and launch a one-click setup session",
+  category: "action",
+  source: "builtin",
+  acceptsArgs: false,
+};
 
 // ── sub-components ────────────────────────────────────────────────────────────
 
@@ -137,6 +140,16 @@ const PinnedActionsBar: React.FC<PinnedActionsBarProps> = memo(
         .map((folder) => folder.path.replace(/\/+$/, ""))
         .filter(Boolean);
     }, [workspaceFolders, workspacePaths]);
+    const builtinSlashItems = useMemo(
+      () => [
+        ...buildBuiltinSlashItems({
+          canvasDescription: t("input.canvasCommandDescription"),
+          compactDescription: t("input.compactCommandDescription"),
+        }),
+        SETUP_REPO_SLASH_ITEM,
+      ],
+      [t]
+    );
 
     // ── Canvas pill ───────────────────────────────────────────────────────────
 
@@ -181,7 +194,7 @@ const PinnedActionsBar: React.FC<PinnedActionsBarProps> = memo(
       loading: loadingItems,
       fetchFresh,
     } = useSlashItemsCache({
-      builtinItems: BUILTIN_SLASH_ITEMS,
+      builtinItems: builtinSlashItems,
       workspacePaths: effectiveWorkspacePaths,
     });
 
@@ -276,6 +289,18 @@ const PinnedActionsBar: React.FC<PinnedActionsBarProps> = memo(
             handleSetupRepo();
             return;
           }
+          if (!composerInputRef.current) return;
+          if (
+            insertAtomicSlashActionPill(composerInputRef.current, action.name)
+          ) {
+            return;
+          }
+          composerInputRef.current
+            .getEditor()
+            ?.chain()
+            .focus()
+            .insertContent(buildSlashActionCommand(action.name))
+            .run();
           return;
         }
 
