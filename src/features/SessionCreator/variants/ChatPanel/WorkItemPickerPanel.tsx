@@ -213,6 +213,12 @@ const WorkItemPickerPanel: React.FC<WorkItemPickerPanelProps> = ({
                     : option.ciStatus === "none"
                       ? t("common:git.pr.checks.noneShort")
                       : t("common:git.pr.checks.unavailableShort");
+            const visibleCiStatus =
+              option.kind === "github_pr" &&
+              option.ciStatus !== undefined &&
+              option.ciStatus !== "unavailable"
+                ? option.ciStatus
+                : null;
             return (
               <div
                 key={option.key}
@@ -245,14 +251,32 @@ const WorkItemPickerPanel: React.FC<WorkItemPickerPanelProps> = ({
                     </span>
                     <span className="work-item-picker-option-metadata mt-1 flex min-w-0 items-center gap-1.5 pl-7 text-xs font-normal text-text-2">
                       <span className="min-w-0 truncate">{option.detail}</span>
-                      {option.kind === "github_pr" && option.ciStatus && (
+                      {option.openedBy && (
+                        <>
+                          <span className="shrink-0 text-text-3" aria-hidden>
+                            ·
+                          </span>
+                          <span className="min-w-0 truncate">
+                            @{option.openedBy}
+                          </span>
+                        </>
+                      )}
+                      {option.statusLabel && (
+                        <>
+                          <span className="shrink-0 text-text-3" aria-hidden>
+                            ·
+                          </span>
+                          <span className="shrink-0">{option.statusLabel}</span>
+                        </>
+                      )}
+                      {visibleCiStatus && (
                         <>
                           <span className="shrink-0 text-text-3" aria-hidden>
                             ·
                           </span>
                           <PrCiStatusIndicator
                             appearance="simple"
-                            status={option.ciStatus}
+                            status={visibleCiStatus}
                             label={ciLabel}
                             showLabel={false}
                             size={13}

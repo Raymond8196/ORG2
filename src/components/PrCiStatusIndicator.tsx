@@ -4,7 +4,6 @@ import {
   CircleDashed,
   CircleSlash,
   Ellipsis,
-  Loader2,
   LoaderCircle,
   Minus,
   X,
@@ -41,7 +40,7 @@ const PrCiStatusIndicator: React.FC<PrCiStatusIndicatorProps> = ({
       ) : status === "failure" ? (
         <X {...iconProps} />
       ) : status === "pending" ? (
-        <Loader2 {...iconProps} className="animate-spin" />
+        <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-warning-6" />
       ) : status === "none" ? (
         <Minus {...iconProps} />
       ) : (

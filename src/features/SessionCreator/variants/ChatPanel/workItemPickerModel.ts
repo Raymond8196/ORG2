@@ -31,6 +31,8 @@ export interface WorkItemPickerOption {
   searchableText: string;
   pillPath: string;
   pillName: string;
+  openedBy?: string;
+  statusLabel?: string;
   prStatus?: string;
   ciStatus?: PullRequestCiStatus;
   contextText?: string;
@@ -199,11 +201,14 @@ export function githubWorkItemsToPickerOptions({
       kind: "github_issue" as const,
       title: issue.title,
       identifier: `#${issue.number}`,
-      detail: `${repoName} · ${issue.state}`,
+      detail: repoName,
+      openedBy: issue.user.login || undefined,
+      statusLabel: issue.state,
       searchableText: [
         issue.number,
         issue.title,
         issue.state,
+        issue.user.login,
         repoName,
         ...issue.labels.map((label) => label.name),
       ]
@@ -222,11 +227,14 @@ export function githubWorkItemsToPickerOptions({
         kind: "github_pr" as const,
         title: pr.title,
         identifier: `#${pr.number}`,
-        detail: `${repoName} · ${prStatus}`,
+        detail: repoName,
+        openedBy: pr.author_login || undefined,
+        statusLabel: prStatus,
         searchableText: [
           pr.number,
           pr.title,
           prStatus,
+          pr.author_login,
           pr.ci_status,
           repoName,
           pr.head_branch,

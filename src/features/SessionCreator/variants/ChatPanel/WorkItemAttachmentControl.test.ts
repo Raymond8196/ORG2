@@ -90,6 +90,29 @@ vi.mock(
             base_branch: "main",
             draft: true,
             ci_status: "failure",
+            author_login: "octocat",
+          },
+          {
+            number: 44,
+            title: "Running checks",
+            state: "open",
+            url: "https://github.com/acme/app/pull/44",
+            head_branch: "checks/running",
+            base_branch: "main",
+            draft: false,
+            ci_status: "pending",
+            author_login: "check-author",
+          },
+          {
+            number: 45,
+            title: "Loading checks",
+            state: "open",
+            url: "https://github.com/acme/app/pull/45",
+            head_branch: "checks/loading",
+            base_branch: "main",
+            draft: false,
+            ci_status: "unavailable",
+            author_login: "load-author",
           },
         ],
         issues: [
@@ -99,6 +122,10 @@ vi.mock(
             state: "open",
             html_url: "https://github.com/acme/app/issues/42",
             labels: [{ name: "bug" }],
+            user: {
+              login: "issue-author",
+              avatar_url: "https://example.com/issue-author.png",
+            },
           },
         ],
         repoFullName: "acme/app",
@@ -250,6 +277,27 @@ describe("WorkItemAttachmentControl", () => {
         ?.querySelector("svg")
         ?.classList.contains("lucide-x")
     ).toBe(true);
+    expect(inlinePicker?.textContent).toContain("@octocat");
+    expect(inlinePicker?.textContent).toContain("@issue-author");
+    const prMetadataText = container.querySelector(
+      '[data-testid="work-item-picker-option-github_pr:https://github.com/acme/app/pull/43"] .work-item-picker-option-metadata'
+    )?.textContent;
+    expect(prMetadataText?.indexOf("@octocat") ?? -1).toBeLessThan(
+      prMetadataText?.indexOf("draft") ?? -1
+    );
+    expect(
+      container
+        .querySelector(
+          '[data-testid="work-item-picker-ci-github_pr:https://github.com/acme/app/pull/44"]'
+        )
+        ?.querySelector("span")
+        ?.classList.contains("animate-pulse")
+    ).toBe(true);
+    expect(
+      container.querySelector(
+        '[data-testid="work-item-picker-ci-github_pr:https://github.com/acme/app/pull/45"]'
+      )
+    ).toBeNull();
     expect(
       container.querySelector(
         '[data-testid="session-creator-work-item-picker-back"]'

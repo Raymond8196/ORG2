@@ -99,6 +99,7 @@ describe("work item picker model", () => {
           state: "open",
           draft: true,
           ci_status: "failure",
+          author_login: "octocat",
           url: "https://github.com/acme/repo/pull/42",
           head_branch: "fix",
           base_branch: "main",
@@ -111,7 +112,9 @@ describe("work item picker model", () => {
       kind: "github_pr",
       prStatus: "draft",
       ciStatus: "failure",
-      detail: "acme/repo · draft",
+      detail: "acme/repo",
+      openedBy: "octocat",
+      statusLabel: "draft",
     });
   });
 
