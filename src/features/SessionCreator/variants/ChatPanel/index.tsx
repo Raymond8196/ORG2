@@ -266,7 +266,6 @@ const SessionCreatorChatPanelContent: React.FC<
   }, [openCategoryPickerSignal]);
 
   const agentHeroRef = useRef<HTMLButtonElement>(null);
-  const workItemPanelHostRef = useRef<HTMLDivElement>(null);
   const modelPickerStyle = useAtomValue(modelPickerStyleAtom);
 
   // ── Handlers via extracted hook ───────────────────────────────────────────
@@ -579,7 +578,6 @@ const SessionCreatorChatPanelContent: React.FC<
       showMissingGitAlert={!isHumanMode && showMissingGitAlert}
       hideSessionSetupControls={isHumanMode}
       workItemContext={attachedWorkItemContext}
-      workItemPanelHostRef={workItemPanelHostRef}
     />
   );
 };

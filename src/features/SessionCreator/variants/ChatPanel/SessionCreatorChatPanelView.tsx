@@ -1,5 +1,5 @@
 import { Airplay, Network } from "lucide-react";
-import React, { useMemo } from "react";
+import React, { Children, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { DispatchCategory } from "@src/api/tauri/session";
@@ -14,6 +14,7 @@ import type { ScrollNavState } from "@src/engines/ChatPanel/ChatHistory";
 import CollapsedInlineRow from "@src/engines/ChatPanel/InputArea/components/CollapsedInlineRow";
 import PinnedActionsBar from "@src/engines/ChatPanel/InputArea/components/PinnedActionsBar";
 import type { SessionLaunchWorkItemContext } from "@src/engines/SessionCore/hooks/session/useSessionCreator/useSessionLaunch/types";
+import { LaunchpadActionGrid } from "@src/features/SessionCreator/components/LaunchpadActionGrid";
 import {
   CREATOR_BOTTOM_DOCK_PADDING_CLASS,
   CREATOR_MIDDLE_POSITION_STYLE,
@@ -101,7 +102,6 @@ interface SessionCreatorChatPanelViewProps {
   sessionInfoProps: React.ComponentProps<typeof SessionInfoLine>;
   showMissingGitAlert: boolean;
   workItemContext: SessionLaunchWorkItemContext | null;
-  workItemPanelHostRef: React.RefObject<HTMLDivElement | null>;
 }
 
 const SessionCreatorChatPanelView: React.FC<
@@ -151,7 +151,6 @@ const SessionCreatorChatPanelView: React.FC<
   sessionInfoProps,
   showMissingGitAlert,
   workItemContext,
-  workItemPanelHostRef,
 }) => {
   const { t } = useTranslation("sessions");
   const sessionInfoLine = (
@@ -216,6 +215,8 @@ const SessionCreatorChatPanelView: React.FC<
       ) : null,
     [browserElementScrollNav]
   );
+  const [isLaunchpadWorkItemPickerOpen, setIsLaunchpadWorkItemPickerOpen] =
+    useState(false);
   const sessionSetupActions = !hideSessionSetupControls ? (
     <div
       className={`mx-auto flex w-full items-center ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
@@ -233,12 +234,15 @@ const SessionCreatorChatPanelView: React.FC<
             {cliLaunchModeSwitch && (
               <div aria-hidden className="mx-1 h-4 w-px shrink-0 bg-border-2" />
             )}
-            {!hideWorkItemAttachmentControl && (
+            {!hideWorkItemAttachmentControl && !isLaunchpadLayout && (
               <WorkItemAttachmentControl
+                composerInputRef={composerInputRef}
                 currentWorkItemContext={workItemContext}
                 onCreateWorkItem={onCreateWorkItem}
-                panelHostRef={workItemPanelHostRef}
                 onWorkItemContextChange={onAttachedWorkItemContextChange}
+                repoId={sessionInfoProps.repoId}
+                repoPath={sessionInfoProps.repoPath}
+                mode="add"
               />
             )}
             {orgMembersPanelProps && (
@@ -281,15 +285,57 @@ const SessionCreatorChatPanelView: React.FC<
       onClick={onCategoryPickerOpen}
     />
   );
+  const launchpadSuggestionContent = hideWorkItemAttachmentControl ? (
+    heroFooterSlot
+  ) : (
+    <LaunchpadActionGrid
+      cardWidthClassName={
+        isLaunchpadWorkItemPickerOpen
+          ? DETAIL_PANEL_TOKENS.contentMaxWidth
+          : undefined
+      }
+      className={`mx-auto w-full ${
+        isLaunchpadWorkItemPickerOpen
+          ? "!flex min-h-0 flex-1 flex-col [&>div]:h-full [&>div]:min-h-0"
+          : ""
+      }`}
+      layoutActionCount={Children.count(heroFooterSlot) + 1}
+      presentation="card"
+    >
+      <WorkItemAttachmentControl
+        composerInputRef={composerInputRef}
+        currentWorkItemContext={workItemContext}
+        onWorkItemContextChange={onAttachedWorkItemContextChange}
+        onPickerOpenChange={setIsLaunchpadWorkItemPickerOpen}
+        repoId={sessionInfoProps.repoId}
+        repoPath={sessionInfoProps.repoPath}
+        mode="solve"
+        presentation="card"
+      />
+      {!isLaunchpadWorkItemPickerOpen && heroFooterSlot}
+    </LaunchpadActionGrid>
+  );
   const launchpadMiddleContent = isLaunchpadLayout ? (
     <div
-      className="session-creator-chat-panel-launchpad-middle absolute inset-x-0 flex -translate-y-1/2 flex-col items-center gap-4"
-      style={CREATOR_MIDDLE_POSITION_STYLE}
+      className={`session-creator-chat-panel-launchpad-middle flex flex-col items-center gap-4 ${
+        isLaunchpadWorkItemPickerOpen
+          ? "relative min-h-0 w-full flex-1 justify-center overflow-hidden"
+          : "absolute inset-x-0 -translate-y-1/2"
+      }`}
+      style={
+        isLaunchpadWorkItemPickerOpen
+          ? undefined
+          : CREATOR_MIDDLE_POSITION_STYLE
+      }
     >
       {agentHero}
-      {heroFooterSlot && (
-        <div className="session-creator-chat-panel-launchpad-suggestions w-full">
-          {heroFooterSlot}
+      {launchpadSuggestionContent && (
+        <div
+          className={`session-creator-chat-panel-launchpad-suggestions w-full ${
+            isLaunchpadWorkItemPickerOpen ? "flex min-h-0 flex-1 flex-col" : ""
+          }`}
+        >
+          {launchpadSuggestionContent}
         </div>
       )}
     </div>
@@ -327,6 +373,10 @@ const SessionCreatorChatPanelView: React.FC<
     <div
       className={`session-creator-chat-panel-wrapper ${
         isLaunchpadLayout ? "h-full" : ""
+      } ${
+        isLaunchpadWorkItemPickerOpen
+          ? "session-creator-chat-panel-work-item-picker-open"
+          : ""
       } ${className}`}
       data-testid="session-creator-chat-panel"
     >
@@ -411,15 +461,6 @@ const SessionCreatorChatPanelView: React.FC<
               </InlineAlert>
             </div>
           )}
-
-          {!hideSessionSetupControls &&
-            !hideWorkItemAttachmentControl &&
-            !onCreateWorkItem && (
-              <div
-                ref={workItemPanelHostRef}
-                className={`mx-auto w-full ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
-              />
-            )}
 
           {!hideSessionSetupControls &&
             orgMembersPanelProps &&

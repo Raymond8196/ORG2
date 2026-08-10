@@ -1,13 +1,17 @@
 import type { TFunction } from "i18next";
-import { ChevronRight, Download, Gauge, Import, KeyRound } from "lucide-react";
+import { Download, Gauge, Import, KeyRound } from "lucide-react";
 import React, { useCallback, useState } from "react";
 
-import { PILL_CONTROL_IDLE_SURFACE_CLASS } from "@src/components/CompoundPill/config";
 import SegmentedTextPill from "@src/components/SegmentedTextPill";
 import Select, { type SelectOption } from "@src/components/Select";
 import TabPill from "@src/components/TabPill";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import ImportSharedSessionDialog from "@src/features/Org2Cloud/ImportSharedSessionDialog";
+import {
+  type LaunchpadAction,
+  LaunchpadActionCard,
+  LaunchpadActionGrid,
+} from "@src/features/SessionCreator/components/LaunchpadActionGrid";
 import { CreatorContentLayout } from "@src/modules/shared/layouts/blocks";
 import { useAvailableAppUpdate } from "@src/scaffold/AppUpdater";
 import {
@@ -15,44 +19,7 @@ import {
   type ChatPanelCreateTarget,
 } from "@src/store/ui/chatPanelAtom";
 
-type StartPageActionTone = "primary" | "neutral" | "success" | "warning";
-type StartPageActionPresentation = "card" | "pill";
 type StartPageView = "session" | "work-item" | "more";
-
-interface ChatPanelStartPageAction {
-  id: string;
-  title: React.ReactNode;
-  icon: React.ReactNode;
-  onClick: () => void;
-  tone: StartPageActionTone;
-}
-
-const START_PAGE_ACTION_TONE_CLASS: Record<StartPageActionTone, string> = {
-  primary:
-    "border-primary-6/20 bg-primary-6/5 hover:border-primary-6/30 hover:bg-primary-6/10",
-  neutral: `border-border-2 hover:border-border-3 ${PILL_CONTROL_IDLE_SURFACE_CLASS}`,
-  success:
-    "border-success-6/20 bg-success-6/5 hover:border-success-6/30 hover:bg-success-6/10",
-  warning:
-    "border-warning-6/20 bg-warning-6/5 hover:border-warning-6/30 hover:bg-warning-6/10",
-};
-
-const START_PAGE_ACTION_CARD_TONE_CLASS: Record<StartPageActionTone, string> = {
-  primary:
-    "border-primary-6/20 hover:border-primary-6/30 hover:bg-surface-hover",
-  neutral: "border-border-2 hover:border-border-3 hover:bg-surface-hover",
-  success:
-    "border-success-6/20 hover:border-success-6/30 hover:bg-surface-hover",
-  warning:
-    "border-warning-6/20 hover:border-warning-6/30 hover:bg-surface-hover",
-};
-
-const START_PAGE_ACTION_ICON_TONE_CLASS: Record<StartPageActionTone, string> = {
-  primary: "text-primary-6",
-  neutral: "text-text-2",
-  success: "text-success-6",
-  warning: "text-warning-6",
-};
 
 interface ChatPanelStartPageProps {
   className?: string;
@@ -109,108 +76,6 @@ function StartPageCreatorModeToggle({
   );
 }
 
-function StartPageActionCard({
-  action,
-  presentation = "pill",
-}: {
-  action: ChatPanelStartPageAction;
-  presentation?: StartPageActionPresentation;
-}): React.ReactNode {
-  if (presentation === "card") {
-    return (
-      <button
-        type="button"
-        className={`group flex min-h-[68px] w-full flex-col items-start justify-between rounded-lg border bg-transparent px-2.5 py-2 text-left shadow-sm transition-colors focus-visible:border-primary-6 focus-visible:outline-none ${START_PAGE_ACTION_CARD_TONE_CLASS[action.tone]}`}
-        onClick={action.onClick}
-        data-testid={`chat-panel-start-page-${action.id}`}
-      >
-        <span
-          className={`flex h-5 w-5 shrink-0 items-center justify-center ${START_PAGE_ACTION_ICON_TONE_CLASS[action.tone]}`}
-        >
-          {action.icon}
-        </span>
-        <span className="block text-[12px] font-medium leading-4 text-text-1">
-          {action.title}
-        </span>
-      </button>
-    );
-  }
-
-  return (
-    <button
-      type="button"
-      className={`group flex w-full items-center gap-2 rounded-full border px-2 py-1.5 text-left transition-colors focus-visible:border-primary-6 focus-visible:outline-none ${START_PAGE_ACTION_TONE_CLASS[action.tone]}`}
-      onClick={action.onClick}
-      data-testid={`chat-panel-start-page-${action.id}`}
-    >
-      <span
-        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-bg-2 text-text-2 transition-colors ${
-          action.tone === "warning" ? "group-hover:bg-fill-3" : ""
-        }`}
-      >
-        {action.icon}
-      </span>
-      <span className="block min-w-0 flex-1 truncate text-[13px] font-semibold text-text-1">
-        {action.title}
-      </span>
-      <ChevronRight
-        size={14}
-        strokeWidth={1.8}
-        className="shrink-0 text-text-3 opacity-0 transition-opacity group-hover:opacity-100"
-      />
-    </button>
-  );
-}
-
-function StartPageActionGrid({
-  actions,
-  className = "",
-  presentation = "pill",
-}: {
-  actions: ChatPanelStartPageAction[];
-  className?: string;
-  presentation?: StartPageActionPresentation;
-}): React.ReactNode {
-  const cardWidthClass =
-    actions.length >= 4
-      ? "max-w-[600px]"
-      : actions.length === 3
-        ? "max-w-[480px]"
-        : "max-w-[320px]";
-  const cardColumnClass =
-    actions.length >= 4
-      ? "@[560px]/startactions:grid-cols-4"
-      : actions.length === 3
-        ? "@[440px]/startactions:grid-cols-3"
-        : "";
-
-  return (
-    <div
-      className={`@container/startactions ${
-        presentation === "card"
-          ? `hidden @[640px]/focusedchat:block ${cardWidthClass}`
-          : ""
-      } ${className}`}
-    >
-      <div
-        className={
-          presentation === "card"
-            ? `grid grid-cols-1 gap-2 @[300px]/startactions:grid-cols-2 ${cardColumnClass}`
-            : "grid grid-cols-1 gap-3 @[420px]/startactions:grid-cols-2 @[800px]/startactions:grid-cols-3"
-        }
-      >
-        {actions.map((action) => (
-          <StartPageActionCard
-            key={action.id}
-            action={action}
-            presentation={presentation}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export function ChatPanelStartPage({
   className,
   createTarget,
@@ -231,28 +96,28 @@ export function ChatPanelStartPage({
   const [isImportSessionDialogOpen, setIsImportSessionDialogOpen] =
     useState(false);
   const availableUpdate = useAvailableAppUpdate();
-  const importSessionAction: ChatPanelStartPageAction = {
+  const importSessionAction: LaunchpadAction = {
     id: "import-session",
     title: t("navigation:cloud.share.importEntry"),
     icon: <Import size={16} strokeWidth={1.8} />,
     onClick: () => setIsImportSessionDialogOpen(true),
     tone: "neutral",
   };
-  const addApiKeyAction: ChatPanelStartPageAction = {
+  const addApiKeyAction: LaunchpadAction = {
     id: "add-api-key",
     title: t("chat.startPage.addApiKey.title"),
     icon: <KeyRound size={16} strokeWidth={1.8} />,
     onClick: onAddApiKey,
     tone: "neutral",
   };
-  const showRuntimeAction: ChatPanelStartPageAction = {
+  const showRuntimeAction: LaunchpadAction = {
     id: "show-runtime",
     title: t("chat.startPage.showRuntime.title"),
     icon: <Gauge size={16} strokeWidth={1.8} />,
     onClick: onShowRuntime,
     tone: "neutral",
   };
-  const utilityActions: ChatPanelStartPageAction[] = availableUpdate?.available
+  const utilityActions: LaunchpadAction[] = availableUpdate?.available
     ? [
         {
           id: "install-latest-update",
@@ -277,12 +142,13 @@ export function ChatPanelStartPage({
       : createTarget === CHAT_PANEL_CREATE_TARGET.WORK_ITEM
         ? "work-item"
         : "more";
+  const suggestionCards = utilityActions.map((action) => (
+    <LaunchpadActionCard key={action.id} action={action} presentation="card" />
+  ));
   const suggestionPills = (
-    <StartPageActionGrid
-      actions={utilityActions}
-      className="mx-auto w-full"
-      presentation="card"
-    />
+    <LaunchpadActionGrid className="mx-auto w-full" presentation="card">
+      {suggestionCards}
+    </LaunchpadActionGrid>
   );
   const manualMiddleContent = (
     <div
@@ -311,7 +177,7 @@ export function ChatPanelStartPage({
       t={t}
     />
   );
-  const sessionLauncherContent = sessionLauncher?.(suggestionPills);
+  const sessionLauncherContent = sessionLauncher?.(suggestionCards);
   const workItemLauncherContent = workItemLauncher?.(
     suggestionPills,
     manualMiddleContent,
@@ -454,7 +320,11 @@ export function ChatPanelStartPage({
           className={`shrink-0 px-4 pb-5 pt-2 ${DETAIL_PANEL_TOKENS.headerWidth}`}
           data-testid="chat-panel-start-page-utility-actions"
         >
-          <StartPageActionGrid actions={utilityActions} className="w-full" />
+          <LaunchpadActionGrid className="w-full">
+            {utilityActions.map((action) => (
+              <LaunchpadActionCard key={action.id} action={action} />
+            ))}
+          </LaunchpadActionGrid>
         </div>
       )}
       {isImportSessionDialogOpen && (
