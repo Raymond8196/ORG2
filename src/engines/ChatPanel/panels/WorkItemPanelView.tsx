@@ -197,7 +197,7 @@ export const WorkItemPanelView: React.FC<WorkItemPanelViewProps> = ({
           // while this detail is open. Enriched reads intentionally retain
           // soft-deleted rows, so a tombstone must be treated as absent too;
           // otherwise the sidebar disappears while an editable ghost remains.
-          closeWorkItemTab(selectedWorkItem.shortId);
+          closeWorkItemTab(selectedWorkItem);
           return;
         }
         const refreshedProjectItem = enrichedWorkItemToUI(fresh);
@@ -229,7 +229,7 @@ export const WorkItemPanelView: React.FC<WorkItemPanelViewProps> = ({
         // The single-item command resolves both the parent and item at the
         // authoritative SQLite boundary. Either tombstone makes this cached
         // tab invalid, without scanning every project and every work item.
-        closeWorkItemTab(selectedWorkItem.shortId);
+        closeWorkItemTab(selectedWorkItem);
         return;
       }
       logger.warn("Failed to refresh chat panel work item", error);
@@ -371,7 +371,7 @@ export const WorkItemPanelView: React.FC<WorkItemPanelViewProps> = ({
       // The tab payload owns this surface. Clearing only the legacy selection
       // mirror leaves the deleted detail mounted until another data-change
       // refresh happens, and a later cascade can fall back to that ghost tab.
-      closeWorkItemTab(selectedWorkItem.shortId);
+      closeWorkItemTab(selectedWorkItem);
       await emit("orgii-data-changed", {
         project_slug: selectedWorkItem.projectSlug,
         work_item_id: selectedWorkItem.shortId,
@@ -493,7 +493,7 @@ export const WorkItemPanelView: React.FC<WorkItemPanelViewProps> = ({
           currentUser={currentUser ?? undefined}
           teamMembers={workItemMembers}
           repoPath={repoPath}
-          projectSlug={selectedWorkItem.projectSlug}
+          projectSlug={selectedWorkItem.projectSlug || undefined}
           shortId={selectedWorkItem.shortId}
           orgId={selectedWorkItem.orgId}
           githubIssueTimeline={githubIssueState.timeline}

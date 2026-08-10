@@ -85,6 +85,18 @@ export function normalizeAgentExecMode(value: unknown): AgentExecMode | null {
     : null;
 }
 
+/**
+ * Resolve the execution mode of an existing session.
+ *
+ * Creator defaults are intentionally excluded: changing the mode for the next
+ * new session must never mutate the behavior of a session that already exists.
+ * Historical rows without a mode, and unknown values from older builds, use
+ * the safe canonical runtime default instead.
+ */
+export function resolveSessionAgentExecMode(value: unknown): AgentExecMode {
+  return normalizeAgentExecMode(value) ?? DEFAULT_AGENT_EXEC_MODE;
+}
+
 export function isAgentExecMode(value: unknown): value is AgentExecMode {
   return normalizeAgentExecMode(value) === value;
 }
@@ -156,7 +168,7 @@ export const COMPOSER_MODES: ComposerModeEntry[] = [
     i18nKey: "planner.modes.project",
     name: "Project",
     description:
-      "Plan and execute inside the persistent work graph — sessions link to Work Items",
+      "Build with the PM CLI and persistent Work Items/Routines enabled",
   },
 ];
 
