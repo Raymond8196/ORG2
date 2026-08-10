@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { projectApi, workItemDataToUI } from "@src/api/http/project";
+import { createLogger } from "@src/hooks/logger";
 import { useProjectDataChanged } from "@src/hooks/project";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 import { activeWorkspaceRootPathAtom } from "@src/store/workspace";
@@ -17,6 +18,8 @@ const EMPTY_RELATION_MAPS = {
   memberMap: new Map(),
   projectNameMap: new Map(),
 };
+
+const logger = createLogger("StandaloneWorkItemDetailPage");
 
 export function StandaloneWorkItemDetailPage({
   workItemId,
@@ -42,9 +45,21 @@ export function StandaloneWorkItemDetailPage({
         orgId ? { orgId } : undefined
       );
       setWorkItem(workItemDataToUI(item, EMPTY_RELATION_MAPS));
+    } catch (error) {
+      logger.warn(
+        `Failed to read standalone Work Item ${workItemId} in org ${orgId ?? "personal-org"}`,
+        error
+      );
     } finally {
       setLoading(false);
     }
+  }, [orgId, workItemId]);
+
+  // This page is also mounted outside the Workstation renderer. If one of
+  // those hosts reuses it for a different identity, clear the previous row
+  // once at the identity boundary rather than on every background refresh.
+  useEffect(() => {
+    setWorkItem(null);
   }, [orgId, workItemId]);
 
   useEffect(() => {

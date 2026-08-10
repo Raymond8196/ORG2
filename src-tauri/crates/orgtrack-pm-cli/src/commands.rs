@@ -143,8 +143,16 @@ fn require_short_id(short_id: Option<&String>) -> Result<String, CliError> {
     })
 }
 
+/// A missing project scope is the canonical org-level Work Item scope, not an
+/// incomplete context. `--standalone` remains useful when a project-scoped
+/// session intentionally targets an org-level item, but projectless sessions
+/// should not need to know or spell an implementation flag.
+fn uses_standalone_scope(context: &ExecutionContext, flags: &HashMap<String, String>) -> bool {
+    flags.contains_key("standalone") || context.scope_id.is_none()
+}
+
 fn cmd_work_list(context: &ExecutionContext, flags: &HashMap<String, String>) -> i32 {
-    let items = if flags.contains_key("standalone") {
+    let items = if uses_standalone_scope(context, flags) {
         match pio::read_standalone_work_items(context.org_id.as_deref()) {
             Ok(items) => items,
             Err(err) => return emit_error(CliError::from_service(err)),
@@ -254,7 +262,7 @@ fn cmd_work_show(
         Ok(short_id) => short_id,
         Err(err) => return emit_error(err),
     };
-    if flags.contains_key("standalone") {
+    if uses_standalone_scope(context, flags) {
         let org = context.org_id.as_deref();
         let item = match pio::read_standalone_work_item(org, &short_id) {
             Ok(item) => item,
@@ -334,7 +342,7 @@ fn cmd_work_create(context: &ExecutionContext, flags: &HashMap<String, String>) 
         Ok(body) => body,
         Err(err) => return emit_error(err),
     };
-    if flags.contains_key("standalone") {
+    if uses_standalone_scope(context, flags) {
         let org = context.org_id.clone();
         let request = work_service::CreateWorkItemRequest {
             title: title.clone(),

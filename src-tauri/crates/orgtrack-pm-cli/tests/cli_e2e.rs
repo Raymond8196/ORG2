@@ -900,7 +900,7 @@ fn standalone_items_are_reachable_without_scope() {
     assert_eq!(exit, 0, "show envelope: {shown}");
     assert_eq!(shown["data"]["frontmatter"]["short_id"], "STA-0001");
 
-    let (exit, listed) = run_cli(&[&["work", "list", "--standalone"], &base[..]].concat());
+    let (exit, listed) = run_cli(&[&["work", "list"], &base[..]].concat());
     assert_eq!(exit, 0, "list envelope: {listed}");
     assert_eq!(
         listed["data"]["items"][0]["frontmatter"]["short_id"],
@@ -1005,14 +1005,11 @@ fn standalone_items_are_reachable_without_scope() {
     assert_eq!(item.frontmatter.title, "Filled title");
     assert_eq!(item.body, "Filled body");
 
-    // "Another one" allocates a fresh standalone id.
-    let (exit, created) = run_cli(
-        &[
-            &["work", "create", "--standalone", "--title", "Another one"],
-            &base[..],
-        ]
-        .concat(),
-    );
+    // With no project scope, create automatically targets the current org's
+    // standalone store. The model must not need a magic flag or ask the user
+    // to invent a Project.
+    let (exit, created) =
+        run_cli(&[&["work", "create", "--title", "Another one"], &base[..]].concat());
     assert_eq!(exit, 0, "create envelope: {created}");
     let new_id = created["data"]["frontmatter"]["short_id"]
         .as_str()

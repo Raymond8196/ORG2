@@ -111,7 +111,7 @@ fn project_mode_bridge(
             "Project scope is injected as ORGII_SCOPE={}; omit --scope unless inspecting another project.",
             slug
         ),
-        None => "This is a standalone Work Item; pass --standalone to work commands when required."
+        None => "No Project is required. This session uses the current organization's standalone Work Item scope; omit --scope. Work list/create route there automatically."
             .to_string(),
     };
     let linked_item = match work_item_id {
@@ -247,6 +247,16 @@ mod tests {
         assert!(bridge.contains("Build execution plus"));
         assert!(bridge.contains("org2-pm work show WI-1"));
         assert!(bridge.contains("ORGII_SCOPE=repo"));
+    }
+
+    #[test]
+    fn project_without_project_scope_uses_org_level_work_items() {
+        let bridge =
+            project_mode_bridge(Some("project"), None, Some("WI-0095")).expect("project overlay");
+        assert!(bridge.contains("No Project is required"));
+        assert!(bridge.contains("route there automatically"));
+        assert!(bridge.contains("org2-pm work show WI-0095"));
+        assert!(!bridge.contains("Pass --scope"));
     }
 
     #[test]

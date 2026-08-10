@@ -9,8 +9,8 @@
 //! missing receipt from the final output so the Discussion trail stays
 //! complete even when the model forgets the CLI.
 //!
-//! Mirrors the injection gate in `prompt.rs` (`agent_role == "custom"` with
-//! a linked `work_item_id`) and the actor derivation in the exec injection
+//! Mirrors the injection gate in `prompt.rs` (Project mode with a linked
+//! `work_item_id`) and the actor derivation in the exec injection
 //! kit (`agent:{definition}` after the `builtin:` trim), so the audit check
 //! sees the same actor id the CLI writes carry — including subagent writes,
 //! which root-walk to the same top-level session actor.
@@ -69,7 +69,7 @@ fn synthesize_receipt_blocking(
     else {
         return Ok(());
     };
-    if record.agent_role.as_deref() != Some("custom") {
+    if record.product_mode.as_deref() != Some("project") {
         return Ok(());
     }
     let Some(work_item_id) = record.work_item_id.as_deref() else {
