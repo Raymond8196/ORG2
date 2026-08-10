@@ -14,6 +14,7 @@ import type { KanbanTask } from "@src/features/KanbanBoard";
 import { createLogger } from "@src/hooks/logger";
 import { openOrFocusSessionInChatPanelTabAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
 import { activeStationChatVisibleAtom } from "@src/store/ui/chatPanelAtom";
+import { runNativeMenuSingleFlight } from "@src/util/platform/tauri/nativeMenuSingleFlight";
 
 import {
   KANBAN_CARD_CONTEXT_ACTION,
@@ -62,28 +63,30 @@ export function useKanbanCardContextMenu({
       });
       if (actions.length === 0) return;
 
-      const items: MenuItem[] = [];
-      for (const action of actions) {
-        if (action === KANBAN_CARD_CONTEXT_ACTION.OpenFloatingPane) {
+      await runNativeMenuSingleFlight("kanban-card", async () => {
+        const items: MenuItem[] = [];
+        for (const action of actions) {
+          if (action === KANBAN_CARD_CONTEXT_ACTION.OpenFloatingPane) {
+            items.push(
+              await MenuItem.new({
+                text: t("kanban.card.openAsFloatingPane"),
+                action: () => onOpenFloatingPane(task),
+              })
+            );
+            continue;
+          }
+          if (!sessionId) continue;
           items.push(
             await MenuItem.new({
-              text: t("kanban.card.openAsFloatingPane"),
-              action: () => onOpenFloatingPane(task),
+              text: tCommon("actions.openInNewTab"),
+              action: () => openInNewTabPane(sessionId, task.title),
             })
           );
-          continue;
         }
-        if (!sessionId) continue;
-        items.push(
-          await MenuItem.new({
-            text: tCommon("actions.openInNewTab"),
-            action: () => openInNewTabPane(sessionId, task.title),
-          })
-        );
-      }
 
-      const menu = await TauriMenu.new({ items });
-      await menu.popup();
+        const menu = await TauriMenu.new({ items });
+        await menu.popup();
+      });
     },
     [onOpenFloatingPane, openInNewTabPane, remoteSessionsByTaskId, t, tCommon]
   );

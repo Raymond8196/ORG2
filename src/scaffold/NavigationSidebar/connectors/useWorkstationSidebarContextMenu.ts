@@ -8,6 +8,7 @@ import { type MouseEvent, useCallback } from "react";
 import { createLogger } from "@src/hooks/logger";
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
 import type { Session } from "@src/store/session";
+import { runNativeMenuSingleFlight } from "@src/util/platform/tauri/nativeMenuSingleFlight";
 import {
   isCursorIdeSession,
   isHumanSession,
@@ -85,11 +86,8 @@ export function useWorkstationSidebarContextMenu({
   _key: string,
   item: NavigationMenuItem
 ) => Promise<void> {
-  return useCallback(
-    async (event: MouseEvent, _key: string, item: NavigationMenuItem) => {
-      event.preventDefault();
-      event.stopPropagation();
-
+  const showMenuUnchecked = useCallback(
+    async (_event: MouseEvent, _key: string, item: NavigationMenuItem) => {
       if (isDraftMenuItemId(item.id)) {
         const draftId = getDraftIdFromMenuItemId(item.id);
         if (!draftId) return;
@@ -253,5 +251,16 @@ export function useWorkstationSidebarContextMenu({
       copyReferenceLabel,
       handleCloudRemoteItemRemove,
     ]
+  );
+
+  return useCallback(
+    async (event: MouseEvent, key: string, item: NavigationMenuItem) => {
+      event.preventDefault();
+      event.stopPropagation();
+      await runNativeMenuSingleFlight("workstation-sidebar-row", () =>
+        showMenuUnchecked(event, key, item)
+      );
+    },
+    [showMenuUnchecked]
   );
 }

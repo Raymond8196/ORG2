@@ -18,6 +18,7 @@ import { useEffect, useRef } from "react";
 import { createLogger } from "@src/hooks/logger";
 import { copyText } from "@src/util/data/clipboard";
 import { getFileManagerRevealLabelKey } from "@src/util/platform/fileManagerLabels";
+import { runNativeMenuSingleFlight } from "@src/util/platform/tauri/nativeMenuSingleFlight";
 
 import type { WorkStationTab } from "./types";
 
@@ -157,7 +158,7 @@ export function TabContextMenu(props: TabContextMenuProps) {
     if (hasShownMenu.current) return;
     hasShownMenu.current = true;
 
-    async function showNativeMenu() {
+    async function showNativeMenuUnchecked() {
       try {
         // Create menu items in parallel - each MenuItem.new() is an async IPC call
         const t = i18next.t.bind(i18next);
@@ -340,6 +341,14 @@ export function TabContextMenu(props: TabContextMenuProps) {
         );
         onClose();
       }
+    }
+
+    async function showNativeMenu() {
+      const result = await runNativeMenuSingleFlight(
+        "workstation-tab",
+        showNativeMenuUnchecked
+      );
+      if (result.status === "busy") onClose();
     }
 
     showNativeMenu();

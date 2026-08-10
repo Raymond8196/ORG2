@@ -16,6 +16,7 @@ import {
   maxWindow,
   minWindow,
 } from "@src/util/platform/ipcRenderer";
+import { runNativeMenuSingleFlight } from "@src/util/platform/tauri/nativeMenuSingleFlight";
 
 import { NoDragRegion } from "./NoDragRegion";
 
@@ -247,7 +248,7 @@ function getMenuItems(menu: NativeMenuKey, t: TFunction): NativeMenuItem[] {
   }
 }
 
-async function showNativeStyleMenu(
+async function showNativeStyleMenuUnchecked(
   menuKey: NativeMenuKey,
   anchor: HTMLElement,
   t: TFunction
@@ -277,6 +278,16 @@ async function showNativeStyleMenu(
   } catch {
     await menu.popup();
   }
+}
+
+async function showNativeStyleMenu(
+  menuKey: NativeMenuKey,
+  anchor: HTMLElement,
+  t: TFunction
+) {
+  await runNativeMenuSingleFlight(`windows-top-bar:${menuKey}`, () =>
+    showNativeStyleMenuUnchecked(menuKey, anchor, t)
+  );
 }
 
 const WindowsTopBarComponent: React.FC = () => {

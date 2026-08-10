@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 
 import { createLogger } from "@src/hooks/logger";
 import type { SessionReferenceOpen } from "@src/shared/dnd/sessionTabDrag";
+import { runNativeMenuSingleFlight } from "@src/util/platform/tauri/nativeMenuSingleFlight";
 
 const logger = createLogger("ChatPanelTabContextMenu");
 
@@ -31,7 +32,7 @@ export function ChatPanelTabContextMenu(
     if (hasShownMenu.current) return;
     hasShownMenu.current = true;
 
-    async function showNativeMenu(): Promise<void> {
+    async function showNativeMenuUnchecked(): Promise<void> {
       try {
         const translate = i18next.t.bind(i18next);
         const [closeItem, closeOthersItem] = await Promise.all([
@@ -78,6 +79,14 @@ export function ChatPanelTabContextMenu(
         logger.error("Failed to show native context menu:", error);
         propsRef.current.onDismiss();
       }
+    }
+
+    async function showNativeMenu(): Promise<void> {
+      const result = await runNativeMenuSingleFlight(
+        "chat-panel-tab",
+        showNativeMenuUnchecked
+      );
+      if (result.status === "busy") propsRef.current.onDismiss();
     }
 
     void showNativeMenu();

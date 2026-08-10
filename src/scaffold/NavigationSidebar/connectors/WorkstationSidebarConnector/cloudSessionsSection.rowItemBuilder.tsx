@@ -35,6 +35,7 @@ import { useCloudSessionDownloadProgressEntry } from "@src/features/Org2Cloud/us
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
 import type { RemoteTeammateSessionMetadata } from "@src/store/collaboration/types";
 import { copyText } from "@src/util/data/clipboard";
+import { runNativeMenuSingleFlight } from "@src/util/platform/tauri/nativeMenuSingleFlight";
 import { resolveSessionDisplayMetadata } from "@src/util/session/sessionDisplayMetadata";
 import { formatRelativeTime } from "@src/util/time/formatRelativeTime";
 
@@ -277,40 +278,42 @@ export function useCloudSessionRowItemBuilder({
             icon: MoreHorizontal,
             label: tCommon("actions.more"),
             onClick: () => {
-              void Promise.all([
-                MenuItem.new({
-                  text: t("cloud.sidebar.copyId"),
-                  action: () => {
-                    void copyText(buildCloudSessionReference(row))
-                      .then(() => {
-                        Message.success(tCommon("actions.copied", "Copied"));
-                      })
-                      .catch(() => {
-                        Message.error(
-                          tCommon("actions.copyFailed", "Copy failed")
-                        );
-                      });
-                  },
-                }),
-                MenuItem.new({
-                  text: isPinned
-                    ? tCommon("sessions:chat.unpinSession", "Unpin")
-                    : tCommon("sessions:chat.pinSession", "Pin"),
-                  action: () => toggleRemoteSessionPin(row.orgId, row.id),
-                }),
-                PredefinedMenuItem.new({ item: "Separator" }),
-                MenuItem.new({
-                  text: tCommon("actions.remove", "Remove"),
-                  action: () => hideRemoteSession(row),
-                }),
-              ]).then(
-                async ([copyItem, pinItem, menuSeparator, removeItem]) => {
-                  const menu = await TauriMenu.new({
-                    items: [copyItem, pinItem, menuSeparator, removeItem],
-                  });
-                  await menu.popup();
-                }
-              );
+              void runNativeMenuSingleFlight("cloud-session-row", async () => {
+                const [copyItem, pinItem, menuSeparator, removeItem] =
+                  await Promise.all([
+                    MenuItem.new({
+                      text: t("cloud.sidebar.copyId"),
+                      action: () => {
+                        void copyText(buildCloudSessionReference(row))
+                          .then(() => {
+                            Message.success(
+                              tCommon("actions.copied", "Copied")
+                            );
+                          })
+                          .catch(() => {
+                            Message.error(
+                              tCommon("actions.copyFailed", "Copy failed")
+                            );
+                          });
+                      },
+                    }),
+                    MenuItem.new({
+                      text: isPinned
+                        ? tCommon("sessions:chat.unpinSession", "Unpin")
+                        : tCommon("sessions:chat.pinSession", "Pin"),
+                      action: () => toggleRemoteSessionPin(row.orgId, row.id),
+                    }),
+                    PredefinedMenuItem.new({ item: "Separator" }),
+                    MenuItem.new({
+                      text: tCommon("actions.remove", "Remove"),
+                      action: () => hideRemoteSession(row),
+                    }),
+                  ]);
+                const menu = await TauriMenu.new({
+                  items: [copyItem, pinItem, menuSeparator, removeItem],
+                });
+                await menu.popup();
+              });
             },
           },
         ];

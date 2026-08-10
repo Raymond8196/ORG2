@@ -19,6 +19,7 @@ import { createLogger } from "@src/hooks/logger";
 import type { GitFile } from "@src/types/git/types";
 import { copyText } from "@src/util/data/clipboard";
 import { getFileManagerRevealLabelKey } from "@src/util/platform/fileManagerLabels";
+import { runNativeMenuSingleFlight } from "@src/util/platform/tauri/nativeMenuSingleFlight";
 
 import { GIT_LABELS } from "../config";
 
@@ -115,7 +116,7 @@ export default function SourceControlContextMenu(
     if (hasShownMenu.current) return;
     hasShownMenu.current = true;
 
-    async function showNativeMenu() {
+    async function showNativeMenuUnchecked() {
       try {
         const ctx = contextMenuRef.current;
         if (!ctx) {
@@ -321,6 +322,14 @@ export default function SourceControlContextMenu(
         // Always close so the parent resets showContextMenu → allows re-open
         onClose();
       }
+    }
+
+    async function showNativeMenu() {
+      const result = await runNativeMenuSingleFlight(
+        "source-control",
+        showNativeMenuUnchecked
+      );
+      if (result.status === "busy") onClose();
     }
 
     showNativeMenu();

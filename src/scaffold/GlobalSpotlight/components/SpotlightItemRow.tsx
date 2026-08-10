@@ -28,6 +28,7 @@ import Tooltip from "@src/components/Tooltip";
 import { createLogger } from "@src/hooks/logger";
 import { copyText } from "@src/util/data/clipboard";
 import { getFileManagerRevealLabelKey } from "@src/util/platform/fileManagerLabels";
+import { runNativeMenuSingleFlight } from "@src/util/platform/tauri/nativeMenuSingleFlight";
 
 import { ICONS } from "../config";
 import { SPOTLIGHT_TOKENS } from "../constants";
@@ -56,7 +57,7 @@ interface SpotlightContextMenuOptions {
   revealLabel: string;
 }
 
-async function showSpotlightContextMenu({
+async function showSpotlightContextMenuUnchecked({
   name,
   path,
   copyNameLabel,
@@ -104,6 +105,14 @@ async function showSpotlightContextMenu({
   if (items.length === 0) return;
   const menu = await TauriMenu.new({ items });
   await menu.popup();
+}
+
+async function showSpotlightContextMenu(
+  options: SpotlightContextMenuOptions
+): Promise<void> {
+  await runNativeMenuSingleFlight("global-spotlight", () =>
+    showSpotlightContextMenuUnchecked(options)
+  );
 }
 
 interface PathParts {

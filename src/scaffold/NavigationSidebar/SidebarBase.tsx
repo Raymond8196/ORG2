@@ -47,6 +47,7 @@ import {
 } from "@src/store/ui/sidebarAtom";
 import { windowFullscreenAtom } from "@src/store/ui/uiAtom";
 import { isTauriDesktop } from "@src/util/platform/tauri";
+import { runNativeMenuSingleFlight } from "@src/util/platform/tauri/nativeMenuSingleFlight";
 
 import { SIDEBAR_STYLE } from "./config";
 import { useForceVisibleSidebar } from "./contexts/ForceVisibleContext";
@@ -168,7 +169,7 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
         const isAlreadyDefault = sidebarWidth === DEFAULT_SIDEBAR_WIDTH;
         const isAlreadyMin = sidebarWidth <= MIN_SIDEBAR_WIDTH;
 
-        (async () => {
+        void runNativeMenuSingleFlight("navigation-sidebar", async () => {
           try {
             const t = i18next.t.bind(i18next);
 
@@ -206,7 +207,7 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
           } catch (error) {
             log.error("Failed to show sidebar context menu:", error);
           }
-        })();
+        });
       },
       [sidebarWidth, setWidth, collapse]
     );

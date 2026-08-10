@@ -39,6 +39,7 @@ import {
   reconcileLocalChannelMessagesAtom,
   unarchiveLocalChannelAtom,
 } from "@src/store/ui/localChannelsAtom";
+import { runNativeMenuSingleFlight } from "@src/util/platform/tauri/nativeMenuSingleFlight";
 
 import {
   LOCAL_CHANNELS_EMPTY_ID,
@@ -181,14 +182,15 @@ export function useLocalChannelsSection({
           action: () => setDialogState({ kind: "delete", channel }),
         },
       ];
-      void Promise.all(entries.map((entry) => MenuItem.new(entry)))
-        .then(async (menuItems) => {
-          const menu = await TauriMenu.new({ items: menuItems });
-          await menu.popup();
-        })
-        .catch((error) => {
-          log.warn("local channel row menu failed to open:", error);
-        });
+      void runNativeMenuSingleFlight("local-channel-row", async () => {
+        const menuItems = await Promise.all(
+          entries.map((entry) => MenuItem.new(entry))
+        );
+        const menu = await TauriMenu.new({ items: menuItems });
+        await menu.popup();
+      }).catch((error) => {
+        log.warn("local channel row menu failed to open:", error);
+      });
     },
     [t]
   );

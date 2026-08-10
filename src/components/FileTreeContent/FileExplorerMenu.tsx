@@ -22,6 +22,7 @@ import { getInstrumentedStore } from "@src/util/core/state/instrumentedStore";
 import { copyText } from "@src/util/data/clipboard";
 import { confirmDestructiveAction } from "@src/util/dialogs/confirmDestructiveAction";
 import { getFileManagerRevealLabelKey } from "@src/util/platform/fileManagerLabels";
+import { runNativeMenuSingleFlight } from "@src/util/platform/tauri/nativeMenuSingleFlight";
 
 import type { DispatchFn } from "./types";
 
@@ -87,7 +88,7 @@ export function FileExplorerContextMenu(props: FileExplorerContextMenuProps) {
     if (hasShownMenu.current) return;
     hasShownMenu.current = true;
 
-    async function showNativeMenu(): Promise<void> {
+    async function showNativeMenuUnchecked(): Promise<void> {
       try {
         const items: (MenuItem | PredefinedMenuItem | Submenu)[] = [];
         const translate = i18next.t.bind(i18next);
@@ -360,6 +361,14 @@ export function FileExplorerContextMenu(props: FileExplorerContextMenuProps) {
         );
         onClose();
       }
+    }
+
+    async function showNativeMenu(): Promise<void> {
+      const result = await runNativeMenuSingleFlight(
+        "file-explorer",
+        showNativeMenuUnchecked
+      );
+      if (result.status === "busy") onClose();
     }
 
     showNativeMenu();

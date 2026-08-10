@@ -12,6 +12,7 @@ import { copyText } from "@src/util/data/clipboard";
 import { confirmDestructiveAction } from "@src/util/dialogs/confirmDestructiveAction";
 import { showGitActionDialogSafely } from "@src/util/dialogs/gitActionDialog";
 import { openExternalLink } from "@src/util/platform/ipcRenderer";
+import { runNativeMenuSingleFlight } from "@src/util/platform/tauri/nativeMenuSingleFlight";
 
 const log = createLogger("GitHistoryContextMenu");
 
@@ -126,7 +127,7 @@ export default function GitHistoryContextMenu(
       onActionComplete,
     } = props;
 
-    async function showNativeMenu() {
+    async function showNativeMenuUnchecked() {
       try {
         const t = i18next.t.bind(i18next);
 
@@ -359,6 +360,14 @@ export default function GitHistoryContextMenu(
       } finally {
         onClose();
       }
+    }
+
+    async function showNativeMenu() {
+      const result = await runNativeMenuSingleFlight(
+        "git-history",
+        showNativeMenuUnchecked
+      );
+      if (result.status === "busy") onClose();
     }
 
     showNativeMenu();

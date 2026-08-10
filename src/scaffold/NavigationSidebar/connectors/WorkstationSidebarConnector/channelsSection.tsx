@@ -49,6 +49,7 @@ import {
   openChannelInChatPanelTabAtom,
   reconcileDiscussionChannelTabsAtom,
 } from "@src/store/chatPanel/chatPanelTabsAtom";
+import { runNativeMenuSingleFlight } from "@src/util/platform/tauri/nativeMenuSingleFlight";
 
 import {
   CLOUD_CHANNELS_EMPTY_ID,
@@ -244,18 +245,17 @@ export function useCloudChannelsSection({
               },
             ]
           : [];
-      void Promise.all(
-        [...settingsEntries, ...kinds.map((kind) => entries[kind])].map(
-          (entry) => MenuItem.new(entry)
-        )
-      )
-        .then(async (menuItems) => {
-          const menu = await TauriMenu.new({ items: menuItems });
-          await menu.popup();
-        })
-        .catch((error) => {
-          log.warn("channel row menu failed to open:", error);
-        });
+      void runNativeMenuSingleFlight("cloud-channel-row", async () => {
+        const menuItems = await Promise.all(
+          [...settingsEntries, ...kinds.map((kind) => entries[kind])].map(
+            (entry) => MenuItem.new(entry)
+          )
+        );
+        const menu = await TauriMenu.new({ items: menuItems });
+        await menu.popup();
+      }).catch((error) => {
+        log.warn("channel row menu failed to open:", error);
+      });
     },
     [isOrgAdmin, openMembersDialog, orgId, t]
   );

@@ -19,6 +19,7 @@ import i18next from "i18next";
 import { type MouseEvent, useCallback } from "react";
 
 import { createLogger } from "@src/hooks/logger";
+import { runNativeMenuSingleFlight } from "@src/util/platform/tauri/nativeMenuSingleFlight";
 
 const log = createLogger("useResizeContextMenu");
 
@@ -79,7 +80,7 @@ export function useResizeContextMenu({
       const interpolateMin =
         dimension === "width" ? { width: minSize } : { height: minSize };
 
-      (async () => {
+      void runNativeMenuSingleFlight("resize-handle", async () => {
         try {
           const resizeDefaultItem = await MenuItem.new({
             text: i18next.t(keys.resizeToDefault, interpolate),
@@ -134,7 +135,7 @@ export function useResizeContextMenu({
         } catch (error) {
           log.error("Failed to show resize context menu:", error);
         }
-      })();
+      });
     },
     [
       dimension,
