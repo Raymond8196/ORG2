@@ -16,7 +16,7 @@
  * - Source tab shows raw JSONL/HTML in a <pre> block
  */
 import { useAtomValue, useSetAtom } from "jotai";
-import { Layout, RefreshCw } from "lucide-react";
+import { Layout, RefreshCw, Share2 } from "lucide-react";
 import React, {
   useCallback,
   useEffect,
@@ -26,6 +26,7 @@ import React, {
 } from "react";
 import { useTranslation } from "react-i18next";
 
+import Button from "@src/components/Button";
 import DiffStatsBadge from "@src/components/DiffStatsBadge";
 import IconButton from "@src/components/IconButton";
 import TabPill from "@src/components/TabPill";
@@ -34,12 +35,19 @@ import { SIMULATOR_PRIMARY_SIDEBAR } from "@src/config/simulatorPrimarySidebar";
 import CanvasPreviewSurface from "@src/engines/ChatPanel/blocks/CanvasInlineCard/CanvasPreviewSurface";
 import type { CanvasInlineMode } from "@src/engines/ChatPanel/blocks/CanvasInlineCard/types";
 import type { SessionEvent } from "@src/engines/SessionCore/core/types";
+import {
+  CanvasShareDialog,
+  getCanvasShareAvailability,
+  useCanvasShareDialog,
+} from "@src/features/CanvasShare";
 import { usePublishWorkstationTabHeader } from "@src/hooks/workStation";
 import { SessionReplayCodeMirrorViewer } from "@src/modules/WorkStation/CodeEditor/SessionReplay/CodePanel/SessionReplayCodeMirrorViewer";
 import {
   PrimarySidebarLayoutWithSections,
   SimulatorReplayChrome,
   WorkStationShell,
+  WorkstationHeaderSectionSeparator,
+  WorkstationToolbarTooltip,
   buildPrimarySidebarConfig,
 } from "@src/modules/WorkStation/shared";
 import type { PrimarySidebarTab } from "@src/modules/WorkStation/shared/PrimarySidebarLayout/PrimarySidebarLayoutWithSections";
@@ -77,7 +85,7 @@ function extractPayload(event: SessionEvent): CanvasPayload | null {
     content: args.content as string | undefined,
     url: args.url as string | undefined,
     title: args.title as string | undefined,
-    streaming: false,
+    streaming: args.streaming === true,
   };
 }
 
@@ -428,6 +436,9 @@ interface CanvasTabHeaderProps {
   isStreaming: boolean;
   onReload: () => void;
   showCompare: boolean;
+  shareEnabled: boolean;
+  shareHint: string;
+  onShare: () => void;
 }
 
 const CanvasTabHeader: React.FC<CanvasTabHeaderProps> = ({
@@ -437,6 +448,9 @@ const CanvasTabHeader: React.FC<CanvasTabHeaderProps> = ({
   isStreaming,
   onReload,
   showCompare,
+  shareEnabled,
+  shareHint,
+  onShare,
 }) => {
   const { t } = useTranslation("sessions");
 
@@ -466,6 +480,7 @@ const CanvasTabHeader: React.FC<CanvasTabHeaderProps> = ({
           activeTab={tab}
           onChange={(key) => onSetTab(key as ViewTab)}
         />
+        <WorkstationHeaderSectionSeparator className="mx-0.5" />
         {tab === "canvas" && !isStreaming && (
           <IconButton
             onClick={onReload}
@@ -475,6 +490,18 @@ const CanvasTabHeader: React.FC<CanvasTabHeaderProps> = ({
             <RefreshCw size={12} />
           </IconButton>
         )}
+        <WorkstationToolbarTooltip label={shareHint}>
+          <Button
+            htmlType="button"
+            variant="tertiary"
+            size="mini"
+            icon={<Share2 size={12} />}
+            onClick={onShare}
+            disabled={!shareEnabled}
+          >
+            {t("canvasApp.share", "Share")}
+          </Button>
+        </WorkstationToolbarTooltip>
       </div>
     </NoDragRegion>
   );
@@ -484,6 +511,13 @@ const CanvasTabHeader: React.FC<CanvasTabHeaderProps> = ({
 
 const CanvasApp: React.FC<SimulatorAppProps> = () => {
   const { t } = useTranslation("sessions");
+  const {
+    state: canvasShareState,
+    open: openCanvasShare,
+    close: closeCanvasShare,
+    retry: retryCanvasShare,
+    copy: copyCanvasShare,
+  } = useCanvasShareDialog();
 
   const { appEvents } = useSimulatorAppState({
     config: CANVAS_APP_CONFIG as never,
@@ -620,6 +654,41 @@ const CanvasApp: React.FC<SimulatorAppProps> = () => {
   const cardTitle = selectedPayload
     ? getDefaultTitle(selectedPayload, t)
     : t("canvasCard.titleHtml", "Agent Preview");
+  const shareAvailability = useMemo(
+    () =>
+      getCanvasShareAvailability(
+        selectedPayload,
+        selectedPayload?.streaming ?? false
+      ),
+    [selectedPayload]
+  );
+  const shareHint = shareAvailability.available
+    ? t("canvasApp.shareHint", "Share this Canvas snapshot")
+    : shareAvailability.reason === "streaming"
+      ? t(
+          "canvasApp.shareWaitForRevision",
+          "Wait for the Canvas update to finish"
+        )
+      : shareAvailability.reason === "local-url"
+        ? t(
+            "canvasApp.shareLocalUrlUnavailable",
+            "Local URLs cannot be opened by other people"
+          )
+        : shareAvailability.reason === "source-too-large"
+          ? t(
+              "canvasApp.shareTooLarge",
+              "This Canvas is too large for a share link"
+            )
+          : t("canvasApp.shareEmpty", "This Canvas has no shareable content");
+  const handleShare = useCallback(() => {
+    if (!selectedPayload || !shareAvailability.available) return;
+    openCanvasShare(selectedPayload, cardTitle);
+  }, [
+    cardTitle,
+    openCanvasShare,
+    selectedPayload,
+    shareAvailability.available,
+  ]);
 
   // ── publish to SimulatorWorkstationTabHeader ─────────────────────────────
 
@@ -633,6 +702,9 @@ const CanvasApp: React.FC<SimulatorAppProps> = () => {
           isStreaming={selectedPayload.streaming ?? false}
           onReload={handleReload}
           showCompare={compareEventIds.length === 2}
+          shareEnabled={shareAvailability.available}
+          shareHint={shareHint}
+          onShare={handleShare}
         />
       ) : null,
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -643,6 +715,9 @@ const CanvasApp: React.FC<SimulatorAppProps> = () => {
       cardTitle,
       handleReload,
       compareEventIds.length,
+      shareAvailability.available,
+      shareHint,
+      handleShare,
     ]
   );
 
@@ -741,21 +816,29 @@ const CanvasApp: React.FC<SimulatorAppProps> = () => {
   );
 
   return (
-    <SimulatorReplayChrome
-      tabs={[]}
-      activeEventId={selectedEventId ?? ""}
-      onTabClick={() => {}}
-    >
-      <div className="flex min-h-0 flex-1">
-        <WorkStationShell
-          primarySidebarConfig={primarySidebarConfig}
-          content={mainContent}
-          statusBar={null}
-          layoutMode={primarySidebarPosition === "right" ? "right" : "left"}
-          appClassName="canvas-app"
-        />
-      </div>
-    </SimulatorReplayChrome>
+    <>
+      <SimulatorReplayChrome
+        tabs={[]}
+        activeEventId={selectedEventId ?? ""}
+        onTabClick={() => {}}
+      >
+        <div className="flex min-h-0 flex-1">
+          <WorkStationShell
+            primarySidebarConfig={primarySidebarConfig}
+            content={mainContent}
+            statusBar={null}
+            layoutMode={primarySidebarPosition === "right" ? "right" : "left"}
+            appClassName="canvas-app"
+          />
+        </div>
+      </SimulatorReplayChrome>
+      <CanvasShareDialog
+        state={canvasShareState}
+        onClose={closeCanvasShare}
+        onRetry={retryCanvasShare}
+        onCopy={copyCanvasShare}
+      />
+    </>
   );
 };
 
