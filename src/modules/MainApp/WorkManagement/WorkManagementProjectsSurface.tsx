@@ -241,21 +241,17 @@ const WorkManagementProjectsSurface: React.FC<{
   const handleOpenAggregatedWorkItem = useCallback(
     (selection: ProjectWorkItemSelection) => {
       if (detailHost === "chat") {
-        if (
-          !selection.projectId ||
-          !selection.projectName ||
-          !selection.projectSlug
-        ) {
-          return;
-        }
         openWorkItemInChatPanel({
           workItem: selection.workItem,
           shortId: selection.shortId,
           orgId: selection.orgId,
           orgName: selection.orgName,
-          projectId: selection.projectId,
-          projectName: selection.projectName,
-          projectSlug: selection.projectSlug,
+          projectId: selection.projectId ?? "",
+          projectName:
+            selection.projectName ??
+            selection.orgName ??
+            "Standalone Work Items",
+          projectSlug: selection.projectSlug ?? "",
         });
         return;
       }
@@ -268,7 +264,8 @@ const WorkManagementProjectsSurface: React.FC<{
           selection.projectSlug,
           undefined,
           undefined,
-          selection.workItem.workItemStatus ?? selection.workItem.status
+          selection.workItem.workItemStatus ?? selection.workItem.status,
+          selection.orgId
         )
       );
     },
