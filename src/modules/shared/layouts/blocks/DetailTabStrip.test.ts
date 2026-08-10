@@ -32,6 +32,20 @@ describe("DetailTabStrip", () => {
     expect(markup).not.toContain("overflow-y-hidden");
   });
 
+  it("renders a count label that communicates a capped result", () => {
+    const markup = renderToStaticMarkup(
+      createElement(DetailTabStrip, {
+        activeTab: "changes",
+        ariaLabel: "Pull request views",
+        idPrefix: "pr-detail",
+        onChange: vi.fn(),
+        tabs: [{ key: "changes", label: "Files changed", count: "3000+" }],
+      })
+    );
+
+    expect(markup).toContain(">3000+</span>");
+  });
+
   it("keeps host controls in a trailing slot", () => {
     const markup = renderToStaticMarkup(
       createElement(DetailTabStrip, {

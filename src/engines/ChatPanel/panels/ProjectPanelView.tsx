@@ -6,6 +6,7 @@ import {
   Info,
   LayoutDashboard,
   List,
+  Search,
 } from "lucide-react";
 import React, {
   useCallback,
@@ -57,6 +58,7 @@ import {
   WORK_ITEMS_KANBAN_GROUP,
   type WorkItemsKanbanGroup,
   countWorkItemsByStatus,
+  filterWorkItemsBySearchQuery,
   filterWorkItemsByStatus,
   getStatusFilterKeysForWorkItems,
   getWorkItemsKanbanColumns,
@@ -78,16 +80,20 @@ import {
   DetailHeaderTabs,
   DetailPanelContainer,
   DetailTabStrip,
+  PersistentDetailTabPanel,
   Placeholder,
   WorkstationTrailIconButton,
   WorkstationTrailSurface,
 } from "@src/modules/shared/layouts/blocks";
+import { ContentSearchPalette } from "@src/scaffold/GlobalSpotlight/palettes";
 import {
   openProjectInChatPanelTabAtom,
   openWorkItemInChatPanelTabAtom,
 } from "@src/store/chatPanel/chatPanelTabsAtom";
 import { type ChatPanelSelectedProject } from "@src/store/ui/chatPanelAtom";
 import type { WorkItem } from "@src/types/core/workItem";
+
+import { resolveChatPanelShortcutOwnership } from "../hooks/chatPanelShortcutOwnership";
 
 const logger = createLogger("ProjectPanelView");
 
@@ -119,6 +125,8 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
   );
   const [activePanelTab, setActivePanelTab] = useState<ProjectPanelTab>("list");
   const [statusFilter, setStatusFilter] = useState<StatusFilterType>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [kanbanGroupBy, setKanbanGroupBy] = useState<WorkItemsKanbanGroup>(
     WORK_ITEMS_KANBAN_GROUP.STATUS
   );
@@ -141,7 +149,57 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
   const [projectOrgs, setProjectOrgs] = useState<ProjectOrg[]>([]);
   const [movingProject, setMovingProject] = useState(false);
   const [propertiesOpen, setPropertiesOpen] = useState(true);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const paneOwnsSearchShortcutRef = useRef(true);
   const propertiesRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const updatePaneOwnership = (target: EventTarget | null) => {
+      paneOwnsSearchShortcutRef.current = resolveChatPanelShortcutOwnership(
+        panelRef.current,
+        target,
+        paneOwnsSearchShortcutRef.current
+      );
+    };
+    const handlePointerDown = (event: PointerEvent) => {
+      updatePaneOwnership(event.target);
+    };
+    const handleFocusIn = (event: FocusEvent) => {
+      updatePaneOwnership(event.target);
+    };
+
+    updatePaneOwnership(document.activeElement);
+    window.addEventListener("pointerdown", handlePointerDown, true);
+    window.addEventListener("focusin", handleFocusIn, true);
+    return () => {
+      window.removeEventListener("pointerdown", handlePointerDown, true);
+      window.removeEventListener("focusin", handleFocusIn, true);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleSearchShortcut = (event: KeyboardEvent) => {
+      if (
+        activePanelTab === "overview" ||
+        event.key.toLowerCase() !== "f" ||
+        (!event.metaKey && !event.ctrlKey) ||
+        event.altKey ||
+        event.shiftKey
+      ) {
+        return;
+      }
+
+      if (!isSearchOpen && !paneOwnsSearchShortcutRef.current) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      setIsSearchOpen(true);
+    };
+
+    window.addEventListener("keydown", handleSearchShortcut, true);
+    return () =>
+      window.removeEventListener("keydown", handleSearchShortcut, true);
+  }, [activePanelTab, isSearchOpen]);
 
   const projectProperties = useMemo<ProjectData>(
     () => ({
@@ -413,8 +471,12 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
   }, [statusFilter, statusFilterKeys]);
 
   const filteredWorkItems = useMemo(
-    () => filterWorkItemsByStatus(workItems, statusFilter),
-    [statusFilter, workItems]
+    () =>
+      filterWorkItemsBySearchQuery(
+        filterWorkItemsByStatus(workItems, statusFilter),
+        searchQuery
+      ),
+    [searchQuery, statusFilter, workItems]
   );
 
   const groupedWorkItems = useMemo(
@@ -540,7 +602,6 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
       width={300}
       minWidth={280}
       maxWidth={320}
-      className="p-2"
       floatingContent
     >
       <WorkstationTrailSurface className="flex self-start">
@@ -569,7 +630,6 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
             }
           >
             <ProjectOrganizationField
-              label={t("projects:orgs.sectionTitle")}
               value={selectedProject.orgId}
               valueLabel={selectedProjectOrgLabel}
               options={projectOrgOptions}
@@ -584,6 +644,7 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
               containerRef={propertiesRef}
               availableRepos={projectProperties.linkedRepos}
               withGroupInset={false}
+              showLabels={false}
             />
           ) : null}
         </PropertiesPanel>
@@ -658,6 +719,24 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
       <div className="flex shrink-0 items-center gap-1">
         {activePanelTab !== "overview" ? (
           <>
+            <WorkstationToolbarTooltip
+              label={t("common:actions.search")}
+              shortcutId="workitems_search"
+            >
+              <Button
+                htmlType="button"
+                variant="tertiary"
+                size="small"
+                iconOnly
+                className={
+                  searchQuery ? "!bg-surface-selected !text-primary-6" : ""
+                }
+                onClick={() => setIsSearchOpen(true)}
+                aria-label={t("common:actions.search")}
+                aria-pressed={Boolean(searchQuery)}
+                icon={<Search size={HEADER_ICON_SIZE.sm} />}
+              />
+            </WorkstationToolbarTooltip>
             {activePanelTab === "kanban" ? (
               <TabPill
                 tabs={kanbanGroupTabs}
@@ -687,9 +766,11 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
       headerTrailing,
       kanbanGroupBy,
       kanbanGroupTabs,
+      searchQuery,
       statusCounts,
       statusFilter,
       statusFilterKeys,
+      t,
     ]
   );
 
@@ -803,7 +884,7 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
     </section>
   );
 
-  const workItemsContent = workItemsLoading ? (
+  const workItemsUnavailableContent = workItemsLoading ? (
     <div className="p-2">
       <ChatLoadingBlock />
     </div>
@@ -817,52 +898,56 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
         onClick: loadProjectWorkItems,
       }}
     />
-  ) : (
+  ) : null;
+
+  const listContent = workItemsUnavailableContent ?? (
     <div className="h-full min-h-0 flex-1 overflow-hidden">
-      {activePanelTab === "kanban" ? (
-        <div className="h-full min-h-0">
-          <KanbanBoard
-            tasks={kanbanTasks}
-            columnOrder={kanbanColumns}
-            allowColumnReorder={false}
-            allowTaskDrag={kanbanGroupBy === WORK_ITEMS_KANBAN_GROUP.STATUS}
-            onTaskMove={(taskId: string, newStatus: TaskStatus) => {
-              if (kanbanGroupBy !== WORK_ITEMS_KANBAN_GROUP.STATUS) return;
-              void handleUpdateWorkItem(taskId, {
-                workItemStatus: newStatus as WorkItem["workItemStatus"],
-              });
-            }}
-            onTaskClick={handleSelectWorkItemFromKanban}
-            onAddTask={(status: TaskStatus) => {
-              void handleAddKanbanTask(status);
-            }}
-            showAddButton={kanbanGroupBy === WORK_ITEMS_KANBAN_GROUP.STATUS}
-            className="kanban-board--linear"
-          />
-        </div>
-      ) : (
-        <WorkItemsListContent
-          groupedWorkItems={groupedWorkItems}
-          filteredWorkItems={filteredWorkItems}
-          workItems={workItems}
-          selectedWorkItemId={null}
-          availableMembers={selectedProject.project.members ?? []}
-          availableProjects={[
-            {
-              id: selectedProject.project.id,
-              name: selectedProject.project.name,
-            },
-          ]}
-          availableLabels={selectedProject.project.labels ?? []}
-          checkedWorkItemIds={selectedIds}
-          onCheckedChange={handleCheckedChange}
-          onSelectWorkItem={handleSelectWorkItem}
-          readonly
-          disableProjectEdit
-          compactRows
-          workItemPrefix={selectedProject.project.workItemPrefix}
+      <WorkItemsListContent
+        groupedWorkItems={groupedWorkItems}
+        filteredWorkItems={filteredWorkItems}
+        workItems={workItems}
+        selectedWorkItemId={null}
+        availableMembers={selectedProject.project.members ?? []}
+        availableProjects={[
+          {
+            id: selectedProject.project.id,
+            name: selectedProject.project.name,
+          },
+        ]}
+        availableLabels={selectedProject.project.labels ?? []}
+        checkedWorkItemIds={selectedIds}
+        onCheckedChange={handleCheckedChange}
+        onSelectWorkItem={handleSelectWorkItem}
+        readonly
+        disableProjectEdit
+        compactRows
+        workItemPrefix={selectedProject.project.workItemPrefix}
+      />
+    </div>
+  );
+
+  const kanbanContent = workItemsUnavailableContent ?? (
+    <div className="h-full min-h-0 flex-1 overflow-hidden">
+      <div className="h-full min-h-0">
+        <KanbanBoard
+          tasks={kanbanTasks}
+          columnOrder={kanbanColumns}
+          allowColumnReorder={false}
+          allowTaskDrag={kanbanGroupBy === WORK_ITEMS_KANBAN_GROUP.STATUS}
+          onTaskMove={(taskId: string, newStatus: TaskStatus) => {
+            if (kanbanGroupBy !== WORK_ITEMS_KANBAN_GROUP.STATUS) return;
+            void handleUpdateWorkItem(taskId, {
+              workItemStatus: newStatus as WorkItem["workItemStatus"],
+            });
+          }}
+          onTaskClick={handleSelectWorkItemFromKanban}
+          onAddTask={(status: TaskStatus) => {
+            void handleAddKanbanTask(status);
+          }}
+          showAddButton={kanbanGroupBy === WORK_ITEMS_KANBAN_GROUP.STATUS}
+          className="kanban-board--linear"
         />
-      )}
+      </div>
     </div>
   );
 
@@ -871,26 +956,46 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
       className="flex min-h-0 flex-1 flex-col"
       data-testid="chat-panel-project-section"
     >
-      <div
-        className={`min-h-0 flex-1 ${
-          activePanelTab === "overview"
-            ? "overflow-y-auto overflow-x-hidden scrollbar-hide"
-            : "overflow-hidden"
-        }`}
-        role="tabpanel"
-        id={`chat-panel-project-detail-tabpanel-${activePanelTab}`}
-        aria-labelledby={`chat-panel-project-detail-tab-${activePanelTab}`}
+      <PersistentDetailTabPanel
+        active={activePanelTab === "overview"}
+        id="chat-panel-project-detail-tabpanel-overview"
+        ariaLabelledBy="chat-panel-project-detail-tab-overview"
+        className="flex-col overflow-y-auto overflow-x-hidden scrollbar-hide"
       >
-        {activePanelTab === "overview" ? overviewContent : workItemsContent}
-      </div>
+        {overviewContent}
+      </PersistentDetailTabPanel>
+      <PersistentDetailTabPanel
+        active={activePanelTab === "list"}
+        id="chat-panel-project-detail-tabpanel-list"
+        ariaLabelledBy="chat-panel-project-detail-tab-list"
+        className="flex-col overflow-hidden"
+      >
+        {listContent}
+      </PersistentDetailTabPanel>
+      <PersistentDetailTabPanel
+        active={activePanelTab === "kanban"}
+        id="chat-panel-project-detail-tabpanel-kanban"
+        ariaLabelledBy="chat-panel-project-detail-tab-kanban"
+        className="flex-col overflow-hidden"
+      >
+        {kanbanContent}
+      </PersistentDetailTabPanel>
     </section>
   );
 
   return (
     <div
+      ref={panelRef}
       className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden"
       data-testid="chat-panel-project-detail"
     >
+      <ContentSearchPalette
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        query={searchQuery}
+        onQueryChange={setSearchQuery}
+        placeholder={t("common:actions.search")}
+      />
       <DetailPanelContainer className="relative">
         <div className="flex min-h-0 flex-1 overflow-hidden">
           <WorkItemContentStack

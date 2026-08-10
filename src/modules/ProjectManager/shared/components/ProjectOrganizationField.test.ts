@@ -7,11 +7,13 @@ import ProjectOrganizationField from "./ProjectOrganizationField";
 
 vi.mock("@src/components/PropertyField/PropertyFieldEditable", () => ({
   FieldRow: ({
+    label,
     value,
     isActive,
     disabled,
     onClick,
   }: {
+    label?: string;
     value: string;
     isActive?: boolean;
     disabled?: boolean;
@@ -24,6 +26,7 @@ vi.mock("@src/components/PropertyField/PropertyFieldEditable", () => ({
         disabled,
         "data-testid": "field-row",
         "data-active": String(isActive),
+        "data-label": label,
         onClick,
       },
       value
@@ -101,6 +104,7 @@ describe("ProjectOrganizationField", () => {
       '[data-testid="field-row"]'
     );
     expect(fieldRow?.textContent).toBe("ORGII");
+    expect(fieldRow?.dataset.label).toBe("Orgs");
     expect(fieldRow?.dataset.active).toBe("false");
     expect(fieldRow?.parentElement?.className).not.toContain("px-2");
 
@@ -118,5 +122,24 @@ describe("ProjectOrganizationField", () => {
     expect(
       container.querySelector('[data-testid="property-dropdown"]')
     ).toBeNull();
+  });
+
+  it("uses the Workstation-style value row without a reserved label column", () => {
+    act(() =>
+      root.render(
+        createElement(ProjectOrganizationField, {
+          value: "org-1",
+          valueLabel: "ORGII",
+          options: [{ value: "org-1", label: "ORGII" }],
+          onChange: vi.fn(),
+        })
+      )
+    );
+
+    const fieldRow = container.querySelector<HTMLButtonElement>(
+      '[data-testid="field-row"]'
+    );
+    expect(fieldRow?.textContent).toBe("ORGII");
+    expect(fieldRow?.hasAttribute("data-label")).toBe(false);
   });
 });

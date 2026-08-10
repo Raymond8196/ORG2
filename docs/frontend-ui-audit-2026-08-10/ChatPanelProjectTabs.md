@@ -44,3 +44,37 @@ The configured `frontend-ui-audit` skill file was unavailable in both the refere
 - Keep with reason: 2
 - Abstract: 1
 - Remaining cross-file sweep candidates: 0
+
+## Persistent detail-tab follow-up
+
+| Line                                                                                                                     | Element                            | Verdict          | Reason                                                                                                                                                                                                                                | Suggested change                                                                                            |
+| ------------------------------------------------------------------------------------------------------------------------ | ---------------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `src/modules/shared/layouts/blocks/PersistentDetailTabPanel.tsx:18`                                                      | Lazy keep-alive tabpanel           | abstract         | Project and Pull Request detail views both need visited tabs to retain native scroll position and local component state without eagerly mounting every view. The shared wrapper owns that lifecycle and tabpanel accessibility state. | Use this wrapper for future dense detail tabs that must preserve state; do not apply it to unbounded lists. |
+| `src/engines/ChatPanel/panels/ProjectPanelView.tsx:938`                                                                  | Overview / List / Kanban lifecycle | fix              | Conditional content previously destroyed each view on every switch. Each view now mounts on first visit, remains scoped to the open project pane, and is hidden while inactive.                                                       | Keep project data ownership in the parent so hidden panels do not add subscriptions or polling.             |
+| `src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/PullRequestContent/detail/PrDetailPanel.tsx:511` | Pull Request detail lifecycle      | fix              | Conversation, Commits, Checks, and Files Changed previously remounted on every switch. Visited panels and the conversation navigation trail now remain mounted while inactive.                                                        | Keep the existing parent-owned PR fetch lifecycle; child panels should remain presentation-only consumers.  |
+| `src/modules/shared/layouts/blocks/PersistentDetailTabPanel.tsx:34`                                                      | Inactive panel visibility          | keep with reason | `display: none` removes inactive panels from layout and focus navigation while retaining their DOM state; `aria-hidden` mirrors the same active state for assistive technology.                                                       | Preserve the paired visual and accessibility state when extending the wrapper.                              |
+| `src/engines/ChatPanel/panels/WorkItemPanelView.tsx:509`                                                                 | Work-item navigation trail         | fix              | The section navigator previously occupied a separate gutter beside the floating properties card. It now shares the properties rail column and sits below the card, matching the Workstation trail composition.                        | Keep the content-edge fallback for the collapsed-properties state.                                          |
+
+### Persistent-tab verdict counts
+
+- Fix: 3
+- Keep with reason: 1
+- Abstract: 1
+- Remaining cross-file sweep candidates: 0
+
+## Floating properties-trail follow-up
+
+| Line                                                                                      | Element                             | Verdict          | Reason                                                                                                                                                                                                                  | Suggested change                                                                                      |
+| ----------------------------------------------------------------------------------------- | ----------------------------------- | ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `src/modules/shared/layouts/blocks/WorkstationTrailSurface.tsx:17`                        | Floating trail surface and rail gap | abstract         | Workstation, Project, and Work Item rails need one source for the editor-canvas surface, shadow, border, and compact outer inset. Shared tokens now prevent each pane from drifting separately.                         | Keep future floating entity trails on these surface and rail-spacing tokens.                          |
+| `src/modules/ProjectManager/shared/components/PropertiesPanel/PropertiesRailFrame.tsx:35` | Floating properties rail frame      | fix              | Project and Work Item panes supplied an independent `p-2`, leaving their cards farther from the rail edge than the Workstation trail. The shared frame now applies Workstation's exact inset.                           | Do not add caller-specific padding to floating `PropertiesRailFrame` instances.                       |
+| `src/modules/ProjectManager/WorkItems/components/WorkItemThread/index.tsx:48`             | Work Item section trail placement   | fix              | Centering markers in the remaining rail separated them visually from the floating card. Portaled markers now begin directly below the card, matching Workstation's card-plus-trail composition.                         | Preserve centered placement only for the content-edge fallback when the properties card is collapsed. |
+| `src/engines/ChatPanel/panels/ProjectPanelView.tsx:600`                                   | Project property rows               | fix              | The Project pane retained a 72px text-label column while Work Item and Workstation trails use compact icon/value rows. The Chat Panel variant now removes that reservation without changing full Project Manager views. | Keep `showLabels` enabled by default outside the compact Chat Panel trail.                            |
+| `src/modules/ProjectManager/shared/components/ProjectOrganizationField.tsx:12`            | Organization property row           | keep with reason | An optional label lets the full property surface retain context while the compact trail aligns Organization with every other icon/value row.                                                                            | Keep the value and icon; omit only the redundant row label in compact trail consumers.                |
+
+### Floating-properties verdict counts
+
+- Fix: 3
+- Keep with reason: 1
+- Abstract: 1
+- Remaining cross-file sweep candidates: 0
