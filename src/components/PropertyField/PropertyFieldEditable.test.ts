@@ -1,9 +1,12 @@
 // @vitest-environment jsdom
-import { type ReactNode, act, createElement } from "react";
+import { act, createElement } from "react";
 import { type Root, createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { SearchableDropdown } from "./PropertyFieldEditable";
+import {
+  SearchableDropdown,
+  type SearchableDropdownProps,
+} from "./PropertyFieldEditable";
 
 vi.mock("@src/components/Dropdown/DropdownSearch", () => ({
   default: () => createElement("input", { "data-testid": "dropdown-search" }),
@@ -43,17 +46,17 @@ describe("SearchableDropdown", () => {
       y: 80,
       toJSON: () => ({}),
     });
+    const dropdownProps: SearchableDropdownProps = {
+      children: () => createElement("span", null, "Option"),
+      widthMode: "match-parent",
+    };
 
     act(() => {
       root.render(
         createElement(
           "div",
           { style: { overflow: "hidden" } },
-          createElement(
-            SearchableDropdown,
-            { widthMode: "match-parent" },
-            () => createElement("span", null, "Option") as ReactNode
-          )
+          createElement(SearchableDropdown, dropdownProps)
         )
       );
     });
