@@ -1,18 +1,15 @@
 import {
   CheckCircle2,
-  CircleDashed,
   CircleDot,
   CircleSlash,
   Copy,
   GitMerge,
   GitPullRequestDraft,
-  LoaderCircle,
-  XCircle,
 } from "lucide-react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
-import type { PullRequestCiStatus } from "@src/api/tauri/github";
+import PrCiStatusIndicator from "@src/components/PrCiStatusIndicator";
 import type { SelectOption } from "@src/components/Select";
 import type { SettingsTableSelectFilter } from "@src/components/SettingsTable";
 import {
@@ -127,49 +124,6 @@ interface GitHubWorkItemsViewProps {
     title: string,
     body: string
   ) => void;
-}
-
-function PrCiStatusCell({
-  prNumber,
-  status,
-  label,
-}: {
-  prNumber: number;
-  status: PullRequestCiStatus;
-  label: string;
-}): React.ReactNode {
-  const icon =
-    status === "success" ? (
-      <CheckCircle2 size={14} strokeWidth={1.8} />
-    ) : status === "failure" ? (
-      <XCircle size={14} strokeWidth={1.8} />
-    ) : status === "pending" ? (
-      <LoaderCircle size={14} strokeWidth={1.8} className="animate-spin" />
-    ) : status === "none" ? (
-      <CircleSlash size={14} strokeWidth={1.8} />
-    ) : (
-      <CircleDashed size={14} strokeWidth={1.8} />
-    );
-  const colorClass =
-    status === "success"
-      ? "text-success-6"
-      : status === "failure"
-        ? "text-danger-6"
-        : status === "pending"
-          ? "text-warning-6"
-          : "text-text-3";
-
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 whitespace-nowrap ${colorClass}`}
-      title={label}
-      aria-label={label}
-      data-testid={`github-pr-ci-${prNumber}`}
-    >
-      {icon}
-      <span>{label}</span>
-    </span>
-  );
 }
 
 export function GitHubWorkItemsView({
@@ -379,10 +333,10 @@ export function GitHubWorkItemsView({
               dataTestId: `github-pr-status-${item.id}`,
             },
             ciStatus: (
-              <PrCiStatusCell
-                prNumber={item.id}
+              <PrCiStatusIndicator
                 status={item.rawPr.ci_status}
                 label={prCiLabel}
+                dataTestId={`github-pr-ci-${item.id}`}
               />
             ),
             updated,
