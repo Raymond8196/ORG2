@@ -192,6 +192,8 @@ describe("PrDetailPanel tabs", () => {
     expect(tabList?.className).not.toContain("border-t");
     expect(tabList?.className).toContain("gap-px");
     expect(tabList?.className).not.toContain("h-10");
+    expect(tabs[0]?.className).toContain("after:-bottom-px");
+    expect(tabs[0]?.className).toContain("after:bg-bg-2");
     for (const tab of tabs) {
       expect(tab.className).toContain("py-1.5");
       expect(tab.className).not.toContain("h-9");

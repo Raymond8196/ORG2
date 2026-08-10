@@ -36,6 +36,8 @@ export type { CollapsibleTableSectionProps } from "./CollapsibleTableSection";
 
 export { default as DetailPanelContainer } from "./DetailPanelContainer";
 export type { DetailPanelContainerProps } from "./DetailPanelContainer";
+export { default as DetailTabStrip } from "./DetailTabStrip";
+export type { DetailTabStripItem, DetailTabStripProps } from "./DetailTabStrip";
 
 export {
   CARD_ROW_TOKENS,

@@ -22,7 +22,11 @@ import React, {
 } from "react";
 import { useTranslation } from "react-i18next";
 
-import { type ProjectOrg, projectApi } from "@src/api/http/project";
+import {
+  type ProjectOrg,
+  projectApi,
+  projectDataToUI,
+} from "@src/api/http/project";
 import Message from "@src/components/Message";
 import Select from "@src/components/Select";
 import type { SelectOption } from "@src/components/Select";
@@ -54,12 +58,20 @@ import {
   removeProjectDraftAtom,
   setProjectDraftAtom,
 } from "@src/store/workstation/projectManager";
+import type { Project } from "@src/types/core/project";
 
 import { filterSelectableProjectOrgs } from "../../../projectOrgVisibility";
 
 // ============================================
 // Types
 // ============================================
+
+export interface CreatedProjectResult {
+  project: Project;
+  projectSlug: string;
+  orgId: string;
+  orgName?: string;
+}
 
 export interface CreateProjectViewProps {
   /** Tab ID used to key the draft cache */
@@ -80,7 +92,7 @@ export interface CreateProjectViewProps {
   /** Mark this tab as having unsaved changes */
   onSetUnsaved: (hasUnsaved: boolean) => void;
   /** Called after project is successfully created */
-  onProjectCreated: (options?: { keepOpen?: boolean }) => void;
+  onProjectCreated: (result: CreatedProjectResult) => void;
   /** Show the Agent composer instead of the manual Project composer. */
   aiGenerateMode?: boolean;
   /** Optional content centered in the page above the bottom-docked manual composer. */
@@ -270,34 +282,41 @@ const CreateProjectView: React.FC<CreateProjectViewProps> = ({
         ? workItemPrefix.slice(0, 3).padEnd(3, "X")
         : "PRJ";
 
-      await projectApi.writeProject(
-        slug,
-        {
-          id: `proj-${slug}`,
-          name,
-          org_id: draft.orgId,
-          status: draft.status || "backlog",
-          priority: draft.priority || "none",
-          health: draft.health || "no_updates",
-          lead: draft.leadId,
-          members: draft.memberIds,
-          labels: draft.labelIds,
-          linked_repos: draft.linkedRepoPaths,
-          start_date: draft.startDate,
-          target_date: draft.targetDate,
-          created_at: now,
-          updated_at: now,
-          next_work_item_id: 1,
-          work_item_prefix: normalizedWorkItemPrefix,
-          work_item_prefix_custom: false,
-        },
-        description,
-        true
-      );
+      const meta = {
+        id: `proj-${slug}`,
+        name,
+        org_id: draft.orgId,
+        status: draft.status || "backlog",
+        priority: draft.priority || "none",
+        health: draft.health || "no_updates",
+        lead: draft.leadId,
+        members: draft.memberIds,
+        labels: draft.labelIds,
+        linked_repos: draft.linkedRepoPaths,
+        start_date: draft.startDate,
+        target_date: draft.targetDate,
+        created_at: now,
+        updated_at: now,
+        next_work_item_id: 1,
+        work_item_prefix: normalizedWorkItemPrefix,
+        work_item_prefix_custom: false,
+      };
+
+      await projectApi.writeProject(slug, meta, description, true);
 
       await emit("orgii-data-changed");
       removeDraft(tabId);
-      onProjectCreated();
+      onProjectCreated({
+        project: projectDataToUI(
+          { meta, description, slug },
+          { labelMap: new Map(), memberMap: new Map() }
+        ),
+        projectSlug: slug,
+        orgId: meta.org_id,
+        orgName:
+          availableOrgs.find((org) => org.id === meta.org_id)?.name ??
+          (meta.org_id === orgId ? scopeBreadcrumbLabel : undefined),
+      });
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       logger.error("Failed to create project", err);
@@ -305,7 +324,16 @@ const CreateProjectView: React.FC<CreateProjectViewProps> = ({
     } finally {
       setSaving(false);
     }
-  }, [draft, onProjectCreated, removeDraft, saving, tabId]);
+  }, [
+    availableOrgs,
+    draft,
+    onProjectCreated,
+    orgId,
+    removeDraft,
+    saving,
+    scopeBreadcrumbLabel,
+    tabId,
+  ]);
 
   useKeyboardSave(
     handleCreate,

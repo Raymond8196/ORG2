@@ -36,7 +36,11 @@ import Button from "@src/components/Button";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
 import GitHubDetailSkeleton from "@src/modules/shared/components/GitHubDetailSkeleton";
-import { PanelHeader, ScrollTrail } from "@src/modules/shared/layouts/blocks";
+import {
+  DetailTabStrip,
+  PanelHeader,
+  ScrollTrail,
+} from "@src/modules/shared/layouts/blocks";
 import { resolvePullRequestDetailStatus } from "@src/shared/pr/prLevelActions";
 import { getPrStatusVariant } from "@src/shared/pr/prStatus";
 import {
@@ -463,39 +467,13 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
       ) : null}
 
       {/* GitHub-style PR navigation */}
-      <div
-        role="tablist"
-        aria-label={t("git.pr.summary.label", "Pull request summary")}
-        className="flex shrink-0 items-end gap-px border-b border-border-2 bg-bg-2 px-3"
-      >
-        {tabs.map((tab) => {
-          const selected = activeTab === tab.key;
-          return (
-            <button
-              key={tab.key}
-              type="button"
-              role="tab"
-              id={`pr-detail-tab-${tab.key}`}
-              aria-controls={`pr-detail-tabpanel-${tab.key}`}
-              aria-selected={selected}
-              className={`relative -mb-px flex shrink-0 items-center gap-1.5 rounded-t-md border px-3 py-1.5 text-[12px] font-medium transition-colors ${
-                selected
-                  ? "border-border-2 bg-bg-2 text-text-1 after:absolute after:-bottom-px after:left-0 after:right-0 after:h-px after:bg-bg-2"
-                  : "border-transparent text-text-2 hover:bg-fill-1 hover:text-text-1"
-              }`}
-              onClick={() => setActiveTab(tab.key)}
-            >
-              <span className="shrink-0" aria-hidden>
-                {tab.icon}
-              </span>
-              <span>{tab.label}</span>
-              <span className="inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-fill-2 px-1.5 text-[10px] font-semibold tabular-nums text-text-2">
-                {tab.count}
-              </span>
-            </button>
-          );
-        })}
-      </div>
+      <DetailTabStrip
+        activeTab={activeTab}
+        ariaLabel={t("git.pr.summary.label", "Pull request summary")}
+        idPrefix="pr-detail"
+        tabs={tabs}
+        onChange={setActiveTab}
+      />
 
       {/* Error banner */}
       {state.error ? (

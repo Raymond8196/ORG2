@@ -7,6 +7,7 @@ import { PRODUCT_MODE_PROJECT } from "@src/config/sessionCreatorConfig";
 import type { SessionLaunchSuccessInfo } from "@src/engines/SessionCore/hooks/session/useSessionCreator/useSessionLaunch/types";
 import { SESSION_CREATOR_LAUNCH_MODE } from "@src/features/SessionCreator/types";
 import type { CreatedOrgResult } from "@src/features/TeamCollaboration/components/CreateCollabOrgView";
+import type { CreatedProjectResult } from "@src/modules/ProjectManager/Projects/components/CreateProjectView";
 import type { CreatedWorkItemResult } from "@src/modules/ProjectManager/WorkItems/components/CreateWorkItemView";
 import { openOrFocusSessionInChatPanelTabAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
 import {
@@ -94,7 +95,7 @@ interface ChatPanelEmptyContentProps {
   handleCancelWorkItemCreate: () => void;
   handleCancelCollabOrgCreate: () => void;
   handleCancelProjectCreate: () => void;
-  handleChatPanelProjectCreated: (options?: { keepOpen?: boolean }) => void;
+  handleChatPanelProjectCreated: (result?: CreatedProjectResult) => void;
   handleChatPanelCollabOrgCreated: (result: CreatedOrgResult) => void;
   handleChatPanelWorkItemCreated: (result?: CreatedWorkItemResult) => void;
   handleOpenCliTerminal: NonNullable<

@@ -1,5 +1,5 @@
 import { useSetAtom } from "jotai";
-import { Box } from "lucide-react";
+import { Box, Columns3, LayoutDashboard, List } from "lucide-react";
 import React, {
   useCallback,
   useEffect,
@@ -59,6 +59,7 @@ import {
 import ProjectManagerBreadcrumb from "@src/modules/ProjectManager/shared/components/ProjectManagerBreadcrumb";
 import {
   DetailPanelContainer,
+  DetailTabStrip,
   Placeholder,
 } from "@src/modules/shared/layouts/blocks";
 import { openWorkItemInChatPanelTabAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
@@ -435,6 +436,15 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
         : tab === "list"
           ? t("projects:workItems.tabs.list")
           : t("projects:workItems.tabs.kanban"),
+    icon:
+      tab === "overview" ? (
+        <LayoutDashboard size={15} strokeWidth={1.8} />
+      ) : tab === "list" ? (
+        <List size={15} strokeWidth={1.8} />
+      ) : (
+        <Columns3 size={15} strokeWidth={1.8} />
+      ),
+    count: tab === "overview" ? undefined : workItems.length,
   }));
   const kanbanGroupTabs = useMemo<TabPillItem[]>(
     () => [
@@ -620,45 +630,47 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
       className="flex min-h-0 flex-1 flex-col"
       data-testid="chat-panel-project-section"
     >
-      <div className="mb-4 flex shrink-0 items-center justify-between gap-2">
-        <TabPill
-          tabs={panelTabItems}
-          activeTab={activePanelTab}
-          onChange={(key) => setActivePanelTab(key as ProjectPanelTab)}
-          variant="simple"
-          fillWidth={false}
-          size="chatPanel"
-        />
-        {activePanelTab !== "overview" ? (
-          <div className="flex shrink-0 items-center gap-1">
-            {activePanelTab === "kanban" ? (
-              <TabPill
-                tabs={kanbanGroupTabs}
-                activeTab={kanbanGroupBy}
-                onChange={(key) =>
-                  setKanbanGroupBy(key as WorkItemsKanbanGroup)
-                }
-                variant="pill"
-                color="fill"
-                fillWidth={false}
-                size="small"
+      <DetailTabStrip
+        tabs={panelTabItems}
+        activeTab={activePanelTab}
+        onChange={setActivePanelTab}
+        ariaLabel={t("projects:workspace.views")}
+        idPrefix="chat-panel-project-detail"
+        trailing={
+          activePanelTab !== "overview" ? (
+            <div className="flex shrink-0 items-center gap-1">
+              {activePanelTab === "kanban" ? (
+                <TabPill
+                  tabs={kanbanGroupTabs}
+                  activeTab={kanbanGroupBy}
+                  onChange={(key) =>
+                    setKanbanGroupBy(key as WorkItemsKanbanGroup)
+                  }
+                  variant="pill"
+                  color="fill"
+                  fillWidth={false}
+                  size="small"
+                />
+              ) : null}
+              <WorkItemsStatusFilterSelect
+                value={statusFilter}
+                onChange={setStatusFilter}
+                statusCounts={statusCounts}
+                filterKeys={statusFilterKeys}
               />
-            ) : null}
-            <WorkItemsStatusFilterSelect
-              value={statusFilter}
-              onChange={setStatusFilter}
-              statusCounts={statusCounts}
-              filterKeys={statusFilterKeys}
-            />
-          </div>
-        ) : null}
-      </div>
-      <div
-        className={
-          activePanelTab === "overview"
-            ? "min-h-0 flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide"
-            : "min-h-0 flex-1 overflow-hidden"
+            </div>
+          ) : null
         }
+      />
+      <div
+        className={`min-h-0 flex-1 px-4 py-4 ${
+          activePanelTab === "overview"
+            ? "overflow-y-auto overflow-x-hidden scrollbar-hide"
+            : "overflow-hidden"
+        }`}
+        role="tabpanel"
+        id={`chat-panel-project-detail-tabpanel-${activePanelTab}`}
+        aria-labelledby={`chat-panel-project-detail-tab-${activePanelTab}`}
       >
         {activePanelTab === "overview" ? overviewContent : workItemsContent}
       </div>
@@ -677,7 +689,7 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
           }
           descriptionContent={descriptionContent}
           descriptionFlexible
-          descriptionClassName="min-h-0 flex flex-1 flex-col px-4 py-4"
+          descriptionClassName="min-h-0 flex flex-1 flex-col"
         />
         {activePanelTab !== "overview" ? (
           <MultiSelectBar

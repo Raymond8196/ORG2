@@ -263,6 +263,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
 
     const {
       dispatchClearSession,
+      openProjectCreate,
       openWorkItemCreate,
       resetActiveSession,
       setActiveSessionId,
@@ -373,6 +374,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       resetActiveSession();
     }, [handleOpenLaunchpadTab, resetActiveSession, setCreateTarget]);
     const handleStartPageNewWorkItem = openWorkItemCreate;
+    const handleStartPageNewProject = openProjectCreate;
     const openLaunchedSessionTab = useSetAtom(openSessionInNewChatTabAtom);
     const handleStartPageSessionStart = useCallback(
       (info: { sessionId: string }) => {
@@ -546,6 +548,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
         onOpenLaunchpad={handleOpenLaunchpadTab}
         onOpenKanban={handleOpenKanbanTab}
         onOpenRuntime={handleShowRuntime}
+        onNewProject={handleStartPageNewProject}
         onNewWorkItem={handleStartPageNewWorkItem}
       />
     );
