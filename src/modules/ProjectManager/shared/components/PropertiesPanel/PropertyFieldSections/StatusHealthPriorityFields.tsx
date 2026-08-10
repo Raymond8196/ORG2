@@ -77,7 +77,7 @@ const StatusHealthPriorityFields: React.FC<StatusHealthPriorityFieldsProps> = ({
         />
         {openPicker === "status" && (
           <SearchableDropdown
-            placeholder={t("properties.searchStatus")}
+            placeholder={t("common:actions.search")}
             widthMode={fieldVariant === "pill" ? "menu" : "match-parent"}
             align={fieldVariant === "pill" ? "auto" : "left"}
           >
@@ -130,7 +130,7 @@ const StatusHealthPriorityFields: React.FC<StatusHealthPriorityFieldsProps> = ({
         />
         {openPicker === "health" && (
           <SearchableDropdown
-            placeholder={t("properties.searchHealth")}
+            placeholder={t("common:actions.search")}
             widthMode={fieldVariant === "pill" ? "menu" : "match-parent"}
             align={fieldVariant === "pill" ? "auto" : "left"}
           >
@@ -183,7 +183,7 @@ const StatusHealthPriorityFields: React.FC<StatusHealthPriorityFieldsProps> = ({
         />
         {openPicker === "priority" && (
           <SearchableDropdown
-            placeholder={t("properties.searchPriority")}
+            placeholder={t("common:actions.search")}
             widthMode={fieldVariant === "pill" ? "menu" : "match-parent"}
             align={fieldVariant === "pill" ? "auto" : "left"}
           >

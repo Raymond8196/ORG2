@@ -103,7 +103,7 @@ const PeopleTeamsLabelsFields: React.FC<PeopleTeamsLabelsFieldsProps> = ({
         />
         {openPicker === "lead" && (
           <SearchableDropdown
-            placeholder={t("properties.searchMembers")}
+            placeholder={t("common:actions.search")}
             widthMode={fieldVariant === "pill" ? "menu" : "match-parent"}
             align={fieldVariant === "pill" ? "auto" : "left"}
           >
@@ -179,7 +179,7 @@ const PeopleTeamsLabelsFields: React.FC<PeopleTeamsLabelsFieldsProps> = ({
         />
         {openPicker === "members" && (
           <SearchableDropdown
-            placeholder={t("properties.searchMembers")}
+            placeholder={t("common:actions.search")}
             widthMode={fieldVariant === "pill" ? "menu" : "match-parent"}
             align={fieldVariant === "pill" ? "auto" : "left"}
           >
@@ -247,7 +247,7 @@ const PeopleTeamsLabelsFields: React.FC<PeopleTeamsLabelsFieldsProps> = ({
         />
         {openPicker === "teams" && (
           <SearchableDropdown
-            placeholder={t("properties.searchTeams")}
+            placeholder={t("common:actions.search")}
             widthMode={fieldVariant === "pill" ? "menu" : "match-parent"}
             align={fieldVariant === "pill" ? "auto" : "left"}
           >
@@ -313,7 +313,7 @@ const PeopleTeamsLabelsFields: React.FC<PeopleTeamsLabelsFieldsProps> = ({
         />
         {openPicker === "labels" && (
           <SearchableDropdown
-            placeholder={t("properties.searchLabels")}
+            placeholder={t("common:actions.search")}
             widthMode={fieldVariant === "pill" ? "menu" : "match-parent"}
             align={fieldVariant === "pill" ? "auto" : "left"}
           >
@@ -370,7 +370,7 @@ const PeopleTeamsLabelsFields: React.FC<PeopleTeamsLabelsFieldsProps> = ({
           />
           {openPicker === "linkedRepos" && (
             <SearchableDropdown
-              placeholder={t("properties.searchRepos")}
+              placeholder={t("common:actions.search")}
               widthMode={fieldVariant === "pill" ? "menu" : "match-parent"}
               align={fieldVariant === "pill" ? "auto" : "left"}
             >
