@@ -1,9 +1,4 @@
 import { LogicalPosition } from "@tauri-apps/api/dpi";
-import {
-  MenuItem,
-  PredefinedMenuItem,
-  Menu as TauriMenu,
-} from "@tauri-apps/api/menu";
 import { open } from "@tauri-apps/plugin-shell";
 import type { TFunction } from "i18next";
 import { Minus, Square, X } from "lucide-react";
@@ -16,7 +11,10 @@ import {
   maxWindow,
   minWindow,
 } from "@src/util/platform/ipcRenderer";
-import { runNativeMenuSingleFlight } from "@src/util/platform/tauri/nativeMenuSingleFlight";
+import {
+  type NativeMenuItemOptions,
+  popupNativeMenu,
+} from "@src/util/platform/tauri/nativeMenuPopup";
 
 import { NoDragRegion } from "./NoDragRegion";
 
@@ -248,46 +246,27 @@ function getMenuItems(menu: NativeMenuKey, t: TFunction): NativeMenuItem[] {
   }
 }
 
-async function showNativeStyleMenuUnchecked(
-  menuKey: NativeMenuKey,
-  anchor: HTMLElement,
-  t: TFunction
-) {
-  const menuItems = await Promise.all(
-    getMenuItems(menuKey, t).map(async (item) => {
-      if (item.type === "separator") {
-        return PredefinedMenuItem.new({ item: "Separator" });
-      }
-
-      return MenuItem.new({
-        text: item.text,
-        enabled: item.enabled ?? true,
-        accelerator: item.accelerator,
-        action: item.action,
-      });
-    })
-  );
-
-  const menu = await TauriMenu.new({ items: menuItems });
-  const rect = anchor.getBoundingClientRect();
-
-  try {
-    await menu.popup(
-      new LogicalPosition(Math.round(rect.left), Math.round(rect.bottom))
-    );
-  } catch {
-    await menu.popup();
-  }
-}
-
 async function showNativeStyleMenu(
   menuKey: NativeMenuKey,
   anchor: HTMLElement,
   t: TFunction
 ) {
-  await runNativeMenuSingleFlight(`windows-top-bar:${menuKey}`, () =>
-    showNativeStyleMenuUnchecked(menuKey, anchor, t)
-  );
+  const rect = anchor.getBoundingClientRect();
+  await popupNativeMenu({
+    source: `windows-top-bar:${menuKey}`,
+    buildItems: () =>
+      getMenuItems(menuKey, t).map<NativeMenuItemOptions>((item) => {
+        if (item.type === "separator") return { item: "Separator" };
+        return {
+          text: item.text,
+          enabled: item.enabled ?? true,
+          accelerator: item.accelerator,
+          action: item.action,
+        };
+      }),
+    at: new LogicalPosition(Math.round(rect.left), Math.round(rect.bottom)),
+    fallbackToCursor: true,
+  });
 }
 
 const WindowsTopBarComponent: React.FC = () => {

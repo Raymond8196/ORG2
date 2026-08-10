@@ -14,11 +14,6 @@
  * </SidebarBase>
  * ```
  */
-import {
-  MenuItem,
-  PredefinedMenuItem,
-  Menu as TauriMenu,
-} from "@tauri-apps/api/menu";
 import i18next from "i18next";
 import { useAtomValue, useSetAtom } from "jotai";
 import { PanelLeft, Plus, X } from "lucide-react";
@@ -47,7 +42,7 @@ import {
 } from "@src/store/ui/sidebarAtom";
 import { windowFullscreenAtom } from "@src/store/ui/uiAtom";
 import { isTauriDesktop } from "@src/util/platform/tauri";
-import { runNativeMenuSingleFlight } from "@src/util/platform/tauri/nativeMenuSingleFlight";
+import { popupNativeMenu } from "@src/util/platform/tauri/nativeMenuPopup";
 
 import { SIDEBAR_STYLE } from "./config";
 import { useForceVisibleSidebar } from "./contexts/ForceVisibleContext";
@@ -169,44 +164,40 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
         const isAlreadyDefault = sidebarWidth === DEFAULT_SIDEBAR_WIDTH;
         const isAlreadyMin = sidebarWidth <= MIN_SIDEBAR_WIDTH;
 
-        void runNativeMenuSingleFlight("navigation-sidebar", async () => {
-          try {
+        void popupNativeMenu({
+          source: "navigation-sidebar",
+          buildItems: () => {
             const t = i18next.t.bind(i18next);
-
-            const resizeDefaultItem = await MenuItem.new({
-              text: t("tooltips.resizeToDefault", {
-                width: DEFAULT_SIDEBAR_WIDTH,
-              }),
-              enabled: !isAlreadyDefault,
-              action: () => {
-                setWidth(DEFAULT_SIDEBAR_WIDTH);
+            return [
+              {
+                text: t("tooltips.resizeToDefault", {
+                  width: DEFAULT_SIDEBAR_WIDTH,
+                }),
+                enabled: !isAlreadyDefault,
+                action: () => {
+                  setWidth(DEFAULT_SIDEBAR_WIDTH);
+                },
               },
-            });
-            const minimizeItem = await MenuItem.new({
-              text: t("tooltips.minimizeWidth", {
-                width: MIN_SIDEBAR_WIDTH,
-              }),
-              enabled: !isAlreadyMin,
-              action: () => {
-                setWidth(MIN_SIDEBAR_WIDTH);
+              {
+                text: t("tooltips.minimizeWidth", {
+                  width: MIN_SIDEBAR_WIDTH,
+                }),
+                enabled: !isAlreadyMin,
+                action: () => {
+                  setWidth(MIN_SIDEBAR_WIDTH);
+                },
               },
-            });
-            const separator = await PredefinedMenuItem.new({
-              item: "Separator",
-            });
-            const hideItem = await MenuItem.new({
-              text: t("tooltips.hideSidebar"),
-              action: () => {
-                collapse();
+              { item: "Separator" as const },
+              {
+                text: t("tooltips.hideSidebar"),
+                action: () => {
+                  collapse();
+                },
               },
-            });
-            const menu = await TauriMenu.new({
-              items: [resizeDefaultItem, minimizeItem, separator, hideItem],
-            });
-            await menu.popup();
-          } catch (error) {
-            log.error("Failed to show sidebar context menu:", error);
-          }
+            ];
+          },
+        }).catch((error) => {
+          log.error("Failed to show sidebar context menu:", error);
         });
       },
       [sidebarWidth, setWidth, collapse]

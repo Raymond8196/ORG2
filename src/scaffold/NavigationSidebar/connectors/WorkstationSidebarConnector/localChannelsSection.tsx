@@ -14,7 +14,6 @@
  * channel"). No role gating — a local channel's single user can always open
  * settings, archive, and delete.
  */
-import { MenuItem, Menu as TauriMenu } from "@tauri-apps/api/menu";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -39,7 +38,7 @@ import {
   reconcileLocalChannelMessagesAtom,
   unarchiveLocalChannelAtom,
 } from "@src/store/ui/localChannelsAtom";
-import { runNativeMenuSingleFlight } from "@src/util/platform/tauri/nativeMenuSingleFlight";
+import { popupNativeMenu } from "@src/util/platform/tauri/nativeMenuPopup";
 
 import {
   LOCAL_CHANNELS_EMPTY_ID,
@@ -182,12 +181,9 @@ export function useLocalChannelsSection({
           action: () => setDialogState({ kind: "delete", channel }),
         },
       ];
-      void runNativeMenuSingleFlight("local-channel-row", async () => {
-        const menuItems = await Promise.all(
-          entries.map((entry) => MenuItem.new(entry))
-        );
-        const menu = await TauriMenu.new({ items: menuItems });
-        await menu.popup();
+      void popupNativeMenu({
+        source: "local-channel-row",
+        buildItems: () => entries,
       }).catch((error) => {
         log.warn("local channel row menu failed to open:", error);
       });
