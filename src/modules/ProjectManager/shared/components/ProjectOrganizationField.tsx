@@ -10,7 +10,7 @@ import {
 import type { SelectOption } from "@src/components/Select";
 
 export interface ProjectOrganizationFieldProps {
-  label: string;
+  label?: string;
   value: string;
   valueLabel: string;
   options: SelectOption[];

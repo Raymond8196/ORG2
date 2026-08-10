@@ -29,6 +29,7 @@ import { useCurrentUserMemberIds } from "@src/hooks/project/useCurrentUserMember
 import { WorkItemThreadSurface } from "@src/modules/ProjectManager/WorkItems/components";
 import { WorkItemDetailHeaderBreadcrumb } from "@src/modules/ProjectManager/WorkItems/components/WorkItemDetail/WorkItemDetailHeader";
 import WorkItemProperties from "@src/modules/ProjectManager/WorkItems/components/WorkItemProperties";
+import { WorkItemThreadNavigationPortalContext } from "@src/modules/ProjectManager/WorkItems/components/WorkItemThread";
 import { toWorkItemPartialUpdate } from "@src/modules/ProjectManager/WorkItems/workItemPartialUpdate";
 import {
   PropertiesPanel,
@@ -89,6 +90,8 @@ export const WorkItemPanelView: React.FC<WorkItemPanelViewProps> = ({
     adapterId: string | null;
   } | null>(null);
   const [propertiesOpen, setPropertiesOpen] = useState(true);
+  const [navigationTrailHost, setNavigationTrailHost] =
+    useState<HTMLDivElement | null>(null);
   const workItemMembers = useMemo(
     () => [
       ...(selectedWorkItem.sourceProject?.project.members ?? []),
@@ -510,7 +513,6 @@ export const WorkItemPanelView: React.FC<WorkItemPanelViewProps> = ({
       width={300}
       minWidth={280}
       maxWidth={320}
-      className="p-2"
       floatingContent
     >
       <WorkstationTrailSurface className="flex self-start">
@@ -553,37 +555,44 @@ export const WorkItemPanelView: React.FC<WorkItemPanelViewProps> = ({
           />
         </PropertiesPanel>
       </WorkstationTrailSurface>
+      <div
+        ref={setNavigationTrailHost}
+        className="pointer-events-none relative ml-auto min-h-0 w-11 flex-1"
+        data-testid="chat-panel-work-item-navigation-trail-host"
+      />
     </PropertiesRailFrame>
   );
 
   return (
-    <div
-      className="relative flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden"
-      data-testid="chat-panel-work-item-detail"
-    >
-      <div className="flex min-h-0 flex-1 overflow-hidden">
-        <div className="min-w-0 flex-1 overflow-hidden">
-          <WorkItemThreadSurface
-            key={workItemContentKey}
-            workItem={selectedWorkItem.workItem}
-            onUpdateWorkItem={handleUpdateWorkItem}
-            onUpdateWorkItemImmediate={handleUpdateWorkItem}
-            currentUser={currentUser ?? undefined}
-            teamMembers={workItemMembers}
-            repoPath={repoPath}
-            projectSlug={selectedWorkItem.projectSlug || undefined}
-            shortId={selectedWorkItem.shortId}
-            orgId={selectedWorkItem.orgId}
-            githubIssueTimeline={githubIssueState.timeline}
-            githubIssueInteraction={githubIssueState.interaction}
-            onOpenSession={handleOpenSession}
-            onOpenSubItem={handleOpenFamilyItem}
-            onRefreshWorkflow={refreshSelectedWorkItem}
-          />
+    <WorkItemThreadNavigationPortalContext.Provider value={navigationTrailHost}>
+      <div
+        className="relative flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden"
+        data-testid="chat-panel-work-item-detail"
+      >
+        <div className="flex min-h-0 flex-1 overflow-hidden">
+          <div className="min-w-0 flex-1 overflow-hidden">
+            <WorkItemThreadSurface
+              key={workItemContentKey}
+              workItem={selectedWorkItem.workItem}
+              onUpdateWorkItem={handleUpdateWorkItem}
+              onUpdateWorkItemImmediate={handleUpdateWorkItem}
+              currentUser={currentUser ?? undefined}
+              teamMembers={workItemMembers}
+              repoPath={repoPath}
+              projectSlug={selectedWorkItem.projectSlug || undefined}
+              shortId={selectedWorkItem.shortId}
+              orgId={selectedWorkItem.orgId}
+              githubIssueTimeline={githubIssueState.timeline}
+              githubIssueInteraction={githubIssueState.interaction}
+              onOpenSession={handleOpenSession}
+              onOpenSubItem={handleOpenFamilyItem}
+              onRefreshWorkflow={refreshSelectedWorkItem}
+            />
+          </div>
+          {propertiesOpen ? propertiesPanel : null}
         </div>
-        {propertiesOpen ? propertiesPanel : null}
       </div>
-    </div>
+    </WorkItemThreadNavigationPortalContext.Provider>
   );
 };
 

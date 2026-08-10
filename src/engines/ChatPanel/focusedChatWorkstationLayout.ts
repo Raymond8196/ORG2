@@ -1,3 +1,4 @@
+import { FOCUSED_CHAT_WORKSTATION_TRAIL_RAIL_PADDING_CLASS } from "@src/modules/shared/layouts/blocks/WorkstationTrailSurface";
 import type { ChatPanelTab } from "@src/store/chatPanel/chatPanelTabsAtom";
 
 export const FOCUSED_CHAT_WORKSTATION_MINIMAP_HOST_CLASS =
@@ -49,6 +50,6 @@ export function resolveFocusedChatWorkstationRailTrackClass(
   collapsed: boolean
 ): string {
   return collapsed
-    ? "w-0 @[1100px]/focusedchat:w-11 @[1100px]/focusedchat:px-1 @[1100px]/focusedchat:pb-1 @[1100px]/focusedchat:pt-2"
-    : "w-0 @[1100px]/focusedchat:w-64 @[1100px]/focusedchat:px-1 @[1100px]/focusedchat:pb-1 @[1100px]/focusedchat:pt-2";
+    ? `w-0 @[1100px]/focusedchat:w-11 ${FOCUSED_CHAT_WORKSTATION_TRAIL_RAIL_PADDING_CLASS}`
+    : `w-0 @[1100px]/focusedchat:w-64 ${FOCUSED_CHAT_WORKSTATION_TRAIL_RAIL_PADDING_CLASS}`;
 }

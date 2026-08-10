@@ -40,12 +40,16 @@ export { default as DetailHeaderTabs } from "./DetailHeaderTabs";
 export type { DetailHeaderTabsProps } from "./DetailHeaderTabs";
 export { default as DetailTabStrip } from "./DetailTabStrip";
 export type { DetailTabStripItem, DetailTabStripProps } from "./DetailTabStrip";
+export { default as PersistentDetailTabPanel } from "./PersistentDetailTabPanel";
+export type { PersistentDetailTabPanelProps } from "./PersistentDetailTabPanel";
 export {
   default as WorkstationTrailSurface,
   WorkstationTrailBody,
   WorkstationTrailHeader,
   WorkstationTrailIconButton,
+  FOCUSED_CHAT_WORKSTATION_TRAIL_RAIL_PADDING_CLASS,
   WORKSTATION_TRAIL_ICON_BUTTON_CLASS,
+  WORKSTATION_TRAIL_RAIL_PADDING_CLASS,
   WORKSTATION_TRAIL_SURFACE_CLASS,
 } from "./WorkstationTrailSurface";
 export type {
@@ -73,7 +77,12 @@ export {
   resolveActiveScrollTrailIndex,
   sampleScrollTrailIndices,
 } from "./ScrollTrail";
-export type { ScrollTrailProps, ScrollTrailTargetProps } from "./ScrollTrail";
+export type {
+  ScrollTrailAlignment,
+  ScrollTrailPlacement,
+  ScrollTrailProps,
+  ScrollTrailTargetProps,
+} from "./ScrollTrail";
 export type { ScrollPreservationProps } from "./ScrollPreservation";
 export type { ScrollFadeContainerProps } from "./ScrollFadeContainer";
 export { SCROLL_FADE_TOKENS } from "../tokens/scrollFadeTokens";

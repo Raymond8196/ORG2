@@ -4,7 +4,7 @@ export interface DetailTabStripItem<Key extends string = string> {
   key: Key;
   label: string;
   icon?: ReactNode;
-  count?: number;
+  count?: number | string;
   disabled?: boolean;
   dataTestId?: string;
 }
