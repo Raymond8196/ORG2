@@ -448,9 +448,10 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
         <VerticalResizeHandle
           className={IDLE_SIDEBAR_RESIZE_HANDLE_CLASS_NAME}
           isResizing={isDragging}
+          noAccent={IS_WINDOWS_HOST}
           onMouseDown={handleMouseDown}
           onContextMenu={handleResizeContextMenu}
-          variant="border"
+          variant={IS_WINDOWS_HOST ? "transparent" : "border"}
         />
       </div>
     );
@@ -494,7 +495,7 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
     // current layout mode so it visually detaches from the workspace.
     const sidebarBoxShadow = shouldForceVisible
       ? "var(--sidebar-shadow)"
-      : IS_WINDOWS_HOST || (IS_MACOS_HOST && sidebarEdgeDepthEnabled)
+      : IS_MACOS_HOST && sidebarEdgeDepthEnabled
         ? "var(--sidebar-edge-shadow)"
         : "none";
     const sidebarBackdropFilter = "none";
@@ -529,8 +530,9 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
     // content panel). The top-left and bottom-left corners follow the window
     // radius (`--border-radius-window`) so the sidebar surface aligns with
     // the rounded window/body clip instead of leaving a sliver of the body
-    // Modern chrome keeps the sidebar flush against the rounded window edge,
-    // with only a separator where it meets the content panel.
+    // Modern chrome keeps the sidebar flush against the rounded window edge.
+    // On Windows, the rounded content surface owns the shared edge; a straight
+    // sidebar separator would remain visible behind its curved top-left corner.
     const modernSurfaceStyle = {
       // The Windows header spans the full native top edge and owns both top
       // radii. Rounding the sidebar again below it creates a detached inner
@@ -542,7 +544,7 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
       borderTopWidth: 0,
       borderLeftWidth: 0,
       borderBottomWidth: 0,
-      borderRightWidth: 1,
+      borderRightWidth: IS_WINDOWS_HOST ? 0 : 1,
     } as const;
     const wrappedContent = wrapInSurface ? (
       <div

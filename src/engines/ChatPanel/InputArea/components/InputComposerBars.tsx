@@ -6,6 +6,7 @@ import Button from "@src/components/Button";
 import ComposerBar from "@src/components/ComposerBar";
 import type { ComposerInputRef } from "@src/components/ComposerInput";
 import { VoiceInputButton, VoiceRecordingBar } from "@src/components/Voice";
+import { INPUT_AREA_CONTROL_GROUP_CLASS } from "@src/config/inputAreaTokens";
 import type { PromptPolishControl } from "@src/engines/ChatPanel/hooks/useInputArea/types";
 import type { UseVoiceInputResult } from "@src/hooks/voice";
 
@@ -151,7 +152,6 @@ export const EditComposerBar: React.FC<EditComposerBarProps> = ({
       onUpload={onUpload}
       onOpenSkillsTools={onOpenSkillsTools}
       dropdownDirection="down"
-      toolbarItemGap={false}
       showContextInfo={!isCursorIde}
       editorSlot={
         <InputEditor
@@ -269,7 +269,6 @@ interface NormalComposerContentProps extends SharedComposerBarProps {
   contextualCompact?: boolean;
   contextualPanel?: boolean;
   inlineLeadingContent?: React.ReactNode;
-  suppressToolbarHover: boolean;
   onContentChange: (text: string) => void;
   onBlur: () => void;
   onSubmit: (capturedText?: string) => void;
@@ -336,7 +335,6 @@ export const NormalComposerContent: React.FC<NormalComposerContentProps> = ({
   contextualCompact = false,
   contextualPanel = false,
   inlineLeadingContent,
-  suppressToolbarHover,
   placeholder,
   trailingHint,
   currentInputEmpty,
@@ -367,7 +365,6 @@ export const NormalComposerContent: React.FC<NormalComposerContentProps> = ({
           onCancel={voice.cancel}
           onAccept={voice.stop}
           onAddContent={onAddContent}
-          compact={isCompactRow}
         />
       ) : (
         <ComposerBar
@@ -375,9 +372,9 @@ export const NormalComposerContent: React.FC<NormalComposerContentProps> = ({
           onUpload={onUpload}
           onOpenSkillsTools={onOpenSkillsTools}
           dropdownDirection="up"
-          toolbarItemGap={false}
           repoPath={currentRepoPath}
           inlineLayout={isCompactRow}
+          adaptiveEditorLayout={isContextual}
           hideAddButton={contextualCompact}
           showContextInfo={showAgentControls && !isCursorIde && !isContextual}
           editorSlot={
@@ -428,11 +425,7 @@ export const NormalComposerContent: React.FC<NormalComposerContentProps> = ({
             </>
           }
           pills={
-            <div
-              className={`inline-flex items-center ${
-                suppressToolbarHover ? "pointer-events-none" : ""
-              }`.trim()}
-            >
+            <div className={INPUT_AREA_CONTROL_GROUP_CLASS}>
               {modePill}
               {modelPill}
             </div>

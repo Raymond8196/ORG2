@@ -3,7 +3,6 @@
  *
  * Mirrors the ComposerInput layout so the swap is visually identical:
  *  - same padding, line-height, caret color
- *  - same compact / expanded chat-input behavior
  *  - same placeholder styling (driven by `[data-placeholder]` on the host)
  *  - same scrollbar treatment
  *
@@ -128,7 +127,6 @@
   color: var(--color-text-3);
   font-size: 14px;
 }
-
 // ===== Chat composer (compact / expanded) =====
 //
 // `chat-input-editor` is the marker the InputEditor adds when the composer

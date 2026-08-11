@@ -328,19 +328,23 @@ const InputAreaInteractive: React.FC<InputAreaProps> = memo(
       };
     });
 
-    const {
-      editorMultiline,
-      suppressToolbarHover,
-      acknowledgeToolbarHover,
-      onEditorContentChange,
-      onEditorBlur,
-      observeCompact,
-    } = useEditorExpansion({
-      containerRef,
-      composerInputRef,
-      handleContentChange,
-      handleInputBlur,
+    const contextualCompactEligible = shouldUseCompactComposerLayout({
+      presentation,
+      isChatPanelMaximized,
+      isEditMode,
+      hasImages,
+      isCiteCode,
+      isReply: replyInfo.isReply,
+      editorMultiline: false,
     });
+    const { editorMultiline, onEditorContentChange, onEditorBlur } =
+      useEditorExpansion({
+        enabled: isContextual,
+        compactEligible: contextualCompactEligible,
+        containerRef,
+        handleContentChange,
+        handleInputBlur,
+      });
 
     const { voice, showVoiceUi } = useInputAreaVoice({
       composerInputRef,
@@ -359,42 +363,16 @@ const InputAreaInteractive: React.FC<InputAreaProps> = memo(
       [filteredSlashItems, slashItemCategories]
     );
 
-    const isCursorCompactRow = useMemo(
-      () =>
-        shouldUseCompactComposerLayout({
-          presentation,
-          isChatPanelMaximized,
-          isEditMode,
-          hasImages,
-          isCiteCode,
-          isReply: replyInfo.isReply,
-          editorMultiline,
-        }),
-      [
-        presentation,
-        isChatPanelMaximized,
-        isEditMode,
-        hasImages,
-        isCiteCode,
-        replyInfo.isReply,
-        editorMultiline,
-      ]
-    );
-    const compactShell = !isEditMode && isCursorCompactRow;
-
-    useEffect(() => {
-      if (!suppressToolbarHover) return;
-      window.addEventListener("pointermove", acknowledgeToolbarHover, {
-        once: true,
-      });
-      return () => {
-        window.removeEventListener("pointermove", acknowledgeToolbarHover);
-      };
-    }, [acknowledgeToolbarHover, suppressToolbarHover]);
-
-    useEffect(() => {
-      observeCompact(isCursorCompactRow);
-    }, [isCursorCompactRow, observeCompact]);
+    const isContextualCompactRow = shouldUseCompactComposerLayout({
+      presentation,
+      isChatPanelMaximized,
+      isEditMode,
+      hasImages,
+      isCiteCode,
+      isReply: replyInfo.isReply,
+      editorMultiline,
+    });
+    const compactShell = !isEditMode && isContextualCompactRow;
 
     // Double-press Escape to stop the running turn. Active only while a turn
     // is running and stoppable; a single Escape is inert.
@@ -593,11 +571,10 @@ const InputAreaInteractive: React.FC<InputAreaProps> = memo(
                 showVoiceUi={showVoiceUi}
                 voice={voice}
                 currentRepoPath={currentRepoPath}
-                isCompactRow={isCursorCompactRow}
+                isCompactRow={isContextualCompactRow}
                 contextualCompact={isContextualCompact}
                 contextualPanel={isContextualPanel}
                 inlineLeadingContent={isContextual ? topRowPills : undefined}
-                suppressToolbarHover={suppressToolbarHover}
                 placeholder={placeholder}
                 trailingHint={
                   compactHintVisible ? t("input.compactArgHint") : undefined
