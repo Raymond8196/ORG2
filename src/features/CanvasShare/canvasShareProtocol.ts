@@ -12,10 +12,8 @@ const CANVAS_SHARE_UPLOAD_TIMEOUT_MS = 8_000;
 const MAX_CANVAS_SHARE_ENVELOPE_BYTES =
   MAX_CANVAS_SHARE_SOURCE_BYTES * 2 + 16 * 1024;
 
-const DEFAULT_CANVAS_SHARE_VIEWER_URL =
-  "https://beruro.github.io/canvas-share/";
-const DEFAULT_CANVAS_SHARE_API_URL =
-  "https://org2-cloud-infra.vercel.app/api/canvas-shares";
+export const CANVAS_SHARE_VIEWER_URL = "https://canvas.org2.dev/";
+export const CANVAS_SHARE_API_URL = "https://canvas.org2.dev/api/canvas-shares";
 const CANVAS_SHARE_MODES = new Set(["html", "react", "a2ui", "url"]);
 const CANVAS_SHARE_SHORT_ID_PATTERN = /^[A-Za-z0-9_-]{22}$/;
 
@@ -218,7 +216,7 @@ function resolveViewerUrl(viewerUrl?: string): URL {
   const configured =
     viewerUrl ??
     process.env.REACT_APP_CANVAS_SHARE_VIEWER_URL ??
-    DEFAULT_CANVAS_SHARE_VIEWER_URL;
+    CANVAS_SHARE_VIEWER_URL;
   const url = new URL(configured);
   if (url.protocol !== "https:" && url.hostname !== "localhost") {
     throw new CanvasShareProtocolError(
@@ -235,7 +233,7 @@ function resolveApiUrl(apiUrl?: string): URL {
   const configured =
     apiUrl ??
     process.env.REACT_APP_CANVAS_SHARE_API_URL ??
-    DEFAULT_CANVAS_SHARE_API_URL;
+    CANVAS_SHARE_API_URL;
   const url = new URL(configured);
   if (url.protocol !== "https:" && url.hostname !== "localhost") {
     throw new CanvasShareProtocolError(

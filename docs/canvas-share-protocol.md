@@ -11,18 +11,20 @@ Canvas toolbar click
 → getCanvasShareAvailability(selectedPayload)
 → createCanvasShareEnvelope(selectedPayload)
 → gzip + base64url
-→ POST https://org2-cloud-infra.vercel.app/api/canvas-shares
-→ https://beruro.github.io/canvas-share/#/s/<opaque-id>
+→ POST https://canvas.org2.dev/api/canvas-shares
+→ https://canvas.org2.dev/#/s/<opaque-id>
   ↳ upload unavailable: #/share/g1/<embedded-payload>
 → public viewer validates the envelope
 → HTML/React runs in a sandbox without allow-same-origin
 ```
 
-The ORGII generator is owned by `src/features/CanvasShare`. The public decoder
-and renderer are owned by the separate `canvas-share` repository. Hosted
-snapshot persistence is owned by `ORGII-cloud-infra`; it stores only the
-compressed envelope and never receives session, conversation, repository, or
-account data. All three boundaries must keep the versioned envelope compatible.
+The ORGII generator is owned by `src/features/CanvasShare`. The public decoder,
+renderer, and same-origin API proxy are owned by
+`ORGII-cloud-infra/apps/canvas-share`; the authoritative snapshot API and
+persistence remain in `ORGII-cloud-infra/apps/org2-cloud-web`. The service
+stores only the compressed envelope and never receives session, conversation,
+repository, or account data. All boundaries must keep the versioned envelope
+compatible.
 
 ## State machines
 
@@ -66,6 +68,10 @@ The default viewer deployment can be replaced at build time with
 localhost development. The upload endpoint can be replaced with
 `REACT_APP_CANVAS_SHARE_API_URL`; the viewer uses the corresponding
 `VITE_CANVAS_SHARE_API_URL` setting.
+
+The canonical ORG2-owned viewer URL is `https://canvas.org2.dev/`. Existing
+`https://beruro.github.io/canvas-share/` links remain valid as frozen legacy
+compatibility links, but the desktop app no longer generates them by default.
 
 ## Limits and failure policy
 

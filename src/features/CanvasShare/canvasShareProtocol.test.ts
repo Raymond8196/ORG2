@@ -1,8 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  CANVAS_SHARE_API_URL,
   CANVAS_SHARE_HASH_PREFIX,
   CANVAS_SHARE_SHORT_HASH_PREFIX,
+  CANVAS_SHARE_VIEWER_URL,
   MAX_CANVAS_SHARE_SOURCE_BYTES,
   buildCanvasShareLink,
   buildSelfContainedCanvasShareLink,
@@ -12,6 +14,38 @@ import {
 } from "./canvasShareProtocol";
 
 describe("Canvas share protocol", () => {
+  it("uses the ORG2-owned origin for hosted and fallback links", async () => {
+    const fetchSpy = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          id: "abcdefghijklmnopqrstuv",
+          expiresAt: "2027-08-09T00:00:00.000Z",
+        }),
+        { status: 201, headers: { "content-type": "application/json" } }
+      )
+    );
+    vi.stubGlobal("fetch", fetchSpy);
+    try {
+      expect(CANVAS_SHARE_API_URL).toBe(
+        "https://canvas.org2.dev/api/canvas-shares"
+      );
+      expect(CANVAS_SHARE_VIEWER_URL).toBe("https://canvas.org2.dev/");
+      await expect(
+        buildCanvasShareLink({ mode: "html", content: "<p>Hosted</p>" })
+      ).resolves.toEqual({
+        link: "https://canvas.org2.dev/#/s/abcdefghijklmnopqrstuv",
+        kind: "short",
+        expiresAt: "2027-08-09T00:00:00.000Z",
+      });
+      expect(String(fetchSpy.mock.calls[0][0])).toBe(CANVAS_SHARE_API_URL);
+      expect(buildSelfContainedCanvasShareLink("encoded-payload")).toBe(
+        "https://canvas.org2.dev/#/share/g1/encoded-payload"
+      );
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it("round-trips only the selected Canvas snapshot", async () => {
     const controller = new AbortController();
     const payloadWithPrivateFields = {
