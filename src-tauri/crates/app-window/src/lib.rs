@@ -321,6 +321,11 @@ pub fn recreate_main_window(app: &AppHandle) -> Result<(), String> {
 
     apply_host_desktop_window_chrome(&window);
 
+    // The main window starts hidden (visible:false in the platform config)
+    // so chrome can be applied before first paint; show it now that the
+    // opaque background + shadow policy are in place.
+    let _ = window.show();
+
     let _ = window.set_focus();
 
     println!("✅ [Window] Main window recreated");

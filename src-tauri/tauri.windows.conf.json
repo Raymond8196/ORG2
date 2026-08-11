@@ -14,7 +14,8 @@
         "decorations": false,
         "hiddenTitle": true,
         "backgroundColor": "#00000000",
-        "transparent": true
+        "transparent": true,
+        "visible": false
       }
     ]
   },
