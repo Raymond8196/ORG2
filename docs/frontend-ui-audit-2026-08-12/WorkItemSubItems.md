@@ -9,10 +9,11 @@
 | 493  | Sub-item list surface        | fix              | Badge-like IDs and raw status text obscured issue hierarchy and duplicated status styling.                                                                                             | Render flat issue rows with semantic state icons, muted identifiers, and transient row hover states.                                                                   |
 | 551  | Inline create composer       | fix              | The former raw input had a one-off primary focus border, relied on Enter without visible confirmation or cancellation, and lacked balanced vertical separation.                        | Reuse ghost `Input` and `Select` fields with square tertiary ghost icon buttons, labelled create/cancel actions, balanced vertical inset, and inline failure feedback. |
 | 502  | Stage group labels           | fix              | English-only stage labels leaked into localized views.                                                                                                                                 | Resolve stage and no-stage copy through the projects namespace.                                                                                                        |
+| 414  | Section typography           | fix              | Medium and semibold weights made the lightweight hierarchy controls read as a second emphasis layer.                                                                                   | Use regular weight for the section title, add action, parent row, stage labels, issue titles, select, and input.                                                       |
 
 ## Summary
 
-- Fix: 5
+- Fix: 6
 - Keep with reason: 2
 - Abstract: 0
 - Sweep candidates: none; all findings are local to the sub-item hierarchy component.

@@ -68,7 +68,11 @@ const ThreadTodoChecklist: React.FC<ThreadTodoChecklistProps> = ({
           aria-hidden
         />
       }
-      title={t("projects:workItems.todos.title")}
+      title={
+        <span className="font-normal">
+          {t("projects:workItems.todos.title")}
+        </span>
+      }
       meta={
         <span className="text-[11px] tabular-nums text-text-4">
           {completedCount}/{normalizedTodos.length}
@@ -172,7 +176,7 @@ const ThreadTodoChecklist: React.FC<ThreadTodoChecklistProps> = ({
             size="small"
             fieldVariant="ghost"
             className="min-w-0 flex-1"
-            inputClassName="text-[13px]"
+            inputClassName="text-[13px] !font-normal"
             placeholder={t("projects:workItems.todos.placeholder")}
             onKeyDown={(event) => {
               if (event.key === "Enter" && !event.shiftKey) {

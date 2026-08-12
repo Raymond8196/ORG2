@@ -328,6 +328,7 @@ const WorkItemSubItems: React.FC<WorkItemSubItemsProps> = ({
             variant="ghost"
             dropdownWidthMode="auto"
             className="w-full"
+            selectorClassName="font-normal"
             ariaLabel={t("workItems.subItems.stagePicker", {
               defaultValue: "Sub-item stage",
             })}
@@ -348,7 +349,7 @@ const WorkItemSubItems: React.FC<WorkItemSubItemsProps> = ({
           size="small"
           fieldVariant="ghost"
           className="min-w-0 flex-1"
-          inputClassName="text-[13px]"
+          inputClassName="text-[13px] !font-normal"
           onChange={(value) => {
             setDraftTitle(value);
             if (createError) setCreateError(false);
@@ -411,7 +412,9 @@ const WorkItemSubItems: React.FC<WorkItemSubItemsProps> = ({
           aria-hidden
         />
       }
-      title={t("workItems.subItems.title")}
+      title={
+        <span className="font-normal">{t("workItems.subItems.title")}</span>
+      }
       meta={
         progress.total > 0 ? (
           <span className="text-[11px] tabular-nums text-text-4">
@@ -429,6 +432,7 @@ const WorkItemSubItems: React.FC<WorkItemSubItemsProps> = ({
           appearance="ghost"
           size="mini"
           icon={<Plus size={13} aria-hidden />}
+          className="!font-normal"
           disabled={adding}
           onClick={() => setAdding(true)}
           data-testid="work-item-sub-item-add"
@@ -446,10 +450,10 @@ const WorkItemSubItems: React.FC<WorkItemSubItemsProps> = ({
           disabled={!onOpenWorkItem}
           data-testid="work-item-parent-link"
         >
-          <span className="shrink-0 text-[11px] font-medium text-text-4">
+          <span className="shrink-0 text-[11px] font-normal text-text-4">
             {t("workItems.subItems.parent")}
           </span>
-          <span className="min-w-0 flex-1 truncate text-[12px] font-medium text-text-2">
+          <span className="min-w-0 flex-1 truncate text-[12px] font-normal text-text-2">
             {parent.frontmatter.title}
           </span>
           <span className="shrink-0 font-mono text-[11px] text-text-4">
@@ -494,7 +498,7 @@ const WorkItemSubItems: React.FC<WorkItemSubItemsProps> = ({
             {groupSubItemsByStage(children).map((group) => (
               <div key={group.key}>
                 {group.label ? (
-                  <div className="px-2 pb-1 pt-2 text-[10px] font-semibold uppercase tracking-wide text-text-4">
+                  <div className="px-2 pb-1 pt-2 text-[10px] font-normal uppercase tracking-wide text-text-4">
                     {group.stage !== undefined
                       ? t("workItems.subItems.stage", {
                           defaultValue: "Stage {{stage}}",
@@ -521,7 +525,7 @@ const WorkItemSubItems: React.FC<WorkItemSubItemsProps> = ({
                         state={state}
                         label={statusLabel(state)}
                       />
-                      <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-text-1">
+                      <span className="min-w-0 flex-1 truncate text-[13px] font-normal text-text-1">
                         {child.frontmatter.title}
                       </span>
                       <span className="shrink-0 font-mono text-[11px] text-text-4">
