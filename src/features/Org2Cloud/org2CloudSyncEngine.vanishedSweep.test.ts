@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { RemoteTeammateSessionMetadata } from "@src/store/collaboration/types";
+
 import {
   VANISHED_SESSION_RETRACT_CONFIRMATIONS,
   VANISHED_SESSION_SWEEP_INTERVAL_MS,
@@ -11,6 +13,26 @@ import {
   engineTestDeps,
 } from "./org2CloudSyncEngine.testUtils";
 import type { EngineFixture } from "./org2CloudSyncEngine.testUtils";
+
+function remoteRow(
+  sessionId: string,
+  ownerUserId: string
+): RemoteTeammateSessionMetadata {
+  return {
+    id: sessionId,
+    orgId: "corg-1",
+    ownerMemberId: ownerUserId,
+    ownerUserId,
+    ownerDisplayName: ownerUserId,
+    ownerIdentityKind: "human",
+    sourceSessionId: sessionId,
+    title: sessionId,
+    eventsEpoch: 1,
+    eventsFrozenSeq: 0,
+    eventsCount: 1,
+    eventsTailHash: "hash",
+  };
+}
 
 const {
   Org2CloudSyncEngine,
@@ -222,5 +244,46 @@ describe("superseded-continuation reconcile", () => {
     await runSweepPass();
     const retractedIds = client.deleteSession.mock.calls.map((call) => call[2]);
     expect(retractedIds).not.toContain("old-sib");
+  });
+
+  it("retracts a self-owned remote ghost that has no local marker", async () => {
+    // No durable marker anywhere (a concurrent build clobbered the map, or
+    // the same account's other device pushed the row) — the server listing
+    // is the only witness. The row is self-owned, absent from the roster,
+    // and locally judged superseded; the winner is live on the server too.
+    store.set(org2CloudPushedMetadataAtom, {});
+    client.listOrgSessions.mockResolvedValue({
+      serverTime: "2026-07-01T12:00:00.000Z",
+      sessions: [remoteRow("old-sib", "user-1"), remoteRow("winner", "user-1")],
+    });
+    startSweepEngine();
+
+    await engine.runSyncPass();
+    expect(client.deleteSession).not.toHaveBeenCalled();
+
+    await runSweepPass();
+    expect(client.deleteSession).toHaveBeenCalledTimes(1);
+    expect(client.deleteSession).toHaveBeenCalledWith(
+      "jwt-1",
+      "corg-1",
+      "old-sib"
+    );
+  });
+
+  it("never judges rows owned by someone else", async () => {
+    store.set(org2CloudPushedMetadataAtom, {});
+    client.listOrgSessions.mockResolvedValue({
+      serverTime: "2026-07-01T12:00:00.000Z",
+      sessions: [remoteRow("their-sib", "teammate-9")],
+    });
+    resolveContinuationStatuses.mockResolvedValue([
+      { sessionId: "their-sib", lineageId: "lin-1", superseded: true },
+    ]);
+    startSweepEngine();
+
+    await engine.runSyncPass();
+    await runSweepPass();
+    await runSweepPass();
+    expect(client.deleteSession).not.toHaveBeenCalled();
   });
 });
