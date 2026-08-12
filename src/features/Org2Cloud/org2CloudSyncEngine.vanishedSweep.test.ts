@@ -14,6 +14,7 @@ import type { EngineFixture } from "./org2CloudSyncEngine.testUtils";
 
 const {
   Org2CloudSyncEngine,
+  org2CloudOrgsAtom,
   org2CloudPushCursorsAtom,
   org2CloudPushedMetadataAtom,
   sessionsAtom,
@@ -76,6 +77,32 @@ describe("vanished-session sweep two-strike confirmation", () => {
     // no suspect left to confirm.
     await runSweepPass();
     expect(client.deleteSession).toHaveBeenCalledTimes(1);
+  });
+
+  it("sweeps push-marked orgs that left the push-target set", async () => {
+    // corg-2 is neither the active org nor background-upload enabled, so it
+    // is not a push target — but this device's durable marker says it pushed
+    // ghost-2 there. The sweep must still cover it, or the ghost row (e.g. a
+    // superseded /compact continuation sibling) lingers for every teammate.
+    store.set(org2CloudOrgsAtom, [
+      { orgId: "corg-1", name: "Cloud Team", role: "member" },
+      { orgId: "corg-2", name: "Background Team", role: "member" },
+    ]);
+    store.set(org2CloudPushedMetadataAtom, { "corg-2:ghost-2": true });
+    startSweepEngine();
+
+    await engine.runSyncPass();
+    expect(client.deleteSession).not.toHaveBeenCalled();
+
+    for (let i = 1; i < VANISHED_SESSION_RETRACT_CONFIRMATIONS; i += 1) {
+      await runSweepPass();
+    }
+    expect(client.deleteSession).toHaveBeenCalledTimes(1);
+    expect(client.deleteSession).toHaveBeenCalledWith(
+      "jwt-1",
+      "corg-2",
+      "ghost-2"
+    );
   });
 
   it("restarts confirmation when the suspect resolves between sweeps", async () => {

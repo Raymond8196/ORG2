@@ -742,6 +742,29 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
       if (this.generation !== generation) return;
     }
 
+    // The GC above only covered `targets`, but stale rows outlive that set:
+    // an org the user switched away from (no background upload), whose
+    // scopes are unresolved this run, or that lost its last scope/tag keeps
+    // this device's push-marked ghosts forever — Team Sessions then shows a
+    // duplicate row per context-window continuation. Sweep every org with
+    // local push markers, same rails as the P2 reconcile below.
+    if (options.pushSessions) {
+      const markedOrgIds = orgsWithLocalPushMarkers(
+        store.get(org2CloudPushCursorsAtom),
+        store.get(org2CloudPushedMetadataAtom)
+      );
+      const sweptOrgIds = new Set(targets.map((org) => org.orgId));
+      for (const org of orgs) {
+        if (!markedOrgIds.has(org.orgId)) continue;
+        if (sweptOrgIds.has(org.orgId)) continue;
+        if (enabledByOrg[org.orgId] === false) continue;
+        if (this.generation !== generation) return;
+        if (getCloudEndpoint().supabaseUrl !== passSupabaseUrl) return;
+        await this.retractVanishedSessions(fresh, org.orgId, generation);
+        if (this.generation !== generation) return;
+      }
+    }
+
     // Projects / work items (cloud-parity Phase B), AFTER the session push.
     // Deliberately over ALL orgs, not the session `targets`: shared work
     // items are org-wide (no repo-scope selection), so an org with neither
@@ -984,7 +1007,13 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
           session.continuationLineageId === lineageId &&
           this.sessionSync.hasReplayPushed(orgId, session.session_id)
       );
-      if (!winner) continue;
+      if (!winner) {
+        log.info(
+          `superseded continuation ${sessionId} org ${orgId} kept: no ` +
+            `replay-pushed winner for lineage ${lineageId} on this device yet`
+        );
+        continue;
+      }
       const strikeKey = `${orgId}:${sessionId}`;
       const strikes = (this.supersededStrikes.get(strikeKey) ?? 0) + 1;
       if (strikes < VANISHED_SESSION_RETRACT_CONFIRMATIONS) {
