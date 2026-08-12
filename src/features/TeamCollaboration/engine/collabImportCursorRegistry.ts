@@ -52,18 +52,30 @@ export interface ImportCursorIdentity {
   sourceEndpointUrl?: string;
 }
 
+// In-process cache: the engine refreshes every imported session per pass,
+// and each refresh consults the registry — re-parsing a ~100KB JSON map
+// hundreds of times per pass would trade the disk churn this module removes
+// for CPU churn. localStorage stays the source of truth; a concurrent
+// process's write is at worst a stale read here, which costs one extra
+// restream, never data.
+let registryCache: ImportCursorRegistry | null = null;
+
 function readRegistry(): ImportCursorRegistry {
+  if (registryCache) return registryCache;
   if (typeof localStorage === "undefined") return {};
   try {
     const raw = localStorage.getItem(IMPORT_CURSOR_REGISTRY_STORAGE_KEY);
-    if (!raw) return {};
-    return ImportCursorRegistrySchema.parse(JSON.parse(raw));
+    registryCache = raw
+      ? ImportCursorRegistrySchema.parse(JSON.parse(raw))
+      : {};
   } catch {
-    return {};
+    registryCache = {};
   }
+  return registryCache;
 }
 
 function writeRegistry(registry: ImportCursorRegistry): void {
+  registryCache = registry;
   if (typeof localStorage === "undefined") return;
   try {
     localStorage.setItem(
@@ -136,4 +148,7 @@ export function clearImportCursor(localSessionId: string): void {
 export const __IMPORT_CURSOR_REGISTRY_INTERNALS = {
   IMPORT_CURSOR_REGISTRY_STORAGE_KEY,
   MAX_REGISTRY_ENTRIES,
+  resetCacheForTests: (): void => {
+    registryCache = null;
+  },
 };
