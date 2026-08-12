@@ -148,6 +148,7 @@ describe("ManagedIssueAssigneeCell", () => {
     expect(markup).toContain("lucide-chevron-down");
     expect(markup).toContain("bg-fill-1");
     expect(markup).toContain("enabled:hover:bg-fill-2");
+    expect(markup).toContain("hover:border-border-3");
     expect(markup).toContain("w-12");
     expect(markup).toContain("px-px");
   });

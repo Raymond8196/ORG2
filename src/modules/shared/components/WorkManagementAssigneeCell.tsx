@@ -112,6 +112,7 @@ export function WorkManagementAssigneeCell({
         triggerVariant={readonly ? "iconOnly" : "iconChevron"}
         fieldVariant="pill"
         idleSurface="fill"
+        focusTreatment="field"
         placement="portal"
         borderless
         dataTestId={dataTestId}

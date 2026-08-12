@@ -2,6 +2,10 @@ import { ChevronDown } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
+import {
+  PILL_CONTROL_FIELD_FOCUS_CLASS,
+  type PillControlFocusTreatment,
+} from "@src/components/CompoundPill/config";
 import DropdownSearch from "@src/components/Dropdown/DropdownSearch";
 import {
   DROPDOWN_CLASSES,
@@ -55,6 +59,8 @@ interface PropertyDropdownFieldProps<T extends string> {
   compactPill?: boolean;
   /** Idle trigger surface. Defaults to the standard raised background. */
   idleSurface?: FieldRowIdleSurface;
+  /** Border treatment while hovered/open. Defaults to the standard pill accent. */
+  focusTreatment?: PillControlFocusTreatment;
   onClear?: () => void | Promise<void>;
   borderless?: boolean;
   renderOptions?: (searchQuery: string, close: () => void) => React.ReactNode;
@@ -83,6 +89,7 @@ export function PropertyDropdownField<T extends string>({
   valueClassName,
   compactPill = false,
   idleSurface = "background",
+  focusTreatment = "accent",
   onClear,
   borderless = false,
   renderOptions,
@@ -156,6 +163,10 @@ export function PropertyDropdownField<T extends string>({
       : isIconChevronTrigger
         ? "bg-bg-2 hover:bg-fill-2"
         : "bg-transparent hover:bg-fill-2";
+  const iconTriggerOpenClass =
+    focusTreatment === "field"
+      ? `bg-fill-2 text-text-3 ${PILL_CONTROL_FIELD_FOCUS_CLASS}`
+      : "border-primary-6 bg-fill-2 text-primary-6";
   const containerClass = [
     "relative flex min-w-0 items-center",
     maxWidthClassName ??
@@ -177,9 +188,9 @@ export function PropertyDropdownField<T extends string>({
       title={label}
       aria-label={label}
       aria-disabled={readonly || interactionDisabled}
-      className={`flex items-center justify-center rounded-full border border-solid transition-[border-color,background-color,color] ${isIconChevronTrigger ? "h-7 w-12 gap-0 px-px" : "h-6 w-6"} ${
+      className={`flex items-center justify-center rounded-full border border-solid transition-[border-color,box-shadow,background-color,color] ${isIconChevronTrigger ? "h-7 w-12 gap-0 px-px" : "h-6 w-6"} ${
         isOpen
-          ? "border-primary-6 bg-fill-2 text-primary-6"
+          ? iconTriggerOpenClass
           : `${iconOnlyIdleBorderClass} ${iconTriggerIdleSurfaceClass} text-text-3 hover:border-border-3`
       } ${readonly ? "cursor-default" : "cursor-pointer"}`}
       style={iconColor ? { color: iconColor } : undefined}
@@ -216,6 +227,7 @@ export function PropertyDropdownField<T extends string>({
       variant={fieldVariant}
       compactPill={compactPill}
       idleSurface={idleSurface}
+      focusTreatment={focusTreatment}
       borderless={borderless}
       disabled={readonly}
       onClear={readonly || interactionDisabled ? undefined : onClear}

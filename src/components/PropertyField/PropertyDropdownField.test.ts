@@ -116,6 +116,57 @@ describe("PropertyDropdownField", () => {
     expect(activeStatusMarkup).toContain("!border-primary-6");
   });
 
+  it("matches field hover and open borders when requested", () => {
+    const idleStatusMarkup = renderToStaticMarkup(
+      React.createElement(PropertyDropdownField, {
+        value: "open",
+        label: "Open",
+        icon: null,
+        active: false,
+        fieldVariant: "pill",
+        idleSurface: "fill",
+        focusTreatment: "field",
+      })
+    );
+    const activeStatusMarkup = renderToStaticMarkup(
+      React.createElement(PropertyDropdownField, {
+        value: "open",
+        label: "Open",
+        icon: null,
+        active: true,
+        searchable: false,
+        fieldVariant: "pill",
+        idleSurface: "fill",
+        focusTreatment: "field",
+      })
+    );
+    const activeAssigneeMarkup = renderToStaticMarkup(
+      React.createElement(PropertyDropdownField, {
+        value: "ada",
+        label: "Ada",
+        icon: null,
+        active: true,
+        searchable: false,
+        triggerVariant: "iconChevron",
+        fieldVariant: "pill",
+        idleSurface: "fill",
+        focusTreatment: "field",
+      })
+    );
+
+    expect(idleStatusMarkup).toContain("enabled:hover:!border-border-3");
+    expect(activeStatusMarkup).toContain("!border-primary-6");
+    expect(activeStatusMarkup).toContain(
+      "!shadow-[0_0_0_2px_color-mix(in_srgb,var(--color-primary-6)_15%,transparent)]"
+    );
+    expect(activeStatusMarkup).not.toContain("!text-primary-6");
+    expect(activeAssigneeMarkup).toContain("!border-primary-6");
+    expect(activeAssigneeMarkup).toContain(
+      "!shadow-[0_0_0_2px_color-mix(in_srgb,var(--color-primary-6)_15%,transparent)]"
+    );
+    expect(activeAssigneeMarkup).not.toContain("text-primary-6");
+  });
+
   it("opens inline property menus above bottom-docked creator rows", () => {
     const markup = renderToStaticMarkup(
       React.createElement(

@@ -27,12 +27,33 @@ export const PILL_CONTROL_ACTIVE_SURFACE_CLASS = "!bg-surface-hover";
 export const PILL_CONTROL_ACTIVE_ACCENT_CLASS = `${PILL_CONTROL_ACTIVE_SURFACE_CLASS} !border-primary-6 !text-primary-6`;
 export const PILL_CONTROL_ACTIVE_FILL_ACCENT_CLASS =
   "!bg-fill-2 !border-primary-6 !text-primary-6";
+export const PILL_CONTROL_FIELD_HOVER_CLASS = "enabled:hover:!border-border-3";
+export const PILL_CONTROL_FIELD_FOCUS_CLASS =
+  "!border-primary-6 !shadow-[0_0_0_2px_color-mix(in_srgb,var(--color-primary-6)_15%,transparent)]";
+
+export type PillControlFocusTreatment = "accent" | "field";
 
 /** Resolve the standard idle/open treatment for outlined pill controls. */
 export function pillControlStateClass(
   isActive: boolean,
-  idleSurface: "background" | "fill" = "background"
+  idleSurface: "background" | "fill" = "background",
+  focusTreatment: PillControlFocusTreatment = "accent"
 ): string {
+  if (focusTreatment === "field") {
+    const surfaceClass =
+      idleSurface === "fill"
+        ? isActive
+          ? "!bg-fill-2"
+          : PILL_CONTROL_IDLE_FILL_SURFACE_CLASS
+        : isActive
+          ? PILL_CONTROL_ACTIVE_SURFACE_CLASS
+          : PILL_CONTROL_IDLE_SURFACE_CLASS;
+
+    return isActive
+      ? `${surfaceClass} ${PILL_CONTROL_FIELD_FOCUS_CLASS}`
+      : `${surfaceClass} ${PILL_CONTROL_FIELD_HOVER_CLASS}`;
+  }
+
   return isActive
     ? idleSurface === "fill"
       ? PILL_CONTROL_ACTIVE_FILL_ACCENT_CLASS

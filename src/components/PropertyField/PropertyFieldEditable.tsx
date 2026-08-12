@@ -10,7 +10,10 @@ import React, { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import Button from "@src/components/Button";
-import { pillControlStateClass } from "@src/components/CompoundPill/config";
+import {
+  type PillControlFocusTreatment,
+  pillControlStateClass,
+} from "@src/components/CompoundPill/config";
 import DropdownSearch from "@src/components/Dropdown/DropdownSearch";
 import DropdownSelectedCheck from "@src/components/Dropdown/DropdownSelectedCheck";
 import {
@@ -45,6 +48,8 @@ export interface FieldRowProps {
   variant?: FieldRowVariant;
   compactPill?: boolean;
   idleSurface?: FieldRowIdleSurface;
+  /** Border treatment while hovered/open. Defaults to the standard pill accent. */
+  focusTreatment?: PillControlFocusTreatment;
   borderless?: boolean;
   disabled?: boolean;
   clearLabel?: string;
@@ -66,6 +71,7 @@ export const FieldRow: React.FC<FieldRowProps> = ({
   variant = "row",
   compactPill = false,
   idleSurface = "background",
+  focusTreatment = "accent",
   borderless = false,
   disabled = false,
   onClick,
@@ -92,7 +98,7 @@ export const FieldRow: React.FC<FieldRowProps> = ({
           icon={iconContent}
           onClick={onClick}
           disabled={disabled}
-          className={`max-w-[220px] ${compactPill ? "!px-2" : ""} ${pillBorderClass} ${pillControlStateClass(isActive, idleSurface)}`}
+          className={`max-w-[220px] ${compactPill ? "!px-2" : ""} ${pillBorderClass} ${pillControlStateClass(isActive, idleSurface, focusTreatment)}`}
           data-field-row
         >
           <span className="inline-flex min-w-0 max-w-full items-center gap-1">
