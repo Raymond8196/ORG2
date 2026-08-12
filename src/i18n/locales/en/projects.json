@@ -638,7 +638,18 @@
     "fromRoutine": "From routine: {{name}}",
     "subItems": {
       "title": "Sub-items",
-      "parent": "Parent"
+      "parent": "Parent",
+      "progress": "{{completed}} of {{total}} completed",
+      "add": "Add sub-item",
+      "addFirst": "Add the first sub-item",
+      "titlePlaceholder": "Add a sub-item title",
+      "stagePicker": "Sub-item stage",
+      "noStage": "No stage",
+      "stage": "Stage {{stage}}",
+      "openStatus": "Open",
+      "completedStatus": "Completed",
+      "cancelledStatus": "Cancelled",
+      "createError": "Could not create the sub-item. Try again."
     },
     "sessionRail": {
       "notOnDeviceTitle": "Session not on this device",

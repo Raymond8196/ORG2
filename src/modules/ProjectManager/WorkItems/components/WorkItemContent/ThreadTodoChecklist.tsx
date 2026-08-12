@@ -140,10 +140,10 @@ const ThreadTodoChecklist: React.FC<ThreadTodoChecklistProps> = ({
               </span>
               {!disabled ? (
                 <Button
-                  variant="danger"
+                  variant="tertiary"
                   appearance="ghost"
                   size="mini"
-                  shape="circle"
+                  shape="square"
                   iconOnly
                   icon={<Trash2 size={13} aria-hidden />}
                   className="opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
@@ -163,15 +163,14 @@ const ThreadTodoChecklist: React.FC<ThreadTodoChecklistProps> = ({
       )}
 
       {adding ? (
-        <div className="mt-1 flex items-center gap-2 rounded-lg bg-fill-1 p-1.5">
+        <div className="flex items-center gap-2 py-2">
           <Input
             ref={inputRef}
             value={draft}
             onChange={setDraft}
             maxLength={THREAD_TODO_MAX_LENGTH}
             size="small"
-            borderless
-            bgless
+            fieldVariant="ghost"
             className="min-w-0 flex-1"
             inputClassName="text-[13px]"
             placeholder={t("projects:workItems.todos.placeholder")}
@@ -190,23 +189,26 @@ const ThreadTodoChecklist: React.FC<ThreadTodoChecklistProps> = ({
           <Button
             variant="tertiary"
             appearance="ghost"
-            size="mini"
-            shape="circle"
+            size="small"
+            shape="square"
+            iconOnly
+            icon={<Plus size={13} aria-hidden />}
+            aria-label={t("common:actions.add")}
+            disabled={!draft.trim()}
+            onClick={commitDraft}
+            data-testid="work-item-thread-todo-commit"
+          />
+          <Button
+            variant="tertiary"
+            appearance="ghost"
+            size="small"
+            shape="square"
             iconOnly
             icon={<X size={13} aria-hidden />}
             aria-label={t("common:actions.cancel")}
             onClick={closeComposer}
+            data-testid="work-item-thread-todo-cancel"
           />
-          <Button
-            variant="primary"
-            size="mini"
-            icon={<Plus size={13} aria-hidden />}
-            disabled={!draft.trim()}
-            onClick={commitDraft}
-            data-testid="work-item-thread-todo-commit"
-          >
-            {t("common:actions.add")}
-          </Button>
         </div>
       ) : null}
     </WorkItemThreadSection>
