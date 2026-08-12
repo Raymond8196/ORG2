@@ -20,13 +20,24 @@ export const PILL_SM_LABEL_CLASS = "leading-[16px]";
 
 /** Semantic surface states shared by property and composer pill controls. */
 export const PILL_CONTROL_HOVER_CLASS = "enabled:hover:!bg-surface-hover";
+export const PILL_CONTROL_FILL_HOVER_CLASS = "enabled:hover:!bg-fill-2";
 export const PILL_CONTROL_IDLE_SURFACE_CLASS = `!bg-bg-2 !shadow-none ${PILL_CONTROL_HOVER_CLASS}`;
+export const PILL_CONTROL_IDLE_FILL_SURFACE_CLASS = `!bg-fill-1 !shadow-none ${PILL_CONTROL_FILL_HOVER_CLASS}`;
 export const PILL_CONTROL_ACTIVE_SURFACE_CLASS = "!bg-surface-hover";
 export const PILL_CONTROL_ACTIVE_ACCENT_CLASS = `${PILL_CONTROL_ACTIVE_SURFACE_CLASS} !border-primary-6 !text-primary-6`;
+export const PILL_CONTROL_ACTIVE_FILL_ACCENT_CLASS =
+  "!bg-fill-2 !border-primary-6 !text-primary-6";
 
 /** Resolve the standard idle/open treatment for outlined pill controls. */
-export function pillControlStateClass(isActive: boolean): string {
+export function pillControlStateClass(
+  isActive: boolean,
+  idleSurface: "background" | "fill" = "background"
+): string {
   return isActive
-    ? PILL_CONTROL_ACTIVE_ACCENT_CLASS
-    : PILL_CONTROL_IDLE_SURFACE_CLASS;
+    ? idleSurface === "fill"
+      ? PILL_CONTROL_ACTIVE_FILL_ACCENT_CLASS
+      : PILL_CONTROL_ACTIVE_ACCENT_CLASS
+    : idleSurface === "fill"
+      ? PILL_CONTROL_IDLE_FILL_SURFACE_CLASS
+      : PILL_CONTROL_IDLE_SURFACE_CLASS;
 }

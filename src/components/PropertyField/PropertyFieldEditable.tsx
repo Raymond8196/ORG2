@@ -28,6 +28,7 @@ import { usePropertyDropdownDirection } from "./PropertyDropdownDirection";
 // ============================================
 
 export type FieldRowVariant = "row" | "pill";
+export type FieldRowIdleSurface = "background" | "fill";
 
 export interface FieldRowProps {
   icon: React.ReactNode;
@@ -43,6 +44,7 @@ export interface FieldRowProps {
   suffix?: React.ReactNode;
   variant?: FieldRowVariant;
   compactPill?: boolean;
+  idleSurface?: FieldRowIdleSurface;
   borderless?: boolean;
   disabled?: boolean;
   clearLabel?: string;
@@ -63,6 +65,7 @@ export const FieldRow: React.FC<FieldRowProps> = ({
   suffix,
   variant = "row",
   compactPill = false,
+  idleSurface = "background",
   borderless = false,
   disabled = false,
   onClick,
@@ -89,7 +92,7 @@ export const FieldRow: React.FC<FieldRowProps> = ({
           icon={iconContent}
           onClick={onClick}
           disabled={disabled}
-          className={`max-w-[220px] ${compactPill ? "!px-2" : ""} ${pillBorderClass} ${pillControlStateClass(isActive)}`}
+          className={`max-w-[220px] ${compactPill ? "!px-2" : ""} ${pillBorderClass} ${pillControlStateClass(isActive, idleSurface)}`}
           data-field-row
         >
           <span className="inline-flex min-w-0 max-w-full items-center gap-1">
