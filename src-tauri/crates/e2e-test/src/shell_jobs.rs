@@ -59,17 +59,14 @@ pub async fn shell_chatty_wait_never_breaks(cfg: &Config) -> bool {
             "await_output_calls={}, tools={:?}, content={}",
             waits,
             resp.tool_calls,
-            &resp.content.chars().take(300).collect::<String>()
+            resp.content.chars().take(300).collect::<String>()
         ),
         &[
             (
                 "Backgrounded via run_shell",
                 harness::assert_sde_tool_used(&resp, "run_shell"),
             ),
-            (
-                "Waited at least 3 times (old guard broke at 3)",
-                waits >= 3,
-            ),
+            ("Waited at least 3 times (old guard broke at 3)", waits >= 3),
             (
                 "Turn was NOT ended by the repeat guard",
                 !content_mentions_loop_break(&resp.content),
@@ -163,7 +160,7 @@ pub async fn shell_silent_break_then_wake_resumes(cfg: &Config) -> bool {
             baseline,
             woke,
             reported_result,
-            &turn1.content.chars().take(300).collect::<String>()
+            turn1.content.chars().take(300).collect::<String>()
         ),
         &[
             (
@@ -226,7 +223,7 @@ pub async fn shell_midturn_completion_note(cfg: &Config) -> bool {
             "await_output_calls={}, tools={:?}, content={}",
             await_count(&resp),
             resp.tool_calls,
-            &resp.content.chars().take(300).collect::<String>()
+            resp.content.chars().take(300).collect::<String>()
         ),
         &[
             (
@@ -290,7 +287,7 @@ pub async fn job_wait_progress_subagent(cfg: &Config) -> bool {
             "await_output_calls={}, tools={:?}, content={}",
             waits,
             resp.tool_calls,
-            &resp.content.chars().take(300).collect::<String>()
+            resp.content.chars().take(300).collect::<String>()
         ),
         &[
             (
@@ -350,7 +347,7 @@ pub async fn job_midturn_note_subagent(cfg: &Config) -> bool {
             "await_output_calls={}, tools={:?}, content={}",
             await_count(&resp),
             resp.tool_calls,
-            &resp.content.chars().take(300).collect::<String>()
+            resp.content.chars().take(300).collect::<String>()
         ),
         &[
             (
@@ -413,7 +410,7 @@ pub async fn shell_stall_advisory_leads_to_kill(cfg: &Config) -> bool {
             "run_shell_calls={}, await_output_calls={}, content={}",
             run_shell_calls,
             await_count(&resp),
-            &resp.content.chars().take(300).collect::<String>()
+            resp.content.chars().take(300).collect::<String>()
         ),
         &[
             (
