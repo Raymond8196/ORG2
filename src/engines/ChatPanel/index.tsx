@@ -666,6 +666,9 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
         showPanelContent={contentState.showPanelContent}
         showSessionContent={contentState.showSessionContent}
         sessionViewMode={sessionView.mode}
+        chromeTopInset={
+          overlayChatHeaders ? CHAT_PANEL_HEADER_STACK_HEIGHT_PX : 0
+        }
         alternateSessionView={
           <SessionAlternateSurface
             sessionId={currentSessionId ?? null}
