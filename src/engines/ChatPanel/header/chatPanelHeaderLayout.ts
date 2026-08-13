@@ -5,3 +5,22 @@ export const CHAT_PANEL_HEADER_STACK_HEIGHT_PX =
 export const CHAT_PANEL_TRANSCRIPT_TOP_GAP_PX = 24;
 export const CHAT_PANEL_TRANSCRIPT_TOP_PADDING_PX =
   CHAT_PANEL_HEADER_STACK_HEIGHT_PX + CHAT_PANEL_TRANSCRIPT_TOP_GAP_PX;
+
+/** Dense glass shared by the chat header stack and its pinned subheaders. */
+export const CHAT_PANEL_GLASS_SURFACE_CLASS =
+  "bg-chat-pane/70 backdrop-blur-xl backdrop-saturate-150";
+
+interface ChatPanelHeaderOverlayState {
+  showSessionContent: boolean;
+  standaloneToolTabActive: boolean;
+  humanSessionActive: boolean;
+}
+
+/** Session views share one floating glass-header contract in the chat pane. */
+export function shouldOverlayChatSessionHeaders({
+  showSessionContent,
+  standaloneToolTabActive,
+  humanSessionActive,
+}: ChatPanelHeaderOverlayState): boolean {
+  return showSessionContent && !standaloneToolTabActive && !humanSessionActive;
+}
