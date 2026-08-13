@@ -3,7 +3,10 @@
 //! The turn path submits lightweight jobs to the process-wide memory
 //! coordinator. The coordinator owns admission, per-session coalescing,
 //! deadlines and cancellation. Full transcripts are loaded from the canonical
-//! message store only after a job obtains the global memory permit.
+//! message store only once a job actually runs: session-memory extraction
+//! starts right after its turn (context-pipeline work, never queued behind
+//! evolution jobs), while the heavy forked agents wait for the bounded
+//! global memory permit.
 
 use std::path::PathBuf;
 use std::sync::Arc;

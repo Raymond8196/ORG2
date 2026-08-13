@@ -51,6 +51,16 @@ impl MemoryJobKind {
             Self::ActiveObservation => "active_observation",
         }
     }
+
+    /// Session-memory extraction is context-pipeline work: one bounded side
+    /// query to the fast sibling model with a 60s deadline, needed promptly
+    /// so SM-compact has fresh content. It runs as soon as its turn ends —
+    /// still slot-owned (latest-only, cancelled by new turns/teardown) but
+    /// never queued behind minutes-long evolution jobs. The heavy forked
+    /// agents keep sharing the bounded global permit.
+    fn uses_global_permit(self) -> bool {
+        !matches!(self, Self::SessionMemory)
+    }
 }
 
 /// Terminal status passed to the mandatory cleanup hook.
@@ -323,19 +333,24 @@ impl MemoryJobCoordinator {
             }
         }
 
-        let permit = tokio::select! {
-            biased;
-            _ = slot_cancel.cancelled() => {
-                self.metrics.cancelled.fetch_add(1, Ordering::Relaxed);
-                return MemoryJobOutcome::Cancelled;
-            }
-            permit = Arc::clone(&self.permits).acquire_owned() => match permit {
-                Ok(permit) => permit,
-                Err(_) => {
+        let permit = if key.kind.uses_global_permit() {
+            let permit = tokio::select! {
+                biased;
+                _ = slot_cancel.cancelled() => {
                     self.metrics.cancelled.fetch_add(1, Ordering::Relaxed);
                     return MemoryJobOutcome::Cancelled;
                 }
-            }
+                permit = Arc::clone(&self.permits).acquire_owned() => match permit {
+                    Ok(permit) => permit,
+                    Err(_) => {
+                        self.metrics.cancelled.fetch_add(1, Ordering::Relaxed);
+                        return MemoryJobOutcome::Cancelled;
+                    }
+                }
+            };
+            Some(permit)
+        } else {
+            None
         };
 
         if slot_cancel.is_cancelled() {
@@ -737,6 +752,49 @@ mod tests {
         coordinator.wait_for_idle().await;
         assert_eq!(*seen.lock().unwrap(), vec![2]);
         assert_eq!(coordinator.metrics().completed, 1);
+    }
+
+    #[tokio::test]
+    async fn session_memory_bypasses_global_permit() {
+        let coordinator = MemoryJobCoordinator::new(1);
+        let gate = Arc::new(Notify::new());
+        let gate_heavy = Arc::clone(&gate);
+        coordinator.submit(test_job(
+            "heavy",
+            MemoryJobKind::WorkspaceExtraction,
+            move |_| async move {
+                gate_heavy.notified().await;
+                Ok(())
+            },
+        ));
+        tokio::task::yield_now().await;
+
+        let sm_done = Arc::new(AtomicUsize::new(0));
+        let sm_flag = Arc::clone(&sm_done);
+        coordinator.submit(test_job(
+            "sm",
+            MemoryJobKind::SessionMemory,
+            move |_| async move {
+                sm_flag.store(1, Ordering::SeqCst);
+                Ok(())
+            },
+        ));
+
+        for _ in 0..100 {
+            if sm_done.load(Ordering::SeqCst) == 1 {
+                break;
+            }
+            tokio::time::sleep(Duration::from_millis(10)).await;
+        }
+        assert_eq!(
+            sm_done.load(Ordering::SeqCst),
+            1,
+            "session-memory job must run while the heavy job holds the only permit"
+        );
+
+        gate.notify_waiters();
+        coordinator.wait_for_idle().await;
+        assert_eq!(coordinator.metrics().completed, 2);
     }
 
     #[tokio::test]
