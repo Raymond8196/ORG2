@@ -304,9 +304,16 @@ pub async fn extract_memories_cursor_advances(cfg: &Config) -> bool {
     }
     println!("  [info] turn1_ok={turn1_ok} turn1_tool_calls={turn1_tool_calls}");
 
-    // Give the background extract fork a moment to land and advance
-    // the cursor before we send turn 2.
-    tokio::time::sleep(Duration::from_secs(10)).await;
+    // Let the coordinator-owned extract fork land and advance the cursor
+    // before turn 2 — a new turn cancels an in-flight extraction, so poll
+    // until the fork is done instead of sleeping a fixed interval.
+    let fork_deadline = std::time::Instant::now() + Duration::from_secs(90);
+    while std::time::Instant::now() < fork_deadline {
+        match harness::fetch_em_state(cfg, &session_id).await {
+            Ok(snap) if !snap.in_progress && snap.last_processed_seq.is_some() => break,
+            _ => tokio::time::sleep(Duration::from_secs(2)).await,
+        }
+    }
 
     // Turn 2: another tool-heavy exchange, also no_cleanup=true so the
     // em-state endpoint can still see the session afterwards.
