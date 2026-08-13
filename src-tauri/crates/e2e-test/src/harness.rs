@@ -742,7 +742,6 @@ pub struct EmStateSnapshot {
     pub last_processed_idx: Option<i64>,
     pub in_progress: bool,
     pub turns_since_extraction: u32,
-    pub pending_messages_len: Option<i64>,
 }
 
 /// Fetch the per-session `ExtractMemoriesState` snapshot.
@@ -783,13 +782,11 @@ pub async fn fetch_em_state(cfg: &Config, session_id: &str) -> Result<EmStateSna
         .get("turns_since_extraction")
         .and_then(|v| v.as_u64())
         .unwrap_or(0) as u32;
-    let pending_messages_len = em.get("pending_messages_len").and_then(|v| v.as_i64());
 
     Ok(EmStateSnapshot {
         last_processed_idx,
         in_progress,
         turns_since_extraction,
-        pending_messages_len,
     })
 }
 

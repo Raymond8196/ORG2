@@ -165,11 +165,8 @@ pub async fn extract_memories_tool_heavy(cfg: &Config) -> bool {
             let cursor_advanced = snap.last_processed_idx.is_some();
             let not_in_progress = !snap.in_progress;
             let repr = format!(
-                "last_processed_idx={:?} in_progress={} turns_since_extraction={} pending_len={:?}",
-                snap.last_processed_idx,
-                snap.in_progress,
-                snap.turns_since_extraction,
-                snap.pending_messages_len,
+                "last_processed_idx={:?} in_progress={} turns_since_extraction={}",
+                snap.last_processed_idx, snap.in_progress, snap.turns_since_extraction,
             );
             (cursor_advanced, not_in_progress, repr)
         }
@@ -391,11 +388,8 @@ pub async fn extract_memories_cursor_advances(cfg: &Config) -> bool {
             let cursor_advanced = snap.last_processed_idx.is_some();
             let not_in_progress = !snap.in_progress;
             let repr = format!(
-                "last_processed_idx={:?} in_progress={} turns_since_extraction={} pending_len={:?}",
-                snap.last_processed_idx,
-                snap.in_progress,
-                snap.turns_since_extraction,
-                snap.pending_messages_len,
+                "last_processed_idx={:?} in_progress={} turns_since_extraction={}",
+                snap.last_processed_idx, snap.in_progress, snap.turns_since_extraction,
             );
             (cursor_advanced, not_in_progress, repr)
         }

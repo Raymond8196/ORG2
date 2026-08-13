@@ -1535,7 +1535,6 @@ pub async fn test_em_state_get(
             "last_processed_idx": em_snap.last_processed_idx,
             "in_progress": em_snap.in_progress,
             "turns_since_extraction": em_snap.turns_since_extraction,
-            "pending_messages_len": em_snap.pending_messages_len,
         },
     }))
 }
