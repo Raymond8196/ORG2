@@ -16,6 +16,16 @@ interface ChatPanelHeaderOverlayState {
   humanSessionActive: boolean;
 }
 
+/** Transcript top padding: the chrome share moves to the pinned-header host when it renders in flow. */
+export function resolveTranscriptTopPaddingPx(
+  chromeTopInset: number,
+  pinnedHeaderLayerInFlow: boolean
+): number {
+  return chromeTopInset > 0 && pinnedHeaderLayerInFlow
+    ? CHAT_PANEL_TRANSCRIPT_TOP_GAP_PX
+    : CHAT_PANEL_TRANSCRIPT_TOP_PADDING_PX;
+}
+
 /** Session views share one floating glass-header contract in the chat pane. */
 export function shouldOverlayChatSessionHeaders({
   showSessionContent,
