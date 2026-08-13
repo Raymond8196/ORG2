@@ -2932,6 +2932,8 @@
   "canvasApp": {
     "empty": "No canvas rendered yet",
     "sidebarTitle": "Canvases",
-    "noCanvases": "No canvases yet"
+    "noCanvases": "No canvases yet",
+    "shareDialogRetryShort": "Retry short link",
+    "shareDialogRetryingShort": "Retrying…"
   }
 }

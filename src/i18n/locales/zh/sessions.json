@@ -2919,5 +2919,9 @@
     "waiting": "等待内容中…",
     "empty": "无内容",
     "viewInSimulator": "在 Simulator 中查看"
+  },
+  "canvasApp": {
+    "shareDialogRetryShort": "重试短链接",
+    "shareDialogRetryingShort": "正在重试…"
   }
 }
