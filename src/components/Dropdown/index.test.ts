@@ -91,30 +91,26 @@ describe("Dropdown", () => {
   });
 
   it("keeps options-mode keyboard navigation working from a portaled search input", async () => {
+    const props: React.ComponentProps<typeof Dropdown> = {
+      defaultPopupVisible: true,
+      showSearch: true,
+      options: [
+        {
+          label: "One",
+          value: "one",
+          dataTestId: "dropdown-option-one",
+        },
+        {
+          label: "Two",
+          value: "two",
+          dataTestId: "dropdown-option-two",
+        },
+      ],
+      getPopupContainer: () => document.body,
+      children: React.createElement("button", { type: "button" }, "Open"),
+    };
     await act(async () => {
-      root.render(
-        React.createElement(
-          Dropdown,
-          {
-            defaultPopupVisible: true,
-            showSearch: true,
-            options: [
-              {
-                label: "One",
-                value: "one",
-                dataTestId: "dropdown-option-one",
-              },
-              {
-                label: "Two",
-                value: "two",
-                dataTestId: "dropdown-option-two",
-              },
-            ],
-            getPopupContainer: () => document.body,
-          },
-          React.createElement("button", { type: "button" }, "Open")
-        )
-      );
+      root.render(React.createElement(Dropdown, props));
       await new Promise((resolve) => window.setTimeout(resolve, 20));
     });
 
