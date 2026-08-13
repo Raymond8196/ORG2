@@ -5,6 +5,7 @@
 //! - [`find_last_safe_boundary`] — picks the highest message index safe to mark
 //!   as the SM boundary (avoids splitting a tool_use → tool_result pair)
 
+use std::sync::atomic::AtomicBool;
 use std::sync::Arc;
 
 use serde_json::Value;
@@ -101,6 +102,7 @@ pub async fn extract_session_memory(
     config: &SessionMemoryConfig,
     provider: &dyn LLMProvider,
     model: &str,
+    cancel_flag: Option<&Arc<AtomicBool>>,
 ) -> Result<String, String> {
     use crate::core::model_context::summarization;
 
@@ -226,7 +228,14 @@ pub async fn extract_session_memory(
         "content": user_content,
     })];
 
-    let result = side_query::side_query(provider, &user_messages, &sq_config, model).await;
+    let result = side_query::side_query_with_options(
+        provider,
+        &user_messages,
+        &sq_config,
+        model,
+        cancel_flag,
+    )
+    .await;
 
     // ── Finalize: brief lock to merge the result back. Concurrent
     // `record_tool_calls` increments that arrived while the LLM was running

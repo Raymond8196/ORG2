@@ -173,6 +173,21 @@ pub fn load_llm_history(
     Ok(result)
 }
 
+/// Rebuild the durable conversation without hydrating image files into base64.
+/// Background memory agents consume text/tool evidence only; loading image
+/// payloads there creates a large, short-lived duplicate with no extraction
+/// value.
+pub fn load_llm_history_text_only(
+    prefix: &str,
+    session_id: &str,
+) -> rusqlite::Result<Vec<serde_json::Value>> {
+    let mut messages = load_messages(prefix, session_id)?;
+    for message in &mut messages {
+        message.images = None;
+    }
+    Ok(reconstruct(&visible_rows(&messages)))
+}
+
 /// Sequence of the first row contributing to each reconstructed LLM
 /// message, in output order. Mirrors the grouping rules of
 /// [`reconstruct`] (consecutive tool_call/tool_result rows form one
@@ -550,6 +565,35 @@ mod tests {
         );
         assert_eq!(history[1]["content"], "recent follow-up");
         assert_eq!(history[2]["content"], "recent answer");
+    }
+
+    #[test]
+    fn text_only_history_does_not_hydrate_images() {
+        let _sandbox = test_env::sandbox();
+        create_message_table(DB_PREFIX);
+        let conn = get_connection().expect("get connection");
+        conn.execute(
+            &format!(
+                "INSERT INTO {DB_PREFIX}_messages
+                 (id, session_id, role, content, sequence, created_at, images)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)"
+            ),
+            rusqlite::params![
+                "image-msg",
+                DB_SESSION,
+                message_role::USER,
+                "inspect this",
+                1,
+                "2024-01-01T00:00:00Z",
+                serde_json::to_string(&vec!["data:image/png;base64,AAAA"]).unwrap(),
+            ],
+        )
+        .expect("insert image row");
+
+        let history = load_llm_history_text_only(DB_PREFIX, DB_SESSION).expect("text history");
+        assert_eq!(history.len(), 1);
+        assert_eq!(history[0]["content"], "inspect this");
+        assert!(history[0]["content"].is_string());
     }
 
     #[test]

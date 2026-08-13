@@ -92,7 +92,13 @@ pub async fn session_trigger_reflection(
     state: tauri::State<'_, AgentAppState>,
     session_id: String,
 ) -> Result<ReflectionResult, String> {
-    let count = crate::memory::reflection::maybe_reflect_on_session(&session_id).await?;
+    let _permit = crate::memory::background::acquire_memory_permit().await?;
+    let count = tokio::time::timeout(
+        std::time::Duration::from_secs(120),
+        crate::memory::reflection::maybe_reflect_on_session(&session_id),
+    )
+    .await
+    .map_err(|_| "Manual reflection timed out after 120s".to_string())??;
     if count > 0 {
         state
             .invalidate_prompt_caches(PromptCacheInvalidationReason::LearningsChanged)

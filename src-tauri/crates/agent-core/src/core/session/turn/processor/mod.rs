@@ -230,6 +230,8 @@ impl UnifiedMessageProcessor {
             session.id.clone()
         });
 
+        let sm_state = Arc::clone(&session.sm_state);
+
         Self {
             runtime,
             session,
@@ -243,7 +245,7 @@ impl UnifiedMessageProcessor {
             screenshot_store,
             event_handler_config,
             compaction_state: tokio::sync::Mutex::new(CompactionState::default()),
-            sm_state: Arc::new(tokio::sync::Mutex::new(SessionMemoryState::default())),
+            sm_state,
             sm_config: SessionMemoryConfig::default(),
             sm_compact_config: SessionMemoryCompactConfig::default(),
             replacement_state: tokio::sync::Mutex::new(ReplacementState::new()),
@@ -509,6 +511,12 @@ impl UnifiedMessageProcessor {
         // Anchor for the receipt-fallback audit window: CLI writes during
         // this turn carry occurred_at >= this instant.
         let turn_started_at_ms = chrono::Utc::now().timestamp_millis();
+
+        // Any newly accepted turn means the session is active again. Cancel
+        // coordinator generations left by the prior turn (especially the
+        // quiescence-debounced reflection/observation jobs) before they can
+        // race the new transcript.
+        crate::memory::background::cancel_memory_jobs_for_session(session_id);
 
         // 0b. Restore persisted SM state on first turn (lazy init)
         if self.sm_config.enabled {
@@ -1025,7 +1033,6 @@ impl UnifiedMessageProcessor {
             session_id,
             turn_id: &turn_id,
             response_text: &response_text,
-            messages: &messages,
             result: &result,
             tool_calls_count,
             final_turn_state,

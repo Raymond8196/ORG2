@@ -5,10 +5,7 @@
 //! that can mutate its fields. External callers go through the public
 //! `snapshot()` getter or the `is_in_progress` accessor below.
 
-/// Per-session state for memory extraction. Held inside the processor.
-///
-/// The `pending_messages` field carries coalesce semantics — see
-/// `gating::stash_pending` / `gating::take_pending`.
+/// Per-session state for memory extraction. Held on `AgentSession`.
 #[derive(Debug, Default)]
 pub struct ExtractMemoriesState {
     /// Index of the last message processed (cursor).
@@ -20,13 +17,6 @@ pub struct ExtractMemoriesState {
 
     /// Turns since last successful extraction (for throttling).
     pub(super) turns_since_extraction: u32,
-
-    /// Messages stashed by a turn that arrived while extraction was still
-    /// running. The processor's spawned task drains this after each run
-    /// and, if present, loops for a trailing extraction. Always holds the
-    /// *latest* stash — older stashes are overwritten since only the most
-    /// recent transcript matters.
-    pub(super) pending_messages: Option<Vec<serde_json::Value>>,
 }
 
 /// Read-only snapshot of [`ExtractMemoriesState`] for debug / E2E endpoints.
@@ -40,7 +30,6 @@ pub struct ExtractMemoriesStateSnapshot {
     pub last_processed_idx: Option<usize>,
     pub in_progress: bool,
     pub turns_since_extraction: u32,
-    pub pending_messages_len: Option<usize>,
 }
 
 impl ExtractMemoriesState {
@@ -54,7 +43,6 @@ impl ExtractMemoriesState {
             last_processed_idx: self.last_processed_idx,
             in_progress: self.in_progress,
             turns_since_extraction: self.turns_since_extraction,
-            pending_messages_len: self.pending_messages.as_ref().map(|v| v.len()),
         }
     }
 
@@ -83,7 +71,6 @@ mod tests {
         assert!(state.last_processed_idx.is_none());
         assert!(!state.in_progress);
         assert_eq!(state.turns_since_extraction, 0);
-        assert!(state.pending_messages.is_none());
     }
 
     #[test]

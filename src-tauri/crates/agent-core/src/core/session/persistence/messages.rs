@@ -381,6 +381,11 @@ pub fn load_llm_history(session_id: &str) -> SqliteResult<Vec<serde_json::Value>
     shared::load_llm_history(SESSION_TABLE_PREFIX, session_id)
 }
 
+/// Load text/tool-only LLM history without hydrating image payloads.
+pub fn load_llm_history_text_only(session_id: &str) -> SqliteResult<Vec<serde_json::Value>> {
+    shared::load_llm_history_text_only(SESSION_TABLE_PREFIX, session_id)
+}
+
 /// Map "keep the last `tail_len` LLM messages visible" onto a durable
 /// sequence cutoff for [`append_compact_boundary`].
 pub fn compact_cutoff_sequence(session_id: &str, tail_len: usize) -> SqliteResult<i64> {

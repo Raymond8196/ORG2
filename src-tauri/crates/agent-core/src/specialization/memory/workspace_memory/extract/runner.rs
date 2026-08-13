@@ -133,7 +133,7 @@ pub async fn run_extraction(
         &subagent_session_id,
         &handler,
         None,
-        None,
+        params.cancel_flag,
         None,
     )
     .await;

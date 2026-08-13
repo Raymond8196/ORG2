@@ -1,9 +1,8 @@
 //! Gating + cursor-advance helpers for the extraction subsystem.
 //!
-//! Pure logic over `ExtractMemoriesState` + the in-memory message slice —
-//! decides "should we even fork an extractor this turn?", advances the
-//! cursor past main-agent memory writes, and coalesces the
-//! trailing-run stash.
+//! Pure logic over `ExtractMemoriesState` + a durable message snapshot —
+//! decides whether to fork an extractor and advances the cursor past
+//! main-agent memory writes.
 
 use serde_json::Value;
 use std::path::Path;
@@ -80,31 +79,6 @@ pub fn skip_if_main_agent_wrote_memory(
         state.last_processed_idx = Some(messages.len() - 1);
     }
     true
-}
-
-/// Stash the latest messages while an extraction is in flight.
-///
-/// Called by the processor when `in_progress` has blocked a would-be
-/// extraction. Overwrites any prior stash — only the *latest* transcript
-/// matters because it already contains the older ones as a prefix.
-///
-/// Returns `true` if there was no existing stash (informational only; the
-/// coalesce behavior does not depend on it).
-pub fn stash_pending(state: &mut ExtractMemoriesState, messages: &[Value]) -> bool {
-    let was_empty = state.pending_messages.is_none();
-    state.pending_messages = Some(messages.to_vec());
-    was_empty
-}
-
-/// Drain the stashed trailing-run messages, if any.
-///
-/// The processor's spawned extraction task calls this after each
-/// `run_extraction` completes. When `Some`, the task issues one more
-/// extraction round with those messages. This is the key fix for the
-/// "second turn during a long extraction silently vanishes" hole that
-/// a drop-on-conflict policy would have.
-pub fn take_pending(state: &mut ExtractMemoriesState) -> Option<Vec<Value>> {
-    state.pending_messages.take()
 }
 
 /// Record a turn (increment counter). Call this every turn regardless
@@ -453,31 +427,6 @@ mod tests {
             }
         });
         assert_eq!(extract_written_path(&malformed), None);
-    }
-
-    #[test]
-    fn test_stash_pending_overwrites_latest() {
-        let mut state = ExtractMemoriesState::default();
-
-        let first = vec![make_message("user", "one")];
-        assert!(
-            stash_pending(&mut state, &first),
-            "first stash should report empty prior state"
-        );
-
-        let second = vec![
-            make_message("user", "one"),
-            make_message("assistant", "ack"),
-            make_message("user", "two"),
-        ];
-        assert!(
-            !stash_pending(&mut state, &second),
-            "subsequent stash should report already-stashed"
-        );
-
-        let drained = take_pending(&mut state).expect("pending should be present");
-        assert_eq!(drained.len(), 3, "latest stash wins — coalesce semantics");
-        assert!(take_pending(&mut state).is_none(), "take_pending drains");
     }
 
     #[test]
