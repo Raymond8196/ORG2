@@ -612,7 +612,9 @@
       "newSession": "新建会话",
       "starting": "正在启动...",
       "emptyOverview": "暂无 Sessions",
-      "emptyOverviewHint": "启动 Agent Session 后，可在此跟踪执行。"
+      "emptyOverviewHint": "启动 Agent Session 后，可在此跟踪执行。",
+      "originTitle": "创建来源 Session",
+      "originStatus": "由此 Session 创建"
     },
     "outputTab": {
       "prSection": "Pull Request",
