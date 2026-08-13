@@ -282,7 +282,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       isTerminalTabActive,
       terminalTabs,
     } = useChatPanelTabsController({
-      launchpadTitle: t("navigation:routes.launchpad"),
+      newSessionTitle: t("sessions:chat.startPage.newSession.title"),
       kanbanTitle: t("sessions:simulator.tabs.kanban"),
       showSessionSurface,
     });
