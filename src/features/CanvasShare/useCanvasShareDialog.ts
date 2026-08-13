@@ -5,7 +5,7 @@ import { copyText } from "@src/util/data/clipboard";
 
 import {
   getOrCreateCanvasShareLink,
-  invalidateCanvasShareLink,
+  refreshCanvasShareLink,
 } from "./canvasShareCache";
 import {
   type CanvasShareLinkResult,
@@ -147,8 +147,7 @@ export function useCanvasShareDialog() {
 
     const previous = state;
     const operationId = ++operationRef.current;
-    invalidateCanvasShareLink(state.payload);
-    const cached = getOrCreateCanvasShareLink(state.payload);
+    const cached = refreshCanvasShareLink(state.payload);
 
     if (cached.phase === "ready") {
       setState({

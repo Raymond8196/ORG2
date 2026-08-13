@@ -19,7 +19,10 @@ import {
   vi,
 } from "vitest";
 
-import { canvasShareCacheTestApi } from "./canvasShareCache";
+import {
+  canvasShareCacheTestApi,
+  refreshCanvasShareLink,
+} from "./canvasShareCache";
 import { useCanvasShareDialog } from "./useCanvasShareDialog";
 
 const testState = vi.hoisted(() => ({
@@ -229,6 +232,42 @@ describe("useCanvasShareDialog", () => {
       linkKind: "short",
       retryingShortLink: false,
     });
+  });
+
+  it("shares one in-flight retry across concurrent consumers", async () => {
+    let resolveRetry: (result: LinkResult) => void = () => undefined;
+    const payload = { mode: "html" as const, content: "<p>Concurrent</p>" };
+    testState.build
+      .mockResolvedValueOnce(fullLink("https://example.test/full"))
+      .mockImplementationOnce(
+        () =>
+          new Promise<LinkResult>((resolve) => {
+            resolveRetry = resolve;
+          })
+      );
+
+    await act(async () => {
+      controller().open(payload, "Concurrent");
+      await Promise.resolve();
+    });
+
+    const first = refreshCanvasShareLink(payload);
+    const second = refreshCanvasShareLink(payload);
+    expect(first.phase).toBe("pending");
+    expect(second.phase).toBe("pending");
+    if (first.phase !== "pending" || second.phase !== "pending") {
+      throw new Error("Expected a shared pending retry");
+    }
+    expect(second.promise).toBe(first.promise);
+    expect(testState.build).toHaveBeenCalledTimes(2);
+
+    await act(async () =>
+      resolveRetry({
+        link: "https://example.test/#/s/concurrentconcurrentco",
+        kind: "short",
+        expiresAt: "2099-01-01T00:00:00.000Z",
+      })
+    );
   });
 
   it("regenerates a fallback after its recovery TTL", async () => {

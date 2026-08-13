@@ -175,17 +175,22 @@ export function getOrCreateCanvasShareLink(
   return { phase: "pending", promise };
 }
 
-export function invalidateCanvasShareLink(payload: CanvasInlinePayload): void {
+export function refreshCanvasShareLink(
+  payload: CanvasInlinePayload
+): CanvasShareCacheLookup {
   let key: CanvasShareCacheKey;
   try {
     key = cacheKeyFor(payload);
   } catch {
-    return;
+    return getOrCreateCanvasShareLink(payload);
   }
   const entry = entries.find((candidate) => cacheKeysMatch(candidate.key, key));
-  if (!entry) return;
-  abortIfPending(entry);
-  removeEntry(entry);
+  if (entry?.phase === "pending") {
+    touch(entry);
+    return { phase: "pending", promise: entry.promise };
+  }
+  if (entry) removeEntry(entry);
+  return getOrCreateCanvasShareLink(payload);
 }
 
 export const canvasShareCacheTestApi = {
