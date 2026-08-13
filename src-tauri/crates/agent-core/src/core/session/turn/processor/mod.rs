@@ -1127,9 +1127,9 @@ impl UnifiedMessageProcessor {
         }
 
         const WAKE_NUDGE: &str = "<system-reminder>A background job you launched (shell \
-            process or subagent) has finished. Its status and output are in the Background \
-            Jobs list above. Read the completed job's result and continue the task you were \
-            doing — do not re-launch it.</system-reminder>";
+            process or subagent) has finished or needs attention. Its status and output are \
+            in the Background Jobs list above. Act on it and continue the task you were \
+            doing — do not re-launch finished jobs.</system-reminder>";
 
         messages.push(serde_json::json!({
             "role": "user",

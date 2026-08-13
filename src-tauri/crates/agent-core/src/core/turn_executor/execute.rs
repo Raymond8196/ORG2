@@ -198,6 +198,43 @@ pub async fn execute_turn(
             }));
         }
 
+        // Mid-turn background-job update: deliver job events that landed
+        // while this turn was already running — completions with unread
+        // output and shells latched as waiting for interactive input — so
+        // the model learns about them at the next iteration instead of
+        // polling or waiting for the next turn's reminder. Skipped on the
+        // first iteration: the turn-start Background Jobs reminder owns
+        // turn-boundary delivery. Claiming here consumes the same
+        // exactly-once flags as the idle wake, so an event delivered
+        // mid-turn never also wakes the session at turn end.
+        if iteration > 1
+            && crate::tools::impls::coding::exec::registry::claim_completion_wake_for_session(
+                session_id,
+            )
+        {
+            use crate::core::session::turn::background_reminder;
+            let jobs: Vec<_> =
+                crate::tools::impls::coding::exec::registry::list_jobs_for_reminder(session_id)
+                    .into_iter()
+                    .filter(|job| job.has_unread_output || job.stalled_waiting_input)
+                    .collect();
+            if !jobs.is_empty() {
+                info!(
+                    "[agent-core] mid-turn background-job note injected ({} job(s), session={})",
+                    jobs.len(),
+                    session_id
+                );
+                let note = background_reminder::build_completion_notification(&jobs);
+                crate::tools::impls::coding::exec::registry::acknowledge_outputs(
+                    &background_reminder::inlined_result_handles(&jobs),
+                );
+                messages.push(serde_json::json!({
+                    "role": "user",
+                    "content": note,
+                }));
+            }
+        }
+
         // Stale-todo reminder: same injection point as the other mid-turn
         // reminders above, so it never lands between an assistant tool_use
         // and its tool_result rows.

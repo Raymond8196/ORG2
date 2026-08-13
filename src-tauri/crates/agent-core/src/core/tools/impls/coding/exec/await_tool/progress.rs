@@ -69,7 +69,15 @@ fn handle_fingerprint(handle: &str) -> String {
             registry::get_final_result(handle).is_some()
         ),
     };
-    format!("{handle}={status_part}@{cursor}")
+    // A stall-latch flip is information the model hasn't seen yet (the next
+    // wait response carries the kill-and-rerun advisory), so it counts as
+    // progress for the repeat guard.
+    let stalled = if registry::is_stalled_waiting_input(handle) == Some(true) {
+        ":stalled"
+    } else {
+        ""
+    };
+    format!("{handle}={status_part}@{cursor}{stalled}")
 }
 
 /// Fingerprint an `await_output` call's observed state, or `None` when the
@@ -158,6 +166,36 @@ mod tests {
         );
 
         registry::remove(&handle);
+    }
+
+    #[test]
+    fn stall_latch_flip_advances_the_fingerprint() {
+        let dir = tempfile::tempdir().unwrap();
+        let log_path: PathBuf = dir.path().join("stall.log");
+        std::fs::write(&log_path, b"Username for 'https://github.com':").unwrap();
+
+        let pid = 4_294_000_999_u32;
+        let _tx = registry::register_shell(
+            pid,
+            "git push".into(),
+            log_path,
+            "progress-fp-stall-session".into(),
+        );
+        let params = serde_json::json!({
+            "command": "wait_for",
+            "handles": [pid.to_string()],
+        });
+
+        let before = call_progress_fingerprint(&params).expect("fingerprint");
+        registry::mark_stalled_waiting_input(&pid.to_string());
+        let after = call_progress_fingerprint(&params).expect("fingerprint");
+        assert_ne!(
+            before, after,
+            "the stall latch flipping is new information for the model"
+        );
+        assert!(after.contains(":stalled"));
+
+        registry::remove(&pid.to_string());
     }
 
     #[test]

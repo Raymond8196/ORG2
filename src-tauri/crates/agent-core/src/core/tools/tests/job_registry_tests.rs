@@ -93,15 +93,18 @@ fn test_list_shell_for_session() {
 
 #[test]
 fn test_subagent_not_in_shell_list() {
+    // Session id must be unique to this test: `test_list_shell_for_session`
+    // registers real shells under "session_x" concurrently, and the shared
+    // process-global registry would make this list non-empty mid-flight.
     let handle = "agent-builtin:explore-xyz".to_string();
     let (_tx, _cancel) = registry::register_subagent(
         handle.clone(),
         "explore".into(),
         "Explorer".into(),
-        "session_x".into(),
+        "session_subagent_only".into(),
     );
 
-    let list = registry::list_shell_for_session("session_x");
+    let list = registry::list_shell_for_session("session_subagent_only");
     assert!(list.is_empty());
 
     registry::remove(&handle);
@@ -279,6 +282,64 @@ fn test_claim_completion_wake_covers_shell_jobs() {
         "a killed shell must never wake its owner"
     );
     registry::remove(&killed_handle);
+}
+
+/// Stall-advisory claim lifecycle: a running shell latched as waiting for
+/// input is claimable exactly once via its own `stall_delivered` flag —
+/// which must NOT consume the job's one completion wake. Output resuming
+/// clears the latch and re-arms the advisory.
+#[test]
+fn test_stall_advisory_claim_lifecycle() {
+    let session = "stall-claim-session";
+    let pid = 99995;
+    let _tx = registry::register_shell(
+        pid,
+        "git push".into(),
+        PathBuf::from("/tmp/stall-claim.txt"),
+        session.into(),
+    );
+    let handle = pid.to_string();
+
+    // Running, not stalled → nothing to claim.
+    assert!(!registry::claim_completion_wake_for_session(session));
+
+    assert!(registry::mark_stalled_waiting_input(&handle));
+    assert!(
+        !registry::mark_stalled_waiting_input(&handle),
+        "latch is one-shot until cleared"
+    );
+    assert_eq!(registry::is_stalled_waiting_input(&handle), Some(true));
+
+    assert!(
+        registry::claim_completion_wake_for_session(session),
+        "a stalled running shell must be claimable for delivery"
+    );
+    assert!(
+        !registry::claim_completion_wake_for_session(session),
+        "the advisory is delivered at most once"
+    );
+
+    // A released claim (owner was running) becomes claimable again.
+    registry::release_completion_wake_for_session(session);
+    assert!(registry::claim_completion_wake_for_session(session));
+
+    // Output resumed → latch cleared and advisory re-armed for a future
+    // distinct stall.
+    registry::clear_stalled_waiting_input(&handle);
+    assert_eq!(registry::is_stalled_waiting_input(&handle), Some(false));
+    assert!(!registry::claim_completion_wake_for_session(session));
+    assert!(registry::mark_stalled_waiting_input(&handle));
+    assert!(registry::claim_completion_wake_for_session(session));
+
+    // The stall advisory never consumed the completion wake: once the job
+    // exits, the completion is still claimable.
+    registry::mark_exited(&handle, JobStatus::Exited(0));
+    assert!(
+        registry::claim_completion_wake_for_session(session),
+        "completion wake must survive prior stall deliveries"
+    );
+
+    registry::remove(&handle);
 }
 
 /// Tombstone resolution: after a finished job is reaped via `remove`, a later

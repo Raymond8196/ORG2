@@ -303,12 +303,24 @@ impl AwaitTool {
                             ));
                         }
                     }
-                    response.push_str(
-                        "\nThe process is still running. Do NOT keep re-issuing the same wait — \
-                         if you have other work, continue with it; if this job's result is all \
-                         that remains, end your turn now. The session resumes automatically when \
-                         the process exits, with its output in the Background Jobs reminder.",
-                    );
+                    if registry::is_stalled_waiting_input(&snap.handle) == Some(true) {
+                        response.push_str(&format!(
+                            "\nThe process has produced no output for a while and its last line \
+                             looks like an interactive prompt — it is likely waiting for input \
+                             and will never finish on its own. Kill it with \
+                             run_shell(kill_handle=\"{}\") and re-run non-interactively \
+                             (pipe the answer, e.g. `echo y | cmd`, or pass a yes/non-interactive \
+                             flag).",
+                            snap.handle,
+                        ));
+                    } else {
+                        response.push_str(
+                            "\nThe process is still running. Do NOT keep re-issuing the same wait — \
+                             if you have other work, continue with it; if this job's result is all \
+                             that remains, end your turn now. The session resumes automatically when \
+                             the process exits, with its output in the Background Jobs reminder.",
+                        );
+                    }
                 }
             }
         }
