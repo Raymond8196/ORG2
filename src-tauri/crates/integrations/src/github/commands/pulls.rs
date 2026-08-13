@@ -57,11 +57,13 @@ query PullRequestMergeAutomation($id: ID!) {
 }
 "#;
 
-const PULL_REQUEST_CI_STATUS_QUERY: &str = r#"
-query PullRequestCiStatuses($ids: [ID!]!) {
+const PULL_REQUEST_LIST_METADATA_QUERY: &str = r#"
+query PullRequestListMetadata($ids: [ID!]!) {
   nodes(ids: $ids) {
     ... on PullRequest {
       number
+      additions
+      deletions
       commits(last: 1) {
         nodes {
           commit {
@@ -247,6 +249,8 @@ pub struct OpenPRItem {
     pub base_branch: String,
     pub draft: bool,
     pub ci_status: PullRequestCiStatus,
+    pub additions: Option<u64>,
+    pub deletions: Option<u64>,
     pub created_at: String,
     pub updated_at: String,
 }
@@ -276,6 +280,8 @@ fn parse_open_pr_item(item: &Value) -> OpenPRItem {
         base_branch: item["base"]["ref"].as_str().unwrap_or("").to_string(),
         draft: item["draft"].as_bool().unwrap_or(false),
         ci_status: PullRequestCiStatus::Unavailable,
+        additions: item["additions"].as_u64(),
+        deletions: item["deletions"].as_u64(),
         created_at: item["created_at"].as_str().unwrap_or("").to_string(),
         updated_at: item["updated_at"].as_str().unwrap_or("").to_string(),
     }
@@ -311,25 +317,34 @@ fn parse_pull_request_ci_status(node: &Value) -> PullRequestCiStatus {
     }
 }
 
-fn apply_pull_request_ci_statuses(items: &mut [OpenPRItem], response: &Value) {
-    let statuses = response["data"]["nodes"]
+fn apply_pull_request_list_metadata(items: &mut [OpenPRItem], response: &Value) {
+    let metadata = response["data"]["nodes"]
         .as_array()
         .into_iter()
         .flatten()
         .filter_map(|node| {
-            node["number"]
-                .as_u64()
-                .map(|number| (number, parse_pull_request_ci_status(node)))
+            node["number"].as_u64().map(|number| {
+                (
+                    number,
+                    (
+                        parse_pull_request_ci_status(node),
+                        node["additions"].as_u64(),
+                        node["deletions"].as_u64(),
+                    ),
+                )
+            })
         })
         .collect::<HashMap<_, _>>();
     for item in items {
-        if let Some(status) = statuses.get(&item.number) {
+        if let Some((status, additions, deletions)) = metadata.get(&item.number) {
             item.ci_status = *status;
+            item.additions = *additions;
+            item.deletions = *deletions;
         }
     }
 }
 
-async fn enrich_pull_request_ci_statuses(
+async fn enrich_pull_request_list_metadata(
     client: &GitHubClient,
     repo_full_name: &str,
     source_items: &[Value],
@@ -343,19 +358,21 @@ async fn enrich_pull_request_ci_statuses(
         return;
     }
     match client
-        .graphql(PULL_REQUEST_CI_STATUS_QUERY, json!({ "ids": ids }))
+        .graphql(PULL_REQUEST_LIST_METADATA_QUERY, json!({ "ids": ids }))
         .await
     {
         Ok(response) => {
             if let Some(error) = graphql_error(&response) {
                 log::warn!(
-                    "[GitHub][Cmd] PR CI GraphQL query returned errors for {repo_full_name}: {error}"
+                    "[GitHub][Cmd] PR list metadata GraphQL query returned errors for {repo_full_name}: {error}"
                 );
             }
-            apply_pull_request_ci_statuses(items, &response);
+            apply_pull_request_list_metadata(items, &response);
         }
         Err(error) => {
-            log::warn!("[GitHub][Cmd] PR CI enrichment failed for {repo_full_name}: {error}");
+            log::warn!(
+                "[GitHub][Cmd] PR list metadata enrichment failed for {repo_full_name}: {error}"
+            );
         }
     }
 }
@@ -891,6 +908,8 @@ mod open_pr_item_tests {
         );
         assert_eq!(serialized["state"], "open");
         assert_eq!(serialized["ci_status"], "unavailable");
+        assert_eq!(serialized["additions"], Value::Null);
+        assert_eq!(serialized["deletions"], Value::Null);
     }
 
     #[test]
@@ -912,9 +931,11 @@ mod open_pr_item_tests {
     }
 
     #[test]
-    fn maps_batched_pull_request_ci_rollups() {
-        assert!(PULL_REQUEST_CI_STATUS_QUERY.contains("nodes(ids: $ids)"));
-        assert!(PULL_REQUEST_CI_STATUS_QUERY.contains("contexts(first: 100)"));
+    fn maps_batched_pull_request_list_metadata() {
+        assert!(PULL_REQUEST_LIST_METADATA_QUERY.contains("nodes(ids: $ids)"));
+        assert!(PULL_REQUEST_LIST_METADATA_QUERY.contains("additions"));
+        assert!(PULL_REQUEST_LIST_METADATA_QUERY.contains("deletions"));
+        assert!(PULL_REQUEST_LIST_METADATA_QUERY.contains("contexts(first: 100)"));
 
         let mut items = vec![
             parse_open_pr_item(&json!({ "number": 17 })),
@@ -924,13 +945,15 @@ mod open_pr_item_tests {
             parse_open_pr_item(&json!({ "number": 21 })),
         ];
 
-        apply_pull_request_ci_statuses(
+        apply_pull_request_list_metadata(
             &mut items,
             &json!({
                 "data": {
                     "nodes": [
                         {
                             "number": 17,
+                            "additions": 45,
+                            "deletions": 12,
                             "commits": {
                                 "nodes": [{
                                     "commit": {
@@ -997,7 +1020,11 @@ mod open_pr_item_tests {
         );
 
         assert_eq!(items[0].ci_status, PullRequestCiStatus::Success);
+        assert_eq!(items[0].additions, Some(45));
+        assert_eq!(items[0].deletions, Some(12));
         assert_eq!(items[1].ci_status, PullRequestCiStatus::Pending);
+        assert_eq!(items[1].additions, None);
+        assert_eq!(items[1].deletions, None);
         assert_eq!(items[2].ci_status, PullRequestCiStatus::None);
         assert_eq!(items[3].ci_status, PullRequestCiStatus::Failure);
         assert_eq!(items[4].ci_status, PullRequestCiStatus::Failure);
@@ -1034,7 +1061,7 @@ pub async fn github_list_prs(
         .await?;
     let source_items = data.as_array().cloned().unwrap_or_default();
     let mut items: Vec<OpenPRItem> = source_items.iter().map(parse_open_pr_item).collect();
-    enrich_pull_request_ci_statuses(&client, &repo_full_name, &source_items, &mut items).await;
+    enrich_pull_request_list_metadata(&client, &repo_full_name, &source_items, &mut items).await;
     log::info!(
         "[GitHub][Cmd] list_prs state={state} found {} PRs",
         items.len()

@@ -54,6 +54,8 @@ export interface OpenPRItem {
   base_branch: string;
   draft: boolean;
   ci_status: PullRequestCiStatus;
+  additions?: number | null;
+  deletions?: number | null;
   created_at: string;
   updated_at: string;
 }
