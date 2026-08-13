@@ -79,14 +79,19 @@
   padding: 0 16px;
 }
 
-// Ghost variant - transparent at rest, matching ghost Input's surface-hover
-// feedback while hovered or open.
-.select-ghost .select-selector {
+// Chromeless appearances remove the standard field shell.
+.select-ghost .select-selector,
+.select-bare .select-selector {
   border: none !important;
   box-shadow: none !important;
+  background: transparent;
+}
+
+// Ghost appearance - transparent at rest, matching ghost Input's surface-hover
+// feedback while hovered or open.
+.select-ghost .select-selector {
   color: var(--color-text-2);
   font-weight: 400;
-  background: transparent;
   transition:
     color 0.15s ease,
     background-color 0.1s cubic-bezier(0, 0, 1, 1);

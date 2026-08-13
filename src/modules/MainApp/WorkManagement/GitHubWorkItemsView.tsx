@@ -238,7 +238,7 @@ export function GitHubWorkItemsView({
         })),
         onChange: (value) => onRepoSelect(String(value)),
         minWidth: 190,
-        variant: "default",
+        appearance: "default",
       },
     ],
     [effectiveSelectedRepo, onRepoSelect, repoOptions]

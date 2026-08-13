@@ -325,7 +325,7 @@ const WorkItemSubItems: React.FC<WorkItemSubItemsProps> = ({
             disabled={creating}
             size="small"
             radius="md"
-            variant="ghost"
+            appearance="ghost"
             dropdownWidthMode="auto"
             className="w-full"
             selectorClassName="font-normal"
@@ -347,7 +347,7 @@ const WorkItemSubItems: React.FC<WorkItemSubItemsProps> = ({
             defaultValue: "Add a sub-item title",
           })}
           size="small"
-          fieldVariant="ghost"
+          appearance="ghost"
           className="min-w-0 flex-1"
           inputClassName="text-[13px] !font-normal"
           onChange={(value) => {
