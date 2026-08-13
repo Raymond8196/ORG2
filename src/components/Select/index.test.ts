@@ -1,4 +1,6 @@
 // @vitest-environment jsdom
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import React, { act } from "react";
 import { type Root, createRoot } from "react-dom/client";
 import {
@@ -13,6 +15,18 @@ import {
 } from "vitest";
 
 import Select from ".";
+
+describe("Select ghost presentation", () => {
+  it("shares the ghost input hover surface while hovered or open", () => {
+    const styles = readFileSync(resolve(__dirname, "index.scss"), "utf8");
+    const stateRule = styles.match(
+      /\.select-ghost:hover:not\(\.select-disabled\)[\s\S]*?\{[\s\S]*?\}/
+    )?.[0];
+
+    expect(stateRule).toContain(".select-ghost.select-open .select-selector");
+    expect(stateRule).toContain("background: var(--color-surface-hover)");
+  });
+});
 
 describe("Select keyboard navigation", () => {
   let container: HTMLDivElement;
