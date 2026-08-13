@@ -14,6 +14,7 @@ interface CanvasShareDialogProps {
   state: CanvasShareDialogState;
   onClose: () => void;
   onRetry: () => void;
+  onRetryShortLink: () => void;
   onCopy: () => void;
 }
 
@@ -49,6 +50,7 @@ const CanvasShareDialog: React.FC<CanvasShareDialogProps> = ({
   state,
   onClose,
   onRetry,
+  onRetryShortLink,
   onCopy,
 }) => {
   const { t, i18n } = useTranslation("sessions");
@@ -131,6 +133,22 @@ const CanvasShareDialog: React.FC<CanvasShareDialogProps> = ({
                   ) : null}
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
+                  {state.linkKind === "self-contained" ? (
+                    <Button
+                      htmlType="button"
+                      variant="secondary"
+                      loading={state.retryingShortLink}
+                      disabled={state.retryingShortLink}
+                      onClick={onRetryShortLink}
+                    >
+                      {state.retryingShortLink
+                        ? t("canvasApp.shareDialogRetryingShort", "Retrying…")
+                        : t(
+                            "canvasApp.shareDialogRetryShort",
+                            "Retry short link"
+                          )}
+                    </Button>
+                  ) : null}
                   <Button
                     htmlType="button"
                     variant="secondary"

@@ -3,7 +3,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { CanvasInlinePayload } from "@src/engines/ChatPanel/blocks/CanvasInlineCard/types";
 import { copyText } from "@src/util/data/clipboard";
 
-import { getOrCreateCanvasShareLink } from "./canvasShareCache";
+import {
+  getOrCreateCanvasShareLink,
+  invalidateCanvasShareLink,
+} from "./canvasShareCache";
 import {
   type CanvasShareLinkResult,
   CanvasShareProtocolError,
@@ -23,11 +26,13 @@ export type CanvasShareDialogState =
       phase: "ready";
       operationId: number;
       title: string;
+      payload: CanvasInlinePayload;
       link: string;
       linkKind: CanvasShareLinkResult["kind"];
       expiresAt?: string;
       copied: boolean;
       copyError: boolean;
+      retryingShortLink: boolean;
     }
   | {
       phase: "error";
@@ -62,6 +67,7 @@ export function useCanvasShareDialog() {
         phase: "ready",
         operationId,
         title,
+        payload,
         link: cached.result.link,
         linkKind: cached.result.kind,
         ...(cached.result.kind === "short"
@@ -69,6 +75,7 @@ export function useCanvasShareDialog() {
           : {}),
         copied: false,
         copyError: false,
+        retryingShortLink: false,
       });
       return;
     }
@@ -81,11 +88,13 @@ export function useCanvasShareDialog() {
           phase: "ready",
           operationId,
           title,
+          payload,
           link: result.link,
           linkKind: result.kind,
           ...(result.kind === "short" ? { expiresAt: result.expiresAt } : {}),
           copied: false,
           copyError: false,
+          retryingShortLink: false,
         });
       },
       (error: unknown) => {
@@ -127,6 +136,66 @@ export function useCanvasShareDialog() {
     prepare(state.payload, state.title);
   }, [prepare, state]);
 
+  const retryShortLink = useCallback(() => {
+    if (
+      state.phase !== "ready" ||
+      state.linkKind !== "self-contained" ||
+      state.retryingShortLink
+    ) {
+      return;
+    }
+
+    const previous = state;
+    const operationId = ++operationRef.current;
+    invalidateCanvasShareLink(state.payload);
+    const cached = getOrCreateCanvasShareLink(state.payload);
+
+    if (cached.phase === "ready") {
+      setState({
+        phase: "ready",
+        operationId,
+        title: state.title,
+        payload: state.payload,
+        link: cached.result.link,
+        linkKind: cached.result.kind,
+        ...(cached.result.kind === "short"
+          ? { expiresAt: cached.result.expiresAt }
+          : {}),
+        copied: false,
+        copyError: false,
+        retryingShortLink: false,
+      });
+      return;
+    }
+
+    setState({ ...state, operationId, retryingShortLink: true });
+    void cached.promise.then(
+      (result) => {
+        if (operationRef.current !== operationId) return;
+        setState({
+          phase: "ready",
+          operationId,
+          title: state.title,
+          payload: state.payload,
+          link: result.link,
+          linkKind: result.kind,
+          ...(result.kind === "short" ? { expiresAt: result.expiresAt } : {}),
+          copied: false,
+          copyError: false,
+          retryingShortLink: false,
+        });
+      },
+      () => {
+        if (operationRef.current !== operationId) return;
+        setState({
+          ...previous,
+          operationId,
+          retryingShortLink: false,
+        });
+      }
+    );
+  }, [state]);
+
   const copy = useCallback(async () => {
     if (state.phase !== "ready") return;
     const { operationId, link } = state;
@@ -148,5 +217,5 @@ export function useCanvasShareDialog() {
     }
   }, [state]);
 
-  return { state, open, close, retry, copy };
+  return { state, open, close, retry, retryShortLink, copy };
 }

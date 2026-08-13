@@ -9,6 +9,7 @@ import {
 
 const MAX_CACHE_ENTRIES = 16;
 const MAX_RETAINED_CHARACTERS = 1024 * 1024;
+const SELF_CONTAINED_CACHE_TTL_MS = 5 * 60 * 1000;
 
 type CanvasShareCacheKey = CanvasShareSnapshotV1;
 
@@ -27,6 +28,7 @@ interface PendingCanvasShareCacheEntry extends CanvasShareCacheEntryBase {
 interface ReadyCanvasShareCacheEntry extends CanvasShareCacheEntryBase {
   phase: "ready";
   result: CanvasShareLinkResult;
+  cachedAtMs: number;
 }
 
 type CanvasShareCacheEntry =
@@ -67,9 +69,11 @@ function retainedCharacters(key: CanvasShareCacheKey): number {
   );
 }
 
-function isReusable(result: CanvasShareLinkResult, nowMs: number): boolean {
-  if (result.kind === "self-contained") return true;
-  const expiresAtMs = Date.parse(result.expiresAt);
+function isReusable(entry: ReadyCanvasShareCacheEntry, nowMs: number): boolean {
+  if (entry.result.kind === "self-contained") {
+    return nowMs - entry.cachedAtMs < SELF_CONTAINED_CACHE_TTL_MS;
+  }
+  const expiresAtMs = Date.parse(entry.result.expiresAt);
   return Number.isFinite(expiresAtMs) && expiresAtMs > nowMs;
 }
 
@@ -123,7 +127,7 @@ export function getOrCreateCanvasShareLink(
       touch(existing);
       return { phase: "pending", promise: existing.promise };
     }
-    if (isReusable(existing.result, nowMs)) {
+    if (isReusable(existing, nowMs)) {
       touch(existing);
       return { phase: "ready", result: existing.result };
     }
@@ -147,6 +151,7 @@ export function getOrCreateCanvasShareLink(
           key,
           retainedCharacters: keyCharacters,
           result,
+          cachedAtMs: Date.now(),
         };
       }
       return result;
@@ -170,10 +175,24 @@ export function getOrCreateCanvasShareLink(
   return { phase: "pending", promise };
 }
 
+export function invalidateCanvasShareLink(payload: CanvasInlinePayload): void {
+  let key: CanvasShareCacheKey;
+  try {
+    key = cacheKeyFor(payload);
+  } catch {
+    return;
+  }
+  const entry = entries.find((candidate) => cacheKeysMatch(candidate.key, key));
+  if (!entry) return;
+  abortIfPending(entry);
+  removeEntry(entry);
+}
+
 export const canvasShareCacheTestApi = {
   limits: {
     entries: MAX_CACHE_ENTRIES,
     retainedCharacters: MAX_RETAINED_CHARACTERS,
+    selfContainedTtlMs: SELF_CONTAINED_CACHE_TTL_MS,
   },
   reset(): void {
     for (const entry of entries) abortIfPending(entry);

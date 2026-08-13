@@ -188,6 +188,81 @@ describe("useCanvasShareDialog", () => {
     });
   });
 
+  it("retries a cached fallback without hiding the usable full link", async () => {
+    let resolveRetry: (result: LinkResult) => void = () => undefined;
+    const payload = { mode: "html" as const, content: "<p>Recover</p>" };
+    testState.build
+      .mockResolvedValueOnce(fullLink("https://example.test/full"))
+      .mockImplementationOnce(
+        () =>
+          new Promise<LinkResult>((resolve) => {
+            resolveRetry = resolve;
+          })
+      );
+
+    await act(async () => {
+      controller().open(payload, "Recover");
+      await Promise.resolve();
+    });
+
+    act(() => controller().retryShortLink());
+    expect(controller().state).toMatchObject({
+      phase: "ready",
+      link: "https://example.test/full",
+      linkKind: "self-contained",
+      retryingShortLink: true,
+    });
+    act(() => controller().retryShortLink());
+    expect(testState.build).toHaveBeenCalledTimes(2);
+
+    await act(async () =>
+      resolveRetry({
+        link: "https://example.test/#/s/recoveredrecoveredreco",
+        kind: "short",
+        expiresAt: "2099-01-01T00:00:00.000Z",
+      })
+    );
+
+    expect(controller().state).toMatchObject({
+      phase: "ready",
+      link: "https://example.test/#/s/recoveredrecoveredreco",
+      linkKind: "short",
+      retryingShortLink: false,
+    });
+  });
+
+  it("regenerates a fallback after its recovery TTL", async () => {
+    const nowSpy = vi.spyOn(Date, "now").mockReturnValue(1_000);
+    const payload = { mode: "html" as const, content: "<p>Fallback</p>" };
+    testState.build
+      .mockResolvedValueOnce(fullLink("https://example.test/old-full"))
+      .mockResolvedValueOnce({
+        link: "https://example.test/#/s/recoveredrecoveredreco",
+        kind: "short",
+        expiresAt: "2099-01-01T00:00:00.000Z",
+      } satisfies LinkResult);
+
+    await act(async () => {
+      controller().open(payload, "Fallback");
+      await Promise.resolve();
+    });
+    act(() => controller().close());
+    nowSpy.mockReturnValue(
+      1_000 + canvasShareCacheTestApi.limits.selfContainedTtlMs + 1
+    );
+    await act(async () => {
+      controller().open(payload, "Recovered");
+      await Promise.resolve();
+    });
+
+    expect(testState.build).toHaveBeenCalledTimes(2);
+    expect(controller().state).toMatchObject({
+      phase: "ready",
+      linkKind: "short",
+    });
+    nowSpy.mockRestore();
+  });
+
   it("keys the cache by the normalized public snapshot", async () => {
     testState.build.mockResolvedValue(
       fullLink("https://example.test/normalized")

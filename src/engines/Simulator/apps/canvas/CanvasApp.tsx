@@ -516,6 +516,7 @@ const CanvasApp: React.FC<SimulatorAppProps> = () => {
     open: openCanvasShare,
     close: closeCanvasShare,
     retry: retryCanvasShare,
+    retryShortLink: retryCanvasShareShortLink,
     copy: copyCanvasShare,
   } = useCanvasShareDialog();
 
@@ -836,6 +837,7 @@ const CanvasApp: React.FC<SimulatorAppProps> = () => {
         state={canvasShareState}
         onClose={closeCanvasShare}
         onRetry={retryCanvasShare}
+        onRetryShortLink={retryCanvasShareShortLink}
         onCopy={copyCanvasShare}
       />
     </>

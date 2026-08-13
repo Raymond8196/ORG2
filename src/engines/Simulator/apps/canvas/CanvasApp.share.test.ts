@@ -75,6 +75,7 @@ vi.mock("@src/features/CanvasShare", async () => {
       open: testState.openCanvasShare,
       close: vi.fn(),
       retry: vi.fn(),
+      retryShortLink: vi.fn(),
       copy: vi.fn(),
     }),
   };
