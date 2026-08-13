@@ -37,7 +37,7 @@ fn sessions_db_path() -> std::path::PathBuf {
         .join("sessions.db")
 }
 
-/// Returns `(sm_content, sm_last_msg_idx)`; both `None` if row missing or columns null.
+/// Returns `(sm_content, sm_last_seq)`; both `None` if row missing or columns null.
 fn read_sm_state(session_id: &str) -> Result<(Option<String>, Option<i64>), String> {
     let path = sessions_db_path();
     let conn = Connection::open_with_flags(
@@ -47,7 +47,7 @@ fn read_sm_state(session_id: &str) -> Result<(Option<String>, Option<i64>), Stri
     .map_err(|err| format!("open {}: {}", path.display(), err))?;
 
     let row = conn.query_row(
-        "SELECT sm_content, sm_last_msg_idx FROM agent_sessions WHERE session_id = ?1",
+        "SELECT sm_content, sm_last_seq FROM agent_sessions WHERE session_id = ?1",
         [session_id],
         |row| {
             let content: Option<String> = row.get(0)?;
@@ -155,7 +155,7 @@ pub async fn session_memory_persisted(cfg: &Config) -> bool {
                 &format!("sm_content length >= {SM_MIN_CONTENT_LEN} (got {content_len})"),
                 content_non_trivial,
             ),
-            ("sm_last_msg_idx persisted (non-null)", idx_set),
+            ("sm_last_seq persisted (non-null)", idx_set),
         ],
     )
 }

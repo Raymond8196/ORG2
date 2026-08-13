@@ -28,6 +28,6 @@ pub use builders::{
 };
 pub use cleanup::{clear_messages, truncate_messages_from_sequence};
 pub use load_llm::{
-    compact_cutoff_sequence, load_llm_history, load_llm_history_text_only,
-    turns_since_last_tool_call,
+    compact_cutoff_sequence, load_llm_history, load_llm_history_start_sequences,
+    load_llm_history_text_only, turns_since_last_tool_call,
 };

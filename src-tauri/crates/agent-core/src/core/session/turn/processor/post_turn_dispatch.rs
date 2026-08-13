@@ -38,6 +38,8 @@ pub(super) struct PostTurnInputs<'a> {
     pub tool_calls_count: u32,
     pub final_turn_state: DialogTurnState,
     pub turn_started_at_ms: i64,
+    pub sm_current_tokens: usize,
+    pub sm_last_turn_has_tool_calls: bool,
 }
 
 impl UnifiedMessageProcessor {
@@ -52,6 +54,8 @@ impl UnifiedMessageProcessor {
             tool_calls_count,
             final_turn_state,
             turn_started_at_ms,
+            sm_current_tokens,
+            sm_last_turn_has_tool_calls,
         } = inputs;
 
         // 9. Broadcast completion FIRST — user sees "done" immediately.
@@ -97,26 +101,42 @@ impl UnifiedMessageProcessor {
             workspace: self.runtime.workspace_state.read().clone(),
         };
 
-        // 9b. Coordinator-owned session-memory extraction.
-        if should_run_post_turn_work(self.sm_config.enabled, final_turn_state)
-            && self.runtime.resolved.learnings.enabled
-        {
-            post_turn_jobs::spawn_session_memory_extraction(
-                post_turn_jobs::SessionMemoryExtractionInput {
-                    session_id,
-                    agent_id: self.runtime.agent_definition_id.clone(),
-                    prompt_tokens: result.prompt_tokens,
-                    tool_calls_count,
-                    sm_state: self.sm_state.clone(),
-                    sm_config: self.sm_config.clone(),
-                    fork_provider: fork_provider.clone(),
-                },
-            );
+        // 9b. Coordinator-owned session-memory extraction. SM is part of the
+        // context-window pipeline, not long-term memory, so it is gated by
+        // `sm_config.enabled` alone — never by the learnings policy. The gate
+        // and counter bookkeeping run here at dispatch: a job cancelled while
+        // queued can no longer lose them, and only due extractions are ever
+        // submitted.
+        if should_run_post_turn_work(self.sm_config.enabled, final_turn_state) {
+            let should_extract_now = {
+                let mut sm_state = self.sm_state.lock().await;
+                sm_state.record_tool_calls(tool_calls_count as usize);
+                crate::model_context::session_memory::should_extract(
+                    &sm_state,
+                    &self.sm_config,
+                    sm_current_tokens,
+                    sm_last_turn_has_tool_calls,
+                )
+            };
+            if should_extract_now {
+                post_turn_jobs::spawn_session_memory_extraction(
+                    post_turn_jobs::SessionMemoryExtractionInput {
+                        session_id,
+                        agent_id: self.runtime.agent_definition_id.clone(),
+                        current_tokens: sm_current_tokens,
+                        sm_state: self.sm_state.clone(),
+                        sm_config: self.sm_config.clone(),
+                        fork_provider: fork_provider.clone(),
+                    },
+                );
+            }
         }
 
         // 9c. Extract memories — forked extractor agent (fire-and-forget).
         // Subagents bypass this branch structurally (they don't go through
         // UnifiedMessageProcessor), so no explicit agent_id check is needed.
+        // The turn counter advances here at dispatch so cancelled or
+        // coalesced jobs cannot lose it; the job body no longer records.
         if should_run_post_turn_work(
             self.runtime.resolved.learnings.enabled
                 && self.runtime.resolved.learnings.extract_memories_enabled,
@@ -124,6 +144,10 @@ impl UnifiedMessageProcessor {
         ) && !result.is_stream_error
         {
             if let Some(ws_path) = self.workspace_root() {
+                {
+                    let mut em_state = self.session.em_state.lock().await;
+                    crate::memory::workspace_memory::extract::record_turn(&mut em_state);
+                }
                 post_turn_jobs::spawn_extract_memories(post_turn_jobs::ExtractMemoriesInput {
                     session_id,
                     agent_id: self.runtime.agent_definition_id.clone(),

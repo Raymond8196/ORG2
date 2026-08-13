@@ -1532,7 +1532,7 @@ pub async fn test_em_state_get(
         "ok": true,
         "session_id": session_id,
         "em_state": {
-            "last_processed_idx": em_snap.last_processed_idx,
+            "last_processed_seq": em_snap.last_processed_seq,
             "in_progress": em_snap.in_progress,
             "turns_since_extraction": em_snap.turns_since_extraction,
         },

@@ -92,7 +92,14 @@ pub async fn session_trigger_reflection(
     state: tauri::State<'_, AgentAppState>,
     session_id: String,
 ) -> Result<ReflectionResult, String> {
-    let _permit = crate::memory::background::acquire_memory_permit().await?;
+    let _permit = tokio::time::timeout(
+        std::time::Duration::from_secs(10),
+        crate::memory::background::acquire_memory_permit(),
+    )
+    .await
+    .map_err(|_| {
+        "Memory system is busy with background work; try again in a moment".to_string()
+    })??;
     let count = tokio::time::timeout(
         std::time::Duration::from_secs(120),
         crate::memory::reflection::maybe_reflect_on_session(&session_id),

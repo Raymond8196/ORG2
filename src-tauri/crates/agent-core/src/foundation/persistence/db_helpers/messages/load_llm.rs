@@ -177,15 +177,34 @@ pub fn load_llm_history(
 /// Background memory agents consume text/tool evidence only; loading image
 /// payloads there creates a large, short-lived duplicate with no extraction
 /// value.
+///
+/// Returns the reconstructed messages together with each message's first-row
+/// durable sequence (same order/length), so callers can anchor cursors by
+/// sequence instead of array index.
 pub fn load_llm_history_text_only(
     prefix: &str,
     session_id: &str,
-) -> rusqlite::Result<Vec<serde_json::Value>> {
+) -> rusqlite::Result<(Vec<serde_json::Value>, Vec<i64>)> {
     let mut messages = load_messages(prefix, session_id)?;
     for message in &mut messages {
         message.images = None;
     }
-    Ok(reconstruct(&visible_rows(&messages)))
+    let visible = visible_rows(&messages);
+    let refs: Vec<&AgentMessageRow> = visible.iter().collect();
+    Ok((reconstruct(&visible), llm_message_start_sequences(&refs)))
+}
+
+/// First-row durable sequence for each message of the current visible LLM
+/// history, in [`load_llm_history`] output order. Lets compaction resolve a
+/// sequence anchor to an index in whatever frame it holds.
+pub fn load_llm_history_start_sequences(
+    prefix: &str,
+    session_id: &str,
+) -> rusqlite::Result<Vec<i64>> {
+    let messages = load_messages(prefix, session_id)?;
+    let visible = visible_rows(&messages);
+    let refs: Vec<&AgentMessageRow> = visible.iter().collect();
+    Ok(llm_message_start_sequences(&refs))
 }
 
 /// Sequence of the first row contributing to each reconstructed LLM
@@ -590,10 +609,12 @@ mod tests {
         )
         .expect("insert image row");
 
-        let history = load_llm_history_text_only(DB_PREFIX, DB_SESSION).expect("text history");
+        let (history, start_seqs) =
+            load_llm_history_text_only(DB_PREFIX, DB_SESSION).expect("text history");
         assert_eq!(history.len(), 1);
         assert_eq!(history[0]["content"], "inspect this");
         assert!(history[0]["content"].is_string());
+        assert_eq!(start_seqs, vec![1], "start sequences mirror the messages");
     }
 
     #[test]

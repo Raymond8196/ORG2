@@ -8,9 +8,11 @@
 /// Per-session state for memory extraction. Held on `AgentSession`.
 #[derive(Debug, Default)]
 pub struct ExtractMemoriesState {
-    /// Index of the last message processed (cursor).
+    /// Durable start-sequence of the last message processed (cursor).
     /// `None` means no extraction has run yet for this session.
-    pub(super) last_processed_idx: Option<usize>,
+    /// Sequence-anchored so the bounded durable suffix each job loads can
+    /// shift without invalidating the cursor.
+    pub(super) last_processed_seq: Option<i64>,
 
     /// True while extraction is in progress (overlap guard).
     pub(super) in_progress: bool,
@@ -27,7 +29,7 @@ pub struct ExtractMemoriesState {
 /// fields as plain values that can be serialized over HTTP.
 #[derive(Debug, Clone, Copy)]
 pub struct ExtractMemoriesStateSnapshot {
-    pub last_processed_idx: Option<usize>,
+    pub last_processed_seq: Option<i64>,
     pub in_progress: bool,
     pub turns_since_extraction: u32,
 }
@@ -40,7 +42,7 @@ impl ExtractMemoriesState {
     /// needs an observable, not just a "behavior should happen" claim.
     pub fn snapshot(&self) -> ExtractMemoriesStateSnapshot {
         ExtractMemoriesStateSnapshot {
-            last_processed_idx: self.last_processed_idx,
+            last_processed_seq: self.last_processed_seq,
             in_progress: self.in_progress,
             turns_since_extraction: self.turns_since_extraction,
         }
@@ -68,7 +70,7 @@ mod tests {
     #[test]
     fn test_state_default() {
         let state = ExtractMemoriesState::default();
-        assert!(state.last_processed_idx.is_none());
+        assert!(state.last_processed_seq.is_none());
         assert!(!state.in_progress);
         assert_eq!(state.turns_since_extraction, 0);
     }

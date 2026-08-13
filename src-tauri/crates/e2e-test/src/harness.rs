@@ -739,7 +739,7 @@ pub async fn fetch_ready_todos(
 /// survive across turns.
 #[derive(Debug, Clone)]
 pub struct EmStateSnapshot {
-    pub last_processed_idx: Option<i64>,
+    pub last_processed_seq: Option<i64>,
     pub in_progress: bool,
     pub turns_since_extraction: u32,
 }
@@ -773,7 +773,7 @@ pub async fn fetch_em_state(cfg: &Config, session_id: &str) -> Result<EmStateSna
         .get("em_state")
         .ok_or_else(|| "response missing em_state field".to_string())?;
 
-    let last_processed_idx = em.get("last_processed_idx").and_then(|v| v.as_i64());
+    let last_processed_seq = em.get("last_processed_seq").and_then(|v| v.as_i64());
     let in_progress = em
         .get("in_progress")
         .and_then(|v| v.as_bool())
@@ -784,7 +784,7 @@ pub async fn fetch_em_state(cfg: &Config, session_id: &str) -> Result<EmStateSna
         .unwrap_or(0) as u32;
 
     Ok(EmStateSnapshot {
-        last_processed_idx,
+        last_processed_seq,
         in_progress,
         turns_since_extraction,
     })

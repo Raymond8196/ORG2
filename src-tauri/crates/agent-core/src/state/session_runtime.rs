@@ -216,7 +216,7 @@ pub struct AgentSession {
     pub ad_state: Arc<tokio::sync::Mutex<AutoDreamState>>,
     /// Per-session state for the background extract-memories hook.
     ///
-    /// Carries the message cursor (`last_processed_idx`), the in-progress
+    /// Carries the message cursor (`last_processed_seq`), the in-progress
     /// overlap guard, and the turns-since-last-extraction throttle counter.
     /// Pending work is lightweight and coordinator-owned; this state never
     /// retains transcript copies across turns.

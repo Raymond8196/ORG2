@@ -39,7 +39,6 @@ pub enum MemoryJobKind {
     AutoDream,
     Reflection,
     ActiveObservation,
-    LearningsConsolidation,
 }
 
 impl MemoryJobKind {
@@ -50,7 +49,6 @@ impl MemoryJobKind {
             Self::AutoDream => "auto_dream",
             Self::Reflection => "reflection",
             Self::ActiveObservation => "active_observation",
-            Self::LearningsConsolidation => "learnings_consolidation",
         }
     }
 }
@@ -217,7 +215,14 @@ impl MemoryJobCoordinator {
         let mut replaced_slot = None;
         let (slot_id, cancel) = {
             let mut state = self.state.lock().unwrap_or_else(|e| e.into_inner());
-            if job.replace_existing && state.slots.contains_key(&key) {
+            // A cancelled slot is torn down by its own drive loop; coalescing
+            // into it would silently drop the new job when the loop exits.
+            // Replace it with a fresh generation instead.
+            let existing_cancelled = state
+                .slots
+                .get(&key)
+                .is_some_and(|slot| slot.cancel.is_cancelled());
+            if (job.replace_existing || existing_cancelled) && state.slots.contains_key(&key) {
                 replaced_slot = state.slots.remove(&key);
             } else if let Some(slot) = state.slots.get_mut(&key) {
                 slot.agent_id = job.agent_id.clone();
@@ -482,18 +487,23 @@ pub fn memory_job_metrics() -> MemoryJobMetricsSnapshot {
     coordinator().metrics()
 }
 
-/// Resolve the current (not session-snapshotted) agent policy immediately
-/// before expensive work. This makes the settings switch a real hot gate.
-pub fn memory_job_is_enabled(agent_id: &str, kind: MemoryJobKind) -> bool {
-    let config = crate::definitions::resolve_learnings_for(agent_id);
+/// Single source of truth for "does this agent's learnings policy allow this
+/// job kind". Session memory is context-pipeline state, not long-term
+/// memory, so it is never policy-gated here — its own gate is
+/// `sm_config.enabled` at post-turn dispatch.
+fn kind_enabled(config: &crate::definitions::AgentLearningsConfig, kind: MemoryJobKind) -> bool {
     match kind {
-        MemoryJobKind::SessionMemory
-        | MemoryJobKind::Reflection
-        | MemoryJobKind::ActiveObservation
-        | MemoryJobKind::LearningsConsolidation => config.enabled,
+        MemoryJobKind::SessionMemory => true,
+        MemoryJobKind::Reflection | MemoryJobKind::ActiveObservation => config.enabled,
         MemoryJobKind::WorkspaceExtraction => config.enabled && config.extract_memories_enabled,
         MemoryJobKind::AutoDream => config.enabled && config.auto_dream_enabled,
     }
+}
+
+/// Resolve the current (not session-snapshotted) agent policy immediately
+/// before expensive work. This makes the settings switch a real hot gate.
+pub fn memory_job_is_enabled(agent_id: &str, kind: MemoryJobKind) -> bool {
+    kind_enabled(&crate::definitions::resolve_learnings_for(agent_id), kind)
 }
 
 /// Cancel only the kinds that the agent's freshly persisted policy disables.
@@ -502,17 +512,7 @@ pub fn memory_job_is_enabled(agent_id: &str, kind: MemoryJobKind) -> bool {
 pub fn cancel_disabled_memory_jobs_for_agent(agent_id: &str) -> usize {
     let config = crate::definitions::resolve_learnings_for(agent_id);
     coordinator().cancel_where(|key, slot| {
-        slot.agent_id.as_deref() == Some(agent_id)
-            && match key.kind {
-                MemoryJobKind::SessionMemory
-                | MemoryJobKind::Reflection
-                | MemoryJobKind::ActiveObservation
-                | MemoryJobKind::LearningsConsolidation => !config.enabled,
-                MemoryJobKind::WorkspaceExtraction => {
-                    !config.enabled || !config.extract_memories_enabled
-                }
-                MemoryJobKind::AutoDream => !config.enabled || !config.auto_dream_enabled,
-            }
+        slot.agent_id.as_deref() == Some(agent_id) && !kind_enabled(&config, key.kind)
     })
 }
 

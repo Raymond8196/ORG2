@@ -13,6 +13,7 @@ use tokio::sync::Mutex;
 use tracing::info;
 
 use super::super::persistence as unified_persistence;
+use super::streaming::broadcast_agent_warning;
 use crate::config::ReliabilityConfig;
 use crate::memory::background::{
     bridge_cancel_flag, memory_job_is_enabled, submit_memory_job, MemoryJob, MemoryJobKind,
@@ -53,13 +54,24 @@ async fn fresh_fork_provider(spec: &ForkProviderSpec) -> Result<Arc<dyn LLMProvi
     .map_err(|err| format!("Failed to create fork provider: {err}"))
 }
 
-fn load_durable_history(session_id: &str) -> Result<Vec<serde_json::Value>, String> {
-    let messages = unified_persistence::load_llm_history_text_only(session_id)
+fn load_durable_history(session_id: &str) -> Result<(Vec<serde_json::Value>, Vec<i64>), String> {
+    let (messages, start_seqs) = unified_persistence::load_llm_history_text_only(session_id)
         .map_err(|err| format!("Failed to load durable memory transcript: {err}"))?;
     Ok(bound_memory_transcript(
         messages,
+        start_seqs,
         MEMORY_TRANSCRIPT_MAX_BYTES,
     ))
+}
+
+/// SQLite loads are synchronous; keep them off the async runtime threads,
+/// matching every other async caller of the history loaders.
+async fn load_durable_history_blocking(
+    session_id: String,
+) -> Result<(Vec<serde_json::Value>, Vec<i64>), String> {
+    tokio::task::spawn_blocking(move || load_durable_history(&session_id))
+        .await
+        .map_err(|err| format!("history loader worker failed: {err}"))?
 }
 
 fn message_estimated_bytes(message: &serde_json::Value) -> usize {
@@ -70,30 +82,44 @@ fn message_estimated_bytes(message: &serde_json::Value) -> usize {
 /// assistant tool-call row together with all immediately following tool rows.
 /// An oversized newest group is kept intact: structural validity beats a hard
 /// byte cut that would make every provider retry fail.
+///
+/// `start_seqs` is truncated in lockstep so sequence anchors stay aligned
+/// with the surviving suffix.
 fn bound_memory_transcript(
     messages: Vec<serde_json::Value>,
+    start_seqs: Vec<i64>,
     max_bytes: usize,
-) -> Vec<serde_json::Value> {
+) -> (Vec<serde_json::Value>, Vec<i64>) {
     if messages.is_empty() || max_bytes == 0 {
-        return messages;
+        return (messages, start_seqs);
     }
 
-    let mut groups: Vec<Vec<serde_json::Value>> = Vec::new();
+    let mut paired: Vec<(serde_json::Value, i64)> = Vec::with_capacity(messages.len());
+    let mut seqs = start_seqs.into_iter();
     for message in messages {
-        let role = message.get("role").and_then(|value| value.as_str());
+        let seq = seqs.next().unwrap_or(i64::MAX);
+        paired.push((message, seq));
+    }
+
+    let mut groups: Vec<Vec<(serde_json::Value, i64)>> = Vec::new();
+    for entry in paired {
+        let role = entry.0.get("role").and_then(|value| value.as_str());
         if role == Some("tool") {
             if let Some(last) = groups.last_mut() {
-                last.push(message);
+                last.push(entry);
                 continue;
             }
         }
-        groups.push(vec![message]);
+        groups.push(vec![entry]);
     }
 
-    let mut kept: Vec<Vec<serde_json::Value>> = Vec::new();
+    let mut kept: Vec<Vec<(serde_json::Value, i64)>> = Vec::new();
     let mut used = 0usize;
     for group in groups.into_iter().rev() {
-        let group_bytes = group.iter().map(message_estimated_bytes).sum::<usize>();
+        let group_bytes = group
+            .iter()
+            .map(|(message, _)| message_estimated_bytes(message))
+            .sum::<usize>();
         if !kept.is_empty() && used.saturating_add(group_bytes) > max_bytes {
             break;
         }
@@ -101,7 +127,7 @@ fn bound_memory_transcript(
         kept.push(group);
     }
     kept.reverse();
-    kept.into_iter().flatten().collect()
+    kept.into_iter().flatten().unzip()
 }
 
 // ── Session memory extraction (step 9b) ─────────────────────────────
@@ -109,26 +135,27 @@ fn bound_memory_transcript(
 pub(super) struct SessionMemoryExtractionInput<'a> {
     pub session_id: &'a str,
     pub agent_id: Option<String>,
-    pub prompt_tokens: i64,
-    pub tool_calls_count: u32,
+    pub current_tokens: usize,
     pub sm_state: Arc<Mutex<SessionMemoryState>>,
     pub sm_config: SessionMemoryConfig,
     pub fork_provider: ForkProviderSpec,
 }
 
+/// The extraction gate and counter bookkeeping already ran at dispatch
+/// (`post_turn_dispatch` 9b), so the job body only loads, extracts, and
+/// persists. SM is context-pipeline state — no learnings policy check here.
 pub(super) fn spawn_session_memory_extraction(input: SessionMemoryExtractionInput<'_>) {
     let SessionMemoryExtractionInput {
         session_id,
         agent_id,
-        prompt_tokens,
-        tool_calls_count,
+        current_tokens,
         sm_state,
         sm_config,
         fork_provider,
     } = input;
     let sid = session_id.to_string();
     let job_sid = sid.clone();
-    let job_agent_id = agent_id.clone();
+    let cleanup_sid = sid.clone();
     let cleanup_state = Arc::clone(&sm_state);
 
     let job = MemoryJob::new(
@@ -137,31 +164,7 @@ pub(super) fn spawn_session_memory_extraction(input: SessionMemoryExtractionInpu
         MemoryJobKind::SessionMemory,
         SESSION_MEMORY_TIMEOUT,
         move |cancel| async move {
-            if let Some(agent_id) = job_agent_id.as_deref() {
-                if !memory_job_is_enabled(agent_id, MemoryJobKind::SessionMemory) {
-                    return Ok(());
-                }
-            }
-
-            let messages = load_durable_history(&job_sid)?;
-            let current_tokens = if prompt_tokens > 0 {
-                prompt_tokens as usize
-            } else {
-                crate::model_context::tokenizer::count_messages_tokens(&messages)
-            };
-            let has_tool_calls = session_memory::last_turn_has_tool_calls(&messages);
-            {
-                let mut state = sm_state.lock().await;
-                state.record_tool_calls(tool_calls_count as usize);
-                if !session_memory::should_extract(
-                    &state,
-                    &sm_config,
-                    current_tokens,
-                    has_tool_calls,
-                ) {
-                    return Ok(());
-                }
-            }
+            let (messages, start_seqs) = load_durable_history_blocking(job_sid.clone()).await?;
 
             info!(
                 session_id = %job_sid,
@@ -172,22 +175,39 @@ pub(super) fn spawn_session_memory_extraction(input: SessionMemoryExtractionInpu
             let cancel_bridge = bridge_cancel_flag(cancel);
             let result = session_memory::extract_session_memory(
                 &messages,
+                &start_seqs,
                 Arc::clone(&sm_state),
                 &sm_config,
                 provider.as_ref(),
                 &fork_provider.model,
+                current_tokens,
                 Some(cancel_bridge.flag()),
             )
             .await;
 
             let content = result?;
-            let last_idx = sm_state.lock().await.last_summarized_msg_idx;
-            unified_persistence::save_session_memory_state(&job_sid, &content, last_idx)
-                .map_err(|err| format!("Failed to persist session memory state: {err}"))?;
+            let last_seq = sm_state.lock().await.last_summarized_seq;
+            let persist_sid = job_sid.clone();
+            tokio::task::spawn_blocking(move || {
+                unified_persistence::save_session_memory_state(&persist_sid, &content, last_seq)
+            })
+            .await
+            .map_err(|err| format!("SM persist worker failed: {err}"))?
+            .map_err(|err| format!("Failed to persist session memory state: {err}"))?;
             Ok(())
         },
     )
     .with_cleanup(move |outcome| async move {
+        match outcome {
+            MemoryJobOutcome::Completed | MemoryJobOutcome::Cancelled => {}
+            MemoryJobOutcome::Failed | MemoryJobOutcome::TimedOut => {
+                broadcast_agent_warning(
+                    &cleanup_sid,
+                    "Session memory extraction did not complete; it will retry on a later turn",
+                    "session_memory",
+                );
+            }
+        }
         if outcome != MemoryJobOutcome::Completed {
             cleanup_state.lock().await.extraction_in_progress = false;
         }
@@ -232,12 +252,13 @@ pub(super) fn spawn_extract_memories(input: ExtractMemoriesInput<'_>) {
                 }
             }
 
-            let messages = load_durable_history(&job_sid)?;
+            let (messages, start_seqs) = load_durable_history_blocking(job_sid.clone()).await?;
             let main_wrote = {
                 let mut state = em_state.lock().await;
                 extract_memories::skip_if_main_agent_wrote_memory(
                     &mut state,
                     &messages,
+                    &start_seqs,
                     ws_path.as_path(),
                 )
             };
@@ -245,11 +266,14 @@ pub(super) fn spawn_extract_memories(input: ExtractMemoriesInput<'_>) {
                 false
             } else {
                 let state = em_state.lock().await;
-                extract_memories::should_extract(&state, &messages, Some(ws_path.as_path()))
+                extract_memories::should_extract(
+                    &state,
+                    &messages,
+                    &start_seqs,
+                    Some(ws_path.as_path()),
+                )
             };
             if !should_run {
-                let mut state = em_state.lock().await;
-                extract_memories::record_turn(&mut state);
                 return Ok(());
             }
 
@@ -265,8 +289,7 @@ pub(super) fn spawn_extract_memories(input: ExtractMemoriesInput<'_>) {
                 definitions_store: None,
                 cancel_flag: Some(cancel_bridge.flag()),
             };
-            let result = extract_memories::run_extraction(Arc::clone(&em_state), params).await;
-            result
+            extract_memories::run_extraction(Arc::clone(&em_state), params, &start_seqs).await
         },
     )
     .with_cleanup(move |outcome| async move {
@@ -320,7 +343,7 @@ pub(super) fn spawn_auto_dream(input: AutoDreamInput<'_>) {
                 state.mark_scan_now();
             }
 
-            let messages = load_durable_history(&job_sid)?;
+            let (messages, _start_seqs) = load_durable_history_blocking(job_sid.clone()).await?;
             let provider = fresh_fork_provider(&fork_provider).await?;
             let cancel_bridge = bridge_cancel_flag(cancel);
             let params = crate::memory::MemoryAgentParams {
@@ -333,8 +356,7 @@ pub(super) fn spawn_auto_dream(input: AutoDreamInput<'_>) {
                 definitions_store: None,
                 cancel_flag: Some(cancel_bridge.flag()),
             };
-            let result = auto_dream::run_consolidation(params).await;
-            result
+            auto_dream::run_consolidation(params).await
         },
     );
     submit_memory_job(job);
@@ -351,10 +373,11 @@ mod tests {
             serde_json::json!({"role": "assistant", "content": "middle"}),
             serde_json::json!({"role": "user", "content": "new"}),
         ];
-        let bounded = bound_memory_transcript(messages, 100);
+        let (bounded, seqs) = bound_memory_transcript(messages, vec![10, 20, 30], 100);
         assert_eq!(bounded.len(), 2);
         assert_eq!(bounded[0]["content"], "middle");
         assert_eq!(bounded[1]["content"], "new");
+        assert_eq!(seqs, vec![20, 30], "seqs truncate in lockstep");
     }
 
     #[test]
@@ -368,9 +391,10 @@ mod tests {
             }),
             serde_json::json!({"role": "tool", "tool_call_id": "call-1", "content": "result"}),
         ];
-        let bounded = bound_memory_transcript(messages, 1);
+        let (bounded, seqs) = bound_memory_transcript(messages, vec![1, 2, 2], 1);
         assert_eq!(bounded.len(), 2, "newest oversized group stays intact");
         assert_eq!(bounded[0]["role"], "assistant");
         assert_eq!(bounded[1]["role"], "tool");
+        assert_eq!(seqs, vec![2, 2]);
     }
 }
