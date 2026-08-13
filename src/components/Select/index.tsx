@@ -217,6 +217,17 @@ const Select = forwardRef<HTMLDivElement, SelectProps>(
       [resetHighlight, onSearch]
     );
 
+    // The search field lives in a portal that is a sibling of the trigger,
+    // so its key events cannot bubble to the trigger's navigation handler.
+    // Forward navigation keys explicitly while preserving Tauri's Cmd/Ctrl+A.
+    const handleSearchKeyDown = useCallback(
+      (event: React.KeyboardEvent<HTMLInputElement>) => {
+        tauriSelectAll(event);
+        if (!event.defaultPrevented) handleKeyDown(event);
+      },
+      [handleKeyDown, tauriSelectAll]
+    );
+
     // ---- Focus search input on open ----
     useEffect(() => {
       if (currentPopupVisible && showSearch) {
@@ -405,7 +416,7 @@ const Select = forwardRef<HTMLDivElement, SelectProps>(
                     value={searchValue}
                     onChange={handleSearchChange}
                     onClick={(event) => event.stopPropagation()}
-                    onKeyDown={tauriSelectAll}
+                    onKeyDown={handleSearchKeyDown}
                     autoCorrect="off"
                     autoCapitalize="off"
                     spellCheck={false}
