@@ -93,6 +93,18 @@ export async function updatePRStateLocal(
   });
 }
 
+export async function updatePRDraftStateLocal(
+  repoFullName: string,
+  prNumber: number,
+  draft: boolean
+): Promise<void> {
+  return invokeWithAuth<void>("github_update_pr_draft_state", {
+    repoFullName,
+    prNumber,
+    draft,
+  });
+}
+
 export type PullRequestMergeMethod = "merge" | "squash" | "rebase";
 
 export interface PullRequestMergeResult {

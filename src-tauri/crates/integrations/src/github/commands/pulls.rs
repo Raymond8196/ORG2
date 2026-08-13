@@ -28,6 +28,22 @@ mutation DisablePullRequestAutoMerge($input: DisablePullRequestAutoMergeInput!) 
 }
 "#;
 
+const CONVERT_PULL_REQUEST_TO_DRAFT_MUTATION: &str = r#"
+mutation ConvertPullRequestToDraft($input: ConvertPullRequestToDraftInput!) {
+  convertPullRequestToDraft(input: $input) {
+    pullRequest { id isDraft }
+  }
+}
+"#;
+
+const MARK_PULL_REQUEST_READY_FOR_REVIEW_MUTATION: &str = r#"
+mutation MarkPullRequestReadyForReview($input: MarkPullRequestReadyForReviewInput!) {
+  markPullRequestReadyForReview(input: $input) {
+    pullRequest { id isDraft }
+  }
+}
+"#;
+
 const ENQUEUE_PULL_REQUEST_MUTATION: &str = r#"
 mutation EnqueuePullRequest($input: EnqueuePullRequestInput!) {
   enqueuePullRequest(input: $input) {
@@ -517,6 +533,35 @@ struct AutoMergeGraphqlRequest {
     input: Value,
 }
 
+#[derive(Debug)]
+struct DraftStateGraphqlRequest {
+    mutation: &'static str,
+    mutation_field: &'static str,
+    input: Value,
+}
+
+fn build_draft_state_graphql_request(
+    draft: bool,
+    pull_request_id: &str,
+) -> DraftStateGraphqlRequest {
+    let (mutation, mutation_field) = if draft {
+        (
+            CONVERT_PULL_REQUEST_TO_DRAFT_MUTATION,
+            "convertPullRequestToDraft",
+        )
+    } else {
+        (
+            MARK_PULL_REQUEST_READY_FOR_REVIEW_MUTATION,
+            "markPullRequestReadyForReview",
+        )
+    };
+    DraftStateGraphqlRequest {
+        mutation,
+        mutation_field,
+        input: json!({ "pullRequestId": pull_request_id }),
+    }
+}
+
 fn build_auto_merge_graphql_request(
     enabled: bool,
     method: Option<&str>,
@@ -689,6 +734,43 @@ pub async fn github_set_pr_auto_merge(
     Ok(PullRequestAutoMergeResult { enabled })
 }
 
+#[command]
+pub async fn github_update_pr_draft_state(
+    repo_full_name: String,
+    pr_number: u64,
+    draft: bool,
+) -> Result<(), String> {
+    log::info!(
+        "[GitHub][Cmd] update_pr_draft_state repo={repo_full_name} pr={pr_number} draft={draft}"
+    );
+    let client = make_client()?;
+    let detail = client
+        .get(&format!("/repos/{repo_full_name}/pulls/{pr_number}"))
+        .await?;
+    if detail["state"].as_str() != Some("open") || detail["merged"].as_bool() == Some(true) {
+        return Err("Draft status can be changed only for open pull requests".to_string());
+    }
+    if detail["draft"].as_bool() == Some(draft) {
+        return Ok(());
+    }
+    let pull_request_id = detail["node_id"]
+        .as_str()
+        .ok_or_else(|| "GitHub did not return the pull request node ID".to_string())?;
+    let request = build_draft_state_graphql_request(draft, pull_request_id);
+    let response = client
+        .graphql(request.mutation, json!({ "input": request.input }))
+        .await?;
+    if let Some(error) = graphql_error(&response) {
+        return Err(error);
+    }
+    let updated_draft =
+        response["data"][request.mutation_field]["pullRequest"]["isDraft"].as_bool();
+    if updated_draft != Some(draft) {
+        return Err("GitHub did not confirm the pull request draft status change".to_string());
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod pr_action_payload_tests {
     use super::*;
@@ -726,6 +808,22 @@ mod pr_action_payload_tests {
                 "pullRequestId": "pull-request-node",
             })
         );
+    }
+
+    #[test]
+    fn draft_state_payloads_use_the_matching_graphql_mutation() {
+        let convert = build_draft_state_graphql_request(true, "pull-request-node");
+        assert_eq!(convert.mutation, CONVERT_PULL_REQUEST_TO_DRAFT_MUTATION);
+        assert_eq!(convert.mutation_field, "convertPullRequestToDraft");
+        assert_eq!(
+            convert.input,
+            json!({ "pullRequestId": "pull-request-node" })
+        );
+
+        let ready = build_draft_state_graphql_request(false, "pull-request-node");
+        assert_eq!(ready.mutation, MARK_PULL_REQUEST_READY_FOR_REVIEW_MUTATION);
+        assert_eq!(ready.mutation_field, "markPullRequestReadyForReview");
+        assert_eq!(ready.input, json!({ "pullRequestId": "pull-request-node" }));
     }
 
     #[test]
