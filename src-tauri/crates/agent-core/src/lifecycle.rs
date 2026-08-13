@@ -529,20 +529,24 @@ pub async fn finalize_session(
     load_workspace_resources: bool,
     terminal_turn: Option<TerminalTurnSignal>,
 ) -> AgentSessionStatus {
-    let is_agent_org_member_session = {
+    let (is_agent_org_member_session, session_agent_definition_id) = {
         let sid = session_id.to_string();
         tokio::task::spawn_blocking(move || {
             session_persistence::get_session(&sid)
                 .ok()
                 .flatten()
                 .map(|record| {
-                    record.session_type == crate::session::persistence::session_type::ORG_MEMBER
-                        || record.org_member_id.is_some()
+                    (
+                        record.session_type
+                            == crate::session::persistence::session_type::ORG_MEMBER
+                            || record.org_member_id.is_some(),
+                        record.agent_definition_id,
+                    )
                 })
-                .unwrap_or(false)
+                .unwrap_or((false, None))
         })
         .await
-        .unwrap_or(false)
+        .unwrap_or((false, None))
     };
 
     let final_status = if response.is_ok() {
@@ -671,58 +675,76 @@ pub async fn finalize_session(
         }
     }
 
-    // Post-session reflection: fire-and-forget.
-    // Gating (per-agent `learnings.enabled`) lives inside
-    // `maybe_reflect_on_session` — see reflection.rs. This keeps the decision
-    // close to the `AgentDefinition` resolver and out of the lifecycle path.
+    // Post-session reflection and active observation are coordinator-owned.
+    // The current policy is checked after admission and again inside each
+    // subsystem before any LLM call, so the settings switch is a hot gate.
     if final_status == AgentSessionStatus::Completed && !e2e_background_llm_disabled() {
+        const REFLECTION_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(120);
+        const SESSION_QUIESCENCE_DELAY: std::time::Duration =
+            std::time::Duration::from_secs(5 * 60);
         let sid = session_id.to_string();
-        tokio::spawn(async move {
-            match crate::memory::reflection::maybe_reflect_on_session(&sid).await {
-                Ok(count) => {
+        let agent_id = session_agent_definition_id.clone();
+        let job_agent_id = agent_id.clone();
+        crate::memory::background::submit_memory_job(
+            crate::memory::background::MemoryJob::new(
+                sid.clone(),
+                agent_id,
+                crate::memory::background::MemoryJobKind::Reflection,
+                REFLECTION_TIMEOUT,
+                move |_cancel| async move {
+                    if let Some(agent_id) = job_agent_id.as_deref() {
+                        if !crate::memory::background::memory_job_is_enabled(
+                            agent_id,
+                            crate::memory::background::MemoryJobKind::Reflection,
+                        ) {
+                            return Ok(());
+                        }
+                    }
+                    let count = crate::memory::reflection::maybe_reflect_on_session(&sid).await?;
                     tracing::info!(
                         "[lifecycle] Post-session reflection stored {} learnings for {}",
                         count,
                         sid
                     );
-                }
-                Err(err) => {
-                    tracing::info!(
-                        "[lifecycle] Post-session reflection skipped for {}: {}",
-                        sid,
-                        err
-                    );
-                }
-            }
-        });
+                    Ok(())
+                },
+            )
+            .with_debounce(SESSION_QUIESCENCE_DELAY),
+        );
 
-        // Active observation: sibling L3 write path for tool-failure →
-        // user-intervention patterns. Same gating semantics as reflection
-        // (agent scope, `learningsEnabled`, `reflection_blacklist`); spawn
-        // independently so reflection + observation can run in parallel
-        // and neither blocks the session-end code path. See
-        // `active_learning::maybe_observe_tool_failures`.
         let sid = session_id.to_string();
-        tokio::spawn(async move {
-            match crate::memory::reflection::active_learning::maybe_observe_tool_failures(&sid)
-                .await
-            {
-                Ok(count) => {
+        let agent_id = session_agent_definition_id;
+        let job_agent_id = agent_id.clone();
+        crate::memory::background::submit_memory_job(
+            crate::memory::background::MemoryJob::new(
+                sid.clone(),
+                agent_id,
+                crate::memory::background::MemoryJobKind::ActiveObservation,
+                REFLECTION_TIMEOUT,
+                move |_cancel| async move {
+                    if let Some(agent_id) = job_agent_id.as_deref() {
+                        if !crate::memory::background::memory_job_is_enabled(
+                            agent_id,
+                            crate::memory::background::MemoryJobKind::ActiveObservation,
+                        ) {
+                            return Ok(());
+                        }
+                    }
+                    let count =
+                        crate::memory::reflection::active_learning::maybe_observe_tool_failures(
+                            &sid,
+                        )
+                        .await?;
                     tracing::info!(
                         "[lifecycle] Post-session active observation stored {} learnings for {}",
                         count,
                         sid
                     );
-                }
-                Err(err) => {
-                    tracing::info!(
-                        "[lifecycle] Post-session active observation skipped for {}: {}",
-                        sid,
-                        err
-                    );
-                }
-            }
-        });
+                    Ok(())
+                },
+            )
+            .with_debounce(SESSION_QUIESCENCE_DELAY),
+        );
     }
 
     final_status
