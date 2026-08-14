@@ -2822,7 +2822,30 @@
     "empty": "無內容"
   },
   "canvasApp": {
+    "share": "分享",
+    "shareHint": "分享這個 Canvas 快照",
+    "shareWaitForRevision": "請等待 Canvas 更新完成",
+    "shareLocalUrlUnavailable": "其他人無法開啟本機 URL",
+    "shareTooLarge": "這個 Canvas 太大，無法產生分享連結",
+    "shareEmpty": "這個 Canvas 沒有可分享的內容",
+    "shareDialogTitle": "分享 Canvas",
+    "shareDialogScope": "只包含這個 Canvas 快照。對話、儲存庫、會話以及後續修訂都不會被分享。",
+    "shareDialogPreparing": "正在建立連結…",
+    "shareDialogLink": "Canvas 分享連結",
+    "shareDialogCopyFailed": "複製失敗。請選取連結後手動複製。",
+    "shareDialogPublic": "任何擁有此連結的人都可以檢視該快照。",
+    "shareDialogShortExpiry": "短連結 · 有效期至 {{date}}",
+    "shareDialogFallback": "短連結服務不可用，已改為建立完整連結。",
+    "shareDialogOpen": "開啟",
+    "shareDialogCopied": "已複製",
+    "shareDialogCopy": "複製連結",
+    "shareDialogTooLarge": "這個 Canvas 太大，無法產生可靠的自包含連結。",
+    "shareDialogShortUnavailable": "分享服務暫時無法連線，而這個 Canvas 太大，無法產生自包含連結。請稍後再試。",
+    "shareDialogUnsupported": "目前應用版本無法建立壓縮的 Canvas 連結。",
+    "shareDialogInvalid": "這個 Canvas 不包含可發佈的快照。",
+    "shareDialogError": "無法建立 Canvas 連結。",
     "shareDialogRetryShort": "重試短連結",
-    "shareDialogRetryingShort": "正在重試…"
+    "shareDialogRetryingShort": "正在重試…",
+    "retry": "重試"
   }
 }
