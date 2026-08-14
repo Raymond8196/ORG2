@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { getDefaultStore } from "jotai";
 import { act, createElement } from "react";
 import { type Root, createRoot } from "react-dom/client";
 import {
@@ -11,8 +12,6 @@ import {
   it,
   vi,
 } from "vitest";
-
-import { getDefaultStore } from "jotai";
 
 import { replayModeAtom } from "@src/engines/SessionCore/core/atoms";
 
