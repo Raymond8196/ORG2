@@ -8,7 +8,6 @@ pub mod commands;
 pub mod diff_stats;
 pub mod follow_up;
 pub mod proof_of_work;
-pub mod recovery;
 pub mod state_machine;
 
 #[cfg(test)]
