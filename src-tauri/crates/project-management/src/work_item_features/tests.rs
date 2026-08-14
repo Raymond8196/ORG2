@@ -162,10 +162,66 @@ fn discussion_comment_and_run_are_atomic_and_threads_reopen_on_reply() {
         })
         .expect("outbox count");
     assert_eq!(
-        run_count, 3,
-        "root, reply, and reopened reply dispatch once each"
+        run_count, 1,
+        "consecutive waking comments coalesce into one open wake window"
     );
     assert_eq!(outbox_count, run_count);
+    let input_json: String = connection
+        .query_row(
+            "SELECT input_json FROM pm_work_item_runs WHERE work_item_id = 'AAA-0001'",
+            [],
+            |row| row.get(0),
+        )
+        .expect("wake input");
+    let input: serde_json::Value = serde_json::from_str(&input_json).expect("wake input json");
+    let merged_ids = input["discussionCommentIds"]
+        .as_array()
+        .expect("merged comment ids")
+        .iter()
+        .filter_map(|value| value.as_str().map(str::to_string))
+        .collect::<Vec<_>>();
+    assert_eq!(
+        merged_ids,
+        vec![
+            "comment-root".to_string(),
+            "comment-reply".to_string(),
+            "comment-after-resolution".to_string()
+        ],
+        "the window carries every merged comment in arrival order"
+    );
+}
+
+#[test]
+fn discussion_wake_window_closes_once_the_dispatcher_claims_it() {
+    let _sandbox = test_env::sandbox();
+    seed(true);
+
+    let first = post("comment-first", "Please include the retry proof.", None);
+    let first_run = first.run.expect("first wake run");
+
+    let connection = conn().expect("connection");
+    connection
+        .execute(
+            "UPDATE pm_dispatch_outbox SET status = 'leased' WHERE run_id = ?1",
+            rusqlite::params![first_run.id],
+        )
+        .expect("simulate dispatcher claim");
+
+    let second = post("comment-second", "One more detail.", None);
+    let second_run = second.run.expect("second wake run");
+    assert_ne!(
+        second_run.id, first_run.id,
+        "a claimed window must not absorb new comments"
+    );
+
+    let run_count: i64 = connection
+        .query_row(
+            "SELECT COUNT(*) FROM pm_work_item_runs WHERE work_item_id = 'AAA-0001'",
+            [],
+            |row| row.get(0),
+        )
+        .expect("run count");
+    assert_eq!(run_count, 2, "window close opens a fresh deferred wake");
 }
 
 #[test]

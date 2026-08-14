@@ -200,6 +200,122 @@ fn preview_from_decision(decision: &RouteDecision) -> DiscussionTriggerPreview {
     }
 }
 
+/// Debounce window: a wake run stays merge-open this long after the latest
+/// comment, so consecutive comments dispatch as one wake.
+const DISCUSSION_WAKE_WINDOW_MS: i64 = 15_000;
+/// Hard ceiling from the anchor comment — continuous typing cannot postpone
+/// the wake forever.
+const DISCUSSION_WAKE_CAP_MS: i64 = 120_000;
+
+fn same_wake_target(stored_target_json: &str, target: &WorkItemRunTarget) -> bool {
+    serde_json::from_str::<WorkItemRunTargetSnapshot>(stored_target_json)
+        .map(|snapshot| match (&snapshot.target, target) {
+            (
+                WorkItemRunTarget::ResumeSession { session_id: stored },
+                WorkItemRunTarget::ResumeSession { session_id },
+            ) => stored == session_id,
+            (WorkItemRunTarget::StartWorkItem { .. }, WorkItemRunTarget::StartWorkItem { .. }) => {
+                true
+            }
+            _ => false,
+        })
+        .unwrap_or(false)
+}
+
+/// Merge a new waking comment into an open wake window: a queued
+/// discussion run for the same target whose outbox row is still `pending`.
+/// The conditional outbox update is the window gate — once the dispatcher
+/// leases the row, the update misses and the caller opens a new window.
+fn merge_into_open_wake_window(
+    tx: &rusqlite::Transaction<'_>,
+    scope_key: &str,
+    work_item_id: &str,
+    target: &WorkItemRunTarget,
+    comment: &CommentEntry,
+    author_name: &str,
+    short_id: &str,
+    now: i64,
+) -> Result<Option<String>, String> {
+    let mut statement = tx
+        .prepare(
+            "SELECT id, input_json, target_json, created_at FROM pm_work_item_runs
+              WHERE scope_key = ?1 AND work_item_id = ?2 AND status = 'queued'
+                AND idempotency_key LIKE 'discussion-wake:%'
+              ORDER BY created_at DESC",
+        )
+        .map_err(|err| format!("Discussion wake window query: {err}"))?;
+    let candidates = statement
+        .query_map(params![scope_key, work_item_id], |row| {
+            Ok((
+                row.get::<_, String>(0)?,
+                row.get::<_, String>(1)?,
+                row.get::<_, String>(2)?,
+                row.get::<_, i64>(3)?,
+            ))
+        })
+        .map_err(|err| format!("Discussion wake window rows: {err}"))?
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|err| format!("Discussion wake window rows: {err}"))?;
+    drop(statement);
+
+    for (run_id, input_json, target_json, created_at) in candidates {
+        if !same_wake_target(&target_json, target) {
+            continue;
+        }
+        let capped_available_at = (now + DISCUSSION_WAKE_WINDOW_MS)
+            .min(created_at.saturating_add(DISCUSSION_WAKE_CAP_MS));
+        let window_open = tx
+            .execute(
+                "UPDATE pm_dispatch_outbox
+                    SET available_at = ?2, updated_at = ?3
+                  WHERE run_id = ?1 AND status = 'pending'",
+                params![run_id, capped_available_at, now],
+            )
+            .map_err(|err| format!("Discussion wake window extend: {err}"))?;
+        if window_open == 0 {
+            continue;
+        }
+        let mut input: serde_json::Value = serde_json::from_str(&input_json)
+            .map_err(|err| format!("Discussion wake input parse: {err}"))?;
+        let already_merged = input
+            .get("discussionCommentIds")
+            .and_then(|value| value.as_array())
+            .map(|ids| ids.iter().any(|id| id.as_str() == Some(&comment.id)))
+            .unwrap_or(false);
+        if !already_merged {
+            let appended = format!(
+                "{}\n\n{}",
+                input.get("content").and_then(|v| v.as_str()).unwrap_or(""),
+                build_forward_message(short_id, &comment.id, author_name, &comment.content)
+            );
+            input["content"] = serde_json::Value::String(appended);
+            let ids = input
+                .get("discussionCommentIds")
+                .and_then(|value| value.as_array())
+                .cloned()
+                .unwrap_or_default();
+            let mut ids = ids;
+            ids.push(serde_json::Value::String(comment.id.clone()));
+            let merged_count = ids.len();
+            input["discussionCommentIds"] = serde_json::Value::Array(ids);
+            input["displayText"] =
+                serde_json::Value::String(format!("💬 {merged_count} comments"));
+            tx.execute(
+                "UPDATE pm_work_item_runs SET input_json = ?2, updated_at = ?3 WHERE id = ?1",
+                params![
+                    run_id,
+                    serde_json::to_string(&input)
+                        .map_err(|err| format!("Discussion wake input serialize: {err}"))?,
+                    now
+                ],
+            )
+            .map_err(|err| format!("Discussion wake input update: {err}"))?;
+        }
+        return Ok(Some(run_id));
+    }
+    Ok(None)
+}
+
 pub(super) fn preview(
     request: DiscussionTriggerPreviewRequest,
 ) -> Result<DiscussionTriggerPreview, String> {
@@ -290,16 +406,22 @@ pub(super) fn post(request: DiscussionPostRequest) -> Result<DiscussionPostResul
             .query_row(
                 "SELECT id FROM pm_work_item_runs
                   WHERE scope_key = ?1 AND work_item_id = ?2
-                    AND idempotency_key = ?3",
+                    AND (idempotency_key IN (?3, ?4)
+                         OR input_json LIKE ?5)
+                  ORDER BY created_at DESC",
                 params![
                     item.scope_key,
                     item.short_id,
-                    format!("discussion-comment:{}", request.comment_id)
+                    format!("discussion-wake:{}", request.comment_id),
+                    format!("discussion-comment:{}", request.comment_id),
+                    format!("%\"{}\"%", request.comment_id)
                 ],
                 |row| row.get::<_, String>(0),
             )
             .ok()
-            .and_then(|run_id| crate::work_run_service::read(&run_id).ok());
+            .and_then(|run_id| {
+                crate::work_run_service::read_in_transaction(&tx, &run_id).ok()
+            });
         let result = DiscussionPostResult {
             comment: existing.clone(),
             run,
@@ -394,34 +516,49 @@ pub(super) fn post(request: DiscussionPostRequest) -> Result<DiscussionPostResul
                 model_id: None,
             },
         };
-        Some(crate::work_run_service::enqueue_in_transaction(
+        let merged_run_id = merge_into_open_wake_window(
             &tx,
-            EnqueueWorkItemRunRequest {
-                project_slug: item.project_slug.clone(),
-                org_id: item.org_id.clone(),
-                work_item_id: item.short_id.clone(),
-                trigger: WorkItemRunTrigger::DiscussionComment {
-                    comment_id: comment.id.clone(),
-                    author_id: Some(request.author_id.clone()),
+            &item.scope_key,
+            &item.short_id,
+            &run_target,
+            &comment,
+            &request.author_name,
+            &item.short_id,
+            now,
+        )?;
+        if let Some(run_id) = merged_run_id {
+            Some(crate::work_run_service::read_in_transaction(&tx, &run_id)?)
+        } else {
+            Some(crate::work_run_service::enqueue_in_transaction(
+                &tx,
+                EnqueueWorkItemRunRequest {
+                    project_slug: item.project_slug.clone(),
+                    org_id: item.org_id.clone(),
+                    work_item_id: item.short_id.clone(),
+                    trigger: WorkItemRunTrigger::DiscussionComment {
+                        comment_id: comment.id.clone(),
+                        author_id: Some(request.author_id.clone()),
+                    },
+                    target_snapshot: WorkItemRunTargetSnapshot::new(run_target),
+                    input: serde_json::json!({
+                        "content": build_forward_message(
+                            &item.short_id,
+                            &comment.id,
+                            &request.author_name,
+                            &comment.content,
+                        ),
+                        "displayText": format!("💬 {}", comment.content),
+                        "discussionThreadId": thread_id,
+                        "discussionCommentId": comment.id,
+                        "discussionCommentIds": [comment.id],
+                    }),
+                    idempotency_key: format!("discussion-wake:{}", comment.id),
+                    max_attempts: 3,
+                    parent_run_id: None,
                 },
-                target_snapshot: WorkItemRunTargetSnapshot::new(run_target),
-                input: serde_json::json!({
-                    "content": build_forward_message(
-                        &item.short_id,
-                        &comment.id,
-                        &request.author_name,
-                        &comment.content,
-                    ),
-                    "displayText": format!("💬 {}", comment.content),
-                    "discussionThreadId": thread_id,
-                    "discussionCommentId": comment.id,
-                }),
-                idempotency_key: format!("discussion-comment:{}", comment.id),
-                max_attempts: 3,
-                parent_run_id: None,
-            },
-            0,
-        )?)
+                DISCUSSION_WAKE_WINDOW_MS,
+            )?)
+        }
     } else {
         None
     };
