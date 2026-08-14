@@ -903,7 +903,9 @@
     },
     "compactArgHint": "<optional focus for the summary>",
     "compactCommandDescription": "Summarize older context to free space. Optional: /compact <focus for the summary>",
-    "canvasCommandDescription": "Create a new interactive Canvas. Optional: /canvas <what to build>"
+    "canvasCommandDescription": "Create a new interactive Canvas. Optional: /canvas <what to build>",
+    "canvasArgHint": "what to build",
+    "newCanvasAction": "New Canvas"
   },
   "listPanel": {
     "showingOf": "Showing {{filtered}} of {{total}}",

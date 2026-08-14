@@ -849,7 +849,9 @@
     },
     "compactArgHint": "<focus facultatif pour le résumé>",
     "compactCommandDescription": "Résume le contexte ancien pour libérer de l'espace. Facultatif : /compact <focus du résumé>",
-    "canvasCommandDescription": "Crée un nouveau Canvas interactif. Facultatif : /canvas <contenu à créer>"
+    "canvasCommandDescription": "Crée un nouveau Canvas interactif. Facultatif : /canvas <contenu à créer>",
+    "canvasArgHint": "contenu à créer",
+    "newCanvasAction": "Nouveau Canvas"
   },
   "listPanel": {
     "showingOf": "Affichage de {{filtered}} sur {{total}}",

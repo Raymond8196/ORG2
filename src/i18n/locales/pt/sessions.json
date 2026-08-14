@@ -848,7 +848,9 @@
     },
     "compactArgHint": "<foco opcional do resumo>",
     "compactCommandDescription": "Resume o contexto antigo para liberar espaço. Opcional: /compact <foco do resumo>",
-    "canvasCommandDescription": "Crie um novo Canvas interativo. Opcional: /canvas <o que criar>"
+    "canvasCommandDescription": "Crie um novo Canvas interativo. Opcional: /canvas <o que criar>",
+    "canvasArgHint": "o que criar",
+    "newCanvasAction": "Novo Canvas"
   },
   "listPanel": {
     "showingOf": "Mostrando {{filtered}} de {{total}}",

@@ -892,9 +892,11 @@
       "unpinAll": "全部取消固定",
       "insert": "插入"
     },
-    "compactArgHint": "<可选:本次总结的重点>",
-    "compactCommandDescription": "总结较早的上下文以释放空间。可选:/compact <本次总结的重点>",
-    "canvasCommandDescription": "创建一个新的交互式 Canvas。可选：/canvas <要创建的内容>"
+    "compactArgHint": "<可选：本次总结的重点>",
+    "compactCommandDescription": "总结较早的上下文以释放空间。可选：/compact <本次总结的重点>",
+    "canvasCommandDescription": "创建一个新的交互式 Canvas。可选：/canvas <要创建的内容>",
+    "canvasArgHint": "要创建的内容",
+    "newCanvasAction": "新建 Canvas"
   },
   "listPanel": {
     "showingOf": "显示 {{filtered}} / {{total}}",

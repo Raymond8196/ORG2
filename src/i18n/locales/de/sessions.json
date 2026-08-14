@@ -847,7 +847,9 @@
     },
     "compactArgHint": "<optionaler Fokus für die Zusammenfassung>",
     "compactCommandDescription": "Älteren Kontext zusammenfassen, um Platz freizugeben. Optional: /compact <Fokus für die Zusammenfassung>",
-    "canvasCommandDescription": "Eine neue interaktive Canvas erstellen. Optional: /canvas <was erstellt werden soll>"
+    "canvasCommandDescription": "Eine neue interaktive Canvas erstellen. Optional: /canvas <was erstellt werden soll>",
+    "canvasArgHint": "was erstellt werden soll",
+    "newCanvasAction": "Neue Canvas"
   },
   "listPanel": {
     "showingOf": "{{filtered}} von {{total}} angezeigt",

@@ -850,7 +850,9 @@
     },
     "compactArgHint": "<opcjonalny nacisk podsumowania>",
     "compactCommandDescription": "Podsumuj starszy kontekst, aby zwolnić miejsce. Opcjonalnie: /compact <nacisk podsumowania>",
-    "canvasCommandDescription": "Utwórz nowy interaktywny Canvas. Opcjonalnie: /canvas <co utworzyć>"
+    "canvasCommandDescription": "Utwórz nowy interaktywny Canvas. Opcjonalnie: /canvas <co utworzyć>",
+    "canvasArgHint": "co utworzyć",
+    "newCanvasAction": "Nowy Canvas"
   },
   "listPanel": {
     "showingOf": "Wyświetlono {{filtered}} z {{total}}",

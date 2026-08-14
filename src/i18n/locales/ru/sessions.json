@@ -853,7 +853,9 @@
     },
     "compactArgHint": "<необязательный фокус резюме>",
     "compactCommandDescription": "Обобщить старый контекст, чтобы освободить место. Необязательно: /compact <фокус резюме>",
-    "canvasCommandDescription": "Создать новый интерактивный Canvas. Необязательно: /canvas <что создать>"
+    "canvasCommandDescription": "Создать новый интерактивный Canvas. Необязательно: /canvas <что создать>",
+    "canvasArgHint": "что создать",
+    "newCanvasAction": "Новый Canvas"
   },
   "listPanel": {
     "showingOf": "Показано {{filtered}} из {{total}}",
