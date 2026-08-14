@@ -13,6 +13,7 @@ import {
 } from "vitest";
 
 import type { SessionEvent } from "@src/engines/SessionCore/core/types";
+import type { CanvasRevisionDraft } from "@src/store/session/canvasRevisionDraftAtom";
 
 import CanvasApp from "./CanvasApp";
 
@@ -20,6 +21,7 @@ const testState = vi.hoisted(() => ({
   appEvents: [] as SessionEvent[],
   publishedHeader: null as ReactNode,
   openCanvasShare: vi.fn(),
+  revisionDraft: null as CanvasRevisionDraft | null,
 }));
 
 vi.mock("react-i18next", () => ({
@@ -27,21 +29,32 @@ vi.mock("react-i18next", () => ({
     t: (_key: string, fallback?: string) => fallback ?? _key,
   }),
 }));
-vi.mock("lucide-react", () => ({
-  Layout: () => null,
-  RefreshCw: () => null,
-  Share2: () => null,
-}));
-vi.mock("jotai", () => ({
-  useAtomValue: (atom: string) => {
-    if (atom === "canvas-preview") return null;
-    if (atom === "sidebar-collapsed") return false;
-    if (atom === "sidebar-position") return "left";
-    if (atom === "sidebar-width") return 240;
-    return null;
-  },
-  useSetAtom: () => vi.fn(),
-}));
+// Partial mock: modules across the import graph create real atoms at module
+// scope, so only the React read/write hooks are replaced.
+vi.mock("jotai", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("jotai")>();
+  return {
+    ...actual,
+    useAtomValue: (atom: unknown) => {
+      if (atom === "canvas-preview") return null;
+      if (atom === "sidebar-collapsed") return false;
+      if (atom === "sidebar-position") return "left";
+      if (atom === "sidebar-width") return 240;
+      return null;
+    },
+    useSetAtom: () => vi.fn(),
+  };
+});
+vi.mock(
+  "@src/engines/SessionCore/hooks/useCanvasRevisionDraftForSession",
+  () => ({
+    useCanvasRevisionDraftForSession: () => testState.revisionDraft,
+  })
+);
+vi.mock(
+  "@src/engines/ChatPanel/blocks/CanvasInlineCard/CanvasRevisionProgress",
+  () => ({ default: () => null })
+);
 vi.mock("@src/store/session/canvasPreviewAtom", () => ({
   canvasPreviewAtom: "canvas-preview",
 }));
@@ -162,6 +175,7 @@ describe("CanvasApp share action", () => {
     testState.appEvents = [];
     testState.publishedHeader = null;
     testState.openCanvasShare.mockReset();
+    testState.revisionDraft = null;
     container = document.createElement("div");
     document.body.appendChild(container);
     root = createRoot(container);
@@ -251,5 +265,31 @@ describe("CanvasApp share action", () => {
 
     expect(shareButton()).toBeDefined();
     expect(shareButton()?.disabled).toBe(true);
+  });
+
+  it("disables Share while a revision draft is in flight for the selected Canvas", () => {
+    testState.appEvents = [
+      canvasEvent({ mode: "html", content: "<p>Ready</p>", title: "Ready" }),
+    ];
+    testState.revisionDraft = {
+      sessionId: "session-a",
+      toolCallId: "call-revision",
+      targetEventId: "canvas-event",
+      receivedCharacters: 42,
+      phase: "receiving",
+      startedAt: Date.now(),
+    };
+
+    render();
+
+    expect(shareButton()).toBeDefined();
+    expect(shareButton()?.disabled).toBe(true);
+    act(() => shareButton()?.click());
+    expect(testState.openCanvasShare).not.toHaveBeenCalled();
+
+    // Draft cleared — the same Canvas becomes shareable again.
+    testState.revisionDraft = null;
+    render();
+    expect(shareButton()?.disabled).toBe(false);
   });
 });

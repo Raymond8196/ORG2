@@ -55,6 +55,23 @@ vi.mock("@src/store/session/canvasPreviewAtom", () => ({
 vi.mock("@src/engines/SessionCore", () => ({
   useCanvasRevisionDraftForSession: () => testState.revisionDraft,
 }));
+vi.mock("@src/features/CanvasShare", async () => {
+  const { getCanvasShareAvailability } = await vi.importActual<
+    typeof import("@src/features/CanvasShare/canvasShareProtocol")
+  >("@src/features/CanvasShare/canvasShareProtocol");
+  return {
+    CanvasShareDialog: () => null,
+    getCanvasShareAvailability,
+    useCanvasShareDialog: () => ({
+      state: { phase: "closed", operationId: 0 },
+      open: vi.fn(),
+      close: vi.fn(),
+      retry: vi.fn(),
+      retryShortLink: vi.fn(),
+      copy: vi.fn(),
+    }),
+  };
+});
 vi.mock(
   "@src/engines/ChatPanel/blocks/CanvasInlineCard/CanvasRevisionProgress",
   () => ({
@@ -188,6 +205,8 @@ vi.mock("@src/modules/WorkStation/shared", () => ({
     ),
   WorkstationToolbarTooltip: ({ children }: { children?: ReactNode }) =>
     children ?? null,
+  WorkstationHeaderSectionSeparator: () =>
+    createElement("span", { "data-testid": "toolbar-separator" }),
 }));
 
 function canvasEvent(id: string): SessionEvent {
@@ -274,7 +293,7 @@ describe("CanvasApp interaction lifecycle", () => {
   }
 
   function buttonWithText(text: string) {
-    // Exact match: loose `includes` would let an unrelated toolbar button
+    // Exact match: loose `includes` would let the toolbar "Share" button
     // shadow the sidebar item titled "a".
     return [...container.querySelectorAll<HTMLButtonElement>("button")].find(
       (button) => button.textContent?.trim() === text
