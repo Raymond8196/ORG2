@@ -701,6 +701,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
                 compactMenuHost={focusedWorkstationMenuHost}
                 conversationMinimapHostRef={focusedWorkstationMinimapHostRef}
                 session={currentSession}
+                sessionId={currentSessionId}
                 topInset={
                   overlayChatHeaders ? CHAT_PANEL_HEADER_STACK_HEIGHT_PX : 0
                 }
