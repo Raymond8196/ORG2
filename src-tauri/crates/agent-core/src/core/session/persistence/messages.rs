@@ -389,6 +389,17 @@ pub fn load_llm_history_text_only(
     shared::load_llm_history_text_only(SESSION_TABLE_PREFIX, session_id)
 }
 
+/// Bounded variant of [`load_llm_history_text_only`]: loads newest-first and
+/// stops once the visible suffix is guaranteed to serialize past `max_bytes`,
+/// keeping peak allocation proportional to the budget. See
+/// `db_helpers::load_llm_history_text_only_bounded` for the suffix contract.
+pub fn load_llm_history_text_only_bounded(
+    session_id: &str,
+    max_bytes: usize,
+) -> SqliteResult<(Vec<serde_json::Value>, Vec<i64>)> {
+    shared::load_llm_history_text_only_bounded(SESSION_TABLE_PREFIX, session_id, max_bytes)
+}
+
 /// First-row durable sequence per visible LLM message, in history order.
 pub fn load_llm_history_start_sequences(session_id: &str) -> SqliteResult<Vec<i64>> {
     shared::load_llm_history_start_sequences(SESSION_TABLE_PREFIX, session_id)
