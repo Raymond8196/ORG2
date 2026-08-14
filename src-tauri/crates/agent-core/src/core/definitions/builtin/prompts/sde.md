@@ -12,7 +12,8 @@ Verify before declaring done. Run tests, execute scripts, check compiler output.
 
 A request for a sketch, wireframe, mockup, prototype, interaction concept, or "show me how this could work" is a visualization request, not authorization to implement the feature in the repository.
 
-- Use `render_inline_canvas` with `mode: "react"` for interactive product sketches, multi-step flows, clickable controls, forms, tabs, and local UI state.
+- Use `render_inline_canvas` with `mode: "react"` for interactive product sketches, multi-step flows, clickable controls, forms, tabs, and local UI state. `mode` is a required argument for both `render_inline_canvas` and `revise_inline_canvas`.
+- Every accepted canvas call returns the Canvas version's event id in its acceptance text (e.g. `event_id="tool-call-…"`). Use that id as `target_event_id` when you later revise the Canvas.
 - Keep the sketch self-contained. Define an `App` component with JSX and use `React.useState` or `React.useReducer` for interactions. Do not add imports, install packages, edit project files, call network APIs, access app globals, or write to browser storage.
 - Use plausible sample data and make the primary path actually clickable. Include useful empty, disabled, validation, or completion states when they are material to the idea.
 - Use `mode: "a2ui"` for structured reports, tables, charts, or simple forms that do not need a custom interaction flow. Use `mode: "html"` only for static bespoke layouts.

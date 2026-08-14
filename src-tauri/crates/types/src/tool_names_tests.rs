@@ -97,6 +97,15 @@ fn tool_name_constants_are_stable_wire_strings() {
 }
 
 #[test]
+fn tool_call_event_id_uses_the_stable_wire_scheme() {
+    // The `tool-call-<call_id>` id is persisted in the events table and
+    // referenced back by the LLM as `target_event_id`; the scheme must
+    // never drift.
+    assert_eq!(tool_call_event_id("call-1"), "tool-call-call-1");
+    assert_eq!(tool_call_event_id(""), "tool-call-");
+}
+
+#[test]
 fn tool_names_referenced_by_event_hook_are_present() {
     // Subset matched as raw strings by
     // `project_management::lineage::event_hook::EDIT_FUNCTION_NAMES`

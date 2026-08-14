@@ -217,7 +217,7 @@ fn validate_canvas_revision_agent_steps(params: &Value) -> Result<(), ToolError>
         let character_count = label.trim().chars().count();
         if character_count == 0 || character_count > MAX_CANVAS_REVISION_AGENT_STEP_CHARS {
             return Err(ToolError::InvalidParams(format!(
-                "agent_steps[{index}] must contain 1 to {MAX_CANVAS_REVISION_AGENT_STEP_CHARS} characters"
+                "agent_steps[{index}] must contain 1 to {MAX_CANVAS_REVISION_AGENT_STEP_CHARS} characters after trimming whitespace"
             )));
         }
     }
@@ -287,7 +287,7 @@ fn validate_canvas_payload(params: &Value, allow_edits: bool) -> Result<(), Tool
     Ok(())
 }
 
-fn canvas_acceptance(tool_name: &str, params: &Value) -> String {
+fn canvas_acceptance(tool_name: &str, params: &Value, call_id: &str) -> String {
     let mode = params
         .get("mode")
         .and_then(Value::as_str)
@@ -303,13 +303,24 @@ fn canvas_acceptance(tool_name: &str, params: &Value) -> String {
         .unwrap_or(0);
     let url = params.get("url").and_then(Value::as_str).unwrap_or("");
 
-    if let Some(edit_count) = canvas_revision_edits(params).map(Vec::len) {
-        return format!(
+    let mut acceptance = if let Some(edit_count) = canvas_revision_edits(params).map(Vec::len) {
+        format!(
             "{tool_name}: accepted {edit_count} targeted source edit(s), title=\"{title}\"; visual output not verified"
-        );
-    }
+        )
+    } else {
+        format_canvas_acceptance(tool_name, mode, content_len, title, url)
+    };
 
-    format_canvas_acceptance(tool_name, mode, content_len, title, url)
+    // Surface this Canvas version's event id so the model can address it as
+    // `target_event_id` in a later revise_inline_canvas call — the id is
+    // otherwise invisible to the LLM (it only exists in the event pipeline).
+    if !call_id.is_empty() {
+        let event_id = tool_names::tool_call_event_id(call_id);
+        acceptance.push_str(&format!(
+            "; event_id=\"{event_id}\" (pass as target_event_id to revise this Canvas)"
+        ));
+    }
+    acceptance
 }
 
 fn apply_canvas_revision_edits(source: &str, edits: &[Value]) -> Result<String, ToolError> {
@@ -347,6 +358,44 @@ fn apply_canvas_revision_edits(source: &str, edits: &[Value]) -> Result<String, 
     Ok(content)
 }
 
+/// Fetch the revision target's row once and validate that it identifies an
+/// inline Canvas in the dispatching session. Returns the stored raw
+/// `args_json` so the compact-edits path can materialize without re-fetching
+/// the same row.
+fn load_validated_canvas_target(
+    connection: &Connection,
+    session_id: &str,
+    target_event_id: &str,
+) -> Result<String, ToolError> {
+    let row = connection
+        .query_row(
+            "SELECT function_name, args_json FROM events WHERE session_id = ?1 AND id = ?2 LIMIT 1",
+            rusqlite::params![session_id, target_event_id],
+            |row| Ok((row.get::<_, Option<String>>(0)?, row.get::<_, String>(1)?)),
+        )
+        .optional()
+        .map_err(|error| {
+            ToolError::ExecutionFailed(format!(
+                "could not validate Canvas revision target: {error}"
+            ))
+        })?;
+
+    let Some((function_name, args_json)) = row else {
+        return Err(ToolError::InvalidParams(format!(
+            "target_event_id \"{target_event_id}\" does not identify an inline Canvas in the current session"
+        )));
+    };
+    match function_name.as_deref() {
+        Some(tool_names::RENDER_INLINE_CANVAS | tool_names::REVISE_INLINE_CANVAS) => Ok(args_json),
+        Some(other) => Err(ToolError::InvalidParams(format!(
+            "target_event_id \"{target_event_id}\" identifies {other}, not an inline Canvas"
+        ))),
+        None => Err(ToolError::InvalidParams(format!(
+            "target_event_id \"{target_event_id}\" does not identify an inline Canvas in the current session"
+        ))),
+    }
+}
+
 fn load_materialized_canvas_args(
     connection: &Connection,
     session_id: &str,
@@ -354,40 +403,34 @@ fn load_materialized_canvas_args(
     visited: &mut HashSet<String>,
     depth: usize,
 ) -> Result<Value, ToolError> {
-    if depth >= MAX_CANVAS_REVISION_CHAIN_DEPTH || !visited.insert(event_id.to_string()) {
-        return Err(ToolError::InvalidParams(
-            "Canvas revision chain is cyclic or exceeds the supported depth".into(),
-        ));
-    }
-
-    let row = connection
-        .query_row(
-            "SELECT function_name, args_json FROM events WHERE session_id = ?1 AND id = ?2 LIMIT 1",
-            rusqlite::params![session_id, event_id],
-            |row| Ok((row.get::<_, Option<String>>(0)?, row.get::<_, String>(1)?)),
-        )
-        .optional()
-        .map_err(|error| {
-            ToolError::ExecutionFailed(format!("could not load Canvas revision target: {error}"))
-        })?;
-
-    let Some((function_name, args_json)) = row else {
+    if depth >= MAX_CANVAS_REVISION_CHAIN_DEPTH {
         return Err(ToolError::InvalidParams(format!(
-            "target_event_id \"{event_id}\" does not identify an inline Canvas in the current session"
+            "Canvas revision chain exceeds the supported depth of {MAX_CANVAS_REVISION_CHAIN_DEPTH}; send a complete replacement via \"content\" instead of \"edits\" to reset the chain"
         )));
-    };
-    if !matches!(
-        function_name.as_deref(),
-        Some(tool_names::RENDER_INLINE_CANVAS | tool_names::REVISE_INLINE_CANVAS)
-    ) {
+    }
+    if !visited.insert(event_id.to_string()) {
         return Err(ToolError::InvalidParams(format!(
-            "target_event_id \"{event_id}\" does not identify an inline Canvas"
+            "Canvas revision chain is cyclic: event \"{event_id}\" appears more than once in the target chain"
         )));
     }
 
+    let args_json = load_validated_canvas_target(connection, session_id, event_id)?;
     let args: Value = serde_json::from_str(&args_json).map_err(|error| {
         ToolError::ExecutionFailed(format!("stored Canvas arguments are invalid JSON: {error}"))
     })?;
+    materialize_canvas_args(connection, session_id, args, visited, depth)
+}
+
+/// Resolve a compact-edits revision against its parent chain. Args without
+/// `edits` (full renders and complete replacements) are already materialized
+/// and pass through unchanged.
+fn materialize_canvas_args(
+    connection: &Connection,
+    session_id: &str,
+    args: Value,
+    visited: &mut HashSet<String>,
+    depth: usize,
+) -> Result<Value, ToolError> {
     let Some(edits) = canvas_revision_edits(&args) else {
         return Ok(args);
     };
@@ -416,36 +459,6 @@ fn load_materialized_canvas_args(
         object.insert("title".into(), Value::String(title.to_string()));
     }
     Ok(materialized)
-}
-
-fn validate_revision_target(
-    connection: &Connection,
-    session_id: &str,
-    target_event_id: &str,
-) -> Result<(), ToolError> {
-    let function_name = connection
-        .query_row(
-            "SELECT function_name FROM events WHERE session_id = ?1 AND id = ?2 LIMIT 1",
-            rusqlite::params![session_id, target_event_id],
-            |row| row.get::<_, Option<String>>(0),
-        )
-        .optional()
-        .map_err(|error| {
-            ToolError::ExecutionFailed(format!(
-                "could not validate Canvas revision target: {error}"
-            ))
-        })?
-        .flatten();
-
-    match function_name.as_deref() {
-        Some(tool_names::RENDER_INLINE_CANVAS | tool_names::REVISE_INLINE_CANVAS) => Ok(()),
-        Some(other) => Err(ToolError::InvalidParams(format!(
-            "target_event_id \"{target_event_id}\" identifies {other}, not an inline Canvas"
-        ))),
-        None => Err(ToolError::InvalidParams(format!(
-            "target_event_id \"{target_event_id}\" does not identify an inline Canvas in the current session"
-        ))),
-    }
 }
 
 impl RenderInlineCanvasTool {
@@ -546,7 +559,7 @@ impl Tool for RenderInlineCanvasTool {
     async fn execute_text(
         &self,
         params: Value,
-        _ctx: &crate::tools::traits::CallContext,
+        ctx: &crate::tools::traits::CallContext,
     ) -> Result<String, ToolError> {
         validate_canvas_payload(&params, false)?;
 
@@ -556,7 +569,11 @@ impl Tool for RenderInlineCanvasTool {
         // `agent:tool_call` args (dispatched before this result arrives), so
         // the full content is already available without appearing in the LLM
         // tool_result message.
-        Ok(canvas_acceptance(tool_names::RENDER_INLINE_CANVAS, &params))
+        Ok(canvas_acceptance(
+            tool_names::RENDER_INLINE_CANVAS,
+            &params,
+            &ctx.call_id,
+        ))
     }
 }
 
@@ -591,7 +608,16 @@ impl Tool for ReviseInlineCanvasTool {
     }
 
     fn is_read_only(&self) -> bool {
-        true
+        // Deliberately NOT read-only even though execute_text only reads:
+        // `is_concurrency_safe()` defaults to this flag, and it is the
+        // parallel-execution gate. Revision validation reads the `events`
+        // row that the event pipeline persists fire-and-forget, so a
+        // render+revise (or revise+revise) pair in one LLM message must
+        // serialize instead of racing a lagging store — and the tool is
+        // mutating-by-nature (it replaces an existing Canvas). The flag has
+        // no permission/approval side-effects: read-only tool policy is the
+        // name-based `READ_ONLY_DENY_TOOLS` list, not `is_read_only`.
+        false
     }
 
     fn parameters(&self) -> Value {
@@ -610,62 +636,90 @@ impl Tool for ReviseInlineCanvasTool {
             .and_then(Value::as_str)
             .map(str::trim)
             .filter(|value| !value.is_empty())
+            .map(str::to_string)
             .ok_or_else(|| {
                 ToolError::InvalidParams("missing required field: target_event_id".into())
             })?;
 
-        if ctx.session_id.trim().is_empty() {
+        let session_id = ctx.session_id.trim().to_string();
+        if session_id.is_empty() {
             return Err(ToolError::ExecutionFailed(
                 "Canvas revision requires a dispatching session id".into(),
             ));
         }
-        if !ctx.call_id.is_empty() && target_event_id == format!("tool-call-{}", ctx.call_id) {
+        if !ctx.call_id.is_empty() && target_event_id == tool_names::tool_call_event_id(&ctx.call_id)
+        {
             return Err(ToolError::InvalidParams(
                 "target_event_id cannot identify the revision call itself".into(),
             ));
         }
 
-        let connection = crate::foundation::db_bridge::get_connection().map_err(|error| {
-            ToolError::ExecutionFailed(format!(
-                "could not open session persistence to validate Canvas target: {error}"
-            ))
-        })?;
-        validate_revision_target(&connection, ctx.session_id.trim(), target_event_id)?;
+        // The target lookup and chain materialization are synchronous
+        // rusqlite queries; run them on the blocking pool instead of
+        // stalling the async executor.
+        let params = tokio::task::spawn_blocking(move || -> Result<Value, ToolError> {
+            let connection = crate::foundation::db_bridge::get_connection().map_err(|error| {
+                ToolError::ExecutionFailed(format!(
+                    "could not open session persistence to validate Canvas target: {error}"
+                ))
+            })?;
+            let target_args_json =
+                load_validated_canvas_target(&connection, &session_id, &target_event_id)?;
 
-        if let Some(edits) = canvas_revision_edits(&params) {
-            let mut visited = HashSet::new();
-            let target_args = load_materialized_canvas_args(
-                &connection,
-                ctx.session_id.trim(),
-                target_event_id,
-                &mut visited,
-                0,
-            )?;
-            let target_mode = target_args
-                .get("mode")
-                .and_then(Value::as_str)
-                .ok_or_else(|| {
-                    ToolError::InvalidParams("target Canvas has no valid rendering mode".into())
-                })?;
-            let requested_mode = params
-                .get("mode")
-                .and_then(Value::as_str)
-                .expect("validated Canvas mode");
-            if requested_mode != target_mode {
-                return Err(ToolError::InvalidParams(format!(
-                    "targeted edits cannot change Canvas mode from {target_mode} to {requested_mode}; use a complete replacement"
-                )));
+            if let Some(edits) = canvas_revision_edits(&params) {
+                let target_args: Value =
+                    serde_json::from_str(&target_args_json).map_err(|error| {
+                        ToolError::ExecutionFailed(format!(
+                            "stored Canvas arguments are invalid JSON: {error}"
+                        ))
+                    })?;
+                // The target is depth 0 of the revision chain; its row was
+                // already fetched above, so materialize from those args
+                // directly instead of re-fetching.
+                let mut visited = HashSet::new();
+                visited.insert(target_event_id.clone());
+                let target_args =
+                    materialize_canvas_args(&connection, &session_id, target_args, &mut visited, 0)?;
+                let target_mode = target_args
+                    .get("mode")
+                    .and_then(Value::as_str)
+                    .ok_or_else(|| {
+                        ToolError::InvalidParams("target Canvas has no valid rendering mode".into())
+                    })?;
+                let requested_mode = params
+                    .get("mode")
+                    .and_then(Value::as_str)
+                    .expect("validated Canvas mode");
+                if requested_mode != target_mode {
+                    return Err(ToolError::InvalidParams(format!(
+                        "targeted edits cannot change Canvas mode from {target_mode} to {requested_mode}; use a complete replacement"
+                    )));
+                }
+                let source = target_args
+                    .get("content")
+                    .and_then(Value::as_str)
+                    .ok_or_else(|| {
+                        ToolError::InvalidParams(
+                            "target Canvas has no patchable source content".into(),
+                        )
+                    })?;
+                apply_canvas_revision_edits(source, edits)?;
             }
-            let source = target_args
-                .get("content")
-                .and_then(Value::as_str)
-                .ok_or_else(|| {
-                    ToolError::InvalidParams("target Canvas has no patchable source content".into())
-                })?;
-            apply_canvas_revision_edits(source, edits)?;
-        }
 
-        Ok(canvas_acceptance(tool_names::REVISE_INLINE_CANVAS, &params))
+            Ok(params)
+        })
+        .await
+        .map_err(|error| {
+            ToolError::ExecutionFailed(format!(
+                "Canvas revision validation task failed: {error}"
+            ))
+        })??;
+
+        Ok(canvas_acceptance(
+            tool_names::REVISE_INLINE_CANVAS,
+            &params,
+            &ctx.call_id,
+        ))
     }
 }
 
@@ -673,8 +727,8 @@ impl Tool for ReviseInlineCanvasTool {
 mod tests {
     use super::{
         apply_canvas_revision_edits, canvas_acceptance, format_canvas_acceptance,
-        load_materialized_canvas_args, validate_canvas_payload, validate_revision_target,
-        RenderInlineCanvasTool, ReviseInlineCanvasTool,
+        load_materialized_canvas_args, load_validated_canvas_target, validate_canvas_payload,
+        RenderInlineCanvasTool, ReviseInlineCanvasTool, MAX_CANVAS_REVISION_CHAIN_DEPTH,
     };
     use crate::tools::names as tool_names;
     use crate::tools::traits::{CallContext, Tool, ToolError};
@@ -755,11 +809,32 @@ mod tests {
                 "mode": "react",
                 "edits": [{"find": "Start", "replace": "Start setup"}]
             }),
+            "call-revision",
         );
 
         assert!(result.contains("accepted 1 targeted source edit"));
         assert!(result.contains("visual output not verified"));
         assert!(!result.contains("Start setup"));
+    }
+
+    #[test]
+    fn acceptance_carries_the_canvas_event_id_for_later_revisions() {
+        let result = canvas_acceptance(
+            tool_names::RENDER_INLINE_CANVAS,
+            &json!({"mode": "html", "content": "<div></div>"}),
+            "call-1",
+        );
+        assert!(result.contains("event_id=\"tool-call-call-1\""));
+        assert!(result.contains("target_event_id"));
+
+        // Maintenance/test dispatches without a call id must not fabricate
+        // a dangling event id.
+        let without_call_id = canvas_acceptance(
+            tool_names::RENDER_INLINE_CANVAS,
+            &json!({"mode": "html", "content": "<div></div>"}),
+            "",
+        );
+        assert!(!without_call_id.contains("event_id="));
     }
 
     #[test]
@@ -915,7 +990,8 @@ mod tests {
                 "CREATE TABLE events (
                     id TEXT NOT NULL,
                     session_id TEXT NOT NULL,
-                    function_name TEXT
+                    function_name TEXT,
+                    args_json TEXT NOT NULL DEFAULT '{}'
                 )",
                 [],
             )
@@ -933,14 +1009,120 @@ mod tests {
             )
             .expect("non-canvas event");
 
-        assert!(validate_revision_target(&connection, "session-a", "canvas-a").is_ok());
+        assert!(load_validated_canvas_target(&connection, "session-a", "canvas-a").is_ok());
         assert!(matches!(
-            validate_revision_target(&connection, "session-b", "canvas-a"),
+            load_validated_canvas_target(&connection, "session-b", "canvas-a"),
             Err(ToolError::InvalidParams(_))
         ));
         assert!(matches!(
-            validate_revision_target(&connection, "session-a", "read-a"),
+            load_validated_canvas_target(&connection, "session-a", "read-a"),
             Err(ToolError::InvalidParams(_))
+        ));
+    }
+
+    fn canvas_chain_connection() -> Connection {
+        let connection = Connection::open_in_memory().expect("in-memory database");
+        connection
+            .execute(
+                "CREATE TABLE events (
+                    id TEXT NOT NULL,
+                    session_id TEXT NOT NULL,
+                    function_name TEXT,
+                    args_json TEXT NOT NULL
+                )",
+                [],
+            )
+            .expect("events table");
+        connection
+    }
+
+    fn insert_canvas_event(
+        connection: &Connection,
+        id: &str,
+        function_name: &str,
+        args: serde_json::Value,
+    ) {
+        connection
+            .execute(
+                "INSERT INTO events (id, session_id, function_name, args_json) VALUES (?1, ?2, ?3, ?4)",
+                params![id, "session-a", function_name, args.to_string()],
+            )
+            .expect("insert canvas event");
+    }
+
+    #[test]
+    fn cyclic_revision_chain_reports_the_cycle() {
+        let connection = canvas_chain_connection();
+        insert_canvas_event(
+            &connection,
+            "canvas-a",
+            tool_names::REVISE_INLINE_CANVAS,
+            json!({
+                "target_event_id": "canvas-b",
+                "mode": "react",
+                "edits": [{"find": "x", "replace": "y"}]
+            }),
+        );
+        insert_canvas_event(
+            &connection,
+            "canvas-b",
+            tool_names::REVISE_INLINE_CANVAS,
+            json!({
+                "target_event_id": "canvas-a",
+                "mode": "react",
+                "edits": [{"find": "x", "replace": "y"}]
+            }),
+        );
+
+        let result = load_materialized_canvas_args(
+            &connection,
+            "session-a",
+            "canvas-a",
+            &mut std::collections::HashSet::new(),
+            0,
+        );
+        assert!(matches!(
+            result,
+            Err(ToolError::InvalidParams(message))
+                if message.contains("cyclic") && !message.contains("depth")
+        ));
+    }
+
+    #[test]
+    fn deep_revision_chain_tells_the_agent_how_to_reset() {
+        let connection = canvas_chain_connection();
+        insert_canvas_event(
+            &connection,
+            "canvas-0",
+            tool_names::RENDER_INLINE_CANVAS,
+            json!({"mode": "react", "content": "base"}),
+        );
+        for index in 1..=MAX_CANVAS_REVISION_CHAIN_DEPTH + 1 {
+            insert_canvas_event(
+                &connection,
+                &format!("canvas-{index}"),
+                tool_names::REVISE_INLINE_CANVAS,
+                json!({
+                    "target_event_id": format!("canvas-{}", index - 1),
+                    "mode": "react",
+                    "edits": [{"find": "x", "replace": "y"}]
+                }),
+            );
+        }
+
+        let result = load_materialized_canvas_args(
+            &connection,
+            "session-a",
+            &format!("canvas-{}", MAX_CANVAS_REVISION_CHAIN_DEPTH + 1),
+            &mut std::collections::HashSet::new(),
+            0,
+        );
+        assert!(matches!(
+            result,
+            Err(ToolError::InvalidParams(message))
+                if message.contains("exceeds the supported depth")
+                    && message.contains("complete replacement")
+                    && !message.contains("cyclic")
         ));
     }
 }
