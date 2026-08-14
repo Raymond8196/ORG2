@@ -861,8 +861,11 @@
       "unpinAll": "全部取消固定",
       "insert": "插入"
     },
-    "compactArgHint": "<可選:本次總結的重點>",
-    "compactCommandDescription": "總結較早的上下文以釋放空間。可選:/compact <本次總結的重點>"
+    "compactArgHint": "<可選：本次總結的重點>",
+    "compactCommandDescription": "總結較早的上下文以釋放空間。可選：/compact <本次總結的重點>",
+    "canvasCommandDescription": "建立一個新的互動式 Canvas。可選：/canvas <要建立的內容>",
+    "canvasArgHint": "要建立的內容",
+    "newCanvasAction": "新增 Canvas"
   },
   "listPanel": {
     "showingOf": "顯示 {{filtered}} / {{total}}",

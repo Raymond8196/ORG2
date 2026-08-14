@@ -208,10 +208,16 @@ const ChatView: React.FC<ChatViewProps> = memo(
       async (input: SubmitOverrideInput) => {
         if (!isImportedHistory) return false;
         try {
+          // Carry BOTH projection fields (mirrors
+          // useImportedSessionSubmitOverride): displayText stays the user's
+          // visible words, agentContent is the dispatched agent input. The
+          // old `agentContent ?? displayText` collapse persisted the internal
+          // contract as the user's message.
           const newSessionId = await forkExternalHistoryIntoOrgiiSession({
             sourceSessionId: sessionId,
             sourceSession: currentSession,
-            userMessage: input.agentContent ?? input.displayText,
+            userMessage: input.displayText,
+            agentMessage: input.agentContent,
             imageDataUrls: input.imageDataUrls,
           });
           await loadSessions({ forceRefresh: true });

@@ -25,6 +25,9 @@ import React, { memo, useCallback, useMemo } from "react";
 import GitHubPillIcon from "@src/assets/modelIcons/github-pill.svg";
 import { ChatImageThumbnailRow } from "@src/components/ChatImageThumbnail";
 import BasePill from "@src/components/ComposerInput/BasePill";
+import CanvasCommandPillIcon, {
+  isCanvasCommandPillPath,
+} from "@src/components/ComposerInput/CanvasCommandPillIcon";
 import {
   isGitHubPillUrl,
   parseGitHubPillUrl,
@@ -386,6 +389,9 @@ const PillIcon: React.FC<{
     case "issue":
       return <ListChecks {...ICON_PROPS} />;
     case "skill":
+      if (isCanvasCommandPillPath(path)) {
+        return <CanvasCommandPillIcon />;
+      }
       return <Toolbox {...ICON_PROPS} />;
     case "pr":
       return <GitPullRequest {...ICON_PROPS} />;
