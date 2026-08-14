@@ -1,90 +1,41 @@
 // @vitest-environment jsdom
 import React from "react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createSmokeRoot, dispatch } from "@src/test/reactSmokeHarness";
 
-import ReactArtifactRunner from "./ReactArtifactRunner";
+import ReactArtifactRunner, {
+  __resetReactArtifactPublisherForTests,
+  canvasArtifactUrl,
+  reactArtifactId,
+} from "./ReactArtifactRunner";
+
+const mocks = vi.hoisted(() => ({
+  invoke: vi.fn(),
+}));
+
+vi.mock("@tauri-apps/api/core", () => ({
+  invoke: mocks.invoke,
+}));
+
+/** Flush pending publish promises + the resulting React commits. */
+async function flushPublishes(): Promise<void> {
+  await dispatch(() => {});
+  await dispatch(() => {});
+}
 
 describe("ReactArtifactRunner runtime", () => {
-  it("renders stateful generated sketches and keeps controls interactive", async () => {
-    const root = createSmokeRoot();
-    const onError = vi.fn();
-    const source = `
-      const { useState } = React;
-      function App() {
-        const [count, setCount] = useState(0);
-        return React.createElement(
-          "button",
-          {
-            type: "button",
-            style: { background: "rgb(86, 109, 232)", color: "white" },
-            onClick: () => setCount((value) => value + 1)
-          },
-          "Count " + count
-        );
-      }
-    `;
-
-    try {
-      await root.render(
-        React.createElement(ReactArtifactRunner, { source, onError })
-      );
-
-      const button = root.container.querySelector("button");
-      expect(button?.textContent).toBe("Count 0");
-      expect(button?.style.background).toBe("rgb(86, 109, 232)");
-
-      await dispatch(() => button?.click());
-
-      expect(button?.textContent).toBe("Count 1");
-      expect(onError).not.toHaveBeenCalled();
-    } finally {
-      await root.unmount();
-    }
+  beforeEach(() => {
+    mocks.invoke.mockReset();
+    mocks.invoke.mockResolvedValue(undefined);
+    __resetReactArtifactPublisherForTests();
   });
 
-  it("keeps tall and fixed-width sketches reachable inside the bounded scroll container", async () => {
-    const root = createSmokeRoot();
-    const source = `
-      function App() {
-        return React.createElement(
-          "div",
-          {
-            style: {
-              display: "grid",
-              gridTemplateColumns: "220px 330px minmax(450px, 1fr)",
-              height: 1200,
-              overflow: "hidden"
-            }
-          },
-          "Tall and wide sketch"
-        );
-      }
-    `;
-
-    try {
-      await root.render(React.createElement(ReactArtifactRunner, { source }));
-
-      const scrollContainer = root.container.querySelector(
-        '[data-testid="react-artifact-scroll"]'
-      );
-      const preview = root.container.querySelector(
-        '[data-testid="react-artifact-preview"]'
-      );
-      expect(scrollContainer?.classList.contains("overflow-auto")).toBe(true);
-      expect(preview?.classList.contains("w-fit")).toBe(true);
-      expect(preview?.classList.contains("min-w-full")).toBe(true);
-    } finally {
-      await root.unmount();
-    }
-  });
-
-  it("surfaces compile failures as a visible banner and forwards onError", async () => {
+  it("surfaces compile failures as a visible alert and forwards onError", async () => {
     const root = createSmokeRoot();
     const onError = vi.fn();
-    // Unbalanced parenthesis — react-live's transpile step must throw.
-    const source = `function App( { return null; }`;
+    // Unbalanced parenthesis — the sucrase compile step must throw.
+    const source = "function App( { return null; }";
 
     try {
       await root.render(
@@ -95,99 +46,173 @@ describe("ReactArtifactRunner runtime", () => {
         '[data-testid="react-artifact-error"]'
       );
       expect(banner).not.toBeNull();
+      expect(banner?.getAttribute("role")).toBe("alert");
       expect(banner?.textContent?.trim().length).toBeGreaterThan(0);
       expect(onError).toHaveBeenCalledWith(
         expect.objectContaining({ message: expect.any(String) })
       );
+      // Uncompilable source must never be published.
+      expect(mocks.invoke).not.toHaveBeenCalled();
     } finally {
       await root.unmount();
     }
   });
 
-  it("renders a visible localized notice instead of a blank card when eval is blocked", async () => {
+  it("publishes once and renders a sandboxed iframe for the artifact", async () => {
     const root = createSmokeRoot();
     const onError = vi.fn();
-    const source = `
-      function App() {
-        return React.createElement("button", null, "Never runs");
-      }
-    `;
+    const source =
+      "export default function App() { return <button>publish-once</button>; }";
 
     try {
       await root.render(
-        React.createElement(ReactArtifactRunner, {
-          source,
-          onError,
-          evalAvailable: false,
-        })
+        React.createElement(ReactArtifactRunner, { source, onError })
+      );
+      await flushPublishes();
+
+      expect(mocks.invoke).toHaveBeenCalledTimes(1);
+      expect(mocks.invoke).toHaveBeenCalledWith("canvas_artifact_publish", {
+        id: reactArtifactId(source),
+        html: expect.stringContaining("ReactDOM.createRoot"),
+      });
+
+      const frame = root.container.querySelector(
+        '[data-testid="react-artifact-frame"]'
+      ) as HTMLIFrameElement | null;
+      expect(frame).not.toBeNull();
+      expect(frame?.getAttribute("sandbox")).toBe("allow-scripts");
+      expect(frame?.getAttribute("src")).toBe(
+        canvasArtifactUrl(reactArtifactId(source))
       );
 
-      const notice = root.container.querySelector(
-        '[data-testid="react-artifact-csp-notice"]'
-      );
-      expect(notice).not.toBeNull();
-      expect(notice?.textContent?.trim().length).toBeGreaterThan(0);
-      // The artifact itself must not execute in the host document.
-      expect(root.container.querySelector("button")).toBeNull();
-      expect(onError).toHaveBeenCalledWith(
-        expect.objectContaining({ message: expect.any(String) })
-      );
-
-      // A parent-only rerender keeps the notice stable (no crash, no blank).
+      // Parent-only re-renders with the same source must not publish again.
       await root.render(
-        React.createElement(ReactArtifactRunner, {
-          source,
-          onError,
-          evalAvailable: false,
-        })
+        React.createElement(ReactArtifactRunner, { source, onError })
       );
-      expect(
-        root.container.querySelector(
-          '[data-testid="react-artifact-csp-notice"]'
-        )
-      ).not.toBeNull();
+      await flushPublishes();
+      expect(mocks.invoke).toHaveBeenCalledTimes(1);
+      expect(onError).not.toHaveBeenCalled();
     } finally {
       await root.unmount();
     }
   });
 
-  it("keeps the live preview DOM and its state across parent rerenders", async () => {
+  it("keeps the iframe element and src stable across parent re-renders", async () => {
     const root = createSmokeRoot();
-    const source = `
-      const { useState } = React;
-      function App() {
-        const [count, setCount] = useState(0);
-        return React.createElement(
-          "button",
-          { type: "button", onClick: () => setCount((value) => value + 1) },
-          "Count " + count
-        );
-      }
-    `;
+    const source =
+      "export default function App() { return <div>stable frame</div>; }";
+
+    try {
+      await root.render(
+        React.createElement(ReactArtifactRunner, { source, onError: vi.fn() })
+      );
+      await flushPublishes();
+
+      const originalFrame = root.container.querySelector(
+        '[data-testid="react-artifact-frame"]'
+      );
+      expect(originalFrame).not.toBeNull();
+      const originalSrc = originalFrame?.getAttribute("src");
+
+      await root.render(
+        React.createElement(ReactArtifactRunner, { source, onError: vi.fn() })
+      );
+      await flushPublishes();
+
+      const frameAfterRerender = root.container.querySelector(
+        '[data-testid="react-artifact-frame"]'
+      );
+      // Same DOM node — the artifact document keeps its runtime state.
+      expect(frameAfterRerender).toBe(originalFrame);
+      expect(frameAfterRerender?.getAttribute("src")).toBe(originalSrc);
+    } finally {
+      await root.unmount();
+    }
+  });
+
+  it("publishes a new id and swaps the iframe src when the source changes", async () => {
+    const root = createSmokeRoot();
+    const firstSource =
+      "export default function App() { return <div>first</div>; }";
+    const secondSource =
+      "export default function App() { return <div>second</div>; }";
 
     try {
       await root.render(
         React.createElement(ReactArtifactRunner, {
-          source,
+          source: firstSource,
           onError: vi.fn(),
         })
       );
-      const originalButton = root.container.querySelector("button");
-      await dispatch(() => originalButton?.click());
-      expect(originalButton?.textContent).toBe("Count 1");
+      await flushPublishes();
+      const firstSrc = root.container
+        .querySelector('[data-testid="react-artifact-frame"]')
+        ?.getAttribute("src");
 
       await root.render(
         React.createElement(ReactArtifactRunner, {
-          source,
+          source: secondSource,
           onError: vi.fn(),
         })
       );
+      await flushPublishes();
 
-      const buttonAfterParentRender = root.container.querySelector("button");
-      expect(buttonAfterParentRender).toBe(originalButton);
-      expect(buttonAfterParentRender?.textContent).toBe("Count 1");
+      expect(mocks.invoke).toHaveBeenCalledTimes(2);
+      expect(reactArtifactId(firstSource)).not.toBe(
+        reactArtifactId(secondSource)
+      );
+      const secondSrc = root.container
+        .querySelector('[data-testid="react-artifact-frame"]')
+        ?.getAttribute("src");
+      expect(secondSrc).toBe(canvasArtifactUrl(reactArtifactId(secondSource)));
+      expect(secondSrc).not.toBe(firstSrc);
     } finally {
       await root.unmount();
     }
+  });
+
+  it("surfaces publish failures as a visible alert and forwards onError", async () => {
+    const root = createSmokeRoot();
+    const onError = vi.fn();
+    mocks.invoke.mockRejectedValue(new Error("store unavailable"));
+    const source =
+      "export default function App() { return <div>publish fails</div>; }";
+
+    try {
+      await root.render(
+        React.createElement(ReactArtifactRunner, { source, onError })
+      );
+      await flushPublishes();
+
+      const banner = root.container.querySelector(
+        '[data-testid="react-artifact-error"]'
+      );
+      expect(banner).not.toBeNull();
+      expect(banner?.textContent).toContain("store unavailable");
+      expect(onError).toHaveBeenCalledWith(
+        expect.objectContaining({ message: "store unavailable" })
+      );
+      expect(
+        root.container.querySelector('[data-testid="react-artifact-frame"]')
+      ).toBeNull();
+    } finally {
+      await root.unmount();
+    }
+  });
+
+  it("builds platform-aware artifact URLs", () => {
+    expect(canvasArtifactUrl("ra-1234abcd", true)).toBe(
+      "http://canvas-artifact.localhost/ra-1234abcd"
+    );
+    expect(canvasArtifactUrl("ra-1234abcd", false)).toBe(
+      "canvas-artifact://localhost/ra-1234abcd"
+    );
+  });
+
+  it("derives deterministic ids that satisfy the backend grammar", () => {
+    const source = "export default function App() { return <div/>; }";
+    const id = reactArtifactId(source);
+    expect(id).toBe(reactArtifactId(source));
+    expect(id).toMatch(/^[A-Za-z0-9_-]{8,64}$/);
   });
 });

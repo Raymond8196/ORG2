@@ -401,6 +401,23 @@ pub fn run() {
     #[cfg(target_os = "macos")]
     let builder = builder.plugin(tauri_plugin_liquid_glass::init());
 
+    // Agent-generated React canvas artifacts: the frontend publishes compiled
+    // artifact documents into this bounded in-memory store
+    // (`canvas_artifact_publish`) and loads them back through the dedicated
+    // `canvas-artifact` scheme. Serving over a real scheme gives the artifact
+    // iframe its own origin and its own response CSP — the main webview policy
+    // has no `unsafe-eval`/`unsafe-inline`, and srcdoc frames inherit it, so
+    // generated code can only execute on a separate origin. The main CSP
+    // allows the frame via `frame-src` in `tauri.conf.json`.
+    let builder = builder
+        .manage(infrastructure::canvas_artifacts::CanvasArtifactStore::default())
+        .register_uri_scheme_protocol("canvas-artifact", |context, request| {
+            let store = context
+                .app_handle()
+                .state::<infrastructure::canvas_artifacts::CanvasArtifactStore>();
+            infrastructure::canvas_artifacts::protocol_response(&store, request.uri().path())
+        });
+
     let initial_webview_observation = perf_utils::begin_webview_ownership_observation("main");
     let application = builder
         .on_window_event(|_window, _event| {

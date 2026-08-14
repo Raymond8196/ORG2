@@ -1,3 +1,4 @@
+import { useSetAtom } from "jotai";
 import { MousePointer2, X } from "lucide-react";
 import React, { useCallback, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -10,6 +11,7 @@ import InputArea from "@src/engines/ChatPanel/InputArea";
 import CanvasPreviewSurface from "@src/engines/ChatPanel/blocks/CanvasInlineCard/CanvasPreviewSurface";
 import type { SubmitOverrideInput } from "@src/engines/ChatPanel/hooks/useInputArea/types";
 import { useWorkspaceChat } from "@src/engines/ChatPanel/hooks/useWorkspaceChat";
+import { goLiveAtom } from "@src/engines/SessionCore/core/atoms";
 import {
   buildDomComponentJsonFromElementInfo,
   buildDomComponentUserMessage,
@@ -201,6 +203,7 @@ const CanvasDesignPrompt: React.FC<CanvasDesignPromptProps> = ({
 }) => {
   const { t } = useTranslation("sessions");
   const { handleSessChatSubmit } = useWorkspaceChat({ sessionId });
+  const goLive = useSetAtom(goLiveAtom);
   const promptLayout = computeCanvasDesignPromptLayout(selection, rootRect, {
     width: window.innerWidth,
     height: window.innerHeight,
@@ -250,11 +253,18 @@ const CanvasDesignPrompt: React.FC<CanvasDesignPromptProps> = ({
         message.displayContent,
         message.agentContent
       );
+      // A design revision acts on the live Canvas. If the replay cursor was
+      // parked on an earlier event (e.g. via jump-from-chat), the up-to-cursor
+      // simulator window would exclude the incoming revision and the Canvas
+      // would appear stale until reopened — snap back to follow mode so the
+      // revision streams and materializes in view.
+      goLive();
       onSubmitted();
       return true;
     },
     [
       eventId,
+      goLive,
       handleSessChatSubmit,
       onSubmitted,
       payload.content,

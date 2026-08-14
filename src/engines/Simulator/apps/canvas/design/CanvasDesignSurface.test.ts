@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { getDefaultStore } from "jotai";
 import { act, createElement } from "react";
 import { type Root, createRoot } from "react-dom/client";
 import {
@@ -11,6 +12,8 @@ import {
   it,
   vi,
 } from "vitest";
+
+import { replayModeAtom } from "@src/engines/SessionCore/core/atoms";
 
 import CanvasDesignSurface from "./CanvasDesignSurface";
 
@@ -208,6 +211,9 @@ describe("CanvasDesignSurface", () => {
       document.body.querySelector("[data-testid='canvas-design-input-area']")
     ).not.toBeNull();
 
+    // A parked replay cursor must snap back to follow on submit, otherwise the
+    // up-to-cursor simulator window hides the incoming revision events.
+    getDefaultStore().set(replayModeAtom, "replay");
     await act(async () => {
       await expect(
         onSubmitOverride({ displayText: "字体变大一些" })
@@ -218,6 +224,7 @@ describe("CanvasDesignSurface", () => {
       expect.stringContaining("字体变大一些"),
       expect.stringContaining('"origin": "canvas-design"')
     );
+    expect(getDefaultStore().get(replayModeAtom)).toBe("follow");
     expect(
       document.body.querySelector("[data-testid='canvas-design-input-area']")
     ).toBeNull();
