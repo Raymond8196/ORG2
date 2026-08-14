@@ -26,7 +26,9 @@ vi.mock("jotai", async (importOriginal) => ({
 }));
 
 vi.mock("react-i18next", () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
+  useTranslation: () => ({
+    t: (key: string, fallback?: string) => fallback ?? key,
+  }),
 }));
 
 vi.mock("@src/components/Button", async () => {
@@ -118,10 +120,13 @@ describe("PinnedActionsBar Canvas action", () => {
       root.render(createElement(PinnedActionsBar, { composerInputRef }))
     );
 
+    // The CREATION action renders a distinct label so it never reads as a
+    // duplicate of the "Canvas" preview-reopen button.
     const canvasButton = container.querySelector<HTMLButtonElement>(
-      'button[title="canvas"]'
+      'button[title="New Canvas"]'
     );
     expect(canvasButton).not.toBeNull();
+    expect(canvasButton?.textContent).toBe("New Canvas");
 
     act(() => canvasButton?.click());
 
