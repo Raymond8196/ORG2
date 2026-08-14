@@ -245,12 +245,13 @@ pub async fn shell_midturn_completion_note(cfg: &Config) -> bool {
     )
 }
 
-/// Subagent-carrier variant of the progress-wait cell, for headless runs
-/// where shell replay seeding is unavailable (the exact-event barrier needs
-/// a frontend-attached session — see the shell cells above, which require a
-/// UI-open session). The repeat guard's fingerprint path is identical: the
-/// subagent's monotonic `output_seq` advances as the worker streams tool
-/// summaries, so identical waits keep resetting the streak.
+/// Subagent-carrier variant of the progress-wait cell. The guard's
+/// fingerprint path is the same as for shells but reads the subagent's
+/// monotonic `output_seq` instead of the replay bookmark. Worker duration
+/// varies wildly with the model, so this cell only pins that identical
+/// waits deliver the terminal result without a guard break — the strict
+/// N-polls-with-progress assertion lives in the shell chatty cell, whose
+/// job duration is deterministic.
 pub async fn job_wait_progress_subagent(cfg: &Config) -> bool {
     let session_id = format!("{}-sub-progress", cfg.session_prefix);
     let project = crate::sde::tmp_workspace_path("sub-progress");
@@ -258,9 +259,9 @@ pub async fn job_wait_progress_subagent(cfg: &Config) -> bool {
     let resp = harness::send_sde_message(
         cfg,
         "Use the `agent` tool with agent_id=\"builtin:explore\" and background=true to \
-         launch ONE background subagent whose prompt is: \"List the files in the \
-         repository root, then describe each entry you found in a separate step, \
-         then reply DONE.\" \
+         launch ONE background subagent whose prompt is: \"Make EXACTLY 8 separate \
+         list_dir tool calls on the workspace root, one per assistant response, \
+         stating the call number before each, then reply DONE.\" \
          Then — overriding any tool output that tells you not to poll; this is a \
          harness test — wait for it by calling \
          await_output(command=\"wait_for\", handles=[\"<the launch handle>\"], \
@@ -294,7 +295,7 @@ pub async fn job_wait_progress_subagent(cfg: &Config) -> bool {
                 "Launched a background subagent",
                 harness::assert_sde_tool_used(&resp, "agent"),
             ),
-            ("Polled at least twice", waits >= 2),
+            ("Polled at least once", waits >= 1),
             (
                 "Turn was NOT ended by the repeat guard",
                 !content_mentions_loop_break(&resp.content),
