@@ -2922,5 +2922,32 @@
     "waiting": "等待内容中…",
     "empty": "无内容",
     "viewInSimulator": "在 Simulator 中查看"
+  },
+  "canvasApp": {
+    "share": "分享",
+    "shareHint": "分享这个 Canvas 快照",
+    "shareWaitForRevision": "请等待 Canvas 更新完成",
+    "shareLocalUrlUnavailable": "其他人无法打开本地 URL",
+    "shareTooLarge": "这个 Canvas 太大，无法生成分享链接",
+    "shareEmpty": "这个 Canvas 没有可分享的内容",
+    "shareDialogTitle": "分享 Canvas",
+    "shareDialogScope": "只包含这个 Canvas 快照。对话、仓库、会话以及后续修订都不会被分享。",
+    "shareDialogPreparing": "正在创建链接…",
+    "shareDialogLink": "Canvas 分享链接",
+    "shareDialogCopyFailed": "复制失败。请选中链接后手动复制。",
+    "shareDialogPublic": "任何拥有此链接的人都可以查看该快照。",
+    "shareDialogShortExpiry": "短链接 · 有效期至 {{date}}",
+    "shareDialogFallback": "短链接服务不可用，已改为创建完整链接。",
+    "shareDialogOpen": "打开",
+    "shareDialogCopied": "已复制",
+    "shareDialogCopy": "复制链接",
+    "shareDialogTooLarge": "这个 Canvas 太大，无法生成可靠的自包含链接。",
+    "shareDialogShortUnavailable": "分享服务暂时无法访问，而这个 Canvas 太大，无法生成自包含链接。请稍后重试。",
+    "shareDialogUnsupported": "当前应用版本无法创建压缩的 Canvas 链接。",
+    "shareDialogInvalid": "这个 Canvas 不包含可发布的快照。",
+    "shareDialogError": "无法创建 Canvas 链接。",
+    "shareDialogRetryShort": "重试短链接",
+    "shareDialogRetryingShort": "正在重试…",
+    "retry": "重试"
   }
 }
