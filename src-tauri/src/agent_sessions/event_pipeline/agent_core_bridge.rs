@@ -24,6 +24,7 @@ use super::types::{
 
 use agent_core::bus::event_pipeline_bridge as bridge;
 use core_types::session_event::ShellReplayState;
+use core_types::tool_names::tool_call_event_id;
 
 fn push_events_adapter(handle: &AppHandle, session_id: &str, events: Vec<SessionEvent>) {
     let state = handle.state::<EventStoreState>();
@@ -120,7 +121,7 @@ fn update_shell_replay_by_call_id_adapter(
         // tool-call id. Never guess "last shell". Hydrate a temporary store
         // so the same monotonic/bookmark rules apply, then repopulate the live
         // cache and synchronously write the row back.
-        let event_id = format!("tool-call-{call_id}");
+        let event_id = tool_call_event_id(call_id);
         let cold =
             session_persistence::get_event(session_id, &event_id).map_err(|err| err.to_string())?;
         let cold = match cold {
@@ -225,7 +226,7 @@ fn complete_tool_call_by_call_id_adapter(
     // es_load_from_cache hydrates a terminal event instead of a stuck spinner.
     // The Rust-authoritative tool_call row id is `tool-call-{call_id}`.
     let sid = session_id.to_string();
-    let event_id = format!("tool-call-{call_id}");
+    let event_id = tool_call_event_id(call_id);
     tokio::task::spawn_blocking(move || {
         if let Ok(Some(cached)) = session_persistence::get_event(&sid, &event_id) {
             let mut event = cached_event_to_session_event(&cached);
@@ -365,7 +366,7 @@ fn finalize_plan_revision_events_adapter(
 ) {
     let target_ids = [
         plan_revision_id.to_string(),
-        format!("tool-call-{plan_revision_id}"),
+        tool_call_event_id(plan_revision_id),
     ];
     let state = handle.state::<EventStoreState>();
 

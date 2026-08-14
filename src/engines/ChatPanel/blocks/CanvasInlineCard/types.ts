@@ -22,6 +22,8 @@ export interface CanvasInlinePayload {
   title?: string;
   streaming?: boolean;
   eventId?: string;
+  /** Event id of the prior Canvas version when this payload is a revision. */
+  revisesEventId?: string;
 }
 
 export interface CanvasInlineCardProps {
