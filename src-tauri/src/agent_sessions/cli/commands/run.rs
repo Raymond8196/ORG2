@@ -530,6 +530,10 @@ pub async fn cli_agent_message(request: CliMessageRequest) -> Result<CliRunRecei
     // Kill the existing agent process, Tokio task, and per-session proxy.
     tracing::info!(session_id = %session_id, "cli_agent_message: killing existing runner");
     session_runner::kill_running_agent(&session_id).await;
+    // The killed runner's finalize never runs (task aborted), so wake any
+    // parked approval long-poll here — otherwise it lingers until the 120s
+    // park timeout even though its process is gone.
+    super::super::hook_approvals::unregister_session(&session_id);
     tracing::info!(session_id = %session_id, "cli_agent_message: existing runner cleanup complete");
 
     // Resolve the resume id AFTER the old runner is dead — a slow runner

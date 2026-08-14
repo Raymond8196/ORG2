@@ -1385,6 +1385,33 @@ fn test_cancel_orphan_interactive_events_cancels_awaiting_user() {
 }
 
 #[test]
+fn test_cancel_orphan_interactive_events_sweeps_pending_cli_question() {
+    let mut store = EventStore::new();
+    // Managed-CLI question events are stamped Pending (not AwaitingUser) by
+    // infer_display_status; the restart sweep must catch them too.
+    let mut cli_question = make_tool_call("cli-ask-1", "call-cli-ask-1");
+    cli_question.function_name = "AskUserQuestion".to_string();
+    cli_question.ui_canonical = "ask_user_questions".to_string();
+    cli_question.display_status = EventDisplayStatus::Pending;
+    // A pending NON-question tool call must be left alone.
+    let mut pending_other = make_tool_call("other-1", "call-other-1");
+    pending_other.display_status = EventDisplayStatus::Pending;
+    store.set(vec![cli_question, pending_other]);
+
+    let cancelled = store.cancel_orphan_interactive_events();
+
+    assert_eq!(cancelled, vec!["cli-ask-1".to_string()]);
+    assert_eq!(
+        store.get_by_id("cli-ask-1").unwrap().display_status,
+        EventDisplayStatus::Completed
+    );
+    assert_eq!(
+        store.get_by_id("other-1").unwrap().display_status,
+        EventDisplayStatus::Pending
+    );
+}
+
+#[test]
 fn test_cancel_orphan_interactive_events_leaves_running_untouched() {
     let mut store = EventStore::new();
     let running = make_tool_call("run-1", "call-run-1");
