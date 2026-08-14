@@ -2,8 +2,9 @@
 //!
 //! The turn path submits lightweight jobs to the process-wide memory
 //! coordinator. The coordinator owns admission, per-session coalescing,
-//! deadlines and cancellation. Full transcripts are loaded from the canonical
-//! message store only once a job actually runs: session-memory extraction
+//! deadlines and cancellation. Transcripts are loaded from the canonical
+//! message store only once a job actually runs, and only as a bounded tail —
+//! never the full history: session-memory extraction
 //! starts right after its turn (context-pipeline work, never queued behind
 //! evolution jobs), while the heavy forked agents wait for the bounded
 //! global memory permit.
@@ -57,9 +58,17 @@ async fn fresh_fork_provider(spec: &ForkProviderSpec) -> Result<Arc<dyn LLMProvi
     .map_err(|err| format!("Failed to create fork provider: {err}"))
 }
 
+/// The bounded loader stops reading once the tail is guaranteed to exceed
+/// the budget, so peak allocation is proportional to
+/// `MEMORY_TRANSCRIPT_MAX_BYTES` while `bound_memory_transcript` still sees
+/// every message it could possibly keep — its output is byte-identical to
+/// bounding a full load.
 fn load_durable_history(session_id: &str) -> Result<(Vec<serde_json::Value>, Vec<i64>), String> {
-    let (messages, start_seqs) = unified_persistence::load_llm_history_text_only(session_id)
-        .map_err(|err| format!("Failed to load durable memory transcript: {err}"))?;
+    let (messages, start_seqs) = unified_persistence::load_llm_history_text_only_bounded(
+        session_id,
+        MEMORY_TRANSCRIPT_MAX_BYTES,
+    )
+    .map_err(|err| format!("Failed to load durable memory transcript: {err}"))?;
     Ok(bound_memory_transcript(
         messages,
         start_seqs,
@@ -368,6 +377,166 @@ pub(super) fn spawn_auto_dream(input: AutoDreamInput<'_>) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use test_helpers::test_env;
+
+    fn seed_agent_session(session_id: &str) {
+        let conn = database::db::get_connection().expect("get_connection");
+        crate::persistence::test_schema::ensure_agent_sessions_schema(&conn);
+        conn.execute_batch(
+            "CREATE TABLE IF NOT EXISTS agent_messages (
+                id TEXT PRIMARY KEY,
+                session_id TEXT NOT NULL,
+                role TEXT NOT NULL,
+                content TEXT NOT NULL DEFAULT '',
+                tool_name TEXT,
+                tool_call_id TEXT,
+                tool_input TEXT,
+                tool_output TEXT,
+                model TEXT,
+                sequence INTEGER NOT NULL DEFAULT 0,
+                created_at TEXT NOT NULL,
+                images TEXT,
+                compact_from_sequence INTEGER,
+                compact_tokens_before INTEGER,
+                compact_tokens_after INTEGER
+             );",
+        )
+        .expect("create agent_messages table");
+        conn.execute(
+            "INSERT OR IGNORE INTO agent_sessions
+             (session_id, session_type, status, created_at, updated_at)
+             VALUES (?1, 'agent', 'running', datetime('now'), datetime('now'))",
+            [session_id],
+        )
+        .expect("seed session row");
+    }
+
+    /// One conversation turn: user text, a two-result tool group, and an
+    /// assistant reply, all sized by `payload_bytes`.
+    fn save_turn(session_id: &str, turn: usize, payload_bytes: usize) {
+        let payload = format!("t{turn}-{}", "x".repeat(payload_bytes));
+        unified_persistence::save_user_msg(session_id, &payload, None).expect("save user");
+        let call_id = format!("call-{turn}");
+        unified_persistence::save_tool_call_msg(
+            session_id,
+            &call_id,
+            "read_file",
+            &format!("{{\"path\":\"/tmp/{turn}\"}}"),
+        )
+        .expect("save tool call");
+        unified_persistence::save_tool_result_msg(session_id, &call_id, "read_file", &payload)
+            .expect("save tool result");
+        unified_persistence::save_tool_result_msg(session_id, &call_id, "read_file", "short")
+            .expect("save second tool result");
+        unified_persistence::save_assistant_msg(session_id, &payload, "test-model")
+            .expect("save assistant");
+    }
+
+    fn full_load_then_truncate(
+        session_id: &str,
+        max_bytes: usize,
+    ) -> (Vec<serde_json::Value>, Vec<i64>) {
+        let (messages, start_seqs) =
+            unified_persistence::load_llm_history_text_only(session_id).expect("full load");
+        bound_memory_transcript(messages, start_seqs, max_bytes)
+    }
+
+    fn bounded_load_then_truncate(
+        session_id: &str,
+        max_bytes: usize,
+    ) -> (Vec<serde_json::Value>, Vec<i64>) {
+        let (messages, start_seqs) =
+            unified_persistence::load_llm_history_text_only_bounded(session_id, max_bytes)
+                .expect("bounded load");
+        bound_memory_transcript(messages, start_seqs, max_bytes)
+    }
+
+    fn assert_byte_identical(session_id: &str, max_bytes: usize) {
+        let expected = full_load_then_truncate(session_id, max_bytes);
+        let actual = bounded_load_then_truncate(session_id, max_bytes);
+        assert_eq!(
+            actual.1, expected.1,
+            "start sequences diverged at cap {max_bytes}"
+        );
+        assert_eq!(
+            serde_json::to_vec(&actual.0).expect("serialize actual"),
+            serde_json::to_vec(&expected.0).expect("serialize expected"),
+            "messages diverged at cap {max_bytes}"
+        );
+    }
+
+    /// Acceptance bar for the bounded loader: on a transcript larger than
+    /// the real memory budget, bounded-load-then-truncate must be
+    /// byte-identical to full-load-then-truncate.
+    #[test]
+    fn bounded_load_matches_full_load_at_memory_budget() {
+        let _sandbox = test_env::sandbox();
+        let session_id = "memory-bounded-equivalence";
+        seed_agent_session(session_id);
+
+        save_turn(session_id, 0, 4 * 1024);
+        let anchor_id = unified_persistence::save_user_msg(session_id, "recent user", None)
+            .expect("save anchor user");
+        let anchor = unified_persistence::message_anchor(session_id, &anchor_id)
+            .expect("resolve anchor")
+            .expect("anchor row exists");
+        unified_persistence::append_compact_boundary(
+            session_id,
+            "summary of the first turn",
+            anchor.sequence,
+            None,
+            None,
+        )
+        .expect("append boundary");
+        for turn in 1..16 {
+            save_turn(session_id, turn, 16 * 1024);
+        }
+
+        let (full, _) =
+            unified_persistence::load_llm_history_text_only(session_id).expect("full load");
+        let full_bytes: usize = full
+            .iter()
+            .map(|message| serde_json::to_vec(message).map_or(0, |encoded| encoded.len()))
+            .sum();
+        assert!(
+            full_bytes > MEMORY_TRANSCRIPT_MAX_BYTES,
+            "fixture must exceed the memory budget, got {full_bytes} bytes"
+        );
+
+        assert_byte_identical(session_id, MEMORY_TRANSCRIPT_MAX_BYTES);
+
+        let (bounded, _) = unified_persistence::load_llm_history_text_only_bounded(
+            session_id,
+            MEMORY_TRANSCRIPT_MAX_BYTES,
+        )
+        .expect("bounded load");
+        assert!(
+            bounded.len() < full.len(),
+            "oversized transcript must not be fully materialized"
+        );
+    }
+
+    /// Budget edges that land inside tool groups, on the anchor row itself,
+    /// below one message, and above the whole transcript must all agree
+    /// with the full-load pipeline.
+    #[test]
+    fn bounded_load_matches_full_load_across_budgets() {
+        let _sandbox = test_env::sandbox();
+        let session_id = "memory-bounded-budget-sweep";
+        seed_agent_session(session_id);
+        for turn in 0..8 {
+            save_turn(session_id, turn, 512);
+        }
+        let final_call = "call-final";
+        unified_persistence::save_tool_call_msg(session_id, final_call, "list_dir", "{}")
+            .expect("save trailing tool call");
+        unified_persistence::save_tool_result_msg(session_id, final_call, "list_dir", "entries")
+            .expect("save trailing tool result");
+
+        for max_bytes in [1, 100, 700, 1500, 4 * 1024, 16 * 1024, 1024 * 1024] {
+            assert_byte_identical(session_id, max_bytes);
+        }
+    }
 
     #[test]
     fn transcript_budget_keeps_recent_suffix() {
