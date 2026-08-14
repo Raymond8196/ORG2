@@ -29,6 +29,7 @@ import { useSecretScanGuard } from "@src/hooks/security/useSecretScanGuard";
 import { sessionByIdAtom } from "@src/store/session";
 import type { ChatImageAttachment } from "@src/store/ui/chatImageAtom";
 import { wpReadOnlyAtom } from "@src/store/ui/chatPanelAtom";
+import { isCliSession } from "@src/util/session/sessionDispatch";
 
 import { clearImageDraft } from "../../InputArea/utils/imageDraftCache";
 import {
@@ -36,8 +37,9 @@ import {
   parseCompactSlashCommand,
   useManualCompact,
 } from "../useManualCompact";
-import { resolveAgentMessageContent } from "./agentMessageContent";
 import { resolveMcpSlashCommand } from "./mcpSlashCommand";
+import { expandSkillPills } from "./outgoingTextTransforms";
+import { projectOutgoingUserMessage } from "./projectOutgoingUserMessage";
 import type {
   CiteCodeSnapshot,
   InputAreaRefs,
@@ -45,31 +47,12 @@ import type {
   SubmitOverrideInput,
 } from "./types";
 
-const log = createLogger("useSubmitMessage");
+// Re-exported for existing consumers/tests; the implementation moved to the
+// shared outgoing-text transform module so every projection entry point uses
+// the same copy.
+export { stripContextPillBase64 } from "./outgoingTextTransforms";
 
-/**
- * Strip the `::<base64>` payload from serialized context pills
- * (`[paste:path::encoded]` → `[paste:path]`).
- *
- * `serializePillNode` embeds the pill's stored text as a base64 blob so the
- * composer can round-trip it back into an editable pill (drafts / edit mode).
- * That blob is editor-internal — the LLM must never see it. The submit flow
- * already re-attaches each context pill's *plaintext* as a fenced ```block```
- * (see `contextBlocks` below), so leaving the base64 in the agent content both
- * duplicates the payload AND feeds the model a multi-KB opaque token soup —
- * which has triggered Anthropic `stop_reason=refusal` (empty response, turn
- * ends with no output). We keep the lightweight `[paste:path]` reference so the
- * fenced block still has an anchor, but drop the blob.
- */
-const CONTEXT_PILL_TYPE_ALTERNATION =
-  "paste|terminal|browser|workitem|dom-element|dom-component|pr|issue";
-const CONTEXT_PILL_BASE64_REGEX = new RegExp(
-  `\\[(${CONTEXT_PILL_TYPE_ALTERNATION}):([^\\]]+?)::[A-Za-z0-9+/=]+\\]`,
-  "g"
-);
-export function stripContextPillBase64(text: string): string {
-  return text.replace(CONTEXT_PILL_BASE64_REGEX, "[$1:$2]");
-}
+const log = createLogger("useSubmitMessage");
 
 // ============================================================================
 // Types
@@ -275,13 +258,11 @@ export function useSubmitMessage({
 
       // ── Skill pill expansion ──────────────────────────────────────────────
       // displayText keeps `name [skill:/<name>]` for rendering pills in
-      // history. The Rust backend expects `/<name>` to expand skill content,
-      // so we extract the path token (already starts with "/") directly.
-      const skillExpanded = displayText.replace(
-        /([^[]+?)\s*\[skill:([^\]]+)\]/g,
-        (_match, _displayName, skillPath: string) => skillPath
-      );
-      const hasSkillPills = skillExpanded !== displayText;
+      // history. The shared transform extracts the `/<name>` path token the
+      // Rust backend expects; the result feeds the session-pill scan below
+      // (the final agent projection re-runs the same transform internally).
+      const { expanded: skillExpanded, hasSkillPills } =
+        expandSkillPills(displayText);
 
       // ── Context pill async loads ──────────────────────────────────────────
       const { waitForPendingPills } =
@@ -314,12 +295,6 @@ export function useSubmitMessage({
       const terminalTexts =
         refs.composerInputRef.current.getTerminalPillTexts();
       const terminalEntries = Object.entries(terminalTexts);
-      // The text the LLM sees must not carry the editor-internal `::base64`
-      // pill payload. `displayText` keeps the full serialized form for history
-      // rendering / re-editing; `base` is the agent-facing copy.
-      const base = stripContextPillBase64(
-        hasSkillPills ? skillExpanded : displayText
-      );
       const contextBlocks: string[] = [];
 
       if (terminalEntries.length > 0) {
@@ -379,12 +354,18 @@ export function useSubmitMessage({
         contextBlocks.push(...sessionRefs);
       }
 
-      const agentContent = resolveAgentMessageContent({
+      // The shared projection owns the display/agent split: skill expansion,
+      // `::base64` strip, and the Canvas contract. Canvas is additionally
+      // gated like /compact and Address Comments above — attached images mean
+      // the user is sending real content that happens to mention the command
+      // — and on session capability: CLI agents have no render_inline_canvas
+      // tool, so the message must pass through as ordinary text there.
+      const { agentContent } = projectOutgoingUserMessage({
         displayText,
-        agentBase: base,
-        hasTransformedPills: hasSkillPills,
         contextBlocks,
         enableAgentInterceptors,
+        allowCanvasInterception:
+          !hasAttachedImages && !isCliSession(draftSessionId || null),
       });
 
       const imageDataUrls = imageAttachment.images.map((img) => img.dataUrl);

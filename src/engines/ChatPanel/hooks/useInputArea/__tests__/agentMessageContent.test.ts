@@ -23,6 +23,22 @@ describe("resolveAgentMessageContent", () => {
     expect(agentContent).not.toContain("[skill:/canvas]");
   });
 
+  it("recognizes the canvas pill mid-text via the display copy", () => {
+    // The expanded agent base collapses "prefix + pill" into the bare token;
+    // recognition therefore runs on the display text, where the pill is
+    // unambiguous anywhere in the draft.
+    const agentContent = resolveAgentMessageContent({
+      displayText: "make me a timer canvas [skill:/canvas]",
+      agentBase: "/canvas",
+      hasTransformedPills: true,
+      contextBlocks: [],
+      enableAgentInterceptors: true,
+    });
+
+    expect(agentContent).toContain("render_inline_canvas exactly once");
+    expect(agentContent).toContain("make me a timer");
+  });
+
   it("appends context after the resolved Canvas contract", () => {
     const agentContent = resolveAgentMessageContent({
       displayText: "canvas [skill:/canvas] use this terminal output",
@@ -47,5 +63,30 @@ describe("resolveAgentMessageContent", () => {
         enableAgentInterceptors: false,
       })
     ).toBeUndefined();
+  });
+
+  it("passes the command through as ordinary text when canvas interception is disallowed (CLI / images)", () => {
+    expect(
+      resolveAgentMessageContent({
+        displayText: "/canvas build a timer",
+        agentBase: "/canvas build a timer",
+        hasTransformedPills: false,
+        contextBlocks: [],
+        enableAgentInterceptors: true,
+        allowCanvasInterception: false,
+      })
+    ).toBeUndefined();
+
+    // The pill form still ships its expanded base (skill pills transformed),
+    // just without the contract.
+    const agentContent = resolveAgentMessageContent({
+      displayText: "canvas [skill:/canvas] build a timer",
+      agentBase: "/canvas build a timer",
+      hasTransformedPills: true,
+      contextBlocks: [],
+      enableAgentInterceptors: true,
+      allowCanvasInterception: false,
+    });
+    expect(agentContent).toBe("/canvas build a timer");
   });
 });

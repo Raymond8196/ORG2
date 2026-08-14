@@ -185,8 +185,11 @@ export function useSlashCommand(
         canvasDescription: t("input.canvasCommandDescription"),
         compactDescription: t("input.compactCommandDescription"),
         addressCommentsItem,
+        // CLI agents have no render_inline_canvas tool — hide the builtin
+        // (the submit projection is a matching no-op for CLI sessions).
+        includeCanvas: !(sessionId && isCliSession(sessionId)),
       }),
-    [t, addressCommentsItem]
+    [t, addressCommentsItem, sessionId]
   );
 
   const {

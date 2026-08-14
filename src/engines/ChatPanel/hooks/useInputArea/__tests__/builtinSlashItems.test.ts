@@ -21,6 +21,16 @@ describe("buildBuiltinSlashItems", () => {
     expect(items.map((item) => item.name)).toEqual(["canvas", "compact"]);
   });
 
+  it("omits the canvas action for sessions without the canvas capability", () => {
+    const items = buildBuiltinSlashItems({
+      canvasDescription: "Create a Canvas",
+      compactDescription: "Compact context",
+      includeCanvas: false,
+    });
+
+    expect(items.map((item) => item.name)).toEqual(["compact"]);
+  });
+
   it("keeps optional contextual commands after stable built-ins", () => {
     const addressItem: SlashItem = {
       name: "address-comments",
