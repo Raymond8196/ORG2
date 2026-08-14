@@ -1,4 +1,4 @@
-import { Bot, Pencil, Repeat, RotateCcw, Terminal } from "lucide-react";
+import { Bot, Pencil, Play, Repeat, RotateCcw, Terminal } from "lucide-react";
 import React, { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -8,6 +8,7 @@ import {
   projectApi,
 } from "@src/api/http/project";
 import Avatar from "@src/components/Avatar";
+import Button from "@src/components/Button";
 import TabPill from "@src/components/TabPill";
 import { useWorkItemImageInsert } from "@src/hooks/project";
 import {
@@ -306,6 +307,10 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
   orgId,
   onOpenSubItem,
   onCancelAgent,
+  onStartAgent,
+  isStartingAgent,
+  isStartAgentLockedByOther,
+  startAgentLockHolderName,
   onRetry,
   onAcceptAsIs,
   onCreateFollowUp,
@@ -346,6 +351,7 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
     isSubscribed,
     handleToggleSubscription,
     isSubmittingComment,
+    triggerPreview,
     sessionTabItems,
     resolvedDescription,
     rawDescription,
@@ -826,6 +832,7 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
       onReopenThread={handleReopenDiscussionThread}
       presentation={presentation}
       canComment={Boolean(onUpdateWorkItem)}
+      triggerPreview={triggerPreview}
       threadNavigation={
         isThread && activeThreadView === "discussion" ? (
           <WorkItemThreadViewAction
@@ -842,9 +849,40 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
     />
   );
 
+  const orchestratorPhase = workItem.orchestratorState?.current_phase ?? "idle";
+  const showStartAgent =
+    Boolean(onStartAgent) &&
+    !isGitHubWorkItem &&
+    !activeAgentSessionId &&
+    orchestratorPhase === "idle";
+
+  const startAgentAction = showStartAgent ? (
+    <Button
+      variant="primary"
+      size="small"
+      onClick={() => onStartAgent?.()}
+      disabled={Boolean(isStartingAgent) || Boolean(isStartAgentLockedByOther)}
+      title={
+        isStartAgentLockedByOther && startAgentLockHolderName
+          ? t("workItems.agentWorkflow.lockedByHolder", {
+              name: startAgentLockHolderName,
+            })
+          : undefined
+      }
+      data-testid="work-item-start-agent"
+    >
+      <Play size={12} strokeWidth={2} />
+      {t(
+        isStartingAgent
+          ? "workItems.agentWorkflow.pendingLaunch"
+          : "workItems.agentWorkflow.startAgent"
+      )}
+    </Button>
+  ) : null;
+
   const tabbedLowerSection = (
     <section data-testid="work-item-lower-tabs-section">
-      <div className="mb-4 flex items-center justify-start">
+      <div className="mb-4 flex items-center justify-between gap-2">
         <TabPill
           tabs={sessionTabItems}
           activeTab={activeSessionTab}
@@ -853,6 +891,7 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
           fillWidth={false}
           size="large"
         />
+        {startAgentAction}
       </div>
 
       {activeSessionTab === "session" &&

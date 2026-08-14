@@ -365,6 +365,11 @@
     "history": {
       "noHistory": "No history yet"
     },
+    "discussion": {
+      "previewWillWake": "Will wake the agent to reply",
+      "previewNoteOnly": "Note only — the agent won't be triggered",
+      "previewNoSession": "No linked agent session — nothing will be triggered"
+    },
     "activity": {
       "title": "Activity",
       "discussionTitle": "Discussion",
@@ -502,6 +507,7 @@
       "title": "Agent Workflow",
       "startAgent": "Start Agent",
       "startAgentAndChat": "Start Agent & Open Chat",
+      "lockedByHolder": "{{name}} is running this item",
       "noWorkspaceForAgent": "Open a repository workspace before starting an agent on this item.",
       "running": "Running...",
       "pendingLaunch": "Pending launch...",

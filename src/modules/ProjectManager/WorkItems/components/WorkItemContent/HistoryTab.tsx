@@ -211,6 +211,7 @@ const HistoryTab: React.FC<HistoryTabProps> = ({
   presentation = "default",
   canComment = true,
   threadNavigation,
+  triggerPreview,
 }) => {
   const { t } = useTranslation("projects");
   const [editorMode, setEditorMode] = useState<MarkdownEditorMode>("write");
@@ -277,6 +278,28 @@ const HistoryTab: React.FC<HistoryTabProps> = ({
   );
 
   const hasComment = commentText.trim().length > 0;
+  const triggerPreviewChip =
+    hasComment && triggerPreview ? (
+      <div
+        className="flex items-center gap-1.5 self-start rounded-full bg-fill-2 px-2 py-0.5 text-[11px] text-text-3"
+        title={triggerPreview.targetSessionId ?? undefined}
+        data-testid="work-item-discussion-trigger-preview"
+      >
+        <span
+          className={`inline-block h-1.5 w-1.5 rounded-full ${
+            triggerPreview.willWake ? "bg-primary-6" : "bg-fill-4"
+          }`}
+          aria-hidden
+        />
+        {t(
+          triggerPreview.willWake
+            ? "workItems.discussion.previewWillWake"
+            : triggerPreview.reason === "note_only"
+              ? "workItems.discussion.previewNoteOnly"
+              : "workItems.discussion.previewNoSession"
+        )}
+      </div>
+    ) : null;
   const submitButton = (
     <Button
       variant={hasComment ? "primary" : isThread ? "tertiary" : "secondary"}
@@ -333,6 +356,7 @@ const HistoryTab: React.FC<HistoryTabProps> = ({
             />
           </div>
         ) : null}
+        {triggerPreviewChip}
         <ComposerShell
           variant="comment"
           className="!flex-col !items-stretch"
@@ -378,6 +402,9 @@ const HistoryTab: React.FC<HistoryTabProps> = ({
       data-testid="work-item-default-comment-dock"
     >
       <div className="min-w-0 flex-1">
+        {triggerPreviewChip ? (
+          <div className="mb-2">{triggerPreviewChip}</div>
+        ) : null}
         <MarkdownTextareaEditor
           placeholder={t("workItems.activity.commentPlaceholder")}
           value={commentText}

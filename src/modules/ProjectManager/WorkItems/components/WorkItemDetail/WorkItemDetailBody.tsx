@@ -45,6 +45,10 @@ interface WorkItemDetailBodyProps {
   onUpdateWorkItem: (updates: Partial<WorkItemExtended>) => void;
   onUpdateWorkItemImmediate: (updates: Partial<WorkItemExtended>) => void;
   onCancelAgent: () => void;
+  onStartAgent?: () => void;
+  isStartingAgent?: boolean;
+  isStartAgentLockedByOther?: boolean;
+  startAgentLockHolderName?: string | null;
   onRetry: (instructions?: string) => void;
   onAcceptAsIs: () => void;
   onCreateFollowUp: () => void;
@@ -78,6 +82,10 @@ export function WorkItemDetailBody({
   onUpdateWorkItem,
   onUpdateWorkItemImmediate,
   onCancelAgent,
+  onStartAgent,
+  isStartingAgent,
+  isStartAgentLockedByOther,
+  startAgentLockHolderName,
   onRetry,
   onAcceptAsIs,
   onCreateFollowUp,
@@ -127,6 +135,10 @@ export function WorkItemDetailBody({
               orgId={orgId}
               shortId={shortId}
               onCancelAgent={onCancelAgent}
+              onStartAgent={onStartAgent}
+              isStartingAgent={isStartingAgent}
+              isStartAgentLockedByOther={isStartAgentLockedByOther}
+              startAgentLockHolderName={startAgentLockHolderName}
               onRetry={onRetry}
               onAcceptAsIs={onAcceptAsIs}
               onCreateFollowUp={onCreateFollowUp}

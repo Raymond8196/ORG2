@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import type {
+  DiscussionTriggerPreview,
   OrchestratorPhase,
   PrStatus,
   WorkItemData as WorkItemDataPayload,
@@ -55,6 +56,10 @@ export interface WorkItemContentProps {
   /** Inline GitHub-native body, comment, and status actions for thread surfaces. */
   githubIssueInteraction?: GitHubIssueInteractionConfig;
   onCancelAgent?: () => void;
+  onStartAgent?: () => void;
+  isStartingAgent?: boolean;
+  isStartAgentLockedByOther?: boolean;
+  startAgentLockHolderName?: string | null;
   onRetry?: () => void;
   onAcceptAsIs?: () => void;
   onCreateFollowUp?: () => void;
@@ -156,6 +161,7 @@ export interface HistoryTabProps {
   presentation?: WorkItemContentPresentation;
   canComment?: boolean;
   threadNavigation?: ReactNode;
+  triggerPreview?: DiscussionTriggerPreview | null;
 }
 
 export interface TimelineEntry {

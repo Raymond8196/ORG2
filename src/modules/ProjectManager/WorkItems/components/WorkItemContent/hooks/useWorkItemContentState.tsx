@@ -1,9 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { projectApi } from "@src/api/http/project";
+import type { DiscussionTriggerPreview } from "@src/api/http/project";
 import type { TabPillItem } from "@src/components/TabPill";
 import { createLogger } from "@src/hooks/logger";
+import { useDebouncedCallback } from "@src/hooks/perf";
 import { useCurrentUserMemberIds } from "@src/hooks/project/useCurrentUserMemberId";
 import {
   resolveImagePathsForDisplay,
@@ -76,10 +78,46 @@ export function useWorkItemContentState(
   const [mentionedUserIds, setMentionedUserIds] = useState<string[]>([]);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+  const [triggerPreview, setTriggerPreview] =
+    useState<DiscussionTriggerPreview | null>(null);
+  const previewGenerationRef = useRef(0);
 
   const currentPhase = workItem.orchestratorState?.current_phase ?? "idle";
   const isAgentRunning = currentPhase === "sde" || currentPhase === "review";
   const scopedShortId = shortId ?? workItem.shortId ?? "";
+
+  const fetchTriggerPreview = useDebouncedCallback((content: string) => {
+    const generation = previewGenerationRef.current + 1;
+    previewGenerationRef.current = generation;
+    projectApi
+      .previewDiscussionTrigger({
+        projectSlug: projectSlug ?? null,
+        orgId: orgId || "personal-org",
+        workItemId: scopedShortId,
+        content,
+      })
+      .then((preview) => {
+        if (previewGenerationRef.current === generation) {
+          setTriggerPreview(preview);
+        }
+      })
+      .catch((error) => {
+        logger.warn("Failed to preview Discussion trigger", error);
+        if (previewGenerationRef.current === generation) {
+          setTriggerPreview(null);
+        }
+      });
+  }, 350);
+
+  useEffect(() => {
+    const content = commentText.trim();
+    if (!scopedShortId || !content) {
+      previewGenerationRef.current += 1;
+      setTriggerPreview(null);
+      return;
+    }
+    fetchTriggerPreview(content);
+  }, [commentText, fetchTriggerPreview, scopedShortId]);
 
   useEffect(() => {
     if (!scopedShortId || !currentUser.id) return;
@@ -376,6 +414,7 @@ export function useWorkItemContentState(
     isSubscribed,
     handleToggleSubscription,
     isSubmittingComment,
+    triggerPreview,
     currentPhase,
     isAgentRunning,
     sessionTabItems,
