@@ -316,6 +316,41 @@ impl MemoryJobCoordinator {
         }
     }
 
+    /// Terminal accounting for one job generation. Every exit of
+    /// [`run_one`] funnels here so the outcome counter and the always-on
+    /// metrics log line cannot drift apart; the snapshot is a handful of
+    /// relaxed atomic loads, cheap enough for every terminal state.
+    fn finish(
+        &self,
+        key: &JobKey,
+        outcome: MemoryJobOutcome,
+        elapsed_ms: u128,
+    ) -> MemoryJobOutcome {
+        let counter = match outcome {
+            MemoryJobOutcome::Completed => &self.metrics.completed,
+            MemoryJobOutcome::Failed => &self.metrics.failed,
+            MemoryJobOutcome::Cancelled => &self.metrics.cancelled,
+            MemoryJobOutcome::TimedOut => &self.metrics.timed_out,
+        };
+        counter.fetch_add(1, Ordering::Relaxed);
+        let metrics = self.metrics.snapshot();
+        info!(
+            session_id = %key.session_id,
+            job_kind = key.kind.as_str(),
+            outcome = ?outcome,
+            elapsed_ms,
+            submitted = metrics.submitted,
+            coalesced = metrics.coalesced,
+            started = metrics.started,
+            completed = metrics.completed,
+            failed = metrics.failed,
+            cancelled = metrics.cancelled,
+            timed_out = metrics.timed_out,
+            "[memory_background] job finished"
+        );
+        outcome
+    }
+
     async fn run_one(
         &self,
         key: &JobKey,
@@ -326,8 +361,7 @@ impl MemoryJobCoordinator {
             tokio::select! {
                 biased;
                 _ = slot_cancel.cancelled() => {
-                    self.metrics.cancelled.fetch_add(1, Ordering::Relaxed);
-                    return MemoryJobOutcome::Cancelled;
+                    return self.finish(key, MemoryJobOutcome::Cancelled, 0);
                 }
                 _ = tokio::time::sleep(job.delay) => {}
             }
@@ -337,14 +371,12 @@ impl MemoryJobCoordinator {
             let permit = tokio::select! {
                 biased;
                 _ = slot_cancel.cancelled() => {
-                    self.metrics.cancelled.fetch_add(1, Ordering::Relaxed);
-                    return MemoryJobOutcome::Cancelled;
+                    return self.finish(key, MemoryJobOutcome::Cancelled, 0);
                 }
                 permit = Arc::clone(&self.permits).acquire_owned() => match permit {
                     Ok(permit) => permit,
                     Err(_) => {
-                        self.metrics.cancelled.fetch_add(1, Ordering::Relaxed);
-                        return MemoryJobOutcome::Cancelled;
+                        return self.finish(key, MemoryJobOutcome::Cancelled, 0);
                     }
                 }
             };
@@ -355,8 +387,7 @@ impl MemoryJobCoordinator {
 
         if slot_cancel.is_cancelled() {
             drop(permit);
-            self.metrics.cancelled.fetch_add(1, Ordering::Relaxed);
-            return MemoryJobOutcome::Cancelled;
+            return self.finish(key, MemoryJobOutcome::Cancelled, 0);
         }
 
         self.metrics.started.fetch_add(1, Ordering::Relaxed);
@@ -397,28 +428,7 @@ impl MemoryJobCoordinator {
         drop(future);
         drop(permit);
 
-        match outcome {
-            MemoryJobOutcome::Completed => {
-                self.metrics.completed.fetch_add(1, Ordering::Relaxed);
-            }
-            MemoryJobOutcome::Failed => {
-                self.metrics.failed.fetch_add(1, Ordering::Relaxed);
-            }
-            MemoryJobOutcome::Cancelled => {
-                self.metrics.cancelled.fetch_add(1, Ordering::Relaxed);
-            }
-            MemoryJobOutcome::TimedOut => {
-                self.metrics.timed_out.fetch_add(1, Ordering::Relaxed);
-            }
-        }
-        info!(
-            session_id = %key.session_id,
-            job_kind = key.kind.as_str(),
-            outcome = ?outcome,
-            elapsed_ms = started_at.elapsed().as_millis(),
-            "[memory_background] job finished"
-        );
-        outcome
+        self.finish(key, outcome, started_at.elapsed().as_millis())
     }
 
     fn cancel_where(&self, mut predicate: impl FnMut(&JobKey, &JobSlot) -> bool) -> usize {
@@ -498,6 +508,9 @@ pub fn cancel_memory_jobs_for_agent(agent_id: &str) -> usize {
     coordinator().cancel_agent(agent_id)
 }
 
+/// Coordinator counter snapshot. Surfaced on every terminal-state
+/// `job finished` log line and by the debug-only
+/// `/agent/test/memory-metrics` endpoint.
 pub fn memory_job_metrics() -> MemoryJobMetricsSnapshot {
     coordinator().metrics()
 }
