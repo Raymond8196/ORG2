@@ -18,9 +18,7 @@ import { useAtomValue, useStore } from "jotai";
 import React, { useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
-import { rejectQuestion, respondQuestion } from "@src/api/tauri/agent";
 import Message from "@src/components/Message";
-import { extractQuestionBatch } from "@src/engines/ChatPanel/InputArea/AskQuestionCard/extractQuestionBatch";
 import { chatEventsAtom } from "@src/engines/SessionCore";
 import { parseAddressCommentsSlashCommand } from "@src/features/Org2Cloud/addressCommentsSlashToken";
 import { useAddressCommentsSlashCommand } from "@src/features/Org2Cloud/useAddressCommentsSlashCommand";
@@ -40,6 +38,7 @@ import {
 import { resolveMcpSlashCommand } from "./mcpSlashCommand";
 import { expandSkillPills } from "./outgoingTextTransforms";
 import { projectOutgoingUserMessage } from "./projectOutgoingUserMessage";
+import { interceptPendingQuestionBatches } from "./questionIntercept";
 import type {
   CiteCodeSnapshot,
   InputAreaRefs,
@@ -214,31 +213,15 @@ export function useSubmitMessage({
       // ── Question intercept ────────────────────────────────────────────────
       // When the agent asked a question and the user typed a reply in the main
       // input, forward the typed text as the question answer before dispatching.
+      // Finalizes locally even when the native commands fail (no CLI bridge) —
+      // see questionIntercept.ts.
       if (enableAgentInterceptors && hasText && draftSessionId) {
-        const events = store.get(chatEventsAtom);
-        for (const event of events) {
-          if (event.sessionId && event.sessionId !== draftSessionId) continue;
-          const batch = extractQuestionBatch(event);
-          if (!batch) continue;
-          const isFreeText = batch.questions.every(
-            (question) => question.options.length === 0
-          );
-          if (isFreeText) {
-            void respondQuestion(batch.sessionId, batch.questionId, [
-              [displayText.trim()],
-            ]).catch((err: unknown) => {
-              log.warn("[useSubmitMessage] respondQuestion failed:", err);
-              Message.warning(t("chat.questionExpired"));
-            });
-          } else {
-            void rejectQuestion(batch.sessionId, batch.questionId).catch(
-              (err: unknown) => {
-                log.warn("[useSubmitMessage] rejectQuestion failed:", err);
-                Message.warning(t("chat.questionExpired"));
-              }
-            );
-          }
-        }
+        interceptPendingQuestionBatches(
+          store.get(chatEventsAtom),
+          draftSessionId,
+          displayText.trim(),
+          t("chat.skippedByUser")
+        );
       }
 
       // ── MCP slash-command resolution ─────────────────────────────────────
