@@ -767,6 +767,8 @@ infrastructure::storage_commands::get_temp_dir,
 // Frontend log persistence
 infrastructure::frontend_log::write_frontend_log,
 infrastructure::frontend_log::get_logs_directory,
+// Canvas react-artifact publishing (served back via the canvas-artifact custom scheme)
+infrastructure::canvas_artifacts::canvas_artifact_publish,
 // Shared tool commands (agent-type-agnostic).
 // `init_tool_registry` is the unified bootstrap call — it returns the
 // full tool list (with `simulator_app` already on each row) plus the
