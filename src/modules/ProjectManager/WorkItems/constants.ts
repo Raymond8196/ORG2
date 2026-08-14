@@ -67,7 +67,6 @@ export const SESSION_STATUS = {
 export const PENDING_SESSION_ID = "pending";
 
 export const ORCHESTRATOR_COMMAND = {
-  Start: "orchestrator_start",
   Retry: "orchestrator_retry",
   Cancel: "orchestrator_cancel",
   GetStatus: "orchestrator_get_status",

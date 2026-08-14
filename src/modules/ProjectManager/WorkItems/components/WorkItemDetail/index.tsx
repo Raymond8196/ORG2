@@ -128,16 +128,12 @@ const WorkItemDetail: React.FC<WorkItemDetailProps> = ({
   const {
     activeAgentSessionId,
     activeAgentRole,
-    isStartingAgent,
-    handleStartAgent,
     handleRetry,
     handleCancelAgent,
     handleAcceptAsIs,
     handleCreateFollowUp,
     worktreePath,
     projectRepoPath,
-    isLockedByOther,
-    lockHolderName,
   } = useWorkItemOrchestrator({
     workItem,
     displayWorkItem,
@@ -421,10 +417,6 @@ const WorkItemDetail: React.FC<WorkItemDetailProps> = ({
         onUpdateWorkItem={handleLocalUpdate}
         onUpdateWorkItemImmediate={handleImmediateUpdate}
         onCancelAgent={handleCancelAgent}
-        onStartAgent={handleStartAgent}
-        isStartingAgent={isStartingAgent}
-        isStartAgentLockedByOther={isLockedByOther}
-        startAgentLockHolderName={lockHolderName}
         onRetry={handleRetry}
         onAcceptAsIs={handleAcceptAsIs}
         onCreateFollowUp={handleCreateFollowUp}

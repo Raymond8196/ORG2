@@ -500,10 +500,7 @@
     },
     "agentWorkflow": {
       "title": "Agent Workflow",
-      "startAgent": "Agent starten",
-      "startAgentAndChat": "Agent starten und Chat öffnen",
       "running": "Läuft...",
-      "pendingLaunch": "Start ausstehend...",
       "completed": "Abgeschlossen",
       "failed": "Fehlgeschlagen",
       "awaitingUser": "Aktion erforderlich",

@@ -157,9 +157,7 @@ export function useWorkItemOrchestrator(
 
   const launchSdeSession = useCallback(
     async (
-      orchestratorCommand:
-        | typeof ORCHESTRATOR_COMMAND.Start
-        | typeof ORCHESTRATOR_COMMAND.Retry,
+      orchestratorCommand: typeof ORCHESTRATOR_COMMAND.Retry,
       additionalInstructions?: string
     ) => {
       if (hasPendingChanges) {
@@ -305,12 +303,6 @@ export function useWorkItemOrchestrator(
       onRefreshWorkItem,
       t,
     ]
-  );
-
-  const handleStartAgent = useCallback(
-    (instructions?: string) =>
-      launchSdeSession(ORCHESTRATOR_COMMAND.Start, instructions),
-    [launchSdeSession]
   );
 
   const handleRetry = useCallback(
@@ -499,19 +491,13 @@ export function useWorkItemOrchestrator(
   });
 
   return {
-    isStartingAgent,
     activeAgentSessionId: effectiveActiveAgentSessionId,
     activeAgentRole: effectiveActiveAgentRole,
-    handleStartAgent,
     handleRetry,
     handleCancelAgent,
     handleAcceptAsIs,
     handleCreateFollowUp,
     worktreePath,
     projectRepoPath,
-    // Collab execution lock (design §16.6): the start-agent affordance uses
-    // these to disable + show "@name is running" when a teammate holds it.
-    isLockedByOther: collabLock.isLockedByOther,
-    lockHolderName: collabLock.lockHolderName,
   };
 }

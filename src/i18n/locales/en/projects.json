@@ -505,12 +505,7 @@
     },
     "agentWorkflow": {
       "title": "Agent Workflow",
-      "startAgent": "Start Agent",
-      "startAgentAndChat": "Start Agent & Open Chat",
-      "lockedByHolder": "{{name}} is running this item",
-      "noWorkspaceForAgent": "Open a repository workspace before starting an agent on this item.",
       "running": "Running...",
-      "pendingLaunch": "Pending launch...",
       "completed": "Completed",
       "failed": "Failed",
       "awaitingUser": "Awaiting Action",

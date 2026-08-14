@@ -500,10 +500,7 @@
     },
     "agentWorkflow": {
       "title": "Agent Workflow",
-      "startAgent": "Bắt đầu Agent",
-      "startAgentAndChat": "Khởi động Agent và mở Chat",
       "running": "Đang chạy...",
-      "pendingLaunch": "Đang chờ khởi chạy...",
       "completed": "Hoàn tất",
       "failed": "Thất bại",
       "awaitingUser": "Chờ thao tác",

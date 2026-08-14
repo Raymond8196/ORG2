@@ -56,10 +56,6 @@ export interface WorkItemContentProps {
   /** Inline GitHub-native body, comment, and status actions for thread surfaces. */
   githubIssueInteraction?: GitHubIssueInteractionConfig;
   onCancelAgent?: () => void;
-  onStartAgent?: () => void;
-  isStartingAgent?: boolean;
-  isStartAgentLockedByOther?: boolean;
-  startAgentLockHolderName?: string | null;
   onRetry?: () => void;
   onAcceptAsIs?: () => void;
   onCreateFollowUp?: () => void;

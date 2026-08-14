@@ -500,10 +500,7 @@
     },
     "agentWorkflow": {
       "title": "Agent İş Akışı",
-      "startAgent": "Agent Başlat",
-      "startAgentAndChat": "Agent Başlat ve Chat Aç",
       "running": "Çalışıyor...",
-      "pendingLaunch": "Başlatma bekleniyor...",
       "completed": "Tamamlandı",
       "failed": "Başarısız",
       "awaitingUser": "İşlem Bekleniyor",

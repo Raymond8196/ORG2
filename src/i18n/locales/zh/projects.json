@@ -506,12 +506,7 @@
     },
     "agentWorkflow": {
       "title": "Agent 工作流",
-      "startAgent": "启动 Agent",
-      "startAgentAndChat": "启动 Agent 并打开 Chat",
-      "lockedByHolder": "{{name}} 正在运行该事项",
-      "noWorkspaceForAgent": "请先打开一个仓库工作区，再对该事项启动 agent。",
       "running": "运行中...",
-      "pendingLaunch": "等待启动...",
       "completed": "已完成",
       "failed": "失败",
       "awaitingUser": "等待操作",
