@@ -847,7 +847,10 @@
       "insert": "삽입"
     },
     "compactArgHint": "<선택: 요약의 초점>",
-    "compactCommandDescription": "이전 컨텍스트를 요약해 공간을 확보합니다. 선택: /compact <요약의 초점>"
+    "compactCommandDescription": "이전 컨텍스트를 요약해 공간을 확보합니다. 선택: /compact <요약의 초점>",
+    "canvasCommandDescription": "새로운 대화형 Canvas를 만듭니다. 선택: /canvas <만들 내용>",
+    "canvasArgHint": "만들 내용",
+    "newCanvasAction": "새 Canvas"
   },
   "listPanel": {
     "showingOf": "{{total}}개 중 {{filtered}}개 표시",

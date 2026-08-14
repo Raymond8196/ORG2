@@ -847,7 +847,10 @@
       "insert": "挿入"
     },
     "compactArgHint": "<任意: 要約の重点>",
-    "compactCommandDescription": "古いコンテキストを要約して空きを作ります。任意: /compact <要約の重点>"
+    "compactCommandDescription": "古いコンテキストを要約して空きを作ります。任意: /compact <要約の重点>",
+    "canvasCommandDescription": "新しいインタラクティブ Canvas を作成します。任意: /canvas <作成する内容>",
+    "canvasArgHint": "作成する内容",
+    "newCanvasAction": "新しい Canvas"
   },
   "listPanel": {
     "showingOf": "{{total}} 件中 {{filtered}} 件を表示",
