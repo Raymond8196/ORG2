@@ -860,6 +860,7 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
     <Button
       variant="primary"
       size="small"
+      icon={<Play size={12} strokeWidth={2} />}
       onClick={() => onStartAgent?.()}
       disabled={Boolean(isStartingAgent) || Boolean(isStartAgentLockedByOther)}
       title={
@@ -871,7 +872,6 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
       }
       data-testid="work-item-start-agent"
     >
-      <Play size={12} strokeWidth={2} />
       {t(
         isStartingAgent
           ? "workItems.agentWorkflow.pendingLaunch"
