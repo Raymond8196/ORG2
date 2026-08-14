@@ -210,6 +210,7 @@ pub(super) fn post(request: DiscussionPostRequest) -> Result<DiscussionPostResul
         content: request.content.trim().to_string(),
         created_at: super::store::iso8601(now),
         mentioned_user_ids: request.mentioned_user_ids.clone(),
+        mentions: request.mentions.clone(),
         parent_id: request.parent_id.clone(),
         thread_id: Some(thread_id.clone()),
         resolved_at: None,

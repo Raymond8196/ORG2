@@ -7,12 +7,19 @@ export interface WorkItemScope {
   workItemId: string;
 }
 
+export type WorkItemMentionTarget =
+  | { kind: "member"; id: string }
+  | { kind: "agent"; id: string }
+  | { kind: "agent_org"; id: string }
+  | { kind: "all" };
+
 export interface DiscussionPostRequest extends WorkItemScope {
   commentId: string;
   authorId: string;
   authorName: string;
   content: string;
   mentionedUserIds?: string[];
+  mentions?: WorkItemMentionTarget[];
   parentId?: string | null;
   targetSessionId?: string | null;
 }

@@ -295,6 +295,8 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
   onUpdateWorkItemImmediate,
   currentUser: currentUserProp,
   teamMembers = [],
+  availableAgents = [],
+  availableOrgs = [],
   headerPath,
   headerProperties,
   titleVisible = false,
@@ -341,8 +343,8 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
     setCommentText,
     replyToCommentId,
     setReplyToCommentId,
-    mentionedUserIds,
-    setMentionedUserIds,
+    mentionRefs,
+    setMentionRefs,
     isSubscribed,
     handleToggleSubscription,
     isSubmittingComment,
@@ -363,6 +365,8 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
     onUpdateWorkItemImmediate,
     currentUserProp,
     teamMembers,
+    availableAgents,
+    availableOrgs,
     projectSlug,
     shortId,
     orgId,
@@ -815,8 +819,10 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
       onToggleSubscribe={handleToggleSubscription}
       commentText={commentText}
       onCommentTextChange={setCommentText}
-      mentionedUserIds={mentionedUserIds}
-      onMentionedUserIdsChange={setMentionedUserIds}
+      mentionRefs={mentionRefs}
+      onMentionRefsChange={setMentionRefs}
+      agents={availableAgents}
+      agentOrgs={availableOrgs}
       teamMembers={teamMembers}
       onCommentSubmit={handleCommentSubmit}
       isSubmittingComment={isSubmittingComment}

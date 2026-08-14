@@ -198,9 +198,11 @@ const HistoryTab: React.FC<HistoryTabProps> = ({
   onToggleSubscribe,
   commentText,
   onCommentTextChange,
-  mentionedUserIds = [],
-  onMentionedUserIdsChange = () => undefined,
+  mentionRefs = [],
+  onMentionRefsChange = () => undefined,
   teamMembers = [],
+  agents = [],
+  agentOrgs = [],
   onCommentSubmit,
   isSubmittingComment,
   comments = [],
@@ -385,10 +387,12 @@ const HistoryTab: React.FC<HistoryTabProps> = ({
             <div className="flex min-w-0 items-center justify-end gap-1.5">
               <WorkItemMentionPicker
                 members={teamMembers}
+                agents={agents}
+                agentOrgs={agentOrgs}
                 currentUserId={currentUser.id}
-                value={mentionedUserIds}
+                value={mentionRefs}
                 disabled={isSubmittingComment}
-                onChange={onMentionedUserIdsChange}
+                onChange={onMentionRefsChange}
               />
               {submitButton}
             </div>
@@ -427,10 +431,12 @@ const HistoryTab: React.FC<HistoryTabProps> = ({
           <div className="flex min-w-0 items-center justify-end gap-1.5">
             <WorkItemMentionPicker
               members={teamMembers}
+              agents={agents}
+              agentOrgs={agentOrgs}
               currentUserId={currentUser.id}
-              value={mentionedUserIds}
+              value={mentionRefs}
               disabled={isSubmittingComment}
-              onChange={onMentionedUserIdsChange}
+              onChange={onMentionRefsChange}
             />
             {submitButton}
           </div>
