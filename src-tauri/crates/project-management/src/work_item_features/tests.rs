@@ -342,6 +342,25 @@ fn discussion_routing_starts_the_assigned_agent_without_sessions() {
 }
 
 #[test]
+fn discussion_preview_reports_assignee_start() {
+    let _sandbox = test_env::sandbox();
+    seed_with_config(false, "builtin:sde");
+
+    let preview = discussion::preview(DiscussionTriggerPreviewRequest {
+        scope: scope(),
+        content: "please take a look".to_string(),
+        mentions: Vec::new(),
+        parent_id: None,
+        target_session_id: None,
+    })
+    .expect("preview");
+    assert!(preview.will_wake);
+    assert_eq!(preview.reason, "assignee_start");
+    assert_eq!(preview.target_kind.as_deref(), Some("start"));
+    assert!(!preview.will_coalesce);
+}
+
+#[test]
 fn subscriptions_coalesce_updates_but_keep_mentions_separate() {
     let _sandbox = test_env::sandbox();
     seed(false);

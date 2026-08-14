@@ -1,3 +1,4 @@
+import { useAtomValue } from "jotai";
 import { Bot, Pencil, Repeat, RotateCcw, Terminal } from "lucide-react";
 import React, { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -10,6 +11,7 @@ import {
 import Avatar from "@src/components/Avatar";
 import TabPill from "@src/components/TabPill";
 import { useWorkItemImageInsert } from "@src/hooks/project";
+import { builtInAgentsAtom } from "@src/modules/MainApp/AgentOrgs/store/builtInAgentsAtom";
 import {
   ProjectContentEditor,
   type ProjectContentEditorRef,
@@ -322,6 +324,11 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
 }) => {
   const { t } = useTranslation(["projects", "common"]);
   const editorRef = useRef<ProjectContentEditorRef>(null);
+  const builtInAgents = useAtomValue(builtInAgentsAtom);
+  const mentionAgents = useMemo(
+    () => [...builtInAgents, ...availableAgents],
+    [builtInAgents, availableAgents]
+  );
 
   const { handleImageInsert } = useWorkItemImageInsert({
     projectSlug: projectSlug ?? null,
@@ -365,7 +372,7 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
     onUpdateWorkItemImmediate,
     currentUserProp,
     teamMembers,
-    availableAgents,
+    availableAgents: mentionAgents,
     availableOrgs,
     projectSlug,
     shortId,
@@ -821,7 +828,7 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
       onCommentTextChange={setCommentText}
       mentionRefs={mentionRefs}
       onMentionRefsChange={setMentionRefs}
-      agents={availableAgents}
+      agents={mentionAgents}
       agentOrgs={availableOrgs}
       teamMembers={teamMembers}
       onCommentSubmit={handleCommentSubmit}
