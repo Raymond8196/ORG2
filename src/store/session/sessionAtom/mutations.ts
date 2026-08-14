@@ -44,6 +44,7 @@ import {
   sessionsAtom,
 } from "./atoms";
 import { removeGuestImportedSession } from "./guestImportRegistry";
+import { registerNewNativeSidebarSession } from "./loaders";
 import type { Session, SessionStatus } from "./types";
 
 const getStore = () => getInstrumentedStore();
@@ -60,6 +61,7 @@ const getStore = () => getInstrumentedStore();
  */
 export const upsertSession = (session: Session) => {
   const store = getStore();
+  let inserted = false;
   store.set(sessionsAtom, (prev) => {
     const existingIndex = prev.findIndex(
       (existingSession) => existingSession.session_id === session.session_id
@@ -90,10 +92,20 @@ export const upsertSession = (session: Session) => {
       };
       return updated;
     } else {
+      inserted = true;
       const newList = [session, ...prev];
       return newList;
     }
   });
+
+  // A native session created locally has authoritative launch data before the
+  // next paginated roster read completes.  Register its ID with the current
+  // native window at the same write boundary; otherwise a fully loaded
+  // sidebar filters out the new entity until a later safety refresh happens.
+  // Child and imported sessions remain owned by their respective loaders.
+  if (inserted) {
+    registerNewNativeSidebarSession(session);
+  }
 };
 
 /**
