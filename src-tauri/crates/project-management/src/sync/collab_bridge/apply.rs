@@ -721,16 +721,18 @@ fn apply_work_item(org_id: &str, entity: &CollabRemoteEntity) -> Result<bool, St
     }
 
     if let Some(deleted_at) = entity_deleted_at(entity) {
-        let Some((_, _, _, _, local_created_at)) = existing else {
+        let Some((_, _, _, synced_version, local_created_at)) = existing else {
             return Ok(false); // Created and deleted before we ever saw it.
         };
         let deleted_ms = iso_to_ms(Some(deleted_at)).unwrap_or_else(now_ms);
         // Entity ids are short-id derived, so a reused short id resurrects
-        // an old entity identity. A tombstone stamped BEFORE the local row
-        // was created belongs to that prior life — applying it would make
-        // a freshly created item invisible everywhere. Swallow it and
-        // record the version so the next pull does not replay it.
-        if local_created_at > deleted_ms {
+        // an old entity identity. A never-synced local row whose creation
+        // postdates the tombstone is such a rebirth — the delete belongs
+        // to the id's prior life, and applying it would make the fresh
+        // item invisible everywhere. Swallow it and record the version so
+        // the next pull does not replay it. Rows that have synced before
+        // share identity with the remote entity and delete normally.
+        if synced_version.is_none() && local_created_at > deleted_ms {
             tracing::warn!(
                 "[collab_bridge] ignoring stale delete for reborn work item {} \
                  (tombstone {} predates local creation {})",
