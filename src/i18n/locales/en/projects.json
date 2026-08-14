@@ -368,7 +368,14 @@
     "discussion": {
       "previewWillWake": "Will wake the agent to reply",
       "previewNoteOnly": "Note only — the agent won't be triggered",
-      "previewNoSession": "No linked agent session — nothing will be triggered"
+      "previewNoSession": "No linked agent session — nothing will be triggered",
+      "previewMentionResume": "Will wake the mentioned agent",
+      "previewMentionStart": "Will start the mentioned agent",
+      "previewMentionUnroutable": "Mentioned agent isn't configured on this item — nothing will be triggered",
+      "previewThread": "Will wake the agent from this thread",
+      "previewAssignee": "Will wake the assigned agent",
+      "previewAssigneeStart": "Will start the assigned agent",
+      "previewCoalesce": "joins the pending wake"
     },
     "activity": {
       "title": "Activity",

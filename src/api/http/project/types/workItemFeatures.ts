@@ -35,6 +35,8 @@ export interface DiscussionTriggerPreview {
   willWake: boolean;
   reason: string;
   targetSessionId?: string | null;
+  targetKind?: "resume" | "start" | null;
+  willCoalesce?: boolean;
 }
 
 export type SubscriptionReason =

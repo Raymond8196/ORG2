@@ -47,6 +47,10 @@ pub struct DiscussionTriggerPreview {
     pub will_wake: bool,
     pub reason: String,
     pub target_session_id: Option<String>,
+    #[serde(default)]
+    pub target_kind: Option<String>,
+    #[serde(default)]
+    pub will_coalesce: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -197,7 +197,40 @@ fn preview_from_decision(decision: &RouteDecision) -> DiscussionTriggerPreview {
         will_wake: decision.will_wake,
         reason: decision.reason.clone(),
         target_session_id: decision.resume_session_id(),
+        target_kind: decision.target.as_ref().map(|target| {
+            match target {
+                RouteTarget::Resume { .. } => "resume",
+                RouteTarget::Start => "start",
+            }
+            .to_string()
+        }),
+        will_coalesce: false,
     }
+}
+
+fn open_wake_window_exists(
+    connection: &rusqlite::Connection,
+    scope_key: &str,
+    work_item_id: &str,
+    target: &WorkItemRunTarget,
+) -> bool {
+    let Ok(mut statement) = connection.prepare(
+        "SELECT r.target_json FROM pm_work_item_runs r
+           JOIN pm_dispatch_outbox d ON d.run_id = r.id AND d.status = 'pending'
+          WHERE r.scope_key = ?1 AND r.work_item_id = ?2 AND r.status = 'queued'
+            AND r.idempotency_key LIKE 'discussion-wake:%'",
+    ) else {
+        return false;
+    };
+    statement
+        .query_map(params![scope_key, work_item_id], |row| {
+            row.get::<_, String>(0)
+        })
+        .map(|rows| {
+            rows.filter_map(Result::ok)
+                .any(|target_json| same_wake_target(&target_json, target))
+        })
+        .unwrap_or(false)
 }
 
 /// Debounce window: a wake run stays merge-open this long after the latest
@@ -330,7 +363,21 @@ pub(super) fn preview(
         &comments,
         &item.extras,
     );
-    Ok(preview_from_decision(&decision))
+    let mut preview = preview_from_decision(&decision);
+    if decision.will_wake {
+        let run_target = match decision.target.clone() {
+            Some(RouteTarget::Resume { session_id }) => {
+                WorkItemRunTarget::ResumeSession { session_id }
+            }
+            _ => WorkItemRunTarget::StartWorkItem {
+                account_id: None,
+                model_id: None,
+            },
+        };
+        preview.will_coalesce =
+            open_wake_window_exists(&connection, &item.scope_key, &item.short_id, &run_target);
+    }
+    Ok(preview)
 }
 
 fn comments_from_extras(extras: &serde_json::Value) -> Vec<CommentEntry> {
