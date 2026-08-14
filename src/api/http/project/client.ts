@@ -1066,6 +1066,23 @@ export interface RoutineRunStatus {
   }>;
 }
 
+/** A row from `pm_routines` (portable Routine domain, orgtrack/v1). */
+export interface PortableRoutineSummary {
+  name: string;
+  routineId: string;
+  revision: number;
+  enabled: boolean;
+  specHash: string;
+  updatedAt: number;
+}
+
+/** List portable routines by name. Backs the Webhooks management surface. */
+export async function listPortableRoutines(): Promise<
+  PortableRoutineSummary[]
+> {
+  return invoke("project_list_portable_routines", {});
+}
+
 /** List portable routine runs, newest first. Uncached: run status moves
  *  with work-item transitions, and the surface refetches on focus. */
 export async function listRoutineRuns(options?: {

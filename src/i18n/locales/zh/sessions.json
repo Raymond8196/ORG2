@@ -3053,5 +3053,24 @@
       "speed_normal": "正常",
       "speed_fast": "快速"
     }
+  },
+  "webhooks": {
+    "title": "Webhooks",
+    "empty": "还没有 routine — 请先用 CLI apply 一个",
+    "notInstalled": "未安装",
+    "enabled": "已启用",
+    "disabled": "已停用",
+    "paused": "连续失败 {{count}} 次后已暂停",
+    "install": "安装 webhook",
+    "rotate": "轮换 secret",
+    "enable": "启用",
+    "disable": "停用",
+    "secretHint": "Secret",
+    "secretShownOnce": "Secret 只显示一次 — 请立刻保存到你的提供方。",
+    "noDeliveries": "暂无投递记录",
+    "replay": "重放",
+    "replayQueued": "已重放该投递",
+    "copied": "已复制",
+    "copyFailed": "复制失败"
   }
 }

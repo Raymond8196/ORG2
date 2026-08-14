@@ -3064,5 +3064,24 @@
       "speed_normal": "Normal",
       "speed_fast": "Fast"
     }
+  },
+  "webhooks": {
+    "title": "Webhooks",
+    "empty": "No routines yet — apply one from the CLI first",
+    "notInstalled": "Not installed",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "paused": "Paused after {{count}} failures",
+    "install": "Install webhook",
+    "rotate": "Rotate secret",
+    "enable": "Enable",
+    "disable": "Disable",
+    "secretHint": "Secret",
+    "secretShownOnce": "The secret is shown once — store it in your provider now.",
+    "noDeliveries": "No deliveries yet",
+    "replay": "Replay",
+    "replayQueued": "Delivery replayed",
+    "copied": "Copied",
+    "copyFailed": "Copy failed"
   }
 }
