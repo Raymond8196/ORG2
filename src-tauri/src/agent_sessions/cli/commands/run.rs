@@ -115,6 +115,8 @@ pub async fn cli_agent_run(mut request: CliRunRequest) -> Result<(), String> {
         request.turn_intent_id.take(),
         request.client_message_id.take(),
     );
+    let control_lock = session_runner::session_control_lock(&request.session_id).await;
+    let _control_guard = control_lock.lock().await;
     run_turn(request, turn).await
 }
 
@@ -520,6 +522,11 @@ pub async fn cli_agent_message(request: CliMessageRequest) -> Result<CliRunRecei
         }
     }
 
+    // From the kill through run_turn acceptance this must not interleave
+    // with a cancel_session for the same session (see session_control_lock).
+    let control_lock = session_runner::session_control_lock(&session_id).await;
+    let control_guard = control_lock.lock().await;
+
     // Kill the existing agent process, Tokio task, and per-session proxy.
     tracing::info!(session_id = %session_id, "cli_agent_message: killing existing runner");
     session_runner::kill_running_agent(&session_id).await;
@@ -625,6 +632,7 @@ pub async fn cli_agent_message(request: CliMessageRequest) -> Result<CliRunRecei
         turn,
     )
     .await?;
+    drop(control_guard);
     Ok(CliRunReceipt {
         session_id,
         turn_intent_id,

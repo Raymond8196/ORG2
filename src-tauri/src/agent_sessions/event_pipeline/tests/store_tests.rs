@@ -536,11 +536,73 @@ fn test_remove_synthetic_user_inputs_keeps_backend_user_input_ids() {
     backend.display_text = "authoritative different text".to_string();
 
     store.set(vec![synthetic, backend]);
-    let removed = store.remove_synthetic_user_inputs();
+    let removed = store.remove_synthetic_user_inputs(None);
 
     assert_eq!(removed, 1);
     assert!(store.get_by_id("user-input-synthetic").is_none());
     assert!(store.get_by_id("user-input-cliagent-real").is_some());
+}
+
+fn make_synthetic_user_event(id: &str, text: &str, created_at: &str) -> SessionEvent {
+    let mut event = make_event(id, "raw");
+    event.source = EventSource::User;
+    event.function_name = "user_message".to_string();
+    event.ui_canonical = "user_message".to_string();
+    event.result = serde_json::json!({
+        "type": "user",
+        "message": { "content": text, "role": "user" },
+        "syntheticUserInput": true,
+    });
+    event.chunk_id = None;
+    event.display_text = text.to_string();
+    event.created_at = created_at.to_string();
+    event
+}
+
+#[test]
+fn test_scoped_synthetic_removal_keeps_unechoed_newer_placeholder() {
+    let mut store = EventStore::new();
+    store.set(vec![
+        make_synthetic_user_event("user-input-echoed", "first message", "2026-08-14T10:00:00Z"),
+        make_synthetic_user_event(
+            "user-input-fresh",
+            "follow-up after abort",
+            "2026-08-14T10:05:00Z",
+        ),
+    ]);
+
+    // A history merge carrying only the FIRST turn's real user row (stale
+    // JSONL right after an abort) must evict the echoed placeholder but keep
+    // the fresh follow-up whose echo has not arrived yet.
+    let removed = store.remove_synthetic_user_inputs(Some((
+        &["first message".to_string()],
+        Some("2026-08-14T10:00:00Z"),
+    )));
+
+    assert_eq!(removed, 1);
+    assert!(store.get_by_id("user-input-echoed").is_none());
+    assert!(store.get_by_id("user-input-fresh").is_some());
+}
+
+#[test]
+fn test_scoped_synthetic_removal_drops_placeholder_predating_newest_real_turn() {
+    let mut store = EventStore::new();
+    store.set(vec![make_synthetic_user_event(
+        "user-input-stale-pill",
+        "/skill pill form",
+        "2026-08-14T09:00:00Z",
+    )]);
+
+    // A pill placeholder's wire content differs from its display text, so it
+    // can never content-match its echo — it is reaped by predating the
+    // newest real user turn instead.
+    let removed = store.remove_synthetic_user_inputs(Some((
+        &["expanded yaml payload".to_string()],
+        Some("2026-08-14T09:30:00Z"),
+    )));
+
+    assert_eq!(removed, 1);
+    assert!(store.get_by_id("user-input-stale-pill").is_none());
 }
 
 #[test]
