@@ -149,10 +149,14 @@ export function getOrCreateCanvasShareLink(
           phase: "ready",
           token,
           key,
-          retainedCharacters: keyCharacters,
+          // A ready entry also retains its result link (up to the 64 Ki link
+          // cap), so the link must count against the memory bound. Eviction
+          // removes the whole entry, which subtracts both parts at once.
+          retainedCharacters: keyCharacters + result.link.length,
           result,
           cachedAtMs: Date.now(),
         };
+        enforceBounds();
       }
       return result;
     },

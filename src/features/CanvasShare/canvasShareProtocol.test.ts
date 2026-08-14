@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -8,10 +9,28 @@ import {
   MAX_CANVAS_SHARE_SOURCE_BYTES,
   buildCanvasShareLink,
   buildSelfContainedCanvasShareLink,
+  createCanvasShareEnvelope,
   encodeCanvasSharePayload,
   getCanvasShareAvailability,
+  isCanvasShareEnvelope,
   parseCanvasShareHash,
 } from "./canvasShareProtocol";
+
+/** Builds a raw share hash from an arbitrary envelope, bypassing producers. */
+async function craftShareHash(envelope: unknown): Promise<string> {
+  const bytes = new TextEncoder().encode(JSON.stringify(envelope));
+  const stream = new Blob([bytes])
+    .stream()
+    .pipeThrough(new CompressionStream("gzip"));
+  const compressed = new Uint8Array(await new Response(stream).arrayBuffer());
+  let binary = "";
+  for (const byte of compressed) binary += String.fromCharCode(byte);
+  const encoded = btoa(binary)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "");
+  return `${CANVAS_SHARE_HASH_PREFIX}${encoded}`;
+}
 
 describe("Canvas share protocol", () => {
   it("uses the ORG2-owned origin for hosted and fallback links", async () => {
@@ -243,5 +262,250 @@ describe("Canvas share protocol", () => {
     } finally {
       vi.unstubAllGlobals();
     }
+  });
+
+  describe("private and loopback URL rejection", () => {
+    const localUrls = [
+      "http://localhost/dashboard",
+      "http://localhost:3000/app",
+      "http://app.localhost/preview",
+      "http://myhost.local/panel",
+      "http://service.internal/api",
+      "http://127.0.0.1/",
+      "http://127.8.9.10/loopback-block",
+      "http://10.0.0.5/",
+      "http://172.16.0.1/",
+      "http://172.31.255.255/",
+      "http://192.168.1.10/router",
+      "http://169.254.169.254/latest/meta-data",
+      "http://0.0.0.0/",
+      "http://[::1]/",
+      "http://[fd12:3456::1]/",
+      "http://[fe80::1]/",
+      "http://[::ffff:7f00:1]/",
+    ];
+    const publicUrls = [
+      "https://example.com/page",
+      "http://example.com/page",
+      "https://172.15.0.1/",
+      "https://172.32.0.1/",
+      "https://11.22.33.44/",
+      "https://internal.example.com/",
+      "https://localhost.example.com/",
+      "https://[2001:db8::1]/",
+    ];
+
+    it("rejects local, loopback, and private-range URLs at the producer", () => {
+      for (const url of localUrls) {
+        expect(
+          getCanvasShareAvailability({ mode: "url", url }, false),
+          url
+        ).toEqual({ available: false, reason: "local-url" });
+      }
+    });
+
+    it("still accepts publicly routable URLs at the producer", () => {
+      for (const url of publicUrls) {
+        expect(
+          getCanvasShareAvailability({ mode: "url", url }, false),
+          url
+        ).toEqual({ available: true });
+      }
+    });
+
+    it("rejects the same hosts at the decode validator", async () => {
+      for (const url of localUrls) {
+        expect(
+          isCanvasShareEnvelope({ version: 1, canvas: { mode: "url", url } }),
+          url
+        ).toBe(false);
+      }
+      for (const url of publicUrls) {
+        expect(
+          isCanvasShareEnvelope({ version: 1, canvas: { mode: "url", url } }),
+          url
+        ).toBe(true);
+      }
+      const craftedHash = await craftShareHash({
+        version: 1,
+        canvas: { mode: "url", url: "http://192.168.1.10/panel" },
+      });
+      await expect(parseCanvasShareHash(craftedHash)).rejects.toMatchObject({
+        code: "invalid-payload",
+      });
+    });
+  });
+
+  describe("upload outage with an oversized fallback", () => {
+    // Random base64 text stays incompressible enough that the gzip+base64url
+    // fallback fragment exceeds the 64 Ki link cap while the raw source and
+    // the hosted 768 Ki upload cap are both respected.
+    const incompressibleContent = randomBytes(96 * 1024).toString("base64");
+
+    it("reports a retryable outage instead of claiming the Canvas is too large", async () => {
+      vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
+      try {
+        await expect(
+          buildCanvasShareLink(
+            { mode: "html", content: incompressibleContent },
+            "https://example.test/viewer/",
+            undefined,
+            "https://api.example.test/canvas-shares"
+          )
+        ).rejects.toMatchObject({
+          code: "short-link-unavailable-too-large",
+        });
+      } finally {
+        vi.unstubAllGlobals();
+      }
+    });
+
+    it("keeps reporting a genuinely oversized source as too large", async () => {
+      vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
+      try {
+        await expect(
+          buildCanvasShareLink(
+            {
+              mode: "html",
+              content: "x".repeat(MAX_CANVAS_SHARE_SOURCE_BYTES + 1),
+            },
+            "https://example.test/viewer/",
+            undefined,
+            "https://api.example.test/canvas-shares"
+          )
+        ).rejects.toMatchObject({ code: "source-too-large" });
+      } finally {
+        vi.unstubAllGlobals();
+      }
+    });
+
+    it("still uploads the same snapshot once the service recovers", async () => {
+      const fetchSpy = vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            id: "abcdefghijklmnopqrstuv",
+            expiresAt: "2027-08-09T00:00:00.000Z",
+          }),
+          { status: 201, headers: { "content-type": "application/json" } }
+        )
+      );
+      vi.stubGlobal("fetch", fetchSpy);
+      try {
+        await expect(
+          buildCanvasShareLink(
+            { mode: "html", content: incompressibleContent },
+            "https://example.test/viewer/",
+            undefined,
+            "https://api.example.test/canvas-shares"
+          )
+        ).resolves.toMatchObject({ kind: "short" });
+      } finally {
+        vi.unstubAllGlobals();
+      }
+    });
+  });
+
+  describe("mode validation at the producing boundary", () => {
+    it("reports an unsupported mode as unavailable", () => {
+      expect(
+        getCanvasShareAvailability(
+          { mode: "pdf" as never, content: "binary" },
+          false
+        )
+      ).toEqual({ available: false, reason: "unsupported-mode" });
+    });
+
+    it("rejects envelope creation for an unsupported mode with a typed error", () => {
+      expect(() =>
+        createCanvasShareEnvelope({ mode: "pdf" as never, content: "binary" })
+      ).toThrowError(
+        expect.objectContaining({
+          name: "CanvasShareProtocolError",
+          code: "invalid-payload",
+        })
+      );
+    });
+  });
+
+  it("fails loudly on a misconfigured share API URL instead of falling back", async () => {
+    const fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+    try {
+      await expect(
+        buildCanvasShareLink(
+          { mode: "html", content: "<p>Misconfigured</p>" },
+          "https://example.test/viewer/",
+          undefined,
+          "not a valid absolute url"
+        )
+      ).rejects.toMatchObject({ code: "invalid-payload" });
+      await expect(
+        buildCanvasShareLink(
+          { mode: "html", content: "<p>Misconfigured</p>" },
+          "https://example.test/viewer/",
+          undefined,
+          "http://insecure.example/api"
+        )
+      ).rejects.toMatchObject({ code: "invalid-payload" });
+      expect(fetchSpy).not.toHaveBeenCalled();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("distinguishes a newer-version envelope from corruption when decoding", async () => {
+    const newerHash = await craftShareHash({
+      version: 2,
+      canvas: { mode: "html", content: "<p>From the future</p>" },
+    });
+    await expect(parseCanvasShareHash(newerHash)).rejects.toMatchObject({
+      code: "unsupported-version",
+      message: expect.stringContaining("newer version"),
+    });
+  });
+
+  describe("title truncation at code-point boundaries", () => {
+    it("never bisects an emoji surrogate pair at the 200-unit cap", async () => {
+      const envelope = createCanvasShareEnvelope({
+        mode: "html",
+        title: `${"x".repeat(199)}😀`,
+        content: "<p>Emoji title</p>",
+      });
+      expect(envelope.canvas.title).toBe("x".repeat(199));
+      expect(envelope.canvas.title).not.toContain("�");
+
+      const encoded = await encodeCanvasSharePayload({
+        mode: "html",
+        title: `${"x".repeat(199)}😀`,
+        content: "<p>Emoji title</p>",
+      });
+      const link = buildSelfContainedCanvasShareLink(
+        encoded,
+        "https://example.test/viewer/"
+      );
+      const decoded = await parseCanvasShareHash(new URL(link).hash);
+      expect(decoded.canvas.title).toBe("x".repeat(199));
+    });
+
+    it("never bisects a CJK extension character at the cap", () => {
+      const envelope = createCanvasShareEnvelope({
+        mode: "html",
+        title: `a${"\u{20000}".repeat(100)}`,
+        content: "<p>CJK title</p>",
+      });
+      expect(envelope.canvas.title).toBe(`a${"\u{20000}".repeat(99)}`);
+      expect(envelope.canvas.title).not.toContain("�");
+      expect(envelope.canvas.title?.length).toBe(199);
+    });
+
+    it("keeps a title that ends exactly on a pair boundary intact", () => {
+      const envelope = createCanvasShareEnvelope({
+        mode: "html",
+        title: "\u{20000}".repeat(100),
+        content: "<p>Exact fit</p>",
+      });
+      expect(envelope.canvas.title).toBe("\u{20000}".repeat(100));
+      expect(envelope.canvas.title?.length).toBe(200);
+    });
   });
 });

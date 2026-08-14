@@ -76,7 +76,17 @@ compatibility links, but the desktop app no longer generates them by default.
 ## Limits and failure policy
 
 - A Canvas cannot be shared while it is streaming or being revised.
-- URL mode accepts public HTTP(S) URLs only; local/file URLs are rejected.
+- Payloads whose mode is not one of `html`, `react`, `a2ui`, or `url` are
+  rejected before encoding (`unsupported-mode`), matching what the decode
+  validator accepts.
+- URL mode accepts publicly routable HTTP(S) URLs only. Both the producing
+  availability gate and the decode validator reject (reason `local-url`):
+  non-HTTP(S) schemes; `localhost`, `*.localhost`, `*.local`, and
+  `*.internal` hostnames; IPv4 loopback (127.0.0.0/8), RFC 1918 ranges
+  (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16), link-local (169.254.0.0/16),
+  and 0.0.0.0/8 literals; and IPv6 loopback (`::1`), unspecified (`::`),
+  unique-local (`fc00::/7`), link-local (`fe80::/10`), and IPv4-mapped
+  private literals.
 - Uncompressed source is limited to 512 KiB.
 - Hosted compressed payloads are limited to 768 KiB and are validated again at
   the server's producing boundary before storage.
@@ -87,7 +97,15 @@ compatibility links, but the desktop app no longer generates them by default.
   the rate check runs before JSON parsing or gzip decompression, and there is
   no poller or background client work.
 - Upload has an 8-second deadline. Any network, service, or rate-limit failure
-  falls back to the legacy self-contained link.
+  falls back to the legacy self-contained link. If the snapshot fits the
+  hosted upload but exceeds the 64 KiB self-contained link cap while the
+  service is down, the dialog reports a retryable service outage
+  (`short-link-unavailable-too-large`) instead of claiming the Canvas is too
+  large. A misconfigured `REACT_APP_CANVAS_SHARE_API_URL` fails loudly with a
+  configuration error; it is never converted into the retryable fallback.
+- A link whose envelope declares a protocol version newer than the app
+  supports is reported as "created by a newer version"
+  (`unsupported-version`), distinct from a corrupted or incomplete link.
 - Closing or unmounting the dialog supersedes that UI subscriber, so stale
   results cannot reopen it. The bounded app-level cache may finish the shared
   in-flight generation so returning to the same Canvas tab does not upload the
@@ -96,20 +114,25 @@ compatibility links, but the desktop app no longer generates them by default.
   allocating an encoded copy during render. Exact UTF-8 measurement runs only
   for large ambiguous inputs.
 - The app runtime keeps a bounded LRU of at most 16 immutable snapshots and at
-  most 1 MiB of retained snapshot characters. Duplicate opens share one
-  in-flight generation; failures are removed immediately; expired short links
-  are regenerated; eviction aborts pending work. The cache is never persisted
-  or shared across app launches.
+  most 1 Mi retained characters, counting both the snapshot fields and, once
+  an entry is ready, its generated link (self-contained links can reach the
+  64 KiB link cap each). The bound is re-enforced when an entry transitions
+  to ready, so the worst case is 1 Mi retained characters (~2 MiB of UTF-16
+  string memory). Duplicate opens share one in-flight generation; failures
+  are removed immediately; expired short links are regenerated; eviction
+  aborts pending work without surfacing an error to subscribers that shared
+  the evicted generation. The cache is never persisted or shared across app
+  launches.
 - Anyone with the complete link can view the snapshot. Hosted IDs are unlisted,
   not encrypted; legacy fragment links remain fully self-contained and
   backward compatible.
 
 ## Failure and recovery matrix
 
-| Journey                                              | Authoritative behavior                                                                                     | Recovery                                                                            |
-| ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| Upload offline, timeout, 404, 429, or 5xx            | Desktop keeps the encoded envelope and produces the legacy link                                            | User can copy/open immediately; retrying later may produce a short link             |
-| Dialog closes or the Canvas tab unmounts during work | That dialog subscriber ignores completion; the bounded cache may finish and reuse the result after remount | Reopen Share for the same snapshot, or explicitly share the newly selected snapshot |
-| Short ID missing or expired                          | Viewer shows a bounded unavailable state; it never guesses or lists IDs                                    | Ask the sender for a new snapshot                                                   |
-| Stored or embedded payload is malformed/oversized    | Viewer rejects before rendering; server rejects malformed writes before persistence                        | Generate a fresh link from a valid Canvas                                           |
-| React/HTML runtime throws after validation           | The existing sandbox/runtime error UI owns the failure                                                     | Reload or ask for a corrected Canvas                                                |
+| Journey                                              | Authoritative behavior                                                                                                                                                   | Recovery                                                                            |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
+| Upload offline, timeout, 404, 429, or 5xx            | Desktop keeps the encoded envelope and produces the legacy link; if that link would exceed the 64 KiB cap, the dialog reports a retryable outage instead of a size error | User can copy/open immediately, or retry later; retrying may produce a short link   |
+| Dialog closes or the Canvas tab unmounts during work | That dialog subscriber ignores completion; the bounded cache may finish and reuse the result after remount                                                               | Reopen Share for the same snapshot, or explicitly share the newly selected snapshot |
+| Short ID missing or expired                          | Viewer shows a bounded unavailable state; it never guesses or lists IDs                                                                                                  | Ask the sender for a new snapshot                                                   |
+| Stored or embedded payload is malformed/oversized    | Viewer rejects before rendering; server rejects malformed writes before persistence                                                                                      | Generate a fresh link from a valid Canvas                                           |
+| React/HTML runtime throws after validation           | The existing sandbox/runtime error UI owns the failure                                                                                                                   | Reload or ask for a corrected Canvas                                                |

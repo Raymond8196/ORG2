@@ -23,6 +23,7 @@ import {
   canvasShareCacheTestApi,
   refreshCanvasShareLink,
 } from "./canvasShareCache";
+import { CanvasShareProtocolError } from "./canvasShareProtocol";
 import { useCanvasShareDialog } from "./useCanvasShareDialog";
 
 const testState = vi.hoisted(() => ({
@@ -430,6 +431,74 @@ describe("useCanvasShareDialog", () => {
       title: "After switch",
       link: "https://example.test/remounted",
     });
+  });
+
+  it("separates a service outage with an oversized fallback from a too-large Canvas", async () => {
+    testState.build
+      .mockRejectedValueOnce(
+        new CanvasShareProtocolError(
+          "short-link-unavailable-too-large",
+          "Service unavailable and the snapshot does not fit in a link."
+        )
+      )
+      .mockResolvedValueOnce({
+        link: "https://example.test/#/s/recoveredrecoveredreco",
+        kind: "short",
+        expiresAt: "2099-01-01T00:00:00.000Z",
+      } satisfies LinkResult);
+
+    await act(async () => {
+      controller().open({ mode: "html", content: "<p>Big</p>" }, "Big");
+      await Promise.resolve();
+    });
+    expect(controller().state).toMatchObject({
+      phase: "error",
+      error: "short-unavailable-too-large",
+    });
+
+    await act(async () => {
+      controller().retry();
+      await Promise.resolve();
+    });
+
+    expect(testState.build).toHaveBeenCalledTimes(2);
+    expect(controller().state).toMatchObject({
+      phase: "ready",
+      linkKind: "short",
+      link: "https://example.test/#/s/recoveredrecoveredreco",
+    });
+  });
+
+  it("still reports a genuinely oversized Canvas as too large", async () => {
+    testState.build.mockRejectedValue(
+      new CanvasShareProtocolError(
+        "source-too-large",
+        "Compressed Canvas snapshot exceeds the upload limit."
+      )
+    );
+
+    await act(async () => {
+      controller().open({ mode: "html", content: "<p>Huge</p>" }, "Huge");
+      await Promise.resolve();
+    });
+
+    expect(controller().state).toMatchObject({
+      phase: "error",
+      error: "source-too-large",
+    });
+  });
+
+  it("does not flash an error when shared in-flight work is abort-evicted", async () => {
+    testState.build.mockRejectedValue(
+      new DOMException("The generation was evicted.", "AbortError")
+    );
+
+    await act(async () => {
+      controller().open({ mode: "html", content: "<p>Evicted</p>" }, "Evicted");
+      await Promise.resolve();
+    });
+
+    expect(controller().state).toMatchObject({ phase: "preparing" });
   });
 
   it("retries after a generation failure without caching the error", async () => {

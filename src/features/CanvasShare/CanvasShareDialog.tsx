@@ -28,6 +28,11 @@ function errorMessage(
         "canvasApp.shareDialogTooLarge",
         "This Canvas is too large for a reliable self-contained link."
       );
+    case "short-unavailable-too-large":
+      return t(
+        "canvasApp.shareDialogShortUnavailable",
+        "The share service is temporarily unreachable and this Canvas is too large for a self-contained link. Try again in a moment."
+      );
     case "unsupported-runtime":
       return t(
         "canvasApp.shareDialogUnsupported",

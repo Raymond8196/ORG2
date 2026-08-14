@@ -84,13 +84,17 @@ describe("CanvasShareDialog fallback recovery", () => {
     Reflect.deleteProperty(actEnvironment, "IS_REACT_ACT_ENVIRONMENT");
   });
 
-  function render(state: CanvasShareDialogState, onRetryShortLink = vi.fn()) {
+  function render(
+    state: CanvasShareDialogState,
+    onRetryShortLink = vi.fn(),
+    onRetry = vi.fn()
+  ) {
     act(() => {
       root.render(
         createElement(CanvasShareDialog, {
           state,
           onClose: vi.fn(),
-          onRetry: vi.fn(),
+          onRetry,
           onRetryShortLink,
           onCopy: vi.fn(),
         })
@@ -130,5 +134,46 @@ describe("CanvasShareDialog fallback recovery", () => {
       (button) => button.textContent === "Retrying…"
     );
     expect(retryingButton?.hasAttribute("disabled")).toBe(true);
+  });
+
+  it("explains a service outage with an oversized fallback and offers retry", () => {
+    const onRetry = vi.fn();
+    render(
+      {
+        phase: "error",
+        operationId: 1,
+        title: "Big",
+        payload: { mode: "html", content: "<p>Big</p>" },
+        error: "short-unavailable-too-large",
+      },
+      vi.fn(),
+      onRetry
+    );
+
+    expect(container.textContent).toContain(
+      "The share service is temporarily unreachable and this Canvas is too large for a self-contained link. Try again in a moment."
+    );
+    expect(container.textContent).not.toContain(
+      "This Canvas is too large for a reliable self-contained link."
+    );
+    const retryButton = [...container.querySelectorAll("button")].find(
+      (button) => button.textContent === "Retry"
+    );
+    act(() => retryButton?.click());
+    expect(onRetry).toHaveBeenCalledOnce();
+  });
+
+  it("keeps the plain too-large message for a genuinely oversized Canvas", () => {
+    render({
+      phase: "error",
+      operationId: 1,
+      title: "Huge",
+      payload: { mode: "html", content: "<p>Huge</p>" },
+      error: "source-too-large",
+    });
+
+    expect(container.textContent).toContain(
+      "This Canvas is too large for a reliable self-contained link."
+    );
   });
 });

@@ -14,6 +14,7 @@ import {
 
 export type CanvasShareDialogError =
   | "source-too-large"
+  | "short-unavailable-too-large"
   | "unsupported-runtime"
   | "invalid-payload"
   | "copy-failed"
@@ -44,11 +45,31 @@ export type CanvasShareDialogState =
 
 function classifyError(error: unknown): CanvasShareDialogError {
   if (!(error instanceof CanvasShareProtocolError)) return "unknown";
-  if (error.code === "link-too-large" || error.code === "source-too-large") {
-    return "source-too-large";
+  switch (error.code) {
+    case "link-too-large":
+    case "source-too-large":
+      return "source-too-large";
+    case "short-link-unavailable-too-large":
+      // Retry-later outage, not a permanently oversized Canvas: the snapshot
+      // fits the hosted upload and only the fallback link form is too large.
+      return "short-unavailable-too-large";
+    case "unsupported-runtime":
+    case "invalid-payload":
+      return error.code;
+    default:
+      return "unknown";
   }
-  if (error.code === "short-link-unavailable") return "unknown";
-  return error.code;
+}
+
+function isAbortError(error: unknown): boolean {
+  // DOMException does not extend Error in every runtime (e.g. jsdom), so
+  // check both shapes.
+  if (error instanceof Error && error.name === "AbortError") return true;
+  return (
+    typeof DOMException !== "undefined" &&
+    error instanceof DOMException &&
+    error.name === "AbortError"
+  );
 }
 
 export function useCanvasShareDialog() {
@@ -99,6 +120,10 @@ export function useCanvasShareDialog() {
       },
       (error: unknown) => {
         if (operationRef.current !== operationId) return;
+        // Cache eviction aborts shared in-flight work. That is bookkeeping,
+        // not a user-facing failure, so do not flash an error state at
+        // subscribers that happen to share the evicted generation.
+        if (isAbortError(error)) return;
         setState({
           phase: "error",
           operationId,

@@ -16,6 +16,8 @@ export const CANVAS_SHARE_VIEWER_URL = "https://canvas.org2.dev/";
 export const CANVAS_SHARE_API_URL = "https://canvas.org2.dev/api/canvas-shares";
 const CANVAS_SHARE_MODES = new Set(["html", "react", "a2ui", "url"]);
 const CANVAS_SHARE_SHORT_ID_PATTERN = /^[A-Za-z0-9_-]{22}$/;
+const MAX_CANVAS_SHARE_TITLE_CHARACTERS = 200;
+const LOCAL_HOSTNAME_SUFFIXES = [".localhost", ".local", ".internal"];
 
 export interface CanvasShareSnapshotV1 {
   mode: CanvasInlinePayload["mode"];
@@ -37,7 +39,12 @@ export type CanvasShareAvailability =
   | { available: true }
   | {
       available: false;
-      reason: "empty" | "streaming" | "local-url" | "source-too-large";
+      reason:
+        | "empty"
+        | "streaming"
+        | "local-url"
+        | "source-too-large"
+        | "unsupported-mode";
     };
 
 export class CanvasShareProtocolError extends Error {
@@ -47,7 +54,9 @@ export class CanvasShareProtocolError extends Error {
       | "unsupported-runtime"
       | "source-too-large"
       | "link-too-large"
-      | "short-link-unavailable",
+      | "short-link-unavailable"
+      | "short-link-unavailable-too-large"
+      | "unsupported-version",
     message: string
   ) {
     super(message);
@@ -61,11 +70,84 @@ function exceedsUtf8ByteLimit(source: string, limit: number): boolean {
   return new TextEncoder().encode(source).byteLength > limit;
 }
 
+function parseIpv4Octets(hostname: string): number[] | null {
+  const parts = hostname.split(".");
+  if (parts.length !== 4) return null;
+  const octets: number[] = [];
+  for (const part of parts) {
+    if (!/^\d{1,3}$/.test(part)) return null;
+    const octet = Number(part);
+    if (octet > 255) return null;
+    octets.push(octet);
+  }
+  return octets;
+}
+
+function isPrivateIpv4(hostname: string): boolean {
+  const octets = parseIpv4Octets(hostname);
+  if (!octets) return false;
+  const [first, second] = octets;
+  return (
+    first === 127 || // loopback
+    first === 10 || // RFC 1918
+    (first === 172 && second >= 16 && second <= 31) || // RFC 1918
+    (first === 192 && second === 168) || // RFC 1918
+    (first === 169 && second === 254) || // link-local
+    first === 0 // "this network"
+  );
+}
+
+function isPrivateIpv6(hostname: string): boolean {
+  // The WHATWG URL parser serializes IPv6 hosts in brackets, e.g. "[::1]".
+  if (!hostname.startsWith("[") || !hostname.endsWith("]")) return false;
+  const address = hostname.slice(1, -1).toLowerCase();
+  if (address === "::" || address === "::1") return true; // unspecified / loopback
+  if (address.startsWith("::ffff:")) {
+    // IPv4-mapped address; the URL parser canonicalizes it into hex groups.
+    const groups = address.slice("::ffff:".length).split(":");
+    if (groups.length === 2) {
+      const high = Number.parseInt(groups[0], 16);
+      const low = Number.parseInt(groups[1], 16);
+      if (Number.isFinite(high) && Number.isFinite(low)) {
+        return isPrivateIpv4(
+          `${high >> 8}.${high & 0xff}.${low >> 8}.${low & 0xff}`
+        );
+      }
+    }
+    return false;
+  }
+  const firstGroup = address.split(":", 1)[0];
+  const value = firstGroup === "" ? 0 : Number.parseInt(firstGroup, 16);
+  if (!Number.isFinite(value)) return false;
+  return (
+    (value & 0xfe00) === 0xfc00 || // unique-local fc00::/7
+    (value & 0xffc0) === 0xfe80 // link-local fe80::/10
+  );
+}
+
+function isLocalHostname(hostname: string): boolean {
+  const normalized = hostname.toLowerCase().replace(/\.$/, "");
+  if (normalized === "localhost") return true;
+  return LOCAL_HOSTNAME_SUFFIXES.some((suffix) => normalized.endsWith(suffix));
+}
+
+/**
+ * Shared by the producing availability gate and the decode validator: a
+ * shareable URL must be HTTP(S) *and* resolve to a publicly routable host.
+ * Loopback, RFC 1918, link-local, and `.local`/`.internal` hosts would leak a
+ * link that only works on the author's machine or network, so both boundaries
+ * reject them (availability reason `local-url`).
+ */
 function isPublicWebUrl(value: string | undefined): value is string {
   if (!value) return false;
   try {
     const url = new URL(value);
-    return url.protocol === "https:" || url.protocol === "http:";
+    if (url.protocol !== "https:" && url.protocol !== "http:") return false;
+    return (
+      !isLocalHostname(url.hostname) &&
+      !isPrivateIpv4(url.hostname) &&
+      !isPrivateIpv6(url.hostname)
+    );
   } catch {
     return false;
   }
@@ -78,6 +160,12 @@ export function getCanvasShareAvailability(
   if (!payload) return { available: false, reason: "empty" };
   if (isStreaming || payload.streaming) {
     return { available: false, reason: "streaming" };
+  }
+  // The upstream extract casts unknown tool output, so an unrecognized mode
+  // can reach this producer boundary; reject it before it is encoded into an
+  // envelope the decode validator would refuse.
+  if (!CANVAS_SHARE_MODES.has(payload.mode)) {
+    return { available: false, reason: "unsupported-mode" };
   }
 
   if (payload.mode === "url") {
@@ -115,13 +203,33 @@ export function createCanvasShareEnvelope(
   const title = payload.title?.trim();
   const canvas: CanvasShareSnapshotV1 = {
     mode: payload.mode,
-    ...(title ? { title: title.slice(0, 200) } : {}),
+    ...(title
+      ? {
+          title: truncateAtCodePointBoundary(
+            title,
+            MAX_CANVAS_SHARE_TITLE_CHARACTERS
+          ),
+        }
+      : {}),
     ...(payload.mode === "url"
       ? { url: payload.url }
       : { content: payload.content }),
   };
 
   return { version: CANVAS_SHARE_PROTOCOL_VERSION, canvas };
+}
+
+/**
+ * Truncates to at most `maxUnits` UTF-16 code units without bisecting a
+ * surrogate pair; a bisected pair would round-trip through UTF-8 as U+FFFD in
+ * the shared title.
+ */
+function truncateAtCodePointBoundary(value: string, maxUnits: number): string {
+  if (value.length <= maxUnits) return value;
+  const cut = value.slice(0, maxUnits);
+  const lastUnit = cut.charCodeAt(cut.length - 1);
+  const bisectsSurrogatePair = lastUnit >= 0xd800 && lastUnit <= 0xdbff;
+  return bisectsSurrogatePair ? cut.slice(0, -1) : cut;
 }
 
 function bytesToBase64Url(bytes: Uint8Array): string {
@@ -234,7 +342,15 @@ function resolveApiUrl(apiUrl?: string): URL {
     apiUrl ??
     process.env.REACT_APP_CANVAS_SHARE_API_URL ??
     CANVAS_SHARE_API_URL;
-  const url = new URL(configured);
+  let url: URL;
+  try {
+    url = new URL(configured);
+  } catch {
+    throw new CanvasShareProtocolError(
+      "invalid-payload",
+      "Canvas share API URL is not a valid absolute URL."
+    );
+  }
   if (url.protocol !== "https:" && url.hostname !== "localhost") {
     throw new CanvasShareProtocolError(
       "invalid-payload",
@@ -312,6 +428,11 @@ async function uploadCanvasSharePayload(
   }
   throwIfAborted(signal);
 
+  // Resolve outside the failure-tolerant region below: a misconfigured API
+  // URL is a build/deployment defect and must fail loudly with its own error
+  // instead of being laundered into the retryable "service unavailable" path.
+  const target = resolveApiUrl(apiUrl);
+
   const controller = new AbortController();
   const abortFromCaller = () => controller.abort(signal?.reason);
   signal?.addEventListener("abort", abortFromCaller, { once: true });
@@ -321,7 +442,7 @@ async function uploadCanvasSharePayload(
   );
 
   try {
-    const response = await fetch(resolveApiUrl(apiUrl), {
+    const response = await fetch(target, {
       method: "POST",
       headers: {
         accept: "application/json",
@@ -382,10 +503,26 @@ export async function buildCanvasShareLink(
     ) {
       throw error;
     }
-    return {
-      link: buildSelfContainedCanvasShareLink(encoded, viewerUrl),
-      kind: "self-contained",
-    };
+    try {
+      return {
+        link: buildSelfContainedCanvasShareLink(encoded, viewerUrl),
+        kind: "self-contained",
+      };
+    } catch (fallbackError) {
+      if (
+        fallbackError instanceof CanvasShareProtocolError &&
+        fallbackError.code === "link-too-large"
+      ) {
+        // The snapshot fits the hosted upload but not a self-contained link.
+        // Reporting "too large" here would mask a transient service outage,
+        // so surface a retryable outage-specific error instead.
+        throw new CanvasShareProtocolError(
+          "short-link-unavailable-too-large",
+          "The Canvas short-link service is unavailable and this snapshot does not fit in a self-contained link."
+        );
+      }
+      throw fallbackError;
+    }
   }
 }
 
@@ -404,6 +541,12 @@ export async function parseCanvasShareHash(
       await gunzip(base64UrlToBytes(encoded))
     );
     const value: unknown = JSON.parse(json);
+    if (isNewerVersionEnvelope(value)) {
+      throw new CanvasShareProtocolError(
+        "unsupported-version",
+        "This Canvas share link was created by a newer version and cannot be opened here."
+      );
+    }
     if (!isCanvasShareEnvelope(value)) throw new Error("Invalid envelope");
     return value;
   } catch (error) {
@@ -413,6 +556,22 @@ export async function parseCanvasShareHash(
       "Canvas share link is incomplete or invalid."
     );
   }
+}
+
+/**
+ * A structurally sound envelope stamped with a version above the supported
+ * one is not corruption — it was created by a newer producer. Detecting it
+ * lets the decoder report "created by a newer version" instead of the generic
+ * "incomplete or invalid" error.
+ */
+function isNewerVersionEnvelope(value: unknown): boolean {
+  if (!value || typeof value !== "object") return false;
+  const envelope = value as Record<string, unknown>;
+  return (
+    typeof envelope.version === "number" &&
+    Number.isInteger(envelope.version) &&
+    envelope.version > CANVAS_SHARE_PROTOCOL_VERSION
+  );
 }
 
 export function isCanvasShareEnvelope(
@@ -429,7 +588,10 @@ export function isCanvasShareEnvelope(
   if (canvas.title !== undefined && typeof canvas.title !== "string") {
     return false;
   }
-  if (typeof canvas.title === "string" && canvas.title.length > 200) {
+  if (
+    typeof canvas.title === "string" &&
+    canvas.title.length > MAX_CANVAS_SHARE_TITLE_CHARACTERS
+  ) {
     return false;
   }
   if (canvas.mode === "url") {
