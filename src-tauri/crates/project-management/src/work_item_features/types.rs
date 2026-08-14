@@ -55,6 +55,10 @@ pub struct DiscussionTriggerPreviewRequest {
     #[serde(flatten)]
     pub scope: WorkItemScope,
     pub content: String,
+    #[serde(default)]
+    pub mentions: Vec<MentionTarget>,
+    #[serde(default)]
+    pub parent_id: Option<String>,
     pub target_session_id: Option<String>,
 }
 

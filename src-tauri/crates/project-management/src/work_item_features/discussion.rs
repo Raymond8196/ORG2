@@ -8,8 +8,8 @@ use super::{
 };
 use crate::projects::io::helpers::{conn, now_ms};
 use crate::projects::types::{
-    CommentEntry, EnqueueWorkItemRunRequest, LinkedSession, WorkItemRunTarget,
-    WorkItemRunTargetSnapshot, WorkItemRunTrigger,
+    CommentEntry, EnqueueWorkItemRunRequest, LinkedSession, MentionTarget, OrchestratorConfig,
+    WorkItemRunTarget, WorkItemRunTargetSnapshot, WorkItemRunTrigger,
 };
 
 fn is_note_only(content: &str) -> bool {
@@ -30,34 +30,173 @@ fn latest_top_level_session(extras: &serde_json::Value) -> Option<String> {
     sessions.first().map(|session| session.session_id.clone())
 }
 
-fn preview_for(
+fn orchestrator_config(extras: &serde_json::Value) -> Option<OrchestratorConfig> {
+    extras
+        .get("orchestrator_config")
+        .cloned()
+        .and_then(|value| serde_json::from_value(value).ok())
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub(super) enum RouteTarget {
+    Resume { session_id: String },
+    Start,
+}
+
+#[derive(Debug, Clone)]
+pub(super) struct RouteDecision {
+    pub will_wake: bool,
+    pub reason: String,
+    pub target: Option<RouteTarget>,
+}
+
+impl RouteDecision {
+    fn silent(reason: &str) -> Self {
+        Self {
+            will_wake: false,
+            reason: reason.to_string(),
+            target: None,
+        }
+    }
+
+    fn wake(reason: &str, target: RouteTarget) -> Self {
+        Self {
+            will_wake: true,
+            reason: reason.to_string(),
+            target: Some(target),
+        }
+    }
+
+    pub(super) fn resume_session_id(&self) -> Option<String> {
+        match &self.target {
+            Some(RouteTarget::Resume { session_id }) => Some(session_id.clone()),
+            _ => None,
+        }
+    }
+}
+
+/// Route a mention at the item's configured agent or agent org: resume its
+/// latest session when one exists, otherwise start the item.
+fn mention_route(
+    mentions: &[MentionTarget],
+    extras: &serde_json::Value,
+) -> Option<RouteDecision> {
+    let addressed = mentions.iter().find_map(|mention| match mention {
+        MentionTarget::Agent { id } => Some(("agent", id.as_str())),
+        MentionTarget::AgentOrg { id } => Some(("agent_org", id.as_str())),
+        _ => None,
+    })?;
+    let config = orchestrator_config(extras);
+    let matches_config = match addressed {
+        ("agent", id) => config
+            .as_ref()
+            .and_then(|config| config.agent_definition_id.as_deref())
+            == Some(id),
+        ("agent_org", id) => {
+            config.as_ref().and_then(|config| config.org_id.as_deref()) == Some(id)
+        }
+        _ => false,
+    };
+    if !matches_config {
+        return Some(RouteDecision::silent("mention_unroutable"));
+    }
+    Some(match latest_top_level_session(extras) {
+        Some(session_id) => RouteDecision::wake("mention", RouteTarget::Resume { session_id }),
+        None => RouteDecision::wake("mention_start", RouteTarget::Start),
+    })
+}
+
+/// Route a reply through its thread: the session the thread root woke first,
+/// falling back to the newest session referenced anywhere in the thread.
+fn thread_route(comments: &[CommentEntry], parent_id: &str) -> Option<RouteDecision> {
+    let root_id = comments
+        .iter()
+        .find(|comment| comment.id == parent_id)
+        .map(|comment| {
+            comment
+                .thread_id
+                .clone()
+                .unwrap_or_else(|| comment.id.clone())
+        })?;
+    let in_thread = |comment: &&CommentEntry| {
+        comment.id == root_id || comment.thread_id.as_deref() == Some(root_id.as_str())
+    };
+    if let Some(session_id) = comments
+        .iter()
+        .find(|comment| comment.id == root_id)
+        .and_then(|comment| comment.agent_session_id.clone())
+    {
+        return Some(RouteDecision::wake(
+            "thread_owner",
+            RouteTarget::Resume { session_id },
+        ));
+    }
+    comments
+        .iter()
+        .rev()
+        .filter(in_thread)
+        .find_map(|comment| comment.agent_session_id.clone())
+        .map(|session_id| {
+            RouteDecision::wake("thread_continuation", RouteTarget::Resume { session_id })
+        })
+}
+
+fn assignee_route(extras: &serde_json::Value) -> Option<RouteDecision> {
+    let config = orchestrator_config(extras)?;
+    if config.agent_definition_id.is_none() && config.org_id.is_none() {
+        return None;
+    }
+    Some(match latest_top_level_session(extras) {
+        Some(session_id) => RouteDecision::wake("assignee", RouteTarget::Resume { session_id }),
+        None => RouteDecision::wake("assignee_start", RouteTarget::Start),
+    })
+}
+
+/// The Discussion routing decision: who a comment wakes and why.
+/// Precedence: explicit target > typed agent/org mention > reply thread
+/// inference > agent assignee > latest linked session.
+pub(super) fn route_comment(
     content: &str,
     explicit_target: Option<&str>,
+    mentions: &[MentionTarget],
+    parent_id: Option<&str>,
+    comments: &[CommentEntry],
     extras: &serde_json::Value,
-) -> DiscussionTriggerPreview {
-    let target_session_id = explicit_target
+) -> RouteDecision {
+    if is_note_only(content) {
+        return RouteDecision::silent("note_only");
+    }
+    if let Some(target) = explicit_target
         .map(str::trim)
         .filter(|value| !value.is_empty())
-        .map(str::to_string)
-        .or_else(|| latest_top_level_session(extras));
-    if is_note_only(content) {
-        return DiscussionTriggerPreview {
-            will_wake: false,
-            reason: "note_only".to_string(),
-            target_session_id,
-        };
+    {
+        return RouteDecision::wake(
+            "explicit_target",
+            RouteTarget::Resume {
+                session_id: target.to_string(),
+            },
+        );
     }
-    if target_session_id.is_none() {
-        return DiscussionTriggerPreview {
-            will_wake: false,
-            reason: "no_linked_session".to_string(),
-            target_session_id,
-        };
+    if let Some(decision) = mention_route(mentions, extras) {
+        return decision;
     }
+    if let Some(decision) = parent_id.and_then(|parent| thread_route(comments, parent)) {
+        return decision;
+    }
+    if let Some(decision) = assignee_route(extras) {
+        return decision;
+    }
+    if let Some(session_id) = latest_top_level_session(extras) {
+        return RouteDecision::wake("latest_session", RouteTarget::Resume { session_id });
+    }
+    RouteDecision::silent("no_linked_session")
+}
+
+fn preview_from_decision(decision: &RouteDecision) -> DiscussionTriggerPreview {
     DiscussionTriggerPreview {
-        will_wake: true,
-        reason: "discussion_reply".to_string(),
-        target_session_id,
+        will_wake: decision.will_wake,
+        reason: decision.reason.clone(),
+        target_session_id: decision.resume_session_id(),
     }
 }
 
@@ -66,11 +205,16 @@ pub(super) fn preview(
 ) -> Result<DiscussionTriggerPreview, String> {
     let connection = conn()?;
     let item = resolve_work_item(&connection, &request.scope)?;
-    Ok(preview_for(
+    let comments = comments_from_extras(&item.extras);
+    let decision = route_comment(
         &request.content,
         request.target_session_id.as_deref(),
+        &request.mentions,
+        request.parent_id.as_deref(),
+        &comments,
         &item.extras,
-    ))
+    );
+    Ok(preview_from_decision(&decision))
 }
 
 fn comments_from_extras(extras: &serde_json::Value) -> Vec<CommentEntry> {
@@ -134,9 +278,12 @@ pub(super) fn post(request: DiscussionPostRequest) -> Result<DiscussionPostResul
                 request.comment_id
             ));
         }
-        let preview = preview_for(
+        let decision = route_comment(
             &request.content,
             request.target_session_id.as_deref(),
+            &request.mentions,
+            request.parent_id.as_deref(),
+            &comments,
             &extras,
         );
         let run = tx
@@ -157,7 +304,7 @@ pub(super) fn post(request: DiscussionPostRequest) -> Result<DiscussionPostResul
             comment: existing.clone(),
             run,
             thread_reopened: false,
-            wake_reason: preview.reason,
+            wake_reason: decision.reason,
         };
         tx.commit()
             .map_err(|err| format!("Discussion commit: {err}"))?;
@@ -198,9 +345,12 @@ pub(super) fn post(request: DiscussionPostRequest) -> Result<DiscussionPostResul
         }
     }
 
-    let preview = preview_for(
+    let decision = route_comment(
         &request.content,
         request.target_session_id.as_deref(),
+        &request.mentions,
+        request.parent_id.as_deref(),
+        &comments,
         &extras,
     );
     let now = now_ms();
@@ -216,7 +366,7 @@ pub(super) fn post(request: DiscussionPostRequest) -> Result<DiscussionPostResul
         resolved_at: None,
         resolved_by: None,
         conclusion: false,
-        agent_session_id: preview.target_session_id.clone(),
+        agent_session_id: decision.resume_session_id(),
     };
     comments.push(comment.clone());
     store_comments(&mut extras, &comments)?;
@@ -236,11 +386,14 @@ pub(super) fn post(request: DiscussionPostRequest) -> Result<DiscussionPostResul
         },
     )?;
 
-    let run = if preview.will_wake {
-        let target_session_id = preview
-            .target_session_id
-            .clone()
-            .expect("wake preview has a session");
+    let run = if decision.will_wake {
+        let run_target = match decision.target.clone().expect("wake decision has a target") {
+            RouteTarget::Resume { session_id } => WorkItemRunTarget::ResumeSession { session_id },
+            RouteTarget::Start => WorkItemRunTarget::StartWorkItem {
+                account_id: None,
+                model_id: None,
+            },
+        };
         Some(crate::work_run_service::enqueue_in_transaction(
             &tx,
             EnqueueWorkItemRunRequest {
@@ -251,9 +404,7 @@ pub(super) fn post(request: DiscussionPostRequest) -> Result<DiscussionPostResul
                     comment_id: comment.id.clone(),
                     author_id: Some(request.author_id.clone()),
                 },
-                target_snapshot: WorkItemRunTargetSnapshot::new(WorkItemRunTarget::ResumeSession {
-                    session_id: target_session_id,
-                }),
+                target_snapshot: WorkItemRunTargetSnapshot::new(run_target),
                 input: serde_json::json!({
                     "content": build_forward_message(
                         &item.short_id,
@@ -286,7 +437,8 @@ pub(super) fn post(request: DiscussionPostRequest) -> Result<DiscussionPostResul
             "parentId": comment.parent_id,
             "threadId": thread_id,
             "mentionedUserIds": comment.mentioned_user_ids,
-            "wakeReason": preview.reason,
+            "mentions": comment.mentions,
+            "wakeReason": decision.reason,
             "runId": run.as_ref().map(|value| value.id.as_str()),
             "threadReopened": thread_reopened,
         }),
@@ -307,7 +459,7 @@ pub(super) fn post(request: DiscussionPostRequest) -> Result<DiscussionPostResul
         comment,
         run,
         thread_reopened,
-        wake_reason: preview.reason,
+        wake_reason: decision.reason,
     })
 }
 

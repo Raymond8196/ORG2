@@ -103,6 +103,13 @@ export function useWorkItemContentState(
         orgId: orgId || "personal-org",
         workItemId: scopedShortId,
         content,
+        mentions: normalizeWorkItemMentions(mentionRefs, {
+          members: teamMembers,
+          agents: availableAgents,
+          agentOrgs: availableOrgs,
+          currentUserId: currentUser.id,
+        }),
+        parentId: replyToCommentId,
       })
       .then((preview) => {
         if (previewGenerationRef.current === generation) {
@@ -125,7 +132,13 @@ export function useWorkItemContentState(
       return;
     }
     fetchTriggerPreview(content);
-  }, [commentText, fetchTriggerPreview, scopedShortId]);
+  }, [
+    commentText,
+    fetchTriggerPreview,
+    scopedShortId,
+    mentionRefs,
+    replyToCommentId,
+  ]);
 
   useEffect(() => {
     if (!scopedShortId || !currentUser.id) return;
