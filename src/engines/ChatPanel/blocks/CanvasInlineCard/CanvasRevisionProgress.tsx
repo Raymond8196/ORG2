@@ -28,13 +28,17 @@ const CanvasRevisionProgress: React.FC<CanvasRevisionProgressProps> = ({
           amount: formatCanvasRevisionCharacterCount(draft.receivedCharacters),
         }
       );
+  // Screen-reader announcement changes only on phase transitions. The visible
+  // detail line updates its character counter at ~20Hz — putting it inside an
+  // aria-live region used to spam assistive tech on every tick.
+  const phaseAnnouncement = applying
+    ? t("canvasApp.revisionApplying", "Applying the validated change…")
+    : t("canvasApp.revisionReceivingLabel", "Generating the change…");
 
   return (
     <div
       data-testid="canvas-revision-progress"
       data-phase={draft.phase}
-      role="status"
-      aria-live="polite"
       className={[
         "flex min-w-0 items-center gap-2 rounded-lg border border-border-1 bg-bg-1/95 px-3 py-2 shadow-lg backdrop-blur",
         variant === "overlay"
@@ -54,7 +58,16 @@ const CanvasRevisionProgress: React.FC<CanvasRevisionProgressProps> = ({
         <span className="block truncate text-xs font-medium text-text-1">
           {t("canvasApp.revisionTitle", "Updating {{title}}", { title })}
         </span>
-        <span className="block truncate text-[11px] text-text-3">{detail}</span>
+        <span
+          aria-hidden
+          className="block truncate text-[11px] text-text-3"
+          data-testid="canvas-revision-progress-detail"
+        >
+          {detail}
+        </span>
+        <span role="status" aria-live="polite" className="sr-only">
+          {phaseAnnouncement}
+        </span>
         <CanvasRevisionSteps
           phase={draft.phase}
           steps={draft.agentSteps ?? []}

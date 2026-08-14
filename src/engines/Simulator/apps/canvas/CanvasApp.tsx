@@ -53,6 +53,7 @@ import {
 import type { SimulatorAppProps } from "../core/types";
 import { useSimulatorAppState } from "../core/useSimulatorAppState";
 import { CANVAS_APP_CONFIG } from "./canvasConfig";
+import { diffLines, isCanvasDiffInputTooLarge } from "./canvasDiff";
 import {
   type CanvasViewTab,
   createCanvasInteractionState,
@@ -115,61 +116,6 @@ function formatEventTime(event: SessionEvent): string {
   }
 }
 
-// ─── diff utility ─────────────────────────────────────────────────────────────
-
-type DiffLine =
-  | { kind: "equal"; text: string }
-  | { kind: "added"; text: string }
-  | { kind: "removed"; text: string };
-
-/** Simple LCS-based line-level diff — no external library. */
-function diffLines(oldText: string, newText: string): DiffLine[] {
-  const a = oldText.split("\n");
-  const b = newText.split("\n");
-
-  // Build LCS table
-  const m = a.length;
-  const n = b.length;
-  const dp: number[][] = Array.from({ length: m + 1 }, () =>
-    new Array(n + 1).fill(0)
-  );
-  for (let i = m - 1; i >= 0; i--) {
-    for (let j = n - 1; j >= 0; j--) {
-      if (a[i] === b[j]) {
-        dp[i][j] = 1 + dp[i + 1][j + 1];
-      } else {
-        dp[i][j] = Math.max(dp[i + 1][j], dp[i][j + 1]);
-      }
-    }
-  }
-
-  // Backtrack
-  const result: DiffLine[] = [];
-  let i = 0;
-  let j = 0;
-  while (i < m && j < n) {
-    if (a[i] === b[j]) {
-      result.push({ kind: "equal", text: a[i] });
-      i++;
-      j++;
-    } else if (dp[i + 1][j] >= dp[i][j + 1]) {
-      result.push({ kind: "removed", text: a[i] });
-      i++;
-    } else {
-      result.push({ kind: "added", text: b[j] });
-      j++;
-    }
-  }
-  while (i < m) {
-    result.push({ kind: "removed", text: a[i++] });
-  }
-  while (j < n) {
-    result.push({ kind: "added", text: b[j++] });
-  }
-
-  return result;
-}
-
 // ─── sidebar item ──────────────────────────────────────────────────────────────
 
 interface SidebarItemProps {
@@ -230,7 +176,7 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
           "shrink-0 rounded px-1 py-0.5 text-[10px] font-medium transition-colors",
           isCompareSelected
             ? "bg-primary-6/20 text-primary-6"
-            : "text-text-4 opacity-0 hover:text-text-2 group-hover:opacity-100",
+            : "text-text-4 opacity-0 hover:text-text-2 focus-visible:opacity-100 group-hover:opacity-100",
         ].join(" ")}
       >
         {t("canvasApp.compareMark", "vs")}
@@ -333,6 +279,7 @@ const DiffView: React.FC<DiffViewProps> = ({
   olderTitle,
   newerTitle,
 }) => {
+  const { t } = useTranslation("sessions");
   const oldText =
     olderPayload.mode === "url"
       ? (olderPayload.url ?? "")
@@ -341,10 +288,27 @@ const DiffView: React.FC<DiffViewProps> = ({
     newerPayload.mode === "url"
       ? (newerPayload.url ?? "")
       : (newerPayload.content ?? "");
-  const diff = useMemo(() => diffLines(oldText, newText), [oldText, newText]);
+  const tooLarge = isCanvasDiffInputTooLarge(oldText, newText);
+  const diff = useMemo(
+    () => (tooLarge ? [] : diffLines(oldText, newText)),
+    [tooLarge, oldText, newText]
+  );
 
   const addedCount = diff.filter((l) => l.kind === "added").length;
   const removedCount = diff.filter((l) => l.kind === "removed").length;
+
+  if (tooLarge) {
+    return (
+      <div className="flex h-full items-center justify-center p-4">
+        <span className="text-xs text-text-4">
+          {t(
+            "canvasApp.compareTooLarge",
+            "These versions are too large to compare"
+          )}
+        </span>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
@@ -370,9 +334,9 @@ const DiffView: React.FC<DiffViewProps> = ({
               className={[
                 "whitespace-pre-wrap break-all px-2",
                 line.kind === "added"
-                  ? "bg-green-500/10 text-green-400"
+                  ? "bg-success-6/10 text-success-6"
                   : line.kind === "removed"
-                    ? "bg-red-500/10 text-red-400"
+                    ? "bg-danger-6/10 text-danger-6"
                     : "text-text-3",
               ].join(" ")}
             >
@@ -401,7 +365,6 @@ interface CanvasIframeProps {
   eventId: string;
   sessionId: string;
   designEnabled: boolean;
-  onRequestDisableDesign: () => void;
 }
 
 const CanvasIframe: React.FC<CanvasIframeProps> = ({
@@ -411,18 +374,19 @@ const CanvasIframe: React.FC<CanvasIframeProps> = ({
   eventId,
   sessionId,
   designEnabled,
-  onRequestDisableDesign,
 }) => {
   return (
     <CanvasDesignSurface
-      key={`${eventId}:${reloadKey}:${designEnabled ? "design" : "view"}`}
+      // `designEnabled` is deliberately not part of the key: the inspector
+      // effect handles enable/disable without remounting, and a remount would
+      // reset the rendered artifact's state on every design toggle.
+      key={`${eventId}:${reloadKey}`}
       payload={payload}
       reloadKey={reloadKey}
       title={title}
       eventId={eventId}
       sessionId={sessionId}
       designEnabled={designEnabled}
-      onRequestDisable={onRequestDisableDesign}
     />
   );
 };
@@ -567,7 +531,8 @@ const CanvasApp: React.FC<SimulatorAppProps> = () => {
   const reconciledInteractionState = reconcileCanvasInteractionState(
     interactionState,
     appEventIds,
-    previewEventId
+    previewEventId,
+    designEventId
   );
   if (reconciledInteractionState !== interactionState) {
     setInteractionState(reconciledInteractionState);
@@ -662,7 +627,9 @@ const CanvasApp: React.FC<SimulatorAppProps> = () => {
       current === selectedEventId ? null : selectedEventId
     );
   }, [selectedEventId]);
-  const handleDisableDesign = useCallback(() => setDesignEventId(null), []);
+  // Boolean projection: `revisionDraft.receivedCharacters` changes at 20Hz —
+  // memos keyed on the draft object would recompute on every tick.
+  const revisionActive = revisionDraft !== null;
 
   // ── publish to SimulatorWorkstationTabHeader ─────────────────────────────
 
@@ -673,7 +640,7 @@ const CanvasApp: React.FC<SimulatorAppProps> = () => {
           tab={activeTab}
           onSetTab={handleSetTab}
           title={cardTitle}
-          isStreaming={Boolean(selectedPayload.streaming || revisionDraft)}
+          isStreaming={Boolean(selectedPayload.streaming) || revisionActive}
           onReload={handleReload}
           showCompare={compareEventIds.length === 2}
           designAvailable={designAvailable}
@@ -692,7 +659,7 @@ const CanvasApp: React.FC<SimulatorAppProps> = () => {
       designAvailable,
       designEnabled,
       handleToggleDesign,
-      revisionDraft,
+      revisionActive,
     ]
   );
 
@@ -771,7 +738,6 @@ const CanvasApp: React.FC<SimulatorAppProps> = () => {
             eventId={selectedEvent.id}
             sessionId={selectedEvent.sessionId}
             designEnabled={designEnabled}
-            onRequestDisableDesign={handleDisableDesign}
           />
           {(selectedPayload.streaming || revisionDraft) && (
             <div

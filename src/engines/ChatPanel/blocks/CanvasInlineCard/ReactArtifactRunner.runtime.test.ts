@@ -80,6 +80,77 @@ describe("ReactArtifactRunner runtime", () => {
     }
   });
 
+  it("surfaces compile failures as a visible banner and forwards onError", async () => {
+    const root = createSmokeRoot();
+    const onError = vi.fn();
+    // Unbalanced parenthesis — react-live's transpile step must throw.
+    const source = `function App( { return null; }`;
+
+    try {
+      await root.render(
+        React.createElement(ReactArtifactRunner, { source, onError })
+      );
+
+      const banner = root.container.querySelector(
+        '[data-testid="react-artifact-error"]'
+      );
+      expect(banner).not.toBeNull();
+      expect(banner?.textContent?.trim().length).toBeGreaterThan(0);
+      expect(onError).toHaveBeenCalledWith(
+        expect.objectContaining({ message: expect.any(String) })
+      );
+    } finally {
+      await root.unmount();
+    }
+  });
+
+  it("renders a visible localized notice instead of a blank card when eval is blocked", async () => {
+    const root = createSmokeRoot();
+    const onError = vi.fn();
+    const source = `
+      function App() {
+        return React.createElement("button", null, "Never runs");
+      }
+    `;
+
+    try {
+      await root.render(
+        React.createElement(ReactArtifactRunner, {
+          source,
+          onError,
+          evalAvailable: false,
+        })
+      );
+
+      const notice = root.container.querySelector(
+        '[data-testid="react-artifact-csp-notice"]'
+      );
+      expect(notice).not.toBeNull();
+      expect(notice?.textContent?.trim().length).toBeGreaterThan(0);
+      // The artifact itself must not execute in the host document.
+      expect(root.container.querySelector("button")).toBeNull();
+      expect(onError).toHaveBeenCalledWith(
+        expect.objectContaining({ message: expect.any(String) })
+      );
+
+      // A parent-only rerender keeps the notice stable (no crash, no blank).
+      await root.render(
+        React.createElement(ReactArtifactRunner, {
+          source,
+          onError,
+          evalAvailable: false,
+        })
+      );
+      expect(
+        root.container.querySelector(
+          '[data-testid="react-artifact-csp-notice"]'
+        )
+      ).not.toBeNull();
+    } finally {
+      await root.unmount();
+    }
+  });
+
   it("keeps the live preview DOM and its state across parent rerenders", async () => {
     const root = createSmokeRoot();
     const source = `

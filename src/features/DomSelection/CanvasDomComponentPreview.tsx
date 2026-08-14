@@ -1,4 +1,5 @@
 import React, { memo, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 
 import { IFRAME_STYLE_NONCE } from "@src/util/iframeCspNonce";
 
@@ -27,6 +28,7 @@ function buildPreviewDocument(previewHtml: string): string {
 
 const CanvasDomComponentPreview: React.FC<CanvasDomComponentPreviewProps> =
   memo(({ jsonText }) => {
+    const { t } = useTranslation("sessions");
     const srcDoc = useMemo(() => {
       const parsed = parseCanvasDomComponent(jsonText);
       if (!parsed?.previewHtml) return null;
@@ -37,14 +39,16 @@ const CanvasDomComponentPreview: React.FC<CanvasDomComponentPreviewProps> =
 
     if (!srcDoc) return null;
 
+    // Contained card frame: theme background + border tokens and clipped
+    // overflow keep the captured fragment from floating unframed in chat.
     return (
-      <div className="h-28 w-full overflow-hidden rounded-lg border border-border-2 bg-bg-1">
+      <div className="max-h-28 w-full overflow-hidden rounded-lg border border-border-2 bg-bg-1">
         <iframe
-          title="Canvas selection preview"
+          title={t("domSelection.previewTitle", "Canvas selection preview")}
           sandbox=""
           srcDoc={srcDoc}
           tabIndex={-1}
-          className="pointer-events-none h-full w-full border-0"
+          className="pointer-events-none h-28 w-full border-0"
         />
       </div>
     );

@@ -14,6 +14,21 @@ import {
 
 import { useCanvasDesignInspector } from "./useCanvasDesignInspector";
 
+const captureCounter = vi.hoisted(() => ({ count: 0 }));
+
+vi.mock("./canvasDomCapture", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./canvasDomCapture")>();
+  return {
+    ...actual,
+    captureCanvasElement: (
+      ...args: Parameters<typeof actual.captureCanvasElement>
+    ) => {
+      captureCounter.count += 1;
+      return actual.captureCanvasElement(...args);
+    },
+  };
+});
+
 const resizeObserverObserve = vi.fn();
 const resizeObserverDisconnect = vi.fn();
 
@@ -63,7 +78,6 @@ describe("useCanvasDesignInspector", () => {
   let root: Root;
   let inspectorRootRef: RefObject<HTMLDivElement | null>;
   const onCanvasAction = vi.fn();
-  const onRequestDisable = vi.fn();
   const actEnvironment = globalThis as typeof globalThis & {
     IS_REACT_ACT_ENVIRONMENT?: boolean;
   };
@@ -79,9 +93,9 @@ describe("useCanvasDesignInspector", () => {
     root = createRoot(container);
     inspectorRootRef = createRef<HTMLDivElement>();
     onCanvasAction.mockReset();
-    onRequestDisable.mockReset();
     resizeObserverObserve.mockReset();
     resizeObserverDisconnect.mockReset();
+    captureCounter.count = 0;
   });
 
   afterEach(() => {
@@ -95,11 +109,7 @@ describe("useCanvasDesignInspector", () => {
   });
 
   function Harness({ enabled = true }: { enabled?: boolean }) {
-    const inspector = useCanvasDesignInspector(
-      inspectorRootRef,
-      enabled,
-      onRequestDisable
-    );
+    const inspector = useCanvasDesignInspector(inspectorRootRef, enabled);
     return createElement(
       "div",
       { ref: inspectorRootRef, "data-testid": "root" },
@@ -203,25 +213,74 @@ describe("useCanvasDesignInspector", () => {
     ).toBe("region:Stat");
   });
 
-  it("clears selection on the first Escape and exits on the second", () => {
+  it("clears the selection on Escape, then lets Escape pass through untouched", () => {
     const { target } = mountHarness();
     act(() => {
       target.dispatchEvent(pointerEvent("pointerdown", 50, 70));
       target.dispatchEvent(pointerEvent("pointerup", 50, 70));
     });
 
-    act(() =>
-      window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }))
-    );
+    let propagated = true;
+    act(() => {
+      propagated = window.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "Escape", cancelable: true })
+      );
+    });
     expect(
       container.querySelector("[data-testid='selection']")?.textContent
     ).toBe("none");
-    expect(onRequestDisable).not.toHaveBeenCalled();
+    expect(container.querySelector("[data-testid='hover']")?.textContent).toBe(
+      "none"
+    );
+    expect(propagated).toBe(false);
+
+    // Nothing left to clear — a dialog's own Escape handling must still work
+    // while design mode stays on, so the event is not swallowed.
+    act(() => {
+      propagated = window.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "Escape", cancelable: true })
+      );
+    });
+    expect(propagated).toBe(true);
+  });
+
+  it("clears the hover box when the pointer reaches empty root background", () => {
+    const { inspectRoot, target } = mountHarness();
+
+    act(() => target.dispatchEvent(pointerEvent("pointermove", 50, 70)));
+    expect(container.querySelector("[data-testid='hover']")?.textContent).toBe(
+      "element:Stat"
+    );
+
+    act(() => inspectRoot.dispatchEvent(pointerEvent("pointermove", 400, 300)));
+    expect(container.querySelector("[data-testid='hover']")?.textContent).toBe(
+      "none"
+    );
+  });
+
+  it("refreshes overlay geometry on scroll without reserializing the DOM", () => {
+    const { inspectRoot, target } = mountHarness();
+    const rafSpy = vi
+      .spyOn(window, "requestAnimationFrame")
+      .mockImplementation((callback) => {
+        callback(0);
+        return 1;
+      });
+
+    act(() => target.dispatchEvent(pointerEvent("pointermove", 50, 70)));
+    const capturesAfterHover = captureCounter.count;
+    expect(capturesAfterHover).toBeGreaterThan(0);
 
     act(() =>
-      window.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }))
+      inspectRoot.dispatchEvent(new Event("scroll", { bubbles: true }))
     );
-    expect(onRequestDisable).toHaveBeenCalledTimes(1);
+    expect(container.querySelector("[data-testid='hover']")?.textContent).toBe(
+      "element:Stat"
+    );
+    // Geometry refresh reads getBoundingClientRect only — no full capture.
+    expect(captureCounter.count).toBe(capturesAfterHover);
+
+    rafSpy.mockRestore();
   });
 
   it("owns listeners only while Design mode is enabled", () => {

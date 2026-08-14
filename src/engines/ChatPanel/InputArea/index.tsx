@@ -337,9 +337,12 @@ const InputAreaInteractive: React.FC<InputAreaProps> = memo(
       isReply: replyInfo.isReply,
       editorMultiline: false,
     });
+    // The expansion hook must run for every composer that can sit in the
+    // compact capsule — including the maximized DEFAULT presentation — or the
+    // capsule can never expand and multiline text spills out of the 36px row.
     const { editorMultiline, onEditorContentChange, onEditorBlur } =
       useEditorExpansion({
-        enabled: isContextual,
+        enabled: isContextual || contextualCompactEligible,
         compactEligible: contextualCompactEligible,
         containerRef,
         handleContentChange,

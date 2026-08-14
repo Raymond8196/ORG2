@@ -101,4 +101,40 @@ describe("canvas interaction state", () => {
       reloadKey: selectedOriginal.reloadKey + 1,
     });
   });
+
+  it("suppresses the preview override while design mode locks the selection", () => {
+    const designLocked = selectCanvasEvent(
+      createCanvasInteractionState(["a", "b"], null),
+      "a"
+    );
+
+    // Chat preview pointing at another canvas must not steal the selection
+    // while design mode is active on it.
+    const afterPreview = reconcileCanvasInteractionState(
+      designLocked,
+      ["a", "b"],
+      "b",
+      "a"
+    );
+    expect(afterPreview.selectedEventId).toBe("a");
+    expect(afterPreview.reloadKey).toBe(designLocked.reloadKey);
+
+    // Without the design lock the preview override still wins.
+    const withoutLock = reconcileCanvasInteractionState(
+      designLocked,
+      ["a", "b"],
+      "b",
+      null
+    );
+    expect(withoutLock.selectedEventId).toBe("b");
+
+    // A design event that no longer exists cannot hold the lock.
+    const staleLock = reconcileCanvasInteractionState(
+      designLocked,
+      ["b"],
+      "b",
+      "a"
+    );
+    expect(staleLock.selectedEventId).toBe("b");
+  });
 });

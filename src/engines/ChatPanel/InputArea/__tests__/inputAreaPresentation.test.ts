@@ -32,6 +32,16 @@ describe("shouldUseCompactComposerLayout", () => {
     ).toBe(false);
   });
 
+  it("uses the shared compact row for the maximized default composer", () => {
+    expect(compactLayout({ isChatPanelMaximized: true })).toBe(true);
+  });
+
+  it("expands the maximized default composer when its editor becomes multiline", () => {
+    expect(
+      compactLayout({ isChatPanelMaximized: true, editorMultiline: true })
+    ).toBe(false);
+  });
+
   it.each([
     ["edit mode", { isEditMode: true }],
     ["image attachment", { hasImages: true }],

@@ -29,25 +29,26 @@ vi.mock("react-i18next", () => ({
     t: (_key: string, fallback?: string) => fallback ?? _key,
   }),
 }));
-vi.mock("lucide-react", () => ({
-  Layout: () => null,
-  PenTool: () => null,
-  RefreshCw: () => null,
-}));
-vi.mock("jotai", () => ({
-  useAtomValue: (atom: string) => {
-    if (atom === "canvas-preview") {
-      return testState.previewEventId
-        ? { payload: { eventId: testState.previewEventId } }
-        : null;
-    }
-    if (atom === "sidebar-collapsed") return false;
-    if (atom === "sidebar-position") return "left";
-    if (atom === "sidebar-width") return 240;
-    return null;
-  },
-  useSetAtom: () => vi.fn(),
-}));
+// Partial mock: modules across the import graph create real atoms at module
+// scope, so only the React read/write hooks are replaced.
+vi.mock("jotai", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("jotai")>();
+  return {
+    ...actual,
+    useAtomValue: (atom: unknown) => {
+      if (atom === "canvas-preview") {
+        return testState.previewEventId
+          ? { payload: { eventId: testState.previewEventId } }
+          : null;
+      }
+      if (atom === "sidebar-collapsed") return false;
+      if (atom === "sidebar-position") return "left";
+      if (atom === "sidebar-width") return 240;
+      return null;
+    },
+    useSetAtom: () => vi.fn(),
+  };
+});
 vi.mock("@src/store/session/canvasPreviewAtom", () => ({
   canvasPreviewAtom: "canvas-preview",
 }));
@@ -273,8 +274,10 @@ describe("CanvasApp interaction lifecycle", () => {
   }
 
   function buttonWithText(text: string) {
+    // Exact match: loose `includes` would let an unrelated toolbar button
+    // shadow the sidebar item titled "a".
     return [...container.querySelectorAll<HTMLButtonElement>("button")].find(
-      (button) => button.textContent?.includes(text)
+      (button) => button.textContent?.trim() === text
     );
   }
 

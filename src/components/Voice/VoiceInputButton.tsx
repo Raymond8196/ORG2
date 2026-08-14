@@ -103,7 +103,11 @@ const VoiceInputButton: React.FC<VoiceInputButtonProps> = memo(
           INPUT_AREA_BUTTONS.iconButtonSizeClass,
           appearance === "solid"
             ? "bg-text-1 text-bg-1 hover:bg-text-2"
-            : `text-text-1 ${PILL_CONTROL_IDLE_SURFACE_CLASS}`,
+            : disabled
+              ? // Disabled buttons must not paint the interactive idle/hover
+                // surface — restore the plain transparent treatment.
+                "text-text-1"
+              : `text-text-1 ${PILL_CONTROL_IDLE_SURFACE_CLASS}`,
           disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer",
           "leading-none",
         ].join(" ")}

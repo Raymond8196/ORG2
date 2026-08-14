@@ -34,7 +34,6 @@ interface CanvasDesignSurfaceProps {
   eventId: string;
   sessionId: string;
   designEnabled: boolean;
-  onRequestDisable: () => void;
 }
 
 interface CanvasDesignPromptProps {
@@ -58,6 +57,12 @@ interface CanvasDesignPromptLayout {
   placement: CanvasDesignPromptPlacement;
   style: React.CSSProperties;
 }
+
+// The revision composer runs with agent interceptors off, so slash items that
+// mutate session state (for example /canvas creation) must not be offered
+// here. Mirrors the restriction HumanSessionView applies to its work-log
+// composer.
+const CANVAS_DESIGN_SLASH_ITEM_CATEGORIES = ["skill"] as const;
 
 const PROMPT_GAP = 12;
 const PROMPT_MAX_WIDTH = 640;
@@ -291,6 +296,7 @@ const CanvasDesignPrompt: React.FC<CanvasDesignPromptProps> = ({
         disableStopWhenEmpty
         bottomAnchored={promptLayout.placement === "docked"}
         presentation="contextual"
+        slashItemCategories={CANVAS_DESIGN_SLASH_ITEM_CATEGORIES}
         topRowPills={
           <CanvasSelectionPill
             selection={selection}
@@ -314,15 +320,10 @@ const CanvasDesignSurface: React.FC<CanvasDesignSurfaceProps> = ({
   eventId,
   sessionId,
   designEnabled,
-  onRequestDisable,
 }) => {
   const { t } = useTranslation("sessions");
   const rootRef = useRef<HTMLDivElement>(null);
-  const inspector = useCanvasDesignInspector(
-    rootRef,
-    designEnabled,
-    onRequestDisable
-  );
+  const inspector = useCanvasDesignInspector(rootRef, designEnabled);
   const visibleSelection = inspector.selected ?? inspector.hovered;
 
   return (
@@ -387,7 +388,10 @@ const CanvasDesignSurface: React.FC<CanvasDesignSurfaceProps> = ({
                 >
                   {visibleSelection.tooltipLabel}
                   <span className="ml-2 font-normal opacity-80">
-                    {t("canvasApp.designHint", "Click to select, drag to draw")}
+                    {t(
+                      "canvasApp.designHoverHint",
+                      "Click to select, drag to draw"
+                    )}
                   </span>
                 </div>
               )}

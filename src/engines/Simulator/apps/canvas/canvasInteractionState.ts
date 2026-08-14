@@ -47,11 +47,16 @@ export function createCanvasInteractionState(
  * a growing event list follows the newest event, then a valid chat preview
  * overrides it. A non-empty shrinking list retains the user's selection until
  * the list is fully cleared.
+ *
+ * `designEventId`: while design mode is active for the current selection, the
+ * preview override is suppressed so an unrelated agent canvas cannot yank the
+ * user out of an in-progress design selection.
  */
 export function reconcileCanvasInteractionState(
   state: CanvasInteractionState,
   eventIds: readonly string[],
-  previewEventId: string | null
+  previewEventId: string | null,
+  designEventId: string | null = null
 ): CanvasInteractionState {
   const nextEventIdsKey = eventIdsKey(eventIds);
   if (
@@ -67,6 +72,10 @@ export function reconcileCanvasInteractionState(
   const compareEventIds = state.compareEventIds.filter((eventId) =>
     validEventIds.has(eventId)
   );
+  const designLocksSelection =
+    designEventId !== null &&
+    designEventId === state.selectedEventId &&
+    validEventIds.has(designEventId);
 
   if (eventIds.length === 0) {
     selectedEventId = null;
@@ -78,7 +87,11 @@ export function reconcileCanvasInteractionState(
     selectedEventId = preferredEventId(eventIds, previewEventId);
   }
 
-  if (previewEventId && eventIds.includes(previewEventId)) {
+  if (
+    previewEventId &&
+    eventIds.includes(previewEventId) &&
+    !designLocksSelection
+  ) {
     selectedEventId = previewEventId;
   }
 

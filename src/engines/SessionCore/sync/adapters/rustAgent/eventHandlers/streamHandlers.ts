@@ -11,6 +11,7 @@ import {
 } from "@src/engines/ChatPanel/blocks/CanvasInlineCard/canvasRevision";
 import { createLogger } from "@src/hooks/logger";
 import { bufferCanvasRevisionDraft } from "@src/store/session/canvasRevisionDraftAtom";
+import { validSessionIdsAtom } from "@src/store/session/sessionAtom/atoms";
 
 import {
   appendBoundedToolCallArgs,
@@ -181,19 +182,32 @@ export function handleToolCallDelta(
   if (buffer.toolName === CANVAS_REVISION_TOOL_NAME) {
     const store = ctx.getDefaultStore();
     if (store) {
-      const metadata = parseCanvasRevisionDeltaMetadata(buffer.argsJson);
-      const agentSteps = getCanvasRevisionAgentSteps({
-        [CANVAS_REVISION_AGENT_STEPS_ARG]: metadata.agentSteps,
-      });
+      // A delta straggling in after session removal must not recreate a
+      // draft for the deleted session — `removeSession` already disposed it.
+      if (!store.get(validSessionIdsAtom).has(sessionId)) {
+        return;
+      }
+      // Metadata parsing scans bounded windows of a potentially megabyte
+      // argument stream with several regexes; defer it to the coalescer
+      // flush (at most once per 50ms window) instead of paying per delta.
+      const argsJson = buffer.argsJson;
       bufferCanvasRevisionDraft(store, {
         sessionId,
         toolCallId: buffer.toolCallId,
-        targetEventId: metadata.targetEventId,
-        mode: metadata.mode,
-        title: metadata.title,
-        agentSteps: agentSteps ?? undefined,
-        receivedCharacters: buffer.argsJson.length,
+        receivedCharacters: argsJson.length,
         phase: "receiving",
+        resolveMetadata: () => {
+          const metadata = parseCanvasRevisionDeltaMetadata(argsJson);
+          return {
+            targetEventId: metadata.targetEventId,
+            mode: metadata.mode,
+            title: metadata.title,
+            agentSteps:
+              getCanvasRevisionAgentSteps({
+                [CANVAS_REVISION_AGENT_STEPS_ARG]: metadata.agentSteps,
+              }) ?? undefined,
+          };
+        },
       });
     }
   }

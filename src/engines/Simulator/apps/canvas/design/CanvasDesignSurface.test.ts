@@ -130,7 +130,7 @@ describe("CanvasDesignSurface", () => {
     Reflect.deleteProperty(actEnvironment, "IS_REACT_ACT_ENVIRONMENT");
   });
 
-  function renderSurface(onRequestDisable = vi.fn()) {
+  function renderSurface() {
     act(() =>
       root.render(
         createElement(CanvasDesignSurface, {
@@ -140,7 +140,6 @@ describe("CanvasDesignSurface", () => {
           eventId: "event-a",
           sessionId: "session-a",
           designEnabled: true,
-          onRequestDisable,
         })
       )
     );
@@ -191,6 +190,9 @@ describe("CanvasDesignSurface", () => {
       allowFileAttachments: false,
       enableAgentInterceptors: false,
       presentation: "contextual",
+      // Interceptors are off, so session-mutating slash items (e.g. /canvas
+      // creation) must be filtered out of the revision composer.
+      slashItemCategories: ["skill"],
     });
     const onSubmitOverride = testState.inputAreaProps
       ?.onSubmitOverride as (input: {
@@ -230,7 +232,7 @@ describe("CanvasDesignSurface", () => {
     ).not.toBeNull();
 
     const removeListener = vi.spyOn(surface, "removeEventListener");
-    renderSurface(vi.fn());
+    renderSurface();
     expect(
       document.body.querySelector("[data-testid='canvas-design-input-area']")
     ).not.toBeNull();

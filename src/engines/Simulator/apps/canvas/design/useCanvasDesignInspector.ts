@@ -1,10 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useEffectEvent,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { DomSelectionRect } from "@src/features/DomSelection/types";
 
@@ -97,8 +91,7 @@ function localizeSelection(
 
 export function useCanvasDesignInspector(
   rootRef: React.RefObject<HTMLDivElement | null>,
-  enabled: boolean,
-  onRequestDisable: () => void
+  enabled: boolean
 ): UseCanvasDesignInspectorResult {
   const [state, setState] = useState<CanvasDesignInspectorState>({
     hovered: null,
@@ -112,7 +105,6 @@ export function useCanvasDesignInspector(
   const selectedElementRef = useRef<HTMLElement | null>(null);
   const dragRef = useRef<DragState | null>(null);
   const hasSelectionRef = useRef(false);
-  const requestDisable = useEffectEvent(onRequestDisable);
 
   const clearSelection = useCallback(() => {
     selectedElementRef.current = null;
@@ -149,20 +141,22 @@ export function useCanvasDesignInspector(
       const hoveredElement = hoveredElementRef.current;
       const selectedElement = selectedElementRef.current;
       setState((current) => {
+        // Geometry-only refresh: this runs per animation frame during
+        // scroll/hover, so it must not reserialize innerHTML or force layout
+        // through innerText the way a full `captureCanvasElement` does. The
+        // full capture happens only when a selection is finalized.
         const refreshSelectionRect = (
           selection: CanvasDesignSelection,
           element: HTMLElement
         ) => {
-          const fresh = captureCanvasElement(element, {
-            includePreview: false,
-          });
+          const fresh = viewportRect(element.getBoundingClientRect());
           return localizeSelection(
             {
               ...selection,
-              rect: fresh.rect,
+              rect: fresh,
               elementInfo: {
                 ...selection.elementInfo,
-                rect: fresh.elementInfo.rect,
+                rect: fresh,
               },
             },
             rootRect
@@ -193,10 +187,23 @@ export function useCanvasDesignInspector(
       frameId = window.requestAnimationFrame(refreshGeometry);
     }
 
+    const clearHover = () => {
+      hoveredElementRef.current = null;
+      setState((current) =>
+        current.hovered ? { ...current, hovered: null } : current
+      );
+    };
+
     const updateHover = (event: PointerEvent) => {
       if (dragRef.current) return;
       const element = elementFromComposedPath(event, root);
-      if (!element || element === hoveredElementRef.current) return;
+      if (!element) {
+        // Pointer moved onto empty root background (or design UI): drop the
+        // hover box instead of leaving it stuck on the last element.
+        clearHover();
+        return;
+      }
+      if (element === hoveredElementRef.current) return;
       hoveredElementRef.current = element;
       resizeObserver.disconnect();
       resizeObserver.observe(root);
@@ -329,14 +336,36 @@ export function useCanvasDesignInspector(
       setState((current) => ({ ...current, marquee: null }));
     }
 
+    const cancelActiveDrag = () => {
+      if (!dragRef.current) return;
+      dragRef.current = null;
+      releaseDragListeners();
+      setState((current) => ({ ...current, marquee: null }));
+    };
+
+    // Escape is handled only while the inspector has something to clear
+    // (drag, selection, or hover). Otherwise the event passes through — a
+    // window-level capture handler that always swallowed Escape used to kill
+    // dialogs' own Escape handling app-wide while design mode was on.
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
+      const dragActive = dragRef.current !== null;
+      const hasSelection = hasSelectionRef.current;
+      const hasHover = hoveredElementRef.current !== null;
+      if (!dragActive && !hasSelection && !hasHover) return;
       event.preventDefault();
-      if (hasSelectionRef.current) {
-        clearSelection();
-      } else {
-        requestDisable();
+      event.stopPropagation();
+      if (dragActive) {
+        cancelActiveDrag();
+        return;
       }
+      clearHover();
+      if (hasSelection) clearSelection();
+    };
+
+    const handleRootPointerLeave = () => {
+      if (dragRef.current) return;
+      clearHover();
     };
 
     const handleScrollOrResize = () => scheduleGeometryRefresh();
@@ -349,6 +378,7 @@ export function useCanvasDesignInspector(
     resizeObserver.observe(root);
     root.addEventListener("pointerdown", handlePointerDown, true);
     root.addEventListener("pointermove", handleRootPointerMove, true);
+    root.addEventListener("pointerleave", handleRootPointerLeave);
     root.addEventListener("click", blockClick, true);
     root.addEventListener("scroll", handleScrollOrResize, true);
     window.addEventListener("resize", handleScrollOrResize);
@@ -357,6 +387,7 @@ export function useCanvasDesignInspector(
     return () => {
       root.removeEventListener("pointerdown", handlePointerDown, true);
       root.removeEventListener("pointermove", handleRootPointerMove, true);
+      root.removeEventListener("pointerleave", handleRootPointerLeave);
       releaseDragListeners();
       root.removeEventListener("click", blockClick, true);
       root.removeEventListener("scroll", handleScrollOrResize, true);

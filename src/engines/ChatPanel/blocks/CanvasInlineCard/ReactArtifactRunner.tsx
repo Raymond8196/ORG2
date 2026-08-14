@@ -1,5 +1,6 @@
-import React, { useCallback, useState } from "react";
-import { LiveError, LivePreview, LiveProvider } from "react-live";
+import React, { useContext, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import { LiveContext, LivePreview, LiveProvider } from "react-live";
 
 export interface ReactArtifactError {
   message: string;
@@ -9,12 +10,38 @@ export interface ReactArtifactError {
 export interface ReactArtifactRunnerProps {
   source: string;
   onError?: (error: ReactArtifactError) => void;
+  /**
+   * Test seam for the module-level CSP probe. Production callers omit it and
+   * get the real environment capability.
+   */
+  evalAvailable?: boolean;
 }
 
 // react-live retranspiles whenever `scope` changes by reference. A module-level
 // immutable scope keeps parent-only renders (such as Canvas hover overlays)
 // from replacing the preview DOM and resetting the generated app's state.
 const REACT_LIVE_SCOPE = Object.freeze({ React });
+
+/**
+ * The packaged app ships `script-src 'self' 'wasm-unsafe-eval'` (no
+ * `unsafe-eval`), so react-live's `new Function` compile step throws an
+ * EvalError before anything renders. Sandboxed srcdoc iframes inherit the same
+ * policy in WebView2, so an in-app runtime cannot execute generated code
+ * either. Probe once at module init; when eval is unavailable every runner
+ * instance renders an explicit localized notice instead of a silent black
+ * card.
+ */
+function detectEvalAvailability(): boolean {
+  try {
+    // eslint-disable-next-line no-new-func
+    new Function("");
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+const EVAL_AVAILABLE = detectEvalAvailability();
 
 export function normalizeReactLiveSource(source: string): string {
   let code = source.replace(
@@ -59,20 +86,75 @@ export function normalizeReactLiveSource(source: string): string {
   return code;
 }
 
+/**
+ * Visible error surface for react-live compile/runtime failures.
+ *
+ * react-live v4's `LiveError` spreads unknown props (including `onChange`)
+ * straight onto a `<pre>`, so callbacks never fire and a hidden `LiveError`
+ * leaves the card silently blank. Reading `LiveContext.error` directly both
+ * renders an in-card banner and forwards the failure to `onError` for the
+ * surrounding surface banner.
+ */
+const LiveErrorBanner: React.FC<{
+  onError?: (error: ReactArtifactError) => void;
+}> = ({ onError }) => {
+  const { error } = useContext(LiveContext);
+
+  useEffect(() => {
+    if (error) onError?.({ message: error });
+  }, [error, onError]);
+
+  if (!error) return null;
+
+  return (
+    <pre
+      role="alert"
+      data-testid="react-artifact-error"
+      className="mt-2 max-h-40 overflow-auto whitespace-pre-wrap rounded-md border border-danger-6/40 bg-danger-6/10 p-2 font-mono text-[11px] leading-4 text-danger-6"
+    >
+      {error}
+    </pre>
+  );
+};
+
+/**
+ * Explicit notice for builds whose CSP forbids `eval` — the artifact cannot
+ * execute at all, so say so instead of leaving a blank card.
+ */
+const CspUnavailableNotice: React.FC<{
+  onError?: (error: ReactArtifactError) => void;
+}> = ({ onError }) => {
+  const { t } = useTranslation("sessions");
+  const message = t(
+    "canvasApp.reactCspUnavailable",
+    "React preview can't run in this build — open source view"
+  );
+
+  useEffect(() => {
+    onError?.({ message });
+  }, [message, onError]);
+
+  return (
+    <div
+      role="alert"
+      data-testid="react-artifact-csp-notice"
+      className="flex h-full min-h-0 w-full items-center justify-center bg-bg-1 p-4"
+    >
+      <span className="max-w-sm text-center text-xs leading-5 text-text-3">
+        {message}
+      </span>
+    </div>
+  );
+};
+
 const ReactArtifactRunner: React.FC<ReactArtifactRunnerProps> = ({
   source,
   onError,
+  evalAvailable = EVAL_AVAILABLE,
 }) => {
-  const [lastError, setLastError] = useState<string | null>(null);
-
-  const handleError = useCallback(
-    (message: string) => {
-      const normalizedMessage = message || "React artifact error";
-      setLastError(normalizedMessage);
-      onError?.({ message: normalizedMessage });
-    },
-    [onError]
-  );
+  if (!evalAvailable) {
+    return <CspUnavailableNotice onError={onError} />;
+  }
 
   return (
     <LiveProvider
@@ -90,14 +172,7 @@ const ReactArtifactRunner: React.FC<ReactArtifactRunnerProps> = ({
           className="min-h-full w-fit min-w-full"
           data-testid="react-artifact-preview"
         />
-        <LiveError
-          className="hidden"
-          onChange={(message: string) => {
-            if (message && message !== lastError) {
-              handleError(message);
-            }
-          }}
-        />
+        <LiveErrorBanner onError={onError} />
       </div>
     </LiveProvider>
   );

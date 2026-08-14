@@ -4,6 +4,7 @@ import type {
   DomSelectionElementInfo,
   DomSelectionRect,
 } from "@src/features/DomSelection/types";
+import i18n from "@src/i18n";
 import { buildCssSelector } from "@src/util/core/error/componentIssueTracker/domAnalysis";
 import { getReactComponentInfo } from "@src/util/core/error/componentIssueTracker/elementExtraction";
 import { generatePreviewHtml } from "@src/util/core/error/componentIssueTracker/previewGenerator";
@@ -281,13 +282,21 @@ export function captureCanvasRegion(
     rect,
   }));
   const label =
-    targets.length === 1 ? primaryCapture.label : `${targets.length} elements`;
+    targets.length === 1
+      ? primaryCapture.label
+      : i18n.t("sessions:domSelection.elementsCount", {
+          defaultValue: "{{count}} elements",
+          count: targets.length,
+        });
 
   return {
     ...primaryCapture,
     kind: "region",
     label,
-    tooltipLabel: `Region · ${label}`,
+    tooltipLabel: i18n.t("sessions:domSelection.regionLabel", {
+      defaultValue: "Region · {{label}}",
+      label,
+    }),
     rect: region,
     targets,
   };
