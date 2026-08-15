@@ -8,8 +8,6 @@ import { useTranslation } from "react-i18next";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import { CHAT_PANEL_GLASS_SURFACE_CLASS } from "@src/engines/ChatPanel/header/chatPanelHeaderLayout";
 
-export const SESSION_DERIVED_SUMMARY_HEIGHT_PX = 32;
-
 export interface SessionDerivedViewShellProps {
   testId: string;
   loading: boolean;
@@ -82,11 +80,8 @@ export const SessionDerivedViewShell: React.FC<SessionDerivedViewShellProps> =
       const summaryStrip = (
         <div
           className={`shrink-0 border-b border-border-2 ${
-            topInset > 0
-              ? `absolute left-0 right-0 z-20 ${CHAT_PANEL_GLASS_SURFACE_CLASS}`
-              : ""
+            topInset > 0 ? CHAT_PANEL_GLASS_SURFACE_CLASS : ""
           }`}
-          style={topInset > 0 ? { top: topInset } : undefined}
           data-testid={`${testId}-summary`}
         >
           {/* Capped to the same 900px as the rows below, so the stats sit over
@@ -103,6 +98,7 @@ export const SessionDerivedViewShell: React.FC<SessionDerivedViewShellProps> =
         <div
           data-testid={testId}
           className="relative flex min-h-0 flex-1 flex-col overflow-hidden"
+          style={insetStyle}
         >
           {summaryStrip}
           <div className="min-h-0 flex-1">{children}</div>

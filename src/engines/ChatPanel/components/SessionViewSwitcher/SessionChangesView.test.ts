@@ -163,7 +163,12 @@ describe("SessionChangesView", () => {
 
     expect(summary?.className).toContain("bg-chat-pane/70");
     expect(summary?.className).toContain("backdrop-blur-xl");
-    expect(summary?.getAttribute("style")).toContain("top:84px");
-    expect(list?.getAttribute("data-padding-top")).toBe("116");
+    expect(summary?.className).not.toContain("absolute");
+    expect(
+      document
+        .querySelector('[data-testid="session-changes-view"]')
+        ?.getAttribute("style")
+    ).toContain("padding-top:84px");
+    expect(list?.hasAttribute("data-padding-top")).toBe(false);
   });
 });

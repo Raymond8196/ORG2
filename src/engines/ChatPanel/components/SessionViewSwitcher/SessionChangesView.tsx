@@ -13,10 +13,7 @@ import FileTypeIcon from "@src/components/FileTypeIcon";
 import { VirtualizedListBase } from "@src/components/TreeRow";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 
-import {
-  SESSION_DERIVED_SUMMARY_HEIGHT_PX,
-  SessionDerivedViewShell,
-} from "./SessionDerivedViewShell";
+import { SessionDerivedViewShell } from "./SessionDerivedViewShell";
 import type { ChangedFileRow } from "./sessionViewProjections";
 import { projectSessionChanges } from "./sessionViewProjections";
 import type { SessionDerivedViewProps } from "./types";
@@ -119,9 +116,6 @@ const SessionChangesView: React.FC<SessionDerivedViewProps> = memo(
         <VirtualizedListBase<ChangedFileRow>
           items={changes.files}
           itemHeight={ROW_HEIGHT}
-          paddingTop={
-            topInset ? topInset + SESSION_DERIVED_SUMMARY_HEIGHT_PX : undefined
-          }
           computeItemKey={computeChangedFileKey}
           getItemPath={getChangedFilePath}
           renderItem={renderChangedFileRow}
