@@ -58,10 +58,6 @@ export interface WorkItemContentProps {
   };
   /** Inline GitHub-native body, comment, and status actions for thread surfaces. */
   githubIssueInteraction?: GitHubIssueInteractionConfig;
-  onCancelAgent?: () => void;
-  onRetry?: () => void;
-  onAcceptAsIs?: () => void;
-  onCreateFollowUp?: () => void;
   onOpenSession?: (sessionId: string, title?: string) => void;
   onOpenFileDiff?: (filePath: string) => void;
   onOpenFileAtLine?: (filePath: string, line?: number) => void;
@@ -119,10 +115,6 @@ export interface OutputTabContentProps {
   onOpenFileAtLine?: (filePath: string, line?: number) => void;
   onReviewAllFiles?: (filePaths: string[]) => void;
   onOpenSession?: (sessionId: string, title?: string) => void;
-  onRetry?: () => void;
-  onAcceptAsIs?: () => void;
-  onCreateFollowUp?: () => void;
-  onCancel?: () => void;
   onCreatePr?: () => Promise<{ url?: string; error?: string }>;
 }
 
