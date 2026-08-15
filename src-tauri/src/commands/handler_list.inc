@@ -991,10 +991,6 @@ agent_core::specialization::policies::policies_set_scope,
 agent_core::specialization::external_import::external_import_detect,
 agent_core::specialization::external_import::external_import_apply,
 // Orchestrator commands (work item multi-agent lifecycle)
-project_management::orchestrator::commands::orchestrator_cancel,
-project_management::orchestrator::commands::orchestrator_retry,
-project_management::orchestrator::commands::orchestrator_get_status,
-project_management::orchestrator::commands::orchestrator_create_follow_up,
 project_management::orchestrator::commands::orchestrator_get_diff_stats,
 project_management::orchestrator::commands::orchestrator_set_pr,
 // MCP commands
