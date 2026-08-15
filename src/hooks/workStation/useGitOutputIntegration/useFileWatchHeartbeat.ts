@@ -6,8 +6,12 @@
  */
 import { useCallback, useRef } from "react";
 
+import type {
+  OutputChannel,
+  UseGitOutputIntegrationOptions,
+} from "@src/types/workstation/gitOutputIntegration";
+
 import { formatTimestamp, formatWatchMessage } from "./formatters";
-import type { OutputChannel, UseGitOutputIntegrationOptions } from "./types";
 
 // ============================================
 // Hook Options & Return Types

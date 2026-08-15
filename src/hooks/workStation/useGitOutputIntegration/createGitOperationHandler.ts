@@ -7,6 +7,11 @@
  */
 import type { GitErrorType } from "@src/api/http/git/streaming";
 import { showGitErrorAndHandle } from "@src/hooks/git/useGitErrorDialog";
+import type {
+  GitOperationResult,
+  GitOperationType,
+  OperationContext,
+} from "@src/types/workstation/gitOutputIntegration";
 
 import {
   formatCommandMessage,
@@ -15,11 +20,6 @@ import {
   formatSuccessMessage,
   formatTimestamp,
 } from "./formatters";
-import type {
-  GitOperationResult,
-  GitOperationType,
-  OperationContext,
-} from "./types";
 
 // ============================================
 // Stream Callback Types

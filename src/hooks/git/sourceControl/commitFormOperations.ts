@@ -1,5 +1,5 @@
-import type { UseGitOutputIntegrationReturn } from "@src/hooks/workStation/useGitOutputIntegration/types";
 import type { GitFile } from "@src/types/git/types";
+import type { UseGitOutputIntegrationReturn } from "@src/types/workstation/gitOutputIntegration";
 import { showGitActionDialogSafely } from "@src/util/dialogs/gitActionDialog";
 
 import {

@@ -15,14 +15,14 @@ import { useAtomValue } from "jotai";
 import React, { useCallback, useEffect, useRef } from "react";
 
 import { gitOperationAtom } from "@src/store/git";
-
-import { loggedOperationIds, pruneLoggedOperationIds } from "./constants";
-import { ANSI, formatTimestampFromDate } from "./formatters";
 import type {
   OutputChannel,
   UseGitOutputIntegrationOptions,
   UseGitOutputIntegrationReturn,
-} from "./types";
+} from "@src/types/workstation/gitOutputIntegration";
+
+import { loggedOperationIds, pruneLoggedOperationIds } from "./constants";
+import { ANSI, formatTimestampFromDate } from "./formatters";
 import { useFileWatchHeartbeat } from "./useFileWatchHeartbeat";
 import { useGitOperations } from "./useGitOperations";
 import { useGitStagingOperations } from "./useGitStagingOperations";

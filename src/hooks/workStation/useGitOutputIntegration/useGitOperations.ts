@@ -11,15 +11,15 @@ import {
   gitPullStream,
   gitPushStream,
 } from "@src/api/http/git/streaming";
-
-import { createGitOperationHandler } from "./createGitOperationHandler";
-import { formatTimestamp } from "./formatters";
 import type {
   GitOperationResult,
   OperationContext,
   OutputChannel,
   UseGitOutputIntegrationOptions,
-} from "./types";
+} from "@src/types/workstation/gitOutputIntegration";
+
+import { createGitOperationHandler } from "./createGitOperationHandler";
+import { formatTimestamp } from "./formatters";
 
 // ============================================
 // Operation Handlers (created once via factory)

@@ -8,9 +8,9 @@
 import { useCallback, useEffect, useRef } from "react";
 
 import { getCodeEditorWebSocket } from "@src/api/realtime/codeEditorWebSocket";
+import type { UseOutputChannelsReturn } from "@src/types/workstation/output";
 
 import { onExternalFileChange } from "../editor/useFileContent";
-import type { UseOutputChannelsReturn } from "./useOutputChannels";
 
 interface GitFile {
   path: string;

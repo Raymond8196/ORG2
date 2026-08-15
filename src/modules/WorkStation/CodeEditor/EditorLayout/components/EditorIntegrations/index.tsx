@@ -20,7 +20,6 @@ import { type FC, memo, useCallback, useEffect } from "react";
 import { ACTION_ID, useActionSystem } from "@src/ActionSystem";
 import { useTestRunner } from "@src/hooks/testRunner";
 import { useFileWatchOutputIntegration } from "@src/hooks/workStation/output/useFileWatchOutputIntegration";
-import type { UseOutputChannelsReturn } from "@src/hooks/workStation/output/useOutputChannels";
 import { useTaskOutputIntegration } from "@src/hooks/workStation/output/useTaskOutputIntegration";
 import { useGitOutputIntegration } from "@src/hooks/workStation/useGitOutputIntegration";
 import { GUIAgentService } from "@src/services";
@@ -32,6 +31,7 @@ import {
   gitOutputIntegrationAtom,
   taskOutputIntegrationAtom,
 } from "@src/store/workstation/codeEditor/outputIntegration";
+import type { UseOutputChannelsReturn } from "@src/types/workstation/output";
 
 // ============================================
 // Types

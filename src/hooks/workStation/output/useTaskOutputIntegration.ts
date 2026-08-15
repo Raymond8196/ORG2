@@ -7,8 +7,10 @@
 import React, { useCallback, useRef } from "react";
 
 import { taskRunStream } from "@src/api/realtime/taskStreaming";
-
-import type { UseOutputChannelsReturn } from "./useOutputChannels";
+import type {
+  UseOutputChannelsReturn,
+  UseTaskOutputIntegrationReturn,
+} from "@src/types/workstation/output";
 
 export interface UseTaskOutputIntegrationOptions {
   /** Output panel state */
@@ -19,20 +21,6 @@ export interface UseTaskOutputIntegrationOptions {
   autoSwitchToOutput?: boolean;
   /** Callback to switch to Output panel */
   onSwitchToOutput?: () => void;
-}
-
-export interface UseTaskOutputIntegrationReturn {
-  /** Run a task with output streaming */
-  runTaskWithOutput: (params: {
-    taskId: string;
-    command: string;
-    shell?: string;
-  }) => Promise<() => void>;
-  /** Run an npm script with output streaming */
-  runNpmScriptWithOutput: (params: {
-    taskId: string;
-    script: string;
-  }) => Promise<() => void>;
 }
 
 /**

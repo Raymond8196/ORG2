@@ -10,6 +10,7 @@ import React, { useCallback, useState } from "react";
 import type {
   OutputChannel,
   OutputChannelType,
+  UseOutputChannelsReturn,
 } from "@src/types/workstation/output";
 
 // ============================================
@@ -23,33 +24,6 @@ export interface UseOutputChannelsOptions {
   autoCreate?: boolean;
   /** Enable history persistence across re-renders (default: true) */
   persistHistory?: boolean;
-}
-
-export interface UseOutputChannelsReturn {
-  /** All output channels */
-  channels: OutputChannel[];
-  /** Currently active channel ID */
-  activeChannelId: string | null;
-  /** Get channel by ID */
-  getChannel: (channelId: string) => OutputChannel | undefined;
-  /** Create a new channel */
-  createChannel: (
-    name: string,
-    type: OutputChannelType,
-    maxChars?: number
-  ) => string;
-  /** Delete a channel */
-  deleteChannel: (channelId: string) => void;
-  /** Append text to a channel */
-  appendToChannel: (channelId: string, text: string) => void;
-  /** Clear a channel */
-  clearChannel: (channelId: string) => void;
-  /** Clear all channels */
-  clearAllChannels: () => void;
-  /** Set active channel */
-  setActiveChannel: (channelId: string) => void;
-  /** Set channel active status */
-  setChannelActive: (channelId: string, active: boolean) => void;
 }
 
 // ============================================

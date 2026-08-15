@@ -12,7 +12,7 @@ export type {
   GitOperationResult,
   UseGitOutputIntegrationOptions,
   UseGitOutputIntegrationReturn,
-} from "./types";
+} from "@src/types/workstation/gitOutputIntegration";
 
 // Sub-hooks (for advanced usage)
 export { useGitOperations } from "./useGitOperations";

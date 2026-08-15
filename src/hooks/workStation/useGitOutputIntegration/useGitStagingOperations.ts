@@ -11,14 +11,14 @@ import {
   appendGitCoauthorTrailer,
   shouldIncludeGitCoauthor,
 } from "@src/services/git/operations/commitAttribution";
-
-import { createGitOperationHandlerWithReject } from "./createGitOperationHandler";
-import { ANSI, formatTimestamp } from "./formatters";
 import type {
   OperationContext,
   OutputChannel,
   UseGitOutputIntegrationOptions,
-} from "./types";
+} from "@src/types/workstation/gitOutputIntegration";
+
+import { createGitOperationHandlerWithReject } from "./createGitOperationHandler";
+import { ANSI, formatTimestamp } from "./formatters";
 
 // ============================================
 // Operation Handlers (created once via factory)

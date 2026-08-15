@@ -1,13 +1,15 @@
 /**
  * Git Output Integration Types
  *
- * Types and interfaces for the git output integration hook.
+ * Contract for the git output-integration hook (CodeEditor/hooks/gitOutputIntegration).
+ * Lives in src/types so store/ atoms and other consumers can reference the
+ * contract without importing the hook implementation.
  */
 import type { MutableRefObject } from "react";
 
 import type { GitErrorType } from "@src/api/http/git/streaming";
 
-import type { UseOutputChannelsReturn } from "../output/useOutputChannels";
+import type { UseOutputChannelsReturn } from "./output";
 
 // ============================================
 // Result Types
