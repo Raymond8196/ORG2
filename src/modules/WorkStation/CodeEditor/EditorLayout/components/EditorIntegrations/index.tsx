@@ -17,11 +17,11 @@ import { useSetAtom } from "jotai";
 import { type FC, memo, useCallback, useEffect } from "react";
 
 import { ACTION_ID, useActionSystem } from "@src/ActionSystem";
-import { useTestRunner } from "@src/hooks/testRunner";
 import { useLspDiagnostics } from "@src/modules/WorkStation/CodeEditor/hooks/diagnostics/useLspDiagnostics";
 import { useGitOutputIntegration } from "@src/modules/WorkStation/CodeEditor/hooks/gitOutputIntegration/useGitOutputIntegration";
 import { useFileWatchOutputIntegration } from "@src/modules/WorkStation/CodeEditor/hooks/output/useFileWatchOutputIntegration";
 import { useTaskOutputIntegration } from "@src/modules/WorkStation/CodeEditor/hooks/output/useTaskOutputIntegration";
+import { useTestRunner } from "@src/modules/WorkStation/CodeEditor/hooks/useTestRunner";
 import { GUIAgentService } from "@src/services";
 import type {
   BottomPanelTab,

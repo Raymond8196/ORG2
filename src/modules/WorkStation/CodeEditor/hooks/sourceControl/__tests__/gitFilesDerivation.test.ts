@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import type { GitWorkingDirectoryFile } from "@src/api/http/git";
+import {
+  areBaseFileListsEqual,
+  deriveBaseFiles,
+} from "@src/modules/WorkStation/CodeEditor/hooks/sourceControl/gitFilesDerivation";
 import type { GitFile } from "@src/types/git/types";
-
-import { areBaseFileListsEqual, deriveBaseFiles } from "../gitFilesDerivation";
 
 function createStatusFile(
   overrides: Partial<GitWorkingDirectoryFile> = {}

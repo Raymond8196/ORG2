@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next";
 import type { GitWorktreeEntry } from "@src/api/http/git/types";
 import { useGitStatus } from "@src/contexts/git";
 import { useRepoGitInitialization } from "@src/hooks/git";
-import { useGitFiles } from "@src/hooks/git/sourceControl";
 import {
   sourceControlFilterModeAtom,
   sourceControlFilterModeHandlerAtom,
@@ -36,6 +35,7 @@ import {
   type ScopePickerWorktreeEntry,
   resolveScopeRepoRoot,
 } from "./Panels/EditorPrimarySidebar/tabs/sourceControlScopePickerHelpers";
+import { useGitFiles } from "./hooks/sourceControl/useGitFiles";
 import type { UseGitDiffStateReturn } from "./hooks/useGitDiffState";
 import { resolveGitDiffSelection } from "./sourceControlSelection";
 import { rememberSourceControlFocusPath } from "./sourceControlStateTransitions";

@@ -8,6 +8,7 @@ import {
 import { useTranslation } from "react-i18next";
 
 import { useActionSystemOptional } from "@src/ActionSystem";
+import { generateCommitMessage } from "@src/api/tauri/git/commitMessage";
 import { useGitOperations } from "@src/hooks/git/useGitOperations";
 import { gitCommitInstructionsAtom } from "@src/store/ui/editorSettingsAtom";
 import { gitOutputIntegrationAtom } from "@src/store/workstation/codeEditor/outputIntegration";
@@ -16,7 +17,6 @@ import { showGitActionDialogSafely } from "@src/util/dialogs/gitActionDialog";
 
 import { runAmendOperation, runCommitOperation } from "./commitFormOperations";
 import { hasConfiguredGitRemote } from "./commitFormRemote";
-import { generateCommitMessage } from "./commitMessageGeneration";
 
 export interface CommitSuccessOptions {
   pushed?: boolean;
