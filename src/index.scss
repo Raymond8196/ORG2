@@ -730,6 +730,15 @@ body.drag-over::after {
     0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
+/* Half-strength companion to `shadow-dropdown` (see `boxShadow.dropdown-soft`
+ * in `tailwind.config.js`). Same reason for living here: the app toggles theme
+ * with `.theme-dark`, not Tailwind's `dark:` variant. */
+.theme-dark .shadow-dropdown-soft {
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.2),
+    0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
 /* Native overlay scrollbar for dropdown option lists (Settings > Timezone,
  * table selectors, etc.). In WebKit/Tauri, `scrollbar-width` opts back into
  * the platform scrollbar: it overlays the list without reserving a gutter and
