@@ -359,8 +359,7 @@
       "inHours": "en {{count}} horas",
       "membersGroup": "Miembros",
       "agentsGroup": "Agents",
-      "orgsGroup": "Organizaciones",
-      "noReviewer": "Sin revisor"
+      "orgsGroup": "Organizaciones"
     },
     "history": {
       "noHistory": "Sin historial aún"
@@ -458,37 +457,6 @@
       "dueDate": "Fecha límite"
     },
     "addWorkItem": "Agregar elemento de trabajo",
-    "agentSettings": {
-      "title": "Configuración de Agent",
-      "providerTitle": "Proveedor",
-      "behaviorTitle": "Comportamiento",
-      "autoRetryOnFailure": "Reintento Automático",
-      "autoRetryOnFailureDesc": "Reintentar automáticamente cuando la sesión falla",
-      "maxRetryCount": "Máximo de Reintentos",
-      "autoCreatePr": "Crear PR Automáticamente",
-      "autoCreatePrDesc": "Crear automáticamente un Pull Request al completar",
-      "pendingChanges": "Los cambios se aplicarán en la próxima ejecución",
-      "disabledRequiresAutoRetry": "Requiere que el reintento automático esté habilitado",
-      "codeAccount": "Cuenta de Código",
-      "codeAccountDesc": "Seleccionar la cuenta local para ejecutar el Agent",
-      "selectAccount": "Seleccionar cuenta...",
-      "noAccountsReady": "No hay cuentas locales disponibles",
-      "model": "Modelo",
-      "modelDesc": "Seleccionar el modelo para el Agent",
-      "selectModel": "Seleccionar modelo...",
-      "manageAccounts": "Administrar cuentas",
-      "selectAccountFirst": "Seleccione primero una cuenta de código",
-      "noModelsAvailable": "No hay modelos disponibles",
-      "validationError": "Seleccione una cuenta de código y un modelo en Configuración de Agent antes de iniciar",
-      "subAgents": "Sub-Agents",
-      "subAgentsDesc": "Agents disponibles para delegación durante la ejecución",
-      "addSubAgent": "Agregar Sub-Agent...",
-      "noSubAgents": "No hay sub-agents configurados.",
-      "noCodeAccountError": "Seleccione una cuenta de código en la configuración del Agent antes de iniciar.",
-      "reviewerSelfReview": "Auto revisión",
-      "reviewerAgent": "Agent",
-      "reviewerHuman": "Revisión humana"
-    },
     "agentWorkflow": {
       "title": "Flujo de Trabajo de Agent",
       "running": "Ejecutando...",

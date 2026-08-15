@@ -359,8 +359,7 @@
       "inHours": "{{count}} 小時後",
       "membersGroup": "成員",
       "agentsGroup": "Agents",
-      "orgsGroup": "組織",
-      "noReviewer": "無審查人"
+      "orgsGroup": "組織"
     },
     "history": {
       "noHistory": "暫無歷史記錄"
@@ -458,37 +457,6 @@
       "dueDate": "截止日期"
     },
     "addWorkItem": "添加工作項",
-    "agentSettings": {
-      "title": "Agent 設置",
-      "providerTitle": "提供商",
-      "behaviorTitle": "行爲",
-      "autoRetryOnFailure": "自動重試",
-      "autoRetryOnFailureDesc": "會話失敗時自動重試",
-      "maxRetryCount": "最大重試次數",
-      "autoCreatePr": "自動創建 PR",
-      "autoCreatePrDesc": "完成後自動創建 Pull Request",
-      "pendingChanges": "更改將在下次運行時生效",
-      "disabledRequiresAutoRetry": "需要啓用自動重試",
-      "codeAccount": "代碼賬戶",
-      "codeAccountDesc": "選擇運行 Agent 的本地賬戶",
-      "selectAccount": "選擇賬戶...",
-      "noAccountsReady": "沒有可用的本地賬戶",
-      "model": "模型",
-      "modelDesc": "選擇 Agent 使用的模型",
-      "selectModel": "選擇模型...",
-      "manageAccounts": "管理賬戶",
-      "selectAccountFirst": "請先選擇代碼賬戶",
-      "noModelsAvailable": "沒有可用的模型",
-      "validationError": "請在 Agent 設置中選擇代碼賬戶和模型後再啓動",
-      "subAgents": "Sub-Agents",
-      "subAgentsDesc": "執行期間可用於委派的 Agent",
-      "addSubAgent": "添加 Sub-Agent...",
-      "noSubAgents": "未配置 Sub-Agent。",
-      "noCodeAccountError": "請在 Agent 設置中選擇代碼賬戶後再啓動。",
-      "reviewerSelfReview": "自我審查",
-      "reviewerAgent": "Agent",
-      "reviewerHuman": "人工審查"
-    },
     "agentWorkflow": {
       "title": "Agent 工作流",
       "running": "運行中...",

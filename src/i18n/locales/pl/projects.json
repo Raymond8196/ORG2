@@ -359,8 +359,7 @@
       "inHours": "za {{count}} godzin",
       "membersGroup": "Członkowie",
       "agentsGroup": "Agenci",
-      "orgsGroup": "Organizacje",
-      "noReviewer": "Brak recenzenta"
+      "orgsGroup": "Organizacje"
     },
     "history": {
       "noHistory": "Brak historii"
@@ -458,37 +457,6 @@
       "dueDate": "Termin"
     },
     "addWorkItem": "Dodaj zadanie",
-    "agentSettings": {
-      "title": "Ustawienia Agenta",
-      "providerTitle": "Dostawca",
-      "behaviorTitle": "Zachowanie",
-      "autoRetryOnFailure": "Automatyczne ponawianie",
-      "autoRetryOnFailureDesc": "Automatycznie ponów próbę, gdy sesja zakończy się niepowodzeniem",
-      "maxRetryCount": "Maks. liczba ponowień",
-      "autoCreatePr": "Automatyczne tworzenie PR",
-      "autoCreatePrDesc": "Automatycznie utwórz pull request po ukończeniu",
-      "pendingChanges": "Zmiany zostaną zastosowane przy następnym uruchomieniu",
-      "disabledRequiresAutoRetry": "Wymaga włączenia automatycznego ponawiania",
-      "codeAccount": "Konto kodu",
-      "codeAccountDesc": "Wybierz lokalne konto do uruchomienia Agenta",
-      "selectAccount": "Wybierz konto...",
-      "noAccountsReady": "Brak dostępnych lokalnych kont",
-      "model": "Model",
-      "modelDesc": "Wybierz model dla Agenta",
-      "selectModel": "Wybierz model...",
-      "manageAccounts": "Zarządzaj kontami",
-      "selectAccountFirst": "Najpierw wybierz konto kodu",
-      "noModelsAvailable": "Brak dostępnych modeli",
-      "validationError": "Wybierz konto kodu i model w Ustawieniach Agenta przed rozpoczęciem",
-      "subAgents": "Pod-Agenci",
-      "subAgentsDesc": "Agenci dostępni do delegacji podczas wykonywania",
-      "addSubAgent": "Dodaj Pod-Agenta...",
-      "noSubAgents": "Brak skonfigurowanych Pod-Agentów.",
-      "noCodeAccountError": "Wybierz konto kodu w Ustawieniach Agenta przed rozpoczęciem.",
-      "reviewerSelfReview": "Samoocena",
-      "reviewerAgent": "Agent",
-      "reviewerHuman": "Człowiek"
-    },
     "agentWorkflow": {
       "title": "Workflow Agenta",
       "running": "Uruchomiony...",

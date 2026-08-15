@@ -358,8 +358,7 @@
       "inHours": "in {{count}} hours",
       "membersGroup": "Members",
       "agentsGroup": "Agents",
-      "orgsGroup": "Organizations",
-      "noReviewer": "No reviewer"
+      "orgsGroup": "Organizations"
     },
     "history": {
       "noHistory": "No history yet"
@@ -473,37 +472,6 @@
       "dueDate": "Due Date"
     },
     "addWorkItem": "Add Work Item",
-    "agentSettings": {
-      "title": "Agent Settings",
-      "providerTitle": "Provider",
-      "behaviorTitle": "Behavior",
-      "autoRetryOnFailure": "Auto Retry",
-      "autoRetryOnFailureDesc": "Automatically retry when the session fails",
-      "maxRetryCount": "Max Retries",
-      "autoCreatePr": "Auto Create PR",
-      "autoCreatePrDesc": "Automatically create a pull request on completion",
-      "pendingChanges": "Changes will apply on next run",
-      "disabledRequiresAutoRetry": "Requires auto retry to be enabled",
-      "codeAccount": "Code Account",
-      "codeAccountDesc": "Select the local account to run the agent",
-      "selectAccount": "Select account...",
-      "noAccountsReady": "No local accounts available",
-      "model": "Model",
-      "modelDesc": "Select the model for the agent",
-      "selectModel": "Select model...",
-      "manageAccounts": "Manage Accounts",
-      "selectAccountFirst": "Select a code account first",
-      "noModelsAvailable": "No models available",
-      "validationError": "Please select a code account and model in Agent Settings before starting",
-      "subAgents": "Sub-Agents",
-      "subAgentsDesc": "Agents available for delegation during execution",
-      "addSubAgent": "Add Sub-Agent...",
-      "noSubAgents": "No sub-agents configured.",
-      "noCodeAccountError": "Please select a code account in Agent Settings before starting.",
-      "reviewerSelfReview": "Self Review",
-      "reviewerAgent": "Agent",
-      "reviewerHuman": "Human"
-    },
     "agentWorkflow": {
       "title": "Agent Workflow",
       "running": "Running...",

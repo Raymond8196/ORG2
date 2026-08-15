@@ -359,8 +359,7 @@
       "inHours": "{{count}}시간 후",
       "membersGroup": "멤버",
       "agentsGroup": "Agents",
-      "orgsGroup": "조직",
-      "noReviewer": "리뷰어 없음"
+      "orgsGroup": "조직"
     },
     "history": {
       "noHistory": "아직 기록이 없습니다"
@@ -458,37 +457,6 @@
       "dueDate": "마감일"
     },
     "addWorkItem": "작업 항목 추가",
-    "agentSettings": {
-      "title": "Agent 설정",
-      "providerTitle": "제공자",
-      "behaviorTitle": "동작",
-      "autoRetryOnFailure": "자동 재시도",
-      "autoRetryOnFailureDesc": "세션 실패 시 자동 재시도",
-      "maxRetryCount": "최대 재시도 횟수",
-      "autoCreatePr": "PR 자동 생성",
-      "autoCreatePrDesc": "완료 시 자동으로 Pull Request 생성",
-      "pendingChanges": "변경 사항은 다음 실행 시 적용됩니다",
-      "disabledRequiresAutoRetry": "자동 재시도 활성화 필요",
-      "codeAccount": "코드 계정",
-      "codeAccountDesc": "Agent를 실행할 로컬 계정 선택",
-      "selectAccount": "계정 선택...",
-      "noAccountsReady": "사용 가능한 로컬 계정이 없습니다",
-      "model": "모델",
-      "modelDesc": "Agent에 사용할 모델 선택",
-      "selectModel": "모델 선택...",
-      "manageAccounts": "계정 관리",
-      "selectAccountFirst": "먼저 코드 계정을 선택하세요",
-      "noModelsAvailable": "사용 가능한 모델이 없습니다",
-      "validationError": "시작하기 전에 Agent 설정에서 코드 계정과 모델을 선택하세요",
-      "subAgents": "Sub-Agents",
-      "subAgentsDesc": "실행 중 위임에 사용할 수 있는 Agent",
-      "addSubAgent": "Sub-Agent 추가...",
-      "noSubAgents": "구성된 Sub-Agent가 없습니다.",
-      "noCodeAccountError": "시작하기 전에 Agent 설정에서 코드 계정을 선택하세요.",
-      "reviewerSelfReview": "셀프 리뷰",
-      "reviewerAgent": "Agent",
-      "reviewerHuman": "수동 리뷰"
-    },
     "agentWorkflow": {
       "title": "Agent 워크플로",
       "running": "실행 중...",

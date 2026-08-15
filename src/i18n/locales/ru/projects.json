@@ -359,8 +359,7 @@
       "inHours": "через {{count}} часов",
       "membersGroup": "Участники",
       "agentsGroup": "Agents",
-      "orgsGroup": "Организации",
-      "noReviewer": "Нет ревьюера"
+      "orgsGroup": "Организации"
     },
     "history": {
       "noHistory": "История пока пуста"
@@ -458,37 +457,6 @@
       "dueDate": "Срок"
     },
     "addWorkItem": "Добавить рабочий элемент",
-    "agentSettings": {
-      "title": "Настройки Agent",
-      "providerTitle": "Провайдер",
-      "behaviorTitle": "Поведение",
-      "autoRetryOnFailure": "Автоматический повтор",
-      "autoRetryOnFailureDesc": "Автоматически повторять при сбое сессии",
-      "maxRetryCount": "Макс. повторов",
-      "autoCreatePr": "Автосоздание PR",
-      "autoCreatePrDesc": "Автоматически создавать Pull Request при завершении",
-      "pendingChanges": "Изменения будут применены при следующем запуске",
-      "disabledRequiresAutoRetry": "Требуется включение автоповтора",
-      "codeAccount": "Аккаунт кода",
-      "codeAccountDesc": "Выберите локальный аккаунт для запуска Agent",
-      "selectAccount": "Выберите аккаунт...",
-      "noAccountsReady": "Нет доступных локальных аккаунтов",
-      "model": "Модель",
-      "modelDesc": "Выберите модель для Agent",
-      "selectModel": "Выберите модель...",
-      "manageAccounts": "Управление аккаунтами",
-      "selectAccountFirst": "Сначала выберите аккаунт кода",
-      "noModelsAvailable": "Нет доступных моделей",
-      "validationError": "Выберите аккаунт кода и модель в настройках Agent перед запуском",
-      "subAgents": "Sub-Agents",
-      "subAgentsDesc": "Agents, доступные для делегирования при выполнении",
-      "addSubAgent": "Добавить Sub-Agent...",
-      "noSubAgents": "Sub-Agents не настроены.",
-      "noCodeAccountError": "Пожалуйста, выберите учётную запись кода в настройках Agent перед началом.",
-      "reviewerSelfReview": "Самопроверка",
-      "reviewerAgent": "Agent",
-      "reviewerHuman": "Ручная проверка"
-    },
     "agentWorkflow": {
       "title": "Agent Workflow",
       "running": "Выполняется...",

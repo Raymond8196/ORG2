@@ -359,8 +359,7 @@
       "inHours": "{{count}} saat içinde",
       "membersGroup": "Üyeler",
       "agentsGroup": "Agents",
-      "orgsGroup": "Organizasyonlar",
-      "noReviewer": "Gözden geçiren yok"
+      "orgsGroup": "Organizasyonlar"
     },
     "history": {
       "noHistory": "Henüz geçmiş yok"
@@ -458,37 +457,6 @@
       "dueDate": "Son Tarih"
     },
     "addWorkItem": "İş Öğesi Ekle",
-    "agentSettings": {
-      "title": "Agent Ayarları",
-      "providerTitle": "Sağlayıcı",
-      "behaviorTitle": "Davranış",
-      "autoRetryOnFailure": "Otomatik Yeniden Deneme",
-      "autoRetryOnFailureDesc": "Oturum başarısız olduğunda otomatik yeniden dene",
-      "maxRetryCount": "Maks. Yeniden Deneme",
-      "autoCreatePr": "Otomatik PR Oluştur",
-      "autoCreatePrDesc": "Tamamlandığında otomatik Pull Request oluştur",
-      "pendingChanges": "Değişiklikler bir sonraki çalıştırmada uygulanacak",
-      "disabledRequiresAutoRetry": "Otomatik yeniden denemenin etkin olması gerekir",
-      "codeAccount": "Kod Hesabı",
-      "codeAccountDesc": "Agent'ı çalıştırmak için yerel hesap seçin",
-      "selectAccount": "Hesap seçin...",
-      "noAccountsReady": "Kullanılabilir yerel hesap yok",
-      "model": "Model",
-      "modelDesc": "Agent için model seçin",
-      "selectModel": "Model seçin...",
-      "manageAccounts": "Hesapları yönet",
-      "selectAccountFirst": "Önce bir kod hesabı seçin",
-      "noModelsAvailable": "Kullanılabilir model yok",
-      "validationError": "Başlatmadan önce Agent Ayarlarından bir kod hesabı ve model seçin",
-      "subAgents": "Sub-Agents",
-      "subAgentsDesc": "Yürütme sırasında devredilmek üzere kullanılabilir agents",
-      "addSubAgent": "Sub-Agent Ekle...",
-      "noSubAgents": "Yapılandırılmış sub-agent yok.",
-      "noCodeAccountError": "Başlamadan önce Agent Ayarlarında bir kod hesabı seçin.",
-      "reviewerSelfReview": "Öz inceleme",
-      "reviewerAgent": "Agent",
-      "reviewerHuman": "Manuel inceleme"
-    },
     "agentWorkflow": {
       "title": "Agent İş Akışı",
       "running": "Çalışıyor...",

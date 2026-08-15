@@ -359,8 +359,7 @@
       "inHours": "{{count}} 時間後",
       "membersGroup": "メンバー",
       "agentsGroup": "Agents",
-      "orgsGroup": "組織",
-      "noReviewer": "レビューアーなし"
+      "orgsGroup": "組織"
     },
     "history": {
       "noHistory": "履歴はまだありません"
@@ -458,37 +457,6 @@
       "dueDate": "期限"
     },
     "addWorkItem": "ワークアイテムを追加",
-    "agentSettings": {
-      "title": "Agent 設定",
-      "providerTitle": "プロバイダー",
-      "behaviorTitle": "動作",
-      "autoRetryOnFailure": "自動リトライ",
-      "autoRetryOnFailureDesc": "セッション失敗時に自動でリトライ",
-      "maxRetryCount": "最大リトライ回数",
-      "autoCreatePr": "PR 自動作成",
-      "autoCreatePrDesc": "完了時に自動で Pull Request を作成",
-      "pendingChanges": "変更は次回実行時に適用されます",
-      "disabledRequiresAutoRetry": "自動リトライの有効化が必要です",
-      "codeAccount": "コードアカウント",
-      "codeAccountDesc": "Agent を実行するローカルアカウントを選択",
-      "selectAccount": "アカウントを選択...",
-      "noAccountsReady": "利用可能なローカルアカウントがありません",
-      "model": "モデル",
-      "modelDesc": "Agent のモデルを選択",
-      "selectModel": "モデルを選択...",
-      "manageAccounts": "アカウント管理",
-      "selectAccountFirst": "先にコードアカウントを選択してください",
-      "noModelsAvailable": "利用可能なモデルがありません",
-      "validationError": "開始する前に Agent 設定でコードアカウントとモデルを選択してください",
-      "subAgents": "Sub-Agents",
-      "subAgentsDesc": "実行中に委任可能な Agent",
-      "addSubAgent": "Sub-Agent を追加...",
-      "noSubAgents": "Sub-Agent は設定されていません。",
-      "noCodeAccountError": "開始前に Agent 設定でコードアカウントを選択してください。",
-      "reviewerSelfReview": "セルフレビュー",
-      "reviewerAgent": "Agent",
-      "reviewerHuman": "人的レビュー"
-    },
     "agentWorkflow": {
       "title": "Agent ワークフロー",
       "running": "実行中...",

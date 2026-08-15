@@ -359,8 +359,7 @@
       "inHours": "em {{count}} horas",
       "membersGroup": "Membros",
       "agentsGroup": "Agents",
-      "orgsGroup": "Organizações",
-      "noReviewer": "Sem revisor"
+      "orgsGroup": "Organizações"
     },
     "history": {
       "noHistory": "Nenhum histórico ainda"
@@ -458,37 +457,6 @@
       "dueDate": "Prazo"
     },
     "addWorkItem": "Adicionar Item de Trabalho",
-    "agentSettings": {
-      "title": "Configurações do Agent",
-      "providerTitle": "Provedor",
-      "behaviorTitle": "Comportamento",
-      "autoRetryOnFailure": "Tentar Novamente Automaticamente",
-      "autoRetryOnFailureDesc": "Tenta novamente automaticamente quando a sessão falha",
-      "maxRetryCount": "Máximo de Tentativas",
-      "autoCreatePr": "Criar PR Automaticamente",
-      "autoCreatePrDesc": "Cria automaticamente um pull request ao concluir",
-      "pendingChanges": "As alterações serão aplicadas na próxima execução",
-      "disabledRequiresAutoRetry": "Requer que a repetição automática esteja ativada",
-      "codeAccount": "Conta de Código",
-      "codeAccountDesc": "Selecione a conta local para executar o Agent",
-      "selectAccount": "Selecionar conta...",
-      "noAccountsReady": "Nenhuma conta local disponível",
-      "model": "Modelo",
-      "modelDesc": "Selecione o modelo para o Agent",
-      "selectModel": "Selecionar modelo...",
-      "manageAccounts": "Gerenciar Contas",
-      "selectAccountFirst": "Selecione uma conta de código primeiro",
-      "noModelsAvailable": "Nenhum modelo disponível",
-      "validationError": "Selecione uma conta de código e um modelo em Configurações do Agent antes de iniciar",
-      "subAgents": "Sub-Agents",
-      "subAgentsDesc": "Agents disponíveis para delegação durante a execução",
-      "addSubAgent": "Adicionar Sub-Agent...",
-      "noSubAgents": "Nenhum Sub-Agent configurado.",
-      "noCodeAccountError": "Selecione uma conta de código em Configurações do Agent antes de iniciar.",
-      "reviewerSelfReview": "Auto-revisão",
-      "reviewerAgent": "Agent",
-      "reviewerHuman": "Humano"
-    },
     "agentWorkflow": {
       "title": "Workflow do Agent",
       "running": "Executando...",

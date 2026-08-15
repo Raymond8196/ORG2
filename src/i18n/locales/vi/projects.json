@@ -359,8 +359,7 @@
       "inHours": "trong {{count}} giờ",
       "membersGroup": "Thành viên",
       "agentsGroup": "Agents",
-      "orgsGroup": "Tổ chức",
-      "noReviewer": "Không có người đánh giá"
+      "orgsGroup": "Tổ chức"
     },
     "history": {
       "noHistory": "Chưa có lịch sử"
@@ -458,37 +457,6 @@
       "dueDate": "Hạn chót"
     },
     "addWorkItem": "Thêm mục công việc",
-    "agentSettings": {
-      "title": "Cài đặt Agent",
-      "providerTitle": "Nhà cung cấp",
-      "behaviorTitle": "Hành vi",
-      "autoRetryOnFailure": "Tự động thử lại",
-      "autoRetryOnFailureDesc": "Tự động thử lại khi phiên thất bại",
-      "maxRetryCount": "Số lần thử lại tối đa",
-      "autoCreatePr": "Tự động tạo PR",
-      "autoCreatePrDesc": "Tự động tạo Pull Request khi hoàn tất",
-      "pendingChanges": "Thay đổi sẽ được áp dụng trong lần chạy tiếp theo",
-      "disabledRequiresAutoRetry": "Cần bật tự động thử lại",
-      "codeAccount": "Tài khoản Code",
-      "codeAccountDesc": "Chọn tài khoản cục bộ để chạy Agent",
-      "selectAccount": "Chọn tài khoản...",
-      "noAccountsReady": "Không có tài khoản cục bộ khả dụng",
-      "model": "Mô hình",
-      "modelDesc": "Chọn mô hình cho Agent",
-      "selectModel": "Chọn mô hình...",
-      "manageAccounts": "Quản lý tài khoản",
-      "selectAccountFirst": "Vui lòng chọn tài khoản code trước",
-      "noModelsAvailable": "Không có mô hình khả dụng",
-      "validationError": "Vui lòng chọn tài khoản code và mô hình trong Cài đặt Agent trước khi bắt đầu",
-      "subAgents": "Sub-Agents",
-      "subAgentsDesc": "Agents có sẵn để ủy quyền trong quá trình thực thi",
-      "addSubAgent": "Thêm Sub-Agent...",
-      "noSubAgents": "Chưa cấu hình sub-agent.",
-      "noCodeAccountError": "Vui lòng chọn tài khoản mã trong cài đặt Agent trước khi bắt đầu.",
-      "reviewerSelfReview": "Tự đánh giá",
-      "reviewerAgent": "Agent",
-      "reviewerHuman": "Đánh giá thủ công"
-    },
     "agentWorkflow": {
       "title": "Agent Workflow",
       "running": "Đang chạy...",
