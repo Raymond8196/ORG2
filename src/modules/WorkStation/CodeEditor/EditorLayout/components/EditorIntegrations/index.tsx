@@ -13,15 +13,15 @@
  * By isolating these in a separate component, we prevent unnecessary re-renders
  * of the main editor when integration state changes.
  */
-import { useLspDiagnostics } from "@/src/hooks/workStation/diagnostics/useLspDiagnostics";
 import { useSetAtom } from "jotai";
 import { type FC, memo, useCallback, useEffect } from "react";
 
 import { ACTION_ID, useActionSystem } from "@src/ActionSystem";
 import { useTestRunner } from "@src/hooks/testRunner";
-import { useFileWatchOutputIntegration } from "@src/hooks/workStation/output/useFileWatchOutputIntegration";
-import { useTaskOutputIntegration } from "@src/hooks/workStation/output/useTaskOutputIntegration";
-import { useGitOutputIntegration } from "@src/hooks/workStation/useGitOutputIntegration";
+import { useLspDiagnostics } from "@src/modules/WorkStation/CodeEditor/hooks/diagnostics/useLspDiagnostics";
+import { useGitOutputIntegration } from "@src/modules/WorkStation/CodeEditor/hooks/gitOutputIntegration/useGitOutputIntegration";
+import { useFileWatchOutputIntegration } from "@src/modules/WorkStation/CodeEditor/hooks/output/useFileWatchOutputIntegration";
+import { useTaskOutputIntegration } from "@src/modules/WorkStation/CodeEditor/hooks/output/useTaskOutputIntegration";
 import { GUIAgentService } from "@src/services";
 import type {
   BottomPanelTab,

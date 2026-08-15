@@ -6,7 +6,6 @@ import type { GitWorktreeEntry } from "@src/api/http/git/types";
 import { useGitStatus } from "@src/contexts/git";
 import { useRepoGitInitialization } from "@src/hooks/git";
 import { useGitFiles } from "@src/hooks/git/sourceControl";
-import type { UseGitDiffStateReturn } from "@src/hooks/workStation/git/useGitDiffState";
 import {
   sourceControlFilterModeAtom,
   sourceControlFilterModeHandlerAtom,
@@ -37,6 +36,7 @@ import {
   type ScopePickerWorktreeEntry,
   resolveScopeRepoRoot,
 } from "./Panels/EditorPrimarySidebar/tabs/sourceControlScopePickerHelpers";
+import type { UseGitDiffStateReturn } from "./hooks/useGitDiffState";
 import { resolveGitDiffSelection } from "./sourceControlSelection";
 import { rememberSourceControlFocusPath } from "./sourceControlStateTransitions";
 import { useStashCount } from "./useStashCount";

@@ -48,7 +48,7 @@ import { useActiveRepoRef } from "@src/hooks/git/useActiveRepoRef";
 import { useBranchPullRequestStatus } from "@src/hooks/git/useBranchPullRequestStatus";
 import { useRepoSelection } from "@src/hooks/git/useRepoSelection";
 import { useWorkingTreeDiffTotals } from "@src/hooks/git/useWorkingTreeDiffTotals";
-import { useCloseTabWithGuard } from "@src/hooks/workStation/tabs/useCloseTabWithGuard";
+import { useCloseTabWithGuard } from "@src/hooks/tabHost/useCloseTabWithGuard";
 import type { BranchCiStatus } from "@src/services/git/branchPullRequestStatus";
 import { WorkStationViewService } from "@src/services/workStation/WorkStationViewService";
 import { chatPanelMaximizedAtom } from "@src/store/ui/chatPanelAtom";

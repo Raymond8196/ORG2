@@ -71,7 +71,7 @@ vi.mock("../core/useSimulatorAppState", () => ({
   }),
 }));
 vi.mock("./canvasConfig", () => ({ CANVAS_APP_CONFIG: {} }));
-vi.mock("@src/hooks/workStation", () => ({
+vi.mock("@src/hooks/tabHost/useWorkstationTabHeader", () => ({
   usePublishWorkstationTabHeader: ({ content }: { content: ReactNode }) => {
     testState.publishedHeader = content;
   },

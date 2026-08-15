@@ -23,7 +23,7 @@ import BenchmarkTaskSelector from "@src/features/BenchmarkPanel/BenchmarkTaskSel
 import { CodeMirrorEditor } from "@src/features/CodeMirror";
 import { useBenchmarkAgentBatchRun } from "@src/hooks/benchmark/useBenchmarkAgentBatchRun";
 import { useBenchmarkTasks } from "@src/hooks/benchmark/useBenchmarkTasks";
-import { usePublishWorkstationTabHeader } from "@src/hooks/workStation";
+import { usePublishWorkstationTabHeader } from "@src/hooks/tabHost/useWorkstationTabHeader";
 import {
   Placeholder,
   SessionGroupPage,
