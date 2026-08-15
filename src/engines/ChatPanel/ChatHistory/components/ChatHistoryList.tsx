@@ -29,6 +29,7 @@ import React, {
 
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import { PlanningFooter } from "@src/engines/ChatPanel/blocks/primitives";
+import { CHAT_PANEL_TRANSCRIPT_TOP_PADDING_PX } from "@src/engines/ChatPanel/header/chatPanelHeaderLayout";
 
 import type { OptimizedChatItem } from "../chatItemPipeline/types";
 import { getUnloadedTurnMeta } from "../hooks/useChatGroups";
@@ -71,6 +72,7 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
     codeBlockContainerWidth,
     footerSpacerHeight,
     bottomInset,
+    topPaddingPx = CHAT_PANEL_TRANSCRIPT_TOP_PADDING_PX,
     planningIndicatorCount,
     planningVariantIndex,
     planningFooterMode,
@@ -389,7 +391,8 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
       return (
         <div
           ref={staticScrollerRef}
-          className="h-full overflow-y-auto overscroll-contain pt-2 scrollbar-hide"
+          className="h-full overflow-y-auto overscroll-contain scrollbar-hide"
+          style={{ paddingTop: topPaddingPx }}
           onScroll={(event) => {
             const element = event.currentTarget;
             onAtBottomStateChange(
@@ -469,7 +472,8 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
           virtualScrollerRef.current = node;
         }}
         data-testid="chat-history-scroll-container"
-        className="h-full w-full overflow-y-auto overscroll-contain pt-2 scrollbar-hide"
+        className="h-full w-full overflow-y-auto overscroll-contain scrollbar-hide"
+        style={{ paddingTop: topPaddingPx }}
         onScroll={(event) => {
           const element = event.currentTarget;
           const isAtBottom = isScrolledToContentBottom({

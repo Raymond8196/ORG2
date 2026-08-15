@@ -142,15 +142,16 @@ const SidebarGuideButton: FC<SidebarGuideButtonProps> = ({
     () => getSidebarGuideProgress(completion),
     [completion]
   );
+  const guideCompleted = progress.nextMilestone === null;
   const autoOpenedRef = useRef(false);
   const scopeInitial = scopeLabel.trim().charAt(0).toLocaleUpperCase();
 
   useEffect(() => {
-    if (!autoOpenRequested || autoOpenedRef.current) return;
+    if (guideCompleted || !autoOpenRequested || autoOpenedRef.current) return;
     autoOpenedRef.current = true;
     setIsOpen(true);
     onAutoOpenConsumed();
-  }, [autoOpenRequested, onAutoOpenConsumed, setIsOpen]);
+  }, [autoOpenRequested, guideCompleted, onAutoOpenConsumed, setIsOpen]);
 
   const runAction = useCallback(
     (action: () => void) => {
@@ -203,6 +204,8 @@ const SidebarGuideButton: FC<SidebarGuideButtonProps> = ({
       action: onExploreProduct,
     },
   ];
+
+  if (guideCompleted) return null;
 
   return (
     <>

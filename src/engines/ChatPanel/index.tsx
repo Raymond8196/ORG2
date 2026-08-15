@@ -30,10 +30,13 @@ import {
   closeOrganizationChatPanelTabAtom,
   closeProjectOrgChatPanelTabsAtom,
   closeRevokedCloudChannelChatPanelTabsAtom,
+  isChatPanelTabStationAvailable,
   openRuntimeInChatPanelTabAtom,
   openSessionInNewChatTabAtom,
   patchChatPanelWorkItemTabAtom,
+  resolveChatPanelMaximizedForLayout,
   syncActiveChatPanelTabStateAtom,
+  toggleActiveChatPanelMaximizedAtom,
 } from "@src/store/chatPanel/chatPanelTabsAtom";
 import { projectListRefreshAtom } from "@src/store/project/projectAtom";
 import { sessionCreatorStateAtom } from "@src/store/session";
@@ -58,7 +61,6 @@ import {
   chatPanelSelectedWorkspaceAtom,
   chatPanelStartPageOpenAtom,
   chatWidthAtom,
-  toggleChatPanelMaximizedAtom,
 } from "@src/store/ui/chatPanelAtom";
 import type { WorkItemDraft } from "@src/store/workstation/projectManager";
 import { isHumanSession } from "@src/util/session/sessionDispatch";
@@ -80,8 +82,16 @@ import {
   SessionRawToolbarActions,
 } from "./components/SessionViewSwitcher";
 import SessionWorkstationRail from "./components/SessionWorkstationRail";
-import { shouldMountFocusedChatWorkstationControls } from "./focusedChatWorkstationLayout";
+import {
+  resolveFocusedChatWorkstationRailTrackClass,
+  shouldMountFocusedChatWorkstationControls,
+  shouldReserveFocusedChatWorkstationPlaceholder,
+} from "./focusedChatWorkstationLayout";
 import { FocusedChatWorkstationMinimapPortalContext } from "./focusedChatWorkstationMinimapPortal";
+import {
+  CHAT_PANEL_HEADER_STACK_HEIGHT_PX,
+  shouldOverlayChatSessionHeaders,
+} from "./header/chatPanelHeaderLayout";
 import { useAiWorkItemCreator } from "./hooks/useAiWorkItemCreator";
 import { useChatPanelContentState } from "./hooks/useChatPanelContentState";
 import { useChatPanelCreateTarget } from "./hooks/useChatPanelCreateTarget";
@@ -93,11 +103,11 @@ import { useChatPanelTabsController } from "./hooks/useChatPanelTabsController";
 import { usePanelTitle } from "./hooks/usePanelTitle";
 import { useProjectWorkItemHandlers } from "./hooks/useProjectWorkItemHandlers";
 import { useSessionViewMode } from "./hooks/useSessionViewMode";
-import { useViewportWidth } from "./hooks/useViewportWidth";
 import type { ChatPanelProps, ChatPanelRegionNotice } from "./types";
 
 const ChatPanel: React.FC<ChatPanelProps> = memo(
   ({
+    viewportWidth,
     useExternalWidth = false,
     embedded = false,
     active = true,
@@ -125,7 +135,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       humanSession: humanSessionActive,
     });
 
-    const [contentMode, setContentMode] = useAtom(chatPanelContentModeAtom);
+    const contentMode = useAtomValue(chatPanelContentModeAtom);
     const [createTarget, setCreateTarget] = useAtom(chatPanelCreateTargetAtom);
     const setCollabOrgCreateIntent = useSetAtom(
       chatPanelCollabOrgCreateIntentAtom
@@ -167,12 +177,10 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       if (selectedWorkItem) patchWorkItemTab(selectedWorkItem);
     }, [selectedWorkItem, patchWorkItemTab]);
 
-    const isChatFocus = useAtomValue(chatPanelMaximizedAtom);
+    const userChatPanelMaximized = useAtomValue(chatPanelMaximizedAtom);
     const syncActiveTabState = useSetAtom(syncActiveChatPanelTabStateAtom);
-    const toggleChatFocus = useSetAtom(toggleChatPanelMaximizedAtom);
-    const showChatFocusToggle = true;
+    const toggleChatFocus = useSetAtom(toggleActiveChatPanelMaximizedAtom);
     const rawChatWidth = useAtomValue(chatWidthAtom);
-    const viewportWidth = useViewportWidth();
     const chatMaxWidth = getChatMaxWidth(viewportWidth);
     const backgroundConfig = useAtomValue(resolvedBackgroundConfigAtom);
     const chatPanelOpacityStyle = React.useMemo(
@@ -238,8 +246,8 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
     });
 
     const handleChatFocusToggle = useCallback(() => {
-      toggleChatFocus();
-    }, [toggleChatFocus]);
+      toggleChatFocus(viewportWidth);
+    }, [toggleChatFocus, viewportWidth]);
 
     const isCliAgentSession = currentSession?.category === "cli_agent";
     const [tuiMode, setTuiMode] = useAtom(tuiModeAtom(currentSessionId ?? ""));
@@ -259,6 +267,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
 
     const {
       dispatchClearSession,
+      openProjectCreate,
       openWorkItemCreate,
       resetActiveSession,
       setActiveSessionId,
@@ -276,12 +285,21 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       isTerminalTabActive,
       terminalTabs,
     } = useChatPanelTabsController({
-      launchpadTitle: t("navigation:routes.launchpad"),
+      newSessionTitle: t("sessions:chat.startPage.newSession.title"),
       kanbanTitle: t("sessions:simulator.tabs.kanban"),
       showSessionSurface,
     });
     const isStandaloneToolTabActive =
       activeTab?.type === "work-management" || activeTab?.type === "runtime";
+    const stationAvailable = isChatPanelTabStationAvailable(
+      activeTab,
+      viewportWidth
+    );
+    const isChatFocus = resolveChatPanelMaximizedForLayout(
+      userChatPanelMaximized,
+      activeTab,
+      viewportWidth
+    );
     const [focusedWorkstationMenuHost, setFocusedWorkstationMenuHost] =
       useState<HTMLSpanElement | null>(null);
     const focusedWorkstationMenuHostRef = useCallback(
@@ -360,6 +378,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       resetActiveSession();
     }, [handleOpenLaunchpadTab, resetActiveSession, setCreateTarget]);
     const handleStartPageNewWorkItem = openWorkItemCreate;
+    const handleStartPageNewProject = openProjectCreate;
     const openLaunchedSessionTab = useSetAtom(openSessionInNewChatTabAtom);
     const handleStartPageSessionStart = useCallback(
       (info: { sessionId: string }) => {
@@ -384,6 +403,9 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
     const handleStartPageInstallLatestUpdate = useCallback(() => {
       void installAvailableAppUpdate();
     }, []);
+    const handleShowRuntime = useCallback(() => {
+      openRuntimeTab(t("sessions:chat.startPage.tabs.runtime"));
+    }, [openRuntimeTab, t]);
 
     const { createTargetOptions, handleCreateTargetChange } =
       useChatPanelCreateTarget({
@@ -414,6 +436,12 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
         activeTabType: activeTab?.type ?? null,
         isChatFocus,
         showSessionContent: contentState.showSessionContent,
+      });
+    const reserveFocusedWorkstationPlaceholder =
+      shouldReserveFocusedChatWorkstationPlaceholder({
+        activeTabType: activeTab?.type ?? null,
+        isChatFocus,
+        startPageOpen,
       });
 
     const setSelectedProject = useSetAtom(chatPanelSelectedProjectAtom);
@@ -451,7 +479,6 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       creatorState,
       setActiveSessionId,
       setSelectedProject,
-      setSelectedWorkItem,
       setWorkItemCreateDraft,
       setWorkstationActiveSessionId,
       workItemCreateDraft,
@@ -504,6 +531,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
         handleRegionNoticeChange={handleRegionNoticeChange}
         handleStartPageAddApiKey={handleStartPageAddApiKey}
         handleStartPageInstallLatestUpdate={handleStartPageInstallLatestUpdate}
+        handleStartPageShowRuntime={handleShowRuntime}
         handleStartPageSessionStart={handleStartPageSessionStart}
         handleProjectAgentCreatorToggle={handleProjectAgentCreatorToggle}
         handleWorkItemAgentCreatorToggle={handleWorkItemAgentCreatorToggle}
@@ -523,12 +551,17 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       <ChatPanelPlusMenu
         onOpenLaunchpad={handleOpenLaunchpadTab}
         onOpenKanban={handleOpenKanbanTab}
-        onOpenRuntime={() =>
-          openRuntimeTab(t("sessions:chat.startPage.tabs.runtime"))
-        }
+        onOpenRuntime={handleShowRuntime}
+        onNewProject={handleStartPageNewProject}
         onNewWorkItem={handleStartPageNewWorkItem}
       />
     );
+
+    const overlayChatHeaders = shouldOverlayChatSessionHeaders({
+      showSessionContent: contentState.showSessionContent,
+      standaloneToolTabActive: isStandaloneToolTabActive,
+      humanSessionActive,
+    });
 
     const headerSection = (
       <ChatPanelHeader
@@ -567,7 +600,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
         shouldOffsetHeaderForCollapsedSidebar={
           shouldOffsetHeaderForCollapsedSidebar
         }
-        showChatFocusToggle={showChatFocusToggle}
+        stationAvailable={stationAvailable}
         showHeader={contentState.showHeader || isStandaloneToolTabActive}
         showSessionContent={
           contentState.showSessionContent && !isStandaloneToolTabActive
@@ -611,6 +644,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
             />
           ) : null
         }
+        overlayPublishedHeader={overlayChatHeaders}
         t={t}
         toggleHeaderActionsMenu={toggleHeaderActionsMenu}
         visibleRegionNotice={regionNotice}
@@ -632,10 +666,16 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
         showPanelContent={contentState.showPanelContent}
         showSessionContent={contentState.showSessionContent}
         sessionViewMode={sessionView.mode}
+        chromeTopInset={
+          overlayChatHeaders ? CHAT_PANEL_HEADER_STACK_HEIGHT_PX : 0
+        }
         alternateSessionView={
           <SessionAlternateSurface
             sessionId={currentSessionId ?? null}
             view={sessionView}
+            topInset={
+              overlayChatHeaders ? CHAT_PANEL_HEADER_STACK_HEIGHT_PX : 0
+            }
           />
         }
       />
@@ -661,6 +701,16 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
                 compactMenuHost={focusedWorkstationMenuHost}
                 conversationMinimapHostRef={focusedWorkstationMinimapHostRef}
                 session={currentSession}
+                sessionId={currentSessionId}
+                topInset={
+                  overlayChatHeaders ? CHAT_PANEL_HEADER_STACK_HEIGHT_PX : 0
+                }
+              />
+            ) : reserveFocusedWorkstationPlaceholder ? (
+              <div
+                aria-hidden
+                data-testid="launchpad-workstation-rail-placeholder"
+                className={`h-full shrink-0 ${resolveFocusedChatWorkstationRailTrackClass(true)}`}
               />
             ) : null
           }

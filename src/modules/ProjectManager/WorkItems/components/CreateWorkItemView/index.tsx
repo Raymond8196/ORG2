@@ -11,15 +11,17 @@ import LaunchButton from "@src/features/SessionCreator/components/LaunchButton";
 import { useKeyboardSave } from "@src/hooks/keyboard";
 import { createLogger } from "@src/hooks/logger";
 import {
-  CreateComposerAgentFrame,
   CreateComposerHeader,
-  CreateComposerLauncher,
   CreateComposerPinnedActions,
   DetailSplitLayout,
   ManualCreateComposer,
 } from "@src/modules/ProjectManager/shared";
 import { WorkstationToolbarTooltip } from "@src/modules/WorkStation/shared";
-import { PANEL_HEADER_TOKENS } from "@src/modules/shared/layouts/blocks";
+import MarkdownEditorModeSwitch from "@src/modules/shared/components/MarkdownTextareaEditor/ModeSwitch";
+import {
+  CreatorContentLayout,
+  PANEL_HEADER_TOKENS,
+} from "@src/modules/shared/layouts/blocks";
 import type { WorkItemDraft } from "@src/store/workstation/projectManager";
 import type { Person } from "@src/types/core/shared";
 import type {
@@ -77,8 +79,10 @@ export interface CreateWorkItemViewProps {
   showFooter?: boolean;
   showSubmitAction?: boolean;
   chatPanelFooter?: boolean;
-  /** Center the Launchpad toggle and composer as one stack. */
-  centerLauncherContent?: boolean;
+  /** Optional content centered in the page above the bottom-docked manual composer. */
+  middleContent?: React.ReactNode;
+  /** Agent/Manual segmented control rendered with the creator setup pills. */
+  creatorModeControl?: React.ReactNode;
   /** Render Session Creator in Agent mode with Work Item fields in its composer. */
   renderAgentComposer?: (
     headerContent: React.ReactNode,
@@ -119,7 +123,8 @@ const CreateWorkItemView: React.FC<CreateWorkItemViewProps> = ({
   showFooter = true,
   showSubmitAction = true,
   chatPanelFooter = false,
-  centerLauncherContent = false,
+  middleContent,
+  creatorModeControl,
   renderAgentComposer,
   defaultAiAssignee = null,
 }) => {
@@ -234,7 +239,11 @@ const CreateWorkItemView: React.FC<CreateWorkItemViewProps> = ({
           selectedProjectSlug: inlineFields.selectedProjectSlug,
         });
 
-        await emit("orgii-data-changed");
+        await emit("orgii-data-changed", {
+          project_slug: result.projectSlug,
+          work_item_id: result.shortId,
+          source: "work-item-create",
+        });
         if (createMore) {
           inlineFields.resetDraftForCreateMore();
           onWorkItemCreated(result);
@@ -265,6 +274,7 @@ const CreateWorkItemView: React.FC<CreateWorkItemViewProps> = ({
   );
   const workItemPropertyPills = (
     <CreateComposerPinnedActions dataTestId="create-work-item-pinned-actions">
+      {creatorModeControl}
       {inlineFields.workItemProjectPill}
       {inlineFields.inlinePropertyPills}
     </CreateComposerPinnedActions>
@@ -330,9 +340,12 @@ const CreateWorkItemView: React.FC<CreateWorkItemViewProps> = ({
         </>
       }
       leftContent={
-        <CreateComposerLauncher
-          centered={centerLauncherContent}
-          centeredDataTestId="create-work-item-centered-launcher"
+        <CreatorContentLayout
+          placement={
+            resolvedAiGenerateMode && renderAgentComposer ? "fill" : "bottom"
+          }
+          contentDataTestId="create-work-item-creator-content"
+          middleContent={middleContent}
         >
           {showAiModePanel ? (
             <div className={`${DETAIL_PANEL_TOKENS.headerWidth} px-4 py-2`}>
@@ -354,20 +367,22 @@ const CreateWorkItemView: React.FC<CreateWorkItemViewProps> = ({
             </div>
           ) : null}
           {resolvedAiGenerateMode && renderAgentComposer ? (
-            <CreateComposerAgentFrame centered={centerLauncherContent}>
-              {renderAgentComposer(
-                composerHeaderContent,
-                workItemPropertyPills
-              )}
-            </CreateComposerAgentFrame>
+            renderAgentComposer(composerHeaderContent, workItemPropertyPills)
           ) : renderAgentComposer ? (
             <ManualCreateComposer
-              centered={centerLauncherContent}
               dataTestId="create-work-item-manual-composer"
               editorRef={editorRef}
               headerContent={composerHeaderContent}
               editorContent={inlineFields.descriptionSection}
               pinnedActionsContent={workItemPropertyPills}
+              leadingActions={
+                <MarkdownEditorModeSwitch
+                  mode={inlineFields.editorMode}
+                  onModeChange={inlineFields.setEditorMode}
+                  disabled={saving}
+                  dataTestId="create-work-item-description-mode-switch"
+                />
+              }
               submitButton={
                 <LaunchButton
                   ariaLabel={t("common:actions.save")}
@@ -384,7 +399,7 @@ const CreateWorkItemView: React.FC<CreateWorkItemViewProps> = ({
               <InlineCreateWorkItemFields state={inlineFields} />
             </div>
           )}
-        </CreateComposerLauncher>
+        </CreatorContentLayout>
       }
       rightContent={
         resolvedPropertiesOpen ? (

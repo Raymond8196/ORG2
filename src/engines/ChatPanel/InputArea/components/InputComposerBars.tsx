@@ -6,6 +6,7 @@ import Button from "@src/components/Button";
 import ComposerBar from "@src/components/ComposerBar";
 import type { ComposerInputRef } from "@src/components/ComposerInput";
 import { VoiceInputButton, VoiceRecordingBar } from "@src/components/Voice";
+import { INPUT_AREA_CONTROL_GROUP_CLASS } from "@src/config/inputAreaTokens";
 import type { PromptPolishControl } from "@src/engines/ChatPanel/hooks/useInputArea/types";
 import type { UseVoiceInputResult } from "@src/hooks/voice";
 
@@ -151,7 +152,6 @@ export const EditComposerBar: React.FC<EditComposerBarProps> = ({
       onUpload={onUpload}
       onOpenSkillsTools={onOpenSkillsTools}
       dropdownDirection="down"
-      toolbarItemGap={false}
       showContextInfo={!isCursorIde}
       editorSlot={
         <InputEditor
@@ -265,8 +265,10 @@ interface NormalComposerContentProps extends SharedComposerBarProps {
   showVoiceUi: boolean;
   voice: UseVoiceInputResult;
   currentRepoPath?: string;
-  isCursorCompactRow: boolean;
-  suppressToolbarHover: boolean;
+  isCompactRow: boolean;
+  contextualCompact?: boolean;
+  contextualPanel?: boolean;
+  inlineLeadingContent?: React.ReactNode;
   onContentChange: (text: string) => void;
   onBlur: () => void;
   onSubmit: (capturedText?: string) => void;
@@ -285,6 +287,7 @@ interface NormalComposerContentProps extends SharedComposerBarProps {
   submitDisabled?: boolean;
   showAgentControls?: boolean;
   showImageAttachments?: boolean;
+  autoFocus?: boolean;
 }
 
 export const NormalComposerContent: React.FC<NormalComposerContentProps> = ({
@@ -328,8 +331,10 @@ export const NormalComposerContent: React.FC<NormalComposerContentProps> = ({
   showVoiceUi,
   voice,
   currentRepoPath,
-  isCursorCompactRow,
-  suppressToolbarHover,
+  isCompactRow,
+  contextualCompact = false,
+  contextualPanel = false,
+  inlineLeadingContent,
   placeholder,
   trailingHint,
   currentInputEmpty,
@@ -344,8 +349,10 @@ export const NormalComposerContent: React.FC<NormalComposerContentProps> = ({
   submitDisabled,
   showAgentControls = true,
   showImageAttachments = true,
+  autoFocus = false,
 }) => {
   const { t } = useTranslation("sessions");
+  const isContextual = contextualCompact || contextualPanel;
 
   return (
     <div className="flex min-h-0 w-full flex-col">
@@ -358,7 +365,6 @@ export const NormalComposerContent: React.FC<NormalComposerContentProps> = ({
           onCancel={voice.cancel}
           onAccept={voice.stop}
           onAddContent={onAddContent}
-          compact={isCursorCompactRow}
         />
       ) : (
         <ComposerBar
@@ -366,10 +372,11 @@ export const NormalComposerContent: React.FC<NormalComposerContentProps> = ({
           onUpload={onUpload}
           onOpenSkillsTools={onOpenSkillsTools}
           dropdownDirection="up"
-          toolbarItemGap={false}
           repoPath={currentRepoPath}
-          inlineLayout={isCursorCompactRow}
-          showContextInfo={showAgentControls && !isCursorIde}
+          inlineLayout={isCompactRow}
+          adaptiveEditorLayout={isContextual}
+          hideAddButton={contextualCompact}
+          showContextInfo={showAgentControls && !isCursorIde && !isContextual}
           editorSlot={
             <InputEditor
               key="chat-panel-input-editor"
@@ -397,63 +404,80 @@ export const NormalComposerContent: React.FC<NormalComposerContentProps> = ({
               placeholder={placeholder || t("input.defaultPlaceholder")}
               trailingHint={trailingHint}
               onImagePaste={onImagePaste}
-              compact={isCursorCompactRow}
+              compact={isCompactRow}
+              autoFocus={autoFocus}
+              leadingContent={
+                contextualPanel ? inlineLeadingContent : undefined
+              }
             />
           }
           leftPrefix={
-            <ComposerPrefixes
-              isCiteCode={isCiteCode}
-              selectedCiteRange={selectedCiteRange}
-              citeFileName={citeFileName}
-              onClearCiteCode={onClearCiteCode}
-              replyInfo={replyInfo}
-              onClearReplyInfo={onClearReplyInfo}
-            />
+            <>
+              <ComposerPrefixes
+                isCiteCode={isCiteCode}
+                selectedCiteRange={selectedCiteRange}
+                citeFileName={citeFileName}
+                onClearCiteCode={onClearCiteCode}
+                replyInfo={replyInfo}
+                onClearReplyInfo={onClearReplyInfo}
+              />
+              {!contextualPanel && inlineLeadingContent}
+            </>
           }
           pills={
-            <div
-              className={`inline-flex items-center ${
-                suppressToolbarHover ? "pointer-events-none" : ""
-              }`.trim()}
-            >
+            <div className={INPUT_AREA_CONTROL_GROUP_CLASS}>
               {modePill}
               {modelPill}
             </div>
           }
           submitButton={
             <div className="flex h-7 items-center gap-0.5">
-              {showAgentControls && (
+              {showAgentControls && !isContextual && (
                 <PromptPolishButton
                   control={promptPolish}
                   disabled={promptPolishDisabled}
                 />
               )}
-              {showAgentControls && voiceFeatureEnabled && (
-                <VoiceInputButton
-                  onPressStart={voice.start}
-                  onPressEnd={voice.stop}
-                  disabled={!voice.isSupported}
+              {showAgentControls &&
+                voiceFeatureEnabled &&
+                (!contextualCompact ||
+                  (currentInputEmpty &&
+                    !isWpGeneWorking &&
+                    !isPendingCancel &&
+                    !isSessionTerminal)) && (
+                  <VoiceInputButton
+                    onPressStart={voice.start}
+                    onPressEnd={voice.stop}
+                    disabled={!voice.isSupported}
+                    appearance={contextualCompact ? "solid" : "default"}
+                  />
+                )}
+              {(!contextualCompact ||
+                !currentInputEmpty ||
+                isWpGeneWorking ||
+                isPendingCancel ||
+                isSessionTerminal ||
+                !voiceFeatureEnabled) && (
+                <InputActions
+                  isInputEmpty={currentInputEmpty}
+                  isWpGeneWorking={
+                    stopSuppressedForEmptyInput ? false : isWpGeneWorking
+                  }
+                  isPendingCancel={
+                    stopSuppressedForEmptyInput ? false : isPendingCancel
+                  }
+                  isHosted={isHosted}
+                  canStopAgent={
+                    stopSuppressedForEmptyInput ? false : canStopAgent
+                  }
+                  canResume={canResume}
+                  isSessionTerminal={isSessionTerminal}
+                  onSubmit={onSubmit}
+                  onInterrupt={onInterrupt}
+                  onResume={onResume}
+                  submitDisabled={submitDisabled}
                 />
               )}
-              <InputActions
-                isInputEmpty={currentInputEmpty}
-                isWpGeneWorking={
-                  stopSuppressedForEmptyInput ? false : isWpGeneWorking
-                }
-                isPendingCancel={
-                  stopSuppressedForEmptyInput ? false : isPendingCancel
-                }
-                isHosted={isHosted}
-                canStopAgent={
-                  stopSuppressedForEmptyInput ? false : canStopAgent
-                }
-                canResume={canResume}
-                isSessionTerminal={isSessionTerminal}
-                onSubmit={onSubmit}
-                onInterrupt={onInterrupt}
-                onResume={onResume}
-                submitDisabled={submitDisabled}
-              />
             </div>
           }
         />

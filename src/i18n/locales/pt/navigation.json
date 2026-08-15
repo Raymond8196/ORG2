@@ -13,6 +13,8 @@
     "browser": "Navegador",
     "editor": "Editor",
     "environment": "Ambiente",
+    "sessionEnvironment": "Ambiente da sessão",
+    "localEnvironment": "Ambiente local",
     "workspace": "Workspace",
     "codeEditor": "Editor de Código",
     "databaseManager": "Gerenciador de Banco",
@@ -699,6 +701,7 @@
         "inviteRevoked": "Este convite foi revogado.",
         "inviteExpired": "Este convite expirou.",
         "inviteExhausted": "Este convite não tem mais usos.",
+        "alreadyMember": "Você já é membro desta organização.",
         "network": "Não foi possível conectar ao serviço de nuvem. Verifique a rede e tente novamente."
       }
     },

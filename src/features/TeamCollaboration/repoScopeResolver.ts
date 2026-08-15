@@ -49,6 +49,11 @@ import {
 export const MAX_RESOLVER_CACHE_ENTRIES = 256;
 const shareableScopeKeyCache = new Map<string, string[] | null>();
 const shareableScopeKeyInFlight = new Map<string, Promise<string[] | null>>();
+// Transport failures are deliberately NOT cached as results, but a short
+// negative-cache window keeps a render-path caller from re-firing the
+// git-remotes IPC on every external re-render while the backend is down.
+const SHAREABLE_SCOPE_FAILURE_TTL_MS = 30_000;
+const shareableScopeKeyFailureAtMs = new Map<string, number>();
 
 interface RepoNetworkScopeCacheEntry {
   value: string | null;
@@ -65,6 +70,9 @@ interface RepoNetworkScopeCacheEntry {
 
 const repoNetworkScopeCache = new Map<string, RepoNetworkScopeCacheEntry>();
 const repoNetworkScopeInFlight = new Map<string, Promise<string | null>>();
+export const REPO_NETWORK_LOOKUP_CONCURRENCY = 4;
+let activeRepoNetworkLookups = 0;
+const repoNetworkLookupWaiters: Array<() => void> = [];
 const NETWORK_LOOKUP_FAILURE_TTL_MS = 30_000;
 /**
  * Repeated failures back off geometrically (30s → 2m → 8m → 30m cap). An
@@ -80,6 +88,23 @@ function networkLookupFailureTtlMs(streak: number): number {
   const ttl =
     NETWORK_LOOKUP_FAILURE_TTL_MS * 4 ** Math.max(0, Math.min(streak - 1, 5));
   return Math.min(ttl, NETWORK_LOOKUP_FAILURE_TTL_MAX_MS);
+}
+
+async function withRepoNetworkLookupPermit<T>(
+  operation: () => Promise<T>
+): Promise<T> {
+  if (activeRepoNetworkLookups >= REPO_NETWORK_LOOKUP_CONCURRENCY) {
+    await new Promise<void>((resolve) =>
+      repoNetworkLookupWaiters.push(resolve)
+    );
+  }
+  activeRepoNetworkLookups += 1;
+  try {
+    return await operation();
+  } finally {
+    activeRepoNetworkLookups -= 1;
+    repoNetworkLookupWaiters.shift()?.();
+  }
 }
 
 function readLruEntry<K, V>(cache: Map<K, V>, key: K): V | undefined {
@@ -201,6 +226,13 @@ export async function resolveShareableScopeKeys(
   if (cached !== undefined) return cached;
   const pending = shareableScopeKeyInFlight.get(normalizedInput);
   if (pending) return pending;
+  const failedAtMs = shareableScopeKeyFailureAtMs.get(normalizedInput);
+  if (
+    failedAtMs !== undefined &&
+    Date.now() - failedAtMs < SHAREABLE_SCOPE_FAILURE_TTL_MS
+  ) {
+    return null;
+  }
 
   // Deferred body (then-callback, not an IIFE) so the closure can compare
   // against `task` itself without tripping TS2454 (used before assigned).
@@ -212,9 +244,12 @@ export async function resolveShareableScopeKeys(
       });
       if (data === undefined) {
         // Transport failure (git server down / repo unknown): report "no
-        // keys" but do NOT cache — the next consumer retries.
+        // keys" but do NOT cache the result — retries resume after the
+        // short negative-cache window.
+        shareableScopeKeyFailureAtMs.set(normalizedInput, Date.now());
         return null;
       }
+      shareableScopeKeyFailureAtMs.delete(normalizedInput);
       const remotes = data.remotes ?? [];
       // Origin-first ordering: the checkout's own remote stays the PRIMARY
       // identity (single-key consumers, fork-relay preference); the rest
@@ -269,6 +304,7 @@ export function primeShareableScopeKey(input: string): void {
 export function clearShareableScopeKeyCache(): void {
   shareableScopeKeyCache.clear();
   shareableScopeKeyInFlight.clear();
+  shareableScopeKeyFailureAtMs.clear();
   repoNetworkScopeCache.clear();
   repoNetworkScopeInFlight.clear();
   networkLookupFailureStreaks.clear();
@@ -321,7 +357,9 @@ export async function resolveRepoNetworkScopeKey(
   const pending = repoNetworkScopeInFlight.get(normalized);
   if (pending) return pending;
 
-  const task = resolveGitHubRepoNetworkIdentityLocal(fullName)
+  const task = withRepoNetworkLookupPermit(() =>
+    resolveGitHubRepoNetworkIdentityLocal(fullName)
+  )
     .then((identity) => {
       const sourceKey = normalizeRepoScopeKey(
         `github.com/${identity.source_full_name}`
@@ -397,22 +435,27 @@ export function peekMatchingOrgRepoScope(
   if (!repoScopeKeys?.length || !orgScopes?.length) return null;
 
   let unresolved = false;
-  for (const repoScopeKey of repoScopeKeys) {
-    const repoRoot = peekRepoNetworkScopeKey(repoScopeKey);
-    if (repoRoot === undefined) {
+  const resolveCachedRoot = (scopeKey: string): string | null | undefined => {
+    if (peekRepoNetworkLookupFailed(scopeKey)) {
       unresolved = true;
-      primeRepoNetworkScopeKey(repoScopeKey);
-      continue;
+      return undefined;
     }
+    const root = peekRepoNetworkScopeKey(scopeKey);
+    if (root === undefined) {
+      unresolved = true;
+      primeRepoNetworkScopeKey(scopeKey);
+    }
+    return root;
+  };
+  // Prime both sides in one pass so repo and org identities share the same
+  // bounded provider batch instead of resolving in alternating sync waves.
+  const repoRoots = repoScopeKeys.map(resolveCachedRoot);
+  const orgRoots = orgScopes.map(resolveCachedRoot);
+  for (const repoRoot of repoRoots) {
     if (!repoRoot) continue;
-    for (const orgScope of orgScopes) {
-      const orgRoot = peekRepoNetworkScopeKey(orgScope);
-      if (orgRoot === undefined) {
-        unresolved = true;
-        primeRepoNetworkScopeKey(orgScope);
-        continue;
-      }
-      if (orgRoot && repoRoot === orgRoot) return orgScope;
+    for (let index = 0; index < orgRoots.length; index += 1) {
+      const orgRoot = orgRoots[index];
+      if (orgRoot && repoRoot === orgRoot) return orgScopes[index]!;
     }
   }
   return unresolved ? undefined : null;

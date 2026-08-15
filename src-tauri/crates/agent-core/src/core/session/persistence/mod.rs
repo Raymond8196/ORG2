@@ -11,6 +11,7 @@
 //! - Message storage uses `agent_messages` (shared)
 
 mod crud;
+pub(crate) mod linked_work_item;
 mod messages;
 mod sidebar;
 
@@ -25,32 +26,33 @@ mod sidebar;
 pub use crud::{
     backfill_agent_definition_id, clear_worktree_metadata, delete_session,
     finalize_terminal_turn_status, get_child_sessions, get_parent_session, get_session,
-    list_sessions, load_workspace, mark_stale_running_sessions_abandoned,
+    link_bootstrap_work_item, list_sessions, load_workspace, mark_stale_running_sessions_abandoned,
     reconcile_sessions_with_terminal_turn_markers, register_session_delete_mirror_hook,
     register_session_mirror_hook, save_workspace, save_worktree_metadata, session_type,
-    update_account_id, update_agent_exec_mode, update_draft_text, update_model,
+    update_account_id, update_agent_exec_mode, update_draft_text, update_mode_axes, update_model,
     update_model_and_account, update_name, update_org_member_id, update_pinned,
-    link_bootstrap_work_item, update_product_mode,
-    update_reply_target_event_id, update_status, update_work_item_link,
+    update_product_mode, update_reply_target_event_id, update_status, update_work_item_link,
     update_worktree_merge_status, upsert_session, UnifiedSessionRecord,
+};
+pub(crate) use crud::{
+    delete_session_with_connection, finish_session_delete, prepare_session_delete,
 };
 pub use sidebar::{
     list_agent_org_root_sessions_page, list_standalone_coding_sessions_page,
     list_unpinned_sessions_by_type_page,
 };
-pub(crate) use crud::{
-    delete_session_with_connection, finish_session_delete, prepare_session_delete,
-};
 
 pub use messages::{
     anchor_at_or_after_created_at, append_compact_boundary, clear_messages,
     clear_session_memory_state, compact_cutoff_sequence,
-    load_agent_org_inbox_transcript_materializations, load_llm_history, load_messages,
-    load_session_memory_state, mark_turn_cancelled, materialize_agent_org_inbox_transcript,
-    message_anchor, message_created_at, save_assistant_msg, save_compact_summary_msg,
-    save_session_memory_state, save_snapshot, save_subagent_transcript, save_tool_call_msg,
-    save_tool_result_msg, save_user_msg, save_user_msg_with_id, seed_session_with_messages,
-    take_turn_cancelled, truncate_messages_from_sequence, update_compact_boundary_token_delta,
+    load_agent_org_inbox_transcript_materializations, load_llm_history,
+    load_llm_history_start_sequences, load_llm_history_text_only,
+    load_llm_history_text_only_bounded, load_messages, load_session_memory_state,
+    mark_turn_cancelled, materialize_agent_org_inbox_transcript, message_anchor,
+    message_created_at, save_assistant_msg, save_compact_summary_msg, save_session_memory_state,
+    save_snapshot, save_subagent_transcript, save_tool_call_msg, save_tool_result_msg,
+    save_user_msg, save_user_msg_with_id, seed_session_with_messages, take_turn_cancelled,
+    truncate_messages_from_sequence, update_compact_boundary_token_delta,
     AgentOrgInboxTranscriptMaterialization, MessageAnchor,
 };
 

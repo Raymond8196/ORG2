@@ -13,6 +13,8 @@
     "browser": "瀏覽器",
     "editor": "編輯器",
     "environment": "環境",
+    "sessionEnvironment": "工作階段環境",
+    "localEnvironment": "本機環境",
     "workspace": "工作區",
     "codeEditor": "代碼編輯器",
     "databaseManager": "數據庫管理器",
@@ -788,6 +790,7 @@
         "inviteRevoked": "該邀請已被撤銷。",
         "inviteExpired": "該邀請已過期。",
         "inviteExhausted": "該邀請的使用次數已用完。",
+        "alreadyMember": "你已經是該組織的成員。",
         "network": "無法連線雲端服務。請檢查網路後重試。"
       }
     },

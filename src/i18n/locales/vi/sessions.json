@@ -845,7 +845,10 @@
       "insert": "Chèn"
     },
     "compactArgHint": "<trọng tâm tóm tắt (tùy chọn)>",
-    "compactCommandDescription": "Tóm tắt ngữ cảnh cũ để giải phóng dung lượng. Tùy chọn: /compact <trọng tâm tóm tắt>"
+    "compactCommandDescription": "Tóm tắt ngữ cảnh cũ để giải phóng dung lượng. Tùy chọn: /compact <trọng tâm tóm tắt>",
+    "canvasCommandDescription": "Tạo một Canvas tương tác mới. Tùy chọn: /canvas <nội dung cần tạo>",
+    "canvasArgHint": "nội dung cần tạo",
+    "newCanvasAction": "Canvas mới"
   },
   "listPanel": {
     "showingOf": "Hiển thị {{filtered}} / {{total}}",
@@ -890,6 +893,9 @@
       },
       "addApiKey": {
         "title": "Thêm API key"
+      },
+      "showRuntime": {
+        "title": "Hiển thị môi trường chạy"
       },
       "installLatestUpdate": {
         "title": "Cài đặt bản cập nhật mới nhất"
@@ -1184,14 +1190,14 @@
       "manageIssues": {
         "searchPlaceholder": "GitHub search, e.g. is:issue is:open label:bug",
         "createIssueTrigger": "Issue",
-        "newIssueTitle": "New GitHub Issue",
-        "issueTitlePlaceholder": "Issue title",
-        "issueBodyPlaceholder": "Description",
-        "createIssue": "Create issue",
-        "creatingIssue": "Creating…",
+        "newIssueTitle": "Tạo issue GitHub",
+        "issueTitlePlaceholder": "Tiêu đề issue",
+        "issueBodyPlaceholder": "Mô tả",
+        "createIssue": "Tạo issue",
+        "creatingIssue": "Đang tạo…",
         "addToChat": "Add",
-        "repositoryLabel": "Repository",
-        "createIssueFailed": "Failed to create issue",
+        "repositoryLabel": "Kho lưu trữ",
+        "createIssueFailed": "Không thể tạo issue",
         "sourceIssues": "Issues",
         "sourcePrs": "PRs",
         "stateOpen": "Open",
@@ -2005,6 +2011,18 @@
     "renderInlineCanvasUrlDone": "Đã render URL canvas",
     "renderInlineCanvasUrlFailed": "Không thể render URL canvas",
     "renderInlineCanvasUrlRunning": "Đang render URL canvas",
+    "reviseInlineCanvasRunning": "Đang chỉnh sửa Canvas",
+    "reviseInlineCanvasDone": "Canvas đã chỉnh sửa",
+    "reviseInlineCanvasFailed": "Chỉnh sửa Canvas thất bại",
+    "reviseInlineCanvasHtmlRunning": "Đang chỉnh sửa Canvas HTML",
+    "reviseInlineCanvasHtmlDone": "Canvas HTML đã chỉnh sửa",
+    "reviseInlineCanvasHtmlFailed": "Chỉnh sửa Canvas HTML thất bại",
+    "reviseInlineCanvasUrlRunning": "Đang chỉnh sửa Canvas URL",
+    "reviseInlineCanvasUrlDone": "Canvas URL đã chỉnh sửa",
+    "reviseInlineCanvasUrlFailed": "Chỉnh sửa Canvas URL thất bại",
+    "reviseInlineCanvasA2uiRunning": "Đang chỉnh sửa Canvas A2UI",
+    "reviseInlineCanvasA2uiDone": "Canvas A2UI đã chỉnh sửa",
+    "reviseInlineCanvasA2uiFailed": "Chỉnh sửa Canvas A2UI thất bại",
     "runShellRunDone": "Đã run command",
     "runShellRunFailed": "Không thể run command",
     "runShellRunRunning": "Đang run command",
@@ -2068,6 +2086,10 @@
     },
     "searchModels": "Tìm kiếm mô hình...",
     "newItem": "Mục mới",
+    "solveWorkItem": "Giải quyết hạng mục công việc",
+    "launchpadQuestion": "Bạn muốn xây dựng gì với",
+    "launchpadQuestionSuffix": "?",
+    "manualLaunchpadQuestion": "Bạn muốn xây dựng gì?",
     "start": "Bắt đầu",
     "assign": "Gán",
     "send": "Gửi",

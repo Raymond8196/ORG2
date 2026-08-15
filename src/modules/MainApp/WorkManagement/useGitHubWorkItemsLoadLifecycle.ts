@@ -17,6 +17,11 @@ import type {
   PullRequestListState,
 } from "@src/api/tauri/github";
 import {
+  loadGitHubDetailAuthScope,
+  loadGitHubRepoPermissions,
+  loadGitHubViewer,
+} from "@src/modules/shared/githubIssueDetailCoordinator";
+import {
   GITHUB_LIST_CACHE_TTL_MS,
   coalesceGitHubListRequest,
   getCachedIssues,
@@ -84,17 +89,13 @@ const retainedLifecycleSnapshots = new StoreScopedSnapshotCache<
   GitHubWorkItemsLifecycleSnapshot
 >(MAX_RETAINED_GITHUB_LIST_SCOPES, GITHUB_LIST_CACHE_TTL_MS);
 const resolvedViewerByStore = new WeakMap<Store, string>();
-const permissionRequestsByStore = new WeakMap<
-  Store,
-  Map<string, Promise<GitHubRepoPermissions | null>>
->();
 
 export interface RepoIssueLoadResult extends RepoIssueState {
   source: GitHubRepoSource;
   error: string | null;
 }
 
-interface RepoPrLoadResult {
+export interface RepoPrLoadResult {
   source: GitHubRepoSource;
   state: PullRequestListState;
   prs: OpenPRItem[];
@@ -291,27 +292,22 @@ async function resolveGitHubRepoSource(
     repoFullName,
     viewerLogin: null,
     permissions: null,
+    authScope: null,
   };
 }
 
 export async function loadRepoPermissions(
+  store: Store,
   source: GitHubRepoSource,
-  viewerLogin: string,
-  permissionRequests: Map<string, Promise<GitHubRepoPermissions | null>>
+  authScope: string
 ): Promise<[string, GitHubRepoPermissions | null]> {
-  const key = `${viewerLogin.toLowerCase()}:${source.repoFullName}`;
-  let permissionRequest = permissionRequests.get(key);
-  if (!permissionRequest) {
-    permissionRequest = getGitHubRepoPermissionsLocal(source.repoFullName)
-      .catch(() => null)
-      .finally(() => {
-        if (permissionRequests.get(key) === permissionRequest) {
-          permissionRequests.delete(key);
-        }
-      });
-    permissionRequests.set(key, permissionRequest);
-  }
-  return [source.repoFullName, await permissionRequest];
+  const permissions = await loadGitHubRepoPermissions(
+    store,
+    authScope,
+    source.repoFullName,
+    () => getGitHubRepoPermissionsLocal(source.repoFullName)
+  ).catch(() => null);
+  return [source.repoFullName, permissions];
 }
 
 async function loadRepoIssues(
@@ -360,7 +356,7 @@ async function loadRepoIssues(
   };
 }
 
-async function loadRepoPrs(
+export async function loadRepoPrs(
   source: GitHubRepoSource,
   state: PullRequestListState,
   force: boolean
@@ -464,14 +460,6 @@ export function useGitHubWorkItemsLoadLifecycle({
   );
   const loadedRef = useRef(Boolean(retainedSnapshot));
   const handledRefreshNonceRef = useRef(0);
-  const permissionRequests = useMemo(() => {
-    let requests = permissionRequestsByStore.get(store);
-    if (!requests) {
-      requests = new Map();
-      permissionRequestsByStore.set(store, requests);
-    }
-    return requests;
-  }, [store]);
   const permissionViewerRef = useRef<string | null>(
     retainedSnapshot?.viewerLogin ?? null
   );
@@ -518,14 +506,22 @@ export function useGitHubWorkItemsLoadLifecycle({
         setLoading(false);
         return;
       }
-      const [viewerResult, sources] = await Promise.all([
-        coalesceGitHubListRequest(
-          "work-management:viewer-login",
+      const authScopePromise = loadGitHubDetailAuthScope(store).catch(
+        () => null
+      );
+      const viewerResultPromise = authScopePromise.then((authScope) =>
+        loadGitHubViewer(
+          store,
+          authScope ?? "github.com:unresolved",
           getGitHubViewerLogin
         ).then(
           (login) => ({ login, error: null }),
           (error: unknown) => ({ login: null, error: String(error) })
-        ),
+        )
+      );
+      const [authScope, viewerResult, sources] = await Promise.all([
+        authScopePromise,
+        viewerResultPromise,
         mapWithConcurrency(
           gitRepos,
           GITHUB_SOURCE_CONCURRENCY,
@@ -536,7 +532,11 @@ export function useGitHubWorkItemsLoadLifecycle({
       const viewerLoginError = viewerResult.error;
       const resolvedSources = sources
         .filter((source): source is GitHubRepoSource => Boolean(source))
-        .map((source) => ({ ...source, viewerLogin: viewerResult.login }));
+        .map((source) => ({
+          ...source,
+          viewerLogin: viewerResult.login,
+          authScope,
+        }));
       if (cancelled) return;
       if (!viewerResult.login) {
         permissionViewerRef.current = null;
@@ -602,7 +602,11 @@ export function useGitHubWorkItemsLoadLifecycle({
       });
       const [permissionResults, issueResults, prResults] = await Promise.all([
         mapWithConcurrency(sourcesToLoad, GITHUB_SOURCE_CONCURRENCY, (source) =>
-          loadRepoPermissions(source, viewerResult.login, permissionRequests)
+          loadRepoPermissions(
+            store,
+            source,
+            authScope ?? "github.com:unresolved"
+          )
         ),
         scope === "issue"
           ? mapWithConcurrency(
@@ -675,7 +679,6 @@ export function useGitHubWorkItemsLoadLifecycle({
     currentWorkstationValue,
     gitRepos,
     issueStates,
-    permissionRequests,
     prStates,
     refreshNonce,
     scope,

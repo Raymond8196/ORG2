@@ -446,8 +446,11 @@ export class MemberRuntimePushScheduler {
     this.capabilityUnconfirmedFailures = 0;
     this.capabilityRecheckAtMs = 0;
 
-    // The detection probe is machine-global: run it at most once per pass
-    // and share the result across orgs that are due for a re-probe.
+    // Machine-global collectors run at most once per pass and share their
+    // result across every due org: the agents probe, the ~1s CPU burst
+    // sample, the 35-day rollup scan, and the profile cache read are all
+    // org-independent. A multi-org member's catch-up pass previously paid
+    // each of these per org.
     let sharedAgentsProbe: Promise<MemberInstalledAgent[] | null> | null = null;
     const probeAgentsOnce = (): Promise<MemberInstalledAgent[] | null> => {
       if (!sharedAgentsProbe) {
@@ -455,6 +458,28 @@ export class MemberRuntimePushScheduler {
       }
       return sharedAgentsProbe;
     };
+    let sharedSample: ReturnType<
+      MemberRuntimeSchedulerDeps["getSample"]
+    > | null = null;
+    const sampleOnce: MemberRuntimeSchedulerDeps["getSample"] = (nowMs) => {
+      if (!sharedSample) sharedSample = this.deps.getSample(nowMs);
+      return sharedSample;
+    };
+    let sharedRollup: Promise<DailyRollupResult> | null = null;
+    const rollupOnce: MemberRuntimeSchedulerDeps["getDailyRollup"] = (
+      startMs,
+      endMs
+    ) => {
+      if (!sharedRollup)
+        sharedRollup = this.deps.getDailyRollup(startMs, endMs);
+      return sharedRollup;
+    };
+    let sharedProfile: Promise<BuilderProfileOverview> | null = null;
+    const profileOnce: MemberRuntimeSchedulerDeps["getProfileOverview"] =
+      () => {
+        if (!sharedProfile) sharedProfile = this.deps.getProfileOverview();
+        return sharedProfile;
+      };
 
     for (const org of dueOrgs) {
       if (this.generation !== generation) return;
@@ -463,7 +488,8 @@ export class MemberRuntimePushScheduler {
           fresh.accessToken,
           eligible.identityKey,
           org,
-          probeAgentsOnce
+          probeAgentsOnce,
+          { sampleOnce, rollupOnce, profileOnce }
         );
         this.orgBackoff.delete(org.orgId);
       } catch (error) {
@@ -561,7 +587,16 @@ export class MemberRuntimePushScheduler {
     accessToken: string,
     identityKey: string,
     org: Org2CloudOrg,
-    probeAgentsOnce: () => Promise<MemberInstalledAgent[] | null>
+    probeAgentsOnce: () => Promise<MemberInstalledAgent[] | null>,
+    shared: {
+      sampleOnce: MemberRuntimeSchedulerDeps["getSample"];
+      rollupOnce: MemberRuntimeSchedulerDeps["getDailyRollup"];
+      profileOnce: MemberRuntimeSchedulerDeps["getProfileOverview"];
+    } = {
+      sampleOnce: (nowMs) => this.deps.getSample(nowMs),
+      rollupOnce: (startMs, endMs) => this.deps.getDailyRollup(startMs, endMs),
+      profileOnce: () => this.deps.getProfileOverview(),
+    }
   ): Promise<void> {
     const state = readMemberRuntimePushState(identityKey, org.orgId);
     const nowMs = this.deps.now();
@@ -572,14 +607,14 @@ export class MemberRuntimePushScheduler {
     // Status: cached machine identity + fresh burst sample. Failures here
     // reject the tick (status is the heartbeat).
     const machine = await this.deps.getMachine();
-    const sample = await this.deps.getSample(nowMs);
+    const sample = await shared.sampleOnce(nowMs);
 
     // Usage: recompute the rolling UTC-day window, delta-push changed rows.
     // The same scan carries the lifetime census and bounded rolling-24h
     // snapshot for status.stats, so hourly sharing adds no second DB pass.
     const windowStartMs =
       utcDayFloorMs(nowMs) - (MEMBER_USAGE_ROLLUP_WINDOW_DAYS - 1) * UTC_DAY_MS;
-    const rollup = await this.deps.getDailyRollup(windowStartMs, nowMs);
+    const rollup = await shared.rollupOnce(windowStartMs, nowMs);
     const usagePlan = planUsageDaysPush(
       mapRollupRowsToMemberUsageDays(rollup.days),
       state.usageFingerprint,
@@ -593,7 +628,7 @@ export class MemberRuntimePushScheduler {
     let nextProfileFingerprint = state.profileFingerprint;
     if (!dropOptionalSections) {
       try {
-        const overview = await this.deps.getProfileOverview();
+        const overview = await shared.profileOnce();
         const profile = overview.profile;
         if (profile.code && profile.sessions > 0) {
           const fingerprint = builderProfileFingerprint(profile);

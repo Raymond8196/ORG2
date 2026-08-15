@@ -33,27 +33,33 @@ vi.mock("@src/components/IntegrationIcon", () => ({
     createElement("span", { "data-integration-icon": type }),
 }));
 
-vi.mock("@src/modules/shared/components/RichMarkdownEditor", () => ({
-  default: forwardRef(function MockRichMarkdownEditor(
+// The product renderer is lazy-loaded behind Suspense. These server-rendered
+// structure tests need a synchronous leaf so React 19 does not abort static
+// markup generation while the dynamic Markdown chunk is loading.
+vi.mock("@src/components/MarkDown", () => ({
+  default: ({ textContent }: { textContent: string }) =>
+    createElement("div", { "data-testid": "markdown" }, textContent),
+}));
+
+vi.mock("@src/modules/shared/components/MarkdownTextareaEditor", () => ({
+  default: forwardRef(function MockMarkdownTextareaEditor(
     {
       appearance,
       dataTestId,
       placeholder,
-      toolbarMode,
     }: {
       appearance?: string;
       dataTestId?: string;
       placeholder?: string;
-      toolbarMode?: string;
     },
     _ref
   ) {
     return createElement("div", {
-      className: "rich-markdown-editor",
+      className: "markdown-textarea-editor",
       "data-testid": dataTestId,
       "data-appearance": appearance,
       "data-placeholder": placeholder,
-      "data-toolbar-mode": toolbarMode,
+      "data-editor-kind": "write-preview",
     });
   }),
 }));
@@ -132,8 +138,8 @@ describe("IssueDetailExternalLinkButton", () => {
     expect(markup).not.toContain("example issues");
     expect(markup).toContain("reviewer");
     expect(markup).toContain('data-appearance="plain"');
-    expect(markup).toContain('data-toolbar-mode="inline"');
-    expect(markup).toContain("rich-markdown-editor");
+    expect(markup).toContain('data-editor-kind="write-preview"');
+    expect(markup).toContain("markdown-textarea-editor");
     expect(markup).not.toContain('data-testid="issue-comment-editor"');
     expect(markup).not.toContain(
       'data-testid="work-item-thread-secondary-navigation"'

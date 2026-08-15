@@ -348,16 +348,43 @@ pub fn run() {
 
     let builder = tauri::Builder::default();
 
+    // Keep this plugin first. On Windows and Linux the OS launches a second
+    // process for a custom-scheme URL; the single-instance plugin's
+    // `deep-link` feature forwards that argv URL to the already-running
+    // process before this callback runs. The frontend's app-lifetime
+    // `onOpenUrl` listener remains the single owner of invite routing.
+    #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
+    let builder = builder.plugin(tauri_plugin_single_instance::init(|app, argv, _cwd| {
+        // Never log argv: deep-link query/fragment values can contain invite
+        // codes, share capabilities, or OAuth tokens.
+        tracing::info!(
+            argument_count = argv.len(),
+            "external open request forwarded to the running app"
+        );
+
+        if let Some(main_window) = app.get_webview_window("main") {
+            if let Err(error) = main_window.unminimize() {
+                tracing::warn!(?error, "failed to restore the main window");
+            }
+            if let Err(error) = main_window.show() {
+                tracing::warn!(?error, "failed to show the main window");
+            }
+            if let Err(error) = main_window.set_focus() {
+                tracing::warn!(?error, "failed to focus the main window");
+            }
+        } else if let Err(error) = app_window::recreate_main_window(app) {
+            tracing::warn!(
+                %error,
+                "failed to recreate the main window for an external open request"
+            );
+        }
+    }));
+
     // E2E WebDriver automation — only when built with `--features webdriver` (debug/test only).
     #[cfg(all(debug_assertions, feature = "webdriver"))]
     let builder = builder.plugin(tauri_plugin_webdriver_automation::init());
 
     let builder = builder
-        // NOTE: Single-instance disabled for development - uncomment for production
-        // .plugin(tauri_plugin_single_instance::init(|_app, argv, _cwd| {
-        //   tracing::info!(?argv, "a new app instance was opened and the deep link event was already triggered");
-        //   // when defining deep link schemes at runtime, you must also check `argv` here
-        // }))
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_oauth::init())
         .plugin(tauri_plugin_fs::init())
@@ -373,6 +400,23 @@ pub fn run() {
 
     #[cfg(target_os = "macos")]
     let builder = builder.plugin(tauri_plugin_liquid_glass::init());
+
+    // Agent-generated React canvas artifacts: the frontend publishes compiled
+    // artifact documents into this bounded in-memory store
+    // (`canvas_artifact_publish`) and loads them back through the dedicated
+    // `canvas-artifact` scheme. Serving over a real scheme gives the artifact
+    // iframe its own origin and its own response CSP — the main webview policy
+    // has no `unsafe-eval`/`unsafe-inline`, and srcdoc frames inherit it, so
+    // generated code can only execute on a separate origin. The main CSP
+    // allows the frame via `frame-src` in `tauri.conf.json`.
+    let builder = builder
+        .manage(infrastructure::canvas_artifacts::CanvasArtifactStore::default())
+        .register_uri_scheme_protocol("canvas-artifact", |context, request| {
+            let store = context
+                .app_handle()
+                .state::<infrastructure::canvas_artifacts::CanvasArtifactStore>();
+            infrastructure::canvas_artifacts::protocol_response(&store, request.uri().path())
+        });
 
     let initial_webview_observation = perf_utils::begin_webview_ownership_observation("main");
     let application = builder
@@ -716,18 +760,19 @@ pub fn run() {
             agent_core::coordination::agent_org_watchdog::spawn(app.handle().clone());
             tracing::info!("[AgentOrgWatchdog] Agent Org watchdog started");
 
-            // Install the production `SubagentCompletionWakeHook` so a
-            // background subagent that finishes while its parent is idle
-            // resumes the parent's turn loop (which then consumes the result
-            // via the Background Jobs reminder). Without this, an idle parent
-            // never learns the worker completed. Mirrors Claude Code's
-            // task-notification → idle-queue-processor wake.
-            agent_core::tools::impls::orchestration::subagent_wake::install_subagent_completion_wake_hook(
-                agent_core::tools::impls::orchestration::subagent_wake::AppHandleSubagentCompletionWakeHook::new(
+            // Install the production `JobCompletionWakeHook` so a background
+            // job — subagent worker or backgrounded shell — that finishes
+            // while its owning session is idle resumes that session's turn
+            // loop (which then consumes the result via the Background Jobs
+            // reminder). Without this, an idle owner never learns the job
+            // completed. Mirrors Claude Code's task-notification →
+            // idle-queue-processor wake.
+            agent_core::tools::impls::orchestration::job_wake::install_job_completion_wake_hook(
+                agent_core::tools::impls::orchestration::job_wake::AppHandleJobCompletionWakeHook::new(
                     app.handle().clone(),
                 ),
             );
-            tracing::info!("[SubagentWake] Subagent completion wake hook installed");
+            tracing::info!("[JobWake] Job completion wake hook installed");
 
             let housekeeper_compaction_state = unified_state.clone();
             app.manage(unified_state);
@@ -739,6 +784,12 @@ pub fn run() {
             tracing::info!(
                 "[HousekeeperCompaction] opt-in MiniCPM context worker initialized"
             );
+
+            // Durable WorkItemRun outbox consumer. This starts before the
+            // legacy schedulers so every producer can converge on one
+            // crash-safe delivery path during migration.
+            agent_core::coordination::work_item_run_dispatcher::spawn(app.handle().clone());
+            tracing::info!("[work-run-dispatcher] started");
 
             // Spawn work item schedule executor
             {
@@ -817,7 +868,26 @@ pub fn run() {
                 let watermark_handle = app.handle().clone();
                 tauri::async_runtime::spawn(async move {
                     use tauri::Emitter;
-                    let mut last_seq: i64 = -1;
+                    const STAGE_BARRIER_CONSUMER: &str = "stage_barrier_dispatch_v1";
+                    let initial_seq = tokio::task::spawn_blocking(
+                        project_management::projects::io::read_pm_change_seq,
+                    )
+                    .await
+                    .ok()
+                    .and_then(Result::ok)
+                    .unwrap_or(0)
+                    .max(0);
+                    let mut last_seq = initial_seq;
+                    let mut stage_cursor = tokio::task::spawn_blocking(move || {
+                        project_management::work_run_service::initialize_consumer_cursor(
+                            STAGE_BARRIER_CONSUMER,
+                            initial_seq,
+                        )
+                    })
+                    .await
+                    .ok()
+                    .and_then(Result::ok)
+                    .unwrap_or(initial_seq);
                     loop {
                         tokio::time::sleep(std::time::Duration::from_secs(2)).await;
                         let seq = tokio::task::spawn_blocking(
@@ -827,11 +897,51 @@ pub fn run() {
                         .ok()
                         .and_then(Result::ok)
                         .unwrap_or(-1);
-                        if seq >= 0 && last_seq >= 0 && seq != last_seq {
+                        if seq >= 0 && seq != last_seq {
+                            // The same durable watermark covers WorkItemRun
+                            // outbox writes made by another desktop/CLI
+                            // process. Wake the dispatcher; its read-only
+                            // readiness probe avoids a writer lock for PM
+                            // changes unrelated to dispatch.
+                            agent_core::coordination::work_item_run_dispatcher::wake_from_watermark();
                             let _ = watermark_handle.emit(
                                 project_management::projects::events::DATA_CHANGED_EVENT,
                                 serde_json::json!({ "source": "pm-watermark" }),
                             );
+                        }
+                        if seq > stage_cursor {
+                            match agent_core::coordination::child_done_wake::process_audit_window(
+                                &watermark_handle,
+                                stage_cursor,
+                            )
+                            .await
+                            {
+                                Ok(_) => {
+                                    let through_seq = seq;
+                                    match tokio::task::spawn_blocking(move || {
+                                        project_management::work_run_service::advance_consumer_cursor(
+                                            STAGE_BARRIER_CONSUMER,
+                                            through_seq,
+                                        )
+                                    })
+                                    .await
+                                    {
+                                        Ok(Ok(cursor)) => stage_cursor = cursor,
+                                        Ok(Err(err)) => tracing::warn!(
+                                            "[child-done-wake] cursor advance failed: {}",
+                                            err
+                                        ),
+                                        Err(err) => tracing::warn!(
+                                            "[child-done-wake] cursor task failed: {}",
+                                            err
+                                        ),
+                                    }
+                                }
+                                Err(err) => tracing::warn!(
+                                    "[child-done-wake] audit window failed: {}",
+                                    err
+                                ),
+                            }
                         }
                         if seq >= 0 {
                             last_seq = seq;
@@ -858,6 +968,11 @@ pub fn run() {
                     );
                 },
             ));
+
+            // Child-done parent wake: when the last open
+            // sub-item settles, note the parent's Discussion and resume its
+            // linked session with the barrier summary.
+            agent_core::coordination::child_done_wake::register(app.handle().clone());
 
             // Restore previously-enabled channels (e.g. feishu was toggled on last run)
             let app_handle_for_restore = app.handle().clone();
@@ -1177,6 +1292,9 @@ pub fn run() {
                 app_handle
                     .state::<::terminal::pty_commands::pty::PtyState>()
                     .shutdown_kill_all();
+                // Terminate benchmark evaluator subprocesses still running so
+                // they don't outlive the app as orphans.
+                benchmark::terminate_running_evaluators_sync();
             }
             _ => {}
         }

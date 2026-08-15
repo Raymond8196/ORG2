@@ -13,6 +13,8 @@
     "browser": "浏览器",
     "editor": "编辑器",
     "environment": "环境",
+    "sessionEnvironment": "会话环境",
+    "localEnvironment": "本地环境",
     "workspace": "工作区",
     "codeEditor": "代码编辑器",
     "databaseManager": "数据库管理器",
@@ -788,6 +790,7 @@
         "inviteRevoked": "该邀请已被撤销。",
         "inviteExpired": "该邀请已过期。",
         "inviteExhausted": "该邀请的使用次数已用完。",
+        "alreadyMember": "你已经是该组织的成员。",
         "network": "无法连接云服务。请检查网络后重试。"
       }
     },

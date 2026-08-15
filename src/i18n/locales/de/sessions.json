@@ -846,7 +846,10 @@
       "insert": "Einfügen"
     },
     "compactArgHint": "<optionaler Fokus für die Zusammenfassung>",
-    "compactCommandDescription": "Älteren Kontext zusammenfassen, um Platz freizugeben. Optional: /compact <Fokus für die Zusammenfassung>"
+    "compactCommandDescription": "Älteren Kontext zusammenfassen, um Platz freizugeben. Optional: /compact <Fokus für die Zusammenfassung>",
+    "canvasCommandDescription": "Eine neue interaktive Canvas erstellen. Optional: /canvas <was erstellt werden soll>",
+    "canvasArgHint": "was erstellt werden soll",
+    "newCanvasAction": "Neue Canvas"
   },
   "listPanel": {
     "showingOf": "{{filtered}} von {{total}} angezeigt",
@@ -891,6 +894,9 @@
       },
       "addApiKey": {
         "title": "API key hinzufügen"
+      },
+      "showRuntime": {
+        "title": "Laufzeit anzeigen"
       },
       "installLatestUpdate": {
         "title": "Neueste Aktualisierung installieren"
@@ -1185,14 +1191,14 @@
       "manageIssues": {
         "searchPlaceholder": "GitHub search, e.g. is:issue is:open label:bug",
         "createIssueTrigger": "Issue",
-        "newIssueTitle": "New GitHub Issue",
-        "issueTitlePlaceholder": "Issue title",
-        "issueBodyPlaceholder": "Description",
-        "createIssue": "Create issue",
-        "creatingIssue": "Creating…",
+        "newIssueTitle": "GitHub issue erstellen",
+        "issueTitlePlaceholder": "Issue-Titel",
+        "issueBodyPlaceholder": "Beschreibung",
+        "createIssue": "Issue erstellen",
+        "creatingIssue": "Wird erstellt…",
         "addToChat": "Add",
         "repositoryLabel": "Repository",
-        "createIssueFailed": "Failed to create issue",
+        "createIssueFailed": "Issue konnte nicht erstellt werden",
         "sourceIssues": "Issues",
         "sourcePrs": "PRs",
         "stateOpen": "Open",
@@ -2006,6 +2012,18 @@
     "renderInlineCanvasUrlDone": "render URL canvas",
     "renderInlineCanvasUrlFailed": "Fehler beim render URL canvas",
     "renderInlineCanvasUrlRunning": "render URL canvas…",
+    "reviseInlineCanvasRunning": "Canvas wird überarbeitet",
+    "reviseInlineCanvasDone": "Canvas überarbeitet",
+    "reviseInlineCanvasFailed": "Canvas-Überarbeitung fehlgeschlagen",
+    "reviseInlineCanvasHtmlRunning": "HTML-Canvas wird überarbeitet",
+    "reviseInlineCanvasHtmlDone": "HTML-Canvas überarbeitet",
+    "reviseInlineCanvasHtmlFailed": "Überarbeitung des HTML-Canvas fehlgeschlagen",
+    "reviseInlineCanvasUrlRunning": "URL-Canvas wird überarbeitet",
+    "reviseInlineCanvasUrlDone": "URL-Canvas überarbeitet",
+    "reviseInlineCanvasUrlFailed": "Überarbeitung des URL-Canvas fehlgeschlagen",
+    "reviseInlineCanvasA2uiRunning": "A2UI-Canvas wird überarbeitet",
+    "reviseInlineCanvasA2uiDone": "A2UI-Canvas überarbeitet",
+    "reviseInlineCanvasA2uiFailed": "Überarbeitung des A2UI-Canvas fehlgeschlagen",
     "runShellRunDone": "run command",
     "runShellRunFailed": "Fehler beim run command",
     "runShellRunRunning": "run command…",
@@ -2069,6 +2087,10 @@
     },
     "searchModels": "Modelle suchen...",
     "newItem": "Neues Element",
+    "solveWorkItem": "Arbeitselement lösen",
+    "launchpadQuestion": "Was möchtest du mit",
+    "launchpadQuestionSuffix": "erstellen?",
+    "manualLaunchpadQuestion": "Was möchtest du erstellen?",
     "start": "Starten",
     "assign": "Zuweisen",
     "send": "Senden",

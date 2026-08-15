@@ -30,30 +30,24 @@ vi.mock("@src/components/Avatar", () => ({
     createElement("img", { src, alt: "viewer" }),
 }));
 
-vi.mock("@src/modules/shared/components/RichMarkdownEditor", () => ({
+vi.mock("@src/modules/shared/components/MarkdownTextareaEditor", () => ({
   default: ({
     value,
     onChange,
     editable,
     dataTestId,
-    toolbarMode,
-    toolbarClassName,
     minHeight,
   }: {
     value: string;
     onChange?: (markdown: string) => void;
     editable?: boolean;
     dataTestId?: string;
-    toolbarMode?: string;
-    toolbarClassName?: string;
     minHeight?: number;
   }) =>
     createElement("textarea", {
       value,
       readOnly: !editable,
       "data-testid": dataTestId,
-      "data-toolbar-mode": toolbarMode,
-      "data-toolbar-class-name": toolbarClassName,
       "data-min-height": minHeight,
       onChange: (event: React.ChangeEvent<HTMLTextAreaElement>) =>
         onChange?.(event.target.value),
@@ -133,23 +127,31 @@ describe("GitHubIssueComposer", () => {
     const editor = container.querySelector<HTMLTextAreaElement>(
       "[data-testid='github-issue-comment-editor']"
     );
-    expect(editor?.dataset.toolbarMode).toBe("inline");
-    expect(editor?.dataset.toolbarClassName).toBe(
-      "!min-h-0 !border-b-0 !pb-0.5 [&_svg]:size-3.5"
-    );
+    expect(editor).not.toBeNull();
     expect(editor?.dataset.minHeight).toBe("100");
     const levelActions = container.querySelector(
       "[data-testid='github-issue-level-actions']"
+    );
+    const composer = container.querySelector(
+      "[data-testid='github-issue-inline-composer']"
     );
     const input = container.querySelector(
       "[data-testid='github-issue-comment-input']"
     );
     expect(levelActions?.nextElementSibling).toBe(input);
+    expect(composer?.className).toContain("gap-1.5");
     expect(input?.contains(levelActions as Node)).toBe(false);
     expect(levelActions?.className).not.toContain("border-");
     expect(
       input?.querySelector("[data-testid='github-issue-comment-submit']")
     ).not.toBeNull();
+    expect(input?.className).toContain("px-1.5");
+    expect(input?.className).toContain("!pt-1.5");
+    expect(input?.className).toContain("pb-1.5");
+    expect(
+      input?.querySelector("[data-testid='github-issue-comment-submit']")
+        ?.parentElement?.parentElement?.className
+    ).toContain("px-1");
     expect(
       input?.querySelector("[data-testid='github-issue-comment-submit']")
         ?.parentElement?.className

@@ -4,8 +4,8 @@
  * Used by both ChatPanel InputArea and SessionCreator EditorArea
  * to ensure identical layout: [+ button | pills] ---- [context | submit]
  *
- * Chat panel can pass `editorSlot` + `inlineLayout` for a compact single row:
- * [ + ] [ editor … ] [ pills ] [ submit ].
+ * When an editor slot is present, the editor uses the full-width row above
+ * the shared toolbar controls.
  */
 import { Plus } from "lucide-react";
 import React, { memo } from "react";
@@ -21,9 +21,9 @@ import AddActionsDropdown from "@src/features/SessionCreator/components/AddActio
 
 export interface ComposerBarProps {
   /** + button: open add-content selector (@-mentions, files) */
-  onAddContent: () => void;
+  onAddContent?: () => void;
   /** + button: open upload picker */
-  onUpload: () => void;
+  onUpload?: () => void;
   /** + button: open Skills & Tools slash menu */
   onOpenSkillsTools?: () => void;
   /** Direction the + menu opens */
@@ -38,28 +38,23 @@ export interface ComposerBarProps {
   repoPath?: string;
   /** Submit / launch button on the far right */
   submitButton?: React.ReactNode;
-  /**
-   * Flex gap between toolbar controls on each side.
-   * Session creator uses spacing; chat input keeps rows tight.
-   * @default true
-   */
-  toolbarItemGap?: boolean;
   /** Optional bottom padding for the toolbar row inside the composer shell. */
   bottomPaddingClassName?: string;
-  /**
-   * When set with `editorSlot`, render the editor in one horizontal row with
-   * the toolbar (compact chat capsule).
-   */
+  /** Optional editor field above the toolbar. */
+  editorSlot?: React.ReactNode;
+  /** Render the editor and toolbar controls in one horizontal row. */
   inlineLayout?: boolean;
   /**
-   * Optional editor field above the toolbar (`inlineLayout` false) or between
-   * left (+) and right (pills/submit) clusters (`inlineLayout` true).
+   * Keep the adaptive grid mounted while `inlineLayout` changes so editor
+   * focus, selection, and document state survive compact-to-stacked moves.
    */
-  editorSlot?: React.ReactNode;
+  adaptiveEditorLayout?: boolean;
   /** Hide the default add-content button while preserving the shared layout. */
   hideAddButton?: boolean;
+  /** Places add/tools/pills beside submit, leaving only the prefix on the left. */
+  secondaryControlsPosition?: "left" | "right";
   /**
-   * When false, omits ContextInfoButton for compact rows.
+   * When false, omits ContextInfoButton.
    * @default true
    */
   showContextInfo?: boolean;
@@ -80,44 +75,43 @@ const ComposerBar: React.FC<ComposerBarProps> = memo(
     pills,
     repoPath,
     submitButton,
-    toolbarItemGap = true,
     bottomPaddingClassName = "",
-    inlineLayout = false,
     editorSlot,
+    inlineLayout = false,
+    adaptiveEditorLayout = false,
     hideAddButton = false,
+    secondaryControlsPosition = "left",
     showContextInfo = true,
   }) => {
-    const rowClass =
-      toolbarItemGap === false
-        ? "flex items-center gap-0.5"
-        : "flex items-center gap-1";
+    const rowClass = "flex min-w-0 items-center gap-0.5";
 
-    const addButton = hideAddButton ? null : onOpenSkillsTools ? (
-      <button
-        type="button"
-        onClick={onOpenSkillsTools}
-        onMouseDown={(e) => e.preventDefault()}
-        className={[
-          `flex items-center justify-center rounded-full text-text-1 transition-colors duration-200 focus:outline-none ${PILL_CONTROL_IDLE_SURFACE_CLASS}`,
-          INPUT_AREA_BUTTONS.iconButtonSizeClass,
-        ].join(" ")}
-        aria-label="Skills & Tools"
-        data-composer-plus-menu-trigger="true"
-        data-testid="composer-skills-tools-button"
-      >
-        <Plus
-          size={INPUT_AREA_BUTTONS.iconSize}
-          strokeWidth={1.75}
-          className="text-text-1"
+    const addButton =
+      hideAddButton || !onAddContent || !onUpload ? null : onOpenSkillsTools ? (
+        <button
+          type="button"
+          onClick={onOpenSkillsTools}
+          onMouseDown={(e) => e.preventDefault()}
+          className={[
+            `flex items-center justify-center rounded-full text-text-1 transition-colors duration-200 focus:outline-none ${PILL_CONTROL_IDLE_SURFACE_CLASS}`,
+            INPUT_AREA_BUTTONS.iconButtonSizeClass,
+          ].join(" ")}
+          aria-label="Skills & Tools"
+          data-composer-plus-menu-trigger="true"
+          data-testid="composer-skills-tools-button"
+        >
+          <Plus
+            size={INPUT_AREA_BUTTONS.iconSize}
+            strokeWidth={1.75}
+            className="text-text-1"
+          />
+        </button>
+      ) : (
+        <AddActionsDropdown
+          onAddContent={onAddContent}
+          onUpload={onUpload}
+          dropdownDirection={dropdownDirection}
         />
-      </button>
-    ) : (
-      <AddActionsDropdown
-        onAddContent={onAddContent}
-        onUpload={onUpload}
-        dropdownDirection={dropdownDirection}
-      />
-    );
+      );
 
     const toolbarRow = (
       <div
@@ -126,71 +120,29 @@ const ComposerBar: React.FC<ComposerBarProps> = memo(
       >
         <div className={rowClass}>
           {leftPrefix}
-          {addButton}
-          {leftTools}
-          {pills}
+          {secondaryControlsPosition === "left" ? (
+            <>
+              {addButton}
+              {leftTools}
+              {pills}
+            </>
+          ) : null}
         </div>
         <div className={rowClass}>
+          {secondaryControlsPosition === "right" ? (
+            <>
+              {addButton}
+              {leftTools}
+              {pills}
+            </>
+          ) : null}
           {showContextInfo && <ContextInfoButton repoPath={repoPath} />}
           {submitButton}
         </div>
       </div>
     );
 
-    // When an editorSlot is provided we keep ONE stable DOM layout for both
-    // the inline pill row and the full stacked composer. Switching
-    // layouts is pure CSS (grid template areas) so the ComposerInput editor is never
-    // unmounted when `inlineLayout` flips — preserving focus, selection, and
-    // document state across the transition.
-    //
-    // Four children, always in the same order:
-    //   0. leftCluster  (leftPrefix + add button)
-    //   1. editorWrap   (the ComposerInput)
-    //   2. pillCluster  (mode/model/status pills)
-    //   3. rightCluster (context + submit)
-    //
-    // Inline layout: single row, editor stretches between controls.
-    // Stacked layout: editor on top spanning full width, controls below.
-    if (editorSlot != null) {
-      const leftCluster = (
-        <div className={`${rowClass} shrink-0`} style={{ gridArea: "left" }}>
-          {leftPrefix}
-          {addButton}
-          {leftTools}
-        </div>
-      );
-      const editorWrap = (
-        <div
-          data-editor-slot="true"
-          className="relative flex min-h-0 min-w-0 items-stretch self-stretch"
-          style={{ gridArea: "editor" }}
-        >
-          {editorSlot}
-        </div>
-      );
-      const pillCluster = (
-        <div
-          className="flex min-w-0 shrink-0 items-center gap-1"
-          style={{ gridArea: "pills" }}
-        >
-          {pills}
-        </div>
-      );
-      const rightCluster = (
-        <div
-          className={`flex min-w-0 shrink items-center justify-end ${toolbarItemGap === false ? "gap-0.5" : "gap-1"}`}
-          style={{ gridArea: "right" }}
-        >
-          {showContextInfo && (
-            <ContextInfoButton repoPath={repoPath} variant="corner" compact />
-          )}
-          {submitButton}
-        </div>
-      );
-
-      // columnGap: 6px is intentionally larger than the Tailwind gap-1 (4px)
-      // used inside each cluster — the inter-cluster spacing should be wider
-      // than the intra-cluster icon-to-icon spacing.
+    if (editorSlot != null && (adaptiveEditorLayout || inlineLayout)) {
       const gridStyle: React.CSSProperties = inlineLayout
         ? {
             display: "grid",
@@ -212,10 +164,47 @@ const ComposerBar: React.FC<ComposerBarProps> = memo(
           className={`w-full text-text-2 ${bottomPaddingClassName}`.trim()}
           style={gridStyle}
         >
-          {leftCluster}
-          {editorWrap}
-          {pillCluster}
-          {rightCluster}
+          <div className={`${rowClass} shrink-0`} style={{ gridArea: "left" }}>
+            {leftPrefix}
+            {addButton}
+            {leftTools}
+          </div>
+          <div
+            data-editor-slot="true"
+            className="relative flex min-h-0 min-w-0 items-stretch self-stretch"
+            style={{ gridArea: "editor" }}
+          >
+            {editorSlot}
+          </div>
+          <div
+            className="flex min-w-0 shrink-0 items-center gap-1"
+            style={{ gridArea: "pills" }}
+          >
+            {pills}
+          </div>
+          <div
+            className={`${rowClass} min-w-0 shrink justify-end`}
+            style={{ gridArea: "right" }}
+          >
+            {showContextInfo && (
+              <ContextInfoButton repoPath={repoPath} variant="corner" compact />
+            )}
+            {submitButton}
+          </div>
+        </div>
+      );
+    }
+
+    if (editorSlot != null) {
+      return (
+        <div className="flex w-full flex-col gap-2">
+          <div
+            data-editor-slot="true"
+            className="relative flex min-h-0 min-w-0 items-stretch self-stretch"
+          >
+            {editorSlot}
+          </div>
+          {toolbarRow}
         </div>
       );
     }

@@ -13,6 +13,8 @@
     "browser": "Browser",
     "editor": "Editor",
     "environment": "Environment",
+    "sessionEnvironment": "Session Env",
+    "localEnvironment": "Local env",
     "workspace": "Workspace",
     "codeEditor": "Code Editor",
     "databaseManager": "Database Manager",
@@ -725,6 +727,7 @@
         "inviteRevoked": "This invite has been revoked.",
         "inviteExpired": "This invite has expired.",
         "inviteExhausted": "This invite has no uses left.",
+        "alreadyMember": "You're already a member of this organization.",
         "network": "Couldn't connect to the cloud service. Check your network and try again."
       }
     },

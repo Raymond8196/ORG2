@@ -48,6 +48,7 @@ mod resume_state_tests {
                 project_slug: None,
                 work_item_id: None,
                 agent_role: None,
+                product_mode: None,
             },
         )
         .expect("create test CLI session");
@@ -422,6 +423,26 @@ mod resume_state_tests {
             get_cli_session_id_for_account(session_id, Some("account-b"))
                 .expect("load account B mapped id"),
             None
+        );
+    }
+
+    #[test]
+    fn native_transcript_ledger_walks_forks_newest_first() {
+        let _sandbox = test_env::sandbox();
+        let session_id = "cli-native-ledger-order";
+        create_test_session(session_id, "account-a");
+        update_cli_session_id(session_id, "fork-1").expect("bind first fork");
+        update_cli_session_id(session_id, "fork-2").expect("bind second fork");
+        update_cli_session_id(session_id, "fork-3").expect("bind third fork");
+
+        let ids =
+            native_transcript_ids_newest_first(session_id, "claude_code").expect("load ledger");
+        assert_eq!(ids, vec!["fork-3", "fork-2", "fork-1"]);
+        assert_eq!(
+            latest_native_transcript_id(session_id, "claude_code")
+                .expect("load latest")
+                .as_deref(),
+            ids.first().map(String::as_str)
         );
     }
 

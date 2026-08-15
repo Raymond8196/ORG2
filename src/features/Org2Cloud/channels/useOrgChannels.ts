@@ -18,6 +18,7 @@ import {
 } from "@src/features/Org2Cloud/org2CloudAuthAtom";
 import { getCloudCapabilities } from "@src/features/Org2Cloud/org2CloudCapabilities";
 import { endpointForOrg } from "@src/features/Org2Cloud/org2CloudOrgEndpointRouter";
+import { FOCUS_REFRESH_COOLDOWN_MS } from "@src/features/Org2Cloud/org2CloudRealtimeRecovery";
 import { createLogger } from "@src/hooks/logger";
 import { onWindowFocusRegained } from "@src/util/core/windowFocus";
 
@@ -217,10 +218,21 @@ export function useOrgChannels(
   // without becoming document-hidden. Refetch on either focus regain or the
   // hidden → visible edge so its authoritative list converges even if the
   // reconnect signal is delayed. Identical concurrent consumers remain
-  // coalesced by the identity-scoped single-flight map above.
+  // coalesced by the identity-scoped single-flight map above. Flap-cooled:
+  // the refetch is a full force-fresh re-list.
+  const lastFocusRefreshAtRef = useRef(0);
   useEffect(() => {
     if (!authIdentityKey) return;
-    return onWindowFocusRegained(refresh);
+    return onWindowFocusRegained(() => {
+      if (
+        Date.now() - lastFocusRefreshAtRef.current <
+        FOCUS_REFRESH_COOLDOWN_MS
+      ) {
+        return;
+      }
+      lastFocusRefreshAtRef.current = Date.now();
+      refresh();
+    });
   }, [authIdentityKey, refresh]);
 
   const visibleChannels =

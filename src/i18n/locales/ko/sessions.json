@@ -847,7 +847,10 @@
       "insert": "삽입"
     },
     "compactArgHint": "<선택: 요약의 초점>",
-    "compactCommandDescription": "이전 컨텍스트를 요약해 공간을 확보합니다. 선택: /compact <요약의 초점>"
+    "compactCommandDescription": "이전 컨텍스트를 요약해 공간을 확보합니다. 선택: /compact <요약의 초점>",
+    "canvasCommandDescription": "새로운 대화형 Canvas를 만듭니다. 선택: /canvas <만들 내용>",
+    "canvasArgHint": "만들 내용",
+    "newCanvasAction": "새 Canvas"
   },
   "listPanel": {
     "showingOf": "{{total}}개 중 {{filtered}}개 표시",
@@ -892,6 +895,9 @@
       },
       "addApiKey": {
         "title": "API 키 추가"
+      },
+      "showRuntime": {
+        "title": "런타임 보기"
       },
       "installLatestUpdate": {
         "title": "최신 업데이트 설치"
@@ -1186,14 +1192,14 @@
       "manageIssues": {
         "searchPlaceholder": "GitHub search, e.g. is:issue is:open label:bug",
         "createIssueTrigger": "Issue",
-        "newIssueTitle": "New GitHub Issue",
-        "issueTitlePlaceholder": "Issue title",
-        "issueBodyPlaceholder": "Description",
-        "createIssue": "Create issue",
-        "creatingIssue": "Creating…",
+        "newIssueTitle": "GitHub issue 만들기",
+        "issueTitlePlaceholder": "issue 제목",
+        "issueBodyPlaceholder": "설명",
+        "createIssue": "issue 만들기",
+        "creatingIssue": "만드는 중…",
         "addToChat": "Add",
-        "repositoryLabel": "Repository",
-        "createIssueFailed": "Failed to create issue",
+        "repositoryLabel": "리포지토리",
+        "createIssueFailed": "issue를 만들지 못했습니다",
         "sourceIssues": "Issues",
         "sourcePrs": "PRs",
         "stateOpen": "Open",
@@ -2007,6 +2013,18 @@
     "renderInlineCanvasUrlDone": "render URL canvas 완료",
     "renderInlineCanvasUrlFailed": "render URL canvas 실패",
     "renderInlineCanvasUrlRunning": "render URL canvas 중",
+    "reviseInlineCanvasRunning": "Canvas 수정 중",
+    "reviseInlineCanvasDone": "Canvas 수정 완료",
+    "reviseInlineCanvasFailed": "Canvas 수정 실패",
+    "reviseInlineCanvasHtmlRunning": "HTML Canvas 수정 중",
+    "reviseInlineCanvasHtmlDone": "HTML Canvas 수정 완료",
+    "reviseInlineCanvasHtmlFailed": "HTML Canvas 수정 실패",
+    "reviseInlineCanvasUrlRunning": "URL Canvas 수정 중",
+    "reviseInlineCanvasUrlDone": "URL Canvas 수정 완료",
+    "reviseInlineCanvasUrlFailed": "URL Canvas 수정 실패",
+    "reviseInlineCanvasA2uiRunning": "A2UI Canvas 수정 중",
+    "reviseInlineCanvasA2uiDone": "A2UI Canvas 수정 완료",
+    "reviseInlineCanvasA2uiFailed": "A2UI Canvas 수정 실패",
     "runShellRunDone": "명령 실행 완료",
     "runShellRunFailed": "명령 실행 실패",
     "runShellRunRunning": "명령 실행 중",
@@ -2070,6 +2088,10 @@
     },
     "searchModels": "모델 검색...",
     "newItem": "새 항목",
+    "solveWorkItem": "작업 항목 해결",
+    "launchpadQuestion": "",
+    "launchpadQuestionSuffix": "와 함께 무엇을 만들고 싶으신가요?",
+    "manualLaunchpadQuestion": "무엇을 만들고 싶으신가요?",
     "start": "시작",
     "assign": "할당",
     "send": "보내기",

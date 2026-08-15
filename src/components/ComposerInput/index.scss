@@ -3,7 +3,6 @@
  *
  * Mirrors the ComposerInput layout so the swap is visually identical:
  *  - same padding, line-height, caret color
- *  - same compact / expanded chat-input behavior
  *  - same placeholder styling (driven by `[data-placeholder]` on the host)
  *  - same scrollbar treatment
  *
@@ -128,7 +127,6 @@
   color: var(--color-text-3);
   font-size: 14px;
 }
-
 // ===== Chat composer (compact / expanded) =====
 //
 // `chat-input-editor` is the marker the InputEditor adds when the composer
@@ -150,6 +148,20 @@
     height: auto;
     min-height: 60px;
     white-space: pre-wrap;
+  }
+}
+
+// A contextual reference is owned by the surrounding surface rather than the
+// editable document, but visually shares the first line with the editor. Drop
+// the ordinary leading inset so the placeholder/caret follows the shared
+// editor pill at the same spacing as a real inline ComposerPill.
+.composer-input.chat-input-editor-leading:not(.chat-input-compact) {
+  .composer-input-content {
+    padding-left: 0;
+
+    &.is-empty::before {
+      left: 0;
+    }
   }
 }
 

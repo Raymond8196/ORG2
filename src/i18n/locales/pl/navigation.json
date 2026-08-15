@@ -13,6 +13,8 @@
     "browser": "Przeglądarka",
     "editor": "Edytor",
     "environment": "Środowisko",
+    "sessionEnvironment": "Środowisko sesji",
+    "localEnvironment": "Środowisko lokalne",
     "workspace": "Workspace",
     "codeEditor": "Edytor kodu",
     "databaseManager": "Menedżer bazy danych",
@@ -697,6 +699,7 @@
         "inviteRevoked": "To zaproszenie zostało odwołane.",
         "inviteExpired": "To zaproszenie wygasło.",
         "inviteExhausted": "To zaproszenie nie ma już dostępnych użyć.",
+        "alreadyMember": "Już należysz do tej organizacji.",
         "network": "Nie udało się połączyć z usługą chmurową. Sprawdź sieć i spróbuj ponownie."
       }
     },

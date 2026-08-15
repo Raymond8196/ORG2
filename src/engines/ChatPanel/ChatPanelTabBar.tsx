@@ -36,6 +36,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { useAtomValue, useSetAtom } from "jotai";
 import {
+  Box,
   BriefcaseBusiness,
   CircleDot,
   Columns3,
@@ -45,6 +46,7 @@ import {
   Inbox,
   Info,
   LayoutGrid,
+  ListChecks,
   ListTodo,
   Lock,
   MessageSquarePlus,
@@ -70,7 +72,11 @@ import {
   DROPDOWN_WIDTHS,
 } from "@src/components/Dropdown/tokens";
 import IntegrationIcon from "@src/components/IntegrationIcon";
+import PrHoverCard, { type PrHoverCardData } from "@src/components/PrHoverCard";
 import SessionHoverCard from "@src/components/SessionHoverCard";
+import WorkItemHoverCard, {
+  type WorkItemHoverCardData,
+} from "@src/components/WorkItemHoverCard";
 import { SURFACE_TOKENS } from "@src/config/surfaceTokens";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
 import { TERMINAL_AGENT_STATUS } from "@src/engines/TerminalCore/types";
@@ -105,6 +111,10 @@ import {
 import { terminalSessionsAtom } from "@src/store/chatPanel/chatPanelTerminalAtom";
 import { sessionByIdAtom } from "@src/store/session";
 import { moveSessionTabAtom } from "@src/store/session/sessionTabPlacementAtom";
+import {
+  CHAT_PANEL_CREATE_TARGET,
+  chatPanelCreateTargetAtom,
+} from "@src/store/ui/chatPanelAtom";
 import { WORK_MANAGEMENT_SECTION } from "@src/store/workstation";
 import { isMacOS } from "@src/util/platform/tauri";
 
@@ -137,6 +147,83 @@ interface TabPillProps {
   onContextMenu: (event: React.MouseEvent, id: string) => void;
 }
 
+interface TabPillHoverCardProps {
+  tab: ChatPanelTab;
+  children: React.ReactElement;
+}
+
+function getWorkItemHoverCardData(
+  selection: NonNullable<ChatPanelTab["workItem"]>
+): WorkItemHoverCardData {
+  const { workItem } = selection;
+  return {
+    id: workItem.session_id,
+    title: workItem.name,
+    status: workItem.workItemStatus ?? workItem.status,
+    priority: workItem.priority ?? "none",
+    projectName: selection.projectName,
+    orgName: selection.orgName ?? selection.sourceProject?.orgName,
+    source: "local",
+    assignee: workItem.assignee,
+    labels: workItem.labels,
+    createdAt: workItem.created_time,
+    updatedAt: workItem.updated_time,
+  };
+}
+
+function getPrHoverCardData(
+  detail: NonNullable<ChatPanelTab["githubPr"]>
+): PrHoverCardData {
+  const isDraft = detail.prStatus === "draft";
+  return {
+    number: detail.prNumber,
+    url: detail.prUrl,
+    title: detail.prTitle,
+    state: isDraft ? "open" : detail.prStatus,
+    head_branch: detail.headBranch,
+    base_branch: detail.baseBranch,
+    draft: isDraft,
+    additions: detail.additions,
+    deletions: detail.deletions,
+    updated_at: detail.updatedAt,
+  };
+}
+
+/** Keep entity-preview selection in one place as new tab types are added. */
+const TabPillHoverCard: React.FC<TabPillHoverCardProps> = ({
+  tab,
+  children,
+}) => {
+  if (tab.type === "session" && tab.sessionId) {
+    return (
+      <SessionHoverCard sessionId={tab.sessionId} position="bottom-start">
+        {children}
+      </SessionHoverCard>
+    );
+  }
+  if (tab.type === "work-item" && tab.workItem) {
+    return (
+      <WorkItemHoverCard
+        workItem={getWorkItemHoverCardData(tab.workItem)}
+        position="bottom-start"
+      >
+        {children}
+      </WorkItemHoverCard>
+    );
+  }
+  if (tab.type === "github-pr" && tab.githubPr) {
+    return (
+      <PrHoverCard
+        pr={getPrHoverCardData(tab.githubPr)}
+        position="bottom-start"
+      >
+        {children}
+      </PrHoverCard>
+    );
+  }
+  return children;
+};
+
 const TabPill = memo(function TabPill({
   tab,
   isActive,
@@ -145,6 +232,7 @@ const TabPill = memo(function TabPill({
   onContextMenu,
 }: TabPillProps) {
   const { t } = useTranslation();
+  const createTarget = useAtomValue(chatPanelCreateTargetAtom);
   const [hovered, setHovered] = useState(false);
   const showCloseSlot = hovered;
   const {
@@ -187,8 +275,8 @@ const TabPill = memo(function TabPill({
       : undefined;
   const agentStatus = terminalSession?.agentStatus;
 
-  const displayTitle = resolveChatPanelTabDisplayTitle(tab, session, {
-    launchpad: t("navigation:routes.launchpad"),
+  const defaultDisplayTitle = resolveChatPanelTabDisplayTitle(tab, session, {
+    newSession: t("sessions:chat.startPage.newSession.title"),
     runtime: t("sessions:chat.startPage.tabs.runtime"),
     organization: t("navigation:collaboration.manageOrg"),
     teamInbox: t("navigation:labels.inbox"),
@@ -199,6 +287,20 @@ const TabPill = memo(function TabPill({
     },
     sessionFallback: t("chat.defaultTitle"),
   });
+  const displayTitle =
+    tab.type !== "start-page"
+      ? defaultDisplayTitle
+      : createTarget === CHAT_PANEL_CREATE_TARGET.PROJECT
+        ? t("sessions:creator.createTarget.project")
+        : createTarget === CHAT_PANEL_CREATE_TARGET.WORK_ITEM
+          ? t("sessions:creator.createTarget.workItem")
+          : createTarget === CHAT_PANEL_CREATE_TARGET.GITHUB_ISSUES_PROJECT
+            ? t("projects:githubIssuesImport.createTarget")
+            : createTarget === CHAT_PANEL_CREATE_TARGET.COLLAB_ORG
+              ? t("navigation:collaboration.addOrg")
+              : createTarget === CHAT_PANEL_CREATE_TARGET.MANAGE_AGENTS
+                ? t("sessions:creator.createTarget.manageAgents")
+                : defaultDisplayTitle;
 
   const iconColorClass = isActive ? "text-primary-6" : "text-text-2";
   const isGitHubIssueTab =
@@ -217,13 +319,41 @@ const TabPill = memo(function TabPill({
       />
     );
   } else if (tab.type === "start-page") {
-    icon = (
-      <LayoutGrid
-        size={16}
-        strokeWidth={1.75}
-        className={`shrink-0 ${iconColorClass}`}
-      />
-    );
+    if (createTarget === CHAT_PANEL_CREATE_TARGET.PROJECT) {
+      icon = (
+        <Box
+          size={16}
+          strokeWidth={1.75}
+          className={`shrink-0 ${iconColorClass}`}
+        />
+      );
+    } else if (createTarget === CHAT_PANEL_CREATE_TARGET.WORK_ITEM) {
+      icon = (
+        <ListChecks
+          size={16}
+          strokeWidth={1.75}
+          className={`shrink-0 ${iconColorClass}`}
+        />
+      );
+    } else if (
+      createTarget === CHAT_PANEL_CREATE_TARGET.GITHUB_ISSUES_PROJECT
+    ) {
+      icon = (
+        <IntegrationIcon
+          type={STORY_SYNC_ADAPTER.GITHUB}
+          size={16}
+          className={`shrink-0 ${iconColorClass}`}
+        />
+      );
+    } else {
+      icon = (
+        <LayoutGrid
+          size={16}
+          strokeWidth={1.75}
+          className={`shrink-0 ${iconColorClass}`}
+        />
+      );
+    }
   } else if (tab.type === "runtime") {
     icon = (
       <Gauge
@@ -314,6 +444,22 @@ const TabPill = memo(function TabPill({
         className={`shrink-0 ${iconColorClass}`}
       />
     );
+  } else if (tab.type === "project") {
+    icon = (
+      <Box
+        size={16}
+        strokeWidth={1.75}
+        className={`shrink-0 ${iconColorClass}`}
+      />
+    );
+  } else if (tab.type === "work-item") {
+    icon = (
+      <ListChecks
+        size={16}
+        strokeWidth={1.75}
+        className={`shrink-0 ${iconColorClass}`}
+      />
+    );
   } else if (tab.type === "session" && tab.sessionId) {
     icon = (
       <SessionIdentityIcon
@@ -390,16 +536,7 @@ const TabPill = memo(function TabPill({
     </WorkStationTabPillSurface>
   );
 
-  // Session tabs with an active session get the hover card
-  if (tab.type === "session" && tab.sessionId) {
-    return (
-      <SessionHoverCard sessionId={tab.sessionId} position="bottom-start">
-        {pill}
-      </SessionHoverCard>
-    );
-  }
-
-  return pill;
+  return <TabPillHoverCard tab={tab}>{pill}</TabPillHoverCard>;
 });
 
 // ─── Plus-menu dropdown ───────────────────────────────────────────────────────
@@ -408,6 +545,7 @@ interface PlusMenuContentProps {
   onOpenLaunchpad: () => void;
   onOpenKanban: () => void;
   onOpenRuntime: () => void;
+  onNewProject: () => void;
   onNewWorkItem: () => void;
   onClose: () => void;
 }
@@ -416,20 +554,20 @@ export function PlusMenuContent({
   onOpenLaunchpad,
   onOpenKanban,
   onOpenRuntime,
+  onNewProject,
   onNewWorkItem,
   onClose,
 }: PlusMenuContentProps) {
   const { t } = useTranslation(["sessions", "navigation"]);
   const MOD = isMacOS() ? "⌘" : "Ctrl";
 
-  // "New session" and "Launchpad" now open the same singleton start page, so
-  // only the Launchpad entry is kept. It carries the ⌘N hint since that
-  // shortcut (handled in ChatPanelTabBar) opens the same start page.
+  // New session opens the singleton start page. It carries the ⌘N hint since
+  // that shortcut (handled in ChatPanelTabBar) opens the same surface.
   const items = [
     {
       id: "launchpad",
       icon: <LayoutGrid size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
-      label: t("navigation:routes.launchpad"),
+      label: t("sessions:chat.startPage.newSession.title"),
       hint: `${MOD}N`,
       onClick: onOpenLaunchpad,
     },
@@ -444,6 +582,12 @@ export function PlusMenuContent({
       icon: <Gauge size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
       label: t("sessions:chat.startPage.tabs.runtime"),
       onClick: onOpenRuntime,
+    },
+    {
+      id: "new-project",
+      icon: <Box size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
+      label: t("sessions:creator.createTarget.project"),
+      onClick: onNewProject,
     },
     {
       id: "new-work-item",
@@ -491,6 +635,7 @@ export interface ChatPanelPlusMenuProps {
   onOpenLaunchpad: () => void;
   onOpenKanban: () => void;
   onOpenRuntime: () => void;
+  onNewProject: () => void;
   onNewWorkItem: () => void;
 }
 
@@ -498,6 +643,7 @@ export function ChatPanelPlusMenu({
   onOpenLaunchpad,
   onOpenKanban,
   onOpenRuntime,
+  onNewProject,
   onNewWorkItem,
 }: ChatPanelPlusMenuProps): React.ReactNode {
   const { t } = useTranslation("sessions");
@@ -512,6 +658,7 @@ export function ChatPanelPlusMenu({
           onOpenLaunchpad={onOpenLaunchpad}
           onOpenKanban={onOpenKanban}
           onOpenRuntime={onOpenRuntime}
+          onNewProject={onNewProject}
           onNewWorkItem={onNewWorkItem}
           onClose={closeMenu}
         />

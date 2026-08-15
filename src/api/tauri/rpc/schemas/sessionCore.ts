@@ -207,6 +207,7 @@ export const SessionMetadataSchema = z.object({
   sessionId: z.string(),
   eventCount: z.number(),
   cachedAt: z.number(),
+  contentRevision: z.number(),
   timeRangeStart: z.string().optional(),
   timeRangeEnd: z.string().optional(),
 });
@@ -257,6 +258,12 @@ export const DerivedSnapshotSchema = z.object({
 
 export const NullableSessionIdInput = z.object({
   sessionId: z.string().nullable(),
+});
+
+export const RemoveSyntheticUserInputsInput = z.object({
+  sessionId: z.string().nullable(),
+  matchingContents: z.array(z.string()).optional(),
+  olderThan: z.string().optional(),
 });
 
 export const SessionIdInput = z.object({

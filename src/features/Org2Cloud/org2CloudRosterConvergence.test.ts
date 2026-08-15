@@ -54,6 +54,33 @@ describe("org2 cloud roster convergence", () => {
     stop();
   });
 
+  it("cools down focus flaps while the timer cadence still converges", async () => {
+    const refresh = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
+    const stop = startOrg2CloudRosterConvergence({
+      refresh,
+      intervalMs: 10_000,
+      focusCooldownMs: 5_000,
+    });
+
+    window.dispatchEvent(new Event("focus"));
+    await Promise.resolve();
+    expect(refresh).toHaveBeenCalledTimes(1);
+
+    await vi.advanceTimersByTimeAsync(1_000);
+    window.dispatchEvent(new Event("focus"));
+    await vi.advanceTimersByTimeAsync(1_000);
+    window.dispatchEvent(new Event("focus"));
+    await Promise.resolve();
+    expect(refresh).toHaveBeenCalledTimes(1);
+
+    await vi.advanceTimersByTimeAsync(3_500);
+    window.dispatchEvent(new Event("focus"));
+    await Promise.resolve();
+    expect(refresh).toHaveBeenCalledTimes(2);
+
+    stop();
+  });
+
   it("pauses while hidden, catches up once visible, and disposes cleanly", async () => {
     const refresh = vi.fn<() => Promise<void>>().mockResolvedValue(undefined);
     const stop = startOrg2CloudRosterConvergence({

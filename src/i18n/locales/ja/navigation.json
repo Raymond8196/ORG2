@@ -13,6 +13,8 @@
     "browser": "ブラウザ",
     "editor": "エディタ",
     "environment": "環境",
+    "sessionEnvironment": "セッション環境",
+    "localEnvironment": "ローカル環境",
     "workspace": "ワークスペース",
     "codeEditor": "コードエディター",
     "databaseManager": "データベースマネージャー",
@@ -697,6 +699,7 @@
         "inviteRevoked": "この招待は取り消されています。",
         "inviteExpired": "この招待は期限切れです。",
         "inviteExhausted": "この招待は使用回数を使い切りました。",
+        "alreadyMember": "すでにこの組織のメンバーです。",
         "network": "クラウドサービスに接続できません。ネットワークを確認して再試行してください。"
       }
     },

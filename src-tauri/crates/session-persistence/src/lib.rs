@@ -41,7 +41,8 @@ pub use turn_index::{
     CachedTurnSummary,
 };
 pub use turn_window::{
-    load_initial_turn_window, load_turn_body_window, CachedInitialTurnWindow, CachedTurnBodyWindow,
+    load_initial_turn_window, load_session_pinned_artifact_events, load_turn_body_window,
+    CachedInitialTurnWindow, CachedTurnBodyWindow,
 };
 pub use types::{
     CacheStats, CachedEvent, CachedSession, CrossSessionSearchHit, SearchResult, SessionMetadata,
@@ -56,8 +57,8 @@ pub use connection::get_connection;
 pub use schema::init_session_tables;
 
 pub use crud::{
-    clear_old_sessions, count_events, delete_session, find_awaiting_user_events_by_function,
-    finalize_deferred_event_import, get_all_sessions, get_cache_stats, get_event,
+    clear_old_sessions, count_events, delete_session, finalize_deferred_event_import,
+    find_awaiting_user_events_by_function, get_all_sessions, get_cache_stats, get_event,
     get_session_metadata, load_events, load_session, save_events, save_events_deferred,
     save_session, search_all_sessions, search_events, update_session_specs,
 };

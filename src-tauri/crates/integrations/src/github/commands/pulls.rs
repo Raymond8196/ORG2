@@ -3,7 +3,7 @@
 
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use tauri::command;
 
 use super::super::client::GitHubClient;
@@ -24,6 +24,22 @@ const DISABLE_AUTO_MERGE_MUTATION: &str = r#"
 mutation DisablePullRequestAutoMerge($input: DisablePullRequestAutoMergeInput!) {
   disablePullRequestAutoMerge(input: $input) {
     pullRequest { id }
+  }
+}
+"#;
+
+const CONVERT_PULL_REQUEST_TO_DRAFT_MUTATION: &str = r#"
+mutation ConvertPullRequestToDraft($input: ConvertPullRequestToDraftInput!) {
+  convertPullRequestToDraft(input: $input) {
+    pullRequest { id isDraft }
+  }
+}
+"#;
+
+const MARK_PULL_REQUEST_READY_FOR_REVIEW_MUTATION: &str = r#"
+mutation MarkPullRequestReadyForReview($input: MarkPullRequestReadyForReviewInput!) {
+  markPullRequestReadyForReview(input: $input) {
+    pullRequest { id isDraft }
   }
 }
 "#;
@@ -52,6 +68,34 @@ query PullRequestMergeAutomation($id: ID!) {
       mergeQueueEntry { id }
       mergeStateStatus
       reviewDecision
+    }
+  }
+}
+"#;
+
+const PULL_REQUEST_LIST_METADATA_QUERY: &str = r#"
+query PullRequestListMetadata($ids: [ID!]!) {
+  nodes(ids: $ids) {
+    ... on PullRequest {
+      number
+      additions
+      deletions
+      commits(last: 1) {
+        nodes {
+          commit {
+            statusCheckRollup {
+              state
+              contexts(first: 100) {
+                nodes {
+                  __typename
+                  ... on CheckRun { conclusion }
+                  ... on StatusContext { state }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
@@ -196,6 +240,16 @@ pub async fn github_find_pull_request(
 }
 
 /// Response item for a single PR in `github_list_prs`.
+#[derive(Debug, Serialize, PartialEq, Eq, Clone, Copy)]
+#[serde(rename_all = "lowercase")]
+pub enum PullRequestCiStatus {
+    Success,
+    Failure,
+    Pending,
+    None,
+    Unavailable,
+}
+
 #[derive(Debug, Serialize)]
 pub struct OpenPRItem {
     pub number: u64,
@@ -210,6 +264,9 @@ pub struct OpenPRItem {
     pub head_branch: String,
     pub base_branch: String,
     pub draft: bool,
+    pub ci_status: PullRequestCiStatus,
+    pub additions: Option<u64>,
+    pub deletions: Option<u64>,
     pub created_at: String,
     pub updated_at: String,
 }
@@ -238,8 +295,101 @@ fn parse_open_pr_item(item: &Value) -> OpenPRItem {
         head_branch: item["head"]["ref"].as_str().unwrap_or("").to_string(),
         base_branch: item["base"]["ref"].as_str().unwrap_or("").to_string(),
         draft: item["draft"].as_bool().unwrap_or(false),
+        ci_status: PullRequestCiStatus::Unavailable,
+        additions: item["additions"].as_u64(),
+        deletions: item["deletions"].as_u64(),
         created_at: item["created_at"].as_str().unwrap_or("").to_string(),
         updated_at: item["updated_at"].as_str().unwrap_or("").to_string(),
+    }
+}
+
+fn parse_pull_request_ci_status(node: &Value) -> PullRequestCiStatus {
+    let rollup = &node["commits"]["nodes"][0]["commit"]["statusCheckRollup"];
+    if rollup.is_null() {
+        return PullRequestCiStatus::None;
+    }
+    let has_failed_context = rollup["contexts"]["nodes"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .any(|context| match context["__typename"].as_str() {
+            Some("CheckRun") => matches!(
+                context["conclusion"].as_str(),
+                Some("FAILURE" | "TIMED_OUT" | "ACTION_REQUIRED" | "CANCELLED" | "STARTUP_FAILURE")
+            ),
+            Some("StatusContext") => {
+                matches!(context["state"].as_str(), Some("FAILURE" | "ERROR"))
+            }
+            _ => false,
+        });
+    if has_failed_context {
+        return PullRequestCiStatus::Failure;
+    }
+    match rollup["state"].as_str() {
+        Some("SUCCESS") => PullRequestCiStatus::Success,
+        Some("FAILURE" | "ERROR") => PullRequestCiStatus::Failure,
+        Some("PENDING" | "EXPECTED") => PullRequestCiStatus::Pending,
+        _ => PullRequestCiStatus::Unavailable,
+    }
+}
+
+fn apply_pull_request_list_metadata(items: &mut [OpenPRItem], response: &Value) {
+    let metadata = response["data"]["nodes"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .filter_map(|node| {
+            node["number"].as_u64().map(|number| {
+                (
+                    number,
+                    (
+                        parse_pull_request_ci_status(node),
+                        node["additions"].as_u64(),
+                        node["deletions"].as_u64(),
+                    ),
+                )
+            })
+        })
+        .collect::<HashMap<_, _>>();
+    for item in items {
+        if let Some((status, additions, deletions)) = metadata.get(&item.number) {
+            item.ci_status = *status;
+            item.additions = *additions;
+            item.deletions = *deletions;
+        }
+    }
+}
+
+async fn enrich_pull_request_list_metadata(
+    client: &GitHubClient,
+    repo_full_name: &str,
+    source_items: &[Value],
+    items: &mut [OpenPRItem],
+) {
+    let ids = source_items
+        .iter()
+        .filter_map(|item| item["node_id"].as_str())
+        .collect::<Vec<_>>();
+    if ids.is_empty() {
+        return;
+    }
+    match client
+        .graphql(PULL_REQUEST_LIST_METADATA_QUERY, json!({ "ids": ids }))
+        .await
+    {
+        Ok(response) => {
+            if let Some(error) = graphql_error(&response) {
+                log::warn!(
+                    "[GitHub][Cmd] PR list metadata GraphQL query returned errors for {repo_full_name}: {error}"
+                );
+            }
+            apply_pull_request_list_metadata(items, &response);
+        }
+        Err(error) => {
+            log::warn!(
+                "[GitHub][Cmd] PR list metadata enrichment failed for {repo_full_name}: {error}"
+            );
+        }
     }
 }
 
@@ -294,6 +444,21 @@ impl PullRequestMergeAutomationContext {
                 self.review_decision.as_deref(),
                 Some("REVIEW_REQUIRED" | "CHANGES_REQUESTED")
             )
+    }
+}
+
+/// Adds GraphQL-only merge metadata to the REST pull-request detail payload.
+fn apply_pull_request_merge_context(
+    detail: &mut Value,
+    context: PullRequestMergeAutomationContext,
+) {
+    detail["merge_queue_required"] = json!(context.merge_queue_enabled);
+    detail["is_in_merge_queue"] = json!(context.merge_queue_entry_id.is_some());
+    if let Some(merge_state_status) = context.merge_state_status {
+        detail["merge_state_status"] = json!(merge_state_status);
+    }
+    if let Some(review_decision) = context.review_decision {
+        detail["review_decision"] = json!(review_decision);
     }
 }
 
@@ -366,6 +531,35 @@ struct AutoMergeGraphqlRequest {
     mutation: &'static str,
     mutation_field: &'static str,
     input: Value,
+}
+
+#[derive(Debug)]
+struct DraftStateGraphqlRequest {
+    mutation: &'static str,
+    mutation_field: &'static str,
+    input: Value,
+}
+
+fn build_draft_state_graphql_request(
+    draft: bool,
+    pull_request_id: &str,
+) -> DraftStateGraphqlRequest {
+    let (mutation, mutation_field) = if draft {
+        (
+            CONVERT_PULL_REQUEST_TO_DRAFT_MUTATION,
+            "convertPullRequestToDraft",
+        )
+    } else {
+        (
+            MARK_PULL_REQUEST_READY_FOR_REVIEW_MUTATION,
+            "markPullRequestReadyForReview",
+        )
+    };
+    DraftStateGraphqlRequest {
+        mutation,
+        mutation_field,
+        input: json!({ "pullRequestId": pull_request_id }),
+    }
 }
 
 fn build_auto_merge_graphql_request(
@@ -540,6 +734,43 @@ pub async fn github_set_pr_auto_merge(
     Ok(PullRequestAutoMergeResult { enabled })
 }
 
+#[command]
+pub async fn github_update_pr_draft_state(
+    repo_full_name: String,
+    pr_number: u64,
+    draft: bool,
+) -> Result<(), String> {
+    log::info!(
+        "[GitHub][Cmd] update_pr_draft_state repo={repo_full_name} pr={pr_number} draft={draft}"
+    );
+    let client = make_client()?;
+    let detail = client
+        .get(&format!("/repos/{repo_full_name}/pulls/{pr_number}"))
+        .await?;
+    if detail["state"].as_str() != Some("open") || detail["merged"].as_bool() == Some(true) {
+        return Err("Draft status can be changed only for open pull requests".to_string());
+    }
+    if detail["draft"].as_bool() == Some(draft) {
+        return Ok(());
+    }
+    let pull_request_id = detail["node_id"]
+        .as_str()
+        .ok_or_else(|| "GitHub did not return the pull request node ID".to_string())?;
+    let request = build_draft_state_graphql_request(draft, pull_request_id);
+    let response = client
+        .graphql(request.mutation, json!({ "input": request.input }))
+        .await?;
+    if let Some(error) = graphql_error(&response) {
+        return Err(error);
+    }
+    let updated_draft =
+        response["data"][request.mutation_field]["pullRequest"]["isDraft"].as_bool();
+    if updated_draft != Some(draft) {
+        return Err("GitHub did not confirm the pull request draft status change".to_string());
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod pr_action_payload_tests {
     use super::*;
@@ -577,6 +808,22 @@ mod pr_action_payload_tests {
                 "pullRequestId": "pull-request-node",
             })
         );
+    }
+
+    #[test]
+    fn draft_state_payloads_use_the_matching_graphql_mutation() {
+        let convert = build_draft_state_graphql_request(true, "pull-request-node");
+        assert_eq!(convert.mutation, CONVERT_PULL_REQUEST_TO_DRAFT_MUTATION);
+        assert_eq!(convert.mutation_field, "convertPullRequestToDraft");
+        assert_eq!(
+            convert.input,
+            json!({ "pullRequestId": "pull-request-node" })
+        );
+
+        let ready = build_draft_state_graphql_request(false, "pull-request-node");
+        assert_eq!(ready.mutation, MARK_PULL_REQUEST_READY_FOR_REVIEW_MUTATION);
+        assert_eq!(ready.mutation_field, "markPullRequestReadyForReview");
+        assert_eq!(ready.input, json!({ "pullRequestId": "pull-request-node" }));
     }
 
     #[test]
@@ -626,6 +873,26 @@ mod pr_action_payload_tests {
         assert!(ready.ready_for_merge_queue());
         assert!(!review_blocked.ready_for_merge_queue());
         assert!(!checks_blocked.ready_for_merge_queue());
+    }
+
+    #[test]
+    fn pr_detail_enrichment_preserves_graphql_merge_state() {
+        let mut detail = json!({ "mergeable_state": "unknown" });
+
+        apply_pull_request_merge_context(
+            &mut detail,
+            PullRequestMergeAutomationContext {
+                merge_queue_enabled: true,
+                merge_queue_entry_id: Some("queue-entry".to_string()),
+                merge_state_status: Some("DIRTY".to_string()),
+                review_decision: Some("CHANGES_REQUESTED".to_string()),
+            },
+        );
+
+        assert_eq!(detail["merge_queue_required"], json!(true));
+        assert_eq!(detail["is_in_merge_queue"], json!(true));
+        assert_eq!(detail["merge_state_status"], json!("DIRTY"));
+        assert_eq!(detail["review_decision"], json!("CHANGES_REQUESTED"));
     }
 
     #[test]
@@ -738,6 +1005,9 @@ mod open_pr_item_tests {
             json!(["viewer", "second-reviewer"])
         );
         assert_eq!(serialized["state"], "open");
+        assert_eq!(serialized["ci_status"], "unavailable");
+        assert_eq!(serialized["additions"], Value::Null);
+        assert_eq!(serialized["deletions"], Value::Null);
     }
 
     #[test]
@@ -756,6 +1026,106 @@ mod open_pr_item_tests {
         assert_eq!(serialized["author_login"], "");
         assert_eq!(serialized["author_avatar_url"], Value::Null);
         assert_eq!(serialized["requested_reviewer_logins"], json!([]));
+    }
+
+    #[test]
+    fn maps_batched_pull_request_list_metadata() {
+        assert!(PULL_REQUEST_LIST_METADATA_QUERY.contains("nodes(ids: $ids)"));
+        assert!(PULL_REQUEST_LIST_METADATA_QUERY.contains("additions"));
+        assert!(PULL_REQUEST_LIST_METADATA_QUERY.contains("deletions"));
+        assert!(PULL_REQUEST_LIST_METADATA_QUERY.contains("contexts(first: 100)"));
+
+        let mut items = vec![
+            parse_open_pr_item(&json!({ "number": 17 })),
+            parse_open_pr_item(&json!({ "number": 18 })),
+            parse_open_pr_item(&json!({ "number": 19 })),
+            parse_open_pr_item(&json!({ "number": 20 })),
+            parse_open_pr_item(&json!({ "number": 21 })),
+        ];
+
+        apply_pull_request_list_metadata(
+            &mut items,
+            &json!({
+                "data": {
+                    "nodes": [
+                        {
+                            "number": 17,
+                            "additions": 45,
+                            "deletions": 12,
+                            "commits": {
+                                "nodes": [{
+                                    "commit": {
+                                        "statusCheckRollup": { "state": "SUCCESS" }
+                                    }
+                                }]
+                            }
+                        },
+                        {
+                            "number": 18,
+                            "commits": {
+                                "nodes": [{
+                                    "commit": {
+                                        "statusCheckRollup": { "state": "PENDING" }
+                                    }
+                                }]
+                            }
+                        },
+                        {
+                            "number": 21,
+                            "commits": {
+                                "nodes": [{
+                                    "commit": {
+                                        "statusCheckRollup": {
+                                            "state": "PENDING",
+                                            "contexts": {
+                                                "nodes": [
+                                                    {
+                                                        "__typename": "CheckRun",
+                                                        "conclusion": "FAILURE"
+                                                    },
+                                                    {
+                                                        "__typename": "CheckRun",
+                                                        "conclusion": null
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }]
+                            }
+                        },
+                        {
+                            "number": 19,
+                            "commits": {
+                                "nodes": [{
+                                    "commit": { "statusCheckRollup": null }
+                                }]
+                            }
+                        },
+                        {
+                            "number": 20,
+                            "commits": {
+                                "nodes": [{
+                                    "commit": {
+                                        "statusCheckRollup": { "state": "FAILURE" }
+                                    }
+                                }]
+                            }
+                        }
+                    ]
+                }
+            }),
+        );
+
+        assert_eq!(items[0].ci_status, PullRequestCiStatus::Success);
+        assert_eq!(items[0].additions, Some(45));
+        assert_eq!(items[0].deletions, Some(12));
+        assert_eq!(items[1].ci_status, PullRequestCiStatus::Pending);
+        assert_eq!(items[1].additions, None);
+        assert_eq!(items[1].deletions, None);
+        assert_eq!(items[2].ci_status, PullRequestCiStatus::None);
+        assert_eq!(items[3].ci_status, PullRequestCiStatus::Failure);
+        assert_eq!(items[4].ci_status, PullRequestCiStatus::Failure);
     }
 
     #[test]
@@ -787,10 +1157,9 @@ pub async fn github_list_prs(
             "/repos/{repo_full_name}/pulls?state={state}&sort=updated&direction=desc&per_page={limit}"
         ))
         .await?;
-    let items: Vec<OpenPRItem> = data
-        .as_array()
-        .map(|arr| arr.iter().map(parse_open_pr_item).collect())
-        .unwrap_or_default();
+    let source_items = data.as_array().cloned().unwrap_or_default();
+    let mut items: Vec<OpenPRItem> = source_items.iter().map(parse_open_pr_item).collect();
+    enrich_pull_request_list_metadata(&client, &repo_full_name, &source_items, &mut items).await;
     log::info!(
         "[GitHub][Cmd] list_prs state={state} found {} PRs",
         items.len()
@@ -849,13 +1218,7 @@ pub async fn github_get_pr(repo_full_name: String, pr_number: u64) -> Result<Val
 
     if let Some(result) = merge_context {
         match result {
-            Ok(context) => {
-                detail["merge_queue_required"] = json!(context.merge_queue_enabled);
-                detail["is_in_merge_queue"] = json!(context.merge_queue_entry_id.is_some());
-                if let Some(review_decision) = context.review_decision {
-                    detail["review_decision"] = json!(review_decision);
-                }
-            }
+            Ok(context) => apply_pull_request_merge_context(&mut detail, context),
             Err(error) => {
                 log::warn!("[GitHub][Cmd] get_pr merge metadata failed: {error}");
             }

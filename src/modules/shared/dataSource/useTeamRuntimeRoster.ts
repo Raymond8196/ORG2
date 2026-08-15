@@ -23,6 +23,7 @@ import {
 import { getCloudCapabilities } from "@src/features/Org2Cloud/org2CloudCapabilities";
 import { ensureFreshSession } from "@src/features/Org2Cloud/org2CloudClient";
 import {
+  org2CloudMemberRuntimeVersionAtom,
   org2CloudOrgsAtom,
   org2CloudOrgsLoadedAtom,
 } from "@src/features/Org2Cloud/org2CloudOrgsAtom";
@@ -31,6 +32,8 @@ import { createLogger } from "@src/hooks/logger";
 import { readOrgRuntimeTelemetry } from "./teamRuntimeData";
 
 const log = createLogger("TeamRuntimeRoster");
+
+const VISIBLE_EDGE_REFRESH_COOLDOWN_MS = 30_000;
 
 /**
  * `memberRuntime` joins `CloudCapabilities` with the plumbing change; read it
@@ -137,6 +140,9 @@ export function useTeamRuntimeRoster(
   const rosterKey = authIdentityKey
     ? `${authIdentityKey}|${selectedOrgId ?? ""}`
     : null;
+  const memberRuntimeVersion =
+    useAtomValue(org2CloudMemberRuntimeVersionAtom)[selectedOrgId ?? ""] ?? 0;
+  const lastFetchStartedAtRef = useRef(0);
 
   // Latest auth via ref (panel idiom): token-refresh writes must not
   // retrigger the fetch effect.
@@ -176,6 +182,7 @@ export function useTeamRuntimeRoster(
     if (!authIdentityKey || !selectedOrgId) return;
     let cancelled = false;
     const seq = ++requestRef.current;
+    lastFetchStartedAtRef.current = Date.now();
     void (async () => {
       setFetching(true);
       setError(null);
@@ -209,18 +216,29 @@ export function useTeamRuntimeRoster(
     selectedOrgId,
     telemetryEnabled,
     refreshNonce,
+    memberRuntimeVersion,
     getFreshAccessToken,
   ]);
 
   const refresh = useCallback(() => {
+    lastFetchStartedAtRef.current = Date.now();
     setRefreshNonce((nonce) => nonce + 1);
   }, []);
 
   // Refetch on the hidden → visible edge; the effect above covers mount.
+  // Cooled down so cmd-tab flapping cannot multiply roster reads — the
+  // realtime member_runtime signal covers freshness in between.
   useEffect(() => {
     if (!authIdentityKey) return;
     const onVisibilityChange = () => {
-      if (document.visibilityState !== "hidden") refresh();
+      if (document.visibilityState === "hidden") return;
+      if (
+        Date.now() - lastFetchStartedAtRef.current <
+        VISIBLE_EDGE_REFRESH_COOLDOWN_MS
+      ) {
+        return;
+      }
+      refresh();
     };
     document.addEventListener("visibilitychange", onVisibilityChange);
     return () =>

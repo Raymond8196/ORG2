@@ -198,6 +198,18 @@ export function commitOrg2CloudOrgsRequest(
 export const org2CloudRosterVersionAtom = atom<Record<string, number>>({});
 org2CloudRosterVersionAtom.debugLabel = "org2CloudRosterVersionAtom";
 
+/**
+ * Per-org member-runtime CHANGE COUNTER, bumped when a teammate's telemetry
+ * upsert broadcasts the `member_runtime` signal kind. Team Runtime surfaces
+ * put their org's counter in a fetch-effect dependency so the roster
+ * refreshes live instead of waiting for a remount or visible edge.
+ */
+export const org2CloudMemberRuntimeVersionAtom = atom<Record<string, number>>(
+  {}
+);
+org2CloudMemberRuntimeVersionAtom.debugLabel =
+  "org2CloudMemberRuntimeVersionAtom";
+
 /** Active orgs whose member-roster Postgres Changes channel is subscribed. */
 export const org2CloudRosterRealtimeConnectedAtom = atom<
   Record<string, boolean>

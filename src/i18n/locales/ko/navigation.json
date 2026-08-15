@@ -13,6 +13,8 @@
     "browser": "브라우저",
     "editor": "편집기",
     "environment": "환경",
+    "sessionEnvironment": "세션 환경",
+    "localEnvironment": "로컬 환경",
     "workspace": "작업 공간",
     "codeEditor": "코드 편집기",
     "databaseManager": "DB 관리자",
@@ -697,6 +699,7 @@
         "inviteRevoked": "철회된 초대입니다.",
         "inviteExpired": "만료된 초대입니다.",
         "inviteExhausted": "사용 횟수를 모두 소진한 초대입니다.",
+        "alreadyMember": "이미 이 조직의 멤버입니다.",
         "network": "클라우드 서비스에 연결할 수 없습니다. 네트워크를 확인하고 다시 시도하세요."
       }
     },

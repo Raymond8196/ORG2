@@ -11,10 +11,10 @@ mod active;
 mod cleanup;
 mod range;
 mod recovery;
-mod text;
-mod writer;
 #[cfg(test)]
 mod tests;
+mod text;
+mod writer;
 
 pub use active::{
     active_state, active_states_for_session, ShellReplayAppend, ShellReplayStream,
@@ -25,14 +25,14 @@ pub use cleanup::{
     retry_pending_replay_cleanups,
 };
 pub use range::{
-    load_replay_state, read_replay_tail, shell_replay_read_range, ShellReplayFrame,
-    ShellReplayRange,
+    load_replay_state, read_replay_tail, replay_command_meta, shell_replay_read_range,
+    ReplayCommandMeta, ShellReplayFrame, ShellReplayRange,
 };
 pub use recovery::recover_incomplete_replays;
 pub use writer::ShellReplayWriter;
 
-pub(super) use range::load_complete_replay_state_if_matches;
 pub use range::__cmd__shell_replay_read_range;
+pub(super) use range::load_complete_replay_state_if_matches;
 pub(super) use text::complete_terminal_prefix_len;
 #[cfg(test)]
 pub(super) use text::complete_utf8_prefix_len;

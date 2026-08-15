@@ -1,11 +1,14 @@
-import { Bot, Pencil, Repeat, Terminal } from "lucide-react";
+import { Bot, Pencil, Repeat, RotateCcw, Terminal } from "lucide-react";
 import React, { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import { type WorkItemHandoff, projectApi } from "@src/api/http/project";
+import {
+  type WorkItemHandoff,
+  type WorkItemOriginSession,
+  projectApi,
+} from "@src/api/http/project";
 import Avatar from "@src/components/Avatar";
 import TabPill from "@src/components/TabPill";
-import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import { useWorkItemImageInsert } from "@src/hooks/project";
 import {
   ProjectContentEditor,
@@ -20,7 +23,14 @@ import {
   TimelineCardHeader,
   TimelineStack,
 } from "@src/modules/shared/components/ActivityTimeline";
-import RichMarkdownEditor from "@src/modules/shared/components/RichMarkdownEditor";
+import MarkdownTextareaEditor, {
+  type MarkdownEditorMode,
+} from "@src/modules/shared/components/MarkdownTextareaEditor";
+import MarkdownEditorModeSwitch from "@src/modules/shared/components/MarkdownTextareaEditor/ModeSwitch";
+import {
+  formatTokensShort,
+  formatUsd,
+} from "@src/modules/shared/dataSource/usageFormat";
 import {
   DetailPanelContainer,
   PanelFooter,
@@ -28,31 +38,30 @@ import {
   SessionTable,
   type SessionTableItem,
 } from "@src/modules/shared/layouts/blocks";
-import {
-  type LinkedSession,
-  WORK_ITEM_STATUS,
-  type WorkItemStatus,
-} from "@src/types/core/workItem";
+import { type LinkedSession, WORK_ITEM_STATUS } from "@src/types/core/workItem";
 import {
   formatReplayDateLabel,
   toIntlLocaleTag,
 } from "@src/util/data/formatters/date";
 
-import AgentWorkflow from "../AgentWorkflow";
 import { ROLE_I18N_KEYS, STATUS_I18N_KEYS } from "../AgentWorkflow/types";
 import TodoChecklist from "../TodoChecklist";
 import WorkItemContentStack from "../WorkItemContentStack";
+import WorkItemSubItems, { useWorkItemFamily } from "../WorkItemSubItems";
 import {
   WorkItemThreadLayout,
   type WorkItemThreadView,
   WorkItemThreadViewAction,
 } from "../WorkItemThread";
+import CustomPropertiesSection from "./CustomPropertiesSection";
 import GitHubIssueComposer from "./GitHubIssueComposer";
 import HistoryTab from "./HistoryTab";
 import OutputTab from "./OutputTab";
 import ThreadTodoChecklist from "./ThreadTodoChecklist";
 import WorkItemHandoffNotice from "./WorkItemHandoffNotice";
+import WorkItemRunUsageSummary from "./WorkItemRunUsageSummary";
 import { normalizeLegacyEscapedMarkdown } from "./descriptionMarkdown";
+import { retryFailedLinkedSession } from "./discussionCommentForward";
 import { useGitHubIssueTimeline } from "./hooks/useGitHubIssueTimeline";
 import { useWorkItemContentState } from "./hooks/useWorkItemContentState";
 import { resolveWorkItemContentSectionPolicy } from "./presentation";
@@ -60,6 +69,10 @@ import type { SessionTab, WorkItemContentProps } from "./types";
 
 interface LinkedSessionsListProps {
   sessions: LinkedSession[];
+  originSession?: WorkItemOriginSession;
+  shortId?: string | null;
+  projectSlug?: string | null;
+  orgId?: string | null;
   activeAgentSessionId?: string | null;
   onOpenSession?: (sessionId: string) => void;
 }
@@ -79,6 +92,10 @@ function getLinkedSessionTitle(session: LinkedSession): string {
 
 const LinkedSessionsList: React.FC<LinkedSessionsListProps> = ({
   sessions,
+  originSession,
+  shortId,
+  projectSlug,
+  orgId,
   activeAgentSessionId,
   onOpenSession,
 }) => {
@@ -92,7 +109,7 @@ const LinkedSessionsList: React.FC<LinkedSessionsListProps> = ({
     [i18n.resolvedLanguage, t]
   );
   const tableItems = useMemo<SessionTableItem[]>(() => {
-    if (sessions.length === 0) {
+    if (sessions.length === 0 && !originSession) {
       return [
         {
           id: "work-item-linked-sessions-empty",
@@ -104,7 +121,7 @@ const LinkedSessionsList: React.FC<LinkedSessionsListProps> = ({
       ];
     }
 
-    return sessions.map((session) => {
+    const executionItems = sessions.map((session) => {
       const roleLabelKey = ROLE_I18N_KEYS[session.agent_role];
       const statusLabelKey = STATUS_I18N_KEYS[session.status];
       const roleLabel = roleLabelKey
@@ -146,14 +163,122 @@ const LinkedSessionsList: React.FC<LinkedSessionsListProps> = ({
             monthStyle: "short",
           }
         ),
+        tokensLabel:
+          session.total_tokens > 0
+            ? formatTokensShort(session.total_tokens)
+            : undefined,
+        tokensValue:
+          session.total_tokens > 0 ? session.total_tokens : undefined,
         active: session.session_id === activeAgentSessionId,
         testId: `work-item-linked-session-${session.session_id}`,
+        rowAction:
+          session.status === "failed" && shortId ? (
+            <button
+              type="button"
+              className="flex cursor-pointer items-center gap-1 rounded-md px-1.5 py-1 text-[11px] text-text-3 transition-colors hover:bg-fill-2 hover:text-text-1"
+              onClick={() => {
+                retryFailedLinkedSession({
+                  projectSlug,
+                  orgId,
+                  shortId,
+                  sessionId: session.session_id,
+                });
+                onOpenSession?.(session.session_id);
+              }}
+              aria-label={t("workItems.sessions.retry", {
+                defaultValue: "Retry",
+              })}
+              data-testid={`work-item-session-retry-${session.session_id}`}
+            >
+              <RotateCcw size={12} />
+              {t("workItems.sessions.retry", { defaultValue: "Retry" })}
+            </button>
+          ) : undefined,
       };
     });
-  }, [activeAgentSessionId, dateTimeLabelOptions, sessions, t]);
+    if (
+      !originSession ||
+      sessions.some(
+        (session) => session.session_id === originSession.session_id
+      )
+    ) {
+      return executionItems;
+    }
+    return [
+      {
+        id: originSession.session_id,
+        title: t("workItems.sessions.originTitle", {
+          defaultValue: "Creation session",
+        }),
+        description: originSession.session_id,
+        statusLabel: t("workItems.sessions.originStatus", {
+          defaultValue: "Created this item",
+        }),
+        statusColor: "var(--color-primary-6)",
+        agentIcon:
+          originSession.session_type === "cli" ? (
+            <Terminal size={14} strokeWidth={1.75} className="text-text-3" />
+          ) : (
+            <Bot size={14} strokeWidth={1.75} className="text-text-3" />
+          ),
+        agentLabel: originSession.actor_id.replace(/^agent:/, ""),
+        modelLabel: originSession.session_type,
+        startedLabel: formatReplayDateLabel(originSession.captured_at, {
+          ...dateTimeLabelOptions,
+          withSeconds: false,
+          monthStyle: "short",
+        }),
+        lastUpdatedLabel: formatReplayDateLabel(originSession.captured_at, {
+          ...dateTimeLabelOptions,
+          withSeconds: false,
+          monthStyle: "short",
+        }),
+        active: originSession.session_id === activeAgentSessionId,
+        disabled: originSession.provider !== "org2",
+        testId: `work-item-origin-session-${originSession.session_id}`,
+      },
+      ...executionItems,
+    ];
+  }, [
+    activeAgentSessionId,
+    dateTimeLabelOptions,
+    onOpenSession,
+    originSession,
+    orgId,
+    projectSlug,
+    sessions,
+    shortId,
+    t,
+  ]);
+
+  const totalTokens = sessions.reduce(
+    (sum, session) => sum + (session.total_tokens || 0),
+    0
+  );
+  const totalCost = sessions.reduce(
+    (sum, session) => sum + (session.cost_usd || 0),
+    0
+  );
 
   return (
     <div data-testid="work-item-linked-sessions">
+      {sessions.length > 0 && (
+        <div
+          className="mb-1 flex items-center gap-3 px-1 text-[11px] text-text-4"
+          data-testid="work-item-usage-summary"
+        >
+          <span>
+            {t("workItems.sessions.runsCount", {
+              defaultValue: "{{count}} runs",
+              count: sessions.length,
+            })}
+          </span>
+          {totalTokens > 0 && (
+            <span>{formatTokensShort(totalTokens)} tokens</span>
+          )}
+          {totalCost > 0 && <span>{formatUsd(totalCost, 2)}</span>}
+        </div>
+      )}
       <SessionTable
         items={tableItems}
         onSelect={(item) => onOpenSession?.(item.id)}
@@ -178,8 +303,8 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
   shortId,
   githubIssueTimeline,
   githubIssueInteraction,
-  onStartAgent,
-  isStartingAgent,
+  orgId,
+  onOpenSubItem,
   onCancelAgent,
   onRetry,
   onAcceptAsIs,
@@ -191,9 +316,6 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
   onRefreshWorkflow,
   onTransitionHandoff,
   activeAgentSessionId,
-  activeAgentRole,
-  isLockedByOther,
-  lockHolderName,
   onCreatePr,
 }) => {
   const { t } = useTranslation(["projects", "common"]);
@@ -204,6 +326,12 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
     editorRef,
   });
 
+  const subItemFamily = useWorkItemFamily(
+    shortId ?? workItem.shortId ?? "",
+    projectSlug,
+    orgId
+  );
+
   const {
     currentUser,
     currentUserMemberIds,
@@ -211,10 +339,12 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
     setActiveSessionTab,
     commentText,
     setCommentText,
+    replyToCommentId,
+    setReplyToCommentId,
     mentionedUserIds,
     setMentionedUserIds,
     isSubscribed,
-    setIsSubscribed,
+    handleToggleSubscription,
     isSubmittingComment,
     sessionTabItems,
     resolvedDescription,
@@ -224,7 +354,8 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
     handleDescriptionChange,
     handleTodosChange,
     handleCommentSubmit,
-    handleStartAgentAndOpenChat,
+    handleResolveDiscussionThread,
+    handleReopenDiscussionThread,
   } = useWorkItemContentState({
     workItem,
     onUpdateWorkItem,
@@ -233,9 +364,7 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
     teamMembers,
     projectSlug,
     shortId,
-    onStartAgent,
-    onOpenSession,
-    activeAgentSessionId,
+    orgId,
   });
 
   const creatorName =
@@ -274,6 +403,8 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
   >(null);
   const [descriptionSaveErrorWorkItemId, setDescriptionSaveErrorWorkItemId] =
     useState<string | null>(null);
+  const [descriptionEditorMode, setDescriptionEditorMode] =
+    useState<MarkdownEditorMode>("write");
   const [threadViewSelection, setThreadViewSelection] = useState<{
     workItemId: string;
     view: WorkItemThreadView;
@@ -471,6 +602,16 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
             canEditDescription &&
             (isThread ? isEditingThreadDescription : descriptionHasChanges) ? (
               <PanelFooter
+                left={
+                  isGitHubWorkItem || isThread ? (
+                    <MarkdownEditorModeSwitch
+                      mode={descriptionEditorMode}
+                      onModeChange={setDescriptionEditorMode}
+                      disabled={githubIssueInteraction?.updatingBody}
+                      dataTestId="work-item-description-mode-switch"
+                    />
+                  ) : undefined
+                }
                 secondaryActions={[
                   {
                     label: t("common:actions.cancel"),
@@ -544,7 +685,7 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
             />
           ) : isGitHubWorkItem ? (
             <>
-              <RichMarkdownEditor
+              <MarkdownTextareaEditor
                 value={descriptionDraft}
                 onChange={handleDescriptionDraftChange}
                 onSubmit={() => void handleSaveDescription()}
@@ -552,12 +693,11 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
                 minHeight={120}
                 maxHeight={360}
                 appearance="plain"
-                toolbarMode="inline"
-                toolbarSize="mini"
-                toolbarDropdownPosition="top-start"
                 editable={
                   canEditDescription && !githubIssueInteraction?.updatingBody
                 }
+                mode={descriptionEditorMode}
+                onModeChange={setDescriptionEditorMode}
                 dataTestId="github-issue-description-editor"
               />
               {descriptionSaveErrorWorkItemId === workItem.session_id ? (
@@ -581,6 +721,10 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
               editable={canEditDescription}
               descriptionMinHeight={isThread ? 120 : 200}
               descriptionMaxHeight={isThread ? 360 : 600}
+              descriptionMode={isThread ? descriptionEditorMode : undefined}
+              onDescriptionModeChange={
+                isThread ? setDescriptionEditorMode : undefined
+              }
               descriptionClassName="no-bottom-border"
               repoPath={repoPath}
               className="w-full"
@@ -614,37 +758,41 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
     />
   );
 
-  const agentWorkflow = (
-    <AgentWorkflow
-      orchestratorState={workItem.orchestratorState}
-      orchestratorConfig={workItem.orchestratorConfig}
-      proofOfWork={workItem.proofOfWork}
-      workItemStatus={
-        workItem.workItemStatus ?? (workItem.status as WorkItemStatus)
-      }
-      executionLock={workItem.executionLock}
-      linkedSessions={workItem.linkedSessions}
-      onStartAgent={handleStartAgentAndOpenChat}
-      isStartingAgent={isStartingAgent}
-      onCancel={onCancelAgent}
-      onRetry={onRetry}
-      onAcceptAsIs={onAcceptAsIs}
-      onCreateFollowUp={onCreateFollowUp}
-      onOpenSession={onOpenSession}
-      onOpenFileAtLine={onOpenFileAtLine}
-      onRefresh={onRefreshWorkflow}
-      activeAgentSessionId={activeAgentSessionId}
-      activeAgentRole={activeAgentRole}
-      isLockedByOther={isLockedByOther}
-      lockHolderName={lockHolderName}
-      presentation={presentation}
-    />
+  const subItemsSection = (
+    <ScrollTrailTarget enabled={isThread} label={t("workItems.subItems.title")}>
+      <WorkItemSubItems
+        family={subItemFamily}
+        parentShortId={shortId ?? workItem.shortId ?? ""}
+        projectSlug={projectSlug}
+        orgId={orgId}
+        onOpenWorkItem={onOpenSubItem}
+      />
+    </ScrollTrailTarget>
   );
+
+  const customPropertiesSection = !isGitHubWorkItem ? (
+    <ScrollTrailTarget
+      enabled={isThread}
+      label={t("workItems.properties.title", {
+        defaultValue: "Custom properties",
+      })}
+    >
+      <CustomPropertiesSection
+        projectSlug={projectSlug}
+        orgId={orgId}
+        shortId={shortId ?? workItem.shortId}
+        editable={Boolean(onUpdateWorkItem)}
+      />
+    </ScrollTrailTarget>
+  ) : null;
 
   const outputContent = (
     <OutputTab
       workItem={workItem}
       repoPath={repoPath}
+      projectSlug={projectSlug}
+      shortId={shortId ?? workItem.shortId}
+      orgId={orgId}
       onOpenFileDiff={onOpenFileDiff}
       onOpenFileAtLine={onOpenFileAtLine}
       onReviewAllFiles={onReviewAllFiles}
@@ -663,7 +811,7 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
       timelineEntries={timelineEntries}
       currentUser={currentUser}
       isSubscribed={isSubscribed}
-      onToggleSubscribe={() => setIsSubscribed(!isSubscribed)}
+      onToggleSubscribe={handleToggleSubscription}
       commentText={commentText}
       onCommentTextChange={setCommentText}
       mentionedUserIds={mentionedUserIds}
@@ -671,6 +819,11 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
       teamMembers={teamMembers}
       onCommentSubmit={handleCommentSubmit}
       isSubmittingComment={isSubmittingComment}
+      comments={workItem.comments ?? []}
+      replyToCommentId={replyToCommentId}
+      onReplyToComment={setReplyToCommentId}
+      onResolveThread={handleResolveDiscussionThread}
+      onReopenThread={handleReopenDiscussionThread}
       presentation={presentation}
       canComment={Boolean(onUpdateWorkItem)}
       threadNavigation={
@@ -702,18 +855,18 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
         />
       </div>
 
-      {activeSessionTab === "session" && (
-        <>
-          <div className={DETAIL_PANEL_TOKENS.sectionGap}>{agentWorkflow}</div>
-          {sectionPolicy.showLinkedSessionsTable ? (
-            <LinkedSessionsList
-              sessions={workItem.linkedSessions ?? []}
-              activeAgentSessionId={activeAgentSessionId}
-              onOpenSession={onOpenSession}
-            />
-          ) : null}
-        </>
-      )}
+      {activeSessionTab === "session" &&
+        (sectionPolicy.showLinkedSessionsTable ? (
+          <LinkedSessionsList
+            sessions={workItem.linkedSessions ?? []}
+            originSession={workItem.originSession}
+            shortId={shortId ?? workItem.shortId}
+            projectSlug={projectSlug}
+            orgId={orgId}
+            activeAgentSessionId={activeAgentSessionId}
+            onOpenSession={onOpenSession}
+          />
+        ) : null)}
 
       {activeSessionTab === "output" && outputContent}
 
@@ -723,12 +876,31 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
 
   const threadLowerSection = (
     <>
-      {sectionPolicy.showInlineWorkflow ? (
+      {!isGitHubWorkItem && !sectionPolicy.showInlineOutput ? (
+        <WorkItemRunUsageSummary
+          projectSlug={projectSlug}
+          orgId={orgId}
+          shortId={shortId ?? workItem.shortId}
+          navigationEnabled={isThread}
+          onOpenSession={onOpenSession}
+        />
+      ) : null}
+      {(workItem.linkedSessions?.length ?? 0) > 0 || workItem.originSession ? (
         <ScrollTrailTarget
           enabled={isThread}
-          label={t("workItems.agentWorkflow.title")}
+          label={t("workItems.linkedSessions.title", {
+            defaultValue: "Sessions",
+          })}
         >
-          {agentWorkflow}
+          <LinkedSessionsList
+            sessions={workItem.linkedSessions ?? []}
+            originSession={workItem.originSession}
+            shortId={shortId ?? workItem.shortId}
+            projectSlug={projectSlug}
+            orgId={orgId}
+            activeAgentSessionId={activeAgentSessionId}
+            onOpenSession={onOpenSession}
+          />
         </ScrollTrailTarget>
       ) : null}
       {sectionPolicy.showInlineOutput ? (
@@ -763,8 +935,10 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
             <ScrollTrailTarget label={t("workItems.todos.title")}>
               {todosSection}
             </ScrollTrailTarget>
+            {customPropertiesSection}
+            {subItemsSection}
             {threadLowerSection}
-            {!isGitHubWorkItem || !githubIssueInteraction ? (
+            {!isGitHubWorkItem ? (
               <ScrollTrailTarget
                 label={t("workItems.activity.discussionTitle")}
               >
@@ -810,9 +984,13 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
         }
         todosContent={todosSection}
         lowerContent={
-          sectionPolicy.showTabbedLowerSection
-            ? tabbedLowerSection
-            : threadLowerSection
+          <>
+            {customPropertiesSection}
+            {subItemsSection}
+            {sectionPolicy.showTabbedLowerSection
+              ? tabbedLowerSection
+              : threadLowerSection}
+          </>
         }
         scrollable
       />

@@ -1,6 +1,6 @@
 import { atom, useAtom, useAtomValue, useStore } from "jotai";
 import isEqual from "lodash/isEqual";
-import { useEffect, useLayoutEffect, useMemo } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
 
 import { invalidateProjectCache, projectApi } from "@src/api/http/project";
 import type { MemberEntry } from "@src/api/http/project";
@@ -52,6 +52,7 @@ import {
 
 const log = createLogger("TeamInboxDataSource");
 const MEMBER_READ_CONCURRENCY = 8;
+const TEAM_INBOX_REFRESH_FLOOR_MS = 15_000;
 const sessionCreationFlights = new Map<
   string,
   ReturnType<typeof createWorkItemFromSession>
@@ -374,9 +375,42 @@ export function useTeamInboxDataSource(): {
     store,
   ]);
 
+  // The refresh is a full dual-source first-page listing and this hook is
+  // permanently mounted via the sidebar connector, so invalidation bursts
+  // (comment storms, project mutations) get a floor: immediate on a fresh
+  // scope or quiet period, otherwise one trailing refresh carrying the
+  // latest version — never dropped, never more than one per floor window.
+  const refreshFloorRef = useRef<{
+    scopeKey: string;
+    lastAtMs: number;
+    timer: ReturnType<typeof setTimeout> | null;
+    pendingVersion: string;
+  }>({ scopeKey: "", lastAtMs: 0, timer: null, pendingVersion: "" });
   useEffect(() => {
     const requestVersion = `${invalidation}:${activeCloudCommentsRevision}:${activeCloudRosterVersion}:${scopeMembers.length}:${memberSnapshot.issue?.code ?? "members-ok"}`;
-    void teamInboxCoordinator.refresh(store, scope, requestVersion);
+    const floor = refreshFloorRef.current;
+    const now = Date.now();
+    const elapsed = now - floor.lastAtMs;
+    if (
+      floor.scopeKey !== scope.key ||
+      elapsed >= TEAM_INBOX_REFRESH_FLOOR_MS
+    ) {
+      if (floor.timer) {
+        clearTimeout(floor.timer);
+        floor.timer = null;
+      }
+      floor.scopeKey = scope.key;
+      floor.lastAtMs = now;
+      void teamInboxCoordinator.refresh(store, scope, requestVersion);
+      return;
+    }
+    floor.pendingVersion = requestVersion;
+    if (floor.timer) return;
+    floor.timer = setTimeout(() => {
+      floor.timer = null;
+      floor.lastAtMs = Date.now();
+      void teamInboxCoordinator.refresh(store, scope, floor.pendingVersion);
+    }, TEAM_INBOX_REFRESH_FLOOR_MS - elapsed);
   }, [
     activeCloudCommentsRevision,
     activeCloudRosterVersion,
@@ -386,6 +420,16 @@ export function useTeamInboxDataSource(): {
     scope,
     store,
   ]);
+  useEffect(
+    () => () => {
+      const floor = refreshFloorRef.current;
+      if (floor.timer) {
+        clearTimeout(floor.timer);
+        floor.timer = null;
+      }
+    },
+    []
+  );
 
   useProjectDataChanged(() => teamInboxCoordinator.invalidate(store));
 

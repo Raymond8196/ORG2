@@ -17,10 +17,16 @@
 import React from "react";
 
 import type { ComposerInputRef } from "@src/components/ComposerInput";
+import { COMPOSER_BOTTOM_DOCK_PADDING_CLASS } from "@src/config/composerStackTokens";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import InputArea from "@src/engines/ChatPanel/InputArea";
 
 import type { ChannelPostHandler } from "./channelPostHandler";
+
+// Channels opt out of agent interceptors, so agent-only built-ins (canvas,
+// compact) must not appear in the "/" menu either — same skill-only filter
+// the Work Log composer uses (see HumanSessionView).
+const CHANNEL_SLASH_ITEM_CATEGORIES = ["skill"] as const;
 
 export interface ChannelComposerProps {
   /**
@@ -61,7 +67,7 @@ const ChannelComposer: React.FC<ChannelComposerProps> = ({
 }) => (
   <footer
     ref={footerRef as React.Ref<HTMLElement>}
-    className="absolute bottom-0 left-0 right-0 z-50 flex w-full flex-col items-center px-2 pb-2 pt-1"
+    className={`absolute bottom-0 left-0 right-0 z-50 flex w-full flex-col items-center px-2 pt-1 ${COMPOSER_BOTTOM_DOCK_PADDING_CLASS}`}
     data-testid="channel-composer"
   >
     <div
@@ -96,6 +102,7 @@ const ChannelComposer: React.FC<ChannelComposerProps> = ({
         showAgentControls={false}
         allowFileAttachments={false}
         enableAgentInterceptors={false}
+        slashItemCategories={CHANNEL_SLASH_ITEM_CATEGORIES}
       />
     </div>
   </footer>

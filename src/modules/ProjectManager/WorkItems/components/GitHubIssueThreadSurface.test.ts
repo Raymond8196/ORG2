@@ -10,12 +10,24 @@ import GitHubIssueThreadSurface, {
 import type { GitHubIssueInteractionConfig } from "./WorkItemContent/types";
 import { toggleExternalAssigneeIds } from "./WorkItemProperties/AssigneePropertyField";
 
+vi.mock("react-i18next", () => ({
+  useTranslation: () => ({ t: (key: string) => key }),
+}));
+
 vi.mock("@src/components/IntegrationIcon", () => ({
   default: ({ type }: { type: string }) =>
     React.createElement("span", { "data-integration-icon": type }),
 }));
 
-vi.mock("@src/modules/shared/components/RichMarkdownEditor", () => ({
+// The product renderer is lazy-loaded behind Suspense. These server-rendered
+// structure tests need a synchronous leaf so React 19 does not abort static
+// markup generation while the dynamic Markdown chunk is loading.
+vi.mock("@src/components/MarkDown", () => ({
+  default: ({ textContent }: { textContent: string }) =>
+    React.createElement("div", { "data-testid": "markdown" }, textContent),
+}));
+
+vi.mock("@src/modules/shared/components/MarkdownTextareaEditor", () => ({
   default: ({ dataTestId }: { dataTestId?: string }) =>
     React.createElement("div", { "data-testid": dataTestId }),
 }));

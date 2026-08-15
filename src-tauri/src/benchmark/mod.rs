@@ -22,6 +22,7 @@ mod launch;
 mod paths;
 mod preflight;
 mod process;
+mod retention;
 mod run;
 mod swe_bench;
 
@@ -56,7 +57,6 @@ const BENCHMARK_BATCH_TASK_ACTION_CANCEL: &str = "cancel";
 const BENCHMARK_BATCH_TASK_ACTION_RESTART: &str = "restart";
 const DEFAULT_AGENT_BATCH_CONCURRENCY: usize = 2;
 const MAX_AGENT_BATCH_CONCURRENCY: usize = 8;
-const SWE_BENCH_PRO_REPO_PATH: &str = "/Users/laptop-h/Documents/GitHub/SWE-bench_Pro-os";
 const SWE_BENCH_PRO_EVALUATOR_SCRIPT: &str = "swe_bench_pro_eval.py";
 const SWE_BENCH_PRO_RUN_SCRIPTS_DIR: &str = "run_scripts";
 const SWE_BENCH_PRO_DOCKERHUB_USERNAME: &str = "jefzda";
@@ -74,3 +74,31 @@ static BENCHMARK_RUNS: LazyLock<Arc<Mutex<HashMap<String, BenchmarkRunStatus>>>>
     LazyLock::new(|| Arc::new(Mutex::new(HashMap::new())));
 static BENCHMARK_AGENT_BATCHES: LazyLock<Arc<Mutex<HashMap<String, BenchmarkAgentBatchStatus>>>> =
     LazyLock::new(|| Arc::new(Mutex::new(HashMap::new())));
+
+/// Best-effort termination of evaluator processes that are still running
+/// when the app exits. Called from the `ExitRequested` handler alongside the
+/// other subprocess cleanup; without it the spawned Python/Docker evaluators
+/// would outlive the app as orphans.
+pub fn terminate_running_evaluators_sync() {
+    let Ok(runs) = BENCHMARK_RUNS.try_lock() else {
+        tracing::warn!(
+            "[benchmark] runs registry locked during shutdown; skipping evaluator cleanup"
+        );
+        return;
+    };
+    let process_ids: Vec<u32> = runs
+        .values()
+        .filter(|run| run.status == BENCHMARK_RUN_STATUS_RUNNING)
+        .filter_map(|run| run.process_id)
+        .collect();
+    drop(runs);
+    for process_id in process_ids {
+        if let Err(error) = process::terminate_process_sync(process_id) {
+            tracing::warn!(
+                process_id,
+                error = %error,
+                "[benchmark] failed to terminate evaluator during shutdown"
+            );
+        }
+    }
+}

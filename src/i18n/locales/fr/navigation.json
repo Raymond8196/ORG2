@@ -13,6 +13,8 @@
     "browser": "Navigateur",
     "editor": "Éditeur",
     "environment": "Environnement",
+    "sessionEnvironment": "Environnement de session",
+    "localEnvironment": "Environnement local",
     "workspace": "Espace de travail",
     "codeEditor": "Éditeur de code",
     "databaseManager": "Gestionnaire de BD",
@@ -699,6 +701,7 @@
         "inviteRevoked": "Cette invitation a été révoquée.",
         "inviteExpired": "Cette invitation a expiré.",
         "inviteExhausted": "Cette invitation n'a plus d'utilisations.",
+        "alreadyMember": "Vous êtes déjà membre de cette organisation.",
         "network": "Connexion au service cloud impossible. Vérifiez le réseau et réessayez."
       }
     },

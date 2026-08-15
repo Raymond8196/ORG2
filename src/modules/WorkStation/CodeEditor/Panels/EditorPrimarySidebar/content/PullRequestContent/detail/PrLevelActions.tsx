@@ -2,8 +2,11 @@ import type { TFunction } from "i18next";
 import {
   CircleDot,
   GitMerge,
+  GitPullRequest,
   GitPullRequestClosed,
+  GitPullRequestDraft,
   UserRound,
+  XCircle,
 } from "lucide-react";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -45,12 +48,13 @@ interface PrLevelActionsProps {
     enabled: boolean,
     method: PullRequestMergeMethod
   ) => Promise<void>;
+  onDraftChange: (draft: boolean) => Promise<void>;
   onStateChange: (state: "open" | "closed") => Promise<void>;
   onRequestedReviewersChange: (reviewers: string[]) => Promise<void>;
 }
 
 const ACTION_LABEL_KEYS: Record<string, string> = {
-  "Merge pull request": "merge",
+  Merge: "merge",
   "Squash and merge": "squash",
   "Rebase and merge": "rebase",
   "Enable auto-merge": "enableAutoMerge",
@@ -63,7 +67,6 @@ const ACTION_LABEL_KEYS: Record<string, string> = {
   "In merge queue": "inMergeQueue",
   "Approval required": "approvalRequired",
   "Changes requested": "changesRequested",
-  "Resolve conflicts": "resolveConflicts",
   "Checks failed": "checksFailed",
   "Checks pending": "checksPending",
   "Merge blocked": "mergeBlocked",
@@ -105,6 +108,7 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
   onLoadReviewerCandidates,
   onMerge,
   onSetAutoMerge,
+  onDraftChange,
   onStateChange,
   onRequestedReviewersChange,
 }) => {
@@ -194,7 +198,28 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
       void merge(presentation.defaultMethod);
     } else if (presentation.autoMergeAction?.kind === "enable") {
       void toggleAutoMerge();
+    } else if (
+      presentation.status === "draft" ||
+      presentation.status === "open"
+    ) {
+      setMergeMenuVisible(true);
     }
+  };
+
+  const changeDraftState = async (draft: boolean): Promise<void> => {
+    setMergeMenuVisible(false);
+    await reportAction(
+      () => onDraftChange(draft),
+      draft
+        ? t(
+            "git.pr.actions.convertedToDraft",
+            "Pull request converted to draft"
+          )
+        : t(
+            "git.pr.actions.markedReady",
+            "Pull request marked ready for review"
+          )
+    );
   };
 
   const nextState = presentation.status === "closed" ? "open" : "closed";
@@ -207,7 +232,7 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
           "git.pr.actions.confirmCloseMessage",
           "The pull request will remain available and can be reopened later."
         ),
-        okLabel: t("git.pr.actions.close", "Close pull request"),
+        okLabel: "Close",
         cancelLabel: t("actions.cancel", "Cancel"),
       });
       if (!confirmed) return;
@@ -222,6 +247,16 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
   const mergePanel = (
     <DropdownPanel className={DROPDOWN_WIDTHS.wideMenuClass}>
       <div className={DROPDOWN_CLASSES.itemsColumnPadded}>
+        {presentation.status === "draft" ? (
+          <DropdownItem
+            icon={<GitPullRequest size={DROPDOWN_ITEM.iconSize} aria-hidden />}
+            disabled={interactionDisabled}
+            onClick={() => void changeDraftState(false)}
+            dataTestId="pr-mark-ready-action"
+          >
+            {t("git.pr.actions.markReady", "Mark ready for review")}
+          </DropdownItem>
+        ) : null}
         {presentation.autoMergeAction ? (
           <>
             <DropdownItem
@@ -235,24 +270,50 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
             <div className={DROPDOWN_CLASSES.menuSeparatorInset} />
           </>
         ) : null}
-        {presentation.methods.map(({ method, label }) => (
-          <DropdownItem
-            key={method}
-            icon={<GitMerge size={DROPDOWN_ITEM.iconSize} aria-hidden />}
-            disabled={interactionDisabled || !presentation.directMergeAvailable}
-            onClick={() => void merge(method)}
-            dataTestId={`pr-merge-${method}`}
-          >
-            {localizedActionLabel(t, label)}
-          </DropdownItem>
-        ))}
+        {presentation.status !== "draft"
+          ? presentation.methods.map(({ method, label }) => (
+              <DropdownItem
+                key={method}
+                icon={<GitMerge size={DROPDOWN_ITEM.iconSize} aria-hidden />}
+                disabled={
+                  interactionDisabled || !presentation.directMergeAvailable
+                }
+                onClick={() => void merge(method)}
+                dataTestId={`pr-merge-${method}`}
+              >
+                {localizedActionLabel(t, label)}
+              </DropdownItem>
+            ))
+          : null}
+        {presentation.status === "open" ? (
+          <>
+            <div className={DROPDOWN_CLASSES.menuSeparatorInset} />
+            <DropdownItem
+              icon={
+                <GitPullRequestDraft
+                  size={DROPDOWN_ITEM.iconSize}
+                  aria-hidden
+                />
+              }
+              disabled={interactionDisabled}
+              onClick={() => void changeDraftState(true)}
+              dataTestId="pr-convert-to-draft-action"
+            >
+              {t("git.pr.actions.convertToDraft", "Convert to draft")}
+            </DropdownItem>
+          </>
+        ) : null}
       </div>
     </DropdownPanel>
   );
 
+  const canChangeDraftState =
+    presentation.status === "draft" || presentation.status === "open";
   const primaryDisabled =
     interactionDisabled ||
-    (!presentation.directMergeAvailable && !presentation.autoMergeAction);
+    (!presentation.directMergeAvailable &&
+      !presentation.autoMergeAction &&
+      !canChangeDraftState);
 
   return (
     <section
@@ -262,12 +323,41 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
     >
       <Button
         htmlType="button"
-        variant={presentation.status === "merged" ? "merged" : "success"}
-        size="default"
+        variant={
+          presentation.hasConflicts
+            ? "danger"
+            : presentation.status === "draft"
+              ? "secondary"
+              : presentation.status === "merged"
+                ? "merged"
+                : "success"
+        }
+        appearance={
+          presentation.hasConflicts
+            ? "outline"
+            : presentation.status === "draft"
+              ? "solid"
+              : undefined
+        }
+        size="small"
         shape="round"
-        icon={<GitMerge size={14} aria-hidden />}
+        icon={
+          presentation.status === "draft" ? (
+            <GitPullRequestDraft size={14} aria-hidden />
+          ) : presentation.hasConflicts ? (
+            <XCircle size={14} aria-hidden />
+          ) : (
+            <GitMerge size={14} aria-hidden />
+          )
+        }
         loading={pending}
         disabled={primaryDisabled}
+        className={[
+          primaryDisabled ? "!opacity-100" : "",
+          presentation.status === "draft" ? "!bg-fill-3 !text-text-1" : "",
+        ]
+          .filter(Boolean)
+          .join(" ")}
         title={localizedActionTooltip(t, presentation.tooltip)}
         onClick={runPrimaryMergeAction}
         dropdownMenu={
@@ -302,70 +392,72 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
         )}
       </Button>
 
-      <Dropdown
-        options={reviewerOptions}
-        value={requestedReviewerLogins}
-        mode="multiple"
-        showSearch
-        searchPlaceholder={t(
-          "git.pr.actions.searchReviewers",
-          "Search reviewers"
-        )}
-        loading={loadingReviewerCandidates}
-        emptyContent={
-          reviewerCandidatesError
-            ? t(
-                "git.pr.actions.reviewersLoadFailed",
-                "Could not load reviewers"
-              )
-            : t("git.pr.actions.noReviewers", "No reviewers available")
-        }
-        disabled={interactionDisabled || presentation.status !== "open"}
-        popupVisible={reviewerMenuVisible}
-        onVisibleChange={(visible) => {
-          setReviewerMenuVisible(visible);
-          if (visible) void onLoadReviewerCandidates();
-        }}
-        getPopupContainer={() => document.body}
-        avoidViewportOverflow
-        className={`${DROPDOWN_CLASSES.panelAnimated} ${DROPDOWN_WIDTHS.fileTreeClass}`}
-        onSelect={(value) => {
-          const next = Array.isArray(value)
-            ? value.map(String)
-            : [String(value)];
-          setReviewerMenuVisible(false);
-          void reportAction(
-            () => onRequestedReviewersChange(next),
-            t("git.pr.actions.reviewersUpdated", "Reviewers updated")
-          );
-        }}
-      >
-        <Button
-          htmlType="button"
-          variant="secondary"
-          appearance="outline"
-          size="default"
-          shape="round"
-          icon={<UserRound size={14} aria-hidden />}
-          disabled={interactionDisabled || presentation.status !== "open"}
-          data-testid="pr-reviewer-action"
+      {presentation.status === "open" && !disabled ? (
+        <Dropdown
+          options={reviewerOptions}
+          value={requestedReviewerLogins}
+          mode="multiple"
+          showSearch
+          searchPlaceholder={t(
+            "git.pr.actions.searchReviewers",
+            "Search reviewers"
+          )}
+          loading={loadingReviewerCandidates}
+          emptyContent={
+            reviewerCandidatesError
+              ? t(
+                  "git.pr.actions.reviewersLoadFailed",
+                  "Could not load reviewers"
+                )
+              : t("git.pr.actions.noReviewers", "No reviewers available")
+          }
+          disabled={pending}
+          popupVisible={reviewerMenuVisible}
+          onVisibleChange={(visible) => {
+            setReviewerMenuVisible(visible);
+            if (visible) void onLoadReviewerCandidates();
+          }}
+          getPopupContainer={() => document.body}
+          avoidViewportOverflow
+          className={`${DROPDOWN_CLASSES.panelAnimated} ${DROPDOWN_WIDTHS.fileTreeClass}`}
+          onSelect={(value) => {
+            const next = Array.isArray(value)
+              ? value.map(String)
+              : [String(value)];
+            setReviewerMenuVisible(false);
+            void reportAction(
+              () => onRequestedReviewersChange(next),
+              t("git.pr.actions.reviewersUpdated", "Reviewers updated")
+            );
+          }}
         >
-          {requestedReviewerLogins.length > 0
-            ? t("git.pr.actions.reviewersCount", {
-                count: requestedReviewerLogins.length,
-                defaultValue: "{{count}} reviewer",
-                defaultValue_other: "{{count}} reviewers",
-              })
-            : t("git.pr.actions.reviewers", "Reviewers")}
-        </Button>
-      </Dropdown>
+          <Button
+            htmlType="button"
+            variant="secondary"
+            appearance="outline"
+            size="small"
+            shape="round"
+            icon={<UserRound size={14} aria-hidden />}
+            disabled={pending}
+            data-testid="pr-reviewer-action"
+          >
+            {requestedReviewerLogins.length > 0
+              ? t("git.pr.actions.reviewersCount", {
+                  count: requestedReviewerLogins.length,
+                  defaultValue: "{{count}} reviewer",
+                  defaultValue_other: "{{count}} reviewers",
+                })
+              : t("git.pr.actions.reviewers", "Reviewers")}
+          </Button>
+        </Dropdown>
+      ) : null}
 
       {canChangeState ? (
         <Button
           htmlType="button"
-          variant={nextState === "closed" ? "danger" : "secondary"}
+          variant="secondary"
           appearance="outline"
-          size="default"
+          size="small"
           shape="round"
           icon={
             nextState === "closed" ? (
@@ -379,7 +471,7 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
           data-testid="pr-state-action"
         >
           {nextState === "closed"
-            ? t("git.pr.actions.close", "Close pull request")
+            ? "Close"
             : t("git.pr.actions.reopen", "Reopen pull request")}
         </Button>
       ) : null}

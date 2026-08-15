@@ -109,8 +109,8 @@ export interface SettingsTableSelectFilter {
   options: SelectOption[];
   onChange: (value: string | number) => void;
   minWidth?: number;
-  /** Defaults to the compact toolbar's borderless ghost presentation. */
-  variant?: SelectProps["variant"];
+  /** Defaults to the compact toolbar's ghost appearance. */
+  appearance?: SelectProps["appearance"];
 }
 
 export interface SettingsTablePaginationContext {
@@ -125,6 +125,8 @@ export interface SettingsTablePaginationContext {
 }
 
 export type SettingsTableSurfaceVariant = "default" | "transparent";
+
+export type SettingsTableBodySurface = "raised" | "pane";
 
 export interface SettingsTableProps<RowData> {
   columns: SettingsTableColumn<RowData>[];
@@ -206,6 +208,11 @@ export interface SettingsTableProps<RowData> {
     index: number
   ) => Record<string, string | number | boolean | undefined> | undefined;
   surfaceVariant?: SettingsTableSurfaceVariant;
+  /** Body surface treatment. "raised" (default) keeps the title row and rows
+   *  on the raised table surface; "pane" blends them into the surrounding
+   *  page/chat pane — the exception used by the GitHub PR/issue and
+   *  work-item tables. */
+  bodySurface?: SettingsTableBodySurface;
   /** Fill the parent flex column and scroll rows inside the table body. */
   fillHeight?: boolean;
   /** Cap table height and scroll rows inside the body. */
@@ -276,7 +283,7 @@ function SettingsTableToolbar({
                 value={filter.value}
                 options={filter.options}
                 onChange={(val) => filter.onChange(val as string | number)}
-                variant={filter.variant ?? "ghost"}
+                appearance={filter.appearance ?? "ghost"}
                 dropdownWidthMode="auto"
                 dropdownMinWidth={filter.minWidth ?? 120}
                 className={isActive ? "text-primary-6" : ""}
@@ -362,7 +369,7 @@ function SelectFilterRow({
               value={filter.value}
               options={filter.options}
               onChange={(val) => filter.onChange(val as string | number)}
-              variant={filter.variant ?? "ghost"}
+              appearance={filter.appearance ?? "ghost"}
               dropdownWidthMode="auto"
               dropdownMinWidth={filter.minWidth ?? 120}
               className={isActive ? "text-primary-6" : ""}
@@ -411,6 +418,7 @@ export default function SettingsTable<RowData>({
   rowDataTestId,
   rowDataAttributes,
   surfaceVariant = "default",
+  bodySurface = "raised",
   fillHeight = false,
   maxHeight,
   className = "",
@@ -498,6 +506,7 @@ export default function SettingsTable<RowData>({
     maxHeight != null && "table-settings-fill-height",
     containedScroll && "table-settings-contained-scroll",
     stickyFirstColumn && "table-settings-sticky-first-col",
+    bodySurface === "pane" && "table-settings-pane-body",
     !hasSearchBar &&
       surfaceVariant !== "transparent" &&
       "table-settings-rounded-top",

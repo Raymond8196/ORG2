@@ -10,7 +10,7 @@
  * --------
  * • "default"  — session creator, standalone (bg-chat-input)
  * • "embedded" — chat panel embedded in conversation (bg-chat-input)
- * • "pill"     — compact single-row capsule (rounded-full, same padding)
+ * • "pill"     — contextual compact single-row composer
  * • "comment"  — compact avatar-adjacent comment input
  * • "edit"     — queued-message edit box (label strip + inner editor card)
  * • "historyEdit" — sent-message edit box (single layer, same token as normal input)
@@ -46,7 +46,7 @@ export interface ComposerShellProps {
 const VARIANT_CLASSES: Record<ComposerShellVariant, string> = {
   default: `${INPUT_AREA.borderRadiusClass}  px-1.5 pt-2.5 pb-1.5 gap-2`,
   embedded: `${INPUT_AREA.borderRadiusClass}  px-1.5 pt-2.5 pb-1.5 gap-2`,
-  pill: "rounded-full                     p-1.5 gap-2",
+  pill: "rounded-full p-1.5 gap-2",
   comment: `${INPUT_AREA.borderRadiusClass} px-1.5 py-1.5 gap-1.5`,
   // `edit` is the OUTER label strip — the inner editor card is rendered as
   // a separately-styled child (see `InputArea`). The strip itself is just

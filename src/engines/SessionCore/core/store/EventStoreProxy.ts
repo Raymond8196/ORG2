@@ -33,7 +33,11 @@ import type {
   SessionListener,
   Snapshot,
 } from "./EventStoreProxyTypes";
-import { inferSessionId, isRealUserEvent } from "./eventStoreEvents";
+import {
+  type SyntheticEvictionScope,
+  inferSessionId,
+  syntheticEvictionScopeForRealUserEvents,
+} from "./eventStoreEvents";
 import { SnapshotCacheManager } from "./snapshotCacheManager";
 
 export type {
@@ -173,9 +177,11 @@ class EventStoreProxyImpl {
     events: SessionEvent[],
     sessionId?: string | null
   ): Promise<void> {
-    if (!events.some(isRealUserEvent)) return;
+    const scope = syntheticEvictionScopeForRealUserEvents(events);
+    if (!scope) return;
     await this.removeSyntheticUserInputEvents(
-      sessionId ?? inferSessionId(events)
+      sessionId ?? inferSessionId(events),
+      scope
     );
   }
 
@@ -376,6 +382,26 @@ class EventStoreProxyImpl {
   }
 
   /**
+   * Read the cache's durable content revision without materializing events.
+   * `contentRevision` is advanced by Rust only when an event row actually
+   * changes, so metadata-only session edits and the periodic cache save do
+   * not make a cloud replay look dirty.
+   */
+  async getPersistedEventRevision(
+    sessionId: string
+  ): Promise<{ eventCount: number; revision: number } | null> {
+    const metadata = await rpc.sessionCore.cache.getSessionMetadata({
+      sessionId,
+    });
+    return metadata
+      ? {
+          eventCount: metadata.eventCount,
+          revision: metadata.contentRevision,
+        }
+      : null;
+  }
+
+  /**
    * Persist one bounded event batch directly to SQLite without materializing
    * the session in the Rust/JS in-memory stores. Large cloud replays use this
    * while downloading, then hydrate only the initial turn window.
@@ -481,12 +507,20 @@ class EventStoreProxyImpl {
     });
   }
 
-  /** Remove frontend-injected user placeholders after backend echo arrives. */
+  /**
+   * Remove frontend-injected user placeholders after backend echo arrives.
+   * Without a scope every placeholder is removed; with one, only
+   * placeholders the scope proves are echoed/stale (see
+   * syntheticEvictionScopeForRealUserEvents).
+   */
   async removeSyntheticUserInputEvents(
-    sessionId?: string | null
+    sessionId?: string | null,
+    scope?: SyntheticEvictionScope
   ): Promise<number> {
     return rpc.sessionCore.eventStore.removeSyntheticUserInputs({
       sessionId: sessionId ?? null,
+      matchingContents: scope?.matchingContents,
+      olderThan: scope?.olderThan,
     });
   }
 
