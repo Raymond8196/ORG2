@@ -5,5 +5,4 @@ export { usePinnedTabs } from "./usePinnedTabs";
 export type { UseWorkStationTabsReturn } from "./useWorkStationTabs";
 
 export { useSelectedFile } from "./useSelectedFile";
-export { useTabSwitchVerification } from "./useTabSwitchVerification";
 export { useUrlPreviewEvents } from "./useUrlPreviewEvents";

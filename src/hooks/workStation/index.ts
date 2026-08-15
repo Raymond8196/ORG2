@@ -1,20 +1,6 @@
 // Editor & Code Hooks
 export { useDiff } from "./git/useDiff";
 export { useContextMenu } from "./panels/useContextMenu";
-export { useCodeSearch } from "./search/useCodeSearch";
-export type { CodeSearchMode, CodeSearchResult } from "./search/useCodeSearch";
-
-// Incremental Indexing
-export { useIncrementalIndexing } from "./indexing/useIncrementalIndexing";
-export type {
-  UseIncrementalIndexingOptions,
-  UseIncrementalIndexingReturn,
-} from "./indexing/useIncrementalIndexing";
-export { useFileWatchIndexing } from "./indexing/useFileWatchIndexing";
-export type {
-  UseFileWatchIndexingOptions,
-  UseFileWatchIndexingReturn,
-} from "./indexing/useFileWatchIndexing";
 
 export { useCursorSessionCapture } from "./sessionCapture/useCursorSessionCapture";
 export {
@@ -22,8 +8,6 @@ export {
   usePrimarySidebarState,
   useBottomPanelState,
 } from "./panels/useWorkStationPanels";
-export { usePanelResize } from "./panels/usePanelResize";
-export { useTabSwitchVerification } from "./tabs/useTabSwitchVerification";
 export { useSelectedFile } from "./tabs/useSelectedFile";
 
 // Unified tab management
