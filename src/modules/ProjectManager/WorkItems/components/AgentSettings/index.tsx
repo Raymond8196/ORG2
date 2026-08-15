@@ -96,7 +96,6 @@ const AgentSettings: React.FC<AgentSettingsProps> = ({
   );
 
   const effectiveConfig = { ...DEFAULT_ORCHESTRATOR_CONFIG, ...config };
-  const followUpDisabled = !effectiveConfig.review_enabled;
   const maxRetryDisabled = !effectiveConfig.auto_retry_on_failure;
 
   const selectedAccount = useMemo(
@@ -300,32 +299,6 @@ const AgentSettings: React.FC<AgentSettingsProps> = ({
         </SectionContainer>
 
         <SectionContainer>
-          <SectionRow
-            label={t("workItems.agentSettings.reviewEnabled")}
-            description={t("workItems.agentSettings.reviewEnabledDesc")}
-          >
-            <Switch
-              checked={effectiveConfig.review_enabled}
-              onChange={(checked) => handleToggle("review_enabled", checked)}
-            />
-          </SectionRow>
-
-          <SectionRow
-            label={t("workItems.agentSettings.followUpEnabled")}
-            description={
-              followUpDisabled
-                ? t("workItems.agentSettings.disabledRequiresReview")
-                : t("workItems.agentSettings.followUpEnabledDesc")
-            }
-            indent={followUpDisabled}
-          >
-            <Switch
-              checked={effectiveConfig.follow_up_enabled && !followUpDisabled}
-              onChange={(checked) => handleToggle("follow_up_enabled", checked)}
-              disabled={followUpDisabled}
-            />
-          </SectionRow>
-
           <SectionRow
             label={t("workItems.agentSettings.autoCreatePr")}
             description={t("workItems.agentSettings.autoCreatePrDesc")}
