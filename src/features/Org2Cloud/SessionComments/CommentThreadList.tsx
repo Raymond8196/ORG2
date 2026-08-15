@@ -226,7 +226,13 @@ const CommentComposer: React.FC<ComposerProps> = ({
             "cloud.comments.searchMembers",
             "Search members"
           )}
-          position="top-start"
+          // Both hosts scroll (the notes dialog body and the chat
+          // transcript), and an in-flow panel is clipped by that scroll
+          // container — portal to the body so it can overhang. `top-end`
+          // anchors the panel's RIGHT edge to the trigger's, so a 280px
+          // panel opens inward instead of past the dialog's right edge.
+          getPopupContainer={() => document.body}
+          position="top-end"
           avoidViewportOverflow
           onVisibleChange={setMentionDropdownOpen}
           onSelect={(value) =>
