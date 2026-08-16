@@ -80,6 +80,8 @@ export interface WorkManagementTablePagination {
   onPageChange: (pageIndex: number) => void;
   totalLabel?: ReactNode;
   pageLabel?: ReactNode;
+  /** See {@link SettingsTablePagination}: page count only covers loaded pages. */
+  openEndedPageCount?: boolean;
 }
 
 interface WorkManagementTableProps {
