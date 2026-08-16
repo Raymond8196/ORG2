@@ -247,9 +247,9 @@ impl EventStore {
             let content_matched = transcript_text(event)
                 .map(|text| targets.contains(&normalize_user_text(&text)))
                 .unwrap_or(false);
-            let predates_newest_real = older_than
-                .as_deref()
-                .is_some_and(|bound| !event.created_at.is_empty() && event.created_at.as_str() < bound);
+            let predates_newest_real = older_than.as_deref().is_some_and(|bound| {
+                !event.created_at.is_empty() && event.created_at.as_str() < bound
+            });
             content_matched || predates_newest_real
         };
         let removed_ids: Vec<String> = self
