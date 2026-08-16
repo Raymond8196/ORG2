@@ -270,5 +270,6 @@ export {
   saveRepoCacheAtom,
   clearRepoCacheAtom,
   clearAllEditorCacheAtom,
+  disposeEditorCacheForSessionAtom,
   switchActiveRepoAtom,
 } from "./editorCache";

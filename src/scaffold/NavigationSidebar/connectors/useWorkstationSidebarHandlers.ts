@@ -50,6 +50,7 @@ import {
 } from "@src/store/ui/chatPanelAtom";
 import {
   clearPendingFileOpensForSession,
+  disposeEditorCacheForSessionAtom,
   disposeWorkstationWorkspaceAtom,
 } from "@src/store/workstation/tabs";
 import { clearPendingCodeEditorTabForSession } from "@src/store/workstation/tabs/pendingCodeEditorTab";
@@ -135,8 +136,21 @@ export function useWorkstationSidebarHandlers({
   onCloudSidebarItemClick,
 }: UseWorkstationSidebarHandlersParams): UseWorkstationSidebarHandlersResult {
   const navigateChatPanel = useSetAtom(chatPanelNavigateAtom);
-  const disposeWorkstationWorkspace = useSetAtom(
+  const disposeWorkstationTabsWorkspace = useSetAtom(
     disposeWorkstationWorkspaceAtom
+  );
+  const disposeEditorCacheForSession = useSetAtom(
+    disposeEditorCacheForSessionAtom
+  );
+  // Both session-delete paths (direct + Rust delete receipt) go through this
+  // one callback so the tab registry and the editor cache are released
+  // together.
+  const disposeWorkstationWorkspace = useCallback(
+    (sessionId: string) => {
+      disposeWorkstationTabsWorkspace(sessionId);
+      disposeEditorCacheForSession(sessionId);
+    },
+    [disposeWorkstationTabsWorkspace, disposeEditorCacheForSession]
   );
   const pagination = useAtomValue(sessionPaginationAtom);
   const cloudAuth = useAtomValue(org2CloudAuthAtom);
