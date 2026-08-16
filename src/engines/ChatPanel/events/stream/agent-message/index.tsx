@@ -17,7 +17,7 @@ import { useTranslation } from "react-i18next";
 import Markdown from "@src/components/MarkDown";
 import { getEventIcon } from "@src/config/toolIcons";
 import AgentChatItemDefault from "@src/engines/ChatPanel/ChatItems/AgentChatItemDefault";
-import { AgentMessageBlock } from "@src/engines/ChatPanel/blocks";
+import AgentMessageBlock from "@src/engines/ChatPanel/blocks/AgentMessageBlock";
 import CanvasInlineCard from "@src/engines/ChatPanel/blocks/CanvasInlineCard";
 import CanvasRevisionProgress from "@src/engines/ChatPanel/blocks/CanvasInlineCard/CanvasRevisionProgress";
 import { isCanvasRevisionPayload } from "@src/engines/ChatPanel/blocks/CanvasInlineCard/canvasRevision";
