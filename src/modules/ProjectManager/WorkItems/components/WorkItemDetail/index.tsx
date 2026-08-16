@@ -9,10 +9,8 @@ import { useTranslation } from "react-i18next";
 
 import type { WorkItemData as WorkItemDataPayload } from "@src/api/http/project";
 import { HEADER_CLASSES } from "@src/config/workstation/tokens";
-import {
-  usePublishWorkstationTabHeader,
-  useWorkStationTabs,
-} from "@src/hooks/workStation";
+import { useWorkStationTabs } from "@src/hooks/tabHost/useWorkStationTabs";
+import { usePublishWorkstationTabHeader } from "@src/hooks/tabHost/useWorkstationTabHeader";
 import { useAgentDefinitions } from "@src/modules/MainApp/AgentOrgs/hooks/useAgentDefinitions";
 import { useAgentOrgs } from "@src/modules/MainApp/AgentOrgs/hooks/useAgentOrgs";
 import { createWorkItemDetailTab } from "@src/store/workstation/tabs";

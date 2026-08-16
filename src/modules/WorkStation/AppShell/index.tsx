@@ -2,7 +2,7 @@ import { useAtomValue } from "jotai";
 import React from "react";
 
 import { useCurrentTurnLastAgentMessage } from "@src/engines/Simulator/hooks/useCurrentTurnLastAgentMessage";
-import { useWorkStationPanels } from "@src/hooks/workStation";
+import { useWorkStationPanels } from "@src/hooks/tabHost/useWorkStationPanels";
 import { GUIDE_TARGETS } from "@src/scaffold/Tutorials/guideTargets";
 import { workstationActiveSessionIdAtom } from "@src/store/session";
 import { simulatorCaptionBarEnabledAtom } from "@src/store/ui/simulatorAtom";

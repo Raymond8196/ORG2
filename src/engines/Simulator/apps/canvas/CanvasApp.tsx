@@ -36,7 +36,7 @@ import {
   getCanvasShareAvailability,
   useCanvasShareDialog,
 } from "@src/features/CanvasShare";
-import { usePublishWorkstationTabHeader } from "@src/hooks/workStation";
+import { usePublishWorkstationTabHeader } from "@src/hooks/tabHost/useWorkstationTabHeader";
 import { SessionReplayCodeMirrorViewer } from "@src/modules/WorkStation/CodeEditor/SessionReplay/CodePanel/SessionReplayCodeMirrorViewer";
 import {
   PrimarySidebarLayoutWithSections,

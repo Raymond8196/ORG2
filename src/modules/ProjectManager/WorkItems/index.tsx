@@ -17,7 +17,7 @@ import type { TabPillItem } from "@src/components/TabPill";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
 import { useProjectOrgCloudPermissions } from "@src/features/Org2Cloud/useProjectOrgCloudPermissions";
 import { useCurrentUserMemberIds } from "@src/hooks/project/useCurrentUserMemberId";
-import type { WorkstationTabHeaderHost } from "@src/hooks/workStation";
+import type { WorkstationTabHeaderHost } from "@src/hooks/tabHost/useWorkstationTabHeader";
 import type { LinkedRepoOption } from "@src/modules/ProjectManager/shared";
 import type { ProjectManagerBreadcrumbSegment } from "@src/modules/ProjectManager/shared/components/ProjectManagerBreadcrumb";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
