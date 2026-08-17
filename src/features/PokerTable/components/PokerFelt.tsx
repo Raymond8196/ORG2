@@ -77,10 +77,10 @@ const PokerFelt: React.FC<PokerFeltProps> = ({
       className="relative h-full min-h-[300px] w-full"
       data-testid="poker-felt"
     >
-      {/* Oval */}
+      {/* Felt: rounded rectangle with a large radius (stadium ends), like the mock */}
       <div
         aria-hidden
-        className="absolute bottom-[17%] left-[9%] right-[9%] top-[14%] rounded-[50%] border border-border-1 bg-fill-1"
+        className="absolute bottom-[17%] left-[9%] right-[9%] top-[14%] rounded-[200px] border border-border-1 bg-fill-1"
       />
 
       {/* Centre: pot + board + result */}

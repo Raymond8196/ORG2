@@ -3,6 +3,7 @@
  * cards above it, dealer button, current-street bet pill toward the pot,
  * and the "Thinking · Ns" indicator under the acting seat.
  */
+import { Bot } from "lucide-react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -97,15 +98,18 @@ const PokerSeat: React.FC<PokerSeatProps> = ({
           {initialOf(seat.player.name)}
         </span>
         <span className="flex min-w-0 flex-col leading-tight">
-          <span className="flex items-center gap-1 text-[12px] font-medium text-text-1">
-            <span className="truncate">{seat.player.name}</span>
+          <span className="flex items-center gap-1 whitespace-nowrap text-[12px] font-medium text-text-1">
+            <span>{seat.player.name}</span>
             {seat.player.kind === "bot" && (
-              <span className="rounded-full bg-fill-2 px-1 text-[9px] font-medium uppercase tracking-wide text-text-3">
-                {t("pokerTable.seat.bot")}
-              </span>
+              <Bot
+                size={12}
+                strokeWidth={1.8}
+                className="shrink-0 text-text-3"
+                aria-label={t("pokerTable.seat.bot")}
+              />
             )}
           </span>
-          <span className="text-[11px] text-text-3">
+          <span className="whitespace-nowrap text-[11px] text-text-3">
             {seat.isAllIn
               ? t("pokerTable.seat.allIn")
               : t("pokerTable.tokens", { amount: formatChips(seat.stack) })}
