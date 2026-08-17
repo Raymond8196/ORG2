@@ -391,7 +391,7 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
       return (
         <div
           ref={staticScrollerRef}
-          className="h-full overflow-y-auto overscroll-contain scrollbar-hide"
+          className="allow-select-deep h-full overflow-y-auto overscroll-contain scrollbar-hide"
           style={{ paddingTop: topPaddingPx }}
           onScroll={(event) => {
             const element = event.currentTarget;
@@ -472,7 +472,7 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
           virtualScrollerRef.current = node;
         }}
         data-testid="chat-history-scroll-container"
-        className="h-full w-full overflow-y-auto overscroll-contain scrollbar-hide"
+        className="allow-select-deep h-full w-full overflow-y-auto overscroll-contain scrollbar-hide"
         style={{ paddingTop: topPaddingPx }}
         onScroll={(event) => {
           const element = event.currentTarget;
