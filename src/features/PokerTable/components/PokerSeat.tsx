@@ -48,10 +48,16 @@ const PokerSeat: React.FC<PokerSeatProps> = ({
   const showFaceUp = seat.holeCards && seat.holeCards.length > 0;
   const showFaceDown = !showFaceUp && seat.hasCards;
   const cardSize = isHero ? "lg" : "sm";
-  const betPillOffset = {
-    left: `calc(50% + ${towardCenter.x * 78}px)`,
-    top: `calc(50% + ${towardCenter.y * 62}px)`,
-  };
+  // Bet pill sits just outside the seat block on the pot side. The hero's
+  // block is much taller (large face-up cards above the pill), so its pill
+  // goes clear above the cards rather than the generic 62px nudge, which
+  // would land on them.
+  const betPillOffset = isHero
+    ? { left: "50%", top: "calc(50% - 88px)" }
+    : {
+        left: `calc(50% + ${towardCenter.x * 78}px)`,
+        top: `calc(50% + ${towardCenter.y * 62}px)`,
+      };
 
   return (
     <div className="relative flex flex-col items-center">
