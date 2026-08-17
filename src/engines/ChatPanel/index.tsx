@@ -62,6 +62,7 @@ import {
   chatPanelStartPageOpenAtom,
   chatWidthAtom,
 } from "@src/store/ui/chatPanelAtom";
+import { openPokerTableAtom } from "@src/store/ui/pokerTableAtom";
 import { openSideChatAtom } from "@src/store/ui/sideChatAtom";
 import type { WorkItemDraft } from "@src/store/workstation/projectManager";
 import { isHumanSession } from "@src/util/session/sessionDispatch";
@@ -394,6 +395,10 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       // without leaving the active tab.
       openSideChat(null);
     }, [openSideChat]);
+    const openPokerTable = useSetAtom(openPokerTableAtom);
+    const handleOpenPokerTable = useCallback(() => {
+      openPokerTable();
+    }, [openPokerTable]);
 
     const handleChatPanelCollabOrgCreated = useCallback(
       (_result: CreatedOrgResult) => {
@@ -563,6 +568,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
         onNewProject={handleStartPageNewProject}
         onNewWorkItem={handleStartPageNewWorkItem}
         onOpenSideChat={handleOpenSideChat}
+        onOpenPokerTable={handleOpenPokerTable}
       />
     );
 
