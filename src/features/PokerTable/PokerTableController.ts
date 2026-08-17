@@ -139,7 +139,11 @@ export class PokerTableController {
     this.onBankrollChange = options.onBankrollChange;
     this.buyIn = options.buyIn;
     this.botCount = Math.min(5, Math.max(1, options.botCount ?? 5));
-    this.engine = new PokerTableEngine(options.blinds);
+    // Same rng for the deck as for the bots, so a seeded controller (tests)
+    // is fully deterministic; production leaves both on the CSPRNG default.
+    this.engine = new PokerTableEngine(options.blinds, {
+      rng: options.rng,
+    });
     this.personaOrder = shuffle(
       BOT_PERSONAS.map((persona) => persona.id),
       this.rng
