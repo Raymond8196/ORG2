@@ -197,6 +197,23 @@ describe("PokerTableController", () => {
     expect(listener).not.toHaveBeenCalled();
   });
 
+  it("leaves no timers or listeners behind after dispose", () => {
+    const { controller } = makeController();
+    const unsubscribe = controller.subscribe(() => {});
+    controller.start();
+    playHeroPassively(controller, 5_000);
+    expect(vi.getTimerCount()).toBeGreaterThan(0);
+    controller.dispose();
+    expect(vi.getTimerCount()).toBe(0);
+    // A late unsubscribe from React is harmless.
+    unsubscribe();
+    // And a stray call into a disposed controller schedules nothing.
+    controller.heroAct("fold");
+    controller.rebuy(1_000);
+    controller.dealNextHand();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
   it("applies a stakes change at the next hand", () => {
     const { controller } = makeController();
     controller.start();
