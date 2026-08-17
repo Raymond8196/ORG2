@@ -14,6 +14,7 @@ import type { PokerPlayer } from "../engine/types";
 import PokerActionBar from "./PokerActionBar";
 import PokerFelt from "./PokerFelt";
 import PokerHandHistory from "./PokerHandHistory";
+import PokerTableHeader from "./PokerTableHeader";
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
@@ -104,6 +105,30 @@ describe("PokerTable rendering", () => {
     expect(markup).toContain('aria-label="dealer"');
     expect(markup).toContain("pokerTable.thinking(");
     controller.dispose();
+  });
+
+  it("uses shared selects for stakes and table speed", () => {
+    const markup = renderToStaticMarkup(
+      createElement(PokerTableHeader, {
+        blinds: { smallBlind: 500, bigBlind: 1000 },
+        handNumber: 3,
+        settings: { stakesId: "0.5/1", speed: "normal" },
+        historyOpen: false,
+        onToggleHistory: () => {},
+        onChangeStakes: () => {},
+        onChangeSpeed: () => {},
+        onLeave: () => {},
+        onClose: () => {},
+      })
+    );
+
+    expect(markup.match(/role="combobox"/g)).toHaveLength(2);
+    expect(markup).toContain('data-testid="poker-stakes-select"');
+    expect(markup).toContain('aria-label="pokerTable.settings.stakes"');
+    expect(markup).toContain('data-testid="poker-speed-select"');
+    expect(markup).toContain('aria-label="pokerTable.settings.speed"');
+    expect(markup).toContain("pokerTable.header.title(0.5/1)");
+    expect(markup).toContain("pokerTable.settings.speed_normal");
   });
 
   it("offers exactly the legal actions with the sizing controls when it is the hero's turn", () => {

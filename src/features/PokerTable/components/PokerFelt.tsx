@@ -104,7 +104,13 @@ const PokerFelt: React.FC<PokerFeltProps> = ({
                 size="md"
               />
             ) : (
-              <PlayingCard key={`slot-${index}`} size="md" placeholder />
+              // Undealt slot: a face-down card, like the mock (dimmed so
+              // the dealt board reads first).
+              <PlayingCard
+                key={`slot-${index}`}
+                size="md"
+                className="opacity-60"
+              />
             );
           })}
         </div>

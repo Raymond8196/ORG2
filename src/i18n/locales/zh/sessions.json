@@ -3015,7 +3015,6 @@
     "waitingFor": "等待 {{name}}…",
     "dealing": "发牌中…",
     "nextHand": "开始下一手",
-    "disclaimer": "仅为游戏筹码——这里的一切都不是真实 token 或金钱。",
     "seat": {
       "you": "你",
       "bot": "机器人",
@@ -3038,14 +3037,14 @@
       "winsWith": "{{name}} 以 {{hand}} 赢得 {{amount}}"
     },
     "rebuy": {
-      "title": "你的筹码输光了。",
+      "title": "你的筹码输光了",
       "bankroll": "资金 {{amount}}",
       "buyIn": "买入 {{amount}}",
       "reset": "重置资金"
     },
     "history": {
       "title": "牌局记录",
-      "empty": "还没有打过牌。",
+      "empty": "还没有打过牌",
       "foldedOut": "其他人都弃牌"
     },
     "settings": {

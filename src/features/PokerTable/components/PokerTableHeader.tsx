@@ -5,19 +5,14 @@
  * dropdown as the title — and right slot: hand number, history, settings,
  * "Leave table", close.
  */
-import { ChevronDown, History, SlidersHorizontal, X } from "lucide-react";
+import { History, SlidersHorizontal, X } from "lucide-react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
-import Dropdown from "@src/components/Dropdown";
-import {
-  DROPDOWN_CLASSES,
-  DROPDOWN_WIDTHS,
-} from "@src/components/Dropdown/tokens";
 import { useWindowDrag } from "@src/components/FloatingWindow/useWindowDrag";
+import Select, { type SelectOption } from "@src/components/Select";
 import {
-  HEADER_BUTTON,
   HEADER_CLASSES,
   HEADER_ICON_SIZE,
 } from "@src/config/workstation/tokens";
@@ -56,6 +51,29 @@ const PokerTableHeader: React.FC<PokerTableHeaderProps> = ({
   const { t } = useTranslation("sessions");
   const onPointerDown = useWindowDrag(true);
   const stakesLabel = formatStakes(blinds.smallBlind, blinds.bigBlind);
+  const stakesOptions: SelectOption[] = POKER_STAKES_OPTIONS.map((option) => {
+    const label = t("pokerTable.header.title", {
+      stakes: formatStakes(option.smallBlind, option.bigBlind),
+    });
+
+    return {
+      value: option.id,
+      label,
+      // A stakes change is queued until the next hand. Keep the trigger on
+      // the live blinds while the selected menu option reflects the pending
+      // setting.
+      triggerLabel:
+        option.id === settings.stakesId
+          ? t("pokerTable.header.title", { stakes: stakesLabel })
+          : label,
+    };
+  });
+  const speedOptions: SelectOption[] = (["normal", "fast"] as const).map(
+    (speed) => ({
+      value: speed,
+      label: t(`pokerTable.settings.speed_${speed}`),
+    })
+  );
 
   return (
     <div
@@ -63,35 +81,25 @@ const PokerTableHeader: React.FC<PokerTableHeaderProps> = ({
       onPointerDown={onPointerDown}
     >
       <div className="flex min-w-0 flex-1 items-center">
-        <Dropdown
-          trigger="click"
-          position="bottom-start"
-          getPopupContainer={() => document.body}
-          avoidViewportOverflow
-          options={POKER_STAKES_OPTIONS.map((option) => ({
-            value: option.id,
-            label: t("pokerTable.header.title", {
-              stakes: formatStakes(option.smallBlind, option.bigBlind),
-            }),
-          }))}
-          value={settings.stakesId}
-          onSelect={(value) => onChangeStakes(String(value) as PokerStakesId)}
-        >
-          <button
-            type="button"
-            className="flex min-w-0 items-center gap-1 rounded px-1 text-[13px] font-medium text-text-1 hover:bg-fill-1"
-            data-no-window-drag
-            title={t("pokerTable.settings.stakes")}
-          >
-            <span className="truncate">
-              {t("pokerTable.header.title", { stakes: stakesLabel })}
-            </span>
-            <ChevronDown
-              size={HEADER_ICON_SIZE.sm}
-              className="shrink-0 text-text-3"
-            />
-          </button>
-        </Dropdown>
+        <div className="min-w-0" data-no-window-drag>
+          <Select
+            value={settings.stakesId}
+            options={stakesOptions}
+            placeholder={t("pokerTable.settings.stakes")}
+            onChange={(value) => {
+              if (Array.isArray(value)) return;
+              onChangeStakes(String(value) as PokerStakesId);
+            }}
+            size="mini"
+            appearance="ghost"
+            dropdownAlign="left"
+            dropdownWidthMode="auto"
+            className="w-auto max-w-full"
+            selectorClassName="!font-medium"
+            ariaLabel={t("pokerTable.settings.stakes")}
+            dataTestId="poker-stakes-select"
+          />
+        </div>
       </div>
 
       <div className="flex flex-shrink-0 items-center gap-1.5">
@@ -100,56 +108,27 @@ const PokerTableHeader: React.FC<PokerTableHeaderProps> = ({
             {t("pokerTable.header.hand", { number: handNumber })}
           </span>
         )}
-        <button
-          type="button"
-          className={`${HEADER_BUTTON.action} ${historyOpen ? "bg-fill-2 text-text-1" : ""}`}
-          onClick={onToggleHistory}
-          title={t("pokerTable.header.history")}
-        >
-          <History size={HEADER_ICON_SIZE.sm} />
-        </button>
-        <Dropdown
-          trigger="click"
-          position="bottom-end"
-          getPopupContainer={() => document.body}
-          avoidViewportOverflow
-          droplist={
-            <div
-              className={`${DROPDOWN_CLASSES.panel} ${DROPDOWN_WIDTHS.menuClass} p-1`}
-            >
-              <div className="px-2 py-1 text-[11px] font-medium uppercase tracking-wide text-text-3">
-                {t("pokerTable.settings.speed")}
-              </div>
-              {(["normal", "fast"] as const).map((speed) => (
-                <button
-                  key={speed}
-                  type="button"
-                  role="menuitemradio"
-                  aria-checked={settings.speed === speed}
-                  className={`flex w-full items-center justify-between rounded px-2 py-1 text-[12px] hover:bg-fill-1 ${
-                    settings.speed === speed ? "text-text-1" : "text-text-2"
-                  }`}
-                  onClick={() => onChangeSpeed(speed)}
-                >
-                  <span>{t(`pokerTable.settings.speed_${speed}`)}</span>
-                  {settings.speed === speed && (
-                    <span className="text-primary-6">•</span>
-                  )}
-                </button>
-              ))}
-            </div>
-          }
-        >
-          <button
-            type="button"
-            className={HEADER_BUTTON.action}
-            title={t("pokerTable.header.settings")}
-            data-no-window-drag
-          >
-            <SlidersHorizontal size={HEADER_ICON_SIZE.sm} />
-          </button>
-        </Dropdown>
+        <div data-no-window-drag>
+          <Select
+            value={settings.speed}
+            options={speedOptions}
+            placeholder={t("pokerTable.settings.speed")}
+            onChange={(value) => {
+              if (Array.isArray(value)) return;
+              onChangeSpeed(value as StoredPokerSettings["speed"]);
+            }}
+            prefix={<SlidersHorizontal size={HEADER_ICON_SIZE.sm} />}
+            size="mini"
+            appearance="ghost"
+            dropdownAlign="right"
+            dropdownWidthMode="min-match"
+            className="w-auto"
+            ariaLabel={t("pokerTable.settings.speed")}
+            dataTestId="poker-speed-select"
+          />
+        </div>
         <Button
+          htmlType="button"
           variant="secondary"
           appearance="outline"
           size="mini"
@@ -159,14 +138,28 @@ const PokerTableHeader: React.FC<PokerTableHeaderProps> = ({
           {t("pokerTable.header.leave")}
         </Button>
         <span aria-hidden className="h-4 w-px flex-shrink-0 bg-border-2" />
-        <button
-          type="button"
-          className={HEADER_BUTTON.action}
+        <Button
+          htmlType="button"
+          variant="tertiary"
+          size="mini"
+          iconOnly
+          icon={<History size={HEADER_ICON_SIZE.sm} />}
+          className={historyOpen ? "bg-fill-2 text-text-1" : ""}
+          onClick={onToggleHistory}
+          title={t("pokerTable.header.history")}
+          aria-label={t("pokerTable.header.history")}
+          aria-pressed={historyOpen}
+        />
+        <Button
+          htmlType="button"
+          variant="tertiary"
+          size="mini"
+          iconOnly
+          icon={<X size={HEADER_ICON_SIZE.sm} />}
           onClick={onClose}
           title={t("pokerTable.header.close")}
-        >
-          <X size={HEADER_ICON_SIZE.sm} />
-        </button>
+          aria-label={t("pokerTable.header.close")}
+        />
       </div>
     </div>
   );

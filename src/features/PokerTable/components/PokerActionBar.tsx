@@ -29,6 +29,10 @@ export interface PokerActionBarProps {
 const clamp = (value: number, min: number, max: number): number =>
   Math.min(max, Math.max(min, value));
 
+/** Every state of the bar keeps this height so the felt never jumps. */
+const BAR_CLASS =
+  "flex h-[92px] flex-col items-center justify-center gap-2 px-4";
+
 const PokerActionBar: React.FC<PokerActionBarProps> = ({
   snapshot,
   heroSeat,
@@ -83,14 +87,11 @@ const PokerActionBar: React.FC<PokerActionBarProps> = ({
     const canBuy = bankroll > 0;
     const stake = Math.min(buyIn, bankroll);
     return (
-      <div className="flex flex-col items-center gap-2 px-4 py-3">
+      <div className={BAR_CLASS}>
         <span className="text-[12px] text-text-2">
-          {t("pokerTable.rebuy.title")}{" "}
-          <span className="text-text-3">
-            {t("pokerTable.rebuy.bankroll", { amount: formatChips(bankroll) })}
-          </span>
+          {t("pokerTable.rebuy.title")}
         </span>
-        <div className="flex items-center gap-2">
+        <div className="relative flex w-full items-center justify-center gap-2">
           {canBuy ? (
             <Button
               variant="primary"
@@ -119,7 +120,7 @@ const PokerActionBar: React.FC<PokerActionBarProps> = ({
     const actor =
       snapshot.toAct !== null ? snapshot.seats[snapshot.toAct] : null;
     return (
-      <div className="flex h-[92px] flex-col items-center justify-center gap-2 px-4">
+      <div className={BAR_CLASS}>
         {snapshot.phase === "hand-complete" ? (
           <Button
             variant="secondary"
@@ -144,13 +145,10 @@ const PokerActionBar: React.FC<PokerActionBarProps> = ({
   }
 
   return (
-    <div
-      className="flex flex-col items-center gap-2 px-4 py-2"
-      data-testid="poker-action-bar"
-    >
+    <div className={BAR_CLASS} data-testid="poker-action-bar">
       {range && (
-        <div className="flex w-full max-w-[560px] items-center gap-2 rounded-full border border-border-2 bg-bg-1 py-1 pl-1 pr-3 shadow-sm">
-          <div className="flex items-center gap-0.5">
+        <div className="flex w-full max-w-[560px] items-center gap-3 py-0.5">
+          <div className="flex shrink-0 items-center gap-0.5">
             {POT_PRESETS.map((fraction) => (
               <button
                 key={fraction}
@@ -166,8 +164,10 @@ const PokerActionBar: React.FC<PokerActionBarProps> = ({
               </button>
             ))}
           </div>
-          <div className="min-w-0 flex-1 px-1">
+          <div className="flex min-w-0 flex-1 items-center">
             <Slider
+              className="w-full"
+              noPadding
               min={range.min}
               max={range.max}
               step={step}
@@ -183,12 +183,12 @@ const PokerActionBar: React.FC<PokerActionBarProps> = ({
               }
             />
           </div>
-          <span className="whitespace-nowrap text-[12px] font-medium text-text-1">
+          <span className="shrink-0 whitespace-nowrap text-[12px] font-medium text-text-1">
             {t("pokerTable.tokens", { amount: formatChips(amount) })}
           </span>
         </div>
       )}
-      <div className="flex items-center gap-2">
+      <div className="relative flex w-full items-center justify-center gap-2">
         <Button
           variant="secondary"
           appearance="outline"

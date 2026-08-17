@@ -3026,7 +3026,6 @@
     "waitingFor": "Waiting for {{name}}…",
     "dealing": "Dealing…",
     "nextHand": "Deal next hand",
-    "disclaimer": "Play chips only — nothing here is real tokens or money.",
     "seat": {
       "you": "You",
       "bot": "bot",
@@ -3049,14 +3048,14 @@
       "winsWith": "{{name}} wins {{amount}} with {{hand}}"
     },
     "rebuy": {
-      "title": "You're out of chips.",
+      "title": "You're out of chips",
       "bankroll": "Bankroll {{amount}}",
       "buyIn": "Buy in {{amount}}",
       "reset": "Reset bankroll"
     },
     "history": {
       "title": "Hand history",
-      "empty": "No hands played yet.",
+      "empty": "No hands played yet",
       "foldedOut": "everyone folded"
     },
     "settings": {

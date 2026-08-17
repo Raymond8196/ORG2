@@ -57,7 +57,9 @@ const PokerSeat: React.FC<PokerSeatProps> = ({
     <div className="relative flex flex-col items-center">
       {/* Hole cards */}
       <div
-        className={`mb-[-10px] flex ${isHero ? "gap-1" : "gap-0"} ${dim}`}
+        // Bots' small cards tuck under their pill; the hero's stay fully
+        // visible above theirs.
+        className={`flex ${isHero ? "mb-1.5 gap-1.5" : "mb-[-10px] gap-0"} ${dim}`}
         style={{ minHeight: isHero ? 70 : 34 }}
       >
         {showFaceUp &&

@@ -29,7 +29,6 @@ import PokerFelt from "./components/PokerFelt";
 import PokerHandHistory from "./components/PokerHandHistory";
 import PokerTableHeader from "./components/PokerTableHeader";
 import type { PlayerAction, PokerPlayer } from "./engine/types";
-import { formatChips } from "./format";
 import {
   defaultBuyIn,
   usePokerTableController,
@@ -142,14 +141,6 @@ const PokerTableWindow: React.FC = () => {
               onResetBankroll={handleResetBankroll}
               onDealNext={handleDealNext}
             />
-            <div className="flex items-center justify-between px-3 pb-1.5 text-[10px] text-text-4">
-              <span>{t("pokerTable.disclaimer")}</span>
-              <span>
-                {t("pokerTable.rebuy.bankroll", {
-                  amount: formatChips(state.bankroll),
-                })}
-              </span>
-            </div>
           </div>
         </div>
         {historyOpen && (
