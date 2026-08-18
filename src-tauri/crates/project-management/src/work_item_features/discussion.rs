@@ -259,6 +259,7 @@ fn same_wake_target(stored_target_json: &str, target: &WorkItemRunTarget) -> boo
 /// discussion run for the same target whose outbox row is still `pending`.
 /// The conditional outbox update is the window gate — once the dispatcher
 /// leases the row, the update misses and the caller opens a new window.
+#[allow(clippy::too_many_arguments)]
 fn merge_into_open_wake_window(
     tx: &rusqlite::Transaction<'_>,
     scope_key: &str,
