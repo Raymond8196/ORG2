@@ -369,7 +369,14 @@
     "discussion": {
       "previewWillWake": "将唤醒 agent 回复",
       "previewNoteOnly": "仅记录 — 不会触发 agent",
-      "previewNoSession": "没有关联的 agent 会话 — 不会触发任何运行"
+      "previewNoSession": "没有关联的 agent 会话 — 不会触发任何运行",
+      "previewMentionResume": "将唤醒被提及的 agent",
+      "previewMentionStart": "将启动被提及的 agent",
+      "previewMentionUnroutable": "被提及的 agent 未配置在该事项上 — 不会触发",
+      "previewThread": "将唤醒该 thread 的 agent",
+      "previewAssignee": "将唤醒被指派的 agent",
+      "previewAssigneeStart": "将启动被指派的 agent",
+      "previewCoalesce": "并入待处理的唤醒"
     },
     "activity": {
       "title": "动态",
@@ -381,6 +388,9 @@
       "unsubscribe": "取消订阅",
       "commentPlaceholder": "留下评论...",
       "mentionPeople": "提及成员",
+      "mentionAll": "@all — 该事项的所有人",
+      "mentionAgentOption": "{{name}}(agent)",
+      "mentionAgentOrgOption": "{{name}}(agent org)",
       "you": "你",
       "createdWorkItem": "创建了工作项",
       "deletedWorkItem": "删除了工作项",

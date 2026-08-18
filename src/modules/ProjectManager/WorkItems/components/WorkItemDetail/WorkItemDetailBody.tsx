@@ -122,6 +122,8 @@ export function WorkItemDetailBody({
               onUpdateWorkItem={onUpdateWorkItem}
               onUpdateWorkItemImmediate={onUpdateWorkItemImmediate}
               teamMembers={availableMembers}
+              availableAgents={availableAgents}
+              availableOrgs={availableOrgs}
               repoPath={repoPath}
               projectSlug={projectSlug}
               orgId={orgId}

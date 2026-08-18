@@ -18,6 +18,7 @@ import type { WorkItem as WorkItemExtended } from "@src/types/core/workItem";
 import type { WorkItemComment } from "@src/types/core/workItem";
 
 import type { WorkItemContentPresentation } from "./presentation";
+import type { MentionCandidate } from "./workItemMentions";
 
 export const SESSION_TAB_KEYS = ["session", "output", "history"] as const;
 export type SessionTab = (typeof SESSION_TAB_KEYS)[number];
@@ -34,6 +35,8 @@ export interface WorkItemContentProps {
   onUpdateWorkItemImmediate?: (updates: Partial<WorkItemExtended>) => void;
   currentUser?: Person;
   teamMembers?: Person[];
+  availableAgents?: MentionCandidate[];
+  availableOrgs?: MentionCandidate[];
   headerPath?: ReactNode;
   headerProperties?: ReactNode;
   /** Render the editable title inside the content surface. */
@@ -144,9 +147,11 @@ export interface HistoryTabProps {
   onToggleSubscribe: () => void;
   commentText: string;
   onCommentTextChange: (text: string) => void;
-  mentionedUserIds?: string[];
-  onMentionedUserIdsChange?: (memberIds: string[]) => void;
+  mentionRefs?: string[];
+  onMentionRefsChange?: (mentionRefs: string[]) => void;
   teamMembers?: Person[];
+  agents?: MentionCandidate[];
+  agentOrgs?: MentionCandidate[];
   onCommentSubmit: () => void;
   isSubmittingComment: boolean;
   comments?: WorkItemComment[];

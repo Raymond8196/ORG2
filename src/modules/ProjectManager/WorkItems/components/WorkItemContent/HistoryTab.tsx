@@ -198,9 +198,11 @@ const HistoryTab: React.FC<HistoryTabProps> = ({
   onToggleSubscribe,
   commentText,
   onCommentTextChange,
-  mentionedUserIds = [],
-  onMentionedUserIdsChange = () => undefined,
+  mentionRefs = [],
+  onMentionRefsChange = () => undefined,
   teamMembers = [],
+  agents = [],
+  agentOrgs = [],
   onCommentSubmit,
   isSubmittingComment,
   comments = [],
@@ -278,6 +280,17 @@ const HistoryTab: React.FC<HistoryTabProps> = ({
   );
 
   const hasComment = commentText.trim().length > 0;
+  const PREVIEW_REASON_KEYS: Record<string, string> = {
+    mention: "previewMentionResume",
+    mention_start: "previewMentionStart",
+    mention_unroutable: "previewMentionUnroutable",
+    thread_owner: "previewThread",
+    thread_continuation: "previewThread",
+    assignee: "previewAssignee",
+    assignee_start: "previewAssigneeStart",
+    note_only: "previewNoteOnly",
+    no_linked_session: "previewNoSession",
+  };
   const triggerPreviewChip =
     hasComment && triggerPreview ? (
       <div
@@ -292,12 +305,16 @@ const HistoryTab: React.FC<HistoryTabProps> = ({
           aria-hidden
         />
         {t(
-          triggerPreview.willWake
-            ? "workItems.discussion.previewWillWake"
-            : triggerPreview.reason === "note_only"
-              ? "workItems.discussion.previewNoteOnly"
-              : "workItems.discussion.previewNoSession"
+          `workItems.discussion.${
+            PREVIEW_REASON_KEYS[triggerPreview.reason] ??
+            (triggerPreview.willWake ? "previewWillWake" : "previewNoSession")
+          }`
         )}
+        {triggerPreview.willCoalesce ? (
+          <span className="text-text-4">
+            · {t("workItems.discussion.previewCoalesce")}
+          </span>
+        ) : null}
       </div>
     ) : null;
   const submitButton = (
@@ -385,10 +402,12 @@ const HistoryTab: React.FC<HistoryTabProps> = ({
             <div className="flex min-w-0 items-center justify-end gap-1.5">
               <WorkItemMentionPicker
                 members={teamMembers}
+                agents={agents}
+                agentOrgs={agentOrgs}
                 currentUserId={currentUser.id}
-                value={mentionedUserIds}
+                value={mentionRefs}
                 disabled={isSubmittingComment}
-                onChange={onMentionedUserIdsChange}
+                onChange={onMentionRefsChange}
               />
               {submitButton}
             </div>
@@ -427,10 +446,12 @@ const HistoryTab: React.FC<HistoryTabProps> = ({
           <div className="flex min-w-0 items-center justify-end gap-1.5">
             <WorkItemMentionPicker
               members={teamMembers}
+              agents={agents}
+              agentOrgs={agentOrgs}
               currentUserId={currentUser.id}
-              value={mentionedUserIds}
+              value={mentionRefs}
               disabled={isSubmittingComment}
-              onChange={onMentionedUserIdsChange}
+              onChange={onMentionRefsChange}
             />
             {submitButton}
           </div>

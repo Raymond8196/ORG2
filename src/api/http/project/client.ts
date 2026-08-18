@@ -43,6 +43,7 @@ import type {
   WorkItemData,
   WorkItemFrontmatter,
   WorkItemHandoffTransition,
+  WorkItemMentionTarget,
   WorkItemPartialUpdate,
   WorkItemPropertyValue,
   WorkItemRun,
@@ -738,6 +739,8 @@ export async function retryLatestWorkItemRun({
 export async function previewDiscussionTrigger(
   request: WorkItemScope & {
     content: string;
+    mentions?: WorkItemMentionTarget[];
+    parentId?: string | null;
     targetSessionId?: string | null;
   }
 ): Promise<DiscussionTriggerPreview> {
