@@ -7,7 +7,7 @@ use crate::projects::events::DATA_CHANGED_EVENT;
 use crate::projects::io as projects_io;
 use crate::projects::io::repo_resolver;
 use crate::projects::types::{
-    AgentRole, LinkedSession, LinkedSessionStatus, LinkedSessionType, OrchestratorPhase, PrStatus,
+    AgentRole, LinkedSessionType, OrchestratorPhase, PrStatus,
 };
 
 use super::branch_health;
@@ -34,68 +34,6 @@ pub struct OrchestratorStatus {
     pub retry_count: u32,
     pub interrupted: bool,
     pub has_active_config: bool,
-}
-
-/// Start the orchestrator workflow: snapshot config → launch SDE session.
-///
-/// Returns the session ID that should be launched.
-#[tauri::command]
-pub async fn orchestrator_start(
-    project_slug: String,
-    work_item_id: String,
-    app: tauri::AppHandle,
-) -> Result<String, String> {
-    let event_project_slug = project_slug.clone();
-    let result = tokio::task::spawn_blocking(move || {
-        projects_io::update_work_item_atomic(
-            &project_slug,
-            &work_item_id,
-            |frontmatter, _body| {
-                let current_phase = frontmatter
-                    .orchestrator_state
-                    .as_ref()
-                    .map(|s| &s.current_phase)
-                    .unwrap_or(&OrchestratorPhase::Idle);
-
-                if !matches!(
-                    current_phase,
-                    OrchestratorPhase::Idle | OrchestratorPhase::Completed
-                ) {
-                    return Err(format!(
-                        "Cannot start: orchestrator is in phase '{:?}', expected idle or completed",
-                        current_phase
-                    ));
-                }
-
-                let now = chrono::Utc::now().to_rfc3339();
-                for linked_session in &mut frontmatter.linked_sessions {
-                    if linked_session.status == LinkedSessionStatus::Running {
-                        linked_session.status = LinkedSessionStatus::Completed;
-                        linked_session.completed_at = Some(now.clone());
-                    }
-                }
-
-                frontmatter.execution_lock = None;
-                state_machine::snapshot_config(frontmatter);
-                state_machine::add_linked_session(
-                    frontmatter,
-                    PENDING_SESSION_PLACEHOLDER,
-                    AgentRole::Coding,
-                    LinkedSessionType::Native,
-                );
-
-                frontmatter.updated_at = chrono::Utc::now().to_rfc3339();
-                Ok::<(), String>(())
-            },
-        )?;
-
-        Ok::<String, String>(work_item_id)
-    })
-    .await
-    .map_err(|err| err.to_string())??;
-
-    emit_data_changed(&app, &event_project_slug, &result);
-    Ok(result)
 }
 
 /// Cancel the active orchestrator workflow.
@@ -211,23 +149,6 @@ pub async fn orchestrator_get_status(
     .map_err(|err| err.to_string())?
 }
 
-/// List all linked sessions for a work item, sorted by start order.
-///
-/// Reads `linked_sessions` out of `workitem_extras.extras_json` —
-/// every state-machine transition that pushes / mutates a session
-/// also rewrites this vec atomically inside `update_work_item_atomic`.
-#[tauri::command]
-pub async fn orchestrator_list_sessions(
-    project_slug: String,
-    work_item_id: String,
-) -> Result<Vec<LinkedSession>, String> {
-    tokio::task::spawn_blocking(move || {
-        orchestrator_view::read_linked_sessions(&project_slug, &work_item_id)
-    })
-    .await
-    .map_err(|err| err.to_string())?
-}
-
 /// Create a follow-up work item from review feedback.
 /// Returns the new work item's short ID.
 #[tauri::command]
@@ -247,15 +168,6 @@ pub async fn orchestrator_create_follow_up(
 
     emit_data_changed(&app, &event_project_slug, &event_parent_short_id);
     Ok(result)
-}
-
-/// Get all interrupted work items for recovery UI.
-#[tauri::command]
-pub async fn orchestrator_get_interrupted_items(
-) -> Result<Vec<super::recovery::InterruptedItem>, String> {
-    tokio::task::spawn_blocking(super::recovery::scan_interrupted_items)
-        .await
-        .map_err(|err| err.to_string())?
 }
 
 /// Get cumulative diff stats between a base branch and a work item branch.
