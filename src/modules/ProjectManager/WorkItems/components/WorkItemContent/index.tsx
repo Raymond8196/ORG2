@@ -309,10 +309,6 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
   githubIssueInteraction,
   orgId,
   onOpenSubItem,
-  onCancelAgent,
-  onRetry,
-  onAcceptAsIs,
-  onCreateFollowUp,
   onOpenSession,
   onOpenFileDiff,
   onOpenFileAtLine,
@@ -809,10 +805,6 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
       onOpenFileAtLine={onOpenFileAtLine}
       onReviewAllFiles={onReviewAllFiles}
       onOpenSession={onOpenSession}
-      onRetry={onRetry}
-      onAcceptAsIs={onAcceptAsIs}
-      onCreateFollowUp={onCreateFollowUp}
-      onCancel={onCancelAgent}
       onCreatePr={onCreatePr}
     />
   );
