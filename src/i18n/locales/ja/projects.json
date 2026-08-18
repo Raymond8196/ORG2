@@ -500,10 +500,7 @@
     },
     "agentWorkflow": {
       "title": "Agent ワークフロー",
-      "startAgent": "Agent を開始",
-      "startAgentAndChat": "Agent を開始して Chat を開く",
       "running": "実行中...",
-      "pendingLaunch": "起動待ち...",
       "completed": "完了",
       "failed": "失敗",
       "awaitingUser": "操作待ち",

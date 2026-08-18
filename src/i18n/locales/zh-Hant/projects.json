@@ -500,11 +500,7 @@
     },
     "agentWorkflow": {
       "title": "Agent 工作流",
-      "startAgent": "啓動 Agent",
-      "startAgentAndChat": "啓動 Agent 並打開 Chat",
-      "noWorkspaceForAgent": "請先開啟一個儲存庫工作區，再對該事項啟動 agent。",
       "running": "運行中...",
-      "pendingLaunch": "等待啓動...",
       "completed": "已完成",
       "failed": "失敗",
       "awaitingUser": "等待操作",

@@ -366,6 +366,11 @@
     "history": {
       "noHistory": "暂无历史记录"
     },
+    "discussion": {
+      "previewWillWake": "将唤醒 agent 回复",
+      "previewNoteOnly": "仅记录 — 不会触发 agent",
+      "previewNoSession": "没有关联的 agent 会话 — 不会触发任何运行"
+    },
     "activity": {
       "title": "动态",
       "discussionTitle": "讨论",
@@ -501,11 +506,7 @@
     },
     "agentWorkflow": {
       "title": "Agent 工作流",
-      "startAgent": "启动 Agent",
-      "startAgentAndChat": "启动 Agent 并打开 Chat",
-      "noWorkspaceForAgent": "请先打开一个仓库工作区，再对该事项启动 agent。",
       "running": "运行中...",
-      "pendingLaunch": "等待启动...",
       "completed": "已完成",
       "failed": "失败",
       "awaitingUser": "等待操作",

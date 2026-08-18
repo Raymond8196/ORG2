@@ -500,10 +500,7 @@
     },
     "agentWorkflow": {
       "title": "Flux de Travail Agent",
-      "startAgent": "Démarrer Agent",
-      "startAgentAndChat": "Démarrer Agent et ouvrir Chat",
       "running": "En cours...",
-      "pendingLaunch": "En attente de lancement...",
       "completed": "Terminé",
       "failed": "Échoué",
       "awaitingUser": "En Attente d'Action",

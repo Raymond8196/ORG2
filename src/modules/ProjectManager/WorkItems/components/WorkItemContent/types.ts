@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import type {
+  DiscussionTriggerPreview,
   OrchestratorPhase,
   PrStatus,
   WorkItemData as WorkItemDataPayload,
@@ -156,6 +157,7 @@ export interface HistoryTabProps {
   presentation?: WorkItemContentPresentation;
   canComment?: boolean;
   threadNavigation?: ReactNode;
+  triggerPreview?: DiscussionTriggerPreview | null;
 }
 
 export interface TimelineEntry {

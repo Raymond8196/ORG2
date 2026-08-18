@@ -346,6 +346,7 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
     isSubscribed,
     handleToggleSubscription,
     isSubmittingComment,
+    triggerPreview,
     sessionTabItems,
     resolvedDescription,
     rawDescription,
@@ -826,6 +827,7 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
       onReopenThread={handleReopenDiscussionThread}
       presentation={presentation}
       canComment={Boolean(onUpdateWorkItem)}
+      triggerPreview={triggerPreview}
       threadNavigation={
         isThread && activeThreadView === "discussion" ? (
           <WorkItemThreadViewAction

@@ -500,10 +500,7 @@
     },
     "agentWorkflow": {
       "title": "Agent 워크플로",
-      "startAgent": "Agent 시작",
-      "startAgentAndChat": "Agent 시작 및 Chat 열기",
       "running": "실행 중...",
-      "pendingLaunch": "실행 대기 중...",
       "completed": "완료",
       "failed": "실패",
       "awaitingUser": "작업 대기",
