@@ -123,26 +123,35 @@ export interface Org2CloudRealtimeConnection {
   subscribe(options: Org2CloudSubscribeOptions): () => void;
   /** Join a Presence channel (ephemeral who-is-here state; never touches Postgres). */
   joinPresence(options: Org2CloudPresenceOptions): Org2CloudPresenceHandle;
-  /** Push a refreshed access token to the live socket (RLS re-auth). */
-  setAuth(accessToken: string): void;
+  /** Re-run the token callback and push the result to the live socket. */
+  setAuth(): void;
   /** Tear down all channels and the socket. */
   dispose(): void;
 }
 
 /**
- * Build a Realtime connection for the CURRENT endpoint, authenticated as the
- * given user. The client is realtime-only: auth auto-refresh and session
- * persistence are disabled (the app owns tokens via `org2CloudAuthAtom`), so
- * this never competes with the existing auth machinery.
+ * Build a Realtime connection for the CURRENT endpoint, authenticated
+ * through `getAccessToken`. The token is a CALLBACK, not a snapshot: the
+ * socket re-runs it on every heartbeat (~25s) and channel (re)join, so a
+ * JWT expiry can never strand the connection. A manually pushed token
+ * would disable exactly that heartbeat refresh path
+ * (`_manuallySetToken` in realtime-js), which silently killed
+ * postgres_changes delivery — and with it every steady-state inbound
+ * pull — one hour into any session that had no other reason to rotate
+ * the auth atom. The client is realtime-only: auth auto-refresh and
+ * session persistence are disabled (the app owns tokens via
+ * `org2CloudAuthAtom`), so this never competes with the existing auth
+ * machinery.
  */
 export function createOrg2CloudRealtimeConnection(
-  accessToken: string
+  getAccessToken: () => Promise<string | null>
 ): Org2CloudRealtimeConnection {
   const endpoint = getCloudEndpoint();
   const client: SupabaseClient = createClient(
     endpoint.supabaseUrl,
     endpoint.anonKey,
     {
+      accessToken: getAccessToken,
       auth: {
         persistSession: false,
         autoRefreshToken: false,
@@ -160,7 +169,10 @@ export function createOrg2CloudRealtimeConnection(
       },
     }
   );
-  client.realtime.setAuth(accessToken);
+  // Argument-less: resolves through the callback and clears any manual-token
+  // flag a constructor-time seed may have set, keeping the heartbeat refresh
+  // path armed.
+  void client.realtime.setAuth();
 
   const channels = new Set<RealtimeChannel>();
   let disposed = false;
@@ -239,7 +251,12 @@ export function createOrg2CloudRealtimeConnection(
     let wasEverTimedOut = false;
     channel.subscribe((status) => {
       const subscribed = status === "SUBSCRIBED";
-      if (!subscribed && status !== "CLOSED") {
+      if (!subscribed && status === "CLOSED") {
+        // A closed channel never rejoins on its own (phoenix `joinedOnce`),
+        // so an unexpected server-side close is exactly the silent-death
+        // shape worth finding in the console later.
+        log.warn(`realtime channel ${channelName} closed`);
+      } else if (!subscribed) {
         wasEverTimedOut = true;
         log.warn(`realtime channel ${channelName} status: ${status}`);
       } else if (subscribed && wasEverTimedOut) {
@@ -539,9 +556,9 @@ export function createOrg2CloudRealtimeConnection(
     };
   };
 
-  const setAuth = (token: string): void => {
+  const setAuth = (): void => {
     if (disposed) return;
-    client.realtime.setAuth(token);
+    void client.realtime.setAuth();
   };
 
   const dispose = (): void => {
