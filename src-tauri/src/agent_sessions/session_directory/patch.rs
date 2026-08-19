@@ -179,8 +179,9 @@ fn locate_session(session_id: &str) -> SqliteResult<Option<SessionLocation>> {
 /// error on the NEXT turn. Failing the patch up-front gives the frontend
 /// rollback path a useful message instead.
 ///
-/// Matching is deliberately lenient (exact, prefix in either direction, or
-/// alias) because palette model ids may carry variant suffixes; an empty
+/// Matching accepts exact enabled ids, explicit user aliases, and registered
+/// variants whose base model is enabled. Arbitrary prefix matches are rejected
+/// so stale or mistyped ids cannot silently pass validation; an empty
 /// `enabled_models` list means "no restriction" (e.g. fallback-populated
 /// native accounts).
 fn validate_account_model_compat(account_id: &str, model: &str) -> Result<(), String> {
@@ -195,10 +196,7 @@ fn validate_account_model_compat(account_id: &str, model: &str) -> Result<(), St
     if key.enabled_models.is_empty() {
         return Ok(());
     }
-    let compatible = key.enabled_models.iter().any(|enabled| {
-        enabled == model || model.starts_with(enabled.as_str()) || enabled.starts_with(model)
-    }) || key.model_aliases.iter().any(|alias| alias.alias == model);
-    if !compatible {
+    if !key.allows_model(model) {
         return Err(format!(
             "session_patch: model {model} is not enabled for account {account_id} \
              (enabled: {:?})",

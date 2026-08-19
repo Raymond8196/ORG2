@@ -286,6 +286,8 @@ export interface ForkTeammateSessionOptions extends RemoteSessionFetchOptions {
 export interface ForkSessionSetupSource {
   sourceTitle: string;
   sourceScopeKey?: string;
+  sourceScopeKeys?: string[];
+  sourceWorkspacePath?: string;
   sourceModel?: string;
   sourceAgentDisplayName?: string;
   sourceAgentDefinitionId?: string;
@@ -307,6 +309,8 @@ export async function requestForkSessionSetup(
       store.set(forkSessionSetupRequestAtom, {
         sourceTitle: source.sourceTitle,
         sourceScopeKey: source.sourceScopeKey,
+        sourceScopeKeys: source.sourceScopeKeys,
+        sourceWorkspacePath: source.sourceWorkspacePath,
         sourceModel: source.sourceModel,
         sourceAgentDisplayName: source.sourceAgentDisplayName,
         sourceAgentDefinitionId: source.sourceAgentDefinitionId,
@@ -315,17 +319,37 @@ export async function requestForkSessionSetup(
     }
   );
   if (!selected) throw new ForkCancelledError();
-  if (source.sourceScopeKey) {
+  const sourceScopeKeys =
+    source.sourceScopeKeys ??
+    (source.sourceScopeKey ? [source.sourceScopeKey] : []);
+  if (sourceScopeKeys.length > 0) {
     if (!selected.workspaceRepoPath) throw new ForkCancelledError();
-    const normalizedKey = normalizeRepoScopeKey(source.sourceScopeKey);
+    const normalizedKeys = sourceScopeKeys
+      .map(normalizeRepoScopeKey)
+      .filter(Boolean);
     const keys = await resolveShareableScopeKeys(selected.workspaceRepoPath);
-    const matchingScope = await resolveMatchingOrgRepoScope(keys, [
-      normalizedKey,
-    ]);
+    const matchingScope = await resolveMatchingOrgRepoScope(
+      keys,
+      normalizedKeys
+    );
     if (!matchingScope) {
       Message.error(
         i18n.t("navigation:collaboration.session.forkCheckoutMismatch", {
-          repo: source.sourceScopeKey,
+          repo: sourceScopeKeys[0],
+          session: source.sourceTitle,
+        })
+      );
+      throw new ForkCancelledError();
+    }
+  } else if (source.sourceWorkspacePath) {
+    const selectedPath = selected.workspaceRepoPath
+      ? normalizeRepoScopeKey(selected.workspaceRepoPath)
+      : null;
+    const sourcePath = normalizeRepoScopeKey(source.sourceWorkspacePath);
+    if (!selectedPath || selectedPath !== sourcePath) {
+      Message.error(
+        i18n.t("navigation:collaboration.session.forkCheckoutMismatch", {
+          repo: source.sourceWorkspacePath,
           session: source.sourceTitle,
         })
       );
@@ -513,6 +537,7 @@ export async function forkTeammateSession(
     workspacePath: workspaceRepoPath ?? undefined,
     model: result.model,
     accountId: result.accountId,
+    nativeHarnessType: result.nativeHarnessType,
     // Preserve the collaboration filing in Rust too. Without this, the
     // backend defaults the durable row to `personal-org`; the next
     // loadSessions() then moves a cloud fork out of its Team sidebar even

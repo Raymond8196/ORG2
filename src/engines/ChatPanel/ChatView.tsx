@@ -33,10 +33,15 @@ import React, {
 } from "react";
 import { useTranslation } from "react-i18next";
 
-import { getImportedHistoryCliResume } from "@src/api/tauri/externalHistory";
+import { getImportedHistoryOrgiiContinuation } from "@src/api/tauri/externalHistory";
 import Message from "@src/components/Message";
 import { useShowInteractArea } from "@src/contexts/workspace/ChatContext";
-import { forkExternalHistoryIntoOrgiiSession } from "@src/engines/ChatPanel/externalHistoryFork";
+import { sanitizeAgentErrorMessage } from "@src/engines/ChatPanel/ChatItems/sanitizeAgentErrorMessage";
+import {
+  ExternalHistoryContinuationError,
+  type ExternalHistoryContinuationErrorKind,
+  forkExternalHistoryIntoOrgiiSession,
+} from "@src/engines/ChatPanel/externalHistoryFork";
 import { derivedSnapshotAtom } from "@src/engines/SessionCore/core/atoms/events";
 import type { SessionEvent } from "@src/engines/SessionCore/core/types";
 import { derivePlanApprovalViewState } from "@src/engines/SessionCore/derived/planDisplayEvents";
@@ -94,6 +99,20 @@ import type { SubmitOverrideInput } from "./hooks/useInputArea/types";
 const logger = createLogger("ChatView");
 
 const EMPTY_CHAT_EVENTS: SessionEvent[] = [];
+
+const EXTERNAL_CONTINUATION_ERROR_KEYS: Record<
+  ExternalHistoryContinuationErrorKind,
+  string
+> = {
+  source_history_missing: "collaboration.forkImported.sourceHistoryError",
+  transcript_unavailable: "collaboration.forkImported.transcriptError",
+  execution_setup: "collaboration.forkImported.executionSetupError",
+  account_unavailable: "collaboration.forkImported.accountError",
+  model_unavailable: "collaboration.forkImported.modelError",
+  agent_unavailable: "collaboration.forkImported.continuationAgentError",
+  workspace_unavailable: "collaboration.forkImported.workspaceError",
+  session_launch: "collaboration.forkImported.launchError",
+};
 
 export type { ChatViewProps } from "./ChatViewTypes";
 
@@ -193,16 +212,17 @@ const ChatView: React.FC<ChatViewProps> = memo(
     const showInteractArea = useShowInteractArea();
     const hasCloudDownloadSurface =
       useCloudSessionHasDownloadSurface(sessionId);
-    // Sources whose CLI cannot reopen a session (Cursor IDE, Windsurf,
-    // Trae, …) are pure read-only replays: no composer, no continuation
-    // affordance. Only CLI-continuable histories offer the fork composer.
-    const importedCliResume = getImportedHistoryCliResume(sessionId);
+    // ORGII continuation depends on a complete replayable transcript plus a
+    // valid local execution selection. Native CLI resume is a separate header
+    // action and must never gate this composer.
+    const importedOrgiiContinuation =
+      getImportedHistoryOrgiiContinuation(sessionId);
     const showExternalHistoryForkComposer =
       shouldShowExternalHistoryForkComposer({
         hasCloudDownloadSurface,
         isImportedHistory,
         readOnly,
-        canResume: Boolean(importedCliResume),
+        canContinueInOrgii: Boolean(importedOrgiiContinuation),
       });
     const handleExternalHistoryForkSubmit = useCallback(
       async (input: SubmitOverrideInput) => {
@@ -246,7 +266,19 @@ const ChatView: React.FC<ChatViewProps> = memo(
           });
           if (!(error instanceof ForkCancelledError)) {
             logger.error("failed to continue imported history", error);
-            Message.error(tNavigation("collaboration.forkImported.error"));
+            const continuationError =
+              error instanceof ExternalHistoryContinuationError ? error : null;
+            const key = continuationError
+              ? EXTERNAL_CONTINUATION_ERROR_KEYS[continuationError.kind]
+              : "collaboration.forkImported.launchError";
+            Message.error(
+              tNavigation(key, {
+                detail: sanitizeAgentErrorMessage(
+                  continuationError?.message ??
+                    (error instanceof Error ? error.message : String(error))
+                ),
+              })
+            );
           }
         }
         return true;

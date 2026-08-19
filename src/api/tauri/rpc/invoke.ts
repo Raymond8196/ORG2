@@ -26,6 +26,15 @@ export class RpcError extends Error {
   }
 }
 
+function rpcRejectionMessage(error: unknown): string {
+  if (typeof error === "string") return error;
+  if (error && typeof error === "object") {
+    const message = (error as { message?: unknown }).message;
+    if (typeof message === "string") return message;
+  }
+  return String(error);
+}
+
 // ============================================================================
 // Procedure definition
 // ============================================================================
@@ -118,11 +127,7 @@ export async function typedInvoke<
     recordDiagnosticsRpc(command, performance.now() - diagnosticsStart, true);
   } catch (err) {
     recordDiagnosticsRpc(command, performance.now() - diagnosticsStart, false);
-    throw new RpcError(
-      command,
-      typeof err === "string" ? err : String(err),
-      err
-    );
+    throw new RpcError(command, rpcRejectionMessage(err), err);
   }
 
   // Optional transform (snake_case → camelCase, etc.)

@@ -30,6 +30,63 @@ pub const SESSION_CATEGORY_RUST_AGENT: &str = "rust_agent";
 /// process (Cursor CLI, Claude Code, Codex, Gemini, …).
 pub const SESSION_CATEGORY_CLI_AGENT: &str = "cli_agent";
 
+#[derive(Debug, Clone, Copy, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SessionLaunchErrorKind {
+    AccountUnavailable,
+    ModelUnavailable,
+    AgentUnavailable,
+    WorkspaceUnavailable,
+    LaunchFailed,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SessionLaunchError {
+    pub kind: SessionLaunchErrorKind,
+    pub message: String,
+}
+
+impl SessionLaunchError {
+    pub fn from_message(message: String) -> Self {
+        use crate::session::launch::{
+            LAUNCH_ACCOUNT_UNAVAILABLE_PREFIX, LAUNCH_AGENT_UNAVAILABLE_PREFIX,
+            LAUNCH_MODEL_UNAVAILABLE_PREFIX, LAUNCH_WORKSPACE_UNAVAILABLE_PREFIX,
+        };
+
+        let classifications = [
+            (
+                LAUNCH_ACCOUNT_UNAVAILABLE_PREFIX,
+                SessionLaunchErrorKind::AccountUnavailable,
+            ),
+            (
+                LAUNCH_MODEL_UNAVAILABLE_PREFIX,
+                SessionLaunchErrorKind::ModelUnavailable,
+            ),
+            (
+                LAUNCH_AGENT_UNAVAILABLE_PREFIX,
+                SessionLaunchErrorKind::AgentUnavailable,
+            ),
+            (
+                LAUNCH_WORKSPACE_UNAVAILABLE_PREFIX,
+                SessionLaunchErrorKind::WorkspaceUnavailable,
+            ),
+        ];
+        for (prefix, kind) in classifications {
+            if let Some(detail) = message.strip_prefix(prefix) {
+                return Self {
+                    kind,
+                    message: detail.to_string(),
+                };
+            }
+        }
+        Self {
+            kind: SessionLaunchErrorKind::LaunchFailed,
+            message,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SessionLaunchParams {
@@ -86,6 +143,11 @@ pub struct SessionLaunchParams {
     pub worktree_path: Option<String>,
     pub project_slug: Option<String>,
     pub parent_session_id: Option<String>,
+    /// Await runtime initialization and first-turn queue acceptance. A failure
+    /// rolls back the just-created session row instead of returning an
+    /// optimistic launch result.
+    #[serde(default)]
+    pub require_initial_turn_acceptance: bool,
 
     /// Internal durable Work Item Run identity. Ordinary frontend launches
     /// omit this; `session_launch_impl` creates and claims the Run before
@@ -248,13 +310,22 @@ fn validate_workspace_launch_fields(
     if (isolate || has_existing_worktree)
         && workspace_path.is_none_or(|path| path.trim().is_empty())
     {
-        return Err("Worktree mode requires workspacePath".to_string());
+        return Err(format!(
+            "{}Worktree mode requires workspacePath",
+            crate::session::launch::LAUNCH_WORKSPACE_UNAVAILABLE_PREFIX
+        ));
     }
     if isolate && has_existing_worktree {
-        return Err("isolate and worktreePath are mutually exclusive".to_string());
+        return Err(format!(
+            "{}isolate and worktreePath are mutually exclusive",
+            crate::session::launch::LAUNCH_WORKSPACE_UNAVAILABLE_PREFIX
+        ));
     }
     if has_base_ref && !isolate {
-        return Err("worktreeBaseRef requires isolate=true".to_string());
+        return Err(format!(
+            "{}worktreeBaseRef requires isolate=true",
+            crate::session::launch::LAUNCH_WORKSPACE_UNAVAILABLE_PREFIX
+        ));
     }
     Ok(())
 }
@@ -334,6 +405,7 @@ async fn launch_rust_agent(
         org_store,
         AgentRunLaunchRequest {
             durable_run_id: params.durable_run_id.clone(),
+            require_initial_turn_acceptance: params.require_initial_turn_acceptance,
             content: params.content,
             target,
             resources: LaunchResourceSelection {
@@ -542,7 +614,7 @@ fn derive_name(explicit: Option<&str>, content: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::validate_workspace_launch_fields;
+    use super::{validate_workspace_launch_fields, SessionLaunchError};
 
     #[test]
     fn workspace_launch_rejects_fresh_and_existing_worktree_together() {
@@ -579,5 +651,15 @@ mod tests {
         let error = validate_workspace_launch_fields(true, None, None, None)
             .expect_err("worktree mode needs a repository root");
         assert!(error.contains("requires workspacePath"));
+    }
+
+    #[test]
+    fn launch_error_serializes_stable_kind_and_clean_message() {
+        let error = SessionLaunchError::from_message(
+            "[session_launch/account_unavailable] Code Account 'gone' was not found".to_string(),
+        );
+        let value = serde_json::to_value(error).expect("serialize launch error");
+        assert_eq!(value["kind"], "account_unavailable");
+        assert_eq!(value["message"], "Code Account 'gone' was not found");
     }
 }

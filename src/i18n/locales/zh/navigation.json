@@ -525,7 +525,15 @@
       "backendError": "历史已复制，但可运行的分叉会话注册失败。请重试。",
       "parentOpenUnavailable": "无法从此分叉打开源会话。",
       "replayError": "此会话尚无完整回放。请让所有者共享完整回放后重试。",
-      "openParentButton": "打开来自 {{name}} 的源会话"
+      "openParentButton": "打开来自 {{name}} 的源会话",
+      "sourceHistoryError": "源历史记录已不在磁盘上。请恢复或重新扫描后重试。",
+      "transcriptError": "无法读取源历史记录：{{detail}}",
+      "executionSetupError": "本地执行设置失败：{{detail}}",
+      "accountError": "所选 Code Account 已不可用。请重新打开设置并选择可用账户。{{detail}}",
+      "modelError": "所选模型不属于该 Code Account。请重新打开设置并选择受支持的模型。{{detail}}",
+      "continuationAgentError": "所选本机 Agent 已不可用。请重新打开设置并选择现有 Agent。{{detail}}",
+      "workspaceError": "所选工作区不可用，或已不再匹配源 checkout：{{detail}}",
+      "launchError": "ORGII 无法创建接力会话：{{detail}}"
     },
     "continueCli": {
       "headerButton": "在 {{agent}} 中继续",

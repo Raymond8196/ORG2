@@ -33,6 +33,7 @@ import {
 import {
   IMPORTED_HISTORY_SOURCE_DESCRIPTORS,
   type ImportedHistoryListCategory,
+  type ImportedHistoryOrgiiContinuation,
   type ImportedHistorySourceDescriptor,
   type ImportedHistorySourceId,
 } from "./descriptors";
@@ -41,6 +42,7 @@ import { importedHistoryInitialWindow } from "./window";
 
 export type {
   ImportedHistoryListCategory,
+  ImportedHistoryOrgiiContinuation,
   ImportedHistorySourceDescriptor,
   ImportedHistorySourceId,
 };
@@ -57,6 +59,8 @@ export type { ImportedTranscriptStat };
 
 export interface ImportedHistorySource extends ImportedHistorySourceDescriptor {
   dispatchCategory: Extract<DispatchCategory, "external_history">;
+  /** Bounded context digest built from the complete source transcript. */
+  orgiiContinuation: ImportedHistoryOrgiiContinuation;
   /** Fast/windowed transcript used when the user opens the local history. */
   loadPreviewChunks(sessionId: string): Promise<ActivityChunk[]>;
   /** Complete source transcript used for cloud replay/fork publication. */
@@ -83,6 +87,9 @@ export interface ImportedHistorySource extends ImportedHistorySourceDescriptor {
 
 const CURSOR_IDE_INITIAL_RECENT_BUBBLE_LIMIT = 100;
 const IMPORTED_HISTORY_INITIAL_RECENT_TURN_COUNT = 1;
+const ORGII_BOUNDED_DIGEST_CONTINUATION = {
+  handoff: "bounded_digest_from_full_transcript",
+} as const satisfies ImportedHistoryOrgiiContinuation;
 
 async function loadGenericPreviewChunks(
   sessionId: string
@@ -97,14 +104,19 @@ async function loadGenericPreviewChunks(
 
 function descriptorFor(
   sourceId: ImportedHistorySourceId
-): ImportedHistorySourceDescriptor {
+): ImportedHistorySourceDescriptor & {
+  orgiiContinuation: ImportedHistoryOrgiiContinuation;
+} {
   const descriptor = IMPORTED_HISTORY_SOURCE_DESCRIPTORS.find(
     (entry) => entry.sourceId === sourceId
   );
   if (!descriptor) {
     throw new Error(`Missing imported history source descriptor: ${sourceId}`);
   }
-  return descriptor;
+  return {
+    ...descriptor,
+    orgiiContinuation: ORGII_BOUNDED_DIGEST_CONTINUATION,
+  };
 }
 
 export const IMPORTED_HISTORY_SOURCES: readonly ImportedHistorySource[] = [
@@ -281,6 +293,17 @@ export function getImportedHistoryCliResume(
   sessionId: string | null | undefined
 ) {
   return getImportedHistorySourceBySessionId(sessionId)?.cliResume;
+}
+
+/**
+ * ORGII-native continuation capability for an imported history. Unlike
+ * `getImportedHistoryCliResume`, this only requires a complete replayable
+ * transcript; the local workspace/account/model/agent are selected later.
+ */
+export function getImportedHistoryOrgiiContinuation(
+  sessionId: string | null | undefined
+) {
+  return getImportedHistorySourceBySessionId(sessionId)?.orgiiContinuation;
 }
 
 export function getImportedHistorySourceByListCategory(

@@ -29,6 +29,7 @@ import {
   forkTeammateSession,
   getSessionForkedFrom,
   markForkHandoffConsumed,
+  requestForkSessionSetup,
   resolveForkWorkspacePath,
 } from "./forkSession";
 import {
@@ -247,6 +248,71 @@ describe("resolveForkWorkspacePath", () => {
   });
 });
 
+describe("requestForkSessionSetup workspace invariants", () => {
+  it("rejects an unrelated checkout when only exact local identity is available", async () => {
+    const setupPromise = requestForkSessionSetup({
+      sourceTitle: "Local history",
+      sourceWorkspacePath: "/repo/source",
+    });
+    store.get(forkSessionSetupRequestAtom)?.resolve({
+      workspaceRepoPath: "/repo/unrelated",
+      execution: {
+        agentDefinitionId: "builtin:sde",
+        accountId: "openai-local",
+        model: "gpt-5.2-codex",
+      },
+    });
+
+    await expect(setupPromise).rejects.toBeInstanceOf(ForkCancelledError);
+    expect(messageMock.error).toHaveBeenCalledWith(
+      "navigation:collaboration.session.forkCheckoutMismatch"
+    );
+  });
+
+  it("accepts the exact local checkout without a shareable remote", async () => {
+    const setupPromise = requestForkSessionSetup({
+      sourceTitle: "Local history",
+      sourceWorkspacePath: "/repo/source",
+    });
+    const selection = {
+      workspaceRepoPath: "/repo/source",
+      execution: {
+        agentDefinitionId: "builtin:sde",
+        accountId: "cursor-local",
+        model: "composer-2",
+        nativeHarnessType: "cursor_native" as const,
+      },
+    };
+    store.get(forkSessionSetupRequestAtom)?.resolve(selection);
+
+    await expect(setupPromise).resolves.toEqual(selection);
+    expect(resolveScopeKeysMock).not.toHaveBeenCalled();
+  });
+
+  it("accepts a checkout matching any persisted remote identity", async () => {
+    resolveScopeKeysMock.mockResolvedValueOnce(["github.com/acme/upstream"]);
+    const setupPromise = requestForkSessionSetup({
+      sourceTitle: "Forked checkout history",
+      sourceScopeKeys: ["github.com/alice/fork", "github.com/acme/upstream"],
+    });
+    const selection = {
+      workspaceRepoPath: "/repo/local-fork",
+      execution: {
+        agentDefinitionId: "builtin:sde",
+        accountId: "openai-local",
+        model: "gpt-5.2-codex",
+      },
+    };
+    store.get(forkSessionSetupRequestAtom)?.resolve(selection);
+
+    await expect(setupPromise).resolves.toEqual(selection);
+    expect(resolveMatchingScopeMock).toHaveBeenCalledWith(
+      ["github.com/acme/upstream"],
+      ["github.com/alice/fork", "github.com/acme/upstream"]
+    );
+  });
+});
+
 describe("forkTeammateSession (design §16.11 relay completion)", () => {
   it("waits for one explicit workspace/account/model setup before fetching the fork", async () => {
     const forkPromise = forkTeammateSession({
@@ -335,6 +401,22 @@ describe("forkTeammateSession (design §16.11 relay completion)", () => {
     // UnifiedSessionRecord requires session_type (passed via the SessionMeta
     // schema catchall); "sde" = coding session.
     expect(record.sessionType).toBe("sde");
+  });
+
+  it("persists the selected native harness with the runnable backend row", async () => {
+    forkSessionMock.mockResolvedValue({
+      ...FORK_RESULT,
+      model: "composer-2",
+      accountId: "cursor-local",
+      agentDefinitionId: "builtin:sde",
+      nativeHarnessType: "cursor_native",
+    });
+
+    await forkTeammateSession(makeForkOptions());
+
+    expect(saveSessionMock).toHaveBeenCalledWith(
+      expect.objectContaining({ nativeHarnessType: "cursor_native" })
+    );
   });
 
   it("asks the user to choose the LOCAL checkout for a repo-scoped fork", async () => {

@@ -5,8 +5,10 @@
 
 use std::collections::HashMap;
 
-use core_types::key_source::KeySource;
+use core_types::{key_source::KeySource, providers::NativeHarnessType};
+use key_vault::key_store::{HealthStatus, ModelKey, KEY_SERVICE};
 
+use crate::config::ReliabilityConfig;
 use crate::coordination::agent_org_runs::AgentOrgRunStore;
 use crate::definitions::orgs::{OrgMember, OrgMemberRuntimeConfig};
 use crate::session::turn::streaming::{
@@ -14,6 +16,10 @@ use crate::session::turn::streaming::{
 };
 
 use super::launch_workspace::release_work_item_execution_lock_if_present;
+use super::{
+    LaunchResourceSelection, LAUNCH_ACCOUNT_UNAVAILABLE_PREFIX, LAUNCH_AGENT_UNAVAILABLE_PREFIX,
+    LAUNCH_MODEL_UNAVAILABLE_PREFIX,
+};
 
 #[allow(clippy::too_many_arguments)]
 // Failure handling deliberately receives each durable identifier and log
@@ -78,7 +84,7 @@ pub(super) fn validate_launch_agent_definitions(
     if let Some(definition_id) = agent_definition_id.filter(|id| !id.trim().is_empty()) {
         if store.get(definition_id).is_none() {
             return Err(format!(
-                "Agent definition '{}' does not exist; remove the stale session or choose an existing Agent definition before launching",
+                "{LAUNCH_AGENT_UNAVAILABLE_PREFIX}Agent definition '{}' does not exist; remove the stale session or choose an existing Agent definition before launching",
                 definition_id
             ));
         }
@@ -149,6 +155,101 @@ pub(super) fn validate_launch_agent_definitions(
     }
 
     Ok(())
+}
+
+pub(super) fn validate_own_key_pair(
+    account_id: &str,
+    model: &str,
+    key: Option<&ModelKey>,
+) -> Result<(), String> {
+    let Some(key) = key else {
+        return Err(format!(
+            "{LAUNCH_ACCOUNT_UNAVAILABLE_PREFIX}Code Account '{account_id}' was not found"
+        ));
+    };
+    if !key.enabled {
+        return Err(format!(
+            "{LAUNCH_ACCOUNT_UNAVAILABLE_PREFIX}Code Account '{account_id}' is disabled"
+        ));
+    }
+    if !key.has_local_key {
+        return Err(format!(
+            "{LAUNCH_ACCOUNT_UNAVAILABLE_PREFIX}Code Account '{account_id}' has no local credential"
+        ));
+    }
+    if key.health_status == HealthStatus::Invalid {
+        return Err(format!(
+            "{LAUNCH_ACCOUNT_UNAVAILABLE_PREFIX}Code Account '{account_id}' is invalid"
+        ));
+    }
+    if !key.allows_model(model) {
+        return Err(format!(
+            "{LAUNCH_MODEL_UNAVAILABLE_PREFIX}Model '{model}' is not enabled for Code Account '{account_id}'"
+        ));
+    }
+    Ok(())
+}
+
+/// Validate an explicit own-key account/model pair before any session row is
+/// created. A completely absent pair remains eligible for the established
+/// Agent-definition fallback; a half pair is always invalid.
+pub(super) fn validate_launch_resources(
+    resources: &LaunchResourceSelection,
+) -> Result<Option<NativeHarnessType>, String> {
+    let key_source = match resources.key_source.as_deref() {
+        Some(raw) => KeySource::parse(raw).ok_or_else(|| format!("Unknown key_source: {raw:?}"))?,
+        None => KeySource::OwnKey,
+    };
+    let native_harness_type = resources
+        .native_harness_type
+        .as_deref()
+        .filter(|value| !value.trim().is_empty())
+        .map(|value| {
+            NativeHarnessType::parse(value).ok_or_else(|| {
+                format!("{LAUNCH_ACCOUNT_UNAVAILABLE_PREFIX}Unknown native harness type: {value:?}")
+            })
+        })
+        .transpose()?;
+    if key_source == KeySource::HostedKey {
+        if native_harness_type.is_some() {
+            return Err(format!(
+                "{LAUNCH_ACCOUNT_UNAVAILABLE_PREFIX}Hosted-key sessions cannot use a native account harness"
+            ));
+        }
+        return Ok(None);
+    }
+
+    let account_id = clean_runtime_value(resources.account_id.as_ref());
+    let model = clean_runtime_value(resources.model.as_ref());
+    match (account_id, model) {
+        (None, None) if native_harness_type.is_none() => Ok(None),
+        (None, None) => Err(format!(
+            "{LAUNCH_ACCOUNT_UNAVAILABLE_PREFIX}A native account harness was selected without a Code Account"
+        )),
+        (None, Some(_)) => Err(format!(
+            "{LAUNCH_ACCOUNT_UNAVAILABLE_PREFIX}A model was selected without a Code Account"
+        )),
+        (Some(_), None) => Err(format!(
+            "{LAUNCH_MODEL_UNAVAILABLE_PREFIX}A Code Account was selected without a model"
+        )),
+        (Some(account_id), Some(model)) => {
+            let key = KEY_SERVICE.get_key_by_id(&account_id);
+            validate_own_key_pair(&account_id, &model, key.as_ref())?;
+            crate::providers::factory::create_provider_with_native_harness(
+                &model,
+                Some(&account_id),
+                &ReliabilityConfig::default(),
+                native_harness_type,
+                None,
+            )
+            .map_err(|error| {
+                format!(
+                    "{LAUNCH_ACCOUNT_UNAVAILABLE_PREFIX}Code Account '{account_id}' cannot run a Rust agent with the selected execution mode: {error}"
+                )
+            })?;
+            Ok(native_harness_type)
+        }
+    }
 }
 
 pub(super) fn clean_runtime_value(value: Option<&String>) -> Option<String> {

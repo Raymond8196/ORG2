@@ -475,6 +475,8 @@ export interface SessionLaunchParams {
   worktreePath?: string;
   projectSlug?: string;
   parentSessionId?: string;
+  /** Await runtime init + first-turn queue acceptance and roll back on failure. */
+  requireInitialTurnAcceptance?: boolean;
 
   /**
    * Extra workspace folders granted at launch time (multi-root IDE
@@ -515,6 +517,49 @@ export interface SessionLaunchResult {
   worktreeBranch?: string | null;
   /** Base ref used to create the isolated worktree. */
   baseRef?: string | null;
+}
+
+export const SESSION_LAUNCH_ERROR_KIND = {
+  ACCOUNT_UNAVAILABLE: "account_unavailable",
+  MODEL_UNAVAILABLE: "model_unavailable",
+  AGENT_UNAVAILABLE: "agent_unavailable",
+  WORKSPACE_UNAVAILABLE: "workspace_unavailable",
+  LAUNCH_FAILED: "launch_failed",
+} as const;
+
+export type SessionLaunchErrorKind =
+  (typeof SESSION_LAUNCH_ERROR_KIND)[keyof typeof SESSION_LAUNCH_ERROR_KIND];
+
+/** Structured Tauri rejection emitted by the unified Rust launch boundary. */
+export interface SessionLaunchError {
+  kind: SessionLaunchErrorKind;
+  message: string;
+}
+
+function isSessionLaunchError(value: unknown): value is SessionLaunchError {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as Record<string, unknown>;
+  return (
+    typeof candidate.message === "string" &&
+    Object.values(SESSION_LAUNCH_ERROR_KIND).includes(
+      candidate.kind as SessionLaunchErrorKind
+    )
+  );
+}
+
+/** Find the Rust launch classification through RpcError/service wrappers. */
+export function findSessionLaunchError(
+  error: unknown
+): SessionLaunchError | null {
+  const visited = new Set<unknown>();
+  let current = error;
+  while (current && !visited.has(current)) {
+    if (isSessionLaunchError(current)) return current;
+    visited.add(current);
+    if (typeof current !== "object") return null;
+    current = (current as { cause?: unknown }).cause;
+  }
+  return null;
 }
 
 export async function sessionLaunch(

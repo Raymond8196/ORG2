@@ -19,6 +19,15 @@ export interface ImportedHistoryCliResume {
   displayName: string;
 }
 
+/**
+ * Capability for handing a replayable external transcript to a fresh,
+ * Rust-native ORGII session. This is intentionally independent from native
+ * CLI resume, which has a separate execution path and prerequisites.
+ */
+export interface ImportedHistoryOrgiiContinuation {
+  handoff: "bounded_digest_from_full_transcript";
+}
+
 export interface ImportedHistorySourceDescriptor {
   sourceId: ImportedHistorySourceId;
   listCategory: ImportedHistoryListCategory;

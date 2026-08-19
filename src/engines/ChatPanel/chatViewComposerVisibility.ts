@@ -13,15 +13,18 @@ export function shouldShowMainChatComposer({
 export function shouldShowExternalHistoryForkComposer({
   isImportedHistory,
   readOnly,
-  canResume,
+  canContinueInOrgii,
   hasCloudDownloadSurface,
 }: {
   isImportedHistory: boolean;
   readOnly: boolean;
-  canResume: boolean;
+  canContinueInOrgii: boolean;
   hasCloudDownloadSurface: boolean;
 }): boolean {
   return (
-    !hasCloudDownloadSurface && isImportedHistory && !readOnly && canResume
+    !hasCloudDownloadSurface &&
+    isImportedHistory &&
+    !readOnly &&
+    canContinueInOrgii
   );
 }

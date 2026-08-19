@@ -78,10 +78,22 @@ const _mergingSessionIds = new Set<string>();
 // Helpers
 // ============================================
 
+export class SessionServiceError extends Error {
+  readonly operation: string;
+  readonly cause: unknown;
+
+  constructor(operation: string, message: string, cause: unknown) {
+    super(`${operation}: ${message}`);
+    this.name = "SessionServiceError";
+    this.operation = operation;
+    this.cause = cause;
+  }
+}
+
 function throwServiceError(context: string, error: unknown): never {
   const msg = error instanceof Error ? error.message : String(error);
   logger.error(`${context}: ${msg}`);
-  throw new Error(`${context}: ${msg}`);
+  throw new SessionServiceError(context, msg, error);
 }
 
 /**
@@ -162,6 +174,7 @@ export const SessionService = {
       workspacePath: params.projectRepoPath || params.repoPath || undefined,
       worktreePath: params.worktreePath || undefined,
       accountId: params.accountId || undefined,
+      nativeHarnessType: params.nativeHarnessType || undefined,
       name: params.name || params.task.slice(0, 60),
       mode: params.mode || undefined,
       agentDefinitionId: params.agentDefinitionId || undefined,
@@ -169,6 +182,8 @@ export const SessionService = {
       agentRole: params.agentRole || undefined,
       keySource: params.keySource || undefined,
       parentSessionId: params.parentSessionId || undefined,
+      requireInitialTurnAcceptance:
+        params.requireInitialTurnAcceptance || undefined,
       ideContext: adeContext,
       ...(params.projectSlug ? { projectSlug: params.projectSlug } : {}),
       ...(isCli

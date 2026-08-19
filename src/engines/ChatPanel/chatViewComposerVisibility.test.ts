@@ -21,7 +21,7 @@ describe("chat view composer visibility", () => {
       shouldShowExternalHistoryForkComposer({
         isImportedHistory: true,
         readOnly: false,
-        canResume: true,
+        canContinueInOrgii: true,
         hasCloudDownloadSurface: true,
       })
     ).toBe(false);

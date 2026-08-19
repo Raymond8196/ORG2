@@ -572,6 +572,7 @@ fn routine_to_launch_request(
 
     AgentRunLaunchRequest {
         durable_run_id: None,
+        require_initial_turn_acceptance: false,
         content: routine.run_template.prompt.clone(),
         target,
         resources: LaunchResourceSelection {

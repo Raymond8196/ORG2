@@ -41,14 +41,15 @@ export function ChatViewPostHistoryOverlays({
   sessionId,
 }: ChatViewPostHistoryOverlaysProps) {
   const { t: tNavigation } = useTranslation("navigation");
-  // The composer only renders for CLI-continuable sources (ChatView gates
-  // `showExternalHistoryForkComposer` on the same `getImportedHistoryCliResume`
-  // check), so `cliResume` is always defined whenever this placeholder runs.
+  // CLI resume is optional. Every source with an ORGII handoff capability gets
+  // this composer; only sources with a native resume plan mention that
+  // alternative in the placeholder.
   const cliResume = getImportedHistoryCliResume(sessionId);
-  const composerPlaceholder = tNavigation(
-    "collaboration.continueCli.composerPlaceholder",
-    { agent: cliResume?.displayName ?? "" }
-  );
+  const composerPlaceholder = cliResume
+    ? tNavigation("collaboration.continueCli.composerPlaceholder", {
+        agent: cliResume.displayName,
+      })
+    : tNavigation("collaboration.forkImported.continuePlaceholder");
 
   return (
     <>

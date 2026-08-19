@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   IMPORTED_HISTORY_SOURCES,
+  getImportedHistoryOrgiiContinuation,
   getImportedHistorySourceByListCategory,
   getImportedHistorySourceBySessionId,
   isImportedHistoryListCategory,
@@ -136,7 +137,20 @@ describe("imported history source registry", () => {
       expect(source.loadPreviewChunks).toBeTypeOf("function");
       expect(source.loadFullTranscriptChunks).toBeTypeOf("function");
       expect(source.supportsWindowedReplay).toBe(true);
+      expect(source.orgiiContinuation).toEqual({
+        handoff: "bounded_digest_from_full_transcript",
+      });
     }
+  });
+
+  it("keeps ORGII continuation independent from native CLI resume", () => {
+    const windsurf = getImportedHistorySourceBySessionId(
+      "windsurfapp-session-1"
+    );
+    expect(windsurf?.cliResume).toBeUndefined();
+    expect(
+      getImportedHistoryOrgiiContinuation("windsurfapp-session-1")
+    ).toEqual({ handoff: "bounded_digest_from_full_transcript" });
   });
 
   it("enables bounded cloud replay only for providers with exact turn seeks", () => {

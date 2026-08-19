@@ -10,6 +10,7 @@ import type { AgentRole } from "@src/api/http/project";
 import type {
   CliAgentType,
   MergeStatus,
+  NativeHarnessType,
   PriceTier,
 } from "@src/api/tauri/rpc/schemas/validation";
 import type {
@@ -146,6 +147,8 @@ export interface Session {
   keySource?: KeySource;
   /** Selected code account ID (own_key sessions) */
   accountId?: string;
+  /** Optional native account harness selected for Rust-native execution. */
+  nativeHarnessType?: NativeHarnessType;
   /** Price tier for market sessions */
   tier?: PriceTier;
   /** Process ID of the running agent (null if never started) */

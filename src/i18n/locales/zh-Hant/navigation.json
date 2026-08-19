@@ -525,7 +525,15 @@
       "backendError": "歷史已複製，但可執行的分叉工作階段註冊失敗。請重試。",
       "parentOpenUnavailable": "無法從此分叉開啟來源工作階段。",
       "replayError": "此工作階段尚無完整回放。請讓擁有者共享完整回放後重試。",
-      "openParentButton": "開啟來自 {{name}} 的來源工作階段"
+      "openParentButton": "開啟來自 {{name}} 的來源工作階段",
+      "sourceHistoryError": "來源歷史記錄已不在磁碟上。請還原或重新掃描後重試。",
+      "transcriptError": "無法讀取來源歷史記錄：{{detail}}",
+      "executionSetupError": "本機執行設定失敗：{{detail}}",
+      "accountError": "所選 Code Account 已無法使用。請重新開啟設定並選擇可用帳戶。{{detail}}",
+      "modelError": "所選模型不屬於該 Code Account。請重新開啟設定並選擇支援的模型。{{detail}}",
+      "continuationAgentError": "所選本機 Agent 已無法使用。請重新開啟設定並選擇現有 Agent。{{detail}}",
+      "workspaceError": "所選工作區無法使用，或已不再符合來源 checkout：{{detail}}",
+      "launchError": "ORGII 無法建立接力工作階段：{{detail}}"
     },
     "continueCli": {
       "headerButton": "在 {{agent}} 中繼續",

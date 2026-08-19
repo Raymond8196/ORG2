@@ -2,30 +2,41 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   type ImportedHistorySource,
+  getImportedHistoryOrgiiContinuation,
   getImportedHistorySourceBySessionId,
 } from "@src/api/tauri/externalHistory";
 import { SessionService } from "@src/engines/SessionCore/services/SessionService";
-import { requestForkSessionSetup } from "@src/features/TeamCollaboration/forkSession";
+import {
+  ForkCancelledError,
+  requestForkSessionSetup,
+} from "@src/features/TeamCollaboration/forkSession";
 import { resolveShareableScopeKeys } from "@src/features/TeamCollaboration/repoScopeResolver";
 import type { ActivityChunk } from "@src/types/session/session";
 
 import {
+  ExternalHistoryContinuationError,
   buildExternalHistoryHandoffPrompt,
   forkExternalHistoryIntoOrgiiSession,
 } from "./externalHistoryFork";
 
 vi.mock("@src/api/tauri/externalHistory", () => ({
+  getImportedHistoryOrgiiContinuation: vi.fn(),
   getImportedHistorySourceBySessionId: vi.fn(),
 }));
 vi.mock("@src/engines/SessionCore/services/SessionService", () => ({
   SessionService: { create: vi.fn() },
 }));
 vi.mock("@src/features/TeamCollaboration/forkSession", () => ({
+  ForkCancelledError: class ForkCancelledError extends Error {},
   requestForkSessionSetup: vi.fn(),
 }));
-vi.mock("@src/features/TeamCollaboration/repoScopeResolver", () => ({
-  resolveShareableScopeKeys: vi.fn(),
-}));
+vi.mock(
+  "@src/features/TeamCollaboration/repoScopeResolver",
+  async (importOriginal) => ({
+    ...(await importOriginal()),
+    resolveShareableScopeKeys: vi.fn(),
+  })
+);
 
 function chunk(
   id: string,
@@ -75,6 +86,7 @@ describe("buildExternalHistoryHandoffPrompt", () => {
 
 describe("forkExternalHistoryIntoOrgiiSession", () => {
   const loadFullTranscriptChunks = vi.fn();
+  const statTranscript = vi.fn();
   const source: ImportedHistorySource = {
     sourceId: "codex_app",
     listCategory: "external_history:codex_app",
@@ -85,14 +97,19 @@ describe("forkExternalHistoryIntoOrgiiSession", () => {
     listable: true,
     replayable: true,
     supportsWindowedReplay: false,
+    orgiiContinuation: { handoff: "bounded_digest_from_full_transcript" },
     dispatchCategory: "external_history",
     loadPreviewChunks: vi.fn(),
     loadFullTranscriptChunks,
+    statTranscript,
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(getImportedHistorySourceBySessionId).mockReturnValue(source);
+    vi.mocked(getImportedHistoryOrgiiContinuation).mockReturnValue(
+      source.orgiiContinuation
+    );
     vi.mocked(resolveShareableScopeKeys).mockResolvedValue([
       "github.com/org/repo",
     ]);
@@ -100,13 +117,15 @@ describe("forkExternalHistoryIntoOrgiiSession", () => {
       workspaceRepoPath: "/local/repo",
       execution: {
         agentDefinitionId: "custom:security-auditor",
-        accountId: "openai",
-        model: "gpt-test",
+        accountId: "cursor-local",
+        model: "composer-2",
+        nativeHarnessType: "cursor_native",
       },
     });
     loadFullTranscriptChunks.mockResolvedValue([
       chunk("u1", "user_message", "user_message", { message: "old ask" }),
     ]);
+    statTranscript.mockResolvedValue({ mtimeMs: 1, sizeBytes: 100 });
     vi.mocked(SessionService.create).mockResolvedValue({
       sessionId: "agentsession-forked",
     });
@@ -120,8 +139,9 @@ describe("forkExternalHistoryIntoOrgiiSession", () => {
         workspaceRepoPath: "/local/repo",
         execution: {
           agentDefinitionId: "custom:security-auditor",
-          accountId: "openai",
-          model: "gpt-test",
+          accountId: "cursor-local",
+          model: "composer-2",
+          nativeHarnessType: "cursor_native",
         },
       };
     });
@@ -150,11 +170,13 @@ describe("forkExternalHistoryIntoOrgiiSession", () => {
     });
 
     expect(sessionId).toBe("agentsession-forked");
+    expect(source.cliResume).toBeUndefined();
     expect(callOrder).toEqual(["setup", "transcript"]);
     expect(resolveShareableScopeKeys).toHaveBeenCalledWith("/source/repo");
     expect(requestForkSessionSetup).toHaveBeenCalledWith({
       sourceTitle: "Imported review",
-      sourceScopeKey: "github.com/org/repo",
+      sourceScopeKeys: ["github.com/org/repo"],
+      sourceWorkspacePath: undefined,
       sourceModel: "gpt-source",
     });
     expect(SessionService.create).toHaveBeenCalledTimes(1);
@@ -163,11 +185,13 @@ describe("forkExternalHistoryIntoOrgiiSession", () => {
         imageDataUrls: ["data:image/png;base64,abc"],
         name: "Continue Imported review",
         repoPath: "/local/repo",
-        model: "gpt-test",
-        accountId: "openai",
+        model: "composer-2",
+        accountId: "cursor-local",
+        nativeHarnessType: "cursor_native",
         keySource: "own_key",
         agentDefinitionId: "custom:security-auditor",
         mode: "build",
+        requireInitialTurnAcceptance: true,
         task: expect.stringContaining("continue and run tests"),
       })
     );
@@ -208,7 +232,7 @@ describe("forkExternalHistoryIntoOrgiiSession", () => {
 
   it("does not load or create anything when the shared setup is cancelled", async () => {
     vi.mocked(requestForkSessionSetup).mockRejectedValueOnce(
-      new Error("cancelled")
+      new ForkCancelledError()
     );
 
     await expect(
@@ -216,8 +240,117 @@ describe("forkExternalHistoryIntoOrgiiSession", () => {
         sourceSessionId: "codexapp-source-1",
         userMessage: "continue",
       })
-    ).rejects.toThrow("cancelled");
+    ).rejects.toBeInstanceOf(ForkCancelledError);
     expect(loadFullTranscriptChunks).not.toHaveBeenCalled();
     expect(SessionService.create).not.toHaveBeenCalled();
+  });
+
+  it("reports a missing source history before transcript load or session creation", async () => {
+    statTranscript.mockResolvedValueOnce(null);
+
+    await expect(
+      forkExternalHistoryIntoOrgiiSession({
+        sourceSessionId: "codexapp-source-1",
+        userMessage: "continue",
+      })
+    ).rejects.toMatchObject({
+      name: "ExternalHistoryContinuationError",
+      kind: "source_history_missing",
+      sourceSessionId: "codexapp-source-1",
+    });
+    expect(loadFullTranscriptChunks).not.toHaveBeenCalled();
+    expect(SessionService.create).not.toHaveBeenCalled();
+  });
+
+  it("keeps transcript read failures distinct from launch failures", async () => {
+    loadFullTranscriptChunks.mockRejectedValueOnce(
+      new Error("source JSONL moved")
+    );
+
+    await expect(
+      forkExternalHistoryIntoOrgiiSession({
+        sourceSessionId: "codexapp-source-1",
+        userMessage: "continue",
+      })
+    ).rejects.toMatchObject({
+      kind: "transcript_unavailable",
+      cause: expect.objectContaining({ message: "source JSONL moved" }),
+    });
+    expect(SessionService.create).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["account_unavailable", "account_unavailable"],
+    ["model_unavailable", "model_unavailable"],
+    ["agent_unavailable", "agent_unavailable"],
+    ["workspace_unavailable", "workspace_unavailable"],
+  ] as const)(
+    "preserves the %s launch classification",
+    async (launchKind, continuationKind) => {
+      const backendError = {
+        kind: launchKind,
+        message: `backend ${launchKind}`,
+      };
+      vi.mocked(SessionService.create).mockRejectedValueOnce({
+        cause: { cause: backendError },
+      });
+
+      const error = await forkExternalHistoryIntoOrgiiSession({
+        sourceSessionId: "codexapp-source-1",
+        userMessage: "continue",
+      }).catch((caught) => caught);
+
+      expect(error).toBeInstanceOf(ExternalHistoryContinuationError);
+      expect(error).toMatchObject({
+        kind: continuationKind,
+        message: `backend ${launchKind}`,
+      });
+    }
+  );
+
+  it("fails closed to exact workspace identity when remote resolution is unavailable", async () => {
+    vi.mocked(resolveShareableScopeKeys).mockResolvedValueOnce(null);
+
+    await forkExternalHistoryIntoOrgiiSession({
+      sourceSessionId: "codexapp-source-1",
+      sourceSession: {
+        session_id: "codexapp-source-1",
+        status: "completed",
+        created_at: "2026-07-13T00:00:00Z",
+        updated_at: "2026-07-13T00:00:00Z",
+        repoPath: "/source/repo",
+      },
+      userMessage: "continue",
+    });
+
+    expect(requestForkSessionSetup).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sourceScopeKeys: undefined,
+        sourceWorkspacePath: "/source/repo",
+      })
+    );
+  });
+
+  it("uses persisted remote identity when the historical worktree is gone", async () => {
+    await forkExternalHistoryIntoOrgiiSession({
+      sourceSessionId: "codexapp-source-1",
+      sourceSession: {
+        session_id: "codexapp-source-1",
+        status: "completed",
+        created_at: "2026-07-13T00:00:00Z",
+        updated_at: "2026-07-13T00:00:00Z",
+        repoPath: "/source/deleted-worktree",
+        repoRemoteUrls: ["git@github.com:org/repo.git"],
+      },
+      userMessage: "continue",
+    });
+
+    expect(resolveShareableScopeKeys).not.toHaveBeenCalled();
+    expect(requestForkSessionSetup).toHaveBeenCalledWith(
+      expect.objectContaining({
+        sourceScopeKeys: ["github.com/org/repo"],
+        sourceWorkspacePath: undefined,
+      })
+    );
   });
 });

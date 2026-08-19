@@ -6,6 +6,7 @@
  * fetch/assembly path (`fetchAndAssembleSegments`) and durable-write ordering,
  * differing only in the kind of local session the assembled events land in.
  */
+import type { NativeHarnessType } from "@src/api/tauri/rpc/schemas/validation";
 import { DISPATCH_CATEGORY } from "@src/api/tauri/session/dispatchTypes";
 import type { KeyInfo } from "@src/api/types/keys";
 import { eventStoreProxy } from "@src/engines/SessionCore/core/store/EventStoreProxy";
@@ -112,6 +113,7 @@ export interface ForkSessionResult {
   repoPath?: string;
   model?: string;
   accountId?: string;
+  nativeHarnessType?: NativeHarnessType;
   agentDefinitionId?: string;
   modelFallback?: { inheritedModel: string; fallbackModel?: string };
 }
@@ -120,6 +122,7 @@ export interface ForkExecutionSelection {
   agentDefinitionId: string;
   accountId: string;
   model: string;
+  nativeHarnessType?: NativeHarnessType;
 }
 
 export interface ForkSessionOptions extends RemoteSessionFetchOptions {
@@ -364,6 +367,7 @@ export async function forkSession(
     agentDisplayName: remoteSession.agentDisplayName,
     model: resolvedModel.model,
     accountId: options.execution?.accountId,
+    nativeHarnessType: options.execution?.nativeHarnessType,
     agentDefinitionId: options.execution?.agentDefinitionId,
     pinned: false,
     // Ownership stamp, same rule as importRemoteSession: a member's fork is
@@ -394,6 +398,7 @@ export async function forkSession(
     repoPath,
     model: resolvedModel.model,
     accountId: options.execution?.accountId,
+    nativeHarnessType: options.execution?.nativeHarnessType,
     agentDefinitionId: options.execution?.agentDefinitionId,
     ...(resolvedModel.fellBack && remoteSession.model
       ? {

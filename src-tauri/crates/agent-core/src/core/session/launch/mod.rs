@@ -30,6 +30,7 @@ use project_management::projects::types as project_types;
 use launch_helpers::{
     apply_member_launch_overrides_to_snapshot, derive_name, handle_background_launch_failure,
     provenance_fields, provenance_lock_reason, validate_launch_agent_definitions,
+    validate_launch_resources,
 };
 use launch_org::{
     cleanup_session_after_org_run_create_failure, send_initial_turn,
@@ -41,12 +42,20 @@ use launch_workspace::{
 };
 
 pub(crate) const MAX_AUTO_NAME_LEN: usize = 80;
+pub(crate) const LAUNCH_ACCOUNT_UNAVAILABLE_PREFIX: &str = "[session_launch/account_unavailable] ";
+pub(crate) const LAUNCH_MODEL_UNAVAILABLE_PREFIX: &str = "[session_launch/model_unavailable] ";
+pub(crate) const LAUNCH_AGENT_UNAVAILABLE_PREFIX: &str = "[session_launch/agent_unavailable] ";
+pub(crate) const LAUNCH_WORKSPACE_UNAVAILABLE_PREFIX: &str =
+    "[session_launch/workspace_unavailable] ";
 
 #[derive(Debug, Clone)]
 pub(crate) struct AgentRunLaunchRequest {
     /// Stable WorkItemRun id used for deterministic Session and turn ids.
     /// `None` preserves the ordinary user-launch behavior.
     pub durable_run_id: Option<String>,
+    /// Await runtime init + first-turn queue acceptance and roll back the
+    /// created row when either step fails.
+    pub require_initial_turn_acceptance: bool,
     pub content: String,
     pub target: AgentRunTarget,
     pub resources: LaunchResourceSelection,
@@ -358,6 +367,7 @@ pub async fn launch_agent_session(
         None,
         AgentRunLaunchRequest {
             durable_run_id: durable_run_id.map(str::to_string),
+            require_initial_turn_acceptance: false,
             content: prompt.to_string(),
             target: AgentRunTarget::AgentDefinition {
                 agent_definition_id: agent_definition_id.map(str::to_string),
@@ -499,6 +509,7 @@ pub(crate) async fn launch_rust_agent_run(
         agent_definition_id.as_deref(),
         effective_org_definition.as_ref(),
     )?;
+    let native_harness_type_for_send = validate_launch_resources(&request.resources)?;
 
     let (project_slug, work_item_id, agent_role, routine_fire_id) =
         provenance_fields(&request.provenance);
@@ -635,17 +646,6 @@ pub(crate) async fn launch_rust_agent_run(
 
     let created_at = chrono::Utc::now().to_rfc3339();
     let has_initial_content = !request.content.trim().is_empty();
-    let native_harness_type_for_send = request
-        .resources
-        .native_harness_type
-        .as_deref()
-        .filter(|value| !value.is_empty())
-        .map(|value| {
-            core_types::providers::NativeHarnessType::parse(value)
-                .ok_or_else(|| format!("Unknown native_harness_type: {value:?}"))
-        })
-        .transpose()?;
-
     if agent_org_run_id.is_some() {
         let state_for_background = state.clone();
         let session_id_for_background = session_id.clone();
@@ -851,20 +851,9 @@ pub(crate) async fn launch_rust_agent_run(
         let project_slug_for_send = project_slug.clone();
         let work_item_id_for_send = work_item_id.clone();
         let app_handle_for_send = state.app_handle.clone();
+        let rollback_on_send_failure = request.require_initial_turn_acceptance;
 
         let send_task = async move {
-            // Title generation runs concurrently — it must not delay the
-            // first turn. See `spawn_session_title_generation`.
-            spawn_session_title_generation(
-                state_for_send.clone(),
-                session_id_for_send.clone(),
-                std::path::PathBuf::from(&workspace_path_for_send),
-                account_id_for_send.clone(),
-                model_for_send.clone(),
-                native_harness_type_for_send,
-                content_for_send.clone(),
-            );
-
             // A plain (non-org) launch's first message IS the user's real
             // request — UserSubmit so downstream consumers (goal loop,
             // org-task resume) treat it as user intent. Org-run launches
@@ -872,10 +861,10 @@ pub(crate) async fn launch_rust_agent_run(
             let send_result = send_initial_turn(
                 &state_for_send,
                 &session_id_for_send,
-                content_for_send,
-                model_for_send,
-                account_id_for_send,
-                workspace_path_for_send,
+                content_for_send.clone(),
+                model_for_send.clone(),
+                account_id_for_send.clone(),
+                workspace_path_for_send.clone(),
                 native_harness_type_for_send,
                 mode_for_send,
                 images_for_send,
@@ -904,12 +893,33 @@ pub(crate) async fn launch_rust_agent_run(
                     "[session_launch] failed to mark session failed after first-message error",
                 )
                 .await;
+                if rollback_on_send_failure {
+                    // Runtime init may have registered an in-memory session
+                    // before the first turn was rejected. Remove both the
+                    // retained runtime and its durable row so a failed atomic
+                    // continuation leaves no half-created session behind.
+                    state_for_send.remove_session(&session_id_for_send).await;
+                    cleanup_session_after_org_run_create_failure(session_id_for_send.clone()).await;
+                }
                 return Err(message);
             }
+            // Start the independent title query only after runtime init and
+            // first-turn queue acceptance succeeded. This keeps an atomic
+            // continuation rollback from leaving an orphan title task that
+            // races a deleted session row.
+            spawn_session_title_generation(
+                state_for_send,
+                session_id_for_send,
+                std::path::PathBuf::from(workspace_path_for_send),
+                account_id_for_send,
+                model_for_send,
+                native_harness_type_for_send,
+                content_for_send,
+            );
             Ok::<(), String>(())
         };
 
-        if request.durable_run_id.is_some() {
+        if request.durable_run_id.is_some() || request.require_initial_turn_acceptance {
             // Durable delivery is acknowledged only after the turn has been
             // accepted by the scheduler. Returning before this await would
             // leave a crash window where the outbox says delivered but no

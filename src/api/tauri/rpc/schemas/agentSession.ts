@@ -141,6 +141,7 @@ export const SessionMetaSchema = z
     workspacePath: z.string().nullable().optional(),
     model: z.string().nullable().optional(),
     accountId: z.string().nullable().optional(),
+    nativeHarnessType: z.string().nullable().optional(),
     orgId: z.string().nullable().optional(),
     projectId: z.string().nullable().optional(),
     projectName: z.string().nullable().optional(),
@@ -379,6 +380,7 @@ const SessionLaunchParamsSchema = z
     worktreePath: z.string().optional(),
     projectSlug: z.string().optional(),
     parentSessionId: z.string().optional(),
+    requireInitialTurnAcceptance: z.boolean().optional(),
     additionalDirectories: z.array(z.string()).optional(),
   })
   .strict()

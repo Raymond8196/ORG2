@@ -8,6 +8,7 @@
  */
 import type { AgentRole } from "@src/api/http/project";
 import type { CancelReason } from "@src/api/tauri/agent/session";
+import type { NativeHarnessType } from "@src/api/tauri/rpc/schemas/validation";
 import type { DispatchCategory } from "@src/api/tauri/session";
 import type { TurnIntentSource } from "@src/engines/SessionCore/control/turnIntentSource";
 
@@ -30,6 +31,8 @@ export interface SessionCreateParams {
   model?: string;
   /** Override account ID (defaults to OS agent's account) */
   accountId?: string;
+  /** Native provider harness required by accounts such as Cursor. */
+  nativeHarnessType?: NativeHarnessType;
   /** Session name override */
   name?: string;
   /** Linked work item short ID (e.g. "PROJ-0042") */
@@ -57,6 +60,11 @@ export interface SessionCreateParams {
   tier?: string;
   /** Source session when this run is forked from imported or compacted history. */
   parentSessionId?: string;
+  /**
+   * Await backend runtime initialization and first-turn queue acceptance. If
+   * either fails, session_launch rolls the just-created row back.
+   */
+  requireInitialTurnAcceptance?: boolean;
 }
 
 export interface SessionMergeParams {

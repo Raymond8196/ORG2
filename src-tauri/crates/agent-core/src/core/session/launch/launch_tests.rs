@@ -1,8 +1,10 @@
 use super::launch_helpers::{
     apply_member_launch_overrides_to_snapshot, member_runtime_account_id,
     member_runtime_key_source, member_runtime_model, member_runtime_native_harness_type,
-    member_runtime_tier, validate_launch_agent_definitions,
+    member_runtime_tier, validate_launch_agent_definitions, validate_launch_resources,
+    validate_own_key_pair,
 };
+use super::LaunchResourceSelection;
 use crate::coordination::agent_org_runs::COORDINATOR_MEMBER_ID;
 use crate::definitions::builtin::SDE_AGENT_ID;
 use crate::definitions::orgs::{
@@ -10,6 +12,7 @@ use crate::definitions::orgs::{
     PlanApprovalPolicy,
 };
 use core_types::key_source::KeySource;
+use key_vault::key_store::{ModelKey, ModelType, ModelVariant, KEY_SERVICE};
 use std::collections::HashMap;
 
 #[test]
@@ -41,6 +44,115 @@ fn launch_validation_rejects_missing_agent_definition_before_session_create() {
 
     assert!(error.contains("custom:missing-launch-agent"), "{error}");
     assert!(error.contains("does not exist"), "{error}");
+}
+
+#[test]
+fn launch_validation_rejects_model_without_account_before_session_create() {
+    let error = validate_launch_resources(&LaunchResourceSelection {
+        key_source: Some("own_key".to_string()),
+        account_id: None,
+        model: Some("gpt-5.5".to_string()),
+        native_harness_type: None,
+    })
+    .expect_err("a half-selected execution pair must fail before persistence");
+
+    assert!(error.contains("account_unavailable"), "{error}");
+    assert!(error.contains("without a Code Account"), "{error}");
+}
+
+#[test]
+fn launch_validation_rejects_missing_or_disabled_account_and_mismatched_model() {
+    let missing = validate_own_key_pair("deleted-account", "gpt-5.5", None)
+        .expect_err("a deleted account must fail before persistence");
+    assert!(missing.contains("account_unavailable"), "{missing}");
+
+    let mut key = ModelKey::new(ModelType::OpenaiApi);
+    key.id = "account-1".to_string();
+    key.enabled_models = vec!["gpt-5.5".to_string()];
+    key.enabled = false;
+
+    let disabled = validate_own_key_pair("account-1", "gpt-5.5", Some(&key))
+        .expect_err("disabled account must fail before persistence");
+    assert!(disabled.contains("account_unavailable"), "{disabled}");
+
+    key.enabled = true;
+    let mismatched = validate_own_key_pair("account-1", "claude-opus-4.6", Some(&key))
+        .expect_err("model outside the account selection must fail");
+    assert!(mismatched.contains("model_unavailable"), "{mismatched}");
+}
+
+#[test]
+fn launch_validation_accepts_enabled_model_variants() {
+    let mut key = ModelKey::new(ModelType::OpenaiApi);
+    key.id = "account-1".to_string();
+    key.enabled_models = vec!["gpt-5.5".to_string()];
+    key.model_variants = vec![ModelVariant {
+        model: "gpt-5.5-high".to_string(),
+        base_model: "gpt-5.5".to_string(),
+        reasoning: Some("high".to_string()),
+        fast: false,
+        context_window: None,
+    }];
+
+    assert!(validate_own_key_pair("account-1", "gpt-5.5-high", Some(&key)).is_ok());
+}
+
+#[test]
+fn launch_validation_rejects_partial_and_unregistered_model_prefixes() {
+    let mut key = ModelKey::new(ModelType::OpenaiApi);
+    key.id = "account-1".to_string();
+    key.enabled_models = vec!["gpt-5.5".to_string()];
+
+    assert!(validate_own_key_pair("account-1", "gpt", Some(&key)).is_err());
+    assert!(validate_own_key_pair("account-1", "gpt-5.5-unknown", Some(&key)).is_err());
+}
+
+#[test]
+fn launch_validation_checks_real_provider_credentials_before_persistence() {
+    crate::test_support::install_crypto_provider_for_tests();
+    let _sandbox = test_helpers::test_env::sandbox();
+    let mut key = ModelKey::new(ModelType::OpenaiApi);
+    key.id = "provider-account".to_string();
+    key.api_key = Some("test-api-key".to_string());
+    key.enabled_models = vec!["gpt-test".to_string()];
+    KEY_SERVICE.save_key(key).expect("save provider account");
+
+    let validated = validate_launch_resources(&LaunchResourceSelection {
+        key_source: Some("own_key".to_string()),
+        account_id: Some("provider-account".to_string()),
+        model: Some("gpt-test".to_string()),
+        native_harness_type: None,
+    })
+    .expect("usable provider account must pass preflight");
+
+    assert_eq!(validated, None);
+
+    let mut key = ModelKey::new(ModelType::CursorCli);
+    key.id = "cursor-account".to_string();
+    key.session_token = Some("cursor-session-token".to_string());
+    key.enabled_models = vec!["composer-2".to_string()];
+    KEY_SERVICE.save_key(key).expect("save Cursor account");
+
+    let without_harness = validate_launch_resources(&LaunchResourceSelection {
+        key_source: Some("own_key".to_string()),
+        account_id: Some("cursor-account".to_string()),
+        model: Some("composer-2".to_string()),
+        native_harness_type: None,
+    })
+    .expect_err("Cursor is not a direct Rust provider");
+    assert!(without_harness.contains("account_unavailable"));
+
+    let with_harness = validate_launch_resources(&LaunchResourceSelection {
+        key_source: Some("own_key".to_string()),
+        account_id: Some("cursor-account".to_string()),
+        model: Some("composer-2".to_string()),
+        native_harness_type: Some("cursor_native".to_string()),
+    })
+    .expect("Cursor native harness must pass preflight");
+    assert_eq!(
+        with_harness,
+        Some(core_types::providers::NativeHarnessType::CursorNative)
+    );
 }
 
 fn valid_org_with_children(children: Vec<OrgMember>) -> OrgDefinition {

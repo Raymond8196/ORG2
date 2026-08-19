@@ -560,6 +560,21 @@ impl ModelKey {
             && matches!(self.model_type, ModelType::Codex | ModelType::ClaudeCode)
     }
 
+    /// Whether a session may use `model` with this account's current model
+    /// selection. Empty `enabled_models` means unrestricted. User-added
+    /// aliases are explicit selectable ids; generated variants remain valid
+    /// only while their owning base model is enabled.
+    pub fn allows_model(&self, model: &str) -> bool {
+        if self.enabled_models.is_empty() {
+            return true;
+        }
+        self.enabled_models.iter().any(|enabled| enabled == model)
+            || self.model_aliases.iter().any(|alias| alias.alias == model)
+            || self.model_variants.iter().any(|variant| {
+                variant.model == model && self.enabled_models.contains(&variant.base_model)
+            })
+    }
+
     /// Mask sensitive data for display
     pub fn mask_api_key(&self) -> Option<String> {
         self.api_key.as_ref().map(|key| {

@@ -44,6 +44,34 @@ describe("typed RPC router", () => {
     expect(invokeMock).not.toHaveBeenCalled();
   });
 
+  it("preserves structured Tauri rejection details", async () => {
+    const rejection = {
+      kind: "account_unavailable",
+      message: "Selected account is disabled",
+    };
+    invokeMock.mockRejectedValue(rejection);
+
+    await expect(
+      rpc.agentSession.sessionLaunch({
+        params: {
+          category: "rust_agent",
+          content: "continue imported history",
+          requireInitialTurnAcceptance: true,
+        },
+      })
+    ).rejects.toMatchObject({
+      message: "[RPC:session_launch] Selected account is disabled",
+      cause: rejection,
+    });
+    expect(invokeMock).toHaveBeenCalledWith("session_launch", {
+      params: {
+        category: "rust_agent",
+        content: "continue imported history",
+        requireInitialTurnAcceptance: true,
+      },
+    });
+  });
+
   it("accepts effective tools output with omitted serde-default fields", async () => {
     const consoleErrorSpy = vi.spyOn(console, "error");
     invokeMock.mockResolvedValue({

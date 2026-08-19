@@ -435,7 +435,15 @@
       "backendError": "The session history was copied, but the runnable fork could not be registered. Retry.",
       "parentOpenUnavailable": "The source session could not be opened from this fork.",
       "replayError": "Full replay is not available for this session. Ask the owner to share the replay, then retry.",
-      "openParentButton": "Quellsitzung von {{name}} öffnen"
+      "openParentButton": "Quellsitzung von {{name}} öffnen",
+      "sourceHistoryError": "The source history is no longer on disk. Restore or rescan it, then retry.",
+      "transcriptError": "The source history could not be read: {{detail}}",
+      "executionSetupError": "Local execution setup failed: {{detail}}",
+      "accountError": "The selected Code Account is unavailable. Reopen setup and choose a ready account. {{detail}}",
+      "modelError": "The selected model is not available for that Code Account. Reopen setup and choose a supported model. {{detail}}",
+      "continuationAgentError": "The selected local agent is no longer available. Reopen setup and choose an existing agent. {{detail}}",
+      "workspaceError": "The selected workspace is unavailable or no longer matches the source checkout: {{detail}}",
+      "launchError": "ORGII could not create the continuation: {{detail}}"
     },
     "continueCli": {
       "headerButton": "In {{agent}} fortsetzen",

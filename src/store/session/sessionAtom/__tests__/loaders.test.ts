@@ -98,6 +98,7 @@ describe("replaceExternalHistorySourceFirstPage", () => {
     listable: true,
     replayable: true,
     supportsWindowedReplay: false,
+    orgiiContinuation: { handoff: "bounded_digest_from_full_transcript" },
     loadPreviewChunks: async () => [],
     loadFullTranscriptChunks: async () => [],
   } as const;

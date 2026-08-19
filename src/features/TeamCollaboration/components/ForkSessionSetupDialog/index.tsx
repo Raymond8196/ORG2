@@ -35,6 +35,8 @@ export interface ForkSessionSetupSelection {
 export interface ForkSessionSetupRequest {
   sourceTitle: string;
   sourceScopeKey?: string;
+  sourceScopeKeys?: string[];
+  sourceWorkspacePath?: string;
   sourceModel?: string;
   sourceAgentDisplayName?: string;
   sourceAgentDefinitionId?: string;
@@ -199,14 +201,30 @@ const ForkSessionSetupForm: React.FC<ForkSessionSetupFormProps> = ({
         : undefined,
     fallbackModel: String(modelOptions[0]?.value ?? ""),
   });
-  const targetKey = request.sourceScopeKey
-    ? normalizeRepoScopeKey(request.sourceScopeKey)
+  const targetScopeKeys = useMemo(() => {
+    const values =
+      request.sourceScopeKeys ??
+      (request.sourceScopeKey ? [request.sourceScopeKey] : []);
+    return values
+      .map(normalizeRepoScopeKey)
+      .filter((value): value is string => Boolean(value));
+  }, [request.sourceScopeKey, request.sourceScopeKeys]);
+  const targetWorkspacePath = request.sourceWorkspacePath
+    ? normalizeRepoScopeKey(request.sourceWorkspacePath)
     : null;
-  const workspaceRequired = Boolean(targetKey);
+  const workspaceRequired =
+    targetScopeKeys.length > 0 || Boolean(targetWorkspacePath);
   const canContinue =
     Boolean(selectedAccount && accountId && model && selectedAgent) &&
     Boolean(selectedAccount && accountHasModel(selectedAccount, model)) &&
     (!workspaceRequired || Boolean(workspaceRepoPath));
+  const executionIssue = !selectedAgent
+    ? t("collaboration.forkImported.continuationAgentError", { detail: "" })
+    : !selectedAccount
+      ? t("collaboration.forkImported.accountError", { detail: "" })
+      : !model || !accountHasModel(selectedAccount, model)
+        ? t("collaboration.forkImported.modelError", { detail: "" })
+        : null;
 
   useEffect(() => {
     queueMicrotask(() => void loadRepos());
@@ -219,8 +237,18 @@ const ForkSessionSetupForm: React.FC<ForkSessionSetupFormProps> = ({
   }, [repos]);
 
   const matchingRepos = repos.filter((repo) => {
-    if (!targetKey) return Boolean(repo.fs_uri);
-    return Boolean(peekMatchingOrgRepoScope(repoScopeKeys(repo), [targetKey]));
+    if (targetScopeKeys.length > 0) {
+      return Boolean(
+        peekMatchingOrgRepoScope(repoScopeKeys(repo), targetScopeKeys)
+      );
+    }
+    if (targetWorkspacePath) {
+      return (
+        Boolean(repo.fs_uri) &&
+        normalizeRepoScopeKey(repo.fs_uri ?? "") === targetWorkspacePath
+      );
+    }
+    return Boolean(repo.fs_uri);
   });
   const sourceAgentLabel =
     request.sourceAgentDisplayName ?? request.sourceTitle;
@@ -241,6 +269,7 @@ const ForkSessionSetupForm: React.FC<ForkSessionSetupFormProps> = ({
         agentDefinitionId: selectedAgent.id,
         accountId,
         model,
+        nativeHarnessType: selectedAccount?.nativeHarnessType,
       },
     });
   };
@@ -361,6 +390,17 @@ const ForkSessionSetupForm: React.FC<ForkSessionSetupFormProps> = ({
             />
           </label>
         </div>
+
+        {executionIssue ? (
+          <p
+            role="status"
+            aria-live="polite"
+            className="text-status-error text-xs"
+            data-testid="fork-setup-execution-error"
+          >
+            {executionIssue}
+          </p>
+        ) : null}
 
         <div className="flex justify-end gap-2">
           <Button variant="secondary" onClick={cancel}>

@@ -3,6 +3,7 @@
  *
  * Shared types for all agent Tauri commands.
  */
+import type { NativeHarnessType } from "@src/api/tauri/rpc/schemas/validation";
 import type { WorkspaceSnapshot } from "@src/services/context/workspaceSnapshot";
 import type { SessionStatus } from "@src/types/session/session";
 
@@ -120,6 +121,7 @@ export interface MessageParams {
   content: string;
   model?: string;
   accountId?: string;
+  nativeHarnessType?: NativeHarnessType;
   workspacePath?: string;
   mode?: string;
   images?: string[];
