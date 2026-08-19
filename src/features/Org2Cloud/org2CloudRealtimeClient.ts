@@ -171,8 +171,12 @@ export function createOrg2CloudRealtimeConnection(
   );
   // Argument-less: resolves through the callback and clears any manual-token
   // flag a constructor-time seed may have set, keeping the heartbeat refresh
-  // path armed.
-  void client.realtime.setAuth();
+  // path armed. Channel joins gate on this settling: the callback is async,
+  // and a join that races ahead of it goes out without a JWT — private
+  // channels (presence) then fail authorization outright instead of joining.
+  const authReady = Promise.resolve(client.realtime.setAuth()).catch(
+    () => undefined
+  );
 
   const channels = new Set<RealtimeChannel>();
   let disposed = false;
@@ -249,26 +253,36 @@ export function createOrg2CloudRealtimeConnection(
       }
     );
     let wasEverTimedOut = false;
-    channel.subscribe((status) => {
-      const subscribed = status === "SUBSCRIBED";
-      if (!subscribed && status === "CLOSED") {
-        // A closed channel never rejoins on its own (phoenix `joinedOnce`),
-        // so an unexpected server-side close is exactly the silent-death
-        // shape worth finding in the console later.
-        log.warn(`realtime channel ${channelName} closed`);
-      } else if (!subscribed) {
-        wasEverTimedOut = true;
-        log.warn(`realtime channel ${channelName} status: ${status}`);
-      } else if (subscribed && wasEverTimedOut) {
-        // Supabase rejoins with exponential backoff after TIMED_OUT /
-        // CHANNEL_ERROR; log the recovery so a transient blip is
-        // distinguishable from a persistent failure in the console.
-        log.info(`realtime channel ${channelName} recovered (SUBSCRIBED)`);
-      }
-      onStatus?.(subscribed);
+    let intentionallyRemoved = false;
+    const joinChannel = () =>
+      channel.subscribe((status) => {
+        const subscribed = status === "SUBSCRIBED";
+        if (!subscribed && status === "CLOSED") {
+          // A closed channel never rejoins on its own (phoenix `joinedOnce`),
+          // so an UNEXPECTED server-side close is exactly the silent-death
+          // shape worth finding in the console later — but our own
+          // unsubscribe/teardown also lands here and is routine.
+          if (!intentionallyRemoved && !disposed) {
+            log.warn(`realtime channel ${channelName} closed`);
+          }
+        } else if (!subscribed) {
+          wasEverTimedOut = true;
+          log.warn(`realtime channel ${channelName} status: ${status}`);
+        } else if (subscribed && wasEverTimedOut) {
+          // Supabase rejoins with exponential backoff after TIMED_OUT /
+          // CHANNEL_ERROR; log the recovery so a transient blip is
+          // distinguishable from a persistent failure in the console.
+          log.info(`realtime channel ${channelName} recovered (SUBSCRIBED)`);
+        }
+        onStatus?.(subscribed);
+      });
+    void authReady.then(() => {
+      if (disposed || intentionallyRemoved) return;
+      joinChannel();
     });
     channels.add(channel);
     return () => {
+      intentionallyRemoved = true;
       channels.delete(channel);
       void client.removeChannel(channel);
     };
@@ -486,32 +500,38 @@ export function createOrg2CloudRealtimeConnection(
       });
     }
     let wasEverTimedOut = false;
-    channel.subscribe((status) => {
-      if (status === "SUBSCRIBED") {
-        subscribed = true;
-        published = false;
-        // A fresh SUBSCRIBED edge means the transport recovered; retry fast
-        // again instead of inheriting the previous failure streak's ceiling.
-        trackFailureStreak = 0;
-        broadcastFailureStreak = 0;
-        if (wasEverTimedOut) {
-          log.info(`presence channel ${scope} recovered (SUBSCRIBED)`);
+    let intentionallyLeft = false;
+    const joinChannel = () =>
+      channel.subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          subscribed = true;
+          published = false;
+          // A fresh SUBSCRIBED edge means the transport recovered; retry fast
+          // again instead of inheriting the previous failure streak's ceiling.
+          trackFailureStreak = 0;
+          broadcastFailureStreak = 0;
+          if (wasEverTimedOut) {
+            log.info(`presence channel ${scope} recovered (SUBSCRIBED)`);
+          }
+          // A reconnect has no server-side meta even if the local version was
+          // previously applied, so force the latest payload onto the channel.
+          desiredTrackVersion += 1;
+          void flushLatestPayload();
+          void flushPendingBroadcasts();
+        } else if (status !== "CLOSED") {
+          subscribed = false;
+          published = false;
+          wasEverTimedOut = true;
+          log.warn(`presence channel ${scope} status: ${status}`);
+        } else {
+          subscribed = false;
+          published = false;
         }
-        // A reconnect has no server-side meta even if the local version was
-        // previously applied, so force the latest payload onto the channel.
-        desiredTrackVersion += 1;
-        void flushLatestPayload();
-        void flushPendingBroadcasts();
-      } else if (status !== "CLOSED") {
-        subscribed = false;
-        published = false;
-        wasEverTimedOut = true;
-        log.warn(`presence channel ${scope} status: ${status}`);
-      } else {
-        subscribed = false;
-        published = false;
-      }
-      onStatus?.(status === "SUBSCRIBED");
+        onStatus?.(status === "SUBSCRIBED");
+      });
+    void authReady.then(() => {
+      if (disposed || intentionallyLeft) return;
+      joinChannel();
     });
     channels.add(channel);
     return {
@@ -537,6 +557,7 @@ export function createOrg2CloudRealtimeConnection(
         void flushPendingBroadcasts();
       },
       leave: () => {
+        intentionallyLeft = true;
         subscribed = false;
         published = false;
         if (retryTimer !== null) {
