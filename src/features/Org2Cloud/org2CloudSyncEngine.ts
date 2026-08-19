@@ -447,8 +447,16 @@ export class Org2CloudSyncEngine extends Org2CloudSyncLifecycle {
         resolveOrgEndpoint(org, getCloudEndpoint()),
       ])
     );
+    // Explicitly tagged sessions must publish (and keep publishing
+    // updates) no matter which org the user is looking at — otherwise
+    // Move to Org completes its awaited pass without ever visiting the
+    // target org, reports success, and the session stays invisible to
+    // every other member until the owner happens to activate that org.
     const sessionPushOrgs = orgs.filter(
-      (org) => this.isActiveOrg(org.orgId) || isOrgBackgroundUploadEnabled(org)
+      (org) =>
+        this.isActiveOrg(org.orgId) ||
+        isOrgBackgroundUploadEnabled(org) ||
+        orgsWithTaggedSessions.has(org.orgId)
     );
     await this.repoScopeSync.hydrateRepoScopes(
       fresh,
