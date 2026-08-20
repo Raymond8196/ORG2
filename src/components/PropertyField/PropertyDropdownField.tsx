@@ -33,6 +33,7 @@ export type PropertyDropdownPlacement = "inline" | "portal";
 export type PropertyDropdownTriggerVariant =
   | "row"
   | "pill"
+  | "workstation-trail"
   | "iconOnly"
   | "iconChevron";
 
@@ -152,7 +153,9 @@ export function PropertyDropdownField<T extends string>({
   );
 
   const resolvedTriggerVariant = triggerVariant ?? fieldVariant;
-  const isRowTrigger = resolvedTriggerVariant === "row";
+  const isRowTrigger =
+    resolvedTriggerVariant === "row" ||
+    resolvedTriggerVariant === "workstation-trail";
   const isIconTrigger =
     resolvedTriggerVariant === "iconOnly" ||
     resolvedTriggerVariant === "iconChevron";

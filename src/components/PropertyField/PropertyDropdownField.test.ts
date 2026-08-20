@@ -8,6 +8,24 @@ import { PropertyDropdownDirectionProvider } from "./PropertyDropdownDirection";
 import { PropertyDropdownField } from "./PropertyDropdownField";
 
 describe("PropertyDropdownField", () => {
+  it("uses the shared Workstation trail row geometry", () => {
+    const markup = renderToStaticMarkup(
+      React.createElement(PropertyDropdownField, {
+        value: "open",
+        label: "Open",
+        icon: null,
+        active: false,
+        fieldVariant: "workstation-trail",
+      })
+    );
+
+    expect(markup).toContain("h-7");
+    expect(markup).toContain("rounded-lg");
+    expect(markup).toContain("gap-1.5 px-2");
+    expect(markup).not.toContain("min-h-8");
+    expect(markup).not.toContain("py-1.5");
+  });
+
   it("does not build custom options while the dropdown is closed", () => {
     const renderOptions = vi.fn(() =>
       React.createElement("span", null, "Option")
