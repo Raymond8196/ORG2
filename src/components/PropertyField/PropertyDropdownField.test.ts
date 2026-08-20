@@ -2,6 +2,8 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
+import { DROPDOWN_WIDTHS } from "@src/components/Dropdown/tokens";
+
 import { PropertyDropdownDirectionProvider } from "./PropertyDropdownDirection";
 import { PropertyDropdownField } from "./PropertyDropdownField";
 
@@ -186,5 +188,23 @@ describe("PropertyDropdownField", () => {
 
     expect(markup).toContain("bottom-full mb-1");
     expect(markup).not.toContain("top-full mt-1");
+  });
+
+  it("can match an inline dropdown panel to the full trigger width", () => {
+    const markup = renderToStaticMarkup(
+      React.createElement(PropertyDropdownField, {
+        value: "unassigned",
+        label: "Unassigned",
+        icon: null,
+        active: true,
+        searchable: false,
+        placement: "inline",
+        matchTriggerWidth: true,
+        options: [{ value: "unassigned", label: "Unassigned" }],
+      })
+    );
+
+    expect(markup).toContain("left-0 right-0");
+    expect(markup).not.toContain(DROPDOWN_WIDTHS.wideMenuClass);
   });
 });
