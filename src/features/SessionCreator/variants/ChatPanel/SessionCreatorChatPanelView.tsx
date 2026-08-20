@@ -217,6 +217,10 @@ const SessionCreatorChatPanelView: React.FC<
   );
   const [isLaunchpadWorkItemPickerOpen, setIsLaunchpadWorkItemPickerOpen] =
     useState(false);
+  const hasSetupControlsAfterCliSwitch =
+    (!hideWorkItemAttachmentControl && !isLaunchpadLayout) ||
+    Boolean(orgMembersPanelProps) ||
+    Boolean(pinnedActionsContent);
   const sessionSetupActions = !hideSessionSetupControls ? (
     <div
       className={`mx-auto flex w-full items-center ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
@@ -231,7 +235,7 @@ const SessionCreatorChatPanelView: React.FC<
             {browserElementRowContent}
             {leadingActionSlot}
             {cliLaunchModeSwitch}
-            {cliLaunchModeSwitch && (
+            {cliLaunchModeSwitch && hasSetupControlsAfterCliSwitch && (
               <div aria-hidden className="mx-1 h-4 w-px shrink-0 bg-border-2" />
             )}
             {!hideWorkItemAttachmentControl && !isLaunchpadLayout && (
@@ -268,6 +272,28 @@ const SessionCreatorChatPanelView: React.FC<
       />
     </div>
   ) : null;
+  const cliVersionWarning =
+    !hideSessionSetupControls && cliVersionAlert ? (
+      <div className={`mx-auto w-full ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}>
+        <InlineAlert
+          type="warning"
+          onClose={cliVersionAlert.onClose}
+          closeAriaLabel={t("common:actions.close")}
+          title={t("creator.cliVersionOutdated.title", {
+            cli: cliVersionAlert.cliDisplayName,
+          })}
+        >
+          {t("creator.cliVersionOutdated.body", {
+            installed:
+              cliVersionAlert.installedVersion ??
+              t("creator.cliVersionOutdated.unknownVersion"),
+            latest:
+              cliVersionAlert.latestVersion ??
+              t("creator.cliVersionOutdated.unknownVersion"),
+          })}
+        </InlineAlert>
+      </div>
+    ) : null;
   const agentHero = headerLayout !== "compact" && (
     <SessionCreatorAgentHero
       ref={agentHeroRef}
@@ -420,7 +446,12 @@ const SessionCreatorChatPanelView: React.FC<
                 {t("chat.shareScreen")}
               </button>
             )}
-            {isLaunchpadLayout && sessionSetupActions}
+            {isLaunchpadLayout && (
+              <>
+                {sessionSetupActions}
+                {cliVersionWarning}
+              </>
+            )}
             <div className={composerFrameClassName}>
               {compactHeader}
               {isCliTuiMode && tuiComposerHeader}
@@ -440,30 +471,11 @@ const SessionCreatorChatPanelView: React.FC<
             </div>
           )}
 
-          {!isLaunchpadLayout && sessionSetupActions}
-
-          {!hideSessionSetupControls && cliVersionAlert && (
-            <div
-              className={`mx-auto w-full ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
-            >
-              <InlineAlert
-                type="warning"
-                onClose={cliVersionAlert.onClose}
-                closeAriaLabel={t("common:actions.close")}
-                title={t("creator.cliVersionOutdated.title", {
-                  cli: cliVersionAlert.cliDisplayName,
-                })}
-              >
-                {t("creator.cliVersionOutdated.body", {
-                  installed:
-                    cliVersionAlert.installedVersion ??
-                    t("creator.cliVersionOutdated.unknownVersion"),
-                  latest:
-                    cliVersionAlert.latestVersion ??
-                    t("creator.cliVersionOutdated.unknownVersion"),
-                })}
-              </InlineAlert>
-            </div>
+          {!isLaunchpadLayout && (
+            <>
+              {sessionSetupActions}
+              {cliVersionWarning}
+            </>
           )}
 
           {!hideSessionSetupControls &&
