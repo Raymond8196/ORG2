@@ -1,4 +1,4 @@
-import { Airplay, Network } from "lucide-react";
+import { Airplay, Network, RefreshCw } from "lucide-react";
 import React, { Children, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -50,6 +50,8 @@ interface CliVersionAlert {
   cliDisplayName: string | undefined;
   installedVersion: string | undefined;
   latestVersion: string | undefined;
+  refreshing: boolean;
+  onRefresh: () => void;
   onClose: () => void;
 }
 
@@ -279,6 +281,25 @@ const SessionCreatorChatPanelView: React.FC<
           type="warning"
           onClose={cliVersionAlert.onClose}
           closeAriaLabel={t("common:actions.close")}
+          action={
+            <Button
+              variant="tertiary"
+              size="small"
+              icon={<RefreshCw size={14} strokeWidth={1.8} />}
+              iconOnly
+              loading={cliVersionAlert.refreshing}
+              loadingSpinIcon
+              disabled={cliVersionAlert.refreshing}
+              title={t("creator.cliVersionOutdated.refresh", {
+                cli: cliVersionAlert.cliDisplayName,
+              })}
+              aria-label={t("creator.cliVersionOutdated.refresh", {
+                cli: cliVersionAlert.cliDisplayName,
+              })}
+              data-testid="session-creator-cli-version-refresh"
+              onClick={cliVersionAlert.onRefresh}
+            />
+          }
           title={t("creator.cliVersionOutdated.title", {
             cli: cliVersionAlert.cliDisplayName,
           })}
