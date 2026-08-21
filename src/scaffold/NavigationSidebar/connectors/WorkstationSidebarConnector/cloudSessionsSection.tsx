@@ -55,6 +55,7 @@ import { filterCloudSessionRows } from "@src/features/Org2Cloud/cloudSessionFilt
 import {
   buildCloudSessionThreads,
   collectCloudFlatListExcludedSessionIds,
+  collectTeamConversationSessionIds,
 } from "@src/features/Org2Cloud/cloudSessionThreads";
 import { org2CloudAuthAtom } from "@src/features/Org2Cloud/org2CloudAuthAtom";
 import { org2CloudPresenceAtom } from "@src/features/Org2Cloud/org2CloudPresenceAtom";
@@ -226,13 +227,21 @@ export function useCloudSessionsSection({
     );
   }, []);
 
-  // Imported teammate replays materialize a local read-only cache row. Hide
-  // only those caches from My Sessions; writable local sessions never move
-  // into Team Conversations.
+  // Imported teammate replays materialize a local read-only cache row: hide
+  // those caches from My Sessions. Own sessions that belong to a MULTI-owner
+  // conversation family hide too — the family's Team Sessions thread is the
+  // conversation's single sidebar entry (badge and thread included).
   const cloudFlatListExcludedSessionIds = useMemo(() => {
     if (!orgId) return new Set<string>();
-    return collectCloudFlatListExcludedSessionIds(sessions, orgId);
-  }, [orgId, sessions]);
+    const excluded = collectCloudFlatListExcludedSessionIds(sessions, orgId);
+    for (const sessionId of collectTeamConversationSessionIds(
+      rows,
+      selfUserId
+    )) {
+      excluded.add(sessionId);
+    }
+    return excluded;
+  }, [orgId, sessions, rows, selfUserId]);
 
   const pendingPlay = useCloudSessionPendingPlayEntry(activeSessionId);
   const downloadProgress =
@@ -436,6 +445,19 @@ export function useCloudSessionsSection({
       if (!row || row.eventsEpoch === undefined) {
         return true;
       }
+      // The viewer's own member row of a team conversation (multi-owner
+      // families surface own rows in this section): open the LOCAL session
+      // directly — replaying a copy of one's own transcript is never right.
+      if (
+        row.ownerUserId === selfUserId &&
+        localOwnSessionIds.has(row.sourceSessionId)
+      ) {
+        openOrReplaceSessionTab({
+          sessionId: row.sourceSessionId,
+          sessionName: row.title,
+        });
+        return true;
+      }
       // A row already downloading refocuses its tab instead of a dead click;
       // other rows are NOT blocked by someone else's in-flight action.
       const busy = busySessionRows.get(row.id);
@@ -454,8 +476,10 @@ export function useCloudSessionsSection({
     [
       busySessionRows,
       findRow,
+      localOwnSessionIds,
       openOrReplaceSessionTab,
       runReplay,
+      selfUserId,
       teamPaginationScopeKey,
     ]
   );

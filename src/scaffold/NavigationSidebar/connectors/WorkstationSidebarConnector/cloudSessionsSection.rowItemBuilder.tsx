@@ -94,7 +94,8 @@ interface UseCloudSessionRowItemBuilderParams {
 
 export type BuildCloudSessionRowItem = (
   threadRow: CloudSessionThreadRow,
-  asParentOf?: NavigationMenuItem[]
+  /** Family members folded into this row (badge aggregation only). */
+  familyDescendants?: readonly CloudSessionThreadRow[]
 ) => NavigationMenuItem;
 
 export function useCloudSessionRowItemBuilder({
@@ -110,7 +111,10 @@ export function useCloudSessionRowItemBuilder({
 }: UseCloudSessionRowItemBuilderParams): BuildCloudSessionRowItem {
   const seenCounts = useAtomValue(discussionSeenCountsAtom);
   const buildRowItem = useCallback(
-    (threadRow: CloudSessionThreadRow, asParentOf?: NavigationMenuItem[]) => {
+    (
+      threadRow: CloudSessionThreadRow,
+      familyDescendants?: readonly CloudSessionThreadRow[]
+    ) => {
       const { row, bareSessionId } = threadRow;
       const isFork = Boolean(row.forkedFrom);
       const disabled = isCloudThreadRowDisabled(threadRow);
@@ -126,18 +130,27 @@ export function useCloudSessionRowItemBuilder({
         isFork && !display.externalSource && !display.agentType
           ? GitFork
           : resolveAgentIcon(display.agentIconId);
-      // Unread discussion messages: the 0014 live-comment counter minus the
-      // viewer-local seen watermark (stamped while the conversation is
+      // Unread discussion messages: the 0014 live-comment counters minus the
+      // viewer-local seen watermarks (stamped while the conversation is
       // open), so the badge clears once the viewer has read the discussion.
-      // Suppress the badge on rows the viewer cannot open: a disabled
-      // teammate metadata_only row (eventsEpoch === undefined) has no
-      // reachable conversation surface, so advertising a count the viewer
-      // cannot read is a pure dead end.
+      // Summed across the WHOLE family — the fold renders one row per
+      // conversation, and a comment sitting on any member's plane must
+      // still light that single row. Suppress the badge on rows the viewer
+      // cannot open: a disabled teammate metadata_only row (eventsEpoch ===
+      // undefined) has no reachable conversation surface, so advertising a
+      // count the viewer cannot read is a pure dead end.
       const unreadComments = disabled
         ? 0
-        : unreadDiscussionCount(
-            row.commentCount,
-            seenCounts[discussionSeenKey(row.orgId, bareSessionId)]
+        : [threadRow, ...(familyDescendants ?? [])].reduce(
+            (sum, member) =>
+              sum +
+              unreadDiscussionCount(
+                member.row.commentCount,
+                seenCounts[
+                  discussionSeenKey(member.row.orgId, member.bareSessionId)
+                ]
+              ),
+            0
           );
       const commentsBadge =
         unreadComments > 0 ? (
@@ -241,11 +254,6 @@ export function useCloudSessionRowItemBuilder({
         shortcut: relativeTime,
         trailingElement,
         disabled,
-        children: asParentOf,
-        // A thread root is a real session, not just a group header: keep it
-        // openable after a fork adds child rows (the chevron toggles the
-        // thread). Only meaningful when it actually has children.
-        navigableParent: asParentOf !== undefined && !disabled,
       };
       if (!disabled) {
         item.showMoreActions = true;
