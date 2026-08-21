@@ -1,3 +1,4 @@
+import { useAtomValue } from "jotai";
 import {
   ClipboardCheck,
   File,
@@ -31,6 +32,9 @@ import {
   SessionLinkCard,
   type SessionLinkCardData,
 } from "@src/engines/ChatPanel/blocks/ToolCallBlock/cards";
+import type { ConversationSenderStamp } from "@src/features/Org2Cloud/SessionConversation/continuationEvents";
+import { CONVERSATION_SENDER_ARG } from "@src/features/Org2Cloud/SessionConversation/continuationEvents";
+import { org2CloudAuthAtom } from "@src/features/Org2Cloud/org2CloudAuthAtom";
 import { createCollabAvatarIdentity } from "@src/store/collaboration/protocol";
 import {
   formatSmartDateTime,
@@ -46,6 +50,18 @@ import { useSharedConversationSender } from "./SharedConversationSenderContext";
 import { normalizeUserMessageText } from "./normalizeUserMessageText";
 import { resolveRawUserPrompt } from "./rawUserPrompt";
 import { resolveUserMessageSide } from "./userMessageSide";
+
+function readConversationSenderStamp(
+  event: { args?: Record<string, unknown> } | undefined
+): ConversationSenderStamp | null {
+  const raw = event?.args?.[CONVERSATION_SENDER_ARG];
+  if (!raw || typeof raw !== "object") return null;
+  const stamp = raw as Partial<ConversationSenderStamp>;
+  return typeof stamp.userId === "string" &&
+    typeof stamp.displayName === "string"
+    ? (stamp as ConversationSenderStamp)
+    : null;
+}
 
 const USER_MSG_MAX_LINES = 3;
 const USER_MSG_MAX_CHARS = 120;
@@ -207,6 +223,7 @@ const UserChatItem = ({
 }: UserChatItemProps) => {
   const { t, i18n } = useTranslation("sessions");
   const sharedConversationSender = useSharedConversationSender();
+  const viewerCloudUserId = useAtomValue(org2CloudAuthAtom)?.userId ?? null;
   const [isEditing, setIsEditing] = useState(false);
 
   const [isExpanded, setIsExpanded] = useState(false);
@@ -380,7 +397,9 @@ const UserChatItem = ({
     onEditSubmit &&
     !isRepoSetup &&
     !isAgentOrgInboxTranscript &&
-    !isPlanApproved
+    !isPlanApproved &&
+    !event?.args?.["sessionDiscussion"] &&
+    !readConversationSenderStamp(event)
   );
   const hasDisplayContent = Boolean(
     fullContent.trim() ||
@@ -392,10 +411,20 @@ const UserChatItem = ({
   if (!hasDisplayContent) return null;
 
   const displayNeedsTruncation = needsTruncation;
-  const messageSide = resolveUserMessageSide(event);
+  const senderStamp = readConversationSenderStamp(event);
+  const stampIsViewer = Boolean(
+    senderStamp && viewerCloudUserId && senderStamp.userId === viewerCloudUserId
+  );
+  const messageSide = senderStamp
+    ? stampIsViewer
+      ? "right"
+      : "left"
+    : resolveUserMessageSide(event);
   const isRemoteSharedMessage = messageSide === "left";
   const senderName =
-    sharedConversationSender?.displayName.trim() || "Shared user";
+    senderStamp?.displayName.trim() ||
+    sharedConversationSender?.displayName.trim() ||
+    "Shared user";
   const senderAvatar = createCollabAvatarIdentity(senderName);
 
   const containerClass = `${DISPLAY_CONTAINER_BASE} ${isEditableDisplay ? "cursor-pointer outline-none" : ""}`;
@@ -581,7 +610,12 @@ const UserChatItem = ({
               {senderAvatar.initials}
             </Avatar>
           </span>
-          <div className="flex min-w-0 flex-col items-start">{display}</div>
+          <div className="flex min-w-0 flex-col items-start">
+            <span className="mb-0.5 text-xs font-medium text-text-3">
+              {senderName}
+            </span>
+            {display}
+          </div>
         </div>
       ) : (
         display
