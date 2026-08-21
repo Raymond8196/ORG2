@@ -3075,5 +3075,13 @@
       "skipped": "已跳过",
       "pending": "启动中"
     }
+  },
+  "conversation": {
+    "promptMode": "Agent",
+    "teamChatMode": "团队讨论",
+    "promptTooltip": "发给 agent 执行",
+    "teamChatTooltip": "发给队友的讨论，不触发 agent",
+    "imagesUnsupported": "团队讨论暂不支持图片",
+    "participantsTooltip": "对话参与者与讨论消息数"
   }
 }

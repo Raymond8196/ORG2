@@ -14,7 +14,7 @@ import {
   clampChatWidth,
   getChatMaxWidth,
 } from "@src/engines/ChatPanel/config";
-import SessionCommentsHeaderExtras from "@src/features/Org2Cloud/SessionComments/SessionCommentsHeaderExtras";
+import { ConversationParticipantsChip } from "@src/features/Org2Cloud/SessionConversation/ConversationParticipantsChip";
 import SessionViewersIndicator from "@src/features/Org2Cloud/SessionViewersIndicator";
 import {
   org2CloudOrgsAtom,
@@ -630,9 +630,9 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
         sessionHeaderExtras={
           <>
             <SessionViewersIndicator sessionId={currentSessionId ?? null} />
-            {/* Session-level cloud notes (Phase F) — renders null for
-                  non-cloud sessions, exactly like the fork extras. */}
-            <SessionCommentsHeaderExtras session={currentSession ?? null} />
+            <ConversationParticipantsChip
+              sessionId={currentSessionId ?? null}
+            />
             <SessionContinueCliHeaderExtras
               session={currentSession ?? null}
               sessionId={currentSessionId ?? null}
