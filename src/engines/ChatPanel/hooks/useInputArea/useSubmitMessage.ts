@@ -117,6 +117,7 @@ export function useSubmitMessage({
   const { t } = useTranslation("sessions");
   const store = useStore();
   const wpReadOnly = useAtomValue(wpReadOnlyAtom);
+  const submitAttemptsInFlightRef = useRef(new Set<string>());
   const submitInFlightKeyRef = useRef<string | null>(null);
   const { runManualCompact } = useManualCompact();
   const guardAgainstSecrets = useSecretScanGuard();
@@ -124,7 +125,7 @@ export function useSubmitMessage({
     draftSessionId || addressSessionId || null
   );
 
-  return useCallback(
+  const submitMessage = useCallback(
     async (options: SubmitMessageOptions = {}) => {
       // Imported teammate replays are intentionally read-only in the event
       // store, but their composer owns an onSubmitOverride that performs
@@ -502,6 +503,40 @@ export function useSubmitMessage({
       enableAgentInterceptors,
       runManualCompact,
       addressComments,
+    ]
+  );
+
+  return useCallback(
+    async (options?: SubmitMessageOptions) => {
+      // Lock before asynchronous preprocessing (secret scan, MCP expansion,
+      // pending-pill reads). A second Enter/click can otherwise start with the
+      // same live editor text, arrive at the late payload-key guard only after
+      // the first dispatch finishes, and send the same user intent twice.
+      const liveDisplayText =
+        refs.composerInputRef.current?.getTextWithPills() ?? "";
+      const displayText =
+        liveDisplayText.trim().length > 0
+          ? liveDisplayText
+          : (options?.capturedText ?? "");
+      const submitAttemptKey = JSON.stringify({
+        draftSessionId,
+        displayText,
+        imageDataUrls: imageAttachment.images.map((image) => image.dataUrl),
+      });
+      const inFlightAttempts = submitAttemptsInFlightRef.current;
+      if (inFlightAttempts.has(submitAttemptKey)) return;
+      inFlightAttempts.add(submitAttemptKey);
+      try {
+        await submitMessage(options);
+      } finally {
+        inFlightAttempts.delete(submitAttemptKey);
+      }
+    },
+    [
+      draftSessionId,
+      imageAttachment.images,
+      refs.composerInputRef,
+      submitMessage,
     ]
   );
 }
