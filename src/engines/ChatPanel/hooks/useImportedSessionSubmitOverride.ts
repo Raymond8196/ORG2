@@ -3,12 +3,35 @@ import { useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
 import Message from "@src/components/Message";
+import { eventStoreProxy } from "@src/engines/SessionCore/core/store/EventStoreProxy";
+import type { SessionEvent } from "@src/engines/SessionCore/core/types";
 import { waitForSessionChannelReady } from "@src/engines/SessionCore/sync/useSessionChannel";
 import {
   type ConversationFamilyMember,
   resolveConversationFamily,
 } from "@src/features/Org2Cloud/SessionConversation/continuationEvents";
-import { org2CloudAuthAtom } from "@src/features/Org2Cloud/org2CloudAuthAtom";
+import {
+  bumpConversationPlaneSignal,
+  conversationPlaneAtom,
+  conversationPlaneKey,
+  conversationPlaneSignalAtom,
+} from "@src/features/Org2Cloud/SessionConversation/conversationPlaneAtom";
+import { buildConversationPlaneStreamEvents } from "@src/features/Org2Cloud/SessionConversation/conversationPlaneEvents";
+import {
+  buildRunnerPrompt,
+  renderConversationContext,
+  runConversationTurn,
+} from "@src/features/Org2Cloud/SessionConversation/conversationTurnRunner";
+import { mergeConversationEvents } from "@src/features/Org2Cloud/SessionConversation/discussionEvents";
+import {
+  org2CloudAccessSettingsAtom,
+  withCloudSessionMode,
+} from "@src/features/Org2Cloud/org2CloudAccessSettings";
+import {
+  commitRefreshedAuth,
+  org2CloudAuthAtom,
+} from "@src/features/Org2Cloud/org2CloudAuthAtom";
+import { ensureFreshSession } from "@src/features/Org2Cloud/org2CloudClient";
 import { org2CloudRemoteSessionsAtom } from "@src/features/Org2Cloud/org2CloudRemoteSessionsAtom";
 import { findImportedSession } from "@src/features/TeamCollaboration/engine/collabImportIdentity";
 import { getSessionForkedFrom } from "@src/features/TeamCollaboration/forkSession";
@@ -16,6 +39,7 @@ import type { ForkImportedErrorKind } from "@src/features/TeamCollaboration/useF
 import { useForkImportedSession } from "@src/features/TeamCollaboration/useForkImportedSession";
 import { createLogger } from "@src/hooks/logger";
 import { useSessionView } from "@src/hooks/ui/tabs/useSessionView";
+import { COLLAB_SESSION_ACCESS_MODE } from "@src/store/collaboration/types";
 import type { Session } from "@src/store/session";
 import { sessionsAtom } from "@src/store/session";
 import { restoreToInputAtom } from "@src/store/session/cliSessionStatusAtom";
@@ -124,6 +148,62 @@ export function useImportedSessionSubmitOverride({
   const { fork: forkImportedSession } = useForkImportedSession(
     tipImportedCopy ?? currentSession ?? null
   );
+
+  // CONVERSATION PLANE (0024): once the backend supports the multi-writer
+  // turn plane, implicit sends stop forking entirely — a member's turn runs
+  // in an invisible one-shot local session and publishes to the plane; the
+  // owner's sends keep their own session but inject the plane delta as
+  // context. The fork/tip paths below remain ONLY as the pre-0024 fallback.
+  const setAuth = useSetAtom(org2CloudAuthAtom);
+  const planeEntries = useAtomValue(conversationPlaneAtom);
+  const setPlaneSignal = useSetAtom(conversationPlaneSignalAtom);
+  const setAccessSettings = useSetAtom(org2CloudAccessSettingsAtom);
+  const conversationRootId = useMemo(() => {
+    if (lineage) return lineage.rootSessionId ?? lineage.sourceSessionId;
+    if (currentSession?.importedFrom) {
+      const rows = familyOrgId ? remoteEntries[familyOrgId]?.rows : undefined;
+      const source = currentSession.importedFrom.sourceSessionId;
+      const row = rows?.find(
+        (candidate) => candidate.sourceSessionId === source
+      );
+      return row?.forkedFrom?.rootSessionId ?? source;
+    }
+    return sessionId;
+  }, [
+    lineage,
+    currentSession?.importedFrom,
+    familyOrgId,
+    remoteEntries,
+    sessionId,
+  ]);
+  const planeInfo = useMemo(() => {
+    if (!conversationRootId) return null;
+    if (familyOrgId) {
+      const entry =
+        planeEntries[conversationPlaneKey(familyOrgId, conversationRootId)];
+      return entry
+        ? { orgId: familyOrgId, rootId: conversationRootId, entry }
+        : null;
+    }
+    // Own sessions carry no lineage org — recover it from whichever plane
+    // entry the open conversation surface already fetched.
+    const suffix = `:${conversationRootId}`;
+    for (const [key, entry] of Object.entries(planeEntries)) {
+      if (key.endsWith(suffix)) {
+        return {
+          orgId: key.slice(0, -suffix.length),
+          rootId: conversationRootId,
+          entry,
+        };
+      }
+    }
+    return null;
+  }, [planeEntries, familyOrgId, conversationRootId]);
+  const viewerOwnsRoot = useMemo(
+    () =>
+      sessions.some((candidate) => candidate.session_id === conversationRootId),
+    [sessions, conversationRootId]
+  );
   const forkSubmitInFlightRef = useRef(false);
   // useUserIntentSubmit reads this target so the synthetic user event and
   // dispatch both land in the fork, not the still-mounted imported session.
@@ -145,6 +225,121 @@ export function useImportedSessionSubmitOverride({
 
   return useCallback(
     async (input: SubmitOverrideInput): Promise<boolean> => {
+      const planeReady = planeInfo?.entry.state === "ready";
+      // (a) Member send on a plane-capable backend: publish the message to
+      // the conversation immediately, run the turn in an invisible one-shot
+      // local session, stream the agent tail back to the plane. No fork.
+      if (planeReady && planeInfo && !viewerOwnsRoot) {
+        if (forkSubmitInFlightRef.current) {
+          restorePendingDraft(input, sessionId);
+          return true;
+        }
+        forkSubmitInFlightRef.current = true;
+        try {
+          if (!auth) throw new Error("cloud sign-in required");
+          const freshAuth = await ensureFreshSession(auth);
+          if (!freshAuth) throw new Error("cloud auth refresh failed");
+          commitRefreshedAuth(setAuth, auth, freshAuth);
+          const rootLocal =
+            sessions.find(
+              (candidate) => candidate.session_id === planeInfo.rootId
+            ) ??
+            findImportedSession(
+              sessions,
+              planeInfo.orgId,
+              planeInfo.rootId,
+              auth.supabaseUrl
+            );
+          const rootEvents = rootLocal
+            ? await eventStoreProxy
+                .getPersistedEvents(rootLocal.session_id)
+                .catch(() => [] as SessionEvent[])
+            : [];
+          const planeStream = buildConversationPlaneStreamEvents(
+            planeInfo.entry.events,
+            sessionId
+          );
+          const timeline = mergeConversationEvents(rootEvents, planeStream);
+          // The root row's repo scope keys the setup memory AND resolves the
+          // runner's local checkout — without it the dialog reappears and a
+          // workspace-requiring agent cannot launch at all.
+          const rootRow = familyOrgId
+            ? remoteEntries[familyOrgId]?.rows?.find(
+                (candidate) => candidate.sourceSessionId === planeInfo.rootId
+              )
+            : undefined;
+          let publishResolve!: () => void;
+          const userPublished = new Promise<void>((resolve) => {
+            publishResolve = resolve;
+          });
+          const turnPromise = runConversationTurn({
+            accessToken: freshAuth.accessToken,
+            orgId: planeInfo.orgId,
+            rootSessionId: planeInfo.rootId,
+            conversationTitle:
+              currentSession?.name ?? rootLocal?.name ?? "Conversation",
+            displayText: input.displayText,
+            agentContent: input.agentContent,
+            imageDataUrls: input.imageDataUrls,
+            timeline,
+            sourceScopeKey: rootRow?.repoScopeKey,
+            sourceModel: currentSession?.model ?? rootRow?.model,
+            onRunnerReady: (runnerSessionId) => {
+              // Plumbing session: never sync it to the cloud as a session.
+              setAccessSettings((current) =>
+                withCloudSessionMode(
+                  current,
+                  planeInfo.orgId,
+                  runnerSessionId,
+                  COLLAB_SESSION_ACCESS_MODE.OFF
+                )
+              );
+            },
+            onUserMessagePublished: publishResolve,
+            onPushed: () =>
+              bumpConversationPlaneSignal(setPlaneSignal, planeInfo.orgId),
+          });
+          // The composer unblocks as soon as the user's words are on the
+          // plane; the agent tail continues in the background.
+          const settled = turnPromise.then(
+            () => undefined,
+            (error) => {
+              logger.error("conversation turn failed", error);
+              Message.error(t("collaboration.forkImported.sendFailed"));
+            }
+          );
+          await Promise.race([userPublished, settled]);
+          void settled;
+          return true;
+        } catch (error) {
+          logger.error("conversation plane send failed", error);
+          restorePendingDraft(input, sessionId);
+          Message.error(t("collaboration.forkImported.sendFailed"));
+          return true;
+        } finally {
+          forkSubmitInFlightRef.current = false;
+        }
+      }
+      // (b) Owner send with plane traffic present: the owner's own session
+      // stays the execution surface, but the agent must SEE the members'
+      // turns — inject the plane delta as a read-only context prefix.
+      if (
+        planeReady &&
+        planeInfo &&
+        viewerOwnsRoot &&
+        planeInfo.entry.events.length > 0
+      ) {
+        const contextBlock = renderConversationContext(
+          buildConversationPlaneStreamEvents(planeInfo.entry.events, sessionId)
+        );
+        return onFallbackSubmit({
+          ...input,
+          agentContent: buildRunnerPrompt(
+            contextBlock,
+            input.agentContent ?? input.displayText
+          ),
+        });
+      }
       // The tip already lives here as a writable session (typically the
       // viewer's own earlier continuation): no new fork — the send goes
       // straight into it, and the surface follows. This is what keeps a
@@ -249,17 +444,26 @@ export function useImportedSessionSubmitOverride({
       return true;
     },
     [
+      auth,
       currentSession?.importedFrom,
+      currentSession?.name,
+      currentSession?.model,
       forkImportedSession,
       onFallbackSubmit,
       onSessionContinuation,
       openSession,
       ownLocalTip,
+      planeInfo,
       restorePendingDraft,
       sessionId,
+      sessions,
+      setAccessSettings,
+      setAuth,
+      setPlaneSignal,
       submitIntoForkedSession,
       t,
       tipImportedCopy,
+      viewerOwnsRoot,
     ]
   );
 }

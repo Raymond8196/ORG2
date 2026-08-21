@@ -52,6 +52,10 @@ import { activeSessionIdAtom } from "@src/store/session/viewAtom";
 import { chatPanelSelectedCloudOrgAtom } from "@src/store/ui/chatPanelAtom";
 
 import {
+  bumpConversationPlaneSignal,
+  conversationPlaneSignalAtom,
+} from "./SessionConversation/conversationPlaneAtom";
+import {
   bumpOrg2CloudChannelMessagesVersionAtom,
   bumpOrg2CloudChannelsVersionAtom,
   org2CloudChannelMessagesVersionAtom,
@@ -164,7 +168,8 @@ type SignalPlane =
   | "policy"
   | "channels"
   | "channelMessages"
-  | "memberRuntime";
+  | "memberRuntime"
+  | "conversationEvents";
 
 const ALL_SIGNAL_PLANES: readonly SignalPlane[] = [
   "coarse",
@@ -176,6 +181,7 @@ const ALL_SIGNAL_PLANES: readonly SignalPlane[] = [
   "channels",
   "channelMessages",
   "memberRuntime",
+  "conversationEvents",
 ];
 
 function isDocumentHidden(): boolean {
@@ -222,6 +228,13 @@ export function useOrg2CloudRealtime(): void {
       bumpChannelMessagesForOrg({ orgId });
     },
     [bumpChannelMessagesForOrg]
+  );
+  const setConversationPlaneSignal = useSetAtom(conversationPlaneSignalAtom);
+  const bumpConversationPlaneVersion = useCallback(
+    (orgId: string) => {
+      bumpConversationPlaneSignal(setConversationPlaneSignal, orgId);
+    },
+    [setConversationPlaneSignal]
   );
   const setRosterRealtimeConnected = useSetAtom(
     org2CloudRosterRealtimeConnectedAtom
@@ -498,6 +511,7 @@ export function useOrg2CloudRealtime(): void {
       "inbound",
       "channels",
       "channelMessages",
+      "conversationEvents",
     ]);
     org2CloudSyncEngine.invalidateOrgInbound(orgId);
     bumpRemoteSessionsVersion(orgId);
@@ -509,6 +523,10 @@ export function useOrg2CloudRealtime(): void {
     // Same reasoning for the open channel transcript: a shadowed per-kind
     // signal must still converge the message list here.
     bumpChannelMessagesVersion(orgId);
+    // Open conversation streams converge here too: a turn-plane append
+    // broadcast while the socket was down must still be pulled on the
+    // reconnect edge — the per-conversation after_seq pull is bounded.
+    bumpConversationPlaneVersion(orgId);
     maybeRefreshControlPlane(orgId);
   }, [
     activeRealtimeOrgId,
@@ -516,6 +534,7 @@ export function useOrg2CloudRealtime(): void {
     bumpOrgCommentsSignal,
     bumpChannelsVersion,
     bumpChannelMessagesVersion,
+    bumpConversationPlaneVersion,
     maybeRefreshControlPlane,
   ]);
   // Per-plane leading/trailing coalescer. A successful subscribe edge marks
@@ -627,6 +646,13 @@ export function useOrg2CloudRealtime(): void {
             bumpChannelMessagesVersion(orgId);
           });
           return;
+        case "conversationEvents":
+          // Turn-plane appends move only the open conversation streams; the
+          // per-conversation after_seq pull is bounded and cheap.
+          schedulePlaneSignalRefresh("conversationEvents", () => {
+            bumpConversationPlaneVersion(orgId);
+          });
+          return;
         case "member_runtime":
           // Telemetry heartbeats only move the Team Runtime roster. Routing
           // them to their own plane keeps a teammate's 15-minute push from
@@ -647,6 +673,7 @@ export function useOrg2CloudRealtime(): void {
       bumpMemberRuntimeVersion,
       bumpChannelsVersion,
       bumpChannelMessagesVersion,
+      bumpConversationPlaneVersion,
       refreshEntitlementForOrg,
     ]
   );

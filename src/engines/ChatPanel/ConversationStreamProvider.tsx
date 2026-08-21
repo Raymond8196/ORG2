@@ -9,6 +9,8 @@ import {
   resolveConversationFamily,
   stitchConversationSegments,
 } from "@src/features/Org2Cloud/SessionConversation/continuationEvents";
+import { useConversationPlaneEvents } from "@src/features/Org2Cloud/SessionConversation/conversationPlaneAtom";
+import { buildConversationPlaneStreamEvents } from "@src/features/Org2Cloud/SessionConversation/conversationPlaneEvents";
 import {
   buildDiscussionEvents,
   mergeConversationEvents,
@@ -185,6 +187,8 @@ export function ConversationStreamProvider({
     []
   );
 
+  const plane = useConversationPlaneEvents(target);
+
   const value = useMemo((): SessionEvent[] | undefined => {
     if (overrideEvents) return overrideEvents;
     const base = family
@@ -195,26 +199,32 @@ export function ConversationStreamProvider({
           eventsByBareId
         )
       : chatEvents;
-    if (!grouped || !toSourceEventId) {
-      return family ? base : undefined;
+    // Synthetic rows merged by timestamp: 0024 conversation-plane turns
+    // (other members' sends — the post-fork wire) and Team chat discussion.
+    const synthetic: SessionEvent[] = [];
+    if (plane.events.length > 0) {
+      synthetic.push(
+        ...buildConversationPlaneStreamEvents(plane.events, sessionId)
+      );
     }
     if (
-      grouped.byEventId.size === 0 &&
-      grouped.sessionLevel.length === 0 &&
-      grouped.orphaned.length === 0
+      grouped &&
+      toSourceEventId &&
+      (grouped.byEventId.size > 0 ||
+        grouped.sessionLevel.length > 0 ||
+        grouped.orphaned.length > 0)
     ) {
+      const bySourceId = new Map<string, SessionEvent>();
+      for (const event of chatEvents) {
+        const sourceId = toSourceEventId(event.id);
+        if (!bySourceId.has(sourceId)) bySourceId.set(sourceId, event);
+      }
+      synthetic.push(...buildDiscussionEvents(grouped, sessionId, bySourceId));
+    }
+    if (synthetic.length === 0) {
       return family ? base : undefined;
     }
-    const bySourceId = new Map<string, SessionEvent>();
-    for (const event of chatEvents) {
-      const sourceId = toSourceEventId(event.id);
-      if (!bySourceId.has(sourceId)) bySourceId.set(sourceId, event);
-    }
-    const discussion = buildDiscussionEvents(grouped, sessionId, bySourceId);
-    if (discussion.length === 0) {
-      return family ? base : undefined;
-    }
-    return mergeConversationEvents(base, discussion);
+    return mergeConversationEvents(base, synthetic);
   }, [
     overrideEvents,
     family,
@@ -224,6 +234,7 @@ export function ConversationStreamProvider({
     sessionId,
     grouped,
     toSourceEventId,
+    plane.events,
   ]);
 
   return (
