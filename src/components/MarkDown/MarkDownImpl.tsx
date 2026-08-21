@@ -43,7 +43,7 @@ import {
   detectCodeType,
   normalizeCopyableMarkdownDocumentFence,
   openFileInEditor,
-  openUrlInBrowserApp,
+  openMarkdownLinkInBrowserApp,
   preprocessTextContent,
   renderChildren,
 } from "./markdownUtils";
@@ -423,7 +423,7 @@ const MarkdownComponent: React.FC<MarkdownProps> = ({
         );
         return;
       }
-      openUrlInBrowserApp(href);
+      openMarkdownLinkInBrowserApp(href);
     },
     []
   );

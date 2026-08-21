@@ -1,15 +1,15 @@
 import { useSetAtom } from "jotai";
 import {
+  Chromium,
   GitCommitHorizontal,
   GitPullRequest,
   MoreHorizontal,
-  SquareArrowOutUpRight,
 } from "lucide-react";
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import FileTypeIcon from "@src/components/FileTypeIcon";
-import Message from "@src/components/Message";
+import { openMarkdownLinkInBrowserApp } from "@src/components/MarkDown/markdownUtils";
 import StackRowButton from "@src/components/StackRowButton";
 import TabPill, { type TabPillItem } from "@src/components/TabPill";
 import TextButton from "@src/components/TextButton";
@@ -36,11 +36,20 @@ import {
   stationModeAtom,
 } from "@src/store/ui/simulatorAtom";
 import { getFileName } from "@src/util/file/pathUtils";
-import { openExternalLink } from "@src/util/platform/ipcRenderer";
 
 import { mapTurnModifiedFilesToFileChanges } from "./turnFilesMapping";
 
 const DEFAULT_VISIBLE_FILES = 4;
+/**
+ * Lucide glyphs fill their viewBox while FileTypeIcon SVGs carry internal
+ * padding, so 14px/1.75 stroke reads the same optical size as the 16px
+ * file icons in sibling rows (same pairing the composer pills use).
+ */
+const ARTIFACT_ICON_PROPS = {
+  size: 14,
+  strokeWidth: 1.75,
+  className: "shrink-0",
+} as const;
 let diffScopeNonce = 0;
 type MetadataTab = "edits" | "reads";
 
@@ -205,14 +214,15 @@ const TurnMetadataFooter: React.FC<TurnMetadataFooterProps> = memo(
       ]
     );
 
+    // PR rows open in the workstation Browser and bring it into view (the
+    // chat panel un-maximizes and the station switches to Browser), matching
+    // inline PR links in assistant markdown.
     const openPullRequest = useCallback(
       (artifact: ExtractedGitArtifactData) => {
         if (!artifact.url) return;
-        void openExternalLink(artifact.url).catch(() => {
-          Message.error(t("cards.url.openExternalFailed"));
-        });
+        openMarkdownLinkInBrowserApp(artifact.url);
       },
-      [t]
+      []
     );
 
     const visibleFiles = expanded
@@ -273,7 +283,7 @@ const TurnMetadataFooter: React.FC<TurnMetadataFooterProps> = memo(
                     title={artifact.sha ?? artifact.url}
                     data-testid="turn-metadata-commit"
                   >
-                    <GitCommitHorizontal size={16} className="shrink-0" />
+                    <GitCommitHorizontal {...ARTIFACT_ICON_PROPS} />
                     <span className="chat-block-title min-w-0 flex-1 truncate text-text-2">
                       {artifactLabel(artifact)}
                     </span>
@@ -293,13 +303,15 @@ const TurnMetadataFooter: React.FC<TurnMetadataFooterProps> = memo(
                     title={artifact.url}
                     data-testid="turn-metadata-pr"
                   >
-                    <GitPullRequest size={16} className="shrink-0" />
+                    <GitPullRequest {...ARTIFACT_ICON_PROPS} />
                     <span className="chat-block-title min-w-0 flex-1 truncate text-text-2">
                       {artifactLabel(artifact)}
                     </span>
-                    <SquareArrowOutUpRight
+                    <Chromium
                       size={14}
+                      strokeWidth={1.75}
                       className="shrink-0 text-text-3"
+                      aria-hidden
                     />
                   </StackRowButton>
                 ))}
