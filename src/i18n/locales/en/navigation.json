@@ -264,7 +264,8 @@
       "forkSnapshotIncomplete": "The cloud snapshot is incomplete. Ask the owner to finish syncing, then retry.",
       "forkAgentUnavailable": "Choose a local agent before forking.",
       "forkBackendRegistrationFailed": "The session history was copied, but the runnable fork could not be registered. Retry.",
-      "forkReplayUnavailable": "Full replay is not available for this session. Ask the owner to share the replay, then retry."
+      "forkReplayUnavailable": "Full replay is not available for this session. Ask the owner to share the replay, then retry.",
+      "forkSetupReused": "Continuing with your last setup · {{model}}"
     },
     "repoPicker": {
       "loading": "Loading repos…",
@@ -819,6 +820,8 @@
       "actionError": "Action failed — please try again",
       "unresolvedBadge_one": "{{count}} unresolved comment",
       "unresolvedBadge": "{{count}} unresolved comments",
+      "unreadBadge_one": "{{count}} unread message",
+      "unreadBadge": "{{count}} unread messages",
       "addressButton": "Address comments",
       "addressPill_one": "address {{count}} comment",
       "addressPill_other": "address {{count}} comments",

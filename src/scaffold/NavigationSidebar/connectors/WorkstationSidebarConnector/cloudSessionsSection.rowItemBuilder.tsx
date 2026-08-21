@@ -6,11 +6,17 @@
  * largest piece of that section's row-construction logic.
  */
 import type { TFunction } from "i18next";
+import { useAtomValue } from "jotai";
 import { GitFork, Loader2, MoreHorizontal, Pin, PinOff } from "lucide-react";
 import { useCallback } from "react";
 
 import Message from "@src/components/Message";
 import { resolveAgentIcon } from "@src/config/agentIcons";
+import {
+  discussionSeenCountsAtom,
+  discussionSeenKey,
+  unreadDiscussionCount,
+} from "@src/features/Org2Cloud/SessionConversation/discussionSeenAtom";
 import { isRemoteSessionPinned } from "@src/features/Org2Cloud/cloudPinnedRemoteSessions";
 import { buildCloudRemoteItemId } from "@src/features/Org2Cloud/cloudRemoteItemId";
 import type { CloudSessionBusyEntry } from "@src/features/Org2Cloud/cloudSessionBusyAtom";
@@ -102,6 +108,7 @@ export function useCloudSessionRowItemBuilder({
   pinnedRemoteSessionIds,
   toggleRemoteSessionPin,
 }: UseCloudSessionRowItemBuilderParams): BuildCloudSessionRowItem {
+  const seenCounts = useAtomValue(discussionSeenCountsAtom);
   const buildRowItem = useCallback(
     (threadRow: CloudSessionThreadRow, asParentOf?: NavigationMenuItem[]) => {
       const { row, bareSessionId } = threadRow;
@@ -119,27 +126,29 @@ export function useCloudSessionRowItemBuilder({
         isFork && !display.externalSource && !display.agentType
           ? GitFork
           : resolveAgentIcon(display.agentIconId);
-      // Unresolved session-comment threads (0014 listing counters): a small
-      // count chip in the trailing accessory slot. On LEAF rows the slot
-      // fades on hover to reveal the Replay/Fork actions (platform
-      // pattern); thread-root parent rows keep it visible.
-      // Suppress the unresolved-comment badge on rows the viewer cannot open:
-      // a disabled teammate metadata_only row (eventsEpoch === undefined) has
-      // no reachable notes surface — clicking is a no-op — so advertising a
-      // count the viewer can neither read nor resolve is a pure dead end.
-      const unresolvedComments = disabled
+      // Unread discussion messages: the 0014 live-comment counter minus the
+      // viewer-local seen watermark (stamped while the conversation is
+      // open), so the badge clears once the viewer has read the discussion.
+      // Suppress the badge on rows the viewer cannot open: a disabled
+      // teammate metadata_only row (eventsEpoch === undefined) has no
+      // reachable conversation surface, so advertising a count the viewer
+      // cannot read is a pure dead end.
+      const unreadComments = disabled
         ? 0
-        : (row.unresolvedCommentCount ?? 0);
+        : unreadDiscussionCount(
+            row.commentCount,
+            seenCounts[discussionSeenKey(row.orgId, bareSessionId)]
+          );
       const commentsBadge =
-        unresolvedComments > 0 ? (
+        unreadComments > 0 ? (
           <span
             data-testid="session-comments-badge"
-            aria-label={t("cloud.comments.unresolvedBadge", {
-              count: unresolvedComments,
+            aria-label={t("cloud.comments.unreadBadge", {
+              count: unreadComments,
             })}
             className="inline-flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-primary-6 px-1 text-[9px] font-medium leading-none text-white"
           >
-            {unresolvedComments}
+            {unreadComments}
           </span>
         ) : undefined;
       // Live viewers: other org members currently viewing this session.
@@ -316,6 +325,7 @@ export function useCloudSessionRowItemBuilder({
       toggleRemoteSessionPin,
       presenceMap,
       runFork,
+      seenCounts,
       selfUserId,
       t,
       tCommon,
