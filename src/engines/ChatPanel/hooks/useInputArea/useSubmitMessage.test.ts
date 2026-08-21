@@ -18,14 +18,12 @@ import {
 } from "./useSubmitMessage";
 
 const mocks = vi.hoisted(() => ({
-  addressCommentsRun: vi.fn(),
   clearImageDraft: vi.fn(),
   guardAgainstSecrets: vi.fn(),
   interceptPendingQuestionBatches: vi.fn(),
   messageError: vi.fn(),
   messageInfo: vi.fn(),
   messageWarning: vi.fn(),
-  parseAddressCommentsSlashCommand: vi.fn(),
   parseCompactSlashCommand: vi.fn(),
   projectOutgoingUserMessage: vi.fn(),
   resolveMcpSlashCommand: vi.fn(),
@@ -51,14 +49,6 @@ vi.mock("@src/hooks/logger", () => ({
 
 vi.mock("@src/hooks/security/useSecretScanGuard", () => ({
   useSecretScanGuard: () => mocks.guardAgainstSecrets,
-}));
-
-vi.mock("@src/features/Org2Cloud/addressCommentsSlashToken", () => ({
-  parseAddressCommentsSlashCommand: mocks.parseAddressCommentsSlashCommand,
-}));
-
-vi.mock("@src/features/Org2Cloud/useAddressCommentsSlashCommand", () => ({
-  useAddressCommentsSlashCommand: () => ({ run: mocks.addressCommentsRun }),
 }));
 
 vi.mock("@src/engines/SessionCore", async () => {
@@ -188,7 +178,6 @@ describe("useSubmitMessage composer boundary", () => {
     latestSubmit = null;
     root = createSmokeRoot();
     mocks.guardAgainstSecrets.mockResolvedValue(true);
-    mocks.parseAddressCommentsSlashCommand.mockReturnValue(null);
     mocks.parseCompactSlashCommand.mockReturnValue(null);
     mocks.projectOutgoingUserMessage.mockImplementation(
       ({ displayText }: { displayText: string }) => ({
@@ -222,7 +211,6 @@ describe("useSubmitMessage composer boundary", () => {
     return {
       refs: createRefs(editorHarness.editor),
       draftSessionId: "session-1",
-      addressSessionId: "session-1",
       replyTargetEventId: "reply-event-1",
       flushDraft: vi.fn().mockResolvedValue(undefined),
       clearReplyTarget: vi.fn().mockResolvedValue(undefined),
