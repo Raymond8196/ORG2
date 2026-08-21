@@ -427,14 +427,6 @@
         "handoff": "передача"
       }
     },
-    "todos": {
-      "title": "To-Do",
-      "addItem": "Добавить элемент",
-      "addFirst": "Добавить задачу",
-      "placeholder": "Кратко (до 120 символов)",
-      "done": "Готово",
-      "create": "Создать"
-    },
     "contextMenu": {
       "status": "Статус",
       "assignee": "Исполнитель",

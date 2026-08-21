@@ -442,14 +442,6 @@
         "handoff": "handoff"
       }
     },
-    "todos": {
-      "title": "To-Do",
-      "addItem": "Add item",
-      "addFirst": "Add a to-do item",
-      "placeholder": "Brief to-do (max 120 chars)",
-      "done": "Done",
-      "create": "Create"
-    },
     "contextMenu": {
       "status": "Status",
       "assignee": "Assignee",

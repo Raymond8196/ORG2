@@ -427,14 +427,6 @@
         "handoff": "przekazanie"
       }
     },
-    "todos": {
-      "title": "Do zrobienia",
-      "addItem": "Dodaj element",
-      "addFirst": "Dodaj element do listy",
-      "placeholder": "Krótka notatka (maks. 120 znaków)",
-      "done": "Gotowe",
-      "create": "Utwórz"
-    },
     "contextMenu": {
       "status": "Status",
       "assignee": "Przypisany",

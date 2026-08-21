@@ -427,14 +427,6 @@
         "handoff": "Übergabe"
       }
     },
-    "todos": {
-      "title": "To-Do",
-      "addItem": "Element hinzufügen",
-      "addFirst": "Aufgabe hinzufügen",
-      "placeholder": "Kurz gefasst (max. 120 Zeichen)",
-      "done": "Erledigt",
-      "create": "Erstellen"
-    },
     "contextMenu": {
       "status": "Status",
       "assignee": "Zuständiger",

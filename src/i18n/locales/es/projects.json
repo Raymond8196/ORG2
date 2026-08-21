@@ -427,14 +427,6 @@
         "handoff": "transferencia"
       }
     },
-    "todos": {
-      "title": "To-Do",
-      "addItem": "Agregar elemento",
-      "addFirst": "Agregar una tarea pendiente",
-      "placeholder": "Tarea breve (máx. 120 caracteres)",
-      "done": "Hecho",
-      "create": "Crear"
-    },
     "contextMenu": {
       "status": "Estado",
       "assignee": "Asignado",

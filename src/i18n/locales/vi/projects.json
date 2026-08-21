@@ -427,14 +427,6 @@
         "handoff": "bàn giao"
       }
     },
-    "todos": {
-      "title": "To-Do",
-      "addItem": "Thêm mục",
-      "addFirst": "Thêm việc cần làm",
-      "placeholder": "Ngắn gọn (tối đa 120 ký tự)",
-      "done": "Xong",
-      "create": "Tạo"
-    },
     "contextMenu": {
       "status": "Trạng thái",
       "assignee": "Người được gán",
