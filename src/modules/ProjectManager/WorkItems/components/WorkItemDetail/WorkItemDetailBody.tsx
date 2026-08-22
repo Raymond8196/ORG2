@@ -97,8 +97,6 @@ export function WorkItemDetailBody({
       availableLabels={availableLabels}
       availableMembers={availableMembers}
       externalStatusConfig={externalStatusConfig}
-      availableAgents={availableAgents}
-      availableOrgs={availableOrgs}
       showTime={showTime}
     />
   );

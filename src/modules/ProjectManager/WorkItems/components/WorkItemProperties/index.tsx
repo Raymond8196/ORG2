@@ -136,8 +136,6 @@ const WorkItemProperties: React.FC<WorkItemPropertiesProps> = ({
     color: label.color,
   })),
   availableMembers = [],
-  availableAgents = [],
-  availableOrgs = [],
   projectIconType,
   projectReadonly = false,
   assigneeReadonly = false,
@@ -199,9 +197,6 @@ const WorkItemProperties: React.FC<WorkItemPropertiesProps> = ({
   const handlers = useWorkItemPropertyHandlers({
     workItem,
     onUpdate,
-    availableMembers,
-    availableAgents,
-    availableOrgs,
     closePicker,
     t,
   });
@@ -232,8 +227,7 @@ const WorkItemProperties: React.FC<WorkItemPropertiesProps> = ({
       if (action === "assignee") {
         const assignee = availableMembers.find((member) => member.id === value);
         handlers.handleAssigneeChange(
-          value === "none" ? null : (assignee ?? null),
-          value === "none" ? undefined : "human"
+          value === "none" ? null : (assignee ?? null)
         );
         return;
       }
@@ -342,8 +336,6 @@ const WorkItemProperties: React.FC<WorkItemPropertiesProps> = ({
             openPicker={openPicker}
             togglePicker={togglePicker}
             availableMembers={availableMembers}
-            availableAgents={availableAgents}
-            availableOrgs={availableOrgs}
             handlers={handlers}
             t={t}
             fieldVariant={fieldVariant}
@@ -462,8 +454,6 @@ const WorkItemProperties: React.FC<WorkItemPropertiesProps> = ({
           openPicker={openPicker}
           togglePicker={togglePicker}
           availableMembers={availableMembers}
-          availableAgents={availableAgents}
-          availableOrgs={availableOrgs}
           handlers={handlers}
           t={t}
           fieldVariant={propertyFieldVariant}
