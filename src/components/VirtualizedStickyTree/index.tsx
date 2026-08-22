@@ -203,7 +203,7 @@ function VirtualizedStickyTreeInner<TNode extends TreeNodeBase>(
   // Stable Scroller component - passing ref objects (not .current) is safe
   // as they're only accessed in event handlers, not during render
   const virtuosoComponents = useMemo(
-    /* eslint-disable react-hooks/refs */
+    /* eslint-disable react-hooks/refs -- the factory captures ref objects for later scroll callbacks and never reads ref.current during render */
     () => ({
       Scroller: createScrollerComponent(scrollHandlerRef, scrollerDomRef),
     }),

@@ -190,7 +190,7 @@ const HoverCardTrigger: React.FC<HoverCardTriggerProps> = ({
     [originalRef]
   );
 
-  // eslint-disable-next-line react-hooks/refs
+  // eslint-disable-next-line react-hooks/refs -- cloneElement only forwards the composed callback ref for React to invoke during commit; it never reads ref.current during render
   return cloneElement(children, {
     ref: composedRef,
     onMouseEnter: (event: React.MouseEvent) => {

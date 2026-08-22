@@ -58,6 +58,16 @@ function applyRef<T>(ref: React.Ref<T> | undefined, value: T | null): void {
   (ref as React.MutableRefObject<T | null>).current = value;
 }
 
+type TooltipChildProps = {
+  ref?: React.Ref<HTMLElement>;
+  onMouseEnter?: (e: React.MouseEvent) => void;
+  onMouseLeave?: (e: React.MouseEvent) => void;
+  onClick?: (e: React.MouseEvent) => void;
+  onFocus?: (e: React.FocusEvent) => void;
+  onBlur?: (e: React.FocusEvent) => void;
+  [key: string]: unknown;
+};
+
 type TooltipCoordinates = { top: number; left: number };
 
 type TooltipOverflow = {
@@ -424,30 +434,35 @@ const Tooltip = forwardRef<HTMLDivElement, TooltipProps>(
     const enterTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
     const leaveTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
-    // Stable composed ref. Recreating the callback ref every time the child
-    // element's identity changes makes React detach (call with `null`) and
-    // reattach (call with the node) on every parent render, so
-    // `setTriggerElement` fires null→node churn each render. A parent that
-    // re-renders in a loop then escalates into React error #185
-    // ("maximum update depth"). Holding the composed ref stable and reading
-    // the latest child ref from a ref means React only invokes it when the
-    // DOM node actually changes — mount and unmount, not every render.
-    const childRefHolder = useRef<React.Ref<HTMLElement> | undefined>(
-      undefined
+    const hasElementChild = isValidElement(children);
+    const childRef = hasElementChild
+      ? (children.props as TooltipChildProps).ref
+      : undefined;
+    // React calls the previous callback ref with null before attaching a new
+    // callback to the same node. Ignore that transient null for positioning;
+    // otherwise an inline child ref produces null→node state churn and can
+    // escalate into React #185. A genuinely new node still updates state.
+    const triggerRef = useCallback(
+      (node: HTMLElement | null) => {
+        if (node !== null) {
+          setTriggerElement((previous) =>
+            previous === node ? previous : node
+          );
+        }
+        applyRef(childRef, node);
+      },
+      [childRef]
     );
-    const triggerRef = useCallback((node: HTMLElement | null) => {
-      setTriggerElement((prev) => (prev === node ? prev : node));
-      applyRef(childRefHolder.current, node);
-    }, []);
 
     const isControlled = popupVisible !== undefined;
     const currentVisible = isControlled ? popupVisible : internalVisible;
     const usesFramedSurface = framedPanel || (!panelStyle && !backgroundColor);
 
     const updatePosition = useCallback(() => {
-      if (!triggerElement || !tooltipRef.current) return;
+      const positionedTrigger = hasElementChild ? triggerElement : null;
+      if (!positionedTrigger || !tooltipRef.current) return;
 
-      const triggerRect = triggerElement.getBoundingClientRect();
+      const triggerRect = positionedTrigger.getBoundingClientRect();
       const tooltipRect = tooltipRef.current.getBoundingClientRect();
       const gap = usesFramedSurface ? 8 : 12;
 
@@ -509,7 +524,13 @@ const Tooltip = forwardRef<HTMLDivElement, TooltipProps>(
       setTooltipPosition({ top, left });
       setArrowOffset({ left: arrowLeftOffset, top: arrowTopOffset });
       setPositionReady(true);
-    }, [position, smartPlacement, triggerElement, usesFramedSurface]);
+    }, [
+      hasElementChild,
+      position,
+      smartPlacement,
+      triggerElement,
+      usesFramedSurface,
+    ]);
 
     useEffect(() => {
       if (currentVisible) {
@@ -624,46 +645,30 @@ const Tooltip = forwardRef<HTMLDivElement, TooltipProps>(
     }, []);
 
     // Clone child and attach event handlers
-    type ElementProps = {
-      ref?: React.Ref<HTMLElement>;
-      onMouseEnter?: (e: React.MouseEvent) => void;
-      onMouseLeave?: (e: React.MouseEvent) => void;
-      onClick?: (e: React.MouseEvent) => void;
-      onFocus?: (e: React.FocusEvent) => void;
-      onBlur?: (e: React.FocusEvent) => void;
-      [key: string]: unknown;
-    };
-
     // Clone child element and attach event handlers
-    // Callback refs are safe to pass during render - this is a false positive
     const wrappedChildren = useMemo(() => {
       if (!isValidElement(children)) {
         return children;
       }
 
       const getElementProps = (
-        element: React.ReactElement<ElementProps>
-      ): ElementProps => {
-        return element.props as ElementProps;
+        element: React.ReactElement<TooltipChildProps>
+      ): TooltipChildProps => {
+        return element.props as TooltipChildProps;
       };
 
       const originalProps = getElementProps(
-        children as React.ReactElement<ElementProps>
+        children as React.ReactElement<TooltipChildProps>
       );
 
       // Preserve any ref the child already had (e.g. a parent's forwardRef
       // used for dropdown positioning). Without this, wrapping an element
       // in Tooltip would silently break refs like useDropdownEngine's
-      // triggerRef, causing click-to-open dropdowns to never position.
-      // The value is read through `childRefHolder` inside the STABLE
-      // `triggerRef`, so a changing child ref never re-thrashes the DOM ref.
-      // Writing the holder here is idempotent and only read post-commit from
-      // the ref callback — never during render — so it cannot cause tearing.
-      // eslint-disable-next-line react-hooks/refs
-      childRefHolder.current = originalProps.ref;
-
-      // eslint-disable-next-line react-hooks/refs
-      return cloneElement(children as React.ReactElement<ElementProps>, {
+      // triggerRef, causing click-to-open dropdowns to never position. React's
+      // refs rule conservatively treats cloneElement as a possible ref read;
+      // this only forwards the callback for React to invoke during commit.
+      // eslint-disable-next-line react-hooks/refs -- cloneElement forwards the composed callback ref; it never reads ref.current during render
+      return cloneElement(children as React.ReactElement<TooltipChildProps>, {
         ref: triggerRef,
         onMouseEnter: (e: React.MouseEvent) => {
           handleMouseEnter();
