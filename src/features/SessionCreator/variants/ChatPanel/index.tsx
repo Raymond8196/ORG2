@@ -1,4 +1,4 @@
-import { useAtomValue, useSetAtom, useStore } from "jotai";
+import { useAtom, useAtomValue, useSetAtom, useStore } from "jotai";
 import React, {
   useCallback,
   useEffect,
@@ -29,8 +29,10 @@ import {
   agentIconIdAtom,
   agentNameAtom,
   cliAgentTypeAtom,
+  creatorRepoChromePositionAtom,
   dispatchCategoryAtom,
   normalizeAgentOnlySessionCreatorState,
+  resolveCreatorRepoChromePosition,
   selectedAgentDefinitionIdAtom,
   selectedAgentOrgIdAtom,
   sessionCreatorStateAtom,
@@ -51,6 +53,7 @@ import ChatPanelHumanSessionHeader from "./ChatPanelHumanSessionHeader";
 import SessionCreatorChatPanelView from "./SessionCreatorChatPanelView";
 import { deriveChatPanelLaunchContext } from "./deriveLaunchContext";
 import "./index.scss";
+import { shouldUseCreatorComposerBreathing } from "./repoChromeLayout";
 import type { SessionCreatorChatPanelSingleProps } from "./types";
 import { useChatPanelAgentPresentation } from "./useChatPanelAgentPresentation";
 import { useChatPanelBranchSync } from "./useChatPanelBranchSync";
@@ -101,6 +104,12 @@ const SessionCreatorChatPanelContent: React.FC<
   const { t } = useTranslation("sessions");
   const browserAddToConversationNav = useBrowserAddToConversationAction();
   const { orgs } = useAgentOrgs();
+  const [repoChromePositionPreference, setRepoChromePositionPreference] =
+    useAtom(creatorRepoChromePositionAtom);
+  const repoChromePosition = resolveCreatorRepoChromePosition(
+    repoChromePositionPreference,
+    layout === "launchpad" ? "top" : "bottom"
+  );
 
   // Read atoms needed before useSessionCreator so we can pass derived values in.
   const dispatchCategory = useAtomValue(dispatchCategoryAtom);
@@ -534,7 +543,13 @@ const SessionCreatorChatPanelContent: React.FC<
         requestModelOpen: isHumanMode ? false : requestModelOpen,
         onModelOpenHandled: () => setRequestModelOpen(false),
         shellClassName: `session-creator-chat-panel-fullscreen-input-shell ${
-          layout === "launchpad" ? "composer-breathing" : ""
+          shouldUseCreatorComposerBreathing(
+            layout === "launchpad",
+            repoChromePosition,
+            !hideRepoLine && headerLayout !== "compact"
+          )
+            ? "composer-breathing"
+            : ""
         }`.trim(),
         initialContent: initialRestoreText || initialContent || undefined,
         autoFocus: !isHumanMode,
@@ -576,9 +591,11 @@ const SessionCreatorChatPanelContent: React.FC<
       onCreateWorkItem={onCreateWorkItem}
       onFileUpload={handleFileUpload}
       onLaunch={handleComposerLaunch}
+      onRepoChromePositionChange={setRepoChromePositionPreference}
       onShareScreen={() => handleShareScreenClick().catch(log.error)}
       onToggleOrgMembers={handleToggleOrgMembers}
       pinnedActionsContent={isHumanMode ? undefined : pinnedActionsContent}
+      repoChromePosition={repoChromePosition}
       orgMembersPanelProps={
         selectedOrg
           ? {

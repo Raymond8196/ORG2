@@ -2087,6 +2087,10 @@
     "immutableInSession": "Schlüsselquelle, Agent-Typ und Preisstufe sind beim Sitzungsstart festgelegt. Starten Sie eine neue Sitzung, um sie zu ändern."
   },
   "creator": {
+    "repoChromePosition": {
+      "up": "Oben",
+      "down": "Unten"
+    },
     "createTarget": {
       "agentSession": "Agent-Sitzung",
       "manageAgents": "Agents / Skills verwalten",

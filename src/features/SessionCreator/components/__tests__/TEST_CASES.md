@@ -9,6 +9,17 @@
 | W3  | Choose New Worktree from the running-location picker | WorktreeSourceModal opens and the PR / issue / branch / name creation flow remains available                                                   |
 | W4  | Select a different Workspace                         | Pending new-worktree source state clears and running location returns to `local`; no path or source from the previous repository leaks forward |
 
+## Repository chrome position
+
+| #   | Steps                                                       | Expected Result                                                                                                                                    |
+| --- | ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| C1  | Right-click the repository chrome and choose **Up**         | Repository, branch, and running-location controls render above the composer with the established top corners and mirrored seam/outer padding       |
+| C2  | Right-click the repository chrome and choose **Down**       | The same controls render outside and below the complete composer, with matching bottom corners, the same total padding, and no input glow flashing |
+| C3  | Choose a position, close ORGII, then reopen Session Creator | The selected position is restored from `orgii:sessionCreator:repoChromePosition`                                                                   |
+| C4  | Open a layout with no saved position                        | Launchpad keeps its existing Up default; standard Session Creator keeps its existing Down default                                                  |
+| C5  | Open a compact/hidden repository-info Session Creator       | No position control appears because there is no independently movable repository chrome                                                            |
+| C6  | Right-click the repository/branch/location chrome           | WebKit's Back/Reload/Inspect menu is suppressed; a native OS menu opens with checked Up and Down actions, and choosing either persists the change  |
+
 Covers the worktree-source picker (`WorktreeSourceModal.tsx`) and the
 launch-payload wiring that turns the picked source into backend worktree
 fields (`getWorktreeFields` in `useSessionLaunch/launchPayload.ts`).

@@ -2103,6 +2103,10 @@
     "immutableInSession": "密鑰來源、Agent 類型和價格檔位在會話啓動時已固定。如需更改請新建會話。"
   },
   "creator": {
+    "repoChromePosition": {
+      "up": "上",
+      "down": "下"
+    },
     "createTarget": {
       "agentSession": "Agent 會話",
       "manageAgents": "管理 Agent / Skills",

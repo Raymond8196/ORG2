@@ -2132,6 +2132,10 @@
     "immutableInSession": "Источник ключа, тип Agent и тарифный уровень фиксируются при запуске сессии. Чтобы изменить их, начните новую сессию."
   },
   "creator": {
+    "repoChromePosition": {
+      "up": "Сверху",
+      "down": "Снизу"
+    },
     "createTarget": {
       "agentSession": "Сессия Agent",
       "manageAgents": "Управлять Agents / Skills",

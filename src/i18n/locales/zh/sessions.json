@@ -2140,6 +2140,10 @@
     "appliesNextTurn": "账号已切换。当前回复仍由原账号完成，新账号将从下一轮开始生效。"
   },
   "creator": {
+    "repoChromePosition": {
+      "up": "上",
+      "down": "下"
+    },
     "createTarget": {
       "agentSession": "Agent 会话",
       "manageAgents": "管理 Agent / Skills",

@@ -31,12 +31,15 @@ import {
 } from "@src/scaffold/GlobalSpotlight/palettes/DispatchCategoryPalette";
 import { DispatchCategoryDropdown } from "@src/scaffold/GlobalSpotlight/palettes/DispatchCategoryPalette/DispatchCategoryDropdown";
 import { PresenceMenuButton } from "@src/scaffold/NavigationSidebar/blocks/SidebarBottomBar";
+import type { CreatorRepoChromePosition } from "@src/store/session";
 
 import { EditorArea, SessionInfoLine } from "../../components";
+import RepoChromeRow from "./RepoChromeRow";
 import ScreenPickerModal from "./ScreenPickerModal";
 import SessionCreatorAgentHero from "./SessionCreatorAgentHero";
 import SessionCreatorOrgMembersPanel from "./SessionCreatorOrgMembersPanel";
 import WorkItemAttachmentControl from "./WorkItemAttachmentControl";
+import { isRepoChromeAboveComposer } from "./repoChromeLayout";
 import type { SessionCreatorAgentHeroContent } from "./resolveSessionCreatorAgentHero";
 import type { SessionCreatorChatPanelHeaderLayout } from "./types";
 
@@ -105,12 +108,14 @@ interface SessionCreatorChatPanelViewProps {
   onCreateWorkItem?: () => void;
   onFileUpload: React.ChangeEventHandler<HTMLInputElement>;
   onLaunch: () => void;
+  onRepoChromePositionChange: (position: CreatorRepoChromePosition) => void;
   onShareScreen: () => Promise<unknown>;
   onToggleOrgMembers: () => void;
   orgMembersPanelProps?: React.ComponentProps<
     typeof SessionCreatorOrgMembersPanel
   >;
   pinnedActionsContent?: React.ReactNode;
+  repoChromePosition: CreatorRepoChromePosition;
   categoryPickerProps: CategoryPickerProps;
   screenPickerProps?: React.ComponentProps<typeof ScreenPickerModal>;
   sessionInfoProps: React.ComponentProps<typeof SessionInfoLine>;
@@ -157,10 +162,12 @@ const SessionCreatorChatPanelView: React.FC<
   onCreateWorkItem,
   onFileUpload,
   onLaunch,
+  onRepoChromePositionChange,
   onShareScreen,
   onToggleOrgMembers,
   orgMembersPanelProps,
   pinnedActionsContent,
+  repoChromePosition,
   categoryPickerProps,
   screenPickerProps,
   sessionInfoProps,
@@ -185,16 +192,14 @@ const SessionCreatorChatPanelView: React.FC<
       </div>
     </div>
   );
+  const repoChromeAboveComposer = isRepoChromeAboveComposer(repoChromePosition);
   const repoPillsRow = !hideRepoLine && headerLayout !== "compact" && (
-    <div
-      className={`session-creator-chat-panel-fullscreen-repo-row px-1 ${
-        isLaunchpadLayout
-          ? "session-creator-chat-panel-fullscreen-repo-row-above pb-2.5 pt-1.5"
-          : "pb-2 pt-3"
-      }`}
+    <RepoChromeRow
+      position={repoChromePosition}
+      onPositionChange={onRepoChromePositionChange}
     >
       {repoPills}
-    </div>
+    </RepoChromeRow>
   );
   const compactHeader = headerLayout === "compact" && (
     <div className="session-creator-chat-panel-compact-header flex w-full items-center justify-between gap-2 bg-bg-2 px-1 pb-2 pt-1">
@@ -232,8 +237,11 @@ const SessionCreatorChatPanelView: React.FC<
   );
   const [isLaunchpadWorkItemPickerOpen, setIsLaunchpadWorkItemPickerOpen] =
     useState(false);
+  const showWorkItemAttachmentControl =
+    !hideWorkItemAttachmentControl &&
+    (!isLaunchpadLayout || Boolean(multiRunnerContent));
   const hasSetupControlsAfterCliSwitch =
-    (!hideWorkItemAttachmentControl && !isLaunchpadLayout) ||
+    showWorkItemAttachmentControl ||
     Boolean(orgMembersPanelProps) ||
     Boolean(pinnedActionsContent);
   const sessionSetupActions = !hideSessionSetupControls ? (
@@ -253,18 +261,17 @@ const SessionCreatorChatPanelView: React.FC<
             {cliLaunchModeSwitch && hasSetupControlsAfterCliSwitch && (
               <div aria-hidden className="mx-1 h-4 w-px shrink-0 bg-border-2" />
             )}
-            {!hideWorkItemAttachmentControl &&
-              (!isLaunchpadLayout || Boolean(multiRunnerContent)) && (
-                <WorkItemAttachmentControl
-                  composerInputRef={composerInputRef}
-                  currentWorkItemContext={workItemContext}
-                  onCreateWorkItem={onCreateWorkItem}
-                  onWorkItemContextChange={onAttachedWorkItemContextChange}
-                  repoId={sessionInfoProps.repoId}
-                  repoPath={sessionInfoProps.repoPath}
-                  mode="add"
-                />
-              )}
+            {showWorkItemAttachmentControl && (
+              <WorkItemAttachmentControl
+                composerInputRef={composerInputRef}
+                currentWorkItemContext={workItemContext}
+                onCreateWorkItem={onCreateWorkItem}
+                onWorkItemContextChange={onAttachedWorkItemContextChange}
+                repoId={sessionInfoProps.repoId}
+                repoPath={sessionInfoProps.repoPath}
+                mode="add"
+              />
+            )}
             {orgMembersPanelProps && (
               <Button
                 variant="secondary"
@@ -436,7 +443,8 @@ const SessionCreatorChatPanelView: React.FC<
   const composerDockClassName = isLaunchpadLayout
     ? "mt-auto flex w-full shrink-0 flex-col gap-3"
     : "contents";
-  const composerFrameClassName = `session-creator-chat-panel-fullscreen-composer mx-auto w-full ${DETAIL_PANEL_TOKENS.contentMaxWidth} ${
+  const composerGroupClassName = `session-creator-chat-panel-fullscreen-composer-group mx-auto w-full ${DETAIL_PANEL_TOKENS.contentMaxWidth}`;
+  const composerFrameClassName = `session-creator-chat-panel-fullscreen-composer w-full ${
     headerLayout === "compact"
       ? "session-creator-chat-panel-fullscreen-composer-compact"
       : ""
@@ -515,12 +523,22 @@ const SessionCreatorChatPanelView: React.FC<
                 {cliVersionWarning}
               </>
             )}
-            <div className={composerFrameClassName}>
-              {compactHeader}
-              {isCliTuiMode && tuiComposerHeader}
-              {isLaunchpadLayout && repoPillsRow}
-              {composerBody}
-              {!isLaunchpadLayout && repoPillsRow}
+            <div className={composerGroupClassName}>
+              <div className={composerFrameClassName}>
+                {compactHeader}
+                {isCliTuiMode && tuiComposerHeader}
+                {/* Keep this slot mounted so moving only the chrome cannot
+                    shift or remount the composer input below it. */}
+                <div className="contents">
+                  {repoChromeAboveComposer && repoPillsRow}
+                </div>
+                {composerBody}
+              </div>
+              {/* The bottom slot sits outside the complete composer frame;
+                  its existing overlap, radii, and z-order stay in CSS. */}
+              <div className="contents">
+                {!repoChromeAboveComposer && repoPillsRow}
+              </div>
             </div>
           </div>
 

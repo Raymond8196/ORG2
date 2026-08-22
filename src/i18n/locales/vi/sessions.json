@@ -2086,6 +2086,10 @@
     "immutableInSession": "Nguồn khóa, loại Agent và bậc giá được cố định khi bắt đầu phiên. Bắt đầu phiên mới để thay đổi."
   },
   "creator": {
+    "repoChromePosition": {
+      "up": "Trên",
+      "down": "Dưới"
+    },
     "createTarget": {
       "agentSession": "Phiên Agent",
       "manageAgents": "Quản lý Agents / Skills",

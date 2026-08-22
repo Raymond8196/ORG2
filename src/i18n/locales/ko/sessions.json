@@ -2088,6 +2088,10 @@
     "immutableInSession": "키 소스, Agent 유형 및 가격 티어는 세션 시작 시 고정됩니다. 변경하려면 새 세션을 시작하세요."
   },
   "creator": {
+    "repoChromePosition": {
+      "up": "위",
+      "down": "아래"
+    },
     "createTarget": {
       "agentSession": "Agent 세션",
       "manageAgents": "Agents / Skills 관리",

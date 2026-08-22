@@ -2089,6 +2089,10 @@
     "immutableInSession": "La fuente de clave, el tipo de Agent y el nivel de precio se fijan al iniciar la sesión. Inicia una nueva sesión para cambiarlos."
   },
   "creator": {
+    "repoChromePosition": {
+      "up": "Arriba",
+      "down": "Abajo"
+    },
     "createTarget": {
       "agentSession": "Sesión de Agent",
       "manageAgents": "Gestionar Agents / Skills",
