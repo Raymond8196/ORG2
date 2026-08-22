@@ -15,8 +15,8 @@ import {
   stitchConversationSegments,
 } from "@src/features/Org2Cloud/SessionConversation/continuationEvents";
 import { useConversationPlaneEvents } from "@src/features/Org2Cloud/SessionConversation/conversationPlaneAtom";
-import { buildConversationPlaneStreamEvents } from "@src/features/Org2Cloud/SessionConversation/conversationPlaneEvents";
 import { ConversationRunnerScopeProvider } from "@src/features/Org2Cloud/SessionConversation/conversationRunnerScope";
+import { mergePlaneIntoTranscript } from "@src/features/Org2Cloud/SessionConversation/conversationTimeline";
 import {
   buildDiscussionEvents,
   mergeConversationEvents,
@@ -194,6 +194,7 @@ export function ConversationStreamProvider({
   );
 
   const plane = useConversationPlaneEvents(target);
+  const viewerUserId = auth?.userId ?? null;
 
   // Live overlay for THIS device's in-flight member turns: the runner is a
   // local session, so its thinking / tool / worked-for events stream in real
@@ -259,14 +260,15 @@ export function ConversationStreamProvider({
           eventsByBareId
         )
       : chatEvents;
-    // Synthetic rows merged by timestamp: 0024 conversation-plane turns
-    // (other members' sends — the post-fork wire) and Team chat discussion.
+    // 0024 conversation-plane turns (every member's AND the owner's) fold
+    // onto the transcript by server seq — local twins keep their identity.
+    const timeline =
+      plane.events.length > 0
+        ? mergePlaneIntoTranscript(base, plane.events, sessionId, viewerUserId)
+        : base;
+    // Synthetic rows merged by timestamp: the sender's live runner overlay
+    // and Team chat discussion.
     const synthetic: SessionEvent[] = [];
-    if (plane.events.length > 0) {
-      synthetic.push(
-        ...buildConversationPlaneStreamEvents(plane.events, sessionId)
-      );
-    }
     // Live runner overlay (sender-local, pre-tail): show the agent working.
     // The runner's own user event carries the injected context prefix, so
     // only its non-user tail is overlaid; ids are namespaced so they never
@@ -300,9 +302,9 @@ export function ConversationStreamProvider({
       synthetic.push(...buildDiscussionEvents(grouped, sessionId, bySourceId));
     }
     if (synthetic.length === 0) {
-      return family ? base : undefined;
+      return family || timeline !== base ? timeline : undefined;
     }
-    return mergeConversationEvents(base, synthetic);
+    return mergeConversationEvents(timeline, synthetic);
   }, [
     overrideEvents,
     family,
@@ -310,6 +312,7 @@ export function ConversationStreamProvider({
     chatEvents,
     eventsByBareId,
     sessionId,
+    viewerUserId,
     grouped,
     toSourceEventId,
     plane.events,

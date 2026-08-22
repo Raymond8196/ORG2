@@ -83,7 +83,7 @@ function stampSegmentSender(
  * wraps twice), so keep peeling while a colon-free prefix remains — raw
  * event ids carry colons, session ids never do.
  */
-function sourceEventIdOf(event: SessionEvent): string {
+export function sourceEventIdOf(event: SessionEvent): string {
   let id = stripCopyEventNamespace(event.sessionId, event.id);
   for (;;) {
     const split = id.indexOf("~");

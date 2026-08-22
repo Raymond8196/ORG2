@@ -13,7 +13,13 @@ session-comments wire.
   expiry of the oldest segment must never mute the conversation — observed
   live 2026-08-21 with ORG2_RETENTION_EXPIRED).
 - The owner's own session transcript stays the base timeline (owner-only
-  push unchanged).
+  push unchanged) — AND every owner turn is ALSO published to the plane
+  (user row at dispatch, agent tail at terminal, one turnId) under the
+  local event ids, so the plane carries every turn of the conversation and
+  its seq is the one total order. Clients fold plane rows onto their local
+  twins (owner transcript, imported replay copies) by turn-intent id for
+  user rows and by source event id for the rest; pre-plane history keeps
+  the timestamp merge.
 - Any other member's turn runs on THEIR machine (sender-runs/sender-pays)
   in a **local runner session** that is: created empty (external-history
   fork pattern — context injected, never copied), per-session sync OFF
@@ -88,8 +94,9 @@ session-comments wire.
 
 ## Explicitly deferred
 
-- Live streaming of in-flight member turns (plane supports it; client
-  pushes at turn completion in v1).
+- Live streaming of in-flight turns to OTHER clients (plane supports it;
+  client pushes at turn completion in v1). The sender's own surface overlays
+  the runner's live events and scopes the working indicator to the runner.
 - Migrating Team chat (comments) onto the same plane.
 - Backfilling legacy fork families into planes (they keep the stitched
   read path indefinitely).

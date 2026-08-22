@@ -42,6 +42,7 @@ import { getInstrumentedStore } from "@src/util/core/state/instrumentedStore";
 import {
   boundConversationEventForPush,
   pushConversationEvents,
+  pushConversationEventsChunked,
 } from "../org2CloudConversationEventsClient";
 
 const log = createLogger("ConversationTurnRunner");
@@ -197,7 +198,12 @@ function buildPushedUserEvent(
 }
 
 export interface RunConversationTurnParams {
-  accessToken: string;
+  /**
+   * Resolved before EVERY push. A turn can outlive the access token that
+   * was valid at dispatch (a 10-minute tool-heavy turn did, live), so the
+   * tail push must never reuse a token captured at the start.
+   */
+  getAccessToken: () => Promise<string>;
   orgId: string;
   rootSessionId: string;
   conversationTitle: string;
@@ -255,7 +261,7 @@ export async function runConversationTurn(
     }));
   if (!remembered) saveForkSetupMemory(params.sourceScopeKey, setup);
 
-  await pushConversationEvents(params.accessToken, {
+  await pushConversationEvents(await params.getAccessToken(), {
     orgId: params.orgId,
     rootSessionId: params.rootSessionId,
     turnId,
@@ -329,7 +335,7 @@ export async function runConversationTurn(
     .map(boundConversationEventForPush);
 
   if (agentTail.length > 0) {
-    await pushConversationEvents(params.accessToken, {
+    await pushConversationEventsChunked(await params.getAccessToken(), {
       orgId: params.orgId,
       rootSessionId: params.rootSessionId,
       turnId,

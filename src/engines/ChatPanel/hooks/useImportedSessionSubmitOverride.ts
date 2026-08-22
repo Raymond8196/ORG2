@@ -5,12 +5,14 @@ import { useTranslation } from "react-i18next";
 import Message from "@src/components/Message";
 import { eventStoreProxy } from "@src/engines/SessionCore/core/store/EventStoreProxy";
 import type { SessionEvent } from "@src/engines/SessionCore/core/types";
+import { mintTurnIntentId } from "@src/engines/SessionCore/sync/adapters/shared/eventFactories";
 import { waitForSessionChannelReady } from "@src/engines/SessionCore/sync/useSessionChannel";
 import { activeConversationRunnersAtom } from "@src/features/Org2Cloud/SessionConversation/activeConversationRunnersAtom";
 import {
   type ConversationFamilyMember,
   resolveConversationFamily,
 } from "@src/features/Org2Cloud/SessionConversation/continuationEvents";
+import { publishOwnerTurn } from "@src/features/Org2Cloud/SessionConversation/conversationOwnerPublisher";
 import {
   bumpConversationPlaneSignal,
   conversationPlaneAtom,
@@ -18,12 +20,12 @@ import {
   conversationPlaneSignalAtom,
 } from "@src/features/Org2Cloud/SessionConversation/conversationPlaneAtom";
 import { buildConversationPlaneStreamEvents } from "@src/features/Org2Cloud/SessionConversation/conversationPlaneEvents";
+import { mergePlaneIntoTranscript } from "@src/features/Org2Cloud/SessionConversation/conversationTimeline";
 import {
   buildRunnerPrompt,
   renderConversationContext,
   runConversationTurn,
 } from "@src/features/Org2Cloud/SessionConversation/conversationTurnRunner";
-import { mergeConversationEvents } from "@src/features/Org2Cloud/SessionConversation/discussionEvents";
 import {
   org2CloudAccessSettingsAtom,
   withCloudSessionMode,
@@ -45,6 +47,7 @@ import type { Session } from "@src/store/session";
 import { sessionsAtom } from "@src/store/session";
 import { restoreToInputAtom } from "@src/store/session/cliSessionStatusAtom";
 import type { SessionContinuation } from "@src/store/session/sessionTabPlacementAtom";
+import { getInstrumentedStore } from "@src/util/core/state/instrumentedStore";
 
 import type { SubmitOverrideInput } from "./useInputArea/types";
 import { useUserIntentSubmit } from "./useWorkspaceChat/useUserIntentSubmit";
@@ -214,6 +217,18 @@ export function useImportedSessionSubmitOverride({
     getSessionId: () => forkDispatchSessionIdRef.current,
   });
 
+  // A turn can outlive the access token valid at dispatch (a 10-minute
+  // member turn did, live — its tail push failed with "JWT expired"), so
+  // every plane push resolves a fresh token from the CURRENT auth state.
+  const getAccessToken = useCallback(async (): Promise<string> => {
+    const current = getInstrumentedStore().get(org2CloudAuthAtom);
+    if (!current) throw new Error("cloud sign-in required");
+    const fresh = await ensureFreshSession(current);
+    if (!fresh) throw new Error("cloud auth refresh failed");
+    commitRefreshedAuth(setAuth, current, fresh);
+    return fresh.accessToken;
+  }, [setAuth]);
+
   const restorePendingDraft = useCallback(
     (pending: SubmitOverrideInput, targetSessionId: string) => {
       setRestoreToInput({
@@ -257,11 +272,12 @@ export function useImportedSessionSubmitOverride({
                 .getPersistedEvents(rootLocal.session_id)
                 .catch(() => [] as SessionEvent[])
             : [];
-          const planeStream = buildConversationPlaneStreamEvents(
+          const timeline = mergePlaneIntoTranscript(
+            rootEvents,
             planeInfo.entry.events,
-            sessionId
+            sessionId,
+            auth.userId
           );
-          const timeline = mergeConversationEvents(rootEvents, planeStream);
           // The root row's repo scope keys the setup memory AND resolves the
           // runner's local checkout — without it the dialog reappears and a
           // workspace-requiring agent cannot launch at all.
@@ -293,7 +309,7 @@ export function useImportedSessionSubmitOverride({
             });
           };
           const turnPromise = runConversationTurn({
-            accessToken: freshAuth.accessToken,
+            getAccessToken,
             orgId: planeInfo.orgId,
             rootSessionId: planeInfo.rootId,
             conversationTitle:
@@ -352,25 +368,62 @@ export function useImportedSessionSubmitOverride({
           forkSubmitInFlightRef.current = false;
         }
       }
-      // (b) Owner send with plane traffic present: the owner's own session
-      // stays the execution surface, but the agent must SEE the members'
-      // turns — inject the plane delta as a read-only context prefix.
-      if (
-        planeReady &&
-        planeInfo &&
-        viewerOwnsRoot &&
-        planeInfo.entry.events.length > 0
-      ) {
-        const contextBlock = renderConversationContext(
-          buildConversationPlaneStreamEvents(planeInfo.entry.events, sessionId)
+      // (b) Owner send on a plane-capable backend: the owner's own session
+      // stays the execution surface, the agent SEES the members' turns (the
+      // plane rows of other authors ride the agent copy as a read-only
+      // context prefix — the owner's own turns are already its history),
+      // and the turn is PUBLISHED to the plane under a turnId exactly like
+      // a member turn, so every turn of the conversation has a seq.
+      if (planeReady && planeInfo && viewerOwnsRoot) {
+        // Group-chat routing owns its own sends.
+        if (await onFallbackSubmit(input)) return true;
+        if (!auth) return false;
+        const freshAuth = await ensureFreshSession(auth);
+        if (!freshAuth) return false;
+        commitRefreshedAuth(setAuth, auth, freshAuth);
+        const othersRows = planeInfo.entry.events.filter(
+          (row) => row.authorUserId !== auth.userId
         );
-        return onFallbackSubmit({
-          ...input,
-          agentContent: buildRunnerPrompt(
-            contextBlock,
-            input.agentContent ?? input.displayText
-          ),
+        const agentContent =
+          othersRows.length > 0
+            ? buildRunnerPrompt(
+                renderConversationContext(
+                  buildConversationPlaneStreamEvents(othersRows, sessionId)
+                ),
+                input.agentContent ?? input.displayText
+              )
+            : input.agentContent;
+        const turnIntentId = mintTurnIntentId();
+        try {
+          await submitIntoForkedSession({
+            sessionId,
+            displayContent: input.displayText,
+            agentContent,
+            imageDataUrls: input.imageDataUrls,
+            turnIntentId,
+            applyStopSubmitGuards: true,
+            dedupeDirectSubmit: true,
+            clearUserInitiatedCancelOnQueue: true,
+          });
+        } catch (error) {
+          logger.error("owner conversation send failed", error);
+          restorePendingDraft(input, sessionId);
+          Message.error(t("collaboration.forkImported.sendFailed"));
+          return true;
+        }
+        void publishOwnerTurn({
+          getAccessToken,
+          orgId: planeInfo.orgId,
+          rootSessionId: planeInfo.rootId,
+          sessionId,
+          turnIntentId,
+          displayText: input.displayText,
+          onPushed: () =>
+            bumpConversationPlaneSignal(setPlaneSignal, planeInfo.orgId),
+        }).catch((error: unknown) => {
+          logger.warn("owner turn publish failed", error);
         });
+        return true;
       }
       // The tip already lives here as a writable session (typically the
       // viewer's own earlier continuation): no new fork — the send goes
@@ -482,6 +535,7 @@ export function useImportedSessionSubmitOverride({
       currentSession?.model,
       familyOrgId,
       forkImportedSession,
+      getAccessToken,
       onFallbackSubmit,
       onSessionContinuation,
       openSession,

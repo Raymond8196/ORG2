@@ -207,6 +207,40 @@ export async function pushConversationEvents(
 }
 
 /**
+ * Push a turn's events in RPC-sized batches under one turnId. The plane is
+ * append-only per conversation, so several pushes under the same turnId are
+ * one turn — a long tool-heavy turn easily exceeds the 200-event cap.
+ */
+export async function pushConversationEventsChunked(
+  accessToken: string,
+  params: {
+    orgId: string;
+    rootSessionId: string;
+    turnId: string;
+    events: readonly SessionEvent[];
+  }
+): Promise<PushConversationEventsResult> {
+  let result: PushConversationEventsResult | null = null;
+  for (
+    let offset = 0;
+    offset < params.events.length;
+    offset += CLOUD_CONVERSATION_MAX_EVENTS_PER_PUSH
+  ) {
+    result = await pushConversationEvents(accessToken, {
+      ...params,
+      events: params.events.slice(
+        offset,
+        offset + CLOUD_CONVERSATION_MAX_EVENTS_PER_PUSH
+      ),
+    });
+  }
+  if (!result) {
+    throw new Org2CloudConversationError("ORG2_VALIDATION: empty batch");
+  }
+  return result;
+}
+
+/**
  * Client-side mirror of the 64KB/event CHECK: oversized display payloads
  * are truncated with a marker instead of failing the whole turn. The
  * transcript stays honest — the marker names the elision.
