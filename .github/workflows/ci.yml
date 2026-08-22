@@ -2,7 +2,7 @@
 #
 # Two parallel jobs:
 #   frontend  — TypeScript typecheck + ESLint + Vitest unit tests
-#   rust      — advisory clippy (subsumes cargo check)
+#   rust      — clippy (subsumes cargo check) + workspace tests
 #
 # Mirrors the toolchain versions used in release.yaml (Node 20, pnpm 9,
 # Rust stable, swatinem/rust-cache) so CI and release builds stay in sync.
@@ -88,3 +88,12 @@ jobs:
       - name: cargo clippy (all targets, warnings denied)
         working-directory: src-tauri
         run: cargo clippy --workspace --all-targets -- -D warnings
+
+      # `--workspace` is load-bearing: src-tauri/Cargo.toml lists "." plus 44
+      # member crates and sets no `default-members`, so a bare `cargo test` here
+      # would run the root package only and skip ~5700 tests. Clippy above has
+      # already built every test target against the same cache, so this step is
+      # mostly link plus ~1 min of execution for ~6800 tests.
+      - name: cargo test (workspace)
+        working-directory: src-tauri
+        run: cargo test --workspace --no-fail-fast

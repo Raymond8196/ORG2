@@ -44,12 +44,12 @@ pnpm run tauri:build:fast
 
 Run the checks that match the files you changed. If you cannot run a relevant check locally, explain why in the PR and include any partial verification you performed.
 
-| Change area                   | Recommended checks                                                                                         |
-| ----------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| Frontend / TypeScript         | `pnpm run lint`, `pnpm run test`, `pnpm run check:circular`                                                |
-| Rust / Tauri                  | `pnpm run cargo:check`, `pnpm run cargo:clippy`, `pnpm run cargo:test`                                     |
-| Targeted Rust modules         | `pnpm run cargo:test:agent_core`, `pnpm run cargo:test:event_store`, or `pnpm run cargo:test:work_station` |
-| Chat, session, or UI behavior | E2E tests in `tests/e2e`; see `tests/e2e/README.md`                                                        |
+| Change area                   | Recommended checks                                                                                                                                          |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Frontend / TypeScript         | `pnpm run lint`, `pnpm run test`, `pnpm run check:circular`                                                                                                 |
+| Rust / Tauri                  | `pnpm run cargo:check`, `pnpm run cargo:clippy`, `pnpm run cargo:test`                                                                                      |
+| Targeted Rust modules         | `pnpm run cargo:test:lib` (root-package unit tests only), `pnpm run cargo:test:agent_core`, `pnpm run cargo:test:agent_sessions`, `pnpm run cargo:test:api` |
+| Chat, session, or UI behavior | E2E tests in `tests/e2e`; see `tests/e2e/README.md`                                                                                                         |
 
 Core UI end-to-end tests use WebDriverIO with `tauri-webdriver-automation`:
 
@@ -59,6 +59,43 @@ cd tests/e2e
 pnpm install
 pnpm test
 ```
+
+## Where tests live
+
+**One style per directory — never mix.** A directory either colocates its tests
+beside the source or keeps them in a `__tests__/` subdirectory. Both are fine; both
+are discovered. What is not fine is a directory that does both, because then nobody
+can tell where a new test belongs.
+
+- **New directory?** Colocate: `foo.ts` and `foo.test.ts` side by side.
+- **Existing directory?** Match whatever is already there.
+- Name a test after the file it covers: `foo.ts` -> `foo.test.ts`. A component whose
+  source is `Foo/index.tsx` takes `Foo/Foo.test.ts`.
+- When one source file needs several test files, add a facet:
+  `syncEngine.journal.test.ts`, `syncEngine.retention.test.ts`.
+- A test that covers an invariant rather than a file may be named for the invariant
+  (`rustTsContract.test.ts`, `visibilityParity.test.ts`). Keep these rare and obvious.
+
+Vitest discovers `src/**/*.test.ts` only. Two consequences worth knowing:
+
+- A test outside `src/` is **not** run by `pnpm test`. The e2e suite under `tests/e2e/`
+  is a separate WebdriverIO run with its own config.
+- Only `.test.ts` is collected — not `.test.tsx`. Keep test files as `.ts` and import
+  the component under test, rather than renaming the test to `.tsx`.
+
+Import the module under test with a **relative** path (`../foo`, `./foo`) and pull
+anything cross-module through the `@src/` alias. Most test files use both, and that
+is the intended split — not drift.
+
+`describe.only` / `it.only` are a **lint error** in test files. A focused test makes
+every other test in its file silently not run while the suite still exits 0, which is
+indistinguishable from passing. `.skip` and `.todo` are allowed: those show up in the
+reporter's skipped count, so they are visible rather than invisible.
+
+On the Rust side, unit tests are inline `#[cfg(test)] mod tests` in the source file.
+Large modules may extract them to a `tests/` subdirectory or a sibling `tests.rs`.
+Cross-cutting integration tests live in a crate's top-level `tests/`. `pnpm run cargo:test`
+runs the whole workspace, including those integration targets.
 
 ## Project map
 

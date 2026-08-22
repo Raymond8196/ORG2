@@ -39,25 +39,25 @@ session-comments wire.
 ## Cloud (migration 0024_conversation_events.sql)
 
 - Table `cloud_conversation_events(id, org_id, root_session_id,
-  author_user_id, turn_id, seq, event jsonb, created_at)`.
+author_user_id, turn_id, seq, event jsonb, created_at)`.
   - `seq` server-assigned per conversation under
     `pg_advisory_xact_lock(hash(org_id, root_session_id))` (0015 pattern).
   - Event cap 64KB each, ≤200 events per push call; oversized payloads are
     truncated client-side before push with a marker.
   - No FK to cloud_sessions: the plane outlives the root row.
 - Counters table `cloud_conversations(org_id, root_session_id, event_count,
-  prompt_count, last_event_at)` maintained under the same lock — feeds
-  listing badges without count(*) scans.
+prompt_count, last_event_at)` maintained under the same lock — feeds
+  listing badges without count(\*) scans.
 - RPCs (definer, RPC-only posture, org-membership asserted; visibility
   honors the root session's access ladder WHILE the row exists, falls back
   to org-wide once it ages out; read-time retention on event created_at —
   soft, Slack model):
   - `cloud_push_conversation_events(p_org_id, p_root_session_id, p_turn_id,
-    p_events jsonb[])` → `{firstSeq, lastSeq}`; batch-append so live
+p_events jsonb[])` → `{firstSeq, lastSeq}`; batch-append so live
     streaming of a running turn is a client cadence choice, not a schema
     change.
   - `cloud_list_conversation_events(p_org_id, p_root_session_id,
-    p_after_seq, p_limit)` → ordered rows + authors.
+p_after_seq, p_limit)` → ordered rows + authors.
 - Signal: new kind `conversationEvents` via `nudge_org_signal` (dedicated
   trigger fn, 0015 precedent) + client presence-channel broadcast
   (comments-bus pattern) for sub-second delivery.
