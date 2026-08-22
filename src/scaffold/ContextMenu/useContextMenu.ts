@@ -316,7 +316,7 @@ export function useContextMenu(
       onSelectRef.current?.(type, value, displayName);
       onCloseRef.current?.();
     },
-    [secondLayer, performSearch]
+    [secondLayer, performSearch] // eslint-disable-line react-hooks/exhaustive-deps
   );
 
   // Go back — from drilled project to project list, or from project list to main menu

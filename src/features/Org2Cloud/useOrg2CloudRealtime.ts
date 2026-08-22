@@ -463,6 +463,7 @@ export function useOrg2CloudRealtime(): void {
       connectionTeardownAtRef.current = Date.now();
     };
     // authRef (not auth) on purpose — see the ref comment above.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, endpointUrl, activeRealtimeOrgId]);
 
   // --- Nudge the socket to re-resolve its token as soon as the atom
