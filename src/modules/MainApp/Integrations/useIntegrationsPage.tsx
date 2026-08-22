@@ -122,7 +122,6 @@ export function useIntegrationsPage() {
     [extensions, navigate]
   );
 
-  // eslint-disable-next-line react-hooks/preserve-manual-memoization -- intentional: deps include hook objects whose methods are called
   const handleCategoryChange = useCallback(
     (cat: IntegrationCategory) => {
       if (cat !== category) {
@@ -156,7 +155,6 @@ export function useIntegrationsPage() {
     [accountsHook]
   );
 
-  // eslint-disable-next-line react-hooks/preserve-manual-memoization -- intentional: deps include hook objects whose methods are called
   const handleAddAction = useCallback(
     (action: AddAction) => {
       switch (action) {

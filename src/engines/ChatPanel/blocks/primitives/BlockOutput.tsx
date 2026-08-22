@@ -338,7 +338,6 @@ const BlockOutput: React.FC<BlockOutputProps> = memo(
           ) : highlightLang && highlightedHtml ? (
             <div
               className={`${preClassesShared} [&_pre.shiki]:!m-0 [&_pre.shiki]:!bg-transparent [&_pre.shiki]:!p-0 [&_pre.shiki]:!shadow-none`}
-              // eslint-disable-next-line react/no-danger
               dangerouslySetInnerHTML={{ __html: highlightedHtml }}
             />
           ) : (
