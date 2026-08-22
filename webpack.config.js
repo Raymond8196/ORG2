@@ -35,6 +35,15 @@ module.exports = (env, argv) => {
     (process.env.ORGII_RETRY_MAIN_SCRIPT_LOAD === "true" ||
       (process.env.ORGII_RETRY_MAIN_SCRIPT_LOAD !== "false" &&
         process.platform === "linux"));
+  // WebKitGTK (Linux dev) cannot load App as a runtime dynamic-import chunk
+  // (see commit 291f95be6), so Linux keeps App inlined into main.js via
+  // `webpackMode: "eager"` in src/index.tsx. Every other platform loads App
+  // as a normal async chunk so an edit does not re-render a 31 MB entry.
+  const eagerDevApp =
+    !isProduction &&
+    (process.env.ORGII_DEV_EAGER_APP === "true" ||
+      (process.env.ORGII_DEV_EAGER_APP !== "false" &&
+        process.platform === "linux"));
 
   // FAST_PROD=true: use esbuild for transpilation + minification in production.
   // Saves ~30-40s vs the SWC+Terser path. Trades some dead-code elimination
@@ -525,7 +534,28 @@ module.exports = (env, argv) => {
             runtimeChunk: "single",
           }
         : {
-            splitChunks: false,
+            // Dev still needs chunk de-duplication. With 275+ dynamic-import
+            // boundaries and no splitChunks, every shared module (CodeMirror,
+            // xterm, shiki, ...) was copied into each async chunk that used it:
+            // 9k distinct modules became 43k emitted module instances (4.8x),
+            // 305 MB JS + 258 MB maps in the dev server's memory FS, and each
+            // HMR edit to a shared module re-rendered every copy. This group
+            // hoists any module used by >= 2 chunks into a shared chunk. No
+            // name() functions / regex cache groups on purpose (cheap to run).
+            splitChunks: {
+              chunks: "async",
+              minSize: 0,
+              minChunks: 2,
+              cacheGroups: {
+                default: false,
+                defaultVendors: false,
+                shared: {
+                  minChunks: 2,
+                  reuseExistingChunk: true,
+                  priority: 10,
+                },
+              },
+            },
             runtimeChunk: false,
           }),
       moduleIds: isProduction ? "deterministic" : "named",
@@ -564,6 +594,9 @@ module.exports = (env, argv) => {
         }),
       new webpack.DefinePlugin({
         "process.env.NODE_ENV": JSON.stringify(argv.mode),
+        // Inline-compared in src/index.tsx so webpack constant-folds the
+        // `webpackMode: "eager"` App import away on platforms that don't need it.
+        "process.env.ORGII_DEV_EAGER_APP": JSON.stringify(String(eagerDevApp)),
         // Local Rust IDE-server port, baked into the bundle so a second app
         // instance (dual-instance collab testing) talks to its own backend.
         // Must match the ORGII_IDE_SERVER_PORT the Rust side is launched with.
@@ -645,15 +678,21 @@ module.exports = (env, argv) => {
       // Only show minimal info in dev mode
       preset: isProduction ? "normal" : "minimal",
     },
-    // App is bundled into main.js via `webpackMode: "eager"` in dev
-    // (see src/index.tsx) so it is not emitted as a separate runtime chunk.
-    // With eval-cheap-module-source-map, that inlines every module's source
-    // into main.js, swelling it past 80MB — too large for some WebViews to
-    // load. So dev writes source maps to separate lazily-loaded .map files
-    // (`cheap-source-map`), keeping the executable bundle small while still
-    // giving line-level debuggability. Cost vs eval mode: incremental rebuilds
-    // are marginally slower (a .map file is written each time). Light dev
-    // disables source maps entirely to reduce renderer and compiler memory.
-    devtool: useDevSourceMaps ? "cheap-source-map" : false,
+    // Linux (eagerDevApp): App is bundled into main.js via `webpackMode:
+    // "eager"` (see src/index.tsx). With eval-cheap-module-source-map that
+    // inlines every module's source into main.js, swelling it past 80MB — too
+    // large for WebKitGTK to load. So Linux dev writes source maps to separate
+    // lazily-loaded .map files (`cheap-source-map`).
+    //
+    // Everywhere else: `eval-cheap-module-source-map` — webpack's cheapest
+    // dev devtool. No separate .map assets are generated or held in the dev
+    // server's memory FS, and rebuilds only re-eval the changed modules
+    // instead of re-mapping whole chunks. Light dev disables source maps
+    // entirely to reduce renderer and compiler memory.
+    devtool: useDevSourceMaps
+      ? eagerDevApp
+        ? "cheap-source-map"
+        : "eval-cheap-module-source-map"
+      : false,
   };
 };

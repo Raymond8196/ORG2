@@ -184,23 +184,25 @@ async function initializeApp() {
     // A focus event retries synchronization after React mounts.
     log.warn("[Init] Shared auth storage unavailable:", error);
   }
-  // In dev, bundle App into main.js (webpackMode: "eager") instead of emitting
-  // it as a separate runtime chunk. App is the aggregate entry and pulls in
-  // most of the app; with eval-cheap-module-source-map that chunk balloons to
-  // ~77MB and WebKitGTK fails the dynamic import → "Initialization Failed".
-  // eager keeps the Promise-returning import() semantics (so the await below
-  // still defers App module-tree evaluation until after the runtime-identity
-  // config above has run) without emitting a loadable chunk. Production keeps
-  // the normal dynamic import so App (and every vendor only App needs) lands
-  // in async chunks instead of the entry chunk.
+  // On Linux dev (ORGII_DEV_EAGER_APP, set by webpack.config.js), bundle App
+  // into main.js (webpackMode: "eager") instead of emitting it as a separate
+  // runtime chunk. App is the aggregate entry and pulls in most of the app;
+  // as a runtime dynamic-import chunk WebKitGTK fails to load it →
+  // "Initialization Failed". eager keeps the Promise-returning import()
+  // semantics (so the await below still defers App module-tree evaluation
+  // until after the runtime-identity config above has run) without emitting
+  // a loadable chunk. Every other platform — dev and production — keeps the
+  // normal dynamic import so App (and every vendor only App needs) lands in
+  // async chunks instead of the entry chunk, and a dev edit does not
+  // re-render a 31 MB main.js.
   //
-  // The condition MUST be the inline `process.env.NODE_ENV` comparison, not
-  // the `isDev` const: webpack only constant-folds a DefinePlugin expression
-  // it can evaluate at the branch itself. With a plain identifier it walks
-  // both arms, the "eager" mode wins, and production ships App inlined into
-  // main.js (~4 MB of extra synchronous startup JS).
+  // The condition MUST be the inline `process.env.ORGII_DEV_EAGER_APP`
+  // comparison, not a const: webpack only constant-folds a DefinePlugin
+  // expression it can evaluate at the branch itself. With a plain identifier
+  // it walks both arms, the "eager" mode wins, and production ships App
+  // inlined into main.js (~4 MB of extra synchronous startup JS).
   const appModulePromise =
-    process.env.NODE_ENV === "development"
+    process.env.ORGII_DEV_EAGER_APP === "true"
       ? import(/* webpackMode: "eager" */ "@src/App")
       : import("@src/App");
 
