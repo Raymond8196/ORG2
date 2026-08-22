@@ -149,7 +149,11 @@ export const WorkItemThreadSection: React.FC<WorkItemThreadSectionProps> = ({
     >
       <div className={WORK_ITEM_THREAD_TOKENS.cardHeader}>
         <div className="flex min-w-0 items-center gap-2">
-          {icon}
+          {icon ? (
+            <span className={WORK_ITEM_THREAD_TOKENS.leadingIconSlot}>
+              {icon}
+            </span>
+          ) : null}
           <span id={titleId} className="text-[13px] font-semibold text-text-1">
             {title}
           </span>
