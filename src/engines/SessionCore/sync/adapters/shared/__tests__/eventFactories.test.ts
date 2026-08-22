@@ -247,12 +247,26 @@ describe("makeToolResultEvent", () => {
     });
   });
 
-  it("falls back to a generic function name but never to a generic id", () => {
+  it("falls back to a generic function name", () => {
     const event = makeToolResultEvent(SESSION_ID, undefined, "call-7", "");
 
     expect(event.functionName).toBe("tool_call");
     expect(event.id).toBe("tool-result-call-7");
     expect(event.callId).toBe("call-7");
+  });
+
+  it("never substitutes a wall-clock id for an empty tool call id", () => {
+    // The invariant the factory's JSDoc names: a `toolCallId || Date.now()`
+    // fallback pairs with no tool_call in `merge_events` and leaks a zombie
+    // row. The previous version of this test only passed "call-7" — a
+    // non-empty id — so the fallback branch it claimed to guard never ran.
+    const event = makeToolResultEvent(SESSION_ID, "read_file", "", "output");
+
+    expect(event.id).toBe("tool-result-");
+    expect(event.chunk_id).toBe("tool-result-");
+    expect(event.callId).toBe("");
+    // A synthesized id would be a timestamp, not the bare prefix.
+    expect(event.id).not.toMatch(/\d/);
   });
 });
 

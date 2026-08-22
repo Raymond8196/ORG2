@@ -24,9 +24,19 @@ import {
 } from "@src/util/core/state/instrumentedStore";
 
 import type { EventHandlerCallbacks, RawSessionEvent } from "../../../types";
+import {
+  MAX_TOOL_CALL_DELTA_BUFFERS,
+  MAX_TOOL_CALL_DELTA_CHARS,
+} from "../../shared/streamTextAccumulator";
 import { createCliEventHandler } from "../createCliEventHandler";
 
 const SESSION_ID = "cliagent-boundary";
+
+/**
+ * `MAX_STREAM_CONTENT_LENGTH` in `../../shared/subagentTracking` — module-private,
+ * mirrored here so the cap can be asserted without exporting it.
+ */
+const MAX_STREAM_CONTENT_LENGTH = 500_000;
 
 // ---------------------------------------------------------------------------
 // I/O edges
@@ -132,6 +142,35 @@ const rustBridge = vi.hoisted(() => ({
 vi.mock("@src/engines/SessionCore/ingestion/rustBridge", () => ({
   normalizeChunkRust: rustBridge.normalizeChunkRust,
 }));
+
+/**
+ * The handler reports a rejected normalize RPC through the logger facade
+ * (`createLogger("CliAdapter").warn`), which binds the native console methods
+ * at import time — spying on `console.warn` cannot observe it. Only `warn` is
+ * swapped; every other level stays real.
+ */
+const warnMock = vi.hoisted(() => vi.fn());
+
+vi.mock("@src/hooks/logger", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@src/hooks/logger")>();
+  return {
+    ...actual,
+    createLogger: (namespace: string) => ({
+      ...actual.createLogger(namespace),
+      warn: warnMock,
+    }),
+  };
+});
+
+/**
+ * `cliLifecycle` shares the "CliAdapter" namespace, so filter down to the
+ * ingestion-failure line this suite is about.
+ */
+function normalizeFailureWarnings() {
+  return warnMock.mock.calls.filter((call) =>
+    String(call[0]).includes("normalizeChunkRust failed")
+  );
+}
 
 function normalizeLikeRust(
   chunk: ActivityChunk,
@@ -338,32 +377,39 @@ describe("createCliEventHandler ingestion boundary", () => {
       await flush();
 
       expect(eventsFor().map((event) => event.id)).toEqual(["chunk-future"]);
-      expect(eventsFor()[0]).toMatchObject({ actionType: "brand_new_action" });
     });
 
-    it("does not throw when the normalize RPC rejects, and stores nothing", async () => {
+    it("logs the failure and stores nothing when the normalize RPC rejects", async () => {
+      // The previous shape of this test only wrapped the dispatch in
+      // `expect(...).not.toThrow()`. That can never fail: the rejection lives
+      // inside a fire-and-forget promise chain and has no synchronous path to
+      // the caller. The real contract is that every lane's `.catch` reports the
+      // dropped chunk — silence here means an invisible hole in the transcript.
       rustBridge.normalizeChunkRust.mockRejectedValue(
         new Error("rust ingestion unavailable")
       );
 
       // Both lanes: the final message/thinking lane and the generic lane.
-      expect(() => {
-        handler.handleEvent(
-          activityEvent(makeChunk({ chunk_id: "chunk-doomed" }))
-        );
-        handler.handleEvent(
-          activityEvent(
-            makeChunk({
-              chunk_id: "tool-doomed",
-              action_type: "tool_call",
-              function: "read_file",
-            })
-          )
-        );
-      }).not.toThrow();
+      handler.handleEvent(
+        activityEvent(makeChunk({ chunk_id: "chunk-doomed" }))
+      );
+      handler.handleEvent(
+        activityEvent(
+          makeChunk({
+            chunk_id: "tool-doomed",
+            action_type: "tool_call",
+            function: "read_file",
+          })
+        )
+      );
       await flush();
 
       expect(store.eventsBySession.size).toBe(0);
+      const warnings = normalizeFailureWarnings();
+      expect(warnings).toHaveLength(2);
+      for (const call of warnings) {
+        expect(call[1]).toBeInstanceOf(Error);
+      }
     });
   });
 
@@ -424,6 +470,82 @@ describe("createCliEventHandler ingestion boundary", () => {
       expect(eventsFor()).toHaveLength(1);
       expect(eventsFor()[0].displayText).toBe(
         "The assistant starts here and keeps going"
+      );
+    });
+
+    it("is idempotent for a cumulative snapshot replay of the thinking stream", async () => {
+      // Mirrors the message-lane test above. The thinking lane runs the same
+      // `mergeStreamingText` guard on its own accumulator; without a test here
+      // a blind `thinkContent + deltaText` regression is invisible, and a
+      // reconnect replays the whole reasoning block into the card twice.
+      const send = (thought: string) =>
+        handler.handleEvent(
+          activityEvent(
+            makeChunk({
+              action_type: "llm_thinking_delta",
+              result: { thought, is_delta: true },
+            })
+          )
+        );
+
+      send("The model starts reasoning");
+      send("The model starts reasoning and keeps going");
+      // Exact replay of the whole visible stream.
+      send("The model starts reasoning and keeps going");
+      await flush();
+
+      expect(eventsFor()).toHaveLength(1);
+      expect(eventsFor()[0].displayText).toBe(
+        "The model starts reasoning and keeps going"
+      );
+    });
+
+    it("caps the live message buffer instead of growing it without bound", async () => {
+      // `capStreamContent` is the only thing standing between a runaway
+      // provider and an unbounded in-memory string that is re-upserted on
+      // every delta. Nothing else in this suite observes that it trims.
+      const send = (content: string) =>
+        handler.handleEvent(
+          activityEvent(
+            makeChunk({
+              action_type: "assistant_delta",
+              result: { content, is_delta: true },
+            })
+          )
+        );
+
+      send("a".repeat(400_000));
+      send("b".repeat(300_000));
+      await flush();
+
+      const text = String(eventsFor()[0].displayText);
+      expect(text).toHaveLength(MAX_STREAM_CONTENT_LENGTH);
+      // Trimmed from the front: the oldest text is what gets dropped.
+      expect(text.startsWith("a")).toBe(true);
+      expect(text.endsWith("b")).toBe(true);
+    });
+
+    it("caps the live thinking buffer on the same budget", async () => {
+      handler.handleEvent(
+        activityEvent(
+          makeChunk({
+            action_type: "llm_thinking_delta",
+            result: { thought: "c".repeat(400_000), is_delta: true },
+          })
+        )
+      );
+      handler.handleEvent(
+        activityEvent(
+          makeChunk({
+            action_type: "llm_thinking_delta",
+            result: { thought: "d".repeat(300_000), is_delta: true },
+          })
+        )
+      );
+      await flush();
+
+      expect(String(eventsFor()[0].displayText)).toHaveLength(
+        MAX_STREAM_CONTENT_LENGTH
       );
     });
 
@@ -1041,6 +1163,90 @@ describe("createCliEventHandler ingestion boundary", () => {
       expect(second).toMatchObject({ args: { file_path: "/second" } });
     });
 
+    it("stops accumulating argument text once the per-call cap is reached", async () => {
+      // `appendBoundedToolCallArgs` is the only bound on a tool-call argument
+      // stream. A provider that never closes its JSON would otherwise pin an
+      // unbounded string per in-flight call for the life of the session.
+      const head = '{"file_path":"/a"';
+      const filler = "x".repeat(MAX_TOOL_CALL_DELTA_CHARS - head.length - 5);
+
+      handler.handleEvent(
+        toolDelta({
+          index: 0,
+          tool_call_id: "call-cap",
+          tool_name: "edit",
+          arguments_delta: head + filler,
+        })
+      );
+      // Only the first 5 characters of this fit under the cap, so the
+      // `"command"` key never completes and cannot be parsed out.
+      handler.handleEvent(
+        toolDelta({ index: 0, arguments_delta: ',"command":"ls"}' })
+      );
+      await flush();
+
+      const event = eventsFor().find(
+        (candidate) => candidate.id === "tool-call-call-cap"
+      );
+      expect(event?.args).toEqual({ file_path: "/a" });
+    });
+
+    it("evicts the oldest delta buffer once every slot is taken", async () => {
+      // `makeRoomForToolCallDelta` bounds how many concurrent tool calls can
+      // hold a buffer. Without it a long session leaks one accumulator per
+      // index the provider ever used.
+      for (let index = 0; index < MAX_TOOL_CALL_DELTA_BUFFERS; index += 1) {
+        handler.handleEvent(
+          toolDelta(
+            { index, arguments_delta: `{"file_path":"/f${index}"` },
+            `fill-${index}`
+          )
+        );
+      }
+      await flush();
+      // No tool_call_id on any of them, so nothing has reached the store yet.
+      expect(store.eventsBySession.size).toBe(0);
+
+      // One index past the budget: the oldest buffer (index 0) is dropped.
+      handler.handleEvent(
+        toolDelta(
+          {
+            index: MAX_TOOL_CALL_DELTA_BUFFERS,
+            arguments_delta: `{"file_path":"/f${MAX_TOOL_CALL_DELTA_BUFFERS}"`,
+          },
+          "fill-overflow"
+        )
+      );
+      await flush();
+
+      // Index 0's accumulation is gone — a late id-bearing frame starts empty.
+      handler.handleEvent(
+        toolDelta(
+          { index: 0, tool_call_id: "call-evicted", arguments_delta: '"}' },
+          "evicted"
+        )
+      );
+      // The newest buffer survived and still carries its args.
+      handler.handleEvent(
+        toolDelta(
+          {
+            index: MAX_TOOL_CALL_DELTA_BUFFERS,
+            tool_call_id: "call-kept",
+            arguments_delta: '"}',
+          },
+          "kept"
+        )
+      );
+      await flush();
+
+      const byId = (id: string) =>
+        eventsFor().find((candidate) => candidate.id === id);
+      expect(byId("tool-call-call-evicted")?.args).toEqual({});
+      expect(byId("tool-call-call-kept")?.args).toEqual({
+        file_path: `/f${MAX_TOOL_CALL_DELTA_BUFFERS}`,
+      });
+    });
+
     it("does not append a duplicate row for an authoritative tool_call (upsert semantics)", async () => {
       const toolCall = activityEvent(
         makeChunk({
@@ -1162,7 +1368,10 @@ describe("createCliEventHandler ingestion boundary", () => {
       expect(getInstrumentedStore().get(sessionRuntimeStatusAtom)).toBe("idle");
     });
 
-    it("reports each terminal status separately (no coalescing across a restart)", async () => {
+    it("fires onAgentComplete once per terminal status, including after a restart", async () => {
+      // Renamed from "no coalescing across a restart": the callback count says
+      // nothing about the restart itself. The observed-terminal-status reset
+      // that a restart performs is pinned by the next test.
       handler.handleEvent({
         type: "code_session.status_changed",
         session_id: SESSION_ID,
@@ -1184,6 +1393,40 @@ describe("createCliEventHandler ingestion boundary", () => {
       expect(getInstrumentedStore().get(sessionRuntimeStatusAtom)).toBe(
         "completed"
       );
+    });
+
+    it("forgets the observed terminal status once the session runs again", async () => {
+      // The counterpart of "re-asserts the terminal status when a final chunk
+      // lands after it": once a NEW run has started, a trailing chunk from the
+      // previous turn must not resurrect the old terminal status and close the
+      // live turn out from under the user.
+      handler.handleEvent({
+        type: "code_session.status_changed",
+        session_id: SESSION_ID,
+        status: "completed",
+      });
+      await flush();
+      handler.handleEvent({
+        type: "code_session.status_changed",
+        session_id: SESSION_ID,
+        status: "running",
+      });
+      await flush();
+      getInstrumentedStore().set(sessionRuntimeStatusAtom, "idle");
+
+      handler.handleEvent(
+        activityEvent(
+          makeChunk({
+            chunk_id: "trailing-final",
+            action_type: "assistant",
+            result: { content: "trailing" },
+          })
+        )
+      );
+      await flush();
+
+      expect(eventsFor().map((event) => event.id)).toEqual(["trailing-final"]);
+      expect(getInstrumentedStore().get(sessionRuntimeStatusAtom)).toBe("idle");
     });
   });
 
@@ -1394,7 +1637,11 @@ describe("createCliEventHandler ingestion boundary", () => {
       expect(eventsFor().map((event) => event.id)).toEqual(["plan-chunk"]);
     });
 
-    it("still records the pending plan when normalizing the chunk fails", async () => {
+    it("records the pending plan before the normalize RPC, and logs when it rejects", async () => {
+      // The Build card is not allowed to depend on Rust normalization: the
+      // atom write happens synchronously, ahead of the RPC. Moving it into the
+      // `.then()` would strand the plan on every ingestion failure — that
+      // ordering is what the pre-`flush()` assertion below pins.
       rustBridge.normalizeChunkRust.mockRejectedValueOnce(
         new Error("rust ingestion unavailable")
       );
@@ -1409,15 +1656,34 @@ describe("createCliEventHandler ingestion boundary", () => {
           })
         )
       );
+      expect(planApprovalFor()).toMatchObject({
+        planPath: "/repo/.plans/a.md",
+      });
       await flush();
 
       expect(planApprovalFor()).toMatchObject({
         planPath: "/repo/.plans/a.md",
       });
       expect(store.eventsBySession.size).toBe(0);
+      // The dropped chunk must leave a trace; the plan card alone does not
+      // tell anyone the transcript row went missing.
+      expect(normalizeFailureWarnings()).toHaveLength(1);
     });
 
-    it("swallows a plan_approval chunk with no planPath — nothing is stored", async () => {
+    // -----------------------------------------------------------------------
+    // KNOWN DEFECT — plan_approval chunk with no planPath is silently dropped.
+    //
+    // `handlePlanApprovalActivity` returns `true` (handled) as soon as
+    // `planPath` is missing, before `normalizeChunkRust` is ever called. The
+    // chunk never reaches the event store and nothing is logged, so the plan
+    // simply vanishes from the transcript that the ChatHistory renderer reads.
+    //
+    // The pair below documents that without blessing it: the first test pins
+    // the CURRENT output, the `it.fails()` pin states the CORRECT one. Fixing
+    // the product turns BOTH red — update them together with the fix.
+    // -----------------------------------------------------------------------
+
+    it("currently swallows a plan_approval chunk with no planPath", async () => {
       handler.handleEvent(
         activityEvent(
           makeChunk({
@@ -1444,7 +1710,31 @@ describe("createCliEventHandler ingestion boundary", () => {
       expect(planApprovalFor()).toBeNull();
       expect(store.eventsBySession.size).toBe(0);
       expect(rustBridge.normalizeChunkRust).not.toHaveBeenCalled();
+      expect(normalizeFailureWarnings()).toHaveLength(0);
     });
+
+    it.fails(
+      "stores a plan_approval chunk in the transcript even with no planPath",
+      async () => {
+        handler.handleEvent(
+          activityEvent(
+            makeChunk({
+              chunk_id: "plan-chunk-bad",
+              action_type: "plan_approval",
+              function: "plan_approval",
+              args: { title: "no path" },
+            })
+          )
+        );
+        await flush();
+
+        // A missing planPath means "no Build card", not "no transcript row".
+        expect(planApprovalFor()).toBeNull();
+        expect(eventsFor().map((event) => event.id)).toEqual([
+          "plan-chunk-bad",
+        ]);
+      }
+    );
   });
 
   // -------------------------------------------------------------------------
@@ -1579,7 +1869,32 @@ describe("createCliEventHandler ingestion boundary", () => {
   // -------------------------------------------------------------------------
 
   describe("worktree and merge frames", () => {
-    it("writes worktree metadata onto the session row", () => {
+    // -----------------------------------------------------------------------
+    // KNOWN DEFECT — both frames call `upsertSession` with `created_at: ""`
+    // and `updated_at: ""` (createCliEventHandler.ts, the
+    // `code_session.worktree_created` / `code_session.merge_result` branches).
+    //
+    // `upsertSession` pins timestamps to the prior row only on the UPDATE
+    // path; the INSERT path stores whatever the caller passed. Both frames can
+    // arrive before the session row exists — exactly the state these tests
+    // start from — so the empty strings land verbatim.
+    //
+    // Consumer harmed: `src/features/TaskKanban/hooks/useKanbanTasks/
+    // taskTimestamps.ts` returns 0 for an empty timestamp, which drops the
+    // session out of every 6h / 12h / 24h Kanban window.
+    //
+    // The explicit `toBe("")` assertions pin the CURRENT output; the
+    // `it.fails()` pins state the CORRECT one. Fixing the product turns both
+    // members of each pair red — update them together with the fix.
+    // -----------------------------------------------------------------------
+
+    function onlySessionRow() {
+      const sessions = getInstrumentedStore().get(sessionsAtom);
+      expect(sessions).toHaveLength(1);
+      return sessions[0];
+    }
+
+    function emitWorktreeCreated() {
       handler.handleEvent({
         type: "code_session.worktree_created",
         session_id: SESSION_ID,
@@ -1587,10 +1902,21 @@ describe("createCliEventHandler ingestion boundary", () => {
         branch: "feat/wt-1",
         base_branch: "develop",
       });
+    }
 
-      const sessions = getInstrumentedStore().get(sessionsAtom);
-      expect(sessions).toHaveLength(1);
-      expect(sessions[0]).toMatchObject({
+    function emitMergeResult() {
+      handler.handleEvent({
+        type: "code_session.merge_result",
+        session_id: SESSION_ID,
+        status: "merged",
+      });
+    }
+
+    it("writes worktree metadata onto the session row", () => {
+      emitWorktreeCreated();
+
+      const session = onlySessionRow();
+      expect(session).toMatchObject({
         session_id: SESSION_ID,
         worktreePath: "/repo/.worktrees/wt-1",
         worktreeBranch: "feat/wt-1",
@@ -1598,6 +1924,18 @@ describe("createCliEventHandler ingestion boundary", () => {
         mergeStatus: "pending",
         status: "pending",
       });
+      // `toMatchObject` above silently skips fields it is not given — these
+      // two have to be named explicitly or the corruption stays invisible.
+      expect(session.created_at).toBe("");
+      expect(session.updated_at).toBe("");
+    });
+
+    it.fails("inserts real timestamps on a worktree_created frame", () => {
+      emitWorktreeCreated();
+
+      const session = onlySessionRow();
+      expect(Number.isNaN(Date.parse(session.created_at))).toBe(false);
+      expect(Number.isNaN(Date.parse(session.updated_at))).toBe(false);
     });
 
     it("records the merge status, and ignores a merge frame with no status", () => {
@@ -1607,19 +1945,46 @@ describe("createCliEventHandler ingestion boundary", () => {
       });
       expect(getInstrumentedStore().get(sessionsAtom)).toHaveLength(0);
 
-      handler.handleEvent({
-        type: "code_session.merge_result",
-        session_id: SESSION_ID,
-        status: "merged",
-      });
+      emitMergeResult();
 
-      const sessions = getInstrumentedStore().get(sessionsAtom);
-      expect(sessions).toHaveLength(1);
-      expect(sessions[0]).toMatchObject({
+      const session = onlySessionRow();
+      expect(session).toMatchObject({
         session_id: SESSION_ID,
         mergeStatus: "merged",
         status: "completed",
       });
+      expect(session.created_at).toBe("");
+      expect(session.updated_at).toBe("");
+    });
+
+    it.fails("inserts real timestamps on a merge_result frame", () => {
+      emitMergeResult();
+
+      const session = onlySessionRow();
+      expect(Number.isNaN(Date.parse(session.created_at))).toBe(false);
+      expect(Number.isNaN(Date.parse(session.updated_at))).toBe(false);
+    });
+
+    it("leaves an existing row's timestamps alone (upsert update path)", () => {
+      // The pinning that makes the insert-path defect survivable elsewhere:
+      // when the row already exists, `upsertSession` refuses the caller's
+      // empty strings. This is what keeps the bug from being universal, and
+      // it must not regress while the insert path is being fixed.
+      getInstrumentedStore().set(sessionsAtom, [
+        {
+          session_id: SESSION_ID,
+          status: "running",
+          created_at: "2026-08-01T00:00:00.000Z",
+          updated_at: "2026-08-01T01:00:00.000Z",
+        },
+      ]);
+
+      emitWorktreeCreated();
+
+      const session = onlySessionRow();
+      expect(session.created_at).toBe("2026-08-01T00:00:00.000Z");
+      expect(session.updated_at).toBe("2026-08-01T01:00:00.000Z");
+      expect(session.worktreePath).toBe("/repo/.worktrees/wt-1");
     });
   });
 

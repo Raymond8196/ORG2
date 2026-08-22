@@ -331,7 +331,10 @@ describe("reconcileInFlightHistory", () => {
     expect(recorded.runtimeStatus).toEqual([]);
   });
 
-  it("normalizes an unknown run status to idle instead of writing it verbatim", async () => {
+  it("narrows an unknown run status to idle before it reaches the runtime atom", async () => {
+    // Renamed from "…instead of writing it verbatim": this test only observes
+    // `setSessionRuntimeStatus`. The session-list write on the very next line
+    // of the product is a separate destination — see the pair below.
     const adapter = makeAdapter({
       history: [makeEvent("a")],
       postLoad: { runStatus: "quantum_superposition" },
@@ -347,6 +350,69 @@ describe("reconcileInFlightHistory", () => {
       IN_FLIGHT_HISTORY_RECONCILE_DELAYS_MS.length
     );
   });
+
+  // -------------------------------------------------------------------------
+  // KNOWN DEFECT — the narrowing covers only one of the two destinations.
+  //
+  // `sessionSyncReconcile.ts` calls
+  //   actions.setSessionRuntimeStatus(toCliSessionStatus(postResult.runStatus))
+  //   updateSessionStatus(sessionId, postResult.runStatus as SessionStatus)
+  // back to back. The second line launders the raw, unvalidated wire string
+  // through a cast straight into the session-list cache, so every consumer of
+  // `Session.status` (sidebar grouping, Kanban lanes, the terminal-status
+  // predicates) can see a value outside the SessionStatus union.
+  //
+  // The tests above cannot see it because they seed `sessionsAtom` with `[]`
+  // and `updateSessionStatus` only patches rows that already exist. The pair
+  // below seeds a row. Fixing the product turns both red — update together.
+  // -------------------------------------------------------------------------
+
+  function seedSessionRow() {
+    getInstrumentedStore().set(sessionsAtom, [
+      {
+        session_id: SESSION_ID,
+        status: "running",
+        created_at: "2026-08-01T00:00:00.000Z",
+        updated_at: "2026-08-01T00:00:00.000Z",
+      },
+    ]);
+  }
+
+  function sessionRowStatuses() {
+    return getInstrumentedStore()
+      .get(sessionsAtom)
+      .map((session) => session.status);
+  }
+
+  async function reconcileWithUnknownStatus() {
+    seedSessionRow();
+    const adapter = makeAdapter({
+      history: [makeEvent("a")],
+      postLoad: { runStatus: "quantum_superposition" },
+    });
+    reconcileInFlightHistory(
+      SESSION_ID,
+      adapter,
+      liveRefs(),
+      makeActions().actions
+    );
+    await settle();
+  }
+
+  it("currently writes the raw wire status into the session list cache", async () => {
+    await reconcileWithUnknownStatus();
+
+    expect(sessionRowStatuses()).toEqual(["quantum_superposition"]);
+  });
+
+  it.fails(
+    "narrows the run status before writing the session list cache too",
+    async () => {
+      await reconcileWithUnknownStatus();
+
+      expect(sessionRowStatuses()).toEqual(["idle"]);
+    }
+  );
 
   it("propagates context usage and the run error from postLoad", async () => {
     const usage: ContextUsageSnapshot = {
