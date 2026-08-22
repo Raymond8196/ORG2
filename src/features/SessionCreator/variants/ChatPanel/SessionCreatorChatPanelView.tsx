@@ -1,4 +1,10 @@
-import { Airplay, CircleArrowUp, Network, RefreshCw } from "lucide-react";
+import {
+  Airplay,
+  BellOff,
+  CircleArrowUp,
+  Network,
+  RefreshCw,
+} from "lucide-react";
 import React, { Children, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -288,12 +294,16 @@ const SessionCreatorChatPanelView: React.FC<
               <Button
                 variant="tertiary"
                 size="small"
+                icon={<BellOff size={14} strokeWidth={1.8} />}
+                iconOnly
                 disabled={!cliVersionAlert.latestVersion}
+                title={t("creator.cliVersionOutdated.muteUntilNextVersion")}
+                aria-label={t(
+                  "creator.cliVersionOutdated.muteUntilNextVersion"
+                )}
                 data-testid="session-creator-cli-version-mute"
                 onClick={cliVersionAlert.onMuteUntilNextVersion}
-              >
-                {t("creator.cliVersionOutdated.muteUntilNextVersion")}
-              </Button>
+              />
               <Button
                 variant="tertiary"
                 size="small"
