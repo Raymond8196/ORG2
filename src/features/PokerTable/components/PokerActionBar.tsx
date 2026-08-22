@@ -3,7 +3,7 @@
  * amount) and the Fold / Call / Bet buttons when it is the hero's turn;
  * otherwise a status line, the rebuy prompt, or "deal next hand".
  */
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
@@ -33,6 +33,23 @@ const clamp = (value: number, min: number, max: number): number =>
 const BAR_CLASS =
   "flex h-[92px] flex-col items-center justify-center gap-2 px-4";
 
+interface BetAmountState {
+  decisionKey: string;
+  amount: number;
+}
+
+export function advanceBetAmountState(
+  previous: BetAmountState,
+  decisionKey: string,
+  minimum: number | undefined
+): BetAmountState {
+  if (previous.decisionKey === decisionKey) return previous;
+  return {
+    decisionKey,
+    amount: minimum ?? previous.amount,
+  };
+}
+
 const PokerActionBar: React.FC<PokerActionBarProps> = ({
   snapshot,
   heroSeat,
@@ -57,13 +74,24 @@ const PokerActionBar: React.FC<PokerActionBarProps> = ({
       : null;
   const step = Math.max(1, Math.round(snapshot.blinds.bigBlind / 10));
 
-  const [amount, setAmount] = useState<number>(range?.min ?? 0);
   // New decision → reset the sizing to the minimum legal bet.
   const decisionKey = `${snapshot.handNumber}:${snapshot.street}:${range?.min}:${range?.max}:${snapshot.potTotal}`;
-  useEffect(() => {
-    if (range) setAmount(range.min);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [decisionKey]);
+  const [amountState, setAmountState] = useState<BetAmountState>(() => ({
+    decisionKey,
+    amount: range?.min ?? 0,
+  }));
+  const nextAmountState = advanceBetAmountState(
+    amountState,
+    decisionKey,
+    range?.min
+  );
+  if (nextAmountState !== amountState) {
+    setAmountState(nextAmountState);
+  }
+  const amount = nextAmountState.amount;
+  const setAmount = (nextAmount: number) => {
+    setAmountState((current) => ({ ...current, amount: nextAmount }));
+  };
 
   const presetAmount = (fraction: number): number => {
     if (!range || !hero) return 0;
@@ -74,12 +102,8 @@ const PokerActionBar: React.FC<PokerActionBarProps> = ({
     return clamp(Math.round(target / step) * step, range.min, range.max);
   };
 
-  const activePreset = useMemo(
-    () =>
-      POT_PRESETS.find((fraction) => presetAmount(fraction) === amount) ?? null,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [amount, decisionKey]
-  );
+  const activePreset =
+    POT_PRESETS.find((fraction) => presetAmount(fraction) === amount) ?? null;
 
   const isAllIn = range !== null && amount >= range.max;
 

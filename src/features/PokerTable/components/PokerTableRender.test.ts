@@ -11,7 +11,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PokerTableController } from "../PokerTableController";
 import { createSeededRng } from "../engine/cards";
 import type { PokerPlayer } from "../engine/types";
-import PokerActionBar from "./PokerActionBar";
+import PokerActionBar, { advanceBetAmountState } from "./PokerActionBar";
 import PokerFelt from "./PokerFelt";
 import PokerHandHistory from "./PokerHandHistory";
 import PokerTableHeader from "./PokerTableHeader";
@@ -148,6 +148,16 @@ describe("PokerTable rendering", () => {
       expect(markup).toMatch(/pokerTable\.actions\.(bet|raise|allIn)\(/);
     }
     controller.dispose();
+  });
+
+  it("keeps a manual bet within one decision and resets for the next decision", () => {
+    const manual = { decisionKey: "hand-1:flop", amount: 3_000 };
+
+    expect(advanceBetAmountState(manual, "hand-1:flop", 2_000)).toBe(manual);
+    expect(advanceBetAmountState(manual, "hand-1:turn", 2_000)).toEqual({
+      decisionKey: "hand-1:turn",
+      amount: 2_000,
+    });
   });
 
   it("shows the waiting line when a bot is to act and the result line after a hand", () => {

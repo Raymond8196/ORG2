@@ -28,6 +28,7 @@ import {
   filterWorkspaceWorkItemsByStatus,
   getWorkItemStatus,
   getWorkspaceStatusFilterKeysForWorkItems,
+  normalizeWorkspaceStatusFilter,
 } from "@src/modules/ProjectManager/WorkItems/workItemsViewModel";
 import {
   GITHUB_ISSUE_STATUS_OPTIONS,
@@ -125,19 +126,20 @@ export const ProjectWorkItemsTabContent: React.FC<
     () => getWorkspaceStatusFilterKeysForWorkItems(workItems),
     [workItems]
   );
-  useEffect(() => {
-    if (!statusFilterKeys.includes(statusFilter)) {
-      // Pre-existing reset behavior, unchanged by the file split. The analyzer
-      // only surfaces this now that the component is small enough to fully
-      // analyze; fixing it would be an out-of-scope behavior change.
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setStatusFilter("all");
-    }
-  }, [statusFilter, statusFilterKeys]);
+  const effectiveStatusFilter = normalizeWorkspaceStatusFilter(
+    statusFilter,
+    statusFilterKeys
+  );
+  if (effectiveStatusFilter !== statusFilter) {
+    // Normalize the selection in the same render that observes a changed
+    // result set. This prevents one committed frame with an impossible filter
+    // and avoids a post-commit effect cascade.
+    setStatusFilter(effectiveStatusFilter);
+  }
 
   const filteredWorkItems = useMemo(
-    () => filterWorkspaceWorkItemsByStatus(workItems, statusFilter),
-    [statusFilter, workItems]
+    () => filterWorkspaceWorkItemsByStatus(workItems, effectiveStatusFilter),
+    [effectiveStatusFilter, workItems]
   );
 
   const visibleWorkItems = useMemo(
@@ -145,7 +147,7 @@ export const ProjectWorkItemsTabContent: React.FC<
     [filteredWorkItems, searchQuery]
   );
   const completedStatusSelected =
-    statusFilter === "done" || statusFilter === "closed";
+    effectiveStatusFilter === "done" || effectiveStatusFilter === "closed";
 
   const {
     kanbanTasks,
@@ -418,7 +420,7 @@ export const ProjectWorkItemsTabContent: React.FC<
     const filters: SettingsTableSelectFilter[] = [
       {
         key: "status",
-        value: statusFilter,
+        value: effectiveStatusFilter,
         defaultValue: "all",
         options: statusFilterKeys.map((key) => {
           const label = t(`workItems.statusFilters.${key}`);
@@ -460,7 +462,7 @@ export const ProjectWorkItemsTabContent: React.FC<
     allowExternalSources,
     setWorkspaceSourceMode,
     statusCounts,
-    statusFilter,
+    effectiveStatusFilter,
     statusFilterKeys,
     t,
     workspaceSourceMode,
@@ -473,7 +475,7 @@ export const ProjectWorkItemsTabContent: React.FC<
         {activeViewTab === "Kanban" ? (
           <>
             <WorkItemsStatusFilterSelect
-              value={statusFilter}
+              value={effectiveStatusFilter}
               onChange={setStatusFilter}
               statusCounts={statusCounts}
               filterKeys={statusFilterKeys}
@@ -499,7 +501,7 @@ export const ProjectWorkItemsTabContent: React.FC<
       orgSurfaceControls,
       sourceModeSwitch,
       statusCounts,
-      statusFilter,
+      effectiveStatusFilter,
       statusFilterKeys,
       workItemsViewSwitch,
     ]
