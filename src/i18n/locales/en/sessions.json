@@ -2223,6 +2223,7 @@
     },
     "cliVersionOutdated": {
       "title": "{{cli}} needs an upgrade ({{installed}} > {{latest}})",
+      "muteUntilNextVersion": "No alert until next version",
       "refresh": "Recheck {{cli}} CLI version",
       "unknownVersion": "unknown"
     },

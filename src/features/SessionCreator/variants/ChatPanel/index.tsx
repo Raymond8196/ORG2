@@ -118,11 +118,11 @@ const SessionCreatorChatPanelContent: React.FC<
     selectedCliAgentSupportsGui,
     selectedCliVersion,
     isSelectedCliVersionRefreshing,
+    muteSelectedCliVersionAlertUntilNextVersion,
     refreshSelectedCliVersion,
     setAgentSelectionLaunchMode,
-    setDismissedCliVersionAlertKey,
     showCliVersionOutdatedAlert,
-    cliVersionOutdatedAlertKey,
+    snoozeSelectedCliVersionAlert,
   } = useCliAgentConfiguration({ cliAgentType, isCliMode });
 
   const {
@@ -417,9 +417,10 @@ const SessionCreatorChatPanelContent: React.FC<
                 selectedCliVersion?.installed_version ?? undefined,
               latestVersion: selectedCliVersion?.latest_version ?? undefined,
               refreshing: isSelectedCliVersionRefreshing,
+              onMuteUntilNextVersion:
+                muteSelectedCliVersionAlertUntilNextVersion,
               onRefresh: refreshSelectedCliVersion,
-              onClose: () =>
-                setDismissedCliVersionAlertKey(cliVersionOutdatedAlertKey),
+              onClose: snoozeSelectedCliVersionAlert,
             }
           : undefined
       }

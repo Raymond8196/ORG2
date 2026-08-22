@@ -51,6 +51,7 @@ interface CliVersionAlert {
   installedVersion: string | undefined;
   latestVersion: string | undefined;
   refreshing: boolean;
+  onMuteUntilNextVersion: () => void;
   onRefresh: () => void;
   onClose: () => void;
 }
@@ -283,23 +284,34 @@ const SessionCreatorChatPanelView: React.FC<
           onClose={cliVersionAlert.onClose}
           closeAriaLabel={t("common:actions.close")}
           action={
-            <Button
-              variant="tertiary"
-              size="small"
-              icon={<RefreshCw size={14} strokeWidth={1.8} />}
-              iconOnly
-              loading={cliVersionAlert.refreshing}
-              loadingSpinIcon
-              disabled={cliVersionAlert.refreshing}
-              title={t("creator.cliVersionOutdated.refresh", {
-                cli: cliVersionAlert.cliDisplayName,
-              })}
-              aria-label={t("creator.cliVersionOutdated.refresh", {
-                cli: cliVersionAlert.cliDisplayName,
-              })}
-              data-testid="session-creator-cli-version-refresh"
-              onClick={cliVersionAlert.onRefresh}
-            />
+            <div className="flex items-center gap-px">
+              <Button
+                variant="tertiary"
+                size="small"
+                disabled={!cliVersionAlert.latestVersion}
+                data-testid="session-creator-cli-version-mute"
+                onClick={cliVersionAlert.onMuteUntilNextVersion}
+              >
+                {t("creator.cliVersionOutdated.muteUntilNextVersion")}
+              </Button>
+              <Button
+                variant="tertiary"
+                size="small"
+                icon={<RefreshCw size={14} strokeWidth={1.8} />}
+                iconOnly
+                loading={cliVersionAlert.refreshing}
+                loadingSpinIcon
+                disabled={cliVersionAlert.refreshing}
+                title={t("creator.cliVersionOutdated.refresh", {
+                  cli: cliVersionAlert.cliDisplayName,
+                })}
+                aria-label={t("creator.cliVersionOutdated.refresh", {
+                  cli: cliVersionAlert.cliDisplayName,
+                })}
+                data-testid="session-creator-cli-version-refresh"
+                onClick={cliVersionAlert.onRefresh}
+              />
+            </div>
           }
           title={t("creator.cliVersionOutdated.title", {
             cli: cliVersionAlert.cliDisplayName,
