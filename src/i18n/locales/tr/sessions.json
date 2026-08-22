@@ -2089,6 +2089,10 @@
     "immutableInSession": "Anahtar kaynağı, Agent türü ve fiyat kademesi oturum başlangıcında sabittir. Değiştirmek için yeni bir oturum başlatın."
   },
   "creator": {
+    "repoChromePosition": {
+      "up": "Yukarı",
+      "down": "Aşağı"
+    },
     "createTarget": {
       "agentSession": "Agent oturumu",
       "manageAgents": "Agents / Skills yönet",

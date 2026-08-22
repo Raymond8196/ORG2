@@ -2142,6 +2142,10 @@
     "immutableInSession": "Źródło klucza, typ Agenta i poziom cenowy są ustalane na początku sesji. Aby je zmienić, rozpocznij nową sesję."
   },
   "creator": {
+    "repoChromePosition": {
+      "up": "Góra",
+      "down": "Dół"
+    },
     "createTarget": {
       "agentSession": "Sesja Agent",
       "manageAgents": "Zarządzaj Agents / Skills",

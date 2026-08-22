@@ -2104,6 +2104,10 @@
     "immutableInSession": "A origem da chave, o tipo de Agent e o nível de preço são fixados no início da sessão. Inicie uma nova sessão para alterá-los."
   },
   "creator": {
+    "repoChromePosition": {
+      "up": "Em cima",
+      "down": "Embaixo"
+    },
     "createTarget": {
       "agentSession": "Sessão de Agent",
       "manageAgents": "Gerenciar Agents / Skills",

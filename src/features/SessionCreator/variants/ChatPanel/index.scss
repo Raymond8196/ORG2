@@ -193,8 +193,6 @@
   .session-creator-chat-panel-fullscreen-repo-row {
     position: relative;
     z-index: 1;
-    margin-top: -6px;
-    border-radius: 0 0 12px 12px;
     background: var(--color-chat-container);
     box-shadow: none;
   }
@@ -203,5 +201,10 @@
     margin-top: 0;
     margin-bottom: -6px;
     border-radius: 12px 12px 0 0;
+  }
+
+  .session-creator-chat-panel-fullscreen-repo-row-below {
+    margin-top: -6px;
+    border-radius: 0 0 12px 12px;
   }
 }
