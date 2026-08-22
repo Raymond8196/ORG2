@@ -48,7 +48,6 @@ import {
 } from "@src/util/data/formatters/date";
 
 import { STATUS_I18N_KEYS } from "../AgentWorkflow/types";
-import TodoChecklist from "../TodoChecklist";
 import WorkItemContentStack from "../WorkItemContentStack";
 import WorkItemSubItems, { useWorkItemFamily } from "../WorkItemSubItems";
 import {
@@ -60,7 +59,6 @@ import CustomPropertiesSection from "./CustomPropertiesSection";
 import GitHubIssueComposer from "./GitHubIssueComposer";
 import HistoryTab from "./HistoryTab";
 import OutputTab from "./OutputTab";
-import ThreadTodoChecklist from "./ThreadTodoChecklist";
 import WorkItemHandoffNotice from "./WorkItemHandoffNotice";
 import WorkItemRunUsageSummary from "./WorkItemRunUsageSummary";
 import { normalizeLegacyEscapedMarkdown } from "./descriptionMarkdown";
@@ -399,7 +397,6 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
     timelineEntries,
     handleTitleChange,
     handleDescriptionChange,
-    handleTodosChange,
     handleCommentSubmit,
     handleResolveDiscussionThread,
     handleReopenDiscussionThread,
@@ -792,21 +789,6 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
     </TimelineStack>
   );
 
-  const todosSection = isThread ? (
-    <ThreadTodoChecklist
-      key={workItem.session_id}
-      todos={workItem.todos ?? []}
-      onChange={handleTodosChange}
-      disabled={!onUpdateWorkItem}
-    />
-  ) : (
-    <TodoChecklist
-      todos={workItem.todos ?? []}
-      onChange={handleTodosChange}
-      disabled={!onUpdateWorkItem}
-    />
-  );
-
   const subItemsSection = (
     <ScrollTrailTarget enabled={isThread} label={t("workItems.subItems.title")}>
       <WorkItemSubItems
@@ -980,9 +962,6 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
           <>
             {handoffNotice}
             {descriptionSection}
-            <ScrollTrailTarget label={t("workItems.todos.title")}>
-              {todosSection}
-            </ScrollTrailTarget>
             {customPropertiesSection}
             {subItemsSection}
             {threadLowerSection}
@@ -1030,7 +1009,6 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
             descriptionSection
           )
         }
-        todosContent={todosSection}
         lowerContent={
           <>
             {customPropertiesSection}

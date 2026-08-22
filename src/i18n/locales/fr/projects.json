@@ -427,14 +427,6 @@
         "handoff": "transfert"
       }
     },
-    "todos": {
-      "title": "To-Do",
-      "addItem": "Ajouter un élément",
-      "addFirst": "Ajouter une tâche",
-      "placeholder": "Tâche concise (max 120 car.)",
-      "done": "Fait",
-      "create": "Créer"
-    },
     "contextMenu": {
       "status": "Statut",
       "assignee": "Assigné",

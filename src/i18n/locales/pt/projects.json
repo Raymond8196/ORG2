@@ -427,14 +427,6 @@
         "handoff": "transferência"
       }
     },
-    "todos": {
-      "title": "Tarefas",
-      "addItem": "Adicionar item",
-      "addFirst": "Adicionar uma tarefa",
-      "placeholder": "Tarefa breve (máx. 120 caracteres)",
-      "done": "Concluído",
-      "create": "Criar"
-    },
     "contextMenu": {
       "status": "Status",
       "assignee": "Responsável",

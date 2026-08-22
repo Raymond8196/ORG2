@@ -443,14 +443,6 @@
         "handoff": "工作交接"
       }
     },
-    "todos": {
-      "title": "To-Do",
-      "addItem": "添加项目",
-      "addFirst": "添加待办事项",
-      "placeholder": "简短描述 (最多 120 字符)",
-      "done": "已完成",
-      "create": "创建"
-    },
     "contextMenu": {
       "status": "状态",
       "assignee": "负责人",

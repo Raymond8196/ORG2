@@ -427,14 +427,6 @@
         "handoff": "인계"
       }
     },
-    "todos": {
-      "title": "To-Do",
-      "addItem": "항목 추가",
-      "addFirst": "할 일 추가",
-      "placeholder": "간결하게 (최대 120자)",
-      "done": "완료",
-      "create": "만들기"
-    },
     "contextMenu": {
       "status": "상태",
       "assignee": "담당자",

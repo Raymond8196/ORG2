@@ -427,14 +427,6 @@
         "handoff": "工作交接"
       }
     },
-    "todos": {
-      "title": "To-Do",
-      "addItem": "添加專案",
-      "addFirst": "添加待辦事項",
-      "placeholder": "簡短描述 (最多 120 字符)",
-      "done": "已完成",
-      "create": "創建"
-    },
     "contextMenu": {
       "status": "狀態",
       "assignee": "負責人",
