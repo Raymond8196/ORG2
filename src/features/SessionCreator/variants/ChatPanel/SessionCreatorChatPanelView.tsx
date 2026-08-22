@@ -1,4 +1,4 @@
-import { Airplay, Network, RefreshCw } from "lucide-react";
+import { Airplay, CircleArrowUp, Network, RefreshCw } from "lucide-react";
 import React, { Children, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -279,6 +279,7 @@ const SessionCreatorChatPanelView: React.FC<
       <div className={`mx-auto w-full ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}>
         <InlineAlert
           type="warning"
+          icon={<CircleArrowUp size={14} strokeWidth={1.8} />}
           onClose={cliVersionAlert.onClose}
           closeAriaLabel={t("common:actions.close")}
           action={
@@ -302,9 +303,6 @@ const SessionCreatorChatPanelView: React.FC<
           }
           title={t("creator.cliVersionOutdated.title", {
             cli: cliVersionAlert.cliDisplayName,
-          })}
-        >
-          {t("creator.cliVersionOutdated.body", {
             installed:
               cliVersionAlert.installedVersion ??
               t("creator.cliVersionOutdated.unknownVersion"),
@@ -312,7 +310,7 @@ const SessionCreatorChatPanelView: React.FC<
               cliVersionAlert.latestVersion ??
               t("creator.cliVersionOutdated.unknownVersion"),
           })}
-        </InlineAlert>
+        />
       </div>
     ) : null;
   const agentHero = headerLayout !== "compact" && (
