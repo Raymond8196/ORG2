@@ -4,9 +4,10 @@
  * Row rendering components for unified and split diff views
  * Inspired by GitHub Desktop's diff rendering
  */
-import hljs from "highlight.js";
 import { ChevronDown, ChevronRight, Minus, Plus } from "lucide-react";
 import React, { useMemo } from "react";
+
+import { hljs } from "@src/util/language/hljsLight";
 
 import type { DiffRowProps, SplitDiffRowProps } from "./types";
 

@@ -4,7 +4,8 @@
  * Shared utility functions for diff computation and rendering
  */
 import { invoke } from "@tauri-apps/api/core";
-import hljs from "highlight.js";
+
+import { hljs } from "@src/util/language/hljsLight";
 
 import type { DiffLine } from "./types";
 
