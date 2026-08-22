@@ -83,6 +83,15 @@ Vitest discovers `src/**/*.test.ts` only. Two consequences worth knowing:
 - Only `.test.ts` is collected — not `.test.tsx`. Keep test files as `.ts` and import
   the component under test, rather than renaming the test to `.tsx`.
 
+Import the module under test with a **relative** path (`../foo`, `./foo`) and pull
+anything cross-module through the `@src/` alias. Most test files use both, and that
+is the intended split — not drift.
+
+`describe.only` / `it.only` are a **lint error** in test files. A focused test makes
+every other test in its file silently not run while the suite still exits 0, which is
+indistinguishable from passing. `.skip` and `.todo` are allowed: those show up in the
+reporter's skipped count, so they are visible rather than invisible.
+
 On the Rust side, unit tests are inline `#[cfg(test)] mod tests` in the source file.
 Large modules may extract them to a `tests/` subdirectory or a sibling `tests.rs`.
 Cross-cutting integration tests live in a crate's top-level `tests/`. `pnpm run cargo:test`
