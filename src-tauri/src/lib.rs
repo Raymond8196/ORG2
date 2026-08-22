@@ -483,12 +483,10 @@ pub fn run() {
 
             {
                 use tauri::Manager;
+
                 if let Some(main_window) = app.handle().get_webview_window("main") {
-                    #[cfg(not(target_os = "macos"))]
-                    {
-                        let _ = main_window.show();
-                        let _ = main_window.set_focus();
-                    }
+                    // Apply chrome while the window is still hidden.
+                    app_window::apply_host_desktop_window_chrome(&main_window);
 
                     #[cfg(target_os = "macos")]
                     {
@@ -499,9 +497,43 @@ pub fn run() {
                             app_window::TRAFFIC_LIGHT_Y,
                         );
                         app_window::apply_macos_window_material(&main_window);
+                        let _ = main_window.show();
+                        let _ = main_window.set_focus();
                     }
+                }
 
-                    app_window::apply_host_desktop_window_chrome(&main_window);
+                // On Windows the main window starts hidden (visible:false in the
+                // platform config). With transparent:true, set_background_color
+                // is a visual no-op — WebView2 composites directly over the
+                // transparent surface, so showing the window before the webview
+                // has painted exposes DWM/WebView2 edge artifacts (thin black
+                // lines around the border on Win10). We defer show() until the
+                // frontend emits "orgii:main-window-ready", which fires once
+                // the splash HTML has loaded and painted.
+                #[cfg(not(target_os = "macos"))]
+                {
+                    let show_handle = app.handle().clone();
+                    app.handle().listen(
+                        "orgii:main-window-ready",
+                        move |_| {
+                            if let Some(w) = show_handle.get_webview_window("main") {
+                                let _ = w.show();
+                                let _ = w.set_focus();
+                            }
+                        },
+                    );
+
+                    // Safety fallback: if the frontend event never arrives
+                    // (bundle crash, IPC failure), show after 3 s so the user
+                    // is never stranded on a hidden window.
+                    let timeout_handle = app.handle().clone();
+                    tauri::async_runtime::spawn(async move {
+                        tokio::time::sleep(std::time::Duration::from_secs(3)).await;
+                        if let Some(w) = timeout_handle.get_webview_window("main") {
+                            let _ = w.show();
+                            let _ = w.set_focus();
+                        }
+                    });
                 }
             }
 

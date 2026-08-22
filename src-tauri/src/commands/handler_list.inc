@@ -15,6 +15,7 @@ infrastructure::dev_bundled_auth::debug_import_bundled_org2_cloud_auth,
 app_window::commands::set_window_vibrancy,
 app_window::commands::set_main_webview_zoom,
 app_window::commands::remove_window_background,
+app_window::commands::main_window_chrome_is_acrylic,
 // Optional sidecar commands - lazy install after first paint
 crate::setup::sidecar_setup::sidecar_list_status,
 crate::setup::sidecar_setup::sidecar_install,

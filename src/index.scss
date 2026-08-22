@@ -549,12 +549,35 @@ html[data-host-desktop="macos"] .sidebar-base {
   background: transparent;
 }
 
+// Windows fail-safe: opaque until the Rust chrome policy confirms a
+// translucent native backdrop exists. Win10 never gets one (acrylic causes
+// drag lag; DWM shadow draws a 1px border on transparent frameless windows),
+// and even on Win11 the window must not be see-through before the policy
+// query resolves. See applyWindowsNativeChromeAttribute() in
+// windowChromeRadius.ts.
 html[data-host-desktop="windows"] body,
 html[data-host-desktop="windows"] #root {
-  background: transparent;
+  background: var(--color-bg-2);
 }
 
 html[data-host-desktop="windows"] .sidebar-base {
+  background: var(--color-bg-2);
+}
+
+// Win11 acrylic confirmed: let the native backdrop show through, tinted per
+// theme (same opacity variable the top bar and sidebar chrome use). Must
+// include <html> itself — the global rule above paints it opaque.
+html[data-windows-chrome="acrylic"],
+html[data-windows-chrome="acrylic"] body,
+html[data-windows-chrome="acrylic"] #root {
+  background: color-mix(
+    in srgb,
+    var(--color-bg-2) var(--windows-native-chrome-opacity, 30%),
+    transparent
+  );
+}
+
+html[data-windows-chrome="acrylic"] .sidebar-base {
   background: transparent;
 }
 

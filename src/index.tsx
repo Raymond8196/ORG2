@@ -2,7 +2,10 @@ import { createRoot } from "react-dom/client";
 
 import { initializeSharedServiceAuthStorage } from "@src/api/http/auth/sharedAuthStorage";
 import { configureIdeServerForIdentifier } from "@src/config/ideServer";
-import { applyHostDesktopWindowChromeRadius } from "@src/config/windowChromeRadius";
+import {
+  applyHostDesktopWindowChromeRadius,
+  applyWindowsNativeChromeAttribute,
+} from "@src/config/windowChromeRadius";
 import { configureCloudAuthCallbackForIdentifier } from "@src/features/Org2Cloud/config";
 import { installGlobalTauriSelectAllShortcut } from "@src/hooks/keyboard/useTauriSelectAllShortcut";
 import { createLogger, initializeLogging } from "@src/hooks/logger/useLogger";
@@ -148,6 +151,16 @@ async function initializeRuntimeInstanceIdentity(): Promise<void> {
 
 // PERFORMANCE: Initialize all critical services in parallel before render
 async function initializeApp() {
+  // Signal the Rust backend that the webview bundle has loaded and the
+  // splash HTML is painted. On Windows the main window starts hidden
+  // (visible:false) to avoid DWM/WebView2 edge artifacts on transparent
+  // frameless windows; this event triggers show() so the first visible
+  // frame is the painted splash, not a transparent artifact.
+  // Fire-and-forget: a 3 s safety timeout on the Rust side covers failures.
+  import("@tauri-apps/api/event")
+    .then(({ emit }) => emit("orgii:main-window-ready"))
+    .catch(() => {});
+
   // Runtime identity must be known before loading App: several API modules
   // derive local HTTP/WebSocket constants at module evaluation time.
   await initializeRuntimeInstanceIdentity();
@@ -219,7 +232,7 @@ async function initializeApp() {
   // locale bundles are still loading.
   const initPromise = Promise.all([
     initTheme(),
-    initializeTauriAPIs(),
+    initializeTauriAPIs().then(() => applyWindowsNativeChromeAttribute()),
     initBackgroundImage(),
     appModulePromise,
   ]);
