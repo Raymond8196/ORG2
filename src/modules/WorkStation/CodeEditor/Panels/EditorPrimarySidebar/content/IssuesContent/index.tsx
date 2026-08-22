@@ -287,7 +287,6 @@ const IssuesContent: React.FC<IssuesContentProps> = memo(
       openStatus,
     ]);
 
-    // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Virtual exposes imperative helpers that cannot be memoized safely.
     const issueListVirtualizer = useVirtualizer({
       count: virtualRows.length,
       getScrollElement: () => listRef.current,
