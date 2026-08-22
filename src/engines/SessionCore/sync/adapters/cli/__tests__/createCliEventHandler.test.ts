@@ -172,6 +172,13 @@ function normalizeFailureWarnings() {
   );
 }
 
+/** The "Build card skipped, transcript row kept" line from the same namespace. */
+function missingPlanPathWarnings() {
+  return warnMock.mock.calls.filter((call) =>
+    String(call[0]).includes("plan_approval chunk missing planPath")
+  );
+}
+
 function normalizeLikeRust(
   chunk: ActivityChunk,
   sessionId: string
@@ -1671,19 +1678,19 @@ describe("createCliEventHandler ingestion boundary", () => {
     });
 
     // -----------------------------------------------------------------------
-    // KNOWN DEFECT — plan_approval chunk with no planPath is silently dropped.
+    // A `plan_approval` chunk with no `planPath` feeds only ONE of the two
+    // sinks. The Build card keys off the path (that is where an approval
+    // writes the file back), so no path means no card. The transcript row
+    // does not: `PlanDocAdapter` renders from `title` / `content` / the plan
+    // ids and never reads `planPath`.
     //
-    // `handlePlanApprovalActivity` returns `true` (handled) as soon as
-    // `planPath` is missing, before `normalizeChunkRust` is ever called. The
-    // chunk never reaches the event store and nothing is logged, so the plan
-    // simply vanishes from the transcript that the ChatHistory renderer reads.
-    //
-    // The pair below documents that without blessing it: the first test pins
-    // the CURRENT output, the `it.fails()` pin states the CORRECT one. Fixing
-    // the product turns BOTH red — update them together with the fix.
+    // Both used to sit behind the same guard, so the plan vanished from the
+    // transcript entirely, with nothing logged. Rust emits `"planPath": ""`
+    // whenever the snapshot has no path, and the handler's `asString` rejects
+    // `""` — so this is the ordinary empty-path case, not a malformed frame.
     // -----------------------------------------------------------------------
 
-    it("currently swallows a plan_approval chunk with no planPath", async () => {
+    it("stores a plan_approval chunk in the transcript even with no planPath", async () => {
       handler.handleEvent(
         activityEvent(
           makeChunk({
@@ -1694,7 +1701,19 @@ describe("createCliEventHandler ingestion boundary", () => {
           })
         )
       );
-      // Same verdict when the frame carries no args object at all.
+      await flush();
+
+      // A missing planPath means "no Build card", not "no transcript row".
+      expect(planApprovalFor()).toBeNull();
+      expect(eventsFor().map((event) => event.id)).toEqual(["plan-chunk-bad"]);
+      // The skipped card must leave a trace naming the field that was missing.
+      const warnings = missingPlanPathWarnings();
+      expect(warnings).toHaveLength(1);
+      expect(warnings[0][1]).toBe("plan-chunk-bad");
+      expect(normalizeFailureWarnings()).toHaveLength(0);
+    });
+
+    it("keeps the transcript row for a plan_approval frame with no args at all", async () => {
       handler.handleEvent(
         activityEvent({
           ...makeChunk({
@@ -1708,33 +1727,11 @@ describe("createCliEventHandler ingestion boundary", () => {
       await flush();
 
       expect(planApprovalFor()).toBeNull();
-      expect(store.eventsBySession.size).toBe(0);
-      expect(rustBridge.normalizeChunkRust).not.toHaveBeenCalled();
-      expect(normalizeFailureWarnings()).toHaveLength(0);
+      expect(eventsFor().map((event) => event.id)).toEqual([
+        "plan-chunk-argless",
+      ]);
+      expect(missingPlanPathWarnings()).toHaveLength(1);
     });
-
-    it.fails(
-      "stores a plan_approval chunk in the transcript even with no planPath",
-      async () => {
-        handler.handleEvent(
-          activityEvent(
-            makeChunk({
-              chunk_id: "plan-chunk-bad",
-              action_type: "plan_approval",
-              function: "plan_approval",
-              args: { title: "no path" },
-            })
-          )
-        );
-        await flush();
-
-        // A missing planPath means "no Build card", not "no transcript row".
-        expect(planApprovalFor()).toBeNull();
-        expect(eventsFor().map((event) => event.id)).toEqual([
-          "plan-chunk-bad",
-        ]);
-      }
-    );
   });
 
   // -------------------------------------------------------------------------
@@ -1870,22 +1867,16 @@ describe("createCliEventHandler ingestion boundary", () => {
 
   describe("worktree and merge frames", () => {
     // -----------------------------------------------------------------------
-    // KNOWN DEFECT — both frames call `upsertSession` with `created_at: ""`
-    // and `updated_at: ""` (createCliEventHandler.ts, the
-    // `code_session.worktree_created` / `code_session.merge_result` branches).
+    // Both frames can arrive BEFORE the session row exists — exactly the state
+    // these tests start from — so they take `upsertSession`'s INSERT path,
+    // which stores whatever the caller passed (only the UPDATE path pins
+    // timestamps to the prior row). They used to pass `created_at: ""` /
+    // `updated_at: ""`, and `src/features/TaskKanban/hooks/useKanbanTasks/
+    // taskTimestamps.ts` reads an empty timestamp as 0 — sorting the session
+    // to the epoch and dropping it out of every 6h / 12h / 24h Kanban window.
     //
-    // `upsertSession` pins timestamps to the prior row only on the UPDATE
-    // path; the INSERT path stores whatever the caller passed. Both frames can
-    // arrive before the session row exists — exactly the state these tests
-    // start from — so the empty strings land verbatim.
-    //
-    // Consumer harmed: `src/features/TaskKanban/hooks/useKanbanTasks/
-    // taskTimestamps.ts` returns 0 for an empty timestamp, which drops the
-    // session out of every 6h / 12h / 24h Kanban window.
-    //
-    // The explicit `toBe("")` assertions pin the CURRENT output; the
-    // `it.fails()` pins state the CORRECT one. Fixing the product turns both
-    // members of each pair red — update them together with the fix.
+    // The timestamp assertions below are explicit because `toMatchObject`
+    // silently skips fields it is not given.
     // -----------------------------------------------------------------------
 
     function onlySessionRow() {
@@ -1912,6 +1903,21 @@ describe("createCliEventHandler ingestion boundary", () => {
       });
     }
 
+    function expectFreshInsertTimestamps(
+      session: ReturnType<typeof onlySessionRow>
+    ) {
+      const createdMs = Date.parse(session.created_at);
+      const updatedMs = Date.parse(session.updated_at);
+      expect(Number.isNaN(createdMs)).toBe(false);
+      expect(Number.isNaN(updatedMs)).toBe(false);
+      // "Now", not the epoch and not any other placeholder: the Kanban time
+      // filters bucket on these, so anything stale hides the session.
+      const ageMs = Date.now() - createdMs;
+      expect(ageMs).toBeGreaterThanOrEqual(0);
+      expect(ageMs).toBeLessThan(60_000);
+      expect(session.updated_at).toBe(session.created_at);
+    }
+
     it("writes worktree metadata onto the session row", () => {
       emitWorktreeCreated();
 
@@ -1924,18 +1930,12 @@ describe("createCliEventHandler ingestion boundary", () => {
         mergeStatus: "pending",
         status: "pending",
       });
-      // `toMatchObject` above silently skips fields it is not given — these
-      // two have to be named explicitly or the corruption stays invisible.
-      expect(session.created_at).toBe("");
-      expect(session.updated_at).toBe("");
     });
 
-    it.fails("inserts real timestamps on a worktree_created frame", () => {
+    it("inserts real timestamps on a worktree_created frame", () => {
       emitWorktreeCreated();
 
-      const session = onlySessionRow();
-      expect(Number.isNaN(Date.parse(session.created_at))).toBe(false);
-      expect(Number.isNaN(Date.parse(session.updated_at))).toBe(false);
+      expectFreshInsertTimestamps(onlySessionRow());
     });
 
     it("records the merge status, and ignores a merge frame with no status", () => {
@@ -1947,22 +1947,17 @@ describe("createCliEventHandler ingestion boundary", () => {
 
       emitMergeResult();
 
-      const session = onlySessionRow();
-      expect(session).toMatchObject({
+      expect(onlySessionRow()).toMatchObject({
         session_id: SESSION_ID,
         mergeStatus: "merged",
         status: "completed",
       });
-      expect(session.created_at).toBe("");
-      expect(session.updated_at).toBe("");
     });
 
-    it.fails("inserts real timestamps on a merge_result frame", () => {
+    it("inserts real timestamps on a merge_result frame", () => {
       emitMergeResult();
 
-      const session = onlySessionRow();
-      expect(Number.isNaN(Date.parse(session.created_at))).toBe(false);
-      expect(Number.isNaN(Date.parse(session.updated_at))).toBe(false);
+      expectFreshInsertTimestamps(onlySessionRow());
     });
 
     it("leaves an existing row's timestamps alone (upsert update path)", () => {

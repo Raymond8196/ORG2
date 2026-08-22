@@ -352,19 +352,18 @@ describe("reconcileInFlightHistory", () => {
   });
 
   // -------------------------------------------------------------------------
-  // KNOWN DEFECT — the narrowing covers only one of the two destinations.
+  // The narrowing has to cover BOTH destinations.
   //
-  // `sessionSyncReconcile.ts` calls
-  //   actions.setSessionRuntimeStatus(toCliSessionStatus(postResult.runStatus))
-  //   updateSessionStatus(sessionId, postResult.runStatus as SessionStatus)
-  // back to back. The second line launders the raw, unvalidated wire string
-  // through a cast straight into the session-list cache, so every consumer of
-  // `Session.status` (sidebar grouping, Kanban lanes, the terminal-status
-  // predicates) can see a value outside the SessionStatus union.
+  // `sessionSyncReconcile.ts` writes the run status twice, back to back: into
+  // the runtime atom via `setSessionRuntimeStatus`, and into the session-list
+  // cache via `updateSessionStatus`. It used to launder the raw, unvalidated
+  // wire string through `as SessionStatus` on the second line, so every
+  // consumer of `Session.status` (sidebar grouping, Kanban lanes, the
+  // terminal-status predicates) could see a value outside the union.
   //
-  // The tests above cannot see it because they seed `sessionsAtom` with `[]`
-  // and `updateSessionStatus` only patches rows that already exist. The pair
-  // below seeds a row. Fixing the product turns both red — update together.
+  // The tests above cannot see that destination because they seed
+  // `sessionsAtom` with `[]` and `updateSessionStatus` only patches rows that
+  // already exist. The tests below seed a row first.
   // -------------------------------------------------------------------------
 
   function seedSessionRow() {
@@ -384,11 +383,11 @@ describe("reconcileInFlightHistory", () => {
       .map((session) => session.status);
   }
 
-  async function reconcileWithUnknownStatus() {
+  async function reconcileWithStatus(runStatus: string) {
     seedSessionRow();
     const adapter = makeAdapter({
       history: [makeEvent("a")],
-      postLoad: { runStatus: "quantum_superposition" },
+      postLoad: { runStatus },
     });
     reconcileInFlightHistory(
       SESSION_ID,
@@ -399,20 +398,31 @@ describe("reconcileInFlightHistory", () => {
     await settle();
   }
 
-  it("currently writes the raw wire status into the session list cache", async () => {
-    await reconcileWithUnknownStatus();
+  it("narrows an unknown run status before writing the session list cache", async () => {
+    await reconcileWithStatus("quantum_superposition");
 
-    expect(sessionRowStatuses()).toEqual(["quantum_superposition"]);
+    expect(sessionRowStatuses()).toEqual(["idle"]);
   });
 
-  it.fails(
-    "narrows the run status before writing the session list cache too",
-    async () => {
-      await reconcileWithUnknownStatus();
+  it("passes a recognised run status through to the session list cache", async () => {
+    // The narrowing must not flatten every value to the fallback — a real
+    // status still has to land verbatim, or the sidebar/Kanban would show
+    // every reconciled session as idle.
+    await reconcileWithStatus("paused");
 
-      expect(sessionRowStatuses()).toEqual(["idle"]);
-    }
-  );
+    expect(sessionRowStatuses()).toEqual(["paused"]);
+  });
+
+  it("maps the CLI-only 'installing' status onto the running lane", async () => {
+    // `installing` is a `CliSessionStatus` member with no `SessionStatus`
+    // counterpart. Both `RUNNING_SESSION_STATUSES` (TaskKanban/config.ts) and
+    // `IN_PROGRESS_STATUSES` (util/session/sessionInProgress.ts) group it with
+    // `running`, so collapsing it there preserves lane + spinner rather than
+    // dropping the row into the fallback.
+    await reconcileWithStatus("installing");
+
+    expect(sessionRowStatuses()).toEqual(["running"]);
+  });
 
   it("propagates context usage and the run error from postLoad", async () => {
     const usage: ContextUsageSnapshot = {
