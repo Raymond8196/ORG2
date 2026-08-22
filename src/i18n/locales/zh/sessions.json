@@ -2196,6 +2196,7 @@
     },
     "cliVersionOutdated": {
       "title": "{{cli}} 需要升级（{{installed}} > {{latest}}）",
+      "muteUntilNextVersion": "下一版本前不再提醒",
       "refresh": "重新检查 {{cli}} CLI 版本",
       "unknownVersion": "未知"
     },

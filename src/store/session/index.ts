@@ -25,6 +25,7 @@ export * from "./creatorDefaultModelAtom";
 export * from "./recentModelEntriesAtom";
 export * from "./recentAgentSelectionsAtom";
 export * from "./creatorDefaultExecModeAtom";
+export * from "./cliUpdateAlertsAtom";
 
 // Session runtime (engine lifecycle, file review, shell processes)
 export * from "./cliSessionStatusAtom"; // Contains sessionRuntimeStatusAtom, etc.
