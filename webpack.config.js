@@ -86,8 +86,15 @@ module.exports = (env, argv) => {
       buildDependencies: {
         config: [__filename],
       },
-      // Don't compress - avoids sass serialization issues
-      compression: false,
+      // gzip the pack files. Uncompressed, webpack keeps the whole multi-GB
+      // pack buffer-mapped for lazy slices; gzip reads it back as a stream
+      // of small buffers that can be released as entries deserialize.
+      // Measured on a warm start of the dev server (9k modules, full source
+      // maps): kernel peak 4.7 GB -> 3.6 GB, idle 3.7 GB -> 2.4 GB, warm
+      // compile unchanged (~6 s). The old "avoids sass serialization issues"
+      // note predates sass-loader's modern API; scss caches round-trip fine.
+      // Production keeps the uncompressed pack (CI build cache unchanged).
+      compression: isProduction ? false : "gzip",
     },
     // Snapshot: use timestamps for node_modules instead of content hashing.
     // node_modules rarely change during a dev session; timestamp checks are much faster.
@@ -685,14 +692,21 @@ module.exports = (env, argv) => {
     // lazily-loaded .map files (`cheap-source-map`).
     //
     // Everywhere else: `eval-cheap-module-source-map` — webpack's cheapest
-    // dev devtool. No separate .map assets are generated or held in the dev
-    // server's memory FS, and rebuilds only re-eval the changed modules
-    // instead of re-mapping whole chunks. Light dev disables source maps
-    // entirely to reduce renderer and compiler memory.
+    // source-mapped dev devtool. No separate .map assets are generated or
+    // held in the dev server's memory FS, and rebuilds only re-eval the
+    // changed modules instead of re-mapping whole chunks.
+    //
+    // DEV_SOURCEMAPS=false (and light dev) trade original-line mapping for
+    // memory: plain `eval` keeps per-module eval (fast HMR) but emits no maps
+    // at all. Measured warm-start dev server: peak 3.6 GB -> 2.5 GB, idle
+    // 2.4 GB -> 1.7 GB, emitted JS 171 MB -> 92 MB, and the webview parses
+    // proportionally less. Linux keeps `false` there (WebKitGTK path).
     devtool: useDevSourceMaps
       ? eagerDevApp
         ? "cheap-source-map"
         : "eval-cheap-module-source-map"
-      : false,
+      : isProduction || eagerDevApp
+        ? false
+        : "eval",
   };
 };
