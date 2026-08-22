@@ -1,7 +1,7 @@
 /**
  * Syntax highlighting utilities with caching
  */
-import hljs from "highlight.js";
+import { hljs } from "@src/util/language/hljsLight";
 
 import { MAX_CACHE_SIZE } from "../config";
 

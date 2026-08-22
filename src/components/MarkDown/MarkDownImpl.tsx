@@ -17,7 +17,6 @@ import { Check, Copy, SquareArrowOutUpRight } from "lucide-react";
 import React, { memo, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import ReactMarkdown, { type Components } from "react-markdown";
-import { Prism as SyntaxHighlighterPrism } from "react-syntax-highlighter";
 import remarkGfm from "remark-gfm";
 
 import { isThemeCssPathDark } from "@src/config/appearance/globalThemes";
@@ -31,6 +30,7 @@ import { useCopyCheck } from "@src/hooks/ui";
 import { themesAtom } from "@src/store";
 import { activeWorkspaceRootAtom } from "@src/store/workspace";
 import { copyText } from "@src/util/data/clipboard";
+import { PrismLight as SyntaxHighlighterPrism } from "@src/util/language/prismLight";
 import { openFileInWorkStation } from "@src/util/ui/openFileInWorkStation";
 
 import LinkHoverCard from "./LinkHoverCard";
