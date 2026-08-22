@@ -60,8 +60,7 @@ const PokerTableWindow: React.FC = () => {
       kind: "human",
       avatarHue: 212,
     }),
-    // The hero identity is fixed for the life of the table.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the controller owns one immutable hero identity for the table lifetime; profile or locale changes apply only after reopening
     []
   );
 

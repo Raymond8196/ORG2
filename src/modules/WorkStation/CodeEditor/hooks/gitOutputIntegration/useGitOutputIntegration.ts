@@ -12,7 +12,7 @@
  * - Backend operation logging
  */
 import { useAtomValue } from "jotai";
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useEffect } from "react";
 
 import { gitOperationAtom } from "@src/store/git";
 import type {
@@ -54,9 +54,8 @@ export function useGitOutputIntegration(
 
   // Subscribe to backend-detected git operations
   const gitOperation = useAtomValue(gitOperationAtom);
-
-  // Track if channel has been created
-  const channelCreatedRef = useRef(false);
+  const hasGitChannel = outputState.channels.some((ch) => ch.type === "git");
+  const { createChannel, setActiveChannel } = outputState;
 
   // ============================================
   // Channel Management
@@ -89,20 +88,12 @@ export function useGitOutputIntegration(
     return channel?.id;
   }, [outputState]);
 
-  // Create git channel on mount and set as active by default
+  // Ensure the current output owner has a git channel and select it when first created.
   useEffect(() => {
-    if (channelCreatedRef.current) return;
-
-    const existingChannel = outputState.channels.find(
-      (ch) => ch.type === "git"
-    );
-    if (!existingChannel) {
-      const channelId = outputState.createChannel("Git", "git");
-      outputState.setActiveChannel(channelId);
-      channelCreatedRef.current = true;
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (hasGitChannel) return;
+    const channelId = createChannel("Git", "git");
+    setActiveChannel(channelId);
+  }, [createChannel, hasGitChannel, setActiveChannel]);
 
   // ============================================
   // Backend Operation Logging

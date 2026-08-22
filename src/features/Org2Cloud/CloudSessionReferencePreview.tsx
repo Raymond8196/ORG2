@@ -59,7 +59,7 @@ export const CloudSessionReferencePreview = memo(
     // is unchanged. Keying this memo on the content key returns the array
     // captured when the key last changed, so unchanged chips skip
     // re-rendering while the user types around them.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- scannedKey encodes every reference field rendered by the chips, preserving array identity while that semantic set is unchanged
     const references = useMemo(() => scanned, [scannedKey]);
     if (references.length === 0) return null;
     return (

@@ -151,7 +151,7 @@ const FileSidebarComponent: React.FC<FileSidebarProps> = ({
         filePath: op.filePath,
         fileName: op.fileName,
       })),
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed by readFileKey
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- readFileKey encodes the immutable event identity/timestamp behind every rendered read item
     [readFileKey]
   );
 
@@ -194,7 +194,7 @@ const FileSidebarComponent: React.FC<FileSidebarProps> = ({
           statusColorClass: badge?.colorClass,
         };
       }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed by writeFileKey
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- writeFileKey encodes the identity, operation kind, baseline status, edit count, and timestamp rendered by write items
     [writeFileKey]
   );
 
@@ -210,7 +210,17 @@ const FileSidebarComponent: React.FC<FileSidebarProps> = ({
   );
 
   const shellItemsKey = useMemo(
-    () => shellOperations.map((op) => op.eventId).join(","),
+    () =>
+      JSON.stringify(
+        shellOperations.map((op) => ({
+          eventId: op.eventId,
+          commandKeywords: op.commandKeywords,
+          shortCommand: op.shortCommand,
+          functionName: op.event?.functionName,
+          isLoading: op.isLoading,
+          exitCode: op.exitCode,
+        }))
+      ),
     [shellOperations]
   );
 
@@ -227,7 +237,7 @@ const FileSidebarComponent: React.FC<FileSidebarProps> = ({
           statusColorClass: badge?.className,
         };
       }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed by shellItemsKey
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- shellItemsKey encodes every operation field rendered by this projection, including live status changes
     [shellItemsKey]
   );
 

@@ -497,10 +497,7 @@ export function useSubmissionsData({
     return () => {
       cancelled = true;
     };
-    // `prStatusFetchKey` already encodes the identity of every PR row;
-    // depending on it (instead of the full array) avoids re-fetching when
-    // upstream merely produces a new array reference with the same contents.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- prStatusFetchKey encodes every repo/name pair read below, avoiding network refetches for equivalent upstream arrays
   }, [prStatusFetchKey]);
 
   const pullRequestsWithStatus = useMemo(() => {
