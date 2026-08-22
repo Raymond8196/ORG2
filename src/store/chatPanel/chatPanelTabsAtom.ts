@@ -85,6 +85,7 @@ export {
 } from "./chatPanelTabsModel";
 export {
   activeChatPanelTabAtom,
+  activeChatPanelTabTypeAtom,
   activeWorkManagementSectionAtom,
   chatPanelTabCountAtom,
   chatPanelTabsAtom,
