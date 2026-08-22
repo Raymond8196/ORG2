@@ -183,7 +183,7 @@ const XtermOutput = memo(function XtermOutput({
       fitAddonRef.current = null;
       contentWrittenRef.current = "";
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional: only runs on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- this effect owns one xterm instance; following effects patch content/theme/font changes without destroying its renderer or WebGL slot
   }, []);
 
   // Write new content when prop changes

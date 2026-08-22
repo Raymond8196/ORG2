@@ -28,7 +28,6 @@ import {
   useCallback,
   useEffect,
   useImperativeHandle,
-  useMemo,
   useRef,
   useState,
 } from "react";
@@ -42,7 +41,6 @@ import {
 // Direct leaf import to avoid pulling @src/store's barrel — which transitively
 // reaches SidebarModules/Terminal → engines/TerminalCore → this file.
 import {
-  TerminalThemeName,
   terminalFontSizeAtom,
   terminalLetterSpacingAtom,
   terminalThemeAtom,
@@ -111,13 +109,17 @@ export const TerminalView = forwardRef<TerminalViewHandle, TerminalViewProps>(
     const sessionIdRef = useRef<string | null>(null);
     const unlistenOutputRef = useRef<(() => void) | null>(null);
     const unlistenExitRef = useRef<(() => void) | null>(null);
-    const initialThemeRef = useRef<TerminalThemeName | null>(null);
     const repoPathRef = useRef(repoPath);
-    repoPathRef.current = repoPath;
     const workingDirectoryRef = useRef(workingDirectory);
-    workingDirectoryRef.current = workingDirectory;
     const onOpenFileLinkRef = useRef(onOpenFileLink);
-    onOpenFileLinkRef.current = onOpenFileLink;
+    const onSessionInfoReadyRef = useRef(onSessionInfoReady);
+    const eventCallbacksRef = useRef({
+      onOutput,
+      onUserInput,
+      onSelectionChange,
+      onTitleChange,
+    });
+    const shellIntegrationRef = useRef(shellIntegration);
 
     const [_isConnecting, setIsConnecting] = useState(true);
     const [_isBrowserMode, setIsBrowserMode] = useState(false);
@@ -131,29 +133,54 @@ export const TerminalView = forwardRef<TerminalViewHandle, TerminalViewProps>(
     const appTheme = useAtomValue(themesAtom);
     const isDarkTheme = isThemeCssPathDark(appTheme);
 
-    if (initialThemeRef.current === null) {
-      initialThemeRef.current = terminalTheme;
-    }
+    const initialAppearanceRef = useRef({
+      terminalTheme,
+      terminalFontSize,
+      terminalLetterSpacing,
+      codeFontFamily,
+      backgroundColor,
+    });
+    const shellIntegrationEnabled = shellIntegration !== undefined;
 
-    const redrawTerminalAfterLayoutChange = useMemo(
-      () =>
-        createRedrawTerminalAfterLayoutChange({
-          containerRef,
-          terminalRef,
-          fitAddonRef,
-        }),
-      []
-    );
+    useEffect(() => {
+      repoPathRef.current = repoPath;
+      workingDirectoryRef.current = workingDirectory;
+      onOpenFileLinkRef.current = onOpenFileLink;
+      onSessionInfoReadyRef.current = onSessionInfoReady;
+      eventCallbacksRef.current = {
+        onOutput,
+        onUserInput,
+        onSelectionChange,
+        onTitleChange,
+      };
+      shellIntegrationRef.current = shellIntegration;
+    }, [
+      repoPath,
+      workingDirectory,
+      onOpenFileLink,
+      onSessionInfoReady,
+      onOutput,
+      onUserInput,
+      onSelectionChange,
+      onTitleChange,
+      shellIntegration,
+    ]);
 
-    const fitTerminal = useMemo(
-      () =>
-        createFitTerminal({
-          containerRef,
-          terminalRef,
-          fitAddonRef,
-        }),
-      []
-    );
+    const redrawTerminalAfterLayoutChange = useCallback(() => {
+      createRedrawTerminalAfterLayoutChange({
+        containerRef,
+        terminalRef,
+        fitAddonRef,
+      })();
+    }, []);
+
+    const fitTerminal = useCallback(() => {
+      createFitTerminal({
+        containerRef,
+        terminalRef,
+        fitAddonRef,
+      })();
+    }, []);
 
     useImperativeHandle(
       ref,
@@ -207,15 +234,12 @@ export const TerminalView = forwardRef<TerminalViewHandle, TerminalViewProps>(
           envOverride,
           forceRepoCwd,
           nameOverride,
-          onSessionInfoReady,
+          onSessionInfoReady: (info) => onSessionInfoReadyRef.current?.(info),
           setIsBrowserMode,
           setIsConnecting,
           abortSignal,
         });
       },
-      // repoPath and onSessionInfoReady use refs / mount-time semantics; avoid
-      // reinitializing xterm for parent callback identity changes.
-      // eslint-disable-next-line react-hooks/exhaustive-deps
       [
         sessionKey,
         isForeground,
@@ -233,14 +257,26 @@ export const TerminalView = forwardRef<TerminalViewHandle, TerminalViewProps>(
       if (!containerRef.current || terminalRef.current) return;
 
       const ptyAbortController = new AbortController();
+      const initialAppearance = initialAppearanceRef.current;
       const { terminal, fitAddon, searchAddon, serializeAddon } =
         createTerminalInstance({
-          terminalTheme: initialThemeRef.current || terminalTheme,
-          terminalFontSize,
-          terminalLetterSpacing,
-          codeFontFamily,
-          backgroundColor,
-          shellIntegration,
+          terminalTheme: initialAppearance.terminalTheme,
+          terminalFontSize: initialAppearance.terminalFontSize,
+          terminalLetterSpacing: initialAppearance.terminalLetterSpacing,
+          codeFontFamily: initialAppearance.codeFontFamily,
+          backgroundColor: initialAppearance.backgroundColor,
+          shellIntegration: shellIntegrationEnabled
+            ? {
+                onPromptStart: () =>
+                  shellIntegrationRef.current?.onPromptStart?.(),
+                onCommandExecuted: (commandLine) =>
+                  shellIntegrationRef.current?.onCommandExecuted?.(commandLine),
+                onCommandFinished: (exitCode) =>
+                  shellIntegrationRef.current?.onCommandFinished?.(exitCode),
+                onCwdChanged: (cwd) =>
+                  shellIntegrationRef.current?.onCwdChanged?.(cwd),
+              }
+            : undefined,
         });
 
       terminal.open(containerRef.current);
@@ -269,10 +305,12 @@ export const TerminalView = forwardRef<TerminalViewHandle, TerminalViewProps>(
         repoPathRef,
         workingDirectoryRef,
         onOpenFileLinkRef,
-        onOutput,
-        onUserInput,
-        onSelectionChange,
-        onTitleChange,
+        onOutput: () => eventCallbacksRef.current.onOutput?.(),
+        onUserInput: () => eventCallbacksRef.current.onUserInput?.(),
+        onSelectionChange: (selection) =>
+          eventCallbacksRef.current.onSelectionChange?.(selection),
+        onTitleChange: (title) =>
+          eventCallbacksRef.current.onTitleChange?.(title),
       });
 
       return () => {
@@ -296,10 +334,7 @@ export const TerminalView = forwardRef<TerminalViewHandle, TerminalViewProps>(
         searchAddonRef.current = null;
         serializeAddonRef.current = null;
       };
-      // Theme and callback props are intentionally omitted to preserve the
-      // existing terminal lifetime semantics documented at the top of this file.
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [fitTerminal, initPTY]);
+    }, [fitTerminal, initPTY, shellIntegrationEnabled]);
 
     // Scheduler foreground/background priority and tab-show backlog flush.
     // The sessionId is set during initPtyConnection which runs after mount;

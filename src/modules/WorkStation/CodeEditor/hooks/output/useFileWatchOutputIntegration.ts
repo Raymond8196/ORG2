@@ -45,7 +45,9 @@ export function useFileWatchOutputIntegration(
   // Store outputState functions in refs to avoid dependency issues
   // This prevents the infinite loop caused by outputState.channels changing on every append
   const outputStateRef = useRef(outputState);
-  outputStateRef.current = outputState;
+  useEffect(() => {
+    outputStateRef.current = outputState;
+  }, [outputState]);
 
   // Format timestamp - local time with subdued italic styling
   const formatTimestamp = useCallback(() => {
@@ -272,8 +274,7 @@ export function useFileWatchOutputIntegration(
         }
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, repoId, repoPath]);
+  }, [enabled, repoId, repoPath, log]);
 
   // Listen for manual file save events (editor internal saves)
   useEffect(() => {
@@ -294,8 +295,7 @@ export function useFileWatchOutputIntegration(
     return () => {
       window.removeEventListener("filesync:file-saved", handleFileSaved);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, repoPath]);
+  }, [enabled, repoPath, log]);
 
   return {};
 }

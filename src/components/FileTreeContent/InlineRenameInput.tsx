@@ -104,8 +104,7 @@ export function InlineRenameInput({
     } else {
       applySelection(input, initialName, "basename");
     }
-    // Only run on mount - use initialName for initial selection
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- rename identity is mount-owned; a different file remounts this editor, and reselection mid-edit would discard the user's range
   }, []);
 
   const handleChange = useCallback(

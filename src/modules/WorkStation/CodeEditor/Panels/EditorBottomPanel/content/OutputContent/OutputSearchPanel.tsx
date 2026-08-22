@@ -8,6 +8,7 @@ import React, {
   memo,
   useCallback,
   useEffect,
+  useEffectEvent,
   useMemo,
   useRef,
   useState,
@@ -120,13 +121,15 @@ export const OutputSearchPanel: React.FC<OutputSearchPanelProps> = memo(
       handleFindNext();
     }, [handleFindNext]);
 
-    // Re-search when options change
-    useEffect(() => {
+    const repeatSearchForOptions = useEffectEvent(() => {
       if (query && isOpen) {
         onFindNext(query, { caseSensitive, wholeWord, regex: useRegex });
       }
-      // Only re-trigger when toggle options change, not on every query keystroke
-      // eslint-disable-next-line react-hooks/exhaustive-deps
+    });
+
+    // Re-search when options change
+    useEffect(() => {
+      repeatSearchForOptions();
     }, [caseSensitive, wholeWord, useRegex]);
 
     if (!isOpen) return null;

@@ -371,6 +371,7 @@ export function useOrg2CloudRealtime(): void {
   const [broadcastSignals, setBroadcastSignals] = useState(false);
   useEffect(() => {
     let cancelled = false;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- clear the previous identity/endpoint capability before the asynchronous probe can publish a result
     setBroadcastSignals(false);
     const current = authRef.current;
     if (!userId || !current) return undefined;
@@ -463,7 +464,6 @@ export function useOrg2CloudRealtime(): void {
       connectionTeardownAtRef.current = Date.now();
     };
     // authRef (not auth) on purpose — see the ref comment above.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId, endpointUrl, activeRealtimeOrgId]);
 
   // --- Nudge the socket to re-resolve its token as soon as the atom
@@ -817,7 +817,6 @@ export function useOrg2CloudRealtime(): void {
       }
     };
     // Connection identity follows the same activeRealtimeOrgId key in Slice A.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     activeRealtimeOrgId,
     userId,
@@ -826,6 +825,7 @@ export function useOrg2CloudRealtime(): void {
     bumpRosterVersion,
     scheduleCoarseSignalRefresh,
     runSignalEdgeRecovery,
+    setRosterRealtimeConnected,
   ]);
 
   // --- Slice C: org-level presence for the actively-used org only.
@@ -864,7 +864,9 @@ export function useOrg2CloudRealtime(): void {
     userId,
   ]);
   const viewingRef = useRef(viewing);
-  viewingRef.current = viewing;
+  useEffect(() => {
+    viewingRef.current = viewing;
+  }, [viewing]);
 
   const presenceHandlesRef = useRef(new Map<string, Org2CloudPresenceHandle>());
   const presencePayloadKeysRef = useRef(new Map<string, string | null>());
@@ -1046,7 +1048,6 @@ export function useOrg2CloudRealtime(): void {
       payloadKeys.clear();
     };
     // Same lifetime contract as Slice B (connection identity via Slice A).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     activeRealtimeOrgId,
     userId,
@@ -1062,6 +1063,8 @@ export function useOrg2CloudRealtime(): void {
     dispatchDbChangeSignal,
     scheduleCoarseSignalRefresh,
     runSignalEdgeRecovery,
+    refreshEntitlementForOrg,
+    setRosterRealtimeConnected,
   ]);
 
   // Keep awareness attached to the session while this foreground lease owns

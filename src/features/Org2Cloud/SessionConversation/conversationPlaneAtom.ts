@@ -4,7 +4,7 @@
  * server-assigned seq cursor. Capability-gated — a pre-0024 backend leaves
  * every entry "unsupported" and the fork-wire fallback stays in charge.
  */
-import { atom, useAtomValue, useSetAtom } from "jotai";
+import { atom, useAtomValue, useSetAtom, useStore } from "jotai";
 import { useEffect } from "react";
 
 import { createLogger } from "@src/hooks/logger";
@@ -85,20 +85,24 @@ export function useConversationPlaneEvents(
   target: SessionCommentTarget | null
 ): ConversationPlaneEntry {
   const auth = useAtomValue(org2CloudAuthAtom);
+  const store = useStore();
   const setAuth = useSetAtom(org2CloudAuthAtom);
   const entries = useAtomValue(conversationPlaneAtom);
   const setEntries = useSetAtom(conversationPlaneAtom);
   const signals = useAtomValue(conversationPlaneSignalAtom);
-  const signal = target ? (signals[target.orgId] ?? 0) : 0;
-  const key = target
-    ? conversationPlaneKey(target.orgId, target.sessionId)
-    : null;
+  const targetOrgId = target?.orgId;
+  const targetSessionId = target?.sessionId;
+  const signal = targetOrgId ? (signals[targetOrgId] ?? 0) : 0;
+  const key =
+    targetOrgId && targetSessionId
+      ? conversationPlaneKey(targetOrgId, targetSessionId)
+      : null;
   const entry = key ? (entries[key] ?? EMPTY_ENTRY) : EMPTY_ENTRY;
-  const lastSeq = entry.lastSeq;
-  const entryState = entry.state;
 
   useEffect(() => {
-    if (!target || !key || !auth) return;
+    if (!targetOrgId || !targetSessionId || !key || !auth) return;
+    const currentEntry = store.get(conversationPlaneAtom)[key] ?? EMPTY_ENTRY;
+    const entryState = currentEntry.state;
     if (entryState === "unsupported") return;
     if (inFlightByKey.has(key)) return;
     inFlightByKey.add(key);
@@ -117,11 +121,11 @@ export function useConversationPlaneEvents(
           }
           return;
         }
-        let afterSeq = lastSeq;
+        let afterSeq = currentEntry.lastSeq;
         for (;;) {
           const page = await listConversationEvents(fresh.accessToken, {
-            orgId: target.orgId,
-            rootSessionId: target.sessionId,
+            orgId: targetOrgId,
+            rootSessionId: targetSessionId,
             afterSeq,
           });
           setEntries((current) => {
@@ -145,17 +149,15 @@ export function useConversationPlaneEvents(
         inFlightByKey.delete(key);
       }
     })();
-    // lastSeq intentionally NOT a dep: each completed fetch updates it and
-    // would re-run the effect in a loop; `signal` is the refetch clock.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    target?.orgId,
-    target?.sessionId,
+    targetOrgId,
+    targetSessionId,
     key,
     auth,
     setAuth,
     setEntries,
     signal,
+    store,
   ]);
 
   return entry;
