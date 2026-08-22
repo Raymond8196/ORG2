@@ -28,7 +28,7 @@ pub struct AgentMetadataResolver {
     /// freshness-checked turn-index path it used to drive took the sessions
     /// writer lock per session — together the whole cost of listing a
     /// large session directory.
-    impact_conn: Option<rusqlite::Connection>,
+    impact_conn: Option<database::db::PooledConnection>,
     impact_conn_failed: bool,
 }
 
@@ -98,7 +98,7 @@ impl AgentMetadataResolver {
                 }
             }
         }
-        self.impact_conn.as_ref()
+        self.impact_conn.as_deref()
     }
 
     fn resolve(
