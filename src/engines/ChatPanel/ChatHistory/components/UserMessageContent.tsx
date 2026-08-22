@@ -7,6 +7,7 @@
  */
 import { useAtomValue } from "jotai";
 import {
+  AtSign,
   Code,
   Folder,
   FolderKanban,
@@ -82,7 +83,79 @@ interface TextSegment {
   text: string;
 }
 
-type Segment = PillSegment | TextSegment;
+interface MentionSegment {
+  kind: "mention";
+  userId: string;
+  displayName: string;
+}
+
+type Segment = PillSegment | TextSegment | MentionSegment;
+
+export interface UserMessageMention {
+  userId: string;
+  displayName: string;
+}
+
+function isMentionBoundary(char: string | undefined): boolean {
+  return char === undefined || !/[\p{L}\p{N}_]/u.test(char);
+}
+
+/**
+ * Split `@Display Name` occurrences out of text segments as mention pills.
+ * Member pills serialize to plain `@name` (see serializePillNode), so the
+ * names are matched back against the message's known mentions — longest
+ * label first, case-insensitively, on word boundaries.
+ */
+export function splitMentionSegments(
+  segments: readonly Segment[],
+  mentions: readonly UserMessageMention[]
+): Segment[] {
+  const labelled = mentions
+    .map((mention) => ({ mention, label: mention.displayName.trim() }))
+    .filter((entry) => entry.label.length > 0)
+    .sort((left, right) => right.label.length - left.label.length);
+  if (labelled.length === 0) return [...segments];
+  const result: Segment[] = [];
+  for (const segment of segments) {
+    if (segment.kind !== "text" || !segment.text.includes("@")) {
+      result.push(segment);
+      continue;
+    }
+    const text = segment.text;
+    const lower = text.toLowerCase();
+    let cursor = 0;
+    let index = text.indexOf("@");
+    while (index !== -1) {
+      let consumed = 0;
+      if (isMentionBoundary(text[index - 1])) {
+        for (const entry of labelled) {
+          const lowerLabel = entry.label.toLowerCase();
+          if (
+            lower.startsWith(lowerLabel, index + 1) &&
+            isMentionBoundary(text[index + 1 + lowerLabel.length])
+          ) {
+            if (index > cursor) {
+              result.push({ kind: "text", text: text.slice(cursor, index) });
+            }
+            result.push({
+              kind: "mention",
+              userId: entry.mention.userId,
+              displayName: entry.label,
+            });
+            consumed = 1 + lowerLabel.length;
+            cursor = index + consumed;
+            break;
+          }
+        }
+      }
+      index = text.indexOf("@", index + Math.max(consumed, 1));
+    }
+    if (cursor < text.length) {
+      result.push({ kind: "text", text: text.slice(cursor) });
+    }
+  }
+  return result;
+}
 
 // ============================================
 // Parser
@@ -604,22 +677,44 @@ interface UserMessageContentProps {
   text: string;
   /** Optional image URLs (data URLs or Tauri asset URLs) attached to this message */
   images?: string[];
+  /** Known @-mentions of this message, rendered as member pills. */
+  mentions?: readonly UserMessageMention[];
 }
+
+const MentionPill: React.FC<{ segment: MentionSegment }> = memo(
+  function MentionPill({ segment }) {
+    return (
+      <BasePill
+        variant="editor"
+        iconNode={<AtSign {...ICON_PROPS} />}
+        style={{
+          position: "relative",
+          zIndex: 1,
+          userSelect: "none",
+          WebkitUserSelect: "none",
+        }}
+        title={segment.displayName}
+      >
+        <span>{segment.displayName}</span>
+      </BasePill>
+    );
+  }
+);
 
 const TEXT_BASE_CLASS =
   "whitespace-pre-wrap break-words text-[14px] leading-relaxed text-text-1";
 
 const UserMessageContent: React.FC<UserMessageContentProps> = memo(
-  ({ text, images }) => {
+  ({ text, images, mentions }) => {
     const normalizedText = useMemo(
       () =>
         normalizeMarkdownReferencePills(normalizeUserMessageText(text, images)),
       [images, text]
     );
-    const segments = useMemo(
-      () => parseNormalizedUserMessage(normalizedText),
-      [normalizedText]
-    );
+    const segments = useMemo(() => {
+      const parsed = parseNormalizedUserMessage(normalizedText);
+      return mentions?.length ? splitMentionSegments(parsed, mentions) : parsed;
+    }, [normalizedText, mentions]);
     const hasImages = images && images.length > 0;
     const canvasSelectionJson = segments.find(
       (segment): segment is PillSegment =>
@@ -629,7 +724,7 @@ const UserMessageContent: React.FC<UserMessageContentProps> = memo(
     )?.terminalText;
 
     // Fast path: no pills and no images, render plain text
-    const hasPills = segments.some((s) => s.kind === "pill");
+    const hasPills = segments.some((s) => s.kind !== "text");
     if (!hasPills && !hasImages) {
       return <span className={TEXT_BASE_CLASS}>{normalizedText}</span>;
     }
@@ -648,6 +743,8 @@ const UserMessageContent: React.FC<UserMessageContentProps> = memo(
             {segments.map((segment, idx) =>
               segment.kind === "text" ? (
                 <React.Fragment key={idx}>{segment.text}</React.Fragment>
+              ) : segment.kind === "mention" ? (
+                <MentionPill key={idx} segment={segment} />
               ) : (
                 <InlinePill key={idx} segment={segment} />
               )

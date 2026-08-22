@@ -499,7 +499,8 @@
       "forkSnapshotIncomplete": "云端快照不完整。请让所有者完成同步后重试。",
       "forkAgentUnavailable": "请先选择本机 Agent 再分叉。",
       "forkBackendRegistrationFailed": "历史已复制，但可运行的分叉会话注册失败。请重试。",
-      "forkReplayUnavailable": "此会话尚无完整回放。请让所有者共享完整回放后重试。"
+      "forkReplayUnavailable": "此会话尚无完整回放。请让所有者共享完整回放后重试。",
+      "forkSetupReused": "已按上次配置接续 · {{model}}"
     },
     "repoPicker": {
       "loading": "正在加载 repo…",
@@ -882,6 +883,8 @@
       "actionError": "操作失败，请重试",
       "unresolvedBadge_one": "{{count}} 条未解决评论",
       "unresolvedBadge": "{{count}} 条未解决评论",
+      "unreadBadge_one": "{{count}} 条未读消息",
+      "unreadBadge": "{{count}} 条未读消息",
       "addressButton": "处理评论",
       "addressPill_one": "处理 {{count}} 条评论",
       "addressPill_other": "处理 {{count}} 条评论",

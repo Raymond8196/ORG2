@@ -76,6 +76,11 @@ import type {
   RemoteSessionFetchOptions,
 } from "./engine/collabSyncEngineHelpers";
 import { forkSession } from "./engine/collabSyncEngineHelpers";
+import {
+  clearForkSetupMemory,
+  loadForkSetupMemory,
+  saveForkSetupMemory,
+} from "./forkSetupMemory";
 import { ForkOperationError } from "./forkSnapshotIntegrity";
 import {
   resolveLocalCheckoutForScopeKey,
@@ -446,8 +451,19 @@ export async function forkTeammateSession(
   let hasWorkspaceOverride = "workspaceRepoPath" in options;
   let workspaceRepoPath: string | null;
   let execution = options.execution;
+  let usedRememberedSetup = false;
   if (options.promptForExecution) {
-    const setup = await pickForkSessionSetup(options.remoteSession);
+    // Continuation setup is remembered per repo scope: the dialog appears
+    // the first time (and again after a failed remembered run), every later
+    // continuation reuses the confirmed choice silently.
+    const remembered = loadForkSetupMemory(options.remoteSession.repoScopeKey);
+    const setup =
+      remembered ?? (await pickForkSessionSetup(options.remoteSession));
+    if (remembered) {
+      usedRememberedSetup = true;
+    } else {
+      saveForkSetupMemory(options.remoteSession.repoScopeKey, setup);
+    }
     workspaceRepoPath = setup.workspaceRepoPath;
     execution = setup.execution;
     hasWorkspaceOverride = true;
@@ -476,12 +492,39 @@ export async function forkTeammateSession(
     );
   }
   const { promptForExecution: _prompt, ...fetchOptions } = options;
-  const result = await forkSession({
-    ...fetchOptions,
-    workspaceRepoPath,
-    execution,
-  });
+  let result: ForkSessionResult | null;
+  try {
+    result = await forkSession({
+      ...fetchOptions,
+      workspaceRepoPath,
+      execution,
+    });
+  } catch (error) {
+    if (!usedRememberedSetup || !(error instanceof ForkOperationError)) {
+      throw error;
+    }
+    // The remembered setup went stale (checkout moved, account or model
+    // removed). Drop it and fall back to the dialog once.
+    clearForkSetupMemory(options.remoteSession.repoScopeKey);
+    const setup = await pickForkSessionSetup(options.remoteSession);
+    saveForkSetupMemory(options.remoteSession.repoScopeKey, setup);
+    workspaceRepoPath = setup.workspaceRepoPath;
+    execution = setup.execution;
+    if (!execution?.agentDefinitionId) throw error;
+    result = await forkSession({
+      ...fetchOptions,
+      workspaceRepoPath,
+      execution,
+    });
+  }
   if (!result) return null;
+  if (usedRememberedSetup) {
+    Message.info(
+      i18n.t("navigation:collaboration.session.forkSetupReused", {
+        model: execution.model ?? execution.agentDefinitionId,
+      })
+    );
+  }
 
   if (result.modelFallback) {
     const { inheritedModel, fallbackModel } = result.modelFallback;
