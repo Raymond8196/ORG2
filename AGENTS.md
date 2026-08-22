@@ -52,6 +52,10 @@ Review gate: any UI predicate introduced to hide malformed data must cite an exp
 
 ## Default Delivery Flow
 
+### UI copy conventions
+
+- Settings-row descriptions must not end in sentence-ending punctuation (`.` or `。`) in any locale. Internal punctuation between sentences is allowed.
+
 ### Touching `*.tsx` files (UI work)
 
 Before declaring a UI-touching task complete, ask:
