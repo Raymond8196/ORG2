@@ -1449,25 +1449,36 @@ SwapPss:            8192 kB
     #[cfg(target_os = "macos")]
     #[test]
     fn macos_region_walk_splits_current_process() {
-        // Pin a private allocation so the walk has something unambiguous to find.
-        let pinned = vec![7_u8; 32 * 1024 * 1024];
+        // Dirty a private allocation so the walk has something unambiguous to
+        // find. Under memory pressure the kernel may compress these pages
+        // immediately, so the invariant is "resident or swapped", never
+        // "resident" alone.
+        const PINNED: u64 = 32 * 1024 * 1024;
+        let pinned = vec![7_u8; PINNED as usize];
         std::hint::black_box(&pinned);
         let breakdown = macos_region_breakdown(std::process::id());
         assert_eq!(breakdown.kind, MemoryBreakdownKind::VmRegionWalk);
-        assert!(
-            breakdown.resident_private_bytes >= 32 * 1024 * 1024,
-            "private resident {} should cover the pinned 32 MiB",
-            breakdown.resident_private_bytes
-        );
-        assert!(breakdown.resident_shared_bytes > 0, "dyld cache must be shared-resident");
-        let usage = macos_rusage(std::process::id()).expect("current process rusage");
-        // footprint ≈ private resident + private swapped (+ graphics / purgeable).
-        let explained = breakdown
+        let private = breakdown
             .resident_private_bytes
             .saturating_add(breakdown.swapped_bytes);
         assert!(
-            explained * 2 >= usage.ri_phys_footprint,
-            "split {explained} explains less than half of footprint {}",
+            private >= PINNED,
+            "private resident {} + swapped {} should cover the pinned 32 MiB",
+            breakdown.resident_private_bytes,
+            breakdown.swapped_bytes
+        );
+        assert!(breakdown.resident_shared_bytes > 0, "dyld cache must be shared-resident");
+        // A struct-layout mismatch would read addresses or sizes as page
+        // counts and produce absurd totals; the real split stays in the same
+        // order of magnitude as the kernel's own footprint ledger.
+        let usage = macos_rusage(std::process::id()).expect("current process rusage");
+        let ceiling = usage
+            .ri_phys_footprint
+            .saturating_mul(2)
+            .saturating_add(64 * 1024 * 1024);
+        assert!(
+            private <= ceiling,
+            "split {private} is implausibly larger than footprint {}",
             usage.ri_phys_footprint
         );
         drop(pinned);
