@@ -498,6 +498,16 @@ const performSidebarSessionLoad = async (options?: SidebarLoadOptions) => {
   }
 
   const generation = nextSidebarRosterGeneration(store);
+  // A locally-created row can arrive while this request is in flight. Keep
+  // the initial IDs as a boundary so `applyInitialPage` preserves only those
+  // registrations that happened after the read started; older rows still
+  // yield to the response, including legitimate remote deletions.
+  const nativeRosterIdsAtLoadStart = new Map(
+    BASE_SESSION_LIST_CATEGORIES.map((category) => [
+      category,
+      new Set(store.get(sessionPaginationAtom)[category].sessionIds),
+    ])
+  );
   store.set(sessionLoadingAtom, true);
   store.set(sessionErrorAtom, null);
 
@@ -534,8 +544,28 @@ const performSidebarSessionLoad = async (options?: SidebarLoadOptions) => {
   ) => {
     if (generation !== currentSidebarRosterGeneration(store)) return;
     const primarySessions = sessions.filter(isPrimarySessionListSession);
+    const initialSessionIds = primarySessions.map(
+      (session) => session.session_id
+    );
+    const locallyRegisteredIds = isImportedHistoryListCategory(category)
+      ? []
+      : store
+          .get(sessionPaginationAtom)
+          [category].sessionIds.filter((sessionId) => {
+            if (nativeRosterIdsAtLoadStart.get(category)?.has(sessionId)) {
+              return false;
+            }
+            const session = store
+              .get(sessionsAtom)
+              .find((candidate) => candidate.session_id === sessionId);
+            return (
+              session !== undefined &&
+              isPrimarySessionListSession(session) &&
+              sidebarCategoryForSession(session) === category
+            );
+          });
     const sessionIds = [
-      ...new Set(primarySessions.map((session) => session.session_id)),
+      ...new Set([...locallyRegisteredIds, ...initialSessionIds]),
     ];
     if (hasMore && sessionIds.length === 0) {
       throw new Error(
@@ -954,6 +984,21 @@ export function syncSidebarSessionRoster(session: Session): void {
   const store = getStore();
   store.set(sessionPaginationAtom, (previous) =>
     syncSessionWithNativeRosters(previous, session)
+  );
+}
+
+/**
+ * Register a locally-created native session before the next roster read.
+ * Unlike status/pin projections, creation is a membership change and must
+ * remain visible even while the sidebar's first page is still loading.
+ */
+export function registerNewNativeSidebarSession(session: Session): void {
+  if (!isPrimarySessionListSession(session)) return;
+  const store = getStore();
+  store.set(sessionPaginationAtom, (previous) =>
+    syncSessionWithNativeRosters(previous, session, {
+      registerBeforeInitialPage: true,
+    })
   );
 }
 
