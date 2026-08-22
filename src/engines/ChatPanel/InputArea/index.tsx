@@ -11,7 +11,9 @@ import type {
 } from "@src/engines/ChatPanel/hooks/useInputArea/types";
 import { useSessionDiscovery } from "@src/engines/SessionCore";
 import { useSessionId } from "@src/engines/SessionCore/hooks/session";
+import { useSessionCommentsContext } from "@src/features/Org2Cloud/SessionComments/SessionCommentsContext";
 import { ConversationModePill } from "@src/features/Org2Cloud/SessionConversation/ConversationModePill";
+import { buildTeamChatMentionOptions } from "@src/features/Org2Cloud/SessionConversation/teamChatMentions";
 import {
   useConversationComposerMode,
   useConversationSubmitOverride,
@@ -175,9 +177,27 @@ const InputAreaInteractive: React.FC<InputAreaProps> = memo(
     const teamChatActive = conversationMode === "team_chat";
 
     const openedTabMentionOptions = useAtomValue(openedTabMentionOptionsAtom);
+    const comments = useSessionCommentsContext();
+    const mentionableMembers = comments?.mentionableMembers;
+    const viewerUserId = comments?.viewerUserId ?? null;
+    const teamChatMentionOptions = useMemo(
+      () =>
+        teamChatActive && mentionableMembers
+          ? buildTeamChatMentionOptions(
+              mentionableMembers,
+              viewerUserId,
+              t("conversation.mentionGroup")
+            )
+          : [],
+      [teamChatActive, mentionableMembers, viewerUserId, t]
+    );
     const mergedCustomMentionOptions = useMemo(
-      () => [...openedTabMentionOptions, ...(customMentionOptions ?? [])],
-      [openedTabMentionOptions, customMentionOptions]
+      () => [
+        ...openedTabMentionOptions,
+        ...(customMentionOptions ?? []),
+        ...teamChatMentionOptions,
+      ],
+      [openedTabMentionOptions, customMentionOptions, teamChatMentionOptions]
     );
 
     const {

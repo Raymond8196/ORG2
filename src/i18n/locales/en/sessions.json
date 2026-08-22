@@ -3093,6 +3093,7 @@
     "promptTooltip": "Send to the agent",
     "teamChatTooltip": "Message teammates — does not prompt the agent",
     "imagesUnsupported": "Team chat messages cannot include images",
-    "participantsTooltip": "Conversation participants and discussion messages"
+    "participantsTooltip": "Conversation participants and discussion messages",
+    "mentionGroup": "Teammates"
   }
 }

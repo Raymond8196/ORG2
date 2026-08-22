@@ -32,8 +32,10 @@ import {
   SessionLinkCard,
   type SessionLinkCardData,
 } from "@src/engines/ChatPanel/blocks/ToolCallBlock/cards";
+import { useSessionCommentsContext } from "@src/features/Org2Cloud/SessionComments/SessionCommentsContext";
 import type { ConversationSenderStamp } from "@src/features/Org2Cloud/SessionConversation/continuationEvents";
 import { CONVERSATION_SENDER_ARG } from "@src/features/Org2Cloud/SessionConversation/continuationEvents";
+import { discussionPayloadOf } from "@src/features/Org2Cloud/SessionConversation/discussionEvents";
 import { org2CloudAuthAtom } from "@src/features/Org2Cloud/org2CloudAuthAtom";
 import { createCollabAvatarIdentity } from "@src/store/collaboration/protocol";
 import {
@@ -42,7 +44,9 @@ import {
 } from "@src/util/data/formatters/date";
 import { imageRefToRustPath } from "@src/util/file/imageRefs";
 
-import UserMessageContent from "../ChatHistory/components/UserMessageContent";
+import UserMessageContent, {
+  type UserMessageMention,
+} from "../ChatHistory/components/UserMessageContent";
 import InputArea from "../InputArea";
 import { stripExpandedPillContent } from "../InputArea/utils/pillContentParser";
 import RawPromptToggle from "./RawPromptToggle";
@@ -237,6 +241,25 @@ const UserChatItem = ({
   const messageContentRef = useRef<HTMLDivElement | null>(null);
 
   const event = chatItem.event;
+  // Team chat @-mentions: the comment carries account ids; names come from
+  // the org roster so the `@name` text renders as a member pill.
+  const comments = useSessionCommentsContext();
+  const mentionableMembers = comments?.mentionableMembers;
+  const mentionedUserIds = event
+    ? discussionPayloadOf(event)?.mentionedUserIds
+    : undefined;
+  const mentions = useMemo((): UserMessageMention[] | undefined => {
+    if (!mentionedUserIds?.length) return undefined;
+    const resolved: UserMessageMention[] = [];
+    for (const userId of mentionedUserIds) {
+      const member = mentionableMembers?.find(
+        (candidate) => candidate.userId === userId
+      );
+      const displayName = member?.displayName?.trim();
+      if (displayName) resolved.push({ userId, displayName });
+    }
+    return resolved.length > 0 ? resolved : undefined;
+  }, [mentionedUserIds, mentionableMembers]);
   const editedText = event?.displayText
     ? stripExpandedPillContent(String(event.displayText))
     : "";
@@ -479,6 +502,7 @@ const UserChatItem = ({
                     <UserMessageContent
                       text={fullContent}
                       images={messageImages}
+                      mentions={mentions}
                     />
 
                     {displayNeedsTruncation && isExpanded && (

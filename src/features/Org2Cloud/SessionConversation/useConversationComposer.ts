@@ -9,6 +9,7 @@ import {
   type ConversationComposerMode,
   conversationComposerModeAtomFamily,
 } from "./conversationComposerMode";
+import { resolveTeamChatMentions } from "./teamChatMentions";
 
 export function useConversationComposerMode(
   sessionId: string | null
@@ -27,9 +28,10 @@ export function useConversationTeamChatAvailable(): boolean {
 
 /**
  * Composer submit router. Team chat mode posts the text as a session
- * discussion message (comment wire) and mentions the existing participants;
- * Prompt mode falls through to the surface's own override (imported-session
- * fork, group-chat routing) or the default agent submit.
+ * discussion message (comment wire); only explicit `@name` mentions in the
+ * body notify anyone (team inbox). Prompt mode falls through to the
+ * surface's own override (imported-session fork, group-chat routing) or the
+ * default agent submit.
  */
 export function useConversationSubmitOverride(
   sessionId: string | null,
@@ -49,7 +51,14 @@ export function useConversationSubmitOverride(
       }
       const body = input.displayText.trim();
       if (!body) return true;
-      await comments.addComment({ body });
+      const mentionedUserIds = resolveTeamChatMentions(
+        body,
+        comments.mentionableMembers
+      );
+      await comments.addComment({
+        body,
+        ...(mentionedUserIds.length > 0 ? { mentionedUserIds } : {}),
+      });
       return true;
     },
     [mode, comments, fallback, t]

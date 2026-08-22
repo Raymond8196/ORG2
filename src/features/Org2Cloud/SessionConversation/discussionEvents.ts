@@ -29,6 +29,8 @@ export interface DiscussionEventPayload {
   /** Display excerpt of the anchored event; "earlier version" threads keep null id. */
   anchorExcerpt: string | null;
   anchorOrphaned: boolean;
+  /** Account ids the author explicitly @-mentioned (team-inbox targets). */
+  mentionedUserIds: string[];
 }
 
 export function discussionPayloadOf(
@@ -65,6 +67,7 @@ function commentToDiscussionEvent(
     anchorLocalEventId: anchor?.localEventId ?? null,
     anchorExcerpt: anchor?.excerpt ?? null,
     anchorOrphaned: anchor?.orphaned ?? false,
+    mentionedUserIds: comment.mentionedUserIds ?? [],
   };
   const base = {
     id: `${DISCUSSION_ID_PREFIX}${comment.id}`,
