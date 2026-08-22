@@ -36,7 +36,7 @@ use super::history_scan_coordinator::{
     ExternalHistorySourceScanOutcome, ExternalHistorySourceScanResult,
 };
 
-fn open_cache_conn() -> Result<rusqlite::Connection, String> {
+fn open_cache_conn() -> Result<database::db::PooledConnection, String> {
     get_connection().map_err(|err| format!("Failed to open orgtrack source cache DB: {err}"))
 }
 
