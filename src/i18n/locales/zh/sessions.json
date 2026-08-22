@@ -2156,8 +2156,7 @@
       "body": "未安装 Git 或无法找到 Git。请让 ADE Manager 或 SDE Agent 为这台机器安装 Git，然后重启 ORGII。"
     },
     "cliVersionOutdated": {
-      "title": "{{cli}} CLI 需要升级",
-      "body": "当前安装版本：{{installed}}；最新版本：{{latest}}。请自行升级 CLI，再重新扫描后使用较新的模型",
+      "title": "{{cli}} 需要升级（{{installed}} > {{latest}}）",
       "refresh": "重新检查 {{cli}} CLI 版本",
       "unknownVersion": "未知"
     },

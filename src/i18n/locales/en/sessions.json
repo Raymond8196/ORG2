@@ -2183,8 +2183,7 @@
       "body": "Git is not installed or could not be found. Ask ADE Manager or SDE Agent to install Git for this machine, then restart ORGII."
     },
     "cliVersionOutdated": {
-      "title": "{{cli}} CLI needs an upgrade",
-      "body": "Installed version: {{installed}}. Latest version: {{latest}}. Upgrade the CLI, then scan it again before using newer models",
+      "title": "{{cli}} needs an upgrade ({{installed}} > {{latest}})",
       "refresh": "Recheck {{cli}} CLI version",
       "unknownVersion": "unknown"
     },
