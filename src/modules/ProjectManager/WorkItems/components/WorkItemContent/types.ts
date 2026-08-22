@@ -60,7 +60,6 @@ export interface WorkItemContentProps {
   githubIssueInteraction?: GitHubIssueInteractionConfig;
   onOpenSession?: (sessionId: string, title?: string) => void;
   onOpenFileDiff?: (filePath: string) => void;
-  onOpenFileAtLine?: (filePath: string, line?: number) => void;
   onReviewAllFiles?: (filePaths: string[]) => void;
   onRefreshWorkflow?: () => void;
   /**
@@ -112,9 +111,7 @@ export interface OutputTabContentProps {
   shortId?: string | null;
   orgId?: string | null;
   onOpenFileDiff?: (filePath: string) => void;
-  onOpenFileAtLine?: (filePath: string, line?: number) => void;
   onReviewAllFiles?: (filePaths: string[]) => void;
-  onOpenSession?: (sessionId: string, title?: string) => void;
   onCreatePr?: () => Promise<{ url?: string; error?: string }>;
 }
 

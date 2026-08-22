@@ -350,7 +350,6 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
   onOpenSubItem,
   onOpenSession,
   onOpenFileDiff,
-  onOpenFileAtLine,
   onReviewAllFiles,
   onRefreshWorkflow,
   onTransitionHandoff,
@@ -825,9 +824,7 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
       shortId={shortId ?? workItem.shortId}
       orgId={orgId}
       onOpenFileDiff={onOpenFileDiff}
-      onOpenFileAtLine={onOpenFileAtLine}
       onReviewAllFiles={onReviewAllFiles}
-      onOpenSession={onOpenSession}
       onCreatePr={onCreatePr}
     />
   );

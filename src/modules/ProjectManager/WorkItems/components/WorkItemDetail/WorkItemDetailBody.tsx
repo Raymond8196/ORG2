@@ -46,7 +46,6 @@ interface WorkItemDetailBodyProps {
   onUpdateWorkItemImmediate: (updates: Partial<WorkItemExtended>) => void;
   onOpenSession: (sessionId: string, title?: string) => void;
   onOpenFileDiff: (filePath: string) => void;
-  onOpenFileAtLine: (filePath: string, line?: number) => void;
   onReviewAllFiles: (filePaths: string[]) => void;
   onRefreshWorkItem?: () => void;
   onCreatePr: () => Promise<{ url?: string; error?: string }>;
@@ -75,7 +74,6 @@ export function WorkItemDetailBody({
   onUpdateWorkItemImmediate,
   onOpenSession,
   onOpenFileDiff,
-  onOpenFileAtLine,
   onReviewAllFiles,
   onRefreshWorkItem,
   onCreatePr,
@@ -122,7 +120,6 @@ export function WorkItemDetailBody({
               shortId={shortId}
               onOpenSession={onOpenSession}
               onOpenFileDiff={onOpenFileDiff}
-              onOpenFileAtLine={onOpenFileAtLine}
               onReviewAllFiles={onReviewAllFiles}
               onOpenSubItem={onOpenSubItem}
               onRefreshWorkflow={onRefreshWorkItem}

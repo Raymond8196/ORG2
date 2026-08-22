@@ -199,7 +199,6 @@ const WorkItemProperties: React.FC<WorkItemPropertiesProps> = ({
   const handlers = useWorkItemPropertyHandlers({
     workItem,
     onUpdate,
-    availableMembers,
     availableAgents,
     availableOrgs,
     closePicker,
