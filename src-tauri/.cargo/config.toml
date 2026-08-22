@@ -13,6 +13,13 @@
 # For `tauri:build:fast:parallel`, webpack also runs concurrently — that
 # adds ~1 GB, so reduce back to 6 if you see memory pressure.
 #
+# 2026-08-22: set to 4 for 16 GB machines. `tauri:dev` runs this build next
+# to the webpack dev server (5-7 GB on its own), and the build's tail is
+# serialized on the two monolithic crates (agent-core, app_lib) anyway, so
+# extra early parallelism only widens the launch-time memory spike. This
+# file overrides the `jobs = 4` in ~/.cargo/config.toml, so it has to be
+# set here. Raise it locally on a 32 GB+ machine via CARGO_BUILD_JOBS.
+#
 # `incremental = false`: Incremental compilation is intentionally OFF.
 #
 # Symptom it eliminates:
@@ -51,7 +58,7 @@
 # cargo processes running. Re-enabling here permanently will bring
 # the "dep-graph.part.bin: No such file" errors back.
 [build]
-jobs = 8
+jobs = 4
 incremental = false
 
 # ── macOS / Apple Silicon target ─────────────────────────────────────────────
