@@ -127,6 +127,31 @@ function loadSessionsCacheSignature(options?: LoadSessionsOptions): string {
   ].join("\u001f");
 }
 
+/**
+ * The flat-list roster intentionally excludes imported replay copies (their
+ * display entry is the Team Conversations row), but the LOCAL row still owns
+ * the open surface's identity — importedFrom drives the comments target,
+ * fork-before-send routing, and sender attribution. A wholesale roster
+ * replace must therefore carry resident import copies over instead of
+ * evicting them mid-view; explicit removal stays the only way they leave.
+ */
+function preserveImportedReplayRows(
+  prev: readonly Session[],
+  next: Session[]
+): Session[] {
+  const present = new Set(next.map((session) => session.session_id));
+  const preserved = prev.filter(
+    (session) =>
+      !present.has(session.session_id) && Boolean(session.importedFrom)
+  );
+  if (preserved.length === 0) return next;
+  const merged = [...next, ...preserved];
+  merged.sort((sessionA, sessionB) =>
+    (sessionB.updated_at || "").localeCompare(sessionA.updated_at || "")
+  );
+  return merged;
+}
+
 function mergeSessions(
   prev: readonly Session[],
   incoming: readonly Session[]
@@ -409,7 +434,9 @@ export const loadSessions = async (options?: LoadSessionsOptions) => {
       (sessionB.updated_at || "").localeCompare(sessionA.updated_at || "")
     );
 
-    store.set(sessionsAtom, fetched);
+    store.set(sessionsAtom, (prev) =>
+      preserveImportedReplayRows(prev, fetched)
+    );
     persistSessions(fetched);
     store.set(sessionFlatListLastLoadedBySignatureAtom, (prev) => ({
       ...prev,

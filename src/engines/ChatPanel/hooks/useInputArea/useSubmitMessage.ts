@@ -20,8 +20,6 @@ import { useTranslation } from "react-i18next";
 
 import Message from "@src/components/Message";
 import { chatEventsAtom } from "@src/engines/SessionCore";
-import { parseAddressCommentsSlashCommand } from "@src/features/Org2Cloud/addressCommentsSlashToken";
-import { useAddressCommentsSlashCommand } from "@src/features/Org2Cloud/useAddressCommentsSlashCommand";
 import { createLogger } from "@src/hooks/logger";
 import { useSecretScanGuard } from "@src/hooks/security/useSecretScanGuard";
 import { sessionByIdAtom } from "@src/store/session";
@@ -63,7 +61,6 @@ export interface UseSubmitMessageOptions {
   /** Session whose comment threads Address Comments targets when the
    * composer dispatches elsewhere (external-history fork composer, where
    * `draftSessionId` is empty by design). */
-  addressSessionId?: string | null;
   replyTargetEventId: string | undefined;
   flushDraft: (text: string) => Promise<void>;
   clearReplyTarget: () => Promise<void>;
@@ -103,7 +100,6 @@ function lastSerializedPillLabel(rawLabel: string): string {
 export function useSubmitMessage({
   refs,
   draftSessionId,
-  addressSessionId,
   replyTargetEventId,
   flushDraft,
   clearReplyTarget,
@@ -121,10 +117,6 @@ export function useSubmitMessage({
   const submitInFlightKeyRef = useRef<string | null>(null);
   const { runManualCompact } = useManualCompact();
   const guardAgainstSecrets = useSecretScanGuard();
-  const addressComments = useAddressCommentsSlashCommand(
-    draftSessionId || addressSessionId || null
-  );
-
   const submitMessage = useCallback(
     async (options: SubmitMessageOptions = {}) => {
       // Imported teammate replays are intentionally read-only in the event
@@ -178,21 +170,6 @@ export function useSubmitMessage({
             draftSessionId || null,
             compactCommand.instructions
           );
-          return;
-        }
-
-        const addressDraft = parseAddressCommentsSlashCommand(displayText);
-        if (addressDraft) {
-          refs.composerInputRef.current.clear();
-          if (draftSessionId) {
-            void flushDraft("").catch((err: unknown) => {
-              log.warn("[useSubmitMessage] flushDraft(address) failed:", err);
-            });
-          }
-          addressComments.run({
-            selectedHeadIds: addressDraft.selectedHeadIds,
-            instruction: addressDraft.instruction,
-          });
           return;
         }
       }
@@ -502,7 +479,6 @@ export function useSubmitMessage({
       submitDisabled,
       enableAgentInterceptors,
       runManualCompact,
-      addressComments,
     ]
   );
 

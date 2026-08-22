@@ -1,3 +1,4 @@
+import { useAtomValue } from "jotai";
 import {
   ClipboardCheck,
   File,
@@ -31,6 +32,11 @@ import {
   SessionLinkCard,
   type SessionLinkCardData,
 } from "@src/engines/ChatPanel/blocks/ToolCallBlock/cards";
+import { useSessionCommentsContext } from "@src/features/Org2Cloud/SessionComments/SessionCommentsContext";
+import type { ConversationSenderStamp } from "@src/features/Org2Cloud/SessionConversation/continuationEvents";
+import { CONVERSATION_SENDER_ARG } from "@src/features/Org2Cloud/SessionConversation/continuationEvents";
+import { discussionPayloadOf } from "@src/features/Org2Cloud/SessionConversation/discussionEvents";
+import { org2CloudAuthAtom } from "@src/features/Org2Cloud/org2CloudAuthAtom";
 import { createCollabAvatarIdentity } from "@src/store/collaboration/protocol";
 import {
   formatSmartDateTime,
@@ -38,7 +44,9 @@ import {
 } from "@src/util/data/formatters/date";
 import { imageRefToRustPath } from "@src/util/file/imageRefs";
 
-import UserMessageContent from "../ChatHistory/components/UserMessageContent";
+import UserMessageContent, {
+  type UserMessageMention,
+} from "../ChatHistory/components/UserMessageContent";
 import InputArea from "../InputArea";
 import { stripExpandedPillContent } from "../InputArea/utils/pillContentParser";
 import RawPromptToggle from "./RawPromptToggle";
@@ -46,6 +54,18 @@ import { useSharedConversationSender } from "./SharedConversationSenderContext";
 import { normalizeUserMessageText } from "./normalizeUserMessageText";
 import { resolveRawUserPrompt } from "./rawUserPrompt";
 import { resolveUserMessageSide } from "./userMessageSide";
+
+function readConversationSenderStamp(
+  event: { args?: Record<string, unknown> } | undefined
+): ConversationSenderStamp | null {
+  const raw = event?.args?.[CONVERSATION_SENDER_ARG];
+  if (!raw || typeof raw !== "object") return null;
+  const stamp = raw as Partial<ConversationSenderStamp>;
+  return typeof stamp.userId === "string" &&
+    typeof stamp.displayName === "string"
+    ? (stamp as ConversationSenderStamp)
+    : null;
+}
 
 const USER_MSG_MAX_LINES = 3;
 const USER_MSG_MAX_CHARS = 120;
@@ -207,6 +227,7 @@ const UserChatItem = ({
 }: UserChatItemProps) => {
   const { t, i18n } = useTranslation("sessions");
   const sharedConversationSender = useSharedConversationSender();
+  const viewerCloudUserId = useAtomValue(org2CloudAuthAtom)?.userId ?? null;
   const [isEditing, setIsEditing] = useState(false);
 
   const [isExpanded, setIsExpanded] = useState(false);
@@ -220,6 +241,25 @@ const UserChatItem = ({
   const messageContentRef = useRef<HTMLDivElement | null>(null);
 
   const event = chatItem.event;
+  // Team chat @-mentions: the comment carries account ids; names come from
+  // the org roster so the `@name` text renders as a member pill.
+  const comments = useSessionCommentsContext();
+  const mentionableMembers = comments?.mentionableMembers;
+  const mentionedUserIds = event
+    ? discussionPayloadOf(event)?.mentionedUserIds
+    : undefined;
+  const mentions = useMemo((): UserMessageMention[] | undefined => {
+    if (!mentionedUserIds?.length) return undefined;
+    const resolved: UserMessageMention[] = [];
+    for (const userId of mentionedUserIds) {
+      const member = mentionableMembers?.find(
+        (candidate) => candidate.userId === userId
+      );
+      const displayName = member?.displayName?.trim();
+      if (displayName) resolved.push({ userId, displayName });
+    }
+    return resolved.length > 0 ? resolved : undefined;
+  }, [mentionedUserIds, mentionableMembers]);
   const editedText = event?.displayText
     ? stripExpandedPillContent(String(event.displayText))
     : "";
@@ -380,7 +420,9 @@ const UserChatItem = ({
     onEditSubmit &&
     !isRepoSetup &&
     !isAgentOrgInboxTranscript &&
-    !isPlanApproved
+    !isPlanApproved &&
+    !event?.args?.["sessionDiscussion"] &&
+    !readConversationSenderStamp(event)
   );
   const hasDisplayContent = Boolean(
     fullContent.trim() ||
@@ -392,10 +434,20 @@ const UserChatItem = ({
   if (!hasDisplayContent) return null;
 
   const displayNeedsTruncation = needsTruncation;
-  const messageSide = resolveUserMessageSide(event);
+  const senderStamp = readConversationSenderStamp(event);
+  const stampIsViewer = Boolean(
+    senderStamp && viewerCloudUserId && senderStamp.userId === viewerCloudUserId
+  );
+  const messageSide = senderStamp
+    ? stampIsViewer
+      ? "right"
+      : "left"
+    : resolveUserMessageSide(event);
   const isRemoteSharedMessage = messageSide === "left";
   const senderName =
-    sharedConversationSender?.displayName.trim() || "Shared user";
+    senderStamp?.displayName.trim() ||
+    sharedConversationSender?.displayName.trim() ||
+    "Shared user";
   const senderAvatar = createCollabAvatarIdentity(senderName);
 
   const containerClass = `${DISPLAY_CONTAINER_BASE} ${isEditableDisplay ? "cursor-pointer outline-none" : ""}`;
@@ -450,6 +502,7 @@ const UserChatItem = ({
                     <UserMessageContent
                       text={fullContent}
                       images={messageImages}
+                      mentions={mentions}
                     />
 
                     {displayNeedsTruncation && isExpanded && (
@@ -581,7 +634,12 @@ const UserChatItem = ({
               {senderAvatar.initials}
             </Avatar>
           </span>
-          <div className="flex min-w-0 flex-col items-start">{display}</div>
+          <div className="flex min-w-0 flex-col items-start">
+            <span className="mb-0.5 text-xs font-medium text-text-3">
+              {senderName}
+            </span>
+            {display}
+          </div>
         </div>
       ) : (
         display
