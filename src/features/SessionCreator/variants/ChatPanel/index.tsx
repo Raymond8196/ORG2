@@ -57,6 +57,7 @@ import { useChatPanelBranchSync } from "./useChatPanelBranchSync";
 import { useChatPanelDraftRestore } from "./useChatPanelDraftRestore";
 import { useChatPanelHeroPresentation } from "./useChatPanelHeroPresentation";
 import { useChatPanelLaunch } from "./useChatPanelLaunch";
+import { useChatPanelMultiRunner } from "./useChatPanelMultiRunner";
 import { useChatPanelWorktreeSelection } from "./useChatPanelWorktreeSelection";
 import { useCliAgentConfiguration } from "./useCliAgentConfiguration";
 import { useSessionCreatorChatPanelHandlers } from "./useSessionCreatorChatPanelHandlers";
@@ -84,7 +85,9 @@ const SessionCreatorChatPanelContent: React.FC<
   includeHumanSession = true,
   initialContent,
   dropdownDirection = "down",
+  multiRunnerLauncher = false,
   onCreateWorkItem,
+  onExitMultiRunner,
   onOpenCliTerminal,
   onRegionNoticeChange,
   onSessionStart,
@@ -208,6 +211,8 @@ const SessionCreatorChatPanelContent: React.FC<
     attachedImages,
     handleImagePaste,
     removeImage,
+    clearImages,
+    editorContent,
     canLaunch,
     slashCommandKeyboardHandlerRef,
     showSlashMenu,
@@ -390,15 +395,59 @@ const SessionCreatorChatPanelContent: React.FC<
     targetKind,
   });
 
+  const composerImageDataUrls = useMemo(
+    () => attachedImages.map((image) => image.dataUrl),
+    [attachedImages]
+  );
+
+  const multiRunner = useChatPanelMultiRunner({
+    enabled: multiRunnerLauncher && !isHumanMode,
+    advancedConfig,
+    allAgents: allAgentDefinitions,
+    cliAgents: enabledCliAgentList,
+    cliAgentType,
+    composerInputRef,
+    dispatchCategory,
+    editorContent,
+    effectiveSource,
+    imageDataUrls: composerImageDataUrls,
+    clearImages,
+    selectedAgentDefinitionId: selectedAgentDefId,
+    sessionName: "",
+    workItemContext:
+      attachedWorkItemContext ?? workItemContext ?? chatPanelLaunchContext,
+    resolveWorkItemContext,
+    onWorktreeLocationChange: handleWorktreeLocationChange,
+    onExit: onExitMultiRunner ?? (() => undefined),
+    t,
+  });
+
+  // In multi mode the launcher's own `canLaunch` is the wrong gate: it checks
+  // the GLOBAL model selection, which multi mode hides because each row owns
+  // its own. Row readiness is `multiRunner.canLaunch`; what remains here is the
+  // prompt.
+  const hasPromptContent = editorContent.trim().length > 0;
+  const composerCanLaunch = multiRunner.isActive
+    ? hasPromptContent && multiRunner.canLaunch
+    : canLaunch;
+
+  const handleComposerLaunch = useCallback(() => {
+    if (multiRunner.isActive) {
+      void multiRunner.launchGroup();
+      return;
+    }
+    void handleLaunch();
+  }, [handleLaunch, multiRunner]);
+
   return (
     <SessionCreatorChatPanelView
       agentHeroRef={agentHeroRef}
       browserElementScrollNav={browserElementScrollNav}
-      canLaunch={isHumanMode ? humanNoteHasContent : canLaunch}
+      canLaunch={isHumanMode ? humanNoteHasContent : composerCanLaunch}
       centerFullScreenContent={centerFullScreenContent}
       className={className}
       cliLaunchModeSwitch={
-        isCliMode ? (
+        isCliMode && !multiRunner.isActive ? (
           <CliLaunchModeSwitch
             mode={cliLaunchMode}
             supportsGui={
@@ -447,7 +496,7 @@ const SessionCreatorChatPanelContent: React.FC<
         onContentChange: handleContentChangeWithTracking,
         onAtMention: handleAtMention,
         onAtMentionClose: handleAtMentionClose,
-        onSubmit: handleLaunch,
+        onSubmit: handleComposerLaunch,
         showContextMenu,
         setShowContextMenu,
         atSearchQuery,
@@ -456,8 +505,10 @@ const SessionCreatorChatPanelContent: React.FC<
         repoPath: currentRepoPath,
         onAtMentionClick: handleAtMentionClick,
         onUploadClick: isHumanMode ? () => undefined : handleUploadClick,
-        isLoading: isHumanMode ? humanCreating : isLoading,
-        onLaunch: handleLaunch,
+        isLoading: isHumanMode
+          ? humanCreating
+          : isLoading || multiRunner.isLaunching,
+        onLaunch: handleComposerLaunch,
         advancedConfig,
         onAdvancedConfigChange: handleAdvancedConfigChange,
         hideInfoLine: true,
@@ -470,11 +521,13 @@ const SessionCreatorChatPanelContent: React.FC<
         onImagePaste: isHumanMode ? undefined : handleImagePaste,
         attachedImages: isHumanMode ? [] : attachedImages,
         onRemoveImage: isHumanMode ? undefined : removeImage,
-        launchDisabled: isHumanMode ? !humanNoteHasContent : !canLaunch,
+        launchDisabled: isHumanMode ? !humanNoteHasContent : !composerCanLaunch,
         launchAriaLabel: isHumanMode
           ? t("humanSession.createAction")
           : undefined,
-        hideModelSourcePill: isHumanMode,
+        // Model belongs to a runner in multi mode; a second picker in the
+        // composer would be lying about which runner it applies to.
+        hideModelSourcePill: isHumanMode || multiRunner.isActive,
         editorPlaceholder: isHumanMode
           ? t("humanSession.createPlaceholder")
           : undefined,
@@ -510,16 +563,19 @@ const SessionCreatorChatPanelContent: React.FC<
       isCategorySelectorOpen={isCategorySelectorOpen}
       isCliTuiMode={isCliTuiMode}
       isFullScreenVariant={isFullScreenVariant}
-      isLoading={isHumanMode ? humanCreating : isLoading}
+      isLoading={
+        isHumanMode ? humanCreating : isLoading || multiRunner.isLaunching
+      }
       isLaunchpadLayout={layout === "launchpad"}
       isOrgMembersPanelOpen={isOrgMembersPanelOpen}
       isWingmanMode={isWingmanMode}
       leadingActionSlot={leadingActionSlot}
+      multiRunnerContent={multiRunner.middleContent}
       onAttachedWorkItemContextChange={setAttachedWorkItemContext}
       onCategoryPickerOpen={() => setIsCategorySelectorOpen(true)}
       onCreateWorkItem={onCreateWorkItem}
       onFileUpload={handleFileUpload}
-      onLaunch={handleLaunch}
+      onLaunch={handleComposerLaunch}
       onShareScreen={() => handleShareScreenClick().catch(log.error)}
       onToggleOrgMembers={handleToggleOrgMembers}
       pinnedActionsContent={isHumanMode ? undefined : pinnedActionsContent}
@@ -566,14 +622,21 @@ const SessionCreatorChatPanelContent: React.FC<
           isOSMode && !sessionRepoId ? undefined : effectiveBranchName,
         branchLoading: branchLoading && !effectiveBranchName,
         onBranchChange: handleBranchChange,
-        worktreeLocation: isDisplayedSystemPath ? undefined : runningLocation,
+        // Multi-runner always isolates (see useMultiRunnerLaunch); the pill
+        // reports that rather than the launcher's stored preference.
+        worktreeLocation: isDisplayedSystemPath
+          ? undefined
+          : multiRunner.isActive
+            ? "worktree"
+            : runningLocation,
         worktreeSourceLabel:
-          runningLocation === "worktree"
+          multiRunner.worktreeSourceLabel ??
+          (runningLocation === "worktree"
             ? activeWorktreeSelection?.source.label
-            : undefined,
+            : undefined),
         selectedWorktreePath:
           activeWorktreeSelection?.source.existingWorktreePath ?? null,
-        onWorktreeLocationChange: handleWorktreeLocationChange,
+        onWorktreeLocationChange: multiRunner.handleWorktreeLocationChange,
         onWorktreeSourceSelect: handleWorktreeSourceSelect,
         fullWidth: true,
       }}

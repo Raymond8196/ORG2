@@ -2090,8 +2090,8 @@
       "agentSession": "Phiên Agent",
       "manageAgents": "Quản lý Agents / Skills",
       "project": "Tạo dự án",
-      "workItem": "Tạo Work Item",
-      "benchmark": "Benchmark (Beta)"
+      "parallelRun": "Chạy song song",
+      "workItem": "Tạo Work Item"
     },
     "worktreeSource": {
       "title": "Tạo cây làm việc",
@@ -2304,93 +2304,34 @@
       "worktree": "Worktree",
       "lockedHint": "Worktree đã được khóa cho phiên này"
     },
-    "benchmark": {
-      "title": "Benchmark",
-      "description": "Browse SWE-bench Pro tasks, choose what to run, and check the local benchmark environment before evaluation.",
-      "phaseLabel": "Task browser",
-      "sourcePath": "Thư mục benchmark",
-      "evaluationMode": "Evaluation mode",
-      "evaluationModes": {
-        "patchOnly": "Patch only",
-        "localDocker": "Local Docker",
-        "modal": "Modal"
-      },
-      "loadTasks": "Load tasks",
-      "runPreflight": "Run preflight",
-      "loading": "Loading...",
-      "checking": "Checking...",
-      "searchPlaceholder": "Search task ID, title, or repo",
-      "loadedTasks": "{{count}} tasks loaded",
-      "emptyTasks": "No tasks found.",
-      "words": "{{count}} words",
-      "noTaskSelected": "No task selected",
-      "taskStats": "{{words}} words · {{chars}} chars",
-      "preflightTitle": "Preflight checks",
-      "ready": "Ready",
-      "needsSetup": "Needs setup",
-      "selectTaskHint": "Select a task to preview the benchmark question.",
-      "taskSelectionTitle": "Benchmark tasks",
-      "taskSelectionDescription": "Chọn một tác vụ benchmark, rồi mở tab WorkStation để xem trước chi tiết trước khi chạy.",
-      "taskSelectStubOption": "Chọn tác vụ benchmark",
-      "openWorkstationTab": "View Benchmark",
-      "unknownRepo": "Unknown repo",
-      "runPanelTitle": "Docker run",
-      "runPanelDescription": "Evaluate patch output against {{taskId}} with local Docker.",
-      "patchInputTitle": "Patch content",
-      "patchInputPlaceholder": "Paste a unified diff patch to evaluate with SWE-bench Pro Docker.",
-      "localDocker": "Local Docker",
-      "preflightSummary": "{{ready}}/{{total}} checks ready",
-      "createRunPlan": "Create run plan",
-      "runWithDocker": "Run with Docker",
-      "runPlanTitle": "Run plan",
-      "runStatusTitle": "Run status",
-      "noRunLogs": "No logs yet",
-      "runIdLabel": "Run",
-      "processIdLabel": "PID",
-      "resultLabel": "Result",
-      "resultPassed": "Passed",
-      "resultFailed": "Failed",
-      "noParsedResult": "No parsed result yet",
-      "evaluationModeTitle": "Chế độ chạy",
-      "patchOnlyWorktree": "Patch-only Worktree",
-      "patchOnlyWorktreeDescription": "Tạo Git Worktree cô lập tại base commit của tác vụ và áp dụng patch. Không chạy bộ test chính thức.",
-      "localDockerDescription": "Chạy evaluator chính thức của SWE-bench Pro qua Docker cục bộ.",
-      "targetRepoPathTitle": "Đường dẫn Repo đích",
-      "targetRepoPathPlaceholder": "/Users/you/Documents/GitHub/project-repo",
-      "applyInWorktree": "Áp dụng trong Worktree",
-      "worktreePathLabel": "Worktree",
-      "singleRun": "Chạy đơn",
-      "batchRun": "Chạy hàng loạt",
-      "sourcePathPlaceholder": "Đường dẫn tới thư mục benchmark",
-      "workingDirectory": "Thư mục làm việc",
-      "workingDirectoryPlaceholder": "Đường dẫn để Agent clone hoặc sửa đổi repo",
-      "localPath": "đường dẫn cục bộ",
-      "runType": "Kiểu chạy",
-      "kindTitle": "Benchmark",
-      "kinds": {
-        "sweBenchPro": "SWE-bench Pro",
-        "terminalBench": "Terminal-Bench"
-      },
-      "selectedTasks": "Đã chọn {{selected}}/{{total}}",
-      "concurrency": "Song song",
-      "taskLoadingUnsupported": "Chưa thể tải tác vụ cho benchmark này; hãy dùng preflight để kiểm tra nguồn cục bộ.",
-      "attemptTitle": "Attempt",
-      "batchProgress": "Tổng {{total}} · {{queued}} đang chờ · {{running}} đang chạy · {{launched}} đã khởi chạy · {{failed}} thất bại · {{cancelled}} đã hủy",
-      "sessionGroupTitle": "Benchmark sessions",
-      "sessionGroupProgress": "Tổng {{total}} · {{queued}} đang chờ · {{running}} đang chạy · {{launched}} đã khởi chạy · {{failed}} thất bại · {{cancelled}} đã hủy",
-      "evaluateSubmitted": "Đánh giá",
-      "evaluatingSubmitted": "Đang đánh giá bản vá...",
-      "taskActionPlaceholder": "Task IDs for add/remove/stop/restart",
-      "sessionLabel": "Session: {{sessionId}}",
-      "noSessionYet": "Chưa có Session",
-      "testResultPending": "Đang chờ kết quả kiểm thử",
-      "taskBreadcrumb": "{{attempt}} > {{task}}"
-    },
     "skillsAndTools": "Skills và công cụ",
     "agentSpotlightViewMode": "Chế độ xem Agent",
     "agentSpotlightListView": "Dạng danh sách",
     "agentSpotlightCardView": "Dạng thẻ",
-    "agentSpotlightCardHint": "Dùng ←/→ hoặc ↑/↓ để chuyển Agent. Nhấn Enter để chọn."
+    "agentSpotlightCardHint": "Dùng ←/→ hoặc ↑/↓ để chuyển Agent. Nhấn Enter để chọn.",
+    "multiRunner": {
+      "exit": "Quay lại một tác nhân",
+      "addRunner": "Thêm runner",
+      "removeRunner": "Xóa runner",
+      "selectHarness": "Chọn tác nhân",
+      "pickHarness": "Chọn một tác nhân",
+      "parallelCount": "chạy song song · {{count}} trên {{max}}",
+      "launchpadQuestion": "Bạn muốn xây dựng gì với {{count}} runner?",
+      "worktreePerRunner": "Mỗi runner một worktree",
+      "worktreeForced": "Chạy song song luôn cấp cho mỗi runner một worktree riêng.",
+      "blocker": {
+        "noHarness": "Hãy chọn tác nhân",
+        "noModel": "Hãy chọn mô hình",
+        "cliNotInstalled": "{{cli}} chưa được cài đặt",
+        "cliNoGui": "{{cli}} không có chế độ GUI"
+      },
+      "launchError": {
+        "noPrompt": "Hãy mô tả điều bạn muốn các runner xây dựng",
+        "promptTooLong": "Mô tả công việc phải dưới 10.000 ký tự",
+        "noRepo": "Hãy chọn một kho lưu trữ — mỗi runner cần worktree riêng",
+        "notEnoughRunners": "Hãy thiết lập ít nhất hai runner có thể chạy"
+      }
+    }
   },
   "planner": {
     "tabs": {
@@ -2914,6 +2855,24 @@
       "speed": "Table speed",
       "speed_normal": "Normal",
       "speed_fast": "Fast"
+    }
+  },
+  "runGroup": {
+    "open": "Mở",
+    "stop": "Dừng",
+    "stopAll": "Dừng tất cả",
+    "runAgain": "Chạy lại",
+    "stopFailed": "Không thể dừng lần chạy này",
+    "subtitle": "Đã khởi động {{count}} trên {{total}} runner",
+    "missingTitle": "Nhóm chạy không khả dụng",
+    "missingBody": "Nhóm chạy này không còn được lưu trên máy này.",
+    "state": {
+      "running": "Đang chạy",
+      "done": "Hoàn tất",
+      "failed": "Thất bại",
+      "stopped": "Đã dừng",
+      "skipped": "Đã bỏ qua",
+      "pending": "Đang khởi động"
     }
   }
 }

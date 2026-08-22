@@ -2092,8 +2092,8 @@
       "agentSession": "Agent 세션",
       "manageAgents": "Agents / Skills 관리",
       "project": "프로젝트 만들기",
-      "workItem": "Work Item 만들기",
-      "benchmark": "Benchmark (Beta)"
+      "parallelRun": "병렬 실행",
+      "workItem": "Work Item 만들기"
     },
     "worktreeSource": {
       "title": "워크트리 만들기",
@@ -2306,93 +2306,34 @@
       "worktree": "Worktree",
       "lockedHint": "이 세션에서 Worktree가 잠겨 있습니다"
     },
-    "benchmark": {
-      "title": "Benchmark",
-      "description": "Browse SWE-bench Pro tasks, choose what to run, and check the local benchmark environment before evaluation.",
-      "phaseLabel": "Task browser",
-      "sourcePath": "Benchmark 폴더",
-      "evaluationMode": "Evaluation mode",
-      "evaluationModes": {
-        "patchOnly": "Patch only",
-        "localDocker": "Local Docker",
-        "modal": "Modal"
-      },
-      "loadTasks": "Load tasks",
-      "runPreflight": "Run preflight",
-      "loading": "Loading...",
-      "checking": "Checking...",
-      "searchPlaceholder": "Search task ID, title, or repo",
-      "loadedTasks": "{{count}} tasks loaded",
-      "emptyTasks": "No tasks found.",
-      "words": "{{count}} words",
-      "noTaskSelected": "No task selected",
-      "taskStats": "{{words}} words · {{chars}} chars",
-      "preflightTitle": "Preflight checks",
-      "ready": "Ready",
-      "needsSetup": "Needs setup",
-      "selectTaskHint": "Select a task to preview the benchmark question.",
-      "taskSelectionTitle": "Benchmark tasks",
-      "taskSelectionDescription": "benchmark 작업을 선택한 다음 WorkStation 탭을 열어 실행 전에 세부 정보를 미리 봅니다.",
-      "taskSelectStubOption": "benchmark 작업 선택",
-      "openWorkstationTab": "View Benchmark",
-      "unknownRepo": "Unknown repo",
-      "runPanelTitle": "Docker run",
-      "runPanelDescription": "Evaluate patch output against {{taskId}} with local Docker.",
-      "patchInputTitle": "Patch content",
-      "patchInputPlaceholder": "Paste a unified diff patch to evaluate with SWE-bench Pro Docker.",
-      "localDocker": "Local Docker",
-      "preflightSummary": "{{ready}}/{{total}} checks ready",
-      "createRunPlan": "Create run plan",
-      "runWithDocker": "Run with Docker",
-      "runPlanTitle": "Run plan",
-      "runStatusTitle": "Run status",
-      "noRunLogs": "No logs yet",
-      "runIdLabel": "Run",
-      "processIdLabel": "PID",
-      "resultLabel": "Result",
-      "resultPassed": "Passed",
-      "resultFailed": "Failed",
-      "noParsedResult": "No parsed result yet",
-      "evaluationModeTitle": "실행 모드",
-      "patchOnlyWorktree": "Patch-only Worktree",
-      "patchOnlyWorktreeDescription": "작업의 base commit에 격리된 Git Worktree를 만들고 patch를 적용합니다. 공식 테스트는 실행하지 않습니다.",
-      "localDockerDescription": "로컬 Docker로 공식 SWE-bench Pro evaluator를 실행합니다.",
-      "targetRepoPathTitle": "대상 Repo 경로",
-      "targetRepoPathPlaceholder": "/Users/you/Documents/GitHub/project-repo",
-      "applyInWorktree": "Worktree에 적용",
-      "worktreePathLabel": "Worktree",
-      "singleRun": "단일 실행",
-      "batchRun": "배치 실행",
-      "sourcePathPlaceholder": "Benchmark 폴더 경로",
-      "workingDirectory": "작업 디렉터리",
-      "workingDirectoryPlaceholder": "Agent가 Repo를 클론하거나 수정할 경로",
-      "localPath": "로컬 경로",
-      "runType": "실행 유형",
-      "kindTitle": "Benchmark",
-      "kinds": {
-        "sweBenchPro": "SWE-bench Pro",
-        "terminalBench": "Terminal-Bench"
-      },
-      "selectedTasks": "{{selected}}/{{total}}개 선택됨",
-      "concurrency": "병렬 수",
-      "taskLoadingUnsupported": "이 Benchmark에서는 아직 작업 로드를 사용할 수 없습니다. preflight로 로컬 소스를 확인하세요.",
-      "attemptTitle": "Attempt",
-      "batchProgress": "총 {{total}}개 · 대기 {{queued}}개 · 실행 중 {{running}}개 · 시작됨 {{launched}}개 · 실패 {{failed}}개 · 취소 {{cancelled}}개",
-      "sessionGroupTitle": "Benchmark sessions",
-      "sessionGroupProgress": "총 {{total}}개 · 대기 {{queued}}개 · 실행 중 {{running}}개 · 시작됨 {{launched}}개 · 실패 {{failed}}개 · 취소 {{cancelled}}개",
-      "evaluateSubmitted": "평가",
-      "evaluatingSubmitted": "패치 평가 중...",
-      "taskActionPlaceholder": "Task IDs for add/remove/stop/restart",
-      "sessionLabel": "Session: {{sessionId}}",
-      "noSessionYet": "아직 Session 없음",
-      "testResultPending": "테스트 결과 대기 중",
-      "taskBreadcrumb": "{{attempt}} > {{task}}"
-    },
     "skillsAndTools": "Skills 및 도구",
     "agentSpotlightViewMode": "Agent view mode",
     "agentSpotlightListView": "List view",
     "agentSpotlightCardView": "Card view",
-    "agentSpotlightCardHint": "Use ←/→ or ↑/↓ to shuffle Agents. Press Enter to select."
+    "agentSpotlightCardHint": "Use ←/→ or ↑/↓ to shuffle Agents. Press Enter to select.",
+    "multiRunner": {
+      "exit": "단일 에이전트로 돌아가기",
+      "addRunner": "러너 추가",
+      "removeRunner": "러너 제거",
+      "selectHarness": "에이전트 선택",
+      "pickHarness": "에이전트 선택",
+      "parallelCount": "병렬 실행 · {{count}} / {{max}}",
+      "launchpadQuestion": "{{count}}개의 러너로 무엇을 만들까요?",
+      "worktreePerRunner": "러너별 워크트리",
+      "worktreeForced": "병렬 실행은 항상 각 러너에 자체 워크트리를 제공합니다.",
+      "blocker": {
+        "noHarness": "에이전트를 선택하세요",
+        "noModel": "모델을 선택하세요",
+        "cliNotInstalled": "{{cli}}이(가) 설치되어 있지 않습니다",
+        "cliNoGui": "{{cli}}은(는) GUI 모드를 지원하지 않습니다"
+      },
+      "launchError": {
+        "noPrompt": "러너가 무엇을 만들지 설명하세요",
+        "promptTooLong": "작업 설명은 10,000자 미만이어야 합니다",
+        "noRepo": "저장소를 선택하세요 — 각 러너에는 자체 워크트리가 필요합니다",
+        "notEnoughRunners": "실행 가능한 러너를 두 개 이상 설정하세요"
+      }
+    }
   },
   "planner": {
     "tabs": {
@@ -2917,6 +2858,24 @@
       "speed": "Table speed",
       "speed_normal": "Normal",
       "speed_fast": "Fast"
+    }
+  },
+  "runGroup": {
+    "open": "열기",
+    "stop": "중지",
+    "stopAll": "모두 중지",
+    "runAgain": "다시 실행",
+    "stopFailed": "이 실행을 중지하지 못했습니다",
+    "subtitle": "러너 {{total}}개 중 {{count}}개 시작됨",
+    "missingTitle": "실행 그룹을 사용할 수 없습니다",
+    "missingBody": "이 실행 그룹은 이 컴퓨터에 더 이상 저장되어 있지 않습니다.",
+    "state": {
+      "running": "실행 중",
+      "done": "완료",
+      "failed": "실패",
+      "stopped": "중지됨",
+      "skipped": "건너뜀",
+      "pending": "시작 중"
     }
   }
 }

@@ -2144,8 +2144,8 @@
       "agentSession": "Agent 会话",
       "manageAgents": "管理 Agent / Skills",
       "project": "创建项目",
-      "workItem": "创建 Work Item",
-      "benchmark": "Benchmark (Beta)"
+      "parallelRun": "并行运行",
+      "workItem": "创建 Work Item"
     },
     "worktreeSource": {
       "title": "创建工作树",
@@ -2365,93 +2365,34 @@
       "cancel": "取消"
     },
     "viewDiff": "查看 Diff",
-    "benchmark": {
-      "title": "Benchmark",
-      "description": "Browse SWE-bench Pro tasks, choose what to run, and check the local benchmark environment before evaluation.",
-      "phaseLabel": "Task browser",
-      "sourcePath": "Benchmark 文件夹",
-      "evaluationMode": "Evaluation mode",
-      "evaluationModes": {
-        "patchOnly": "Patch only",
-        "localDocker": "Local Docker",
-        "modal": "Modal"
-      },
-      "loadTasks": "Load tasks",
-      "runPreflight": "Run preflight",
-      "loading": "Loading...",
-      "checking": "Checking...",
-      "searchPlaceholder": "Search task ID, title, or repo",
-      "loadedTasks": "{{count}} tasks loaded",
-      "emptyTasks": "No tasks found.",
-      "words": "{{count}} words",
-      "noTaskSelected": "No task selected",
-      "taskStats": "{{words}} words · {{chars}} chars",
-      "preflightTitle": "Preflight checks",
-      "ready": "Ready",
-      "needsSetup": "Needs setup",
-      "selectTaskHint": "Select a task to preview the benchmark question.",
-      "taskSelectionTitle": "Benchmark tasks",
-      "taskSelectionDescription": "选择一个 benchmark 任务，然后打开 WorkStation 标签页，在运行前预览详情。",
-      "taskSelectStubOption": "选择 benchmark 任务",
-      "openWorkstationTab": "View Benchmark",
-      "unknownRepo": "Unknown repo",
-      "runPanelTitle": "Docker run",
-      "runPanelDescription": "Evaluate patch output against {{taskId}} with local Docker.",
-      "patchInputTitle": "Patch content",
-      "patchInputPlaceholder": "Paste a unified diff patch to evaluate with SWE-bench Pro Docker.",
-      "localDocker": "Local Docker",
-      "preflightSummary": "{{ready}}/{{total}} checks ready",
-      "createRunPlan": "Create run plan",
-      "runWithDocker": "Run with Docker",
-      "runPlanTitle": "Run plan",
-      "runStatusTitle": "Run status",
-      "noRunLogs": "No logs yet",
-      "runIdLabel": "Run",
-      "processIdLabel": "PID",
-      "resultLabel": "Result",
-      "resultPassed": "Passed",
-      "resultFailed": "Failed",
-      "noParsedResult": "No parsed result yet",
-      "evaluationModeTitle": "运行模式",
-      "patchOnlyWorktree": "Patch-only Worktree",
-      "patchOnlyWorktreeDescription": "在任务 base commit 创建隔离 Git Worktree 并应用 patch；不会运行官方测试。",
-      "localDockerDescription": "通过本地 Docker 运行官方 SWE-bench Pro evaluator。",
-      "targetRepoPathTitle": "目标 Repo 路径",
-      "targetRepoPathPlaceholder": "/Users/you/Documents/GitHub/project-repo",
-      "applyInWorktree": "应用到 Worktree",
-      "worktreePathLabel": "Worktree",
-      "singleRun": "单次运行",
-      "batchRun": "批量运行",
-      "sourcePathPlaceholder": "Benchmark 文件夹路径",
-      "workingDirectory": "工作目录",
-      "workingDirectoryPlaceholder": "Agent 克隆或修改仓库的路径",
-      "localPath": "本地路径",
-      "runType": "运行类型",
-      "kindTitle": "Benchmark",
-      "kinds": {
-        "sweBenchPro": "SWE-bench Pro",
-        "terminalBench": "Terminal-Bench"
-      },
-      "selectedTasks": "已选择 {{selected}}/{{total}} 个",
-      "concurrency": "并行数",
-      "taskLoadingUnsupported": "此 Benchmark 暂不支持加载任务；请使用 preflight 检查本地来源。",
-      "attemptTitle": "Attempt",
-      "batchProgress": "共 {{total}} 个 · {{queued}} 个排队 · {{running}} 个运行中 · {{launched}} 个已启动 · {{failed}} 个失败 · {{cancelled}} 个已取消",
-      "sessionGroupTitle": "Benchmark sessions",
-      "sessionGroupProgress": "共 {{total}} 个 · {{queued}} 个排队 · {{running}} 个运行中 · {{launched}} 个已启动 · {{failed}} 个失败 · {{cancelled}} 个已取消",
-      "evaluateSubmitted": "评估",
-      "evaluatingSubmitted": "正在评估补丁...",
-      "taskActionPlaceholder": "Task IDs for add/remove/stop/restart",
-      "sessionLabel": "Session：{{sessionId}}",
-      "noSessionYet": "暂无 Session",
-      "testResultPending": "测试结果待定",
-      "taskBreadcrumb": "{{attempt}} > {{task}}"
-    },
     "skillsAndTools": "Skills 与工具",
     "agentSpotlightViewMode": "Agent 视图模式",
     "agentSpotlightListView": "列表视图",
     "agentSpotlightCardView": "卡片视图",
-    "agentSpotlightCardHint": "使用 ←/→ 或 ↑/↓ 切换 Agent。按 Enter 选择。"
+    "agentSpotlightCardHint": "使用 ←/→ 或 ↑/↓ 切换 Agent。按 Enter 选择。",
+    "multiRunner": {
+      "exit": "返回单个代理",
+      "addRunner": "添加执行器",
+      "removeRunner": "移除执行器",
+      "selectHarness": "选择执行器",
+      "pickHarness": "选择执行器",
+      "parallelCount": "并行运行 · {{count}} / {{max}}",
+      "launchpadQuestion": "你想用 {{count}} 个执行器构建什么？",
+      "worktreePerRunner": "每个执行器独立工作树",
+      "worktreeForced": "并行运行始终为每个执行器创建独立的工作树。",
+      "blocker": {
+        "noHarness": "请选择执行器",
+        "noModel": "请选择模型",
+        "cliNotInstalled": "{{cli}} 未安装",
+        "cliNoGui": "{{cli}} 不支持 GUI 模式"
+      },
+      "launchError": {
+        "noPrompt": "请描述你想让执行器构建什么",
+        "promptTooLong": "任务描述需少于 10,000 个字符",
+        "noRepo": "请选择仓库——每个执行器都需要独立的工作树",
+        "notEnoughRunners": "请至少配置两个可运行的执行器"
+      }
+    }
   },
   "planner": {
     "tabs": {
@@ -3112,5 +3053,23 @@
     "replayQueued": "已重放该投递",
     "copied": "已复制",
     "copyFailed": "复制失败"
+  },
+  "runGroup": {
+    "open": "打开",
+    "stop": "停止",
+    "stopAll": "全部停止",
+    "runAgain": "重新运行",
+    "stopFailed": "无法停止此运行",
+    "subtitle": "已启动 {{count}} / {{total}} 个执行器",
+    "missingTitle": "运行组不可用",
+    "missingBody": "本机已不再保存该运行组。",
+    "state": {
+      "running": "运行中",
+      "done": "已完成",
+      "failed": "失败",
+      "stopped": "已停止",
+      "skipped": "已跳过",
+      "pending": "启动中"
+    }
   }
 }
