@@ -1,5 +1,5 @@
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { Copy, SquareArrowOutUpRight } from "lucide-react";
+import { Chromium, Copy, SquareArrowOutUpRight } from "lucide-react";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -74,7 +74,12 @@ const LinkHoverCardContent: React.FC<{ preview: HttpLinkPreview }> = ({
           title={t("cards.actions.openWithDefaultBrowser")}
           onClick={handleOpenExternal}
         />
-        <Button variant="primary" size="mini" onClick={handleOpenInApp}>
+        <Button
+          variant="primary"
+          size="mini"
+          icon={<Chromium size={13} strokeWidth={1.75} aria-hidden />}
+          onClick={handleOpenInApp}
+        >
           {t("cards.actions.openInApp")}
         </Button>
       </div>
