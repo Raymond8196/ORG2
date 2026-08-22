@@ -2088,8 +2088,8 @@
       "agentSession": "Sesión de Agent",
       "manageAgents": "Gestionar Agents / Skills",
       "project": "Crear proyecto",
-      "workItem": "Crear Work Item",
-      "benchmark": "Benchmark (Beta)"
+      "parallelRun": "Ejecución paralela",
+      "workItem": "Crear Work Item"
     },
     "worktreeSource": {
       "title": "Crear árbol de trabajo",
@@ -2302,93 +2302,34 @@
       "worktree": "Worktree",
       "lockedHint": "El Worktree está bloqueado para esta sesión"
     },
-    "benchmark": {
-      "title": "Benchmark",
-      "description": "Browse SWE-bench Pro tasks, choose what to run, and check the local benchmark environment before evaluation.",
-      "phaseLabel": "Task browser",
-      "sourcePath": "Carpeta de benchmark",
-      "evaluationMode": "Evaluation mode",
-      "evaluationModes": {
-        "patchOnly": "Patch only",
-        "localDocker": "Local Docker",
-        "modal": "Modal"
-      },
-      "loadTasks": "Load tasks",
-      "runPreflight": "Run preflight",
-      "loading": "Loading...",
-      "checking": "Checking...",
-      "searchPlaceholder": "Search task ID, title, or repo",
-      "loadedTasks": "{{count}} tasks loaded",
-      "emptyTasks": "No tasks found.",
-      "words": "{{count}} words",
-      "noTaskSelected": "No task selected",
-      "taskStats": "{{words}} words · {{chars}} chars",
-      "preflightTitle": "Preflight checks",
-      "ready": "Ready",
-      "needsSetup": "Needs setup",
-      "selectTaskHint": "Select a task to preview the benchmark question.",
-      "taskSelectionTitle": "Benchmark tasks",
-      "taskSelectionDescription": "Elige una tarea benchmark y abre la pestaña WorkStation para revisar los detalles antes de ejecutarla.",
-      "taskSelectStubOption": "Seleccionar tarea benchmark",
-      "openWorkstationTab": "View Benchmark",
-      "unknownRepo": "Unknown repo",
-      "runPanelTitle": "Docker run",
-      "runPanelDescription": "Evaluate patch output against {{taskId}} with local Docker.",
-      "patchInputTitle": "Patch content",
-      "patchInputPlaceholder": "Paste a unified diff patch to evaluate with SWE-bench Pro Docker.",
-      "localDocker": "Local Docker",
-      "preflightSummary": "{{ready}}/{{total}} checks ready",
-      "createRunPlan": "Create run plan",
-      "runWithDocker": "Run with Docker",
-      "runPlanTitle": "Run plan",
-      "runStatusTitle": "Run status",
-      "noRunLogs": "No logs yet",
-      "runIdLabel": "Run",
-      "processIdLabel": "PID",
-      "resultLabel": "Result",
-      "resultPassed": "Passed",
-      "resultFailed": "Failed",
-      "noParsedResult": "No parsed result yet",
-      "evaluationModeTitle": "Modo de ejecución",
-      "patchOnlyWorktree": "Patch-only Worktree",
-      "patchOnlyWorktreeDescription": "Crea un Git Worktree aislado en el base commit de la tarea y aplica el patch. No ejecuta las pruebas oficiales.",
-      "localDockerDescription": "Ejecuta el evaluator oficial de SWE-bench Pro con Docker local.",
-      "targetRepoPathTitle": "Ruta del Repo objetivo",
-      "targetRepoPathPlaceholder": "/Users/you/Documents/GitHub/project-repo",
-      "applyInWorktree": "Aplicar en Worktree",
-      "worktreePathLabel": "Worktree",
-      "singleRun": "Ejecución única",
-      "batchRun": "Ejecución por lotes",
-      "sourcePathPlaceholder": "Ruta a la carpeta de benchmark",
-      "workingDirectory": "Directorio de trabajo",
-      "workingDirectoryPlaceholder": "Ruta donde los agentes deben clonar o modificar repositorios",
-      "localPath": "ruta local",
-      "runType": "Tipo de ejecución",
-      "kindTitle": "Benchmark",
-      "kinds": {
-        "sweBenchPro": "SWE-bench Pro",
-        "terminalBench": "Terminal-Bench"
-      },
-      "selectedTasks": "{{selected}}/{{total}} seleccionadas",
-      "concurrency": "Paralelo",
-      "taskLoadingUnsupported": "La carga de tareas aún no está disponible para este benchmark; usa preflight para comprobar la fuente local.",
-      "attemptTitle": "Intento",
-      "batchProgress": "{{total}} en total · {{queued}} en cola · {{running}} en ejecución · {{launched}} iniciadas · {{failed}} fallidas · {{cancelled}} canceladas",
-      "sessionGroupTitle": "Sesiones de benchmark",
-      "sessionGroupProgress": "{{total}} en total · {{queued}} en cola · {{running}} en ejecución · {{launched}} iniciadas · {{failed}} fallidas · {{cancelled}} canceladas",
-      "evaluateSubmitted": "Evaluar",
-      "evaluatingSubmitted": "Evaluando parches...",
-      "taskActionPlaceholder": "Task IDs for add/remove/stop/restart",
-      "sessionLabel": "Session: {{sessionId}}",
-      "noSessionYet": "Aún no hay Session",
-      "testResultPending": "Resultado de prueba pendiente",
-      "taskBreadcrumb": "{{attempt}} > {{task}}"
-    },
     "skillsAndTools": "Skills y herramientas",
     "agentSpotlightViewMode": "Modo de vista de Agent",
     "agentSpotlightListView": "Vista de lista",
     "agentSpotlightCardView": "Vista de tarjeta",
-    "agentSpotlightCardHint": "Usa ←/→ o ↑/↓ para cambiar de Agent. Pulsa Enter para seleccionar."
+    "agentSpotlightCardHint": "Usa ←/→ o ↑/↓ para cambiar de Agent. Pulsa Enter para seleccionar.",
+    "multiRunner": {
+      "exit": "Volver a un solo agente",
+      "addRunner": "Añadir runner",
+      "removeRunner": "Quitar runner",
+      "selectHarness": "Seleccionar agente",
+      "pickHarness": "Elegir un agente",
+      "parallelCount": "se ejecutan en paralelo · {{count}} de {{max}}",
+      "launchpadQuestion": "¿Qué quieres construir con {{count}} runners?",
+      "worktreePerRunner": "Un worktree por runner",
+      "worktreeForced": "Una ejecución paralela siempre da a cada runner su propio worktree.",
+      "blocker": {
+        "noHarness": "Elige un agente",
+        "noModel": "Elige un modelo",
+        "cliNotInstalled": "{{cli}} no está instalado",
+        "cliNoGui": "{{cli}} no tiene modo GUI"
+      },
+      "launchError": {
+        "noPrompt": "Describe qué quieres que construyan los runners",
+        "promptTooLong": "La descripción debe tener menos de 10.000 caracteres",
+        "noRepo": "Selecciona un repositorio: cada runner necesita su propio worktree",
+        "notEnoughRunners": "Configura al menos dos runners ejecutables"
+      }
+    }
   },
   "planner": {
     "tabs": {
@@ -2912,6 +2853,24 @@
       "speed": "Table speed",
       "speed_normal": "Normal",
       "speed_fast": "Fast"
+    }
+  },
+  "runGroup": {
+    "open": "Abrir",
+    "stop": "Detener",
+    "stopAll": "Detener todo",
+    "runAgain": "Ejecutar de nuevo",
+    "stopFailed": "No se pudo detener esta ejecución",
+    "subtitle": "{{count}} de {{total}} runners iniciados",
+    "missingTitle": "Grupo de ejecución no disponible",
+    "missingBody": "Este grupo de ejecución ya no está guardado en este equipo.",
+    "state": {
+      "running": "En curso",
+      "done": "Completado",
+      "failed": "Con errores",
+      "stopped": "Detenido",
+      "skipped": "Omitido",
+      "pending": "Iniciando"
     }
   }
 }

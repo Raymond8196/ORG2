@@ -2166,8 +2166,8 @@
       "agentSession": "Agent session",
       "manageAgents": "Manage agents / skills",
       "project": "Create project",
-      "workItem": "Create work item",
-      "benchmark": "Benchmark (Beta)"
+      "parallelRun": "Parallel run",
+      "workItem": "Create work item"
     },
     "worktreeSource": {
       "title": "Create worktree",
@@ -2386,93 +2386,34 @@
       "cancel": "Cancel"
     },
     "viewDiff": "View diff",
-    "benchmark": {
-      "title": "Benchmark",
-      "description": "Browse SWE-bench Pro tasks, choose what to run, and check the local benchmark environment before evaluation.",
-      "phaseLabel": "Task browser",
-      "sourcePath": "Benchmark folder",
-      "evaluationMode": "Evaluation mode",
-      "evaluationModes": {
-        "patchOnly": "Patch only",
-        "localDocker": "Local Docker",
-        "modal": "Modal"
-      },
-      "loadTasks": "Load tasks",
-      "runPreflight": "Run preflight",
-      "loading": "Loading...",
-      "checking": "Checking...",
-      "searchPlaceholder": "Search task ID, title, or repo",
-      "loadedTasks": "{{count}} tasks loaded",
-      "emptyTasks": "No tasks found.",
-      "words": "{{count}} words",
-      "noTaskSelected": "No task selected",
-      "taskStats": "{{words}} words · {{chars}} chars",
-      "preflightTitle": "Preflight checks",
-      "ready": "Ready",
-      "needsSetup": "Needs setup",
-      "selectTaskHint": "Select a task to preview the benchmark question.",
-      "taskSelectionTitle": "Benchmark tasks",
-      "taskSelectionDescription": "Choose a benchmark task, then open the WorkStation tab to preview details before running.",
-      "taskSelectStubOption": "Select a benchmark task",
-      "openWorkstationTab": "View Benchmark",
-      "unknownRepo": "Unknown repo",
-      "runPanelTitle": "Docker run",
-      "runPanelDescription": "Evaluate patch output against {{taskId}} with local Docker.",
-      "patchInputTitle": "Patch content",
-      "patchInputPlaceholder": "Paste a unified diff patch to evaluate with SWE-bench Pro Docker.",
-      "localDocker": "Local Docker",
-      "preflightSummary": "{{ready}}/{{total}} checks ready",
-      "createRunPlan": "Create run plan",
-      "runWithDocker": "Run with Docker",
-      "runPlanTitle": "Run plan",
-      "runStatusTitle": "Run status",
-      "noRunLogs": "No logs yet",
-      "runIdLabel": "Run",
-      "processIdLabel": "PID",
-      "resultLabel": "Result",
-      "resultPassed": "Passed",
-      "resultFailed": "Failed",
-      "noParsedResult": "No parsed result yet",
-      "evaluationModeTitle": "Run mode",
-      "patchOnlyWorktree": "Patch-only Worktree",
-      "patchOnlyWorktreeDescription": "Creates an isolated git Worktree at the task base commit and applies the patch. This does not run the official tests.",
-      "localDockerDescription": "Runs the official SWE-bench Pro evaluator through local Docker.",
-      "targetRepoPathTitle": "Target repo path",
-      "targetRepoPathPlaceholder": "/Users/you/Documents/GitHub/project-repo",
-      "applyInWorktree": "Apply in Worktree",
-      "worktreePathLabel": "Worktree",
-      "singleRun": "Single run",
-      "batchRun": "Batch run",
-      "sourcePathPlaceholder": "Path to benchmark folder",
-      "workingDirectory": "Working directory",
-      "workingDirectoryPlaceholder": "Path where agents should clone or modify repos",
-      "localPath": "local path",
-      "runType": "Run type",
-      "kindTitle": "Benchmark",
-      "kinds": {
-        "sweBenchPro": "SWE-bench Pro",
-        "terminalBench": "Terminal-Bench"
-      },
-      "selectedTasks": "{{selected}}/{{total}} selected",
-      "concurrency": "Parallel",
-      "taskLoadingUnsupported": "Task loading is not available for this benchmark yet; use preflight to check the local source.",
-      "attemptTitle": "Attempt",
-      "batchProgress": "{{total}} total · {{queued}} queued · {{running}} running · {{launched}} launched · {{failed}} failed · {{cancelled}} cancelled",
-      "sessionGroupTitle": "Benchmark sessions",
-      "sessionGroupProgress": "{{total}} total · {{queued}} queued · {{running}} running · {{launched}} launched · {{failed}} failed · {{cancelled}} cancelled",
-      "evaluateSubmitted": "Evaluate",
-      "evaluatingSubmitted": "Evaluating patches...",
-      "taskActionPlaceholder": "Task IDs for add/remove/stop/restart",
-      "sessionLabel": "Session: {{sessionId}}",
-      "noSessionYet": "No session yet",
-      "testResultPending": "Test result pending",
-      "taskBreadcrumb": "{{attempt}} > {{task}}"
-    },
     "skillsAndTools": "Skills & Tools",
     "agentSpotlightViewMode": "Agent view mode",
     "agentSpotlightListView": "List view",
     "agentSpotlightCardView": "Card view",
-    "agentSpotlightCardHint": "Use ←/→ or ↑/↓ to shuffle agents. Press Enter to select."
+    "agentSpotlightCardHint": "Use ←/→ or ↑/↓ to shuffle agents. Press Enter to select.",
+    "multiRunner": {
+      "exit": "Back to a single agent",
+      "addRunner": "Add runner",
+      "removeRunner": "Remove runner",
+      "selectHarness": "Select a harness",
+      "pickHarness": "Pick a harness",
+      "parallelCount": "runs in parallel · {{count}} of {{max}}",
+      "launchpadQuestion": "What do you want to build with {{count}} runners?",
+      "worktreePerRunner": "Worktree per runner",
+      "worktreeForced": "A parallel run always gives each runner its own worktree.",
+      "blocker": {
+        "noHarness": "Pick a harness",
+        "noModel": "Pick a model",
+        "cliNotInstalled": "{{cli}} is not installed",
+        "cliNoGui": "{{cli}} has no GUI mode"
+      },
+      "launchError": {
+        "noPrompt": "Describe what you want the runners to build",
+        "promptTooLong": "Task description must be under 10,000 characters",
+        "noRepo": "Select a repo — each runner needs its own worktree",
+        "notEnoughRunners": "Set up at least two runnable runners"
+      }
+    }
   },
   "planner": {
     "tabs": {
@@ -3117,5 +3058,23 @@
     "replayQueued": "Delivery replayed",
     "copied": "Copied",
     "copyFailed": "Copy failed"
+  },
+  "runGroup": {
+    "open": "Open",
+    "stop": "Stop",
+    "stopAll": "Stop all",
+    "runAgain": "Run again",
+    "stopFailed": "Could not stop this run",
+    "subtitle": "{{count}} of {{total}} runners started",
+    "missingTitle": "Run group unavailable",
+    "missingBody": "This run group is no longer stored on this machine.",
+    "state": {
+      "running": "Running",
+      "done": "Done",
+      "failed": "Failed",
+      "stopped": "Stopped",
+      "skipped": "Skipped",
+      "pending": "Starting"
+    }
   }
 }
