@@ -427,14 +427,6 @@
         "handoff": "引き継ぎ"
       }
     },
-    "todos": {
-      "title": "To-Do",
-      "addItem": "項目を追加",
-      "addFirst": "To-Do を追加",
-      "placeholder": "簡潔に (120 文字以内)",
-      "done": "完了",
-      "create": "作成"
-    },
     "contextMenu": {
       "status": "状態",
       "assignee": "担当者",
