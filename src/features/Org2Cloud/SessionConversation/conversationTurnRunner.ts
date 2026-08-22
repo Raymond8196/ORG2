@@ -208,8 +208,12 @@ export interface RunConversationTurnParams {
   timeline: readonly SessionEvent[];
   sourceScopeKey?: string;
   sourceModel?: string;
-  /** Called as soon as the one-shot runner session id is known. */
-  onRunnerReady?: (runnerSessionId: string) => void;
+  /**
+   * Called as soon as the one-shot runner session id is known, with the
+   * turnId the tail will be pushed under. The caller overlays the runner's
+   * LIVE events until the plane carries this turnId.
+   */
+  onRunnerReady?: (runnerSessionId: string, turnId: string) => void;
   /**
    * Fires after push #1 (the user's message row) lands on the plane — the
    * composer unblocks here; the agent tail streams in later under the same
@@ -311,7 +315,7 @@ export async function runConversationTurn(
       updatedAt: dispatchIso,
     },
   });
-  params.onRunnerReady?.(runnerSessionId);
+  params.onRunnerReady?.(runnerSessionId, turnId);
   await waitForFirstTurnTerminal(runnerSessionId, deadlineMs);
 
   const persisted = await eventStoreProxy

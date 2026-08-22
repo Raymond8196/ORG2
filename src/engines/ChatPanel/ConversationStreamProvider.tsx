@@ -1,9 +1,14 @@
-import { useAtomValue } from "jotai";
-import React, { useCallback, useMemo, useState } from "react";
+import { useAtomValue, useSetAtom } from "jotai";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { SessionEvent } from "@src/engines/SessionCore/core/types";
 import { chatEventsForSessionAtomFamily } from "@src/engines/SessionCore/derived/sessionScopedChatEvents";
 import { useSessionCommentsContext } from "@src/features/Org2Cloud/SessionComments/SessionCommentsContext";
+import {
+  activeConversationRunnersAtom,
+  collectLandedTurnIds,
+  selectActiveRunners,
+} from "@src/features/Org2Cloud/SessionConversation/activeConversationRunnersAtom";
 import {
   type ConversationFamilyMember,
   resolveConversationFamily,
@@ -11,6 +16,7 @@ import {
 } from "@src/features/Org2Cloud/SessionConversation/continuationEvents";
 import { useConversationPlaneEvents } from "@src/features/Org2Cloud/SessionConversation/conversationPlaneAtom";
 import { buildConversationPlaneStreamEvents } from "@src/features/Org2Cloud/SessionConversation/conversationPlaneEvents";
+import { ConversationRunnerScopeProvider } from "@src/features/Org2Cloud/SessionConversation/conversationRunnerScope";
 import {
   buildDiscussionEvents,
   mergeConversationEvents,
@@ -189,6 +195,60 @@ export function ConversationStreamProvider({
 
   const plane = useConversationPlaneEvents(target);
 
+  // Live overlay for THIS device's in-flight member turns: the runner is a
+  // local session, so its thinking / tool / worked-for events stream in real
+  // time — tap and merge them until the plane carries the turn's terminal
+  // tail, so the sender sees the agent working instead of a dead wait.
+  const runnerRegistry = useAtomValue(activeConversationRunnersAtom);
+  const setRunnerRegistry = useSetAtom(activeConversationRunnersAtom);
+  const planeRootId = target?.sessionId ?? null;
+  const landedTurnIds = useMemo(
+    () => collectLandedTurnIds(plane.events),
+    [plane.events]
+  );
+  const activeRunners = useMemo(() => {
+    if (!planeRootId) return [];
+    // Drop a runner as soon as its agent tail is on the plane — the
+    // authoritative rows take over with no double-render.
+    return selectActiveRunners(
+      runnerRegistry[planeRootId] ?? [],
+      landedTurnIds
+    );
+  }, [runnerRegistry, planeRootId, landedTurnIds]);
+  // The in-flight runner drives the chat footer's running/typing indicator
+  // so a member's long turn shows "Thinking…" instead of a frozen screen.
+  const activeRunnerScope =
+    activeRunners.length > 0
+      ? activeRunners[activeRunners.length - 1].runnerSessionId
+      : null;
+  useEffect(() => {
+    if (!planeRootId) return;
+    const list = runnerRegistry[planeRootId];
+    if (!list?.length) return;
+    const kept = selectActiveRunners(list, landedTurnIds);
+    if (kept.length === list.length) return;
+    setRunnerRegistry((current) => {
+      const next = { ...current };
+      if (kept.length === 0) delete next[planeRootId];
+      else next[planeRootId] = kept;
+      return next;
+    });
+  }, [planeRootId, runnerRegistry, landedTurnIds, setRunnerRegistry]);
+  const [runnerEventsById, setRunnerEventsById] = useState<
+    ReadonlyMap<string, readonly SessionEvent[]>
+  >(() => new Map());
+  const handleRunnerEvents = useCallback(
+    (runnerSessionId: string, events: SessionEvent[]) => {
+      setRunnerEventsById((previous) => {
+        if (previous.get(runnerSessionId) === events) return previous;
+        const next = new Map(previous);
+        next.set(runnerSessionId, events);
+        return next;
+      });
+    },
+    []
+  );
+
   const value = useMemo((): SessionEvent[] | undefined => {
     if (overrideEvents) return overrideEvents;
     const base = family
@@ -206,6 +266,24 @@ export function ConversationStreamProvider({
       synthetic.push(
         ...buildConversationPlaneStreamEvents(plane.events, sessionId)
       );
+    }
+    // Live runner overlay (sender-local, pre-tail): show the agent working.
+    // The runner's own user event carries the injected context prefix, so
+    // only its non-user tail is overlaid; ids are namespaced so they never
+    // collide with plane rows, and the whole overlay vanishes once the
+    // turnId lands on the plane above.
+    for (const runner of activeRunners) {
+      const live = runnerEventsById.get(runner.runnerSessionId);
+      if (!live?.length) continue;
+      for (const event of live) {
+        if (event.source === "user") continue;
+        synthetic.push({
+          ...event,
+          id: `runlive-${event.id}`,
+          chunk_id: `runlive-${event.id}`,
+          sessionId,
+        });
+      }
     }
     if (
       grouped &&
@@ -235,6 +313,8 @@ export function ConversationStreamProvider({
     grouped,
     toSourceEventId,
     plane.events,
+    activeRunners,
+    runnerEventsById,
   ]);
 
   return (
@@ -247,9 +327,19 @@ export function ConversationStreamProvider({
           onEvents={handleMemberEvents}
         />
       ))}
-      <ChatHistoryOverrideContext.Provider value={value}>
-        {children}
-      </ChatHistoryOverrideContext.Provider>
+      {activeRunners.map((runner) => (
+        <MemberEventsTap
+          key={`runner-${runner.runnerSessionId}`}
+          bareSessionId={runner.runnerSessionId}
+          localSessionId={runner.runnerSessionId}
+          onEvents={handleRunnerEvents}
+        />
+      ))}
+      <ConversationRunnerScopeProvider value={activeRunnerScope}>
+        <ChatHistoryOverrideContext.Provider value={value}>
+          {children}
+        </ChatHistoryOverrideContext.Provider>
+      </ConversationRunnerScopeProvider>
     </>
   );
 }

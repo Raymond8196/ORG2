@@ -6,6 +6,7 @@ import Message from "@src/components/Message";
 import { eventStoreProxy } from "@src/engines/SessionCore/core/store/EventStoreProxy";
 import type { SessionEvent } from "@src/engines/SessionCore/core/types";
 import { waitForSessionChannelReady } from "@src/engines/SessionCore/sync/useSessionChannel";
+import { activeConversationRunnersAtom } from "@src/features/Org2Cloud/SessionConversation/activeConversationRunnersAtom";
 import {
   type ConversationFamilyMember,
   resolveConversationFamily,
@@ -158,6 +159,7 @@ export function useImportedSessionSubmitOverride({
   const planeEntries = useAtomValue(conversationPlaneAtom);
   const setPlaneSignal = useSetAtom(conversationPlaneSignalAtom);
   const setAccessSettings = useSetAtom(org2CloudAccessSettingsAtom);
+  const setActiveRunners = useSetAtom(activeConversationRunnersAtom);
   const conversationRootId = useMemo(() => {
     if (lineage) return lineage.rootSessionId ?? lineage.sourceSessionId;
     if (currentSession?.importedFrom) {
@@ -272,6 +274,24 @@ export function useImportedSessionSubmitOverride({
           const userPublished = new Promise<void>((resolve) => {
             publishResolve = resolve;
           });
+          let liveRunnerSessionId: string | null = null;
+          const dropLiveRunner = () => {
+            const runnerSessionId = liveRunnerSessionId;
+            if (!runnerSessionId) return;
+            liveRunnerSessionId = null;
+            setActiveRunners((current) => {
+              const list = current[planeInfo.rootId];
+              if (!list) return current;
+              const kept = list.filter(
+                (runner) => runner.runnerSessionId !== runnerSessionId
+              );
+              if (kept.length === list.length) return current;
+              const next = { ...current };
+              if (kept.length === 0) delete next[planeInfo.rootId];
+              else next[planeInfo.rootId] = kept;
+              return next;
+            });
+          };
           const turnPromise = runConversationTurn({
             accessToken: freshAuth.accessToken,
             orgId: planeInfo.orgId,
@@ -284,7 +304,7 @@ export function useImportedSessionSubmitOverride({
             timeline,
             sourceScopeKey: rootRow?.repoScopeKey,
             sourceModel: currentSession?.model ?? rootRow?.model,
-            onRunnerReady: (runnerSessionId) => {
+            onRunnerReady: (runnerSessionId, turnId) => {
               // Plumbing session: never sync it to the cloud as a session.
               setAccessSettings((current) =>
                 withCloudSessionMode(
@@ -294,6 +314,17 @@ export function useImportedSessionSubmitOverride({
                   COLLAB_SESSION_ACCESS_MODE.OFF
                 )
               );
+              // Overlay the runner's LIVE events (thinking / tools / worked-for)
+              // into the conversation until the plane carries this turn's
+              // agent tail — or the turn settles without one.
+              liveRunnerSessionId = runnerSessionId;
+              setActiveRunners((current) => {
+                const list = current[planeInfo.rootId] ?? [];
+                return {
+                  ...current,
+                  [planeInfo.rootId]: [...list, { runnerSessionId, turnId }],
+                };
+              });
             },
             onUserMessagePublished: publishResolve,
             onPushed: () =>
@@ -302,8 +333,9 @@ export function useImportedSessionSubmitOverride({
           // The composer unblocks as soon as the user's words are on the
           // plane; the agent tail continues in the background.
           const settled = turnPromise.then(
-            () => undefined,
+            () => dropLiveRunner(),
             (error) => {
+              dropLiveRunner();
               logger.error("conversation turn failed", error);
               Message.error(t("collaboration.forkImported.sendFailed"));
             }
@@ -448,16 +480,19 @@ export function useImportedSessionSubmitOverride({
       currentSession?.importedFrom,
       currentSession?.name,
       currentSession?.model,
+      familyOrgId,
       forkImportedSession,
       onFallbackSubmit,
       onSessionContinuation,
       openSession,
       ownLocalTip,
       planeInfo,
+      remoteEntries,
       restorePendingDraft,
       sessionId,
       sessions,
       setAccessSettings,
+      setActiveRunners,
       setAuth,
       setPlaneSignal,
       submitIntoForkedSession,
