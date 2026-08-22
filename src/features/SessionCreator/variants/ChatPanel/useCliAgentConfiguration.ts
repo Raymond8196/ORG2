@@ -113,6 +113,7 @@ export function useCliAgentConfiguration({
     selectedCliUpdateAlertSnoozedUntil &&
     isVersionRecheckPending(cliAgentType, selectedCliUpdateAlertSnoozedUntil)
   );
+
   const showCliVersionOutdatedAlert = Boolean(
     cliUpdateAlertsEnabled &&
     isSelectedCliVersionOutdated &&
