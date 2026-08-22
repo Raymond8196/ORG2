@@ -212,13 +212,17 @@ describe("TursoProvider.getTables", () => {
 
     await provider.getTables();
 
-    const sql = sqlAt(0);
-    expect(sql).toContain("FROM sqlite_master");
-    expect(sql).toContain("WHERE type IN ('table', 'view')");
-    expect(sql).toContain("AND name NOT LIKE 'sqlite_%'");
-    expect(sql).toContain("AND name NOT LIKE '_litestream_%'");
-    expect(sql).toContain("AND name NOT LIKE 'libsql_%'");
-    expect(sql).toContain("ORDER BY name");
+    // Pinned as exact SQL rather than fragments: the three NOT LIKE filters
+    // and the ORDER BY direction are all contract, and a fragment assertion
+    // cannot tell `ORDER BY name` from `ORDER BY name DESC`.
+    expect(sqlAt(0)).toBe(
+      "SELECT name, type FROM sqlite_master " +
+        "WHERE type IN ('table', 'view') " +
+        "AND name NOT LIKE 'sqlite_%' " +
+        "AND name NOT LIKE '_litestream_%' " +
+        "AND name NOT LIKE 'libsql_%' " +
+        "ORDER BY name"
+    );
   });
 
   it("counts rows for tables but not for views", async () => {

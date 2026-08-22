@@ -260,10 +260,15 @@ describe("SupabaseProvider.getTables", () => {
 
     await provider.getTables();
 
-    const sql = sqlAt(0);
-    expect(sql).toContain("FROM information_schema.tables");
-    expect(sql).toContain("WHERE table_schema = 'analytics'");
-    expect(sql).toContain("AND table_type IN ('BASE TABLE', 'VIEW')");
+    // Pinned as exact SQL rather than fragments: the mapper below reads
+    // `row.name`, so the `table_name as name` alias is contract, not cosmetic.
+    expect(sqlAt(0)).toBe(
+      "SELECT table_name as name, table_type " +
+        "FROM information_schema.tables " +
+        "WHERE table_schema = 'analytics' " +
+        "AND table_type IN ('BASE TABLE', 'VIEW') " +
+        "ORDER BY table_name"
+    );
   });
 
   it("maps table_type and attaches per-table row counts", async () => {
@@ -323,12 +328,28 @@ describe("SupabaseProvider.getTableSchema", () => {
 
     await provider.getTableSchema("events");
 
-    const sql = sqlAt(0);
-    expect(sql).toContain("AND tc.table_schema = 'analytics'");
-    expect(sql).toContain("AND tc.table_name = 'events'");
-    expect(sql).toContain("WHERE c.table_schema = 'analytics'");
-    expect(sql).toContain("AND c.table_name = 'events'");
-    expect(sql).toContain("ORDER BY c.ordinal_position");
+    // Pinned as exact SQL rather than fragments: the mapper reads the rows by
+    // name (`row.column_name`, `row.udt_name`, ...), so every column in the
+    // SELECT list — and every alias on it — is contract.
+    expect(sqlAt(0)).toBe(
+      "SELECT c.column_name, c.data_type, c.is_nullable, " +
+        "c.column_default, c.udt_name, " +
+        "CASE WHEN pk.column_name IS NOT NULL THEN true ELSE false END " +
+        "as is_primary_key " +
+        "FROM information_schema.columns c " +
+        "LEFT JOIN ( SELECT ku.column_name " +
+        "FROM information_schema.table_constraints tc " +
+        "JOIN information_schema.key_column_usage ku " +
+        "ON tc.constraint_name = ku.constraint_name " +
+        "AND tc.table_schema = ku.table_schema " +
+        "WHERE tc.constraint_type = 'PRIMARY KEY' " +
+        "AND tc.table_schema = 'analytics' " +
+        "AND tc.table_name = 'events' ) " +
+        "pk ON c.column_name = pk.column_name " +
+        "WHERE c.table_schema = 'analytics' " +
+        "AND c.table_name = 'events' " +
+        "ORDER BY c.ordinal_position"
+    );
   });
 
   it("prefers udt_name over data_type and upper-cases it", async () => {

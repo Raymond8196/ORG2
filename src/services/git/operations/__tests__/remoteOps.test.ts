@@ -482,7 +482,7 @@ describe("credential resolution", () => {
   it("retries with the GitHub connection credential, without prompting", async () => {
     const remoteOps = await loadRemoteOps({ repo: REPO });
     getGitRemotes.mockResolvedValue(
-      remotes([{ name: "origin", url: ORIGIN_URL, push_url: ORIGIN_URL }])
+      remotes([{ name: "upstream", url: UPSTREAM_URL, push_url: UPSTREAM_URL }])
     );
     getGitHubGitCredentialForRemote.mockResolvedValue({
       username: "x-access-token",
@@ -494,23 +494,79 @@ describe("credential resolution", () => {
       .mockResolvedValueOnce({ success: true });
 
     await expect(
-      remoteOps.push({ remote: "origin", branch: "feature", force: true })
+      remoteOps.push({ remote: "upstream", branch: "feature" })
     ).resolves.toEqual({ success: true, errorType: "none" });
 
     expect(gitPush).toHaveBeenCalledTimes(2);
-    // The retry must carry the original flags, not a sanitised copy.
+    // The retry must carry the original flags, not a sanitised copy — and not
+    // an embellished one either, so this is an exact payload match against a
+    // non-default remote with no destructive flag set.
     expect(gitPush.mock.calls[1][0]).toEqual({
       repo_id: "repo-1",
       repo_path: "/tmp/repo",
-      remote: "origin",
+      remote: "upstream",
       branch: "feature",
-      force: true,
+      force: undefined,
       set_upstream: undefined,
       authUsername: "x-access-token",
       authToken: "gho_secret",
       storeAuth: false,
     });
     expect(showGitAuthenticationDialog).not.toHaveBeenCalled();
+  });
+
+  it("adds no destructive flag and no remote of its own on the credential retry", async () => {
+    // A plain `push` / `fetch` that hits an auth failure must be retried as the
+    // same plain request. Obtaining a credential is not a licence to add
+    // --force or --prune, nor to redirect the request at the default remote —
+    // that would silently turn a routine push into a force-push-with-token.
+    const pushOps = await loadRemoteOps({ repo: REPO });
+    getGitRemotes.mockResolvedValue(
+      remotes([{ name: "upstream", push_url: UPSTREAM_URL }])
+    );
+    getGitHubGitCredentialForRemote.mockResolvedValue({
+      username: "x-access-token",
+      token: "gho_secret",
+    });
+    gitPush
+      .mockReset()
+      .mockRejectedValueOnce(new Error("Authentication failed"))
+      .mockResolvedValueOnce({ success: true });
+
+    await pushOps.push({ remote: "upstream", branch: "feature" });
+
+    expect(gitPush.mock.calls[1][0]).toEqual({
+      repo_id: "repo-1",
+      repo_path: "/tmp/repo",
+      remote: "upstream",
+      branch: "feature",
+      force: undefined,
+      set_upstream: undefined,
+      authUsername: "x-access-token",
+      authToken: "gho_secret",
+      storeAuth: false,
+    });
+
+    const fetchOps = await loadRemoteOps({ repo: REPO });
+    getGitRemotes.mockResolvedValue(
+      remotes([{ name: "upstream", fetch_url: UPSTREAM_URL }])
+    );
+    gitFetch
+      .mockReset()
+      .mockRejectedValueOnce(new Error("Authentication failed"))
+      .mockResolvedValueOnce({ success: true });
+
+    await fetchOps.fetch({ remote: "upstream" });
+
+    expect(gitFetch.mock.calls[1][0]).toEqual({
+      repo_id: "repo-1",
+      repo_path: "/tmp/repo",
+      remote: "upstream",
+      prune: undefined,
+      authUsername: "x-access-token",
+      authToken: "gho_secret",
+      storeAuth: false,
+    });
   });
 
   it("prefers push_url, then fetch_url, then url when resolving the remote", async () => {
@@ -615,7 +671,12 @@ describe("credential resolution", () => {
       errorType: "none",
     });
 
-    expect(gitPush.mock.calls[1][0]).toMatchObject({
+    expect(gitPush.mock.calls[1][0]).toEqual({
+      repo_id: "repo-1",
+      repo_path: "/tmp/repo",
+      remote: undefined,
+      branch: undefined,
+      force: undefined,
       set_upstream: true,
       authUsername: "harry",
       authToken: "pat_secret",
@@ -747,7 +808,11 @@ describe("credential resolution", () => {
       success: true,
       errorType: "none",
     });
-    expect(gitPull.mock.calls[1][0]).toMatchObject({
+    expect(gitPull.mock.calls[1][0]).toEqual({
+      repo_id: "repo-1",
+      repo_path: "/tmp/repo",
+      remote: undefined,
+      branch: undefined,
       strategy: "rebase",
       authUsername: "x-access-token",
       authToken: "gho_secret",
@@ -767,7 +832,10 @@ describe("credential resolution", () => {
       success: true,
       errorType: "none",
     });
-    expect(gitFetch.mock.calls[1][0]).toMatchObject({
+    expect(gitFetch.mock.calls[1][0]).toEqual({
+      repo_id: "repo-1",
+      repo_path: "/tmp/repo",
+      remote: undefined,
       prune: true,
       authUsername: "x-access-token",
       authToken: "gho_secret",
@@ -807,10 +875,15 @@ describe("credential retry for pull and fetch", () => {
     });
 
     expect(gitPull).toHaveBeenCalledTimes(3);
-    expect(gitPull.mock.calls[2][0]).toMatchObject({
+    expect(gitPull.mock.calls[2][0]).toEqual({
+      repo_id: "repo-1",
+      repo_path: "/tmp/repo",
+      remote: undefined,
+      branch: undefined,
       strategy: "merge",
       authUsername: "harry",
       authToken: "pat_secret",
+      storeAuth: false,
     });
   });
 
@@ -857,10 +930,14 @@ describe("credential retry for pull and fetch", () => {
       errorType: "unknown",
       message: "fatal: the remote end hung up",
     });
-    expect(gitFetch.mock.calls[2][0]).toMatchObject({
+    expect(gitFetch.mock.calls[2][0]).toEqual({
+      repo_id: "repo-1",
+      repo_path: "/tmp/repo",
+      remote: undefined,
       prune: true,
       authUsername: "harry",
       authToken: "pat_secret",
+      storeAuth: false,
     });
   });
 
@@ -981,10 +1058,18 @@ describe("output integration path", () => {
       success: true,
       errorType: "none",
     });
-    // The retry leaves the streaming channel and goes direct to the API.
-    expect(gitPush.mock.calls[0][0]).toMatchObject({
+    // The retry leaves the streaming channel and goes direct to the API,
+    // carrying the caller's force flag and nothing beyond it.
+    expect(gitPush.mock.calls[0][0]).toEqual({
+      repo_id: "repo-1",
+      repo_path: "/tmp/repo",
+      remote: undefined,
+      branch: undefined,
       force: true,
+      set_upstream: undefined,
+      authUsername: "x-access-token",
       authToken: "gho_secret",
+      storeAuth: false,
     });
   });
 
@@ -1046,9 +1131,15 @@ describe("output integration path", () => {
       success: true,
       errorType: "none",
     });
-    expect(gitPull.mock.calls[0][0]).toMatchObject({
+    expect(gitPull.mock.calls[0][0]).toEqual({
+      repo_id: "repo-1",
+      repo_path: "/tmp/repo",
+      remote: undefined,
+      branch: undefined,
       strategy: "ff-only",
+      authUsername: "x-access-token",
       authToken: "gho_secret",
+      storeAuth: false,
     });
 
     const fetchWithOutput = vi.fn().mockResolvedValue({
@@ -1064,9 +1155,14 @@ describe("output integration path", () => {
       success: true,
       errorType: "none",
     });
-    expect(gitFetch.mock.calls[0][0]).toMatchObject({
+    expect(gitFetch.mock.calls[0][0]).toEqual({
+      repo_id: "repo-1",
+      repo_path: "/tmp/repo",
+      remote: undefined,
       prune: true,
+      authUsername: "x-access-token",
       authToken: "gho_secret",
+      storeAuth: false,
     });
   });
 

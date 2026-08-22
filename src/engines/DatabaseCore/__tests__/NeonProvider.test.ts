@@ -282,11 +282,16 @@ describe("NeonProvider.getTables", () => {
 
     await provider.getTables();
 
-    const sql = sqlAt(0);
-    expect(sql).toContain("FROM information_schema.tables");
-    expect(sql).toContain("WHERE table_schema = 'public'");
-    expect(sql).toContain("AND table_type IN ('BASE TABLE', 'VIEW')");
-    expect(sql).toContain("ORDER BY table_name");
+    // Pinned as exact SQL rather than fragments: getTables reads the result
+    // rows positionally (row[0] is the name, row[1] the table_type), so the
+    // projection, its `as name` alias and the ORDER BY are all contract.
+    expect(sqlAt(0)).toBe(
+      "SELECT table_name as name, table_type " +
+        "FROM information_schema.tables " +
+        "WHERE table_schema = 'public' " +
+        "AND table_type IN ('BASE TABLE', 'VIEW') " +
+        "ORDER BY table_name"
+    );
   });
 
   it("maps rows positionally and attaches a row count per object", async () => {
@@ -343,16 +348,36 @@ describe("NeonProvider.getTables", () => {
 });
 
 describe("NeonProvider.getTableSchema", () => {
-  it("scopes the column and primary-key lookups to the table", async () => {
+  it("pins the exact introspection SQL, projection order included", async () => {
+    // Exact SQL, not fragments: getTableSchema maps rows positionally
+    // (row[0]..row[5]), so the order of the SELECT list is part of the
+    // contract. Swapping `c.data_type` and `c.is_nullable`, or dropping
+    // `c.udt_name`, would silently mislabel every column's type and
+    // nullability in production; a fragment assertion cannot see that.
     const provider = await connected();
     curlExecuteMock.mockResolvedValue(ok());
 
     await provider.getTableSchema("events");
 
-    const sql = sqlAt(0);
-    expect(sql).toContain("AND tc.table_name = 'events'");
-    expect(sql).toContain("AND c.table_name = 'events'");
-    expect(sql).toContain("ORDER BY c.ordinal_position");
+    expect(sqlAt(0)).toBe(
+      "SELECT c.column_name, c.data_type, c.is_nullable, " +
+        "c.column_default, c.udt_name, " +
+        "CASE WHEN pk.column_name IS NOT NULL THEN true ELSE false END " +
+        "as is_primary_key " +
+        "FROM information_schema.columns c " +
+        "LEFT JOIN ( SELECT ku.column_name " +
+        "FROM information_schema.table_constraints tc " +
+        "JOIN information_schema.key_column_usage ku " +
+        "ON tc.constraint_name = ku.constraint_name " +
+        "AND tc.table_schema = ku.table_schema " +
+        "WHERE tc.constraint_type = 'PRIMARY KEY' " +
+        "AND tc.table_schema = 'public' " +
+        "AND tc.table_name = 'events' ) " +
+        "pk ON c.column_name = pk.column_name " +
+        "WHERE c.table_schema = 'public' " +
+        "AND c.table_name = 'events' " +
+        "ORDER BY c.ordinal_position"
+    );
   });
 
   it("maps positional rows, preferring udt_name and detecting nextval defaults", async () => {

@@ -442,13 +442,40 @@ describe("clearProjectRepoCache", () => {
   });
 
   it("deletes unrelated keys that merely contain a matched substring (documents over-breadth — see report)", () => {
+    // Every key below is a real key this app writes today, none of which is
+    // project/repo cache. They are destroyed because the sweep matches a bare
+    // substring ("workspace"/"Workspace", "repo"/"Repo", "project") or the
+    // "cur" prefix, and none of them trips the theme/setting/config exemption:
+    //   orgii_recent_workspaces
+    //     -> src/services/workspace/WorkspaceService.ts:21          ("workspace")
+    //   orgii:codeSearchIndexedRepos
+    //     -> src/store/search/codeSearchIndexAtom.ts:39             ("Repo")
+    //   orgii:kanbanGitHub:selectedRepo:v1
+    //     -> src/modules/MainApp/WorkManagement/
+    //        useGitHubWorkItemsViewState.ts:42                      ("Repo")
+    //   currentWorkspaceLocalPath
+    //     -> src/util/data/search/searchFileKeyword.ts:28           ("cur" prefix)
+    //   orgii-v3-active-repo-by-workspace
+    //     -> src/store/workstation/tabs/editorCache.ts:28           ("repo")
+    //   orgii:projectsSidebarGroupBy
+    //     -> src/scaffold/NavigationSidebar/connectors/
+    //        sidebarGroupByAtom.ts:19                               ("project")
+    // So "clear project cache" also drops the recent-workspace list, the code
+    // search index registry, the Kanban repo selection, the active workspace
+    // path, the per-workspace editor cache, and a sidebar preference. (The
+    // last one is pinned on its own above as the docstring violation; it is
+    // repeated here because it is part of the same substring sweep.)
+    // This pins today's behaviour, not the desired behaviour.
     local.seed({
-      bug_report_draft: "user prose",
-      cursor_ide_last_scan: "2026-08-23",
-      currentUserLocale: "en-GB",
+      orgii_recent_workspaces: '[{"id":"ws-1","path":"/Users/me/proj"}]',
+      "orgii:codeSearchIndexedRepos": '["repo-1"]',
+      "orgii:kanbanGitHub:selectedRepo:v1": '"acme/web"',
+      currentWorkspaceLocalPath: "/Users/me/proj",
+      "orgii-v3-active-repo-by-workspace": '{"ws-1":"repo-1"}',
+      "orgii:projectsSidebarGroupBy": "agent",
     });
 
-    expect(cleanupModule.clearProjectRepoCache()).toEqual({ clearedCount: 3 });
+    expect(cleanupModule.clearProjectRepoCache()).toEqual({ clearedCount: 6 });
     expect(local.snapshot()).toEqual({});
   });
 
