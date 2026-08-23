@@ -1,0 +1,197 @@
+/**
+ * ChatPanelPlusMenu — the "+" button and its dropdown, placed in the chat
+ * panel header toolbar (left of the "..." menu).
+ */
+import {
+  Box,
+  BriefcaseBusiness,
+  Columns3,
+  Gauge,
+  LayoutGrid,
+  PictureInPicture2,
+  Plus,
+  Spade,
+} from "lucide-react";
+import React, { useCallback, useState } from "react";
+import { useTranslation } from "react-i18next";
+
+import Dropdown from "@src/components/Dropdown";
+import {
+  DROPDOWN_CLASSES,
+  DROPDOWN_WIDTHS,
+} from "@src/components/Dropdown/tokens";
+import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
+import { TabBarTrailingIconButton } from "@src/modules/WorkStation/shared/TabBar/components/TabBarTrailingIconButton";
+import { isMacOS } from "@src/util/platform/tauri";
+
+import { CHAT_PANEL_HEADER_NO_DRAG_STYLE } from "../header";
+
+// ─── Plus-menu dropdown ───────────────────────────────────────────────────────
+
+interface PlusMenuContentProps {
+  onOpenLaunchpad: () => void;
+  onOpenKanban: () => void;
+  onOpenRuntime: () => void;
+  onNewProject: () => void;
+  onNewWorkItem: () => void;
+  onOpenSideChat: () => void;
+  onOpenPokerTable: () => void;
+  onClose: () => void;
+}
+
+export function PlusMenuContent({
+  onOpenLaunchpad,
+  onOpenKanban,
+  onOpenRuntime,
+  onNewProject,
+  onNewWorkItem,
+  onOpenSideChat,
+  onOpenPokerTable,
+  onClose,
+}: PlusMenuContentProps) {
+  const { t } = useTranslation(["sessions", "navigation"]);
+  const MOD = isMacOS() ? "⌘" : "Ctrl";
+
+  // New session opens the singleton start page. It carries the ⌘N hint since
+  // that shortcut (handled in ChatPanelTabBar) opens the same surface.
+  const items = [
+    {
+      id: "launchpad",
+      icon: <LayoutGrid size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
+      label: t("sessions:chat.startPage.newSession.title"),
+      hint: `${MOD}N`,
+      onClick: onOpenLaunchpad,
+    },
+    {
+      id: "work-management",
+      icon: <Columns3 size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
+      label: t("sessions:simulator.tabs.kanban"),
+      onClick: onOpenKanban,
+    },
+    {
+      id: "runtime",
+      icon: <Gauge size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
+      label: t("sessions:chat.startPage.tabs.runtime"),
+      onClick: onOpenRuntime,
+    },
+    {
+      id: "new-project",
+      icon: <Box size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
+      label: t("sessions:creator.createTarget.project"),
+      onClick: onNewProject,
+    },
+    {
+      id: "new-work-item",
+      icon: <BriefcaseBusiness size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
+      label: t("chat.startPage.newWorkItem.title"),
+      onClick: onNewWorkItem,
+    },
+    {
+      id: "side-chat",
+      icon: <PictureInPicture2 size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
+      label: t("sessions:chat.sideChat.title"),
+      onClick: onOpenSideChat,
+    },
+    {
+      id: "poker-table",
+      icon: <Spade size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
+      label: t("sessions:pokerTable.menuLabel"),
+      onClick: onOpenPokerTable,
+    },
+  ] as const;
+
+  return (
+    <div
+      className={`${DROPDOWN_CLASSES.menuPanelBase} ${DROPDOWN_WIDTHS.wideMenuClass}`}
+    >
+      <div className={DROPDOWN_CLASSES.itemsColumn}>
+        {items.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            role="menuitem"
+            className={`${DROPDOWN_CLASSES.menuActionItem} justify-between`}
+            onClick={() => {
+              onClose();
+              item.onClick();
+            }}
+          >
+            <span className="flex min-w-0 flex-1 items-center gap-2">
+              {item.icon}
+              <span className="truncate">{item.label}</span>
+            </span>
+            {"hint" in item && item.hint ? (
+              <span className="ml-4 shrink-0 text-[11px] text-text-3">
+                {item.hint}
+              </span>
+            ) : null}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Exported + menu button (placed in header toolbar, left of ...) ───────────
+
+export interface ChatPanelPlusMenuProps {
+  onOpenLaunchpad: () => void;
+  onOpenKanban: () => void;
+  onOpenRuntime: () => void;
+  onNewProject: () => void;
+  onNewWorkItem: () => void;
+  onOpenSideChat: () => void;
+  onOpenPokerTable: () => void;
+}
+
+export function ChatPanelPlusMenu({
+  onOpenLaunchpad,
+  onOpenKanban,
+  onOpenRuntime,
+  onNewProject,
+  onNewWorkItem,
+  onOpenSideChat,
+  onOpenPokerTable,
+}: ChatPanelPlusMenuProps): React.ReactNode {
+  const { t } = useTranslation("sessions");
+  const [menuOpen, setMenuOpen] = useState(false);
+  const closeMenu = useCallback(() => setMenuOpen(false), []);
+  const plusLabel = t("chat.tabs.newTab", "New tab");
+
+  return (
+    <Dropdown
+      droplist={
+        <PlusMenuContent
+          onOpenLaunchpad={onOpenLaunchpad}
+          onOpenKanban={onOpenKanban}
+          onOpenRuntime={onOpenRuntime}
+          onNewProject={onNewProject}
+          onNewWorkItem={onNewWorkItem}
+          onOpenSideChat={onOpenSideChat}
+          onOpenPokerTable={onOpenPokerTable}
+          onClose={closeMenu}
+        />
+      }
+      position="bottom-end"
+      trigger="click"
+      popupVisible={menuOpen}
+      onVisibleChange={setMenuOpen}
+      getPopupContainer={() => document.body}
+      avoidViewportOverflow
+    >
+      <span
+        className="inline-flex shrink-0"
+        style={CHAT_PANEL_HEADER_NO_DRAG_STYLE}
+      >
+        <TabBarTrailingIconButton
+          title={plusLabel}
+          active={menuOpen}
+          tooltipDisabled
+          nativeTitle={false}
+        >
+          <Plus size={HEADER_ICON_SIZE.md} strokeWidth={2} />
+        </TabBarTrailingIconButton>
+      </span>
+    </Dropdown>
+  );
+}
