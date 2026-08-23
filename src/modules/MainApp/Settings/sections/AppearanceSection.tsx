@@ -65,7 +65,7 @@ const MacOSSidebarOpacityRow: React.FC = () => {
           min={MIN_SIDEBAR_OPACITY}
           max={MAX_SIDEBAR_OPACITY}
           value={config.sidebarOpacity ?? DEFAULT_SIDEBAR_OPACITY}
-          onChange={(value) =>
+          onValueChange={(value) =>
             setConfig({
               ...config,
               sidebarOpacity: sanitizeSidebarOpacity(value),
@@ -202,7 +202,7 @@ const AppearanceSection: React.FC<AppearanceSectionProps> = ({
                   min={0}
                   max={20}
                   value={sidebarSelectedRowOpacity}
-                  onChange={(value) =>
+                  onValueChange={(value) =>
                     setSidebarSelectedRowOpacity(
                       Array.isArray(value) ? value[0] : value
                     )
