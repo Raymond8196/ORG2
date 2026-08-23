@@ -64,7 +64,11 @@ const DropdownOptionsRenderer: React.FC<DropdownOptionsRendererProps> = ({
     );
   } else {
     content = (
-      <div className={DROPDOWN_CLASSES.optionsContainerScrollbar}>
+      <div
+        className={DROPDOWN_CLASSES.optionsContainerScrollbar}
+        role="listbox"
+        aria-multiselectable={isMultiple || undefined}
+      >
         <div className={DROPDOWN_CLASSES.itemsColumn}>
           {options.map((option, index) => {
             const isSelected = isMultiple
@@ -78,6 +82,9 @@ const DropdownOptionsRenderer: React.FC<DropdownOptionsRendererProps> = ({
               <div
                 key={option.value}
                 data-testid={option.dataTestId}
+                role="option"
+                aria-selected={isSelected}
+                aria-disabled={option.disabled || undefined}
                 {...optionMouseEnterProps}
                 className={[
                   DROPDOWN_CLASSES.item,

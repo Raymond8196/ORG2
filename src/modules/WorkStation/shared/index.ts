@@ -64,10 +64,6 @@ export {
 export { CountBadge } from "./CountBadge";
 export type { CountBadgeProps, CountVariant } from "./CountBadge";
 
-// Severity icons (for diagnostics, logs)
-export { getSeverityIcon, SeverityIcon } from "./SeverityIcon";
-export type { Severity, SeverityIconProps } from "./SeverityIcon";
-
 // Primary sidebar layout
 export {
   CollapsibleSection,

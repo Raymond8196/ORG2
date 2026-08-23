@@ -49,3 +49,62 @@ describe("Tooltip child refs", () => {
     expect(container.querySelector("button")).toBe(button);
   });
 });
+
+describe("Tooltip open state", () => {
+  it("supports the defaultOpen uncontrolled contract", () => {
+    act(() => {
+      root.render(
+        createElement(
+          Tooltip,
+          { content: "Details", defaultOpen: true } as ComponentProps<
+            typeof Tooltip
+          >,
+          createElement("button", null, "Trigger")
+        )
+      );
+    });
+
+    expect(
+      document.body.querySelector(".native-tooltip-content-inner")?.textContent
+    ).toBe("Details");
+  });
+
+  it("reports click-triggered changes without mutating controlled state", async () => {
+    const onOpenChange = vi.fn();
+    const render = (open: boolean) =>
+      createElement(
+        Tooltip,
+        {
+          content: "Details",
+          trigger: "click",
+          open,
+          onOpenChange,
+          mouseEnterDelay: 0,
+          mouseLeaveDelay: 0,
+        } as unknown as ComponentProps<typeof Tooltip>,
+        createElement("button", null, "Trigger")
+      );
+
+    act(() => root.render(render(false)));
+    const button = container.querySelector("button");
+
+    await act(async () => {
+      button?.click();
+      await new Promise((resolve) => window.setTimeout(resolve, 0));
+    });
+
+    expect(onOpenChange).toHaveBeenLastCalledWith(true);
+    expect(document.body.querySelector(".native-tooltip")).toBeNull();
+
+    act(() => root.render(render(true)));
+    expect(document.body.querySelector(".native-tooltip")).not.toBeNull();
+
+    await act(async () => {
+      button?.click();
+      await new Promise((resolve) => window.setTimeout(resolve, 0));
+    });
+
+    expect(onOpenChange).toHaveBeenLastCalledWith(false);
+    expect(document.body.querySelector(".native-tooltip")).not.toBeNull();
+  });
+});

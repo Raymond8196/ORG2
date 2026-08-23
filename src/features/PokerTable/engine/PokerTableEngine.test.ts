@@ -64,7 +64,9 @@ function playRandomHand(engine: PokerTableEngine, rng: () => number): void {
 
 describe("PokerTableEngine", () => {
   it("conserves chips across many random hands, including side pots", () => {
-    const engine = new PokerTableEngine(BLINDS);
+    const engine = new PokerTableEngine(BLINDS, {
+      rng: createSeededRng(146),
+    });
     seatSix(engine, [2130, 106000, 35800, 11100, 56400, 24200]);
     let total = chipsInPlay(engine);
     const rng = createSeededRng(7);
