@@ -3,8 +3,8 @@ import { describe, expect, it } from "vitest";
 import {
   advanceSearchResultCollapseState,
   createSearchResultCollapseState,
-} from "./searchResultCollapseState";
-import type { SearchResultFile } from "./types";
+} from "../searchResultCollapseState";
+import type { SearchResultFile } from "../types";
 
 const result = (filePath: string, matchCount: number): SearchResultFile => ({
   file_path: filePath,

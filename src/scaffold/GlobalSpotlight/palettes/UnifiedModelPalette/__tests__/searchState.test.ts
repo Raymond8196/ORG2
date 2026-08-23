@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { advancePaletteSearchState } from "./searchState";
+import { advancePaletteSearchState } from "../searchState";
 
 describe("advancePaletteSearchState", () => {
   it("clears a stale query in the same render that reopens the palette", () => {
