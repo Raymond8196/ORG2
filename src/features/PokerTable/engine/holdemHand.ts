@@ -468,9 +468,14 @@ export function derivePots(seats: readonly HandSeatState[]): PotShare[] {
     previous = level;
     if (size === 0) continue;
     // Merge with the previous pot when eligibility is identical (a folded
-    // seat's leftover shouldn't create a pot of its own).
+    // seat's leftover shouldn't create a pot of its own). A folded-only
+    // contribution slice is likewise not independently contestable, so it
+    // belongs to the highest preceding pot that still has an eligible seat.
     const last = pots[pots.length - 1];
-    if (last && sameSeats(last.eligibleSeats, eligible)) {
+    if (
+      last &&
+      (eligible.length === 0 || sameSeats(last.eligibleSeats, eligible))
+    ) {
       last.size += size;
     } else {
       pots.push({ size, eligibleSeats: eligible });
