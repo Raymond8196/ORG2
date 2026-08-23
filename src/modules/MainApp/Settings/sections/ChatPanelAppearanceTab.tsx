@@ -27,7 +27,7 @@ export const ChatPanelAppearanceTab: React.FC = () => {
             step={1}
             suffix={tCommon("common.px")}
             controlsPosition="sides"
-            onChange={(value) => {
+            onValueChange={(value) => {
               updateChatAppearance({
                 fontSize: value ?? DEFAULT_CHAT_APPEARANCE.fontSize,
               });
@@ -44,7 +44,7 @@ export const ChatPanelAppearanceTab: React.FC = () => {
             step={1}
             suffix={tCommon("common.px")}
             controlsPosition="sides"
-            onChange={(value) => {
+            onValueChange={(value) => {
               updateChatAppearance({ codeFontSize: value ?? 13 });
             }}
             size="default"
@@ -59,7 +59,7 @@ export const ChatPanelAppearanceTab: React.FC = () => {
             step={0.1}
             suffix={tCommon("common.multiplier")}
             controlsPosition="sides"
-            onChange={(value) => {
+            onValueChange={(value) => {
               updateChatAppearance({ lineHeight: value ?? 1.6 });
             }}
             size="default"
@@ -92,7 +92,7 @@ export const ChatPanelAppearanceTab: React.FC = () => {
               max={50}
               suffix={tCommon("common.ms")}
               controlsPosition="sides"
-              onChange={(value) => {
+              onValueChange={(value) => {
                 updateChatAppearance({ typingSpeed: value ?? 5 });
               }}
               size="default"

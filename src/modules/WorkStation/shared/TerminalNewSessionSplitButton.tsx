@@ -10,6 +10,7 @@ import {
   DROPDOWN_ITEM,
   DROPDOWN_WIDTHS,
 } from "@src/components/Dropdown/tokens";
+import SplitButton from "@src/components/SplitButton";
 import { useDropdownEngine } from "@src/hooks/dropdown";
 import { useAvailableShells } from "@src/hooks/terminal";
 import type { ShellProfile } from "@src/types/terminal";
@@ -214,7 +215,7 @@ const TerminalNewSessionSplitButtonComponent: React.FC<
   }
 
   return (
-    <Button
+    <SplitButton
       ref={shellPickerTriggerRef}
       htmlType="button"
       variant="tertiary"
@@ -225,15 +226,17 @@ const TerminalNewSessionSplitButtonComponent: React.FC<
         event.stopPropagation();
         onNewTerminal();
       }}
+      aria-label={terminalTitle}
       title={terminalTitle}
       icon={<Plus size={DROPDOWN_ITEM.iconSize} strokeWidth={2} />}
-      dropdownMenu={shellPickerMenu ?? <div />}
-      onDropdownClick={(event) => {
+      menu={shellPickerMenu ?? <div />}
+      onMenuButtonClick={(event) => {
         event.stopPropagation();
         toggleShellPicker();
       }}
-      dropdownVisible={isShellPickerOpen}
-      splitIconOnlyMainWidth={splitMainWidth}
+      menuOpen={isShellPickerOpen}
+      menuButtonLabel={terminalTitle}
+      mainSegmentWidth={splitMainWidth}
     />
   );
 };

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { readWorkspaceWorkItemsData } from "./client";
+import { readWorkspaceWorkItemsData } from "./workItems";
 
 const { invokeMock } = vi.hoisted(() => ({
   invokeMock: vi.fn(),

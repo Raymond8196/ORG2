@@ -72,7 +72,7 @@ const NavigationMenu: React.FC<NavigationMenuProps> = React.memo(
         if (!item.children) return false;
         return item.children.some((child) => selectedKeys.includes(child.key));
       },
-      // eslint-disable-next-line react-hooks/exhaustive-deps -- selectedKeysKey is the semantic content clock; same-content array allocations must not recreate every menu-row callback
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- selectedKeysKey is the semantic content clock for selectedKeys; same-content array allocations must not churn this callback's identity, which gates the expansion effect below
       [selectedKeysKey]
     );
 
@@ -102,8 +102,8 @@ const NavigationMenu: React.FC<NavigationMenuProps> = React.memo(
           });
         }
       });
-      // eslint-disable-next-line react-hooks/exhaustive-deps -- submenuKeysKey and selectedKeysKey include every field this expansion pass reads while avoiding reruns for same-content menu arrays
-    }, [submenuKeysKey, selectedKeysKey]);
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- only `items` is omitted: submenuKeysKey encodes every key this depth-1 pass reads (top-level keys plus each item's direct child keys), so equivalent menu arrays must not rerun it. isSubmenuSelected is listed rather than omitted because it is memoized on selectedKeysKey, which is already a dependency. NOTE: if this pass is ever made recursive, submenuKeysKey stops covering its reads and must be deepened with it.
+    }, [submenuKeysKey, selectedKeysKey, isSubmenuSelected]);
 
     const renderIcon = useCallback(
       (
