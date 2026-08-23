@@ -157,7 +157,9 @@ const AppearanceSection: React.FC = () => {
             step={1}
             suffix={tCommon("common.px")}
             controlsPosition="sides"
-            onChange={(value) => setFontSize((value ?? 13) as EditorFontSize)}
+            onValueChange={(value) =>
+              setFontSize((value ?? 13) as EditorFontSize)
+            }
             style={SECTION_CONTROL_STYLE}
           />
         </SectionRow>
@@ -170,7 +172,7 @@ const AppearanceSection: React.FC = () => {
             step={0.1}
             suffix={tCommon("common.multiplier")}
             controlsPosition="sides"
-            onChange={(value) =>
+            onValueChange={(value) =>
               setLineHeight((value ?? 1.5) as EditorLineHeight)
             }
             style={SECTION_CONTROL_STYLE}
@@ -185,7 +187,7 @@ const AppearanceSection: React.FC = () => {
             step={2}
             suffix={tCommon("common.spaces")}
             controlsPosition="sides"
-            onChange={(value) => setTabSize((value ?? 2) as EditorTabSize)}
+            onValueChange={(value) => setTabSize((value ?? 2) as EditorTabSize)}
             style={SECTION_CONTROL_STYLE}
           />
         </SectionRow>
@@ -200,7 +202,7 @@ const AppearanceSection: React.FC = () => {
             step={1}
             suffix={tCommon("common.px")}
             controlsPosition="sides"
-            onChange={(value) => setTerminalFontSize(value ?? 13)}
+            onValueChange={(value) => setTerminalFontSize(value ?? 13)}
             style={SECTION_CONTROL_STYLE}
           />
         </SectionRow>

@@ -233,7 +233,7 @@ const AgentWizard: FC<AgentWizardProps> = ({ onSave, onCancel }) => {
                     <SectionRow label="" description="" indent>
                       <NumberInput
                         value={w.contextWindow}
-                        onChange={onChangeIfDefined(w.setContextWindow)}
+                        onValueChange={onChangeIfDefined(w.setContextWindow)}
                         min={16000}
                         step={1000}
                         controlsPosition="sides"
@@ -248,7 +248,7 @@ const AgentWizard: FC<AgentWizardProps> = ({ onSave, onCancel }) => {
                   >
                     <NumberInput
                       value={w.maxTokens}
-                      onChange={onChangeIfDefined(w.setMaxTokens)}
+                      onValueChange={onChangeIfDefined(w.setMaxTokens)}
                       min={256}
                       max={65536}
                       step={256}
@@ -263,7 +263,7 @@ const AgentWizard: FC<AgentWizardProps> = ({ onSave, onCancel }) => {
                   >
                     <NumberInput
                       value={w.temperature}
-                      onChange={onChangeIfDefined(w.setTemperature)}
+                      onValueChange={onChangeIfDefined(w.setTemperature)}
                       min={0}
                       max={2}
                       step={0.1}
@@ -299,7 +299,7 @@ const AgentWizard: FC<AgentWizardProps> = ({ onSave, onCancel }) => {
                       >
                         <NumberInput
                           value={w.compactionTriggerRatio}
-                          onChange={onChangeIfDefined(
+                          onValueChange={onChangeIfDefined(
                             w.setCompactionTriggerRatio
                           )}
                           min={0.1}
@@ -321,7 +321,9 @@ const AgentWizard: FC<AgentWizardProps> = ({ onSave, onCancel }) => {
                       >
                         <NumberInput
                           value={w.compactionKeepRatio}
-                          onChange={onChangeIfDefined(w.setCompactionKeepRatio)}
+                          onValueChange={onChangeIfDefined(
+                            w.setCompactionKeepRatio
+                          )}
                           min={0.1}
                           max={0.9}
                           step={0.05}
@@ -358,7 +360,7 @@ const AgentWizard: FC<AgentWizardProps> = ({ onSave, onCancel }) => {
                       >
                         <NumberInput
                           value={w.compactionSummaryMaxTokens}
-                          onChange={onChangeIfDefined(
+                          onValueChange={onChangeIfDefined(
                             w.setCompactionSummaryMaxTokens
                           )}
                           min={512}
@@ -379,7 +381,7 @@ const AgentWizard: FC<AgentWizardProps> = ({ onSave, onCancel }) => {
                       >
                         <NumberInput
                           value={w.compactionMinMessages}
-                          onChange={onChangeIfDefined(
+                          onValueChange={onChangeIfDefined(
                             w.setCompactionMinMessages
                           )}
                           min={1}
@@ -401,7 +403,7 @@ const AgentWizard: FC<AgentWizardProps> = ({ onSave, onCancel }) => {
                       >
                         <NumberInput
                           value={w.compactionFloorTokens}
-                          onChange={onChangeIfDefined(
+                          onValueChange={onChangeIfDefined(
                             w.setCompactionFloorTokens
                           )}
                           min={4000}
@@ -422,7 +424,7 @@ const AgentWizard: FC<AgentWizardProps> = ({ onSave, onCancel }) => {
                       >
                         <NumberInput
                           value={w.compactionReservedSummaryTokens}
-                          onChange={onChangeIfDefined(
+                          onValueChange={onChangeIfDefined(
                             w.setCompactionReservedSummaryTokens
                           )}
                           min={1000}
@@ -443,7 +445,7 @@ const AgentWizard: FC<AgentWizardProps> = ({ onSave, onCancel }) => {
                       >
                         <NumberInput
                           value={w.compactionBufferTokens}
-                          onChange={onChangeIfDefined(
+                          onValueChange={onChangeIfDefined(
                             w.setCompactionBufferTokens
                           )}
                           min={0}
