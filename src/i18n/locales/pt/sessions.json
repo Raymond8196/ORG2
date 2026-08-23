@@ -2104,9 +2104,11 @@
     "immutableInSession": "A origem da chave, o tipo de Agent e o nível de preço são fixados no início da sessão. Inicie uma nova sessão para alterá-los."
   },
   "creator": {
-    "repoChromePosition": {
-      "up": "Em cima",
-      "down": "Embaixo"
+    "repoChromeMenu": {
+      "moveToTop": "Mover para cima",
+      "moveToBottom": "Mover para baixo",
+      "showPinnedActions": "Mostrar ações fixadas",
+      "hidePinnedActions": "Ocultar ações fixadas"
     },
     "createTarget": {
       "agentSession": "Sessão de Agent",

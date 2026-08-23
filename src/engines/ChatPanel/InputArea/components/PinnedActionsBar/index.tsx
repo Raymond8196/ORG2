@@ -126,6 +126,20 @@ export interface PinnedActionsBarProps {
   trailingContent?: React.ReactNode;
   manageButtonPlacement?: "after-actions" | "after-leading" | "before-actions";
   managePanelAlign?: "left" | "right";
+  /** Show pinned quick-action pills; the management button stays available. */
+  showPinnedActions?: boolean;
+}
+
+export function getUnresolvedPinnedSkillsKey(
+  pinnedActions: PinnedAction[],
+  showPinnedActions: boolean
+): string {
+  if (!showPinnedActions) return "";
+  return pinnedActions
+    .filter((action) => action.category === "skill" && !action.skillPath)
+    .map((action) => action.skillName ?? action.name)
+    .sort()
+    .join("\0");
 }
 
 const PinnedActionsBar: React.FC<PinnedActionsBarProps> = memo(
@@ -137,6 +151,7 @@ const PinnedActionsBar: React.FC<PinnedActionsBarProps> = memo(
     trailingContent,
     manageButtonPlacement = "after-actions",
     managePanelAlign = "right",
+    showPinnedActions = true,
   }) => {
     const { t } = useTranslation("sessions");
     const [pinnedActions, setPinnedActions] = useAtom(pinnedActionsAtom);
@@ -225,13 +240,8 @@ const PinnedActionsBar: React.FC<PinnedActionsBarProps> = memo(
     // mounting the input stays free. The scan itself is bounded/coalesced by
     // the shared scanner, and the full "…" panel list still loads on open.
     const unresolvedPinnedSkillsKey = useMemo(
-      () =>
-        pinnedActions
-          .filter((action) => action.category === "skill" && !action.skillPath)
-          .map((action) => action.skillName ?? action.name)
-          .sort()
-          .join("\0"),
-      [pinnedActions]
+      () => getUnresolvedPinnedSkillsKey(pinnedActions, showPinnedActions),
+      [pinnedActions, showPinnedActions]
     );
 
     useEffect(() => {
@@ -254,19 +264,17 @@ const PinnedActionsBar: React.FC<PinnedActionsBarProps> = memo(
       setPanelOpen(false);
     }, []);
 
-    const hasPinnedActions = pinnedActions.length > 0;
-    const resolvedPinnedActions = useMemo(
-      () =>
-        pinnedActions.map((action) => {
-          if (action.category !== "skill" || action.skillPath) return action;
-          const skillPath = skillPathByName.get(
-            action.skillName ?? action.name
-          );
-          return skillPath ? { ...action, skillPath } : action;
-        }),
-      [pinnedActions, skillPathByName]
-    );
-    const showCanvasAction = showCanvasPill && !isCanvasTabOpen;
+    const hasPinnedActions = showPinnedActions && pinnedActions.length > 0;
+    const resolvedPinnedActions = useMemo(() => {
+      if (!showPinnedActions) return [];
+      return pinnedActions.map((action) => {
+        if (action.category !== "skill" || action.skillPath) return action;
+        const skillPath = skillPathByName.get(action.skillName ?? action.name);
+        return skillPath ? { ...action, skillPath } : action;
+      });
+    }, [pinnedActions, showPinnedActions, skillPathByName]);
+    const showCanvasAction =
+      showPinnedActions && showCanvasPill && !isCanvasTabOpen;
     const hasActionPills = showCanvasAction || hasPinnedActions;
     const hasTrailingContent = Boolean(trailingContent);
     const showTrailingSeparator = hasActionPills || hasTrailingContent;
