@@ -94,19 +94,15 @@ export {
   ColorInput,
   EditableField,
   LinkedInputPair,
-  PropertySection,
   SpacingBottom,
   SpacingLeft,
   SpacingRight,
   SpacingTop,
-  SubSection,
 } from "./PropertyEditor";
 export type {
   ColorInputProps,
   EditableFieldProps,
   LinkedInputPairProps,
-  PropertySectionProps,
-  SubSectionProps,
 } from "./PropertyEditor";
 
 // Tab bar
