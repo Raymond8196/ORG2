@@ -253,7 +253,7 @@ const NotificationsAdvancedBlocks: React.FC = () => {
               <div className="w-[160px] max-w-full">
                 <Slider
                   value={soundVolume}
-                  onChange={handleVolumeChange}
+                  onValueChange={handleVolumeChange}
                   min={0}
                   max={100}
                   showTooltip={false}
