@@ -125,3 +125,38 @@ jobs:
       - name: cargo test (workspace)
         working-directory: src-tauri
         run: cargo test --workspace --no-fail-fast
+
+  # ── Dependency audit ────────────────────────────────────────────────────────
+  # Only signal on the ~1000-crate Rust closure; nothing else watches Cargo.lock.
+  # Runs on its own runner rather than inside the `rust` job so an advisory
+  # cannot be masked by, or delay, a clippy/test failure. Ignored advisories and
+  # the reason each one is blocked live in src-tauri/.cargo/audit.toml.
+  cargo-audit:
+    name: Rust (cargo audit)
+    needs: changes
+    if: needs.changes.outputs.rust_required == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      # cargo-audit only parses Cargo.lock -- it never builds the workspace, so
+      # this needs no sidecar staging and no target cache.
+      - name: Cache cargo-audit binary
+        id: audit-cache
+        uses: actions/cache@v5
+        with:
+          path: ~/.cargo/bin/cargo-audit
+          key: cargo-audit-${{ runner.os }}-v1
+
+      - name: Install cargo-audit
+        if: steps.audit-cache.outputs.cache-hit != 'true'
+        run: cargo install cargo-audit --locked
+
+      - name: cargo audit
+        working-directory: src-tauri
+        run: cargo audit
