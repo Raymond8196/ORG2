@@ -15,6 +15,7 @@ import Dropdown from "@src/components/Dropdown";
 import { openUrlInBrowserApp } from "@src/components/MarkDown/markdownUtils";
 import Menu from "@src/components/Menu";
 import Message from "@src/components/Message";
+import SplitButton from "@src/components/SplitButton";
 import { resolveAgentIcon } from "@src/config/agentIcons";
 import { replayModeAtom } from "@src/engines/SessionCore";
 import { AppType } from "@src/engines/Simulator/types/appTypes";
@@ -275,11 +276,11 @@ const MessageReferenceCard: React.FC<MessageReferenceCardProps> = ({
           />
         )}
         {isOpenable && (
-          <Button
+          <SplitButton
             variant="primary"
             size="small"
             onClick={handleOpen}
-            dropdownMenu={
+            menu={
               <Dropdown
                 droplist={
                   <Menu>
@@ -303,15 +304,16 @@ const MessageReferenceCard: React.FC<MessageReferenceCardProps> = ({
                 <div />
               </Dropdown>
             }
-            onDropdownClick={(event) => {
+            onMenuButtonClick={(event) => {
               event.stopPropagation();
               setDropdownVisible(!dropdownVisible);
             }}
-            dropdownVisible={dropdownVisible}
-            splitWidthMode="hug"
+            menuOpen={dropdownVisible}
+            menuButtonLabel={openLabel}
+            widthMode="hug"
           >
             {openLabel}
-          </Button>
+          </SplitButton>
         )}
       </div>
     </div>
