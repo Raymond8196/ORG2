@@ -243,7 +243,7 @@ const EmailConfig: React.FC<ChannelConfigProps> = ({
             max={3600}
             step={5}
             controlsPosition="sides"
-            onChange={(val) => {
+            onValueChange={(val) => {
               if (val !== undefined)
                 update(`${pathPrefix}.pollIntervalSeconds`, val);
             }}
