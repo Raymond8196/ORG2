@@ -8,14 +8,14 @@ import {
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import Button from "@src/components/Button";
 import FileTypeIcon from "@src/components/FileTypeIcon";
 import { openMarkdownLinkInBrowserApp } from "@src/components/MarkDown/markdownUtils";
-import StackRowButton from "@src/components/StackRowButton";
 import TabPill, { type TabPillItem } from "@src/components/TabPill";
-import TextButton from "@src/components/TextButton";
 import {
   CHAT_COMPOSER_STACK_BAR_INNER_PADDING_X_CLASS,
   COMPOSER_STACK_ROW_BASE,
+  COMPOSER_STACK_ROW_HOVER,
 } from "@src/config/composerStackTokens";
 import FileChangeRow from "@src/engines/ChatPanel/InputArea/components/FileChangeRow";
 import EventFileHoverPreview from "@src/engines/ChatPanel/blocks/EventFileHoverPreview";
@@ -49,6 +49,12 @@ const ARTIFACT_ICON_PROPS = {
   size: 14,
   strokeWidth: 1.75,
   className: "shrink-0",
+} as const;
+const STACK_ROW_BUTTON_CLASSES = `${COMPOSER_STACK_ROW_BASE} ${COMPOSER_STACK_ROW_HOVER} w-full cursor-pointer border-0 bg-transparent text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-6/30 disabled:cursor-not-allowed disabled:opacity-50`;
+const REVIEW_BUTTON_STYLE = {
+  height: "auto",
+  padding: 0,
+  fontSize: "var(--chat-block-title-size, 13px)",
 } as const;
 let diffScopeNonce = 0;
 type MetadataTab = "edits" | "reads";
@@ -258,12 +264,16 @@ const TurnMetadataFooter: React.FC<TurnMetadataFooterProps> = memo(
               />
             </div>
             {activeTab === "edits" && files.length > 0 && (
-              <TextButton
+              <Button
+                variant="tertiary"
+                appearance="ghost"
+                size="small"
                 onClick={() => openDiff()}
-                className="chat-block-title shrink-0 text-text-3 hover:text-text-1"
+                className="chat-block-title shrink-0 text-text-3 hover:text-text-1 focus-visible:ring-2 focus-visible:ring-primary-6/30"
+                style={REVIEW_BUTTON_STYLE}
               >
                 {t("chat.turnMetadata.review")}
-              </TextButton>
+              </Button>
             )}
           </div>
 
@@ -276,11 +286,13 @@ const TurnMetadataFooter: React.FC<TurnMetadataFooterProps> = memo(
             >
               {activeTab === "edits" &&
                 commits.map((artifact) => (
-                  <StackRowButton
+                  <button
                     key={`commit-${artifact.sha ?? artifact.url}`}
+                    type="button"
                     onClick={() => openCommit(artifact)}
                     disabled={!artifact.sha && !artifact.shortSha}
                     title={artifact.sha ?? artifact.url}
+                    className={STACK_ROW_BUTTON_CLASSES}
                     data-testid="turn-metadata-commit"
                   >
                     <GitCommitHorizontal {...ARTIFACT_ICON_PROPS} />
@@ -292,15 +304,17 @@ const TurnMetadataFooter: React.FC<TurnMetadataFooterProps> = memo(
                         {artifact.shortSha}
                       </span>
                     )}
-                  </StackRowButton>
+                  </button>
                 ))}
               {activeTab === "edits" &&
                 pullRequests.map((artifact) => (
-                  <StackRowButton
+                  <button
                     key={`pr-${artifact.url ?? artifact.prNumber}`}
+                    type="button"
                     onClick={() => openPullRequest(artifact)}
                     disabled={!artifact.url}
                     title={artifact.url}
+                    className={STACK_ROW_BUTTON_CLASSES}
                     data-testid="turn-metadata-pr"
                   >
                     <GitPullRequest {...ARTIFACT_ICON_PROPS} />
@@ -313,7 +327,7 @@ const TurnMetadataFooter: React.FC<TurnMetadataFooterProps> = memo(
                       className="shrink-0 text-text-3"
                       aria-hidden
                     />
-                  </StackRowButton>
+                  </button>
                 ))}
               {activeTab === "edits" &&
                 visibleFiles.map((file) => (
@@ -361,9 +375,10 @@ const TurnMetadataFooter: React.FC<TurnMetadataFooterProps> = memo(
                 className="shrink-0"
                 data-testid="turn-metadata-pinned-controls"
               >
-                <StackRowButton
+                <button
+                  type="button"
                   onClick={() => setExpanded((previous) => !previous)}
-                  className="text-text-3"
+                  className={`${STACK_ROW_BUTTON_CLASSES} text-text-3`}
                   data-testid="turn-metadata-expansion-toggle"
                   aria-expanded={expanded}
                 >
@@ -375,7 +390,7 @@ const TurnMetadataFooter: React.FC<TurnMetadataFooterProps> = memo(
                           count: hiddenCount,
                         })}
                   </span>
-                </StackRowButton>
+                </button>
               </div>
             ) : null}
           </div>

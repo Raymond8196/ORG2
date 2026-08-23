@@ -2103,9 +2103,11 @@
     "immutableInSession": "密鑰來源、Agent 類型和價格檔位在會話啓動時已固定。如需更改請新建會話。"
   },
   "creator": {
-    "repoChromePosition": {
-      "up": "上",
-      "down": "下"
+    "repoChromeMenu": {
+      "moveToTop": "移到上方",
+      "moveToBottom": "移到下方",
+      "showPinnedActions": "顯示已釘選的動作",
+      "hidePinnedActions": "隱藏已釘選的動作"
     },
     "createTarget": {
       "agentSession": "Agent 會話",

@@ -1,42 +1,27 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import {
-  ArrowUpRight,
-  CheckCircle2,
   ChevronsLeft,
   ChevronsRight,
-  CircleSlash,
   File,
   FileDiff,
   Folder,
-  FolderKanban,
-  GitBranch,
-  GitFork,
   GitPullRequest,
   Globe,
   LayoutList,
-  LoaderCircle,
   type LucideIcon,
   SquareTerminal,
-  X,
-  XCircle,
 } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import GitHubIcon from "@src/assets/channelIcons/github.svg";
 import Button from "@src/components/Button";
-import DiffStatsBadge from "@src/components/DiffStatsBadge";
 import Dropdown from "@src/components/Dropdown";
 import { DROPDOWN_CLASSES } from "@src/components/Dropdown/tokens";
-import FileTypeIcon from "@src/components/FileTypeIcon";
-import { IconButton } from "@src/components/IconButton";
-import { KeyboardShortcutTooltipContent } from "@src/components/KeyboardShortcut";
-import Tooltip from "@src/components/Tooltip";
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
 import { ROUTES } from "@src/config/routes";
-import { WORKSTATION_TRAIL_CONTENT } from "@src/config/workstation/tokens";
 import {
   FOCUSED_CHAT_WORKSTATION_MINIMAP_HOST_CLASS,
   isSameFocusedChatGitEnvironment,
@@ -50,7 +35,6 @@ import { useBranchPullRequestStatus } from "@src/hooks/git/useBranchPullRequestS
 import { useRepoSelection } from "@src/hooks/git/useRepoSelection";
 import { useWorkingTreeDiffTotals } from "@src/hooks/git/useWorkingTreeDiffTotals";
 import { useCloseTabWithGuard } from "@src/hooks/tabHost/useCloseTabWithGuard";
-import type { BranchCiStatus } from "@src/services/git/branchPullRequestStatus";
 import { WorkStationViewService } from "@src/services/workStation/WorkStationViewService";
 import { chatPanelMaximizedAtom } from "@src/store/ui/chatPanelAtom";
 import { stationModeAtom } from "@src/store/ui/simulatorAtom";
@@ -83,77 +67,27 @@ import {
   WorkstationTrailHeader,
   WorkstationTrailIconButton,
   WorkstationTrailSurface,
-} from "./blocks";
+} from "../blocks";
+import { WorkstationSections } from "./WorkstationSections";
+import {
+  getStoredRailCollapsed,
+  persistRailCollapsed,
+  resolveRailStatusDotClass,
+} from "./railStorage";
+import type {
+  FocusedChatRailItem,
+  FocusedChatRailSection,
+  FocusedChatSessionContext,
+  FocusedChatWorkstationRailProps,
+} from "./types";
+
+export type { FocusedChatSessionContext } from "./types";
 
 const FOCUSED_CHAT_RAIL_SECTIONS = {
   session: { key: "session", label: null },
   tabs: { key: "tabs", label: null },
   workspace: { key: "workspace", label: null },
 } as const;
-const FOCUSED_CHAT_RAIL_COLLAPSED_KEY =
-  "orgii:focusedChatWorkstationRailCollapsed";
-
-type FocusedChatRailIcon = React.JSXElementConstructor<
-  React.ComponentProps<LucideIcon>
->;
-
-type FocusedChatRailItem = {
-  key: string;
-  label: string;
-  icon: FocusedChatRailIcon;
-  /** Keyboard hint shown in a tooltip (e.g. "⌘E"). */
-  shortcut?: string;
-  fileName?: string;
-  onClick?: () => void;
-  onClose?: () => void;
-  closeLabel?: string;
-  /** Working-tree +/- shown after the label (the Review row). */
-  additions?: number;
-  deletions?: number;
-  external?: boolean;
-  status?: {
-    label: string;
-    state: BranchCiStatus;
-    title: string;
-  };
-};
-
-type FocusedChatRailSection = {
-  key: string;
-  label: string | null;
-  items: FocusedChatRailItem[];
-  environment?: FocusedChatSessionContext;
-};
-
-interface FocusedChatWorkstationRailProps {
-  /** Header host for the narrow-layout pinned trigger. */
-  compactMenuHost: HTMLSpanElement | null;
-  /** Rail-column host for the conversation scroll navigator. */
-  conversationMinimapHostRef: (node: HTMLDivElement | null) => void;
-  /** Active session scope moved out of the transcript's former context row. */
-  sessionContext?: FocusedChatSessionContext;
-  /** Height of overlaid chat chrome that the rail must remain below. */
-  topInset?: number;
-}
-
-export interface FocusedChatSessionContext {
-  branchName?: string;
-  repoName?: string;
-  repoPath?: string;
-  worktreeBranchName?: string;
-  worktreePath?: string;
-  workItem?: {
-    label: string;
-    onClick?: () => void;
-    statusLabel?: string;
-  };
-}
-
-interface WorkstationSectionsProps {
-  compact?: boolean;
-  onRequestClose?: () => void;
-  sections: FocusedChatRailSection[];
-}
 
 const WORKSTATION_HOST_ROUTES: Record<WorkstationTabHost, string> = {
   code: ROUTES.workStation.code.path,
@@ -182,329 +116,6 @@ function getRailTabFileName(tab: WorkStationTab): string | undefined {
     default:
       return undefined;
   }
-}
-
-function getStoredRailCollapsed(): boolean {
-  try {
-    return localStorage.getItem(FOCUSED_CHAT_RAIL_COLLAPSED_KEY) === "true";
-  } catch {
-    return false;
-  }
-}
-
-function persistRailCollapsed(collapsed: boolean): void {
-  try {
-    localStorage.setItem(FOCUSED_CHAT_RAIL_COLLAPSED_KEY, String(collapsed));
-  } catch {
-    // The responsive control still works when storage is unavailable.
-  }
-}
-
-function WorkspaceContextRow({
-  compact = false,
-  icon: Icon,
-  label,
-  onClick,
-  onRequestClose,
-  testId,
-  title,
-}: {
-  compact?: boolean;
-  icon: LucideIcon;
-  label: string;
-  onClick?: () => void;
-  onRequestClose?: () => void;
-  testId?: string;
-  title?: string;
-}) {
-  const className = compact
-    ? "flex h-8 min-w-0 items-center gap-2 overflow-hidden rounded-md px-2 text-text-1"
-    : `${WORKSTATION_TRAIL_CONTENT.row} gap-1.5 overflow-hidden px-2 text-text-1`;
-  const content = (
-    <>
-      <Icon className="shrink-0" size={14} strokeWidth={1.75} />
-      <span
-        className={`min-w-0 flex-1 truncate ${
-          compact ? "text-[13px]" : "text-[12px]"
-        }`}
-      >
-        {label}
-      </span>
-    </>
-  );
-
-  if (onClick) {
-    return (
-      <button
-        type="button"
-        className={`${className} w-full text-left transition-colors hover:bg-fill-2`}
-        title={title ?? label}
-        data-testid={testId}
-        role={compact ? "menuitem" : undefined}
-        onClick={() => {
-          onRequestClose?.();
-          onClick();
-        }}
-      >
-        {content}
-      </button>
-    );
-  }
-
-  return (
-    <div className={className} title={title ?? label} data-testid={testId}>
-      {content}
-    </div>
-  );
-}
-
-function WorkstationItemRow({
-  compact = false,
-  item,
-  onRequestClose,
-}: {
-  compact?: boolean;
-  item: FocusedChatRailItem;
-  onRequestClose?: () => void;
-}) {
-  const Icon = item.icon;
-  const runAction = () => {
-    onRequestClose?.();
-    item.onClick?.();
-  };
-
-  const action = (
-    <button
-      type="button"
-      className={
-        compact
-          ? `${DROPDOWN_CLASSES.item} min-w-0 flex-1 !px-2 text-left ${
-              item.onClick
-                ? DROPDOWN_CLASSES.itemHover
-                : `${DROPDOWN_CLASSES.itemDisabled} text-text-3`
-            }`
-          : `${WORKSTATION_TRAIL_CONTENT.rowContent} ${
-              item.onClick ? "text-text-1" : "cursor-default text-text-3"
-            }`
-      }
-      onClick={runAction}
-      disabled={!item.onClick}
-      role={compact ? "menuitem" : undefined}
-    >
-      <span className="flex shrink-0 items-center text-text-1">
-        {item.fileName ? (
-          <FileTypeIcon fileName={item.fileName} size="small" />
-        ) : (
-          <Icon size={14} strokeWidth={1.75} />
-        )}
-      </span>
-      <span className="min-w-0 flex-1 truncate">{item.label}</span>
-      {(item.additions ?? 0) > 0 || (item.deletions ?? 0) > 0 ? (
-        <DiffStatsBadge
-          additions={item.additions}
-          deletions={item.deletions}
-          variant="plain"
-          size="sm"
-          reserveValueWidth={false}
-          valueClassName="font-normal"
-          className="shrink-0"
-        />
-      ) : null}
-      {item.status ? <RailItemStatus status={item.status} /> : null}
-      {item.external ? (
-        <ArrowUpRight
-          aria-hidden
-          className="shrink-0 text-text-3"
-          size={13}
-          strokeWidth={1.75}
-        />
-      ) : null}
-    </button>
-  );
-
-  return (
-    <div
-      className={
-        compact
-          ? "group flex min-w-0 items-center"
-          : `group ${WORKSTATION_TRAIL_CONTENT.row} transition-colors duration-150 ${
-              item.onClick ? "focus-within:bg-fill-2 hover:bg-fill-2" : ""
-            }`
-      }
-    >
-      {item.shortcut ? (
-        <Tooltip
-          content={
-            <KeyboardShortcutTooltipContent
-              label={item.label}
-              shortcut={item.shortcut}
-            />
-          }
-          position="left"
-          framedPanel
-          mouseEnterDelay={200}
-          smartPlacement
-        >
-          {action}
-        </Tooltip>
-      ) : (
-        action
-      )}
-      {item.onClose && (
-        <IconButton
-          size="sm"
-          variant="defaultTreeRow"
-          className={`shrink-0 opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 ${
-            compact ? "ml-0.5" : "mr-1"
-          }`}
-          onClick={(event) => {
-            event.stopPropagation();
-            item.onClose?.();
-          }}
-          aria-label={item.closeLabel}
-          role={compact ? "menuitem" : undefined}
-        >
-          <X size={12} />
-        </IconButton>
-      )}
-    </div>
-  );
-}
-
-function RailItemStatus({
-  status,
-}: {
-  status: NonNullable<FocusedChatRailItem["status"]>;
-}) {
-  const commonProps = {
-    "aria-hidden": true,
-    className: "shrink-0",
-    size: 12,
-    strokeWidth: 2,
-  } as const;
-  const icon =
-    status.state === "success" ? (
-      <CheckCircle2 {...commonProps} />
-    ) : status.state === "failure" ? (
-      <XCircle {...commonProps} />
-    ) : status.state === "checking" || status.state === "pending" ? (
-      <LoaderCircle {...commonProps} className="shrink-0 animate-spin" />
-    ) : (
-      <CircleSlash {...commonProps} />
-    );
-  const colorClass =
-    status.state === "success"
-      ? "text-success-6"
-      : status.state === "failure"
-        ? "text-danger-6"
-        : status.state === "checking" || status.state === "pending"
-          ? "text-warning-6"
-          : "text-text-3";
-
-  return (
-    <span
-      className={`flex shrink-0 items-center gap-1 text-[11px] ${colorClass}`}
-      title={status.title}
-      aria-label={status.title}
-    >
-      {icon}
-      <span>{status.label}</span>
-    </span>
-  );
-}
-
-function resolveRailStatusDotClass(state: BranchCiStatus): string {
-  switch (state) {
-    case "success":
-      return "bg-success-6";
-    case "failure":
-      return "bg-danger-6";
-    case "checking":
-    case "pending":
-      return "animate-pulse bg-warning-6";
-    default:
-      return "bg-fill-3";
-  }
-}
-
-function WorkstationSections({
-  compact = false,
-  onRequestClose,
-  sections,
-}: WorkstationSectionsProps) {
-  return (
-    <div
-      className={compact ? "space-y-2" : WORKSTATION_TRAIL_CONTENT.sectionList}
-      role={compact ? "menu" : undefined}
-    >
-      {sections.map((section) => (
-        <section
-          key={section.key}
-          className={
-            compact ? "space-y-0.5" : WORKSTATION_TRAIL_CONTENT.section
-          }
-        >
-          {section.label && (
-            <div className={WORKSTATION_TRAIL_CONTENT.sectionLabel}>
-              {section.label}
-            </div>
-          )}
-          {section.environment &&
-            (section.environment.repoName ||
-              section.environment.branchName ||
-              section.environment.worktreeBranchName ||
-              section.environment.workItem) && (
-              <>
-                {section.environment.repoName && (
-                  <WorkspaceContextRow
-                    compact={compact}
-                    icon={Folder}
-                    label={section.environment.repoName}
-                  />
-                )}
-                {section.environment.branchName && (
-                  <WorkspaceContextRow
-                    compact={compact}
-                    icon={GitBranch}
-                    label={section.environment.branchName}
-                  />
-                )}
-                {section.environment.worktreeBranchName && (
-                  <WorkspaceContextRow
-                    compact={compact}
-                    icon={GitFork}
-                    label={section.environment.worktreeBranchName}
-                    title={section.environment.worktreePath}
-                  />
-                )}
-                {section.environment.workItem && (
-                  <WorkspaceContextRow
-                    compact={compact}
-                    icon={FolderKanban}
-                    label={`${section.environment.workItem.label}${
-                      section.environment.workItem.statusLabel
-                        ? ` · ${section.environment.workItem.statusLabel}`
-                        : ""
-                    }`}
-                    onClick={section.environment.workItem.onClick}
-                    onRequestClose={onRequestClose}
-                    testId="session-active-work-item-pill"
-                  />
-                )}
-              </>
-            )}
-          {section.items.map((item) => (
-            <WorkstationItemRow
-              key={item.key}
-              compact={compact}
-              item={item}
-              onRequestClose={onRequestClose}
-            />
-          ))}
-        </section>
-      ))}
-    </div>
-  );
 }
 
 export function FocusedChatWorkstationRail({

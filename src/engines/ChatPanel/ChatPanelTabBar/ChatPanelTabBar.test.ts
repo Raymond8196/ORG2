@@ -13,7 +13,7 @@ import {
   chatPanelCreateTargetAtom,
 } from "@src/store/ui/chatPanelAtom";
 
-import { ChatPanelTabBar, PlusMenuContent } from "./ChatPanelTabBar";
+import { ChatPanelTabBar, PlusMenuContent } from "./index";
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (key: string) => key }),

@@ -14,7 +14,7 @@ import {
 
 import type { ComposerInputRef } from "@src/components/ComposerInput";
 
-import PinnedActionsBar from ".";
+import PinnedActionsBar, { getUnresolvedPinnedSkillsKey } from ".";
 
 vi.mock("jotai", async (importOriginal) => ({
   ...(await importOriginal<typeof import("jotai")>()),
@@ -81,7 +81,7 @@ vi.mock("./PinActionsPanel", () => ({
   default: () => null,
 }));
 
-describe("PinnedActionsBar Canvas action", () => {
+describe("PinnedActionsBar", () => {
   let container: HTMLDivElement;
   let root: Root;
   const actEnvironment = globalThis as typeof globalThis & {
@@ -137,5 +137,40 @@ describe("PinnedActionsBar Canvas action", () => {
       "canvas"
     );
     expect(focus).toHaveBeenCalledOnce();
+  });
+
+  it("hides pinned pills without removing the management entry point", () => {
+    const composerInputRef = createRef<ComposerInputRef>();
+
+    act(() =>
+      root.render(
+        createElement(PinnedActionsBar, {
+          composerInputRef,
+          showPinnedActions: false,
+        })
+      )
+    );
+
+    expect(
+      container.querySelector<HTMLButtonElement>('button[title="New Canvas"]')
+    ).toBeNull();
+    expect(
+      container.querySelector<HTMLButtonElement>(
+        'button[title="input.pinnedActions.manage"]'
+      )
+    ).not.toBeNull();
+  });
+
+  it("does not request skill resolution for hidden pinned pills", () => {
+    const unresolvedSkill = {
+      name: "review",
+      category: "skill" as const,
+      source: "workspace",
+    };
+
+    expect(getUnresolvedPinnedSkillsKey([unresolvedSkill], false)).toBe("");
+    expect(getUnresolvedPinnedSkillsKey([unresolvedSkill], true)).toBe(
+      "review"
+    );
   });
 });
