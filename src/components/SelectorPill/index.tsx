@@ -296,8 +296,8 @@ export const SelectorPill = forwardRef<HTMLButtonElement, SelectorPillProps>(
     // We track hover/focus intent only; the effective visibility is gated on
     // `active` so no effect is needed to re-hide when the pill activates.
     const [hoverIntent, setHoverIntent] = useState(false);
-    const tooltipVisible = hoverIntent && !active;
-    const handleTooltipVisibleChange = useCallback((next: boolean) => {
+    const tooltipOpen = hoverIntent && !active;
+    const handleTooltipOpenChange = useCallback((next: boolean) => {
       setHoverIntent(next);
     }, []);
 
@@ -348,8 +348,8 @@ export const SelectorPill = forwardRef<HTMLButtonElement, SelectorPillProps>(
           content={tooltip}
           position={tooltipPosition}
           mouseEnterDelay={tooltipMouseEnterDelay}
-          popupVisible={tooltipVisible}
-          onVisibleChange={handleTooltipVisibleChange}
+          open={tooltipOpen}
+          onOpenChange={handleTooltipOpenChange}
           framedPanel={tooltipFramed}
           framedPanelWide={tooltipFramedWide}
         >

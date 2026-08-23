@@ -111,19 +111,19 @@ export interface TooltipProps {
   disabled?: boolean;
 
   /**
-   * Controlled visible state
+   * Controlled open state
    */
-  popupVisible?: boolean;
+  open?: boolean;
 
   /**
-   * Default visible state
+   * Default open state
    */
-  defaultPopupVisible?: boolean;
+  defaultOpen?: boolean;
 
   /**
-   * Visible change handler
+   * Open state change handler
    */
-  onVisibleChange?: (visible: boolean) => void;
+  onOpenChange?: (open: boolean) => void;
 
   /**
    * Additional class name
@@ -197,9 +197,9 @@ const Tooltip = forwardRef<HTMLDivElement, TooltipProps>(
       mouseEnterDelay = 100,
       mouseLeaveDelay = 100,
       disabled = false,
-      popupVisible,
-      defaultPopupVisible = false,
-      onVisibleChange,
+      open,
+      defaultOpen = false,
+      onOpenChange,
       className = "",
       style,
       color = "dark",
@@ -214,7 +214,7 @@ const Tooltip = forwardRef<HTMLDivElement, TooltipProps>(
     },
     _ref
   ) => {
-    const [internalVisible, setInternalVisible] = useState(defaultPopupVisible);
+    const [internalOpen, setInternalOpen] = useState(defaultOpen);
     const [tooltipPosition, setTooltipPosition] = useState({ top: 0, left: 0 });
     const [arrowOffset, setArrowOffset] = useState({ left: 0, top: 0 });
     const [positionReady, setPositionReady] = useState(false);
@@ -245,8 +245,8 @@ const Tooltip = forwardRef<HTMLDivElement, TooltipProps>(
       [childRef]
     );
 
-    const isControlled = popupVisible !== undefined;
-    const currentVisible = isControlled ? popupVisible : internalVisible;
+    const isControlled = open !== undefined;
+    const effectiveOpen = isControlled ? open : internalOpen;
     const usesFramedSurface = framedPanel || (!panelStyle && !backgroundColor);
 
     const updatePosition = useCallback(() => {
@@ -324,7 +324,7 @@ const Tooltip = forwardRef<HTMLDivElement, TooltipProps>(
     ]);
 
     useEffect(() => {
-      if (currentVisible) {
+      if (effectiveOpen) {
         // Reset position ready state and calculate position
         setPositionReady(false);
         // Use RAF to ensure tooltip is rendered before calculating position
@@ -342,7 +342,7 @@ const Tooltip = forwardRef<HTMLDivElement, TooltipProps>(
       } else {
         setPositionReady(false);
       }
-    }, [currentVisible, updatePosition]);
+    }, [effectiveOpen, updatePosition]);
 
     const show = useCallback(() => {
       if (disabled) return;
@@ -350,11 +350,11 @@ const Tooltip = forwardRef<HTMLDivElement, TooltipProps>(
       clearTimeout(leaveTimerRef.current);
       enterTimerRef.current = setTimeout(() => {
         if (!isControlled) {
-          setInternalVisible(true);
+          setInternalOpen(true);
         }
-        onVisibleChange?.(true);
+        onOpenChange?.(true);
       }, mouseEnterDelay);
-    }, [disabled, isControlled, onVisibleChange, mouseEnterDelay]);
+    }, [disabled, isControlled, onOpenChange, mouseEnterDelay]);
 
     // Force-hide when disabled flips true (e.g. the trigger entered an
     // "active"/open state and the tooltip would otherwise occlude a dropdown).
@@ -363,20 +363,20 @@ const Tooltip = forwardRef<HTMLDivElement, TooltipProps>(
       clearTimeout(enterTimerRef.current);
       clearTimeout(leaveTimerRef.current);
       if (!isControlled) {
-        setInternalVisible(false);
+        setInternalOpen(false);
       }
-      onVisibleChange?.(false);
-    }, [disabled, isControlled, onVisibleChange]);
+      onOpenChange?.(false);
+    }, [disabled, isControlled, onOpenChange]);
 
     const hide = useCallback(() => {
       clearTimeout(enterTimerRef.current);
       leaveTimerRef.current = setTimeout(() => {
         if (!isControlled) {
-          setInternalVisible(false);
+          setInternalOpen(false);
         }
-        onVisibleChange?.(false);
+        onOpenChange?.(false);
       }, mouseLeaveDelay);
-    }, [isControlled, onVisibleChange, mouseLeaveDelay]);
+    }, [isControlled, onOpenChange, mouseLeaveDelay]);
 
     const handleMouseEnter = useCallback(() => {
       if (trigger === "hover") {
@@ -392,7 +392,7 @@ const Tooltip = forwardRef<HTMLDivElement, TooltipProps>(
 
     const handleClick = useCallback(() => {
       if (trigger === "click") {
-        if (currentVisible) {
+        if (effectiveOpen) {
           hide();
         } else {
           show();
@@ -405,15 +405,15 @@ const Tooltip = forwardRef<HTMLDivElement, TooltipProps>(
       // (selected app, follow target, etc.) usually flipped, so the
       // label may no longer match what's under the cursor. Dismiss
       // immediately; the next mouse-leave/enter cycle re-evaluates.
-      if (trigger === "hover" && currentVisible) {
+      if (trigger === "hover" && effectiveOpen) {
         clearTimeout(enterTimerRef.current);
         clearTimeout(leaveTimerRef.current);
         if (!isControlled) {
-          setInternalVisible(false);
+          setInternalOpen(false);
         }
-        onVisibleChange?.(false);
+        onOpenChange?.(false);
       }
-    }, [trigger, currentVisible, show, hide, isControlled, onVisibleChange]);
+    }, [trigger, effectiveOpen, show, hide, isControlled, onOpenChange]);
 
     const handleFocus = useCallback(() => {
       if (trigger === "focus") {
@@ -496,7 +496,7 @@ const Tooltip = forwardRef<HTMLDivElement, TooltipProps>(
       "native-tooltip",
       `native-tooltip-${position}`,
       `native-tooltip-${color}`,
-      currentVisible && positionReady && "native-tooltip-visible",
+      effectiveOpen && positionReady && "native-tooltip-visible",
       trigger === "click" && "native-tooltip-interactive",
       panelStyle && "native-tooltip-panel",
       usesFramedSurface && "native-tooltip-framed-panel",
@@ -512,7 +512,7 @@ const Tooltip = forwardRef<HTMLDivElement, TooltipProps>(
       ...(backgroundColor ? { backgroundColor } : {}),
     };
 
-    const tooltipContent = currentVisible ? (
+    const tooltipContent = effectiveOpen ? (
       <div
         ref={tooltipRef}
         className={tooltipClasses}

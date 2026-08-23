@@ -196,7 +196,7 @@ export const MyRolesStatusTab: React.FC = () => {
         >
           <NumberInput
             value={questionAutoSkipTimeoutByPresence[mode]}
-            onChange={handleQuestionAutoSkipTimeoutChange(mode)}
+            onValueChange={handleQuestionAutoSkipTimeoutChange(mode)}
             min={0}
             max={300}
             step={5}
@@ -217,7 +217,7 @@ export const MyRolesStatusTab: React.FC = () => {
         >
           <NumberInput
             value={planAutoApproveTimeoutByPresence[mode]}
-            onChange={handlePlanAutoApproveTimeoutChange(mode)}
+            onValueChange={handlePlanAutoApproveTimeoutChange(mode)}
             min={0}
             max={3600}
             step={10}
@@ -238,7 +238,7 @@ export const MyRolesStatusTab: React.FC = () => {
         >
           <NumberInput
             value={goalMaxTurnsByPresence[mode]}
-            onChange={handleGoalMaxTurnsChange(mode)}
+            onValueChange={handleGoalMaxTurnsChange(mode)}
             min={0}
             max={100}
             step={1}
