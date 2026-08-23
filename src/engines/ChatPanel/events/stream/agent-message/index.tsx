@@ -58,7 +58,7 @@ import { parseGitArtifactsFromText } from "@src/shared/git/sessionGitArtifacts";
 // Lazy (same as user-message / thinking): SimulatorMessages is only used by
 // the simulator variant, but a static import here made every chat message
 // renderer pull the whole Communication app — SessionReplay CodePanel,
-// CodeMirror, react-syntax-highlighter, highlight.js, file previewers.
+// CodeMirror, react-syntax-highlighter / Prism, file previewers.
 const LazySimulatorMessages = lazy(
   () => import("@src/modules/WorkStation/Chat/Communication")
 );
