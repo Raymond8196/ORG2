@@ -3,7 +3,7 @@ import React from "react";
 
 import type { ReviewCommentSeverity } from "@src/api/http/project";
 
-const SEVERITY_CONFIG: Record<
+const REVIEW_SEVERITY_CONFIG: Record<
   ReviewCommentSeverity,
   { icon: typeof XCircle; className: string }
 > = {
@@ -13,23 +13,22 @@ const SEVERITY_CONFIG: Record<
   praise: { icon: ThumbsUp, className: "text-success-6" },
 };
 
-interface SeverityIconProps {
+interface ReviewSeverityIconProps {
   severity: ReviewCommentSeverity;
   size?: number;
   className?: string;
 }
 
-const SeverityIcon: React.FC<SeverityIconProps> = ({
+const ReviewSeverityIcon: React.FC<ReviewSeverityIconProps> = ({
   severity,
   size = 12,
   className = "",
 }) => {
-  const config = SEVERITY_CONFIG[severity];
+  const config = REVIEW_SEVERITY_CONFIG[severity];
   const Icon = config.icon;
   return (
     <Icon size={size} className={`shrink-0 ${config.className} ${className}`} />
   );
 };
 
-export default SeverityIcon;
-export { SEVERITY_CONFIG };
+export default ReviewSeverityIcon;
