@@ -1,0 +1,128 @@
+/**
+ * CanvasTabHeader — content published into the Simulator workstation tab
+ * header for the canvas app: title, streaming pulse, Canvas/Source/Compare
+ * switcher, and the Design / Reload / Share controls.
+ */
+import { Layout, PenTool, RefreshCw, Share2 } from "lucide-react";
+import React from "react";
+import { useTranslation } from "react-i18next";
+
+import Button from "@src/components/Button";
+import IconButton from "@src/components/IconButton";
+import TabPill from "@src/components/TabPill";
+import { NoDragRegion } from "@src/components/WindowChrome";
+import {
+  WorkstationHeaderSectionSeparator,
+  WorkstationToolbarTooltip,
+} from "@src/modules/WorkStation/shared";
+
+import type { CanvasViewTab } from "./canvasInteractionState";
+
+interface CanvasTabHeaderProps {
+  tab: CanvasViewTab;
+  onSetTab: (tab: CanvasViewTab) => void;
+  title: string;
+  isStreaming: boolean;
+  onReload: () => void;
+  showCompare: boolean;
+  designAvailable: boolean;
+  designEnabled: boolean;
+  onToggleDesign: () => void;
+  shareEnabled: boolean;
+  shareHint: string;
+  onShare: () => void;
+}
+
+const CanvasTabHeader: React.FC<CanvasTabHeaderProps> = ({
+  tab,
+  onSetTab,
+  title,
+  isStreaming,
+  onReload,
+  showCompare,
+  designAvailable,
+  designEnabled,
+  onToggleDesign,
+  shareEnabled,
+  shareHint,
+  onShare,
+}) => {
+  const { t } = useTranslation("sessions");
+
+  const tabs: CanvasViewTab[] = showCompare
+    ? ["canvas", "source", "compare"]
+    : ["canvas", "source"];
+
+  return (
+    <NoDragRegion className="flex min-w-0 flex-1 items-center gap-2">
+      <Layout size={13} className="shrink-0 text-primary-6" />
+      <span className="min-w-0 truncate text-xs font-medium text-text-2">
+        {title}
+      </span>
+      {isStreaming && (
+        <span
+          aria-hidden
+          className="ml-0.5 inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-primary-6"
+        />
+      )}
+
+      <div className="ml-auto flex items-center gap-1">
+        {tab === "canvas" && (
+          <WorkstationToolbarTooltip
+            label={
+              designAvailable
+                ? t("canvasApp.designHint", "Select an element to change")
+                : t("canvasApp.designUnavailable", "Design is unavailable")
+            }
+          >
+            <Button
+              htmlType="button"
+              variant="tertiary"
+              size="mini"
+              icon={<PenTool size={12} />}
+              onClick={onToggleDesign}
+              disabled={!designAvailable}
+              aria-pressed={designEnabled}
+              className={designEnabled ? "!bg-primary-2 !text-primary-6" : ""}
+            >
+              {t("canvasApp.design", "Design")}
+            </Button>
+          </WorkstationToolbarTooltip>
+        )}
+        <TabPill
+          variant="pill"
+          size="mini"
+          fillWidth={false}
+          tabs={tabs}
+          activeTab={tab}
+          onChange={(key) => onSetTab(key as CanvasViewTab)}
+        />
+        <WorkstationHeaderSectionSeparator className="mx-0.5" />
+        {tab === "canvas" && !isStreaming && (
+          <IconButton
+            onClick={onReload}
+            className="text-text-4 hover:bg-fill-3 hover:text-text-2"
+            title={t("canvasCard.reload", "Reload")}
+          >
+            <RefreshCw size={12} />
+          </IconButton>
+        )}
+        <WorkstationToolbarTooltip label={shareHint}>
+          <Button
+            htmlType="button"
+            variant="tertiary"
+            size="mini"
+            icon={<Share2 size={12} />}
+            onClick={onShare}
+            disabled={!shareEnabled}
+          >
+            {t("canvasApp.share", "Share")}
+          </Button>
+        </WorkstationToolbarTooltip>
+      </div>
+    </NoDragRegion>
+  );
+};
+
+CanvasTabHeader.displayName = "CanvasTabHeader";
+export default CanvasTabHeader;
