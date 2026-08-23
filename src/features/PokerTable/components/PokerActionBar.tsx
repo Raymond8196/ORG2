@@ -196,7 +196,7 @@ const PokerActionBar: React.FC<PokerActionBarProps> = ({
               max={range.max}
               step={step}
               value={amount}
-              onChange={(value) =>
+              onValueChange={(value) =>
                 setAmount(
                   clamp(
                     typeof value === "number" ? value : value[0],

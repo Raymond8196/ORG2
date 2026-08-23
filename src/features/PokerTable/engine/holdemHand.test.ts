@@ -303,6 +303,53 @@ describe("HoldemHand", () => {
 });
 
 describe("derivePots", () => {
+  it("folds a folded-only excess slice into the highest contestable side pot", () => {
+    const pots = derivePots([
+      {
+        seatIndex: 0,
+        stack: 0,
+        bet: 0,
+        committed: 100,
+        folded: true,
+        allIn: false,
+        holeCards: [],
+      },
+      {
+        seatIndex: 1,
+        stack: 0,
+        bet: 0,
+        committed: 100,
+        folded: true,
+        allIn: false,
+        holeCards: [],
+      },
+      {
+        seatIndex: 4,
+        stack: 0,
+        bet: 0,
+        committed: 20,
+        folded: false,
+        allIn: true,
+        holeCards: [],
+      },
+      {
+        seatIndex: 5,
+        stack: 0,
+        bet: 0,
+        committed: 50,
+        folded: false,
+        allIn: true,
+        holeCards: [],
+      },
+    ]);
+
+    expect(pots).toEqual([
+      { size: 80, eligibleSeats: [4, 5] },
+      { size: 190, eligibleSeats: [5] },
+    ]);
+    expect(pots.reduce((sum, pot) => sum + pot.size, 0)).toBe(270);
+  });
+
   it("keeps a folded seat's chips in the pots it reached without making it eligible", () => {
     const pots = derivePots([
       {
