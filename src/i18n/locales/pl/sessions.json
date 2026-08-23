@@ -2142,9 +2142,11 @@
     "immutableInSession": "Źródło klucza, typ Agenta i poziom cenowy są ustalane na początku sesji. Aby je zmienić, rozpocznij nową sesję."
   },
   "creator": {
-    "repoChromePosition": {
-      "up": "Góra",
-      "down": "Dół"
+    "repoChromeMenu": {
+      "moveToTop": "Przenieś na górę",
+      "moveToBottom": "Przenieś na dół",
+      "showPinnedActions": "Pokaż przypięte akcje",
+      "hidePinnedActions": "Ukryj przypięte akcje"
     },
     "createTarget": {
       "agentSession": "Sesja Agent",

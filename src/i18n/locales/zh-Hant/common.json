@@ -619,7 +619,8 @@
       "open": "開啟",
       "merged": "已合併",
       "closed": "已關閉",
-      "draft": "草稿"
+      "draft": "草稿",
+      "unknown": "未知"
     },
     "operationLog": "操作日誌",
     "gitDashboard": "儀表盤",

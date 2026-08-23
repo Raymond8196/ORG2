@@ -13,31 +13,33 @@
  * react-markdown + react-syntax-highlighter into the initial bundle.
  */
 import { useAtomValue } from "jotai";
-import { Check, Copy, SquareArrowOutUpRight } from "lucide-react";
 import React, { memo, useCallback, useMemo } from "react";
-import { useTranslation } from "react-i18next";
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 import { isThemeCssPathDark } from "@src/config/appearance/globalThemes";
-import { getLanguageFromPath } from "@src/config/languageMap";
 import CanvasInlineCard from "@src/engines/ChatPanel/blocks/CanvasInlineCard";
 import ChatCodeBlock from "@src/engines/ChatPanel/blocks/CodeBlock";
-import { codeMirrorPrismTheme } from "@src/features/CodeMirror/themes/prism";
 import { CloudSessionReferenceChip } from "@src/features/Org2Cloud/CloudSessionReferenceChip";
 import { parseCloudSessionReference } from "@src/features/Org2Cloud/cloudSessionReference";
-import { useCopyCheck } from "@src/hooks/ui";
 import { themesAtom } from "@src/store";
 import { activeWorkspaceRootAtom } from "@src/store/workspace";
-import { copyText } from "@src/util/data/clipboard";
-import { PrismLight as SyntaxHighlighterPrism } from "@src/util/language/prismLight";
-import { openFileInWorkStation } from "@src/util/ui/openFileInWorkStation";
 
 import LinkHoverCard from "./LinkHoverCard";
+import CodeBlock from "./MarkdownCodeBlock";
 import MarkdownLocalImage, { openLocalMarkdownRef } from "./MarkdownLocalImage";
 import MermaidBlock from "./MermaidBlock";
 import "./index.scss";
+import {
+  CANVAS_FENCED_LANGUAGES,
+  CHAT_CODE_BLOCK_HIDE_HEADER_LANGUAGES,
+  type CanvasFencedMode,
+  isCanvasFencedMode,
+  parseCodeFenceMeta,
+} from "./markdownCodeFence";
 import { classifyMarkdownLinkTarget } from "./markdownLinkTarget";
+import { resolveCurrentRepoFilePath } from "./markdownRepoPath";
+import { splitIntoStableMarkdownBlocks } from "./markdownStableBlocks";
 import { markdownUrlTransform } from "./markdownUrlTransform";
 import {
   detectCodeType,
@@ -48,79 +50,6 @@ import {
   renderChildren,
 } from "./markdownUtils";
 import { remarkCloudSessionReferences } from "./remarkCloudSessionReferences";
-
-const SyntaxHighlighter =
-  SyntaxHighlighterPrism as unknown as React.ComponentType<
-    Record<string, unknown>
-  >;
-
-/**
- * Fenced language aliases that trigger CanvasInlineCard instead of a code
- * block. The agent writes ```canvas or ```preview with a JSON payload.
- *
- * Payload schema (JSON on a single line or pretty-printed):
- *   { "mode": "html"|"url"|"a2ui"|"react", "content"?: "...", "url"?: "...", "title"?: "..." }
- */
-const CANVAS_FENCED_LANGUAGES = new Set([
-  "canvas",
-  "preview",
-  "canvas-html",
-  "canvas-url",
-  "canvas-a2ui",
-  "canvas-react",
-]);
-
-type CanvasFencedMode = "html" | "url" | "a2ui" | "react";
-
-function isCanvasFencedMode(value: unknown): value is CanvasFencedMode {
-  return (
-    value === "html" || value === "url" || value === "a2ui" || value === "react"
-  );
-}
-
-/**
- * Fenced languages whose title bar adds little value next to the snippet itself.
- * File-backed code references still keep their header because `filePath` is set.
- */
-const CHAT_CODE_BLOCK_HIDE_HEADER_LANGUAGES = new Set([
-  "bash",
-  "fish",
-  "plaintext",
-  "powershell",
-  "ps1",
-  "sh",
-  "shell",
-  "text",
-  "txt",
-  "zsh",
-]);
-
-interface CodeFenceMeta {
-  language: string;
-  filePath?: string;
-  title?: string;
-  startLine?: string;
-  endLine?: string;
-}
-
-function parseCodeFenceMeta(rawInfo: string): CodeFenceMeta {
-  const referenceMatch = rawInfo.match(/^(\d+):(\d+):(.+)$/);
-  if (referenceMatch) {
-    const startLine = referenceMatch[1];
-    const endLine = referenceMatch[2];
-    const filePath = referenceMatch[3];
-    const fileName = filePath.split("/").pop() || filePath;
-    return {
-      language: getLanguageFromPath(filePath, "text") || "text",
-      filePath,
-      title: fileName,
-      startLine,
-      endLine,
-    };
-  }
-
-  return { language: rawInfo || "text" };
-}
 
 // ============================================
 // Types
@@ -153,188 +82,7 @@ export interface MarkdownProps {
   disableCanvasInline?: boolean;
 }
 
-// ============================================
-// Static Styles (moved outside component for performance)
-// ============================================
-
-const CODE_CUSTOM_STYLE: React.CSSProperties = {
-  fontFamily: "var(--cm-font-family)",
-  fontSize: "12px",
-  lineHeight: "1.6",
-  margin: 0,
-  padding: "12px 14px",
-  borderRadius: "8px",
-  background: "transparent",
-};
-
-const CODE_WRAPPER_STYLE: React.CSSProperties = {
-  border: "none",
-  borderRadius: "8px",
-  margin: "8px 0",
-};
-
 const STREAMING_BLOCK_GAP_CLASS = "mt-3";
-
-function splitIntoStableMarkdownBlocks(content: string): string[] {
-  if (!content) return [""];
-
-  const blocks: string[] = [];
-  let blockStart = 0;
-  let fenceLength = 0;
-  let index = 0;
-
-  while (index < content.length) {
-    if (content[index] === "`") {
-      const fenceMatch = /^`{3,}/.exec(content.slice(index));
-      if (fenceMatch) {
-        const currentFenceLength = fenceMatch[0].length;
-        if (fenceLength === 0) {
-          fenceLength = currentFenceLength;
-        } else if (currentFenceLength >= fenceLength) {
-          fenceLength = 0;
-        }
-        index += currentFenceLength;
-        continue;
-      }
-    }
-
-    if (
-      fenceLength === 0 &&
-      content[index] === "\n" &&
-      index + 1 < content.length &&
-      content[index + 1] === "\n"
-    ) {
-      const block = content.slice(blockStart, index + 2);
-      if (block.trim()) blocks.push(block);
-      blockStart = index + 2;
-      index = blockStart;
-      continue;
-    }
-
-    index += 1;
-  }
-
-  blocks.push(content.slice(blockStart));
-  return blocks;
-}
-
-// ============================================
-// Memoized Code Block Component
-// ============================================
-
-interface CodeBlockProps {
-  children: string;
-  language: string;
-  startLine?: string;
-  openFilePath?: string;
-}
-
-const CodeBlock = memo<CodeBlockProps>(
-  ({ children, language, startLine, openFilePath }) => {
-    const onCopyContent = useCallback(async () => {
-      await copyText(children);
-    }, [children]);
-    const { copied, handleCopy } = useCopyCheck(onCopyContent);
-    const { t } = useTranslation("common");
-
-    const handleOpenFile = useCallback(() => {
-      if (!openFilePath) return;
-      const line = startLine ? Number.parseInt(startLine, 10) : undefined;
-      openFileInWorkStation(openFilePath, {
-        line: Number.isFinite(line) ? line : undefined,
-      });
-    }, [openFilePath, startLine]);
-
-    const copyLabel = copied ? t("status.copied") : t("actions.copy");
-    const openLabel = t("actions.open");
-
-    return (
-      <div className="code-block-wrapper" style={CODE_WRAPPER_STYLE}>
-        <div className="code-block-toolbar">
-          {openFilePath && (
-            <button
-              type="button"
-              title={openLabel}
-              aria-label={openLabel}
-              className="code-block-open-button inline-flex h-6 w-6 cursor-pointer items-center justify-center rounded-md border-0 bg-fill-2 p-0 text-text-3 transition-colors hover:bg-fill-3 hover:text-text-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-6/30"
-              onClick={handleOpenFile}
-            >
-              <SquareArrowOutUpRight size={14} strokeWidth={1.75} />
-            </button>
-          )}
-          <button
-            type="button"
-            title={copyLabel}
-            aria-label={copyLabel}
-            className="code-block-copy-button inline-flex h-6 w-6 cursor-pointer items-center justify-center rounded-md border-0 bg-fill-2 p-0 text-text-3 transition-colors hover:bg-fill-3 hover:text-text-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-6/30"
-            onClick={handleCopy}
-          >
-            {copied ? (
-              <Check size={14} strokeWidth={1.75} />
-            ) : (
-              <Copy size={14} strokeWidth={1.75} />
-            )}
-          </button>
-        </div>
-        <SyntaxHighlighter
-          customStyle={CODE_CUSTOM_STYLE}
-          style={codeMirrorPrismTheme}
-          language={language}
-          PreTag="div"
-          showLineNumbers={false}
-          wrapLongLines
-          wrapLines={true}
-        >
-          {children}
-        </SyntaxHighlighter>
-      </div>
-    );
-  },
-  (prev, next) =>
-    prev.children === next.children &&
-    prev.language === next.language &&
-    prev.startLine === next.startLine &&
-    prev.openFilePath === next.openFilePath
-);
-CodeBlock.displayName = "CodeBlock";
-
-function normalizePathForRepoCheck(path: string): string {
-  return path
-    .replace(/^file:\/\//, "")
-    .replace(/\\/g, "/")
-    .replace(/\/+$/, "");
-}
-
-function isAbsolutePath(path: string): boolean {
-  return /^(?:file:\/\/)?\//.test(path) || /^[A-Za-z]:[\\/]/.test(path);
-}
-
-function isPathInCurrentRepo(
-  filePath: string | undefined,
-  repoRoot: string
-): boolean {
-  if (!filePath || !repoRoot) return false;
-  const normalizedFilePath = normalizePathForRepoCheck(filePath);
-  if (!isAbsolutePath(normalizedFilePath)) return true;
-  const normalizedRepoRoot = normalizePathForRepoCheck(repoRoot);
-  return (
-    normalizedFilePath === normalizedRepoRoot ||
-    normalizedFilePath.startsWith(`${normalizedRepoRoot}/`)
-  );
-}
-
-function resolveCurrentRepoFilePath(
-  filePath: string | undefined,
-  repoRoot: string
-): string | undefined {
-  if (!isPathInCurrentRepo(filePath, repoRoot) || !filePath) return undefined;
-  const normalizedFilePath = normalizePathForRepoCheck(filePath);
-  if (isAbsolutePath(normalizedFilePath)) return normalizedFilePath;
-  return `${normalizePathForRepoCheck(repoRoot)}/${normalizedFilePath.replace(
-    /^\.\//,
-    ""
-  )}`;
-}
 
 // ============================================
 // Markdown render primitives

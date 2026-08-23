@@ -470,7 +470,8 @@
       "open": "Open",
       "merged": "Merged",
       "closed": "Closed",
-      "draft": "Draft"
+      "draft": "Draft",
+      "unknown": "Unknown"
     },
     "operationLog": "Operation Log",
     "gitDashboard": "Dashboard",

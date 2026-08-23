@@ -29,6 +29,7 @@ import {
   agentIconIdAtom,
   agentNameAtom,
   cliAgentTypeAtom,
+  creatorPinnedActionsVisibleAtom,
   creatorRepoChromePositionAtom,
   dispatchCategoryAtom,
   normalizeAgentOnlySessionCreatorState,
@@ -106,6 +107,9 @@ const SessionCreatorChatPanelContent: React.FC<
   const { orgs } = useAgentOrgs();
   const [repoChromePositionPreference, setRepoChromePositionPreference] =
     useAtom(creatorRepoChromePositionAtom);
+  const [pinnedActionsVisible, setPinnedActionsVisible] = useAtom(
+    creatorPinnedActionsVisibleAtom
+  );
   const repoChromePosition = resolveCreatorRepoChromePosition(
     repoChromePositionPreference,
     layout === "launchpad" ? "top" : "bottom"
@@ -591,10 +595,12 @@ const SessionCreatorChatPanelContent: React.FC<
       onCreateWorkItem={onCreateWorkItem}
       onFileUpload={handleFileUpload}
       onLaunch={handleComposerLaunch}
+      onPinnedActionsVisibleChange={setPinnedActionsVisible}
       onRepoChromePositionChange={setRepoChromePositionPreference}
       onShareScreen={() => handleShareScreenClick().catch(log.error)}
       onToggleOrgMembers={handleToggleOrgMembers}
       pinnedActionsContent={isHumanMode ? undefined : pinnedActionsContent}
+      pinnedActionsVisible={pinnedActionsVisible}
       repoChromePosition={repoChromePosition}
       orgMembersPanelProps={
         selectedOrg

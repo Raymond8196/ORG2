@@ -2167,9 +2167,11 @@
     "appliesNextTurn": "Account switched. The current reply still runs on the previous account; the new account takes effect from the next turn."
   },
   "creator": {
-    "repoChromePosition": {
-      "up": "Up",
-      "down": "Down"
+    "repoChromeMenu": {
+      "moveToTop": "Move to top",
+      "moveToBottom": "Move to bottom",
+      "showPinnedActions": "Show pinned actions",
+      "hidePinnedActions": "Hide pinned actions"
     },
     "createTarget": {
       "agentSession": "Agent session",
