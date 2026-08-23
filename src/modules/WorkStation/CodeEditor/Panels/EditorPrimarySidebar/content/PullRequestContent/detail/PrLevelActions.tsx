@@ -26,6 +26,7 @@ import {
   DROPDOWN_WIDTHS,
 } from "@src/components/Dropdown/tokens";
 import Message from "@src/components/Message";
+import SplitButton from "@src/components/SplitButton";
 import {
   presentPullRequestActions,
   readRequestedReviewers,
@@ -314,6 +315,14 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
     (!presentation.directMergeAvailable &&
       !presentation.autoMergeAction &&
       !canChangeDraftState);
+  const primaryActionLabel = localizedActionLabel(
+    t,
+    presentation.autoMergeAction?.kind === "disable" ||
+      (!presentation.directMergeAvailable &&
+        presentation.autoMergeAction?.kind === "enable")
+      ? presentation.autoMergeAction.label
+      : presentation.label
+  );
 
   return (
     <section
@@ -321,7 +330,7 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
       aria-label={t("git.pr.actions.label", "Pull request actions")}
       data-testid="pr-level-actions"
     >
-      <Button
+      <SplitButton
         htmlType="button"
         variant={
           presentation.hasConflicts
@@ -360,7 +369,7 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
           .join(" ")}
         title={localizedActionTooltip(t, presentation.tooltip)}
         onClick={runPrimaryMergeAction}
-        dropdownMenu={
+        menu={
           <Dropdown
             droplist={mergePanel}
             trigger="click"
@@ -372,25 +381,18 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
             <div />
           </Dropdown>
         }
-        onDropdownClick={(event) => {
+        onMenuButtonClick={(event) => {
           event.stopPropagation();
           setMergeMenuVisible((visible) => !visible);
         }}
-        dropdownVisible={mergeMenuVisible}
-        splitWidthMode="hug"
-        splitDropdownWidth={28}
-        aria-expanded={mergeMenuVisible}
+        menuOpen={mergeMenuVisible}
+        menuButtonLabel={primaryActionLabel}
+        widthMode="hug"
+        menuSegmentWidth={28}
         data-testid="pr-merge-action"
       >
-        {localizedActionLabel(
-          t,
-          presentation.autoMergeAction?.kind === "disable" ||
-            (!presentation.directMergeAvailable &&
-              presentation.autoMergeAction?.kind === "enable")
-            ? presentation.autoMergeAction.label
-            : presentation.label
-        )}
-      </Button>
+        {primaryActionLabel}
+      </SplitButton>
 
       {presentation.status === "open" && !disabled ? (
         <Dropdown
