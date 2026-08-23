@@ -220,25 +220,28 @@ const AppearanceSection: React.FC = () => {
         </SectionRow>
 
         <SectionRow label={t("editor.wordWrap")}>
-          <Switch checked={wordWrap} onChange={setWordWrap} />
+          <Switch checked={wordWrap} onCheckedChange={setWordWrap} />
         </SectionRow>
 
         <SectionRow label={t("editor.autoSave")}>
-          <Switch checked={autoSave} onChange={setAutoSave} />
+          <Switch checked={autoSave} onCheckedChange={setAutoSave} />
         </SectionRow>
 
         <SectionRow label={t("editor.minimap")}>
-          <Switch checked={showMinimap} onChange={setShowMinimap} />
+          <Switch checked={showMinimap} onCheckedChange={setShowMinimap} />
         </SectionRow>
 
         <SectionRow label={t("editor.indentGuides")}>
-          <Switch checked={showIndentGuides} onChange={setShowIndentGuides} />
+          <Switch
+            checked={showIndentGuides}
+            onCheckedChange={setShowIndentGuides}
+          />
         </SectionRow>
 
         <SectionRow label={t("editor.highlightActiveLine")}>
           <Switch
             checked={highlightActiveLine}
-            onChange={setHighlightActiveLine}
+            onCheckedChange={setHighlightActiveLine}
           />
         </SectionRow>
       </SectionContainer>

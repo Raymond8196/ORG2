@@ -81,7 +81,7 @@ function SwitchControlRow({
   return (
     <div className={DROPDOWN_CLASSES.menuControlItem}>
       <span>{label}</span>
-      <Switch checked={checked} onChange={onChange} size="small" />
+      <Switch checked={checked} onCheckedChange={onChange} size="small" />
     </div>
   );
 }

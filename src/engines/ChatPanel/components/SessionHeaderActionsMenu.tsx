@@ -299,7 +299,7 @@ export const SessionHeaderActionsMenu: React.FC<
               <Switch
                 checked={sessionNotificationsMuted}
                 disabled={!currentSessionId}
-                onChange={setMuted}
+                onCheckedChange={setMuted}
                 size="small"
                 ariaLabel={t("chat.muteNotifications", {
                   defaultValue: "Mute notifications",
@@ -355,7 +355,7 @@ export const SessionHeaderActionsMenu: React.FC<
                   </span>
                   <Switch
                     checked={tokenUsageVisible}
-                    onChange={handleTokenUsageVisibleToggle}
+                    onCheckedChange={handleTokenUsageVisibleToggle}
                     size="small"
                     ariaLabel={t("chat.showTokenUsage")}
                   />
@@ -368,7 +368,7 @@ export const SessionHeaderActionsMenu: React.FC<
                   </span>
                   <Switch
                     checked={turnMetadataVisible}
-                    onChange={handleTurnMetadataVisibleToggle}
+                    onCheckedChange={handleTurnMetadataVisibleToggle}
                     size="small"
                     ariaLabel={t("chat.showTurnMetadata")}
                     dataTestId="session-menu-turn-metadata-toggle"
@@ -382,7 +382,7 @@ export const SessionHeaderActionsMenu: React.FC<
                   </span>
                   <Switch
                     checked={paginationEnabled}
-                    onChange={handlePaginationToggle}
+                    onCheckedChange={handlePaginationToggle}
                     size="small"
                     ariaLabel={t("common:pagination.title")}
                   />
@@ -395,7 +395,7 @@ export const SessionHeaderActionsMenu: React.FC<
                   </span>
                   <Switch
                     checked={displayMode === "compact"}
-                    onChange={handleCompactDisplayModeToggle}
+                    onCheckedChange={handleCompactDisplayModeToggle}
                     size="small"
                     ariaLabel={t("chat.compactDisplayMode")}
                   />

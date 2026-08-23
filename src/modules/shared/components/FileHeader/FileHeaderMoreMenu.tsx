@@ -183,7 +183,7 @@ export const FileHeaderMoreMenu: React.FC<FileHeaderMoreMenuProps> = ({
             size="small"
             checked={checked}
             disabled={!enabled}
-            onChange={(nextChecked, event) => {
+            onCheckedChange={(nextChecked, event) => {
               event.preventDefault();
               event.stopPropagation();
               onChange(nextChecked);

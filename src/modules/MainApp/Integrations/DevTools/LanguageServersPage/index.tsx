@@ -82,7 +82,7 @@ const LanguageServersPage: React.FC = () => {
         >
           <Switch
             checked={config.autoInstall}
-            onChange={handleAutoInstallToggle}
+            onCheckedChange={handleAutoInstallToggle}
             disabled={configLoading}
           />
         </SectionRow>

@@ -245,7 +245,7 @@ const LintToolsTable: React.FC<LintToolsTableProps> = ({
                 size={MODEL_TABLE_SWITCH_SIZE}
                 checked={enabled}
                 disabled={isBusy}
-                onChange={(next) =>
+                onCheckedChange={(next) =>
                   lintHandlers.handleWorkspaceToggle(tool.id, next)
                 }
               />
