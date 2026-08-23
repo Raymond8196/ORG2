@@ -466,7 +466,8 @@
       "open": "开启",
       "merged": "已合并",
       "closed": "已关闭",
-      "draft": "草稿"
+      "draft": "草稿",
+      "unknown": "未知"
     },
     "operationLog": "操作日志",
     "gitDashboard": "仪表盘",
