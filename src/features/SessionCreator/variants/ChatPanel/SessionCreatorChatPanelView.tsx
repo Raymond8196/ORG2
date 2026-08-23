@@ -108,6 +108,7 @@ interface SessionCreatorChatPanelViewProps {
   onCreateWorkItem?: () => void;
   onFileUpload: React.ChangeEventHandler<HTMLInputElement>;
   onLaunch: () => void;
+  onPinnedActionsVisibleChange: (visible: boolean) => void;
   onRepoChromePositionChange: (position: CreatorRepoChromePosition) => void;
   onShareScreen: () => Promise<unknown>;
   onToggleOrgMembers: () => void;
@@ -115,6 +116,7 @@ interface SessionCreatorChatPanelViewProps {
     typeof SessionCreatorOrgMembersPanel
   >;
   pinnedActionsContent?: React.ReactNode;
+  pinnedActionsVisible: boolean;
   repoChromePosition: CreatorRepoChromePosition;
   categoryPickerProps: CategoryPickerProps;
   screenPickerProps?: React.ComponentProps<typeof ScreenPickerModal>;
@@ -162,11 +164,13 @@ const SessionCreatorChatPanelView: React.FC<
   onCreateWorkItem,
   onFileUpload,
   onLaunch,
+  onPinnedActionsVisibleChange,
   onRepoChromePositionChange,
   onShareScreen,
   onToggleOrgMembers,
   orgMembersPanelProps,
   pinnedActionsContent,
+  pinnedActionsVisible,
   repoChromePosition,
   categoryPickerProps,
   screenPickerProps,
@@ -193,9 +197,13 @@ const SessionCreatorChatPanelView: React.FC<
     </div>
   );
   const repoChromeAboveComposer = isRepoChromeAboveComposer(repoChromePosition);
-  const repoPillsRow = !hideRepoLine && headerLayout !== "compact" && (
+  const hasRepoChromeMenu = !hideRepoLine && headerLayout !== "compact";
+  const showPinnedActionPills = !hasRepoChromeMenu || pinnedActionsVisible;
+  const repoPillsRow = hasRepoChromeMenu && (
     <RepoChromeRow
+      pinnedActionsVisible={pinnedActionsVisible}
       position={repoChromePosition}
+      onPinnedActionsVisibleChange={onPinnedActionsVisibleChange}
       onPositionChange={onRepoChromePositionChange}
     >
       {repoPills}
@@ -252,6 +260,7 @@ const SessionCreatorChatPanelView: React.FC<
         composerInputRef={composerInputRef}
         manageButtonPlacement="before-actions"
         managePanelAlign="left"
+        showPinnedActions={showPinnedActionPills}
         trailingContent={pinnedActionsContent}
         leadingContent={
           <>

@@ -2088,9 +2088,11 @@
     "immutableInSession": "キーソース、Agent タイプ、料金ティアはセッション開始時に固定されます。変更するには新しいセッションを開始してください。"
   },
   "creator": {
-    "repoChromePosition": {
-      "up": "上",
-      "down": "下"
+    "repoChromeMenu": {
+      "moveToTop": "上に移動",
+      "moveToBottom": "下に移動",
+      "showPinnedActions": "ピン留めしたアクションを表示",
+      "hidePinnedActions": "ピン留めしたアクションを非表示"
     },
     "createTarget": {
       "agentSession": "Agent セッション",

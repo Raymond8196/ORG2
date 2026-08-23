@@ -11,14 +11,17 @@
 
 ## Repository chrome position
 
-| #   | Steps                                                       | Expected Result                                                                                                                                    |
-| --- | ----------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| C1  | Right-click the repository chrome and choose **Up**         | Repository, branch, and running-location controls render above the composer with the established top corners and mirrored seam/outer padding       |
-| C2  | Right-click the repository chrome and choose **Down**       | The same controls render outside and below the complete composer, with matching bottom corners, the same total padding, and no input glow flashing |
-| C3  | Choose a position, close ORGII, then reopen Session Creator | The selected position is restored from `orgii:sessionCreator:repoChromePosition`                                                                   |
-| C4  | Open a layout with no saved position                        | Launchpad keeps its existing Up default; standard Session Creator keeps its existing Down default                                                  |
-| C5  | Open a compact/hidden repository-info Session Creator       | No position control appears because there is no independently movable repository chrome                                                            |
-| C6  | Right-click the repository/branch/location chrome           | WebKit's Back/Reload/Inspect menu is suppressed; a native OS menu opens with checked Up and Down actions, and choosing either persists the change  |
+| #   | Steps                                                                 | Expected Result                                                                                                                                         |
+| --- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| C1  | Right-click the lower repository chrome and choose **Move to top**    | Repository, branch, and running-location controls render above the composer with the established top corners and mirrored seam/outer padding            |
+| C2  | Right-click the upper repository chrome and choose **Move to bottom** | The same controls render outside and below the complete composer, with matching bottom corners, the same total padding, and no input glow flashing      |
+| C3  | Choose a position, close ORGII, then reopen Session Creator           | The selected position is restored from `orgii:sessionCreator:repoChromePosition`                                                                        |
+| C4  | Open a layout with no saved position                                  | Launchpad keeps its existing Up default; standard Session Creator keeps its existing Down default                                                       |
+| C5  | Open a compact/hidden repository-info Session Creator                 | No position control appears because there is no independently movable repository chrome                                                                 |
+| C6  | Right-click the repository/branch/location chrome                     | WebKit's Back/Reload/Inspect menu is suppressed; the native OS menu offers only the applicable **Move to top** or **Move to bottom** command            |
+| C7  | Choose **Hide pinned actions** in the native chrome menu              | Pinned skill, tool, built-in, and Canvas quick-action pills disappear; the `…` manager and unrelated GUI/TUI, work-item, org, and setup controls remain |
+| C8  | Reopen Session Creator after hiding pinned actions                    | Pinned quick-action pills remain hidden; choosing **Show pinned actions** restores the existing pins without repinning them                             |
+| C9  | Open compact/hidden repository-info creator after hiding              | Pinned quick actions remain visible because that surface has no repository chrome menu from which visibility could be restored                          |
 
 Covers the worktree-source picker (`WorktreeSourceModal.tsx`) and the
 launch-payload wiring that turns the picked source into backend worktree

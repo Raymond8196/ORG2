@@ -2089,9 +2089,11 @@
     "immutableInSession": "La source de clé, le type d'Agent et le palier tarifaire sont fixés au démarrage de la session. Démarrez une nouvelle session pour les modifier."
   },
   "creator": {
-    "repoChromePosition": {
-      "up": "Haut",
-      "down": "Bas"
+    "repoChromeMenu": {
+      "moveToTop": "Déplacer en haut",
+      "moveToBottom": "Déplacer en bas",
+      "showPinnedActions": "Afficher les actions épinglées",
+      "hidePinnedActions": "Masquer les actions épinglées"
     },
     "createTarget": {
       "agentSession": "Session Agent",

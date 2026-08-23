@@ -14,14 +14,18 @@ const log = createLogger("RepoChromeRow");
 
 export interface RepoChromeRowProps {
   children: React.ReactNode;
+  pinnedActionsVisible: boolean;
   position: CreatorRepoChromePosition;
+  onPinnedActionsVisibleChange: (visible: boolean) => void;
   onPositionChange: (position: CreatorRepoChromePosition) => void;
 }
 
-/** Repository controls row with a native Up/Down secondary-click menu. */
+/** Repository controls row with a native layout/visibility secondary-click menu. */
 export const RepoChromeRow: React.FC<RepoChromeRowProps> = ({
   children,
+  pinnedActionsVisible,
   position,
+  onPinnedActionsVisibleChange,
   onPositionChange,
 }) => {
   const { t } = useTranslation("sessions");
@@ -35,14 +39,22 @@ export const RepoChromeRow: React.FC<RepoChromeRowProps> = ({
         buildItems: () => {
           const items: NativeMenuItemOptions[] = [
             {
-              text: t("creator.repoChromePosition.up"),
-              checked: position === "top",
-              action: () => onPositionChange("top"),
+              text: t(
+                position === "top"
+                  ? "creator.repoChromeMenu.moveToBottom"
+                  : "creator.repoChromeMenu.moveToTop"
+              ),
+              action: () =>
+                onPositionChange(position === "top" ? "bottom" : "top"),
             },
+            { item: "Separator" },
             {
-              text: t("creator.repoChromePosition.down"),
-              checked: position === "bottom",
-              action: () => onPositionChange("bottom"),
+              text: t(
+                pinnedActionsVisible
+                  ? "creator.repoChromeMenu.hidePinnedActions"
+                  : "creator.repoChromeMenu.showPinnedActions"
+              ),
+              action: () => onPinnedActionsVisibleChange(!pinnedActionsVisible),
             },
           ];
           return items;
@@ -51,7 +63,13 @@ export const RepoChromeRow: React.FC<RepoChromeRowProps> = ({
         log.error("Failed to show repository chrome context menu:", error);
       });
     },
-    [onPositionChange, position, t]
+    [
+      onPinnedActionsVisibleChange,
+      onPositionChange,
+      pinnedActionsVisible,
+      position,
+      t,
+    ]
   );
 
   return (

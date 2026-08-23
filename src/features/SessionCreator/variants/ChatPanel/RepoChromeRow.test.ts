@@ -9,7 +9,12 @@ import RepoChromeRow from "./RepoChromeRow";
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
-    t: (key: string) => (key.endsWith(".up") ? "Up" : "Down"),
+    t: (key: string) => {
+      if (key.endsWith(".moveToTop")) return "Move to top";
+      if (key.endsWith(".moveToBottom")) return "Move to bottom";
+      if (key.endsWith(".showPinnedActions")) return "Show pinned actions";
+      return "Hide pinned actions";
+    },
   }),
 }));
 
@@ -40,14 +45,17 @@ describe("RepoChromeRow", () => {
     reactActEnvironment.IS_REACT_ACT_ENVIRONMENT = false;
   });
 
-  it("replaces the WebView menu with native checked Up/Down actions", async () => {
+  it("offers direct move and pinned-action visibility commands", async () => {
     const onPositionChange = vi.fn();
+    const onPinnedActionsVisibleChange = vi.fn();
     act(() => {
       root.render(
         createElement(
           RepoChromeRow,
           {
+            pinnedActionsVisible: true,
             position: "top",
+            onPinnedActionsVisibleChange,
             onPositionChange,
           } as unknown as ComponentProps<typeof RepoChromeRow>,
           createElement("span", null, "repository chrome")
@@ -72,16 +80,64 @@ describe("RepoChromeRow", () => {
     expect(popupOptions?.source).toBe("session-creator-repo-chrome");
 
     const items = await popupOptions?.buildItems();
-    const upItem = items?.[0] as
-      | { checked?: boolean; action?: () => void }
+    const moveItem = items?.[0] as
+      | { text?: string; action?: () => void }
       | undefined;
-    const downItem = items?.[1] as
-      | { checked?: boolean; action?: () => void }
+    const pinnedActionsItem = items?.[2] as
+      | { text?: string; action?: () => void }
       | undefined;
-    expect(upItem?.checked).toBe(true);
-    expect(downItem?.checked).toBe(false);
+    expect(moveItem?.text).toBe("Move to bottom");
+    expect(pinnedActionsItem?.text).toBe("Hide pinned actions");
 
-    act(() => downItem?.action?.());
+    act(() => moveItem?.action?.());
     expect(onPositionChange).toHaveBeenCalledWith("bottom");
+
+    act(() => pinnedActionsItem?.action?.());
+    expect(onPinnedActionsVisibleChange).toHaveBeenCalledWith(false);
+  });
+
+  it("offers the inverse commands when chrome is below and actions are hidden", async () => {
+    const onPositionChange = vi.fn();
+    const onPinnedActionsVisibleChange = vi.fn();
+    act(() => {
+      root.render(
+        createElement(
+          RepoChromeRow,
+          {
+            pinnedActionsVisible: false,
+            position: "bottom",
+            onPinnedActionsVisibleChange,
+            onPositionChange,
+          } as unknown as ComponentProps<typeof RepoChromeRow>,
+          createElement("span", null, "repository chrome")
+        )
+      );
+    });
+
+    const row = container.querySelector<HTMLElement>(
+      '[data-testid="session-creator-repo-chrome"]'
+    );
+    const event = new MouseEvent("contextmenu", {
+      bubbles: true,
+      cancelable: true,
+    });
+    act(() => row?.dispatchEvent(event));
+
+    const popupOptions = mockedPopupNativeMenu.mock.calls[0]?.[0];
+    const items = await popupOptions?.buildItems();
+    const moveItem = items?.[0] as
+      | { text?: string; action?: () => void }
+      | undefined;
+    const pinnedActionsItem = items?.[2] as
+      | { text?: string; action?: () => void }
+      | undefined;
+    expect(moveItem?.text).toBe("Move to top");
+    expect(pinnedActionsItem?.text).toBe("Show pinned actions");
+
+    act(() => moveItem?.action?.());
+    expect(onPositionChange).toHaveBeenCalledWith("top");
+
+    act(() => pinnedActionsItem?.action?.());
+    expect(onPinnedActionsVisibleChange).toHaveBeenCalledWith(true);
   });
 });
