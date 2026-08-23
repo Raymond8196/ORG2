@@ -50,7 +50,7 @@ const SettingsFieldRenderer: React.FC<SettingsFieldRendererProps> = ({
     return (
       <NumberInput
         value={typeof value === "number" ? value : 0}
-        onChange={(nextValue) => {
+        onValueChange={(nextValue) => {
           if (nextValue !== undefined) {
             setValue(nextValue as never);
           }
