@@ -1,4 +1,3 @@
-import { readTextFile } from "@tauri-apps/plugin-fs";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { createLogger } from "@src/hooks/logger";
@@ -31,7 +30,9 @@ import {
 } from "./cache";
 import { MAX_EDIT_LOG_SIZE } from "./constants";
 import { classifyFileError } from "./errors";
+import { FileLoadCoordinator } from "./fileLoadCoordinator";
 import { fetchFileMtime } from "./mtime";
+import { READ_TIMEOUT_MS, readTextFileWithTimeout } from "./readWithTimeout";
 import type {
   FileError,
   UseFileContentOptions,
@@ -39,6 +40,9 @@ import type {
 } from "./types";
 
 const log = createLogger("FileContent");
+
+/** Above this, a read is worth a log line — see the call site for why. */
+const SLOW_READ_LOG_THRESHOLD_MS = 1000;
 
 export type { FileError, UseFileContentOptions, UseFileContentReturn };
 export {
@@ -73,7 +77,12 @@ export function useFileContent(
 
   // Track current file path to avoid stale updates
   const currentFilePathRef = useRef<string | null>(null);
-  const loadingRef = useRef<boolean>(false);
+  const desiredFilePathRef = useRef(filePath);
+  desiredFilePathRef.current = filePath;
+  const loadCoordinatorRef = useRef<FileLoadCoordinator | null>(null);
+  if (!loadCoordinatorRef.current) {
+    loadCoordinatorRef.current = new FileLoadCoordinator();
+  }
 
   // Use ref to access version in loadContent without adding it as a dependency
   // This prevents loadContent from being recreated on every version change
@@ -95,6 +104,13 @@ export function useFileContent(
     diskVersionRef.current = diskVersion;
     recentEditsRef.current = recentEdits;
   }, [content, originalContent, diskVersion, recentEdits]);
+
+  useEffect(
+    () => () => {
+      loadCoordinatorRef.current?.cancel();
+    },
+    []
+  );
 
   // Cache unsaved content before switching to a new file
   useEffect(() => {
@@ -120,7 +136,10 @@ export function useFileContent(
 
   // Load file content
   const loadContent = useCallback(async () => {
+    const coordinator = loadCoordinatorRef.current!;
     if (!filePath) {
+      coordinator.cancel();
+      currentFilePathRef.current = null;
       setContent("");
       setOriginalContent("");
       setError(null);
@@ -130,38 +149,39 @@ export function useFileContent(
       setDiskVersion(0);
       setRecentEdits([]);
       setDiskMtime(null);
+      setLoading(false);
+      setLoadedFilePath(null);
       return;
     }
 
-    // Prevent duplicate loads
-    if (loadingRef.current && currentFilePathRef.current === filePath) {
-      return;
-    }
+    const request = coordinator.begin(filePath);
+    if (!request) return;
+
+    const ownsCurrentFile = () =>
+      coordinator.isActive(request) &&
+      desiredFilePathRef.current === request.filePath;
 
     currentFilePathRef.current = filePath;
 
-    loadingRef.current = true;
     setLoading(true);
     setError(null);
 
-    // PERFORMANCE: Check cached binary status first (avoids disk read for known binaries)
-    const cachedBinary = getCachedBinaryStatus(filePath);
-    if (cachedBinary === true) {
-      const message = getBinaryFileMessage();
-      setContent(message);
-      setOriginalContent(message);
-      setIsBinary(true);
-      setVersion(0);
-      setDiskVersion(0);
-      setRecentEdits([]);
-      setDiskMtime(null);
-      setHasUnsavedChanges(false);
-      setLoading(false);
-      loadingRef.current = false;
-      return;
-    }
-
     try {
+      // PERFORMANCE: Check cached binary status first (avoids disk read for known binaries)
+      const cachedBinary = getCachedBinaryStatus(filePath);
+      if (cachedBinary === true) {
+        const message = getBinaryFileMessage();
+        setContent(message);
+        setOriginalContent(message);
+        setIsBinary(true);
+        setVersion(0);
+        setDiskVersion(0);
+        setRecentEdits([]);
+        setDiskMtime(null);
+        setHasUnsavedChanges(false);
+        return;
+      }
+
       // Check if binary by extension first
       if (isBinaryByExtension(filePath)) {
         const message = getBinaryFileMessage();
@@ -180,10 +200,24 @@ export function useFileContent(
 
       // Read file content from disk
       // Note: OS file cache makes repeated reads fast (~1-5ms for recently accessed files)
-      const fileContent = await readTextFile(toFsPluginPath(filePath));
+      // Defensive bound: an unanswered IPC here would otherwise pin `loading`.
+      const readStartedAt = performance.now();
+      const fileContent = await readTextFileWithTimeout(
+        toFsPluginPath(filePath),
+        READ_TIMEOUT_MS
+      );
+      const readDurationMs = Math.round(performance.now() - readStartedAt);
+      // A local read is single-digit milliseconds. Anything near a second means
+      // the IPC layer is degraded, which is the difference between "the chunk
+      // stalled" and "the backend stalled" when diagnosing a stuck spinner.
+      if (readDurationMs > SLOW_READ_LOG_THRESHOLD_MS) {
+        log.warn(
+          `[FileContent] Slow read (${readDurationMs}ms) for ${filePath}`
+        );
+      }
 
       // Check for stale response
-      if (currentFilePathRef.current !== filePath) {
+      if (!ownsCurrentFile()) {
         return;
       }
 
@@ -248,14 +282,20 @@ export function useFileContent(
         // Fetch disk modification time in background (don't block rendering)
         void fetchFileMtime(filePath)
           .then((mtime) => {
-            if (currentFilePathRef.current === filePath) {
+            if (
+              coordinator.isLatest(request) &&
+              desiredFilePathRef.current === request.filePath
+            ) {
               setDiskMtime(mtime);
               cacheFileMetadata(filePath, false, mtime);
             }
           })
           .catch((error: unknown) => {
             log.error("[FileContent] Failed to fetch file mtime:", error);
-            if (currentFilePathRef.current === filePath) {
+            if (
+              coordinator.isLatest(request) &&
+              desiredFilePathRef.current === request.filePath
+            ) {
               setDiskMtime(null);
               cacheFileMetadata(filePath, false, null);
             }
@@ -276,7 +316,7 @@ export function useFileContent(
       );
     } catch (err) {
       // Check for stale response
-      if (currentFilePathRef.current !== filePath) {
+      if (!ownsCurrentFile()) {
         return;
       }
 
@@ -295,9 +335,11 @@ export function useFileContent(
       setDiskMtime(null);
       setHasUnsavedChanges(false);
     } finally {
-      if (currentFilePathRef.current === filePath) {
+      // A path is not an identity: only the exact generation that began this
+      // load may release it or publish completion state after A -> B -> A.
+      const released = coordinator.finish(request);
+      if (released && desiredFilePathRef.current === request.filePath) {
         setLoading(false);
-        loadingRef.current = false;
         // Track which file path this content was loaded for
         setLoadedFilePath(filePath);
       }
