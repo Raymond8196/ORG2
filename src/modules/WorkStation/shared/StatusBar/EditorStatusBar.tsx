@@ -11,9 +11,10 @@ import {
 } from "@src/components/Dropdown/tokens";
 import { useRepoGitInitialization } from "@src/hooks/git";
 import { useRepoSelection } from "@src/hooks/git/useRepoSelection";
-import { sessionRepoHintAtom } from "@src/store/repo";
+import { currentBranchAtom, sessionRepoHintAtom } from "@src/store/repo";
 import { activeFolderIdAtom } from "@src/store/workspace";
 import {
+  activeWorkspaceRootNameAtom,
   activeWorkspaceRootPathAtom,
   activeWorktreeAtom,
 } from "@src/store/workspace";
@@ -48,8 +49,6 @@ export const EditorStatusBar: React.FC<EditorStatusBarProps> = memo(
     cursor,
     filePath,
     totalLines,
-    repoName,
-    branchName,
     commitInfo,
     lspStatus,
     onRepoClick,
@@ -61,7 +60,14 @@ export const EditorStatusBar: React.FC<EditorStatusBarProps> = memo(
     const language = getLanguageFromPath(filePath);
     const hasSelection = cursor?.selectedChars && cursor.selectedChars > 0;
 
+    // Workspace and branch identity are read straight from the global
+    // workspace/repo atoms, never pushed in by a content host: the status bar
+    // outlives the Code Editor, which unmounts on the empty Launchpad
+    // (`hostMountPolicy.ts`). Only genuinely file-scoped values (cursor, path,
+    // LSP, commit tab) arrive as props.
     const repoPath = useAtomValue(activeWorkspaceRootPathAtom);
+    const repoName = useAtomValue(activeWorkspaceRootNameAtom) || undefined;
+    const branchName = useAtomValue(currentBranchAtom) || undefined;
     const activeWorktree = useAtomValue(activeWorktreeAtom);
 
     const {

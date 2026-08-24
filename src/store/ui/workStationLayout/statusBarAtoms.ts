@@ -28,8 +28,6 @@ export interface GlobalStatusBarState {
   cursor: GlobalCursorPosition | null;
   filePath: string | null;
   totalLines: number | undefined;
-  repoName: string | undefined;
-  branchName: string | undefined;
   commitInfo: GlobalCommitInfo | null;
   lspStatus: GlobalLspStatus | undefined;
   browserUrl: string | undefined;
@@ -64,8 +62,6 @@ const defaultStatusBarState: GlobalStatusBarState = {
   cursor: null,
   filePath: null,
   totalLines: undefined,
-  repoName: undefined,
-  branchName: undefined,
   commitInfo: null,
   lspStatus: undefined,
   browserUrl: undefined,

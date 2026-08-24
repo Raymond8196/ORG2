@@ -21,8 +21,6 @@ export interface EditorStatusBarProps {
   cursor: CursorPosition | null;
   filePath?: string;
   totalLines?: number;
-  repoName?: string;
-  branchName?: string;
   commitInfo?: CommitInfo | null;
   lspStatus?: LspStatus;
   onRepoClick?: () => void;

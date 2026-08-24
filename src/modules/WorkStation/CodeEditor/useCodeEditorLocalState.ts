@@ -2,24 +2,18 @@
  * useCodeEditorLocalState — Local UI state and status-bar sync for CodeEditor.
  *
  * Extracted to keep CodeEditor/index.tsx under the 600-line limit.
- * Owns: cursor position, total-line count, repo/branch click handlers,
- * diagnostics callbacks, terminal helpers, and both status-bar effects.
+ * Owns: cursor position, total-line count, diagnostics callbacks, terminal
+ * helpers, and the file-scoped half of the status bar (cursor, path, LSP,
+ * commit tab). Workspace/branch identity and the repo/branch/worktree
+ * spotlight buttons are NOT pushed from here — the status bar outlives this
+ * host, which unmounts on the empty Launchpad, so it reads them from the
+ * global workspace/repo atoms instead.
  */
 import { useTerminalState } from "@/src/engines/TerminalCore/hooks/useTerminalState";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
-  createBranchSpotlightRequest,
-  createWorkspaceSpotlightRequest,
-  createWorktreeSpotlightRequest,
-} from "@src/scaffold/GlobalSpotlight/openSpotlight";
-import {
-  spotlightInitialQueryAtom,
-  spotlightOpenAtom,
-} from "@src/store/ui/uiAtom";
-import {
-  codeStatusBarCallbacksAtom,
   codeStatusBarStateAtom,
   editorPanelPositionAtom,
   editorPanelPositionPersistAtom,
@@ -42,9 +36,7 @@ import { useCodeEditor } from "./hooks/useCodeEditor";
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface UseCodeEditorLocalStateOptions {
-  repoName: string;
   isActive: boolean;
-  currentBranch: string | null | undefined;
   codeEditorState: ReturnType<typeof useCodeEditor>;
   terminalState: ReturnType<typeof useTerminalState>;
   diagnosticsState: ReturnType<typeof useDiagnostics>;
@@ -53,9 +45,7 @@ interface UseCodeEditorLocalStateOptions {
 // ── Hook ──────────────────────────────────────────────────────────────────────
 
 export function useCodeEditorLocalState({
-  repoName,
   isActive,
-  currentBranch,
   codeEditorState,
   terminalState,
   diagnosticsState,
@@ -135,26 +125,6 @@ export function useCodeEditorLocalState({
 
   const editorPanelPosition = useAtomValue(editorPanelPositionAtom);
   const setEditorPanelPosition = useSetAtom(editorPanelPositionPersistAtom);
-
-  // ── Repo/branch selector ─────────────────────────────────────────────────
-
-  const setSpotlightInitialQuery = useSetAtom(spotlightInitialQueryAtom);
-  const setSpotlightOpen = useSetAtom(spotlightOpenAtom);
-
-  const handleRepoClick = useCallback(() => {
-    setSpotlightInitialQuery(createWorkspaceSpotlightRequest("switch"));
-    setSpotlightOpen(true);
-  }, [setSpotlightInitialQuery, setSpotlightOpen]);
-
-  const handleBranchClick = useCallback(() => {
-    setSpotlightInitialQuery(createBranchSpotlightRequest());
-    setSpotlightOpen(true);
-  }, [setSpotlightInitialQuery, setSpotlightOpen]);
-
-  const handleWorktreeClick = useCallback(() => {
-    setSpotlightInitialQuery(createWorktreeSpotlightRequest());
-    setSpotlightOpen(true);
-  }, [setSpotlightInitialQuery, setSpotlightOpen]);
 
   // ── Cursor + total-line tracking ─────────────────────────────────────────
 
@@ -254,7 +224,6 @@ export function useCodeEditorLocalState({
   // ── Status bar sync effects ───────────────────────────────────────────────
 
   const setGlobalStatusBarState = useSetAtom(codeStatusBarStateAtom);
-  const setStatusBarCallbacks = useSetAtom(codeStatusBarCallbacksAtom);
 
   const isPreviewOnly =
     !!focusedActiveFilePath && isPreviewOnlyFile(focusedActiveFilePath);
@@ -268,8 +237,6 @@ export function useCodeEditorLocalState({
       filePath: isPreviewOnly ? null : focusedActiveFilePath,
       totalLines:
         focusedActiveFilePath && !isPreviewOnly ? totalLines : undefined,
-      repoName,
-      branchName: currentBranch || undefined,
       commitInfo: statusBarCommitInfo,
       lspStatus: isPreviewOnly ? undefined : lspStatus,
     }));
@@ -278,36 +245,10 @@ export function useCodeEditorLocalState({
     focusedActiveFilePath,
     isPreviewOnly,
     totalLines,
-    repoName,
-    currentBranch,
     statusBarCommitInfo,
     lspStatus,
     isActive,
     setGlobalStatusBarState,
-  ]);
-
-  useEffect(() => {
-    if (!isActive) return;
-    setStatusBarCallbacks((prev) => ({
-      ...prev,
-      onRepoClick: handleRepoClick,
-      onBranchClick: handleBranchClick,
-      onWorktreeClick: handleWorktreeClick,
-    }));
-    return () => {
-      setStatusBarCallbacks((prev) => ({
-        ...prev,
-        onRepoClick: undefined,
-        onBranchClick: undefined,
-        onWorktreeClick: undefined,
-      }));
-    };
-  }, [
-    handleRepoClick,
-    handleBranchClick,
-    handleWorktreeClick,
-    isActive,
-    setStatusBarCallbacks,
   ]);
 
   return {
@@ -324,9 +265,6 @@ export function useCodeEditorLocalState({
     // Panel
     editorPanelPosition,
     // Handlers
-    handleRepoClick,
-    handleBranchClick,
-    handleWorktreeClick,
     handleCursorPositionChange,
     handleToggleEditorPanelPosition,
     handleDiagnosticsChange,

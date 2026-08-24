@@ -2,7 +2,27 @@ import { useSetAtom } from "jotai";
 import { useEffect } from "react";
 
 import { useWorkStationPanels } from "@src/hooks/tabHost/useWorkStationPanels";
+import {
+  openBranchSpotlight,
+  openWorkspaceSpotlight,
+  openWorktreeSpotlight,
+} from "@src/scaffold/GlobalSpotlight/openSpotlight";
 import { perAppStatusBarCallbacksAtom } from "@src/store/ui/workStationAtom";
+
+/**
+ * Workspace / branch / worktree buttons in the code status bar. They are pure
+ * GlobalSpotlight openers with no host-local state, so the AppShell owns them:
+ * the status bar renders whenever the shell does, while the code host unmounts
+ * on the empty Launchpad (see `hostMountPolicy.ts`). Registering them from the
+ * host left the buttons dead there.
+ *
+ * Module-level so the identity is stable across renders.
+ */
+const SPOTLIGHT_CALLBACKS = {
+  onRepoClick: () => openWorkspaceSpotlight("switch"),
+  onBranchClick: openBranchSpotlight,
+  onWorktreeClick: openWorktreeSpotlight,
+} as const;
 
 interface UseAppShellStatusBarOptions {
   primaryPanelCollapsed: boolean;
@@ -37,6 +57,7 @@ export function useAppShellStatusBar({
       ...prev,
       code: {
         ...prev.code,
+        ...SPOTLIGHT_CALLBACKS,
         onOpenSettings: showSettingsButton ? handleOpenSettings : undefined,
         ...sharedPanelCallbacks,
         onToggleBottomPanel: showCodeEditorBottomPanelToggle

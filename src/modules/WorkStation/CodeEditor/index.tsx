@@ -129,9 +129,7 @@ export const CodeEditor: React.FC<CodeEditorProps> = memo(
       handleKillTerminal,
       handleAddTerminal,
     } = useCodeEditorLocalState({
-      repoName,
       isActive,
-      currentBranch,
       codeEditorState,
       terminalState,
       diagnosticsState,
