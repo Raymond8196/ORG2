@@ -214,7 +214,7 @@ const SkillEditorPanel: React.FC<SkillEditorPanelProps> = ({
             >
               <Switch
                 checked={draft.alwaysActive}
-                onChange={(checked) =>
+                onCheckedChange={(checked) =>
                   editor.updateDraft({ alwaysActive: checked })
                 }
               />

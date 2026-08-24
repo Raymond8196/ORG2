@@ -226,7 +226,7 @@ const LanguageServersTable: React.FC<LanguageServersTableProps> = ({
                 size={MODEL_TABLE_SWITCH_SIZE}
                 checked={enabled}
                 disabled={isBusy}
-                onChange={(next) =>
+                onCheckedChange={(next) =>
                   lspHandlers.handleWorkspaceToggle(server.language, next)
                 }
               />

@@ -45,7 +45,7 @@ export const LspActionsCell: React.FC<LspActionsCellProps> = memo(
           <Switch
             size="small"
             checked={workspaceEnabled ?? true}
-            onChange={onWorkspaceToggle}
+            onCheckedChange={onWorkspaceToggle}
             disabled={isBusy}
           />
         )}
