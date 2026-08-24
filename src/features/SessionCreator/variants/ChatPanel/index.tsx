@@ -29,10 +29,10 @@ import {
   agentIconIdAtom,
   agentNameAtom,
   cliAgentTypeAtom,
-  creatorPinnedActionsVisibleAtom,
   creatorRepoChromePositionAtom,
   dispatchCategoryAtom,
   normalizeAgentOnlySessionCreatorState,
+  pinnedActionsVisibleAtom,
   resolveCreatorRepoChromePosition,
   selectedAgentDefinitionIdAtom,
   selectedAgentOrgIdAtom,
@@ -108,7 +108,7 @@ const SessionCreatorChatPanelContent: React.FC<
   const [repoChromePositionPreference, setRepoChromePositionPreference] =
     useAtom(creatorRepoChromePositionAtom);
   const [pinnedActionsVisible, setPinnedActionsVisible] = useAtom(
-    creatorPinnedActionsVisibleAtom
+    pinnedActionsVisibleAtom
   );
   const repoChromePosition = resolveCreatorRepoChromePosition(
     repoChromePositionPreference,
