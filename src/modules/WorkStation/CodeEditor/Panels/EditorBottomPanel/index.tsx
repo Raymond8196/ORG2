@@ -17,10 +17,13 @@
  *
  * Uses unified Resize system for better performance (0 React render during resize).
  */
+// Import from `types`, not the `exports` barrel: the barrel re-exports the
+// TerminalCore component and would pull xterm (~330 KB + CSS) into the
+// editor shell chunk. Terminal surfaces load it lazily at their mount site.
 import {
   type UseTerminalStateReturn,
   getTerminalDisplayTitle,
-} from "@/src/engines/TerminalCore/exports";
+} from "@/src/engines/TerminalCore/types";
 import React, { memo, useCallback, useMemo } from "react";
 
 import { useActionSystem } from "@src/ActionSystem";
@@ -39,8 +42,8 @@ import { useProblemsState } from "./hooks/useProblemsState";
 import { useWorkspaceScan } from "./hooks/useWorkspaceScan";
 import { useOutputTabConfig } from "./tabs/OutputTab";
 import { useProblemsTabConfig } from "./tabs/ProblemsTab";
-// Bottom-panel Terminal is intentionally hidden while the standalone Terminal tab is the single source of truth.
-// import { useTerminalTabConfig } from "./tabs/TerminalTab";
+// Bottom-panel Terminal is intentionally hidden while the standalone Terminal
+// tab is the single source of truth (the former `tabs/TerminalTab` was removed).
 import { useTestResultsTabConfig } from "./tabs/TestResultsTab";
 
 // ============================================
