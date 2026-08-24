@@ -18,7 +18,7 @@
  */
 import { useLayoutEffect, useRef } from "react";
 
-import { resetChunkReloadCount } from "@src/util/core/init/chunkReload";
+import { markChunkRecoveryRuntimeReady } from "@src/util/core/init/chunkReload";
 import { signalFirstPaintComplete } from "@src/util/core/init/deferredInit";
 
 function getStartupElapsedMs(): number | null {
@@ -113,15 +113,15 @@ export function useFirstPaintSignal(): void {
           emitFirstPaintMetric();
 
           // The app committed its first paint — cancel the pre-bundle splash
-          // watchdog (index.html) and clear the chunk-reload retry budget so a
-          // later transient chunk failure still gets a fresh set of retries.
+          // watchdog (index.html), clear only the startup retry budget, and
+          // switch future failures to the separately bounded runtime budget.
           const splashDone = (
             window as unknown as { __ORGII_SPLASH_DONE__?: () => void }
           ).__ORGII_SPLASH_DONE__;
           if (typeof splashDone === "function") {
             splashDone();
           }
-          resetChunkReloadCount();
+          markChunkRecoveryRuntimeReady();
 
           const splash = document.getElementById("splash");
           if (splash) {

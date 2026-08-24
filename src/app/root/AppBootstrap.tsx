@@ -13,7 +13,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { type FC, useEffect } from "react";
 import { RouterProvider } from "react-router-dom";
 
-import ErrorBoundary from "@src/components/ErrorBoundary";
+import { ErrorBoundary } from "@src/components/ErrorBoundary";
 import GlobalShortcuts from "@src/components/GlobalShortcuts";
 import QuitConfirmationModal from "@src/components/QuitConfirmationModal";
 import { RepoLoader } from "@src/components/System";

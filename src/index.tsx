@@ -16,8 +16,12 @@ import "@src/util/platform/tauri";
 
 import "./index.scss";
 import { clearAllOpenedRepos } from "./store/repo";
+import { isRecoverableAppAssetFailure } from "./util/core/init/assetLoadRecovery";
 import { initBackgroundImage } from "./util/core/init/backgroundInit";
-import { reloadForChunkError as reloadChunk } from "./util/core/init/chunkReload";
+import {
+  isChunkLoadError,
+  recoverFromChunkLoadFailure,
+} from "./util/core/init/chunkReload";
 import { initTheme } from "./util/core/init/themeInit";
 import { initializeTauriAPIs, invokeTauri } from "./util/platform/tauri/init";
 
@@ -39,35 +43,33 @@ if ("scrollRestoration" in history) {
 // ============================================================================
 // ERROR HANDLERS
 // ============================================================================
-const isChunkError = (msg?: string) =>
-  msg?.includes("ChunkLoadError") ||
-  msg?.includes("Loading chunk") ||
-  msg?.includes("dynamically imported module");
-
 // Bounded reload on chunk failure (see chunkReload.ts). Falls back to the
 // emergency error UI when the retry budget is exhausted and the inline
 // startup-error panel is unavailable.
-const reloadForChunkError = () =>
-  reloadChunk(() =>
-    showEmergencyError(
-      "Failed to Load Application Assets",
-      "An app asset could not be loaded after several attempts. Check your network connection, then retry. If this persists, reinstalling may help.",
-      true
-    )
-  );
+const recoverChunkFailure = (failure: unknown) =>
+  recoverFromChunkLoadFailure({
+    failure,
+    onGiveUp: () =>
+      showEmergencyError(
+        "Failed to Load Application Assets",
+        "An app asset could not be loaded after several attempts. Check your network connection, then retry. If this persists, reinstalling may help.",
+        true
+      ),
+  });
 
 // Early chunk error handling (before React mounts)
-window.onerror = (message) => {
-  if (typeof message === "string" && isChunkError(message)) {
-    reloadForChunkError();
+window.onerror = (message, _source, _lineno, _colno, error) => {
+  const failure = error ?? message;
+  if (isChunkLoadError(failure)) {
+    recoverChunkFailure(failure);
     return true;
   }
   return false;
 };
 
 window.onunhandledrejection = (event) => {
-  if (isChunkError(event.reason?.message)) {
-    reloadForChunkError();
+  if (isChunkLoadError(event.reason)) {
+    recoverChunkFailure(event.reason);
     event.preventDefault();
   }
 };
@@ -76,17 +78,8 @@ window.onunhandledrejection = (event) => {
 window.addEventListener(
   "error",
   (event: Event) => {
-    const target = event.target;
-    if (target instanceof HTMLScriptElement) {
-      const src = target.src || "";
-      if (src.includes("chunk") || src.includes("vendor")) {
-        reloadForChunkError();
-      }
-    }
-    if (target instanceof HTMLLinkElement) {
-      if (target.rel === "stylesheet" && target.href?.includes("chunk")) {
-        reloadForChunkError();
-      }
+    if (isRecoverableAppAssetFailure(event.target)) {
+      recoverChunkFailure(event);
     }
   },
   true

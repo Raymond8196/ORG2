@@ -34,3 +34,8 @@ export type {
 } from "./types";
 export { UnknownTabPlaceholder } from "./UnknownTabPlaceholder";
 export { TabLoadingPlaceholder } from "./TabLoadingPlaceholder";
+export { TabErrorBoundary } from "./TabErrorBoundary";
+export {
+  getRendererComponent,
+  invalidateRendererComponents,
+} from "./rendererComponents";

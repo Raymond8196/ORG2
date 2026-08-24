@@ -16,12 +16,8 @@ import React, { Suspense, memo } from "react";
 import { useEditorHostContext } from "@src/modules/WorkStation/CodeEditor/Panels/EditorMainPane/context/editorHostContext";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 
+import { getRendererLazyComponent } from "../rendererComponents";
 import type { UnifiedTabContentProps } from "../types";
-
-const DirectoryExplorerContent = React.lazy(
-  () =>
-    import("@src/modules/WorkStation/CodeEditor/Panels/EditorMainPane/content/DirectoryExplorerContent")
-);
 
 const LazyFallback = () => (
   <Placeholder variant="loading" placement="detail-panel" fillParentHeight />
@@ -29,6 +25,12 @@ const LazyFallback = () => (
 
 const DirectoryTabRenderer: React.FC<UnifiedTabContentProps> = memo(
   ({ tab }) => {
+    const DirectoryExplorerContent = getRendererLazyComponent(
+      "directory",
+      "DirectoryExplorerContent",
+      () =>
+        import("@src/modules/WorkStation/CodeEditor/Panels/EditorMainPane/content/DirectoryExplorerContent")
+    );
     const { repoPath, onFileSelect } = useEditorHostContext();
     const directoryPath = String(tab.data.directoryPath ?? "");
 

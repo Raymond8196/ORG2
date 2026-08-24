@@ -11,12 +11,8 @@ import React, { Suspense, memo } from "react";
 
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 
+import { getRendererLazyComponent } from "../rendererComponents";
 import type { UnifiedTabContentProps } from "../types";
-
-const CodeViewerContent = React.lazy(
-  () =>
-    import("@src/modules/WorkStation/CodeEditor/Panels/EditorMainPane/content/CodeViewerContent")
-);
 
 const LazyFallback = () => (
   <Placeholder variant="loading" placement="detail-panel" fillParentHeight />
@@ -24,6 +20,12 @@ const LazyFallback = () => (
 
 const TerminalContentTabRenderer: React.FC<UnifiedTabContentProps> = memo(
   ({ tab }) => {
+    const CodeViewerContent = getRendererLazyComponent(
+      "terminal-content",
+      "CodeViewerContent",
+      () =>
+        import("@src/modules/WorkStation/CodeEditor/Panels/EditorMainPane/content/CodeViewerContent")
+    );
     const terminalContent = String(tab.data.content || "");
     const terminalName =
       tab.data.terminalName || tab.title || "Terminal Output";

@@ -18,12 +18,8 @@ import { useEditorHostContext } from "@src/modules/WorkStation/CodeEditor/Panels
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 import { requiresFilePreviewRoute as shouldUseDedicatedPreviewRoute } from "@src/util/file/previewTypes";
 
+import { getRendererLazyComponent } from "../rendererComponents";
 import type { UnifiedTabContentProps } from "../types";
-
-const CodeViewerContent = React.lazy(
-  () =>
-    import("@src/modules/WorkStation/CodeEditor/Panels/EditorMainPane/content/CodeViewerContent")
-);
 
 const LazyFallback = () => (
   <Placeholder variant="loading" placement="detail-panel" fillParentHeight />
@@ -35,6 +31,12 @@ function isCsvTableFile(filePath: string): boolean {
 }
 
 const FileTabRenderer: React.FC<UnifiedTabContentProps> = memo(({ tab }) => {
+  const CodeViewerContent = getRendererLazyComponent(
+    "file",
+    "CodeViewerContent",
+    () =>
+      import("@src/modules/WorkStation/CodeEditor/Panels/EditorMainPane/content/CodeViewerContent")
+  );
   const {
     fileContentState,
     gitFilesByPath,

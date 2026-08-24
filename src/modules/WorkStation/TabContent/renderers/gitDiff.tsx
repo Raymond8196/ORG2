@@ -13,18 +13,20 @@ import React, { Suspense, memo, useMemo } from "react";
 import { useEditorHostContext } from "@src/modules/WorkStation/CodeEditor/Panels/EditorMainPane/context/editorHostContext";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 
+import { getRendererLazyComponent } from "../rendererComponents";
 import type { UnifiedTabContentProps } from "../types";
-
-const GitDiffContent = React.lazy(
-  () =>
-    import("@src/modules/WorkStation/CodeEditor/Panels/EditorMainPane/content/GitDiffContent")
-);
 
 const LazyFallback = () => (
   <Placeholder variant="loading" placement="detail-panel" fillParentHeight />
 );
 
 const GitDiffTabRenderer: React.FC<UnifiedTabContentProps> = memo(({ tab }) => {
+  const GitDiffContent = getRendererLazyComponent(
+    "git-diff",
+    "GitDiffContent",
+    () =>
+      import("@src/modules/WorkStation/CodeEditor/Panels/EditorMainPane/content/GitDiffContent")
+  );
   const {
     gitFilesByPath,
     gitDiffLoading,

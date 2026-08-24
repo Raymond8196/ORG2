@@ -69,6 +69,13 @@ module.exports = (env, argv) => {
       // Content hashes change on every rebuild, causing chunk loading failures
       filename: isProduction ? "[name].[contenthash].js" : "[name].js",
       chunkFilename: isProduction ? "[name].[contenthash].js" : "[name].js",
+      // Bound how long webpack's own chunk loader waits before rejecting.
+      // The default is 120s, which on Linux/WebKitGTK — where a script load can
+      // fail internally and never surface an `error` event — reads to the user
+      // as a permanently stuck spinner. This must be shorter than
+      // `lazyWithRetry`'s 12s attempt guard: webpack is the only owner that can
+      // clear `installedChunks` and make the next import issue a new request.
+      chunkLoadTimeout: 8000,
       clean: true,
     },
     cache: {

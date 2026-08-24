@@ -11,7 +11,7 @@
  * ActionSystem wiring) stay outside this layer and are addressed in
  * Phase 2 when AppShell collapses around this dispatcher.
  */
-import type { ComponentType, LazyExoticComponent } from "react";
+import type { ComponentType } from "react";
 
 import type {
   WorkStationTab,
@@ -30,8 +30,15 @@ export interface UnifiedTabContentProps<
 }
 
 export interface RendererEntry {
-  /** Lazy component that renders this tab's content. */
-  Component: LazyExoticComponent<ComponentType<UnifiedTabContentProps>>;
+  /**
+   * Dynamic import of the module whose default export renders this tab.
+   *
+   * Deliberately a factory rather than a prebuilt `LazyExoticComponent`: a
+   * `React.lazy` component caches a rejected import permanently, so retrying a
+   * chunk that failed to load requires constructing a new one from the factory.
+   * `./rendererComponents.ts` owns that construction and its cache.
+   */
+  load: () => Promise<{ default: ComponentType<UnifiedTabContentProps> }>;
   /**
    * Whether the renderer needs an active repo (file/git-diff/source-control,
    * etc.). Used by the AppShell guard introduced in Phase 2.

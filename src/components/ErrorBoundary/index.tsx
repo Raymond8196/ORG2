@@ -6,6 +6,10 @@ import {
   hasGlobalErrorAtom,
   isAppQuittingAtom,
 } from "@src/store/ui/overlayAtom";
+import {
+  isChunkLoadError,
+  recoverFromChunkLoadFailure,
+} from "@src/util/core/init/chunkReload";
 import { getInstrumentedStore } from "@src/util/core/state/instrumentedStore";
 import {
   cleanUpBrowserStorage,
@@ -64,16 +68,24 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
       splashDone();
     }
 
-    if (
-      error.message?.includes("Loading chunk") ||
-      error.message?.includes("ChunkLoadError") ||
-      error.name === "ChunkLoadError"
-    ) {
+    if (isChunkLoadError(error)) {
       log.warn(
-        "Chunk loading error in React boundary, reloading page:",
+        "Chunk loading error in React boundary; attempting bounded recovery:",
         error.message
       );
-      window.location.reload();
+      // Bounded. A bare `window.location.reload()` here loops forever on a
+      // chunk that is permanently unreachable — and the pre-paint budget in
+      // `chunkReload` cannot bound it, because first paint resets that counter
+      // between every attempt. Once the runtime budget is spent, fall through
+      // to the error page so the user gets a message and a Restart button
+      // instead of a reload cycle.
+      recoverFromChunkLoadFailure({
+        failure: error,
+        surface: "runtime",
+        onGiveUp: () => {
+          this.setState({ hasError: true, error, errorInfo });
+        },
+      });
       return;
     }
 
@@ -145,14 +157,6 @@ const GlobalErrorHandler: React.FC<{ children: ReactNode }> = ({
       );
     };
 
-    const isChunkError = (message?: string, filename?: string): boolean => {
-      return !!(
-        message?.includes("Loading chunk") ||
-        message?.includes("ChunkLoadError") ||
-        filename?.includes("vendors-node_modules")
-      );
-    };
-
     const errorHandler = (event: ErrorEvent) => {
       const jotaiStore = getJotaiStore();
       if (jotaiStore?.get(isAppQuittingAtom)) {
@@ -171,8 +175,10 @@ const GlobalErrorHandler: React.FC<{ children: ReactNode }> = ({
         return;
       }
 
-      if (isChunkError(event.message, event.filename)) {
-        window.location.reload();
+      // The pre-installed handler in `src/index.tsx` is the single owner of
+      // global chunk recovery. Do not create a second reload path here.
+      if (isChunkLoadError(event.error ?? event.message)) {
+        event.preventDefault();
         return;
       }
 
@@ -206,6 +212,12 @@ const GlobalErrorHandler: React.FC<{ children: ReactNode }> = ({
       }
 
       const message = event.reason?.message;
+
+      // `src/index.tsx` owns the bounded global recovery path.
+      if (isChunkLoadError(event.reason)) {
+        event.preventDefault();
+        return;
+      }
 
       if (recoverQuotaError(event.reason ?? message)) {
         event.preventDefault();

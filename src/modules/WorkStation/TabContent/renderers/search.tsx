@@ -13,18 +13,20 @@ import { useEditorHostContext } from "@src/modules/WorkStation/CodeEditor/Panels
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 import type { SearchOptions as StoreSearchOptions } from "@src/store/workstation/codeEditor/search";
 
+import { getRendererLazyComponent } from "../rendererComponents";
 import type { UnifiedTabContentProps } from "../types";
-
-const SearchEditorContent = React.lazy(
-  () =>
-    import("@src/modules/WorkStation/CodeEditor/Panels/EditorMainPane/content/SearchEditorContent")
-);
 
 const LazyFallback = () => (
   <Placeholder variant="loading" placement="detail-panel" fillParentHeight />
 );
 
 const SearchTabRenderer: React.FC<UnifiedTabContentProps> = memo(({ tab }) => {
+  const SearchEditorContent = getRendererLazyComponent(
+    "search",
+    "SearchEditorContent",
+    () =>
+      import("@src/modules/WorkStation/CodeEditor/Panels/EditorMainPane/content/SearchEditorContent")
+  );
   const {
     repoPath,
     onFileSelect,

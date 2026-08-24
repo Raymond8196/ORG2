@@ -11,18 +11,20 @@ import React, { Suspense, memo } from "react";
 
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 
+import { getRendererLazyComponent } from "../rendererComponents";
 import type { UnifiedTabContentProps } from "../types";
-
-const CodeViewerContent = React.lazy(
-  () =>
-    import("@src/modules/WorkStation/CodeEditor/Panels/EditorMainPane/content/CodeViewerContent")
-);
 
 const LazyFallback = () => (
   <Placeholder variant="loading" placement="detail-panel" fillParentHeight />
 );
 
 const GitLogTabRenderer: React.FC<UnifiedTabContentProps> = memo(({ tab }) => {
+  const CodeViewerContent = getRendererLazyComponent(
+    "git-log",
+    "CodeViewerContent",
+    () =>
+      import("@src/modules/WorkStation/CodeEditor/Panels/EditorMainPane/content/CodeViewerContent")
+  );
   const operation = String(tab.data.operation || "unknown");
   const errorMessage = String(tab.data.errorMessage || "");
   const commandOutput = tab.data.commandOutput

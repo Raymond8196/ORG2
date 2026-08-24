@@ -7,6 +7,7 @@ import { isRouteErrorResponse, useRouteError } from "react-router-dom";
 import { stripAnsiCodes } from "@src/components/TerminalDisplay/utils/ansiProcessor";
 import { createLogger } from "@src/hooks/logger";
 import i18n from "@src/i18n";
+import { isChunkLoadError } from "@src/util/core/init/chunkReload";
 import { copyText } from "@src/util/data/clipboard";
 
 const logger = createLogger("ErrorPage");
@@ -50,10 +51,7 @@ function getErrorInfo(error: unknown): { title: string; message: string } {
   // Handle standard Error objects
   if (error instanceof Error) {
     // Check for common error types and provide friendly messages
-    if (
-      error.message.includes("ChunkLoadError") ||
-      error.message.includes("Loading chunk")
-    ) {
+    if (isChunkLoadError(error)) {
       return {
         title: t("errors.failedToLoadComponent"),
         message: t("errors.requiredFileCouldntLoad"),

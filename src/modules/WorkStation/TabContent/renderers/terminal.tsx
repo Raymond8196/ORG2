@@ -19,18 +19,20 @@ import React, { Suspense, memo } from "react";
 import { useEditorHostContext } from "@src/modules/WorkStation/CodeEditor/Panels/EditorMainPane/context/editorHostContext";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 
+import { getRendererLazyComponent } from "../rendererComponents";
 import type { UnifiedTabContentProps } from "../types";
-
-const TerminalMainContent = React.lazy(
-  () =>
-    import("@src/modules/WorkStation/CodeEditor/Panels/EditorMainPane/content/TerminalMainContent")
-);
 
 const LazyFallback = () => (
   <Placeholder variant="loading" placement="detail-panel" fillParentHeight />
 );
 
 const TerminalTabRenderer: React.FC<UnifiedTabContentProps> = memo(() => {
+  const TerminalMainContent = getRendererLazyComponent(
+    "terminal",
+    "TerminalMainContent",
+    () =>
+      import("@src/modules/WorkStation/CodeEditor/Panels/EditorMainPane/content/TerminalMainContent")
+  );
   const { terminalState, repoPath } = useEditorHostContext();
 
   return (

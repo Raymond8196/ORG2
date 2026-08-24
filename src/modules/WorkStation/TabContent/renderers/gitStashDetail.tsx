@@ -11,12 +11,8 @@ import React, { Suspense, memo } from "react";
 import { useEditorHostContext } from "@src/modules/WorkStation/CodeEditor/Panels/EditorMainPane/context/editorHostContext";
 import { Placeholder } from "@src/modules/shared/layouts/blocks";
 
+import { getRendererLazyComponent } from "../rendererComponents";
 import type { UnifiedTabContentProps } from "../types";
-
-const GitCommitDetailContent = React.lazy(
-  () =>
-    import("@src/modules/WorkStation/CodeEditor/Panels/EditorMainPane/content/GitCommitDetailContent")
-);
 
 const LazyFallback = () => (
   <Placeholder variant="loading" placement="detail-panel" fillParentHeight />
@@ -24,6 +20,12 @@ const LazyFallback = () => (
 
 const GitStashDetailTabRenderer: React.FC<UnifiedTabContentProps> = memo(
   ({ tab }) => {
+    const GitCommitDetailContent = getRendererLazyComponent(
+      "git-stash-detail",
+      "GitCommitDetailContent",
+      () =>
+        import("@src/modules/WorkStation/CodeEditor/Panels/EditorMainPane/content/GitCommitDetailContent")
+    );
     const { repoPath, repoId, onFileSelect } = useEditorHostContext();
 
     const commitSha = String(tab.data.commitSha || "");
