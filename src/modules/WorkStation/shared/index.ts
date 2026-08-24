@@ -32,9 +32,6 @@ export type {
   PanelTabIconName,
 } from "./PanelTabBar";
 
-// Icon button
-export { IconButton } from "./IconButton";
-export type { IconButtonProps } from "./IconButton";
 export { TerminalInfoButton } from "./TerminalInfoButton";
 export type { TerminalInfoButtonProps } from "./TerminalInfoButton";
 export { TerminalNewSessionSplitButton } from "./TerminalNewSessionSplitButton";
@@ -94,19 +91,15 @@ export {
   ColorInput,
   EditableField,
   LinkedInputPair,
-  PropertySection,
   SpacingBottom,
   SpacingLeft,
   SpacingRight,
   SpacingTop,
-  SubSection,
 } from "./PropertyEditor";
 export type {
   ColorInputProps,
   EditableFieldProps,
   LinkedInputPairProps,
-  PropertySectionProps,
-  SubSectionProps,
 } from "./PropertyEditor";
 
 // Tab bar

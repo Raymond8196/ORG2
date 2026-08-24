@@ -1,3 +1,4 @@
+import { getLanguageDisplayNameFromPath } from "@src/config/languageMap";
 import type { DiagnosticHealthState } from "@src/store/workstation/codeEditor/diagnostics";
 
 import type { DiagnosticUiStatus } from "../types";
@@ -47,67 +48,7 @@ export function mergeLspByBaseLanguage(
 }
 
 export function getLanguageFromPath(filePath?: string): string {
-  if (!filePath) return "Plain Text";
-
-  const ext = filePath.split(".").pop()?.toLowerCase();
-  if (!ext) return "Plain Text";
-
-  const languageMap: Record<string, string> = {
-    js: "JavaScript",
-    mjs: "JavaScript",
-    cjs: "JavaScript",
-    jsx: "JavaScript React",
-    ts: "TypeScript",
-    tsx: "TypeScript React",
-    py: "Python",
-    java: "Java",
-    cpp: "C++",
-    cc: "C++",
-    cxx: "C++",
-    c: "C",
-    h: "C/C++ Header",
-    hpp: "C++ Header",
-    rs: "Rust",
-    go: "Go",
-    html: "HTML",
-    htm: "HTML",
-    css: "CSS",
-    scss: "SCSS",
-    sass: "Sass",
-    less: "Less",
-    json: "JSON",
-    md: "Markdown",
-    markdown: "Markdown",
-    yaml: "YAML",
-    yml: "YAML",
-    xml: "XML",
-    sql: "SQL",
-    sh: "Shell",
-    bash: "Bash",
-    zsh: "Zsh",
-    ps1: "PowerShell",
-    rb: "Ruby",
-    php: "PHP",
-    swift: "Swift",
-    kt: "Kotlin",
-    scala: "Scala",
-    lua: "Lua",
-    r: "R",
-    toml: "TOML",
-    ini: "INI",
-    env: "Environment",
-    dockerfile: "Dockerfile",
-    makefile: "Makefile",
-    vue: "Vue",
-    svelte: "Svelte",
-  };
-
-  const filename = filePath.split("/").pop()?.toLowerCase() || "";
-  if (filename === "dockerfile") return "Dockerfile";
-  if (filename === "makefile") return "Makefile";
-  if (filename.startsWith(".env")) return "Environment";
-
-  return languageMap[ext] || "Plain Text";
+  return getLanguageDisplayNameFromPath(filePath);
 }
 
 export function countActiveLanguageServiceSources(
