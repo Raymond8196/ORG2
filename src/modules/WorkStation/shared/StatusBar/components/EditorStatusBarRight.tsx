@@ -2,8 +2,8 @@
  * EditorStatusBarRight
  *
  * Right cluster of the CodeEditor status bar: last commit, cursor position
- * and selection, total lines, the language-service dropdown trigger and the
- * detected language. Presentational only — every value is passed in.
+ * and selection, and total lines. Presentational only — every value is
+ * passed in.
  */
 import type { TFunction } from "i18next";
 import { GitCommit } from "lucide-react";
@@ -23,8 +23,6 @@ export interface EditorStatusBarRightProps {
    */
   hasSelection: number | boolean | undefined;
   totalLines: number | undefined;
-  filePath: string | undefined;
-  language: string;
 }
 
 export const EditorStatusBarRight: React.FC<EditorStatusBarRightProps> = ({
@@ -33,8 +31,6 @@ export const EditorStatusBarRight: React.FC<EditorStatusBarRightProps> = ({
   cursor,
   hasSelection,
   totalLines,
-  filePath,
-  language,
 }) => (
   <>
     {commitInfo && (
@@ -74,8 +70,6 @@ export const EditorStatusBarRight: React.FC<EditorStatusBarRightProps> = ({
         {t("workstation.nLines", { count: totalLines })}
       </StatusBarText>
     )}
-
-    {filePath && <StatusBarText>{language}</StatusBarText>}
   </>
 );
 

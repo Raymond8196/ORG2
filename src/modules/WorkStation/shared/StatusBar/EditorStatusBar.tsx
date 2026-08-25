@@ -20,7 +20,6 @@ import { BaseStatusBar } from "./StatusBarBase";
 import { EditorStatusBarLeft } from "./components/EditorStatusBarLeft";
 import { EditorStatusBarRight } from "./components/EditorStatusBarRight";
 import type { EditorStatusBarProps } from "./types";
-import { getLanguageFromPath } from "./utils/statusBarUtils";
 import { useEditorStatusBarGit } from "./utils/useEditorStatusBarGit";
 import { useIndexingIndicator } from "./utils/useIndexingIndicator";
 
@@ -29,7 +28,6 @@ export type { CommitInfo, CursorPosition, EditorStatusBarProps } from "./types";
 export const EditorStatusBar: React.FC<EditorStatusBarProps> = memo(
   ({
     cursor,
-    filePath,
     totalLines,
     commitInfo,
     onRepoClick,
@@ -38,14 +36,13 @@ export const EditorStatusBar: React.FC<EditorStatusBarProps> = memo(
     className = "",
   }) => {
     const { t } = useTranslation();
-    const language = getLanguageFromPath(filePath);
     const hasSelection = cursor?.selectedChars && cursor.selectedChars > 0;
 
     // Workspace and branch identity are read straight from the global
     // workspace/repo atoms, never pushed in by a content host: the status bar
     // outlives the Code Editor, which unmounts on the empty Launchpad
     // (`hostMountPolicy.ts`). Only genuinely file-scoped values (cursor, path,
-    // LSP, commit tab) arrive as props.
+    // commit tab) arrive as props.
     const repoPath = useAtomValue(activeWorkspaceRootPathAtom);
     const repoName = useAtomValue(activeWorkspaceRootNameAtom) || undefined;
     const branchName = useAtomValue(currentBranchAtom) || undefined;
@@ -175,11 +172,9 @@ export const EditorStatusBar: React.FC<EditorStatusBarProps> = memo(
           cursor={cursor}
           hasSelection={hasSelection}
           totalLines={totalLines}
-          filePath={filePath}
-          language={language}
         />
       ),
-      [t, commitInfo, cursor, hasSelection, totalLines, filePath, language]
+      [t, commitInfo, cursor, hasSelection, totalLines]
     );
 
     return (

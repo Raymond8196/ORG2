@@ -346,7 +346,7 @@ export const SessionHeaderActionsMenu: React.FC<
                     {t("chat.importExport.exportAction")}
                   </span>
                 </button>
-                <div className="my-1 border-t border-solid border-border-2" />
+                <div className={DROPDOWN_CLASSES.menuSeparatorInset} />
                 <div
                   className={`${DROPDOWN_CLASSES.item} w-full justify-between text-left`}
                 >
