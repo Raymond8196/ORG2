@@ -1066,7 +1066,7 @@
     "copyEventJson": "Copy event JSON",
     "copyEventJsonCopied": "Copied!",
     "copyEventJsonFailed": "Copy failed",
-    "moveToWorkstation": "Move to My Workstation",
+    "moveToWorkstation": "Move to My Station",
     "moveToChatPanel": "Move to Chat Panel",
     "rawTranscript": {
       "title": "Raw session transcript",
