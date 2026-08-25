@@ -3,8 +3,8 @@
  *
  * Extracted to keep CodeEditor/index.tsx under the 600-line limit.
  * Owns: cursor position, total-line count, diagnostics callbacks, terminal
- * helpers, and the file-scoped half of the status bar (cursor, path, LSP,
- * commit tab). Workspace/branch identity and the repo/branch/worktree
+ * helpers, and the file-scoped half of the status bar (cursor, path, commit
+ * tab). Workspace/branch identity and the repo/branch/worktree
  * spotlight buttons are NOT pushed from here — the status bar outlives this
  * host, which unmounts on the empty Launchpad, so it reads them from the
  * global workspace/repo atoms instead.
@@ -29,7 +29,7 @@ import type { PanelState } from "@src/store/workstation/tabs";
 import { isPreviewOnlyFile } from "@src/util/file/previewTypes";
 import { formatRelativeTime } from "@src/util/time/formatRelativeTime";
 
-import type { CommitInfo, CursorPosition, LspStatus } from "../shared";
+import type { CommitInfo, CursorPosition } from "../shared";
 import { useDiagnostics } from "./hooks/diagnostics/useDiagnostics";
 import { useCodeEditor } from "./hooks/useCodeEditor";
 
@@ -56,7 +56,6 @@ export function useCodeEditorLocalState({
   const [cursorPosition, setCursorPosition] = useState<CursorPosition | null>(
     null
   );
-  const [lspConnected] = useState(true);
 
   // ── Layout: single main pane ─────────────────────────────────────────────
 
@@ -102,24 +101,6 @@ export function useCodeEditorLocalState({
     }
     return null;
   }, [focusedActiveTab]);
-
-  const lspStatus = useMemo((): LspStatus | undefined => {
-    const file = focusedActiveFilePath;
-    if (!file) return undefined;
-    const ext = file.split(".").pop()?.toLowerCase();
-    const lspLanguages: Record<string, string> = {
-      ts: "TS",
-      tsx: "TS",
-      js: "JS",
-      jsx: "JS",
-      py: "Python",
-      rs: "Rust",
-      go: "Go",
-    };
-    const language = lspLanguages[ext || ""];
-    if (!language) return undefined;
-    return { connected: lspConnected, language };
-  }, [focusedActiveFilePath, lspConnected]);
 
   // ── Editor position atom ─────────────────────────────────────────────────
 
@@ -238,7 +219,6 @@ export function useCodeEditorLocalState({
       totalLines:
         focusedActiveFilePath && !isPreviewOnly ? totalLines : undefined,
       commitInfo: statusBarCommitInfo,
-      lspStatus: isPreviewOnly ? undefined : lspStatus,
     }));
   }, [
     cursorPosition,
@@ -246,7 +226,6 @@ export function useCodeEditorLocalState({
     isPreviewOnly,
     totalLines,
     statusBarCommitInfo,
-    lspStatus,
     isActive,
     setGlobalStatusBarState,
   ]);

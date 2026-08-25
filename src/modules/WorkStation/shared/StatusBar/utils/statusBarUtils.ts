@@ -1,4 +1,3 @@
-import { getLanguageDisplayNameFromPath } from "@src/config/languageMap";
 import type { DiagnosticHealthState } from "@src/store/workstation/codeEditor/diagnostics";
 
 import type { DiagnosticUiStatus } from "../types";
@@ -45,10 +44,6 @@ export function mergeLspByBaseLanguage(
     }
   }
   return merged;
-}
-
-export function getLanguageFromPath(filePath?: string): string {
-  return getLanguageDisplayNameFromPath(filePath);
 }
 
 export function countActiveLanguageServiceSources(
