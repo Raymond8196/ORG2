@@ -1760,6 +1760,7 @@
       "switchNo": "否，仅本次会话使用",
       "switchWorkspace": "切换工作区",
       "switchBranch": "切换分支",
+      "selectWorktreeSource": "选择 Worktree 分支或拉取请求",
       "switchLocation": "切换运行位置",
       "sessionWorkspace": "切换 Session 工作区",
       "locationAria": "选择运行位置",

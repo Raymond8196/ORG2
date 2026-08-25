@@ -1806,6 +1806,7 @@
       "switchNo": "No, use for this session only",
       "switchWorkspace": "Switch workspace",
       "switchBranch": "Switch branch",
+      "selectWorktreeSource": "Select worktree branch or pull request",
       "switchLocation": "Switch running location",
       "sessionWorkspace": "Switch Session Workspace",
       "locationAria": "Select running location",
