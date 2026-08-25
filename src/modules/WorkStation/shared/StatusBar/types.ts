@@ -12,17 +12,11 @@ export interface CommitInfo {
   shortSha: string;
 }
 
-export interface LspStatus {
-  connected: boolean;
-  language?: string;
-}
-
 export interface EditorStatusBarProps {
   cursor: CursorPosition | null;
   filePath?: string;
   totalLines?: number;
   commitInfo?: CommitInfo | null;
-  lspStatus?: LspStatus;
   onRepoClick?: () => void;
   onBranchClick?: () => void;
   onWorktreeClick?: () => void;

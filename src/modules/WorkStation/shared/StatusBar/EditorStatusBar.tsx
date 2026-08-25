@@ -29,20 +29,12 @@ import { EditorStatusBarLeft } from "./components/EditorStatusBarLeft";
 import { EditorStatusBarRight } from "./components/EditorStatusBarRight";
 import type { EditorStatusBarProps } from "./types";
 import { buildLanguageServicePanelRows } from "./utils/languageServicePanelRows";
-import {
-  countActiveLanguageServiceSources,
-  getLanguageFromPath,
-} from "./utils/statusBarUtils";
+import { countActiveLanguageServiceSources } from "./utils/statusBarUtils";
 import { useEditorStatusBarGit } from "./utils/useEditorStatusBarGit";
 import { useIndexingIndicator } from "./utils/useIndexingIndicator";
 import { useLspDropdown } from "./utils/useLspDropdown";
 
-export type {
-  CommitInfo,
-  CursorPosition,
-  EditorStatusBarProps,
-  LspStatus,
-} from "./types";
+export type { CommitInfo, CursorPosition, EditorStatusBarProps } from "./types";
 
 export const EditorStatusBar: React.FC<EditorStatusBarProps> = memo(
   ({
@@ -50,14 +42,12 @@ export const EditorStatusBar: React.FC<EditorStatusBarProps> = memo(
     filePath,
     totalLines,
     commitInfo,
-    lspStatus,
     onRepoClick,
     onBranchClick,
     onWorktreeClick,
     className = "",
   }) => {
     const { t } = useTranslation();
-    const language = getLanguageFromPath(filePath);
     const hasSelection = cursor?.selectedChars && cursor.selectedChars > 0;
 
     // Workspace and branch identity are read straight from the global
@@ -209,8 +199,6 @@ export const EditorStatusBar: React.FC<EditorStatusBarProps> = memo(
           hasSelection={hasSelection}
           totalLines={totalLines}
           filePath={filePath}
-          language={language}
-          lspStatus={lspStatus}
           lspButtonRef={lspButtonRef}
           lspDropdownOpen={lspDropdownOpen}
           hasActiveSource={diagnosticHealth.hasActiveSource}
@@ -224,9 +212,7 @@ export const EditorStatusBar: React.FC<EditorStatusBarProps> = memo(
         cursor,
         hasSelection,
         totalLines,
-        lspStatus,
         filePath,
-        language,
         lspButtonRef,
         handleToggleLspDropdown,
         lspDropdownOpen,

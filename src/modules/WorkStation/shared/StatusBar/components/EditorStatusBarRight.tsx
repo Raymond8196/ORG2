@@ -2,8 +2,8 @@
  * EditorStatusBarRight
  *
  * Right cluster of the CodeEditor status bar: last commit, cursor position
- * and selection, total lines, the language-service dropdown trigger and the
- * detected language. Presentational only — every value is passed in.
+ * and selection, total lines, and the language-service dropdown trigger.
+ * Presentational only — every value is passed in.
  */
 import type { TFunction } from "i18next";
 import { Braces, GitCommit, Unplug } from "lucide-react";
@@ -16,7 +16,7 @@ import {
   StatusBarSegment,
   StatusBarText,
 } from "../StatusBarBase";
-import type { CommitInfo, CursorPosition, LspStatus } from "../types";
+import type { CommitInfo, CursorPosition } from "../types";
 
 export interface EditorStatusBarRightProps {
   t: TFunction;
@@ -30,8 +30,6 @@ export interface EditorStatusBarRightProps {
   hasSelection: number | boolean | undefined;
   totalLines: number | undefined;
   filePath: string | undefined;
-  language: string;
-  lspStatus: LspStatus | undefined;
   lspButtonRef: React.RefObject<HTMLDivElement | null>;
   lspDropdownOpen: boolean;
   hasActiveSource: boolean;
@@ -46,8 +44,6 @@ export const EditorStatusBarRight: React.FC<EditorStatusBarRightProps> = ({
   hasSelection,
   totalLines,
   filePath,
-  language,
-  lspStatus,
   lspButtonRef,
   lspDropdownOpen,
   hasActiveSource,
@@ -104,7 +100,7 @@ export const EditorStatusBarRight: React.FC<EditorStatusBarRightProps> = ({
             <>
               <Braces size={12} />
               <span className="inline-flex items-center gap-1">
-                <span>{lspStatus?.language || "LSP"}</span>
+                <span>LSP</span>
                 <StatusBarDivider />
                 <StatusBarLabel numeric>
                   {activeLanguageServiceCount}
@@ -120,8 +116,6 @@ export const EditorStatusBarRight: React.FC<EditorStatusBarRightProps> = ({
         </StatusBarButton>
       </div>
     )}
-
-    {filePath && <StatusBarText>{language}</StatusBarText>}
   </>
 );
 
