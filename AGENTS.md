@@ -97,8 +97,7 @@ contributors. If this section and `PR_RULES.md` ever differ, follow
 
 Hard gates: one responsibility; a scoped Conventional Commit title; the
 required `Problem`, `Solution`, `Potential risks`, and `Verification` sections;
-exactly one matching primary label; no more than two area labels; and a final
-GitHub read-back of the published pull request.
+and a final GitHub read-back of the published pull request.
 
 #### Single responsibility
 

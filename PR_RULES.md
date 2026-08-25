@@ -24,17 +24,8 @@ Pull request titles must use a scoped Conventional Commit form:
 type(lowercase-kebab-scope): short imperative summary
 ```
 
-Allowed types and their required primary labels are:
-
-| Title type                                | Primary label   |
-| ----------------------------------------- | --------------- |
-| `feat`                                    | `enhancement`   |
-| `fix`                                     | `bug`           |
-| `refactor`                                | `refactor`      |
-| `perf`                                    | `performance`   |
-| `test`                                    | `tests`         |
-| `docs`                                    | `documentation` |
-| `chore`, `build`, `ci`, `style`, `revert` | `maintenance`   |
+Allowed types are `feat`, `fix`, `refactor`, `perf`, `test`, `docs`, `chore`,
+`build`, `ci`, `style`, and `revert`.
 
 The scope is mandatory and must be lowercase kebab-case. Examples:
 `feat(chat): add pinned actions` and `fix(session-replay): preserve turns`.
@@ -66,20 +57,6 @@ sections. It must list the exact commands and meaningful manual checks that
 actually ran, their outcomes, and any relevant checks that did not run.
 Additional sections such as `Audit`, screenshots, rollout notes, or rollback
 details may follow the required sections.
-
-## Labels
-
-- Every pull request must have exactly one primary label from `bug`,
-  `enhancement`, `refactor`, `performance`, `maintenance`, `tests`, or
-  `documentation`.
-- The primary label is derived from the title type. Automation reconciles it
-  whenever the pull request title or labels change.
-- Add no more than two area labels: `agent`, `chat`, `sessions`,
-  `project-management`, `workstation`, `cloud-collaboration`, `frontend-ui`,
-  or `dev-tooling`.
-- Add `security` or `UX` only when that concern materially affects review.
-- Do not create new repository labels as part of ordinary pull request work.
-  Propose taxonomy changes separately.
 
 ## Base and diff integrity
 
@@ -121,12 +98,12 @@ details may follow the required sections.
 Any agent that creates or updates a pull request must:
 
 1. Read this file before mutating the pull request.
-2. Bring the title, description, labels, base, and draft state into compliance
+2. Bring the title, description, base, and draft state into compliance
    in the same operation.
 3. Read the published pull request back from GitHub and verify the result.
 4. Report exact verification evidence and anything still incomplete.
 
-The GitHub `PR policy` workflow enforces the machine-checkable title,
-description, and label rules. Repository branch protection should require its
+The GitHub `PR policy` workflow enforces the machine-checkable title and
+description rules. Repository branch protection should require its
 `Enforce PR contract` check before merge. The remaining semantic rules are
 mandatory review criteria even when automation cannot prove them.

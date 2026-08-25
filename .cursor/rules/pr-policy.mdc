@@ -16,10 +16,8 @@ Hard gates:
 - The title uses `type(lowercase-kebab-scope): summary`.
 - The description begins with `Problem`, `Solution`, and `Potential risks` in
   that exact order and includes a non-empty `Verification` section.
-- Exactly one primary label matches the title type; no more than two area
-  labels are present.
-- The final diff, published description, labels, base, and draft state are
-  read back and verified before handoff.
+- The final diff, published description, base, and draft state are read back
+  and verified before handoff.
 
 Do not treat these rules as optional formatting. GitHub automation enforces
 the machine-checkable subset, and the semantic requirements remain review

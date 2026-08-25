@@ -18,7 +18,6 @@
 
 - [ ] I read and followed `PR_RULES.md`.
 - [ ] The PR is focused and has a scoped Conventional Commit title, such as `feat(scope): summary` or `fix(scope): summary`.
-- [ ] Exactly one primary label matches the title type, with no more than two area labels.
 - [ ] I ran the relevant checks, or explained why they were not run.
 - [ ] No secrets, private config, generated output, or unrelated formatting changes are included.
 - [ ] Docs, screenshots, and locale updates are included when the change needs them.
