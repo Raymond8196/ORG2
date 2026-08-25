@@ -73,9 +73,8 @@ contributors.
 
 Hard gates: one responsibility; a scoped Conventional Commit title; the
 required `Problem`, `Solution`, `Potential risks`, and `Verification` sections;
-exactly one matching primary label; no more than two area labels; and a final
-GitHub read-back of the published pull request. If this summary and
-`PR_RULES.md` differ, follow `PR_RULES.md` and fix this adapter.
+and a final GitHub read-back of the published pull request. If this summary
+and `PR_RULES.md` differ, follow `PR_RULES.md` and fix this adapter.
 
 ### Touching `*.tsx` files (UI work)
 

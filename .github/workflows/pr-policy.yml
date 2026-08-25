@@ -10,12 +10,9 @@ on:
       - synchronize
       - ready_for_review
       - converted_to_draft
-      - labeled
-      - unlabeled
 
 permissions:
   contents: read
-  issues: write
   pull-requests: read
 
 concurrency:
@@ -28,8 +25,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # pull_request_target has write permissions, so never execute code from
-      # the contributor's head branch. This explicitly checks out trusted base.
+      # Never execute code from the contributor's head branch. This explicitly
+      # checks out the trusted base policy.
       - name: Checkout trusted policy
         uses: actions/checkout@v6
         with:
@@ -39,7 +36,5 @@ jobs:
       - name: Test policy helper
         run: node --test scripts/ci/pr-policy.test.cjs
 
-      - name: Reconcile labels and enforce contract
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Enforce contract
         run: node scripts/ci/pr-policy.cjs
