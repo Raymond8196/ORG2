@@ -28,6 +28,7 @@ import { activeWorkspaceRootAtom } from "@src/store/workspace";
 
 import LinkHoverCard from "./LinkHoverCard";
 import CodeBlock from "./MarkdownCodeBlock";
+import MarkdownLinkIcon, { hasMarkdownLinkIcon } from "./MarkdownLinkIcon";
 import MarkdownLocalImage, { openLocalMarkdownRef } from "./MarkdownLocalImage";
 import MermaidBlock from "./MermaidBlock";
 import SessionReferenceCards from "./SessionReferenceCards";
@@ -434,14 +435,27 @@ const MarkdownComponent: React.FC<MarkdownProps> = ({
             </a>
           );
         }
+        const linkTarget = classifyMarkdownLinkTarget(
+          url,
+          activeWorkspaceRootPath
+        );
+        const linkHasIcon = hasMarkdownLinkIcon(url, linkTarget);
         return (
           <LinkHoverCard url={url}>
             <a
               {...props}
+              className={
+                linkHasIcon
+                  ? ["markdown-link-with-icon", props.className]
+                      .filter(Boolean)
+                      .join(" ")
+                  : props.className
+              }
               href={url}
               title={undefined}
               onClick={(event) => handleLinkClick(event, url)}
             >
+              <MarkdownLinkIcon href={url} target={linkTarget} />
               {children}
             </a>
           </LinkHoverCard>
