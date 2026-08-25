@@ -104,6 +104,9 @@ jobs:
       - name: Install Rust stable
         uses: dtolnay/rust-toolchain@stable
 
+      # warm-rust-cache.yml publishes this same shared key from develop, so a
+      # PR's first run restores the base branch's cache instead of starting
+      # cold. Keep the key and workspace mapping in sync with that workflow.
       - name: Rust cache
         uses: swatinem/rust-cache@v2
         with:
