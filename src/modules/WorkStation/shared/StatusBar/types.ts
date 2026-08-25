@@ -22,19 +22,3 @@ export interface EditorStatusBarProps {
   onWorktreeClick?: () => void;
   className?: string;
 }
-
-export type DiagnosticUiStatus =
-  | "active"
-  | "initializing"
-  | "failed"
-  | "unknown";
-
-export type PanelRow =
-  | {
-      kind: "pair";
-      key: string;
-      left: string;
-      right: string;
-      uiStatus: DiagnosticUiStatus;
-    }
-  | { kind: "empty"; key: string; message: string };

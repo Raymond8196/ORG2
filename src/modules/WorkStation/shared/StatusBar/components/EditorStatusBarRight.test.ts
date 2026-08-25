@@ -1,17 +1,18 @@
 import type { TFunction } from "i18next";
-import { createElement, createRef } from "react";
+import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { EditorStatusBarRight } from "./EditorStatusBarRight";
 
-const t = ((key: string) =>
-  key === "workstation.languageServices"
-    ? "Language Services"
-    : key) as TFunction;
+const t = ((key: string) => key) as TFunction;
 
 describe("EditorStatusBarRight", () => {
-  it("keeps file-type labels out of the status bar", () => {
+  // Regression guard from "hide file types in status bar" (#953). The
+  // language-service dropdown that used to sit next to the file type was
+  // removed when LSP became agent-only (see `.archive/README.md`), so this
+  // now also asserts the status bar stays free of any LSP affordance.
+  it("keeps file-type labels and LSP affordances out of the status bar", () => {
     const markup = renderToStaticMarkup(
       createElement(EditorStatusBarRight, {
         t,
@@ -19,17 +20,25 @@ describe("EditorStatusBarRight", () => {
         cursor: null,
         hasSelection: false,
         totalLines: 12,
-        filePath: "src/example.ts",
-        lspButtonRef: createRef<HTMLDivElement>(),
-        lspDropdownOpen: false,
-        hasActiveSource: true,
-        activeLanguageServiceCount: 1,
-        onToggleLspDropdown: vi.fn(),
       })
     );
 
-    expect(markup).toContain("LSP");
     expect(markup).not.toContain(">TS<");
     expect(markup).not.toContain("TypeScript");
+    expect(markup).not.toContain("LSP");
+  });
+
+  it("still renders the line count", () => {
+    const markup = renderToStaticMarkup(
+      createElement(EditorStatusBarRight, {
+        t,
+        commitInfo: null,
+        cursor: null,
+        hasSelection: false,
+        totalLines: 12,
+      })
+    );
+
+    expect(markup).toContain("workstation.nLines");
   });
 });
