@@ -30,7 +30,6 @@ import {
 import type { SessionLaunchSuccessInfo } from "@src/engines/SessionCore/hooks/session/useSessionCreator/useSessionLaunch/types";
 import { pendingSessionProposal } from "@src/engines/SessionCore/hooks/useAgentADEActions";
 import SessionSyncProvider from "@src/engines/SessionCore/sync/SessionSyncProvider";
-import PokerTablePanel from "@src/features/PokerTable";
 import { SessionCreatorChatPanel } from "@src/features/SessionCreator/variants";
 import type { SessionCreatorChatPanelProps } from "@src/features/SessionCreator/variants/ChatPanel";
 import { dispatchWebviewLayoutChanged } from "@src/hooks/platform/useInlineWebview/webviewLayoutEvents";
@@ -330,8 +329,6 @@ const AppLayoutComponent: React.FC<AppLayoutProps> = ({
               <ChatPanelSideChat
                 SessionCreatorSlot={AdeAwareSessionCreatorSlot}
               />
-              {/* Floating poker table (play chips), same host as the side chat. */}
-              <PokerTablePanel />
             </div>
           </div>
         </SessionSyncProvider>
