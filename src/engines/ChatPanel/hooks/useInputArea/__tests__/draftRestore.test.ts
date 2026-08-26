@@ -15,6 +15,9 @@ function createInput(
     mentionMenuOpen: false,
     persistedDraft: null,
     skipReason: null,
+    editorText: null,
+    seededContent: null,
+    editorFocused: false,
     ...overrides,
   };
 }
@@ -116,6 +119,158 @@ describe("resolveDraftRestoreAction", () => {
           createInput({ hasEditor: false, mentionMenuOpen: true })
         )
       ).toBe("wait");
+    });
+  });
+
+  describe("live-input guard (the session-open wipe race)", () => {
+    it("does not clobber user-typed text when the session id transitions", () => {
+      // User is mid-composition (focused) when the incoming session's async
+      // open re-targets the composer; incoming session has no persisted draft.
+      expect(
+        resolveDraftRestoreAction(
+          createInput({
+            editorText: "go on",
+            seededContent: "",
+            persistedDraft: null,
+            editorFocused: true,
+          })
+        )
+      ).toBe("skip-live-input");
+    });
+
+    it("does not clobber user text even when the incoming draft is restorable", () => {
+      expect(
+        resolveDraftRestoreAction(
+          createInput({
+            editorText: "go on",
+            seededContent: "",
+            persistedDraft: "draft text",
+            editorFocused: true,
+          })
+        )
+      ).toBe("skip-live-input");
+    });
+
+    it("does not clobber user text appended on top of a seeded draft", () => {
+      expect(
+        resolveDraftRestoreAction(
+          createInput({
+            editorText: "seeded draft plus typing",
+            seededContent: "seeded draft",
+            persistedDraft: null,
+            editorFocused: true,
+          })
+        )
+      ).toBe("skip-live-input");
+    });
+
+    it("still clears divergent text when the editor is NOT focused (deliberate switch)", () => {
+      // The user clicked a sidebar session — blur already fired. This is the
+      // legacy "discard the outgoing session's composer text on switch"
+      // behavior and must be preserved.
+      expect(
+        resolveDraftRestoreAction(
+          createInput({
+            editorText: "old session leftovers",
+            seededContent: "",
+            persistedDraft: null,
+            editorFocused: false,
+          })
+        )
+      ).toBe("clear");
+    });
+
+    it("still clears when the editor holds exactly the seeded old draft", () => {
+      // Untouched old-session state — the normal switch clear applies
+      // regardless of focus.
+      expect(
+        resolveDraftRestoreAction(
+          createInput({
+            editorText: "old draft",
+            seededContent: "old draft",
+            persistedDraft: null,
+            editorFocused: true,
+          })
+        )
+      ).toBe("clear");
+    });
+
+    it("still clears when the editor is empty", () => {
+      expect(
+        resolveDraftRestoreAction(
+          createInput({
+            editorText: "",
+            seededContent: "old draft",
+            persistedDraft: null,
+            editorFocused: true,
+          })
+        )
+      ).toBe("clear");
+    });
+
+    it("protects user text even when the incoming draft is malformed", () => {
+      expect(
+        resolveDraftRestoreAction(
+          createInput({
+            editorText: "go on",
+            seededContent: "",
+            persistedDraft: "garbage",
+            skipReason: "too-long",
+            editorFocused: true,
+          })
+        )
+      ).toBe("skip-live-input");
+    });
+
+    it("keeps legacy behavior when editor text is unavailable (null)", () => {
+      expect(
+        resolveDraftRestoreAction(
+          createInput({
+            editorText: null,
+            seededContent: "",
+            editorFocused: true,
+          })
+        )
+      ).toBe("clear");
+    });
+
+    it("treats never-seeded live text as user input", () => {
+      // seededContent null (hook never seeded, e.g. seed marker was reset by
+      // a transient empty draftSessionId) + non-empty focused editor text.
+      expect(
+        resolveDraftRestoreAction(
+          createInput({
+            editorText: "typed before any seed",
+            editorFocused: true,
+          })
+        )
+      ).toBe("skip-live-input");
+    });
+
+    it("an open menu still wins over the live-input guard", () => {
+      expect(
+        resolveDraftRestoreAction(
+          createInput({
+            mentionMenuOpen: true,
+            editorText: "go on",
+            seededContent: "",
+            editorFocused: true,
+          })
+        )
+      ).toBe("skip-open-menu");
+    });
+
+    it("still skips for an already-seeded session regardless of live text", () => {
+      expect(
+        resolveDraftRestoreAction(
+          createInput({
+            seededSessionId: "session-b",
+            editorText: "go on",
+            seededContent: "",
+            editorFocused: true,
+          })
+        )
+      ).toBe("skip");
     });
   });
 });

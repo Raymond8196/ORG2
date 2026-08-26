@@ -21,6 +21,11 @@
  *   actively interacting with a mounted, focused editor. Restoring a stale
  *   persisted draft over their live input is never desirable, so we mark the
  *   session seeded and skip the destructive restore instead of clobbering it.
+ *
+ *   The same reasoning covers typing without any menu open: a session-id
+ *   transition that lands while the user is mid-composition (the session-open
+ *   race — launch/navigation re-targets the composer asynchronously) must not
+ *   wipe editor text the hook never seeded. See the live-input guard below.
  */
 
 export type DraftRestoreAction =
@@ -32,6 +37,11 @@ export type DraftRestoreAction =
   | "wait"
   /** A slash/@ menu is open — mark seeded but DO NOT clobber live input. */
   | "skip-open-menu"
+  /**
+   * The editor holds non-empty text this hook never seeded — a human typed it
+   * after the last programmatic seed. Mark seeded but DO NOT clobber.
+   */
+  | "skip-live-input"
   /** Empty or unrestorable draft — clear the editor and mark seeded. */
   | "clear"
   /** Restorable draft — apply parsed content and mark seeded. */
@@ -53,6 +63,25 @@ export interface DraftRestoreInput {
    * rather than restored (see `getDraftRestoreSkipReason`).
    */
   skipReason: string | null;
+  /**
+   * Live plain-text content of the editor at decision time (null when the
+   * editor text cannot be read — the guard is skipped and legacy behavior
+   * applies).
+   */
+  editorText: string | null;
+  /**
+   * The content this hook last seeded programmatically (via `clear` or
+   * `restore`), or null when it never seeded anything. Editor text that
+   * differs from it was typed by the user after the last seed.
+   */
+  seededContent: string | null;
+  /**
+   * Whether the editor currently holds keyboard focus. Focus discriminates
+   * deliberate session switches (user clicked elsewhere — blur already
+   * fired, legacy clear/restore applies) from a session id that re-targeted
+   * the composer while the user was mid-composition (the session-open race).
+   */
+  editorFocused: boolean;
 }
 
 /**
@@ -72,12 +101,33 @@ export function resolveDraftRestoreAction(
     mentionMenuOpen,
     persistedDraft,
     skipReason,
+    editorText,
+    seededContent,
+    editorFocused,
   } = input;
 
   if (!draftSessionId) return "reset-seed";
   if (seededSessionId === draftSessionId) return "skip";
   if (!hasEditor) return "wait";
   if (mentionMenuOpen) return "skip-open-menu";
+  // Live-input guard (the session-open wipe race): when the composer's
+  // session id transitions while the user is mid-composition (focused editor,
+  // e.g. a newly launched session finishes its async open and re-targets the
+  // composer), clearing/re-seeding here would destroy text a human just
+  // typed. The upcoming Enter would then find an empty editor and silently
+  // no-op — the message vanishes without any trace. Focus is the
+  // discriminator: a deliberate switch to another session blurs the editor
+  // first, so the legacy clear/restore still applies there. Text that
+  // exactly matches the last programmatic seed is untouched old-session
+  // state and stays clearable even while focused.
+  if (
+    editorFocused &&
+    editorText !== null &&
+    editorText.trim().length > 0 &&
+    editorText !== seededContent
+  ) {
+    return "skip-live-input";
+  }
   if (!persistedDraft) return "clear";
   if (skipReason) return "clear";
   return "restore";

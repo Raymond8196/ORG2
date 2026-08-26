@@ -241,6 +241,11 @@ export function useInputArea(
   // editor, so a late restore must not clear/re-seed it (see draftRestore.ts).
   const mentionMenuOpenRef = useRef(false);
   mentionMenuOpenRef.current = state.showSlashMenu || state.showContextMenu;
+  // Same mirror for editor focus: the live-input guard in draftRestore.ts
+  // needs to know whether the user is mid-composition at transition time,
+  // without the effect subscribing to focus state changes.
+  const inputFocusedRef = useRef(false);
+  inputFocusedRef.current = state.isInputFocused;
 
   // ============================================
   // Per-session Draft Persistence (P3)
@@ -364,6 +369,11 @@ export function useInputArea(
   // the editor and clobber what the user is currently typing. Only the
   // session-id transition is allowed to touch the editor content here.
   const seededSessionRef = useRef<string | null>(null);
+  // The editor content produced by the last programmatic seed ("" after a
+  // clear, the restored draft after a restore). Live editor text that differs
+  // from it was typed by the user — the draft-restore effect must not wipe it
+  // when the session id transitions mid-composition.
+  const seededContentRef = useRef<string | null>(null);
   const programmaticInputMutationDepthRef = useRef(0);
   const imageDraftSessionRef = useRef<string | null>(null);
   const imageDraftHydratingRef = useRef(false);
@@ -543,6 +553,7 @@ export function useInputArea(
   // into `sessionByIdAtom`) leave the live editor alone.
   useEffect(() => {
     const editor = refs.composerInputRef.current;
+    const editorText = editor ? editor.getTextWithPills() : null;
     const skipReason = persistedDraft
       ? getDraftRestoreSkipReason(persistedDraft)
       : null;
@@ -553,11 +564,15 @@ export function useInputArea(
       mentionMenuOpen: mentionMenuOpenRef.current,
       persistedDraft: persistedDraft ?? null,
       skipReason,
+      editorText,
+      seededContent: seededContentRef.current,
+      editorFocused: inputFocusedRef.current,
     });
 
     switch (action) {
       case "reset-seed":
         seededSessionRef.current = null;
+        seededContentRef.current = null;
         return;
       case "skip":
       case "wait":
@@ -566,6 +581,15 @@ export function useInputArea(
         // User is mid slash/@ interaction — do not clobber live input.
         // Mark seeded so a later render doesn't re-seed and close the menu.
         seededSessionRef.current = draftSessionId;
+        seededContentRef.current = editorText;
+        return;
+      case "skip-live-input":
+        // User typed into the editor after our last seed and the session id
+        // just transitioned under them (session-open race). Keep their text —
+        // it now targets the incoming session — and mark seeded so later
+        // renders don't retry the clobber.
+        seededSessionRef.current = draftSessionId;
+        seededContentRef.current = editorText;
         return;
       case "clear":
         if (skipReason) {
@@ -578,12 +602,17 @@ export function useInputArea(
         editor?.clear();
         refs.setHasContent(false);
         seededSessionRef.current = draftSessionId;
+        seededContentRef.current = "";
         return;
       case "restore":
         if (editor && persistedDraft) {
           applyParsedContent(editor, persistedDraft);
           refs.setHasContent(true);
           seededSessionRef.current = draftSessionId;
+          // Read back what actually landed so the live-input discriminator
+          // compares against the editor's true serialized form (pill text
+          // round-trips may differ from the raw persisted draft string).
+          seededContentRef.current = editor.getTextWithPills();
         }
         return;
     }
