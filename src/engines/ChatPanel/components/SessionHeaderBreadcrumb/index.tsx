@@ -4,7 +4,7 @@ import React, { memo, useMemo } from "react";
 import ClientOriginBadge, {
   hasVisibleClientOriginBadge,
 } from "@src/components/ClientOriginBadge";
-import { WorkstationHeaderSectionSeparator } from "@src/modules/WorkStation/shared/WorkstationHeaderSectionSeparator";
+import { HeaderSectionSeparator } from "@src/components/HeaderSectionSeparator";
 import BreadcrumbFileHeader, {
   type BreadcrumbFileHeaderDisplaySegment,
 } from "@src/modules/shared/components/FileHeader/BreadcrumbFileHeader";
@@ -100,7 +100,7 @@ const SessionHeaderBreadcrumb: React.FC<SessionHeaderBreadcrumbProps> = memo(
                 <span className="inline-flex min-w-0 items-center gap-2">
                   <span>{display.displayName}</span>
                   {originBadge}
-                  <WorkstationHeaderSectionSeparator />
+                  <HeaderSectionSeparator />
                   <span className="inline-block max-w-40 truncate align-middle font-normal text-text-2">
                     {externalOwnerDisplayName}
                   </span>

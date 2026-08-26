@@ -14,8 +14,8 @@ import React, {
   useState,
 } from "react";
 
+import { Placeholder } from "@src/components/Placeholder";
 import TabPill from "@src/components/TabPill";
-import { Placeholder } from "@src/modules/shared/layouts/blocks";
 
 import SidebarBase from "../SidebarBase";
 import { SidebarList, SidebarMenuSearchInput } from "../blocks";
