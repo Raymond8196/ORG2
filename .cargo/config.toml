@@ -1,4 +1,20 @@
 # Cargo build configuration
+#
+# ── THIS FILE MUST LIVE AT THE REPOSITORY ROOT ───────────────────────────────
+# Cargo discovers `.cargo/config.toml` by walking UP from the *current working
+# directory*, not from the package manifest. This file used to live in
+# `src-tauri/`, which meant it was only read when cargo was invoked from
+# `src-tauri/` — and the Tauri CLI invokes cargo from the repo root, so every
+# `pnpm tauri:dev` build silently ignored everything below.
+#
+# The visible symptom was `incremental = false` never taking effect: dev builds
+# kept writing incremental session data into the shared target dir, ~25 GB of
+# it, which `cargo-sweep` does not collect. Verified by building the same
+# manifest from both directories and diffing `target/debug/incremental`.
+#
+# Keep it here. A copy under `src-tauri/` would be read only for the narrower
+# cwd and would silently diverge from this one.
+# ─────────────────────────────────────────────────────────────────────────────
 
 # ── FFmpeg / OpenSSL environment ──────────────────────────────────────────────
 # Keep machine-local Homebrew paths out of the committed Cargo config.
