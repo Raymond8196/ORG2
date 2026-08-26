@@ -41,6 +41,7 @@ import {
 // Direct leaf import to avoid pulling @src/store's barrel — which transitively
 // reaches SidebarModules/Terminal → engines/TerminalCore → this file.
 import {
+  primaryColorPresetAtom,
   terminalFontSizeAtom,
   terminalLetterSpacingAtom,
   terminalThemeAtom,
@@ -132,6 +133,9 @@ export const TerminalView = forwardRef<TerminalViewHandle, TerminalViewProps>(
     const customShellPath = useAtomValue(customShellPathAtom);
     const appTheme = useAtomValue(themesAtom);
     const isDarkTheme = isThemeCssPathDark(appTheme);
+    // The cursor color comes from --terminal-caret (an alias of
+    // --color-primary-6); tracking the preset re-resolves it on accent change.
+    const primaryColorPreset = useAtomValue(primaryColorPresetAtom);
 
     const initialAppearanceRef = useRef({
       terminalTheme,
@@ -364,6 +368,7 @@ export const TerminalView = forwardRef<TerminalViewHandle, TerminalViewProps>(
       isReady,
       terminalTheme,
       isDarkTheme,
+      primaryColorPreset,
       terminalFontSize,
       terminalLetterSpacing,
       codeFontFamily,
