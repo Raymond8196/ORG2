@@ -1,4 +1,3 @@
-import type { TFunction } from "i18next";
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -15,9 +14,9 @@ describe("formatReplayTurnSegmentLabels", () => {
       return `Replay turn ${params?.number}`;
     }
     return key;
-  }) as unknown as TFunction<"sessions">;
+  });
 
-  it("formats tooltip with wall-clock range", () => {
+  it("formats tooltip and aria labels", () => {
     const labels = formatReplayTurnSegmentLabels(
       {
         turnId: "u1",
@@ -30,6 +29,8 @@ describe("formatReplayTurnSegmentLabels", () => {
         startValue: 0,
         endValue: 100,
         colorIndex: 1,
+        leftPercent: 0,
+        widthPercent: 50,
       },
       t
     );
@@ -40,7 +41,7 @@ describe("formatReplayTurnSegmentLabels", () => {
 });
 
 describe("toReplayProgressSegments", () => {
-  it("marks the active turn segment", () => {
+  it("marks the active turn segment and preserves layout", () => {
     const segments = toReplayProgressSegments(
       [
         {
@@ -54,6 +55,8 @@ describe("toReplayProgressSegments", () => {
           startValue: 0,
           endValue: 0,
           colorIndex: 0,
+          leftPercent: 0,
+          widthPercent: 50,
         },
         {
           turnId: "u2",
@@ -66,13 +69,16 @@ describe("toReplayProgressSegments", () => {
           startValue: 200,
           endValue: 200,
           colorIndex: 1,
+          leftPercent: 50,
+          widthPercent: 50,
         },
       ],
       "u2",
-      ((key: string) => key) as unknown as TFunction<"sessions">
+      (key) => key
     );
 
     expect(segments[0]?.isActive).toBe(false);
     expect(segments[1]?.isActive).toBe(true);
+    expect(segments[1]?.leftPercent).toBe(50);
   });
 });

@@ -17,6 +17,9 @@ export interface ReplayTurnSegment {
   startValue: number;
   endValue: number;
   colorIndex: number;
+  /** Pre-computed layout for the segment band (% of track width). */
+  leftPercent: number;
+  widthPercent: number;
 }
 
 export interface BuildReplayTurnSegmentsInput {
@@ -76,6 +79,25 @@ function mergeTinyReplayTurnSegments(
   return merged;
 }
 
+/** Assign stable band geometry once segments and merges are finalized. */
+export function applyReplayTurnSegmentLayout(
+  segments: ReplayTurnSegment[],
+  maxValue: number
+): ReplayTurnSegment[] {
+  if (maxValue <= 0 || segments.length === 0) return segments;
+
+  return segments.map((segment, index) => {
+    const displayEnd = segments[index + 1]?.startValue ?? maxValue;
+    const leftPercent = (segment.startValue / maxValue) * 100;
+    const rawWidth = ((displayEnd - segment.startValue) / maxValue) * 100;
+    return {
+      ...segment,
+      leftPercent,
+      widthPercent: Math.max(rawWidth, 0.75),
+    };
+  });
+}
+
 /**
  * Partition the effective simulator timeline into turn bands for the replay
  * scrubber. Turn boundaries follow the same user-message rule as chat grouping.
@@ -128,11 +150,16 @@ export function buildReplayTurnSegments(
         ),
         endValue: indexToReplaySliderValue(endIndex, eventIds.length, maxValue),
         colorIndex: turnOffset % REPLAY_TURN_SEGMENT_COLOR_COUNT,
+        leftPercent: 0,
+        widthPercent: 0,
       };
     }
   );
 
-  return mergeTinyReplayTurnSegments(segments, minSegmentSpan, maxValue);
+  return applyReplayTurnSegmentLayout(
+    mergeTinyReplayTurnSegments(segments, minSegmentSpan, maxValue),
+    maxValue
+  );
 }
 
 export function findActiveReplayTurnSegment(

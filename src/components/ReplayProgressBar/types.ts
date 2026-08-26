@@ -1,7 +1,8 @@
 export interface ReplayProgressSegment {
   id: string;
-  startValue: number;
-  endValue: number;
+  turnNumber: number;
+  leftPercent: number;
+  widthPercent: number;
   colorIndex: number;
   tooltip: string;
   ariaLabel: string;

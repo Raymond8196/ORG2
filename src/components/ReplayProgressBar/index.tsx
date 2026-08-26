@@ -24,7 +24,7 @@ import React, { memo } from "react";
 
 import Slider from "@src/components/Slider";
 
-import ReplayTurnSegmentLane from "./ReplayTurnSegmentLane";
+import ReplayTurnTimeline from "./ReplayTurnTimeline";
 import "./index.scss";
 import type { ReplayProgressSegment } from "./types";
 
@@ -106,9 +106,8 @@ const ReplayProgressBar: React.FC<ReplayProgressBarProps> = memo(
         <div className="absolute right-0 top-0 h-[1px] w-2 bg-fill-3" />
 
         {showSegments ? (
-          <ReplayTurnSegmentLane
+          <ReplayTurnTimeline
             segments={segments}
-            max={max}
             onSegmentClick={onSegmentClick}
           />
         ) : null}

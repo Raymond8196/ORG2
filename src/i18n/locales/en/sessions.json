@@ -1384,6 +1384,7 @@
       "play": "Play replay",
       "duration": "{{value}}",
       "segmentAria": "Replay turn {{number}}",
+      "turnTrackAria": "Replay turn track",
       "segmentTooltip": "Turn {{number}} · {{duration}} · {{start}}–{{end}}",
       "segmentTooltipNoRange": "Turn {{number}} · {{duration}}",
       "toolCalls": "{{count}} tool calls",

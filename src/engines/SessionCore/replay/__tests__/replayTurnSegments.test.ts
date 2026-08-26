@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { SimulatorEventPreview } from "../../core/types";
 import {
+  applyReplayTurnSegmentLayout,
   buildReplayTurnSegments,
   findActiveReplayTurnSegment,
   indexToReplaySliderValue,
@@ -21,8 +22,8 @@ function preview(
     displayText: "Read file",
     displayStatus: "completed",
     displayVariant: "tool_call",
-    activityStatus: "agent",
-    filterCategory: "explore",
+    activityStatus: "completed",
+    filterCategory: "file",
     ...overrides,
   };
 }
@@ -112,7 +113,50 @@ describe("buildReplayTurnSegments", () => {
       startIndex: 4,
       endIndex: 4,
       endValue: 200,
+      leftPercent: 100,
+      widthPercent: 0.75,
     });
+    expect(segments[0]?.leftPercent).toBe(0);
+    expect(segments[0]?.widthPercent).toBeGreaterThan(0);
+  });
+
+  it("precomputes band layout percentages", () => {
+    const segments = applyReplayTurnSegmentLayout(
+      [
+        {
+          turnId: "u1",
+          turnNumber: 1,
+          startIndex: 0,
+          endIndex: 1,
+          startMs: null,
+          endMs: null,
+          durationMs: 0,
+          startValue: 0,
+          endValue: 100,
+          colorIndex: 0,
+          leftPercent: 0,
+          widthPercent: 0,
+        },
+        {
+          turnId: "u2",
+          turnNumber: 2,
+          startIndex: 2,
+          endIndex: 3,
+          startMs: null,
+          endMs: null,
+          durationMs: 0,
+          startValue: 100,
+          endValue: 200,
+          colorIndex: 1,
+          leftPercent: 0,
+          widthPercent: 0,
+        },
+      ],
+      200
+    );
+
+    expect(segments[0]).toMatchObject({ leftPercent: 0, widthPercent: 50 });
+    expect(segments[1]).toMatchObject({ leftPercent: 50, widthPercent: 50 });
   });
 
   it("merges tiny trailing segments into the previous band", () => {

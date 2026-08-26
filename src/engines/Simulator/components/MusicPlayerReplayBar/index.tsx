@@ -117,14 +117,23 @@ const MusicPlayerReplayBar: React.FC = memo(() => {
     [eventIds, previewById]
   );
 
+  const segmentViews = useMemo(
+    () => toReplayProgressSegments(turnSegments, null, t),
+    [t, turnSegments]
+  );
+
   const activeTurn = useMemo(
     () => findActiveReplayTurnSegment(turnSegments, currentIndex),
     [turnSegments, currentIndex]
   );
 
   const segments = useMemo(
-    () => toReplayProgressSegments(turnSegments, activeTurn?.turnId ?? null, t),
-    [activeTurn?.turnId, t, turnSegments]
+    () =>
+      segmentViews.map((segment) => ({
+        ...segment,
+        isActive: segment.id === activeTurn?.turnId,
+      })),
+    [activeTurn?.turnId, segmentViews]
   );
 
   const handleSegmentClick = useCallback(
