@@ -446,6 +446,12 @@
       "sourceMissing": "Die ursprünglichen Sitzungsdaten sind nicht mehr auf der Festplatte",
       "launchFailed": "{{agent}}-Terminal konnte nicht geöffnet werden",
       "composerPlaceholder": "Nachricht senden und in einer neuen Sitzung fortfahren…"
+    },
+    "openInApp": {
+      "headerButton": "In {{app}} öffnen",
+      "headerTooltip": "Diese Unterhaltung in der {{app}}-App anzeigen ({{link}})",
+      "sourceMissing": "Die ursprünglichen Sitzungsdaten sind nicht mehr auf der Festplatte",
+      "openFailed": "{{app}} konnte nicht geöffnet werden"
     }
   },
   "cloud": {
