@@ -323,7 +323,7 @@ pub fn cli_resume_plan_for_cached_session(
 
 /// `rollout-<timestamp>-<thread-uuid>` → `<thread-uuid>`. Accepts a bare
 /// uuid too (runner bindings and older imports carry that form).
-fn codex_thread_uuid_from_stem(stem: &str) -> Option<&str> {
+pub(super) fn codex_thread_uuid_from_stem(stem: &str) -> Option<&str> {
     if is_uuid_like(stem) {
         return Some(stem);
     }
@@ -336,7 +336,7 @@ fn codex_thread_uuid_from_stem(stem: &str) -> Option<&str> {
     None
 }
 
-fn is_uuid_like(value: &str) -> bool {
+pub(super) fn is_uuid_like(value: &str) -> bool {
     let bytes = value.as_bytes();
     if bytes.len() != 36 {
         return false;

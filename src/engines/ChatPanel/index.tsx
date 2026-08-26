@@ -78,6 +78,7 @@ import {
   useChatPanelTabShortcuts,
 } from "./ChatPanelTabBar";
 import SessionContinueCliHeaderExtras from "./SessionContinueCliHeaderExtras";
+import SessionOpenInAppHeaderExtras from "./SessionOpenInAppHeaderExtras";
 import {
   SessionAlternateSurface,
   SessionHeaderViewControls,
@@ -637,6 +638,9 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
               session={currentSession ?? null}
               sessionId={currentSessionId ?? null}
               onOpenCliTerminal={handleOpenCliTerminal}
+            />
+            <SessionOpenInAppHeaderExtras
+              sessionId={currentSessionId ?? null}
             />
             <SessionForkHeaderExtras session={currentSession ?? null} />
             <SessionRawToolbarActions
