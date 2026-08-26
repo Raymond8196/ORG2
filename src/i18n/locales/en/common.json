@@ -1254,7 +1254,9 @@
       "tryHeading": "Try:",
       "tryCheckConnection": "Checking your internet connection",
       "tryVerifyUrl": "Verifying the URL is correct",
-      "tryAgainLater": "Trying again later"
+      "tryAgainLater": "Trying again later",
+      "webviewHiddenTitle": "Webview temporarily hidden",
+      "webviewHiddenBody": "Close the menu or dialog to show it again."
     },
     "unsavedChangesTitle": "Unsaved Changes",
     "prkPlaceholder": "PRJ",
