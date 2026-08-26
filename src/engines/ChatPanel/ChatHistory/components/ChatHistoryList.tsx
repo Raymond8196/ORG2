@@ -71,6 +71,8 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
     flatItems,
     groupCounts,
     turnIds,
+    assistantCopyEventIdsByGroup,
+    resolveAssistantTurnCopyContent,
     totalFlatItems,
     lastAssistantFlatIndexPerItem,
     codeBlockContainerWidth,
@@ -112,6 +114,13 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
     const flatItemsRef = useRef(flatItems);
     flatItemsRef.current = flatItems;
     const previousChatItemsRef = useRef<(OptimizedChatItem | undefined)[]>([]);
+
+    const turnIdsRef = useRef(turnIds);
+    turnIdsRef.current = turnIds;
+    const assistantCopyEventIdsByGroupRef = useRef(
+      assistantCopyEventIdsByGroup
+    );
+    assistantCopyEventIdsByGroupRef.current = assistantCopyEventIdsByGroup;
 
     // When the planning indicator is active, inject it as a virtual item
     // in the last group so it renders under the latest turn's header —
@@ -307,8 +316,6 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
     );
     const rowGroupMetaRef = useRef<RowGroupMeta[]>(rowGroupMeta);
     rowGroupMetaRef.current = rowGroupMeta;
-    const turnIdsRef = useRef(turnIds);
-    turnIdsRef.current = turnIds;
 
     // For each flat index, the nearest preceding qualifying item — non-structural,
     // non-unloaded, with an event. Pre-computed once per flatItems change so
@@ -392,6 +399,10 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
             flatIndex={flatIndex}
             groupIndex={groupIndex}
             turnId={turnIdsRef.current[groupIndex] ?? null}
+            assistantCopyEventIds={
+              assistantCopyEventIdsByGroupRef.current[groupIndex] ?? []
+            }
+            resolveAssistantTurnCopyContent={resolveAssistantTurnCopyContent}
             chatItem={currentFlatItems[flatIndex]}
             previousChatItem={previousChatItemsRef.current[flatIndex]}
             lastAssistantFlatIndex={rowMeta.lastAssistantFlatIndex}
@@ -417,6 +428,7 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
         onSkip,
         onEditUserMessage,
         newEventDividerLabel,
+        resolveAssistantTurnCopyContent,
       ]
     );
 
@@ -485,6 +497,12 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
                       flatIndex={itemFlatIndex}
                       groupIndex={groupIndex}
                       turnId={turnIds[groupIndex] ?? null}
+                      assistantCopyEventIds={
+                        assistantCopyEventIdsByGroup[groupIndex] ?? []
+                      }
+                      resolveAssistantTurnCopyContent={
+                        resolveAssistantTurnCopyContent
+                      }
                       chatItem={flatItems[itemFlatIndex]}
                       previousChatItem={previousChatItems[itemFlatIndex]}
                       lastAssistantFlatIndex={rowMeta.lastAssistantFlatIndex}
