@@ -173,6 +173,7 @@ export function useSessionMenuItems({
   showAllLoadedGroupSessions = false,
   expandedSubagentParentIds = new Set(),
   revealedSessionIds = new Set(),
+  workspaceGroupActions,
 }: UseSessionMenuItemsParams): UseSessionMenuItemsResult {
   const { t: tCommon } = useTranslation();
   const pagination = useAtomValue(sessionPaginationAtom);
@@ -568,6 +569,7 @@ export function useSessionMenuItems({
         appendPinnedSessions,
         appendGroupSessions,
         appendTrailingLoadMoreItems,
+        workspaceGroupActions,
       }),
     [
       unpinnedSessions,
@@ -576,6 +578,7 @@ export function useSessionMenuItems({
       appendPinnedSessions,
       appendGroupSessions,
       appendTrailingLoadMoreItems,
+      workspaceGroupActions,
     ]
   );
   const baseMenuItems = useMemo<NavigationMenuItem[]>(() => {

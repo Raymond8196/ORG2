@@ -97,7 +97,8 @@
       "byWorkspace": "По Workspace"
     },
     "filters": {
-      "includeExternal": "Include External"
+      "includeExternal": "Include External",
+      "manageExternalSources": "Управление источниками…"
     },
     "defaults": {
       "untitledSession": "Session без названия",

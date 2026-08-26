@@ -97,7 +97,8 @@
       "byWorkspace": "Por Workspace"
     },
     "filters": {
-      "includeExternal": "Include External"
+      "includeExternal": "Include External",
+      "manageExternalSources": "Gestionar fuentes…"
     },
     "defaults": {
       "untitledSession": "Session sin título",

@@ -14,6 +14,7 @@ use super::metadata::{
     ImportedHistoryCacheInput, ImportedHistoryImpactStats, ImportedHistoryRecordSignature,
     RoundUsage,
 };
+use super::scratch_workspace::is_agent_scratch_workspace;
 use super::{
     effective_limit, recent_paths_from_rows, row_from_input, ImportedHistoryRecentPath,
     ImportedHistoryRowInput, ImportedHistorySessionPage, ImportedHistorySessionRow,
@@ -119,6 +120,24 @@ pub fn record_matches_cached_signature(
         && cached.parser_version == discovered.parser_version
 }
 
+/// The session's workspace, or `None` when it has none.
+///
+/// This is the single boundary that decides what "workspace" means for an
+/// imported session, so every source — present and future — inherits the
+/// invariant. A provider's per-session scratch directory is a real cwd but
+/// not a workspace the user chose (see [`super::scratch_workspace`]), and
+/// recording it would invent a one-session workspace group in the sidebar and
+/// a phantom repo in the Data/Usage rollups.
+fn workspace_repo_path(input: &ImportedHistoryCacheInput) -> Option<String> {
+    input
+        .repo_path
+        .as_deref()
+        .map(str::trim)
+        .filter(|path| !path.is_empty())
+        .filter(|path| !is_agent_scratch_workspace(input.source, path))
+        .map(str::to_string)
+}
+
 pub fn upsert_imported_session_cache_from_conn(
     conn: &mut Connection,
     inputs: &[ImportedHistoryCacheInput],
@@ -208,7 +227,7 @@ pub fn upsert_imported_session_cache_from_conn(
                 input.output_tokens,
                 input.cache_read_tokens,
                 input.cache_write_tokens,
-                input.repo_path.as_deref().unwrap_or_default(),
+                workspace_repo_path(input).unwrap_or_default(),
                 input.branch.as_deref().unwrap_or_default(),
                 input.impact.files_changed,
                 input.impact.lines_added,
@@ -257,7 +276,7 @@ fn core_session_record_from_imported_input(input: &ImportedHistoryCacheInput) ->
         created_at: Some(super::epoch_ms_to_iso(input.created_at_ms)),
         updated_at: Some(super::epoch_ms_to_iso(input.updated_at_ms)),
         completed_at: Some(super::epoch_ms_to_iso(input.updated_at_ms)),
-        workspace_path: input.repo_path.clone(),
+        workspace_path: workspace_repo_path(input),
         branch: input.branch.clone(),
         parent_session_id: input.parent_session_id.clone(),
         org_member_id: None,

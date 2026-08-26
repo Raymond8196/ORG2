@@ -32,6 +32,23 @@ export function buildWorkstationSidebarLabels({
   const importGithubIssuesLabel = tProjects("githubIssuesImport.menuLabel");
   const addOrgLabel = t("collaboration.addOrg");
   const manageOrgLabel = t("collaboration.manageOrg");
+  const moreActionsLabel = tCommon("common:actions.more", "More actions");
+  const pinWorkspaceLabel = tCommon(
+    "sessions:chat.pinWorkspaceGroup",
+    "Pin workspace"
+  );
+  const unpinWorkspaceLabel = tCommon(
+    "sessions:chat.unpinWorkspaceGroup",
+    "Unpin workspace"
+  );
+  const hideWorkspaceLabel = tCommon(
+    "sessions:chat.hideWorkspaceGroup",
+    "Hide workspace"
+  );
+  const unhideWorkspaceLabel = tCommon(
+    "sessions:chat.unhideWorkspaceGroup",
+    "Unhide workspace"
+  );
   const searchPlaceholder = tCommon("common.searchPlaceholder", "Search...");
   const noSearchResultsTitle = t("sidebar.empty.noSearchResults");
 
@@ -48,6 +65,11 @@ export function buildWorkstationSidebarLabels({
     importGithubIssuesLabel,
     addOrgLabel,
     manageOrgLabel,
+    moreActionsLabel,
+    pinWorkspaceLabel,
+    unpinWorkspaceLabel,
+    hideWorkspaceLabel,
+    unhideWorkspaceLabel,
     searchPlaceholder,
     noSearchResultsTitle,
   };
