@@ -20,8 +20,8 @@ import {
   DROPDOWN_WIDTHS,
 } from "@src/components/Dropdown/tokens";
 import IconButton from "@src/components/IconButton";
+import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
 import { useDropdownEngine } from "@src/hooks/dropdown";
-import { WorkstationToolbarTooltip } from "@src/modules/WorkStation/shared/WorkstationToolbarTooltip";
 
 import HoverAnimatedIcon, {
   triggerIconAnimation,
@@ -140,7 +140,7 @@ export const SessionFilterButton: FC<SessionFilterButtonProps> = React.memo(
 
     return (
       <>
-        <WorkstationToolbarTooltip
+        <ToolbarTooltip
           label={t("sidebar.groupBy.title")}
           position="top"
           disabled={isOpen}
@@ -170,7 +170,7 @@ export const SessionFilterButton: FC<SessionFilterButtonProps> = React.memo(
               />
             </IconButton>
           </div>
-        </WorkstationToolbarTooltip>
+        </ToolbarTooltip>
 
         {isOpen &&
           isPositioned &&

@@ -14,6 +14,7 @@ import { useTranslation } from "react-i18next";
 
 import OrganizationScopeHeader from "@src/components/OrganizationScopeHeader";
 import OrganizationTabSwitch from "@src/components/OrganizationTabSwitch";
+import { Placeholder } from "@src/components/Placeholder";
 import type { SelectOption } from "@src/components/Select";
 import type { TabPillItem } from "@src/components/TabPill";
 import { org2CloudAuthAtom } from "@src/features/Org2Cloud/org2CloudAuthAtom";
@@ -28,7 +29,6 @@ import { buildOrgSelectorEntries } from "@src/features/Organizations/orgSelector
 import { SECTION_GAP_CLASSES } from "@src/modules/shared/layouts/SectionLayout";
 import {
   DETAIL_PANEL_TOKENS,
-  Placeholder,
   ScrollPreservation,
 } from "@src/modules/shared/layouts/blocks";
 import { GUIDE_TARGETS } from "@src/scaffold/Tutorials/guideTargets";

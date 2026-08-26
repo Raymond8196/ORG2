@@ -27,27 +27,30 @@ vi.mock("@src/components/IntegrationIcon", () => ({
     }),
 }));
 
-vi.mock("@src/components/WorkItemHoverCard", () => ({
-  default: ({
-    workItem,
-    position,
-    children,
-  }: {
-    workItem?: { id: string; title: string; status: string };
-    position?: string;
-    children: ReactNode;
-  }) =>
-    createElement(
-      "div",
-      {
-        "data-work-item-hover-card-id": workItem?.id,
-        "data-work-item-hover-card-title": workItem?.title,
-        "data-work-item-hover-card-status": workItem?.status,
-        "data-work-item-hover-card-position": position,
-      },
-      children
-    ),
-}));
+vi.mock(
+  "@src/modules/ProjectManager/WorkItems/components/WorkItemHoverCard",
+  () => ({
+    default: ({
+      workItem,
+      position,
+      children,
+    }: {
+      workItem?: { id: string; title: string; status: string };
+      position?: string;
+      children: ReactNode;
+    }) =>
+      createElement(
+        "div",
+        {
+          "data-work-item-hover-card-id": workItem?.id,
+          "data-work-item-hover-card-title": workItem?.title,
+          "data-work-item-hover-card-status": workItem?.status,
+          "data-work-item-hover-card-position": position,
+        },
+        children
+      ),
+  })
+);
 
 vi.mock("@src/components/PrHoverCard", () => ({
   default: ({
