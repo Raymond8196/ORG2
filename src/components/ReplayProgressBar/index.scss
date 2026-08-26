@@ -17,6 +17,64 @@
     border-radius: 1px;
   }
 
+  &.replay-progress-bar--segmented {
+    padding-bottom: 2px;
+  }
+
+  &__segment {
+    opacity: 0.72;
+    border-radius: 1px;
+
+    &[data-active="true"] {
+      opacity: 1;
+      box-shadow: inset 0 0 0 1px
+        color-mix(in srgb, var(--color-primary-6) 55%, transparent);
+    }
+
+    &[data-color-index="0"] {
+      background: color-mix(
+        in srgb,
+        var(--color-primary-6) 22%,
+        var(--color-fill-2)
+      );
+    }
+    &[data-color-index="1"] {
+      background: color-mix(
+        in srgb,
+        var(--color-success-6) 22%,
+        var(--color-fill-2)
+      );
+    }
+    &[data-color-index="2"] {
+      background: color-mix(
+        in srgb,
+        var(--color-warning-6) 22%,
+        var(--color-fill-2)
+      );
+    }
+    &[data-color-index="3"] {
+      background: color-mix(
+        in srgb,
+        var(--color-purple-6) 22%,
+        var(--color-fill-2)
+      );
+    }
+    &[data-color-index="4"] {
+      background: color-mix(
+        in srgb,
+        var(--color-danger-6) 18%,
+        var(--color-fill-2)
+      );
+    }
+    &[data-color-index="5"] {
+      background: color-mix(
+        in srgb,
+        var(--color-neutral-6) 24%,
+        var(--color-fill-2)
+      );
+    }
+  }
+
   // In follow mode the playhead is pinned to the right edge, so showing
   // the drag handle would just be visual noise. Hide it. In replay mode
   // the handle is always visible for easy scrubbing.

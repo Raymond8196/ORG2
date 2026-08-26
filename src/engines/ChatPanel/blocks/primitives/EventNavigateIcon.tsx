@@ -26,10 +26,11 @@ export interface EventNavigateIconProps {
   onClick: () => void;
   /** "header" hides until header hover; "footer" is always visible; "footer-hover" hides until agent-message hover. */
   variant?: "header" | "footer" | "footer-hover";
+  ariaLabel?: string;
 }
 
 const EventNavigateIcon: React.FC<EventNavigateIconProps> = memo(
-  ({ onClick, variant = "header" }) => {
+  ({ onClick, variant = "header", ariaLabel }) => {
     const handleClick = (event: React.MouseEvent) => {
       event.stopPropagation();
       onClick();
@@ -49,6 +50,7 @@ const EventNavigateIcon: React.FC<EventNavigateIconProps> = memo(
       <button
         type="button"
         data-testid="event-navigate"
+        aria-label={ariaLabel}
         className={className}
         onClick={handleClick}
         tabIndex={-1}
