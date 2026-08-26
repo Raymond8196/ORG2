@@ -145,7 +145,7 @@ export const TabPill = memo(function TabPill({
                 ? t("sessions:creator.createTarget.manageAgents")
                 : defaultDisplayTitle;
 
-  const iconColorClass = isActive ? "text-primary-6" : "text-text-2";
+  const iconColorClass = isActive ? "text-text-1" : "text-text-2";
   const isGitHubIssueTab =
     tab.type === "work-item" &&
     isGitHubIssueStatus(
@@ -349,7 +349,7 @@ export const TabPill = memo(function TabPill({
       <div className="relative flex min-w-0 flex-1 items-center overflow-hidden">
         <span
           className={`min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-[13px] ${
-            isActive ? "text-primary-6" : "text-text-2"
+            isActive ? "text-text-1" : "text-text-2"
           }`}
         >
           {displayTitle}

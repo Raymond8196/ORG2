@@ -110,7 +110,7 @@ function defaultIconForKind(
   isActive: boolean
 ): React.ReactNode {
   const lucideClass = isActive
-    ? "shrink-0 text-primary-6"
+    ? "shrink-0 text-text-1"
     : "shrink-0 text-text-3";
   switch (kind) {
     case "file":
@@ -154,7 +154,7 @@ const TabItem: React.FC<TabItemProps> = ({
   const iconClass = isFileKind
     ? ""
     : isActive
-      ? "[&_svg]:!text-primary-6 [&_svg]:!stroke-primary-6"
+      ? "[&_svg]:!text-text-1 [&_svg]:!stroke-text-1"
       : "[&_svg]:text-text-3 [&_svg]:stroke-current";
   return (
     <TabPillSurface

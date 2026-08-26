@@ -22,7 +22,7 @@ const VARIANT_CLASSES: Record<
   session: "min-w-0 max-w-[120px] shrink-0 gap-1.5 px-2.5",
 };
 
-export const TAB_PILL_DRAG_OVERLAY_CLASS = `flex h-8 shrink-0 cursor-grabbing items-center gap-1.5 rounded-lg border border-border-2 ${SURFACE_TOKENS.selected} pl-2.5 pr-2 shadow-lg`;
+export const TAB_PILL_DRAG_OVERLAY_CLASS = `flex h-8 shrink-0 cursor-grabbing items-center gap-1.5 rounded-lg border border-border-2 ${SURFACE_TOKENS.selected} pl-2.5 pr-2 text-text-1 shadow-lg`;
 
 export const TabPillSurface = React.forwardRef<
   TabPillElement,
@@ -65,7 +65,7 @@ export const TabPillSurface = React.forwardRef<
     );
 
     const stateClass = isActive
-      ? `work-station-editor-tab--active z-10 ${SURFACE_TOKENS.selected} text-primary-6 ${SURFACE_TOKENS.selectedHover}`
+      ? `work-station-editor-tab--active z-10 ${SURFACE_TOKENS.selected} text-text-1 ${SURFACE_TOKENS.selectedHover}`
       : `bg-transparent text-text-2 ${SURFACE_TOKENS.hover}`;
     const draggingClass = isDragging
       ? `work-station-editor-tab--dragging cursor-grabbing ${SURFACE_TOKENS.selected} opacity-90`
