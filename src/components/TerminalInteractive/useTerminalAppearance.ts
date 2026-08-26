@@ -1,6 +1,7 @@
 import type { Terminal } from "@xterm/xterm";
 import { type RefObject, useEffect } from "react";
 
+import type { PrimaryColorPreset } from "@src/config/appearance/primaryColors";
 // Direct leaf import to avoid pulling @src/store's barrel — which transitively
 // reaches SidebarModules/Terminal → engines/TerminalCore → this file.
 import { createLogger } from "@src/hooks/logger";
@@ -37,6 +38,8 @@ interface UseTerminalAppearanceOptions {
   isReady: boolean;
   terminalTheme: TerminalThemeName;
   isDarkTheme: boolean;
+  /** Only a repaint trigger — the cursor color itself comes from CSS tokens. */
+  primaryColorPreset: PrimaryColorPreset;
   terminalFontSize: number;
   terminalLetterSpacing: number;
   codeFontFamily: string;
@@ -49,6 +52,7 @@ export function useTerminalAppearance({
   isReady,
   terminalTheme,
   isDarkTheme,
+  primaryColorPreset,
   terminalFontSize,
   terminalLetterSpacing,
   codeFontFamily,
@@ -63,9 +67,10 @@ export function useTerminalAppearance({
     if (!terminal || !isReady) return;
 
     let frameId: number | null = null;
+    const applied = getXTermTheme(terminalTheme, backgroundColor);
     if (
       runForLiveTerminal(terminalRef, terminal, () => {
-        terminal.options.theme = getXTermTheme(terminalTheme, backgroundColor);
+        terminal.options.theme = applied;
         terminal.options.cursorStyle = "bar";
         terminal.options.cursorBlink = true;
         terminal.options.cursorInactiveStyle = "outline";
@@ -74,7 +79,25 @@ export function useTerminalAppearance({
       })
     ) {
       frameId = requestAnimationFrame(() => {
-        if (terminalRef.current === terminal) fitTerminal();
+        if (terminalRef.current !== terminal) return;
+        // The CSS tokens this theme is resolved from can settle a frame late:
+        // the theme <link> swap is async, and the primary-color preset (which
+        // --terminal-caret aliases) is written to body's inline style by a
+        // root-level effect that runs after this one. Re-resolve once the
+        // frame has committed and repaint only if a color actually moved.
+        runForLiveTerminal(terminalRef, terminal, () => {
+          const settled = getXTermTheme(terminalTheme, backgroundColor);
+          if (
+            settled.cursor !== applied.cursor ||
+            settled.background !== applied.background ||
+            settled.selectionBackground !== applied.selectionBackground
+          ) {
+            terminal.options.theme = settled;
+            terminal.clearTextureAtlas();
+            terminal.refresh(0, terminal.rows - 1);
+          }
+        });
+        fitTerminal();
       });
     }
 
@@ -85,6 +108,7 @@ export function useTerminalAppearance({
     terminalTheme,
     backgroundColor,
     isDarkTheme,
+    primaryColorPreset,
     isReady,
     fitTerminal,
     terminalRef,
