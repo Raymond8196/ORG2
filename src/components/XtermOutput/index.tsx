@@ -31,6 +31,7 @@ import {
 import { TERMINAL_LINE_HEIGHT } from "@src/config/terminalAppearance";
 import { createLogger } from "@src/hooks/logger";
 import {
+  primaryColorPresetAtom,
   terminalFontSizeAtom,
   terminalLetterSpacingAtom,
   terminalThemeAtom,
@@ -80,6 +81,9 @@ const XtermOutput = memo(function XtermOutput({
   const [computedHeight, setComputedHeight] = useState(MIN_HEIGHT);
 
   const terminalTheme = useAtomValue(terminalThemeAtom);
+  // The cursor color resolves from --terminal-caret (an alias of
+  // --color-primary-6); tracking the preset re-resolves it on accent change.
+  const primaryColorPreset = useAtomValue(primaryColorPresetAtom);
   const fontSize = useAtomValue(terminalFontSizeAtom);
   const letterSpacing = useAtomValue(terminalLetterSpacingAtom);
 
@@ -211,10 +215,30 @@ const XtermOutput = memo(function XtermOutput({
   useEffect(() => {
     const terminal = terminalRef.current;
     if (!terminal) return;
-    terminal.options.theme = getXTermTheme(terminalTheme);
+    const applied = getXTermTheme(terminalTheme);
+    terminal.options.theme = applied;
     terminal.clearTextureAtlas?.();
     terminal.refresh(0, terminal.rows - 1);
-  }, [terminalTheme]);
+
+    // The theme <link> swap and the primary-color preset (written to body's
+    // inline style by a root-level effect) both land after this effect runs,
+    // so re-resolve on the next frame and repaint only if a color moved.
+    const frameId = requestAnimationFrame(() => {
+      if (terminalRef.current !== terminal) return;
+      const settled = getXTermTheme(terminalTheme);
+      if (
+        settled.cursor === applied.cursor &&
+        settled.background === applied.background &&
+        settled.selectionBackground === applied.selectionBackground
+      ) {
+        return;
+      }
+      terminal.options.theme = settled;
+      terminal.clearTextureAtlas?.();
+      terminal.refresh(0, terminal.rows - 1);
+    });
+    return () => cancelAnimationFrame(frameId);
+  }, [terminalTheme, primaryColorPreset]);
 
   // Sync font changes
   useEffect(() => {

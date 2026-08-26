@@ -4,9 +4,13 @@
  *
  * Background strategy: xterm owns its background. We resolve --cm-editor-background
  * from the document and pass it as theme.background, matching VSCode's
- * approach. On app theme switches the active terminal's theme is patched
- * via terminal.options.theme = ... (see TerminalInteractive theme effect),
- * so the background tracks the token without recreating the terminal.
+ * approach. On app theme switches the active terminal's theme is patched via
+ * terminal.options.theme = ... (see TerminalInteractive theme effect), so the
+ * background tracks the token without recreating the terminal.
+ *
+ * The cursor is resolved the same way from --terminal-caret, which the themes
+ * alias to --color-primary-6 — so the cursor the renderer paints matches the
+ * caret of every input, including under a non-default primary-color preset.
  */
 import type { ITheme } from "@xterm/xterm";
 
@@ -26,9 +30,13 @@ function getDocumentColorToken(
   if (seenTokens.has(tokenName)) return fallback;
 
   seenTokens.add(tokenName);
-  const cssVar = getComputedStyle(document.documentElement)
-    .getPropertyValue(tokenName)
-    .trim();
+  // Read from <body>, not <html>: the theme CSS declares its color tokens
+  // (including --color-primary-6, which the primary-color preset then
+  // overrides inline) on `body`, and custom properties inherit down from
+  // :root — so the body scope resolves both, while :root cannot see the
+  // accent at all.
+  const scope = document.body ?? document.documentElement;
+  const cssVar = getComputedStyle(scope).getPropertyValue(tokenName).trim();
   if (!cssVar) return fallback;
 
   const referenceMatch = cssVar.match(CSS_VAR_REFERENCE_PATTERN);
