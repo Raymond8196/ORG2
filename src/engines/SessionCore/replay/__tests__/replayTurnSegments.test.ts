@@ -22,8 +22,8 @@ function preview(
     displayText: "Read file",
     displayStatus: "completed",
     displayVariant: "tool_call",
-    activityStatus: "completed",
-    filterCategory: "file",
+    activityStatus: "agent",
+    filterCategory: "explore",
     ...overrides,
   };
 }

@@ -1,3 +1,4 @@
+import type { TFunction } from "i18next";
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -14,7 +15,7 @@ describe("formatReplayTurnSegmentLabels", () => {
       return `Replay turn ${params?.number}`;
     }
     return key;
-  });
+  }) as unknown as TFunction<"sessions">;
 
   it("formats tooltip and aria labels", () => {
     const labels = formatReplayTurnSegmentLabels(
@@ -74,7 +75,7 @@ describe("toReplayProgressSegments", () => {
         },
       ],
       "u2",
-      (key) => key
+      ((key: string) => key) as unknown as TFunction<"sessions">
     );
 
     expect(segments[0]?.isActive).toBe(false);
