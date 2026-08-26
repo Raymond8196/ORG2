@@ -307,6 +307,23 @@ const ChatHistoryView: React.FC<ChatHistoryViewProps> = ({
       }
     />
   );
+  const pinnedChromeLayer = (
+    <>
+      {search.isSearchVisible ? (
+        <div
+          className={`flex-shrink-0 border-b border-border-2 ${surfaceBgClass}`}
+          data-chat-search-chrome
+        >
+          <div
+            className={`mx-auto w-full ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
+          >
+            <ChatSearchBar search={search} />
+          </div>
+        </div>
+      ) : null}
+      {pinnedHeaderLayer}
+    </>
+  );
 
   return (
     <ChatHistoryDisplayModeProvider value={displayMode}>
@@ -324,19 +341,17 @@ const ChatHistoryView: React.FC<ChatHistoryViewProps> = ({
           <SessionHeader sessionInfo={sessionInfo} />
         </div>
 
-        <ChatSearchBar search={search} />
-
         {pinnedHeaderPortalHost
           ? createPortal(
               <div
                 className="chat-history-portal"
                 style={chatHistoryContainerStyle}
               >
-                {pinnedHeaderLayer}
+                {pinnedChromeLayer}
               </div>,
               pinnedHeaderPortalHost
             )
-          : pinnedHeaderLayer}
+          : pinnedChromeLayer}
 
         {/* Anchor cloud-download progress to the chat-pane header edge instead
             of the virtualized body below SessionHeader. Transcript items and
