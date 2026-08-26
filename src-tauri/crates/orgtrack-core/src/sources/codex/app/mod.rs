@@ -62,7 +62,7 @@ pub(crate) use transcript::{
 // first prompt so encrypted collaboration arguments can be reconstructed.
 // v12: recognize paginated item_completed/UserMessage records as the canonical
 // user-turn boundary while retaining legacy event_msg/user_message support.
-const CODEX_APP_METADATA_PARSER_VERSION: i64 = 12;
+const CODEX_APP_METADATA_PARSER_VERSION: i64 = 13;
 
 pub type CodexAppSessionRow = ImportedHistorySessionRow;
 pub type CodexAppSessionPage = ImportedHistorySessionPage;
@@ -100,6 +100,9 @@ pub(crate) struct CodexAppSessionMeta {
     impact: ImportedHistoryImpactStats,
     rounds: Vec<RoundUsage>,
     source_metadata: CodexAppSourceMetadata,
+    /// Raw `session_meta.payload.originator`, naming the client that wrote
+    /// this rollout. Empty when the rollout predates the field.
+    originator: String,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]

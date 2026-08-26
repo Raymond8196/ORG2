@@ -2734,5 +2734,10 @@
       "updated": "Zaktualizowano"
     },
     "selectRow": "Wybierz {{id}}"
+  },
+  "clientOrigin": {
+    "officialApp": "Aplikacja oficjalna",
+    "cli": "CLI",
+    "thirdParty": "Zewnętrzny"
   }
 }

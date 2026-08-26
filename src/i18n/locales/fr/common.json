@@ -2725,5 +2725,10 @@
       "updated": "Mis à jour"
     },
     "selectRow": "Sélectionner {{id}}"
+  },
+  "clientOrigin": {
+    "officialApp": "App officielle",
+    "cli": "CLI",
+    "thirdParty": "Tiers"
   }
 }

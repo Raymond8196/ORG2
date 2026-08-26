@@ -2725,5 +2725,10 @@
       "updated": "更新"
     },
     "selectRow": "{{id}} を選択"
+  },
+  "clientOrigin": {
+    "officialApp": "公式アプリ",
+    "cli": "CLI",
+    "thirdParty": "サードパーティ"
   }
 }
