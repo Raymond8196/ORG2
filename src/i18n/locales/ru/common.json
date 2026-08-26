@@ -2734,5 +2734,10 @@
       "updated": "Обновлено"
     },
     "selectRow": "Выбрать {{id}}"
+  },
+  "clientOrigin": {
+    "officialApp": "Официальное приложение",
+    "cli": "CLI",
+    "thirdParty": "Сторонний"
   }
 }

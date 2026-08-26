@@ -2727,5 +2727,10 @@
       "updated": "Güncellendi"
     },
     "selectRow": "{{id}} öğesini seç"
+  },
+  "clientOrigin": {
+    "officialApp": "Resmî uygulama",
+    "cli": "CLI",
+    "thirdParty": "Üçüncü taraf"
   }
 }

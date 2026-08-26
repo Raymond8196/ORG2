@@ -2723,5 +2723,10 @@
       "updated": "업데이트"
     },
     "selectRow": "{{id}} 선택"
+  },
+  "clientOrigin": {
+    "officialApp": "공식 앱",
+    "cli": "CLI",
+    "thirdParty": "서드파티"
   }
 }

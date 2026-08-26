@@ -2722,5 +2722,10 @@
       "updated": "Actualizado"
     },
     "selectRow": "Seleccionar {{id}}"
+  },
+  "clientOrigin": {
+    "officialApp": "App oficial",
+    "cli": "CLI",
+    "thirdParty": "De terceros"
   }
 }

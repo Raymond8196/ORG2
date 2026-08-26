@@ -2901,5 +2901,10 @@
     "downloadedOfTotal": "{{downloaded}} of {{total}}",
     "preparingDownload": "Preparing download…",
     "downloadingAndInstalling": "Downloading and installing update (v{{version}})…"
+  },
+  "clientOrigin": {
+    "officialApp": "Official app",
+    "cli": "CLI",
+    "thirdParty": "Third party"
   }
 }

@@ -2720,5 +2720,10 @@
       "updated": "Đã cập nhật"
     },
     "selectRow": "Chọn {{id}}"
+  },
+  "clientOrigin": {
+    "officialApp": "Ứng dụng chính thức",
+    "cli": "CLI",
+    "thirdParty": "Bên thứ ba"
   }
 }
