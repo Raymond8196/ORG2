@@ -1052,6 +1052,8 @@
     "unpinWorkspaceGroup": "Bỏ ghim không gian làm việc",
     "hideWorkspaceGroup": "Ẩn không gian làm việc",
     "unhideWorkspaceGroup": "Hiện không gian làm việc",
+    "workspaceUnavailableTitle": "Workspace không khả dụng",
+    "workspaceUnavailableMessage": "Workspace này có thể đã bị di chuyển hoặc xóa.",
     "historyRefresh": "Làm mới",
     "historyLastUsedModel": "Model lần cuối dùng",
     "historyUntitled": "Phiên không có tên",

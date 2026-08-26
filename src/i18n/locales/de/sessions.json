@@ -1053,6 +1053,8 @@
     "unpinWorkspaceGroup": "Arbeitsbereich entpinnen",
     "hideWorkspaceGroup": "Arbeitsbereich ausblenden",
     "unhideWorkspaceGroup": "Arbeitsbereich einblenden",
+    "workspaceUnavailableTitle": "Workspace nicht verfügbar",
+    "workspaceUnavailableMessage": "Dieser Workspace wurde möglicherweise verschoben oder gelöscht.",
     "historyRefresh": "Aktualisieren",
     "historyLastUsedModel": "Zuletzt verwendetes Modell",
     "historyUntitled": "Unbenannte Sitzung",

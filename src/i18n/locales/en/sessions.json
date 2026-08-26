@@ -1114,6 +1114,8 @@
     "unpinWorkspaceGroup": "Unpin workspace",
     "hideWorkspaceGroup": "Hide workspace",
     "unhideWorkspaceGroup": "Unhide workspace",
+    "workspaceUnavailableTitle": "Workspace no longer available",
+    "workspaceUnavailableMessage": "This Workspace may have been moved or deleted.",
     "historyRefresh": "Refresh",
     "historyLastUsedModel": "Last used model",
     "historyUntitled": "Untitled session",

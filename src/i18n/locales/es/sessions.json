@@ -1055,6 +1055,8 @@
     "unpinWorkspaceGroup": "Desfijar espacio de trabajo",
     "hideWorkspaceGroup": "Ocultar espacio de trabajo",
     "unhideWorkspaceGroup": "Mostrar espacio de trabajo",
+    "workspaceUnavailableTitle": "Workspace no disponible",
+    "workspaceUnavailableMessage": "Es posible que este Workspace se haya movido o eliminado.",
     "historyRefresh": "Actualizar",
     "historyLastUsedModel": "Último modelo usado",
     "historyUntitled": "Sesión sin título",

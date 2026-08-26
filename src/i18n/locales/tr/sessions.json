@@ -1055,6 +1055,8 @@
     "unpinWorkspaceGroup": "Çalışma alanı sabitlemesini kaldır",
     "hideWorkspaceGroup": "Çalışma alanını gizle",
     "unhideWorkspaceGroup": "Çalışma alanını göster",
+    "workspaceUnavailableTitle": "Workspace kullanılamıyor",
+    "workspaceUnavailableMessage": "Bu Workspace taşınmış veya silinmiş olabilir.",
     "historyRefresh": "Yenile",
     "historyLastUsedModel": "Son kullanılan model",
     "historyUntitled": "Başlıksız oturum",

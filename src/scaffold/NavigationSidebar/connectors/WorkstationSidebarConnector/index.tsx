@@ -294,6 +294,9 @@ export const WorkstationSidebarConnector: React.FC = () => {
     unpinWorkspaceLabel,
     hideWorkspaceLabel,
     unhideWorkspaceLabel,
+    revealWorkspaceLabel,
+    workspaceUnavailableTitle,
+    workspaceUnavailableMessage,
     searchPlaceholder,
     noSearchResultsTitle,
   } = buildWorkstationSidebarLabels({ t, tProjects, tSessions, tCommon });
@@ -323,6 +326,9 @@ export const WorkstationSidebarConnector: React.FC = () => {
     unpinLabel: unpinWorkspaceLabel,
     hideLabel: hideWorkspaceLabel,
     unhideLabel: unhideWorkspaceLabel,
+    revealLabel: revealWorkspaceLabel,
+    unavailableTitle: workspaceUnavailableTitle,
+    unavailableMessage: workspaceUnavailableMessage,
     openNewSession: openNewSessionFromSidebar,
     setCollapsedSectionIds,
   });
