@@ -443,7 +443,7 @@ export const TabBar: React.FC<TabBarProps> = memo(
                           fileName={draggingTab.title}
                           size="small"
                         />
-                        <span className="max-w-[150px] overflow-hidden text-ellipsis whitespace-nowrap text-[13px] text-primary-6">
+                        <span className="max-w-[150px] overflow-hidden text-ellipsis whitespace-nowrap text-[13px]">
                           {draggingTab.title}
                         </span>
                       </div>

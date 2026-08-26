@@ -107,6 +107,14 @@ describe("ChatPanelTabBar", () => {
     expect(markup).toMatch(
       /bg-gradient-to-l[^"<]*transition-opacity[^"<]*duration-150[^"<]*opacity-0/
     );
+    const activeSurface = markup.match(
+      /<div[^>]*work-station-editor-tab--active[^>]*>/
+    )?.[0];
+    expect(activeSurface).toContain("text-text-1");
+    expect(activeSurface).not.toContain("text-primary-6");
+    expect(markup).toMatch(
+      /<svg[^>]*class="[^"]*lucide-layout-grid[^"]*text-text-1[^"]*"/
+    );
     expect(markup).toContain("sessions:chat.startPage.newSession.title");
     expect(markup).not.toContain("navigation:routes.launchpad");
   });

@@ -303,9 +303,7 @@ export function ChatPanelTabBar(): React.ReactNode {
                 {draggingTab ? (
                   <div className={TAB_PILL_DRAG_OVERLAY_CLASS}>
                     <MessageSquarePlus size={16} strokeWidth={1.75} />
-                    <span className="truncate text-primary-6">
-                      {draggingTab.title}
-                    </span>
+                    <span className="truncate">{draggingTab.title}</span>
                   </div>
                 ) : null}
               </DragOverlay>,
