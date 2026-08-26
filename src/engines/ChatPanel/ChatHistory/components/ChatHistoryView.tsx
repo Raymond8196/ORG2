@@ -17,7 +17,7 @@ import type { useChatHistoryItemActions } from "../hooks/useChatHistoryItemActio
 import type { useChatHistoryProjectionModel } from "../hooks/useChatHistoryProjectionModel";
 import type { UseChatHistoryStateReturn } from "../hooks/useChatHistoryState";
 import type { useChatNavigationController } from "../hooks/useChatNavigationController";
-import type { UseChatSearchIntegrationReturn } from "../hooks/useChatSearchIntegration";
+import type { UseChatSearchReturn } from "../hooks/useChatSearch";
 import type { useChatViewportController } from "../hooks/useChatViewportController";
 import { useGroupHeaderRenderer } from "../hooks/useGroupHeaderRenderer";
 import type { useReloadSession } from "../hooks/useReloadSession";
@@ -73,7 +73,7 @@ interface ChatHistoryViewProps {
   pinnedHeaderPortalHost: HTMLElement | null;
   planningIndicatorScope: { sessionId: string; isLive: boolean } | null;
   projection: ProjectionModel;
-  search: UseChatSearchIntegrationReturn;
+  search: UseChatSearchReturn;
   surfaceBgClass: string;
   turnPaginationEnabled: boolean;
   viewport: ViewportModel;
@@ -151,7 +151,6 @@ const ChatHistoryView: React.FC<ChatHistoryViewProps> = ({
     pages,
     planningIndicatorEnabled,
     projection: projectionResult,
-    resolveAssistantTurnCopyContent,
     selectTurnPage,
     setTurnPageListOpen,
     setTurnPageSortAscending,
@@ -197,12 +196,6 @@ const ChatHistoryView: React.FC<ChatHistoryViewProps> = ({
     handleRegenerateGroup,
     handleSubmitAnswers,
   } = actions;
-  const {
-    search: searchState,
-    isSearchVisible,
-    searchBarRef,
-    handleCloseSearch,
-  } = search;
 
   const getIsWpGeneWorking = useCallback(
     () => isWpGeneWorkingRef.current ?? false,
@@ -211,10 +204,6 @@ const ChatHistoryView: React.FC<ChatHistoryViewProps> = ({
   const getIsExploring = useCallback(
     () => isExploringRef.current ?? false,
     [isExploringRef]
-  );
-  const assistantCopyEventIdsByGroup = useMemo(
-    () => displayGroupMeta.map((meta) => meta.assistantCopyEventIds),
-    [displayGroupMeta]
   );
   const hasCloudDownloadProgress = useCloudSessionHasDownloadSurface(activeId);
 
@@ -330,12 +319,7 @@ const ChatHistoryView: React.FC<ChatHistoryViewProps> = ({
           <SessionHeader sessionInfo={sessionInfo} />
         </div>
 
-        <ChatSearchBar
-          ref={searchBarRef}
-          search={searchState}
-          isVisible={isSearchVisible}
-          onClose={handleCloseSearch}
-        />
+        <ChatSearchBar search={search} />
 
         {pinnedHeaderPortalHost
           ? createPortal(
@@ -474,12 +458,6 @@ const ChatHistoryView: React.FC<ChatHistoryViewProps> = ({
                       flatItems={displayFlatItems}
                       groupCounts={displayGroupCounts}
                       turnIds={displayTurnIds}
-                      assistantCopyEventIdsByGroup={
-                        assistantCopyEventIdsByGroup
-                      }
-                      resolveAssistantTurnCopyContent={
-                        resolveAssistantTurnCopyContent
-                      }
                       totalFlatItems={displayTotalFlatItems}
                       lastAssistantFlatIndexPerItem={
                         displayLastAssistantFlatIndexPerItem

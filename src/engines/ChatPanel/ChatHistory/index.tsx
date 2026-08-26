@@ -31,7 +31,7 @@ import {
   useChatHistoryProjectionModel,
   useChatHistoryState,
   useChatNavigationController,
-  useChatSearchIntegration,
+  useChatSearch,
   useChatViewportController,
   useReloadSession,
 } from "./hooks";
@@ -97,7 +97,6 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
   onScrollNavChange,
   followAgentNav = EMPTY_FOLLOW_AGENT_NAV,
   browserAddToConversationNav = EMPTY_BROWSER_ADD_TO_CONVERSATION_NAV,
-  onRegisterSearchOpen,
   displayMode = "full",
   turnPaginationEnabled = true,
   pinnedHeaderPortalHost = null,
@@ -187,18 +186,19 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
     sessionLoadStatus: historyState.sessionLoadStatus,
     optimizedLen: historyState.chatHistory.length,
   });
-  const search = useChatSearchIntegration({
+  const search = useChatSearch({
+    sessionId: activeId,
     chatHistory: historyState.chatHistory,
-    optimizedChatHistory: projection.activeProjectionHistory,
+    flatItems: projection.flatItems,
+    groupCounts: projection.groupCounts,
+    groupMeta: projection.groupMeta,
+    pages: projection.pages,
+    turnPaginationEnabled,
+    currentPageIndex: projection.currentPageIndex,
+    setTurnPageSelection: projection.setTurnPageSelection,
     virtualListRef: historyState.virtualListRef,
     chatContainerRef: historyState.chatContainerRef,
-    originalToFlatIndex: projection.originalToFlatIndex,
   });
-
-  useEffect(() => {
-    onRegisterSearchOpen?.(search.handleOpenSearch);
-    return () => onRegisterSearchOpen?.(null);
-  }, [onRegisterSearchOpen, search.handleOpenSearch]);
 
   const viewport = useChatViewportController({
     activeId,

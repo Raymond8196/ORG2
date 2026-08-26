@@ -359,7 +359,6 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       handleCopyEventJson,
       handleOpenSearch,
       handlePaginationToggle,
-      handleRegisterSearchOpen,
       handleReloadFromMenu,
       handleTokenUsageVisibleToggle,
       handleTurnMetadataVisibleToggle,
@@ -372,7 +371,10 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       tokenUsageVisible,
       turnMetadataVisible,
       toggleHeaderActionsMenu,
-    } = useChatPanelHeaderActions({ handleReloadSession });
+    } = useChatPanelHeaderActions({
+      sessionId: currentSessionId ?? null,
+      handleReloadSession,
+    });
 
     const handleReturnToSessionCreator = useCallback(() => {
       handleOpenLaunchpadTab();
@@ -671,7 +673,6 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
         currentSessionId={currentSessionId ?? null}
         displayMode={displayMode}
         emptyChatContent={emptyChatContent}
-        handleRegisterSearchOpen={handleRegisterSearchOpen}
         onSessionContinuation={handleSessionContinuation}
         paginationEnabled={paginationEnabled}
         position={position}
