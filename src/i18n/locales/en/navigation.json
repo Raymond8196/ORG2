@@ -126,7 +126,8 @@
       "byWorkspace": "By Workspace"
     },
     "filters": {
-      "includeExternal": "Include External"
+      "includeExternal": "Include External",
+      "manageExternalSources": "Manage Sources…"
     },
     "defaults": {
       "untitledSession": "Untitled Session",

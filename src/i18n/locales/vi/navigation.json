@@ -97,7 +97,8 @@
       "byWorkspace": "Theo Workspace"
     },
     "filters": {
-      "includeExternal": "Include External"
+      "includeExternal": "Include External",
+      "manageExternalSources": "Quản lý nguồn…"
     },
     "defaults": {
       "untitledSession": "Session chưa đặt tên",

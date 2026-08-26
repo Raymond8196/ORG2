@@ -98,7 +98,8 @@
       "byWorkspace": "按工作區"
     },
     "filters": {
-      "includeExternal": "包含外部"
+      "includeExternal": "包含外部",
+      "manageExternalSources": "管理外部來源…"
     },
     "defaults": {
       "untitledSession": "未命名 Session",

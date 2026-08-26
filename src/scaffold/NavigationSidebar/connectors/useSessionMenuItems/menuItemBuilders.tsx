@@ -1,4 +1,5 @@
-import { Pin } from "lucide-react";
+import { EyeOff, Pin } from "lucide-react";
+import type { ReactNode } from "react";
 
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
 import type { BranchPrSnapshot } from "@src/store/git";
@@ -20,6 +21,41 @@ import { renderBreathingStatusDot, renderStatusDot } from "./statusIndicators";
 
 export function separator(id: string, title = ""): NavigationMenuItem {
   return { id: `separator-${id}`, key: `separator-${id}`, label: title };
+}
+
+/**
+ * Leading pin glyph for a pinned section header, matching the marker a pinned
+ * session row carries (`buildSessionMenuItem` below). A pinned workspace group
+ * is sorted to the top, but position alone reads as "alphabetically first" —
+ * the glyph is what says the viewer put it there.
+ */
+export function renderPinnedSectionIndicator(): ReactNode {
+  return (
+    <Pin
+      size={10}
+      strokeWidth={2}
+      className="shrink-0 text-text-3"
+      aria-label="Pinned"
+    />
+  );
+}
+
+/**
+ * Leading glyph for a hidden section header — the mirror of the pin above.
+ * A hidden group still renders (sorted last, collapsed), so without a marker
+ * it is indistinguishable from one that merely sorts late; the glyph is what
+ * makes "you hid this" legible, and readable at a glance as the state the
+ * `…` menu's Unhide will clear.
+ */
+export function renderHiddenSectionIndicator(): ReactNode {
+  return (
+    <EyeOff
+      size={10}
+      strokeWidth={2}
+      className="shrink-0 text-text-3"
+      aria-label="Hidden"
+    />
+  );
 }
 
 // Moved to @src/util/session/sessionStatusDot so non-sidebar surfaces (the
