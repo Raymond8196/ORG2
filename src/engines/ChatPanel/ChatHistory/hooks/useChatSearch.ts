@@ -40,6 +40,7 @@ import {
   type MappedSearchResult,
   type RustSearchResult,
   mapRustResultsToSearchResults,
+  searchChatHistoryLocally,
   wrapNextSearchResultIndex,
 } from "./chatSearchHelpers";
 import {
@@ -100,20 +101,33 @@ async function fetchChatSearchResults(
   modes: ChatSearchModes,
   maxResults: number
 ): Promise<SearchResult[]> {
-  const rustResults = await invoke<RustSearchResult[]>(
-    "es_search_chat_events",
-    {
+  const trimmedQuery = query.trim();
+  let rustResults: RustSearchResult[] = [];
+
+  try {
+    rustResults = await invoke<RustSearchResult[]>("es_search_chat_events", {
       sessionId,
       options: {
-        query,
+        query: trimmedQuery,
         caseSensitive: modes.caseSensitive,
         useRegex: modes.useRegex,
         wholeWord: modes.wholeWord,
         maxResults,
       },
-    }
-  );
-  return mapRustResultsToSearchResults(rustResults, chatHistory);
+    });
+  } catch {
+    return searchChatHistoryLocally(
+      chatHistory,
+      trimmedQuery,
+      modes,
+      maxResults
+    );
+  }
+
+  const mapped = mapRustResultsToSearchResults(rustResults, chatHistory);
+  if (mapped.length > 0) return mapped;
+
+  return searchChatHistoryLocally(chatHistory, trimmedQuery, modes, maxResults);
 }
 
 function resolveScrollContainer(

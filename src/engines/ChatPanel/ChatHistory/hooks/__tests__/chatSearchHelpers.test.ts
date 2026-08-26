@@ -3,7 +3,9 @@ import { describe, expect, it } from "vitest";
 import type { SessionEvent } from "@src/engines/SessionCore/core/types";
 
 import {
+  buildChatSearchableText,
   mapRustResultsToSearchResults,
+  searchChatHistoryLocally,
   wrapNextSearchResultIndex,
 } from "../chatSearchHelpers";
 
@@ -58,5 +60,46 @@ describe("chatSearchHelpers", () => {
     expect(wrapNextSearchResultIndex(0, 3, 1)).toBe(1);
     expect(wrapNextSearchResultIndex(2, 3, 1)).toBe(0);
     expect(wrapNextSearchResultIndex(0, 3, -1)).toBe(2);
+  });
+
+  it("builds searchable text from event fields", () => {
+    const history = [
+      {
+        ...event("a"),
+        result: { content: "比较 Codex 网页与 org2 方案" },
+        displayText: "",
+      },
+    ];
+    expect(buildChatSearchableText(history[0]!)).toContain("网页");
+  });
+
+  it("searches loaded chat history when rust mapping would be empty", () => {
+    const history = [
+      {
+        ...event("a"),
+        result: { content: "hello world" },
+        displayText: "",
+      },
+      {
+        ...event("b"),
+        result: { content: "比较 Codex 网页与 org2 方案" },
+        displayText: "",
+      },
+    ];
+
+    const results = searchChatHistoryLocally(
+      history,
+      "网页",
+      {
+        caseSensitive: false,
+        useRegex: false,
+        wholeWord: false,
+      },
+      10
+    );
+
+    expect(results).toHaveLength(1);
+    expect(results[0]?.item.id).toBe("b");
+    expect(results[0]?.snippet).toContain("网页");
   });
 });
