@@ -44,6 +44,8 @@ import UserMessageContent, {
 } from "../ChatHistory/components/UserMessageContent";
 import InputArea from "../InputArea";
 import { stripExpandedPillContent } from "../InputArea/utils/pillContentParser";
+import SessionIdentityIcon from "../components/SessionIdentityIcon";
+import { useParentAgentSender } from "./ParentAgentSenderContext";
 import RawPromptToggle from "./RawPromptToggle";
 import { useSharedConversationSender } from "./SharedConversationSenderContext";
 import { normalizeUserMessageText } from "./normalizeUserMessageText";
@@ -191,6 +193,11 @@ const UserChatItem = ({
   const messageContentRef = useRef<HTMLDivElement | null>(null);
 
   const event = chatItem.event;
+  // Who wrote this turn. In a session an agent started, a `user` turn is the
+  // parent's dispatch rather than the reader's own message, so the row is
+  // attributed to the parent session — same identity icon the header shows.
+  // Resolved once for the whole chat; see ParentAgentSenderContext.
+  const parentAgentSender = useParentAgentSender();
   // Team chat @-mentions: the comment carries account ids; names come from
   // the org roster so the `@name` text renders as a member pill.
   const comments = useSessionCommentsContext();
@@ -383,16 +390,23 @@ const UserChatItem = ({
   const stampIsViewer = Boolean(
     senderStamp && viewerCloudUserId && senderStamp.userId === viewerCloudUserId
   );
-  const messageSide = senderStamp
+  const ownerSide = senderStamp
     ? stampIsViewer
       ? "right"
       : "left"
     : resolveUserMessageSide(event);
+  // Only turns that would otherwise read as the viewer's own are reattributed.
+  // A teammate's shared message already names its own sender and keeps it.
+  const isParentAgentMessage =
+    Boolean(parentAgentSender) && ownerSide === "right";
+  const messageSide = isParentAgentMessage ? "left" : ownerSide;
   const isRemoteSharedMessage = messageSide === "left";
-  const senderName =
-    senderStamp?.displayName.trim() ||
-    sharedConversationSender?.displayName.trim() ||
-    "Shared user";
+  const senderName = isParentAgentMessage
+    ? parentAgentSender?.parentSession?.name?.trim() ||
+      t("chat.parentAgentSender")
+    : senderStamp?.displayName.trim() ||
+      sharedConversationSender?.displayName.trim() ||
+      "Shared user";
   const senderAvatar = createCollabAvatarIdentity(senderName);
 
   const containerClass = `${DISPLAY_CONTAINER_BASE} ${isEditableDisplay ? "cursor-pointer outline-none" : ""}`;
@@ -559,15 +573,31 @@ const UserChatItem = ({
             className="mt-0.5 shrink-0"
             title={senderName}
             aria-label={senderName}
-            data-testid="shared-message-sender-avatar"
+            data-testid={
+              isParentAgentMessage
+                ? "parent-agent-sender-avatar"
+                : "shared-message-sender-avatar"
+            }
           >
-            <Avatar
-              size={28}
-              src={sharedConversationSender?.avatarUrl}
-              style={{ backgroundColor: "var(--color-fill-2)" }}
-            >
-              {senderAvatar.initials}
-            </Avatar>
+            {isParentAgentMessage ? (
+              <span
+                className="flex h-7 w-7 items-center justify-center rounded-full"
+                style={{ backgroundColor: "var(--color-fill-2)" }}
+              >
+                <SessionIdentityIcon
+                  session={parentAgentSender?.parentSession}
+                  sessionId={parentAgentSender?.parentSessionId ?? ""}
+                />
+              </span>
+            ) : (
+              <Avatar
+                size={28}
+                src={sharedConversationSender?.avatarUrl}
+                style={{ backgroundColor: "var(--color-fill-2)" }}
+              >
+                {senderAvatar.initials}
+              </Avatar>
+            )}
           </span>
           <div className="flex min-w-0 flex-col items-start">
             <span className="mb-0.5 text-xs font-medium text-text-3">
