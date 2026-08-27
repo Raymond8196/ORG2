@@ -1745,7 +1745,9 @@
         "repo": "リポジトリ",
         "systemPaths": "システムパス",
         "usedElsewhere": "他の場所で使用",
-        "workspace": "Workspace"
+        "workspace": "Workspace",
+        "thisOrg": "この組織",
+        "outsideOrg": "この組織の外"
       },
       "tabs": {
         "repositories": "リポジトリ",

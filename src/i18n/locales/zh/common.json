@@ -1628,7 +1628,9 @@
         "repo": "仓库",
         "systemPaths": "系统路径",
         "usedElsewhere": "在其他位置使用",
-        "workspace": "工作区"
+        "workspace": "工作区",
+        "thisOrg": "本组织",
+        "outsideOrg": "组织外"
       },
       "tabs": {
         "repositories": "代码仓库",

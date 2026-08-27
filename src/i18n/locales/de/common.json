@@ -1746,7 +1746,9 @@
         "repo": "Repositories",
         "systemPaths": "Systempfade",
         "usedElsewhere": "Andernorts verwendet",
-        "workspace": "Workspace"
+        "workspace": "Workspace",
+        "thisOrg": "Diese Organisation",
+        "outsideOrg": "Außerhalb dieser Organisation"
       },
       "tabs": {
         "repositories": "Repositories",

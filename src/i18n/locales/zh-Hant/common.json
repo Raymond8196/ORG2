@@ -1760,7 +1760,9 @@
         "repo": "倉庫",
         "systemPaths": "系統路徑",
         "usedElsewhere": "在其他位置使用",
-        "workspace": "工作區"
+        "workspace": "工作區",
+        "thisOrg": "本組織",
+        "outsideOrg": "組織外"
       },
       "tabs": {
         "repositories": "代碼倉庫",

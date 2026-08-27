@@ -1756,7 +1756,9 @@
         "repo": "Repozytoria",
         "systemPaths": "Ścieżki systemowe",
         "usedElsewhere": "Używane gdzie indziej",
-        "workspace": "Workspace"
+        "workspace": "Workspace",
+        "thisOrg": "Ta organizacja",
+        "outsideOrg": "Poza tą organizacją"
       },
       "tabs": {
         "repositories": "Repozytoria",

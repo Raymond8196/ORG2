@@ -1745,7 +1745,9 @@
         "repo": "리포지토리",
         "systemPaths": "시스템 경로",
         "usedElsewhere": "다른 곳에서 사용됨",
-        "workspace": "Workspace"
+        "workspace": "Workspace",
+        "thisOrg": "이 조직",
+        "outsideOrg": "이 조직 외부"
       },
       "tabs": {
         "repositories": "저장소",

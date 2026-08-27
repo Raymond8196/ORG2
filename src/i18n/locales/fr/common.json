@@ -1746,7 +1746,9 @@
         "repo": "Dépôts",
         "systemPaths": "Chemins système",
         "usedElsewhere": "Utilisé ailleurs",
-        "workspace": "Espace de travail"
+        "workspace": "Espace de travail",
+        "thisOrg": "Cette organisation",
+        "outsideOrg": "En dehors de cette organisation"
       },
       "tabs": {
         "repositories": "Dépôts",

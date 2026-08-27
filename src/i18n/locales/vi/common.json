@@ -1745,7 +1745,9 @@
         "repo": "Kho lưu trữ",
         "systemPaths": "Đường dẫn hệ thống",
         "usedElsewhere": "Được dùng ở nơi khác",
-        "workspace": "Workspace"
+        "workspace": "Workspace",
+        "thisOrg": "Tổ chức này",
+        "outsideOrg": "Ngoài tổ chức này"
       },
       "tabs": {
         "repositories": "Kho lưu trữ",

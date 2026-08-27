@@ -1747,7 +1747,9 @@
         "repo": "Depolar",
         "systemPaths": "Sistem Yolları",
         "usedElsewhere": "Başka yerde kullanıldı",
-        "workspace": "Workspace"
+        "workspace": "Workspace",
+        "thisOrg": "Bu organizasyon",
+        "outsideOrg": "Bu organizasyonun dışında"
       },
       "tabs": {
         "repositories": "Depolar",
