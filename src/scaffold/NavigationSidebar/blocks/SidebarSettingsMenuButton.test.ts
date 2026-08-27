@@ -117,18 +117,14 @@ describe("SidebarSettingsMenuButton", () => {
     expect(tutorialButton).toBeDefined();
   });
 
-  it("reopens the setup checklist through shared app navigation", () => {
+  it("does not expose the retired setup walkthrough", () => {
     const setupButton = Array.from(
       document.body.querySelectorAll("button")
     ).find(
       (button) => button.textContent === "sidebar.settingsMenu.setupChecklist"
     );
 
-    expect(setupButton).toBeDefined();
-    act(() => setupButton?.click());
-
-    expect(mocks.navigateTo).toHaveBeenCalledWith("/orgii/app/walkthrough");
-    expect(mocks.closeDropdown).toHaveBeenCalled();
+    expect(setupButton).toBeUndefined();
   });
 
   it("moves the onboarding test panel into the Dev Mode menu list", () => {
