@@ -3,7 +3,6 @@ import {
   ChevronRight,
   Circle,
   Contrast,
-  FlaskConical,
   Gauge,
   HelpCircle,
   Laptop,
@@ -41,10 +40,6 @@ import {
 } from "@src/hooks/dropdown";
 import { useAppNavigation } from "@src/hooks/navigation";
 import { useAppearanceState } from "@src/modules/MainApp/Settings/sections/useAppearanceState";
-import {
-  DeveloperTestPanel,
-  isDeveloperTestPanelEnabled,
-} from "@src/scaffold/DeveloperTestPanel";
 import { openAgentControlSpotlight } from "@src/scaffold/GlobalSpotlight/openSpotlight";
 import { ADE_MANAGER_TOGGLE_SHORTCUT_ID } from "@src/scaffold/GlobalSpotlight/palettes/AgentControlPalette/constants";
 import { TUTORIALS_OPEN_EVENT } from "@src/scaffold/Tutorials/tutorialRegistry";
@@ -65,7 +60,7 @@ const SUBMENU_WIDTH_PX = 220;
 const SUBMENU_GAP_PX = DROPDOWN_PANEL.submenuGap;
 const MENU_ICON_CLASS_NAME = "shrink-0 text-text-2";
 const MENU_ARROW_CLASS_NAME = "text-text-3";
-type SettingsUtilityPanel = "developerTests" | "ram";
+type SettingsUtilityPanel = "ram";
 
 interface SidebarSettingsMenuTriggerProps {
   isOpen: boolean;
@@ -105,8 +100,6 @@ const SidebarSettingsMenuButton: React.FC<SidebarSettingsMenuButtonProps> = ({
   const { t: tSettings } = useTranslation("settings");
   const { goToSettings } = useAppNavigation();
   const devModeEnabled = useAtomValue(devModeEnabledAtom);
-  const developerTestPanelEnabled =
-    devModeEnabled && isDeveloperTestPanelEnabled();
   const utilityPanelRef = useRef<HTMLDivElement | null>(null);
   const submenuPanelRef = useRef<HTMLDivElement | null>(null);
   const preserveUtilityPanelOnMenuCloseRef = useRef(false);
@@ -223,10 +216,6 @@ const SidebarSettingsMenuButton: React.FC<SidebarSettingsMenuButtonProps> = ({
 
   const handleViewRam = useCallback(() => {
     handleOpenUtilityPanel("ram");
-  }, [handleOpenUtilityPanel]);
-
-  const handleOpenDeveloperTests = useCallback(() => {
-    handleOpenUtilityPanel("developerTests");
   }, [handleOpenUtilityPanel]);
 
   const handleOpenTutorials = useCallback(() => {
@@ -368,37 +357,19 @@ const SidebarSettingsMenuButton: React.FC<SidebarSettingsMenuButtonProps> = ({
               </button>
               <div className={DROPDOWN_CLASSES.menuSeparatorInset} />
               {devModeEnabled && (
-                <>
-                  <button
-                    type="button"
-                    className={`${DROPDOWN_CLASSES.menuActionItem} gap-2`}
-                    onMouseEnter={() => setActiveSubmenu(null)}
-                    onFocus={() => setActiveSubmenu(null)}
-                    onClick={handleViewRam}
-                  >
-                    <Gauge
-                      size={DROPDOWN_ITEM.iconSize}
-                      className={MENU_ICON_CLASS_NAME}
-                    />
-                    <span>{t("sidebar.settingsMenu.viewRam")}</span>
-                  </button>
-                  {developerTestPanelEnabled && (
-                    <button
-                      type="button"
-                      className={`${DROPDOWN_CLASSES.menuActionItem} gap-2`}
-                      onMouseEnter={() => setActiveSubmenu(null)}
-                      onFocus={() => setActiveSubmenu(null)}
-                      onClick={handleOpenDeveloperTests}
-                      data-testid="sidebar-open-developer-test-panel"
-                    >
-                      <FlaskConical
-                        size={DROPDOWN_ITEM.iconSize}
-                        className={MENU_ICON_CLASS_NAME}
-                      />
-                      <span>{t("sidebar.developerTestPanel.title")}</span>
-                    </button>
-                  )}
-                </>
+                <button
+                  type="button"
+                  className={`${DROPDOWN_CLASSES.menuActionItem} gap-2`}
+                  onMouseEnter={() => setActiveSubmenu(null)}
+                  onFocus={() => setActiveSubmenu(null)}
+                  onClick={handleViewRam}
+                >
+                  <Gauge
+                    size={DROPDOWN_ITEM.iconSize}
+                    className={MENU_ICON_CLASS_NAME}
+                  />
+                  <span>{t("sidebar.settingsMenu.viewRam")}</span>
+                </button>
               )}
               {/*
                 TODO(changelog-web): Restore the Changelog item here, directly
@@ -563,15 +534,6 @@ const SidebarSettingsMenuButton: React.FC<SidebarSettingsMenuButtonProps> = ({
           panelPosition={utilityPanelPosition}
         />
       )}
-      {developerTestPanelEnabled &&
-        utilityPanel === "developerTests" &&
-        utilityPanelPosition && (
-          <DeveloperTestPanel
-            panelRef={utilityPanelRef}
-            panelPosition={utilityPanelPosition}
-            onClose={() => setUtilityPanel(null)}
-          />
-        )}
     </>
   );
 };
