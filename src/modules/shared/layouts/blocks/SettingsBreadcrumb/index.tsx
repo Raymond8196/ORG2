@@ -20,12 +20,12 @@
  * in `SEGMENT_REGISTRY` — no per-page wiring.
  */
 import { useAtomValue } from "jotai";
-import { Check, ChevronRight, type LucideIcon, Search } from "lucide-react";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import AnyIcon, { type RenderableIcon } from "@src/components/AnyIcon";
 import {
   DROPDOWN_CLASSES,
   DROPDOWN_ITEM,
@@ -49,6 +49,12 @@ import {
 import type { CoreSettingsItemSegment } from "@src/config/mainAppPaths";
 import { useDropdownEngine } from "@src/hooks/dropdown";
 import { useTauriSelectAllShortcut } from "@src/hooks/keyboard";
+import {
+  ArrowRight01Icon,
+  HugeiconsIcon,
+  Search01Icon,
+  Tick01Icon,
+} from "@src/icons";
 import { devModeEnabledAtom } from "@src/store/platform/devModeAtom";
 import {
   settingsSelectionTitleAtom,
@@ -78,7 +84,7 @@ interface SettingsSelectorItem {
   readonly id: SettingsSelectorItemId;
   readonly label: string;
   readonly path: string;
-  readonly icon: LucideIcon | null;
+  readonly icon: RenderableIcon | null;
   readonly groupId: string;
 }
 
@@ -139,7 +145,9 @@ function isSettingsSelectorItemActive(
 }
 
 const Separator: React.FC = () => (
-  <ChevronRight
+  <HugeiconsIcon
+    icon={ArrowRight01Icon}
+    data-icon="chevron-right"
     size={DROPDOWN_ITEM.iconSize}
     strokeWidth={1.75}
     className="flex-shrink-0 text-fill-4"
@@ -286,7 +294,9 @@ const SettingsBreadcrumb: React.FC<SettingsBreadcrumbProps> = ({
             }}
           >
             <div className={DROPDOWN_CLASSES.searchContainer}>
-              <Search
+              <HugeiconsIcon
+                icon={Search01Icon}
+                data-icon="search"
                 size={DROPDOWN_SEARCH.iconSize}
                 className="shrink-0 text-text-3"
               />
@@ -350,7 +360,8 @@ const SettingsBreadcrumb: React.FC<SettingsBreadcrumbProps> = ({
                           }`}
                         >
                           {Icon && (
-                            <Icon
+                            <AnyIcon
+                              icon={Icon}
                               size={DROPDOWN_ITEM.iconSize}
                               className={`shrink-0 ${
                                 isActive ? "text-primary-6" : "text-text-2"
@@ -361,7 +372,9 @@ const SettingsBreadcrumb: React.FC<SettingsBreadcrumbProps> = ({
                             {item.label}
                           </span>
                           {isActive && (
-                            <Check
+                            <HugeiconsIcon
+                              icon={Tick01Icon}
+                              data-icon="check"
                               size={DROPDOWN_ITEM.iconSize}
                               className="shrink-0 text-primary-6"
                             />

@@ -10,7 +10,6 @@
  * `WorkspacePalette` (Spotlight) otherwise.
  */
 import { useAtomValue, useSetAtom } from "jotai";
-import { Check, Search } from "lucide-react";
 import React, {
   useCallback,
   useEffect,
@@ -22,6 +21,7 @@ import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
 import { repoApi } from "@src/api/tauri/repo";
+import AnyIcon from "@src/components/AnyIcon";
 import {
   DROPDOWN_CLASSES,
   DROPDOWN_ITEM,
@@ -37,6 +37,7 @@ import {
   useDropdownEngine,
 } from "@src/hooks/dropdown";
 import { useTauriSelectAllShortcut } from "@src/hooks/keyboard";
+import { HugeiconsIcon, Search01Icon, Tick01Icon } from "@src/icons";
 import { REPO_KIND, cachedReposAtom } from "@src/store/repo";
 import {
   isMultiRootWorkspaceAtom,
@@ -129,9 +130,14 @@ const RepoRow: React.FC<RepoRowProps> = ({
     >
       <span className="flex h-5 w-5 shrink-0 items-center justify-center">
         {isCurrent ? (
-          <Check size={DROPDOWN_ITEM.iconSize} className="text-primary-6" />
+          <HugeiconsIcon
+            icon={Tick01Icon}
+            data-icon="check"
+            size={DROPDOWN_ITEM.iconSize}
+            className="text-primary-6"
+          />
         ) : (
-          <Icon size={DROPDOWN_ITEM.iconSize} />
+          <AnyIcon icon={Icon} size={DROPDOWN_ITEM.iconSize} />
         )}
       </span>
       <div className="flex min-w-0 flex-1 flex-col items-start">
@@ -163,9 +169,14 @@ const WorkspaceRow: React.FC<WorkspaceRowProps> = ({
     >
       <span className="flex h-5 w-5 shrink-0 items-center justify-center">
         {isActive ? (
-          <Check size={DROPDOWN_ITEM.iconSize} className="text-primary-6" />
+          <HugeiconsIcon
+            icon={Tick01Icon}
+            data-icon="check"
+            size={DROPDOWN_ITEM.iconSize}
+            className="text-primary-6"
+          />
         ) : (
-          <ICONS.workspace size={DROPDOWN_ITEM.iconSize} />
+          <HugeiconsIcon icon={ICONS.workspace} size={DROPDOWN_ITEM.iconSize} />
         )}
       </span>
       <span className="min-w-0 flex-1 truncate text-left">
@@ -186,7 +197,7 @@ const OpenPathRow: React.FC<OpenPathRowProps> = ({ item, keyboardProps }) => {
       className={`${DROPDOWN_CLASSES.item} ${DROPDOWN_CLASSES.itemHover} w-full justify-start`}
     >
       <span className="flex h-5 w-5 shrink-0 items-center justify-center">
-        {Icon && <Icon size={DROPDOWN_ITEM.iconSize} />}
+        {Icon && <AnyIcon icon={Icon} size={DROPDOWN_ITEM.iconSize} />}
       </span>
       <div className="flex min-w-0 flex-1 flex-col items-start">
         <span className="truncate">{item.label}</span>
@@ -638,7 +649,9 @@ export const WorkspaceDropdown: React.FC<WorkspaceDropdownProps> = ({
       }}
     >
       <div className={DROPDOWN_CLASSES.searchContainer}>
-        <Search
+        <HugeiconsIcon
+          icon={Search01Icon}
+          data-icon="search"
           size={DROPDOWN_ITEM.iconSize}
           className="shrink-0 text-text-3"
         />

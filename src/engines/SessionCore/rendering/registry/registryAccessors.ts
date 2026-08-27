@@ -3,17 +3,17 @@
  *
  * Utility functions for working with the event registry
  */
-import {
-  Brain,
-  HelpCircle,
-  type LucideIcon,
-  MessageSquare,
-  User,
-} from "lucide-react";
 import type { ComponentType, LazyExoticComponent } from "react";
 
 import { getToolIconComponent } from "@src/config/toolIcons";
 import { resolveToolName } from "@src/engines/SessionCore/rendering/registry/toolAliases";
+import {
+  BrainIcon,
+  HelpCircleIcon,
+  type IconSvgElement,
+  Message01Icon,
+  UserIcon,
+} from "@src/icons";
 
 import { getAllEventTypes } from "./events";
 
@@ -29,7 +29,7 @@ export {
 export interface ComponentOption {
   id: string;
   displayName: string;
-  icon: LucideIcon;
+  icon: IconSvgElement;
   description: string;
   component: LazyExoticComponent<ComponentType<Record<string, unknown>>>;
 }
@@ -62,26 +62,26 @@ export function prefetchCommonComponents(): void {
  * Conversation / lifecycle rows — match SessionCore chat blocks.
  * Agent replies use `MessageSquare` like `AgentMessageBlock`; tools use Rust-backed icons below.
  */
-const TRAJECTORY_CHAT_ALIGNED_ICON: Record<string, LucideIcon> = {
-  message: MessageSquare,
+const TRAJECTORY_CHAT_ALIGNED_ICON: Record<string, IconSvgElement> = {
+  message: Message01Icon,
   /** User prompts — same `MessageSquare` as assistant `message` rows (chat-aligned) */
-  user_message: MessageSquare,
+  user_message: Message01Icon,
   /** Fallback if functionName is still `user_input` before grouping */
-  user_input: MessageSquare,
-  thinking: Brain,
-  ask_user_questions: HelpCircle,
-  raw_event: User,
+  user_input: Message01Icon,
+  thinking: BrainIcon,
+  ask_user_questions: HelpCircleIcon,
+  raw_event: UserIcon,
 };
 
 /**
- * Lucide icon for a trajectory row: same rules as chat `ToolCallBlock` / `getToolIconComponent`
+ * Icon for a trajectory row: same rules as chat `ToolCallBlock` / `getToolIconComponent`
  * (Rust `list_all_tools` icon ids + `TOOL_ICON_COMPONENTS` fallbacks). Pass the group's
  * representative `functionName` (first event) so grouped `command` / `search` resolve correctly.
  */
 export function getTrajectoryTimelineIcon(
   groupType: string,
   toolNameForRust?: string
-): LucideIcon {
+): IconSvgElement {
   const chatAligned = TRAJECTORY_CHAT_ALIGNED_ICON[groupType];
   if (chatAligned) {
     return chatAligned;

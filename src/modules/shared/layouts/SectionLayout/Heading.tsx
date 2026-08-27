@@ -18,6 +18,9 @@ import React, {
   useId,
 } from "react";
 
+import AnyIcon from "@src/components/AnyIcon";
+import type { IconSvgElement } from "@src/icons";
+
 import {
   SECTION_GAP_CLASSES,
   SECTION_HEADING_CLASSES,
@@ -38,12 +41,14 @@ export interface SectionHeadingProps {
   /** Supporting copy for the `intro` appearance. */
   description?: React.ReactNode;
   /** Leading icon for the `intro` appearance. */
-  icon?: ComponentType<{
-    size?: number | string;
-    strokeWidth?: number | string;
-    className?: string;
-    "aria-hidden"?: AriaAttributes["aria-hidden"];
-  }>;
+  icon?:
+    | IconSvgElement
+    | ComponentType<{
+        size?: number | string;
+        strokeWidth?: number | string;
+        className?: string;
+        "aria-hidden"?: AriaAttributes["aria-hidden"];
+      }>;
   /** Semantic heading level. Defaults to 2 for section and 1 for intro. */
   headingLevel?: 1 | 2 | 3;
   /** Additional class for the outer content group. */
@@ -76,7 +81,8 @@ const SectionHeading: React.FC<SectionHeadingProps> = memo(
         >
           <header className={SECTION_INTRO_TOKENS.header}>
             {Icon && (
-              <Icon
+              <AnyIcon
+                icon={Icon}
                 size={SECTION_INTRO_TOKENS.iconSize}
                 strokeWidth={1.7}
                 className={SECTION_INTRO_TOKENS.icon}

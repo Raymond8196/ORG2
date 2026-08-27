@@ -1,5 +1,4 @@
 // @vitest-environment jsdom
-import { Chrome, SquareArrowOutUpRight } from "lucide-react";
 import React, { act, createElement } from "react";
 import { type Root, createRoot } from "react-dom/client";
 import {
@@ -13,6 +12,7 @@ import {
   vi,
 } from "vitest";
 
+import { InternetIcon, SquareArrowUpRightIcon } from "@src/icons";
 import type { WorkItem } from "@src/types/core/workItem";
 
 import type { ManagedPrItem } from "../../WorkManagement/githubManagedItemModel";
@@ -479,16 +479,18 @@ describe("TeamInboxView split layout", () => {
     ) as Array<
       React.ReactElement<{
         label: string;
-        icon: React.ReactElement;
+        // The pane wraps glyph data in <HugeiconsIcon icon={…}/>, so the
+        // identity to assert on is the element's `icon` prop, not its type.
+        icon: React.ReactElement<{ icon: unknown }>;
         onClick: () => void;
         testId: string;
       }>
     >;
     expect(browserAction.props.label).toBe("previews.openInExternalBrowser");
-    expect(browserAction.props.icon.type).toBe(Chrome);
+    expect(browserAction.props.icon.props.icon).toBe(InternetIcon);
     expect(browserAction.props.testId).toBe("team-inbox-open-github-pr");
     expect(tabAction.props.label).toBe("teamInbox.actions.openPullRequest");
-    expect(tabAction.props.icon.type).toBe(SquareArrowOutUpRight);
+    expect(tabAction.props.icon.props.icon).toBe(SquareArrowUpRightIcon);
     expect(tabAction.props.testId).toBe("team-inbox-open-pr-tab");
     act(() => browserAction.props.onClick());
     expect(openExternalLink).toHaveBeenCalledWith(

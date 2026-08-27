@@ -9,7 +9,6 @@
  * - Result count and up/down navigation
  * - Escape to close
  */
-import { X } from "lucide-react";
 import {
   type RefObject,
   forwardRef,
@@ -21,6 +20,7 @@ import {
 import { useTranslation } from "react-i18next";
 
 import { SearchInput } from "@src/components/SearchInput";
+import { Cancel01Icon, HugeiconsIcon } from "@src/icons";
 
 import type { UseChatSearchReturn } from "../hooks/useChatSearch";
 
@@ -154,7 +154,7 @@ export const ChatSearchBar = forwardRef<
           className="flex h-5 w-5 items-center justify-center rounded text-text-3 transition-colors hover:bg-fill-3 hover:text-text-1"
           title={t("chat.closeEsc")}
         >
-          <X size={14} />
+          <HugeiconsIcon icon={Cancel01Icon} data-icon="x" size={14} />
         </button>
       </div>
     </div>

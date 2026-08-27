@@ -9,7 +9,6 @@
  * Chosen by `general.modelPickerStyle === "dropdown"`. Falls through to
  * `BranchPalette` (Spotlight) otherwise.
  */
-import { Check, Folder, GitBranch, Search } from "lucide-react";
 import React, {
   useCallback,
   useEffect,
@@ -31,6 +30,13 @@ import {
 } from "@src/hooks/dropdown";
 import { useTauriSelectAllShortcut } from "@src/hooks/keyboard";
 import { useFilteredItems } from "@src/hooks/search";
+import {
+  FolderClosedIcon,
+  HugeiconsIcon,
+  Search01Icon,
+  Tick01Icon,
+  WorkflowCircle05Icon,
+} from "@src/icons";
 import { getViewportSize } from "@src/util/ui/window/viewport";
 
 import type { BranchItem } from "../../types";
@@ -64,11 +70,26 @@ const BranchRow: React.FC<BranchRowProps> = ({
     >
       <span className="flex h-5 w-5 shrink-0 items-center justify-center">
         {isCurrent ? (
-          <Check size={DROPDOWN_ITEM.iconSize} className="text-primary-6" />
+          <HugeiconsIcon
+            icon={Tick01Icon}
+            data-icon="check"
+            size={DROPDOWN_ITEM.iconSize}
+            className="text-primary-6"
+          />
         ) : branch.worktreePath ? (
-          <Folder size={DROPDOWN_ITEM.iconSize} className="text-text-2" />
+          <HugeiconsIcon
+            icon={FolderClosedIcon}
+            data-icon="folder"
+            size={DROPDOWN_ITEM.iconSize}
+            className="text-text-2"
+          />
         ) : (
-          <GitBranch size={DROPDOWN_ITEM.iconSize} className="text-text-2" />
+          <HugeiconsIcon
+            icon={WorkflowCircle05Icon}
+            data-icon="git-branch"
+            size={DROPDOWN_ITEM.iconSize}
+            className="text-text-2"
+          />
         )}
       </span>
       <span className="truncate">{branch.name}</span>
@@ -245,7 +266,9 @@ export const BranchDropdown: React.FC<BranchDropdownProps> = ({
       }}
     >
       <div className={DROPDOWN_CLASSES.searchContainer}>
-        <Search
+        <HugeiconsIcon
+          icon={Search01Icon}
+          data-icon="search"
           size={DROPDOWN_ITEM.iconSize}
           className="shrink-0 text-text-3"
         />

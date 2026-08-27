@@ -62,7 +62,7 @@ export interface SubpageAnchor {
   id: string;
   /** Display label for the anchor link */
   label: string;
-  /** Optional Lucide icon component */
+  /** Optional icon glyph */
   icon?: React.FC<{ size?: number; strokeWidth?: number; className?: string }>;
 }
 

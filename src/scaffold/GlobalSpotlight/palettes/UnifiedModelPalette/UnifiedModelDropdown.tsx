@@ -10,7 +10,6 @@
  * active variant is chosen by the `general.modelPickerStyle` setting and
  * dispatched in `ModelPill`.
  */
-import { Check, ChevronRight, Search } from "lucide-react";
 import React, {
   useCallback,
   useEffect,
@@ -20,6 +19,7 @@ import React, {
 } from "react";
 import { createPortal } from "react-dom";
 
+import AnyIcon from "@src/components/AnyIcon";
 import HoverSafeSubmenuBridge from "@src/components/Dropdown/HoverSafeSubmenuBridge";
 import {
   DROPDOWN_CLASSES,
@@ -33,6 +33,12 @@ import {
 } from "@src/hooks/dropdown";
 import { useTauriSelectAllShortcut } from "@src/hooks/keyboard";
 import { useFilteredItems } from "@src/hooks/search";
+import {
+  ArrowRight01Icon,
+  HugeiconsIcon,
+  Search01Icon,
+  Tick01Icon,
+} from "@src/icons";
 import { getViewportSize } from "@src/util/ui/window/viewport";
 
 import type { SpotlightItem } from "../../shared";
@@ -82,21 +88,16 @@ const DropdownRow: React.FC<DropdownRowProps> = ({
   const renderedIcon = useMemo(() => {
     if (isCurrent) {
       return (
-        <Check
+        <HugeiconsIcon
+          icon={Tick01Icon}
+          data-icon="check"
           size={DROPDOWN_ITEM.iconSize}
           strokeWidth={2.25}
           className="text-primary-6"
         />
       );
     }
-    if (!item.icon) return null;
-    if (typeof item.icon === "string") {
-      return <i className={`${item.icon} text-[14px] text-text-2`} />;
-    }
-    return React.createElement(item.icon, {
-      size: 14,
-      className: "text-text-2",
-    });
+    return <AnyIcon icon={item.icon} size={14} className="text-text-2" />;
   }, [item.icon, isCurrent]);
 
   if (isHeaderItem(item)) {
@@ -149,7 +150,9 @@ const DropdownRow: React.FC<DropdownRowProps> = ({
         )
       )}
       {submenuSide && (
-        <ChevronRight
+        <HugeiconsIcon
+          icon={ArrowRight01Icon}
+          data-icon="chevron-right"
           size={DROPDOWN_ITEM.iconSize}
           className="shrink-0 text-text-3"
         />
@@ -477,7 +480,9 @@ export const UnifiedModelDropdown: React.FC<UnifiedModelDropdownProps> = ({
         }}
       >
         <div className={DROPDOWN_CLASSES.searchContainer}>
-          <Search
+          <HugeiconsIcon
+            icon={Search01Icon}
+            data-icon="search"
             size={DROPDOWN_ITEM.iconSize}
             className="shrink-0 text-text-3"
           />

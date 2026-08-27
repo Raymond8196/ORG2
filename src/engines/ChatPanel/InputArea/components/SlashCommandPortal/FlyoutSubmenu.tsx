@@ -5,6 +5,7 @@ import {
   DROPDOWN_CLASSES,
   DROPDOWN_PANEL,
 } from "@src/components/Dropdown/tokens";
+import { HugeiconsIcon } from "@src/icons";
 import type { SlashItem, SlashItemCategory } from "@src/types/extensions";
 
 import { categoryIcon } from "./constants";
@@ -145,7 +146,8 @@ const FlyoutSubmenu: React.FC<FlyoutSubmenuProps> = ({
                     }}
                   >
                     <div className="flex min-w-0 items-center gap-2">
-                      {React.createElement(Icon, {
+                      {React.createElement(HugeiconsIcon, {
+                        icon: Icon,
                         size: 14,
                         strokeWidth: 1.75,
                         className: "shrink-0 text-text-2",

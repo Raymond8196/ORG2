@@ -1,12 +1,4 @@
 import { useAtomValue } from "jotai";
-import {
-  ClipboardCheck,
-  File,
-  Image,
-  PencilLine,
-  Sparkles,
-  Undo2,
-} from "lucide-react";
 import React, {
   type FC,
   type MouseEvent,
@@ -32,6 +24,15 @@ import type { ConversationSenderStamp } from "@src/features/Org2Cloud/SessionCon
 import { CONVERSATION_SENDER_ARG } from "@src/features/Org2Cloud/SessionConversation/continuationEvents";
 import { discussionPayloadOf } from "@src/features/Org2Cloud/SessionConversation/discussionEvents";
 import { org2CloudAuthAtom } from "@src/features/Org2Cloud/org2CloudAuthAtom";
+import {
+  ClipboardCheckIcon,
+  File01Icon,
+  HugeiconsIcon,
+  Image01Icon,
+  PencilEdit01Icon,
+  SparklesIcon,
+  Undo02Icon,
+} from "@src/icons";
 import { createCollabAvatarIdentity } from "@src/store/collaboration/protocol";
 import {
   formatSmartDateTime,
@@ -107,9 +108,21 @@ const CachedFileChip: FC<{
         onClick={onTogglePreview}
       >
         {isImg ? (
-          <Image size={13} strokeWidth={1.75} className="text-text-2" />
+          <HugeiconsIcon
+            icon={Image01Icon}
+            data-icon="image"
+            size={13}
+            strokeWidth={1.75}
+            className="text-text-2"
+          />
         ) : (
-          <File size={13} strokeWidth={1.75} className="text-text-2" />
+          <HugeiconsIcon
+            icon={File01Icon}
+            data-icon="file"
+            size={13}
+            strokeWidth={1.75}
+            className="text-text-2"
+          />
         )}
         <span className="text-text-2">{fileName}</span>
       </div>
@@ -134,7 +147,13 @@ const CachedFileChip: FC<{
             />
           ) : (
             <div className="flex h-full flex-col items-center justify-center">
-              <File size={32} strokeWidth={1.75} color="#888" />
+              <HugeiconsIcon
+                icon={File01Icon}
+                data-icon="file"
+                size={32}
+                strokeWidth={1.75}
+                color="#888"
+              />
               <div className="mt-2 text-white">{fileName}</div>
               <a
                 href={file}
@@ -428,14 +447,24 @@ const UserChatItem = ({
         <div className="flex min-w-0 flex-1 flex-col gap-[6px]">
           {isRepoSetup ? (
             <div className="flex items-center gap-2 py-0.5">
-              <Sparkles size={14} className="text-primary-6" />
+              <HugeiconsIcon
+                icon={SparklesIcon}
+                data-icon="sparkles"
+                size={14}
+                className="text-primary-6"
+              />
               <span className="chat-block-title font-medium text-text-1">
                 {t("chat.repoSetupLabel")}
               </span>
             </div>
           ) : isPlanApproved ? (
             <div className="flex items-center gap-2 py-0.5">
-              <ClipboardCheck size={14} className="text-primary-6" />
+              <HugeiconsIcon
+                icon={ClipboardCheckIcon}
+                data-icon="clipboard-check"
+                size={14}
+                className="text-primary-6"
+              />
               <span className="chat-block-title font-medium text-text-1">
                 {planApprovedEdited
                   ? t(
@@ -541,7 +570,12 @@ const UserChatItem = ({
                     onRestoreCheckpoint();
                   }}
                 >
-                  <Undo2 size={15} strokeWidth={1.75} />
+                  <HugeiconsIcon
+                    icon={Undo02Icon}
+                    data-icon="undo-2"
+                    size={15}
+                    strokeWidth={1.75}
+                  />
                 </button>
               )}
               {isEditableDisplay && (
@@ -554,7 +588,12 @@ const UserChatItem = ({
                     handleEditClick();
                   }}
                 >
-                  <PencilLine size={14} strokeWidth={1.75} />
+                  <HugeiconsIcon
+                    icon={PencilEdit01Icon}
+                    data-icon="pencil-line"
+                    size={14}
+                    strokeWidth={1.75}
+                  />
                 </button>
               )}
               {toolbarActions}

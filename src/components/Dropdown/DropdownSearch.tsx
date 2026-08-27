@@ -22,11 +22,11 @@
  * </DropdownPanel>
  * ```
  */
-import { Search } from "lucide-react";
 import React, { forwardRef, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useTauriSelectAllShortcut } from "@src/hooks/keyboard";
+import { HugeiconsIcon, Search01Icon } from "@src/icons";
 
 import { DROPDOWN_CLASSES, DROPDOWN_SEARCH } from "./tokens";
 
@@ -115,7 +115,9 @@ const DropdownSearch = forwardRef<HTMLInputElement, DropdownSearchProps>(
         onClick={handlePointerGuard}
         onMouseDown={handleMouseDown}
       >
-        <Search
+        <HugeiconsIcon
+          icon={Search01Icon}
+          data-icon="search"
           size={DROPDOWN_SEARCH.iconSize}
           className="flex-shrink-0 text-text-3"
         />

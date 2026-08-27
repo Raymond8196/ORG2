@@ -4,14 +4,13 @@
  * Centralized reducer managing all spotlight state.
  * Eliminates cascading re-renders by using a single state tree.
  */
-import { Folder, GitBranch } from "lucide-react";
-
 import {
   LANGUAGE_NAMES,
   LANGUAGE_PREFERENCE,
   type LanguagePreference,
   type SupportedLanguage,
 } from "@src/i18n";
+import { FolderClosedIcon, WorkflowCircle05Icon } from "@src/icons";
 import { REPO_KIND } from "@src/store/repo/types";
 
 import { TAG_COLORS, getActionById } from "../../config";
@@ -181,7 +180,7 @@ export function spotlightReducer(
           type: "repo" as const,
           id: repo.id,
           label: repo.name,
-          icon: Folder,
+          icon: FolderClosedIcon,
           color: TAG_COLORS.repo,
           data: repo,
         },
@@ -212,7 +211,7 @@ export function spotlightReducer(
           type: "branch" as const,
           id: branchName,
           label: branchName,
-          icon: GitBranch,
+          icon: WorkflowCircle05Icon,
           color: TAG_COLORS.branch,
           data: branchData,
         },

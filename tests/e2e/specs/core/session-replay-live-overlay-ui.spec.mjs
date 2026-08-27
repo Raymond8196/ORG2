@@ -284,11 +284,11 @@ async function clickReplayControl(controlName) {
 }
 
 async function waitForPlaybackState(isPlaying) {
-  const iconClass = isPlaying ? "lucide-pause" : "lucide-play";
+  const iconName = isPlaying ? "pause" : "play";
   await browser.waitUntil(
     async () => {
       const icon = await browser.$(
-        `[data-testid="session-replay-play-pause"] svg.${iconClass}`
+        `[data-testid="session-replay-play-pause"] svg[data-icon="${iconName}"]`
       );
       return icon.isExisting();
     },

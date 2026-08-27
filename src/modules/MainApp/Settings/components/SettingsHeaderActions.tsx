@@ -21,9 +21,9 @@
  * 14px other icons). The `+` dropdown panel uses the compact dropdown
  * tokens so the popup matches the rest of the settings panel.
  */
-import { Plus } from "lucide-react";
 import React, { useState } from "react";
 
+import AnyIcon from "@src/components/AnyIcon";
 import Dropdown from "@src/components/Dropdown";
 import {
   DROPDOWN_CLASSES,
@@ -32,6 +32,7 @@ import {
 import { TabBarTrailingIconButton } from "@src/components/TabPill/TabBarTrailingIconButton";
 import Tooltip from "@src/components/Tooltip";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
+import { Add01Icon, HugeiconsIcon } from "@src/icons";
 import type {
   RouteToolbarButton,
   ToolbarDropdownItem,
@@ -51,7 +52,8 @@ const HeaderIconButton: React.FC<HeaderIconButtonProps> = ({ item }) => {
   const icon =
     item.iconElement ??
     (item.icon ? (
-      <item.icon
+      <AnyIcon
+        icon={item.icon}
         size={HEADER_ICON_SIZE.sm}
         strokeWidth={2}
         className={item.iconClassName}
@@ -113,7 +115,7 @@ const CompactPlusDropdown: React.FC<CompactPlusDropdownProps> = ({
             />
           );
         }
-        const IconComponent = item.icon;
+        const icon = item.icon;
         return (
           <button
             key={item.id}
@@ -128,7 +130,8 @@ const CompactPlusDropdown: React.FC<CompactPlusDropdownProps> = ({
             }`}
           >
             <span className="flex min-w-0 flex-1 items-center gap-2">
-              <IconComponent
+              <AnyIcon
+                icon={icon}
                 size={HEADER_ICON_SIZE.sm}
                 strokeWidth={1.75}
                 className={item.isDanger ? "text-danger-6" : "text-text-1"}
@@ -158,7 +161,12 @@ const CompactPlusDropdown: React.FC<CompactPlusDropdownProps> = ({
           aria-expanded={open}
           active={open}
         >
-          <Plus size={HEADER_ICON_SIZE.md} strokeWidth={2} />
+          <HugeiconsIcon
+            icon={Add01Icon}
+            data-icon="plus"
+            size={HEADER_ICON_SIZE.md}
+            strokeWidth={2}
+          />
         </TabBarTrailingIconButton>
       </span>
     </Dropdown>
@@ -194,7 +202,12 @@ const SettingsHeaderActions: React.FC = () => {
             onClick={onPlusClick}
             aria-label={plusTitle}
           >
-            <Plus size={HEADER_ICON_SIZE.md} strokeWidth={2} />
+            <HugeiconsIcon
+              icon={Add01Icon}
+              data-icon="plus"
+              size={HEADER_ICON_SIZE.md}
+              strokeWidth={2}
+            />
           </TabBarTrailingIconButton>
         ))}
     </>

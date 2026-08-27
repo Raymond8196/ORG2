@@ -2,100 +2,99 @@
  * Icon rendering for agent tools and events.
  *
  * **Authoritative icon ids** for built-in tools come from Rust `ToolInfo.icon_id`
- * (`list_all_tools`). `LUCIDE_ICON_BY_ID` maps those kebab-case ids (lucide.dev slugs)
- * to components. Non-Lucide brand icons (e.g., MCP logo) are registered in
- * `CUSTOM_ICON_BY_ID` with a namespaced id (e.g., "mcp-logo"). Both maps are
- * checked during resolution so Rust can reference either kind.
+ * (`list_all_tools`). `ICON_BY_ID` maps those kebab-case ids to hugeicons
+ * glyph data. Brand marks (e.g., the MCP logo) are hand-authored SVG
+ * components handled outside this registry.
  *
  * NOTE: Terminal tool detection uses normalizeFunctionName() (Rust source of truth
  * via cli_agents/alias_map.rs) instead of hardcoded tool names.
  */
-import type { LucideIcon } from "lucide-react";
-import {
-  Infinity,
-  Activity,
-  ArrowBigRightDash,
-  ArrowRightLeft,
-  BellRing,
-  BookSearch,
-  Bot,
-  BotMessageSquare,
-  BotOff,
-  Box,
-  Braces,
-  Brain,
-  Briefcase,
-  CheckCircle2,
-  Chrome,
-  CircleHelp,
-  ClipboardCopy,
-  ClipboardList,
-  ClipboardPen,
-  Clock,
-  Cog,
-  Database,
-  Eye,
-  FileBox,
-  FileDiff,
-  FilePenLine,
-  FileSearch,
-  FileText,
-  Focus,
-  FolderCog,
-  FolderGit2,
-  FolderOpen,
-  FolderSearch,
-  Fullscreen,
-  GitBranch,
-  Globe,
-  Image,
-  Inbox,
-  Keyboard,
-  Layers,
-  Layout,
-  LayoutList,
-  List,
-  ListChecks,
-  ListTodo,
-  ListTree,
-  Logs,
-  Mail,
-  Map,
-  MessageCircle,
-  MessageCircleQuestionMark,
-  MessagesSquare,
-  Monitor,
-  MousePointer2,
-  MousePointerClick,
-  MoveVertical,
-  Network,
-  Plug,
-  Plus,
-  RefreshCw,
-  Search,
-  Send,
-  Share2,
-  Shield,
-  ShieldOff,
-  Sparkle,
-  Terminal,
-  Timer,
-  Trash2,
-  User,
-  Users,
-  Wrench,
-  X,
-  XCircle,
-} from "lucide-react";
 import React from "react";
 
-import { McpLogoIcon } from "@src/assets/channelIcons/McpLogoIcon";
+import AnyIcon from "@src/components/AnyIcon";
 import {
   getBuiltinToolActionIconId,
   getBuiltinToolIconId,
   getBuiltinToolStatusIconId,
   getCliUiCanonical,
 } from "@src/engines/SessionCore/rendering/registry/initToolRegistry";
+import {
+  Infinity01Icon as Infinity,
+  Activity01Icon as Activity,
+  ArrowBigRightDashIcon as ArrowBigRightDash,
+  ArrowLeftRightIcon as ArrowRightLeft,
+  NotificationBubbleIcon as BellRing,
+  BookSearchIcon as BookSearch,
+  BotIcon as Bot,
+  ChatBotIcon as BotMessageSquare,
+  BotOffIcon as BotOff,
+  BoxIcon as Box,
+  FirstBracketIcon as Braces,
+  BrainIcon as Brain,
+  Briefcase01Icon as Briefcase,
+  CheckmarkCircle01Icon as CheckCircle2,
+  InternetIcon as Chrome,
+  HelpCircleIcon as CircleHelp,
+  ClipboardCopyIcon as ClipboardCopy,
+  ClipboardListIcon as ClipboardList,
+  ClipboardPenIcon as ClipboardPen,
+  Clock01Icon as Clock,
+  CogIcon as Cog,
+  DatabaseIcon as Database,
+  ViewIcon as Eye,
+  FileBoxIcon as FileBox,
+  FileDiffIcon as FileDiff,
+  Edit04Icon as FilePenLine,
+  FileSearchIcon as FileSearch,
+  File02Icon as FileText,
+  CenterFocusIcon as Focus,
+  FolderCogIcon as FolderCog,
+  FolderGitTwoIcon as FolderGit2,
+  FolderOpenIcon as FolderOpen,
+  FolderSearchIcon as FolderSearch,
+  FullScreenIcon as Fullscreen,
+  WorkflowCircle05Icon as GitBranch,
+  InternetIcon as Globe,
+  type IconSvgElement,
+  Image01Icon as Image,
+  InboxIcon as Inbox,
+  KeyboardIcon as Keyboard,
+  Layers01Icon as Layers,
+  Layout01Icon as Layout,
+  LayoutListIcon as LayoutList,
+  ListIcon as List,
+  ListChecksIcon as ListChecks,
+  ListTodoIcon as ListTodo,
+  HierarchyFilesIcon as ListTree,
+  LogsIcon as Logs,
+  Mail01Icon as Mail,
+  MapsIcon as Map,
+  BubbleChatIcon as MessageCircle,
+  MessageCircleQuestionMarkIcon as MessageCircleQuestionMark,
+  MessageMultiple01Icon as MessagesSquare,
+  MonitorIcon as Monitor,
+  Cursor02Icon as MousePointer2,
+  CursorPointer02Icon as MousePointerClick,
+  MoveTopIcon as MoveVertical,
+  HierarchyCircle01Icon as Network,
+  Plug01Icon as Plug,
+  Add01Icon as Plus,
+  Refresh04Icon as RefreshCw,
+  Search01Icon as Search,
+  MailSend01Icon as Send,
+  Share02Icon as Share2,
+  Shield01Icon as Shield,
+  Shield02Icon as ShieldOff,
+  SparkleIcon as Sparkle,
+  ComputerTerminal01Icon as Terminal,
+  Timer01Icon as Timer,
+  Delete02Icon as Trash2,
+  UserIcon as User,
+  UserMultipleIcon as Users,
+  Wrench01Icon as Wrench,
+  Cancel01Icon as X,
+  CancelCircleIcon as XCircle,
+} from "@src/icons";
 import { normalizeFunctionName } from "@src/lib/activityData/activityNormalizers";
 
 /** Default size/class for chat ToolCallBlock and Integrations tool rows. */
@@ -103,10 +102,11 @@ export const DEFAULT_TOOL_ICON_SIZE = 14;
 export const DEFAULT_TOOL_ICON_CLASS = "text-text-2";
 
 /**
- * Maps Rust `icon_id` strings (kebab-case) to Lucide components.
+ * Maps Rust `icon_id` strings (kebab-case, lucide-era vocabulary) to
+ * hugeicons glyph data.
  * Keep in sync with `builtin_tools_list.rs` `row(..., icon_id)`.
  */
-export const LUCIDE_ICON_BY_ID: Record<string, LucideIcon> = {
+const ICON_BY_ID: Record<string, IconSvgElement> = {
   activity: Activity,
   "arrow-big-right-dash": ArrowBigRightDash,
   "arrow-right-left": ArrowRightLeft,
@@ -182,28 +182,14 @@ export const LUCIDE_ICON_BY_ID: Record<string, LucideIcon> = {
 };
 
 /**
- * Non-Lucide brand icons that Rust can reference via `icon_id`.
- * Each component must accept `LucideProps` ({ size, className, ... }).
- */
-const CUSTOM_ICON_BY_ID: Record<string, LucideIcon> = {
-  "mcp-logo": McpLogoIcon as unknown as LucideIcon,
-};
-
-/** Unified lookup: Lucide icons + custom brand icons. */
-const ICON_BY_ID: Record<string, LucideIcon> = {
-  ...LUCIDE_ICON_BY_ID,
-  ...CUSTOM_ICON_BY_ID,
-};
-
-/**
  * Aliases and legacy names only — not Rust canonical built-ins (those use
- * `getBuiltinToolIconId` + `LUCIDE_ICON_BY_ID`). Chat streams often emit
- * adapter names; keep mappings here for icons without a Lucide id path.
+ * `getBuiltinToolIconId` + `ICON_BY_ID`). Chat streams often emit
+ * adapter names; keep mappings here for icons without an `icon_id` path.
  *
  * Action-specific icons are now defined in Rust `ToolInfo.action_icons` and
  * accessed via `getBuiltinToolActionIconId(toolName, action)`.
  */
-export const TOOL_ICON_COMPONENTS: Record<string, LucideIcon> = {
+export const TOOL_ICON_COMPONENTS: Record<string, IconSvgElement> = {
   // Search aliases
   search_in_file: Search,
   search: Search,
@@ -315,7 +301,7 @@ export function isTerminalTool(toolName: string): boolean {
 }
 
 /**
- * Get the Lucide icon component for a tool.
+ * Get the icon data for a tool.
  *
  * @param toolName - Tool name (e.g., "control_browser", "read_file")
  * @param iconId - Optional explicit icon id (takes precedence)
@@ -325,7 +311,7 @@ export function getToolIconComponent(
   toolName: string,
   iconId?: string | null,
   action?: string | null
-): LucideIcon {
+): IconSvgElement {
   const uiCanonical = getCliUiCanonical(toolName);
 
   // 1. Explicit icon id takes precedence
@@ -399,17 +385,17 @@ export interface GetToolIconOptions {
 }
 
 /**
- * Renders the Lucide icon for a tool (chat, Integrations, subagents).
+ * Renders the icon for a tool (chat, Integrations, subagents).
  * Supports action-specific icons via the `action` option.
  */
 export function getToolIcon(
   toolName: string,
   options?: GetToolIconOptions
 ): React.ReactNode {
-  const Icon = getToolIconComponent(toolName, options?.iconId, options?.action);
+  const icon = getToolIconComponent(toolName, options?.iconId, options?.action);
   const size = options?.size ?? DEFAULT_TOOL_ICON_SIZE;
   const className = options?.className ?? DEFAULT_TOOL_ICON_CLASS;
-  return <Icon size={size} className={className} />;
+  return <AnyIcon icon={icon} size={size} className={className} />;
 }
 
 // ============================================
@@ -417,7 +403,7 @@ export function getToolIcon(
 // ============================================
 
 /**
- * Get the Lucide icon component for an event, optionally resolved by status.
+ * Get the icon data for an event, optionally resolved by status.
  *
  * Priority:
  * 1. Status-specific icon from Rust (e.g., approval_request + "approved" → check-circle-2)
@@ -429,7 +415,7 @@ export function getEventIconComponent(
   eventType: string,
   status?: string | null,
   action?: string | null
-): LucideIcon {
+): IconSvgElement {
   const uiCanonical = getCliUiCanonical(eventType);
 
   if (status) {
@@ -460,19 +446,19 @@ export interface GetEventIconOptions {
 }
 
 /**
- * Renders the Lucide icon for a chat event with optional status-dependent resolution.
- * All event components should use this instead of directly importing from lucide-react.
+ * Renders the icon for a chat event with optional status-dependent resolution.
+ * All event components should use this instead of importing glyphs directly.
  */
 export function getEventIcon(
   eventType: string,
   options?: GetEventIconOptions
 ): React.ReactNode {
-  const Icon = getEventIconComponent(
+  const icon = getEventIconComponent(
     eventType,
     options?.status,
     options?.action
   );
   const size = options?.size ?? DEFAULT_TOOL_ICON_SIZE;
   const className = options?.className ?? DEFAULT_TOOL_ICON_CLASS;
-  return <Icon size={size} className={className} />;
+  return <AnyIcon icon={icon} size={size} className={className} />;
 }

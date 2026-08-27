@@ -1,6 +1,7 @@
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import SessionHoverCard from "@src/components/SessionHoverCard";
 import {
   HEADER_BUTTON,
@@ -91,7 +92,7 @@ export const FileSessionHistoryParticipantView: React.FC<FileSessionHistoryParti
           <span
             className={`${HEADER_BUTTON.actionTreeRow} hidden flex-shrink-0 group-hover/session-history:flex`}
           >
-            <OpenIcon size={14} />
+            <AnyIcon icon={OpenIcon} size={14} />
           </span>
         )}
       </button>

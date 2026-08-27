@@ -7,6 +7,8 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 
+import type { IconSvgElement } from "@src/icons";
+
 import type { UseConfirmationPageReturn } from "../hooks/core/types";
 
 // ============================================
@@ -16,7 +18,7 @@ import type { UseConfirmationPageReturn } from "../hooks/core/types";
 type ConfirmationParameter = {
   label: string;
   value: string;
-  icon?: string | React.ComponentType<Record<string, unknown>>;
+  icon?: string | IconSvgElement | React.ComponentType<Record<string, unknown>>;
 };
 
 export interface SpotlightConfirmationViewProps {

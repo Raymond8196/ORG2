@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import { preloadRouteByPath } from "@src/router/lazy/preload";
 
 import type { NavigationMenuItem } from "../config";
@@ -130,11 +131,13 @@ const NavigationMenu: React.FC<NavigationMenuProps> = React.memo(
           );
         }
 
-        return React.createElement(icon, {
-          size: 14,
-          strokeWidth: 2,
-          className: `flex-shrink-0 ${colorClass}`,
-        });
+        return (
+          <AnyIcon
+            icon={icon}
+            size={14}
+            className={`flex-shrink-0 ${colorClass}`}
+          />
+        );
       },
       []
     );
