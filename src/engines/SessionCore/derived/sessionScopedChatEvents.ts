@@ -29,6 +29,7 @@ import { atom } from "jotai";
 import { atomFamily } from "jotai-family";
 
 import { createLogger } from "@src/hooks/logger";
+import { isCursorIdeSession } from "@src/util/session/sessionDispatch";
 
 import { isInteractiveTool } from "../core/interactiveTools";
 import {
@@ -42,6 +43,7 @@ import {
   isStreamingSnapshot,
 } from "../core/store/EventStoreProxy";
 import type { SessionEvent } from "../core/types";
+import { ensureCursorIdeEventsInStore } from "../sync/adapters/cursorIdeAdapter";
 import {
   derivePlanDisplayEvents,
   planEventContentSignature,
@@ -53,6 +55,8 @@ interface SnapshotState {
   snapshot: Snapshot | null;
   loadStarted: boolean;
 }
+
+export type SessionSnapshotState = SnapshotState;
 
 const EMPTY_STATE: SnapshotState = {
   snapshot: null,
@@ -103,7 +107,7 @@ function scheduleSessionFamilyRemoval(sessionId: string): void {
  * `loadFromCache` so a fresh subagent that has not been fetched yet hydrates
  * without requiring the consumer to call `useSessionEvents` separately.
  */
-const sessionSnapshotAtomFamily = atomFamily((sessionId: string) => {
+export const sessionSnapshotAtomFamily = atomFamily((sessionId: string) => {
   const a = atom<SnapshotState>(EMPTY_STATE);
   a.debugLabel = `session/${sessionId}/snapshot`;
 
@@ -128,19 +132,21 @@ const sessionSnapshotAtomFamily = atomFamily((sessionId: string) => {
       }
     );
 
-    // Best-effort hydration. If the session is already in the Rust LRU
-    // cache this triggers a `schedule_notify` and the snapshot lands via
-    // the subscription above; if it is not loaded yet, Rust loads it from
-    // SQLite. We do not await — the subscription handles the push.
-    void eventStoreProxy.loadFromCache(sessionId).catch((err: unknown) => {
-      // Swallow load errors here: the consumer (ChatHistory) is allowed
-      // to render an empty state. `useSessionEvents` already covers
-      // explicit error surfacing for callers that need it.
-      log.warn(
-        `[sessionScopedChatEvents] loadFromCache(${sessionId}) failed:`,
-        err
-      );
-    });
+    void (async () => {
+      try {
+        if (isCursorIdeSession(sessionId)) {
+          await ensureCursorIdeEventsInStore(sessionId);
+          if (disposed) return;
+        }
+        await eventStoreProxy.loadFromCache(sessionId);
+      } catch (err: unknown) {
+        if (disposed) return;
+        log.warn(
+          `[sessionScopedChatEvents] hydrate(${sessionId}) failed:`,
+          err
+        );
+      }
+    })();
 
     return () => {
       disposed = true;
@@ -152,7 +158,9 @@ const sessionSnapshotAtomFamily = atomFamily((sessionId: string) => {
   return a;
 });
 
-function extractChatEvents(snapshot: Snapshot | null): SessionEvent[] {
+export function extractSessionChatEvents(
+  snapshot: Snapshot | null
+): SessionEvent[] {
   if (!snapshot) return [];
   if (isStreamingSnapshot(snapshot)) {
     return snapshot.chatEvents;
@@ -199,7 +207,7 @@ export const chatEventsForSessionAtomFamily = atomFamily(
 
     const a = atom((get) => {
       const { snapshot } = get(sessionSnapshotAtomFamily(sessionId));
-      const next = derivePlanDisplayEvents(extractChatEvents(snapshot));
+      const next = derivePlanDisplayEvents(extractSessionChatEvents(snapshot));
       const streaming = snapshot
         ? isSnapshotActivelyStreaming(snapshot)
         : false;
@@ -249,7 +257,7 @@ export const sessionScopedPlanningMetaAtomFamily = atomFamily(
     const a = atom((get) => {
       const { snapshot } = get(sessionSnapshotAtomFamily(sessionId));
       if (!snapshot) return EMPTY_PLANNING_META;
-      const chatEvents = extractChatEvents(snapshot);
+      const chatEvents = extractSessionChatEvents(snapshot);
       const next: SessionScopedPlanningMeta = {
         version: snapshot.version,
         anyRunning: hasLiveRuntimeResourceInLatestTurn(chatEvents),
