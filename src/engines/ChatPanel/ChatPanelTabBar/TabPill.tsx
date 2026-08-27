@@ -263,7 +263,8 @@ export const TabPill = memo(function TabPill({
       tab.managementSection === WORK_MANAGEMENT_SECTION.KANBAN
         ? Columns3
         : ListTodo;
-    icon = React.createElement(WorkManagementIcon, {
+    icon = React.createElement(HugeiconsIcon, {
+      icon: WorkManagementIcon,
       size: 16,
       strokeWidth: 1.75,
       className: `shrink-0 ${iconColorClass}`,

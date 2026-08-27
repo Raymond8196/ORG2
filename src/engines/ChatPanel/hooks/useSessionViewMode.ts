@@ -121,7 +121,8 @@ export function useSessionViewMode({
           label: t(`chat.sessionViews.${value}`, {
             defaultValue: SESSION_VIEW_FALLBACK_LABELS[value],
           }),
-          icon: React.createElement(Icon, {
+          icon: React.createElement(HugeiconsIcon, {
+            icon: Icon,
             size: MODE_ICON_SIZE,
             strokeWidth: 1.75,
           }),

@@ -343,7 +343,8 @@ export const PresenceMenuButton: React.FC<PresenceMenuButtonProps> = ({
     () => [
       {
         id: "presence",
-        icon: React.createElement(Icon, {
+        icon: React.createElement(HugeiconsIcon, {
+          icon: Icon,
           size: 12,
           className: colorClass,
         }),

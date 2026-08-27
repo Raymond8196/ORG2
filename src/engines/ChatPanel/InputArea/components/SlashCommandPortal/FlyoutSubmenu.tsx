@@ -1,3 +1,4 @@
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 
@@ -145,7 +146,8 @@ const FlyoutSubmenu: React.FC<FlyoutSubmenuProps> = ({
                     }}
                   >
                     <div className="flex min-w-0 items-center gap-2">
-                      {React.createElement(Icon, {
+                      {React.createElement(HugeiconsIcon, {
+                        icon: Icon,
                         size: 14,
                         strokeWidth: 1.75,
                         className: "shrink-0 text-text-2",

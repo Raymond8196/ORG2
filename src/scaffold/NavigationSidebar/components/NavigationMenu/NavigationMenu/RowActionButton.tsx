@@ -37,11 +37,12 @@ export function NavigationMenuRowActionButton({
         onClick(event);
       }}
     >
-      {React.createElement(RowActionIcon, {
-        size: 14,
-        strokeWidth: icon ? 2 : 1.75,
-        className: iconClassName,
-      })}
+      <HugeiconsIcon
+        icon={RowActionIcon}
+        size={14}
+        strokeWidth={icon ? 2 : 1.75}
+        className={iconClassName}
+      />
     </button>
   );
 }
