@@ -23,6 +23,9 @@ import {
 import React, { useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
+import InlineBanner, {
+  useDismissibleMessage,
+} from "@src/components/InlineBanner";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import { useElementDimensions } from "@src/hooks/ui/layout/useElementDimensions";
 import { ExternalBrowserButton } from "@src/modules/WorkStation/shared/ExternalBrowserButton";
@@ -208,6 +211,9 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
     [identity, state.detail]
   );
 
+  const { visibleMessage: visibleError, dismiss: dismissError } =
+    useDismissibleMessage(state.error);
+
   // The details rail is always present. It is the right-hand column while the
   // body can spare the width, and stacks under the flow title (above the
   // description) once two columns would squeeze the conversation.
@@ -356,11 +362,12 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
         />
       ) : null}
 
-      {/* Error banner */}
-      {state.error ? (
-        <div className="text-danger-7 shrink-0 border-b border-border-1 bg-danger-1 px-4 py-1.5 text-[11px]">
-          {state.error}
-        </div>
+      {/* A background reconcile clears `state.error` as soon as it succeeds, so
+          the strip holds the message until the reader dismisses it. */}
+      {visibleError ? (
+        <InlineBanner onDismiss={dismissError} dataTestId="pr-detail-error">
+          {visibleError}
+        </InlineBanner>
       ) : null}
 
       {/* Detail tabs mount lazily, then remain mounted to preserve view state. */}
