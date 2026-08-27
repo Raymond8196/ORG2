@@ -7,8 +7,6 @@ import { useTranslation } from "react-i18next";
 
 import Tooltip from "@src/components/Tooltip";
 
-type LucideIcon = IconSvgElement;
-
 export type WorkstationSidebarViewKey = "channels" | "work-items" | "sessions";
 
 interface WorkstationSidebarViewSwitcherProps {
@@ -19,7 +17,7 @@ interface WorkstationSidebarViewSwitcherProps {
 interface ViewItem {
   key: WorkstationSidebarViewKey;
   label: string;
-  icon: LucideIcon;
+  icon: IconSvgElement;
 }
 
 const SWITCHER_ICON_SIZE = 17;
@@ -78,7 +76,6 @@ export const WorkstationSidebarViewSwitcher: React.FC<WorkstationSidebarViewSwit
             />
           </div>
           {items.map((item) => {
-            const Icon = item.icon;
             const selected = item.key === activeKey;
             return (
               <Tooltip
@@ -100,7 +97,8 @@ export const WorkstationSidebarViewSwitcher: React.FC<WorkstationSidebarViewSwit
                   data-testid={`sidebar-view-${item.key}`}
                   onClick={() => onChange(item.key)}
                 >
-                  <Icon
+                  <HugeiconsIcon
+                    icon={item.icon}
                     size={SWITCHER_ICON_SIZE}
                     strokeWidth={selected ? 2 : 1.8}
                     aria-hidden

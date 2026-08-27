@@ -42,8 +42,6 @@ import Button from "@src/components/Button";
 import { EDITOR_TAB_CANVAS_BG_CLASS } from "@src/config/workstation/tokens";
 import { useRefreshSpin } from "@src/hooks/ui";
 
-type LucideIcon = IconSvgElement;
-
 /**
  * Surface background context for nested PanelHeader instances.
  *
@@ -195,7 +193,7 @@ export interface PanelHeaderProps {
   title?: string;
 
   /** Lucide icon component (size=14 applied automatically) */
-  icon?: LucideIcon;
+  icon?: IconSvgElement;
 
   /** Custom icon element for non-Lucide icons (use when icon prop doesn't work) */
   iconElement?: React.ReactNode;

@@ -1,0 +1,34 @@
+src/features/GanttChart/components/Sidebar/index.tsx(51,11): error TS2604: JSX element type 'TaskIcon' does not have any construct or call signatures.
+src/features/GanttChart/components/Sidebar/index.tsx(51,11): error TS2786: 'TaskIcon' cannot be used as a JSX component.
+  Its type 'IconSvgElement' is not a valid JSX element type.
+src/features/KanbanBoard/components/KanbanColumn/index.tsx(246,14): error TS2604: JSX element type 'Icon' does not have any construct or call signatures.
+src/features/KanbanBoard/components/KanbanColumn/index.tsx(246,14): error TS2786: 'Icon' cannot be used as a JSX component.
+  Its type 'IconSvgElement' is not a valid JSX element type.
+src/features/KanbanBoard/components/TaskCard/index.tsx(47,6): error TS2604: JSX element type 'AgentIcon' does not have any construct or call signatures.
+src/features/KanbanBoard/components/TaskCard/index.tsx(47,6): error TS2786: 'AgentIcon' cannot be used as a JSX component.
+  Its type 'IconSvgElement' is not a valid JSX element type.
+src/features/KanbanBoard/components/TaskCard/index.tsx(166,29): error TS2604: JSX element type 'Icon' does not have any construct or call signatures.
+src/features/KanbanBoard/components/TaskCard/index.tsx(166,29): error TS2786: 'Icon' cannot be used as a JSX component.
+  Its type 'IconSvgElement' is not a valid JSX element type.
+src/features/KanbanBoard/index.tsx(512,24): error TS2604: JSX element type 'activeColumn.icon' does not have any construct or call signatures.
+src/features/KanbanBoard/index.tsx(512,24): error TS2786: 'activeColumn.icon' cannot be used as a JSX component.
+  Its type 'IconSvgElement' is not a valid JSX element type.
+src/features/SessionCreator/components/RunnerListPanel/RunnerRow.tsx(105,29): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'IconSvgElement' is not assignable to parameter of type 'string | FunctionComponent<{ size: number; strokeWidth: number; className: string; }> | ComponentClass<{ size: number; strokeWidth: number; className: string; }, any>'.
+src/features/SessionCreator/components/UploadPills/index.tsx(174,24): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'IconSvgElement' is not assignable to parameter of type 'string | FunctionComponent<{ size: number; className: string; }> | ComponentClass<{ size: number; className: string; }, any>'.
+src/features/SessionCreator/components/WorktreeSourceSelectorViews.tsx(187,11): error TS2322: Type 'IconSvgElement' is not assignable to type 'string | ComponentType<Record<string, unknown>> | undefined'.
+src/features/SessionCreator/components/WorktreeSourceSelectorViews.tsx(278,10): error TS2604: JSX element type 'Icon' does not have any construct or call signatures.
+src/features/SessionCreator/components/WorktreeSourceSelectorViews.tsx(278,10): error TS2786: 'Icon' cannot be used as a JSX component.
+  Its type 'IconSvgElement' is not a valid JSX element type.
+src/features/SessionCreator/variants/ChatPanel/SessionCreatorOrgMembersPanel.tsx(245,20): error TS2604: JSX element type 'IconComponent' does not have any construct or call signatures.
+src/features/SessionCreator/variants/ChatPanel/SessionCreatorOrgMembersPanel.tsx(245,20): error TS2786: 'IconComponent' cannot be used as a JSX component.
+  Its type 'IconSvgElement' is not a valid JSX element type.
+src/features/SessionCreator/variants/ChatPanel/useChatPanelAgentPresentation.tsx(124,11): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'IconSvgElement' is not assignable to parameter of type 'string | FunctionComponent<{ size: number; strokeWidth: number; className: string; }> | ComponentClass<{ size: number; strokeWidth: number; className: string; }, any>'.
+src/features/SessionCreator/variants/ChatPanel/useChatPanelAgentPresentation.tsx(134,36): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'IconSvgElement' is not assignable to parameter of type 'string | FunctionComponent<{ size: number; strokeWidth: number; className: string; }> | ComponentClass<{ size: number; strokeWidth: number; className: string; }, any>'.

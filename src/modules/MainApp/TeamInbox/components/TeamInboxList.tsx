@@ -52,8 +52,6 @@ import TeamInboxListItem from "./TeamInboxListItem";
 import TeamInboxRow from "./TeamInboxRow";
 import { compactRepositoryLabel } from "./teamInboxRowMetadata";
 
-type LucideIcon = IconSvgElement;
-
 export interface TeamInboxListProps {
   filter: TeamInboxFilter;
   items: readonly TeamInboxItem[];
@@ -85,7 +83,7 @@ interface TeamInboxFilterControl {
   unreadCount: number;
 }
 
-const PULL_REQUEST_ICONS: Record<PrStatusIconName, LucideIcon> = {
+const PULL_REQUEST_ICONS: Record<PrStatusIconName, IconSvgElement> = {
   "pull-request": GitPullRequest,
   merge: GitMerge,
   closed: GitPullRequestClosed,
@@ -390,7 +388,9 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
               </span>
             </>
           }
-          leading={<PullRequestIcon size={14} strokeWidth={1.8} />}
+          leading={
+            <HugeiconsIcon icon={PullRequestIcon} size={14} strokeWidth={1.8} />
+          }
           leadingClassName={statusIconClass}
           ariaLabel={`${pullRequest.title}, #${pullRequest.id}, ${pullRequest.author}, ${pullRequest.repo}`}
           ariaCurrent={selectedPullRequestKey === key ? "true" : undefined}

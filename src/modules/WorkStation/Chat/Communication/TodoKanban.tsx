@@ -40,8 +40,6 @@ import { prettifyMemberName } from "@src/util/data/formatters/memberName";
 
 import type { MessageEntry } from "./types";
 
-type LucideIcon = IconSvgElement;
-
 const log = createLogger("TodoKanban");
 
 // Below this threshold we keep the relative "X min ago" feel; above it
@@ -476,7 +474,7 @@ export const TodoKanban: React.FC<TodoKanbanProps> = ({
         // describes when the todo entered the list, not its current
         // state — coloring it would imply the creation itself succeeded
         // or failed.
-        let updatedIcon: LucideIcon = Clock;
+        let updatedIcon: IconSvgElement = Clock;
         let updatedColor: string = "var(--color-text-2)";
         if (lifecycle === "completed") {
           updatedIcon = CheckCircle2;
@@ -486,7 +484,7 @@ export const TodoKanban: React.FC<TodoKanbanProps> = ({
           updatedColor = "var(--color-danger-6)";
         }
         const metaLines: Array<{
-          icon: LucideIcon;
+          icon: IconSvgElement;
           text: string;
           color?: string;
         }> = [];

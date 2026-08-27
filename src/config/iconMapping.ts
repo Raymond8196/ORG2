@@ -62,13 +62,11 @@ import History from "@hugeicons/core-free-icons/WorkHistoryIcon";
 import Workflow from "@hugeicons/core-free-icons/WorkflowCircle01Icon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 
-type LucideIcon = IconSvgElement;
-
 /**
  * Maps icon names to their corresponding Lucide components
  * Useful for dynamic icon rendering
  */
-export const ICON_NAME_MAP: Record<string, LucideIcon | null> = {
+export const ICON_NAME_MAP: Record<string, IconSvgElement | null> = {
   folder: Folder,
   "message-square": MessageSquare,
   code: Code,
@@ -136,6 +134,6 @@ export const ICON_NAME_MAP: Record<string, LucideIcon | null> = {
 /**
  * Get Lucide icon component by name
  */
-export function getIconByName(iconName: string): LucideIcon | null {
+export function getIconByName(iconName: string): IconSvgElement | null {
   return ICON_NAME_MAP[iconName] ?? null;
 }

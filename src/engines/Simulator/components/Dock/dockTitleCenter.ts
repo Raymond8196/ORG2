@@ -13,12 +13,10 @@ import type { TFunction } from "i18next";
 import { APP_TYPE_PROJECT, AppType } from "../../types/appTypes";
 import { BACKGROUND_TASKS_DOCK_APP, getAppById } from "./config";
 
-type LucideIcon = IconSvgElement;
-
 export function getWorkStationStationTitleCenter(
   appMode: string,
   t: TFunction<"navigation">
-): { icon: LucideIcon; label: string } {
+): { icon: IconSvgElement; label: string } {
   switch (appMode) {
     case "code":
       return { icon: Code, label: t("labels.codeEditor") };
@@ -38,7 +36,7 @@ export function getWorkStationStationTitleCenter(
 export function getSimulatorDockTitleCenter(
   appType: AppType | null,
   t: TFunction<"navigation">
-): { icon: LucideIcon | null; label: string } {
+): { icon: IconSvgElement | null; label: string } {
   if (appType == null) {
     return { icon: null, label: "" };
   }
@@ -69,7 +67,7 @@ export function getSimulatorDockTitleCenter(
 
 /** Same icons as the dock; labels are fixed English from `DOCK_APPS` (not i18n). */
 export function getSimulatorDockTitleCenterEnglish(appType: AppType | null): {
-  icon: LucideIcon | null;
+  icon: IconSvgElement | null;
   label: string;
 } {
   if (appType == null) {

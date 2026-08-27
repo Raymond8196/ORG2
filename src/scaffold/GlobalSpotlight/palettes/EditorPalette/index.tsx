@@ -7,6 +7,7 @@
  * - : - Go to line
  * - @ - Symbols
  */
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -156,10 +157,7 @@ export const EditorPalette: React.FC<EditorPaletteProps> = ({
     label: t(`selectors.editorSpotlight.modes.${state.mode}.pillLabel`, {
       defaultValue: t(`selectors.editorSpotlight.modes.${state.mode}.label`),
     }),
-    icon: (modeConfig?.icon ??
-      EDITOR_PALETTE_MODES.file.icon) as React.ComponentType<
-      Record<string, unknown>
-    >,
+    icon: modeConfig?.icon ?? EDITOR_PALETTE_MODES.file.icon,
     color: modeConfig?.color ?? "primary",
     data: {
       pillLabelKey: `selectors.editorSpotlight.modes.${state.mode}.pillLabel`,
@@ -170,6 +168,10 @@ export const EditorPalette: React.FC<EditorPaletteProps> = ({
   const hideListUntilSearch =
     state.mode === "file" && state.query.trim() === "";
 
+  const inputIconElement = modeConfig?.icon && (
+    <HugeiconsIcon icon={modeConfig.icon} size={14} className="text-text-2" />
+  );
+
   const body = (
     <PaletteBody
       kernel={kernel}
@@ -179,12 +181,7 @@ export const EditorPalette: React.FC<EditorPaletteProps> = ({
       inputVariant={showModePill ? "searchBar" : "simple"}
       path={showModePill ? [modePathSegment] : []}
       onRemoveSegment={showModePill ? handleGoBack : undefined}
-      inputIcon={
-        modeConfig?.icon as React.ComponentType<{
-          size?: number;
-          className?: string;
-        }>
-      }
+      inputIconElement={!showModePill ? inputIconElement : undefined}
       isLoading={state.isLoading}
       containerHeight={400}
       inputTrailingSlot={showModePill ? undefined : modeIndicator}

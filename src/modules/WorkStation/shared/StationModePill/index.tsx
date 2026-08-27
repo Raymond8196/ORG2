@@ -16,8 +16,6 @@ import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
 import { GENERAL_LAYOUT_TOUR_TARGETS } from "@src/scaffold/Tutorials/generalLayoutTourConfig";
 import { type StationMode, stationModeAtom } from "@src/store/ui/simulatorAtom";
 
-type LucideIcon = IconSvgElement;
-
 const MY_STATION_SHORTCUT_ID = "open_my_station";
 const AGENT_STATION_SHORTCUT_ID = "open_agent_station";
 
@@ -26,7 +24,7 @@ interface IconSwitchButtonProps {
   tooltipLabel: string;
   selected: boolean;
   onClick: () => void;
-  icon: LucideIcon;
+  icon: IconSvgElement;
   testId?: string;
   shortcut: string;
 }
@@ -36,7 +34,7 @@ const IconSwitchButton: React.FC<IconSwitchButtonProps> = ({
   tooltipLabel,
   selected,
   onClick,
-  icon: Icon,
+  icon,
   testId,
   shortcut,
 }) => {
@@ -53,7 +51,7 @@ const IconSwitchButton: React.FC<IconSwitchButtonProps> = ({
           size="mini"
           shape="round"
           iconOnly
-          icon={<Icon size={16} strokeWidth={1.85} />}
+          icon={<HugeiconsIcon icon={icon} size={16} strokeWidth={1.85} />}
           onClick={onClick}
           aria-label={label}
           aria-pressed={selected}

@@ -25,14 +25,12 @@ import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
 
-type LucideIcon = IconSvgElement;
-
 // ============ TYPES ============
 
 export interface PathConfig {
   id: string;
   label: string;
-  icon: LucideIcon;
+  icon: IconSvgElement;
   template: string;
   requiredParams: string[];
   /**
@@ -51,7 +49,7 @@ export interface PaletteModeConfig {
   id: string;
   label: string;
   title: string;
-  icon: LucideIcon;
+  icon: IconSvgElement;
   path: PathConfig;
   placeholder: string;
   missingParam: string;
@@ -66,7 +64,7 @@ export interface SelectorConfig {
   /** Extra labels used by the selector */
   labels?: Record<string, string>;
   /** Extra icons used by the selector */
-  icons?: Record<string, LucideIcon>;
+  icons?: Record<string, IconSvgElement>;
   /** Extra placeholders for different states */
   placeholders?: Record<string, string>;
 }
@@ -113,7 +111,7 @@ export function getLabel(config: SelectorConfig, key: string): string {
 export function getIcon(
   config: SelectorConfig,
   key: string
-): LucideIcon | undefined {
+): IconSvgElement | undefined {
   return config.icons?.[key];
 }
 
@@ -321,7 +319,7 @@ export const BRANCH_PALETTE_CONFIG: SelectorConfig = {
  */
 export interface SpotlightModeConfig {
   id: string;
-  icon?: LucideIcon;
+  icon?: IconSvgElement;
   color?: string;
 }
 

@@ -7,8 +7,6 @@
 import { type IconSvgElement } from "@hugeicons/react";
 import type React from "react";
 
-type LucideIcon = IconSvgElement;
-
 // ============================================
 // Component Types
 // ============================================
@@ -16,7 +14,7 @@ type LucideIcon = IconSvgElement;
 export interface ComponentOption {
   id: string;
   displayName: string;
-  icon: LucideIcon;
+  icon: IconSvgElement;
   description: string;
   component: React.LazyExoticComponent<React.ComponentType<unknown>>;
 }

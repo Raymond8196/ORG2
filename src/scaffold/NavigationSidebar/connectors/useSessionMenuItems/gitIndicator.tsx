@@ -12,8 +12,6 @@ import {
   resolveSessionGitLink,
 } from "@src/util/session/sessionGitLink";
 
-type LucideIcon = IconSvgElement;
-
 /**
  * Icon + color per PR state. Semantics match `shared/pr/prStatus` — open is
  * success, merged is GitHub purple, closed is danger, draft is neutral — so
@@ -22,7 +20,7 @@ type LucideIcon = IconSvgElement;
  */
 const PR_STATUS_PRESENTATION: Record<
   string,
-  { Icon: LucideIcon; color: string; label: string }
+  { Icon: IconSvgElement; color: string; label: string }
 > = {
   open: {
     Icon: GitPullRequest,

@@ -7,16 +7,20 @@
  * (e.g. integrationsCategoryAtom).
  */
 import { type IconSvgElement } from "@hugeicons/react";
-import type { ComponentType, ReactNode } from "react";
-
-type LucideIcon = IconSvgElement;
-type LucideProps = IconSvgElement;
+import type { ComponentType, ReactNode, SVGProps } from "react";
 
 // ============================================
 // Types
 // ============================================
 
-export type ToolbarDropdownIcon = LucideIcon | ComponentType<LucideProps>;
+/**
+ * A toolbar icon is either hugeicons glyph data — rendered through
+ * `HugeiconsIcon` — or a hand-authored SVG component (brand marks such as
+ * `McpLogoIcon`, which are not part of any icon set).
+ */
+export type ToolbarDropdownIcon =
+  | IconSvgElement
+  | ComponentType<SVGProps<SVGSVGElement>>;
 
 export interface ToolbarDropdownItem {
   id: string;
@@ -33,7 +37,7 @@ export interface RouteToolbarButton {
   /** Fully custom button element. When set, icon/onClick/title fields are ignored by SettingsHeaderActions. */
   element?: ReactNode;
   /** Lucide icon component (use this OR iconElement, not both) */
-  icon?: LucideIcon;
+  icon?: IconSvgElement;
   /** Pre-rendered icon element for custom SVGs (use this OR icon, not both) */
   iconElement?: ReactNode;
   /** Click handler */

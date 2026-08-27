@@ -329,10 +329,13 @@ const RoutineBasicsSection: React.FC<RoutineBasicsSectionProps> = ({
                   />
                 );
               }
-              return React.createElement(resolveAgentIcon(draft.targetIconId), {
-                size: 16,
-                className: "text-text-2",
-              });
+              return (
+                <HugeiconsIcon
+                  icon={resolveAgentIcon(draft.targetIconId)}
+                  size={16}
+                  className="text-text-2"
+                />
+              );
             })()}
             dataTestId="routine-wizard-agent-trigger"
             ariaLabel={t("routineFields.agentResponsible")}

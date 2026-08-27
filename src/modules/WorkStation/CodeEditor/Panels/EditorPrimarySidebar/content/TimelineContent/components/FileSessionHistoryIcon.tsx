@@ -1,3 +1,4 @@
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { memo } from "react";
 
@@ -18,10 +19,13 @@ export const FileSessionHistoryIcon = memo(
       return <Org2SessionIcon className="size-3.5" aria-hidden="true" />;
     }
 
-    return React.createElement(resolveSessionRowIcon(session ?? sessionId), {
-      size: 14,
-      className: "text-text-1",
-    });
+    return (
+      <HugeiconsIcon
+        icon={resolveSessionRowIcon(session ?? sessionId)}
+        size={14}
+        className="text-text-1"
+      />
+    );
   }
 );
 

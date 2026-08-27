@@ -31,8 +31,6 @@ import type {
 } from "../components/NavigationMenu/config";
 import type { SidebarTab } from "../types";
 
-type LucideIcon = IconSvgElement;
-
 // ============================================
 // Types
 // ============================================
@@ -71,7 +69,7 @@ export interface NavigationSidebarProps {
   /** Add-new button in the traffic lights area (passed to SidebarBase) */
   onAddNew?: () => void;
   /** Icon for the add-new button */
-  addIcon?: LucideIcon;
+  addIcon?: IconSvgElement;
   /** Tooltip for the add-new button */
   addLabel?: string;
   /** Optional rich tooltip content for the add-new button */
@@ -402,9 +400,11 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = React.memo(
                     className: "h-[14px] w-[14px]",
                     strokeWidth: 2,
                   })
-                : React.createElement(tab.icon, {
-                    className: "h-[14px] w-[14px]",
+                : React.createElement(HugeiconsIcon, {
+                    icon: tab.icon,
+                    size: 14,
                     strokeWidth: 2,
+                    className: "h-[14px] w-[14px]",
                   })
               : undefined,
         })),

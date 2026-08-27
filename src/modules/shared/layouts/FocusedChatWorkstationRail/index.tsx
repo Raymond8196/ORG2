@@ -79,8 +79,6 @@ import type {
   FocusedChatWorkstationRailProps,
 } from "./types";
 
-type LucideIcon = IconSvgElement;
-
 export type { FocusedChatSessionContext } from "./types";
 
 const FOCUSED_CHAT_RAIL_SECTIONS = {
@@ -98,9 +96,10 @@ const WORKSTATION_HOST_ROUTES: Record<WorkstationTabHost, string> = {
 const GitHubRailIcon = ({
   size = 24,
   ...props
-}: React.ComponentProps<LucideIcon>) => (
-  <GitHubIcon {...props} width={size} height={size} />
-);
+}: {
+  size?: number;
+  [key: string]: unknown;
+}) => <GitHubIcon {...props} width={size} height={size} />;
 
 function getRailTabFileName(tab: WorkStationTab): string | undefined {
   switch (tab.type) {
@@ -590,7 +589,8 @@ export function FocusedChatWorkstationRail({
           {collapsed ? (
             <div className="flex flex-col items-center gap-2">
               {workspaceItems.map((item) => {
-                const Icon = item.icon;
+                const icon = item.icon;
+                const isGitHubRailIcon = icon === GitHubRailIcon;
                 return (
                   <button
                     key={item.key}
@@ -604,7 +604,11 @@ export function FocusedChatWorkstationRail({
                     }
                     title={item.status?.title ?? item.label}
                   >
-                    <Icon size={16} strokeWidth={1.75} />
+                    {isGitHubRailIcon ? (
+                      <GitHubRailIcon size={16} />
+                    ) : (
+                      <HugeiconsIcon icon={icon} size={16} strokeWidth={1.75} />
+                    )}
                     {item.status ? (
                       <span
                         aria-hidden

@@ -13,8 +13,6 @@ import type {
 import type { Session } from "@src/store/session";
 import { SESSION_STATUS_DOT_COLOR } from "@src/util/session/sessionStatusDot";
 
-type LucideIcon = IconSvgElement;
-
 /**
  * Kanban Configuration
  *
@@ -128,7 +126,7 @@ export type AgentKanbanColumnId = TaskStatus | AgentExtraColumnId;
 interface AgentKanbanColumnConfig {
   id: AgentKanbanColumnId;
   title: string;
-  icon: LucideIcon;
+  icon: IconSvgElement;
   color: string;
   bgColor: string;
   dotColor: string;

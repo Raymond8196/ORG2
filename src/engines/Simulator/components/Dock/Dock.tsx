@@ -4,7 +4,7 @@
  * Pure macOS-style dock bar — Glass pill with app icons.
  * Used by both My Station and Agent Station with different app lists.
  */
-import { type IconSvgElement } from "@hugeicons/react";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import { GENERAL_LAYOUT_TOUR_TARGETS } from "@src/scaffold/Tutorials/generalLayoutTourConfig";
@@ -18,8 +18,6 @@ import {
   dockIconHitAreaClassName,
 } from "./dockLayout";
 
-type LucideIcon = IconSvgElement;
-
 // ============================================
 // Types
 // ============================================
@@ -27,7 +25,7 @@ type LucideIcon = IconSvgElement;
 export interface DockAppItem {
   id: string;
   name: string;
-  icon: LucideIcon;
+  icon: IconSvgElement;
 }
 
 interface DockProps {
@@ -79,7 +77,10 @@ export const Dock: React.FC<DockProps> = memo(
                     title={app.name}
                     data-tour-target={getTourTarget(app.id)}
                   >
-                    {React.createElement(app.icon, DOCK_LUCIDE_ICON_PROPS)}
+                    <HugeiconsIcon
+                      icon={app.icon}
+                      {...DOCK_LUCIDE_ICON_PROPS}
+                    />
                   </div>
                 </CompactDockIconColumn>
               );

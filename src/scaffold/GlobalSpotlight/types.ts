@@ -1,3 +1,4 @@
+import type { IconSvgElement } from "@hugeicons/react";
 import React from "react";
 
 import type { SpotlightItem, SpotlightItemData, StatusType } from "./shared";
@@ -18,7 +19,7 @@ export interface PathSegment {
   /** Display label */
   label: string;
   /** Icon class or React component */
-  icon: string | React.ComponentType<Record<string, unknown>>;
+  icon: string | React.ComponentType<Record<string, unknown>> | IconSvgElement;
   /** Color for the tag */
   color: string;
   /** Associated data (repo object, branch object, etc.) */
@@ -38,7 +39,7 @@ export interface ActionDefinition {
   /** Optional shorter label for compact path pills. */
   pillLabelKey?: string;
   /** Icon class or React component */
-  icon: string | React.ComponentType<Record<string, unknown>>;
+  icon: string | React.ComponentType<Record<string, unknown>> | IconSvgElement;
   /** Color for the tag */
   color: string;
   /** Required parameters in order of collection */

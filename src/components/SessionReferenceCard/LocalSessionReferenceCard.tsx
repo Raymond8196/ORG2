@@ -40,8 +40,8 @@ export interface LocalSessionReferenceCardProps {
 }
 
 function renderAgentIcon(iconId: string | undefined) {
-  const AgentIcon = resolveAgentIcon(iconId);
-  return <AgentIcon size={12} strokeWidth={1.75} />;
+  const agentIcon = resolveAgentIcon(iconId);
+  return <HugeiconsIcon icon={agentIcon} size={12} strokeWidth={1.75} />;
 }
 
 const LocalSessionReferenceCard: React.FC<LocalSessionReferenceCardProps> = ({

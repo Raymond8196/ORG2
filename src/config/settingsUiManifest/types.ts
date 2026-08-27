@@ -4,8 +4,6 @@ import type { ComponentType } from "react";
 import type { SettingsKey } from "@src/config/settingsSchema";
 import type { SettingsSectionSlotId } from "@src/config/settingsUiManifest/slotIds";
 
-type LucideIcon = IconSvgElement;
-
 /**
  * Tab discriminator for {@link SETTINGS_UI_SECTIONS}. The Settings page
  * only ever queries `"app"` — the `"agent"` and `"integrations"` values
@@ -73,7 +71,7 @@ export interface SettingsSectionDefinition {
   tab: SettingsTabId;
   labelKey: string;
   headingTitleKey: string;
-  icon: LucideIcon;
+  icon: IconSvgElement;
   containers?: SettingsContainerDefinition[];
   customSectionSlotId?: SettingsSectionSlotId;
   /**

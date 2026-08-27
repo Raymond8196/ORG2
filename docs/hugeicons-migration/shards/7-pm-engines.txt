@@ -1,0 +1,39 @@
+src/engines/ChatPanel/blocks/OrgTaskBlock/index.tsx(95,11): error TS2604: JSX element type 'Icon' does not have any construct or call signatures.
+src/engines/ChatPanel/blocks/OrgTaskBlock/index.tsx(95,11): error TS2786: 'Icon' cannot be used as a JSX component.
+  Its type 'IconSvgElement' is not a valid JSX element type.
+src/engines/ChatPanel/components/SessionIdentityIcon.tsx(65,30): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'IconSvgElement' is not assignable to parameter of type 'string | FunctionComponent<{ size: number; strokeWidth: number; className: string; }> | ComponentClass<{ size: number; strokeWidth: number; className: string; }, any>'.
+src/engines/ChatPanel/panels/RunGroupPanelView/RunGroupRunRow.tsx(82,29): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'IconSvgElement' is not assignable to parameter of type 'string | FunctionComponent<{ size: number; strokeWidth: number; className: string; }> | ComponentClass<{ size: number; strokeWidth: number; className: string; }, any>'.
+src/engines/Simulator/components/Dock/Dock.tsx(82,42): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'IconSvgElement' is not assignable to parameter of type 'string | FunctionComponent<{ readonly size: 20; readonly strokeWidth: 1.75; }> | ComponentClass<{ readonly size: 20; readonly strokeWidth: 1.75; }, any>'.
+src/engines/Simulator/components/Dock/DockContextMenu.tsx(205,38): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'IconSvgElement' is not assignable to parameter of type 'string | FunctionComponent<{ size: number; className: string; }> | ComponentClass<{ size: number; className: string; }, any>'.
+src/engines/Simulator/components/Dock/DockReplayControl.tsx(106,38): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'IconSvgElement' is not assignable to parameter of type 'string | FunctionComponent<{ readonly size: 20; readonly strokeWidth: 1.75; }> | ComponentClass<{ readonly size: 20; readonly strokeWidth: 1.75; }, any>'.
+src/engines/Simulator/components/Dock/DockReplayControl.tsx(124,34): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'IconSvgElement' is not assignable to parameter of type 'string | FunctionComponent<{ readonly size: 20; readonly strokeWidth: 1.75; }> | ComponentClass<{ readonly size: 20; readonly strokeWidth: 1.75; }, any>'.
+src/engines/Simulator/components/SimulatorStatusBar/FollowModeDropdown.tsx(109,32): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'IconSvgElement' is not assignable to parameter of type 'string | FunctionComponent<{ size: number; strokeWidth: number; }> | ComponentClass<{ size: number; strokeWidth: number; }, any>'.
+src/engines/Simulator/components/SimulatorTitleBar/index.tsx(85,18): error TS2604: JSX element type 'TitleCenterIcon' does not have any construct or call signatures.
+src/engines/Simulator/components/SimulatorTitleBar/index.tsx(85,18): error TS2786: 'TitleCenterIcon' cannot be used as a JSX component.
+  Its type 'IconSvgElement' is not a valid JSX element type.
+src/modules/ProjectManager/Panels/ProjectManagerSidebar/content/GitOperationHistoryContent.tsx(97,25): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'IconSvgElement' is not assignable to parameter of type 'string | FunctionComponent<{ size: number; strokeWidth: number; className: string; }> | ComponentClass<{ size: number; strokeWidth: number; className: string; }, any>'.
+src/modules/ProjectManager/Projects/components/RepoSettings/index.tsx(129,16): error TS2604: JSX element type 'Icon' does not have any construct or call signatures.
+src/modules/ProjectManager/Projects/components/RepoSettings/index.tsx(129,16): error TS2786: 'Icon' cannot be used as a JSX component.
+  Its type 'IconSvgElement' is not a valid JSX element type.
+src/modules/ProjectManager/WorkItems/components/ScheduleEditor/index.tsx(125,12): error TS2604: JSX element type 'Icon' does not have any construct or call signatures.
+src/modules/ProjectManager/WorkItems/components/ScheduleEditor/index.tsx(125,12): error TS2786: 'Icon' cannot be used as a JSX component.
+  Its type 'IconSvgElement' is not a valid JSX element type.
+src/modules/ProjectManager/WorkItems/components/WorkItemsSettings/index.tsx(198,16): error TS2604: JSX element type 'Icon' does not have any construct or call signatures.
+src/modules/ProjectManager/WorkItems/components/WorkItemsSettings/index.tsx(198,16): error TS2786: 'Icon' cannot be used as a JSX component.
+  Its type 'IconSvgElement' is not a valid JSX element type.

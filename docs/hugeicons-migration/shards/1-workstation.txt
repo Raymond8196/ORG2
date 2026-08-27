@@ -1,0 +1,45 @@
+src/modules/WorkStation/AppShell/CodeSidebarHeaderActions.tsx(97,22): error TS2604: JSX element type 'Icon' does not have any construct or call signatures.
+src/modules/WorkStation/AppShell/CodeSidebarHeaderActions.tsx(97,22): error TS2786: 'Icon' cannot be used as a JSX component.
+  Its type 'IconSvgElement' is not a valid JSX element type.
+src/modules/WorkStation/AppShell/StartPage/index.tsx(60,12): error TS2604: JSX element type 'Icon' does not have any construct or call signatures.
+src/modules/WorkStation/AppShell/StartPage/index.tsx(60,12): error TS2786: 'Icon' cannot be used as a JSX component.
+  Its type 'IconSvgElement' is not a valid JSX element type.
+src/modules/WorkStation/AppShell/TabBarPlusMenu/TabBarPlusMenuItems.tsx(41,16): error TS2604: JSX element type 'Icon' does not have any construct or call signatures.
+src/modules/WorkStation/AppShell/TabBarPlusMenu/TabBarPlusMenuItems.tsx(41,16): error TS2786: 'Icon' cannot be used as a JSX component.
+  Its type 'IconSvgElement' is not a valid JSX element type.
+src/modules/WorkStation/Chat/Communication/communicationAgentIdentity.tsx(80,6): error TS2604: JSX element type 'Icon' does not have any construct or call signatures.
+src/modules/WorkStation/Chat/Communication/communicationAgentIdentity.tsx(80,6): error TS2786: 'Icon' cannot be used as a JSX component.
+  Its type 'IconSvgElement' is not a valid JSX element type.
+src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/TimelineContent/components/FileSessionHistoryIcon.tsx(21,32): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'IconSvgElement' is not assignable to parameter of type 'string | FunctionComponent<{ size: number; className: string; }> | ComponentClass<{ size: number; className: string; }, any>'.
+src/modules/WorkStation/shared/AppSwitcherChip.tsx(98,10): error TS2604: JSX element type 'Icon' does not have any construct or call signatures.
+src/modules/WorkStation/shared/AppSwitcherChip.tsx(98,10): error TS2786: 'Icon' cannot be used as a JSX component.
+  Its type 'IconSvgElement' is not a valid JSX element type.
+src/modules/WorkStation/shared/AppSwitcherDropdownPanel.tsx(97,18): error TS2604: JSX element type 'ItemIcon' does not have any construct or call signatures.
+src/modules/WorkStation/shared/AppSwitcherDropdownPanel.tsx(97,18): error TS2786: 'ItemIcon' cannot be used as a JSX component.
+  Its type 'IconSvgElement' is not a valid JSX element type.
+src/modules/WorkStation/shared/CountBadge/index.tsx(109,10): error TS2604: JSX element type 'Icon' does not have any construct or call signatures.
+src/modules/WorkStation/shared/CountBadge/index.tsx(109,10): error TS2786: 'Icon' cannot be used as a JSX component.
+  Its type 'IconSvgElement' is not a valid JSX element type.
+src/modules/WorkStation/shared/NoTabsPlaceholder/index.tsx(140,10): error TS2604: JSX element type 'IconComponent' does not have any construct or call signatures.
+src/modules/WorkStation/shared/NoTabsPlaceholder/index.tsx(140,10): error TS2786: 'IconComponent' cannot be used as a JSX component.
+  Its type 'IconSvgElement' is not a valid JSX element type.
+src/modules/WorkStation/shared/QuickActionsPanel/index.tsx(92,12): error TS2604: JSX element type 'Icon' does not have any construct or call signatures.
+src/modules/WorkStation/shared/QuickActionsPanel/index.tsx(92,12): error TS2786: 'Icon' cannot be used as a JSX component.
+  Its type 'IconSvgElement' is not a valid JSX element type.
+src/modules/WorkStation/shared/StationModePill/index.tsx(56,18): error TS2604: JSX element type 'Icon' does not have any construct or call signatures.
+src/modules/WorkStation/shared/StationModePill/index.tsx(56,18): error TS2786: 'Icon' cannot be used as a JSX component.
+  Its type 'IconSvgElement' is not a valid JSX element type.
+src/modules/WorkStation/shared/StatusBadge/index.tsx(112,10): error TS2604: JSX element type 'Icon' does not have any construct or call signatures.
+src/modules/WorkStation/shared/StatusBadge/index.tsx(112,10): error TS2786: 'Icon' cannot be used as a JSX component.
+  Its type 'IconSvgElement' is not a valid JSX element type.
+src/modules/WorkStation/shared/StatusBar/GitSyncStatusMenu.tsx(261,28): error TS2604: JSX element type 'ActionIcon' does not have any construct or call signatures.
+src/modules/WorkStation/shared/StatusBar/GitSyncStatusMenu.tsx(261,28): error TS2786: 'ActionIcon' cannot be used as a JSX component.
+  Its type 'IconSvgElement' is not a valid JSX element type.
+src/modules/WorkStation/shared/StatusBar/GitSyncStatusMenu.tsx(292,26): error TS2604: JSX element type 'SuggestedActionIcon' does not have any construct or call signatures.
+src/modules/WorkStation/shared/StatusBar/GitSyncStatusMenu.tsx(292,26): error TS2786: 'SuggestedActionIcon' cannot be used as a JSX component.
+  Its type 'IconSvgElement' is not a valid JSX element type.
+src/modules/WorkStation/shared/TabBar/components/SortableTab/index.tsx(251,14): error TS2604: JSX element type 'IconComponent' does not have any construct or call signatures.
+src/modules/WorkStation/shared/TabBar/components/SortableTab/index.tsx(251,14): error TS2786: 'IconComponent' cannot be used as a JSX component.
+  Its type 'IconSvgElement' is not a valid JSX element type.

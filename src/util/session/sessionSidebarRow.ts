@@ -10,8 +10,6 @@ import {
 } from "@src/util/session/sessionDisplayMetadata";
 import { sessionLabel } from "@src/util/session/sessionLabel";
 
-type LucideIcon = IconSvgElement;
-
 /** Full-length session display name (no truncation). */
 export function getSessionListDisplayName(
   session: { name?: string; user_input?: string; displayLabel?: string },
@@ -30,12 +28,14 @@ type SessionRowIconInput =
  * Identity precedence lives in `resolveSessionDisplayMetadata`; this helper
  * only adapts its resolved icon id to the Lucide-compatible row contract.
  */
-export function resolveSessionRowIcon(input: SessionRowIconInput): LucideIcon {
+export function resolveSessionRowIcon(
+  input: SessionRowIconInput
+): IconSvgElement {
   return resolveSessionRowIconPresentation(input).Icon;
 }
 
 export interface SessionRowIconPresentation {
-  Icon: LucideIcon;
+  Icon: IconSvgElement;
   isMonochromeBrandIcon: boolean;
 }
 

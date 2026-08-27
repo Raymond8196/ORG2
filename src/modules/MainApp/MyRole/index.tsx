@@ -18,7 +18,7 @@ import Circle from "@hugeicons/core-free-icons/CircleIcon";
 import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
 import HatGlasses from "@hugeicons/core-free-icons/HatGlassesIcon";
 import Moon from "@hugeicons/core-free-icons/MoonIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -70,7 +70,7 @@ interface BuiltInRoleConfig {
     | "general.presenceGuidanceOnline"
     | "general.presenceGuidanceInvisible"
     | "general.presenceGuidanceAway";
-  icon: typeof Circle;
+  icon: IconSvgElement;
   colorClass: string;
 }
 
@@ -169,12 +169,12 @@ const MyRolePage: React.FC = () => {
   const iconOptions = useMemo(
     () =>
       CUSTOM_ROLE_ICON_IDS.map((id) => {
-        const IconComp = resolveCustomRoleIcon(id);
+        const icon = resolveCustomRoleIcon(id);
         return {
           value: id,
           label: (
             <span className="inline-flex items-center gap-2">
-              <IconComp size={14} />
+              <HugeiconsIcon icon={icon} size={14} />
               <span className="capitalize">{id}</span>
             </span>
           ),
@@ -416,7 +416,7 @@ const MyRolePage: React.FC = () => {
             title={t("myRole.builtInTitle", { defaultValue: "Built-in roles" })}
           >
             {BUILT_IN_ROLES.map((role) => {
-              const RoleIcon = role.icon;
+              const icon = role.icon;
               const value =
                 (settings[role.settingsKey] as string | undefined) ?? "";
               const isActive = role.mode === activeMode;
@@ -426,7 +426,11 @@ const MyRolePage: React.FC = () => {
                     layout="vertical"
                     label={
                       <span className="inline-flex items-center gap-2">
-                        <RoleIcon size={14} className={role.colorClass} />
+                        <HugeiconsIcon
+                          icon={icon}
+                          size={14}
+                          className={role.colorClass}
+                        />
                         <span>{t(role.labelKey)}</span>
                         {isActive && (
                           <span className="rounded-full bg-primary-1 px-2 py-[1px] text-[10px] font-medium text-primary-6">
@@ -482,7 +486,7 @@ const MyRolePage: React.FC = () => {
               </div>
             ) : (
               customRoles.map((role) => {
-                const RoleIcon = resolveCustomRoleIcon(role.iconId);
+                const icon = resolveCustomRoleIcon(role.iconId);
                 const isActive = buildCustomRoleMode(role.id) === activeMode;
                 return (
                   <div
@@ -493,7 +497,11 @@ const MyRolePage: React.FC = () => {
                       layout="vertical"
                       label={
                         <span className="inline-flex items-center gap-2">
-                          <RoleIcon size={14} className="text-primary-6" />
+                          <HugeiconsIcon
+                            icon={icon}
+                            size={14}
+                            className="text-primary-6"
+                          />
                           <span>
                             {t("myRole.roleNameLabel", {
                               defaultValue: "Name",

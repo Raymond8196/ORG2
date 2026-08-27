@@ -44,11 +44,9 @@ import {
   isIconProvider,
 } from "@src/components/ModelIcon/config";
 
-type LucideIcon = IconSvgElement;
-
 /**
  * Wrap a brand `<svg>` (React.FC<SVGProps>) so it satisfies the
- * `LucideIcon` shape expected by `HoverAnimatedIcon`. We only need to
+ * `IconSvgElement` shape expected by `HoverAnimatedIcon`. We only need to
  * translate Lucide's `size` prop into raw SVG `width` / `height`; brand
  * SVGs use `currentColor` so `color` and `className` flow through
  * unchanged. `strokeWidth` is intentionally ignored — brand marks are
@@ -57,7 +55,7 @@ type LucideIcon = IconSvgElement;
 function brandIcon(
   Brand: React.FC<React.SVGProps<SVGSVGElement>>,
   displayName: string
-): LucideIcon {
+): IconSvgElement {
   const Wrapped = forwardRef<
     SVGSVGElement,
     React.SVGProps<SVGSVGElement> & { size?: number | string }
@@ -65,12 +63,12 @@ function brandIcon(
     <Brand width={size} height={size} ref={ref} {...rest} />
   ));
   Wrapped.displayName = displayName;
-  return Wrapped as unknown as LucideIcon;
+  return Wrapped as unknown as IconSvgElement;
 }
 
-const canonicalBrandIconCache = new Map<IconProvider, LucideIcon>();
+const canonicalBrandIconCache = new Map<IconProvider, IconSvgElement>();
 
-function resolveCanonicalBrandIcon(iconId: string): LucideIcon | undefined {
+function resolveCanonicalBrandIcon(iconId: string): IconSvgElement | undefined {
   const iconProvider = isIconProvider(iconId)
     ? iconId
     : getIconProviderFromType(iconId);
@@ -87,7 +85,7 @@ function resolveCanonicalBrandIcon(iconId: string): LucideIcon | undefined {
   return BrandIcon;
 }
 
-const ICON_MAP: Record<string, LucideIcon> = {
+const ICON_MAP: Record<string, IconSvgElement> = {
   omega: Omega,
   code: Code,
   monitor: Monitor,
@@ -106,11 +104,11 @@ const ICON_MAP: Record<string, LucideIcon> = {
   bot: Bot,
 };
 
-const DEFAULT_ICON: LucideIcon = Bot;
+const DEFAULT_ICON: IconSvgElement = Bot;
 
 export function resolveAgentIcon(
   iconId: string | undefined | null
-): LucideIcon {
+): IconSvgElement {
   if (!iconId) return DEFAULT_ICON;
 
   const canonicalBrandIcon = resolveCanonicalBrandIcon(iconId);

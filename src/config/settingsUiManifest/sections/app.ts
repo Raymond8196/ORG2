@@ -5,8 +5,6 @@ import { type SettingsKey, getSettingsKeys } from "@src/config/settingsSchema";
 import { SETTINGS_SECTION_SLOT_IDS } from "@src/config/settingsUiManifest/slotIds";
 import type { SettingsSectionDefinition } from "@src/config/settingsUiManifest/types";
 
-type LucideIcon = IconSvgElement;
-
 /**
  * All app-settings sidebar icons come from the central
  * {@link SEGMENT_REGISTRY} keyed by the same URL segment used in the
@@ -14,7 +12,7 @@ type LucideIcon = IconSvgElement;
  * This guarantees the sidebar glyph matches the breadcrumb and the
  * Global Spotlight destination entry.
  */
-function iconForSegment(segment: string): LucideIcon {
+function iconForSegment(segment: string): IconSvgElement {
   const icon = getSegmentIcon(segment);
   if (!icon) {
     throw new Error(

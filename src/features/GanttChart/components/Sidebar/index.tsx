@@ -48,7 +48,7 @@ function renderTaskIcon(task: GanttTask): React.ReactNode {
 
   const iconId = task.agentIconId ?? resolveSessionIconId(sessionId);
   const TaskIcon = resolveAgentIcon(iconId);
-  return <TaskIcon size={13} strokeWidth={1.75} />;
+  return <HugeiconsIcon icon={TaskIcon} size={13} />;
 }
 
 const GanttSidebar: React.FC<GanttSidebarProps> = ({

@@ -57,12 +57,20 @@ These apply repo-wide and are **not** captured per-row.
 2. **Same name, different drawing.** A vendor alias means the *name* matches,
    not the artwork. Hugeicons `Cancel01Icon` (lucide `X`) is a 2-stroke cross;
    the separate `XIcon` file is a 4-ray cross. Name parity is not visual parity.
-3. **No filled variants.** The free tier is Stroke Rounded only. Status
-   indicators that rely on a solid fill — `CheckCircle2` (42 uses), `XCircle`
-   (29), `CircleDot` (26), `Circle` (27) — render as outlines. A solid style
-   requires a Pro license.
-4. **`fill="currentColor"`** (11 sites) will not behave the same. Hugeicons
-   SVGs are `fill: none` with stroke-only paths.
+3. **No filled variants — but nothing in this repo needed them.** The free tier
+   is Stroke Rounded only. An earlier draft of this document claimed the status
+   indicators (`CheckCircle2`, `XCircle`, `CircleDot`, `Circle`) would regress
+   to outlines. That was wrong: lucide's own `CheckCircle2` is two stroke paths
+   with no fill, and **zero** of those call sites passed `fill`. They were
+   already outlines. There is no regression and no reason to buy Pro over this.
+4. **`fill="currentColor"` still works.** Eleven sites use it; three are
+   hand-authored SVGs unrelated to lucide (`PanelIcons`, `AppMark`, a Gantt
+   arrowhead). The remaining seven are solid media controls —
+   `<Play|Pause|Square fill="currentColor" strokeWidth={0} />` — and they render
+   correctly under hugeicons: `HugeiconsIcon` forwards `fill` to the `<svg>`
+   (overriding its `fill: none` default) and applies `strokeWidth={0}`, and the
+   `PlayIcon` / `PauseIcon` / `SquareIcon` glyphs are closed paths, so they fill
+   solid. Verified by server-rendering the component, not by inspection.
 5. **`LucideIcon` type.** 227 references across 89 files type icons as React
    *components*. Under hugeicons they are `IconSvgElement` *data*, so every
    registry (`config/toolIcons.tsx`, `config/iconMapping.ts`,

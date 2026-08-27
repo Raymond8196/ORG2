@@ -1,3 +1,4 @@
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useSetAtom } from "jotai";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -178,11 +179,14 @@ const LaunchpadDashboard: React.FC<LaunchpadDashboardProps> = memo(
         return {
           key: rustType,
           label,
-          icon: React.createElement(IconComponent, {
-            size: 30,
-            strokeWidth: 1.75,
-            className: "text-text-2",
-          }),
+          icon: (
+            <HugeiconsIcon
+              icon={IconComponent}
+              size={30}
+              strokeWidth={1.75}
+              className="text-text-2"
+            />
+          ),
           onLaunch: () => {
             setCreatorState((prev) => ({
               ...prev,
@@ -212,11 +216,14 @@ const LaunchpadDashboard: React.FC<LaunchpadDashboardProps> = memo(
         return {
           key: definition.id,
           label: definition.name,
-          icon: React.createElement(IconComponent, {
-            size: 30,
-            strokeWidth: 1.75,
-            className: "text-text-2",
-          }),
+          icon: (
+            <HugeiconsIcon
+              icon={IconComponent}
+              size={30}
+              strokeWidth={1.75}
+              className="text-text-2"
+            />
+          ),
           onLaunch: () => {
             setCreatorState((prev) => ({
               ...prev,

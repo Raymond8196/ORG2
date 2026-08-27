@@ -4,7 +4,7 @@
  * (`itemHover` → fill-2, `itemSelected` → primary-1) with callers supplying
  * selection semantics only.
  */
-import { type IconSvgElement } from "@hugeicons/react";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { memo } from "react";
 import { createPortal } from "react-dom";
 
@@ -16,8 +16,6 @@ import {
 } from "@src/components/Dropdown/tokens";
 import type { DropdownEnginePosition } from "@src/hooks/dropdown/useDropdownEngine";
 
-type LucideIcon = IconSvgElement;
-
 export interface AppSwitcherMenuItem {
   id: string;
   /**
@@ -25,7 +23,7 @@ export interface AppSwitcherMenuItem {
    * Used by the Agent Team member picker which mirrors the icon-less
    * chat-panel switcher style.
    */
-  icon?: LucideIcon;
+  icon?: IconSvgElement;
   label: string;
   /**
    * When true, the row is rendered greyed out and clicks are ignored.
@@ -70,7 +68,6 @@ const AppSwitcherDropdownPanelComponent: React.FC<
     >
       <div className={`${DROPDOWN_CLASSES.optionsContainer} w-full`}>
         {items.map((item) => {
-          const ItemIcon = item.icon;
           const isActive = item.id === activeId;
           const isDisabled = item.disabled === true;
           return (
@@ -93,8 +90,9 @@ const AppSwitcherDropdownPanelComponent: React.FC<
                 onSelect(item.id);
               }}
             >
-              {ItemIcon && (
-                <ItemIcon
+              {item.icon && (
+                <HugeiconsIcon
+                  icon={item.icon}
                   size={DROPDOWN_ITEM.iconSize}
                   strokeWidth={1.75}
                   className="shrink-0"

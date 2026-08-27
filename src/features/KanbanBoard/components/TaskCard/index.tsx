@@ -44,9 +44,9 @@ function renderAgentIcon(task: KanbanTask) {
   // `cliAgentType` remains a compatibility fallback for non-session tasks.
   const AgentIcon = resolveAgentIcon(task.agentIconId ?? task.cliAgentType);
   return (
-    <AgentIcon
+    <HugeiconsIcon
+      icon={AgentIcon}
       size={12}
-      strokeWidth={1.75}
       className={KANBAN_MONOCHROME_ICON_CLASS}
     />
   );
@@ -163,7 +163,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
                   className="kanban-task-card__meta-pill"
                   style={entry.color ? { color: entry.color } : undefined}
                 >
-                  {Icon && <Icon size={12} strokeWidth={1.75} />}
+                  {Icon && <HugeiconsIcon icon={Icon} size={12} />}
                   <span>{entry.text}</span>
                 </div>
               );

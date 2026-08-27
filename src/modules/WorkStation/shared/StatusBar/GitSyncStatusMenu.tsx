@@ -25,8 +25,6 @@ import { classNames } from "@src/util/ui/classNames";
 import { StatusBarButton, StatusBarLabel } from "./StatusBarBase";
 import { StatusBarTooltip } from "./StatusBarTooltip";
 
-type LucideIcon = IconSvgElement;
-
 const MENU_ICON_SIZE = DROPDOWN_ITEM.iconSize;
 
 interface GitSyncStatusMenuProps {
@@ -48,7 +46,7 @@ interface GitSyncStatusMenuProps {
 interface GitSyncMenuAction {
   key: string;
   label: string;
-  icon: LucideIcon;
+  icon: IconSvgElement;
   disabled?: boolean;
   onSelect: () => Promise<void> | void;
 }
@@ -153,7 +151,6 @@ export const GitSyncStatusMenu: React.FC<GitSyncStatusMenuProps> = memo(
     }, [actions, aheadCount, behindCount, needsPublish]);
 
     const gitActionsLabel = t("workstation.gitActionsTooltip", "Git actions");
-    const SuggestedActionIcon = suggestedAction?.icon;
 
     return (
       <div ref={triggerRef} className="flex h-full">
@@ -243,7 +240,6 @@ export const GitSyncStatusMenu: React.FC<GitSyncStatusMenuProps> = memo(
                 {showAllActions ? (
                   <>
                     {actions.map((action) => {
-                      const ActionIcon = action.icon;
                       const disabled =
                         isSyncBusy || !canSyncDisplayedRepo || action.disabled;
                       return (
@@ -258,7 +254,8 @@ export const GitSyncStatusMenu: React.FC<GitSyncStatusMenuProps> = memo(
                           onClick={() => handleAction(action.onSelect)}
                           role="menuitem"
                         >
-                          <ActionIcon
+                          <HugeiconsIcon
+                            icon={action.icon}
                             size={MENU_ICON_SIZE}
                             className="shrink-0 text-text-1"
                           />
@@ -271,7 +268,7 @@ export const GitSyncStatusMenu: React.FC<GitSyncStatusMenuProps> = memo(
                   </>
                 ) : (
                   <>
-                    {suggestedAction && SuggestedActionIcon && (
+                    {suggestedAction && (
                       <button
                         type="button"
                         className={classNames(
@@ -289,7 +286,8 @@ export const GitSyncStatusMenu: React.FC<GitSyncStatusMenuProps> = memo(
                         onClick={() => handleAction(suggestedAction.onSelect)}
                         role="menuitem"
                       >
-                        <SuggestedActionIcon
+                        <HugeiconsIcon
+                          icon={suggestedAction.icon}
                           size={MENU_ICON_SIZE}
                           className="shrink-0 text-text-1"
                         />

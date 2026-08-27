@@ -5,8 +5,6 @@
  */
 import { type IconSvgElement } from "@hugeicons/react";
 
-type LucideIcon = IconSvgElement;
-
 /**
  * A single quick action item
  */
@@ -18,7 +16,7 @@ export interface QuickAction {
   /** Keyboard shortcut (e.g., "⇧⌘L", "Cmd+J") */
   shortcut?: string;
   /** Optional icon to display */
-  icon?: LucideIcon;
+  icon?: IconSvgElement;
   /** Handler when action is triggered */
   onAction?: () => void;
   /** Whether the action is disabled */

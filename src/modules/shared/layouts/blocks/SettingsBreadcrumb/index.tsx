@@ -60,8 +60,6 @@ import {
 
 import { BreadcrumbPillNavTrigger } from "../BreadcrumbPillNav";
 
-type LucideIcon = IconSvgElement;
-
 export interface SettingsBreadcrumbProps {
   /** Optional className passthrough. */
   className?: string;
@@ -83,7 +81,7 @@ interface SettingsSelectorItem {
   readonly id: SettingsSelectorItemId;
   readonly label: string;
   readonly path: string;
-  readonly icon: LucideIcon | null;
+  readonly icon: IconSvgElement | null;
   readonly groupId: string;
 }
 
@@ -357,7 +355,8 @@ const SettingsBreadcrumb: React.FC<SettingsBreadcrumbProps> = ({
                           }`}
                         >
                           {Icon && (
-                            <Icon
+                            <HugeiconsIcon
+                              icon={Icon}
                               size={DROPDOWN_ITEM.iconSize}
                               className={`shrink-0 ${
                                 isActive ? "text-primary-6" : "text-text-2"

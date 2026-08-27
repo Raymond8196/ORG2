@@ -8,10 +8,8 @@ import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
-type LucideIcon = IconSvgElement;
-
 interface SpotlightModalHeaderProps {
-  icon: LucideIcon | string;
+  icon: IconSvgElement | string;
   title: string;
   badge?: string;
   badgeColor?: "primary" | "blue" | "green" | "yellow" | "red";
@@ -43,8 +41,8 @@ const SpotlightModalHeader: React.FC<SpotlightModalHeaderProps> = ({
     red: "border-red-500/20 bg-red-500/10 text-red-400",
   };
 
-  // Render icon - handle both Lucide components and string class names
-  const IconComponent = typeof icon === "function" ? icon : null;
+  // Render icon - handle both IconSvgElement and string class names
+  const isString = typeof icon === "string";
 
   if (hideHeader) return null;
 
@@ -52,10 +50,10 @@ const SpotlightModalHeader: React.FC<SpotlightModalHeaderProps> = ({
     <div className="flex items-center justify-between px-4 py-3">
       <div className="flex items-center gap-4">
         <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-border-2 bg-bg-2">
-          {IconComponent ? (
-            <IconComponent className="text-text-1" size={18} />
-          ) : (
+          {isString ? (
             <i className={`${icon} text-[18px] text-text-1`} />
+          ) : (
+            <HugeiconsIcon icon={icon} size={18} className="text-text-1" />
           )}
         </div>
         <div className="flex flex-col gap-0.5">

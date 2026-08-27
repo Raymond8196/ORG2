@@ -14,8 +14,6 @@ import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import type { ORGIIPoolCategory, ORGIIPoolConfig } from "@src/types/model/pool";
 import { formatModelNameFull } from "@src/util/formatModelName";
 
-type LucideIcon = IconSvgElement;
-
 // ─── ORGII tier constants ─────────────────────────────────────────────────────
 
 const ORGII_TIER_PREFIX = "orgii:";
@@ -24,7 +22,7 @@ const ORGII_TIER_PREFIX = "orgii:";
  * Per-tier icon mapping. Empty in the OSS build (no hosted pool, no tiers).
  * The hosted build populates this with whatever tier ids it serves.
  */
-export const ORGII_TIER_ICONS: Record<string, LucideIcon> = {};
+export const ORGII_TIER_ICONS: Record<string, IconSvgElement> = {};
 
 /**
  * Fallback tiers used when the hosted pool config has not yet returned (or
@@ -42,7 +40,7 @@ export function parseOrgiiTierId(modelId: string): string {
   return modelId.slice(ORGII_TIER_PREFIX.length);
 }
 
-export function getOrgiiTierIcon(tierId: string): LucideIcon {
+export function getOrgiiTierIcon(tierId: string): IconSvgElement {
   return ORGII_TIER_ICONS[tierId] ?? Zap;
 }
 

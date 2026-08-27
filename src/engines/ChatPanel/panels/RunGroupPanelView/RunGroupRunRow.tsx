@@ -78,21 +78,22 @@ const RunGroupRunRow: React.FC<RunGroupRunRowProps> = memo(
 
     // Registry lookup, not a component constructed during render — see the
     // same note in the launcher's RunnerRow.
-    const agentIcon = agentDisplay.iconId
-      ? React.createElement(resolveAgentIcon(agentDisplay.iconId), {
-          size: PILL_SM_ICON_SIZE,
-          strokeWidth: 1.85,
-          // `block`: an inline SVG reserves baseline descender space and
-          // wobbles a sub-pixel on any neighbouring re-layout.
-          className: "block shrink-0 text-text-1",
-        })
-      : agentDisplay.cliAgentType
-        ? React.createElement(ModelIcon, {
-            agentType: agentDisplay.cliAgentType,
-            size: PILL_SM_ICON_SIZE,
-            className: "block shrink-0",
-          })
-        : null;
+    const agentIcon = agentDisplay.iconId ? (
+      <HugeiconsIcon
+        icon={resolveAgentIcon(agentDisplay.iconId)}
+        size={PILL_SM_ICON_SIZE}
+        strokeWidth={1.85}
+        // `block`: an inline SVG reserves baseline descender space and
+        // wobbles a sub-pixel on any neighbouring re-layout.
+        className="block shrink-0 text-text-1"
+      />
+    ) : agentDisplay.cliAgentType ? (
+      React.createElement(ModelIcon, {
+        agentType: agentDisplay.cliAgentType,
+        size: PILL_SM_ICON_SIZE,
+        className: "block shrink-0",
+      })
+    ) : null;
     const elapsedSeconds = resolveRunElapsedSeconds(session, nowMs);
     const detail = resolveDetail(entry, session);
     const blockerLabel =

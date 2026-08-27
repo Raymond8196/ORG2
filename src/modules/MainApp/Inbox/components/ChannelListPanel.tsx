@@ -5,7 +5,7 @@
  * channels (Git, Work Items, Promotions). Selecting one shows the
  * classic message feed in the right pane via `ChannelFeedPanel`.
  */
-import { type IconSvgElement } from "@hugeicons/react";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -15,8 +15,6 @@ import ConfigListItem from "@src/modules/shared/layouts/ListDetailSubpage/Config
 import { ListPanelScrollArea } from "@src/modules/shared/layouts/blocks";
 
 import { INBOX_CHANNELS, type InboxCategory } from "../config";
-
-type LucideIcon = IconSvgElement;
 
 interface ChannelListPanelProps {
   activeChannelId: InboxCategory | null;
@@ -73,16 +71,16 @@ const ChannelListPanel: React.FC<ChannelListPanelProps> = ({
 };
 
 interface ChannelIconProps {
-  icon: LucideIcon;
+  icon: IconSvgElement;
   color: string;
 }
 
-const ChannelIcon: React.FC<ChannelIconProps> = ({ icon: Icon, color }) => (
+const ChannelIcon: React.FC<ChannelIconProps> = ({ icon, color }) => (
   <div
     className="flex h-6 w-6 items-center justify-center rounded-md"
     style={{ backgroundColor: `${color}15` }}
   >
-    <Icon size={14} style={{ color }} />
+    <HugeiconsIcon icon={icon} size={14} style={{ color }} />
   </div>
 );
 

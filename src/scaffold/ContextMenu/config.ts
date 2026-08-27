@@ -15,8 +15,6 @@ import Search from "@hugeicons/core-free-icons/Search01Icon";
 import History from "@hugeicons/core-free-icons/WorkHistoryIcon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 
-type LucideIcon = IconSvgElement;
-
 // ============================================
 // Types
 // ============================================
@@ -42,7 +40,7 @@ export interface MenuItem {
   id: MenuItemId;
   label: string;
   translationKey: string;
-  icon: LucideIcon;
+  icon: IconSvgElement;
   hasSecondLayer: boolean;
   shortcut?: string;
 }
@@ -77,7 +75,7 @@ export const ICON_CONFIG = {
 export interface SecondLayerConfig {
   title: string;
   translationKey: string;
-  icon: LucideIcon;
+  icon: IconSvgElement;
 }
 
 export const SECOND_LAYER_CONFIG: Record<SecondLayerId, SecondLayerConfig> = {

@@ -23,8 +23,6 @@ import {
   getSimulatorFrameContentClasses,
 } from "./config";
 
-type LucideIcon = IconSvgElement;
-
 // ============================================
 // Types
 // ============================================
@@ -33,7 +31,7 @@ export interface SimulatorFrameProps {
   /** Title to display in the header */
   title: string;
   /** Lucide icon before title (e.g. same as dock for the active tool). */
-  titleCenterIcon?: LucideIcon;
+  titleCenterIcon?: IconSvgElement;
   /** Border radius option: 12 (default simulator) or 20 (WorkStation) */
   radius?: FrameRadius;
   /** Custom header background color (e.g., IDE title bar theme) */

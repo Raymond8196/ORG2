@@ -35,8 +35,6 @@ import {
   SyncSection,
 } from "./subpages";
 
-type LucideIcon = IconSvgElement;
-
 // ============================================
 // Section IDs
 // ============================================
@@ -111,7 +109,7 @@ export function advanceSettingsSectionState(
 interface SettingsSectionConfig {
   id: SettingsSectionId;
   labelKey: string;
-  icon: LucideIcon;
+  icon: IconSvgElement;
   render: (props: WorkItemsSettingsProps) => React.ReactNode;
 }
 
@@ -188,14 +186,14 @@ const SettingsSidebar: React.FC<{
       <div className="flex flex-col gap-0.5 pb-2">
         {SECTIONS.map((section) => {
           const isActive = activeSection === section.id;
-          const Icon = section.icon;
           return (
             <button
               key={section.id}
               className={`w-full text-left ${getListItemClasses(isActive, "wideGap")}`}
               onClick={() => onSectionClick(section.id)}
             >
-              <Icon
+              <HugeiconsIcon
+                icon={section.icon}
                 size={16}
                 strokeWidth={1.75}
                 className={getListIconClasses(isActive)}

@@ -8,7 +8,7 @@
 import ArrowLeftRight from "@hugeicons/core-free-icons/ArrowLeftRightIcon";
 import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
 import Check from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
@@ -48,7 +48,7 @@ export interface PageBreadcrumbProps {
 interface BreadcrumbSelectorItem {
   key: string;
   label: string;
-  icon: React.ComponentType<{ size?: number; className?: string }> | null;
+  icon: IconSvgElement | null;
 }
 
 function getActiveSelectableItem(
@@ -206,7 +206,8 @@ const PageBreadcrumb: React.FC<PageBreadcrumbProps> = ({ className = "" }) => {
                     }`}
                   >
                     {ItemIcon ? (
-                      <ItemIcon
+                      <HugeiconsIcon
+                        icon={ItemIcon}
                         size={DROPDOWN_ITEM.iconSize}
                         className={`shrink-0 ${
                           isSelected ? "text-primary-6" : "text-text-2"
@@ -244,7 +245,8 @@ const PageBreadcrumb: React.FC<PageBreadcrumbProps> = ({ className = "" }) => {
         onClick={handleClick}
       >
         {IconComponent && (
-          <IconComponent
+          <HugeiconsIcon
+            icon={IconComponent}
             size={PANEL_HEADER_TOKENS.iconSize}
             className="shrink-0 text-text-2"
           />

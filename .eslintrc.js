@@ -113,10 +113,33 @@ module.exports = {
     "no-restricted-syntax": [
       "error",
       {
+        // The barrel is 672 KB across 14,716 exports. Webpack parses all of it
+        // before discarding the unused ones, which is pure build cost in a repo
+        // that imports icons from ~900 files. Deep imports skip it entirely.
         selector:
-          "ImportDeclaration[source.value='lucide-react'] ImportNamespaceSpecifier",
+          "ImportDeclaration[source.value='@hugeicons/core-free-icons']",
         message:
-          "Do not namespace-import lucide-react; use named imports or a finite typed icon registry so icons remain tree-shakeable.",
+          "Import hugeicons glyphs by canonical name, e.g. `import Search from \"@hugeicons/core-free-icons/Search01Icon\"`. See docs/hugeicons-migration/icon-mapping.md.",
+      },
+      {
+        selector:
+          "ImportDeclaration[source.value='@hugeicons/core-free-icons'] ImportNamespaceSpecifier",
+        message:
+          "Do not namespace-import hugeicons; use a deep import per glyph so icons remain tree-shakeable.",
+      },
+    ],
+
+    // lucide-react is fully migrated to hugeicons; keep it out of the tree.
+    "no-restricted-imports": [
+      "error",
+      {
+        paths: [
+          {
+            name: "lucide-react",
+            message:
+              "lucide-react has been removed. Use hugeicons — see docs/hugeicons-migration/icon-mapping.md for the lucide -> hugeicons name map.",
+          },
+        ],
       },
     ],
 

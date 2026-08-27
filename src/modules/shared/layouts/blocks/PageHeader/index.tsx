@@ -14,8 +14,6 @@ import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import type { FC, KeyboardEvent, ReactNode } from "react";
 import { memo, useRef, useState } from "react";
 
-type LucideIcon = IconSvgElement;
-
 // ============================================
 // Tokens
 // ============================================
@@ -50,8 +48,8 @@ interface DefaultVariantProps extends BaseProps {
   variant?: "default";
   /** Title text */
   title?: string;
-  /** Lucide icon component */
-  icon?: LucideIcon;
+  /** Hugeicons icon data */
+  icon?: IconSvgElement;
   /** Subtitle text */
   subtitle?: string;
 }
@@ -264,7 +262,11 @@ const PageHeader: FC<PageHeaderProps> = (props) => {
       {/* Main content */}
       <div className="flex min-w-0 flex-1 items-center gap-1.5">
         {IconComponent && (
-          <IconComponent size={14} className="flex-shrink-0 text-text-2" />
+          <HugeiconsIcon
+            icon={IconComponent}
+            size={14}
+            className="flex-shrink-0 text-text-2"
+          />
         )}
         {title && (
           <span className="truncate text-[13px] font-medium text-text-1">

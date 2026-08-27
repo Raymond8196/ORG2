@@ -17,8 +17,6 @@ import {
   resolveSessionIconId,
 } from "@src/util/session/sessionDispatch";
 
-type LucideIcon = IconSvgElement;
-
 export const COMMUNICATION_AVATAR_ICON_SIZE = 14;
 
 const CURSOR_AGENT_LABEL = "Cursor Agent";
@@ -73,11 +71,15 @@ function resolveSessionAgentIcon(
       />
     );
   }
-  const Icon: LucideIcon = resolveAgentIcon(
+  const icon = resolveAgentIcon(
     session?.agentIconId ?? resolveSessionIconId(sessionId)
   );
   return (
-    <Icon size={COMMUNICATION_AVATAR_ICON_SIZE} className="text-primary-6" />
+    <HugeiconsIcon
+      icon={icon}
+      size={COMMUNICATION_AVATAR_ICON_SIZE}
+      className="text-primary-6"
+    />
   );
 }
 

@@ -1,3 +1,4 @@
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -70,12 +71,16 @@ export const MyRolesStatusTab: React.FC = () => {
 
   const statusOptions = useMemo<SelectOption[]>(() => {
     const builtInOptions = BUILT_IN_STATUS_OPTIONS.map((option) => {
-      const StatusIcon = option.icon;
+      const icon = option.icon;
       return {
         value: option.mode,
         label: (
           <span className="inline-flex items-center gap-2">
-            <StatusIcon size={14} className={option.colorClass} />
+            <HugeiconsIcon
+              icon={icon}
+              size={14}
+              className={option.colorClass}
+            />
             <span>{t(option.labelKey, { ns: "navigation" })}</span>
           </span>
         ),
@@ -84,13 +89,17 @@ export const MyRolesStatusTab: React.FC = () => {
     });
 
     const customOptions = customRoles.map((role) => {
-      const RoleIcon = resolveCustomRoleIcon(role.iconId);
+      const icon = resolveCustomRoleIcon(role.iconId);
       const mode = buildCustomRoleMode(role.id);
       return {
         value: mode,
         label: (
           <span className="inline-flex items-center gap-2">
-            <RoleIcon size={14} className={CUSTOM_ROLE_COLOR_CLASS} />
+            <HugeiconsIcon
+              icon={icon}
+              size={14}
+              className={CUSTOM_ROLE_COLOR_CLASS}
+            />
             <span>{role.label}</span>
           </span>
         ),

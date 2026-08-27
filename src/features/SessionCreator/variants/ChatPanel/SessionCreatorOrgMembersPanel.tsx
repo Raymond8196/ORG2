@@ -242,9 +242,9 @@ const SessionCreatorOrgMembersPanel: React.FC<SessionCreatorOrgMembersPanelProps
                   ? resolveAgentIcon(resolvedAgent.iconId)
                   : null;
                 const agentPillIcon = IconComponent ? (
-                  <IconComponent
+                  <HugeiconsIcon
+                    icon={IconComponent}
                     size={PILL_SM_ICON_SIZE}
-                    strokeWidth={1.85}
                     className="text-text-1"
                   />
                 ) : resolvedAgent.cliAgentType ? (

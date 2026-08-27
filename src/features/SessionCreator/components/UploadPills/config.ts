@@ -10,8 +10,6 @@ import ImageIcon from "@hugeicons/core-free-icons/Image01Icon";
 import Sheet from "@hugeicons/core-free-icons/SheetIcon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 
-type LucideIcon = IconSvgElement;
-
 // ============================================
 // Icon Configuration
 // ============================================
@@ -33,7 +31,7 @@ const IMAGE_EXTENSIONS = [
 export const getFileTypeIcon = (
   fileName: string,
   fileType: string
-): LucideIcon => {
+): IconSvgElement => {
   const ext = fileName.split(".").pop()?.toLowerCase();
 
   if (fileType === "image" || IMAGE_EXTENSIONS.includes(ext || "")) {

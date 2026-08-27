@@ -56,8 +56,8 @@ interface CloudSessionHoverCardContentProps {
 }
 
 function renderAgentIcon(display: SessionDisplayMetadata) {
-  const AgentIcon = resolveAgentIcon(display.agentIconId);
-  return <AgentIcon size={13} strokeWidth={1.75} />;
+  const agentIcon = resolveAgentIcon(display.agentIconId);
+  return <HugeiconsIcon icon={agentIcon} size={13} strokeWidth={1.75} />;
 }
 
 export const CloudSessionHoverCardContent: React.FC<CloudSessionHoverCardContentProps> =

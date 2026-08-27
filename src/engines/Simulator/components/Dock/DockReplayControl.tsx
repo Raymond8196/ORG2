@@ -7,12 +7,12 @@
  *
  * Note: Replay bar is now handled by SimulatorContentArea component.
  */
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
   type FC,
   Fragment,
   type MouseEvent,
   type ReactNode,
-  createElement,
   memo,
   useCallback,
 } from "react";
@@ -103,7 +103,10 @@ export const DockReplayControl: FC<DockReplayControlProps> = memo(
                       onContextMenu={(e) => handleContextMenu(app.id, e)}
                       title={app.name}
                     >
-                      {createElement(app.icon, DOCK_LUCIDE_ICON_PROPS)}
+                      <HugeiconsIcon
+                        icon={app.icon}
+                        {...DOCK_LUCIDE_ICON_PROPS}
+                      />
                     </div>
                   </DockIconColumn>
                 );
@@ -121,7 +124,10 @@ export const DockReplayControl: FC<DockReplayControlProps> = memo(
                   onContextMenu={(e) => handleContextMenu(activeAppInfo.id, e)}
                   title={activeAppInfo.name}
                 >
-                  {createElement(activeAppInfo.icon, DOCK_LUCIDE_ICON_PROPS)}
+                  <HugeiconsIcon
+                    icon={activeAppInfo.icon}
+                    {...DOCK_LUCIDE_ICON_PROPS}
+                  />
                 </div>
               </DockIconColumn>
             </>

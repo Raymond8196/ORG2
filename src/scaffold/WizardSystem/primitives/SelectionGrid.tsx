@@ -44,8 +44,6 @@ import type {
 import Button from "@src/components/Button";
 import { TYPOGRAPHY } from "@src/config/workstation/tokens";
 
-type LucideIcon = IconSvgElement;
-
 // ============================================
 // Types
 // ============================================
@@ -56,7 +54,7 @@ export interface SelectionGridOption<T extends string = string> {
   /** Display label */
   label: string;
   /** Lucide icon component */
-  icon?: LucideIcon;
+  icon?: IconSvgElement;
   /** Custom icon element (takes precedence over icon) */
   iconElement?: React.ReactNode;
   /** Keep icon color unchanged when selected (e.g. brand icons like GitHub) */

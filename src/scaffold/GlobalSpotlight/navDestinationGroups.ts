@@ -23,13 +23,14 @@ import type {
   NavDestinationGroup,
 } from "./navDestinationsTypes";
 
-type LucideIcon = IconSvgElement;
-
 // ============================================================================
 // Local helper copies (mirror the private helpers in navDestinations.ts)
 // ============================================================================
 
-function resolveIcon(path: string, overrideIcon?: LucideIcon): LucideIcon {
+function resolveIcon(
+  path: string,
+  overrideIcon?: IconSvgElement
+): IconSvgElement {
   if (overrideIcon) return overrideIcon;
   const icon = getPathIcon(path);
   if (!icon) {
@@ -46,7 +47,7 @@ function dest(
   path: string,
   group: NavDestinationGroup,
   opts: {
-    overrideIcon?: LucideIcon;
+    overrideIcon?: IconSvgElement;
     keywords?: string[];
     labelKey?: string;
     descriptionSuffixKey?: string;
@@ -75,7 +76,7 @@ function wizardDest(
   wizardId: WizardId,
   opts: {
     labelKey: string;
-    overrideIcon?: LucideIcon;
+    overrideIcon?: IconSvgElement;
     keywords?: string[];
   }
 ): NavDestination {

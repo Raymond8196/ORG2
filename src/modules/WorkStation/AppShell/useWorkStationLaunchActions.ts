@@ -43,8 +43,6 @@ import {
 } from "@src/store/workstation";
 import type { WorkStationTab } from "@src/store/workstation/tabs";
 
-type LucideIcon = IconSvgElement;
-
 export type WorkStationLaunchActionId =
   | "searchFile"
   | "searchSessions"
@@ -58,7 +56,7 @@ export type WorkStationLaunchActionId =
 
 export interface WorkStationLaunchAction {
   id: WorkStationLaunchActionId;
-  icon: LucideIcon;
+  icon: IconSvgElement;
   label: string;
   /** Display string for the keyboard hint, when the action has one. */
   shortcut?: string;

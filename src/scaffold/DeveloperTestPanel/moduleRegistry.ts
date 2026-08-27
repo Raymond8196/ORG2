@@ -4,12 +4,10 @@ import type { FC } from "react";
 
 import OnboardingTestModule from "./modules/OnboardingTestModule";
 
-type LucideIcon = IconSvgElement;
-
 export interface DeveloperTestModuleDefinition {
   id: string;
   titleKey: string;
-  icon: LucideIcon;
+  icon: IconSvgElement;
   Component: FC;
   defaultExpanded?: boolean;
 }

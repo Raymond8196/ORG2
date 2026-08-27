@@ -30,10 +30,8 @@ import {
 
 import type { AppSwitcherMenuItem } from "./AppSwitcherDropdownPanel";
 
-type LucideIcon = IconSvgElement;
-
 export interface AppSwitcherChipData {
-  icon: LucideIcon;
+  icon: IconSvgElement;
   label: string;
   activeId: string;
   items: AppSwitcherMenuItem[];

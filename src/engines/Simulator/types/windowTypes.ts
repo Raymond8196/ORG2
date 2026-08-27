@@ -12,8 +12,6 @@ import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 
 import { AppType } from "./appTypes";
 
-type LucideIcon = IconSvgElement;
-
 /**
  * Unique identifier for a window instance
  */
@@ -66,7 +64,7 @@ export interface DockContextMenuOption {
   disabled?: boolean;
 }
 
-export const WINDOW_ICONS: Record<string, LucideIcon> = {
+export const WINDOW_ICONS: Record<string, IconSvgElement> = {
   switchTo: ArrowLeftRight,
   close: X,
   maximize: Maximize2,

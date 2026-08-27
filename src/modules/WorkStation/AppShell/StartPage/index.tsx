@@ -32,10 +32,8 @@ import {
   useWorkStationLaunchActions,
 } from "../useWorkStationLaunchActions";
 
-type LucideIcon = IconSvgElement;
-
 interface StartActionRowProps {
-  icon: LucideIcon;
+  icon: IconSvgElement;
   label: string;
   shortcut?: string;
   /** Working-tree diff totals shown beside the label (Review row only). */
@@ -45,7 +43,7 @@ interface StartActionRowProps {
 }
 
 const StartActionRow = memo<StartActionRowProps>(
-  ({ icon: Icon, label, shortcut, additions, deletions, onClick }) => {
+  ({ icon, label, shortcut, additions, deletions, onClick }) => {
     const showDiff =
       additions !== undefined &&
       deletions !== undefined &&
@@ -57,7 +55,12 @@ const StartActionRow = memo<StartActionRowProps>(
         className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left transition-colors ${SURFACE_TOKENS.hover} active:bg-fill-3`}
       >
         <span className="flex min-w-0 items-center gap-2.5">
-          <Icon size={16} strokeWidth={1.75} className="shrink-0 text-text-3" />
+          <HugeiconsIcon
+            icon={icon}
+            size={16}
+            strokeWidth={1.75}
+            className="shrink-0 text-text-3"
+          />
           <span className="truncate text-[14px] font-medium text-text-2">
             {label}
           </span>

@@ -65,11 +65,11 @@ function sessionIdFromPillPath(path: string): string {
 const SessionPillIcon: React.FC<{ path: string }> = memo(({ path }) => {
   const sessionId = sessionIdFromPillPath(path);
   const session = useAtomValue(sessionByIdAtom(sessionId));
-  const Icon = useMemo(
+  const icon = useMemo(
     () => resolveSessionRowIcon(session ?? sessionId),
     [session, sessionId]
   );
-  return React.createElement(Icon, ICON_PROPS);
+  return <HugeiconsIcon icon={icon} {...ICON_PROPS} />;
 });
 SessionPillIcon.displayName = "SessionPillIcon";
 

@@ -10,8 +10,6 @@ import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 
 import type { SearchMode } from "./types";
 
-type LucideIcon = IconSvgElement;
-
 // ============================================
 // Search Mode Configuration
 // ============================================
@@ -20,7 +18,7 @@ export interface SearchModeConfig {
   id: SearchMode;
   label: string;
   shortLabel: string;
-  icon: LucideIcon;
+  icon: IconSvgElement;
   description: string;
   color: string;
 }

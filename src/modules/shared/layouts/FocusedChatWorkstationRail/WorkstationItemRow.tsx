@@ -4,7 +4,7 @@
  */
 import ArrowUpRight from "@hugeicons/core-free-icons/ArrowUpRight01Icon";
 import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 
 import DiffStatsBadge from "@src/components/DiffStatsBadge";
 import { DROPDOWN_CLASSES } from "@src/components/Dropdown/tokens";
@@ -26,7 +26,6 @@ export function WorkstationItemRow({
   item: FocusedChatRailItem;
   onRequestClose?: () => void;
 }) {
-  const Icon = item.icon;
   const runAction = () => {
     onRequestClose?.();
     item.onClick?.();
@@ -54,7 +53,7 @@ export function WorkstationItemRow({
         {item.fileName ? (
           <FileTypeIcon fileName={item.fileName} size="small" />
         ) : (
-          <Icon size={14} strokeWidth={1.75} />
+          <HugeiconsIcon icon={item.icon} size={14} strokeWidth={1.75} />
         )}
       </span>
       <span className="min-w-0 flex-1 truncate">{item.label}</span>

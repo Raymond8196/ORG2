@@ -8,7 +8,7 @@
 // ============================================
 // Menu Item Configuration
 // ============================================
-import { type IconSvgElement } from "@hugeicons/react";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -18,8 +18,6 @@ import { getViewportSize } from "@src/util/ui/window/viewport";
 import { AppType } from "../../types/appTypes";
 import { WINDOW_ICONS } from "../../types/windowTypes";
 import { DockApp } from "./config";
-
-type LucideIcon = IconSvgElement;
 
 // Types
 
@@ -49,7 +47,7 @@ export interface DockContextMenuProps {
 interface MenuItem {
   id: string;
   label: string;
-  icon: LucideIcon;
+  icon: IconSvgElement;
   action: "switch";
 }
 
@@ -202,10 +200,11 @@ export const DockContextMenu: React.FC<DockContextMenuProps> = ({
                 onClick={() => !isDisabled && handleItemClick(item)}
                 disabled={isDisabled}
               >
-                {React.createElement(item.icon, {
-                  size: 14,
-                  className: isDisabled ? "text-text-3" : "text-text-2",
-                })}
+                <HugeiconsIcon
+                  icon={item.icon}
+                  size={14}
+                  className={isDisabled ? "text-text-3" : "text-text-2"}
+                />
                 <span className="flex-1">
                   {t(`simulator.dock.${item.label}`)}
                 </span>

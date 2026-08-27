@@ -42,8 +42,6 @@ import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 
 import { McpLogoIcon } from "@src/assets/channelIcons/McpLogoIcon";
 
-type LucideIcon = IconSvgElement;
-
 // ============================================================================
 // Registry Entry Type
 // ============================================================================
@@ -56,7 +54,7 @@ type LucideIcon = IconSvgElement;
  */
 export interface SegmentRegistryEntry {
   labelKey: string;
-  icon: LucideIcon;
+  icon: IconSvgElement;
 }
 
 // ============================================================================
@@ -130,7 +128,7 @@ export const SEGMENT_REGISTRY: Record<string, SegmentRegistryEntry> = {
   // mcp / skills (legacy segment keys + per-agent labels)
   mcp: {
     labelKey: "integrations:toolsArea.mcp",
-    icon: McpLogoIcon as unknown as LucideIcon,
+    icon: McpLogoIcon as unknown as IconSvgElement,
   },
   skills: { labelKey: "integrations:categories.skills", icon: Toolbox },
   // settings root — the unified surface header
@@ -198,7 +196,7 @@ const BREADCRUMB_HIDDEN_SEGMENTS = new Set<string>([
 ]);
 
 /** Returns the icon for a given URL segment, or `null`. */
-export function getSegmentIcon(segment: string): LucideIcon | null {
+export function getSegmentIcon(segment: string): IconSvgElement | null {
   return SEGMENT_REGISTRY[segment]?.icon ?? null;
 }
 
@@ -211,7 +209,7 @@ export function getSegmentLabelKey(segment: string): string | null {
  * Derive the icon for a full pathname — returns the icon of the deepest
  * visible segment (Spotlight uses this so entries match sidebar glyphs).
  */
-export function getPathIcon(pathname: string): LucideIcon | null {
+export function getPathIcon(pathname: string): IconSvgElement | null {
   const cleaned = pathname.split("?")[0].split("#")[0];
   const parts = cleaned.split("/").filter((s) => s.length > 0);
   for (let i = parts.length - 1; i >= 0; i--) {

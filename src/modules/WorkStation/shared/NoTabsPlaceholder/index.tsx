@@ -29,8 +29,6 @@ import { SURFACE_TOKENS } from "@src/config/surfaceTokens";
 import type { QuickAction } from "../QuickActionsPanel/types";
 import { EDITOR_TAB_CANVAS_BG_CLASS } from "../tokens";
 
-type LucideIcon = IconSvgElement;
-
 // ============================================
 // Types
 // ============================================
@@ -64,7 +62,7 @@ export interface NoTabsPlaceholderProps {
 // Icon Config
 // ============================================
 
-const ICON_MAP: Record<PlaceholderIcon, LucideIcon> = {
+const ICON_MAP: Record<PlaceholderIcon, IconSvgElement> = {
   editor: Code,
   "source-control": GitBranch,
   browser: Globe,
@@ -132,12 +130,11 @@ interface ToolIconProps {
 }
 
 const ToolIcon = memo<ToolIconProps>(({ icon }) => {
-  const IconComponent = ICON_MAP[icon];
-
   return (
     <div className="flex justify-center pb-4">
       <div className="flex h-[100px] w-[100px] items-center justify-center">
-        <IconComponent
+        <HugeiconsIcon
+          icon={ICON_MAP[icon]}
           size={72}
           strokeWidth={1.25}
           className="text-text-1 opacity-30"

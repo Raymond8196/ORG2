@@ -7,8 +7,6 @@ import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
 import Wrench from "@hugeicons/core-free-icons/Wrench01Icon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 
-type LucideIcon = IconSvgElement;
-
 export interface SessionFileChange {
   path: string;
   tool: string;
@@ -41,7 +39,7 @@ export interface SessionRun {
 }
 
 export interface StatusStyle {
-  icon: LucideIcon;
+  icon: IconSvgElement;
   iconClass: string;
   badgeClass: string;
 }
@@ -104,7 +102,7 @@ export const TOOL_LABEL_I18N_KEYS: Record<string, string> = {
   apply_patch: "workItems.toolLabels.patch",
 };
 
-export const TOOL_ICONS: Record<string, LucideIcon> = {
+export const TOOL_ICONS: Record<string, IconSvgElement> = {
   edit_file: FilePen,
   apply_patch: Wrench,
 };

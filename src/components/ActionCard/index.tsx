@@ -148,7 +148,11 @@ const ActionCard: React.FC<ActionCardProps> = ({
   const leadingIcon = iconElement ? (
     <div className={cn("flex-shrink-0", iconColorClass)}>{iconElement}</div>
   ) : Icon ? (
-    <Icon size={layout === "stacked" ? 18 : 16} className={iconColorClass} />
+    <HugeiconsIcon
+      icon={Icon}
+      size={layout === "stacked" ? 18 : 16}
+      className={iconColorClass}
+    />
   ) : null;
 
   const badgeElement = badge ? (

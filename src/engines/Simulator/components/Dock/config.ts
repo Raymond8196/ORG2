@@ -12,12 +12,10 @@ import Infinity from "@hugeicons/core-free-icons/Infinity01Icon";
 import Layout from "@hugeicons/core-free-icons/Layout01Icon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 
-type LucideIcon = IconSvgElement;
-
 export interface DockApp {
   id: string;
   name: string;
-  icon: LucideIcon;
+  icon: IconSvgElement;
 }
 
 /** Agent Desk dock — agent activity apps only.

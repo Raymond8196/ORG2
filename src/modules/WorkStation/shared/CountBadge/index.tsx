@@ -13,8 +13,6 @@ import Check from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { memo } from "react";
 
-type LucideIcon = IconSvgElement;
-
 // ============================================
 // Types
 // ============================================
@@ -41,7 +39,7 @@ export interface CountBadgeProps {
 // ============================================
 
 interface VariantConfig {
-  icon: LucideIcon;
+  icon: IconSvgElement;
   colorClass: string;
   defaultLabel: string;
 }
@@ -93,7 +91,6 @@ export const CountBadge: React.FC<CountBadgeProps> = memo(
     }
 
     const config = VARIANT_CONFIG[variant];
-    const Icon = config.icon;
     const displayLabel = label ?? config.defaultLabel;
 
     // Pluralize label if count !== 1
@@ -106,7 +103,11 @@ export const CountBadge: React.FC<CountBadgeProps> = memo(
       <span
         className={`flex items-center gap-1 text-[12px] ${config.colorClass} ${className}`}
       >
-        <Icon size={iconSize} className="shrink-0" />
+        <HugeiconsIcon
+          icon={config.icon}
+          size={iconSize}
+          className="shrink-0"
+        />
         <span>
           {count}
           {pluralizedLabel && ` ${pluralizedLabel}`}

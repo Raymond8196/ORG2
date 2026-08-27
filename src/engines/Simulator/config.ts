@@ -45,8 +45,6 @@ import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 
 import { SimulatorGridLayout } from "@src/store/ui/simulatorAtom";
 
-type LucideIcon = IconSvgElement;
-
 // Layout configuration
 export interface LayoutConfig {
   rows: number;
@@ -58,7 +56,7 @@ export interface LayoutConfig {
 export type GridLayout = SimulatorGridLayout;
 
 // Icon configuration - using Lucide icons
-export const ICON_CONFIG: Record<string, LucideIcon> = {
+export const ICON_CONFIG: Record<string, IconSvgElement> = {
   // Grid layout icons
   grid1x1: LayoutList,
   grid1x2: LayoutList,
@@ -153,7 +151,7 @@ export const STYLE_CONFIG = {
 };
 
 // Event type to icon mapping - using Lucide icons
-export const EVENT_TYPE_ICONS: Record<string, LucideIcon> = {
+export const EVENT_TYPE_ICONS: Record<string, IconSvgElement> = {
   run_command_line: Terminal,
   codebase_search: Search,
   read_file: File,
@@ -188,8 +186,8 @@ export const getLayoutCells = (layout: SimulatorGridLayout): number => {
 };
 
 // Get grid icon for layout
-export const getLayoutIcon = (layout: SimulatorGridLayout): LucideIcon => {
-  const iconMap: Record<SimulatorGridLayout, LucideIcon> = {
+export const getLayoutIcon = (layout: SimulatorGridLayout): IconSvgElement => {
+  const iconMap: Record<SimulatorGridLayout, IconSvgElement> = {
     "1x1": ICON_CONFIG.grid1x1,
     "1x2": ICON_CONFIG.grid1x2,
     "2x1": ICON_CONFIG.grid2x1,
@@ -203,6 +201,6 @@ export const getLayoutIcon = (layout: SimulatorGridLayout): LucideIcon => {
 };
 
 // Get icon for event type
-export const getEventTypeIcon = (eventType: string): LucideIcon => {
+export const getEventTypeIcon = (eventType: string): IconSvgElement => {
   return EVENT_TYPE_ICONS[eventType] || ICON_CONFIG.event;
 };

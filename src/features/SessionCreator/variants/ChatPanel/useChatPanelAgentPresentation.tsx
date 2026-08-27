@@ -1,3 +1,4 @@
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useSetAtom } from "jotai";
 import React, { useCallback, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -120,20 +121,17 @@ export function useChatPanelAgentPresentation({
         return <ModelIcon agentType="cursor_cli" size={size} />;
       }
       if (dispatchCategory === "human_session") {
-        return React.createElement(
-          resolveAgentIcon(resolvedAgentIconId || "clipboard-list"),
-          {
-            size,
-            strokeWidth: 1.75,
-            className: "text-text-1",
-          }
-        );
+        return React.createElement(HugeiconsIcon, {
+          icon: resolveAgentIcon(resolvedAgentIconId || "clipboard-list"),
+          size,
+          className: "text-text-1",
+        });
       }
       if (isRustMode) {
         const iconId = resolvedAgentIconId || "code";
-        return React.createElement(resolveAgentIcon(iconId), {
+        return React.createElement(HugeiconsIcon, {
+          icon: resolveAgentIcon(iconId),
           size,
-          strokeWidth: 1.75,
           className: hasAgentSelected ? "text-text-1" : "text-primary-6",
         });
       }

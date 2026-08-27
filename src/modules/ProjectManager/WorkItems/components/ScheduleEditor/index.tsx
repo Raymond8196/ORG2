@@ -20,8 +20,6 @@ import {
   parseCron,
 } from "./cronUtils";
 
-type LucideIcon = IconSvgElement;
-
 type ScheduleMode = "none" | "one-shot" | "recurring";
 type ScheduleValue = WorkItemSchedule | null;
 
@@ -46,7 +44,7 @@ const FREQUENCY_OPTIONS: { value: ScheduleFrequency; labelKey: string }[] = [
 const MODE_OPTIONS: {
   value: ScheduleMode;
   labelKey: string;
-  Icon: LucideIcon;
+  Icon: IconSvgElement;
 }[] = [
   { value: "none", labelKey: "common:schedule.noSchedule", Icon: CalendarOff },
   {
@@ -122,7 +120,11 @@ const ScheduleEditor: React.FC<ScheduleEditorProps> = ({
       dataTestId: `work-item-schedule-mode-option-${value}`,
       label: (
         <span className="inline-flex items-center gap-2">
-          <Icon size={DROPDOWN_ITEM.iconSize} className="shrink-0" />
+          <HugeiconsIcon
+            icon={Icon}
+            size={DROPDOWN_ITEM.iconSize}
+            className="shrink-0"
+          />
           <span className="truncate">{t(labelKey)}</span>
         </span>
       ),

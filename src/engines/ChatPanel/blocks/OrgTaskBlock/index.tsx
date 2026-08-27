@@ -91,8 +91,15 @@ export interface OrgTaskBlockProps {
  */
 function getActionIcon(action: OrgTaskAction) {
   const toolName = action === "create" ? "task_create" : "task_update";
-  const Icon = getToolIconComponent(toolName);
-  return <Icon size={14} strokeWidth={1.75} className="text-text-2" />;
+  const icon = getToolIconComponent(toolName);
+  return (
+    <HugeiconsIcon
+      icon={icon}
+      size={14}
+      strokeWidth={1.75}
+      className="text-text-2"
+    />
+  );
 }
 
 /**

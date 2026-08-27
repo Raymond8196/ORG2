@@ -75,8 +75,6 @@ const ActionItem = memo<ActionItemProps>(({ action, onAction }) => {
     onAction?.();
   }, [action, onAction]);
 
-  const Icon = action.icon;
-
   return (
     <button
       onClick={handleClick}
@@ -88,8 +86,9 @@ const ActionItem = memo<ActionItemProps>(({ action, onAction }) => {
       }`}
     >
       <div className="flex items-center gap-3">
-        {Icon && (
-          <Icon
+        {action.icon && (
+          <HugeiconsIcon
+            icon={action.icon}
             size={16}
             strokeWidth={1.5}
             className={action.disabled ? "text-text-4" : "text-text-2"}

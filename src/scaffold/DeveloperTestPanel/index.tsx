@@ -36,13 +36,14 @@ const DeveloperTestModuleSection: FC<{
 }> = ({ module }) => {
   const { t } = useTranslation("navigation");
   const [expanded, setExpanded] = useState(module.defaultExpanded ?? false);
-  const ModuleIcon = module.icon;
   const ModuleComponent = module.Component;
 
   return (
     <section data-testid={`developer-test-module-${module.id}`}>
       <DropdownItem
-        icon={<ModuleIcon size={DROPDOWN_ITEM.iconSize} />}
+        icon={
+          <HugeiconsIcon icon={module.icon} size={DROPDOWN_ITEM.iconSize} />
+        }
         suffix={
           expanded ? (
             <HugeiconsIcon icon={ChevronDown} size={DROPDOWN_ITEM.iconSize} />

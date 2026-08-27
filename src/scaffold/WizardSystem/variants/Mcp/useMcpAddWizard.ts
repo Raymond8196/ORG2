@@ -23,8 +23,6 @@ import type {
 
 import { type KvRow, kvRowsFromRecord, kvRowsToRecord } from "./KvTableEditor";
 
-type LucideIcon = IconSvgElement;
-
 // ============================================================================
 // Shared constants
 // ============================================================================
@@ -148,7 +146,7 @@ export interface UseMcpAddWizardReturn {
   transportOptions: Array<{
     key: McpTransportType;
     label: string;
-    icon: LucideIcon;
+    icon: IconSvgElement;
   }>;
   wizardTitle: string;
   updateEnvRow: (id: string, field: "key" | "value", val: string) => void;

@@ -75,8 +75,6 @@ import {
 
 import type { WorkStationTab } from "../../types";
 
-type LucideIcon = IconSvgElement;
-
 // ============================================
 // Types
 // ============================================
@@ -110,11 +108,11 @@ const WORKSTATION_TAB_ICONS = {
   Sparkles,
   SquareTerminal,
   Terminal,
-} as const satisfies Record<string, LucideIcon>;
+} as const satisfies Record<string, IconSvgElement>;
 
 type WorkstationTabIconName = keyof typeof WORKSTATION_TAB_ICONS;
 
-function resolveWorkstationTabIcon(name: string): LucideIcon | null {
+function resolveWorkstationTabIcon(name: string): IconSvgElement | null {
   return WORKSTATION_TAB_ICONS[name as WorkstationTabIconName] ?? null;
 }
 
@@ -245,10 +243,11 @@ export const SortableTab: React.FC<SortableTabProps> = memo(
 
       // Custom Lucide override — tint active tab only (FileTypeIcon / favicons keep their own colors).
       if (tab.icon) {
-        const IconComponent = resolveWorkstationTabIcon(tab.icon);
-        if (IconComponent) {
+        const icon = resolveWorkstationTabIcon(tab.icon);
+        if (icon) {
           return (
-            <IconComponent
+            <HugeiconsIcon
+              icon={icon}
               size={16}
               strokeWidth={1.75}
               className={isActive ? "text-text-1" : "text-text-2"}

@@ -275,7 +275,11 @@ function WorktreeSourceDropdownRow({
       } w-full justify-start ${disabled ? "opacity-60" : ""}`}
     >
       <span className="flex h-5 w-5 shrink-0 items-center justify-center">
-        <Icon size={DROPDOWN_ITEM.iconSize} className="text-text-2" />
+        <HugeiconsIcon
+          icon={Icon}
+          size={DROPDOWN_ITEM.iconSize}
+          className="text-text-2"
+        />
       </span>
       <span className="flex min-w-0 flex-1 flex-col items-start">
         <span className="w-full truncate text-[13px] text-text-1">

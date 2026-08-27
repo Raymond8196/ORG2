@@ -31,13 +31,10 @@ import React from "react";
 
 import { createLogger } from "@src/hooks/logger";
 
-type LucideIcon = IconSvgElement;
-type LucideProps = IconSvgElement;
-
 const log = createLogger("iconHelper");
 
-// Icon name to component mapping
-const ICON_MAP: Record<string, LucideIcon> = {
+// Icon name to icon data mapping
+const ICON_MAP: Record<string, IconSvgElement> = {
   // Core controls
   Terminal,
   Timer,
@@ -74,17 +71,30 @@ const ICON_MAP: Record<string, LucideIcon> = {
   ArrowLeftRight, // action input variable
 } as const;
 
+interface IconProps {
+  size?: number;
+  strokeWidth?: number;
+  className?: string;
+}
+
 /**
- * Render an icon from an icon name string (Lucide icon component name)
+ * Render an icon from an icon name string
  */
 export function renderActionIcon(
   iconName: string,
-  props?: LucideProps
+  props?: IconProps
 ): React.ReactNode {
-  const IconComponent = ICON_MAP[iconName];
-  if (!IconComponent) {
+  const icon = ICON_MAP[iconName];
+  if (!icon) {
     log.warn(`Unknown icon name: ${iconName}`);
     return null;
   }
-  return <IconComponent size={props?.size || 14} {...props} />;
+  return (
+    <HugeiconsIcon
+      icon={icon}
+      size={props?.size || 14}
+      strokeWidth={props?.strokeWidth ?? 2}
+      className={props?.className}
+    />
+  );
 }

@@ -18,8 +18,6 @@ import {
   isSameLocalDay,
 } from "@src/util/data/formatters/date";
 
-type LucideIcon = IconSvgElement;
-
 // ============================================
 // Channels
 // ============================================
@@ -29,7 +27,7 @@ export type { InboxCategory };
 export interface InboxChannelConfig {
   id: InboxCategory;
   labelKey: string;
-  icon: LucideIcon;
+  icon: IconSvgElement;
   color: string;
 }
 

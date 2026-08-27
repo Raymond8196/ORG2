@@ -96,17 +96,15 @@ import {
 } from "@src/engines/SessionCore/rendering/registry/initToolRegistry";
 import { normalizeFunctionName } from "@src/lib/activityData/activityNormalizers";
 
-type LucideIcon = IconSvgElement;
-
 /** Default size/class for chat ToolCallBlock and Integrations tool rows. */
 export const DEFAULT_TOOL_ICON_SIZE = 14;
 export const DEFAULT_TOOL_ICON_CLASS = "text-text-2";
 
 /**
- * Maps Rust `icon_id` strings (kebab-case) to Lucide components.
+ * Maps Rust `icon_id` strings (kebab-case) to Lucide icon data.
  * Keep in sync with `builtin_tools_list.rs` `row(..., icon_id)`.
  */
-export const LUCIDE_ICON_BY_ID: Record<string, LucideIcon> = {
+export const LUCIDE_ICON_BY_ID: Record<string, IconSvgElement> = {
   activity: Activity,
   "arrow-big-right-dash": ArrowBigRightDash,
   "arrow-right-left": ArrowRightLeft,
@@ -183,14 +181,12 @@ export const LUCIDE_ICON_BY_ID: Record<string, LucideIcon> = {
 
 /**
  * Non-Lucide brand icons that Rust can reference via `icon_id`.
- * Each component must accept `LucideProps` ({ size, className, ... }).
+ * Currently empty; MCP logo is handled separately as a custom SVG component.
  */
-const CUSTOM_ICON_BY_ID: Record<string, LucideIcon> = {
-  "mcp-logo": McpLogoIcon as unknown as LucideIcon,
-};
+const CUSTOM_ICON_BY_ID: Record<string, IconSvgElement> = {};
 
 /** Unified lookup: Lucide icons + custom brand icons. */
-const ICON_BY_ID: Record<string, LucideIcon> = {
+const ICON_BY_ID: Record<string, IconSvgElement> = {
   ...LUCIDE_ICON_BY_ID,
   ...CUSTOM_ICON_BY_ID,
 };
@@ -203,7 +199,7 @@ const ICON_BY_ID: Record<string, LucideIcon> = {
  * Action-specific icons are now defined in Rust `ToolInfo.action_icons` and
  * accessed via `getBuiltinToolActionIconId(toolName, action)`.
  */
-export const TOOL_ICON_COMPONENTS: Record<string, LucideIcon> = {
+export const TOOL_ICON_COMPONENTS: Record<string, IconSvgElement> = {
   // Search aliases
   search_in_file: Search,
   search: Search,
@@ -315,7 +311,7 @@ export function isTerminalTool(toolName: string): boolean {
 }
 
 /**
- * Get the Lucide icon component for a tool.
+ * Get the Lucide icon data for a tool.
  *
  * @param toolName - Tool name (e.g., "control_browser", "read_file")
  * @param iconId - Optional explicit icon id (takes precedence)
@@ -325,7 +321,7 @@ export function getToolIconComponent(
   toolName: string,
   iconId?: string | null,
   action?: string | null
-): LucideIcon {
+): IconSvgElement {
   const uiCanonical = getCliUiCanonical(toolName);
 
   // 1. Explicit icon id takes precedence
@@ -406,10 +402,10 @@ export function getToolIcon(
   toolName: string,
   options?: GetToolIconOptions
 ): React.ReactNode {
-  const Icon = getToolIconComponent(toolName, options?.iconId, options?.action);
+  const icon = getToolIconComponent(toolName, options?.iconId, options?.action);
   const size = options?.size ?? DEFAULT_TOOL_ICON_SIZE;
   const className = options?.className ?? DEFAULT_TOOL_ICON_CLASS;
-  return <Icon size={size} className={className} />;
+  return <HugeiconsIcon icon={icon} size={size} className={className} />;
 }
 
 // ============================================
@@ -417,7 +413,7 @@ export function getToolIcon(
 // ============================================
 
 /**
- * Get the Lucide icon component for an event, optionally resolved by status.
+ * Get the Lucide icon data for an event, optionally resolved by status.
  *
  * Priority:
  * 1. Status-specific icon from Rust (e.g., approval_request + "approved" → check-circle-2)
@@ -429,7 +425,7 @@ export function getEventIconComponent(
   eventType: string,
   status?: string | null,
   action?: string | null
-): LucideIcon {
+): IconSvgElement {
   const uiCanonical = getCliUiCanonical(eventType);
 
   if (status) {
@@ -467,12 +463,12 @@ export function getEventIcon(
   eventType: string,
   options?: GetEventIconOptions
 ): React.ReactNode {
-  const Icon = getEventIconComponent(
+  const icon = getEventIconComponent(
     eventType,
     options?.status,
     options?.action
   );
   const size = options?.size ?? DEFAULT_TOOL_ICON_SIZE;
   const className = options?.className ?? DEFAULT_TOOL_ICON_CLASS;
-  return <Icon size={size} className={className} />;
+  return <HugeiconsIcon icon={icon} size={size} className={className} />;
 }

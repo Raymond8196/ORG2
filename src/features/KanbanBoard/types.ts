@@ -9,8 +9,6 @@ import type { CliAgentType } from "@src/api/types/keys";
 import type { Label } from "@src/types/core/shared";
 import type { WorkItemStatus } from "@src/types/core/workItem";
 
-type LucideIcon = IconSvgElement;
-
 // ============================================
 // Task Types
 // ============================================
@@ -111,7 +109,7 @@ export interface KanbanTask {
    * that should sit at the same visual layer as the other footer pills
    * — distinct from `description` (above the footer divider).
    */
-  metaLines?: Array<{ icon?: LucideIcon; text: string; color?: string }>;
+  metaLines?: Array<{ icon?: IconSvgElement; text: string; color?: string }>;
 }
 
 // ============================================
@@ -121,7 +119,7 @@ export interface KanbanTask {
 export interface KanbanColumnConfig {
   id: TaskStatus;
   title: string;
-  icon: LucideIcon;
+  icon: IconSvgElement;
   color: string;
   bgColor: string;
   dotColor: string;

@@ -160,10 +160,10 @@ function handleRevealPath(path: string): void {
 function getAgentSessionInfo(
   display: SessionDisplayMetadata
 ): AgentSessionInfo {
-  const AgentIcon = resolveAgentIcon(display.agentIconId);
+  const agentIcon = resolveAgentIcon(display.agentIconId);
 
   return {
-    icon: <AgentIcon size={13} strokeWidth={1.75} />,
+    icon: <HugeiconsIcon icon={agentIcon} size={13} strokeWidth={1.75} />,
     label: display.agentLabel,
     textClassName: "text-text-1",
   };

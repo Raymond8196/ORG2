@@ -1,10 +1,8 @@
-import { type IconSvgElement } from "@hugeicons/react";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React from "react";
 
-type LucideIcon = IconSvgElement;
-
 interface SidebarHeaderNavButtonProps {
-  icon: LucideIcon;
+  icon: IconSvgElement;
   label: string;
   onClick: () => void;
   ariaLabel?: string;
@@ -13,7 +11,7 @@ interface SidebarHeaderNavButtonProps {
 }
 
 const SidebarHeaderNavButton: React.FC<SidebarHeaderNavButtonProps> = ({
-  icon: Icon,
+  icon,
   label,
   onClick,
   ariaLabel,
@@ -35,7 +33,12 @@ const SidebarHeaderNavButton: React.FC<SidebarHeaderNavButtonProps> = ({
       }}
     >
       <span className="flex min-w-0 flex-1 items-center gap-3">
-        <Icon size={14} strokeWidth={2} className="flex-shrink-0 text-text-1" />
+        <HugeiconsIcon
+          icon={icon}
+          size={14}
+          strokeWidth={2}
+          className="flex-shrink-0 text-text-1"
+        />
         <span className="flex min-w-0 flex-1 flex-col gap-0">
           <span
             className={`min-w-0 truncate text-[13px] text-text-1 ${bold ? "font-bold" : ""}`}

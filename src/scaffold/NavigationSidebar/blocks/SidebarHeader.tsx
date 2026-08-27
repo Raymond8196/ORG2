@@ -13,8 +13,6 @@ import { SPINNER_TOKENS } from "@src/config/spinnerTokens";
 import type { SidebarHeaderProps } from "../types";
 import { renderSidebarIcon } from "../utils/renderIcon";
 
-type LucideIcon = IconSvgElement;
-
 // ============================================
 // SidebarHeader Component
 // ============================================
@@ -78,10 +76,11 @@ const SidebarHeader: React.FC<SidebarHeaderProps> = React.memo(
                   typeof tab.icon === "string" ? (
                     <i className={`${tab.icon} text-[14px]`} />
                   ) : (
-                    React.createElement(tab.icon as LucideIcon, {
-                      className: "h-[14px] w-[14px]",
-                      strokeWidth: 2,
-                    })
+                    <HugeiconsIcon
+                      icon={tab.icon}
+                      size={14}
+                      className="h-[14px] w-[14px]"
+                    />
                   )
                 ) : undefined,
               }))}

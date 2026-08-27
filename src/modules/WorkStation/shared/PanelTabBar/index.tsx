@@ -27,8 +27,6 @@ import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip"
 import { useImmediateCursorReset } from "@src/hooks/ui/useImmediateCursorReset";
 import type { SecondaryPanelPosition } from "@src/store/ui/workStationAtom";
 
-type LucideIcon = IconSvgElement;
-
 export { PanelPositionToggle } from "./PositionToggle";
 
 const PANEL_TAB_ICONS = {
@@ -38,7 +36,7 @@ const PANEL_TAB_ICONS = {
   ScrollText,
   SquareChevronRight,
   TriangleAlert,
-} as const satisfies Record<string, LucideIcon>;
+} as const satisfies Record<string, IconSvgElement>;
 
 export type PanelTabIconName = keyof typeof PANEL_TAB_ICONS;
 

@@ -29,6 +29,7 @@ import {
   arrayMove,
   horizontalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
   useLayoutEffect,
@@ -509,7 +510,7 @@ const KanbanBoard: React.FC<KanbanBoardProps> = ({
                       className="kanban-column__icon"
                       style={{ color: activeColumn.color }}
                     >
-                      <activeColumn.icon size={16} />
+                      <HugeiconsIcon icon={activeColumn.icon} size={16} />
                     </div>
                     <div className="kanban-column__title">
                       {t(`sessions:kanban.boardColumns.${activeColumn.id}`)}

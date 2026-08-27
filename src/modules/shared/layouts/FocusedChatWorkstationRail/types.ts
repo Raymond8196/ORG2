@@ -4,15 +4,10 @@
  * the rail itself.
  */
 import { type IconSvgElement } from "@hugeicons/react";
-import type { ComponentProps, JSXElementConstructor } from "react";
 
 import type { BranchCiStatus } from "@src/services/git/branchPullRequestStatus";
 
-type LucideIcon = IconSvgElement;
-
-export type FocusedChatRailIcon = JSXElementConstructor<
-  ComponentProps<LucideIcon>
->;
+export type FocusedChatRailIcon = IconSvgElement;
 
 export type FocusedChatRailItem = {
   key: string;

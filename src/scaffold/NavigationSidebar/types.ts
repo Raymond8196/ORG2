@@ -7,8 +7,6 @@
 import { type IconSvgElement } from "@hugeicons/react";
 import type { MouseEvent, ReactNode, Ref } from "react";
 
-type LucideIcon = IconSvgElement;
-
 // ============================================
 // Base Types
 // ============================================
@@ -19,7 +17,7 @@ type LucideIcon = IconSvgElement;
  * - Prefer Lucide icon components (e.g. `Terminal`)
  * - Some configs still use string icon names during migration (e.g. `"Terminal"`)
  */
-export type SidebarIcon = LucideIcon | string;
+export type SidebarIcon = IconSvgElement | string;
 
 /** Theme configuration for custom-styled sidebars */
 export interface SidebarTheme {
@@ -159,7 +157,7 @@ export interface SidebarBaseProps {
   /** Add new item callback (shows plus button in traffic lights area) */
   onAddNew?: () => void;
   /** Icon for add button */
-  addIcon?: LucideIcon;
+  addIcon?: IconSvgElement;
   /** Label for add button tooltip */
   addLabel?: string;
   /** Optional rich tooltip content for the add button. */

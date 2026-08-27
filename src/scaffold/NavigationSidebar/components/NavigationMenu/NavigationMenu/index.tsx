@@ -1,3 +1,4 @@
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
   useEffect,
@@ -130,11 +131,13 @@ const NavigationMenu: React.FC<NavigationMenuProps> = React.memo(
           );
         }
 
-        return React.createElement(icon, {
-          size: 14,
-          strokeWidth: 2,
-          className: `flex-shrink-0 ${colorClass}`,
-        });
+        return (
+          <HugeiconsIcon
+            icon={icon}
+            size={14}
+            className={`flex-shrink-0 ${colorClass}`}
+          />
+        );
       },
       []
     );

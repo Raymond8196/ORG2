@@ -16,7 +16,7 @@ import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
 import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
-import React, { createElement, memo, useMemo } from "react";
+import { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { Placeholder } from "@src/components/Placeholder";
@@ -24,8 +24,6 @@ import {
   type GitOperation,
   gitOperationHistoryAtom,
 } from "@src/store/git/gitOperationAtom";
-
-type LucideIcon = IconSvgElement;
 
 // ============================================
 // Constants
@@ -40,7 +38,7 @@ const TIME_THRESHOLDS = {
   DAY: 86400,
 } as const;
 
-const OPERATION_ICONS: Record<string, LucideIcon> = {
+const OPERATION_ICONS: Record<string, IconSvgElement> = {
   commit: GitCommitHorizontal,
   push: ArrowUpFromLine,
   pull: ArrowDownToLine,
@@ -94,11 +92,12 @@ const OperationRow: React.FC<OperationRowProps> = memo(({ entry }) => {
       {/* Status + Operation icon */}
       <div className="mt-0.5 flex-shrink-0">
         {entry.success ? (
-          createElement(OperationIconComponent, {
-            size: ICON_SIZE,
-            strokeWidth: ICON_STROKE,
-            className: "text-text-2",
-          })
+          <HugeiconsIcon
+            icon={OperationIconComponent}
+            size={ICON_SIZE}
+            strokeWidth={ICON_STROKE}
+            className="text-text-2"
+          />
         ) : (
           <HugeiconsIcon
             icon={XCircle}

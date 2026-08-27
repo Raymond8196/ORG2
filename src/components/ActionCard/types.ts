@@ -4,8 +4,6 @@
 import { type IconSvgElement } from "@hugeicons/react";
 import type { ReactNode } from "react";
 
-type LucideIcon = IconSvgElement;
-
 export type ActionCardVariant = "default" | "primary" | "secondary" | "subtle";
 export type ActionCardLayout = "inline" | "stacked";
 
@@ -39,10 +37,10 @@ export interface ActionCardProps {
   layout?: ActionCardLayout;
 
   /**
-   * Icon component (Lucide icon).
+   * Icon data (Lucide icon).
    * For custom icons (e.g. ModelIcon), use iconElement instead.
    */
-  icon?: LucideIcon;
+  icon?: IconSvgElement;
 
   /**
    * Custom icon element (ReactNode). Takes precedence over `icon`.

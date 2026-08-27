@@ -6,10 +6,8 @@ import type { MouseEvent, ReactNode } from "react";
 
 import type { TabDragPillPayload } from "@src/modules/WorkStation/shared/TabBar/tabDragTypes";
 
-type LucideIcon = IconSvgElement;
-
 export interface NavigationMenuRowAction {
-  icon?: LucideIcon;
+  icon?: IconSvgElement;
   /** Optional class applied to the rendered Lucide icon (for example refresh spin). */
   iconClassName?: string;
   label: string;
@@ -37,7 +35,7 @@ export interface NavigationMenuItem {
   searchText?: string;
   /** Optional secondary line rendered below the label (e.g. branch name). */
   subtitle?: ReactNode;
-  icon?: LucideIcon | string;
+  icon?: IconSvgElement | string;
   iconName?: string;
   /** Arbitrary rendered icon — takes precedence over `icon` when set. */
   iconElement?: ReactNode;
@@ -66,7 +64,7 @@ export interface NavigationMenuItem {
   /** Show hover-only row action buttons. */
   showMoreActions?: boolean;
   rowActions?: NavigationMenuRowAction[];
-  rowActionIcon?: LucideIcon;
+  rowActionIcon?: IconSvgElement;
   rowActionLabel?: string;
   onRowActionClick?: (event: MouseEvent<HTMLButtonElement>) => void;
   /** Let a primary click on the selected row open its context menu. */

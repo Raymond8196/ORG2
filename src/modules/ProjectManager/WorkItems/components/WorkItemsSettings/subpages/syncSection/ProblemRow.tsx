@@ -33,7 +33,7 @@ import { formatRelativeTime } from "@src/util/time/formatRelativeTime";
  * pass since the icons set the visual hierarchy of the panel.
  *
  * Inlined as a render-time component (rather than returning the
- * `LucideIcon` type) so the `react-hooks/static-components` rule
+ * `IconSvgElement` type) so the `react-hooks/static-components` rule
  * stays happy — assigning a component value into a local then
  * rendering it would otherwise count as "create component during
  * render".

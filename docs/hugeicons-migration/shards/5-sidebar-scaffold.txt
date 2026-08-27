@@ -1,0 +1,40 @@
+src/scaffold/ContextMenu/index.tsx(340,19): error TS2322: Type 'IconSvgElement' is not assignable to type 'ComponentType<Record<string, unknown>>'.
+src/scaffold/ContextMenu/ResultItems.tsx(110,32): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'IconSvgElement' is not assignable to parameter of type 'string | FunctionComponent<{ size: 13; strokeWidth: number; className: string; }> | ComponentClass<{ size: 13; strokeWidth: number; className: string; }, any>'.
+src/scaffold/ContextMenu/variants/TextSelectionDropdown/index.tsx(557,22): error TS2604: JSX element type 'IconComponent' does not have any construct or call signatures.
+src/scaffold/ContextMenu/variants/TextSelectionDropdown/index.tsx(557,22): error TS2786: 'IconComponent' cannot be used as a JSX component.
+  Its type 'IconSvgElement' is not a valid JSX element type.
+src/scaffold/DeveloperTestPanel/index.tsx(45,16): error TS2604: JSX element type 'ModuleIcon' does not have any construct or call signatures.
+src/scaffold/DeveloperTestPanel/index.tsx(45,16): error TS2786: 'ModuleIcon' cannot be used as a JSX component.
+  Its type 'IconSvgElement' is not a valid JSX element type.
+src/scaffold/NavigationSidebar/blocks/SidebarBottomBar.tsx(220,18): error TS2604: JSX element type 'OptionIcon' does not have any construct or call signatures.
+src/scaffold/NavigationSidebar/blocks/SidebarBottomBar.tsx(220,18): error TS2786: 'OptionIcon' cannot be used as a JSX component.
+  Its type 'IconSvgElement' is not a valid JSX element type.
+src/scaffold/NavigationSidebar/blocks/SidebarBottomBar.tsx(247,22): error TS2604: JSX element type 'RoleIcon' does not have any construct or call signatures.
+src/scaffold/NavigationSidebar/blocks/SidebarBottomBar.tsx(247,22): error TS2786: 'RoleIcon' cannot be used as a JSX component.
+  Its type 'IconSvgElement' is not a valid JSX element type.
+src/scaffold/NavigationSidebar/blocks/SidebarHeader.tsx(81,41): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'IconSvgElement' is not assignable to parameter of type 'string | FunctionComponent<{ className: string; strokeWidth: number; }> | ComponentClass<{ className: string; strokeWidth: number; }, any>'.
+src/scaffold/NavigationSidebar/blocks/SidebarHeaderNavButton.tsx(38,10): error TS2604: JSX element type 'Icon' does not have any construct or call signatures.
+src/scaffold/NavigationSidebar/blocks/SidebarHeaderNavButton.tsx(38,10): error TS2786: 'Icon' cannot be used as a JSX component.
+  Its type 'IconSvgElement' is not a valid JSX element type.
+src/scaffold/NavigationSidebar/components/HoverAnimatedIcon.tsx(518,8): error TS2604: JSX element type 'IconComponent' does not have any construct or call signatures.
+src/scaffold/NavigationSidebar/components/HoverAnimatedIcon.tsx(518,8): error TS2786: 'IconComponent' cannot be used as a JSX component.
+  Its type 'IconSvgElement' is not a valid JSX element type.
+src/scaffold/NavigationSidebar/components/NavigationMenu/NavigationMenu/index.tsx(133,36): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'IconSvgElement' is not assignable to parameter of type 'string | FunctionComponent<{ size: number; strokeWidth: number; className: string; }> | ComponentClass<{ size: number; strokeWidth: number; className: string; }, any>'.
+src/scaffold/NavigationSidebar/connectors/WorkstationSidebarConnector/WorkstationSidebarViewSwitcher.tsx(103,20): error TS2604: JSX element type 'Icon' does not have any construct or call signatures.
+src/scaffold/NavigationSidebar/connectors/WorkstationSidebarConnector/WorkstationSidebarViewSwitcher.tsx(103,20): error TS2786: 'Icon' cannot be used as a JSX component.
+  Its type 'IconSvgElement' is not a valid JSX element type.
+src/scaffold/NavigationSidebar/utils/renderIcon.tsx(66,6): error TS2604: JSX element type 'IconComponent' does not have any construct or call signatures.
+src/scaffold/NavigationSidebar/utils/renderIcon.tsx(66,6): error TS2786: 'IconComponent' cannot be used as a JSX component.
+  Its type 'IconSvgElement' is not a valid JSX element type.
+src/scaffold/NavigationSidebar/variants/NavigationSidebar.tsx(405,39): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'IconSvgElement' is not assignable to parameter of type 'string | FunctionComponent<{ className: string; strokeWidth: number; }> | ComponentClass<{ className: string; strokeWidth: number; }, any>'.
+src/scaffold/WizardSystem/variants/Policy/RoutineWizard/RoutineBasicsSection.tsx(332,42): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'IconSvgElement' is not assignable to parameter of type 'string | FunctionComponent<{ size: number; className: string; }> | ComponentClass<{ size: number; className: string; }, any>'.

@@ -9,7 +9,7 @@ import Code from "@hugeicons/core-free-icons/CodeIcon";
 import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
 import FolderKanban from "@hugeicons/core-free-icons/FolderKanbanIcon";
 import Globe from "@hugeicons/core-free-icons/GlobeIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -101,17 +101,20 @@ export const ResultItemIcon: React.FC<{
   }
 
   if (item.iconType === "session") {
-    const SessionIcon = resolveSessionRowIcon({
+    const sessionIcon = resolveSessionRowIcon({
       session_id: item.path,
       user_input: item.userInput,
       agentIconId: item.agentIconId,
       cliAgentType: item.cliAgentType,
     });
-    return React.createElement(SessionIcon, {
-      size: DROPDOWN_ITEM.iconSize,
-      strokeWidth: 1.75,
-      className: iconAccent,
-    });
+    return (
+      <HugeiconsIcon
+        icon={sessionIcon}
+        size={DROPDOWN_ITEM.iconSize}
+        strokeWidth={1.75}
+        className={iconAccent}
+      />
+    );
   }
 
   if (item.iconType === "browser") {
@@ -173,7 +176,7 @@ ResultItemIcon.displayName = "ResultItemIcon";
 // ============================================
 
 export interface MenuItemRowProps {
-  icon: React.ComponentType<Record<string, unknown>>;
+  icon: IconSvgElement;
   label: string;
   description?: string;
   hasArrow?: boolean;
@@ -213,11 +216,12 @@ export const MenuItemRow: React.FC<MenuItemRowProps> = memo(
       onMouseLeave={onMouseLeave}
     >
       <div className="flex min-w-0 items-center gap-2">
-        {React.createElement(icon, {
-          size: DROPDOWN_ITEM.iconSize,
-          className: "shrink-0 text-text-2",
-          strokeWidth: 1.75,
-        })}
+        <HugeiconsIcon
+          icon={icon}
+          size={DROPDOWN_ITEM.iconSize}
+          className="shrink-0 text-text-2"
+          strokeWidth={1.75}
+        />
         <span className="min-w-0 shrink truncate text-[13px] text-text-1">
           {label}
         </span>
@@ -228,7 +232,8 @@ export const MenuItemRow: React.FC<MenuItemRowProps> = memo(
         )}
       </div>
       {hasArrow && (
-        <ICON_CONFIG.arrow
+        <HugeiconsIcon
+          icon={ICON_CONFIG.arrow}
           size={DROPDOWN_ITEM.iconSize}
           className="text-text-3"
           strokeWidth={1.75}

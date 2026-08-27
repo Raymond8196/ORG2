@@ -46,11 +46,10 @@ import type {
  * Custom "database-search" glyph — no equivalent exists in the hugeicons free
  * set, so the original path data is kept verbatim.
  *
- * Previously built with lucide's `createLucideIcon`, which injected the stroke
- * presentation attributes for us. `HugeiconsIcon` does not: it only overrides
- * stroke when a `strokeWidth` prop is passed, and otherwise renders each entry
- * exactly as written. The attributes below are therefore spelled out per path
- * to match what hugeicons' own icon modules carry.
+ * Ported to hugeicons `IconSvgElement` format. The stroke presentation
+ * attributes are spelled out per path to match what hugeicons' own icon
+ * modules carry. When rendered via `HugeiconsIcon`, these attributes will
+ * be preserved exactly as written.
  */
 const STROKE = {
   stroke: "currentColor",

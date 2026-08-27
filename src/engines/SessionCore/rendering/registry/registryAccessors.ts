@@ -15,8 +15,6 @@ import { resolveToolName } from "@src/engines/SessionCore/rendering/registry/too
 
 import { getAllEventTypes } from "./events";
 
-type LucideIcon = IconSvgElement;
-
 // Chat-context accessors are pure metadata; re-exported from ./events/contextConfig
 // so `ActionRegistry` (and the chat-projection worker behind it) can import
 // them without touching the renderer loaders.
@@ -29,7 +27,7 @@ export {
 export interface ComponentOption {
   id: string;
   displayName: string;
-  icon: LucideIcon;
+  icon: IconSvgElement;
   description: string;
   component: LazyExoticComponent<ComponentType<Record<string, unknown>>>;
 }
@@ -62,7 +60,7 @@ export function prefetchCommonComponents(): void {
  * Conversation / lifecycle rows — match SessionCore chat blocks.
  * Agent replies use `MessageSquare` like `AgentMessageBlock`; tools use Rust-backed icons below.
  */
-const TRAJECTORY_CHAT_ALIGNED_ICON: Record<string, LucideIcon> = {
+const TRAJECTORY_CHAT_ALIGNED_ICON: Record<string, IconSvgElement> = {
   message: MessageSquare,
   /** User prompts — same `MessageSquare` as assistant `message` rows (chat-aligned) */
   user_message: MessageSquare,
@@ -81,7 +79,7 @@ const TRAJECTORY_CHAT_ALIGNED_ICON: Record<string, LucideIcon> = {
 export function getTrajectoryTimelineIcon(
   groupType: string,
   toolNameForRust?: string
-): LucideIcon {
+): IconSvgElement {
   const chatAligned = TRAJECTORY_CHAT_ALIGNED_ICON[groupType];
   if (chatAligned) {
     return chatAligned;

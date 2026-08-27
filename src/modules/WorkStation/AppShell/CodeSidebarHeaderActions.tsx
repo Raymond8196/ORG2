@@ -19,11 +19,9 @@ import {
   activeWorkStationTabAtom,
 } from "@src/store/workstation/tabs";
 
-type LucideIcon = IconSvgElement;
-
 const CODE_SIDEBAR_HEADER_ACTIONS: Array<{
   key: PrimarySidebarTabKey;
-  icon: LucideIcon;
+  icon: IconSvgElement;
   labelKey: string;
 }> = [
   {
@@ -72,7 +70,6 @@ const CodeSidebarHeaderActionsComponent: React.FC = () => {
   return (
     <div className="flex shrink-0 items-center gap-px">
       {CODE_SIDEBAR_HEADER_ACTIONS.map((action) => {
-        const Icon = action.icon;
         const active = activeSidebarTab === action.key;
         const label = t(action.labelKey);
         const shortcutId =
@@ -94,7 +91,13 @@ const CodeSidebarHeaderActionsComponent: React.FC = () => {
               className={active ? "!bg-fill-2 !text-primary-6" : ""}
               onClick={() => handleSelect(action.key)}
               aria-label={label}
-              icon={<Icon size={HEADER_ICON_SIZE.sm} strokeWidth={2} />}
+              icon={
+                <HugeiconsIcon
+                  icon={action.icon}
+                  size={HEADER_ICON_SIZE.sm}
+                  strokeWidth={2}
+                />
+              }
             />
           </ToolbarTooltip>
         );

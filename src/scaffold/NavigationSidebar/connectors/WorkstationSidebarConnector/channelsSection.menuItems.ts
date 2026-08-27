@@ -31,8 +31,6 @@ import type {
 
 import { separator } from "../useSessionMenuItems/menuItemBuilders";
 
-type LucideIcon = IconSvgElement;
-
 export const CLOUD_CHANNELS_SECTION_ID = "cloud-channels";
 /** Empty/loading/error funnel row; clickable "Create a channel" when ready. */
 export const CLOUD_CHANNELS_EMPTY_ID = "cloud-channels-empty";
@@ -122,7 +120,7 @@ export interface ChannelMenuRowParams {
   name: string;
   /** Joins `searchText` so sidebar search matches on the topic too. */
   topic?: string;
-  icon: LucideIcon;
+  icon: IconSvgElement;
   dataTestId: string;
   rowActions?: NavigationMenuRowAction[];
 }

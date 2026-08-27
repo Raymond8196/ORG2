@@ -14,8 +14,6 @@ import Check from "@hugeicons/core-free-icons/Tick01Icon";
 import History from "@hugeicons/core-free-icons/WorkHistoryIcon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 
-type LucideIcon = IconSvgElement;
-
 // ============================================
 // Types
 // ============================================
@@ -30,7 +28,7 @@ export type DropdownAction =
 export interface DropdownMenuItem {
   id: DropdownAction;
   label: string;
-  icon: LucideIcon;
+  icon: IconSvgElement;
   hasSecondLayer?: boolean;
 }
 

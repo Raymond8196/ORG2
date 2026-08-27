@@ -10,13 +10,11 @@ import { createElement } from "react";
 
 import { getSettingsSectionsByTab } from "@src/config/settingsUiManifest";
 
-type LucideIcon = IconSvgElement;
-
 export interface SettingsSectionConfig {
   id: string;
   /** Translation key for the label (e.g., "general" -> t("sections.general")) */
   labelKey: string;
-  icon: LucideIcon;
+  icon: IconSvgElement;
 }
 
 // ============================================

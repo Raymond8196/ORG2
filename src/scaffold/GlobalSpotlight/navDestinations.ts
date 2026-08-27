@@ -34,8 +34,6 @@ import type {
   NavDestinationGroup,
 } from "./navDestinationsTypes";
 
-type LucideIcon = IconSvgElement;
-
 export type { NavDestination, NavDestinationGroup };
 
 // ============================================================================
@@ -47,7 +45,10 @@ export type { NavDestination, NavDestinationGroup };
  * URL path. Callers may override by supplying `overrideIcon` (used
  * sparingly for the few entries that need a custom glyph — e.g. MCP).
  */
-function resolveIcon(path: string, overrideIcon?: LucideIcon): LucideIcon {
+function resolveIcon(
+  path: string,
+  overrideIcon?: IconSvgElement
+): IconSvgElement {
   if (overrideIcon) return overrideIcon;
   const icon = getPathIcon(path);
   if (!icon) {
@@ -64,7 +65,7 @@ function dest(
   path: string,
   group: NavDestinationGroup,
   opts: {
-    overrideIcon?: LucideIcon;
+    overrideIcon?: IconSvgElement;
     keywords?: string[];
     labelKey?: string;
     descriptionSuffixKey?: string;

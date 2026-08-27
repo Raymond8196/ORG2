@@ -14,15 +14,13 @@ import { useTranslation } from "react-i18next";
 
 import { type PathConfig, buildPathSegment } from "../palettes/config";
 
-type LucideIcon = IconSvgElement;
-
 export interface UsePathSegmentOptions {
   /** Force a specific label string, bypassing config + i18n. */
   labelOverride?: string;
   /** Force a specific template string, bypassing config + i18n. */
   templateOverride?: string;
   /** Force a specific icon, bypassing the config's default. */
-  iconOverride?: LucideIcon;
+  iconOverride?: IconSvgElement;
   /** When true, returns an empty array regardless of config. */
   disabled?: boolean;
 }

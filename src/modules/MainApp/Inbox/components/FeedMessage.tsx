@@ -92,7 +92,13 @@ const FeedMessage: React.FC<FeedMessageProps> = ({
             className="mt-0.5 h-7 w-7"
             bgColor={`${accentColor}15`}
             icon={
-              Icon ? <Icon size={14} style={{ color: accentColor }} /> : null
+              Icon ? (
+                <HugeiconsIcon
+                  icon={Icon}
+                  size={14}
+                  style={{ color: accentColor }}
+                />
+              ) : null
             }
           />
         }

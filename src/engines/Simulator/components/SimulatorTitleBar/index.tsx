@@ -8,19 +8,17 @@
  *
  * Used by: SimulatorContentArea, SimulatorFrame, ResizableSplitView
  */
-import { type IconSvgElement } from "@hugeicons/react";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import TabPill from "@src/components/TabPill";
 import type { StationMode } from "@src/store/ui/simulatorAtom";
 
-type LucideIcon = IconSvgElement;
-
 interface SimulatorTitleBarProps {
   title?: string;
-  /** Optional Lucide icon before title (same asset as dock for the active tool). */
-  titleCenterIcon?: LucideIcon;
+  /** Optional Hugeicons icon before title (same asset as dock for the active tool). */
+  titleCenterIcon?: IconSvgElement;
   backgroundColor?: string;
   textColor?: string;
   showBorder?: boolean;
@@ -82,7 +80,8 @@ const SimulatorTitleBar: React.FC<SimulatorTitleBarProps> = memo(
           {title ? (
             <span className="flex min-w-0 items-center gap-1.5">
               {TitleCenterIcon ? (
-                <TitleCenterIcon
+                <HugeiconsIcon
+                  icon={TitleCenterIcon}
                   size={16}
                   strokeWidth={1.75}
                   className="shrink-0 text-text-2"

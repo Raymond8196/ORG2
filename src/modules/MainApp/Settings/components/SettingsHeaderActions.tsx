@@ -52,7 +52,8 @@ const HeaderIconButton: React.FC<HeaderIconButtonProps> = ({ item }) => {
   const icon =
     item.iconElement ??
     (item.icon ? (
-      <item.icon
+      <HugeiconsIcon
+        icon={item.icon}
         size={HEADER_ICON_SIZE.sm}
         strokeWidth={2}
         className={item.iconClassName}
@@ -114,7 +115,7 @@ const CompactPlusDropdown: React.FC<CompactPlusDropdownProps> = ({
             />
           );
         }
-        const IconComponent = item.icon;
+        const icon = item.icon;
         return (
           <button
             key={item.id}
@@ -129,7 +130,8 @@ const CompactPlusDropdown: React.FC<CompactPlusDropdownProps> = ({
             }`}
           >
             <span className="flex min-w-0 flex-1 items-center gap-2">
-              <IconComponent
+              <HugeiconsIcon
+                icon={icon}
                 size={HEADER_ICON_SIZE.sm}
                 strokeWidth={1.75}
                 className={item.isDanger ? "text-danger-6" : "text-text-1"}

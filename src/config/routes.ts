@@ -28,8 +28,6 @@ import {
 // Shared route-display metadata stays independent from router state.
 import type { RouteInfo, RouteLabelContext } from "./routeTypes";
 
-type LucideIcon = IconSvgElement;
-
 // Re-export for convenience
 export type { RouteLabelContext, RouteInfo };
 
@@ -168,7 +166,7 @@ export function getIconForPath(path: string): string | undefined {
 /**
  * Get icon component for a path
  */
-export function getIconComponentForPath(path: string): LucideIcon | null {
+export function getIconComponentForPath(path: string): IconSvgElement | null {
   const iconName = getIconForPath(path);
   if (!iconName) return null;
   return ICON_NAME_MAP[iconName] ?? null;

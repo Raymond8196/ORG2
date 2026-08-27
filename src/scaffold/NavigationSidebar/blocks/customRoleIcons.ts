@@ -23,9 +23,7 @@ import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 
 import type { CustomRoleIconId } from "@src/types/userPresence";
 
-type LucideIcon = IconSvgElement;
-
-export const CUSTOM_ROLE_ICONS: Record<CustomRoleIconId, LucideIcon> = {
+export const CUSTOM_ROLE_ICONS: Record<CustomRoleIconId, IconSvgElement> = {
   user: User,
   briefcase: Briefcase,
   code: Code,
@@ -55,6 +53,6 @@ export const CUSTOM_ROLE_ICON_IDS: readonly CustomRoleIconId[] = [
   "sparkles",
 ] as const;
 
-export function resolveCustomRoleIcon(id: CustomRoleIconId): LucideIcon {
+export function resolveCustomRoleIcon(id: CustomRoleIconId): IconSvgElement {
   return CUSTOM_ROLE_ICONS[id] ?? User;
 }

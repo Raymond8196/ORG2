@@ -102,9 +102,9 @@ const RunnerRow: React.FC<RunnerRowProps> = memo(
     // jump sideways the moment a harness was chosen; the placeholder holds the
     // width and reads as "anything could go here".
     const agentPillIcon = agentDisplay.iconId
-      ? React.createElement(resolveAgentIcon(agentDisplay.iconId), {
+      ? React.createElement(HugeiconsIcon, {
+          icon: resolveAgentIcon(agentDisplay.iconId),
           size: PILL_SM_ICON_SIZE,
-          strokeWidth: 1.85,
           className: "block text-text-1",
         })
       : agentDisplay.cliAgentType
@@ -113,9 +113,9 @@ const RunnerRow: React.FC<RunnerRowProps> = memo(
             size: PILL_SM_ICON_SIZE,
             className: "block",
           })
-        : React.createElement(InfinityIcon, {
+        : React.createElement(HugeiconsIcon, {
+            icon: InfinityIcon,
             size: PILL_SM_ICON_SIZE,
-            strokeWidth: 1.85,
             className: "block",
           });
 

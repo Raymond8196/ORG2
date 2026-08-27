@@ -18,8 +18,6 @@ import type {
 } from "@src/api/realtime/websocket/types";
 import { resolveAgentIcon } from "@src/config/agentIcons";
 
-type LucideIcon = IconSvgElement;
-
 // ============================================
 // Icon Mapping for Tool Kinds
 // ============================================
@@ -44,7 +42,7 @@ export const TOOL_KIND_ICONS: Record<ToolKind, string> = {
 // ============================================
 
 /** Map agent types to Lucide icon components */
-export const AGENT_TYPE_ICONS: Record<StreamingAgentType, LucideIcon> = {
+export const AGENT_TYPE_ICONS: Record<StreamingAgentType, IconSvgElement> = {
   claude: Bot,
   amp: Zap,
   cursor: MousePointer2,

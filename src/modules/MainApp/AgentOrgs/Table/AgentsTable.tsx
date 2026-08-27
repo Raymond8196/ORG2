@@ -134,12 +134,12 @@ const AgentsTable: React.FC<AgentsTableProps> = ({
         width: SETTINGS_TABLE_COL.fill,
         sorter: (rowA, rowB) => rowA.name.localeCompare(rowB.name),
         renderCell: (row) => {
-          const Icon = resolveAgentIcon(row.iconId);
+          const icon = resolveAgentIcon(row.iconId);
           return (
             <span
               className={`${SETTINGS_TABLE_CELL.primary} inline-flex items-center gap-2 font-bold`}
             >
-              <Icon size={14} strokeWidth={2} />
+              <HugeiconsIcon icon={icon} size={14} strokeWidth={2} />
               {row.name}
             </span>
           );

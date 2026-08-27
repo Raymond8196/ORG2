@@ -93,7 +93,8 @@ const MenuItemRow: React.FC<MenuItemRowProps> = memo(
         <span>{label}</span>
       </div>
       {hasArrow && (
-        <ICON_CONFIG.arrow
+        <HugeiconsIcon
+          icon={ICON_CONFIG.arrow}
           size={DROPDOWN_ITEM.iconSize}
           className="text-text-3"
           strokeWidth={1.75}
@@ -139,7 +140,8 @@ const SessionSelectorPanel: React.FC<SessionSelectorPanelProps> = memo(
             onClick={onBack}
             className="flex h-[24px] w-[24px] items-center justify-center rounded-[4px] text-text-2 hover:bg-fill-1"
           >
-            <ICON_CONFIG.arrowBack
+            <HugeiconsIcon
+              icon={ICON_CONFIG.arrowBack}
               size={DROPDOWN_ITEM.iconSize}
               strokeWidth={1.75}
             />
@@ -535,7 +537,6 @@ const TextSelectionDropdown: React.FC<TextSelectionDropdownProps> = ({
         >
           <div className={DROPDOWN_CLASSES.itemsColumnPadded}>
             {menuItems.map((item, index) => {
-              const IconComponent = item.icon;
               let label: string;
               if (item.id === "add-to-chat") {
                 label = t("selectionMenu.addToChat");
@@ -554,7 +555,8 @@ const TextSelectionDropdown: React.FC<TextSelectionDropdownProps> = ({
                 <MenuItemRow
                   key={item.id}
                   icon={
-                    <IconComponent
+                    <HugeiconsIcon
+                      icon={item.icon}
                       size={DROPDOWN_ITEM.iconSize}
                       className="text-text-2"
                       strokeWidth={1.75}

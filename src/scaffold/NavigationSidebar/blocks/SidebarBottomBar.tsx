@@ -48,8 +48,6 @@ import {
 import SidebarUpdateButton from "./SidebarUpdateButton";
 import { resolveCustomRoleIcon } from "./customRoleIcons";
 
-type LucideIcon = IconSvgElement;
-
 interface SidebarBottomBarProps {
   /** Content rendered in the footer's left-side slot. */
   leftContent?: React.ReactNode;
@@ -59,7 +57,7 @@ interface SidebarBottomBarProps {
   settingsAction?: React.ReactNode;
 }
 
-const PRESENCE_ICON: Record<BuiltInPresenceMode, LucideIcon> = {
+const PRESENCE_ICON: Record<BuiltInPresenceMode, IconSvgElement> = {
   [USER_PRESENCE_MODE.ONLINE]: Circle,
   [USER_PRESENCE_MODE.INVISIBLE]: HatGlasses,
   [USER_PRESENCE_MODE.AWAY]: Moon,
@@ -217,7 +215,8 @@ export const PresenceMenuItems: React.FC<PresenceMenuItemsProps> = ({
           >
             <PresenceItemContent
               icon={
-                <OptionIcon
+                <HugeiconsIcon
+                  icon={OptionIcon}
                   size={DROPDOWN_ITEM.iconSize}
                   className={PRESENCE_COLOR[option]}
                 />
@@ -244,7 +243,8 @@ export const PresenceMenuItems: React.FC<PresenceMenuItemsProps> = ({
               >
                 <PresenceItemContent
                   icon={
-                    <RoleIcon
+                    <HugeiconsIcon
+                      icon={RoleIcon}
                       size={DROPDOWN_ITEM.iconSize}
                       className={CUSTOM_ROLE_COLOR_CLASS}
                     />

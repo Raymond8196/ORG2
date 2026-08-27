@@ -17,12 +17,10 @@ import type { InfoCardRow } from "@src/modules/shared/layouts/blocks";
 import TeamInboxHeaderIconAction from "./TeamInboxHeaderIconAction";
 import type { TeamInboxHeaderIconActionProps } from "./TeamInboxHeaderIconAction";
 
-type LucideIcon = IconSvgElement;
-
 export interface TeamInboxDetailLayoutProps {
   title: string;
   subtitle: string;
-  icon: LucideIcon;
+  icon: IconSvgElement;
   /** Custom shared header content, such as the canonical GitHub issue strip. */
   headerContent?: React.ReactNode;
   metadata?: InfoCardRow[];

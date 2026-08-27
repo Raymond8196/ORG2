@@ -9,7 +9,6 @@ import React from "react";
 
 import type { SidebarIcon } from "../types";
 
-
 interface RenderIconOptions {
   className?: string;
   size?: number;

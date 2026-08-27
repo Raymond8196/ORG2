@@ -3,6 +3,7 @@
  *
  * Common types used across all spotlight components (Editor, Session, Global)
  */
+import type { IconSvgElement } from "@hugeicons/react";
 import React from "react";
 
 // ============ BASE PALETTE PROPS ============
@@ -82,7 +83,7 @@ export interface SpotlightItem {
   label: string;
   desc?: string;
   description?: string;
-  icon?: string | React.ComponentType<Record<string, unknown>>;
+  icon?: string | React.ComponentType<Record<string, unknown>> | IconSvgElement;
   data?: SpotlightItemData;
   statusType?: StatusType;
   /** Item type for categorization */

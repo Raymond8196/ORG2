@@ -171,7 +171,11 @@ const UploadPill: React.FC<UploadPillProps> = ({
     >
       {/* File Icon */}
       <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[6px] bg-bg-3">
-        {createElement(fileIcon, { size: 16, className: "text-text-2" })}
+        {createElement(HugeiconsIcon, {
+          icon: fileIcon,
+          size: 16,
+          className: "text-text-2",
+        })}
       </div>
 
       {/* File Info */}

@@ -7,7 +7,7 @@
  *
  * Used by: Integrations, Dev Records, Wallet, Creator Studio, Settings, etc.
  */
-import { type IconSvgElement } from "@hugeicons/react";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React from "react";
 
 import TabPill from "@src/components/TabPill";
@@ -17,8 +17,6 @@ import {
 } from "@src/modules/shared/layouts/blocks";
 
 import { getListIconClasses, getListItemClasses } from "./tokens";
-
-type LucideIcon = IconSvgElement;
 
 // ── Types ──
 
@@ -30,7 +28,7 @@ export interface MenuPanelTab<TTab extends string = string> {
 export interface MenuPanelItem<TKey extends string = string> {
   key: TKey;
   label: string;
-  icon: LucideIcon;
+  icon: IconSvgElement;
 }
 
 export interface MenuPanelProps<
@@ -92,14 +90,17 @@ export function MenuPanel<
         <div className="flex flex-col gap-1">
           {items.map((item) => {
             const isActive = activeView === item.key;
-            const Icon = item.icon;
             return (
               <button
                 key={item.key}
                 onClick={() => onViewChange(item.key)}
                 className={`w-full border-none text-left ${getListItemClasses(isActive)}`}
               >
-                <Icon size={16} className={getListIconClasses(isActive)} />
+                <HugeiconsIcon
+                  icon={item.icon}
+                  size={16}
+                  className={getListIconClasses(isActive)}
+                />
                 <span>{item.label}</span>
               </button>
             );

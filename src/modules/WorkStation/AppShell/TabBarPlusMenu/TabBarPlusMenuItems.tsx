@@ -1,3 +1,4 @@
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import DiffStatsBadge from "@src/components/DiffStatsBadge";
@@ -26,7 +27,6 @@ export function TabBarPlusMenuItems({
   return (
     <>
       {actions.map((action) => {
-        const Icon = action.icon;
         return (
           <button
             key={action.id}
@@ -38,7 +38,7 @@ export function TabBarPlusMenuItems({
             className={DROPDOWN_CLASSES.menuActionItem}
           >
             <span className="flex min-w-0 flex-1 items-center gap-2">
-              <Icon size={HEADER_ICON_SIZE.sm} />
+              <HugeiconsIcon icon={action.icon} size={HEADER_ICON_SIZE.sm} />
               <span className="min-w-0 truncate">{action.label}</span>
               {action.id === "sourceControl" &&
               (additions > 0 || deletions > 0) ? (

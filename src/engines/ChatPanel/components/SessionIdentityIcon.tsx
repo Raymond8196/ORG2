@@ -1,3 +1,4 @@
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { memo } from "react";
 
@@ -62,11 +63,11 @@ const SessionIdentityIcon: React.FC<SessionIdentityIconProps> = memo(
         className={`inline-flex h-4 w-4 shrink-0 items-center justify-center ${colorClass} ${className}`.trim()}
         aria-hidden
       >
-        {React.createElement(Icon, {
-          size: SESSION_IDENTITY_ICON_SIZE,
-          strokeWidth: 2,
-          className: "shrink-0",
-        })}
+        <HugeiconsIcon
+          icon={Icon}
+          size={SESSION_IDENTITY_ICON_SIZE}
+          className="shrink-0"
+        />
       </span>
     );
   }

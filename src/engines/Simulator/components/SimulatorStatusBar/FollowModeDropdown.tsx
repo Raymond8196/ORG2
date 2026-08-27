@@ -24,9 +24,7 @@ import {
 import { AppType } from "../../types/appTypes";
 import { getSimulatorDockTitleCenterEnglish } from "../Dock/dockTitleCenter";
 
-type LucideIcon = IconSvgElement;
-
-function getActiveAppIcon(appType: AppType | null): LucideIcon | null {
+function getActiveAppIcon(appType: AppType | null): IconSvgElement | null {
   return getSimulatorDockTitleCenterEnglish(appType).icon;
 }
 
@@ -68,7 +66,7 @@ export const FollowModeDropdown: React.FC = () => {
     [panelPosition]
   );
 
-  const triggerIcon: LucideIcon = isAllApps
+  const triggerIcon: IconSvgElement | null = isAllApps
     ? InfinityIcon
     : (getActiveAppIcon(activeApp) ?? Layers);
 
@@ -106,7 +104,7 @@ export const FollowModeDropdown: React.FC = () => {
               : `text-text-2 ${SURFACE_TOKENS.hover} hover:text-primary-6`
           }`}
         >
-          {React.createElement(triggerIcon, { size: 14, strokeWidth: 2 })}
+          {triggerIcon ? <HugeiconsIcon icon={triggerIcon} size={14} /> : null}
         </button>
       </Tooltip>
       {isOpen &&

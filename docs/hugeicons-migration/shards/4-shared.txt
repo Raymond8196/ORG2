@@ -1,0 +1,33 @@
+src/modules/shared/launchpad/components/LaunchpadDashboard.tsx(181,37): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'IconSvgElement' is not assignable to parameter of type 'string | FunctionComponent<{ size: number; strokeWidth: number; className: string; }> | ComponentClass<{ size: number; strokeWidth: number; className: string; }, any>'.
+src/modules/shared/launchpad/components/LaunchpadDashboard.tsx(215,37): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type 'IconSvgElement' is not assignable to parameter of type 'string | FunctionComponent<{ size: number; strokeWidth: number; className: string; }> | ComponentClass<{ size: number; strokeWidth: number; className: string; }, any>'.
+src/modules/shared/layouts/blocks/InternalHeader/index.tsx(127,16): error TS2604: JSX element type 'Icon' does not have any construct or call signatures.
+src/modules/shared/layouts/blocks/InternalHeader/index.tsx(127,16): error TS2786: 'Icon' cannot be used as a JSX component.
+  Its type 'IconSvgElement' is not a valid JSX element type.
+src/modules/shared/layouts/blocks/PageBreadcrumb/index.tsx(99,7): error TS2322: Type '{ key: string; label: string; icon: IconSvgElement | null; }[]' is not assignable to type 'BreadcrumbSelectorItem[]'.
+  Type '{ key: string; label: string; icon: IconSvgElement | null; }' is not assignable to type 'BreadcrumbSelectorItem'.
+    Types of property 'icon' are incompatible.
+      Type 'IconSvgElement | null' is not assignable to type 'ComponentType<{ size?: number | undefined; className?: string | undefined; }> | null'.
+        Type 'IconSvgElement' is not assignable to type 'ComponentType<{ size?: number | undefined; className?: string | undefined; }> | null'.
+src/modules/shared/layouts/blocks/PageHeader/index.tsx(267,12): error TS2604: JSX element type 'IconComponent' does not have any construct or call signatures.
+src/modules/shared/layouts/blocks/PageHeader/index.tsx(267,12): error TS2786: 'IconComponent' cannot be used as a JSX component.
+  Its type 'IconSvgElement' is not a valid JSX element type.
+src/modules/shared/layouts/blocks/sessionTableItem.tsx(50,11): error TS2604: JSX element type 'AgentIcon' does not have any construct or call signatures.
+src/modules/shared/layouts/blocks/sessionTableItem.tsx(50,11): error TS2786: 'AgentIcon' cannot be used as a JSX component.
+  Its type 'IconSvgElement' is not a valid JSX element type.
+src/modules/shared/layouts/blocks/SettingsBreadcrumb/index.tsx(360,30): error TS2604: JSX element type 'Icon' does not have any construct or call signatures.
+src/modules/shared/layouts/blocks/SettingsBreadcrumb/index.tsx(360,30): error TS2786: 'Icon' cannot be used as a JSX component.
+  Its type 'IconSvgElement' is not a valid JSX element type.
+src/modules/shared/layouts/FocusedChatWorkstationRail/index.tsx(99,3): error TS2339: Property 'size' does not exist on type '{}'.
+src/modules/shared/layouts/FocusedChatWorkstationRail/index.tsx(101,25): error TS2344: Type 'IconSvgElement' does not satisfy the constraint 'JSXElementConstructor<any> | keyof IntrinsicElements'.
+src/modules/shared/layouts/FocusedChatWorkstationRail/index.tsx(607,27): error TS2322: Type '{ size: number; strokeWidth: number; }' is not assignable to type 'IntrinsicAttributes'.
+  Property 'size' does not exist on type 'IntrinsicAttributes'.
+src/modules/shared/layouts/FocusedChatWorkstationRail/types.ts(14,18): error TS2344: Type 'IconSvgElement' does not satisfy the constraint 'JSXElementConstructor<any> | keyof IntrinsicElements'.
+src/modules/shared/layouts/FocusedChatWorkstationRail/WorkspaceContextRow.tsx(33,8): error TS2604: JSX element type 'Icon' does not have any construct or call signatures.
+src/modules/shared/layouts/FocusedChatWorkstationRail/WorkspaceContextRow.tsx(33,8): error TS2786: 'Icon' cannot be used as a JSX component.
+  Its type 'IconSvgElement' is not a valid JSX element type.
+src/modules/shared/layouts/FocusedChatWorkstationRail/WorkstationItemRow.tsx(57,17): error TS2322: Type '{ size: number; strokeWidth: number; }' is not assignable to type 'IntrinsicAttributes'.
+  Property 'size' does not exist on type 'IntrinsicAttributes'.
