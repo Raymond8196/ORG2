@@ -1,6 +1,6 @@
 import Plus from "@hugeicons/core-free-icons/Add01Icon";
 import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";

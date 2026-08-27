@@ -9,9 +9,9 @@
  * allow-forms, no allow-popups-to-escape-sandbox. No eval bridge is injected
  * into the document. External URLs are never loaded.
  */
+import Maximize2 from "@hugeicons/core-free-icons/ArrowExpand01Icon";
+import Minimize2 from "@hugeicons/core-free-icons/ArrowShrink01Icon";
 import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import Maximize2 from "@hugeicons/core-free-icons/Maximize02Icon";
-import Minimize2 from "@hugeicons/core-free-icons/Minimize02Icon";
 import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";

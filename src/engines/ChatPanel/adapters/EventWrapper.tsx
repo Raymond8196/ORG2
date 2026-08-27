@@ -9,8 +9,8 @@
  * - Memoized component with chunk_id-based comparison
  * - Separate rendering paths for different modes
  */
+import Maximize2 from "@hugeicons/core-free-icons/ArrowExpand01Icon";
 import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Maximize2 from "@hugeicons/core-free-icons/Maximize02Icon";
 import Wrench from "@hugeicons/core-free-icons/Wrench01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useState } from "react";

@@ -5,7 +5,7 @@
  * User selects 2+ repos from a checklist; on submit, the selected
  * repos become workspace folders via setWorkspaceFoldersAtom.
  */
-import Folder from "@hugeicons/core-free-icons/Folder01Icon";
+import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
 import Search from "@hugeicons/core-free-icons/Search01Icon";
 import Check from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";

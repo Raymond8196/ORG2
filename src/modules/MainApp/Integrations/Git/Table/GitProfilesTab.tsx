@@ -1,7 +1,7 @@
 import Plus from "@hugeicons/core-free-icons/Add01Icon";
 import Copy from "@hugeicons/core-free-icons/Copy01Icon";
 import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import Check from "@hugeicons/core-free-icons/Tick01Icon";
 import UserRound from "@hugeicons/core-free-icons/UserCircleIcon";
 import { HugeiconsIcon } from "@hugeicons/react";

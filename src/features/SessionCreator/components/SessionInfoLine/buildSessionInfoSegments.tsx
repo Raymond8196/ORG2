@@ -1,8 +1,8 @@
 import Code from "@hugeicons/core-free-icons/CodeIcon";
-import Folder from "@hugeicons/core-free-icons/Folder01Icon";
+import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
 import FolderTree from "@hugeicons/core-free-icons/FolderTreeIcon";
-import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
 import Home from "@hugeicons/core-free-icons/Home01Icon";
+import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React from "react";

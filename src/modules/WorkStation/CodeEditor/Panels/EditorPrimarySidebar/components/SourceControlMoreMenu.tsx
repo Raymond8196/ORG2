@@ -13,7 +13,7 @@ import ArrowUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
 import ArrowUpDown from "@hugeicons/core-free-icons/ArrowUpDownIcon";
 import CloudUpload from "@hugeicons/core-free-icons/CloudUploadIcon";
 import Ellipsis from "@hugeicons/core-free-icons/MoreHorizontalIcon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";

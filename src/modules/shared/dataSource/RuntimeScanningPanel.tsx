@@ -19,7 +19,7 @@
  * live in `buildRuntimeScanningPanelColumns`. This file wires that state to
  * the tab/search UI and the table/expandable-row layout.
  */
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { invoke } from "@tauri-apps/api/core";
 import { useAtom } from "jotai";

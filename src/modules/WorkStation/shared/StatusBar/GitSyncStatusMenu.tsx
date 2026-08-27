@@ -7,7 +7,7 @@ import CloudDownload from "@hugeicons/core-free-icons/CloudDownloadIcon";
 import CloudUpload from "@hugeicons/core-free-icons/CloudUploadIcon";
 import GitCompareArrows from "@hugeicons/core-free-icons/GitCompareIcon";
 import Ellipsis from "@hugeicons/core-free-icons/MoreHorizontalIcon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";

@@ -1,7 +1,7 @@
 import Clock from "@hugeicons/core-free-icons/Clock01Icon";
 import FileDiff from "@hugeicons/core-free-icons/FileDiffIcon";
-import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
 import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";

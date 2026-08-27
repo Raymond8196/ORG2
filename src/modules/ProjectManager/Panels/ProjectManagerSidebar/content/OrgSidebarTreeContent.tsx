@@ -1,6 +1,6 @@
 import Network from "@hugeicons/core-free-icons/AiNetworkIcon";
-import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
 import Import from "@hugeicons/core-free-icons/ImportIcon";
+import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, {

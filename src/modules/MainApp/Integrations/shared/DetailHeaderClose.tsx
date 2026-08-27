@@ -1,8 +1,8 @@
 import ArrowDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import Maximize2 from "@hugeicons/core-free-icons/ArrowExpand01Icon";
 import ArrowUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
 import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import Maximize2 from "@hugeicons/core-free-icons/Maximize02Icon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";

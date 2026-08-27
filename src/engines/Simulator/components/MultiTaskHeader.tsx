@@ -4,8 +4,8 @@
  * Window header bar for the background-tasks dock app.
  * Contains task count and close button.
  */
+import Minimize2 from "@hugeicons/core-free-icons/ArrowShrink01Icon";
 import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import Minimize2 from "@hugeicons/core-free-icons/Minimize02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React from "react";

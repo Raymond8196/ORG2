@@ -8,7 +8,7 @@
 import BookOpen from "@hugeicons/core-free-icons/BookOpen01Icon";
 import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
 import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";

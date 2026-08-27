@@ -1,5 +1,5 @@
 import LogIn from "@hugeicons/core-free-icons/Login01Icon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";

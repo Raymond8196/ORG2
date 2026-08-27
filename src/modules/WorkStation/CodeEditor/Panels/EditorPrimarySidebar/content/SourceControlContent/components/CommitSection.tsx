@@ -9,7 +9,7 @@
 import ArrowDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
 import ArrowUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
 import CloudUpload from "@hugeicons/core-free-icons/CloudUploadIcon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import Check from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useState } from "react";

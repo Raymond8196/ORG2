@@ -1,8 +1,8 @@
 import Cloud from "@hugeicons/core-free-icons/CloudIcon";
-import Folder from "@hugeicons/core-free-icons/Folder01Icon";
-import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
+import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
 import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";

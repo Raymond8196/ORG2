@@ -7,7 +7,7 @@
 import Plus from "@hugeicons/core-free-icons/Add01Icon";
 import ListChevronsDownUp from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
 import Boxes from "@hugeicons/core-free-icons/Package01Icon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import Search from "@hugeicons/core-free-icons/Search01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";

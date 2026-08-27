@@ -1,5 +1,5 @@
 import Play from "@hugeicons/core-free-icons/PlayIcon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import RotateCcw from "@hugeicons/core-free-icons/RotateLeft01Icon";
 import Square from "@hugeicons/core-free-icons/SquareIcon";
 import Eye from "@hugeicons/core-free-icons/ViewIcon";

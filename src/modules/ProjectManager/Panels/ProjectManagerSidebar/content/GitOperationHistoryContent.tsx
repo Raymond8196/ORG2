@@ -13,7 +13,7 @@ import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
 import GitCommitHorizontal from "@hugeicons/core-free-icons/GitCommitIcon";
 import GitMerge from "@hugeicons/core-free-icons/GitMergeIcon";
 import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import { memo, useMemo } from "react";

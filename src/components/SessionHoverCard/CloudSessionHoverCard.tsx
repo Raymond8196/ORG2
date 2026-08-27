@@ -1,12 +1,12 @@
 import Clock from "@hugeicons/core-free-icons/Clock01Icon";
 import Fingerprint from "@hugeicons/core-free-icons/FingerPrintIcon";
-import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
 import GitFork from "@hugeicons/core-free-icons/GitForkIcon";
 import MessageSquare from "@hugeicons/core-free-icons/Message01Icon";
 import Pin from "@hugeicons/core-free-icons/PinIcon";
 import Check from "@hugeicons/core-free-icons/Tick01Icon";
 import Users from "@hugeicons/core-free-icons/UserMultipleIcon";
 import Eye from "@hugeicons/core-free-icons/ViewIcon";
+import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

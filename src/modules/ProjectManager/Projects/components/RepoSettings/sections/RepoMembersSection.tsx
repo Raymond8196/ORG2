@@ -10,7 +10,7 @@ import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
 import X from "@hugeicons/core-free-icons/Cancel01Icon";
 import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
 import Pencil from "@hugeicons/core-free-icons/PencilIcon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import Check from "@hugeicons/core-free-icons/Tick01Icon";
 import UserPlus from "@hugeicons/core-free-icons/UserAdd01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";

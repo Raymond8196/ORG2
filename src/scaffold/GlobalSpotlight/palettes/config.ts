@@ -15,12 +15,12 @@ import Grip from "@hugeicons/core-free-icons/Drag01Icon";
 import File from "@hugeicons/core-free-icons/File01Icon";
 import FolderPlus from "@hugeicons/core-free-icons/FolderAddIcon";
 import FolderTree from "@hugeicons/core-free-icons/FolderTreeIcon";
-import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
 import GitBranchPlus from "@hugeicons/core-free-icons/GitBranchIcon";
 import GitBranchMinus from "@hugeicons/core-free-icons/GitBranchMinusIcon";
 import GitFork from "@hugeicons/core-free-icons/GitForkIcon";
 import Link2Off from "@hugeicons/core-free-icons/Unlink02Icon";
 import Variable from "@hugeicons/core-free-icons/VariableIcon";
+import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";

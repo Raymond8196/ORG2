@@ -16,12 +16,12 @@ import Code from "@hugeicons/core-free-icons/CodeIcon";
 import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
 import MousePointer2 from "@hugeicons/core-free-icons/Cursor02Icon";
 import FolderKanban from "@hugeicons/core-free-icons/FolderKanbanIcon";
-import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
 import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
 import Globe from "@hugeicons/core-free-icons/GlobeIcon";
 import Link from "@hugeicons/core-free-icons/Link01Icon";
 import SquareMousePointer from "@hugeicons/core-free-icons/SquareMousePointerIcon";
 import Toolbox from "@hugeicons/core-free-icons/ToolboxIcon";
+import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, {

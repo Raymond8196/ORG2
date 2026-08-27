@@ -2,7 +2,7 @@ import ChevronsLeft from "@hugeicons/core-free-icons/ArrowLeftDoubleIcon";
 import ChevronsRight from "@hugeicons/core-free-icons/ArrowRightDoubleIcon";
 import File from "@hugeicons/core-free-icons/File01Icon";
 import FileDiff from "@hugeicons/core-free-icons/FileDiffIcon";
-import Folder from "@hugeicons/core-free-icons/Folder01Icon";
+import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
 import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
 import Globe from "@hugeicons/core-free-icons/GlobeIcon";
 import LayoutList from "@hugeicons/core-free-icons/ListViewIcon";

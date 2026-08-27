@@ -1,8 +1,8 @@
 import Cloud from "@hugeicons/core-free-icons/CloudIcon";
-import Folder from "@hugeicons/core-free-icons/Folder01Icon";
-import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
+import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
 import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
 import Hash from "@hugeicons/core-free-icons/HashtagIcon";
+import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,

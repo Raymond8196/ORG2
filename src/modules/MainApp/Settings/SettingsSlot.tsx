@@ -25,9 +25,9 @@ import {
   ScrollFadeContainer,
   SettingsBreadcrumb,
 } from "@/src/modules/shared/layouts/blocks";
+import Maximize2 from "@hugeicons/core-free-icons/ArrowExpand01Icon";
 import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
 import GalleryThumbnails from "@hugeicons/core-free-icons/GalleryThumbnailsIcon";
-import Maximize2 from "@hugeicons/core-free-icons/Maximize02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { Suspense, useCallback, useMemo } from "react";

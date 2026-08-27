@@ -1,7 +1,7 @@
 import Network from "@hugeicons/core-free-icons/AiNetworkIcon";
 import CircleArrowUp from "@hugeicons/core-free-icons/CircleArrowUp01Icon";
 import BellOff from "@hugeicons/core-free-icons/NotificationOff01Icon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import Airplay from "@hugeicons/core-free-icons/ScreenRotationIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { Children, useMemo, useState } from "react";

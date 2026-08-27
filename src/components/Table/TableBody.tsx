@@ -1,4 +1,4 @@
-import ChevronsUpDown from "@hugeicons/core-free-icons/ArrowUpDownIcon";
+import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
 import Inbox from "@hugeicons/core-free-icons/InboxIcon";
 import { HugeiconsIcon } from "@hugeicons/react";

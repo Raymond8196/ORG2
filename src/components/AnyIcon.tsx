@@ -26,6 +26,7 @@
  */
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { type ComponentType } from "react";
+import { isValidElementType } from "react-is";
 
 export type AnyIconSource =
   | string
@@ -75,14 +76,38 @@ const AnyIcon: React.FC<AnyIconProps> = ({
     );
   }
 
-  // Hand-authored SVG component. Glyph data is an array, so `typeof` separates
-  // the two cleanly.
-  if (typeof icon === "function") {
-    return React.createElement(icon, { size, strokeWidth, className, ...rest });
+  // Glyph data is an array; check it BEFORE treating the value as a component.
+  if (Array.isArray(icon)) {
+    return (
+      <HugeiconsIcon
+        icon={icon}
+        size={size}
+        strokeWidth={strokeWidth}
+        className={className}
+        // Dynamic icons have no name to stamp, but the attribute still has to
+        // be present for the global `svg[data-icon] { display: block }` rule
+        // that keeps icons out of inline flow (see index.scss).
+        data-icon=""
+        {...rest}
+      />
+    );
   }
 
-  // Anything else that is not array-like would throw inside HugeiconsIcon.
-  if (!Array.isArray(icon)) {
+  // A hand-authored SVG component — brand marks like the model/agent icons.
+  // `typeof icon === "function"` is NOT sufficient here: `forwardRef()` and
+  // `memo()` return OBJECTS, and `config/agentIcons.tsx` wraps every brand mark
+  // in `forwardRef` before casting it to IconSvgElement. Testing for a function
+  // silently dropped every model icon in the sidebar.
+  if (isValidElementType(icon)) {
+    return React.createElement(icon as ComponentType<Record<string, unknown>>, {
+      size,
+      strokeWidth,
+      className,
+      ...rest,
+    });
+  }
+
+  {
     if (process.env.NODE_ENV !== "production") {
       // eslint-disable-next-line no-console
       console.warn(
@@ -93,15 +118,7 @@ const AnyIcon: React.FC<AnyIconProps> = ({
     return null;
   }
 
-  return (
-    <HugeiconsIcon
-      icon={icon}
-      size={size}
-      strokeWidth={strokeWidth}
-      className={className}
-      {...rest}
-    />
-  );
+  return null;
 };
 
 export default AnyIcon;

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { act, createElement } from "react";
 import { createRoot } from "react-dom/client";

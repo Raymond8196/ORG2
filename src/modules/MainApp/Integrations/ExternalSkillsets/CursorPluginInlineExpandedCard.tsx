@@ -1,8 +1,8 @@
 import Clipboard from "@hugeicons/core-free-icons/ClipboardIcon";
-import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
 import Layers from "@hugeicons/core-free-icons/Layers01Icon";
 import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
 import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { readTextFile } from "@tauri-apps/plugin-fs";
 import React, { useCallback, useEffect, useState } from "react";

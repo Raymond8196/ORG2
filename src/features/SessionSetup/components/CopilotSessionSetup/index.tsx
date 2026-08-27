@@ -12,7 +12,7 @@
 import AlertCircle from "@hugeicons/core-free-icons/AlertCircleIcon";
 import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
 import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";

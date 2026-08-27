@@ -9,7 +9,7 @@
  * Repo-agnostic: all state is owned by the caller (`useSourceControlSidebarModule`).
  */
 import Ellipsis from "@hugeicons/core-free-icons/MoreHorizontalIcon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";

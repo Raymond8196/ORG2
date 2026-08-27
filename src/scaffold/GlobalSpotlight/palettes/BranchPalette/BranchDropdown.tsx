@@ -9,10 +9,10 @@
  * Chosen by `general.modelPickerStyle === "dropdown"`. Falls through to
  * `BranchPalette` (Spotlight) otherwise.
  */
-import Folder from "@hugeicons/core-free-icons/Folder01Icon";
-import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
+import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
 import Search from "@hugeicons/core-free-icons/Search01Icon";
 import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,

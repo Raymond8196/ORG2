@@ -1,9 +1,9 @@
 import ArrowUpRight from "@hugeicons/core-free-icons/ArrowUpRight01Icon";
-import ListFilter from "@hugeicons/core-free-icons/FilterIcon";
+import ListFilter from "@hugeicons/core-free-icons/FilterMailIcon";
 import FolderInput from "@hugeicons/core-free-icons/FolderInputIcon";
 import FolderOutput from "@hugeicons/core-free-icons/FolderOutputIcon";
 import ListChevronsDownUp from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import SlidersHorizontal from "@hugeicons/core-free-icons/SlidersHorizontalIcon";
 import CheckCheck from "@hugeicons/core-free-icons/TickDouble01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";

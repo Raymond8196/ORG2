@@ -1,5 +1,5 @@
+import Maximize2 from "@hugeicons/core-free-icons/ArrowExpand01Icon";
 import MonitorPlay from "@hugeicons/core-free-icons/ComputerVideoIcon";
-import Maximize2 from "@hugeicons/core-free-icons/Maximize02Icon";
 import PanelRight from "@hugeicons/core-free-icons/PanelRightIcon";
 import TerminalSquare from "@hugeicons/core-free-icons/SquareTerminalIcon";
 import { HugeiconsIcon } from "@hugeicons/react";

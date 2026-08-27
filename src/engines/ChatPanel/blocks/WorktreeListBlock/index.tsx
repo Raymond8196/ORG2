@@ -1,7 +1,7 @@
 /**
  * WorktreeListBlock — Header row + expandable worktree details.
  */
-import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
+import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 

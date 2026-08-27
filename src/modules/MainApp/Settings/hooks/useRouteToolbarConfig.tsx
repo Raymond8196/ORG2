@@ -7,7 +7,7 @@
  * - Integrations add action atom (callback to dispatch add actions)
  */
 import Network from "@hugeicons/core-free-icons/AiNetworkIcon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import UserPlus from "@hugeicons/core-free-icons/UserAdd01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";

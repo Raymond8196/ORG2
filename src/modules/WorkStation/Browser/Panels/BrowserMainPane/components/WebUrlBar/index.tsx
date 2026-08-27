@@ -16,7 +16,7 @@ import Code from "@hugeicons/core-free-icons/CodeIcon";
 import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
 import PenTool from "@hugeicons/core-free-icons/PenTool01Icon";
 import PencilRuler from "@hugeicons/core-free-icons/PencilRulerIcon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

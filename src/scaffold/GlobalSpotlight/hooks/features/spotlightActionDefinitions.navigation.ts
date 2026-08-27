@@ -18,16 +18,16 @@ import Dock from "@hugeicons/core-free-icons/DockIcon";
 import DraftingCompass from "@hugeicons/core-free-icons/DraftingCompassIcon";
 import FolderPlus from "@hugeicons/core-free-icons/FolderAddIcon";
 import FolderTree from "@hugeicons/core-free-icons/FolderTreeIcon";
-import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
 import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
 import Columns3 from "@hugeicons/core-free-icons/LayoutThreeColumnIcon";
 import Box from "@hugeicons/core-free-icons/PackageIcon";
 import SquarePen from "@hugeicons/core-free-icons/Pen01Icon";
 import Play from "@hugeicons/core-free-icons/PlayIcon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import Search from "@hugeicons/core-free-icons/Search01Icon";
 import Sparkles from "@hugeicons/core-free-icons/SparklesIcon";
 import SquareTerminal from "@hugeicons/core-free-icons/SquareTerminalIcon";
+import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 
 import { ACTION_ID } from "@src/ActionSystem";

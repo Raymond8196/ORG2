@@ -5,7 +5,7 @@
  */
 import Button from "@/src/components/Button";
 import Code from "@hugeicons/core-free-icons/CodeIcon";
-import Folder from "@hugeicons/core-free-icons/Folder01Icon";
+import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";

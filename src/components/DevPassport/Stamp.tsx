@@ -12,7 +12,6 @@ import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
 import Cpu from "@hugeicons/core-free-icons/CpuIcon";
 import Database from "@hugeicons/core-free-icons/DatabaseIcon";
 import Zap from "@hugeicons/core-free-icons/FlashIcon";
-import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
 import Globe from "@hugeicons/core-free-icons/GlobeIcon";
 import Hexagon from "@hugeicons/core-free-icons/HexagonIcon";
 import Key from "@hugeicons/core-free-icons/Key01Icon";
@@ -25,6 +24,7 @@ import Search from "@hugeicons/core-free-icons/Search01Icon";
 import Server from "@hugeicons/core-free-icons/ServerStack01Icon";
 import Shield from "@hugeicons/core-free-icons/Shield01Icon";
 import Wifi from "@hugeicons/core-free-icons/Wifi01Icon";
+import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 

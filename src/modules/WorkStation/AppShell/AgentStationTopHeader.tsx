@@ -5,11 +5,11 @@
  * Contains: station mode chip, chat panel toggle, caption toggle,
  * layout settings dropdown, and a separate caption row below the top bar.
  */
+import Maximize2 from "@hugeicons/core-free-icons/ArrowExpand01Icon";
+import Minimize2 from "@hugeicons/core-free-icons/ArrowShrink01Icon";
 import MessageCircle from "@hugeicons/core-free-icons/BubbleChatIcon";
 import X from "@hugeicons/core-free-icons/Cancel01Icon";
 import Captions from "@hugeicons/core-free-icons/CaptionsIcon";
-import Maximize2 from "@hugeicons/core-free-icons/Maximize02Icon";
-import Minimize2 from "@hugeicons/core-free-icons/Minimize02Icon";
 import PanelRight from "@hugeicons/core-free-icons/PanelRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";

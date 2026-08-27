@@ -6,7 +6,7 @@ import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
 import Inbox from "@hugeicons/core-free-icons/InboxIcon";
 import Info from "@hugeicons/core-free-icons/InformationCircleIcon";
 import MessageSquareMore from "@hugeicons/core-free-icons/MessageSquareMoreIcon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import CheckCheck from "@hugeicons/core-free-icons/TickDouble01Icon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, {

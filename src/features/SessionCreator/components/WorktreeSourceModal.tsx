@@ -1,7 +1,7 @@
 import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
-import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
 import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
 import Hash from "@hugeicons/core-free-icons/HashtagIcon";
+import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";

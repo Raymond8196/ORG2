@@ -13,11 +13,11 @@
  * BackgroundTasksApp panel.
  */
 import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import Maximize2 from "@hugeicons/core-free-icons/ArrowExpand01Icon";
 import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
 import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
 import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Maximize2 from "@hugeicons/core-free-icons/Maximize02Icon";
-import Minimize2 from "@hugeicons/core-free-icons/Minimize02Icon";
+import Minimize2 from "@hugeicons/core-free-icons/ArrowShrink01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,

@@ -10,8 +10,8 @@
  * - Click-to-zoom: click diagram to toggle fullscreen overlay
  */
 import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import Maximize2 from "@hugeicons/core-free-icons/ArrowExpand01Icon";
 import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import Maximize2 from "@hugeicons/core-free-icons/Maximize02Icon";
 import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
 import RotateCcw from "@hugeicons/core-free-icons/RotateLeft01Icon";
 import Workflow from "@hugeicons/core-free-icons/WorkflowCircle01Icon";

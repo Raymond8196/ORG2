@@ -33,7 +33,7 @@
  */
 import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
 import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import Search from "@hugeicons/core-free-icons/Search01Icon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { createContext, memo, useContext } from "react";

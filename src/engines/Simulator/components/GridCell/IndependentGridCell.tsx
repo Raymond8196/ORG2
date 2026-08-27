@@ -14,10 +14,10 @@
  * The cell follows the main replay cursor (video-editor clip model) by
  * default, unless the user manually interacts with its controls.
  */
+import Maximize2 from "@hugeicons/core-free-icons/ArrowExpand01Icon";
 import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
 import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Maximize2 from "@hugeicons/core-free-icons/Maximize02Icon";
-import Minimize2 from "@hugeicons/core-free-icons/Minimize02Icon";
+import Minimize2 from "@hugeicons/core-free-icons/ArrowShrink01Icon";
 import Pause from "@hugeicons/core-free-icons/PauseIcon";
 import Play from "@hugeicons/core-free-icons/PlayIcon";
 import { HugeiconsIcon } from "@hugeicons/react";

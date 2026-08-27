@@ -9,10 +9,10 @@
  * (`gitApi.getGitBranches`) and share the centralized branch cache to
  * prevent redundant calls.
  */
-import Folder from "@hugeicons/core-free-icons/Folder01Icon";
 import FolderPlus from "@hugeicons/core-free-icons/FolderAddIcon";
+import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
 import FolderMinus from "@hugeicons/core-free-icons/FolderMinusIcon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import Check from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";

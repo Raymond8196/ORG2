@@ -12,10 +12,10 @@
  * - canvas:a2ui_push   — Push A2UI JSONL content (accumulated incrementally)
  * - canvas:a2ui_reset  — Reset A2UI state
  */
+import Maximize2 from "@hugeicons/core-free-icons/ArrowExpand01Icon";
+import Minimize2 from "@hugeicons/core-free-icons/ArrowShrink01Icon";
 import X from "@hugeicons/core-free-icons/Cancel01Icon";
 import Layout from "@hugeicons/core-free-icons/Layout01Icon";
-import Maximize2 from "@hugeicons/core-free-icons/Maximize02Icon";
-import Minimize2 from "@hugeicons/core-free-icons/Minimize02Icon";
 import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useCallback, useEffect, useRef, useState } from "react";

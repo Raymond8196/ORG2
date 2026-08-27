@@ -5,7 +5,7 @@
  * Users select a repository before proceeding to the main app.
  */
 import Code from "@hugeicons/core-free-icons/CodeIcon";
-import Folder from "@hugeicons/core-free-icons/Folder01Icon";
+import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
 import FolderTree from "@hugeicons/core-free-icons/FolderTreeIcon";
 import Search from "@hugeicons/core-free-icons/Search01Icon";
 import Settings from "@hugeicons/core-free-icons/Settings01Icon";

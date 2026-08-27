@@ -3,6 +3,7 @@ import Gauge from "@hugeicons/core-free-icons/GaugeIcon";
 import Github from "@hugeicons/core-free-icons/GithubIcon";
 import Inbox from "@hugeicons/core-free-icons/InboxIcon";
 import Columns3 from "@hugeicons/core-free-icons/LayoutThreeColumnIcon";
+import NewSession from "@hugeicons/core-free-icons/MessageAdd02Icon";
 import Box from "@hugeicons/core-free-icons/PackageIcon";
 import SquarePen from "@hugeicons/core-free-icons/Pen01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -95,8 +96,8 @@ export function buildPinnedMenuItems({
       id: NEW_SESSION_MENU_ITEM_ID,
       key: NEW_SESSION_MENU_ITEM_ID,
       label: newSessionLabel,
-      icon: Plus,
-      iconName: "plus",
+      icon: NewSession,
+      iconName: "message-add",
       shortcut: newSessionShortcut,
       dataTestId: "sidebar-new-session",
     },

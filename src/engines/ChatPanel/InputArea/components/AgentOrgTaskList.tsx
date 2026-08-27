@@ -1,4 +1,4 @@
-import ChevronsUpDown from "@hugeicons/core-free-icons/ArrowUpDownIcon";
+import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import MessageCircle from "@hugeicons/core-free-icons/BubbleChatIcon";
 import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
 import Lock from "@hugeicons/core-free-icons/LockIcon";

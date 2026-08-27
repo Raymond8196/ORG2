@@ -1,7 +1,7 @@
 import Plus from "@hugeicons/core-free-icons/Add01Icon";
 import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
 import ChevronUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useCallback, useMemo, useState } from "react";
 

@@ -1,8 +1,8 @@
-import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
 import GitMerge from "@hugeicons/core-free-icons/GitMergeIcon";
 import GitPullRequestClosed from "@hugeicons/core-free-icons/GitPullRequestClosedIcon";
 import GitPullRequestDraft from "@hugeicons/core-free-icons/GitPullRequestDraftIcon";
 import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import type { ReactNode } from "react";
 

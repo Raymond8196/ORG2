@@ -7,7 +7,7 @@
  * On error, shows a "Reconnect" button to re-toggle the channel.
  */
 import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import Wifi from "@hugeicons/core-free-icons/Wifi01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useState } from "react";

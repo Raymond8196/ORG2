@@ -8,7 +8,7 @@ import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
 import BellOff from "@hugeicons/core-free-icons/NotificationOff01Icon";
 import PanelLeft from "@hugeicons/core-free-icons/PanelLeftIcon";
 import PanelRight from "@hugeicons/core-free-icons/PanelRightIcon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import Search from "@hugeicons/core-free-icons/Search01Icon";
 import Share2 from "@hugeicons/core-free-icons/Share02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";

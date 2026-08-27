@@ -17,7 +17,7 @@ import Save from "@hugeicons/core-free-icons/FloppyDiskIcon";
 import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
 import Hash from "@hugeicons/core-free-icons/HashtagIcon";
 import Ellipsis from "@hugeicons/core-free-icons/MoreHorizontalIcon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import Search from "@hugeicons/core-free-icons/Search01Icon";
 import Settings from "@hugeicons/core-free-icons/Settings01Icon";
 import Undo2 from "@hugeicons/core-free-icons/Undo02Icon";

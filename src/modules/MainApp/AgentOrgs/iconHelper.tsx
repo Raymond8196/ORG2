@@ -12,8 +12,7 @@ import Clock from "@hugeicons/core-free-icons/Clock01Icon";
 import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
 import FileText from "@hugeicons/core-free-icons/File02Icon";
 import FileEdit from "@hugeicons/core-free-icons/FileEditIcon";
-import Folder from "@hugeicons/core-free-icons/Folder01Icon";
-import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
+import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
 import GitMerge from "@hugeicons/core-free-icons/GitMergeIcon";
 import Inbox from "@hugeicons/core-free-icons/InboxIcon";
 import PlayCircle from "@hugeicons/core-free-icons/PlayCircleIcon";
@@ -26,6 +25,7 @@ import Split from "@hugeicons/core-free-icons/SplitIcon";
 import Type from "@hugeicons/core-free-icons/TextIcon";
 import Timer from "@hugeicons/core-free-icons/Timer01Icon";
 import Eye from "@hugeicons/core-free-icons/ViewIcon";
+import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React from "react";
 

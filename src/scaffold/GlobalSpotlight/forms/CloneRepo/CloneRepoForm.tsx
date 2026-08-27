@@ -5,7 +5,7 @@
  */
 import Code from "@hugeicons/core-free-icons/CodeIcon";
 import Filter from "@hugeicons/core-free-icons/FilterIcon";
-import Folder from "@hugeicons/core-free-icons/Folder01Icon";
+import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
 import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
 import Lock from "@hugeicons/core-free-icons/LockIcon";
 import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";

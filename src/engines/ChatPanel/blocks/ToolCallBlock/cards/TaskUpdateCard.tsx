@@ -9,8 +9,8 @@
 import ListChecks from "@hugeicons/core-free-icons/CheckListIcon";
 import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
 import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
-import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
 import PlayCircle from "@hugeicons/core-free-icons/PlayCircleIcon";
+import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";

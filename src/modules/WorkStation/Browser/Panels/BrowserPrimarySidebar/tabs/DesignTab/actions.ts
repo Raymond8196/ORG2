@@ -7,7 +7,7 @@
 import Plus from "@hugeicons/core-free-icons/Add01Icon";
 import Filter from "@hugeicons/core-free-icons/FilterIcon";
 import ListChevronsDownUp from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { createElement } from "react";
 

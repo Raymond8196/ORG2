@@ -5,8 +5,8 @@
  * the "Load more" pagination row, and the empty/loading/error placeholder
  * row.
  */
-import ListFilter from "@hugeicons/core-free-icons/FilterIcon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import ListFilter from "@hugeicons/core-free-icons/FilterMailIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React, { useMemo } from "react";

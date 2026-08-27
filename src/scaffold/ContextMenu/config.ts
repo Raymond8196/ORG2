@@ -9,7 +9,7 @@ import ArrowRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
 import ListChecks from "@hugeicons/core-free-icons/CheckListIcon";
 import Clock from "@hugeicons/core-free-icons/Clock01Icon";
 import File from "@hugeicons/core-free-icons/File01Icon";
-import Folder from "@hugeicons/core-free-icons/Folder01Icon";
+import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
 import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
 import Search from "@hugeicons/core-free-icons/Search01Icon";
 import History from "@hugeicons/core-free-icons/WorkHistoryIcon";

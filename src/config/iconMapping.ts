@@ -27,7 +27,7 @@ import Compass from "@hugeicons/core-free-icons/CompassIcon";
 import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
 import Database from "@hugeicons/core-free-icons/DatabaseIcon";
 import Diff from "@hugeicons/core-free-icons/DiffIcon";
-import Folder from "@hugeicons/core-free-icons/Folder01Icon";
+import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
 import FolderCode from "@hugeicons/core-free-icons/FolderCodeIcon";
 import FolderKanban from "@hugeicons/core-free-icons/FolderKanbanIcon";
 import Fuel from "@hugeicons/core-free-icons/FuelIcon";

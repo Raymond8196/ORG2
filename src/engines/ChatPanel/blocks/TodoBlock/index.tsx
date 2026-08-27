@@ -4,7 +4,7 @@
  * Always renders the standard collapsible todo list using the same
  * EventBlockHeader + vertical-line pattern as other tool blocks.
  */
-import ChevronsUpDown from "@hugeicons/core-free-icons/ArrowUpDownIcon";
+import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
 import Lock from "@hugeicons/core-free-icons/LockIcon";
 import Check from "@hugeicons/core-free-icons/Tick01Icon";

@@ -7,7 +7,7 @@
  * a plain builder function (not a hook/useMemo) since the panel recomputed
  * this array on every render before extraction — same behavior here.
  */
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React, { type Dispatch, type SetStateAction } from "react";

@@ -7,10 +7,10 @@
  */
 import ArrowRightLeft from "@hugeicons/core-free-icons/ArrowLeftRightIcon";
 import Code from "@hugeicons/core-free-icons/CodeIcon";
-import Folder from "@hugeicons/core-free-icons/Folder01Icon";
+import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
 import FolderTree from "@hugeicons/core-free-icons/FolderTreeIcon";
-import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
 import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import type { ExtractAtomValue } from "jotai";

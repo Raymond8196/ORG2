@@ -9,14 +9,14 @@ import FilePlus2 from "@hugeicons/core-free-icons/FileAddIcon";
 import Files from "@hugeicons/core-free-icons/Files01Icon";
 import Filter from "@hugeicons/core-free-icons/FilterIcon";
 import FolderPlus from "@hugeicons/core-free-icons/FolderAddIcon";
-import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
 import ListTree from "@hugeicons/core-free-icons/HierarchyFilesIcon";
 import Layers from "@hugeicons/core-free-icons/Layers01Icon";
 import ListChevronsDownUp from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
 import List from "@hugeicons/core-free-icons/ListViewIcon";
 import Ellipsis from "@hugeicons/core-free-icons/MoreHorizontalIcon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import SearchIcon from "@hugeicons/core-free-icons/Search01Icon";
+import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 
 // ============================================

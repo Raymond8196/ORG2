@@ -5,7 +5,7 @@
  */
 import Layout from "@hugeicons/core-free-icons/Layout01Icon";
 import PenTool from "@hugeicons/core-free-icons/PenTool01Icon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import Share2 from "@hugeicons/core-free-icons/Share02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";

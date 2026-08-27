@@ -1,5 +1,5 @@
 import Clipboard from "@hugeicons/core-free-icons/ClipboardIcon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { Suspense, lazy, memo } from "react";
 import { useTranslation } from "react-i18next";

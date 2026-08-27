@@ -1,8 +1,8 @@
 import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
 import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import Folder from "@hugeicons/core-free-icons/Folder01Icon";
-import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
+import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
 import Search from "@hugeicons/core-free-icons/Search01Icon";
+import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";

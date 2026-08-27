@@ -1,4 +1,4 @@
-import ChevronsUpDown from "@hugeicons/core-free-icons/ArrowUpDownIcon";
+import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import X from "@hugeicons/core-free-icons/Cancel01Icon";
 import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
 import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";

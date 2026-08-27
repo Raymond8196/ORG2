@@ -1,6 +1,6 @@
 import AlertTriangle from "@hugeicons/core-free-icons/Alert01Icon";
 import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, {

@@ -11,7 +11,7 @@
  * Loading state: repeating stroke-draw animation (like home sidebar),
  * NOT spinning. Only Loader2 components should spin.
  */
-import ChevronsUpDown from "@hugeicons/core-free-icons/ArrowUpDownIcon";
+import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { ReactNode, useCallback } from "react";

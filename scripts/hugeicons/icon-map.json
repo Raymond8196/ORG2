@@ -430,9 +430,9 @@
   "target": "ArrowRightDoubleIcon"
  },
  "ChevronsUpDown": {
-  "note": "",
-  "source": "vendor-alias",
-  "target": "ArrowUpDownIcon"
+  "note": "no ChevronsUpDownIcon in the free set; UnfoldMoreIcon is the chevrons-outward pair (verified from path data), unlike the vendor's ArrowUpDownIcon which is arrows",
+  "source": "manual",
+  "target": "UnfoldMoreIcon"
  },
  "Chrome": {
   "note": "",
@@ -875,9 +875,9 @@
   "target": "FoldVerticalIcon"
  },
  "Folder": {
-  "note": "",
-  "source": "vendor-alias",
-  "target": "Folder01Icon"
+  "note": "deliberate design choice",
+  "source": "manual",
+  "target": "FolderClosedIcon"
  },
  "FolderCode": {
   "note": "",
@@ -975,9 +975,9 @@
   "target": "GaugeIcon"
  },
  "GitBranch": {
-  "note": "",
-  "source": "vendor-alias",
-  "target": "GitBranchIcon"
+  "note": "deliberate design choice - hugeicons GitBranchIcon was judged too weak; WorkflowCircle05 reads better at sidebar sizes",
+  "source": "manual",
+  "target": "WorkflowCircle05Icon"
  },
  "GitBranchMinus": {
   "note": "",
@@ -1335,14 +1335,14 @@
   "target": "Location01Icon"
  },
  "Maximize": {
-  "note": "",
-  "source": "vendor-alias",
-  "target": "Maximize01Icon"
+  "note": "deliberate design choice - hugeicons Maximize/Minimize read as Finder window controls; the arrow expand/shrink pair reads as a panel resize",
+  "source": "manual",
+  "target": "ArrowExpand01Icon"
  },
  "Maximize2": {
-  "note": "",
-  "source": "vendor-alias",
-  "target": "Maximize02Icon"
+  "note": "deliberate design choice - hugeicons Maximize/Minimize read as Finder window controls; the arrow expand/shrink pair reads as a panel resize",
+  "source": "manual",
+  "target": "ArrowExpand01Icon"
  },
  "Menu": {
   "note": "",
@@ -1410,9 +1410,9 @@
   "target": "RoadLocation01Icon"
  },
  "Minimize2": {
-  "note": "",
-  "source": "vendor-alias",
-  "target": "Minimize02Icon"
+  "note": "deliberate design choice - hugeicons Maximize/Minimize read as Finder window controls; the arrow expand/shrink pair reads as a panel resize",
+  "source": "manual",
+  "target": "ArrowShrink01Icon"
  },
  "Minus": {
   "note": "",
@@ -1645,9 +1645,9 @@
   "target": "RadioIcon"
  },
  "RefreshCw": {
-  "note": "",
-  "source": "vendor-alias",
-  "target": "RefreshIcon"
+  "note": "deliberate design choice - preferred over the vendor's RefreshIcon",
+  "source": "manual",
+  "target": "Refresh04Icon"
  },
  "Regex": {
   "note": "",

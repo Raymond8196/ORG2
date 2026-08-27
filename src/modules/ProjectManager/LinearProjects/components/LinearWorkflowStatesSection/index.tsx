@@ -3,7 +3,7 @@ import X from "@hugeicons/core-free-icons/Cancel01Icon";
 import Circle from "@hugeicons/core-free-icons/CircleIcon";
 import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
 import Pencil from "@hugeicons/core-free-icons/PencilIcon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import Check from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo, useState } from "react";

@@ -12,7 +12,7 @@
  */
 import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
 import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import RotateCcw from "@hugeicons/core-free-icons/RotateLeft01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";

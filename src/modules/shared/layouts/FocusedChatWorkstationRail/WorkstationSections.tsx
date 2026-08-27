@@ -2,10 +2,10 @@
  * WorkstationSections — renders the rail's section list in both the wide
  * (trail) and compact (dropdown menu) presentations.
  */
-import Folder from "@hugeicons/core-free-icons/Folder01Icon";
+import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
 import FolderKanban from "@hugeicons/core-free-icons/FolderKanbanIcon";
-import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
 import GitFork from "@hugeicons/core-free-icons/GitForkIcon";
+import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 
 import { WORKSTATION_TRAIL_CONTENT } from "@src/config/workstation/tokens";

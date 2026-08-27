@@ -16,7 +16,7 @@ import CircleDashed from "@hugeicons/core-free-icons/CircleIcon";
 import CircleSlash from "@hugeicons/core-free-icons/CircleSlashIcon";
 import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
 import Loader from "@hugeicons/core-free-icons/Loading01Icon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo } from "react";

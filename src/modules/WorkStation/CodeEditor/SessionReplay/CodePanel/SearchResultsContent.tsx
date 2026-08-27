@@ -1,7 +1,7 @@
 /**
  * Search / list_dir / cat / grep result bodies for session replay CodePanel.
  */
-import ChevronsUpDown from "@hugeicons/core-free-icons/ArrowUpDownIcon";
+import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import X from "@hugeicons/core-free-icons/Cancel01Icon";
 import Code2 from "@hugeicons/core-free-icons/CodeIcon";
 import { HugeiconsIcon } from "@hugeicons/react";

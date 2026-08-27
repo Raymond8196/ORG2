@@ -5,7 +5,7 @@ import Archive from "@hugeicons/core-free-icons/ArchiveIcon";
 import Code from "@hugeicons/core-free-icons/CodeIcon";
 import File from "@hugeicons/core-free-icons/File01Icon";
 import FileText from "@hugeicons/core-free-icons/File02Icon";
-import Folder from "@hugeicons/core-free-icons/Folder01Icon";
+import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
 import ImageIcon from "@hugeicons/core-free-icons/Image01Icon";
 import Sheet from "@hugeicons/core-free-icons/SheetIcon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";

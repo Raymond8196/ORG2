@@ -11,7 +11,7 @@ import AlertCircle from "@hugeicons/core-free-icons/AlertCircleIcon";
 import X from "@hugeicons/core-free-icons/Cancel01Icon";
 import CheckCircle from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
 import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   type MouseEvent,

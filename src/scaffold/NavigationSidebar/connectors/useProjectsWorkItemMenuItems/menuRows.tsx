@@ -1,5 +1,5 @@
 import Network from "@hugeicons/core-free-icons/AiNetworkIcon";
-import ChevronsUpDown from "@hugeicons/core-free-icons/ArrowUpDownIcon";
+import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import Bot from "@hugeicons/core-free-icons/BotIcon";
 import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
 import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";

@@ -15,7 +15,7 @@ import {
 } from "@/src/modules/shared/layouts/SectionLayout";
 import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
 import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { invoke } from "@tauri-apps/api/core";
 import { useAtomValue, useSetAtom } from "jotai";

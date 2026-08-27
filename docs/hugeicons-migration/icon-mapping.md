@@ -106,6 +106,30 @@ These apply repo-wide and are **not** captured per-row.
    `config/agentIcons.tsx`, `components/PanelIcons.tsx`,
    `NavigationSidebar/utils/renderIcon.tsx`) and all of its consumers change.
 
+## Deliberate design overrides
+
+Chosen by eye after seeing them rendered, overriding what the vendor alias
+table produced.
+
+| concept | lucide name | hugeicons | scope |
+|---|---|---|---:|
+| Branch | `GitBranch` | `WorkflowCircle05Icon` | 38 sites |
+| Refresh | `RefreshCw` | `Refresh04Icon` | 85 sites |
+| Maximize | `Maximize2`, `Maximize` | `ArrowExpand01Icon` | 14 sites |
+| Minimize | `Minimize2` | `ArrowShrink01Icon` | 7 sites |
+| Folder | `Folder` | `FolderClosedIcon` | 27 sites |
+| Sidebar filter | `ListFilter` | `FilterMailIcon` | 2 sites (sidebar only) |
+| New session | (was `Plus`) | `MessageAdd02Icon` | 1 site |
+| Composer send | (was `ArrowUp01Icon`) | `MoveUpIcon` | 1 site |
+
+Deliberately NOT swept with the above, to avoid collateral changes:
+
+- `GitBranchPlus` / `GitBranchMinus` keep the git-branch family — they mean
+  add/remove-branch and the workflow mark has no compound variant.
+- `Plus` (83 sites) and `ArrowUp` (19 sites) keep their generic glyphs; only
+  the new-session entry and the composer send button were retargeted.
+- `Filter` / `FilterIcon` outside the sidebar (15 sites) keep `FilterIcon`.
+
 ## Rows flagged REVIEW
 
 | lucide | uses | hugeicons | note |

@@ -5,7 +5,7 @@
  * Embedded inside the Databases integrations section.
  * Row selection opens a preview panel when embedded.
  */
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";

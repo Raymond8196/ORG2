@@ -7,10 +7,10 @@
  * Project trailing bar) from the
  * main tab-bar component.
  */
+import Maximize2 from "@hugeicons/core-free-icons/ArrowExpand01Icon";
+import Minimize2 from "@hugeicons/core-free-icons/ArrowShrink01Icon";
 import MessageCircle from "@hugeicons/core-free-icons/BubbleChatIcon";
 import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import Maximize2 from "@hugeicons/core-free-icons/Maximize02Icon";
-import Minimize2 from "@hugeicons/core-free-icons/Minimize02Icon";
 import PanelRight from "@hugeicons/core-free-icons/PanelRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";

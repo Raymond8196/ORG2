@@ -1,10 +1,10 @@
 import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
-import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
 import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
 import Hash from "@hugeicons/core-free-icons/HashtagIcon";
 import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
 import Sparkles from "@hugeicons/core-free-icons/SparklesIcon";
 import CaseSensitive from "@hugeicons/core-free-icons/TextIcon";
+import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";

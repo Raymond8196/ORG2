@@ -12,7 +12,7 @@
  *   reader is back in the transcript.
  */
 import Clipboard from "@hugeicons/core-free-icons/ClipboardIcon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";

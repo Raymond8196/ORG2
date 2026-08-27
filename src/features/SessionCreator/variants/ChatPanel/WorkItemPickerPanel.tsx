@@ -6,7 +6,7 @@ import GitMerge from "@hugeicons/core-free-icons/GitMergeIcon";
 import GitPullRequestClosed from "@hugeicons/core-free-icons/GitPullRequestClosedIcon";
 import GitPullRequestDraft from "@hugeicons/core-free-icons/GitPullRequestDraftIcon";
 import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";

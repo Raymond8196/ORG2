@@ -20,7 +20,7 @@ import CopyPlus from "@hugeicons/core-free-icons/Copy01Icon";
 import ListChevronsDownUp from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
 import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
 import CircleMinus from "@hugeicons/core-free-icons/MinusSignCircleIcon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

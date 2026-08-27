@@ -4,7 +4,7 @@
  * Form for cloning a repo from connected GitHub accounts
  */
 import Filter from "@hugeicons/core-free-icons/FilterIcon";
-import Folder from "@hugeicons/core-free-icons/Folder01Icon";
+import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
 import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
 import Globe from "@hugeicons/core-free-icons/GlobeIcon";
 import Lock from "@hugeicons/core-free-icons/LockIcon";

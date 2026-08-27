@@ -4,7 +4,7 @@ import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
 import Inbox from "@hugeicons/core-free-icons/InboxIcon";
 import Pause from "@hugeicons/core-free-icons/PauseIcon";
 import Play from "@hugeicons/core-free-icons/PlayIcon";
-import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import UserRound from "@hugeicons/core-free-icons/UserCircleIcon";
 import History from "@hugeicons/core-free-icons/WorkHistoryIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
