@@ -1445,7 +1445,17 @@
         "noAssignees": "No one assigned",
         "labels": "Labels",
         "noLabels": "None yet",
-        "actions": "Actions"
+        "actions": "Actions",
+        "editAssignees": "Edit assignees",
+        "searchAssignees": "Search people",
+        "noAssigneeCandidates": "No people available",
+        "assigneesLoadFailed": "Could not load people",
+        "assigneesUpdated": "Assignees updated",
+        "editLabels": "Edit labels",
+        "searchLabels": "Search labels",
+        "noLabelCandidates": "No labels available",
+        "labelsLoadFailed": "Could not load labels",
+        "labelsUpdated": "Labels updated"
       },
       "tabs": {
         "conversation": "Conversation",

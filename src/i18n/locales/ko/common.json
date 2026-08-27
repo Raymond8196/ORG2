@@ -1467,7 +1467,17 @@
         "noAssignees": "담당자 없음",
         "labels": "레이블",
         "noLabels": "아직 없음",
-        "actions": "작업"
+        "actions": "작업",
+        "editAssignees": "담당자 편집",
+        "searchAssignees": "사용자 검색",
+        "noAssigneeCandidates": "사용 가능한 사용자가 없습니다",
+        "assigneesLoadFailed": "사용자를 불러오지 못했습니다",
+        "assigneesUpdated": "담당자가 업데이트되었습니다",
+        "editLabels": "레이블 편집",
+        "searchLabels": "레이블 검색",
+        "noLabelCandidates": "사용 가능한 레이블이 없습니다",
+        "labelsLoadFailed": "레이블을 불러오지 못했습니다",
+        "labelsUpdated": "레이블이 업데이트되었습니다"
       },
       "tabs": {
         "conversation": "대화",

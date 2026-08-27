@@ -97,14 +97,13 @@ export const WorkstationTrailSection: FC<WorkstationTrailSectionProps> = ({
       data-testid={dataTestId}
       className={WORKSTATION_TRAIL_CONTENT.section}
     >
-      {action ? (
-        <div className="flex min-h-6 items-center justify-between gap-2 pr-1">
-          {label}
-          {action}
-        </div>
-      ) : (
-        label
-      )}
+      {/* Same row geometry as WorkstationTrailHeader, so a section action lands
+          on the exact spot the trail's own collapse control occupies. Rendered
+          unconditionally to keep every section label on one baseline. */}
+      <div className="flex h-7 items-center justify-between gap-2">
+        {label}
+        {action}
+      </div>
       {children}
     </section>
   );

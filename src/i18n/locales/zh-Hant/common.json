@@ -1480,7 +1480,17 @@
         "noAssignees": "尚未指派",
         "labels": "標籤",
         "noLabels": "尚無",
-        "actions": "操作"
+        "actions": "操作",
+        "editAssignees": "編輯指派人",
+        "searchAssignees": "搜尋成員",
+        "noAssigneeCandidates": "尚無可用成員",
+        "assigneesLoadFailed": "無法載入成員",
+        "assigneesUpdated": "已更新指派人",
+        "editLabels": "編輯標籤",
+        "searchLabels": "搜尋標籤",
+        "noLabelCandidates": "尚無可用標籤",
+        "labelsLoadFailed": "無法載入標籤",
+        "labelsUpdated": "已更新標籤"
       },
       "tabs": {
         "conversation": "對話",

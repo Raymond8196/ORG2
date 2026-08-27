@@ -1397,7 +1397,17 @@
         "noAssignees": "暂无指派",
         "labels": "标签",
         "noLabels": "暂无",
-        "actions": "操作"
+        "actions": "操作",
+        "editAssignees": "编辑指派人",
+        "searchAssignees": "搜索成员",
+        "noAssigneeCandidates": "暂无可用成员",
+        "assigneesLoadFailed": "无法加载成员",
+        "assigneesUpdated": "已更新指派人",
+        "editLabels": "编辑标签",
+        "searchLabels": "搜索标签",
+        "noLabelCandidates": "暂无可用标签",
+        "labelsLoadFailed": "无法加载标签",
+        "labelsUpdated": "已更新标签"
       },
       "tabs": {
         "conversation": "对话",

@@ -1468,7 +1468,17 @@
         "noAssignees": "Ninguém atribuído",
         "labels": "Rótulos",
         "noLabels": "Nenhum ainda",
-        "actions": "Ações"
+        "actions": "Ações",
+        "editAssignees": "Editar responsáveis",
+        "searchAssignees": "Pesquisar pessoas",
+        "noAssigneeCandidates": "Nenhuma pessoa disponível",
+        "assigneesLoadFailed": "Não foi possível carregar as pessoas",
+        "assigneesUpdated": "Responsáveis atualizados",
+        "editLabels": "Editar rótulos",
+        "searchLabels": "Pesquisar rótulos",
+        "noLabelCandidates": "Nenhum rótulo disponível",
+        "labelsLoadFailed": "Não foi possível carregar os rótulos",
+        "labelsUpdated": "Rótulos atualizados"
       },
       "tabs": {
         "conversation": "Conversa",

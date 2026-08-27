@@ -1469,7 +1469,17 @@
         "noAssignees": "Kimse atanmadı",
         "labels": "Etiketler",
         "noLabels": "Henüz yok",
-        "actions": "İşlemler"
+        "actions": "İşlemler",
+        "editAssignees": "Atananları düzenle",
+        "searchAssignees": "Kişi ara",
+        "noAssigneeCandidates": "Kullanılabilir kişi yok",
+        "assigneesLoadFailed": "Kişiler yüklenemedi",
+        "assigneesUpdated": "Atananlar güncellendi",
+        "editLabels": "Etiketleri düzenle",
+        "searchLabels": "Etiket ara",
+        "noLabelCandidates": "Kullanılabilir etiket yok",
+        "labelsLoadFailed": "Etiketler yüklenemedi",
+        "labelsUpdated": "Etiketler güncellendi"
       },
       "tabs": {
         "conversation": "Konuşma",

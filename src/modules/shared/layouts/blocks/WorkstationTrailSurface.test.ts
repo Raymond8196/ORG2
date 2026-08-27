@@ -76,12 +76,18 @@ describe("WorkstationTrailSurface", () => {
     expect(markup).toContain(">Edit</button>");
     expect(markup).toContain("text-text-3");
     expect(markup).toContain("No reviews");
+    // A section action occupies the same row geometry as the trail header's
+    // own control, so the two line up across surfaces.
+    expect(markup).toContain("flex h-7 items-center justify-between");
+    expect(markup).not.toContain("pr-1");
 
     const noActionMarkup = renderToStaticMarkup(
       createElement(WorkstationTrailSection, { title: "Labels" }, "Chips")
     );
+    // Actionless sections keep the same label row, so every section title in a
+    // rail sits on one baseline.
     expect(noActionMarkup).toContain("<h3");
-    expect(noActionMarkup).not.toContain("justify-between");
+    expect(noActionMarkup).toContain("flex h-7 items-center");
   });
 
   it("shares one direct scroll body below trail headers", () => {

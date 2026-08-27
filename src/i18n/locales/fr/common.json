@@ -1468,7 +1468,17 @@
         "noAssignees": "Personne d'assigné",
         "labels": "Étiquettes",
         "noLabels": "Aucune pour l'instant",
-        "actions": "Actions"
+        "actions": "Actions",
+        "editAssignees": "Modifier les assignés",
+        "searchAssignees": "Rechercher des personnes",
+        "noAssigneeCandidates": "Aucune personne disponible",
+        "assigneesLoadFailed": "Impossible de charger les personnes",
+        "assigneesUpdated": "Assignés mis à jour",
+        "editLabels": "Modifier les étiquettes",
+        "searchLabels": "Rechercher des étiquettes",
+        "noLabelCandidates": "Aucune étiquette disponible",
+        "labelsLoadFailed": "Impossible de charger les étiquettes",
+        "labelsUpdated": "Étiquettes mises à jour"
       },
       "tabs": {
         "conversation": "Conversation",

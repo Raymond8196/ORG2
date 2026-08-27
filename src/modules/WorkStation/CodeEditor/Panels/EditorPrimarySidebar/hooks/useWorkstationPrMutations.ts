@@ -11,6 +11,7 @@ import type React from "react";
 import { useCallback, useRef, useState } from "react";
 
 import {
+  type GitHubIssueLabel,
   type GitHubIssueUser,
   type PrReviewEvent,
   type PullRequestMergeMethod,
@@ -22,6 +23,7 @@ import {
   replyPrReviewCommentLocal,
   requestPRReviewersLocal,
   setPRAutoMergeLocal,
+  updateIssueLocal,
   updatePRDraftStateLocal,
   updatePRStateLocal,
 } from "@src/api/tauri/github";
@@ -55,6 +57,8 @@ export interface UseWorkstationPrMutationsOptions {
   latestHeadShaRef: React.MutableRefObject<string | null>;
   latestRequestedReviewersRef: React.MutableRefObject<GitHubIssueUser[]>;
   reviewerCandidates: GitHubIssueUser[];
+  assigneeCandidates: GitHubIssueUser[];
+  labelCandidates: GitHubIssueLabel[];
 }
 
 export function useWorkstationPrMutations({
@@ -67,6 +71,8 @@ export function useWorkstationPrMutations({
   latestHeadShaRef,
   latestRequestedReviewersRef,
   reviewerCandidates,
+  assigneeCandidates,
+  labelCandidates,
 }: UseWorkstationPrMutationsOptions) {
   const prActionPendingRef = useRef(false);
   const [prActionPending, setPrActionPending] = useState(false);
@@ -405,6 +411,7 @@ export function useWorkstationPrMutations({
         { requested_reviewers: nextReviewers }
       );
     },
+
     [
       repoFullName,
       pr,
@@ -412,6 +419,48 @@ export function useWorkstationPrMutations({
       runPrMutation,
       latestRequestedReviewersRef,
     ]
+  );
+
+  /**
+   * GitHub models pull requests as issues for assignee and label writes, so
+   * both go through the issue update endpoint with the PR's number.
+   */
+  const updateAssignees = useCallback(
+    async (logins: string[]): Promise<void> => {
+      if (!repoFullName || !pr) {
+        throw new Error("GitHub repository context is unavailable");
+      }
+      const nextAssignees = logins.map((login) => {
+        const candidate = assigneeCandidates.find(
+          (assignee) => assignee.login.toLowerCase() === login.toLowerCase()
+        );
+        return candidate ?? { login, avatar_url: "" };
+      });
+      await runPrMutation(
+        () => updateIssueLocal(repoFullName, pr.number, { assignees: logins }),
+        { assignees: nextAssignees }
+      );
+    },
+    [repoFullName, pr, assigneeCandidates, runPrMutation]
+  );
+
+  const updateLabels = useCallback(
+    async (names: string[]): Promise<void> => {
+      if (!repoFullName || !pr) {
+        throw new Error("GitHub repository context is unavailable");
+      }
+      const nextLabels = names.map((name) => {
+        const candidate = labelCandidates.find(
+          (label) => label.name.toLowerCase() === name.toLowerCase()
+        );
+        return candidate ?? { name, color: "" };
+      });
+      await runPrMutation(
+        () => updateIssueLocal(repoFullName, pr.number, { labels: names }),
+        { labels: nextLabels }
+      );
+    },
+    [repoFullName, pr, labelCandidates, runPrMutation]
   );
 
   return {
@@ -424,6 +473,8 @@ export function useWorkstationPrMutations({
     updatePullRequestState,
     updatePullRequestDraft,
     updateRequestedReviewers,
+    updateAssignees,
+    updateLabels,
     prActionPending,
   };
 }

@@ -182,10 +182,17 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
     updatePullRequestDraft,
     updatePullRequestState,
     updateRequestedReviewers,
+    updateAssignees,
+    updateLabels,
     loadReviewerCandidates,
     reviewerCandidates,
+    assigneeCandidates,
     loadingReviewerCandidates,
     reviewerCandidatesError,
+    loadLabelCandidates,
+    labelCandidates,
+    loadingLabelCandidates,
+    labelCandidatesError,
     prActionPending,
   } = useWorkstationPrDetail({
     repoPath,
@@ -245,6 +252,13 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
       onDraftChange={updatePullRequestDraft}
       onStateChange={updatePullRequestState}
       onRequestedReviewersChange={updateRequestedReviewers}
+      assigneeCandidates={assigneeCandidates}
+      onAssigneesChange={updateAssignees}
+      labelCandidates={labelCandidates}
+      loadingLabelCandidates={loadingLabelCandidates}
+      labelCandidatesError={labelCandidatesError}
+      onLoadLabelCandidates={loadLabelCandidates}
+      onLabelsChange={updateLabels}
     />
   );
 

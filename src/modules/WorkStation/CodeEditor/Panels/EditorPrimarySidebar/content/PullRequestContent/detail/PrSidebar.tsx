@@ -1,9 +1,9 @@
 /**
  * PrSidebar
  *
- * GitHub-style operations rail for the PR detail panel: Reviewers (with the
- * working request-reviewers picker), read-only Assignees and Labels, and the
- * pull-request level operations (merge / auto-merge / draft / close) stacked
+ * GitHub-style operations rail for the PR detail panel: editable Reviewers,
+ * Assignees, and Labels pickers, plus the pull-request level operations
+ * (merge / auto-merge / draft / close) stacked
  * full-width like GitHub's right sidebar. Rendered on the Workstation trail
  * surface with the shared trail header + section formatting so it matches the
  * Work Item properties rail. The host mounts it beside the detail tabs, or
@@ -15,6 +15,7 @@ import { useTranslation } from "react-i18next";
 
 import type {
   GitHubChecksSummary,
+  GitHubIssueLabel,
   GitHubIssueUser,
   GitHubPrReview,
   PullRequestMergeMethod,
@@ -218,6 +219,14 @@ interface PrSidebarProps {
   onDraftChange: (draft: boolean) => Promise<void>;
   onStateChange: (state: "open" | "closed") => Promise<void>;
   onRequestedReviewersChange: (reviewers: string[]) => Promise<void>;
+  /** Repository members, unfiltered — the author may assign themselves. */
+  assigneeCandidates: GitHubIssueUser[];
+  onAssigneesChange: (logins: string[]) => Promise<void>;
+  labelCandidates: GitHubIssueLabel[];
+  loadingLabelCandidates: boolean;
+  labelCandidatesError: string | null;
+  onLoadLabelCandidates: () => Promise<void>;
+  onLabelsChange: (names: string[]) => Promise<void>;
 }
 
 export const PrSidebar: React.FC<PrSidebarProps> = ({
@@ -236,9 +245,18 @@ export const PrSidebar: React.FC<PrSidebarProps> = ({
   onDraftChange,
   onStateChange,
   onRequestedReviewersChange,
+  assigneeCandidates,
+  onAssigneesChange,
+  labelCandidates,
+  loadingLabelCandidates,
+  labelCandidatesError,
+  onLoadLabelCandidates,
+  onLabelsChange,
 }) => {
   const { t } = useTranslation("common");
-  const [reviewerMenuVisible, setReviewerMenuVisible] = useState(false);
+  const [openPicker, setOpenPicker] = useState<
+    "reviewers" | "assignees" | "labels" | null
+  >(null);
   const presentation = presentPullRequestActions({
     detail,
     fallbackStatus: identity.status,
@@ -277,29 +295,92 @@ export const PrSidebar: React.FC<PrSidebarProps> = ({
     }));
   }, [requestedReviewers, reviewerCandidates]);
 
-  const canManageReviewers = presentation.status === "open" && !disabled;
+  const assigneeOptions = useMemo(() => {
+    const unique = new Map<string, PrSidebarUser>();
+    for (const person of [
+      ...assignees,
+      ...assigneeCandidates.map((candidate) => ({
+        login: candidate.login,
+        avatarUrl: candidate.avatar_url,
+      })),
+    ]) {
+      unique.set(person.login.toLowerCase(), person);
+    }
+    return [...unique.values()].map((person) => ({
+      value: person.login,
+      label: (
+        <span className="flex min-w-0 items-center gap-2">
+          <Avatar size={18} src={person.avatarUrl}>
+            {person.login.charAt(0).toUpperCase()}
+          </Avatar>
+          <span className="truncate">{person.login}</span>
+        </span>
+      ),
+      triggerLabel: person.login,
+    }));
+  }, [assignees, assigneeCandidates]);
 
-  const reviewerAction = canManageReviewers ? (
+  const labelOptions = useMemo(() => {
+    const unique = new Map<string, PrSidebarLabel>();
+    for (const label of [
+      ...labels,
+      ...labelCandidates.map((candidate) => ({
+        name: candidate.name,
+        color: candidate.color,
+      })),
+    ]) {
+      unique.set(label.name.toLowerCase(), label);
+    }
+    return [...unique.values()].map((label) => ({
+      value: label.name,
+      label: (
+        <span className="flex min-w-0 items-center gap-2">
+          <span
+            aria-hidden
+            className="h-2 w-2 shrink-0 rounded-full bg-fill-3"
+            style={
+              label.color ? { backgroundColor: `#${label.color}` } : undefined
+            }
+          />
+          <span className="truncate">{label.name}</span>
+        </span>
+      ),
+      triggerLabel: label.name,
+    }));
+  }, [labels, labelCandidates]);
+
+  const canEdit = presentation.status === "open" && !disabled;
+
+  /**
+   * One trigger + panel for every rail picker, so reviewers, assignees, and
+   * labels share their geometry, alignment, and empty/loading treatment.
+   */
+  const renderPicker = (config: {
+    picker: "reviewers" | "assignees" | "labels";
+    options: { value: string; label: React.ReactNode; triggerLabel: string }[];
+    value: string[];
+    loading: boolean;
+    emptyContent: string;
+    searchPlaceholder: string;
+    triggerLabel: string;
+    onLoad: () => Promise<void>;
+    onChange: (next: string[]) => Promise<void>;
+    successMessage: string;
+    dataTestId: string;
+  }): React.ReactNode => (
     <Dropdown
-      options={reviewerOptions}
-      value={requestedReviewerLogins}
+      options={config.options}
+      value={config.value}
       mode="multiple"
       showSearch
-      searchPlaceholder={t(
-        "git.pr.actions.searchReviewers",
-        "Search reviewers"
-      )}
-      loading={loadingReviewerCandidates}
-      emptyContent={
-        reviewerCandidatesError
-          ? t("git.pr.actions.reviewersLoadFailed", "Could not load reviewers")
-          : t("git.pr.actions.noReviewers", "No reviewers available")
-      }
+      searchPlaceholder={config.searchPlaceholder}
+      loading={config.loading}
+      emptyContent={config.emptyContent}
       disabled={pending}
-      popupVisible={reviewerMenuVisible}
+      popupVisible={openPicker === config.picker}
       onVisibleChange={(visible) => {
-        setReviewerMenuVisible(visible);
-        if (visible) void onLoadReviewerCandidates();
+        setOpenPicker(visible ? config.picker : null);
+        if (visible) void config.onLoad();
       }}
       getPopupContainer={() => document.body}
       avoidViewportOverflow
@@ -309,23 +390,83 @@ export const PrSidebar: React.FC<PrSidebarProps> = ({
       className={`${DROPDOWN_CLASSES.panelAnimated} ${DROPDOWN_WIDTHS.fileTreeClass}`}
       onSelect={(value) => {
         const next = Array.isArray(value) ? value.map(String) : [String(value)];
-        setReviewerMenuVisible(false);
-        void reportPrAction(
-          () => onRequestedReviewersChange(next),
-          t("git.pr.actions.reviewersUpdated", "Reviewers updated")
-        );
+        setOpenPicker(null);
+        void reportPrAction(() => config.onChange(next), config.successMessage);
       }}
     >
       <WorkstationTrailIconButton
         disabled={pending}
-        aria-label={t("git.pr.sidebar.requestReviewers", "Request reviewers")}
-        title={t("git.pr.sidebar.requestReviewers", "Request reviewers")}
-        data-testid="pr-reviewer-action"
+        aria-label={config.triggerLabel}
+        title={config.triggerLabel}
+        data-testid={config.dataTestId}
       >
         <Settings size={14} strokeWidth={1.75} aria-hidden />
       </WorkstationTrailIconButton>
     </Dropdown>
-  ) : undefined;
+  );
+
+  const reviewerAction = canEdit
+    ? renderPicker({
+        picker: "reviewers",
+        options: reviewerOptions,
+        value: requestedReviewerLogins,
+        loading: loadingReviewerCandidates,
+        emptyContent: reviewerCandidatesError
+          ? t("git.pr.actions.reviewersLoadFailed", "Could not load reviewers")
+          : t("git.pr.actions.noReviewers", "No reviewers available"),
+        searchPlaceholder: t(
+          "git.pr.actions.searchReviewers",
+          "Search reviewers"
+        ),
+        triggerLabel: t("git.pr.sidebar.requestReviewers", "Request reviewers"),
+        onLoad: onLoadReviewerCandidates,
+        onChange: onRequestedReviewersChange,
+        successMessage: t(
+          "git.pr.actions.reviewersUpdated",
+          "Reviewers updated"
+        ),
+        dataTestId: "pr-reviewer-action",
+      })
+    : undefined;
+
+  const assigneeAction = canEdit
+    ? renderPicker({
+        picker: "assignees",
+        options: assigneeOptions,
+        value: assignees.map((assignee) => assignee.login),
+        loading: loadingReviewerCandidates,
+        emptyContent: reviewerCandidatesError
+          ? t("git.pr.sidebar.assigneesLoadFailed", "Could not load people")
+          : t("git.pr.sidebar.noAssigneeCandidates", "No people available"),
+        searchPlaceholder: t("git.pr.sidebar.searchAssignees", "Search people"),
+        triggerLabel: t("git.pr.sidebar.editAssignees", "Edit assignees"),
+        onLoad: onLoadReviewerCandidates,
+        onChange: onAssigneesChange,
+        successMessage: t(
+          "git.pr.sidebar.assigneesUpdated",
+          "Assignees updated"
+        ),
+        dataTestId: "pr-assignee-action",
+      })
+    : undefined;
+
+  const labelAction = canEdit
+    ? renderPicker({
+        picker: "labels",
+        options: labelOptions,
+        value: labels.map((label) => label.name),
+        loading: loadingLabelCandidates,
+        emptyContent: labelCandidatesError
+          ? t("git.pr.sidebar.labelsLoadFailed", "Could not load labels")
+          : t("git.pr.sidebar.noLabelCandidates", "No labels available"),
+        searchPlaceholder: t("git.pr.sidebar.searchLabels", "Search labels"),
+        triggerLabel: t("git.pr.sidebar.editLabels", "Edit labels"),
+        onLoad: onLoadLabelCandidates,
+        onChange: onLabelsChange,
+        successMessage: t("git.pr.sidebar.labelsUpdated", "Labels updated"),
+        dataTestId: "pr-label-action",
+      })
+    : undefined;
 
   return (
     <WorkstationTrailSurface
@@ -369,6 +510,7 @@ export const PrSidebar: React.FC<PrSidebarProps> = ({
 
         <WorkstationTrailSection
           title={t("git.pr.sidebar.assignees", "Assignees")}
+          action={assigneeAction}
           dataTestId="pr-sidebar-assignees"
         >
           {assignees.length > 0 ? (
@@ -401,6 +543,7 @@ export const PrSidebar: React.FC<PrSidebarProps> = ({
 
         <WorkstationTrailSection
           title={t("git.pr.sidebar.labels", "Labels")}
+          action={labelAction}
           dataTestId="pr-sidebar-labels"
         >
           {labels.length > 0 ? (

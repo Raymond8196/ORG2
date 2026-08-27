@@ -1476,7 +1476,17 @@
         "noAssignees": "Nikt nie przypisany",
         "labels": "Etykiety",
         "noLabels": "Jeszcze brak",
-        "actions": "Akcje"
+        "actions": "Akcje",
+        "editAssignees": "Edytuj przypisanych",
+        "searchAssignees": "Szukaj osób",
+        "noAssigneeCandidates": "Brak dostępnych osób",
+        "assigneesLoadFailed": "Nie udało się wczytać osób",
+        "assigneesUpdated": "Zaktualizowano przypisanych",
+        "editLabels": "Edytuj etykiety",
+        "searchLabels": "Szukaj etykiet",
+        "noLabelCandidates": "Brak dostępnych etykiet",
+        "labelsLoadFailed": "Nie udało się wczytać etykiet",
+        "labelsUpdated": "Zaktualizowano etykiety"
       },
       "tabs": {
         "conversation": "Dyskusja",

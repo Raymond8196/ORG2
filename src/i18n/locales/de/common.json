@@ -1468,7 +1468,17 @@
         "noAssignees": "Niemand zugewiesen",
         "labels": "Labels",
         "noLabels": "Noch keine",
-        "actions": "Aktionen"
+        "actions": "Aktionen",
+        "editAssignees": "Zugewiesene bearbeiten",
+        "searchAssignees": "Personen suchen",
+        "noAssigneeCandidates": "Keine Personen verfügbar",
+        "assigneesLoadFailed": "Personen konnten nicht geladen werden",
+        "assigneesUpdated": "Zugewiesene aktualisiert",
+        "editLabels": "Labels bearbeiten",
+        "searchLabels": "Labels suchen",
+        "noLabelCandidates": "Keine Labels verfügbar",
+        "labelsLoadFailed": "Labels konnten nicht geladen werden",
+        "labelsUpdated": "Labels aktualisiert"
       },
       "tabs": {
         "conversation": "Unterhaltung",

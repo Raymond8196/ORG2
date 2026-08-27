@@ -63,6 +63,13 @@ const baseProps = {
   onDraftChange: vi.fn().mockResolvedValue(undefined),
   onStateChange: vi.fn().mockResolvedValue(undefined),
   onRequestedReviewersChange: vi.fn().mockResolvedValue(undefined),
+  assigneeCandidates: [],
+  onAssigneesChange: vi.fn().mockResolvedValue(undefined),
+  labelCandidates: [],
+  loadingLabelCandidates: false,
+  labelCandidatesError: null,
+  onLoadLabelCandidates: vi.fn().mockResolvedValue(undefined),
+  onLabelsChange: vi.fn().mockResolvedValue(undefined),
 };
 
 describe("PrSidebar", () => {
@@ -165,6 +172,17 @@ describe("PrSidebar", () => {
     expect(
       reviewers?.querySelector("[data-testid='pr-reviewer-action']")
     ).not.toBeNull();
+    // Assignees and labels are editable on an open PR, not just displayed.
+    expect(
+      container.querySelector(
+        "[data-testid='pr-sidebar-assignees'] [data-testid='pr-assignee-action']"
+      )
+    ).not.toBeNull();
+    expect(
+      container.querySelector(
+        "[data-testid='pr-sidebar-labels'] [data-testid='pr-label-action']"
+      )
+    ).not.toBeNull();
 
     const assignees = container.querySelector(
       "[data-testid='pr-sidebar-assignees']"
@@ -193,8 +211,15 @@ describe("PrSidebar", () => {
       );
     });
 
+    // Every picker disappears once the PR is no longer open.
     expect(
       container.querySelector("[data-testid='pr-reviewer-action']")
+    ).toBeNull();
+    expect(
+      container.querySelector("[data-testid='pr-assignee-action']")
+    ).toBeNull();
+    expect(
+      container.querySelector("[data-testid='pr-label-action']")
     ).toBeNull();
     expect(
       container.querySelector("[data-testid='pr-sidebar-reviewers']")

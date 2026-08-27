@@ -1476,7 +1476,17 @@
         "noAssignees": "Никто не назначен",
         "labels": "Метки",
         "noLabels": "Пока нет",
-        "actions": "Действия"
+        "actions": "Действия",
+        "editAssignees": "Изменить исполнителей",
+        "searchAssignees": "Поиск людей",
+        "noAssigneeCandidates": "Нет доступных людей",
+        "assigneesLoadFailed": "Не удалось загрузить людей",
+        "assigneesUpdated": "Исполнители обновлены",
+        "editLabels": "Изменить метки",
+        "searchLabels": "Поиск меток",
+        "noLabelCandidates": "Нет доступных меток",
+        "labelsLoadFailed": "Не удалось загрузить метки",
+        "labelsUpdated": "Метки обновлены"
       },
       "tabs": {
         "conversation": "Обсуждение",

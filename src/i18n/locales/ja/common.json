@@ -1467,7 +1467,17 @@
         "noAssignees": "担当者なし",
         "labels": "ラベル",
         "noLabels": "まだありません",
-        "actions": "操作"
+        "actions": "操作",
+        "editAssignees": "担当者を編集",
+        "searchAssignees": "ユーザーを検索",
+        "noAssigneeCandidates": "利用可能なユーザーがいません",
+        "assigneesLoadFailed": "ユーザーを読み込めませんでした",
+        "assigneesUpdated": "担当者を更新しました",
+        "editLabels": "ラベルを編集",
+        "searchLabels": "ラベルを検索",
+        "noLabelCandidates": "利用可能なラベルがありません",
+        "labelsLoadFailed": "ラベルを読み込めませんでした",
+        "labelsUpdated": "ラベルを更新しました"
       },
       "tabs": {
         "conversation": "会話",

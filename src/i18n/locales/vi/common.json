@@ -1467,7 +1467,17 @@
         "noAssignees": "Chưa giao cho ai",
         "labels": "Nhãn",
         "noLabels": "Chưa có",
-        "actions": "Thao tác"
+        "actions": "Thao tác",
+        "editAssignees": "Sửa người được giao",
+        "searchAssignees": "Tìm người",
+        "noAssigneeCandidates": "Không có người khả dụng",
+        "assigneesLoadFailed": "Không tải được danh sách người",
+        "assigneesUpdated": "Đã cập nhật người được giao",
+        "editLabels": "Sửa nhãn",
+        "searchLabels": "Tìm nhãn",
+        "noLabelCandidates": "Không có nhãn khả dụng",
+        "labelsLoadFailed": "Không tải được nhãn",
+        "labelsUpdated": "Đã cập nhật nhãn"
       },
       "tabs": {
         "conversation": "Thảo luận",
