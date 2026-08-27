@@ -17,7 +17,10 @@ function nativeTodoContent(
 }
 
 function makeManageTodoEvent(
-  overrides: Partial<SessionEvent> & Pick<SessionEvent, "id">
+  overrides: Partial<SessionEvent> & Pick<SessionEvent, "id">,
+  todos: Array<Record<string, unknown>> = [
+    { index: 0, content: "Do work", status: "pending" },
+  ]
 ): SessionEvent {
   return {
     chunk_id: overrides.id,
@@ -28,9 +31,7 @@ function makeManageTodoEvent(
     actionType: "tool_call",
     args: {},
     result: {
-      content: nativeTodoContent("1 todo (1 remaining)", [
-        { index: 0, content: "Do work", status: "pending" },
-      ]),
+      content: nativeTodoContent("1 todo (1 remaining)", todos),
     },
     source: "assistant",
     displayText: "",
@@ -56,6 +57,20 @@ describe("syncTodosFromReplayEvents", () => {
     ).toBeNull();
   });
 
+  it("returns null when pipeline session is unset", () => {
+    const events = [makeManageTodoEvent({ id: "todo-1" })];
+    expect(
+      syncTodosFromReplayEvents({
+        sessionId: "session-a",
+        pipelineSessionId: null,
+        liveEvents: events,
+        simulatorEvents: events,
+        currentEvent: null,
+        lastSnapshot: null,
+      })
+    ).toBeNull();
+  });
+
   it("derives todos from live events when pipeline matches", () => {
     const events = [makeManageTodoEvent({ id: "todo-1" })];
     const result = syncTodosFromReplayEvents({
@@ -68,5 +83,57 @@ describe("syncTodosFromReplayEvents", () => {
     });
     expect(result).not.toBeNull();
     expect(result?.snapshot).toBeTruthy();
+  });
+
+  it("ignores the global replay cursor when syncing from live events", () => {
+    const events = [
+      makeManageTodoEvent({ id: "todo-old" }, [
+        { index: 0, content: "Old task", status: "completed" },
+        { index: 1, content: "New task", status: "pending" },
+      ]),
+      makeManageTodoEvent({ id: "todo-new" }, [
+        { index: 0, content: "Old task", status: "completed" },
+        { index: 1, content: "New task", status: "completed" },
+        { index: 2, content: "Latest task", status: "pending" },
+      ]),
+    ];
+
+    const result = syncTodosFromReplayEvents({
+      sessionId: "session-a",
+      pipelineSessionId: "session-a",
+      liveEvents: events,
+      simulatorEvents: events,
+      currentEvent: events[0],
+      lastSnapshot: null,
+    });
+
+    expect(result?.todos.map((todo) => todo.content)).toEqual([
+      "Old task",
+      "New task",
+      "Latest task",
+    ]);
+  });
+
+  it("respects the replay cursor when syncing from simulator events only", () => {
+    const events = [
+      makeManageTodoEvent({ id: "todo-old" }, [
+        { index: 0, content: "Old task", status: "pending" },
+      ]),
+      makeManageTodoEvent({ id: "todo-new" }, [
+        { index: 0, content: "Old task", status: "completed" },
+        { index: 1, content: "New task", status: "pending" },
+      ]),
+    ];
+
+    const result = syncTodosFromReplayEvents({
+      sessionId: "session-a",
+      pipelineSessionId: "session-a",
+      liveEvents: [],
+      simulatorEvents: events,
+      currentEvent: events[0],
+      lastSnapshot: null,
+    });
+
+    expect(result?.todos.map((todo) => todo.content)).toEqual(["Old task"]);
   });
 });
