@@ -84,7 +84,7 @@ import type { WorkStationTab } from "../../types";
 // Types
 // ============================================
 
-const WORKSTATION_TAB_ICONS = {
+export const WORKSTATION_TAB_ICONS = {
   Box,
   Building2,
   ChartNoAxesGantt,
