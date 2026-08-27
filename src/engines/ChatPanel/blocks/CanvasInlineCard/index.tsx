@@ -165,7 +165,7 @@ const CanvasInlineCard: React.FC<CanvasInlineCardProps> = ({
           icon={
             <HugeiconsIcon
               icon={Layout}
-              data-icon="layout"
+              data-icon="panels-top-left"
               size={14}
               className="text-primary-6"
             />

@@ -1,4 +1,4 @@
-import Network from "@hugeicons/core-free-icons/AiNetworkIcon";
+import Network from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { FC, ReactNode } from "react";
 

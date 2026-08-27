@@ -1,4 +1,4 @@
-import Network from "@hugeicons/core-free-icons/AiNetworkIcon";
+import Network from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
 import Import from "@hugeicons/core-free-icons/ImportIcon";
 import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";

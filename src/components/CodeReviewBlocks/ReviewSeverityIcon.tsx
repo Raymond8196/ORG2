@@ -12,7 +12,7 @@ const REVIEW_SEVERITY_CONFIG: Record<
   ReviewCommentSeverity,
   { icon: IconSvgElement; name: string; className: string }
 > = {
-  error: { icon: XCircle, name: "x-circle", className: "text-danger-6" },
+  error: { icon: XCircle, name: "xcircle", className: "text-danger-6" },
   warning: {
     icon: AlertTriangle,
     name: "alert-triangle",

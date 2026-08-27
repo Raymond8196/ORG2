@@ -13,7 +13,7 @@ const REVIEW_SEVERITY_CASES: Array<{
 }> = [
   {
     severity: "error",
-    iconClass: 'data-icon="x-circle"',
+    iconClass: 'data-icon="xcircle"',
     colorClass: "text-danger-6",
   },
   {

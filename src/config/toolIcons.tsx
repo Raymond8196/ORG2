@@ -12,7 +12,6 @@
  */
 import Activity from "@hugeicons/core-free-icons/Activity01Icon";
 import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import Network from "@hugeicons/core-free-icons/AiNetworkIcon";
 import ArrowBigRightDash from "@hugeicons/core-free-icons/ArrowBigRightDashIcon";
 import ArrowRightLeft from "@hugeicons/core-free-icons/ArrowLeftRightIcon";
 import BookSearch from "@hugeicons/core-free-icons/BookSearchIcon";
@@ -49,6 +48,7 @@ import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
 import FolderSearch from "@hugeicons/core-free-icons/FolderSearchIcon";
 import Fullscreen from "@hugeicons/core-free-icons/FullScreenIcon";
 import CircleHelp from "@hugeicons/core-free-icons/HelpCircleIcon";
+import Network from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
 import ListTree from "@hugeicons/core-free-icons/HierarchyFilesIcon";
 import Image from "@hugeicons/core-free-icons/Image01Icon";
 import Inbox from "@hugeicons/core-free-icons/InboxIcon";

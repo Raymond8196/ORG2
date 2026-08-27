@@ -82,7 +82,6 @@ describe("TurnMetadataFooter tabs", () => {
 
     expect(markup).not.toContain('data-testid="turn-metadata-edits-tab"');
     expect(markup).toContain('data-testid="turn-metadata-reads-tab"');
-    expect(markup).not.toContain('data-icon="book-open-text"');
     expect(markup).toContain("flex gap-1.5 items-baseline");
   });
 

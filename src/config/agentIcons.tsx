@@ -1,25 +1,28 @@
 /**
  * Agent Icon Registry
  *
- * Maps Lucide icon slugs (from backend `iconId`) to React components.
- * Backend stores standard Lucide kebab-case names (e.g. "omega", "code", "brain")
- * kebab-case slugs — same convention as the tools system.
+ * Resolves agent icon ids to renderable icon sources:
  *
- * Only icons actually used by agents need to be registered here.
- * When adding a new agent in Rust, use an existing Lucide slug for icon_id
- * and add it here if not already present.
+ * - Slug ids (from backend `iconId`) map to hugeicons glyph data
+ *   (`IconSvgElement` arrays, rendered via `HugeiconsIcon`).
+ * - Provider ids (claude, codex, cursor, …) resolve to brand-mark
+ *   components via the `brandIcon` adapter (e.g. for Cursor IDE history
+ *   rows).
  *
- * ## Brand-icon adapter
+ * The backend contract is unchanged: `icon_id` values are still
+ * Lucide-style kebab-case slugs (e.g. "omega", "code", "brain") — the
+ * same convention as the tools system. Only the frontend rendering moved
+ * to hugeicons.
  *
- * For sessions that should render a vendor brand mark (e.g. Cursor IDE
- * history rows), we wrap the brand `<svg>` in a Lucide-shaped adapter so
- * the existing `HoverAnimatedIcon` consumer (which expects
- * `(size, strokeWidth, color, className) → ReactNode`) renders the brand
- * at the right pixel size. Brand SVGs use `viewBox` + `currentColor` and
- * ignore `strokeWidth` (they're filled, not stroked).
+ * Because the registry hands out a mix of glyph data and components,
+ * consumers must render the result through `AnyIcon` — see the
+ * `AgentIconSource` doc comment below for the shape distinction.
+ *
+ * Only icons actually used by agents need to be registered here. When
+ * adding a new agent in Rust, use an existing Lucide-style slug for
+ * `icon_id` and add it here if not already present.
  */
 import DraftingCompass from "@hugeicons/core-free-icons/AiGenerativeIcon";
-import Network from "@hugeicons/core-free-icons/AiNetworkIcon";
 import ClipboardList from "@hugeicons/core-free-icons/BookEditIcon";
 import Bot from "@hugeicons/core-free-icons/BotIcon";
 import Brain from "@hugeicons/core-free-icons/BrainIcon";
@@ -27,6 +30,7 @@ import ChartColumn from "@hugeicons/core-free-icons/ChartColumnIcon";
 import Code from "@hugeicons/core-free-icons/CodeIcon";
 import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
 import MousePointerClick from "@hugeicons/core-free-icons/CursorPointer02Icon";
+import Network from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
 import Monitor from "@hugeicons/core-free-icons/MonitorIcon";
 import Sprout from "@hugeicons/core-free-icons/Plant01Icon";
 import Omega from "@hugeicons/core-free-icons/RecordIcon";

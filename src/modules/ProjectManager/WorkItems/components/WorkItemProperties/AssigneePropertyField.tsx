@@ -1,5 +1,5 @@
-import Network from "@hugeicons/core-free-icons/AiNetworkIcon";
 import AtSign from "@hugeicons/core-free-icons/AtIcon";
+import Network from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
 import User from "@hugeicons/core-free-icons/UserIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useState } from "react";

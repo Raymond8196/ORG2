@@ -6,7 +6,6 @@
  */
 import Activity from "@hugeicons/core-free-icons/Activity01Icon";
 import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import Network from "@hugeicons/core-free-icons/AiNetworkIcon";
 import BadgeCent from "@hugeicons/core-free-icons/BadgeCentIcon";
 import BarChart from "@hugeicons/core-free-icons/BarChartIcon";
 import BarChart3 from "@hugeicons/core-free-icons/BarChartIcon";
@@ -31,6 +30,7 @@ import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
 import FolderCode from "@hugeicons/core-free-icons/FolderCodeIcon";
 import FolderKanban from "@hugeicons/core-free-icons/FolderKanbanIcon";
 import Fuel from "@hugeicons/core-free-icons/FuelIcon";
+import Network from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
 import Home from "@hugeicons/core-free-icons/Home01Icon";
 import IdCard from "@hugeicons/core-free-icons/IdCardIcon";
 import Inbox from "@hugeicons/core-free-icons/InboxIcon";

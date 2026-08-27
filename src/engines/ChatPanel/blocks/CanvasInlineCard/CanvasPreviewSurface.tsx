@@ -66,7 +66,7 @@ const NonEmbeddedUrlNotice: React.FC<{ url: string }> = ({ url }) => {
       <div className="flex max-w-sm flex-col items-center gap-3 text-center">
         <HugeiconsIcon
           icon={Layout}
-          data-icon="layout"
+          data-icon="panels-top-left"
           size={24}
           strokeWidth={1.5}
           className="text-text-4"

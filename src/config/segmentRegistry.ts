@@ -6,7 +6,6 @@
  * here) so import paths are stable.
  */
 import Activity from "@hugeicons/core-free-icons/Activity01Icon";
-import Network from "@hugeicons/core-free-icons/AiNetworkIcon";
 import BadgeCent from "@hugeicons/core-free-icons/BadgeCentIcon";
 import CalendarArrowUp from "@hugeicons/core-free-icons/CalendarArrowUpIcon";
 import ClipboardList from "@hugeicons/core-free-icons/ClipboardListIcon";
@@ -20,6 +19,7 @@ import FileText from "@hugeicons/core-free-icons/File02Icon";
 import Braces from "@hugeicons/core-free-icons/FirstBracketIcon";
 import FolderGit2 from "@hugeicons/core-free-icons/FolderGitTwoIcon";
 import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
+import Network from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
 import AgentTeams from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
 import Inbox from "@hugeicons/core-free-icons/InboxIcon";
 import Chromium from "@hugeicons/core-free-icons/InternetIcon";

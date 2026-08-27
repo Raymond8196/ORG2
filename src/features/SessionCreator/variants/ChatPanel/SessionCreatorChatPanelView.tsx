@@ -1,5 +1,5 @@
-import Network from "@hugeicons/core-free-icons/AiNetworkIcon";
 import CircleArrowUp from "@hugeicons/core-free-icons/CircleArrowUp01Icon";
+import Network from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
 import BellOff from "@hugeicons/core-free-icons/NotificationOff01Icon";
 import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import Airplay from "@hugeicons/core-free-icons/ScreenRotationIcon";

@@ -59,7 +59,7 @@ const CanvasTabHeader: React.FC<CanvasTabHeaderProps> = ({
     <NoDragRegion className="flex min-w-0 flex-1 items-center gap-2">
       <HugeiconsIcon
         icon={Layout}
-        data-icon="layout"
+        data-icon="panels-top-left"
         size={13}
         className="shrink-0 text-primary-6"
       />

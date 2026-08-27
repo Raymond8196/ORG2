@@ -127,6 +127,22 @@ module.exports = {
         message:
           "Do not namespace-import hugeicons; use a deep import per glyph so icons remain tree-shakeable.",
       },
+      {
+        // `expr as IconSvgElement` lies to the type checker: a component cast
+        // to glyph data crashes HugeiconsIcon's internal `[...icon]` spread at
+        // runtime. This hid a series of crashes during the lucide->hugeicons
+        // migration. Also catches `expr as unknown as IconSvgElement`.
+        selector:
+          'TSAsExpression[typeAnnotation.typeName.name="IconSvgElement"]',
+        message:
+          "Never cast to hugeicons glyph-data types — a non-array value crashes HugeiconsIcon's [...icon] spread at runtime. Type mixed icon values as RenderableIcon (@src/components/AnyIcon) and render via AnyIcon.",
+      },
+      {
+        selector:
+          'TSAsExpression[typeAnnotation.typeName.name="IconSvgObject"]',
+        message:
+          "Never cast to hugeicons glyph-data types — a non-array value crashes HugeiconsIcon's [...icon] spread at runtime. Type mixed icon values as RenderableIcon (@src/components/AnyIcon) and render via AnyIcon.",
+      },
     ],
 
     // lucide-react is fully migrated to hugeicons; keep it out of the tree.
@@ -202,6 +218,20 @@ module.exports = {
               "MemberExpression[object.object.name=/^(describe|it|test)$/][object.property.name='only']",
             message:
               "Focused test committed: `.only.each` makes the rest of this file silently not run. Remove it before committing.",
+          },
+          // This override REPLACES the top-level no-restricted-syntax list for
+          // test files, so the hugeicons glyph-cast guard is restated here.
+          {
+            selector:
+              'TSAsExpression[typeAnnotation.typeName.name="IconSvgElement"]',
+            message:
+              "Never cast to hugeicons glyph-data types — a non-array value crashes HugeiconsIcon's [...icon] spread at runtime. Type mixed icon values as RenderableIcon (@src/components/AnyIcon) and render via AnyIcon.",
+          },
+          {
+            selector:
+              'TSAsExpression[typeAnnotation.typeName.name="IconSvgObject"]',
+            message:
+              "Never cast to hugeicons glyph-data types — a non-array value crashes HugeiconsIcon's [...icon] spread at runtime. Type mixed icon values as RenderableIcon (@src/components/AnyIcon) and render via AnyIcon.",
           },
         ],
       },

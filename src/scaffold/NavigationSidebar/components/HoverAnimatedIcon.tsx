@@ -1,7 +1,6 @@
-import type { IconSvgElement } from "@hugeicons/react";
 import React, { useCallback, useEffect, useRef } from "react";
 
-import AnyIcon from "@src/components/AnyIcon";
+import AnyIcon, { type RenderableIcon } from "@src/components/AnyIcon";
 import { CODEMIRROR_STYLE_NONCE } from "@src/features/CodeMirror/config/nonce";
 
 type AnimationStrategy =
@@ -460,7 +459,7 @@ export function triggerIconAnimation(containerElement: HTMLElement) {
 }
 
 interface HoverAnimatedIconProps {
-  icon: IconSvgElement;
+  icon: RenderableIcon;
   iconName?: string;
   size?: number;
   strokeWidth?: number;

@@ -1,6 +1,6 @@
-import Network from "@hugeicons/core-free-icons/AiNetworkIcon";
 import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
 import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import Network from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
 import Inbox from "@hugeicons/core-free-icons/InboxIcon";
 import Pause from "@hugeicons/core-free-icons/PauseIcon";
 import Play from "@hugeicons/core-free-icons/PlayIcon";

@@ -6,7 +6,7 @@
  * - Integrations category atom (for per-tab + button behavior)
  * - Integrations add action atom (callback to dispatch add actions)
  */
-import Network from "@hugeicons/core-free-icons/AiNetworkIcon";
+import Network from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
 import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import UserPlus from "@hugeicons/core-free-icons/UserAdd01Icon";
 import { useAtomValue, useSetAtom } from "jotai";

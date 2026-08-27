@@ -58,7 +58,7 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
       >
         <HugeiconsIcon
           icon={Layout}
-          data-icon="layout"
+          data-icon="panels-top-left"
           size={12}
           className={[
             "mt-0.5 shrink-0",

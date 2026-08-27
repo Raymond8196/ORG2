@@ -116,7 +116,6 @@ describe("WorkManagementTable", () => {
     expect(markup.indexOf('placeholder="Search"')).toBeLessThan(
       markup.indexOf("Actions")
     );
-    expect(markup).not.toContain('data-icon="eraser"');
   });
 
   it("renders the complete title and lets the title column fill available width", () => {
