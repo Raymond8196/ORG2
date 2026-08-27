@@ -9,6 +9,7 @@ import { useSetAtom } from "jotai";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import { Placeholder } from "@src/components/Placeholder";
 import { buildCloudRemoteItemId } from "@src/features/Org2Cloud/cloudRemoteItemId";
 import { useFileHistory } from "@src/hooks/git/useFileHistory";
@@ -255,7 +256,7 @@ export const TimelineContent: React.FC<TimelineContentProps> = memo(
                 aria-label={t("actions.refresh")}
                 data-testid="session-blame-refresh"
               >
-                <HugeiconsIcon
+                <AnyIcon
                   icon={SessionRefreshIcon}
                   size={13}
                   strokeWidth={1.75}

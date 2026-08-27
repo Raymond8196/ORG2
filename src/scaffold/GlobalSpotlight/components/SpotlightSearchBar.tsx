@@ -10,6 +10,8 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
+
 import { ICONS } from "../config";
 import { SPOTLIGHT_CLASSES, SPOTLIGHT_TOKENS } from "../constants";
 import type { PathSegment } from "../types";
@@ -134,7 +136,7 @@ export const SpotlightSearchBar: React.FC<SpotlightSearchBarProps> = ({
         ) : !hasPills ? (
           <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center">
             {IconComponent ? (
-              <HugeiconsIcon
+              <AnyIcon
                 icon={IconComponent}
                 size={SPOTLIGHT_TOKENS.iconSize}
                 className="text-text-2"

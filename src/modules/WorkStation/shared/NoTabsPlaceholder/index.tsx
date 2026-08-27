@@ -20,6 +20,7 @@ import Phone from "@hugeicons/core-free-icons/SmartPhone01Icon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { memo } from "react";
 
+import AnyIcon from "@src/components/AnyIcon";
 import {
   KEYBOARD_SHORTCUT_VARIANT,
   KeyboardShortcut,
@@ -133,7 +134,7 @@ const ToolIcon = memo<ToolIconProps>(({ icon }) => {
   return (
     <div className="flex justify-center pb-4">
       <div className="flex h-[100px] w-[100px] items-center justify-center">
-        <HugeiconsIcon
+        <AnyIcon
           icon={ICON_MAP[icon]}
           size={72}
           strokeWidth={1.25}

@@ -22,6 +22,7 @@ import { useTranslation } from "react-i18next";
 
 import type { GitCommitPerson } from "@src/api/http/git/types";
 import type { GitHubChecksSummary } from "@src/api/tauri/github";
+import AnyIcon from "@src/components/AnyIcon";
 import Avatar from "@src/components/Avatar";
 import Button from "@src/components/Button";
 import { Placeholder } from "@src/components/Placeholder";
@@ -159,7 +160,7 @@ function CommitCheckStatus({
             : "text-warning-6"
       }`}
     >
-      <HugeiconsIcon icon={Icon} size={13} strokeWidth={1.9} aria-hidden />
+      <AnyIcon icon={Icon} size={13} strokeWidth={1.9} aria-hidden />
       {checks.complete} / {checks.total}
     </span>
   );

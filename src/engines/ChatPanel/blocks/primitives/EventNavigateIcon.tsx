@@ -13,6 +13,8 @@ import CircleArrowOutUpRight from "@hugeicons/core-free-icons/CircleArrowOutUpRi
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
+import AnyIcon from "@src/components/AnyIcon";
+
 const BASE_CLASSES =
   "flex h-5 cursor-pointer select-none items-center justify-center rounded-md border-none bg-transparent text-text-3 transition-colors hover:bg-fill-2 hover:text-text-1";
 const CIRCLE_CLASSES =
@@ -55,10 +57,7 @@ const EventNavigateIcon: React.FC<EventNavigateIconProps> = memo(
         onClick={handleClick}
         tabIndex={-1}
       >
-        <HugeiconsIcon
-          icon={Icon}
-          size={variant === "footer-hover" ? 16 : 14}
-        />
+        <AnyIcon icon={Icon} size={variant === "footer-hover" ? 16 : 14} />
       </button>
     );
   }

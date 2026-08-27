@@ -13,6 +13,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import InlineAlert from "@src/components/InlineAlert";
 import { getToolIconComponent } from "@src/config/toolIcons";
 import type { ToolUsageMetadata } from "@src/engines/SessionCore/core/types";
@@ -93,12 +94,7 @@ function getActionIcon(action: OrgTaskAction) {
   const toolName = action === "create" ? "task_create" : "task_update";
   const icon = getToolIconComponent(toolName);
   return (
-    <HugeiconsIcon
-      icon={icon}
-      size={14}
-      strokeWidth={1.75}
-      className="text-text-2"
-    />
+    <AnyIcon icon={icon} size={14} strokeWidth={1.75} className="text-text-2" />
   );
 }
 

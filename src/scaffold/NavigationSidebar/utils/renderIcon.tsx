@@ -7,6 +7,8 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
+import AnyIcon from "@src/components/AnyIcon";
+
 import type { SidebarIcon } from "../types";
 
 interface RenderIconOptions {
@@ -62,7 +64,7 @@ export function renderSidebarIcon(
   const combinedClassName = `${className} ${animationClass}`.trim();
 
   return (
-    <HugeiconsIcon
+    <AnyIcon
       icon={icon}
       size={size}
       strokeWidth={2}

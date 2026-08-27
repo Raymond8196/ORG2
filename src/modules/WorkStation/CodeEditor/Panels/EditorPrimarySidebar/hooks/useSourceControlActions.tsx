@@ -9,6 +9,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import type { SectionHeaderAction } from "@src/components/TreePanelSidebar/types";
 import { useRefreshSpin } from "@src/hooks/ui";
 
@@ -48,7 +49,7 @@ export function useSourceControlActions({
       {
         key: "filter-git",
         icon: (
-          <HugeiconsIcon
+          <AnyIcon
             icon={FilterIcon}
             size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
             strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
@@ -62,13 +63,13 @@ export function useSourceControlActions({
         key: "view-mode-toggle",
         icon:
           viewMode === "list" ? (
-            <HugeiconsIcon
+            <AnyIcon
               icon={ListTreeIcon}
               size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
               strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
             />
           ) : (
-            <HugeiconsIcon
+            <AnyIcon
               icon={ListIcon}
               size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
               strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
@@ -83,7 +84,7 @@ export function useSourceControlActions({
       {
         key: "refresh-git",
         icon: (
-          <HugeiconsIcon
+          <AnyIcon
             icon={RefreshIcon}
             size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
             strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}

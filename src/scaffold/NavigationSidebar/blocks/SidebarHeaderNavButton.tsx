@@ -1,6 +1,8 @@
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React from "react";
 
+import AnyIcon from "@src/components/AnyIcon";
+
 interface SidebarHeaderNavButtonProps {
   icon: IconSvgElement;
   label: string;
@@ -33,7 +35,7 @@ const SidebarHeaderNavButton: React.FC<SidebarHeaderNavButtonProps> = ({
       }}
     >
       <span className="flex min-w-0 flex-1 items-center gap-3">
-        <HugeiconsIcon
+        <AnyIcon
           icon={icon}
           size={14}
           strokeWidth={2}

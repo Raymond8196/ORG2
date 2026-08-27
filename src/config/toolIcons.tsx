@@ -88,6 +88,7 @@ import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React from "react";
 
 import { McpLogoIcon } from "@src/assets/channelIcons/McpLogoIcon";
+import AnyIcon from "@src/components/AnyIcon";
 import {
   getBuiltinToolActionIconId,
   getBuiltinToolIconId,
@@ -405,7 +406,7 @@ export function getToolIcon(
   const icon = getToolIconComponent(toolName, options?.iconId, options?.action);
   const size = options?.size ?? DEFAULT_TOOL_ICON_SIZE;
   const className = options?.className ?? DEFAULT_TOOL_ICON_CLASS;
-  return <HugeiconsIcon icon={icon} size={size} className={className} />;
+  return <AnyIcon icon={icon} size={size} className={className} />;
 }
 
 // ============================================
@@ -470,5 +471,5 @@ export function getEventIcon(
   );
   const size = options?.size ?? DEFAULT_TOOL_ICON_SIZE;
   const className = options?.className ?? DEFAULT_TOOL_ICON_CLASS;
-  return <HugeiconsIcon icon={icon} size={size} className={className} />;
+  return <AnyIcon icon={icon} size={size} className={className} />;
 }

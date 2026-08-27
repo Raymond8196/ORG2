@@ -12,6 +12,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import type { SectionHeaderAction } from "@src/components/TreePanelSidebar/types";
 import { useSelectedFile } from "@src/hooks/tabHost/useSelectedFile";
 import type { PrimarySidebarTab } from "@src/modules/WorkStation/shared";
@@ -65,9 +66,7 @@ export function useFilesTabConfig({
     () => ({
       key: "files",
       label: t("tabs.explorer"),
-      icon: (
-        <HugeiconsIcon icon={FilesIcon} size={PANEL_CONSTANTS.TAB_ICON_SIZE} />
-      ),
+      icon: <AnyIcon icon={FilesIcon} size={PANEL_CONSTANTS.TAB_ICON_SIZE} />,
       sections: [
         {
           key: "files",

@@ -14,6 +14,7 @@ import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import ActionCard from "@src/components/ActionCard";
+import AnyIcon from "@src/components/AnyIcon";
 import Button from "@src/components/Button";
 import InlineAlert from "@src/components/InlineAlert";
 import Switch from "@src/components/Switch";
@@ -69,7 +70,7 @@ const QuickActionsSection: React.FC<QuickActionsSectionProps> = ({
       {/* Status line */}
       <div className={STATUS_BAR_TOKENS.container}>
         <span className={STATUS_BAR_TOKENS.label}>
-          <HugeiconsIcon
+          <AnyIcon
             icon={STATUS_ICON}
             size={STATUS_ICON_SIZE}
             className={colorClass}

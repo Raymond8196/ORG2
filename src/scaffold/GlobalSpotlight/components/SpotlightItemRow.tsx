@@ -572,7 +572,7 @@ export const SpotlightItemRow = memo<SpotlightItemRowProps>(
 
           {hasDisclosureChevron && (
             <span className="spotlight-disclosure-chevron pointer-events-none inline-flex h-5 shrink-0 items-center justify-center overflow-hidden text-primary-6">
-              <HugeiconsIcon
+              <AnyIcon
                 icon={DisclosureIcon}
                 size={15}
                 strokeWidth={2.25}

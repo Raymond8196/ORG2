@@ -24,6 +24,7 @@ import React, {
 } from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import { Placeholder } from "@src/components/Placeholder";
 import {
   HEADER_BUTTON,
@@ -243,7 +244,7 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
       >
         <div className="kanban-column__header-left">
           <div className="kanban-column__icon" style={{ color: column.color }}>
-            <HugeiconsIcon icon={Icon} size={16} />
+            <AnyIcon icon={Icon} size={16} />
           </div>
           <div className="kanban-column__title">
             {/* `column.title` is the source of truth for the header label.

@@ -8,6 +8,8 @@ import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
+
 interface SpotlightModalHeaderProps {
   icon: IconSvgElement | string;
   title: string;
@@ -53,7 +55,7 @@ const SpotlightModalHeader: React.FC<SpotlightModalHeaderProps> = ({
           {isString ? (
             <i className={`${icon} text-[18px] text-text-1`} />
           ) : (
-            <HugeiconsIcon icon={icon} size={18} className="text-text-1" />
+            <AnyIcon icon={icon} size={18} className="text-text-1" />
           )}
         </div>
         <div className="flex flex-col gap-0.5">

@@ -19,6 +19,7 @@ import React, {
 } from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import type { SectionHeaderAction } from "@src/components/TreePanelSidebar/types";
 import { useOpenEditorFiles } from "@src/modules/WorkStation/CodeEditor/hooks/useOpenEditorFiles";
 import type { PrimarySidebarTab } from "@src/modules/WorkStation/shared";
@@ -140,9 +141,7 @@ export function useSearchTabConfig({
 
   // PERFORMANCE: Memoize icon to prevent re-renders
   const searchIcon = useMemo(
-    () => (
-      <HugeiconsIcon icon={SearchIcon} size={PANEL_CONSTANTS.TAB_ICON_SIZE} />
-    ),
+    () => <AnyIcon icon={SearchIcon} size={PANEL_CONSTANTS.TAB_ICON_SIZE} />,
     [SearchIcon]
   );
 

@@ -5,6 +5,7 @@ import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
+import AnyIcon from "@src/components/AnyIcon";
 import GitHubDetailHeaderContent from "@src/modules/shared/components/GitHubDetailHeaderContent";
 import {
   getPrStatusIconName,
@@ -24,9 +25,7 @@ export function PrStatusIcon({ status }: { status: string }): React.ReactNode {
           ? GitPullRequestClosed
           : GitPullRequest;
 
-  return (
-    <HugeiconsIcon icon={StatusIcon} size={14} strokeWidth={1.75} aria-hidden />
-  );
+  return <AnyIcon icon={StatusIcon} size={14} strokeWidth={1.75} aria-hidden />;
 }
 
 /** Shared status, number, and title content for every PR detail host header. */

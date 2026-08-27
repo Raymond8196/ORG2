@@ -24,6 +24,7 @@ import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
 import { repoApi } from "@src/api/tauri/repo";
+import AnyIcon from "@src/components/AnyIcon";
 import {
   DROPDOWN_CLASSES,
   DROPDOWN_ITEM,
@@ -138,7 +139,7 @@ const RepoRow: React.FC<RepoRowProps> = ({
             className="text-primary-6"
           />
         ) : (
-          <HugeiconsIcon icon={Icon} size={DROPDOWN_ITEM.iconSize} />
+          <AnyIcon icon={Icon} size={DROPDOWN_ITEM.iconSize} />
         )}
       </span>
       <div className="flex min-w-0 flex-1 flex-col items-start">
@@ -198,7 +199,7 @@ const OpenPathRow: React.FC<OpenPathRowProps> = ({ item, keyboardProps }) => {
       className={`${DROPDOWN_CLASSES.item} ${DROPDOWN_CLASSES.itemHover} w-full justify-start`}
     >
       <span className="flex h-5 w-5 shrink-0 items-center justify-center">
-        {Icon && <HugeiconsIcon icon={Icon} size={DROPDOWN_ITEM.iconSize} />}
+        {Icon && <AnyIcon icon={Icon} size={DROPDOWN_ITEM.iconSize} />}
       </span>
       <div className="flex min-w-0 flex-1 flex-col items-start">
         <span className="truncate">{item.label}</span>

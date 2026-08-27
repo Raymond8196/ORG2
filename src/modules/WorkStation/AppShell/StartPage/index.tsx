@@ -14,6 +14,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import DiffStatsBadge from "@src/components/DiffStatsBadge";
 import {
   KEYBOARD_SHORTCUT_VARIANT,
@@ -55,7 +56,7 @@ const StartActionRow = memo<StartActionRowProps>(
         className={`flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left transition-colors ${SURFACE_TOKENS.hover} active:bg-fill-3`}
       >
         <span className="flex min-w-0 items-center gap-2.5">
-          <HugeiconsIcon
+          <AnyIcon
             icon={icon}
             size={16}
             strokeWidth={1.75}

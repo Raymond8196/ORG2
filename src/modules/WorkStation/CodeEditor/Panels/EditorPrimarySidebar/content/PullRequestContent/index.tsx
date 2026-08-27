@@ -24,6 +24,7 @@ import React, {
 import { useTranslation } from "react-i18next";
 
 import type { OpenPRItem } from "@src/api/tauri/github";
+import AnyIcon from "@src/components/AnyIcon";
 import { Placeholder } from "@src/components/Placeholder";
 import PrHoverCard from "@src/components/PrHoverCard";
 import { TreeRowBase, type TreeRowNode } from "@src/components/TreeRow";
@@ -136,7 +137,7 @@ const PrRow: React.FC<PrRowProps> = memo(
         type: "file",
         icon: (
           <span className={statusVariant.dotClass.replace("bg-", "text-")}>
-            <HugeiconsIcon icon={PrIcon} size={14} strokeWidth={1.75} />
+            <AnyIcon icon={PrIcon} size={14} strokeWidth={1.75} />
           </span>
         ),
       };

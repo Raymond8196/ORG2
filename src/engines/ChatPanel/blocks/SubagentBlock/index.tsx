@@ -24,6 +24,7 @@ import React, {
 } from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import { ChatBubbleAvatar, ChatBubbleBody } from "@src/components/ChatBubble";
 import { resolveAgentIcon } from "@src/config/agentIcons";
 import type { ToolUsageMetadata } from "@src/engines/SessionCore/core/types";
@@ -198,7 +199,7 @@ const SubagentBlock: React.FC<SubagentBlockProps> = memo(
           <ChatBubbleAvatar
             className="h-7 w-7 bg-fill-2"
             icon={
-              <HugeiconsIcon
+              <AnyIcon
                 icon={AgentIcon}
                 size={15}
                 strokeWidth={1.75}

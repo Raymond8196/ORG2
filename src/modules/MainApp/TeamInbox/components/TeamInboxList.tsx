@@ -18,6 +18,7 @@ import React, {
 } from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import Avatar from "@src/components/Avatar";
 import Button from "@src/components/Button";
 import InlineAlert from "@src/components/InlineAlert";
@@ -397,7 +398,7 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
             </>
           }
           leading={
-            <HugeiconsIcon icon={PullRequestIcon} size={14} strokeWidth={1.8} />
+            <AnyIcon icon={PullRequestIcon} size={14} strokeWidth={1.8} />
           }
           leadingClassName={statusIconClass}
           ariaLabel={`${pullRequest.title}, #${pullRequest.id}, ${pullRequest.author}, ${pullRequest.repo}`}

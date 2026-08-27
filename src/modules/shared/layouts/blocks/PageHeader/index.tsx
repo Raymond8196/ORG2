@@ -14,6 +14,8 @@ import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import type { FC, KeyboardEvent, ReactNode } from "react";
 import { memo, useRef, useState } from "react";
 
+import AnyIcon from "@src/components/AnyIcon";
+
 // ============================================
 // Tokens
 // ============================================
@@ -265,7 +267,7 @@ const PageHeader: FC<PageHeaderProps> = (props) => {
       {/* Main content */}
       <div className="flex min-w-0 flex-1 items-center gap-1.5">
         {IconComponent && (
-          <HugeiconsIcon
+          <AnyIcon
             icon={IconComponent}
             size={14}
             className="flex-shrink-0 text-text-2"

@@ -9,6 +9,8 @@ import FoldVertical from "@hugeicons/core-free-icons/FoldVerticalIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
+import AnyIcon from "@src/components/AnyIcon";
+
 import type { CollapsedSection } from "../types";
 
 interface CollapseRowProps {
@@ -40,11 +42,7 @@ export const CollapseRow: React.FC<CollapseRowProps> = ({
       {/* Center gutter */}
       <div className="split-row-center">
         <div className="split-row-gutter split-row-gutter-old">
-          <HugeiconsIcon
-            icon={CollapseIcon}
-            size={14}
-            className="collapse-icon"
-          />
+          <AnyIcon icon={CollapseIcon} size={14} className="collapse-icon" />
         </div>
 
         {cherrypicking && (

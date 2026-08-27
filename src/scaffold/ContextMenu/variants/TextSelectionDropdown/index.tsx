@@ -36,6 +36,7 @@ import React, {
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import {
   DROPDOWN_CLASSES,
   DROPDOWN_ITEM,
@@ -93,7 +94,7 @@ const MenuItemRow: React.FC<MenuItemRowProps> = memo(
         <span>{label}</span>
       </div>
       {hasArrow && (
-        <HugeiconsIcon
+        <AnyIcon
           icon={ICON_CONFIG.arrow}
           size={DROPDOWN_ITEM.iconSize}
           className="text-text-3"
@@ -140,7 +141,7 @@ const SessionSelectorPanel: React.FC<SessionSelectorPanelProps> = memo(
             onClick={onBack}
             className="flex h-[24px] w-[24px] items-center justify-center rounded-[4px] text-text-2 hover:bg-fill-1"
           >
-            <HugeiconsIcon
+            <AnyIcon
               icon={ICON_CONFIG.arrowBack}
               size={DROPDOWN_ITEM.iconSize}
               strokeWidth={1.75}
@@ -557,7 +558,7 @@ const TextSelectionDropdown: React.FC<TextSelectionDropdownProps> = ({
                 <MenuItemRow
                   key={item.id}
                   icon={
-                    <HugeiconsIcon
+                    <AnyIcon
                       icon={item.icon}
                       size={DROPDOWN_ITEM.iconSize}
                       className="text-text-2"

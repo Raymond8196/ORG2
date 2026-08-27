@@ -21,6 +21,7 @@ import { useAtom, useAtomValue } from "jotai";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import Dropdown, { type DropdownPosition } from "@src/components/Dropdown";
 import DropdownSelectedCheck from "@src/components/Dropdown/DropdownSelectedCheck";
 import {
@@ -215,7 +216,7 @@ export const PresenceMenuItems: React.FC<PresenceMenuItemsProps> = ({
           >
             <PresenceItemContent
               icon={
-                <HugeiconsIcon
+                <AnyIcon
                   icon={OptionIcon}
                   size={DROPDOWN_ITEM.iconSize}
                   className={PRESENCE_COLOR[option]}
@@ -243,7 +244,7 @@ export const PresenceMenuItems: React.FC<PresenceMenuItemsProps> = ({
               >
                 <PresenceItemContent
                   icon={
-                    <HugeiconsIcon
+                    <AnyIcon
                       icon={RoleIcon}
                       size={DROPDOWN_ITEM.iconSize}
                       className={CUSTOM_ROLE_COLOR_CLASS}

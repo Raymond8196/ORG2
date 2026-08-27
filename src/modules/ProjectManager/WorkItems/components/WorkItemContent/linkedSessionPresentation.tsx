@@ -8,6 +8,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import Org2SessionIcon from "@src/assets/modelIcons/org2-session.svg";
+import AnyIcon from "@src/components/AnyIcon";
 import type { LinkedSession } from "@src/types/core/workItem";
 
 export const LINKED_SESSION_STATUS_COLOR: Record<
@@ -62,7 +63,7 @@ export function renderSessionAgentIcon(
 
   const AgentIcon = sessionType === "cli" ? Terminal : Bot;
   return (
-    <HugeiconsIcon
+    <AnyIcon
       icon={AgentIcon}
       size={14}
       strokeWidth={1.75}

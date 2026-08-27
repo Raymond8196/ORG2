@@ -16,6 +16,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import Button from "@src/components/Button";
 import SettingsTable, {
   SETTINGS_TABLE_CELL,
@@ -139,7 +140,7 @@ const AgentsTable: React.FC<AgentsTableProps> = ({
             <span
               className={`${SETTINGS_TABLE_CELL.primary} inline-flex items-center gap-2 font-bold`}
             >
-              <HugeiconsIcon icon={icon} size={14} strokeWidth={2} />
+              <AnyIcon icon={icon} size={14} strokeWidth={2} />
               {row.name}
             </span>
           );

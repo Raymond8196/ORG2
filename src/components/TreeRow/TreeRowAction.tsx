@@ -20,6 +20,8 @@
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { memo } from "react";
 
+import AnyIcon from "@src/components/AnyIcon";
+
 // ============================================
 // Types
 // ============================================
@@ -80,7 +82,7 @@ export const TreeRowAction: React.FC<TreeRowActionProps> = memo(
         onClick={onClick}
         title={title}
       >
-        <HugeiconsIcon
+        <AnyIcon
           icon={icon}
           size={TREE_ROW_ACTION_ICON_SIZE}
           strokeWidth={1.75}

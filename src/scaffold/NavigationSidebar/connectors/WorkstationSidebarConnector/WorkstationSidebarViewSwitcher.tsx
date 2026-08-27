@@ -5,6 +5,7 @@ import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import Tooltip from "@src/components/Tooltip";
 
 export type WorkstationSidebarViewKey = "channels" | "work-items" | "sessions";
@@ -97,7 +98,7 @@ export const WorkstationSidebarViewSwitcher: React.FC<WorkstationSidebarViewSwit
                   data-testid={`sidebar-view-${item.key}`}
                   onClick={() => onChange(item.key)}
                 >
-                  <HugeiconsIcon
+                  <AnyIcon
                     icon={item.icon}
                     size={SWITCHER_ICON_SIZE}
                     strokeWidth={selected ? 2 : 1.8}

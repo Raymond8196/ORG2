@@ -28,6 +28,8 @@ import Wifi from "@hugeicons/core-free-icons/Wifi01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
+import AnyIcon from "@src/components/AnyIcon";
+
 import type { StampData, StampShape } from "./types";
 
 interface StampProps {
@@ -215,7 +217,7 @@ const Stamp: React.FC<StampProps> = ({ data }) => {
                 className="flex items-center gap-1.5 border-b border-dashed pb-1.5 opacity-80"
                 style={{ borderColor: `${data.color}40` }}
               >
-                <HugeiconsIcon
+                <AnyIcon
                   icon={IconComponent}
                   size={14}
                   className="opacity-90"
@@ -286,7 +288,7 @@ const Stamp: React.FC<StampProps> = ({ data }) => {
               </div>
 
               <div className="flex flex-col items-center justify-center gap-1 py-1">
-                <HugeiconsIcon
+                <AnyIcon
                   icon={IconComponent}
                   size={26}
                   strokeWidth={1.5}
@@ -378,7 +380,7 @@ const Stamp: React.FC<StampProps> = ({ data }) => {
                     className="h-0.5 w-0.5 rounded-full"
                     style={{ backgroundColor: data.color }}
                   ></div>
-                  <HugeiconsIcon icon={IconComponent} size={18} />
+                  <AnyIcon icon={IconComponent} size={18} />
                   <div
                     className="h-0.5 w-0.5 rounded-full"
                     style={{ backgroundColor: data.color }}
@@ -449,7 +451,7 @@ const Stamp: React.FC<StampProps> = ({ data }) => {
               </div>
 
               <div className="flex flex-col items-center justify-center gap-0.5">
-                <HugeiconsIcon
+                <AnyIcon
                   icon={IconComponent}
                   size={20}
                   className="mt-1 opacity-90"
@@ -506,7 +508,7 @@ const Stamp: React.FC<StampProps> = ({ data }) => {
 
             <div className="flex flex-1 flex-col items-center justify-center gap-1.5">
               <div className="flex items-center gap-2">
-                <HugeiconsIcon
+                <AnyIcon
                   icon={IconComponent}
                   size={22}
                   strokeWidth={2}

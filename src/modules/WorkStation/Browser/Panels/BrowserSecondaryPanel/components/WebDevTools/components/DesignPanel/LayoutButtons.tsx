@@ -10,6 +10,7 @@ import Square from "@hugeicons/core-free-icons/SquareIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo } from "react";
 
+import AnyIcon from "@src/components/AnyIcon";
 import TabPill, { type TabPillItem } from "@src/components/TabPill";
 
 // ============================================
@@ -56,7 +57,7 @@ export const LayoutButtons: React.FC<LayoutButtonsProps> = memo(
             key: option.value,
             label: option.label,
             icon: (
-              <HugeiconsIcon
+              <AnyIcon
                 icon={Icon}
                 size={14}
                 strokeWidth={1.75}

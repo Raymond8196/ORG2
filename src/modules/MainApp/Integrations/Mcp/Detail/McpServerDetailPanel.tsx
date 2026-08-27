@@ -12,6 +12,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import InlineAlert from "@src/components/InlineAlert";
 import { Placeholder } from "@src/components/Placeholder";
 import StatusDot from "@src/components/StatusDot";
@@ -193,7 +194,7 @@ const McpServerDetailPanel: React.FC<McpServerDetailPanelProps> = ({
                     className="animate-spin text-primary-6"
                   />
                 ) : (
-                  <HugeiconsIcon
+                  <AnyIcon
                     icon={STATUS_ICON}
                     size={STATUS_ICON_SIZE}
                     className={

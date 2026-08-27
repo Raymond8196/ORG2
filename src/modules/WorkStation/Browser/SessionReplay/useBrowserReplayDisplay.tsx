@@ -18,6 +18,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import { getEventIcon } from "@src/config/toolIcons";
 import { deriveToolAction } from "@src/util/ui/rendering/toolAction";
 
@@ -213,7 +214,7 @@ export function useBrowserReplayDisplay({
 
     return {
       categoryIcon: categoryIconNode || (
-        <HugeiconsIcon
+        <AnyIcon
           icon={CategoryIcon}
           size={14}
           className={`flex-shrink-0 ${iconColor}`}

@@ -9,6 +9,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import { useTauriSelectAllShortcut } from "@src/hooks/keyboard";
 
 import { SPOTLIGHT_TOKENS } from "../constants";
@@ -74,7 +75,7 @@ export const SpotlightInput: React.FC<SpotlightInputProps> = ({
           {iconElement ? (
             iconElement
           ) : (
-            <HugeiconsIcon
+            <AnyIcon
               icon={IconComponent}
               size={SPOTLIGHT_TOKENS.iconSize}
               className="text-text-2"

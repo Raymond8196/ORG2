@@ -4,6 +4,7 @@ import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import Button from "@src/components/Button";
 import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
@@ -92,7 +93,7 @@ const CodeSidebarHeaderActionsComponent: React.FC = () => {
               onClick={() => handleSelect(action.key)}
               aria-label={label}
               icon={
-                <HugeiconsIcon
+                <AnyIcon
                   icon={action.icon}
                   size={HEADER_ICON_SIZE.sm}
                   strokeWidth={2}

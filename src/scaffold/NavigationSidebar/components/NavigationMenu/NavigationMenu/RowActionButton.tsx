@@ -2,6 +2,8 @@ import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
+import AnyIcon from "@src/components/AnyIcon";
+
 import type { NavigationMenuItem } from "../config";
 
 interface NavigationMenuRowActionButtonProps {
@@ -37,7 +39,7 @@ export function NavigationMenuRowActionButton({
         onClick(event);
       }}
     >
-      <HugeiconsIcon
+      <AnyIcon
         icon={RowActionIcon}
         size={14}
         strokeWidth={icon ? 2 : 1.75}

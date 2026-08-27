@@ -28,6 +28,7 @@ import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { STORY_SYNC_ADAPTER } from "@src/api/http/integrations/syncConnections";
+import AnyIcon from "@src/components/AnyIcon";
 import IntegrationIcon from "@src/components/IntegrationIcon";
 import { TabLabelRowScrim } from "@src/components/TabPill/TabLabelRowScrim";
 import { TabPillCloseButton } from "@src/components/TabPill/TabPillCloseButton";
@@ -231,7 +232,7 @@ export const TabPill = memo(function TabPill({
         ? Lock
         : Hash;
     icon = (
-      <HugeiconsIcon
+      <AnyIcon
         icon={ChannelIcon}
         size={16}
         strokeWidth={1.75}

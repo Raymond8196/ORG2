@@ -8,6 +8,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import DropdownSelectedCheck from "@src/components/Dropdown/DropdownSelectedCheck";
 import {
   DROPDOWN_CLASSES,
@@ -116,7 +117,7 @@ export const ModeRow: React.FC<ModeRowProps> = React.memo(
         }}
       >
         <div className="flex items-center gap-2">
-          <HugeiconsIcon
+          <AnyIcon
             icon={ModeIcon}
             size={DROPDOWN_ITEM.iconSize}
             strokeWidth={1.75}
@@ -156,7 +157,7 @@ export const FlyoutTriggerRow: React.FC<FlyoutTriggerRowProps> = React.memo(
         }}
       >
         <div className="flex items-center gap-2">
-          <HugeiconsIcon
+          <AnyIcon
             icon={categoryIcon(category)}
             size={14}
             strokeWidth={1.75}

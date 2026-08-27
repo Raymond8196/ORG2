@@ -29,6 +29,7 @@ import Eye from "@hugeicons/core-free-icons/ViewIcon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React from "react";
 
+import AnyIcon from "@src/components/AnyIcon";
 import { createLogger } from "@src/hooks/logger";
 
 const log = createLogger("iconHelper");
@@ -90,7 +91,7 @@ export function renderActionIcon(
     return null;
   }
   return (
-    <HugeiconsIcon
+    <AnyIcon
       icon={icon}
       size={props?.size || 14}
       strokeWidth={props?.strokeWidth ?? 2}

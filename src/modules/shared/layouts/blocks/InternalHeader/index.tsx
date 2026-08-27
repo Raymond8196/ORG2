@@ -10,6 +10,8 @@
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { memo } from "react";
 
+import AnyIcon from "@src/components/AnyIcon";
+
 // ============================================
 // Tokens
 // ============================================
@@ -122,7 +124,7 @@ const InternalHeader: React.FC<InternalHeaderProps> = memo(
               <span className="flex-shrink-0 text-text-2">{iconElement}</span>
             )}
             {!iconElement && Icon && (
-              <HugeiconsIcon
+              <AnyIcon
                 icon={Icon}
                 size={INTERNAL_HEADER_TOKENS.iconSize}
                 className="flex-shrink-0 text-text-2"

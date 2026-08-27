@@ -11,6 +11,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import ModelIcon from "@src/components/ModelIcon";
 import { resolveAgentIcon } from "@src/config/agentIcons";
 import { createLogger } from "@src/hooks/logger";
@@ -57,7 +58,7 @@ interface CloudSessionHoverCardContentProps {
 
 function renderAgentIcon(display: SessionDisplayMetadata) {
   const agentIcon = resolveAgentIcon(display.agentIconId);
-  return <HugeiconsIcon icon={agentIcon} size={13} strokeWidth={1.75} />;
+  return <AnyIcon icon={agentIcon} size={13} strokeWidth={1.75} />;
 }
 
 export const CloudSessionHoverCardContent: React.FC<CloudSessionHoverCardContentProps> =

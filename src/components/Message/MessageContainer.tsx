@@ -14,6 +14,8 @@ import type { FC } from "react";
 import { useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
+
 import {
   DEFAULT_DURATION,
   type MessageConfig,
@@ -96,7 +98,7 @@ const MessageItem = ({
 
   const IconComponent = ICONS[type];
   const typeStyle = TYPE_STYLES[type];
-  const iconNode = icon || <HugeiconsIcon icon={IconComponent} size={18} />;
+  const iconNode = icon || <AnyIcon icon={IconComponent} size={18} />;
   const hasDescription = Boolean(title || download || cancel || action);
   const handleDownload = useCallback(() => {
     const blob =

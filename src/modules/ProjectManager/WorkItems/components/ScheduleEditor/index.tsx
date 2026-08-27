@@ -7,6 +7,7 @@ import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { useCallback, useMemo, useRef, useState } from "react";
 
 import type { WorkItemSchedule } from "@src/api/http/project";
+import AnyIcon from "@src/components/AnyIcon";
 import { DROPDOWN_ITEM } from "@src/components/Dropdown/tokens";
 import Select, { type SelectOption } from "@src/components/Select";
 import TimePicker from "@src/components/TimePicker";
@@ -120,7 +121,7 @@ const ScheduleEditor: React.FC<ScheduleEditorProps> = ({
       dataTestId: `work-item-schedule-mode-option-${value}`,
       label: (
         <span className="inline-flex items-center gap-2">
-          <HugeiconsIcon
+          <AnyIcon
             icon={Icon}
             size={DROPDOWN_ITEM.iconSize}
             className="shrink-0"

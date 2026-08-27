@@ -23,6 +23,7 @@ import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import type { ReactNode } from "react";
 import React, { memo, useCallback } from "react";
 
+import AnyIcon from "@src/components/AnyIcon";
 import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
 import { useImmediateCursorReset } from "@src/hooks/ui/useImmediateCursorReset";
 import type { SecondaryPanelPosition } from "@src/store/ui/workStationAtom";
@@ -79,9 +80,7 @@ function renderPanelTabIcon(
 ): React.ReactNode {
   if (!name) return null;
   const IconComponent = PANEL_TAB_ICONS[name];
-  return (
-    <HugeiconsIcon icon={IconComponent} size={ICON_SIZE} strokeWidth={1.75} />
-  );
+  return <AnyIcon icon={IconComponent} size={ICON_SIZE} strokeWidth={1.75} />;
 }
 
 interface IconTabStripProps {

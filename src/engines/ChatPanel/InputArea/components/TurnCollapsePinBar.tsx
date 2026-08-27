@@ -28,6 +28,7 @@ import { useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import { getTurnTimingLabels } from "@src/engines/ChatPanel/ChatHistory/utils/turnTimingFormatting";
 import { createLogger } from "@src/hooks/logger";
 import {
@@ -161,7 +162,7 @@ const TurnCollapsePinBar: React.FC<TurnCollapsePinBarProps> = memo(
             void handleToggle();
           }}
         >
-          <HugeiconsIcon
+          <AnyIcon
             icon={ChevronIcon}
             size={CHEVRON_SIZE}
             strokeWidth={1.75}

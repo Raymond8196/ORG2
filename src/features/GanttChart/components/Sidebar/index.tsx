@@ -10,6 +10,7 @@ import type { VirtualItem } from "@tanstack/react-virtual";
 import React, { RefObject } from "react";
 
 import { CLI_AGENT } from "@src/api/types/keys";
+import AnyIcon from "@src/components/AnyIcon";
 import ModelIcon from "@src/components/ModelIcon";
 import { resolveAgentIcon } from "@src/config/agentIcons";
 import {
@@ -48,7 +49,7 @@ function renderTaskIcon(task: GanttTask): React.ReactNode {
 
   const iconId = task.agentIconId ?? resolveSessionIconId(sessionId);
   const TaskIcon = resolveAgentIcon(iconId);
-  return <HugeiconsIcon icon={TaskIcon} size={13} />;
+  return <AnyIcon icon={TaskIcon} size={13} />;
 }
 
 const GanttSidebar: React.FC<GanttSidebarProps> = ({

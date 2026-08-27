@@ -26,6 +26,7 @@ import React, {
 import { useTranslation } from "react-i18next";
 
 import type { GitWorktreeEntry } from "@src/api/http/git/types";
+import AnyIcon from "@src/components/AnyIcon";
 import { Placeholder } from "@src/components/Placeholder";
 import type { SectionHeaderAction } from "@src/components/TreePanelSidebar/types";
 import { useGitStatus } from "@src/contexts/git";
@@ -210,7 +211,7 @@ export function useSourceControlSidebarModule({
       {
         key: "refresh-git-history",
         icon: (
-          <HugeiconsIcon
+          <AnyIcon
             icon={HistoryRefreshIcon}
             size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
             strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}

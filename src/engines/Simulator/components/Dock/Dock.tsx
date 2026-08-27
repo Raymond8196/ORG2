@@ -7,6 +7,7 @@
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { memo } from "react";
 
+import AnyIcon from "@src/components/AnyIcon";
 import { GENERAL_LAYOUT_TOUR_TARGETS } from "@src/scaffold/Tutorials/generalLayoutTourConfig";
 
 import {
@@ -77,10 +78,7 @@ export const Dock: React.FC<DockProps> = memo(
                     title={app.name}
                     data-tour-target={getTourTarget(app.id)}
                   >
-                    <HugeiconsIcon
-                      icon={app.icon}
-                      {...DOCK_LUCIDE_ICON_PROPS}
-                    />
+                    <AnyIcon icon={app.icon} {...DOCK_LUCIDE_ICON_PROPS} />
                   </div>
                 </CompactDockIconColumn>
               );

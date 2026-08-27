@@ -11,6 +11,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import Button from "@src/components/Button";
 import Checkbox from "@src/components/Checkbox";
 import { DROPDOWN_PANEL } from "@src/components/Dropdown/tokens";
@@ -282,11 +283,7 @@ const WorkItemPickerPanel: React.FC<WorkItemPickerPanelProps> = ({
                         aria-hidden
                         data-testid={`work-item-picker-kind-${option.key}`}
                       >
-                        <HugeiconsIcon
-                          icon={Icon}
-                          size={14}
-                          strokeWidth={1.8}
-                        />
+                        <AnyIcon icon={Icon} size={14} strokeWidth={1.8} />
                       </span>
                       <span className="shrink-0 text-xs font-semibold text-text-3">
                         {option.identifier}

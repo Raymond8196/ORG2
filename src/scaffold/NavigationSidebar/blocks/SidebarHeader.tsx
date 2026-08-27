@@ -7,6 +7,7 @@ import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 
+import AnyIcon from "@src/components/AnyIcon";
 import TabPill from "@src/components/TabPill";
 import { SPINNER_TOKENS } from "@src/config/spinnerTokens";
 
@@ -76,7 +77,7 @@ const SidebarHeader: React.FC<SidebarHeaderProps> = React.memo(
                   typeof tab.icon === "string" ? (
                     <i className={`${tab.icon} text-[14px]`} />
                   ) : (
-                    <HugeiconsIcon
+                    <AnyIcon
                       icon={tab.icon}
                       size={14}
                       className="h-[14px] w-[14px]"

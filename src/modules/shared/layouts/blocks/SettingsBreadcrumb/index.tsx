@@ -29,6 +29,7 @@ import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import AnyIcon from "@src/components/AnyIcon";
 import {
   DROPDOWN_CLASSES,
   DROPDOWN_ITEM,
@@ -357,7 +358,7 @@ const SettingsBreadcrumb: React.FC<SettingsBreadcrumbProps> = ({
                           }`}
                         >
                           {Icon && (
-                            <HugeiconsIcon
+                            <AnyIcon
                               icon={Icon}
                               size={DROPDOWN_ITEM.iconSize}
                               className={`shrink-0 ${

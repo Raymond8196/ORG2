@@ -14,6 +14,7 @@ import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRi
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useState } from "react";
 
+import AnyIcon from "@src/components/AnyIcon";
 import Button from "@src/components/Button";
 import {
   ChatBubbleAvatar,
@@ -93,11 +94,7 @@ const FeedMessage: React.FC<FeedMessageProps> = ({
             bgColor={`${accentColor}15`}
             icon={
               Icon ? (
-                <HugeiconsIcon
-                  icon={Icon}
-                  size={14}
-                  style={{ color: accentColor }}
-                />
+                <AnyIcon icon={Icon} size={14} style={{ color: accentColor }} />
               ) : null
             }
           />

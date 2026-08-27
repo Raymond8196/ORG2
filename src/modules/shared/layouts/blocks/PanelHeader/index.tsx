@@ -38,6 +38,7 @@ import Search from "@hugeicons/core-free-icons/Search01Icon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { createContext, memo, useContext } from "react";
 
+import AnyIcon from "@src/components/AnyIcon";
 import Button from "@src/components/Button";
 import { EDITOR_TAB_CANVAS_BG_CLASS } from "@src/config/workstation/tokens";
 import { useRefreshSpin } from "@src/hooks/ui";
@@ -351,7 +352,7 @@ const PanelHeader: React.FC<PanelHeaderProps> = memo(
             </span>
           )}
           {!displayIconElement && IconComponent && (
-            <HugeiconsIcon
+            <AnyIcon
               icon={IconComponent}
               size={PANEL_HEADER_TOKENS.iconSize}
               className="flex-shrink-0 text-text-2"

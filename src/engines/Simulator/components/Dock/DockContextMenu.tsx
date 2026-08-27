@@ -12,6 +12,7 @@ import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import Glass from "@src/components/Glass";
 import { getViewportSize } from "@src/util/ui/window/viewport";
 
@@ -200,7 +201,7 @@ export const DockContextMenu: React.FC<DockContextMenuProps> = ({
                 onClick={() => !isDisabled && handleItemClick(item)}
                 disabled={isDisabled}
               >
-                <HugeiconsIcon
+                <AnyIcon
                   icon={item.icon}
                   size={14}
                   className={isDisabled ? "text-text-3" : "text-text-2"}

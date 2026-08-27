@@ -12,6 +12,8 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
+
 import { PaletteBody, SpotlightShell } from "../../shell";
 import type { PathSegment } from "../../types";
 import { EDITOR_PALETTE_CONFIG } from "../config";
@@ -172,7 +174,7 @@ export const EditorPalette: React.FC<EditorPaletteProps> = ({
     state.mode === "file" && state.query.trim() === "";
 
   const inputIconElement = modeConfig?.icon && (
-    <HugeiconsIcon icon={modeConfig.icon} size={14} className="text-text-2" />
+    <AnyIcon icon={modeConfig.icon} size={14} className="text-text-2" />
   );
 
   const body = (

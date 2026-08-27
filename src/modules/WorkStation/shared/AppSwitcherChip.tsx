@@ -14,6 +14,7 @@ import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { memo, useEffect } from "react";
 
+import AnyIcon from "@src/components/AnyIcon";
 import { DROPDOWN_PANEL } from "@src/components/Dropdown/tokens";
 import { SURFACE_TOKENS } from "@src/config/surfaceTokens";
 import { useDropdownEngine } from "@src/hooks/dropdown/useDropdownEngine";
@@ -93,7 +94,7 @@ const AppSwitcherChipComponent: React.FC<AppSwitcherChipProps> = ({
           the 20×20 sidebar toggle button in the global tab-header strip
           directly below — keeps the two icons in the same column. */}
       <span className="flex h-5 w-5 shrink-0 items-center justify-center">
-        <HugeiconsIcon
+        <AnyIcon
           icon={icon}
           size={14}
           strokeWidth={1.75}

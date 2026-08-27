@@ -5,6 +5,7 @@ import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback } from "react";
 
+import AnyIcon from "@src/components/AnyIcon";
 import { useImmediateCursorReset } from "@src/hooks/ui/useImmediateCursorReset";
 import { ReferenceDragGhost } from "@src/shared/dnd/ReferenceDragGhost";
 
@@ -472,7 +473,7 @@ function renderLeadingIcon({
           action.onClick(event);
         }}
       >
-        <HugeiconsIcon
+        <AnyIcon
           icon={ActionIcon}
           size={14}
           strokeWidth={2}

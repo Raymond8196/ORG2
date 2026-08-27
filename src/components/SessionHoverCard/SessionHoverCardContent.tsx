@@ -21,6 +21,7 @@ import {
   getOrgtrackSessionSummary,
 } from "@src/api/tauri/lineage";
 import { isHostedKey } from "@src/api/tauri/session";
+import AnyIcon from "@src/components/AnyIcon";
 import ClientOriginBadge from "@src/components/ClientOriginBadge";
 import ModelIcon from "@src/components/ModelIcon";
 import { resolveAgentIcon } from "@src/config/agentIcons";
@@ -163,7 +164,7 @@ function getAgentSessionInfo(
   const agentIcon = resolveAgentIcon(display.agentIconId);
 
   return {
-    icon: <HugeiconsIcon icon={agentIcon} size={13} strokeWidth={1.75} />,
+    icon: <AnyIcon icon={agentIcon} size={13} strokeWidth={1.75} />,
     label: display.agentLabel,
     textClassName: "text-text-1",
   };

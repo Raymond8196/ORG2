@@ -1,6 +1,7 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
+import AnyIcon from "@src/components/AnyIcon";
 import DiffStatsBadge from "@src/components/DiffStatsBadge";
 import ModelIcon from "@src/components/ModelIcon";
 import { resolveAgentIcon } from "@src/config/agentIcons";
@@ -49,7 +50,7 @@ function renderAgentIcon(task: KanbanTask): React.ReactNode {
   // retaining the shared monochrome, Lucide-style session icon resolver.
   const agentIcon = resolveAgentIcon(task.agentIconId ?? task.cliAgentType);
   return (
-    <HugeiconsIcon
+    <AnyIcon
       icon={agentIcon}
       size={14}
       strokeWidth={1.75}

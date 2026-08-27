@@ -4,6 +4,7 @@
  */
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 
+import AnyIcon from "@src/components/AnyIcon";
 import { WORKSTATION_TRAIL_CONTENT } from "@src/config/workstation/tokens";
 
 export function WorkspaceContextRow({
@@ -28,12 +29,7 @@ export function WorkspaceContextRow({
     : `${WORKSTATION_TRAIL_CONTENT.row} gap-1.5 overflow-hidden px-2 text-text-1`;
   const content = (
     <>
-      <HugeiconsIcon
-        icon={icon}
-        className="shrink-0"
-        size={14}
-        strokeWidth={1.75}
-      />
+      <AnyIcon icon={icon} className="shrink-0" size={14} strokeWidth={1.75} />
       <span
         className={`min-w-0 flex-1 truncate ${
           compact ? "text-[13px]" : "text-[12px]"

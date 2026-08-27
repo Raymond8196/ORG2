@@ -35,6 +35,7 @@ import React, {
 import { createPortal } from "react-dom";
 
 import GitHubPillIcon from "@src/assets/modelIcons/github-pill.svg";
+import AnyIcon from "@src/components/AnyIcon";
 import FileTreePreview from "@src/components/FileTreePreview";
 import FileTypeIcon from "@src/components/FileTypeIcon";
 import Tooltip from "@src/components/Tooltip";
@@ -69,7 +70,7 @@ const SessionPillIcon: React.FC<{ path: string }> = memo(({ path }) => {
     () => resolveSessionRowIcon(session ?? sessionId),
     [session, sessionId]
   );
-  return <HugeiconsIcon icon={icon} {...ICON_PROPS} />;
+  return <AnyIcon icon={icon} {...ICON_PROPS} />;
 });
 SessionPillIcon.displayName = "SessionPillIcon";
 

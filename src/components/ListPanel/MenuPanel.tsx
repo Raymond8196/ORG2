@@ -10,6 +10,7 @@
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React from "react";
 
+import AnyIcon from "@src/components/AnyIcon";
 import TabPill from "@src/components/TabPill";
 import {
   ListPanelScrollArea,
@@ -96,7 +97,7 @@ export function MenuPanel<
                 onClick={() => onViewChange(item.key)}
                 className={`w-full border-none text-left ${getListItemClasses(isActive)}`}
               >
-                <HugeiconsIcon
+                <AnyIcon
                   icon={item.icon}
                   size={16}
                   className={getListIconClasses(isActive)}

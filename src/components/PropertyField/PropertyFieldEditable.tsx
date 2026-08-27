@@ -11,6 +11,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
+import AnyIcon from "@src/components/AnyIcon";
 import Button from "@src/components/Button";
 import {
   type PillControlFocusTreatment,
@@ -160,7 +161,7 @@ export const FieldRow: React.FC<FieldRowProps> = ({
             disabled={disabled}
             className={`mr-1 flex h-6 w-5 shrink-0 items-center justify-center rounded-md border-none bg-transparent text-text-3 ${isActive ? "flex" : "hidden group-hover/field:flex"}`}
           >
-            <HugeiconsIcon icon={EditIcon} size={DROPDOWN_ITEM.iconSize} />
+            <AnyIcon icon={EditIcon} size={DROPDOWN_ITEM.iconSize} />
           </button>
         )}
       </div>

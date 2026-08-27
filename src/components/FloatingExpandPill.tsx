@@ -18,6 +18,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import Button from "@src/components/Button";
 
 interface FloatingExpandPillProps {
@@ -46,7 +47,7 @@ const FloatingExpandPill: React.FC<FloatingExpandPillProps> = ({
       size="mini"
       shape={showLabel ? "round" : "circle"}
       iconOnly={!showLabel}
-      icon={<HugeiconsIcon icon={Icon} size={16} strokeWidth={2.25} />}
+      icon={<AnyIcon icon={Icon} size={16} strokeWidth={2.25} />}
       className="pointer-events-auto shadow-sm backdrop-blur-sm"
       onClick={onClick}
       aria-label={text}

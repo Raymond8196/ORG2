@@ -8,6 +8,7 @@ import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { GitWorktreeDiffSummary } from "@src/api/http/git/types";
+import AnyIcon from "@src/components/AnyIcon";
 import DiffStatsBadge from "@src/components/DiffStatsBadge";
 import Dropdown from "@src/components/Dropdown";
 import DropdownItem from "@src/components/Dropdown/DropdownItem";
@@ -150,7 +151,7 @@ function ScopePickerItem({
         showCheckmark={false}
         onClick={onSelect}
         icon={
-          <HugeiconsIcon
+          <AnyIcon
             icon={ScopeIcon}
             size={DROPDOWN_ITEM.iconSize}
             strokeWidth={1.75}

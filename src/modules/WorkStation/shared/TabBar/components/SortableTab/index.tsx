@@ -45,6 +45,7 @@ import {
   type ProjectSyncAdapterType,
   STORY_SYNC_ADAPTER,
 } from "@src/api/http/integrations/syncConnections";
+import AnyIcon from "@src/components/AnyIcon";
 import { FaviconIcon } from "@src/components/FaviconIcon";
 import FileTypeIcon from "@src/components/FileTypeIcon";
 import IntegrationIcon from "@src/components/IntegrationIcon";
@@ -246,7 +247,7 @@ export const SortableTab: React.FC<SortableTabProps> = memo(
         const icon = resolveWorkstationTabIcon(tab.icon);
         if (icon) {
           return (
-            <HugeiconsIcon
+            <AnyIcon
               icon={icon}
               size={16}
               strokeWidth={1.75}

@@ -9,6 +9,7 @@ import {
   DISPATCH_CATEGORY,
   type DispatchCategory,
 } from "@src/api/tauri/session";
+import AnyIcon from "@src/components/AnyIcon";
 import { PILL_SM_ICON_SIZE } from "@src/components/CompoundPill/config";
 import ModelIcon from "@src/components/ModelIcon";
 import ModelSelectionBreadcrumb from "@src/components/ModelSelectionBreadcrumb";
@@ -242,7 +243,7 @@ const SessionCreatorOrgMembersPanel: React.FC<SessionCreatorOrgMembersPanelProps
                   ? resolveAgentIcon(resolvedAgent.iconId)
                   : null;
                 const agentPillIcon = IconComponent ? (
-                  <HugeiconsIcon
+                  <AnyIcon
                     icon={IconComponent}
                     size={PILL_SM_ICON_SIZE}
                     className="text-text-1"

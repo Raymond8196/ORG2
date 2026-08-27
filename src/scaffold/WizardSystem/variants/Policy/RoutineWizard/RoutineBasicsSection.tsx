@@ -3,6 +3,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import Input from "@src/components/Input";
 import Select from "@src/components/Select";
 import Textarea from "@src/components/Textarea";
@@ -331,7 +332,7 @@ const RoutineBasicsSection: React.FC<RoutineBasicsSectionProps> = ({
                 );
               }
               return (
-                <HugeiconsIcon
+                <AnyIcon
                   icon={resolveAgentIcon(draft.targetIconId)}
                   size={16}
                   className="text-text-2"

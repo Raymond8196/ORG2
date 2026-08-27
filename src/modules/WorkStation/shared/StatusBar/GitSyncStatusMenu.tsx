@@ -13,6 +13,7 @@ import React, { memo, useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import {
   DROPDOWN_CLASSES,
   DROPDOWN_ITEM,
@@ -265,7 +266,7 @@ export const GitSyncStatusMenu: React.FC<GitSyncStatusMenuProps> = memo(
                           onClick={() => handleAction(action.onSelect)}
                           role="menuitem"
                         >
-                          <HugeiconsIcon
+                          <AnyIcon
                             icon={action.icon}
                             size={MENU_ICON_SIZE}
                             className="shrink-0 text-text-1"
@@ -297,7 +298,7 @@ export const GitSyncStatusMenu: React.FC<GitSyncStatusMenuProps> = memo(
                         onClick={() => handleAction(suggestedAction.onSelect)}
                         role="menuitem"
                       >
-                        <HugeiconsIcon
+                        <AnyIcon
                           icon={suggestedAction.icon}
                           size={MENU_ICON_SIZE}
                           className="shrink-0 text-text-1"

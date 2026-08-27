@@ -23,6 +23,7 @@ import React, { memo, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import { DropdownItem, DropdownPanel } from "@src/components/Dropdown/exports";
 import {
   DROPDOWN_CLASSES,
@@ -243,7 +244,7 @@ const ModePill: React.FC<ModePillProps> = memo(
         <SelectorPill
           ref={triggerRef}
           icon={
-            <HugeiconsIcon
+            <AnyIcon
               icon={CurrentIcon}
               size={14}
               strokeWidth={1.75}
@@ -294,7 +295,7 @@ const ModePill: React.FC<ModePillProps> = memo(
                     <DropdownItem
                       key={option.id}
                       icon={
-                        <HugeiconsIcon
+                        <AnyIcon
                           icon={Icon}
                           size={DROPDOWN_ITEM.iconSize}
                           strokeWidth={1.75}

@@ -40,6 +40,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import cn from "classnames";
 import React from "react";
 
+import AnyIcon from "@src/components/AnyIcon";
 import Button from "@src/components/Button";
 import Tooltip from "@src/components/Tooltip";
 
@@ -154,7 +155,7 @@ const ActionCard: React.FC<ActionCardProps> = ({
   const leadingIcon = iconElement ? (
     <div className={cn("flex-shrink-0", iconColorClass)}>{iconElement}</div>
   ) : Icon ? (
-    <HugeiconsIcon
+    <AnyIcon
       icon={Icon}
       size={layout === "stacked" ? 18 : 16}
       className={iconColorClass}

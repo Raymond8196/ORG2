@@ -11,6 +11,7 @@ import Check from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
+import AnyIcon from "@src/components/AnyIcon";
 import { codeMirrorPrismTheme } from "@src/features/CodeMirror/themes/prism";
 import { PrismLight as PrismHighlighter } from "@src/util/language/prismLight";
 
@@ -180,7 +181,7 @@ export const DiffLineComponent = React.memo<DiffLineComponentProps>(
           {showLineNumbers && (
             <>
               <div className="diff-line-gutter diff-gutter-old">
-                <HugeiconsIcon
+                <AnyIcon
                   icon={CollapseIcon}
                   size={14}
                   className="collapse-icon"

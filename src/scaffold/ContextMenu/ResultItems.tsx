@@ -14,6 +14,7 @@ import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
 import FolderIcon from "@src/assets/fileTypeIcons/folder-base.svg";
+import AnyIcon from "@src/components/AnyIcon";
 import {
   DROPDOWN_CLASSES,
   DROPDOWN_ITEM,
@@ -109,7 +110,7 @@ export const ResultItemIcon: React.FC<{
       cliAgentType: item.cliAgentType,
     });
     return (
-      <HugeiconsIcon
+      <AnyIcon
         icon={sessionIcon}
         size={DROPDOWN_ITEM.iconSize}
         strokeWidth={1.75}
@@ -221,7 +222,7 @@ export const MenuItemRow: React.FC<MenuItemRowProps> = memo(
       onMouseLeave={onMouseLeave}
     >
       <div className="flex min-w-0 items-center gap-2">
-        <HugeiconsIcon
+        <AnyIcon
           icon={icon}
           size={DROPDOWN_ITEM.iconSize}
           className="shrink-0 text-text-2"
@@ -237,7 +238,7 @@ export const MenuItemRow: React.FC<MenuItemRowProps> = memo(
         )}
       </div>
       {hasArrow && (
-        <HugeiconsIcon
+        <AnyIcon
           icon={ICON_CONFIG.arrow}
           size={DROPDOWN_ITEM.iconSize}
           className="text-text-3"

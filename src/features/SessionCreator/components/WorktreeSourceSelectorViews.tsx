@@ -5,6 +5,7 @@ import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import Button from "@src/components/Button";
 import {
   DROPDOWN_CLASSES,
@@ -282,7 +283,7 @@ function WorktreeSourceDropdownRow({
       } w-full justify-start ${disabled ? "opacity-60" : ""}`}
     >
       <span className="flex h-5 w-5 shrink-0 items-center justify-center">
-        <HugeiconsIcon
+        <AnyIcon
           icon={Icon}
           size={DROPDOWN_ITEM.iconSize}
           className="text-text-2"

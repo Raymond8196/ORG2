@@ -16,6 +16,7 @@ import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { MemberEntry } from "@src/api/http/project";
+import AnyIcon from "@src/components/AnyIcon";
 import {
   getListIconClasses,
   getListItemClasses,
@@ -123,7 +124,7 @@ const SettingsSidebar: React.FC<{
               className={`w-full text-left ${getListItemClasses(isActive, "wideGap")}`}
               onClick={() => onSectionClick(section.id)}
             >
-              <HugeiconsIcon
+              <AnyIcon
                 icon={section.icon}
                 size={16}
                 strokeWidth={1.75}

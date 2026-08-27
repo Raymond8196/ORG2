@@ -3,6 +3,7 @@ import { useAtomValue } from "jotai";
 import React, { memo } from "react";
 
 import Org2SessionIcon from "@src/assets/modelIcons/org2-session.svg";
+import AnyIcon from "@src/components/AnyIcon";
 import { sessionByIdAtom } from "@src/store/session";
 import { resolveSessionRowIcon } from "@src/util/session/sessionSidebarRow";
 
@@ -20,7 +21,7 @@ export const FileSessionHistoryIcon = memo(
     }
 
     return (
-      <HugeiconsIcon
+      <AnyIcon
         icon={resolveSessionRowIcon(session ?? sessionId)}
         size={14}
         className="text-text-1"

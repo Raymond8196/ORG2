@@ -6,6 +6,7 @@ import { selectAtom } from "jotai/utils";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import { useSessionTurnOverview } from "@src/components/SessionHoverCard/useSessionTurnOverview";
 import { resolveAgentIcon } from "@src/config/agentIcons";
 import { sessionToKanbanTask } from "@src/features/TaskKanban/hooks/useKanbanTasks/sessionToKanbanTask";
@@ -41,7 +42,7 @@ export interface LocalSessionReferenceCardProps {
 
 function renderAgentIcon(iconId: string | undefined) {
   const agentIcon = resolveAgentIcon(iconId);
-  return <HugeiconsIcon icon={agentIcon} size={12} strokeWidth={1.75} />;
+  return <AnyIcon icon={agentIcon} size={12} strokeWidth={1.75} />;
 }
 
 const LocalSessionReferenceCard: React.FC<LocalSessionReferenceCardProps> = ({

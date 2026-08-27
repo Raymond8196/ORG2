@@ -23,6 +23,7 @@ import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import Button from "@src/components/Button";
 import Input from "@src/components/Input";
 import NumberInput from "@src/components/NumberInput";
@@ -174,7 +175,7 @@ const MyRolePage: React.FC = () => {
           value: id,
           label: (
             <span className="inline-flex items-center gap-2">
-              <HugeiconsIcon icon={icon} size={14} />
+              <AnyIcon icon={icon} size={14} />
               <span className="capitalize">{id}</span>
             </span>
           ),
@@ -426,7 +427,7 @@ const MyRolePage: React.FC = () => {
                     layout="vertical"
                     label={
                       <span className="inline-flex items-center gap-2">
-                        <HugeiconsIcon
+                        <AnyIcon
                           icon={icon}
                           size={14}
                           className={role.colorClass}
@@ -497,7 +498,7 @@ const MyRolePage: React.FC = () => {
                       layout="vertical"
                       label={
                         <span className="inline-flex items-center gap-2">
-                          <HugeiconsIcon
+                          <AnyIcon
                             icon={icon}
                             size={14}
                             className="text-primary-6"

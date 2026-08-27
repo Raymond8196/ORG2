@@ -3,6 +3,7 @@ import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import NumberInput from "@src/components/NumberInput";
 import Select, { type SelectOption } from "@src/components/Select";
 import Switch from "@src/components/Switch";
@@ -76,11 +77,7 @@ export const MyRolesStatusTab: React.FC = () => {
         value: option.mode,
         label: (
           <span className="inline-flex items-center gap-2">
-            <HugeiconsIcon
-              icon={icon}
-              size={14}
-              className={option.colorClass}
-            />
+            <AnyIcon icon={icon} size={14} className={option.colorClass} />
             <span>{t(option.labelKey, { ns: "navigation" })}</span>
           </span>
         ),
@@ -95,7 +92,7 @@ export const MyRolesStatusTab: React.FC = () => {
         value: mode,
         label: (
           <span className="inline-flex items-center gap-2">
-            <HugeiconsIcon
+            <AnyIcon
               icon={icon}
               size={14}
               className={CUSTOM_ROLE_COLOR_CLASS}

@@ -9,6 +9,7 @@ import MessagesSquare from "@hugeicons/core-free-icons/MessageMultiple01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
+import AnyIcon from "@src/components/AnyIcon";
 import Tag from "@src/components/Tag";
 import { resolveAgentIcon } from "@src/config/agentIcons";
 import { formatModelNameFull } from "@src/util/formatModelName";
@@ -44,7 +45,7 @@ function renderAgentIcon(task: KanbanTask) {
   // `cliAgentType` remains a compatibility fallback for non-session tasks.
   const AgentIcon = resolveAgentIcon(task.agentIconId ?? task.cliAgentType);
   return (
-    <HugeiconsIcon
+    <AnyIcon
       icon={AgentIcon}
       size={12}
       className={KANBAN_MONOCHROME_ICON_CLASS}
@@ -168,7 +169,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
                   className="kanban-task-card__meta-pill"
                   style={entry.color ? { color: entry.color } : undefined}
                 >
-                  {Icon && <HugeiconsIcon icon={Icon} size={12} />}
+                  {Icon && <AnyIcon icon={Icon} size={12} />}
                   <span>{entry.text}</span>
                 </div>
               );

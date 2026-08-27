@@ -6,6 +6,7 @@ import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React from "react";
 
 import type { ReviewCommentSeverity } from "@src/api/http/project";
+import AnyIcon from "@src/components/AnyIcon";
 
 const REVIEW_SEVERITY_CONFIG: Record<
   ReviewCommentSeverity,
@@ -38,7 +39,7 @@ const ReviewSeverityIcon: React.FC<ReviewSeverityIconProps> = ({
 }) => {
   const config = REVIEW_SEVERITY_CONFIG[severity];
   return (
-    <HugeiconsIcon
+    <AnyIcon
       icon={config.icon}
       data-icon={config.name}
       size={size}

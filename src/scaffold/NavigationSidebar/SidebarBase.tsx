@@ -22,6 +22,7 @@ import i18next from "i18next";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 
+import AnyIcon from "@src/components/AnyIcon";
 import { KeyboardShortcutTooltipContent } from "@src/components/KeyboardShortcut";
 import Tooltip from "@src/components/Tooltip";
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
@@ -343,7 +344,7 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
                     tabIndex={0}
                   >
                     <div className="flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[100px] transition-colors duration-150 hover:bg-sidebar-selected">
-                      <HugeiconsIcon
+                      <AnyIcon
                         icon={AddIcon}
                         size={16}
                         strokeWidth={2}

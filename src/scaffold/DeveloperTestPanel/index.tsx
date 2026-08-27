@@ -7,6 +7,7 @@ import React, { type FC, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import { DropdownItem, DropdownPanel } from "@src/components/Dropdown/exports";
 import {
   DROPDOWN_ITEM,
@@ -41,9 +42,7 @@ const DeveloperTestModuleSection: FC<{
   return (
     <section data-testid={`developer-test-module-${module.id}`}>
       <DropdownItem
-        icon={
-          <HugeiconsIcon icon={module.icon} size={DROPDOWN_ITEM.iconSize} />
-        }
+        icon={<AnyIcon icon={module.icon} size={DROPDOWN_ITEM.iconSize} />}
         suffix={
           expanded ? (
             <HugeiconsIcon

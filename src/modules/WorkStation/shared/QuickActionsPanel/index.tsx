@@ -24,6 +24,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import React, { memo, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
 
+import AnyIcon from "@src/components/AnyIcon";
 import {
   KEYBOARD_SHORTCUT_VARIANT,
   KeyboardShortcut,
@@ -87,7 +88,7 @@ const ActionItem = memo<ActionItemProps>(({ action, onAction }) => {
     >
       <div className="flex items-center gap-3">
         {action.icon && (
-          <HugeiconsIcon
+          <AnyIcon
             icon={action.icon}
             size={16}
             strokeWidth={1.5}

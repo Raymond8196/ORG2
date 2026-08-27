@@ -19,6 +19,7 @@ import { useAtomValue } from "jotai";
 import { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import { Placeholder } from "@src/components/Placeholder";
 import {
   type GitOperation,
@@ -92,7 +93,7 @@ const OperationRow: React.FC<OperationRowProps> = memo(({ entry }) => {
       {/* Status + Operation icon */}
       <div className="mt-0.5 flex-shrink-0">
         {entry.success ? (
-          <HugeiconsIcon
+          <AnyIcon
             icon={OperationIconComponent}
             size={ICON_SIZE}
             strokeWidth={ICON_STROKE}

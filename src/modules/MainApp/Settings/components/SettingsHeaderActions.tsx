@@ -53,7 +53,7 @@ const HeaderIconButton: React.FC<HeaderIconButtonProps> = ({ item }) => {
   const icon =
     item.iconElement ??
     (item.icon ? (
-      <HugeiconsIcon
+      <AnyIcon
         icon={item.icon}
         size={HEADER_ICON_SIZE.sm}
         strokeWidth={2}

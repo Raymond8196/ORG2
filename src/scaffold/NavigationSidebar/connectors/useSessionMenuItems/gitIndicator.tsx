@@ -6,6 +6,7 @@ import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import type { ReactNode } from "react";
 
+import AnyIcon from "@src/components/AnyIcon";
 import type { BranchPrSnapshot } from "@src/store/git";
 import {
   type SessionGitLinkSource,
@@ -85,7 +86,7 @@ export function renderSessionGitIndicator(
       className="inline-flex shrink-0 items-center leading-none"
       style={{ color }}
     >
-      <HugeiconsIcon icon={Icon} size={11} strokeWidth={2} />
+      <AnyIcon icon={Icon} size={11} strokeWidth={2} />
     </span>
   );
 }

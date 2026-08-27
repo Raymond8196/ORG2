@@ -4,6 +4,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import ModelIcon from "@src/components/ModelIcon";
 import Switch from "@src/components/Switch";
 import Tooltip from "@src/components/Tooltip";
@@ -200,7 +201,7 @@ const AccountModelsInlineSplit: React.FC<AccountModelsInlineSplitProps> = ({
                   )
                 }
               >
-                <HugeiconsIcon icon={SortModeIcon} size={14} strokeWidth={2} />
+                <AnyIcon icon={SortModeIcon} size={14} strokeWidth={2} />
               </button>
             </Tooltip>
             <Switch

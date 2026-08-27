@@ -14,6 +14,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import Button from "@src/components/Button";
 import { PublishedHeaderSlotsView } from "@src/components/WindowChrome";
 import { PANEL_HEADER_TOKENS } from "@src/modules/shared/layouts/blocks";
@@ -52,7 +53,7 @@ const ChannelPanelHeader: React.FC<ChannelPanelHeaderProps> = ({
                   className="mr-1.5 inline-flex h-4 w-4 shrink-0 items-center justify-center text-text-2"
                   aria-hidden
                 >
-                  <HugeiconsIcon
+                  <AnyIcon
                     icon={NameIcon}
                     size={PANEL_HEADER_TOKENS.iconSize}
                     strokeWidth={2}

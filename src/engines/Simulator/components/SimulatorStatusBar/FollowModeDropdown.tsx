@@ -6,6 +6,7 @@ import React, { useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import DropdownSelectedCheck from "@src/components/Dropdown/DropdownSelectedCheck";
 import {
   DROPDOWN_CLASSES,
@@ -104,7 +105,7 @@ export const FollowModeDropdown: React.FC = () => {
               : `text-text-2 ${SURFACE_TOKENS.hover} hover:text-primary-6`
           }`}
         >
-          {triggerIcon ? <HugeiconsIcon icon={triggerIcon} size={14} /> : null}
+          {triggerIcon ? <AnyIcon icon={triggerIcon} size={14} /> : null}
         </button>
       </Tooltip>
       {isOpen &&

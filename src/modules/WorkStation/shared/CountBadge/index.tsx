@@ -13,6 +13,8 @@ import Check from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { memo } from "react";
 
+import AnyIcon from "@src/components/AnyIcon";
+
 // ============================================
 // Types
 // ============================================
@@ -103,11 +105,7 @@ export const CountBadge: React.FC<CountBadgeProps> = memo(
       <span
         className={`flex items-center gap-1 text-[12px] ${config.colorClass} ${className}`}
       >
-        <HugeiconsIcon
-          icon={config.icon}
-          size={iconSize}
-          className="shrink-0"
-        />
+        <AnyIcon icon={config.icon} size={iconSize} className="shrink-0" />
         <span>
           {count}
           {pluralizedLabel && ` ${pluralizedLabel}`}

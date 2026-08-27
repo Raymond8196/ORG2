@@ -6,6 +6,7 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useMemo } from "react";
 
+import AnyIcon from "@src/components/AnyIcon";
 import type { SectionHeaderAction } from "@src/components/TreePanelSidebar/types";
 import { useRefreshSpin } from "@src/hooks/ui";
 
@@ -63,7 +64,7 @@ export function useExplorerActions({
     actions.push({
       key: "filter",
       icon: (
-        <HugeiconsIcon
+        <AnyIcon
           icon={FilterIcon}
           size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
           strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
@@ -78,7 +79,7 @@ export function useExplorerActions({
       actions.push({
         key: "add-file",
         icon: (
-          <HugeiconsIcon
+          <AnyIcon
             icon={AddFileIcon}
             size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
             strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
@@ -93,7 +94,7 @@ export function useExplorerActions({
       actions.push({
         key: "add-folder",
         icon: (
-          <HugeiconsIcon
+          <AnyIcon
             icon={AddFolderIcon}
             size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
             strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
@@ -108,7 +109,7 @@ export function useExplorerActions({
       actions.push({
         key: "refresh",
         icon: (
-          <HugeiconsIcon
+          <AnyIcon
             icon={RefreshIcon}
             size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
             strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
@@ -124,7 +125,7 @@ export function useExplorerActions({
       actions.push({
         key: "collapse-all",
         icon: (
-          <HugeiconsIcon
+          <AnyIcon
             icon={CollapseAllIcon}
             size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
             strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
@@ -154,7 +155,7 @@ export function useExplorerActions({
       actions.push({
         key: "open-search-tab",
         icon: (
-          <HugeiconsIcon
+          <AnyIcon
             icon={OpenInTabIcon}
             size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
             strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
@@ -169,7 +170,7 @@ export function useExplorerActions({
       actions.push({
         key: "toggle-search-filters",
         icon: (
-          <HugeiconsIcon
+          <AnyIcon
             icon={FilterIcon}
             size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
             strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
@@ -185,7 +186,7 @@ export function useExplorerActions({
       actions.push({
         key: "collapse-expand-search",
         icon: (
-          <HugeiconsIcon
+          <AnyIcon
             icon={CollapseAllIcon}
             size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
             strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}

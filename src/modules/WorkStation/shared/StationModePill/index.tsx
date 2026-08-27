@@ -10,6 +10,7 @@ import { useAtom } from "jotai";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import Button from "@src/components/Button";
 import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
@@ -51,7 +52,7 @@ const IconSwitchButton: React.FC<IconSwitchButtonProps> = ({
           size="mini"
           shape="round"
           iconOnly
-          icon={<HugeiconsIcon icon={icon} size={16} strokeWidth={1.85} />}
+          icon={<AnyIcon icon={icon} size={16} strokeWidth={1.85} />}
           onClick={onClick}
           aria-label={label}
           aria-pressed={selected}

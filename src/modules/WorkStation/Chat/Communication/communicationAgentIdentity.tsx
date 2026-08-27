@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import type { AgentOrgRunMemberView } from "@src/api/tauri/agent";
 import { CLI_AGENT } from "@src/api/types/keys";
 import { formatAgentType } from "@src/assets/providers";
+import AnyIcon from "@src/components/AnyIcon";
 import ModelIcon from "@src/components/ModelIcon";
 import { resolveAgentIcon } from "@src/config/agentIcons";
 import type { SessionEvent } from "@src/engines/SessionCore/core/types";
@@ -75,7 +76,7 @@ function resolveSessionAgentIcon(
     session?.agentIconId ?? resolveSessionIconId(sessionId)
   );
   return (
-    <HugeiconsIcon
+    <AnyIcon
       icon={icon}
       size={COMMUNICATION_AVATAR_ICON_SIZE}
       className="text-primary-6"

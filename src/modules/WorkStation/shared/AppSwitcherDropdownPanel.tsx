@@ -8,6 +8,7 @@ import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { memo } from "react";
 import { createPortal } from "react-dom";
 
+import AnyIcon from "@src/components/AnyIcon";
 import DropdownSelectedCheck from "@src/components/Dropdown/DropdownSelectedCheck";
 import {
   DROPDOWN_CLASSES,
@@ -91,7 +92,7 @@ const AppSwitcherDropdownPanelComponent: React.FC<
               }}
             >
               {item.icon && (
-                <HugeiconsIcon
+                <AnyIcon
                   icon={item.icon}
                   size={DROPDOWN_ITEM.iconSize}
                   strokeWidth={1.75}

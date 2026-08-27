@@ -9,6 +9,7 @@ import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import { LIST_PANEL_SECTIONS } from "@src/components/ListPanel";
 import { Placeholder } from "@src/components/Placeholder";
 import ConfigListItem from "@src/modules/shared/layouts/ListDetailSubpage/ConfigListItem";
@@ -80,7 +81,7 @@ const ChannelIcon: React.FC<ChannelIconProps> = ({ icon, color }) => (
     className="flex h-6 w-6 items-center justify-center rounded-md"
     style={{ backgroundColor: `${color}15` }}
   >
-    <HugeiconsIcon icon={icon} size={14} style={{ color }} />
+    <AnyIcon icon={icon} size={14} style={{ color }} />
   </div>
 );
 

@@ -30,6 +30,7 @@ import type {
   SourceAgent,
 } from "@src/api/types/externalImport";
 import { CLI_AGENT, type ModelType } from "@src/api/types/keys";
+import AnyIcon from "@src/components/AnyIcon";
 import Checkbox from "@src/components/Checkbox";
 import Dropdown from "@src/components/Dropdown";
 import Menu from "@src/components/Menu";
@@ -464,12 +465,7 @@ export function useExternalImport({
             <span
               className={`${SETTINGS_TABLE_CELL.muted} inline-flex items-center gap-2 whitespace-nowrap`}
             >
-              <HugeiconsIcon
-                icon={Icon}
-                size={14}
-                className="shrink-0"
-                aria-hidden
-              />
+              <AnyIcon icon={Icon} size={14} className="shrink-0" aria-hidden />
               <span>
                 {row.targetRepoPath
                   ? row.repoName || row.targetRepoPath

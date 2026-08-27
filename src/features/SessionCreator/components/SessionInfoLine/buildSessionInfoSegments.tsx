@@ -7,6 +7,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React from "react";
 
+import AnyIcon from "@src/components/AnyIcon";
 import { KeyboardShortcutTooltipContent } from "@src/components/KeyboardShortcut";
 import type { PillGroupSegment } from "@src/components/PillGroup";
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
@@ -112,7 +113,7 @@ export function buildSessionInfoSegments({
     {
       id: "repo",
       icon: (
-        <HugeiconsIcon
+        <AnyIcon
           icon={SourceIcon}
           size={14}
           strokeWidth={1.75}

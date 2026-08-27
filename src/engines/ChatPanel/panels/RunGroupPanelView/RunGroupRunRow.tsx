@@ -7,6 +7,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import Button from "@src/components/Button";
 import { PILL_SM_ICON_SIZE } from "@src/components/CompoundPill/config";
 import ModelIcon from "@src/components/ModelIcon";
@@ -79,7 +80,7 @@ const RunGroupRunRow: React.FC<RunGroupRunRowProps> = memo(
     // Registry lookup, not a component constructed during render — see the
     // same note in the launcher's RunnerRow.
     const agentIcon = agentDisplay.iconId ? (
-      <HugeiconsIcon
+      <AnyIcon
         icon={resolveAgentIcon(agentDisplay.iconId)}
         size={PILL_SM_ICON_SIZE}
         strokeWidth={1.85}

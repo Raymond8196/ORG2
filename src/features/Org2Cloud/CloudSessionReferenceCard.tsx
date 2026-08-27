@@ -5,6 +5,7 @@ import { selectAtom } from "jotai/utils";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import {
   ReferenceCard,
   ReferenceCardMeta,
@@ -40,7 +41,7 @@ export interface CloudSessionReferenceCardProps {
 
 function renderAgentIcon(iconId: string | undefined) {
   const AgentIcon = iconId ? resolveAgentIcon(iconId) : Users;
-  return <HugeiconsIcon icon={AgentIcon} size={12} strokeWidth={1.75} />;
+  return <AnyIcon icon={AgentIcon} size={12} strokeWidth={1.75} />;
 }
 
 const CloudSessionReferenceCard: React.FC<CloudSessionReferenceCardProps> = ({

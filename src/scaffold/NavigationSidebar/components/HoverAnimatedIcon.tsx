@@ -1,6 +1,7 @@
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { useCallback, useEffect, useRef } from "react";
 
+import AnyIcon from "@src/components/AnyIcon";
 import { CODEMIRROR_STYLE_NONCE } from "@src/features/CodeMirror/config/nonce";
 
 type AnimationStrategy =
@@ -512,7 +513,7 @@ export default function HoverAnimatedIcon({
       data-icon-wrapper={iconName || ""}
       onMouseEnter={handleMouseEnter}
     >
-      <HugeiconsIcon
+      <AnyIcon
         icon={icon}
         size={size}
         strokeWidth={strokeWidth}

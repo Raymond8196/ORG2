@@ -15,6 +15,7 @@ import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import AnyIcon from "@src/components/AnyIcon";
 import {
   DROPDOWN_CLASSES,
   DROPDOWN_ITEM,
@@ -207,7 +208,7 @@ const PageBreadcrumb: React.FC<PageBreadcrumbProps> = ({ className = "" }) => {
                     }`}
                   >
                     {ItemIcon ? (
-                      <HugeiconsIcon
+                      <AnyIcon
                         icon={ItemIcon}
                         size={DROPDOWN_ITEM.iconSize}
                         className={`shrink-0 ${
@@ -247,7 +248,7 @@ const PageBreadcrumb: React.FC<PageBreadcrumbProps> = ({ className = "" }) => {
         onClick={handleClick}
       >
         {IconComponent && (
-          <HugeiconsIcon
+          <AnyIcon
             icon={IconComponent}
             size={PANEL_HEADER_TOKENS.iconSize}
             className="shrink-0 text-text-2"
