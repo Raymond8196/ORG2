@@ -26,6 +26,10 @@ export interface SyncTodosFromReplayEventsResult {
  * Derive the todo pin-bar snapshot from replay/live events up to the current
  * cursor. Returns `null` when there is nothing new to write (empty events,
  * pipeline mismatch, or unchanged snapshot).
+ *
+ * Live composer sync (`liveEvents`) always reads the latest manage_todo state
+ * and ignores the global replay cursor — simulator scrubbing shares
+ * `currentEventAtom` but must not reshape the sticky pin bar in ChatView.
  */
 export function syncTodosFromReplayEvents(
   input: SyncTodosFromReplayEventsInput
@@ -39,19 +43,17 @@ export function syncTodosFromReplayEvents(
     lastSnapshot,
   } = input;
 
-  if (pipelineSessionId && pipelineSessionId !== sessionId) {
+  if (!pipelineSessionId || pipelineSessionId !== sessionId) {
     return null;
   }
 
-  const replayEvents =
-    pipelineSessionId === sessionId && liveEvents.length > 0
-      ? liveEvents
-      : simulatorEvents;
-  if (!replayEvents || replayEvents.length === 0) {
+  const useLiveEvents = liveEvents.length > 0;
+  const replayEvents = useLiveEvents ? liveEvents : simulatorEvents;
+  if (replayEvents.length === 0) {
     return null;
   }
 
-  const currentEventId = currentEvent?.id ?? null;
+  const currentEventId = useLiveEvents ? null : (currentEvent?.id ?? null);
 
   let maxIndex = replayEvents.length - 1;
   if (currentEventId) {
