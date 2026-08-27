@@ -1756,7 +1756,9 @@
         "repo": "Репозитории",
         "systemPaths": "Системные пути",
         "usedElsewhere": "Используется в других местах",
-        "workspace": "Workspace"
+        "workspace": "Workspace",
+        "thisOrg": "Эта организация",
+        "outsideOrg": "Вне этой организации"
       },
       "tabs": {
         "repositories": "Репозитории",
