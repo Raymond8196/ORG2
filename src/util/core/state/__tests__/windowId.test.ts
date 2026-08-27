@@ -9,7 +9,7 @@
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { getWindowId } from "./windowId";
+import { getWindowId } from "../windowId";
 
 beforeEach(() => {
   sessionStorage.clear();

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   planningWatchdogDelayMs,
   shouldShowPlanningIndicator,
-} from "./usePlanningIndicator";
+} from "../usePlanningIndicator";
 
 const baseInput = {
   runtimeStatus: "running",
