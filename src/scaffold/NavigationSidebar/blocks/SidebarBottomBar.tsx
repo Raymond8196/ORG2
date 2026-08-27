@@ -331,20 +331,11 @@ export const PresenceMenuButton: React.FC<PresenceMenuButtonProps> = ({
   // pills: icon at rest, chevron on hover, chevron-up while open. The
   // surrounding Dropdown owns the click — segment onClick is a noop so
   // the parent's click handler fires unopposed.
-  // `React.createElement` (rather than `<Icon … />`) keeps the
-  // `react-hooks/static-components` lint rule happy: the rule flags
-  // any PascalCase variable used as a JSX tag inside a hook callback
-  // as a "component created during render", which we aren't actually
-  // doing — `Icon` is just a stable glyph reference.
   const segments: PillGroupSegment[] = useMemo(
     () => [
       {
         id: "presence",
-        icon: React.createElement(HugeiconsIcon, {
-          icon: Icon,
-          size: 12,
-          className: colorClass,
-        }),
+        icon: <HugeiconsIcon icon={Icon} size={12} className={colorClass} />,
         label: pillLabel,
         active: menuVisible,
         ariaLabel,

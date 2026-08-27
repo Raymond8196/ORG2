@@ -266,12 +266,14 @@ export const TabPill = memo(function TabPill({
       tab.managementSection === WORK_MANAGEMENT_SECTION.KANBAN
         ? LayoutThreeColumnIcon
         : ListTodoIcon;
-    icon = React.createElement(HugeiconsIcon, {
-      icon: WorkManagementIcon,
-      size: 16,
-      strokeWidth: 1.75,
-      className: `shrink-0 ${iconColorClass}`,
-    });
+    icon = (
+      <HugeiconsIcon
+        icon={WorkManagementIcon}
+        size={16}
+        strokeWidth={1.75}
+        className={`shrink-0 ${iconColorClass}`}
+      />
+    );
   } else if (tab.type === "github-issue") {
     icon = (
       <HugeiconsIcon

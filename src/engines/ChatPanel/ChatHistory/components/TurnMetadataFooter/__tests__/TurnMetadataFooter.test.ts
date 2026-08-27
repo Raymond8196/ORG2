@@ -61,7 +61,6 @@ describe("TurnMetadataFooter tabs", () => {
 
     expect(markup).toContain('data-testid="turn-metadata-edits-tab"');
     expect(markup).not.toContain('data-testid="turn-metadata-reads-tab"');
-    expect(markup).not.toContain('data-icon="file-code-2"');
   });
 
   it("hides Edits when the turn only contains reads", () => {

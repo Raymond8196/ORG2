@@ -111,6 +111,7 @@ export { default as ChevronsDownUpIcon } from "@hugeicons/core-free-icons/Chevro
 export { default as ChevronsLeftRightEllipsisIcon } from "@hugeicons/core-free-icons/ChevronsLeftRightEllipsisIcon";
 export { default as CircleArrowOutUpRightIcon } from "@hugeicons/core-free-icons/CircleArrowOutUpRightIcon";
 export { default as CircleArrowUp01Icon } from "@hugeicons/core-free-icons/CircleArrowUp01Icon";
+export { default as CircleCheckBigIcon } from "@hugeicons/core-free-icons/CircleCheckBigIcon";
 export { default as CircleCheckIcon } from "@hugeicons/core-free-icons/CircleCheckIcon";
 export { default as CircleDashedIcon } from "@hugeicons/core-free-icons/CircleDashedIcon";
 export { default as CircleDollarSignIcon } from "@hugeicons/core-free-icons/CircleDollarSignIcon";
@@ -205,6 +206,7 @@ export { default as FolderInputIcon } from "@hugeicons/core-free-icons/FolderInp
 export { default as FolderKanbanIcon } from "@hugeicons/core-free-icons/FolderKanbanIcon";
 export { default as FolderMinusIcon } from "@hugeicons/core-free-icons/FolderMinusIcon";
 export { default as FolderOpenIcon } from "@hugeicons/core-free-icons/FolderOpenIcon";
+export { default as FolderPenIcon } from "@hugeicons/core-free-icons/FolderPenIcon";
 export { default as FolderOutputIcon } from "@hugeicons/core-free-icons/FolderOutputIcon";
 export { default as FolderSearchIcon } from "@hugeicons/core-free-icons/FolderSearchIcon";
 export { default as FolderSymlinkIcon } from "@hugeicons/core-free-icons/FolderSymlinkIcon";
@@ -282,7 +284,9 @@ export { default as Mail01Icon } from "@hugeicons/core-free-icons/Mail01Icon";
 export { default as MailOpen01Icon } from "@hugeicons/core-free-icons/MailOpen01Icon";
 export { default as MailReply01Icon } from "@hugeicons/core-free-icons/MailReply01Icon";
 export { default as MailSend01Icon } from "@hugeicons/core-free-icons/MailSend01Icon";
+export { default as MailWarningIcon } from "@hugeicons/core-free-icons/MailWarningIcon";
 export { default as MapsIcon } from "@hugeicons/core-free-icons/MapsIcon";
+export { default as McpServerIcon } from "@hugeicons/core-free-icons/McpServerIcon";
 export { default as Menu01Icon } from "@hugeicons/core-free-icons/Menu01Icon";
 export { default as Message01Icon } from "@hugeicons/core-free-icons/Message01Icon";
 export { default as Message02Icon } from "@hugeicons/core-free-icons/Message02Icon";
@@ -293,6 +297,7 @@ export { default as MessageCircleQuestionMarkIcon } from "@hugeicons/core-free-i
 export { default as MessageCircleWarningIcon } from "@hugeicons/core-free-icons/MessageCircleWarningIcon";
 export { default as MessageMultiple01Icon } from "@hugeicons/core-free-icons/MessageMultiple01Icon";
 export { default as MessageSquareMoreIcon } from "@hugeicons/core-free-icons/MessageSquareMoreIcon";
+export { default as MessageSquareReplyIcon } from "@hugeicons/core-free-icons/MessageSquareReplyIcon";
 export { default as Mic01Icon } from "@hugeicons/core-free-icons/Mic01Icon";
 export { default as MinusSignCircleIcon } from "@hugeicons/core-free-icons/MinusSignCircleIcon";
 export { default as MinusSignIcon } from "@hugeicons/core-free-icons/MinusSignIcon";
@@ -313,6 +318,7 @@ export { default as PaintBrush01Icon } from "@hugeicons/core-free-icons/PaintBru
 export { default as PanelLeftIcon } from "@hugeicons/core-free-icons/PanelLeftIcon";
 export { default as PanelRightIcon } from "@hugeicons/core-free-icons/PanelRightIcon";
 export { default as PanelRightOpenIcon } from "@hugeicons/core-free-icons/PanelRightOpenIcon";
+export { default as PanelTopIcon } from "@hugeicons/core-free-icons/PanelTopIcon";
 export { default as PanelsTopLeftIcon } from "@hugeicons/core-free-icons/PanelsTopLeftIcon";
 export { default as PauseIcon } from "@hugeicons/core-free-icons/PauseIcon";
 export { default as Pen01Icon } from "@hugeicons/core-free-icons/Pen01Icon";

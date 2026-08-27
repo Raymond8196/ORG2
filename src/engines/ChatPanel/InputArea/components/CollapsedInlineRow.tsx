@@ -204,7 +204,7 @@ const CollapsedInlineRow: React.FC<CollapsedInlineRowProps> = memo(
             icon={
               <HugeiconsIcon
                 icon={Layout01Icon}
-                data-icon="layout"
+                data-icon="panels-top-left"
                 size={13}
                 strokeWidth={2}
               />

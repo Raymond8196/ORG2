@@ -157,11 +157,11 @@ export const FollowModeDropdown: React.FC = () => {
                     : DROPDOWN_CLASSES.itemHover
                 } w-full justify-between gap-2 disabled:cursor-not-allowed disabled:opacity-40`}
               >
-                {React.createElement(HugeiconsIcon, {
-                  icon: getActiveAppIcon(activeApp) ?? Layers01Icon,
-                  size: 12,
-                  strokeWidth: 2,
-                })}
+                <HugeiconsIcon
+                  icon={getActiveAppIcon(activeApp) ?? Layers01Icon}
+                  size={12}
+                  strokeWidth={2}
+                />
                 <span className="flex-1 text-left">
                   {t("simulator.replay.trajectoryThisApp")}
                 </span>

@@ -67,7 +67,7 @@ const CanvasPreviewTabRenderer: React.FC<UnifiedTabContentProps> = memo(
         <div className="flex h-full flex-col items-center justify-center gap-3 text-text-4">
           <HugeiconsIcon
             icon={Layout01Icon}
-            data-icon="layout"
+            data-icon="panels-top-left"
             size={32}
             strokeWidth={1}
           />
@@ -82,7 +82,7 @@ const CanvasPreviewTabRenderer: React.FC<UnifiedTabContentProps> = memo(
           <div className="flex min-w-0 items-center gap-2">
             <HugeiconsIcon
               icon={Layout01Icon}
-              data-icon="layout"
+              data-icon="panels-top-left"
               size={13}
               className="shrink-0 text-primary-6"
             />

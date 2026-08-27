@@ -382,7 +382,7 @@ const PinnedActionsBar: React.FC<PinnedActionsBarProps> = memo(
               leftIcon={
                 <HugeiconsIcon
                   icon={Layout01Icon}
-                  data-icon="layout"
+                  data-icon="panels-top-left"
                   size={12}
                   strokeWidth={1.75}
                 />
