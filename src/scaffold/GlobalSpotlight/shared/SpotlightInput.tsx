@@ -74,7 +74,8 @@ export const SpotlightInput: React.FC<SpotlightInputProps> = ({
           {iconElement ? (
             iconElement
           ) : (
-            <IconComponent
+            <HugeiconsIcon
+              icon={IconComponent}
               size={SPOTLIGHT_TOKENS.iconSize}
               className="text-text-2"
             />

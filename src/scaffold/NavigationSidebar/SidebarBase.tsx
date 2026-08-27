@@ -343,7 +343,8 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
                     tabIndex={0}
                   >
                     <div className="flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[100px] transition-colors duration-150 hover:bg-sidebar-selected">
-                      <AddIcon
+                      <HugeiconsIcon
+                        icon={AddIcon}
                         size={16}
                         strokeWidth={2}
                         className="text-text-2"

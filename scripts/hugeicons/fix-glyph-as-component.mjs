@@ -28,9 +28,16 @@ const checker = program.getTypeChecker();
 
 function isGlyphData(type) {
   if (!type) return false;
+  // `checker.isArrayType` only matches mutable Array<T>. IconSvgElement is a
+  // READONLY array, so relying on it alone silently misses every glyph typed
+  // through the public alias — which is most of them.
   if (checker.isArrayType(type) || checker.isTupleType(type)) return true;
   const name = type.aliasSymbol?.getName() ?? type.getSymbol()?.getName();
-  if (name && /^IconSvg(Element|Object)$/.test(name)) return true;
+  if (name && /^(IconSvg(Element|Object)|ReadonlyArray)$/.test(name)) return true;
+  const text = checker.typeToString(type);
+  if (/^IconSvg(Element|Object)$/.test(text)) return true;
+  if (/^readonly .+\[\]$/.test(text)) return true;
+  if (/readonly \[string,/.test(text)) return true;
   if (type.isUnion()) return type.types.some(isGlyphData);
   return false;
 }
