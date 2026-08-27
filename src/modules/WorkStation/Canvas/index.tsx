@@ -191,7 +191,7 @@ function CanvasApp(props: SimulatorAppProps) {
         <div className="flex items-center gap-2 text-sm text-text-2">
           <HugeiconsIcon
             icon={Layout01Icon}
-            data-icon="layout"
+            data-icon="panels-top-left"
             className="h-4 w-4"
           />
           <span>{t("simulator.replay.canvas.toolbarTitle")}</span>

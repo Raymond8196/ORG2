@@ -13,12 +13,12 @@ import React, {
   useState,
 } from "react";
 
+import AnyIcon from "@src/components/AnyIcon";
 import { Placeholder } from "@src/components/Placeholder";
 import TabPill from "@src/components/TabPill";
 import {
   ArrowDown01Icon,
   ArrowRight01Icon,
-  HugeiconsIcon,
   type IconSvgElement,
 } from "@src/icons";
 
@@ -403,11 +403,12 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = React.memo(
                     className: "h-[14px] w-[14px]",
                     strokeWidth: 2,
                   })
-                : React.createElement(HugeiconsIcon, {
+                : React.createElement(AnyIcon, {
                     icon: tab.icon,
                     size: 14,
                     strokeWidth: 2,
                     className: "h-[14px] w-[14px]",
+                    "data-icon": tab.iconName ?? tab.key,
                   })
               : undefined,
         })),

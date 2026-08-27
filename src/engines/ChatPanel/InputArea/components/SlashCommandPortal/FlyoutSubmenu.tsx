@@ -146,12 +146,12 @@ const FlyoutSubmenu: React.FC<FlyoutSubmenuProps> = ({
                     }}
                   >
                     <div className="flex min-w-0 items-center gap-2">
-                      {React.createElement(HugeiconsIcon, {
-                        icon: Icon,
-                        size: 14,
-                        strokeWidth: 1.75,
-                        className: "shrink-0 text-text-2",
-                      })}
+                      <HugeiconsIcon
+                        icon={Icon}
+                        size={14}
+                        strokeWidth={1.75}
+                        className="shrink-0 text-text-2"
+                      />
                       <span className="truncate text-[13px] text-text-1">
                         {item.name}
                       </span>

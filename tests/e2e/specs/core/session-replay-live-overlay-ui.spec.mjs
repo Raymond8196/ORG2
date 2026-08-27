@@ -295,7 +295,7 @@ async function waitForPlaybackState(isPlaying) {
     {
       timeout: RENDER_TIMEOUT_MS,
       interval: 100,
-      timeoutMsg: `replay control did not render ${iconClass}`,
+      timeoutMsg: `replay control did not render ${iconName}`,
     }
   );
 }

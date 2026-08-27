@@ -100,23 +100,25 @@ const RunnerRow: React.FC<RunnerRowProps> = memo(
     // An unpicked row still gets an icon. Leaving the slot empty made the row
     // jump sideways the moment a harness was chosen; the placeholder holds the
     // width and reads as "anything could go here".
-    const agentPillIcon = agentDisplay.iconId
-      ? React.createElement(AnyIcon, {
-          icon: resolveAgentIcon(agentDisplay.iconId),
-          size: PILL_SM_ICON_SIZE,
-          className: "block text-text-1",
-        })
-      : agentDisplay.cliAgentType
-        ? React.createElement(ModelIcon, {
-            agentType: agentDisplay.cliAgentType,
-            size: PILL_SM_ICON_SIZE,
-            className: "block",
-          })
-        : React.createElement(HugeiconsIcon, {
-            icon: Infinity01Icon,
-            size: PILL_SM_ICON_SIZE,
-            className: "block",
-          });
+    const agentPillIcon = agentDisplay.iconId ? (
+      <AnyIcon
+        icon={resolveAgentIcon(agentDisplay.iconId)}
+        size={PILL_SM_ICON_SIZE}
+        className="block text-text-1"
+      />
+    ) : agentDisplay.cliAgentType ? (
+      <ModelIcon
+        agentType={agentDisplay.cliAgentType}
+        size={PILL_SM_ICON_SIZE}
+        className="block"
+      />
+    ) : (
+      <HugeiconsIcon
+        icon={Infinity01Icon}
+        size={PILL_SM_ICON_SIZE}
+        className="block"
+      />
+    );
 
     return (
       <li

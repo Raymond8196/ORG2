@@ -3,15 +3,17 @@
  *
  * **Authoritative icon ids** for built-in tools come from Rust `ToolInfo.icon_id`
  * (`list_all_tools`). `ICON_BY_ID` maps those kebab-case ids to hugeicons
- * glyph data. Brand marks (e.g., the MCP logo) are hand-authored SVG
- * components handled outside this registry.
+ * glyph data — plus brand marks (the MCP logo) as components, which is why
+ * the value type is `RenderableIcon` and every render path goes through
+ * `AnyIcon`, never `HugeiconsIcon` directly.
  *
  * NOTE: Terminal tool detection uses normalizeFunctionName() (Rust source of truth
  * via cli_agents/alias_map.rs) instead of hardcoded tool names.
  */
 import React from "react";
 
-import AnyIcon from "@src/components/AnyIcon";
+import { McpLogoIcon } from "@src/assets/channelIcons/McpLogoIcon";
+import AnyIcon, { type RenderableIcon } from "@src/components/AnyIcon";
 import {
   getBuiltinToolActionIconId,
   getBuiltinToolIconId,
@@ -32,8 +34,10 @@ import {
   FirstBracketIcon as Braces,
   BrainIcon as Brain,
   Briefcase01Icon as Briefcase,
+  Camera01Icon as Camera,
   CheckmarkCircle01Icon as CheckCircle2,
   InternetIcon as Chrome,
+  CircleCheckBigIcon as CircleCheckBig,
   HelpCircleIcon as CircleHelp,
   ClipboardCopyIcon as ClipboardCopy,
   ClipboardListIcon as ClipboardList,
@@ -50,11 +54,15 @@ import {
   CenterFocusIcon as Focus,
   FolderCogIcon as FolderCog,
   FolderGitTwoIcon as FolderGit2,
+  FolderMinusIcon as FolderMinus,
   FolderOpenIcon as FolderOpen,
+  FolderPenIcon as FolderPen,
+  FolderAddIcon as FolderPlus,
   FolderSearchIcon as FolderSearch,
   FullScreenIcon as Fullscreen,
   WorkflowCircle05Icon as GitBranch,
   InternetIcon as Globe,
+  WorkHistoryIcon as History,
   type IconSvgElement,
   Image01Icon as Image,
   InboxIcon as Inbox,
@@ -66,27 +74,34 @@ import {
   ListChecksIcon as ListChecks,
   ListTodoIcon as ListTodo,
   HierarchyFilesIcon as ListTree,
+  LockIcon as Lock,
   LogsIcon as Logs,
   Mail01Icon as Mail,
+  MailWarningIcon as MailWarning,
   MapsIcon as Map,
   BubbleChatIcon as MessageCircle,
   MessageCircleQuestionMarkIcon as MessageCircleQuestionMark,
+  MessageSquareReplyIcon as MessageSquareReply,
   MessageMultiple01Icon as MessagesSquare,
   MonitorIcon as Monitor,
   Cursor02Icon as MousePointer2,
   CursorPointer02Icon as MousePointerClick,
   MoveTopIcon as MoveVertical,
   HierarchyCircle01Icon as Network,
+  PanelTopIcon as PanelTop,
   Plug01Icon as Plug,
   Add01Icon as Plus,
   Refresh04Icon as RefreshCw,
+  ScrollIcon as ScrollText,
   Search01Icon as Search,
   MailSend01Icon as Send,
   Share02Icon as Share2,
   Shield01Icon as Shield,
+  SecurityCheckIcon as ShieldCheck,
   Shield02Icon as ShieldOff,
   SparkleIcon as Sparkle,
   ComputerTerminal01Icon as Terminal,
+  SquareTerminalIcon as TerminalSquare,
   Timer01Icon as Timer,
   Delete02Icon as Trash2,
   UserIcon as User,
@@ -103,10 +118,11 @@ export const DEFAULT_TOOL_ICON_CLASS = "text-text-2";
 
 /**
  * Maps Rust `icon_id` strings (kebab-case, lucide-era vocabulary) to
- * hugeicons glyph data.
- * Keep in sync with `builtin_tools_list.rs` `row(..., icon_id)`.
+ * hugeicons glyph data (plus the MCP brand mark component).
+ * Keep in sync with the `ToolEntry` tables in
+ * `src-tauri/crates/agent-core/src/core/tools/builtin_tools/table/*.rs`.
  */
-const ICON_BY_ID: Record<string, IconSvgElement> = {
+const ICON_BY_ID: Record<string, RenderableIcon> = {
   activity: Activity,
   "arrow-big-right-dash": ArrowBigRightDash,
   "arrow-right-left": ArrowRightLeft,
@@ -119,8 +135,10 @@ const ICON_BY_ID: Record<string, IconSvgElement> = {
   braces: Braces,
   brain: Brain,
   briefcase: Briefcase,
+  camera: Camera,
   "check-circle-2": CheckCircle2,
   chrome: Chrome,
+  "circle-check-big": CircleCheckBig,
   "circle-help": CircleHelp,
   "clipboard-copy": ClipboardCopy,
   "clipboard-list": ClipboardList,
@@ -132,15 +150,20 @@ const ICON_BY_ID: Record<string, IconSvgElement> = {
   "file-box": FileBox,
   "file-diff": FileDiff,
   "file-pen-line": FilePenLine,
+  "file-search": FileSearch,
   "file-text": FileText,
   focus: Focus,
   "folder-cog": FolderCog,
   "folder-git-2": FolderGit2,
+  "folder-minus": FolderMinus,
   "folder-open": FolderOpen,
+  "folder-pen": FolderPen,
+  "folder-plus": FolderPlus,
   "folder-search": FolderSearch,
   fullscreen: Fullscreen,
   "git-branch": GitBranch,
   globe: Globe,
+  history: History,
   image: Image,
   inbox: Inbox,
   infinity: Infinity,
@@ -152,26 +175,34 @@ const ICON_BY_ID: Record<string, IconSvgElement> = {
   "list-checks": ListChecks,
   "list-todo": ListTodo,
   "list-tree": ListTree,
+  lock: Lock,
   mail: Mail,
+  "mail-warning": MailWarning,
   map: Map,
+  "mcp-logo": McpLogoIcon,
   "message-circle": MessageCircle,
   "message-circle-question-mark": MessageCircleQuestionMark,
+  "message-square-reply": MessageSquareReply,
   "messages-square": MessagesSquare,
   monitor: Monitor,
   "mouse-pointer-click": MousePointerClick,
   "move-vertical": MoveVertical,
   "mouse-pointer-2": MousePointer2,
   network: Network,
+  "panel-top": PanelTop,
   plug: Plug,
   plus: Plus,
   "refresh-cw": RefreshCw,
+  "scroll-text": ScrollText,
   search: Search,
   send: Send,
   "share-2": Share2,
   shield: Shield,
+  "shield-check": ShieldCheck,
   "shield-off": ShieldOff,
   sparkle: Sparkle,
   terminal: Terminal,
+  "terminal-square": TerminalSquare,
   timer: Timer,
   "trash-2": Trash2,
   user: User,
@@ -311,7 +342,7 @@ export function getToolIconComponent(
   toolName: string,
   iconId?: string | null,
   action?: string | null
-): IconSvgElement {
+): RenderableIcon {
   const uiCanonical = getCliUiCanonical(toolName);
 
   // 1. Explicit icon id takes precedence
@@ -415,7 +446,7 @@ export function getEventIconComponent(
   eventType: string,
   status?: string | null,
   action?: string | null
-): IconSvgElement {
+): RenderableIcon {
   const uiCanonical = getCliUiCanonical(eventType);
 
   if (status) {
