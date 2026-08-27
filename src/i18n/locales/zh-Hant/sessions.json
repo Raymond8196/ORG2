@@ -1064,6 +1064,13 @@
     "historyThisWeek": "本週",
     "historyOlder": "更早",
     "historyPinned": "置頂",
+    "historyNoWorkspace": "無工作區",
+    "pinWorkspaceGroup": "置頂工作區",
+    "unpinWorkspaceGroup": "取消置頂工作區",
+    "hideWorkspaceGroup": "隱藏工作區",
+    "unhideWorkspaceGroup": "顯示工作區",
+    "workspaceUnavailableTitle": "Workspace 已無法使用",
+    "workspaceUnavailableMessage": "此 Workspace 可能已被移動或刪除。",
     "historyRefresh": "刷新",
     "historyLastUsedModel": "上次使用的模型",
     "historyUntitled": "未命名會話",
@@ -2103,6 +2110,12 @@
     "immutableInSession": "密鑰來源、Agent 類型和價格檔位在會話啓動時已固定。如需更改請新建會話。"
   },
   "creator": {
+    "repoChromeMenu": {
+      "moveToTop": "移到上方",
+      "moveToBottom": "移到下方",
+      "showPinnedActions": "顯示已釘選的動作",
+      "hidePinnedActions": "隱藏已釘選的動作"
+    },
     "createTarget": {
       "agentSession": "Agent 會話",
       "manageAgents": "管理 Agent / Skills",
@@ -2769,6 +2782,8 @@
     },
     "actions": {
       "moreOpenOptions": "更多開啟選項",
+      "openAsPullRequest": "PR 分頁",
+      "openAsWebPage": "網頁",
       "openInApp": "在應用程式內開啟",
       "openWithDefaultBrowser": "用預設瀏覽器開啟",
       "revealInFinder": "在 Finder 中顯示",
@@ -2780,6 +2795,7 @@
       "copyUrl": "複製 URL",
       "copied": "URL 複製",
       "openExternalFailed": "無法用預設瀏覽器開啟 URL",
+      "openPullRequestFailed": "無法開啟 Pull Request 分頁",
       "groupTitle": "網頁"
     },
     "path": {
@@ -2879,61 +2895,6 @@
     "previewTitle": "Canvas 選區預覽",
     "elementsCount_other": "{{count}} 個元素",
     "regionLabel": "區域 · {{label}}"
-  },
-  "pokerTable": {
-    "menuLabel": "Poker table",
-    "header": {
-      "title": "No-Limit Inference – {{stakes}} Mtok – 6-max",
-      "hand": "Hand #{{number}}",
-      "history": "Hand history",
-      "settings": "Table settings",
-      "leave": "Leave table",
-      "close": "Close"
-    },
-    "potLabel": "Pot",
-    "tokens": "{{amount}} tokens",
-    "thinking": "Thinking · {{seconds}}s",
-    "waitingFor": "Waiting for {{name}}…",
-    "dealing": "Dealing…",
-    "nextHand": "Deal next hand",
-    "seat": {
-      "you": "You",
-      "bot": "bot",
-      "allIn": "All in"
-    },
-    "actions": {
-      "fold": "Fold",
-      "check": "Check",
-      "call": "Call {{amount}}",
-      "bet": "Bet {{amount}}",
-      "raise": "Raise {{amount}}",
-      "allIn": "All in {{amount}}",
-      "betLabel": "Bet",
-      "raiseLabel": "Raise",
-      "callLabel": "Call",
-      "checkLabel": "Check"
-    },
-    "result": {
-      "wins": "{{name}} wins {{amount}}",
-      "winsWith": "{{name}} wins {{amount}} with {{hand}}"
-    },
-    "rebuy": {
-      "title": "You're out of chips",
-      "bankroll": "Bankroll {{amount}}",
-      "buyIn": "Buy in {{amount}}",
-      "reset": "Reset bankroll"
-    },
-    "history": {
-      "title": "Hand history",
-      "empty": "No hands played yet",
-      "foldedOut": "everyone folded"
-    },
-    "settings": {
-      "stakes": "Stakes",
-      "speed": "Table speed",
-      "speed_normal": "Normal",
-      "speed_fast": "Fast"
-    }
   },
   "runGroup": {
     "open": "開啟",

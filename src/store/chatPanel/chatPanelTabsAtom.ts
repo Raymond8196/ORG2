@@ -85,7 +85,12 @@ export {
 } from "./chatPanelTabsModel";
 export {
   activeChatPanelTabAtom,
+  activeChatPanelTabTypeAtom,
   activeWorkManagementSectionAtom,
   chatPanelTabCountAtom,
   chatPanelTabsAtom,
 } from "./chatPanelTabsState";
+export {
+  canMoveChatPanelTabToWorkstation,
+  moveChatPanelTabToWorkstationAtom,
+} from "./chatPanelTabPlacementAtom";

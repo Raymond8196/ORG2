@@ -14,6 +14,7 @@ import {
   upsertSession,
 } from "@src/store/session";
 import { agentLiveStatusAtom } from "@src/store/session/agentLiveStatusAtom";
+import { sessionBranchTagsVisibleAtom } from "@src/store/ui/sidebarAtom";
 import { isImportedHistorySession } from "@src/util/session/sessionDispatch";
 import { getSessionSearchText } from "@src/util/session/sessionSearch";
 import { isPrimarySessionListSession } from "@src/util/session/sessionVisibility";
@@ -78,6 +79,7 @@ const SUBAGENT_SESSION_ID_SEGMENT = ":subagent:";
 
 /** Max concurrent `es_get_child_sessions` calls when hydrating the sidebar. */
 const SUBAGENT_QUERY_CONCURRENCY = 8;
+const NO_SESSIONS: readonly Session[] = [];
 
 function parentSessionIdFor(session: Session): string | null {
   if (session.parentSessionId) return session.parentSessionId;
@@ -173,10 +175,12 @@ export function useSessionMenuItems({
   showAllLoadedGroupSessions = false,
   expandedSubagentParentIds = new Set(),
   revealedSessionIds = new Set(),
+  workspaceGroupActions,
 }: UseSessionMenuItemsParams): UseSessionMenuItemsResult {
   const { t: tCommon } = useTranslation();
   const pagination = useAtomValue(sessionPaginationAtom);
   const agentLiveStatuses = useAtomValue(agentLiveStatusAtom);
+  const showBranchTags = useAtomValue(sessionBranchTagsVisibleAtom);
   // parentId → the parent's updated_at at query time. Children are re-fetched
   // only when the parent session changes, instead of re-querying every
   // visible session on every list refresh (that pattern issued 100+
@@ -402,9 +406,10 @@ export function useSessionMenuItems({
     return map;
   }, [childSessionsByParent, visibleSessions]);
 
-  // Keyed off the listed rows, not `visibleSessions`: a repo only earns a PR
-  // fetch once one of its sessions is actually on screen.
-  const prForSession = useSessionPrStatuses(listedSessions);
+  // Do not mount any repo refresh work while branch tags are hidden.
+  const prForSession = useSessionPrStatuses(
+    showBranchTags ? listedSessions : NO_SESSIONS
+  );
 
   const buildSessionRow = useCallback(
     (session: Session): NavigationMenuItem =>
@@ -415,9 +420,16 @@ export function useSessionMenuItems({
         liveDetail: liveDetailForSession(
           agentLiveStatuses.get(session.session_id)
         ),
-        pr: prForSession(session),
+        showBranchTag: showBranchTags,
+        pr: showBranchTags ? prForSession(session) : undefined,
       }),
-    [agentLiveStatuses, prForSession, untitledSession, visitedSessions]
+    [
+      agentLiveStatuses,
+      prForSession,
+      showBranchTags,
+      untitledSession,
+      visitedSessions,
+    ]
   );
 
   const loadMoreRowFor = useCallback(
@@ -568,6 +580,7 @@ export function useSessionMenuItems({
         appendPinnedSessions,
         appendGroupSessions,
         appendTrailingLoadMoreItems,
+        workspaceGroupActions,
       }),
     [
       unpinnedSessions,
@@ -576,6 +589,7 @@ export function useSessionMenuItems({
       appendPinnedSessions,
       appendGroupSessions,
       appendTrailingLoadMoreItems,
+      workspaceGroupActions,
     ]
   );
   const baseMenuItems = useMemo<NavigationMenuItem[]>(() => {

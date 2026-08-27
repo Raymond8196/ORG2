@@ -1066,7 +1066,7 @@
     "copyEventJson": "Copy event JSON",
     "copyEventJsonCopied": "Copied!",
     "copyEventJsonFailed": "Copy failed",
-    "moveToWorkstation": "Move to My Workstation",
+    "moveToWorkstation": "Move to My Station",
     "moveToChatPanel": "Move to Chat Panel",
     "rawTranscript": {
       "title": "Raw session transcript",
@@ -1109,6 +1109,13 @@
     "historyThisWeek": "This week",
     "historyOlder": "Older",
     "historyPinned": "Pinned",
+    "historyNoWorkspace": "No Workspace",
+    "pinWorkspaceGroup": "Pin workspace",
+    "unpinWorkspaceGroup": "Unpin workspace",
+    "hideWorkspaceGroup": "Hide workspace",
+    "unhideWorkspaceGroup": "Unhide workspace",
+    "workspaceUnavailableTitle": "Workspace no longer available",
+    "workspaceUnavailableMessage": "This Workspace may have been moved or deleted.",
     "historyRefresh": "Refresh",
     "historyLastUsedModel": "Last used model",
     "historyUntitled": "Untitled session",
@@ -2167,6 +2174,12 @@
     "appliesNextTurn": "Account switched. The current reply still runs on the previous account; the new account takes effect from the next turn."
   },
   "creator": {
+    "repoChromeMenu": {
+      "moveToTop": "Move to top",
+      "moveToBottom": "Move to bottom",
+      "showPinnedActions": "Show pinned actions",
+      "hidePinnedActions": "Hide pinned actions"
+    },
     "createTarget": {
       "agentSession": "Agent session",
       "manageAgents": "Manage agents / skills",
@@ -2180,10 +2193,12 @@
       "resolving": "Resolving PR…",
       "selectRepository": "Select a repository before choosing a worktree source.",
       "sourceTabs": "Worktree source",
+      "sourceTypeAria": "Select branch or pull request",
       "tabs": {
         "smart": "Smart",
         "github": "GitHub",
         "branch": "Branch",
+        "pr": "PR",
         "name": "Name"
       },
       "smartPlaceholder": "Name, #1234, branch, or GitHub/GitLab URL",
@@ -2195,6 +2210,9 @@
       "githubError": "GitHub items could not be loaded.",
       "githubEmpty": "No open GitHub PRs or issues.",
       "githubNoMatches": "No matches.",
+      "prSearch": "Search pull requests",
+      "prSearchAria": "Search pull requests",
+      "prNoMatches": "No matching pull requests.",
       "refreshBranches": "Refresh branch list",
       "branchSearch": "Search branches or enter a ref",
       "branchSearchAria": "Search branches or enter a base ref",
@@ -2872,6 +2890,8 @@
     },
     "actions": {
       "moreOpenOptions": "More open options",
+      "openAsPullRequest": "PR tab",
+      "openAsWebPage": "Web page",
       "openInApp": "Open in app",
       "openWithDefaultBrowser": "Open with default browser",
       "revealInFinder": "Reveal in Finder",
@@ -2883,6 +2903,7 @@
       "copyUrl": "Copy URL",
       "copied": "URL copied",
       "openExternalFailed": "Failed to open URL in default browser",
+      "openPullRequestFailed": "Failed to open pull request tab",
       "groupTitle": "Web pages"
     },
     "path": {
@@ -2991,61 +3012,6 @@
     "elementsCount_other": "{{count}} elements",
     "regionLabel": "Region · {{label}}"
   },
-  "pokerTable": {
-    "menuLabel": "Poker table",
-    "header": {
-      "title": "No-Limit Inference – {{stakes}} Mtok – 6-max",
-      "hand": "Hand #{{number}}",
-      "history": "Hand history",
-      "settings": "Table settings",
-      "leave": "Leave table",
-      "close": "Close"
-    },
-    "potLabel": "Pot",
-    "tokens": "{{amount}} tokens",
-    "thinking": "Thinking · {{seconds}}s",
-    "waitingFor": "Waiting for {{name}}…",
-    "dealing": "Dealing…",
-    "nextHand": "Deal next hand",
-    "seat": {
-      "you": "You",
-      "bot": "bot",
-      "allIn": "All in"
-    },
-    "actions": {
-      "fold": "Fold",
-      "check": "Check",
-      "call": "Call {{amount}}",
-      "bet": "Bet {{amount}}",
-      "raise": "Raise {{amount}}",
-      "allIn": "All in {{amount}}",
-      "betLabel": "Bet",
-      "raiseLabel": "Raise",
-      "callLabel": "Call",
-      "checkLabel": "Check"
-    },
-    "result": {
-      "wins": "{{name}} wins {{amount}}",
-      "winsWith": "{{name}} wins {{amount}} with {{hand}}"
-    },
-    "rebuy": {
-      "title": "You're out of chips",
-      "bankroll": "Bankroll {{amount}}",
-      "buyIn": "Buy in {{amount}}",
-      "reset": "Reset bankroll"
-    },
-    "history": {
-      "title": "Hand history",
-      "empty": "No hands played yet",
-      "foldedOut": "everyone folded"
-    },
-    "settings": {
-      "stakes": "Stakes",
-      "speed": "Table speed",
-      "speed_normal": "Normal",
-      "speed_fast": "Fast"
-    }
-  },
   "webhooks": {
     "title": "Webhooks",
     "empty": "No routines yet — apply one from the CLI first",
@@ -3082,5 +3048,14 @@
       "skipped": "Skipped",
       "pending": "Starting"
     }
+  },
+  "conversation": {
+    "promptMode": "Agent",
+    "teamChatMode": "Team chat",
+    "promptTooltip": "Send to the agent",
+    "teamChatTooltip": "Message teammates — does not prompt the agent",
+    "imagesUnsupported": "Team chat messages cannot include images",
+    "participantsTooltip": "Conversation participants and discussion messages",
+    "mentionGroup": "Teammates"
   }
 }

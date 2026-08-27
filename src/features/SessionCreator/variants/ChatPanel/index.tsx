@@ -1,4 +1,4 @@
-import { useAtomValue, useSetAtom, useStore } from "jotai";
+import { useAtom, useAtomValue, useSetAtom, useStore } from "jotai";
 import React, {
   useCallback,
   useEffect,
@@ -29,8 +29,11 @@ import {
   agentIconIdAtom,
   agentNameAtom,
   cliAgentTypeAtom,
+  creatorRepoChromePositionAtom,
   dispatchCategoryAtom,
   normalizeAgentOnlySessionCreatorState,
+  pinnedActionsVisibleAtom,
+  resolveCreatorRepoChromePosition,
   selectedAgentDefinitionIdAtom,
   selectedAgentOrgIdAtom,
   sessionCreatorStateAtom,
@@ -51,6 +54,7 @@ import ChatPanelHumanSessionHeader from "./ChatPanelHumanSessionHeader";
 import SessionCreatorChatPanelView from "./SessionCreatorChatPanelView";
 import { deriveChatPanelLaunchContext } from "./deriveLaunchContext";
 import "./index.scss";
+import { shouldUseCreatorComposerBreathing } from "./repoChromeLayout";
 import type { SessionCreatorChatPanelSingleProps } from "./types";
 import { useChatPanelAgentPresentation } from "./useChatPanelAgentPresentation";
 import { useChatPanelBranchSync } from "./useChatPanelBranchSync";
@@ -101,6 +105,15 @@ const SessionCreatorChatPanelContent: React.FC<
   const { t } = useTranslation("sessions");
   const browserAddToConversationNav = useBrowserAddToConversationAction();
   const { orgs } = useAgentOrgs();
+  const [repoChromePositionPreference, setRepoChromePositionPreference] =
+    useAtom(creatorRepoChromePositionAtom);
+  const [pinnedActionsVisible, setPinnedActionsVisible] = useAtom(
+    pinnedActionsVisibleAtom
+  );
+  const repoChromePosition = resolveCreatorRepoChromePosition(
+    repoChromePositionPreference,
+    layout === "launchpad" ? "top" : "bottom"
+  );
 
   // Read atoms needed before useSessionCreator so we can pass derived values in.
   const dispatchCategory = useAtomValue(dispatchCategoryAtom);
@@ -251,7 +264,7 @@ const SessionCreatorChatPanelContent: React.FC<
     clearWorktreeLaunchSelection,
     handleWorktreeLocationChange,
     handleWorktreeSourceSelect,
-  } = useChatPanelWorktreeSelection({ effectiveSource, handleBranchChange });
+  } = useChatPanelWorktreeSelection({ effectiveSource });
 
   const agentVariant = getRustAgentType(selectedAgentDefId);
   const isRustMode = dispatchCategory === "rust_agent";
@@ -534,7 +547,13 @@ const SessionCreatorChatPanelContent: React.FC<
         requestModelOpen: isHumanMode ? false : requestModelOpen,
         onModelOpenHandled: () => setRequestModelOpen(false),
         shellClassName: `session-creator-chat-panel-fullscreen-input-shell ${
-          layout === "launchpad" ? "composer-breathing" : ""
+          shouldUseCreatorComposerBreathing(
+            layout === "launchpad",
+            repoChromePosition,
+            !hideRepoLine && headerLayout !== "compact"
+          )
+            ? "composer-breathing"
+            : ""
         }`.trim(),
         initialContent: initialRestoreText || initialContent || undefined,
         autoFocus: !isHumanMode,
@@ -576,9 +595,13 @@ const SessionCreatorChatPanelContent: React.FC<
       onCreateWorkItem={onCreateWorkItem}
       onFileUpload={handleFileUpload}
       onLaunch={handleComposerLaunch}
+      onPinnedActionsVisibleChange={setPinnedActionsVisible}
+      onRepoChromePositionChange={setRepoChromePositionPreference}
       onShareScreen={() => handleShareScreenClick().catch(log.error)}
       onToggleOrgMembers={handleToggleOrgMembers}
       pinnedActionsContent={isHumanMode ? undefined : pinnedActionsContent}
+      pinnedActionsVisible={pinnedActionsVisible}
+      repoChromePosition={repoChromePosition}
       orgMembersPanelProps={
         selectedOrg
           ? {
@@ -629,11 +652,15 @@ const SessionCreatorChatPanelContent: React.FC<
           : multiRunner.isActive
             ? "worktree"
             : runningLocation,
+        worktreeLocationLabel: multiRunner.worktreeSourceLabel,
         worktreeSourceLabel:
-          multiRunner.worktreeSourceLabel ??
-          (runningLocation === "worktree"
-            ? activeWorktreeSelection?.source.label
-            : undefined),
+          runningLocation === "worktree" || multiRunner.isActive
+            ? activeWorktreeSelection?.source.sourceRef?.startsWith("pr:")
+              ? activeWorktreeSelection.source.label
+              : (activeWorktreeSelection?.source.title ??
+                activeWorktreeSelection?.source.baseBranch)
+            : undefined,
+        worktreeSource: activeWorktreeSelection?.source,
         selectedWorktreePath:
           activeWorktreeSelection?.source.existingWorktreePath ?? null,
         onWorktreeLocationChange: multiRunner.handleWorktreeLocationChange,

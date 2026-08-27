@@ -1285,7 +1285,8 @@
       "copyAddress": "Adresse kopieren",
       "stopProcess": "Prozess beenden",
       "searchPlaceholder": "Ports suchen…",
-      "noSearchResults": "Keine passenden Ports"
+      "noSearchResults": "Keine passenden Ports",
+      "openAddress": "{{address}} öffnen"
     },
     "noLanguageServicesActive": "No language services active",
     "linesSelected": "{{count}} lines selected",
@@ -1365,7 +1366,9 @@
       "tryHeading": "Versuchen Sie:",
       "tryCheckConnection": "Ihre Internetverbindung prüfen",
       "tryVerifyUrl": "Die URL auf Tippfehler prüfen",
-      "tryAgainLater": "Später erneut versuchen"
+      "tryAgainLater": "Später erneut versuchen",
+      "webviewHiddenTitle": "Webview vorübergehend ausgeblendet",
+      "webviewHiddenBody": "Menü oder Dialog schließen, um sie wieder anzuzeigen."
     },
     "unsavedChangesTitle": "Unsaved Changes",
     "prkPlaceholder": "PRJ",
@@ -1445,17 +1448,7 @@
         "reviewed": "hat ein Review abgegeben"
       },
       "summary": {
-        "label": "Zusammenfassung zum pull request",
-        "branch": "Branch",
-        "reviewers": "Reviewer",
-        "noReviewers": "Keine Reviewer",
-        "comments": "Kommentare",
-        "commentCount_one": "{{count}} Kommentar",
-        "commentCount_other": "{{count}} Kommentare",
-        "checks": "Checks",
-        "noChecks": "Keine CI-Checks",
-        "checksFailed": "Checks fehlgeschlagen",
-        "status": "Status"
+        "label": "Zusammenfassung zum pull request"
       },
       "tabs": {
         "conversation": "Unterhaltung",
@@ -1528,9 +1521,6 @@
         "reviewersLoadFailed": "Reviewer konnten nicht geladen werden",
         "noReviewers": "Keine Reviewer verfügbar",
         "reviewersUpdated": "Reviewer aktualisiert",
-        "reviewersCount_one": "{{count}} Reviewer",
-        "reviewersCount_other": "{{count}} Reviewer",
-        "reviewers": "Reviewer",
         "tooltips": {
           "merge": "Diesen Pull Request auf GitHub zusammenführen",
           "alreadyMerged": "Dieser Pull Request wurde bereits zusammengeführt",
@@ -1543,7 +1533,39 @@
           "checksFailed": "Erforderliche Checks müssen vor dem Zusammenführen bestehen",
           "checksPending": "Auf erforderliche Checks warten oder automatisches Zusammenführen aktivieren",
           "mergeBlocked": "GitHub meldet nicht erfüllte Merge-Anforderungen"
-        }
+        },
+        "convertToDraft": "In Entwurf umwandeln",
+        "convertedToDraft": "Pull Request in Entwurf umgewandelt"
+      },
+      "flow": {
+        "wantsToMergeCommitsInto_one": "möchte {{count}} Commit zusammenführen in",
+        "wantsToMergeCommitsInto_other": "möchte {{count}} Commits zusammenführen in",
+        "mergedCommitsInto_one": "hat {{count}} Commit zusammengeführt in",
+        "mergedCommitsInto_other": "hat {{count}} Commits zusammengeführt in",
+        "from": "von",
+        "copyHeadBranch": "Branch-Namen kopieren",
+        "branchCopied": "Branch-Name kopiert"
+      },
+      "sidebar": {
+        "reviewers": "Reviewer",
+        "requestReviewers": "Reviewer anfordern",
+        "awaitingReview": "Review ausstehend",
+        "noReviews": "Keine Reviews",
+        "assignees": "Zugewiesene",
+        "noAssignees": "Niemand zugewiesen",
+        "labels": "Labels",
+        "noLabels": "Noch keine",
+        "actions": "Aktionen",
+        "editAssignees": "Zugewiesene bearbeiten",
+        "searchAssignees": "Personen suchen",
+        "noAssigneeCandidates": "Keine Personen verfügbar",
+        "assigneesLoadFailed": "Personen konnten nicht geladen werden",
+        "assigneesUpdated": "Zugewiesene aktualisiert",
+        "editLabels": "Labels bearbeiten",
+        "searchLabels": "Labels suchen",
+        "noLabelCandidates": "Keine Labels verfügbar",
+        "labelsLoadFailed": "Labels konnten nicht geladen werden",
+        "labelsUpdated": "Labels aktualisiert"
       }
     },
     "messages": {
@@ -2729,5 +2751,10 @@
       "updated": "Aktualisiert"
     },
     "selectRow": "{{id}} auswählen"
+  },
+  "clientOrigin": {
+    "officialApp": "Offizielle App",
+    "cli": "CLI",
+    "thirdParty": "Drittanbieter"
   }
 }

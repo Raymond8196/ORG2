@@ -7,9 +7,8 @@
 // Layout shell
 export { WorkStationShell } from "./WorkStationShell";
 export type { WorkStationShellProps } from "./WorkStationShell";
-export { WorkstationHeaderSectionSeparator } from "./WorkstationHeaderSectionSeparator";
-export { WorkstationToolbarTooltip } from "./WorkstationToolbarTooltip";
-export type { WorkstationToolbarTooltipProps } from "./WorkstationToolbarTooltip";
+export { ExternalBrowserButton } from "./ExternalBrowserButton";
+export type { ExternalBrowserButtonProps } from "./ExternalBrowserButton";
 
 // Shell configuration
 export {
@@ -32,9 +31,6 @@ export type {
   PanelTabIconName,
 } from "./PanelTabBar";
 
-// Icon button
-export { IconButton } from "./IconButton";
-export type { IconButtonProps } from "./IconButton";
 export { TerminalInfoButton } from "./TerminalInfoButton";
 export type { TerminalInfoButtonProps } from "./TerminalInfoButton";
 export { TerminalNewSessionSplitButton } from "./TerminalNewSessionSplitButton";
@@ -67,10 +63,6 @@ export {
 export { CountBadge } from "./CountBadge";
 export type { CountBadgeProps, CountVariant } from "./CountBadge";
 
-// Severity icons (for diagnostics, logs)
-export { getSeverityIcon, SeverityIcon } from "./SeverityIcon";
-export type { Severity, SeverityIconProps } from "./SeverityIcon";
-
 // Primary sidebar layout
 export {
   CollapsibleSection,
@@ -98,19 +90,15 @@ export {
   ColorInput,
   EditableField,
   LinkedInputPair,
-  PropertySection,
   SpacingBottom,
   SpacingLeft,
   SpacingRight,
   SpacingTop,
-  SubSection,
 } from "./PropertyEditor";
 export type {
   ColorInputProps,
   EditableFieldProps,
   LinkedInputPairProps,
-  PropertySectionProps,
-  SubSectionProps,
 } from "./PropertyEditor";
 
 // Tab bar
@@ -121,8 +109,6 @@ export {
   STATUS_LABELS,
 } from "./TabBar";
 export type { WorkStationTab, TabBarProps } from "./TabBar";
-export { TabBarTrailingIconButton } from "./TabBar/components/TabBarTrailingIconButton";
-export type { TabBarTrailingIconButtonProps } from "./TabBar/components/TabBarTrailingIconButton";
 export { StationTabBarLeading } from "./StationTabBarLeading";
 export { TabBarLeadingLayout } from "./TabBarLeadingLayout";
 
@@ -262,7 +248,6 @@ export type {
   CommitInfo,
   CursorPosition,
   EditorStatusBarProps,
-  LspStatus,
   StatusBarButtonProps,
   StatusBarDividerProps,
   StatusBarTextProps,

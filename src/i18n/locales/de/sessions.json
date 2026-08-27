@@ -1048,6 +1048,13 @@
     "historyThisWeek": "Diese Woche",
     "historyOlder": "Älter",
     "historyPinned": "Angeheftet",
+    "historyNoWorkspace": "Kein Arbeitsbereich",
+    "pinWorkspaceGroup": "Arbeitsbereich anpinnen",
+    "unpinWorkspaceGroup": "Arbeitsbereich entpinnen",
+    "hideWorkspaceGroup": "Arbeitsbereich ausblenden",
+    "unhideWorkspaceGroup": "Arbeitsbereich einblenden",
+    "workspaceUnavailableTitle": "Workspace nicht verfügbar",
+    "workspaceUnavailableMessage": "Dieser Workspace wurde möglicherweise verschoben oder gelöscht.",
     "historyRefresh": "Aktualisieren",
     "historyLastUsedModel": "Zuletzt verwendetes Modell",
     "historyUntitled": "Unbenannte Sitzung",
@@ -2087,6 +2094,12 @@
     "immutableInSession": "Schlüsselquelle, Agent-Typ und Preisstufe sind beim Sitzungsstart festgelegt. Starten Sie eine neue Sitzung, um sie zu ändern."
   },
   "creator": {
+    "repoChromeMenu": {
+      "moveToTop": "Nach oben verschieben",
+      "moveToBottom": "Nach unten verschieben",
+      "showPinnedActions": "Angeheftete Aktionen anzeigen",
+      "hidePinnedActions": "Angeheftete Aktionen ausblenden"
+    },
     "createTarget": {
       "agentSession": "Agent-Sitzung",
       "manageAgents": "Agents / Skills verwalten",
@@ -2752,6 +2765,8 @@
     },
     "actions": {
       "moreOpenOptions": "Weitere Öffnungsoptionen",
+      "openAsPullRequest": "PR-Tab",
+      "openAsWebPage": "Webseite",
       "openInApp": "In der App öffnen",
       "openWithDefaultBrowser": "Mit Standardbrowser öffnen",
       "revealInFinder": "In Finder anzeigen",
@@ -2763,6 +2778,7 @@
       "copyUrl": "URL kopieren",
       "copied": "URL kopiert",
       "openExternalFailed": "URL konnte nicht im Standardbrowser geöffnet werden",
+      "openPullRequestFailed": "Pull-Request-Tab konnte nicht geöffnet werden",
       "groupTitle": "Webseiten"
     },
     "path": {
@@ -2802,61 +2818,6 @@
     "summarize": "Mit Agent zusammenfassen",
     "waiting": "Warte auf Inhalt…",
     "empty": "Kein Inhalt"
-  },
-  "pokerTable": {
-    "menuLabel": "Poker table",
-    "header": {
-      "title": "No-Limit Inference – {{stakes}} Mtok – 6-max",
-      "hand": "Hand #{{number}}",
-      "history": "Hand history",
-      "settings": "Table settings",
-      "leave": "Leave table",
-      "close": "Close"
-    },
-    "potLabel": "Pot",
-    "tokens": "{{amount}} tokens",
-    "thinking": "Thinking · {{seconds}}s",
-    "waitingFor": "Waiting for {{name}}…",
-    "dealing": "Dealing…",
-    "nextHand": "Deal next hand",
-    "seat": {
-      "you": "You",
-      "bot": "bot",
-      "allIn": "All in"
-    },
-    "actions": {
-      "fold": "Fold",
-      "check": "Check",
-      "call": "Call {{amount}}",
-      "bet": "Bet {{amount}}",
-      "raise": "Raise {{amount}}",
-      "allIn": "All in {{amount}}",
-      "betLabel": "Bet",
-      "raiseLabel": "Raise",
-      "callLabel": "Call",
-      "checkLabel": "Check"
-    },
-    "result": {
-      "wins": "{{name}} wins {{amount}}",
-      "winsWith": "{{name}} wins {{amount}} with {{hand}}"
-    },
-    "rebuy": {
-      "title": "You're out of chips",
-      "bankroll": "Bankroll {{amount}}",
-      "buyIn": "Buy in {{amount}}",
-      "reset": "Reset bankroll"
-    },
-    "history": {
-      "title": "Hand history",
-      "empty": "No hands played yet",
-      "foldedOut": "everyone folded"
-    },
-    "settings": {
-      "stakes": "Stakes",
-      "speed": "Table speed",
-      "speed_normal": "Normal",
-      "speed_fast": "Fast"
-    }
   },
   "runGroup": {
     "open": "Öffnen",

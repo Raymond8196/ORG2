@@ -1049,6 +1049,13 @@
     "historyThisWeek": "今週",
     "historyOlder": "それ以前",
     "historyPinned": "固定済み",
+    "historyNoWorkspace": "ワークスペースなし",
+    "pinWorkspaceGroup": "ワークスペースをピン留め",
+    "unpinWorkspaceGroup": "ワークスペースのピン留めを解除",
+    "hideWorkspaceGroup": "ワークスペースを非表示",
+    "unhideWorkspaceGroup": "ワークスペースを表示",
+    "workspaceUnavailableTitle": "Workspace を利用できません",
+    "workspaceUnavailableMessage": "この Workspace は移動または削除された可能性があります。",
     "historyRefresh": "更新",
     "historyLastUsedModel": "最後に使用したモデル",
     "historyUntitled": "無題のセッション",
@@ -2088,6 +2095,12 @@
     "immutableInSession": "キーソース、Agent タイプ、料金ティアはセッション開始時に固定されます。変更するには新しいセッションを開始してください。"
   },
   "creator": {
+    "repoChromeMenu": {
+      "moveToTop": "上に移動",
+      "moveToBottom": "下に移動",
+      "showPinnedActions": "ピン留めしたアクションを表示",
+      "hidePinnedActions": "ピン留めしたアクションを非表示"
+    },
     "createTarget": {
       "agentSession": "Agent セッション",
       "manageAgents": "Agents / Skills を管理",
@@ -2753,6 +2766,8 @@
     },
     "actions": {
       "moreOpenOptions": "その他の開くオプション",
+      "openAsPullRequest": "PR タブ",
+      "openAsWebPage": "ウェブページ",
       "openInApp": "アプリ内で開く",
       "openWithDefaultBrowser": "既定のブラウザで開く",
       "revealInFinder": "Finder に表示",
@@ -2764,6 +2779,7 @@
       "copyUrl": "URL をコピー",
       "copied": "URL をコピーしました",
       "openExternalFailed": "既定のブラウザで URL を開けませんでした",
+      "openPullRequestFailed": "Pull Request タブを開けませんでした",
       "groupTitle": "Web ページ"
     },
     "path": {
@@ -2803,61 +2819,6 @@
     "summarize": "Agent で要約",
     "waiting": "コンテンツを待機中…",
     "empty": "コンテンツなし"
-  },
-  "pokerTable": {
-    "menuLabel": "Poker table",
-    "header": {
-      "title": "No-Limit Inference – {{stakes}} Mtok – 6-max",
-      "hand": "Hand #{{number}}",
-      "history": "Hand history",
-      "settings": "Table settings",
-      "leave": "Leave table",
-      "close": "Close"
-    },
-    "potLabel": "Pot",
-    "tokens": "{{amount}} tokens",
-    "thinking": "Thinking · {{seconds}}s",
-    "waitingFor": "Waiting for {{name}}…",
-    "dealing": "Dealing…",
-    "nextHand": "Deal next hand",
-    "seat": {
-      "you": "You",
-      "bot": "bot",
-      "allIn": "All in"
-    },
-    "actions": {
-      "fold": "Fold",
-      "check": "Check",
-      "call": "Call {{amount}}",
-      "bet": "Bet {{amount}}",
-      "raise": "Raise {{amount}}",
-      "allIn": "All in {{amount}}",
-      "betLabel": "Bet",
-      "raiseLabel": "Raise",
-      "callLabel": "Call",
-      "checkLabel": "Check"
-    },
-    "result": {
-      "wins": "{{name}} wins {{amount}}",
-      "winsWith": "{{name}} wins {{amount}} with {{hand}}"
-    },
-    "rebuy": {
-      "title": "You're out of chips",
-      "bankroll": "Bankroll {{amount}}",
-      "buyIn": "Buy in {{amount}}",
-      "reset": "Reset bankroll"
-    },
-    "history": {
-      "title": "Hand history",
-      "empty": "No hands played yet",
-      "foldedOut": "everyone folded"
-    },
-    "settings": {
-      "stakes": "Stakes",
-      "speed": "Table speed",
-      "speed_normal": "Normal",
-      "speed_fast": "Fast"
-    }
   },
   "runGroup": {
     "open": "開く",
