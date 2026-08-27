@@ -13,12 +13,13 @@ import type { IconSvgElement } from "@src/icons";
 // ============================================
 
 /**
- * Sidebar icon representation.
+ * Sidebar icon representation: hugeicons glyph data (e.g.
+ * `ComputerTerminal01Icon`).
  *
- * - Prefer hugeicons glyph data (e.g. `ComputerTerminal01Icon`)
- * - Some configs still use string icon names during migration (e.g. `"Terminal"`)
+ * The lucide→hugeicons migration briefly allowed string icon names here;
+ * no config produces one anymore, so the alias is glyph-only.
  */
-export type SidebarIcon = IconSvgElement | string;
+export type SidebarIcon = IconSvgElement;
 
 /** Theme configuration for custom-styled sidebars */
 export interface SidebarTheme {

@@ -22,7 +22,6 @@ import {
 import {
   Infinity01Icon as Infinity,
   Activity01Icon as Activity,
-  ArrowBigRightDashIcon as ArrowBigRightDash,
   ArrowLeftRightIcon as ArrowRightLeft,
   NotificationBubbleIcon as BellRing,
   BookSearchIcon as BookSearch,
@@ -31,22 +30,18 @@ import {
   BotOffIcon as BotOff,
   BoxIcon as Box,
   FirstBracketIcon as Braces,
-  BrainIcon as Brain,
   Briefcase01Icon as Briefcase,
   Camera01Icon as Camera,
   CheckmarkCircle01Icon as CheckCircle2,
   InternetIcon as Chrome,
   CircleCheckBigIcon as CircleCheckBig,
-  HelpCircleIcon as CircleHelp,
   ClipboardCopyIcon as ClipboardCopy,
   ClipboardListIcon as ClipboardList,
   ClipboardPenIcon as ClipboardPen,
   Clock01Icon as Clock,
-  CogIcon as Cog,
   DatabaseIcon as Database,
   ViewIcon as Eye,
   FileBoxIcon as FileBox,
-  FileDiffIcon as FileDiff,
   Edit04Icon as FilePenLine,
   FileSearchIcon as FileSearch,
   File02Icon as FileText,
@@ -68,7 +63,6 @@ import {
   KeyboardIcon as Keyboard,
   Layers01Icon as Layers,
   Layout01Icon as Layout,
-  LayoutListIcon as LayoutList,
   ListIcon as List,
   ListChecksIcon as ListChecks,
   ListTodoIcon as ListTodo,
@@ -77,7 +71,6 @@ import {
   LogsIcon as Logs,
   Mail01Icon as Mail,
   MailWarningIcon as MailWarning,
-  MapsIcon as Map,
   McpServerIcon as McpLogo,
   BubbleChatIcon as MessageCircle,
   MessageCircleQuestionMarkIcon as MessageCircleQuestionMark,
@@ -90,7 +83,6 @@ import {
   HierarchyCircle01Icon as Network,
   PanelTopIcon as PanelTop,
   Plug01Icon as Plug,
-  Add01Icon as Plus,
   Refresh04Icon as RefreshCw,
   ScrollIcon as ScrollText,
   Search01Icon as Search,
@@ -119,12 +111,17 @@ export const DEFAULT_TOOL_ICON_CLASS = "text-text-2";
 /**
  * Maps Rust `icon_id` strings (kebab-case, lucide-era vocabulary) to
  * hugeicons glyph data.
- * Keep in sync with the `ToolEntry` tables in
+ *
+ * Icon ids only ever come from the live registry (`list_all_tools` /
+ * `init_tool_registry`) — replayed/persisted sessions store tool NAMES,
+ * never icon ids — so this map only needs the union of `icon_id`,
+ * `action_icons`, and `status_icons` values in the `ToolEntry` tables in
  * `src-tauri/crates/agent-core/src/core/tools/builtin_tools/table/*.rs`.
+ * Keep it in sync with those tables (some keys, e.g. `eye` / `shield` /
+ * `move-vertical` / `clock`, are reachable only through action icons).
  */
 const ICON_BY_ID: Record<string, IconSvgElement> = {
   activity: Activity,
-  "arrow-big-right-dash": ArrowBigRightDash,
   "arrow-right-left": ArrowRightLeft,
   "bell-ring": BellRing,
   "book-search": BookSearch,
@@ -133,22 +130,16 @@ const ICON_BY_ID: Record<string, IconSvgElement> = {
   "bot-off": BotOff,
   box: Box,
   braces: Braces,
-  brain: Brain,
-  briefcase: Briefcase,
   camera: Camera,
   "check-circle-2": CheckCircle2,
   chrome: Chrome,
   "circle-check-big": CircleCheckBig,
-  "circle-help": CircleHelp,
   "clipboard-copy": ClipboardCopy,
   "clipboard-list": ClipboardList,
   "clipboard-pen": ClipboardPen,
   clock: Clock,
-  cog: Cog,
-  database: Database,
   eye: Eye,
   "file-box": FileBox,
-  "file-diff": FileDiff,
   "file-pen-line": FilePenLine,
   "file-search": FileSearch,
   "file-text": FileText,
@@ -170,7 +161,6 @@ const ICON_BY_ID: Record<string, IconSvgElement> = {
   keyboard: Keyboard,
   layers: Layers,
   layout: Layout,
-  "layout-list": LayoutList,
   list: List,
   "list-checks": ListChecks,
   "list-todo": ListTodo,
@@ -178,7 +168,6 @@ const ICON_BY_ID: Record<string, IconSvgElement> = {
   lock: Lock,
   mail: Mail,
   "mail-warning": MailWarning,
-  map: Map,
   "mcp-logo": McpLogo,
   "message-circle": MessageCircle,
   "message-circle-question-mark": MessageCircleQuestionMark,
@@ -190,13 +179,10 @@ const ICON_BY_ID: Record<string, IconSvgElement> = {
   "mouse-pointer-2": MousePointer2,
   network: Network,
   "panel-top": PanelTop,
-  plug: Plug,
-  plus: Plus,
   "refresh-cw": RefreshCw,
   "scroll-text": ScrollText,
   search: Search,
   send: Send,
-  "share-2": Share2,
   shield: Shield,
   "shield-check": ShieldCheck,
   "shield-off": ShieldOff,
@@ -320,12 +306,9 @@ export const TOOL_ICON_COMPONENTS: Record<string, IconSvgElement> = {
 };
 
 /**
- * Check if a tool is a terminal/shell tool.
- * Uses normalizeFunctionName (Rust source of truth) to resolve CLI aliases.
- */
-/**
  * Check if a tool is a terminal/shell command tool.
- * All shell tools (run_shell, bash, Shell, execute, etc.) normalize to "run_shell".
+ * Uses normalizeFunctionName (Rust source of truth) to resolve CLI aliases:
+ * all shell tools (run_shell, bash, Shell, execute, etc.) normalize to "run_shell".
  */
 export function isTerminalTool(toolName: string): boolean {
   return normalizeFunctionName(toolName) === "run_shell";

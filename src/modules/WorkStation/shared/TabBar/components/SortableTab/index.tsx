@@ -33,6 +33,7 @@ import {
   Infinity01Icon as Infinity,
   BoxIcon as Box,
   Building02Icon as Building2,
+  ChartNoAxesGanttIcon as ChartNoAxesGantt,
   CircleDotIcon as CircleDot,
   CodeIcon as Code,
   CodeIcon as Code2,
@@ -86,6 +87,7 @@ import type { WorkStationTab } from "../../types";
 const WORKSTATION_TAB_ICONS = {
   Box,
   Building2,
+  ChartNoAxesGantt,
   CircleDot,
   Code,
   Code2,

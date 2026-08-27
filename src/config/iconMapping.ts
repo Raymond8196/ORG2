@@ -132,10 +132,3 @@ export const ICON_NAME_MAP: Record<string, IconSvgElement | null> = {
   "circle-pile": CirclePile,
   "wand-2": Wand2,
 };
-
-/**
- * Get hugeicons glyph data by name
- */
-export function getIconByName(iconName: string): IconSvgElement | null {
-  return ICON_NAME_MAP[iconName] ?? null;
-}

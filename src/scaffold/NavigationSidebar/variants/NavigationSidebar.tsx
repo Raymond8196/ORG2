@@ -394,23 +394,22 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = React.memo(
         items.map((tab) => ({
           key: tab.key,
           label: tab.label,
-          icon:
-            tab.icon && typeof tab.icon !== "string"
-              ? enableHoverIconAnimation && tab.iconName
-                ? React.createElement(HoverAnimatedIcon, {
-                    icon: tab.icon,
-                    iconName: tab.iconName,
-                    className: "h-[14px] w-[14px]",
-                    strokeWidth: 2,
-                  })
-                : React.createElement(AnyIcon, {
-                    icon: tab.icon,
-                    size: 14,
-                    strokeWidth: 2,
-                    className: "h-[14px] w-[14px]",
-                    "data-icon": tab.iconName ?? tab.key,
-                  })
-              : undefined,
+          icon: tab.icon
+            ? enableHoverIconAnimation && tab.iconName
+              ? React.createElement(HoverAnimatedIcon, {
+                  icon: tab.icon,
+                  iconName: tab.iconName,
+                  className: "h-[14px] w-[14px]",
+                  strokeWidth: 2,
+                })
+              : React.createElement(AnyIcon, {
+                  icon: tab.icon,
+                  size: 14,
+                  strokeWidth: 2,
+                  className: "h-[14px] w-[14px]",
+                  "data-icon": tab.iconName ?? tab.key,
+                })
+            : undefined,
         })),
       [enableHoverIconAnimation, items]
     );

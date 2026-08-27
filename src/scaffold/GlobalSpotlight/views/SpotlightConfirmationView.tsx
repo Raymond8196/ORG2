@@ -7,6 +7,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import type { IconSvgElement } from "@src/icons";
 
 import type { UseConfirmationPageReturn } from "../hooks/core/types";
@@ -48,20 +49,9 @@ export const SpotlightConfirmationView: React.FC<
     <div className="flex flex-col gap-4 p-6">
       {/* Action Header */}
       <div className="flex items-center gap-3">
-        {typeof actionIcon === "string" ? (
-          <i className={`${actionIcon} text-[24px] text-primary-6`} />
-        ) : (
-          React.createElement(
-            actionIcon as unknown as React.ComponentType<{
-              size: number;
-              className: string;
-            }>,
-            {
-              size: 24,
-              className: "text-primary-6",
-            }
-          )
-        )}
+        {/* Every action definition carries glyph data (or a component);
+            AnyIcon renders both shapes safely. */}
+        <AnyIcon icon={actionIcon} size={24} className="text-primary-6" />
         <h2 className="text-[20px] font-semibold text-text-1">{actionLabel}</h2>
       </div>
 

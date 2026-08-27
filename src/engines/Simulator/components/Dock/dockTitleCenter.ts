@@ -55,7 +55,7 @@ export function getSimulatorDockTitleCenter(
     case AppType.CHANNELS:
       return { icon, label: t("labels.session") };
     case APP_TYPE_PROJECT:
-      return { icon: icon ?? ListTodoIcon, label: t("labels.projectManager") };
+      return { icon, label: t("labels.projectManager") };
     case AppType.DIFF:
       return { icon, label: t("labels.diff") };
     case AppType.BACKGROUND_TASKS:

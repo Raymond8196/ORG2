@@ -38,7 +38,7 @@ export interface NavigationMenuItem {
   searchText?: string;
   /** Optional secondary line rendered below the label (e.g. branch name). */
   subtitle?: ReactNode;
-  /** Glyph data, a brand component, or an icon-font class — rendered via `AnyIcon`. */
+  /** Glyph data or a brand component (`""` = no icon) — rendered via `AnyIcon`. */
   icon?: AnyIconSource;
   iconName?: string;
   /** Arbitrary rendered icon — takes precedence over `icon` when set. */

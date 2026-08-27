@@ -6,9 +6,13 @@
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
-import AnyIcon, { type AnyIconSource } from "@src/components/AnyIcon";
 import { useTauriSelectAllShortcut } from "@src/hooks/keyboard";
-import { Cancel01Icon, HugeiconsIcon, Search01Icon } from "@src/icons";
+import {
+  Cancel01Icon,
+  HugeiconsIcon,
+  type IconSvgElement,
+  Search01Icon,
+} from "@src/icons";
 
 import { SPOTLIGHT_TOKENS } from "../constants";
 
@@ -27,8 +31,8 @@ export interface SpotlightInputProps {
   placeholder?: string;
   /** Loading state */
   isLoading?: boolean;
-  /** Icon to display (defaults to Search) */
-  icon?: AnyIconSource;
+  /** Static glyph to display (defaults to Search); use `iconElement` for arbitrary JSX */
+  icon?: IconSvgElement;
   /** Custom icon element (overrides icon prop) */
   iconElement?: React.ReactNode;
   /** Renders at the end of the search row (e.g. mode badge); stays in the 56px bar */
@@ -73,7 +77,7 @@ export const SpotlightInput: React.FC<SpotlightInputProps> = ({
           {iconElement ? (
             iconElement
           ) : (
-            <AnyIcon
+            <HugeiconsIcon
               icon={IconComponent}
               size={SPOTLIGHT_TOKENS.iconSize}
               className="text-text-2"

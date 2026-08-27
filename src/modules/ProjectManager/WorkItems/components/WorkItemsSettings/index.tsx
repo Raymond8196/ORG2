@@ -13,12 +13,12 @@ import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { MemberEntry } from "@src/api/http/project";
-import AnyIcon from "@src/components/AnyIcon";
 import {
   getListIconClasses,
   getListItemClasses,
 } from "@src/components/ListPanel/tokens";
 import {
+  HugeiconsIcon,
   type IconSvgElement,
   Settings01Icon,
   TagsIcon,
@@ -195,7 +195,7 @@ const SettingsSidebar: React.FC<{
               className={`w-full text-left ${getListItemClasses(isActive, "wideGap")}`}
               onClick={() => onSectionClick(section.id)}
             >
-              <AnyIcon
+              <HugeiconsIcon
                 icon={section.icon}
                 size={16}
                 strokeWidth={1.75}
