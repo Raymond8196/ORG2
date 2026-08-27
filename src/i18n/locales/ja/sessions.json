@@ -1049,6 +1049,13 @@
     "historyThisWeek": "今週",
     "historyOlder": "それ以前",
     "historyPinned": "固定済み",
+    "historyNoWorkspace": "ワークスペースなし",
+    "pinWorkspaceGroup": "ワークスペースをピン留め",
+    "unpinWorkspaceGroup": "ワークスペースのピン留めを解除",
+    "hideWorkspaceGroup": "ワークスペースを非表示",
+    "unhideWorkspaceGroup": "ワークスペースを表示",
+    "workspaceUnavailableTitle": "Workspace を利用できません",
+    "workspaceUnavailableMessage": "この Workspace は移動または削除された可能性があります。",
     "historyRefresh": "更新",
     "historyLastUsedModel": "最後に使用したモデル",
     "historyUntitled": "無題のセッション",
@@ -2830,5 +2837,8 @@
       "skipped": "スキップ",
       "pending": "開始中"
     }
+  },
+  "sessionBadge": {
+    "subagent": "Sub Agent"
   }
 }

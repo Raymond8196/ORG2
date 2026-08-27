@@ -77,6 +77,7 @@ import {
   useChatPanelTabShortcuts,
 } from "./ChatPanelTabBar";
 import SessionContinueCliHeaderExtras from "./SessionContinueCliHeaderExtras";
+import SessionOpenInAppHeaderExtras from "./SessionOpenInAppHeaderExtras";
 import {
   SessionAlternateSurface,
   SessionHeaderViewControls,
@@ -480,7 +481,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       setWorkstationActiveSessionId,
     });
     const {
-      defaultAiWorkItemAssignee,
+      defaultAiWorkItemExecutionTarget,
       handleAiWorkItemSessionStart,
       resolveAiWorkItemContext,
     } = useAiWorkItemCreator({
@@ -528,7 +529,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
         createTargetOptions={createTargetOptions}
         creatorClassName={creatorClassName}
         creatorVariant={creatorVariant}
-        defaultAiWorkItemAssignee={defaultAiWorkItemAssignee}
+        defaultAiWorkItemExecutionTarget={defaultAiWorkItemExecutionTarget}
         handleAiWorkItemSessionStart={handleAiWorkItemSessionStart}
         handleCancelWorkItemCreate={handleCancelWorkItemCreate}
         handleCancelCollabOrgCreate={handleCancelCollabOrgCreate}
@@ -633,6 +634,9 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
               session={currentSession ?? null}
               sessionId={currentSessionId ?? null}
               onOpenCliTerminal={handleOpenCliTerminal}
+            />
+            <SessionOpenInAppHeaderExtras
+              sessionId={currentSessionId ?? null}
             />
             <SessionForkHeaderExtras session={currentSession ?? null} />
             <SessionRawToolbarActions

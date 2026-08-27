@@ -62,7 +62,10 @@ pub(crate) use transcript::{
 // first prompt so encrypted collaboration arguments can be reconstructed.
 // v12: recognize paginated item_completed/UserMessage records as the canonical
 // user-turn boundary while retaining legacy event_msg/user_message support.
-const CODEX_APP_METADATA_PARSER_VERSION: i64 = 13;
+// v14: re-derive `repo_path` so the desktop app's own
+// `~/Documents/Codex/<date>/<slug>` (and ChatGPT app) scratch dirs are stored
+// as no workspace.
+const CODEX_APP_METADATA_PARSER_VERSION: i64 = 14;
 
 pub type CodexAppSessionRow = ImportedHistorySessionRow;
 pub type CodexAppSessionPage = ImportedHistorySessionPage;

@@ -97,7 +97,8 @@
       "byWorkspace": "Nach Workspace"
     },
     "filters": {
-      "includeExternal": "Include External"
+      "includeExternal": "Include External",
+      "manageExternalSources": "Quellen verwalten…"
     },
     "defaults": {
       "untitledSession": "Unbenannte Session",
@@ -143,8 +144,7 @@
       "workstation": "Arbeitsstation",
       "viewRam": "RAM anzeigen",
       "tutorials": "Tutorials",
-      "openSettings": "Einstellungen öffnen",
-      "setupChecklist": "Schnelleinrichtung"
+      "openSettings": "Einstellungen öffnen"
     },
     "empty": {
       "noItems": "Keine Elemente",
@@ -172,32 +172,18 @@
       "trigger": "Anleitung öffnen",
       "title": "Erste Schritte mit ORGII",
       "startSession": "Sitzung starten",
-      "quickSetup": "Sprache und Darstellung",
       "close": "Anleitung schließen",
-      "progressLabel": "{{completed}} von {{total}} Einrichtungsschritten abgeschlossen",
       "localWorkspace": "Lokaler Arbeitsbereich",
       "connectOrganization": "Organisation verbinden oder erstellen",
       "createOrganizationHint": "Gib einen Organisationsnamen ein und wähle dann „Erstellen“. Nach der Erstellung der Cloud-Organisation geht die Anleitung weiter.",
       "inviteTeammate": "Teammitglied einladen",
       "inviteTeammateHint": "Erstelle hier einen Einladungslink und sende ihn an dein Teammitglied.",
       "invitePermissionHint": "Du kannst hier die Mitgliederliste ansehen. Die Einladung muss von einem Organisationsadministrator oder Eigentümer erstellt werden.",
-      "devPanelTitle": "Onboarding-Testzustände",
-      "devPanelHint": "Laufzeitvorschau für den Einladungsablauf. Backend-Organisationsdaten werden nicht geändert.",
-      "devScenarioLive": "Echte Daten",
-      "devScenarioNoOrganization": "Keine Organisation",
-      "devScenarioMember": "Mitglied · kein Einladungszugriff",
-      "devScenarioAdmin": "Admin · Einladungszugriff",
-      "devScenarioOwner": "Eigentümer · Einladungszugriff",
-      "devScenarioRequiresOrganization": "Rollenvorschauen benötigen mindestens eine echte Cloud-Organisation.",
-      "devSimulationActive": "Entwicklungssimulation aktiv",
-      "devSimulationReadOnly": "Diese Mitgliederseiten-Vorschau ist schreibgeschützt. Organisationsaktionen sind deaktiviert.",
       "viewTeamActivity": "Team-Nutzung anzeigen",
       "viewTeamActivityHint": "Runtime ist bei „Mitglieder“ geöffnet. Wähle ein Teammitglied aus, um die Codex-, Claude- und Cursor-Nutzung zu sehen. Aktiviere zuerst die Team-Runtime-Synchronisierung, falls keine Daten erscheinen.",
       "exploreProduct": "Produkttour starten",
-      "nextStep": "Nächster Schritt"
-    },
-    "developerTestPanel": {
-      "title": "Entwickler-Testpanel"
+      "nextStep": "Nächster Schritt",
+      "dismiss": "Anleitung ausblenden"
     }
   },
   "myRole": {
@@ -445,6 +431,12 @@
       "sourceMissing": "Die ursprünglichen Sitzungsdaten sind nicht mehr auf der Festplatte",
       "launchFailed": "{{agent}}-Terminal konnte nicht geöffnet werden",
       "composerPlaceholder": "Nachricht senden und in einer neuen Sitzung fortfahren…"
+    },
+    "openInApp": {
+      "headerButton": "In {{app}} öffnen",
+      "headerTooltip": "Diese Unterhaltung in der {{app}}-App anzeigen ({{link}})",
+      "sourceMissing": "Die ursprünglichen Sitzungsdaten sind nicht mehr auf der Festplatte",
+      "openFailed": "{{app}} konnte nicht geöffnet werden"
     }
   },
   "cloud": {

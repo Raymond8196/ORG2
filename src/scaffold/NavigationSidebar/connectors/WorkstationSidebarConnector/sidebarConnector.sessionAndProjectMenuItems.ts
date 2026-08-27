@@ -20,7 +20,6 @@ interface UseWorkstationSidebarSessionAndProjectMenuItemsParams {
   repoPathToName: SessionMenuItemsParams["repoPathToName"];
   groupByMode: SessionMenuItemsParams["groupByMode"];
   untitledSession: SessionMenuItemsParams["untitledSession"];
-  workstationSearchQuery: string;
   sessionFilterOrgIds: SessionMenuItemsParams["selectedOrgIds"];
   cloudScopedExtraSessionIds: SessionMenuItemsParams["extraSessionIds"];
   sessionListExcludedIds: SessionMenuItemsParams["excludedSessionIds"];
@@ -29,10 +28,10 @@ interface UseWorkstationSidebarSessionAndProjectMenuItemsParams {
   activeCloudOrgId: string | null;
   expandedSubagentParentIds: SessionMenuItemsParams["expandedSubagentParentIds"];
   revealedSessionIds: SessionMenuItemsParams["revealedSessionIds"];
+  workspaceGroupActions: SessionMenuItemsParams["workspaceGroupActions"];
   activeSidebarKey: WorkstationSidebarKey;
   workItemsContentVisible: boolean;
   projectsGroupVisibleCounts: ProjectsWorkItemMenuItemsParams["groupVisibleCounts"];
-  projectsSearchQuery: string;
   activeProjectOrgId: ProjectsWorkItemMenuItemsParams["selectedOrgId"];
 }
 
@@ -42,7 +41,6 @@ export function useWorkstationSidebarSessionAndProjectMenuItems({
   repoPathToName,
   groupByMode,
   untitledSession,
-  workstationSearchQuery,
   sessionFilterOrgIds,
   cloudScopedExtraSessionIds,
   sessionListExcludedIds,
@@ -51,10 +49,10 @@ export function useWorkstationSidebarSessionAndProjectMenuItems({
   activeCloudOrgId,
   expandedSubagentParentIds,
   revealedSessionIds,
+  workspaceGroupActions,
   activeSidebarKey,
   workItemsContentVisible,
   projectsGroupVisibleCounts,
-  projectsSearchQuery,
   activeProjectOrgId,
 }: UseWorkstationSidebarSessionAndProjectMenuItemsParams) {
   const {
@@ -69,7 +67,7 @@ export function useWorkstationSidebarSessionAndProjectMenuItems({
     repoPathToName,
     groupByMode,
     untitledSession,
-    searchQuery: workstationSearchQuery,
+    searchQuery: "",
     selectedOrgIds: sessionFilterOrgIds,
     extraSessionIds: cloudScopedExtraSessionIds,
     excludedSessionIds: sessionListExcludedIds,
@@ -78,6 +76,7 @@ export function useWorkstationSidebarSessionAndProjectMenuItems({
     showAllLoadedGroupSessions: Boolean(activeCloudOrgId),
     expandedSubagentParentIds,
     revealedSessionIds,
+    workspaceGroupActions,
   });
   const {
     menuItems: projectsWorkItemMenuItems,
@@ -97,7 +96,7 @@ export function useWorkstationSidebarSessionAndProjectMenuItems({
   } = useProjectsWorkItemMenuItems({
     enabled: activeSidebarKey === "projects" || workItemsContentVisible,
     groupVisibleCounts: projectsGroupVisibleCounts,
-    searchQuery: projectsSearchQuery,
+    searchQuery: "",
     selectedOrgId: activeProjectOrgId,
   });
 

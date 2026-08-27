@@ -1064,6 +1064,13 @@
     "historyThisWeek": "本週",
     "historyOlder": "更早",
     "historyPinned": "置頂",
+    "historyNoWorkspace": "無工作區",
+    "pinWorkspaceGroup": "置頂工作區",
+    "unpinWorkspaceGroup": "取消置頂工作區",
+    "hideWorkspaceGroup": "隱藏工作區",
+    "unhideWorkspaceGroup": "顯示工作區",
+    "workspaceUnavailableTitle": "Workspace 已無法使用",
+    "workspaceUnavailableMessage": "此 Workspace 可能已被移動或刪除。",
     "historyRefresh": "刷新",
     "historyLastUsedModel": "上次使用的模型",
     "historyUntitled": "未命名會話",
@@ -2906,5 +2913,8 @@
       "skipped": "已略過",
       "pending": "啟動中"
     }
+  },
+  "sessionBadge": {
+    "subagent": "Sub Agent"
   }
 }

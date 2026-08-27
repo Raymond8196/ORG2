@@ -97,7 +97,8 @@
       "byWorkspace": "Par Workspace"
     },
     "filters": {
-      "includeExternal": "Include External"
+      "includeExternal": "Include External",
+      "manageExternalSources": "Gérer les sources…"
     },
     "defaults": {
       "untitledSession": "Session sans titre",
@@ -143,8 +144,7 @@
       "workstation": "Poste de travail",
       "viewRam": "Voir la RAM",
       "tutorials": "Tutoriels",
-      "openSettings": "Ouvrir les paramètres",
-      "setupChecklist": "Configuration rapide"
+      "openSettings": "Ouvrir les paramètres"
     },
     "empty": {
       "noItems": "Aucun élément",
@@ -172,32 +172,18 @@
       "trigger": "Ouvrir le guide",
       "title": "Bien démarrer avec ORGII",
       "startSession": "Démarrer une session",
-      "quickSetup": "Langue et apparence",
       "close": "Fermer le guide",
-      "progressLabel": "{{completed}} étapes sur {{total}} terminées",
       "localWorkspace": "Espace de travail local",
       "connectOrganization": "Connecter ou créer une organisation",
       "createOrganizationHint": "Saisissez un nom d’organisation, puis sélectionnez Créer. Le guide continuera après la création de l’organisation cloud.",
       "inviteTeammate": "Inviter un membre de l’équipe",
       "inviteTeammateHint": "Créez ici un lien d’invitation, puis envoyez-le à votre coéquipier.",
       "invitePermissionHint": "Vous pouvez consulter la liste des membres ici. Un administrateur ou propriétaire de l’organisation doit créer l’invitation.",
-      "devPanelTitle": "États de test de l’onboarding",
-      "devPanelHint": "Aperçu temporaire du parcours d’invitation. Les données de l’organisation ne sont jamais modifiées.",
-      "devScenarioLive": "Données réelles",
-      "devScenarioNoOrganization": "Aucune organisation",
-      "devScenarioMember": "Membre · aucun accès aux invitations",
-      "devScenarioAdmin": "Administrateur · accès aux invitations",
-      "devScenarioOwner": "Propriétaire · accès aux invitations",
-      "devScenarioRequiresOrganization": "Les aperçus de rôle nécessitent au moins une organisation cloud réelle.",
-      "devSimulationActive": "Simulation de développement active",
-      "devSimulationReadOnly": "Cet aperçu de la page Membres est en lecture seule. Les actions de gestion sont désactivées.",
       "viewTeamActivity": "Voir l’utilisation de l’équipe",
       "viewTeamActivityHint": "Runtime est ouvert sur Membres. Choisissez un membre pour voir son utilisation de Codex, Claude et Cursor ; si aucune donnée n’apparaît, activez d’abord la synchronisation Runtime de l’équipe.",
       "exploreProduct": "Découvrir les pages principales",
-      "nextStep": "Étape suivante"
-    },
-    "developerTestPanel": {
-      "title": "Panneau de test de développement"
+      "nextStep": "Étape suivante",
+      "dismiss": "Masquer le guide"
     }
   },
   "myRole": {
@@ -445,6 +431,12 @@
       "sourceMissing": "Les données d'origine de la session ne sont plus sur le disque",
       "launchFailed": "Échec de l'ouverture du terminal {{agent}}",
       "composerPlaceholder": "Écrivez pour continuer dans une nouvelle session…"
+    },
+    "openInApp": {
+      "headerButton": "Ouvrir dans {{app}}",
+      "headerTooltip": "Afficher cette conversation dans l'application {{app}} ({{link}})",
+      "sourceMissing": "Les données d'origine de la session ne sont plus sur le disque",
+      "openFailed": "Échec de l'ouverture de {{app}}"
     }
   },
   "cloud": {

@@ -1050,6 +1050,13 @@
     "historyThisWeek": "Bu hafta",
     "historyOlder": "Daha eski",
     "historyPinned": "Sabitlendi",
+    "historyNoWorkspace": "Çalışma alanı yok",
+    "pinWorkspaceGroup": "Çalışma alanını sabitle",
+    "unpinWorkspaceGroup": "Çalışma alanı sabitlemesini kaldır",
+    "hideWorkspaceGroup": "Çalışma alanını gizle",
+    "unhideWorkspaceGroup": "Çalışma alanını göster",
+    "workspaceUnavailableTitle": "Workspace kullanılamıyor",
+    "workspaceUnavailableMessage": "Bu Workspace taşınmış veya silinmiş olabilir.",
     "historyRefresh": "Yenile",
     "historyLastUsedModel": "Son kullanılan model",
     "historyUntitled": "Başlıksız oturum",
@@ -2832,5 +2839,8 @@
       "skipped": "Atlandı",
       "pending": "Başlatılıyor"
     }
+  },
+  "sessionBadge": {
+    "subagent": "Sub Agent"
   }
 }

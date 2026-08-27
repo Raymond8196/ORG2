@@ -23,8 +23,8 @@ import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
+import { Placeholder } from "@src/components/Placeholder";
 import { createLogger } from "@src/hooks/logger";
-import { Placeholder } from "@src/modules/shared/layouts/blocks";
 import {
   webviewBlockedAtom,
   webviewOverlayBlockedAtom,

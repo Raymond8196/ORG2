@@ -1047,6 +1047,13 @@
     "historyThisWeek": "Tuần này",
     "historyOlder": "Cũ hơn",
     "historyPinned": "Đã ghim",
+    "historyNoWorkspace": "Không có không gian làm việc",
+    "pinWorkspaceGroup": "Ghim không gian làm việc",
+    "unpinWorkspaceGroup": "Bỏ ghim không gian làm việc",
+    "hideWorkspaceGroup": "Ẩn không gian làm việc",
+    "unhideWorkspaceGroup": "Hiện không gian làm việc",
+    "workspaceUnavailableTitle": "Workspace không khả dụng",
+    "workspaceUnavailableMessage": "Workspace này có thể đã bị di chuyển hoặc xóa.",
     "historyRefresh": "Làm mới",
     "historyLastUsedModel": "Model lần cuối dùng",
     "historyUntitled": "Phiên không có tên",
@@ -2828,5 +2835,8 @@
       "skipped": "Đã bỏ qua",
       "pending": "Đang khởi động"
     }
+  },
+  "sessionBadge": {
+    "subagent": "Subagent"
   }
 }

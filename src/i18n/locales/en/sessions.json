@@ -1109,6 +1109,13 @@
     "historyThisWeek": "This week",
     "historyOlder": "Older",
     "historyPinned": "Pinned",
+    "historyNoWorkspace": "No Workspace",
+    "pinWorkspaceGroup": "Pin workspace",
+    "unpinWorkspaceGroup": "Unpin workspace",
+    "hideWorkspaceGroup": "Hide workspace",
+    "unhideWorkspaceGroup": "Unhide workspace",
+    "workspaceUnavailableTitle": "Workspace no longer available",
+    "workspaceUnavailableMessage": "This Workspace may have been moved or deleted.",
     "historyRefresh": "Refresh",
     "historyLastUsedModel": "Last used model",
     "historyUntitled": "Untitled session",
@@ -3050,5 +3057,8 @@
     "imagesUnsupported": "Team chat messages cannot include images",
     "participantsTooltip": "Conversation participants and discussion messages",
     "mentionGroup": "Teammates"
+  },
+  "sessionBadge": {
+    "subagent": "Subagent"
   }
 }

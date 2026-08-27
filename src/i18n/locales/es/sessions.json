@@ -1050,6 +1050,13 @@
     "historyThisWeek": "Esta semana",
     "historyOlder": "Anteriores",
     "historyPinned": "Fijadas",
+    "historyNoWorkspace": "Sin espacio de trabajo",
+    "pinWorkspaceGroup": "Fijar espacio de trabajo",
+    "unpinWorkspaceGroup": "Desfijar espacio de trabajo",
+    "hideWorkspaceGroup": "Ocultar espacio de trabajo",
+    "unhideWorkspaceGroup": "Mostrar espacio de trabajo",
+    "workspaceUnavailableTitle": "Workspace no disponible",
+    "workspaceUnavailableMessage": "Es posible que este Workspace se haya movido o eliminado.",
     "historyRefresh": "Actualizar",
     "historyLastUsedModel": "Último modelo usado",
     "historyUntitled": "Sesión sin título",
@@ -2831,5 +2838,8 @@
       "skipped": "Omitido",
       "pending": "Iniciando"
     }
+  },
+  "sessionBadge": {
+    "subagent": "Sub Agent"
   }
 }

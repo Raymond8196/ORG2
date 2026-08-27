@@ -7,6 +7,7 @@ pub mod paths;
 #[cfg(feature = "git")]
 pub mod repo_identity;
 pub mod scan_snapshot;
+pub mod scratch_workspace;
 pub mod watermark;
 pub mod window;
 

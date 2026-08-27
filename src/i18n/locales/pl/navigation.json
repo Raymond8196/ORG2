@@ -97,7 +97,8 @@
       "byWorkspace": "Według Workspace"
     },
     "filters": {
-      "includeExternal": "Include External"
+      "includeExternal": "Include External",
+      "manageExternalSources": "Zarządzaj źródłami…"
     },
     "defaults": {
       "untitledSession": "Sesja bez nazwy",
@@ -141,8 +142,7 @@
       "workstation": "Stacja robocza",
       "viewRam": "Pokaż RAM",
       "tutorials": "Samouczki",
-      "openSettings": "Otwórz ustawienia",
-      "setupChecklist": "Szybka konfiguracja"
+      "openSettings": "Otwórz ustawienia"
     },
     "empty": {
       "noItems": "Brak elementów",
@@ -170,32 +170,18 @@
       "trigger": "Otwórz przewodnik",
       "title": "Rozpocznij pracę z ORGII",
       "startSession": "Rozpocznij sesję",
-      "quickSetup": "Język i wygląd",
       "close": "Zamknij przewodnik",
-      "progressLabel": "Ukończono {{completed}} z {{total}} kroków",
       "localWorkspace": "Lokalny obszar roboczy",
       "connectOrganization": "Połącz lub utwórz organizację",
       "createOrganizationHint": "Wpisz nazwę organizacji i wybierz Utwórz. Po utworzeniu organizacji w chmurze przewodnik przejdzie dalej.",
       "inviteTeammate": "Zaproś członka zespołu",
       "inviteTeammateHint": "Utwórz tutaj link z zaproszeniem i wyślij go członkowi zespołu.",
       "invitePermissionHint": "Tutaj możesz wyświetlić listę członków. Zaproszenie musi utworzyć administrator lub właściciel organizacji.",
-      "devPanelTitle": "Stany testowe onboardingu",
-      "devPanelHint": "Podgląd procesu zapraszania tylko w pamięci. Dane organizacji w backendzie nie są zmieniane.",
-      "devScenarioLive": "Dane rzeczywiste",
-      "devScenarioNoOrganization": "Brak organizacji",
-      "devScenarioMember": "Członek · bez dostępu do zaproszeń",
-      "devScenarioAdmin": "Administrator · dostęp do zaproszeń",
-      "devScenarioOwner": "Właściciel · dostęp do zaproszeń",
-      "devScenarioRequiresOrganization": "Podgląd ról wymaga co najmniej jednej rzeczywistej organizacji w chmurze.",
-      "devSimulationActive": "Symulacja deweloperska aktywna",
-      "devSimulationReadOnly": "Ten podgląd strony członków jest tylko do odczytu. Działania administracyjne są wyłączone.",
       "viewTeamActivity": "Wyświetl użycie zespołu",
       "viewTeamActivityHint": "Runtime jest otwarty na karcie Członkowie. Wybierz członka zespołu, aby zobaczyć użycie Codex, Claude i Cursor. Jeśli nie ma danych, najpierw włącz synchronizację środowiska zespołu.",
       "exploreProduct": "Poznaj główne strony",
-      "nextStep": "Następny krok"
-    },
-    "developerTestPanel": {
-      "title": "Panel testów deweloperskich"
+      "nextStep": "Następny krok",
+      "dismiss": "Odrzuć przewodnik"
     }
   },
   "myRole": {
@@ -443,6 +429,12 @@
       "sourceMissing": "Oryginalne dane sesji nie znajdują się już na dysku",
       "launchFailed": "Nie udało się otworzyć terminala {{agent}}",
       "composerPlaceholder": "Napisz, aby kontynuować w nowej sesji…"
+    },
+    "openInApp": {
+      "headerButton": "Otwórz w {{app}}",
+      "headerTooltip": "Pokaż tę rozmowę w aplikacji {{app}} ({{link}})",
+      "sourceMissing": "Oryginalne dane sesji nie znajdują się już na dysku",
+      "openFailed": "Nie udało się otworzyć {{app}}"
     }
   },
   "cloud": {
