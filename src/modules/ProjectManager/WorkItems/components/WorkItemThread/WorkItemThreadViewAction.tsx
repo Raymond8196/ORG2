@@ -31,9 +31,19 @@ export const WorkItemThreadViewAction: React.FC<
       size="mini"
       icon={
         isDiscussion ? (
-          <HugeiconsIcon icon={ArrowLeft} size={13} aria-hidden />
+          <HugeiconsIcon
+            icon={ArrowLeft}
+            data-icon="arrow-left"
+            size={13}
+            aria-hidden
+          />
         ) : (
-          <HugeiconsIcon icon={MessageSquare} size={13} aria-hidden />
+          <HugeiconsIcon
+            icon={MessageSquare}
+            data-icon="message-square"
+            size={13}
+            aria-hidden
+          />
         )
       }
       onClick={() => onChange(isDiscussion ? "overview" : "discussion")}

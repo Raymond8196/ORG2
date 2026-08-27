@@ -8,6 +8,7 @@
  * Uses useSelectedFile hook for single source of truth - selectedFilePath
  * comes from active editor tab, not from props.
  */
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -64,7 +65,9 @@ export function useFilesTabConfig({
     () => ({
       key: "files",
       label: t("tabs.explorer"),
-      icon: <FilesIcon size={PANEL_CONSTANTS.TAB_ICON_SIZE} />,
+      icon: (
+        <HugeiconsIcon icon={FilesIcon} size={PANEL_CONSTANTS.TAB_ICON_SIZE} />
+      ),
       sections: [
         {
           key: "files",

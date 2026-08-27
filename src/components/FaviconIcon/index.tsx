@@ -73,6 +73,7 @@ export const FaviconIcon: React.FC<FaviconIconProps> = memo(
       return (
         <HugeiconsIcon
           icon={Loader2}
+          data-icon="loader-2"
           size={size}
           className="shrink-0 animate-spin text-text-3"
         />
@@ -85,6 +86,7 @@ export const FaviconIcon: React.FC<FaviconIconProps> = memo(
       return (
         <HugeiconsIcon
           icon={HatGlasses}
+          data-icon="hat-glasses"
           size={size}
           strokeWidth={1.75}
           className="shrink-0 text-warning-6"
@@ -97,6 +99,7 @@ export const FaviconIcon: React.FC<FaviconIconProps> = memo(
     return (
       <HugeiconsIcon
         icon={Globe}
+        data-icon="globe"
         size={size}
         strokeWidth={1.75}
         className={`shrink-0 ${globeColor}`}

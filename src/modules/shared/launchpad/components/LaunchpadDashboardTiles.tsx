@@ -184,6 +184,7 @@ export const LaunchpadAddTile: React.FC<LaunchpadAddTileProps> = memo(
         <span className="flex h-8 w-8 items-center justify-center rounded-full bg-bg-1">
           <HugeiconsIcon
             icon={Plus}
+            data-icon="plus"
             size={18}
             strokeWidth={1.75}
             className="text-text-3"

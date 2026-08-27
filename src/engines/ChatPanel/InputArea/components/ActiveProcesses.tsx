@@ -79,6 +79,7 @@ const ProcessRow: React.FC<ProcessRowProps> = memo(({ process, onStop }) => {
       <div className="flex h-[14px] w-[14px] shrink-0 items-center justify-center">
         <HugeiconsIcon
           icon={SquareTerminal}
+          data-icon="square-terminal"
           size={14}
           className="text-text-2"
         />
@@ -89,7 +90,7 @@ const ProcessRow: React.FC<ProcessRowProps> = memo(({ process, onStop }) => {
           htmlType="button"
           variant="tertiary"
           size="mini"
-          icon={<HugeiconsIcon icon={Trash2} size={12} />}
+          icon={<HugeiconsIcon icon={Trash2} data-icon="trash-2" size={12} />}
           iconOnly
           className="enabled:hover:bg-fill-3 enabled:hover:text-danger-6"
           onClick={handleStop}
@@ -129,7 +130,12 @@ const SubagentRow: React.FC<SubagentRowProps> = memo(({ job, now, onStop }) => {
   return (
     <div className={`${COMPOSER_STACK_ROW_BASE} ${COMPOSER_STACK_ROW_HOVER}`}>
       <div className="flex h-[14px] w-[14px] shrink-0 items-center justify-center">
-        <HugeiconsIcon icon={Bot} size={14} className="text-text-2" />
+        <HugeiconsIcon
+          icon={Bot}
+          data-icon="bot"
+          size={14}
+          className="text-text-2"
+        />
       </div>
       <span className={COMPOSER_STACK_ROW_LABEL}>
         {job.agentName}
@@ -142,7 +148,7 @@ const SubagentRow: React.FC<SubagentRowProps> = memo(({ job, now, onStop }) => {
           htmlType="button"
           variant="tertiary"
           size="mini"
-          icon={<HugeiconsIcon icon={Trash2} size={12} />}
+          icon={<HugeiconsIcon icon={Trash2} data-icon="trash-2" size={12} />}
           iconOnly
           className="enabled:hover:bg-fill-3 enabled:hover:text-danger-6"
           onClick={handleStop}
@@ -248,7 +254,13 @@ const ActiveProcesses: React.FC<ActiveProcessesProps> = memo(
         className={`${CHAT_COMPOSER_STACK_BAR_SURFACE_BG_CLASS} overflow-hidden rounded-lg border border-solid border-border-2`}
       >
         <ComposerStackHeader
-          icon={<HugeiconsIcon icon={SquareTerminal} size={14} />}
+          icon={
+            <HugeiconsIcon
+              icon={SquareTerminal}
+              data-icon="square-terminal"
+              size={14}
+            />
+          }
           label={t("labels.processCount", { count })}
           expanded={true}
           onToggle={onToggle}

@@ -78,9 +78,17 @@ const ComposerStackHeader: React.FC<ComposerStackHeaderProps> = memo(
     const colors = COLOR[labelVariant];
 
     const chevronNode = expanded ? (
-      <HugeiconsIcon icon={ChevronsDownUp} size={ICON_SIZE} />
+      <HugeiconsIcon
+        icon={ChevronsDownUp}
+        data-icon="chevrons-down-up"
+        size={ICON_SIZE}
+      />
     ) : (
-      <HugeiconsIcon icon={ChevronsUpDown} size={ICON_SIZE} />
+      <HugeiconsIcon
+        icon={ChevronsUpDown}
+        data-icon="chevrons-up-down"
+        size={ICON_SIZE}
+      />
     );
 
     const iconSlot = (

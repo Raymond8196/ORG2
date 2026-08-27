@@ -388,12 +388,14 @@ const DiffFileSection: React.FC<DiffFileSectionProps> = ({
         ) : expanded ? (
           <HugeiconsIcon
             icon={ChevronDown}
+            data-icon="chevron-down"
             size={14}
             className="shrink-0 text-text-3"
           />
         ) : (
           <HugeiconsIcon
             icon={ChevronRight}
+            data-icon="chevron-right"
             size={14}
             className="shrink-0 text-text-3"
           />

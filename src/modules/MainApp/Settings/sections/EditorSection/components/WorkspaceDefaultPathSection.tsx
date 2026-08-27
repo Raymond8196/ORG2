@@ -127,7 +127,13 @@ const WorkspaceDefaultPathSection: React.FC = () => {
               variant="secondary"
               size="default"
               iconOnly
-              icon={<HugeiconsIcon icon={FolderOpen} size={16} />}
+              icon={
+                <HugeiconsIcon
+                  icon={FolderOpen}
+                  data-icon="folder-open"
+                  size={16}
+                />
+              }
               title={t("editor.defaultRepoFolderChoose")}
               aria-label={t("editor.defaultRepoFolderChoose")}
               onClick={handleChooseCustomPath}

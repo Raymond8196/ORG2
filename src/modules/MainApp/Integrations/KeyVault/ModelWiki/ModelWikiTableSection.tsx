@@ -298,7 +298,14 @@ export default function ModelWikiTableSection() {
           <div className="flex items-center gap-1.5">
             <CapabilityIcon
               active={entry.supportsTools}
-              icon={<HugeiconsIcon icon={Wrench} size={12} strokeWidth={2} />}
+              icon={
+                <HugeiconsIcon
+                  icon={Wrench}
+                  data-icon="wrench"
+                  size={12}
+                  strokeWidth={2}
+                />
+              }
               tooltip={t(
                 entry.supportsTools
                   ? "modelWiki.tipTools"
@@ -307,7 +314,14 @@ export default function ModelWikiTableSection() {
             />
             <CapabilityIcon
               active={entry.supportsReasoning}
-              icon={<HugeiconsIcon icon={Brain} size={12} strokeWidth={2} />}
+              icon={
+                <HugeiconsIcon
+                  icon={Brain}
+                  data-icon="brain"
+                  size={12}
+                  strokeWidth={2}
+                />
+              }
               tooltip={t(
                 entry.supportsReasoning
                   ? "modelWiki.tipReasoning"
@@ -319,6 +333,7 @@ export default function ModelWikiTableSection() {
               icon={
                 <HugeiconsIcon
                   icon={MessageSquareText}
+                  data-icon="message-square-text"
                   size={12}
                   strokeWidth={2}
                 />

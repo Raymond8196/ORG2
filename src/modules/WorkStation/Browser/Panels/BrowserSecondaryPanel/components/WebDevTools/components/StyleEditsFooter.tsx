@@ -43,7 +43,14 @@ export const StyleEditsFooter: React.FC<StyleEditsFooterProps> = memo(
               size="small"
               shape="square"
               iconOnly
-              icon={<HugeiconsIcon icon={Undo2} size={14} strokeWidth={1.75} />}
+              icon={
+                <HugeiconsIcon
+                  icon={Undo2}
+                  data-icon="undo-2"
+                  size={14}
+                  strokeWidth={1.75}
+                />
+              }
               disabled={disabled || editCount <= 0}
               onClick={onUndo}
               aria-label={t("actions.undo")}

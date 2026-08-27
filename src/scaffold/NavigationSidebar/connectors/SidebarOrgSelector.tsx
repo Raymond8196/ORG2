@@ -81,6 +81,7 @@ const SidebarOrgSelector: React.FC<SidebarOrgSelectorProps> = React.memo(
             >
               <HugeiconsIcon
                 icon={Settings2}
+                data-icon="settings-2"
                 size={13}
                 strokeWidth={2}
                 className="shrink-0"
@@ -95,6 +96,7 @@ const SidebarOrgSelector: React.FC<SidebarOrgSelectorProps> = React.memo(
             >
               <HugeiconsIcon
                 icon={Plus}
+                data-icon="plus"
                 size={13}
                 strokeWidth={2}
                 className="shrink-0"
@@ -108,6 +110,7 @@ const SidebarOrgSelector: React.FC<SidebarOrgSelectorProps> = React.memo(
               >
                 <HugeiconsIcon
                   icon={CircleCheck}
+                  data-icon="circle-check"
                   size={13}
                   strokeWidth={2}
                   className="shrink-0 text-success-6"
@@ -130,6 +133,7 @@ const SidebarOrgSelector: React.FC<SidebarOrgSelectorProps> = React.memo(
               >
                 <HugeiconsIcon
                   icon={LogIn}
+                  data-icon="log-in"
                   size={13}
                   strokeWidth={2}
                   className="shrink-0"

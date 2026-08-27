@@ -35,7 +35,8 @@ export function getPagesActions({
   const actions: ActionItem[] = [
     {
       key: "filter",
-      icon: createElement(Filter, {
+      icon: createElement(HugeiconsIcon, {
+        icon: Filter,
         size: ACTION_ICON_SIZE,
         className: showFilter ? "text-primary-6" : "",
       }),
@@ -47,7 +48,10 @@ export function getPagesActions({
   if (onCollapseAll) {
     actions.push({
       key: "collapse-all",
-      icon: createElement(ListChevronsDownUp, { size: 16 }),
+      icon: createElement(HugeiconsIcon, {
+        icon: ListChevronsDownUp,
+        size: 16,
+      }),
       tooltip: "Collapse All",
       onClick: onCollapseAll,
     });
@@ -56,7 +60,10 @@ export function getPagesActions({
   if (onAddPage) {
     actions.push({
       key: "add-page",
-      icon: createElement(Plus, { size: ACTION_ICON_SIZE }),
+      icon: createElement(HugeiconsIcon, {
+        icon: Plus,
+        size: ACTION_ICON_SIZE,
+      }),
       tooltip: "New Page",
       onClick: onAddPage,
     });
@@ -81,7 +88,8 @@ export function getGlobalTokensActions({
   const actions: ActionItem[] = [
     {
       key: "filter",
-      icon: createElement(Filter, {
+      icon: createElement(HugeiconsIcon, {
+        icon: Filter,
         size: ACTION_ICON_SIZE,
         className: showFilter ? "text-primary-6" : "",
       }),
@@ -93,7 +101,10 @@ export function getGlobalTokensActions({
   if (onRefresh) {
     actions.push({
       key: "refresh",
-      icon: createElement(RefreshCw, { size: ACTION_ICON_SIZE }),
+      icon: createElement(HugeiconsIcon, {
+        icon: RefreshCw,
+        size: ACTION_ICON_SIZE,
+      }),
       tooltip: "Rescan Tokens",
       onClick: onRefresh,
     });

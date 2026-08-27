@@ -87,6 +87,7 @@ const ChannelPanelHeader: React.FC<ChannelPanelHeaderProps> = ({
                 >
                   <HugeiconsIcon
                     icon={Users}
+                    data-icon="users"
                     size={12}
                     strokeWidth={1.75}
                     aria-hidden
@@ -102,6 +103,7 @@ const ChannelPanelHeader: React.FC<ChannelPanelHeaderProps> = ({
                 icon={
                   <HugeiconsIcon
                     icon={Settings2}
+                    data-icon="settings-2"
                     size={PANEL_HEADER_TOKENS.iconSize}
                     strokeWidth={2}
                   />

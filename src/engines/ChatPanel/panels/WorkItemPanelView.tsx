@@ -424,7 +424,13 @@ export const WorkItemPanelView: React.FC<WorkItemPanelViewProps> = ({
               onClick={() => void handleDeleteWorkItem()}
               aria-label={t("projects:workItems.deleteWorkItem")}
               data-testid="work-item-delete"
-              icon={<HugeiconsIcon icon={Trash2} size={HEADER_ICON_SIZE.sm} />}
+              icon={
+                <HugeiconsIcon
+                  icon={Trash2}
+                  data-icon="trash-2"
+                  size={HEADER_ICON_SIZE.sm}
+                />
+              }
             />
           </ToolbarTooltip>
         ) : null}
@@ -446,7 +452,13 @@ export const WorkItemPanelView: React.FC<WorkItemPanelViewProps> = ({
             onClick={toggleProperties}
             aria-label={propertiesToggleLabel}
             data-testid="chat-panel-work-item-properties-toggle"
-            icon={<HugeiconsIcon icon={Info} size={HEADER_ICON_SIZE.sm} />}
+            icon={
+              <HugeiconsIcon
+                icon={Info}
+                data-icon="info"
+                size={HEADER_ICON_SIZE.sm}
+              />
+            }
           />
         </ToolbarTooltip>
       </div>
@@ -478,6 +490,7 @@ export const WorkItemPanelView: React.FC<WorkItemPanelViewProps> = ({
           ) : (
             <HugeiconsIcon
               icon={ListChecks}
+              data-icon="list-checks"
               size={HEADER_ICON_SIZE.sm}
               strokeWidth={1.75}
             />
@@ -539,6 +552,7 @@ export const WorkItemPanelView: React.FC<WorkItemPanelViewProps> = ({
               >
                 <HugeiconsIcon
                   icon={ChevronsRight}
+                  data-icon="chevrons-right"
                   size={14}
                   strokeWidth={1.75}
                 />

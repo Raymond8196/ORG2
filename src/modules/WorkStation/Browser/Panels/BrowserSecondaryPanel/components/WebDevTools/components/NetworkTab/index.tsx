@@ -165,7 +165,11 @@ export const NetworkTab: React.FC<NetworkTabProps> = memo(
               className={HEADER_BUTTON.actionTreeRow}
               aria-label={t("tooltips.clearNetworkLogs")}
             >
-              <HugeiconsIcon icon={BrushCleaning} size={HEADER_ICON_SIZE.sm} />
+              <HugeiconsIcon
+                icon={BrushCleaning}
+                data-icon="brush-cleaning"
+                size={HEADER_ICON_SIZE.sm}
+              />
             </button>
           </ToolbarTooltip>
         </div>

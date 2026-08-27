@@ -467,7 +467,12 @@ function ProjectReplayContent({ view }: { view: ProjectReplayView }) {
   return (
     <div className="scrollbar-overlay flex-1 overflow-y-auto p-4 pb-[100px]">
       <div className="mb-2 flex items-center gap-2 text-[13px] font-medium text-text-1">
-        <HugeiconsIcon icon={FileText} size={14} className="text-text-3" />
+        <HugeiconsIcon
+          icon={FileText}
+          data-icon="file-text"
+          size={14}
+          className="text-text-3"
+        />
         {view.title}
       </div>
       <pre className="whitespace-pre-wrap text-[12px] leading-5 text-text-2">
@@ -497,7 +502,12 @@ function buildProjectReplayTabs(
     label: operationTypeLabel(op, t),
     title: op.resultSummary || operationTypeLabel(op, t),
     icon: (
-      <HugeiconsIcon icon={LayoutList} size={14} className="text-primary-6" />
+      <HugeiconsIcon
+        icon={LayoutList}
+        data-icon="layout-list"
+        size={14}
+        className="text-primary-6"
+      />
     ),
   }));
 }
@@ -553,6 +563,7 @@ const SessionReplayProject: React.FC<SimulatorAppProps> = ({
       <div className="flex min-w-0 items-center gap-2">
         <HugeiconsIcon
           icon={LayoutList}
+          data-icon="layout-list"
           size={14}
           className="shrink-0 text-text-3"
         />

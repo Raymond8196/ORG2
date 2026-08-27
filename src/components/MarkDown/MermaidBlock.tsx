@@ -241,7 +241,7 @@ const MermaidBlockHeader: React.FC<MermaidBlockHeaderProps> = ({
     rightContent={rightContent}
   >
     <EventBlockHeaderIcon
-      icon={<HugeiconsIcon icon={Workflow} size={14} />}
+      icon={<HugeiconsIcon icon={Workflow} data-icon="workflow" size={14} />}
       isCollapsed={isCollapsed}
       isHeaderHovered={isHeaderHovered}
       onToggle={onToggle}
@@ -508,7 +508,11 @@ const MermaidBlock: React.FC<MermaidBlockProps> = memo(
                 }}
                 title="Fullscreen"
               >
-                <HugeiconsIcon icon={Maximize2} size={14} />
+                <HugeiconsIcon
+                  icon={Maximize2}
+                  data-icon="maximize-2"
+                  size={14}
+                />
               </button>
             }
           />
@@ -541,7 +545,7 @@ const MermaidBlock: React.FC<MermaidBlockProps> = memo(
                     onClick={zoomOut}
                     title="Zoom out"
                   >
-                    <HugeiconsIcon icon={Minus} size={15} />
+                    <HugeiconsIcon icon={Minus} data-icon="minus" size={15} />
                   </button>
                   <span className="min-w-[3rem] text-center text-xs text-white/70">
                     {Math.round(zoom * 100)}%
@@ -551,7 +555,7 @@ const MermaidBlock: React.FC<MermaidBlockProps> = memo(
                     onClick={zoomIn}
                     title="Zoom in"
                   >
-                    <HugeiconsIcon icon={Plus} size={15} />
+                    <HugeiconsIcon icon={Plus} data-icon="plus" size={15} />
                   </button>
                   <div className="mx-1 h-4 w-px bg-white/20" />
                   <button
@@ -559,7 +563,11 @@ const MermaidBlock: React.FC<MermaidBlockProps> = memo(
                     onClick={resetZoom}
                     title="Reset (100%)"
                   >
-                    <HugeiconsIcon icon={RotateCcw} size={15} />
+                    <HugeiconsIcon
+                      icon={RotateCcw}
+                      data-icon="rotate-ccw"
+                      size={15}
+                    />
                   </button>
                   <div className="mx-1 h-4 w-px bg-white/20" />
                   <button
@@ -567,7 +575,7 @@ const MermaidBlock: React.FC<MermaidBlockProps> = memo(
                     onClick={toggleExpand}
                     title="Close"
                   >
-                    <HugeiconsIcon icon={X} size={15} />
+                    <HugeiconsIcon icon={X} data-icon="x" size={15} />
                   </button>
                 </div>
               </div>

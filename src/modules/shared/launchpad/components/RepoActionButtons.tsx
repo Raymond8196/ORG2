@@ -147,7 +147,9 @@ const RepoActionButtons: React.FC<RepoActionButtonsProps> = ({
         size="small"
         shape={shape}
         className="shrink-0"
-        icon={<HugeiconsIcon icon={FolderOpen} size={14} />}
+        icon={
+          <HugeiconsIcon icon={FolderOpen} data-icon="folder-open" size={14} />
+        }
         onClick={handleSwitch}
         title={t("navigation:launchpad.actions.switchToRepo", {
           defaultValue: "Open",
@@ -165,7 +167,13 @@ const RepoActionButtons: React.FC<RepoActionButtonsProps> = ({
         size="small"
         shape={shape}
         className="shrink-0"
-        icon={<HugeiconsIcon icon={MessageCircle} size={14} />}
+        icon={
+          <HugeiconsIcon
+            icon={MessageCircle}
+            data-icon="message-circle"
+            size={14}
+          />
+        }
         onClick={handleStartSession}
         title={t("navigation:launchpad.actions.startSession", {
           defaultValue: "Start session",
@@ -184,7 +192,7 @@ const RepoActionButtons: React.FC<RepoActionButtonsProps> = ({
           size="small"
           shape={shape}
           className="shrink-0"
-          icon={<HugeiconsIcon icon={Expand} size={14} />}
+          icon={<HugeiconsIcon icon={Expand} data-icon="expand" size={14} />}
           onClick={handleOpenDetails}
           title={t("navigation:launchpad.actions.openDetails", {
             defaultValue: "Show details",
@@ -204,7 +212,13 @@ const RepoActionButtons: React.FC<RepoActionButtonsProps> = ({
           size="small"
           shape={shape}
           className="shrink-0"
-          icon={<HugeiconsIcon icon={FolderSearch} size={14} />}
+          icon={
+            <HugeiconsIcon
+              icon={FolderSearch}
+              data-icon="folder-search"
+              size={14}
+            />
+          }
           onClick={handleLocateInFinder}
           title={t(getFileManagerRevealLabelKey())}
           {...secondaryButtonProps}
@@ -219,7 +233,7 @@ const RepoActionButtons: React.FC<RepoActionButtonsProps> = ({
           shape={shape}
           className="shrink-0"
           iconOnly
-          icon={<HugeiconsIcon icon={Trash2} size={14} />}
+          icon={<HugeiconsIcon icon={Trash2} data-icon="trash-2" size={14} />}
           onClick={handleRemove}
           title={t("navigation:launchpad.actions.remove", {
             defaultValue: "Remove from ORGII",
@@ -233,7 +247,7 @@ const RepoActionButtons: React.FC<RepoActionButtonsProps> = ({
           shape={shape}
           className="shrink-0"
           iconOnly
-          icon={<HugeiconsIcon icon={X} size={14} />}
+          icon={<HugeiconsIcon icon={X} data-icon="x" size={14} />}
           onClick={onClear}
           title={t("common:actions.close", { defaultValue: "Close" })}
         />

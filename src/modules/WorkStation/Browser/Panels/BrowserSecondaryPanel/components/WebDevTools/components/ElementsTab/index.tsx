@@ -61,11 +61,12 @@ export const ElementsTab: React.FC<ElementsTabProps> = memo(
             copiedField === field ? (
               <HugeiconsIcon
                 icon={Check}
+                data-icon="check"
                 size={10}
                 className="text-success-6"
               />
             ) : (
-              <HugeiconsIcon icon={Copy} size={10} />
+              <HugeiconsIcon icon={Copy} data-icon="copy" size={10} />
             )
           }
           iconOnly
@@ -88,7 +89,7 @@ export const ElementsTab: React.FC<ElementsTabProps> = memo(
               <Button
                 variant="tertiary"
                 size="mini"
-                icon={<HugeiconsIcon icon={X} size={12} />}
+                icon={<HugeiconsIcon icon={X} data-icon="x" size={12} />}
                 iconOnly
                 onClick={onClear}
                 aria-label={t("tooltips.clearSelection")}

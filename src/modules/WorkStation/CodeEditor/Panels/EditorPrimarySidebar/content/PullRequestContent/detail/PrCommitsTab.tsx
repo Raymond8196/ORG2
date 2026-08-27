@@ -228,6 +228,7 @@ function PrCommitCard({
               <span className="inline-flex items-center gap-1 text-success-6">
                 <HugeiconsIcon
                   icon={ShieldCheck}
+                  data-icon="shield-check"
                   size={13}
                   strokeWidth={1.9}
                   aria-hidden
@@ -246,9 +247,19 @@ function PrCommitCard({
         <ActivityHeaderActionButton
           icon={
             copied ? (
-              <HugeiconsIcon icon={Check} size={13} strokeWidth={1.75} />
+              <HugeiconsIcon
+                icon={Check}
+                data-icon="check"
+                size={13}
+                strokeWidth={1.75}
+              />
             ) : (
-              <HugeiconsIcon icon={Copy} size={13} strokeWidth={1.75} />
+              <HugeiconsIcon
+                icon={Copy}
+                data-icon="copy"
+                size={13}
+                strokeWidth={1.75}
+              />
             )
           }
           label={
@@ -262,7 +273,14 @@ function PrCommitCard({
           }}
         />
         <ActivityHeaderActionButton
-          icon={<HugeiconsIcon icon={Code2} size={14} strokeWidth={1.75} />}
+          icon={
+            <HugeiconsIcon
+              icon={Code2}
+              data-icon="code-2"
+              size={14}
+              strokeWidth={1.75}
+            />
+          }
           label={t("git.pr.commits.viewDetails", "View commit details")}
           onClick={(event) => {
             event.stopPropagation();
@@ -352,7 +370,12 @@ export const PrCommitsTab: React.FC<PrCommitsTabProps> = ({
             appearance="ghost"
             size="mini"
             icon={
-              <HugeiconsIcon icon={ChevronLeft} size={14} strokeWidth={2} />
+              <HugeiconsIcon
+                icon={ChevronLeft}
+                data-icon="chevron-left"
+                size={14}
+                strokeWidth={2}
+              />
             }
             onClick={() => updateSelectedCommitSha(null)}
           >
@@ -410,6 +433,7 @@ export const PrCommitsTab: React.FC<PrCommitsTabProps> = ({
               <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-fill-2 text-text-2">
                 <HugeiconsIcon
                   icon={GitCommitHorizontal}
+                  data-icon="git-commit-horizontal"
                   size={13}
                   strokeWidth={1.8}
                   aria-hidden

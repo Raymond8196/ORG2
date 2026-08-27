@@ -306,6 +306,7 @@ const SidebarSettingsMenuButton: React.FC = React.memo(() => {
                 <span className="flex min-w-0 items-center gap-2">
                   <HugeiconsIcon
                     icon={MousePointer2}
+                    data-icon="mouse-pointer-2"
                     size={DROPDOWN_ITEM.iconSize}
                     className={MENU_ICON_CLASS_NAME}
                   />
@@ -330,6 +331,7 @@ const SidebarSettingsMenuButton: React.FC = React.memo(() => {
                   >
                     <HugeiconsIcon
                       icon={Gauge}
+                      data-icon="gauge"
                       size={DROPDOWN_ITEM.iconSize}
                       className={MENU_ICON_CLASS_NAME}
                     />
@@ -346,6 +348,7 @@ const SidebarSettingsMenuButton: React.FC = React.memo(() => {
                     >
                       <HugeiconsIcon
                         icon={FlaskConical}
+                        data-icon="flask-conical"
                         size={DROPDOWN_ITEM.iconSize}
                         className={MENU_ICON_CLASS_NAME}
                       />
@@ -367,6 +370,7 @@ const SidebarSettingsMenuButton: React.FC = React.memo(() => {
               >
                 <HugeiconsIcon
                   icon={HelpCircle}
+                  data-icon="help-circle"
                   size={DROPDOWN_ITEM.iconSize}
                   className={MENU_ICON_CLASS_NAME}
                 />
@@ -386,6 +390,7 @@ const SidebarSettingsMenuButton: React.FC = React.memo(() => {
                 <span className="flex min-w-0 items-center gap-2">
                   <HugeiconsIcon
                     icon={Circle}
+                    data-icon="circle"
                     size={DROPDOWN_ITEM.iconSize}
                     className="shrink-0 text-success-6"
                   />
@@ -395,6 +400,7 @@ const SidebarSettingsMenuButton: React.FC = React.memo(() => {
                 </span>
                 <HugeiconsIcon
                   icon={ChevronRight}
+                  data-icon="chevron-right"
                   size={DROPDOWN_ITEM.iconSize}
                   className={MENU_ARROW_CLASS_NAME}
                 />
@@ -412,6 +418,7 @@ const SidebarSettingsMenuButton: React.FC = React.memo(() => {
                 <span className="flex min-w-0 items-center gap-2">
                   <HugeiconsIcon
                     icon={Contrast}
+                    data-icon="contrast"
                     size={DROPDOWN_ITEM.iconSize}
                     className={MENU_ICON_CLASS_NAME}
                   />
@@ -421,6 +428,7 @@ const SidebarSettingsMenuButton: React.FC = React.memo(() => {
                 </span>
                 <HugeiconsIcon
                   icon={ChevronRight}
+                  data-icon="chevron-right"
                   size={DROPDOWN_ITEM.iconSize}
                   className={MENU_ARROW_CLASS_NAME}
                 />
@@ -438,6 +446,7 @@ const SidebarSettingsMenuButton: React.FC = React.memo(() => {
                 <span className="flex min-w-0 items-center gap-2">
                   <HugeiconsIcon
                     icon={MessageCircle}
+                    data-icon="message-circle"
                     size={DROPDOWN_ITEM.iconSize}
                     className={MENU_ICON_CLASS_NAME}
                   />
@@ -447,6 +456,7 @@ const SidebarSettingsMenuButton: React.FC = React.memo(() => {
                 </span>
                 <HugeiconsIcon
                   icon={ChevronRight}
+                  data-icon="chevron-right"
                   size={DROPDOWN_ITEM.iconSize}
                   className={MENU_ARROW_CLASS_NAME}
                 />
@@ -464,6 +474,7 @@ const SidebarSettingsMenuButton: React.FC = React.memo(() => {
                 <span className="flex min-w-0 items-center gap-2">
                   <HugeiconsIcon
                     icon={Laptop}
+                    data-icon="laptop"
                     size={DROPDOWN_ITEM.iconSize}
                     className={MENU_ICON_CLASS_NAME}
                   />
@@ -473,6 +484,7 @@ const SidebarSettingsMenuButton: React.FC = React.memo(() => {
                 </span>
                 <HugeiconsIcon
                   icon={ChevronRight}
+                  data-icon="chevron-right"
                   size={DROPDOWN_ITEM.iconSize}
                   className={MENU_ARROW_CLASS_NAME}
                 />
@@ -488,6 +500,7 @@ const SidebarSettingsMenuButton: React.FC = React.memo(() => {
                 <span className="flex min-w-0 items-center gap-2">
                   <HugeiconsIcon
                     icon={Settings}
+                    data-icon="settings"
                     size={DROPDOWN_ITEM.iconSize}
                     className={MENU_ICON_CLASS_NAME}
                   />

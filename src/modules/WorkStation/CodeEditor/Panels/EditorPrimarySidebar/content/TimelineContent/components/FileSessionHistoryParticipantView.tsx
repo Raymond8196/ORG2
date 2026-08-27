@@ -1,3 +1,4 @@
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -91,7 +92,7 @@ export const FileSessionHistoryParticipantView: React.FC<FileSessionHistoryParti
           <span
             className={`${HEADER_BUTTON.actionTreeRow} hidden flex-shrink-0 group-hover/session-history:flex`}
           >
-            <OpenIcon size={14} />
+            <HugeiconsIcon icon={OpenIcon} size={14} />
           </span>
         )}
       </button>

@@ -107,6 +107,7 @@ const CalendarToolbar: React.FC<CalendarToolbarProps> = ({
           icon={
             <HugeiconsIcon
               icon={ChevronLeft}
+              data-icon="chevron-left"
               size={PANEL_HEADER_TOKENS.buttonIconSize}
               strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
             />
@@ -126,6 +127,7 @@ const CalendarToolbar: React.FC<CalendarToolbarProps> = ({
           icon={
             <HugeiconsIcon
               icon={ChevronRight}
+              data-icon="chevron-right"
               size={PANEL_HEADER_TOKENS.buttonIconSize}
               strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
             />

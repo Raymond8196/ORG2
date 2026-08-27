@@ -83,6 +83,7 @@ export const ReadFileBlock: React.FC<ReadFileBlockProps> = (props) => {
       isSkill ? (
         <HugeiconsIcon
           icon={Briefcase}
+          data-icon="briefcase"
           size={SESSION_UI_TOKENS.ICON.SIZE_SM}
           className="text-text-2"
         />

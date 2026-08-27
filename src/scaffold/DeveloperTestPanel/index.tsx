@@ -46,9 +46,17 @@ const DeveloperTestModuleSection: FC<{
         }
         suffix={
           expanded ? (
-            <HugeiconsIcon icon={ChevronDown} size={DROPDOWN_ITEM.iconSize} />
+            <HugeiconsIcon
+              icon={ChevronDown}
+              data-icon="chevron-down"
+              size={DROPDOWN_ITEM.iconSize}
+            />
           ) : (
-            <HugeiconsIcon icon={ChevronRight} size={DROPDOWN_ITEM.iconSize} />
+            <HugeiconsIcon
+              icon={ChevronRight}
+              data-icon="chevron-right"
+              size={DROPDOWN_ITEM.iconSize}
+            />
           )
         }
         role="button"
@@ -125,7 +133,7 @@ const DeveloperTestPanelContent: FC<DeveloperTestPanelProps> = ({
           variant="default"
           onClick={onClose}
         >
-          <HugeiconsIcon icon={X} size={HEADER_ICON_SIZE.sm} />
+          <HugeiconsIcon icon={X} data-icon="x" size={HEADER_ICON_SIZE.sm} />
         </IconButton>
       </div>
       <div className="min-h-0 overflow-y-auto py-1">

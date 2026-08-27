@@ -93,6 +93,7 @@ export const ResultItemIcon: React.FC<{
     return (
       <HugeiconsIcon
         icon={Terminal}
+        data-icon="terminal"
         size={DROPDOWN_ITEM.iconSize}
         strokeWidth={1.75}
         className={iconAccent}
@@ -121,6 +122,7 @@ export const ResultItemIcon: React.FC<{
     return (
       <HugeiconsIcon
         icon={Globe}
+        data-icon="globe"
         size={DROPDOWN_ITEM.iconSize}
         strokeWidth={1.75}
         className={iconAccent}
@@ -132,6 +134,7 @@ export const ResultItemIcon: React.FC<{
     return (
       <HugeiconsIcon
         icon={Code}
+        data-icon="code"
         size={DROPDOWN_ITEM.iconSize}
         strokeWidth={1.75}
         className={iconAccent}
@@ -143,6 +146,7 @@ export const ResultItemIcon: React.FC<{
     return (
       <HugeiconsIcon
         icon={FolderKanban}
+        data-icon="folder-kanban"
         size={DROPDOWN_ITEM.iconSize}
         strokeWidth={1.75}
         className={iconAccent}
@@ -154,6 +158,7 @@ export const ResultItemIcon: React.FC<{
     return (
       <HugeiconsIcon
         icon={ListChecks}
+        data-icon="list-checks"
         size={DROPDOWN_ITEM.iconSize}
         strokeWidth={1.75}
         className={iconAccent}

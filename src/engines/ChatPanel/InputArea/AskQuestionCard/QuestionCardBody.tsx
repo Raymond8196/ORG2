@@ -155,7 +155,11 @@ export function QuestionCardBody({
                             : "bg-bg-2 text-primary-6"
                         )}
                       >
-                        <HugeiconsIcon icon={PenLine} size={12} />
+                        <HugeiconsIcon
+                          icon={PenLine}
+                          data-icon="pen-line"
+                          size={12}
+                        />
                       </span>
                       <span
                         className={classNames(

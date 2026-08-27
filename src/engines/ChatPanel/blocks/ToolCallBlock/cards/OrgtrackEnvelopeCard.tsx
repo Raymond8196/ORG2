@@ -120,12 +120,14 @@ const OrgtrackEnvelopeCard: React.FC<OrgtrackEnvelopeCardProps> = ({
         {card.ok ? (
           <HugeiconsIcon
             icon={CheckCircle2}
+            data-icon="check-circle-2"
             size={12}
             className="shrink-0 text-success-6"
           />
         ) : (
           <HugeiconsIcon
             icon={XCircle}
+            data-icon="xcircle"
             size={12}
             className="shrink-0 text-danger-6"
           />
@@ -142,6 +144,7 @@ const OrgtrackEnvelopeCard: React.FC<OrgtrackEnvelopeCardProps> = ({
         {target ? (
           <HugeiconsIcon
             icon={ChevronRight}
+            data-icon="chevron-right"
             size={14}
             className="shrink-0 text-text-4"
             aria-hidden

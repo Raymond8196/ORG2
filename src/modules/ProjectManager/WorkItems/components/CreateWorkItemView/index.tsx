@@ -314,6 +314,7 @@ const CreateWorkItemView: React.FC<CreateWorkItemViewProps> = ({
                 icon={
                   <HugeiconsIcon
                     icon={Info}
+                    data-icon="info"
                     size={PANEL_HEADER_TOKENS.buttonIconSize}
                     strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
                   />
@@ -337,6 +338,7 @@ const CreateWorkItemView: React.FC<CreateWorkItemViewProps> = ({
                 icon={
                   <HugeiconsIcon
                     icon={X}
+                    data-icon="x"
                     size={PANEL_HEADER_TOKENS.buttonIconSize}
                     strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
                   />

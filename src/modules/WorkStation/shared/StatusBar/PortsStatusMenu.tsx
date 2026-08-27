@@ -131,7 +131,12 @@ const PortRow: React.FC<PortRowProps> = memo(
               onOpen(port);
             }}
           >
-            <HugeiconsIcon icon={Chromium} size={MENU_ICON_SIZE} aria-hidden />
+            <HugeiconsIcon
+              icon={Chromium}
+              data-icon="chromium"
+              size={MENU_ICON_SIZE}
+              aria-hidden
+            />
           </button>
           <button
             type="button"
@@ -143,7 +148,7 @@ const PortRow: React.FC<PortRowProps> = memo(
               onCopy(port);
             }}
           >
-            <HugeiconsIcon icon={Copy} size={MENU_ICON_SIZE} />
+            <HugeiconsIcon icon={Copy} data-icon="copy" size={MENU_ICON_SIZE} />
           </button>
           {canStop && (
             <button
@@ -160,11 +165,16 @@ const PortRow: React.FC<PortRowProps> = memo(
               {stopping ? (
                 <HugeiconsIcon
                   icon={Loader2}
+                  data-icon="loader-2"
                   size={MENU_ICON_SIZE}
                   className="animate-spin text-danger-6"
                 />
               ) : (
-                <HugeiconsIcon icon={Trash2} size={MENU_ICON_SIZE} />
+                <HugeiconsIcon
+                  icon={Trash2}
+                  data-icon="trash-2"
+                  size={MENU_ICON_SIZE}
+                />
               )}
             </button>
           )}
@@ -289,7 +299,12 @@ export const PortsStatusMenu: React.FC = memo(() => {
           className="gap-1.5"
           dataTestId="status-bar-ports"
         >
-          <HugeiconsIcon icon={Unplug} size={13} className="text-text-1" />
+          <HugeiconsIcon
+            icon={Unplug}
+            data-icon="unplug"
+            size={13}
+            className="text-text-1"
+          />
           <StatusBarLabel emphasis numeric className="text-text-1">
             {workspaceCount}
           </StatusBarLabel>
@@ -314,6 +329,7 @@ export const PortsStatusMenu: React.FC = memo(() => {
             <div className={DROPDOWN_CLASSES.searchContainer}>
               <HugeiconsIcon
                 icon={Search}
+                data-icon="search"
                 size={DROPDOWN_ITEM.iconSize}
                 className="shrink-0 text-text-3"
               />

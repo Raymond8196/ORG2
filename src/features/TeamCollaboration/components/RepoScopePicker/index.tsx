@@ -164,6 +164,7 @@ export function RepoScopePicker({
               {isSelected ? (
                 <HugeiconsIcon
                   icon={Check}
+                  data-icon="check"
                   size={14}
                   className="shrink-0 text-primary-6"
                 />

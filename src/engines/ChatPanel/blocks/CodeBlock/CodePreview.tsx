@@ -120,9 +120,17 @@ const CodePreview: React.FC<CodePreviewProps> = ({
             }
           >
             {isMaxHeight ? (
-              <HugeiconsIcon icon={Minimize2} size={12} />
+              <HugeiconsIcon
+                icon={Minimize2}
+                data-icon="minimize-2"
+                size={12}
+              />
             ) : (
-              <HugeiconsIcon icon={Maximize2} size={12} />
+              <HugeiconsIcon
+                icon={Maximize2}
+                data-icon="maximize-2"
+                size={12}
+              />
             )}
           </button>
           <button
@@ -131,7 +139,11 @@ const CodePreview: React.FC<CodePreviewProps> = ({
             className="rounded p-1 text-text-4 transition-colors hover:bg-fill-3 hover:text-text-2"
             title={t("codePreview.openExternal")}
           >
-            <HugeiconsIcon icon={SquareArrowOutUpRight} size={12} />
+            <HugeiconsIcon
+              icon={SquareArrowOutUpRight}
+              data-icon="square-arrow-out-up-right"
+              size={12}
+            />
           </button>
           <button
             type="button"
@@ -139,7 +151,7 @@ const CodePreview: React.FC<CodePreviewProps> = ({
             className="rounded p-1 text-text-4 transition-colors hover:bg-fill-3 hover:text-text-2"
             title={t("codePreview.close")}
           >
-            <HugeiconsIcon icon={X} size={12} />
+            <HugeiconsIcon icon={X} data-icon="x" size={12} />
           </button>
         </div>
       </div>

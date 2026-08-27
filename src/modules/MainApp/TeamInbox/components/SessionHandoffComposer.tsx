@@ -125,14 +125,24 @@ const SessionHandoffComposer: React.FC<SessionHandoffComposerProps> = ({
               {selectedDestination?.sender.name ??
                 t("teamInbox.handoff.chooseDestination")}
             </span>
-            <HugeiconsIcon icon={ArrowRight} size={13} aria-hidden />
+            <HugeiconsIcon
+              icon={ArrowRight}
+              data-icon="arrow-right"
+              size={13}
+              aria-hidden
+            />
             <span className="font-medium text-text-2">
               {recipient?.name ?? t("teamInbox.handoff.chooseRecipient")}
             </span>
             {selectedDestination ? (
               <>
                 <span aria-hidden>·</span>
-                <HugeiconsIcon icon={FolderKanban} size={13} aria-hidden />
+                <HugeiconsIcon
+                  icon={FolderKanban}
+                  data-icon="folder-kanban"
+                  size={13}
+                  aria-hidden
+                />
                 <span className="truncate">
                   {selectedDestination.kind === "cloud_org"
                     ? t("teamInbox.handoff.cloudDestination", {
@@ -153,7 +163,12 @@ const SessionHandoffComposer: React.FC<SessionHandoffComposerProps> = ({
               {draft.impactSummary ? <span>{draft.impactSummary}</span> : null}
               {draft.todoCount > 0 ? (
                 <span className="inline-flex items-center gap-1">
-                  <HugeiconsIcon icon={CheckSquare} size={12} aria-hidden />
+                  <HugeiconsIcon
+                    icon={CheckSquare}
+                    data-icon="check-square"
+                    size={12}
+                    aria-hidden
+                  />
                   {t("teamInbox.handoff.todoCount", {
                     count: draft.todoCount,
                   })}

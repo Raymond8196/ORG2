@@ -83,7 +83,12 @@ export const VariantPill: React.FC<VariantPillProps> = ({
             active ? "text-text-1" : "group-hover/variant-pill:text-text-1"
           }`}
         >
-          <HugeiconsIcon icon={Brain} size={12} strokeWidth={1.75} />
+          <HugeiconsIcon
+            icon={Brain}
+            data-icon="brain"
+            size={12}
+            strokeWidth={1.75}
+          />
         </span>
       )}
       {parts.map((part, index) => (
@@ -122,6 +127,7 @@ export const VariantPill: React.FC<VariantPillProps> = ({
       {editable && (
         <HugeiconsIcon
           icon={Pencil}
+          data-icon="pencil"
           className={
             active
               ? "ml-1 text-text-1"

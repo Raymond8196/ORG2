@@ -75,7 +75,7 @@ const LinkedEmailRow: React.FC<{
       </div>
       {!isPrimary && onUnlink && (
         <Button
-          icon={<HugeiconsIcon icon={Minus} size={14} />}
+          icon={<HugeiconsIcon icon={Minus} data-icon="minus" size={14} />}
           iconOnly
           onClick={onUnlink}
           title={t("settings.unlinkIdentity")}
@@ -182,21 +182,21 @@ const EditableField: React.FC<{
         {editing ? (
           <>
             <Button
-              icon={<HugeiconsIcon icon={Check} size={14} />}
+              icon={<HugeiconsIcon icon={Check} data-icon="check" size={14} />}
               iconOnly
               onClick={() => {
                 if (inputRef.current) handleSave(inputRef.current.value);
               }}
             />
             <Button
-              icon={<HugeiconsIcon icon={X} size={14} />}
+              icon={<HugeiconsIcon icon={X} data-icon="x" size={14} />}
               iconOnly
               onClick={handleCancel}
             />
           </>
         ) : (
           <Button
-            icon={<HugeiconsIcon icon={Pencil} size={14} />}
+            icon={<HugeiconsIcon icon={Pencil} data-icon="pencil" size={14} />}
             iconOnly
             onClick={handleStartEdit}
           />
@@ -375,7 +375,7 @@ const MyProfileSection: React.FC<MyProfileSectionProps> = ({
           <div className="flex items-center gap-2">
             <span className="text-[14px] text-text-1">{myMember.id}</span>
             <Button
-              icon={<HugeiconsIcon icon={Copy} size={14} />}
+              icon={<HugeiconsIcon icon={Copy} data-icon="copy" size={14} />}
               iconOnly
               onClick={() => {
                 copyText(myMember.id).catch((err) => {

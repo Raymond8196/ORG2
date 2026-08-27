@@ -482,6 +482,7 @@ export const ModelPropertiesDropdown: React.FC<
               icon={
                 <HugeiconsIcon
                   icon={Brain}
+                  data-icon="brain"
                   size={DROPDOWN_ITEM.iconSize}
                   className="text-text-2"
                 />
@@ -496,6 +497,7 @@ export const ModelPropertiesDropdown: React.FC<
               icon={
                 <HugeiconsIcon
                   icon={Zap}
+                  data-icon="zap"
                   size={DROPDOWN_ITEM.iconSize}
                   className="text-text-2"
                 />

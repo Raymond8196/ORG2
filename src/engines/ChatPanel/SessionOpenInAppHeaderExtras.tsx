@@ -129,6 +129,7 @@ const SessionOpenInAppHeaderExtras: React.FC<
           icon={
             <HugeiconsIcon
               icon={SquareArrowOutUpRight}
+              data-icon="square-arrow-out-up-right"
               size={14}
               strokeWidth={2}
             />

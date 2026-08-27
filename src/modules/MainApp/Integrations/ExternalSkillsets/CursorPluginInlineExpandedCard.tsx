@@ -169,6 +169,7 @@ const CursorPluginInlineExpandedCard: React.FC<
         >
           <HugeiconsIcon
             icon={Layers}
+            data-icon="layers"
             size={12}
             className="shrink-0 text-text-3"
           />
@@ -179,6 +180,7 @@ const CursorPluginInlineExpandedCard: React.FC<
               </span>
               <HugeiconsIcon
                 icon={SquareArrowOutUpRight}
+                data-icon="square-arrow-out-up-right"
                 size={11}
                 className="shrink-0 text-text-3"
               />
@@ -216,6 +218,7 @@ const CursorPluginInlineExpandedCard: React.FC<
         >
           <HugeiconsIcon
             icon={GitBranch}
+            data-icon="git-branch"
             size={12}
             className="shrink-0 text-text-3"
           />
@@ -226,6 +229,7 @@ const CursorPluginInlineExpandedCard: React.FC<
               </span>
               <HugeiconsIcon
                 icon={SquareArrowOutUpRight}
+                data-icon="square-arrow-out-up-right"
                 size={11}
                 className="shrink-0 text-text-3"
               />
@@ -267,9 +271,13 @@ const CursorPluginInlineExpandedCard: React.FC<
               className="inline-flex items-center gap-1.5 rounded border border-border-2 px-3 py-1.5 text-[12px] text-text-2 transition-colors hover:bg-fill-3 hover:text-text-1"
             >
               {mcpCopied ? (
-                <HugeiconsIcon icon={Check} size={12} />
+                <HugeiconsIcon icon={Check} data-icon="check" size={12} />
               ) : (
-                <HugeiconsIcon icon={Clipboard} size={12} />
+                <HugeiconsIcon
+                  icon={Clipboard}
+                  data-icon="clipboard"
+                  size={12}
+                />
               )}
               {mcpCopied
                 ? t("common:status.copied")

@@ -73,7 +73,7 @@ export function ComponentIssueDetailSection({
             onClick={() => onCopyField(label, copyValue)}
             aria-label={`Copy ${label}`}
           >
-            <HugeiconsIcon icon={Copy} size={16} />
+            <HugeiconsIcon icon={Copy} data-icon="copy" size={16} />
           </button>
         )}
       </div>
@@ -127,7 +127,7 @@ export function ComponentIssueSuggestions({
                   onClick={() => onCopyField("File path", suggestion.filePath)}
                   title="Copy file path"
                 >
-                  <HugeiconsIcon icon={Copy} size={16} />
+                  <HugeiconsIcon icon={Copy} data-icon="copy" size={16} />
                 </button>
               </div>
               <div className="component-issue-suggestion-file">

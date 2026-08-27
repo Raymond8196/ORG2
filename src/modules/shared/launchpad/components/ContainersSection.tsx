@@ -218,7 +218,7 @@ const ContainersSection: React.FC<ContainersSectionProps> = ({
               <Button
                 variant="tertiary"
                 size="mini"
-                icon={<HugeiconsIcon icon={Eye} size={13} />}
+                icon={<HugeiconsIcon icon={Eye} data-icon="eye" size={13} />}
                 loading={actionLoading}
                 onClick={() => handleInspect(row)}
                 aria-label={t("navigation:launchpad.containers.inspect")}
@@ -227,7 +227,9 @@ const ContainersSection: React.FC<ContainersSectionProps> = ({
                 <Button
                   variant="tertiary"
                   size="mini"
-                  icon={<HugeiconsIcon icon={Square} size={13} />}
+                  icon={
+                    <HugeiconsIcon icon={Square} data-icon="square" size={13} />
+                  }
                   loading={actionLoading}
                   onClick={() => runAction(row, "stop")}
                   aria-label={t("navigation:launchpad.containers.stop")}
@@ -236,7 +238,9 @@ const ContainersSection: React.FC<ContainersSectionProps> = ({
                 <Button
                   variant="tertiary"
                   size="mini"
-                  icon={<HugeiconsIcon icon={Play} size={13} />}
+                  icon={
+                    <HugeiconsIcon icon={Play} data-icon="play" size={13} />
+                  }
                   loading={actionLoading}
                   onClick={() => runAction(row, "start")}
                   aria-label={t("navigation:launchpad.containers.start")}
@@ -245,7 +249,13 @@ const ContainersSection: React.FC<ContainersSectionProps> = ({
               <Button
                 variant="tertiary"
                 size="mini"
-                icon={<HugeiconsIcon icon={RotateCcw} size={13} />}
+                icon={
+                  <HugeiconsIcon
+                    icon={RotateCcw}
+                    data-icon="rotate-ccw"
+                    size={13}
+                  />
+                }
                 loading={actionLoading}
                 onClick={() => runAction(row, "restart")}
                 aria-label={t("navigation:launchpad.containers.restart")}
@@ -269,7 +279,12 @@ const ContainersSection: React.FC<ContainersSectionProps> = ({
           variant="tertiary"
           size="mini"
           icon={
-            <HugeiconsIcon icon={RefreshCw} size={13} className={spinClass} />
+            <HugeiconsIcon
+              icon={RefreshCw}
+              data-icon="refresh-cw"
+              size={13}
+              className={spinClass}
+            />
           }
           onClick={handleRefreshClick}
           aria-label={t("common:actions.refresh")}

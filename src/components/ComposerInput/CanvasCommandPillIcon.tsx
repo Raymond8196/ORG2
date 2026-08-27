@@ -11,6 +11,7 @@ export function isCanvasCommandPillPath(path: string): boolean {
 const CanvasCommandPillIcon: React.FC = memo(() => (
   <HugeiconsIcon
     icon={Layout}
+    data-icon="layout"
     size={PILL_SIZE.iconSize}
     strokeWidth={1.75}
     style={{ color: EDITOR_FILE_PILL_TEXT_COLOR }}

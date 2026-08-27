@@ -190,7 +190,7 @@ function AddPropertyRow({ onAdd }: AddPropertyRowProps) {
         <Button
           variant="tertiary"
           size="small"
-          icon={<HugeiconsIcon icon={Plus} size={14} />}
+          icon={<HugeiconsIcon icon={Plus} data-icon="plus" size={14} />}
           onClick={() => setActive(true)}
           className="w-full justify-start"
         >
@@ -241,7 +241,7 @@ function AddPropertyRow({ onAdd }: AddPropertyRowProps) {
             <Button
               variant="secondary"
               size="small"
-              icon={<HugeiconsIcon icon={X} size={14} />}
+              icon={<HugeiconsIcon icon={X} data-icon="x" size={14} />}
               iconOnly
               aria-label="Cancel new property"
               onClick={handleCancel}
@@ -250,7 +250,7 @@ function AddPropertyRow({ onAdd }: AddPropertyRowProps) {
             <Button
               variant="primary"
               size="small"
-              icon={<HugeiconsIcon icon={Check} size={14} />}
+              icon={<HugeiconsIcon icon={Check} data-icon="check" size={14} />}
               iconOnly
               aria-label="Save new property"
               onClick={handleCommit}

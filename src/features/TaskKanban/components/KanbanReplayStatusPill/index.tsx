@@ -284,7 +284,8 @@ const KanbanReplayStatusPill: React.FC = memo(() => {
                 aria-label={t("simulator.replay.freeBrowse")}
                 className="flex h-5 w-5 transform-gpu items-center justify-center rounded-full text-white hover:bg-white/15 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
               >
-                {React.createElement(MousePointer2, {
+                {React.createElement(HugeiconsIcon, {
+                  icon: MousePointer2,
                   size: 12,
                   strokeWidth: 1.75,
                 })}
@@ -308,7 +309,8 @@ const KanbanReplayStatusPill: React.FC = memo(() => {
               title={t("simulator.replay.previousEvent")}
               aria-label={t("simulator.replay.previousEvent")}
             >
-              {React.createElement(ChevronLeft, {
+              {React.createElement(HugeiconsIcon, {
+                icon: ChevronLeft,
                 size: 14,
                 strokeWidth: 1.5,
               })}
@@ -347,7 +349,8 @@ const KanbanReplayStatusPill: React.FC = memo(() => {
               title={t("simulator.replay.nextEvent")}
               aria-label={t("simulator.replay.nextEvent")}
             >
-              {React.createElement(ChevronRight, {
+              {React.createElement(HugeiconsIcon, {
+                icon: ChevronRight,
                 size: 14,
                 strokeWidth: 1.5,
               })}

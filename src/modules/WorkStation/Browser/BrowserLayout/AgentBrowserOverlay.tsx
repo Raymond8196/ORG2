@@ -41,6 +41,7 @@ export const AgentBrowserOverlay: React.FC<AgentBrowserOverlayProps> = memo(
           <div className="flex items-center gap-2 text-sm">
             <HugeiconsIcon
               icon={Monitor}
+              data-icon="monitor"
               size={14}
               className="text-primary-6"
             />
@@ -49,6 +50,7 @@ export const AgentBrowserOverlay: React.FC<AgentBrowserOverlayProps> = memo(
               <span className="rounded bg-yellow-500/10 px-2 py-0.5 text-xs text-yellow-600">
                 <HugeiconsIcon
                   icon={SquareArrowOutUpRight}
+                  data-icon="square-arrow-out-up-right"
                   size={10}
                   className="mr-1 inline"
                 />
@@ -63,7 +65,7 @@ export const AgentBrowserOverlay: React.FC<AgentBrowserOverlayProps> = memo(
           <div className="flex items-center gap-2">
             {isPaused ? (
               <Button size="mini" variant="primary" onClick={() => onResume()}>
-                <HugeiconsIcon icon={Play} size={12} />
+                <HugeiconsIcon icon={Play} data-icon="play" size={12} />
                 {t("workstation.returnToAgent")}
               </Button>
             ) : (
@@ -73,7 +75,7 @@ export const AgentBrowserOverlay: React.FC<AgentBrowserOverlayProps> = memo(
                 appearance="outline"
                 onClick={onTakeover}
               >
-                <HugeiconsIcon icon={Pause} size={12} />
+                <HugeiconsIcon icon={Pause} data-icon="pause" size={12} />
                 {t("workstation.takeOver")}
               </Button>
             )}

@@ -596,6 +596,7 @@ export const FileHeader: React.FC<FileHeaderProps> = memo(
                     icon={
                       <HugeiconsIcon
                         icon={FileSymlink}
+                        data-icon="file-symlink"
                         size={HEADER_ICON_SIZE.sm}
                         strokeWidth={1.75}
                       />
@@ -616,6 +617,7 @@ export const FileHeader: React.FC<FileHeaderProps> = memo(
                     icon={
                       <HugeiconsIcon
                         icon={X}
+                        data-icon="x"
                         size={HEADER_ICON_SIZE.sm}
                         strokeWidth={1.75}
                       />

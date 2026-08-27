@@ -164,7 +164,7 @@ const LabelsSection: React.FC<LabelsSectionProps> = ({
           <span className="text-xs text-text-1">{draft.length}</span>
           <Button
             onClick={handleStartAdd}
-            icon={<HugeiconsIcon icon={Plus} size={14} />}
+            icon={<HugeiconsIcon icon={Plus} data-icon="plus" size={14} />}
             iconOnly
             disabled={isAdding}
           />
@@ -213,7 +213,9 @@ const LabelsSection: React.FC<LabelsSectionProps> = ({
                 }
               />
               <Button
-                icon={<HugeiconsIcon icon={Trash2} size={14} />}
+                icon={
+                  <HugeiconsIcon icon={Trash2} data-icon="trash-2" size={14} />
+                }
                 iconOnly
                 onClick={() => handleDelete(label.id)}
               />

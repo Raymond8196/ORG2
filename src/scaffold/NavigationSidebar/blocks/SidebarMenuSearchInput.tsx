@@ -28,6 +28,7 @@ const SidebarMenuSearchInput: React.FC<SidebarMenuSearchInputProps> =
         prefix={
           <HugeiconsIcon
             icon={Search}
+            data-icon="search"
             size={14}
             strokeWidth={2}
             className="text-text-3"

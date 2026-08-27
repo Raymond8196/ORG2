@@ -229,7 +229,7 @@ const WebhookPanel: React.FC<WebhookPanelProps> = ({ slug, adapter }) => {
               </code>
               <Button
                 size="mini"
-                icon={<HugeiconsIcon icon={Copy} size={12} />}
+                icon={<HugeiconsIcon icon={Copy} data-icon="copy" size={12} />}
                 onClick={copyUrlPath}
               >
                 {t("settings.sync.webhook.copyUrl")}
@@ -239,7 +239,13 @@ const WebhookPanel: React.FC<WebhookPanelProps> = ({ slug, adapter }) => {
           <div>
             <Button
               size="small"
-              icon={<HugeiconsIcon icon={RefreshCw} size={14} />}
+              icon={
+                <HugeiconsIcon
+                  icon={RefreshCw}
+                  data-icon="refresh-cw"
+                  size={14}
+                />
+              }
               onClick={handleRotate}
               loading={busy === "rotate"}
               disabled={busy !== null}
@@ -293,7 +299,7 @@ const InstallInfoModal: React.FC<InstallInfoModalProps> = ({
       <div className="flex items-center gap-2">
         <Button
           size="mini"
-          icon={<HugeiconsIcon icon={Copy} size={12} />}
+          icon={<HugeiconsIcon icon={Copy} data-icon="copy" size={12} />}
           onClick={onCopySecret}
         >
           {t("settings.sync.webhook.copySecret")}

@@ -219,6 +219,7 @@ export function useChatPanelMultiRunner({
               icon={
                 <HugeiconsIcon
                   icon={ChevronLeft}
+                  data-icon="chevron-left"
                   size={16}
                   strokeWidth={1.9}
                   className="block"

@@ -119,6 +119,7 @@ const CloneGitHubForm: React.FC<CloneGitHubFormProps> = ({
               prefix={
                 <HugeiconsIcon
                   icon={Filter}
+                  data-icon="filter"
                   className="text-[16px] text-text-2"
                   size={16}
                 />
@@ -153,12 +154,14 @@ const CloneGitHubForm: React.FC<CloneGitHubFormProps> = ({
                           {repo.is_private ? (
                             <HugeiconsIcon
                               icon={Lock}
+                              data-icon="lock"
                               className="text-[12px] text-text-2"
                               size={12}
                             />
                           ) : (
                             <HugeiconsIcon
                               icon={Globe}
+                              data-icon="globe"
                               className="text-[12px] text-text-2"
                               size={12}
                             />
@@ -202,6 +205,7 @@ const CloneGitHubForm: React.FC<CloneGitHubFormProps> = ({
                   prefix={
                     <HugeiconsIcon
                       icon={Folder}
+                      data-icon="folder"
                       className="text-[16px] text-text-2"
                       size={16}
                     />
@@ -212,7 +216,13 @@ const CloneGitHubForm: React.FC<CloneGitHubFormProps> = ({
                 variant="secondary"
                 size="default"
                 iconOnly
-                icon={<HugeiconsIcon icon={FolderOpen} size={16} />}
+                icon={
+                  <HugeiconsIcon
+                    icon={FolderOpen}
+                    data-icon="folder-open"
+                    size={16}
+                  />
+                }
                 title={t("cloneForm.chooseFolder")}
                 onClick={async () => {
                   const path = await onChoosePath();
@@ -245,7 +255,13 @@ const CloneGitHubForm: React.FC<CloneGitHubFormProps> = ({
               <Button
                 variant="secondary"
                 size="default"
-                icon={<HugeiconsIcon icon={SquareArrowOutUpRight} size={14} />}
+                icon={
+                  <HugeiconsIcon
+                    icon={SquareArrowOutUpRight}
+                    data-icon="square-arrow-out-up-right"
+                    size={14}
+                  />
+                }
                 iconPosition="right"
                 onClick={handleGoToSettings}
               >

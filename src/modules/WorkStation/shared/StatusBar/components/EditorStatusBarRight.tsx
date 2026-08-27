@@ -39,7 +39,7 @@ export const EditorStatusBarRight: React.FC<EditorStatusBarRightProps> = ({
         title={`${commitInfo.message}\n\n${commitInfo.author} · ${commitInfo.shortSha}`}
         className="text-text-1"
       >
-        <HugeiconsIcon icon={GitCommit} size={13} />
+        <HugeiconsIcon icon={GitCommit} data-icon="git-commit" size={13} />
         <span className="max-w-[200px] truncate">{commitInfo.author}</span>
         <span className="text-text-3">·</span>
         <span className="text-text-3">{commitInfo.time}</span>

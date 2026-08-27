@@ -95,12 +95,14 @@ const DefaultTreeNode: React.FC<TreeNodeProps> = memo(
             {isExpanded ? (
               <HugeiconsIcon
                 icon={ChevronDown}
+                data-icon="chevron-down"
                 size={14}
                 className="text-text-3"
               />
             ) : (
               <HugeiconsIcon
                 icon={ChevronRight}
+                data-icon="chevron-right"
                 size={14}
                 className="text-text-3"
               />
@@ -269,6 +271,7 @@ export function TreePanelSidebar<TTab extends string = string>({
               (sectionExpanded ? (
                 <HugeiconsIcon
                   icon={ChevronDown}
+                  data-icon="chevron-down"
                   size={12}
                   strokeWidth={2}
                   className="text-text-3"
@@ -276,6 +279,7 @@ export function TreePanelSidebar<TTab extends string = string>({
               ) : (
                 <HugeiconsIcon
                   icon={ChevronRight}
+                  data-icon="chevron-right"
                   size={12}
                   strokeWidth={2}
                   className="text-text-3"
@@ -318,7 +322,12 @@ export function TreePanelSidebar<TTab extends string = string>({
       <div className="flex-shrink-0 px-3 pb-2">
         <Input
           prefix={
-            <HugeiconsIcon icon={SearchIcon} size={14} strokeWidth={1.75} />
+            <HugeiconsIcon
+              icon={SearchIcon}
+              data-icon="search-icon"
+              size={14}
+              strokeWidth={1.75}
+            />
           }
           placeholder={filterPlaceholder}
           value={filterQuery}

@@ -63,6 +63,7 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
             >
               <HugeiconsIcon
                 icon={ChevronLeft}
+                data-icon="chevron-left"
                 className="h-[14px] w-[14px]"
                 strokeWidth={2}
               />

@@ -81,11 +81,18 @@ function getAssigneeAvatarSrc(workItem: WorkItemExtended): string | undefined {
 
 function renderAssigneeIcon(workItem: WorkItemExtended) {
   if (!workItem.assignee)
-    return <HugeiconsIcon icon={User} size={DROPDOWN_ITEM.iconSize} />;
+    return (
+      <HugeiconsIcon
+        icon={User}
+        data-icon="user"
+        size={DROPDOWN_ITEM.iconSize}
+      />
+    );
   if (workItem.assigneeType === "agent") {
     return (
       <HugeiconsIcon
         icon={AtSign}
+        data-icon="at-sign"
         size={DROPDOWN_ITEM.iconSize}
         className="text-primary-6"
       />
@@ -95,6 +102,7 @@ function renderAssigneeIcon(workItem: WorkItemExtended) {
     return (
       <HugeiconsIcon
         icon={Network}
+        data-icon="network"
         size={DROPDOWN_ITEM.iconSize}
         className="text-primary-6"
       />
@@ -119,7 +127,13 @@ function renderExternalAssigneeIcon(
   option: WorkItemExternalAssigneeOption | undefined
 ) {
   if (!option)
-    return <HugeiconsIcon icon={User} size={DROPDOWN_ITEM.iconSize} />;
+    return (
+      <HugeiconsIcon
+        icon={User}
+        data-icon="user"
+        size={DROPDOWN_ITEM.iconSize}
+      />
+    );
   return (
     <Avatar size={DROPDOWN_ITEM.iconSize} src={option.avatar}>
       {option.label.charAt(0).toUpperCase()}
@@ -232,7 +246,11 @@ export function AssigneePropertyField({
               <>
                 <Option
                   icon={
-                    <HugeiconsIcon icon={User} size={DROPDOWN_ITEM.iconSize} />
+                    <HugeiconsIcon
+                      icon={User}
+                      data-icon="user"
+                      size={DROPDOWN_ITEM.iconSize}
+                    />
                   }
                   label={t("workItems.properties.noAssignee")}
                   isSelected={externalConfig.currentAssigneeIds.length === 0}
@@ -304,7 +322,13 @@ export function AssigneePropertyField({
         return (
           <>
             <Option
-              icon={<HugeiconsIcon icon={User} size={DROPDOWN_ITEM.iconSize} />}
+              icon={
+                <HugeiconsIcon
+                  icon={User}
+                  data-icon="user"
+                  size={DROPDOWN_ITEM.iconSize}
+                />
+              }
               label={t("workItems.properties.noAssignee")}
               isSelected={!workItem.assignee}
               onClick={() => select(null)}

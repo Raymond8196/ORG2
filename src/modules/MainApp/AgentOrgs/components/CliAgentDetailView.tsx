@@ -226,7 +226,13 @@ const CliAgentDetailView: React.FC<CliAgentDetailViewProps> = ({
         renderCell: (_row) => (
           <Button
             variant="tertiary"
-            icon={<HugeiconsIcon icon={SquareArrowOutUpRight} size={14} />}
+            icon={
+              <HugeiconsIcon
+                icon={SquareArrowOutUpRight}
+                data-icon="square-arrow-out-up-right"
+                size={14}
+              />
+            }
             iconOnly
             onClick={openCredentialInIntegrations}
             title={t("common:actions.open")}
@@ -250,6 +256,7 @@ const CliAgentDetailView: React.FC<CliAgentDetailViewProps> = ({
               icon={
                 <HugeiconsIcon
                   icon={RefreshCw}
+                  data-icon="refresh-cw"
                   size={PANEL_HEADER_TOKENS.buttonIconSize}
                   strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
                   className={detecting ? "animate-spin" : ""}
@@ -265,6 +272,7 @@ const CliAgentDetailView: React.FC<CliAgentDetailViewProps> = ({
                 icon={
                   <HugeiconsIcon
                     icon={BookOpen}
+                    data-icon="book-open"
                     size={PANEL_HEADER_TOKENS.buttonIconSize}
                     strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
                   />

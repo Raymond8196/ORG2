@@ -99,9 +99,17 @@ export const EventBlockHeaderIcon: React.FC<EventBlockHeaderIconProps> = ({
           className="cursor-pointer transition-colors hover:text-text-1"
         >
           {isCollapsed ? (
-            <HugeiconsIcon icon={ChevronsUpDown} size={iconSize} />
+            <HugeiconsIcon
+              icon={ChevronsUpDown}
+              data-icon="chevrons-up-down"
+              size={iconSize}
+            />
           ) : (
-            <HugeiconsIcon icon={ChevronsDownUp} size={iconSize} />
+            <HugeiconsIcon
+              icon={ChevronsDownUp}
+              data-icon="chevrons-down-up"
+              size={iconSize}
+            />
           )}
         </span>
       ) : (

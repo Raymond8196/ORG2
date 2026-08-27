@@ -31,9 +31,19 @@ export function ConversationModePill({
     <SelectorPill
       icon={
         teamChat ? (
-          <HugeiconsIcon icon={MessagesSquare} size={14} strokeWidth={1.75} />
+          <HugeiconsIcon
+            icon={MessagesSquare}
+            data-icon="messages-square"
+            size={14}
+            strokeWidth={1.75}
+          />
         ) : (
-          <HugeiconsIcon icon={Bot} size={14} strokeWidth={1.75} />
+          <HugeiconsIcon
+            icon={Bot}
+            data-icon="bot"
+            size={14}
+            strokeWidth={1.75}
+          />
         )
       }
       label={

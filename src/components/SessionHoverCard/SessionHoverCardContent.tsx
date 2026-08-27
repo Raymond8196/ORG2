@@ -505,7 +505,12 @@ export const SessionHoverCardContent: React.FC<SessionHoverCardContentProps> =
                       size={13}
                     />
                   ) : (
-                    <HugeiconsIcon icon={Grip} size={13} strokeWidth={1.75} />
+                    <HugeiconsIcon
+                      icon={Grip}
+                      data-icon="grip"
+                      size={13}
+                      strokeWidth={1.75}
+                    />
                   )}
                 </span>
                 <span className="truncate">{modelLabel}</span>
@@ -516,7 +521,12 @@ export const SessionHoverCardContent: React.FC<SessionHoverCardContentProps> =
         {(repoName || branchLabel) && (
           <HoverCardRow
             icon={
-              <HugeiconsIcon icon={GitBranch} size={13} strokeWidth={1.75} />
+              <HugeiconsIcon
+                icon={GitBranch}
+                data-icon="git-branch"
+                size={13}
+                strokeWidth={1.75}
+              />
             }
           >
             <div
@@ -572,7 +582,14 @@ export const SessionHoverCardContent: React.FC<SessionHoverCardContentProps> =
         )}
         {worktreeBranchLabel && worktreeBranchLabel !== branchLabel && (
           <HoverCardRow
-            icon={<HugeiconsIcon icon={GitFork} size={13} strokeWidth={1.75} />}
+            icon={
+              <HugeiconsIcon
+                icon={GitFork}
+                data-icon="git-fork"
+                size={13}
+                strokeWidth={1.75}
+              />
+            }
           >
             <div
               className="truncate text-text-2"
@@ -589,11 +606,17 @@ export const SessionHoverCardContent: React.FC<SessionHoverCardContentProps> =
               underlyingSessionId ? (
                 <HugeiconsIcon
                   icon={Fingerprint}
+                  data-icon="fingerprint"
                   size={13}
                   strokeWidth={1.75}
                 />
               ) : (
-                <HugeiconsIcon icon={Save} size={13} strokeWidth={1.75} />
+                <HugeiconsIcon
+                  icon={Save}
+                  data-icon="save"
+                  size={13}
+                  strokeWidth={1.75}
+                />
               )
             }
           >
@@ -616,6 +639,7 @@ export const SessionHoverCardContent: React.FC<SessionHoverCardContentProps> =
                   {copiedForSessionId === sessionId && (
                     <HugeiconsIcon
                       icon={Check}
+                      data-icon="check"
                       size={12}
                       strokeWidth={2}
                       className="ml-1 inline-block align-[-1px] text-success-6"
@@ -647,7 +671,12 @@ export const SessionHoverCardContent: React.FC<SessionHoverCardContentProps> =
                   aria-label={`${revealLabel} ${storageRowPath}`}
                   onClick={() => handleRevealPath(storageRowPath)}
                 >
-                  <HugeiconsIcon icon={Save} size={12} strokeWidth={1.75} />
+                  <HugeiconsIcon
+                    icon={Save}
+                    data-icon="save"
+                    size={12}
+                    strokeWidth={1.75}
+                  />
                 </button>
               )}
             </div>
@@ -655,7 +684,14 @@ export const SessionHoverCardContent: React.FC<SessionHoverCardContentProps> =
         )}
         {impactTask && (
           <HoverCardRow
-            icon={<HugeiconsIcon icon={Diff} size={13} strokeWidth={1.75} />}
+            icon={
+              <HugeiconsIcon
+                icon={Diff}
+                data-icon="diff"
+                size={13}
+                strokeWidth={1.75}
+              />
+            }
           >
             <TaskImpactLine task={impactTask} showUnavailable={false} />
           </HoverCardRow>
@@ -663,7 +699,14 @@ export const SessionHoverCardContent: React.FC<SessionHoverCardContentProps> =
         {(workedDurationLabel ||
           (turnOverview && turnOverview.turnCount > 0)) && (
           <HoverCardRow
-            icon={<HugeiconsIcon icon={Timer} size={13} strokeWidth={1.75} />}
+            icon={
+              <HugeiconsIcon
+                icon={Timer}
+                data-icon="timer"
+                size={13}
+                strokeWidth={1.75}
+              />
+            }
           >
             <div
               className="truncate text-text-2"
@@ -694,7 +737,14 @@ export const SessionHoverCardContent: React.FC<SessionHoverCardContentProps> =
           </HoverCardRow>
         )}
         <HoverCardRow
-          icon={<HugeiconsIcon icon={Clock} size={13} strokeWidth={1.75} />}
+          icon={
+            <HugeiconsIcon
+              icon={Clock}
+              data-icon="clock"
+              size={13}
+              strokeWidth={1.75}
+            />
+          }
         >
           <div className="truncate text-text-2" title={createdLabel}>
             <span className="text-text-3">{t("history.detail.created")}</span>
@@ -706,6 +756,7 @@ export const SessionHoverCardContent: React.FC<SessionHoverCardContentProps> =
           icon={
             <HugeiconsIcon
               icon={GitCommitVertical}
+              data-icon="git-commit-vertical"
               size={13}
               strokeWidth={1.75}
             />

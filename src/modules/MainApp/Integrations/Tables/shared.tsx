@@ -20,7 +20,7 @@ export function RowChevron({ onClick }: { onClick: () => void }) {
       onClick={onClick}
       className="ml-auto rounded p-1 text-text-3 transition-colors hover:bg-fill-2 hover:text-text-1"
     >
-      <HugeiconsIcon icon={ChevronRight} size={14} />
+      <HugeiconsIcon icon={ChevronRight} data-icon="chevron-right" size={14} />
     </button>
   );
 }

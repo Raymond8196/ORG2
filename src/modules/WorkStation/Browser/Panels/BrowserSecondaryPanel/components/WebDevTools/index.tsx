@@ -207,7 +207,13 @@ const WebDevTools: React.FC<WebDevToolsProps> = memo(
                   iconOnly
                   onClick={onClose}
                   aria-label={t("tooltips.closeDevTools")}
-                  icon={<HugeiconsIcon icon={X} size={HEADER_ICON_SIZE.md} />}
+                  icon={
+                    <HugeiconsIcon
+                      icon={X}
+                      data-icon="x"
+                      size={HEADER_ICON_SIZE.md}
+                    />
+                  }
                 />
               </ToolbarTooltip>
             </>
@@ -249,6 +255,7 @@ const WebDevTools: React.FC<WebDevToolsProps> = memo(
                       {treeLoading && (
                         <HugeiconsIcon
                           icon={Loader2}
+                          data-icon="loader-2"
                           size={SPINNER_TOKENS.small}
                           className="animate-spin text-text-3"
                         />
@@ -262,6 +269,7 @@ const WebDevTools: React.FC<WebDevToolsProps> = memo(
                         >
                           <HugeiconsIcon
                             icon={ListChevronsDownUp}
+                            data-icon="list-chevrons-down-up"
                             size={HEADER_ICON_SIZE.md}
                           />
                         </button>
@@ -275,6 +283,7 @@ const WebDevTools: React.FC<WebDevToolsProps> = memo(
                         >
                           <HugeiconsIcon
                             icon={RefreshCw}
+                            data-icon="refresh-cw"
                             size={HEADER_ICON_SIZE.sm}
                             className={refreshTreeSpinClass}
                           />
@@ -335,6 +344,7 @@ const WebDevTools: React.FC<WebDevToolsProps> = memo(
                       {(stylesLoading || stylesPending) && (
                         <HugeiconsIcon
                           icon={Loader2}
+                          data-icon="loader-2"
                           size={SPINNER_TOKENS.small}
                           className="animate-spin text-text-3"
                         />
@@ -349,6 +359,7 @@ const WebDevTools: React.FC<WebDevToolsProps> = memo(
                           >
                             <HugeiconsIcon
                               icon={CircleMinus}
+                              data-icon="circle-minus"
                               size={HEADER_ICON_SIZE.sm}
                             />
                           </button>
@@ -382,11 +393,13 @@ const WebDevTools: React.FC<WebDevToolsProps> = memo(
                           {isAllCollapsed ? (
                             <HugeiconsIcon
                               icon={CopyPlus}
+                              data-icon="copy-plus"
                               size={HEADER_ICON_SIZE.sm}
                             />
                           ) : (
                             <HugeiconsIcon
                               icon={ListChevronsDownUp}
+                              data-icon="list-chevrons-down-up"
                               size={HEADER_ICON_SIZE.md}
                             />
                           )}

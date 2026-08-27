@@ -208,12 +208,14 @@ export function WorkItemDetailHeaderBreadcrumb({
         (parentSegments.length > 0 ? (
           <HugeiconsIcon
             icon={Box}
+            data-icon="box"
             size={HEADER_ICON_SIZE.sm}
             strokeWidth={1.75}
           />
         ) : (
           <HugeiconsIcon
             icon={ListChecks}
+            data-icon="list-checks"
             size={HEADER_ICON_SIZE.sm}
             strokeWidth={1.75}
           />
@@ -255,7 +257,13 @@ export function WorkItemDetailHeaderActions({
           onClick={() => onNavigate("prev")}
           disabled={!hasPrev}
           aria-label={t("common:actions.previous")}
-          icon={<HugeiconsIcon icon={ArrowUp} size={HEADER_ICON_SIZE.sm} />}
+          icon={
+            <HugeiconsIcon
+              icon={ArrowUp}
+              data-icon="arrow-up"
+              size={HEADER_ICON_SIZE.sm}
+            />
+          }
         />
       </ToolbarTooltip>
       <ToolbarTooltip label={t("common:actions.next")}>
@@ -267,7 +275,13 @@ export function WorkItemDetailHeaderActions({
           onClick={() => onNavigate("next")}
           disabled={!hasNext}
           aria-label={t("common:actions.next")}
-          icon={<HugeiconsIcon icon={ArrowDown} size={HEADER_ICON_SIZE.sm} />}
+          icon={
+            <HugeiconsIcon
+              icon={ArrowDown}
+              data-icon="arrow-down"
+              size={HEADER_ICON_SIZE.sm}
+            />
+          }
         />
       </ToolbarTooltip>
       {(onDeleteWorkItem || onToggleProperties) && (
@@ -287,7 +301,13 @@ export function WorkItemDetailHeaderActions({
             onClick={() => onDeleteWorkItem(workItem.session_id)}
             aria-label={t("workItems.deleteWorkItem")}
             data-testid="work-item-delete"
-            icon={<HugeiconsIcon icon={Trash2} size={HEADER_ICON_SIZE.sm} />}
+            icon={
+              <HugeiconsIcon
+                icon={Trash2}
+                data-icon="trash-2"
+                size={HEADER_ICON_SIZE.sm}
+              />
+            }
           />
         </ToolbarTooltip>
       )}
@@ -313,7 +333,13 @@ export function WorkItemDetailHeaderActions({
                 ? t("workItems.hideProperties")
                 : t("workItems.showProperties")
             }
-            icon={<HugeiconsIcon icon={Info} size={HEADER_ICON_SIZE.sm} />}
+            icon={
+              <HugeiconsIcon
+                icon={Info}
+                data-icon="info"
+                size={HEADER_ICON_SIZE.sm}
+              />
+            }
           />
         </ToolbarTooltip>
       )}

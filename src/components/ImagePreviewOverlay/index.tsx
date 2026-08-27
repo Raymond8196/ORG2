@@ -102,7 +102,12 @@ const ImagePreviewOverlay: React.FC<ImagePreviewOverlayProps> = memo(
                 aria-label={t("imagePreview.copyImage")}
                 title={t("actions.copy")}
               >
-                <HugeiconsIcon icon={Copy} size={15} strokeWidth={2} />
+                <HugeiconsIcon
+                  icon={Copy}
+                  data-icon="copy"
+                  size={15}
+                  strokeWidth={2}
+                />
               </button>
             )}
             <button
@@ -112,7 +117,12 @@ const ImagePreviewOverlay: React.FC<ImagePreviewOverlayProps> = memo(
               aria-label={t("imagePreview.downloadImage")}
               title={t("actions.download")}
             >
-              <HugeiconsIcon icon={Download} size={15} strokeWidth={2} />
+              <HugeiconsIcon
+                icon={Download}
+                data-icon="download"
+                size={15}
+                strokeWidth={2}
+              />
             </button>
             <button
               type="button"
@@ -121,7 +131,7 @@ const ImagePreviewOverlay: React.FC<ImagePreviewOverlayProps> = memo(
               aria-label={t("imagePreview.closePreview")}
               title={t("actions.close")}
             >
-              <HugeiconsIcon icon={X} size={15} strokeWidth={2} />
+              <HugeiconsIcon icon={X} data-icon="x" size={15} strokeWidth={2} />
             </button>
           </div>
 

@@ -92,7 +92,8 @@ export function useReplayTabs({
         kind: "preview",
         label: previewLabel,
         title: previewLabel,
-        icon: createElement(Eye, {
+        icon: createElement(HugeiconsIcon, {
+          icon: Eye,
           size: TAB_ICON_SIZE,
           className: TAB_ICON_CLASS,
         }),

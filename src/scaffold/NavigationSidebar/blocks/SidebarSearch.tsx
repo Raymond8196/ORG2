@@ -75,6 +75,7 @@ const SidebarSearch: React.FC<SidebarSearchProps> = ({
             {action.loading ? (
               <HugeiconsIcon
                 icon={Loader2}
+                data-icon="loader-2"
                 size={14}
                 strokeWidth={2}
                 className={`animate-spin ${theme ? "" : "text-text-2"}`}

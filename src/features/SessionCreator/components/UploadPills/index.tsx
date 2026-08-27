@@ -95,7 +95,12 @@ const ImagePill: React.FC<ImagePillProps> = ({
         style={{ width: IMAGE_PREVIEW_SIZE, height: IMAGE_PREVIEW_SIZE }}
       >
         <div className="flex h-full w-full items-center justify-center">
-          <HugeiconsIcon icon={Image} size={20} className="text-text-3" />
+          <HugeiconsIcon
+            icon={Image}
+            data-icon="image"
+            size={20}
+            className="text-text-3"
+          />
         </div>
       </div>
     );
@@ -119,7 +124,12 @@ const ImagePill: React.FC<ImagePillProps> = ({
         />
       ) : (
         <div className="flex h-full w-full items-center justify-center bg-bg-3">
-          <HugeiconsIcon icon={Image} size={20} className="text-text-3" />
+          <HugeiconsIcon
+            icon={Image}
+            data-icon="image"
+            size={20}
+            className="text-text-3"
+          />
         </div>
       )}
 
@@ -129,7 +139,7 @@ const ImagePill: React.FC<ImagePillProps> = ({
         onClick={handleRemove}
         aria-label={`Remove ${file.name || "image"}`}
       >
-        <HugeiconsIcon icon={X} size={12} strokeWidth={2} />
+        <HugeiconsIcon icon={X} data-icon="x" size={12} strokeWidth={2} />
       </button>
 
       {/* File name tooltip on hover */}
@@ -196,7 +206,7 @@ const UploadPill: React.FC<UploadPillProps> = ({
         onClick={handleRemove}
         aria-label={`Remove ${file.name}`}
       >
-        <HugeiconsIcon icon={X} size={10} strokeWidth={2} />
+        <HugeiconsIcon icon={X} data-icon="x" size={10} strokeWidth={2} />
       </button>
     </div>
   );

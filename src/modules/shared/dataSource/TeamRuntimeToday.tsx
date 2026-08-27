@@ -413,6 +413,7 @@ function TeamRuntimeToday({
                   <div className="flex shrink-0 items-center gap-1.5 text-[11px] text-text-3">
                     <HugeiconsIcon
                       icon={MessageSquareText}
+                      data-icon="message-square-text"
                       className="h-3.5 w-3.5"
                       aria-hidden
                     />

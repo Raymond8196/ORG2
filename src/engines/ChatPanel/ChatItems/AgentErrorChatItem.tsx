@@ -77,12 +77,14 @@ const AgentErrorChatItem: React.FC<AgentErrorChatItemProps> = memo(
                 {detailsExpanded ? (
                   <HugeiconsIcon
                     icon={ChevronDown}
+                    data-icon="chevron-down"
                     size={12}
                     className="shrink-0"
                   />
                 ) : (
                   <HugeiconsIcon
                     icon={ChevronRight}
+                    data-icon="chevron-right"
                     size={12}
                     className="shrink-0"
                   />

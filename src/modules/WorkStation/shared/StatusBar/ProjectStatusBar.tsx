@@ -60,7 +60,12 @@ const ProjectStatusBar: React.FC<ProjectStatusBarProps> = memo(
 
           {activeMemberCount != null && (
             <StatusBarSegment>
-              <HugeiconsIcon icon={Users} size={12} className="text-text-1" />
+              <HugeiconsIcon
+                icon={Users}
+                data-icon="users"
+                size={12}
+                className="text-text-1"
+              />
               <StatusBarLabel numeric className="text-text-1">
                 {activeMemberCount}
               </StatusBarLabel>

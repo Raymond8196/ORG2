@@ -356,6 +356,7 @@ const SettingsSlot: React.FC<SettingsSlotProps> = ({
                   icon={
                     <HugeiconsIcon
                       icon={ChevronLeft}
+                      data-icon="chevron-left"
                       size={16}
                       strokeWidth={2}
                     />
@@ -386,12 +387,14 @@ const SettingsSlot: React.FC<SettingsSlotProps> = ({
                       maximized ? (
                         <HugeiconsIcon
                           icon={GalleryThumbnails}
+                          data-icon="gallery-thumbnails"
                           size={14}
                           strokeWidth={2}
                         />
                       ) : (
                         <HugeiconsIcon
                           icon={Maximize2}
+                          data-icon="maximize-2"
                           size={14}
                           strokeWidth={2}
                         />

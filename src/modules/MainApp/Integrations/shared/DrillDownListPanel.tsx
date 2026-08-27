@@ -63,14 +63,21 @@ const DrillDownListPanel: React.FC<DrillDownListPanelProps> = ({
           onClick={onBack}
           className="flex items-center justify-center rounded-md p-1 text-text-2 transition-colors hover:bg-fill-2 hover:text-text-1"
         >
-          <HugeiconsIcon icon={ArrowLeft} size={16} />
+          <HugeiconsIcon icon={ArrowLeft} data-icon="arrow-left" size={16} />
         </button>
         <span className="text-[13px] font-medium text-text-1">{title}</span>
       </div>
 
       <div className="flex-shrink-0 px-3 pb-2">
         <Input
-          prefix={<HugeiconsIcon icon={Search} size={14} strokeWidth={1.75} />}
+          prefix={
+            <HugeiconsIcon
+              icon={Search}
+              data-icon="search"
+              size={14}
+              strokeWidth={1.75}
+            />
+          }
           placeholder={t("common:actions.search")}
           value={searchQuery}
           onChange={setSearchQuery}
@@ -121,7 +128,7 @@ const DrillDownListPanel: React.FC<DrillDownListPanelProps> = ({
           <Button
             variant="primary"
             size="large"
-            icon={<HugeiconsIcon icon={Plus} size={16} />}
+            icon={<HugeiconsIcon icon={Plus} data-icon="plus" size={16} />}
             long
             onClick={onAdd}
           >

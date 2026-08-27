@@ -36,6 +36,7 @@ const ProjectManagerWorkItemsTabBarTrailing: React.FC<ProjectManagerWorkItemsTab
       >
         <HugeiconsIcon
           icon={Search}
+          data-icon="search"
           size={HEADER_ICON_SIZE.md}
           strokeWidth={2}
         />

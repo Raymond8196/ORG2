@@ -115,6 +115,7 @@ export const TerminalCommand: React.FC<TerminalCommandProps> = memo(
           >
             <HugeiconsIcon
               icon={Square}
+              data-icon="square"
               size={10}
               fill="currentColor"
               strokeWidth={0}

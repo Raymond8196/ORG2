@@ -151,12 +151,14 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = memo(
                 {effectiveCollapsed ? (
                   <HugeiconsIcon
                     icon={ChevronRight}
+                    data-icon="chevron-right"
                     size={14}
                     className="text-text-3"
                   />
                 ) : (
                   <HugeiconsIcon
                     icon={ChevronDown}
+                    data-icon="chevron-down"
                     size={14}
                     className="text-text-3"
                   />

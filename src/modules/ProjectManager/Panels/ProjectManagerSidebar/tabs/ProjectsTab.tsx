@@ -109,7 +109,11 @@ const OrgActionsDropdown: React.FC<OrgActionsDropdownProps> = ({
         title={addOrgLabel}
         type="button"
       >
-        <HugeiconsIcon icon={Plus} size={HEADER_ICON_SIZE.md} />
+        <HugeiconsIcon
+          icon={Plus}
+          data-icon="plus"
+          size={HEADER_ICON_SIZE.md}
+        />
       </button>
       {isOpen &&
         isPositioned &&
@@ -139,6 +143,7 @@ const OrgActionsDropdown: React.FC<OrgActionsDropdownProps> = ({
             >
               <HugeiconsIcon
                 icon={Plus}
+                data-icon="plus"
                 size={ACTION_ICON_SIZE}
                 strokeWidth={ACTION_ICON_STROKE}
                 className="text-text-2"
@@ -153,6 +158,7 @@ const OrgActionsDropdown: React.FC<OrgActionsDropdownProps> = ({
             >
               <HugeiconsIcon
                 icon={Import}
+                data-icon="import"
                 size={ACTION_ICON_SIZE}
                 strokeWidth={ACTION_ICON_STROKE}
                 className="text-text-2"
@@ -223,7 +229,11 @@ const CreateActionsDropdown: React.FC<CreateActionsDropdownProps> = ({
         title={createLabel}
         type="button"
       >
-        <HugeiconsIcon icon={Plus} size={HEADER_ICON_SIZE.md} />
+        <HugeiconsIcon
+          icon={Plus}
+          data-icon="plus"
+          size={HEADER_ICON_SIZE.md}
+        />
       </button>
       {isOpen &&
         isPositioned &&
@@ -253,6 +263,7 @@ const CreateActionsDropdown: React.FC<CreateActionsDropdownProps> = ({
             >
               <HugeiconsIcon
                 icon={ListChecks}
+                data-icon="list-checks"
                 size={ACTION_ICON_SIZE}
                 strokeWidth={ACTION_ICON_STROKE}
                 className="text-text-2"
@@ -269,6 +280,7 @@ const CreateActionsDropdown: React.FC<CreateActionsDropdownProps> = ({
             >
               <HugeiconsIcon
                 icon={Box}
+                data-icon="box"
                 size={ACTION_ICON_SIZE}
                 strokeWidth={ACTION_ICON_STROKE}
                 className="text-text-2"
@@ -285,6 +297,7 @@ const CreateActionsDropdown: React.FC<CreateActionsDropdownProps> = ({
             >
               <HugeiconsIcon
                 icon={Github}
+                data-icon="github"
                 size={ACTION_ICON_SIZE}
                 strokeWidth={ACTION_ICON_STROKE}
                 className="text-text-2"
@@ -362,6 +375,7 @@ export function useProjectsTabConfig({
         icon: (
           <HugeiconsIcon
             icon={Box}
+            data-icon="box"
             size={ACTION_ICON_SIZE}
             strokeWidth={ACTION_ICON_STROKE}
           />
@@ -374,6 +388,7 @@ export function useProjectsTabConfig({
         icon: (
           <HugeiconsIcon
             icon={SquarePen}
+            data-icon="square-pen"
             size={ACTION_ICON_SIZE}
             strokeWidth={ACTION_ICON_STROKE}
           />
@@ -404,6 +419,7 @@ export function useProjectsTabConfig({
         icon: (
           <HugeiconsIcon
             icon={RefreshCw}
+            data-icon="refresh-cw"
             size={ACTION_ICON_SIZE}
             strokeWidth={ACTION_ICON_STROKE}
             className={refreshSpinClass}
@@ -417,6 +433,7 @@ export function useProjectsTabConfig({
         icon: (
           <HugeiconsIcon
             icon={Settings}
+            data-icon="settings"
             size={ACTION_ICON_SIZE}
             strokeWidth={ACTION_ICON_STROKE}
           />
@@ -460,7 +477,13 @@ export function useProjectsTabConfig({
     () => ({
       key: "projects",
       label: t("labels.projects"),
-      icon: <HugeiconsIcon icon={FolderKanban} size={TAB_ICON_SIZE} />,
+      icon: (
+        <HugeiconsIcon
+          icon={FolderKanban}
+          data-icon="folder-kanban"
+          size={TAB_ICON_SIZE}
+        />
+      ),
       sections: [
         {
           key: "workspace",

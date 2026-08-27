@@ -81,6 +81,7 @@ const BrowseCard: React.FC<BrowseCardProps> = ({
       ) : (
         <HugeiconsIcon
           icon={ChevronRight}
+          data-icon="chevron-right"
           size={14}
           className="absolute right-4 top-1/2 -translate-y-1/2 text-text-2 opacity-0 transition-opacity group-hover/card:opacity-100"
         />

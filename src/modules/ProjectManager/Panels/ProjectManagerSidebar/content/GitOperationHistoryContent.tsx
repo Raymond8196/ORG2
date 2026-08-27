@@ -101,6 +101,7 @@ const OperationRow: React.FC<OperationRowProps> = memo(({ entry }) => {
         ) : (
           <HugeiconsIcon
             icon={XCircle}
+            data-icon="xcircle"
             size={ICON_SIZE}
             strokeWidth={ICON_STROKE}
             className="text-danger-text"
@@ -117,6 +118,7 @@ const OperationRow: React.FC<OperationRowProps> = memo(({ entry }) => {
           {entry.success ? (
             <HugeiconsIcon
               icon={CheckCircle2}
+              data-icon="check-circle-2"
               size={11}
               className="text-success-text flex-shrink-0"
             />

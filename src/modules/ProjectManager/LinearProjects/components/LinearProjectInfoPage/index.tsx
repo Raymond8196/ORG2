@@ -153,7 +153,7 @@ const LinearProjectInfoPage: React.FC<LinearProjectInfoPageProps> = ({
   ) => (
     <div className="relative flex min-h-[36px] items-center">
       <FieldRow
-        icon={<HugeiconsIcon icon={Calendar} size={14} />}
+        icon={<HugeiconsIcon icon={Calendar} data-icon="calendar" size={14} />}
         label={label}
         value={formatLinearProjectDate(value, t("properties.addDate"))}
         isSelected={!!value}
@@ -184,7 +184,9 @@ const LinearProjectInfoPage: React.FC<LinearProjectInfoPageProps> = ({
           {project.status?.name && (
             <div className="relative flex min-h-[36px] items-center">
               <FieldRow
-                icon={<HugeiconsIcon icon={Circle} size={14} />}
+                icon={
+                  <HugeiconsIcon icon={Circle} data-icon="circle" size={14} />
+                }
                 label={t("common:common.status")}
                 value={project.status.name}
                 isSelected
@@ -196,7 +198,9 @@ const LinearProjectInfoPage: React.FC<LinearProjectInfoPageProps> = ({
           {primaryTeam && (
             <div className="relative flex min-h-[36px] items-center">
               <FieldRow
-                icon={<HugeiconsIcon icon={Users} size={14} />}
+                icon={
+                  <HugeiconsIcon icon={Users} data-icon="users" size={14} />
+                }
                 label={t("properties.teams")}
                 value={`${primaryTeam.name} (${primaryTeam.key})`}
                 isSelected

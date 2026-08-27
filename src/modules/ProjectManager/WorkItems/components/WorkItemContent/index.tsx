@@ -233,7 +233,14 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
   const descriptionActions =
     isThread && canEditDescription && !isEditingThreadDescription ? (
       <ActivityHeaderActionButton
-        icon={<HugeiconsIcon icon={Pencil} size={12} aria-hidden />}
+        icon={
+          <HugeiconsIcon
+            icon={Pencil}
+            data-icon="pencil"
+            size={12}
+            aria-hidden
+          />
+        }
         label={t("common:actions.edit")}
         onClick={beginDescriptionEdit}
         data-testid="work-item-description-edit"
@@ -332,7 +339,12 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
               data-testid="work-item-routine-source-chip"
               title={workItem.routineSource.firedAt}
             >
-              <HugeiconsIcon icon={Repeat} size={11} className="shrink-0" />
+              <HugeiconsIcon
+                icon={Repeat}
+                data-icon="repeat"
+                size={11}
+                className="shrink-0"
+              />
               <span className="truncate">
                 {t("workItems.fromRoutine", {
                   name: workItem.routineSource.routineName,

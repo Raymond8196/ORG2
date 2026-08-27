@@ -173,6 +173,7 @@ function ReviewerStateIndicator({
         >
           <HugeiconsIcon
             icon={Check}
+            data-icon="check"
             size={14}
             strokeWidth={2}
             className="text-success-6"
@@ -187,6 +188,7 @@ function ReviewerStateIndicator({
         >
           <HugeiconsIcon
             icon={XCircle}
+            data-icon="xcircle"
             size={14}
             strokeWidth={1.9}
             className="text-danger-6"
@@ -208,6 +210,7 @@ function ReviewerStateIndicator({
         >
           <HugeiconsIcon
             icon={MessageCircle}
+            data-icon="message-circle"
             size={14}
             strokeWidth={1.9}
             className="text-text-3"
@@ -425,6 +428,7 @@ export const PrSidebar: React.FC<PrSidebarProps> = ({
       >
         <HugeiconsIcon
           icon={Settings}
+          data-icon="settings"
           size={14}
           strokeWidth={1.75}
           aria-hidden

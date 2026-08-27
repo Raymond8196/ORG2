@@ -48,6 +48,7 @@ export const BreadcrumbPillNav: React.FC<BreadcrumbPillNavProps> = ({
     <span className={BREADCRUMB_PILL_NAV_TOKENS.leading}>{leading}</span>
     <HugeiconsIcon
       icon={ChevronRight}
+      data-icon="chevron-right"
       size={14}
       strokeWidth={1.75}
       className={BREADCRUMB_PILL_NAV_TOKENS.chevron}
@@ -116,6 +117,7 @@ export const BreadcrumbPillNavTrigger = forwardRef<
         {children}
         <HugeiconsIcon
           icon={ChevronDown}
+          data-icon="chevron-down"
           size={12}
           strokeWidth={2.25}
           className={classNames(

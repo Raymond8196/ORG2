@@ -39,6 +39,7 @@ const StreamingHud: React.FC<StreamingHudProps> = ({ sessionId }) => {
       <div className="flex h-[24px] items-center gap-2 rounded-full border border-solid border-border-2 bg-bg-2 px-3 text-[12px] text-text-2">
         <HugeiconsIcon
           icon={Gauge}
+          data-icon="gauge"
           size={12}
           strokeWidth={1.75}
           className="text-text-3"

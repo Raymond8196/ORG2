@@ -38,9 +38,18 @@ const ReplyInfoDisplay: React.FC<ReplyInfoDisplayProps> = memo(
 
     return (
       <UserActionButton
-        leftIcon={<HugeiconsIcon icon={Reply} size={16} strokeWidth={1.75} />}
+        leftIcon={
+          <HugeiconsIcon
+            icon={Reply}
+            data-icon="reply"
+            size={16}
+            strokeWidth={1.75}
+          />
+        }
         title={t("chat.replyToQuestion")}
-        rightIcon={<HugeiconsIcon icon={X} size={16} strokeWidth={1.75} />}
+        rightIcon={
+          <HugeiconsIcon icon={X} data-icon="x" size={16} strokeWidth={1.75} />
+        }
         onClick={() => onClose()}
       />
     );

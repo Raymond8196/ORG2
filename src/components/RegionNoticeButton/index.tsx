@@ -59,6 +59,7 @@ const RegionNoticeButton: React.FC<RegionNoticeButtonProps> = ({
             icon={
               <HugeiconsIcon
                 icon={Globe2}
+                data-icon="globe-2"
                 size={iconSize}
                 strokeWidth={2}
                 className={iconClassName}

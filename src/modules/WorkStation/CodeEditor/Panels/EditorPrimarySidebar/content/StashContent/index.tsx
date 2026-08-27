@@ -185,7 +185,12 @@ const StashItem: React.FC<StashItemProps> = memo(
         path: `stash@{${stash.index}}`,
         type: "file",
         icon: (
-          <HugeiconsIcon icon={Package} size={14} className="text-text-3" />
+          <HugeiconsIcon
+            icon={Package}
+            data-icon="package"
+            size={14}
+            className="text-text-3"
+          />
         ),
       }),
       [stash.index, shortMessage]
@@ -222,12 +227,14 @@ const StashItem: React.FC<StashItemProps> = memo(
             {actionLoading === "apply" ? (
               <HugeiconsIcon
                 icon={Loader2}
+                data-icon="loader-2"
                 size={SPINNER_TOKENS.small}
                 className="animate-spin text-text-3"
               />
             ) : (
               <HugeiconsIcon
                 icon={ArrowDownToLine}
+                data-icon="arrow-down-to-line"
                 size={12}
                 strokeWidth={1.75}
                 className="text-text-2"
@@ -245,12 +252,14 @@ const StashItem: React.FC<StashItemProps> = memo(
             {actionLoading === "pop" ? (
               <HugeiconsIcon
                 icon={Loader2}
+                data-icon="loader-2"
                 size={SPINNER_TOKENS.small}
                 className="animate-spin text-text-3"
               />
             ) : (
               <HugeiconsIcon
                 icon={ArchiveRestore}
+                data-icon="archive-restore"
                 size={12}
                 strokeWidth={1.75}
                 className="text-success-6"
@@ -268,12 +277,14 @@ const StashItem: React.FC<StashItemProps> = memo(
             {actionLoading === "drop" ? (
               <HugeiconsIcon
                 icon={Loader2}
+                data-icon="loader-2"
                 size={SPINNER_TOKENS.small}
                 className="animate-spin text-text-3"
               />
             ) : (
               <HugeiconsIcon
                 icon={Trash2}
+                data-icon="trash-2"
                 size={12}
                 strokeWidth={1.75}
                 className="text-danger-6"
@@ -385,12 +396,14 @@ export const StashContent: React.FC<StashContentProps> = memo(
             {collapsed ? (
               <HugeiconsIcon
                 icon={ChevronRight}
+                data-icon="chevron-right"
                 size={14}
                 className="text-text-3"
               />
             ) : (
               <HugeiconsIcon
                 icon={ChevronDown}
+                data-icon="chevron-down"
                 size={14}
                 className="text-text-3"
               />
@@ -411,12 +424,14 @@ export const StashContent: React.FC<StashContentProps> = memo(
             {isPoppingAll ? (
               <HugeiconsIcon
                 icon={Loader2}
+                data-icon="loader-2"
                 size={SPINNER_TOKENS.default}
                 className="animate-spin text-text-3"
               />
             ) : (
               <HugeiconsIcon
                 icon={ArchiveRestore}
+                data-icon="archive-restore"
                 size={14}
                 strokeWidth={1.75}
                 className="text-text-2"

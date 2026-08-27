@@ -165,7 +165,12 @@ export const SqlQueryEditor: React.FC<SqlQueryEditorProps> = memo(
               title={t("tooltips.formatSql")}
               className="sql-query-editor__btn"
             >
-              <HugeiconsIcon icon={AlignLeft} size={14} strokeWidth={1.75} />
+              <HugeiconsIcon
+                icon={AlignLeft}
+                data-icon="align-left"
+                size={14}
+                strokeWidth={1.75}
+              />
               <span>{t("sqlEditor.format")}</span>
             </button>
 
@@ -177,7 +182,12 @@ export const SqlQueryEditor: React.FC<SqlQueryEditorProps> = memo(
                   title={t("tooltips.queryHistory")}
                   className="sql-query-editor__btn"
                 >
-                  <HugeiconsIcon icon={History} size={14} strokeWidth={1.75} />
+                  <HugeiconsIcon
+                    icon={History}
+                    data-icon="history"
+                    size={14}
+                    strokeWidth={1.75}
+                  />
                   <span>{t("labels.history")}</span>
                 </button>
 
@@ -215,7 +225,12 @@ export const SqlQueryEditor: React.FC<SqlQueryEditorProps> = memo(
               title={t("tooltips.executeQuery")}
               className="sql-query-editor__btn sql-query-editor__btn--primary"
             >
-              <HugeiconsIcon icon={Play} size={14} strokeWidth={1.75} />
+              <HugeiconsIcon
+                icon={Play}
+                data-icon="play"
+                size={14}
+                strokeWidth={1.75}
+              />
               <span>{loading ? t("status.running") : t("actions.run")}</span>
             </button>
           </div>

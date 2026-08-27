@@ -284,7 +284,13 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
         key: "all",
         label: t("teamInbox.filters.all"),
         icon: (
-          <HugeiconsIcon icon={Inbox} size={14} strokeWidth={1.8} aria-hidden />
+          <HugeiconsIcon
+            icon={Inbox}
+            data-icon="inbox"
+            size={14}
+            strokeWidth={1.8}
+            aria-hidden
+          />
         ),
         iconClassName: "text-text-2",
         unreadCount: unreadCounts.all,
@@ -295,6 +301,7 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
         icon: (
           <HugeiconsIcon
             icon={MessageSquareMore}
+            data-icon="message-square-more"
             size={14}
             strokeWidth={1.8}
             aria-hidden
@@ -309,6 +316,7 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
         icon: (
           <HugeiconsIcon
             icon={ListChecks}
+            data-icon="list-checks"
             size={14}
             strokeWidth={1.8}
             aria-hidden
@@ -453,6 +461,7 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
                 icon={
                   <HugeiconsIcon
                     icon={CheckCheck}
+                    data-icon="check-check"
                     size={PANEL_HEADER_TOKENS.buttonIconSize}
                     strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
                   />
@@ -469,7 +478,12 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
                 variant="tertiary"
                 size="small"
                 icon={
-                  <HugeiconsIcon icon={RefreshCw} size={14} strokeWidth={2} />
+                  <HugeiconsIcon
+                    icon={RefreshCw}
+                    data-icon="refresh-cw"
+                    size={14}
+                    strokeWidth={2}
+                  />
                 }
                 iconOnly
                 disabled={showLoadingBar}
@@ -583,7 +597,12 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
                     variant="tertiary"
                     size="small"
                     icon={
-                      <HugeiconsIcon icon={Info} size={14} strokeWidth={1.8} />
+                      <HugeiconsIcon
+                        icon={Info}
+                        data-icon="info"
+                        size={14}
+                        strokeWidth={1.8}
+                      />
                     }
                     iconOnly
                     className="h-7 w-7"

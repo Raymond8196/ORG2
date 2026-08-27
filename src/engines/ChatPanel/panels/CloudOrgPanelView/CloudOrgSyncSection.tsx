@@ -249,7 +249,9 @@ export function CloudOrgSyncSection({ t, status }: CloudOrgSyncSectionProps) {
       {
         value: ALL_MEMBERS_FILTER_VALUE,
         label: t("cloud.sidebar.everyone"),
-        icon: <HugeiconsIcon icon={UsersRound} size={14} />,
+        icon: (
+          <HugeiconsIcon icon={UsersRound} data-icon="users-round" size={14} />
+        ),
         dataTestId: "cloud-org-sync-logs-member-all",
       },
       ...memberOptions.map((member) => ({

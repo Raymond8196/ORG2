@@ -42,6 +42,7 @@ const WizardProgressCard: React.FC<WizardProgressCardProps> = ({
     <div className={classes}>
       <HugeiconsIcon
         icon={Loader2}
+        data-icon="loader-2"
         size={SPINNER_TOKENS.default}
         className="shrink-0 animate-spin text-primary-6"
       />

@@ -321,7 +321,7 @@ const MetaStrip: React.FC<MetaStripProps> = memo(
             aria-label="Inspect with DevTools"
             className="ml-auto inline-flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded border-none bg-transparent p-0 text-text-3 hover:bg-fill-2 hover:text-text-2"
           >
-            <HugeiconsIcon icon={PenTool} size={14} />
+            <HugeiconsIcon icon={PenTool} data-icon="pen-tool" size={14} />
           </button>
         </ToolbarTooltip>
       </div>

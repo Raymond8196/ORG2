@@ -88,7 +88,13 @@ const MembersSection: React.FC<MembersSectionProps> = ({
         >
           {onOpenRepoSettings && (
             <Button
-              icon={<HugeiconsIcon icon={SquareArrowOutUpRight} size={14} />}
+              icon={
+                <HugeiconsIcon
+                  icon={SquareArrowOutUpRight}
+                  data-icon="square-arrow-out-up-right"
+                  size={14}
+                />
+              }
               iconPosition="right"
               onClick={onOpenRepoSettings}
             >

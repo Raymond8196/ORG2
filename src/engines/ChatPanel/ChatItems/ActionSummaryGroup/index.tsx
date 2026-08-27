@@ -224,7 +224,12 @@ const ActionSummaryGroup: React.FC<ActionSummaryGroupProps> = ({
       <StackedBlock
         items={orderedItems}
         icon={
-          <HugeiconsIcon icon={Waypoints} size={14} className="text-text-2" />
+          <HugeiconsIcon
+            icon={Waypoints}
+            data-icon="waypoints"
+            size={14}
+            className="text-text-2"
+          />
         }
         label={t("tools.explore")}
         groupSummary={groupSummary}

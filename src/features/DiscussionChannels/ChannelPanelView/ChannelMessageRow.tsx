@@ -213,7 +213,14 @@ const ChannelMessageRow: React.FC<ChannelMessageRowProps> = ({
               iconOnly
               aria-label={t("cloud.channels.feed.edit")}
               data-testid="channel-message-edit"
-              icon={<HugeiconsIcon icon={Pencil} size={12} strokeWidth={2} />}
+              icon={
+                <HugeiconsIcon
+                  icon={Pencil}
+                  data-icon="pencil"
+                  size={12}
+                  strokeWidth={2}
+                />
+              }
               onClick={startEditing}
             />
           </Tooltip>
@@ -227,7 +234,14 @@ const ChannelMessageRow: React.FC<ChannelMessageRowProps> = ({
               iconOnly
               aria-label={t("cloud.channels.feed.delete")}
               data-testid="channel-message-delete"
-              icon={<HugeiconsIcon icon={Trash2} size={12} strokeWidth={2} />}
+              icon={
+                <HugeiconsIcon
+                  icon={Trash2}
+                  data-icon="trash-2"
+                  size={12}
+                  strokeWidth={2}
+                />
+              }
               onClick={() => onDelete?.(message.id)}
             />
           </Tooltip>
@@ -315,7 +329,14 @@ const ChannelMessageRow: React.FC<ChannelMessageRowProps> = ({
                 htmlType="button"
                 variant="tertiary"
                 size="mini"
-                icon={<HugeiconsIcon icon={X} size={12} strokeWidth={2} />}
+                icon={
+                  <HugeiconsIcon
+                    icon={X}
+                    data-icon="x"
+                    size={12}
+                    strokeWidth={2}
+                  />
+                }
                 data-testid="channel-message-edit-cancel"
                 onClick={() => setEditing(false)}
               >
@@ -326,7 +347,14 @@ const ChannelMessageRow: React.FC<ChannelMessageRowProps> = ({
                 variant="primary"
                 size="mini"
                 disabled={draft.trim().length === 0}
-                icon={<HugeiconsIcon icon={Check} size={12} strokeWidth={2} />}
+                icon={
+                  <HugeiconsIcon
+                    icon={Check}
+                    data-icon="check"
+                    size={12}
+                    strokeWidth={2}
+                  />
+                }
                 data-testid="channel-message-edit-save"
                 onClick={saveEdit}
               >

@@ -133,6 +133,7 @@ const DetailSplitLayout: React.FC<DetailSplitLayoutProps> = ({
             {index > 0 && (
               <HugeiconsIcon
                 icon={ChevronRight}
+                data-icon="chevron-right"
                 size={14}
                 strokeWidth={1.75}
                 className="mx-1 flex-shrink-0 text-fill-4"
@@ -175,7 +176,13 @@ const DetailSplitLayout: React.FC<DetailSplitLayoutProps> = ({
             onClick={() => onNavigate("prev")}
             disabled={!hasPrev}
             title={t("actions.previous")}
-            icon={<HugeiconsIcon icon={ChevronUp} size={HEADER_ICON_SIZE.sm} />}
+            icon={
+              <HugeiconsIcon
+                icon={ChevronUp}
+                data-icon="chevron-up"
+                size={HEADER_ICON_SIZE.sm}
+              />
+            }
           />
           <Button
             htmlType="button"
@@ -186,7 +193,11 @@ const DetailSplitLayout: React.FC<DetailSplitLayoutProps> = ({
             disabled={!hasNext}
             title={t("actions.next")}
             icon={
-              <HugeiconsIcon icon={ChevronDown} size={HEADER_ICON_SIZE.sm} />
+              <HugeiconsIcon
+                icon={ChevronDown}
+                data-icon="chevron-down"
+                size={HEADER_ICON_SIZE.sm}
+              />
             }
           />
         </>

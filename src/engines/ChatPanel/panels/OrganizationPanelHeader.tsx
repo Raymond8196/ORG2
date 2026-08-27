@@ -84,9 +84,19 @@ export function OrganizationPanelHeader({
       label: entry.label,
       icon:
         entry.kind === "cloud" ? (
-          <HugeiconsIcon icon={Cloud} size={13} strokeWidth={2} />
+          <HugeiconsIcon
+            icon={Cloud}
+            data-icon="cloud"
+            size={13}
+            strokeWidth={2}
+          />
         ) : (
-          <HugeiconsIcon icon={Laptop} size={13} strokeWidth={2} />
+          <HugeiconsIcon
+            icon={Laptop}
+            data-icon="laptop"
+            size={13}
+            strokeWidth={2}
+          />
         ),
       dataTestId: `organization-picker-${entry.kind}-${entry.value}`,
     }));
@@ -97,7 +107,14 @@ export function OrganizationPanelHeader({
       options.unshift({
         value: organization.projectOrg.orgId,
         label: organization.projectOrg.orgName,
-        icon: <HugeiconsIcon icon={Laptop} size={13} strokeWidth={2} />,
+        icon: (
+          <HugeiconsIcon
+            icon={Laptop}
+            data-icon="laptop"
+            size={13}
+            strokeWidth={2}
+          />
+        ),
         dataTestId: `organization-picker-local-${organization.projectOrg.orgId}`,
       });
     }

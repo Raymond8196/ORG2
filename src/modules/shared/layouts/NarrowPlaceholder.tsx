@@ -38,7 +38,12 @@ const NarrowPlaceholder: React.FC<NarrowPlaceholderProps> = memo(
       <div
         className={`flex min-h-[120px] w-full flex-col items-center justify-center gap-2 p-4 text-center ${className}`}
       >
-        <HugeiconsIcon icon={Maximize2} size={20} className="text-text-3" />
+        <HugeiconsIcon
+          icon={Maximize2}
+          data-icon="maximize-2"
+          size={20}
+          className="text-text-3"
+        />
         <div className="text-[13px] font-medium text-text-2">
           {resolvedTitle}
         </div>

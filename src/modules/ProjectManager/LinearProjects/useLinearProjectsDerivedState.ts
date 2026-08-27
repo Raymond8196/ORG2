@@ -111,7 +111,8 @@ export function useLinearProjectsDerivedState({
         value: state.id,
         label: state.name,
         color: state.color ?? undefined,
-        icon: createElement(Circle, {
+        icon: createElement(HugeiconsIcon, {
+          icon: Circle,
           size: 12,
           fill: state.color ?? "#6B7280",
           strokeWidth: 1.5,

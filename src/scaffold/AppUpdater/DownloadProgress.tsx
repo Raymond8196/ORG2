@@ -111,7 +111,12 @@ export const DownloadProgressOrb: FC<DownloadProgressOrbProps> = ({
         <span className="app-update-download-orb__wave" />
       </span>
       <span className="app-update-download-orb__icon" aria-hidden>
-        <HugeiconsIcon icon={Download} size={18} strokeWidth={2.2} />
+        <HugeiconsIcon
+          icon={Download}
+          data-icon="download"
+          size={18}
+          strokeWidth={2.2}
+        />
       </span>
     </button>
   );

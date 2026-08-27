@@ -341,6 +341,7 @@ const Modal: React.FC<ModalProps> = ({
                       closeIcon || (
                         <HugeiconsIcon
                           icon={X}
+                          data-icon="x"
                           size={PANEL_HEADER_TOKENS.buttonIconSize}
                           strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
                         />

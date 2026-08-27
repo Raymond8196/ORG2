@@ -101,7 +101,11 @@ const WorkItemSection: React.FC<WorkItemSectionProps> = ({
           <div
             className={`${HEADER_BUTTON.actionMdTreeRow} [&>svg]:transition-transform [&>svg]:duration-150 ${isExpanded ? "[&>svg]:rotate-90" : ""}`}
           >
-            <HugeiconsIcon icon={ChevronRight} size={HEADER_ICON_SIZE.sm} />
+            <HugeiconsIcon
+              icon={ChevronRight}
+              data-icon="chevron-right"
+              size={HEADER_ICON_SIZE.sm}
+            />
           </div>
         </div>
 
@@ -142,7 +146,11 @@ const WorkItemSection: React.FC<WorkItemSectionProps> = ({
                 onAddItem();
               }}
             >
-              <HugeiconsIcon icon={Plus} size={HEADER_ICON_SIZE.sm} />
+              <HugeiconsIcon
+                icon={Plus}
+                data-icon="plus"
+                size={HEADER_ICON_SIZE.sm}
+              />
             </button>
           </Tooltip>
         )}

@@ -129,7 +129,9 @@ const OrgsTable: React.FC<OrgsTableProps> = ({
               variant="danger"
               appearance="outline"
               size="small"
-              icon={<HugeiconsIcon icon={Trash2} size={14} />}
+              icon={
+                <HugeiconsIcon icon={Trash2} data-icon="trash-2" size={14} />
+              }
               iconOnly
               data-testid={`agent-orgs-org-delete-row-button-${row.id}`}
               onClick={() => void onDeleteOrg(row.id)}
@@ -150,7 +152,7 @@ const OrgsTable: React.FC<OrgsTableProps> = ({
     <Button
       variant="secondary"
       size="default"
-      icon={<HugeiconsIcon icon={Plus} size={14} />}
+      icon={<HugeiconsIcon icon={Plus} data-icon="plus" size={14} />}
       iconOnly
       aria-label={addOrgLabel}
       title={addOrgLabel}

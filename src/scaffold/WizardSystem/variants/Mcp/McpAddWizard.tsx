@@ -369,12 +369,16 @@ const McpAddWizard: React.FC<McpAddWizardProps> = ({
             >
               {w.testResult.success ? (
                 <span className="flex items-center gap-1.5">
-                  <HugeiconsIcon icon={CheckCircle2} size={14} />
+                  <HugeiconsIcon
+                    icon={CheckCircle2}
+                    data-icon="check-circle-2"
+                    size={14}
+                  />
                   {w.testResult.toolCount} {t("mcp.toolsDiscovered")}
                 </span>
               ) : (
                 <span className="flex items-center gap-1.5">
-                  <HugeiconsIcon icon={XCircle} size={14} />
+                  <HugeiconsIcon icon={XCircle} data-icon="xcircle" size={14} />
                   {w.testResult.error ?? t("mcp.connectionFailed")}
                 </span>
               )}

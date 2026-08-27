@@ -151,6 +151,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> & {
     ) : (
       <HugeiconsIcon
         icon={ChevronRight}
+        data-icon="chevron-right"
         size={14}
         strokeWidth={1.75}
         className="text-fill-4"

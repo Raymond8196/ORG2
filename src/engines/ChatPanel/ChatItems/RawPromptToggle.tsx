@@ -174,7 +174,12 @@ const RawPromptToggleComponent: React.FC<RawPromptToggleProps> = ({
         }`}
         onClick={handleClick}
       >
-        <HugeiconsIcon icon={Braces} size={14} strokeWidth={1.75} />
+        <HugeiconsIcon
+          icon={Braces}
+          data-icon="braces"
+          size={14}
+          strokeWidth={1.75}
+        />
       </button>
 
       {isOpen &&

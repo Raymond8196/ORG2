@@ -54,7 +54,14 @@ const CollapsedSidebarButtonComponent: React.FC = () => {
             onClick={handleClick}
             title={label}
             aria-label={label}
-            icon={<HugeiconsIcon icon={PanelLeft} size={16} strokeWidth={2} />}
+            icon={
+              <HugeiconsIcon
+                icon={PanelLeft}
+                data-icon="panel-left"
+                size={16}
+                strokeWidth={2}
+              />
+            }
           />
         </span>
       </Tooltip>

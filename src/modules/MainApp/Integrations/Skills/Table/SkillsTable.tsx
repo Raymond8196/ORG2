@@ -254,6 +254,7 @@ export const SkillsTable: React.FC<SkillsTableProps> = ({
                   icon={
                     <HugeiconsIcon
                       icon={Trash2}
+                      data-icon="trash-2"
                       size={14}
                       className="text-danger-6"
                     />
@@ -313,6 +314,7 @@ export const SkillsTable: React.FC<SkillsTableProps> = ({
           icon={
             <HugeiconsIcon
               icon={RefreshCw}
+              data-icon="refresh-cw"
               size={14}
               className={refreshSpinClass}
             />
@@ -328,7 +330,7 @@ export const SkillsTable: React.FC<SkillsTableProps> = ({
       <Button
         variant="secondary"
         size="default"
-        icon={<HugeiconsIcon icon={Plus} size={14} />}
+        icon={<HugeiconsIcon icon={Plus} data-icon="plus" size={14} />}
         onClick={onCreate}
         data-testid="integrations-skills-create-button"
       >

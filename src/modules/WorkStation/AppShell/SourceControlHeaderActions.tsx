@@ -84,6 +84,7 @@ const SourceControlHeaderActionsComponent: React.FC = () => {
             icon={
               <HugeiconsIcon
                 icon={History}
+                data-icon="history"
                 size={HEADER_ICON_SIZE.sm}
                 strokeWidth={2}
               />
@@ -102,6 +103,7 @@ const SourceControlHeaderActionsComponent: React.FC = () => {
             icon={
               <HugeiconsIcon
                 icon={GitPullRequest}
+                data-icon="git-pull-request"
                 size={HEADER_ICON_SIZE.sm}
                 strokeWidth={2}
               />
@@ -120,6 +122,7 @@ const SourceControlHeaderActionsComponent: React.FC = () => {
             icon={
               <HugeiconsIcon
                 icon={CircleDot}
+                data-icon="circle-dot"
                 size={HEADER_ICON_SIZE.sm}
                 strokeWidth={2}
               />

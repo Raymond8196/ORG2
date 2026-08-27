@@ -317,7 +317,13 @@ export default function UsageRoundsTable({
               loading={loading}
               loadingSpinIcon
               disabled={loading}
-              icon={<HugeiconsIcon icon={RefreshCw} size={14} />}
+              icon={
+                <HugeiconsIcon
+                  icon={RefreshCw}
+                  data-icon="refresh-cw"
+                  size={14}
+                />
+              }
               aria-label={t("usage.refresh")}
               title={t("usage.refresh")}
               data-testid="usage-rounds-refresh"

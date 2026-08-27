@@ -136,6 +136,7 @@ const CliClientInlineExpandedCard = ({
               icon={
                 <HugeiconsIcon
                   icon={RefreshCw}
+                  data-icon="refresh-cw"
                   size={14}
                   className={spinClass}
                 />
@@ -150,7 +151,13 @@ const CliClientInlineExpandedCard = ({
             <Button
               variant="secondary"
               size="small"
-              icon={<HugeiconsIcon icon={SquareArrowOutUpRight} size={14} />}
+              icon={
+                <HugeiconsIcon
+                  icon={SquareArrowOutUpRight}
+                  data-icon="square-arrow-out-up-right"
+                  size={14}
+                />
+              }
               iconPosition="right"
               onClick={() => openExternalLink(agent.docsUrl!)}
             >
@@ -161,7 +168,7 @@ const CliClientInlineExpandedCard = ({
             <Button
               variant="secondary"
               size="small"
-              icon={<HugeiconsIcon icon={Plus} size={14} />}
+              icon={<HugeiconsIcon icon={Plus} data-icon="plus" size={14} />}
               onClick={onAdd}
             >
               {t("cliPreview.addKey")}

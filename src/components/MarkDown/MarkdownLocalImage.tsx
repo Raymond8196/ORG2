@@ -193,6 +193,7 @@ const MarkdownLocalImage: React.FC<MarkdownLocalImageProps> = memo(
           {failed ? (
             <HugeiconsIcon
               icon={ImageOff}
+              data-icon="image-off"
               size={14}
               strokeWidth={1.5}
               className="shrink-0 text-text-3"
@@ -214,6 +215,7 @@ const MarkdownLocalImage: React.FC<MarkdownLocalImageProps> = memo(
         >
           <HugeiconsIcon
             icon={ImageIcon}
+            data-icon="image-icon"
             size={16}
             strokeWidth={1.5}
             className="animate-pulse motion-reduce:animate-none"

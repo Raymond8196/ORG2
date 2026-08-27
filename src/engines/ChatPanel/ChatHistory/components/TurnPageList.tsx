@@ -124,12 +124,14 @@ const TurnPageList: React.FC<TurnPageListProps> = memo(
                     {turnPageSortAscending ? (
                       <HugeiconsIcon
                         icon={ClockArrowDown}
+                        data-icon="clock-arrow-down"
                         size={14}
                         strokeWidth={1.75}
                       />
                     ) : (
                       <HugeiconsIcon
                         icon={ClockArrowUp}
+                        data-icon="clock-arrow-up"
                         size={14}
                         strokeWidth={1.75}
                       />
@@ -141,7 +143,12 @@ const TurnPageList: React.FC<TurnPageListProps> = memo(
                   tooltipPosition="bottom-end"
                   onClick={onClose}
                 >
-                  <HugeiconsIcon icon={X} size={14} strokeWidth={1.75} />
+                  <HugeiconsIcon
+                    icon={X}
+                    data-icon="x"
+                    size={14}
+                    strokeWidth={1.75}
+                  />
                 </TabBarTrailingIconButton>
               </div>
             )}

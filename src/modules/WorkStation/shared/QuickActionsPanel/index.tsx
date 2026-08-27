@@ -123,6 +123,7 @@ const AppLogo = memo(() => (
     <div className="flex h-[120px] w-[120px] items-center justify-center">
       <HugeiconsIcon
         icon={Box}
+        data-icon="box"
         size={80}
         strokeWidth={1}
         className="text-text-4 opacity-40"

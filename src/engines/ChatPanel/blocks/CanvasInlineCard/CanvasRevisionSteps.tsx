@@ -26,6 +26,7 @@ const StepIcon: React.FC<{ state: CanvasRevisionStepState }> = ({ state }) => {
     return (
       <HugeiconsIcon
         icon={CheckCircle2}
+        data-icon="check-circle-2"
         size={size}
         className="text-success-6"
         aria-hidden
@@ -36,6 +37,7 @@ const StepIcon: React.FC<{ state: CanvasRevisionStepState }> = ({ state }) => {
     return (
       <HugeiconsIcon
         icon={LoaderCircle}
+        data-icon="loader-circle"
         size={size}
         className="animate-spin text-primary-6 motion-reduce:animate-none"
         aria-hidden
@@ -46,6 +48,7 @@ const StepIcon: React.FC<{ state: CanvasRevisionStepState }> = ({ state }) => {
     return (
       <HugeiconsIcon
         icon={CircleX}
+        data-icon="circle-x"
         size={size}
         className="text-danger-6"
         aria-hidden
@@ -55,6 +58,7 @@ const StepIcon: React.FC<{ state: CanvasRevisionStepState }> = ({ state }) => {
   return (
     <HugeiconsIcon
       icon={Circle}
+      data-icon="circle"
       size={size}
       className="text-text-4"
       aria-hidden

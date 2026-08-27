@@ -71,6 +71,7 @@ export function StatusPrioritySection({
         option.id === "open" ? (
           <HugeiconsIcon
             icon={CircleDot}
+            data-icon="circle-dot"
             size={13}
             strokeWidth={1.8}
             aria-hidden
@@ -78,6 +79,7 @@ export function StatusPrioritySection({
         ) : option.id === "closed" ? (
           <HugeiconsIcon
             icon={CheckCircle2}
+            data-icon="check-circle-2"
             size={13}
             strokeWidth={1.8}
             aria-hidden
@@ -85,6 +87,7 @@ export function StatusPrioritySection({
         ) : (
           <HugeiconsIcon
             icon={Circle}
+            data-icon="circle"
             size={13}
             strokeWidth={1.8}
             aria-hidden

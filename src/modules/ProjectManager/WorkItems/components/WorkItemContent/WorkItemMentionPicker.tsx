@@ -78,7 +78,14 @@ const WorkItemMentionPicker: React.FC<WorkItemMentionPickerProps> = ({
       appearance="ghost"
       value={[...value]}
       options={options}
-      prefix={<HugeiconsIcon icon={AtSign} size={13} aria-hidden />}
+      prefix={
+        <HugeiconsIcon
+          icon={AtSign}
+          data-icon="at-sign"
+          size={13}
+          aria-hidden
+        />
+      }
       placeholder={t("workItems.activity.mentionPeople")}
       maxTagCount={2}
       showSearch

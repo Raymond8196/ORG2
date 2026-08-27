@@ -67,6 +67,7 @@ function getActiveSelectableItem(
 const Separator: React.FC = () => (
   <HugeiconsIcon
     icon={ChevronRight}
+    data-icon="chevron-right"
     size={13}
     className="shrink-0 text-text-3"
   />
@@ -220,6 +221,7 @@ const PageBreadcrumb: React.FC<PageBreadcrumbProps> = ({ className = "" }) => {
                     {isSelected ? (
                       <HugeiconsIcon
                         icon={Check}
+                        data-icon="check"
                         size={DROPDOWN_ITEM.iconSize}
                         className="shrink-0 text-primary-6"
                       />

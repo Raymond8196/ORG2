@@ -30,7 +30,11 @@ export function getPlaygroundMockEventRowIcon(
 ): React.ReactNode {
   if (isChatPreviewType(eventTypeKey)) {
     return (
-      <HugeiconsIcon icon={MessageSquare} size={PLAYGROUND_ROW_ICON_SIZE} />
+      <HugeiconsIcon
+        icon={MessageSquare}
+        data-icon="message-square"
+        size={PLAYGROUND_ROW_ICON_SIZE}
+      />
     );
   }
 

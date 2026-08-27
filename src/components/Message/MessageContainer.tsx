@@ -206,7 +206,7 @@ const MessageItem = ({
           onClick={handleClose}
           aria-label={t("actions.close")}
         >
-          <HugeiconsIcon icon={X} size={14} />
+          <HugeiconsIcon icon={X} data-icon="x" size={14} />
         </button>
       )}
     </motion.div>

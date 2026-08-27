@@ -37,6 +37,7 @@ const WorkItemsStatusFilterSelect: React.FC<
       return (
         <HugeiconsIcon
           icon={List}
+          data-icon="list"
           size={DROPDOWN_ITEM.iconSize}
           strokeWidth={1.75}
         />
@@ -49,6 +50,7 @@ const WorkItemsStatusFilterSelect: React.FC<
       return (
         <HugeiconsIcon
           icon={List}
+          data-icon="list"
           size={DROPDOWN_ITEM.iconSize}
           strokeWidth={1.75}
         />

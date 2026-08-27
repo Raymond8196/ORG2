@@ -88,6 +88,7 @@ const ProjectSyncStatusWidget: React.FC<ProjectSyncStatusWidgetProps> = memo(
           icon: (
             <HugeiconsIcon
               icon={CloudOff}
+              data-icon="cloud-off"
               size={13}
               className="text-danger-6"
             />
@@ -109,6 +110,7 @@ const ProjectSyncStatusWidget: React.FC<ProjectSyncStatusWidgetProps> = memo(
           icon: (
             <HugeiconsIcon
               icon={CloudAlert}
+              data-icon="cloud-alert"
               size={13}
               className="text-warning-6"
             />
@@ -124,6 +126,7 @@ const ProjectSyncStatusWidget: React.FC<ProjectSyncStatusWidgetProps> = memo(
           icon: (
             <HugeiconsIcon
               icon={CloudUpload}
+              data-icon="cloud-upload"
               size={13}
               className="text-text-1"
             />
@@ -137,7 +140,14 @@ const ProjectSyncStatusWidget: React.FC<ProjectSyncStatusWidgetProps> = memo(
       }
 
       return {
-        icon: <HugeiconsIcon icon={Cloud} size={13} className="text-text-1" />,
+        icon: (
+          <HugeiconsIcon
+            icon={Cloud}
+            data-icon="cloud"
+            size={13}
+            className="text-text-1"
+          />
+        ),
         label: null as string | null,
         labelClass: "",
         tooltip: `${t("statusBar.sync.synced", {

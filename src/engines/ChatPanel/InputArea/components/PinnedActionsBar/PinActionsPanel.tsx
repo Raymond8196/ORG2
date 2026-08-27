@@ -257,6 +257,7 @@ const PinActionsPanel: React.FC<PinActionsPanelProps> = memo(
             >
               <HugeiconsIcon
                 icon={ArrowUp}
+                data-icon="arrow-up"
                 size={DROPDOWN_ITEM.iconSize}
                 strokeWidth={2}
               />
@@ -269,12 +270,14 @@ const PinActionsPanel: React.FC<PinActionsPanelProps> = memo(
               {isPinned ? (
                 <HugeiconsIcon
                   icon={PinOff}
+                  data-icon="pin-off"
                   size={DROPDOWN_ITEM.iconSize}
                   strokeWidth={1.75}
                 />
               ) : (
                 <HugeiconsIcon
                   icon={Pin}
+                  data-icon="pin"
                   size={DROPDOWN_ITEM.iconSize}
                   strokeWidth={1.75}
                 />
@@ -321,6 +324,7 @@ const PinActionsPanel: React.FC<PinActionsPanelProps> = memo(
         <div className={DROPDOWN_CLASSES.searchContainer}>
           <HugeiconsIcon
             icon={Search}
+            data-icon="search"
             size={DROPDOWN_ITEM.iconSize}
             className="shrink-0 text-text-3"
           />

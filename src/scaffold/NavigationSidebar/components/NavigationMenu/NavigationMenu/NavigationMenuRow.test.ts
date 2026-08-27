@@ -98,9 +98,10 @@ describe("NavigationMenuRow", () => {
       })
     );
 
-    expect(markup).toContain(
-      `lucide-refresh-cw ${REFRESH_ICON_TOKENS.oneShot}`
-    );
+    // Hugeicons does not stamp an icon class the way lucide did, so identity
+    // and styling are asserted separately rather than as one adjacent string.
+    expect(markup).toContain('data-icon="refresh-cw"');
+    expect(markup).toContain(REFRESH_ICON_TOKENS.oneShot);
   });
 
   it("exposes disabled leaf rows to rendered UI drivers", () => {

@@ -143,14 +143,14 @@ const MemberRowItem: React.FC<{
         {editing ? (
           <>
             <Button
-              icon={<HugeiconsIcon icon={Check} size={14} />}
+              icon={<HugeiconsIcon icon={Check} data-icon="check" size={14} />}
               iconOnly
               onClick={() => {
                 if (inputRef.current) handleSave(inputRef.current.value);
               }}
             />
             <Button
-              icon={<HugeiconsIcon icon={X} size={14} />}
+              icon={<HugeiconsIcon icon={X} data-icon="x" size={14} />}
               iconOnly
               onClick={handleCancel}
             />
@@ -158,13 +158,21 @@ const MemberRowItem: React.FC<{
         ) : (
           <>
             <Button
-              icon={<HugeiconsIcon icon={Pencil} size={14} />}
+              icon={
+                <HugeiconsIcon icon={Pencil} data-icon="pencil" size={14} />
+              }
               iconOnly
               onClick={handleStartEdit}
             />
             {!isCurrentUser && canClaim && onClaim && (
               <Button
-                icon={<HugeiconsIcon icon={UserPlus} size={14} />}
+                icon={
+                  <HugeiconsIcon
+                    icon={UserPlus}
+                    data-icon="user-plus"
+                    size={14}
+                  />
+                }
                 iconOnly
                 onClick={() => onClaim(member)}
                 title={t("settings.claimAsMine")}
@@ -173,9 +181,9 @@ const MemberRowItem: React.FC<{
             <Button
               icon={
                 variant === "active" ? (
-                  <HugeiconsIcon icon={Minus} size={14} />
+                  <HugeiconsIcon icon={Minus} data-icon="minus" size={14} />
                 ) : (
-                  <HugeiconsIcon icon={Plus} size={14} />
+                  <HugeiconsIcon icon={Plus} data-icon="plus" size={14} />
                 )
               }
               iconOnly
@@ -369,6 +377,7 @@ const RepoMembersSection: React.FC<RepoMembersSectionProps> = ({
                 icon={
                   <HugeiconsIcon
                     icon={RefreshCw}
+                    data-icon="refresh-cw"
                     size={14}
                     className={syncSpinClass}
                   />
@@ -382,9 +391,17 @@ const RepoMembersSection: React.FC<RepoMembersSectionProps> = ({
               onClick={() => setExpanded(!expanded)}
               icon={
                 expanded ? (
-                  <HugeiconsIcon icon={ChevronDown} size={14} />
+                  <HugeiconsIcon
+                    icon={ChevronDown}
+                    data-icon="chevron-down"
+                    size={14}
+                  />
                 ) : (
-                  <HugeiconsIcon icon={ChevronRight} size={14} />
+                  <HugeiconsIcon
+                    icon={ChevronRight}
+                    data-icon="chevron-right"
+                    size={14}
+                  />
                 )
               }
               iconOnly
@@ -432,9 +449,17 @@ const RepoMembersSection: React.FC<RepoMembersSectionProps> = ({
                 onClick={() => setInactiveExpanded(!inactiveExpanded)}
                 icon={
                   inactiveExpanded ? (
-                    <HugeiconsIcon icon={ChevronDown} size={14} />
+                    <HugeiconsIcon
+                      icon={ChevronDown}
+                      data-icon="chevron-down"
+                      size={14}
+                    />
                   ) : (
-                    <HugeiconsIcon icon={ChevronRight} size={14} />
+                    <HugeiconsIcon
+                      icon={ChevronRight}
+                      data-icon="chevron-right"
+                      size={14}
+                    />
                   )
                 }
                 iconOnly

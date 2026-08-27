@@ -118,6 +118,7 @@ const DropdownSearch = forwardRef<HTMLInputElement, DropdownSearchProps>(
       >
         <HugeiconsIcon
           icon={Search}
+          data-icon="search"
           size={DROPDOWN_SEARCH.iconSize}
           className="flex-shrink-0 text-text-3"
         />

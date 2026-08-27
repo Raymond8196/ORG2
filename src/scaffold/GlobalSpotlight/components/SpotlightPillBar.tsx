@@ -55,6 +55,7 @@ export const SpotlightPillBar: React.FC<SpotlightPillBarProps> = ({
               {canRemove && (
                 <HugeiconsIcon
                   icon={ChevronLeft}
+                  data-icon="chevron-left"
                   size={13}
                   strokeWidth={2.5}
                   className="shrink-0"

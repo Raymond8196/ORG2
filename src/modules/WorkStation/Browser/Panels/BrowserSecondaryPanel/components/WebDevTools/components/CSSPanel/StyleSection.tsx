@@ -82,12 +82,14 @@ export const StyleSection: React.FC<StyleSectionProps> = memo(
           {isExpanded ? (
             <HugeiconsIcon
               icon={ChevronDown}
+              data-icon="chevron-down"
               size={14}
               className="flex-shrink-0 text-text-3"
             />
           ) : (
             <HugeiconsIcon
               icon={ChevronRight}
+              data-icon="chevron-right"
               size={14}
               className="flex-shrink-0 text-text-3"
             />

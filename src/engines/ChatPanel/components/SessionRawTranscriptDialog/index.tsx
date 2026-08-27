@@ -42,7 +42,12 @@ const SessionRawTranscriptDialog: React.FC<SessionRawTranscriptDialogProps> =
             <Button
               size="small"
               icon={
-                <HugeiconsIcon icon={RefreshCw} size={14} strokeWidth={1.75} />
+                <HugeiconsIcon
+                  icon={RefreshCw}
+                  data-icon="refresh-cw"
+                  size={14}
+                  strokeWidth={1.75}
+                />
               }
               loading={transcript.loading}
               disabled={!sessionId}
@@ -53,7 +58,12 @@ const SessionRawTranscriptDialog: React.FC<SessionRawTranscriptDialogProps> =
             <Button
               size="small"
               icon={
-                <HugeiconsIcon icon={Clipboard} size={14} strokeWidth={1.75} />
+                <HugeiconsIcon
+                  icon={Clipboard}
+                  data-icon="clipboard"
+                  size={14}
+                  strokeWidth={1.75}
+                />
               }
               disabled={!transcript.snapshot || transcript.loading}
               onClick={() => void transcript.copyTranscript()}

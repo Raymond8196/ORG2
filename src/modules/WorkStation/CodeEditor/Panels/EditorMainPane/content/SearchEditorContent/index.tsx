@@ -219,6 +219,7 @@ export const SearchEditorContent: React.FC<SearchEditorContentProps> = memo(
               icon={
                 <HugeiconsIcon
                   icon={Filter}
+                  data-icon="filter"
                   size={14}
                   className={showFilters ? "text-primary-6" : "text-text-3"}
                 />

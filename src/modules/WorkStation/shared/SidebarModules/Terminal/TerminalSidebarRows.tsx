@@ -34,13 +34,21 @@ export const AgentSessionRow: React.FC<AgentSessionRowProps> = memo(
       name: title,
       path: title,
       type: "file",
-      icon: <HugeiconsIcon icon={Terminal} size={14} strokeWidth={1.75} />,
+      icon: (
+        <HugeiconsIcon
+          icon={Terminal}
+          data-icon="terminal"
+          size={14}
+          strokeWidth={1.75}
+        />
+      ),
     };
 
     return (
       <TreeRowBase node={node} depth={0} isSelected={isActive} onClick={onOpen}>
         <HugeiconsIcon
           icon={Infinity}
+          data-icon="infinity"
           size={14}
           strokeWidth={1.75}
           className="shrink-0 text-primary-6 group-hover/item:hidden"
@@ -73,7 +81,14 @@ export const PtySessionRow: React.FC<PtySessionRowProps> = memo(
       name: title,
       path: session.id,
       type: "file",
-      icon: <HugeiconsIcon icon={Terminal} size={14} strokeWidth={1.75} />,
+      icon: (
+        <HugeiconsIcon
+          icon={Terminal}
+          data-icon="terminal"
+          size={14}
+          strokeWidth={1.75}
+        />
+      ),
     };
 
     return (

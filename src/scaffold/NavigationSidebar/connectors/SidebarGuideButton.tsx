@@ -62,11 +62,16 @@ const GuideTaskRow: FC<GuideTaskRowProps> = ({
       completed ? (
         <HugeiconsIcon
           icon={CheckCircle2}
+          data-icon="check-circle-2"
           size={DROPDOWN_ITEM.iconSize}
           className="text-success-6"
         />
       ) : (
-        <HugeiconsIcon icon={Circle} size={DROPDOWN_ITEM.iconSize} />
+        <HugeiconsIcon
+          icon={Circle}
+          data-icon="circle"
+          size={DROPDOWN_ITEM.iconSize}
+        />
       )
     }
     suffix={
@@ -196,6 +201,7 @@ const SidebarGuideButton: FC<SidebarGuideButtonProps> = ({
           >
             <HugeiconsIcon
               icon={Rocket}
+              data-icon="rocket"
               size={HEADER_ICON_SIZE.md}
               strokeWidth={2}
             />
@@ -236,7 +242,11 @@ const SidebarGuideButton: FC<SidebarGuideButtonProps> = ({
                   variant="default"
                   onClick={() => runAction(onDismiss)}
                 >
-                  <HugeiconsIcon icon={X} size={HEADER_ICON_SIZE.sm} />
+                  <HugeiconsIcon
+                    icon={X}
+                    data-icon="x"
+                    size={HEADER_ICON_SIZE.sm}
+                  />
                 </IconButton>
                 <IconButton
                   aria-label={t("sidebar.guide.close")}
@@ -246,6 +256,7 @@ const SidebarGuideButton: FC<SidebarGuideButtonProps> = ({
                 >
                   <HugeiconsIcon
                     icon={ChevronDown}
+                    data-icon="chevron-down"
                     size={HEADER_ICON_SIZE.sm}
                   />
                 </IconButton>

@@ -79,7 +79,13 @@ export const PaginationFooter: React.FC<PaginationFooterProps> = ({
           size="small"
           disabled={!canPreviousPage}
           onClick={() => onPageChange(currentPage - 1)}
-          icon={<HugeiconsIcon icon={ChevronLeft} size={16} />}
+          icon={
+            <HugeiconsIcon
+              icon={ChevronLeft}
+              data-icon="chevron-left"
+              size={16}
+            />
+          }
         />
 
         <span className="table-pagination-info">
@@ -90,7 +96,13 @@ export const PaginationFooter: React.FC<PaginationFooterProps> = ({
           size="small"
           disabled={!canNextPage}
           onClick={() => onPageChange(currentPage + 1)}
-          icon={<HugeiconsIcon icon={ChevronRight} size={16} />}
+          icon={
+            <HugeiconsIcon
+              icon={ChevronRight}
+              data-icon="chevron-right"
+              size={16}
+            />
+          }
         />
 
         {pagination.showQuickJumper && (

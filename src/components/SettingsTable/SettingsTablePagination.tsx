@@ -101,7 +101,11 @@ export function SettingsTablePagination({
             aria-label={t("pagination.firstPage")}
             title={t("pagination.firstPage")}
           >
-            <HugeiconsIcon icon={ChevronsLeft} size={14} />
+            <HugeiconsIcon
+              icon={ChevronsLeft}
+              data-icon="chevrons-left"
+              size={14}
+            />
           </button>
         ) : null}
         <button
@@ -111,7 +115,11 @@ export function SettingsTablePagination({
           aria-label={t("pagination.previousPage")}
           title={t("pagination.previousPage")}
         >
-          <HugeiconsIcon icon={ChevronLeft} size={14} />
+          <HugeiconsIcon
+            icon={ChevronLeft}
+            data-icon="chevron-left"
+            size={14}
+          />
         </button>
         {canJump ? (
           <Select
@@ -133,7 +141,11 @@ export function SettingsTablePagination({
           aria-label={t("pagination.nextPage")}
           title={t("pagination.nextPage")}
         >
-          <HugeiconsIcon icon={ChevronRight} size={14} />
+          <HugeiconsIcon
+            icon={ChevronRight}
+            data-icon="chevron-right"
+            size={14}
+          />
         </button>
         {canJump ? (
           <button
@@ -143,7 +155,11 @@ export function SettingsTablePagination({
             aria-label={t("pagination.lastPage")}
             title={t("pagination.lastPage")}
           >
-            <HugeiconsIcon icon={ChevronsRight} size={14} />
+            <HugeiconsIcon
+              icon={ChevronsRight}
+              data-icon="chevrons-right"
+              size={14}
+            />
           </button>
         ) : null}
       </div>

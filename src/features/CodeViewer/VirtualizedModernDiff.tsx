@@ -241,7 +241,12 @@ const VirtualizedModernDiffComponent: React.FC<ModernDiffProps> = ({
                 }
               >
                 {allSelected && (
-                  <HugeiconsIcon icon={Check} size={12} strokeWidth={3} />
+                  <HugeiconsIcon
+                    icon={Check}
+                    data-icon="check"
+                    size={12}
+                    strokeWidth={3}
+                  />
                 )}
               </div>
             )}

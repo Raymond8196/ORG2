@@ -60,7 +60,11 @@ const FileCard: React.FC<FileCardProps> = ({ card }) => {
         className="shrink-0 rounded p-1 text-text-4 transition-colors hover:bg-fill-4 hover:text-text-2"
         title={t("cards.openFile")}
       >
-        <HugeiconsIcon icon={SquareArrowOutUpRight} size={13} />
+        <HugeiconsIcon
+          icon={SquareArrowOutUpRight}
+          data-icon="square-arrow-out-up-right"
+          size={13}
+        />
       </button>
     </ToolResultCardFrame>
   );

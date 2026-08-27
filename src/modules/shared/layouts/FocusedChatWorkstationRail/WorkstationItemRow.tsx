@@ -73,6 +73,7 @@ export function WorkstationItemRow({
       {item.external ? (
         <HugeiconsIcon
           icon={ArrowUpRight}
+          data-icon="arrow-up-right"
           aria-hidden
           className="shrink-0 text-text-3"
           size={13}
@@ -124,7 +125,7 @@ export function WorkstationItemRow({
           aria-label={item.closeLabel}
           role={compact ? "menuitem" : undefined}
         >
-          <HugeiconsIcon icon={X} size={12} />
+          <HugeiconsIcon icon={X} data-icon="x" size={12} />
         </IconButton>
       )}
     </div>

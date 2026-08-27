@@ -68,6 +68,7 @@ const FloatingScrollNav: React.FC<FloatingScrollNavProps> = ({
         >
           <HugeiconsIcon
             icon={CheckCheck}
+            data-icon="check-check"
             size={14}
             className="text-success-6"
             strokeWidth={2}
@@ -82,7 +83,14 @@ const FloatingScrollNav: React.FC<FloatingScrollNavProps> = ({
           variant="secondary"
           shape="round"
           size="small"
-          icon={<HugeiconsIcon icon={ArrowUp} size={13} strokeWidth={2} />}
+          icon={
+            <HugeiconsIcon
+              icon={ArrowUp}
+              data-icon="arrow-up"
+              size={13}
+              strokeWidth={2}
+            />
+          }
           onClick={catchUp.onClick}
           aria-label={catchUp.label}
           className={PILL_CONTROL_IDLE_SURFACE_CLASS}
@@ -108,7 +116,12 @@ const FloatingScrollNav: React.FC<FloatingScrollNavProps> = ({
               shape="round"
               size="small"
               icon={
-                <HugeiconsIcon icon={Crosshair} size={13} strokeWidth={2} />
+                <HugeiconsIcon
+                  icon={Crosshair}
+                  data-icon="crosshair"
+                  size={13}
+                  strokeWidth={2}
+                />
               }
               onClick={followAgent.onClick}
               aria-label={followAgent.tooltipLabel ?? followAgent.label}
@@ -127,6 +140,7 @@ const FloatingScrollNav: React.FC<FloatingScrollNavProps> = ({
         >
           <HugeiconsIcon
             icon={ArrowDown}
+            data-icon="arrow-down"
             size={INPUT_AREA_BUTTONS.iconSize}
             className="text-text-2"
             strokeWidth={1.75}

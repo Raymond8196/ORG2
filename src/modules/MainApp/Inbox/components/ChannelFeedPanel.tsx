@@ -90,6 +90,7 @@ const ChannelFeedPanel: React.FC<ChannelFeedPanelProps> = ({
               icon={
                 <HugeiconsIcon
                   icon={CheckCheck}
+                  data-icon="check-check"
                   size={PANEL_HEADER_TOKENS.buttonIconSize}
                   strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
                 />
@@ -102,7 +103,12 @@ const ChannelFeedPanel: React.FC<ChannelFeedPanelProps> = ({
           <div className="w-48">
             <Input
               prefix={
-                <HugeiconsIcon icon={Search} size={13} strokeWidth={1.75} />
+                <HugeiconsIcon
+                  icon={Search}
+                  data-icon="search"
+                  size={13}
+                  strokeWidth={1.75}
+                />
               }
               placeholder={t("inbox.searchPlaceholder")}
               value={searchQuery}
@@ -392,7 +398,7 @@ const FeedMessageWithActions: React.FC<FeedMessageWithActionsProps> = ({
         variant="secondary"
         shape="square"
         iconOnly
-        icon={<HugeiconsIcon icon={Trash2} size={14} />}
+        icon={<HugeiconsIcon icon={Trash2} data-icon="trash-2" size={14} />}
         title={t("common:actions.delete")}
         aria-label={t("common:actions.delete")}
         onClick={handleDelete}

@@ -139,6 +139,7 @@ const ScheduleEditor: React.FC<ScheduleEditorProps> = ({
           <span className="inline-flex items-center gap-2">
             <HugeiconsIcon
               icon={Repeat}
+              data-icon="repeat"
               size={DROPDOWN_ITEM.iconSize}
               className="shrink-0"
             />
@@ -338,7 +339,7 @@ const ScheduleEditor: React.FC<ScheduleEditorProps> = ({
               onClick={() => onChange(null)}
               className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-none bg-transparent text-text-3 transition-colors hover:bg-fill-3 hover:text-text-1"
             >
-              <HugeiconsIcon icon={X} size={12} />
+              <HugeiconsIcon icon={X} data-icon="x" size={12} />
             </button>
           )}
         </div>
@@ -358,6 +359,7 @@ const ScheduleEditor: React.FC<ScheduleEditorProps> = ({
               >
                 <HugeiconsIcon
                   icon={CalendarDays}
+                  data-icon="calendar-days"
                   size={DROPDOWN_ITEM.iconSize}
                   className="shrink-0 text-text-3"
                 />

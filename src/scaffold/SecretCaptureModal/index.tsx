@@ -64,13 +64,29 @@ function isSecretKind(value: string): value is SecretKind {
 function kindIcon(kind: SecretKind) {
   switch (kind) {
     case "api_key":
-      return <HugeiconsIcon icon={KeyRound} size={16} aria-hidden />;
+      return (
+        <HugeiconsIcon
+          icon={KeyRound}
+          data-icon="key-round"
+          size={16}
+          aria-hidden
+        />
+      );
     case "oauth_token":
-      return <HugeiconsIcon icon={ShieldCheck} size={16} aria-hidden />;
+      return (
+        <HugeiconsIcon
+          icon={ShieldCheck}
+          data-icon="shield-check"
+          size={16}
+          aria-hidden
+        />
+      );
     case "password":
     case "other":
     default:
-      return <HugeiconsIcon icon={Lock} size={16} aria-hidden />;
+      return (
+        <HugeiconsIcon icon={Lock} data-icon="lock" size={16} aria-hidden />
+      );
   }
 }
 
@@ -276,6 +292,7 @@ export const SecretCaptureModal: FC = () => {
         <div className="bg-warn-1/10 flex items-start gap-2 rounded-md px-3 py-2 text-xs text-text-2">
           <HugeiconsIcon
             icon={ShieldCheck}
+            data-icon="shield-check"
             size={14}
             className="text-warn-2 mt-[2px] shrink-0"
             aria-hidden

@@ -34,14 +34,38 @@ const ALERT_SURFACE_CLASS = `border border-solid border-border-1 text-text-1 ${D
 const ALERT_RADIUS_CLASS = "rounded-xl";
 
 const DEFAULT_ICONS: Record<string, React.ReactNode> = {
-  success: <HugeiconsIcon icon={Check} size={14} className="flex-shrink-0" />,
+  success: (
+    <HugeiconsIcon
+      icon={Check}
+      data-icon="check"
+      size={14}
+      className="flex-shrink-0"
+    />
+  ),
   danger: (
-    <HugeiconsIcon icon={TriangleAlert} size={14} className="flex-shrink-0" />
+    <HugeiconsIcon
+      icon={TriangleAlert}
+      data-icon="triangle-alert"
+      size={14}
+      className="flex-shrink-0"
+    />
   ),
   warning: (
-    <HugeiconsIcon icon={TriangleAlert} size={14} className="flex-shrink-0" />
+    <HugeiconsIcon
+      icon={TriangleAlert}
+      data-icon="triangle-alert"
+      size={14}
+      className="flex-shrink-0"
+    />
   ),
-  info: <HugeiconsIcon icon={Info} size={14} className="flex-shrink-0" />,
+  info: (
+    <HugeiconsIcon
+      icon={Info}
+      data-icon="info"
+      size={14}
+      className="flex-shrink-0"
+    />
+  ),
 };
 
 /**
@@ -145,12 +169,14 @@ const InlineAlert: React.FC<InlineAlertProps> = ({
       expanded ? (
         <HugeiconsIcon
           icon={ChevronsDownUp}
+          data-icon="chevrons-down-up"
           size={14}
           className="flex-shrink-0"
         />
       ) : (
         <HugeiconsIcon
           icon={ChevronsUpDown}
+          data-icon="chevrons-up-down"
           size={14}
           className="flex-shrink-0"
         />
@@ -159,7 +185,7 @@ const InlineAlert: React.FC<InlineAlertProps> = ({
       DEFAULT_ICONS[type]
     ));
   const resolvedCloseIcon = closeIcon ?? (
-    <HugeiconsIcon icon={X} size={14} className="flex-shrink-0" />
+    <HugeiconsIcon icon={X} data-icon="x" size={14} className="flex-shrink-0" />
   );
   const hasTitle = Boolean(title);
 

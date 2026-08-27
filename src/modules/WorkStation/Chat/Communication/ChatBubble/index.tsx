@@ -129,6 +129,7 @@ const ChatBubbleView: React.FC<
                 isUser ? (
                   <HugeiconsIcon
                     icon={User}
+                    data-icon="user"
                     size={AVATAR_ICON_SIZE}
                     className="text-primary-6"
                   />

@@ -278,7 +278,9 @@ const IntegrationSelection: React.FC<IntegrationSelectionProps> = ({
                   autoComplete="off"
                   autoCorrect="off"
                   spellCheck={false}
-                  prefix={<HugeiconsIcon icon={Search} size={14} />}
+                  prefix={
+                    <HugeiconsIcon icon={Search} data-icon="search" size={14} />
+                  }
                   style={{ width: "100%" }}
                 />
                 <div className="flex flex-col gap-3">

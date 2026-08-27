@@ -77,7 +77,14 @@ const AgentOrgInterventionPinBar: React.FC<AgentOrgInterventionPinBarProps> =
                 loading={returning}
                 loadingSpinIcon
                 onClick={() => void onReturnToWork()}
-                icon={<HugeiconsIcon icon={Play} size={12} strokeWidth={2} />}
+                icon={
+                  <HugeiconsIcon
+                    icon={Play}
+                    data-icon="play"
+                    size={12}
+                    strokeWidth={2}
+                  />
+                }
               >
                 {returning
                   ? t("planner.agentOrgIntervention.returning")

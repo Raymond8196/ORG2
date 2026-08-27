@@ -165,6 +165,7 @@ export const PanelRefreshButton: React.FC<PanelRefreshButtonProps> = ({
       icon={
         <HugeiconsIcon
           icon={RefreshCw}
+          data-icon="refresh-cw"
           size={PANEL_HEADER_TOKENS.buttonIconSize}
           strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
           className={spinClass}
@@ -321,6 +322,7 @@ const PanelHeader: React.FC<PanelHeaderProps> = memo(
             </span>
             <HugeiconsIcon
               icon={ChevronRight}
+              data-icon="chevron-right"
               size={PANEL_HEADER_TOKENS.iconSize}
               className="flex-shrink-0 text-text-4"
             />
@@ -389,6 +391,7 @@ const PanelHeader: React.FC<PanelHeaderProps> = memo(
             icon={
               <HugeiconsIcon
                 icon={ArrowLeft}
+                data-icon="arrow-left"
                 size={PANEL_HEADER_TOKENS.buttonIconSize}
                 strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
               />
@@ -412,6 +415,7 @@ const PanelHeader: React.FC<PanelHeaderProps> = memo(
                 icon={
                   <HugeiconsIcon
                     icon={Search}
+                    data-icon="search"
                     size={PANEL_HEADER_TOKENS.buttonIconSize}
                     strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
                   />

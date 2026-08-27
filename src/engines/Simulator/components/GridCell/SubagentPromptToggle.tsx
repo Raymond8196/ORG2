@@ -118,7 +118,14 @@ const SubagentPromptToggleComponent: React.FC<SubagentPromptToggleProps> = ({
         onClick={toggle}
         title={label}
         aria-label={label}
-        icon={<HugeiconsIcon icon={Info} size={16} strokeWidth={1.75} />}
+        icon={
+          <HugeiconsIcon
+            icon={Info}
+            data-icon="info"
+            size={16}
+            strokeWidth={1.75}
+          />
+        }
       />
 
       {isOpen &&

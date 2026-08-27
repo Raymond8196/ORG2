@@ -108,6 +108,7 @@ const SessionItem: React.FC<SessionItemProps> = memo(
         {session.isLoading && (
           <HugeiconsIcon
             icon={Loader2}
+            data-icon="loader-2"
             size={16}
             strokeWidth={1.75}
             className="shrink-0 animate-spin text-primary-6"
@@ -122,7 +123,12 @@ const SessionItem: React.FC<SessionItemProps> = memo(
             onClick={onClose}
             aria-label={t("tooltips.closeSession")}
           >
-            <HugeiconsIcon icon={X} size={14} strokeWidth={1.75} />
+            <HugeiconsIcon
+              icon={X}
+              data-icon="x"
+              size={14}
+              strokeWidth={1.75}
+            />
           </button>
         </ToolbarTooltip>
       </TreeRowBase>
@@ -176,7 +182,12 @@ export const SessionsTab: React.FC<SessionsTabProps> = memo(
           <div className="flex-shrink-0 px-3 pb-2">
             <Input
               prefix={
-                <HugeiconsIcon icon={FilterIcon} size={14} strokeWidth={1.75} />
+                <HugeiconsIcon
+                  icon={FilterIcon}
+                  data-icon="filter-icon"
+                  size={14}
+                  strokeWidth={1.75}
+                />
               }
               placeholder={t("placeholders.filterByUrl")}
               value={filterQuery}

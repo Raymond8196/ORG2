@@ -299,9 +299,17 @@ const SearchPanel: React.FC<SearchPanelProps> = ({
         title={localReplaceMode ? "Collapse replace" : "Expand replace"}
       >
         {localReplaceMode ? (
-          <HugeiconsIcon icon={ChevronDown} size={14} />
+          <HugeiconsIcon
+            icon={ChevronDown}
+            data-icon="chevron-down"
+            size={14}
+          />
         ) : (
-          <HugeiconsIcon icon={ChevronRight} size={14} />
+          <HugeiconsIcon
+            icon={ChevronRight}
+            data-icon="chevron-right"
+            size={14}
+          />
         )}
       </button>
 
@@ -361,7 +369,7 @@ const SearchPanel: React.FC<SearchPanelProps> = ({
             className={HEADER_BUTTON.action}
             title={t("tooltips.closeEsc")}
           >
-            <HugeiconsIcon icon={X} size={HEADER_ICON_SIZE.sm} />
+            <HugeiconsIcon icon={X} data-icon="x" size={HEADER_ICON_SIZE.sm} />
           </button>
         </div>
       </div>

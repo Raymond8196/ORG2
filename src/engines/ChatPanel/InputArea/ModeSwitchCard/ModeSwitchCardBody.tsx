@@ -105,6 +105,7 @@ export function ModeSwitchCardBody({
                 icon={
                   <HugeiconsIcon
                     icon={ArrowLeftRight}
+                    data-icon="arrow-left-right"
                     size={12}
                     strokeWidth={2}
                   />

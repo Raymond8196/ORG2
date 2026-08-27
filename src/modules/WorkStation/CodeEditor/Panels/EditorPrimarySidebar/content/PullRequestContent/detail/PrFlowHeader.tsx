@@ -130,7 +130,13 @@ export function PrFlowHeader({
         onClick={() => void copyHeadBranch()}
         data-testid="pr-flow-copy-branch"
       >
-        <HugeiconsIcon icon={Copy} size={12} strokeWidth={1.75} aria-hidden />
+        <HugeiconsIcon
+          icon={Copy}
+          data-icon="copy"
+          size={12}
+          strokeWidth={1.75}
+          aria-hidden
+        />
       </IconButton>
       <span className="inline-flex items-center gap-1 tabular-nums">
         <span className="text-success-6">

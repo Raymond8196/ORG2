@@ -51,7 +51,12 @@ function renderFallbackHeader(
 
   return (
     <div className="flex w-full items-center gap-3 truncate">
-      <HugeiconsIcon icon={Wrench} size={16} className="text-text-2" />
+      <HugeiconsIcon
+        icon={Wrench}
+        data-icon="wrench"
+        size={16}
+        className="text-text-2"
+      />
       <span className="text-[14px] font-normal text-text-2">{label}</span>
     </div>
   );
@@ -93,6 +98,7 @@ const EventCollapseWrapper: React.FC<EventCollapseWrapperProps> = ({
           expandIcon={
             <HugeiconsIcon
               icon={ChevronRight}
+              data-icon="chevron-right"
               size={16}
               strokeWidth={1.75}
               className="text-text-2"
@@ -102,6 +108,7 @@ const EventCollapseWrapper: React.FC<EventCollapseWrapperProps> = ({
           extra={
             <HugeiconsIcon
               icon={Maximize2}
+              data-icon="maximize-2"
               size={16}
               strokeWidth={1.75}
               className="text-text-2"

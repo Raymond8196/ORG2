@@ -72,13 +72,13 @@ const MemoryContentViewer = ({
                   Message.error(t("common:status.copyFailed"));
                 });
             }}
-            icon={<HugeiconsIcon icon={Copy} size={11} />}
+            icon={<HugeiconsIcon icon={Copy} data-icon="copy" size={11} />}
             iconOnly
             title={t("common:actions.copy")}
           />
           <Button
             onClick={() => setEditModalOpen(true)}
-            icon={<HugeiconsIcon icon={Pencil} size={11} />}
+            icon={<HugeiconsIcon icon={Pencil} data-icon="pencil" size={11} />}
             iconOnly
             title={t("common:actions.edit")}
           />

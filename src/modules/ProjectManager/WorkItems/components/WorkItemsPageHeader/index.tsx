@@ -56,6 +56,7 @@ const WorkItemsPageHeader = ({
           icon: segment.icon ?? identityIcon ?? (
             <HugeiconsIcon
               icon={Box}
+              data-icon="box"
               size={HEADER_ICON_SIZE.sm}
               strokeWidth={1.75}
             />

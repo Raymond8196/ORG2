@@ -52,7 +52,7 @@ export function MetadataCells({
         <div className="shrink-0">
           {workItem.linkedSessions && workItem.linkedSessions.length > 0 && (
             <span className="flex items-center gap-1 text-xs text-text-3">
-              <HugeiconsIcon icon={Link2} size={12} />
+              <HugeiconsIcon icon={Link2} data-icon="link-2" size={12} />
               {workItem.linkedSessions.length}
             </span>
           )}

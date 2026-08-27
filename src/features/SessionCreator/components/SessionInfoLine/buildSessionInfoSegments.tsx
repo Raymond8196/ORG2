@@ -172,6 +172,7 @@ export function buildSessionInfoSegments({
       icon: (
         <HugeiconsIcon
           icon={GitBranch}
+          data-icon="git-branch"
           size={14}
           strokeWidth={1.75}
           className="text-text-1"

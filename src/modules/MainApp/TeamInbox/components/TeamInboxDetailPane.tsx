@@ -81,6 +81,7 @@ export const TeamInboxDetailPane: React.FC<TeamInboxDetailPaneProps> = ({
                 icon={
                   <HugeiconsIcon
                     icon={Chrome}
+                    data-icon="chrome"
                     size={14}
                     strokeWidth={1.75}
                     aria-hidden
@@ -100,6 +101,7 @@ export const TeamInboxDetailPane: React.FC<TeamInboxDetailPaneProps> = ({
                   icon={
                     <HugeiconsIcon
                       icon={SquareArrowOutUpRight}
+                      data-icon="square-arrow-out-up-right"
                       size={14}
                       strokeWidth={1.75}
                       aria-hidden

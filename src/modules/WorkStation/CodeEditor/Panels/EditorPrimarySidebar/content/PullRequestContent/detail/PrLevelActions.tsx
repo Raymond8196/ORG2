@@ -223,6 +223,7 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
             icon={
               <HugeiconsIcon
                 icon={GitPullRequest}
+                data-icon="git-pull-request"
                 size={DROPDOWN_ITEM.iconSize}
                 aria-hidden
               />
@@ -240,6 +241,7 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
               icon={
                 <HugeiconsIcon
                   icon={GitMerge}
+                  data-icon="git-merge"
                   size={DROPDOWN_ITEM.iconSize}
                   aria-hidden
                 />
@@ -260,6 +262,7 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
                 icon={
                   <HugeiconsIcon
                     icon={GitMerge}
+                    data-icon="git-merge"
                     size={DROPDOWN_ITEM.iconSize}
                     aria-hidden
                   />
@@ -321,11 +324,26 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
         size="small"
         icon={
           presentation.status === "draft" ? (
-            <HugeiconsIcon icon={GitPullRequestDraft} size={14} aria-hidden />
+            <HugeiconsIcon
+              icon={GitPullRequestDraft}
+              data-icon="git-pull-request-draft"
+              size={14}
+              aria-hidden
+            />
           ) : presentation.hasConflicts ? (
-            <HugeiconsIcon icon={XCircle} size={14} aria-hidden />
+            <HugeiconsIcon
+              icon={XCircle}
+              data-icon="xcircle"
+              size={14}
+              aria-hidden
+            />
           ) : (
-            <HugeiconsIcon icon={GitMerge} size={14} aria-hidden />
+            <HugeiconsIcon
+              icon={GitMerge}
+              data-icon="git-merge"
+              size={14}
+              aria-hidden
+            />
           )
         }
         loading={pending}
@@ -374,7 +392,12 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
           long
           centerLabel
           icon={
-            <HugeiconsIcon icon={GitPullRequestDraft} size={14} aria-hidden />
+            <HugeiconsIcon
+              icon={GitPullRequestDraft}
+              data-icon="git-pull-request-draft"
+              size={14}
+              aria-hidden
+            />
           }
           disabled={interactionDisabled}
           onClick={() => void changeDraftState(true)}
@@ -396,11 +419,17 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
             nextState === "closed" ? (
               <HugeiconsIcon
                 icon={GitPullRequestClosed}
+                data-icon="git-pull-request-closed"
                 size={14}
                 aria-hidden
               />
             ) : (
-              <HugeiconsIcon icon={CircleDot} size={14} aria-hidden />
+              <HugeiconsIcon
+                icon={CircleDot}
+                data-icon="circle-dot"
+                size={14}
+                aria-hidden
+              />
             )
           }
           disabled={interactionDisabled}

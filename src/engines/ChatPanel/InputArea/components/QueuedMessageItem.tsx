@@ -91,12 +91,14 @@ const QueuedMessageItem: React.FC<QueuedMessageItemProps> = memo(
           {isSendingNow ? (
             <HugeiconsIcon
               icon={Loader2}
+              data-icon="loader-2"
               size={14}
               className="animate-spin text-primary-6"
             />
           ) : (
             <HugeiconsIcon
               icon={Clock}
+              data-icon="clock"
               size={14}
               className={isEditing ? "text-primary-6" : "text-text-2"}
             />
@@ -118,7 +120,9 @@ const QueuedMessageItem: React.FC<QueuedMessageItemProps> = memo(
               htmlType="button"
               variant="tertiary"
               size="mini"
-              icon={<HugeiconsIcon icon={Pencil} size={12} />}
+              icon={
+                <HugeiconsIcon icon={Pencil} data-icon="pencil" size={12} />
+              }
               iconOnly
               className="enabled:hover:bg-fill-3 enabled:hover:text-text-1"
               onClick={() => onStartEdit(msg)}
@@ -128,7 +132,9 @@ const QueuedMessageItem: React.FC<QueuedMessageItemProps> = memo(
               htmlType="button"
               variant="tertiary"
               size="mini"
-              icon={<HugeiconsIcon icon={Trash2} size={12} />}
+              icon={
+                <HugeiconsIcon icon={Trash2} data-icon="trash-2" size={12} />
+              }
               iconOnly
               className="enabled:hover:bg-fill-3 enabled:hover:text-danger-6"
               onClick={() => onCancel(msg.id)}
@@ -138,7 +144,9 @@ const QueuedMessageItem: React.FC<QueuedMessageItemProps> = memo(
               htmlType="button"
               variant="tertiary"
               size="mini"
-              icon={<HugeiconsIcon icon={ArrowUp} size={12} />}
+              icon={
+                <HugeiconsIcon icon={ArrowUp} data-icon="arrow-up" size={12} />
+              }
               iconOnly
               className="enabled:hover:bg-fill-3 enabled:hover:text-primary-6"
               onClick={() => onSendNow(msg.id)}

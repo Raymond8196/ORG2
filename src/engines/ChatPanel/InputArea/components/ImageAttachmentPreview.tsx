@@ -68,7 +68,7 @@ const ImageThumbnail: React.FC<ImageThumbnailProps> = memo(
             aria-label={`Remove ${image.fileName}`}
             data-testid="chat-image-attachment-remove"
           >
-            <HugeiconsIcon icon={X} size={10} strokeWidth={2.5} />
+            <HugeiconsIcon icon={X} data-icon="x" size={10} strokeWidth={2.5} />
           </button>
         </div>
         {showOverlay && (

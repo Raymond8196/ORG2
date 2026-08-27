@@ -98,6 +98,7 @@ const ChannelPreviewPanel: React.FC<ChannelPreviewPanelProps> = ({
         icon={
           <HugeiconsIcon
             icon={ChevronsLeftRightEllipsis}
+            data-icon="chevrons-left-right-ellipsis"
             size={PLACEHOLDER_TOKENS.iconSize}
           />
         }

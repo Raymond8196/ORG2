@@ -44,7 +44,14 @@ export const HoverCardUrlRow: React.FC<HoverCardUrlRowProps> = ({ url }) => {
 
   return (
     <HoverCardRow
-      icon={<HugeiconsIcon icon={Globe} size={13} strokeWidth={1.75} />}
+      icon={
+        <HugeiconsIcon
+          icon={Globe}
+          data-icon="globe"
+          size={13}
+          strokeWidth={1.75}
+        />
+      }
     >
       <button
         type="button"

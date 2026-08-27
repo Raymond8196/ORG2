@@ -47,7 +47,12 @@ export function InlineOptionPill({
       }`}
     >
       {selected && (
-        <HugeiconsIcon icon={Check} size={10} className="text-white" />
+        <HugeiconsIcon
+          icon={Check}
+          data-icon="check"
+          size={10}
+          className="text-white"
+        />
       )}
     </span>
   );

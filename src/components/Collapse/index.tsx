@@ -170,9 +170,17 @@ const CollapseItem: React.FC<CollapseItemProps> = ({
           <span className="collapse-arrow">
             {expandIcon ||
               (isActive ? (
-                <HugeiconsIcon icon={ChevronDown} size={16} />
+                <HugeiconsIcon
+                  icon={ChevronDown}
+                  data-icon="chevron-down"
+                  size={16}
+                />
               ) : (
-                <HugeiconsIcon icon={ChevronRight} size={16} />
+                <HugeiconsIcon
+                  icon={ChevronRight}
+                  data-icon="chevron-right"
+                  size={16}
+                />
               ))}
           </span>
         )}

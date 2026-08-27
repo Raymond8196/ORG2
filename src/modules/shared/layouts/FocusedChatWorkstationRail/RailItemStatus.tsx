@@ -22,17 +22,26 @@ export function RailItemStatus({
   } as const;
   const icon =
     status.state === "success" ? (
-      <HugeiconsIcon icon={CheckCircle2} {...commonProps} />
+      <HugeiconsIcon
+        icon={CheckCircle2}
+        data-icon="check-circle-2"
+        {...commonProps}
+      />
     ) : status.state === "failure" ? (
-      <HugeiconsIcon icon={XCircle} {...commonProps} />
+      <HugeiconsIcon icon={XCircle} data-icon="xcircle" {...commonProps} />
     ) : status.state === "checking" || status.state === "pending" ? (
       <HugeiconsIcon
         icon={LoaderCircle}
+        data-icon="loader-circle"
         {...commonProps}
         className="shrink-0 animate-spin"
       />
     ) : (
-      <HugeiconsIcon icon={CircleSlash} {...commonProps} />
+      <HugeiconsIcon
+        icon={CircleSlash}
+        data-icon="circle-slash"
+        {...commonProps}
+      />
     );
   const colorClass =
     status.state === "success"

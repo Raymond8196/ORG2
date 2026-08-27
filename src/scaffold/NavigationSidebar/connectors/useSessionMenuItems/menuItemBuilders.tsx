@@ -35,6 +35,7 @@ export function renderPinnedSectionIndicator(): ReactNode {
   return (
     <HugeiconsIcon
       icon={Pin}
+      data-icon="pin"
       size={10}
       strokeWidth={2}
       className="shrink-0 text-text-3"
@@ -54,6 +55,7 @@ export function renderHiddenSectionIndicator(): ReactNode {
   return (
     <HugeiconsIcon
       icon={EyeOff}
+      data-icon="eye-off"
       size={10}
       strokeWidth={2}
       className="shrink-0 text-text-3"
@@ -112,6 +114,7 @@ export function buildSessionMenuItem({
   const pinIndicator = session.pinned ? (
     <HugeiconsIcon
       icon={Pin}
+      data-icon="pin"
       size={11}
       strokeWidth={2}
       className="shrink-0 text-text-3"

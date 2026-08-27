@@ -430,7 +430,12 @@ export function useExternalImport({
                     }
                   )}
                 >
-                  <HugeiconsIcon icon={ShieldAlert} size={12} aria-hidden />
+                  <HugeiconsIcon
+                    icon={ShieldAlert}
+                    data-icon="shield-alert"
+                    size={12}
+                    aria-hidden
+                  />
                   <span>
                     {t("agentOrgs.externalImport.readonlyDowngradedBadge")}
                   </span>

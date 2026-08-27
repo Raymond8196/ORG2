@@ -238,6 +238,7 @@ const UnloadedTurnBubbleContent: React.FC<UnloadedTurnBubbleContentProps> = ({
           >
             <HugeiconsIcon
               icon={RotateCw}
+              data-icon="rotate-cw"
               size={13}
               strokeWidth={2}
               className="shrink-0"
@@ -250,6 +251,7 @@ const UnloadedTurnBubbleContent: React.FC<UnloadedTurnBubbleContentProps> = ({
           >
             <HugeiconsIcon
               icon={Loader2}
+              data-icon="loader-2"
               size={13}
               strokeWidth={2}
               className="shrink-0 animate-spin"

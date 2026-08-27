@@ -28,7 +28,9 @@ export function GitHubWorkItemToolbarActions({
       <Button
         htmlType="button"
         variant="secondary"
-        icon={<HugeiconsIcon icon={RefreshCw} size={13} />}
+        icon={
+          <HugeiconsIcon icon={RefreshCw} data-icon="refresh-cw" size={13} />
+        }
         iconOnly
         loading={refreshing}
         loadingSpinIcon
@@ -39,7 +41,14 @@ export function GitHubWorkItemToolbarActions({
         <Button
           htmlType="button"
           variant="secondary"
-          icon={<HugeiconsIcon icon={SquarePen} size={14} strokeWidth={2} />}
+          icon={
+            <HugeiconsIcon
+              icon={SquarePen}
+              data-icon="square-pen"
+              size={14}
+              strokeWidth={2}
+            />
+          }
           iconOnly
           aria-label={createAction.label}
           onClick={createAction.onClick}
@@ -72,6 +81,7 @@ export function GitHubWorkItemStateTabs({
         <span className="flex items-center text-success-6">
           <HugeiconsIcon
             icon={CircleDot}
+            data-icon="circle-dot"
             size={14}
             strokeWidth={1.8}
             aria-hidden="true"
@@ -81,6 +91,7 @@ export function GitHubWorkItemStateTabs({
         <span className="flex items-center text-purple-6">
           <HugeiconsIcon
             icon={CheckCircle2}
+            data-icon="check-circle-2"
             size={14}
             strokeWidth={1.8}
             aria-hidden="true"

@@ -532,7 +532,12 @@ export function FocusedChatWorkstationRail({
               aria-expanded={menuOpen}
               aria-haspopup="menu"
               icon={
-                <HugeiconsIcon icon={LayoutList} size={14} strokeWidth={2} />
+                <HugeiconsIcon
+                  icon={LayoutList}
+                  data-icon="layout-list"
+                  size={14}
+                  strokeWidth={2}
+                />
               }
             />
           </Dropdown>
@@ -574,12 +579,14 @@ export function FocusedChatWorkstationRail({
                 {collapsed ? (
                   <HugeiconsIcon
                     icon={ChevronsLeft}
+                    data-icon="chevrons-left"
                     size={14}
                     strokeWidth={1.75}
                   />
                 ) : (
                   <HugeiconsIcon
                     icon={ChevronsRight}
+                    data-icon="chevrons-right"
                     size={14}
                     strokeWidth={1.75}
                   />

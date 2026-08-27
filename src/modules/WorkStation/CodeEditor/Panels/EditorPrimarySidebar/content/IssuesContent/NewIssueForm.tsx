@@ -179,7 +179,7 @@ export const NewIssueForm: React.FC<NewIssueFormProps> = memo(
               htmlType="button"
               variant="tertiary"
               size="mini"
-              icon={<HugeiconsIcon icon={X} size={11} />}
+              icon={<HugeiconsIcon icon={X} data-icon="x" size={11} />}
               disabled={loading}
               onClick={onCancel}
             >

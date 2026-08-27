@@ -70,18 +70,21 @@ const BranchRow: React.FC<BranchRowProps> = ({
         {isCurrent ? (
           <HugeiconsIcon
             icon={Check}
+            data-icon="check"
             size={DROPDOWN_ITEM.iconSize}
             className="text-primary-6"
           />
         ) : branch.worktreePath ? (
           <HugeiconsIcon
             icon={Folder}
+            data-icon="folder"
             size={DROPDOWN_ITEM.iconSize}
             className="text-text-2"
           />
         ) : (
           <HugeiconsIcon
             icon={GitBranch}
+            data-icon="git-branch"
             size={DROPDOWN_ITEM.iconSize}
             className="text-text-2"
           />
@@ -263,6 +266,7 @@ export const BranchDropdown: React.FC<BranchDropdownProps> = ({
       <div className={DROPDOWN_CLASSES.searchContainer}>
         <HugeiconsIcon
           icon={Search}
+          data-icon="search"
           size={DROPDOWN_ITEM.iconSize}
           className="shrink-0 text-text-3"
         />

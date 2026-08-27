@@ -306,6 +306,7 @@ const Checkbox: React.FC<CheckboxProps> & {
         {indeterminate ? (
           <HugeiconsIcon
             icon={Minus}
+            data-icon="minus"
             size={iconPixelSize}
             strokeWidth={3}
             className={svgClassName}
@@ -313,6 +314,7 @@ const Checkbox: React.FC<CheckboxProps> & {
         ) : (
           <HugeiconsIcon
             icon={Check}
+            data-icon="check"
             size={iconPixelSize}
             strokeWidth={3}
             className={svgClassName}

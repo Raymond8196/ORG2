@@ -171,7 +171,12 @@ const AgentLauncherSection: React.FC<AgentLauncherSectionProps> = ({
             title={t("launchpad.preview.setupWithAI")}
             className="pointer-events-auto flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-full bg-primary-6 px-3 text-[12px] font-medium text-white shadow-md transition-colors hover:bg-primary-7"
           >
-            <HugeiconsIcon icon={Sparkles} size={14} strokeWidth={1.75} />
+            <HugeiconsIcon
+              icon={Sparkles}
+              data-icon="sparkles"
+              size={14}
+              strokeWidth={1.75}
+            />
             <span>{t("launchpad.preview.setupWithAI")}</span>
           </button>
         </div>
@@ -195,7 +200,12 @@ const AgentLauncherSection: React.FC<AgentLauncherSectionProps> = ({
               title={t("common:actions.close")}
               className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full text-text-3 transition-colors hover:bg-fill-2 hover:text-text-1"
             >
-              <HugeiconsIcon icon={X} size={13} strokeWidth={1.75} />
+              <HugeiconsIcon
+                icon={X}
+                data-icon="x"
+                size={13}
+                strokeWidth={1.75}
+              />
             </button>
 
             <div className="flex items-center px-1 pr-8">
@@ -231,6 +241,7 @@ const AgentLauncherSection: React.FC<AgentLauncherSectionProps> = ({
                     ) : (
                       <HugeiconsIcon
                         icon={Grip}
+                        data-icon="grip"
                         size={iconSize}
                         strokeWidth={1.75}
                         className="text-text-1"
@@ -259,7 +270,13 @@ const AgentLauncherSection: React.FC<AgentLauncherSectionProps> = ({
               <Button
                 variant="primary"
                 size="small"
-                icon={<HugeiconsIcon icon={Sparkles} size={13} />}
+                icon={
+                  <HugeiconsIcon
+                    icon={Sparkles}
+                    data-icon="sparkles"
+                    size={13}
+                  />
+                }
                 disabled={isDisabled}
                 loading={launching}
                 onClick={handleStart}

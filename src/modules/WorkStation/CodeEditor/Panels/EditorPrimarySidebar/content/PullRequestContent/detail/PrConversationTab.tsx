@@ -85,6 +85,7 @@ function reviewVerb(
         icon: (
           <HugeiconsIcon
             icon={CheckCircle2}
+            data-icon="check-circle-2"
             size={14}
             strokeWidth={1.9}
             className="text-success-6"
@@ -97,6 +98,7 @@ function reviewVerb(
         icon: (
           <HugeiconsIcon
             icon={XCircle}
+            data-icon="xcircle"
             size={14}
             strokeWidth={1.9}
             className="text-danger-6"
@@ -109,6 +111,7 @@ function reviewVerb(
         icon: (
           <HugeiconsIcon
             icon={FileDiff}
+            data-icon="file-diff"
             size={14}
             strokeWidth={1.9}
             className="text-text-3"
@@ -121,6 +124,7 @@ function reviewVerb(
         icon: (
           <HugeiconsIcon
             icon={FileDiff}
+            data-icon="file-diff"
             size={14}
             strokeWidth={1.9}
             className="text-text-3"

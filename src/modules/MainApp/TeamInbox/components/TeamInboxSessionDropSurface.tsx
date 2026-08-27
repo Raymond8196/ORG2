@@ -295,7 +295,12 @@ const TeamInboxSessionDropSurface: React.FC<
                   : "bg-bg-3 text-text-2"
               }`}
             >
-              <HugeiconsIcon icon={Inbox} size={20} aria-hidden />
+              <HugeiconsIcon
+                icon={Inbox}
+                data-icon="inbox"
+                size={20}
+                aria-hidden
+              />
             </span>
             <p className="text-sm font-medium text-text-1">
               {t("teamInbox.drop.title")}
@@ -316,6 +321,7 @@ const TeamInboxSessionDropSurface: React.FC<
         >
           <HugeiconsIcon
             icon={Link2}
+            data-icon="link-2"
             size={16}
             className="shrink-0 animate-pulse text-primary-6"
             aria-hidden
@@ -376,6 +382,7 @@ const TeamInboxSessionDropSurface: React.FC<
               icon={
                 <HugeiconsIcon
                   icon={SquareArrowOutUpRight}
+                  data-icon="square-arrow-out-up-right"
                   size={14}
                   aria-hidden
                 />
@@ -389,7 +396,14 @@ const TeamInboxSessionDropSurface: React.FC<
             <Button
               variant="secondary"
               size="mini"
-              icon={<HugeiconsIcon icon={RotateCcw} size={14} aria-hidden />}
+              icon={
+                <HugeiconsIcon
+                  icon={RotateCcw}
+                  data-icon="rotate-ccw"
+                  size={14}
+                  aria-hidden
+                />
+              }
               onClick={() => prepare(currentOperation.reference)}
             >
               {t("common:actions.retry")}
@@ -401,7 +415,9 @@ const TeamInboxSessionDropSurface: React.FC<
             size="mini"
             iconOnly
             aria-label={t("teamInbox.drop.dismiss")}
-            icon={<HugeiconsIcon icon={X} size={14} aria-hidden />}
+            icon={
+              <HugeiconsIcon icon={X} data-icon="x" size={14} aria-hidden />
+            }
             onClick={dismiss}
           />
         </div>

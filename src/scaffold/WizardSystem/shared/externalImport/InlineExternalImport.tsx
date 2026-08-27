@@ -106,9 +106,17 @@ const InlineExternalImport: React.FC<InlineExternalImportProps> = ({
           variant="secondary"
           icon={
             expanded ? (
-              <HugeiconsIcon icon={ChevronsDownUp} size={14} />
+              <HugeiconsIcon
+                icon={ChevronsDownUp}
+                data-icon="chevrons-down-up"
+                size={14}
+              />
             ) : (
-              <HugeiconsIcon icon={ChevronsUpDown} size={14} />
+              <HugeiconsIcon
+                icon={ChevronsUpDown}
+                data-icon="chevrons-up-down"
+                size={14}
+              />
             )
           }
           onClick={() => {
@@ -185,7 +193,13 @@ const InlineExternalImport: React.FC<InlineExternalImportProps> = ({
                 <Button
                   variant="primary"
                   size="small"
-                  icon={<HugeiconsIcon icon={Download} size={14} />}
+                  icon={
+                    <HugeiconsIcon
+                      icon={Download}
+                      data-icon="download"
+                      size={14}
+                    />
+                  }
                   disabled={selected.size === 0}
                   loading={importing}
                   onClick={handleImport}

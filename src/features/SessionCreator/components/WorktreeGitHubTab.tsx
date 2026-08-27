@@ -63,6 +63,7 @@ export function WorktreeGitHubTab({
           icon={
             <HugeiconsIcon
               icon={RefreshCw}
+              data-icon="refresh-cw"
               size={14}
               strokeWidth={1.8}
               className={refreshing ? "animate-spin" : undefined}
@@ -82,7 +83,12 @@ export function WorktreeGitHubTab({
       <WorktreeSourceList>
         {state === "loading" && loadedItemCount === 0 && (
           <div className="flex h-[180px] items-center justify-center text-text-3">
-            <HugeiconsIcon icon={Loader2} size={16} className="animate-spin" />
+            <HugeiconsIcon
+              icon={Loader2}
+              data-icon="loader-2"
+              size={16}
+              className="animate-spin"
+            />
           </div>
         )}
         {state === "error" && (

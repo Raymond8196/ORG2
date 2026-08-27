@@ -377,6 +377,7 @@ const WorkItemContextMenu: React.FC<WorkItemContextMenuProps> = ({
               {hasSubmenu && (
                 <HugeiconsIcon
                   icon={ChevronRight}
+                  data-icon="chevron-right"
                   size={DROPDOWN_ITEM.iconSize}
                   className="work-item-context-menu__arrow"
                 />

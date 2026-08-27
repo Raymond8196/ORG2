@@ -40,7 +40,14 @@ const ProjectOrganizationSelect: FC<ProjectOrganizationSelectProps> = ({
     loading={loading}
     size="small"
     radius="pill"
-    prefix={<HugeiconsIcon icon={Network} size={14} strokeWidth={1.75} />}
+    prefix={
+      <HugeiconsIcon
+        icon={Network}
+        data-icon="network"
+        size={14}
+        strokeWidth={1.75}
+      />
+    }
     showSearch
     dropdownWidthMode="min-match"
     dropdownMinWidth={220}

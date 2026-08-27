@@ -36,6 +36,7 @@ export const AgentControlSubmitButton: React.FC<
     >
       <HugeiconsIcon
         icon={ArrowUp}
+        data-icon="arrow-up"
         size={INPUT_AREA_BUTTONS.iconSize}
         strokeWidth={2}
       />

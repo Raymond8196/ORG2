@@ -149,7 +149,11 @@ const PrSection: React.FC<PrSectionProps> = ({
                 rel="noreferrer"
                 className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-6 hover:underline"
               >
-                <HugeiconsIcon icon={SquareArrowOutUpRight} size={13} />
+                <HugeiconsIcon
+                  icon={SquareArrowOutUpRight}
+                  data-icon="square-arrow-out-up-right"
+                  size={13}
+                />
                 {displayPrUrl.replace(/^https?:\/\/[^/]+\//, "")}
               </a>
               <div className="mt-1 flex items-center gap-2">
@@ -182,6 +186,7 @@ const PrSection: React.FC<PrSectionProps> = ({
         <div className="flex items-center gap-2">
           <HugeiconsIcon
             icon={Loader2}
+            data-icon="loader-2"
             size={14}
             className="animate-spin text-primary-6"
           />
@@ -247,7 +252,13 @@ const PrSection: React.FC<PrSectionProps> = ({
             variant="primary"
             appearance="outline"
             size="small"
-            icon={<HugeiconsIcon icon={GitPullRequest} size={13} />}
+            icon={
+              <HugeiconsIcon
+                icon={GitPullRequest}
+                data-icon="git-pull-request"
+                size={13}
+              />
+            }
             onClick={handleCreate}
             disabled={!onCreatePr}
           >

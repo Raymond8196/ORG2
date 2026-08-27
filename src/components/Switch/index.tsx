@@ -212,6 +212,7 @@ const Switch = forwardRef<HTMLButtonElement, SwitchProps>(
           {loading ? (
             <HugeiconsIcon
               icon={Loader2}
+              data-icon="loader-2"
               size={SPINNER_TOKENS.small}
               className="animate-spin"
             />

@@ -21,6 +21,7 @@ const CommunicationTodoCheckbox: React.FC<{
       <div className="flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center rounded-full bg-green-600/80">
         <HugeiconsIcon
           icon={Check}
+          data-icon="check"
           size={8}
           strokeWidth={3}
           className="text-white"
@@ -33,6 +34,7 @@ const CommunicationTodoCheckbox: React.FC<{
       <div className="flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center rounded-full border-[1.5px] border-dashed border-text-3/40">
         <HugeiconsIcon
           icon={Lock}
+          data-icon="lock"
           size={6}
           strokeWidth={2.5}
           className="text-text-3/60"
@@ -80,7 +82,12 @@ export const CommunicationTodoList: React.FC<{
             </span>
             {blocked && todo.blockedBy && (
               <span className="ml-auto flex shrink-0 items-center gap-0.5 text-[10px] text-text-3/70">
-                <HugeiconsIcon icon={Lock} size={8} strokeWidth={2} />
+                <HugeiconsIcon
+                  icon={Lock}
+                  data-icon="lock"
+                  size={8}
+                  strokeWidth={2}
+                />
                 {todo.blockedBy
                   .map((blockerIndex) => `#${blockerIndex}`)
                   .join(", ")}

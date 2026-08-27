@@ -231,7 +231,13 @@ const ErrorPageContent: React.FC<{ error?: unknown }> = ({ error }) => {
               variant="primary"
               size="default"
               shape="round"
-              icon={<HugeiconsIcon icon={RefreshCw} size={16} />}
+              icon={
+                <HugeiconsIcon
+                  icon={RefreshCw}
+                  data-icon="refresh-cw"
+                  size={16}
+                />
+              }
               onClick={handleRestart}
             >
               {i18n.t("actions.restart")}
@@ -242,9 +248,9 @@ const ErrorPageContent: React.FC<{ error?: unknown }> = ({ error }) => {
               shape="round"
               icon={
                 copied ? (
-                  <HugeiconsIcon icon={Check} size={16} />
+                  <HugeiconsIcon icon={Check} data-icon="check" size={16} />
                 ) : (
-                  <HugeiconsIcon icon={Copy} size={16} />
+                  <HugeiconsIcon icon={Copy} data-icon="copy" size={16} />
                 )
               }
               onClick={handleCopy}

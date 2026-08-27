@@ -509,7 +509,13 @@ const SessionProvenanceRecentSignalsTable: React.FC = () => {
                 variant="secondary"
                 size="default"
                 loading={refreshing}
-                icon={<HugeiconsIcon icon={RefreshCw} size={14} />}
+                icon={
+                  <HugeiconsIcon
+                    icon={RefreshCw}
+                    data-icon="refresh-cw"
+                    size={14}
+                  />
+                }
                 onClick={() => void load()}
               >
                 {t("agentOrgs.sessionProvenance.signals.refresh", {

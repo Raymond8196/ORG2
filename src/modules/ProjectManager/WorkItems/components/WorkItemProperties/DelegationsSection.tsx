@@ -32,7 +32,13 @@ export function DelegationsSection({
       }
     >
       <FieldRow
-        icon={<HugeiconsIcon icon={Bot} size={DROPDOWN_ITEM.iconSize} />}
+        icon={
+          <HugeiconsIcon
+            icon={Bot}
+            data-icon="bot"
+            size={DROPDOWN_ITEM.iconSize}
+          />
+        }
         value={`${workItem.delegations.length} ${t("workItems.properties.delegations")}`}
         isSelected
         showChevron={false}

@@ -80,6 +80,7 @@ const SearchSortBar: React.FC<SearchSortBarProps> = ({
         icon={
           <HugeiconsIcon
             icon={Filter}
+            data-icon="filter"
             size={14}
             className={filterConfig.active ? "text-primary-6" : ""}
           />
@@ -113,6 +114,7 @@ const SearchSortBar: React.FC<SearchSortBarProps> = ({
                   prefix={
                     <HugeiconsIcon
                       icon={Search}
+                      data-icon="search"
                       size={14}
                       className="text-text-3"
                       aria-hidden

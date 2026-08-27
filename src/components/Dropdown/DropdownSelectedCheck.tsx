@@ -13,6 +13,7 @@ const DropdownSelectedCheck: React.FC<DropdownSelectedCheckProps> = ({
 }) => (
   <HugeiconsIcon
     icon={Check}
+    data-icon="check"
     size={DROPDOWN_ITEM.iconSize}
     strokeWidth={2.25}
     className={["shrink-0 text-primary-6", className].filter(Boolean).join(" ")}

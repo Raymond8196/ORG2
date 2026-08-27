@@ -102,9 +102,9 @@ export const InstallScriptPanel: React.FC<InstallScriptPanelProps> = ({
             size="small"
             icon={
               mode === "install" ? (
-                <HugeiconsIcon icon={Download} size={12} />
+                <HugeiconsIcon icon={Download} data-icon="download" size={12} />
               ) : (
-                <HugeiconsIcon icon={Trash2} size={12} />
+                <HugeiconsIcon icon={Trash2} data-icon="trash-2" size={12} />
               )
             }
             onClick={onAction}
@@ -119,7 +119,7 @@ export const InstallScriptPanel: React.FC<InstallScriptPanelProps> = ({
         ) : null}
         <Button
           size="small"
-          icon={<HugeiconsIcon icon={Copy} size={12} />}
+          icon={<HugeiconsIcon icon={Copy} data-icon="copy" size={12} />}
           onClick={handleCopy}
         >
           {t("common:actions.copy")}

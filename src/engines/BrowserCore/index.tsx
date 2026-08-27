@@ -331,6 +331,7 @@ export const BrowserCore: React.FC<BrowserCoreProps> = ({
               <div className="browser-native-placeholder">
                 <HugeiconsIcon
                   icon={Monitor}
+                  data-icon="monitor"
                   size={48}
                   className="text-text-2 opacity-60"
                 />
@@ -391,6 +392,7 @@ export const BrowserCore: React.FC<BrowserCoreProps> = ({
                 <div className="browser-native-placeholder">
                   <HugeiconsIcon
                     icon={CloudOff}
+                    data-icon="cloud-off"
                     size={64}
                     strokeWidth={1.5}
                     className="text-text-3 opacity-60"
@@ -412,6 +414,7 @@ export const BrowserCore: React.FC<BrowserCoreProps> = ({
                       icon={
                         <HugeiconsIcon
                           icon={SquareArrowOutUpRight}
+                          data-icon="square-arrow-out-up-right"
                           size={14}
                           strokeWidth={1.75}
                         />
@@ -435,6 +438,7 @@ export const BrowserCore: React.FC<BrowserCoreProps> = ({
                       icon={
                         <HugeiconsIcon
                           icon={RefreshCw}
+                          data-icon="refresh-cw"
                           size={14}
                           strokeWidth={1.75}
                         />
@@ -462,6 +466,7 @@ export const BrowserCore: React.FC<BrowserCoreProps> = ({
               <div className="browser-native-placeholder">
                 <HugeiconsIcon
                   icon={CloudOff}
+                  data-icon="cloud-off"
                   size={64}
                   strokeWidth={1.5}
                   className="text-text-3 opacity-60"
@@ -479,6 +484,7 @@ export const BrowserCore: React.FC<BrowserCoreProps> = ({
                     icon={
                       <HugeiconsIcon
                         icon={RefreshCw}
+                        data-icon="refresh-cw"
                         size={14}
                         strokeWidth={1.75}
                       />

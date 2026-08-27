@@ -197,7 +197,12 @@ const DescLine = memo<{ desc: string; descTitle: unknown }>(
           style={{ zIndex: 10000 }}
         >
           <span className="inline-flex flex-shrink-0 cursor-default items-center gap-0.5 rounded-full bg-fill-2 px-1.5 py-px text-[10px] text-text-3 hover:bg-fill-2 hover:text-text-2">
-            <HugeiconsIcon icon={Info} size={10} strokeWidth={2} />
+            <HugeiconsIcon
+              icon={Info}
+              data-icon="info"
+              size={10}
+              strokeWidth={2}
+            />
             {overflowPart}
           </span>
         </Tooltip>
@@ -392,6 +397,7 @@ export const SpotlightItemRow = memo<SpotlightItemRowProps>(
           <div className="flex w-5 flex-shrink-0 items-center justify-center">
             <HugeiconsIcon
               icon={CornerDownRight}
+              data-icon="corner-down-right"
               className="text-text-2"
               size={10}
             />
@@ -403,6 +409,7 @@ export const SpotlightItemRow = memo<SpotlightItemRowProps>(
             {isCurrentSelection ? (
               <HugeiconsIcon
                 icon={Check}
+                data-icon="check"
                 size={SPOTLIGHT_TOKENS.iconSize}
                 className="text-primary-6"
                 strokeWidth={2.5}
@@ -491,7 +498,7 @@ export const SpotlightItemRow = memo<SpotlightItemRowProps>(
                     title={`${data.gitStatus.uncommittedFiles} file${data.gitStatus.uncommittedFiles !== 1 ? "s" : ""} uncommitted`}
                   >
                     {data.gitStatus.uncommittedFiles}
-                    <HugeiconsIcon icon={Diff} size={12} />
+                    <HugeiconsIcon icon={Diff} data-icon="diff" size={12} />
                   </span>
                 )}
 
@@ -550,7 +557,9 @@ export const SpotlightItemRow = memo<SpotlightItemRowProps>(
                   isDisabled ? "bg-fill-2 text-text-3" : "text-slate-600"
                 }`}
               >
-                {isDisabled && <HugeiconsIcon icon={Lock} size={10} />}
+                {isDisabled && (
+                  <HugeiconsIcon icon={Lock} data-icon="lock" size={10} />
+                )}
                 {data.tagLabel}
               </span>
             )

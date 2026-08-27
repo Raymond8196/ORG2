@@ -278,6 +278,7 @@ const BreadcrumbFileHeader: React.FC<BreadcrumbFileHeaderProps> = ({
             {!isLast && (
               <HugeiconsIcon
                 icon={ChevronRight}
+                data-icon="chevron-right"
                 size={14}
                 strokeWidth={1.75}
                 className="mx-0 flex-shrink-0 text-fill-4"

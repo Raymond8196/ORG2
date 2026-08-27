@@ -108,7 +108,13 @@ export function WorkItemsHeaderContent({
             iconOnly
             onClick={onSearch}
             aria-label={t("common:actions.search")}
-            icon={<HugeiconsIcon icon={Search} size={HEADER_ICON_SIZE.sm} />}
+            icon={
+              <HugeiconsIcon
+                icon={Search}
+                data-icon="search"
+                size={HEADER_ICON_SIZE.sm}
+              />
+            }
           />
         </ToolbarTooltip>
       )}
@@ -135,6 +141,7 @@ export function WorkItemsHeaderContent({
                 icon={
                   <HugeiconsIcon
                     icon={ListChevronsDownUp}
+                    data-icon="list-chevrons-down-up"
                     size={HEADER_ICON_SIZE.md}
                   />
                 }
@@ -153,6 +160,7 @@ export function WorkItemsHeaderContent({
                 icon={
                   <HugeiconsIcon
                     icon={RefreshCw}
+                    data-icon="refresh-cw"
                     size={HEADER_ICON_SIZE.sm}
                     strokeWidth={2}
                     className={refreshSpinClass}
@@ -183,7 +191,13 @@ export function WorkItemsHeaderContent({
               }
               onClick={onToggleProperties}
               aria-label={propertiesLabel}
-              icon={<HugeiconsIcon icon={Info} size={HEADER_ICON_SIZE.sm} />}
+              icon={
+                <HugeiconsIcon
+                  icon={Info}
+                  data-icon="info"
+                  size={HEADER_ICON_SIZE.sm}
+                />
+              }
             />
           </ToolbarTooltip>
         </>

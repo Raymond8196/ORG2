@@ -238,7 +238,12 @@ const WebhookRow: React.FC<WebhookRowProps> = ({ routine }) => {
               size="small"
               iconOnly
               icon={
-                <HugeiconsIcon icon={RefreshCw} size={13} strokeWidth={1.75} />
+                <HugeiconsIcon
+                  icon={RefreshCw}
+                  data-icon="refresh-cw"
+                  size={13}
+                  strokeWidth={1.75}
+                />
               }
               onClick={() => {
                 loadStatus();
@@ -267,7 +272,9 @@ const WebhookRow: React.FC<WebhookRowProps> = ({ routine }) => {
                   variant="tertiary"
                   size="mini"
                   iconOnly
-                  icon={<HugeiconsIcon icon={Copy} size={12} />}
+                  icon={
+                    <HugeiconsIcon icon={Copy} data-icon="copy" size={12} />
+                  }
                   onClick={() => handleCopy(installInfo.urlPath)}
                   data-testid={`routine-webhook-copy-url-${routine.name}`}
                 />
@@ -280,7 +287,9 @@ const WebhookRow: React.FC<WebhookRowProps> = ({ routine }) => {
                   variant="tertiary"
                   size="mini"
                   iconOnly
-                  icon={<HugeiconsIcon icon={Copy} size={12} />}
+                  icon={
+                    <HugeiconsIcon icon={Copy} data-icon="copy" size={12} />
+                  }
                   onClick={() => handleCopy(installInfo.secret)}
                   data-testid={`routine-webhook-copy-secret-${routine.name}`}
                 />

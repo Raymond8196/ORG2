@@ -155,7 +155,7 @@ export const ChatSearchBar = forwardRef<
           className="flex h-5 w-5 items-center justify-center rounded text-text-3 transition-colors hover:bg-fill-3 hover:text-text-1"
           title={t("chat.closeEsc")}
         >
-          <HugeiconsIcon icon={X} size={14} />
+          <HugeiconsIcon icon={X} data-icon="x" size={14} />
         </button>
       </div>
     </div>

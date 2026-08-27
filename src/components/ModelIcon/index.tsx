@@ -152,6 +152,7 @@ const ModelIcon: React.FC<ModelIconProps> = memo(
       return (
         <HugeiconsIcon
           icon={Box}
+          data-icon="box"
           size={numericSize}
           className={`${fallbackColor} ${className}`.trim()}
           style={style}

@@ -104,7 +104,11 @@ export const WebInspector: React.FC<WebInspectorProps> = memo(
               onClick={onToggleCollapse}
               aria-label={t("titleBar.showDevTools")}
             >
-              <HugeiconsIcon icon={PanelRightOpen} size={16} />
+              <HugeiconsIcon
+                icon={PanelRightOpen}
+                data-icon="panel-right-open"
+                size={16}
+              />
             </button>
           </ToolbarTooltip>
           {/* Issue indicators */}

@@ -207,6 +207,7 @@ const SessionReplayBrowserComponent: React.FC<SessionReplayBrowserProps> = ({
           <>
             <HugeiconsIcon
               icon={ChevronRight}
+              data-icon="chevron-right"
               size={12}
               className="flex-shrink-0 text-text-4"
             />
@@ -218,7 +219,12 @@ const SessionReplayBrowserComponent: React.FC<SessionReplayBrowserProps> = ({
         )}
         {activeSubtool === "internal_browser" && isMaskShown && (
           <div className="ml-auto flex items-center gap-1">
-            <HugeiconsIcon icon={Shield} size={14} className="text-warning-6" />
+            <HugeiconsIcon
+              icon={Shield}
+              data-icon="shield"
+              size={14}
+              className="text-warning-6"
+            />
           </div>
         )}
       </div>
@@ -535,7 +541,12 @@ const SessionReplayBrowserComponent: React.FC<SessionReplayBrowserProps> = ({
 
         {activeSubtool === "internal_browser" && isMaskShown && (
           <div className="flex items-center gap-2 border-t border-border-1 bg-warning-1 px-3 py-1.5">
-            <HugeiconsIcon icon={Shield} size={14} className="text-warning-6" />
+            <HugeiconsIcon
+              icon={Shield}
+              data-icon="shield"
+              size={14}
+              className="text-warning-6"
+            />
             <span className="text-xs text-warning-6">
               User interaction blocked - Agent is controlling the browser
             </span>
@@ -567,7 +578,12 @@ const SessionReplayBrowserComponent: React.FC<SessionReplayBrowserProps> = ({
             shortcutId="browser_new_tab"
             onClick={handleNewMyTabsSession}
           >
-            <HugeiconsIcon icon={Plus} size={18} strokeWidth={2} />
+            <HugeiconsIcon
+              icon={Plus}
+              data-icon="plus"
+              size={18}
+              strokeWidth={2}
+            />
           </TabBarTrailingIconButton>
         }
       >

@@ -306,7 +306,14 @@ const WorkItemAttachmentControl: React.FC<WorkItemAttachmentControlProps> = ({
         action={{
           id: "solve-work-item",
           title: triggerLabel,
-          icon: <HugeiconsIcon icon={ListTodo} size={16} strokeWidth={1.8} />,
+          icon: (
+            <HugeiconsIcon
+              icon={ListTodo}
+              data-icon="list-todo"
+              size={16}
+              strokeWidth={1.8}
+            />
+          ),
           onClick: handleOpenPicker,
           tone: "neutral",
         }}
@@ -319,7 +326,14 @@ const WorkItemAttachmentControl: React.FC<WorkItemAttachmentControlProps> = ({
         appearance="outline"
         size="small"
         shape="round"
-        icon={<HugeiconsIcon icon={ListTodo} size={14} strokeWidth={1.75} />}
+        icon={
+          <HugeiconsIcon
+            icon={ListTodo}
+            data-icon="list-todo"
+            size={14}
+            strokeWidth={1.75}
+          />
+        }
         aria-expanded={onCreateWorkItem && !solveMode ? undefined : isOpen}
         aria-haspopup={onCreateWorkItem && !solveMode ? undefined : "dialog"}
         onClick={solveMode ? handleOpenPicker : (onCreateWorkItem ?? toggle)}
@@ -367,6 +381,7 @@ const WorkItemAttachmentControl: React.FC<WorkItemAttachmentControlProps> = ({
                   >
                     <HugeiconsIcon
                       icon={X}
+                      data-icon="x"
                       size={DROPDOWN_ITEM.iconSize}
                       strokeWidth={1.75}
                       className="text-text-2"
@@ -385,6 +400,7 @@ const WorkItemAttachmentControl: React.FC<WorkItemAttachmentControlProps> = ({
                 >
                   <HugeiconsIcon
                     icon={Link2}
+                    data-icon="link-2"
                     size={DROPDOWN_ITEM.iconSize}
                     strokeWidth={1.75}
                     className="text-text-2"

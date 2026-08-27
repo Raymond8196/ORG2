@@ -102,7 +102,9 @@ export function PlaygroundSidebarHeader({
               variant={jsonPanelOpen ? "primary" : "secondary"}
               size="small"
               htmlType="button"
-              icon={<HugeiconsIcon icon={Braces} size={12} />}
+              icon={
+                <HugeiconsIcon icon={Braces} data-icon="braces" size={12} />
+              }
               iconOnly
               title="JSON"
               onClick={onToggleJsonPanel}
@@ -113,7 +115,9 @@ export function PlaygroundSidebarHeader({
               variant={tokenPanelOpen ? "primary" : "secondary"}
               size="small"
               htmlType="button"
-              icon={<HugeiconsIcon icon={Palette} size={12} />}
+              icon={
+                <HugeiconsIcon icon={Palette} data-icon="palette" size={12} />
+              }
               iconOnly
               title="Tokens"
               onClick={onToggleTokenPanel}
@@ -122,7 +126,13 @@ export function PlaygroundSidebarHeader({
           <Button
             size="small"
             htmlType="button"
-            icon={<HugeiconsIcon icon={RotateCcw} size={12} />}
+            icon={
+              <HugeiconsIcon
+                icon={RotateCcw}
+                data-icon="rotate-ccw"
+                size={12}
+              />
+            }
             iconOnly
             title={t("devTools.reset")}
             onClick={onReset}

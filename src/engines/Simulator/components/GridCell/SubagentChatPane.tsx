@@ -177,7 +177,12 @@ const SubagentChatPaneComponent: React.FC<SubagentChatPaneProps> = ({
         title={t("chat.collapseAll")}
         aria-label={t("chat.collapseAll")}
         icon={
-          <HugeiconsIcon icon={ListChevronsDownUp} size={16} strokeWidth={2} />
+          <HugeiconsIcon
+            icon={ListChevronsDownUp}
+            data-icon="list-chevrons-down-up"
+            size={16}
+            strokeWidth={2}
+          />
         }
       />
     </>

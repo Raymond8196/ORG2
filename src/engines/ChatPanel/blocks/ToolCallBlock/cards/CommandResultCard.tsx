@@ -24,6 +24,7 @@ const CommandResultCard: React.FC<CommandResultCardProps> = ({ card }) => {
       <div className="flex items-center gap-2 border-b border-fill-4 px-3 py-2">
         <HugeiconsIcon
           icon={Terminal}
+          data-icon="terminal"
           size={12}
           className="shrink-0 text-text-4"
         />
@@ -34,9 +35,13 @@ const CommandResultCard: React.FC<CommandResultCardProps> = ({ card }) => {
           className={`inline-flex shrink-0 items-center gap-1 text-xs ${isSuccess ? "text-success-6" : "text-danger-6"}`}
         >
           {isSuccess ? (
-            <HugeiconsIcon icon={CheckCircle2} size={11} />
+            <HugeiconsIcon
+              icon={CheckCircle2}
+              data-icon="check-circle-2"
+              size={11}
+            />
           ) : (
-            <HugeiconsIcon icon={XCircle} size={11} />
+            <HugeiconsIcon icon={XCircle} data-icon="xcircle" size={11} />
           )}
           {isSuccess ? "0" : String(card.exitCode)}
         </span>

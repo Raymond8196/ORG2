@@ -300,7 +300,12 @@ const SessionCreatorChatPanelView: React.FC<
                 size="small"
                 shape="round"
                 icon={
-                  <HugeiconsIcon icon={Network} size={14} strokeWidth={1.75} />
+                  <HugeiconsIcon
+                    icon={Network}
+                    data-icon="network"
+                    size={14}
+                    strokeWidth={1.75}
+                  />
                 }
                 title={t("creator.orgMembers.configButton")}
                 aria-label={t("creator.orgMembers.configButton")}
@@ -324,7 +329,12 @@ const SessionCreatorChatPanelView: React.FC<
         <InlineAlert
           type="warning"
           icon={
-            <HugeiconsIcon icon={CircleArrowUp} size={14} strokeWidth={1.8} />
+            <HugeiconsIcon
+              icon={CircleArrowUp}
+              data-icon="circle-arrow-up"
+              size={14}
+              strokeWidth={1.8}
+            />
           }
           onClose={cliVersionAlert.onClose}
           closeAriaLabel={t("common:actions.close")}
@@ -334,7 +344,12 @@ const SessionCreatorChatPanelView: React.FC<
                 variant="tertiary"
                 size="small"
                 icon={
-                  <HugeiconsIcon icon={BellOff} size={14} strokeWidth={1.8} />
+                  <HugeiconsIcon
+                    icon={BellOff}
+                    data-icon="bell-off"
+                    size={14}
+                    strokeWidth={1.8}
+                  />
                 }
                 iconOnly
                 disabled={!cliVersionAlert.latestVersion}
@@ -349,7 +364,12 @@ const SessionCreatorChatPanelView: React.FC<
                 variant="tertiary"
                 size="small"
                 icon={
-                  <HugeiconsIcon icon={RefreshCw} size={14} strokeWidth={1.8} />
+                  <HugeiconsIcon
+                    icon={RefreshCw}
+                    data-icon="refresh-cw"
+                    size={14}
+                    strokeWidth={1.8}
+                  />
                 }
                 iconOnly
                 loading={cliVersionAlert.refreshing}
@@ -530,7 +550,12 @@ const SessionCreatorChatPanelView: React.FC<
                   void onShareScreen();
                 }}
               >
-                <HugeiconsIcon icon={Airplay} size={13} strokeWidth={1.75} />
+                <HugeiconsIcon
+                  icon={Airplay}
+                  data-icon="airplay"
+                  size={13}
+                  strokeWidth={1.75}
+                />
                 {t("chat.shareScreen")}
               </button>
             )}

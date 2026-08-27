@@ -1813,7 +1813,7 @@ async function readCurrentModeFromMenu(label) {
   const modeOptionSelector = '[data-testid^="slash-command-mode-option-"]';
   const readCurrentModeRow = `
     const rows = Array.from(document.querySelectorAll('[data-testid^="slash-command-mode-option-"]'));
-    const current = rows.find((row) => row.querySelector('svg.lucide-check'));
+    const current = rows.find((row) => row.querySelector('[data-icon="check"]'));
     return current ? (current.textContent || '').trim() : null;
   `;
   let triggerText = await execJS(readCurrentModeRow);

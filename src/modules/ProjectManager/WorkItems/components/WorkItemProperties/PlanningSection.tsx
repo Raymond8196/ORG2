@@ -73,10 +73,18 @@ export function PlanningSection({
                   size={DROPDOWN_ITEM.iconSize}
                 />
               ) : (
-                <HugeiconsIcon icon={BookOpen} size={DROPDOWN_ITEM.iconSize} />
+                <HugeiconsIcon
+                  icon={BookOpen}
+                  data-icon="book-open"
+                  size={DROPDOWN_ITEM.iconSize}
+                />
               )
             ) : (
-              <HugeiconsIcon icon={BookDashed} size={DROPDOWN_ITEM.iconSize} />
+              <HugeiconsIcon
+                icon={BookDashed}
+                data-icon="book-dashed"
+                size={DROPDOWN_ITEM.iconSize}
+              />
             )
           }
           iconColor={workItem.project?.color}
@@ -108,6 +116,7 @@ export function PlanningSection({
                     icon={
                       <HugeiconsIcon
                         icon={BookDashed}
+                        data-icon="book-dashed"
                         size={DROPDOWN_ITEM.iconSize}
                       />
                     }
@@ -134,6 +143,7 @@ export function PlanningSection({
                       ) : (
                         <HugeiconsIcon
                           icon={BookOpen}
+                          data-icon="book-open"
                           size={DROPDOWN_ITEM.iconSize}
                         />
                       )
@@ -160,7 +170,11 @@ export function PlanningSection({
         >
           <FieldRow
             icon={
-              <HugeiconsIcon icon={Diamond} size={DROPDOWN_ITEM.iconSize} />
+              <HugeiconsIcon
+                icon={Diamond}
+                data-icon="diamond"
+                size={DROPDOWN_ITEM.iconSize}
+              />
             }
             value={
               workItem.milestone?.name || t("workItems.properties.noMilestone")
@@ -200,6 +214,7 @@ export function PlanningSection({
                         icon={
                           <HugeiconsIcon
                             icon={Diamond}
+                            data-icon="diamond"
                             size={DROPDOWN_ITEM.iconSize}
                           />
                         }

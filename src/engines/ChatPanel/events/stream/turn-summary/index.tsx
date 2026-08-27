@@ -120,6 +120,7 @@ const ChatCard: React.FC<SummaryData & { eventId?: string }> = ({
   const icon = (
     <HugeiconsIcon
       icon={Layers}
+      data-icon="layers"
       size={SESSION_UI_TOKENS.ICON.SIZE_SM}
       className={SESSION_UI_TOKENS.ICON.DEFAULT}
     />
@@ -191,6 +192,7 @@ const SimulatorCard: React.FC<SummaryData & { eventId?: string }> = ({
   const icon = (
     <HugeiconsIcon
       icon={Layers}
+      data-icon="layers"
       size={SESSION_UI_TOKENS.ICON.SIZE_SM}
       className={SESSION_UI_TOKENS.ICON.DEFAULT}
     />
@@ -201,6 +203,7 @@ const SimulatorCard: React.FC<SummaryData & { eventId?: string }> = ({
       <div className="flex items-center gap-2">
         <HugeiconsIcon
           icon={Layers}
+          data-icon="layers"
           size={SESSION_UI_TOKENS.ICON.SIZE_MD}
           className={SESSION_UI_TOKENS.ICON.DEFAULT}
         />

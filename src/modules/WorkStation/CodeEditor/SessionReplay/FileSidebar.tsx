@@ -116,12 +116,14 @@ const FileSidebarComponent: React.FC<FileSidebarProps> = ({
           fileOperationsViewMode === "list" ? (
             <HugeiconsIcon
               icon={ListTree}
+              data-icon="list-tree"
               size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
               strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
             />
           ) : (
             <HugeiconsIcon
               icon={List}
+              data-icon="list"
               size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
               strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
             />
@@ -319,7 +321,11 @@ const FileSidebarComponent: React.FC<FileSidebarProps> = ({
         key: FILE_PANEL_VIEW_MODE.EXPLORE,
         label: t("simulator.replay.ide.fileSidebar.tabExplore"),
         icon: (
-          <HugeiconsIcon icon={Compass} size={PANEL_CONSTANTS.TAB_ICON_SIZE} />
+          <HugeiconsIcon
+            icon={Compass}
+            data-icon="compass"
+            size={PANEL_CONSTANTS.TAB_ICON_SIZE}
+          />
         ),
         sections: [
           {
@@ -369,6 +375,7 @@ const FileSidebarComponent: React.FC<FileSidebarProps> = ({
         icon: (
           <HugeiconsIcon
             icon={GitBranch}
+            data-icon="git-branch"
             size={PANEL_CONSTANTS.TAB_ICON_SIZE}
           />
         ),
@@ -400,7 +407,11 @@ const FileSidebarComponent: React.FC<FileSidebarProps> = ({
         key: FILE_PANEL_VIEW_MODE.TERMINAL,
         label: t("simulator.replay.ide.fileSidebar.tabTerminal"),
         icon: (
-          <HugeiconsIcon icon={Terminal} size={PANEL_CONSTANTS.TAB_ICON_SIZE} />
+          <HugeiconsIcon
+            icon={Terminal}
+            data-icon="terminal"
+            size={PANEL_CONSTANTS.TAB_ICON_SIZE}
+          />
         ),
         sections: [
           {

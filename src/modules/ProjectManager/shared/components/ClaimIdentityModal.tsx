@@ -45,7 +45,12 @@ const ClaimIdentityModal: React.FC<ClaimIdentityModalProps> = ({
             {t("settings.claimIdentityYoureClaming")}
           </div>
           <div className="mt-1 flex items-center gap-2">
-            <HugeiconsIcon icon={Mail} size={16} className="text-text-3" />
+            <HugeiconsIcon
+              icon={Mail}
+              data-icon="mail"
+              size={16}
+              className="text-text-3"
+            />
             <span className="text-[14px] font-medium text-text-1">
               {member.email}
             </span>

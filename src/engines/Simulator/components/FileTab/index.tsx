@@ -98,7 +98,12 @@ const FileTab: React.FC<FileTabProps> = memo(
             }}
             className={`flex h-5 w-5 shrink-0 items-center justify-center rounded ${SURFACE_TOKENS.iconButtonHover}`}
           >
-            <HugeiconsIcon icon={X} size={14} className="text-text-3" />
+            <HugeiconsIcon
+              icon={X}
+              data-icon="x"
+              size={14}
+              className="text-text-3"
+            />
           </button>
         )}
       </div>

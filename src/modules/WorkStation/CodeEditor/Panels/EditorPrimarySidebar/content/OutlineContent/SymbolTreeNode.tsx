@@ -45,12 +45,14 @@ const SymbolTreeNode: React.FC<SymbolTreeNodeProps> = memo(
             {symbol.expanded ? (
               <HugeiconsIcon
                 icon={ChevronDown}
+                data-icon="chevron-down"
                 size={CHEVRON_SIZE}
                 className="text-text-3"
               />
             ) : (
               <HugeiconsIcon
                 icon={ChevronRight}
+                data-icon="chevron-right"
                 size={CHEVRON_SIZE}
                 className="text-text-3"
               />

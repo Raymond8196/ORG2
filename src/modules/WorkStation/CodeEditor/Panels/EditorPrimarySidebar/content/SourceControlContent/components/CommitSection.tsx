@@ -174,6 +174,7 @@ export const CommitSection: React.FC<CommitSectionProps> = memo(
         parts.push(
           <HugeiconsIcon
             icon={RefreshCw}
+            data-icon="refresh-cw"
             size={14}
             className="mr-1.5"
             key="icon"
@@ -183,19 +184,30 @@ export const CommitSection: React.FC<CommitSectionProps> = memo(
         parts.push(
           <span key="behind" className="ml-1.5 flex items-center">
             {behind}
-            <HugeiconsIcon icon={ArrowDown} size={12} className="ml-0.5" />
+            <HugeiconsIcon
+              icon={ArrowDown}
+              data-icon="arrow-down"
+              size={12}
+              className="ml-0.5"
+            />
           </span>
         );
         parts.push(
           <span key="ahead" className="ml-1.5 flex items-center">
             {ahead}
-            <HugeiconsIcon icon={ArrowUp} size={12} className="ml-0.5" />
+            <HugeiconsIcon
+              icon={ArrowUp}
+              data-icon="arrow-up"
+              size={12}
+              className="ml-0.5"
+            />
           </span>
         );
       } else if (ahead > 0) {
         parts.push(
           <HugeiconsIcon
             icon={ArrowUp}
+            data-icon="arrow-up"
             size={14}
             className="mr-1.5"
             key="icon"
@@ -206,6 +218,7 @@ export const CommitSection: React.FC<CommitSectionProps> = memo(
         parts.push(
           <HugeiconsIcon
             icon={ArrowDown}
+            data-icon="arrow-down"
             size={14}
             className="mr-1.5"
             key="icon"
@@ -254,6 +267,7 @@ export const CommitSection: React.FC<CommitSectionProps> = memo(
               publishLoading ? undefined : (
                 <HugeiconsIcon
                   icon={CloudUpload}
+                  data-icon="cloud-upload"
                   size={14}
                   className="mr-1.5"
                 />
@@ -308,7 +322,13 @@ export const CommitSection: React.FC<CommitSectionProps> = memo(
                 : "Commit changes and publish the branch"
             }
             data-action="git.commit.publish"
-            icon={<HugeiconsIcon icon={CloudUpload} size={14} />}
+            icon={
+              <HugeiconsIcon
+                icon={CloudUpload}
+                data-icon="cloud-upload"
+                size={14}
+              />
+            }
           >
             {commitAndPublishButtonText}
           </Button>
@@ -369,6 +389,7 @@ export const CommitSection: React.FC<CommitSectionProps> = memo(
                               {behind}
                               <HugeiconsIcon
                                 icon={ArrowDown}
+                                data-icon="arrow-down"
                                 size={10}
                                 className="ml-0.5 inline"
                               />
@@ -387,6 +408,7 @@ export const CommitSection: React.FC<CommitSectionProps> = memo(
                               {ahead}
                               <HugeiconsIcon
                                 icon={ArrowUp}
+                                data-icon="arrow-up"
                                 size={10}
                                 className="ml-0.5 inline"
                               />
@@ -478,7 +500,7 @@ export const CommitSection: React.FC<CommitSectionProps> = memo(
                 : "Complete merge"
             }
             data-action="git.commit"
-            icon={<HugeiconsIcon icon={Check} size={14} />}
+            icon={<HugeiconsIcon icon={Check} data-icon="check" size={14} />}
           >
             {commitButtonText}
           </Button>

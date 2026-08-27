@@ -57,8 +57,8 @@ const ContentViewModal: React.FC<ContentViewModalProps> = ({
       {/* Header */}
       <div className="flex h-[48px] items-center justify-between rounded-t-lg border-b border-solid border-border-2 px-4">
         <div className="flex items-center gap-2">
-          <HugeiconsIcon icon={ArrowLeft} size={16} />
-          <HugeiconsIcon icon={ArrowRight} size={16} />
+          <HugeiconsIcon icon={ArrowLeft} data-icon="arrow-left" size={16} />
+          <HugeiconsIcon icon={ArrowRight} data-icon="arrow-right" size={16} />
         </div>
         <div className="text-[16px] font-[500]">
           {breadcrumbSegments ? (

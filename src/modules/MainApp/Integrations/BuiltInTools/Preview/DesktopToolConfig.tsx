@@ -299,6 +299,7 @@ const SidecarDownloadsConfig: React.FC = () => {
           statusContent = (
             <HugeiconsIcon
               icon={Loader2}
+              data-icon="loader-2"
               size={14}
               className="animate-spin text-text-3"
             />
@@ -337,11 +338,16 @@ const SidecarDownloadsConfig: React.FC = () => {
                   isInstalling ? (
                     <HugeiconsIcon
                       icon={Loader2}
+                      data-icon="loader-2"
                       size={14}
                       className="animate-spin"
                     />
                   ) : (
-                    <HugeiconsIcon icon={Download} size={14} />
+                    <HugeiconsIcon
+                      icon={Download}
+                      data-icon="download"
+                      size={14}
+                    />
                   )
                 }
                 disabled={loading || unsupported || installed || isInstalling}
@@ -363,7 +369,12 @@ const SidecarDownloadsConfig: React.FC = () => {
         <Button
           size="default"
           icon={
-            <HugeiconsIcon icon={RefreshCw} size={14} className={spinClass} />
+            <HugeiconsIcon
+              icon={RefreshCw}
+              data-icon="refresh-cw"
+              size={14}
+              className={spinClass}
+            />
           }
           onClick={handleRefreshClick}
           disabled={installing !== null}
@@ -497,6 +508,7 @@ const ComputerUseConfig: React.FC = () => {
             statusContent = (
               <HugeiconsIcon
                 icon={Loader2}
+                data-icon="loader-2"
                 size={14}
                 className="animate-spin text-text-3"
               />
@@ -553,6 +565,7 @@ const ComputerUseConfig: React.FC = () => {
             icon={
               <HugeiconsIcon
                 icon={RefreshCw}
+                data-icon="refresh-cw"
                 size={14}
                 className={permsSpinClass}
               />
@@ -569,7 +582,13 @@ const ComputerUseConfig: React.FC = () => {
         >
           <Button
             size="default"
-            icon={<HugeiconsIcon icon={SquareArrowOutUpRight} size={14} />}
+            icon={
+              <HugeiconsIcon
+                icon={SquareArrowOutUpRight}
+                data-icon="square-arrow-out-up-right"
+                size={14}
+              />
+            }
             onClick={goToWingmanSafety}
           >
             {t("osAgent.desktopSafetyDeepLinkAction")}

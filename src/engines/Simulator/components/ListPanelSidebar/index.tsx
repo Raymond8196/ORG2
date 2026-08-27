@@ -169,6 +169,7 @@ const DefaultListItem: React.FC<DefaultItemProps> = ({
       {!showCheckbox && item.isCurrent && (
         <HugeiconsIcon
           icon={Circle}
+          data-icon="circle"
           size={8}
           className="fill-current text-primary-6"
         />
@@ -310,7 +311,14 @@ export function ListPanelContent({
       {/* Search Input - 40px container, 28px input, vertically centered */}
       <div className="flex h-[40px] flex-shrink-0 items-center px-3">
         <Input
-          prefix={<HugeiconsIcon icon={Search} size={14} strokeWidth={1.75} />}
+          prefix={
+            <HugeiconsIcon
+              icon={Search}
+              data-icon="search"
+              size={14}
+              strokeWidth={1.75}
+            />
+          }
           placeholder={effectiveFilterPlaceholder}
           value={filterQuery}
           onChange={onFilterChange}

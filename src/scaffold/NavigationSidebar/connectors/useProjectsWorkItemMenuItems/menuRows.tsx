@@ -126,6 +126,7 @@ export function linearLoadRow(
     iconElement: loading ? (
       <HugeiconsIcon
         icon={Loader2}
+        data-icon="loader-2"
         size={14}
         strokeWidth={2}
         className="animate-spin"
@@ -190,6 +191,7 @@ export function pendingSyncIndicator(t: TFunction): React.ReactElement {
     >
       <HugeiconsIcon
         icon={Loader2}
+        data-icon="loader-2"
         size={12}
         strokeWidth={2}
         className="animate-spin text-text-4"

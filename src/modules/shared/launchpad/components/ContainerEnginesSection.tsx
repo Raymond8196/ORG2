@@ -133,7 +133,12 @@ const ContainerEnginesSection: React.FC<ContainerEnginesSectionProps> = ({
           variant="tertiary"
           size="mini"
           icon={
-            <HugeiconsIcon icon={RefreshCw} size={13} className={spinClass} />
+            <HugeiconsIcon
+              icon={RefreshCw}
+              data-icon="refresh-cw"
+              size={13}
+              className={spinClass}
+            />
           }
           onClick={handleRefreshClick}
           aria-label={t("common:actions.refresh")}

@@ -38,7 +38,12 @@ const MarkdownRuleDetailView: React.FC<MarkdownRuleDetailViewProps> = ({
     <DetailPanelContainer>
       <PanelHeader
         iconElement={
-          <HugeiconsIcon icon={BookOpen} size={14} className="text-primary-6" />
+          <HugeiconsIcon
+            icon={BookOpen}
+            data-icon="book-open"
+            size={14}
+            className="text-primary-6"
+          />
         }
         breadcrumb={{
           parent: t("agentOrgs.ruleKinds.rule"),

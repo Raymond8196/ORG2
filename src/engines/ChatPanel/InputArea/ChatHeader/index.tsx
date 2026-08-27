@@ -39,6 +39,7 @@ const ChatHeader = () => {
           <div className="flex h-[24px] items-center gap-1.5 rounded-full border border-solid border-primary-3 bg-primary-1 px-3 text-[12px] text-primary-7">
             <HugeiconsIcon
               icon={Airplay}
+              data-icon="airplay"
               size={12}
               strokeWidth={1.75}
               className="animate-pulse"
@@ -54,7 +55,12 @@ const ChatHeader = () => {
                 }
               }}
             >
-              <HugeiconsIcon icon={X} size={11} strokeWidth={1.75} />
+              <HugeiconsIcon
+                icon={X}
+                data-icon="x"
+                size={11}
+                strokeWidth={1.75}
+              />
             </button>
           </div>
         </div>
@@ -71,6 +77,7 @@ const ChatHeader = () => {
               <div className="flex h-[28px] w-auto items-center gap-2 rounded-full border border-solid border-border-2 px-4">
                 <HugeiconsIcon
                   icon={Clock}
+                  data-icon="clock"
                   size={14}
                   strokeWidth={1.75}
                   className="text-text-2"
@@ -86,7 +93,12 @@ const ChatHeader = () => {
                   setFeedBackInfo({ isFeedBack: false });
                 }}
               >
-                <HugeiconsIcon icon={X} size={16} strokeWidth={1.75} />
+                <HugeiconsIcon
+                  icon={X}
+                  data-icon="x"
+                  size={16}
+                  strokeWidth={1.75}
+                />
               </button>
             </div>
           )}

@@ -156,6 +156,7 @@ export const BrowserPrimarySidebar: React.FC<BrowserPrimarySidebarProps> = memo(
           icon: (
             <HugeiconsIcon
               icon={FilterIcon}
+              data-icon="filter-icon"
               size={14}
               className={showFilterRegularSessions ? "text-primary-6" : ""}
             />
@@ -167,7 +168,7 @@ export const BrowserPrimarySidebar: React.FC<BrowserPrimarySidebarProps> = memo(
           ? [
               {
                 key: "new-session",
-                icon: <HugeiconsIcon icon={Plus} size={14} />,
+                icon: <HugeiconsIcon icon={Plus} data-icon="plus" size={14} />,
                 tooltip: t("common:controlTower.sidebar.newTab"),
                 onClick: onNewSession,
               },
@@ -191,6 +192,7 @@ export const BrowserPrimarySidebar: React.FC<BrowserPrimarySidebarProps> = memo(
           icon: (
             <HugeiconsIcon
               icon={FilterIcon}
+              data-icon="filter-icon"
               size={14}
               className={showFilterPrivateSessions ? "text-primary-6" : ""}
             />
@@ -202,7 +204,7 @@ export const BrowserPrimarySidebar: React.FC<BrowserPrimarySidebarProps> = memo(
           ? [
               {
                 key: "new-private-session",
-                icon: <HugeiconsIcon icon={Plus} size={14} />,
+                icon: <HugeiconsIcon icon={Plus} data-icon="plus" size={14} />,
                 tooltip: t("common:controlTower.sidebar.newPrivateTab"),
                 onClick: onNewPrivateSession || onNewSession,
               },
@@ -237,7 +239,14 @@ export const BrowserPrimarySidebar: React.FC<BrowserPrimarySidebarProps> = memo(
       const sessionsTab: PrimarySidebarTab = {
         key: "sessions",
         label: t("tabs.sessions"),
-        icon: <HugeiconsIcon icon={Globe} size={16} strokeWidth={1.75} />,
+        icon: (
+          <HugeiconsIcon
+            icon={Globe}
+            data-icon="globe"
+            size={16}
+            strokeWidth={1.75}
+          />
+        ),
         sections: [
           {
             key: "regular-browsing",
@@ -258,7 +267,14 @@ export const BrowserPrimarySidebar: React.FC<BrowserPrimarySidebarProps> = memo(
           {
             key: "private-browsing",
             title: t("labels.privateBrowsing"),
-            icon: <HugeiconsIcon icon={Globe} size={14} strokeWidth={1.75} />,
+            icon: (
+              <HugeiconsIcon
+                icon={Globe}
+                data-icon="globe"
+                size={14}
+                strokeWidth={1.75}
+              />
+            ),
             content: (
               <SessionsTab
                 sessions={privateSessions}
@@ -283,13 +299,25 @@ export const BrowserPrimarySidebar: React.FC<BrowserPrimarySidebarProps> = memo(
         {
           key: "history",
           label: t("tabs.history"),
-          icon: <HugeiconsIcon icon={History} size={16} strokeWidth={1.75} />,
+          icon: (
+            <HugeiconsIcon
+              icon={History}
+              data-icon="history"
+              size={16}
+              strokeWidth={1.75}
+            />
+          ),
           sections: [
             {
               key: "browsing-history",
               title: t("labels.history"),
               icon: (
-                <HugeiconsIcon icon={History} size={14} strokeWidth={1.75} />
+                <HugeiconsIcon
+                  icon={History}
+                  data-icon="history"
+                  size={14}
+                  strokeWidth={1.75}
+                />
               ),
               content: (
                 <HistoryTab
@@ -305,12 +333,26 @@ export const BrowserPrimarySidebar: React.FC<BrowserPrimarySidebarProps> = memo(
         {
           key: "design",
           label: t("tabs.design"),
-          icon: <HugeiconsIcon icon={Pencil} size={16} strokeWidth={1.75} />,
+          icon: (
+            <HugeiconsIcon
+              icon={Pencil}
+              data-icon="pencil"
+              size={16}
+              strokeWidth={1.75}
+            />
+          ),
           sections: [
             {
               key: "global-tokens",
               title: t("labels.globalTokens"),
-              icon: <HugeiconsIcon icon={Code2} size={14} strokeWidth={1.75} />,
+              icon: (
+                <HugeiconsIcon
+                  icon={Code2}
+                  data-icon="code-2"
+                  size={14}
+                  strokeWidth={1.75}
+                />
+              ),
               content: (
                 <DesignTabGlobalTokens
                   repoPath={repoPath}

@@ -70,8 +70,18 @@ export const SpotlightFooter: React.FC<SpotlightFooterProps> = ({
             single pill. Background/height match the spotlightFooter
             variant so the look is consistent. */}
         <kbd className="flex h-[18px] items-center gap-0.5 rounded bg-fill-3 px-1.5 font-medium leading-none text-text-2">
-          <HugeiconsIcon icon={ArrowUp} size={10} strokeWidth={2} />
-          <HugeiconsIcon icon={ArrowDown} size={10} strokeWidth={2} />
+          <HugeiconsIcon
+            icon={ArrowUp}
+            data-icon="arrow-up"
+            size={10}
+            strokeWidth={2}
+          />
+          <HugeiconsIcon
+            icon={ArrowDown}
+            data-icon="arrow-down"
+            size={10}
+            strokeWidth={2}
+          />
         </kbd>
         <span>{t("selectors.spotlightFooter.navigate")}</span>
       </span>

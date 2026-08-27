@@ -101,6 +101,7 @@ const CreateWorkspaceFolderForm: React.FC<CreateWorkspaceFolderFormProps> = ({
               prefix={
                 <HugeiconsIcon
                   icon={Code}
+                  data-icon="code"
                   className="text-[16px] text-text-2"
                   size={16}
                 />
@@ -125,6 +126,7 @@ const CreateWorkspaceFolderForm: React.FC<CreateWorkspaceFolderFormProps> = ({
                   prefix={
                     <HugeiconsIcon
                       icon={Folder}
+                      data-icon="folder"
                       className="text-[16px] text-text-2"
                       size={16}
                     />

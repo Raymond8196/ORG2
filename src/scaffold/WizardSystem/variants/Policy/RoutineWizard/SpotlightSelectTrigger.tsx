@@ -115,6 +115,7 @@ const SpotlightSelectTrigger = forwardRef<
         <div className="select-suffix">
           <HugeiconsIcon
             icon={ChevronDown}
+            data-icon="chevron-down"
             size={16}
             className={`select-arrow shrink-0 transition-transform ${
               active ? "rotate-180" : ""

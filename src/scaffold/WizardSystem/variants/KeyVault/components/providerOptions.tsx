@@ -54,6 +54,7 @@ function variantIconNode(
     return (
       <HugeiconsIcon
         icon={KeyRound}
+        data-icon="key-round"
         size={size}
         className="shrink-0 text-text-3"
       />
@@ -62,6 +63,7 @@ function variantIconNode(
   return (
     <HugeiconsIcon
       icon={Calendar}
+      data-icon="calendar"
       size={size}
       className="shrink-0 text-text-3"
     />
@@ -91,7 +93,12 @@ export function providerIconNode(
 ): React.ReactNode {
   if (providerUsesGlyphIcon(provider)) {
     return (
-      <HugeiconsIcon icon={Cog} size={size} className="shrink-0 text-text-3" />
+      <HugeiconsIcon
+        icon={Cog}
+        data-icon="cog"
+        size={size}
+        className="shrink-0 text-text-3"
+      />
     );
   }
   return (

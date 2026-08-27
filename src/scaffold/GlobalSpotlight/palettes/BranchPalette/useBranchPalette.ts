@@ -222,7 +222,7 @@ export function useBranchPalette(options: UseBranchPaletteOptions) {
             "flex items-center justify-center rounded-md p-1 text-text-2 transition-colors hover:bg-fill-3 hover:text-text-1",
           title: t("actions.delete", "Delete"),
         },
-        createElement(Trash2, { size: 14 })
+        createElement(HugeiconsIcon, { icon: Trash2, size: 14 })
       ),
     [handleDeleteBranch, t]
   );

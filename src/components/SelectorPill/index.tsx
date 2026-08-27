@@ -132,6 +132,7 @@ const SelectorPillContent: React.FC<SelectorPillContentProps> = ({
               {active ? (
                 <HugeiconsIcon
                   icon={ChevronUp}
+                  data-icon="chevron-up"
                   size={iconSize}
                   strokeWidth={1.75}
                   className={`absolute block ${chevronColor}`}
@@ -145,6 +146,7 @@ const SelectorPillContent: React.FC<SelectorPillContentProps> = ({
               ) : (
                 <HugeiconsIcon
                   icon={ChevronDown}
+                  data-icon="chevron-down"
                   size={iconSize}
                   strokeWidth={1.75}
                   className={`absolute hidden ${chevronColor} group-hover/pill:block`}
@@ -175,9 +177,19 @@ const SelectorPillContent: React.FC<SelectorPillContentProps> = ({
           className={`inline-flex shrink-0 items-center justify-center ${chevronColor} ${chevronClassName ?? ""}`}
         >
           {active ? (
-            <HugeiconsIcon icon={ChevronUp} size={14} strokeWidth={2} />
+            <HugeiconsIcon
+              icon={ChevronUp}
+              data-icon="chevron-up"
+              size={14}
+              strokeWidth={2}
+            />
           ) : (
-            <HugeiconsIcon icon={ChevronDown} size={14} strokeWidth={2} />
+            <HugeiconsIcon
+              icon={ChevronDown}
+              data-icon="chevron-down"
+              size={14}
+              strokeWidth={2}
+            />
           )}
         </span>
       )}

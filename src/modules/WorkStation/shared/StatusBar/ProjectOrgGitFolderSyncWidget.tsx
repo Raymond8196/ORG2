@@ -97,6 +97,7 @@ const ProjectOrgGitFolderSyncWidget: React.FC<ProjectOrgGitFolderSyncWidgetProps
           icon: (
             <HugeiconsIcon
               icon={CloudUpload}
+              data-icon="cloud-upload"
               size={13}
               className="text-text-1"
             />
@@ -110,6 +111,7 @@ const ProjectOrgGitFolderSyncWidget: React.FC<ProjectOrgGitFolderSyncWidgetProps
           icon: (
             <HugeiconsIcon
               icon={CloudAlert}
+              data-icon="cloud-alert"
               size={13}
               className="text-warning-6"
             />
@@ -123,6 +125,7 @@ const ProjectOrgGitFolderSyncWidget: React.FC<ProjectOrgGitFolderSyncWidgetProps
           icon: (
             <HugeiconsIcon
               icon={GitMerge}
+              data-icon="git-merge"
               size={13}
               className="text-warning-6"
             />
@@ -136,7 +139,14 @@ const ProjectOrgGitFolderSyncWidget: React.FC<ProjectOrgGitFolderSyncWidgetProps
         };
       }
       return {
-        icon: <HugeiconsIcon icon={Cloud} size={13} className="text-text-1" />,
+        icon: (
+          <HugeiconsIcon
+            icon={Cloud}
+            data-icon="cloud"
+            size={13}
+            className="text-text-1"
+          />
+        ),
         label: t("statusBar.gitFolderSync.syncNow"),
         title:
           lastResultLabel ??

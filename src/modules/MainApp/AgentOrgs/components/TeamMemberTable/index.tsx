@@ -124,6 +124,7 @@ const AgentSelect: React.FC<AgentSelectProps> = ({
             >
               <HugeiconsIcon
                 icon={Plus}
+                data-icon="plus"
                 size={DROPDOWN_ITEM.iconSize}
                 strokeWidth={1.75}
               />
@@ -337,6 +338,7 @@ const TeamMemberTable: React.FC<TeamMemberTableProps> = ({
           icon={
             <HugeiconsIcon
               icon={Trash2}
+              data-icon="trash-2"
               size={DROPDOWN_ITEM.iconSize}
               className="text-danger-6"
             />

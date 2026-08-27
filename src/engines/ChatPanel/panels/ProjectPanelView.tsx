@@ -252,6 +252,7 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
             ) : (
               <HugeiconsIcon
                 icon={Box}
+                data-icon="box"
                 size={HEADER_ICON_SIZE.sm}
                 strokeWidth={1.75}
               />
@@ -287,7 +288,13 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
           onClick={toggleProperties}
           aria-label={propertiesToggleLabel}
           data-testid="chat-panel-project-properties-toggle"
-          icon={<HugeiconsIcon icon={Info} size={HEADER_ICON_SIZE.sm} />}
+          icon={
+            <HugeiconsIcon
+              icon={Info}
+              data-icon="info"
+              size={HEADER_ICON_SIZE.sm}
+            />
+          }
         />
       </ToolbarTooltip>
     ),
@@ -622,6 +629,7 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
               >
                 <HugeiconsIcon
                   icon={ChevronsRight}
+                  data-icon="chevrons-right"
                   size={14}
                   strokeWidth={1.75}
                 />
@@ -671,11 +679,26 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
               : t("projects:workItems.tabs.kanban"),
         icon:
           tab === "overview" ? (
-            <HugeiconsIcon icon={LayoutDashboard} size={15} strokeWidth={1.8} />
+            <HugeiconsIcon
+              icon={LayoutDashboard}
+              data-icon="layout-dashboard"
+              size={15}
+              strokeWidth={1.8}
+            />
           ) : tab === "list" ? (
-            <HugeiconsIcon icon={List} size={15} strokeWidth={1.8} />
+            <HugeiconsIcon
+              icon={List}
+              data-icon="list"
+              size={15}
+              strokeWidth={1.8}
+            />
           ) : (
-            <HugeiconsIcon icon={Columns3} size={15} strokeWidth={1.8} />
+            <HugeiconsIcon
+              icon={Columns3}
+              data-icon="columns-3"
+              size={15}
+              strokeWidth={1.8}
+            />
           ),
         count: tab === "overview" ? undefined : workItems.length,
       })),
@@ -742,7 +765,11 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
                 aria-label={t("common:actions.search")}
                 aria-pressed={Boolean(searchQuery)}
                 icon={
-                  <HugeiconsIcon icon={Search} size={HEADER_ICON_SIZE.sm} />
+                  <HugeiconsIcon
+                    icon={Search}
+                    data-icon="search"
+                    size={HEADER_ICON_SIZE.sm}
+                  />
                 }
               />
             </ToolbarTooltip>

@@ -19,7 +19,12 @@ const RuntimeScanningPanelSourceIcon: React.FC<{
     provider={probe.iconId as IconProvider}
     size={16}
     fallback={
-      <HugeiconsIcon icon={Terminal} size={16} className="text-text-3" />
+      <HugeiconsIcon
+        icon={Terminal}
+        data-icon="terminal"
+        size={16}
+        className="text-text-3"
+      />
     }
   />
 );

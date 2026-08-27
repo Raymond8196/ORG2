@@ -5,6 +5,7 @@
  * Extracted from `useExplorerActions` so the Source Control sidebar module
  * can be reused outside the Code Editor (e.g. Control Tower peek).
  */
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -47,7 +48,8 @@ export function useSourceControlActions({
       {
         key: "filter-git",
         icon: (
-          <FilterIcon
+          <HugeiconsIcon
+            icon={FilterIcon}
             size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
             strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
             className={showFilter ? "text-primary-6" : ""}
@@ -60,12 +62,14 @@ export function useSourceControlActions({
         key: "view-mode-toggle",
         icon:
           viewMode === "list" ? (
-            <ListTreeIcon
+            <HugeiconsIcon
+              icon={ListTreeIcon}
               size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
               strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
             />
           ) : (
-            <ListIcon
+            <HugeiconsIcon
+              icon={ListIcon}
               size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
               strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
             />
@@ -79,7 +83,8 @@ export function useSourceControlActions({
       {
         key: "refresh-git",
         icon: (
-          <RefreshIcon
+          <HugeiconsIcon
+            icon={RefreshIcon}
             size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
             strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
             className={refreshSpinClass}

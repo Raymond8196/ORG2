@@ -73,6 +73,7 @@ function CheckStateIcon({
       return (
         <HugeiconsIcon
           icon={CheckCircle2}
+          data-icon="check-circle-2"
           size={size}
           strokeWidth={1.9}
           className="text-success-6"
@@ -82,6 +83,7 @@ function CheckStateIcon({
       return (
         <HugeiconsIcon
           icon={XCircle}
+          data-icon="xcircle"
           size={size}
           strokeWidth={1.9}
           className="text-danger-6"
@@ -91,6 +93,7 @@ function CheckStateIcon({
       return (
         <HugeiconsIcon
           icon={Loader}
+          data-icon="loader"
           size={size}
           strokeWidth={1.9}
           className="animate-spin text-warning-6"
@@ -100,6 +103,7 @@ function CheckStateIcon({
       return (
         <HugeiconsIcon
           icon={CircleSlash}
+          data-icon="circle-slash"
           size={size}
           strokeWidth={1.9}
           className="text-text-3"
@@ -121,6 +125,7 @@ function BranchCiIcon({ status }: { status: BranchCiStatus }): React.ReactNode {
       return (
         <HugeiconsIcon
           icon={CircleDashed}
+          data-icon="circle-dashed"
           size={13}
           strokeWidth={1.9}
           className="text-text-3"
@@ -181,7 +186,11 @@ const CheckRow: React.FC<CheckRowProps> = memo(({ item, onOpenDetails }) => {
               onOpenDetails(item.detailsUrl as string);
             }}
           >
-            <HugeiconsIcon icon={SquareArrowOutUpRight} size={MENU_ICON_SIZE} />
+            <HugeiconsIcon
+              icon={SquareArrowOutUpRight}
+              data-icon="square-arrow-out-up-right"
+              size={MENU_ICON_SIZE}
+            />
           </button>
         )}
       </div>
@@ -343,6 +352,7 @@ export const CiStatusMenu: React.FC<CiStatusMenuProps> = memo(
               >
                 <HugeiconsIcon
                   icon={GitPullRequest}
+                  data-icon="git-pull-request"
                   size={MENU_ICON_SIZE}
                   className="shrink-0 text-text-3"
                 />
@@ -364,6 +374,7 @@ export const CiStatusMenu: React.FC<CiStatusMenuProps> = memo(
                 >
                   <HugeiconsIcon
                     icon={RefreshCw}
+                    data-icon="refresh-cw"
                     size={MENU_ICON_SIZE}
                     className={classNames(refreshing && "animate-spin")}
                   />

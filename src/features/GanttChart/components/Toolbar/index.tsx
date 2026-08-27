@@ -151,6 +151,7 @@ const GanttToolbar: React.FC<GanttToolbarProps> = ({
               icon={
                 <HugeiconsIcon
                   icon={ZoomOut}
+                  data-icon="zoom-out"
                   size={PANEL_HEADER_TOKENS.buttonIconSize}
                   strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
                 />
@@ -172,6 +173,7 @@ const GanttToolbar: React.FC<GanttToolbarProps> = ({
               icon={
                 <HugeiconsIcon
                   icon={ZoomIn}
+                  data-icon="zoom-in"
                   size={PANEL_HEADER_TOKENS.buttonIconSize}
                   strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
                 />
@@ -190,6 +192,7 @@ const GanttToolbar: React.FC<GanttToolbarProps> = ({
           icon={
             <HugeiconsIcon
               icon={ChevronLeft}
+              data-icon="chevron-left"
               size={PANEL_HEADER_TOKENS.buttonIconSize}
               strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
             />
@@ -211,6 +214,7 @@ const GanttToolbar: React.FC<GanttToolbarProps> = ({
           icon={
             <HugeiconsIcon
               icon={ChevronRight}
+              data-icon="chevron-right"
               size={PANEL_HEADER_TOKENS.buttonIconSize}
               strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
             />

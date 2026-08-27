@@ -92,7 +92,14 @@ const CherryPickCheckbox: React.FC<CherryPickCheckboxProps> = ({
         onClick();
       }}
     >
-      {checked && <HugeiconsIcon icon={Check} size={14} strokeWidth={2.5} />}
+      {checked && (
+        <HugeiconsIcon
+          icon={Check}
+          data-icon="check"
+          size={14}
+          strokeWidth={2.5}
+        />
+      )}
     </div>
   );
 };
@@ -191,9 +198,19 @@ export const DiffLineComponent = React.memo<DiffLineComponentProps>(
     const lineClasses = `diff-line diff-line-${line.type}${useBorderStyle ? " diff-line-border-style" : ""}`;
     const icon =
       line.type === "add" ? (
-        <HugeiconsIcon icon={Plus} size={12} strokeWidth={2.5} />
+        <HugeiconsIcon
+          icon={Plus}
+          data-icon="plus"
+          size={12}
+          strokeWidth={2.5}
+        />
       ) : line.type === "remove" ? (
-        <HugeiconsIcon icon={Minus} size={12} strokeWidth={2.5} />
+        <HugeiconsIcon
+          icon={Minus}
+          data-icon="minus"
+          size={12}
+          strokeWidth={2.5}
+        />
       ) : null;
 
     const isChangeLine = line.type === "add" || line.type === "remove";
@@ -213,7 +230,12 @@ export const DiffLineComponent = React.memo<DiffLineComponentProps>(
               }}
             >
               {isRangeStart && rangeSelected && (
-                <HugeiconsIcon icon={Check} size={14} strokeWidth={2.5} />
+                <HugeiconsIcon
+                  icon={Check}
+                  data-icon="check"
+                  size={14}
+                  strokeWidth={2.5}
+                />
               )}
             </div>
             {isSingleLineRange && isChangeLine ? (

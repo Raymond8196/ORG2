@@ -36,7 +36,7 @@ const ToolResultActions: React.FC<ToolResultActionsProps> = ({ source }) => {
       title={t("tools.openSource")}
       aria-label={t("tools.openSource")}
     >
-      <HugeiconsIcon icon={FileSymlink} size={13} />
+      <HugeiconsIcon icon={FileSymlink} data-icon="file-symlink" size={13} />
     </button>
   );
 };

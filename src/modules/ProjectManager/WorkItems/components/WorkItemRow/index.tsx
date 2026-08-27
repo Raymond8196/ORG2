@@ -392,7 +392,11 @@ const WorkItemRow: React.FC<WorkItemRowProps> = React.memo(
               className="ml-2 inline-flex h-7 items-center gap-1 rounded-md px-2 text-xs font-medium text-primary-6 transition-colors hover:bg-primary-1"
               onClick={handleRestore}
             >
-              <HugeiconsIcon icon={RotateCcw} size={13} />
+              <HugeiconsIcon
+                icon={RotateCcw}
+                data-icon="rotate-ccw"
+                size={13}
+              />
               {t("workItems.restore")}
             </button>
           )}

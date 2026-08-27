@@ -77,7 +77,11 @@ const ProjectPropertiesPanel: React.FC<ProjectPropertiesPanelProps> = memo(
             onClick={onToggleCollapse}
             title={t("workItems.showProperties")}
           >
-            <HugeiconsIcon icon={PanelRightOpen} size={16} />
+            <HugeiconsIcon
+              icon={PanelRightOpen}
+              data-icon="panel-right-open"
+              size={16}
+            />
           </button>
         </div>
       );

@@ -174,6 +174,7 @@ function AgentOrgTaskSubject({
       {expanded ? (
         <HugeiconsIcon
           icon={ChevronsDownUp}
+          data-icon="chevrons-down-up"
           size={11}
           strokeWidth={2}
           className="mt-0.5 shrink-0 text-text-3"
@@ -181,6 +182,7 @@ function AgentOrgTaskSubject({
       ) : (
         <HugeiconsIcon
           icon={ChevronsUpDown}
+          data-icon="chevrons-up-down"
           size={11}
           strokeWidth={2}
           className="mt-0.5 shrink-0 text-text-3"
@@ -272,6 +274,7 @@ export const AgentOrgTaskList: React.FC<AgentOrgTaskListProps> = memo(
                             >
                               <HugeiconsIcon
                                 icon={MessageCircle}
+                                data-icon="message-circle"
                                 size={8}
                                 strokeWidth={2}
                               />
@@ -284,7 +287,12 @@ export const AgentOrgTaskList: React.FC<AgentOrgTaskListProps> = memo(
                       )}
                       {blocked && (
                         <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-warning-6/10 px-2 py-0.5 text-warning-6">
-                          <HugeiconsIcon icon={Lock} size={8} strokeWidth={2} />
+                          <HugeiconsIcon
+                            icon={Lock}
+                            data-icon="lock"
+                            size={8}
+                            strokeWidth={2}
+                          />
                           {task.blockedBy.length}
                         </span>
                       )}

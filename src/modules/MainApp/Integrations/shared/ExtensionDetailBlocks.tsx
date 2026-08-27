@@ -100,7 +100,7 @@ const ExtensionHero: React.FC<ExtensionHeroProps> = ({
                       className="size-4 rounded-full"
                     />
                   ) : (
-                    <HugeiconsIcon icon={User} size={12} />
+                    <HugeiconsIcon icon={User} data-icon="user" size={12} />
                   ),
                   label: detail.owner.displayName ?? detail.owner.handle,
                 },
@@ -109,11 +109,19 @@ const ExtensionHero: React.FC<ExtensionHeroProps> = ({
           ...(detail.stats
             ? [
                 {
-                  icon: <HugeiconsIcon icon={Download} size={12} />,
+                  icon: (
+                    <HugeiconsIcon
+                      icon={Download}
+                      data-icon="download"
+                      size={12}
+                    />
+                  ),
                   label: formatNumber(detail.stats.downloads),
                 },
                 {
-                  icon: <HugeiconsIcon icon={Star} size={12} />,
+                  icon: (
+                    <HugeiconsIcon icon={Star} data-icon="star" size={12} />
+                  ),
                   label: formatNumber(detail.stats.stars),
                 },
               ]
@@ -123,7 +131,13 @@ const ExtensionHero: React.FC<ExtensionHeroProps> = ({
           ...(detail.version
             ? [
                 {
-                  icon: <HugeiconsIcon icon={GitCommitHorizontal} size={12} />,
+                  icon: (
+                    <HugeiconsIcon
+                      icon={GitCommitHorizontal}
+                      data-icon="git-commit-horizontal"
+                      size={12}
+                    />
+                  ),
                   label: detail.version,
                 },
               ]
@@ -131,7 +145,13 @@ const ExtensionHero: React.FC<ExtensionHeroProps> = ({
           ...(detail.createdAt
             ? [
                 {
-                  icon: <HugeiconsIcon icon={Calendar} size={12} />,
+                  icon: (
+                    <HugeiconsIcon
+                      icon={Calendar}
+                      data-icon="calendar"
+                      size={12}
+                    />
+                  ),
                   label: formatDate(detail.createdAt),
                 },
               ]
@@ -139,7 +159,13 @@ const ExtensionHero: React.FC<ExtensionHeroProps> = ({
           ...(detail.updatedAt
             ? [
                 {
-                  icon: <HugeiconsIcon icon={RefreshCw} size={12} />,
+                  icon: (
+                    <HugeiconsIcon
+                      icon={RefreshCw}
+                      data-icon="refresh-cw"
+                      size={12}
+                    />
+                  ),
                   label: formatDate(detail.updatedAt),
                 },
               ]

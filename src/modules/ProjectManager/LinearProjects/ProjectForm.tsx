@@ -76,7 +76,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
           size="small"
           variant="primary"
           appearance="solid"
-          icon={<HugeiconsIcon icon={Save} size={14} />}
+          icon={<HugeiconsIcon icon={Save} data-icon="save" size={14} />}
           loading={saving}
           disabled={!draft.name.trim() || (!hideTeamSelect && !draft.teamId)}
           onClick={onSubmit}

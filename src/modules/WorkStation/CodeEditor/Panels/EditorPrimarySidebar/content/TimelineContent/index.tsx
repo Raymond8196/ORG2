@@ -4,6 +4,7 @@
  * Displays Git commit history and repo-shareable `.orgtrack` session lineage
  * for the currently selected file.
  */
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useSetAtom } from "jotai";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -254,7 +255,8 @@ export const TimelineContent: React.FC<TimelineContentProps> = memo(
                 aria-label={t("actions.refresh")}
                 data-testid="session-blame-refresh"
               >
-                <SessionRefreshIcon
+                <HugeiconsIcon
+                  icon={SessionRefreshIcon}
                   size={13}
                   strokeWidth={1.75}
                   className={sessionRefreshSpinClass}

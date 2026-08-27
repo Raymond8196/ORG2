@@ -252,7 +252,8 @@ export const WorktreePalette: React.FC<WorktreePaletteProps> = ({
       });
     }
     const RefreshIcon = (props: { size?: number; className?: string }) =>
-      React.createElement(RefreshCw, {
+      React.createElement(HugeiconsIcon, {
+        icon: RefreshCw,
         ...props,
         className:
           `${props.className ?? ""} ${isRefreshing ? "spotlight-refresh-spin" : ""}`.trim(),

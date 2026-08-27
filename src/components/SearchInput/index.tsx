@@ -211,9 +211,17 @@ export const SearchInput: React.FC<SearchInputProps> = memo(
         {onExpandToggle && !hideChevron && (
           <div onClick={onExpandToggle} className={buttonClass}>
             {expanded ? (
-              <HugeiconsIcon icon={ChevronDown} size={iconSize} />
+              <HugeiconsIcon
+                icon={ChevronDown}
+                data-icon="chevron-down"
+                size={iconSize}
+              />
             ) : (
-              <HugeiconsIcon icon={ChevronRight} size={iconSize} />
+              <HugeiconsIcon
+                icon={ChevronRight}
+                data-icon="chevron-right"
+                size={iconSize}
+              />
             )}
           </div>
         )}
@@ -271,7 +279,7 @@ export const SearchInput: React.FC<SearchInputProps> = memo(
               className="flex shrink-0 items-center justify-center self-center rounded p-0.5 text-text-3 transition-colors hover:text-text-2"
               title={t("tooltips.clearSearch")}
             >
-              <HugeiconsIcon icon={X} size={iconSize} />
+              <HugeiconsIcon icon={X} data-icon="x" size={iconSize} />
             </button>
           )}
 
@@ -286,7 +294,11 @@ export const SearchInput: React.FC<SearchInputProps> = memo(
               }`}
               title={t("tooltips.matchCase")}
             >
-              <HugeiconsIcon icon={CaseSensitive} size={iconSize} />
+              <HugeiconsIcon
+                icon={CaseSensitive}
+                data-icon="case-sensitive"
+                size={iconSize}
+              />
             </button>
           )}
           {onWholeWordToggle && (
@@ -300,7 +312,11 @@ export const SearchInput: React.FC<SearchInputProps> = memo(
               }`}
               title={t("tooltips.matchWholeWord")}
             >
-              <HugeiconsIcon icon={WholeWord} size={iconSize} />
+              <HugeiconsIcon
+                icon={WholeWord}
+                data-icon="whole-word"
+                size={iconSize}
+              />
             </button>
           )}
           {onRegexToggle && (
@@ -314,7 +330,7 @@ export const SearchInput: React.FC<SearchInputProps> = memo(
               }`}
               title={t("tooltips.useRegex")}
             >
-              <HugeiconsIcon icon={Regex} size={iconSize} />
+              <HugeiconsIcon icon={Regex} data-icon="regex" size={iconSize} />
             </button>
           )}
           {onOnlyOpenFilesToggle && (
@@ -328,7 +344,11 @@ export const SearchInput: React.FC<SearchInputProps> = memo(
               }`}
               title={t("tooltips.searchInOpenEditors")}
             >
-              <HugeiconsIcon icon={BookOpen} size={iconSize} />
+              <HugeiconsIcon
+                icon={BookOpen}
+                data-icon="book-open"
+                size={iconSize}
+              />
             </button>
           )}
         </div>
@@ -343,7 +363,11 @@ export const SearchInput: React.FC<SearchInputProps> = memo(
                 className={actionButtonClass}
                 title={t("tooltips.previousMatch")}
               >
-                <HugeiconsIcon icon={ArrowUp} size={iconSize} />
+                <HugeiconsIcon
+                  icon={ArrowUp}
+                  data-icon="arrow-up"
+                  size={iconSize}
+                />
               </button>
             )}
             {onNext && (
@@ -353,7 +377,11 @@ export const SearchInput: React.FC<SearchInputProps> = memo(
                 className={actionButtonClass}
                 title={t("tooltips.nextMatch")}
               >
-                <HugeiconsIcon icon={ArrowDown} size={iconSize} />
+                <HugeiconsIcon
+                  icon={ArrowDown}
+                  data-icon="arrow-down"
+                  size={iconSize}
+                />
               </button>
             )}
           </div>
@@ -365,7 +393,7 @@ export const SearchInput: React.FC<SearchInputProps> = memo(
             className={actionButtonClass}
             title={t("tooltips.closeEsc")}
           >
-            <HugeiconsIcon icon={X} size={iconSize} />
+            <HugeiconsIcon icon={X} data-icon="x" size={iconSize} />
           </button>
         )}
       </div>

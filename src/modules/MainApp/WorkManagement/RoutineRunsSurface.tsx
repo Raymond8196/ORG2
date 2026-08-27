@@ -204,6 +204,7 @@ const RoutineRunsSurface: React.FC = () => {
           <div className="flex items-center gap-1.5 text-[13px] font-medium text-text-1">
             <HugeiconsIcon
               icon={PlayCircle}
+              data-icon="play-circle"
               size={14}
               strokeWidth={1.75}
               className="text-text-3"
@@ -236,7 +237,12 @@ const RoutineRunsSurface: React.FC = () => {
             size="small"
             iconOnly
             icon={
-              <HugeiconsIcon icon={RefreshCw} size={13} strokeWidth={1.75} />
+              <HugeiconsIcon
+                icon={RefreshCw}
+                data-icon="refresh-cw"
+                size={13}
+                strokeWidth={1.75}
+              />
             }
             onClick={load}
             data-testid="routine-runs-refresh"

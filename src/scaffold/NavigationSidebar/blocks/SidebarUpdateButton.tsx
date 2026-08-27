@@ -41,7 +41,7 @@ const SidebarUpdateButton: React.FC = React.memo(() => {
         size="small"
         shape="circle"
         iconOnly
-        icon={<HugeiconsIcon icon={Download} size={14} />}
+        icon={<HugeiconsIcon icon={Download} data-icon="download" size={14} />}
         loading={installing}
         onClick={handleInstallUpdate}
       />

@@ -88,7 +88,7 @@ const ModelChipPicker: React.FC<ModelChipPickerProps> = ({
               className="text-text-3 hover:text-text-1"
               title={t("common:actions.remove")}
             >
-              <HugeiconsIcon icon={X} size={12} />
+              <HugeiconsIcon icon={X} data-icon="x" size={12} />
             </button>
           </span>
         ))}

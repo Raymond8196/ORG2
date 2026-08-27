@@ -108,7 +108,7 @@ export const SpotlightInput: React.FC<SpotlightInputProps> = ({
             aria-label={t("common:actions.clearSearch")}
             onClick={handleResetSearch}
           >
-            <HugeiconsIcon icon={X} size={14} />
+            <HugeiconsIcon icon={X} data-icon="x" size={14} />
           </button>
         ) : null}
       </div>

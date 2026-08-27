@@ -414,9 +414,17 @@ const ApiCallRow: React.FC<ApiCallRowProps> = ({
         onClick={onToggle}
       >
         {expanded ? (
-          <HugeiconsIcon icon={ChevronDown} size={13} />
+          <HugeiconsIcon
+            icon={ChevronDown}
+            data-icon="chevron-down"
+            size={13}
+          />
         ) : (
-          <HugeiconsIcon icon={ChevronRight} size={13} />
+          <HugeiconsIcon
+            icon={ChevronRight}
+            data-icon="chevron-right"
+            size={13}
+          />
         )}
       </button>
       <span className="truncate px-2 text-[11px] text-text-2">
@@ -479,6 +487,7 @@ const SortHeader: React.FC<SortHeaderProps> = ({
     <span className="truncate">{label}</span>
     <HugeiconsIcon
       icon={ChevronsUpDown}
+      data-icon="chevrons-up-down"
       size={11}
       className={sort?.key === column ? "text-primary-6" : "opacity-50"}
       aria-hidden

@@ -47,6 +47,7 @@ const TodoStatusIcon: React.FC<{ status: string; blocked?: boolean }> = ({
       <div className="flex h-3 w-3 shrink-0 items-center justify-center rounded-full bg-green-600/80">
         <HugeiconsIcon
           icon={Check}
+          data-icon="check"
           size={7}
           strokeWidth={3}
           className="text-white"
@@ -58,6 +59,7 @@ const TodoStatusIcon: React.FC<{ status: string; blocked?: boolean }> = ({
     return (
       <HugeiconsIcon
         icon={ChevronRight}
+        data-icon="chevron-right"
         size={12}
         strokeWidth={2}
         className="shrink-0 text-primary-6"
@@ -69,6 +71,7 @@ const TodoStatusIcon: React.FC<{ status: string; blocked?: boolean }> = ({
       <div className="flex h-3 w-3 shrink-0 items-center justify-center rounded-full border-[1.5px] border-dashed border-text-3/40">
         <HugeiconsIcon
           icon={Lock}
+          data-icon="lock"
           size={5}
           strokeWidth={2.5}
           className="text-text-3/60"
@@ -113,6 +116,7 @@ const SubagentPinnedPreviewPopoverComponent: React.FC<
       <div className="flex items-center gap-1.5 border-b border-border-2/60 px-3 py-1.5">
         <HugeiconsIcon
           icon={ListTodo}
+          data-icon="list-todo"
           size={12}
           strokeWidth={1.75}
           className="text-text-2"

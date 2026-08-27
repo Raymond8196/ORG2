@@ -98,6 +98,7 @@ const AddActionsDropdown: React.FC<AddActionsDropdownProps> = ({
     >
       <HugeiconsIcon
         icon={Plus}
+        data-icon="plus"
         size={INPUT_AREA_BUTTONS.iconSize}
         strokeWidth={1.75}
         className="text-text-1"
@@ -130,6 +131,7 @@ const AddActionsDropdown: React.FC<AddActionsDropdownProps> = ({
             >
               <HugeiconsIcon
                 icon={AtSign}
+                data-icon="at-sign"
                 size={DROPDOWN_ITEM.iconSize}
                 strokeWidth={1.75}
                 className="text-text-2"
@@ -153,6 +155,7 @@ const AddActionsDropdown: React.FC<AddActionsDropdownProps> = ({
             >
               <HugeiconsIcon
                 icon={Paperclip}
+                data-icon="paperclip"
                 size={DROPDOWN_ITEM.iconSize}
                 strokeWidth={1.75}
                 className="text-text-2"

@@ -56,6 +56,7 @@ export function PlusMenuContent({
       icon: (
         <HugeiconsIcon
           icon={LayoutGrid}
+          data-icon="layout-grid"
           size={HEADER_ICON_SIZE.sm}
           strokeWidth={1.8}
         />
@@ -69,6 +70,7 @@ export function PlusMenuContent({
       icon: (
         <HugeiconsIcon
           icon={Columns3}
+          data-icon="columns-3"
           size={HEADER_ICON_SIZE.sm}
           strokeWidth={1.8}
         />
@@ -81,6 +83,7 @@ export function PlusMenuContent({
       icon: (
         <HugeiconsIcon
           icon={Gauge}
+          data-icon="gauge"
           size={HEADER_ICON_SIZE.sm}
           strokeWidth={1.8}
         />
@@ -93,6 +96,7 @@ export function PlusMenuContent({
       icon: (
         <HugeiconsIcon
           icon={Box}
+          data-icon="box"
           size={HEADER_ICON_SIZE.sm}
           strokeWidth={1.8}
         />
@@ -105,6 +109,7 @@ export function PlusMenuContent({
       icon: (
         <HugeiconsIcon
           icon={BriefcaseBusiness}
+          data-icon="briefcase-business"
           size={HEADER_ICON_SIZE.sm}
           strokeWidth={1.8}
         />
@@ -117,6 +122,7 @@ export function PlusMenuContent({
       icon: (
         <HugeiconsIcon
           icon={PictureInPicture2}
+          data-icon="picture-in-picture-2"
           size={HEADER_ICON_SIZE.sm}
           strokeWidth={1.8}
         />
@@ -214,6 +220,7 @@ export function ChatPanelPlusMenu({
         >
           <HugeiconsIcon
             icon={Plus}
+            data-icon="plus"
             size={HEADER_ICON_SIZE.md}
             strokeWidth={2}
           />

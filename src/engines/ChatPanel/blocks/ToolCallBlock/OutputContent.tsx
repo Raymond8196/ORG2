@@ -52,13 +52,34 @@ function ProjectToolChangeIcon({
   change: ProjectToolListRow["change"];
 }) {
   if (change === "added") {
-    return <HugeiconsIcon icon={Plus} size={13} className="text-success-6" />;
+    return (
+      <HugeiconsIcon
+        icon={Plus}
+        data-icon="plus"
+        size={13}
+        className="text-success-6"
+      />
+    );
   }
   if (change === "updated") {
-    return <HugeiconsIcon icon={Pencil} size={13} className="text-primary-6" />;
+    return (
+      <HugeiconsIcon
+        icon={Pencil}
+        data-icon="pencil"
+        size={13}
+        className="text-primary-6"
+      />
+    );
   }
   if (change === "deleted") {
-    return <HugeiconsIcon icon={Trash2} size={13} className="text-danger-6" />;
+    return (
+      <HugeiconsIcon
+        icon={Trash2}
+        data-icon="trash-2"
+        size={13}
+        className="text-danger-6"
+      />
+    );
   }
   return null;
 }
@@ -66,7 +87,12 @@ function ProjectToolChangeIcon({
 /** Dropdown supplies the centred message shell, so this is just its content. */
 const SearchFilesEmpty: React.FC = () => (
   <>
-    <HugeiconsIcon icon={SearchX} size={13} className="text-text-4" />
+    <HugeiconsIcon
+      icon={SearchX}
+      data-icon="search-x"
+      size={13}
+      className="text-text-4"
+    />
     <span className="chat-block-content text-text-3">No files found.</span>
   </>
 );
@@ -104,12 +130,14 @@ const ListWorkspacesOutput: React.FC<{ workspaces: WorkspaceEntry[] }> = ({
           workspace.kind === "git" ? (
             <HugeiconsIcon
               icon={Code2}
+              data-icon="code-2"
               size={14}
               className="shrink-0 text-primary-6"
             />
           ) : (
             <HugeiconsIcon
               icon={Folder}
+              data-icon="folder"
               size={14}
               className="shrink-0 text-primary-6"
             />
@@ -167,12 +195,14 @@ const JobListingOutput: React.FC<{ jobs: BackgroundJobRow[] }> = ({ jobs }) => (
         job.jobKind === "shell" ? (
           <HugeiconsIcon
             icon={Terminal}
+            data-icon="terminal"
             size={14}
             className="shrink-0 text-primary-6"
           />
         ) : (
           <HugeiconsIcon
             icon={Bot}
+            data-icon="bot"
             size={14}
             className="shrink-0 text-primary-6"
           />
@@ -181,11 +211,17 @@ const JobListingOutput: React.FC<{ jobs: BackgroundJobRow[] }> = ({ jobs }) => (
         job.status === "succeeded" ? (
           <HugeiconsIcon
             icon={CheckCircle}
+            data-icon="check-circle"
             size={12}
             className="text-green-500"
           />
         ) : job.status === "failed" ? (
-          <HugeiconsIcon icon={XCircle} size={12} className="text-red-400" />
+          <HugeiconsIcon
+            icon={XCircle}
+            data-icon="xcircle"
+            size={12}
+            className="text-red-400"
+          />
         ) : null;
       const primary = statusGlyph ? (
         <span className="inline-flex items-center gap-1">
@@ -225,6 +261,7 @@ const ProjectToolListOutput: React.FC<{ rows: ProjectToolListRow[] }> = ({
           leading={
             <HugeiconsIcon
               icon={LayoutList}
+              data-icon="layout-list"
               size={14}
               className="shrink-0 text-primary-6"
             />
@@ -250,12 +287,14 @@ const LspStatusOutput: React.FC<{ data: LspStatusOutputData }> = ({ data }) => (
         running ? (
           <HugeiconsIcon
             icon={CheckCircle}
+            data-icon="check-circle"
             size={14}
             className="shrink-0 text-success-6"
           />
         ) : (
           <HugeiconsIcon
             icon={Circle}
+            data-icon="circle"
             size={14}
             className="shrink-0 text-text-4"
           />
@@ -310,7 +349,12 @@ const SearchFilesOutput: React.FC<{ files: string[]; repoPath?: string }> = ({
 
 const SearchNoResultOutput: React.FC<{ message: string }> = ({ message }) => (
   <div className="flex items-center justify-center gap-2 px-3 py-3">
-    <HugeiconsIcon icon={SearchX} size={13} className="text-text-4" />
+    <HugeiconsIcon
+      icon={SearchX}
+      data-icon="search-x"
+      size={13}
+      className="text-text-4"
+    />
     <span className="chat-block-content text-text-3">{message}</span>
   </div>
 );

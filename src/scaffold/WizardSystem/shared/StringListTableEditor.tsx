@@ -78,6 +78,7 @@ export const StringListTableEditor: React.FC<StringListTableEditorProps> = ({
             icon={
               <HugeiconsIcon
                 icon={Trash2}
+                data-icon="trash-2"
                 size={14}
                 className="text-danger-6"
               />

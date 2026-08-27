@@ -91,7 +91,7 @@ export function FindSkillsResults({
           <Button
             variant="secondary"
             size="small"
-            icon={<HugeiconsIcon icon={Eye} size={14} />}
+            icon={<HugeiconsIcon icon={Eye} data-icon="eye" size={14} />}
             loading={previewingSlug === result.slug}
             disabled={previewingSlug !== null && previewingSlug !== result.slug}
             onClick={(event) => {

@@ -271,7 +271,7 @@ const Tag: React.FC<TagProps> = ({
           onClick={handleClose}
           onKeyDown={createKeyboardActivationHandler(handleCloseKeyboard)}
         >
-          <HugeiconsIcon icon={X} size={14} />
+          <HugeiconsIcon icon={X} data-icon="x" size={14} />
         </span>
       )}
     </span>

@@ -263,7 +263,12 @@ const SplitButton = forwardRef<HTMLButtonElement, SplitButtonProps>(
             }}
             onClick={onMenuButtonClick}
           >
-            <HugeiconsIcon icon={ChevronDown} size={12} aria-hidden />
+            <HugeiconsIcon
+              icon={ChevronDown}
+              data-icon="chevron-down"
+              size={12}
+              aria-hidden
+            />
           </button>
         </div>
 

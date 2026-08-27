@@ -73,7 +73,8 @@ export function useProjectsGrouping({
       return TARGET_DATE_GROUPS.map((group) => ({
         key: group,
         label: t(`projects.targetDateGroups.${group}`),
-        icon: React.createElement(CalendarClock, {
+        icon: React.createElement(HugeiconsIcon, {
+          icon: CalendarClock,
           size: 14,
           strokeWidth: 1.75,
         }),

@@ -42,7 +42,11 @@ import ChatItemWrap from "./ChatItemWrap";
 
 const GROUP_CHAT_CONTINUATION_WINDOW_MS = 60_000;
 const INBOX_TRANSCRIPT_ICON = (
-  <HugeiconsIcon icon={MailOpen} size={SESSION_UI_TOKENS.ICON.SIZE_SM} />
+  <HugeiconsIcon
+    icon={MailOpen}
+    data-icon="mail-open"
+    size={SESSION_UI_TOKENS.ICON.SIZE_SM}
+  />
 );
 
 // ============================================

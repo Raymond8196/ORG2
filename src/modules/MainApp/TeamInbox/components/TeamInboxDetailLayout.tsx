@@ -70,7 +70,13 @@ const TeamInboxDetailLayout: React.FC<TeamInboxDetailLayoutProps> = ({
           size="small"
           iconOnly
           icon={
-            <HugeiconsIcon icon={Check} size={14} strokeWidth={2} aria-hidden />
+            <HugeiconsIcon
+              icon={Check}
+              data-icon="check"
+              size={14}
+              strokeWidth={2}
+              aria-hidden
+            />
           }
           aria-label={markReadLabel}
           onClick={onMarkRead}
@@ -85,7 +91,13 @@ const TeamInboxDetailLayout: React.FC<TeamInboxDetailLayoutProps> = ({
         size="small"
         iconOnly
         icon={
-          <HugeiconsIcon icon={Mail} size={14} strokeWidth={2} aria-hidden />
+          <HugeiconsIcon
+            icon={Mail}
+            data-icon="mail"
+            size={14}
+            strokeWidth={2}
+            aria-hidden
+          />
         }
         aria-label={markUnreadLabel}
         onClick={onMarkUnread}

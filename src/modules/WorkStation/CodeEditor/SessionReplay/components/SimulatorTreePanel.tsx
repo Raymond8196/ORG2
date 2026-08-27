@@ -145,6 +145,7 @@ const SimulatorTreePanel: React.FC<SimulatorTreePanelProps> = ({
         <div className={STICKY_ROW.chevronBox}>
           <HugeiconsIcon
             icon={ChevronDown}
+            data-icon="chevron-down"
             size={CHEVRON_SIZE}
             className={STICKY_ROW.chevronIcon}
           />

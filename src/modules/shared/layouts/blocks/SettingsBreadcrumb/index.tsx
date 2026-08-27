@@ -144,6 +144,7 @@ function isSettingsSelectorItemActive(
 const Separator: React.FC = () => (
   <HugeiconsIcon
     icon={ChevronRight}
+    data-icon="chevron-right"
     size={DROPDOWN_ITEM.iconSize}
     strokeWidth={1.75}
     className="flex-shrink-0 text-fill-4"
@@ -292,6 +293,7 @@ const SettingsBreadcrumb: React.FC<SettingsBreadcrumbProps> = ({
             <div className={DROPDOWN_CLASSES.searchContainer}>
               <HugeiconsIcon
                 icon={Search}
+                data-icon="search"
                 size={DROPDOWN_SEARCH.iconSize}
                 className="shrink-0 text-text-3"
               />
@@ -369,6 +371,7 @@ const SettingsBreadcrumb: React.FC<SettingsBreadcrumbProps> = ({
                           {isActive && (
                             <HugeiconsIcon
                               icon={Check}
+                              data-icon="check"
                               size={DROPDOWN_ITEM.iconSize}
                               className="shrink-0 text-primary-6"
                             />

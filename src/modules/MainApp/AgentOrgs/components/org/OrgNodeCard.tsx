@@ -66,6 +66,7 @@ const OrgNodeCard: React.FC<OrgNodeCardProps> = ({
       <div className="flex items-center gap-2">
         <HugeiconsIcon
           icon={Users}
+          data-icon="users"
           size={16}
           className="shrink-0 text-primary-6"
         />
@@ -95,7 +96,12 @@ const OrgNodeCard: React.FC<OrgNodeCardProps> = ({
               }}
               title={t("org.addChild")}
             >
-              <HugeiconsIcon icon={Plus} size={12} className="text-text-2" />
+              <HugeiconsIcon
+                icon={Plus}
+                data-icon="plus"
+                size={12}
+                className="text-text-2"
+              />
             </button>
           )}
           <button
@@ -106,7 +112,12 @@ const OrgNodeCard: React.FC<OrgNodeCardProps> = ({
             }}
             title={t("common:actions.edit")}
           >
-            <HugeiconsIcon icon={Pencil} size={12} className="text-text-2" />
+            <HugeiconsIcon
+              icon={Pencil}
+              data-icon="pencil"
+              size={12}
+              className="text-text-2"
+            />
           </button>
           {!isRoot && (
             <button
@@ -119,6 +130,7 @@ const OrgNodeCard: React.FC<OrgNodeCardProps> = ({
             >
               <HugeiconsIcon
                 icon={Trash2}
+                data-icon="trash-2"
                 size={12}
                 className="text-danger-6"
               />

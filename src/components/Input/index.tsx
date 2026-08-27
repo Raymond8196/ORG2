@@ -330,7 +330,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               onClick={handleClear}
               tabIndex={-1}
             >
-              <HugeiconsIcon icon={X} size={16} />
+              <HugeiconsIcon icon={X} data-icon="x" size={16} />
             </button>
           )}
 
@@ -342,9 +342,9 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               tabIndex={-1}
             >
               {showPassword ? (
-                <HugeiconsIcon icon={EyeOff} size={16} />
+                <HugeiconsIcon icon={EyeOff} data-icon="eye-off" size={16} />
               ) : (
-                <HugeiconsIcon icon={Eye} size={16} />
+                <HugeiconsIcon icon={Eye} data-icon="eye" size={16} />
               )}
             </button>
           )}

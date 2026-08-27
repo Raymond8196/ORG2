@@ -39,7 +39,13 @@ const TerminalInfoButtonComponent: React.FC<TerminalInfoButtonProps> = ({
         size="small"
         iconOnly
         title={t("tooltips.showTerminalProcessInfo")}
-        icon={<HugeiconsIcon icon={Info} size={HEADER_ICON_SIZE.md} />}
+        icon={
+          <HugeiconsIcon
+            icon={Info}
+            data-icon="info"
+            size={HEADER_ICON_SIZE.md}
+          />
+        }
       />
 
       {showTerminalInfo ? (

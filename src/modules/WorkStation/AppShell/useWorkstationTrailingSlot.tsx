@@ -95,9 +95,19 @@ export function useWorkstationTrailingSlot({
         onClick={handleToggleChatPanel}
       >
         {isChatPanelVisible ? (
-          <HugeiconsIcon icon={Maximize2} size={14} strokeWidth={2} />
+          <HugeiconsIcon
+            icon={Maximize2}
+            data-icon="maximize-2"
+            size={14}
+            strokeWidth={2}
+          />
         ) : (
-          <HugeiconsIcon icon={MessageCircle} size={14} strokeWidth={2} />
+          <HugeiconsIcon
+            icon={MessageCircle}
+            data-icon="message-circle"
+            size={14}
+            strokeWidth={2}
+          />
         )}
       </TabBarTrailingIconButton>
     );
@@ -113,12 +123,14 @@ export function useWorkstationTrailingSlot({
           {workStationChatPosition === "left" ? (
             <HugeiconsIcon
               icon={PanelRight}
+              data-icon="panel-right"
               size={HEADER_ICON_SIZE.md}
               strokeWidth={2}
             />
           ) : (
             <HugeiconsIcon
               icon={X}
+              data-icon="x"
               size={HEADER_ICON_SIZE.md}
               strokeWidth={1.75}
             />
@@ -133,7 +145,12 @@ export function useWorkstationTrailingSlot({
           shortcutId="maximize_work_station"
           onClick={handleToggleChatPanel}
         >
-          <HugeiconsIcon icon={Minimize2} size={14} strokeWidth={2} />
+          <HugeiconsIcon
+            icon={Minimize2}
+            data-icon="minimize-2"
+            size={14}
+            strokeWidth={2}
+          />
         </TabBarTrailingIconButton>
       );
 
@@ -149,7 +166,7 @@ export function useWorkstationTrailingSlot({
         shortcutId="maximize_chat"
         onClick={handleToggleChatPanelMaximized}
       >
-        <HugeiconsIcon icon={X} size={14} strokeWidth={2} />
+        <HugeiconsIcon icon={X} data-icon="x" size={14} strokeWidth={2} />
       </TabBarTrailingIconButton>
     ) : null;
 

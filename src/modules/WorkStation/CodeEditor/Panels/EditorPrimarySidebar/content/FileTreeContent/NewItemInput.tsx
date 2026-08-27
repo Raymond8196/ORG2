@@ -127,6 +127,7 @@ export function NewItemInput({
         <div className="flex h-4 w-4 flex-shrink-0 items-center justify-center">
           <HugeiconsIcon
             icon={ChevronDown}
+            data-icon="chevron-down"
             size={CHEVRON_SIZE}
             className="text-text-3"
           />

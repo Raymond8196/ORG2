@@ -147,7 +147,11 @@ const FeedMessage: React.FC<FeedMessageProps> = ({
                       window.open(message.metadata?.actionUrl, "_blank")
                     }
                     icon={
-                      <HugeiconsIcon icon={SquareArrowOutUpRight} size={12} />
+                      <HugeiconsIcon
+                        icon={SquareArrowOutUpRight}
+                        data-icon="square-arrow-out-up-right"
+                        size={12}
+                      />
                     }
                   >
                     View Offer
@@ -185,6 +189,7 @@ const CommitFilesBlock: React.FC<{ messageId: string }> = ({ messageId }) => {
       <div className="mt-2 flex items-center gap-2 text-[13px] text-text-3">
         <HugeiconsIcon
           icon={Loader2}
+          data-icon="loader-2"
           size={SPINNER_TOKENS.default + 2}
           className="animate-spin text-text-3"
         />

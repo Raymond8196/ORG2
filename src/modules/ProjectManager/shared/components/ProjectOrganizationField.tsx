@@ -41,7 +41,11 @@ const ProjectOrganizationField: FC<ProjectOrganizationFieldProps> = ({
 }) => {
   const [open, setOpen] = useState(false);
   const networkIcon = (
-    <HugeiconsIcon icon={Network} size={DROPDOWN_ITEM.iconSize} />
+    <HugeiconsIcon
+      icon={Network}
+      data-icon="network"
+      size={DROPDOWN_ITEM.iconSize}
+    />
   );
 
   useEffect(() => {

@@ -187,6 +187,7 @@ export const SourcePanel: React.FC<SourcePanelProps> = memo(
               <div className="flex items-center gap-1.5 rounded px-3 py-1.5 text-[11px]">
                 <HugeiconsIcon
                   icon={Layers}
+                  data-icon="layers"
                   size={12}
                   className="shrink-0 text-primary-6"
                 />
@@ -202,6 +203,7 @@ export const SourcePanel: React.FC<SourcePanelProps> = memo(
             <span className="mb-3 flex items-center gap-2 text-[11px] text-text-3">
               <HugeiconsIcon
                 icon={Loader2}
+                data-icon="loader-2"
                 size={SPINNER_TOKENS.small}
                 className="animate-spin"
               />
@@ -222,6 +224,7 @@ export const SourcePanel: React.FC<SourcePanelProps> = memo(
               >
                 <HugeiconsIcon
                   icon={FileCode}
+                  data-icon="file-code"
                   size={14}
                   className="mt-0.5 shrink-0 text-success-6"
                 />
@@ -241,6 +244,7 @@ export const SourcePanel: React.FC<SourcePanelProps> = memo(
                 </div>
                 <HugeiconsIcon
                   icon={SquareArrowOutUpRight}
+                  data-icon="square-arrow-out-up-right"
                   size={10}
                   className="mt-1 shrink-0 text-text-3"
                 />
@@ -262,9 +266,17 @@ export const SourcePanel: React.FC<SourcePanelProps> = memo(
                     title={showAllUsages ? "Show less" : "Show all"}
                   >
                     {showAllUsages ? (
-                      <HugeiconsIcon icon={ChevronDown} size={12} />
+                      <HugeiconsIcon
+                        icon={ChevronDown}
+                        data-icon="chevron-down"
+                        size={12}
+                      />
                     ) : (
-                      <HugeiconsIcon icon={ChevronRight} size={12} />
+                      <HugeiconsIcon
+                        icon={ChevronRight}
+                        data-icon="chevron-right"
+                        size={12}
+                      />
                     )}
                   </button>
                 )
@@ -280,6 +292,7 @@ export const SourcePanel: React.FC<SourcePanelProps> = memo(
                     >
                       <HugeiconsIcon
                         icon={FileCode}
+                        data-icon="file-code"
                         size={14}
                         className="mt-0.5 shrink-0 text-warning-6"
                       />
@@ -299,6 +312,7 @@ export const SourcePanel: React.FC<SourcePanelProps> = memo(
                       </div>
                       <HugeiconsIcon
                         icon={SquareArrowOutUpRight}
+                        data-icon="square-arrow-out-up-right"
                         size={10}
                         className="mt-1 shrink-0 text-text-3"
                       />
@@ -331,6 +345,7 @@ export const SourcePanel: React.FC<SourcePanelProps> = memo(
                       icon={
                         <HugeiconsIcon
                           icon={Search}
+                          data-icon="search"
                           size={12}
                           className={isSearching ? "animate-pulse" : ""}
                         />
@@ -364,6 +379,7 @@ export const SourcePanel: React.FC<SourcePanelProps> = memo(
                         >
                           <HugeiconsIcon
                             icon={FileCode}
+                            data-icon="file-code"
                             size={12}
                             className="shrink-0 text-warning-6"
                           />
@@ -382,6 +398,7 @@ export const SourcePanel: React.FC<SourcePanelProps> = memo(
                           </div>
                           <HugeiconsIcon
                             icon={SquareArrowOutUpRight}
+                            data-icon="square-arrow-out-up-right"
                             size={10}
                             className="shrink-0 text-text-3"
                           />

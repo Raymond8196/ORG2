@@ -271,9 +271,17 @@ const JsonNode: React.FC<JsonNodeProps> = memo(
           {isExpandable ? (
             <span className="json-node__toggle">
               {expanded ? (
-                <HugeiconsIcon icon={ChevronDown} size={14} />
+                <HugeiconsIcon
+                  icon={ChevronDown}
+                  data-icon="chevron-down"
+                  size={14}
+                />
               ) : (
-                <HugeiconsIcon icon={ChevronRight} size={14} />
+                <HugeiconsIcon
+                  icon={ChevronRight}
+                  data-icon="chevron-right"
+                  size={14}
+                />
               )}
             </span>
           ) : (

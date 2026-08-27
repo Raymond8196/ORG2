@@ -305,6 +305,7 @@ export function ChatPanelTabBar(): React.ReactNode {
                   <div className={TAB_PILL_DRAG_OVERLAY_CLASS}>
                     <HugeiconsIcon
                       icon={MessageSquarePlus}
+                      data-icon="message-square-plus"
                       size={16}
                       strokeWidth={1.75}
                     />

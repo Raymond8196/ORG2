@@ -102,6 +102,7 @@ export function useCommunicationAgentIdentity(
         agentIcon: (
           <HugeiconsIcon
             icon={Bot}
+            data-icon="bot"
             size={COMMUNICATION_AVATAR_ICON_SIZE}
             className="text-primary-6"
           />

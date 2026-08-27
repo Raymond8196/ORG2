@@ -258,6 +258,7 @@ function SettingsTableToolbar({
       icon={
         <HugeiconsIcon
           icon={Filter}
+          data-icon="filter"
           size={14}
           className={filterConfig.active ? "text-primary-6" : ""}
         />
@@ -332,6 +333,7 @@ function SettingsTableToolbar({
                 prefix={
                   <HugeiconsIcon
                     icon={Search}
+                    data-icon="search"
                     size={14}
                     className="text-text-3"
                     aria-hidden
@@ -480,6 +482,7 @@ export default function SettingsTable<RowData>({
                 <span className="flex cursor-help items-center p-1">
                   <HugeiconsIcon
                     icon={Info}
+                    data-icon="info"
                     size={14}
                     className="text-text-3"
                   />

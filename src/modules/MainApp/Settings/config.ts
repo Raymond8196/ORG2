@@ -87,7 +87,7 @@ export const SECTION_TAB_META: Partial<
 export const SUBPAGE_BUTTON_PROPS = {
   variant: "secondary" as const,
   size: "default" as const,
-  icon: createElement(ChevronRight, { size: 14 }),
+  icon: createElement(HugeiconsIcon, { icon: ChevronRight, size: 14 }),
   iconPosition: "right" as const,
 };
 
@@ -95,6 +95,6 @@ export const SUBPAGE_BUTTON_PROPS = {
 export const NAV_BUTTON_PROPS = {
   variant: "secondary" as const,
   size: "default" as const,
-  icon: createElement(SquareArrowOutUpRight, { size: 14 }),
+  icon: createElement(HugeiconsIcon, { icon: SquareArrowOutUpRight, size: 14 }),
   iconPosition: "right" as const,
 };

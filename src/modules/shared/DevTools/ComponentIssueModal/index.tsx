@@ -225,7 +225,7 @@ const ModalComponentIssue: React.FC<ComponentIssueModalExtendedProps> = ({
           <div className="component-issue-modal-header-top">
             <div className="component-issue-modal-title">Component Issue</div>
             <button className="component-issue-close-btn" onClick={onClose}>
-              <HugeiconsIcon icon={X} size={16} />
+              <HugeiconsIcon icon={X} data-icon="x" size={16} />
             </button>
           </div>
           <div className="component-issue-search-wrapper">
@@ -292,7 +292,7 @@ const ModalComponentIssue: React.FC<ComponentIssueModalExtendedProps> = ({
           ]}
           primaryAction={{
             label: "Copy JSON",
-            icon: <HugeiconsIcon icon={Copy} size={16} />,
+            icon: <HugeiconsIcon icon={Copy} data-icon="copy" size={16} />,
             onClick: handleCopy,
             disabled: !payload,
           }}

@@ -132,6 +132,7 @@ export const FollowModeDropdown: React.FC = () => {
               >
                 <HugeiconsIcon
                   icon={InfinityIcon}
+                  data-icon="infinity-icon"
                   size={DROPDOWN_ITEM.iconSize}
                   strokeWidth={2}
                 />

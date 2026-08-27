@@ -213,7 +213,12 @@ const SessionContinueCliHeaderExtras: React.FC<
           aria-label={continueLabel}
           data-testid="session-continue-cli-button"
           icon={
-            <HugeiconsIcon icon={TerminalSquare} size={14} strokeWidth={2} />
+            <HugeiconsIcon
+              icon={TerminalSquare}
+              data-icon="terminal-square"
+              size={14}
+              strokeWidth={2}
+            />
           }
         />
       </span>

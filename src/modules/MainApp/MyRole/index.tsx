@@ -542,7 +542,13 @@ const MyRolePage: React.FC = () => {
                           variant="tertiary"
                           size="small"
                           iconOnly
-                          icon={<HugeiconsIcon icon={Trash2} size={14} />}
+                          icon={
+                            <HugeiconsIcon
+                              icon={Trash2}
+                              data-icon="trash-2"
+                              size={14}
+                            />
+                          }
                           onClick={() => void handleDeleteRole(role)}
                           aria-label={t("myRole.deleteRoleOk", {
                             defaultValue: "Delete",
@@ -587,7 +593,7 @@ const MyRolePage: React.FC = () => {
               <Button
                 variant="secondary"
                 size="default"
-                icon={<HugeiconsIcon icon={Plus} size={14} />}
+                icon={<HugeiconsIcon icon={Plus} data-icon="plus" size={14} />}
                 onClick={handleAddRole}
               >
                 {t("myRole.addRole", { defaultValue: "Add custom role" })}

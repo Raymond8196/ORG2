@@ -44,10 +44,24 @@ const IntegrationIcon: React.FC<IntegrationIconProps> = memo(
   ({ type, size = 16, className = "" }) => {
     // Lucide fallbacks for non-brand types
     if (type === "email") {
-      return <HugeiconsIcon icon={Mail} size={size} className={className} />;
+      return (
+        <HugeiconsIcon
+          icon={Mail}
+          data-icon="mail"
+          size={size}
+          className={className}
+        />
+      );
     }
     if (type === "nodes") {
-      return <HugeiconsIcon icon={Network} size={size} className={className} />;
+      return (
+        <HugeiconsIcon
+          icon={Network}
+          data-icon="network"
+          size={size}
+          className={className}
+        />
+      );
     }
 
     const Icon = INTEGRATION_ICON_MAP[type as BrandIntegrationType];
@@ -57,6 +71,7 @@ const IntegrationIcon: React.FC<IntegrationIconProps> = memo(
       return (
         <HugeiconsIcon
           icon={Network}
+          data-icon="network"
           size={size}
           className={`text-text-2 ${className}`}
         />

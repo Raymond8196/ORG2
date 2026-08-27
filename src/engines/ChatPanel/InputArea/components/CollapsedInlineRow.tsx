@@ -105,7 +105,14 @@ const CollapsedInlineRow: React.FC<CollapsedInlineRowProps> = memo(
                 appearance="outline"
                 size="small"
                 shape="round"
-                icon={<HugeiconsIcon icon={Plus} size={13} strokeWidth={2} />}
+                icon={
+                  <HugeiconsIcon
+                    icon={Plus}
+                    data-icon="plus"
+                    size={13}
+                    strokeWidth={2}
+                  />
+                }
                 onClick={scrollNav!.onAddToConversation}
                 aria-label={scrollNav!.addToConversationTooltipLabel}
                 data-testid="browser-add-to-conversation-pill"
@@ -121,6 +128,7 @@ const CollapsedInlineRow: React.FC<CollapsedInlineRowProps> = memo(
                 icon={
                   <HugeiconsIcon
                     icon={BrushCleaning}
+                    data-icon="brush-cleaning"
                     size={13}
                     strokeWidth={2}
                   />
@@ -191,7 +199,14 @@ const CollapsedInlineRow: React.FC<CollapsedInlineRowProps> = memo(
             appearance="outline"
             size="small"
             shape="round"
-            icon={<HugeiconsIcon icon={Layout} size={13} strokeWidth={2} />}
+            icon={
+              <HugeiconsIcon
+                icon={Layout}
+                data-icon="layout"
+                size={13}
+                strokeWidth={2}
+              />
+            }
             onClick={canvasPreview.onOpen}
             aria-label={canvasPreview.label}
             className={PILL_CONTROL_IDLE_SURFACE_CLASS}

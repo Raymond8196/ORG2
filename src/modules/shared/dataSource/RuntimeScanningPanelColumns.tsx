@@ -190,7 +190,13 @@ export function buildRuntimeScanningPanelColumns({
                   menuSegmentWidth={22}
                   loading={row.rescanning}
                   loadingSpinIcon
-                  icon={<HugeiconsIcon icon={RefreshCw} size={14} />}
+                  icon={
+                    <HugeiconsIcon
+                      icon={RefreshCw}
+                      data-icon="refresh-cw"
+                      size={14}
+                    />
+                  }
                   aria-label={t("rescan")}
                   title={t("rescan")}
                   onClick={() => void handleRescan(row, false)}
@@ -245,7 +251,13 @@ export function buildRuntimeScanningPanelColumns({
                   size="small"
                   iconOnly
                   loading={row.rescanning}
-                  icon={<HugeiconsIcon icon={RefreshCw} size={14} />}
+                  icon={
+                    <HugeiconsIcon
+                      icon={RefreshCw}
+                      data-icon="refresh-cw"
+                      size={14}
+                    />
+                  }
                   title={t("rescan")}
                   onClick={() => void handleRescan(row)}
                 />

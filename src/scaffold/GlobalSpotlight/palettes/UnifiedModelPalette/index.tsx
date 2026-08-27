@@ -363,7 +363,12 @@ export const UnifiedModelPalette: React.FC<UnifiedModelPaletteProps> = ({
       className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-text-3 transition-colors hover:bg-fill-2 hover:text-text-1 disabled:opacity-60"
       data-testid="model-spotlight-refresh-button"
     >
-      <HugeiconsIcon icon={RefreshCw} size={14} className={refreshSpinClass} />
+      <HugeiconsIcon
+        icon={RefreshCw}
+        data-icon="refresh-cw"
+        size={14}
+        className={refreshSpinClass}
+      />
     </button>
   );
 

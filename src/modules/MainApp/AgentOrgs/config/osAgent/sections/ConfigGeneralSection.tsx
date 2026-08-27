@@ -88,7 +88,13 @@ const ConfigGeneralSection: React.FC<ConfigGeneralSectionProps> = ({
           <div className={SECTION_ACTION_GAP_CLASSES}>
             <span className={SECTION_PATH_TEXT_CLASSES}>{workspace}</span>
             <Button
-              icon={<HugeiconsIcon icon={FolderOpen} size={14} />}
+              icon={
+                <HugeiconsIcon
+                  icon={FolderOpen}
+                  data-icon="folder-open"
+                  size={14}
+                />
+              }
               iconOnly
               onClick={handleRevealWorkspace}
               title={t("storage.reveal")}

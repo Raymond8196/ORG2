@@ -21,7 +21,7 @@ export function CustomBaseUrlInfoIcon() {
       mouseEnterDelay={200}
     >
       <span className="inline-flex shrink-0 cursor-help text-text-3 hover:text-text-2">
-        <HugeiconsIcon icon={Info} size={14} />
+        <HugeiconsIcon icon={Info} data-icon="info" size={14} />
       </span>
     </Tooltip>
   );

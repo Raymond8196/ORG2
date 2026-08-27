@@ -70,6 +70,7 @@ export const MessageFooterCopyButton: React.FC<MessageFooterCopyButtonProps> =
       >
         <HugeiconsIcon
           icon={Copy}
+          data-icon="copy"
           size={13}
           strokeWidth={1.75}
           aria-hidden="true"

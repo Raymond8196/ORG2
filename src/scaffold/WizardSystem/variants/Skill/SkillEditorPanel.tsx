@@ -345,6 +345,7 @@ const SkillEditorPanel: React.FC<SkillEditorPanelProps> = ({
                   {exceedsTokenBudget && (
                     <HugeiconsIcon
                       icon={AlertTriangle}
+                      data-icon="alert-triangle"
                       size={11}
                       className="mr-1 inline-block align-[-1px]"
                     />
@@ -367,7 +368,7 @@ const SkillEditorPanel: React.FC<SkillEditorPanelProps> = ({
             >
               <Button
                 size="default"
-                icon={<HugeiconsIcon icon={Plus} size={14} />}
+                icon={<HugeiconsIcon icon={Plus} data-icon="plus" size={14} />}
                 onClick={() =>
                   editor.updateDraft({
                     bundledFileDrafts: [

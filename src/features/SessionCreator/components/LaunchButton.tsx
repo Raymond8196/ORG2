@@ -86,6 +86,7 @@ const LaunchButton: React.FC<LaunchButtonProps> = ({
       {loading ? (
         <HugeiconsIcon
           icon={Loader2}
+          data-icon="loader-2"
           size={INPUT_AREA_BUTTONS.iconSize}
           strokeWidth={2}
           className="block animate-spin text-[#fff]"
@@ -93,6 +94,7 @@ const LaunchButton: React.FC<LaunchButtonProps> = ({
       ) : (
         <HugeiconsIcon
           icon={ArrowUp}
+          data-icon="arrow-up"
           size={INPUT_AREA_BUTTONS.iconSize}
           strokeWidth={2}
           className="block text-[#fff]"

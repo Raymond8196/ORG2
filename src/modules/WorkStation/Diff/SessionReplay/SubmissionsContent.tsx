@@ -209,7 +209,11 @@ const PullRequestSubmissionRow: React.FC<{
             aria-label={t("actions.openOnGitHub", "Open on GitHub")}
             title={t("actions.openOnGitHub", "Open on GitHub")}
           >
-            <HugeiconsIcon icon={SquareArrowOutUpRight} size={14} />
+            <HugeiconsIcon
+              icon={SquareArrowOutUpRight}
+              data-icon="square-arrow-out-up-right"
+              size={14}
+            />
           </a>
         )}
       </div>
@@ -221,7 +225,12 @@ const PullRequestSubmissionRow: React.FC<{
       </div>
       {(branchLabel || pullRequest.repoFullName) && (
         <div className="mt-1 flex min-w-0 items-center gap-1 text-[11px] text-text-3">
-          <HugeiconsIcon icon={GitBranch} size={12} className="shrink-0" />
+          <HugeiconsIcon
+            icon={GitBranch}
+            data-icon="git-branch"
+            size={12}
+            className="shrink-0"
+          />
           <span className="truncate">
             {branchLabel
               ? truncateBranchLabel(branchLabel)

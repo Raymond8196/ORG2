@@ -118,6 +118,7 @@ function getStatusIcon(status?: string): React.ReactNode {
     return (
       <HugeiconsIcon
         icon={CheckCircle2}
+        data-icon="check-circle-2"
         size={13}
         strokeWidth={2}
         className="shrink-0 text-success-6"
@@ -129,6 +130,7 @@ function getStatusIcon(status?: string): React.ReactNode {
     return (
       <HugeiconsIcon
         icon={PlayCircle}
+        data-icon="play-circle"
         size={13}
         strokeWidth={2}
         className="shrink-0 text-primary-6"
@@ -140,6 +142,7 @@ function getStatusIcon(status?: string): React.ReactNode {
     return (
       <HugeiconsIcon
         icon={CircleDot}
+        data-icon="circle-dot"
         size={13}
         strokeWidth={2}
         className="shrink-0 text-text-3"

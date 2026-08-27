@@ -185,6 +185,7 @@ export const ChannelDeleteConfirmation: React.FC<
     <div className="flex items-start gap-2 rounded-lg bg-danger-1 px-3 py-2 text-[12px] text-danger-6">
       <HugeiconsIcon
         icon={TriangleAlert}
+        data-icon="triangle-alert"
         size={14}
         aria-hidden
         className="mt-0.5 shrink-0"

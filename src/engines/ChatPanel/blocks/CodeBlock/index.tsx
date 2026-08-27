@@ -358,6 +358,7 @@ const ChatCodeBlock: React.FC<ChatCodeBlockProps> = memo(
                   >
                     <HugeiconsIcon
                       icon={SquareArrowOutUpRight}
+                      data-icon="square-arrow-out-up-right"
                       size={14}
                       strokeWidth={1.75}
                     />
@@ -385,11 +386,17 @@ const ChatCodeBlock: React.FC<ChatCodeBlockProps> = memo(
                     {copied ? (
                       <HugeiconsIcon
                         icon={Check}
+                        data-icon="check"
                         size={14}
                         strokeWidth={1.75}
                       />
                     ) : (
-                      <HugeiconsIcon icon={Copy} size={14} strokeWidth={1.75} />
+                      <HugeiconsIcon
+                        icon={Copy}
+                        data-icon="copy"
+                        size={14}
+                        strokeWidth={1.75}
+                      />
                     )}
                   </button>
                 )}
@@ -417,9 +424,13 @@ const ChatCodeBlock: React.FC<ChatCodeBlockProps> = memo(
                     }
                   >
                     {isPreviewOpen ? (
-                      <HugeiconsIcon icon={EyeOff} size={11} />
+                      <HugeiconsIcon
+                        icon={EyeOff}
+                        data-icon="eye-off"
+                        size={11}
+                      />
                     ) : (
-                      <HugeiconsIcon icon={Eye} size={11} />
+                      <HugeiconsIcon icon={Eye} data-icon="eye" size={11} />
                     )}
                     {t("codePreview.preview")}
                   </button>
@@ -442,6 +453,7 @@ const ChatCodeBlock: React.FC<ChatCodeBlockProps> = memo(
                 >
                   <HugeiconsIcon
                     icon={SquareArrowOutUpRight}
+                    data-icon="square-arrow-out-up-right"
                     size={14}
                     strokeWidth={1.75}
                   />
@@ -464,9 +476,19 @@ const ChatCodeBlock: React.FC<ChatCodeBlockProps> = memo(
                   onClick={handleCopyContent}
                 >
                   {copied ? (
-                    <HugeiconsIcon icon={Check} size={14} strokeWidth={1.75} />
+                    <HugeiconsIcon
+                      icon={Check}
+                      data-icon="check"
+                      size={14}
+                      strokeWidth={1.75}
+                    />
                   ) : (
-                    <HugeiconsIcon icon={Copy} size={14} strokeWidth={1.75} />
+                    <HugeiconsIcon
+                      icon={Copy}
+                      data-icon="copy"
+                      size={14}
+                      strokeWidth={1.75}
+                    />
                   )}
                 </button>
               )}

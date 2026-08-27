@@ -76,12 +76,14 @@ const EditSection: React.FC<{
         {isCollapsed ? (
           <HugeiconsIcon
             icon={ChevronsUpDown}
+            data-icon="chevrons-up-down"
             size={14}
             className="shrink-0 text-text-3"
           />
         ) : (
           <HugeiconsIcon
             icon={ChevronsDownUp}
+            data-icon="chevrons-down-up"
             size={14}
             className="shrink-0 text-text-3"
           />
@@ -195,7 +197,13 @@ export const CombinedDiffView: React.FC<{
             htmlType="button"
             variant="tertiary"
             size="small"
-            icon={<HugeiconsIcon icon={ChevronsUpDown} size={14} />}
+            icon={
+              <HugeiconsIcon
+                icon={ChevronsUpDown}
+                data-icon="chevrons-up-down"
+                size={14}
+              />
+            }
             onClick={handleLoadEarlierEdits}
           >
             {t("simulator.replay.ide.codePanel.loadEarlierEdits", {

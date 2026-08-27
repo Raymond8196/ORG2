@@ -15,20 +15,40 @@ function getStatusIcon(status: WorkItemStatus | string): React.ReactNode {
   switch (status) {
     case "in_progress":
       return (
-        <HugeiconsIcon icon={Clock} size={13} className="text-primary-6" />
+        <HugeiconsIcon
+          icon={Clock}
+          data-icon="clock"
+          size={13}
+          className="text-primary-6"
+        />
       );
     case "done":
       return (
         <HugeiconsIcon
           icon={CheckCircle2}
+          data-icon="check-circle-2"
           size={13}
           className="text-success-6"
         />
       );
     case "cancelled":
-      return <HugeiconsIcon icon={XCircle} size={13} className="text-text-4" />;
+      return (
+        <HugeiconsIcon
+          icon={XCircle}
+          data-icon="xcircle"
+          size={13}
+          className="text-text-4"
+        />
+      );
     default:
-      return <HugeiconsIcon icon={Circle} size={13} className="text-text-4" />;
+      return (
+        <HugeiconsIcon
+          icon={Circle}
+          data-icon="circle"
+          size={13}
+          className="text-text-4"
+        />
+      );
   }
 }
 
@@ -69,7 +89,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ card }) => {
     <ToolResultCardFrame>
       <div className="flex items-start gap-2">
         <span className="mt-0.5 shrink-0 text-primary-6">
-          <HugeiconsIcon icon={BookOpen} size={13} />
+          <HugeiconsIcon icon={BookOpen} data-icon="book-open" size={13} />
         </span>
 
         <div className="min-w-0 flex-1">
@@ -106,7 +126,11 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ card }) => {
               <>
                 <span>·</span>
                 <span className="inline-flex shrink-0 items-center gap-0.5">
-                  <HugeiconsIcon icon={Calendar} size={10} />
+                  <HugeiconsIcon
+                    icon={Calendar}
+                    data-icon="calendar"
+                    size={10}
+                  />
                   {card.targetDate}
                 </span>
               </>
@@ -118,7 +142,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ card }) => {
                 <span
                   className={`inline-flex shrink-0 items-center gap-0.5 ${getHealthColor(card.health)}`}
                 >
-                  <HugeiconsIcon icon={Heart} size={10} />
+                  <HugeiconsIcon icon={Heart} data-icon="heart" size={10} />
                   {card.health.replace(/_/g, " ")}
                 </span>
               </>

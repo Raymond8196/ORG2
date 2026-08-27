@@ -95,6 +95,7 @@ const GitHubIssueCloseButton: React.FC<GitHubIssueCloseButtonProps> = ({
       >
         <HugeiconsIcon
           icon={ChevronLeft}
+          data-icon="chevron-left"
           size={DROPDOWN_ITEM.iconSize}
           aria-hidden
         />
@@ -116,6 +117,7 @@ const GitHubIssueCloseButton: React.FC<GitHubIssueCloseButtonProps> = ({
         >
           <HugeiconsIcon
             icon={Loader2}
+            data-icon="loader-2"
             size={DROPDOWN_ITEM.iconSize}
             className="animate-spin"
             aria-hidden
@@ -140,12 +142,14 @@ const GitHubIssueCloseButton: React.FC<GitHubIssueCloseButtonProps> = ({
                   candidate.state === "open" ? (
                     <HugeiconsIcon
                       icon={CircleDot}
+                      data-icon="circle-dot"
                       size={DROPDOWN_ITEM.iconSize}
                       aria-hidden
                     />
                   ) : (
                     <HugeiconsIcon
                       icon={CheckCircle2}
+                      data-icon="check-circle-2"
                       size={DROPDOWN_ITEM.iconSize}
                       aria-hidden
                     />
@@ -184,6 +188,7 @@ const GitHubIssueCloseButton: React.FC<GitHubIssueCloseButtonProps> = ({
           icon={
             <HugeiconsIcon
               icon={CircleDot}
+              data-icon="circle-dot"
               size={DROPDOWN_ITEM.iconSize}
               aria-hidden
             />
@@ -198,6 +203,7 @@ const GitHubIssueCloseButton: React.FC<GitHubIssueCloseButtonProps> = ({
           icon={
             <HugeiconsIcon
               icon={CheckCircle2}
+              data-icon="check-circle-2"
               size={DROPDOWN_ITEM.iconSize}
               aria-hidden
             />
@@ -211,6 +217,7 @@ const GitHubIssueCloseButton: React.FC<GitHubIssueCloseButtonProps> = ({
           icon={
             <HugeiconsIcon
               icon={CircleSlash}
+              data-icon="circle-slash"
               size={DROPDOWN_ITEM.iconSize}
               aria-hidden
             />
@@ -224,6 +231,7 @@ const GitHubIssueCloseButton: React.FC<GitHubIssueCloseButtonProps> = ({
           icon={
             <HugeiconsIcon
               icon={Copy}
+              data-icon="copy"
               size={DROPDOWN_ITEM.iconSize}
               aria-hidden
             />
@@ -231,6 +239,7 @@ const GitHubIssueCloseButton: React.FC<GitHubIssueCloseButtonProps> = ({
           suffix={
             <HugeiconsIcon
               icon={ChevronRight}
+              data-icon="chevron-right"
               size={DROPDOWN_ITEM.iconSize}
               aria-hidden
             />
@@ -252,7 +261,14 @@ const GitHubIssueCloseButton: React.FC<GitHubIssueCloseButtonProps> = ({
         appearance="outline"
         size="default"
         shape="round"
-        icon={<HugeiconsIcon icon={CircleDot} size={14} aria-hidden />}
+        icon={
+          <HugeiconsIcon
+            icon={CircleDot}
+            data-icon="circle-dot"
+            size={14}
+            aria-hidden
+          />
+        }
         loading={busy}
         disabled={disabled}
         onClick={() => void onStatusChange("open")}
@@ -270,7 +286,14 @@ const GitHubIssueCloseButton: React.FC<GitHubIssueCloseButtonProps> = ({
       appearance="outline"
       size="default"
       shape="round"
-      icon={<HugeiconsIcon icon={CheckCircle2} size={14} aria-hidden />}
+      icon={
+        <HugeiconsIcon
+          icon={CheckCircle2}
+          data-icon="check-circle-2"
+          size={14}
+          aria-hidden
+        />
+      }
       loading={busy}
       disabled={disabled}
       onClick={() => selectStatus({ stateReason: "completed" })}

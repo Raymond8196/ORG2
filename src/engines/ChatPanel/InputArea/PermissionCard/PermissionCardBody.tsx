@@ -78,7 +78,7 @@ export function PermissionCardBody({
   return (
     <div className={COMPOSER_CARD_SHELL_CLASSES}>
       <ComposerStackHeader
-        icon={<HugeiconsIcon icon={BellRing} size={14} />}
+        icon={<HugeiconsIcon icon={BellRing} data-icon="bell-ring" size={14} />}
         label={label}
         labelVariant="primary"
         expanded={expanded}

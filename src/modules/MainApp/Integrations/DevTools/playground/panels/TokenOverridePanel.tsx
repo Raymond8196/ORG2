@@ -163,10 +163,16 @@ export function TokenOverridePanel({
         <div className="flex items-center gap-2">
           <HugeiconsIcon
             icon={GripVertical}
+            data-icon="grip-vertical"
             size={14}
             className="text-text-3"
           />
-          <HugeiconsIcon icon={Palette} size={14} className="text-primary-6" />
+          <HugeiconsIcon
+            icon={Palette}
+            data-icon="palette"
+            size={14}
+            className="text-primary-6"
+          />
           <span className="text-[12px] font-medium text-text-1">
             Token Override
           </span>
@@ -181,9 +187,9 @@ export function TokenOverridePanel({
             title={isMinimized ? "Expand" : "Minimize"}
           >
             {isMinimized ? (
-              <HugeiconsIcon icon={Plus} size={12} />
+              <HugeiconsIcon icon={Plus} data-icon="plus" size={12} />
             ) : (
-              <HugeiconsIcon icon={Minus} size={12} />
+              <HugeiconsIcon icon={Minus} data-icon="minus" size={12} />
             )}
           </button>
           <button
@@ -191,7 +197,7 @@ export function TokenOverridePanel({
             onClick={onClose}
             title="Close"
           >
-            <HugeiconsIcon icon={X} size={12} />
+            <HugeiconsIcon icon={X} data-icon="x" size={12} />
           </button>
         </div>
       </div>

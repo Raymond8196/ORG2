@@ -196,7 +196,7 @@ export const ReplaceInput: React.FC<ReplaceInputProps> = memo(
             className={actionButtonClass}
             title={t("tooltips.replace")}
           >
-            <HugeiconsIcon icon={Replace} size={iconSize} />
+            <HugeiconsIcon icon={Replace} data-icon="replace" size={iconSize} />
           </button>
         )}
         {onReplaceAll && (
@@ -206,7 +206,11 @@ export const ReplaceInput: React.FC<ReplaceInputProps> = memo(
             className={actionButtonClass}
             title={t("tooltips.replaceAll")}
           >
-            <HugeiconsIcon icon={ReplaceAll} size={iconSize} />
+            <HugeiconsIcon
+              icon={ReplaceAll}
+              data-icon="replace-all"
+              size={iconSize}
+            />
           </button>
         )}
       </div>

@@ -119,6 +119,7 @@ const VoiceInputButton: React.FC<VoiceInputButtonProps> = memo(
       >
         <HugeiconsIcon
           icon={Mic}
+          data-icon="mic"
           size={INPUT_AREA_BUTTONS.iconSize}
           strokeWidth={1.75}
           className="block"

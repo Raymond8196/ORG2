@@ -78,6 +78,7 @@ export const WorkspaceTreeContent: React.FC<WorkspaceTreeContentProps> = memo(
             icon: (
               <HugeiconsIcon
                 icon={BookOpen}
+                data-icon="book-open"
                 size={ROW_ICON_SIZE}
                 strokeWidth={ROW_ICON_STROKE}
               />
@@ -95,6 +96,7 @@ export const WorkspaceTreeContent: React.FC<WorkspaceTreeContentProps> = memo(
             icon: (
               <HugeiconsIcon
                 icon={ListChecks}
+                data-icon="list-checks"
                 size={ROW_ICON_SIZE}
                 strokeWidth={ROW_ICON_STROKE}
               />
@@ -112,6 +114,7 @@ export const WorkspaceTreeContent: React.FC<WorkspaceTreeContentProps> = memo(
             icon: (
               <HugeiconsIcon
                 icon={Box}
+                data-icon="box"
                 size={ROW_ICON_SIZE}
                 strokeWidth={ROW_ICON_STROKE}
               />
@@ -129,6 +132,7 @@ export const WorkspaceTreeContent: React.FC<WorkspaceTreeContentProps> = memo(
             icon: (
               <HugeiconsIcon
                 icon={ListChecks}
+                data-icon="list-checks"
                 size={ROW_ICON_SIZE}
                 strokeWidth={ROW_ICON_STROKE}
               />

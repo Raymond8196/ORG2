@@ -213,9 +213,19 @@ const IndependentGridCellComponent: React.FC<GridCellProps> = ({
                 }
               >
                 {isExpanded ? (
-                  <HugeiconsIcon icon={Minimize2} size={12} strokeWidth={2} />
+                  <HugeiconsIcon
+                    icon={Minimize2}
+                    data-icon="minimize-2"
+                    size={12}
+                    strokeWidth={2}
+                  />
                 ) : (
-                  <HugeiconsIcon icon={Maximize2} size={12} strokeWidth={2} />
+                  <HugeiconsIcon
+                    icon={Maximize2}
+                    data-icon="maximize-2"
+                    size={12}
+                    strokeWidth={2}
+                  />
                 )}
               </button>
             )}
@@ -270,6 +280,7 @@ const IndependentGridCellComponent: React.FC<GridCellProps> = ({
               {state.isPlaying ? (
                 <HugeiconsIcon
                   icon={Pause}
+                  data-icon="pause"
                   size={11}
                   fill="currentColor"
                   strokeWidth={0}
@@ -277,6 +288,7 @@ const IndependentGridCellComponent: React.FC<GridCellProps> = ({
               ) : (
                 <HugeiconsIcon
                   icon={Play}
+                  data-icon="play"
                   size={11}
                   fill="currentColor"
                   strokeWidth={0}
@@ -295,7 +307,12 @@ const IndependentGridCellComponent: React.FC<GridCellProps> = ({
               })}
               className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded text-text-2 ${SURFACE_TOKENS.hover} hover:text-text-1 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-text-2`}
             >
-              <HugeiconsIcon icon={ChevronLeft} size={12} strokeWidth={2} />
+              <HugeiconsIcon
+                icon={ChevronLeft}
+                data-icon="chevron-left"
+                size={12}
+                strokeWidth={2}
+              />
             </button>
             <button
               type="button"
@@ -306,7 +323,12 @@ const IndependentGridCellComponent: React.FC<GridCellProps> = ({
               })}
               className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded text-text-2 ${SURFACE_TOKENS.hover} hover:text-text-1 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-text-2`}
             >
-              <HugeiconsIcon icon={ChevronRight} size={12} strokeWidth={2} />
+              <HugeiconsIcon
+                icon={ChevronRight}
+                data-icon="chevron-right"
+                size={12}
+                strokeWidth={2}
+              />
             </button>
             <div className="min-w-0 flex-1 px-1">
               <ReplayProgressBar

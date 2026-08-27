@@ -74,6 +74,7 @@ const RoutineExecutionSections: React.FC<RoutineExecutionSectionsProps> = ({
               prefix={
                 <HugeiconsIcon
                   icon={FolderGit2}
+                  data-icon="folder-git-2"
                   size={16}
                   className="text-text-2"
                 />
@@ -114,7 +115,12 @@ const RoutineExecutionSections: React.FC<RoutineExecutionSectionsProps> = ({
               draft.modelType ? (
                 <ModelIcon agentType={draft.modelType} size={16} />
               ) : (
-                <HugeiconsIcon icon={Grip} size={16} className="text-text-2" />
+                <HugeiconsIcon
+                  icon={Grip}
+                  data-icon="grip"
+                  size={16}
+                  className="text-text-2"
+                />
               )
             }
             dataTestId="routine-wizard-model-trigger"

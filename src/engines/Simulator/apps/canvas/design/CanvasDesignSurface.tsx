@@ -105,6 +105,7 @@ const CanvasSelectionPill: React.FC<CanvasSelectionPillProps> = ({
         isHovered ? (
           <HugeiconsIcon
             icon={X}
+            data-icon="x"
             size={PILL_SIZE.iconSize}
             strokeWidth={2}
             aria-hidden
@@ -112,6 +113,7 @@ const CanvasSelectionPill: React.FC<CanvasSelectionPillProps> = ({
         ) : (
           <HugeiconsIcon
             icon={MousePointer2}
+            data-icon="mouse-pointer-2"
             size={PILL_SIZE.iconSize}
             strokeWidth={1.75}
             aria-hidden
@@ -436,7 +438,7 @@ const CanvasDesignSurface: React.FC<CanvasDesignSurfaceProps> = ({
                   )}
                   onClick={inspector.clearSelection}
                 >
-                  <HugeiconsIcon icon={X} size={15} aria-hidden />
+                  <HugeiconsIcon icon={X} data-icon="x" size={15} aria-hidden />
                 </IconButton>
               )}
             </>

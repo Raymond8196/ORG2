@@ -53,6 +53,7 @@ export function WorktreeSourceRow({
       {selected && (
         <HugeiconsIcon
           icon={Check}
+          data-icon="check"
           size={14}
           strokeWidth={1.75}
           className="shrink-0 text-primary-6"

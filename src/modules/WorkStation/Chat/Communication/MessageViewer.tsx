@@ -375,7 +375,13 @@ export const MessageViewer: React.FC<MessageViewerProps> = ({
                 variant="tertiary"
                 appearance="ghost"
                 size="small"
-                icon={<HugeiconsIcon icon={ChevronsUpDown} size={14} />}
+                icon={
+                  <HugeiconsIcon
+                    icon={ChevronsUpDown}
+                    data-icon="chevrons-up-down"
+                    size={14}
+                  />
+                }
                 data-testid="communication-load-more-messages"
                 onClick={handleLoadMoreMessages}
               >

@@ -173,6 +173,7 @@ const SessionSelectorPanel: React.FC<SessionSelectorPanelProps> = memo(
           >
             <HugeiconsIcon
               icon={Plus}
+              data-icon="plus"
               size={DROPDOWN_ITEM.iconSize}
               className="text-text-2"
             />
@@ -205,6 +206,7 @@ const SessionSelectorPanel: React.FC<SessionSelectorPanelProps> = memo(
               >
                 <HugeiconsIcon
                   icon={History}
+                  data-icon="history"
                   size={DROPDOWN_ITEM.iconSize}
                   className="flex-shrink-0 text-text-2"
                 />

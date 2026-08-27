@@ -103,9 +103,19 @@ const KanbanOrgScopeSelect: React.FC = memo(() => {
         label: entry.label,
         icon:
           entry.kind === "cloud" ? (
-            <HugeiconsIcon icon={Cloud} size={13} strokeWidth={2} />
+            <HugeiconsIcon
+              icon={Cloud}
+              data-icon="cloud"
+              size={13}
+              strokeWidth={2}
+            />
           ) : (
-            <HugeiconsIcon icon={Laptop} size={13} strokeWidth={2} />
+            <HugeiconsIcon
+              icon={Laptop}
+              data-icon="laptop"
+              size={13}
+              strokeWidth={2}
+            />
           ),
         dataTestId: `kanban-org-option-${entry.kind}-${entry.value}`,
       })),

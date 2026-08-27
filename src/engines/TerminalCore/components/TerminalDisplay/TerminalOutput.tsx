@@ -112,6 +112,7 @@ export const TerminalOutput: React.FC<TerminalOutputProps> = memo(
           <div className="terminal-output__error">
             <HugeiconsIcon
               icon={AlertTriangle}
+              data-icon="alert-triangle"
               size={16}
               className="terminal-output__error-icon"
             />

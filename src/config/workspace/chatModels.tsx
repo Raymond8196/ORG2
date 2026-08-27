@@ -16,6 +16,7 @@ export const chat_models = [
     icon: (
       <HugeiconsIcon
         icon={Sparkles}
+        data-icon="sparkles"
         className="text-[16px] text-text-2"
         size={16}
       />
@@ -27,6 +28,7 @@ export const chat_models = [
     icon: (
       <HugeiconsIcon
         icon={Code}
+        data-icon="code"
         className="text-[16px] text-text-2"
         size={16}
       />
@@ -38,6 +40,7 @@ export const chat_models = [
     icon: (
       <HugeiconsIcon
         icon={Book}
+        data-icon="book"
         className="text-[16px] text-text-2"
         size={16}
       />
@@ -49,6 +52,7 @@ export const chat_models = [
     icon: (
       <HugeiconsIcon
         icon={FileText}
+        data-icon="file-text"
         size={16}
         strokeWidth={1.75}
         className="text-text-2"
@@ -61,6 +65,7 @@ export const chat_models = [
     icon: (
       <HugeiconsIcon
         icon={FileText}
+        data-icon="file-text"
         size={16}
         strokeWidth={1.75}
         className="text-text-2"

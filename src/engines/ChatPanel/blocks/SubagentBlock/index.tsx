@@ -178,6 +178,7 @@ const SubagentBlock: React.FC<SubagentBlockProps> = memo(
               ) : (
                 <HugeiconsIcon
                   icon={Square}
+                  data-icon="square"
                   size={10}
                   fill="currentColor"
                   strokeWidth={0}

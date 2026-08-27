@@ -12,8 +12,22 @@ export type GitHubIssueHeader = Pick<GitHubIssue, "state" | "title"> &
 
 function IssueStateIcon({ isOpen }: { isOpen: boolean }): React.ReactNode {
   if (isOpen)
-    return <HugeiconsIcon icon={CircleDot} size={14} strokeWidth={1.8} />;
-  return <HugeiconsIcon icon={CheckCircle2} size={14} strokeWidth={1.8} />;
+    return (
+      <HugeiconsIcon
+        icon={CircleDot}
+        data-icon="circle-dot"
+        size={14}
+        strokeWidth={1.8}
+      />
+    );
+  return (
+    <HugeiconsIcon
+      icon={CheckCircle2}
+      data-icon="check-circle-2"
+      size={14}
+      strokeWidth={1.8}
+    />
+  );
 }
 
 function getIssueStateClassName(issue: GitHubIssueHeader): string {

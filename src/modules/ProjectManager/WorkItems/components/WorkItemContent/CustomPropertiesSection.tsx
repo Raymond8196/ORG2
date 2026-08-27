@@ -310,6 +310,7 @@ const CustomPropertiesSection: React.FC<CustomPropertiesSectionProps> = ({
       icon={
         <HugeiconsIcon
           icon={ListChevronsUpDown}
+          data-icon="list-chevrons-up-down"
           size={14}
           strokeWidth={1.8}
           className="shrink-0 text-text-3"
@@ -328,9 +329,9 @@ const CustomPropertiesSection: React.FC<CustomPropertiesSectionProps> = ({
           <ActivityHeaderActionButton
             icon={
               showCreate ? (
-                <HugeiconsIcon icon={X} size={12} />
+                <HugeiconsIcon icon={X} data-icon="x" size={12} />
               ) : (
-                <HugeiconsIcon icon={Plus} size={12} />
+                <HugeiconsIcon icon={Plus} data-icon="plus" size={12} />
               )
             }
             label={
@@ -452,7 +453,13 @@ const CustomPropertiesSection: React.FC<CustomPropertiesSectionProps> = ({
                     size="mini"
                     shape="circle"
                     iconOnly
-                    icon={<HugeiconsIcon icon={Archive} size={13} />}
+                    icon={
+                      <HugeiconsIcon
+                        icon={Archive}
+                        data-icon="archive"
+                        size={13}
+                      />
+                    }
                     title={t("workItems.properties.archive", {
                       defaultValue: "Archive property",
                     })}

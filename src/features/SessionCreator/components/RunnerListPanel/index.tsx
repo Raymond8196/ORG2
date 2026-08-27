@@ -218,7 +218,14 @@ const RunnerListPanel: React.FC<RunnerListPanelProps> = memo(
             variant="tertiary"
             size="small"
             shape="round"
-            icon={<HugeiconsIcon icon={Plus} size={14} strokeWidth={1.85} />}
+            icon={
+              <HugeiconsIcon
+                icon={Plus}
+                data-icon="plus"
+                size={14}
+                strokeWidth={1.85}
+              />
+            }
             disabled={addDisabled}
             onClick={onAddRunner}
             data-testid="session-creator-runner-add"

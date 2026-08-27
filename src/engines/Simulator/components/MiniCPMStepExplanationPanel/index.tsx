@@ -200,14 +200,21 @@ const MiniCPMStepExplanationPanel: React.FC<MiniCPMStepExplanationPanelProps> =
       status === "loading" ? (
         <HugeiconsIcon
           icon={Loader2}
+          data-icon="loader-2"
           size={15}
           className="animate-spin text-primary-6"
         />
       ) : status === "fallback" ? (
-        <HugeiconsIcon icon={AlertCircle} size={15} className="text-danger-6" />
+        <HugeiconsIcon
+          icon={AlertCircle}
+          data-icon="alert-circle"
+          size={15}
+          className="text-danger-6"
+        />
       ) : (
         <HugeiconsIcon
           icon={Sparkles}
+          data-icon="sparkles"
           size={15}
           className={hasStep ? "text-primary-6" : "text-text-4"}
         />
@@ -230,7 +237,12 @@ const MiniCPMStepExplanationPanel: React.FC<MiniCPMStepExplanationPanelProps> =
             aria-label="关闭 MiniCPM 步骤解析"
             title="关闭 MiniCPM 步骤解析"
           >
-            <HugeiconsIcon icon={X} size={14} strokeWidth={1.75} />
+            <HugeiconsIcon
+              icon={X}
+              data-icon="x"
+              size={14}
+              strokeWidth={1.75}
+            />
           </button>
         ) : null}
         <div className="flex min-h-[64px] min-w-0 items-start gap-3 px-3.5 py-3 pr-9">

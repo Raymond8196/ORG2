@@ -147,6 +147,7 @@ const Org2CloudSection: React.FC<Org2CloudSectionProps> = ({
       icon={
         <HugeiconsIcon
           icon={RefreshCw}
+          data-icon="refresh-cw"
           size={14}
           className={isRefreshingDevAuth ? REFRESH_ICON_TOKENS.spin : ""}
         />
@@ -220,7 +221,9 @@ const Org2CloudSection: React.FC<Org2CloudSectionProps> = ({
                 <Button
                   size="default"
                   iconOnly
-                  icon={<HugeiconsIcon icon={Pencil} size={14} />}
+                  icon={
+                    <HugeiconsIcon icon={Pencil} data-icon="pencil" size={14} />
+                  }
                   aria-label={t("cloud.renameDisplayName")}
                   onClick={() =>
                     setRenameDraft(auth.profile?.displayName ?? "")

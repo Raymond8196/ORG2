@@ -104,6 +104,7 @@ const UrlPreviewContent: React.FC<UrlPreviewContentProps> = memo(
               icon={
                 <HugeiconsIcon
                   icon={RefreshCw}
+                  data-icon="refresh-cw"
                   size={14}
                   className={spinClass}
                 />
@@ -121,7 +122,13 @@ const UrlPreviewContent: React.FC<UrlPreviewContentProps> = memo(
             variant="tertiary"
             size="small"
             onClick={handleOpenExternal}
-            icon={<HugeiconsIcon icon={SquareArrowOutUpRight} size={14} />}
+            icon={
+              <HugeiconsIcon
+                icon={SquareArrowOutUpRight}
+                data-icon="square-arrow-out-up-right"
+                size={14}
+              />
+            }
             title={t("previews.openInBrowser")}
           />
         </div>

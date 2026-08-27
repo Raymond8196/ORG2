@@ -469,10 +469,16 @@ const SubagentPipCard: React.FC<SubagentPipCardProps> = ({
             }
             icon={
               isAnyExpanded ? (
-                <HugeiconsIcon icon={ArrowLeft} size={14} strokeWidth={2} />
+                <HugeiconsIcon
+                  icon={ArrowLeft}
+                  data-icon="arrow-left"
+                  size={14}
+                  strokeWidth={2}
+                />
               ) : (
                 <HugeiconsIcon
                   icon={ChevronDown}
+                  data-icon="chevron-down"
                   size={14}
                   strokeWidth={2}
                   className="transition-transform duration-300 ease-in-out"
@@ -513,6 +519,7 @@ const SubagentPipCard: React.FC<SubagentPipCardProps> = ({
                   icon={
                     <HugeiconsIcon
                       icon={ChevronLeft}
+                      data-icon="chevron-left"
                       size={16}
                       strokeWidth={1.75}
                     />
@@ -529,6 +536,7 @@ const SubagentPipCard: React.FC<SubagentPipCardProps> = ({
                   icon={
                     <HugeiconsIcon
                       icon={ChevronRight}
+                      data-icon="chevron-right"
                       size={16}
                       strokeWidth={1.75}
                     />
@@ -551,12 +559,14 @@ const SubagentPipCard: React.FC<SubagentPipCardProps> = ({
                 gridExpanded ? (
                   <HugeiconsIcon
                     icon={Minimize2}
+                    data-icon="minimize-2"
                     size={14}
                     strokeWidth={1.75}
                   />
                 ) : (
                   <HugeiconsIcon
                     icon={Maximize2}
+                    data-icon="maximize-2"
                     size={14}
                     strokeWidth={1.75}
                   />

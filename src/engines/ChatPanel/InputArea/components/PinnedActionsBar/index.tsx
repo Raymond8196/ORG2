@@ -361,7 +361,12 @@ const PinnedActionsBar: React.FC<PinnedActionsBarProps> = memo(
         size="small"
         shape="round"
         icon={
-          <HugeiconsIcon icon={MoreHorizontal} size={14} strokeWidth={1.75} />
+          <HugeiconsIcon
+            icon={MoreHorizontal}
+            data-icon="more-horizontal"
+            size={14}
+            strokeWidth={1.75}
+          />
         }
         iconOnly
         title={t("input.pinnedActions.manage")}
@@ -377,7 +382,12 @@ const PinnedActionsBar: React.FC<PinnedActionsBarProps> = memo(
           <div className="shrink-0">
             <UserActionButton
               leftIcon={
-                <HugeiconsIcon icon={Layout} size={12} strokeWidth={1.75} />
+                <HugeiconsIcon
+                  icon={Layout}
+                  data-icon="layout"
+                  size={12}
+                  strokeWidth={1.75}
+                />
               }
               title="Canvas"
               onClick={handleOpenCanvas}

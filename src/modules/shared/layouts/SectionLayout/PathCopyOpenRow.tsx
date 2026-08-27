@@ -56,14 +56,20 @@ const PathCopyOpenRow: React.FC<PathCopyOpenRowProps> = memo(
           <span className={SECTION_PATH_TEXT_CLASSES}>{path}</span>
           <Button
             onClick={onCopy}
-            icon={<HugeiconsIcon icon={Copy} size={14} />}
+            icon={<HugeiconsIcon icon={Copy} data-icon="copy" size={14} />}
             iconOnly
             title={copyTitle}
             disabled={disabled}
           />
           <Button
             onClick={onOpen}
-            icon={<HugeiconsIcon icon={FolderOpen} size={14} />}
+            icon={
+              <HugeiconsIcon
+                icon={FolderOpen}
+                data-icon="folder-open"
+                size={14}
+              />
+            }
             iconOnly
             title={openTitle}
             disabled={disabled}

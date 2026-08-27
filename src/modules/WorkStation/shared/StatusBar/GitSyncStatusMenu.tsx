@@ -165,12 +165,14 @@ export const GitSyncStatusMenu: React.FC<GitSyncStatusMenuProps> = memo(
             {needsPublish && !isPublishing ? (
               <HugeiconsIcon
                 icon={CloudUpload}
+                data-icon="cloud-upload"
                 size={MENU_ICON_SIZE}
                 className="text-text-1"
               />
             ) : (
               <HugeiconsIcon
                 icon={RefreshCw}
+                data-icon="refresh-cw"
                 size={MENU_ICON_SIZE}
                 className={`text-text-1 ${syncSpinClass ?? ""}`}
               />
@@ -201,7 +203,11 @@ export const GitSyncStatusMenu: React.FC<GitSyncStatusMenuProps> = memo(
                   className="flex items-center text-text-1"
                 >
                   {behindCount}
-                  <HugeiconsIcon icon={ArrowDown} size={MENU_ICON_SIZE} />
+                  <HugeiconsIcon
+                    icon={ArrowDown}
+                    data-icon="arrow-down"
+                    size={MENU_ICON_SIZE}
+                  />
                 </StatusBarLabel>
                 <StatusBarLabel
                   emphasis
@@ -209,12 +215,17 @@ export const GitSyncStatusMenu: React.FC<GitSyncStatusMenuProps> = memo(
                   className="flex items-center text-text-1"
                 >
                   {aheadCount}
-                  <HugeiconsIcon icon={ArrowUp} size={MENU_ICON_SIZE} />
+                  <HugeiconsIcon
+                    icon={ArrowUp}
+                    data-icon="arrow-up"
+                    size={MENU_ICON_SIZE}
+                  />
                 </StatusBarLabel>
               </>
             )}
             <HugeiconsIcon
               icon={ChevronDown}
+              data-icon="chevron-down"
               size={12}
               className="text-text-3"
             />
@@ -305,6 +316,7 @@ export const GitSyncStatusMenu: React.FC<GitSyncStatusMenuProps> = memo(
                     >
                       <HugeiconsIcon
                         icon={Ellipsis}
+                        data-icon="ellipsis"
                         size={MENU_ICON_SIZE}
                         className="text-text-1"
                       />

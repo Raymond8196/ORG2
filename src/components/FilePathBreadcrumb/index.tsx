@@ -12,6 +12,7 @@ import React, { useMemo } from "react";
 const PATH_SEPARATOR = (
   <HugeiconsIcon
     icon={Slash}
+    data-icon="slash"
     size={10}
     strokeWidth={1.5}
     className="shrink-0 -rotate-12 text-text-4/50"

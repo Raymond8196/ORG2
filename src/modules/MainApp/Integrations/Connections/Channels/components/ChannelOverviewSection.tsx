@@ -66,6 +66,7 @@ const ChannelOverviewSection: React.FC<ChannelOverviewSectionProps> = ({
             <span className="flex items-center gap-1.5">
               <HugeiconsIcon
                 icon={ChevronsLeftRightEllipsis}
+                data-icon="chevrons-left-right-ellipsis"
                 size={16}
                 className={colorClass}
               />

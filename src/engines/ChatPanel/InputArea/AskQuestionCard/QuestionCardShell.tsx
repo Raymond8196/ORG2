@@ -122,7 +122,9 @@ export function QuestionCardShell({
   return (
     <div className={COMPOSER_CARD_SHELL_CLASSES}>
       <ComposerStackHeader
-        icon={<HugeiconsIcon icon={CircleHelp} size={14} />}
+        icon={
+          <HugeiconsIcon icon={CircleHelp} data-icon="circle-help" size={14} />
+        }
         label={t("chat.questionsPrompt")}
         labelVariant="primary"
         expanded={expanded}
@@ -143,7 +145,11 @@ export function QuestionCardShell({
                 onClick={handlePrevQuestion}
                 disabled={focusedQuestion === 0}
               >
-                <HugeiconsIcon icon={ChevronUp} size={12} />
+                <HugeiconsIcon
+                  icon={ChevronUp}
+                  data-icon="chevron-up"
+                  size={12}
+                />
               </IconButton>
               <span className="min-w-[44px] text-center text-[10px] text-text-1">
                 {t("chat.xOfY", {
@@ -156,7 +162,11 @@ export function QuestionCardShell({
                 onClick={handleNextQuestion}
                 disabled={focusedQuestion >= questions.length - 1}
               >
-                <HugeiconsIcon icon={ChevronDown} size={12} />
+                <HugeiconsIcon
+                  icon={ChevronDown}
+                  data-icon="chevron-down"
+                  size={12}
+                />
               </IconButton>
             </div>
           ) : undefined

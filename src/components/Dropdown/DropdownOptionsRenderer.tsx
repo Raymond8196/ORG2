@@ -55,6 +55,7 @@ const DropdownOptionsRenderer: React.FC<DropdownOptionsRendererProps> = ({
       <div className={DROPDOWN_CLASSES.listMessage}>
         <HugeiconsIcon
           icon={Loader2}
+          data-icon="loader-2"
           size={DROPDOWN_ITEM.iconSize}
           className="animate-spin"
         />

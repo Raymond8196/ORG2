@@ -272,12 +272,14 @@ const SubMenu: React.FC<SubMenuProps> = ({
         {isOpen ? (
           <HugeiconsIcon
             icon={ChevronDown}
+            data-icon="chevron-down"
             size={16}
             className="menu-submenu-arrow"
           />
         ) : (
           <HugeiconsIcon
             icon={ChevronRight}
+            data-icon="chevron-right"
             size={16}
             className="menu-submenu-arrow"
           />

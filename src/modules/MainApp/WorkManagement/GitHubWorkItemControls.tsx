@@ -52,7 +52,14 @@ export function IssuePersonalFilterDropdown({
       <Button
         htmlType="button"
         variant="secondary"
-        icon={<HugeiconsIcon icon={Funnel} size={13} strokeWidth={1.8} />}
+        icon={
+          <HugeiconsIcon
+            icon={Funnel}
+            data-icon="funnel"
+            size={13}
+            strokeWidth={1.8}
+          />
+        }
         iconOnly
         aria-label={accessibleLabel}
         title={accessibleLabel}
@@ -70,13 +77,23 @@ export function ManagedIssueContextMeta({
     <div className="flex shrink-0 items-center gap-2 text-[11px] text-text-1">
       {issue.linkedPullRequests > 0 ? (
         <span className="flex items-center gap-1">
-          <HugeiconsIcon icon={GitPullRequest} size={12} strokeWidth={1.8} />
+          <HugeiconsIcon
+            icon={GitPullRequest}
+            data-icon="git-pull-request"
+            size={12}
+            strokeWidth={1.8}
+          />
           {issue.linkedPullRequests}
         </span>
       ) : null}
       {issue.comments > 0 ? (
         <span className="flex items-center gap-1">
-          <HugeiconsIcon icon={MessageCircle} size={12} strokeWidth={1.8} />
+          <HugeiconsIcon
+            icon={MessageCircle}
+            data-icon="message-circle"
+            size={12}
+            strokeWidth={1.8}
+          />
           {issue.comments}
         </span>
       ) : null}
@@ -188,7 +205,7 @@ export function ManagedIssueActionsCell({
         variant="tertiary"
         appearance="ghost"
         size="mini"
-        icon={<HugeiconsIcon icon={Link2} size={12} />}
+        icon={<HugeiconsIcon icon={Link2} data-icon="link-2" size={12} />}
         onClick={() => onAddIssue(issue)}
         aria-label={`${addLabel} #${issue.id}`}
       >
@@ -208,7 +225,13 @@ export function ManagedIssueActionsCell({
           variant="tertiary"
           appearance="ghost"
           size="mini"
-          icon={<HugeiconsIcon icon={MoreHorizontal} size={13} />}
+          icon={
+            <HugeiconsIcon
+              icon={MoreHorizontal}
+              data-icon="more-horizontal"
+              size={13}
+            />
+          }
           iconOnly
           aria-label={moreActionsLabel}
           aria-expanded={menuVisible}
@@ -234,7 +257,7 @@ export function ManagedPrActionsCell({
         variant="tertiary"
         appearance="ghost"
         size="mini"
-        icon={<HugeiconsIcon icon={Link2} size={12} />}
+        icon={<HugeiconsIcon icon={Link2} data-icon="link-2" size={12} />}
         onClick={() => onAddPr(pr)}
         aria-label={`${addLabel} #${pr.id}`}
       >

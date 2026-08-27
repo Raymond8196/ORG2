@@ -63,12 +63,16 @@ describe("TeamInboxDetailLayout header actions", () => {
           markReadLabel: "Mark read",
           markUnreadLabel: "Mark unread",
           openLabel: "Open work item",
-          openIcon: createElement(SquareArrowOutUpRight, {
+          openIcon: createElement(HugeiconsIcon, {
+            icon: SquareArrowOutUpRight,
             "aria-hidden": true,
           }),
           headerAuxiliaryAction: {
             label: "Open in browser",
-            icon: createElement(Globe, { "aria-hidden": true }),
+            icon: createElement(HugeiconsIcon, {
+              icon: Globe,
+              "aria-hidden": true,
+            }),
             onClick: onOpenInBrowser,
           },
           openPlacement: "header",
@@ -142,7 +146,8 @@ describe("TeamInboxDetailLayout header actions", () => {
             markReadLabel: "Mark read",
             markUnreadLabel: "Mark unread",
             openLabel: "Open work item",
-            openIcon: createElement(SquareArrowOutUpRight, {
+            openIcon: createElement(HugeiconsIcon, {
+              icon: SquareArrowOutUpRight,
               "aria-hidden": true,
             }),
             openPlacement: "header",

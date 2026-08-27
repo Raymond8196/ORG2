@@ -149,9 +149,9 @@ function OrgShareSection({
                 variant="primary"
                 icon={
                   model.createdLinkCopied ? (
-                    <HugeiconsIcon icon={Check} size={12} />
+                    <HugeiconsIcon icon={Check} data-icon="check" size={12} />
                   ) : (
-                    <HugeiconsIcon icon={Copy} size={12} />
+                    <HugeiconsIcon icon={Copy} data-icon="copy" size={12} />
                   )
                 }
                 onClick={() => void model.handleCopyCreatedLink()}

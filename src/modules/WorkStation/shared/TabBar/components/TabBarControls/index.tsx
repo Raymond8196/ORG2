@@ -51,7 +51,12 @@ export const TabBarControls: React.FC<TabBarControlsProps> = ({
           shortcutId={onNewTabShortcutId}
           onClick={onNewTab}
         >
-          <HugeiconsIcon icon={Plus} size={18} strokeWidth={2} />
+          <HugeiconsIcon
+            icon={Plus}
+            data-icon="plus"
+            size={18}
+            strokeWidth={2}
+          />
         </TabBarTrailingIconButton>
       )}
 
@@ -63,6 +68,7 @@ export const TabBarControls: React.FC<TabBarControlsProps> = ({
         >
           <HugeiconsIcon
             icon={MoreHorizontal}
+            data-icon="more-horizontal"
             size={HEADER_ICON_SIZE.md}
             strokeWidth={1.75}
           />

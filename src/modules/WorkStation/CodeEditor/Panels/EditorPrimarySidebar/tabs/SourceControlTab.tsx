@@ -9,6 +9,7 @@
  * Contains SourceControlContent component that encapsulates useSourceControlState hook.
  * This hook only runs when the Source Control tab is first visited (lazy mounting).
  */
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -247,7 +248,12 @@ export function useSourceControlTabConfig({
     () => ({
       key: "source-control",
       label: t("tabs.sourceControl"),
-      icon: <SourceControlIcon size={PANEL_CONSTANTS.TAB_ICON_SIZE} />,
+      icon: (
+        <HugeiconsIcon
+          icon={SourceControlIcon}
+          size={PANEL_CONSTANTS.TAB_ICON_SIZE}
+        />
+      ),
       sections: [
         {
           key: "source-control",

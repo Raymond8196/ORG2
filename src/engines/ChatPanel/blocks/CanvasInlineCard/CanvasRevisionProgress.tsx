@@ -49,9 +49,15 @@ const CanvasRevisionProgress: React.FC<CanvasRevisionProgressProps> = ({
       ].join(" ")}
     >
       <span className="relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-2 text-primary-6">
-        <HugeiconsIcon icon={PenTool} size={13} aria-hidden />
+        <HugeiconsIcon
+          icon={PenTool}
+          data-icon="pen-tool"
+          size={13}
+          aria-hidden
+        />
         <HugeiconsIcon
           icon={LoaderCircle}
+          data-icon="loader-circle"
           size={27}
           aria-hidden
           className="absolute inset-0 animate-spin motion-reduce:animate-none"

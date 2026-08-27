@@ -83,7 +83,14 @@ const ExternalImportTable: React.FC<ExternalImportTableProps> = ({
         <Placeholder
           variant="empty"
           placement="detail-panel"
-          icon={<HugeiconsIcon icon={Inbox} size={32} aria-hidden />}
+          icon={
+            <HugeiconsIcon
+              icon={Inbox}
+              data-icon="inbox"
+              size={32}
+              aria-hidden
+            />
+          }
           title={labels.emptyTitle}
           subtitle={labels.emptySubtitle}
           action={labels.emptyAction}

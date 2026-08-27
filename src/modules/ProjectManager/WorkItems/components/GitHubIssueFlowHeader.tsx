@@ -35,9 +35,19 @@ export function GitHubIssueFlowHeader({
           }`}
         >
           {isOpen ? (
-            <HugeiconsIcon icon={CircleDot} size={10} aria-hidden />
+            <HugeiconsIcon
+              icon={CircleDot}
+              data-icon="circle-dot"
+              size={10}
+              aria-hidden
+            />
           ) : (
-            <HugeiconsIcon icon={CheckCircle2} size={10} aria-hidden />
+            <HugeiconsIcon
+              icon={CheckCircle2}
+              data-icon="check-circle-2"
+              size={10}
+              aria-hidden
+            />
           )}
           {isOpen
             ? t("git.issues.status.open", "Open")

@@ -146,6 +146,7 @@ export default function BuilderTypeDetailModal({
           icon={
             <HugeiconsIcon
               icon={ChevronLeft}
+              data-icon="chevron-left"
               size={PANEL_HEADER_TOKENS.buttonIconSize}
               strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
             />
@@ -163,6 +164,7 @@ export default function BuilderTypeDetailModal({
           icon={
             <HugeiconsIcon
               icon={ChevronRight}
+              data-icon="chevron-right"
               size={PANEL_HEADER_TOKENS.buttonIconSize}
               strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
             />

@@ -268,7 +268,13 @@ const StorageSection: React.FC = () => {
             <div className="ml-auto inline-flex items-center gap-2 whitespace-nowrap">
               <Button
                 onClick={() => handleRevealOrOpen(cat)}
-                icon={<HugeiconsIcon icon={FolderOpen} size={14} />}
+                icon={
+                  <HugeiconsIcon
+                    icon={FolderOpen}
+                    data-icon="folder-open"
+                    size={14}
+                  />
+                }
                 iconOnly
                 title={
                   cat.is_folder ? t("storage.openFolder") : t("storage.reveal")
@@ -279,6 +285,7 @@ const StorageSection: React.FC = () => {
                 icon={
                   <HugeiconsIcon
                     icon={Trash2}
+                    data-icon="trash-2"
                     size={14}
                     className="text-danger-6"
                   />
@@ -418,7 +425,7 @@ const StorageSection: React.FC = () => {
           <Button
             variant="secondary"
             size="default"
-            icon={<HugeiconsIcon icon={Trash2} size={14} />}
+            icon={<HugeiconsIcon icon={Trash2} data-icon="trash-2" size={14} />}
             loading={isCleaningBrowserStorage}
             disabled={browserStorageUsage.cleanableBytes === 0}
             onClick={handleCleanBrowserStorage}
@@ -456,6 +463,7 @@ const StorageSection: React.FC = () => {
             <div className="flex items-center gap-2 py-2">
               <HugeiconsIcon
                 icon={RefreshCw}
+                data-icon="refresh-cw"
                 size={12}
                 className={`${REFRESH_ICON_TOKENS.spin} text-text-3`}
               />

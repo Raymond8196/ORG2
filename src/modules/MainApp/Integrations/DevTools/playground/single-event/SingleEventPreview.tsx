@@ -518,6 +518,7 @@ export function SingleEventPreview({ mode, onModeChange }: ModeControlProps) {
                 prefix={
                   <HugeiconsIcon
                     icon={Search}
+                    data-icon="search"
                     size={14}
                     className="text-text-3"
                   />

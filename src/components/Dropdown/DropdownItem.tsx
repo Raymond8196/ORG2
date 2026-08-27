@@ -235,6 +235,7 @@ const DropdownItemInner = forwardRef<HTMLDivElement, DropdownItemProps>(
             {showCheckmark && selected && selectedCheckPlacement === "icon" ? (
               <HugeiconsIcon
                 icon={Check}
+                data-icon="check"
                 size={DROPDOWN_ITEM.iconSize}
                 strokeWidth={2.25}
                 className="shrink-0 text-primary-6"

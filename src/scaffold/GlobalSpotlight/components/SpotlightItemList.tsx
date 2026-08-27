@@ -265,6 +265,7 @@ export const SpotlightItemList: React.FC<SpotlightItemListProps> = ({
           <div className="flex items-center justify-center gap-1 py-3">
             <HugeiconsIcon
               icon={ChevronDown}
+              data-icon="chevron-down"
               className="text-text-4"
               size={14}
             />
@@ -326,7 +327,12 @@ export const SpotlightItemList: React.FC<SpotlightItemListProps> = ({
 
       {hasMore && !isLoadingMore && (
         <div className="flex items-center justify-center gap-1 py-3">
-          <HugeiconsIcon icon={ChevronDown} className="text-text-4" size={14} />
+          <HugeiconsIcon
+            icon={ChevronDown}
+            data-icon="chevron-down"
+            className="text-text-4"
+            size={14}
+          />
           <span className="text-[11px] text-text-4">
             {t("placeholders.scrollForMore")}
           </span>

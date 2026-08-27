@@ -39,6 +39,7 @@ export const RateLimitHintEvent: React.FC<RateLimitHintEventProps> = (
   const icon = (
     <HugeiconsIcon
       icon={AlertTriangle}
+      data-icon="alert-triangle"
       size={SESSION_UI_TOKENS.ICON.SIZE_SM}
       className="text-warning-6"
     />

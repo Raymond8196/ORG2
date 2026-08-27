@@ -337,7 +337,12 @@ const WindowsTopBarComponent: React.FC = () => {
           aria-label={t("windowChrome.controls.minimizeWindow")}
           title={t("windowChrome.items.minimize")}
         >
-          <HugeiconsIcon icon={Minus} size={ICON_SIZE} strokeWidth={2} />
+          <HugeiconsIcon
+            icon={Minus}
+            data-icon="minus"
+            size={ICON_SIZE}
+            strokeWidth={2}
+          />
         </button>
         <button
           type="button"
@@ -346,7 +351,12 @@ const WindowsTopBarComponent: React.FC = () => {
           aria-label={t("windowChrome.controls.maximizeRestoreWindow")}
           title={t("windowChrome.items.maximizeRestore")}
         >
-          <HugeiconsIcon icon={Square} size={12} strokeWidth={2} />
+          <HugeiconsIcon
+            icon={Square}
+            data-icon="square"
+            size={12}
+            strokeWidth={2}
+          />
         </button>
         <button
           type="button"
@@ -355,7 +365,12 @@ const WindowsTopBarComponent: React.FC = () => {
           aria-label={t("windowChrome.controls.closeWindow")}
           title={t("windowChrome.items.closeWindow")}
         >
-          <HugeiconsIcon icon={X} size={ICON_SIZE} strokeWidth={2} />
+          <HugeiconsIcon
+            icon={X}
+            data-icon="x"
+            size={ICON_SIZE}
+            strokeWidth={2}
+          />
         </button>
       </div>
     </div>

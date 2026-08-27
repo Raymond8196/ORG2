@@ -63,7 +63,12 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({ card }) => {
           />
         )}
         {!showFavicon && (
-          <HugeiconsIcon icon={Globe} size={18} className="text-text-4" />
+          <HugeiconsIcon
+            icon={Globe}
+            data-icon="globe"
+            size={18}
+            className="text-text-4"
+          />
         )}
       </div>
 
@@ -87,6 +92,7 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({ card }) => {
       >
         <HugeiconsIcon
           icon={Chromium}
+          data-icon="chromium"
           size={14}
           strokeWidth={1.75}
           aria-hidden

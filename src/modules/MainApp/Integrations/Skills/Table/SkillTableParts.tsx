@@ -41,16 +41,34 @@ function renderSourceIcon<TSkill extends SkillTableRow>(
   const className = "shrink-0 text-text-3";
   if (skill.source === SKILL_SOURCE.EMBEDDED_BUILTIN) {
     return (
-      <HugeiconsIcon icon={Home} size={14} className={className} aria-hidden />
+      <HugeiconsIcon
+        icon={Home}
+        data-icon="home"
+        size={14}
+        className={className}
+        aria-hidden
+      />
     );
   }
   if (isRepoSkill(skill, cursorRepos)) {
     return (
-      <HugeiconsIcon icon={Code2} size={14} className={className} aria-hidden />
+      <HugeiconsIcon
+        icon={Code2}
+        data-icon="code-2"
+        size={14}
+        className={className}
+        aria-hidden
+      />
     );
   }
   return (
-    <HugeiconsIcon icon={User} size={14} className={className} aria-hidden />
+    <HugeiconsIcon
+      icon={User}
+      data-icon="user"
+      size={14}
+      className={className}
+      aria-hidden
+    />
   );
 }
 

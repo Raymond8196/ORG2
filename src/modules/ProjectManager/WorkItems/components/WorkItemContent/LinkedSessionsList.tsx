@@ -134,7 +134,11 @@ export const LinkedSessionsList: React.FC<LinkedSessionsListProps> = ({
               })}
               data-testid={`work-item-session-retry-${session.session_id}`}
             >
-              <HugeiconsIcon icon={RotateCcw} size={12} />
+              <HugeiconsIcon
+                icon={RotateCcw}
+                data-icon="rotate-ccw"
+                size={12}
+              />
               {t("workItems.sessions.retry", { defaultValue: "Retry" })}
             </button>
           ) : undefined,

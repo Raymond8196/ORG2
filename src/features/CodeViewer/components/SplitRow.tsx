@@ -90,11 +90,21 @@ export const SplitRow = React.memo<SplitRowProps>(
 
     const oldIcon =
       oldType === "remove" ? (
-        <HugeiconsIcon icon={Minus} size={12} strokeWidth={2.5} />
+        <HugeiconsIcon
+          icon={Minus}
+          data-icon="minus"
+          size={12}
+          strokeWidth={2.5}
+        />
       ) : null;
     const newIcon =
       newType === "add" ? (
-        <HugeiconsIcon icon={Plus} size={12} strokeWidth={2.5} />
+        <HugeiconsIcon
+          icon={Plus}
+          data-icon="plus"
+          size={12}
+          strokeWidth={2.5}
+        />
       ) : null;
 
     const hasChange = oldType === "remove" || newType === "add";
@@ -173,12 +183,22 @@ export const SplitRow = React.memo<SplitRowProps>(
                 }}
               >
                 {isRangeStart && rangeFullySelected && (
-                  <HugeiconsIcon icon={Check} size={14} strokeWidth={2.5} />
+                  <HugeiconsIcon
+                    icon={Check}
+                    data-icon="check"
+                    size={14}
+                    strokeWidth={2.5}
+                  />
                 )}
                 {isRangeStart &&
                   rangePartiallySelected &&
                   !rangeFullySelected && (
-                    <HugeiconsIcon icon={Minus} size={14} strokeWidth={2.5} />
+                    <HugeiconsIcon
+                      icon={Minus}
+                      data-icon="minus"
+                      size={14}
+                      strokeWidth={2.5}
+                    />
                   )}
               </div>
 

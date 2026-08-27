@@ -118,6 +118,7 @@ const GanttSidebar: React.FC<GanttSidebarProps> = ({
                     <span className="mr-2 flex h-4 w-4 shrink-0 items-center justify-center text-text-3">
                       <HugeiconsIcon
                         icon={GitCommitHorizontal}
+                        data-icon="git-commit-horizontal"
                         size={13}
                         strokeWidth={1.75}
                       />

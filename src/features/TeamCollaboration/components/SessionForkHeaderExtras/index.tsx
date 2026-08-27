@@ -134,7 +134,12 @@ const SessionForkHeaderExtras: React.FC<SessionForkHeaderExtrasProps> = ({
               pill
               bordered
               icon={
-                <HugeiconsIcon icon={GitFork} size={10} strokeWidth={1.75} />
+                <HugeiconsIcon
+                  icon={GitFork}
+                  data-icon="git-fork"
+                  size={10}
+                  strokeWidth={1.75}
+                />
               }
               className="h-[20px] max-w-[140px]"
             >
@@ -160,7 +165,14 @@ const SessionForkHeaderExtras: React.FC<SessionForkHeaderExtrasProps> = ({
               onClick={() => void handleFork()}
               aria-label={forkLabel}
               data-testid="session-fork-button"
-              icon={<HugeiconsIcon icon={GitFork} size={14} strokeWidth={2} />}
+              icon={
+                <HugeiconsIcon
+                  icon={GitFork}
+                  data-icon="git-fork"
+                  size={14}
+                  strokeWidth={2}
+                />
+              }
             />
           </span>
         </Tooltip>

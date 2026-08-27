@@ -116,7 +116,7 @@ describe("WorkManagementTable", () => {
     expect(markup.indexOf('placeholder="Search"')).toBeLessThan(
       markup.indexOf("Actions")
     );
-    expect(markup).not.toContain("lucide-eraser");
+    expect(markup).not.toContain('data-icon="eraser"');
   });
 
   it("renders the complete title and lets the title column fill available width", () => {
@@ -176,12 +176,15 @@ describe("WorkManagementTable", () => {
             statusSelect: {
               value: "open",
               label: "Open",
-              icon: createElement(CircleDot, { size: 14 }),
+              icon: createElement(HugeiconsIcon, { icon: CircleDot, size: 14 }),
               options: [
                 {
                   value: "open",
                   label: "Open",
-                  icon: createElement(CircleDot, { size: 14 }),
+                  icon: createElement(HugeiconsIcon, {
+                    icon: CircleDot,
+                    size: 14,
+                  }),
                 },
               ],
               onChange: () => undefined,
@@ -201,7 +204,7 @@ describe("WorkManagementTable", () => {
     expect(markup).toContain(
       'class="inline-flex min-w-0 max-w-full items-center gap-1"'
     );
-    expect(markup).toContain("lucide-chevron-down");
+    expect(markup).toContain('data-icon="chevron-down"');
   });
 
   it("uses SettingsTable client pagination to bound rendered work-item rows", () => {

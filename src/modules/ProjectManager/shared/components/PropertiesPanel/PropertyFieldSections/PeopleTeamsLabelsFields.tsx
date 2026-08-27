@@ -98,7 +98,11 @@ const PeopleTeamsLabelsFields: React.FC<PeopleTeamsLabelsFieldsProps> = ({
                 {project.lead.name.charAt(0).toUpperCase()}
               </Avatar>
             ) : (
-              <HugeiconsIcon icon={User} size={DROPDOWN_ITEM.iconSize} />
+              <HugeiconsIcon
+                icon={User}
+                data-icon="user"
+                size={DROPDOWN_ITEM.iconSize}
+              />
             )
           }
           label={showLabels ? t("properties.lead") : undefined}
@@ -129,6 +133,7 @@ const PeopleTeamsLabelsFields: React.FC<PeopleTeamsLabelsFieldsProps> = ({
                       icon={
                         <HugeiconsIcon
                           icon={User}
+                          data-icon="user"
                           size={DROPDOWN_ITEM.iconSize}
                         />
                       }
@@ -176,7 +181,13 @@ const PeopleTeamsLabelsFields: React.FC<PeopleTeamsLabelsFieldsProps> = ({
         }
       >
         <FieldRow
-          icon={<HugeiconsIcon icon={Users} size={DROPDOWN_ITEM.iconSize} />}
+          icon={
+            <HugeiconsIcon
+              icon={Users}
+              data-icon="users"
+              size={DROPDOWN_ITEM.iconSize}
+            />
+          }
           label={showLabels ? t("properties.members") : undefined}
           value={
             project.members && project.members.length > 0
@@ -245,7 +256,13 @@ const PeopleTeamsLabelsFields: React.FC<PeopleTeamsLabelsFieldsProps> = ({
         }
       >
         <FieldRow
-          icon={<HugeiconsIcon icon={Plane} size={DROPDOWN_ITEM.iconSize} />}
+          icon={
+            <HugeiconsIcon
+              icon={Plane}
+              data-icon="plane"
+              size={DROPDOWN_ITEM.iconSize}
+            />
+          }
           label={showLabels ? t("properties.teams") : undefined}
           value={
             project.teams && project.teams.length > 0
@@ -289,6 +306,7 @@ const PeopleTeamsLabelsFields: React.FC<PeopleTeamsLabelsFieldsProps> = ({
                   >
                     <HugeiconsIcon
                       icon={Plane}
+                      data-icon="plane"
                       size={DROPDOWN_ITEM.iconSize}
                       style={{ color: team.color }}
                     />
@@ -312,7 +330,13 @@ const PeopleTeamsLabelsFields: React.FC<PeopleTeamsLabelsFieldsProps> = ({
         }
       >
         <FieldRow
-          icon={<HugeiconsIcon icon={Tag} size={DROPDOWN_ITEM.iconSize} />}
+          icon={
+            <HugeiconsIcon
+              icon={Tag}
+              data-icon="tag"
+              size={DROPDOWN_ITEM.iconSize}
+            />
+          }
           label={showLabels ? t("properties.labels") : undefined}
           value={
             project.labels && project.labels.length > 0
@@ -372,7 +396,13 @@ const PeopleTeamsLabelsFields: React.FC<PeopleTeamsLabelsFieldsProps> = ({
           }
         >
           <FieldRow
-            icon={<HugeiconsIcon icon={Code2} size={DROPDOWN_ITEM.iconSize} />}
+            icon={
+              <HugeiconsIcon
+                icon={Code2}
+                data-icon="code-2"
+                size={DROPDOWN_ITEM.iconSize}
+              />
+            }
             label={showLabels ? t("properties.repos") : undefined}
             value={linkedRepoLabel}
             isSelected={linkedRepoCount > 0}
@@ -415,6 +445,7 @@ const PeopleTeamsLabelsFields: React.FC<PeopleTeamsLabelsFieldsProps> = ({
                     >
                       <HugeiconsIcon
                         icon={Code2}
+                        data-icon="code-2"
                         size={DROPDOWN_ITEM.iconSize}
                         className="text-text-3"
                       />

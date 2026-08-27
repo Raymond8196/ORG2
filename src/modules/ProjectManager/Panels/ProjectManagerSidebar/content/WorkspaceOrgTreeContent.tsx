@@ -59,6 +59,7 @@ export const WorkspaceOrgTreeContent: React.FC<WorkspaceOrgTreeContentProps> =
               icon: (
                 <HugeiconsIcon
                   icon={ListChecks}
+                  data-icon="list-checks"
                   size={ROW_ICON_SIZE}
                   strokeWidth={ROW_ICON_STROKE}
                 />
@@ -76,6 +77,7 @@ export const WorkspaceOrgTreeContent: React.FC<WorkspaceOrgTreeContentProps> =
               icon: (
                 <HugeiconsIcon
                   icon={Box}
+                  data-icon="box"
                   size={ROW_ICON_SIZE}
                   strokeWidth={ROW_ICON_STROKE}
                 />
@@ -93,6 +95,7 @@ export const WorkspaceOrgTreeContent: React.FC<WorkspaceOrgTreeContentProps> =
               icon: (
                 <HugeiconsIcon
                   icon={Layers}
+                  data-icon="layers"
                   size={ROW_ICON_SIZE}
                   strokeWidth={ROW_ICON_STROKE}
                 />
@@ -111,6 +114,7 @@ export const WorkspaceOrgTreeContent: React.FC<WorkspaceOrgTreeContentProps> =
               icon: (
                 <HugeiconsIcon
                   icon={MoreHorizontal}
+                  data-icon="more-horizontal"
                   size={ROW_ICON_SIZE}
                   strokeWidth={ROW_ICON_STROKE}
                 />

@@ -176,21 +176,49 @@ function getStackGroupPresentation(events: SessionEvent[]): {
   const iconCls = "text-text-2";
   if (hasSearch && !hasBrowser && !hasFetch)
     return {
-      icon: <HugeiconsIcon icon={Globe} size={14} className={iconCls} />,
+      icon: (
+        <HugeiconsIcon
+          icon={Globe}
+          data-icon="globe"
+          size={14}
+          className={iconCls}
+        />
+      ),
       label: i18next.t("sessions:chat.webSearchGroup"),
     };
   if (hasFetch && !hasBrowser && !hasSearch)
     return {
-      icon: <HugeiconsIcon icon={FileSymlink} size={14} className={iconCls} />,
+      icon: (
+        <HugeiconsIcon
+          icon={FileSymlink}
+          data-icon="file-symlink"
+          size={14}
+          className={iconCls}
+        />
+      ),
       label: i18next.t("sessions:chat.webFetchGroup"),
     };
   if (hasBrowser && !hasSearch && !hasFetch)
     return {
-      icon: <HugeiconsIcon icon={Chrome} size={14} className={iconCls} />,
+      icon: (
+        <HugeiconsIcon
+          icon={Chrome}
+          data-icon="chrome"
+          size={14}
+          className={iconCls}
+        />
+      ),
       label: i18next.t("sessions:chat.browserGroup"),
     };
   return {
-    icon: <HugeiconsIcon icon={Globe} size={14} className={iconCls} />,
+    icon: (
+      <HugeiconsIcon
+        icon={Globe}
+        data-icon="globe"
+        size={14}
+        className={iconCls}
+      />
+    ),
     label: i18next.t("sessions:chat.webActivityGroup"),
   };
 }

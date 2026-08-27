@@ -219,6 +219,7 @@ export const NavigationMenuParentRow = React.forwardRef<
               isOpen ? (
                 <HugeiconsIcon
                   icon={ChevronsDownUp}
+                  data-icon="chevrons-down-up"
                   size={12}
                   strokeWidth={2}
                   className="shrink-0 text-text-2"
@@ -226,6 +227,7 @@ export const NavigationMenuParentRow = React.forwardRef<
               ) : (
                 <HugeiconsIcon
                   icon={ChevronsUpDown}
+                  data-icon="chevrons-up-down"
                   size={12}
                   strokeWidth={2}
                   className="shrink-0 text-text-2"
@@ -543,6 +545,7 @@ function renderLeafRowAccessory({
           {item.showDrillDownIndicator && (
             <HugeiconsIcon
               icon={ChevronRight}
+              data-icon="chevron-right"
               size={12}
               strokeWidth={2}
               className={

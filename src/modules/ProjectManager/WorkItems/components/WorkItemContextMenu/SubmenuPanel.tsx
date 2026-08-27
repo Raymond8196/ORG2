@@ -82,6 +82,7 @@ export const SubmenuPanel: React.FC<SubmenuPanelProps> = ({
             {hasNested ? (
               <HugeiconsIcon
                 icon={ChevronRight}
+                data-icon="chevron-right"
                 size={DROPDOWN_ITEM.iconSize}
                 className="work-item-context-menu__arrow"
               />

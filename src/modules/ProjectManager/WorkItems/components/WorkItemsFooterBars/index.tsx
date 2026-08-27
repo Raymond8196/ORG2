@@ -53,7 +53,7 @@ export const MultiSelectBar: React.FC<MultiSelectBarProps> = ({
       size="small"
       variant="danger"
       appearance="outline"
-      icon={<HugeiconsIcon icon={Trash2} size={14} />}
+      icon={<HugeiconsIcon icon={Trash2} data-icon="trash-2" size={14} />}
       disabled={deleting}
       loading={deleting}
       onClick={onDelete}
@@ -87,7 +87,7 @@ export const MultiSelectBar: React.FC<MultiSelectBarProps> = ({
       primaryAction={{
         label: t("workItems.deleteItems", { count: selectedCount }),
         onClick: onDelete,
-        icon: <HugeiconsIcon icon={Trash2} size={14} />,
+        icon: <HugeiconsIcon icon={Trash2} data-icon="trash-2" size={14} />,
         variant: "danger",
         appearance: "outline",
         disabled: deleting,

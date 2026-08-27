@@ -65,6 +65,7 @@ export const MergeChangesSection: React.FC<MergeChangesSectionProps> = memo(
           icon={
             <HugeiconsIcon
               icon={AlertTriangle}
+              data-icon="alert-triangle"
               size={14}
               className="text-warning-6"
             />
@@ -83,6 +84,7 @@ export const MergeChangesSection: React.FC<MergeChangesSectionProps> = memo(
               >
                 <HugeiconsIcon
                   icon={Check}
+                  data-icon="check"
                   size={14}
                   strokeWidth={1.75}
                   className="text-success-6"

@@ -66,6 +66,7 @@ const NonEmbeddedUrlNotice: React.FC<{ url: string }> = ({ url }) => {
       <div className="flex max-w-sm flex-col items-center gap-3 text-center">
         <HugeiconsIcon
           icon={Layout}
+          data-icon="layout"
           size={24}
           strokeWidth={1.5}
           className="text-text-4"
@@ -85,7 +86,13 @@ const NonEmbeddedUrlNotice: React.FC<{ url: string }> = ({ url }) => {
           variant="secondary"
           size="small"
           onClick={() => window.open(url, "_blank", "noopener,noreferrer")}
-          icon={<HugeiconsIcon icon={SquareArrowOutUpRight} size={14} />}
+          icon={
+            <HugeiconsIcon
+              icon={SquareArrowOutUpRight}
+              data-icon="square-arrow-out-up-right"
+              size={14}
+            />
+          }
         >
           {t("canvasCard.openExternal", "Open in Browser")}
         </Button>

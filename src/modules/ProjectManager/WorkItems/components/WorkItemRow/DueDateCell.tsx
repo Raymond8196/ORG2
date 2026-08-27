@@ -61,7 +61,12 @@ export function DueDateCell({
         if (canEdit) toggle();
       }}
     >
-      <HugeiconsIcon icon={Calendar} size={14} strokeWidth={1.75} />
+      <HugeiconsIcon
+        icon={Calendar}
+        data-icon="calendar"
+        size={14}
+        strokeWidth={1.75}
+      />
     </button>
   ) : (
     <button

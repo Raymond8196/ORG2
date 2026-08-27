@@ -74,6 +74,7 @@ interface ProjectSidebarTreeContentProps {
 const ORG_ROW_ICON = (
   <HugeiconsIcon
     icon={Network}
+    data-icon="network"
     size={ROW_ICON_SIZE}
     strokeWidth={ROW_ICON_STROKE}
   />
@@ -86,6 +87,7 @@ const LINEAR_ORG_ROW_ICON = (
 const IMPORT_ORGS_ROW_ICON = (
   <HugeiconsIcon
     icon={Import}
+    data-icon="import"
     size={ROW_ICON_SIZE}
     strokeWidth={ROW_ICON_STROKE}
   />
@@ -349,6 +351,7 @@ export const OrgSidebarTreeContent: React.FC<ProjectSidebarTreeContentProps> =
                   >
                     <HugeiconsIcon
                       icon={GitBranch}
+                      data-icon="git-branch"
                       size={10}
                       strokeWidth={1.8}
                     />

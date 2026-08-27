@@ -104,7 +104,13 @@ const DiaryDateControls: React.FC<DiaryDateControlsProps> = ({
         variant="tertiary"
         size="small"
         iconOnly
-        icon={<HugeiconsIcon icon={ChevronLeft} size={14} />}
+        icon={
+          <HugeiconsIcon
+            icon={ChevronLeft}
+            data-icon="chevron-left"
+            size={14}
+          />
+        }
         onClick={handlePrevious}
         title={t("kanban.diary.previousDay")}
       />
@@ -125,7 +131,13 @@ const DiaryDateControls: React.FC<DiaryDateControlsProps> = ({
         variant="tertiary"
         size="small"
         iconOnly
-        icon={<HugeiconsIcon icon={ChevronRight} size={14} />}
+        icon={
+          <HugeiconsIcon
+            icon={ChevronRight}
+            data-icon="chevron-right"
+            size={14}
+          />
+        }
         onClick={handleNext}
         title={t("kanban.diary.nextDay")}
       />

@@ -66,12 +66,14 @@ export const SourceControlStickyHeader: React.FC<
           {node.expanded ? (
             <HugeiconsIcon
               icon={ChevronDown}
+              data-icon="chevron-down"
               size={CHEVRON_SIZE}
               className={STICKY_ROW.chevronIcon}
             />
           ) : (
             <HugeiconsIcon
               icon={ChevronRight}
+              data-icon="chevron-right"
               size={CHEVRON_SIZE}
               className={STICKY_ROW.chevronIcon}
             />
@@ -110,12 +112,14 @@ export const SourceControlStickyHeader: React.FC<
         {isExpanded ? (
           <HugeiconsIcon
             icon={ChevronDown}
+            data-icon="chevron-down"
             size={CHEVRON_SIZE}
             className={STICKY_ROW.chevronIcon}
           />
         ) : (
           <HugeiconsIcon
             icon={ChevronRight}
+            data-icon="chevron-right"
             size={CHEVRON_SIZE}
             className={STICKY_ROW.chevronIcon}
           />

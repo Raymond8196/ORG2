@@ -31,6 +31,7 @@ export const ReferenceCard: React.FC<ReferenceCardProps> = ({
     <div className="flex min-w-0 flex-1 flex-col gap-2">{children}</div>
     <HugeiconsIcon
       icon={ChevronRight}
+      data-icon="chevron-right"
       size={14}
       className="shrink-0 text-text-3"
       aria-hidden

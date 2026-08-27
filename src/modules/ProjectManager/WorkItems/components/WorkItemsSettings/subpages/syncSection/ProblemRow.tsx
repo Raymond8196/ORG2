@@ -46,29 +46,46 @@ const EntityIcon: React.FC<{ entityType: EntityType }> = ({ entityType }) => {
       return (
         <HugeiconsIcon
           icon={FileText}
+          data-icon="file-text"
           size={16}
           className={ENTITY_ICON_CLASS}
         />
       );
     case "label":
       return (
-        <HugeiconsIcon icon={Tag} size={16} className={ENTITY_ICON_CLASS} />
+        <HugeiconsIcon
+          icon={Tag}
+          data-icon="tag"
+          size={16}
+          className={ENTITY_ICON_CLASS}
+        />
       );
     case "milestone":
       return (
         <HugeiconsIcon
           icon={MilestoneIcon}
+          data-icon="milestone-icon"
           size={16}
           className={ENTITY_ICON_CLASS}
         />
       );
     case "member":
       return (
-        <HugeiconsIcon icon={User} size={16} className={ENTITY_ICON_CLASS} />
+        <HugeiconsIcon
+          icon={User}
+          data-icon="user"
+          size={16}
+          className={ENTITY_ICON_CLASS}
+        />
       );
     case "project":
       return (
-        <HugeiconsIcon icon={Folder} size={16} className={ENTITY_ICON_CLASS} />
+        <HugeiconsIcon
+          icon={Folder}
+          data-icon="folder"
+          size={16}
+          className={ENTITY_ICON_CLASS}
+        />
       );
   }
 };
@@ -277,9 +294,17 @@ const ProblemRow: React.FC<ProblemRowProps> = ({
         className="flex items-center gap-1 self-start text-[12px] text-text-3 hover:text-text-2"
       >
         {showPayload ? (
-          <HugeiconsIcon icon={ChevronDown} size={12} />
+          <HugeiconsIcon
+            icon={ChevronDown}
+            data-icon="chevron-down"
+            size={12}
+          />
         ) : (
-          <HugeiconsIcon icon={ChevronRight} size={12} />
+          <HugeiconsIcon
+            icon={ChevronRight}
+            data-icon="chevron-right"
+            size={12}
+          />
         )}
         <span>
           {showPayload

@@ -57,6 +57,7 @@ const TaskDetailHeaderActions: React.FC<TaskDetailHeaderActionsProps> = ({
         icon={
           <HugeiconsIcon
             icon={Play}
+            data-icon="play"
             size={14}
             fill="currentColor"
             strokeWidth={0}
@@ -79,7 +80,12 @@ const TaskDetailHeaderActions: React.FC<TaskDetailHeaderActionsProps> = ({
             title={mergeButtonTitle}
             aria-label={mergeButtonTitle}
             icon={
-              <HugeiconsIcon icon={GitMerge} size={14} strokeWidth={1.75} />
+              <HugeiconsIcon
+                icon={GitMerge}
+                data-icon="git-merge"
+                size={14}
+                strokeWidth={1.75}
+              />
             }
           />
           <Button
@@ -91,7 +97,12 @@ const TaskDetailHeaderActions: React.FC<TaskDetailHeaderActionsProps> = ({
             title={t("kanban.merge.strategyLabel")}
             aria-label={t("kanban.merge.strategyLabel")}
             icon={
-              <HugeiconsIcon icon={ChevronDown} size={14} strokeWidth={1.75} />
+              <HugeiconsIcon
+                icon={ChevronDown}
+                data-icon="chevron-down"
+                size={14}
+                strokeWidth={1.75}
+              />
             }
           />
           {strategyOpen && (
@@ -121,7 +132,14 @@ const TaskDetailHeaderActions: React.FC<TaskDetailHeaderActionsProps> = ({
           disabled={mergeLoading || discardLoading}
           title={t("common:actions.delete")}
           aria-label={t("common:actions.delete")}
-          icon={<HugeiconsIcon icon={Trash2} size={14} strokeWidth={1.75} />}
+          icon={
+            <HugeiconsIcon
+              icon={Trash2}
+              data-icon="trash-2"
+              size={14}
+              strokeWidth={1.75}
+            />
+          }
         />
       </>
     )}

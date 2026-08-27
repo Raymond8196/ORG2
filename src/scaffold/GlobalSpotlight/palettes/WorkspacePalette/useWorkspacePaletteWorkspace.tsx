@@ -362,7 +362,7 @@ export function useWorkspacePaletteWorkspace({
           title={`${repoCount} repo${repoCount !== 1 ? "s" : ""}: ${names.join(", ")}`}
         >
           {repoCount}
-          <HugeiconsIcon icon={Code} size={12} />
+          <HugeiconsIcon icon={Code} data-icon="code" size={12} />
         </span>
       );
       const manageActions = (

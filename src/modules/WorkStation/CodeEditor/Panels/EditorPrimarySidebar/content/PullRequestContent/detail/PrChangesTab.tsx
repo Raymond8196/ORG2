@@ -241,6 +241,7 @@ export const PrChangesTab: React.FC<PrChangesTabProps> = ({
           >
             <HugeiconsIcon
               icon={ChevronRight}
+              data-icon="chevron-right"
               size={14}
               className="text-text-3"
             />

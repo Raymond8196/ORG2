@@ -175,14 +175,22 @@ function ModifierKey({
 
   switch (modifier) {
     case "cmd":
-      return <HugeiconsIcon icon={Command} {...iconProps} />;
+      return (
+        <HugeiconsIcon icon={Command} data-icon="command" {...iconProps} />
+      );
     case "shift":
-      return <HugeiconsIcon icon={ArrowBigUp} {...iconProps} />;
+      return (
+        <HugeiconsIcon
+          icon={ArrowBigUp}
+          data-icon="arrow-big-up"
+          {...iconProps}
+        />
+      );
     case "option":
-      return <HugeiconsIcon icon={Option} {...iconProps} />;
+      return <HugeiconsIcon icon={Option} data-icon="option" {...iconProps} />;
     case "ctrl":
       return IS_MAC ? (
-        <HugeiconsIcon icon={ChevronUp} {...iconProps} />
+        <HugeiconsIcon icon={ChevronUp} data-icon="chevron-up" {...iconProps} />
       ) : (
         <span>Ctrl</span>
       );
@@ -200,13 +208,23 @@ function SpecialKey({
 
   switch (special) {
     case "arrowUp":
-      return <HugeiconsIcon icon={ArrowUp} {...iconProps} />;
+      return (
+        <HugeiconsIcon icon={ArrowUp} data-icon="arrow-up" {...iconProps} />
+      );
     case "arrowDown":
-      return <HugeiconsIcon icon={ArrowDown} {...iconProps} />;
+      return (
+        <HugeiconsIcon icon={ArrowDown} data-icon="arrow-down" {...iconProps} />
+      );
     case "enter":
-      return <HugeiconsIcon icon={CornerDownLeft} {...iconProps} />;
+      return (
+        <HugeiconsIcon
+          icon={CornerDownLeft}
+          data-icon="corner-down-left"
+          {...iconProps}
+        />
+      );
     case "backspace":
-      return <HugeiconsIcon icon={Delete} {...iconProps} />;
+      return <HugeiconsIcon icon={Delete} data-icon="delete" {...iconProps} />;
     case "esc":
       return <span className="leading-none">esc</span>;
     case "tab":

@@ -74,6 +74,7 @@ function TaskDetailRows({ card }: { card: TaskUpdateCardData }) {
       >
         <HugeiconsIcon
           icon={CircleDot}
+          data-icon="circle-dot"
           size={11}
           strokeWidth={1.75}
           className="shrink-0 text-text-3"
@@ -89,6 +90,7 @@ function TaskDetailRows({ card }: { card: TaskUpdateCardData }) {
         >
           <HugeiconsIcon
             icon={CircleDot}
+            data-icon="circle-dot"
             size={11}
             strokeWidth={1.75}
             className="shrink-0 text-text-3"
@@ -105,6 +107,7 @@ function TaskDetailRows({ card }: { card: TaskUpdateCardData }) {
         >
           <HugeiconsIcon
             icon={ListChecks}
+            data-icon="list-checks"
             size={11}
             strokeWidth={1.75}
             className="shrink-0 text-text-3"
@@ -121,6 +124,7 @@ function TaskDetailRows({ card }: { card: TaskUpdateCardData }) {
         >
           <HugeiconsIcon
             icon={GitBranch}
+            data-icon="git-branch"
             size={11}
             strokeWidth={1.75}
             className="shrink-0 text-text-3"
@@ -137,6 +141,7 @@ function TaskDetailRows({ card }: { card: TaskUpdateCardData }) {
         >
           <HugeiconsIcon
             icon={GitBranch}
+            data-icon="git-branch"
             size={11}
             strokeWidth={1.75}
             className="shrink-0 text-text-3"
@@ -175,7 +180,12 @@ function TaskStatusBadges({ card }: { card: TaskUpdateCardData }) {
           className="inline-flex shrink-0 items-center gap-1 text-[10px] text-success-6"
           data-testid="org-task-card-assigned"
         >
-          <HugeiconsIcon icon={CheckCircle2} size={10} /> assigned
+          <HugeiconsIcon
+            icon={CheckCircle2}
+            data-icon="check-circle-2"
+            size={10}
+          />{" "}
+          assigned
         </span>
       )}
     </span>
@@ -241,6 +251,7 @@ function getListRowStatusIcon(status?: string): React.ReactNode {
     return (
       <HugeiconsIcon
         icon={CheckCircle2}
+        data-icon="check-circle-2"
         size={13}
         strokeWidth={2}
         className="shrink-0 text-success-6"
@@ -251,6 +262,7 @@ function getListRowStatusIcon(status?: string): React.ReactNode {
     return (
       <HugeiconsIcon
         icon={PlayCircle}
+        data-icon="play-circle"
         size={13}
         strokeWidth={2}
         className="shrink-0 text-primary-6"
@@ -261,6 +273,7 @@ function getListRowStatusIcon(status?: string): React.ReactNode {
     return (
       <HugeiconsIcon
         icon={CircleDot}
+        data-icon="circle-dot"
         size={13}
         strokeWidth={2}
         className="shrink-0 text-text-3"

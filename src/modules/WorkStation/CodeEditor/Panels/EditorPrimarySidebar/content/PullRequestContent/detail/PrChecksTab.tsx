@@ -29,6 +29,7 @@ function StateIcon({ state }: { state: CiCheckState }): React.ReactNode {
       return (
         <HugeiconsIcon
           icon={CheckCircle2}
+          data-icon="check-circle-2"
           size={15}
           strokeWidth={1.9}
           className="text-success-6"
@@ -38,6 +39,7 @@ function StateIcon({ state }: { state: CiCheckState }): React.ReactNode {
       return (
         <HugeiconsIcon
           icon={XCircle}
+          data-icon="xcircle"
           size={15}
           strokeWidth={1.9}
           className="text-danger-6"
@@ -47,6 +49,7 @@ function StateIcon({ state }: { state: CiCheckState }): React.ReactNode {
       return (
         <HugeiconsIcon
           icon={Loader}
+          data-icon="loader"
           size={15}
           strokeWidth={1.9}
           className="animate-spin text-warning-6"
@@ -56,6 +59,7 @@ function StateIcon({ state }: { state: CiCheckState }): React.ReactNode {
       return (
         <HugeiconsIcon
           icon={CircleSlash}
+          data-icon="circle-slash"
           size={15}
           strokeWidth={1.9}
           className="text-text-3"
@@ -108,6 +112,7 @@ function CheckRow({
         >
           <HugeiconsIcon
             icon={SquareArrowOutUpRight}
+            data-icon="square-arrow-out-up-right"
             size={13}
             strokeWidth={1.9}
           />

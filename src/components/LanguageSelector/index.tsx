@@ -122,7 +122,7 @@ export function LanguageSelector({
       appearance={appearance}
       prefix={
         showIcon ? (
-          <HugeiconsIcon icon={Globe} className="h-4 w-4" />
+          <HugeiconsIcon icon={Globe} data-icon="globe" className="h-4 w-4" />
         ) : undefined
       }
       className={className}

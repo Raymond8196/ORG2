@@ -245,7 +245,9 @@ const NotificationsAdvancedBlocks: React.FC = () => {
                 </div>
                 <Button
                   size="default"
-                  icon={<HugeiconsIcon icon={Play} size={14} />}
+                  icon={
+                    <HugeiconsIcon icon={Play} data-icon="play" size={14} />
+                  }
                   onClick={() => void handlePreviewSound(soundPreset)}
                   disabled={soundVolume === 0}
                 >

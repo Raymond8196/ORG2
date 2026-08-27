@@ -121,30 +121,60 @@ function defaultIconForKind(
     case "explore":
     case "web_search":
       return (
-        <HugeiconsIcon icon={Search} size={ICON_SIZE} className={iconClass} />
+        <HugeiconsIcon
+          icon={Search}
+          data-icon="search"
+          size={ICON_SIZE}
+          className={iconClass}
+        />
       );
     case "terminal":
       return (
-        <HugeiconsIcon icon={Terminal} size={ICON_SIZE} className={iconClass} />
+        <HugeiconsIcon
+          icon={Terminal}
+          data-icon="terminal"
+          size={ICON_SIZE}
+          className={iconClass}
+        />
       );
     case "tool":
       return (
-        <HugeiconsIcon icon={Wrench} size={ICON_SIZE} className={iconClass} />
+        <HugeiconsIcon
+          icon={Wrench}
+          data-icon="wrench"
+          size={ICON_SIZE}
+          className={iconClass}
+        />
       );
     case "browser":
     case "internal_browser":
       return (
-        <HugeiconsIcon icon={Globe} size={ICON_SIZE} className={iconClass} />
+        <HugeiconsIcon
+          icon={Globe}
+          data-icon="globe"
+          size={ICON_SIZE}
+          className={iconClass}
+        />
       );
     case "web_fetch":
       return (
-        <HugeiconsIcon icon={FileText} size={ICON_SIZE} className={iconClass} />
+        <HugeiconsIcon
+          icon={FileText}
+          data-icon="file-text"
+          size={ICON_SIZE}
+          className={iconClass}
+        />
       );
     default:
       // Generic text-document glyph for unknown kinds — callers are expected
       // to supply `icon` in this case, so this is just a safety net.
       return (
-        <HugeiconsIcon icon={FileText} size={ICON_SIZE} className={iconClass} />
+        <HugeiconsIcon
+          icon={FileText}
+          data-icon="file-text"
+          size={ICON_SIZE}
+          className={iconClass}
+        />
       );
   }
 }

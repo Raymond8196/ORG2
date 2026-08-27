@@ -23,7 +23,7 @@ export function QuestionCardLoadingShell() {
     <div className={COMPOSER_CARD_SHELL_CLASSES}>
       <div className="flex h-8 items-center gap-1.5 px-2.5">
         <div className="flex h-[14px] w-[14px] shrink-0 items-center justify-center text-primary-6">
-          <HugeiconsIcon icon={CircleHelp} size={14} />
+          <HugeiconsIcon icon={CircleHelp} data-icon="circle-help" size={14} />
         </div>
         <span
           className={`min-w-0 truncate text-[13px] font-bold ${EVENT_LOADING_SHIMMER_TEXT_CLASSES}`}

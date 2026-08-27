@@ -112,6 +112,7 @@ export const ToolPanel: React.FC<ToolPanelProps> = memo(
         toolIcon || (
           <HugeiconsIcon
             icon={Wrench}
+            data-icon="wrench"
             size={14}
             className="shrink-0 text-text-2"
           />

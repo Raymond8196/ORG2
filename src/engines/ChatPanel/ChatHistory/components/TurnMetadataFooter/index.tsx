@@ -296,6 +296,7 @@ const TurnMetadataFooter: React.FC<TurnMetadataFooterProps> = memo(
                   >
                     <HugeiconsIcon
                       icon={GitCommitHorizontal}
+                      data-icon="git-commit-horizontal"
                       {...ARTIFACT_ICON_PROPS}
                     />
                     <span className="chat-block-title min-w-0 flex-1 truncate text-text-2">
@@ -321,6 +322,7 @@ const TurnMetadataFooter: React.FC<TurnMetadataFooterProps> = memo(
                   >
                     <HugeiconsIcon
                       icon={GitPullRequest}
+                      data-icon="git-pull-request"
                       {...ARTIFACT_ICON_PROPS}
                     />
                     <span className="chat-block-title min-w-0 flex-1 truncate text-text-2">
@@ -328,6 +330,7 @@ const TurnMetadataFooter: React.FC<TurnMetadataFooterProps> = memo(
                     </span>
                     <HugeiconsIcon
                       icon={Chromium}
+                      data-icon="chromium"
                       size={14}
                       strokeWidth={1.75}
                       className="shrink-0 text-text-3"
@@ -390,6 +393,7 @@ const TurnMetadataFooter: React.FC<TurnMetadataFooterProps> = memo(
                 >
                   <HugeiconsIcon
                     icon={MoreHorizontal}
+                    data-icon="more-horizontal"
                     size={16}
                     className="shrink-0"
                   />

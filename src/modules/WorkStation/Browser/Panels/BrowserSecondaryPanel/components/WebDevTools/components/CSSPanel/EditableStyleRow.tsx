@@ -137,11 +137,17 @@ export const EditableStyleRow: React.FC<EditableStyleRowProps> = memo(
               copied ? (
                 <HugeiconsIcon
                   icon={Check}
+                  data-icon="check"
                   size={10}
                   className="text-success-6"
                 />
               ) : (
-                <HugeiconsIcon icon={Copy} size={10} className="text-text-3" />
+                <HugeiconsIcon
+                  icon={Copy}
+                  data-icon="copy"
+                  size={10}
+                  className="text-text-3"
+                />
               )
             }
             iconOnly

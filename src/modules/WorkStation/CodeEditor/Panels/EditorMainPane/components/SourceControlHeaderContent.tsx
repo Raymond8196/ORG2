@@ -115,6 +115,7 @@ export const SourceControlHeaderContent: React.FC<
           >
             <HugeiconsIcon
               icon={CircleDot}
+              data-icon="circle-dot"
               size={HEADER_ICON_SIZE.sm}
               strokeWidth={2}
             />
@@ -174,6 +175,7 @@ export const SourceControlHeaderContent: React.FC<
               icon={
                 <HugeiconsIcon
                   icon={SquareArrowOutUpRight}
+                  data-icon="square-arrow-out-up-right"
                   size={HEADER_ICON_SIZE.sm}
                 />
               }
@@ -194,6 +196,7 @@ export const SourceControlHeaderContent: React.FC<
               icon={
                 <HugeiconsIcon
                   icon={ArrowLeft}
+                  data-icon="arrow-left"
                   size={HEADER_ICON_SIZE.sm}
                   strokeWidth={1.75}
                 />
@@ -211,6 +214,7 @@ export const SourceControlHeaderContent: React.FC<
               icon={
                 <HugeiconsIcon
                   icon={ArrowRight}
+                  data-icon="arrow-right"
                   size={HEADER_ICON_SIZE.sm}
                   strokeWidth={1.75}
                 />
@@ -249,6 +253,7 @@ export const SourceControlHeaderContent: React.FC<
               icon={
                 <HugeiconsIcon
                   icon={ListChevronsDownUp}
+                  data-icon="list-chevrons-down-up"
                   size={HEADER_ICON_SIZE.md}
                 />
               }
@@ -267,6 +272,7 @@ export const SourceControlHeaderContent: React.FC<
           icon={
             <HugeiconsIcon
               icon={RefreshCw}
+              data-icon="refresh-cw"
               size={HEADER_ICON_SIZE.sm}
               className={sourceControlRefreshSpinClass}
             />

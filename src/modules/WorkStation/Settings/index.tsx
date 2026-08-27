@@ -33,7 +33,12 @@ const EditorSettings: React.FC = () => {
       <FileHeader
         filePath={t("navigation:labels.settings")}
         headerIcon={
-          <HugeiconsIcon icon={Settings} size={14} strokeWidth={1.75} />
+          <HugeiconsIcon
+            icon={Settings}
+            data-icon="settings"
+            size={14}
+            strokeWidth={1.75}
+          />
         }
         useFileTypeIcon={false}
         disableNavigation

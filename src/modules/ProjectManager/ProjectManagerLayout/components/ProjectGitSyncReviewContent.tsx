@@ -144,6 +144,7 @@ export const ProjectGitSyncReviewContent: React.FC<
         <div className="flex min-w-0 items-center gap-2">
           <HugeiconsIcon
             icon={AlertTriangle}
+            data-icon="alert-triangle"
             size={16}
             className="shrink-0 text-warning-6"
           />
@@ -162,6 +163,7 @@ export const ProjectGitSyncReviewContent: React.FC<
         >
           <HugeiconsIcon
             icon={RefreshCw}
+            data-icon="refresh-cw"
             size={14}
             className={syncing ? "animate-spin" : ""}
           />
@@ -214,7 +216,7 @@ export const ProjectGitSyncReviewContent: React.FC<
                   loading={saving}
                   onClick={() => void handleSaveResolved()}
                 >
-                  <HugeiconsIcon icon={Check} size={14} />
+                  <HugeiconsIcon icon={Check} data-icon="check" size={14} />
                   {t("gitSyncReview.saveResolved")}
                 </Button>
               </div>

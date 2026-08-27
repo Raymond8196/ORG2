@@ -38,5 +38,12 @@ export const BucketIcon: React.FC<BucketIconProps> = ({
   if (provider) {
     return <ModelIcon provider={provider} size={size} className={className} />;
   }
-  return <HugeiconsIcon icon={Boxes} size={size} className={className} />;
+  return (
+    <HugeiconsIcon
+      icon={Boxes}
+      data-icon="boxes"
+      size={size}
+      className={className}
+    />
+  );
 };

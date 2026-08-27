@@ -314,7 +314,11 @@ const ProjectPropertyFields: React.FC<ProjectPropertyFieldsProps> = ({
           >
             <FieldRow
               icon={
-                <HugeiconsIcon icon={Calendar} size={DROPDOWN_ITEM.iconSize} />
+                <HugeiconsIcon
+                  icon={Calendar}
+                  data-icon="calendar"
+                  size={DROPDOWN_ITEM.iconSize}
+                />
               }
               label={showLabels ? t("properties.startDate") : undefined}
               value={formatDate(project.startDate)}
@@ -345,7 +349,11 @@ const ProjectPropertyFields: React.FC<ProjectPropertyFieldsProps> = ({
           >
             <FieldRow
               icon={
-                <HugeiconsIcon icon={Calendar} size={DROPDOWN_ITEM.iconSize} />
+                <HugeiconsIcon
+                  icon={Calendar}
+                  data-icon="calendar"
+                  size={DROPDOWN_ITEM.iconSize}
+                />
               }
               label={showLabels ? t("properties.targetDate") : undefined}
               value={formatDate(project.targetDate)}
@@ -387,6 +395,7 @@ const ProjectPropertyFields: React.FC<ProjectPropertyFieldsProps> = ({
                   >
                     <HugeiconsIcon
                       icon={Circle}
+                      data-icon="circle"
                       size={DROPDOWN_ITEM.iconSize}
                     />
                   </span>
@@ -408,6 +417,7 @@ const ProjectPropertyFields: React.FC<ProjectPropertyFieldsProps> = ({
             icon={
               <HugeiconsIcon
                 icon={ListChevronsUpDown}
+                data-icon="list-chevrons-up-down"
                 size={DROPDOWN_ITEM.iconSize}
               />
             }

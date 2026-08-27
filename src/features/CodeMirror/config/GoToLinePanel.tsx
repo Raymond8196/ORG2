@@ -67,7 +67,11 @@ const GoToLinePanel: React.FC<GoToLinePanelProps> = ({ view, onClose }) => {
       onKeyDown={handleKeyDown}
     >
       <div className="flex items-center justify-center self-center px-3 text-text-3">
-        <HugeiconsIcon icon={Hash} size={HEADER_ICON_SIZE.sm} />
+        <HugeiconsIcon
+          icon={Hash}
+          data-icon="hash"
+          size={HEADER_ICON_SIZE.sm}
+        />
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col gap-1.5 py-1.5">
@@ -99,7 +103,7 @@ const GoToLinePanel: React.FC<GoToLinePanelProps> = ({ view, onClose }) => {
             className={HEADER_BUTTON.action}
             title={t("tooltips.closeEsc")}
           >
-            <HugeiconsIcon icon={X} size={HEADER_ICON_SIZE.sm} />
+            <HugeiconsIcon icon={X} data-icon="x" size={HEADER_ICON_SIZE.sm} />
           </button>
         </div>
       </div>

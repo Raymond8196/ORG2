@@ -78,6 +78,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   const chevronIcon = isOpen ? (
     <HugeiconsIcon
       icon={ChevronDown}
+      data-icon="chevron-down"
       size={chevronSize}
       strokeWidth={chevronStrokeWidth}
       className={chevronClass}
@@ -85,6 +86,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   ) : (
     <HugeiconsIcon
       icon={ChevronRight}
+      data-icon="chevron-right"
       size={chevronSize}
       strokeWidth={chevronStrokeWidth}
       className={chevronClass}

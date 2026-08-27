@@ -550,6 +550,7 @@ export const ProjectWorkItemsTabContent: React.FC<
         identityIcon={
           <HugeiconsIcon
             icon={ListTodo}
+            data-icon="list-todo"
             size={HEADER_ICON_SIZE.sm}
             strokeWidth={1.75}
           />

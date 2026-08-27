@@ -68,7 +68,13 @@ const StatusHealthPriorityFields: React.FC<StatusHealthPriorityFieldsProps> = ({
         }
       >
         <FieldRow
-          icon={<HugeiconsIcon icon={Circle} size={DROPDOWN_ITEM.iconSize} />}
+          icon={
+            <HugeiconsIcon
+              icon={Circle}
+              data-icon="circle"
+              size={DROPDOWN_ITEM.iconSize}
+            />
+          }
           iconColor={currentStatus?.color}
           label={showLabels ? t("properties.status") : undefined}
           value={
@@ -99,6 +105,7 @@ const StatusHealthPriorityFields: React.FC<StatusHealthPriorityFieldsProps> = ({
                   icon={
                     <HugeiconsIcon
                       icon={Circle}
+                      data-icon="circle"
                       size={DROPDOWN_ITEM.iconSize}
                     />
                   }
@@ -124,7 +131,13 @@ const StatusHealthPriorityFields: React.FC<StatusHealthPriorityFieldsProps> = ({
         }
       >
         <FieldRow
-          icon={<HugeiconsIcon icon={Circle} size={DROPDOWN_ITEM.iconSize} />}
+          icon={
+            <HugeiconsIcon
+              icon={Circle}
+              data-icon="circle"
+              size={DROPDOWN_ITEM.iconSize}
+            />
+          }
           iconColor={currentHealth?.color}
           label={showLabels ? t("properties.health") : undefined}
           value={
@@ -157,6 +170,7 @@ const StatusHealthPriorityFields: React.FC<StatusHealthPriorityFieldsProps> = ({
                   icon={
                     <HugeiconsIcon
                       icon={Circle}
+                      data-icon="circle"
                       size={DROPDOWN_ITEM.iconSize}
                     />
                   }
@@ -182,7 +196,13 @@ const StatusHealthPriorityFields: React.FC<StatusHealthPriorityFieldsProps> = ({
         }
       >
         <FieldRow
-          icon={<HugeiconsIcon icon={Flag} size={DROPDOWN_ITEM.iconSize} />}
+          icon={
+            <HugeiconsIcon
+              icon={Flag}
+              data-icon="flag"
+              size={DROPDOWN_ITEM.iconSize}
+            />
+          }
           iconColor={currentPriority?.color}
           label={showLabels ? t("properties.priority") : undefined}
           value={

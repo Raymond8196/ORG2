@@ -55,7 +55,14 @@ export const LayoutButtons: React.FC<LayoutButtonsProps> = memo(
           return {
             key: option.value,
             label: option.label,
-            icon: <Icon size={14} strokeWidth={1.75} className="shrink-0" />,
+            icon: (
+              <HugeiconsIcon
+                icon={Icon}
+                size={14}
+                strokeWidth={1.75}
+                className="shrink-0"
+              />
+            ),
             disabled,
           };
         }),

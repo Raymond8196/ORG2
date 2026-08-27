@@ -201,7 +201,13 @@ export const FileHeaderMoreMenu: React.FC<FileHeaderMoreMenuProps> = ({
           className={`${DROPDOWN_CLASSES.menuPanelBase} ${DROPDOWN_WIDTHS.wideMenuClass}`}
         >
           <DropdownItem
-            icon={<HugeiconsIcon icon={Save} size={HEADER_ICON_SIZE.sm} />}
+            icon={
+              <HugeiconsIcon
+                icon={Save}
+                data-icon="save"
+                size={HEADER_ICON_SIZE.sm}
+              />
+            }
             disabled={saveDisabled}
             suffix={
               saveShortcut ? (
@@ -217,7 +223,13 @@ export const FileHeaderMoreMenu: React.FC<FileHeaderMoreMenuProps> = ({
           </DropdownItem>
 
           <DropdownItem
-            icon={<HugeiconsIcon icon={Undo2} size={HEADER_ICON_SIZE.sm} />}
+            icon={
+              <HugeiconsIcon
+                icon={Undo2}
+                data-icon="undo-2"
+                size={HEADER_ICON_SIZE.sm}
+              />
+            }
             disabled={discardDisabled}
             onClick={onDiscardClick}
           >
@@ -227,7 +239,13 @@ export const FileHeaderMoreMenu: React.FC<FileHeaderMoreMenuProps> = ({
           <div className={DROPDOWN_CLASSES.menuSeparatorInset} />
 
           <DropdownItem
-            icon={<HugeiconsIcon icon={Search} size={HEADER_ICON_SIZE.sm} />}
+            icon={
+              <HugeiconsIcon
+                icon={Search}
+                data-icon="search"
+                size={HEADER_ICON_SIZE.sm}
+              />
+            }
             disabled={searchDisabled}
             suffix={
               searchShortcut ? (
@@ -243,7 +261,13 @@ export const FileHeaderMoreMenu: React.FC<FileHeaderMoreMenuProps> = ({
           </DropdownItem>
 
           <DropdownItem
-            icon={<HugeiconsIcon icon={Hash} size={HEADER_ICON_SIZE.sm} />}
+            icon={
+              <HugeiconsIcon
+                icon={Hash}
+                data-icon="hash"
+                size={HEADER_ICON_SIZE.sm}
+              />
+            }
             disabled={goToLineDisabled}
             suffix={
               goToLineShortcut ? (
@@ -259,7 +283,13 @@ export const FileHeaderMoreMenu: React.FC<FileHeaderMoreMenuProps> = ({
           </DropdownItem>
 
           <DropdownItem
-            icon={<HugeiconsIcon icon={Copy} size={HEADER_ICON_SIZE.sm} />}
+            icon={
+              <HugeiconsIcon
+                icon={Copy}
+                data-icon="copy"
+                size={HEADER_ICON_SIZE.sm}
+              />
+            }
             disabled={copyRelativePathDisabled}
             onClick={onCopyRelativePathClick}
           >
@@ -268,7 +298,11 @@ export const FileHeaderMoreMenu: React.FC<FileHeaderMoreMenuProps> = ({
 
           <DropdownItem
             icon={
-              <HugeiconsIcon icon={FolderOpen} size={HEADER_ICON_SIZE.sm} />
+              <HugeiconsIcon
+                icon={FolderOpen}
+                data-icon="folder-open"
+                size={HEADER_ICON_SIZE.sm}
+              />
             }
             disabled={revealInFileManagerDisabled}
             onClick={onRevealInFileManagerClick}
@@ -280,6 +314,7 @@ export const FileHeaderMoreMenu: React.FC<FileHeaderMoreMenuProps> = ({
             icon={
               <HugeiconsIcon
                 icon={RefreshCw}
+                data-icon="refresh-cw"
                 size={HEADER_ICON_SIZE.sm}
                 className={reloadSpinClass}
               />
@@ -330,7 +365,13 @@ export const FileHeaderMoreMenu: React.FC<FileHeaderMoreMenuProps> = ({
           <div className={DROPDOWN_CLASSES.menuSeparatorInset} />
 
           <DropdownItem
-            icon={<HugeiconsIcon icon={Settings} size={HEADER_ICON_SIZE.sm} />}
+            icon={
+              <HugeiconsIcon
+                icon={Settings}
+                data-icon="settings"
+                size={HEADER_ICON_SIZE.sm}
+              />
+            }
             disabled={!showMoreSettingsAction}
             onClick={onMoreSettingsClick}
           >
@@ -361,6 +402,7 @@ export const FileHeaderMoreMenu: React.FC<FileHeaderMoreMenuProps> = ({
           >
             <HugeiconsIcon
               icon={Ellipsis}
+              data-icon="ellipsis"
               size={HEADER_ICON_SIZE.sm}
               strokeWidth={1.75}
             />

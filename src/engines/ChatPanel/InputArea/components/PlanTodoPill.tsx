@@ -37,6 +37,7 @@ const TodoStatusIcon: React.FC<{ status: string; blocked?: boolean }> = ({
       <span className="flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full bg-green-600/80">
         <HugeiconsIcon
           icon={Check}
+          data-icon="check"
           size={8}
           strokeWidth={3}
           className="text-white"
@@ -48,6 +49,7 @@ const TodoStatusIcon: React.FC<{ status: string; blocked?: boolean }> = ({
     return (
       <HugeiconsIcon
         icon={ChevronRight}
+        data-icon="chevron-right"
         size={14}
         strokeWidth={2}
         className="shrink-0 text-primary-6"
@@ -59,6 +61,7 @@ const TodoStatusIcon: React.FC<{ status: string; blocked?: boolean }> = ({
       <span className="flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full border-[1.5px] border-dashed border-text-3/40">
         <HugeiconsIcon
           icon={Lock}
+          data-icon="lock"
           size={6}
           strokeWidth={2.5}
           className="text-text-3/60"
@@ -137,7 +140,14 @@ const PlanTodoPill: React.FC<PlanTodoPillProps> = memo(({ sessionId }) => {
         appearance="outline"
         size="small"
         shape="round"
-        icon={<HugeiconsIcon icon={ListTodo} size={13} strokeWidth={1.75} />}
+        icon={
+          <HugeiconsIcon
+            icon={ListTodo}
+            data-icon="list-todo"
+            size={13}
+            strokeWidth={1.75}
+          />
+        }
         title={`${label} · ${progressLabel}`}
         aria-label={`${label} · ${progressLabel}`}
         aria-expanded={isOpen}
@@ -164,6 +174,7 @@ const PlanTodoPill: React.FC<PlanTodoPillProps> = memo(({ sessionId }) => {
             <DropdownHeader>
               <HugeiconsIcon
                 icon={ListTodo}
+                data-icon="list-todo"
                 size={13}
                 strokeWidth={1.75}
                 className="shrink-0 text-text-2"
@@ -206,7 +217,12 @@ const PlanTodoPill: React.FC<PlanTodoPillProps> = memo(({ sessionId }) => {
                     </span>
                     {blocked && todo.blockedBy && (
                       <span className="mt-0.5 flex shrink-0 items-center gap-0.5 text-[10px] text-text-3/70">
-                        <HugeiconsIcon icon={Lock} size={8} strokeWidth={2} />
+                        <HugeiconsIcon
+                          icon={Lock}
+                          data-icon="lock"
+                          size={8}
+                          strokeWidth={2}
+                        />
                         {todo.blockedBy
                           .map((blockerIndex) => `#${blockerIndex}`)
                           .join(", ")}

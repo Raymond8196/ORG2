@@ -69,7 +69,11 @@ const QuickActionsSection: React.FC<QuickActionsSectionProps> = ({
       {/* Status line */}
       <div className={STATUS_BAR_TOKENS.container}>
         <span className={STATUS_BAR_TOKENS.label}>
-          <STATUS_ICON size={STATUS_ICON_SIZE} className={colorClass} />
+          <HugeiconsIcon
+            icon={STATUS_ICON}
+            size={STATUS_ICON_SIZE}
+            className={colorClass}
+          />
           <span className={STATUS_BAR_TOKENS.labelText}>
             {t("common:common.status")}:
           </span>
@@ -83,7 +87,13 @@ const QuickActionsSection: React.FC<QuickActionsSectionProps> = ({
               variant="primary"
               appearance="outline"
               size="small"
-              icon={<HugeiconsIcon icon={RefreshCw} size={14} />}
+              icon={
+                <HugeiconsIcon
+                  icon={RefreshCw}
+                  data-icon="refresh-cw"
+                  size={14}
+                />
+              }
               onClick={() => handleReconnect()}
               disabled={reconnecting}
               loading={reconnecting}

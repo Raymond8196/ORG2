@@ -36,6 +36,7 @@ export function WorkManagementDatasetSwitch({
         icon: (
           <HugeiconsIcon
             icon={Boxes}
+            data-icon="boxes"
             size={14}
             strokeWidth={1.9}
             aria-hidden="true"
@@ -50,6 +51,7 @@ export function WorkManagementDatasetSwitch({
         icon: (
           <HugeiconsIcon
             icon={ListTodo}
+            data-icon="list-todo"
             size={14}
             strokeWidth={1.9}
             aria-hidden="true"
@@ -64,6 +66,7 @@ export function WorkManagementDatasetSwitch({
         icon: (
           <HugeiconsIcon
             icon={CircleDot}
+            data-icon="circle-dot"
             size={14}
             strokeWidth={1.9}
             aria-hidden="true"
@@ -78,6 +81,7 @@ export function WorkManagementDatasetSwitch({
         icon: (
           <HugeiconsIcon
             icon={GitPullRequest}
+            data-icon="git-pull-request"
             size={14}
             strokeWidth={1.9}
             aria-hidden="true"

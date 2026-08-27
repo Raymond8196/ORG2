@@ -367,7 +367,12 @@ export function useLinearIndexData({
         value: "status",
         label: (
           <span className="flex items-center gap-2 whitespace-nowrap">
-            <HugeiconsIcon icon={Circle} size={13} strokeWidth={1.75} />
+            <HugeiconsIcon
+              icon={Circle}
+              data-icon="circle"
+              size={13}
+              strokeWidth={1.75}
+            />
             <span>{t("projects.groupBy.status")}</span>
           </span>
         ),
@@ -377,7 +382,12 @@ export function useLinearIndexData({
         value: "priority",
         label: (
           <span className="flex items-center gap-2 whitespace-nowrap">
-            <HugeiconsIcon icon={Flag} size={13} strokeWidth={1.75} />
+            <HugeiconsIcon
+              icon={Flag}
+              data-icon="flag"
+              size={13}
+              strokeWidth={1.75}
+            />
             <span>{t("projects.groupBy.priority")}</span>
           </span>
         ),
@@ -387,7 +397,12 @@ export function useLinearIndexData({
         value: "targetDate",
         label: (
           <span className="flex items-center gap-2 whitespace-nowrap">
-            <HugeiconsIcon icon={CalendarClock} size={13} strokeWidth={1.75} />
+            <HugeiconsIcon
+              icon={CalendarClock}
+              data-icon="calendar-clock"
+              size={13}
+              strokeWidth={1.75}
+            />
             <span>{t("projects.groupBy.targetDate")}</span>
           </span>
         ),
@@ -454,7 +469,12 @@ export function useLinearIndexData({
         key: group,
         label: t(`projects.targetDateGroups.${group}`),
         icon: (
-          <HugeiconsIcon icon={CalendarClock} size={14} strokeWidth={1.75} />
+          <HugeiconsIcon
+            icon={CalendarClock}
+            data-icon="calendar-clock"
+            size={14}
+            strokeWidth={1.75}
+          />
         ),
         color: SECTION_BASE_CONFIG.color,
         projects: groups.get(group) ?? [],

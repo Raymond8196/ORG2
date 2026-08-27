@@ -161,6 +161,7 @@ function renderPreferredVersionCell(
             <span className="truncate">{triggerLabel}</span>
             <HugeiconsIcon
               icon={ChevronDown}
+              data-icon="chevron-down"
               size={12}
               className="text-text-3"
             />

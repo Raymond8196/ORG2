@@ -124,7 +124,12 @@ const AgentOrgOverviewPanel: React.FC<AgentOrgOverviewPanelProps> = memo(
 
     const badges = error ? (
       <span className="text-error-6 ml-1 inline-flex items-center gap-1 text-[13px] font-medium">
-        <HugeiconsIcon icon={XCircle} size={11} strokeWidth={2} />
+        <HugeiconsIcon
+          icon={XCircle}
+          data-icon="xcircle"
+          size={11}
+          strokeWidth={2}
+        />
         {t("planner.agentOrgOverview.loadFailed")}
       </span>
     ) : (
@@ -138,6 +143,7 @@ const AgentOrgOverviewPanel: React.FC<AgentOrgOverviewPanelProps> = memo(
             {view?.runPhase === AGENT_ORG_RUN_PHASE.FINALIZING && (
               <HugeiconsIcon
                 icon={RefreshCw}
+                data-icon="refresh-cw"
                 size={9}
                 strokeWidth={2}
                 className="mr-1 inline-block animate-spin motion-reduce:animate-none"
@@ -168,6 +174,7 @@ const AgentOrgOverviewPanel: React.FC<AgentOrgOverviewPanelProps> = memo(
           icon={
             <HugeiconsIcon
               icon={Network}
+              data-icon="network"
               size={13}
               strokeWidth={1.75}
               className="text-text-3"
@@ -191,7 +198,12 @@ const AgentOrgOverviewPanel: React.FC<AgentOrgOverviewPanelProps> = memo(
                   onClick={handleNavigateToCoordinator}
                   data-testid="agent-org-overview-coordinator-history-button"
                   icon={
-                    <HugeiconsIcon icon={History} size={11} strokeWidth={2} />
+                    <HugeiconsIcon
+                      icon={History}
+                      data-icon="history"
+                      size={11}
+                      strokeWidth={2}
+                    />
                   }
                 />
               )}
@@ -207,7 +219,12 @@ const AgentOrgOverviewPanel: React.FC<AgentOrgOverviewPanelProps> = memo(
                   onClick={handlePauseRun}
                   data-testid="agent-org-overview-pause-button"
                   icon={
-                    <HugeiconsIcon icon={Pause} size={11} strokeWidth={2} />
+                    <HugeiconsIcon
+                      icon={Pause}
+                      data-icon="pause"
+                      size={11}
+                      strokeWidth={2}
+                    />
                   }
                 />
               )}
@@ -222,7 +239,14 @@ const AgentOrgOverviewPanel: React.FC<AgentOrgOverviewPanelProps> = memo(
                   title={t("planner.agentOrgOverview.resumeRun")}
                   onClick={handleResumeRun}
                   data-testid="agent-org-overview-resume-button"
-                  icon={<HugeiconsIcon icon={Play} size={11} strokeWidth={2} />}
+                  icon={
+                    <HugeiconsIcon
+                      icon={Play}
+                      data-icon="play"
+                      size={11}
+                      strokeWidth={2}
+                    />
+                  }
                 />
               )}
               <Button
@@ -237,6 +261,7 @@ const AgentOrgOverviewPanel: React.FC<AgentOrgOverviewPanelProps> = memo(
                 icon={
                   <HugeiconsIcon
                     icon={RefreshCw}
+                    data-icon="refresh-cw"
                     size={12}
                     strokeWidth={2}
                     className={spinClass}
@@ -257,6 +282,7 @@ const AgentOrgOverviewPanel: React.FC<AgentOrgOverviewPanelProps> = memo(
                 <div className="flex items-center gap-1 text-text-2">
                   <HugeiconsIcon
                     icon={CheckCircle2}
+                    data-icon="check-circle-2"
                     size={11}
                     strokeWidth={2}
                   />
@@ -271,7 +297,12 @@ const AgentOrgOverviewPanel: React.FC<AgentOrgOverviewPanelProps> = memo(
               </div>
               <div className="rounded-md bg-bg-1 px-2 py-1.5">
                 <div className="flex items-center gap-1 text-text-2">
-                  <HugeiconsIcon icon={UserRound} size={11} strokeWidth={2} />
+                  <HugeiconsIcon
+                    icon={UserRound}
+                    data-icon="user-round"
+                    size={11}
+                    strokeWidth={2}
+                  />
                   {t("planner.agentOrgOverview.members")}
                 </div>
                 <div className="mt-0.5 font-medium text-text-1">
@@ -283,7 +314,12 @@ const AgentOrgOverviewPanel: React.FC<AgentOrgOverviewPanelProps> = memo(
               </div>
               <div className="rounded-md bg-bg-1 px-2 py-1.5">
                 <div className="flex items-center gap-1 text-text-2">
-                  <HugeiconsIcon icon={Inbox} size={11} strokeWidth={2} />
+                  <HugeiconsIcon
+                    icon={Inbox}
+                    data-icon="inbox"
+                    size={11}
+                    strokeWidth={2}
+                  />
                   {t("planner.agentOrgOverview.inbox")}
                 </div>
                 <div className="mt-0.5 font-medium text-text-1">
@@ -321,6 +357,7 @@ const AgentOrgOverviewPanel: React.FC<AgentOrgOverviewPanelProps> = memo(
                 <div className="mb-1 flex items-center gap-1 px-1 text-[11px] font-medium text-text-2">
                   <HugeiconsIcon
                     icon={CheckCircle2}
+                    data-icon="check-circle-2"
                     size={11}
                     strokeWidth={2}
                   />
@@ -339,6 +376,7 @@ const AgentOrgOverviewPanel: React.FC<AgentOrgOverviewPanelProps> = memo(
                     icon={
                       <HugeiconsIcon
                         icon={RefreshCw}
+                        data-icon="refresh-cw"
                         size={10}
                         strokeWidth={2}
                         className={spinClass}

@@ -47,7 +47,7 @@ const EditModeImageThumbnail: React.FC<{
             aria-label={`Remove ${alt}`}
             data-testid="edit-mode-image-remove"
           >
-            <HugeiconsIcon icon={X} size={10} strokeWidth={2.5} />
+            <HugeiconsIcon icon={X} data-icon="x" size={10} strokeWidth={2.5} />
           </button>
         )}
       </div>

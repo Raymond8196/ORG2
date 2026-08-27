@@ -158,6 +158,7 @@ export function TableBody<T>({
                 <>
                   <HugeiconsIcon
                     icon={Inbox}
+                    data-icon="inbox"
                     size={48}
                     className="opacity-40"
                   />
@@ -234,12 +235,14 @@ export function TableBody<T>({
                         {isExpanded ? (
                           <HugeiconsIcon
                             icon={ChevronsDownUp}
+                            data-icon="chevrons-down-up"
                             size={14}
                             className="shrink-0"
                           />
                         ) : (
                           <HugeiconsIcon
                             icon={ChevronsUpDown}
+                            data-icon="chevrons-up-down"
                             size={14}
                             className="shrink-0"
                           />

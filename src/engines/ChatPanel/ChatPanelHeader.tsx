@@ -176,12 +176,14 @@ export function ChatPanelHeader({
                   tuiMode ? (
                     <HugeiconsIcon
                       icon={MonitorPlay}
+                      data-icon="monitor-play"
                       size={CHAT_PANEL_HEADER_ICON_SIZE}
                       strokeWidth={2}
                     />
                   ) : (
                     <HugeiconsIcon
                       icon={TerminalSquare}
+                      data-icon="terminal-square"
                       size={CHAT_PANEL_HEADER_ICON_SIZE}
                       strokeWidth={2}
                     />
@@ -275,12 +277,14 @@ export function ChatPanelHeader({
           {isChatFocus ? (
             <HugeiconsIcon
               icon={PanelRight}
+              data-icon="panel-right"
               size={HEADER_ICON_SIZE.md}
               strokeWidth={1.75}
             />
           ) : (
             <HugeiconsIcon
               icon={Maximize2}
+              data-icon="maximize-2"
               size={HEADER_ICON_SIZE.md}
               strokeWidth={1.75}
             />

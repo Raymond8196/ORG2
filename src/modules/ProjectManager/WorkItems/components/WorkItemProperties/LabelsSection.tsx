@@ -81,7 +81,13 @@ export function LabelsSection({
       }
     >
       <FieldRow
-        icon={<HugeiconsIcon icon={Tag} size={DROPDOWN_ITEM.iconSize} />}
+        icon={
+          <HugeiconsIcon
+            icon={Tag}
+            data-icon="tag"
+            size={DROPDOWN_ITEM.iconSize}
+          />
+        }
         value={
           workItem.labels && workItem.labels.length > 0
             ? workItem.labels.map((label) => label.name).join(", ")

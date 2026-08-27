@@ -74,9 +74,19 @@ export function TimelineCopyButton({
     <ActivityHeaderActionButton
       icon={
         copied ? (
-          <HugeiconsIcon icon={Check} size={12} strokeWidth={1.75} />
+          <HugeiconsIcon
+            icon={Check}
+            data-icon="check"
+            size={12}
+            strokeWidth={1.75}
+          />
         ) : (
-          <HugeiconsIcon icon={Copy} size={12} strokeWidth={1.75} />
+          <HugeiconsIcon
+            icon={Copy}
+            data-icon="copy"
+            size={12}
+            strokeWidth={1.75}
+          />
         )
       }
       label={copied ? t("status.copied") : t("actions.copy")}

@@ -75,6 +75,7 @@ const DbClientsPage: React.FC<DbClientsPageProps> = ({
             icon={
               <HugeiconsIcon
                 icon={RefreshCw}
+                data-icon="refresh-cw"
                 size={PANEL_HEADER_TOKENS.buttonIconSize}
                 strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
                 className={refreshSpinClass}

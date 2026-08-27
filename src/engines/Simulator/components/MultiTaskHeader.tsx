@@ -55,7 +55,7 @@ const MultiTaskHeader: React.FC<MultiTaskHeaderProps> = ({
             className={`flex h-6 w-6 items-center justify-center rounded text-text-3 transition-all ${SURFACE_TOKENS.hover} hover:text-text-1`}
             title={t("simulator.multiTask.minimizePanel")}
           >
-            <HugeiconsIcon icon={Minimize2} size={14} />
+            <HugeiconsIcon icon={Minimize2} data-icon="minimize-2" size={14} />
           </button>
         )}
         {onClose && (
@@ -65,7 +65,7 @@ const MultiTaskHeader: React.FC<MultiTaskHeaderProps> = ({
             className={`flex h-6 w-6 items-center justify-center rounded text-text-3 transition-all ${SURFACE_TOKENS.hover} hover:text-text-1`}
             title={t("simulator.multiTask.closePanel")}
           >
-            <HugeiconsIcon icon={X} size={14} />
+            <HugeiconsIcon icon={X} data-icon="x" size={14} />
           </button>
         )}
       </div>

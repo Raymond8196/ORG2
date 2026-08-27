@@ -443,7 +443,12 @@ export default function SessionUsagePanel() {
           title={t("usage.refresh")}
           onClick={handleUsageRefreshClick}
           icon={
-            <HugeiconsIcon icon={RefreshCw} size={14} className={spinClass} />
+            <HugeiconsIcon
+              icon={RefreshCw}
+              data-icon="refresh-cw"
+              size={14}
+              className={spinClass}
+            />
           }
           data-testid="usage-refresh"
         >
@@ -463,7 +468,7 @@ export default function SessionUsagePanel() {
         >
           <span className="text-text-3">{t("usage.roundsTable.session")}:</span>
           <span className="max-w-[260px] truncate">{session.name}</span>
-          <HugeiconsIcon icon={X} size={12} />
+          <HugeiconsIcon icon={X} data-icon="x" size={12} />
         </button>
       )}
 

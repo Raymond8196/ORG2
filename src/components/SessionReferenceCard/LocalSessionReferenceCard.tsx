@@ -130,6 +130,7 @@ const LocalSessionReferenceCard: React.FC<LocalSessionReferenceCardProps> = ({
             icon={
               <HugeiconsIcon
                 icon={Repeat}
+                data-icon="repeat"
                 size={11}
                 strokeWidth={1.75}
                 aria-hidden
@@ -144,6 +145,7 @@ const LocalSessionReferenceCard: React.FC<LocalSessionReferenceCardProps> = ({
             icon={
               <HugeiconsIcon
                 icon={FolderGit2}
+                data-icon="folder-git-2"
                 size={11}
                 strokeWidth={1.75}
                 aria-hidden

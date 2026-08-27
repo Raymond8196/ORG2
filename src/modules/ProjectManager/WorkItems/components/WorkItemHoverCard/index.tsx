@@ -87,7 +87,12 @@ function WorkItemPriorityRow({ priority }: { priority: string }) {
     <HoverCardRow
       icon={
         config.icon ?? (
-          <HugeiconsIcon icon={Flag} size={13} strokeWidth={1.75} />
+          <HugeiconsIcon
+            icon={Flag}
+            data-icon="flag"
+            size={13}
+            strokeWidth={1.75}
+          />
         )
       }
       iconClassName="text-text-3"
@@ -129,7 +134,12 @@ const WorkItemHoverCardContent: React.FC<WorkItemHoverCardContentProps> = memo(
         {workItem.projectName && (
           <HoverCardRow
             icon={
-              <HugeiconsIcon icon={FolderKanban} size={13} strokeWidth={1.75} />
+              <HugeiconsIcon
+                icon={FolderKanban}
+                data-icon="folder-kanban"
+                size={13}
+                strokeWidth={1.75}
+              />
             }
           >
             <div className="truncate text-text-2">{workItem.projectName}</div>
@@ -138,7 +148,12 @@ const WorkItemHoverCardContent: React.FC<WorkItemHoverCardContentProps> = memo(
         {workItem.orgName && (
           <HoverCardRow
             icon={
-              <HugeiconsIcon icon={Building2} size={13} strokeWidth={1.75} />
+              <HugeiconsIcon
+                icon={Building2}
+                data-icon="building-2"
+                size={13}
+                strokeWidth={1.75}
+              />
             }
           >
             <div className="truncate text-text-2">{workItem.orgName}</div>
@@ -146,14 +161,28 @@ const WorkItemHoverCardContent: React.FC<WorkItemHoverCardContentProps> = memo(
         )}
         {workItem.source === "local" && workItem.assignee && (
           <HoverCardRow
-            icon={<HugeiconsIcon icon={User} size={13} strokeWidth={1.75} />}
+            icon={
+              <HugeiconsIcon
+                icon={User}
+                data-icon="user"
+                size={13}
+                strokeWidth={1.75}
+              />
+            }
           >
             <div className="truncate text-text-2">{workItem.assignee.name}</div>
           </HoverCardRow>
         )}
         {labels.length > 0 && (
           <HoverCardRow
-            icon={<HugeiconsIcon icon={Tags} size={13} strokeWidth={1.75} />}
+            icon={
+              <HugeiconsIcon
+                icon={Tags}
+                data-icon="tags"
+                size={13}
+                strokeWidth={1.75}
+              />
+            }
           >
             <div className="truncate text-text-2" title={labelsTitle}>
               {labelsTitle}
@@ -162,7 +191,14 @@ const WorkItemHoverCardContent: React.FC<WorkItemHoverCardContentProps> = memo(
         )}
         {createdLabel && (
           <HoverCardRow
-            icon={<HugeiconsIcon icon={Clock} size={13} strokeWidth={1.75} />}
+            icon={
+              <HugeiconsIcon
+                icon={Clock}
+                data-icon="clock"
+                size={13}
+                strokeWidth={1.75}
+              />
+            }
           >
             <div className="truncate text-text-2" title={createdLabel}>
               <span className="text-text-3">
@@ -178,6 +214,7 @@ const WorkItemHoverCardContent: React.FC<WorkItemHoverCardContentProps> = memo(
             icon={
               <HugeiconsIcon
                 icon={GitCommitVertical}
+                data-icon="git-commit-vertical"
                 size={13}
                 strokeWidth={1.75}
               />

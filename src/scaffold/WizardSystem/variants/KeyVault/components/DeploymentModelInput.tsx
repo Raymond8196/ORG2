@@ -120,7 +120,7 @@ const DeploymentModelInput: React.FC<DeploymentModelInputProps> = ({
                   onClick={() => handleRemove(index)}
                   className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-text-3 transition-colors hover:bg-fill-2 hover:text-danger-6"
                 >
-                  <HugeiconsIcon icon={X} size={12} />
+                  <HugeiconsIcon icon={X} data-icon="x" size={12} />
                 </button>
               </div>
             ))}
@@ -142,7 +142,7 @@ const DeploymentModelInput: React.FC<DeploymentModelInputProps> = ({
             onClick={handleAdd}
             disabled={!draft.trim() || testing}
             loading={testing}
-            icon={<HugeiconsIcon icon={Plus} size={14} />}
+            icon={<HugeiconsIcon icon={Plus} data-icon="plus" size={14} />}
           >
             {t("keyVault.deploymentModels.addModel")}
           </Button>
@@ -163,7 +163,9 @@ const DeploymentModelInput: React.FC<DeploymentModelInputProps> = ({
           onClick={onRevalidate}
           loading={revalidating}
           disabled={revalidating}
-          icon={<HugeiconsIcon icon={RefreshCw} size={14} />}
+          icon={
+            <HugeiconsIcon icon={RefreshCw} data-icon="refresh-cw" size={14} />
+          }
         >
           {t("keyVault.revalidate")}
         </Button>

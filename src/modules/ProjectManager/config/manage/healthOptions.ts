@@ -30,25 +30,37 @@ export const HEALTH_OPTIONS: HealthOption[] = [
   {
     value: "on_track",
     label: "On Track",
-    icon: React.createElement(CheckCircle2, { size: DROPDOWN_ITEM.iconSize }),
+    icon: React.createElement(HugeiconsIcon, {
+      icon: CheckCircle2,
+      size: DROPDOWN_ITEM.iconSize,
+    }),
     color: HEALTH_COLORS.on_track,
   },
   {
     value: "at_risk",
     label: "At Risk",
-    icon: React.createElement(AlertTriangle, { size: DROPDOWN_ITEM.iconSize }),
+    icon: React.createElement(HugeiconsIcon, {
+      icon: AlertTriangle,
+      size: DROPDOWN_ITEM.iconSize,
+    }),
     color: HEALTH_COLORS.at_risk,
   },
   {
     value: "off_track",
     label: "Off Track",
-    icon: React.createElement(XCircle, { size: DROPDOWN_ITEM.iconSize }),
+    icon: React.createElement(HugeiconsIcon, {
+      icon: XCircle,
+      size: DROPDOWN_ITEM.iconSize,
+    }),
     color: HEALTH_COLORS.off_track,
   },
   {
     value: "no_updates",
     label: "No updates",
-    icon: React.createElement(Clock, { size: DROPDOWN_ITEM.iconSize }),
+    icon: React.createElement(HugeiconsIcon, {
+      icon: Clock,
+      size: DROPDOWN_ITEM.iconSize,
+    }),
     color: HEALTH_COLORS.no_updates,
   },
 ];

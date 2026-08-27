@@ -33,7 +33,11 @@ const SessionHeader: React.FC<SessionHeaderProps> = memo(({ sessionInfo }) => {
     <div className="flex flex-shrink-0 items-center gap-3 py-2 pl-5 pr-3">
       {/* Session started indicator */}
       <div className="chat-text-sm flex items-center gap-1.5">
-        <HugeiconsIcon icon={Play} className="chat-icon text-success-6" />
+        <HugeiconsIcon
+          icon={Play}
+          data-icon="play"
+          className="chat-icon text-success-6"
+        />
         <span className="chat-block-content ml-1.5 text-text-2">
           {t("chat.sessionStarted")}
         </span>

@@ -170,7 +170,7 @@ const Image: React.FC<ImageProps> = ({
       <div className={`image-wrapper ${className}`} style={{ width, height }}>
         {loader || (
           <div className="image-loader">
-            <HugeiconsIcon icon={ImageIcon} size={24} />
+            <HugeiconsIcon icon={ImageIcon} data-icon="image-icon" size={24} />
           </div>
         )}
       </div>
@@ -183,7 +183,7 @@ const Image: React.FC<ImageProps> = ({
       <div className={`image-wrapper ${className}`} style={{ width, height }}>
         {errorNode || (
           <div className="image-error">
-            <HugeiconsIcon icon={ImageIcon} size={24} />
+            <HugeiconsIcon icon={ImageIcon} data-icon="image-icon" size={24} />
             <span>Failed to load</span>
           </div>
         )}
@@ -211,6 +211,7 @@ const Image: React.FC<ImageProps> = ({
             <img src={src} alt={alt} />
             <HugeiconsIcon
               icon={X}
+              data-icon="x"
               className="image-preview-close"
               size={24}
               onClick={handleClosePreview}

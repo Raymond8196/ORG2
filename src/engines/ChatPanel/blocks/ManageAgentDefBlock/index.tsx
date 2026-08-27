@@ -118,6 +118,7 @@ function AgentDefCard({
         <div className="flex min-w-0 items-center gap-1.5">
           <HugeiconsIcon
             icon={Bot}
+            data-icon="bot"
             size={12}
             strokeWidth={1.75}
             className="shrink-0 text-text-3"

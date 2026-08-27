@@ -103,21 +103,42 @@ export function ChatPanelStartPage({
   const importSessionAction: LaunchpadAction = {
     id: "import-session",
     title: t("navigation:cloud.share.importEntry"),
-    icon: <HugeiconsIcon icon={Import} size={16} strokeWidth={1.8} />,
+    icon: (
+      <HugeiconsIcon
+        icon={Import}
+        data-icon="import"
+        size={16}
+        strokeWidth={1.8}
+      />
+    ),
     onClick: () => setIsImportSessionDialogOpen(true),
     tone: "neutral",
   };
   const addApiKeyAction: LaunchpadAction = {
     id: "add-api-key",
     title: t("chat.startPage.addApiKey.title"),
-    icon: <HugeiconsIcon icon={KeyRound} size={16} strokeWidth={1.8} />,
+    icon: (
+      <HugeiconsIcon
+        icon={KeyRound}
+        data-icon="key-round"
+        size={16}
+        strokeWidth={1.8}
+      />
+    ),
     onClick: onAddApiKey,
     tone: "neutral",
   };
   const showRuntimeAction: LaunchpadAction = {
     id: "show-runtime",
     title: t("chat.startPage.showRuntime.title"),
-    icon: <HugeiconsIcon icon={Gauge} size={16} strokeWidth={1.8} />,
+    icon: (
+      <HugeiconsIcon
+        icon={Gauge}
+        data-icon="gauge"
+        size={16}
+        strokeWidth={1.8}
+      />
+    ),
     onClick: onShowRuntime,
     tone: "neutral",
   };
@@ -126,7 +147,14 @@ export function ChatPanelStartPage({
         {
           id: "install-latest-update",
           title: t("chat.startPage.installLatestUpdate.title"),
-          icon: <HugeiconsIcon icon={Download} size={16} strokeWidth={1.8} />,
+          icon: (
+            <HugeiconsIcon
+              icon={Download}
+              data-icon="download"
+              size={16}
+              strokeWidth={1.8}
+            />
+          ),
           onClick: onInstallLatestUpdate,
           tone: "warning",
         },

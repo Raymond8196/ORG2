@@ -70,37 +70,65 @@ export function renderKeyContent(
   switch (normalizedKey) {
     case "↑":
     case "arrowup":
-      return <HugeiconsIcon icon={ArrowUp} size={iconSize} />;
+      return (
+        <HugeiconsIcon icon={ArrowUp} data-icon="arrow-up" size={iconSize} />
+      );
     case "↓":
     case "arrowdown":
-      return <HugeiconsIcon icon={ArrowDown} size={iconSize} />;
+      return (
+        <HugeiconsIcon
+          icon={ArrowDown}
+          data-icon="arrow-down"
+          size={iconSize}
+        />
+      );
     case "←":
     case "arrowleft":
-      return <HugeiconsIcon icon={ArrowLeft} size={iconSize} />;
+      return (
+        <HugeiconsIcon
+          icon={ArrowLeft}
+          data-icon="arrow-left"
+          size={iconSize}
+        />
+      );
     case "→":
     case "arrowright":
-      return <HugeiconsIcon icon={ArrowRight} size={iconSize} />;
+      return (
+        <HugeiconsIcon
+          icon={ArrowRight}
+          data-icon="arrow-right"
+          size={iconSize}
+        />
+      );
     case "enter":
     case "return":
     case "↵":
     case "⏎":
     case "⮐":
-      return <HugeiconsIcon icon={CornerDownLeft} size={iconSize} />;
+      return (
+        <HugeiconsIcon
+          icon={CornerDownLeft}
+          data-icon="corner-down-left"
+          size={iconSize}
+        />
+      );
     case "⌫":
     case "backspace":
     case "delete":
-      return <HugeiconsIcon icon={Delete} size={iconSize} />;
+      return <HugeiconsIcon icon={Delete} data-icon="delete" size={iconSize} />;
     case "space":
-      return <HugeiconsIcon icon={Space} size={iconSize} />;
+      return <HugeiconsIcon icon={Space} data-icon="space" size={iconSize} />;
     case "⌘":
     case "command":
     case "cmd":
-      return <HugeiconsIcon icon={Command} size={iconSize} />;
+      return (
+        <HugeiconsIcon icon={Command} data-icon="command" size={iconSize} />
+      );
     case "⌥":
     case "option":
     case "opt":
     case "alt":
-      return <HugeiconsIcon icon={Option} size={iconSize} />;
+      return <HugeiconsIcon icon={Option} data-icon="option" size={iconSize} />;
     case "esc":
     case "escape":
       return "Esc";
@@ -108,11 +136,23 @@ export function renderKeyContent(
       return "Tab";
     case "⇧":
     case "shift":
-      return <HugeiconsIcon icon={ArrowBigUp} size={iconSize} />;
+      return (
+        <HugeiconsIcon
+          icon={ArrowBigUp}
+          data-icon="arrow-big-up"
+          size={iconSize}
+        />
+      );
     case "⌃":
     case "control":
     case "ctrl":
-      return <HugeiconsIcon icon={ChevronUp} size={iconSize} />;
+      return (
+        <HugeiconsIcon
+          icon={ChevronUp}
+          data-icon="chevron-up"
+          size={iconSize}
+        />
+      );
     default:
       return key;
   }

@@ -178,6 +178,7 @@ const ThreadSelector: React.FC<ThreadSelectorProps> = memo(
             <div className="flex items-center gap-1.5 text-[11px]">
               <HugeiconsIcon
                 icon={ChevronRight}
+                data-icon="chevron-right"
                 size={12}
                 className="text-primary-6"
               />

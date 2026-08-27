@@ -101,11 +101,17 @@ const Section: React.FC<SectionProps> = memo(
                 {isCollapsed ? (
                   <HugeiconsIcon
                     icon={ChevronRight}
+                    data-icon="chevron-right"
                     size={16}
                     strokeWidth={2}
                   />
                 ) : (
-                  <HugeiconsIcon icon={ChevronDown} size={16} strokeWidth={2} />
+                  <HugeiconsIcon
+                    icon={ChevronDown}
+                    data-icon="chevron-down"
+                    size={16}
+                    strokeWidth={2}
+                  />
                 )}
                 <span>{title}</span>
               </button>

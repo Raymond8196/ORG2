@@ -221,7 +221,13 @@ export default function TeamMemberDetail({
           variant="tertiary"
           size="small"
           onClick={onBack}
-          icon={<HugeiconsIcon icon={ChevronLeft} className="h-3.5 w-3.5" />}
+          icon={
+            <HugeiconsIcon
+              icon={ChevronLeft}
+              data-icon="chevron-left"
+              className="h-3.5 w-3.5"
+            />
+          }
           data-testid="team-member-back"
         >
           {t("detail.back")}
@@ -416,6 +422,7 @@ export default function TeamMemberDetail({
                       fallback={
                         <HugeiconsIcon
                           icon={Terminal}
+                          data-icon="terminal"
                           size={14}
                           className="text-text-3"
                         />
@@ -424,6 +431,7 @@ export default function TeamMemberDetail({
                   ) : (
                     <HugeiconsIcon
                       icon={Terminal}
+                      data-icon="terminal"
                       size={14}
                       className="text-text-3"
                     />

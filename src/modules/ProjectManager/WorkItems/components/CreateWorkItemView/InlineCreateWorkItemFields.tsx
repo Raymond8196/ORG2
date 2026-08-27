@@ -338,6 +338,7 @@ export function useInlineCreateWorkItemFields({
         icon: (
           <HugeiconsIcon
             icon={BookOpen}
+            data-icon="book-open"
             size={CREATE_WORK_ITEM_BREADCRUMB_ICON_SIZE}
           />
         ),

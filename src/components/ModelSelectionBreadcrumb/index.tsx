@@ -79,7 +79,12 @@ export const ModelSelectionBreadcrumb: React.FC<ModelSelectionBreadcrumbProps> =
         {(thinking || variantInfo) && (
           <span className="inline-flex shrink-0 items-center gap-0.5 text-[11px] font-medium text-text-3">
             {thinking && (
-              <HugeiconsIcon icon={Brain} size={11} strokeWidth={1.8} />
+              <HugeiconsIcon
+                icon={Brain}
+                data-icon="brain"
+                size={11}
+                strokeWidth={1.8}
+              />
             )}
             {variantInfo && <span>{variantInfo}</span>}
           </span>

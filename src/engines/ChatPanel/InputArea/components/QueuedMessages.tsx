@@ -132,7 +132,13 @@ const QueuedMessages: React.FC<QueuedMessagesProps> = memo(
         className={`${CHAT_COMPOSER_STACK_BAR_SURFACE_BG_CLASS} overflow-hidden rounded-lg border border-solid border-border-2`}
       >
         <ComposerStackHeader
-          icon={<HugeiconsIcon icon={MessageCircleMore} size={14} />}
+          icon={
+            <HugeiconsIcon
+              icon={MessageCircleMore}
+              data-icon="message-circle-more"
+              size={14}
+            />
+          }
           label={t("common:labels.queuedCount", { count: messages.length })}
           actions={
             draggable ? (

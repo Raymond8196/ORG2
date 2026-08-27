@@ -174,7 +174,7 @@ const WorkspaceMemoryBrowser: React.FC = () => {
           <Button
             variant="secondary"
             size="small"
-            icon={<HugeiconsIcon icon={Trash2} size={14} />}
+            icon={<HugeiconsIcon icon={Trash2} data-icon="trash-2" size={14} />}
             iconOnly
             onClick={() => handleDelete(entry.filename)}
             aria-label={t("common:actions.delete")}
@@ -237,7 +237,7 @@ const WorkspaceMemoryBrowser: React.FC = () => {
       </div>
       <Button
         onClick={handleShowIndex}
-        icon={<HugeiconsIcon icon={BookOpen} size={14} />}
+        icon={<HugeiconsIcon icon={BookOpen} data-icon="book-open" size={14} />}
         iconOnly
         title={t("indexing.workspaceMemoryViewIndex")}
       />
@@ -248,21 +248,28 @@ const WorkspaceMemoryBrowser: React.FC = () => {
             invoke("open_folder", { path: memoryDirPath });
           });
         }}
-        icon={<HugeiconsIcon icon={FolderOpen} size={14} />}
+        icon={
+          <HugeiconsIcon icon={FolderOpen} data-icon="folder-open" size={14} />
+        }
         iconOnly
         title={t("storage.openFolder")}
       />
       <Button
         onClick={handleRefreshClick}
         icon={
-          <HugeiconsIcon icon={RefreshCw} size={14} className={spinClass} />
+          <HugeiconsIcon
+            icon={RefreshCw}
+            data-icon="refresh-cw"
+            size={14}
+            className={spinClass}
+          />
         }
         iconOnly
         title={t("common:actions.refresh")}
       />
       <Button
         onClick={handleClearAll}
-        icon={<HugeiconsIcon icon={Trash2} size={14} />}
+        icon={<HugeiconsIcon icon={Trash2} data-icon="trash-2" size={14} />}
         iconOnly
         disabled={files.length === 0}
         title={t("indexing.workspaceMemoryClearAll")}
@@ -327,6 +334,7 @@ const WorkspaceMemoryBrowser: React.FC = () => {
               <div className="flex min-h-[96px] items-center justify-center gap-2 text-xs text-text-3">
                 <HugeiconsIcon
                   icon={RefreshCw}
+                  data-icon="refresh-cw"
                   size={12}
                   className="animate-spin"
                 />

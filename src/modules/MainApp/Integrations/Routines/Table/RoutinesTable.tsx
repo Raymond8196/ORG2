@@ -134,7 +134,11 @@ const RoutineFireHistory: React.FC<{ routine: RoutineDefinition }> = ({
               }}
             >
               {t("routineFields.openSession")}
-              <HugeiconsIcon icon={ExternalLink} size={11} />
+              <HugeiconsIcon
+                icon={ExternalLink}
+                data-icon="external-link"
+                size={11}
+              />
             </button>
           )}
           {fire.workItemId && (
@@ -156,7 +160,11 @@ const RoutineFireHistory: React.FC<{ routine: RoutineDefinition }> = ({
               }}
             >
               {t("routineFields.openWorkItem")}
-              <HugeiconsIcon icon={ExternalLink} size={11} />
+              <HugeiconsIcon
+                icon={ExternalLink}
+                data-icon="external-link"
+                size={11}
+              />
             </button>
           )}
           {fire.error && (

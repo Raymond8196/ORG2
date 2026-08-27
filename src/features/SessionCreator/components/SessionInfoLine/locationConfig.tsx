@@ -10,6 +10,7 @@ export const LOCATION_ICONS: Record<RunningLocation, React.ReactNode> = {
   local: (
     <HugeiconsIcon
       icon={Laptop}
+      data-icon="laptop"
       size={14}
       strokeWidth={1.75}
       className="text-text-1"
@@ -18,6 +19,7 @@ export const LOCATION_ICONS: Record<RunningLocation, React.ReactNode> = {
   worktree: (
     <HugeiconsIcon
       icon={Split}
+      data-icon="split"
       size={14}
       strokeWidth={1.75}
       className="rotate-90 text-text-1"
@@ -26,6 +28,7 @@ export const LOCATION_ICONS: Record<RunningLocation, React.ReactNode> = {
   cloud: (
     <HugeiconsIcon
       icon={Cloud}
+      data-icon="cloud"
       size={14}
       strokeWidth={1.75}
       className="text-text-1"

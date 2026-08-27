@@ -117,6 +117,7 @@ const McpServerDetailPanel: React.FC<McpServerDetailPanelProps> = ({
           <span className="flex items-center gap-1.5">
             <HugeiconsIcon
               icon={Loader2}
+              data-icon="loader-2"
               size={SPINNER_TOKENS.small}
               className="animate-spin text-primary-6"
             />
@@ -187,11 +188,13 @@ const McpServerDetailPanel: React.FC<McpServerDetailPanelProps> = ({
                 {isConnecting ? (
                   <HugeiconsIcon
                     icon={Loader2}
+                    data-icon="loader-2"
                     size={STATUS_ICON_SIZE}
                     className="animate-spin text-primary-6"
                   />
                 ) : (
-                  <STATUS_ICON
+                  <HugeiconsIcon
+                    icon={STATUS_ICON}
                     size={STATUS_ICON_SIZE}
                     className={
                       isConnected
@@ -248,6 +251,7 @@ const McpServerDetailPanel: React.FC<McpServerDetailPanelProps> = ({
                     <div className="flex items-center gap-2 text-sm font-medium text-text-1">
                       <HugeiconsIcon
                         icon={Terminal}
+                        data-icon="terminal"
                         size={12}
                         className="flex-shrink-0 text-text-3"
                       />
@@ -283,6 +287,7 @@ const McpServerDetailPanel: React.FC<McpServerDetailPanelProps> = ({
                     <div className="flex items-center gap-2 text-sm font-medium text-text-1">
                       <HugeiconsIcon
                         icon={FileText}
+                        data-icon="file-text"
                         size={12}
                         className="flex-shrink-0 text-text-3"
                       />
@@ -312,7 +317,7 @@ const McpServerDetailPanel: React.FC<McpServerDetailPanelProps> = ({
         primaryAction={{
           label: t("common:actions.edit"),
           onClick: () => onEdit(server.name),
-          icon: <HugeiconsIcon icon={Edit} size={14} />,
+          icon: <HugeiconsIcon icon={Edit} data-icon="edit" size={14} />,
           variant: "secondary",
         }}
         secondaryActions={[

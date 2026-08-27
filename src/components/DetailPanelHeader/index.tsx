@@ -79,7 +79,11 @@ const DetailPanelHeader: React.FC<DetailPanelHeaderProps> = ({
               disabled={!hasPrev}
               title="Previous"
             >
-              <HugeiconsIcon icon={ChevronUp} size={HEADER_ICON_SIZE.sm} />
+              <HugeiconsIcon
+                icon={ChevronUp}
+                data-icon="chevron-up"
+                size={HEADER_ICON_SIZE.sm}
+              />
             </button>
             <button
               className={HEADER_BUTTON.actionDisabled}
@@ -87,7 +91,11 @@ const DetailPanelHeader: React.FC<DetailPanelHeaderProps> = ({
               disabled={!hasNext}
               title="Next"
             >
-              <HugeiconsIcon icon={ChevronDown} size={HEADER_ICON_SIZE.sm} />
+              <HugeiconsIcon
+                icon={ChevronDown}
+                data-icon="chevron-down"
+                size={HEADER_ICON_SIZE.sm}
+              />
             </button>
           </>
         )}
@@ -96,7 +104,7 @@ const DetailPanelHeader: React.FC<DetailPanelHeaderProps> = ({
           onClick={onClose}
           title="Close"
         >
-          <HugeiconsIcon icon={X} size={HEADER_ICON_SIZE.sm} />
+          <HugeiconsIcon icon={X} data-icon="x" size={HEADER_ICON_SIZE.sm} />
         </button>
       </div>
     </div>

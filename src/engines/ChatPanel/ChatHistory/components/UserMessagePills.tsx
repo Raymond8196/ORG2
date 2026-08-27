@@ -124,7 +124,9 @@ export const MentionPill: React.FC<{ segment: MentionSegment }> = memo(
     return (
       <BasePill
         variant="editor"
-        iconNode={<HugeiconsIcon icon={AtSign} {...ICON_PROPS} />}
+        iconNode={
+          <HugeiconsIcon icon={AtSign} data-icon="at-sign" {...ICON_PROPS} />
+        }
         style={{
           position: "relative",
           zIndex: 1,

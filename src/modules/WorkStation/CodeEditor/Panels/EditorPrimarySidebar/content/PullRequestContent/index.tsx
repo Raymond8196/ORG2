@@ -490,6 +490,7 @@ const PullRequestContent: React.FC<PullRequestContentProps> = ({
             >
               <HugeiconsIcon
                 icon={Loader2}
+                data-icon="loader-2"
                 size={SPINNER_TOKENS.default}
                 className="animate-spin text-text-3"
               />
@@ -509,6 +510,7 @@ const PullRequestContent: React.FC<PullRequestContentProps> = ({
             <div className="flex items-start gap-1.5 rounded-md bg-fill-2 px-2 py-1.5">
               <HugeiconsIcon
                 icon={TriangleAlert}
+                data-icon="triangle-alert"
                 size={12}
                 className="mt-0.5 shrink-0 text-warning-6"
               />

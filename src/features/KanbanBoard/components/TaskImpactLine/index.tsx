@@ -50,7 +50,12 @@ const TaskImpactLine: React.FC<TaskImpactLineProps> = ({
         />
         <span className="task-impact-line__dot" />
         <span className="task-impact-line__item">
-          <HugeiconsIcon icon={Diff} size={12} strokeWidth={1.75} />
+          <HugeiconsIcon
+            icon={Diff}
+            data-icon="diff"
+            size={12}
+            strokeWidth={1.75}
+          />
           <span>{task.impact.filesChanged.toLocaleString()}</span>
         </span>
         {hasRelatedCommits && (
@@ -59,6 +64,7 @@ const TaskImpactLine: React.FC<TaskImpactLineProps> = ({
             <span className="task-impact-line__item text-primary-6">
               <HugeiconsIcon
                 icon={GitCommit}
+                data-icon="git-commit"
                 className="task-impact-line__commit-icon"
                 size={12}
                 strokeWidth={1.75}
@@ -76,7 +82,12 @@ const TaskImpactLine: React.FC<TaskImpactLineProps> = ({
   return (
     <span className={rootClassName}>
       <span className="task-impact-line__empty">
-        <HugeiconsIcon icon={CircleSlash} size={12} strokeWidth={1.75} />
+        <HugeiconsIcon
+          icon={CircleSlash}
+          data-icon="circle-slash"
+          size={12}
+          strokeWidth={1.75}
+        />
         <span>N/A</span>
       </span>
     </span>

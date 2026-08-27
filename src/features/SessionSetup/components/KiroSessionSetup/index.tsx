@@ -230,6 +230,7 @@ const KiroSessionSetup: React.FC<KiroSessionSetupProps> = ({
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-success-6">
               <HugeiconsIcon
                 icon={CheckCircle}
+                data-icon="check-circle"
                 size={20}
                 className="text-text-white"
               />
@@ -261,6 +262,7 @@ const KiroSessionSetup: React.FC<KiroSessionSetupProps> = ({
           <div className="flex items-start gap-3">
             <HugeiconsIcon
               icon={AlertCircle}
+              data-icon="alert-circle"
               size={20}
               className="mt-0.5 text-danger-6"
             />
@@ -297,7 +299,11 @@ const KiroSessionSetup: React.FC<KiroSessionSetupProps> = ({
               size="sm"
               variant="default"
             >
-              <HugeiconsIcon icon={RefreshCw} size={12} />
+              <HugeiconsIcon
+                icon={RefreshCw}
+                data-icon="refresh-cw"
+                size={12}
+              />
             </IconButton>
             <IconButton
               onClick={handleCloseBrowser}
@@ -305,7 +311,7 @@ const KiroSessionSetup: React.FC<KiroSessionSetupProps> = ({
               size="sm"
               variant="default"
             >
-              <HugeiconsIcon icon={X} size={14} />
+              <HugeiconsIcon icon={X} data-icon="x" size={14} />
             </IconButton>
           </div>
 
@@ -325,7 +331,7 @@ const KiroSessionSetup: React.FC<KiroSessionSetupProps> = ({
                   size="sm"
                   variant="default"
                 >
-                  <HugeiconsIcon icon={Copy} size={14} />
+                  <HugeiconsIcon icon={Copy} data-icon="copy" size={14} />
                 </IconButton>
               </div>
             </div>
@@ -356,6 +362,7 @@ const KiroSessionSetup: React.FC<KiroSessionSetupProps> = ({
               <span className="flex items-center gap-2 text-[13px] text-text-3">
                 <HugeiconsIcon
                   icon={Loader2}
+                  data-icon="loader-2"
                   size={SPINNER_TOKENS.default}
                   className="animate-spin"
                 />

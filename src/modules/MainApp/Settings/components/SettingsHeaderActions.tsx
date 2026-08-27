@@ -164,6 +164,7 @@ const CompactPlusDropdown: React.FC<CompactPlusDropdownProps> = ({
         >
           <HugeiconsIcon
             icon={Plus}
+            data-icon="plus"
             size={HEADER_ICON_SIZE.md}
             strokeWidth={2}
           />
@@ -204,6 +205,7 @@ const SettingsHeaderActions: React.FC = () => {
           >
             <HugeiconsIcon
               icon={Plus}
+              data-icon="plus"
               size={HEADER_ICON_SIZE.md}
               strokeWidth={2}
             />

@@ -59,6 +59,7 @@ const CanvasTabHeader: React.FC<CanvasTabHeaderProps> = ({
     <NoDragRegion className="flex min-w-0 flex-1 items-center gap-2">
       <HugeiconsIcon
         icon={Layout}
+        data-icon="layout"
         size={13}
         className="shrink-0 text-primary-6"
       />
@@ -85,7 +86,9 @@ const CanvasTabHeader: React.FC<CanvasTabHeaderProps> = ({
               htmlType="button"
               variant="tertiary"
               size="mini"
-              icon={<HugeiconsIcon icon={PenTool} size={12} />}
+              icon={
+                <HugeiconsIcon icon={PenTool} data-icon="pen-tool" size={12} />
+              }
               onClick={onToggleDesign}
               disabled={!designAvailable}
               aria-pressed={designEnabled}
@@ -110,7 +113,7 @@ const CanvasTabHeader: React.FC<CanvasTabHeaderProps> = ({
             className="text-text-4 hover:bg-fill-3 hover:text-text-2"
             title={t("canvasCard.reload", "Reload")}
           >
-            <HugeiconsIcon icon={RefreshCw} size={12} />
+            <HugeiconsIcon icon={RefreshCw} data-icon="refresh-cw" size={12} />
           </IconButton>
         )}
         <ToolbarTooltip label={shareHint}>
@@ -118,7 +121,7 @@ const CanvasTabHeader: React.FC<CanvasTabHeaderProps> = ({
             htmlType="button"
             variant="tertiary"
             size="mini"
-            icon={<HugeiconsIcon icon={Share2} size={12} />}
+            icon={<HugeiconsIcon icon={Share2} data-icon="share-2" size={12} />}
             onClick={onShare}
             disabled={!shareEnabled}
           >

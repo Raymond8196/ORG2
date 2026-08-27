@@ -163,7 +163,12 @@ const LocalChannelPanel: React.FC<LocalChannelPanelProps> = ({
           placement="detail-panel"
           fillParentHeight
           icon={
-            <HugeiconsIcon icon={MessagesSquare} size={32} strokeWidth={1.5} />
+            <HugeiconsIcon
+              icon={MessagesSquare}
+              data-icon="messages-square"
+              size={32}
+              strokeWidth={1.5}
+            />
           }
           title={t("cloud.channels.feed.missingTitle")}
           subtitle={t("cloud.channels.feed.missingSubtitle")}
@@ -209,6 +214,7 @@ const LocalChannelPanel: React.FC<LocalChannelPanelProps> = ({
               icon={
                 <HugeiconsIcon
                   icon={MessagesSquare}
+                  data-icon="messages-square"
                   size={32}
                   strokeWidth={1.5}
                 />
@@ -441,6 +447,7 @@ const CloudChannelPanel: React.FC<CloudChannelPanelProps> = ({
                 icon={
                   <HugeiconsIcon
                     icon={MessagesSquare}
+                    data-icon="messages-square"
                     size={32}
                     strokeWidth={1.5}
                   />

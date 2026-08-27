@@ -79,7 +79,7 @@ function GitAuthenticationDialog({ onResolve }: GitAuthenticationDialogProps) {
     >
       <div className="flex items-start gap-3">
         <div className="mt-0.5 rounded-md bg-fill-2 p-2 text-text-2">
-          <HugeiconsIcon icon={Settings} size={16} />
+          <HugeiconsIcon icon={Settings} data-icon="settings" size={16} />
         </div>
         <div className="flex flex-col gap-1.5">
           <div className="text-[13px] font-medium text-text-1">

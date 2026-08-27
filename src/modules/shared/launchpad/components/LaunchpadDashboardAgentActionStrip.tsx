@@ -36,7 +36,7 @@ export const LaunchpadAgentActionStrip: React.FC<LaunchpadAgentActionStripProps>
             size="small"
             shape="round"
             className="shrink-0"
-            icon={<HugeiconsIcon icon={Play} size={14} />}
+            icon={<HugeiconsIcon icon={Play} data-icon="play" size={14} />}
             onClick={agent.onLaunch}
           >
             {t("navigation:launchpad.actions.startSession", {
@@ -48,7 +48,7 @@ export const LaunchpadAgentActionStrip: React.FC<LaunchpadAgentActionStripProps>
             size="small"
             shape="round"
             className="shrink-0"
-            icon={<HugeiconsIcon icon={Expand} size={14} />}
+            icon={<HugeiconsIcon icon={Expand} data-icon="expand" size={14} />}
             onClick={agent.onOpenDetails}
           >
             {t("navigation:launchpad.actions.openDetails", {

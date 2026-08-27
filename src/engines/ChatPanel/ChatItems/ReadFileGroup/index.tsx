@@ -123,7 +123,14 @@ const ReadFileGroup: React.FC<ReadFileGroupProps> = ({ events }) => {
   return (
     <StackedBlock
       items={events}
-      icon={<HugeiconsIcon icon={FileText} size={14} className="text-text-2" />}
+      icon={
+        <HugeiconsIcon
+          icon={FileText}
+          data-icon="file-text"
+          size={14}
+          className="text-text-2"
+        />
+      }
       label={`Read ${groupLabel}`}
       eventId={events[0]?.id}
       renderItem={(event) => {

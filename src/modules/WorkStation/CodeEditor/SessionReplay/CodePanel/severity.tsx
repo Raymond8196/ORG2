@@ -23,6 +23,7 @@ export function getSeverityIcon(severity: DiagnosticSeverity): React.ReactNode {
       return (
         <HugeiconsIcon
           icon={AlertCircle}
+          data-icon="alert-circle"
           size={iconSize}
           strokeWidth={stroke}
           className="text-danger-6"
@@ -32,6 +33,7 @@ export function getSeverityIcon(severity: DiagnosticSeverity): React.ReactNode {
       return (
         <HugeiconsIcon
           icon={AlertTriangle}
+          data-icon="alert-triangle"
           size={iconSize}
           strokeWidth={stroke}
           className="text-warning-6"
@@ -42,6 +44,7 @@ export function getSeverityIcon(severity: DiagnosticSeverity): React.ReactNode {
       return (
         <HugeiconsIcon
           icon={Info}
+          data-icon="info"
           size={iconSize}
           strokeWidth={stroke}
           className="text-text-3"

@@ -149,6 +149,7 @@ export const TeamsTreeContent: React.FC<TeamsTreeContentProps> = memo(
           icon: (
             <HugeiconsIcon
               icon={Users}
+              data-icon="users"
               size={ROW_ICON_SIZE}
               strokeWidth={ROW_ICON_STROKE}
             />
@@ -169,6 +170,7 @@ export const TeamsTreeContent: React.FC<TeamsTreeContentProps> = memo(
               icon: (
                 <HugeiconsIcon
                   icon={Building2}
+                  data-icon="building-2"
                   size={ROW_ICON_SIZE}
                   strokeWidth={ROW_ICON_STROKE}
                 />
@@ -190,6 +192,7 @@ export const TeamsTreeContent: React.FC<TeamsTreeContentProps> = memo(
           icon: (
             <HugeiconsIcon
               icon={Users}
+              data-icon="users"
               size={ROW_ICON_SIZE}
               strokeWidth={ROW_ICON_STROKE}
             />
@@ -254,6 +257,7 @@ export const TeamsTreeContent: React.FC<TeamsTreeContentProps> = memo(
                 icon: (
                   <HugeiconsIcon
                     icon={Building2}
+                    data-icon="building-2"
                     size={ROW_ICON_SIZE}
                     strokeWidth={ROW_ICON_STROKE}
                   />

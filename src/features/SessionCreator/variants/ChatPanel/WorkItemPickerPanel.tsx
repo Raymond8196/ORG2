@@ -77,22 +77,50 @@ const WorkItemPickerPanel: React.FC<WorkItemPickerPanelProps> = ({
     {
       value: "all",
       label: t("common:actions.all"),
-      icon: <HugeiconsIcon icon={ListFilter} size={14} strokeWidth={1.8} />,
+      icon: (
+        <HugeiconsIcon
+          icon={ListFilter}
+          data-icon="list-filter"
+          size={14}
+          strokeWidth={1.8}
+        />
+      ),
     },
     {
       value: "workitem",
       label: t("projects:workItems.label"),
-      icon: <HugeiconsIcon icon={ListTodo} size={14} strokeWidth={1.8} />,
+      icon: (
+        <HugeiconsIcon
+          icon={ListTodo}
+          data-icon="list-todo"
+          size={14}
+          strokeWidth={1.8}
+        />
+      ),
     },
     {
       value: "github_issue",
       label: t("sessions:kanban.sidebar.githubIssues"),
-      icon: <HugeiconsIcon icon={CircleDot} size={14} strokeWidth={1.8} />,
+      icon: (
+        <HugeiconsIcon
+          icon={CircleDot}
+          data-icon="circle-dot"
+          size={14}
+          strokeWidth={1.8}
+        />
+      ),
     },
     {
       value: "github_pr",
       label: t("sessions:kanban.sidebar.githubPrs"),
-      icon: <HugeiconsIcon icon={GitPullRequest} size={14} strokeWidth={1.8} />,
+      icon: (
+        <HugeiconsIcon
+          icon={GitPullRequest}
+          data-icon="git-pull-request"
+          size={14}
+          strokeWidth={1.8}
+        />
+      ),
     },
   ];
 
@@ -108,7 +136,12 @@ const WorkItemPickerPanel: React.FC<WorkItemPickerPanelProps> = ({
             variant="secondary"
             size="small"
             icon={
-              <HugeiconsIcon icon={ArrowLeft} size={14} strokeWidth={1.8} />
+              <HugeiconsIcon
+                icon={ArrowLeft}
+                data-icon="arrow-left"
+                size={14}
+                strokeWidth={1.8}
+              />
             }
             iconOnly
             title={t("common:actions.back")}
@@ -133,6 +166,7 @@ const WorkItemPickerPanel: React.FC<WorkItemPickerPanelProps> = ({
           icon={
             <HugeiconsIcon
               icon={RefreshCw}
+              data-icon="refresh-cw"
               size={14}
               strokeWidth={1.8}
               className={refreshing ? "animate-spin" : undefined}

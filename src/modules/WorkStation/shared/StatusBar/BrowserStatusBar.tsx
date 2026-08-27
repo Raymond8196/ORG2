@@ -87,7 +87,7 @@ const BrowserStatusBar: React.FC<BrowserStatusBarProps> = memo(
             >
               {errorCount > 0 && (
                 <span className={`flex items-center gap-1 ${itemTextClass}`}>
-                  <HugeiconsIcon icon={XCircle} size={13} />
+                  <HugeiconsIcon icon={XCircle} data-icon="xcircle" size={13} />
                   <StatusBarLabel emphasis numeric>
                     {errorCount}
                   </StatusBarLabel>
@@ -95,7 +95,11 @@ const BrowserStatusBar: React.FC<BrowserStatusBarProps> = memo(
               )}
               {warningCount > 0 && (
                 <span className={`flex items-center gap-1 ${itemTextClass}`}>
-                  <HugeiconsIcon icon={AlertTriangle} size={13} />
+                  <HugeiconsIcon
+                    icon={AlertTriangle}
+                    data-icon="alert-triangle"
+                    size={13}
+                  />
                   <StatusBarLabel emphasis numeric>
                     {warningCount}
                   </StatusBarLabel>
@@ -131,7 +135,11 @@ const BrowserStatusBar: React.FC<BrowserStatusBarProps> = memo(
               title={clearLabel}
               className="text-text-2"
             >
-              <HugeiconsIcon icon={BrushCleaning} size={13} />
+              <HugeiconsIcon
+                icon={BrushCleaning}
+                data-icon="brush-cleaning"
+                size={13}
+              />
             </StatusBarButton>
           )}
           <StatusBarButton
@@ -139,7 +147,7 @@ const BrowserStatusBar: React.FC<BrowserStatusBarProps> = memo(
             onClick={onSendSelectedElementToChat}
             title={sendLabel}
           >
-            <HugeiconsIcon icon={Plus} size={13} />
+            <HugeiconsIcon icon={Plus} data-icon="plus" size={13} />
             <span>{sendLabel}</span>
           </StatusBarButton>
         </div>

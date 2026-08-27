@@ -45,6 +45,7 @@ export const ExternalBrowserButton = memo(function ExternalBrowserButton({
         icon={
           <HugeiconsIcon
             icon={Chrome}
+            data-icon="chrome"
             size={HEADER_ICON_SIZE.sm}
             strokeWidth={1.75}
           />

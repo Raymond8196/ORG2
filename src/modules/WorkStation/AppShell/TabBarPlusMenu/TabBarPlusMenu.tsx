@@ -100,6 +100,7 @@ const TabBarPlusMenuComponent: React.FC<TabBarPlusMenuProps> = ({
         >
           <HugeiconsIcon
             icon={Plus}
+            data-icon="plus"
             size={HEADER_ICON_SIZE.md}
             strokeWidth={2}
           />

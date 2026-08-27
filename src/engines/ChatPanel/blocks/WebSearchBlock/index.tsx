@@ -63,6 +63,7 @@ const WebSearchResultRow: React.FC<{ result: WebSearchResult }> = React.memo(
         leading={
           <HugeiconsIcon
             icon={SquareArrowOutUpRight}
+            data-icon="square-arrow-out-up-right"
             size={14}
             className="shrink-0 text-text-3"
           />

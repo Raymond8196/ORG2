@@ -109,6 +109,7 @@ export default function BuilderTypesPanel({ onBack }: BuilderTypesPanelProps) {
           icon={
             <HugeiconsIcon
               icon={ArrowLeft}
+              data-icon="arrow-left"
               size={PANEL_HEADER_TOKENS.buttonIconSize}
               strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
             />

@@ -84,6 +84,7 @@ export const TerminalStopButton: React.FC<TerminalStopButtonProps> = ({
       ) : (
         <HugeiconsIcon
           icon={Square}
+          data-icon="square"
           size={10}
           fill="currentColor"
           strokeWidth={0}

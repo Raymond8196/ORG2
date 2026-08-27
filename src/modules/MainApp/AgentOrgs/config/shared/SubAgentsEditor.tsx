@@ -120,7 +120,13 @@ const AddSubAgentButton: React.FC<AddSubAgentButtonProps> = ({
       <Button
         ref={triggerRef}
         size="default"
-        icon={<HugeiconsIcon icon={Plus} size={DROPDOWN_ITEM.iconSize} />}
+        icon={
+          <HugeiconsIcon
+            icon={Plus}
+            data-icon="plus"
+            size={DROPDOWN_ITEM.iconSize}
+          />
+        }
         data-testid="agent-orgs-subagents-add-button"
         onClick={toggle}
       >
@@ -361,7 +367,13 @@ const SubAgentsEditor: React.FC<SubAgentsEditorProps> = ({
           >
             <SectionRow label={resolveAgentName(ref.agentId)}>
               <Button
-                icon={<HugeiconsIcon icon={X} size={DROPDOWN_ITEM.iconSize} />}
+                icon={
+                  <HugeiconsIcon
+                    icon={X}
+                    data-icon="x"
+                    size={DROPDOWN_ITEM.iconSize}
+                  />
+                }
                 iconOnly
                 appearance="ghost"
                 variant="danger"

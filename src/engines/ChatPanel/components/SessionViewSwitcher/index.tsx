@@ -128,6 +128,7 @@ export const SessionRawToolbarActions: React.FC<SessionRawToolbarActionsProps> =
           icon={
             <HugeiconsIcon
               icon={RefreshCw}
+              data-icon="refresh-cw"
               size={RAW_ACTION_ICON_SIZE}
               strokeWidth={2}
             />
@@ -145,6 +146,7 @@ export const SessionRawToolbarActions: React.FC<SessionRawToolbarActionsProps> =
           icon={
             <HugeiconsIcon
               icon={Clipboard}
+              data-icon="clipboard"
               size={RAW_ACTION_ICON_SIZE}
               strokeWidth={2}
             />

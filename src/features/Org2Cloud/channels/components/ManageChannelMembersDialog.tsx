@@ -366,7 +366,13 @@ const ManageChannelMembersDialog: React.FC<ManageChannelMembersDialogProps> = ({
                         appearance="ghost"
                         size="small"
                         disabled={mutating}
-                        icon={<HugeiconsIcon icon={MoreHorizontal} size={14} />}
+                        icon={
+                          <HugeiconsIcon
+                            icon={MoreHorizontal}
+                            data-icon="more-horizontal"
+                            size={14}
+                          />
+                        }
                         aria-label={t("cloud.channels.members.actions")}
                         data-testid={`channel-member-actions-${member.userId}`}
                       />

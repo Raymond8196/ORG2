@@ -121,7 +121,12 @@ export const MessagesSidebar: React.FC<MessagesSidebarProps> = memo(
           key: "chatHistory",
           label: t("simulator.replay.channelsSidebar.chatHistoryTab"),
           icon: (
-            <HugeiconsIcon icon={MessageCircle} size={16} strokeWidth={1.75} />
+            <HugeiconsIcon
+              icon={MessageCircle}
+              data-icon="message-circle"
+              size={16}
+              strokeWidth={1.75}
+            />
           ),
           sections: chatHistorySections,
         },

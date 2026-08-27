@@ -146,12 +146,14 @@ const FileHeader: React.FC<FileHeaderProps> = React.memo(
               {isExpanded ? (
                 <HugeiconsIcon
                   icon={ChevronDown}
+                  data-icon="chevron-down"
                   size={14}
                   className="text-text-3"
                 />
               ) : (
                 <HugeiconsIcon
                   icon={ChevronRight}
+                  data-icon="chevron-right"
                   size={14}
                   className="text-text-3"
                 />
@@ -432,12 +434,14 @@ const SearchResultsInner = forwardRef<SearchResultsHandle, SearchResultsProps>(
               {isExpanded ? (
                 <HugeiconsIcon
                   icon={ChevronDown}
+                  data-icon="chevron-down"
                   size={CHEVRON_SIZE}
                   className={STICKY_ROW.chevronIcon}
                 />
               ) : (
                 <HugeiconsIcon
                   icon={ChevronRight}
+                  data-icon="chevron-right"
                   size={CHEVRON_SIZE}
                   className={STICKY_ROW.chevronIcon}
                 />

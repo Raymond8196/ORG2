@@ -50,10 +50,16 @@ Hugeicons ships icons as **data**, not components. Every call site changes shape
 
 These apply repo-wide and are **not** captured per-row.
 
-1. **Stroke weight.** Lucide defaults to `strokeWidth={2}`; hugeicons bakes
-   `1.5` into path data and only overrides it when `strokeWidth` is passed.
-   Left alone, every icon in the app renders lighter. Decide this once and
-   apply it globally.
+1. **Stroke weight — the app ships at hugeicons' native 1.5.** Lucide defaulted
+   to `strokeWidth={2}`; hugeicons bakes `1.5` into its path data and overrides
+   it only when `strokeWidth` is passed. **This was a deliberate decision**: the
+   app is intentionally lighter than it was under lucide. Do not "fix" it by
+   adding `strokeWidth={2}` to new call sites.
+
+   The 215 explicit `strokeWidth` values that pre-dated the migration are
+   preserved exactly, including the 414 sites at `1.75` — which is this repo's
+   actual house weight — and the outliers at `1.8`, `1.9`, `2.25`, and `0`
+   (the solid media controls).
 2. **Same name, different drawing.** A vendor alias means the *name* matches,
    not the artwork. Hugeicons `Cancel01Icon` (lucide `X`) is a 2-stroke cross;
    the separate `XIcon` file is a 4-ray cross. Name parity is not visual parity.
@@ -71,7 +77,30 @@ These apply repo-wide and are **not** captured per-row.
    (overriding its `fill: none` default) and applies `strokeWidth={0}`, and the
    `PlayIcon` / `PauseIcon` / `SquareIcon` glyphs are closed paths, so they fill
    solid. Verified by server-rendering the component, not by inspection.
-5. **`LucideIcon` type.** 227 references across 89 files type icons as React
+5. **Icon identity in the DOM (`data-icon`).** Lucide stamped
+   `class="lucide lucide-chevron-down"` onto every icon it rendered, and about
+   fifty assertions across the unit suite plus four e2e selectors came to rely
+   on it. `HugeiconsIcon` stamps nothing. Rather than delete those assertions,
+   every static call site now carries `data-icon="<kebab-name>"`, applied by
+   `scripts/hugeicons/stamp-data-icon.mjs`. It is one attribute where lucide
+   wrote two classes, so the rendered DOM is lighter than before.
+
+   **Keep new call sites consistent**: when you add an icon that a test needs to
+   identify, add `data-icon`. Dynamic sites (`icon={item.icon}`) have no name
+   available and are deliberately left unstamped — pass one explicitly if a test
+   needs to distinguish them.
+
+6. **Glyph data is a valid `ReactNode`.** This is the sharpest edge in the whole
+   migration. `IconSvgElement` is a nested array, and arrays satisfy
+   `ReactNode`, so any prop typed `icon: ReactNode` accepts glyph data and
+   **typechecks clean** — then React throws
+   `Element type is invalid ... but got: object` at runtime. A green
+   `tsc --noEmit` does not prove icon rendering is correct here; the unit suite
+   does. Two forms of this shipped past the typechecker during the migration:
+   `createElement(Glyph, props)` (103 sites) and
+   `const Icon = config.icon; <Icon />` (5 sites).
+
+7. **`LucideIcon` type.** 227 references across 89 files type icons as React
    *components*. Under hugeicons they are `IconSvgElement` *data*, so every
    registry (`config/toolIcons.tsx`, `config/iconMapping.ts`,
    `config/agentIcons.tsx`, `components/PanelIcons.tsx`,

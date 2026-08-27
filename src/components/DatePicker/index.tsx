@@ -242,7 +242,12 @@ const DatePicker: React.FC<DatePickerProps> & {
 
   return (
     <div className={pickerClasses} style={style}>
-      <HugeiconsIcon icon={Calendar} size={16} className="datepicker-icon" />
+      <HugeiconsIcon
+        icon={Calendar}
+        data-icon="calendar"
+        size={16}
+        className="datepicker-icon"
+      />
       <input
         ref={inputRef}
         type="date"
@@ -257,6 +262,7 @@ const DatePicker: React.FC<DatePickerProps> & {
       {allowClear && value && !disabled && (
         <HugeiconsIcon
           icon={X}
+          data-icon="x"
           size={14}
           className="datepicker-clear cursor-pointer"
           onClick={handleClear}
@@ -335,7 +341,12 @@ const RangePicker: React.FC<RangePickerProps> = ({
 
   return (
     <div className={pickerClasses} style={style}>
-      <HugeiconsIcon icon={Calendar} size={16} className="datepicker-icon" />
+      <HugeiconsIcon
+        icon={Calendar}
+        data-icon="calendar"
+        size={16}
+        className="datepicker-icon"
+      />
       <input
         type="date"
         value={value[0] ? formatDate(value[0], "YYYY-MM-DD") : ""}
@@ -356,6 +367,7 @@ const RangePicker: React.FC<RangePickerProps> = ({
       {allowClear && hasValue && !disabled && (
         <HugeiconsIcon
           icon={X}
+          data-icon="x"
           size={14}
           className="datepicker-clear cursor-pointer"
           onClick={handleClear}

@@ -105,6 +105,7 @@ const SelectGhostTrigger = forwardRef<
         <div className="select-suffix">
           <HugeiconsIcon
             icon={ChevronDown}
+            data-icon="chevron-down"
             size={12}
             className={`select-arrow shrink-0 text-text-3 transition-transform ${
               open ? "rotate-180" : ""

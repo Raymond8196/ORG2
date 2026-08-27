@@ -69,7 +69,9 @@ const DataSourceDetailsCard: React.FC<DataSourceDetailsCardProps> = ({
                     variant="secondary"
                     size="small"
                     iconOnly
-                    icon={<HugeiconsIcon icon={Copy} size={13} />}
+                    icon={
+                      <HugeiconsIcon icon={Copy} data-icon="copy" size={13} />
+                    }
                     title={t("details.copyPath")}
                     onClick={() => handleCopy(path)}
                   />
@@ -77,7 +79,13 @@ const DataSourceDetailsCard: React.FC<DataSourceDetailsCardProps> = ({
                     variant="secondary"
                     size="small"
                     iconOnly
-                    icon={<HugeiconsIcon icon={FolderOpen} size={13} />}
+                    icon={
+                      <HugeiconsIcon
+                        icon={FolderOpen}
+                        data-icon="folder-open"
+                        size={13}
+                      />
+                    }
                     title={t("openFolder")}
                     onClick={() => onOpenFolder(path)}
                   />

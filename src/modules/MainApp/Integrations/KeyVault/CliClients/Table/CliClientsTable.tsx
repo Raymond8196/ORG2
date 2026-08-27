@@ -392,7 +392,12 @@ const CliClientsTable: React.FC<CliClientsTableProps> = ({
         variant="secondary"
         size="default"
         icon={
-          <HugeiconsIcon icon={RefreshCw} size={14} className={spinClass} />
+          <HugeiconsIcon
+            icon={RefreshCw}
+            data-icon="refresh-cw"
+            size={14}
+            className={spinClass}
+          />
         }
         iconOnly
         aria-label={refreshButtonLabel}
@@ -403,7 +408,7 @@ const CliClientsTable: React.FC<CliClientsTableProps> = ({
         <Button
           variant="secondary"
           size="default"
-          icon={<HugeiconsIcon icon={Plus} size={14} />}
+          icon={<HugeiconsIcon icon={Plus} data-icon="plus" size={14} />}
           iconOnly
           aria-label={addButtonLabel}
           title={addButtonLabel}

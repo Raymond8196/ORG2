@@ -142,6 +142,7 @@ const SidebarHeader: React.FC<SidebarHeaderProps> = React.memo(
               {action.loading ? (
                 <HugeiconsIcon
                   icon={Loader2}
+                  data-icon="loader-2"
                   size={SPINNER_TOKENS.default}
                   strokeWidth={2}
                   className="animate-spin"

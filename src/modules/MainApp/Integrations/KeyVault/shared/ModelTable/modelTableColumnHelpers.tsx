@@ -51,7 +51,12 @@ export function renderModelIconSelect(
       allowClear={args.hasIconOverride(model)}
       size={MODEL_TABLE_CONTROL_SIZE}
       placeholder={
-        <HugeiconsIcon icon={Box} size={14} className="text-text-3" />
+        <HugeiconsIcon
+          icon={Box}
+          data-icon="box"
+          size={14}
+          className="text-text-3"
+        />
       }
       dropdownWidthMode="min-match"
       dropdownMinWidth={180}
@@ -176,6 +181,7 @@ export function renderExpandedCatalogModelCell(model: string): React.ReactNode {
     <div key={`model-${model}`} className="flex min-w-0 items-center gap-1">
       <HugeiconsIcon
         icon={CornerDownRight}
+        data-icon="corner-down-right"
         size={12}
         className="shrink-0 text-text-4"
       />
@@ -202,6 +208,7 @@ export function renderExpandedUnifiedModelCell(
     >
       <HugeiconsIcon
         icon={CornerDownRight}
+        data-icon="corner-down-right"
         size={12}
         className="shrink-0 text-text-4"
       />
@@ -244,7 +251,14 @@ function renderRemoveButton(
     <Button
       variant="secondary"
       size="default"
-      icon={<HugeiconsIcon icon={Trash2} size={14} className="text-danger-6" />}
+      icon={
+        <HugeiconsIcon
+          icon={Trash2}
+          data-icon="trash-2"
+          size={14}
+          className="text-danger-6"
+        />
+      }
       iconOnly
       className="shrink-0"
       onClick={() => handleRemove(model)}

@@ -86,6 +86,7 @@ const ProjectsPageHeader: React.FC<ProjectsPageHeaderProps> = ({
             icon: segment.icon ?? (
               <HugeiconsIcon
                 icon={Boxes}
+                data-icon="boxes"
                 size={HEADER_ICON_SIZE.sm}
                 strokeWidth={1.75}
               />
@@ -127,6 +128,7 @@ const ProjectsPageHeader: React.FC<ProjectsPageHeaderProps> = ({
           icon={
             <HugeiconsIcon
               icon={Search}
+              data-icon="search"
               size={HEADER_ICON_SIZE.sm}
               strokeWidth={2}
             />
@@ -146,6 +148,7 @@ const ProjectsPageHeader: React.FC<ProjectsPageHeaderProps> = ({
               icon={
                 <HugeiconsIcon
                   icon={ListChevronsDownUp}
+                  data-icon="list-chevrons-down-up"
                   size={HEADER_ICON_SIZE.md}
                   strokeWidth={2}
                 />
@@ -163,6 +166,7 @@ const ProjectsPageHeader: React.FC<ProjectsPageHeaderProps> = ({
               icon={
                 <HugeiconsIcon
                   icon={RefreshCw}
+                  data-icon="refresh-cw"
                   size={HEADER_ICON_SIZE.sm}
                   strokeWidth={2}
                   className={refreshSpinClass}
@@ -182,6 +186,7 @@ const ProjectsPageHeader: React.FC<ProjectsPageHeaderProps> = ({
               icon={
                 <HugeiconsIcon
                   icon={Plus}
+                  data-icon="plus"
                   size={HEADER_ICON_SIZE.md}
                   strokeWidth={2}
                 />

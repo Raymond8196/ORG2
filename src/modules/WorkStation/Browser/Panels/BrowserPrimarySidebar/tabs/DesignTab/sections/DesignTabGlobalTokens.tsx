@@ -49,6 +49,7 @@ export const DesignTabGlobalTokens: React.FC<DesignTabGlobalTokensProps> = memo(
           icon: (
             <HugeiconsIcon
               icon={Palette}
+              data-icon="palette"
               size={TREE_ICON_SIZE}
               className="text-primary-6"
             />

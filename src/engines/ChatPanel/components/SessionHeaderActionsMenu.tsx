@@ -169,6 +169,7 @@ export const SessionHeaderActionsMenu: React.FC<
         icon={
           <HugeiconsIcon
             icon={MoreHorizontal}
+            data-icon="more-horizontal"
             size={HEADER_ICON_SIZE}
             strokeWidth={2}
           />
@@ -195,6 +196,7 @@ export const SessionHeaderActionsMenu: React.FC<
               >
                 <HugeiconsIcon
                   icon={Search}
+                  data-icon="search"
                   size={DROPDOWN_ITEM.iconSize}
                   strokeWidth={1.75}
                 />
@@ -209,6 +211,7 @@ export const SessionHeaderActionsMenu: React.FC<
             >
               <HugeiconsIcon
                 icon={RefreshCw}
+                data-icon="refresh-cw"
                 size={DROPDOWN_ITEM.iconSize}
                 strokeWidth={1.75}
               />
@@ -230,12 +233,14 @@ export const SessionHeaderActionsMenu: React.FC<
               {moveToWorkstation ? (
                 <HugeiconsIcon
                   icon={PanelLeft}
+                  data-icon="panel-left"
                   size={DROPDOWN_ITEM.iconSize}
                   strokeWidth={1.75}
                 />
               ) : (
                 <HugeiconsIcon
                   icon={PanelRight}
+                  data-icon="panel-right"
                   size={DROPDOWN_ITEM.iconSize}
                   strokeWidth={1.75}
                 />
@@ -260,6 +265,7 @@ export const SessionHeaderActionsMenu: React.FC<
                 >
                   <HugeiconsIcon
                     icon={Clipboard}
+                    data-icon="clipboard"
                     size={DROPDOWN_ITEM.iconSize}
                     strokeWidth={1.75}
                   />
@@ -280,6 +286,7 @@ export const SessionHeaderActionsMenu: React.FC<
                 >
                   <HugeiconsIcon
                     icon={Braces}
+                    data-icon="braces"
                     size={DROPDOWN_ITEM.iconSize}
                     strokeWidth={1.75}
                   />
@@ -300,6 +307,7 @@ export const SessionHeaderActionsMenu: React.FC<
             >
               <HugeiconsIcon
                 icon={FolderKanban}
+                data-icon="folder-kanban"
                 size={DROPDOWN_ITEM.iconSize}
                 strokeWidth={1.75}
               />
@@ -316,6 +324,7 @@ export const SessionHeaderActionsMenu: React.FC<
             >
               <HugeiconsIcon
                 icon={Link2}
+                data-icon="link-2"
                 size={DROPDOWN_ITEM.iconSize}
                 strokeWidth={1.75}
               />
@@ -329,6 +338,7 @@ export const SessionHeaderActionsMenu: React.FC<
             >
               <HugeiconsIcon
                 icon={BellOff}
+                data-icon="bell-off"
                 size={DROPDOWN_ITEM.iconSize}
                 strokeWidth={1.75}
               />
@@ -356,6 +366,7 @@ export const SessionHeaderActionsMenu: React.FC<
               >
                 <HugeiconsIcon
                   icon={Share2}
+                  data-icon="share-2"
                   size={DROPDOWN_ITEM.iconSize}
                   strokeWidth={1.75}
                 />
@@ -373,6 +384,7 @@ export const SessionHeaderActionsMenu: React.FC<
               >
                 <HugeiconsIcon
                   icon={Link}
+                  data-icon="link"
                   size={DROPDOWN_ITEM.iconSize}
                   strokeWidth={1.75}
                 />
@@ -389,6 +401,7 @@ export const SessionHeaderActionsMenu: React.FC<
                 >
                   <HugeiconsIcon
                     icon={FolderOutput}
+                    data-icon="folder-output"
                     size={DROPDOWN_ITEM.iconSize}
                     strokeWidth={1.75}
                   />

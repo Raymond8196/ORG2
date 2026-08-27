@@ -169,7 +169,7 @@ const LinearWorkflowStatesSection: React.FC<
           onClick={resetDraft}
           className="inline-flex h-7 items-center gap-1 rounded-md px-2 text-xs text-text-2 hover:bg-fill-2"
         >
-          <HugeiconsIcon icon={X} size={13} />
+          <HugeiconsIcon icon={X} data-icon="x" size={13} />
           {t("common:actions.cancel")}
         </button>
         <button
@@ -178,7 +178,7 @@ const LinearWorkflowStatesSection: React.FC<
           disabled={!canSaveDraft || savingStateId !== null}
           className="inline-flex h-7 items-center gap-1 rounded-md bg-primary-6 px-2 text-xs text-white disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <HugeiconsIcon icon={Check} size={13} />
+          <HugeiconsIcon icon={Check} data-icon="check" size={13} />
           {t("common:actions.save")}
         </button>
       </div>
@@ -202,6 +202,7 @@ const LinearWorkflowStatesSection: React.FC<
             icon={
               <HugeiconsIcon
                 icon={RefreshCw}
+                data-icon="refresh-cw"
                 size={13}
                 className={loadingStates ? "animate-spin" : ""}
               />
@@ -214,7 +215,7 @@ const LinearWorkflowStatesSection: React.FC<
             className="inline-flex h-6 w-6 items-center justify-center rounded-md text-text-3 hover:bg-fill-2 hover:text-text-1 disabled:cursor-not-allowed disabled:opacity-50"
             title={t("linearProjects.statusPanel.addStatus")}
           >
-            <HugeiconsIcon icon={Plus} size={14} />
+            <HugeiconsIcon icon={Plus} data-icon="plus" size={14} />
           </button>
         </div>
       </div>
@@ -239,6 +240,7 @@ const LinearWorkflowStatesSection: React.FC<
                 <div className="group flex min-h-8 items-center gap-2 rounded-md px-2 py-1 hover:bg-fill-1">
                   <HugeiconsIcon
                     icon={Circle}
+                    data-icon="circle"
                     size={12}
                     fill={state.color ?? DEFAULT_STATE_COLOR}
                     className="shrink-0"
@@ -260,7 +262,7 @@ const LinearWorkflowStatesSection: React.FC<
                     className="hidden h-6 w-6 items-center justify-center rounded-md text-text-3 hover:bg-fill-2 hover:text-text-1 group-hover:inline-flex"
                     title={t("common:actions.edit")}
                   >
-                    <HugeiconsIcon icon={Pencil} size={12} />
+                    <HugeiconsIcon icon={Pencil} data-icon="pencil" size={12} />
                   </button>
                   <button
                     type="button"
@@ -269,7 +271,11 @@ const LinearWorkflowStatesSection: React.FC<
                     className="hover:text-danger-7 hidden h-6 w-6 items-center justify-center rounded-md text-text-3 hover:bg-danger-1 disabled:cursor-not-allowed disabled:opacity-50 group-hover:inline-flex"
                     title={t("linearProjects.statusPanel.archiveStatus")}
                   >
-                    <HugeiconsIcon icon={Trash2} size={12} />
+                    <HugeiconsIcon
+                      icon={Trash2}
+                      data-icon="trash-2"
+                      size={12}
+                    />
                   </button>
                 </div>
                 {isEditing && renderDraftEditor("edit")}

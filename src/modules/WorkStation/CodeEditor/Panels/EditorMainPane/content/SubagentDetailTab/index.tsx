@@ -62,6 +62,7 @@ const SubagentDetailTab: React.FC<SubagentDetailTabProps> = memo(({ data }) => {
           <div className="flex h-5 w-5 items-center justify-center rounded-full bg-green-600/80">
             <HugeiconsIcon
               icon={Check}
+              data-icon="check"
               size={12}
               strokeWidth={3}
               className="text-white"
@@ -120,7 +121,11 @@ const SubagentDetailTab: React.FC<SubagentDetailTabProps> = memo(({ data }) => {
         {hasPrompt && (
           <div className="mb-6">
             <div className="mb-2 flex items-center gap-1.5 text-[12px] font-medium text-text-3">
-              <HugeiconsIcon icon={ChevronRight} size={12} />
+              <HugeiconsIcon
+                icon={ChevronRight}
+                data-icon="chevron-right"
+                size={12}
+              />
               <span>Prompt</span>
             </div>
             <div className="rounded-lg bg-fill-2 px-4 py-3 text-[13px] leading-relaxed text-text-2">
@@ -133,7 +138,11 @@ const SubagentDetailTab: React.FC<SubagentDetailTabProps> = memo(({ data }) => {
         {subagentSessionId && (
           <div className="mb-6">
             <div className="mb-2 flex items-center gap-1.5 text-[12px] font-medium text-text-3">
-              <HugeiconsIcon icon={ChevronRight} size={12} />
+              <HugeiconsIcon
+                icon={ChevronRight}
+                data-icon="chevron-right"
+                size={12}
+              />
               <span>Activities</span>
             </div>
             <div className="rounded-lg bg-fill-2 py-2">
@@ -149,7 +158,11 @@ const SubagentDetailTab: React.FC<SubagentDetailTabProps> = memo(({ data }) => {
         {hasError && (
           <div className="mb-6">
             <div className="mb-2 flex items-center gap-1.5 text-[12px] font-medium text-danger-5">
-              <HugeiconsIcon icon={ChevronRight} size={12} />
+              <HugeiconsIcon
+                icon={ChevronRight}
+                data-icon="chevron-right"
+                size={12}
+              />
               <span>Error</span>
             </div>
             <div className="rounded-lg border border-danger-5/30 bg-danger-5/5 px-4 py-3 text-[13px] leading-relaxed text-danger-5">
@@ -162,7 +175,11 @@ const SubagentDetailTab: React.FC<SubagentDetailTabProps> = memo(({ data }) => {
         {hasResult && (
           <div>
             <div className="mb-2 flex items-center gap-1.5 text-[12px] font-medium text-text-3">
-              <HugeiconsIcon icon={ChevronRight} size={12} />
+              <HugeiconsIcon
+                icon={ChevronRight}
+                data-icon="chevron-right"
+                size={12}
+              />
               <span>Result</span>
             </div>
             <div className="rounded-lg bg-fill-2 px-4 py-3 text-[13px] leading-relaxed text-text-2">

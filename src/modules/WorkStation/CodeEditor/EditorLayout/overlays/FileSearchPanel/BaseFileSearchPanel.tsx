@@ -213,6 +213,7 @@ export const BaseFileSearchPanel: React.FC<BaseFileSearchPanelProps> = memo(
                 <div className="px-2">
                   <HugeiconsIcon
                     icon={Loader2}
+                    data-icon="loader-2"
                     size={SPINNER_TOKENS.default}
                     className="animate-spin text-text-3"
                   />
@@ -224,7 +225,7 @@ export const BaseFileSearchPanel: React.FC<BaseFileSearchPanelProps> = memo(
                   className="flex items-center justify-center rounded p-1 text-text-3 transition-colors hover:bg-fill-3"
                   title={t("tooltips.closeEsc")}
                 >
-                  <HugeiconsIcon icon={X} size={14} />
+                  <HugeiconsIcon icon={X} data-icon="x" size={14} />
                 </button>
               )}
             </div>

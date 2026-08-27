@@ -219,7 +219,13 @@ const RuntimeScanningPanel: React.FC = () => {
                 iconOnly
                 loading={rescanningAll}
                 disabled={!externalSessionsEnabled}
-                icon={<HugeiconsIcon icon={RefreshCw} size={14} />}
+                icon={
+                  <HugeiconsIcon
+                    icon={RefreshCw}
+                    data-icon="refresh-cw"
+                    size={14}
+                  />
+                }
                 aria-label={t("rescanAll")}
                 title={t("rescanAll")}
                 onClick={() => void handleRescanAll()}

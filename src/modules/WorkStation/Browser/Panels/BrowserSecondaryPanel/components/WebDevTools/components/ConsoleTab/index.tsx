@@ -141,11 +141,12 @@ function ConsoleLogEntryRow({
               copiedId === entry.id ? (
                 <HugeiconsIcon
                   icon={Check}
+                  data-icon="check"
                   size={12}
                   className="text-success-6"
                 />
               ) : (
-                <HugeiconsIcon icon={Copy} size={12} />
+                <HugeiconsIcon icon={Copy} data-icon="copy" size={12} />
               )
             }
             iconOnly
@@ -416,7 +417,11 @@ export const ConsoleTab: React.FC<ConsoleTabProps> = memo(
               className={HEADER_BUTTON.actionTreeRow}
               aria-label={t("tooltips.clearConsole")}
             >
-              <HugeiconsIcon icon={BrushCleaning} size={HEADER_ICON_SIZE.sm} />
+              <HugeiconsIcon
+                icon={BrushCleaning}
+                data-icon="brush-cleaning"
+                size={HEADER_ICON_SIZE.sm}
+              />
             </button>
           </ToolbarTooltip>
         </div>

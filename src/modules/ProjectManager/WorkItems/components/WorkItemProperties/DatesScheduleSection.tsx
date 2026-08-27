@@ -72,6 +72,7 @@ export function DatesScheduleSection({
             icon={
               <HugeiconsIcon
                 icon={CalendarClock}
+                data-icon="calendar-clock"
                 size={DROPDOWN_ITEM.iconSize}
               />
             }
@@ -109,7 +110,11 @@ export function DatesScheduleSection({
         >
           <FieldRow
             icon={
-              <HugeiconsIcon icon={Calendar} size={DROPDOWN_ITEM.iconSize} />
+              <HugeiconsIcon
+                icon={Calendar}
+                data-icon="calendar"
+                size={DROPDOWN_ITEM.iconSize}
+              />
             }
             value={handlers.formatDueDate(workItem.endDate)}
             isSelected={!!workItem.endDate}

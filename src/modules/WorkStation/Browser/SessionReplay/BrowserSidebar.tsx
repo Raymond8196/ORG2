@@ -93,6 +93,7 @@ function getNativeActionIcon(
       return (
         <HugeiconsIcon
           icon={ListTree}
+          data-icon="list-tree"
           size={size}
           strokeWidth={stroke}
           className={color}
@@ -102,6 +103,7 @@ function getNativeActionIcon(
       return (
         <HugeiconsIcon
           icon={CheckCircle2}
+          data-icon="check-circle-2"
           size={size}
           strokeWidth={stroke}
           className={color}
@@ -111,6 +113,7 @@ function getNativeActionIcon(
       return (
         <HugeiconsIcon
           icon={ListTree}
+          data-icon="list-tree"
           size={size}
           strokeWidth={stroke}
           className={color}
@@ -120,6 +123,7 @@ function getNativeActionIcon(
       return (
         <HugeiconsIcon
           icon={MousePointerClick}
+          data-icon="mouse-pointer-click"
           size={size}
           strokeWidth={stroke}
           className={color}
@@ -129,6 +133,7 @@ function getNativeActionIcon(
       return (
         <HugeiconsIcon
           icon={Keyboard}
+          data-icon="keyboard"
           size={size}
           strokeWidth={stroke}
           className={color}
@@ -138,6 +143,7 @@ function getNativeActionIcon(
       return (
         <HugeiconsIcon
           icon={List}
+          data-icon="list"
           size={size}
           strokeWidth={stroke}
           className={color}
@@ -147,6 +153,7 @@ function getNativeActionIcon(
       return (
         <HugeiconsIcon
           icon={MoveVertical}
+          data-icon="move-vertical"
           size={size}
           strokeWidth={stroke}
           className={color}
@@ -156,6 +163,7 @@ function getNativeActionIcon(
       return (
         <HugeiconsIcon
           icon={Shield}
+          data-icon="shield"
           size={size}
           strokeWidth={stroke}
           className={color}
@@ -165,6 +173,7 @@ function getNativeActionIcon(
       return (
         <HugeiconsIcon
           icon={ShieldOff}
+          data-icon="shield-off"
           size={size}
           strokeWidth={stroke}
           className={color}
@@ -174,6 +183,7 @@ function getNativeActionIcon(
       return (
         <HugeiconsIcon
           icon={Trash2}
+          data-icon="trash-2"
           size={size}
           strokeWidth={stroke}
           className={color}
@@ -183,6 +193,7 @@ function getNativeActionIcon(
       return (
         <HugeiconsIcon
           icon={ListTree}
+          data-icon="list-tree"
           size={size}
           strokeWidth={stroke}
           className={color}
@@ -201,6 +212,7 @@ function getCategoryIcon(
     return (
       <HugeiconsIcon
         icon={Search}
+        data-icon="search"
         size={14}
         strokeWidth={1.75}
         className={color}
@@ -221,6 +233,7 @@ function getCategoryIcon(
     return (
       <HugeiconsIcon
         icon={Chrome}
+        data-icon="chrome"
         size={14}
         strokeWidth={1.75}
         className={color}
@@ -229,6 +242,7 @@ function getCategoryIcon(
   return (
     <HugeiconsIcon
       icon={FileSymlink}
+      data-icon="file-symlink"
       size={14}
       strokeWidth={1.75}
       className={color}
@@ -462,6 +476,7 @@ const BrowserSidebarComponent: React.FC<BrowserSidebarProps> = ({
           icon: (
             <HugeiconsIcon
               icon={Compass}
+              data-icon="compass"
               size={PANEL_CONSTANTS.TAB_ICON_SIZE}
             />
           ),
@@ -509,7 +524,11 @@ const BrowserSidebarComponent: React.FC<BrowserSidebarProps> = ({
         key: "search_fetch",
         label: t("simulator.replay.browser.tabs.searchFetch"),
         icon: (
-          <HugeiconsIcon icon={Search} size={PANEL_CONSTANTS.TAB_ICON_SIZE} />
+          <HugeiconsIcon
+            icon={Search}
+            data-icon="search"
+            size={PANEL_CONSTANTS.TAB_ICON_SIZE}
+          />
         ),
         sections: [
           {

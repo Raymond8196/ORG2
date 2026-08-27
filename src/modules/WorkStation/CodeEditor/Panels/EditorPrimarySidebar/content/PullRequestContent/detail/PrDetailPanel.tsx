@@ -276,7 +276,12 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
         key: "conversation" as const,
         label: t("git.pr.tabs.conversation", "Conversation"),
         icon: (
-          <HugeiconsIcon icon={MessagesSquare} size={15} strokeWidth={1.8} />
+          <HugeiconsIcon
+            icon={MessagesSquare}
+            data-icon="messages-square"
+            size={15}
+            strokeWidth={1.8}
+          />
         ),
         count: state.conversation.length + state.reviews.length,
       },
@@ -286,6 +291,7 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
         icon: (
           <HugeiconsIcon
             icon={GitCommitHorizontal}
+            data-icon="git-commit-horizontal"
             size={15}
             strokeWidth={1.8}
           />
@@ -295,7 +301,14 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
       {
         key: "checks" as const,
         label: t("git.pr.tabs.checks", "Checks"),
-        icon: <HugeiconsIcon icon={ListChecks} size={15} strokeWidth={1.8} />,
+        icon: (
+          <HugeiconsIcon
+            icon={ListChecks}
+            data-icon="list-checks"
+            size={15}
+            strokeWidth={1.8}
+          />
+        ),
         count:
           (state.checks?.check_runs.length ?? 0) +
           (state.checks?.statuses.length ?? 0),
@@ -303,7 +316,14 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
       {
         key: "changes" as const,
         label: t("git.pr.changes.title", "Files changed"),
-        icon: <HugeiconsIcon icon={FileDiff} size={15} strokeWidth={1.8} />,
+        icon: (
+          <HugeiconsIcon
+            icon={FileDiff}
+            data-icon="file-diff"
+            size={15}
+            strokeWidth={1.8}
+          />
+        ),
         count: formatPrFilesCount(state.files.length),
       },
     ],

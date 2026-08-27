@@ -213,7 +213,12 @@ export function PropertyDropdownField<T extends string>({
       </span>
       {isIconChevronTrigger && !readonly ? (
         <span className="flex h-6 w-5 items-center justify-center">
-          <HugeiconsIcon icon={ChevronDown} size={12} strokeWidth={1.8} />
+          <HugeiconsIcon
+            icon={ChevronDown}
+            data-icon="chevron-down"
+            size={12}
+            strokeWidth={1.8}
+          />
         </span>
       ) : null}
     </button>
@@ -230,6 +235,7 @@ export function PropertyDropdownField<T extends string>({
         fieldVariant === "pill" && !readonly ? (
           <HugeiconsIcon
             icon={ChevronDown}
+            data-icon="chevron-down"
             className="ml-1 shrink-0"
             size={12}
             strokeWidth={1.8}

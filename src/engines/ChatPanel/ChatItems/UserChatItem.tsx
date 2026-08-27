@@ -105,6 +105,7 @@ const CachedFileChip: FC<{
         {isImg ? (
           <HugeiconsIcon
             icon={Image}
+            data-icon="image"
             size={13}
             strokeWidth={1.75}
             className="text-text-2"
@@ -112,6 +113,7 @@ const CachedFileChip: FC<{
         ) : (
           <HugeiconsIcon
             icon={File}
+            data-icon="file"
             size={13}
             strokeWidth={1.75}
             className="text-text-2"
@@ -142,6 +144,7 @@ const CachedFileChip: FC<{
             <div className="flex h-full flex-col items-center justify-center">
               <HugeiconsIcon
                 icon={File}
+                data-icon="file"
                 size={32}
                 strokeWidth={1.75}
                 color="#888"
@@ -424,6 +427,7 @@ const UserChatItem = ({
             <div className="flex items-center gap-2 py-0.5">
               <HugeiconsIcon
                 icon={Sparkles}
+                data-icon="sparkles"
                 size={14}
                 className="text-primary-6"
               />
@@ -435,6 +439,7 @@ const UserChatItem = ({
             <div className="flex items-center gap-2 py-0.5">
               <HugeiconsIcon
                 icon={ClipboardCheck}
+                data-icon="clipboard-check"
                 size={14}
                 className="text-primary-6"
               />
@@ -543,7 +548,12 @@ const UserChatItem = ({
                     onRestoreCheckpoint();
                   }}
                 >
-                  <HugeiconsIcon icon={Undo2} size={15} strokeWidth={1.75} />
+                  <HugeiconsIcon
+                    icon={Undo2}
+                    data-icon="undo-2"
+                    size={15}
+                    strokeWidth={1.75}
+                  />
                 </button>
               )}
               {isEditableDisplay && (
@@ -558,6 +568,7 @@ const UserChatItem = ({
                 >
                   <HugeiconsIcon
                     icon={PencilLine}
+                    data-icon="pencil-line"
                     size={14}
                     strokeWidth={1.75}
                   />

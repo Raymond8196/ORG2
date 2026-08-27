@@ -27,20 +27,58 @@ function smartIcon(kind: SmartSuggestionKind): ReactNode {
   switch (kind) {
     case "pr":
       return (
-        <HugeiconsIcon icon={GitPullRequest} size={14} strokeWidth={1.75} />
+        <HugeiconsIcon
+          icon={GitPullRequest}
+          data-icon="git-pull-request"
+          size={14}
+          strokeWidth={1.75}
+        />
       );
     case "issue":
-      return <HugeiconsIcon icon={CircleDot} size={14} strokeWidth={1.75} />;
+      return (
+        <HugeiconsIcon
+          icon={CircleDot}
+          data-icon="circle-dot"
+          size={14}
+          strokeWidth={1.75}
+        />
+      );
     case "branch":
-      return <HugeiconsIcon icon={GitBranch} size={14} strokeWidth={1.75} />;
+      return (
+        <HugeiconsIcon
+          icon={GitBranch}
+          data-icon="git-branch"
+          size={14}
+          strokeWidth={1.75}
+        />
+      );
     case "customRef":
-      return <HugeiconsIcon icon={Hash} size={14} strokeWidth={1.75} />;
+      return (
+        <HugeiconsIcon
+          icon={Hash}
+          data-icon="hash"
+          size={14}
+          strokeWidth={1.75}
+        />
+      );
     case "name":
       return (
-        <HugeiconsIcon icon={CaseSensitive} size={14} strokeWidth={1.75} />
+        <HugeiconsIcon
+          icon={CaseSensitive}
+          data-icon="case-sensitive"
+          size={14}
+          strokeWidth={1.75}
+        />
       );
     default:
-      return <HugeiconsIcon icon={Sparkles} size={14} strokeWidth={1.75} />;
+      return (
+        <HugeiconsIcon
+          icon={Sparkles}
+          data-icon="sparkles"
+          size={14}
+          strokeWidth={1.75}
+        />
+      );
   }
 }
 
@@ -81,7 +119,12 @@ export function WorktreeSmartTab({
       <WorktreeSourceList>
         {loading && (
           <div className="flex h-[180px] items-center justify-center text-text-3">
-            <HugeiconsIcon icon={Loader2} size={16} className="animate-spin" />
+            <HugeiconsIcon
+              icon={Loader2}
+              data-icon="loader-2"
+              size={16}
+              className="animate-spin"
+            />
           </div>
         )}
         {!loading && suggestions.length === 0 && (

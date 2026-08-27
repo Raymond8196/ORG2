@@ -153,6 +153,7 @@ const GeneralSection: React.FC<GeneralSectionProps> = ({
               <div className="flex items-start gap-2">
                 <HugeiconsIcon
                   icon={AlertTriangle}
+                  data-icon="alert-triangle"
                   size={14}
                   className="mt-0.5 shrink-0 text-danger-6"
                 />

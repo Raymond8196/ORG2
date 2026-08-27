@@ -125,11 +125,19 @@ const GanttTaskTooltip: React.FC<GanttTaskTooltipProps> = ({
   const getProgressHealthIcon = (health: string) => {
     switch (health) {
       case "ahead":
-        return <HugeiconsIcon icon={TrendingUp} size={14} />;
+        return (
+          <HugeiconsIcon icon={TrendingUp} data-icon="trending-up" size={14} />
+        );
       case "behind":
-        return <HugeiconsIcon icon={TrendingDown} size={14} />;
+        return (
+          <HugeiconsIcon
+            icon={TrendingDown}
+            data-icon="trending-down"
+            size={14}
+          />
+        );
       default:
-        return <HugeiconsIcon icon={Minus} size={14} />;
+        return <HugeiconsIcon icon={Minus} data-icon="minus" size={14} />;
     }
   };
 
@@ -212,6 +220,7 @@ const GanttTaskTooltip: React.FC<GanttTaskTooltipProps> = ({
                 <div className="gantt-task-tooltip__row">
                   <HugeiconsIcon
                     icon={Calendar}
+                    data-icon="calendar"
                     size={14}
                     className="gantt-task-tooltip__icon"
                   />
@@ -224,6 +233,7 @@ const GanttTaskTooltip: React.FC<GanttTaskTooltipProps> = ({
                   <div className="gantt-task-tooltip__row">
                     <HugeiconsIcon
                       icon={User}
+                      data-icon="user"
                       size={14}
                       className="gantt-task-tooltip__icon"
                     />
@@ -293,7 +303,11 @@ const GanttTaskTooltip: React.FC<GanttTaskTooltipProps> = ({
                       }}
                       title="Edit task"
                     >
-                      <HugeiconsIcon icon={Edit2} size={14} />
+                      <HugeiconsIcon
+                        icon={Edit2}
+                        data-icon="edit-2"
+                        size={14}
+                      />
                       <span>Edit</span>
                     </button>
                   )}
@@ -306,7 +320,11 @@ const GanttTaskTooltip: React.FC<GanttTaskTooltipProps> = ({
                       }}
                       title="Delete task"
                     >
-                      <HugeiconsIcon icon={Trash2} size={14} />
+                      <HugeiconsIcon
+                        icon={Trash2}
+                        data-icon="trash-2"
+                        size={14}
+                      />
                       <span>Delete</span>
                     </button>
                   )}

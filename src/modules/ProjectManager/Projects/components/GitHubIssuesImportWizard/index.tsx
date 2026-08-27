@@ -241,6 +241,7 @@ const GitHubIssuesImportWizard: React.FC<GitHubIssuesImportWizardProps> = ({
                   <div className="flex h-8 items-center gap-2 rounded-lg border border-border-2 px-3 text-[13px] text-text-3">
                     <HugeiconsIcon
                       icon={Loader2}
+                      data-icon="loader-2"
                       size={14}
                       className="animate-spin"
                     />

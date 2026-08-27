@@ -72,6 +72,7 @@ export function AddActionsButton({
           icon={
             <HugeiconsIcon
               icon={Plus}
+              data-icon="plus"
               size={HEADER_ICON_SIZE.md}
               strokeWidth={2}
             />
@@ -97,6 +98,7 @@ export function AddActionsButton({
           icon={
             <HugeiconsIcon
               icon={Plus}
+              data-icon="plus"
               size={HEADER_ICON_SIZE.md}
               strokeWidth={2}
             />
@@ -129,6 +131,7 @@ export function AddActionsButton({
             >
               <HugeiconsIcon
                 icon={ListChecks}
+                data-icon="list-checks"
                 size={DROPDOWN_ITEM.iconSize}
                 strokeWidth={1.75}
                 className="text-text-2"
@@ -146,6 +149,7 @@ export function AddActionsButton({
             >
               <HugeiconsIcon
                 icon={Box}
+                data-icon="box"
                 size={DROPDOWN_ITEM.iconSize}
                 strokeWidth={1.75}
                 className="text-text-2"

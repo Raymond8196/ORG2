@@ -125,7 +125,12 @@ export const ChannelWizardFooterStatus: React.FC<
 
   return (
     <div className="flex items-center gap-1.5">
-      <HugeiconsIcon icon={Check} size={14} className="text-success-6" />
+      <HugeiconsIcon
+        icon={Check}
+        data-icon="check"
+        size={14}
+        className="text-success-6"
+      />
       <span className="text-[12px] text-success-6">
         {t("integrations.verified")}
       </span>

@@ -72,7 +72,13 @@ function renderOptions(params: {
   return (
     <>
       <Option
-        icon={<HugeiconsIcon icon={CalendarX} size={DROPDOWN_ITEM.iconSize} />}
+        icon={
+          <HugeiconsIcon
+            icon={CalendarX}
+            data-icon="calendar-x"
+            size={DROPDOWN_ITEM.iconSize}
+          />
+        }
         label={params.emptyLabel ?? params.t("properties.clearDate")}
         isSelected={!params.value}
         onClick={() => params.onChange(null)}
@@ -81,7 +87,11 @@ function renderOptions(params: {
         <Option
           key={suggestion.id}
           icon={
-            <HugeiconsIcon icon={CalendarDays} size={DROPDOWN_ITEM.iconSize} />
+            <HugeiconsIcon
+              icon={CalendarDays}
+              data-icon="calendar-days"
+              size={DROPDOWN_ITEM.iconSize}
+            />
           }
           label={`${formatSuggestionLabel(suggestion, params.t)} · ${formatLocalMonthDay(suggestion.date, { locale: undefined })}`}
           isSelected={

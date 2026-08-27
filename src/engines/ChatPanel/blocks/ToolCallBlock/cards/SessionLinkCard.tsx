@@ -91,6 +91,7 @@ const SessionLinkCard: React.FC<SessionLinkCardProps> = ({ card }) => {
 
         <HugeiconsIcon
           icon={SquareArrowOutUpRight}
+          data-icon="square-arrow-out-up-right"
           size={13}
           className="mt-0.5 shrink-0 text-text-4 transition-colors hover:text-text-2"
           aria-hidden="true"

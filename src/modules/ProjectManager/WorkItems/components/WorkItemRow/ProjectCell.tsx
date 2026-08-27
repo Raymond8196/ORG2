@@ -35,9 +35,17 @@ export function ProjectCell({
       label={label}
       icon={
         project ? (
-          <HugeiconsIcon icon={BookOpen} size={DROPDOWN_ITEM.iconSize} />
+          <HugeiconsIcon
+            icon={BookOpen}
+            data-icon="book-open"
+            size={DROPDOWN_ITEM.iconSize}
+          />
         ) : (
-          <HugeiconsIcon icon={BookDashed} size={DROPDOWN_ITEM.iconSize} />
+          <HugeiconsIcon
+            icon={BookDashed}
+            data-icon="book-dashed"
+            size={DROPDOWN_ITEM.iconSize}
+          />
         )
       }
       iconColor={project?.color}
@@ -70,6 +78,7 @@ export function ProjectCell({
                 icon={
                   <HugeiconsIcon
                     icon={BookDashed}
+                    data-icon="book-dashed"
                     size={DROPDOWN_ITEM.iconSize}
                   />
                 }
@@ -88,6 +97,7 @@ export function ProjectCell({
                 icon={
                   <HugeiconsIcon
                     icon={BookOpen}
+                    data-icon="book-open"
                     size={DROPDOWN_ITEM.iconSize}
                   />
                 }

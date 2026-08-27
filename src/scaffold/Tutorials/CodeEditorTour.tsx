@@ -388,7 +388,7 @@ const CodeEditorTour: React.FC<CodeEditorTourProps> = ({ open, onClose }) => {
               aria-label={t("tutorials.chrome.close")}
               onClick={onClose}
             >
-              <HugeiconsIcon icon={X} size={14} />
+              <HugeiconsIcon icon={X} data-icon="x" size={14} />
             </button>
           </div>
 
@@ -417,7 +417,13 @@ const CodeEditorTour: React.FC<CodeEditorTourProps> = ({ open, onClose }) => {
               appearance="ghost"
               shape="circle"
               iconOnly
-              icon={<HugeiconsIcon icon={ArrowLeft} size={13} />}
+              icon={
+                <HugeiconsIcon
+                  icon={ArrowLeft}
+                  data-icon="arrow-left"
+                  size={13}
+                />
+              }
               disabled={isFirstStep}
               aria-label={t("tutorials.chrome.previous")}
               title={t("tutorials.chrome.previous")}
@@ -433,9 +439,13 @@ const CodeEditorTour: React.FC<CodeEditorTourProps> = ({ open, onClose }) => {
               iconOnly
               icon={
                 isLastStep ? (
-                  <HugeiconsIcon icon={Check} size={13} />
+                  <HugeiconsIcon icon={Check} data-icon="check" size={13} />
                 ) : (
-                  <HugeiconsIcon icon={ArrowRight} size={13} />
+                  <HugeiconsIcon
+                    icon={ArrowRight}
+                    data-icon="arrow-right"
+                    size={13}
+                  />
                 )
               }
               aria-label={

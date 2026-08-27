@@ -169,7 +169,12 @@ const ScopeInfoLine: React.FC<ScopeInfoLineProps> = ({
             value: repo.id,
             label: repo.name,
             icon: (
-              <HugeiconsIcon icon={Folder} size={14} className="shrink-0" />
+              <HugeiconsIcon
+                icon={Folder}
+                data-icon="folder"
+                size={14}
+                className="shrink-0"
+              />
             ),
           })),
         ];
@@ -180,7 +185,12 @@ const ScopeInfoLine: React.FC<ScopeInfoLineProps> = ({
             value: session.id,
             label: session.name,
             icon: (
-              <HugeiconsIcon icon={GitBranch} size={14} className="shrink-0" />
+              <HugeiconsIcon
+                icon={GitBranch}
+                data-icon="git-branch"
+                size={14}
+                className="shrink-0"
+              />
             ),
           })),
         ];
@@ -190,7 +200,14 @@ const ScopeInfoLine: React.FC<ScopeInfoLineProps> = ({
           ...projects.map((project) => ({
             value: project.id,
             label: project.name,
-            icon: <HugeiconsIcon icon={Box} size={14} className="shrink-0" />,
+            icon: (
+              <HugeiconsIcon
+                icon={Box}
+                data-icon="box"
+                size={14}
+                className="shrink-0"
+              />
+            ),
           })),
         ];
       case "workitem":
@@ -200,7 +217,12 @@ const ScopeInfoLine: React.FC<ScopeInfoLineProps> = ({
             value: item.id,
             label: item.name,
             icon: (
-              <HugeiconsIcon icon={Layers} size={14} className="shrink-0" />
+              <HugeiconsIcon
+                icon={Layers}
+                data-icon="layers"
+                size={14}
+                className="shrink-0"
+              />
             ),
           })),
         ];

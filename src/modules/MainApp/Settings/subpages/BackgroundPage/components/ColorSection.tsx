@@ -99,7 +99,14 @@ export const ColorSection: React.FC<ColorSectionProps> = ({
                 appearance="solid"
                 size="mini"
                 shape="circle"
-                icon={<HugeiconsIcon icon={X} size={9} strokeWidth={2.25} />}
+                icon={
+                  <HugeiconsIcon
+                    icon={X}
+                    data-icon="x"
+                    size={9}
+                    strokeWidth={2.25}
+                  />
+                }
                 iconOnly
                 title={t("common:actions.delete")}
                 onClick={(event) => onRemoveCustomHex(hex, event)}
@@ -134,6 +141,7 @@ export const ColorSection: React.FC<ColorSectionProps> = ({
           />
           <HugeiconsIcon
             icon={Plus}
+            data-icon="plus"
             size={14}
             strokeWidth={2.25}
             className="pointer-events-none"

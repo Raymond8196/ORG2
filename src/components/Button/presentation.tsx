@@ -230,6 +230,7 @@ export function useButtonPresentation({
         >
           <HugeiconsIcon
             icon={Loader2}
+            data-icon="loader-2"
             size={sizeConfig.iconSize}
             className="animate-spin"
           />

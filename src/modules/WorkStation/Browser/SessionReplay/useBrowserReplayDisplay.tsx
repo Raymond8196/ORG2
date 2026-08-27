@@ -201,6 +201,7 @@ export function useBrowserReplayDisplay({
       detailIcon = (
         <HugeiconsIcon
           icon={Globe}
+          data-icon="globe"
           size={14}
           className="flex-shrink-0 text-text-3"
         />
@@ -212,7 +213,11 @@ export function useBrowserReplayDisplay({
 
     return {
       categoryIcon: categoryIconNode || (
-        <CategoryIcon size={14} className={`flex-shrink-0 ${iconColor}`} />
+        <HugeiconsIcon
+          icon={CategoryIcon}
+          size={14}
+          className={`flex-shrink-0 ${iconColor}`}
+        />
       ),
       categoryLabel,
       detailIcon,
@@ -237,6 +242,7 @@ export function useBrowserReplayDisplay({
       resultIcon = (
         <HugeiconsIcon
           icon={CheckCircle2}
+          data-icon="check-circle-2"
           size={14}
           className="flex-shrink-0 text-success-6"
         />
@@ -245,6 +251,7 @@ export function useBrowserReplayDisplay({
       resultIcon = (
         <HugeiconsIcon
           icon={AlertCircle}
+          data-icon="alert-circle"
           size={14}
           className="text-error-6 flex-shrink-0"
         />
@@ -272,6 +279,7 @@ export function useBrowserReplayDisplay({
       categoryIcon: (
         <HugeiconsIcon
           icon={MonitorSmartphone}
+          data-icon="monitor-smartphone"
           size={14}
           className={`flex-shrink-0 ${iconColor}`}
         />
@@ -306,18 +314,21 @@ export function useBrowserReplayDisplay({
           {activeInternalEntry.success === true ? (
             <HugeiconsIcon
               icon={CheckCircle2}
+              data-icon="check-circle-2"
               size={48}
               className="text-success-6"
             />
           ) : activeInternalEntry.success === false ? (
             <HugeiconsIcon
               icon={AlertCircle}
+              data-icon="alert-circle"
               size={48}
               className="text-error-6"
             />
           ) : (
             <HugeiconsIcon
               icon={MonitorSmartphone}
+              data-icon="monitor-smartphone"
               size={48}
               className="text-text-3"
             />

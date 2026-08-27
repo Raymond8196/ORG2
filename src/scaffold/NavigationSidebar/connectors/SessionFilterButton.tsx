@@ -217,6 +217,7 @@ export const SessionFilterButton: FC<SessionFilterButtonProps> = React.memo(
                         icon={
                           <HugeiconsIcon
                             icon={RefreshCw}
+                            data-icon="refresh-cw"
                             size={DROPDOWN_ITEM.iconSize}
                             strokeWidth={2}
                           />
@@ -231,6 +232,7 @@ export const SessionFilterButton: FC<SessionFilterButtonProps> = React.memo(
                         icon={
                           <HugeiconsIcon
                             icon={FolderOutput}
+                            data-icon="folder-output"
                             size={DROPDOWN_ITEM.iconSize}
                             strokeWidth={2}
                           />
@@ -246,6 +248,7 @@ export const SessionFilterButton: FC<SessionFilterButtonProps> = React.memo(
                         icon={
                           <HugeiconsIcon
                             icon={FolderInput}
+                            data-icon="folder-input"
                             size={DROPDOWN_ITEM.iconSize}
                             strokeWidth={2}
                           />
@@ -260,6 +263,7 @@ export const SessionFilterButton: FC<SessionFilterButtonProps> = React.memo(
                         icon={
                           <HugeiconsIcon
                             icon={ListChevronsDownUp}
+                            data-icon="list-chevrons-down-up"
                             size={DROPDOWN_ITEM.iconSize}
                             strokeWidth={2}
                           />
@@ -274,6 +278,7 @@ export const SessionFilterButton: FC<SessionFilterButtonProps> = React.memo(
                         icon={
                           <HugeiconsIcon
                             icon={CheckCheck}
+                            data-icon="check-check"
                             size={DROPDOWN_ITEM.iconSize}
                             strokeWidth={2}
                           />
@@ -296,6 +301,7 @@ export const SessionFilterButton: FC<SessionFilterButtonProps> = React.memo(
                       icon={
                         <HugeiconsIcon
                           icon={SlidersHorizontal}
+                          data-icon="sliders-horizontal"
                           size={DROPDOWN_ITEM.iconSize}
                           strokeWidth={2}
                         />
@@ -303,6 +309,7 @@ export const SessionFilterButton: FC<SessionFilterButtonProps> = React.memo(
                       suffix={
                         <HugeiconsIcon
                           icon={ArrowUpRight}
+                          data-icon="arrow-up-right"
                           size={DROPDOWN_ITEM.iconSize}
                           strokeWidth={2}
                           className="text-text-3"

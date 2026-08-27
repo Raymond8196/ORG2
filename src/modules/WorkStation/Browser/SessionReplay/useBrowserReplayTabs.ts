@@ -196,7 +196,8 @@ export function useBrowserReplayTabs({
           browserCategoryCounts.agent_browser
         ),
         title: agentBrowserLabel,
-        icon: createElement(Compass, {
+        icon: createElement(HugeiconsIcon, {
+          icon: Compass,
           size: TAB_ICON_SIZE,
           className: TAB_ICON_CLASS,
         }),
@@ -213,7 +214,8 @@ export function useBrowserReplayTabs({
           browserCategoryCounts.search_fetch
         ),
         title: searchFetchLabel,
-        icon: createElement(Search, {
+        icon: createElement(HugeiconsIcon, {
+          icon: Search,
           size: TAB_ICON_SIZE,
           className: TAB_ICON_CLASS,
         }),

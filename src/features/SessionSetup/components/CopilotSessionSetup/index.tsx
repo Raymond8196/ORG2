@@ -310,14 +310,20 @@ const CopilotSessionSetup: React.FC<CopilotSessionSetupProps> = ({
               <Button
                 variant="tertiary"
                 size="mini"
-                icon={<HugeiconsIcon icon={RefreshCw} size={12} />}
+                icon={
+                  <HugeiconsIcon
+                    icon={RefreshCw}
+                    data-icon="refresh-cw"
+                    size={12}
+                  />
+                }
                 iconOnly
                 onClick={() => navigate(GITHUB_PAT_URL)}
               />
               <Button
                 variant="tertiary"
                 size="mini"
-                icon={<HugeiconsIcon icon={X} size={14} />}
+                icon={<HugeiconsIcon icon={X} data-icon="x" size={14} />}
                 iconOnly
                 onClick={handleCloseBrowser}
               />
@@ -334,6 +340,7 @@ const CopilotSessionSetup: React.FC<CopilotSessionSetupProps> = ({
                 />
                 <HugeiconsIcon
                   icon={ChevronRight}
+                  data-icon="chevron-right"
                   size={14}
                   className="text-text-3"
                 />
@@ -371,6 +378,7 @@ const CopilotSessionSetup: React.FC<CopilotSessionSetupProps> = ({
                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-bg-1 p-6 text-center">
                   <HugeiconsIcon
                     icon={AlertCircle}
+                    data-icon="alert-circle"
                     size={32}
                     className="mb-3 text-danger-6"
                   />

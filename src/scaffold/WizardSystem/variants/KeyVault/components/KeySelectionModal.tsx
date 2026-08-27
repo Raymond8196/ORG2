@@ -58,7 +58,7 @@ const KeySelectionModal: React.FC<KeySelectionModalProps> = ({
             onClick={onClose}
             className="rounded-lg p-1 text-text-3 hover:bg-fill-2 hover:text-text-1"
           >
-            <HugeiconsIcon icon={X} size={18} />
+            <HugeiconsIcon icon={X} data-icon="x" size={18} />
           </button>
         </div>
 
@@ -90,6 +90,7 @@ const KeySelectionModal: React.FC<KeySelectionModalProps> = ({
                     selectedIndex === index ? (
                       <HugeiconsIcon
                         icon={Check}
+                        data-icon="check"
                         size={16}
                         className="mt-0.5 flex-shrink-0 text-primary-6"
                       />
@@ -99,6 +100,7 @@ const KeySelectionModal: React.FC<KeySelectionModalProps> = ({
                   ) : (
                     <HugeiconsIcon
                       icon={AlertCircle}
+                      data-icon="alert-circle"
                       size={16}
                       className="mt-0.5 flex-shrink-0 text-danger-6"
                     />
@@ -108,6 +110,7 @@ const KeySelectionModal: React.FC<KeySelectionModalProps> = ({
                       {cred.auth_method === "oauth" ? (
                         <HugeiconsIcon
                           icon={KeyRound}
+                          data-icon="key-round"
                           size={16}
                           className={
                             cred.validated ? "text-primary-6" : "text-danger-6"
@@ -116,6 +119,7 @@ const KeySelectionModal: React.FC<KeySelectionModalProps> = ({
                       ) : (
                         <HugeiconsIcon
                           icon={Key}
+                          data-icon="key"
                           size={16}
                           className={
                             cred.validated ? "text-success-6" : "text-danger-6"
@@ -137,12 +141,20 @@ const KeySelectionModal: React.FC<KeySelectionModalProps> = ({
                       )}
                       {cred.validated === true ? (
                         <span className="flex items-center gap-1 rounded-full bg-success-1 px-2 py-0.5 text-[10px] text-success-6">
-                          <HugeiconsIcon icon={CheckCircle} size={10} />
+                          <HugeiconsIcon
+                            icon={CheckCircle}
+                            data-icon="check-circle"
+                            size={10}
+                          />
                           {t("keyVault.quickActions.valid")}
                         </span>
                       ) : cred.validated === false ? (
                         <span className="flex items-center gap-1 rounded-full bg-danger-1 px-2 py-0.5 text-[10px] font-medium text-danger-6">
-                          <HugeiconsIcon icon={AlertCircle} size={10} />
+                          <HugeiconsIcon
+                            icon={AlertCircle}
+                            data-icon="alert-circle"
+                            size={10}
+                          />
                           {t("keyVault.quickActions.invalid")}
                         </span>
                       ) : null}

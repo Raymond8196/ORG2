@@ -24,7 +24,12 @@ export const SpotlightFooterAction: React.FC<SpotlightFooterActionProps> = ({
         className="flex items-center gap-1.5 px-3 py-2 text-[11px] text-text-2 transition-colors hover:bg-fill-2 hover:text-text-1"
       >
         <span>{label}</span>
-        <HugeiconsIcon icon={ArrowUpRight} size={10} strokeWidth={2.5} />
+        <HugeiconsIcon
+          icon={ArrowUpRight}
+          data-icon="arrow-up-right"
+          size={10}
+          strokeWidth={2.5}
+        />
       </button>
     </div>
   );

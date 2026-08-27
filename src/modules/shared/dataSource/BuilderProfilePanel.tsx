@@ -375,6 +375,7 @@ export default function BuilderProfilePanel() {
           icon={
             <HugeiconsIcon
               icon={RefreshCw}
+              data-icon="refresh-cw"
               className={`h-3.5 w-3.5 ${spinClass ?? ""}`}
             />
           }
@@ -387,7 +388,13 @@ export default function BuilderProfilePanel() {
             size="small"
             onClick={() => setShowTypesGallery(true)}
             data-testid="builder-profile-know-more"
-            icon={<HugeiconsIcon icon={ArrowRight} className="h-3.5 w-3.5" />}
+            icon={
+              <HugeiconsIcon
+                icon={ArrowRight}
+                data-icon="arrow-right"
+                className="h-3.5 w-3.5"
+              />
+            }
             iconPosition="right"
           >
             {t("types.knowMore")}

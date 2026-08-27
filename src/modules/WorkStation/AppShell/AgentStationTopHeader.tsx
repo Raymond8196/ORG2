@@ -168,7 +168,12 @@ const AgentStationTopHeader: React.FC = memo(() => {
             aria-pressed={captionEnabled}
             onClick={handleToggleCaption}
           >
-            <HugeiconsIcon icon={Captions} size={16} strokeWidth={2} />
+            <HugeiconsIcon
+              icon={Captions}
+              data-icon="captions"
+              size={16}
+              strokeWidth={2}
+            />
           </TabBarTrailingIconButton>
           {!isSettingsRoute && !isChatPanelVisible && (
             <TabBarTrailingIconButton
@@ -176,7 +181,12 @@ const AgentStationTopHeader: React.FC = memo(() => {
               shortcutId="maximize_work_station"
               onClick={handleToggleChatPanel}
             >
-              <HugeiconsIcon icon={Minimize2} size={14} strokeWidth={2} />
+              <HugeiconsIcon
+                icon={Minimize2}
+                data-icon="minimize-2"
+                size={14}
+                strokeWidth={2}
+              />
             </TabBarTrailingIconButton>
           )}
           {!isSettingsRoute && (
@@ -186,9 +196,19 @@ const AgentStationTopHeader: React.FC = memo(() => {
               onClick={handleToggleChatPanel}
             >
               {isChatPanelVisible ? (
-                <HugeiconsIcon icon={Maximize2} size={14} strokeWidth={2} />
+                <HugeiconsIcon
+                  icon={Maximize2}
+                  data-icon="maximize-2"
+                  size={14}
+                  strokeWidth={2}
+                />
               ) : (
-                <HugeiconsIcon icon={MessageCircle} size={14} strokeWidth={2} />
+                <HugeiconsIcon
+                  icon={MessageCircle}
+                  data-icon="message-circle"
+                  size={14}
+                  strokeWidth={2}
+                />
               )}
             </TabBarTrailingIconButton>
           )}
@@ -201,12 +221,14 @@ const AgentStationTopHeader: React.FC = memo(() => {
               {sessionChatPosition === "left" ? (
                 <HugeiconsIcon
                   icon={PanelRight}
+                  data-icon="panel-right"
                   size={HEADER_ICON_SIZE.md}
                   strokeWidth={2}
                 />
               ) : (
                 <HugeiconsIcon
                   icon={X}
+                  data-icon="x"
                   size={HEADER_ICON_SIZE.md}
                   strokeWidth={1.75}
                 />

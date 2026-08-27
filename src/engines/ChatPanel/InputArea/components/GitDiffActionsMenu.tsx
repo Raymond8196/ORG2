@@ -119,6 +119,7 @@ const GitDiffActionsMenu: React.FC<GitDiffActionsMenuProps> = ({
             icon={
               <HugeiconsIcon
                 icon={Laptop}
+                data-icon="laptop"
                 size={ICON_SIZE}
                 strokeWidth={1.75}
               />
@@ -135,6 +136,7 @@ const GitDiffActionsMenu: React.FC<GitDiffActionsMenuProps> = ({
             icon={
               <HugeiconsIcon
                 icon={InfinityIcon}
+                data-icon="infinity-icon"
                 size={ICON_SIZE}
                 strokeWidth={1.75}
               />

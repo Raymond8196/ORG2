@@ -200,12 +200,23 @@ export const PrReviewThreadsPanel: React.FC<PrReviewThreadsPanelProps> = ({
         className="flex w-full items-center gap-1.5 px-4 py-2 text-[12px] text-text-2 hover:bg-fill-1"
       >
         {expanded ? (
-          <HugeiconsIcon icon={ChevronDown} size={14} strokeWidth={2} />
+          <HugeiconsIcon
+            icon={ChevronDown}
+            data-icon="chevron-down"
+            size={14}
+            strokeWidth={2}
+          />
         ) : (
-          <HugeiconsIcon icon={ChevronRight} size={14} strokeWidth={2} />
+          <HugeiconsIcon
+            icon={ChevronRight}
+            data-icon="chevron-right"
+            size={14}
+            strokeWidth={2}
+          />
         )}
         <HugeiconsIcon
           icon={MessageSquare}
+          data-icon="message-square"
           size={13}
           strokeWidth={1.9}
           className="text-text-3"

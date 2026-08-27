@@ -147,7 +147,7 @@ export const BundledFileEntry: React.FC<{
         />
         <Button
           size="small"
-          icon={<HugeiconsIcon icon={Trash2} size={14} />}
+          icon={<HugeiconsIcon icon={Trash2} data-icon="trash-2" size={14} />}
           iconOnly
           onClick={onRemove}
           title={t("skillsHub.removeFile")}
@@ -180,7 +180,7 @@ export const DescriptionQualityIndicator: React.FC<{
   if (quality === DESCRIPTION_QUALITY.GOOD) {
     return (
       <span className="flex items-center gap-1 text-xs text-success-6">
-        <HugeiconsIcon icon={Check} size={12} />
+        <HugeiconsIcon icon={Check} data-icon="check" size={12} />
         {t("skillsHub.descriptionQualityGood")}
       </span>
     );
@@ -188,14 +188,22 @@ export const DescriptionQualityIndicator: React.FC<{
   if (quality === DESCRIPTION_QUALITY.SHORT) {
     return (
       <span className="flex items-center gap-1 text-xs text-warning-6">
-        <HugeiconsIcon icon={AlertTriangle} size={12} />
+        <HugeiconsIcon
+          icon={AlertTriangle}
+          data-icon="alert-triangle"
+          size={12}
+        />
         {t("skillsHub.descriptionQualityShort")}
       </span>
     );
   }
   return (
     <span className="flex items-center gap-1 text-xs text-danger-6">
-      <HugeiconsIcon icon={AlertTriangle} size={12} />
+      <HugeiconsIcon
+        icon={AlertTriangle}
+        data-icon="alert-triangle"
+        size={12}
+      />
       {t("skillsHub.descriptionQualityMissing")}
     </span>
   );

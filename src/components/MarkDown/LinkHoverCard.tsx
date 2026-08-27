@@ -139,7 +139,7 @@ const LinkHoverCardContent: React.FC<LinkHoverCardContentProps> = ({
         <Button
           variant="tertiary"
           size="mini"
-          icon={<HugeiconsIcon icon={Copy} size={13} />}
+          icon={<HugeiconsIcon icon={Copy} data-icon="copy" size={13} />}
           iconOnly
           aria-label={t("cards.url.copyUrl")}
           title={t("cards.url.copyUrl")}
@@ -148,7 +148,14 @@ const LinkHoverCardContent: React.FC<LinkHoverCardContentProps> = ({
         <Button
           variant="tertiary"
           size="mini"
-          icon={<HugeiconsIcon icon={Chromium} size={13} strokeWidth={1.75} />}
+          icon={
+            <HugeiconsIcon
+              icon={Chromium}
+              data-icon="chromium"
+              size={13}
+              strokeWidth={1.75}
+            />
+          }
           iconOnly
           aria-label={t("cards.actions.openWithDefaultBrowser")}
           title={t("cards.actions.openWithDefaultBrowser")}
@@ -162,6 +169,7 @@ const LinkHoverCardContent: React.FC<LinkHoverCardContentProps> = ({
             icon={
               <HugeiconsIcon
                 icon={GitPullRequest}
+                data-icon="git-pull-request"
                 size={13}
                 strokeWidth={1.75}
                 aria-hidden
@@ -188,6 +196,7 @@ const LinkHoverCardContent: React.FC<LinkHoverCardContentProps> = ({
                     >
                       <HugeiconsIcon
                         icon={GitPullRequest}
+                        data-icon="git-pull-request"
                         size={14}
                         aria-hidden
                       />
@@ -196,6 +205,7 @@ const LinkHoverCardContent: React.FC<LinkHoverCardContentProps> = ({
                     <Menu.Item key="web-page" onClick={handleOpenAsWebPage}>
                       <HugeiconsIcon
                         icon={PanelsTopLeft}
+                        data-icon="panels-top-left"
                         size={14}
                         aria-hidden
                       />

@@ -83,7 +83,12 @@ export function WorkManagementAssigneeCell({
       {firstAssignee.label.charAt(0).toUpperCase()}
     </Avatar>
   ) : (
-    <HugeiconsIcon icon={UserRound} size={14} strokeWidth={1.8} />
+    <HugeiconsIcon
+      icon={UserRound}
+      data-icon="user-round"
+      size={14}
+      strokeWidth={1.8}
+    />
   );
 
   const handleOpenChange = (nextOpen: boolean) => {
@@ -141,7 +146,12 @@ export function WorkManagementAssigneeCell({
             <>
               <Option
                 icon={
-                  <HugeiconsIcon icon={UserRound} size={14} strokeWidth={1.8} />
+                  <HugeiconsIcon
+                    icon={UserRound}
+                    data-icon="user-round"
+                    size={14}
+                    strokeWidth={1.8}
+                  />
                 }
                 label={noneLabel}
                 isSelected={currentAssigneeIds.length === 0}

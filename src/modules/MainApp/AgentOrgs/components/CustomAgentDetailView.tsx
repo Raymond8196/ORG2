@@ -209,6 +209,7 @@ const CustomAgentDetailView: React.FC<CustomAgentDetailViewProps> = ({
             icon={
               <HugeiconsIcon
                 icon={X}
+                data-icon="x"
                 size={PANEL_HEADER_TOKENS.buttonIconSize}
                 strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
               />
@@ -227,6 +228,7 @@ const CustomAgentDetailView: React.FC<CustomAgentDetailViewProps> = ({
         icon={
           <HugeiconsIcon
             icon={Trash2}
+            data-icon="trash-2"
             size={PANEL_HEADER_TOKENS.buttonIconSize}
             strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
           />

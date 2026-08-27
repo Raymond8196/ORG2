@@ -229,7 +229,9 @@ const RepoDetailPage: React.FC<RepoDetailPageProps> = ({
               iconOnly
               title={t("common:actions.delete")}
               aria-label={t("common:actions.delete")}
-              icon={<HugeiconsIcon icon={Trash2} size={14} />}
+              icon={
+                <HugeiconsIcon icon={Trash2} data-icon="trash-2" size={14} />
+              }
               onClick={() => deleteVar(row.key)}
             />
           </div>
@@ -295,7 +297,7 @@ const RepoDetailPage: React.FC<RepoDetailPageProps> = ({
               iconOnly
               title={t("common:actions.copy")}
               aria-label={t("common:actions.copy")}
-              icon={<HugeiconsIcon icon={Copy} size={14} />}
+              icon={<HugeiconsIcon icon={Copy} data-icon="copy" size={14} />}
               onClick={() => handleCopyScript(row)}
             />
             {row.source === "custom" && (
@@ -304,7 +306,9 @@ const RepoDetailPage: React.FC<RepoDetailPageProps> = ({
                 iconOnly
                 title={t("common:actions.delete")}
                 aria-label={t("common:actions.delete")}
-                icon={<HugeiconsIcon icon={Trash2} size={14} />}
+                icon={
+                  <HugeiconsIcon icon={Trash2} data-icon="trash-2" size={14} />
+                }
                 onClick={() => deleteScript(row.name)}
               />
             )}

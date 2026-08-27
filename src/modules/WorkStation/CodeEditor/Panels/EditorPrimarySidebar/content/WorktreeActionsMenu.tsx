@@ -65,6 +65,7 @@ export const WorktreeActionsMenu: React.FC<WorktreeActionsMenuProps> = memo(
         >
           <HugeiconsIcon
             icon={Ellipsis}
+            data-icon="ellipsis"
             size={14}
             className={isOpen ? "text-primary-6" : "text-text-3"}
           />
@@ -93,6 +94,7 @@ export const WorktreeActionsMenu: React.FC<WorktreeActionsMenuProps> = memo(
                 >
                   <HugeiconsIcon
                     icon={Trash2}
+                    data-icon="trash-2"
                     size={DROPDOWN_ITEM.iconSize}
                     className="shrink-0"
                   />
@@ -160,6 +162,7 @@ export function WorktreeContextMenu({
           >
             <HugeiconsIcon
               icon={Trash2}
+              data-icon="trash-2"
               size={DROPDOWN_ITEM.iconSize}
               className="shrink-0"
             />

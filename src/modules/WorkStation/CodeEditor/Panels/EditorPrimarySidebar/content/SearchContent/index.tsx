@@ -314,9 +314,17 @@ export const SearchContent = forwardRef<
             }
           >
             {showReplace ? (
-              <HugeiconsIcon icon={ChevronDown} size={14} />
+              <HugeiconsIcon
+                icon={ChevronDown}
+                data-icon="chevron-down"
+                size={14}
+              />
             ) : (
-              <HugeiconsIcon icon={ChevronRight} size={14} />
+              <HugeiconsIcon
+                icon={ChevronRight}
+                data-icon="chevron-right"
+                size={14}
+              />
             )}
           </button>
 
@@ -384,6 +392,7 @@ export const SearchContent = forwardRef<
                 >
                   <HugeiconsIcon
                     icon={ArrowUpRightFromSquare}
+                    data-icon="arrow-up-right-from-square"
                     size={14}
                     strokeWidth={1.75}
                   />

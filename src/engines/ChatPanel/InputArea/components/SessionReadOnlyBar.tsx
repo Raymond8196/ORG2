@@ -48,7 +48,12 @@ const SessionReadOnlyBar: React.FC<SessionReadOnlyBarProps> = memo(
             <div className="flex items-center gap-1.5">
               <ContextInfoButton variant="toolbar" />
               <div className="flex cursor-default select-none items-center gap-1 text-text-4 opacity-60">
-                <HugeiconsIcon icon={Lock} size={11} strokeWidth={1.75} />
+                <HugeiconsIcon
+                  icon={Lock}
+                  data-icon="lock"
+                  size={11}
+                  strokeWidth={1.75}
+                />
                 <span className="text-[11px] leading-none">{badgeLabel}</span>
               </div>
             </div>

@@ -99,6 +99,7 @@ const CodeBlock = memo<CodeBlockProps>(
             >
               <HugeiconsIcon
                 icon={SquareArrowOutUpRight}
+                data-icon="square-arrow-out-up-right"
                 size={14}
                 strokeWidth={1.75}
               />
@@ -112,9 +113,19 @@ const CodeBlock = memo<CodeBlockProps>(
             onClick={handleCopy}
           >
             {copied ? (
-              <HugeiconsIcon icon={Check} size={14} strokeWidth={1.75} />
+              <HugeiconsIcon
+                icon={Check}
+                data-icon="check"
+                size={14}
+                strokeWidth={1.75}
+              />
             ) : (
-              <HugeiconsIcon icon={Copy} size={14} strokeWidth={1.75} />
+              <HugeiconsIcon
+                icon={Copy}
+                data-icon="copy"
+                size={14}
+                strokeWidth={1.75}
+              />
             )}
           </button>
         </div>

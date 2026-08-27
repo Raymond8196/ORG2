@@ -70,13 +70,33 @@ export const IssueRow: React.FC<IssueRowProps> = memo(
     const treeRowNode: TreeRowNode = useMemo(() => {
       const iconClassName = isOpen ? "text-success-6" : "text-text-3";
       const icon = isOpen ? (
-        <HugeiconsIcon icon={CircleDot} size={14} strokeWidth={1.75} />
+        <HugeiconsIcon
+          icon={CircleDot}
+          data-icon="circle-dot"
+          size={14}
+          strokeWidth={1.75}
+        />
       ) : isDuplicate ? (
-        <HugeiconsIcon icon={Copy} size={14} strokeWidth={1.75} />
+        <HugeiconsIcon
+          icon={Copy}
+          data-icon="copy"
+          size={14}
+          strokeWidth={1.75}
+        />
       ) : isCompleted ? (
-        <HugeiconsIcon icon={CheckCircle2} size={14} strokeWidth={1.75} />
+        <HugeiconsIcon
+          icon={CheckCircle2}
+          data-icon="check-circle-2"
+          size={14}
+          strokeWidth={1.75}
+        />
       ) : (
-        <HugeiconsIcon icon={XCircle} size={14} strokeWidth={1.75} />
+        <HugeiconsIcon
+          icon={XCircle}
+          data-icon="xcircle"
+          size={14}
+          strokeWidth={1.75}
+        />
       );
 
       return {
@@ -115,6 +135,7 @@ export const IssueRow: React.FC<IssueRowProps> = memo(
                 >
                   <HugeiconsIcon
                     icon={MessageSquare}
+                    data-icon="message-square"
                     size={11}
                     strokeWidth={1.75}
                   />

@@ -244,7 +244,13 @@ const SessionReplayDiff: React.FC<SimulatorAppProps> = ({
                 className="flex-shrink-0"
                 onClick={handleUndoAll}
                 title={tCommon("actions.undoAll")}
-                icon={<HugeiconsIcon icon={RotateCcw} size={14} />}
+                icon={
+                  <HugeiconsIcon
+                    icon={RotateCcw}
+                    data-icon="rotate-ccw"
+                    size={14}
+                  />
+                }
               />
             ) : null}
             {canUndoAll ? <div className="mx-2 h-5 w-px bg-border-2" /> : null}
@@ -256,7 +262,13 @@ const SessionReplayDiff: React.FC<SimulatorAppProps> = ({
               className="flex-shrink-0"
               onClick={handleCollapseAll}
               title={tCommon("actions.collapseAll")}
-              icon={<HugeiconsIcon icon={ListChevronsDownUp} size={14} />}
+              icon={
+                <HugeiconsIcon
+                  icon={ListChevronsDownUp}
+                  data-icon="list-chevrons-down-up"
+                  size={14}
+                />
+              }
             />
           </div>
         ) : undefined,
@@ -289,7 +301,14 @@ const SessionReplayDiff: React.FC<SimulatorAppProps> = ({
           finalDiffCount
         ),
         title: t("simulator.replay.diffApp.tabLabel"),
-        icon: <HugeiconsIcon icon={GitBranch} size={14} className="shrink-0" />,
+        icon: (
+          <HugeiconsIcon
+            icon={GitBranch}
+            data-icon="git-branch"
+            size={14}
+            className="shrink-0"
+          />
+        ),
       },
       {
         eventId: TAB_IDS.submissions,
@@ -299,7 +318,14 @@ const SessionReplayDiff: React.FC<SimulatorAppProps> = ({
           submissionCount
         ),
         title: t("simulator.replay.diffApp.submissions.tabLabel"),
-        icon: <HugeiconsIcon icon={Send} size={14} className="shrink-0" />,
+        icon: (
+          <HugeiconsIcon
+            icon={Send}
+            data-icon="send"
+            size={14}
+            className="shrink-0"
+          />
+        ),
       },
     ];
   }, [

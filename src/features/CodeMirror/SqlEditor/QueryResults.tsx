@@ -54,6 +54,7 @@ export const QueryResults: React.FC<QueryResultsProps> = memo(
           <div className="bg-[color-mix(in srgb, var(--color-danger-6) 10%, transparent)] flex items-center gap-2 border-b border-border-1 px-3 py-2">
             <HugeiconsIcon
               icon={AlertCircle}
+              data-icon="alert-circle"
               size={14}
               strokeWidth={1.75}
               className="text-[var(--color-danger-6)]"
@@ -92,6 +93,7 @@ export const QueryResults: React.FC<QueryResultsProps> = memo(
             <div className="flex items-center gap-1.5">
               <HugeiconsIcon
                 icon={CheckCircle2}
+                data-icon="check-circle-2"
                 size={14}
                 strokeWidth={1.75}
                 className="text-[var(--color-success-6)]"
@@ -101,7 +103,12 @@ export const QueryResults: React.FC<QueryResultsProps> = memo(
               </span>
             </div>
             <div className="flex items-center gap-1 text-xs text-text-3">
-              <HugeiconsIcon icon={Clock} size={12} strokeWidth={1.75} />
+              <HugeiconsIcon
+                icon={Clock}
+                data-icon="clock"
+                size={12}
+                strokeWidth={1.75}
+              />
               <span>{result.duration.toFixed(1)}ms</span>
             </div>
           </div>
@@ -130,6 +137,7 @@ export const QueryResults: React.FC<QueryResultsProps> = memo(
           <div className="flex items-center gap-1.5">
             <HugeiconsIcon
               icon={CheckCircle2}
+              data-icon="check-circle-2"
               size={14}
               strokeWidth={1.75}
               className="text-[var(--color-success-6)]"
@@ -139,7 +147,12 @@ export const QueryResults: React.FC<QueryResultsProps> = memo(
             </span>
           </div>
           <div className="flex items-center gap-1 text-xs text-text-3">
-            <HugeiconsIcon icon={Clock} size={12} strokeWidth={1.75} />
+            <HugeiconsIcon
+              icon={Clock}
+              data-icon="clock"
+              size={12}
+              strokeWidth={1.75}
+            />
             <span>{result.duration.toFixed(1)}ms</span>
           </div>
         </div>

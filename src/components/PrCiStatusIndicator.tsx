@@ -35,30 +35,43 @@ const PrCiStatusIndicator: React.FC<PrCiStatusIndicatorProps> = ({
   const icon =
     appearance === "simple" ? (
       status === "success" ? (
-        <HugeiconsIcon icon={Check} {...iconProps} />
+        <HugeiconsIcon icon={Check} data-icon="check" {...iconProps} />
       ) : status === "failure" ? (
-        <HugeiconsIcon icon={X} {...iconProps} />
+        <HugeiconsIcon icon={X} data-icon="x" {...iconProps} />
       ) : status === "pending" ? (
         <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-warning-6" />
       ) : status === "none" ? (
-        <HugeiconsIcon icon={Minus} {...iconProps} />
+        <HugeiconsIcon icon={Minus} data-icon="minus" {...iconProps} />
       ) : (
-        <HugeiconsIcon icon={Ellipsis} {...iconProps} />
+        <HugeiconsIcon icon={Ellipsis} data-icon="ellipsis" {...iconProps} />
       )
     ) : status === "success" ? (
-      <HugeiconsIcon icon={CheckCircle2} {...iconProps} />
+      <HugeiconsIcon
+        icon={CheckCircle2}
+        data-icon="check-circle-2"
+        {...iconProps}
+      />
     ) : status === "failure" ? (
-      <HugeiconsIcon icon={XCircle} {...iconProps} />
+      <HugeiconsIcon icon={XCircle} data-icon="xcircle" {...iconProps} />
     ) : status === "pending" ? (
       <HugeiconsIcon
         icon={LoaderCircle}
+        data-icon="loader-circle"
         {...iconProps}
         className="animate-spin"
       />
     ) : status === "none" ? (
-      <HugeiconsIcon icon={CircleSlash} {...iconProps} />
+      <HugeiconsIcon
+        icon={CircleSlash}
+        data-icon="circle-slash"
+        {...iconProps}
+      />
     ) : (
-      <HugeiconsIcon icon={CircleDashed} {...iconProps} />
+      <HugeiconsIcon
+        icon={CircleDashed}
+        data-icon="circle-dashed"
+        {...iconProps}
+      />
     );
   const colorClass =
     status === "success"

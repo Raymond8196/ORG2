@@ -129,6 +129,7 @@ const ModelSelectorPill = forwardRef<HTMLButtonElement, ModelSelectorPillProps>(
         ) : (
           <HugeiconsIcon
             icon={Grip}
+            data-icon="grip"
             size={iconSize}
             strokeWidth={1.75}
             className="text-primary-6"

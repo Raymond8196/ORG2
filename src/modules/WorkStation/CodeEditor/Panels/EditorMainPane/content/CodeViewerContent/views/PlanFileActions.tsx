@@ -111,7 +111,7 @@ export const PlanFileActions: React.FC<PlanFileActionsProps> = memo(
         variant="primary"
         size="mini"
         onClick={handleExecute}
-        icon={<HugeiconsIcon icon={Play} size={12} />}
+        icon={<HugeiconsIcon icon={Play} data-icon="play" size={12} />}
       >
         {t("planner.plan.executePlan")}
       </Button>

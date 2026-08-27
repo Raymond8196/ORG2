@@ -101,7 +101,7 @@ export function createFileInlineSection({
 
   return {
     key: "files",
-    icon: React.createElement(Diff, { size: 13 }),
+    icon: React.createElement(HugeiconsIcon, { icon: Diff, size: 13 }),
     count: fileChangeStats.count,
     content: React.createElement(
       "span",
@@ -296,7 +296,10 @@ export function useComposerSections({
     if (hasQuestion && questionCollapsed) {
       sections.push({
         key: "question",
-        icon: React.createElement(CircleHelp, { size: 13 }),
+        icon: React.createElement(HugeiconsIcon, {
+          icon: CircleHelp,
+          size: 13,
+        }),
         count: 0,
         label: "Question",
         active: false,
@@ -307,7 +310,7 @@ export function useComposerSections({
     if (hasPermission && permissionCollapsed) {
       sections.push({
         key: "permission",
-        icon: React.createElement(BellRing, { size: 13 }),
+        icon: React.createElement(HugeiconsIcon, { icon: BellRing, size: 13 }),
         count: 0,
         label: "Permission",
         active: false,
@@ -318,7 +321,10 @@ export function useComposerSections({
     if (hasModeSwitch && modeSwitchCollapsed) {
       sections.push({
         key: "modeswitch",
-        icon: React.createElement(ArrowLeftRight, { size: 13 }),
+        icon: React.createElement(HugeiconsIcon, {
+          icon: ArrowLeftRight,
+          size: 13,
+        }),
         count: 0,
         label: "Mode Switch",
         active: false,
@@ -329,7 +335,10 @@ export function useComposerSections({
     if (hasPlan && planCollapsed) {
       sections.push({
         key: "plan",
-        icon: React.createElement(ClipboardList, { size: 13 }),
+        icon: React.createElement(HugeiconsIcon, {
+          icon: ClipboardList,
+          size: 13,
+        }),
         count: 0,
         label: planPillLabel,
         active: false,
@@ -343,7 +352,10 @@ export function useComposerSections({
     if (hasQueue) {
       sections.push({
         key: "queue",
-        icon: React.createElement(MessageCircleMore, { size: 13 }),
+        icon: React.createElement(HugeiconsIcon, {
+          icon: MessageCircleMore,
+          size: 13,
+        }),
         count: queueCount,
         active: queueExpanded,
         onExpand: toggleQueue,
@@ -353,7 +365,7 @@ export function useComposerSections({
     if (hasProcess) {
       sections.push({
         key: "process",
-        icon: React.createElement(Terminal, { size: 13 }),
+        icon: React.createElement(HugeiconsIcon, { icon: Terminal, size: 13 }),
         count: processVisibleCount,
         active: processExpanded,
         onExpand: toggleProcess,
@@ -373,7 +385,10 @@ export function useComposerSections({
     if (hasGitArtifacts) {
       sections.push({
         key: "git-artifacts",
-        icon: React.createElement(GitCommitHorizontal, { size: 13 }),
+        icon: React.createElement(HugeiconsIcon, {
+          icon: GitCommitHorizontal,
+          size: 13,
+        }),
         count: gitArtifactCount,
         active: false,
         onExpand: filesMenu ? NOOP : onFilesExpand,

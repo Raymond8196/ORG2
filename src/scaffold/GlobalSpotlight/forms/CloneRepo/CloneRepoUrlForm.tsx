@@ -98,6 +98,7 @@ const CloneUrlForm: React.FC<CloneUrlFormProps> = ({
               prefix={
                 <HugeiconsIcon
                   icon={Code}
+                  data-icon="code"
                   className="text-[16px] text-text-2"
                   size={16}
                 />
@@ -118,6 +119,7 @@ const CloneUrlForm: React.FC<CloneUrlFormProps> = ({
                   prefix={
                     <HugeiconsIcon
                       icon={Folder}
+                      data-icon="folder"
                       className="text-[16px] text-text-2"
                       size={16}
                     />
@@ -128,7 +130,13 @@ const CloneUrlForm: React.FC<CloneUrlFormProps> = ({
                 variant="secondary"
                 size="default"
                 iconOnly
-                icon={<HugeiconsIcon icon={FolderOpen} size={16} />}
+                icon={
+                  <HugeiconsIcon
+                    icon={FolderOpen}
+                    data-icon="folder-open"
+                    size={16}
+                  />
+                }
                 title={t("cloneForm.chooseFolder")}
                 onClick={async () => {
                   const path = await onChoosePath();

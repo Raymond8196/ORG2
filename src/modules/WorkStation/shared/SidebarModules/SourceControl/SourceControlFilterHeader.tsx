@@ -193,6 +193,7 @@ const SourceControlFilterHeader: React.FC<SourceControlFilterHeaderProps> =
                   >
                     <HugeiconsIcon
                       icon={RefreshCw}
+                      data-icon="refresh-cw"
                       size={HEADER_ICON_SIZE.sm}
                       className={refreshSpinClass}
                     />
@@ -222,6 +223,7 @@ const SourceControlFilterHeader: React.FC<SourceControlFilterHeaderProps> =
                   icon={
                     <HugeiconsIcon
                       icon={Ellipsis}
+                      data-icon="ellipsis"
                       size={HEADER_ICON_SIZE.sm}
                       strokeWidth={1.75}
                     />

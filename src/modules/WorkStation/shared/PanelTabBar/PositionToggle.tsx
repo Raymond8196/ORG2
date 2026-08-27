@@ -30,7 +30,11 @@ export const PanelPositionToggle: React.FC<PanelPositionToggleProps> = memo(
         onClick={onToggle}
         title={title}
         icon={
-          <HugeiconsIcon icon={ArrowLeftRight} size={HEADER_ICON_SIZE.md} />
+          <HugeiconsIcon
+            icon={ArrowLeftRight}
+            data-icon="arrow-left-right"
+            size={HEADER_ICON_SIZE.md}
+          />
         }
       />
     );

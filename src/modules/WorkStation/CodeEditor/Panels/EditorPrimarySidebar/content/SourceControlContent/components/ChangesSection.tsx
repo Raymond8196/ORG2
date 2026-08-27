@@ -96,7 +96,12 @@ export const ChangesSection: React.FC<ChangesSectionProps> = memo(
                 onClick={onDiscardAll}
                 title={GIT_LABELS.discardAllChanges}
               >
-                <HugeiconsIcon icon={Undo2} size={14} strokeWidth={1.75} />
+                <HugeiconsIcon
+                  icon={Undo2}
+                  data-icon="undo-2"
+                  size={14}
+                  strokeWidth={1.75}
+                />
               </button>
               {onStashPush && hasChangesToStash && (
                 <button
@@ -105,7 +110,12 @@ export const ChangesSection: React.FC<ChangesSectionProps> = memo(
                   disabled={stashOperationLoading}
                   title={GIT_LABELS.stashAllChanges}
                 >
-                  <HugeiconsIcon icon={Archive} size={14} strokeWidth={1.75} />
+                  <HugeiconsIcon
+                    icon={Archive}
+                    data-icon="archive"
+                    size={14}
+                    strokeWidth={1.75}
+                  />
                 </button>
               )}
               <button
@@ -113,7 +123,12 @@ export const ChangesSection: React.FC<ChangesSectionProps> = memo(
                 onClick={onStageAll}
                 title={GIT_LABELS.stageChanges}
               >
-                <HugeiconsIcon icon={Plus} size={14} strokeWidth={1.75} />
+                <HugeiconsIcon
+                  icon={Plus}
+                  data-icon="plus"
+                  size={14}
+                  strokeWidth={1.75}
+                />
               </button>
             </>
           }

@@ -73,6 +73,7 @@ export const DiaryCommitHoverCardContent: React.FC<
           icon={
             <HugeiconsIcon
               icon={GitCommitHorizontal}
+              data-icon="git-commit-horizontal"
               size={DROPDOWN_ITEM.iconSize}
               strokeWidth={1.75}
             />
@@ -88,6 +89,7 @@ export const DiaryCommitHoverCardContent: React.FC<
           icon={
             <HugeiconsIcon
               icon={Clock}
+              data-icon="clock"
               size={DROPDOWN_ITEM.iconSize}
               strokeWidth={1.75}
             />
@@ -106,6 +108,7 @@ export const DiaryCommitHoverCardContent: React.FC<
           icon={
             <HugeiconsIcon
               icon={UserRound}
+              data-icon="user-round"
               size={DROPDOWN_ITEM.iconSize}
               strokeWidth={1.75}
             />
@@ -122,6 +125,7 @@ export const DiaryCommitHoverCardContent: React.FC<
             icon={
               <HugeiconsIcon
                 icon={Hash}
+                data-icon="hash"
                 size={DROPDOWN_ITEM.iconSize}
                 strokeWidth={1.75}
               />
@@ -218,6 +222,7 @@ export const DiaryCommitBucketDropdown: React.FC<
                   >
                     <HugeiconsIcon
                       icon={GitCommitHorizontal}
+                      data-icon="git-commit-horizontal"
                       size={DROPDOWN_ITEM.iconSize}
                       strokeWidth={1.75}
                       className="shrink-0 text-text-3"

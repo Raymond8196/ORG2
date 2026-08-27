@@ -109,12 +109,14 @@ const ChangedFilesList: React.FC<ChangedFilesListProps> = ({
             expanded ? (
               <HugeiconsIcon
                 icon={ChevronDown}
+                data-icon="chevron-down"
                 size={13}
                 className="text-text-4"
               />
             ) : (
               <HugeiconsIcon
                 icon={ChevronRight}
+                data-icon="chevron-right"
                 size={13}
                 className="text-text-4"
               />
@@ -145,7 +147,11 @@ const ChangedFilesList: React.FC<ChangedFilesListProps> = ({
             title={t("workItems.changedFiles.reviewInEditor")}
             className="mr-2 shrink-0 rounded-md p-1.5 text-text-3 transition-colors hover:bg-fill-2 hover:text-text-1"
           >
-            <HugeiconsIcon icon={SquareArrowOutUpRight} size={13} />
+            <HugeiconsIcon
+              icon={SquareArrowOutUpRight}
+              data-icon="square-arrow-out-up-right"
+              size={13}
+            />
           </button>
         )}
       </div>

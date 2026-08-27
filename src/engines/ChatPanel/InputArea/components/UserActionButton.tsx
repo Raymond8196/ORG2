@@ -41,6 +41,7 @@ export default function UserActionButton({
           {rightIcon || (
             <HugeiconsIcon
               icon={X}
+              data-icon="x"
               size={12}
               strokeWidth={1.75}
               className="text-text-2 hover:text-text-1"

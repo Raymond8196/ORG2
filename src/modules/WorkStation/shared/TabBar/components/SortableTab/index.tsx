@@ -271,6 +271,7 @@ export const SortableTab: React.FC<SortableTabProps> = memo(
           return (
             <HugeiconsIcon
               icon={Folder}
+              data-icon="folder"
               size={16}
               strokeWidth={1.75}
               className={isActive ? "text-text-1" : "text-text-2"}
@@ -427,13 +428,19 @@ export const SortableTab: React.FC<SortableTabProps> = memo(
             </span>
             <HugeiconsIcon
               icon={MoveHorizontal}
+              data-icon="move-horizontal"
               size={12}
               className="shrink-0"
             />
             <span className="shrink-0">
               ({String(tab.data.headShortSha || "HEAD")})
             </span>
-            <HugeiconsIcon icon={Lock} size={11} className="shrink-0" />
+            <HugeiconsIcon
+              icon={Lock}
+              data-icon="lock"
+              size={11}
+              className="shrink-0"
+            />
             <TabLabelRowScrim visible={showLabelRightScrim} />
           </div>
         ) : !hideLabel ? (

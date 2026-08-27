@@ -32,7 +32,9 @@ const SessionCreatorKanban: React.FC<SessionCreatorKanbanProps> = ({
       size="small"
       shape="round"
       iconOnly
-      icon={<HugeiconsIcon icon={X} size={14} strokeWidth={1.75} />}
+      icon={
+        <HugeiconsIcon icon={X} data-icon="x" size={14} strokeWidth={1.75} />
+      }
       title={t("tooltips.hidePanel")}
       aria-label={t("tooltips.hidePanel")}
       onClick={onClose}

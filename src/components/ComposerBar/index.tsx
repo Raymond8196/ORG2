@@ -93,6 +93,7 @@ const ComposerBar: React.FC<ComposerBarProps> = memo(
         >
           <HugeiconsIcon
             icon={Plus}
+            data-icon="plus"
             size={INPUT_AREA_BUTTONS.iconSize}
             strokeWidth={1.75}
             className="text-text-1"

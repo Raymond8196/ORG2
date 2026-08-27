@@ -280,17 +280,33 @@ export function GitHubWorkItemsView({
                   : t("chat.panels.manageIssues.stateClosed");
           const prStatusIcon =
             item.state === GITHUB_QUERY_STATE.MERGED ? (
-              <HugeiconsIcon icon={GitMerge} size={14} strokeWidth={1.8} />
+              <HugeiconsIcon
+                icon={GitMerge}
+                data-icon="git-merge"
+                size={14}
+                strokeWidth={1.8}
+              />
             ) : item.rawPr.draft ? (
               <HugeiconsIcon
                 icon={GitPullRequestDraft}
+                data-icon="git-pull-request-draft"
                 size={14}
                 strokeWidth={1.8}
               />
             ) : prStatusValue === "open" ? (
-              <HugeiconsIcon icon={CircleDot} size={14} strokeWidth={1.8} />
+              <HugeiconsIcon
+                icon={CircleDot}
+                data-icon="circle-dot"
+                size={14}
+                strokeWidth={1.8}
+              />
             ) : (
-              <HugeiconsIcon icon={CheckCircle2} size={14} strokeWidth={1.8} />
+              <HugeiconsIcon
+                icon={CheckCircle2}
+                data-icon="check-circle-2"
+                size={14}
+                strokeWidth={1.8}
+              />
             );
           const prCiLabel =
             item.rawPr.ci_status === "success"
@@ -341,6 +357,7 @@ export function GitHubWorkItemsView({
                   icon: (
                     <HugeiconsIcon
                       icon={CircleDot}
+                      data-icon="circle-dot"
                       size={14}
                       strokeWidth={1.8}
                     />
@@ -353,6 +370,7 @@ export function GitHubWorkItemsView({
                   icon: (
                     <HugeiconsIcon
                       icon={CheckCircle2}
+                      data-icon="check-circle-2"
                       size={14}
                       strokeWidth={1.8}
                     />
@@ -400,7 +418,12 @@ export function GitHubWorkItemsView({
             value: "open",
             label: t("chat.panels.manageIssues.stateOpen"),
             icon: (
-              <HugeiconsIcon icon={CircleDot} size={14} strokeWidth={1.8} />
+              <HugeiconsIcon
+                icon={CircleDot}
+                data-icon="circle-dot"
+                size={14}
+                strokeWidth={1.8}
+              />
             ),
             iconColor: getManagedIssueStatusAccent("open").iconColor,
           },
@@ -410,7 +433,12 @@ export function GitHubWorkItemsView({
               defaultValue: "Close as completed",
             }),
             icon: (
-              <HugeiconsIcon icon={CheckCircle2} size={14} strokeWidth={1.8} />
+              <HugeiconsIcon
+                icon={CheckCircle2}
+                data-icon="check-circle-2"
+                size={14}
+                strokeWidth={1.8}
+              />
             ),
             iconColor:
               getManagedIssueStatusAccent("closed_completed").iconColor,
@@ -421,7 +449,12 @@ export function GitHubWorkItemsView({
               defaultValue: "Close as not planned",
             }),
             icon: (
-              <HugeiconsIcon icon={CircleSlash} size={14} strokeWidth={1.8} />
+              <HugeiconsIcon
+                icon={CircleSlash}
+                data-icon="circle-slash"
+                size={14}
+                strokeWidth={1.8}
+              />
             ),
             iconColor: "var(--color-text-3)",
           },
@@ -431,7 +464,12 @@ export function GitHubWorkItemsView({
                   value: "closed_duplicate" as const,
                   label: t("common:git.issues.composer.closeAsDuplicate"),
                   icon: (
-                    <HugeiconsIcon icon={Copy} size={14} strokeWidth={1.8} />
+                    <HugeiconsIcon
+                      icon={Copy}
+                      data-icon="copy"
+                      size={14}
+                      strokeWidth={1.8}
+                    />
                   ),
                   iconColor: "var(--color-text-3)",
                 },

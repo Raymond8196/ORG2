@@ -75,6 +75,7 @@ export const ImageRow: React.FC<ImageRowProps> = React.memo(
       >
         <HugeiconsIcon
           icon={ImageIcon}
+          data-icon="image-icon"
           size={DROPDOWN_ITEM.iconSize}
           strokeWidth={1.75}
           className={iconClass(false)}
@@ -115,7 +116,8 @@ export const ModeRow: React.FC<ModeRowProps> = React.memo(
         }}
       >
         <div className="flex items-center gap-2">
-          <ModeIcon
+          <HugeiconsIcon
+            icon={ModeIcon}
             size={DROPDOWN_ITEM.iconSize}
             strokeWidth={1.75}
             className={iconClass(isCurrent)}
@@ -164,6 +166,7 @@ export const FlyoutTriggerRow: React.FC<FlyoutTriggerRowProps> = React.memo(
         </div>
         <HugeiconsIcon
           icon={ChevronRight}
+          data-icon="chevron-right"
           size={DROPDOWN_ITEM.iconSize}
           strokeWidth={1.75}
           className={isOpen ? "text-primary-6" : "text-text-3"}

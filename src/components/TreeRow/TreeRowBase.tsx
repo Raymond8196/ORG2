@@ -167,12 +167,14 @@ export const TreeRowBase = React.memo(
               {isExpanded ? (
                 <HugeiconsIcon
                   icon={ChevronDown}
+                  data-icon="chevron-down"
                   size={CHEVRON_SIZE}
                   className="text-text-3"
                 />
               ) : (
                 <HugeiconsIcon
                   icon={ChevronRight}
+                  data-icon="chevron-right"
                   size={CHEVRON_SIZE}
                   className="text-text-3"
                 />
@@ -227,6 +229,7 @@ export const TreeRowBase = React.memo(
           {isSymlink && (
             <HugeiconsIcon
               icon={CornerDownRight}
+              data-icon="corner-down-right"
               size={12}
               className="flex-shrink-0 text-text-3"
               aria-label="symlink"

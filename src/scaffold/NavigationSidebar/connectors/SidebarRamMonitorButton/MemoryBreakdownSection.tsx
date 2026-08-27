@@ -58,9 +58,19 @@ export const MemoryBreakdownSection: React.FC<MemoryBreakdownSectionProps> = ({
       aria-label={toggleAriaLabel}
       icon={
         showAttributionHints ? (
-          <HugeiconsIcon icon={ChevronUp} size={13} strokeWidth={2} />
+          <HugeiconsIcon
+            icon={ChevronUp}
+            data-icon="chevron-up"
+            size={13}
+            strokeWidth={2}
+          />
         ) : (
-          <HugeiconsIcon icon={ChevronDown} size={13} strokeWidth={2} />
+          <HugeiconsIcon
+            icon={ChevronDown}
+            data-icon="chevron-down"
+            size={13}
+            strokeWidth={2}
+          />
         )
       }
       onClick={onToggleAttributionHints}

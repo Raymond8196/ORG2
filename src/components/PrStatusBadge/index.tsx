@@ -32,14 +32,32 @@ const SIZE_CLASSES = {
 function StatusIcon({ name }: { name: PrStatusIconName }) {
   switch (name) {
     case "merge":
-      return <HugeiconsIcon icon={GitMerge} size={10} />;
+      return <HugeiconsIcon icon={GitMerge} data-icon="git-merge" size={10} />;
     case "closed":
-      return <HugeiconsIcon icon={GitPullRequestClosed} size={10} />;
+      return (
+        <HugeiconsIcon
+          icon={GitPullRequestClosed}
+          data-icon="git-pull-request-closed"
+          size={10}
+        />
+      );
     case "draft":
-      return <HugeiconsIcon icon={GitPullRequestDraft} size={10} />;
+      return (
+        <HugeiconsIcon
+          icon={GitPullRequestDraft}
+          data-icon="git-pull-request-draft"
+          size={10}
+        />
+      );
     case "pull-request":
     default:
-      return <HugeiconsIcon icon={GitPullRequest} size={10} />;
+      return (
+        <HugeiconsIcon
+          icon={GitPullRequest}
+          data-icon="git-pull-request"
+          size={10}
+        />
+      );
   }
 }
 

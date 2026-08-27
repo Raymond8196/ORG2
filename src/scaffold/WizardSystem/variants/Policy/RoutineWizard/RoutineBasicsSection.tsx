@@ -324,6 +324,7 @@ const RoutineBasicsSection: React.FC<RoutineBasicsSectionProps> = ({
                 return (
                   <HugeiconsIcon
                     icon={Network}
+                    data-icon="network"
                     size={16}
                     className="text-text-2"
                   />

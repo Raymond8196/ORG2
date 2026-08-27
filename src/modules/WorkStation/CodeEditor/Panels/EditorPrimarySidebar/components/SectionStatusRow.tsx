@@ -23,6 +23,7 @@ export const SectionStatusRow: React.FC<{ status: SectionStatus }> = ({
       <div className="flex items-center gap-1.5 px-3 py-2">
         <HugeiconsIcon
           icon={Loader2}
+          data-icon="loader-2"
           size={12}
           className="animate-spin text-text-3"
         />

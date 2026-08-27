@@ -208,7 +208,9 @@ const ChatFloatingComposer: React.FC<ChatFloatingComposerProps> = memo(
         appearance="outline"
         size="small"
         shape="round"
-        icon={<HugeiconsIcon icon={ArrowDown} size={14} />}
+        icon={
+          <HugeiconsIcon icon={ArrowDown} data-icon="arrow-down" size={14} />
+        }
         iconOnly
         aria-label={t("common:chat.scrollToBottom")}
         title={t("common:chat.scrollToBottom")}

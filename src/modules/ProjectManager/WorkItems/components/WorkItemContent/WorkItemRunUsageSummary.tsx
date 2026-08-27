@@ -118,7 +118,14 @@ const WorkItemRunUsageSummary: React.FC<WorkItemRunUsageSummaryProps> = ({
         description: run.sessionId ?? run.id,
         statusLabel: run.status,
         statusColor: RUN_STATUS_COLOR[run.status],
-        agentIcon: <HugeiconsIcon icon={Repeat} size={14} strokeWidth={1.75} />,
+        agentIcon: (
+          <HugeiconsIcon
+            icon={Repeat}
+            data-icon="repeat"
+            size={14}
+            strokeWidth={1.75}
+          />
+        ),
         agentLabel: "Run",
         modelLabel: run.trigger.kind,
         tokensLabel:

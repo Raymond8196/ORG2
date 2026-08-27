@@ -122,7 +122,12 @@ export const DesignTreeContent: React.FC<DesignTreeContentProps> = memo(
           <div className="flex-shrink-0 px-3 pb-2">
             <Input
               prefix={
-                <HugeiconsIcon icon={FilterIcon} size={14} strokeWidth={1.75} />
+                <HugeiconsIcon
+                  icon={FilterIcon}
+                  data-icon="filter-icon"
+                  size={14}
+                  strokeWidth={1.75}
+                />
               }
               placeholder={filterPlaceholder}
               value={filterQuery}

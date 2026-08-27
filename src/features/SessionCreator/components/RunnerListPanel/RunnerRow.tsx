@@ -165,6 +165,7 @@ const RunnerRow: React.FC<RunnerRowProps> = memo(
               icon={
                 <HugeiconsIcon
                   icon={X}
+                  data-icon="x"
                   size={14}
                   strokeWidth={1.85}
                   className="block"

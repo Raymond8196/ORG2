@@ -101,6 +101,7 @@ export const KvTableEditor: React.FC<KvTableEditorProps> = ({
             icon={
               <HugeiconsIcon
                 icon={Trash2}
+                data-icon="trash-2"
                 size={14}
                 className="text-danger-6"
               />

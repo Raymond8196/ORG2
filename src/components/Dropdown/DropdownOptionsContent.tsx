@@ -60,6 +60,7 @@ const DropdownOptionsContent: React.FC<DropdownOptionsContentProps> = ({
         <div className={DROPDOWN_CLASSES.searchContainer}>
           <HugeiconsIcon
             icon={Search}
+            data-icon="search"
             size={DROPDOWN_ITEM.iconSize}
             className="shrink-0 text-text-3"
           />

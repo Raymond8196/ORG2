@@ -39,7 +39,14 @@ export const CherryPickCheckbox: React.FC<CherryPickCheckboxProps> = ({
         onClick();
       }}
     >
-      {checked && <HugeiconsIcon icon={Check} size={14} strokeWidth={2.5} />}
+      {checked && (
+        <HugeiconsIcon
+          icon={Check}
+          data-icon="check"
+          size={14}
+          strokeWidth={2.5}
+        />
+      )}
     </div>
   );
 };

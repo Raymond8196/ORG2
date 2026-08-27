@@ -198,7 +198,9 @@ const AgentsTable: React.FC<AgentsTableProps> = ({
                 variant="danger"
                 appearance="outline"
                 size="small"
-                icon={<HugeiconsIcon icon={Trash2} size={14} />}
+                icon={
+                  <HugeiconsIcon icon={Trash2} data-icon="trash-2" size={14} />
+                }
                 iconOnly
                 onClick={() => void handleDeleteRow(row)}
                 aria-label={t("common:actions.delete", {
@@ -249,7 +251,7 @@ const AgentsTable: React.FC<AgentsTableProps> = ({
     <Button
       variant="secondary"
       size="default"
-      icon={<HugeiconsIcon icon={Plus} size={14} />}
+      icon={<HugeiconsIcon icon={Plus} data-icon="plus" size={14} />}
       iconOnly
       aria-label={addAgentLabel}
       title={addAgentLabel}

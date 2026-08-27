@@ -138,7 +138,11 @@ function SortableRowInner<T extends { id: string }>({
           {...attributes}
           {...listeners}
         >
-          <HugeiconsIcon icon={GripVertical} size={14} />
+          <HugeiconsIcon
+            icon={GripVertical}
+            data-icon="grip-vertical"
+            size={14}
+          />
         </span>
       </td>
       {columns.map((col) => (
@@ -319,7 +323,7 @@ function DragTableInner<T extends { id: string }>({
           <Button
             variant="tertiary"
             size="default"
-            icon={<HugeiconsIcon icon={Plus} size={14} />}
+            icon={<HugeiconsIcon icon={Plus} data-icon="plus" size={14} />}
             onClick={onAdd}
             className={ADD_BUTTON_CLASS}
             data-testid={addButtonDataTestId}

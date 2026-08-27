@@ -178,7 +178,12 @@ const ProjectRow: React.FC<ProjectRowProps> = ({
                 className="text-text-2"
               />
             ) : (
-              <HugeiconsIcon icon={FolderKanban} size={14} strokeWidth={1.75} />
+              <HugeiconsIcon
+                icon={FolderKanban}
+                data-icon="folder-kanban"
+                size={14}
+                strokeWidth={1.75}
+              />
             )}
           </div>
         </div>
@@ -201,7 +206,12 @@ const ProjectRow: React.FC<ProjectRowProps> = ({
               appearance="ghost"
               size="mini"
               icon={
-                <HugeiconsIcon icon={Link2Off} size={13} strokeWidth={1.75} />
+                <HugeiconsIcon
+                  icon={Link2Off}
+                  data-icon="link-2-off"
+                  size={13}
+                  strokeWidth={1.75}
+                />
               }
               iconOnly
               loading={unlinkingSource}
@@ -219,13 +229,19 @@ const ProjectRow: React.FC<ProjectRowProps> = ({
             />
           )}
           <span className="inline-flex items-center gap-1 whitespace-nowrap">
-            <HugeiconsIcon icon={ListChecks} size={13} strokeWidth={1.75} />
+            <HugeiconsIcon
+              icon={ListChecks}
+              data-icon="list-checks"
+              size={13}
+              strokeWidth={1.75}
+            />
             {project.workItemCount ?? 0}
           </span>
           {project.targetDate && (
             <span className="inline-flex items-center gap-1 whitespace-nowrap">
               <HugeiconsIcon
                 icon={CalendarClock}
+                data-icon="calendar-clock"
                 size={13}
                 strokeWidth={1.75}
               />

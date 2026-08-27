@@ -72,7 +72,12 @@ export const AccountInlineActionsBar: React.FC<
           onClick={handleRefreshClick}
           disabled={refreshing}
           icon={
-            <HugeiconsIcon icon={RefreshCw} size={14} className={spinClass} />
+            <HugeiconsIcon
+              icon={RefreshCw}
+              data-icon="refresh-cw"
+              size={14}
+              className={spinClass}
+            />
           }
           title={resolvedRefreshLabel}
         >
@@ -88,6 +93,7 @@ export const AccountInlineActionsBar: React.FC<
           icon={
             <HugeiconsIcon
               icon={RefreshCw}
+              data-icon="refresh-cw"
               size={14}
               className={modelSpinClass}
             />

@@ -74,6 +74,7 @@ const FloatingBarUnsaved: React.FC<UnsavedChangesBarProps> = memo(
           >
             <HugeiconsIcon
               icon={Undo2}
+              data-icon="undo-2"
               size={HEADER_ICON_SIZE.sm}
               strokeWidth={1.75}
             />
@@ -92,6 +93,7 @@ const FloatingBarUnsaved: React.FC<UnsavedChangesBarProps> = memo(
           {saving ? (
             <HugeiconsIcon
               icon={Loader2}
+              data-icon="loader-2"
               size={HEADER_ICON_SIZE.sm}
               strokeWidth={1.75}
               className="animate-spin"
@@ -99,6 +101,7 @@ const FloatingBarUnsaved: React.FC<UnsavedChangesBarProps> = memo(
           ) : (
             <HugeiconsIcon
               icon={Check}
+              data-icon="check"
               size={HEADER_ICON_SIZE.sm}
               strokeWidth={1.75}
             />

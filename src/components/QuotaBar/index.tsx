@@ -218,6 +218,7 @@ export const QuotaStatusBar: React.FC<QuotaStatusBarProps> = ({
           <div className="flex items-center gap-1.5">
             <HugeiconsIcon
               icon={Check}
+              data-icon="check"
               size={12}
               className="text-success-6"
               strokeWidth={3}

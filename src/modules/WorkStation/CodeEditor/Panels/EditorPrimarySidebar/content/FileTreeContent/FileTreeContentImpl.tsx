@@ -323,12 +323,14 @@ export const FileTreeContent = memo(
                 {isExpanded ? (
                   <HugeiconsIcon
                     icon={ChevronDown}
+                    data-icon="chevron-down"
                     size={CHEVRON_SIZE}
                     className={STICKY_ROW.chevronIcon}
                   />
                 ) : (
                   <HugeiconsIcon
                     icon={ChevronRight}
+                    data-icon="chevron-right"
                     size={CHEVRON_SIZE}
                     className={STICKY_ROW.chevronIcon}
                   />
@@ -410,6 +412,7 @@ export const FileTreeContent = memo(
                   prefix={
                     <HugeiconsIcon
                       icon={FilterIcon}
+                      data-icon="filter-icon"
                       size={14}
                       strokeWidth={1.75}
                     />

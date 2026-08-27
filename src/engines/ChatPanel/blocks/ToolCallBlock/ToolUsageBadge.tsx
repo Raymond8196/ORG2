@@ -41,7 +41,12 @@ export const UsagePairBadge: React.FC<UsagePairBadgeProps> = ({
     >
       {inputTokens > 0 && (
         <span className="inline-flex items-center gap-0.5">
-          <HugeiconsIcon icon={ArrowUpFromDot} size={11} strokeWidth={2} />
+          <HugeiconsIcon
+            icon={ArrowUpFromDot}
+            data-icon="arrow-up-from-dot"
+            size={11}
+            strokeWidth={2}
+          />
           {formatToolUsageTokenCount(inputTokens)}
         </span>
       )}
@@ -50,7 +55,12 @@ export const UsagePairBadge: React.FC<UsagePairBadgeProps> = ({
       )}
       {outputTokens > 0 && (
         <span className="inline-flex items-center gap-0.5">
-          <HugeiconsIcon icon={ArrowDownToDot} size={11} strokeWidth={2} />
+          <HugeiconsIcon
+            icon={ArrowDownToDot}
+            data-icon="arrow-down-to-dot"
+            size={11}
+            strokeWidth={2}
+          />
           {formatToolUsageTokenCount(outputTokens)}
         </span>
       )}

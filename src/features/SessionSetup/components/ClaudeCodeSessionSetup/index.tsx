@@ -183,14 +183,20 @@ const ClaudeCodeSessionSetup: React.FC<ClaudeCodeSessionSetupProps> = ({
             <Button
               variant="tertiary"
               size="mini"
-              icon={<HugeiconsIcon icon={RefreshCw} size={12} />}
+              icon={
+                <HugeiconsIcon
+                  icon={RefreshCw}
+                  data-icon="refresh-cw"
+                  size={12}
+                />
+              }
               iconOnly
               onClick={handleRetry}
             />
             <Button
               variant="tertiary"
               size="mini"
-              icon={<HugeiconsIcon icon={X} size={14} />}
+              icon={<HugeiconsIcon icon={X} data-icon="x" size={14} />}
               iconOnly
               onClick={handleCloseBrowser}
               data-testid="claude-code-oauth-browser-close"
@@ -207,6 +213,7 @@ const ClaudeCodeSessionSetup: React.FC<ClaudeCodeSessionSetupProps> = ({
               />
               <HugeiconsIcon
                 icon={ChevronRight}
+                data-icon="chevron-right"
                 size={14}
                 className="text-text-3"
               />
@@ -233,6 +240,7 @@ const ClaudeCodeSessionSetup: React.FC<ClaudeCodeSessionSetupProps> = ({
               <div className="absolute inset-0 flex items-center justify-center bg-bg-1">
                 <HugeiconsIcon
                   icon={Loader2}
+                  data-icon="loader-2"
                   size={SPINNER_TOKENS.default}
                   className="animate-spin text-primary-6"
                 />
@@ -245,6 +253,7 @@ const ClaudeCodeSessionSetup: React.FC<ClaudeCodeSessionSetupProps> = ({
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-bg-1 p-6 text-center">
                 <HugeiconsIcon
                   icon={AlertCircle}
+                  data-icon="alert-circle"
                   size={32}
                   className="mb-3 text-danger-6"
                 />
@@ -264,12 +273,14 @@ const ClaudeCodeSessionSetup: React.FC<ClaudeCodeSessionSetupProps> = ({
                 {hasToken ? (
                   <HugeiconsIcon
                     icon={CheckCircle}
+                    data-icon="check-circle"
                     size={32}
                     className="mb-3 text-success-6"
                   />
                 ) : (
                   <HugeiconsIcon
                     icon={LogIn}
+                    data-icon="log-in"
                     size={32}
                     className="mb-3 text-text-3"
                   />

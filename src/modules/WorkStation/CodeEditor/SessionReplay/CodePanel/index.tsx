@@ -207,6 +207,7 @@ export const CodePanel: React.FC<CodePanelProps> = memo(
             headerIcon={
               <HugeiconsIcon
                 icon={Terminal}
+                data-icon="terminal"
                 size={HEADER_ICON_SIZE.sm}
                 className="shrink-0 text-text-2"
               />

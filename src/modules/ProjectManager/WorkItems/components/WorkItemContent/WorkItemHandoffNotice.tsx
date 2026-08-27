@@ -37,11 +37,21 @@ const WorkItemHandoffNotice: React.FC<WorkItemHandoffNoticeProps> = ({
 
   const icon =
     handoff.status === "accepted" ? (
-      <HugeiconsIcon icon={UserRoundCheck} size={16} aria-hidden />
+      <HugeiconsIcon
+        icon={UserRoundCheck}
+        data-icon="user-round-check"
+        size={16}
+        aria-hidden
+      />
     ) : handoff.status === "returned" ? (
-      <HugeiconsIcon icon={ArrowLeft} size={16} aria-hidden />
+      <HugeiconsIcon
+        icon={ArrowLeft}
+        data-icon="arrow-left"
+        size={16}
+        aria-hidden
+      />
     ) : (
-      <HugeiconsIcon icon={Clock3} size={16} aria-hidden />
+      <HugeiconsIcon icon={Clock3} data-icon="clock-3" size={16} aria-hidden />
     );
   const title =
     handoff.status === "accepted"
@@ -109,7 +119,14 @@ const WorkItemHandoffNotice: React.FC<WorkItemHandoffNoticeProps> = ({
             <Button
               variant="primary"
               size="mini"
-              icon={<HugeiconsIcon icon={Check} size={14} aria-hidden />}
+              icon={
+                <HugeiconsIcon
+                  icon={Check}
+                  data-icon="check"
+                  size={14}
+                  aria-hidden
+                />
+              }
               onClick={onAccept}
               loading={responding === "accept"}
               disabled={responding != null}

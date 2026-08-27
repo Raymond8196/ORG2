@@ -67,6 +67,7 @@ export const SearchBar: React.FC<SearchBarProps> = memo(
         {isLoading && (
           <HugeiconsIcon
             icon={Loader2}
+            data-icon="loader-2"
             size={SPINNER_TOKENS.default}
             className="animate-spin text-text-3"
           />

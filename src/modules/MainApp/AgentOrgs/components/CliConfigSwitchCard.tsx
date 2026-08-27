@@ -394,6 +394,7 @@ const CliConfigSwitchCard: React.FC<CliConfigSwitchCardProps> = ({
         >
           <HugeiconsIcon
             icon={AlertTriangle}
+            data-icon="alert-triangle"
             size={16}
             className="shrink-0 text-warning-6"
           />
@@ -474,7 +475,7 @@ const CliConfigSwitchCard: React.FC<CliConfigSwitchCardProps> = ({
             <Button
               variant="primary"
               size="small"
-              icon={<HugeiconsIcon icon={Save} size={14} />}
+              icon={<HugeiconsIcon icon={Save} data-icon="save" size={14} />}
               disabled={!canApplyManaged || isBusy}
               loading={pendingAction === "apply"}
               onClick={() => void applyManaged(false)}
@@ -484,7 +485,13 @@ const CliConfigSwitchCard: React.FC<CliConfigSwitchCardProps> = ({
           )}
           <Button
             size="small"
-            icon={<HugeiconsIcon icon={RotateCcw} size={14} />}
+            icon={
+              <HugeiconsIcon
+                icon={RotateCcw}
+                data-icon="rotate-ccw"
+                size={14}
+              />
+            }
             disabled={isBusy}
             loading={pendingAction === "restore"}
             onClick={() => void restoreDefault(false)}
@@ -495,7 +502,13 @@ const CliConfigSwitchCard: React.FC<CliConfigSwitchCardProps> = ({
             <Button
               variant="warning"
               size="small"
-              icon={<HugeiconsIcon icon={ShieldCheck} size={14} />}
+              icon={
+                <HugeiconsIcon
+                  icon={ShieldCheck}
+                  data-icon="shield-check"
+                  size={14}
+                />
+              }
               disabled={!canApplyManaged || isBusy}
               loading={pendingAction === "forceApply"}
               onClick={() => void applyManaged(true)}
@@ -507,7 +520,13 @@ const CliConfigSwitchCard: React.FC<CliConfigSwitchCardProps> = ({
             <Button
               variant="warning"
               size="small"
-              icon={<HugeiconsIcon icon={ShieldCheck} size={14} />}
+              icon={
+                <HugeiconsIcon
+                  icon={ShieldCheck}
+                  data-icon="shield-check"
+                  size={14}
+                />
+              }
               disabled={isBusy}
               loading={pendingAction === "forceRestore"}
               onClick={() => void restoreDefault(true)}

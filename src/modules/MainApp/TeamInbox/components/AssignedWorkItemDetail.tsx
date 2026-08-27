@@ -363,6 +363,7 @@ const AssignedWorkItemDetail: React.FC<AssignedWorkItemDetailProps> = ({
       openIcon={
         <HugeiconsIcon
           icon={SquareArrowOutUpRight}
+          data-icon="square-arrow-out-up-right"
           size={14}
           strokeWidth={1.75}
           aria-hidden
@@ -375,6 +376,7 @@ const AssignedWorkItemDetail: React.FC<AssignedWorkItemDetailProps> = ({
               icon: (
                 <HugeiconsIcon
                   icon={Chrome}
+                  data-icon="chrome"
                   size={14}
                   strokeWidth={1.75}
                   aria-hidden

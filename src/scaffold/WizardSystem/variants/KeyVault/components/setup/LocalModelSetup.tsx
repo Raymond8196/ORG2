@@ -237,7 +237,7 @@ const LocalModelSetup: React.FC<AgentSetupProps> = ({
               variant="secondary"
               appearance="outline"
               size="default"
-              icon={<HugeiconsIcon icon={Check} size={14} />}
+              icon={<HugeiconsIcon icon={Check} data-icon="check" size={14} />}
               onClick={() => addModel(selectedPreset.models[0])}
             >
               {t("keyVault.localModel.addSuggestedModel")}

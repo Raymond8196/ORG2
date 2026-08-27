@@ -41,17 +41,27 @@ import type { TimelineEntry } from "./types";
 const MAX_VISIBLE_FIELD_LABELS = 2;
 
 const TIMELINE_ICONS: Record<TimelineEntry["type"], React.ReactNode> = {
-  [WORK_ITEM_HISTORY_ACTION.CREATED]: <HugeiconsIcon icon={Plus} size={12} />,
-  [WORK_ITEM_HISTORY_ACTION.UPDATED]: <HugeiconsIcon icon={Pencil} size={12} />,
-  [WORK_ITEM_HISTORY_ACTION.COMMENTED]: (
-    <HugeiconsIcon icon={MessageSquare} size={12} />
+  [WORK_ITEM_HISTORY_ACTION.CREATED]: (
+    <HugeiconsIcon icon={Plus} data-icon="plus" size={12} />
   ),
-  [WORK_ITEM_HISTORY_ACTION.DELETED]: <HugeiconsIcon icon={Trash2} size={12} />,
+  [WORK_ITEM_HISTORY_ACTION.UPDATED]: (
+    <HugeiconsIcon icon={Pencil} data-icon="pencil" size={12} />
+  ),
+  [WORK_ITEM_HISTORY_ACTION.COMMENTED]: (
+    <HugeiconsIcon icon={MessageSquare} data-icon="message-square" size={12} />
+  ),
+  [WORK_ITEM_HISTORY_ACTION.DELETED]: (
+    <HugeiconsIcon icon={Trash2} data-icon="trash-2" size={12} />
+  ),
   [WORK_ITEM_HISTORY_ACTION.RESTORED]: (
-    <HugeiconsIcon icon={RotateCcw} size={12} />
+    <HugeiconsIcon icon={RotateCcw} data-icon="rotate-ccw" size={12} />
   ),
   [WORK_ITEM_HISTORY_ACTION.MOVED]: (
-    <HugeiconsIcon icon={ArrowRightLeft} size={12} />
+    <HugeiconsIcon
+      icon={ArrowRightLeft}
+      data-icon="arrow-right-left"
+      size={12}
+    />
   ),
 };
 
@@ -180,7 +190,12 @@ function SingleTimelineEntry({
     <TimelineEventCard
       icon={
         isDelegationComment ? (
-          <HugeiconsIcon icon={Bot} size={12} className="text-primary-6" />
+          <HugeiconsIcon
+            icon={Bot}
+            data-icon="bot"
+            size={12}
+            className="text-primary-6"
+          />
         ) : (
           TIMELINE_ICONS[entry.type]
         )
@@ -221,7 +236,9 @@ function GroupedChangeEvent({
   const hiddenFieldCount = item.fieldLabels.length - visibleFields.length;
 
   return (
-    <TimelineEventCard icon={<HugeiconsIcon icon={Pencil} size={12} />}>
+    <TimelineEventCard
+      icon={<HugeiconsIcon icon={Pencil} data-icon="pencil" size={12} />}
+    >
       <details
         className="group min-w-0"
         data-testid="work-item-activity-change-group"
@@ -273,6 +290,7 @@ function GroupedChangeEvent({
           </span>
           <HugeiconsIcon
             icon={ChevronRight}
+            data-icon="chevron-right"
             size={14}
             aria-hidden
             className="shrink-0 text-text-4 transition-transform group-open:rotate-90"

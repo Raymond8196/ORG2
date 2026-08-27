@@ -402,12 +402,14 @@ const GitFileList: React.FC<GitFileListProps> = ({
             {isExpanded ? (
               <HugeiconsIcon
                 icon={ChevronDown}
+                data-icon="chevron-down"
                 size={CHEVRON_SIZE}
                 className={STICKY_ROW.chevronIcon}
               />
             ) : (
               <HugeiconsIcon
                 icon={ChevronRight}
+                data-icon="chevron-right"
                 size={CHEVRON_SIZE}
                 className={STICKY_ROW.chevronIcon}
               />
@@ -456,6 +458,7 @@ const GitFileList: React.FC<GitFileListProps> = ({
           >
             <HugeiconsIcon
               icon={Filter}
+              data-icon="filter"
               size={14}
               strokeWidth={1.75}
               className={showFilter ? "text-primary-6" : "text-text-3"}
@@ -474,6 +477,7 @@ const GitFileList: React.FC<GitFileListProps> = ({
           {viewMode === "list" ? (
             <HugeiconsIcon
               icon={ListTree}
+              data-icon="list-tree"
               size={14}
               strokeWidth={1.75}
               className="text-text-3"
@@ -481,6 +485,7 @@ const GitFileList: React.FC<GitFileListProps> = ({
           ) : (
             <HugeiconsIcon
               icon={List}
+              data-icon="list"
               size={14}
               strokeWidth={1.75}
               className="text-text-3"
@@ -524,6 +529,7 @@ const GitFileList: React.FC<GitFileListProps> = ({
                 prefix={
                   <HugeiconsIcon
                     icon={SearchIcon}
+                    data-icon="search-icon"
                     size={14}
                     strokeWidth={1.75}
                   />

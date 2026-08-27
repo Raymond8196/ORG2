@@ -155,6 +155,7 @@ const TerminalNewSessionSplitButtonComponent: React.FC<
         >
           <HugeiconsIcon
             icon={Plus}
+            data-icon="plus"
             size={DROPDOWN_ITEM.iconSize}
             strokeWidth={SIDEBAR_ICON_STROKE_WIDTH}
           />
@@ -177,6 +178,7 @@ const TerminalNewSessionSplitButtonComponent: React.FC<
         >
           <HugeiconsIcon
             icon={Plus}
+            data-icon="plus"
             size={DROPDOWN_ITEM.iconSize}
             strokeWidth={SIDEBAR_ICON_STROKE_WIDTH}
           />
@@ -193,6 +195,7 @@ const TerminalNewSessionSplitButtonComponent: React.FC<
         >
           <HugeiconsIcon
             icon={ChevronDown}
+            data-icon="chevron-down"
             size={DROPDOWN_ITEM.iconSize}
             strokeWidth={SIDEBAR_ICON_STROKE_WIDTH}
           />
@@ -217,6 +220,7 @@ const TerminalNewSessionSplitButtonComponent: React.FC<
         icon={
           <HugeiconsIcon
             icon={Plus}
+            data-icon="plus"
             size={DROPDOWN_ITEM.iconSize}
             strokeWidth={2}
           />
@@ -242,6 +246,7 @@ const TerminalNewSessionSplitButtonComponent: React.FC<
       icon={
         <HugeiconsIcon
           icon={Plus}
+          data-icon="plus"
           size={DROPDOWN_ITEM.iconSize}
           strokeWidth={2}
         />

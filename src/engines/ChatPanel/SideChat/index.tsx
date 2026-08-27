@@ -130,6 +130,7 @@ export function SideChatLauncher({
         icon={
           <HugeiconsIcon
             icon={MessageCircle}
+            data-icon="message-circle"
             size={HEADER_ICON_SIZE.md}
             strokeWidth={1.9}
           />
@@ -228,6 +229,7 @@ const SideChatWindow: React.FC<ChatPanelSideChatProps> = ({
               >
                 <HugeiconsIcon
                   icon={SquareArrowOutUpRight}
+                  data-icon="square-arrow-out-up-right"
                   size={HEADER_ICON_SIZE.sm}
                 />
               </button>
@@ -236,7 +238,11 @@ const SideChatWindow: React.FC<ChatPanelSideChatProps> = ({
                 onClick={handleNewSession}
                 title={t("chat.newSession")}
               >
-                <HugeiconsIcon icon={SquarePen} size={HEADER_ICON_SIZE.sm} />
+                <HugeiconsIcon
+                  icon={SquarePen}
+                  data-icon="square-pen"
+                  size={HEADER_ICON_SIZE.sm}
+                />
               </button>
             </div>
           ) : undefined

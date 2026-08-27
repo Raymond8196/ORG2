@@ -77,6 +77,7 @@ const RowBusyIndicator: React.FC<{
       )}
       <HugeiconsIcon
         icon={Loader2}
+        data-icon="loader-2"
         aria-hidden="true"
         className="size-3.5 animate-spin text-text-3"
       />
@@ -231,6 +232,7 @@ export function useCloudSessionRowItemBuilder({
       const pinIndicator = isPinned ? (
         <HugeiconsIcon
           icon={Pin}
+          data-icon="pin"
           size={11}
           strokeWidth={2}
           className="shrink-0 text-text-3"

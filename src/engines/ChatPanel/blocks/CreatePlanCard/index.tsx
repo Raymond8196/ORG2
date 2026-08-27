@@ -398,7 +398,9 @@ const CreatePlanCard: React.FC<CreatePlanCardProps> = memo(
           iconOnly
           data-testid="create-plan-collapse"
           onClick={() => onCollapse()}
-          icon={<HugeiconsIcon icon={X} size={12} strokeWidth={2} />}
+          icon={
+            <HugeiconsIcon icon={X} data-icon="x" size={12} strokeWidth={2} />
+          }
           title={t("planDoc.collapse")}
         />
       ) : null;

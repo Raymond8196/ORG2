@@ -378,6 +378,7 @@ const WorkItemProperties: React.FC<WorkItemPropertiesProps> = ({
               icon={
                 <HugeiconsIcon
                   icon={ListChevronsUpDown}
+                  data-icon="list-chevrons-up-down"
                   size={DROPDOWN_ITEM.iconSize}
                 />
               }

@@ -60,7 +60,12 @@ function buildTreeNode<TFile extends DiffFileSectionData>(
       ? {}
       : {
           icon: (
-            <HugeiconsIcon icon={FileText} size={14} className="text-text-3" />
+            <HugeiconsIcon
+              icon={FileText}
+              data-icon="file-text"
+              size={14}
+              className="text-text-3"
+            />
           ),
         }),
   };

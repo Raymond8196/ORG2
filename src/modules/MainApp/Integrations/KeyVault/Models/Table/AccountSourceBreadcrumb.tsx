@@ -30,6 +30,7 @@ export const AccountSourceBreadcrumb: React.FC<
         <span className="shrink-0 text-text-2">{parent}</span>
         <HugeiconsIcon
           icon={ChevronRight}
+          data-icon="chevron-right"
           size={12}
           className="shrink-0 text-text-4"
           aria-hidden

@@ -313,6 +313,7 @@ const SessionCreatorOrgMembersPanel: React.FC<SessionCreatorOrgMembersPanelProps
                           ) : (
                             <HugeiconsIcon
                               icon={Grip}
+                              data-icon="grip"
                               size={PILL_SM_ICON_SIZE}
                               strokeWidth={1.75}
                               className="text-primary-6"

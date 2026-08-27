@@ -148,6 +148,7 @@ const RunGroupRunRow: React.FC<RunGroupRunRowProps> = memo(
               <span className="flex items-center gap-1 truncate">
                 <HugeiconsIcon
                   icon={GitBranch}
+                  data-icon="git-branch"
                   size={12}
                   strokeWidth={1.75}
                   className="block shrink-0"

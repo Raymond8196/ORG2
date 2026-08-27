@@ -53,6 +53,7 @@ const FactoryViewPill: React.FC = () => {
         hoverBadge: (
           <HugeiconsIcon
             icon={SquareArrowOutUpRight}
+            data-icon="square-arrow-out-up-right"
             size={11}
             strokeWidth={1.75}
             aria-hidden="true"

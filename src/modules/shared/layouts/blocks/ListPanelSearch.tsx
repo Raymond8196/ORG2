@@ -35,7 +35,12 @@ const ListPanelSearch: React.FC<ListPanelSearchProps> = ({
         <div className="min-w-0 flex-1">
           <Input
             prefix={
-              <HugeiconsIcon icon={Search} size={14} strokeWidth={1.75} />
+              <HugeiconsIcon
+                icon={Search}
+                data-icon="search"
+                size={14}
+                strokeWidth={1.75}
+              />
             }
             placeholder={placeholder}
             value={value}

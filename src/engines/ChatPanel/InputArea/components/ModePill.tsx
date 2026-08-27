@@ -243,7 +243,8 @@ const ModePill: React.FC<ModePillProps> = memo(
         <SelectorPill
           ref={triggerRef}
           icon={
-            <CurrentIcon
+            <HugeiconsIcon
+              icon={CurrentIcon}
               size={14}
               strokeWidth={1.75}
               className={toneClassName || "text-text-1"}
@@ -258,7 +259,12 @@ const ModePill: React.FC<ModePillProps> = memo(
           onClick={handleTriggerClick}
           hoverIcon={
             resetToDefaultOnClick && mode !== DEFAULT_AGENT_EXEC_MODE ? (
-              <HugeiconsIcon icon={X} size={14} strokeWidth={1.75} />
+              <HugeiconsIcon
+                icon={X}
+                data-icon="x"
+                size={14}
+                strokeWidth={1.75}
+              />
             ) : undefined
           }
           className={toneClassName}
@@ -288,7 +294,8 @@ const ModePill: React.FC<ModePillProps> = memo(
                     <DropdownItem
                       key={option.id}
                       icon={
-                        <Icon
+                        <HugeiconsIcon
+                          icon={Icon}
                           size={DROPDOWN_ITEM.iconSize}
                           strokeWidth={1.75}
                         />

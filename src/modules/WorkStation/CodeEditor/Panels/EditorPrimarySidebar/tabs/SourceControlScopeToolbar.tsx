@@ -173,7 +173,11 @@ function ScopePickerItem({
             onRemove();
           }}
         >
-          <HugeiconsIcon icon={Trash2} size={DROPDOWN_ITEM.iconSize} />
+          <HugeiconsIcon
+            icon={Trash2}
+            data-icon="trash-2"
+            size={DROPDOWN_ITEM.iconSize}
+          />
         </IconButton>
       ) : null}
     </div>
@@ -269,6 +273,7 @@ export function SourceControlScopeToolbar({
         <div className={DROPDOWN_CLASSES.searchContainer}>
           <HugeiconsIcon
             icon={Search}
+            data-icon="search"
             size={DROPDOWN_ITEM.iconSize}
             className="shrink-0 text-text-3"
           />
@@ -366,6 +371,7 @@ export function SourceControlScopeToolbar({
                 {index > 0 ? (
                   <HugeiconsIcon
                     icon={ChevronRight}
+                    data-icon="chevron-right"
                     size={10}
                     className="shrink-0 text-text-4"
                   />

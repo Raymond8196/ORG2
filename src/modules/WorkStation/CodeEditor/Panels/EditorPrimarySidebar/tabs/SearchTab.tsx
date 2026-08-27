@@ -140,7 +140,9 @@ export function useSearchTabConfig({
 
   // PERFORMANCE: Memoize icon to prevent re-renders
   const searchIcon = useMemo(
-    () => <SearchIcon size={PANEL_CONSTANTS.TAB_ICON_SIZE} />,
+    () => (
+      <HugeiconsIcon icon={SearchIcon} size={PANEL_CONSTANTS.TAB_ICON_SIZE} />
+    ),
     [SearchIcon]
   );
 
@@ -159,6 +161,7 @@ export function useSearchTabConfig({
           >
             <HugeiconsIcon
               icon={ArrowLeft}
+              data-icon="arrow-left"
               size={14}
               className="shrink-0 text-text-3"
             />

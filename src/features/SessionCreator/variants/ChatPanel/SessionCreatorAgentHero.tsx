@@ -109,6 +109,7 @@ const SessionCreatorAgentHero = memo(
               </span>
               <HugeiconsIcon
                 icon={ChevronDown}
+                data-icon="chevron-down"
                 size={14}
                 strokeWidth={2}
                 className={`shrink-0 text-text-3 transition-transform ${

@@ -262,7 +262,11 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
             className={`kanban-column__add-btn ${HEADER_BUTTON.actionTreeRow}`}
             onClick={handleAddTask}
           >
-            <HugeiconsIcon icon={Plus} size={HEADER_ICON_SIZE.sm} />
+            <HugeiconsIcon
+              icon={Plus}
+              data-icon="plus"
+              size={HEADER_ICON_SIZE.sm}
+            />
           </button>
         )}
       </div>

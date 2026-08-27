@@ -205,6 +205,7 @@ const CreateWorkspaceForm: React.FC<CreateWorkspaceFormProps> = ({
               prefix={
                 <HugeiconsIcon
                   icon={Search}
+                  data-icon="search"
                   size={16}
                   className="text-text-2"
                 />
@@ -247,6 +248,7 @@ const CreateWorkspaceForm: React.FC<CreateWorkspaceFormProps> = ({
                         {repo.kind === REPO_KIND.FOLDER ? (
                           <HugeiconsIcon
                             icon={Folder}
+                            data-icon="folder"
                             size={13}
                             className="shrink-0 text-text-3"
                           />
@@ -261,7 +263,11 @@ const CreateWorkspaceForm: React.FC<CreateWorkspaceFormProps> = ({
                         </span>
                         {isCurrent && (
                           <span className="flex items-center gap-0.5 text-[11px] text-primary-6">
-                            <HugeiconsIcon icon={Check} size={10} />
+                            <HugeiconsIcon
+                              icon={Check}
+                              data-icon="check"
+                              size={10}
+                            />
                             {t("workspaceForm.current", "current")}
                           </span>
                         )}

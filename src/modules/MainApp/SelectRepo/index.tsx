@@ -105,6 +105,7 @@ const SelectRepoActionsList: React.FC<SelectRepoActionsListProps> = ({
         <div className="flex w-full items-center gap-3">
           <HugeiconsIcon
             icon={SquareArrowRight}
+            data-icon="square-arrow-right"
             size={16}
             strokeWidth={1.5}
             className="h-4 w-4 flex-shrink-0 text-text-2"
@@ -122,6 +123,7 @@ const SelectRepoActionsList: React.FC<SelectRepoActionsListProps> = ({
         <div className="flex w-full items-center gap-3">
           <HugeiconsIcon
             icon={FolderTree}
+            data-icon="folder-tree"
             size={16}
             strokeWidth={1.5}
             className="h-4 w-4 flex-shrink-0 text-text-2"
@@ -139,6 +141,7 @@ const SelectRepoActionsList: React.FC<SelectRepoActionsListProps> = ({
         <div className="flex w-full items-center gap-3">
           <HugeiconsIcon
             icon={Settings}
+            data-icon="settings"
             size={16}
             strokeWidth={1.5}
             className="h-4 w-4 flex-shrink-0 text-text-2"
@@ -219,7 +222,12 @@ const RepoListContent: React.FC<RepoListContentProps> = ({
           )}
           className="h-[34px] rounded-lg bg-fill-1 text-[14px]"
           prefix={
-            <HugeiconsIcon icon={Search} size={16} className="text-text-2" />
+            <HugeiconsIcon
+              icon={Search}
+              data-icon="search"
+              size={16}
+              className="text-text-2"
+            />
           }
         />
       </div>
@@ -255,6 +263,7 @@ const RepoListContent: React.FC<RepoListContentProps> = ({
                   <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-violet-600 shadow-[0_1px_3px_rgba(0,0,0,0.1)]">
                     <HugeiconsIcon
                       icon={FolderTree}
+                      data-icon="folder-tree"
                       size={20}
                       className="text-white"
                     />
@@ -287,12 +296,14 @@ const RepoListContent: React.FC<RepoListContentProps> = ({
                   {repo.kind === REPO_KIND.FOLDER ? (
                     <HugeiconsIcon
                       icon={Folder}
+                      data-icon="folder"
                       size={20}
                       className="text-white"
                     />
                   ) : (
                     <HugeiconsIcon
                       icon={Code}
+                      data-icon="code"
                       size={20}
                       className="text-white"
                     />

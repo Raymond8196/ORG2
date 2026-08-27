@@ -48,6 +48,7 @@ export const UserBubbleContent: React.FC<{
           <div className="flex items-center gap-2">
             <HugeiconsIcon
               icon={ClipboardCheck}
+              data-icon="clipboard-check"
               size={14}
               className="text-primary-6"
             />

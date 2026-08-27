@@ -354,7 +354,7 @@ const ContextInfoButton: React.FC<ContextInfoButtonProps> = memo(
                     className="flex h-5 w-5 items-center justify-center rounded text-text-3 transition-colors hover:bg-fill-2 hover:text-text-2"
                     aria-label={t("common:actions.close")}
                   >
-                    <HugeiconsIcon icon={X} size={12} />
+                    <HugeiconsIcon icon={X} data-icon="x" size={12} />
                   </button>
                 </div>
 
@@ -433,9 +433,17 @@ const ContextInfoButton: React.FC<ContextInfoButtonProps> = memo(
                   </span>
                   <span className="flex h-5 w-5 items-center justify-center rounded text-text-3 transition-colors group-hover:bg-fill-2 group-hover:text-text-2">
                     {manualCompactOpen ? (
-                      <HugeiconsIcon icon={ChevronsDownUp} size={12} />
+                      <HugeiconsIcon
+                        icon={ChevronsDownUp}
+                        data-icon="chevrons-down-up"
+                        size={12}
+                      />
                     ) : (
-                      <HugeiconsIcon icon={ChevronsUpDown} size={12} />
+                      <HugeiconsIcon
+                        icon={ChevronsUpDown}
+                        data-icon="chevrons-up-down"
+                        size={12}
+                      />
                     )}
                   </span>
                 </button>
@@ -459,7 +467,13 @@ const ContextInfoButton: React.FC<ContextInfoButtonProps> = memo(
                       size="small"
                       className="mt-2"
                       data-testid="context-info-manual-compact-button"
-                      icon={<HugeiconsIcon icon={Archive} size={14} />}
+                      icon={
+                        <HugeiconsIcon
+                          icon={Archive}
+                          data-icon="archive"
+                          size={14}
+                        />
+                      }
                       loading={manualCompacting}
                       disabled={compactDisabled}
                       onClick={runManualCompact}

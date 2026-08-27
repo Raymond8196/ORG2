@@ -226,6 +226,7 @@ const TurnPaginationControls: React.FC<TurnPaginationControlsProps> = memo(
                 icon={
                   <HugeiconsIcon
                     icon={Network}
+                    data-icon="network"
                     size={DROPDOWN_ITEM.iconSize}
                     strokeWidth={1.75}
                   />
@@ -260,6 +261,7 @@ const TurnPaginationControls: React.FC<TurnPaginationControlsProps> = memo(
                 {canSwitchAgentOrgMember && (
                   <HugeiconsIcon
                     icon={ChevronDown}
+                    data-icon="chevron-down"
                     size={DROPDOWN_ITEM.iconSize}
                     className={`${SELECT_CHEVRON_CLASS} ${
                       isMemberSwitcherOpen ? "rotate-180" : ""
@@ -399,12 +401,14 @@ const TurnPaginationControls: React.FC<TurnPaginationControlsProps> = memo(
                   {showTurnPaginationSpinner ? (
                     <HugeiconsIcon
                       icon={Loader2}
+                      data-icon="loader-2"
                       size={DROPDOWN_ITEM.iconSize}
                       className="shrink-0 animate-spin text-text-3"
                     />
                   ) : (
                     <HugeiconsIcon
                       icon={ChevronDown}
+                      data-icon="chevron-down"
                       size={DROPDOWN_ITEM.iconSize}
                       className={`${SELECT_CHEVRON_CLASS} ${
                         turnPageListOpen ? "rotate-180" : ""
@@ -456,12 +460,14 @@ const TurnPaginationControls: React.FC<TurnPaginationControlsProps> = memo(
                           turnPageSortAscending ? (
                             <HugeiconsIcon
                               icon={ClockArrowDown}
+                              data-icon="clock-arrow-down"
                               size={DROPDOWN_ITEM.iconSize}
                               strokeWidth={1.75}
                             />
                           ) : (
                             <HugeiconsIcon
                               icon={ClockArrowUp}
+                              data-icon="clock-arrow-up"
                               size={DROPDOWN_ITEM.iconSize}
                               strokeWidth={1.75}
                             />
@@ -491,6 +497,7 @@ const TurnPaginationControls: React.FC<TurnPaginationControlsProps> = memo(
                         icon={
                           <HugeiconsIcon
                             icon={X}
+                            data-icon="x"
                             size={DROPDOWN_ITEM.iconSize}
                             strokeWidth={1.75}
                           />
@@ -524,6 +531,7 @@ const TurnPaginationControls: React.FC<TurnPaginationControlsProps> = memo(
                         icon={
                           <HugeiconsIcon
                             icon={ChevronLeft}
+                            data-icon="chevron-left"
                             size={DROPDOWN_ITEM.iconSize}
                             strokeWidth={1.75}
                           />
@@ -557,6 +565,7 @@ const TurnPaginationControls: React.FC<TurnPaginationControlsProps> = memo(
                         icon={
                           <HugeiconsIcon
                             icon={ChevronRight}
+                            data-icon="chevron-right"
                             size={DROPDOWN_ITEM.iconSize}
                             strokeWidth={1.75}
                           />
@@ -590,6 +599,7 @@ const TurnPaginationControls: React.FC<TurnPaginationControlsProps> = memo(
                         icon={
                           <HugeiconsIcon
                             icon={ChevronsRight}
+                            data-icon="chevrons-right"
                             size={18}
                             strokeWidth={1.75}
                             className="translate-y-[0.5px]"

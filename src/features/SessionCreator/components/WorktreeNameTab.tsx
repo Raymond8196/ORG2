@@ -44,6 +44,7 @@ export function WorktreeNameTab({
         prefix={
           <HugeiconsIcon
             icon={CaseSensitive}
+            data-icon="case-sensitive"
             size={DROPDOWN_ITEM.iconSize}
             strokeWidth={1.75}
           />
@@ -59,6 +60,7 @@ export function WorktreeNameTab({
               icon={
                 <HugeiconsIcon
                   icon={CaseSensitive}
+                  data-icon="case-sensitive"
                   size={14}
                   strokeWidth={1.75}
                 />

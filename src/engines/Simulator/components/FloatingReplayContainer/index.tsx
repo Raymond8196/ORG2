@@ -187,6 +187,7 @@ const FloatingReplayContainer: React.FC = memo(() => {
             icon={
               <HugeiconsIcon
                 icon={Bot}
+                data-icon="bot"
                 size={16}
                 strokeWidth={1.75}
                 className="text-primary-6"
@@ -207,6 +208,7 @@ const FloatingReplayContainer: React.FC = memo(() => {
             icon={
               <HugeiconsIcon
                 icon={Keyboard}
+                data-icon="keyboard"
                 size={16}
                 strokeWidth={1.75}
                 className={

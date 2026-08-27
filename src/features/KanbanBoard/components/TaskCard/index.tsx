@@ -91,7 +91,12 @@ const TaskCard: React.FC<TaskCardProps> = ({
       {/* Owning Agent Team (only set on the global Kanban board) */}
       {task.orgName && (
         <div className="kanban-task-card__chat-tag">
-          <HugeiconsIcon icon={MessagesSquare} size={12} strokeWidth={1.75} />
+          <HugeiconsIcon
+            icon={MessagesSquare}
+            data-icon="messages-square"
+            size={12}
+            strokeWidth={1.75}
+          />
           <span>{task.orgName}</span>
         </div>
       )}
@@ -199,6 +204,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
           <div className="kanban-task-card__footer-right">
             <HugeiconsIcon
               icon={ChevronRight}
+              data-icon="chevron-right"
               size={14}
               className="text-text-3"
             />

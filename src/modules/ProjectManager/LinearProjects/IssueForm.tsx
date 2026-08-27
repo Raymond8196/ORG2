@@ -54,7 +54,7 @@ export const IssueForm: React.FC<IssueFormProps> = ({
           size="small"
           variant="primary"
           appearance="solid"
-          icon={<HugeiconsIcon icon={Plus} size={14} />}
+          icon={<HugeiconsIcon icon={Plus} data-icon="plus" size={14} />}
           loading={saving}
           disabled={!draft.title.trim()}
           onClick={onSubmit}

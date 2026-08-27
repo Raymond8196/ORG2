@@ -99,6 +99,7 @@ const AskUserChatItem: React.FC<AskUserChatItemProps> = memo(
                     {isExpanded ? (
                       <HugeiconsIcon
                         icon={ChevronsDownUp}
+                        data-icon="chevrons-down-up"
                         size={14}
                         strokeWidth={1.75}
                         className="ml-1 text-text-3"
@@ -106,6 +107,7 @@ const AskUserChatItem: React.FC<AskUserChatItemProps> = memo(
                     ) : (
                       <HugeiconsIcon
                         icon={ChevronsUpDown}
+                        data-icon="chevrons-up-down"
                         size={14}
                         strokeWidth={1.75}
                         className="ml-1 text-text-3"

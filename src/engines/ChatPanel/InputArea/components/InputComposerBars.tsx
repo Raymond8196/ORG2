@@ -208,7 +208,14 @@ export const EditComposerBar: React.FC<EditComposerBarProps> = ({
               shape="circle"
               iconOnly
               htmlType="button"
-              icon={<HugeiconsIcon icon={X} size={13} strokeWidth={2} />}
+              icon={
+                <HugeiconsIcon
+                  icon={X}
+                  data-icon="x"
+                  size={13}
+                  strokeWidth={2}
+                />
+              }
               aria-label={t("common:actions.cancel")}
               className="enabled:hover:bg-fill-3 enabled:hover:text-text-1"
               onClick={onEditCancel}
@@ -239,7 +246,14 @@ export const EditComposerBar: React.FC<EditComposerBarProps> = ({
             size="mini"
             shape="round"
             htmlType="button"
-            icon={<HugeiconsIcon icon={RotateCcw} size={13} strokeWidth={2} />}
+            icon={
+              <HugeiconsIcon
+                icon={RotateCcw}
+                data-icon="rotate-ccw"
+                size={13}
+                strokeWidth={2}
+              />
+            }
             onClick={() => onSubmit()}
           >
             {t("common:actions.resend")}

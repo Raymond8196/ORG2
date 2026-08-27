@@ -67,7 +67,12 @@ const PrHoverCardContent: React.FC<PrHoverCardContentProps> = memo(({ pr }) => {
     <HoverCardPanel title={pr.title}>
       <HoverCardRow
         icon={
-          <HugeiconsIcon icon={GitPullRequest} size={13} strokeWidth={1.75} />
+          <HugeiconsIcon
+            icon={GitPullRequest}
+            data-icon="git-pull-request"
+            size={13}
+            strokeWidth={1.75}
+          />
         }
         iconClassName={statusIconClassName}
       >
@@ -82,7 +87,14 @@ const PrHoverCardContent: React.FC<PrHoverCardContentProps> = memo(({ pr }) => {
 
       {branchLabel && (
         <HoverCardRow
-          icon={<HugeiconsIcon icon={GitBranch} size={13} strokeWidth={1.75} />}
+          icon={
+            <HugeiconsIcon
+              icon={GitBranch}
+              data-icon="git-branch"
+              size={13}
+              strokeWidth={1.75}
+            />
+          }
         >
           <div className="truncate text-text-2" title={pr.head_branch}>
             <span>{branchLabel}</span>
@@ -98,7 +110,14 @@ const PrHoverCardContent: React.FC<PrHoverCardContentProps> = memo(({ pr }) => {
 
       {hasDiffStats && (
         <HoverCardRow
-          icon={<HugeiconsIcon icon={FileDiff} size={13} strokeWidth={1.75} />}
+          icon={
+            <HugeiconsIcon
+              icon={FileDiff}
+              data-icon="file-diff"
+              size={13}
+              strokeWidth={1.75}
+            />
+          }
         >
           <div
             className="flex min-w-0 items-center"
@@ -122,7 +141,14 @@ const PrHoverCardContent: React.FC<PrHoverCardContentProps> = memo(({ pr }) => {
 
       {pr.updated_at && (
         <HoverCardRow
-          icon={<HugeiconsIcon icon={Clock} size={13} strokeWidth={1.75} />}
+          icon={
+            <HugeiconsIcon
+              icon={Clock}
+              data-icon="clock"
+              size={13}
+              strokeWidth={1.75}
+            />
+          }
         >
           <div className="truncate text-text-2">
             <span className="text-text-3">

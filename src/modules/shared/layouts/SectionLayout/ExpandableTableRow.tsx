@@ -56,9 +56,17 @@ const ExpandableTableRow: React.FC<ExpandableTableRowProps> = memo(
               onClick={onToggle}
               icon={
                 expanded ? (
-                  <HugeiconsIcon icon={ChevronsDownUp} size={14} />
+                  <HugeiconsIcon
+                    icon={ChevronsDownUp}
+                    data-icon="chevrons-down-up"
+                    size={14}
+                  />
                 ) : (
-                  <HugeiconsIcon icon={ChevronsUpDown} size={14} />
+                  <HugeiconsIcon
+                    icon={ChevronsUpDown}
+                    data-icon="chevrons-up-down"
+                    size={14}
+                  />
                 )
               }
               iconOnly

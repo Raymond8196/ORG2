@@ -172,9 +172,17 @@ export const CliClientSection: React.FC<CliClientSectionProps> = ({
                   size="small"
                   icon={
                     activeMode === CLI_CLIENT_ACTION_TAB.INSTALL ? (
-                      <HugeiconsIcon icon={Download} size={12} />
+                      <HugeiconsIcon
+                        icon={Download}
+                        data-icon="download"
+                        size={12}
+                      />
                     ) : (
-                      <HugeiconsIcon icon={Trash2} size={12} />
+                      <HugeiconsIcon
+                        icon={Trash2}
+                        data-icon="trash-2"
+                        size={12}
+                      />
                     )
                   }
                   onClick={onAction}
@@ -191,7 +199,7 @@ export const CliClientSection: React.FC<CliClientSectionProps> = ({
               ) : null}
               <Button
                 size="small"
-                icon={<HugeiconsIcon icon={Copy} size={12} />}
+                icon={<HugeiconsIcon icon={Copy} data-icon="copy" size={12} />}
                 onClick={() => {
                   navigator.clipboard
                     .writeText(selectedMethod.command)

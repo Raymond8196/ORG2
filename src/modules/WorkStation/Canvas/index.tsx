@@ -187,7 +187,7 @@ function CanvasApp(props: SimulatorAppProps) {
     >
       <div className="flex items-center justify-between border-b border-border-2 bg-workstation-bg px-3 py-1.5">
         <div className="flex items-center gap-2 text-sm text-text-2">
-          <HugeiconsIcon icon={Layout} className="h-4 w-4" />
+          <HugeiconsIcon icon={Layout} data-icon="layout" className="h-4 w-4" />
           <span>{t("simulator.replay.canvas.toolbarTitle")}</span>
           {state.mode === "url" && state.url && (
             <span className="max-w-[200px] truncate text-xs text-text-3">
@@ -205,6 +205,7 @@ function CanvasApp(props: SimulatorAppProps) {
             >
               <HugeiconsIcon
                 icon={SquareArrowOutUpRight}
+                data-icon="square-arrow-out-up-right"
                 className="h-3.5 w-3.5"
               />
             </IconButton>
@@ -224,9 +225,17 @@ function CanvasApp(props: SimulatorAppProps) {
             size="sm"
           >
             {isFullscreen ? (
-              <HugeiconsIcon icon={Minimize2} className="h-3.5 w-3.5" />
+              <HugeiconsIcon
+                icon={Minimize2}
+                data-icon="minimize-2"
+                className="h-3.5 w-3.5"
+              />
             ) : (
-              <HugeiconsIcon icon={Maximize2} className="h-3.5 w-3.5" />
+              <HugeiconsIcon
+                icon={Maximize2}
+                data-icon="maximize-2"
+                className="h-3.5 w-3.5"
+              />
             )}
           </IconButton>
           <IconButton
@@ -235,7 +244,7 @@ function CanvasApp(props: SimulatorAppProps) {
             aria-label={t("simulator.replay.canvas.tooltipCloseCanvas")}
             size="sm"
           >
-            <HugeiconsIcon icon={X} className="h-3.5 w-3.5" />
+            <HugeiconsIcon icon={X} data-icon="x" className="h-3.5 w-3.5" />
           </IconButton>
         </div>
       </div>

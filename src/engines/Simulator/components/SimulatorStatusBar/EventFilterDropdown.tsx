@@ -130,6 +130,7 @@ export const EventFilterDropdown: React.FC<EventFilterDropdownProps> = ({
       >
         <HugeiconsIcon
           icon={ListFilter}
+          data-icon="list-filter"
           size={12}
           strokeWidth={2}
           className="shrink-0"

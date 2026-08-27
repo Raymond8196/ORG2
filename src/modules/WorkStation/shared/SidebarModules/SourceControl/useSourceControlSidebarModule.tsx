@@ -210,7 +210,8 @@ export function useSourceControlSidebarModule({
       {
         key: "refresh-git-history",
         icon: (
-          <HistoryRefreshIcon
+          <HugeiconsIcon
+            icon={HistoryRefreshIcon}
             size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
             strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
             className={historyRefreshSpinClass}
@@ -261,6 +262,7 @@ export function useSourceControlSidebarModule({
       icon: (
         <HugeiconsIcon
           icon={RotateCcw}
+          data-icon="rotate-ccw"
           size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
           strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
         />
@@ -313,6 +315,7 @@ export function useSourceControlSidebarModule({
         icon: (
           <HugeiconsIcon
             icon={RefreshCw}
+            data-icon="refresh-cw"
             size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
             strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
             className={issuesRefreshSpinClass}
@@ -326,6 +329,7 @@ export function useSourceControlSidebarModule({
         icon: (
           <HugeiconsIcon
             icon={CircleDot}
+            data-icon="circle-dot"
             size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
             strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
           />
@@ -367,6 +371,7 @@ export function useSourceControlSidebarModule({
         icon: (
           <HugeiconsIcon
             icon={RefreshCw}
+            data-icon="refresh-cw"
             size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
             strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
             className={prRefreshSpinClass}
@@ -410,7 +415,12 @@ export function useSourceControlSidebarModule({
       title={t("tabs.sourceControl")}
     >
       <span className="flex h-5 w-5 shrink-0 items-center justify-center">
-        <HugeiconsIcon icon={ArrowLeft} size={14} className="text-text-3" />
+        <HugeiconsIcon
+          icon={ArrowLeft}
+          data-icon="arrow-left"
+          size={14}
+          className="text-text-3"
+        />
       </span>
       <span className="truncate uppercase">{sectionLabel}</span>
     </button>

@@ -84,7 +84,7 @@ const VerificationStatusBadge: React.FC<VerificationStatusBadgeProps> = ({
           <Tag
             color="warning"
             size="small"
-            icon={<HugeiconsIcon icon={Clock} size={12} />}
+            icon={<HugeiconsIcon icon={Clock} data-icon="clock" size={12} />}
           >
             {t("keyVault.verification.pendingVerification")}
           </Tag>
@@ -97,6 +97,7 @@ const VerificationStatusBadge: React.FC<VerificationStatusBadgeProps> = ({
             icon={
               <HugeiconsIcon
                 icon={Loader2}
+                data-icon="loader-2"
                 size={SPINNER_TOKENS.small}
                 className="animate-spin"
               />
@@ -111,7 +112,13 @@ const VerificationStatusBadge: React.FC<VerificationStatusBadgeProps> = ({
           <Tag
             color="success"
             size="small"
-            icon={<HugeiconsIcon icon={CheckCircle} size={12} />}
+            icon={
+              <HugeiconsIcon
+                icon={CheckCircle}
+                data-icon="check-circle"
+                size={12}
+              />
+            }
           >
             {t("keyVault.verification.verified")}
           </Tag>
@@ -121,7 +128,9 @@ const VerificationStatusBadge: React.FC<VerificationStatusBadgeProps> = ({
           <Tag
             color="danger"
             size="small"
-            icon={<HugeiconsIcon icon={XCircle} size={12} />}
+            icon={
+              <HugeiconsIcon icon={XCircle} data-icon="xcircle" size={12} />
+            }
           >
             {t("keyVault.verification.verificationFailed")}
           </Tag>
@@ -131,7 +140,9 @@ const VerificationStatusBadge: React.FC<VerificationStatusBadgeProps> = ({
           <Tag
             color="danger"
             size="small"
-            icon={<HugeiconsIcon icon={XCircle} size={12} />}
+            icon={
+              <HugeiconsIcon icon={XCircle} data-icon="xcircle" size={12} />
+            }
           >
             {t("keyVault.verification.rejected")}
           </Tag>
@@ -148,7 +159,12 @@ const VerificationStatusBadge: React.FC<VerificationStatusBadgeProps> = ({
         <InlineAlert
           type="warning"
           icon={
-            <HugeiconsIcon icon={Clock} size={16} className="flex-shrink-0" />
+            <HugeiconsIcon
+              icon={Clock}
+              data-icon="clock"
+              size={16}
+              className="flex-shrink-0"
+            />
           }
           title={t("keyVault.verification.pendingVerification")}
         >
@@ -168,6 +184,7 @@ const VerificationStatusBadge: React.FC<VerificationStatusBadgeProps> = ({
           icon={
             <HugeiconsIcon
               icon={Loader2}
+              data-icon="loader-2"
               size={SPINNER_TOKENS.default}
               className="flex-shrink-0 animate-spin"
             />
@@ -195,6 +212,7 @@ const VerificationStatusBadge: React.FC<VerificationStatusBadgeProps> = ({
           icon={
             <HugeiconsIcon
               icon={CheckCircle}
+              data-icon="check-circle"
               size={16}
               className="flex-shrink-0"
             />
@@ -209,7 +227,12 @@ const VerificationStatusBadge: React.FC<VerificationStatusBadgeProps> = ({
         <InlineAlert
           type="danger"
           icon={
-            <HugeiconsIcon icon={XCircle} size={16} className="flex-shrink-0" />
+            <HugeiconsIcon
+              icon={XCircle}
+              data-icon="xcircle"
+              size={16}
+              className="flex-shrink-0"
+            />
           }
           title={t("keyVault.verification.verificationFailed")}
         >
@@ -236,6 +259,7 @@ const VerificationStatusBadge: React.FC<VerificationStatusBadgeProps> = ({
           icon={
             <HugeiconsIcon
               icon={AlertTriangle}
+              data-icon="alert-triangle"
               size={16}
               className="flex-shrink-0"
             />

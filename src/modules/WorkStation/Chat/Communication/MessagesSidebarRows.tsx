@@ -34,6 +34,7 @@ export const AggregateMessagesRow: React.FC<AggregateMessagesRowProps> = memo(
       icon: (
         <HugeiconsIcon
           icon={MessagesSquare}
+          data-icon="messages-square"
           size={14}
           strokeWidth={1.75}
           className="text-text-3"
@@ -77,6 +78,7 @@ export const AggregateTodoRow: React.FC<AggregateTodoRowProps> = memo(
       icon: (
         <HugeiconsIcon
           icon={ListTodo}
+          data-icon="list-todo"
           size={14}
           strokeWidth={1.75}
           className="text-text-3"
@@ -120,6 +122,7 @@ export const AggregateInteractionsRow: React.FC<AggregateInteractionsRowProps> =
       icon: (
         <HugeiconsIcon
           icon={MessageCircleQuestionMark}
+          data-icon="message-circle-question-mark"
           size={14}
           strokeWidth={1.75}
           className="text-text-3"

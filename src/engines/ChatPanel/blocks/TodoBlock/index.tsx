@@ -102,6 +102,7 @@ const TodoCheckbox: React.FC<{ status: string; blocked?: boolean }> = ({
       <div className="flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center rounded-full bg-green-600/80">
         <HugeiconsIcon
           icon={Check}
+          data-icon="check"
           size={8}
           strokeWidth={3}
           className="text-white"
@@ -114,6 +115,7 @@ const TodoCheckbox: React.FC<{ status: string; blocked?: boolean }> = ({
       <div className="flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center rounded-full border-[1.5px] border-dashed border-text-3/40">
         <HugeiconsIcon
           icon={Lock}
+          data-icon="lock"
           size={6}
           strokeWidth={2.5}
           className="text-text-3/60"
@@ -271,7 +273,12 @@ const StandardTodoBlock: React.FC<StandardTodoBlockProps> = memo(
                     </span>
                     {blocked && todo.blockedBy && (
                       <span className="ml-auto flex shrink-0 items-center gap-0.5 text-[10px] text-text-3/70">
-                        <HugeiconsIcon icon={Lock} size={8} strokeWidth={2} />
+                        <HugeiconsIcon
+                          icon={Lock}
+                          data-icon="lock"
+                          size={8}
+                          strokeWidth={2}
+                        />
                         {todo.blockedBy
                           .map((blockerIndex) => `#${blockerIndex}`)
                           .join(", ")}
@@ -291,12 +298,14 @@ const StandardTodoBlock: React.FC<StandardTodoBlockProps> = memo(
                     {isListExpanded ? (
                       <HugeiconsIcon
                         icon={ChevronsDownUp}
+                        data-icon="chevrons-down-up"
                         size={14}
                         strokeWidth={2}
                       />
                     ) : (
                       <HugeiconsIcon
                         icon={ChevronsUpDown}
+                        data-icon="chevrons-up-down"
                         size={14}
                         strokeWidth={2}
                       />

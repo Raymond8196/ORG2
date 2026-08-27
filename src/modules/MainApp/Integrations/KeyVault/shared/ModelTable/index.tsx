@@ -311,9 +311,13 @@ const ModelTable: React.FC<ModelTableProps> = ({
         }
         icon={
           viewMode === "flat" ? (
-            <HugeiconsIcon icon={TableProperties} size={14} />
+            <HugeiconsIcon
+              icon={TableProperties}
+              data-icon="table-properties"
+              size={14}
+            />
           ) : (
-            <HugeiconsIcon icon={List} size={14} />
+            <HugeiconsIcon icon={List} data-icon="list" size={14} />
           )
         }
         title={
@@ -351,9 +355,17 @@ const ModelTable: React.FC<ModelTableProps> = ({
         }}
         icon={
           someGroupExpanded ? (
-            <HugeiconsIcon icon={ListChevronsDownUp} size={16} />
+            <HugeiconsIcon
+              icon={ListChevronsDownUp}
+              data-icon="list-chevrons-down-up"
+              size={16}
+            />
           ) : (
-            <HugeiconsIcon icon={ListChevronsUpDown} size={16} />
+            <HugeiconsIcon
+              icon={ListChevronsUpDown}
+              data-icon="list-chevrons-up-down"
+              size={16}
+            />
           )
         }
         title={
@@ -412,7 +424,7 @@ const ModelTable: React.FC<ModelTableProps> = ({
         <Button
           variant="tertiary"
           size="default"
-          icon={<HugeiconsIcon icon={Plus} size={14} />}
+          icon={<HugeiconsIcon icon={Plus} data-icon="plus" size={14} />}
           onClick={handleAddModel}
           className="text-text-3 hover:text-text-1"
         >

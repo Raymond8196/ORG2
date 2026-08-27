@@ -35,7 +35,12 @@ export const HintWithInfo: React.FC<HintWithInfoProps> = memo(
         role="img"
         aria-label="More information"
       >
-        <HugeiconsIcon icon={Info} size={size} className="text-text-3" />
+        <HugeiconsIcon
+          icon={Info}
+          data-icon="info"
+          size={size}
+          className="text-text-3"
+        />
       </span>
     </Tooltip>
   )

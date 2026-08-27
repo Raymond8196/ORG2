@@ -123,6 +123,7 @@ const SearchInput: FC<SearchInputProps> = memo(
           <div className="absolute inset-0 flex items-center justify-center gap-2 px-3">
             <HugeiconsIcon
               icon={Search}
+              data-icon="search"
               size={14}
               className="shrink-0 text-text-3"
             />
@@ -135,6 +136,7 @@ const SearchInput: FC<SearchInputProps> = memo(
           <div className="absolute inset-0 flex items-center justify-center gap-2 px-3">
             <HugeiconsIcon
               icon={Search}
+              data-icon="search"
               size={14}
               className="shrink-0 text-text-3"
             />
@@ -149,6 +151,7 @@ const SearchInput: FC<SearchInputProps> = memo(
           <div className="absolute left-2.5 flex items-center">
             <HugeiconsIcon
               icon={Search}
+              data-icon="search"
               size={14}
               className="shrink-0 text-text-3"
             />
@@ -185,7 +188,7 @@ const SearchInput: FC<SearchInputProps> = memo(
             className="absolute right-1.5 flex items-center justify-center rounded p-0.5 text-text-3 transition-colors hover:text-text-1"
             title="Clear"
           >
-            <HugeiconsIcon icon={X} size={12} />
+            <HugeiconsIcon icon={X} data-icon="x" size={12} />
           </button>
         )}
 
@@ -200,7 +203,7 @@ const SearchInput: FC<SearchInputProps> = memo(
             className="absolute right-1.5 flex items-center justify-center rounded p-0.5 text-text-3 transition-colors hover:text-text-1"
             title="Clear"
           >
-            <HugeiconsIcon icon={X} size={12} />
+            <HugeiconsIcon icon={X} data-icon="x" size={12} />
           </button>
         )}
       </div>

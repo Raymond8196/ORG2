@@ -85,7 +85,7 @@ export function renderSessionGitIndicator(
       className="inline-flex shrink-0 items-center leading-none"
       style={{ color }}
     >
-      <Icon size={11} strokeWidth={2} />
+      <HugeiconsIcon icon={Icon} size={11} strokeWidth={2} />
     </span>
   );
 }

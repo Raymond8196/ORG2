@@ -63,7 +63,12 @@ const CanvasPreviewTabRenderer: React.FC<UnifiedTabContentProps> = memo(
     if (!payload) {
       return (
         <div className="flex h-full flex-col items-center justify-center gap-3 text-text-4">
-          <HugeiconsIcon icon={Layout} size={32} strokeWidth={1} />
+          <HugeiconsIcon
+            icon={Layout}
+            data-icon="layout"
+            size={32}
+            strokeWidth={1}
+          />
           <span className="text-sm">{t("previews.noCanvasAvailable")}</span>
         </div>
       );
@@ -75,6 +80,7 @@ const CanvasPreviewTabRenderer: React.FC<UnifiedTabContentProps> = memo(
           <div className="flex min-w-0 items-center gap-2">
             <HugeiconsIcon
               icon={Layout}
+              data-icon="layout"
               size={13}
               className="shrink-0 text-primary-6"
             />
@@ -100,7 +106,11 @@ const CanvasPreviewTabRenderer: React.FC<UnifiedTabContentProps> = memo(
               aria-label={t("previews.openInBrowser")}
               size="sm"
             >
-              <HugeiconsIcon icon={SquareArrowOutUpRight} size={12} />
+              <HugeiconsIcon
+                icon={SquareArrowOutUpRight}
+                data-icon="square-arrow-out-up-right"
+                size={12}
+              />
             </IconButton>
             <IconButton
               onClick={handleDismiss}
@@ -108,7 +118,7 @@ const CanvasPreviewTabRenderer: React.FC<UnifiedTabContentProps> = memo(
               aria-label={t("previews.closeCanvas")}
               size="sm"
             >
-              <HugeiconsIcon icon={X} size={12} />
+              <HugeiconsIcon icon={X} data-icon="x" size={12} />
             </IconButton>
           </div>
         </div>

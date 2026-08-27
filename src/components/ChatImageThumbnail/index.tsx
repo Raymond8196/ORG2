@@ -106,6 +106,7 @@ export const ChatImageThumbnail: React.FC<ChatImageThumbnailProps> = memo(
           ) : loadFailed ? (
             <HugeiconsIcon
               icon={ImageOff}
+              data-icon="image-off"
               size={16}
               strokeWidth={1.5}
               aria-label={alt}
@@ -113,6 +114,7 @@ export const ChatImageThumbnail: React.FC<ChatImageThumbnailProps> = memo(
           ) : (
             <HugeiconsIcon
               icon={ImageIcon}
+              data-icon="image-icon"
               size={16}
               strokeWidth={1.5}
               className="animate-pulse motion-reduce:animate-none"

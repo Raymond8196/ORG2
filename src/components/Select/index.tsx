@@ -260,6 +260,7 @@ const Select = forwardRef<HTMLDivElement, SelectProps>(
                 {opt.label}
                 <HugeiconsIcon
                   icon={X}
+                  data-icon="x"
                   size={DROPDOWN_ITEM.iconSize}
                   onClick={(event) => {
                     event.stopPropagation();
@@ -381,6 +382,7 @@ const Select = forwardRef<HTMLDivElement, SelectProps>(
               {loading && (
                 <HugeiconsIcon
                   icon={Loader2}
+                  data-icon="loader-2"
                   size={SPINNER_TOKENS.default}
                   className="animate-spin"
                 />
@@ -388,6 +390,7 @@ const Select = forwardRef<HTMLDivElement, SelectProps>(
               {showClearButton && !loading && (
                 <HugeiconsIcon
                   icon={X}
+                  data-icon="x"
                   size={DROPDOWN_ITEM.iconSize}
                   className="select-clear cursor-pointer"
                   onClick={handleClear}
@@ -395,6 +398,7 @@ const Select = forwardRef<HTMLDivElement, SelectProps>(
               )}
               <HugeiconsIcon
                 icon={ChevronDown}
+                data-icon="chevron-down"
                 size={appearance === "ghost" ? 12 : 16}
                 className={`select-arrow shrink-0 transition-transform ${
                   appearance === "ghost" ? "text-text-3" : ""
@@ -415,6 +419,7 @@ const Select = forwardRef<HTMLDivElement, SelectProps>(
                 <div className={DROPDOWN_CLASSES.searchContainer}>
                   <HugeiconsIcon
                     icon={Search}
+                    data-icon="search"
                     size={DROPDOWN_ITEM.iconSize}
                     className="shrink-0 text-text-3"
                   />

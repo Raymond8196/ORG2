@@ -104,7 +104,12 @@ const SidebarToggleButtonComponent: React.FC<SidebarToggleButtonProps> = ({
           aria-label={label}
           icon={
             stableListIcon ? (
-              <HugeiconsIcon icon={List} size={iconSize} strokeWidth={2.25} />
+              <HugeiconsIcon
+                icon={List}
+                data-icon="list"
+                size={iconSize}
+                strokeWidth={2.25}
+              />
             ) : (
               <Icon
                 size={iconSize}

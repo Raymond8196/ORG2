@@ -100,7 +100,11 @@ export const SearchFilters: React.FC<SearchFiltersProps> = memo(
                 className={`${HEADER_BUTTON.action} shrink-0 self-center ${onlyOpenFiles ? "text-primary-6" : ""}`}
                 title={t("tooltips.searchInOpenEditors")}
               >
-                <HugeiconsIcon icon={BookOpen} size={14} />
+                <HugeiconsIcon
+                  icon={BookOpen}
+                  data-icon="book-open"
+                  size={14}
+                />
               </button>
             )}
           </div>

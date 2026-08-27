@@ -71,12 +71,14 @@ export const SectionHeader: React.FC<SectionHeaderProps> = memo(
           {isCollapsed ? (
             <HugeiconsIcon
               icon={ChevronRight}
+              data-icon="chevron-right"
               size={14}
               className={useWarningText ? "text-warning-6" : "text-text-3"}
             />
           ) : (
             <HugeiconsIcon
               icon={ChevronDown}
+              data-icon="chevron-down"
               size={14}
               className={useWarningText ? "text-warning-6" : "text-text-3"}
             />

@@ -123,12 +123,14 @@ export const DOMTreeNodeRow: React.FC<DOMTreeNodeRowProps> = memo(
               (isExpanded ? (
                 <HugeiconsIcon
                   icon={ChevronDown}
+                  data-icon="chevron-down"
                   size={CHEVRON_SIZE}
                   className="text-text-3"
                 />
               ) : (
                 <HugeiconsIcon
                   icon={ChevronRight}
+                  data-icon="chevron-right"
                   size={CHEVRON_SIZE}
                   className="text-text-3"
                 />
@@ -168,12 +170,14 @@ export const DOMTreeNodeRow: React.FC<DOMTreeNodeRowProps> = memo(
             (isExpanded ? (
               <HugeiconsIcon
                 icon={ChevronDown}
+                data-icon="chevron-down"
                 size={CHEVRON_SIZE}
                 className="text-text-3"
               />
             ) : (
               <HugeiconsIcon
                 icon={ChevronRight}
+                data-icon="chevron-right"
                 size={CHEVRON_SIZE}
                 className="text-text-3"
               />

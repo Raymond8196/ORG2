@@ -153,7 +153,8 @@ export const SimulatorStatusBar: React.FC<SimulatorStatusBarProps> = memo(
                   onClick={handleToggleToReplay}
                   className="flex h-5 w-5 transform-gpu items-center justify-center rounded-full text-white hover:bg-white/15 hover:text-white"
                 >
-                  {React.createElement(MousePointer2, {
+                  {React.createElement(HugeiconsIcon, {
+                    icon: MousePointer2,
                     size: 12,
                     strokeWidth: 1.75,
                   })}
@@ -170,7 +171,8 @@ export const SimulatorStatusBar: React.FC<SimulatorStatusBarProps> = memo(
                 className={`ml-0.5 ${STATUS_BAR_ICON_BTN_20}`}
                 title={t("simulator.replay.previousEvent")}
               >
-                {React.createElement(ChevronLeft, {
+                {React.createElement(HugeiconsIcon, {
+                  icon: ChevronLeft,
                   size: 14,
                   strokeWidth: 1.5,
                 })}
@@ -203,7 +205,8 @@ export const SimulatorStatusBar: React.FC<SimulatorStatusBarProps> = memo(
                 className={STATUS_BAR_ICON_BTN_20}
                 title={t("simulator.replay.nextEvent")}
               >
-                {React.createElement(ChevronRight, {
+                {React.createElement(HugeiconsIcon, {
+                  icon: ChevronRight,
                   size: 14,
                   strokeWidth: 1.5,
                 })}

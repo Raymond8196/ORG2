@@ -170,7 +170,9 @@ const CliRawConfigFileEditor: React.FC<CliRawConfigFileEditorProps> = ({
           )}
           {activeTab !== "edit" && (
             <Button
-              icon={<HugeiconsIcon icon={Pencil} size={14} />}
+              icon={
+                <HugeiconsIcon icon={Pencil} data-icon="pencil" size={14} />
+              }
               iconOnly
               onClick={handleEdit}
               aria-label={t("common:actions.edit")}
@@ -179,7 +181,7 @@ const CliRawConfigFileEditor: React.FC<CliRawConfigFileEditorProps> = ({
             />
           )}
           <Button
-            icon={<HugeiconsIcon icon={Copy} size={14} />}
+            icon={<HugeiconsIcon icon={Copy} data-icon="copy" size={14} />}
             iconOnly
             onClick={handleCopy}
             disabled={!value.trim()}
@@ -187,7 +189,13 @@ const CliRawConfigFileEditor: React.FC<CliRawConfigFileEditorProps> = ({
             title={t("common:actions.copy")}
           />
           <Button
-            icon={<HugeiconsIcon icon={FolderOpen} size={14} />}
+            icon={
+              <HugeiconsIcon
+                icon={FolderOpen}
+                data-icon="folder-open"
+                size={14}
+              />
+            }
             iconOnly
             onClick={handleRevealConfig}
             aria-label={t("agentOrgs.cliAgentDetail.revealConfigFile")}

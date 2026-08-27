@@ -52,7 +52,7 @@ const PlanApprovalActions: React.FC<PlanApprovalActionsProps> = ({
           data-testid="plan-approval-cancel"
           onClick={onEditToggle}
           disabled={submitting}
-          icon={<HugeiconsIcon icon={X} size={ICON_SIZE} />}
+          icon={<HugeiconsIcon icon={X} data-icon="x" size={ICON_SIZE} />}
         >
           {t("planDoc.cancelEdit")}
         </Button>
@@ -62,7 +62,13 @@ const PlanApprovalActions: React.FC<PlanApprovalActionsProps> = ({
           data-testid="plan-approval-save"
           onClick={onSave}
           disabled={saveDisabled}
-          icon={<HugeiconsIcon icon={CheckCircle2} size={ICON_SIZE} />}
+          icon={
+            <HugeiconsIcon
+              icon={CheckCircle2}
+              data-icon="check-circle-2"
+              size={ICON_SIZE}
+            />
+          }
         >
           {t("common:actions.save")}
         </Button>
@@ -77,7 +83,9 @@ const PlanApprovalActions: React.FC<PlanApprovalActionsProps> = ({
         data-testid="plan-approval-edit"
         onClick={onEditToggle}
         disabled={saveDisabled}
-        icon={<HugeiconsIcon icon={Pencil} size={ICON_SIZE} />}
+        icon={
+          <HugeiconsIcon icon={Pencil} data-icon="pencil" size={ICON_SIZE} />
+        }
       >
         {t("planDoc.edit")}
       </Button>
@@ -86,7 +94,13 @@ const PlanApprovalActions: React.FC<PlanApprovalActionsProps> = ({
           size="mini"
           data-testid="plan-approval-open-my-station"
           onClick={onOpenInMyStation}
-          icon={<HugeiconsIcon icon={SquareArrowOutUpRight} size={ICON_SIZE} />}
+          icon={
+            <HugeiconsIcon
+              icon={SquareArrowOutUpRight}
+              data-icon="square-arrow-out-up-right"
+              size={ICON_SIZE}
+            />
+          }
         >
           {t("controlTower.sidebar.openInMyStation")}
         </Button>

@@ -63,7 +63,13 @@ export const DetailHeaderClose: React.FC<DetailHeaderCloseProps> = ({
       {showPrevButton && (
         <Button
           {...PANEL_HEADER_TOKENS.actionButton}
-          icon={<HugeiconsIcon icon={ArrowUp} {...headerIconProps} />}
+          icon={
+            <HugeiconsIcon
+              icon={ArrowUp}
+              data-icon="arrow-up"
+              {...headerIconProps}
+            />
+          }
           onClick={onPrev}
           title={t("actions.previous")}
         />
@@ -71,7 +77,13 @@ export const DetailHeaderClose: React.FC<DetailHeaderCloseProps> = ({
       {showNextButton && (
         <Button
           {...PANEL_HEADER_TOKENS.actionButton}
-          icon={<HugeiconsIcon icon={ArrowDown} {...headerIconProps} />}
+          icon={
+            <HugeiconsIcon
+              icon={ArrowDown}
+              data-icon="arrow-down"
+              {...headerIconProps}
+            />
+          }
           onClick={onNext}
           title={t("actions.next")}
         />
@@ -85,6 +97,7 @@ export const DetailHeaderClose: React.FC<DetailHeaderCloseProps> = ({
           icon={
             <HugeiconsIcon
               icon={RefreshCw}
+              data-icon="refresh-cw"
               {...headerIconProps}
               className={spinClass}
             />
@@ -96,14 +109,20 @@ export const DetailHeaderClose: React.FC<DetailHeaderCloseProps> = ({
       {onExpand && (
         <Button
           {...PANEL_HEADER_TOKENS.actionButton}
-          icon={<HugeiconsIcon icon={Maximize2} {...headerIconProps} />}
+          icon={
+            <HugeiconsIcon
+              icon={Maximize2}
+              data-icon="maximize-2"
+              {...headerIconProps}
+            />
+          }
           onClick={onExpand}
           title={t("actions.expand")}
         />
       )}
       <Button
         {...PANEL_HEADER_TOKENS.actionButton}
-        icon={<HugeiconsIcon icon={X} {...headerIconProps} />}
+        icon={<HugeiconsIcon icon={X} data-icon="x" {...headerIconProps} />}
         onClick={onClick}
         title={t("actions.close")}
       />

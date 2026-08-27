@@ -191,7 +191,13 @@ const AuthenticatedForm: React.FC<AuthenticatedFormProps> = ({
             loading={isLoading}
             onClick={onContinue}
             className={LOGIN_ACTION_BUTTON_CLASS}
-            icon={<HugeiconsIcon icon={LogIn} className="h-5 w-5" />}
+            icon={
+              <HugeiconsIcon
+                icon={LogIn}
+                data-icon="log-in"
+                className="h-5 w-5"
+              />
+            }
           >
             {t("common:actions.continue")}
           </Button>
@@ -201,7 +207,13 @@ const AuthenticatedForm: React.FC<AuthenticatedFormProps> = ({
             size="large"
             onClick={onSwitchAccount}
             className={LOGIN_ACTION_BUTTON_CLASS}
-            icon={<HugeiconsIcon icon={RefreshCw} className="h-5 w-5" />}
+            icon={
+              <HugeiconsIcon
+                icon={RefreshCw}
+                data-icon="refresh-cw"
+                className="h-5 w-5"
+              />
+            }
             loading={false}
             loadingSpinIcon
           >

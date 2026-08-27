@@ -210,6 +210,7 @@ const InputActions: React.FC<InputActionsProps> = memo(
           canStopAgent ? (
             <HugeiconsIcon
               icon={Square}
+              data-icon="square"
               size={10}
               fill="currentColor"
               strokeWidth={0}
@@ -220,6 +221,7 @@ const InputActions: React.FC<InputActionsProps> = memo(
         ) : showRetry ? (
           <HugeiconsIcon
             icon={RotateCcw}
+            data-icon="rotate-ccw"
             size={INPUT_AREA_BUTTONS.iconSize}
             strokeWidth={2}
             className="block text-[#fff]"
@@ -227,6 +229,7 @@ const InputActions: React.FC<InputActionsProps> = memo(
         ) : (
           <HugeiconsIcon
             icon={ArrowUp}
+            data-icon="arrow-up"
             size={INPUT_AREA_BUTTONS.iconSize}
             strokeWidth={2}
             className="block text-[#fff]"

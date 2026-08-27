@@ -293,7 +293,12 @@ const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
               disabled={disabled || isAtMin}
               tabIndex={-1}
             >
-              <HugeiconsIcon icon={Minus} size={14} strokeWidth={1.5} />
+              <HugeiconsIcon
+                icon={Minus}
+                data-icon="minus"
+                size={14}
+                strokeWidth={1.5}
+              />
             </button>
 
             <div className="number-input-value-group">
@@ -324,7 +329,12 @@ const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
               disabled={disabled || isAtMax}
               tabIndex={-1}
             >
-              <HugeiconsIcon icon={Plus} size={14} strokeWidth={1.5} />
+              <HugeiconsIcon
+                icon={Plus}
+                data-icon="plus"
+                size={14}
+                strokeWidth={1.5}
+              />
             </button>
           </div>
         </div>
@@ -360,7 +370,12 @@ const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
               disabled={disabled || isAtMax}
               tabIndex={-1}
             >
-              <HugeiconsIcon icon={ChevronUp} size={12} strokeWidth={2} />
+              <HugeiconsIcon
+                icon={ChevronUp}
+                data-icon="chevron-up"
+                size={12}
+                strokeWidth={2}
+              />
             </button>
             <button
               type="button"
@@ -369,7 +384,12 @@ const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
               disabled={disabled || isAtMin}
               tabIndex={-1}
             >
-              <HugeiconsIcon icon={ChevronDown} size={12} strokeWidth={2} />
+              <HugeiconsIcon
+                icon={ChevronDown}
+                data-icon="chevron-down"
+                size={12}
+                strokeWidth={2}
+              />
             </button>
           </div>
         </div>

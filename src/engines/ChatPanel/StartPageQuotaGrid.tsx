@@ -325,7 +325,12 @@ export function StartPageQuotaGrid({
             title={t("chat.startPage.quota.refresh")}
             onClick={handleRefreshClick}
             icon={
-              <HugeiconsIcon icon={RefreshCw} size={14} className={spinClass} />
+              <HugeiconsIcon
+                icon={RefreshCw}
+                data-icon="refresh-cw"
+                size={14}
+                className={spinClass}
+              />
             }
           >
             {t("chat.startPage.quota.refresh")}

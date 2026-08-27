@@ -40,6 +40,7 @@ export const TabBarBottomPanelToggle: React.FC = memo(() => {
     >
       <HugeiconsIcon
         icon={PanelBottom}
+        data-icon="panel-bottom"
         size={HEADER_ICON_SIZE.md}
         strokeWidth={1.75}
       />
@@ -64,6 +65,7 @@ export const TabBarDevToolsToggle: React.FC = memo(() => {
     >
       <HugeiconsIcon
         icon={PencilRuler}
+        data-icon="pencil-ruler"
         size={HEADER_ICON_SIZE.sm}
         strokeWidth={1.75}
       />

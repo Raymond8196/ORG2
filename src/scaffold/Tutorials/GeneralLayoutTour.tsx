@@ -360,7 +360,7 @@ const GeneralLayoutTour: React.FC<GeneralLayoutTourProps> = ({
               aria-label={t("tutorials.chrome.close")}
               onClick={onClose}
             >
-              <HugeiconsIcon icon={X} size={14} />
+              <HugeiconsIcon icon={X} data-icon="x" size={14} />
             </button>
           </div>
 
@@ -375,7 +375,12 @@ const GeneralLayoutTour: React.FC<GeneralLayoutTourProps> = ({
             <div className="mb-3 grid grid-cols-2 gap-2 rounded-lg border border-border-2 bg-fill-1 p-2">
               <div className="flex items-center gap-2 rounded-md bg-fill-2 px-2 py-2 text-[11px] text-text-1">
                 <span className="flex size-7 items-center justify-center rounded-md bg-primary-6 text-white">
-                  <HugeiconsIcon icon={Monitor} size={14} strokeWidth={1.8} />
+                  <HugeiconsIcon
+                    icon={Monitor}
+                    data-icon="monitor"
+                    size={14}
+                    strokeWidth={1.8}
+                  />
                 </span>
                 <span className="flex min-w-0 flex-col leading-tight">
                   <span className="font-semibold">
@@ -388,7 +393,12 @@ const GeneralLayoutTour: React.FC<GeneralLayoutTourProps> = ({
               </div>
               <div className="flex items-center gap-2 rounded-md bg-fill-2 px-2 py-2 text-[11px] text-text-1">
                 <span className="flex size-7 items-center justify-center rounded-md bg-fill-3 text-text-1">
-                  <HugeiconsIcon icon={Infinity} size={14} strokeWidth={1.8} />
+                  <HugeiconsIcon
+                    icon={Infinity}
+                    data-icon="infinity"
+                    size={14}
+                    strokeWidth={1.8}
+                  />
                 </span>
                 <span className="flex min-w-0 flex-col leading-tight">
                   <span className="font-semibold">
@@ -420,7 +430,13 @@ const GeneralLayoutTour: React.FC<GeneralLayoutTourProps> = ({
               appearance="ghost"
               shape="circle"
               iconOnly
-              icon={<HugeiconsIcon icon={ArrowLeft} size={13} />}
+              icon={
+                <HugeiconsIcon
+                  icon={ArrowLeft}
+                  data-icon="arrow-left"
+                  size={13}
+                />
+              }
               disabled={isFirstStep}
               aria-label={t("tutorials.chrome.previous")}
               title={t("tutorials.chrome.previous")}
@@ -436,9 +452,13 @@ const GeneralLayoutTour: React.FC<GeneralLayoutTourProps> = ({
               iconOnly
               icon={
                 isLastStep ? (
-                  <HugeiconsIcon icon={Check} size={13} />
+                  <HugeiconsIcon icon={Check} data-icon="check" size={13} />
                 ) : (
-                  <HugeiconsIcon icon={ArrowRight} size={13} />
+                  <HugeiconsIcon
+                    icon={ArrowRight}
+                    data-icon="arrow-right"
+                    size={13}
+                  />
                 )
               }
               aria-label={

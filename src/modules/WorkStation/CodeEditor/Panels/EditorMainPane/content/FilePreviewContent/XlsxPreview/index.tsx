@@ -513,7 +513,11 @@ export const XlsxPreview: React.FC<XlsxPreviewProps> = ({
 
       {loadingMoreRows && (
         <div className="pointer-events-none absolute bottom-12 right-4 text-text-3">
-          <HugeiconsIcon icon={Loader2} className="h-4 w-4 animate-spin" />
+          <HugeiconsIcon
+            icon={Loader2}
+            data-icon="loader-2"
+            className="h-4 w-4 animate-spin"
+          />
         </div>
       )}
     </div>

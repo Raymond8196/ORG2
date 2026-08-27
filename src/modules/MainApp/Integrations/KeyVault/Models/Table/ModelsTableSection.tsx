@@ -200,9 +200,13 @@ export default function ModelsTableSection({
           className="flex items-center gap-1.5 text-[13px] text-primary-6 hover:text-primary-5"
         >
           {hideOlder ? (
-            <HugeiconsIcon icon={ChevronDown} size={14} />
+            <HugeiconsIcon
+              icon={ChevronDown}
+              data-icon="chevron-down"
+              size={14}
+            />
           ) : (
-            <HugeiconsIcon icon={ChevronUp} size={14} />
+            <HugeiconsIcon icon={ChevronUp} data-icon="chevron-up" size={14} />
           )}
           {hideOlder
             ? t("modelsTable.showMoreOlder")
@@ -350,6 +354,7 @@ export default function ModelsTableSection({
       icon={
         <HugeiconsIcon
           icon={RefreshCw}
+          data-icon="refresh-cw"
           size={14}
           className={refreshSpinClass}
         />
@@ -367,7 +372,7 @@ export default function ModelsTableSection({
     <Button
       variant="secondary"
       size="default"
-      icon={<HugeiconsIcon icon={Plus} size={14} />}
+      icon={<HugeiconsIcon icon={Plus} data-icon="plus" size={14} />}
       iconOnly
       onClick={onAdd}
       aria-label={t("keyVault.addAccount")}

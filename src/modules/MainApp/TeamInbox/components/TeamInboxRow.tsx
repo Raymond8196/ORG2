@@ -138,13 +138,19 @@ const TeamInboxRow = forwardRef<HTMLButtonElement, TeamInboxRowProps>(
           isMention ? (
             <HugeiconsIcon
               icon={MessageSquareMore}
+              data-icon="message-square-more"
               size={14}
               strokeWidth={1.8}
             />
           ) : isGitHubIssue ? (
             <IntegrationIcon type="github" size={14} />
           ) : (
-            <HugeiconsIcon icon={ListChecks} size={14} strokeWidth={1.8} />
+            <HugeiconsIcon
+              icon={ListChecks}
+              data-icon="list-checks"
+              size={14}
+              strokeWidth={1.8}
+            />
           )
         }
         leadingClassName={

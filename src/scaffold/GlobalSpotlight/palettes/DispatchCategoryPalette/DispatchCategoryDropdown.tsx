@@ -65,6 +65,7 @@ const DropdownRow: React.FC<DropdownRowProps> = ({ item, keyboardProps }) => {
       return (
         <HugeiconsIcon
           icon={Check}
+          data-icon="check"
           size={DROPDOWN_ITEM.iconSize}
           strokeWidth={2.25}
           className="text-primary-6"
@@ -233,6 +234,7 @@ export const DispatchCategoryDropdown: React.FC<
       <div className={DROPDOWN_CLASSES.searchContainer}>
         <HugeiconsIcon
           icon={Search}
+          data-icon="search"
           size={DROPDOWN_ITEM.iconSize}
           className="shrink-0 text-text-3"
         />

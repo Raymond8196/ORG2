@@ -28,7 +28,12 @@ export const PriorityIndicator: React.FC<{
   const label = priority || "No priority";
   return (
     <div className="flex items-center gap-1">
-      <HugeiconsIcon icon={AlertCircle} size={14} style={{ color }} />
+      <HugeiconsIcon
+        icon={AlertCircle}
+        data-icon="alert-circle"
+        size={14}
+        style={{ color }}
+      />
       <span className="text-[11px] capitalize" style={{ color }}>
         {label}
       </span>

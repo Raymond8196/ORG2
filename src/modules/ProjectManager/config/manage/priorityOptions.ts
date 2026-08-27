@@ -65,13 +65,19 @@ export const WORK_ITEM_PRIORITY_OPTIONS: DropdownOption<WorkItemPriority>[] = [
   {
     value: "none",
     label: "No priority",
-    icon: React.createElement(Minus, { size: DROPDOWN_ITEM.iconSize }),
+    icon: React.createElement(HugeiconsIcon, {
+      icon: Minus,
+      size: DROPDOWN_ITEM.iconSize,
+    }),
     color: PRIORITY_COLORS.none,
   },
   {
     value: "urgent",
     label: "Urgent",
-    icon: React.createElement(AlertCircle, { size: DROPDOWN_ITEM.iconSize }),
+    icon: React.createElement(HugeiconsIcon, {
+      icon: AlertCircle,
+      size: DROPDOWN_ITEM.iconSize,
+    }),
     color: PRIORITY_COLORS.urgent,
   },
   {
@@ -118,7 +124,10 @@ export const STORY_PRIORITY_OPTIONS: ProjectPriorityOption[] = [
   {
     value: "urgent",
     label: "Urgent",
-    icon: React.createElement(AlertCircle, { size: DROPDOWN_ITEM.iconSize }),
+    icon: React.createElement(HugeiconsIcon, {
+      icon: AlertCircle,
+      size: DROPDOWN_ITEM.iconSize,
+    }),
     color: PRIORITY_COLORS.urgent,
   },
   {
@@ -151,7 +160,10 @@ export const STORY_PRIORITY_OPTIONS: ProjectPriorityOption[] = [
   {
     value: "none",
     label: "No priority",
-    icon: React.createElement(Minus, { size: DROPDOWN_ITEM.iconSize }),
+    icon: React.createElement(HugeiconsIcon, {
+      icon: Minus,
+      size: DROPDOWN_ITEM.iconSize,
+    }),
     color: PRIORITY_COLORS.none,
   },
 ];

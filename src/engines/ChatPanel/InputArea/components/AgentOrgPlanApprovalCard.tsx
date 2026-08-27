@@ -101,6 +101,7 @@ const AgentOrgPlanApprovalCard: React.FC<AgentOrgPlanApprovalCardProps> = memo(
         <div className="mb-2 flex items-start gap-2">
           <HugeiconsIcon
             icon={FilePenLine}
+            data-icon="file-pen-line"
             className="mt-0.5 shrink-0 text-text-3"
             size={14}
           />

@@ -91,6 +91,7 @@ export const DbClientIcon: React.FC<{
     return (
       <HugeiconsIcon
         icon={Database}
+        data-icon="database"
         size={size}
         className={`shrink-0 text-text-2 ${className}`.trim()}
       />

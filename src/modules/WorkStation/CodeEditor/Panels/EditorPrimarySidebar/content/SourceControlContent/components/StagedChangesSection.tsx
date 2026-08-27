@@ -70,14 +70,24 @@ export const StagedChangesSection: React.FC<StagedChangesSectionProps> = memo(
                 onClick={onUnstageAll}
                 title={`Unstage All Changes\n\nShortcut: ${SHORTCUTS.unstageAll}`}
               >
-                <HugeiconsIcon icon={Minus} size={14} strokeWidth={1.75} />
+                <HugeiconsIcon
+                  icon={Minus}
+                  data-icon="minus"
+                  size={14}
+                  strokeWidth={1.75}
+                />
               </button>
               <button
                 className={`${HEADER_BUTTON.actionTreeRow} opacity-0 group-hover/header:opacity-100`}
                 onClick={onOpenStagedChanges}
                 title={GIT_LABELS.openStagedChanges}
               >
-                <HugeiconsIcon icon={FileDiff} size={14} strokeWidth={1.75} />
+                <HugeiconsIcon
+                  icon={FileDiff}
+                  data-icon="file-diff"
+                  size={14}
+                  strokeWidth={1.75}
+                />
               </button>
             </>
           }

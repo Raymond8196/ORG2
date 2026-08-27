@@ -114,7 +114,12 @@ const DiffLeft: React.FC<DiffModeProps> = ({ oldImage, newImage, status }) => {
       ) : (
         <span>{isAdded ? "New file" : "—"}</span>
       )}
-      <HugeiconsIcon icon={ArrowRight} size={12} className="text-text-3" />
+      <HugeiconsIcon
+        icon={ArrowRight}
+        data-icon="arrow-right"
+        size={12}
+        className="text-text-3"
+      />
       {newImage ? (
         <span className="text-success-6">
           {newImage.width} × {newImage.height} · {formatFileSize(newImage.size)}
@@ -161,6 +166,7 @@ const ZoomControls: React.FC<ZoomProps> = ({
       >
         <HugeiconsIcon
           icon={Maximize}
+          data-icon="maximize"
           size={HEADER_ICON_SIZE.md}
           strokeWidth={1.75}
         />
@@ -181,6 +187,7 @@ const ZoomControls: React.FC<ZoomProps> = ({
       >
         <HugeiconsIcon
           icon={ZoomOut}
+          data-icon="zoom-out"
           size={HEADER_ICON_SIZE.md}
           strokeWidth={1.75}
         />
@@ -195,6 +202,7 @@ const ZoomControls: React.FC<ZoomProps> = ({
       >
         <HugeiconsIcon
           icon={ZoomIn}
+          data-icon="zoom-in"
           size={HEADER_ICON_SIZE.md}
           strokeWidth={1.75}
         />

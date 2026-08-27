@@ -231,7 +231,12 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
         value: "status",
         label: (
           <span className="flex items-center gap-2 whitespace-nowrap">
-            <HugeiconsIcon icon={Circle} size={13} strokeWidth={1.75} />
+            <HugeiconsIcon
+              icon={Circle}
+              data-icon="circle"
+              size={13}
+              strokeWidth={1.75}
+            />
             <span>{t("projects.groupBy.status")}</span>
           </span>
         ),
@@ -241,7 +246,12 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
         value: "priority",
         label: (
           <span className="flex items-center gap-2 whitespace-nowrap">
-            <HugeiconsIcon icon={Flag} size={13} strokeWidth={1.75} />
+            <HugeiconsIcon
+              icon={Flag}
+              data-icon="flag"
+              size={13}
+              strokeWidth={1.75}
+            />
             <span>{t("projects.groupBy.priority")}</span>
           </span>
         ),
@@ -251,7 +261,12 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
         value: "targetDate",
         label: (
           <span className="flex items-center gap-2 whitespace-nowrap">
-            <HugeiconsIcon icon={CalendarClock} size={13} strokeWidth={1.75} />
+            <HugeiconsIcon
+              icon={CalendarClock}
+              data-icon="calendar-clock"
+              size={13}
+              strokeWidth={1.75}
+            />
             <span>{t("projects.groupBy.targetDate")}</span>
           </span>
         ),

@@ -407,52 +407,100 @@ const MarkdownTextareaEditor = forwardRef<
     {
       format: "heading",
       label: t("creator.toolbar.heading2"),
-      icon: <HugeiconsIcon icon={Heading2} size={TOOLBAR_ICON_SIZE} />,
+      icon: (
+        <HugeiconsIcon
+          icon={Heading2}
+          data-icon="heading-2"
+          size={TOOLBAR_ICON_SIZE}
+        />
+      ),
     },
     {
       format: "bold",
       label: t("creator.toolbar.bold"),
-      icon: <HugeiconsIcon icon={Bold} size={TOOLBAR_ICON_SIZE} />,
+      icon: (
+        <HugeiconsIcon icon={Bold} data-icon="bold" size={TOOLBAR_ICON_SIZE} />
+      ),
     },
     {
       format: "italic",
       label: t("creator.toolbar.italic"),
-      icon: <HugeiconsIcon icon={Italic} size={TOOLBAR_ICON_SIZE} />,
+      icon: (
+        <HugeiconsIcon
+          icon={Italic}
+          data-icon="italic"
+          size={TOOLBAR_ICON_SIZE}
+        />
+      ),
     },
     {
       format: "strikethrough",
       label: t("creator.toolbar.strikethrough"),
-      icon: <HugeiconsIcon icon={Strikethrough} size={TOOLBAR_ICON_SIZE} />,
+      icon: (
+        <HugeiconsIcon
+          icon={Strikethrough}
+          data-icon="strikethrough"
+          size={TOOLBAR_ICON_SIZE}
+        />
+      ),
     },
     {
       format: "inlineCode",
       label: t("creator.toolbar.inlineCode"),
-      icon: <HugeiconsIcon icon={Code} size={TOOLBAR_ICON_SIZE} />,
+      icon: (
+        <HugeiconsIcon icon={Code} data-icon="code" size={TOOLBAR_ICON_SIZE} />
+      ),
     },
     {
       format: "link",
       label: t("creator.toolbar.link"),
-      icon: <HugeiconsIcon icon={LinkIcon} size={TOOLBAR_ICON_SIZE} />,
+      icon: (
+        <HugeiconsIcon
+          icon={LinkIcon}
+          data-icon="link-icon"
+          size={TOOLBAR_ICON_SIZE}
+        />
+      ),
     },
     {
       format: "quote",
       label: t("creator.toolbar.quote"),
-      icon: <HugeiconsIcon icon={Quote} size={TOOLBAR_ICON_SIZE} />,
+      icon: (
+        <HugeiconsIcon
+          icon={Quote}
+          data-icon="quote"
+          size={TOOLBAR_ICON_SIZE}
+        />
+      ),
     },
     {
       format: "bulletList",
       label: t("creator.toolbar.bulletList"),
-      icon: <HugeiconsIcon icon={List} size={TOOLBAR_ICON_SIZE} />,
+      icon: (
+        <HugeiconsIcon icon={List} data-icon="list" size={TOOLBAR_ICON_SIZE} />
+      ),
     },
     {
       format: "numberedList",
       label: t("creator.toolbar.numberedList"),
-      icon: <HugeiconsIcon icon={ListOrdered} size={TOOLBAR_ICON_SIZE} />,
+      icon: (
+        <HugeiconsIcon
+          icon={ListOrdered}
+          data-icon="list-ordered"
+          size={TOOLBAR_ICON_SIZE}
+        />
+      ),
     },
     {
       format: "taskList",
       label: t("creator.toolbar.taskList"),
-      icon: <HugeiconsIcon icon={ListChecks} size={TOOLBAR_ICON_SIZE} />,
+      icon: (
+        <HugeiconsIcon
+          icon={ListChecks}
+          data-icon="list-checks"
+          size={TOOLBAR_ICON_SIZE}
+        />
+      ),
     },
   ];
 

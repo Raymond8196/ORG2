@@ -9,6 +9,7 @@
  *
  * Callers are responsible for positioning and portal-rendering this panel.
  */
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -130,7 +131,8 @@ const LocationOption: React.FC<LocationOptionProps> = ({
       } w-full justify-between`}
     >
       <div className="flex items-center gap-2">
-        <Icon
+        <HugeiconsIcon
+          icon={Icon}
           size={DROPDOWN_ITEM.iconSize}
           strokeWidth={1.75}
           className={entry.iconClassName}

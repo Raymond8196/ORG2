@@ -191,7 +191,13 @@ export function useLearningsTableConfig({
                   size="small"
                   disabled={busy}
                   onClick={() => handleDelete(row)}
-                  icon={<HugeiconsIcon icon={Trash2} size={14} />}
+                  icon={
+                    <HugeiconsIcon
+                      icon={Trash2}
+                      data-icon="trash-2"
+                      size={14}
+                    />
+                  }
                   iconOnly
                   title={t("learningsBrowser.actions.delete")}
                 />

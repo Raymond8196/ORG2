@@ -198,7 +198,14 @@ export function GroupChatPausedBanner({
               data-testid={resumeButtonTestId}
               disabled={disabled}
               onClick={onResume}
-              icon={<HugeiconsIcon icon={Play} size={12} strokeWidth={2} />}
+              icon={
+                <HugeiconsIcon
+                  icon={Play}
+                  data-icon="play"
+                  size={12}
+                  strokeWidth={2}
+                />
+              }
             >
               {t("groupChat.pausedBanner.resume", {
                 defaultValue: "Resume",

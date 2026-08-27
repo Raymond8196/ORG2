@@ -98,6 +98,7 @@ export const SpotlightSearchBar: React.FC<SpotlightSearchBarProps> = ({
   const renderBackChevron = () => (
     <HugeiconsIcon
       icon={ChevronLeft}
+      data-icon="chevron-left"
       size={13}
       strokeWidth={2.5}
       className="shrink-0"
@@ -144,6 +145,7 @@ export const SpotlightSearchBar: React.FC<SpotlightSearchBarProps> = ({
             ) : (
               <HugeiconsIcon
                 icon={Search}
+                data-icon="search"
                 className="text-text-2"
                 size={SPOTLIGHT_TOKENS.iconSize}
               />

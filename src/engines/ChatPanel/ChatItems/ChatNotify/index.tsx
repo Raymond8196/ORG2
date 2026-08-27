@@ -93,6 +93,7 @@ const ChatNotify: React.FC<ChatNotifyProps> = ({
           expandIcon={
             <HugeiconsIcon
               icon={ChevronRight}
+              data-icon="chevron-right"
               size={14}
               className="text-text-4"
               strokeWidth={1.75}
@@ -150,6 +151,7 @@ const ChatNotify: React.FC<ChatNotifyProps> = ({
                       >
                         <HugeiconsIcon
                           icon={Eye}
+                          data-icon="eye"
                           size={12}
                           strokeWidth={1.75}
                         />
@@ -158,7 +160,11 @@ const ChatNotify: React.FC<ChatNotifyProps> = ({
                         className="flex cursor-pointer items-center justify-center border-none bg-transparent p-0 text-text-2 hover:text-text-1"
                         onClick={handleItemRedirect}
                       >
-                        <HugeiconsIcon icon={SquareArrowOutUpRight} size={12} />
+                        <HugeiconsIcon
+                          icon={SquareArrowOutUpRight}
+                          data-icon="square-arrow-out-up-right"
+                          size={12}
+                        />
                       </button>
                     </div>
                   </div>

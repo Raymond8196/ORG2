@@ -75,6 +75,7 @@ const ApiSetupFooter: React.FC<ApiSetupFooterProps> = ({
               <div className="flex items-center gap-1.5">
                 <HugeiconsIcon
                   icon={Check}
+                  data-icon="check"
                   size={14}
                   className="text-success-6"
                 />

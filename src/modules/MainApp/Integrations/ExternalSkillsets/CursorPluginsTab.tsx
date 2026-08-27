@@ -58,7 +58,12 @@ const PluginLogoCell: React.FC<{
   }
   return (
     <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-fill-3">
-      <HugeiconsIcon icon={Puzzle} size={13} className="text-text-3" />
+      <HugeiconsIcon
+        icon={Puzzle}
+        data-icon="puzzle"
+        size={13}
+        className="text-text-3"
+      />
     </div>
   );
 };
@@ -96,9 +101,9 @@ const CopyAllButton: React.FC<{ plugins: CursorPluginInfo[] }> = ({
         className="inline-flex items-center gap-1.5 rounded px-2 py-1.5 text-[12px] text-text-3 transition-colors hover:bg-fill-2 hover:text-text-1"
       >
         {copied ? (
-          <HugeiconsIcon icon={Check} size={12} />
+          <HugeiconsIcon icon={Check} data-icon="check" size={12} />
         ) : (
-          <HugeiconsIcon icon={Clipboard} size={12} />
+          <HugeiconsIcon icon={Clipboard} data-icon="clipboard" size={12} />
         )}
         {copied ? t("common:status.copied") : t("cursorPlugins.copyAllMcp")}
       </button>
@@ -191,6 +196,7 @@ const CursorPluginsTab: React.FC = () => {
           plugin.mcpConfig ? (
             <HugeiconsIcon
               icon={Server}
+              data-icon="server"
               size={13}
               className="mx-auto text-text-3"
             />
@@ -205,7 +211,7 @@ const CursorPluginsTab: React.FC = () => {
         renderCell: (plugin) =>
           plugin.skills.length > 0 ? (
             <span className="inline-flex items-center justify-center gap-1 whitespace-nowrap text-[12px] text-text-3">
-              <HugeiconsIcon icon={Zap} size={11} />
+              <HugeiconsIcon icon={Zap} data-icon="zap" size={11} />
               {plugin.skills.length}
             </span>
           ) : null,
@@ -219,6 +225,7 @@ const CursorPluginsTab: React.FC = () => {
           plugin.hooks.length > 0 ? (
             <HugeiconsIcon
               icon={Puzzle}
+              data-icon="puzzle"
               size={13}
               className="mx-auto text-text-3"
             />

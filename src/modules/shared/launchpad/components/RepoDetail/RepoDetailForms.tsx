@@ -68,7 +68,7 @@ export const AddEnvVarRow: React.FC<{
           <Button
             variant="primary"
             size="mini"
-            icon={<HugeiconsIcon icon={Plus} size={12} />}
+            icon={<HugeiconsIcon icon={Plus} data-icon="plus" size={12} />}
             loading={saving}
             disabled={!key.trim()}
             onClick={handleAdd}
@@ -141,7 +141,7 @@ export const AddScriptRow: React.FC<{
           <Button
             variant="primary"
             size="mini"
-            icon={<HugeiconsIcon icon={Plus} size={12} />}
+            icon={<HugeiconsIcon icon={Plus} data-icon="plus" size={12} />}
             loading={saving}
             disabled={!name.trim() || !command.trim()}
             onClick={handleAdd}

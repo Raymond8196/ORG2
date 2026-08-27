@@ -27,7 +27,14 @@ export const SectionFilterInput: React.FC<SectionFilterInputProps> = ({
   return (
     <div className="flex-shrink-0 px-3 pb-2 pt-1">
       <Input
-        prefix={<HugeiconsIcon icon={Funnel} size={14} strokeWidth={1.75} />}
+        prefix={
+          <HugeiconsIcon
+            icon={Funnel}
+            data-icon="funnel"
+            size={14}
+            strokeWidth={1.75}
+          />
+        }
         placeholder={placeholder ?? t("actions.filter", "Filter")}
         value={query}
         onChange={(value) => onChange(value)}
@@ -68,6 +75,7 @@ export function makeSectionFilterAction({
     icon: (
       <HugeiconsIcon
         icon={Funnel}
+        data-icon="funnel"
         size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
         strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
         className={isOpen ? "text-primary-6" : ""}

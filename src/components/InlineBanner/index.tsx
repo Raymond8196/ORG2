@@ -62,7 +62,13 @@ export const InlineBanner: React.FC<InlineBannerProps> = ({
           data-testid={dataTestId ? `${dataTestId}-dismiss` : undefined}
           className="-mr-1 mt-px flex h-4 w-4 shrink-0 items-center justify-center rounded transition-colors hover:bg-fill-2"
         >
-          <HugeiconsIcon icon={X} size={12} strokeWidth={2} aria-hidden />
+          <HugeiconsIcon
+            icon={X}
+            data-icon="x"
+            size={12}
+            strokeWidth={2}
+            aria-hidden
+          />
         </button>
       ) : null}
     </div>

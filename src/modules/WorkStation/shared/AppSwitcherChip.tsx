@@ -106,6 +106,7 @@ const AppSwitcherChipComponent: React.FC<AppSwitcherChipProps> = ({
       {hasDropdown ? (
         <HugeiconsIcon
           icon={ChevronDown}
+          data-icon="chevron-down"
           size={12}
           className={`shrink-0 text-text-3 transition-transform ${isOpen ? "rotate-180" : ""}`}
         />

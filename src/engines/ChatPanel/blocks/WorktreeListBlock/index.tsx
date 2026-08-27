@@ -132,6 +132,7 @@ const renderWorktreeRow = (entry: WorktreeEntryItem) => (
     leading={
       <HugeiconsIcon
         icon={GitBranch}
+        data-icon="git-branch"
         size={14}
         className="shrink-0 text-primary-6"
       />

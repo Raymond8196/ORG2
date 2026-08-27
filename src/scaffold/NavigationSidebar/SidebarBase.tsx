@@ -379,6 +379,7 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
                     >
                       <HugeiconsIcon
                         icon={PanelLeft}
+                        data-icon="panel-left"
                         size={16}
                         strokeWidth={2}
                         className="text-text-2"
@@ -393,6 +394,7 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
                     >
                       <HugeiconsIcon
                         icon={X}
+                        data-icon="x"
                         size={16}
                         strokeWidth={2}
                         className="text-text-2"
@@ -420,6 +422,7 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
                       >
                         <HugeiconsIcon
                           icon={PanelLeft}
+                          data-icon="panel-left"
                           size={16}
                           strokeWidth={2}
                           className="text-text-2"

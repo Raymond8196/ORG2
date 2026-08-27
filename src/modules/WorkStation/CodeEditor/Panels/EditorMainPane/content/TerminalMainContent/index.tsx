@@ -154,7 +154,7 @@ const TerminalMainContent: React.FC<TerminalMainContentProps> = ({
             iconOnly
             title={t("tooltips.killTerminal")}
             onClick={handleKillTerminal}
-            icon={<HugeiconsIcon icon={Trash2} size={14} />}
+            icon={<HugeiconsIcon icon={Trash2} data-icon="trash-2" size={14} />}
           />
           {!isAgentTerminal && (
             <TerminalInfoButton

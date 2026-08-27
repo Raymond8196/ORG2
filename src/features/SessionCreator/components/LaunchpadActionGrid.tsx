@@ -104,6 +104,7 @@ export const LaunchpadActionCard = forwardRef<
       </span>
       <HugeiconsIcon
         icon={ChevronRight}
+        data-icon="chevron-right"
         size={14}
         strokeWidth={1.8}
         className="shrink-0 text-text-3 opacity-0 transition-opacity group-hover:opacity-100"
@@ -191,7 +192,12 @@ export function LaunchpadActionGrid({
               size="mini"
               shape="circle"
               icon={
-                <HugeiconsIcon icon={Ellipsis} size={14} strokeWidth={1.8} />
+                <HugeiconsIcon
+                  icon={Ellipsis}
+                  data-icon="ellipsis"
+                  size={14}
+                  strokeWidth={1.8}
+                />
               }
               iconOnly
               aria-label={expandLabel}
@@ -211,7 +217,12 @@ export function LaunchpadActionGrid({
               size="mini"
               shape="circle"
               icon={
-                <HugeiconsIcon icon={ChevronUp} size={14} strokeWidth={1.8} />
+                <HugeiconsIcon
+                  icon={ChevronUp}
+                  data-icon="chevron-up"
+                  size={14}
+                  strokeWidth={1.8}
+                />
               }
               iconOnly
               aria-label={collapseLabel}

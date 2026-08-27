@@ -129,7 +129,14 @@ export const CloudSessionHoverCardContent: React.FC<CloudSessionHoverCardContent
       // glyph(s) baked into pushed titles rather than doubling them here.
       <HoverCardPanel title={row.title.replace(/^(?:⑂\s*)+/u, "")}>
         <HoverCardRow
-          icon={<HugeiconsIcon icon={Users} size={13} strokeWidth={1.75} />}
+          icon={
+            <HugeiconsIcon
+              icon={Users}
+              data-icon="users"
+              size={13}
+              strokeWidth={1.75}
+            />
+          }
         >
           <div
             className="truncate text-text-2"
@@ -143,7 +150,14 @@ export const CloudSessionHoverCardContent: React.FC<CloudSessionHoverCardContent
           </div>
         </HoverCardRow>
         <HoverCardRow
-          icon={<HugeiconsIcon icon={Pin} size={13} strokeWidth={1.75} />}
+          icon={
+            <HugeiconsIcon
+              icon={Pin}
+              data-icon="pin"
+              size={13}
+              strokeWidth={1.75}
+            />
+          }
         >
           <div className="truncate text-text-2">
             <span className="text-text-3">
@@ -183,7 +197,14 @@ export const CloudSessionHoverCardContent: React.FC<CloudSessionHoverCardContent
         )}
         {row.forkedFrom?.ownerDisplayName && (
           <HoverCardRow
-            icon={<HugeiconsIcon icon={GitFork} size={13} strokeWidth={1.75} />}
+            icon={
+              <HugeiconsIcon
+                icon={GitFork}
+                data-icon="git-fork"
+                size={13}
+                strokeWidth={1.75}
+              />
+            }
           >
             <div className="truncate text-text-2">
               {t("navigation:cloud.sidebar.forkedFrom", {
@@ -195,7 +216,14 @@ export const CloudSessionHoverCardContent: React.FC<CloudSessionHoverCardContent
         )}
         {viewerNames && (
           <HoverCardRow
-            icon={<HugeiconsIcon icon={Eye} size={13} strokeWidth={1.75} />}
+            icon={
+              <HugeiconsIcon
+                icon={Eye}
+                data-icon="eye"
+                size={13}
+                strokeWidth={1.75}
+              />
+            }
           >
             <div
               data-testid="cloud-session-watchers"
@@ -209,7 +237,12 @@ export const CloudSessionHoverCardContent: React.FC<CloudSessionHoverCardContent
         {(repoName || branchLabel) && (
           <HoverCardRow
             icon={
-              <HugeiconsIcon icon={GitBranch} size={13} strokeWidth={1.75} />
+              <HugeiconsIcon
+                icon={GitBranch}
+                data-icon="git-branch"
+                size={13}
+                strokeWidth={1.75}
+              />
             }
           >
             <div
@@ -251,7 +284,14 @@ export const CloudSessionHoverCardContent: React.FC<CloudSessionHoverCardContent
         )}
         {worktreeBranchLabel && worktreeBranchLabel !== branchLabel && (
           <HoverCardRow
-            icon={<HugeiconsIcon icon={GitFork} size={13} strokeWidth={1.75} />}
+            icon={
+              <HugeiconsIcon
+                icon={GitFork}
+                data-icon="git-fork"
+                size={13}
+                strokeWidth={1.75}
+              />
+            }
           >
             <div
               className="truncate text-text-2"
@@ -264,7 +304,12 @@ export const CloudSessionHoverCardContent: React.FC<CloudSessionHoverCardContent
         )}
         <HoverCardRow
           icon={
-            <HugeiconsIcon icon={Fingerprint} size={13} strokeWidth={1.75} />
+            <HugeiconsIcon
+              icon={Fingerprint}
+              data-icon="fingerprint"
+              size={13}
+              strokeWidth={1.75}
+            />
           }
         >
           <button
@@ -284,6 +329,7 @@ export const CloudSessionHoverCardContent: React.FC<CloudSessionHoverCardContent
             {copiedSessionId === row.sourceSessionId && (
               <HugeiconsIcon
                 icon={Check}
+                data-icon="check"
                 size={12}
                 strokeWidth={2}
                 className="ml-1 inline-block align-[-1px] text-success-6"
@@ -297,6 +343,7 @@ export const CloudSessionHoverCardContent: React.FC<CloudSessionHoverCardContent
             icon={
               <HugeiconsIcon
                 icon={MessageSquare}
+                data-icon="message-square"
                 size={13}
                 strokeWidth={1.75}
               />
@@ -311,7 +358,14 @@ export const CloudSessionHoverCardContent: React.FC<CloudSessionHoverCardContent
         )}
         {lastActivityLabel && (
           <HoverCardRow
-            icon={<HugeiconsIcon icon={Clock} size={13} strokeWidth={1.75} />}
+            icon={
+              <HugeiconsIcon
+                icon={Clock}
+                data-icon="clock"
+                size={13}
+                strokeWidth={1.75}
+              />
+            }
           >
             <div className="truncate text-text-2" title={lastActivityLabel}>
               <span className="text-text-3">

@@ -88,6 +88,7 @@ const DropdownRow: React.FC<DropdownRowProps> = ({
       return (
         <HugeiconsIcon
           icon={Check}
+          data-icon="check"
           size={DROPDOWN_ITEM.iconSize}
           strokeWidth={2.25}
           className="text-primary-6"
@@ -149,6 +150,7 @@ const DropdownRow: React.FC<DropdownRowProps> = ({
       {submenuSide && (
         <HugeiconsIcon
           icon={ChevronRight}
+          data-icon="chevron-right"
           size={DROPDOWN_ITEM.iconSize}
           className="shrink-0 text-text-3"
         />
@@ -478,6 +480,7 @@ export const UnifiedModelDropdown: React.FC<UnifiedModelDropdownProps> = ({
         <div className={DROPDOWN_CLASSES.searchContainer}>
           <HugeiconsIcon
             icon={Search}
+            data-icon="search"
             size={DROPDOWN_ITEM.iconSize}
             className="shrink-0 text-text-3"
           />

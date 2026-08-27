@@ -54,6 +54,7 @@ const PromptPolishButton: React.FC<PromptPolishButtonProps> = memo(
         {control.isPolishing ? (
           <HugeiconsIcon
             icon={Loader2}
+            data-icon="loader-2"
             size={INPUT_AREA_BUTTONS.iconSize}
             strokeWidth={2}
             className="block animate-spin"
@@ -61,6 +62,7 @@ const PromptPolishButton: React.FC<PromptPolishButtonProps> = memo(
         ) : (
           <HugeiconsIcon
             icon={Sparkles}
+            data-icon="sparkles"
             size={INPUT_AREA_BUTTONS.iconSize}
             strokeWidth={2}
             className="block"

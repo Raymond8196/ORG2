@@ -75,6 +75,7 @@ const QuickActionPill: React.FC<QuickActionPillProps> = ({
       {/* Reserves space always; fades in on hover */}
       <HugeiconsIcon
         icon={ArrowRight}
+        data-icon="arrow-right"
         size={14}
         strokeWidth={1.75}
         className={`shrink-0 transition-opacity duration-150 ${

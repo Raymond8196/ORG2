@@ -71,6 +71,7 @@ export const ContextCompactedEvent: React.FC<ContextCompactedEventProps> = (
   const icon = (
     <HugeiconsIcon
       icon={Archive}
+      data-icon="archive"
       size={SESSION_UI_TOKENS.ICON.SIZE_SM}
       className="text-text-3"
     />

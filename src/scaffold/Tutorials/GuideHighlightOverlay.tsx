@@ -255,7 +255,7 @@ const GuideHighlightOverlay: React.FC = () => {
                 size="mini"
                 variant="tertiary"
                 appearance="ghost"
-                icon={<HugeiconsIcon icon={X} size={14} />}
+                icon={<HugeiconsIcon icon={X} data-icon="x" size={14} />}
                 aria-label="Dismiss guide highlight"
                 onClick={clearHighlight}
               />

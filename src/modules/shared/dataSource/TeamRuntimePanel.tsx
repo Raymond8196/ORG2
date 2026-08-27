@@ -98,7 +98,14 @@ function RuntimeRefreshButton({
       aria-label={t("refresh")}
       title={t("refresh")}
       onClick={handleClick}
-      icon={<HugeiconsIcon icon={RefreshCw} size={14} className={spinClass} />}
+      icon={
+        <HugeiconsIcon
+          icon={RefreshCw}
+          data-icon="refresh-cw"
+          size={14}
+          className={spinClass}
+        />
+      }
       data-testid="team-runtime-refresh"
     >
       {t("refresh")}

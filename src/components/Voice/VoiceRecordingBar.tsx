@@ -97,6 +97,7 @@ const VoiceRecordingBar: React.FC<VoiceRecordingBarProps> = memo(
         >
           <HugeiconsIcon
             icon={Plus}
+            data-icon="plus"
             size={INPUT_AREA_BUTTONS.iconSize}
             strokeWidth={1.75}
           />
@@ -126,6 +127,7 @@ const VoiceRecordingBar: React.FC<VoiceRecordingBarProps> = memo(
         >
           <HugeiconsIcon
             icon={X}
+            data-icon="x"
             size={INPUT_AREA_BUTTONS.iconSize}
             strokeWidth={1.75}
           />
@@ -141,6 +143,7 @@ const VoiceRecordingBar: React.FC<VoiceRecordingBarProps> = memo(
         >
           <HugeiconsIcon
             icon={Check}
+            data-icon="check"
             size={INPUT_AREA_BUTTONS.iconSize}
             strokeWidth={1.75}
           />

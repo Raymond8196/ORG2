@@ -85,6 +85,7 @@ const SessionCreatorInstall: React.FC<SessionCreatorInstallProps> = memo(
             ) : (
               <HugeiconsIcon
                 icon={Grip}
+                data-icon="grip"
                 size={iconSize}
                 strokeWidth={1.75}
                 className="text-primary-6"

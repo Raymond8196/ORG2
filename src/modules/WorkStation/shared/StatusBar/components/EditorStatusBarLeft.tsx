@@ -122,12 +122,14 @@ export const EditorStatusBarLeft: React.FC<EditorStatusBarLeftProps> = ({
           {isMultiRoot ? (
             <HugeiconsIcon
               icon={FolderTree}
+              data-icon="folder-tree"
               size={13}
               className="shrink-0 text-text-1"
             />
           ) : (
             <HugeiconsIcon
               icon={Code}
+              data-icon="code"
               size={13}
               className="shrink-0 text-text-1"
             />
@@ -143,7 +145,12 @@ export const EditorStatusBarLeft: React.FC<EditorStatusBarLeftProps> = ({
         title={t("actions.openWorkspace")}
         dataTestId="status-bar-no-repo"
       >
-        <HugeiconsIcon icon={Code} size={13} className="text-primary-6" />
+        <HugeiconsIcon
+          icon={Code}
+          data-icon="code"
+          size={13}
+          className="text-primary-6"
+        />
         <StatusBarLabel emphasis className="text-primary-6">
           {t("actions.addWorkspace")}
         </StatusBarLabel>
@@ -155,7 +162,12 @@ export const EditorStatusBarLeft: React.FC<EditorStatusBarLeftProps> = ({
         className="text-text-2"
         title={t("workstation.notGitInitializedTooltip")}
       >
-        <HugeiconsIcon icon={GitBranch} size={13} className="text-text-2" />
+        <HugeiconsIcon
+          icon={GitBranch}
+          data-icon="git-branch"
+          size={13}
+          className="text-text-2"
+        />
         <StatusBarLabel emphasis className="text-text-2">
           {t("workstation.notGitInitialized")}
         </StatusBarLabel>
@@ -174,6 +186,7 @@ export const EditorStatusBarLeft: React.FC<EditorStatusBarLeftProps> = ({
         >
           <HugeiconsIcon
             icon={Folder}
+            data-icon="folder"
             size={13}
             className="shrink-0 text-text-1"
           />
@@ -213,12 +226,14 @@ export const EditorStatusBarLeft: React.FC<EditorStatusBarLeftProps> = ({
           {checkoutLoading ? (
             <HugeiconsIcon
               icon={Loader2}
+              data-icon="loader-2"
               size={SPINNER_TOKENS.small}
               className="shrink-0 animate-spin text-text-1"
             />
           ) : (
             <HugeiconsIcon
               icon={GitBranch}
+              data-icon="git-branch"
               size={13}
               className="shrink-0 text-text-1"
             />
@@ -275,7 +290,11 @@ export const EditorStatusBarLeft: React.FC<EditorStatusBarLeftProps> = ({
         className="pl-2 text-primary-6"
         dataTestId="status-bar-switch-to-session-repo"
       >
-        <HugeiconsIcon icon={ArrowRightLeft} size={13} />
+        <HugeiconsIcon
+          icon={ArrowRightLeft}
+          data-icon="arrow-right-left"
+          size={13}
+        />
         <StatusBarLabel emphasis>
           {t("workstation.switchToSessionRepo", {
             name:
@@ -320,6 +339,7 @@ export const EditorStatusBarLeft: React.FC<EditorStatusBarLeftProps> = ({
       >
         <HugeiconsIcon
           icon={FolderTree}
+          data-icon="folder-tree"
           size={13}
           className={isIndexingActive ? "animate-pulse" : ""}
         />

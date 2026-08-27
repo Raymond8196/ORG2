@@ -124,11 +124,21 @@ const SearchRepoCard: React.FC<SearchRepoCardProps> = ({
           <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-text-3">
             {repo.language ? <span>{repo.language}</span> : null}
             <span className="inline-flex items-center gap-1">
-              <HugeiconsIcon icon={Star} size={11} strokeWidth={1.75} />
+              <HugeiconsIcon
+                icon={Star}
+                data-icon="star"
+                size={11}
+                strokeWidth={1.75}
+              />
               {formatStarCount(repo.stargazers_count)}
             </span>
             <span className="inline-flex items-center gap-1">
-              <HugeiconsIcon icon={GitFork} size={11} strokeWidth={1.75} />
+              <HugeiconsIcon
+                icon={GitFork}
+                data-icon="git-fork"
+                size={11}
+                strokeWidth={1.75}
+              />
               {formatStarCount(repo.forks_count)}
             </span>
             {repo.license ? <span>{repo.license}</span> : null}
@@ -155,7 +165,13 @@ const SearchRepoCard: React.FC<SearchRepoCardProps> = ({
             size="small"
             shape="circle"
             iconOnly
-            icon={<HugeiconsIcon icon={SquareArrowOutUpRight} size={13} />}
+            icon={
+              <HugeiconsIcon
+                icon={SquareArrowOutUpRight}
+                data-icon="square-arrow-out-up-right"
+                size={13}
+              />
+            }
             onClick={() => onOpen(repo)}
             aria-label={t("explore.openOnGithub", { defaultValue: "GitHub" })}
           />
@@ -164,7 +180,9 @@ const SearchRepoCard: React.FC<SearchRepoCardProps> = ({
             size="small"
             shape="circle"
             iconOnly
-            icon={<HugeiconsIcon icon={Download} size={13} />}
+            icon={
+              <HugeiconsIcon icon={Download} data-icon="download" size={13} />
+            }
             onClick={() => onClone(repo)}
             disabled={cloning}
             aria-label={
@@ -326,6 +344,7 @@ const WorkspaceExplorePanelView: React.FC = () => {
     >
       <HugeiconsIcon
         icon={Search}
+        data-icon="search"
         size={INPUT_AREA_BUTTONS.iconSize}
         strokeWidth={2}
         className="block text-[#fff]"

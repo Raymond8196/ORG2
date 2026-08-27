@@ -68,13 +68,39 @@ function appTypeIcon(appType: SetupRepoAppType): React.ReactNode {
   const cls = "text-text-2";
   if (appType === "web")
     return (
-      <HugeiconsIcon icon={SquareArrowOutUpRight} size={12} className={cls} />
+      <HugeiconsIcon
+        icon={SquareArrowOutUpRight}
+        data-icon="square-arrow-out-up-right"
+        size={12}
+        className={cls}
+      />
     );
   if (appType === "cli")
-    return <HugeiconsIcon icon={Terminal} size={12} className={cls} />;
+    return (
+      <HugeiconsIcon
+        icon={Terminal}
+        data-icon="terminal"
+        size={12}
+        className={cls}
+      />
+    );
   if (appType === "desktop")
-    return <HugeiconsIcon icon={FolderCog} size={12} className={cls} />;
-  return <HugeiconsIcon icon={Terminal} size={12} className={cls} />;
+    return (
+      <HugeiconsIcon
+        icon={FolderCog}
+        data-icon="folder-cog"
+        size={12}
+        className={cls}
+      />
+    );
+  return (
+    <HugeiconsIcon
+      icon={Terminal}
+      data-icon="terminal"
+      size={12}
+      className={cls}
+    />
+  );
 }
 
 // ============================================
@@ -221,6 +247,7 @@ const EnvVarsContent: React.FC<{ envVars: SetupRepoEnvVar[] }> = ({
       >
         <HugeiconsIcon
           icon={KeyRound}
+          data-icon="key-round"
           size={11}
           className="mt-0.5 shrink-0 text-text-3"
         />
@@ -259,6 +286,7 @@ const LaunchAppContent: React.FC<{
       <div className="flex items-center gap-1.5 rounded px-1.5 py-1 hover:bg-fill-2">
         <HugeiconsIcon
           icon={SquareArrowOutUpRight}
+          data-icon="square-arrow-out-up-right"
           size={11}
           className="shrink-0 text-text-3"
         />
@@ -271,6 +299,7 @@ const LaunchAppContent: React.FC<{
       <div className="flex items-center gap-1.5 rounded px-1.5 py-1 hover:bg-fill-2">
         <HugeiconsIcon
           icon={Terminal}
+          data-icon="terminal"
           size={11}
           className="shrink-0 text-text-3"
         />

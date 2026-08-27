@@ -99,7 +99,7 @@ const InlineActionsBar: React.FC<InlineActionsBarProps> = ({
       list.push({
         key: "edit",
         label: editLabel ?? t("actions.edit"),
-        icon: <HugeiconsIcon icon={Pencil} size={12} />,
+        icon: <HugeiconsIcon icon={Pencil} data-icon="pencil" size={12} />,
         variant: editVariant,
         onClick: onEdit,
         disabled: editDisabled,
@@ -110,7 +110,7 @@ const InlineActionsBar: React.FC<InlineActionsBarProps> = ({
       list.push({
         key: "delete",
         label: deleteLabel ?? t("actions.delete"),
-        icon: <HugeiconsIcon icon={Trash2} size={12} />,
+        icon: <HugeiconsIcon icon={Trash2} data-icon="trash-2" size={12} />,
         variant: "danger",
         appearance: "outline",
         onClick: onDelete,

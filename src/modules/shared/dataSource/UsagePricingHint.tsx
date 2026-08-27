@@ -86,7 +86,11 @@ export default function UsagePricingHint({
   if (!rates) {
     return (
       <span className="flex items-center gap-1.5 text-[11px] text-text-3">
-        <HugeiconsIcon icon={Loader2} className="h-3 w-3 animate-spin" />
+        <HugeiconsIcon
+          icon={Loader2}
+          data-icon="loader-2"
+          className="h-3 w-3 animate-spin"
+        />
         {t("usage.pricing.loading")}
       </span>
     );

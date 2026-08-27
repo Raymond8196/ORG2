@@ -276,7 +276,9 @@ export default function MyAccountsTableSection({
                 <Button
                   variant="secondary"
                   size="small"
-                  icon={<HugeiconsIcon icon={Pencil} size={14} />}
+                  icon={
+                    <HugeiconsIcon icon={Pencil} data-icon="pencil" size={14} />
+                  }
                   iconOnly
                   onClick={() => handleEditAccountInline(account.id)}
                   aria-label={t("common:actions.edit")}
@@ -288,7 +290,13 @@ export default function MyAccountsTableSection({
                   variant="danger"
                   appearance="outline"
                   size="small"
-                  icon={<HugeiconsIcon icon={Trash2} size={14} />}
+                  icon={
+                    <HugeiconsIcon
+                      icon={Trash2}
+                      data-icon="trash-2"
+                      size={14}
+                    />
+                  }
                   iconOnly
                   onClick={() => onDisconnectAccount(account.id)}
                   aria-label={
@@ -379,7 +387,7 @@ export default function MyAccountsTableSection({
     <Button
       variant="secondary"
       size="default"
-      icon={<HugeiconsIcon icon={Plus} size={14} />}
+      icon={<HugeiconsIcon icon={Plus} data-icon="plus" size={14} />}
       iconOnly
       onClick={onAdd}
       aria-label={t("keyVault.addAccount")}

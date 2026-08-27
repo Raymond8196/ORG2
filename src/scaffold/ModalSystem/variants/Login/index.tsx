@@ -181,6 +181,7 @@ const LoginModal = () => {
       <div className="flex h-full w-full flex-col items-center justify-center">
         <HugeiconsIcon
           icon={Sparkles}
+          data-icon="sparkles"
           size={24}
           strokeWidth={1.75}
           className="text-primary-6"

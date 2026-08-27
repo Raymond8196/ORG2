@@ -344,7 +344,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
                   onClick={handleClear}
                   tabIndex={-1}
                 >
-                  <HugeiconsIcon icon={XCircle} size={16} />
+                  <HugeiconsIcon icon={XCircle} data-icon="xcircle" size={16} />
                 </button>
               )}
 

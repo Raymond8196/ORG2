@@ -42,7 +42,14 @@ const CommentMentionDetail: React.FC<CommentMentionDetailProps> = ({
           ? "teamInbox.actions.openWorkItem"
           : "teamInbox.actions.openSession"
       )}
-      openIcon={<HugeiconsIcon icon={MessageSquare} size={14} aria-hidden />}
+      openIcon={
+        <HugeiconsIcon
+          icon={MessageSquare}
+          data-icon="message-square"
+          size={14}
+          aria-hidden
+        />
+      }
       onMarkRead={onMarkRead ? () => onMarkRead(item) : undefined}
       onMarkUnread={onMarkUnread ? () => onMarkUnread(item) : undefined}
       onOpen={

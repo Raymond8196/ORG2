@@ -101,6 +101,7 @@ const CommentRow: React.FC<CommentRowProps> = ({
               icon={
                 <HugeiconsIcon
                   icon={Copy}
+                  data-icon="copy"
                   size={12}
                   className="text-text-4 hover:text-text-2"
                 />
@@ -125,9 +126,17 @@ const CommentRow: React.FC<CommentRowProps> = ({
       {isLong && (
         <span className="mt-0.5 hidden items-center text-text-4 group-hover/comment:inline-flex">
           {expanded ? (
-            <HugeiconsIcon icon={ChevronDown} size={14} />
+            <HugeiconsIcon
+              icon={ChevronDown}
+              data-icon="chevron-down"
+              size={14}
+            />
           ) : (
-            <HugeiconsIcon icon={ChevronRight} size={14} />
+            <HugeiconsIcon
+              icon={ChevronRight}
+              data-icon="chevron-right"
+              size={14}
+            />
           )}
         </span>
       )}

@@ -93,7 +93,9 @@ const PersonalitySection: React.FC<PersonalitySectionProps> = ({
           </span>
           {activeTab !== "edit" && (
             <Button
-              icon={<HugeiconsIcon icon={Pencil} size={14} />}
+              icon={
+                <HugeiconsIcon icon={Pencil} data-icon="pencil" size={14} />
+              }
               iconOnly
               onClick={handleEdit}
               aria-label={t("common:actions.edit")}
@@ -102,7 +104,7 @@ const PersonalitySection: React.FC<PersonalitySectionProps> = ({
             />
           )}
           <Button
-            icon={<HugeiconsIcon icon={Copy} size={14} />}
+            icon={<HugeiconsIcon icon={Copy} data-icon="copy" size={14} />}
             iconOnly
             onClick={handleCopy}
             disabled={!draftValue.trim()}

@@ -134,6 +134,7 @@ export const SourceControlMoreMenu: React.FC<SourceControlMoreMenuProps> = memo(
         >
           <HugeiconsIcon
             icon={Ellipsis}
+            data-icon="ellipsis"
             size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
             strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
           />
@@ -164,6 +165,7 @@ export const SourceControlMoreMenu: React.FC<SourceControlMoreMenuProps> = memo(
                     >
                       <HugeiconsIcon
                         icon={ArrowDown}
+                        data-icon="arrow-down"
                         size={DROPDOWN_ITEM.iconSize}
                         className="shrink-0"
                       />
@@ -175,6 +177,7 @@ export const SourceControlMoreMenu: React.FC<SourceControlMoreMenuProps> = memo(
                     >
                       <HugeiconsIcon
                         icon={ArrowUp}
+                        data-icon="arrow-up"
                         size={DROPDOWN_ITEM.iconSize}
                         className="shrink-0"
                       />
@@ -186,6 +189,7 @@ export const SourceControlMoreMenu: React.FC<SourceControlMoreMenuProps> = memo(
                     >
                       <HugeiconsIcon
                         icon={RefreshCw}
+                        data-icon="refresh-cw"
                         size={DROPDOWN_ITEM.iconSize}
                         className="shrink-0"
                       />
@@ -198,6 +202,7 @@ export const SourceControlMoreMenu: React.FC<SourceControlMoreMenuProps> = memo(
                     >
                       <HugeiconsIcon
                         icon={ArrowUpDown}
+                        data-icon="arrow-up-down"
                         size={DROPDOWN_ITEM.iconSize}
                         className="shrink-0"
                       />
@@ -211,6 +216,7 @@ export const SourceControlMoreMenu: React.FC<SourceControlMoreMenuProps> = memo(
                   >
                     <HugeiconsIcon
                       icon={CloudUpload}
+                      data-icon="cloud-upload"
                       size={DROPDOWN_ITEM.iconSize}
                       className="shrink-0"
                     />

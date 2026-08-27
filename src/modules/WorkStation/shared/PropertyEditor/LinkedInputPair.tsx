@@ -167,14 +167,26 @@ export const LinkedInputPair: React.FC<LinkedInputPairProps> = memo(
             unit={unit}
             onChange={handleVerticalChange}
             disabled={disabled}
-            icon={<HugeiconsIcon icon={AlignVerticalSpaceAround} size={14} />}
+            icon={
+              <HugeiconsIcon
+                icon={AlignVerticalSpaceAround}
+                data-icon="align-vertical-space-around"
+                size={14}
+              />
+            }
           />
           <SingleInput
             value={leftValue}
             unit={unit}
             onChange={handleHorizontalChange}
             disabled={disabled}
-            icon={<HugeiconsIcon icon={AlignHorizontalSpaceAround} size={14} />}
+            icon={
+              <HugeiconsIcon
+                icon={AlignHorizontalSpaceAround}
+                data-icon="align-horizontal-space-around"
+                size={14}
+              />
+            }
           />
         </div>
       );

@@ -156,6 +156,7 @@ export const TabPill = memo(function TabPill({
     icon = (
       <HugeiconsIcon
         icon={TerminalSquare}
+        data-icon="terminal-square"
         size={16}
         strokeWidth={1.75}
         className={`shrink-0 ${iconColorClass}`}
@@ -166,6 +167,7 @@ export const TabPill = memo(function TabPill({
       icon = (
         <HugeiconsIcon
           icon={Box}
+          data-icon="box"
           size={16}
           strokeWidth={1.75}
           className={`shrink-0 ${iconColorClass}`}
@@ -175,6 +177,7 @@ export const TabPill = memo(function TabPill({
       icon = (
         <HugeiconsIcon
           icon={ListChecks}
+          data-icon="list-checks"
           size={16}
           strokeWidth={1.75}
           className={`shrink-0 ${iconColorClass}`}
@@ -194,6 +197,7 @@ export const TabPill = memo(function TabPill({
       icon = (
         <HugeiconsIcon
           icon={LayoutGrid}
+          data-icon="layout-grid"
           size={16}
           strokeWidth={1.75}
           className={`shrink-0 ${iconColorClass}`}
@@ -204,6 +208,7 @@ export const TabPill = memo(function TabPill({
     icon = (
       <HugeiconsIcon
         icon={Gauge}
+        data-icon="gauge"
         size={16}
         strokeWidth={1.75}
         className={`shrink-0 ${iconColorClass}`}
@@ -213,6 +218,7 @@ export const TabPill = memo(function TabPill({
     icon = (
       <HugeiconsIcon
         icon={Inbox}
+        data-icon="inbox"
         size={16}
         strokeWidth={1.75}
         className={`shrink-0 ${iconColorClass}`}
@@ -235,6 +241,7 @@ export const TabPill = memo(function TabPill({
     icon = (
       <HugeiconsIcon
         icon={Info}
+        data-icon="info"
         size={16}
         strokeWidth={1.75}
         className={`shrink-0 ${iconColorClass}`}
@@ -244,6 +251,7 @@ export const TabPill = memo(function TabPill({
     icon = (
       <HugeiconsIcon
         icon={Settings2}
+        data-icon="settings-2"
         size={16}
         strokeWidth={1.75}
         className={`shrink-0 ${iconColorClass}`}
@@ -263,6 +271,7 @@ export const TabPill = memo(function TabPill({
     icon = (
       <HugeiconsIcon
         icon={CircleDot}
+        data-icon="circle-dot"
         size={16}
         strokeWidth={1.75}
         className={`shrink-0 ${iconColorClass}`}
@@ -272,6 +281,7 @@ export const TabPill = memo(function TabPill({
     icon = (
       <HugeiconsIcon
         icon={GitPullRequest}
+        data-icon="git-pull-request"
         size={16}
         strokeWidth={1.75}
         className={`shrink-0 ${iconColorClass}`}
@@ -300,6 +310,7 @@ export const TabPill = memo(function TabPill({
     icon = (
       <HugeiconsIcon
         icon={Box}
+        data-icon="box"
         size={16}
         strokeWidth={1.75}
         className={`shrink-0 ${iconColorClass}`}
@@ -309,6 +320,7 @@ export const TabPill = memo(function TabPill({
     icon = (
       <HugeiconsIcon
         icon={ListChecks}
+        data-icon="list-checks"
         size={16}
         strokeWidth={1.75}
         className={`shrink-0 ${iconColorClass}`}
@@ -326,6 +338,7 @@ export const TabPill = memo(function TabPill({
     icon = (
       <HugeiconsIcon
         icon={MessageSquarePlus}
+        data-icon="message-square-plus"
         size={16}
         strokeWidth={1.75}
         className={`shrink-0 ${iconColorClass}`}

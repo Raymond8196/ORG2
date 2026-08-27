@@ -25,6 +25,7 @@ function pagesToTreeNodes(pages: PageItem[]): TreePanelNode[] {
     icon: (
       <HugeiconsIcon
         icon={FileCode}
+        data-icon="file-code"
         size={TREE_ICON_SIZE}
         className="text-text-3"
       />

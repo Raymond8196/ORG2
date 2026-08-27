@@ -3,6 +3,7 @@
  *
  * Manages action button configurations for EditorPrimarySidebar tabs.
  */
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useMemo } from "react";
 
 import type { SectionHeaderAction } from "@src/components/TreePanelSidebar/types";
@@ -62,7 +63,8 @@ export function useExplorerActions({
     actions.push({
       key: "filter",
       icon: (
-        <FilterIcon
+        <HugeiconsIcon
+          icon={FilterIcon}
           size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
           strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
           className={showFilterFiles ? "text-primary-6" : ""}
@@ -76,7 +78,8 @@ export function useExplorerActions({
       actions.push({
         key: "add-file",
         icon: (
-          <AddFileIcon
+          <HugeiconsIcon
+            icon={AddFileIcon}
             size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
             strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
           />
@@ -90,7 +93,8 @@ export function useExplorerActions({
       actions.push({
         key: "add-folder",
         icon: (
-          <AddFolderIcon
+          <HugeiconsIcon
+            icon={AddFolderIcon}
             size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
             strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
           />
@@ -104,7 +108,8 @@ export function useExplorerActions({
       actions.push({
         key: "refresh",
         icon: (
-          <RefreshIcon
+          <HugeiconsIcon
+            icon={RefreshIcon}
             size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
             strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
             className={filesRefreshSpinClass}
@@ -119,7 +124,8 @@ export function useExplorerActions({
       actions.push({
         key: "collapse-all",
         icon: (
-          <CollapseAllIcon
+          <HugeiconsIcon
+            icon={CollapseAllIcon}
             size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
             strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
           />
@@ -148,7 +154,8 @@ export function useExplorerActions({
       actions.push({
         key: "open-search-tab",
         icon: (
-          <OpenInTabIcon
+          <HugeiconsIcon
+            icon={OpenInTabIcon}
             size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
             strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
           />
@@ -162,7 +169,8 @@ export function useExplorerActions({
       actions.push({
         key: "toggle-search-filters",
         icon: (
-          <FilterIcon
+          <HugeiconsIcon
+            icon={FilterIcon}
             size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
             strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
             className={showSearchFilters ? "text-primary-6" : ""}
@@ -177,7 +185,8 @@ export function useExplorerActions({
       actions.push({
         key: "collapse-expand-search",
         icon: (
-          <CollapseAllIcon
+          <HugeiconsIcon
+            icon={CollapseAllIcon}
             size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
             strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
           />

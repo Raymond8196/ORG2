@@ -163,7 +163,12 @@ const CanvasInlineCard: React.FC<CanvasInlineCardProps> = ({
       >
         <EventBlockHeaderIcon
           icon={
-            <HugeiconsIcon icon={Layout} size={14} className="text-primary-6" />
+            <HugeiconsIcon
+              icon={Layout}
+              data-icon="layout"
+              size={14}
+              className="text-primary-6"
+            />
           }
           isCollapsed={isCollapsed}
           isHeaderHovered={isHeaderHovered}

@@ -404,7 +404,12 @@ const Kanban: React.FC<TaskKanbanProps> = ({
                   title={t("chat.newSession")}
                   className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full bg-bg-1 text-text-2 shadow-md ring-1 ring-border-2 transition-colors hover:text-text-1"
                 >
-                  <HugeiconsIcon icon={Plus} size={16} strokeWidth={1.75} />
+                  <HugeiconsIcon
+                    icon={Plus}
+                    data-icon="plus"
+                    size={16}
+                    strokeWidth={1.75}
+                  />
                 </button>
               )}
             </div>

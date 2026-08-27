@@ -133,7 +133,14 @@ export const ImageSection: React.FC<ImageSectionProps> = ({
                   appearance="solid"
                   size="mini"
                   shape="circle"
-                  icon={<HugeiconsIcon icon={X} size={9} strokeWidth={2.25} />}
+                  icon={
+                    <HugeiconsIcon
+                      icon={X}
+                      data-icon="x"
+                      size={9}
+                      strokeWidth={2.25}
+                    />
+                  }
                   iconOnly
                   title={t("common:actions.delete")}
                   onClick={(event) => onDeleteCustomImage(event, imageId)}
@@ -168,6 +175,7 @@ export const ImageSection: React.FC<ImageSectionProps> = ({
             />
             <HugeiconsIcon
               icon={Plus}
+              data-icon="plus"
               size={14}
               strokeWidth={2.25}
               className="pointer-events-none"
@@ -213,14 +221,20 @@ export const ImageSection: React.FC<ImageSectionProps> = ({
                 Message.success(t("storage.copiedPath"));
               });
             }}
-            icon={<HugeiconsIcon icon={Copy} size={14} />}
+            icon={<HugeiconsIcon icon={Copy} data-icon="copy" size={14} />}
             iconOnly
             title={t("common:actions.copy")}
           />
           <Button
             disabled={!hasStoragePath}
             onClick={() => invoke("open_folder", { path: storagePath })}
-            icon={<HugeiconsIcon icon={FolderOpen} size={14} />}
+            icon={
+              <HugeiconsIcon
+                icon={FolderOpen}
+                data-icon="folder-open"
+                size={14}
+              />
+            }
             iconOnly
             title={t("storage.openFolder")}
           />
