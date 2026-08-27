@@ -27,6 +27,7 @@ use tokio::process::Command;
 use git::{tokio_git_command, util::is_transient_error};
 
 use super::commit::append_orgii_coauthor_trailer;
+use super::remote::pull_strategy_args;
 
 type GitEventStream = Pin<Box<dyn Stream<Item = Result<Event, std::convert::Infallible>> + Send>>;
 
@@ -400,20 +401,8 @@ pub async fn pull_stream(
     cmd.args(["-c", "credential.interactive=false", "-c", "core.askPass="])
         .arg("pull");
 
-    let strategy_flag = match query.strategy.as_deref() {
-        Some("rebase") => {
-            cmd.arg("--rebase");
-            " --rebase"
-        }
-        Some("ff-only") => {
-            cmd.arg("--ff-only");
-            " --ff-only"
-        }
-        _ => {
-            cmd.arg("--no-rebase");
-            " --no-rebase"
-        }
-    };
+    let strategy_args = pull_strategy_args(query.strategy.as_deref());
+    cmd.args(strategy_args);
 
     cmd.arg(&remote);
 
@@ -431,7 +420,7 @@ pub async fn pull_stream(
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
 
-    let command_str = format!("git pull{} {}", strategy_flag, remote);
+    let command_str = format!("git pull {} {}", strategy_args.join(" "), remote);
     let stream = stream_git_command(cmd, command_str, "pull").await;
 
     sse_response(stream)

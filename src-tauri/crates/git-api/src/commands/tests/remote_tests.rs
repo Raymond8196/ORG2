@@ -1,5 +1,5 @@
 use crate::commands::remote::{
-    detect_fetch_error_type, detect_pull_error_type, detect_push_error_type,
+    detect_fetch_error_type, detect_pull_error_type, detect_push_error_type, pull_strategy_args,
 };
 use crate::types::GitErrorType;
 
@@ -156,6 +156,32 @@ fn push_error_unknown() {
         detect_push_error_type("some other error"),
         GitErrorType::Unknown,
     );
+}
+
+// ============================================
+// pull_strategy_args
+// ============================================
+
+/// Regression: a bare `git pull --rebase` refuses to start whenever the
+/// working tree is dirty at all ("cannot pull with rebase: You have unstaged
+/// changes"), even when nothing overlaps the incoming commits. `--autostash`
+/// must always accompany `--rebase`.
+#[test]
+fn pull_strategy_rebase_always_autostashes() {
+    assert_eq!(
+        pull_strategy_args(Some("rebase")),
+        &["--rebase", "--autostash"]
+    );
+}
+
+#[test]
+fn pull_strategy_merge_and_ff_only_do_not_autostash() {
+    // Merge and fast-forward pulls natively tolerate non-overlapping local
+    // changes and must keep refusing on genuine overlap.
+    assert_eq!(pull_strategy_args(Some("merge")), &["--no-rebase"]);
+    assert_eq!(pull_strategy_args(None), &["--no-rebase"]);
+    assert_eq!(pull_strategy_args(Some("unknown")), &["--no-rebase"]);
+    assert_eq!(pull_strategy_args(Some("ff-only")), &["--ff-only"]);
 }
 
 // ============================================

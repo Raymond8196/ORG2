@@ -549,6 +549,21 @@ pub(crate) fn detect_pull_error_type(message: &str) -> (GitErrorType, Option<Vec
     (GitErrorType::Unknown, None)
 }
 
+/// Strategy flags for `git pull`.
+///
+/// Rebase pulls carry `--autostash`: without it git refuses to start whenever
+/// the working tree is dirty at all ("cannot pull with rebase: You have
+/// unstaged changes"), even when nothing overlaps the incoming commits.
+/// Autostash restores parity with merge pulls, which natively tolerate
+/// non-overlapping local changes and still stop on genuine overlap.
+pub(crate) fn pull_strategy_args(strategy: Option<&str>) -> &'static [&'static str] {
+    match strategy {
+        Some("rebase") => &["--rebase", "--autostash"],
+        Some("ff-only") => &["--ff-only"],
+        _ => &["--no-rebase"], // merge or unknown → explicit merge
+    }
+}
+
 /// Pull from remote
 pub fn pull_from_remote(
     repo_path: &Path,
@@ -560,12 +575,7 @@ pub fn pull_from_remote(
     store_auth: bool,
 ) -> Result<GitPullResult, String> {
     let mut args = vec!["pull"];
-
-    match strategy {
-        Some("rebase") => args.push("--rebase"),
-        Some("ff-only") => args.push("--ff-only"),
-        Some("merge") | None | Some(_) => args.push("--no-rebase"), // merge or unknown → explicit merge
-    }
+    args.extend_from_slice(pull_strategy_args(strategy));
 
     if let Some(r) = remote {
         args.push(r);

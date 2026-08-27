@@ -110,11 +110,13 @@ function getUserPullStrategy(): GitPullStrategy {
 /**
  * Build the terminal pull command with strategy flags.
  * Always pass explicit flag so Git knows how to reconcile when branches diverge.
+ * Rebase carries --autostash: a bare `git pull --rebase` refuses to start on
+ * any dirty working tree, even when nothing overlaps the incoming commits.
  */
 function buildPullCommand(strategy: GitPullStrategy): string {
   switch (strategy) {
     case "rebase":
-      return "git pull --rebase";
+      return "git pull --rebase --autostash";
     case "ff-only":
       return "git pull --ff-only";
     default:

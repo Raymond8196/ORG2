@@ -207,7 +207,7 @@ describe("terminal fallback — the command string built for each operation", ()
   it("pulls with --rebase and --ff-only for the other strategies", async () => {
     const rebase = await loadRemoteOps();
     await rebase.pull({ strategy: "rebase" });
-    expect(execute.mock.calls).toEqual([["git pull --rebase"]]);
+    expect(execute.mock.calls).toEqual([["git pull --rebase --autostash"]]);
 
     execute.mockClear();
     const ffOnly = await loadRemoteOps();
@@ -220,7 +220,7 @@ describe("terminal fallback — the command string built for each operation", ()
 
     await remoteOps.pull();
 
-    expect(execute.mock.calls).toEqual([["git pull --rebase"]]);
+    expect(execute.mock.calls).toEqual([["git pull --rebase --autostash"]]);
   });
 
   it("falls back to merge when the strategy setting is absent altogether", async () => {
@@ -236,7 +236,7 @@ describe("terminal fallback — the command string built for each operation", ()
 
     await remoteOps.pull();
 
-    expect(execute.mock.calls).toEqual([["git pull --rebase"]]);
+    expect(execute.mock.calls).toEqual([["git pull --rebase --autostash"]]);
   });
 
   it("lets an explicit strategy override the configured one", async () => {
@@ -1301,7 +1301,7 @@ describe("sync", () => {
 
     expect(execute.mock.calls).toEqual([
       ["git fetch"],
-      ["git pull --rebase"],
+      ["git pull --rebase --autostash"],
       ["git push"],
     ]);
   });
@@ -1330,7 +1330,10 @@ describe("sync", () => {
       errorType: "merge_conflicts",
     });
 
-    expect(execute.mock.calls).toEqual([["git fetch"], ["git pull --rebase"]]);
+    expect(execute.mock.calls).toEqual([
+      ["git fetch"],
+      ["git pull --rebase --autostash"],
+    ]);
   });
 
   it("never pushes with force", async () => {
