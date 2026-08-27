@@ -1,4 +1,5 @@
-import { ListTodo } from "lucide-react";
+import ListTodo from "@hugeicons/core-free-icons/CheckListIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -547,7 +548,11 @@ export const ProjectWorkItemsTabContent: React.FC<
         projectName={t("projects.columns.workItems")}
         breadcrumbSegments={breadcrumbSegments}
         identityIcon={
-          <ListTodo size={HEADER_ICON_SIZE.sm} strokeWidth={1.75} />
+          <HugeiconsIcon
+            icon={ListTodo}
+            size={HEADER_ICON_SIZE.sm}
+            strokeWidth={1.75}
+          />
         }
         onOpenProjects={onOpenProjects}
         activeTab={activeViewTab}

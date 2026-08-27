@@ -14,9 +14,12 @@
  * </SidebarBase>
  * ```
  */
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import PanelLeft from "@hugeicons/core-free-icons/PanelLeftIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import i18next from "i18next";
 import { useAtomValue, useSetAtom } from "jotai";
-import { PanelLeft, Plus, X } from "lucide-react";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 
 import { KeyboardShortcutTooltipContent } from "@src/components/KeyboardShortcut";
@@ -374,7 +377,8 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
                       className="flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[100px] border-none bg-transparent p-0 transition-colors duration-150 hover:bg-sidebar-selected"
                       onClick={handleExpand}
                     >
-                      <PanelLeft
+                      <HugeiconsIcon
+                        icon={PanelLeft}
                         size={16}
                         strokeWidth={2}
                         className="text-text-2"
@@ -387,7 +391,8 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
                       className="flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[100px] border-none bg-transparent p-0 transition-colors duration-150 hover:bg-sidebar-selected"
                       onClick={handleCollapse}
                     >
-                      <X
+                      <HugeiconsIcon
+                        icon={X}
                         size={16}
                         strokeWidth={2}
                         className="text-text-2"
@@ -413,7 +418,8 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
                         className="flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[100px] border-none bg-transparent p-0 transition-colors duration-150 hover:bg-sidebar-selected"
                         onClick={handleCollapse}
                       >
-                        <PanelLeft
+                        <HugeiconsIcon
+                          icon={PanelLeft}
                           size={16}
                           strokeWidth={2}
                           className="text-text-2"

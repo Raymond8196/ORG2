@@ -11,7 +11,12 @@
  * - Intersection observer for lazy syntax highlighting
  * - Virtual scrolling for large code blocks (>100 lines)
  */
-import { Check, Copy, Eye, EyeOff, SquareArrowOutUpRight } from "lucide-react";
+import Copy from "@hugeicons/core-free-icons/Copy01Icon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import Eye from "@hugeicons/core-free-icons/ViewIcon";
+import EyeOff from "@hugeicons/core-free-icons/ViewOffIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { Suspense, lazy, memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -351,7 +356,11 @@ const ChatCodeBlock: React.FC<ChatCodeBlockProps> = memo(
                     className="ml-auto inline-flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-md border-0 bg-event-block p-0 text-text-3 transition-colors hover:bg-fill-3 hover:text-text-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-6/30"
                     onClick={handleOpenFile}
                   >
-                    <SquareArrowOutUpRight size={14} strokeWidth={1.75} />
+                    <HugeiconsIcon
+                      icon={SquareArrowOutUpRight}
+                      size={14}
+                      strokeWidth={1.75}
+                    />
                   </button>
                 )}
 
@@ -374,9 +383,13 @@ const ChatCodeBlock: React.FC<ChatCodeBlockProps> = memo(
                     onClick={handleCopyContent}
                   >
                     {copied ? (
-                      <Check size={14} strokeWidth={1.75} />
+                      <HugeiconsIcon
+                        icon={Check}
+                        size={14}
+                        strokeWidth={1.75}
+                      />
                     ) : (
-                      <Copy size={14} strokeWidth={1.75} />
+                      <HugeiconsIcon icon={Copy} size={14} strokeWidth={1.75} />
                     )}
                   </button>
                 )}
@@ -403,7 +416,11 @@ const ChatCodeBlock: React.FC<ChatCodeBlockProps> = memo(
                         : t("codePreview.showPreview")
                     }
                   >
-                    {isPreviewOpen ? <EyeOff size={11} /> : <Eye size={11} />}
+                    {isPreviewOpen ? (
+                      <HugeiconsIcon icon={EyeOff} size={11} />
+                    ) : (
+                      <HugeiconsIcon icon={Eye} size={11} />
+                    )}
                     {t("codePreview.preview")}
                   </button>
                 )}
@@ -423,7 +440,11 @@ const ChatCodeBlock: React.FC<ChatCodeBlockProps> = memo(
                   className="inline-flex h-6 w-6 cursor-pointer items-center justify-center rounded-md border-0 bg-event-block p-0 text-text-3 transition-colors hover:bg-fill-3 hover:text-text-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-6/30"
                   onClick={handleOpenFile}
                 >
-                  <SquareArrowOutUpRight size={14} strokeWidth={1.75} />
+                  <HugeiconsIcon
+                    icon={SquareArrowOutUpRight}
+                    size={14}
+                    strokeWidth={1.75}
+                  />
                 </button>
               )}
               {shouldShowCopyButton && (
@@ -443,9 +464,9 @@ const ChatCodeBlock: React.FC<ChatCodeBlockProps> = memo(
                   onClick={handleCopyContent}
                 >
                   {copied ? (
-                    <Check size={14} strokeWidth={1.75} />
+                    <HugeiconsIcon icon={Check} size={14} strokeWidth={1.75} />
                   ) : (
-                    <Copy size={14} strokeWidth={1.75} />
+                    <HugeiconsIcon icon={Copy} size={14} strokeWidth={1.75} />
                   )}
                 </button>
               )}

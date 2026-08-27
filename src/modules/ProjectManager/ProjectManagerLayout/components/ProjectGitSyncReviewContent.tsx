@@ -1,5 +1,8 @@
+import AlertTriangle from "@hugeicons/core-free-icons/Alert01Icon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { AlertTriangle, Check, RefreshCw } from "lucide-react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -139,7 +142,11 @@ export const ProjectGitSyncReviewContent: React.FC<
     <div className="flex h-full min-h-0 flex-col overflow-hidden bg-bg-1">
       <div className="flex h-11 shrink-0 items-center justify-between border-b border-border-1 px-4">
         <div className="flex min-w-0 items-center gap-2">
-          <AlertTriangle size={16} className="shrink-0 text-warning-6" />
+          <HugeiconsIcon
+            icon={AlertTriangle}
+            size={16}
+            className="shrink-0 text-warning-6"
+          />
           <div className="min-w-0 truncate text-sm font-medium text-text-1">
             {t("gitSyncReview.title", { org: orgName ?? syncResult.org_id })}
           </div>
@@ -153,7 +160,11 @@ export const ProjectGitSyncReviewContent: React.FC<
           disabled={syncing}
           onClick={() => void handleSyncAgain()}
         >
-          <RefreshCw size={14} className={syncing ? "animate-spin" : ""} />
+          <HugeiconsIcon
+            icon={RefreshCw}
+            size={14}
+            className={syncing ? "animate-spin" : ""}
+          />
           {t("gitSyncReview.syncAgain")}
         </Button>
       </div>
@@ -203,7 +214,7 @@ export const ProjectGitSyncReviewContent: React.FC<
                   loading={saving}
                   onClick={() => void handleSaveResolved()}
                 >
-                  <Check size={14} />
+                  <HugeiconsIcon icon={Check} size={14} />
                   {t("gitSyncReview.saveResolved")}
                 </Button>
               </div>

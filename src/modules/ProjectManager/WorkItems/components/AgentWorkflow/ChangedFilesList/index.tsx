@@ -1,4 +1,7 @@
-import { ChevronDown, ChevronRight, SquareArrowOutUpRight } from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -104,9 +107,17 @@ const ChangedFilesList: React.FC<ChangedFilesListProps> = ({
           onClick={() => setExpanded(!expanded)}
           icon={
             expanded ? (
-              <ChevronDown size={13} className="text-text-4" />
+              <HugeiconsIcon
+                icon={ChevronDown}
+                size={13}
+                className="text-text-4"
+              />
             ) : (
-              <ChevronRight size={13} className="text-text-4" />
+              <HugeiconsIcon
+                icon={ChevronRight}
+                size={13}
+                className="text-text-4"
+              />
             )
           }
           className="!flex min-w-0 flex-1 items-center justify-between !rounded-md !px-3 !py-2"
@@ -134,7 +145,7 @@ const ChangedFilesList: React.FC<ChangedFilesListProps> = ({
             title={t("workItems.changedFiles.reviewInEditor")}
             className="mr-2 shrink-0 rounded-md p-1.5 text-text-3 transition-colors hover:bg-fill-2 hover:text-text-1"
           >
-            <SquareArrowOutUpRight size={13} />
+            <HugeiconsIcon icon={SquareArrowOutUpRight} size={13} />
           </button>
         )}
       </div>

@@ -1,4 +1,5 @@
-import { ChevronDown } from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 
 import FilePathBreadcrumb from "@src/components/FilePathBreadcrumb";
@@ -142,7 +143,11 @@ const SimulatorTreePanel: React.FC<SimulatorTreePanelProps> = ({
         onClick={onClick}
       >
         <div className={STICKY_ROW.chevronBox}>
-          <ChevronDown size={CHEVRON_SIZE} className={STICKY_ROW.chevronIcon} />
+          <HugeiconsIcon
+            icon={ChevronDown}
+            size={CHEVRON_SIZE}
+            className={STICKY_ROW.chevronIcon}
+          />
         </div>
         <span className={STICKY_ROW.name}>{stickyNode.node.name}</span>
       </div>

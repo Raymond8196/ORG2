@@ -1,4 +1,5 @@
-import { ListChevronsUpDown } from "lucide-react";
+import ListChevronsUpDown from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { isValidElement } from "react";
 import { describe, expect, it, vi } from "vitest";
 

@@ -32,8 +32,9 @@ import {
   SortableContext,
   horizontalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import MessageSquarePlus from "@hugeicons/core-free-icons/MessageAdd01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { MessageSquarePlus } from "lucide-react";
 import React, { Fragment, useCallback, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -302,7 +303,11 @@ export function ChatPanelTabBar(): React.ReactNode {
               <DragOverlay dropAnimation={null}>
                 {draggingTab ? (
                   <div className={TAB_PILL_DRAG_OVERLAY_CLASS}>
-                    <MessageSquarePlus size={16} strokeWidth={1.75} />
+                    <HugeiconsIcon
+                      icon={MessageSquarePlus}
+                      size={16}
+                      strokeWidth={1.75}
+                    />
                     <span className="truncate">{draggingTab.title}</span>
                   </div>
                 ) : null}

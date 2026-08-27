@@ -1,4 +1,5 @@
-import { CaseSensitive } from "lucide-react";
+import CaseSensitive from "@hugeicons/core-free-icons/TextIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useTranslation } from "react-i18next";
 
 import { DROPDOWN_ITEM } from "@src/components/Dropdown/tokens";
@@ -41,7 +42,11 @@ export function WorktreeNameTab({
         value={value}
         onChange={onChange}
         prefix={
-          <CaseSensitive size={DROPDOWN_ITEM.iconSize} strokeWidth={1.75} />
+          <HugeiconsIcon
+            icon={CaseSensitive}
+            size={DROPDOWN_ITEM.iconSize}
+            strokeWidth={1.75}
+          />
         }
         placeholder={t("creator.worktreeSource.namePlaceholder", {
           defaultValue: "feature-name",
@@ -51,7 +56,13 @@ export function WorktreeNameTab({
         <WorktreeSourceList>
           <div className="flex flex-col gap-px">
             <WorktreeSourceRow
-              icon={<CaseSensitive size={14} strokeWidth={1.75} />}
+              icon={
+                <HugeiconsIcon
+                  icon={CaseSensitive}
+                  size={14}
+                  strokeWidth={1.75}
+                />
+              }
               title={source.title ?? source.label}
               detail={
                 source.baseBranch

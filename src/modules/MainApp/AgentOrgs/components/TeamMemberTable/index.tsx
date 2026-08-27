@@ -4,7 +4,9 @@
  * Built on the shared DragTable component for drag-to-reorder.
  * Supports hierarchy via optional parentId field + "Reports to" column.
  */
-import { Plus, Trash2 } from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -120,7 +122,11 @@ const AgentSelect: React.FC<AgentSelectProps> = ({
                 onAddAgent();
               }}
             >
-              <Plus size={DROPDOWN_ITEM.iconSize} strokeWidth={1.75} />
+              <HugeiconsIcon
+                icon={Plus}
+                size={DROPDOWN_ITEM.iconSize}
+                strokeWidth={1.75}
+              />
               <span>{t("common:actions.add")} Agent</span>
             </button>
           </DropdownFooter>
@@ -329,7 +335,11 @@ const TeamMemberTable: React.FC<TeamMemberTableProps> = ({
           variant="secondary"
           size="default"
           icon={
-            <Trash2 size={DROPDOWN_ITEM.iconSize} className="text-danger-6" />
+            <HugeiconsIcon
+              icon={Trash2}
+              size={DROPDOWN_ITEM.iconSize}
+              className="text-danger-6"
+            />
           }
           iconOnly
           data-testid={buildDataTestId(row, "remove-button")}

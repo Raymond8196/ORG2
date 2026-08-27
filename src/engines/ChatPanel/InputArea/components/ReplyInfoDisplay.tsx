@@ -3,7 +3,9 @@
  *
  * Display reply-to-question indicator with close button
  */
-import { Reply, X } from "lucide-react";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Reply from "@hugeicons/core-free-icons/MailReply01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -36,9 +38,9 @@ const ReplyInfoDisplay: React.FC<ReplyInfoDisplayProps> = memo(
 
     return (
       <UserActionButton
-        leftIcon={<Reply size={16} strokeWidth={1.75} />}
+        leftIcon={<HugeiconsIcon icon={Reply} size={16} strokeWidth={1.75} />}
         title={t("chat.replyToQuestion")}
-        rightIcon={<X size={16} strokeWidth={1.75} />}
+        rightIcon={<HugeiconsIcon icon={X} size={16} strokeWidth={1.75} />}
         onClick={() => onClose()}
       />
     );

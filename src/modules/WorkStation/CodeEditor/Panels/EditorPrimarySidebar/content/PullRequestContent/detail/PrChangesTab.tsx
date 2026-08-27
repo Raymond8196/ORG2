@@ -8,8 +8,9 @@
  * while still rendering with the same `GitFileList` + `CodeMirrorDiff`
  * side-by-side formatting as the commit-history view.
  */
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue } from "jotai";
-import { ChevronRight } from "lucide-react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -238,7 +239,11 @@ export const PrChangesTab: React.FC<PrChangesTabProps> = ({
             onClick={() => setFileListCollapsed(false)}
             title={t("tooltips.showFileList")}
           >
-            <ChevronRight size={14} className="text-text-3" />
+            <HugeiconsIcon
+              icon={ChevronRight}
+              size={14}
+              className="text-text-3"
+            />
           </button>
         )}
 

@@ -1,17 +1,16 @@
-import {
-  Bot,
-  CheckCircle,
-  Circle,
-  Code2,
-  Folder,
-  LayoutList,
-  Pencil,
-  Plus,
-  SearchX,
-  Terminal,
-  Trash2,
-  XCircle,
-} from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import Bot from "@hugeicons/core-free-icons/BotIcon";
+import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CheckCircle from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import Circle from "@hugeicons/core-free-icons/CircleIcon";
+import Code2 from "@hugeicons/core-free-icons/CodeIcon";
+import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import Folder from "@hugeicons/core-free-icons/Folder01Icon";
+import LayoutList from "@hugeicons/core-free-icons/ListViewIcon";
+import Pencil from "@hugeicons/core-free-icons/PencilIcon";
+import SearchX from "@hugeicons/core-free-icons/SearchMinusIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import FileTypeIcon from "@src/components/FileTypeIcon";
@@ -53,13 +52,13 @@ function ProjectToolChangeIcon({
   change: ProjectToolListRow["change"];
 }) {
   if (change === "added") {
-    return <Plus size={13} className="text-success-6" />;
+    return <HugeiconsIcon icon={Plus} size={13} className="text-success-6" />;
   }
   if (change === "updated") {
-    return <Pencil size={13} className="text-primary-6" />;
+    return <HugeiconsIcon icon={Pencil} size={13} className="text-primary-6" />;
   }
   if (change === "deleted") {
-    return <Trash2 size={13} className="text-danger-6" />;
+    return <HugeiconsIcon icon={Trash2} size={13} className="text-danger-6" />;
   }
   return null;
 }
@@ -67,7 +66,7 @@ function ProjectToolChangeIcon({
 /** Dropdown supplies the centred message shell, so this is just its content. */
 const SearchFilesEmpty: React.FC = () => (
   <>
-    <SearchX size={13} className="text-text-4" />
+    <HugeiconsIcon icon={SearchX} size={13} className="text-text-4" />
     <span className="chat-block-content text-text-3">No files found.</span>
   </>
 );
@@ -103,9 +102,17 @@ const ListWorkspacesOutput: React.FC<{ workspaces: WorkspaceEntry[] }> = ({
         title={workspace.path}
         leading={
           workspace.kind === "git" ? (
-            <Code2 size={14} className="shrink-0 text-primary-6" />
+            <HugeiconsIcon
+              icon={Code2}
+              size={14}
+              className="shrink-0 text-primary-6"
+            />
           ) : (
-            <Folder size={14} className="shrink-0 text-primary-6" />
+            <HugeiconsIcon
+              icon={Folder}
+              size={14}
+              className="shrink-0 text-primary-6"
+            />
           )
         }
         primary={workspace.name}
@@ -158,15 +165,27 @@ const JobListingOutput: React.FC<{ jobs: BackgroundJobRow[] }> = ({ jobs }) => (
     renderItem={(job) => {
       const kindIcon =
         job.jobKind === "shell" ? (
-          <Terminal size={14} className="shrink-0 text-primary-6" />
+          <HugeiconsIcon
+            icon={Terminal}
+            size={14}
+            className="shrink-0 text-primary-6"
+          />
         ) : (
-          <Bot size={14} className="shrink-0 text-primary-6" />
+          <HugeiconsIcon
+            icon={Bot}
+            size={14}
+            className="shrink-0 text-primary-6"
+          />
         );
       const statusGlyph =
         job.status === "succeeded" ? (
-          <CheckCircle size={12} className="text-green-500" />
+          <HugeiconsIcon
+            icon={CheckCircle}
+            size={12}
+            className="text-green-500"
+          />
         ) : job.status === "failed" ? (
-          <XCircle size={12} className="text-red-400" />
+          <HugeiconsIcon icon={XCircle} size={12} className="text-red-400" />
         ) : null;
       const primary = statusGlyph ? (
         <span className="inline-flex items-center gap-1">
@@ -203,7 +222,13 @@ const ProjectToolListOutput: React.FC<{ rows: ProjectToolListRow[] }> = ({
       return (
         <ComposerStackListRow
           title={row.name}
-          leading={<LayoutList size={14} className="shrink-0 text-primary-6" />}
+          leading={
+            <HugeiconsIcon
+              icon={LayoutList}
+              size={14}
+              className="shrink-0 text-primary-6"
+            />
+          }
           primary={row.name}
           trailing={trailing}
         />
@@ -223,9 +248,17 @@ const LspStatusOutput: React.FC<{ data: LspStatusOutputData }> = ({ data }) => (
       const running = data.running === true;
       const leading = isRunningRow ? (
         running ? (
-          <CheckCircle size={14} className="shrink-0 text-success-6" />
+          <HugeiconsIcon
+            icon={CheckCircle}
+            size={14}
+            className="shrink-0 text-success-6"
+          />
         ) : (
-          <Circle size={14} className="shrink-0 text-text-4" />
+          <HugeiconsIcon
+            icon={Circle}
+            size={14}
+            className="shrink-0 text-text-4"
+          />
         )
       ) : null;
 
@@ -277,7 +310,7 @@ const SearchFilesOutput: React.FC<{ files: string[]; repoPath?: string }> = ({
 
 const SearchNoResultOutput: React.FC<{ message: string }> = ({ message }) => (
   <div className="flex items-center justify-center gap-2 px-3 py-3">
-    <SearchX size={13} className="text-text-4" />
+    <HugeiconsIcon icon={SearchX} size={13} className="text-text-4" />
     <span className="chat-block-content text-text-3">{message}</span>
   </div>
 );

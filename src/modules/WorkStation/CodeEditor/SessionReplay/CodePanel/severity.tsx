@@ -7,7 +7,10 @@
  * the rest of the user-facing LSP/lint surface — see `.archive/README.md`. They
  * are inlined here because this rendering is unrelated to LSP diagnostics.
  */
-import { AlertCircle, AlertTriangle, Info } from "lucide-react";
+import AlertTriangle from "@hugeicons/core-free-icons/Alert01Icon";
+import AlertCircle from "@hugeicons/core-free-icons/AlertCircleIcon";
+import Info from "@hugeicons/core-free-icons/InformationCircleIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 export type DiagnosticSeverity = "error" | "warning" | "info" | "hint";
@@ -18,7 +21,8 @@ export function getSeverityIcon(severity: DiagnosticSeverity): React.ReactNode {
   switch (severity) {
     case "error":
       return (
-        <AlertCircle
+        <HugeiconsIcon
+          icon={AlertCircle}
           size={iconSize}
           strokeWidth={stroke}
           className="text-danger-6"
@@ -26,7 +30,8 @@ export function getSeverityIcon(severity: DiagnosticSeverity): React.ReactNode {
       );
     case "warning":
       return (
-        <AlertTriangle
+        <HugeiconsIcon
+          icon={AlertTriangle}
           size={iconSize}
           strokeWidth={stroke}
           className="text-warning-6"
@@ -35,7 +40,12 @@ export function getSeverityIcon(severity: DiagnosticSeverity): React.ReactNode {
     case "info":
     case "hint":
       return (
-        <Info size={iconSize} strokeWidth={stroke} className="text-text-3" />
+        <HugeiconsIcon
+          icon={Info}
+          size={iconSize}
+          strokeWidth={stroke}
+          className="text-text-3"
+        />
       );
   }
 }

@@ -3,7 +3,12 @@
  *
  * Uses the same SettingsTable + expandable pattern as LanguageServersTable.
  */
-import { Check, Clipboard, Puzzle, Server, Zap } from "lucide-react";
+import Clipboard from "@hugeicons/core-free-icons/ClipboardIcon";
+import Zap from "@hugeicons/core-free-icons/FlashIcon";
+import Puzzle from "@hugeicons/core-free-icons/PuzzleIcon";
+import Server from "@hugeicons/core-free-icons/ServerStack01Icon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -53,7 +58,7 @@ const PluginLogoCell: React.FC<{
   }
   return (
     <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-fill-3">
-      <Puzzle size={13} className="text-text-3" />
+      <HugeiconsIcon icon={Puzzle} size={13} className="text-text-3" />
     </div>
   );
 };
@@ -90,7 +95,11 @@ const CopyAllButton: React.FC<{ plugins: CursorPluginInfo[] }> = ({
         onClick={handleCopy}
         className="inline-flex items-center gap-1.5 rounded px-2 py-1.5 text-[12px] text-text-3 transition-colors hover:bg-fill-2 hover:text-text-1"
       >
-        {copied ? <Check size={12} /> : <Clipboard size={12} />}
+        {copied ? (
+          <HugeiconsIcon icon={Check} size={12} />
+        ) : (
+          <HugeiconsIcon icon={Clipboard} size={12} />
+        )}
         {copied ? t("common:status.copied") : t("cursorPlugins.copyAllMcp")}
       </button>
     </div>
@@ -180,7 +189,11 @@ const CursorPluginsTab: React.FC = () => {
         align: "center",
         renderCell: (plugin) =>
           plugin.mcpConfig ? (
-            <Server size={13} className="mx-auto text-text-3" />
+            <HugeiconsIcon
+              icon={Server}
+              size={13}
+              className="mx-auto text-text-3"
+            />
           ) : null,
       },
       {
@@ -192,7 +205,7 @@ const CursorPluginsTab: React.FC = () => {
         renderCell: (plugin) =>
           plugin.skills.length > 0 ? (
             <span className="inline-flex items-center justify-center gap-1 whitespace-nowrap text-[12px] text-text-3">
-              <Zap size={11} />
+              <HugeiconsIcon icon={Zap} size={11} />
               {plugin.skills.length}
             </span>
           ) : null,
@@ -204,7 +217,11 @@ const CursorPluginsTab: React.FC = () => {
         align: "center",
         renderCell: (plugin) =>
           plugin.hooks.length > 0 ? (
-            <Puzzle size={13} className="mx-auto text-text-3" />
+            <HugeiconsIcon
+              icon={Puzzle}
+              size={13}
+              className="mx-auto text-text-3"
+            />
           ) : null,
       },
     ],

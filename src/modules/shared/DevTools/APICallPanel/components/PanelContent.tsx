@@ -1,7 +1,10 @@
 // ============================================
 // PanelContent Component
 // ============================================
-import { ChevronDown, ChevronRight, ChevronsUpDown } from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ChevronsUpDown from "@hugeicons/core-free-icons/ArrowUpDownIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo, useState } from "react";
 import { Virtuoso } from "react-virtuoso";
 
@@ -410,7 +413,11 @@ const ApiCallRow: React.FC<ApiCallRowProps> = ({
         aria-expanded={expanded}
         onClick={onToggle}
       >
-        {expanded ? <ChevronDown size={13} /> : <ChevronRight size={13} />}
+        {expanded ? (
+          <HugeiconsIcon icon={ChevronDown} size={13} />
+        ) : (
+          <HugeiconsIcon icon={ChevronRight} size={13} />
+        )}
       </button>
       <span className="truncate px-2 text-[11px] text-text-2">
         {call.method}
@@ -470,7 +477,8 @@ const SortHeader: React.FC<SortHeaderProps> = ({
     onClick={() => onSort(column)}
   >
     <span className="truncate">{label}</span>
-    <ChevronsUpDown
+    <HugeiconsIcon
+      icon={ChevronsUpDown}
       size={11}
       className={sort?.key === column ? "text-primary-6" : "opacity-50"}
       aria-hidden

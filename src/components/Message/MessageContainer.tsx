@@ -3,14 +3,13 @@
  * (and lucide icons) load lazily on the first toast instead of sitting in
  * the startup graph of every module that imports the `Message` API.
  */
+import AlertTriangle from "@hugeicons/core-free-icons/Alert01Icon";
+import AlertCircle from "@hugeicons/core-free-icons/AlertCircleIcon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import Info from "@hugeicons/core-free-icons/InformationCircleIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  AlertCircle,
-  AlertTriangle,
-  CheckCircle2,
-  Info,
-  X,
-} from "lucide-react";
 import type { FC } from "react";
 import { useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
@@ -207,7 +206,7 @@ const MessageItem = ({
           onClick={handleClose}
           aria-label={t("actions.close")}
         >
-          <X size={14} />
+          <HugeiconsIcon icon={X} size={14} />
         </button>
       )}
     </motion.div>

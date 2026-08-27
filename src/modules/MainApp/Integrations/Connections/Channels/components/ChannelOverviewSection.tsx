@@ -4,7 +4,8 @@
  * Displays channel overview info using the shared InfoCard pattern.
  * Shows type, account ID, live connection status, and last probe result.
  */
-import { ChevronsLeftRightEllipsis } from "lucide-react";
+import ChevronsLeftRightEllipsis from "@hugeicons/core-free-icons/ChevronsLeftRightEllipsisIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -63,7 +64,11 @@ const ChannelOverviewSection: React.FC<ChannelOverviewSectionProps> = ({
           label: t("common:common.status"),
           value: (
             <span className="flex items-center gap-1.5">
-              <ChevronsLeftRightEllipsis size={16} className={colorClass} />
+              <HugeiconsIcon
+                icon={ChevronsLeftRightEllipsis}
+                size={16}
+                className={colorClass}
+              />
               <span className={colorClass}>
                 {t(STATUS_I18N_KEY[connectionStatus])}
               </span>

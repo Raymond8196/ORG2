@@ -19,13 +19,12 @@
  *   - `useModelTableColumns`        → flat + group `SettingsTableColumn` defs.
  *   - `useModelGroupExpandable`     → expandable per-row cells in group view.
  */
-import {
-  List,
-  ListChevronsDownUp,
-  ListChevronsUpDown,
-  Plus,
-  TableProperties,
-} from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import ListChevronsDownUp from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
+import ListChevronsUpDown from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
+import List from "@hugeicons/core-free-icons/ListViewIcon";
+import TableProperties from "@hugeicons/core-free-icons/TablePropertiesIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -312,9 +311,9 @@ const ModelTable: React.FC<ModelTableProps> = ({
         }
         icon={
           viewMode === "flat" ? (
-            <TableProperties size={14} />
+            <HugeiconsIcon icon={TableProperties} size={14} />
           ) : (
-            <List size={14} />
+            <HugeiconsIcon icon={List} size={14} />
           )
         }
         title={
@@ -352,9 +351,9 @@ const ModelTable: React.FC<ModelTableProps> = ({
         }}
         icon={
           someGroupExpanded ? (
-            <ListChevronsDownUp size={16} />
+            <HugeiconsIcon icon={ListChevronsDownUp} size={16} />
           ) : (
-            <ListChevronsUpDown size={16} />
+            <HugeiconsIcon icon={ListChevronsUpDown} size={16} />
           )
         }
         title={
@@ -413,7 +412,7 @@ const ModelTable: React.FC<ModelTableProps> = ({
         <Button
           variant="tertiary"
           size="default"
-          icon={<Plus size={14} />}
+          icon={<HugeiconsIcon icon={Plus} size={14} />}
           onClick={handleAddModel}
           className="text-text-3 hover:text-text-1"
         >

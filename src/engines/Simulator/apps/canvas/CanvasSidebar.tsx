@@ -4,7 +4,8 @@
  * Lists every render_inline_canvas event with its title and timestamp, and
  * carries the per-row compare toggle that drives the side-by-side diff view.
  */
-import { Layout } from "lucide-react";
+import Layout from "@hugeicons/core-free-icons/Layout01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 
 import { Placeholder } from "@src/components/Placeholder";
@@ -55,7 +56,8 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
         onClick={onSelect}
         className="flex min-w-0 flex-1 items-start gap-1.5 text-left"
       >
-        <Layout
+        <HugeiconsIcon
+          icon={Layout}
           size={12}
           className={[
             "mt-0.5 shrink-0",

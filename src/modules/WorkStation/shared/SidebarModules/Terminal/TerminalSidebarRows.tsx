@@ -1,5 +1,8 @@
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import Infinity from "@hugeicons/core-free-icons/Infinity01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
-import { Infinity, Terminal, X } from "lucide-react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -31,12 +34,13 @@ export const AgentSessionRow: React.FC<AgentSessionRowProps> = memo(
       name: title,
       path: title,
       type: "file",
-      icon: <Terminal size={14} strokeWidth={1.75} />,
+      icon: <HugeiconsIcon icon={Terminal} size={14} strokeWidth={1.75} />,
     };
 
     return (
       <TreeRowBase node={node} depth={0} isSelected={isActive} onClick={onOpen}>
-        <Infinity
+        <HugeiconsIcon
+          icon={Infinity}
           size={14}
           strokeWidth={1.75}
           className="shrink-0 text-primary-6 group-hover/item:hidden"
@@ -69,7 +73,7 @@ export const PtySessionRow: React.FC<PtySessionRowProps> = memo(
       name: title,
       path: session.id,
       type: "file",
-      icon: <Terminal size={14} strokeWidth={1.75} />,
+      icon: <HugeiconsIcon icon={Terminal} size={14} strokeWidth={1.75} />,
     };
 
     return (

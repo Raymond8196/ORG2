@@ -1,6 +1,8 @@
-import type { LucideIcon } from "lucide-react";
+import { type IconSvgElement } from "@hugeicons/react";
 
 import type { WorktreeLaunchSource } from "@src/store/session/worktreeLaunchSourceAtom";
+
+type LucideIcon = IconSvgElement;
 
 export type WorktreeSourcePickerMode = "branch" | "pr";
 

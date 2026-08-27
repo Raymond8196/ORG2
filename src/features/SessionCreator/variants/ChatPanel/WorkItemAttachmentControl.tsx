@@ -1,4 +1,7 @@
-import { Link2, ListTodo, X } from "lucide-react";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import ListTodo from "@hugeicons/core-free-icons/CheckListIcon";
+import Link2 from "@hugeicons/core-free-icons/Link02Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
   useEffect,
@@ -303,7 +306,7 @@ const WorkItemAttachmentControl: React.FC<WorkItemAttachmentControlProps> = ({
         action={{
           id: "solve-work-item",
           title: triggerLabel,
-          icon: <ListTodo size={16} strokeWidth={1.8} />,
+          icon: <HugeiconsIcon icon={ListTodo} size={16} strokeWidth={1.8} />,
           onClick: handleOpenPicker,
           tone: "neutral",
         }}
@@ -316,7 +319,7 @@ const WorkItemAttachmentControl: React.FC<WorkItemAttachmentControlProps> = ({
         appearance="outline"
         size="small"
         shape="round"
-        icon={<ListTodo size={14} strokeWidth={1.75} />}
+        icon={<HugeiconsIcon icon={ListTodo} size={14} strokeWidth={1.75} />}
         aria-expanded={onCreateWorkItem && !solveMode ? undefined : isOpen}
         aria-haspopup={onCreateWorkItem && !solveMode ? undefined : "dialog"}
         onClick={solveMode ? handleOpenPicker : (onCreateWorkItem ?? toggle)}
@@ -362,7 +365,8 @@ const WorkItemAttachmentControl: React.FC<WorkItemAttachmentControlProps> = ({
                     role="menuitem"
                     onClick={handleRemoveWorkItem}
                   >
-                    <X
+                    <HugeiconsIcon
+                      icon={X}
                       size={DROPDOWN_ITEM.iconSize}
                       strokeWidth={1.75}
                       className="text-text-2"
@@ -379,7 +383,8 @@ const WorkItemAttachmentControl: React.FC<WorkItemAttachmentControlProps> = ({
                   role="menuitem"
                   onClick={handleLinkWorkItem}
                 >
-                  <Link2
+                  <HugeiconsIcon
+                    icon={Link2}
                     size={DROPDOWN_ITEM.iconSize}
                     strokeWidth={1.75}
                     className="text-text-2"

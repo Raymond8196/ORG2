@@ -7,15 +7,14 @@
  * retry/discard handlers. See the `SyncSection` file for the parent
  * orchestration.
  */
-import {
-  ChevronDown,
-  ChevronRight,
-  FileText,
-  Folder,
-  Milestone as MilestoneIcon,
-  Tag,
-  User,
-} from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import FileText from "@hugeicons/core-free-icons/File02Icon";
+import Folder from "@hugeicons/core-free-icons/Folder01Icon";
+import MilestoneIcon from "@hugeicons/core-free-icons/RoadLocation01Icon";
+import Tag from "@hugeicons/core-free-icons/Tag01Icon";
+import User from "@hugeicons/core-free-icons/UserIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -44,15 +43,33 @@ const ENTITY_ICON_CLASS = "mt-0.5 flex-none text-text-3";
 const EntityIcon: React.FC<{ entityType: EntityType }> = ({ entityType }) => {
   switch (entityType) {
     case "work_item":
-      return <FileText size={16} className={ENTITY_ICON_CLASS} />;
+      return (
+        <HugeiconsIcon
+          icon={FileText}
+          size={16}
+          className={ENTITY_ICON_CLASS}
+        />
+      );
     case "label":
-      return <Tag size={16} className={ENTITY_ICON_CLASS} />;
+      return (
+        <HugeiconsIcon icon={Tag} size={16} className={ENTITY_ICON_CLASS} />
+      );
     case "milestone":
-      return <MilestoneIcon size={16} className={ENTITY_ICON_CLASS} />;
+      return (
+        <HugeiconsIcon
+          icon={MilestoneIcon}
+          size={16}
+          className={ENTITY_ICON_CLASS}
+        />
+      );
     case "member":
-      return <User size={16} className={ENTITY_ICON_CLASS} />;
+      return (
+        <HugeiconsIcon icon={User} size={16} className={ENTITY_ICON_CLASS} />
+      );
     case "project":
-      return <Folder size={16} className={ENTITY_ICON_CLASS} />;
+      return (
+        <HugeiconsIcon icon={Folder} size={16} className={ENTITY_ICON_CLASS} />
+      );
   }
 };
 
@@ -259,7 +276,11 @@ const ProblemRow: React.FC<ProblemRowProps> = ({
         onClick={() => setShowPayload((prev) => !prev)}
         className="flex items-center gap-1 self-start text-[12px] text-text-3 hover:text-text-2"
       >
-        {showPayload ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+        {showPayload ? (
+          <HugeiconsIcon icon={ChevronDown} size={12} />
+        ) : (
+          <HugeiconsIcon icon={ChevronRight} size={12} />
+        )}
         <span>
           {showPayload
             ? t("settings.sync.problems.hidePayload")

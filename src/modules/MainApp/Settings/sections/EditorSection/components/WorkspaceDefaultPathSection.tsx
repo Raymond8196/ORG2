@@ -1,6 +1,7 @@
+import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useAtom } from "jotai";
-import { FolderOpen } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -126,7 +127,7 @@ const WorkspaceDefaultPathSection: React.FC = () => {
               variant="secondary"
               size="default"
               iconOnly
-              icon={<FolderOpen size={16} />}
+              icon={<HugeiconsIcon icon={FolderOpen} size={16} />}
               title={t("editor.defaultRepoFolderChoose")}
               aria-label={t("editor.defaultRepoFolderChoose")}
               onClick={handleChooseCustomPath}

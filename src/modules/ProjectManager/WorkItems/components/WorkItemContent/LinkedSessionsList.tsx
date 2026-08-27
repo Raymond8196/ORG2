@@ -4,7 +4,8 @@
  * Table of the agent sessions linked to a Work Item, plus the creation
  * session that produced it. Prop-only; no Work Item state is read here.
  */
-import { RotateCcw } from "lucide-react";
+import RotateCcw from "@hugeicons/core-free-icons/RotateLeft01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -133,7 +134,7 @@ export const LinkedSessionsList: React.FC<LinkedSessionsListProps> = ({
               })}
               data-testid={`work-item-session-retry-${session.session_id}`}
             >
-              <RotateCcw size={12} />
+              <HugeiconsIcon icon={RotateCcw} size={12} />
               {t("workItems.sessions.retry", { defaultValue: "Retry" })}
             </button>
           ) : undefined,

@@ -14,23 +14,21 @@
  * - `EDITOR_ACTIONS`           — editor palette modes (file / command / symbol).
  * - `QUICK_NAVIGATION_ACTIONS` — work-station tab switchers (terminal, SCM).
  */
-import {
-  Box,
-  Columns3,
-  Dock,
-  DraftingCompass,
-  FolderPlus,
-  FolderTree,
-  GitBranch,
-  GitPullRequest,
-  Play,
-  RefreshCw,
-  Search,
-  Sparkles,
-  SquarePen,
-  SquareTerminal,
-  createLucideIcon,
-} from "lucide-react";
+import Dock from "@hugeicons/core-free-icons/DockIcon";
+import DraftingCompass from "@hugeicons/core-free-icons/DraftingCompassIcon";
+import FolderPlus from "@hugeicons/core-free-icons/FolderAddIcon";
+import FolderTree from "@hugeicons/core-free-icons/FolderTreeIcon";
+import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
+import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import Columns3 from "@hugeicons/core-free-icons/LayoutThreeColumnIcon";
+import Box from "@hugeicons/core-free-icons/PackageIcon";
+import SquarePen from "@hugeicons/core-free-icons/Pen01Icon";
+import Play from "@hugeicons/core-free-icons/PlayIcon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import Sparkles from "@hugeicons/core-free-icons/SparklesIcon";
+import SquareTerminal from "@hugeicons/core-free-icons/SquareTerminalIcon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 
 import { ACTION_ID } from "@src/ActionSystem";
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
@@ -44,11 +42,29 @@ import type {
 // Static action tables
 // ============================================
 
-export const ALL_SESSIONS_SEARCH_ICON = createLucideIcon("database-search", [
+/**
+ * Custom "database-search" glyph — no equivalent exists in the hugeicons free
+ * set, so the original path data is kept verbatim.
+ *
+ * Previously built with lucide's `createLucideIcon`, which injected the stroke
+ * presentation attributes for us. `HugeiconsIcon` does not: it only overrides
+ * stroke when a `strokeWidth` prop is passed, and otherwise renders each entry
+ * exactly as written. The attributes below are therefore spelled out per path
+ * to match what hugeicons' own icon modules carry.
+ */
+const STROKE = {
+  stroke: "currentColor",
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
+  strokeWidth: "1.5",
+} as const;
+
+export const ALL_SESSIONS_SEARCH_ICON: IconSvgElement = [
   [
     "path",
     {
       d: "M4 6c0 1.657 3.582 3 8 3s8-1.343 8-3s-3.582-3-8-3s-8 1.343-8 3",
+      ...STROKE,
       key: "database-top",
     },
   ],
@@ -56,13 +72,17 @@ export const ALL_SESSIONS_SEARCH_ICON = createLucideIcon("database-search", [
     "path",
     {
       d: "M4 6v6c0 1.657 3.582 3 8 3m8-3.5V6",
+      ...STROKE,
       key: "database-middle",
     },
   ],
-  ["path", { d: "M4 12v6c0 1.657 3.582 3 8 3", key: "database-bottom" }],
-  ["circle", { cx: "18", cy: "18", r: "3", key: "search-lens" }],
-  ["path", { d: "m20.2 20.2 1.8 1.8", key: "search-handle" }],
-]);
+  [
+    "path",
+    { d: "M4 12v6c0 1.657 3.582 3 8 3", ...STROKE, key: "database-bottom" },
+  ],
+  ["circle", { cx: "18", cy: "18", r: "3", ...STROKE, key: "search-lens" }],
+  ["path", { d: "m20.2 20.2 1.8 1.8", ...STROKE, key: "search-handle" }],
+];
 
 export const AGENT_SESSION_ACTIONS = [
   {

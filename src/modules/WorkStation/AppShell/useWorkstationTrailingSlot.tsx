@@ -7,14 +7,13 @@
  * Project trailing bar) from the
  * main tab-bar component.
  */
+import MessageCircle from "@hugeicons/core-free-icons/BubbleChatIcon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Maximize2 from "@hugeicons/core-free-icons/Maximize02Icon";
+import Minimize2 from "@hugeicons/core-free-icons/Minimize02Icon";
+import PanelRight from "@hugeicons/core-free-icons/PanelRightIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
-import {
-  Maximize2,
-  MessageCircle,
-  Minimize2,
-  PanelRight,
-  X,
-} from "lucide-react";
 import { type ReactNode, startTransition, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
@@ -96,9 +95,9 @@ export function useWorkstationTrailingSlot({
         onClick={handleToggleChatPanel}
       >
         {isChatPanelVisible ? (
-          <Maximize2 size={14} strokeWidth={2} />
+          <HugeiconsIcon icon={Maximize2} size={14} strokeWidth={2} />
         ) : (
-          <MessageCircle size={14} strokeWidth={2} />
+          <HugeiconsIcon icon={MessageCircle} size={14} strokeWidth={2} />
         )}
       </TabBarTrailingIconButton>
     );
@@ -112,9 +111,17 @@ export function useWorkstationTrailingSlot({
           onClick={handleToggleChatPanelMaximized}
         >
           {workStationChatPosition === "left" ? (
-            <PanelRight size={HEADER_ICON_SIZE.md} strokeWidth={2} />
+            <HugeiconsIcon
+              icon={PanelRight}
+              size={HEADER_ICON_SIZE.md}
+              strokeWidth={2}
+            />
           ) : (
-            <X size={HEADER_ICON_SIZE.md} strokeWidth={1.75} />
+            <HugeiconsIcon
+              icon={X}
+              size={HEADER_ICON_SIZE.md}
+              strokeWidth={1.75}
+            />
           )}
         </TabBarTrailingIconButton>
       ) : null;
@@ -126,7 +133,7 @@ export function useWorkstationTrailingSlot({
           shortcutId="maximize_work_station"
           onClick={handleToggleChatPanel}
         >
-          <Minimize2 size={14} strokeWidth={2} />
+          <HugeiconsIcon icon={Minimize2} size={14} strokeWidth={2} />
         </TabBarTrailingIconButton>
       );
 
@@ -142,7 +149,7 @@ export function useWorkstationTrailingSlot({
         shortcutId="maximize_chat"
         onClick={handleToggleChatPanelMaximized}
       >
-        <X size={14} strokeWidth={2} />
+        <HugeiconsIcon icon={X} size={14} strokeWidth={2} />
       </TabBarTrailingIconButton>
     ) : null;
 

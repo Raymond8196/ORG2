@@ -7,7 +7,12 @@
  * 2. Native OAuth token is captured automatically.
  * 3. Browser collapses back into the wizard.
  */
-import { AlertCircle, CheckCircle, Loader2, RefreshCw, X } from "lucide-react";
+import AlertCircle from "@hugeicons/core-free-icons/AlertCircleIcon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import CheckCircle from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   type MouseEvent,
   useCallback,
@@ -199,7 +204,8 @@ const CursorSessionSetup: React.FC<CursorSessionSetupProps> = ({
           {sessionToken && (
             <div className="rounded-lg border border-success-3 bg-success-1 px-3 py-2">
               <div className="flex items-start gap-2">
-                <CheckCircle
+                <HugeiconsIcon
+                  icon={CheckCircle}
                   size={15}
                   className="mt-0.5 shrink-0 text-success-6"
                 />
@@ -224,14 +230,14 @@ const CursorSessionSetup: React.FC<CursorSessionSetupProps> = ({
             <Button
               variant="tertiary"
               size="mini"
-              icon={<RefreshCw size={12} />}
+              icon={<HugeiconsIcon icon={RefreshCw} size={12} />}
               iconOnly
               onClick={openLoginBrowser}
             />
             <Button
               variant="tertiary"
               size="mini"
-              icon={<X size={14} />}
+              icon={<HugeiconsIcon icon={X} size={14} />}
               iconOnly
               onClick={handleCloseBrowser}
             />
@@ -263,7 +269,8 @@ const CursorSessionSetup: React.FC<CursorSessionSetupProps> = ({
           >
             {isLoading && (
               <div className="absolute inset-0 flex items-center justify-center bg-bg-1">
-                <Loader2
+                <HugeiconsIcon
+                  icon={Loader2}
                   size={SPINNER_TOKENS.default}
                   className="animate-spin text-primary-6"
                 />
@@ -274,7 +281,11 @@ const CursorSessionSetup: React.FC<CursorSessionSetupProps> = ({
             )}
             {error && (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-bg-1 p-6 text-center">
-                <AlertCircle size={32} className="mb-3 text-danger-6" />
+                <HugeiconsIcon
+                  icon={AlertCircle}
+                  size={32}
+                  className="mb-3 text-danger-6"
+                />
                 <div className="mb-2 text-[14px] text-text-2">
                   {t("keyVault.failedToLoadBrowser")}
                 </div>

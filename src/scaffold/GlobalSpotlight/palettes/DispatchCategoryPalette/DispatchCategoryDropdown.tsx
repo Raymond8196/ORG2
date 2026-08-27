@@ -9,7 +9,9 @@
  * The active variant is selected by the `general.modelPickerStyle`
  * setting and dispatched from the caller (e.g. SessionCreator).
  */
-import { Check, Search } from "lucide-react";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
   useEffect,
@@ -60,7 +62,8 @@ const DropdownRow: React.FC<DropdownRowProps> = ({ item, keyboardProps }) => {
   const renderedIcon = useMemo(() => {
     if (isCurrent) {
       return (
-        <Check
+        <HugeiconsIcon
+          icon={Check}
           size={DROPDOWN_ITEM.iconSize}
           strokeWidth={2.25}
           className="text-primary-6"
@@ -234,7 +237,8 @@ export const DispatchCategoryDropdown: React.FC<
       }}
     >
       <div className={DROPDOWN_CLASSES.searchContainer}>
-        <Search
+        <HugeiconsIcon
+          icon={Search}
           size={DROPDOWN_ITEM.iconSize}
           className="shrink-0 text-text-3"
         />

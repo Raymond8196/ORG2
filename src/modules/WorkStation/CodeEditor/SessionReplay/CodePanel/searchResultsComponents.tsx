@@ -4,7 +4,10 @@
  * Shared UI sub-components for SearchResultsContent.
  * Extracted to keep the main component file under 600 lines.
  */
-import { File, FolderOpen, Search } from "lucide-react";
+import File from "@hugeicons/core-free-icons/File01Icon";
+import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import FileTypeIcon from "@src/components/FileTypeIcon";
@@ -103,7 +106,10 @@ export function SearchSummaryHeader({
       className={`flex w-full min-w-0 flex-col gap-2 px-3 py-2 ${countLabel ? "border-b border-border-2" : ""}`}
     >
       <div className="flex h-9 min-w-0 items-center gap-2 rounded-full border border-border-2 bg-workstation-bg px-3 shadow-sm">
-        <HeaderPrimarySegment icon={<Search size={14} />} label={toolLabel} />
+        <HeaderPrimarySegment
+          icon={<HugeiconsIcon icon={Search} size={14} />}
+          label={toolLabel}
+        />
         <HeaderSeparator />
         {keywords.length > 0 ? (
           <div className="flex min-w-0 flex-1 flex-nowrap items-center gap-1.5 overflow-x-auto scrollbar-hide">
@@ -141,7 +147,7 @@ export function DirectorySummaryHeader({
     >
       <div className="flex h-9 min-w-0 items-center gap-2 rounded-full border border-border-2 bg-workstation-bg px-3 shadow-sm">
         <HeaderPrimarySegment
-          icon={<FolderOpen size={14} />}
+          icon={<HugeiconsIcon icon={FolderOpen} size={14} />}
           label="List directory"
         />
         <HeaderSeparator />
@@ -171,7 +177,10 @@ export function LspSummaryHeader({
   return (
     <div className="flex w-full min-w-0 flex-col gap-2 border-b border-border-2 px-3 py-2">
       <div className="flex h-9 min-w-0 items-center gap-2 rounded-full border border-border-2 bg-workstation-bg px-3 shadow-sm">
-        <HeaderPrimarySegment icon={<File size={14} />} label="LSP" />
+        <HeaderPrimarySegment
+          icon={<HugeiconsIcon icon={File} size={14} />}
+          label="LSP"
+        />
         <HeaderSeparator />
         {filePath ? (
           <BreadcrumbFileHeader

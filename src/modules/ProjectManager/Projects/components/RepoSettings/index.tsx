@@ -8,7 +8,10 @@
  * - Members: manage repo-wide active/inactive team members
  * - Labels: add/edit/remove repo-wide labels
  */
-import { type LucideIcon, Tags, User, Users } from "lucide-react";
+import Tags from "@hugeicons/core-free-icons/TagsIcon";
+import User from "@hugeicons/core-free-icons/UserIcon";
+import Users from "@hugeicons/core-free-icons/UserMultipleIcon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -26,6 +29,8 @@ import {
   MyProfileSection,
 } from "../../../WorkItems/components/WorkItemsSettings/subpages";
 import { RepoMembersSection } from "./sections";
+
+type LucideIcon = IconSvgElement;
 
 // ============================================
 // Types

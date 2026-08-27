@@ -1,10 +1,9 @@
-import {
-  Boxes,
-  CircleDot,
-  GitPullRequest,
-  ListTodo,
-  PlayCircle,
-} from "lucide-react";
+import ListTodo from "@hugeicons/core-free-icons/CheckListIcon";
+import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
+import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import Boxes from "@hugeicons/core-free-icons/Package01Icon";
+import PlayCircle from "@hugeicons/core-free-icons/PlayCircleIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
 import {

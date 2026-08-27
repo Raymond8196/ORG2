@@ -1,4 +1,6 @@
-import { Grip, Users } from "lucide-react";
+import Grip from "@hugeicons/core-free-icons/Drag01Icon";
+import Users from "@hugeicons/core-free-icons/UserMultipleIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -309,7 +311,8 @@ const SessionCreatorOrgMembersPanel: React.FC<SessionCreatorOrgMembersPanelProps
                               size={PILL_SM_ICON_SIZE}
                             />
                           ) : (
-                            <Grip
+                            <HugeiconsIcon
+                              icon={Grip}
                               size={PILL_SM_ICON_SIZE}
                               strokeWidth={1.75}
                               className="text-primary-6"

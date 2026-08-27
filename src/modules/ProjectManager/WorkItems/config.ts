@@ -3,21 +3,20 @@
  *
  * Re-exports from centralized config and additional WorkItem-specific configs.
  */
-import {
-  BookOpen,
-  Calendar,
-  Circle,
-  CircleDot,
-  Diamond,
-  Flag,
-  ListChevronsUpDown,
-  Pencil,
-  SignalHigh,
-  Tag,
-  Trash2,
-  User,
-  Users,
-} from "lucide-react";
+import BookOpen from "@hugeicons/core-free-icons/BookOpen01Icon";
+import Calendar from "@hugeicons/core-free-icons/Calendar01Icon";
+import Circle from "@hugeicons/core-free-icons/CircleIcon";
+import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import Diamond from "@hugeicons/core-free-icons/DiamondIcon";
+import Flag from "@hugeicons/core-free-icons/Flag01Icon";
+import ListChevronsUpDown from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
+import Pencil from "@hugeicons/core-free-icons/PencilIcon";
+import SignalHigh from "@hugeicons/core-free-icons/SignalFull01Icon";
+import Tag from "@hugeicons/core-free-icons/Tag01Icon";
+import User from "@hugeicons/core-free-icons/UserIcon";
+import Users from "@hugeicons/core-free-icons/UserMultipleIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import { DROPDOWN_ITEM } from "@src/components/Dropdown/tokens";

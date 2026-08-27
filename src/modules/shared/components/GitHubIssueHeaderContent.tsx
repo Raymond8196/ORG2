@@ -1,4 +1,6 @@
-import { CheckCircle2, CircleDot } from "lucide-react";
+import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import type { GitHubIssue } from "@src/api/tauri/github";
@@ -9,8 +11,9 @@ export type GitHubIssueHeader = Pick<GitHubIssue, "state" | "title"> &
   Partial<Pick<GitHubIssue, "number">>;
 
 function IssueStateIcon({ isOpen }: { isOpen: boolean }): React.ReactNode {
-  if (isOpen) return <CircleDot size={14} strokeWidth={1.8} />;
-  return <CheckCircle2 size={14} strokeWidth={1.8} />;
+  if (isOpen)
+    return <HugeiconsIcon icon={CircleDot} size={14} strokeWidth={1.8} />;
+  return <HugeiconsIcon icon={CheckCircle2} size={14} strokeWidth={1.8} />;
 }
 
 function getIssueStateClassName(issue: GitHubIssueHeader): string {

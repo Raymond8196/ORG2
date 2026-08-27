@@ -1,4 +1,7 @@
-import { BookOpen, RefreshCw, SquareArrowOutUpRight } from "lucide-react";
+import BookOpen from "@hugeicons/core-free-icons/BookOpen01Icon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -223,7 +226,7 @@ const CliAgentDetailView: React.FC<CliAgentDetailViewProps> = ({
         renderCell: (_row) => (
           <Button
             variant="tertiary"
-            icon={<SquareArrowOutUpRight size={14} />}
+            icon={<HugeiconsIcon icon={SquareArrowOutUpRight} size={14} />}
             iconOnly
             onClick={openCredentialInIntegrations}
             title={t("common:actions.open")}
@@ -245,7 +248,8 @@ const CliAgentDetailView: React.FC<CliAgentDetailViewProps> = ({
             <Button
               {...PANEL_HEADER_TOKENS.actionButton}
               icon={
-                <RefreshCw
+                <HugeiconsIcon
+                  icon={RefreshCw}
                   size={PANEL_HEADER_TOKENS.buttonIconSize}
                   strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
                   className={detecting ? "animate-spin" : ""}
@@ -259,7 +263,8 @@ const CliAgentDetailView: React.FC<CliAgentDetailViewProps> = ({
               <Button
                 {...PANEL_HEADER_TOKENS.actionButton}
                 icon={
-                  <BookOpen
+                  <HugeiconsIcon
+                    icon={BookOpen}
                     size={PANEL_HEADER_TOKENS.buttonIconSize}
                     strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
                   />

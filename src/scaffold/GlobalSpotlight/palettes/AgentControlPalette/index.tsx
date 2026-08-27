@@ -1,5 +1,6 @@
+import DraftingCompass from "@hugeicons/core-free-icons/DraftingCompassIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { DraftingCompass } from "lucide-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { sendAdeActionResult } from "@src/api/tauri/agent";

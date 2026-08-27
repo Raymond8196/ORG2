@@ -1,7 +1,8 @@
 /**
  * Edit-mode image thumbnail with overlay preview and optional remove (X).
  */
-import { X } from "lucide-react";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useState } from "react";
 
 import ImagePreviewOverlay from "@src/components/ImagePreviewOverlay";
@@ -46,7 +47,7 @@ const EditModeImageThumbnail: React.FC<{
             aria-label={`Remove ${alt}`}
             data-testid="edit-mode-image-remove"
           >
-            <X size={10} strokeWidth={2.5} />
+            <HugeiconsIcon icon={X} size={10} strokeWidth={2.5} />
           </button>
         )}
       </div>

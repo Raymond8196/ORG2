@@ -3,14 +3,13 @@
  *
  * Form for cloning a repo from connected GitHub accounts
  */
-import {
-  Filter,
-  Folder,
-  FolderOpen,
-  Globe,
-  Lock,
-  SquareArrowOutUpRight,
-} from "lucide-react";
+import Filter from "@hugeicons/core-free-icons/FilterIcon";
+import Folder from "@hugeicons/core-free-icons/Folder01Icon";
+import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
+import Globe from "@hugeicons/core-free-icons/GlobeIcon";
+import Lock from "@hugeicons/core-free-icons/LockIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -117,7 +116,13 @@ const CloneGitHubForm: React.FC<CloneGitHubFormProps> = ({
               value={filterText}
               onChange={onFilterTextChange}
               className="h-[32px] rounded-lg bg-fill-1 text-[14px]"
-              prefix={<Filter className="text-[16px] text-text-2" size={16} />}
+              prefix={
+                <HugeiconsIcon
+                  icon={Filter}
+                  className="text-[16px] text-text-2"
+                  size={16}
+                />
+              }
             />
           </div>
 
@@ -146,12 +151,14 @@ const CloneGitHubForm: React.FC<CloneGitHubFormProps> = ({
                         />
                         <div className="flex items-center gap-2">
                           {repo.is_private ? (
-                            <Lock
+                            <HugeiconsIcon
+                              icon={Lock}
                               className="text-[12px] text-text-2"
                               size={12}
                             />
                           ) : (
-                            <Globe
+                            <HugeiconsIcon
+                              icon={Globe}
                               className="text-[12px] text-text-2"
                               size={12}
                             />
@@ -193,7 +200,11 @@ const CloneGitHubForm: React.FC<CloneGitHubFormProps> = ({
                   placeholder={t("cloneForm.parentFolderPlaceholder")}
                   className="h-[32px] rounded-lg bg-fill-1 text-[14px]"
                   prefix={
-                    <Folder className="text-[16px] text-text-2" size={16} />
+                    <HugeiconsIcon
+                      icon={Folder}
+                      className="text-[16px] text-text-2"
+                      size={16}
+                    />
                   }
                 />
               </div>
@@ -201,7 +212,7 @@ const CloneGitHubForm: React.FC<CloneGitHubFormProps> = ({
                 variant="secondary"
                 size="default"
                 iconOnly
-                icon={<FolderOpen size={16} />}
+                icon={<HugeiconsIcon icon={FolderOpen} size={16} />}
                 title={t("cloneForm.chooseFolder")}
                 onClick={async () => {
                   const path = await onChoosePath();
@@ -234,7 +245,7 @@ const CloneGitHubForm: React.FC<CloneGitHubFormProps> = ({
               <Button
                 variant="secondary"
                 size="default"
-                icon={<SquareArrowOutUpRight size={14} />}
+                icon={<HugeiconsIcon icon={SquareArrowOutUpRight} size={14} />}
                 iconPosition="right"
                 onClick={handleGoToSettings}
               >

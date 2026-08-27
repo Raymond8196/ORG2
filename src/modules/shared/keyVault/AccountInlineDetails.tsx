@@ -1,4 +1,6 @@
-import { Check, Copy } from "lucide-react";
+import Copy from "@hugeicons/core-free-icons/Copy01Icon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -354,7 +356,11 @@ export const AccountInlineDetails: React.FC<AccountInlineDetailsProps> = ({
                     onClick={handleCopyApiKey}
                     className={`transition-colors ${apiKeyCopied ? "text-success-6" : "text-text-2 hover:text-text-1"}`}
                   >
-                    {apiKeyCopied ? <Check size={13} /> : <Copy size={13} />}
+                    {apiKeyCopied ? (
+                      <HugeiconsIcon icon={Check} size={13} />
+                    ) : (
+                      <HugeiconsIcon icon={Copy} size={13} />
+                    )}
                   </button>
                 </div>
               </InfoRow>

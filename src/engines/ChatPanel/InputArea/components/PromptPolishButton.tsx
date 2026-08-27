@@ -1,4 +1,6 @@
-import { Loader2, Sparkles } from "lucide-react";
+import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import Sparkles from "@hugeicons/core-free-icons/SparklesIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import {
@@ -50,13 +52,15 @@ const PromptPolishButton: React.FC<PromptPolishButtonProps> = memo(
         }}
       >
         {control.isPolishing ? (
-          <Loader2
+          <HugeiconsIcon
+            icon={Loader2}
             size={INPUT_AREA_BUTTONS.iconSize}
             strokeWidth={2}
             className="block animate-spin"
           />
         ) : (
-          <Sparkles
+          <HugeiconsIcon
+            icon={Sparkles}
             size={INPUT_AREA_BUTTONS.iconSize}
             strokeWidth={2}
             className="block"

@@ -1,4 +1,6 @@
-import { Building2, Users } from "lucide-react";
+import Building2 from "@hugeicons/core-free-icons/Building02Icon";
+import Users from "@hugeicons/core-free-icons/UserMultipleIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   memo,
   useCallback,
@@ -144,7 +146,13 @@ export const TeamsTreeContent: React.FC<TeamsTreeContentProps> = memo(
           path: LOCAL_TEAMS_ROOT_ID,
           type: "directory",
           expanded: localTeamsExpanded,
-          icon: <Users size={ROW_ICON_SIZE} strokeWidth={ROW_ICON_STROKE} />,
+          icon: (
+            <HugeiconsIcon
+              icon={Users}
+              size={ROW_ICON_SIZE}
+              strokeWidth={ROW_ICON_STROKE}
+            />
+          ),
           kind: "local-teams-root",
         },
       });
@@ -159,7 +167,11 @@ export const TeamsTreeContent: React.FC<TeamsTreeContentProps> = memo(
               path: team.id,
               type: "file",
               icon: (
-                <Building2 size={ROW_ICON_SIZE} strokeWidth={ROW_ICON_STROKE} />
+                <HugeiconsIcon
+                  icon={Building2}
+                  size={ROW_ICON_SIZE}
+                  strokeWidth={ROW_ICON_STROKE}
+                />
               ),
               kind: "local-team",
             },
@@ -175,7 +187,13 @@ export const TeamsTreeContent: React.FC<TeamsTreeContentProps> = memo(
           path: LINEAR_TEAMS_ROOT_ID,
           type: "directory",
           expanded: linearTeamsExpanded,
-          icon: <Users size={ROW_ICON_SIZE} strokeWidth={ROW_ICON_STROKE} />,
+          icon: (
+            <HugeiconsIcon
+              icon={Users}
+              size={ROW_ICON_SIZE}
+              strokeWidth={ROW_ICON_STROKE}
+            />
+          ),
           kind: "linear-teams-root",
         },
       });
@@ -234,7 +252,8 @@ export const TeamsTreeContent: React.FC<TeamsTreeContentProps> = memo(
                 path: `teams:linear:${record.connection.id}:${team.id}`,
                 type: "file",
                 icon: (
-                  <Building2
+                  <HugeiconsIcon
+                    icon={Building2}
                     size={ROW_ICON_SIZE}
                     strokeWidth={ROW_ICON_STROKE}
                   />

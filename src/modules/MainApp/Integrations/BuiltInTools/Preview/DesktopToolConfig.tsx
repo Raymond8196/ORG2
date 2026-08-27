@@ -12,16 +12,15 @@
  * Permissions are checked natively (no external CLI required) — only the
  * parts the user can act on (granting OS permissions) are shown.
  */
+import Download from "@hugeicons/core-free-icons/Download01Icon";
+import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { ask } from "@tauri-apps/plugin-dialog";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { open as shellOpen } from "@tauri-apps/plugin-shell";
 import { useAtomValue, useSetAtom } from "jotai";
-import {
-  Download,
-  Loader2,
-  RefreshCw,
-  SquareArrowOutUpRight,
-} from "lucide-react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -298,7 +297,11 @@ const SidecarDownloadsConfig: React.FC = () => {
         let statusContent: React.ReactNode;
         if (loading && !status) {
           statusContent = (
-            <Loader2 size={14} className="animate-spin text-text-3" />
+            <HugeiconsIcon
+              icon={Loader2}
+              size={14}
+              className="animate-spin text-text-3"
+            />
           );
         } else if (unsupported) {
           statusContent = (
@@ -332,9 +335,13 @@ const SidecarDownloadsConfig: React.FC = () => {
                 size="default"
                 icon={
                   isInstalling ? (
-                    <Loader2 size={14} className="animate-spin" />
+                    <HugeiconsIcon
+                      icon={Loader2}
+                      size={14}
+                      className="animate-spin"
+                    />
                   ) : (
-                    <Download size={14} />
+                    <HugeiconsIcon icon={Download} size={14} />
                   )
                 }
                 disabled={loading || unsupported || installed || isInstalling}
@@ -355,7 +362,9 @@ const SidecarDownloadsConfig: React.FC = () => {
       >
         <Button
           size="default"
-          icon={<RefreshCw size={14} className={spinClass} />}
+          icon={
+            <HugeiconsIcon icon={RefreshCw} size={14} className={spinClass} />
+          }
           onClick={handleRefreshClick}
           disabled={installing !== null}
         >
@@ -486,7 +495,11 @@ const ComputerUseConfig: React.FC = () => {
           let statusContent: React.ReactNode;
           if (isLoading) {
             statusContent = (
-              <Loader2 size={14} className="animate-spin text-text-3" />
+              <HugeiconsIcon
+                icon={Loader2}
+                size={14}
+                className="animate-spin text-text-3"
+              />
             );
           } else if (fetchError !== null) {
             statusContent = (
@@ -537,7 +550,13 @@ const ComputerUseConfig: React.FC = () => {
         >
           <Button
             size="default"
-            icon={<RefreshCw size={14} className={permsSpinClass} />}
+            icon={
+              <HugeiconsIcon
+                icon={RefreshCw}
+                size={14}
+                className={permsSpinClass}
+              />
+            }
             onClick={handlePermsClick}
           >
             {t("osAgent.desktopRecheckPermissions")}
@@ -550,7 +569,7 @@ const ComputerUseConfig: React.FC = () => {
         >
           <Button
             size="default"
-            icon={<SquareArrowOutUpRight size={14} />}
+            icon={<HugeiconsIcon icon={SquareArrowOutUpRight} size={14} />}
             onClick={goToWingmanSafety}
           >
             {t("osAgent.desktopSafetyDeepLinkAction")}

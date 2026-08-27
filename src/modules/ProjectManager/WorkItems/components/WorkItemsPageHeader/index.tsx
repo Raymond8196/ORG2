@@ -1,4 +1,5 @@
-import { Box } from "lucide-react";
+import Box from "@hugeicons/core-free-icons/PackageIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -53,7 +54,11 @@ const WorkItemsPageHeader = ({
         return {
           ...segment,
           icon: segment.icon ?? identityIcon ?? (
-            <Box size={HEADER_ICON_SIZE.sm} strokeWidth={1.75} />
+            <HugeiconsIcon
+              icon={Box}
+              size={HEADER_ICON_SIZE.sm}
+              strokeWidth={1.75}
+            />
           ),
         };
       }

@@ -6,7 +6,10 @@
  * Uses FOLDER_HEADER tokens for consistent styling across explorer and
  * source control panels.
  */
-import { ChevronDown, ChevronRight, GitBranch } from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import { FOLDER_HEADER } from "./tokens";
@@ -47,14 +50,26 @@ export const FolderHeaderRow: React.FC<FolderHeaderRowProps> = memo(
     >
       <button type="button" className={FOLDER_HEADER.button} onClick={onToggle}>
         {expanded ? (
-          <ChevronDown size={14} className="flex-shrink-0 text-text-3" />
+          <HugeiconsIcon
+            icon={ChevronDown}
+            size={14}
+            className="flex-shrink-0 text-text-3"
+          />
         ) : (
-          <ChevronRight size={14} className="flex-shrink-0 text-text-3" />
+          <HugeiconsIcon
+            icon={ChevronRight}
+            size={14}
+            className="flex-shrink-0 text-text-3"
+          />
         )}
         <span className={FOLDER_HEADER.name}>{name}</span>
         {branchName && (
           <>
-            <GitBranch size={11} className="flex-shrink-0 text-text-3" />
+            <HugeiconsIcon
+              icon={GitBranch}
+              size={11}
+              className="flex-shrink-0 text-text-3"
+            />
             <span className={FOLDER_HEADER.branch}>{branchName}</span>
           </>
         )}

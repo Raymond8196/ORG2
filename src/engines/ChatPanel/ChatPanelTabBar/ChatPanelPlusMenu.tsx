@@ -2,15 +2,14 @@
  * ChatPanelPlusMenu — the "+" button and its dropdown, placed in the chat
  * panel header toolbar (left of the "..." menu).
  */
-import {
-  Box,
-  BriefcaseBusiness,
-  Columns3,
-  Gauge,
-  LayoutGrid,
-  PictureInPicture2,
-  Plus,
-} from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import BriefcaseBusiness from "@hugeicons/core-free-icons/Briefcase02Icon";
+import Gauge from "@hugeicons/core-free-icons/GaugeIcon";
+import LayoutGrid from "@hugeicons/core-free-icons/LayoutGridIcon";
+import Columns3 from "@hugeicons/core-free-icons/LayoutThreeColumnIcon";
+import Box from "@hugeicons/core-free-icons/PackageIcon";
+import PictureInPicture2 from "@hugeicons/core-free-icons/PictureInPicture01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -54,38 +53,74 @@ export function PlusMenuContent({
   const items = [
     {
       id: "launchpad",
-      icon: <LayoutGrid size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
+      icon: (
+        <HugeiconsIcon
+          icon={LayoutGrid}
+          size={HEADER_ICON_SIZE.sm}
+          strokeWidth={1.8}
+        />
+      ),
       label: t("sessions:chat.startPage.newSession.title"),
       hint: `${MOD}N`,
       onClick: onOpenLaunchpad,
     },
     {
       id: "work-management",
-      icon: <Columns3 size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
+      icon: (
+        <HugeiconsIcon
+          icon={Columns3}
+          size={HEADER_ICON_SIZE.sm}
+          strokeWidth={1.8}
+        />
+      ),
       label: t("sessions:simulator.tabs.kanban"),
       onClick: onOpenKanban,
     },
     {
       id: "runtime",
-      icon: <Gauge size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
+      icon: (
+        <HugeiconsIcon
+          icon={Gauge}
+          size={HEADER_ICON_SIZE.sm}
+          strokeWidth={1.8}
+        />
+      ),
       label: t("sessions:chat.startPage.tabs.runtime"),
       onClick: onOpenRuntime,
     },
     {
       id: "new-project",
-      icon: <Box size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
+      icon: (
+        <HugeiconsIcon
+          icon={Box}
+          size={HEADER_ICON_SIZE.sm}
+          strokeWidth={1.8}
+        />
+      ),
       label: t("sessions:creator.createTarget.project"),
       onClick: onNewProject,
     },
     {
       id: "new-work-item",
-      icon: <BriefcaseBusiness size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
+      icon: (
+        <HugeiconsIcon
+          icon={BriefcaseBusiness}
+          size={HEADER_ICON_SIZE.sm}
+          strokeWidth={1.8}
+        />
+      ),
       label: t("chat.startPage.newWorkItem.title"),
       onClick: onNewWorkItem,
     },
     {
       id: "side-chat",
-      icon: <PictureInPicture2 size={HEADER_ICON_SIZE.sm} strokeWidth={1.8} />,
+      icon: (
+        <HugeiconsIcon
+          icon={PictureInPicture2}
+          size={HEADER_ICON_SIZE.sm}
+          strokeWidth={1.8}
+        />
+      ),
       label: t("sessions:chat.sideChat.title"),
       onClick: onOpenSideChat,
     },
@@ -177,7 +212,11 @@ export function ChatPanelPlusMenu({
           tooltipDisabled
           nativeTitle={false}
         >
-          <Plus size={HEADER_ICON_SIZE.md} strokeWidth={2} />
+          <HugeiconsIcon
+            icon={Plus}
+            size={HEADER_ICON_SIZE.md}
+            strokeWidth={2}
+          />
         </TabBarTrailingIconButton>
       </span>
     </Dropdown>

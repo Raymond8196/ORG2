@@ -1,4 +1,7 @@
-import { Braces, Palette, RotateCcw } from "lucide-react";
+import Palette from "@hugeicons/core-free-icons/ColorPickerIcon";
+import Braces from "@hugeicons/core-free-icons/FirstBracketIcon";
+import RotateCcw from "@hugeicons/core-free-icons/RotateLeft01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -99,7 +102,7 @@ export function PlaygroundSidebarHeader({
               variant={jsonPanelOpen ? "primary" : "secondary"}
               size="small"
               htmlType="button"
-              icon={<Braces size={12} />}
+              icon={<HugeiconsIcon icon={Braces} size={12} />}
               iconOnly
               title="JSON"
               onClick={onToggleJsonPanel}
@@ -110,7 +113,7 @@ export function PlaygroundSidebarHeader({
               variant={tokenPanelOpen ? "primary" : "secondary"}
               size="small"
               htmlType="button"
-              icon={<Palette size={12} />}
+              icon={<HugeiconsIcon icon={Palette} size={12} />}
               iconOnly
               title="Tokens"
               onClick={onToggleTokenPanel}
@@ -119,7 +122,7 @@ export function PlaygroundSidebarHeader({
           <Button
             size="small"
             htmlType="button"
-            icon={<RotateCcw size={12} />}
+            icon={<HugeiconsIcon icon={RotateCcw} size={12} />}
             iconOnly
             title={t("devTools.reset")}
             onClick={onReset}

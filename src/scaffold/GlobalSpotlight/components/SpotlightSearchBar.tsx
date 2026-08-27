@@ -4,7 +4,9 @@
  * Search bar with action/value pills and a contextual input placeholder.
  * Backspace removes segments.
  */
-import { ChevronLeft, Search } from "lucide-react";
+import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -94,7 +96,12 @@ export const SpotlightSearchBar: React.FC<SpotlightSearchBarProps> = ({
   };
 
   const renderBackChevron = () => (
-    <ChevronLeft size={13} strokeWidth={2.5} className="shrink-0" />
+    <HugeiconsIcon
+      icon={ChevronLeft}
+      size={13}
+      strokeWidth={2.5}
+      className="shrink-0"
+    />
   );
 
   const renderPillIcon = (segment: PathSegment) => {
@@ -135,7 +142,8 @@ export const SpotlightSearchBar: React.FC<SpotlightSearchBarProps> = ({
                 className={`${displayIcon} text-[${SPOTLIGHT_TOKENS.iconSize}px] text-text-2`}
               />
             ) : (
-              <Search
+              <HugeiconsIcon
+                icon={Search}
                 className="text-text-2"
                 size={SPOTLIGHT_TOKENS.iconSize}
               />

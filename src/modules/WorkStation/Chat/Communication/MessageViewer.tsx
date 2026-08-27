@@ -1,4 +1,5 @@
-import { ChevronsUpDown } from "lucide-react";
+import ChevronsUpDown from "@hugeicons/core-free-icons/ArrowUpDownIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
   useEffect,
@@ -374,7 +375,7 @@ export const MessageViewer: React.FC<MessageViewerProps> = ({
                 variant="tertiary"
                 appearance="ghost"
                 size="small"
-                icon={<ChevronsUpDown size={14} />}
+                icon={<HugeiconsIcon icon={ChevronsUpDown} size={14} />}
                 data-testid="communication-load-more-messages"
                 onClick={handleLoadMoreMessages}
               >

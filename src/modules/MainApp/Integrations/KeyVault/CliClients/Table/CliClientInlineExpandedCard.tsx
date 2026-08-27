@@ -1,4 +1,7 @@
-import { Plus, RefreshCw, SquareArrowOutUpRight } from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -130,7 +133,13 @@ const CliClientInlineExpandedCard = ({
             <Button
               variant="secondary"
               size="small"
-              icon={<RefreshCw size={14} className={spinClass} />}
+              icon={
+                <HugeiconsIcon
+                  icon={RefreshCw}
+                  size={14}
+                  className={spinClass}
+                />
+              }
               onClick={handleRefreshClick}
               disabled={refreshing}
             >
@@ -141,7 +150,7 @@ const CliClientInlineExpandedCard = ({
             <Button
               variant="secondary"
               size="small"
-              icon={<SquareArrowOutUpRight size={14} />}
+              icon={<HugeiconsIcon icon={SquareArrowOutUpRight} size={14} />}
               iconPosition="right"
               onClick={() => openExternalLink(agent.docsUrl!)}
             >
@@ -152,7 +161,7 @@ const CliClientInlineExpandedCard = ({
             <Button
               variant="secondary"
               size="small"
-              icon={<Plus size={14} />}
+              icon={<HugeiconsIcon icon={Plus} size={14} />}
               onClick={onAdd}
             >
               {t("cliPreview.addKey")}

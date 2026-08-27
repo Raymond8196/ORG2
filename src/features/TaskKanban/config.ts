@@ -1,11 +1,9 @@
-import {
-  Archive,
-  CheckCircle2,
-  Circle,
-  Clock,
-  type LucideIcon,
-  MessageCircleWarning,
-} from "lucide-react";
+import Archive from "@hugeicons/core-free-icons/ArchiveIcon";
+import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import Circle from "@hugeicons/core-free-icons/CircleIcon";
+import Clock from "@hugeicons/core-free-icons/Clock01Icon";
+import MessageCircleWarning from "@hugeicons/core-free-icons/MessageCircleWarningIcon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 
 import type { ImportedHistorySourceId } from "@src/api/tauri/externalHistory";
 import type {
@@ -14,6 +12,8 @@ import type {
 } from "@src/features/KanbanBoard/types";
 import type { Session } from "@src/store/session";
 import { SESSION_STATUS_DOT_COLOR } from "@src/util/session/sessionStatusDot";
+
+type LucideIcon = IconSvgElement;
 
 /**
  * Kanban Configuration

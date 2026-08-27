@@ -15,7 +15,9 @@
  *   - `FileHeaderMoreMenu`    → the trailing ellipsis dropdown menu.
  *   - `FileHeaderShell`       → inline vs teleport-to-workstation wrapper.
  */
-import { FileSymlink, X } from "lucide-react";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import FileSymlink from "@hugeicons/core-free-icons/FileSymlinkIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -592,7 +594,8 @@ export const FileHeader: React.FC<FileHeaderProps> = memo(
                     title={t("tooltips.openFile")}
                     className="flex-shrink-0"
                     icon={
-                      <FileSymlink
+                      <HugeiconsIcon
+                        icon={FileSymlink}
                         size={HEADER_ICON_SIZE.sm}
                         strokeWidth={1.75}
                       />
@@ -610,7 +613,13 @@ export const FileHeader: React.FC<FileHeaderProps> = memo(
                     title={t("common:actions.close")}
                     aria-label={t("common:actions.close")}
                     className="flex-shrink-0"
-                    icon={<X size={HEADER_ICON_SIZE.sm} strokeWidth={1.75} />}
+                    icon={
+                      <HugeiconsIcon
+                        icon={X}
+                        size={HEADER_ICON_SIZE.sm}
+                        strokeWidth={1.75}
+                      />
+                    }
                   />
                 )}
               </span>

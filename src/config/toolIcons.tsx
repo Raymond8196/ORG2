@@ -10,83 +10,81 @@
  * NOTE: Terminal tool detection uses normalizeFunctionName() (Rust source of truth
  * via cli_agents/alias_map.rs) instead of hardcoded tool names.
  */
-import type { LucideIcon } from "lucide-react";
-import {
-  Infinity,
-  Activity,
-  ArrowBigRightDash,
-  ArrowRightLeft,
-  BellRing,
-  BookSearch,
-  Bot,
-  BotMessageSquare,
-  BotOff,
-  Box,
-  Braces,
-  Brain,
-  Briefcase,
-  CheckCircle2,
-  Chrome,
-  CircleHelp,
-  ClipboardCopy,
-  ClipboardList,
-  ClipboardPen,
-  Clock,
-  Cog,
-  Database,
-  Eye,
-  FileBox,
-  FileDiff,
-  FilePenLine,
-  FileSearch,
-  FileText,
-  Focus,
-  FolderCog,
-  FolderGit2,
-  FolderOpen,
-  FolderSearch,
-  Fullscreen,
-  GitBranch,
-  Globe,
-  Image,
-  Inbox,
-  Keyboard,
-  Layers,
-  Layout,
-  LayoutList,
-  List,
-  ListChecks,
-  ListTodo,
-  ListTree,
-  Logs,
-  Mail,
-  Map,
-  MessageCircle,
-  MessageCircleQuestionMark,
-  MessagesSquare,
-  Monitor,
-  MousePointer2,
-  MousePointerClick,
-  MoveVertical,
-  Network,
-  Plug,
-  Plus,
-  RefreshCw,
-  Search,
-  Send,
-  Share2,
-  Shield,
-  ShieldOff,
-  Sparkle,
-  Terminal,
-  Timer,
-  Trash2,
-  User,
-  Users,
-  Wrench,
-  X,
-  XCircle,
-} from "lucide-react";
+import Activity from "@hugeicons/core-free-icons/Activity01Icon";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import Network from "@hugeicons/core-free-icons/AiNetworkIcon";
+import ArrowBigRightDash from "@hugeicons/core-free-icons/ArrowBigRightDashIcon";
+import ArrowRightLeft from "@hugeicons/core-free-icons/ArrowLeftRightIcon";
+import BookSearch from "@hugeicons/core-free-icons/Book01Icon";
+import Bot from "@hugeicons/core-free-icons/BotIcon";
+import BotOff from "@hugeicons/core-free-icons/BotOffIcon";
+import Brain from "@hugeicons/core-free-icons/BrainIcon";
+import Briefcase from "@hugeicons/core-free-icons/Briefcase01Icon";
+import MessageCircle from "@hugeicons/core-free-icons/BubbleChatIcon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
+import Focus from "@hugeicons/core-free-icons/CenterFocusIcon";
+import BotMessageSquare from "@hugeicons/core-free-icons/ChatBotIcon";
+import ClipboardList from "@hugeicons/core-free-icons/CheckListIcon";
+import ListChecks from "@hugeicons/core-free-icons/CheckListIcon";
+import ListTodo from "@hugeicons/core-free-icons/CheckListIcon";
+import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import Chrome from "@hugeicons/core-free-icons/ChromeIcon";
+import ClipboardPen from "@hugeicons/core-free-icons/ClipboardPenIcon";
+import Clock from "@hugeicons/core-free-icons/Clock01Icon";
+import Monitor from "@hugeicons/core-free-icons/ComputerIcon";
+import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import ClipboardCopy from "@hugeicons/core-free-icons/Copy01Icon";
+import MousePointer2 from "@hugeicons/core-free-icons/Cursor02Icon";
+import MousePointerClick from "@hugeicons/core-free-icons/CursorPointer02Icon";
+import Database from "@hugeicons/core-free-icons/DatabaseIcon";
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import FileText from "@hugeicons/core-free-icons/File02Icon";
+import FileBox from "@hugeicons/core-free-icons/FileBoxIcon";
+import FileDiff from "@hugeicons/core-free-icons/FileDiffIcon";
+import FilePenLine from "@hugeicons/core-free-icons/FilePenLineIcon";
+import FileSearch from "@hugeicons/core-free-icons/FileSearchIcon";
+import Braces from "@hugeicons/core-free-icons/FirstBracketIcon";
+import FolderCog from "@hugeicons/core-free-icons/FolderCogIcon";
+import FolderGit2 from "@hugeicons/core-free-icons/FolderGitTwoIcon";
+import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
+import FolderSearch from "@hugeicons/core-free-icons/FolderSearchIcon";
+import Fullscreen from "@hugeicons/core-free-icons/FullScreenIcon";
+import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
+import Globe from "@hugeicons/core-free-icons/GlobeIcon";
+import CircleHelp from "@hugeicons/core-free-icons/HelpCircleIcon";
+import ListTree from "@hugeicons/core-free-icons/HierarchyFilesIcon";
+import Image from "@hugeicons/core-free-icons/Image01Icon";
+import Inbox from "@hugeicons/core-free-icons/InboxIcon";
+import Infinity from "@hugeicons/core-free-icons/Infinity01Icon";
+import Keyboard from "@hugeicons/core-free-icons/KeyboardIcon";
+import Layers from "@hugeicons/core-free-icons/Layers01Icon";
+import Layout from "@hugeicons/core-free-icons/Layout01Icon";
+import LayoutList from "@hugeicons/core-free-icons/ListViewIcon";
+import List from "@hugeicons/core-free-icons/ListViewIcon";
+import Logs from "@hugeicons/core-free-icons/LogsIcon";
+import Mail from "@hugeicons/core-free-icons/Mail01Icon";
+import Send from "@hugeicons/core-free-icons/MailSend01Icon";
+import Map from "@hugeicons/core-free-icons/MapsIcon";
+import MessageCircleQuestionMark from "@hugeicons/core-free-icons/MessageCircleQuestionMarkIcon";
+import MessagesSquare from "@hugeicons/core-free-icons/MessageMultiple01Icon";
+import MoveVertical from "@hugeicons/core-free-icons/MoveTopIcon";
+import BellRing from "@hugeicons/core-free-icons/NotificationBubbleIcon";
+import Box from "@hugeicons/core-free-icons/PackageIcon";
+import Plug from "@hugeicons/core-free-icons/Plug01Icon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import Cog from "@hugeicons/core-free-icons/Settings01Icon";
+import Share2 from "@hugeicons/core-free-icons/Share02Icon";
+import Shield from "@hugeicons/core-free-icons/Shield01Icon";
+import ShieldOff from "@hugeicons/core-free-icons/Shield02Icon";
+import Sparkle from "@hugeicons/core-free-icons/SparklesIcon";
+import Timer from "@hugeicons/core-free-icons/Timer01Icon";
+import User from "@hugeicons/core-free-icons/UserIcon";
+import Users from "@hugeicons/core-free-icons/UserMultipleIcon";
+import Eye from "@hugeicons/core-free-icons/ViewIcon";
+import Wrench from "@hugeicons/core-free-icons/Wrench01Icon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React from "react";
 
 import { McpLogoIcon } from "@src/assets/channelIcons/McpLogoIcon";
@@ -97,6 +95,8 @@ import {
   getCliUiCanonical,
 } from "@src/engines/SessionCore/rendering/registry/initToolRegistry";
 import { normalizeFunctionName } from "@src/lib/activityData/activityNormalizers";
+
+type LucideIcon = IconSvgElement;
 
 /** Default size/class for chat ToolCallBlock and Integrations tool rows. */
 export const DEFAULT_TOOL_ICON_SIZE = 14;

@@ -7,7 +7,8 @@
  *
  * The parent provides an "Analyze" action that creates a real agent session.
  */
-import { Grip } from "lucide-react";
+import Grip from "@hugeicons/core-free-icons/Drag01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -82,7 +83,8 @@ const SessionCreatorInstall: React.FC<SessionCreatorInstallProps> = memo(
                 size={iconSize}
               />
             ) : (
-              <Grip
+              <HugeiconsIcon
+                icon={Grip}
                 size={iconSize}
                 strokeWidth={1.75}
                 className="text-primary-6"

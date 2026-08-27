@@ -1,5 +1,6 @@
+import GitFork from "@hugeicons/core-free-icons/GitForkIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { GitFork } from "lucide-react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -132,7 +133,9 @@ const SessionForkHeaderExtras: React.FC<SessionForkHeaderExtrasProps> = ({
               size="mini"
               pill
               bordered
-              icon={<GitFork size={10} strokeWidth={1.75} />}
+              icon={
+                <HugeiconsIcon icon={GitFork} size={10} strokeWidth={1.75} />
+              }
               className="h-[20px] max-w-[140px]"
             >
               <span className="truncate">{forkedFrom.ownerDisplayName}</span>
@@ -157,7 +160,7 @@ const SessionForkHeaderExtras: React.FC<SessionForkHeaderExtrasProps> = ({
               onClick={() => void handleFork()}
               aria-label={forkLabel}
               data-testid="session-fork-button"
-              icon={<GitFork size={14} strokeWidth={2} />}
+              icon={<HugeiconsIcon icon={GitFork} size={14} strokeWidth={2} />}
             />
           </span>
         </Tooltip>

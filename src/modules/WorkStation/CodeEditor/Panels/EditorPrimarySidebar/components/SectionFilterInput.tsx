@@ -1,4 +1,5 @@
-import { Funnel } from "lucide-react";
+import Funnel from "@hugeicons/core-free-icons/FunnelIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -26,7 +27,7 @@ export const SectionFilterInput: React.FC<SectionFilterInputProps> = ({
   return (
     <div className="flex-shrink-0 px-3 pb-2 pt-1">
       <Input
-        prefix={<Funnel size={14} strokeWidth={1.75} />}
+        prefix={<HugeiconsIcon icon={Funnel} size={14} strokeWidth={1.75} />}
         placeholder={placeholder ?? t("actions.filter", "Filter")}
         value={query}
         onChange={(value) => onChange(value)}
@@ -65,7 +66,8 @@ export function makeSectionFilterAction({
   return {
     key,
     icon: (
-      <Funnel
+      <HugeiconsIcon
+        icon={Funnel}
         size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
         strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
         className={isOpen ? "text-primary-6" : ""}

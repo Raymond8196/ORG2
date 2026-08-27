@@ -9,8 +9,13 @@
  * Shared between RepoSettings and WorkItemsSettings (project-level).
  * Layout matches MembersSection / RepoMembersSection for consistency.
  */
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Copy from "@hugeicons/core-free-icons/Copy01Icon";
+import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
+import Pencil from "@hugeicons/core-free-icons/PencilIcon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
-import { Check, Copy, Minus, Pencil, X } from "lucide-react";
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -70,7 +75,7 @@ const LinkedEmailRow: React.FC<{
       </div>
       {!isPrimary && onUnlink && (
         <Button
-          icon={<Minus size={14} />}
+          icon={<HugeiconsIcon icon={Minus} size={14} />}
           iconOnly
           onClick={onUnlink}
           title={t("settings.unlinkIdentity")}
@@ -177,17 +182,21 @@ const EditableField: React.FC<{
         {editing ? (
           <>
             <Button
-              icon={<Check size={14} />}
+              icon={<HugeiconsIcon icon={Check} size={14} />}
               iconOnly
               onClick={() => {
                 if (inputRef.current) handleSave(inputRef.current.value);
               }}
             />
-            <Button icon={<X size={14} />} iconOnly onClick={handleCancel} />
+            <Button
+              icon={<HugeiconsIcon icon={X} size={14} />}
+              iconOnly
+              onClick={handleCancel}
+            />
           </>
         ) : (
           <Button
-            icon={<Pencil size={14} />}
+            icon={<HugeiconsIcon icon={Pencil} size={14} />}
             iconOnly
             onClick={handleStartEdit}
           />
@@ -366,7 +375,7 @@ const MyProfileSection: React.FC<MyProfileSectionProps> = ({
           <div className="flex items-center gap-2">
             <span className="text-[14px] text-text-1">{myMember.id}</span>
             <Button
-              icon={<Copy size={14} />}
+              icon={<HugeiconsIcon icon={Copy} size={14} />}
               iconOnly
               onClick={() => {
                 copyText(myMember.id).catch((err) => {

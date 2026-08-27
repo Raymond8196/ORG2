@@ -3,7 +3,10 @@
  *
  * Displays unstaged files with stage, discard, stash, and diff actions
  */
-import { Archive, Plus, Undo2 } from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import Archive from "@hugeicons/core-free-icons/ArchiveIcon";
+import Undo2 from "@hugeicons/core-free-icons/Undo02Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import { HEADER_BUTTON } from "@src/modules/WorkStation/shared/tokens";
@@ -93,7 +96,7 @@ export const ChangesSection: React.FC<ChangesSectionProps> = memo(
                 onClick={onDiscardAll}
                 title={GIT_LABELS.discardAllChanges}
               >
-                <Undo2 size={14} strokeWidth={1.75} />
+                <HugeiconsIcon icon={Undo2} size={14} strokeWidth={1.75} />
               </button>
               {onStashPush && hasChangesToStash && (
                 <button
@@ -102,7 +105,7 @@ export const ChangesSection: React.FC<ChangesSectionProps> = memo(
                   disabled={stashOperationLoading}
                   title={GIT_LABELS.stashAllChanges}
                 >
-                  <Archive size={14} strokeWidth={1.75} />
+                  <HugeiconsIcon icon={Archive} size={14} strokeWidth={1.75} />
                 </button>
               )}
               <button
@@ -110,7 +113,7 @@ export const ChangesSection: React.FC<ChangesSectionProps> = memo(
                 onClick={onStageAll}
                 title={GIT_LABELS.stageChanges}
               >
-                <Plus size={14} strokeWidth={1.75} />
+                <HugeiconsIcon icon={Plus} size={14} strokeWidth={1.75} />
               </button>
             </>
           }

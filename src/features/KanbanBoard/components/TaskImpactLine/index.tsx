@@ -1,4 +1,7 @@
-import { CircleSlash, Diff, GitCommit } from "lucide-react";
+import CircleSlash from "@hugeicons/core-free-icons/CircleSlashIcon";
+import Diff from "@hugeicons/core-free-icons/DiffIcon";
+import GitCommit from "@hugeicons/core-free-icons/GitCommitIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import DiffStatsBadge from "@src/components/DiffStatsBadge";
@@ -47,14 +50,15 @@ const TaskImpactLine: React.FC<TaskImpactLineProps> = ({
         />
         <span className="task-impact-line__dot" />
         <span className="task-impact-line__item">
-          <Diff size={12} strokeWidth={1.75} />
+          <HugeiconsIcon icon={Diff} size={12} strokeWidth={1.75} />
           <span>{task.impact.filesChanged.toLocaleString()}</span>
         </span>
         {hasRelatedCommits && (
           <>
             <span className="task-impact-line__dot" />
             <span className="task-impact-line__item text-primary-6">
-              <GitCommit
+              <HugeiconsIcon
+                icon={GitCommit}
                 className="task-impact-line__commit-icon"
                 size={12}
                 strokeWidth={1.75}
@@ -72,7 +76,7 @@ const TaskImpactLine: React.FC<TaskImpactLineProps> = ({
   return (
     <span className={rootClassName}>
       <span className="task-impact-line__empty">
-        <CircleSlash size={12} strokeWidth={1.75} />
+        <HugeiconsIcon icon={CircleSlash} size={12} strokeWidth={1.75} />
         <span>N/A</span>
       </span>
     </span>

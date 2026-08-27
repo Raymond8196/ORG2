@@ -1,6 +1,9 @@
 import Button from "@/src/components/Button";
+import Copy from "@hugeicons/core-free-icons/Copy01Icon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { invoke } from "@tauri-apps/api/core";
-import { Check, Copy, RefreshCw } from "lucide-react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { isRouteErrorResponse, useRouteError } from "react-router-dom";
 
@@ -228,7 +231,7 @@ const ErrorPageContent: React.FC<{ error?: unknown }> = ({ error }) => {
               variant="primary"
               size="default"
               shape="round"
-              icon={<RefreshCw size={16} />}
+              icon={<HugeiconsIcon icon={RefreshCw} size={16} />}
               onClick={handleRestart}
             >
               {i18n.t("actions.restart")}
@@ -237,7 +240,13 @@ const ErrorPageContent: React.FC<{ error?: unknown }> = ({ error }) => {
               variant="secondary"
               size="default"
               shape="round"
-              icon={copied ? <Check size={16} /> : <Copy size={16} />}
+              icon={
+                copied ? (
+                  <HugeiconsIcon icon={Check} size={16} />
+                ) : (
+                  <HugeiconsIcon icon={Copy} size={16} />
+                )
+              }
               onClick={handleCopy}
             >
               {copied ? i18n.t("status.copied") : i18n.t("actions.copy")}

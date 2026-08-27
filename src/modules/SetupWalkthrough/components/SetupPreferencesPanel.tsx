@@ -1,4 +1,5 @@
-import { ArrowRight } from "lucide-react";
+import ArrowRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -110,7 +111,7 @@ const SetupPreferencesPanel: React.FC<SetupPreferencesPanelProps> = ({
           long
           loading={isClosing}
           disabled={isClosing}
-          icon={<ArrowRight aria-hidden size={16} />}
+          icon={<HugeiconsIcon icon={ArrowRight} aria-hidden size={16} />}
           iconPosition="right"
           data-testid="setup-finish"
           onClick={onComplete}

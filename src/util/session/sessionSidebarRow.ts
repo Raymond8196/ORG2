@@ -1,7 +1,7 @@
 /**
  * Thin row-rendering adapters over the canonical session display projection.
  */
-import type { LucideIcon } from "lucide-react";
+import { type IconSvgElement } from "@hugeicons/react";
 
 import { resolveAgentIcon } from "@src/config/agentIcons";
 import {
@@ -9,6 +9,8 @@ import {
   resolveSessionDisplayMetadata,
 } from "@src/util/session/sessionDisplayMetadata";
 import { sessionLabel } from "@src/util/session/sessionLabel";
+
+type LucideIcon = IconSvgElement;
 
 /** Full-length session display name (no truncation). */
 export function getSessionListDisplayName(

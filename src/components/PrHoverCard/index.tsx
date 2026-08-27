@@ -1,4 +1,8 @@
-import { Clock, FileDiff, GitBranch, GitPullRequest } from "lucide-react";
+import Clock from "@hugeicons/core-free-icons/Clock01Icon";
+import FileDiff from "@hugeicons/core-free-icons/FileDiffIcon";
+import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
+import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -62,7 +66,9 @@ const PrHoverCardContent: React.FC<PrHoverCardContentProps> = memo(({ pr }) => {
   return (
     <HoverCardPanel title={pr.title}>
       <HoverCardRow
-        icon={<GitPullRequest size={13} strokeWidth={1.75} />}
+        icon={
+          <HugeiconsIcon icon={GitPullRequest} size={13} strokeWidth={1.75} />
+        }
         iconClassName={statusIconClassName}
       >
         <div className="truncate text-text-2">
@@ -75,7 +81,9 @@ const PrHoverCardContent: React.FC<PrHoverCardContentProps> = memo(({ pr }) => {
       {pr.url && <HoverCardUrlRow url={pr.url} />}
 
       {branchLabel && (
-        <HoverCardRow icon={<GitBranch size={13} strokeWidth={1.75} />}>
+        <HoverCardRow
+          icon={<HugeiconsIcon icon={GitBranch} size={13} strokeWidth={1.75} />}
+        >
           <div className="truncate text-text-2" title={pr.head_branch}>
             <span>{branchLabel}</span>
             {pr.base_branch && (
@@ -89,7 +97,9 @@ const PrHoverCardContent: React.FC<PrHoverCardContentProps> = memo(({ pr }) => {
       )}
 
       {hasDiffStats && (
-        <HoverCardRow icon={<FileDiff size={13} strokeWidth={1.75} />}>
+        <HoverCardRow
+          icon={<HugeiconsIcon icon={FileDiff} size={13} strokeWidth={1.75} />}
+        >
           <div
             className="flex min-w-0 items-center"
             data-testid="pr-hover-card-diff-stats"
@@ -111,7 +121,9 @@ const PrHoverCardContent: React.FC<PrHoverCardContentProps> = memo(({ pr }) => {
       )}
 
       {pr.updated_at && (
-        <HoverCardRow icon={<Clock size={13} strokeWidth={1.75} />}>
+        <HoverCardRow
+          icon={<HugeiconsIcon icon={Clock} size={13} strokeWidth={1.75} />}
+        >
           <div className="truncate text-text-2">
             <span className="text-text-3">
               {t("git.issues.updated", { defaultValue: "Last updated" })}

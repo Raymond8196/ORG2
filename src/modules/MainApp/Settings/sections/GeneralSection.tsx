@@ -17,10 +17,11 @@ import {
   SectionContainer,
   SectionRow,
 } from "@/src/modules/shared/layouts/SectionLayout";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { getVersion } from "@tauri-apps/api/app";
 import { invoke } from "@tauri-apps/api/core";
 import { useAtom } from "jotai";
-import { RefreshCw } from "lucide-react";
 import React, {
   Suspense,
   lazy,
@@ -424,7 +425,7 @@ const GeneralTabBody: React.FC = () => {
           <Button
             size="default"
             onClick={checkForUpdatesManually}
-            icon={<RefreshCw size={14} />}
+            icon={<HugeiconsIcon icon={RefreshCw} size={14} />}
           >
             {t("update.detectUpdate")}
           </Button>

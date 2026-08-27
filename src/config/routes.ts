@@ -12,7 +12,7 @@
  * - /orgii/app/settings/*  - Settings inside the Workbench shell
  * - /orgii/app/*           - Standalone application pages
  */
-import type { LucideIcon } from "lucide-react";
+import { type IconSvgElement } from "@hugeicons/react";
 
 import { ICON_NAME_MAP } from "./iconMapping";
 // Route group constants — imported for use below and re-exported for consumers
@@ -27,6 +27,8 @@ import {
 } from "./routeGroups";
 // Shared route-display metadata stays independent from router state.
 import type { RouteInfo, RouteLabelContext } from "./routeTypes";
+
+type LucideIcon = IconSvgElement;
 
 // Re-export for convenience
 export type { RouteLabelContext, RouteInfo };

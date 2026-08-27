@@ -1,16 +1,14 @@
-import {
-  ArrowDown,
-  ArrowDownToLine,
-  ArrowUp,
-  ArrowUpFromLine,
-  ChevronDown,
-  CloudDownload,
-  CloudUpload,
-  Ellipsis,
-  GitCompareArrows,
-  RefreshCw,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import ArrowDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowDownToLine from "@hugeicons/core-free-icons/ArrowDownToLineIcon";
+import ArrowUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import ArrowUpFromLine from "@hugeicons/core-free-icons/ArrowUpFromLineIcon";
+import CloudDownload from "@hugeicons/core-free-icons/CloudDownloadIcon";
+import CloudUpload from "@hugeicons/core-free-icons/CloudUploadIcon";
+import GitCompareArrows from "@hugeicons/core-free-icons/GitCompareIcon";
+import Ellipsis from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -26,6 +24,8 @@ import { classNames } from "@src/util/ui/classNames";
 
 import { StatusBarButton, StatusBarLabel } from "./StatusBarBase";
 import { StatusBarTooltip } from "./StatusBarTooltip";
+
+type LucideIcon = IconSvgElement;
 
 const MENU_ICON_SIZE = DROPDOWN_ITEM.iconSize;
 
@@ -166,9 +166,14 @@ export const GitSyncStatusMenu: React.FC<GitSyncStatusMenuProps> = memo(
             className="gap-2"
           >
             {needsPublish && !isPublishing ? (
-              <CloudUpload size={MENU_ICON_SIZE} className="text-text-1" />
+              <HugeiconsIcon
+                icon={CloudUpload}
+                size={MENU_ICON_SIZE}
+                className="text-text-1"
+              />
             ) : (
-              <RefreshCw
+              <HugeiconsIcon
+                icon={RefreshCw}
                 size={MENU_ICON_SIZE}
                 className={`text-text-1 ${syncSpinClass ?? ""}`}
               />
@@ -199,7 +204,7 @@ export const GitSyncStatusMenu: React.FC<GitSyncStatusMenuProps> = memo(
                   className="flex items-center text-text-1"
                 >
                   {behindCount}
-                  <ArrowDown size={MENU_ICON_SIZE} />
+                  <HugeiconsIcon icon={ArrowDown} size={MENU_ICON_SIZE} />
                 </StatusBarLabel>
                 <StatusBarLabel
                   emphasis
@@ -207,11 +212,15 @@ export const GitSyncStatusMenu: React.FC<GitSyncStatusMenuProps> = memo(
                   className="flex items-center text-text-1"
                 >
                   {aheadCount}
-                  <ArrowUp size={MENU_ICON_SIZE} />
+                  <HugeiconsIcon icon={ArrowUp} size={MENU_ICON_SIZE} />
                 </StatusBarLabel>
               </>
             )}
-            <ChevronDown size={12} className="text-text-3" />
+            <HugeiconsIcon
+              icon={ChevronDown}
+              size={12}
+              className="text-text-3"
+            />
           </StatusBarButton>
         </StatusBarTooltip>
 
@@ -296,7 +305,11 @@ export const GitSyncStatusMenu: React.FC<GitSyncStatusMenuProps> = memo(
                       onClick={() => setShowAllActions(true)}
                       role="menuitem"
                     >
-                      <Ellipsis size={MENU_ICON_SIZE} className="text-text-1" />
+                      <HugeiconsIcon
+                        icon={Ellipsis}
+                        size={MENU_ICON_SIZE}
+                        className="text-text-1"
+                      />
                       <span className="font-medium text-text-1">
                         {t("common.more")}
                       </span>

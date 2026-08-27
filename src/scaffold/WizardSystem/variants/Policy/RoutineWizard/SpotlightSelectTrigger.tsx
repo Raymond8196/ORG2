@@ -13,7 +13,8 @@
  * height, hover, focus ring, chevron) identical to `Select` so settings
  * rows stay consistent.
  */
-import { ChevronDown } from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { forwardRef } from "react";
 
 import "@src/components/Select/index.scss";
@@ -112,7 +113,8 @@ const SpotlightSelectTrigger = forwardRef<
           <span className="select-placeholder">{placeholder}</span>
         )}
         <div className="select-suffix">
-          <ChevronDown
+          <HugeiconsIcon
+            icon={ChevronDown}
             size={16}
             className={`select-arrow shrink-0 transition-transform ${
               active ? "rotate-180" : ""

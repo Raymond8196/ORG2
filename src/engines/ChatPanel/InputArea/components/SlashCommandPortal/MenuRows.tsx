@@ -2,7 +2,9 @@
  * Atomic row components for SlashCommandMenu.
  * Each renders one list entry, taking its own data and shared active/hover state.
  */
-import { ChevronRight, ImageIcon } from "lucide-react";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ImageIcon from "@hugeicons/core-free-icons/Image01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -71,7 +73,8 @@ export const ImageRow: React.FC<ImageRowProps> = React.memo(
           onMouseDown();
         }}
       >
-        <ImageIcon
+        <HugeiconsIcon
+          icon={ImageIcon}
           size={DROPDOWN_ITEM.iconSize}
           strokeWidth={1.75}
           className={iconClass(false)}
@@ -158,7 +161,8 @@ export const FlyoutTriggerRow: React.FC<FlyoutTriggerRowProps> = React.memo(
           })}
           <span className={labelClass(isOpen)}>{label}</span>
         </div>
-        <ChevronRight
+        <HugeiconsIcon
+          icon={ChevronRight}
           size={DROPDOWN_ITEM.iconSize}
           strokeWidth={1.75}
           className={isOpen ? "text-primary-6" : "text-text-3"}

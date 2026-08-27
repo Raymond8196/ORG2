@@ -3,7 +3,10 @@
  *
  * Configuration for inbox channels (message grouping) and date formatting.
  */
-import { Diff, ListTodo, type LucideIcon, Store } from "lucide-react";
+import ListTodo from "@hugeicons/core-free-icons/CheckListIcon";
+import Diff from "@hugeicons/core-free-icons/DiffIcon";
+import Store from "@hugeicons/core-free-icons/Store01Icon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 
 import type { InboxCategory } from "@src/api/types/inbox";
 import {
@@ -14,6 +17,8 @@ import {
   getLocalDayDiff,
   isSameLocalDay,
 } from "@src/util/data/formatters/date";
+
+type LucideIcon = IconSvgElement;
 
 // ============================================
 // Channels

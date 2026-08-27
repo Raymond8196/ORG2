@@ -1,4 +1,7 @@
-import { Calendar, Circle, Users } from "lucide-react";
+import Calendar from "@hugeicons/core-free-icons/Calendar01Icon";
+import Circle from "@hugeicons/core-free-icons/CircleIcon";
+import Users from "@hugeicons/core-free-icons/UserMultipleIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
   useEffect,
@@ -150,7 +153,7 @@ const LinearProjectInfoPage: React.FC<LinearProjectInfoPageProps> = ({
   ) => (
     <div className="relative flex min-h-[36px] items-center">
       <FieldRow
-        icon={<Calendar size={14} />}
+        icon={<HugeiconsIcon icon={Calendar} size={14} />}
         label={label}
         value={formatLinearProjectDate(value, t("properties.addDate"))}
         isSelected={!!value}
@@ -181,7 +184,7 @@ const LinearProjectInfoPage: React.FC<LinearProjectInfoPageProps> = ({
           {project.status?.name && (
             <div className="relative flex min-h-[36px] items-center">
               <FieldRow
-                icon={<Circle size={14} />}
+                icon={<HugeiconsIcon icon={Circle} size={14} />}
                 label={t("common:common.status")}
                 value={project.status.name}
                 isSelected
@@ -193,7 +196,7 @@ const LinearProjectInfoPage: React.FC<LinearProjectInfoPageProps> = ({
           {primaryTeam && (
             <div className="relative flex min-h-[36px] items-center">
               <FieldRow
-                icon={<Users size={14} />}
+                icon={<HugeiconsIcon icon={Users} size={14} />}
                 label={t("properties.teams")}
                 value={`${primaryTeam.name} (${primaryTeam.key})`}
                 isSelected

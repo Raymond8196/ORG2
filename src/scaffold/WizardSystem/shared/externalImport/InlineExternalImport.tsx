@@ -1,4 +1,7 @@
-import { ChevronsDownUp, ChevronsUpDown, Download } from "lucide-react";
+import ChevronsUpDown from "@hugeicons/core-free-icons/ArrowUpDownIcon";
+import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
+import Download from "@hugeicons/core-free-icons/Download01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -103,9 +106,9 @@ const InlineExternalImport: React.FC<InlineExternalImportProps> = ({
           variant="secondary"
           icon={
             expanded ? (
-              <ChevronsDownUp size={14} />
+              <HugeiconsIcon icon={ChevronsDownUp} size={14} />
             ) : (
-              <ChevronsUpDown size={14} />
+              <HugeiconsIcon icon={ChevronsUpDown} size={14} />
             )
           }
           onClick={() => {
@@ -182,7 +185,7 @@ const InlineExternalImport: React.FC<InlineExternalImportProps> = ({
                 <Button
                   variant="primary"
                   size="small"
-                  icon={<Download size={14} />}
+                  icon={<HugeiconsIcon icon={Download} size={14} />}
                   disabled={selected.size === 0}
                   loading={importing}
                   onClick={handleImport}

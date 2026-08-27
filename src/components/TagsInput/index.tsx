@@ -13,7 +13,8 @@
  * Controlled-only. Caller owns the `value` array and receives changes
  * via `onChange`. Duplicate tags are silently ignored.
  */
-import { X } from "lucide-react";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useState } from "react";
 
 import Input from "@src/components/Input";
@@ -99,7 +100,7 @@ const TagsInput: React.FC<TagsInputProps> = ({
                 className="inline-flex h-4 w-4 items-center justify-center rounded-full text-text-3 transition-colors hover:bg-fill-2 hover:text-text-1 disabled:cursor-not-allowed disabled:opacity-50"
                 aria-label={removeAriaLabel?.(tag) ?? `Remove ${tag}`}
               >
-                <X size={11} />
+                <HugeiconsIcon icon={X} size={11} />
               </button>
             </span>
           ))}

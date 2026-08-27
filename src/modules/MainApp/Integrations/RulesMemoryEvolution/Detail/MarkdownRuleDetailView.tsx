@@ -1,4 +1,5 @@
-import { BookOpen } from "lucide-react";
+import BookOpen from "@hugeicons/core-free-icons/BookOpen01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -36,7 +37,9 @@ const MarkdownRuleDetailView: React.FC<MarkdownRuleDetailViewProps> = ({
   return (
     <DetailPanelContainer>
       <PanelHeader
-        iconElement={<BookOpen size={14} className="text-primary-6" />}
+        iconElement={
+          <HugeiconsIcon icon={BookOpen} size={14} className="text-primary-6" />
+        }
         breadcrumb={{
           parent: t("agentOrgs.ruleKinds.rule"),
           current: rule.name,

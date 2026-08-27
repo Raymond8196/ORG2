@@ -1,5 +1,7 @@
+import ArrowDownToDot from "@hugeicons/core-free-icons/ArrowDownToDotIcon";
+import ArrowUpFromDot from "@hugeicons/core-free-icons/ArrowUpFromDotIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
-import { ArrowDownToDot, ArrowUpFromDot } from "lucide-react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -39,7 +41,7 @@ export const UsagePairBadge: React.FC<UsagePairBadgeProps> = ({
     >
       {inputTokens > 0 && (
         <span className="inline-flex items-center gap-0.5">
-          <ArrowUpFromDot size={11} strokeWidth={2} />
+          <HugeiconsIcon icon={ArrowUpFromDot} size={11} strokeWidth={2} />
           {formatToolUsageTokenCount(inputTokens)}
         </span>
       )}
@@ -48,7 +50,7 @@ export const UsagePairBadge: React.FC<UsagePairBadgeProps> = ({
       )}
       {outputTokens > 0 && (
         <span className="inline-flex items-center gap-0.5">
-          <ArrowDownToDot size={11} strokeWidth={2} />
+          <HugeiconsIcon icon={ArrowDownToDot} size={11} strokeWidth={2} />
           {formatToolUsageTokenCount(outputTokens)}
         </span>
       )}

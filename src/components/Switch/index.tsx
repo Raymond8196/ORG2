@@ -33,7 +33,8 @@
  * <Switch checked={checked} onCheckedChange={setChecked} showAxLabel />
  * ```
  */
-import { Loader2 } from "lucide-react";
+import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { forwardRef, useCallback, useState } from "react";
 
 import { SPINNER_TOKENS } from "@src/config/spinnerTokens";
@@ -209,7 +210,11 @@ const Switch = forwardRef<HTMLButtonElement, SwitchProps>(
         {/* Knob/Handle */}
         <span className="switch-handle">
           {loading ? (
-            <Loader2 size={SPINNER_TOKENS.small} className="animate-spin" />
+            <HugeiconsIcon
+              icon={Loader2}
+              size={SPINNER_TOKENS.small}
+              className="animate-spin"
+            />
           ) : (
             currentIcon
           )}

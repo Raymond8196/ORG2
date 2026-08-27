@@ -1,4 +1,5 @@
-import { RefreshCw } from "lucide-react";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -508,7 +509,7 @@ const SessionProvenanceRecentSignalsTable: React.FC = () => {
                 variant="secondary"
                 size="default"
                 loading={refreshing}
-                icon={<RefreshCw size={14} />}
+                icon={<HugeiconsIcon icon={RefreshCw} size={14} />}
                 onClick={() => void load()}
               >
                 {t("agentOrgs.sessionProvenance.signals.refresh", {

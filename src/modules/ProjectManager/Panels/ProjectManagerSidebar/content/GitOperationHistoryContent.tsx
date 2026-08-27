@@ -5,19 +5,17 @@
  * including failed operations. Data comes from gitOperationHistoryAtom
  * which is populated by backend WebSocket events.
  */
+import AlertCircle from "@hugeicons/core-free-icons/AlertCircleIcon";
+import ArrowDownToLine from "@hugeicons/core-free-icons/ArrowDownToLineIcon";
+import ArrowUpFromLine from "@hugeicons/core-free-icons/ArrowUpFromLineIcon";
+import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import GitCommitHorizontal from "@hugeicons/core-free-icons/GitCommitIcon";
+import GitMerge from "@hugeicons/core-free-icons/GitMergeIcon";
+import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
-import {
-  AlertCircle,
-  ArrowDownToLine,
-  ArrowUpFromLine,
-  CheckCircle2,
-  GitCommitHorizontal,
-  GitMerge,
-  GitPullRequest,
-  RefreshCw,
-  XCircle,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 import React, { createElement, memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -26,6 +24,8 @@ import {
   type GitOperation,
   gitOperationHistoryAtom,
 } from "@src/store/git/gitOperationAtom";
+
+type LucideIcon = IconSvgElement;
 
 // ============================================
 // Constants
@@ -100,7 +100,8 @@ const OperationRow: React.FC<OperationRowProps> = memo(({ entry }) => {
             className: "text-text-2",
           })
         ) : (
-          <XCircle
+          <HugeiconsIcon
+            icon={XCircle}
             size={ICON_SIZE}
             strokeWidth={ICON_STROKE}
             className="text-danger-text"
@@ -115,7 +116,8 @@ const OperationRow: React.FC<OperationRowProps> = memo(({ entry }) => {
             {entry.operation}
           </span>
           {entry.success ? (
-            <CheckCircle2
+            <HugeiconsIcon
+              icon={CheckCircle2}
               size={11}
               className="text-success-text flex-shrink-0"
             />

@@ -7,14 +7,13 @@
  *
  * Ratio bars compare AI-attributed metrics against total git activity.
  */
+import FileCode2 from "@hugeicons/core-free-icons/FileCodeIcon";
+import FunctionSquare from "@hugeicons/core-free-icons/FunctionSquareIcon";
+import GitCommitHorizontal from "@hugeicons/core-free-icons/GitCommitIcon";
+import Hash from "@hugeicons/core-free-icons/HashtagIcon";
+import Sparkles from "@hugeicons/core-free-icons/SparklesIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
-import {
-  FileCode2,
-  FunctionSquare,
-  GitCommitHorizontal,
-  Hash,
-  Sparkles,
-} from "lucide-react";
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -202,26 +201,30 @@ interface SessionRowProps {
 const SessionRow: React.FC<SessionRowProps> = memo(({ sessionId, impact }) => (
   <div className="group flex items-center justify-between overflow-hidden rounded-lg border border-border-1 bg-fill-1 p-3 transition-colors hover:bg-fill-2">
     <div className="flex min-w-0 flex-1 items-center gap-3">
-      <Sparkles size={14} className="flex-shrink-0 text-primary-6" />
+      <HugeiconsIcon
+        icon={Sparkles}
+        size={14}
+        className="flex-shrink-0 text-primary-6"
+      />
       <span className="truncate text-[12px] text-text-2">
         {sessionId.slice(0, 12)}…
       </span>
     </div>
     <div className="flex items-center gap-4 text-[11px]">
       <span className="flex items-center gap-1 text-text-3">
-        <FileCode2 size={11} />
+        <HugeiconsIcon icon={FileCode2} size={11} />
         {impact.filesTouched.length}
       </span>
       <span className="flex items-center gap-1 text-text-3">
-        <FunctionSquare size={11} />
+        <HugeiconsIcon icon={FunctionSquare} size={11} />
         {impact.functionsCreated.length}
       </span>
       <span className="flex items-center gap-1 text-text-3">
-        <GitCommitHorizontal size={11} />
+        <HugeiconsIcon icon={GitCommitHorizontal} size={11} />
         {impact.commitsInfluenced.length}
       </span>
       <span className="flex items-center gap-1 text-text-3">
-        <Hash size={11} />
+        <HugeiconsIcon icon={Hash} size={11} />
         {impact.totalLinesAttributed}
       </span>
     </div>
@@ -370,31 +373,31 @@ const AIImpactContent: React.FC = () => {
               className={`${DETAIL_PANEL_TOKENS.sectionGap} grid grid-cols-2 gap-3 sm:grid-cols-5`}
             >
               <StatItem
-                icon={<Sparkles size={12} />}
+                icon={<HugeiconsIcon icon={Sparkles} size={12} />}
                 label={t("aiImpact.sessions")}
                 value={aggregated.sessionsWithImpact}
               />
               <StatItem
-                icon={<FileCode2 size={12} />}
+                icon={<HugeiconsIcon icon={FileCode2} size={12} />}
                 label={t("aiImpact.files")}
                 value={aggregated.totalFilesTouched}
                 total={baseline?.totalFiles}
                 totalLabel={t("aiImpact.human")}
               />
               <StatItem
-                icon={<FunctionSquare size={12} />}
+                icon={<HugeiconsIcon icon={FunctionSquare} size={12} />}
                 label={t("aiImpact.functions")}
                 value={aggregated.totalFunctionsCreated}
               />
               <StatItem
-                icon={<GitCommitHorizontal size={12} />}
+                icon={<HugeiconsIcon icon={GitCommitHorizontal} size={12} />}
                 label={t("aiImpact.commits")}
                 value={aggregated.totalCommitsInfluenced}
                 total={baseline?.totalCommits}
                 totalLabel={t("aiImpact.human")}
               />
               <StatItem
-                icon={<Hash size={12} />}
+                icon={<HugeiconsIcon icon={Hash} size={12} />}
                 label={t("aiImpact.lines")}
                 value={aggregated.totalLinesAttributed}
                 total={baseline?.totalInsertions}

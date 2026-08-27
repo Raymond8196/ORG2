@@ -1,4 +1,7 @@
-import { Copy, FolderOpen, Pencil } from "lucide-react";
+import Copy from "@hugeicons/core-free-icons/Copy01Icon";
+import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
+import Pencil from "@hugeicons/core-free-icons/PencilIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -167,7 +170,7 @@ const CliRawConfigFileEditor: React.FC<CliRawConfigFileEditorProps> = ({
           )}
           {activeTab !== "edit" && (
             <Button
-              icon={<Pencil size={14} />}
+              icon={<HugeiconsIcon icon={Pencil} size={14} />}
               iconOnly
               onClick={handleEdit}
               aria-label={t("common:actions.edit")}
@@ -176,7 +179,7 @@ const CliRawConfigFileEditor: React.FC<CliRawConfigFileEditorProps> = ({
             />
           )}
           <Button
-            icon={<Copy size={14} />}
+            icon={<HugeiconsIcon icon={Copy} size={14} />}
             iconOnly
             onClick={handleCopy}
             disabled={!value.trim()}
@@ -184,7 +187,7 @@ const CliRawConfigFileEditor: React.FC<CliRawConfigFileEditorProps> = ({
             title={t("common:actions.copy")}
           />
           <Button
-            icon={<FolderOpen size={14} />}
+            icon={<HugeiconsIcon icon={FolderOpen} size={14} />}
             iconOnly
             onClick={handleRevealConfig}
             aria-label={t("agentOrgs.cliAgentDetail.revealConfigFile")}

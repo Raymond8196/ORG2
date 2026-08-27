@@ -7,8 +7,9 @@
  * a plain builder function (not a hook/useMemo) since the panel recomputed
  * this array on every render before extraction — same behavior here.
  */
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
-import { RefreshCw } from "lucide-react";
 import React, { type Dispatch, type SetStateAction } from "react";
 
 import Button from "@src/components/Button";
@@ -189,7 +190,7 @@ export function buildRuntimeScanningPanelColumns({
                   menuSegmentWidth={22}
                   loading={row.rescanning}
                   loadingSpinIcon
-                  icon={<RefreshCw size={14} />}
+                  icon={<HugeiconsIcon icon={RefreshCw} size={14} />}
                   aria-label={t("rescan")}
                   title={t("rescan")}
                   onClick={() => void handleRescan(row, false)}
@@ -244,7 +245,7 @@ export function buildRuntimeScanningPanelColumns({
                   size="small"
                   iconOnly
                   loading={row.rescanning}
-                  icon={<RefreshCw size={14} />}
+                  icon={<HugeiconsIcon icon={RefreshCw} size={14} />}
                   title={t("rescan")}
                   onClick={() => void handleRescan(row)}
                 />

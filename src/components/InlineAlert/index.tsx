@@ -12,14 +12,13 @@
  * body (children) and subtitle render below the header.
  * When action is an object, InlineAlert builds a secondary Button at 28px height.
  */
-import {
-  Check,
-  ChevronsDownUp,
-  ChevronsUpDown,
-  Info,
-  TriangleAlert,
-  X,
-} from "lucide-react";
+import ChevronsUpDown from "@hugeicons/core-free-icons/ArrowUpDownIcon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
+import Info from "@hugeicons/core-free-icons/InformationCircleIcon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import TriangleAlert from "@hugeicons/core-free-icons/TriangleAlertIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import Button from "@src/components/Button";
@@ -35,10 +34,14 @@ const ALERT_SURFACE_CLASS = `border border-solid border-border-1 text-text-1 ${D
 const ALERT_RADIUS_CLASS = "rounded-xl";
 
 const DEFAULT_ICONS: Record<string, React.ReactNode> = {
-  success: <Check size={14} className="flex-shrink-0" />,
-  danger: <TriangleAlert size={14} className="flex-shrink-0" />,
-  warning: <TriangleAlert size={14} className="flex-shrink-0" />,
-  info: <Info size={14} className="flex-shrink-0" />,
+  success: <HugeiconsIcon icon={Check} size={14} className="flex-shrink-0" />,
+  danger: (
+    <HugeiconsIcon icon={TriangleAlert} size={14} className="flex-shrink-0" />
+  ),
+  warning: (
+    <HugeiconsIcon icon={TriangleAlert} size={14} className="flex-shrink-0" />
+  ),
+  info: <HugeiconsIcon icon={Info} size={14} className="flex-shrink-0" />,
 };
 
 /**
@@ -140,15 +143,23 @@ const InlineAlert: React.FC<InlineAlertProps> = ({
     icon ??
     (isPill ? (
       expanded ? (
-        <ChevronsDownUp size={14} className="flex-shrink-0" />
+        <HugeiconsIcon
+          icon={ChevronsDownUp}
+          size={14}
+          className="flex-shrink-0"
+        />
       ) : (
-        <ChevronsUpDown size={14} className="flex-shrink-0" />
+        <HugeiconsIcon
+          icon={ChevronsUpDown}
+          size={14}
+          className="flex-shrink-0"
+        />
       )
     ) : (
       DEFAULT_ICONS[type]
     ));
   const resolvedCloseIcon = closeIcon ?? (
-    <X size={14} className="flex-shrink-0" />
+    <HugeiconsIcon icon={X} size={14} className="flex-shrink-0" />
   );
   const hasTitle = Boolean(title);
 

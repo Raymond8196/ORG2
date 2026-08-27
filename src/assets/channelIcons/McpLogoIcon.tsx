@@ -1,7 +1,9 @@
-import type { LucideProps } from "lucide-react";
+import { type IconSvgElement } from "@hugeicons/react";
 import { forwardRef } from "react";
 
 import McpLogoSvg from "./mcp.svg";
+
+type LucideProps = IconSvgElement;
 
 /**
  * Model Context Protocol logo (Wikimedia) — matches Lucide icon usage in toolbars.

@@ -1,4 +1,5 @@
-import { Bot } from "lucide-react";
+import Bot from "@hugeicons/core-free-icons/BotIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 import { DROPDOWN_ITEM } from "@src/components/Dropdown/tokens";
 import {
@@ -31,7 +32,7 @@ export function DelegationsSection({
       }
     >
       <FieldRow
-        icon={<Bot size={DROPDOWN_ITEM.iconSize} />}
+        icon={<HugeiconsIcon icon={Bot} size={DROPDOWN_ITEM.iconSize} />}
         value={`${workItem.delegations.length} ${t("workItems.properties.delegations")}`}
         isSelected
         showChevron={false}

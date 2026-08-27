@@ -10,7 +10,8 @@
  * - Contains DevTools tabs (Elements, Console, Network)
  * - Collapsed state shows toggle button with error/warning indicators
  */
-import { PanelRightOpen } from "lucide-react";
+import PanelRightOpen from "@hugeicons/core-free-icons/PanelRightOpenIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -103,7 +104,7 @@ export const WebInspector: React.FC<WebInspectorProps> = memo(
               onClick={onToggleCollapse}
               aria-label={t("titleBar.showDevTools")}
             >
-              <PanelRightOpen size={16} />
+              <HugeiconsIcon icon={PanelRightOpen} size={16} />
             </button>
           </ToolbarTooltip>
           {/* Issue indicators */}

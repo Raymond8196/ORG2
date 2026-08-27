@@ -1,5 +1,8 @@
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useSetAtom } from "jotai";
-import { CheckCircle2, ChevronRight, XCircle } from "lucide-react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -115,9 +118,17 @@ const OrgtrackEnvelopeCard: React.FC<OrgtrackEnvelopeCardProps> = ({
     <>
       <div className="flex items-center gap-2 border-b border-fill-4 px-3 py-2">
         {card.ok ? (
-          <CheckCircle2 size={12} className="shrink-0 text-success-6" />
+          <HugeiconsIcon
+            icon={CheckCircle2}
+            size={12}
+            className="shrink-0 text-success-6"
+          />
         ) : (
-          <XCircle size={12} className="shrink-0 text-danger-6" />
+          <HugeiconsIcon
+            icon={XCircle}
+            size={12}
+            className="shrink-0 text-danger-6"
+          />
         )}
         <span className="min-w-0 flex-1 truncate text-xs font-medium text-text-2">
           {card.operation}
@@ -129,7 +140,8 @@ const OrgtrackEnvelopeCard: React.FC<OrgtrackEnvelopeCardProps> = ({
           </span>
         ) : null}
         {target ? (
-          <ChevronRight
+          <HugeiconsIcon
+            icon={ChevronRight}
             size={14}
             className="shrink-0 text-text-4"
             aria-hidden

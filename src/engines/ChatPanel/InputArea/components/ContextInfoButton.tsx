@@ -9,8 +9,12 @@
  *   - Sections come from the final provider request payload only.
  *   - Categories with no live data are hidden, no mock/placeholder values.
  */
+import Archive from "@hugeicons/core-free-icons/ArchiveIcon";
+import ChevronsUpDown from "@hugeicons/core-free-icons/ArrowUpDownIcon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
-import { Archive, ChevronsDownUp, ChevronsUpDown, X } from "lucide-react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -350,7 +354,7 @@ const ContextInfoButton: React.FC<ContextInfoButtonProps> = memo(
                     className="flex h-5 w-5 items-center justify-center rounded text-text-3 transition-colors hover:bg-fill-2 hover:text-text-2"
                     aria-label={t("common:actions.close")}
                   >
-                    <X size={12} />
+                    <HugeiconsIcon icon={X} size={12} />
                   </button>
                 </div>
 
@@ -429,9 +433,9 @@ const ContextInfoButton: React.FC<ContextInfoButtonProps> = memo(
                   </span>
                   <span className="flex h-5 w-5 items-center justify-center rounded text-text-3 transition-colors group-hover:bg-fill-2 group-hover:text-text-2">
                     {manualCompactOpen ? (
-                      <ChevronsDownUp size={12} />
+                      <HugeiconsIcon icon={ChevronsDownUp} size={12} />
                     ) : (
-                      <ChevronsUpDown size={12} />
+                      <HugeiconsIcon icon={ChevronsUpDown} size={12} />
                     )}
                   </span>
                 </button>
@@ -455,7 +459,7 @@ const ContextInfoButton: React.FC<ContextInfoButtonProps> = memo(
                       size="small"
                       className="mt-2"
                       data-testid="context-info-manual-compact-button"
-                      icon={<Archive size={14} />}
+                      icon={<HugeiconsIcon icon={Archive} size={14} />}
                       loading={manualCompacting}
                       disabled={compactDisabled}
                       onClick={runManualCompact}

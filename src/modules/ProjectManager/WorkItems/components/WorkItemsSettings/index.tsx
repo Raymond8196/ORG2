@@ -9,14 +9,12 @@
  * - Labels: add/edit/remove work item labels
  * (more sections can be added here)
  */
-import {
-  Cable,
-  type LucideIcon,
-  Settings,
-  Tags,
-  User,
-  Users,
-} from "lucide-react";
+import Settings from "@hugeicons/core-free-icons/Settings01Icon";
+import Tags from "@hugeicons/core-free-icons/TagsIcon";
+import Cable from "@hugeicons/core-free-icons/UsbIcon";
+import User from "@hugeicons/core-free-icons/UserIcon";
+import Users from "@hugeicons/core-free-icons/UserMultipleIcon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -36,6 +34,8 @@ import {
   MyProfileSection,
   SyncSection,
 } from "./subpages";
+
+type LucideIcon = IconSvgElement;
 
 // ============================================
 // Section IDs

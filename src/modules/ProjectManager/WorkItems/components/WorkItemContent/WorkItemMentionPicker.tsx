@@ -1,4 +1,5 @@
-import { AtSign } from "lucide-react";
+import AtSign from "@hugeicons/core-free-icons/AtIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -77,7 +78,7 @@ const WorkItemMentionPicker: React.FC<WorkItemMentionPickerProps> = ({
       appearance="ghost"
       value={[...value]}
       options={options}
-      prefix={<AtSign size={13} aria-hidden />}
+      prefix={<HugeiconsIcon icon={AtSign} size={13} aria-hidden />}
       placeholder={t("workItems.activity.mentionPeople")}
       maxTagCount={2}
       showSearch

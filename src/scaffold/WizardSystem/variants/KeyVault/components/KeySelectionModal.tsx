@@ -4,14 +4,13 @@
  * Modal for choosing between multiple detected keys (e.g., OAuth + API key).
  * Uses design system tokens for consistent theming.
  */
-import {
-  AlertCircle,
-  Check,
-  CheckCircle,
-  Key,
-  KeyRound,
-  X,
-} from "lucide-react";
+import AlertCircle from "@hugeicons/core-free-icons/AlertCircleIcon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import CheckCircle from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import Key from "@hugeicons/core-free-icons/Key01Icon";
+import KeyRound from "@hugeicons/core-free-icons/Key02Icon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -59,7 +58,7 @@ const KeySelectionModal: React.FC<KeySelectionModalProps> = ({
             onClick={onClose}
             className="rounded-lg p-1 text-text-3 hover:bg-fill-2 hover:text-text-1"
           >
-            <X size={18} />
+            <HugeiconsIcon icon={X} size={18} />
           </button>
         </div>
 
@@ -89,7 +88,8 @@ const KeySelectionModal: React.FC<KeySelectionModalProps> = ({
                   {/* Selection indicator */}
                   {cred.validated ? (
                     selectedIndex === index ? (
-                      <Check
+                      <HugeiconsIcon
+                        icon={Check}
                         size={16}
                         className="mt-0.5 flex-shrink-0 text-primary-6"
                       />
@@ -97,7 +97,8 @@ const KeySelectionModal: React.FC<KeySelectionModalProps> = ({
                       <div className="mt-0.5 h-4 w-4 flex-shrink-0" />
                     )
                   ) : (
-                    <AlertCircle
+                    <HugeiconsIcon
+                      icon={AlertCircle}
                       size={16}
                       className="mt-0.5 flex-shrink-0 text-danger-6"
                     />
@@ -105,14 +106,16 @@ const KeySelectionModal: React.FC<KeySelectionModalProps> = ({
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       {cred.auth_method === "oauth" ? (
-                        <KeyRound
+                        <HugeiconsIcon
+                          icon={KeyRound}
                           size={16}
                           className={
                             cred.validated ? "text-primary-6" : "text-danger-6"
                           }
                         />
                       ) : (
-                        <Key
+                        <HugeiconsIcon
+                          icon={Key}
                           size={16}
                           className={
                             cred.validated ? "text-success-6" : "text-danger-6"
@@ -134,12 +137,12 @@ const KeySelectionModal: React.FC<KeySelectionModalProps> = ({
                       )}
                       {cred.validated === true ? (
                         <span className="flex items-center gap-1 rounded-full bg-success-1 px-2 py-0.5 text-[10px] text-success-6">
-                          <CheckCircle size={10} />
+                          <HugeiconsIcon icon={CheckCircle} size={10} />
                           {t("keyVault.quickActions.valid")}
                         </span>
                       ) : cred.validated === false ? (
                         <span className="flex items-center gap-1 rounded-full bg-danger-1 px-2 py-0.5 text-[10px] font-medium text-danger-6">
-                          <AlertCircle size={10} />
+                          <HugeiconsIcon icon={AlertCircle} size={10} />
                           {t("keyVault.quickActions.invalid")}
                         </span>
                       ) : null}

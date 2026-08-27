@@ -1,4 +1,6 @@
-import { Ellipsis, Trash2 } from "lucide-react";
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import Ellipsis from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -61,7 +63,8 @@ export const WorktreeActionsMenu: React.FC<WorktreeActionsMenuProps> = memo(
             toggle();
           }}
         >
-          <Ellipsis
+          <HugeiconsIcon
+            icon={Ellipsis}
             size={14}
             className={isOpen ? "text-primary-6" : "text-text-3"}
           />
@@ -88,7 +91,11 @@ export const WorktreeActionsMenu: React.FC<WorktreeActionsMenuProps> = memo(
                   className={`${DROPDOWN_CLASSES.item} ${PRIMARY_SIDEBAR_HOVER.row} w-full text-danger-6`}
                   onClick={handleRemove}
                 >
-                  <Trash2 size={DROPDOWN_ITEM.iconSize} className="shrink-0" />
+                  <HugeiconsIcon
+                    icon={Trash2}
+                    size={DROPDOWN_ITEM.iconSize}
+                    className="shrink-0"
+                  />
                   <span className="truncate">
                     {t("sourceControl.removeWorktree")}
                   </span>
@@ -151,7 +158,11 @@ export function WorktreeContextMenu({
             className={`${DROPDOWN_CLASSES.item} ${PRIMARY_SIDEBAR_HOVER.row} w-full text-danger-6`}
             onClick={handleRemove}
           >
-            <Trash2 size={DROPDOWN_ITEM.iconSize} className="shrink-0" />
+            <HugeiconsIcon
+              icon={Trash2}
+              size={DROPDOWN_ITEM.iconSize}
+              className="shrink-0"
+            />
             <span className="truncate">
               {t("sourceControl.removeWorktree")}
             </span>

@@ -5,17 +5,16 @@
  * selector, current time-range label, and previous / next / last-round
  * buttons.
  */
-import {
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsRight,
-  ClockArrowDown,
-  ClockArrowUp,
-  Loader2,
-  Network,
-  X,
-} from "lucide-react";
+import Network from "@hugeicons/core-free-icons/AiNetworkIcon";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ChevronsRight from "@hugeicons/core-free-icons/ArrowRightDoubleIcon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import ClockArrowDown from "@hugeicons/core-free-icons/Time02Icon";
+import ClockArrowUp from "@hugeicons/core-free-icons/Time02Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -225,7 +224,11 @@ const TurnPaginationControls: React.FC<TurnPaginationControlsProps> = memo(
                 aria-label={t("sessions:planner.agentOrgOverview.title")}
                 title={t("sessions:planner.agentOrgOverview.title")}
                 icon={
-                  <Network size={DROPDOWN_ITEM.iconSize} strokeWidth={1.75} />
+                  <HugeiconsIcon
+                    icon={Network}
+                    size={DROPDOWN_ITEM.iconSize}
+                    strokeWidth={1.75}
+                  />
                 }
               />
               {agentName && <HeaderSectionSeparator />}
@@ -255,7 +258,8 @@ const TurnPaginationControls: React.FC<TurnPaginationControlsProps> = memo(
               >
                 <span className="truncate">{currentAgentNameLabel}</span>
                 {canSwitchAgentOrgMember && (
-                  <ChevronDown
+                  <HugeiconsIcon
+                    icon={ChevronDown}
                     size={DROPDOWN_ITEM.iconSize}
                     className={`${SELECT_CHEVRON_CLASS} ${
                       isMemberSwitcherOpen ? "rotate-180" : ""
@@ -393,12 +397,14 @@ const TurnPaginationControls: React.FC<TurnPaginationControlsProps> = memo(
                 >
                   <span className="truncate">{currentTurnPageLabel}</span>
                   {showTurnPaginationSpinner ? (
-                    <Loader2
+                    <HugeiconsIcon
+                      icon={Loader2}
                       size={DROPDOWN_ITEM.iconSize}
                       className="shrink-0 animate-spin text-text-3"
                     />
                   ) : (
-                    <ChevronDown
+                    <HugeiconsIcon
+                      icon={ChevronDown}
                       size={DROPDOWN_ITEM.iconSize}
                       className={`${SELECT_CHEVRON_CLASS} ${
                         turnPageListOpen ? "rotate-180" : ""
@@ -448,12 +454,14 @@ const TurnPaginationControls: React.FC<TurnPaginationControlsProps> = memo(
                         aria-label={t("common:actions.sort")}
                         icon={
                           turnPageSortAscending ? (
-                            <ClockArrowDown
+                            <HugeiconsIcon
+                              icon={ClockArrowDown}
                               size={DROPDOWN_ITEM.iconSize}
                               strokeWidth={1.75}
                             />
                           ) : (
-                            <ClockArrowUp
+                            <HugeiconsIcon
+                              icon={ClockArrowUp}
                               size={DROPDOWN_ITEM.iconSize}
                               strokeWidth={1.75}
                             />
@@ -481,7 +489,11 @@ const TurnPaginationControls: React.FC<TurnPaginationControlsProps> = memo(
                         onClick={() => setTurnPageListOpen(false)}
                         aria-label={t("common:actions.close")}
                         icon={
-                          <X size={DROPDOWN_ITEM.iconSize} strokeWidth={1.75} />
+                          <HugeiconsIcon
+                            icon={X}
+                            size={DROPDOWN_ITEM.iconSize}
+                            strokeWidth={1.75}
+                          />
                         }
                       />
                     </span>
@@ -510,7 +522,8 @@ const TurnPaginationControls: React.FC<TurnPaginationControlsProps> = memo(
                         disabled={!turnPaginationReady || currentPageIndex <= 0}
                         aria-label={t("common:pagination.previousRound")}
                         icon={
-                          <ChevronLeft
+                          <HugeiconsIcon
+                            icon={ChevronLeft}
                             size={DROPDOWN_ITEM.iconSize}
                             strokeWidth={1.75}
                           />
@@ -542,7 +555,8 @@ const TurnPaginationControls: React.FC<TurnPaginationControlsProps> = memo(
                         }
                         aria-label={t("common:pagination.nextRound")}
                         icon={
-                          <ChevronRight
+                          <HugeiconsIcon
+                            icon={ChevronRight}
                             size={DROPDOWN_ITEM.iconSize}
                             strokeWidth={1.75}
                           />
@@ -574,7 +588,8 @@ const TurnPaginationControls: React.FC<TurnPaginationControlsProps> = memo(
                         }
                         aria-label={t("common:pagination.latestRound")}
                         icon={
-                          <ChevronsRight
+                          <HugeiconsIcon
+                            icon={ChevronsRight}
                             size={18}
                             strokeWidth={1.75}
                             className="translate-y-[0.5px]"

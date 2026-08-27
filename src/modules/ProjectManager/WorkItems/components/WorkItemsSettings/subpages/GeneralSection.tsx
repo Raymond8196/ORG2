@@ -5,7 +5,8 @@
  * Includes a danger zone with GitHub-style project deletion:
  * user must type the project name to confirm.
  */
-import { AlertTriangle } from "lucide-react";
+import AlertTriangle from "@hugeicons/core-free-icons/Alert01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -150,7 +151,8 @@ const GeneralSection: React.FC<GeneralSectionProps> = ({
           ) : (
             <div className="flex flex-col gap-2">
               <div className="flex items-start gap-2">
-                <AlertTriangle
+                <HugeiconsIcon
+                  icon={AlertTriangle}
                   size={14}
                   className="mt-0.5 shrink-0 text-danger-6"
                 />

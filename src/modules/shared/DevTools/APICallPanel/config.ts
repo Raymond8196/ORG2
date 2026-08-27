@@ -1,17 +1,16 @@
 // ============================================
 // Icon Configuration
 // ============================================
-import {
-  Eye,
-  Keyboard,
-  MousePointerClick,
-  Network,
-  Search,
-  Target,
-  Trash2,
-  X,
-  Zap,
-} from "lucide-react";
+import Network from "@hugeicons/core-free-icons/AiNetworkIcon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import MousePointerClick from "@hugeicons/core-free-icons/CursorPointer02Icon";
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import Zap from "@hugeicons/core-free-icons/FlashIcon";
+import Keyboard from "@hugeicons/core-free-icons/KeyboardIcon";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import Target from "@hugeicons/core-free-icons/Target01Icon";
+import Eye from "@hugeicons/core-free-icons/ViewIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 export const ICON_CONFIG = {
   // Action icons

@@ -3,7 +3,9 @@
  *
  * Displays merge conflict files with warning styling
  */
-import { AlertTriangle, Check } from "lucide-react";
+import AlertTriangle from "@hugeicons/core-free-icons/Alert01Icon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -60,7 +62,13 @@ export const MergeChangesSection: React.FC<MergeChangesSectionProps> = memo(
           onToggle={onToggle}
           variant="warning"
           warningCountOnly={true}
-          icon={<AlertTriangle size={14} className="text-warning-6" />}
+          icon={
+            <HugeiconsIcon
+              icon={AlertTriangle}
+              size={14}
+              className="text-warning-6"
+            />
+          }
           actions={
             onStageResolved && (
               <button
@@ -73,7 +81,8 @@ export const MergeChangesSection: React.FC<MergeChangesSectionProps> = memo(
                 }}
                 title={t("workstation.acceptAllMergeChanges")}
               >
-                <Check
+                <HugeiconsIcon
+                  icon={Check}
                   size={14}
                   strokeWidth={1.75}
                   className="text-success-6"

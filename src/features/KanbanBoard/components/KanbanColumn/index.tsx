@@ -11,9 +11,10 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import cn from "classnames";
-import { Plus } from "lucide-react";
 import React, {
   useCallback,
   useEffect,
@@ -261,7 +262,7 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
             className={`kanban-column__add-btn ${HEADER_BUTTON.actionTreeRow}`}
             onClick={handleAddTask}
           >
-            <Plus size={HEADER_ICON_SIZE.sm} />
+            <HugeiconsIcon icon={Plus} size={HEADER_ICON_SIZE.sm} />
           </button>
         )}
       </div>

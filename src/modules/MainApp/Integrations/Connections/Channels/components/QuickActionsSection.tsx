@@ -6,7 +6,10 @@
  * connected (green), reconnecting (yellow), error (red), disabled (gray).
  * On error, shows a "Reconnect" button to re-toggle the channel.
  */
-import { RefreshCw, Trash2, Wifi } from "lucide-react";
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import Wifi from "@hugeicons/core-free-icons/Wifi01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -80,7 +83,7 @@ const QuickActionsSection: React.FC<QuickActionsSectionProps> = ({
               variant="primary"
               appearance="outline"
               size="small"
-              icon={<RefreshCw size={14} />}
+              icon={<HugeiconsIcon icon={RefreshCw} size={14} />}
               onClick={() => handleReconnect()}
               disabled={reconnecting}
               loading={reconnecting}

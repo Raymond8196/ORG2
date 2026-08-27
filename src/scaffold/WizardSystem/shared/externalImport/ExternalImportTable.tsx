@@ -3,7 +3,8 @@
  * for the unified external-import flow. Rendered by every
  * `external_import_*` wizard surface (rules / skills / agents).
  */
-import { Inbox } from "lucide-react";
+import Inbox from "@hugeicons/core-free-icons/InboxIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -82,7 +83,7 @@ const ExternalImportTable: React.FC<ExternalImportTableProps> = ({
         <Placeholder
           variant="empty"
           placement="detail-panel"
-          icon={<Inbox size={32} aria-hidden />}
+          icon={<HugeiconsIcon icon={Inbox} size={32} aria-hidden />}
           title={labels.emptyTitle}
           subtitle={labels.emptySubtitle}
           action={labels.emptyAction}

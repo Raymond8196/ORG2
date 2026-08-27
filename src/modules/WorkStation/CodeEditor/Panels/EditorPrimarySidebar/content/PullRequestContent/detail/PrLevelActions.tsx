@@ -6,15 +6,14 @@
  * split-button keeps the full merge-method + auto-merge + draft dropdown;
  * reviewer management lives in the sidebar's Reviewers section.
  */
+import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
+import GitMerge from "@hugeicons/core-free-icons/GitMergeIcon";
+import GitPullRequestClosed from "@hugeicons/core-free-icons/GitPullRequestClosedIcon";
+import GitPullRequestDraft from "@hugeicons/core-free-icons/GitPullRequestDraftIcon";
+import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
-import {
-  CircleDot,
-  GitMerge,
-  GitPullRequest,
-  GitPullRequestClosed,
-  GitPullRequestDraft,
-  XCircle,
-} from "lucide-react";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -221,7 +220,13 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
       <div className={DROPDOWN_CLASSES.itemsColumnPadded}>
         {presentation.status === "draft" ? (
           <DropdownItem
-            icon={<GitPullRequest size={DROPDOWN_ITEM.iconSize} aria-hidden />}
+            icon={
+              <HugeiconsIcon
+                icon={GitPullRequest}
+                size={DROPDOWN_ITEM.iconSize}
+                aria-hidden
+              />
+            }
             disabled={interactionDisabled}
             onClick={() => void changeDraftState(false)}
             dataTestId="pr-mark-ready-action"
@@ -232,7 +237,13 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
         {presentation.autoMergeAction ? (
           <>
             <DropdownItem
-              icon={<GitMerge size={DROPDOWN_ITEM.iconSize} aria-hidden />}
+              icon={
+                <HugeiconsIcon
+                  icon={GitMerge}
+                  size={DROPDOWN_ITEM.iconSize}
+                  aria-hidden
+                />
+              }
               disabled={interactionDisabled}
               onClick={() => void toggleAutoMerge()}
               dataTestId="pr-auto-merge-action"
@@ -246,7 +257,13 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
           ? presentation.methods.map(({ method, label }) => (
               <DropdownItem
                 key={method}
-                icon={<GitMerge size={DROPDOWN_ITEM.iconSize} aria-hidden />}
+                icon={
+                  <HugeiconsIcon
+                    icon={GitMerge}
+                    size={DROPDOWN_ITEM.iconSize}
+                    aria-hidden
+                  />
+                }
                 disabled={
                   interactionDisabled || !presentation.directMergeAvailable
                 }
@@ -304,11 +321,11 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
         size="small"
         icon={
           presentation.status === "draft" ? (
-            <GitPullRequestDraft size={14} aria-hidden />
+            <HugeiconsIcon icon={GitPullRequestDraft} size={14} aria-hidden />
           ) : presentation.hasConflicts ? (
-            <XCircle size={14} aria-hidden />
+            <HugeiconsIcon icon={XCircle} size={14} aria-hidden />
           ) : (
-            <GitMerge size={14} aria-hidden />
+            <HugeiconsIcon icon={GitMerge} size={14} aria-hidden />
           )
         }
         loading={pending}
@@ -356,7 +373,9 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
           size="small"
           long
           centerLabel
-          icon={<GitPullRequestDraft size={14} aria-hidden />}
+          icon={
+            <HugeiconsIcon icon={GitPullRequestDraft} size={14} aria-hidden />
+          }
           disabled={interactionDisabled}
           onClick={() => void changeDraftState(true)}
           data-testid="pr-convert-to-draft-action"
@@ -375,9 +394,13 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
           centerLabel
           icon={
             nextState === "closed" ? (
-              <GitPullRequestClosed size={14} aria-hidden />
+              <HugeiconsIcon
+                icon={GitPullRequestClosed}
+                size={14}
+                aria-hidden
+              />
             ) : (
-              <CircleDot size={14} aria-hidden />
+              <HugeiconsIcon icon={CircleDot} size={14} aria-hidden />
             )
           }
           disabled={interactionDisabled}

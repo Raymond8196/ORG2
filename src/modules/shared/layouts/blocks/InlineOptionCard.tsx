@@ -1,4 +1,5 @@
-import { Check } from "lucide-react";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useState } from "react";
 
 import Button from "@src/components/Button";
@@ -45,7 +46,9 @@ export function InlineOptionPill({
           : "border-border-3 bg-primary-container"
       }`}
     >
-      {selected && <Check size={10} className="text-white" />}
+      {selected && (
+        <HugeiconsIcon icon={Check} size={10} className="text-white" />
+      )}
     </span>
   );
 

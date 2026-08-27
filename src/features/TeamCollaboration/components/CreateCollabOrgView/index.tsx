@@ -1,5 +1,9 @@
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import Cloud from "@hugeicons/core-free-icons/CloudIcon";
+import Laptop from "@hugeicons/core-free-icons/LaptopIcon";
+import LogIn from "@hugeicons/core-free-icons/Login01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { Cloud, Laptop, LogIn, Plus } from "lucide-react";
 import React, {
   useCallback,
   useEffect,

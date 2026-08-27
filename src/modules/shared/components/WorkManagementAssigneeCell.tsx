@@ -1,4 +1,5 @@
-import { UserRound } from "lucide-react";
+import UserRound from "@hugeicons/core-free-icons/UserCircleIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useState } from "react";
 
 import Avatar from "@src/components/Avatar";
@@ -82,7 +83,7 @@ export function WorkManagementAssigneeCell({
       {firstAssignee.label.charAt(0).toUpperCase()}
     </Avatar>
   ) : (
-    <UserRound size={14} strokeWidth={1.8} />
+    <HugeiconsIcon icon={UserRound} size={14} strokeWidth={1.8} />
   );
 
   const handleOpenChange = (nextOpen: boolean) => {
@@ -139,7 +140,9 @@ export function WorkManagementAssigneeCell({
           return (
             <>
               <Option
-                icon={<UserRound size={14} strokeWidth={1.8} />}
+                icon={
+                  <HugeiconsIcon icon={UserRound} size={14} strokeWidth={1.8} />
+                }
                 label={noneLabel}
                 isSelected={currentAssigneeIds.length === 0}
                 onClick={() => handleChange([], close)}

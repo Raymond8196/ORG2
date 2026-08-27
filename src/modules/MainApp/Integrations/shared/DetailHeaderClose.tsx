@@ -1,4 +1,9 @@
-import { ArrowDown, ArrowUp, Maximize2, RefreshCw, X } from "lucide-react";
+import ArrowDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Maximize2 from "@hugeicons/core-free-icons/Maximize02Icon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -58,7 +63,7 @@ export const DetailHeaderClose: React.FC<DetailHeaderCloseProps> = ({
       {showPrevButton && (
         <Button
           {...PANEL_HEADER_TOKENS.actionButton}
-          icon={<ArrowUp {...headerIconProps} />}
+          icon={<HugeiconsIcon icon={ArrowUp} {...headerIconProps} />}
           onClick={onPrev}
           title={t("actions.previous")}
         />
@@ -66,7 +71,7 @@ export const DetailHeaderClose: React.FC<DetailHeaderCloseProps> = ({
       {showNextButton && (
         <Button
           {...PANEL_HEADER_TOKENS.actionButton}
-          icon={<ArrowDown {...headerIconProps} />}
+          icon={<HugeiconsIcon icon={ArrowDown} {...headerIconProps} />}
           onClick={onNext}
           title={t("actions.next")}
         />
@@ -77,7 +82,13 @@ export const DetailHeaderClose: React.FC<DetailHeaderCloseProps> = ({
       {onRefresh && (
         <Button
           {...PANEL_HEADER_TOKENS.actionButton}
-          icon={<RefreshCw {...headerIconProps} className={spinClass} />}
+          icon={
+            <HugeiconsIcon
+              icon={RefreshCw}
+              {...headerIconProps}
+              className={spinClass}
+            />
+          }
           onClick={handleRefreshClick}
           title={t("actions.refresh")}
         />
@@ -85,14 +96,14 @@ export const DetailHeaderClose: React.FC<DetailHeaderCloseProps> = ({
       {onExpand && (
         <Button
           {...PANEL_HEADER_TOKENS.actionButton}
-          icon={<Maximize2 {...headerIconProps} />}
+          icon={<HugeiconsIcon icon={Maximize2} {...headerIconProps} />}
           onClick={onExpand}
           title={t("actions.expand")}
         />
       )}
       <Button
         {...PANEL_HEADER_TOKENS.actionButton}
-        icon={<X {...headerIconProps} />}
+        icon={<HugeiconsIcon icon={X} {...headerIconProps} />}
         onClick={onClick}
         title={t("actions.close")}
       />

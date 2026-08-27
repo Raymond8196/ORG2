@@ -1,5 +1,6 @@
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { type LucideIcon, Search } from "lucide-react";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -17,6 +18,8 @@ import {
   type WorkStationTab,
   activeWorkStationTabAtom,
 } from "@src/store/workstation/tabs";
+
+type LucideIcon = IconSvgElement;
 
 const CODE_SIDEBAR_HEADER_ACTIONS: Array<{
   key: PrimarySidebarTabKey;

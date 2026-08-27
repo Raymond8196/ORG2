@@ -19,8 +19,9 @@
  * Preview chrome: a meta strip on top (component name / dimensions / DOM
  * depth / url).
  */
+import PenTool from "@hugeicons/core-free-icons/PenTool01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { invoke } from "@tauri-apps/api/core";
-import { PenTool } from "lucide-react";
 import React, { Suspense, memo, useCallback, useMemo, useState } from "react";
 
 import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
@@ -320,7 +321,7 @@ const MetaStrip: React.FC<MetaStripProps> = memo(
             aria-label="Inspect with DevTools"
             className="ml-auto inline-flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded border-none bg-transparent p-0 text-text-3 hover:bg-fill-2 hover:text-text-2"
           >
-            <PenTool size={14} />
+            <HugeiconsIcon icon={PenTool} size={14} />
           </button>
         </ToolbarTooltip>
       </div>

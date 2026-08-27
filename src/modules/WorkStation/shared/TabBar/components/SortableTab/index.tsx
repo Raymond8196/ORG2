@@ -5,41 +5,39 @@
  * and close button with unsaved indicator.
  */
 import { useSortable } from "@dnd-kit/sortable";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import MessageCircle from "@hugeicons/core-free-icons/BubbleChatIcon";
+import Building2 from "@hugeicons/core-free-icons/Building02Icon";
+import ListChecks from "@hugeicons/core-free-icons/CheckListIcon";
+import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
+import Code from "@hugeicons/core-free-icons/CodeIcon";
+import Code2 from "@hugeicons/core-free-icons/CodeIcon";
+import Palette from "@hugeicons/core-free-icons/ColorPickerIcon";
+import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import FileDiff from "@hugeicons/core-free-icons/FileDiffIcon";
+import Folder from "@hugeicons/core-free-icons/Folder01Icon";
+import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
+import GitCommitHorizontal from "@hugeicons/core-free-icons/GitCommitIcon";
+import GitMerge from "@hugeicons/core-free-icons/GitMergeIcon";
+import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import Globe from "@hugeicons/core-free-icons/GlobeIcon";
+import Infinity from "@hugeicons/core-free-icons/Infinity01Icon";
+import Layout from "@hugeicons/core-free-icons/Layout01Icon";
+import LayoutGrid from "@hugeicons/core-free-icons/LayoutGridIcon";
+import LayoutList from "@hugeicons/core-free-icons/ListViewIcon";
+import Lock from "@hugeicons/core-free-icons/LockIcon";
+import MessageSquare from "@hugeicons/core-free-icons/Message01Icon";
+import MoveHorizontal from "@hugeicons/core-free-icons/MoveLeftIcon";
+import Box from "@hugeicons/core-free-icons/PackageIcon";
+import Package from "@hugeicons/core-free-icons/PackageIcon";
+import Radar from "@hugeicons/core-free-icons/Radar01Icon";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import ScanSearch from "@hugeicons/core-free-icons/SearchAreaIcon";
+import Settings from "@hugeicons/core-free-icons/Settings01Icon";
+import Sparkles from "@hugeicons/core-free-icons/SparklesIcon";
+import SquareTerminal from "@hugeicons/core-free-icons/SquareTerminalIcon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
-import {
-  Infinity,
-  Box,
-  Building2,
-  CircleDot,
-  Code,
-  Code2,
-  FileDiff,
-  Folder,
-  GitBranch,
-  GitCommitHorizontal,
-  GitMerge,
-  GitPullRequest,
-  Globe,
-  Layout,
-  LayoutGrid,
-  LayoutList,
-  ListChecks,
-  Lock,
-  type LucideIcon,
-  MessageCircle,
-  MessageSquare,
-  MoveHorizontal,
-  Package,
-  Palette,
-  Plus,
-  Radar,
-  ScanSearch,
-  Search,
-  Settings,
-  Sparkles,
-  SquareTerminal,
-  Terminal,
-} from "lucide-react";
 import React, { memo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -76,6 +74,8 @@ import {
 } from "@src/store/workstation/tabs";
 
 import type { WorkStationTab } from "../../types";
+
+type LucideIcon = IconSvgElement;
 
 // ============================================
 // Types
@@ -270,7 +270,8 @@ export const SortableTab: React.FC<SortableTabProps> = memo(
           return <FileTypeIcon fileName="folder" type="folder" size="small" />;
         case "explorer":
           return (
-            <Folder
+            <HugeiconsIcon
+              icon={Folder}
               size={16}
               strokeWidth={1.75}
               className={isActive ? "text-text-1" : "text-text-2"}
@@ -425,11 +426,15 @@ export const SortableTab: React.FC<SortableTabProps> = memo(
             <span className="min-w-0 flex-1 truncate">
               {tab.title} ({String(tab.data.shortSha)})
             </span>
-            <MoveHorizontal size={12} className="shrink-0" />
+            <HugeiconsIcon
+              icon={MoveHorizontal}
+              size={12}
+              className="shrink-0"
+            />
             <span className="shrink-0">
               ({String(tab.data.headShortSha || "HEAD")})
             </span>
-            <Lock size={11} className="shrink-0" />
+            <HugeiconsIcon icon={Lock} size={11} className="shrink-0" />
             <TabLabelRowScrim visible={showLabelRightScrim} />
           </div>
         ) : !hideLabel ? (

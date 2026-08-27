@@ -4,7 +4,8 @@
  * Shows a single "Color Tokens" entry with total count.
  * Opens a consolidated tab with all color tokens.
  */
-import { Palette } from "lucide-react";
+import Palette from "@hugeicons/core-free-icons/ColorPickerIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -45,7 +46,13 @@ export const DesignTabGlobalTokens: React.FC<DesignTabGlobalTokensProps> = memo(
           name: "Color Tokens",
           path: "color-tokens",
           type: "file" as const,
-          icon: <Palette size={TREE_ICON_SIZE} className="text-primary-6" />,
+          icon: (
+            <HugeiconsIcon
+              icon={Palette}
+              size={TREE_ICON_SIZE}
+              className="text-primary-6"
+            />
+          ),
           secondaryText: `${totalColorTokens}`,
         },
       ];

@@ -2,7 +2,9 @@
  * WorkstationItemRow — one actionable rail row (open tab, terminal session,
  * Review, PR link, …) with its optional diff stats, CI status and close button.
  */
-import { ArrowUpRight, X } from "lucide-react";
+import ArrowUpRight from "@hugeicons/core-free-icons/ArrowUpRight01Icon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 import DiffStatsBadge from "@src/components/DiffStatsBadge";
 import { DROPDOWN_CLASSES } from "@src/components/Dropdown/tokens";
@@ -69,7 +71,8 @@ export function WorkstationItemRow({
       ) : null}
       {item.status ? <RailItemStatus status={item.status} /> : null}
       {item.external ? (
-        <ArrowUpRight
+        <HugeiconsIcon
+          icon={ArrowUpRight}
           aria-hidden
           className="shrink-0 text-text-3"
           size={13}
@@ -121,7 +124,7 @@ export function WorkstationItemRow({
           aria-label={item.closeLabel}
           role={compact ? "menuitem" : undefined}
         >
-          <X size={12} />
+          <HugeiconsIcon icon={X} size={12} />
         </IconButton>
       )}
     </div>

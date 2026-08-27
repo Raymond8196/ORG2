@@ -1,6 +1,7 @@
+import TerminalSquare from "@hugeicons/core-free-icons/SquareTerminalIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import { useAtomValue } from "jotai";
-import { TerminalSquare } from "lucide-react";
 import { useMemo } from "react";
 
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";

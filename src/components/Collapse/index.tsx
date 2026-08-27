@@ -31,7 +31,9 @@
  * </Collapse>
  * ```
  */
-import { ChevronDown, ChevronRight } from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   Children,
   createContext,
@@ -168,9 +170,9 @@ const CollapseItem: React.FC<CollapseItemProps> = ({
           <span className="collapse-arrow">
             {expandIcon ||
               (isActive ? (
-                <ChevronDown size={16} />
+                <HugeiconsIcon icon={ChevronDown} size={16} />
               ) : (
-                <ChevronRight size={16} />
+                <HugeiconsIcon icon={ChevronRight} size={16} />
               ))}
           </span>
         )}

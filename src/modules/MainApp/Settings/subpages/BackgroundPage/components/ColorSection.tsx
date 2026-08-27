@@ -4,7 +4,9 @@
  */
 import Button from "@/src/components/Button";
 import { SectionRow } from "@/src/modules/shared/layouts/SectionLayout";
-import { Plus, X } from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -97,7 +99,7 @@ export const ColorSection: React.FC<ColorSectionProps> = ({
                 appearance="solid"
                 size="mini"
                 shape="circle"
-                icon={<X size={9} strokeWidth={2.25} />}
+                icon={<HugeiconsIcon icon={X} size={9} strokeWidth={2.25} />}
                 iconOnly
                 title={t("common:actions.delete")}
                 onClick={(event) => onRemoveCustomHex(hex, event)}
@@ -130,7 +132,12 @@ export const ColorSection: React.FC<ColorSectionProps> = ({
             disabled={atCustomLimit}
             className="absolute inset-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
           />
-          <Plus size={14} strokeWidth={2.25} className="pointer-events-none" />
+          <HugeiconsIcon
+            icon={Plus}
+            size={14}
+            strokeWidth={2.25}
+            className="pointer-events-none"
+          />
         </label>
       </div>
     </SectionRow>

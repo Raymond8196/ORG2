@@ -1,13 +1,12 @@
-import {
-  BarChart3,
-  CheckCircle2,
-  ChevronDown,
-  Circle,
-  ListChecks,
-  Map,
-  MoreHorizontal,
-  UserPlus,
-} from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import BarChart3 from "@hugeicons/core-free-icons/BarChartIcon";
+import ListChecks from "@hugeicons/core-free-icons/CheckListIcon";
+import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import Circle from "@hugeicons/core-free-icons/CircleIcon";
+import Map from "@hugeicons/core-free-icons/MapsIcon";
+import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import UserPlus from "@hugeicons/core-free-icons/UserAdd01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { type FC, useCallback, useEffect, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -73,12 +72,13 @@ const GuideTaskRow: FC<GuideTaskRowProps> = ({
   <DropdownItem
     icon={
       completed ? (
-        <CheckCircle2
+        <HugeiconsIcon
+          icon={CheckCircle2}
           size={DROPDOWN_ITEM.iconSize}
           className="text-success-6"
         />
       ) : (
-        <Circle size={DROPDOWN_ITEM.iconSize} />
+        <HugeiconsIcon icon={Circle} size={DROPDOWN_ITEM.iconSize} />
       )
     }
     suffix={
@@ -225,7 +225,11 @@ const SidebarGuideButton: FC<SidebarGuideButtonProps> = ({
             className={`rounded-full ${isOpen ? "" : "!text-text-2"}`}
             onClick={toggle}
           >
-            <ListChecks size={HEADER_ICON_SIZE.md} strokeWidth={2} />
+            <HugeiconsIcon
+              icon={ListChecks}
+              size={HEADER_ICON_SIZE.md}
+              strokeWidth={2}
+            />
           </IconButton>
         </div>
       </ToolbarTooltip>
@@ -267,7 +271,10 @@ const SidebarGuideButton: FC<SidebarGuideButtonProps> = ({
                     variant="default"
                     onClick={() => runAction(onOpenQuickSetup)}
                   >
-                    <MoreHorizontal size={HEADER_ICON_SIZE.sm} />
+                    <HugeiconsIcon
+                      icon={MoreHorizontal}
+                      size={HEADER_ICON_SIZE.sm}
+                    />
                   </IconButton>
                 </ToolbarTooltip>
                 <IconButton
@@ -276,7 +283,10 @@ const SidebarGuideButton: FC<SidebarGuideButtonProps> = ({
                   variant="default"
                   onClick={close}
                 >
-                  <ChevronDown size={HEADER_ICON_SIZE.sm} />
+                  <HugeiconsIcon
+                    icon={ChevronDown}
+                    size={HEADER_ICON_SIZE.sm}
+                  />
                 </IconButton>
               </div>
               <div className="mt-2 flex items-center gap-2">

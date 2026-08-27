@@ -5,15 +5,14 @@
  * and ChatPanel (engines/). Moved from features/SessionCreator/config.ts
  * to break the cross-feature dependency.
  */
-import {
-  Infinity,
-  Cloud,
-  FolderKanban,
-  Laptop,
-  ListTodo,
-  Search,
-  Split,
-} from "lucide-react";
+import ListTodo from "@hugeicons/core-free-icons/CheckListIcon";
+import Cloud from "@hugeicons/core-free-icons/CloudIcon";
+import FolderKanban from "@hugeicons/core-free-icons/FolderKanbanIcon";
+import Infinity from "@hugeicons/core-free-icons/Infinity01Icon";
+import Laptop from "@hugeicons/core-free-icons/LaptopIcon";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import Split from "@hugeicons/core-free-icons/SplitIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 // ============================================
 // Session Configuration

@@ -1,6 +1,8 @@
+import Cloud from "@hugeicons/core-free-icons/CloudIcon";
+import Laptop from "@hugeicons/core-free-icons/LaptopIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import { useAtomCallback } from "jotai/utils";
-import { Cloud, Laptop } from "lucide-react";
 import React, {
   Suspense,
   lazy,
@@ -285,9 +287,9 @@ const RuntimeDataSourcePanel: React.FC = () => {
       label: entry.label,
       icon:
         entry.kind === "cloud" ? (
-          <Cloud size={13} strokeWidth={2} />
+          <HugeiconsIcon icon={Cloud} size={13} strokeWidth={2} />
         ) : (
-          <Laptop size={13} strokeWidth={2} />
+          <HugeiconsIcon icon={Laptop} size={13} strokeWidth={2} />
         ),
       dataTestId: `runtime-scope-${entry.kind}-${entry.value}`,
     }));

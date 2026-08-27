@@ -1,4 +1,7 @@
-import { Check, KeyRound, RefreshCw } from "lucide-react";
+import KeyRound from "@hugeicons/core-free-icons/Key02Icon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -53,7 +56,7 @@ export const ToolsStep: React.FC<StepProps> = ({ controller }) => {
                     : SECTION_VALUE_TEXT_CLASSES
                 }
               >
-                {tool?.found && <Check size={14} />}
+                {tool?.found && <HugeiconsIcon icon={Check} size={14} />}
                 {tool
                   ? tool.found
                     ? t("readiness.tools.found", {
@@ -70,7 +73,7 @@ export const ToolsStep: React.FC<StepProps> = ({ controller }) => {
       <div className="flex flex-wrap gap-2">
         <Button
           variant="primary"
-          icon={<KeyRound size={15} />}
+          icon={<HugeiconsIcon icon={KeyRound} size={15} />}
           loading={isDetecting}
           disabled={controller.activeOperation !== null && !isDetecting}
           onClick={() => void controller.actions.detectTools()}
@@ -79,7 +82,7 @@ export const ToolsStep: React.FC<StepProps> = ({ controller }) => {
           {t("readiness.tools.detect")}
         </Button>
         <Button
-          icon={<RefreshCw size={15} />}
+          icon={<HugeiconsIcon icon={RefreshCw} size={15} />}
           loading={isImporting}
           disabled={controller.activeOperation !== null && !isImporting}
           onClick={() => void controller.actions.importHistory()}

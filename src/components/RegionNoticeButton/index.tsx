@@ -1,4 +1,5 @@
-import { Globe2 } from "lucide-react";
+import Globe2 from "@hugeicons/core-free-icons/Globe02Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useState } from "react";
 
 import Button from "@src/components/Button";
@@ -56,7 +57,8 @@ const RegionNoticeButton: React.FC<RegionNoticeButtonProps> = ({
             aria-label={title}
             aria-expanded={open}
             icon={
-              <Globe2
+              <HugeiconsIcon
+                icon={Globe2}
                 size={iconSize}
                 strokeWidth={2}
                 className={iconClassName}

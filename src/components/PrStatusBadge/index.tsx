@@ -1,9 +1,8 @@
-import {
-  GitMerge,
-  GitPullRequest,
-  GitPullRequestClosed,
-  GitPullRequestDraft,
-} from "lucide-react";
+import GitMerge from "@hugeicons/core-free-icons/GitMergeIcon";
+import GitPullRequestClosed from "@hugeicons/core-free-icons/GitPullRequestClosedIcon";
+import GitPullRequestDraft from "@hugeicons/core-free-icons/GitPullRequestDraftIcon";
+import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { ReactNode } from "react";
 import { memo } from "react";
 import { useTranslation } from "react-i18next";
@@ -33,14 +32,14 @@ const SIZE_CLASSES = {
 function StatusIcon({ name }: { name: PrStatusIconName }) {
   switch (name) {
     case "merge":
-      return <GitMerge size={10} />;
+      return <HugeiconsIcon icon={GitMerge} size={10} />;
     case "closed":
-      return <GitPullRequestClosed size={10} />;
+      return <HugeiconsIcon icon={GitPullRequestClosed} size={10} />;
     case "draft":
-      return <GitPullRequestDraft size={10} />;
+      return <HugeiconsIcon icon={GitPullRequestDraft} size={10} />;
     case "pull-request":
     default:
-      return <GitPullRequest size={10} />;
+      return <HugeiconsIcon icon={GitPullRequest} size={10} />;
   }
 }
 

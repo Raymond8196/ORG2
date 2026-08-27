@@ -10,7 +10,9 @@
  *
  * [Replace icon] [input] [replace] [replace all]
  */
-import { Replace, ReplaceAll } from "lucide-react";
+import ReplaceAll from "@hugeicons/core-free-icons/ReplaceAllIcon";
+import Replace from "@hugeicons/core-free-icons/ReplaceIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -194,7 +196,7 @@ export const ReplaceInput: React.FC<ReplaceInputProps> = memo(
             className={actionButtonClass}
             title={t("tooltips.replace")}
           >
-            <Replace size={iconSize} />
+            <HugeiconsIcon icon={Replace} size={iconSize} />
           </button>
         )}
         {onReplaceAll && (
@@ -204,7 +206,7 @@ export const ReplaceInput: React.FC<ReplaceInputProps> = memo(
             className={actionButtonClass}
             title={t("tooltips.replaceAll")}
           >
-            <ReplaceAll size={iconSize} />
+            <HugeiconsIcon icon={ReplaceAll} size={iconSize} />
           </button>
         )}
       </div>

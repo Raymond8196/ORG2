@@ -1,4 +1,5 @@
-import { ChevronRight } from "lucide-react";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import {
@@ -79,7 +80,8 @@ export const SubmenuPanel: React.FC<SubmenuPanelProps> = ({
               </span>
             )}
             {hasNested ? (
-              <ChevronRight
+              <HugeiconsIcon
+                icon={ChevronRight}
                 size={DROPDOWN_ITEM.iconSize}
                 className="work-item-context-menu__arrow"
               />

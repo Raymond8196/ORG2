@@ -1,6 +1,6 @@
+import Bot from "@hugeicons/core-free-icons/BotIcon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
-import type { LucideIcon } from "lucide-react";
-import { Bot } from "lucide-react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -16,6 +16,8 @@ import {
   isCursorIdeSession,
   resolveSessionIconId,
 } from "@src/util/session/sessionDispatch";
+
+type LucideIcon = IconSvgElement;
 
 export const COMMUNICATION_AVATAR_ICON_SIZE = 14;
 
@@ -96,7 +98,8 @@ export function useCommunicationAgentIdentity(
           t("terminology.agent")
         ),
         agentIcon: (
-          <Bot
+          <HugeiconsIcon
+            icon={Bot}
             size={COMMUNICATION_AVATAR_ICON_SIZE}
             className="text-primary-6"
           />

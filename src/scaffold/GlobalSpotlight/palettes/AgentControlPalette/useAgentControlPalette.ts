@@ -1,13 +1,12 @@
+import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ChevronsRight from "@hugeicons/core-free-icons/ArrowRightDoubleIcon";
+import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import DraftingCompass from "@hugeicons/core-free-icons/DraftingCompassIcon";
+import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
-import {
-  CheckCircle2,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsRight,
-  DraftingCompass,
-  Loader2,
-  XCircle,
-} from "lucide-react";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 

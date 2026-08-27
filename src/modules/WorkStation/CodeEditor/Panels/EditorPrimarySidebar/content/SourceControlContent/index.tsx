@@ -9,7 +9,8 @@
  * - Stash management
  * - Multi-select support
  */
-import { Filter as FilterIcon } from "lucide-react";
+import FilterIcon from "@hugeicons/core-free-icons/FilterIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   memo,
   useCallback,
@@ -490,7 +491,9 @@ export const SourceControlContent: React.FC<SourceControlContentProps> = memo(
         {showFilter && (
           <div className={`flex-shrink-0 px-3 pb-2 ${surfaceBgClass}`}>
             <Input
-              prefix={<FilterIcon size={14} strokeWidth={1.75} />}
+              prefix={
+                <HugeiconsIcon icon={FilterIcon} size={14} strokeWidth={1.75} />
+              }
               placeholder={t("placeholders.filterChanges")}
               value={searchQuery}
               onChange={onSearchChange}

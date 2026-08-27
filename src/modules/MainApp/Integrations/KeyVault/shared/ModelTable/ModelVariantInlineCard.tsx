@@ -1,4 +1,5 @@
-import { ChevronDown } from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -534,7 +535,11 @@ export default function ModelVariantInlineCard({
               className={MODEL_TABLE_INPUT_VALUE_INTERACTIVE_TOKEN}
             >
               <span className="truncate">{triggerLabel}</span>
-              <ChevronDown size={12} className="text-text-3" />
+              <HugeiconsIcon
+                icon={ChevronDown}
+                size={12}
+                className="text-text-3"
+              />
             </button>
           )}
         />

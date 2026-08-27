@@ -1,13 +1,12 @@
 /** Hover-card presentation owned by Project Manager work items. */
-import {
-  Building2,
-  Clock,
-  Flag,
-  FolderKanban,
-  GitCommitVertical,
-  Tags,
-  User,
-} from "lucide-react";
+import Building2 from "@hugeicons/core-free-icons/Building02Icon";
+import Clock from "@hugeicons/core-free-icons/Clock01Icon";
+import Flag from "@hugeicons/core-free-icons/Flag01Icon";
+import FolderKanban from "@hugeicons/core-free-icons/FolderKanbanIcon";
+import GitCommitVertical from "@hugeicons/core-free-icons/GitCommitIcon";
+import Tags from "@hugeicons/core-free-icons/TagsIcon";
+import User from "@hugeicons/core-free-icons/UserIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -86,7 +85,11 @@ function WorkItemPriorityRow({ priority }: { priority: string }) {
   const config = getWorkItemPriorityConfig(priority);
   return (
     <HoverCardRow
-      icon={config.icon ?? <Flag size={13} strokeWidth={1.75} />}
+      icon={
+        config.icon ?? (
+          <HugeiconsIcon icon={Flag} size={13} strokeWidth={1.75} />
+        )
+      }
       iconClassName="text-text-3"
     >
       <div className="truncate text-text-2" style={{ color: config.color }}>
@@ -124,29 +127,43 @@ const WorkItemHoverCardContent: React.FC<WorkItemHoverCardContentProps> = memo(
         <WorkItemStatusRow status={workItem.status} />
         <WorkItemPriorityRow priority={workItem.priority} />
         {workItem.projectName && (
-          <HoverCardRow icon={<FolderKanban size={13} strokeWidth={1.75} />}>
+          <HoverCardRow
+            icon={
+              <HugeiconsIcon icon={FolderKanban} size={13} strokeWidth={1.75} />
+            }
+          >
             <div className="truncate text-text-2">{workItem.projectName}</div>
           </HoverCardRow>
         )}
         {workItem.orgName && (
-          <HoverCardRow icon={<Building2 size={13} strokeWidth={1.75} />}>
+          <HoverCardRow
+            icon={
+              <HugeiconsIcon icon={Building2} size={13} strokeWidth={1.75} />
+            }
+          >
             <div className="truncate text-text-2">{workItem.orgName}</div>
           </HoverCardRow>
         )}
         {workItem.source === "local" && workItem.assignee && (
-          <HoverCardRow icon={<User size={13} strokeWidth={1.75} />}>
+          <HoverCardRow
+            icon={<HugeiconsIcon icon={User} size={13} strokeWidth={1.75} />}
+          >
             <div className="truncate text-text-2">{workItem.assignee.name}</div>
           </HoverCardRow>
         )}
         {labels.length > 0 && (
-          <HoverCardRow icon={<Tags size={13} strokeWidth={1.75} />}>
+          <HoverCardRow
+            icon={<HugeiconsIcon icon={Tags} size={13} strokeWidth={1.75} />}
+          >
             <div className="truncate text-text-2" title={labelsTitle}>
               {labelsTitle}
             </div>
           </HoverCardRow>
         )}
         {createdLabel && (
-          <HoverCardRow icon={<Clock size={13} strokeWidth={1.75} />}>
+          <HoverCardRow
+            icon={<HugeiconsIcon icon={Clock} size={13} strokeWidth={1.75} />}
+          >
             <div className="truncate text-text-2" title={createdLabel}>
               <span className="text-text-3">
                 {t("sessions:history.detail.created")}
@@ -158,7 +175,13 @@ const WorkItemHoverCardContent: React.FC<WorkItemHoverCardContentProps> = memo(
         )}
         {updatedLabel && (
           <HoverCardRow
-            icon={<GitCommitVertical size={13} strokeWidth={1.75} />}
+            icon={
+              <HugeiconsIcon
+                icon={GitCommitVertical}
+                size={13}
+                strokeWidth={1.75}
+              />
+            }
           >
             <div className="truncate text-text-2" title={updatedLabel}>
               <span className="text-text-3">

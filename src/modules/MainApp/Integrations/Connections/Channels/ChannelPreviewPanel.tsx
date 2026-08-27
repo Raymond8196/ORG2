@@ -2,7 +2,8 @@
  * Preview panel for a channel (Connections category).
  * Shows enable toggle, overview, probe section, and channel config.
  */
-import { ChevronsLeftRightEllipsis } from "lucide-react";
+import ChevronsLeftRightEllipsis from "@hugeicons/core-free-icons/ChevronsLeftRightEllipsisIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -94,7 +95,12 @@ const ChannelPreviewPanel: React.FC<ChannelPreviewPanelProps> = ({
       <Placeholder
         variant="empty"
         placement="detail-panel"
-        icon={<ChevronsLeftRightEllipsis size={PLACEHOLDER_TOKENS.iconSize} />}
+        icon={
+          <HugeiconsIcon
+            icon={ChevronsLeftRightEllipsis}
+            size={PLACEHOLDER_TOKENS.iconSize}
+          />
+        }
         title={tIntegrations("common:placeholders.selectToViewConfig", {
           type: tIntegrations("common:placeholderTypes.connection"),
         })}

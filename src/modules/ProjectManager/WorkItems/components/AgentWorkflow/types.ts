@@ -1,13 +1,13 @@
-import type { LucideIcon } from "lucide-react";
-import {
-  AlertCircle,
-  Ban,
-  CheckCircle2,
-  FilePen,
-  Loader2,
-  Wrench,
-  XCircle,
-} from "lucide-react";
+import AlertCircle from "@hugeicons/core-free-icons/AlertCircleIcon";
+import Ban from "@hugeicons/core-free-icons/BanIcon";
+import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import FilePen from "@hugeicons/core-free-icons/FilePenIcon";
+import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import Wrench from "@hugeicons/core-free-icons/Wrench01Icon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+
+type LucideIcon = IconSvgElement;
 
 export interface SessionFileChange {
   path: string;

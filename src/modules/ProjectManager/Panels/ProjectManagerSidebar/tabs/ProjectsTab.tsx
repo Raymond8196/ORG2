@@ -1,17 +1,16 @@
 /**
  * ProjectsTab Configuration
  */
-import {
-  Box,
-  FolderKanban,
-  Github,
-  Import,
-  ListChecks,
-  Plus,
-  RefreshCw,
-  Settings,
-  SquarePen,
-} from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import ListChecks from "@hugeicons/core-free-icons/CheckListIcon";
+import FolderKanban from "@hugeicons/core-free-icons/FolderKanbanIcon";
+import Github from "@hugeicons/core-free-icons/GithubIcon";
+import Import from "@hugeicons/core-free-icons/ImportIcon";
+import Box from "@hugeicons/core-free-icons/PackageIcon";
+import SquarePen from "@hugeicons/core-free-icons/Pen01Icon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import Settings from "@hugeicons/core-free-icons/Settings01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -110,7 +109,7 @@ const OrgActionsDropdown: React.FC<OrgActionsDropdownProps> = ({
         title={addOrgLabel}
         type="button"
       >
-        <Plus size={HEADER_ICON_SIZE.md} />
+        <HugeiconsIcon icon={Plus} size={HEADER_ICON_SIZE.md} />
       </button>
       {isOpen &&
         isPositioned &&
@@ -138,7 +137,8 @@ const OrgActionsDropdown: React.FC<OrgActionsDropdownProps> = ({
               className={`${DROPDOWN_CLASSES.item} ${DROPDOWN_CLASSES.itemHover} w-full text-left`}
               role="menuitem"
             >
-              <Plus
+              <HugeiconsIcon
+                icon={Plus}
                 size={ACTION_ICON_SIZE}
                 strokeWidth={ACTION_ICON_STROKE}
                 className="text-text-2"
@@ -151,7 +151,8 @@ const OrgActionsDropdown: React.FC<OrgActionsDropdownProps> = ({
               className={`${DROPDOWN_CLASSES.item} ${DROPDOWN_CLASSES.itemHover} w-full text-left`}
               role="menuitem"
             >
-              <Import
+              <HugeiconsIcon
+                icon={Import}
                 size={ACTION_ICON_SIZE}
                 strokeWidth={ACTION_ICON_STROKE}
                 className="text-text-2"
@@ -222,7 +223,7 @@ const CreateActionsDropdown: React.FC<CreateActionsDropdownProps> = ({
         title={createLabel}
         type="button"
       >
-        <Plus size={HEADER_ICON_SIZE.md} />
+        <HugeiconsIcon icon={Plus} size={HEADER_ICON_SIZE.md} />
       </button>
       {isOpen &&
         isPositioned &&
@@ -250,7 +251,8 @@ const CreateActionsDropdown: React.FC<CreateActionsDropdownProps> = ({
               className={`${DROPDOWN_CLASSES.item} ${DROPDOWN_CLASSES.itemHover} w-full text-left`}
               role="menuitem"
             >
-              <ListChecks
+              <HugeiconsIcon
+                icon={ListChecks}
                 size={ACTION_ICON_SIZE}
                 strokeWidth={ACTION_ICON_STROKE}
                 className="text-text-2"
@@ -265,7 +267,8 @@ const CreateActionsDropdown: React.FC<CreateActionsDropdownProps> = ({
               className={`${DROPDOWN_CLASSES.item} ${DROPDOWN_CLASSES.itemHover} w-full text-left`}
               role="menuitem"
             >
-              <Box
+              <HugeiconsIcon
+                icon={Box}
                 size={ACTION_ICON_SIZE}
                 strokeWidth={ACTION_ICON_STROKE}
                 className="text-text-2"
@@ -280,7 +283,8 @@ const CreateActionsDropdown: React.FC<CreateActionsDropdownProps> = ({
               className={`${DROPDOWN_CLASSES.item} ${DROPDOWN_CLASSES.itemHover} w-full text-left`}
               role="menuitem"
             >
-              <Github
+              <HugeiconsIcon
+                icon={Github}
                 size={ACTION_ICON_SIZE}
                 strokeWidth={ACTION_ICON_STROKE}
                 className="text-text-2"
@@ -355,14 +359,24 @@ export function useProjectsTabConfig({
     () => [
       {
         key: "create-project",
-        icon: <Box size={ACTION_ICON_SIZE} strokeWidth={ACTION_ICON_STROKE} />,
+        icon: (
+          <HugeiconsIcon
+            icon={Box}
+            size={ACTION_ICON_SIZE}
+            strokeWidth={ACTION_ICON_STROKE}
+          />
+        ),
         tooltip: t("projects:projects.createProject"),
         onClick: onCreateProject,
       },
       {
         key: "create-work-item",
         icon: (
-          <SquarePen size={ACTION_ICON_SIZE} strokeWidth={ACTION_ICON_STROKE} />
+          <HugeiconsIcon
+            icon={SquarePen}
+            size={ACTION_ICON_SIZE}
+            strokeWidth={ACTION_ICON_STROKE}
+          />
         ),
         tooltip: t("projects:workItems.createWorkItem"),
         onClick: onCreateWorkItem,
@@ -388,7 +402,8 @@ export function useProjectsTabConfig({
       {
         key: "refresh",
         icon: (
-          <RefreshCw
+          <HugeiconsIcon
+            icon={RefreshCw}
             size={ACTION_ICON_SIZE}
             strokeWidth={ACTION_ICON_STROKE}
             className={refreshSpinClass}
@@ -400,7 +415,11 @@ export function useProjectsTabConfig({
       {
         key: "settings",
         icon: (
-          <Settings size={ACTION_ICON_SIZE} strokeWidth={ACTION_ICON_STROKE} />
+          <HugeiconsIcon
+            icon={Settings}
+            size={ACTION_ICON_SIZE}
+            strokeWidth={ACTION_ICON_STROKE}
+          />
         ),
         tooltip: t("common:tabs.settings"),
         onClick: onOpenSettings,
@@ -441,7 +460,7 @@ export function useProjectsTabConfig({
     () => ({
       key: "projects",
       label: t("labels.projects"),
-      icon: <FolderKanban size={TAB_ICON_SIZE} />,
+      icon: <HugeiconsIcon icon={FolderKanban} size={TAB_ICON_SIZE} />,
       sections: [
         {
           key: "workspace",

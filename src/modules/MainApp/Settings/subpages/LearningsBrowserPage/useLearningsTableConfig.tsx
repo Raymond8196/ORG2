@@ -1,5 +1,6 @@
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
-import { Trash2 } from "lucide-react";
 import { useMemo } from "react";
 
 import type {
@@ -190,7 +191,7 @@ export function useLearningsTableConfig({
                   size="small"
                   disabled={busy}
                   onClick={() => handleDelete(row)}
-                  icon={<Trash2 size={14} />}
+                  icon={<HugeiconsIcon icon={Trash2} size={14} />}
                   iconOnly
                   title={t("learningsBrowser.actions.delete")}
                 />

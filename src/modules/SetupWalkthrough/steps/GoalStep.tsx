@@ -1,4 +1,7 @@
-import { BriefcaseBusiness, User, Users } from "lucide-react";
+import BriefcaseBusiness from "@hugeicons/core-free-icons/Briefcase02Icon";
+import User from "@hugeicons/core-free-icons/UserIcon";
+import Users from "@hugeicons/core-free-icons/UserMultipleIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 

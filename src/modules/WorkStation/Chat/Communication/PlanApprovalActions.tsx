@@ -9,7 +9,11 @@
  * relevant edit actions (Cancel + Save) are shown; the unrelated actions
  * (Edit toggle, Open in My Station) are hidden.
  */
-import { CheckCircle2, Pencil, SquareArrowOutUpRight, X } from "lucide-react";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import Pencil from "@hugeicons/core-free-icons/PencilIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -48,7 +52,7 @@ const PlanApprovalActions: React.FC<PlanApprovalActionsProps> = ({
           data-testid="plan-approval-cancel"
           onClick={onEditToggle}
           disabled={submitting}
-          icon={<X size={ICON_SIZE} />}
+          icon={<HugeiconsIcon icon={X} size={ICON_SIZE} />}
         >
           {t("planDoc.cancelEdit")}
         </Button>
@@ -58,7 +62,7 @@ const PlanApprovalActions: React.FC<PlanApprovalActionsProps> = ({
           data-testid="plan-approval-save"
           onClick={onSave}
           disabled={saveDisabled}
-          icon={<CheckCircle2 size={ICON_SIZE} />}
+          icon={<HugeiconsIcon icon={CheckCircle2} size={ICON_SIZE} />}
         >
           {t("common:actions.save")}
         </Button>
@@ -73,7 +77,7 @@ const PlanApprovalActions: React.FC<PlanApprovalActionsProps> = ({
         data-testid="plan-approval-edit"
         onClick={onEditToggle}
         disabled={saveDisabled}
-        icon={<Pencil size={ICON_SIZE} />}
+        icon={<HugeiconsIcon icon={Pencil} size={ICON_SIZE} />}
       >
         {t("planDoc.edit")}
       </Button>
@@ -82,7 +86,7 @@ const PlanApprovalActions: React.FC<PlanApprovalActionsProps> = ({
           size="mini"
           data-testid="plan-approval-open-my-station"
           onClick={onOpenInMyStation}
-          icon={<SquareArrowOutUpRight size={ICON_SIZE} />}
+          icon={<HugeiconsIcon icon={SquareArrowOutUpRight} size={ICON_SIZE} />}
         >
           {t("controlTower.sidebar.openInMyStation")}
         </Button>

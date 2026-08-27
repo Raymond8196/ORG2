@@ -1,10 +1,9 @@
+import Chromium from "@hugeicons/core-free-icons/ChromeIcon";
+import GitCommitHorizontal from "@hugeicons/core-free-icons/GitCommitIcon";
+import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useSetAtom } from "jotai";
-import {
-  Chromium,
-  GitCommitHorizontal,
-  GitPullRequest,
-  MoreHorizontal,
-} from "lucide-react";
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -295,7 +294,10 @@ const TurnMetadataFooter: React.FC<TurnMetadataFooterProps> = memo(
                     className={STACK_ROW_BUTTON_CLASSES}
                     data-testid="turn-metadata-commit"
                   >
-                    <GitCommitHorizontal {...ARTIFACT_ICON_PROPS} />
+                    <HugeiconsIcon
+                      icon={GitCommitHorizontal}
+                      {...ARTIFACT_ICON_PROPS}
+                    />
                     <span className="chat-block-title min-w-0 flex-1 truncate text-text-2">
                       {artifactLabel(artifact)}
                     </span>
@@ -317,11 +319,15 @@ const TurnMetadataFooter: React.FC<TurnMetadataFooterProps> = memo(
                     className={STACK_ROW_BUTTON_CLASSES}
                     data-testid="turn-metadata-pr"
                   >
-                    <GitPullRequest {...ARTIFACT_ICON_PROPS} />
+                    <HugeiconsIcon
+                      icon={GitPullRequest}
+                      {...ARTIFACT_ICON_PROPS}
+                    />
                     <span className="chat-block-title min-w-0 flex-1 truncate text-text-2">
                       {artifactLabel(artifact)}
                     </span>
-                    <Chromium
+                    <HugeiconsIcon
+                      icon={Chromium}
                       size={14}
                       strokeWidth={1.75}
                       className="shrink-0 text-text-3"
@@ -382,7 +388,11 @@ const TurnMetadataFooter: React.FC<TurnMetadataFooterProps> = memo(
                   data-testid="turn-metadata-expansion-toggle"
                   aria-expanded={expanded}
                 >
-                  <MoreHorizontal size={16} className="shrink-0" />
+                  <HugeiconsIcon
+                    icon={MoreHorizontal}
+                    size={16}
+                    className="shrink-0"
+                  />
                   <span className="chat-block-title truncate">
                     {expanded
                       ? t("chat.turnMetadata.showLess")

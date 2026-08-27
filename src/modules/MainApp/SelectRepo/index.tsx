@@ -4,15 +4,14 @@
  * Page for repo selection using OnboardingLayout.
  * Users select a repository before proceeding to the main app.
  */
+import Code from "@hugeicons/core-free-icons/CodeIcon";
+import Folder from "@hugeicons/core-free-icons/Folder01Icon";
+import FolderTree from "@hugeicons/core-free-icons/FolderTreeIcon";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import Settings from "@hugeicons/core-free-icons/Settings01Icon";
+import SquareArrowRight from "@hugeicons/core-free-icons/SquareArrowRight01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
-import {
-  Code,
-  Folder,
-  FolderTree,
-  Search,
-  Settings,
-  SquareArrowRight,
-} from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -104,7 +103,8 @@ const SelectRepoActionsList: React.FC<SelectRepoActionsListProps> = ({
         onClick={() => onOpenPalette({ initialAddMenu: true })}
       >
         <div className="flex w-full items-center gap-3">
-          <SquareArrowRight
+          <HugeiconsIcon
+            icon={SquareArrowRight}
             size={16}
             strokeWidth={1.5}
             className="h-4 w-4 flex-shrink-0 text-text-2"
@@ -120,7 +120,8 @@ const SelectRepoActionsList: React.FC<SelectRepoActionsListProps> = ({
         onClick={() => onOpenPalette({ initialAddStage: "create-workspace" })}
       >
         <div className="flex w-full items-center gap-3">
-          <FolderTree
+          <HugeiconsIcon
+            icon={FolderTree}
             size={16}
             strokeWidth={1.5}
             className="h-4 w-4 flex-shrink-0 text-text-2"
@@ -136,7 +137,8 @@ const SelectRepoActionsList: React.FC<SelectRepoActionsListProps> = ({
         onClick={() => onOpenPalette({ initialManageMode: true })}
       >
         <div className="flex w-full items-center gap-3">
-          <Settings
+          <HugeiconsIcon
+            icon={Settings}
             size={16}
             strokeWidth={1.5}
             className="h-4 w-4 flex-shrink-0 text-text-2"
@@ -216,7 +218,9 @@ const RepoListContent: React.FC<RepoListContentProps> = ({
             "Search repos..."
           )}
           className="h-[34px] rounded-lg bg-fill-1 text-[14px]"
-          prefix={<Search size={16} className="text-text-2" />}
+          prefix={
+            <HugeiconsIcon icon={Search} size={16} className="text-text-2" />
+          }
         />
       </div>
 
@@ -249,7 +253,11 @@ const RepoListContent: React.FC<RepoListContentProps> = ({
                   onClick={() => onWorkspaceClick(ws)}
                 >
                   <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-violet-600 shadow-[0_1px_3px_rgba(0,0,0,0.1)]">
-                    <FolderTree size={20} className="text-white" />
+                    <HugeiconsIcon
+                      icon={FolderTree}
+                      size={20}
+                      className="text-white"
+                    />
                   </div>
                   <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                     <div className="overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium text-text-1">
@@ -277,9 +285,17 @@ const RepoListContent: React.FC<RepoListContentProps> = ({
                   }`}
                 >
                   {repo.kind === REPO_KIND.FOLDER ? (
-                    <Folder size={20} className="text-white" />
+                    <HugeiconsIcon
+                      icon={Folder}
+                      size={20}
+                      className="text-white"
+                    />
                   ) : (
-                    <Code size={20} className="text-white" />
+                    <HugeiconsIcon
+                      icon={Code}
+                      size={20}
+                      className="text-white"
+                    />
                   )}
                 </div>
                 <div className="flex min-w-0 flex-1 flex-col gap-0.5">

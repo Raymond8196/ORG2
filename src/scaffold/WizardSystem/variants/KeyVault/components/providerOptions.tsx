@@ -4,8 +4,11 @@
  * These functions take already-loaded data from useProviderRegistry hook.
  * They do NOT fetch data themselves — the caller must provide the data.
  */
+import Calendar from "@hugeicons/core-free-icons/Calendar01Icon";
+import KeyRound from "@hugeicons/core-free-icons/Key02Icon";
+import Cog from "@hugeicons/core-free-icons/Settings01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
-import { Calendar, Cog, KeyRound } from "lucide-react";
 import React from "react";
 
 import ModelIcon from "@src/components/ModelIcon";
@@ -48,9 +51,21 @@ function variantIconNode(
   size: number
 ): React.ReactNode {
   if (variant.mode === "api_key") {
-    return <KeyRound size={size} className="shrink-0 text-text-3" />;
+    return (
+      <HugeiconsIcon
+        icon={KeyRound}
+        size={size}
+        className="shrink-0 text-text-3"
+      />
+    );
   }
-  return <Calendar size={size} className="shrink-0 text-text-3" />;
+  return (
+    <HugeiconsIcon
+      icon={Calendar}
+      size={size}
+      className="shrink-0 text-text-3"
+    />
+  );
 }
 
 export interface ProviderGridOptionGroup {
@@ -75,7 +90,9 @@ export function providerIconNode(
   size: number
 ): React.ReactNode {
   if (providerUsesGlyphIcon(provider)) {
-    return <Cog size={size} className="shrink-0 text-text-3" />;
+    return (
+      <HugeiconsIcon icon={Cog} size={size} className="shrink-0 text-text-3" />
+    );
   }
   return (
     <ModelIcon provider={provider.iconProvider as IconProvider} size={size} />

@@ -8,10 +8,13 @@
  * Categories are fully dynamic — the backend defines the list and the
  * frontend renders whatever it receives. No hardcoded tier names.
  */
-import { type LucideIcon, Zap } from "lucide-react";
+import Zap from "@hugeicons/core-free-icons/FlashIcon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 
 import type { ORGIIPoolCategory, ORGIIPoolConfig } from "@src/types/model/pool";
 import { formatModelNameFull } from "@src/util/formatModelName";
+
+type LucideIcon = IconSvgElement;
 
 // ─── ORGII tier constants ─────────────────────────────────────────────────────
 

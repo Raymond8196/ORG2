@@ -1,5 +1,7 @@
 // @vitest-environment jsdom
-import { Chrome, SquareArrowOutUpRight } from "lucide-react";
+import Chrome from "@hugeicons/core-free-icons/ChromeIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { act, createElement } from "react";
 import { type Root, createRoot } from "react-dom/client";
 import {

@@ -5,8 +5,10 @@
  * Uses the same INPUT_AREA_BUTTONS tokens as InputActions
  * so both submit buttons are visually identical.
  */
+import ArrowUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
-import { ArrowUp, Loader2 } from "lucide-react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -82,13 +84,15 @@ const LaunchButton: React.FC<LaunchButtonProps> = ({
       data-state={loading ? "working" : "submit"}
     >
       {loading ? (
-        <Loader2
+        <HugeiconsIcon
+          icon={Loader2}
           size={INPUT_AREA_BUTTONS.iconSize}
           strokeWidth={2}
           className="block animate-spin text-[#fff]"
         />
       ) : (
-        <ArrowUp
+        <HugeiconsIcon
+          icon={ArrowUp}
           size={INPUT_AREA_BUTTONS.iconSize}
           strokeWidth={2}
           className="block text-[#fff]"

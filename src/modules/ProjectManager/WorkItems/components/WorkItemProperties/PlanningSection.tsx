@@ -1,4 +1,7 @@
-import { BookDashed, BookOpen, Diamond } from "lucide-react";
+import BookDashed from "@hugeicons/core-free-icons/Book02Icon";
+import BookOpen from "@hugeicons/core-free-icons/BookOpen01Icon";
+import Diamond from "@hugeicons/core-free-icons/DiamondIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 import {
   DROPDOWN_CLASSES,
@@ -70,10 +73,10 @@ export function PlanningSection({
                   size={DROPDOWN_ITEM.iconSize}
                 />
               ) : (
-                <BookOpen size={DROPDOWN_ITEM.iconSize} />
+                <HugeiconsIcon icon={BookOpen} size={DROPDOWN_ITEM.iconSize} />
               )
             ) : (
-              <BookDashed size={DROPDOWN_ITEM.iconSize} />
+              <HugeiconsIcon icon={BookDashed} size={DROPDOWN_ITEM.iconSize} />
             )
           }
           iconColor={workItem.project?.color}
@@ -102,7 +105,12 @@ export function PlanningSection({
               <>
                 {!searchQuery && (
                   <Option
-                    icon={<BookDashed size={DROPDOWN_ITEM.iconSize} />}
+                    icon={
+                      <HugeiconsIcon
+                        icon={BookDashed}
+                        size={DROPDOWN_ITEM.iconSize}
+                      />
+                    }
                     label={t("workItems.properties.noProject")}
                     isSelected={!workItem.project}
                     onClick={() => select(null)}
@@ -124,7 +132,10 @@ export function PlanningSection({
                           size={DROPDOWN_ITEM.iconSize}
                         />
                       ) : (
-                        <BookOpen size={DROPDOWN_ITEM.iconSize} />
+                        <HugeiconsIcon
+                          icon={BookOpen}
+                          size={DROPDOWN_ITEM.iconSize}
+                        />
                       )
                     }
                     iconColor={projectItem.color}
@@ -148,7 +159,9 @@ export function PlanningSection({
           }
         >
           <FieldRow
-            icon={<Diamond size={DROPDOWN_ITEM.iconSize} />}
+            icon={
+              <HugeiconsIcon icon={Diamond} size={DROPDOWN_ITEM.iconSize} />
+            }
             value={
               workItem.milestone?.name || t("workItems.properties.noMilestone")
             }
@@ -184,7 +197,12 @@ export function PlanningSection({
                     {filtered.map((milestone) => (
                       <Option
                         key={milestone.id}
-                        icon={<Diamond size={DROPDOWN_ITEM.iconSize} />}
+                        icon={
+                          <HugeiconsIcon
+                            icon={Diamond}
+                            size={DROPDOWN_ITEM.iconSize}
+                          />
+                        }
                         label={milestone.name}
                         isSelected={workItem.milestone?.id === milestone.id}
                         onClick={() =>

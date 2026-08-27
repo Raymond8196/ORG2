@@ -11,7 +11,9 @@
  * so the OS legacy-blob pipeline (`extractAgentDefPatch`) and the
  * direct `agentDef.updatePatch` pipeline both receive the edit.
  */
-import { Copy, Pencil } from "lucide-react";
+import Copy from "@hugeicons/core-free-icons/Copy01Icon";
+import Pencil from "@hugeicons/core-free-icons/PencilIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -91,7 +93,7 @@ const PersonalitySection: React.FC<PersonalitySectionProps> = ({
           </span>
           {activeTab !== "edit" && (
             <Button
-              icon={<Pencil size={14} />}
+              icon={<HugeiconsIcon icon={Pencil} size={14} />}
               iconOnly
               onClick={handleEdit}
               aria-label={t("common:actions.edit")}
@@ -100,7 +102,7 @@ const PersonalitySection: React.FC<PersonalitySectionProps> = ({
             />
           )}
           <Button
-            icon={<Copy size={14} />}
+            icon={<HugeiconsIcon icon={Copy} size={14} />}
             iconOnly
             onClick={handleCopy}
             disabled={!draftValue.trim()}

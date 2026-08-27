@@ -6,8 +6,11 @@
  * synchronous lookup; runtime context comes from dedicated atoms
  * (e.g. integrationsCategoryAtom).
  */
-import type { LucideIcon, LucideProps } from "lucide-react";
+import { type IconSvgElement } from "@hugeicons/react";
 import type { ComponentType, ReactNode } from "react";
+
+type LucideIcon = IconSvgElement;
+type LucideProps = IconSvgElement;
 
 // ============================================
 // Types

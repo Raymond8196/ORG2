@@ -4,14 +4,21 @@
  * UI-specific icon mappings for agent types and tool kinds.
  * Separated from pure types to keep type files clean of UI dependencies.
  */
-import type { LucideIcon } from "lucide-react";
-import { Bot, Cpu, Github, HelpCircle, MousePointer2, Zap } from "lucide-react";
+import Bot from "@hugeicons/core-free-icons/BotIcon";
+import Cpu from "@hugeicons/core-free-icons/CpuIcon";
+import MousePointer2 from "@hugeicons/core-free-icons/Cursor02Icon";
+import Zap from "@hugeicons/core-free-icons/FlashIcon";
+import Github from "@hugeicons/core-free-icons/GithubIcon";
+import HelpCircle from "@hugeicons/core-free-icons/HelpCircleIcon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 
 import type {
   StreamingAgentType,
   ToolKind,
 } from "@src/api/realtime/websocket/types";
 import { resolveAgentIcon } from "@src/config/agentIcons";
+
+type LucideIcon = IconSvgElement;
 
 // ============================================
 // Icon Mapping for Tool Kinds

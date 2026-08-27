@@ -4,15 +4,14 @@
  * Hover tooltip for task bars showing detailed information and quick actions.
  * Uses useDropdownEngine + portal with DROPDOWN_CLASSES tokens.
  */
-import {
-  Calendar,
-  Edit2,
-  Minus,
-  Trash2,
-  TrendingDown,
-  TrendingUp,
-  User,
-} from "lucide-react";
+import TrendingDown from "@hugeicons/core-free-icons/AnalyticsDownIcon";
+import TrendingUp from "@hugeicons/core-free-icons/AnalyticsUpIcon";
+import Calendar from "@hugeicons/core-free-icons/Calendar01Icon";
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import Edit2 from "@hugeicons/core-free-icons/Edit02Icon";
+import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
+import User from "@hugeicons/core-free-icons/UserIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 
@@ -126,11 +125,11 @@ const GanttTaskTooltip: React.FC<GanttTaskTooltipProps> = ({
   const getProgressHealthIcon = (health: string) => {
     switch (health) {
       case "ahead":
-        return <TrendingUp size={14} />;
+        return <HugeiconsIcon icon={TrendingUp} size={14} />;
       case "behind":
-        return <TrendingDown size={14} />;
+        return <HugeiconsIcon icon={TrendingDown} size={14} />;
       default:
-        return <Minus size={14} />;
+        return <HugeiconsIcon icon={Minus} size={14} />;
     }
   };
 
@@ -211,7 +210,11 @@ const GanttTaskTooltip: React.FC<GanttTaskTooltipProps> = ({
               {/* Details */}
               <div className="gantt-task-tooltip__body">
                 <div className="gantt-task-tooltip__row">
-                  <Calendar size={14} className="gantt-task-tooltip__icon" />
+                  <HugeiconsIcon
+                    icon={Calendar}
+                    size={14}
+                    className="gantt-task-tooltip__icon"
+                  />
                   <span className="gantt-task-tooltip__label">
                     {formatDate(task.startDate)} → {formatDate(task.endDate)}
                   </span>
@@ -219,7 +222,11 @@ const GanttTaskTooltip: React.FC<GanttTaskTooltipProps> = ({
 
                 {task.assignee && (
                   <div className="gantt-task-tooltip__row">
-                    <User size={14} className="gantt-task-tooltip__icon" />
+                    <HugeiconsIcon
+                      icon={User}
+                      size={14}
+                      className="gantt-task-tooltip__icon"
+                    />
                     <span className="gantt-task-tooltip__label">
                       {task.assignee}
                     </span>
@@ -286,7 +293,7 @@ const GanttTaskTooltip: React.FC<GanttTaskTooltipProps> = ({
                       }}
                       title="Edit task"
                     >
-                      <Edit2 size={14} />
+                      <HugeiconsIcon icon={Edit2} size={14} />
                       <span>Edit</span>
                     </button>
                   )}
@@ -299,7 +306,7 @@ const GanttTaskTooltip: React.FC<GanttTaskTooltipProps> = ({
                       }}
                       title="Delete task"
                     >
-                      <Trash2 size={14} />
+                      <HugeiconsIcon icon={Trash2} size={14} />
                       <span>Delete</span>
                     </button>
                   )}

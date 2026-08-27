@@ -5,7 +5,10 @@
  * Toolbar (optional copy, download, close) at the top-right of the image.
  * Click backdrop or press ESC to close.
  */
-import { Copy, Download, X } from "lucide-react";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Copy from "@hugeicons/core-free-icons/Copy01Icon";
+import Download from "@hugeicons/core-free-icons/Download01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -99,7 +102,7 @@ const ImagePreviewOverlay: React.FC<ImagePreviewOverlayProps> = memo(
                 aria-label={t("imagePreview.copyImage")}
                 title={t("actions.copy")}
               >
-                <Copy size={15} strokeWidth={2} />
+                <HugeiconsIcon icon={Copy} size={15} strokeWidth={2} />
               </button>
             )}
             <button
@@ -109,7 +112,7 @@ const ImagePreviewOverlay: React.FC<ImagePreviewOverlayProps> = memo(
               aria-label={t("imagePreview.downloadImage")}
               title={t("actions.download")}
             >
-              <Download size={15} strokeWidth={2} />
+              <HugeiconsIcon icon={Download} size={15} strokeWidth={2} />
             </button>
             <button
               type="button"
@@ -118,7 +121,7 @@ const ImagePreviewOverlay: React.FC<ImagePreviewOverlayProps> = memo(
               aria-label={t("imagePreview.closePreview")}
               title={t("actions.close")}
             >
-              <X size={15} strokeWidth={2} />
+              <HugeiconsIcon icon={X} size={15} strokeWidth={2} />
             </button>
           </div>
 

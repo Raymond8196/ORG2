@@ -1,32 +1,31 @@
 /**
  * DevPassport Stamp Component
  */
-import {
-  Anchor,
-  Award,
-  Brain,
-  Bug,
-  Cloud,
-  Code,
-  Coffee,
-  Cpu,
-  Database,
-  GitBranch,
-  Globe,
-  Hexagon,
-  Key,
-  Laptop,
-  Layers,
-  Lock,
-  Radio,
-  Rocket,
-  Search,
-  Server,
-  Shield,
-  Terminal,
-  Wifi,
-  Zap,
-} from "lucide-react";
+import Anchor from "@hugeicons/core-free-icons/AnchorIcon";
+import Award from "@hugeicons/core-free-icons/Award01Icon";
+import Brain from "@hugeicons/core-free-icons/BrainIcon";
+import Bug from "@hugeicons/core-free-icons/Bug01Icon";
+import Cloud from "@hugeicons/core-free-icons/CloudIcon";
+import Code from "@hugeicons/core-free-icons/CodeIcon";
+import Coffee from "@hugeicons/core-free-icons/Coffee01Icon";
+import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import Cpu from "@hugeicons/core-free-icons/CpuIcon";
+import Database from "@hugeicons/core-free-icons/DatabaseIcon";
+import Zap from "@hugeicons/core-free-icons/FlashIcon";
+import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
+import Globe from "@hugeicons/core-free-icons/GlobeIcon";
+import Hexagon from "@hugeicons/core-free-icons/HexagonIcon";
+import Key from "@hugeicons/core-free-icons/Key01Icon";
+import Laptop from "@hugeicons/core-free-icons/LaptopIcon";
+import Layers from "@hugeicons/core-free-icons/Layers01Icon";
+import Lock from "@hugeicons/core-free-icons/LockIcon";
+import Radio from "@hugeicons/core-free-icons/RadioIcon";
+import Rocket from "@hugeicons/core-free-icons/RocketIcon";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import Server from "@hugeicons/core-free-icons/ServerStack01Icon";
+import Shield from "@hugeicons/core-free-icons/Shield01Icon";
+import Wifi from "@hugeicons/core-free-icons/Wifi01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import type { StampData, StampShape } from "./types";

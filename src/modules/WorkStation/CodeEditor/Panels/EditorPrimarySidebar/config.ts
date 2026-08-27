@@ -4,21 +4,20 @@
  * Centralized configuration for left panel components.
  * Includes icon definitions and constants.
  */
-import {
-  Ellipsis,
-  FilePlus,
-  FilePlus2,
-  Files,
-  Filter,
-  FolderPlus,
-  GitBranch,
-  Layers,
-  List,
-  ListChevronsDownUp,
-  ListTree,
-  RefreshCw,
-  Search as SearchIcon,
-} from "lucide-react";
+import FilePlus from "@hugeicons/core-free-icons/FileAddIcon";
+import FilePlus2 from "@hugeicons/core-free-icons/FileAddIcon";
+import Files from "@hugeicons/core-free-icons/Files01Icon";
+import Filter from "@hugeicons/core-free-icons/FilterIcon";
+import FolderPlus from "@hugeicons/core-free-icons/FolderAddIcon";
+import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
+import ListTree from "@hugeicons/core-free-icons/HierarchyFilesIcon";
+import Layers from "@hugeicons/core-free-icons/Layers01Icon";
+import ListChevronsDownUp from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
+import List from "@hugeicons/core-free-icons/ListViewIcon";
+import Ellipsis from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import SearchIcon from "@hugeicons/core-free-icons/Search01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 // ============================================
 // Icon Configuration

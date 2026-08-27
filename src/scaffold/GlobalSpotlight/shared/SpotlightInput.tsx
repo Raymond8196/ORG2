@@ -3,7 +3,9 @@
  *
  * Reusable search input for spotlight interfaces
  */
-import { Search, X } from "lucide-react";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -106,7 +108,7 @@ export const SpotlightInput: React.FC<SpotlightInputProps> = ({
             aria-label={t("common:actions.clearSearch")}
             onClick={handleResetSearch}
           >
-            <X size={14} />
+            <HugeiconsIcon icon={X} size={14} />
           </button>
         ) : null}
       </div>

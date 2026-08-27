@@ -1,11 +1,9 @@
-import {
-  GitBranch,
-  GitMerge,
-  GitPullRequest,
-  GitPullRequestClosed,
-  GitPullRequestDraft,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
+import GitMerge from "@hugeicons/core-free-icons/GitMergeIcon";
+import GitPullRequestClosed from "@hugeicons/core-free-icons/GitPullRequestClosedIcon";
+import GitPullRequestDraft from "@hugeicons/core-free-icons/GitPullRequestDraftIcon";
+import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import type { ReactNode } from "react";
 
 import type { BranchPrSnapshot } from "@src/store/git";
@@ -13,6 +11,8 @@ import {
   type SessionGitLinkSource,
   resolveSessionGitLink,
 } from "@src/util/session/sessionGitLink";
+
+type LucideIcon = IconSvgElement;
 
 /**
  * Icon + color per PR state. Semantics match `shared/pr/prStatus` — open is

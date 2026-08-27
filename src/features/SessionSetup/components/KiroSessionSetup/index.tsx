@@ -16,14 +16,13 @@
  *   }}
  * />
  */
-import {
-  AlertCircle,
-  CheckCircle,
-  Copy,
-  Loader2,
-  RefreshCw,
-  X,
-} from "lucide-react";
+import AlertCircle from "@hugeicons/core-free-icons/AlertCircleIcon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import CheckCircle from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import Copy from "@hugeicons/core-free-icons/Copy01Icon";
+import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -229,7 +228,11 @@ const KiroSessionSetup: React.FC<KiroSessionSetupProps> = ({
         <div className="rounded-xl border border-success-6 bg-success-1 p-4">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-success-6">
-              <CheckCircle size={20} className="text-text-white" />
+              <HugeiconsIcon
+                icon={CheckCircle}
+                size={20}
+                className="text-text-white"
+              />
             </div>
             <div>
               <div className="text-[14px] font-medium text-success-6">
@@ -256,7 +259,11 @@ const KiroSessionSetup: React.FC<KiroSessionSetupProps> = ({
       {error && !isLoggingIn && !isLoggedIn && (
         <div className="rounded-xl border border-danger-6 bg-danger-1 p-4">
           <div className="flex items-start gap-3">
-            <AlertCircle size={20} className="mt-0.5 text-danger-6" />
+            <HugeiconsIcon
+              icon={AlertCircle}
+              size={20}
+              className="mt-0.5 text-danger-6"
+            />
             <div>
               <div className="text-[13px] font-medium text-danger-6">
                 {t("keyVault.kiroAuthFailed")}
@@ -290,7 +297,7 @@ const KiroSessionSetup: React.FC<KiroSessionSetupProps> = ({
               size="sm"
               variant="default"
             >
-              <RefreshCw size={12} />
+              <HugeiconsIcon icon={RefreshCw} size={12} />
             </IconButton>
             <IconButton
               onClick={handleCloseBrowser}
@@ -298,7 +305,7 @@ const KiroSessionSetup: React.FC<KiroSessionSetupProps> = ({
               size="sm"
               variant="default"
             >
-              <X size={14} />
+              <HugeiconsIcon icon={X} size={14} />
             </IconButton>
           </div>
 
@@ -318,7 +325,7 @@ const KiroSessionSetup: React.FC<KiroSessionSetupProps> = ({
                   size="sm"
                   variant="default"
                 >
-                  <Copy size={14} />
+                  <HugeiconsIcon icon={Copy} size={14} />
                 </IconButton>
               </div>
             </div>
@@ -347,7 +354,8 @@ const KiroSessionSetup: React.FC<KiroSessionSetupProps> = ({
           {isWebviewOpen && (
             <div className="flex items-center justify-center gap-2 border-t border-border-2 bg-fill-1 p-2">
               <span className="flex items-center gap-2 text-[13px] text-text-3">
-                <Loader2
+                <HugeiconsIcon
+                  icon={Loader2}
                   size={SPINNER_TOKENS.default}
                   className="animate-spin"
                 />

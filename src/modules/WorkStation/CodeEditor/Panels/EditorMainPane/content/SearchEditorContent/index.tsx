@@ -12,7 +12,8 @@
  *
  * This is the content rendered when a "search" tab is active in the editor.
  */
-import { Filter } from "lucide-react";
+import Filter from "@hugeicons/core-free-icons/FilterIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -216,7 +217,8 @@ export const SearchEditorContent: React.FC<SearchEditorContentProps> = memo(
               shape="square"
               iconOnly
               icon={
-                <Filter
+                <HugeiconsIcon
+                  icon={Filter}
                   size={14}
                   className={showFilters ? "text-primary-6" : "text-text-3"}
                 />

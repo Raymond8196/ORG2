@@ -3,16 +3,16 @@
  *
  * Centralized configuration for the simulator dock apps.
  */
-import type { LucideIcon } from "lucide-react";
-import {
-  Infinity,
-  Chromium,
-  Code,
-  GitBranch,
-  Layout,
-  ListTodo,
-  MessageCircle,
-} from "lucide-react";
+import MessageCircle from "@hugeicons/core-free-icons/BubbleChatIcon";
+import ListTodo from "@hugeicons/core-free-icons/CheckListIcon";
+import Chromium from "@hugeicons/core-free-icons/ChromeIcon";
+import Code from "@hugeicons/core-free-icons/CodeIcon";
+import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
+import Infinity from "@hugeicons/core-free-icons/Infinity01Icon";
+import Layout from "@hugeicons/core-free-icons/Layout01Icon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+
+type LucideIcon = IconSvgElement;
 
 export interface DockApp {
   id: string;

@@ -5,8 +5,9 @@
  * and selection, and total lines. Presentational only — every value is
  * passed in.
  */
+import GitCommit from "@hugeicons/core-free-icons/GitCommitIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
-import { GitCommit } from "lucide-react";
 import React from "react";
 
 import { StatusBarSegment, StatusBarText } from "../StatusBarBase";
@@ -38,7 +39,7 @@ export const EditorStatusBarRight: React.FC<EditorStatusBarRightProps> = ({
         title={`${commitInfo.message}\n\n${commitInfo.author} · ${commitInfo.shortSha}`}
         className="text-text-1"
       >
-        <GitCommit size={13} />
+        <HugeiconsIcon icon={GitCommit} size={13} />
         <span className="max-w-[200px] truncate">{commitInfo.author}</span>
         <span className="text-text-3">·</span>
         <span className="text-text-3">{commitInfo.time}</span>

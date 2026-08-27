@@ -1,5 +1,7 @@
+import MessagesSquare from "@hugeicons/core-free-icons/MessageMultiple01Icon";
+import Users from "@hugeicons/core-free-icons/UserMultipleIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
-import { MessagesSquare, Users } from "lucide-react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -62,12 +64,12 @@ export function ConversationParticipantsChip({
     <Tooltip content={t("conversation.participantsTooltip")} position="bottom">
       <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-fill-1 px-1.5 py-0.5 text-[11px] leading-none text-text-3">
         <span className="inline-flex items-center gap-0.5">
-          <Users size={11} strokeWidth={1.75} />
+          <HugeiconsIcon icon={Users} size={11} strokeWidth={1.75} />
           {counters.participants}
         </span>
         {counters.discussionCount > 0 && (
           <span className="inline-flex items-center gap-0.5">
-            <MessagesSquare size={11} strokeWidth={1.75} />
+            <HugeiconsIcon icon={MessagesSquare} size={11} strokeWidth={1.75} />
             {counters.discussionCount}
           </span>
         )}

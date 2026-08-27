@@ -1,5 +1,8 @@
+import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
+import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import History from "@hugeicons/core-free-icons/WorkHistoryIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { CircleDot, GitPullRequest, History } from "lucide-react";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -78,7 +81,13 @@ const SourceControlHeaderActionsComponent: React.FC = () => {
             className={historyActive ? "!bg-fill-2 !text-primary-6" : ""}
             onClick={handleToggleHistory}
             aria-label={historyLabel}
-            icon={<History size={HEADER_ICON_SIZE.sm} strokeWidth={2} />}
+            icon={
+              <HugeiconsIcon
+                icon={History}
+                size={HEADER_ICON_SIZE.sm}
+                strokeWidth={2}
+              />
+            }
           />
         </ToolbarTooltip>
         <ToolbarTooltip label={prLabel}>
@@ -90,7 +99,13 @@ const SourceControlHeaderActionsComponent: React.FC = () => {
             className={prActive ? "!bg-fill-2 !text-primary-6" : ""}
             onClick={handleTogglePr}
             aria-label={prLabel}
-            icon={<GitPullRequest size={HEADER_ICON_SIZE.sm} strokeWidth={2} />}
+            icon={
+              <HugeiconsIcon
+                icon={GitPullRequest}
+                size={HEADER_ICON_SIZE.sm}
+                strokeWidth={2}
+              />
+            }
           />
         </ToolbarTooltip>
         <ToolbarTooltip label={issuesLabel}>
@@ -102,7 +117,13 @@ const SourceControlHeaderActionsComponent: React.FC = () => {
             className={issuesActive ? "!bg-fill-2 !text-primary-6" : ""}
             onClick={handleToggleIssues}
             aria-label={issuesLabel}
-            icon={<CircleDot size={HEADER_ICON_SIZE.sm} strokeWidth={2} />}
+            icon={
+              <HugeiconsIcon
+                icon={CircleDot}
+                size={HEADER_ICON_SIZE.sm}
+                strokeWidth={2}
+              />
+            }
           />
         </ToolbarTooltip>
       </div>

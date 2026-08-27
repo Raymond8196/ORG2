@@ -12,14 +12,13 @@
  * Clicking the expand button (↗) on the banner header restores the full
  * BackgroundTasksApp panel.
  */
-import {
-  ArrowLeft,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  Maximize2,
-  Minimize2,
-} from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import Maximize2 from "@hugeicons/core-free-icons/Maximize02Icon";
+import Minimize2 from "@hugeicons/core-free-icons/Minimize02Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
   useEffect,
@@ -470,9 +469,10 @@ const SubagentPipCard: React.FC<SubagentPipCardProps> = ({
             }
             icon={
               isAnyExpanded ? (
-                <ArrowLeft size={14} strokeWidth={2} />
+                <HugeiconsIcon icon={ArrowLeft} size={14} strokeWidth={2} />
               ) : (
-                <ChevronDown
+                <HugeiconsIcon
+                  icon={ChevronDown}
                   size={14}
                   strokeWidth={2}
                   className="transition-transform duration-300 ease-in-out"
@@ -510,7 +510,13 @@ const SubagentPipCard: React.FC<SubagentPipCardProps> = ({
                   disabled={safePageIndex <= 0}
                   onClick={handlePreviousPage}
                   title={t("common:actions.previous")}
-                  icon={<ChevronLeft size={16} strokeWidth={1.75} />}
+                  icon={
+                    <HugeiconsIcon
+                      icon={ChevronLeft}
+                      size={16}
+                      strokeWidth={1.75}
+                    />
+                  }
                 />
                 <Button
                   htmlType="button"
@@ -520,7 +526,13 @@ const SubagentPipCard: React.FC<SubagentPipCardProps> = ({
                   disabled={safePageIndex >= pageCount - 1}
                   onClick={handleNextPage}
                   title={t("common:actions.next")}
-                  icon={<ChevronRight size={16} strokeWidth={1.75} />}
+                  icon={
+                    <HugeiconsIcon
+                      icon={ChevronRight}
+                      size={16}
+                      strokeWidth={1.75}
+                    />
+                  }
                 />
               </>
             )}
@@ -537,9 +549,17 @@ const SubagentPipCard: React.FC<SubagentPipCardProps> = ({
               }
               icon={
                 gridExpanded ? (
-                  <Minimize2 size={14} strokeWidth={1.75} />
+                  <HugeiconsIcon
+                    icon={Minimize2}
+                    size={14}
+                    strokeWidth={1.75}
+                  />
                 ) : (
-                  <Maximize2 size={14} strokeWidth={1.75} />
+                  <HugeiconsIcon
+                    icon={Maximize2}
+                    size={14}
+                    strokeWidth={1.75}
+                  />
                 )
               }
             />

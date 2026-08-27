@@ -1,5 +1,9 @@
+import Info from "@hugeicons/core-free-icons/InformationCircleIcon";
+import ListChevronsDownUp from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
-import { Info, ListChevronsDownUp, RefreshCw, Search } from "lucide-react";
 
 import Button from "@src/components/Button";
 import { HeaderSectionSeparator } from "@src/components/HeaderSectionSeparator";
@@ -104,7 +108,7 @@ export function WorkItemsHeaderContent({
             iconOnly
             onClick={onSearch}
             aria-label={t("common:actions.search")}
-            icon={<Search size={HEADER_ICON_SIZE.sm} />}
+            icon={<HugeiconsIcon icon={Search} size={HEADER_ICON_SIZE.sm} />}
           />
         </ToolbarTooltip>
       )}
@@ -128,7 +132,12 @@ export function WorkItemsHeaderContent({
                 iconOnly
                 onClick={onCollapseAll}
                 aria-label={t("common:actions.collapseAll")}
-                icon={<ListChevronsDownUp size={HEADER_ICON_SIZE.md} />}
+                icon={
+                  <HugeiconsIcon
+                    icon={ListChevronsDownUp}
+                    size={HEADER_ICON_SIZE.md}
+                  />
+                }
               />
             </ToolbarTooltip>
           )}
@@ -142,7 +151,8 @@ export function WorkItemsHeaderContent({
                 onClick={onRefreshClick}
                 aria-label={t("common:actions.refresh")}
                 icon={
-                  <RefreshCw
+                  <HugeiconsIcon
+                    icon={RefreshCw}
                     size={HEADER_ICON_SIZE.sm}
                     strokeWidth={2}
                     className={refreshSpinClass}
@@ -173,7 +183,7 @@ export function WorkItemsHeaderContent({
               }
               onClick={onToggleProperties}
               aria-label={propertiesLabel}
-              icon={<Info size={HEADER_ICON_SIZE.sm} />}
+              icon={<HugeiconsIcon icon={Info} size={HEADER_ICON_SIZE.sm} />}
             />
           </ToolbarTooltip>
         </>

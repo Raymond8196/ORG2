@@ -4,15 +4,14 @@
  * Memoized row renderer for spotlight items.
  * Handles icons, labels, status indicators, git badges, and keyboard shortcuts.
  */
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import CornerDownRight from "@hugeicons/core-free-icons/ArrowTurnDownIcon";
+import Diff from "@hugeicons/core-free-icons/DiffIcon";
+import Info from "@hugeicons/core-free-icons/InformationCircleIcon";
+import Lock from "@hugeicons/core-free-icons/LockIcon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
-import {
-  Check,
-  ChevronRight,
-  CornerDownRight,
-  Diff,
-  Info,
-  Lock,
-} from "lucide-react";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -197,7 +196,7 @@ const DescLine = memo<{ desc: string; descTitle: unknown }>(
           style={{ zIndex: 10000 }}
         >
           <span className="inline-flex flex-shrink-0 cursor-default items-center gap-0.5 rounded-full bg-fill-2 px-1.5 py-px text-[10px] text-text-3 hover:bg-fill-2 hover:text-text-2">
-            <Info size={10} strokeWidth={2} />
+            <HugeiconsIcon icon={Info} size={10} strokeWidth={2} />
             {overflowPart}
           </span>
         </Tooltip>
@@ -390,14 +389,19 @@ export const SpotlightItemRow = memo<SpotlightItemRowProps>(
 
         {isChildItem && (
           <div className="flex w-5 flex-shrink-0 items-center justify-center">
-            <CornerDownRight className="text-text-2" size={10} />
+            <HugeiconsIcon
+              icon={CornerDownRight}
+              className="text-text-2"
+              size={10}
+            />
           </div>
         )}
 
         {item.icon && (
           <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center">
             {isCurrentSelection ? (
-              <Check
+              <HugeiconsIcon
+                icon={Check}
                 size={SPOTLIGHT_TOKENS.iconSize}
                 className="text-primary-6"
                 strokeWidth={2.5}
@@ -489,7 +493,7 @@ export const SpotlightItemRow = memo<SpotlightItemRowProps>(
                     title={`${data.gitStatus.uncommittedFiles} file${data.gitStatus.uncommittedFiles !== 1 ? "s" : ""} uncommitted`}
                   >
                     {data.gitStatus.uncommittedFiles}
-                    <Diff size={12} />
+                    <HugeiconsIcon icon={Diff} size={12} />
                   </span>
                 )}
 
@@ -548,7 +552,7 @@ export const SpotlightItemRow = memo<SpotlightItemRowProps>(
                   isDisabled ? "bg-fill-2 text-text-3" : "text-slate-600"
                 }`}
               >
-                {isDisabled && <Lock size={10} />}
+                {isDisabled && <HugeiconsIcon icon={Lock} size={10} />}
                 {data.tagLabel}
               </span>
             )

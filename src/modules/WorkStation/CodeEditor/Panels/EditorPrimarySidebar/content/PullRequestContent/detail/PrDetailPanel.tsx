@@ -13,13 +13,12 @@
  * otherwise stacked under the flow title above the description. Reuses
  * commit-history + issue-timeline formatting throughout.
  */
+import ListChecks from "@hugeicons/core-free-icons/CheckListIcon";
+import FileDiff from "@hugeicons/core-free-icons/FileDiffIcon";
+import GitCommitHorizontal from "@hugeicons/core-free-icons/GitCommitIcon";
+import MessagesSquare from "@hugeicons/core-free-icons/MessageMultiple01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom } from "jotai";
-import {
-  FileDiff,
-  GitCommitHorizontal,
-  ListChecks,
-  MessagesSquare,
-} from "lucide-react";
 import React, { useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -276,19 +275,27 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
       {
         key: "conversation" as const,
         label: t("git.pr.tabs.conversation", "Conversation"),
-        icon: <MessagesSquare size={15} strokeWidth={1.8} />,
+        icon: (
+          <HugeiconsIcon icon={MessagesSquare} size={15} strokeWidth={1.8} />
+        ),
         count: state.conversation.length + state.reviews.length,
       },
       {
         key: "commits" as const,
         label: t("git.pr.tabs.commits", "Commits"),
-        icon: <GitCommitHorizontal size={15} strokeWidth={1.8} />,
+        icon: (
+          <HugeiconsIcon
+            icon={GitCommitHorizontal}
+            size={15}
+            strokeWidth={1.8}
+          />
+        ),
         count: state.commits.length,
       },
       {
         key: "checks" as const,
         label: t("git.pr.tabs.checks", "Checks"),
-        icon: <ListChecks size={15} strokeWidth={1.8} />,
+        icon: <HugeiconsIcon icon={ListChecks} size={15} strokeWidth={1.8} />,
         count:
           (state.checks?.check_runs.length ?? 0) +
           (state.checks?.statuses.length ?? 0),
@@ -296,7 +303,7 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
       {
         key: "changes" as const,
         label: t("git.pr.changes.title", "Files changed"),
-        icon: <FileDiff size={15} strokeWidth={1.8} />,
+        icon: <HugeiconsIcon icon={FileDiff} size={15} strokeWidth={1.8} />,
         count: formatPrFilesCount(state.files.length),
       },
     ],

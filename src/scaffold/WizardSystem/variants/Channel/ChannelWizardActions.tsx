@@ -1,4 +1,5 @@
-import { Check } from "lucide-react";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -124,7 +125,7 @@ export const ChannelWizardFooterStatus: React.FC<
 
   return (
     <div className="flex items-center gap-1.5">
-      <Check size={14} className="text-success-6" />
+      <HugeiconsIcon icon={Check} size={14} className="text-success-6" />
       <span className="text-[12px] text-success-6">
         {t("integrations.verified")}
       </span>

@@ -4,7 +4,11 @@
  * Toolbar with view scope toggle and navigation controls.
  * Layout: [Scale Toggle] ... [Zoom] < [Date Range] > [Today]
  */
-import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from "lucide-react";
+import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ZoomIn from "@hugeicons/core-free-icons/ZoomInAreaIcon";
+import ZoomOut from "@hugeicons/core-free-icons/ZoomOutAreaIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -145,7 +149,8 @@ const GanttToolbar: React.FC<GanttToolbarProps> = ({
             <Button
               {...PANEL_HEADER_TOKENS.actionButton}
               icon={
-                <ZoomOut
+                <HugeiconsIcon
+                  icon={ZoomOut}
                   size={PANEL_HEADER_TOKENS.buttonIconSize}
                   strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
                 />
@@ -165,7 +170,8 @@ const GanttToolbar: React.FC<GanttToolbarProps> = ({
             <Button
               {...PANEL_HEADER_TOKENS.actionButton}
               icon={
-                <ZoomIn
+                <HugeiconsIcon
+                  icon={ZoomIn}
                   size={PANEL_HEADER_TOKENS.buttonIconSize}
                   strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
                 />
@@ -182,7 +188,8 @@ const GanttToolbar: React.FC<GanttToolbarProps> = ({
         <Button
           {...PANEL_HEADER_TOKENS.actionButton}
           icon={
-            <ChevronLeft
+            <HugeiconsIcon
+              icon={ChevronLeft}
               size={PANEL_HEADER_TOKENS.buttonIconSize}
               strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
             />
@@ -202,7 +209,8 @@ const GanttToolbar: React.FC<GanttToolbarProps> = ({
         <Button
           {...PANEL_HEADER_TOKENS.actionButton}
           icon={
-            <ChevronRight
+            <HugeiconsIcon
+              icon={ChevronRight}
               size={PANEL_HEADER_TOKENS.buttonIconSize}
               strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
             />

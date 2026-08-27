@@ -9,7 +9,8 @@
  * launcher's global model never leaks into a row for the same reason — it was
  * picked for a different harness and may be one this row cannot serve.
  */
-import { Plus } from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -217,7 +218,7 @@ const RunnerListPanel: React.FC<RunnerListPanelProps> = memo(
             variant="tertiary"
             size="small"
             shape="round"
-            icon={<Plus size={14} strokeWidth={1.85} />}
+            icon={<HugeiconsIcon icon={Plus} size={14} strokeWidth={1.85} />}
             disabled={addDisabled}
             onClick={onAddRunner}
             data-testid="session-creator-runner-add"

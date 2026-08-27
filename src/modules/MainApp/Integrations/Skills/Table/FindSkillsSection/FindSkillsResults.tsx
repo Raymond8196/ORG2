@@ -1,5 +1,6 @@
+import Eye from "@hugeicons/core-free-icons/ViewIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
-import { Eye } from "lucide-react";
 import { useMemo } from "react";
 
 import Button from "@src/components/Button";
@@ -90,7 +91,7 @@ export function FindSkillsResults({
           <Button
             variant="secondary"
             size="small"
-            icon={<Eye size={14} />}
+            icon={<HugeiconsIcon icon={Eye} size={14} />}
             loading={previewingSlug === result.slug}
             disabled={previewingSlug !== null && previewingSlug !== result.slug}
             onClick={(event) => {

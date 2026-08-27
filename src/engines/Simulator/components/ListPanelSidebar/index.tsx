@@ -9,7 +9,9 @@
  *
  * PERFORMANCE: Uses virtualization for lists > 50 items
  */
-import { Circle, Search } from "lucide-react";
+import Circle from "@hugeicons/core-free-icons/CircleIcon";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Virtuoso } from "react-virtuoso";
@@ -165,7 +167,11 @@ const DefaultListItem: React.FC<DefaultItemProps> = ({
 
       {/* Current indicator (when no checkbox) */}
       {!showCheckbox && item.isCurrent && (
-        <Circle size={8} className="fill-current text-primary-6" />
+        <HugeiconsIcon
+          icon={Circle}
+          size={8}
+          className="fill-current text-primary-6"
+        />
       )}
 
       {/* Icon - custom or file type based */}
@@ -304,7 +310,7 @@ export function ListPanelContent({
       {/* Search Input - 40px container, 28px input, vertically centered */}
       <div className="flex h-[40px] flex-shrink-0 items-center px-3">
         <Input
-          prefix={<Search size={14} strokeWidth={1.75} />}
+          prefix={<HugeiconsIcon icon={Search} size={14} strokeWidth={1.75} />}
           placeholder={effectiveFilterPlaceholder}
           value={filterQuery}
           onChange={onFilterChange}

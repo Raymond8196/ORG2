@@ -10,7 +10,10 @@
  * affordance requires changes to the shared CodeMirror diff component and is a
  * separate follow-up; the create path is already wired in the data layer.)
  */
-import { ChevronDown, ChevronRight, MessageSquare } from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import MessageSquare from "@hugeicons/core-free-icons/Message01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -197,11 +200,16 @@ export const PrReviewThreadsPanel: React.FC<PrReviewThreadsPanelProps> = ({
         className="flex w-full items-center gap-1.5 px-4 py-2 text-[12px] text-text-2 hover:bg-fill-1"
       >
         {expanded ? (
-          <ChevronDown size={14} strokeWidth={2} />
+          <HugeiconsIcon icon={ChevronDown} size={14} strokeWidth={2} />
         ) : (
-          <ChevronRight size={14} strokeWidth={2} />
+          <HugeiconsIcon icon={ChevronRight} size={14} strokeWidth={2} />
         )}
-        <MessageSquare size={13} strokeWidth={1.9} className="text-text-3" />
+        <HugeiconsIcon
+          icon={MessageSquare}
+          size={13}
+          strokeWidth={1.9}
+          className="text-text-3"
+        />
         <span className="font-medium">
           {t("git.pr.reviewThreads", "Review comments")}
         </span>

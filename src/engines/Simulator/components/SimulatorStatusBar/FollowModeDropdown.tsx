@@ -1,9 +1,7 @@
+import InfinityIcon from "@hugeicons/core-free-icons/Infinity01Icon";
+import Layers from "@hugeicons/core-free-icons/Layers01Icon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import { useAtom, useAtomValue } from "jotai";
-import {
-  Infinity as InfinityIcon,
-  Layers,
-  type LucideIcon,
-} from "lucide-react";
 import React, { useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -25,6 +23,8 @@ import {
 
 import { AppType } from "../../types/appTypes";
 import { getSimulatorDockTitleCenterEnglish } from "../Dock/dockTitleCenter";
+
+type LucideIcon = IconSvgElement;
 
 function getActiveAppIcon(appType: AppType | null): LucideIcon | null {
   return getSimulatorDockTitleCenterEnglish(appType).icon;
@@ -132,7 +132,11 @@ export const FollowModeDropdown: React.FC = () => {
                     : DROPDOWN_CLASSES.itemHover
                 } w-full justify-between gap-2`}
               >
-                <InfinityIcon size={DROPDOWN_ITEM.iconSize} strokeWidth={2} />
+                <HugeiconsIcon
+                  icon={InfinityIcon}
+                  size={DROPDOWN_ITEM.iconSize}
+                  strokeWidth={2}
+                />
                 <span className="flex-1 text-left">
                   {t("simulator.replay.trajectoryAgent")}
                 </span>

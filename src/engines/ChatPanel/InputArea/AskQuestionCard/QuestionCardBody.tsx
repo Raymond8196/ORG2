@@ -8,7 +8,8 @@
  * All interaction state is passed in via props so each consumer can wire its
  * own submission / selection logic.
  */
-import { PenLine } from "lucide-react";
+import PenLine from "@hugeicons/core-free-icons/PenTool01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useTranslation } from "react-i18next";
 
 import Textarea from "@src/components/Textarea";
@@ -154,7 +155,7 @@ export function QuestionCardBody({
                             : "bg-bg-2 text-primary-6"
                         )}
                       >
-                        <PenLine size={12} />
+                        <HugeiconsIcon icon={PenLine} size={12} />
                       </span>
                       <span
                         className={classNames(

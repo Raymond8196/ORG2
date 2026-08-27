@@ -31,7 +31,9 @@
  * </Checkbox.Group>
  * ```
  */
-import { Check, Minus } from "lucide-react";
+import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   createContext,
   useCallback,
@@ -302,13 +304,15 @@ const Checkbox: React.FC<CheckboxProps> & {
       />
       <span className={iconClassName} data-checkbox-icon>
         {indeterminate ? (
-          <Minus
+          <HugeiconsIcon
+            icon={Minus}
             size={iconPixelSize}
             strokeWidth={3}
             className={svgClassName}
           />
         ) : (
-          <Check
+          <HugeiconsIcon
+            icon={Check}
             size={iconPixelSize}
             strokeWidth={3}
             className={svgClassName}

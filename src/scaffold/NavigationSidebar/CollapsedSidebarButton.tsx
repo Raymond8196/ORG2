@@ -1,5 +1,6 @@
+import PanelLeft from "@hugeicons/core-free-icons/PanelLeftIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { PanelLeft } from "lucide-react";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -53,7 +54,7 @@ const CollapsedSidebarButtonComponent: React.FC = () => {
             onClick={handleClick}
             title={label}
             aria-label={label}
-            icon={<PanelLeft size={16} strokeWidth={2} />}
+            icon={<HugeiconsIcon icon={PanelLeft} size={16} strokeWidth={2} />}
           />
         </span>
       </Tooltip>

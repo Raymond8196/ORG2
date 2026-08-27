@@ -1,4 +1,6 @@
-import { ChevronDown, ChevronRight } from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   Suspense,
   memo,
@@ -384,9 +386,17 @@ const DiffFileSection: React.FC<DiffFileSectionProps> = ({
         {isDeleted ? (
           <span className="inline-block w-[14px] shrink-0" aria-hidden />
         ) : expanded ? (
-          <ChevronDown size={14} className="shrink-0 text-text-3" />
+          <HugeiconsIcon
+            icon={ChevronDown}
+            size={14}
+            className="shrink-0 text-text-3"
+          />
         ) : (
-          <ChevronRight size={14} className="shrink-0 text-text-3" />
+          <HugeiconsIcon
+            icon={ChevronRight}
+            size={14}
+            className="shrink-0 text-text-3"
+          />
         )}
         <FileTypeIcon
           fileName={file.path}

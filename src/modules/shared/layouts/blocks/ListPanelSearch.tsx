@@ -6,7 +6,8 @@
  *
  * Used by: ExtensionsListPanel.
  */
-import { Search } from "lucide-react";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import Input from "@src/components/Input";
@@ -33,7 +34,9 @@ const ListPanelSearch: React.FC<ListPanelSearchProps> = ({
       <div className="flex items-center gap-1.5 px-3 pb-2">
         <div className="min-w-0 flex-1">
           <Input
-            prefix={<Search size={14} strokeWidth={1.75} />}
+            prefix={
+              <HugeiconsIcon icon={Search} size={14} strokeWidth={1.75} />
+            }
             placeholder={placeholder}
             value={value}
             onChange={onChange}

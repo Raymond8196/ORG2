@@ -1,13 +1,12 @@
+import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ArrowRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Monitor from "@hugeicons/core-free-icons/ComputerIcon";
+import Infinity from "@hugeicons/core-free-icons/Infinity01Icon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useSetAtom } from "jotai";
-import {
-  Infinity,
-  ArrowLeft,
-  ArrowRight,
-  Check,
-  Monitor,
-  X,
-} from "lucide-react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -361,7 +360,7 @@ const GeneralLayoutTour: React.FC<GeneralLayoutTourProps> = ({
               aria-label={t("tutorials.chrome.close")}
               onClick={onClose}
             >
-              <X size={14} />
+              <HugeiconsIcon icon={X} size={14} />
             </button>
           </div>
 
@@ -376,7 +375,7 @@ const GeneralLayoutTour: React.FC<GeneralLayoutTourProps> = ({
             <div className="mb-3 grid grid-cols-2 gap-2 rounded-lg border border-border-2 bg-fill-1 p-2">
               <div className="flex items-center gap-2 rounded-md bg-fill-2 px-2 py-2 text-[11px] text-text-1">
                 <span className="flex size-7 items-center justify-center rounded-md bg-primary-6 text-white">
-                  <Monitor size={14} strokeWidth={1.8} />
+                  <HugeiconsIcon icon={Monitor} size={14} strokeWidth={1.8} />
                 </span>
                 <span className="flex min-w-0 flex-col leading-tight">
                   <span className="font-semibold">
@@ -389,7 +388,7 @@ const GeneralLayoutTour: React.FC<GeneralLayoutTourProps> = ({
               </div>
               <div className="flex items-center gap-2 rounded-md bg-fill-2 px-2 py-2 text-[11px] text-text-1">
                 <span className="flex size-7 items-center justify-center rounded-md bg-fill-3 text-text-1">
-                  <Infinity size={14} strokeWidth={1.8} />
+                  <HugeiconsIcon icon={Infinity} size={14} strokeWidth={1.8} />
                 </span>
                 <span className="flex min-w-0 flex-col leading-tight">
                   <span className="font-semibold">
@@ -421,7 +420,7 @@ const GeneralLayoutTour: React.FC<GeneralLayoutTourProps> = ({
               appearance="ghost"
               shape="circle"
               iconOnly
-              icon={<ArrowLeft size={13} />}
+              icon={<HugeiconsIcon icon={ArrowLeft} size={13} />}
               disabled={isFirstStep}
               aria-label={t("tutorials.chrome.previous")}
               title={t("tutorials.chrome.previous")}
@@ -435,7 +434,13 @@ const GeneralLayoutTour: React.FC<GeneralLayoutTourProps> = ({
               variant="primary"
               shape="circle"
               iconOnly
-              icon={isLastStep ? <Check size={13} /> : <ArrowRight size={13} />}
+              icon={
+                isLastStep ? (
+                  <HugeiconsIcon icon={Check} size={13} />
+                ) : (
+                  <HugeiconsIcon icon={ArrowRight} size={13} />
+                )
+              }
               aria-label={
                 isLastStep
                   ? t("tutorials.chrome.finish")

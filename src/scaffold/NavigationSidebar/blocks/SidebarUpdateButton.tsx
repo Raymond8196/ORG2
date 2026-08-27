@@ -1,4 +1,5 @@
-import { Download } from "lucide-react";
+import Download from "@hugeicons/core-free-icons/Download01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -40,7 +41,7 @@ const SidebarUpdateButton: React.FC = React.memo(() => {
         size="small"
         shape="circle"
         iconOnly
-        icon={<Download size={14} />}
+        icon={<HugeiconsIcon icon={Download} size={14} />}
         loading={installing}
         onClick={handleInstallUpdate}
       />

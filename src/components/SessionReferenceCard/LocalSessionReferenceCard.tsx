@@ -1,6 +1,8 @@
+import FolderGit2 from "@hugeicons/core-free-icons/FolderGitTwoIcon";
+import Repeat from "@hugeicons/core-free-icons/RepeatIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import { selectAtom } from "jotai/utils";
-import { FolderGit2, Repeat } from "lucide-react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -125,14 +127,28 @@ const LocalSessionReferenceCard: React.FC<LocalSessionReferenceCardProps> = ({
         ) : null}
         {roundCount > 0 ? (
           <ReferenceCardMetaItem
-            icon={<Repeat size={11} strokeWidth={1.75} aria-hidden />}
+            icon={
+              <HugeiconsIcon
+                icon={Repeat}
+                size={11}
+                strokeWidth={1.75}
+                aria-hidden
+              />
+            }
           >
             {t("sessions:history.detail.roundCount", { count: roundCount })}
           </ReferenceCardMetaItem>
         ) : null}
         {task.workspaceName ? (
           <ReferenceCardMetaItem
-            icon={<FolderGit2 size={11} strokeWidth={1.75} aria-hidden />}
+            icon={
+              <HugeiconsIcon
+                icon={FolderGit2}
+                size={11}
+                strokeWidth={1.75}
+                aria-hidden
+              />
+            }
           >
             {task.workspaceName}
           </ReferenceCardMetaItem>

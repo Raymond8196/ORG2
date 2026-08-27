@@ -4,15 +4,15 @@
  * Provides type definitions and configurations for managing multiple windows
  * within the simulator environment.
  */
-import {
-  ArrowLeftRight,
-  type LucideIcon,
-  Maximize2,
-  Minus,
-  X,
-} from "lucide-react";
+import ArrowLeftRight from "@hugeicons/core-free-icons/ArrowLeftRightIcon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Maximize2 from "@hugeicons/core-free-icons/Maximize02Icon";
+import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 
 import { AppType } from "./appTypes";
+
+type LucideIcon = IconSvgElement;
 
 /**
  * Unique identifier for a window instance

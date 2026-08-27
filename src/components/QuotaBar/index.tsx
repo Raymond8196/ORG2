@@ -6,7 +6,8 @@
  * - "compact": Label + bar
  * - "full": Used/limit + bar
  */
-import { Check } from "lucide-react";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 export function getQuotaTextColorClass(percentage: number): string {
@@ -215,7 +216,12 @@ export const QuotaStatusBar: React.FC<QuotaStatusBarProps> = ({
       {isLoggedIn && (
         <>
           <div className="flex items-center gap-1.5">
-            <Check size={12} className="text-success-6" strokeWidth={3} />
+            <HugeiconsIcon
+              icon={Check}
+              size={12}
+              className="text-success-6"
+              strokeWidth={3}
+            />
             <span className="text-[11px] text-text-2">Logged in</span>
           </div>
           <div className="h-3 border-r border-border-2" />

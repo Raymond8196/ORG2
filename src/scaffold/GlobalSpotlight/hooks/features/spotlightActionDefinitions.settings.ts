@@ -10,18 +10,17 @@
  * - `buildChatPanelSettingsActions` — chat panel position, pagination, and
  *   model-picker style toggles.
  */
-import {
-  ArrowBigLeft,
-  ArrowBigRight,
-  Contrast,
-  LayoutPanelTop,
-  Menu,
-  MonitorCog,
-  Moon,
-  PanelLeft,
-  Sparkles,
-  Sun,
-} from "lucide-react";
+import ArrowBigLeft from "@hugeicons/core-free-icons/ArrowLeftBigIcon";
+import ArrowBigRight from "@hugeicons/core-free-icons/ArrowRightBigIcon";
+import MonitorCog from "@hugeicons/core-free-icons/ComputerSettingsIcon";
+import Contrast from "@hugeicons/core-free-icons/ContrastIcon";
+import LayoutPanelTop from "@hugeicons/core-free-icons/LayoutTopIcon";
+import Menu from "@hugeicons/core-free-icons/Menu01Icon";
+import Moon from "@hugeicons/core-free-icons/MoonIcon";
+import PanelLeft from "@hugeicons/core-free-icons/PanelLeftIcon";
+import Sparkles from "@hugeicons/core-free-icons/SparklesIcon";
+import Sun from "@hugeicons/core-free-icons/Sun01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 import { ACTION_ID } from "@src/ActionSystem";
 

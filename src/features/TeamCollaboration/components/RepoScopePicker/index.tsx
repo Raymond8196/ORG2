@@ -16,7 +16,8 @@
  * Selection is keyed by scope key (not repo id): two checkouts of the same
  * remote toggle together, and the emitted keys are deduped by construction.
  */
-import { Check } from "lucide-react";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect, useMemo, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -161,7 +162,11 @@ export function RepoScopePicker({
                 </span>
               </div>
               {isSelected ? (
-                <Check size={14} className="shrink-0 text-primary-6" />
+                <HugeiconsIcon
+                  icon={Check}
+                  size={14}
+                  className="shrink-0 text-primary-6"
+                />
               ) : null}
             </button>
           );

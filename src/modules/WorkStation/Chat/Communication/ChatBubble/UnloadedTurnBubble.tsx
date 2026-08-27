@@ -39,7 +39,9 @@
  * eviction is confirmed, retries a bounded number of times before falling
  * back to a manual "tap to retry" affordance instead of spinning forever.
  */
-import { Loader2, RotateCw } from "lucide-react";
+import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import RotateCw from "@hugeicons/core-free-icons/RotateClockwiseIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -234,14 +236,20 @@ const UnloadedTurnBubbleContent: React.FC<UnloadedTurnBubbleContentProps> = ({
             data-testid="communication-unloaded-turn-retry"
             className={`flex w-full items-center gap-2 rounded border-0 bg-transparent p-0 text-left italic text-text-3 transition-colors hover:text-text-1 ${SESSION_UI_TOKENS.TEXT.BODY_BASE}`}
           >
-            <RotateCw size={13} strokeWidth={2} className="shrink-0" />
+            <HugeiconsIcon
+              icon={RotateCw}
+              size={13}
+              strokeWidth={2}
+              className="shrink-0"
+            />
             {retryBody}
           </button>
         ) : (
           <div
             className={`flex items-center gap-2 italic text-text-3 ${SESSION_UI_TOKENS.TEXT.BODY_BASE}`}
           >
-            <Loader2
+            <HugeiconsIcon
+              icon={Loader2}
               size={13}
               strokeWidth={2}
               className="shrink-0 animate-spin"

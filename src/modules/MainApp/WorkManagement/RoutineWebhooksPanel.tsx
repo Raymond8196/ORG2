@@ -3,7 +3,11 @@
  * plaintext secret exactly once — shown until the row reloads, never
  * persisted on the frontend.
  */
-import { ChevronDown, ChevronRight, Copy, RefreshCw } from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import Copy from "@hugeicons/core-free-icons/Copy01Icon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -233,7 +237,9 @@ const WebhookRow: React.FC<WebhookRowProps> = ({ routine }) => {
               variant="tertiary"
               size="small"
               iconOnly
-              icon={<RefreshCw size={13} strokeWidth={1.75} />}
+              icon={
+                <HugeiconsIcon icon={RefreshCw} size={13} strokeWidth={1.75} />
+              }
               onClick={() => {
                 loadStatus();
                 loadDeliveries();
@@ -261,7 +267,7 @@ const WebhookRow: React.FC<WebhookRowProps> = ({ routine }) => {
                   variant="tertiary"
                   size="mini"
                   iconOnly
-                  icon={<Copy size={12} />}
+                  icon={<HugeiconsIcon icon={Copy} size={12} />}
                   onClick={() => handleCopy(installInfo.urlPath)}
                   data-testid={`routine-webhook-copy-url-${routine.name}`}
                 />
@@ -274,7 +280,7 @@ const WebhookRow: React.FC<WebhookRowProps> = ({ routine }) => {
                   variant="tertiary"
                   size="mini"
                   iconOnly
-                  icon={<Copy size={12} />}
+                  icon={<HugeiconsIcon icon={Copy} size={12} />}
                   onClick={() => handleCopy(installInfo.secret)}
                   data-testid={`routine-webhook-copy-secret-${routine.name}`}
                 />

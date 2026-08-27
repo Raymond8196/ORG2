@@ -1,4 +1,5 @@
-import { FolderGit2 } from "lucide-react";
+import FolderGit2 from "@hugeicons/core-free-icons/FolderGitTwoIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -57,7 +58,7 @@ export const BasicsStep: React.FC<StepProps> = ({ controller }) => {
         >
           <Button
             size="small"
-            icon={<FolderGit2 size={14} />}
+            icon={<HugeiconsIcon icon={FolderGit2} size={14} />}
             onClick={() => openWorkspaceSpotlight("open")}
           >
             {controller.workspaceFolders.length

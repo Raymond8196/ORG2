@@ -1,15 +1,14 @@
+import Network from "@hugeicons/core-free-icons/AiNetworkIcon";
+import ChevronsUpDown from "@hugeicons/core-free-icons/ArrowUpDownIcon";
+import Bot from "@hugeicons/core-free-icons/BotIcon";
+import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
+import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import Box from "@hugeicons/core-free-icons/PackageIcon";
+import SquarePen from "@hugeicons/core-free-icons/Pen01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
-import {
-  Bot,
-  Box,
-  ChevronsDownUp,
-  ChevronsUpDown,
-  Loader2,
-  MoreHorizontal,
-  Network,
-  SquarePen,
-  Terminal,
-} from "lucide-react";
 import React from "react";
 
 import { STORY_SYNC_ADAPTER } from "@src/api/http/integrations/syncConnections";
@@ -125,7 +124,12 @@ export function linearLoadRow(
     icon: loading ? undefined : MoreHorizontal,
     iconName: loading ? undefined : "more-horizontal",
     iconElement: loading ? (
-      <Loader2 size={14} strokeWidth={2} className="animate-spin" />
+      <HugeiconsIcon
+        icon={Loader2}
+        size={14}
+        strokeWidth={2}
+        className="animate-spin"
+      />
     ) : undefined,
     visualTone: "secondary",
     disabled: loading,
@@ -184,7 +188,12 @@ export function pendingSyncIndicator(t: TFunction): React.ReactElement {
       className="flex items-center"
       data-testid="sidebar-pending-sync-indicator"
     >
-      <Loader2 size={12} strokeWidth={2} className="animate-spin text-text-4" />
+      <HugeiconsIcon
+        icon={Loader2}
+        size={12}
+        strokeWidth={2}
+        className="animate-spin text-text-4"
+      />
     </span>
   );
 }

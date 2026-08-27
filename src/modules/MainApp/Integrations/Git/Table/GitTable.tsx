@@ -1,4 +1,5 @@
-import { Trash2 } from "lucide-react";
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -208,7 +209,13 @@ export const GitTable: React.FC<GitTableProps> = ({
             <Button
               variant="secondary"
               size="small"
-              icon={<Trash2 size={14} className="text-danger-6" />}
+              icon={
+                <HugeiconsIcon
+                  icon={Trash2}
+                  size={14}
+                  className="text-danger-6"
+                />
+              }
               iconOnly
               loading={removingRowId === row.id}
               disabled={removingRowId === row.id}

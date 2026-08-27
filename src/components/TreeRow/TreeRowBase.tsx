@@ -10,8 +10,11 @@
  * - Uses forwardRef to allow parent components to manipulate DOM directly
  * - Supports .is-dragging CSS class for drag visual feedback without re-renders
  */
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import CornerDownRight from "@hugeicons/core-free-icons/ArrowTurnDownIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
-import { ChevronDown, ChevronRight, CornerDownRight } from "lucide-react";
 import React, { forwardRef, useCallback } from "react";
 
 import FileTypeIcon from "@src/components/FileTypeIcon";
@@ -162,9 +165,17 @@ export const TreeRowBase = React.memo(
           ) : isDirectory ? (
             <div className="flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center">
               {isExpanded ? (
-                <ChevronDown size={CHEVRON_SIZE} className="text-text-3" />
+                <HugeiconsIcon
+                  icon={ChevronDown}
+                  size={CHEVRON_SIZE}
+                  className="text-text-3"
+                />
               ) : (
-                <ChevronRight size={CHEVRON_SIZE} className="text-text-3" />
+                <HugeiconsIcon
+                  icon={ChevronRight}
+                  size={CHEVRON_SIZE}
+                  className="text-text-3"
+                />
               )}
             </div>
           ) : (
@@ -214,7 +225,8 @@ export const TreeRowBase = React.memo(
 
           {/* Symlink indicator — pinned to right end */}
           {isSymlink && (
-            <CornerDownRight
+            <HugeiconsIcon
+              icon={CornerDownRight}
               size={12}
               className="flex-shrink-0 text-text-3"
               aria-label="symlink"

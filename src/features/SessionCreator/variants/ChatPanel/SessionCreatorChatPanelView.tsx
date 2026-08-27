@@ -1,10 +1,9 @@
-import {
-  Airplay,
-  BellOff,
-  CircleArrowUp,
-  Network,
-  RefreshCw,
-} from "lucide-react";
+import Network from "@hugeicons/core-free-icons/AiNetworkIcon";
+import CircleArrowUp from "@hugeicons/core-free-icons/CircleArrowUp01Icon";
+import BellOff from "@hugeicons/core-free-icons/NotificationOff01Icon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import Airplay from "@hugeicons/core-free-icons/ScreenRotationIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { Children, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -300,7 +299,9 @@ const SessionCreatorChatPanelView: React.FC<
                 appearance="outline"
                 size="small"
                 shape="round"
-                icon={<Network size={14} strokeWidth={1.75} />}
+                icon={
+                  <HugeiconsIcon icon={Network} size={14} strokeWidth={1.75} />
+                }
                 title={t("creator.orgMembers.configButton")}
                 aria-label={t("creator.orgMembers.configButton")}
                 aria-expanded={isOrgMembersPanelOpen}
@@ -322,7 +323,9 @@ const SessionCreatorChatPanelView: React.FC<
       <div className={`mx-auto w-full ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}>
         <InlineAlert
           type="warning"
-          icon={<CircleArrowUp size={14} strokeWidth={1.8} />}
+          icon={
+            <HugeiconsIcon icon={CircleArrowUp} size={14} strokeWidth={1.8} />
+          }
           onClose={cliVersionAlert.onClose}
           closeAriaLabel={t("common:actions.close")}
           action={
@@ -330,7 +333,9 @@ const SessionCreatorChatPanelView: React.FC<
               <Button
                 variant="tertiary"
                 size="small"
-                icon={<BellOff size={14} strokeWidth={1.8} />}
+                icon={
+                  <HugeiconsIcon icon={BellOff} size={14} strokeWidth={1.8} />
+                }
                 iconOnly
                 disabled={!cliVersionAlert.latestVersion}
                 title={t("creator.cliVersionOutdated.muteUntilNextVersion")}
@@ -343,7 +348,9 @@ const SessionCreatorChatPanelView: React.FC<
               <Button
                 variant="tertiary"
                 size="small"
-                icon={<RefreshCw size={14} strokeWidth={1.8} />}
+                icon={
+                  <HugeiconsIcon icon={RefreshCw} size={14} strokeWidth={1.8} />
+                }
                 iconOnly
                 loading={cliVersionAlert.refreshing}
                 loadingSpinIcon
@@ -523,7 +530,7 @@ const SessionCreatorChatPanelView: React.FC<
                   void onShareScreen();
                 }}
               >
-                <Airplay size={13} strokeWidth={1.75} />
+                <HugeiconsIcon icon={Airplay} size={13} strokeWidth={1.75} />
                 {t("chat.shareScreen")}
               </button>
             )}

@@ -29,7 +29,9 @@
  * />
  * ```
  */
-import { Pencil, Trash2 } from "lucide-react";
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import Pencil from "@hugeicons/core-free-icons/PencilIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -97,7 +99,7 @@ const InlineActionsBar: React.FC<InlineActionsBarProps> = ({
       list.push({
         key: "edit",
         label: editLabel ?? t("actions.edit"),
-        icon: <Pencil size={12} />,
+        icon: <HugeiconsIcon icon={Pencil} size={12} />,
         variant: editVariant,
         onClick: onEdit,
         disabled: editDisabled,
@@ -108,7 +110,7 @@ const InlineActionsBar: React.FC<InlineActionsBarProps> = ({
       list.push({
         key: "delete",
         label: deleteLabel ?? t("actions.delete"),
-        icon: <Trash2 size={12} />,
+        icon: <HugeiconsIcon icon={Trash2} size={12} />,
         variant: "danger",
         appearance: "outline",
         onClick: onDelete,

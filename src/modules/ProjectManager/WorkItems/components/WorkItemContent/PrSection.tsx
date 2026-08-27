@@ -1,4 +1,7 @@
-import { GitPullRequest, Loader2, SquareArrowOutUpRight } from "lucide-react";
+import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -146,7 +149,7 @@ const PrSection: React.FC<PrSectionProps> = ({
                 rel="noreferrer"
                 className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-6 hover:underline"
               >
-                <SquareArrowOutUpRight size={13} />
+                <HugeiconsIcon icon={SquareArrowOutUpRight} size={13} />
                 {displayPrUrl.replace(/^https?:\/\/[^/]+\//, "")}
               </a>
               <div className="mt-1 flex items-center gap-2">
@@ -177,7 +180,11 @@ const PrSection: React.FC<PrSectionProps> = ({
     return (
       <div className="rounded-lg bg-fill-2 px-4 py-3">
         <div className="flex items-center gap-2">
-          <Loader2 size={14} className="animate-spin text-primary-6" />
+          <HugeiconsIcon
+            icon={Loader2}
+            size={14}
+            className="animate-spin text-primary-6"
+          />
           <p className="text-sm text-text-2">
             {t("workItems.outputTab.prCreatingHint")}
           </p>
@@ -240,7 +247,7 @@ const PrSection: React.FC<PrSectionProps> = ({
             variant="primary"
             appearance="outline"
             size="small"
-            icon={<GitPullRequest size={13} />}
+            icon={<HugeiconsIcon icon={GitPullRequest} size={13} />}
             onClick={handleCreate}
             disabled={!onCreatePr}
           >

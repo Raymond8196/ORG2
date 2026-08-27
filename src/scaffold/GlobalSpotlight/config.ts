@@ -1,42 +1,41 @@
-import {
-  ArrowLeft,
-  ArrowRight,
-  ArrowUp,
-  Check,
-  CircleHelp,
-  Clock,
-  Cloud,
-  Code,
-  Focus,
-  Folder,
-  FolderOpen,
-  FolderPlus,
-  FolderSearch,
-  FolderSymlink,
-  FolderTree,
-  GitBranch,
-  Github,
-  Globe,
-  History,
-  Home,
-  Languages,
-  LaptopMinimal,
-  Layers,
-  Layout,
-  Link2,
-  Lock,
-  MessageSquare,
-  Pencil,
-  RefreshCw,
-  Rocket,
-  Search,
-  Settings,
-  Sparkles,
-  SquareArrowOutUpRight,
-  SquareArrowRight,
-  Trash2,
-  X,
-} from "lucide-react";
+import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ArrowRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ArrowUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Focus from "@hugeicons/core-free-icons/CenterFocusIcon";
+import Clock from "@hugeicons/core-free-icons/Clock01Icon";
+import Cloud from "@hugeicons/core-free-icons/CloudIcon";
+import Code from "@hugeicons/core-free-icons/CodeIcon";
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import Folder from "@hugeicons/core-free-icons/Folder01Icon";
+import FolderPlus from "@hugeicons/core-free-icons/FolderAddIcon";
+import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
+import FolderSearch from "@hugeicons/core-free-icons/FolderSearchIcon";
+import FolderSymlink from "@hugeicons/core-free-icons/FolderSymlinkIcon";
+import FolderTree from "@hugeicons/core-free-icons/FolderTreeIcon";
+import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
+import Github from "@hugeicons/core-free-icons/GithubIcon";
+import Globe from "@hugeicons/core-free-icons/GlobeIcon";
+import CircleHelp from "@hugeicons/core-free-icons/HelpCircleIcon";
+import Home from "@hugeicons/core-free-icons/Home01Icon";
+import Languages from "@hugeicons/core-free-icons/LanguageCircleIcon";
+import LaptopMinimal from "@hugeicons/core-free-icons/LaptopMinimalIcon";
+import Layers from "@hugeicons/core-free-icons/Layers01Icon";
+import Layout from "@hugeicons/core-free-icons/Layout01Icon";
+import Link2 from "@hugeicons/core-free-icons/Link02Icon";
+import Lock from "@hugeicons/core-free-icons/LockIcon";
+import MessageSquare from "@hugeicons/core-free-icons/Message01Icon";
+import Pencil from "@hugeicons/core-free-icons/PencilIcon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import Rocket from "@hugeicons/core-free-icons/RocketIcon";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import Settings from "@hugeicons/core-free-icons/Settings01Icon";
+import Sparkles from "@hugeicons/core-free-icons/SparklesIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import SquareArrowRight from "@hugeicons/core-free-icons/SquareArrowRight01Icon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import History from "@hugeicons/core-free-icons/WorkHistoryIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 import { ACTION_ID } from "@src/ActionSystem";
 import { LANGUAGE_NAMES, SUPPORTED_LANGUAGES } from "@src/i18n";

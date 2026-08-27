@@ -1,5 +1,6 @@
+import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { Loader2 } from "lucide-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -206,7 +207,7 @@ const HumanSessionView: React.FC<HumanSessionViewProps> = ({ sessionId }) => {
         aria-label={t("humanSession.loading")}
         className="flex h-full items-center justify-center text-text-3"
       >
-        <Loader2 className="animate-spin" size={20} />
+        <HugeiconsIcon icon={Loader2} className="animate-spin" size={20} />
       </div>
     );
   }

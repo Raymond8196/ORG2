@@ -7,7 +7,10 @@
  *
  * Used by CLI Clients, LSP, and Lint Tools inline expanded cards.
  */
-import { Copy, Download, Trash2 } from "lucide-react";
+import Copy from "@hugeicons/core-free-icons/Copy01Icon";
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import Download from "@hugeicons/core-free-icons/Download01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -98,7 +101,11 @@ export const InstallScriptPanel: React.FC<InstallScriptPanelProps> = ({
             variant={mode === "uninstall" ? "secondary" : "primary"}
             size="small"
             icon={
-              mode === "install" ? <Download size={12} /> : <Trash2 size={12} />
+              mode === "install" ? (
+                <HugeiconsIcon icon={Download} size={12} />
+              ) : (
+                <HugeiconsIcon icon={Trash2} size={12} />
+              )
             }
             onClick={onAction}
             loading={actionLoading}
@@ -110,7 +117,11 @@ export const InstallScriptPanel: React.FC<InstallScriptPanelProps> = ({
             {actionLabel}
           </Button>
         ) : null}
-        <Button size="small" icon={<Copy size={12} />} onClick={handleCopy}>
+        <Button
+          size="small"
+          icon={<HugeiconsIcon icon={Copy} size={12} />}
+          onClick={handleCopy}
+        >
           {t("common:actions.copy")}
         </Button>
       </div>

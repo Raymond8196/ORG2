@@ -4,13 +4,12 @@
  * Header for the Projects page with breadcrumb and action buttons.
  * Uses shared WorkStation header tokens for consistent styling.
  */
-import {
-  Boxes,
-  ListChevronsDownUp,
-  Plus,
-  RefreshCw,
-  Search,
-} from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import ListChevronsDownUp from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
+import Boxes from "@hugeicons/core-free-icons/Package01Icon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -85,7 +84,11 @@ const ProjectsPageHeader: React.FC<ProjectsPageHeaderProps> = ({
         ? {
             ...segment,
             icon: segment.icon ?? (
-              <Boxes size={HEADER_ICON_SIZE.sm} strokeWidth={1.75} />
+              <HugeiconsIcon
+                icon={Boxes}
+                size={HEADER_ICON_SIZE.sm}
+                strokeWidth={1.75}
+              />
             ),
           }
         : segment
@@ -121,7 +124,13 @@ const ProjectsPageHeader: React.FC<ProjectsPageHeaderProps> = ({
           iconOnly
           onClick={onSearch}
           title={t("common:actions.search")}
-          icon={<Search size={HEADER_ICON_SIZE.sm} strokeWidth={2} />}
+          icon={
+            <HugeiconsIcon
+              icon={Search}
+              size={HEADER_ICON_SIZE.sm}
+              strokeWidth={2}
+            />
+          }
         />
       )}
       {(onCollapseAll || onRefresh || onAddProject) && (
@@ -135,7 +144,8 @@ const ProjectsPageHeader: React.FC<ProjectsPageHeaderProps> = ({
               onClick={onCollapseAll}
               title={t("common:actions.collapseAll")}
               icon={
-                <ListChevronsDownUp
+                <HugeiconsIcon
+                  icon={ListChevronsDownUp}
                   size={HEADER_ICON_SIZE.md}
                   strokeWidth={2}
                 />
@@ -151,7 +161,8 @@ const ProjectsPageHeader: React.FC<ProjectsPageHeaderProps> = ({
               onClick={handleRefreshClick}
               title={t("common:actions.refresh")}
               icon={
-                <RefreshCw
+                <HugeiconsIcon
+                  icon={RefreshCw}
                   size={HEADER_ICON_SIZE.sm}
                   strokeWidth={2}
                   className={refreshSpinClass}
@@ -168,7 +179,13 @@ const ProjectsPageHeader: React.FC<ProjectsPageHeaderProps> = ({
               onClick={onAddProject}
               title={t("projects.createProject")}
               data-testid="projects-create-project"
-              icon={<Plus size={HEADER_ICON_SIZE.md} strokeWidth={2} />}
+              icon={
+                <HugeiconsIcon
+                  icon={Plus}
+                  size={HEADER_ICON_SIZE.md}
+                  strokeWidth={2}
+                />
+              }
             />
           )}
         </div>

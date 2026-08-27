@@ -15,14 +15,13 @@ import {
   HEADER_BUTTON,
   HEADER_ICON_SIZE,
 } from "@/src/modules/WorkStation/shared/tokens";
-import {
-  CircleMinus,
-  CopyPlus,
-  ListChevronsDownUp,
-  Loader2,
-  RefreshCw,
-  X,
-} from "lucide-react";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import CopyPlus from "@hugeicons/core-free-icons/Copy01Icon";
+import ListChevronsDownUp from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
+import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import CircleMinus from "@hugeicons/core-free-icons/MinusSignCircleIcon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -208,7 +207,7 @@ const WebDevTools: React.FC<WebDevToolsProps> = memo(
                   iconOnly
                   onClick={onClose}
                   aria-label={t("tooltips.closeDevTools")}
-                  icon={<X size={HEADER_ICON_SIZE.md} />}
+                  icon={<HugeiconsIcon icon={X} size={HEADER_ICON_SIZE.md} />}
                 />
               </ToolbarTooltip>
             </>
@@ -248,7 +247,8 @@ const WebDevTools: React.FC<WebDevToolsProps> = memo(
                     />
                     <div className="invisible flex items-center gap-1 group-hover/devtools:visible">
                       {treeLoading && (
-                        <Loader2
+                        <HugeiconsIcon
+                          icon={Loader2}
                           size={SPINNER_TOKENS.small}
                           className="animate-spin text-text-3"
                         />
@@ -260,7 +260,10 @@ const WebDevTools: React.FC<WebDevToolsProps> = memo(
                           className={HEADER_BUTTON.actionTreeRow}
                           aria-label={t("tooltips.collapseAll")}
                         >
-                          <ListChevronsDownUp size={HEADER_ICON_SIZE.md} />
+                          <HugeiconsIcon
+                            icon={ListChevronsDownUp}
+                            size={HEADER_ICON_SIZE.md}
+                          />
                         </button>
                       </ToolbarTooltip>
                       <ToolbarTooltip label={t("tooltips.refreshTree")}>
@@ -270,7 +273,8 @@ const WebDevTools: React.FC<WebDevToolsProps> = memo(
                           className={HEADER_BUTTON.actionTreeRow}
                           aria-label={t("tooltips.refreshTree")}
                         >
-                          <RefreshCw
+                          <HugeiconsIcon
+                            icon={RefreshCw}
                             size={HEADER_ICON_SIZE.sm}
                             className={refreshTreeSpinClass}
                           />
@@ -329,7 +333,8 @@ const WebDevTools: React.FC<WebDevToolsProps> = memo(
                     />
                     <div className="invisible flex items-center gap-1 group-hover/devtools:visible">
                       {(stylesLoading || stylesPending) && (
-                        <Loader2
+                        <HugeiconsIcon
+                          icon={Loader2}
                           size={SPINNER_TOKENS.small}
                           className="animate-spin text-text-3"
                         />
@@ -342,7 +347,10 @@ const WebDevTools: React.FC<WebDevToolsProps> = memo(
                             className={HEADER_BUTTON.danger}
                             aria-label={t("tooltips.clearUiIndex")}
                           >
-                            <CircleMinus size={HEADER_ICON_SIZE.sm} />
+                            <HugeiconsIcon
+                              icon={CircleMinus}
+                              size={HEADER_ICON_SIZE.sm}
+                            />
                           </button>
                         </ToolbarTooltip>
                       )}
@@ -372,9 +380,15 @@ const WebDevTools: React.FC<WebDevToolsProps> = memo(
                           }
                         >
                           {isAllCollapsed ? (
-                            <CopyPlus size={HEADER_ICON_SIZE.sm} />
+                            <HugeiconsIcon
+                              icon={CopyPlus}
+                              size={HEADER_ICON_SIZE.sm}
+                            />
                           ) : (
-                            <ListChevronsDownUp size={HEADER_ICON_SIZE.md} />
+                            <HugeiconsIcon
+                              icon={ListChevronsDownUp}
+                              size={HEADER_ICON_SIZE.md}
+                            />
                           )}
                         </button>
                       </ToolbarTooltip>

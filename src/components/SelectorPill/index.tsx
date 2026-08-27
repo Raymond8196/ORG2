@@ -12,7 +12,9 @@
  * Size tokens for sm/md are sourced from CompoundPill/config to stay in sync
  * with the CompoundPill segment dimensions.
  */
-import { ChevronDown, ChevronUp } from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { forwardRef, useCallback, useState } from "react";
 
 import {
@@ -128,7 +130,8 @@ const SelectorPillContent: React.FC<SelectorPillContentProps> = ({
                 </span>
               )}
               {active ? (
-                <ChevronUp
+                <HugeiconsIcon
+                  icon={ChevronUp}
                   size={iconSize}
                   strokeWidth={1.75}
                   className={`absolute block ${chevronColor}`}
@@ -140,7 +143,8 @@ const SelectorPillContent: React.FC<SelectorPillContentProps> = ({
                   {hoverIcon}
                 </span>
               ) : (
-                <ChevronDown
+                <HugeiconsIcon
+                  icon={ChevronDown}
                   size={iconSize}
                   strokeWidth={1.75}
                   className={`absolute hidden ${chevronColor} group-hover/pill:block`}
@@ -171,9 +175,9 @@ const SelectorPillContent: React.FC<SelectorPillContentProps> = ({
           className={`inline-flex shrink-0 items-center justify-center ${chevronColor} ${chevronClassName ?? ""}`}
         >
           {active ? (
-            <ChevronUp size={14} strokeWidth={2} />
+            <HugeiconsIcon icon={ChevronUp} size={14} strokeWidth={2} />
           ) : (
-            <ChevronDown size={14} strokeWidth={2} />
+            <HugeiconsIcon icon={ChevronDown} size={14} strokeWidth={2} />
           )}
         </span>
       )}

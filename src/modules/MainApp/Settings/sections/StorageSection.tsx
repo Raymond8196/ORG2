@@ -13,9 +13,12 @@ import {
   SectionContainer,
   SectionRow,
 } from "@/src/modules/shared/layouts/SectionLayout";
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { invoke } from "@tauri-apps/api/core";
 import { useAtomValue, useSetAtom } from "jotai";
-import { FolderOpen, RefreshCw, Trash2 } from "lucide-react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -265,7 +268,7 @@ const StorageSection: React.FC = () => {
             <div className="ml-auto inline-flex items-center gap-2 whitespace-nowrap">
               <Button
                 onClick={() => handleRevealOrOpen(cat)}
-                icon={<FolderOpen size={14} />}
+                icon={<HugeiconsIcon icon={FolderOpen} size={14} />}
                 iconOnly
                 title={
                   cat.is_folder ? t("storage.openFolder") : t("storage.reveal")
@@ -273,7 +276,13 @@ const StorageSection: React.FC = () => {
               />
               <Button
                 onClick={() => handleClearClick(cat)}
-                icon={<Trash2 size={14} className="text-danger-6" />}
+                icon={
+                  <HugeiconsIcon
+                    icon={Trash2}
+                    size={14}
+                    className="text-danger-6"
+                  />
+                }
                 iconOnly
                 disabled={!canClear || isClearing}
               />
@@ -409,7 +418,7 @@ const StorageSection: React.FC = () => {
           <Button
             variant="secondary"
             size="default"
-            icon={<Trash2 size={14} />}
+            icon={<HugeiconsIcon icon={Trash2} size={14} />}
             loading={isCleaningBrowserStorage}
             disabled={browserStorageUsage.cleanableBytes === 0}
             onClick={handleCleanBrowserStorage}
@@ -445,7 +454,8 @@ const StorageSection: React.FC = () => {
             />
           ) : isScanning ? (
             <div className="flex items-center gap-2 py-2">
-              <RefreshCw
+              <HugeiconsIcon
+                icon={RefreshCw}
                 size={12}
                 className={`${REFRESH_ICON_TOKENS.spin} text-text-3`}
               />

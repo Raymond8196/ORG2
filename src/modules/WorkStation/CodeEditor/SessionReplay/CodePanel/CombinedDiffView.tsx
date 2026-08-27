@@ -1,7 +1,9 @@
 /**
  * Combined diff view for multiple edits on the same file in session replay.
  */
-import { ChevronsDownUp, ChevronsUpDown } from "lucide-react";
+import ChevronsUpDown from "@hugeicons/core-free-icons/ArrowUpDownIcon";
+import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   memo,
   useCallback,
@@ -72,9 +74,17 @@ const EditSection: React.FC<{
         className={`sticky top-0 z-10 flex h-10 w-full cursor-pointer items-center gap-2 border-t border-border-2 px-3 text-[11px] hover:bg-fill-2 ${EDITOR_TAB_CANVAS_BG_CLASS}`}
       >
         {isCollapsed ? (
-          <ChevronsUpDown size={14} className="shrink-0 text-text-3" />
+          <HugeiconsIcon
+            icon={ChevronsUpDown}
+            size={14}
+            className="shrink-0 text-text-3"
+          />
         ) : (
-          <ChevronsDownUp size={14} className="shrink-0 text-text-3" />
+          <HugeiconsIcon
+            icon={ChevronsDownUp}
+            size={14}
+            className="shrink-0 text-text-3"
+          />
         )}
         <span className="font-medium text-text-2">
           {t("simulator.replay.ide.codePanel.editHeader", {
@@ -185,7 +195,7 @@ export const CombinedDiffView: React.FC<{
             htmlType="button"
             variant="tertiary"
             size="small"
-            icon={<ChevronsUpDown size={14} />}
+            icon={<HugeiconsIcon icon={ChevronsUpDown} size={14} />}
             onClick={handleLoadEarlierEdits}
           >
             {t("simulator.replay.ide.codePanel.loadEarlierEdits", {

@@ -1,4 +1,7 @@
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import Pencil from "@hugeicons/core-free-icons/PencilIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useCallback, useMemo, useState } from "react";
 
 import { CLI_AGENT } from "@src/api/types/keys";
@@ -273,7 +276,7 @@ export default function MyAccountsTableSection({
                 <Button
                   variant="secondary"
                   size="small"
-                  icon={<Pencil size={14} />}
+                  icon={<HugeiconsIcon icon={Pencil} size={14} />}
                   iconOnly
                   onClick={() => handleEditAccountInline(account.id)}
                   aria-label={t("common:actions.edit")}
@@ -285,7 +288,7 @@ export default function MyAccountsTableSection({
                   variant="danger"
                   appearance="outline"
                   size="small"
-                  icon={<Trash2 size={14} />}
+                  icon={<HugeiconsIcon icon={Trash2} size={14} />}
                   iconOnly
                   onClick={() => onDisconnectAccount(account.id)}
                   aria-label={
@@ -376,7 +379,7 @@ export default function MyAccountsTableSection({
     <Button
       variant="secondary"
       size="default"
-      icon={<Plus size={14} />}
+      icon={<HugeiconsIcon icon={Plus} size={14} />}
       iconOnly
       onClick={onAdd}
       aria-label={t("keyVault.addAccount")}

@@ -1,4 +1,6 @@
-import { LogIn, RefreshCw } from "lucide-react";
+import LogIn from "@hugeicons/core-free-icons/Login01Icon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -189,7 +191,7 @@ const AuthenticatedForm: React.FC<AuthenticatedFormProps> = ({
             loading={isLoading}
             onClick={onContinue}
             className={LOGIN_ACTION_BUTTON_CLASS}
-            icon={<LogIn className="h-5 w-5" />}
+            icon={<HugeiconsIcon icon={LogIn} className="h-5 w-5" />}
           >
             {t("common:actions.continue")}
           </Button>
@@ -199,7 +201,7 @@ const AuthenticatedForm: React.FC<AuthenticatedFormProps> = ({
             size="large"
             onClick={onSwitchAccount}
             className={LOGIN_ACTION_BUTTON_CLASS}
-            icon={<RefreshCw className="h-5 w-5" />}
+            icon={<HugeiconsIcon icon={RefreshCw} className="h-5 w-5" />}
             loading={false}
             loadingSpinIcon
           >

@@ -3,7 +3,9 @@
  *
  * Displays staged files with unstage and diff actions
  */
-import { FileDiff, Minus } from "lucide-react";
+import FileDiff from "@hugeicons/core-free-icons/FileDiffIcon";
+import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import { HEADER_BUTTON } from "@src/modules/WorkStation/shared/tokens";
@@ -68,14 +70,14 @@ export const StagedChangesSection: React.FC<StagedChangesSectionProps> = memo(
                 onClick={onUnstageAll}
                 title={`Unstage All Changes\n\nShortcut: ${SHORTCUTS.unstageAll}`}
               >
-                <Minus size={14} strokeWidth={1.75} />
+                <HugeiconsIcon icon={Minus} size={14} strokeWidth={1.75} />
               </button>
               <button
                 className={`${HEADER_BUTTON.actionTreeRow} opacity-0 group-hover/header:opacity-100`}
                 onClick={onOpenStagedChanges}
                 title={GIT_LABELS.openStagedChanges}
               >
-                <FileDiff size={14} strokeWidth={1.75} />
+                <HugeiconsIcon icon={FileDiff} size={14} strokeWidth={1.75} />
               </button>
             </>
           }

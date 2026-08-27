@@ -20,8 +20,11 @@ import {
   workspaceFileStatusMapAtom,
   workspaceFolderStatusMapAtom,
 } from "@/src/store/git";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import FilterIcon from "@hugeicons/core-free-icons/FilterIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { ChevronDown, ChevronRight, Filter as FilterIcon } from "lucide-react";
 import React, {
   forwardRef,
   memo,
@@ -318,12 +321,14 @@ export const FileTreeContent = memo(
             >
               <div className={STICKY_ROW.chevronBox}>
                 {isExpanded ? (
-                  <ChevronDown
+                  <HugeiconsIcon
+                    icon={ChevronDown}
                     size={CHEVRON_SIZE}
                     className={STICKY_ROW.chevronIcon}
                   />
                 ) : (
-                  <ChevronRight
+                  <HugeiconsIcon
+                    icon={ChevronRight}
                     size={CHEVRON_SIZE}
                     className={STICKY_ROW.chevronIcon}
                   />
@@ -402,7 +407,13 @@ export const FileTreeContent = memo(
             {showFilter && (
               <div className="flex-shrink-0 px-3 pb-2">
                 <Input
-                  prefix={<FilterIcon size={14} strokeWidth={1.75} />}
+                  prefix={
+                    <HugeiconsIcon
+                      icon={FilterIcon}
+                      size={14}
+                      strokeWidth={1.75}
+                    />
+                  }
                   placeholder={resolvedFilterPlaceholder}
                   value={filterQuery}
                   onChange={onFilterChange}

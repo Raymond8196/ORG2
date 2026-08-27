@@ -5,7 +5,8 @@
  * Shows file icon + path (directory grayed, filename bold).
  * Used in file/code viewers.
  */
-import { X } from "lucide-react";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import FileTypeIcon from "@src/components/FileTypeIcon";
@@ -97,7 +98,7 @@ const FileTab: React.FC<FileTabProps> = memo(
             }}
             className={`flex h-5 w-5 shrink-0 items-center justify-center rounded ${SURFACE_TOKENS.iconButtonHover}`}
           >
-            <X size={14} className="text-text-3" />
+            <HugeiconsIcon icon={X} size={14} className="text-text-3" />
           </button>
         )}
       </div>

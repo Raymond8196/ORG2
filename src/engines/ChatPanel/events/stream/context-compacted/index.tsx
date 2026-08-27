@@ -12,7 +12,8 @@
  * so this component renders the same block for every variant — mirroring
  * RateLimitHintEvent rather than ThinkingEvent's chat/simulator split.
  */
-import { Archive } from "lucide-react";
+import Archive from "@hugeicons/core-free-icons/ArchiveIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -68,7 +69,11 @@ export const ContextCompactedEvent: React.FC<ContextCompactedEventProps> = (
   const hasContent = Boolean(summary.trim());
 
   const icon = (
-    <Archive size={SESSION_UI_TOKENS.ICON.SIZE_SM} className="text-text-3" />
+    <HugeiconsIcon
+      icon={Archive}
+      size={SESSION_UI_TOKENS.ICON.SIZE_SM}
+      className="text-text-3"
+    />
   );
 
   return (

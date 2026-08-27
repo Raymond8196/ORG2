@@ -4,7 +4,9 @@
  * Reusable collapsible section header for source control sections
  * (Merge Changes, Staged Changes, Changes)
  */
-import { ChevronDown, ChevronRight } from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import {
@@ -67,12 +69,14 @@ export const SectionHeader: React.FC<SectionHeaderProps> = memo(
           onClick={onToggle}
         >
           {isCollapsed ? (
-            <ChevronRight
+            <HugeiconsIcon
+              icon={ChevronRight}
               size={14}
               className={useWarningText ? "text-warning-6" : "text-text-3"}
             />
           ) : (
-            <ChevronDown
+            <HugeiconsIcon
+              icon={ChevronDown}
               size={14}
               className={useWarningText ? "text-warning-6" : "text-text-3"}
             />

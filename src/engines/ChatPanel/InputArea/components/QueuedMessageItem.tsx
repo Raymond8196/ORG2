@@ -8,7 +8,12 @@
  */
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { ArrowUp, Clock, Loader2, Pencil, Trash2 } from "lucide-react";
+import ArrowUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import Clock from "@hugeicons/core-free-icons/Clock01Icon";
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import Pencil from "@hugeicons/core-free-icons/PencilIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -84,9 +89,14 @@ const QueuedMessageItem: React.FC<QueuedMessageItemProps> = memo(
       >
         <div className="flex h-[14px] w-[14px] shrink-0 items-center justify-center">
           {isSendingNow ? (
-            <Loader2 size={14} className="animate-spin text-primary-6" />
+            <HugeiconsIcon
+              icon={Loader2}
+              size={14}
+              className="animate-spin text-primary-6"
+            />
           ) : (
-            <Clock
+            <HugeiconsIcon
+              icon={Clock}
               size={14}
               className={isEditing ? "text-primary-6" : "text-text-2"}
             />
@@ -108,7 +118,7 @@ const QueuedMessageItem: React.FC<QueuedMessageItemProps> = memo(
               htmlType="button"
               variant="tertiary"
               size="mini"
-              icon={<Pencil size={12} />}
+              icon={<HugeiconsIcon icon={Pencil} size={12} />}
               iconOnly
               className="enabled:hover:bg-fill-3 enabled:hover:text-text-1"
               onClick={() => onStartEdit(msg)}
@@ -118,7 +128,7 @@ const QueuedMessageItem: React.FC<QueuedMessageItemProps> = memo(
               htmlType="button"
               variant="tertiary"
               size="mini"
-              icon={<Trash2 size={12} />}
+              icon={<HugeiconsIcon icon={Trash2} size={12} />}
               iconOnly
               className="enabled:hover:bg-fill-3 enabled:hover:text-danger-6"
               onClick={() => onCancel(msg.id)}
@@ -128,7 +138,7 @@ const QueuedMessageItem: React.FC<QueuedMessageItemProps> = memo(
               htmlType="button"
               variant="tertiary"
               size="mini"
-              icon={<ArrowUp size={12} />}
+              icon={<HugeiconsIcon icon={ArrowUp} size={12} />}
               iconOnly
               className="enabled:hover:bg-fill-3 enabled:hover:text-primary-6"
               onClick={() => onSendNow(msg.id)}

@@ -1,16 +1,14 @@
+import ChevronsLeft from "@hugeicons/core-free-icons/ArrowLeftDoubleIcon";
+import ChevronsRight from "@hugeicons/core-free-icons/ArrowRightDoubleIcon";
+import File from "@hugeicons/core-free-icons/File01Icon";
+import FileDiff from "@hugeicons/core-free-icons/FileDiffIcon";
+import Folder from "@hugeicons/core-free-icons/Folder01Icon";
+import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import Globe from "@hugeicons/core-free-icons/GlobeIcon";
+import LayoutList from "@hugeicons/core-free-icons/ListViewIcon";
+import SquareTerminal from "@hugeicons/core-free-icons/SquareTerminalIcon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
-import {
-  ChevronsLeft,
-  ChevronsRight,
-  File,
-  FileDiff,
-  Folder,
-  GitPullRequest,
-  Globe,
-  LayoutList,
-  type LucideIcon,
-  SquareTerminal,
-} from "lucide-react";
 import React, { useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -80,6 +78,8 @@ import type {
   FocusedChatSessionContext,
   FocusedChatWorkstationRailProps,
 } from "./types";
+
+type LucideIcon = IconSvgElement;
 
 export type { FocusedChatSessionContext } from "./types";
 
@@ -531,7 +531,9 @@ export function FocusedChatWorkstationRail({
               aria-label={environmentLabel}
               aria-expanded={menuOpen}
               aria-haspopup="menu"
-              icon={<LayoutList size={14} strokeWidth={2} />}
+              icon={
+                <HugeiconsIcon icon={LayoutList} size={14} strokeWidth={2} />
+              }
             />
           </Dropdown>
         </span>,
@@ -570,9 +572,17 @@ export function FocusedChatWorkstationRail({
                 aria-expanded={!collapsed}
               >
                 {collapsed ? (
-                  <ChevronsLeft size={14} strokeWidth={1.75} />
+                  <HugeiconsIcon
+                    icon={ChevronsLeft}
+                    size={14}
+                    strokeWidth={1.75}
+                  />
                 ) : (
-                  <ChevronsRight size={14} strokeWidth={1.75} />
+                  <HugeiconsIcon
+                    icon={ChevronsRight}
+                    size={14}
+                    strokeWidth={1.75}
+                  />
                 )}
               </WorkstationTrailIconButton>
             }

@@ -10,8 +10,9 @@
  * the member list.
  */
 import Modal from "@/src/scaffold/ModalSystem";
+import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useSetAtom } from "jotai";
-import { MoreHorizontal } from "lucide-react";
 import React, {
   useCallback,
   useEffect,
@@ -365,7 +366,7 @@ const ManageChannelMembersDialog: React.FC<ManageChannelMembersDialogProps> = ({
                         appearance="ghost"
                         size="small"
                         disabled={mutating}
-                        icon={<MoreHorizontal size={14} />}
+                        icon={<HugeiconsIcon icon={MoreHorizontal} size={14} />}
                         aria-label={t("cloud.channels.members.actions")}
                         data-testid={`channel-member-actions-${member.userId}`}
                       />

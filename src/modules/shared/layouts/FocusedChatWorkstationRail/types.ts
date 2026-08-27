@@ -3,10 +3,12 @@
  * the rail renders, the session scope it shows at the top, and the props of
  * the rail itself.
  */
-import type { LucideIcon } from "lucide-react";
+import { type IconSvgElement } from "@hugeicons/react";
 import type { ComponentProps, JSXElementConstructor } from "react";
 
 import type { BranchCiStatus } from "@src/services/git/branchPullRequestStatus";
+
+type LucideIcon = IconSvgElement;
 
 export type FocusedChatRailIcon = JSXElementConstructor<
   ComponentProps<LucideIcon>

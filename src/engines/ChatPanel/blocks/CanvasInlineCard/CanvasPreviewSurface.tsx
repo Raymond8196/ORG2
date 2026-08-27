@@ -1,4 +1,6 @@
-import { Layout, SquareArrowOutUpRight } from "lucide-react";
+import Layout from "@hugeicons/core-free-icons/Layout01Icon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   Suspense,
   forwardRef,
@@ -62,7 +64,12 @@ const NonEmbeddedUrlNotice: React.FC<{ url: string }> = ({ url }) => {
   return (
     <div className="flex h-full items-center justify-center p-4">
       <div className="flex max-w-sm flex-col items-center gap-3 text-center">
-        <Layout size={24} strokeWidth={1.5} className="text-text-4" />
+        <HugeiconsIcon
+          icon={Layout}
+          size={24}
+          strokeWidth={1.5}
+          className="text-text-4"
+        />
         <div className="space-y-1">
           <div className="text-sm font-medium text-text-2">
             {t("canvasCard.openUrlTitle", "Preview not embedded")}
@@ -78,7 +85,7 @@ const NonEmbeddedUrlNotice: React.FC<{ url: string }> = ({ url }) => {
           variant="secondary"
           size="small"
           onClick={() => window.open(url, "_blank", "noopener,noreferrer")}
-          icon={<SquareArrowOutUpRight size={14} />}
+          icon={<HugeiconsIcon icon={SquareArrowOutUpRight} size={14} />}
         >
           {t("canvasCard.openExternal", "Open in Browser")}
         </Button>

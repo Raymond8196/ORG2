@@ -5,9 +5,12 @@
  * "Add Project" opens in a separate tab (handled by ProjectManagerLayout).
  * Repo settings are a separate tab — this page is list-only.
  */
+import Circle from "@hugeicons/core-free-icons/CircleIcon";
+import Flag from "@hugeicons/core-free-icons/Flag01Icon";
+import CalendarClock from "@hugeicons/core-free-icons/TimeScheduleIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { emit } from "@tauri-apps/api/event";
 import { useAtomValue } from "jotai";
-import { CalendarClock, Circle, Flag } from "lucide-react";
 import React, {
   useCallback,
   useEffect,
@@ -228,7 +231,7 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
         value: "status",
         label: (
           <span className="flex items-center gap-2 whitespace-nowrap">
-            <Circle size={13} strokeWidth={1.75} />
+            <HugeiconsIcon icon={Circle} size={13} strokeWidth={1.75} />
             <span>{t("projects.groupBy.status")}</span>
           </span>
         ),
@@ -238,7 +241,7 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
         value: "priority",
         label: (
           <span className="flex items-center gap-2 whitespace-nowrap">
-            <Flag size={13} strokeWidth={1.75} />
+            <HugeiconsIcon icon={Flag} size={13} strokeWidth={1.75} />
             <span>{t("projects.groupBy.priority")}</span>
           </span>
         ),
@@ -248,7 +251,7 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
         value: "targetDate",
         label: (
           <span className="flex items-center gap-2 whitespace-nowrap">
-            <CalendarClock size={13} strokeWidth={1.75} />
+            <HugeiconsIcon icon={CalendarClock} size={13} strokeWidth={1.75} />
             <span>{t("projects.groupBy.targetDate")}</span>
           </span>
         ),

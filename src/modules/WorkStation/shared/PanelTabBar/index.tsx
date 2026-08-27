@@ -13,21 +13,21 @@
  * Tabs and content stay mounted across position toggles — only the
  * chrome flavour swaps. Caller owns the active tab state.
  */
-import {
-  ArrowUpDown,
-  FlaskConical,
-  Layers,
-  type LucideIcon,
-  ScrollText,
-  SquareChevronRight,
-  TriangleAlert,
-} from "lucide-react";
+import ArrowUpDown from "@hugeicons/core-free-icons/ArrowUpDownIcon";
+import Layers from "@hugeicons/core-free-icons/Layers01Icon";
+import ScrollText from "@hugeicons/core-free-icons/ScrollIcon";
+import SquareChevronRight from "@hugeicons/core-free-icons/SquareChevronRightIcon";
+import FlaskConical from "@hugeicons/core-free-icons/TestTubeIcon";
+import TriangleAlert from "@hugeicons/core-free-icons/TriangleAlertIcon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import type { ReactNode } from "react";
 import React, { memo, useCallback } from "react";
 
 import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
 import { useImmediateCursorReset } from "@src/hooks/ui/useImmediateCursorReset";
 import type { SecondaryPanelPosition } from "@src/store/ui/workStationAtom";
+
+type LucideIcon = IconSvgElement;
 
 export { PanelPositionToggle } from "./PositionToggle";
 

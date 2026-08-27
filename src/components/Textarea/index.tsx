@@ -18,7 +18,8 @@
  * <Textarea autoSize maxLength={500} showWordLimit />
  * ```
  */
-import { XCircle } from "lucide-react";
+import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   forwardRef,
   useCallback,
@@ -343,7 +344,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
                   onClick={handleClear}
                   tabIndex={-1}
                 >
-                  <XCircle size={16} />
+                  <HugeiconsIcon icon={XCircle} size={16} />
                 </button>
               )}
 

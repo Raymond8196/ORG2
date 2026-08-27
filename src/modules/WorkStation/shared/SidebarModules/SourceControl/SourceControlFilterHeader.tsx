@@ -8,7 +8,9 @@
  *
  * Repo-agnostic: all state is owned by the caller (`useSourceControlSidebarModule`).
  */
-import { Ellipsis, RefreshCw } from "lucide-react";
+import Ellipsis from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -189,7 +191,8 @@ const SourceControlFilterHeader: React.FC<SourceControlFilterHeaderProps> =
                     onClick={handleRefreshMenuClick}
                     className={DROPDOWN_CLASSES.menuActionItem}
                   >
-                    <RefreshCw
+                    <HugeiconsIcon
+                      icon={RefreshCw}
                       size={HEADER_ICON_SIZE.sm}
                       className={refreshSpinClass}
                     />
@@ -217,7 +220,11 @@ const SourceControlFilterHeader: React.FC<SourceControlFilterHeaderProps> =
                     moreMenuVisible ? "!bg-fill-2 !text-primary-6" : ""
                   }
                   icon={
-                    <Ellipsis size={HEADER_ICON_SIZE.sm} strokeWidth={1.75} />
+                    <HugeiconsIcon
+                      icon={Ellipsis}
+                      size={HEADER_ICON_SIZE.sm}
+                      strokeWidth={1.75}
+                    />
                   }
                 />
               </ToolbarTooltip>

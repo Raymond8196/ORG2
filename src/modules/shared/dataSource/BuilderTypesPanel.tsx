@@ -1,4 +1,5 @@
-import { ArrowLeft } from "lucide-react";
+import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -106,7 +107,8 @@ export default function BuilderTypesPanel({ onBack }: BuilderTypesPanelProps) {
           onClick={onBack}
           data-testid="builder-types-back"
           icon={
-            <ArrowLeft
+            <HugeiconsIcon
+              icon={ArrowLeft}
               size={PANEL_HEADER_TOKENS.buttonIconSize}
               strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
             />

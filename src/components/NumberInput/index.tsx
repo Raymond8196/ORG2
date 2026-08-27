@@ -25,7 +25,11 @@
  * <NumberInput value={500} controlsPosition="sides" />
  * ```
  */
-import { ChevronDown, ChevronUp, Minus, Plus } from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { forwardRef, useCallback, useState } from "react";
 
 import { useCurrentTheme } from "@src/util/ui/theme/themeUtils";
@@ -289,7 +293,7 @@ const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
               disabled={disabled || isAtMin}
               tabIndex={-1}
             >
-              <Minus size={14} strokeWidth={1.5} />
+              <HugeiconsIcon icon={Minus} size={14} strokeWidth={1.5} />
             </button>
 
             <div className="number-input-value-group">
@@ -320,7 +324,7 @@ const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
               disabled={disabled || isAtMax}
               tabIndex={-1}
             >
-              <Plus size={14} strokeWidth={1.5} />
+              <HugeiconsIcon icon={Plus} size={14} strokeWidth={1.5} />
             </button>
           </div>
         </div>
@@ -356,7 +360,7 @@ const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
               disabled={disabled || isAtMax}
               tabIndex={-1}
             >
-              <ChevronUp size={12} strokeWidth={2} />
+              <HugeiconsIcon icon={ChevronUp} size={12} strokeWidth={2} />
             </button>
             <button
               type="button"
@@ -365,7 +369,7 @@ const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
               disabled={disabled || isAtMin}
               tabIndex={-1}
             >
-              <ChevronDown size={12} strokeWidth={2} />
+              <HugeiconsIcon icon={ChevronDown} size={12} strokeWidth={2} />
             </button>
           </div>
         </div>

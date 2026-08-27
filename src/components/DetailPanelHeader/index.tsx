@@ -4,7 +4,10 @@
  * Header for detail panels with title, navigation (prev/next), close, and optional actions.
  * Uses shared WorkStation header tokens for consistent styling.
  */
-import { ChevronDown, ChevronUp, X } from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import {
@@ -76,7 +79,7 @@ const DetailPanelHeader: React.FC<DetailPanelHeaderProps> = ({
               disabled={!hasPrev}
               title="Previous"
             >
-              <ChevronUp size={HEADER_ICON_SIZE.sm} />
+              <HugeiconsIcon icon={ChevronUp} size={HEADER_ICON_SIZE.sm} />
             </button>
             <button
               className={HEADER_BUTTON.actionDisabled}
@@ -84,7 +87,7 @@ const DetailPanelHeader: React.FC<DetailPanelHeaderProps> = ({
               disabled={!hasNext}
               title="Next"
             >
-              <ChevronDown size={HEADER_ICON_SIZE.sm} />
+              <HugeiconsIcon icon={ChevronDown} size={HEADER_ICON_SIZE.sm} />
             </button>
           </>
         )}
@@ -93,7 +96,7 @@ const DetailPanelHeader: React.FC<DetailPanelHeaderProps> = ({
           onClick={onClose}
           title="Close"
         >
-          <X size={HEADER_ICON_SIZE.sm} />
+          <HugeiconsIcon icon={X} size={HEADER_ICON_SIZE.sm} />
         </button>
       </div>
     </div>

@@ -1,4 +1,7 @@
-import { ChevronRight, Eye, SquareArrowOutUpRight } from "lucide-react";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import Eye from "@hugeicons/core-free-icons/ViewIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -88,7 +91,8 @@ const ChatNotify: React.FC<ChatNotifyProps> = ({
           }
           style={{ background: "bg-fill-1" }}
           expandIcon={
-            <ChevronRight
+            <HugeiconsIcon
+              icon={ChevronRight}
               size={14}
               className="text-text-4"
               strokeWidth={1.75}
@@ -144,13 +148,17 @@ const ChatNotify: React.FC<ChatNotifyProps> = ({
                         className="flex cursor-pointer items-center justify-center border-none bg-transparent p-0 text-text-2 hover:text-text-1"
                         onClick={handleView}
                       >
-                        <Eye size={12} strokeWidth={1.75} />
+                        <HugeiconsIcon
+                          icon={Eye}
+                          size={12}
+                          strokeWidth={1.75}
+                        />
                       </button>
                       <button
                         className="flex cursor-pointer items-center justify-center border-none bg-transparent p-0 text-text-2 hover:text-text-1"
                         onClick={handleItemRedirect}
                       >
-                        <SquareArrowOutUpRight size={12} />
+                        <HugeiconsIcon icon={SquareArrowOutUpRight} size={12} />
                       </button>
                     </div>
                   </div>

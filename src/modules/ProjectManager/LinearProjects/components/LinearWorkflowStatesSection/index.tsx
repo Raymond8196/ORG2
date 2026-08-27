@@ -1,12 +1,11 @@
-import {
-  Check,
-  Circle,
-  Pencil,
-  Plus,
-  RefreshCw,
-  Trash2,
-  X,
-} from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Circle from "@hugeicons/core-free-icons/CircleIcon";
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import Pencil from "@hugeicons/core-free-icons/PencilIcon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -170,7 +169,7 @@ const LinearWorkflowStatesSection: React.FC<
           onClick={resetDraft}
           className="inline-flex h-7 items-center gap-1 rounded-md px-2 text-xs text-text-2 hover:bg-fill-2"
         >
-          <X size={13} />
+          <HugeiconsIcon icon={X} size={13} />
           {t("common:actions.cancel")}
         </button>
         <button
@@ -179,7 +178,7 @@ const LinearWorkflowStatesSection: React.FC<
           disabled={!canSaveDraft || savingStateId !== null}
           className="inline-flex h-7 items-center gap-1 rounded-md bg-primary-6 px-2 text-xs text-white disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <Check size={13} />
+          <HugeiconsIcon icon={Check} size={13} />
           {t("common:actions.save")}
         </button>
       </div>
@@ -201,7 +200,8 @@ const LinearWorkflowStatesSection: React.FC<
             onClick={onRefreshStates}
             title={t("common:actions.refresh")}
             icon={
-              <RefreshCw
+              <HugeiconsIcon
+                icon={RefreshCw}
                 size={13}
                 className={loadingStates ? "animate-spin" : ""}
               />
@@ -214,7 +214,7 @@ const LinearWorkflowStatesSection: React.FC<
             className="inline-flex h-6 w-6 items-center justify-center rounded-md text-text-3 hover:bg-fill-2 hover:text-text-1 disabled:cursor-not-allowed disabled:opacity-50"
             title={t("linearProjects.statusPanel.addStatus")}
           >
-            <Plus size={14} />
+            <HugeiconsIcon icon={Plus} size={14} />
           </button>
         </div>
       </div>
@@ -237,7 +237,8 @@ const LinearWorkflowStatesSection: React.FC<
             return (
               <div key={state.id}>
                 <div className="group flex min-h-8 items-center gap-2 rounded-md px-2 py-1 hover:bg-fill-1">
-                  <Circle
+                  <HugeiconsIcon
+                    icon={Circle}
                     size={12}
                     fill={state.color ?? DEFAULT_STATE_COLOR}
                     className="shrink-0"
@@ -259,7 +260,7 @@ const LinearWorkflowStatesSection: React.FC<
                     className="hidden h-6 w-6 items-center justify-center rounded-md text-text-3 hover:bg-fill-2 hover:text-text-1 group-hover:inline-flex"
                     title={t("common:actions.edit")}
                   >
-                    <Pencil size={12} />
+                    <HugeiconsIcon icon={Pencil} size={12} />
                   </button>
                   <button
                     type="button"
@@ -268,7 +269,7 @@ const LinearWorkflowStatesSection: React.FC<
                     className="hover:text-danger-7 hidden h-6 w-6 items-center justify-center rounded-md text-text-3 hover:bg-danger-1 disabled:cursor-not-allowed disabled:opacity-50 group-hover:inline-flex"
                     title={t("linearProjects.statusPanel.archiveStatus")}
                   >
-                    <Trash2 size={12} />
+                    <HugeiconsIcon icon={Trash2} size={12} />
                   </button>
                 </div>
                 {isEditing && renderDraftEditor("edit")}

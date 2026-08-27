@@ -19,8 +19,11 @@
  * Adding a new settings section only requires registering its URL slug
  * in `SEGMENT_REGISTRY` — no per-page wiring.
  */
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
-import { Check, ChevronRight, type LucideIcon, Search } from "lucide-react";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -56,6 +59,8 @@ import {
 } from "@src/store/ui/wizardBreadcrumbAtom";
 
 import { BreadcrumbPillNavTrigger } from "../BreadcrumbPillNav";
+
+type LucideIcon = IconSvgElement;
 
 export interface SettingsBreadcrumbProps {
   /** Optional className passthrough. */
@@ -139,7 +144,8 @@ function isSettingsSelectorItemActive(
 }
 
 const Separator: React.FC = () => (
-  <ChevronRight
+  <HugeiconsIcon
+    icon={ChevronRight}
     size={DROPDOWN_ITEM.iconSize}
     strokeWidth={1.75}
     className="flex-shrink-0 text-fill-4"
@@ -286,7 +292,8 @@ const SettingsBreadcrumb: React.FC<SettingsBreadcrumbProps> = ({
             }}
           >
             <div className={DROPDOWN_CLASSES.searchContainer}>
-              <Search
+              <HugeiconsIcon
+                icon={Search}
                 size={DROPDOWN_SEARCH.iconSize}
                 className="shrink-0 text-text-3"
               />
@@ -361,7 +368,8 @@ const SettingsBreadcrumb: React.FC<SettingsBreadcrumbProps> = ({
                             {item.label}
                           </span>
                           {isActive && (
-                            <Check
+                            <HugeiconsIcon
+                              icon={Check}
                               size={DROPDOWN_ITEM.iconSize}
                               className="shrink-0 text-primary-6"
                             />

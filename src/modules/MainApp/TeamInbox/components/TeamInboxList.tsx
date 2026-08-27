@@ -1,16 +1,14 @@
-import {
-  CheckCheck,
-  GitMerge,
-  GitPullRequest,
-  GitPullRequestClosed,
-  GitPullRequestDraft,
-  Inbox,
-  Info,
-  ListChecks,
-  type LucideIcon,
-  MessageSquareMore,
-  RefreshCw,
-} from "lucide-react";
+import ListChecks from "@hugeicons/core-free-icons/CheckListIcon";
+import GitMerge from "@hugeicons/core-free-icons/GitMergeIcon";
+import GitPullRequestClosed from "@hugeicons/core-free-icons/GitPullRequestClosedIcon";
+import GitPullRequestDraft from "@hugeicons/core-free-icons/GitPullRequestDraftIcon";
+import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import Inbox from "@hugeicons/core-free-icons/InboxIcon";
+import Info from "@hugeicons/core-free-icons/InformationCircleIcon";
+import MessageSquareMore from "@hugeicons/core-free-icons/MessageSquareMoreIcon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import CheckCheck from "@hugeicons/core-free-icons/TickDouble01Icon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, {
   type ReactNode,
   useCallback,
@@ -53,6 +51,8 @@ import {
 import TeamInboxListItem from "./TeamInboxListItem";
 import TeamInboxRow from "./TeamInboxRow";
 import { compactRepositoryLabel } from "./teamInboxRowMetadata";
+
+type LucideIcon = IconSvgElement;
 
 export interface TeamInboxListProps {
   filter: TeamInboxFilter;
@@ -285,21 +285,37 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
       {
         key: "all",
         label: t("teamInbox.filters.all"),
-        icon: <Inbox size={14} strokeWidth={1.8} aria-hidden />,
+        icon: (
+          <HugeiconsIcon icon={Inbox} size={14} strokeWidth={1.8} aria-hidden />
+        ),
         iconClassName: "text-text-2",
         unreadCount: unreadCounts.all,
       },
       {
         key: "mentions",
         label: t("teamInbox.filters.mentions"),
-        icon: <MessageSquareMore size={14} strokeWidth={1.8} aria-hidden />,
+        icon: (
+          <HugeiconsIcon
+            icon={MessageSquareMore}
+            size={14}
+            strokeWidth={1.8}
+            aria-hidden
+          />
+        ),
         iconClassName: "text-primary-6",
         unreadCount: unreadCounts.mentions,
       },
       {
         key: "assigned",
         label: t("teamInbox.filters.assigned"),
-        icon: <ListChecks size={14} strokeWidth={1.8} aria-hidden />,
+        icon: (
+          <HugeiconsIcon
+            icon={ListChecks}
+            size={14}
+            strokeWidth={1.8}
+            aria-hidden
+          />
+        ),
         iconClassName: "text-success-6",
         unreadCount: unreadCounts.assigned,
       },
@@ -435,7 +451,8 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
               <Button
                 {...PANEL_HEADER_TOKENS.actionButton}
                 icon={
-                  <CheckCheck
+                  <HugeiconsIcon
+                    icon={CheckCheck}
                     size={PANEL_HEADER_TOKENS.buttonIconSize}
                     strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
                   />
@@ -451,7 +468,9 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
                 htmlType="button"
                 variant="tertiary"
                 size="small"
-                icon={<RefreshCw size={14} strokeWidth={2} />}
+                icon={
+                  <HugeiconsIcon icon={RefreshCw} size={14} strokeWidth={2} />
+                }
                 iconOnly
                 disabled={showLoadingBar}
                 className="shrink-0"
@@ -563,7 +582,9 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
                     htmlType="button"
                     variant="tertiary"
                     size="small"
-                    icon={<Info size={14} strokeWidth={1.8} />}
+                    icon={
+                      <HugeiconsIcon icon={Info} size={14} strokeWidth={1.8} />
+                    }
                     iconOnly
                     className="h-7 w-7"
                     aria-label={t("common:common.details")}

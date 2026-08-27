@@ -4,7 +4,12 @@
  * Reusable item-level components for rendering menu items,
  * search result icons, and empty/loading states.
  */
-import { Code, FolderKanban, Globe, ListChecks, Terminal } from "lucide-react";
+import ListChecks from "@hugeicons/core-free-icons/CheckListIcon";
+import Code from "@hugeicons/core-free-icons/CodeIcon";
+import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import FolderKanban from "@hugeicons/core-free-icons/FolderKanbanIcon";
+import Globe from "@hugeicons/core-free-icons/GlobeIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -86,7 +91,8 @@ export const ResultItemIcon: React.FC<{
 }> = memo(({ item, displayName }) => {
   if (item.iconType === "terminal") {
     return (
-      <Terminal
+      <HugeiconsIcon
+        icon={Terminal}
         size={DROPDOWN_ITEM.iconSize}
         strokeWidth={1.75}
         className={iconAccent}
@@ -110,7 +116,8 @@ export const ResultItemIcon: React.FC<{
 
   if (item.iconType === "browser") {
     return (
-      <Globe
+      <HugeiconsIcon
+        icon={Globe}
         size={DROPDOWN_ITEM.iconSize}
         strokeWidth={1.75}
         className={iconAccent}
@@ -120,7 +127,8 @@ export const ResultItemIcon: React.FC<{
 
   if (item.iconType === "repo") {
     return (
-      <Code
+      <HugeiconsIcon
+        icon={Code}
         size={DROPDOWN_ITEM.iconSize}
         strokeWidth={1.75}
         className={iconAccent}
@@ -130,7 +138,8 @@ export const ResultItemIcon: React.FC<{
 
   if (item.iconType === "project") {
     return (
-      <FolderKanban
+      <HugeiconsIcon
+        icon={FolderKanban}
         size={DROPDOWN_ITEM.iconSize}
         strokeWidth={1.75}
         className={iconAccent}
@@ -140,7 +149,8 @@ export const ResultItemIcon: React.FC<{
 
   if (item.iconType === "workitem") {
     return (
-      <ListChecks
+      <HugeiconsIcon
+        icon={ListChecks}
         size={DROPDOWN_ITEM.iconSize}
         strokeWidth={1.75}
         className={iconAccent}

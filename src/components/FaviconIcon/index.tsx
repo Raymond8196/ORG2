@@ -14,7 +14,10 @@
  *
  * URL change resets stale error state so a new domain re-attempts the fetch.
  */
-import { Globe, HatGlasses, Loader2 } from "lucide-react";
+import Globe from "@hugeicons/core-free-icons/GlobeIcon";
+import HatGlasses from "@hugeicons/core-free-icons/HatGlassesIcon";
+import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useEffect, useState } from "react";
 
 import { getFaviconUrl } from "@src/store/ui/navigationSidebarTabsAtom";
@@ -68,7 +71,11 @@ export const FaviconIcon: React.FC<FaviconIconProps> = memo(
     // favicon URL has been resolved yet (e.g. brand-new about:blank tab).
     if (isLoading) {
       return (
-        <Loader2 size={size} className="shrink-0 animate-spin text-text-3" />
+        <HugeiconsIcon
+          icon={Loader2}
+          size={size}
+          className="shrink-0 animate-spin text-text-3"
+        />
       );
     }
 
@@ -76,7 +83,8 @@ export const FaviconIcon: React.FC<FaviconIconProps> = memo(
     // (so a private page that has navigated still shows its real favicon).
     if (isIncognito) {
       return (
-        <HatGlasses
+        <HugeiconsIcon
+          icon={HatGlasses}
           size={size}
           strokeWidth={1.75}
           className="shrink-0 text-warning-6"
@@ -87,7 +95,8 @@ export const FaviconIcon: React.FC<FaviconIconProps> = memo(
     // Priority 4: Lucide Globe — final fallback only.
     const globeColor = isSelected ? "text-primary-6" : fallbackColor;
     return (
-      <Globe
+      <HugeiconsIcon
+        icon={Globe}
         size={size}
         strokeWidth={1.75}
         className={`shrink-0 ${globeColor}`}

@@ -25,8 +25,11 @@ import {
   ScrollFadeContainer,
   SettingsBreadcrumb,
 } from "@/src/modules/shared/layouts/blocks";
+import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import GalleryThumbnails from "@hugeicons/core-free-icons/GalleryThumbnailsIcon";
+import Maximize2 from "@hugeicons/core-free-icons/Maximize02Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { ChevronLeft, GalleryThumbnails, Maximize2 } from "lucide-react";
 import React, { Suspense, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
@@ -350,7 +353,13 @@ const SettingsSlot: React.FC<SettingsSlotProps> = ({
                   onClick={handleBack}
                   aria-label={tCommon("actions.back")}
                   title={tCommon("actions.back")}
-                  icon={<ChevronLeft size={16} strokeWidth={2} />}
+                  icon={
+                    <HugeiconsIcon
+                      icon={ChevronLeft}
+                      size={16}
+                      strokeWidth={2}
+                    />
+                  }
                 />
               ) : null}
               <SettingsBreadcrumb />
@@ -375,9 +384,17 @@ const SettingsSlot: React.FC<SettingsSlotProps> = ({
                     aria-label={maximizeLabel}
                     icon={
                       maximized ? (
-                        <GalleryThumbnails size={14} strokeWidth={2} />
+                        <HugeiconsIcon
+                          icon={GalleryThumbnails}
+                          size={14}
+                          strokeWidth={2}
+                        />
                       ) : (
-                        <Maximize2 size={14} strokeWidth={2} />
+                        <HugeiconsIcon
+                          icon={Maximize2}
+                          size={14}
+                          strokeWidth={2}
+                        />
                       )
                     }
                   />

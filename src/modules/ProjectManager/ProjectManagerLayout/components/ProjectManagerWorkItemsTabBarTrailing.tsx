@@ -3,8 +3,9 @@
  * active tab is a Projects/work-items surface that registered via
  * `projectManagerWorkItemsTabBarAtom`.
  */
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
-import { Search } from "lucide-react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -33,7 +34,11 @@ const ProjectManagerWorkItemsTabBarTrailing: React.FC<ProjectManagerWorkItemsTab
         title={t("common:actions.search")}
         onClick={payload.onSearch}
       >
-        <Search size={HEADER_ICON_SIZE.md} strokeWidth={2} />
+        <HugeiconsIcon
+          icon={Search}
+          size={HEADER_ICON_SIZE.md}
+          strokeWidth={2}
+        />
       </TabBarTrailingIconButton>
     );
   });

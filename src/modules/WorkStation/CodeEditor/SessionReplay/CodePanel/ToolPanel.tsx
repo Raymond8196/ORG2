@@ -1,4 +1,5 @@
-import { Wrench } from "lucide-react";
+import Wrench from "@hugeicons/core-free-icons/Wrench01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -107,7 +108,15 @@ export const ToolPanel: React.FC<ToolPanelProps> = memo(
 
     const headerIcon = useMemo(() => {
       const toolIcon = getToolIcon(event.functionName, { action });
-      return toolIcon || <Wrench size={14} className="shrink-0 text-text-2" />;
+      return (
+        toolIcon || (
+          <HugeiconsIcon
+            icon={Wrench}
+            size={14}
+            className="shrink-0 text-text-2"
+          />
+        )
+      );
     }, [event.functionName, action]);
 
     return (

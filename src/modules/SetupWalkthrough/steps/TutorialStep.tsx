@@ -1,4 +1,6 @@
-import { LayoutDashboard, MonitorCog } from "lucide-react";
+import MonitorCog from "@hugeicons/core-free-icons/ComputerSettingsIcon";
+import LayoutDashboard from "@hugeicons/core-free-icons/DashboardSquare01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 

@@ -1,5 +1,10 @@
+import Code from "@hugeicons/core-free-icons/CodeIcon";
+import Folder from "@hugeicons/core-free-icons/Folder01Icon";
+import FolderTree from "@hugeicons/core-free-icons/FolderTreeIcon";
+import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
+import Home from "@hugeicons/core-free-icons/Home01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
-import { Code, Folder, FolderTree, GitBranch, Home } from "lucide-react";
 import React from "react";
 
 import { KeyboardShortcutTooltipContent } from "@src/components/KeyboardShortcut";
@@ -164,7 +169,14 @@ export function buildSessionInfoSegments({
   if (showBranchRow) {
     segments.push({
       id: "branch",
-      icon: <GitBranch size={14} strokeWidth={1.75} className="text-text-1" />,
+      icon: (
+        <HugeiconsIcon
+          icon={GitBranch}
+          size={14}
+          strokeWidth={1.75}
+          className="text-text-1"
+        />
+      ),
       label: branchLoading
         ? t("status.loading")
         : worktreeLocation === "worktree" && worktreeSourceLabel

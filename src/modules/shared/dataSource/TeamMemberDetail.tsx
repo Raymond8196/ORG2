@@ -8,7 +8,9 @@
  * Rendered as a second layer over the roster (the `BuilderTypesPanel`
  * back-button idiom of this folder).
  */
-import { ChevronLeft, Terminal } from "lucide-react";
+import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
   type ReactNode,
   Suspense,
@@ -219,7 +221,7 @@ export default function TeamMemberDetail({
           variant="tertiary"
           size="small"
           onClick={onBack}
-          icon={<ChevronLeft className="h-3.5 w-3.5" />}
+          icon={<HugeiconsIcon icon={ChevronLeft} className="h-3.5 w-3.5" />}
           data-testid="team-member-back"
         >
           {t("detail.back")}
@@ -411,10 +413,20 @@ export default function TeamMemberDetail({
                     <ModelIcon
                       provider={known.iconId as IconProvider}
                       size={14}
-                      fallback={<Terminal size={14} className="text-text-3" />}
+                      fallback={
+                        <HugeiconsIcon
+                          icon={Terminal}
+                          size={14}
+                          className="text-text-3"
+                        />
+                      }
                     />
                   ) : (
-                    <Terminal size={14} className="text-text-3" />
+                    <HugeiconsIcon
+                      icon={Terminal}
+                      size={14}
+                      className="text-text-3"
+                    />
                   )}
                   {known?.displayName ?? agent.id}
                 </span>

@@ -6,7 +6,8 @@
  * The panel is read-only: opting out of sharing lives in the privacy settings
  * (`privacy.shareRuntimeWithOrg`), not here.
  */
-import { RefreshCw } from "lucide-react";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
   type ReactNode,
   useCallback,
@@ -97,7 +98,7 @@ function RuntimeRefreshButton({
       aria-label={t("refresh")}
       title={t("refresh")}
       onClick={handleClick}
-      icon={<RefreshCw size={14} className={spinClass} />}
+      icon={<HugeiconsIcon icon={RefreshCw} size={14} className={spinClass} />}
       data-testid="team-runtime-refresh"
     >
       {t("refresh")}

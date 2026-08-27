@@ -12,13 +12,12 @@
  * - Error handling
  * - Native webview rendering
  */
+import CloudOff from "@hugeicons/core-free-icons/CloudLoadingIcon";
+import Monitor from "@hugeicons/core-free-icons/ComputerIcon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
-import {
-  CloudOff,
-  Monitor,
-  RefreshCw,
-  SquareArrowOutUpRight,
-} from "lucide-react";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -330,7 +329,11 @@ export const BrowserCore: React.FC<BrowserCoreProps> = ({
           {!isWebviewAvailable && (
             <div className="browser-native-info">
               <div className="browser-native-placeholder">
-                <Monitor size={48} className="text-text-2 opacity-60" />
+                <HugeiconsIcon
+                  icon={Monitor}
+                  size={48}
+                  className="text-text-2 opacity-60"
+                />
                 <h3>{t("workstation.browserCore.desktopOnlyTitle")}</h3>
                 <p>{t("workstation.browserCore.desktopOnlyBody")}</p>
                 <div className="mt-4 text-left text-xs text-text-3">
@@ -386,7 +389,8 @@ export const BrowserCore: React.FC<BrowserCoreProps> = ({
             !displayError && (
               <div className="browser-native-info browser-embedded-fallback">
                 <div className="browser-native-placeholder">
-                  <CloudOff
+                  <HugeiconsIcon
+                    icon={CloudOff}
                     size={64}
                     strokeWidth={1.5}
                     className="text-text-3 opacity-60"
@@ -406,7 +410,11 @@ export const BrowserCore: React.FC<BrowserCoreProps> = ({
                       variant="primary"
                       size="small"
                       icon={
-                        <SquareArrowOutUpRight size={14} strokeWidth={1.75} />
+                        <HugeiconsIcon
+                          icon={SquareArrowOutUpRight}
+                          size={14}
+                          strokeWidth={1.75}
+                        />
                       }
                       htmlType="button"
                       onClick={handleOpenExternal}
@@ -424,7 +432,13 @@ export const BrowserCore: React.FC<BrowserCoreProps> = ({
                     <Button
                       variant="secondary"
                       size="small"
-                      icon={<RefreshCw size={14} strokeWidth={1.75} />}
+                      icon={
+                        <HugeiconsIcon
+                          icon={RefreshCw}
+                          size={14}
+                          strokeWidth={1.75}
+                        />
+                      }
                       htmlType="button"
                       onClick={() => {
                         if (!currentSession) return;
@@ -446,7 +460,8 @@ export const BrowserCore: React.FC<BrowserCoreProps> = ({
           {isWebviewAvailable && isTabReallyActive && displayError && (
             <div className="browser-native-info">
               <div className="browser-native-placeholder">
-                <CloudOff
+                <HugeiconsIcon
+                  icon={CloudOff}
                   size={64}
                   strokeWidth={1.5}
                   className="text-text-3 opacity-60"
@@ -461,7 +476,13 @@ export const BrowserCore: React.FC<BrowserCoreProps> = ({
                   <Button
                     variant="primary"
                     size="small"
-                    icon={<RefreshCw size={14} strokeWidth={1.75} />}
+                    icon={
+                      <HugeiconsIcon
+                        icon={RefreshCw}
+                        size={14}
+                        strokeWidth={1.75}
+                      />
+                    }
                     htmlType="button"
                     onClick={() => {
                       if (!currentSession) return;

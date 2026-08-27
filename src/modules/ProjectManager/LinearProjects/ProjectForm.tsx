@@ -1,4 +1,5 @@
-import { Save } from "lucide-react";
+import Save from "@hugeicons/core-free-icons/FloppyDiskIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -75,7 +76,7 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
           size="small"
           variant="primary"
           appearance="solid"
-          icon={<Save size={14} />}
+          icon={<HugeiconsIcon icon={Save} size={14} />}
           loading={saving}
           disabled={!draft.name.trim() || (!hideTeamSelect && !draft.teamId)}
           onClick={onSubmit}

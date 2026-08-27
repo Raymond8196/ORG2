@@ -7,7 +7,9 @@
  * - Scripts section with CRUD via SettingsTable
  * - Analysis section with clear/refresh actions
  */
-import { Copy, Trash2 } from "lucide-react";
+import Copy from "@hugeicons/core-free-icons/Copy01Icon";
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -227,7 +229,7 @@ const RepoDetailPage: React.FC<RepoDetailPageProps> = ({
               iconOnly
               title={t("common:actions.delete")}
               aria-label={t("common:actions.delete")}
-              icon={<Trash2 size={14} />}
+              icon={<HugeiconsIcon icon={Trash2} size={14} />}
               onClick={() => deleteVar(row.key)}
             />
           </div>
@@ -293,7 +295,7 @@ const RepoDetailPage: React.FC<RepoDetailPageProps> = ({
               iconOnly
               title={t("common:actions.copy")}
               aria-label={t("common:actions.copy")}
-              icon={<Copy size={14} />}
+              icon={<HugeiconsIcon icon={Copy} size={14} />}
               onClick={() => handleCopyScript(row)}
             />
             {row.source === "custom" && (
@@ -302,7 +304,7 @@ const RepoDetailPage: React.FC<RepoDetailPageProps> = ({
                 iconOnly
                 title={t("common:actions.delete")}
                 aria-label={t("common:actions.delete")}
-                icon={<Trash2 size={14} />}
+                icon={<HugeiconsIcon icon={Trash2} size={14} />}
                 onClick={() => deleteScript(row.name)}
               />
             )}

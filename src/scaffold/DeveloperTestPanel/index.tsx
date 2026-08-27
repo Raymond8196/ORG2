@@ -1,5 +1,8 @@
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
-import { ChevronDown, ChevronRight, X } from "lucide-react";
 import React, { type FC, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -42,9 +45,9 @@ const DeveloperTestModuleSection: FC<{
         icon={<ModuleIcon size={DROPDOWN_ITEM.iconSize} />}
         suffix={
           expanded ? (
-            <ChevronDown size={DROPDOWN_ITEM.iconSize} />
+            <HugeiconsIcon icon={ChevronDown} size={DROPDOWN_ITEM.iconSize} />
           ) : (
-            <ChevronRight size={DROPDOWN_ITEM.iconSize} />
+            <HugeiconsIcon icon={ChevronRight} size={DROPDOWN_ITEM.iconSize} />
           )
         }
         role="button"
@@ -121,7 +124,7 @@ const DeveloperTestPanelContent: FC<DeveloperTestPanelProps> = ({
           variant="default"
           onClick={onClose}
         >
-          <X size={HEADER_ICON_SIZE.sm} />
+          <HugeiconsIcon icon={X} size={HEADER_ICON_SIZE.sm} />
         </IconButton>
       </div>
       <div className="min-h-0 overflow-y-auto py-1">

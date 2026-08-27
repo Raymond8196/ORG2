@@ -6,7 +6,11 @@
  * and the overlay displays a live screencast stream. On "Take Over",
  * Chrome window is shown on-screen for direct user interaction.
  */
-import { Monitor, Pause, Play, SquareArrowOutUpRight } from "lucide-react";
+import Monitor from "@hugeicons/core-free-icons/ComputerIcon";
+import Pause from "@hugeicons/core-free-icons/PauseIcon";
+import Play from "@hugeicons/core-free-icons/PlayIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -35,11 +39,19 @@ export const AgentBrowserOverlay: React.FC<AgentBrowserOverlayProps> = memo(
         {/* Floating toolbar */}
         <div className="flex items-center justify-between border-b border-border-2 bg-fill-2 px-3 py-2">
           <div className="flex items-center gap-2 text-sm">
-            <Monitor size={14} className="text-primary-6" />
+            <HugeiconsIcon
+              icon={Monitor}
+              size={14}
+              className="text-primary-6"
+            />
             <span className="text-text-1">{t("workstation.agentBrowser")}</span>
             {isPaused ? (
               <span className="rounded bg-yellow-500/10 px-2 py-0.5 text-xs text-yellow-600">
-                <SquareArrowOutUpRight size={10} className="mr-1 inline" />
+                <HugeiconsIcon
+                  icon={SquareArrowOutUpRight}
+                  size={10}
+                  className="mr-1 inline"
+                />
                 {t("workstation.userInControl")}
               </span>
             ) : (
@@ -51,7 +63,7 @@ export const AgentBrowserOverlay: React.FC<AgentBrowserOverlayProps> = memo(
           <div className="flex items-center gap-2">
             {isPaused ? (
               <Button size="mini" variant="primary" onClick={() => onResume()}>
-                <Play size={12} />
+                <HugeiconsIcon icon={Play} size={12} />
                 {t("workstation.returnToAgent")}
               </Button>
             ) : (
@@ -61,7 +73,7 @@ export const AgentBrowserOverlay: React.FC<AgentBrowserOverlayProps> = memo(
                 appearance="outline"
                 onClick={onTakeover}
               >
-                <Pause size={12} />
+                <HugeiconsIcon icon={Pause} size={12} />
                 {t("workstation.takeOver")}
               </Button>
             )}

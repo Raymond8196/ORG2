@@ -1,5 +1,7 @@
+import Cloud from "@hugeicons/core-free-icons/CloudIcon";
+import Laptop from "@hugeicons/core-free-icons/LaptopIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue } from "jotai";
-import { Cloud, Laptop } from "lucide-react";
 import React, {
   memo,
   useCallback,
@@ -101,9 +103,9 @@ const KanbanOrgScopeSelect: React.FC = memo(() => {
         label: entry.label,
         icon:
           entry.kind === "cloud" ? (
-            <Cloud size={13} strokeWidth={2} />
+            <HugeiconsIcon icon={Cloud} size={13} strokeWidth={2} />
           ) : (
-            <Laptop size={13} strokeWidth={2} />
+            <HugeiconsIcon icon={Laptop} size={13} strokeWidth={2} />
           ),
         dataTestId: `kanban-org-option-${entry.kind}-${entry.value}`,
       })),

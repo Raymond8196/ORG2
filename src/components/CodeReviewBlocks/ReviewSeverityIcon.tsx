@@ -1,4 +1,8 @@
-import { AlertTriangle, Lightbulb, ThumbsUp, XCircle } from "lucide-react";
+import AlertTriangle from "@hugeicons/core-free-icons/Alert01Icon";
+import Lightbulb from "@hugeicons/core-free-icons/BulbIcon";
+import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
+import ThumbsUp from "@hugeicons/core-free-icons/ThumbsUpIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import type { ReviewCommentSeverity } from "@src/api/http/project";

@@ -1,4 +1,5 @@
-import { RefreshCw } from "lucide-react";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -70,7 +71,9 @@ export const AccountInlineActionsBar: React.FC<
           size="small"
           onClick={handleRefreshClick}
           disabled={refreshing}
-          icon={<RefreshCw size={14} className={spinClass} />}
+          icon={
+            <HugeiconsIcon icon={RefreshCw} size={14} className={spinClass} />
+          }
           title={resolvedRefreshLabel}
         >
           {resolvedRefreshLabel}
@@ -82,7 +85,13 @@ export const AccountInlineActionsBar: React.FC<
           size="small"
           onClick={handleRefreshModelsClick}
           disabled={refreshingModels}
-          icon={<RefreshCw size={14} className={modelSpinClass} />}
+          icon={
+            <HugeiconsIcon
+              icon={RefreshCw}
+              size={14}
+              className={modelSpinClass}
+            />
+          }
           title={t("keyVault.refreshModels.button")}
         >
           {t("keyVault.refreshModels.button")}

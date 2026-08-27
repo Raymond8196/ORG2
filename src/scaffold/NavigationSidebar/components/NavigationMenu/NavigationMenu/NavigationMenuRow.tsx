@@ -1,9 +1,8 @@
-import {
-  ChevronDown,
-  ChevronRight,
-  ChevronsDownUp,
-  ChevronsUpDown,
-} from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ChevronsUpDown from "@hugeicons/core-free-icons/ArrowUpDownIcon";
+import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback } from "react";
 
 import { useImmediateCursorReset } from "@src/hooks/ui/useImmediateCursorReset";
@@ -218,13 +217,15 @@ export const NavigationMenuParentRow = React.forwardRef<
             />
             {item.disclosureFollowsLabel ? (
               isOpen ? (
-                <ChevronsDownUp
+                <HugeiconsIcon
+                  icon={ChevronsDownUp}
                   size={12}
                   strokeWidth={2}
                   className="shrink-0 text-text-2"
                 />
               ) : (
-                <ChevronsUpDown
+                <HugeiconsIcon
+                  icon={ChevronsUpDown}
                   size={12}
                   strokeWidth={2}
                   className="shrink-0 text-text-2"
@@ -540,7 +541,8 @@ function renderLeafRowAccessory({
         <>
           {item.trailingElement}
           {item.showDrillDownIndicator && (
-            <ChevronRight
+            <HugeiconsIcon
+              icon={ChevronRight}
               size={12}
               strokeWidth={2}
               className={

@@ -4,7 +4,11 @@
  * Always renders the standard collapsible todo list using the same
  * EventBlockHeader + vertical-line pattern as other tool blocks.
  */
-import { Check, ChevronsDownUp, ChevronsUpDown, Lock } from "lucide-react";
+import ChevronsUpDown from "@hugeicons/core-free-icons/ArrowUpDownIcon";
+import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
+import Lock from "@hugeicons/core-free-icons/LockIcon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -96,14 +100,24 @@ const TodoCheckbox: React.FC<{ status: string; blocked?: boolean }> = ({
   if (isCompleted(status)) {
     return (
       <div className="flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center rounded-full bg-green-600/80">
-        <Check size={8} strokeWidth={3} className="text-white" />
+        <HugeiconsIcon
+          icon={Check}
+          size={8}
+          strokeWidth={3}
+          className="text-white"
+        />
       </div>
     );
   }
   if (blocked) {
     return (
       <div className="flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center rounded-full border-[1.5px] border-dashed border-text-3/40">
-        <Lock size={6} strokeWidth={2.5} className="text-text-3/60" />
+        <HugeiconsIcon
+          icon={Lock}
+          size={6}
+          strokeWidth={2.5}
+          className="text-text-3/60"
+        />
       </div>
     );
   }
@@ -257,7 +271,7 @@ const StandardTodoBlock: React.FC<StandardTodoBlockProps> = memo(
                     </span>
                     {blocked && todo.blockedBy && (
                       <span className="ml-auto flex shrink-0 items-center gap-0.5 text-[10px] text-text-3/70">
-                        <Lock size={8} strokeWidth={2} />
+                        <HugeiconsIcon icon={Lock} size={8} strokeWidth={2} />
                         {todo.blockedBy
                           .map((blockerIndex) => `#${blockerIndex}`)
                           .join(", ")}
@@ -275,9 +289,17 @@ const StandardTodoBlock: React.FC<StandardTodoBlockProps> = memo(
                 >
                   <div className="flex h-3.5 w-3.5 shrink-0 items-center justify-center text-text-3 transition-colors group-hover:text-text-1">
                     {isListExpanded ? (
-                      <ChevronsDownUp size={14} strokeWidth={2} />
+                      <HugeiconsIcon
+                        icon={ChevronsDownUp}
+                        size={14}
+                        strokeWidth={2}
+                      />
                     ) : (
-                      <ChevronsUpDown size={14} strokeWidth={2} />
+                      <HugeiconsIcon
+                        icon={ChevronsUpDown}
+                        size={14}
+                        strokeWidth={2}
+                      />
                     )}
                   </div>
                   <span className="text-[13px] text-text-3 transition-colors group-hover:text-text-1">

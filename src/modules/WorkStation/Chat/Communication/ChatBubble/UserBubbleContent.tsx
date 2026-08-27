@@ -1,4 +1,5 @@
-import { ClipboardCheck } from "lucide-react";
+import ClipboardCheck from "@hugeicons/core-free-icons/ClipboardIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -45,7 +46,11 @@ export const UserBubbleContent: React.FC<{
         >
           <ChatBubbleCopyButton content={content} />
           <div className="flex items-center gap-2">
-            <ClipboardCheck size={14} className="text-primary-6" />
+            <HugeiconsIcon
+              icon={ClipboardCheck}
+              size={14}
+              className="text-primary-6"
+            />
             <span className="text-[13px] font-medium text-text-1">
               {planApprovedEdited
                 ? t(

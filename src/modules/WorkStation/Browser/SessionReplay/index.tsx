@@ -1,5 +1,8 @@
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import Shield from "@hugeicons/core-free-icons/Shield01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { ChevronRight, Plus, Shield } from "lucide-react";
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -202,7 +205,11 @@ const SessionReplayBrowserComponent: React.FC<SessionReplayBrowserProps> = ({
         </span>
         {activeHeaderInfo.detailText && (
           <>
-            <ChevronRight size={12} className="flex-shrink-0 text-text-4" />
+            <HugeiconsIcon
+              icon={ChevronRight}
+              size={12}
+              className="flex-shrink-0 text-text-4"
+            />
             {activeHeaderInfo.detailIcon}
             <span className="min-w-0 truncate text-[13px] font-medium text-text-1">
               {activeHeaderInfo.detailText}
@@ -211,7 +218,7 @@ const SessionReplayBrowserComponent: React.FC<SessionReplayBrowserProps> = ({
         )}
         {activeSubtool === "internal_browser" && isMaskShown && (
           <div className="ml-auto flex items-center gap-1">
-            <Shield size={14} className="text-warning-6" />
+            <HugeiconsIcon icon={Shield} size={14} className="text-warning-6" />
           </div>
         )}
       </div>
@@ -528,7 +535,7 @@ const SessionReplayBrowserComponent: React.FC<SessionReplayBrowserProps> = ({
 
         {activeSubtool === "internal_browser" && isMaskShown && (
           <div className="flex items-center gap-2 border-t border-border-1 bg-warning-1 px-3 py-1.5">
-            <Shield size={14} className="text-warning-6" />
+            <HugeiconsIcon icon={Shield} size={14} className="text-warning-6" />
             <span className="text-xs text-warning-6">
               User interaction blocked - Agent is controlling the browser
             </span>
@@ -560,7 +567,7 @@ const SessionReplayBrowserComponent: React.FC<SessionReplayBrowserProps> = ({
             shortcutId="browser_new_tab"
             onClick={handleNewMyTabsSession}
           >
-            <Plus size={18} strokeWidth={2} />
+            <HugeiconsIcon icon={Plus} size={18} strokeWidth={2} />
           </TabBarTrailingIconButton>
         }
       >

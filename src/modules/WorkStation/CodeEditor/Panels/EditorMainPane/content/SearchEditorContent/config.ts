@@ -3,9 +3,14 @@
  *
  * Constants and configuration for the search editor tab
  */
-import { Blend, Brain, type LucideIcon, Search } from "lucide-react";
+import Blend from "@hugeicons/core-free-icons/BlendIcon";
+import Brain from "@hugeicons/core-free-icons/BrainIcon";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 
 import type { SearchMode } from "./types";
+
+type LucideIcon = IconSvgElement;
 
 // ============================================
 // Search Mode Configuration

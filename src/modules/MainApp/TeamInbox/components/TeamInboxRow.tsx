@@ -1,4 +1,6 @@
-import { ListChecks, MessageSquareMore } from "lucide-react";
+import ListChecks from "@hugeicons/core-free-icons/CheckListIcon";
+import MessageSquareMore from "@hugeicons/core-free-icons/MessageSquareMoreIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { forwardRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -134,11 +136,15 @@ const TeamInboxRow = forwardRef<HTMLButtonElement, TeamInboxRowProps>(
         unread={unread}
         leading={
           isMention ? (
-            <MessageSquareMore size={14} strokeWidth={1.8} />
+            <HugeiconsIcon
+              icon={MessageSquareMore}
+              size={14}
+              strokeWidth={1.8}
+            />
           ) : isGitHubIssue ? (
             <IntegrationIcon type="github" size={14} />
           ) : (
-            <ListChecks size={14} strokeWidth={1.8} />
+            <HugeiconsIcon icon={ListChecks} size={14} strokeWidth={1.8} />
           )
         }
         leadingClassName={

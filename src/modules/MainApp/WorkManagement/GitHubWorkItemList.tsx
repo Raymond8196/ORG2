@@ -1,4 +1,8 @@
-import { CheckCircle2, CircleDot, RefreshCw, SquarePen } from "lucide-react";
+import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
+import SquarePen from "@hugeicons/core-free-icons/Pen01Icon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { ReactNode } from "react";
 
 import Button from "@src/components/Button";
@@ -24,7 +28,7 @@ export function GitHubWorkItemToolbarActions({
       <Button
         htmlType="button"
         variant="secondary"
-        icon={<RefreshCw size={13} />}
+        icon={<HugeiconsIcon icon={RefreshCw} size={13} />}
         iconOnly
         loading={refreshing}
         loadingSpinIcon
@@ -35,7 +39,7 @@ export function GitHubWorkItemToolbarActions({
         <Button
           htmlType="button"
           variant="secondary"
-          icon={<SquarePen size={14} strokeWidth={2} />}
+          icon={<HugeiconsIcon icon={SquarePen} size={14} strokeWidth={2} />}
           iconOnly
           aria-label={createAction.label}
           onClick={createAction.onClick}
@@ -66,11 +70,21 @@ export function GitHubWorkItemStateTabs({
     icon:
       tab.key === "open" ? (
         <span className="flex items-center text-success-6">
-          <CircleDot size={14} strokeWidth={1.8} aria-hidden="true" />
+          <HugeiconsIcon
+            icon={CircleDot}
+            size={14}
+            strokeWidth={1.8}
+            aria-hidden="true"
+          />
         </span>
       ) : (
         <span className="flex items-center text-purple-6">
-          <CheckCircle2 size={14} strokeWidth={1.8} aria-hidden="true" />
+          <HugeiconsIcon
+            icon={CheckCircle2}
+            size={14}
+            strokeWidth={1.8}
+            aria-hidden="true"
+          />
         </span>
       ),
     dataTestId: `github-work-items-state-${tab.key}`,

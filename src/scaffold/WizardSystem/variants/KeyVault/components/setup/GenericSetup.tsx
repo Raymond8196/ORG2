@@ -14,8 +14,11 @@
  *
  * Uses SectionContainer + SectionRow + SECTION_GAP_CLASSES.
  */
+import ClipboardCopy from "@hugeicons/core-free-icons/Copy01Icon";
+import Keyboard from "@hugeicons/core-free-icons/KeyboardIcon";
+import ScanSearch from "@hugeicons/core-free-icons/SearchAreaIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
-import { ClipboardCopy, Keyboard, ScanSearch } from "lucide-react";
 import type { FC } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";

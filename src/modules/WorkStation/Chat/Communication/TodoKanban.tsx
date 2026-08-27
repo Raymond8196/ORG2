@@ -13,14 +13,12 @@
  * per-task lifecycle is conveyed on the card's second line (the `description`
  * slot) so the column count reflects "remaining work", not lifecycle phase.
  */
-import {
-  CheckCircle2,
-  Circle,
-  Clock,
-  type LucideIcon,
-  Plus,
-  XCircle,
-} from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import Circle from "@hugeicons/core-free-icons/CircleIcon";
+import Clock from "@hugeicons/core-free-icons/Clock01Icon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -41,6 +39,8 @@ import { formatSmartDateTime } from "@src/util/data/formatters/date";
 import { prettifyMemberName } from "@src/util/data/formatters/memberName";
 
 import type { MessageEntry } from "./types";
+
+type LucideIcon = IconSvgElement;
 
 const log = createLogger("TodoKanban");
 

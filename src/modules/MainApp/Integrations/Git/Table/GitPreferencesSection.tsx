@@ -1,5 +1,6 @@
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { Trash2 } from "lucide-react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -285,7 +286,13 @@ const GitPreferencesSection: React.FC = () => {
             <Button
               variant="tertiary"
               size="default"
-              icon={<Trash2 size={14} className="text-danger-6" />}
+              icon={
+                <HugeiconsIcon
+                  icon={Trash2}
+                  size={14}
+                  className="text-danger-6"
+                />
+              }
               onClick={handleProxyClear}
               loading={proxySaving}
               disabled={proxySaving}

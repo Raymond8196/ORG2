@@ -1,4 +1,5 @@
-import { ChevronRight } from "lucide-react";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 const CARD_BASE = "mt-1.5 flex w-full max-w-[600px] rounded-lg p-3";
@@ -28,7 +29,12 @@ export const ReferenceCard: React.FC<ReferenceCardProps> = ({
     {...identity}
   >
     <div className="flex min-w-0 flex-1 flex-col gap-2">{children}</div>
-    <ChevronRight size={14} className="shrink-0 text-text-3" aria-hidden />
+    <HugeiconsIcon
+      icon={ChevronRight}
+      size={14}
+      className="shrink-0 text-text-3"
+      aria-hidden
+    />
   </button>
 );
 

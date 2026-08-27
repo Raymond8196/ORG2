@@ -1,6 +1,8 @@
 import Modal from "@/src/scaffold/ModalSystem";
+import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ArrowRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
-import { ArrowLeft, ArrowRight } from "lucide-react";
 import React from "react";
 import a11yDark from "react-syntax-highlighter/dist/esm/styles/prism/a11y-dark";
 import oneLight from "react-syntax-highlighter/dist/esm/styles/prism/one-light";
@@ -55,8 +57,8 @@ const ContentViewModal: React.FC<ContentViewModalProps> = ({
       {/* Header */}
       <div className="flex h-[48px] items-center justify-between rounded-t-lg border-b border-solid border-border-2 px-4">
         <div className="flex items-center gap-2">
-          <ArrowLeft size={16} />
-          <ArrowRight size={16} />
+          <HugeiconsIcon icon={ArrowLeft} size={16} />
+          <HugeiconsIcon icon={ArrowRight} size={16} />
         </div>
         <div className="text-[16px] font-[500]">
           {breadcrumbSegments ? (

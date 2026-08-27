@@ -11,8 +11,10 @@
  *
  * Thin UI wrapper — business logic lives in useUnifiedModelPalette.
  */
+import Grip from "@hugeicons/core-free-icons/Drag01Icon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { Grip, RefreshCw } from "lucide-react";
 import React, {
   useCallback,
   useEffect,
@@ -361,7 +363,7 @@ export const UnifiedModelPalette: React.FC<UnifiedModelPaletteProps> = ({
       className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-text-3 transition-colors hover:bg-fill-2 hover:text-text-1 disabled:opacity-60"
       data-testid="model-spotlight-refresh-button"
     >
-      <RefreshCw size={14} className={refreshSpinClass} />
+      <HugeiconsIcon icon={RefreshCw} size={14} className={refreshSpinClass} />
     </button>
   );
 

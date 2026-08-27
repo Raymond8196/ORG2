@@ -32,8 +32,11 @@
  * />
  * ```
  */
+import ArrowRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import Info from "@hugeicons/core-free-icons/InformationCircleIcon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import cn from "classnames";
-import { ArrowRight, Check, Info } from "lucide-react";
 import React from "react";
 
 import Button from "@src/components/Button";
@@ -51,7 +54,9 @@ const CheckboxIndicator: React.FC<{ selected: boolean }> = ({ selected }) => (
         : "border border-text-4 bg-transparent"
     )}
   >
-    {selected && <Check size={10} className="text-white" />}
+    {selected && (
+      <HugeiconsIcon icon={Check} size={10} className="text-white" />
+    )}
   </span>
 );
 
@@ -72,7 +77,7 @@ const InfoTooltip: React.FC<{ content: string }> = ({ content }) => (
       className="flex-shrink-0 cursor-help text-text-3 hover:text-text-2"
       onClick={(event) => event.stopPropagation()}
     >
-      <Info size={14} />
+      <HugeiconsIcon icon={Info} size={14} />
     </span>
   </Tooltip>
 );
@@ -156,12 +161,12 @@ const ActionCard: React.FC<ActionCardProps> = ({
     tooltip ? (
       <Tooltip content={tooltip} showArrow={false} position="top">
         <span className="flex-shrink-0 cursor-help">
-          <Check size={14} className="text-primary-6" />
+          <HugeiconsIcon icon={Check} size={14} className="text-primary-6" />
         </span>
       </Tooltip>
     ) : (
       <span className="flex size-6 flex-shrink-0 items-center justify-center rounded-full bg-primary-1">
-        <Check size={14} className="text-primary-6" />
+        <HugeiconsIcon icon={Check} size={14} className="text-primary-6" />
       </span>
     )
   ) : null;
@@ -204,7 +209,8 @@ const ActionCard: React.FC<ActionCardProps> = ({
         {trailingCheck}
 
         {showArrow && (
-          <ArrowRight
+          <HugeiconsIcon
+            icon={ArrowRight}
             size={14}
             className="invisible flex-shrink-0 text-text-1 group-hover:visible group-active:visible"
           />
@@ -244,7 +250,8 @@ const ActionCard: React.FC<ActionCardProps> = ({
           {tooltip && !isSelected && <InfoTooltip content={tooltip} />}
           {trailingCheck}
           {showArrow && (
-            <ArrowRight
+            <HugeiconsIcon
+              icon={ArrowRight}
               size={14}
               className="invisible flex-shrink-0 text-text-1 group-hover:visible group-active:visible"
             />

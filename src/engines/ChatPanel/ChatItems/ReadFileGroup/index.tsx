@@ -5,7 +5,8 @@
  * Single file with content: renders standalone ChatCodeBlock.
  * Multiple files: renders StackedBlock with ChatCodeBlocks inside.
  */
-import { FileText } from "lucide-react";
+import FileText from "@hugeicons/core-free-icons/File02Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -122,7 +123,7 @@ const ReadFileGroup: React.FC<ReadFileGroupProps> = ({ events }) => {
   return (
     <StackedBlock
       items={events}
-      icon={<FileText size={14} className="text-text-2" />}
+      icon={<HugeiconsIcon icon={FileText} size={14} className="text-text-2" />}
       label={`Read ${groupLabel}`}
       eventId={events[0]?.id}
       renderItem={(event) => {

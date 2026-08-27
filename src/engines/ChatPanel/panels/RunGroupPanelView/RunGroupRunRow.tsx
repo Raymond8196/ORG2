@@ -2,7 +2,8 @@
  * One run inside a run group: which harness ran, how it is doing, what you can
  * do about it.
  */
-import { GitBranch } from "lucide-react";
+import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -144,7 +145,8 @@ const RunGroupRunRow: React.FC<RunGroupRunRowProps> = memo(
             )}
             {session?.worktreeBranch && (
               <span className="flex items-center gap-1 truncate">
-                <GitBranch
+                <HugeiconsIcon
+                  icon={GitBranch}
                   size={12}
                   strokeWidth={1.75}
                   className="block shrink-0"

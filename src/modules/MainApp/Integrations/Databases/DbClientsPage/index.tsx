@@ -5,7 +5,8 @@
  * Embedded inside the Databases integrations section.
  * Row selection opens a preview panel when embedded.
  */
-import { RefreshCw } from "lucide-react";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -72,7 +73,8 @@ const DbClientsPage: React.FC<DbClientsPageProps> = ({
             onClick={handleRefreshClick}
             disabled={isRefreshing}
             icon={
-              <RefreshCw
+              <HugeiconsIcon
+                icon={RefreshCw}
                 size={PANEL_HEADER_TOKENS.buttonIconSize}
                 strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
                 className={refreshSpinClass}

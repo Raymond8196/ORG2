@@ -18,8 +18,9 @@
  *     actions={EDITOR_QUICK_ACTIONS}
  *   />
  */
+import Box from "@hugeicons/core-free-icons/PackageIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Box } from "lucide-react";
 import React, { memo, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
 
@@ -121,7 +122,8 @@ ActionItem.displayName = "ActionItem";
 const AppLogo = memo(() => (
   <div className="flex justify-center pb-6 pt-2">
     <div className="flex h-[120px] w-[120px] items-center justify-center">
-      <Box
+      <HugeiconsIcon
+        icon={Box}
         size={80}
         strokeWidth={1}
         className="text-text-4 opacity-40"

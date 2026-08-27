@@ -21,9 +21,10 @@
  * memory toggle, extract memories, auto-dream) live on each agent's
  * Memory & Evolution tab.
  */
+import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { invoke } from "@tauri-apps/api/core";
 import { homeDir } from "@tauri-apps/api/path";
-import { FolderOpen } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -87,7 +88,7 @@ const ConfigGeneralSection: React.FC<ConfigGeneralSectionProps> = ({
           <div className={SECTION_ACTION_GAP_CLASSES}>
             <span className={SECTION_PATH_TEXT_CLASSES}>{workspace}</span>
             <Button
-              icon={<FolderOpen size={14} />}
+              icon={<HugeiconsIcon icon={FolderOpen} size={14} />}
               iconOnly
               onClick={handleRevealWorkspace}
               title={t("storage.reveal")}

@@ -9,8 +9,10 @@
  *   - Match line (indented)
  *   - Match line
  */
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useSetAtom } from "jotai";
-import { ChevronDown, ChevronRight } from "lucide-react";
 import React, {
   forwardRef,
   memo,
@@ -142,9 +144,17 @@ const FileHeader: React.FC<FileHeaderProps> = React.memo(
           <div className="flex items-center gap-1.5">
             <div className="flex h-4 w-4 flex-shrink-0 items-center justify-center">
               {isExpanded ? (
-                <ChevronDown size={14} className="text-text-3" />
+                <HugeiconsIcon
+                  icon={ChevronDown}
+                  size={14}
+                  className="text-text-3"
+                />
               ) : (
-                <ChevronRight size={14} className="text-text-3" />
+                <HugeiconsIcon
+                  icon={ChevronRight}
+                  size={14}
+                  className="text-text-3"
+                />
               )}
             </div>
             <FileTypeIcon
@@ -420,12 +430,14 @@ const SearchResultsInner = forwardRef<SearchResultsHandle, SearchResultsProps>(
           >
             <div className={STICKY_ROW.chevronBox}>
               {isExpanded ? (
-                <ChevronDown
+                <HugeiconsIcon
+                  icon={ChevronDown}
                   size={CHEVRON_SIZE}
                   className={STICKY_ROW.chevronIcon}
                 />
               ) : (
-                <ChevronRight
+                <HugeiconsIcon
+                  icon={ChevronRight}
                   size={CHEVRON_SIZE}
                   className={STICKY_ROW.chevronIcon}
                 />

@@ -1,4 +1,5 @@
-import { RefreshCw } from "lucide-react";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -316,7 +317,7 @@ export default function UsageRoundsTable({
               loading={loading}
               loadingSpinIcon
               disabled={loading}
-              icon={<RefreshCw size={14} />}
+              icon={<HugeiconsIcon icon={RefreshCw} size={14} />}
               aria-label={t("usage.refresh")}
               title={t("usage.refresh")}
               data-testid="usage-rounds-refresh"

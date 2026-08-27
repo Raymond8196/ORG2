@@ -8,8 +8,9 @@
  * chip can render identically without any conditional branching at the view
  * layer.
  */
+import Code from "@hugeicons/core-free-icons/CodeIcon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { Code, type LucideIcon } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -28,6 +29,8 @@ import {
 } from "@src/store/ui/simulatorAtom";
 
 import type { AppSwitcherMenuItem } from "./AppSwitcherDropdownPanel";
+
+type LucideIcon = IconSvgElement;
 
 export interface AppSwitcherChipData {
   icon: LucideIcon;

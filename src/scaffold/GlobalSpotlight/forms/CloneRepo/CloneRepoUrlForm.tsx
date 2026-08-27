@@ -3,7 +3,10 @@
  *
  * Form for cloning a repo from a GitHub URL
  */
-import { Code, Folder, FolderOpen } from "lucide-react";
+import Code from "@hugeicons/core-free-icons/CodeIcon";
+import Folder from "@hugeicons/core-free-icons/Folder01Icon";
+import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -92,7 +95,13 @@ const CloneUrlForm: React.FC<CloneUrlFormProps> = ({
               value={repoUrl}
               onChange={onRepoUrlChange}
               className="h-[32px] rounded-lg bg-fill-1 text-[14px]"
-              prefix={<Code className="text-[16px] text-text-2" size={16} />}
+              prefix={
+                <HugeiconsIcon
+                  icon={Code}
+                  className="text-[16px] text-text-2"
+                  size={16}
+                />
+              }
             />
           </div>
           <div className="mb-3">
@@ -107,7 +116,11 @@ const CloneUrlForm: React.FC<CloneUrlFormProps> = ({
                   placeholder={t("cloneForm.parentFolderPlaceholder")}
                   className="h-[32px] rounded-lg bg-fill-1 text-[14px]"
                   prefix={
-                    <Folder className="text-[16px] text-text-2" size={16} />
+                    <HugeiconsIcon
+                      icon={Folder}
+                      className="text-[16px] text-text-2"
+                      size={16}
+                    />
                   }
                 />
               </div>
@@ -115,7 +128,7 @@ const CloneUrlForm: React.FC<CloneUrlFormProps> = ({
                 variant="secondary"
                 size="default"
                 iconOnly
-                icon={<FolderOpen size={16} />}
+                icon={<HugeiconsIcon icon={FolderOpen} size={16} />}
                 title={t("cloneForm.chooseFolder")}
                 onClick={async () => {
                   const path = await onChoosePath();

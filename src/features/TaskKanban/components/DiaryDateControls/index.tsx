@@ -1,4 +1,6 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -102,7 +104,7 @@ const DiaryDateControls: React.FC<DiaryDateControlsProps> = ({
         variant="tertiary"
         size="small"
         iconOnly
-        icon={<ChevronLeft size={14} />}
+        icon={<HugeiconsIcon icon={ChevronLeft} size={14} />}
         onClick={handlePrevious}
         title={t("kanban.diary.previousDay")}
       />
@@ -123,7 +125,7 @@ const DiaryDateControls: React.FC<DiaryDateControlsProps> = ({
         variant="tertiary"
         size="small"
         iconOnly
-        icon={<ChevronRight size={14} />}
+        icon={<HugeiconsIcon icon={ChevronRight} size={14} />}
         onClick={handleNext}
         title={t("kanban.diary.nextDay")}
       />

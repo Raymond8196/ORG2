@@ -1,5 +1,7 @@
+import Code from "@hugeicons/core-free-icons/CodeIcon";
+import Split from "@hugeicons/core-free-icons/SplitIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
-import { Code, Split } from "lucide-react";
 import React from "react";
 import { describe, expect, it, vi } from "vitest";
 

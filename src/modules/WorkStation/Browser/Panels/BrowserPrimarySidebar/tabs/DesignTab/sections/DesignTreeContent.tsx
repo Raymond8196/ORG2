@@ -1,4 +1,5 @@
-import { Filter as FilterIcon } from "lucide-react";
+import FilterIcon from "@hugeicons/core-free-icons/FilterIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo } from "react";
 
 import Input from "@src/components/Input";
@@ -120,7 +121,9 @@ export const DesignTreeContent: React.FC<DesignTreeContentProps> = memo(
         {showFilter && (
           <div className="flex-shrink-0 px-3 pb-2">
             <Input
-              prefix={<FilterIcon size={14} strokeWidth={1.75} />}
+              prefix={
+                <HugeiconsIcon icon={FilterIcon} size={14} strokeWidth={1.75} />
+              }
               placeholder={filterPlaceholder}
               value={filterQuery}
               onChange={onFilterChange}

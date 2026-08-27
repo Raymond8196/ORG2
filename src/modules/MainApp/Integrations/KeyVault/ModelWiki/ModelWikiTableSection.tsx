@@ -1,4 +1,7 @@
-import { Brain, MessageSquareText, Wrench } from "lucide-react";
+import Brain from "@hugeicons/core-free-icons/BrainIcon";
+import MessageSquareText from "@hugeicons/core-free-icons/Message02Icon";
+import Wrench from "@hugeicons/core-free-icons/Wrench01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -295,7 +298,7 @@ export default function ModelWikiTableSection() {
           <div className="flex items-center gap-1.5">
             <CapabilityIcon
               active={entry.supportsTools}
-              icon={<Wrench size={12} strokeWidth={2} />}
+              icon={<HugeiconsIcon icon={Wrench} size={12} strokeWidth={2} />}
               tooltip={t(
                 entry.supportsTools
                   ? "modelWiki.tipTools"
@@ -304,7 +307,7 @@ export default function ModelWikiTableSection() {
             />
             <CapabilityIcon
               active={entry.supportsReasoning}
-              icon={<Brain size={12} strokeWidth={2} />}
+              icon={<HugeiconsIcon icon={Brain} size={12} strokeWidth={2} />}
               tooltip={t(
                 entry.supportsReasoning
                   ? "modelWiki.tipReasoning"
@@ -313,7 +316,13 @@ export default function ModelWikiTableSection() {
             />
             <CapabilityIcon
               active={entry.supportsIncludeReasoning}
-              icon={<MessageSquareText size={12} strokeWidth={2} />}
+              icon={
+                <HugeiconsIcon
+                  icon={MessageSquareText}
+                  size={12}
+                  strokeWidth={2}
+                />
+              }
               tooltip={t(
                 entry.supportsIncludeReasoning
                   ? "modelWiki.tipIncludeReasoning"

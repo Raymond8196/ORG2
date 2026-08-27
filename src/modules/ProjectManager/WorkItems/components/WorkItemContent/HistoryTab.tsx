@@ -1,13 +1,12 @@
-import {
-  ArrowUp,
-  Bell,
-  BellOff,
-  CheckCircle2,
-  ChevronRight,
-  CornerUpLeft,
-  RotateCcw,
-  X,
-} from "lucide-react";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import CornerUpLeft from "@hugeicons/core-free-icons/ArrowTurnUpIcon";
+import ArrowUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import Bell from "@hugeicons/core-free-icons/Notification01Icon";
+import BellOff from "@hugeicons/core-free-icons/NotificationOff01Icon";
+import RotateCcw from "@hugeicons/core-free-icons/RotateLeft01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -91,7 +90,7 @@ const DiscussionThreads: React.FC<DiscussionThreadsProps> = ({
                 </span>
                 {root.resolved_at ? (
                   <span className="inline-flex items-center gap-1 text-success-6">
-                    <CheckCircle2 size={12} aria-hidden />
+                    <HugeiconsIcon icon={CheckCircle2} size={12} aria-hidden />
                     {t("workItems.activity.resolved", {
                       defaultValue: "Resolved",
                     })}
@@ -106,9 +105,13 @@ const DiscussionThreads: React.FC<DiscussionThreadsProps> = ({
                   size="mini"
                   icon={
                     root.resolved_at ? (
-                      <RotateCcw size={13} aria-hidden />
+                      <HugeiconsIcon icon={RotateCcw} size={13} aria-hidden />
                     ) : (
-                      <CheckCircle2 size={13} aria-hidden />
+                      <HugeiconsIcon
+                        icon={CheckCircle2}
+                        size={13}
+                        aria-hidden
+                      />
                     )
                   }
                   onClick={() =>
@@ -170,7 +173,13 @@ const DiscussionThreads: React.FC<DiscussionThreadsProps> = ({
                           variant="tertiary"
                           appearance="ghost"
                           size="mini"
-                          icon={<CornerUpLeft size={13} aria-hidden />}
+                          icon={
+                            <HugeiconsIcon
+                              icon={CornerUpLeft}
+                              size={13}
+                              aria-hidden
+                            />
+                          }
                           onClick={() => onReply(comment.id)}
                           data-testid={`work-item-discussion-reply-${comment.id}`}
                         >
@@ -230,9 +239,9 @@ const HistoryTab: React.FC<HistoryTabProps> = ({
       size="mini"
       icon={
         isSubscribed ? (
-          <BellOff size={13} aria-hidden />
+          <HugeiconsIcon icon={BellOff} size={13} aria-hidden />
         ) : (
-          <Bell size={13} aria-hidden />
+          <HugeiconsIcon icon={Bell} size={13} aria-hidden />
         )
       }
       onClick={onToggleSubscribe}
@@ -324,7 +333,7 @@ const HistoryTab: React.FC<HistoryTabProps> = ({
       shape="circle"
       size="small"
       iconOnly
-      icon={<ArrowUp size={16} aria-hidden />}
+      icon={<HugeiconsIcon icon={ArrowUp} size={16} aria-hidden />}
       title={t("workItems.activity.submitComment", "Submit comment")}
       aria-label={t("workItems.activity.submitComment", "Submit comment")}
       onClick={onCommentSubmit}
@@ -362,7 +371,7 @@ const HistoryTab: React.FC<HistoryTabProps> = ({
               size="mini"
               shape="circle"
               iconOnly
-              icon={<X size={12} aria-hidden />}
+              icon={<HugeiconsIcon icon={X} size={12} aria-hidden />}
               aria-label={t("workItems.activity.cancelReply", {
                 defaultValue: "Cancel reply",
               })}
@@ -498,7 +507,8 @@ const HistoryTab: React.FC<HistoryTabProps> = ({
                     count: activityEntries.length,
                   })}
                 </span>
-                <ChevronRight
+                <HugeiconsIcon
+                  icon={ChevronRight}
                   size={14}
                   aria-hidden
                   className="shrink-0 text-text-4 transition-transform group-open:rotate-90"

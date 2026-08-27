@@ -1,4 +1,5 @@
-import { Gauge } from "lucide-react";
+import Gauge from "@hugeicons/core-free-icons/GaugeIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";

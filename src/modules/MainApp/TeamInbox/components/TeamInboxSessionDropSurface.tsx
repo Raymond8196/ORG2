@@ -1,11 +1,10 @@
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Inbox from "@hugeicons/core-free-icons/InboxIcon";
+import Link2 from "@hugeicons/core-free-icons/Link02Icon";
+import RotateCcw from "@hugeicons/core-free-icons/RotateLeft01Icon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
-import {
-  Inbox,
-  Link2,
-  RotateCcw,
-  SquareArrowOutUpRight,
-  X,
-} from "lucide-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -296,7 +295,7 @@ const TeamInboxSessionDropSurface: React.FC<
                   : "bg-bg-3 text-text-2"
               }`}
             >
-              <Inbox size={20} aria-hidden />
+              <HugeiconsIcon icon={Inbox} size={20} aria-hidden />
             </span>
             <p className="text-sm font-medium text-text-1">
               {t("teamInbox.drop.title")}
@@ -315,7 +314,8 @@ const TeamInboxSessionDropSurface: React.FC<
           role="status"
           aria-live="polite"
         >
-          <Link2
+          <HugeiconsIcon
+            icon={Link2}
             size={16}
             className="shrink-0 animate-pulse text-primary-6"
             aria-hidden
@@ -373,7 +373,13 @@ const TeamInboxSessionDropSurface: React.FC<
             <Button
               variant="secondary"
               size="mini"
-              icon={<SquareArrowOutUpRight size={14} aria-hidden />}
+              icon={
+                <HugeiconsIcon
+                  icon={SquareArrowOutUpRight}
+                  size={14}
+                  aria-hidden
+                />
+              }
               onClick={openCreated}
             >
               {t("teamInbox.drop.open")}
@@ -383,7 +389,7 @@ const TeamInboxSessionDropSurface: React.FC<
             <Button
               variant="secondary"
               size="mini"
-              icon={<RotateCcw size={14} aria-hidden />}
+              icon={<HugeiconsIcon icon={RotateCcw} size={14} aria-hidden />}
               onClick={() => prepare(currentOperation.reference)}
             >
               {t("common:actions.retry")}
@@ -395,7 +401,7 @@ const TeamInboxSessionDropSurface: React.FC<
             size="mini"
             iconOnly
             aria-label={t("teamInbox.drop.dismiss")}
-            icon={<X size={14} aria-hidden />}
+            icon={<HugeiconsIcon icon={X} size={14} aria-hidden />}
             onClick={dismiss}
           />
         </div>

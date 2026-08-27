@@ -6,7 +6,10 @@
  * back button and optional add action.
  */
 import Button from "@/src/components/Button";
-import { ArrowLeft, Plus, Search } from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -60,14 +63,14 @@ const DrillDownListPanel: React.FC<DrillDownListPanelProps> = ({
           onClick={onBack}
           className="flex items-center justify-center rounded-md p-1 text-text-2 transition-colors hover:bg-fill-2 hover:text-text-1"
         >
-          <ArrowLeft size={16} />
+          <HugeiconsIcon icon={ArrowLeft} size={16} />
         </button>
         <span className="text-[13px] font-medium text-text-1">{title}</span>
       </div>
 
       <div className="flex-shrink-0 px-3 pb-2">
         <Input
-          prefix={<Search size={14} strokeWidth={1.75} />}
+          prefix={<HugeiconsIcon icon={Search} size={14} strokeWidth={1.75} />}
           placeholder={t("common:actions.search")}
           value={searchQuery}
           onChange={setSearchQuery}
@@ -118,7 +121,7 @@ const DrillDownListPanel: React.FC<DrillDownListPanelProps> = ({
           <Button
             variant="primary"
             size="large"
-            icon={<Plus size={16} />}
+            icon={<HugeiconsIcon icon={Plus} size={16} />}
             long
             onClick={onAdd}
           >

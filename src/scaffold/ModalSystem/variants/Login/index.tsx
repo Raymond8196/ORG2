@@ -1,9 +1,10 @@
 import Button from "@/src/components/Button";
 import Modal from "@/src/scaffold/ModalSystem";
 import { cancel, onUrl, start } from "@fabianlars/tauri-plugin-oauth";
+import Sparkles from "@hugeicons/core-free-icons/SparklesIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { openPath } from "@tauri-apps/plugin-opener";
 import { useAtom, useAtomValue } from "jotai";
-import { Sparkles } from "lucide-react";
 import { useState } from "react";
 
 import {
@@ -178,7 +179,12 @@ const LoginModal = () => {
       className="login__modal h-[500px] w-[400px] rounded-xl bg-bg-2"
     >
       <div className="flex h-full w-full flex-col items-center justify-center">
-        <Sparkles size={24} strokeWidth={1.75} className="text-primary-6" />
+        <HugeiconsIcon
+          icon={Sparkles}
+          size={24}
+          strokeWidth={1.75}
+          className="text-primary-6"
+        />
         <p className="mb-6 mt-4 font-[500] text-text-1">
           Unlock the power of Atlas XP
         </p>

@@ -1,4 +1,5 @@
-import { Settings } from "lucide-react";
+import Settings from "@hugeicons/core-free-icons/Settings01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback } from "react";
 import { createRoot } from "react-dom/client";
 import { useTranslation } from "react-i18next";
@@ -78,7 +79,7 @@ function GitAuthenticationDialog({ onResolve }: GitAuthenticationDialogProps) {
     >
       <div className="flex items-start gap-3">
         <div className="mt-0.5 rounded-md bg-fill-2 p-2 text-text-2">
-          <Settings size={16} />
+          <HugeiconsIcon icon={Settings} size={16} />
         </div>
         <div className="flex flex-col gap-1.5">
           <div className="text-[13px] font-medium text-text-1">

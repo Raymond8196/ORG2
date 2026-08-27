@@ -11,7 +11,10 @@
  * heights with a staggered CSS animation, which is exactly what the reference
  * UI does and avoids the cost of an AudioContext just for cosmetics.
  */
-import { Check, Plus, X } from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -92,7 +95,11 @@ const VoiceRecordingBar: React.FC<VoiceRecordingBarProps> = memo(
           aria-label={t("common:actions.add")}
           tabIndex={onAddContent ? 0 : -1}
         >
-          <Plus size={INPUT_AREA_BUTTONS.iconSize} strokeWidth={1.75} />
+          <HugeiconsIcon
+            icon={Plus}
+            size={INPUT_AREA_BUTTONS.iconSize}
+            strokeWidth={1.75}
+          />
         </button>
 
         <div className="composer-voice-waveform">
@@ -117,7 +124,11 @@ const VoiceRecordingBar: React.FC<VoiceRecordingBarProps> = memo(
           data-testid="composer-voice-cancel"
           aria-label={t("common:tooltips.cancelRecording")}
         >
-          <X size={INPUT_AREA_BUTTONS.iconSize} strokeWidth={1.75} />
+          <HugeiconsIcon
+            icon={X}
+            size={INPUT_AREA_BUTTONS.iconSize}
+            strokeWidth={1.75}
+          />
         </button>
 
         <button
@@ -128,7 +139,11 @@ const VoiceRecordingBar: React.FC<VoiceRecordingBarProps> = memo(
           data-testid="composer-voice-accept"
           aria-label={t("common:tooltips.stopAndTranscribe")}
         >
-          <Check size={INPUT_AREA_BUTTONS.iconSize} strokeWidth={1.75} />
+          <HugeiconsIcon
+            icon={Check}
+            size={INPUT_AREA_BUTTONS.iconSize}
+            strokeWidth={1.75}
+          />
         </button>
       </div>
     );

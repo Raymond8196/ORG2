@@ -1,4 +1,7 @@
-import { Box, CornerDownRight, Trash2 } from "lucide-react";
+import CornerDownRight from "@hugeicons/core-free-icons/ArrowTurnDownIcon";
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import Box from "@hugeicons/core-free-icons/PackageIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import Button from "@src/components/Button";
@@ -47,7 +50,9 @@ export function renderModelIconSelect(
       showSearch
       allowClear={args.hasIconOverride(model)}
       size={MODEL_TABLE_CONTROL_SIZE}
-      placeholder={<Box size={14} className="text-text-3" />}
+      placeholder={
+        <HugeiconsIcon icon={Box} size={14} className="text-text-3" />
+      }
       dropdownWidthMode="min-match"
       dropdownMinWidth={180}
       className="w-20 shrink-0"
@@ -169,7 +174,11 @@ export function renderGroupSummaryCell(
 export function renderExpandedCatalogModelCell(model: string): React.ReactNode {
   return (
     <div key={`model-${model}`} className="flex min-w-0 items-center gap-1">
-      <CornerDownRight size={12} className="shrink-0 text-text-4" />
+      <HugeiconsIcon
+        icon={CornerDownRight}
+        size={12}
+        className="shrink-0 text-text-4"
+      />
       <ModelIcon modelName={model} size="small" />
       <span className={SETTINGS_TABLE_CELL.primary}>
         {formatModelNameFull(model)}
@@ -191,7 +200,11 @@ export function renderExpandedUnifiedModelCell(
       key={`model-${model}`}
       className="flex w-full min-w-0 items-center gap-2"
     >
-      <CornerDownRight size={12} className="shrink-0 text-text-4" />
+      <HugeiconsIcon
+        icon={CornerDownRight}
+        size={12}
+        className="shrink-0 text-text-4"
+      />
       {renderModelIconSelect(model, args)}
       <Input
         value={model}
@@ -231,7 +244,7 @@ function renderRemoveButton(
     <Button
       variant="secondary"
       size="default"
-      icon={<Trash2 size={14} className="text-danger-6" />}
+      icon={<HugeiconsIcon icon={Trash2} size={14} className="text-danger-6" />}
       iconOnly
       className="shrink-0"
       onClick={() => handleRemove(model)}

@@ -7,7 +7,8 @@
  * Contains SearchPanelContent component that encapsulates useOpenEditorFiles hook.
  * This hook only runs when the Search tab is first visited (lazy mounting).
  */
-import { ArrowLeft } from "lucide-react";
+import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   forwardRef,
   useCallback,
@@ -156,7 +157,11 @@ export function useSearchTabConfig({
             aria-label={t("tabs.files")}
             title={t("tabs.files")}
           >
-            <ArrowLeft size={14} className="shrink-0 text-text-3" />
+            <HugeiconsIcon
+              icon={ArrowLeft}
+              size={14}
+              className="shrink-0 text-text-3"
+            />
             <span className="truncate uppercase">{t("tabs.search")}</span>
           </button>
         ),

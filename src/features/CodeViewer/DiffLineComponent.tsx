@@ -2,14 +2,13 @@
  * DiffLineComponent - Renders individual diff lines with syntax highlighting.
  * Extracted from VirtualizedModernDiff for reuse and file size management.
  */
-import {
-  ArrowDownFromLine,
-  ArrowUpFromLine,
-  Check,
-  FoldVertical,
-  Minus,
-  Plus,
-} from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import ArrowDownFromLine from "@hugeicons/core-free-icons/ArrowDownFromLineIcon";
+import ArrowUpFromLine from "@hugeicons/core-free-icons/ArrowUpFromLineIcon";
+import FoldVertical from "@hugeicons/core-free-icons/FoldVerticalIcon";
+import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import { codeMirrorPrismTheme } from "@src/features/CodeMirror/themes/prism";
@@ -93,7 +92,7 @@ const CherryPickCheckbox: React.FC<CherryPickCheckboxProps> = ({
         onClick();
       }}
     >
-      {checked && <Check size={14} strokeWidth={2.5} />}
+      {checked && <HugeiconsIcon icon={Check} size={14} strokeWidth={2.5} />}
     </div>
   );
 };
@@ -192,9 +191,9 @@ export const DiffLineComponent = React.memo<DiffLineComponentProps>(
     const lineClasses = `diff-line diff-line-${line.type}${useBorderStyle ? " diff-line-border-style" : ""}`;
     const icon =
       line.type === "add" ? (
-        <Plus size={12} strokeWidth={2.5} />
+        <HugeiconsIcon icon={Plus} size={12} strokeWidth={2.5} />
       ) : line.type === "remove" ? (
-        <Minus size={12} strokeWidth={2.5} />
+        <HugeiconsIcon icon={Minus} size={12} strokeWidth={2.5} />
       ) : null;
 
     const isChangeLine = line.type === "add" || line.type === "remove";
@@ -214,7 +213,7 @@ export const DiffLineComponent = React.memo<DiffLineComponentProps>(
               }}
             >
               {isRangeStart && rangeSelected && (
-                <Check size={14} strokeWidth={2.5} />
+                <HugeiconsIcon icon={Check} size={14} strokeWidth={2.5} />
               )}
             </div>
             {isSingleLineRange && isChangeLine ? (

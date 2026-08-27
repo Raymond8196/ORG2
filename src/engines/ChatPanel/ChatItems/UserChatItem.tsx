@@ -1,12 +1,11 @@
+import ClipboardCheck from "@hugeicons/core-free-icons/ClipboardIcon";
+import File from "@hugeicons/core-free-icons/File01Icon";
+import Image from "@hugeicons/core-free-icons/Image01Icon";
+import PencilLine from "@hugeicons/core-free-icons/PencilEdit01Icon";
+import Sparkles from "@hugeicons/core-free-icons/SparklesIcon";
+import Undo2 from "@hugeicons/core-free-icons/Undo02Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
-import {
-  ClipboardCheck,
-  File,
-  Image,
-  PencilLine,
-  Sparkles,
-  Undo2,
-} from "lucide-react";
 import React, {
   type FC,
   type MouseEvent,
@@ -104,9 +103,19 @@ const CachedFileChip: FC<{
         onClick={onTogglePreview}
       >
         {isImg ? (
-          <Image size={13} strokeWidth={1.75} className="text-text-2" />
+          <HugeiconsIcon
+            icon={Image}
+            size={13}
+            strokeWidth={1.75}
+            className="text-text-2"
+          />
         ) : (
-          <File size={13} strokeWidth={1.75} className="text-text-2" />
+          <HugeiconsIcon
+            icon={File}
+            size={13}
+            strokeWidth={1.75}
+            className="text-text-2"
+          />
         )}
         <span className="text-text-2">{fileName}</span>
       </div>
@@ -131,7 +140,12 @@ const CachedFileChip: FC<{
             />
           ) : (
             <div className="flex h-full flex-col items-center justify-center">
-              <File size={32} strokeWidth={1.75} color="#888" />
+              <HugeiconsIcon
+                icon={File}
+                size={32}
+                strokeWidth={1.75}
+                color="#888"
+              />
               <div className="mt-2 text-white">{fileName}</div>
               <a
                 href={file}
@@ -408,14 +422,22 @@ const UserChatItem = ({
         <div className="flex min-w-0 flex-1 flex-col gap-[6px]">
           {isRepoSetup ? (
             <div className="flex items-center gap-2 py-0.5">
-              <Sparkles size={14} className="text-primary-6" />
+              <HugeiconsIcon
+                icon={Sparkles}
+                size={14}
+                className="text-primary-6"
+              />
               <span className="chat-block-title font-medium text-text-1">
                 {t("chat.repoSetupLabel")}
               </span>
             </div>
           ) : isPlanApproved ? (
             <div className="flex items-center gap-2 py-0.5">
-              <ClipboardCheck size={14} className="text-primary-6" />
+              <HugeiconsIcon
+                icon={ClipboardCheck}
+                size={14}
+                className="text-primary-6"
+              />
               <span className="chat-block-title font-medium text-text-1">
                 {planApprovedEdited
                   ? t(
@@ -521,7 +543,7 @@ const UserChatItem = ({
                     onRestoreCheckpoint();
                   }}
                 >
-                  <Undo2 size={15} strokeWidth={1.75} />
+                  <HugeiconsIcon icon={Undo2} size={15} strokeWidth={1.75} />
                 </button>
               )}
               {isEditableDisplay && (
@@ -534,7 +556,11 @@ const UserChatItem = ({
                     handleEditClick();
                   }}
                 >
-                  <PencilLine size={14} strokeWidth={1.75} />
+                  <HugeiconsIcon
+                    icon={PencilLine}
+                    size={14}
+                    strokeWidth={1.75}
+                  />
                 </button>
               )}
               {toolbarActions}

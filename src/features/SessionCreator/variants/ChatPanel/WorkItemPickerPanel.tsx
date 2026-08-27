@@ -1,14 +1,13 @@
-import {
-  ArrowLeft,
-  CircleDot,
-  GitMerge,
-  GitPullRequest,
-  GitPullRequestClosed,
-  GitPullRequestDraft,
-  ListFilter,
-  ListTodo,
-  RefreshCw,
-} from "lucide-react";
+import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ListTodo from "@hugeicons/core-free-icons/CheckListIcon";
+import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
+import ListFilter from "@hugeicons/core-free-icons/FilterIcon";
+import GitMerge from "@hugeicons/core-free-icons/GitMergeIcon";
+import GitPullRequestClosed from "@hugeicons/core-free-icons/GitPullRequestClosedIcon";
+import GitPullRequestDraft from "@hugeicons/core-free-icons/GitPullRequestDraftIcon";
+import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -78,22 +77,22 @@ const WorkItemPickerPanel: React.FC<WorkItemPickerPanelProps> = ({
     {
       value: "all",
       label: t("common:actions.all"),
-      icon: <ListFilter size={14} strokeWidth={1.8} />,
+      icon: <HugeiconsIcon icon={ListFilter} size={14} strokeWidth={1.8} />,
     },
     {
       value: "workitem",
       label: t("projects:workItems.label"),
-      icon: <ListTodo size={14} strokeWidth={1.8} />,
+      icon: <HugeiconsIcon icon={ListTodo} size={14} strokeWidth={1.8} />,
     },
     {
       value: "github_issue",
       label: t("sessions:kanban.sidebar.githubIssues"),
-      icon: <CircleDot size={14} strokeWidth={1.8} />,
+      icon: <HugeiconsIcon icon={CircleDot} size={14} strokeWidth={1.8} />,
     },
     {
       value: "github_pr",
       label: t("sessions:kanban.sidebar.githubPrs"),
-      icon: <GitPullRequest size={14} strokeWidth={1.8} />,
+      icon: <HugeiconsIcon icon={GitPullRequest} size={14} strokeWidth={1.8} />,
     },
   ];
 
@@ -108,7 +107,9 @@ const WorkItemPickerPanel: React.FC<WorkItemPickerPanelProps> = ({
           <Button
             variant="secondary"
             size="small"
-            icon={<ArrowLeft size={14} strokeWidth={1.8} />}
+            icon={
+              <HugeiconsIcon icon={ArrowLeft} size={14} strokeWidth={1.8} />
+            }
             iconOnly
             title={t("common:actions.back")}
             aria-label={t("common:actions.back")}
@@ -130,7 +131,8 @@ const WorkItemPickerPanel: React.FC<WorkItemPickerPanelProps> = ({
           variant="secondary"
           size="small"
           icon={
-            <RefreshCw
+            <HugeiconsIcon
+              icon={RefreshCw}
               size={14}
               strokeWidth={1.8}
               className={refreshing ? "animate-spin" : undefined}

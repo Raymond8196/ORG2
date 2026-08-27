@@ -4,7 +4,8 @@
  * Displays session info at the top of the chat.
  * Shows: Session started indicator, model name, and truncated session ID.
  */
-import { Play } from "lucide-react";
+import Play from "@hugeicons/core-free-icons/PlayIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -32,7 +33,7 @@ const SessionHeader: React.FC<SessionHeaderProps> = memo(({ sessionInfo }) => {
     <div className="flex flex-shrink-0 items-center gap-3 py-2 pl-5 pr-3">
       {/* Session started indicator */}
       <div className="chat-text-sm flex items-center gap-1.5">
-        <Play className="chat-icon text-success-6" />
+        <HugeiconsIcon icon={Play} className="chat-icon text-success-6" />
         <span className="chat-block-content ml-1.5 text-text-2">
           {t("chat.sessionStarted")}
         </span>

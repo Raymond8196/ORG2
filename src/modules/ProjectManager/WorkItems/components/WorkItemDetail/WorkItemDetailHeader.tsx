@@ -1,11 +1,10 @@
-import {
-  ArrowDown,
-  ArrowUp,
-  Box,
-  Info,
-  ListChecks,
-  Trash2,
-} from "lucide-react";
+import ArrowDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import ListChecks from "@hugeicons/core-free-icons/CheckListIcon";
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import Info from "@hugeicons/core-free-icons/InformationCircleIcon";
+import Box from "@hugeicons/core-free-icons/PackageIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { type ReactNode, useRef, useState } from "react";
 
 import { STORY_SYNC_ADAPTER } from "@src/api/http/integrations/syncConnections";
@@ -207,9 +206,17 @@ export function WorkItemDetailHeaderBreadcrumb({
       icon:
         identityIcon ??
         (parentSegments.length > 0 ? (
-          <Box size={HEADER_ICON_SIZE.sm} strokeWidth={1.75} />
+          <HugeiconsIcon
+            icon={Box}
+            size={HEADER_ICON_SIZE.sm}
+            strokeWidth={1.75}
+          />
         ) : (
-          <ListChecks size={HEADER_ICON_SIZE.sm} strokeWidth={1.75} />
+          <HugeiconsIcon
+            icon={ListChecks}
+            size={HEADER_ICON_SIZE.sm}
+            strokeWidth={1.75}
+          />
         )),
     },
   ];
@@ -248,7 +255,7 @@ export function WorkItemDetailHeaderActions({
           onClick={() => onNavigate("prev")}
           disabled={!hasPrev}
           aria-label={t("common:actions.previous")}
-          icon={<ArrowUp size={HEADER_ICON_SIZE.sm} />}
+          icon={<HugeiconsIcon icon={ArrowUp} size={HEADER_ICON_SIZE.sm} />}
         />
       </ToolbarTooltip>
       <ToolbarTooltip label={t("common:actions.next")}>
@@ -260,7 +267,7 @@ export function WorkItemDetailHeaderActions({
           onClick={() => onNavigate("next")}
           disabled={!hasNext}
           aria-label={t("common:actions.next")}
-          icon={<ArrowDown size={HEADER_ICON_SIZE.sm} />}
+          icon={<HugeiconsIcon icon={ArrowDown} size={HEADER_ICON_SIZE.sm} />}
         />
       </ToolbarTooltip>
       {(onDeleteWorkItem || onToggleProperties) && (
@@ -280,7 +287,7 @@ export function WorkItemDetailHeaderActions({
             onClick={() => onDeleteWorkItem(workItem.session_id)}
             aria-label={t("workItems.deleteWorkItem")}
             data-testid="work-item-delete"
-            icon={<Trash2 size={HEADER_ICON_SIZE.sm} />}
+            icon={<HugeiconsIcon icon={Trash2} size={HEADER_ICON_SIZE.sm} />}
           />
         </ToolbarTooltip>
       )}
@@ -306,7 +313,7 @@ export function WorkItemDetailHeaderActions({
                 ? t("workItems.hideProperties")
                 : t("workItems.showProperties")
             }
-            icon={<Info size={HEADER_ICON_SIZE.sm} />}
+            icon={<HugeiconsIcon icon={Info} size={HEADER_ICON_SIZE.sm} />}
           />
         </ToolbarTooltip>
       )}

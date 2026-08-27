@@ -19,9 +19,10 @@
  * live in `buildRuntimeScanningPanelColumns`. This file wires that state to
  * the tab/search UI and the table/expandable-row layout.
  */
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { invoke } from "@tauri-apps/api/core";
 import { useAtom } from "jotai";
-import { RefreshCw } from "lucide-react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -218,7 +219,7 @@ const RuntimeScanningPanel: React.FC = () => {
                 iconOnly
                 loading={rescanningAll}
                 disabled={!externalSessionsEnabled}
-                icon={<RefreshCw size={14} />}
+                icon={<HugeiconsIcon icon={RefreshCw} size={14} />}
                 aria-label={t("rescanAll")}
                 title={t("rescanAll")}
                 onClick={() => void handleRescanAll()}

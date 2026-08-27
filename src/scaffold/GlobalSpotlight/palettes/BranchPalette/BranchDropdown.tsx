@@ -9,7 +9,11 @@
  * Chosen by `general.modelPickerStyle === "dropdown"`. Falls through to
  * `BranchPalette` (Spotlight) otherwise.
  */
-import { Check, Folder, GitBranch, Search } from "lucide-react";
+import Folder from "@hugeicons/core-free-icons/Folder01Icon";
+import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
   useEffect,
@@ -64,11 +68,23 @@ const BranchRow: React.FC<BranchRowProps> = ({
     >
       <span className="flex h-5 w-5 shrink-0 items-center justify-center">
         {isCurrent ? (
-          <Check size={DROPDOWN_ITEM.iconSize} className="text-primary-6" />
+          <HugeiconsIcon
+            icon={Check}
+            size={DROPDOWN_ITEM.iconSize}
+            className="text-primary-6"
+          />
         ) : branch.worktreePath ? (
-          <Folder size={DROPDOWN_ITEM.iconSize} className="text-text-2" />
+          <HugeiconsIcon
+            icon={Folder}
+            size={DROPDOWN_ITEM.iconSize}
+            className="text-text-2"
+          />
         ) : (
-          <GitBranch size={DROPDOWN_ITEM.iconSize} className="text-text-2" />
+          <HugeiconsIcon
+            icon={GitBranch}
+            size={DROPDOWN_ITEM.iconSize}
+            className="text-text-2"
+          />
         )}
       </span>
       <span className="truncate">{branch.name}</span>
@@ -245,7 +261,8 @@ export const BranchDropdown: React.FC<BranchDropdownProps> = ({
       }}
     >
       <div className={DROPDOWN_CLASSES.searchContainer}>
-        <Search
+        <HugeiconsIcon
+          icon={Search}
           size={DROPDOWN_ITEM.iconSize}
           className="shrink-0 text-text-3"
         />

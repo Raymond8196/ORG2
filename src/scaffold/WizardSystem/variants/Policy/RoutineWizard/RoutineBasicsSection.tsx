@@ -1,4 +1,5 @@
-import { Network } from "lucide-react";
+import Network from "@hugeicons/core-free-icons/AiNetworkIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -320,7 +321,13 @@ const RoutineBasicsSection: React.FC<RoutineBasicsSectionProps> = ({
             prefix={(() => {
               if (!draft.target) return null;
               if (draft.targetIsOrg) {
-                return <Network size={16} className="text-text-2" />;
+                return (
+                  <HugeiconsIcon
+                    icon={Network}
+                    size={16}
+                    className="text-text-2"
+                  />
+                );
               }
               return React.createElement(resolveAgentIcon(draft.targetIconId), {
                 size: 16,

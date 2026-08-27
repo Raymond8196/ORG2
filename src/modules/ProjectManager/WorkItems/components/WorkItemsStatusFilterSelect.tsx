@@ -1,4 +1,5 @@
-import { List } from "lucide-react";
+import List from "@hugeicons/core-free-icons/ListViewIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -33,13 +34,25 @@ const WorkItemsStatusFilterSelect: React.FC<
 
   const getStatusFilterIcon = useCallback((key: StatusFilterType) => {
     if (key === "all") {
-      return <List size={DROPDOWN_ITEM.iconSize} strokeWidth={1.75} />;
+      return (
+        <HugeiconsIcon
+          icon={List}
+          size={DROPDOWN_ITEM.iconSize}
+          strokeWidth={1.75}
+        />
+      );
     }
 
     const status = FILTER_TO_STATUS[key];
     const option = status ? getWorkItemStatusConfig(status) : undefined;
     if (!option?.icon) {
-      return <List size={DROPDOWN_ITEM.iconSize} strokeWidth={1.75} />;
+      return (
+        <HugeiconsIcon
+          icon={List}
+          size={DROPDOWN_ITEM.iconSize}
+          strokeWidth={1.75}
+        />
+      );
     }
 
     return (

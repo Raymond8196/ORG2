@@ -10,7 +10,8 @@
  * The chip never renders a sidebar collapse toggle — that lives separately in
  * the 40px workstation header.
  */
-import { ChevronDown, type LucideIcon } from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { memo, useEffect } from "react";
 
 import { DROPDOWN_PANEL } from "@src/components/Dropdown/tokens";
@@ -21,6 +22,8 @@ import {
   AppSwitcherDropdownPanel,
   type AppSwitcherMenuItem,
 } from "./AppSwitcherDropdownPanel";
+
+type LucideIcon = IconSvgElement;
 
 export interface AppSwitcherChipProps {
   /** When true, the container is hidden via CSS (avoids mount/unmount flash). */
@@ -98,7 +101,8 @@ const AppSwitcherChipComponent: React.FC<AppSwitcherChipProps> = ({
         {label}
       </span>
       {hasDropdown ? (
-        <ChevronDown
+        <HugeiconsIcon
+          icon={ChevronDown}
           size={12}
           className={`shrink-0 text-text-3 transition-transform ${isOpen ? "rotate-180" : ""}`}
         />

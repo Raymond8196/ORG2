@@ -1,4 +1,5 @@
-import { Info } from "lucide-react";
+import Info from "@hugeicons/core-free-icons/InformationCircleIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -38,7 +39,7 @@ const TerminalInfoButtonComponent: React.FC<TerminalInfoButtonProps> = ({
         size="small"
         iconOnly
         title={t("tooltips.showTerminalProcessInfo")}
-        icon={<Info size={HEADER_ICON_SIZE.md} />}
+        icon={<HugeiconsIcon icon={Info} size={HEADER_ICON_SIZE.md} />}
       />
 
       {showTerminalInfo ? (

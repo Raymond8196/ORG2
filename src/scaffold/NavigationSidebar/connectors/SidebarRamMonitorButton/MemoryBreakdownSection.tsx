@@ -1,4 +1,6 @@
-import { ChevronDown, ChevronUp } from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import Button from "@src/components/Button";
@@ -56,9 +58,9 @@ export const MemoryBreakdownSection: React.FC<MemoryBreakdownSectionProps> = ({
       aria-label={toggleAriaLabel}
       icon={
         showAttributionHints ? (
-          <ChevronUp size={13} strokeWidth={2} />
+          <HugeiconsIcon icon={ChevronUp} size={13} strokeWidth={2} />
         ) : (
-          <ChevronDown size={13} strokeWidth={2} />
+          <HugeiconsIcon icon={ChevronDown} size={13} strokeWidth={2} />
         )
       }
       onClick={onToggleAttributionHints}

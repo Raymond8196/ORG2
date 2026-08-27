@@ -1,4 +1,6 @@
-import { CalendarDays, CalendarX } from "lucide-react";
+import CalendarDays from "@hugeicons/core-free-icons/Calendar02Icon";
+import CalendarX from "@hugeicons/core-free-icons/CalendarRemove01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { createPortal } from "react-dom";
 
@@ -70,7 +72,7 @@ function renderOptions(params: {
   return (
     <>
       <Option
-        icon={<CalendarX size={DROPDOWN_ITEM.iconSize} />}
+        icon={<HugeiconsIcon icon={CalendarX} size={DROPDOWN_ITEM.iconSize} />}
         label={params.emptyLabel ?? params.t("properties.clearDate")}
         isSelected={!params.value}
         onClick={() => params.onChange(null)}
@@ -78,7 +80,9 @@ function renderOptions(params: {
       {suggestions.map((suggestion) => (
         <Option
           key={suggestion.id}
-          icon={<CalendarDays size={DROPDOWN_ITEM.iconSize} />}
+          icon={
+            <HugeiconsIcon icon={CalendarDays} size={DROPDOWN_ITEM.iconSize} />
+          }
           label={`${formatSuggestionLabel(suggestion, params.t)} · ${formatLocalMonthDay(suggestion.date, { locale: undefined })}`}
           isSelected={
             params.value

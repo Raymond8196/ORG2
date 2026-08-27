@@ -17,7 +17,7 @@
  * navDestinationGroups.ts to keep this file within the config line limit.
  * Search utilities live in navDestinationsSearch.ts.
  */
-import type { LucideIcon } from "lucide-react";
+import { type IconSvgElement } from "@hugeicons/react";
 import type { ComponentType } from "react";
 
 import {
@@ -33,6 +33,8 @@ import type {
   NavDestination,
   NavDestinationGroup,
 } from "./navDestinationsTypes";
+
+type LucideIcon = IconSvgElement;
 
 export type { NavDestination, NavDestinationGroup };
 

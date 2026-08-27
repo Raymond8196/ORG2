@@ -28,8 +28,11 @@
  *   - `null`     → the session creator (new-session mode); a successful
  *                  background launch adopts the new session in place.
  */
+import MessageCircle from "@hugeicons/core-free-icons/BubbleChatIcon";
+import SquarePen from "@hugeicons/core-free-icons/Pen01Icon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { MessageCircle, SquareArrowOutUpRight, SquarePen } from "lucide-react";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -124,7 +127,13 @@ export function SideChatLauncher({
         size="large"
         shape="circle"
         iconOnly
-        icon={<MessageCircle size={HEADER_ICON_SIZE.md} strokeWidth={1.9} />}
+        icon={
+          <HugeiconsIcon
+            icon={MessageCircle}
+            size={HEADER_ICON_SIZE.md}
+            strokeWidth={1.9}
+          />
+        }
         onClick={onOpen}
         title={label}
         aria-label={label}
@@ -217,14 +226,17 @@ const SideChatWindow: React.FC<ChatPanelSideChatProps> = ({
                 onClick={handleOpenInTab}
                 title={tCommon("actions.openInTab")}
               >
-                <SquareArrowOutUpRight size={HEADER_ICON_SIZE.sm} />
+                <HugeiconsIcon
+                  icon={SquareArrowOutUpRight}
+                  size={HEADER_ICON_SIZE.sm}
+                />
               </button>
               <button
                 className={HEADER_BUTTON.action}
                 onClick={handleNewSession}
                 title={t("chat.newSession")}
               >
-                <SquarePen size={HEADER_ICON_SIZE.sm} />
+                <HugeiconsIcon icon={SquarePen} size={HEADER_ICON_SIZE.sm} />
               </button>
             </div>
           ) : undefined

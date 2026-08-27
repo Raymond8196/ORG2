@@ -1,4 +1,7 @@
-import { Box, ListChecks, Plus } from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import ListChecks from "@hugeicons/core-free-icons/CheckListIcon";
+import Box from "@hugeicons/core-free-icons/PackageIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useCallback } from "react";
 import { createPortal } from "react-dom";
 
@@ -66,7 +69,13 @@ export function AddActionsButton({
               ? "work-items-create-work-item"
               : "work-items-create-project"
           }
-          icon={<Plus size={HEADER_ICON_SIZE.md} strokeWidth={2} />}
+          icon={
+            <HugeiconsIcon
+              icon={Plus}
+              size={HEADER_ICON_SIZE.md}
+              strokeWidth={2}
+            />
+          }
         />
       </ToolbarTooltip>
     );
@@ -85,7 +94,13 @@ export function AddActionsButton({
           onClick={toggle}
           aria-label={addWorkItemLabel}
           data-testid="work-items-create-menu"
-          icon={<Plus size={HEADER_ICON_SIZE.md} strokeWidth={2} />}
+          icon={
+            <HugeiconsIcon
+              icon={Plus}
+              size={HEADER_ICON_SIZE.md}
+              strokeWidth={2}
+            />
+          }
         />
       </ToolbarTooltip>
       {isOpen &&
@@ -112,7 +127,8 @@ export function AddActionsButton({
               role="menuitem"
               data-testid="work-items-create-work-item"
             >
-              <ListChecks
+              <HugeiconsIcon
+                icon={ListChecks}
                 size={DROPDOWN_ITEM.iconSize}
                 strokeWidth={1.75}
                 className="text-text-2"
@@ -128,7 +144,8 @@ export function AddActionsButton({
               role="menuitem"
               data-testid="work-items-create-project"
             >
-              <Box
+              <HugeiconsIcon
+                icon={Box}
                 size={DROPDOWN_ITEM.iconSize}
                 strokeWidth={1.75}
                 className="text-text-2"

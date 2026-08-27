@@ -8,7 +8,12 @@
  * Shows files read/edited and search operations
  * up to the current replay point via tab-specific tree panels.
  */
-import { Compass, GitBranch, List, ListTree, Terminal } from "lucide-react";
+import Compass from "@hugeicons/core-free-icons/CompassIcon";
+import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
+import ListTree from "@hugeicons/core-free-icons/HierarchyFilesIcon";
+import List from "@hugeicons/core-free-icons/ListViewIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -109,12 +114,14 @@ const FileSidebarComponent: React.FC<FileSidebarProps> = ({
         key: "simulator-file-view-mode",
         icon:
           fileOperationsViewMode === "list" ? (
-            <ListTree
+            <HugeiconsIcon
+              icon={ListTree}
               size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
               strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
             />
           ) : (
-            <List
+            <HugeiconsIcon
+              icon={List}
               size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
               strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
             />
@@ -311,7 +318,9 @@ const FileSidebarComponent: React.FC<FileSidebarProps> = ({
       {
         key: FILE_PANEL_VIEW_MODE.EXPLORE,
         label: t("simulator.replay.ide.fileSidebar.tabExplore"),
-        icon: <Compass size={PANEL_CONSTANTS.TAB_ICON_SIZE} />,
+        icon: (
+          <HugeiconsIcon icon={Compass} size={PANEL_CONSTANTS.TAB_ICON_SIZE} />
+        ),
         sections: [
           {
             key: "files-read",
@@ -357,7 +366,12 @@ const FileSidebarComponent: React.FC<FileSidebarProps> = ({
       {
         key: FILE_PANEL_VIEW_MODE.WRITE,
         label: t("simulator.replay.ide.fileSidebar.tabEdit"),
-        icon: <GitBranch size={PANEL_CONSTANTS.TAB_ICON_SIZE} />,
+        icon: (
+          <HugeiconsIcon
+            icon={GitBranch}
+            size={PANEL_CONSTANTS.TAB_ICON_SIZE}
+          />
+        ),
         sections: [
           {
             key: "files-edited",
@@ -385,7 +399,9 @@ const FileSidebarComponent: React.FC<FileSidebarProps> = ({
       {
         key: FILE_PANEL_VIEW_MODE.TERMINAL,
         label: t("simulator.replay.ide.fileSidebar.tabTerminal"),
-        icon: <Terminal size={PANEL_CONSTANTS.TAB_ICON_SIZE} />,
+        icon: (
+          <HugeiconsIcon icon={Terminal} size={PANEL_CONSTANTS.TAB_ICON_SIZE} />
+        ),
         sections: [
           {
             key: "shell-commands",

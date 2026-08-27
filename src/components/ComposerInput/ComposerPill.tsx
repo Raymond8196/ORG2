@@ -9,22 +9,21 @@
  * Mirrors the inline context-pill visual + hover-preview behavior without
  * relying on a rich text editor framework.
  */
+import AtSign from "@hugeicons/core-free-icons/AtIcon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import ListChecks from "@hugeicons/core-free-icons/CheckListIcon";
+import Code from "@hugeicons/core-free-icons/CodeIcon";
+import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import MousePointer2 from "@hugeicons/core-free-icons/Cursor02Icon";
+import FolderKanban from "@hugeicons/core-free-icons/FolderKanbanIcon";
+import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
+import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import Globe from "@hugeicons/core-free-icons/GlobeIcon";
+import Link from "@hugeicons/core-free-icons/Link01Icon";
+import SquareMousePointer from "@hugeicons/core-free-icons/SquareMousePointerIcon";
+import Toolbox from "@hugeicons/core-free-icons/ToolboxIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
-import {
-  AtSign,
-  Code,
-  FolderKanban,
-  GitBranch,
-  GitPullRequest,
-  Globe,
-  Link,
-  ListChecks,
-  MousePointer2,
-  SquareMousePointer,
-  Terminal,
-  Toolbox,
-  X,
-} from "lucide-react";
 import React, {
   memo,
   useCallback,
@@ -302,7 +301,8 @@ const ComposerPill: React.FC<ComposerPillProps> = ({
   const iconNode = (() => {
     if (isHovered) {
       return (
-        <X
+        <HugeiconsIcon
+          icon={X}
           size={PILL_SIZE.iconSize}
           strokeWidth={2}
           onClick={handleDelete}
@@ -326,34 +326,36 @@ const ComposerPill: React.FC<ComposerPillProps> = ({
             />
           );
         }
-        if (iconType === "repo") return <Code {...ICON_PROPS} />;
-        if (iconType === "pr") return <GitPullRequest {...ICON_PROPS} />;
-        return <ListChecks {...ICON_PROPS} />;
+        if (iconType === "repo")
+          return <HugeiconsIcon icon={Code} {...ICON_PROPS} />;
+        if (iconType === "pr")
+          return <HugeiconsIcon icon={GitPullRequest} {...ICON_PROPS} />;
+        return <HugeiconsIcon icon={ListChecks} {...ICON_PROPS} />;
       case "branch":
-        return <GitBranch {...ICON_PROPS} />;
+        return <HugeiconsIcon icon={GitBranch} {...ICON_PROPS} />;
       case "terminal":
-        return <Terminal {...ICON_PROPS} />;
+        return <HugeiconsIcon icon={Terminal} {...ICON_PROPS} />;
       case "session":
         return <SessionPillIcon path={filePath} />;
       case "browser":
-        return <Globe {...ICON_PROPS} />;
+        return <HugeiconsIcon icon={Globe} {...ICON_PROPS} />;
       case "link":
-        return <Link {...ICON_PROPS} />;
+        return <HugeiconsIcon icon={Link} {...ICON_PROPS} />;
       case "project":
-        return <FolderKanban {...ICON_PROPS} />;
+        return <HugeiconsIcon icon={FolderKanban} {...ICON_PROPS} />;
       case "workitem":
-        return <ListChecks {...ICON_PROPS} />;
+        return <HugeiconsIcon icon={ListChecks} {...ICON_PROPS} />;
       case "dom-element":
-        return <SquareMousePointer {...ICON_PROPS} />;
+        return <HugeiconsIcon icon={SquareMousePointer} {...ICON_PROPS} />;
       case "dom-component":
-        return <MousePointer2 {...ICON_PROPS} />;
+        return <HugeiconsIcon icon={MousePointer2} {...ICON_PROPS} />;
       case "skill":
         if (isCanvasCommandPillPath(filePath)) {
           return <CanvasCommandPillIcon />;
         }
-        return <Toolbox {...ICON_PROPS} />;
+        return <HugeiconsIcon icon={Toolbox} {...ICON_PROPS} />;
       case "member":
-        return <AtSign {...ICON_PROPS} />;
+        return <HugeiconsIcon icon={AtSign} {...ICON_PROPS} />;
       default:
         return (
           <FileTypeIcon

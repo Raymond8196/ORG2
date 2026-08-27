@@ -1,11 +1,9 @@
-import {
-  CalendarClock,
-  CalendarDays,
-  CalendarOff,
-  type LucideIcon,
-  Repeat,
-  X,
-} from "lucide-react";
+import CalendarDays from "@hugeicons/core-free-icons/Calendar02Icon";
+import CalendarOff from "@hugeicons/core-free-icons/CalendarBlock01Icon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Repeat from "@hugeicons/core-free-icons/RepeatIcon";
+import CalendarClock from "@hugeicons/core-free-icons/TimeScheduleIcon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { useCallback, useMemo, useRef, useState } from "react";
 
 import type { WorkItemSchedule } from "@src/api/http/project";
@@ -21,6 +19,8 @@ import {
   buildCron,
   parseCron,
 } from "./cronUtils";
+
+type LucideIcon = IconSvgElement;
 
 type ScheduleMode = "none" | "one-shot" | "recurring";
 type ScheduleValue = WorkItemSchedule | null;
@@ -135,7 +135,11 @@ const ScheduleEditor: React.FC<ScheduleEditorProps> = ({
         dataTestId: "work-item-schedule-mode-option-recurring",
         label: (
           <span className="inline-flex items-center gap-2">
-            <Repeat size={DROPDOWN_ITEM.iconSize} className="shrink-0" />
+            <HugeiconsIcon
+              icon={Repeat}
+              size={DROPDOWN_ITEM.iconSize}
+              className="shrink-0"
+            />
             <span className="truncate">{t("common:schedule.recurring")}</span>
           </span>
         ),
@@ -332,7 +336,7 @@ const ScheduleEditor: React.FC<ScheduleEditorProps> = ({
               onClick={() => onChange(null)}
               className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-none bg-transparent text-text-3 transition-colors hover:bg-fill-3 hover:text-text-1"
             >
-              <X size={12} />
+              <HugeiconsIcon icon={X} size={12} />
             </button>
           )}
         </div>
@@ -350,7 +354,8 @@ const ScheduleEditor: React.FC<ScheduleEditorProps> = ({
                 className="flex h-8 w-full items-center gap-2 rounded-lg border border-border-2 bg-bg-2 px-2 text-left text-[12px] text-text-1 outline-none transition-colors hover:bg-fill-2 focus:border-primary-6"
                 onClick={() => setOneShotDateOpen((open) => !open)}
               >
-                <CalendarDays
+                <HugeiconsIcon
+                  icon={CalendarDays}
                   size={DROPDOWN_ITEM.iconSize}
                   className="shrink-0 text-text-3"
                 />

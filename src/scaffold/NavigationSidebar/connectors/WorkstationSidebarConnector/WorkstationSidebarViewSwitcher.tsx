@@ -1,8 +1,13 @@
-import { Hash, History, ListTodo, type LucideIcon } from "lucide-react";
+import ListTodo from "@hugeicons/core-free-icons/CheckListIcon";
+import Hash from "@hugeicons/core-free-icons/HashtagIcon";
+import History from "@hugeicons/core-free-icons/WorkHistoryIcon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import Tooltip from "@src/components/Tooltip";
+
+type LucideIcon = IconSvgElement;
 
 export type WorkstationSidebarViewKey = "channels" | "work-items" | "sessions";
 

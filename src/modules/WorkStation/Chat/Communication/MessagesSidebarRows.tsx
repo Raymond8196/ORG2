@@ -7,11 +7,10 @@
  * previously and was removed alongside the per-event tab fan-out in
  * useReplayTabs).
  */
-import {
-  ListTodo,
-  MessageCircleQuestionMark,
-  MessagesSquare,
-} from "lucide-react";
+import ListTodo from "@hugeicons/core-free-icons/CheckListIcon";
+import MessageCircleQuestionMark from "@hugeicons/core-free-icons/MessageCircleQuestionMarkIcon";
+import MessagesSquare from "@hugeicons/core-free-icons/MessageMultiple01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import { TreeRowBase, type TreeRowNode } from "@src/components/TreeRow";
@@ -33,7 +32,12 @@ export const AggregateMessagesRow: React.FC<AggregateMessagesRowProps> = memo(
       path: title,
       type: "file",
       icon: (
-        <MessagesSquare size={14} strokeWidth={1.75} className="text-text-3" />
+        <HugeiconsIcon
+          icon={MessagesSquare}
+          size={14}
+          strokeWidth={1.75}
+          className="text-text-3"
+        />
       ),
     };
 
@@ -70,7 +74,14 @@ export const AggregateTodoRow: React.FC<AggregateTodoRowProps> = memo(
       name: title,
       path: title,
       type: "file",
-      icon: <ListTodo size={14} strokeWidth={1.75} className="text-text-3" />,
+      icon: (
+        <HugeiconsIcon
+          icon={ListTodo}
+          size={14}
+          strokeWidth={1.75}
+          className="text-text-3"
+        />
+      ),
     };
 
     return (
@@ -107,7 +118,8 @@ export const AggregateInteractionsRow: React.FC<AggregateInteractionsRowProps> =
       path: title,
       type: "file",
       icon: (
-        <MessageCircleQuestionMark
+        <HugeiconsIcon
+          icon={MessageCircleQuestionMark}
           size={14}
           strokeWidth={1.75}
           className="text-text-3"

@@ -1,13 +1,14 @@
 /**
  * Shared renderIcon utility
  *
- * Renders a SidebarIcon (LucideIcon component or string icon name)
+ * Renders a SidebarIcon (hugeicons glyph data or string icon name)
  * with optional favicon and loading spinner support.
  */
-import type { LucideIcon } from "lucide-react";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import type { SidebarIcon } from "../types";
+
 
 interface RenderIconOptions {
   className?: string;
@@ -22,7 +23,7 @@ interface RenderIconOptions {
  * Render a sidebar icon consistently across all sidebar components.
  *
  * Supports:
- * - LucideIcon components
+ * - Hugeicons glyph data (IconSvgElement)
  * - String icon names (legacy, renders <i> tag)
  * - Favicon URLs (renders <img>)
  * - Loading spinner animation
@@ -55,12 +56,18 @@ export function renderSidebarIcon(
     return <i className={`${icon} ${className}`} style={{ fontSize: size }} />;
   }
 
-  // Lucide icon component
+  // Hugeicons glyph data, rendered through the shared wrapper.
+  // strokeWidth is pinned to 2 to preserve the weight lucide rendered at;
+  // hugeicons path data defaults to 1.5.
   const animationClass = isLoading ? "animate-spin" : "";
   const combinedClassName = `${className} ${animationClass}`.trim();
-  const IconComponent = icon as LucideIcon;
 
   return (
-    <IconComponent size={size} strokeWidth={2} className={combinedClassName} />
+    <HugeiconsIcon
+      icon={icon}
+      size={size}
+      strokeWidth={2}
+      className={combinedClassName}
+    />
   );
 }

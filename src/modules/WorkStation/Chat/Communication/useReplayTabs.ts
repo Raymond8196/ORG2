@@ -1,4 +1,5 @@
-import { Eye } from "lucide-react";
+import Eye from "@hugeicons/core-free-icons/ViewIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { createElement, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 

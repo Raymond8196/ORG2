@@ -5,7 +5,7 @@
  * channels (Git, Work Items, Promotions). Selecting one shows the
  * classic message feed in the right pane via `ChannelFeedPanel`.
  */
-import type { LucideIcon } from "lucide-react";
+import { type IconSvgElement } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -15,6 +15,8 @@ import ConfigListItem from "@src/modules/shared/layouts/ListDetailSubpage/Config
 import { ListPanelScrollArea } from "@src/modules/shared/layouts/blocks";
 
 import { INBOX_CHANNELS, type InboxCategory } from "../config";
+
+type LucideIcon = IconSvgElement;
 
 interface ChannelListPanelProps {
   activeChannelId: InboxCategory | null;

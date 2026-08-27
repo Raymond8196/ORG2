@@ -8,7 +8,11 @@
  *
  * Uses BaseStatusBar for consistent layout.
  */
-import { AlertTriangle, BrushCleaning, Plus, XCircle } from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import AlertTriangle from "@hugeicons/core-free-icons/Alert01Icon";
+import BrushCleaning from "@hugeicons/core-free-icons/BrushCleaningIcon";
+import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -83,7 +87,7 @@ const BrowserStatusBar: React.FC<BrowserStatusBarProps> = memo(
             >
               {errorCount > 0 && (
                 <span className={`flex items-center gap-1 ${itemTextClass}`}>
-                  <XCircle size={13} />
+                  <HugeiconsIcon icon={XCircle} size={13} />
                   <StatusBarLabel emphasis numeric>
                     {errorCount}
                   </StatusBarLabel>
@@ -91,7 +95,7 @@ const BrowserStatusBar: React.FC<BrowserStatusBarProps> = memo(
               )}
               {warningCount > 0 && (
                 <span className={`flex items-center gap-1 ${itemTextClass}`}>
-                  <AlertTriangle size={13} />
+                  <HugeiconsIcon icon={AlertTriangle} size={13} />
                   <StatusBarLabel emphasis numeric>
                     {warningCount}
                   </StatusBarLabel>
@@ -127,7 +131,7 @@ const BrowserStatusBar: React.FC<BrowserStatusBarProps> = memo(
               title={clearLabel}
               className="text-text-2"
             >
-              <BrushCleaning size={13} />
+              <HugeiconsIcon icon={BrushCleaning} size={13} />
             </StatusBarButton>
           )}
           <StatusBarButton
@@ -135,7 +139,7 @@ const BrowserStatusBar: React.FC<BrowserStatusBarProps> = memo(
             onClick={onSendSelectedElementToChat}
             title={sendLabel}
           >
-            <Plus size={13} />
+            <HugeiconsIcon icon={Plus} size={13} />
             <span>{sendLabel}</span>
           </StatusBarButton>
         </div>

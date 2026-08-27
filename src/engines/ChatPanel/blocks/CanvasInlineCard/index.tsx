@@ -17,7 +17,8 @@
  *   - url: not embedded to avoid iframe memory overhead
  *   - a2ui: DOMPurify sanitizes type="html" elements in A2UIRenderer
  */
-import { Layout } from "lucide-react";
+import Layout from "@hugeicons/core-free-icons/Layout01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -161,7 +162,9 @@ const CanvasInlineCard: React.FC<CanvasInlineCardProps> = ({
         withHover
       >
         <EventBlockHeaderIcon
-          icon={<Layout size={14} className="text-primary-6" />}
+          icon={
+            <HugeiconsIcon icon={Layout} size={14} className="text-primary-6" />
+          }
           isCollapsed={isCollapsed}
           isHeaderHovered={isHeaderHovered}
           onToggle={handleHeaderClick}

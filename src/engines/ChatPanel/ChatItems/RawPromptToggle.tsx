@@ -15,8 +15,9 @@
  * session-level transcript action (`SessionHeaderActionsMenu`), and this is the
  * same idea one turn down.
  */
+import Braces from "@hugeicons/core-free-icons/FirstBracketIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
-import { Braces } from "lucide-react";
 import React, { memo, useCallback, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -173,7 +174,7 @@ const RawPromptToggleComponent: React.FC<RawPromptToggleProps> = ({
         }`}
         onClick={handleClick}
       >
-        <Braces size={14} strokeWidth={1.75} />
+        <HugeiconsIcon icon={Braces} size={14} strokeWidth={1.75} />
       </button>
 
       {isOpen &&

@@ -16,8 +16,9 @@
  *     Historical missing/unknown values resolve to Build. The creator default
  *     is never consulted for an existing session.
  */
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { X } from "lucide-react";
 import React, { memo, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -257,7 +258,7 @@ const ModePill: React.FC<ModePillProps> = memo(
           onClick={handleTriggerClick}
           hoverIcon={
             resetToDefaultOnClick && mode !== DEFAULT_AGENT_EXEC_MODE ? (
-              <X size={14} strokeWidth={1.75} />
+              <HugeiconsIcon icon={X} size={14} strokeWidth={1.75} />
             ) : undefined
           }
           className={toneClassName}

@@ -21,7 +21,8 @@
  * 14px other icons). The `+` dropdown panel uses the compact dropdown
  * tokens so the popup matches the rest of the settings panel.
  */
-import { Plus } from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useState } from "react";
 
 import Dropdown from "@src/components/Dropdown";
@@ -158,7 +159,11 @@ const CompactPlusDropdown: React.FC<CompactPlusDropdownProps> = ({
           aria-expanded={open}
           active={open}
         >
-          <Plus size={HEADER_ICON_SIZE.md} strokeWidth={2} />
+          <HugeiconsIcon
+            icon={Plus}
+            size={HEADER_ICON_SIZE.md}
+            strokeWidth={2}
+          />
         </TabBarTrailingIconButton>
       </span>
     </Dropdown>
@@ -194,7 +199,11 @@ const SettingsHeaderActions: React.FC = () => {
             onClick={onPlusClick}
             aria-label={plusTitle}
           >
-            <Plus size={HEADER_ICON_SIZE.md} strokeWidth={2} />
+            <HugeiconsIcon
+              icon={Plus}
+              size={HEADER_ICON_SIZE.md}
+              strokeWidth={2}
+            />
           </TabBarTrailingIconButton>
         ))}
     </>

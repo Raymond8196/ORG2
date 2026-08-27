@@ -17,7 +17,11 @@
  * <Select mode="multiple" showSearch options={options} onChange={handleChange} />
  * ```
  */
-import { ChevronDown, Loader2, Search, X } from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   forwardRef,
   useCallback,
@@ -254,7 +258,8 @@ const Select = forwardRef<HTMLDivElement, SelectProps>(
             {visibleTags.map((opt) => (
               <span key={opt.value} className="select-tag">
                 {opt.label}
-                <X
+                <HugeiconsIcon
+                  icon={X}
                   size={DROPDOWN_ITEM.iconSize}
                   onClick={(event) => {
                     event.stopPropagation();
@@ -374,19 +379,22 @@ const Select = forwardRef<HTMLDivElement, SelectProps>(
             {renderValue()}
             <div className="select-suffix">
               {loading && (
-                <Loader2
+                <HugeiconsIcon
+                  icon={Loader2}
                   size={SPINNER_TOKENS.default}
                   className="animate-spin"
                 />
               )}
               {showClearButton && !loading && (
-                <X
+                <HugeiconsIcon
+                  icon={X}
                   size={DROPDOWN_ITEM.iconSize}
                   className="select-clear cursor-pointer"
                   onClick={handleClear}
                 />
               )}
-              <ChevronDown
+              <HugeiconsIcon
+                icon={ChevronDown}
                 size={appearance === "ghost" ? 12 : 16}
                 className={`select-arrow shrink-0 transition-transform ${
                   appearance === "ghost" ? "text-text-3" : ""
@@ -405,7 +413,8 @@ const Select = forwardRef<HTMLDivElement, SelectProps>(
             >
               {showSearch && (
                 <div className={DROPDOWN_CLASSES.searchContainer}>
-                  <Search
+                  <HugeiconsIcon
+                    icon={Search}
                     size={DROPDOWN_ITEM.iconSize}
                     className="shrink-0 text-text-3"
                   />

@@ -1,12 +1,11 @@
-import {
-  Box,
-  Columns3,
-  Gauge,
-  Github,
-  Inbox,
-  Plus,
-  SquarePen,
-} from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import Gauge from "@hugeicons/core-free-icons/GaugeIcon";
+import Github from "@hugeicons/core-free-icons/GithubIcon";
+import Inbox from "@hugeicons/core-free-icons/InboxIcon";
+import Columns3 from "@hugeicons/core-free-icons/LayoutThreeColumnIcon";
+import Box from "@hugeicons/core-free-icons/PackageIcon";
+import SquarePen from "@hugeicons/core-free-icons/Pen01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";

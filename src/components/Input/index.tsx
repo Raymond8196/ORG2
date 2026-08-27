@@ -22,7 +22,10 @@
  * <Input errorMessage="Name already exists" errorPlacement="left" />
  * ```
  */
-import { Eye, EyeOff, X } from "lucide-react";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Eye from "@hugeicons/core-free-icons/ViewIcon";
+import EyeOff from "@hugeicons/core-free-icons/ViewOffIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { forwardRef, useCallback, useState } from "react";
 
 import type { FieldAppearance } from "@src/components/controlAppearance";
@@ -327,7 +330,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               onClick={handleClear}
               tabIndex={-1}
             >
-              <X size={16} />
+              <HugeiconsIcon icon={X} size={16} />
             </button>
           )}
 
@@ -338,7 +341,11 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               onClick={togglePasswordVisibility}
               tabIndex={-1}
             >
-              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              {showPassword ? (
+                <HugeiconsIcon icon={EyeOff} size={16} />
+              ) : (
+                <HugeiconsIcon icon={Eye} size={16} />
+              )}
             </button>
           )}
 

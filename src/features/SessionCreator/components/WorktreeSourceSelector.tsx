@@ -1,4 +1,9 @@
-import { Cloud, Folder, GitBranch, GitPullRequest, Hash } from "lucide-react";
+import Cloud from "@hugeicons/core-free-icons/CloudIcon";
+import Folder from "@hugeicons/core-free-icons/Folder01Icon";
+import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
+import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import Hash from "@hugeicons/core-free-icons/HashtagIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
   useEffect,

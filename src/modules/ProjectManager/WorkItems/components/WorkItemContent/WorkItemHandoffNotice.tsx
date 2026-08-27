@@ -1,4 +1,8 @@
-import { ArrowLeft, Check, Clock3, UserRoundCheck } from "lucide-react";
+import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import Clock3 from "@hugeicons/core-free-icons/Clock03Icon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import UserRoundCheck from "@hugeicons/core-free-icons/UserRoundCheckIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -33,11 +37,11 @@ const WorkItemHandoffNotice: React.FC<WorkItemHandoffNoticeProps> = ({
 
   const icon =
     handoff.status === "accepted" ? (
-      <UserRoundCheck size={16} aria-hidden />
+      <HugeiconsIcon icon={UserRoundCheck} size={16} aria-hidden />
     ) : handoff.status === "returned" ? (
-      <ArrowLeft size={16} aria-hidden />
+      <HugeiconsIcon icon={ArrowLeft} size={16} aria-hidden />
     ) : (
-      <Clock3 size={16} aria-hidden />
+      <HugeiconsIcon icon={Clock3} size={16} aria-hidden />
     );
   const title =
     handoff.status === "accepted"
@@ -105,7 +109,7 @@ const WorkItemHandoffNotice: React.FC<WorkItemHandoffNoticeProps> = ({
             <Button
               variant="primary"
               size="mini"
-              icon={<Check size={14} aria-hidden />}
+              icon={<HugeiconsIcon icon={Check} size={14} aria-hidden />}
               onClick={onAccept}
               loading={responding === "accept"}
               disabled={responding != null}

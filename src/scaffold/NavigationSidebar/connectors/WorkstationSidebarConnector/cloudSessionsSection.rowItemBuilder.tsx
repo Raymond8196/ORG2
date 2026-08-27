@@ -5,9 +5,14 @@
  * overflow menu with copy-url/remove). Split out because it is the single
  * largest piece of that section's row-construction logic.
  */
+import GitFork from "@hugeicons/core-free-icons/GitForkIcon";
+import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import Pin from "@hugeicons/core-free-icons/PinIcon";
+import PinOff from "@hugeicons/core-free-icons/PinOffIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import { useAtomValue } from "jotai";
-import { GitFork, Loader2, MoreHorizontal, Pin, PinOff } from "lucide-react";
 import { useCallback } from "react";
 
 import Message from "@src/components/Message";
@@ -70,7 +75,8 @@ const RowBusyIndicator: React.FC<{
           {percent}%
         </span>
       )}
-      <Loader2
+      <HugeiconsIcon
+        icon={Loader2}
         aria-hidden="true"
         className="size-3.5 animate-spin text-text-3"
       />
@@ -223,7 +229,8 @@ export function useCloudSessionRowItemBuilder({
         row.id
       );
       const pinIndicator = isPinned ? (
-        <Pin
+        <HugeiconsIcon
+          icon={Pin}
           size={11}
           strokeWidth={2}
           className="shrink-0 text-text-3"

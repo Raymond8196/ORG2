@@ -1,37 +1,36 @@
-import {
-  Activity,
-  Archive,
-  ArchiveRestore,
-  ArrowRightLeft,
-  Bell,
-  BellOff,
-  CheckCircle2,
-  CircleDot,
-  CopyCheck,
-  CopyX,
-  Eye,
-  Flag,
-  GitBranch,
-  GitCommitHorizontal,
-  GitCompareArrows,
-  GitMerge,
-  GitPullRequest,
-  Link2,
-  Lock,
-  MessageSquare,
-  MessagesSquare,
-  Pencil,
-  Pin,
-  PinOff,
-  Rocket,
-  ShieldBan,
-  SquareKanban,
-  Tag as TagIcon,
-  Unlink2,
-  Unlock,
-  UserMinus,
-  UserPlus,
-} from "lucide-react";
+import Activity from "@hugeicons/core-free-icons/Activity01Icon";
+import ArchiveRestore from "@hugeicons/core-free-icons/ArchiveArrowUpIcon";
+import Archive from "@hugeicons/core-free-icons/ArchiveIcon";
+import ArrowRightLeft from "@hugeicons/core-free-icons/ArrowLeftRightIcon";
+import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
+import CopyX from "@hugeicons/core-free-icons/Copy01Icon";
+import CopyCheck from "@hugeicons/core-free-icons/Copy02Icon";
+import Flag from "@hugeicons/core-free-icons/Flag01Icon";
+import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
+import GitCommitHorizontal from "@hugeicons/core-free-icons/GitCommitIcon";
+import GitCompareArrows from "@hugeicons/core-free-icons/GitCompareIcon";
+import GitMerge from "@hugeicons/core-free-icons/GitMergeIcon";
+import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import SquareKanban from "@hugeicons/core-free-icons/KanbanIcon";
+import Link2 from "@hugeicons/core-free-icons/Link02Icon";
+import Lock from "@hugeicons/core-free-icons/LockIcon";
+import MessageSquare from "@hugeicons/core-free-icons/Message01Icon";
+import MessagesSquare from "@hugeicons/core-free-icons/MessageMultiple01Icon";
+import Bell from "@hugeicons/core-free-icons/Notification01Icon";
+import BellOff from "@hugeicons/core-free-icons/NotificationOff01Icon";
+import Pencil from "@hugeicons/core-free-icons/PencilIcon";
+import Pin from "@hugeicons/core-free-icons/PinIcon";
+import PinOff from "@hugeicons/core-free-icons/PinOffIcon";
+import Rocket from "@hugeicons/core-free-icons/RocketIcon";
+import ShieldBan from "@hugeicons/core-free-icons/SecurityBlockIcon";
+import Unlock from "@hugeicons/core-free-icons/SquareUnlock01Icon";
+import TagIcon from "@hugeicons/core-free-icons/Tag01Icon";
+import Unlink2 from "@hugeicons/core-free-icons/Unlink02Icon";
+import UserPlus from "@hugeicons/core-free-icons/UserAdd01Icon";
+import UserMinus from "@hugeicons/core-free-icons/UserMinus01Icon";
+import Eye from "@hugeicons/core-free-icons/ViewIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -104,86 +103,86 @@ function getSourceStateClassName(state: string): string {
 function TimelineEventIcon({ event }: { event: string }): React.ReactNode {
   switch (event) {
     case "assigned":
-      return <UserPlus {...EVENT_ICON_PROPS} />;
+      return <HugeiconsIcon icon={UserPlus} {...EVENT_ICON_PROPS} />;
     case "unassigned":
-      return <UserMinus {...EVENT_ICON_PROPS} />;
+      return <HugeiconsIcon icon={UserMinus} {...EVENT_ICON_PROPS} />;
     case "labeled":
     case "unlabeled":
-      return <TagIcon {...EVENT_ICON_PROPS} />;
+      return <HugeiconsIcon icon={TagIcon} {...EVENT_ICON_PROPS} />;
     case "milestoned":
     case "demilestoned":
-      return <Flag {...EVENT_ICON_PROPS} />;
+      return <HugeiconsIcon icon={Flag} {...EVENT_ICON_PROPS} />;
     case "closed":
-      return <CheckCircle2 {...EVENT_ICON_PROPS} />;
+      return <HugeiconsIcon icon={CheckCircle2} {...EVENT_ICON_PROPS} />;
     case "reopened":
-      return <CircleDot {...EVENT_ICON_PROPS} />;
+      return <HugeiconsIcon icon={CircleDot} {...EVENT_ICON_PROPS} />;
     case "renamed":
-      return <Pencil {...EVENT_ICON_PROPS} />;
+      return <HugeiconsIcon icon={Pencil} {...EVENT_ICON_PROPS} />;
     case "locked":
-      return <Lock {...EVENT_ICON_PROPS} />;
+      return <HugeiconsIcon icon={Lock} {...EVENT_ICON_PROPS} />;
     case "unlocked":
-      return <Unlock {...EVENT_ICON_PROPS} />;
+      return <HugeiconsIcon icon={Unlock} {...EVENT_ICON_PROPS} />;
     case "cross-referenced":
-      return <GitPullRequest {...EVENT_ICON_PROPS} />;
+      return <HugeiconsIcon icon={GitPullRequest} {...EVENT_ICON_PROPS} />;
     case "referenced":
-      return <GitCommitHorizontal {...EVENT_ICON_PROPS} />;
+      return <HugeiconsIcon icon={GitCommitHorizontal} {...EVENT_ICON_PROPS} />;
     case "connected":
-      return <Link2 {...EVENT_ICON_PROPS} />;
+      return <HugeiconsIcon icon={Link2} {...EVENT_ICON_PROPS} />;
     case "disconnected":
-      return <Unlink2 {...EVENT_ICON_PROPS} />;
+      return <HugeiconsIcon icon={Unlink2} {...EVENT_ICON_PROPS} />;
     case "pinned":
-      return <Pin {...EVENT_ICON_PROPS} />;
+      return <HugeiconsIcon icon={Pin} {...EVENT_ICON_PROPS} />;
     case "unpinned":
-      return <PinOff {...EVENT_ICON_PROPS} />;
+      return <HugeiconsIcon icon={PinOff} {...EVENT_ICON_PROPS} />;
     case "mentioned":
     case "commented":
     case "comment_deleted":
-      return <MessageSquare {...EVENT_ICON_PROPS} />;
+      return <HugeiconsIcon icon={MessageSquare} {...EVENT_ICON_PROPS} />;
     case "marked_as_duplicate":
-      return <CopyCheck {...EVENT_ICON_PROPS} />;
+      return <HugeiconsIcon icon={CopyCheck} {...EVENT_ICON_PROPS} />;
     case "unmarked_as_duplicate":
-      return <CopyX {...EVENT_ICON_PROPS} />;
+      return <HugeiconsIcon icon={CopyX} {...EVENT_ICON_PROPS} />;
     case "transferred":
-      return <ArrowRightLeft {...EVENT_ICON_PROPS} />;
+      return <HugeiconsIcon icon={ArrowRightLeft} {...EVENT_ICON_PROPS} />;
     case "converted_to_discussion":
-      return <MessagesSquare {...EVENT_ICON_PROPS} />;
+      return <HugeiconsIcon icon={MessagesSquare} {...EVENT_ICON_PROPS} />;
     case "subscribed":
-      return <Bell {...EVENT_ICON_PROPS} />;
+      return <HugeiconsIcon icon={Bell} {...EVENT_ICON_PROPS} />;
     case "unsubscribed":
-      return <BellOff {...EVENT_ICON_PROPS} />;
+      return <HugeiconsIcon icon={BellOff} {...EVENT_ICON_PROPS} />;
     case "added_to_project":
     case "moved_columns_in_project":
     case "removed_from_project":
-      return <SquareKanban {...EVENT_ICON_PROPS} />;
+      return <HugeiconsIcon icon={SquareKanban} {...EVENT_ICON_PROPS} />;
     case "archived":
-      return <Archive {...EVENT_ICON_PROPS} />;
+      return <HugeiconsIcon icon={Archive} {...EVENT_ICON_PROPS} />;
     case "unarchived":
-      return <ArchiveRestore {...EVENT_ICON_PROPS} />;
+      return <HugeiconsIcon icon={ArchiveRestore} {...EVENT_ICON_PROPS} />;
     case "merged":
-      return <GitMerge {...EVENT_ICON_PROPS} />;
+      return <HugeiconsIcon icon={GitMerge} {...EVENT_ICON_PROPS} />;
     case "committed":
-      return <GitCommitHorizontal {...EVENT_ICON_PROPS} />;
+      return <HugeiconsIcon icon={GitCommitHorizontal} {...EVENT_ICON_PROPS} />;
     case "head_ref_deleted":
     case "head_ref_restored":
     case "head_ref_force_pushed":
-      return <GitBranch {...EVENT_ICON_PROPS} />;
+      return <HugeiconsIcon icon={GitBranch} {...EVENT_ICON_PROPS} />;
     case "base_ref_changed":
     case "automatic_base_change_failed":
     case "automatic_base_change_succeeded":
-      return <GitCompareArrows {...EVENT_ICON_PROPS} />;
+      return <HugeiconsIcon icon={GitCompareArrows} {...EVENT_ICON_PROPS} />;
     case "deployed":
     case "deployment_environment_changed":
-      return <Rocket {...EVENT_ICON_PROPS} />;
+      return <HugeiconsIcon icon={Rocket} {...EVENT_ICON_PROPS} />;
     case "ready_for_review":
     case "review_requested":
     case "review_request_removed":
     case "reviewed":
     case "review_dismissed":
-      return <Eye {...EVENT_ICON_PROPS} />;
+      return <HugeiconsIcon icon={Eye} {...EVENT_ICON_PROPS} />;
     case "user_blocked":
-      return <ShieldBan {...EVENT_ICON_PROPS} />;
+      return <HugeiconsIcon icon={ShieldBan} {...EVENT_ICON_PROPS} />;
     default:
-      return <Activity {...EVENT_ICON_PROPS} />;
+      return <HugeiconsIcon icon={Activity} {...EVENT_ICON_PROPS} />;
   }
 }
 
@@ -207,13 +206,15 @@ function CrossReferenceLink({
       title={source.title}
     >
       {source.is_pull_request ? (
-        <GitPullRequest
+        <HugeiconsIcon
+          icon={GitPullRequest}
           size={12}
           strokeWidth={1.8}
           className={`shrink-0 ${getSourceStateClassName(source.state)}`}
         />
       ) : (
-        <CircleDot
+        <HugeiconsIcon
+          icon={CircleDot}
           size={12}
           strokeWidth={1.8}
           className={`shrink-0 ${getSourceStateClassName(source.state)}`}

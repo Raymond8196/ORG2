@@ -1,5 +1,9 @@
+import AlertCircle from "@hugeicons/core-free-icons/AlertCircleIcon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import Sparkles from "@hugeicons/core-free-icons/SparklesIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
-import { AlertCircle, Loader2, Sparkles, X } from "lucide-react";
 import React, { memo, useEffect, useMemo, useReducer, useRef } from "react";
 
 import { sessionStepExplain } from "@src/api/services/keyValidation";
@@ -194,11 +198,16 @@ const MiniCPMStepExplanationPanel: React.FC<MiniCPMStepExplanationPanelProps> =
             : "等待步骤";
     const icon =
       status === "loading" ? (
-        <Loader2 size={15} className="animate-spin text-primary-6" />
+        <HugeiconsIcon
+          icon={Loader2}
+          size={15}
+          className="animate-spin text-primary-6"
+        />
       ) : status === "fallback" ? (
-        <AlertCircle size={15} className="text-danger-6" />
+        <HugeiconsIcon icon={AlertCircle} size={15} className="text-danger-6" />
       ) : (
-        <Sparkles
+        <HugeiconsIcon
+          icon={Sparkles}
           size={15}
           className={hasStep ? "text-primary-6" : "text-text-4"}
         />
@@ -221,7 +230,7 @@ const MiniCPMStepExplanationPanel: React.FC<MiniCPMStepExplanationPanelProps> =
             aria-label="关闭 MiniCPM 步骤解析"
             title="关闭 MiniCPM 步骤解析"
           >
-            <X size={14} strokeWidth={1.75} />
+            <HugeiconsIcon icon={X} size={14} strokeWidth={1.75} />
           </button>
         ) : null}
         <div className="flex min-h-[64px] min-w-0 items-start gap-3 px-3.5 py-3 pr-9">

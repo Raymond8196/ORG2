@@ -8,9 +8,10 @@
  * forced-worktree interception, and the launch handler that fans out instead
  * of launching one session.
  */
+import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import { useSetAtom } from "jotai";
-import { ChevronLeft } from "lucide-react";
 import React, { useCallback, useEffect, useMemo } from "react";
 
 import type { DispatchCategory } from "@src/api/tauri/session";
@@ -216,7 +217,12 @@ export function useChatPanelMultiRunner({
               size="small"
               shape="round"
               icon={
-                <ChevronLeft size={16} strokeWidth={1.9} className="block" />
+                <HugeiconsIcon
+                  icon={ChevronLeft}
+                  size={16}
+                  strokeWidth={1.9}
+                  className="block"
+                />
               }
               iconOnly
               title={t("creator.multiRunner.exit")}

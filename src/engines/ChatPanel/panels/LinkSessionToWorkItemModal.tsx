@@ -1,4 +1,7 @@
-import { Link2, Search, X } from "lucide-react";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Link2 from "@hugeicons/core-free-icons/Link02Icon";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -145,7 +148,7 @@ const LinkSessionToWorkItemModal: React.FC<LinkSessionToWorkItemModalProps> = ({
         <div className="flex items-center justify-between gap-3 border-b border-solid border-border-1 px-4 py-3">
           <div className="flex min-w-0 items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-fill-2 text-text-2">
-              <Link2 size={16} />
+              <HugeiconsIcon icon={Link2} size={16} />
             </div>
             <div className="min-w-0">
               <h3 className="m-0 truncate text-[14px] font-semibold text-text-1">
@@ -161,7 +164,7 @@ const LinkSessionToWorkItemModal: React.FC<LinkSessionToWorkItemModalProps> = ({
             appearance="ghost"
             size="small"
             htmlType="button"
-            icon={<X size={15} />}
+            icon={<HugeiconsIcon icon={X} size={15} />}
             onClick={onClose}
             aria-label={t("common:actions.close")}
             data-testid="session-link-work-item-close"
@@ -173,7 +176,7 @@ const LinkSessionToWorkItemModal: React.FC<LinkSessionToWorkItemModalProps> = ({
             value={query}
             onChange={(value) => setQuery(value)}
             placeholder={t("chat.linkWorkItem.searchPlaceholder")}
-            prefix={<Search size={14} />}
+            prefix={<HugeiconsIcon icon={Search} size={14} />}
             data-testid="session-link-work-item-search"
           />
         </div>

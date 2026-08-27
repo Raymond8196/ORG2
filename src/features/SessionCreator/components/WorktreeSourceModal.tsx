@@ -1,4 +1,8 @@
-import { CircleDot, GitBranch, GitPullRequest, Hash } from "lucide-react";
+import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
+import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
+import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import Hash from "@hugeicons/core-free-icons/HashtagIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -62,7 +66,7 @@ function githubPrToItem(pr: OpenPRItem): GitHubWorktreeItem {
   const option = prToWorktreeOption(pr);
   return {
     id: option.id,
-    icon: <GitPullRequest size={14} strokeWidth={1.75} />,
+    icon: <HugeiconsIcon icon={GitPullRequest} size={14} strokeWidth={1.75} />,
     source: option.source,
     detail: option.detail,
     searchableText: option.searchableText,
@@ -78,7 +82,7 @@ function githubIssueToItem(
   const detail = baseBranch ? `Issue - Base: ${baseBranch}` : "Issue";
   return {
     id: `issue:${issue.number}`,
-    icon: <CircleDot size={14} strokeWidth={1.75} />,
+    icon: <HugeiconsIcon icon={CircleDot} size={14} strokeWidth={1.75} />,
     source: {
       kind: "github",
       label,
@@ -136,7 +140,7 @@ const WorktreeSourceModal: React.FC<WorktreeSourceModalProps> = ({
         label: t("creator.worktreeSource.tabs.branch", {
           defaultValue: "Branch",
         }),
-        icon: <GitBranch size={14} strokeWidth={1.75} />,
+        icon: <HugeiconsIcon icon={GitBranch} size={14} strokeWidth={1.75} />,
       },
       {
         id: "github",
@@ -304,7 +308,7 @@ const WorktreeSourceModal: React.FC<WorktreeSourceModalProps> = ({
     if (!offerCustomRef || !customRefSource) return null;
     return (
       <SourceRow
-        icon={<Hash size={14} strokeWidth={1.75} />}
+        icon={<HugeiconsIcon icon={Hash} size={14} strokeWidth={1.75} />}
         title={t("creator.worktreeSource.branchUseAsRef", {
           value: customRefSource.baseBranch ?? "",
           defaultValue: `Use "${customRefSource.baseBranch}" as ref`,

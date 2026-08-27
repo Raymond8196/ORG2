@@ -1,4 +1,6 @@
-import { ArrowLeft, MessageSquare } from "lucide-react";
+import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import MessageSquare from "@hugeicons/core-free-icons/Message01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -29,9 +31,9 @@ export const WorkItemThreadViewAction: React.FC<
       size="mini"
       icon={
         isDiscussion ? (
-          <ArrowLeft size={13} aria-hidden />
+          <HugeiconsIcon icon={ArrowLeft} size={13} aria-hidden />
         ) : (
-          <MessageSquare size={13} aria-hidden />
+          <HugeiconsIcon icon={MessageSquare} size={13} aria-hidden />
         )
       }
       onClick={() => onChange(isDiscussion ? "overview" : "discussion")}

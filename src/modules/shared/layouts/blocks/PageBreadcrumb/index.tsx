@@ -5,8 +5,11 @@
  * When sidebar is collapsed, clicking triggers the floating sidebar.
  * Used in split panel headers.
  */
+import ArrowLeftRight from "@hugeicons/core-free-icons/ArrowLeftRightIcon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { ArrowLeftRight, Check, ChevronRight } from "lucide-react";
 import React, { useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -62,7 +65,11 @@ function getActiveSelectableItem(
 }
 
 const Separator: React.FC = () => (
-  <ChevronRight size={13} className="shrink-0 text-text-3" />
+  <HugeiconsIcon
+    icon={ChevronRight}
+    size={13}
+    className="shrink-0 text-text-3"
+  />
 );
 
 const PageBreadcrumb: React.FC<PageBreadcrumbProps> = ({ className = "" }) => {
@@ -210,7 +217,8 @@ const PageBreadcrumb: React.FC<PageBreadcrumbProps> = ({ className = "" }) => {
                       {item.label}
                     </span>
                     {isSelected ? (
-                      <Check
+                      <HugeiconsIcon
+                        icon={Check}
                         size={DROPDOWN_ITEM.iconSize}
                         className="shrink-0 text-primary-6"
                       />

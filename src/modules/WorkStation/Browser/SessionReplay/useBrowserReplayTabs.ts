@@ -5,8 +5,10 @@
  * their counts, labels, active state, and session handlers.
  * Extracted from SessionReplayBrowser to keep index.tsx under 600 lines.
  */
+import Compass from "@hugeicons/core-free-icons/CompassIcon";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useSetAtom } from "jotai";
-import { Compass, Search } from "lucide-react";
 import {
   createElement,
   useCallback,

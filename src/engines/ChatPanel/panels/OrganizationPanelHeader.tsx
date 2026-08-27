@@ -1,5 +1,7 @@
+import Cloud from "@hugeicons/core-free-icons/CloudIcon";
+import Laptop from "@hugeicons/core-free-icons/LaptopIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { Cloud, Laptop } from "lucide-react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -82,9 +84,9 @@ export function OrganizationPanelHeader({
       label: entry.label,
       icon:
         entry.kind === "cloud" ? (
-          <Cloud size={13} strokeWidth={2} />
+          <HugeiconsIcon icon={Cloud} size={13} strokeWidth={2} />
         ) : (
-          <Laptop size={13} strokeWidth={2} />
+          <HugeiconsIcon icon={Laptop} size={13} strokeWidth={2} />
         ),
       dataTestId: `organization-picker-${entry.kind}-${entry.value}`,
     }));
@@ -95,7 +97,7 @@ export function OrganizationPanelHeader({
       options.unshift({
         value: organization.projectOrg.orgId,
         label: organization.projectOrg.orgName,
-        icon: <Laptop size={13} strokeWidth={2} />,
+        icon: <HugeiconsIcon icon={Laptop} size={13} strokeWidth={2} />,
         dataTestId: `organization-picker-local-${organization.projectOrg.orgId}`,
       });
     }

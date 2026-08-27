@@ -1,6 +1,10 @@
+import ChevronsRight from "@hugeicons/core-free-icons/ArrowRightDoubleIcon";
+import ListChecks from "@hugeicons/core-free-icons/CheckListIcon";
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import Info from "@hugeicons/core-free-icons/InformationCircleIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { emit } from "@tauri-apps/api/event";
 import { useAtomValue, useSetAtom } from "jotai";
-import { ChevronsRight, Info, ListChecks, Trash2 } from "lucide-react";
 import React, {
   useCallback,
   useEffect,
@@ -420,7 +424,7 @@ export const WorkItemPanelView: React.FC<WorkItemPanelViewProps> = ({
               onClick={() => void handleDeleteWorkItem()}
               aria-label={t("projects:workItems.deleteWorkItem")}
               data-testid="work-item-delete"
-              icon={<Trash2 size={HEADER_ICON_SIZE.sm} />}
+              icon={<HugeiconsIcon icon={Trash2} size={HEADER_ICON_SIZE.sm} />}
             />
           </ToolbarTooltip>
         ) : null}
@@ -442,7 +446,7 @@ export const WorkItemPanelView: React.FC<WorkItemPanelViewProps> = ({
             onClick={toggleProperties}
             aria-label={propertiesToggleLabel}
             data-testid="chat-panel-work-item-properties-toggle"
-            icon={<Info size={HEADER_ICON_SIZE.sm} />}
+            icon={<HugeiconsIcon icon={Info} size={HEADER_ICON_SIZE.sm} />}
           />
         </ToolbarTooltip>
       </div>
@@ -472,7 +476,11 @@ export const WorkItemPanelView: React.FC<WorkItemPanelViewProps> = ({
               size={HEADER_ICON_SIZE.sm}
             />
           ) : (
-            <ListChecks size={HEADER_ICON_SIZE.sm} strokeWidth={1.75} />
+            <HugeiconsIcon
+              icon={ListChecks}
+              size={HEADER_ICON_SIZE.sm}
+              strokeWidth={1.75}
+            />
           )
         }
         shortId={selectedWorkItem.shortId}
@@ -529,7 +537,11 @@ export const WorkItemPanelView: React.FC<WorkItemPanelViewProps> = ({
                 aria-label={propertiesToggleLabel}
                 data-testid="chat-panel-work-item-properties-collapse"
               >
-                <ChevronsRight size={14} strokeWidth={1.75} />
+                <HugeiconsIcon
+                  icon={ChevronsRight}
+                  size={14}
+                  strokeWidth={1.75}
+                />
               </WorkstationTrailIconButton>
             </ToolbarTooltip>
           }

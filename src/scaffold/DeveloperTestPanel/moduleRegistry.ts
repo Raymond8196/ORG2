@@ -1,7 +1,10 @@
-import { ListChecks, type LucideIcon } from "lucide-react";
+import ListChecks from "@hugeicons/core-free-icons/CheckListIcon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import type { FC } from "react";
 
 import OnboardingTestModule from "./modules/OnboardingTestModule";
+
+type LucideIcon = IconSvgElement;
 
 export interface DeveloperTestModuleDefinition {
   id: string;

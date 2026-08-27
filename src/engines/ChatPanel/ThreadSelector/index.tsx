@@ -11,7 +11,8 @@
  * - Click to navigate to thread's events
  * - Smooth transitions
  */
-import { ChevronRight } from "lucide-react";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -175,7 +176,11 @@ const ThreadSelector: React.FC<ThreadSelectorProps> = memo(
         {selectedThreadId && selectedDisplayName && selectedThread && (
           <div className="mt-2 flex items-center justify-between rounded-md bg-fill-1 px-2 py-1.5 transition-all duration-200">
             <div className="flex items-center gap-1.5 text-[11px]">
-              <ChevronRight size={12} className="text-primary-6" />
+              <HugeiconsIcon
+                icon={ChevronRight}
+                size={12}
+                className="text-primary-6"
+              />
               <span className="font-medium text-text-1">
                 {selectedDisplayName}
               </span>

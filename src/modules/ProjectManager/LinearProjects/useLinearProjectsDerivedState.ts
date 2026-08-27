@@ -1,4 +1,5 @@
-import { Circle } from "lucide-react";
+import Circle from "@hugeicons/core-free-icons/CircleIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { createElement, useMemo } from "react";
 
 import type {

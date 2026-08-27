@@ -1,4 +1,5 @@
-import { Check } from "lucide-react";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { ReactNode } from "react";
 
 import { getListItemClasses } from "@src/components/ListPanel";
@@ -50,7 +51,8 @@ export function WorktreeSourceRow({
         </span>
       )}
       {selected && (
-        <Check
+        <HugeiconsIcon
+          icon={Check}
           size={14}
           strokeWidth={1.75}
           className="shrink-0 text-primary-6"

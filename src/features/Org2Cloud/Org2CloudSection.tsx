@@ -17,8 +17,10 @@ import {
   SectionContainer,
   SectionRow,
 } from "@/src/modules/shared/layouts/SectionLayout";
+import Pencil from "@hugeicons/core-free-icons/PencilIcon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useStore } from "jotai";
-import { Pencil, RefreshCw } from "lucide-react";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -143,7 +145,8 @@ const Org2CloudSection: React.FC<Org2CloudSectionProps> = ({
       size="default"
       iconOnly
       icon={
-        <RefreshCw
+        <HugeiconsIcon
+          icon={RefreshCw}
           size={14}
           className={isRefreshingDevAuth ? REFRESH_ICON_TOKENS.spin : ""}
         />
@@ -217,7 +220,7 @@ const Org2CloudSection: React.FC<Org2CloudSectionProps> = ({
                 <Button
                   size="default"
                   iconOnly
-                  icon={<Pencil size={14} />}
+                  icon={<HugeiconsIcon icon={Pencil} size={14} />}
                   aria-label={t("cloud.renameDisplayName")}
                   onClick={() =>
                     setRenameDraft(auth.profile?.displayName ?? "")

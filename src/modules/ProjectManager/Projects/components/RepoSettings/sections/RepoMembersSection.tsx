@@ -4,18 +4,17 @@
  *
  * This is the repo-level variant (no Project tab — that lives in WorkItemsSettings).
  */
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
+import Pencil from "@hugeicons/core-free-icons/PencilIcon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import UserPlus from "@hugeicons/core-free-icons/UserAdd01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
-import {
-  Check,
-  ChevronDown,
-  ChevronRight,
-  Minus,
-  Pencil,
-  Plus,
-  RefreshCw,
-  UserPlus,
-  X,
-} from "lucide-react";
 import React, {
   useCallback,
   useEffect,
@@ -144,24 +143,28 @@ const MemberRowItem: React.FC<{
         {editing ? (
           <>
             <Button
-              icon={<Check size={14} />}
+              icon={<HugeiconsIcon icon={Check} size={14} />}
               iconOnly
               onClick={() => {
                 if (inputRef.current) handleSave(inputRef.current.value);
               }}
             />
-            <Button icon={<X size={14} />} iconOnly onClick={handleCancel} />
+            <Button
+              icon={<HugeiconsIcon icon={X} size={14} />}
+              iconOnly
+              onClick={handleCancel}
+            />
           </>
         ) : (
           <>
             <Button
-              icon={<Pencil size={14} />}
+              icon={<HugeiconsIcon icon={Pencil} size={14} />}
               iconOnly
               onClick={handleStartEdit}
             />
             {!isCurrentUser && canClaim && onClaim && (
               <Button
-                icon={<UserPlus size={14} />}
+                icon={<HugeiconsIcon icon={UserPlus} size={14} />}
                 iconOnly
                 onClick={() => onClaim(member)}
                 title={t("settings.claimAsMine")}
@@ -169,7 +172,11 @@ const MemberRowItem: React.FC<{
             )}
             <Button
               icon={
-                variant === "active" ? <Minus size={14} /> : <Plus size={14} />
+                variant === "active" ? (
+                  <HugeiconsIcon icon={Minus} size={14} />
+                ) : (
+                  <HugeiconsIcon icon={Plus} size={14} />
+                )
               }
               iconOnly
               onClick={() => onToggleActive(member.id)}
@@ -359,7 +366,13 @@ const RepoMembersSection: React.FC<RepoMembersSectionProps> = ({
           <div className={SECTION_ACTION_GAP_CLASSES}>
             {onSyncMembers && (
               <Button
-                icon={<RefreshCw size={14} className={syncSpinClass} />}
+                icon={
+                  <HugeiconsIcon
+                    icon={RefreshCw}
+                    size={14}
+                    className={syncSpinClass}
+                  />
+                }
                 iconOnly
                 disabled={syncing}
                 onClick={handleSyncClick}
@@ -369,9 +382,9 @@ const RepoMembersSection: React.FC<RepoMembersSectionProps> = ({
               onClick={() => setExpanded(!expanded)}
               icon={
                 expanded ? (
-                  <ChevronDown size={14} />
+                  <HugeiconsIcon icon={ChevronDown} size={14} />
                 ) : (
-                  <ChevronRight size={14} />
+                  <HugeiconsIcon icon={ChevronRight} size={14} />
                 )
               }
               iconOnly
@@ -419,9 +432,9 @@ const RepoMembersSection: React.FC<RepoMembersSectionProps> = ({
                 onClick={() => setInactiveExpanded(!inactiveExpanded)}
                 icon={
                   inactiveExpanded ? (
-                    <ChevronDown size={14} />
+                    <HugeiconsIcon icon={ChevronDown} size={14} />
                   ) : (
-                    <ChevronRight size={14} />
+                    <HugeiconsIcon icon={ChevronRight} size={14} />
                   )
                 }
                 iconOnly

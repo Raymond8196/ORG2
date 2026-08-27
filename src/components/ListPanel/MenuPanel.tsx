@@ -7,7 +7,7 @@
  *
  * Used by: Integrations, Dev Records, Wallet, Creator Studio, Settings, etc.
  */
-import type { LucideIcon } from "lucide-react";
+import { type IconSvgElement } from "@hugeicons/react";
 import React from "react";
 
 import TabPill from "@src/components/TabPill";
@@ -17,6 +17,8 @@ import {
 } from "@src/modules/shared/layouts/blocks";
 
 import { getListIconClasses, getListItemClasses } from "./tokens";
+
+type LucideIcon = IconSvgElement;
 
 // ── Types ──
 

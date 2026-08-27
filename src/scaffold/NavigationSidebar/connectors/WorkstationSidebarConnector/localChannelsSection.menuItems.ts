@@ -11,8 +11,12 @@
  * row's message surface in a chat-panel tab, and the row takes the ordinary
  * selected state while that tab is active.
  */
+import ArchiveRestore from "@hugeicons/core-free-icons/ArchiveArrowUpIcon";
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import Hash from "@hugeicons/core-free-icons/HashtagIcon";
+import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
-import { ArchiveRestore, Hash, MoreHorizontal, Trash2 } from "lucide-react";
 import type { MouseEvent } from "react";
 
 import type {

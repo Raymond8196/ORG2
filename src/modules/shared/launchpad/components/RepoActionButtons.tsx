@@ -1,13 +1,12 @@
+import Expand from "@hugeicons/core-free-icons/ArrowExpand01Icon";
+import MessageCircle from "@hugeicons/core-free-icons/BubbleChatIcon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
+import FolderSearch from "@hugeicons/core-free-icons/FolderSearchIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { openPath } from "@tauri-apps/plugin-opener";
 import { useSetAtom } from "jotai";
-import {
-  Expand,
-  FolderOpen,
-  FolderSearch,
-  MessageCircle,
-  Trash2,
-  X,
-} from "lucide-react";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -148,7 +147,7 @@ const RepoActionButtons: React.FC<RepoActionButtonsProps> = ({
         size="small"
         shape={shape}
         className="shrink-0"
-        icon={<FolderOpen size={14} />}
+        icon={<HugeiconsIcon icon={FolderOpen} size={14} />}
         onClick={handleSwitch}
         title={t("navigation:launchpad.actions.switchToRepo", {
           defaultValue: "Open",
@@ -166,7 +165,7 @@ const RepoActionButtons: React.FC<RepoActionButtonsProps> = ({
         size="small"
         shape={shape}
         className="shrink-0"
-        icon={<MessageCircle size={14} />}
+        icon={<HugeiconsIcon icon={MessageCircle} size={14} />}
         onClick={handleStartSession}
         title={t("navigation:launchpad.actions.startSession", {
           defaultValue: "Start session",
@@ -185,7 +184,7 @@ const RepoActionButtons: React.FC<RepoActionButtonsProps> = ({
           size="small"
           shape={shape}
           className="shrink-0"
-          icon={<Expand size={14} />}
+          icon={<HugeiconsIcon icon={Expand} size={14} />}
           onClick={handleOpenDetails}
           title={t("navigation:launchpad.actions.openDetails", {
             defaultValue: "Show details",
@@ -205,7 +204,7 @@ const RepoActionButtons: React.FC<RepoActionButtonsProps> = ({
           size="small"
           shape={shape}
           className="shrink-0"
-          icon={<FolderSearch size={14} />}
+          icon={<HugeiconsIcon icon={FolderSearch} size={14} />}
           onClick={handleLocateInFinder}
           title={t(getFileManagerRevealLabelKey())}
           {...secondaryButtonProps}
@@ -220,7 +219,7 @@ const RepoActionButtons: React.FC<RepoActionButtonsProps> = ({
           shape={shape}
           className="shrink-0"
           iconOnly
-          icon={<Trash2 size={14} />}
+          icon={<HugeiconsIcon icon={Trash2} size={14} />}
           onClick={handleRemove}
           title={t("navigation:launchpad.actions.remove", {
             defaultValue: "Remove from ORGII",
@@ -234,7 +233,7 @@ const RepoActionButtons: React.FC<RepoActionButtonsProps> = ({
           shape={shape}
           className="shrink-0"
           iconOnly
-          icon={<X size={14} />}
+          icon={<HugeiconsIcon icon={X} size={14} />}
           onClick={onClear}
           title={t("common:actions.close", { defaultValue: "Close" })}
         />

@@ -1,4 +1,5 @@
-import { MailOpen } from "lucide-react";
+import MailOpen from "@hugeicons/core-free-icons/MailOpen01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -41,7 +42,7 @@ import ChatItemWrap from "./ChatItemWrap";
 
 const GROUP_CHAT_CONTINUATION_WINDOW_MS = 60_000;
 const INBOX_TRANSCRIPT_ICON = (
-  <MailOpen size={SESSION_UI_TOKENS.ICON.SIZE_SM} />
+  <HugeiconsIcon icon={MailOpen} size={SESSION_UI_TOKENS.ICON.SIZE_SM} />
 );
 
 // ============================================

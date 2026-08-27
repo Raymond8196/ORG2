@@ -3,7 +3,12 @@
  *
  * Uses CollapsibleSections for Status / Info / Tools / Resources sections.
  */
-import { Edit, FileText, Loader2, Server, Terminal } from "lucide-react";
+import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import Edit from "@hugeicons/core-free-icons/Edit01Icon";
+import FileText from "@hugeicons/core-free-icons/File02Icon";
+import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import Server from "@hugeicons/core-free-icons/ServerStack01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -110,7 +115,8 @@ const McpServerDetailPanel: React.FC<McpServerDetailPanelProps> = ({
         label: t("mcpPreview.status"),
         value: isConnecting ? (
           <span className="flex items-center gap-1.5">
-            <Loader2
+            <HugeiconsIcon
+              icon={Loader2}
               size={SPINNER_TOKENS.small}
               className="animate-spin text-primary-6"
             />
@@ -179,7 +185,8 @@ const McpServerDetailPanel: React.FC<McpServerDetailPanelProps> = ({
             <div className={STATUS_BAR_TOKENS.container}>
               <span className={STATUS_BAR_TOKENS.label}>
                 {isConnecting ? (
-                  <Loader2
+                  <HugeiconsIcon
+                    icon={Loader2}
                     size={STATUS_ICON_SIZE}
                     className="animate-spin text-primary-6"
                   />
@@ -239,7 +246,8 @@ const McpServerDetailPanel: React.FC<McpServerDetailPanelProps> = ({
                     className="rounded-md bg-fill-1 px-3 py-2"
                   >
                     <div className="flex items-center gap-2 text-sm font-medium text-text-1">
-                      <Terminal
+                      <HugeiconsIcon
+                        icon={Terminal}
                         size={12}
                         className="flex-shrink-0 text-text-3"
                       />
@@ -273,7 +281,8 @@ const McpServerDetailPanel: React.FC<McpServerDetailPanelProps> = ({
                     className="rounded-md bg-fill-1 px-3 py-2"
                   >
                     <div className="flex items-center gap-2 text-sm font-medium text-text-1">
-                      <FileText
+                      <HugeiconsIcon
+                        icon={FileText}
                         size={12}
                         className="flex-shrink-0 text-text-3"
                       />
@@ -303,7 +312,7 @@ const McpServerDetailPanel: React.FC<McpServerDetailPanelProps> = ({
         primaryAction={{
           label: t("common:actions.edit"),
           onClick: () => onEdit(server.name),
-          icon: <Edit size={14} />,
+          icon: <HugeiconsIcon icon={Edit} size={14} />,
           variant: "secondary",
         }}
         secondaryActions={[

@@ -12,13 +12,12 @@
  * Exposes methods via ref:
  * - collapseAll(): Collapse all search result file headers
  */
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ArrowUpRightFromSquare from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import { useAtomValue, useSetAtom } from "jotai";
-import {
-  ArrowUpRightFromSquare,
-  ChevronDown,
-  ChevronRight,
-} from "lucide-react";
 import {
   forwardRef,
   memo,
@@ -315,9 +314,9 @@ export const SearchContent = forwardRef<
             }
           >
             {showReplace ? (
-              <ChevronDown size={14} />
+              <HugeiconsIcon icon={ChevronDown} size={14} />
             ) : (
-              <ChevronRight size={14} />
+              <HugeiconsIcon icon={ChevronRight} size={14} />
             )}
           </button>
 
@@ -383,7 +382,11 @@ export const SearchContent = forwardRef<
                   className={HEADER_BUTTON.actionTreeRow}
                   title={t("tooltips.openInEditorTab")}
                 >
-                  <ArrowUpRightFromSquare size={14} strokeWidth={1.75} />
+                  <HugeiconsIcon
+                    icon={ArrowUpRightFromSquare}
+                    size={14}
+                    strokeWidth={1.75}
+                  />
                 </button>
               )}
             </div>

@@ -1,19 +1,18 @@
+import Clipboard from "@hugeicons/core-free-icons/ClipboardIcon";
+import Braces from "@hugeicons/core-free-icons/FirstBracketIcon";
+import FolderKanban from "@hugeicons/core-free-icons/FolderKanbanIcon";
+import FolderOutput from "@hugeicons/core-free-icons/FolderOutputIcon";
+import Link from "@hugeicons/core-free-icons/Link01Icon";
+import Link2 from "@hugeicons/core-free-icons/Link02Icon";
+import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import BellOff from "@hugeicons/core-free-icons/NotificationOff01Icon";
+import PanelLeft from "@hugeicons/core-free-icons/PanelLeftIcon";
+import PanelRight from "@hugeicons/core-free-icons/PanelRightIcon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import Share2 from "@hugeicons/core-free-icons/Share02Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
-import {
-  BellOff,
-  Braces,
-  Clipboard,
-  FolderKanban,
-  FolderOutput,
-  Link,
-  Link2,
-  MoreHorizontal,
-  PanelLeft,
-  PanelRight,
-  RefreshCw,
-  Search,
-  Share2,
-} from "lucide-react";
 import React from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -167,7 +166,13 @@ export const SessionHeaderActionsMenu: React.FC<
         aria-label={t("common:actions.more")}
         aria-expanded={isHeaderActionsOpen}
         data-testid={triggerTestId}
-        icon={<MoreHorizontal size={HEADER_ICON_SIZE} strokeWidth={2} />}
+        icon={
+          <HugeiconsIcon
+            icon={MoreHorizontal}
+            size={HEADER_ICON_SIZE}
+            strokeWidth={2}
+          />
+        }
       />
       {isHeaderActionsOpen &&
         isHeaderActionsPositioned &&
@@ -188,7 +193,11 @@ export const SessionHeaderActionsMenu: React.FC<
                 className={`${DROPDOWN_CLASSES.item} ${DROPDOWN_CLASSES.itemHover} w-full text-left`}
                 onClick={handleOpenSearch}
               >
-                <Search size={DROPDOWN_ITEM.iconSize} strokeWidth={1.75} />
+                <HugeiconsIcon
+                  icon={Search}
+                  size={DROPDOWN_ITEM.iconSize}
+                  strokeWidth={1.75}
+                />
                 <span className="flex-1 truncate">{t("chat.findInChat")}</span>
               </button>
             )}
@@ -198,7 +207,11 @@ export const SessionHeaderActionsMenu: React.FC<
               onClick={handleReloadFromMenu}
               disabled={!currentSessionId}
             >
-              <RefreshCw size={DROPDOWN_ITEM.iconSize} strokeWidth={1.75} />
+              <HugeiconsIcon
+                icon={RefreshCw}
+                size={DROPDOWN_ITEM.iconSize}
+                strokeWidth={1.75}
+              />
               <span className="flex-1 truncate">
                 {t("common:actions.reload")}
               </span>
@@ -215,9 +228,17 @@ export const SessionHeaderActionsMenu: React.FC<
               }
             >
               {moveToWorkstation ? (
-                <PanelLeft size={DROPDOWN_ITEM.iconSize} strokeWidth={1.75} />
+                <HugeiconsIcon
+                  icon={PanelLeft}
+                  size={DROPDOWN_ITEM.iconSize}
+                  strokeWidth={1.75}
+                />
               ) : (
-                <PanelRight size={DROPDOWN_ITEM.iconSize} strokeWidth={1.75} />
+                <HugeiconsIcon
+                  icon={PanelRight}
+                  size={DROPDOWN_ITEM.iconSize}
+                  strokeWidth={1.75}
+                />
               )}
               <span className="flex-1 truncate">
                 {moveToWorkstation
@@ -237,7 +258,11 @@ export const SessionHeaderActionsMenu: React.FC<
                   onClick={handleCopyEventJson}
                   disabled={eventsLength === 0}
                 >
-                  <Clipboard size={DROPDOWN_ITEM.iconSize} strokeWidth={1.75} />
+                  <HugeiconsIcon
+                    icon={Clipboard}
+                    size={DROPDOWN_ITEM.iconSize}
+                    strokeWidth={1.75}
+                  />
                   <span className="flex-1 truncate">
                     {copyEventJsonLabel === "copied"
                       ? t("chat.copyEventJsonCopied")
@@ -253,7 +278,11 @@ export const SessionHeaderActionsMenu: React.FC<
                   disabled={!currentSessionId}
                   data-testid="view-raw-session-transcript"
                 >
-                  <Braces size={DROPDOWN_ITEM.iconSize} strokeWidth={1.75} />
+                  <HugeiconsIcon
+                    icon={Braces}
+                    size={DROPDOWN_ITEM.iconSize}
+                    strokeWidth={1.75}
+                  />
                   <span className="flex-1 truncate">
                     {t("chat.rawTranscript.menuItem", {
                       defaultValue: "View raw transcript",
@@ -269,7 +298,11 @@ export const SessionHeaderActionsMenu: React.FC<
               disabled={!canTrackAsProject}
               data-testid="session-track-as-project-button"
             >
-              <FolderKanban size={DROPDOWN_ITEM.iconSize} strokeWidth={1.75} />
+              <HugeiconsIcon
+                icon={FolderKanban}
+                size={DROPDOWN_ITEM.iconSize}
+                strokeWidth={1.75}
+              />
               <span className="flex-1 truncate">
                 {t("sessions:chat.trackAsProject.menuItem")}
               </span>
@@ -281,7 +314,11 @@ export const SessionHeaderActionsMenu: React.FC<
               disabled={!currentSessionId}
               data-testid="session-link-work-item-button"
             >
-              <Link2 size={DROPDOWN_ITEM.iconSize} strokeWidth={1.75} />
+              <HugeiconsIcon
+                icon={Link2}
+                size={DROPDOWN_ITEM.iconSize}
+                strokeWidth={1.75}
+              />
               <span className="flex-1 truncate">
                 {t("chat.linkWorkItem.menuItem")}
               </span>
@@ -290,7 +327,11 @@ export const SessionHeaderActionsMenu: React.FC<
               className={`${DROPDOWN_CLASSES.item} w-full justify-between text-left`}
               data-testid="session-notification-mute-row"
             >
-              <BellOff size={DROPDOWN_ITEM.iconSize} strokeWidth={1.75} />
+              <HugeiconsIcon
+                icon={BellOff}
+                size={DROPDOWN_ITEM.iconSize}
+                strokeWidth={1.75}
+              />
               <span className="flex-1 truncate">
                 {t("chat.muteNotifications", {
                   defaultValue: "Mute notifications",
@@ -313,7 +354,11 @@ export const SessionHeaderActionsMenu: React.FC<
                 onClick={handleOpenCloudShareSettings}
                 data-testid="cloud-session-share-settings-button"
               >
-                <Share2 size={DROPDOWN_ITEM.iconSize} strokeWidth={1.75} />
+                <HugeiconsIcon
+                  icon={Share2}
+                  size={DROPDOWN_ITEM.iconSize}
+                  strokeWidth={1.75}
+                />
                 <span className="flex-1 truncate">
                   {t("navigation:cloud.share.menuItem")}
                 </span>
@@ -326,7 +371,11 @@ export const SessionHeaderActionsMenu: React.FC<
                 onClick={handleCopySessionUrl}
                 data-testid="session-copy-url-button"
               >
-                <Link size={DROPDOWN_ITEM.iconSize} strokeWidth={1.75} />
+                <HugeiconsIcon
+                  icon={Link}
+                  size={DROPDOWN_ITEM.iconSize}
+                  strokeWidth={1.75}
+                />
                 <span className="flex-1 truncate">{copyReferenceLabel}</span>
               </button>
             )}
@@ -338,7 +387,8 @@ export const SessionHeaderActionsMenu: React.FC<
                   onClick={handleOpenExportSessionJson}
                   disabled={!activeSessionExists}
                 >
-                  <FolderOutput
+                  <HugeiconsIcon
+                    icon={FolderOutput}
                     size={DROPDOWN_ITEM.iconSize}
                     strokeWidth={1.75}
                   />

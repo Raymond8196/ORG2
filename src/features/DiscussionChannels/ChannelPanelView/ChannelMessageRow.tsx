@@ -21,8 +21,12 @@
  * Edit is inline (`Textarea` + Save / Cancel), the shape the comment plane
  * already uses — no dialog, no separate route.
  */
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import Pencil from "@hugeicons/core-free-icons/PencilIcon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useSetAtom, useStore } from "jotai";
-import { Check, Pencil, Trash2, X } from "lucide-react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -209,7 +213,7 @@ const ChannelMessageRow: React.FC<ChannelMessageRowProps> = ({
               iconOnly
               aria-label={t("cloud.channels.feed.edit")}
               data-testid="channel-message-edit"
-              icon={<Pencil size={12} strokeWidth={2} />}
+              icon={<HugeiconsIcon icon={Pencil} size={12} strokeWidth={2} />}
               onClick={startEditing}
             />
           </Tooltip>
@@ -223,7 +227,7 @@ const ChannelMessageRow: React.FC<ChannelMessageRowProps> = ({
               iconOnly
               aria-label={t("cloud.channels.feed.delete")}
               data-testid="channel-message-delete"
-              icon={<Trash2 size={12} strokeWidth={2} />}
+              icon={<HugeiconsIcon icon={Trash2} size={12} strokeWidth={2} />}
               onClick={() => onDelete?.(message.id)}
             />
           </Tooltip>
@@ -311,7 +315,7 @@ const ChannelMessageRow: React.FC<ChannelMessageRowProps> = ({
                 htmlType="button"
                 variant="tertiary"
                 size="mini"
-                icon={<X size={12} strokeWidth={2} />}
+                icon={<HugeiconsIcon icon={X} size={12} strokeWidth={2} />}
                 data-testid="channel-message-edit-cancel"
                 onClick={() => setEditing(false)}
               >
@@ -322,7 +326,7 @@ const ChannelMessageRow: React.FC<ChannelMessageRowProps> = ({
                 variant="primary"
                 size="mini"
                 disabled={draft.trim().length === 0}
-                icon={<Check size={12} strokeWidth={2} />}
+                icon={<HugeiconsIcon icon={Check} size={12} strokeWidth={2} />}
                 data-testid="channel-message-edit-save"
                 onClick={saveEdit}
               >

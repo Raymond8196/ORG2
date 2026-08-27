@@ -1,4 +1,9 @@
-import { ChevronRight, Folder, GitBranch, Search, Trash2 } from "lucide-react";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import Folder from "@hugeicons/core-free-icons/Folder01Icon";
+import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -168,7 +173,7 @@ function ScopePickerItem({
             onRemove();
           }}
         >
-          <Trash2 size={DROPDOWN_ITEM.iconSize} />
+          <HugeiconsIcon icon={Trash2} size={DROPDOWN_ITEM.iconSize} />
         </IconButton>
       ) : null}
     </div>
@@ -262,7 +267,8 @@ export function SourceControlScopeToolbar({
     >
       {showSearch ? (
         <div className={DROPDOWN_CLASSES.searchContainer}>
-          <Search
+          <HugeiconsIcon
+            icon={Search}
             size={DROPDOWN_ITEM.iconSize}
             className="shrink-0 text-text-3"
           />
@@ -358,7 +364,11 @@ export function SourceControlScopeToolbar({
             {breadcrumbSegments.map((segment, index) => (
               <React.Fragment key={`${segment.label}-${index}`}>
                 {index > 0 ? (
-                  <ChevronRight size={10} className="shrink-0 text-text-4" />
+                  <HugeiconsIcon
+                    icon={ChevronRight}
+                    size={10}
+                    className="shrink-0 text-text-4"
+                  />
                 ) : null}
                 <span
                   className={`truncate ${segment.tone === "primary" ? "min-w-0" : "shrink-0"} ${BREADCRUMB_TONE_CLASS[segment.tone]}`}

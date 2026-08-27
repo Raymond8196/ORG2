@@ -7,8 +7,10 @@
  *
  * Standard: no border, wide padding (px-6), solid panel background.
  */
-import type { LucideIcon } from "lucide-react";
+import { type IconSvgElement } from "@hugeicons/react";
 import React, { memo } from "react";
+
+type LucideIcon = IconSvgElement;
 
 // ============================================
 // Tokens

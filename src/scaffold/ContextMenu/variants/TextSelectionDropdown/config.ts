@@ -4,17 +4,17 @@
  * Configuration for the text selection dropdown that appears
  * when text is selected in terminal, browser, or editor views.
  */
-import {
-  ArrowLeft,
-  ArrowRight,
-  Check,
-  FileCode,
-  History,
-  type LucideIcon,
-  MessageCircleQuestion,
-  Plus,
-  TextQuote,
-} from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ArrowRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import FileCode from "@hugeicons/core-free-icons/FileScriptIcon";
+import MessageCircleQuestion from "@hugeicons/core-free-icons/MessageCircleQuestionMarkIcon";
+import TextQuote from "@hugeicons/core-free-icons/QuoteUpIcon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import History from "@hugeicons/core-free-icons/WorkHistoryIcon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+
+type LucideIcon = IconSvgElement;
 
 // ============================================
 // Types

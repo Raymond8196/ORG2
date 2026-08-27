@@ -1,10 +1,12 @@
 // ============================================
 // NavigationMenu Configuration
 // ============================================
-import type { LucideIcon } from "lucide-react";
+import { type IconSvgElement } from "@hugeicons/react";
 import type { MouseEvent, ReactNode } from "react";
 
 import type { TabDragPillPayload } from "@src/modules/WorkStation/shared/TabBar/tabDragTypes";
+
+type LucideIcon = IconSvgElement;
 
 export interface NavigationMenuRowAction {
   icon?: LucideIcon;

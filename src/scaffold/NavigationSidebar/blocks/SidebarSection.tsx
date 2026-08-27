@@ -25,7 +25,8 @@
  *   <SidebarGroup ... />
  * </SidebarSection>
  */
-import { ChevronLeft } from "lucide-react";
+import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import type { SidebarSectionProps } from "../types";
@@ -60,7 +61,11 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
               className="flex items-center justify-center text-text-1"
               aria-label="Go back"
             >
-              <ChevronLeft className="h-[14px] w-[14px]" strokeWidth={2} />
+              <HugeiconsIcon
+                icon={ChevronLeft}
+                className="h-[14px] w-[14px]"
+                strokeWidth={2}
+              />
             </button>
             <span>{title}</span>
           </div>

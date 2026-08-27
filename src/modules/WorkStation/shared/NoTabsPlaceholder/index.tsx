@@ -7,19 +7,17 @@
  * Usage:
  *   <NoTabsPlaceholder icon="editor" actions={quickActions} />
  */
-import {
-  ChartNoAxesGantt,
-  Code,
-  Database,
-  GitBranch,
-  Globe,
-  Layout,
-  MessageCircle,
-  MessagesSquare,
-  Phone,
-  Power,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import MessageCircle from "@hugeicons/core-free-icons/BubbleChatIcon";
+import ChartNoAxesGantt from "@hugeicons/core-free-icons/ChartNoAxesGanttIcon";
+import Code from "@hugeicons/core-free-icons/CodeIcon";
+import Database from "@hugeicons/core-free-icons/DatabaseIcon";
+import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
+import Globe from "@hugeicons/core-free-icons/GlobeIcon";
+import Layout from "@hugeicons/core-free-icons/Layout01Icon";
+import MessagesSquare from "@hugeicons/core-free-icons/MessageMultiple01Icon";
+import Power from "@hugeicons/core-free-icons/PowerServiceIcon";
+import Phone from "@hugeicons/core-free-icons/SmartPhone01Icon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import {
@@ -30,6 +28,8 @@ import { SURFACE_TOKENS } from "@src/config/surfaceTokens";
 
 import type { QuickAction } from "../QuickActionsPanel/types";
 import { EDITOR_TAB_CANVAS_BG_CLASS } from "../tokens";
+
+type LucideIcon = IconSvgElement;
 
 // ============================================
 // Types

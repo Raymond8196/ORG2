@@ -1,4 +1,5 @@
-import { RefreshCw } from "lucide-react";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
   useEffect,
@@ -323,7 +324,9 @@ export function StartPageQuotaGrid({
             aria-label={t("chat.startPage.quota.refresh")}
             title={t("chat.startPage.quota.refresh")}
             onClick={handleRefreshClick}
-            icon={<RefreshCw size={14} className={spinClass} />}
+            icon={
+              <HugeiconsIcon icon={RefreshCw} size={14} className={spinClass} />
+            }
           >
             {t("chat.startPage.quota.refresh")}
           </Button>

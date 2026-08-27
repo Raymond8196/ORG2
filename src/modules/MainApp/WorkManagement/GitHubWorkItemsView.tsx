@@ -1,11 +1,10 @@
-import {
-  CheckCircle2,
-  CircleDot,
-  CircleSlash,
-  Copy,
-  GitMerge,
-  GitPullRequestDraft,
-} from "lucide-react";
+import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
+import CircleSlash from "@hugeicons/core-free-icons/CircleSlashIcon";
+import Copy from "@hugeicons/core-free-icons/Copy01Icon";
+import GitMerge from "@hugeicons/core-free-icons/GitMergeIcon";
+import GitPullRequestDraft from "@hugeicons/core-free-icons/GitPullRequestDraftIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -281,13 +280,17 @@ export function GitHubWorkItemsView({
                   : t("chat.panels.manageIssues.stateClosed");
           const prStatusIcon =
             item.state === GITHUB_QUERY_STATE.MERGED ? (
-              <GitMerge size={14} strokeWidth={1.8} />
+              <HugeiconsIcon icon={GitMerge} size={14} strokeWidth={1.8} />
             ) : item.rawPr.draft ? (
-              <GitPullRequestDraft size={14} strokeWidth={1.8} />
+              <HugeiconsIcon
+                icon={GitPullRequestDraft}
+                size={14}
+                strokeWidth={1.8}
+              />
             ) : prStatusValue === "open" ? (
-              <CircleDot size={14} strokeWidth={1.8} />
+              <HugeiconsIcon icon={CircleDot} size={14} strokeWidth={1.8} />
             ) : (
-              <CheckCircle2 size={14} strokeWidth={1.8} />
+              <HugeiconsIcon icon={CheckCircle2} size={14} strokeWidth={1.8} />
             );
           const prCiLabel =
             item.rawPr.ci_status === "success"
@@ -335,13 +338,25 @@ export function GitHubWorkItemsView({
                 {
                   value: "open",
                   label: t("chat.panels.manageIssues.stateOpen"),
-                  icon: <CircleDot size={14} strokeWidth={1.8} />,
+                  icon: (
+                    <HugeiconsIcon
+                      icon={CircleDot}
+                      size={14}
+                      strokeWidth={1.8}
+                    />
+                  ),
                   iconColor: "var(--color-success-6)",
                 },
                 {
                   value: "closed",
                   label: t("chat.panels.manageIssues.stateClosed"),
-                  icon: <CheckCircle2 size={14} strokeWidth={1.8} />,
+                  icon: (
+                    <HugeiconsIcon
+                      icon={CheckCircle2}
+                      size={14}
+                      strokeWidth={1.8}
+                    />
+                  ),
                   iconColor: "var(--color-text-3)",
                 },
               ],
@@ -384,7 +399,9 @@ export function GitHubWorkItemsView({
           {
             value: "open",
             label: t("chat.panels.manageIssues.stateOpen"),
-            icon: <CircleDot size={14} strokeWidth={1.8} />,
+            icon: (
+              <HugeiconsIcon icon={CircleDot} size={14} strokeWidth={1.8} />
+            ),
             iconColor: getManagedIssueStatusAccent("open").iconColor,
           },
           {
@@ -392,7 +409,9 @@ export function GitHubWorkItemsView({
             label: t("chat.panels.manageIssues.closeAsCompleted", {
               defaultValue: "Close as completed",
             }),
-            icon: <CheckCircle2 size={14} strokeWidth={1.8} />,
+            icon: (
+              <HugeiconsIcon icon={CheckCircle2} size={14} strokeWidth={1.8} />
+            ),
             iconColor:
               getManagedIssueStatusAccent("closed_completed").iconColor,
           },
@@ -401,7 +420,9 @@ export function GitHubWorkItemsView({
             label: t("chat.panels.manageIssues.closeAsNotPlanned", {
               defaultValue: "Close as not planned",
             }),
-            icon: <CircleSlash size={14} strokeWidth={1.8} />,
+            icon: (
+              <HugeiconsIcon icon={CircleSlash} size={14} strokeWidth={1.8} />
+            ),
             iconColor: "var(--color-text-3)",
           },
           ...(issueStatusValue === "closed_duplicate"
@@ -409,7 +430,9 @@ export function GitHubWorkItemsView({
                 {
                   value: "closed_duplicate" as const,
                   label: t("common:git.issues.composer.closeAsDuplicate"),
-                  icon: <Copy size={14} strokeWidth={1.8} />,
+                  icon: (
+                    <HugeiconsIcon icon={Copy} size={14} strokeWidth={1.8} />
+                  ),
                   iconColor: "var(--color-text-3)",
                 },
               ]

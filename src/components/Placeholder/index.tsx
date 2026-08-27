@@ -14,7 +14,8 @@
  * Use `fillParentHeight` when the placeholder should occupy the full height of a
  * flex or sized parent and keep the message vertically centered.
  */
-import { Loader2 } from "lucide-react";
+import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -298,7 +299,8 @@ const DebouncedLoadingSpinner: React.FC<DebouncedLoadingSpinnerProps> = memo(
       <div className={containerClass} aria-busy="true">
         {showSpinner && (
           <>
-            <Loader2
+            <HugeiconsIcon
+              icon={Loader2}
               size={SPINNER_TOKENS.default}
               className="animate-spin text-text-3"
             />

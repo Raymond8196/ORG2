@@ -7,17 +7,16 @@
  * inline via `GitCommitDetailContent`, which automatically fetches the PR ref
  * when the commit is not local yet.
  */
-import {
-  Check,
-  CheckCircle2,
-  ChevronLeft,
-  CircleDotDashed,
-  Code2,
-  Copy,
-  GitCommitHorizontal,
-  ShieldCheck,
-  XCircle,
-} from "lucide-react";
+import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import CircleDotDashed from "@hugeicons/core-free-icons/CircleDotDashedIcon";
+import Code2 from "@hugeicons/core-free-icons/CodeIcon";
+import Copy from "@hugeicons/core-free-icons/Copy01Icon";
+import GitCommitHorizontal from "@hugeicons/core-free-icons/GitCommitIcon";
+import ShieldCheck from "@hugeicons/core-free-icons/SecurityCheckIcon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -227,7 +226,12 @@ function PrCommitCard({
             <>
               <span aria-hidden>·</span>
               <span className="inline-flex items-center gap-1 text-success-6">
-                <ShieldCheck size={13} strokeWidth={1.9} aria-hidden />
+                <HugeiconsIcon
+                  icon={ShieldCheck}
+                  size={13}
+                  strokeWidth={1.9}
+                  aria-hidden
+                />
                 {t("git.pr.commits.verified", "Verified")}
               </span>
             </>
@@ -242,9 +246,9 @@ function PrCommitCard({
         <ActivityHeaderActionButton
           icon={
             copied ? (
-              <Check size={13} strokeWidth={1.75} />
+              <HugeiconsIcon icon={Check} size={13} strokeWidth={1.75} />
             ) : (
-              <Copy size={13} strokeWidth={1.75} />
+              <HugeiconsIcon icon={Copy} size={13} strokeWidth={1.75} />
             )
           }
           label={
@@ -258,7 +262,7 @@ function PrCommitCard({
           }}
         />
         <ActivityHeaderActionButton
-          icon={<Code2 size={14} strokeWidth={1.75} />}
+          icon={<HugeiconsIcon icon={Code2} size={14} strokeWidth={1.75} />}
           label={t("git.pr.commits.viewDetails", "View commit details")}
           onClick={(event) => {
             event.stopPropagation();
@@ -347,7 +351,9 @@ export const PrCommitsTab: React.FC<PrCommitsTabProps> = ({
             variant="tertiary"
             appearance="ghost"
             size="mini"
-            icon={<ChevronLeft size={14} strokeWidth={2} />}
+            icon={
+              <HugeiconsIcon icon={ChevronLeft} size={14} strokeWidth={2} />
+            }
             onClick={() => updateSelectedCommitSha(null)}
           >
             {t("git.pr.commits.backToList", "All commits")}
@@ -402,7 +408,12 @@ export const PrCommitsTab: React.FC<PrCommitsTabProps> = ({
           <section key={group.key}>
             <div className="flex h-5 items-center gap-2 text-[12px] font-medium text-text-2">
               <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-fill-2 text-text-2">
-                <GitCommitHorizontal size={13} strokeWidth={1.8} aria-hidden />
+                <HugeiconsIcon
+                  icon={GitCommitHorizontal}
+                  size={13}
+                  strokeWidth={1.8}
+                  aria-hidden
+                />
               </span>
               <span>
                 {t("git.pr.commits.onDate", {

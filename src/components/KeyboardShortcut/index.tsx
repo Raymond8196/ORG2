@@ -1,13 +1,12 @@
-import {
-  ArrowBigUp,
-  ArrowDown,
-  ArrowUp,
-  ChevronUp,
-  Command,
-  CornerDownLeft,
-  Delete,
-  Option,
-} from "lucide-react";
+import ArrowDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import CornerDownLeft from "@hugeicons/core-free-icons/ArrowTurnDownIcon";
+import ArrowUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import ChevronUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import ArrowBigUp from "@hugeicons/core-free-icons/ArrowUpBigIcon";
+import Command from "@hugeicons/core-free-icons/CommandIcon";
+import Delete from "@hugeicons/core-free-icons/Delete01Icon";
+import Option from "@hugeicons/core-free-icons/OptionIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { type ReactNode, memo } from "react";
 
 export const KEYBOARD_SHORTCUT_VARIANT = {
@@ -176,13 +175,17 @@ function ModifierKey({
 
   switch (modifier) {
     case "cmd":
-      return <Command {...iconProps} />;
+      return <HugeiconsIcon icon={Command} {...iconProps} />;
     case "shift":
-      return <ArrowBigUp {...iconProps} />;
+      return <HugeiconsIcon icon={ArrowBigUp} {...iconProps} />;
     case "option":
-      return <Option {...iconProps} />;
+      return <HugeiconsIcon icon={Option} {...iconProps} />;
     case "ctrl":
-      return IS_MAC ? <ChevronUp {...iconProps} /> : <span>Ctrl</span>;
+      return IS_MAC ? (
+        <HugeiconsIcon icon={ChevronUp} {...iconProps} />
+      ) : (
+        <span>Ctrl</span>
+      );
   }
 }
 
@@ -197,13 +200,13 @@ function SpecialKey({
 
   switch (special) {
     case "arrowUp":
-      return <ArrowUp {...iconProps} />;
+      return <HugeiconsIcon icon={ArrowUp} {...iconProps} />;
     case "arrowDown":
-      return <ArrowDown {...iconProps} />;
+      return <HugeiconsIcon icon={ArrowDown} {...iconProps} />;
     case "enter":
-      return <CornerDownLeft {...iconProps} />;
+      return <HugeiconsIcon icon={CornerDownLeft} {...iconProps} />;
     case "backspace":
-      return <Delete {...iconProps} />;
+      return <HugeiconsIcon icon={Delete} {...iconProps} />;
     case "esc":
       return <span className="leading-none">esc</span>;
     case "tab":

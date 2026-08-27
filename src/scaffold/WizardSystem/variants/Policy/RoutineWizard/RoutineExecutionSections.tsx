@@ -1,4 +1,6 @@
-import { FolderGit2, Grip } from "lucide-react";
+import Grip from "@hugeicons/core-free-icons/Drag01Icon";
+import FolderGit2 from "@hugeicons/core-free-icons/FolderGitTwoIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -69,7 +71,13 @@ const RoutineExecutionSections: React.FC<RoutineExecutionSectionsProps> = ({
               active={isWorkspacePaletteOpen}
               size="default"
               style={SECTION_CONTROL_STYLE}
-              prefix={<FolderGit2 size={16} className="text-text-2" />}
+              prefix={
+                <HugeiconsIcon
+                  icon={FolderGit2}
+                  size={16}
+                  className="text-text-2"
+                />
+              }
               dataTestId="routine-wizard-workspace-trigger"
               ariaLabel={t("routineFields.workspacePath")}
             />
@@ -106,7 +114,7 @@ const RoutineExecutionSections: React.FC<RoutineExecutionSectionsProps> = ({
               draft.modelType ? (
                 <ModelIcon agentType={draft.modelType} size={16} />
               ) : (
-                <Grip size={16} className="text-text-2" />
+                <HugeiconsIcon icon={Grip} size={16} className="text-text-2" />
               )
             }
             dataTestId="routine-wizard-model-trigger"

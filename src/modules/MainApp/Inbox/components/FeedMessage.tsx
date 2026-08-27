@@ -7,12 +7,11 @@
  * - Promotions: show action button
  * - Work items: show project/work-item metadata
  */
-import {
-  ChevronDown,
-  ChevronRight,
-  Loader2,
-  SquareArrowOutUpRight,
-} from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useState } from "react";
 
 import Button from "@src/components/Button";
@@ -141,7 +140,9 @@ const FeedMessage: React.FC<FeedMessageProps> = ({
                     onClick={() =>
                       window.open(message.metadata?.actionUrl, "_blank")
                     }
-                    icon={<SquareArrowOutUpRight size={12} />}
+                    icon={
+                      <HugeiconsIcon icon={SquareArrowOutUpRight} size={12} />
+                    }
                   >
                     View Offer
                   </Button>
@@ -176,7 +177,8 @@ const CommitFilesBlock: React.FC<{ messageId: string }> = ({ messageId }) => {
   if (filesLoading && commitFiles.length === 0) {
     return (
       <div className="mt-2 flex items-center gap-2 text-[13px] text-text-3">
-        <Loader2
+        <HugeiconsIcon
+          icon={Loader2}
           size={SPINNER_TOKENS.default + 2}
           className="animate-spin text-text-3"
         />

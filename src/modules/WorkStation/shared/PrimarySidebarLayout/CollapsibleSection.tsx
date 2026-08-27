@@ -7,7 +7,9 @@
  *
  * Shared by: CodeEditor, DatabaseManager, Browser
  */
-import { ChevronDown, ChevronRight } from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback } from "react";
 
 import {
@@ -147,9 +149,17 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = memo(
                 className={`${BUTTON_SIZE.sm} flex flex-shrink-0 items-center justify-center`}
               >
                 {effectiveCollapsed ? (
-                  <ChevronRight size={14} className="text-text-3" />
+                  <HugeiconsIcon
+                    icon={ChevronRight}
+                    size={14}
+                    className="text-text-3"
+                  />
                 ) : (
-                  <ChevronDown size={14} className="text-text-3" />
+                  <HugeiconsIcon
+                    icon={ChevronDown}
+                    size={14}
+                    className="text-text-3"
+                  />
                 )}
               </span>
             )}

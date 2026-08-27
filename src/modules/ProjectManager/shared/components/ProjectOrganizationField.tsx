@@ -1,4 +1,5 @@
-import { Network } from "lucide-react";
+import Network from "@hugeicons/core-free-icons/AiNetworkIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { type FC, useEffect, useMemo, useState } from "react";
 
 import { DROPDOWN_ITEM } from "@src/components/Dropdown/tokens";
@@ -39,7 +40,9 @@ const ProjectOrganizationField: FC<ProjectOrganizationFieldProps> = ({
   dataTestId,
 }) => {
   const [open, setOpen] = useState(false);
-  const networkIcon = <Network size={DROPDOWN_ITEM.iconSize} />;
+  const networkIcon = (
+    <HugeiconsIcon icon={Network} size={DROPDOWN_ITEM.iconSize} />
+  );
 
   useEffect(() => {
     if (!open) return;

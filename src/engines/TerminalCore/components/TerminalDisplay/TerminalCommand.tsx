@@ -14,7 +14,8 @@
  * - Consistent styling across all contexts
  * - Optional inline stop button (right-aligned)
  */
-import { Square } from "lucide-react";
+import Square from "@hugeicons/core-free-icons/SquareIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import { useSyntaxHighlight } from "@src/hooks/code";
@@ -112,7 +113,12 @@ export const TerminalCommand: React.FC<TerminalCommandProps> = memo(
             title={stopAction.tooltip}
             className="terminal-command__stop"
           >
-            <Square size={10} fill="currentColor" strokeWidth={0} />
+            <HugeiconsIcon
+              icon={Square}
+              size={10}
+              fill="currentColor"
+              strokeWidth={0}
+            />
           </button>
         )}
       </div>

@@ -28,7 +28,8 @@
  * </Breadcrumb>
  * ```
  */
-import { ChevronRight } from "lucide-react";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { Children, ReactNode, isValidElement } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -148,7 +149,12 @@ const Breadcrumb: React.FC<BreadcrumbProps> & {
     separator !== undefined ? (
       separator
     ) : (
-      <ChevronRight size={14} strokeWidth={1.75} className="text-fill-4" />
+      <HugeiconsIcon
+        icon={ChevronRight}
+        size={14}
+        strokeWidth={1.75}
+        className="text-fill-4"
+      />
     );
 
   // If using items prop (backward compatible)

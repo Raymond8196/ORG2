@@ -1,5 +1,6 @@
+import BookOpen from "@hugeicons/core-free-icons/BookOpen01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
-import { BookOpen } from "lucide-react";
 import React, {
   useCallback,
   useEffect,
@@ -344,7 +345,12 @@ export function useInlineCreateWorkItemFields({
       resolvedProjects.map((project) => ({
         value: project.id,
         label: project.name,
-        icon: <BookOpen size={CREATE_WORK_ITEM_BREADCRUMB_ICON_SIZE} />,
+        icon: (
+          <HugeiconsIcon
+            icon={BookOpen}
+            size={CREATE_WORK_ITEM_BREADCRUMB_ICON_SIZE}
+          />
+        ),
         iconColor: project.color,
       })),
     [resolvedProjects]

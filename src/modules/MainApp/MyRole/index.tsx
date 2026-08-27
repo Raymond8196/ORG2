@@ -13,8 +13,13 @@
  * drill-down. This module is a full-width detail panel and has no
  * sub-tabs — the single visible heading is "My Roles".
  */
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import Circle from "@hugeicons/core-free-icons/CircleIcon";
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import HatGlasses from "@hugeicons/core-free-icons/HatGlassesIcon";
+import Moon from "@hugeicons/core-free-icons/MoonIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { Circle, HatGlasses, Moon, Plus, Trash2 } from "lucide-react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -529,7 +534,7 @@ const MyRolePage: React.FC = () => {
                           variant="tertiary"
                           size="small"
                           iconOnly
-                          icon={<Trash2 size={14} />}
+                          icon={<HugeiconsIcon icon={Trash2} size={14} />}
                           onClick={() => void handleDeleteRole(role)}
                           aria-label={t("myRole.deleteRoleOk", {
                             defaultValue: "Delete",
@@ -574,7 +579,7 @@ const MyRolePage: React.FC = () => {
               <Button
                 variant="secondary"
                 size="default"
-                icon={<Plus size={14} />}
+                icon={<HugeiconsIcon icon={Plus} size={14} />}
                 onClick={handleAddRole}
               >
                 {t("myRole.addRole", { defaultValue: "Add custom role" })}

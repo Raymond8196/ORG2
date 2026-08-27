@@ -3,14 +3,14 @@
  *
  * App settings sections. Labels use i18n keys under settings.sections.
  */
-import {
-  ChevronRight,
-  type LucideIcon,
-  SquareArrowOutUpRight,
-} from "lucide-react";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import { createElement } from "react";
 
 import { getSettingsSectionsByTab } from "@src/config/settingsUiManifest";
+
+type LucideIcon = IconSvgElement;
 
 export interface SettingsSectionConfig {
   id: string;

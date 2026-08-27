@@ -11,19 +11,17 @@
  * request a session (the Browser host is pre-mounted via `visitedModes`
  * seeding) instead of adding a `mainPane` tab.
  */
+import ListTodo from "@hugeicons/core-free-icons/CheckListIcon";
+import FileDiff from "@hugeicons/core-free-icons/FileDiffIcon";
+import FileSearch from "@hugeicons/core-free-icons/FileSearchIcon";
+import Folder from "@hugeicons/core-free-icons/Folder01Icon";
+import Globe from "@hugeicons/core-free-icons/GlobeIcon";
+import LayoutGrid from "@hugeicons/core-free-icons/LayoutGridIcon";
+import Box from "@hugeicons/core-free-icons/PackageIcon";
+import ShieldOff from "@hugeicons/core-free-icons/Shield02Icon";
+import SquareTerminal from "@hugeicons/core-free-icons/SquareTerminalIcon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import { useSetAtom } from "jotai";
-import {
-  Box,
-  FileDiff,
-  FileSearch,
-  Folder,
-  Globe,
-  LayoutGrid,
-  ListTodo,
-  type LucideIcon,
-  ShieldOff,
-  SquareTerminal,
-} from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -44,6 +42,8 @@ import {
   workstationLayoutAtom,
 } from "@src/store/workstation";
 import type { WorkStationTab } from "@src/store/workstation/tabs";
+
+type LucideIcon = IconSvgElement;
 
 export type WorkStationLaunchActionId =
   | "searchFile"

@@ -12,7 +12,11 @@
  * `useSessionRawTranscript` is called with `enabled = isRaw`, so a session that
  * never opens Raw pays neither the transcript load nor the JSON serialization.
  */
-import { Braces, FileDiff, GanttChart, MessagesSquare } from "lucide-react";
+import GanttChart from "@hugeicons/core-free-icons/ChartGanttIcon";
+import FileDiff from "@hugeicons/core-free-icons/FileDiffIcon";
+import Braces from "@hugeicons/core-free-icons/FirstBracketIcon";
+import MessagesSquare from "@hugeicons/core-free-icons/MessageMultiple01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 

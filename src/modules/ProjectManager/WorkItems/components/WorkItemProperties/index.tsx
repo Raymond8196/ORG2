@@ -1,4 +1,5 @@
-import { ListChevronsUpDown } from "lucide-react";
+import ListChevronsUpDown from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
   useEffect,
@@ -381,7 +382,12 @@ const WorkItemProperties: React.FC<WorkItemPropertiesProps> = ({
               size="small"
               shape="circle"
               iconOnly
-              icon={<ListChevronsUpDown size={DROPDOWN_ITEM.iconSize} />}
+              icon={
+                <HugeiconsIcon
+                  icon={ListChevronsUpDown}
+                  size={DROPDOWN_ITEM.iconSize}
+                />
+              }
               onClick={handleMoreClick}
               aria-label={t("workItems.contextMenu.moreProperties")}
               className={`!h-7 !w-7 !min-w-7 !rounded-full !border !border-solid !border-border-2 !p-0 !text-text-2 ${pillControlStateClass(Boolean(moreMenuPosition))}`}

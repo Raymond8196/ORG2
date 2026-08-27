@@ -1,4 +1,5 @@
-import { Info } from "lucide-react";
+import Info from "@hugeicons/core-free-icons/InformationCircleIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useTranslation } from "react-i18next";
 
 import Tooltip from "@src/components/Tooltip";
@@ -20,7 +21,7 @@ export function CustomBaseUrlInfoIcon() {
       mouseEnterDelay={200}
     >
       <span className="inline-flex shrink-0 cursor-help text-text-3 hover:text-text-2">
-        <Info size={14} />
+        <HugeiconsIcon icon={Info} size={14} />
       </span>
     </Tooltip>
   );

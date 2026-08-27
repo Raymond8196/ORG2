@@ -1,7 +1,8 @@
 /**
  * Reusable key-value pair table editor for MCP wizard (env vars, headers).
  */
-import { Trash2 } from "lucide-react";
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 
 import Button from "@src/components/Button";
@@ -97,7 +98,13 @@ export const KvTableEditor: React.FC<KvTableEditorProps> = ({
           <Button
             variant="secondary"
             size="default"
-            icon={<Trash2 size={14} className="text-danger-6" />}
+            icon={
+              <HugeiconsIcon
+                icon={Trash2}
+                size={14}
+                className="text-danger-6"
+              />
+            }
             iconOnly
             onClick={() => onRemove(row.id)}
           />

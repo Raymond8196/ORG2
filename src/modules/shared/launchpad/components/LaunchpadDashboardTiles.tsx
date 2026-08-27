@@ -7,7 +7,8 @@
  *
  * Extracted from LaunchpadDashboard.tsx to keep it under 600 lines.
  */
-import { Plus } from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useLayoutEffect, useRef, useState } from "react";
 
 import { CollapsibleSection } from "@src/modules/shared/layouts/blocks";
@@ -181,7 +182,12 @@ export const LaunchpadAddTile: React.FC<LaunchpadAddTileProps> = memo(
     >
       <div className={LAUNCHPAD_TILE_ICON_CLASS}>
         <span className="flex h-8 w-8 items-center justify-center rounded-full bg-bg-1">
-          <Plus size={18} strokeWidth={1.75} className="text-text-3" />
+          <HugeiconsIcon
+            icon={Plus}
+            size={18}
+            strokeWidth={1.75}
+            className="text-text-3"
+          />
         </span>
       </div>
       <span className={LAUNCHPAD_TILE_LABEL_CLASS}>{label}</span>

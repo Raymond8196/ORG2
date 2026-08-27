@@ -9,7 +9,10 @@
  *
  * Each pill shows icon + numeric count only. gap-1 between pills.
  */
-import { BrushCleaning, Layout, Plus } from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import BrushCleaning from "@hugeicons/core-free-icons/BrushCleaningIcon";
+import Layout from "@hugeicons/core-free-icons/Layout01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useState } from "react";
 
 import Button from "@src/components/Button";
@@ -102,7 +105,7 @@ const CollapsedInlineRow: React.FC<CollapsedInlineRowProps> = memo(
                 appearance="outline"
                 size="small"
                 shape="round"
-                icon={<Plus size={13} strokeWidth={2} />}
+                icon={<HugeiconsIcon icon={Plus} size={13} strokeWidth={2} />}
                 onClick={scrollNav!.onAddToConversation}
                 aria-label={scrollNav!.addToConversationTooltipLabel}
                 data-testid="browser-add-to-conversation-pill"
@@ -115,7 +118,13 @@ const CollapsedInlineRow: React.FC<CollapsedInlineRowProps> = memo(
                 appearance="outline"
                 size="small"
                 shape="round"
-                icon={<BrushCleaning size={13} strokeWidth={2} />}
+                icon={
+                  <HugeiconsIcon
+                    icon={BrushCleaning}
+                    size={13}
+                    strokeWidth={2}
+                  />
+                }
                 iconOnly
                 onClick={scrollNav!.onCancelAddToConversation}
                 aria-label={scrollNav!.cancelAddToConversationLabel}
@@ -182,7 +191,7 @@ const CollapsedInlineRow: React.FC<CollapsedInlineRowProps> = memo(
             appearance="outline"
             size="small"
             shape="round"
-            icon={<Layout size={13} strokeWidth={2} />}
+            icon={<HugeiconsIcon icon={Layout} size={13} strokeWidth={2} />}
             onClick={canvasPreview.onOpen}
             aria-label={canvasPreview.label}
             className={PILL_CONTROL_IDLE_SURFACE_CLASS}

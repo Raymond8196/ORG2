@@ -10,16 +10,15 @@
  * stops asking once every check has reported, and opening the menu forces a
  * fresh read.
  */
-import {
-  CheckCircle2,
-  CircleDashed,
-  CircleSlash,
-  GitPullRequest,
-  Loader,
-  RefreshCw,
-  SquareArrowOutUpRight,
-  XCircle,
-} from "lucide-react";
+import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import CircleDashed from "@hugeicons/core-free-icons/CircleIcon";
+import CircleSlash from "@hugeicons/core-free-icons/CircleSlashIcon";
+import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import Loader from "@hugeicons/core-free-icons/Loading01Icon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -72,7 +71,8 @@ function CheckStateIcon({
   switch (state) {
     case "success":
       return (
-        <CheckCircle2
+        <HugeiconsIcon
+          icon={CheckCircle2}
           size={size}
           strokeWidth={1.9}
           className="text-success-6"
@@ -80,11 +80,17 @@ function CheckStateIcon({
       );
     case "failure":
       return (
-        <XCircle size={size} strokeWidth={1.9} className="text-danger-6" />
+        <HugeiconsIcon
+          icon={XCircle}
+          size={size}
+          strokeWidth={1.9}
+          className="text-danger-6"
+        />
       );
     case "pending":
       return (
-        <Loader
+        <HugeiconsIcon
+          icon={Loader}
           size={size}
           strokeWidth={1.9}
           className="animate-spin text-warning-6"
@@ -92,7 +98,12 @@ function CheckStateIcon({
       );
     default:
       return (
-        <CircleSlash size={size} strokeWidth={1.9} className="text-text-3" />
+        <HugeiconsIcon
+          icon={CircleSlash}
+          size={size}
+          strokeWidth={1.9}
+          className="text-text-3"
+        />
       );
   }
 }
@@ -108,7 +119,12 @@ function BranchCiIcon({ status }: { status: BranchCiStatus }): React.ReactNode {
       return <CheckStateIcon state="pending" size={13} />;
     default:
       return (
-        <CircleDashed size={13} strokeWidth={1.9} className="text-text-3" />
+        <HugeiconsIcon
+          icon={CircleDashed}
+          size={13}
+          strokeWidth={1.9}
+          className="text-text-3"
+        />
       );
   }
 }
@@ -165,7 +181,7 @@ const CheckRow: React.FC<CheckRowProps> = memo(({ item, onOpenDetails }) => {
               onOpenDetails(item.detailsUrl as string);
             }}
           >
-            <SquareArrowOutUpRight size={MENU_ICON_SIZE} />
+            <HugeiconsIcon icon={SquareArrowOutUpRight} size={MENU_ICON_SIZE} />
           </button>
         )}
       </div>
@@ -325,7 +341,8 @@ export const CiStatusMenu: React.FC<CiStatusMenuProps> = memo(
                   DROPDOWN_ITEM.fontSizeClass
                 )}
               >
-                <GitPullRequest
+                <HugeiconsIcon
+                  icon={GitPullRequest}
                   size={MENU_ICON_SIZE}
                   className="shrink-0 text-text-3"
                 />
@@ -345,7 +362,8 @@ export const CiStatusMenu: React.FC<CiStatusMenuProps> = memo(
                   aria-label={t("workstation.ci.refresh")}
                   onClick={refresh}
                 >
-                  <RefreshCw
+                  <HugeiconsIcon
+                    icon={RefreshCw}
                     size={MENU_ICON_SIZE}
                     className={classNames(refreshing && "animate-spin")}
                   />

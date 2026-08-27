@@ -11,8 +11,11 @@
  * `targetRepoPath`, so one ORGII workspace can import into multiple repos
  * without collapsing them into a single import destination.
  */
+import Code2 from "@hugeicons/core-free-icons/CodeIcon";
+import ShieldAlert from "@hugeicons/core-free-icons/Shield01Icon";
+import User from "@hugeicons/core-free-icons/UserIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { invoke } from "@tauri-apps/api/core";
-import { Code2, ShieldAlert, User } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -427,7 +430,7 @@ export function useExternalImport({
                     }
                   )}
                 >
-                  <ShieldAlert size={12} aria-hidden />
+                  <HugeiconsIcon icon={ShieldAlert} size={12} aria-hidden />
                   <span>
                     {t("agentOrgs.externalImport.readonlyDowngradedBadge")}
                   </span>

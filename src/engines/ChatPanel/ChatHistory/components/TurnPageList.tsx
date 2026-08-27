@@ -4,8 +4,11 @@
  * Absolute-overlay list of all turn pages shown when the round selector
  * dropdown is open. Each row is `#N` + preview text + start/end clock range.
  */
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import ClockArrowDown from "@hugeicons/core-free-icons/Time02Icon";
+import ClockArrowUp from "@hugeicons/core-free-icons/Time02Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { ClockArrowDown, ClockArrowUp, X } from "lucide-react";
 import React, { memo, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -119,9 +122,17 @@ const TurnPageList: React.FC<TurnPageListProps> = memo(
                     onClick={onToggleSort}
                   >
                     {turnPageSortAscending ? (
-                      <ClockArrowDown size={14} strokeWidth={1.75} />
+                      <HugeiconsIcon
+                        icon={ClockArrowDown}
+                        size={14}
+                        strokeWidth={1.75}
+                      />
                     ) : (
-                      <ClockArrowUp size={14} strokeWidth={1.75} />
+                      <HugeiconsIcon
+                        icon={ClockArrowUp}
+                        size={14}
+                        strokeWidth={1.75}
+                      />
                     )}
                   </TabBarTrailingIconButton>
                 )}
@@ -130,7 +141,7 @@ const TurnPageList: React.FC<TurnPageListProps> = memo(
                   tooltipPosition="bottom-end"
                   onClick={onClose}
                 >
-                  <X size={14} strokeWidth={1.75} />
+                  <HugeiconsIcon icon={X} size={14} strokeWidth={1.75} />
                 </TabBarTrailingIconButton>
               </div>
             )}

@@ -4,7 +4,8 @@
  * Composes useEntries, useFloatingPortalPosition, useKeyboard, FlyoutSubmenu,
  * and the individual MenuRow components into the full slash command experience.
  */
-import { Search } from "lucide-react";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
   useEffect,
@@ -291,7 +292,8 @@ const SlashCommandMenu: React.FC<SlashCommandPortalProps> = ({
             className={DROPDOWN_CLASSES.searchContainer}
             data-testid="slash-command-search"
           >
-            <Search
+            <HugeiconsIcon
+              icon={Search}
               size={DROPDOWN_ITEM.iconSize}
               className="shrink-0 text-text-3"
             />

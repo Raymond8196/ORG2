@@ -1,4 +1,5 @@
-import { TerminalSquare } from "lucide-react";
+import TerminalSquare from "@hugeicons/core-free-icons/SquareTerminalIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -211,7 +212,9 @@ const SessionContinueCliHeaderExtras: React.FC<
           onClick={() => void handleContinue()}
           aria-label={continueLabel}
           data-testid="session-continue-cli-button"
-          icon={<TerminalSquare size={14} strokeWidth={2} />}
+          icon={
+            <HugeiconsIcon icon={TerminalSquare} size={14} strokeWidth={2} />
+          }
         />
       </span>
     </Tooltip>

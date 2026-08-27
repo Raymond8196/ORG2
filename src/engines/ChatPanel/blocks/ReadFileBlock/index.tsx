@@ -6,7 +6,8 @@
  * compact row shape as attempted edits instead of rendering a separate red
  * error row.
  */
-import { Briefcase } from "lucide-react";
+import Briefcase from "@hugeicons/core-free-icons/Briefcase01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 
 import FileTypeIcon from "@src/components/FileTypeIcon";
@@ -80,7 +81,8 @@ export const ReadFileBlock: React.FC<ReadFileBlockProps> = (props) => {
   const toolIcon = useMemo(
     () =>
       isSkill ? (
-        <Briefcase
+        <HugeiconsIcon
+          icon={Briefcase}
           size={SESSION_UI_TOKENS.ICON.SIZE_SM}
           className="text-text-2"
         />

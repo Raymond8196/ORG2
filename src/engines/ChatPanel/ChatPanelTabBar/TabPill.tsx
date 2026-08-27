@@ -7,24 +7,23 @@
  */
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import ListChecks from "@hugeicons/core-free-icons/CheckListIcon";
+import ListTodo from "@hugeicons/core-free-icons/CheckListIcon";
+import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
+import Gauge from "@hugeicons/core-free-icons/GaugeIcon";
+import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import Hash from "@hugeicons/core-free-icons/HashtagIcon";
+import Inbox from "@hugeicons/core-free-icons/InboxIcon";
+import Info from "@hugeicons/core-free-icons/InformationCircleIcon";
+import LayoutGrid from "@hugeicons/core-free-icons/LayoutGridIcon";
+import Columns3 from "@hugeicons/core-free-icons/LayoutThreeColumnIcon";
+import Lock from "@hugeicons/core-free-icons/LockIcon";
+import MessageSquarePlus from "@hugeicons/core-free-icons/MessageAdd01Icon";
+import Box from "@hugeicons/core-free-icons/PackageIcon";
+import Settings2 from "@hugeicons/core-free-icons/Settings02Icon";
+import TerminalSquare from "@hugeicons/core-free-icons/SquareTerminalIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
-import {
-  Box,
-  CircleDot,
-  Columns3,
-  Gauge,
-  GitPullRequest,
-  Hash,
-  Inbox,
-  Info,
-  LayoutGrid,
-  ListChecks,
-  ListTodo,
-  Lock,
-  MessageSquarePlus,
-  Settings2,
-  TerminalSquare,
-} from "lucide-react";
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -155,7 +154,8 @@ export const TabPill = memo(function TabPill({
   let icon: React.ReactNode;
   if (tab.type === "terminal") {
     icon = (
-      <TerminalSquare
+      <HugeiconsIcon
+        icon={TerminalSquare}
         size={16}
         strokeWidth={1.75}
         className={`shrink-0 ${iconColorClass}`}
@@ -164,7 +164,8 @@ export const TabPill = memo(function TabPill({
   } else if (tab.type === "start-page") {
     if (createTarget === CHAT_PANEL_CREATE_TARGET.PROJECT) {
       icon = (
-        <Box
+        <HugeiconsIcon
+          icon={Box}
           size={16}
           strokeWidth={1.75}
           className={`shrink-0 ${iconColorClass}`}
@@ -172,7 +173,8 @@ export const TabPill = memo(function TabPill({
       );
     } else if (createTarget === CHAT_PANEL_CREATE_TARGET.WORK_ITEM) {
       icon = (
-        <ListChecks
+        <HugeiconsIcon
+          icon={ListChecks}
           size={16}
           strokeWidth={1.75}
           className={`shrink-0 ${iconColorClass}`}
@@ -190,7 +192,8 @@ export const TabPill = memo(function TabPill({
       );
     } else {
       icon = (
-        <LayoutGrid
+        <HugeiconsIcon
+          icon={LayoutGrid}
           size={16}
           strokeWidth={1.75}
           className={`shrink-0 ${iconColorClass}`}
@@ -199,7 +202,8 @@ export const TabPill = memo(function TabPill({
     }
   } else if (tab.type === "runtime") {
     icon = (
-      <Gauge
+      <HugeiconsIcon
+        icon={Gauge}
         size={16}
         strokeWidth={1.75}
         className={`shrink-0 ${iconColorClass}`}
@@ -207,7 +211,8 @@ export const TabPill = memo(function TabPill({
     );
   } else if (tab.type === "team-inbox") {
     icon = (
-      <Inbox
+      <HugeiconsIcon
+        icon={Inbox}
         size={16}
         strokeWidth={1.75}
         className={`shrink-0 ${iconColorClass}`}
@@ -228,7 +233,8 @@ export const TabPill = memo(function TabPill({
     );
   } else if (tab.type === "workspace") {
     icon = (
-      <Info
+      <HugeiconsIcon
+        icon={Info}
         size={16}
         strokeWidth={1.75}
         className={`shrink-0 ${iconColorClass}`}
@@ -236,7 +242,8 @@ export const TabPill = memo(function TabPill({
     );
   } else if (tab.type === "organization") {
     icon = (
-      <Settings2
+      <HugeiconsIcon
+        icon={Settings2}
         size={16}
         strokeWidth={1.75}
         className={`shrink-0 ${iconColorClass}`}
@@ -254,7 +261,8 @@ export const TabPill = memo(function TabPill({
     });
   } else if (tab.type === "github-issue") {
     icon = (
-      <CircleDot
+      <HugeiconsIcon
+        icon={CircleDot}
         size={16}
         strokeWidth={1.75}
         className={`shrink-0 ${iconColorClass}`}
@@ -262,7 +270,8 @@ export const TabPill = memo(function TabPill({
     );
   } else if (tab.type === "github-pr") {
     icon = (
-      <GitPullRequest
+      <HugeiconsIcon
+        icon={GitPullRequest}
         size={16}
         strokeWidth={1.75}
         className={`shrink-0 ${iconColorClass}`}
@@ -289,7 +298,8 @@ export const TabPill = memo(function TabPill({
     );
   } else if (tab.type === "project") {
     icon = (
-      <Box
+      <HugeiconsIcon
+        icon={Box}
         size={16}
         strokeWidth={1.75}
         className={`shrink-0 ${iconColorClass}`}
@@ -297,7 +307,8 @@ export const TabPill = memo(function TabPill({
     );
   } else if (tab.type === "work-item") {
     icon = (
-      <ListChecks
+      <HugeiconsIcon
+        icon={ListChecks}
         size={16}
         strokeWidth={1.75}
         className={`shrink-0 ${iconColorClass}`}
@@ -313,7 +324,8 @@ export const TabPill = memo(function TabPill({
     );
   } else {
     icon = (
-      <MessageSquarePlus
+      <HugeiconsIcon
+        icon={MessageSquarePlus}
         size={16}
         strokeWidth={1.75}
         className={`shrink-0 ${iconColorClass}`}

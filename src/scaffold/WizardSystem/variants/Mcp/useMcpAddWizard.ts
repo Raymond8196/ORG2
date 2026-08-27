@@ -2,7 +2,10 @@
  * State and handlers for McpAddWizard.
  * Extracted to keep the component under the UI line limit.
  */
-import { Globe, type LucideIcon, Terminal, Zap } from "lucide-react";
+import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import Zap from "@hugeicons/core-free-icons/FlashIcon";
+import Globe from "@hugeicons/core-free-icons/GlobeIcon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import {
   type Dispatch,
   type SetStateAction,
@@ -19,6 +22,8 @@ import type {
 } from "@src/modules/MainApp/AgentOrgs/config/mcp/useMcpServers";
 
 import { type KvRow, kvRowsFromRecord, kvRowsToRecord } from "./KvTableEditor";
+
+type LucideIcon = IconSvgElement;
 
 // ============================================================================
 // Shared constants

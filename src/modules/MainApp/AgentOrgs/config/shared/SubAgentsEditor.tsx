@@ -32,9 +32,11 @@
  * have removed legitimate specialist-as-sub-agent configurations
  * from the picker.
  */
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import { useAtomValue } from "jotai";
-import { Plus, X } from "lucide-react";
 import React, { useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -118,7 +120,7 @@ const AddSubAgentButton: React.FC<AddSubAgentButtonProps> = ({
       <Button
         ref={triggerRef}
         size="default"
-        icon={<Plus size={DROPDOWN_ITEM.iconSize} />}
+        icon={<HugeiconsIcon icon={Plus} size={DROPDOWN_ITEM.iconSize} />}
         data-testid="agent-orgs-subagents-add-button"
         onClick={toggle}
       >
@@ -359,7 +361,7 @@ const SubAgentsEditor: React.FC<SubAgentsEditorProps> = ({
           >
             <SectionRow label={resolveAgentName(ref.agentId)}>
               <Button
-                icon={<X size={DROPDOWN_ITEM.iconSize} />}
+                icon={<HugeiconsIcon icon={X} size={DROPDOWN_ITEM.iconSize} />}
                 iconOnly
                 appearance="ghost"
                 variant="danger"

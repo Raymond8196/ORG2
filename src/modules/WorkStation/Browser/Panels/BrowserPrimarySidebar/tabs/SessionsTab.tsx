@@ -5,7 +5,10 @@
  * Single-line display with favicon and page title.
  */
 import type { BrowserSession } from "@/src/engines/BrowserCore/types";
-import { Filter as FilterIcon, Loader2, X } from "lucide-react";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import FilterIcon from "@hugeicons/core-free-icons/FilterIcon";
+import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -103,7 +106,8 @@ const SessionItem: React.FC<SessionItemProps> = memo(
       >
         {/* Loading indicator */}
         {session.isLoading && (
-          <Loader2
+          <HugeiconsIcon
+            icon={Loader2}
             size={16}
             strokeWidth={1.75}
             className="shrink-0 animate-spin text-primary-6"
@@ -118,7 +122,7 @@ const SessionItem: React.FC<SessionItemProps> = memo(
             onClick={onClose}
             aria-label={t("tooltips.closeSession")}
           >
-            <X size={14} strokeWidth={1.75} />
+            <HugeiconsIcon icon={X} size={14} strokeWidth={1.75} />
           </button>
         </ToolbarTooltip>
       </TreeRowBase>
@@ -171,7 +175,9 @@ export const SessionsTab: React.FC<SessionsTabProps> = memo(
         {showFilter && (
           <div className="flex-shrink-0 px-3 pb-2">
             <Input
-              prefix={<FilterIcon size={14} strokeWidth={1.75} />}
+              prefix={
+                <HugeiconsIcon icon={FilterIcon} size={14} strokeWidth={1.75} />
+              }
               placeholder={t("placeholders.filterByUrl")}
               value={filterQuery}
               onChange={setFilterQuery}

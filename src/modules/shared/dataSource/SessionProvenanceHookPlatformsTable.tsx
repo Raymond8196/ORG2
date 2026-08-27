@@ -1,5 +1,8 @@
+import AlertTriangle from "@hugeicons/core-free-icons/Alert01Icon";
+import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
-import { AlertTriangle, RefreshCw, Terminal } from "lucide-react";
 import React, {
   useCallback,
   useEffect,
@@ -483,7 +486,7 @@ const SessionProvenanceHookPlatformsTable: React.FC = () => {
               variant="secondary"
               size="default"
               loading={refreshing}
-              icon={<RefreshCw size={14} />}
+              icon={<HugeiconsIcon icon={RefreshCw} size={14} />}
               onClick={() => void loadStatuses()}
             >
               {tCommon("actions.refresh")}
@@ -543,7 +546,8 @@ const SessionProvenanceHookPlatformsTable: React.FC = () => {
                       data-testid="session-provenance-codex-approval"
                     >
                       <div className="flex min-w-0 items-start gap-2.5">
-                        <AlertTriangle
+                        <HugeiconsIcon
+                          icon={AlertTriangle}
                           size={16}
                           className="mt-0.5 shrink-0 text-warning-6"
                         />
@@ -569,7 +573,7 @@ const SessionProvenanceHookPlatformsTable: React.FC = () => {
                         <Button
                           variant="primary"
                           size="small"
-                          icon={<Terminal size={14} />}
+                          icon={<HugeiconsIcon icon={Terminal} size={14} />}
                           loading={launchingCodexApproval}
                           onClick={() => void handleReviewCodexHooks()}
                         >

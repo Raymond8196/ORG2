@@ -16,8 +16,9 @@
  * styling unified across products without forcing a single atom shape on
  * every consumer.
  */
+import List from "@hugeicons/core-free-icons/ListViewIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { List } from "lucide-react";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -103,7 +104,7 @@ const SidebarToggleButtonComponent: React.FC<SidebarToggleButtonProps> = ({
           aria-label={label}
           icon={
             stableListIcon ? (
-              <List size={iconSize} strokeWidth={2.25} />
+              <HugeiconsIcon icon={List} size={iconSize} strokeWidth={2.25} />
             ) : (
               <Icon
                 size={iconSize}

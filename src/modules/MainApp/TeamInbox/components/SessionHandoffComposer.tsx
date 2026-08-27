@@ -1,4 +1,7 @@
-import { ArrowRight, CheckSquare, FolderKanban } from "lucide-react";
+import ArrowRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import CheckSquare from "@hugeicons/core-free-icons/CheckmarkSquare01Icon";
+import FolderKanban from "@hugeicons/core-free-icons/FolderKanbanIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -122,14 +125,14 @@ const SessionHandoffComposer: React.FC<SessionHandoffComposerProps> = ({
               {selectedDestination?.sender.name ??
                 t("teamInbox.handoff.chooseDestination")}
             </span>
-            <ArrowRight size={13} aria-hidden />
+            <HugeiconsIcon icon={ArrowRight} size={13} aria-hidden />
             <span className="font-medium text-text-2">
               {recipient?.name ?? t("teamInbox.handoff.chooseRecipient")}
             </span>
             {selectedDestination ? (
               <>
                 <span aria-hidden>·</span>
-                <FolderKanban size={13} aria-hidden />
+                <HugeiconsIcon icon={FolderKanban} size={13} aria-hidden />
                 <span className="truncate">
                   {selectedDestination.kind === "cloud_org"
                     ? t("teamInbox.handoff.cloudDestination", {
@@ -150,7 +153,7 @@ const SessionHandoffComposer: React.FC<SessionHandoffComposerProps> = ({
               {draft.impactSummary ? <span>{draft.impactSummary}</span> : null}
               {draft.todoCount > 0 ? (
                 <span className="inline-flex items-center gap-1">
-                  <CheckSquare size={12} aria-hidden />
+                  <HugeiconsIcon icon={CheckSquare} size={12} aria-hidden />
                   {t("teamInbox.handoff.todoCount", {
                     count: draft.todoCount,
                   })}

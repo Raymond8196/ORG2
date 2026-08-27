@@ -23,7 +23,10 @@
  *     Rust broker is slow to acknowledge, the plaintext leaves React state
  *     the moment the IPC promise rejects/resolves.
  */
-import { KeyRound, Lock, ShieldCheck } from "lucide-react";
+import KeyRound from "@hugeicons/core-free-icons/Key02Icon";
+import Lock from "@hugeicons/core-free-icons/LockIcon";
+import ShieldCheck from "@hugeicons/core-free-icons/SecurityCheckIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
   type FC,
   useCallback,
@@ -61,13 +64,13 @@ function isSecretKind(value: string): value is SecretKind {
 function kindIcon(kind: SecretKind) {
   switch (kind) {
     case "api_key":
-      return <KeyRound size={16} aria-hidden />;
+      return <HugeiconsIcon icon={KeyRound} size={16} aria-hidden />;
     case "oauth_token":
-      return <ShieldCheck size={16} aria-hidden />;
+      return <HugeiconsIcon icon={ShieldCheck} size={16} aria-hidden />;
     case "password":
     case "other":
     default:
-      return <Lock size={16} aria-hidden />;
+      return <HugeiconsIcon icon={Lock} size={16} aria-hidden />;
   }
 }
 
@@ -271,7 +274,8 @@ export const SecretCaptureModal: FC = () => {
     >
       <div className="flex flex-col gap-4">
         <div className="bg-warn-1/10 flex items-start gap-2 rounded-md px-3 py-2 text-xs text-text-2">
-          <ShieldCheck
+          <HugeiconsIcon
+            icon={ShieldCheck}
             size={14}
             className="text-warn-2 mt-[2px] shrink-0"
             aria-hidden

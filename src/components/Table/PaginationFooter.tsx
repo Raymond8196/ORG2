@@ -1,5 +1,7 @@
 import Button from "@/src/components/Button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import Input from "@src/components/Input";
@@ -77,7 +79,7 @@ export const PaginationFooter: React.FC<PaginationFooterProps> = ({
           size="small"
           disabled={!canPreviousPage}
           onClick={() => onPageChange(currentPage - 1)}
-          icon={<ChevronLeft size={16} />}
+          icon={<HugeiconsIcon icon={ChevronLeft} size={16} />}
         />
 
         <span className="table-pagination-info">
@@ -88,7 +90,7 @@ export const PaginationFooter: React.FC<PaginationFooterProps> = ({
           size="small"
           disabled={!canNextPage}
           onClick={() => onPageChange(currentPage + 1)}
-          icon={<ChevronRight size={16} />}
+          icon={<HugeiconsIcon icon={ChevronRight} size={16} />}
         />
 
         {pagination.showQuickJumper && (

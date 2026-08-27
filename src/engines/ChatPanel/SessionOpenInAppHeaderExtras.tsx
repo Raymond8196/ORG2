@@ -1,4 +1,5 @@
-import { SquareArrowOutUpRight } from "lucide-react";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -125,7 +126,13 @@ const SessionOpenInAppHeaderExtras: React.FC<
           onClick={() => void handleOpen()}
           aria-label={openLabel}
           data-testid="session-open-in-app-button"
-          icon={<SquareArrowOutUpRight size={14} strokeWidth={2} />}
+          icon={
+            <HugeiconsIcon
+              icon={SquareArrowOutUpRight}
+              size={14}
+              strokeWidth={2}
+            />
+          }
         />
       </span>
     </Tooltip>

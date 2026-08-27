@@ -12,7 +12,9 @@
  *   2. **Success** — infinity icon, assignment prompt preview when available.
  *   3. **Failed / cancelled** — infinity icon, error body.
  */
-import { Infinity, Square } from "lucide-react";
+import Infinity from "@hugeicons/core-free-icons/Infinity01Icon";
+import Square from "@hugeicons/core-free-icons/SquareIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   memo,
   useCallback,
@@ -174,7 +176,12 @@ const SubagentBlock: React.FC<SubagentBlockProps> = memo(
               {effectiveIsStopping ? (
                 <div className="h-2.5 w-2.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
               ) : (
-                <Square size={10} fill="currentColor" strokeWidth={0} />
+                <HugeiconsIcon
+                  icon={Square}
+                  size={10}
+                  fill="currentColor"
+                  strokeWidth={0}
+                />
               )}
             </button>
           )}

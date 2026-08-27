@@ -1,4 +1,5 @@
-import { UserRound } from "lucide-react";
+import UserRound from "@hugeicons/core-free-icons/UserCircleIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 import {
   DEFAULT_KANBAN_COLUMNS,

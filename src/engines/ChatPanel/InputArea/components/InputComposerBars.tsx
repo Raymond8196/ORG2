@@ -1,4 +1,6 @@
-import { RotateCcw, X } from "lucide-react";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import RotateCcw from "@hugeicons/core-free-icons/RotateLeft01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -206,7 +208,7 @@ export const EditComposerBar: React.FC<EditComposerBarProps> = ({
               shape="circle"
               iconOnly
               htmlType="button"
-              icon={<X size={13} strokeWidth={2} />}
+              icon={<HugeiconsIcon icon={X} size={13} strokeWidth={2} />}
               aria-label={t("common:actions.cancel")}
               className="enabled:hover:bg-fill-3 enabled:hover:text-text-1"
               onClick={onEditCancel}
@@ -237,7 +239,7 @@ export const EditComposerBar: React.FC<EditComposerBarProps> = ({
             size="mini"
             shape="round"
             htmlType="button"
-            icon={<RotateCcw size={13} strokeWidth={2} />}
+            icon={<HugeiconsIcon icon={RotateCcw} size={13} strokeWidth={2} />}
             onClick={() => onSubmit()}
           >
             {t("common:actions.resend")}

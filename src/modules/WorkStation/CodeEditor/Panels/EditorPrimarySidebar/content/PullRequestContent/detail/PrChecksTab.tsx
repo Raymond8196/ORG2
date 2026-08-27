@@ -4,13 +4,12 @@
  * CI status for a PR's head commit: modern check-runs + legacy commit statuses
  * from `github_get_checks`, grouped by outcome with a rolled-up summary line.
  */
-import {
-  CheckCircle2,
-  CircleSlash,
-  Loader,
-  SquareArrowOutUpRight,
-  XCircle,
-} from "lucide-react";
+import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import CircleSlash from "@hugeicons/core-free-icons/CircleSlashIcon";
+import Loader from "@hugeicons/core-free-icons/Loading01Icon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -28,13 +27,26 @@ function StateIcon({ state }: { state: CiCheckState }): React.ReactNode {
   switch (state) {
     case "success":
       return (
-        <CheckCircle2 size={15} strokeWidth={1.9} className="text-success-6" />
+        <HugeiconsIcon
+          icon={CheckCircle2}
+          size={15}
+          strokeWidth={1.9}
+          className="text-success-6"
+        />
       );
     case "failure":
-      return <XCircle size={15} strokeWidth={1.9} className="text-danger-6" />;
+      return (
+        <HugeiconsIcon
+          icon={XCircle}
+          size={15}
+          strokeWidth={1.9}
+          className="text-danger-6"
+        />
+      );
     case "pending":
       return (
-        <Loader
+        <HugeiconsIcon
+          icon={Loader}
           size={15}
           strokeWidth={1.9}
           className="animate-spin text-warning-6"
@@ -42,7 +54,12 @@ function StateIcon({ state }: { state: CiCheckState }): React.ReactNode {
       );
     default:
       return (
-        <CircleSlash size={15} strokeWidth={1.9} className="text-text-3" />
+        <HugeiconsIcon
+          icon={CircleSlash}
+          size={15}
+          strokeWidth={1.9}
+          className="text-text-3"
+        />
       );
   }
 }
@@ -89,7 +106,11 @@ function CheckRow({
           className="shrink-0 text-text-3 hover:text-text-1"
           title={t("git.pr.details", "Details")}
         >
-          <SquareArrowOutUpRight size={13} strokeWidth={1.9} />
+          <HugeiconsIcon
+            icon={SquareArrowOutUpRight}
+            size={13}
+            strokeWidth={1.9}
+          />
         </a>
       ) : null}
     </div>

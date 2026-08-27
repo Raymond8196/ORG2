@@ -4,16 +4,15 @@
  * Pure helper functions that build per-category plus-button dropdown items
  * and route-specific toolbar configurations for useRouteToolbarConfig.
  */
-import {
-  Blocks,
-  CalendarArrowUp,
-  Database,
-  Download,
-  FileText,
-  GitBranch,
-  Key,
-  Unplug,
-} from "lucide-react";
+import Blocks from "@hugeicons/core-free-icons/BlocksIcon";
+import CalendarArrowUp from "@hugeicons/core-free-icons/CalendarArrowUpIcon";
+import Database from "@hugeicons/core-free-icons/DatabaseIcon";
+import Download from "@hugeicons/core-free-icons/Download01Icon";
+import FileText from "@hugeicons/core-free-icons/File02Icon";
+import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
+import Key from "@hugeicons/core-free-icons/Key01Icon";
+import Unplug from "@hugeicons/core-free-icons/UnplugIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 import type {
   AddAction,

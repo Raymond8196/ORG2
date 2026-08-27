@@ -1,4 +1,5 @@
-import { Play } from "lucide-react";
+import Play from "@hugeicons/core-free-icons/PlayIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -197,7 +198,7 @@ export function GroupChatPausedBanner({
               data-testid={resumeButtonTestId}
               disabled={disabled}
               onClick={onResume}
-              icon={<Play size={12} strokeWidth={2} />}
+              icon={<HugeiconsIcon icon={Play} size={12} strokeWidth={2} />}
             >
               {t("groupChat.pausedBanner.resume", {
                 defaultValue: "Resume",

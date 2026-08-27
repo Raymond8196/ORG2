@@ -29,8 +29,9 @@
  * BOTH scopes: the cloud RPC refuses the write anyway (`ORG2_CHANNEL_ARCHIVED`),
  * so the composer and the row actions match the local plane exactly.
  */
+import MessagesSquare from "@hugeicons/core-free-icons/MessageMultiple01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { MessagesSquare } from "lucide-react";
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -161,7 +162,9 @@ const LocalChannelPanel: React.FC<LocalChannelPanelProps> = ({
           variant="empty"
           placement="detail-panel"
           fillParentHeight
-          icon={<MessagesSquare size={32} strokeWidth={1.5} />}
+          icon={
+            <HugeiconsIcon icon={MessagesSquare} size={32} strokeWidth={1.5} />
+          }
           title={t("cloud.channels.feed.missingTitle")}
           subtitle={t("cloud.channels.feed.missingSubtitle")}
         />
@@ -203,7 +206,13 @@ const LocalChannelPanel: React.FC<LocalChannelPanelProps> = ({
             <Placeholder
               variant="empty"
               placement="detail-panel"
-              icon={<MessagesSquare size={32} strokeWidth={1.5} />}
+              icon={
+                <HugeiconsIcon
+                  icon={MessagesSquare}
+                  size={32}
+                  strokeWidth={1.5}
+                />
+              }
               title={t("cloud.channels.feed.emptyTitle", {
                 name: displayName,
               })}
@@ -429,7 +438,13 @@ const CloudChannelPanel: React.FC<CloudChannelPanelProps> = ({
               <Placeholder
                 variant="empty"
                 placement="detail-panel"
-                icon={<MessagesSquare size={32} strokeWidth={1.5} />}
+                icon={
+                  <HugeiconsIcon
+                    icon={MessagesSquare}
+                    size={32}
+                    strokeWidth={1.5}
+                  />
+                }
                 title={
                   gated
                     ? t("cloud.channels.feed.cloudPendingTitle")

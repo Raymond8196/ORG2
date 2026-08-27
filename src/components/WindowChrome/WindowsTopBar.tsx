@@ -1,7 +1,10 @@
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
+import Square from "@hugeicons/core-free-icons/SquareIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { LogicalPosition } from "@tauri-apps/api/dpi";
 import { open } from "@tauri-apps/plugin-shell";
 import type { TFunction } from "i18next";
-import { Minus, Square, X } from "lucide-react";
 import React, { memo, useCallback, useMemo, useSyncExternalStore } from "react";
 
 import { SETUP_WALKTHROUGH_TEST_MENU_EVENT } from "@src/config/keyboard/setupWalkthroughShortcut";
@@ -342,7 +345,7 @@ const WindowsTopBarComponent: React.FC = () => {
           aria-label={t("windowChrome.controls.minimizeWindow")}
           title={t("windowChrome.items.minimize")}
         >
-          <Minus size={ICON_SIZE} strokeWidth={2} />
+          <HugeiconsIcon icon={Minus} size={ICON_SIZE} strokeWidth={2} />
         </button>
         <button
           type="button"
@@ -351,7 +354,7 @@ const WindowsTopBarComponent: React.FC = () => {
           aria-label={t("windowChrome.controls.maximizeRestoreWindow")}
           title={t("windowChrome.items.maximizeRestore")}
         >
-          <Square size={12} strokeWidth={2} />
+          <HugeiconsIcon icon={Square} size={12} strokeWidth={2} />
         </button>
         <button
           type="button"
@@ -360,7 +363,7 @@ const WindowsTopBarComponent: React.FC = () => {
           aria-label={t("windowChrome.controls.closeWindow")}
           title={t("windowChrome.items.closeWindow")}
         >
-          <X size={ICON_SIZE} strokeWidth={2} />
+          <HugeiconsIcon icon={X} size={ICON_SIZE} strokeWidth={2} />
         </button>
       </div>
     </div>

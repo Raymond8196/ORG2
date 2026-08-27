@@ -8,24 +8,24 @@
  * - Labels and icons
  * - Palette mode configurations
  */
-import {
-  Command,
-  File,
-  FolderPlus,
-  FolderTree,
-  GitBranch,
-  GitBranchMinus,
-  GitBranchPlus,
-  GitFork,
-  Grip,
-  Link2Off,
-  Plus,
-  Trash2,
-  Variable,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import Command from "@hugeicons/core-free-icons/CommandIcon";
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import Grip from "@hugeicons/core-free-icons/Drag01Icon";
+import File from "@hugeicons/core-free-icons/File01Icon";
+import FolderPlus from "@hugeicons/core-free-icons/FolderAddIcon";
+import FolderTree from "@hugeicons/core-free-icons/FolderTreeIcon";
+import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
+import GitBranchPlus from "@hugeicons/core-free-icons/GitBranchIcon";
+import GitBranchMinus from "@hugeicons/core-free-icons/GitBranchMinusIcon";
+import GitFork from "@hugeicons/core-free-icons/GitForkIcon";
+import Link2Off from "@hugeicons/core-free-icons/Unlink02Icon";
+import Variable from "@hugeicons/core-free-icons/VariableIcon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
+
+type LucideIcon = IconSvgElement;
 
 // ============ TYPES ============
 

@@ -4,16 +4,15 @@
  * Sidebar PR list using TreeRowBase rows grouped under a collapsible
  * "OPEN" section header (same pattern as IssuesContent).
  */
+import GitMerge from "@hugeicons/core-free-icons/GitMergeIcon";
+import GitPullRequestClosed from "@hugeicons/core-free-icons/GitPullRequestClosedIcon";
+import GitPullRequestDraft from "@hugeicons/core-free-icons/GitPullRequestDraftIcon";
+import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import TriangleAlert from "@hugeicons/core-free-icons/TriangleAlertIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useAtomValue } from "jotai";
-import {
-  GitMerge,
-  GitPullRequest,
-  GitPullRequestClosed,
-  GitPullRequestDraft,
-  Loader2,
-  TriangleAlert,
-} from "lucide-react";
 import React, {
   memo,
   useCallback,
@@ -489,7 +488,8 @@ const PullRequestContent: React.FC<PullRequestContentProps> = ({
             <div
               className={`flex items-center gap-2 ${TYPOGRAPHY.secondary} text-text-3`}
             >
-              <Loader2
+              <HugeiconsIcon
+                icon={Loader2}
                 size={SPINNER_TOKENS.default}
                 className="animate-spin text-text-3"
               />
@@ -507,7 +507,8 @@ const PullRequestContent: React.FC<PullRequestContentProps> = ({
           )}
           {localCreateError && (
             <div className="flex items-start gap-1.5 rounded-md bg-fill-2 px-2 py-1.5">
-              <TriangleAlert
+              <HugeiconsIcon
+                icon={TriangleAlert}
                 size={12}
                 className="mt-0.5 shrink-0 text-warning-6"
               />

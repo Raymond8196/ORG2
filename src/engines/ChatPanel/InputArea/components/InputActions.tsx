@@ -15,8 +15,11 @@
  *   5. Terminal + can resume  → Retry (orange, CLI sessions only)
  *   6. Otherwise              → Submit (arrow up, inactive color, noop)
  */
+import ArrowUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import RotateCcw from "@hugeicons/core-free-icons/RotateLeft01Icon";
+import Square from "@hugeicons/core-free-icons/SquareIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
-import { ArrowUp, RotateCcw, Square } from "lucide-react";
 import React, { memo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -205,18 +208,25 @@ const InputActions: React.FC<InputActionsProps> = memo(
       >
         {showStop && !showSubmit ? (
           canStopAgent ? (
-            <Square size={10} fill="currentColor" strokeWidth={0} />
+            <HugeiconsIcon
+              icon={Square}
+              size={10}
+              fill="currentColor"
+              strokeWidth={0}
+            />
           ) : (
             <div className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent" />
           )
         ) : showRetry ? (
-          <RotateCcw
+          <HugeiconsIcon
+            icon={RotateCcw}
             size={INPUT_AREA_BUTTONS.iconSize}
             strokeWidth={2}
             className="block text-[#fff]"
           />
         ) : (
-          <ArrowUp
+          <HugeiconsIcon
+            icon={ArrowUp}
             size={INPUT_AREA_BUTTONS.iconSize}
             strokeWidth={2}
             className="block text-[#fff]"

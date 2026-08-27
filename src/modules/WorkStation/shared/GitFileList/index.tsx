@@ -11,14 +11,13 @@
  * - VirtualizedStickyTree with sticky directory headers (tree mode)
  * - Hidden scrollbar
  */
-import {
-  ChevronDown,
-  ChevronRight,
-  Filter,
-  List,
-  ListTree,
-  Search as SearchIcon,
-} from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import Filter from "@hugeicons/core-free-icons/FilterIcon";
+import ListTree from "@hugeicons/core-free-icons/HierarchyFilesIcon";
+import List from "@hugeicons/core-free-icons/ListViewIcon";
+import SearchIcon from "@hugeicons/core-free-icons/Search01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -401,12 +400,14 @@ const GitFileList: React.FC<GitFileListProps> = ({
         >
           <div className={STICKY_ROW.chevronBox}>
             {isExpanded ? (
-              <ChevronDown
+              <HugeiconsIcon
+                icon={ChevronDown}
                 size={CHEVRON_SIZE}
                 className={STICKY_ROW.chevronIcon}
               />
             ) : (
-              <ChevronRight
+              <HugeiconsIcon
+                icon={ChevronRight}
                 size={CHEVRON_SIZE}
                 className={STICKY_ROW.chevronIcon}
               />
@@ -453,7 +454,8 @@ const GitFileList: React.FC<GitFileListProps> = ({
                 : t("workstation.filterFilesAction")
             }
           >
-            <Filter
+            <HugeiconsIcon
+              icon={Filter}
               size={14}
               strokeWidth={1.75}
               className={showFilter ? "text-primary-6" : "text-text-3"}
@@ -470,9 +472,19 @@ const GitFileList: React.FC<GitFileListProps> = ({
           }
         >
           {viewMode === "list" ? (
-            <ListTree size={14} strokeWidth={1.75} className="text-text-3" />
+            <HugeiconsIcon
+              icon={ListTree}
+              size={14}
+              strokeWidth={1.75}
+              className="text-text-3"
+            />
           ) : (
-            <List size={14} strokeWidth={1.75} className="text-text-3" />
+            <HugeiconsIcon
+              icon={List}
+              size={14}
+              strokeWidth={1.75}
+              className="text-text-3"
+            />
           )}
         </button>
       </div>
@@ -509,7 +521,13 @@ const GitFileList: React.FC<GitFileListProps> = ({
           {showFilter && (
             <div className="flex-shrink-0 bg-inherit px-3 pb-2">
               <Input
-                prefix={<SearchIcon size={14} strokeWidth={1.75} />}
+                prefix={
+                  <HugeiconsIcon
+                    icon={SearchIcon}
+                    size={14}
+                    strokeWidth={1.75}
+                  />
+                }
                 placeholder={t("placeholders.filterChanges")}
                 value={filterQuery}
                 onChange={setFilterQuery}

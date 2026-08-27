@@ -1,4 +1,5 @@
-import { Search } from "lucide-react";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
   useEffect,
@@ -514,7 +515,13 @@ export function SingleEventPreview({ mode, onModeChange }: ModeControlProps) {
                 placeholder={t("devTools.toolTypeFilterPlaceholder")}
                 size="small"
                 allowClear
-                prefix={<Search size={14} className="text-text-3" />}
+                prefix={
+                  <HugeiconsIcon
+                    icon={Search}
+                    size={14}
+                    className="text-text-3"
+                  />
+                }
                 aria-label={t("devTools.toolTypeFilterPlaceholder")}
               />
             }

@@ -7,9 +7,12 @@
  *
  * Extracted from ChatItemRenderer for modularity.
  */
+import Chrome from "@hugeicons/core-free-icons/ChromeIcon";
+import FileSymlink from "@hugeicons/core-free-icons/FileSymlinkIcon";
+import Globe from "@hugeicons/core-free-icons/GlobeIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import i18next from "i18next";
 import { useAtomValue } from "jotai";
-import { Chrome, FileSymlink, Globe } from "lucide-react";
 import React from "react";
 
 import ToolCallBlock from "@src/engines/ChatPanel/blocks/ToolCallBlock";
@@ -173,21 +176,21 @@ function getStackGroupPresentation(events: SessionEvent[]): {
   const iconCls = "text-text-2";
   if (hasSearch && !hasBrowser && !hasFetch)
     return {
-      icon: <Globe size={14} className={iconCls} />,
+      icon: <HugeiconsIcon icon={Globe} size={14} className={iconCls} />,
       label: i18next.t("sessions:chat.webSearchGroup"),
     };
   if (hasFetch && !hasBrowser && !hasSearch)
     return {
-      icon: <FileSymlink size={14} className={iconCls} />,
+      icon: <HugeiconsIcon icon={FileSymlink} size={14} className={iconCls} />,
       label: i18next.t("sessions:chat.webFetchGroup"),
     };
   if (hasBrowser && !hasSearch && !hasFetch)
     return {
-      icon: <Chrome size={14} className={iconCls} />,
+      icon: <HugeiconsIcon icon={Chrome} size={14} className={iconCls} />,
       label: i18next.t("sessions:chat.browserGroup"),
     };
   return {
-    icon: <Globe size={14} className={iconCls} />,
+    icon: <HugeiconsIcon icon={Globe} size={14} className={iconCls} />,
     label: i18next.t("sessions:chat.webActivityGroup"),
   };
 }

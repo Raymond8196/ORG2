@@ -2,7 +2,8 @@ import type {
   BrowserHistoryEntry,
   BrowserSession,
 } from "@/src/engines/BrowserCore/types";
-import { Clock } from "lucide-react";
+import Clock from "@hugeicons/core-free-icons/Clock01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -128,7 +129,7 @@ const HistorySection: React.FC<HistorySectionProps> = memo(
     return (
       <div className="py-1">
         <div className="flex h-7 items-center gap-2 px-3 text-[11px] font-medium uppercase tracking-wide text-text-3">
-          <Clock size={12} strokeWidth={1.75} />
+          <HugeiconsIcon icon={Clock} size={12} strokeWidth={1.75} />
           <span>{title}</span>
         </div>
         {entries.map((entry) => (

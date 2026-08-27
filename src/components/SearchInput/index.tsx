@@ -11,17 +11,16 @@
  *
  * [chevron] [Search icon] [input] [Aa] [ab] [o*] [book] [↑] [↓]
  */
-import {
-  ArrowDown,
-  ArrowUp,
-  BookOpen,
-  CaseSensitive,
-  ChevronDown,
-  ChevronRight,
-  Regex,
-  WholeWord,
-  X,
-} from "lucide-react";
+import ArrowDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ArrowUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import BookOpen from "@hugeicons/core-free-icons/BookOpen01Icon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import CaseSensitive from "@hugeicons/core-free-icons/TextIcon";
+import Regex from "@hugeicons/core-free-icons/TextIcon";
+import WholeWord from "@hugeicons/core-free-icons/TextIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -212,9 +211,9 @@ export const SearchInput: React.FC<SearchInputProps> = memo(
         {onExpandToggle && !hideChevron && (
           <div onClick={onExpandToggle} className={buttonClass}>
             {expanded ? (
-              <ChevronDown size={iconSize} />
+              <HugeiconsIcon icon={ChevronDown} size={iconSize} />
             ) : (
-              <ChevronRight size={iconSize} />
+              <HugeiconsIcon icon={ChevronRight} size={iconSize} />
             )}
           </div>
         )}
@@ -272,7 +271,7 @@ export const SearchInput: React.FC<SearchInputProps> = memo(
               className="flex shrink-0 items-center justify-center self-center rounded p-0.5 text-text-3 transition-colors hover:text-text-2"
               title={t("tooltips.clearSearch")}
             >
-              <X size={iconSize} />
+              <HugeiconsIcon icon={X} size={iconSize} />
             </button>
           )}
 
@@ -287,7 +286,7 @@ export const SearchInput: React.FC<SearchInputProps> = memo(
               }`}
               title={t("tooltips.matchCase")}
             >
-              <CaseSensitive size={iconSize} />
+              <HugeiconsIcon icon={CaseSensitive} size={iconSize} />
             </button>
           )}
           {onWholeWordToggle && (
@@ -301,7 +300,7 @@ export const SearchInput: React.FC<SearchInputProps> = memo(
               }`}
               title={t("tooltips.matchWholeWord")}
             >
-              <WholeWord size={iconSize} />
+              <HugeiconsIcon icon={WholeWord} size={iconSize} />
             </button>
           )}
           {onRegexToggle && (
@@ -315,7 +314,7 @@ export const SearchInput: React.FC<SearchInputProps> = memo(
               }`}
               title={t("tooltips.useRegex")}
             >
-              <Regex size={iconSize} />
+              <HugeiconsIcon icon={Regex} size={iconSize} />
             </button>
           )}
           {onOnlyOpenFilesToggle && (
@@ -329,7 +328,7 @@ export const SearchInput: React.FC<SearchInputProps> = memo(
               }`}
               title={t("tooltips.searchInOpenEditors")}
             >
-              <BookOpen size={iconSize} />
+              <HugeiconsIcon icon={BookOpen} size={iconSize} />
             </button>
           )}
         </div>
@@ -344,7 +343,7 @@ export const SearchInput: React.FC<SearchInputProps> = memo(
                 className={actionButtonClass}
                 title={t("tooltips.previousMatch")}
               >
-                <ArrowUp size={iconSize} />
+                <HugeiconsIcon icon={ArrowUp} size={iconSize} />
               </button>
             )}
             {onNext && (
@@ -354,7 +353,7 @@ export const SearchInput: React.FC<SearchInputProps> = memo(
                 className={actionButtonClass}
                 title={t("tooltips.nextMatch")}
               >
-                <ArrowDown size={iconSize} />
+                <HugeiconsIcon icon={ArrowDown} size={iconSize} />
               </button>
             )}
           </div>
@@ -366,7 +365,7 @@ export const SearchInput: React.FC<SearchInputProps> = memo(
             className={actionButtonClass}
             title={t("tooltips.closeEsc")}
           >
-            <X size={iconSize} />
+            <HugeiconsIcon icon={X} size={iconSize} />
           </button>
         )}
       </div>

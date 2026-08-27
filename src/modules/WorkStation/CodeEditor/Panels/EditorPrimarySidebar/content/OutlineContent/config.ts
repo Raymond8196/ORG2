@@ -3,16 +3,15 @@
  *
  * Icons and constants for the outline view
  */
-import {
-  Box,
-  Braces,
-  Code,
-  FileCode,
-  FunctionSquare,
-  Hash,
-  Type,
-  Variable,
-} from "lucide-react";
+import Code from "@hugeicons/core-free-icons/CodeIcon";
+import FileCode from "@hugeicons/core-free-icons/FileScriptIcon";
+import Braces from "@hugeicons/core-free-icons/FirstBracketIcon";
+import FunctionSquare from "@hugeicons/core-free-icons/FunctionSquareIcon";
+import Hash from "@hugeicons/core-free-icons/HashtagIcon";
+import Box from "@hugeicons/core-free-icons/PackageIcon";
+import Type from "@hugeicons/core-free-icons/TextIcon";
+import Variable from "@hugeicons/core-free-icons/VariableIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { ComponentType } from "react";
 
 import type { SymbolKind } from "./types";

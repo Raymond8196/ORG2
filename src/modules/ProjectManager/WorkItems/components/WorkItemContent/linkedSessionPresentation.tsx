@@ -2,7 +2,9 @@
  * Presentation helpers for the Work Item linked-session table: status colors,
  * agent labels and the per-session agent icon.
  */
-import { Bot, Terminal } from "lucide-react";
+import Bot from "@hugeicons/core-free-icons/BotIcon";
+import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import Org2SessionIcon from "@src/assets/modelIcons/org2-session.svg";

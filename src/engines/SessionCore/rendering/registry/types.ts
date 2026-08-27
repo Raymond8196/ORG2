@@ -4,8 +4,10 @@
  * Shared types for the unified event rendering system.
  * Supports multiple contexts: chat, simulator, trajectory
  */
-import type { LucideIcon } from "lucide-react";
+import { type IconSvgElement } from "@hugeicons/react";
 import type React from "react";
+
+type LucideIcon = IconSvgElement;
 
 // ============================================
 // Component Types

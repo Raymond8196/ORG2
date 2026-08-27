@@ -7,7 +7,8 @@
  * When an editor slot is present, the editor uses the full-width row above
  * the shared toolbar controls.
  */
-import { Plus } from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import { PILL_CONTROL_IDLE_SURFACE_CLASS } from "@src/components/CompoundPill/config";
@@ -90,7 +91,8 @@ const ComposerBar: React.FC<ComposerBarProps> = memo(
           data-composer-plus-menu-trigger="true"
           data-testid="composer-skills-tools-button"
         >
-          <Plus
+          <HugeiconsIcon
+            icon={Plus}
             size={INPUT_AREA_BUTTONS.iconSize}
             strokeWidth={1.75}
             className="text-text-1"

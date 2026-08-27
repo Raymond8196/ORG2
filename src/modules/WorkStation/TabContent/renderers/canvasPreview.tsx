@@ -5,7 +5,10 @@
  * the payload in a full-height WorkStation view. Closing the card closes the
  * tab and clears the matching Canvas entry.
  */
-import { Layout, SquareArrowOutUpRight, X } from "lucide-react";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Layout from "@hugeicons/core-free-icons/Layout01Icon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -60,7 +63,7 @@ const CanvasPreviewTabRenderer: React.FC<UnifiedTabContentProps> = memo(
     if (!payload) {
       return (
         <div className="flex h-full flex-col items-center justify-center gap-3 text-text-4">
-          <Layout size={32} strokeWidth={1} />
+          <HugeiconsIcon icon={Layout} size={32} strokeWidth={1} />
           <span className="text-sm">{t("previews.noCanvasAvailable")}</span>
         </div>
       );
@@ -70,7 +73,11 @@ const CanvasPreviewTabRenderer: React.FC<UnifiedTabContentProps> = memo(
       <div className="flex h-full flex-col overflow-hidden">
         <div className="flex shrink-0 items-center justify-between border-b border-border-1 bg-fill-2 px-3 py-1.5">
           <div className="flex min-w-0 items-center gap-2">
-            <Layout size={13} className="shrink-0 text-primary-6" />
+            <HugeiconsIcon
+              icon={Layout}
+              size={13}
+              className="shrink-0 text-primary-6"
+            />
             <span className="truncate text-xs font-medium text-text-2">
               {payload.title ?? t("previews.canvas")}
             </span>
@@ -93,7 +100,7 @@ const CanvasPreviewTabRenderer: React.FC<UnifiedTabContentProps> = memo(
               aria-label={t("previews.openInBrowser")}
               size="sm"
             >
-              <SquareArrowOutUpRight size={12} />
+              <HugeiconsIcon icon={SquareArrowOutUpRight} size={12} />
             </IconButton>
             <IconButton
               onClick={handleDismiss}
@@ -101,7 +108,7 @@ const CanvasPreviewTabRenderer: React.FC<UnifiedTabContentProps> = memo(
               aria-label={t("previews.closeCanvas")}
               size="sm"
             >
-              <X size={12} />
+              <HugeiconsIcon icon={X} size={12} />
             </IconButton>
           </div>
         </div>

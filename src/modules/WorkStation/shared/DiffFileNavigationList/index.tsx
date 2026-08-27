@@ -1,4 +1,5 @@
-import { FileText } from "lucide-react";
+import FileText from "@hugeicons/core-free-icons/File02Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { memo, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -57,7 +58,11 @@ function buildTreeNode<TFile extends DiffFileSectionData>(
     type: "file",
     ...(rowName
       ? {}
-      : { icon: <FileText size={14} className="text-text-3" /> }),
+      : {
+          icon: (
+            <HugeiconsIcon icon={FileText} size={14} className="text-text-3" />
+          ),
+        }),
   };
 
   return {

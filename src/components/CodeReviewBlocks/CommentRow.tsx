@@ -1,4 +1,7 @@
-import { ChevronDown, ChevronRight, Copy } from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import Copy from "@hugeicons/core-free-icons/Copy01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -96,7 +99,11 @@ const CommentRow: React.FC<CommentRowProps> = ({
               variant="tertiary"
               size="mini"
               icon={
-                <Copy size={12} className="text-text-4 hover:text-text-2" />
+                <HugeiconsIcon
+                  icon={Copy}
+                  size={12}
+                  className="text-text-4 hover:text-text-2"
+                />
               }
               onClick={handleCopy}
               title={t("common:actions.copy")}
@@ -117,7 +124,11 @@ const CommentRow: React.FC<CommentRowProps> = ({
 
       {isLong && (
         <span className="mt-0.5 hidden items-center text-text-4 group-hover/comment:inline-flex">
-          {expanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+          {expanded ? (
+            <HugeiconsIcon icon={ChevronDown} size={14} />
+          ) : (
+            <HugeiconsIcon icon={ChevronRight} size={14} />
+          )}
         </span>
       )}
     </div>

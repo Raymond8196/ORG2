@@ -4,7 +4,9 @@
  * Individual task card displayed in Kanban columns.
  * Shows task information with priority, tags, and metadata.
  */
-import { ChevronRight, MessagesSquare } from "lucide-react";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import MessagesSquare from "@hugeicons/core-free-icons/MessageMultiple01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import Tag from "@src/components/Tag";
@@ -89,7 +91,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
       {/* Owning Agent Team (only set on the global Kanban board) */}
       {task.orgName && (
         <div className="kanban-task-card__chat-tag">
-          <MessagesSquare size={12} strokeWidth={1.75} />
+          <HugeiconsIcon icon={MessagesSquare} size={12} strokeWidth={1.75} />
           <span>{task.orgName}</span>
         </div>
       )}
@@ -195,7 +197,11 @@ const TaskCard: React.FC<TaskCardProps> = ({
          * would be misleading there. */}
         {onClick && (
           <div className="kanban-task-card__footer-right">
-            <ChevronRight size={14} className="text-text-3" />
+            <HugeiconsIcon
+              icon={ChevronRight}
+              size={14}
+              className="text-text-3"
+            />
           </div>
         )}
       </div>

@@ -3,7 +3,8 @@
  *
  * Search input component for sidebars with optional action buttons.
  */
-import { Loader2 } from "lucide-react";
+import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import Input from "@src/components/Input";
@@ -72,7 +73,8 @@ const SidebarSearch: React.FC<SidebarSearchProps> = ({
             title={action.tooltip}
           >
             {action.loading ? (
-              <Loader2
+              <HugeiconsIcon
+                icon={Loader2}
                 size={14}
                 strokeWidth={2}
                 className={`animate-spin ${theme ? "" : "text-text-2"}`}

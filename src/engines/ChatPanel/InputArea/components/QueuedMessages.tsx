@@ -24,8 +24,9 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import MessageCircleMore from "@hugeicons/core-free-icons/MessageCircleMoreIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { MessageCircleMore } from "lucide-react";
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -131,7 +132,7 @@ const QueuedMessages: React.FC<QueuedMessagesProps> = memo(
         className={`${CHAT_COMPOSER_STACK_BAR_SURFACE_BG_CLASS} overflow-hidden rounded-lg border border-solid border-border-2`}
       >
         <ComposerStackHeader
-          icon={<MessageCircleMore size={14} />}
+          icon={<HugeiconsIcon icon={MessageCircleMore} size={14} />}
           label={t("common:labels.queuedCount", { count: messages.length })}
           actions={
             draggable ? (

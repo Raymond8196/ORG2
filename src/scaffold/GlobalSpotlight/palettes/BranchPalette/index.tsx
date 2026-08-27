@@ -9,13 +9,12 @@
  * (`gitApi.getGitBranches`) and share the centralized branch cache to
  * prevent redundant calls.
  */
-import {
-  Check,
-  Folder,
-  FolderMinus,
-  FolderPlus,
-  RefreshCw,
-} from "lucide-react";
+import Folder from "@hugeicons/core-free-icons/Folder01Icon";
+import FolderPlus from "@hugeicons/core-free-icons/FolderAddIcon";
+import FolderMinus from "@hugeicons/core-free-icons/FolderMinusIcon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 

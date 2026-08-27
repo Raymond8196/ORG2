@@ -5,7 +5,11 @@
  * and allows reading and editing their contents. Calls into the Tauri backend via
  * `rpc.workspaceMemory.*` commands.
  */
-import { BookOpen, FolderOpen, RefreshCw, Trash2 } from "lucide-react";
+import BookOpen from "@hugeicons/core-free-icons/BookOpen01Icon";
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -170,7 +174,7 @@ const WorkspaceMemoryBrowser: React.FC = () => {
           <Button
             variant="secondary"
             size="small"
-            icon={<Trash2 size={14} />}
+            icon={<HugeiconsIcon icon={Trash2} size={14} />}
             iconOnly
             onClick={() => handleDelete(entry.filename)}
             aria-label={t("common:actions.delete")}
@@ -233,7 +237,7 @@ const WorkspaceMemoryBrowser: React.FC = () => {
       </div>
       <Button
         onClick={handleShowIndex}
-        icon={<BookOpen size={14} />}
+        icon={<HugeiconsIcon icon={BookOpen} size={14} />}
         iconOnly
         title={t("indexing.workspaceMemoryViewIndex")}
       />
@@ -244,19 +248,21 @@ const WorkspaceMemoryBrowser: React.FC = () => {
             invoke("open_folder", { path: memoryDirPath });
           });
         }}
-        icon={<FolderOpen size={14} />}
+        icon={<HugeiconsIcon icon={FolderOpen} size={14} />}
         iconOnly
         title={t("storage.openFolder")}
       />
       <Button
         onClick={handleRefreshClick}
-        icon={<RefreshCw size={14} className={spinClass} />}
+        icon={
+          <HugeiconsIcon icon={RefreshCw} size={14} className={spinClass} />
+        }
         iconOnly
         title={t("common:actions.refresh")}
       />
       <Button
         onClick={handleClearAll}
-        icon={<Trash2 size={14} />}
+        icon={<HugeiconsIcon icon={Trash2} size={14} />}
         iconOnly
         disabled={files.length === 0}
         title={t("indexing.workspaceMemoryClearAll")}
@@ -319,7 +325,11 @@ const WorkspaceMemoryBrowser: React.FC = () => {
               />
             ) : (
               <div className="flex min-h-[96px] items-center justify-center gap-2 text-xs text-text-3">
-                <RefreshCw size={12} className="animate-spin" />
+                <HugeiconsIcon
+                  icon={RefreshCw}
+                  size={12}
+                  className="animate-spin"
+                />
                 {t("common:status.loading")}
               </div>
             )

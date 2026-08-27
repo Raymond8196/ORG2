@@ -6,7 +6,8 @@
  *
  * Used by PermissionCard (live session) and ApprovalPreview (DevTools playground).
  */
-import { BellRing } from "lucide-react";
+import BellRing from "@hugeicons/core-free-icons/NotificationBubbleIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -77,7 +78,7 @@ export function PermissionCardBody({
   return (
     <div className={COMPOSER_CARD_SHELL_CLASSES}>
       <ComposerStackHeader
-        icon={<BellRing size={14} />}
+        icon={<HugeiconsIcon icon={BellRing} size={14} />}
         label={label}
         labelVariant="primary"
         expanded={expanded}

@@ -1,13 +1,12 @@
+import ChevronsRight from "@hugeicons/core-free-icons/ArrowRightDoubleIcon";
+import LayoutDashboard from "@hugeicons/core-free-icons/DashboardSquare01Icon";
+import Info from "@hugeicons/core-free-icons/InformationCircleIcon";
+import Columns3 from "@hugeicons/core-free-icons/LayoutThreeColumnIcon";
+import List from "@hugeicons/core-free-icons/ListViewIcon";
+import Box from "@hugeicons/core-free-icons/PackageIcon";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
-import {
-  Box,
-  ChevronsRight,
-  Columns3,
-  Info,
-  LayoutDashboard,
-  List,
-  Search,
-} from "lucide-react";
 import React, {
   useCallback,
   useEffect,
@@ -251,7 +250,11 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
                 size={HEADER_ICON_SIZE.sm}
               />
             ) : (
-              <Box size={HEADER_ICON_SIZE.sm} strokeWidth={1.75} />
+              <HugeiconsIcon
+                icon={Box}
+                size={HEADER_ICON_SIZE.sm}
+                strokeWidth={1.75}
+              />
             ),
           },
         ]}
@@ -284,7 +287,7 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
           onClick={toggleProperties}
           aria-label={propertiesToggleLabel}
           data-testid="chat-panel-project-properties-toggle"
-          icon={<Info size={HEADER_ICON_SIZE.sm} />}
+          icon={<HugeiconsIcon icon={Info} size={HEADER_ICON_SIZE.sm} />}
         />
       </ToolbarTooltip>
     ),
@@ -617,7 +620,11 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
                 aria-label={propertiesToggleLabel}
                 data-testid="chat-panel-project-properties-collapse"
               >
-                <ChevronsRight size={14} strokeWidth={1.75} />
+                <HugeiconsIcon
+                  icon={ChevronsRight}
+                  size={14}
+                  strokeWidth={1.75}
+                />
               </WorkstationTrailIconButton>
             </ToolbarTooltip>
           }
@@ -664,11 +671,11 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
               : t("projects:workItems.tabs.kanban"),
         icon:
           tab === "overview" ? (
-            <LayoutDashboard size={15} strokeWidth={1.8} />
+            <HugeiconsIcon icon={LayoutDashboard} size={15} strokeWidth={1.8} />
           ) : tab === "list" ? (
-            <List size={15} strokeWidth={1.8} />
+            <HugeiconsIcon icon={List} size={15} strokeWidth={1.8} />
           ) : (
-            <Columns3 size={15} strokeWidth={1.8} />
+            <HugeiconsIcon icon={Columns3} size={15} strokeWidth={1.8} />
           ),
         count: tab === "overview" ? undefined : workItems.length,
       })),
@@ -734,7 +741,9 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
                 onClick={() => setIsSearchOpen(true)}
                 aria-label={t("common:actions.search")}
                 aria-pressed={Boolean(searchQuery)}
-                icon={<Search size={HEADER_ICON_SIZE.sm} />}
+                icon={
+                  <HugeiconsIcon icon={Search} size={HEADER_ICON_SIZE.sm} />
+                }
               />
             </ToolbarTooltip>
             {activePanelTab === "kanban" ? (

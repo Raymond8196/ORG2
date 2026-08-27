@@ -31,18 +31,18 @@
  * />
  * ```
  */
-import {
-  ArrowLeft,
-  ChevronRight,
-  type LucideIcon,
-  RefreshCw,
-  Search,
-} from "lucide-react";
+import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { createContext, memo, useContext } from "react";
 
 import Button from "@src/components/Button";
 import { EDITOR_TAB_CANVAS_BG_CLASS } from "@src/config/workstation/tokens";
 import { useRefreshSpin } from "@src/hooks/ui";
+
+type LucideIcon = IconSvgElement;
 
 /**
  * Surface background context for nested PanelHeader instances.
@@ -165,7 +165,8 @@ export const PanelRefreshButton: React.FC<PanelRefreshButtonProps> = ({
       onClick={handleClick}
       disabled={!!spinClass}
       icon={
-        <RefreshCw
+        <HugeiconsIcon
+          icon={RefreshCw}
           size={PANEL_HEADER_TOKENS.buttonIconSize}
           strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
           className={spinClass}
@@ -320,7 +321,8 @@ const PanelHeader: React.FC<PanelHeaderProps> = memo(
             >
               {breadcrumb.parent}
             </span>
-            <ChevronRight
+            <HugeiconsIcon
+              icon={ChevronRight}
               size={PANEL_HEADER_TOKENS.iconSize}
               className="flex-shrink-0 text-text-4"
             />
@@ -387,7 +389,8 @@ const PanelHeader: React.FC<PanelHeaderProps> = memo(
           <Button
             {...PANEL_HEADER_TOKENS.actionButton}
             icon={
-              <ArrowLeft
+              <HugeiconsIcon
+                icon={ArrowLeft}
                 size={PANEL_HEADER_TOKENS.buttonIconSize}
                 strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
               />
@@ -409,7 +412,8 @@ const PanelHeader: React.FC<PanelHeaderProps> = memo(
               <Button
                 {...PANEL_HEADER_TOKENS.actionButton}
                 icon={
-                  <Search
+                  <HugeiconsIcon
+                    icon={Search}
                     size={PANEL_HEADER_TOKENS.buttonIconSize}
                     strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
                   />

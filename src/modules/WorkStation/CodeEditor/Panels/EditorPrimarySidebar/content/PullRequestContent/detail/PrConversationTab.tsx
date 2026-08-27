@@ -10,8 +10,11 @@
  * Reuses the shared timeline primitives so it renders identically to the Issue
  * detail view.
  */
+import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import FileDiff from "@hugeicons/core-free-icons/FileDiffIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
-import { CheckCircle2, FileDiff, XCircle } from "lucide-react";
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -80,7 +83,8 @@ function reviewVerb(
       return {
         label: t("git.pr.activity.approved", "approved these changes"),
         icon: (
-          <CheckCircle2
+          <HugeiconsIcon
+            icon={CheckCircle2}
             size={14}
             strokeWidth={1.9}
             className="text-success-6"
@@ -90,17 +94,38 @@ function reviewVerb(
     case "CHANGES_REQUESTED":
       return {
         label: t("git.pr.activity.changesRequested", "requested changes"),
-        icon: <XCircle size={14} strokeWidth={1.9} className="text-danger-6" />,
+        icon: (
+          <HugeiconsIcon
+            icon={XCircle}
+            size={14}
+            strokeWidth={1.9}
+            className="text-danger-6"
+          />
+        ),
       };
     case "DISMISSED":
       return {
         label: t("git.pr.activity.reviewDismissed", "dismissed a review"),
-        icon: <FileDiff size={14} strokeWidth={1.9} className="text-text-3" />,
+        icon: (
+          <HugeiconsIcon
+            icon={FileDiff}
+            size={14}
+            strokeWidth={1.9}
+            className="text-text-3"
+          />
+        ),
       };
     default:
       return {
         label: t("git.pr.activity.reviewed", "reviewed"),
-        icon: <FileDiff size={14} strokeWidth={1.9} className="text-text-3" />,
+        icon: (
+          <HugeiconsIcon
+            icon={FileDiff}
+            size={14}
+            strokeWidth={1.9}
+            className="text-text-3"
+          />
+        ),
       };
   }
 }

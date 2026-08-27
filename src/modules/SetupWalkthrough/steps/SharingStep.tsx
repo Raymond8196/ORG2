@@ -1,10 +1,9 @@
-import {
-  Clipboard,
-  FolderGit2,
-  Link2,
-  RefreshCw,
-  ShieldCheck,
-} from "lucide-react";
+import Clipboard from "@hugeicons/core-free-icons/ClipboardIcon";
+import FolderGit2 from "@hugeicons/core-free-icons/FolderGitTwoIcon";
+import Link2 from "@hugeicons/core-free-icons/Link02Icon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import ShieldCheck from "@hugeicons/core-free-icons/SecurityCheckIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -50,7 +49,7 @@ export const SharingStep: React.FC<StepProps> = ({ controller }) => {
             </span>
             <Button
               size="small"
-              icon={<FolderGit2 size={14} />}
+              icon={<HugeiconsIcon icon={FolderGit2} size={14} />}
               onClick={() => openWorkspaceSpotlight("open")}
             >
               {t("readiness.sharing.openWorkspace")}
@@ -123,7 +122,7 @@ export const SharingStep: React.FC<StepProps> = ({ controller }) => {
           </InlineAlert>
           <Button
             variant="primary"
-            icon={<RefreshCw size={15} />}
+            icon={<HugeiconsIcon icon={RefreshCw} size={15} />}
             loading={controller.activeOperation === "verify-sync"}
             disabled={controller.activeOperation !== null}
             onClick={() => void controller.actions.verifySync()}
@@ -136,7 +135,7 @@ export const SharingStep: React.FC<StepProps> = ({ controller }) => {
         <div className="flex flex-wrap gap-2">
           <Button
             variant="primary"
-            icon={<ShieldCheck size={15} />}
+            icon={<HugeiconsIcon icon={ShieldCheck} size={15} />}
             loading={controller.activeOperation === "save-policy"}
             disabled={
               controller.progress.repoScopes.length === 0 ||
@@ -148,7 +147,7 @@ export const SharingStep: React.FC<StepProps> = ({ controller }) => {
             {t("readiness.sharing.save")}
           </Button>
           <Button
-            icon={<Link2 size={15} />}
+            icon={<HugeiconsIcon icon={Link2} size={15} />}
             loading={controller.activeOperation === "create-invite"}
             disabled={!isSaved || controller.activeOperation !== null}
             onClick={() => void controller.actions.createInvite()}
@@ -167,7 +166,7 @@ export const SharingStep: React.FC<StepProps> = ({ controller }) => {
               </code>
               <Button
                 size="small"
-                icon={<Clipboard size={14} />}
+                icon={<HugeiconsIcon icon={Clipboard} size={14} />}
                 onClick={() =>
                   void navigator.clipboard.writeText(
                     controller.progress.inviteLink ?? ""

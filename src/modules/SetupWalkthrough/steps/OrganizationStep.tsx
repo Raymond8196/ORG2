@@ -1,4 +1,8 @@
-import { Building2, Cloud, Link2, Plus } from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import Building2 from "@hugeicons/core-free-icons/Building02Icon";
+import Cloud from "@hugeicons/core-free-icons/CloudIcon";
+import Link2 from "@hugeicons/core-free-icons/Link02Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -55,7 +59,7 @@ export const OrganizationStep: React.FC<StepProps> = ({ controller }) => {
           action={
             <Button
               variant="primary"
-              icon={<Cloud size={15} />}
+              icon={<HugeiconsIcon icon={Cloud} size={15} />}
               onClick={openSignIn}
               data-testid="setup-cloud-sign-in"
             >

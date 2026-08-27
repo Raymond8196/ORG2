@@ -9,7 +9,11 @@
  * allow-forms, no allow-popups-to-escape-sandbox. No eval bridge is injected
  * into the document. External URLs are never loaded.
  */
-import { Maximize2, Minimize2, SquareArrowOutUpRight, X } from "lucide-react";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Maximize2 from "@hugeicons/core-free-icons/Maximize02Icon";
+import Minimize2 from "@hugeicons/core-free-icons/Minimize02Icon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -115,7 +119,11 @@ const CodePreview: React.FC<CodePreviewProps> = ({
               isMaxHeight ? t("codePreview.shrink") : t("codePreview.expand")
             }
           >
-            {isMaxHeight ? <Minimize2 size={12} /> : <Maximize2 size={12} />}
+            {isMaxHeight ? (
+              <HugeiconsIcon icon={Minimize2} size={12} />
+            ) : (
+              <HugeiconsIcon icon={Maximize2} size={12} />
+            )}
           </button>
           <button
             type="button"
@@ -123,7 +131,7 @@ const CodePreview: React.FC<CodePreviewProps> = ({
             className="rounded p-1 text-text-4 transition-colors hover:bg-fill-3 hover:text-text-2"
             title={t("codePreview.openExternal")}
           >
-            <SquareArrowOutUpRight size={12} />
+            <HugeiconsIcon icon={SquareArrowOutUpRight} size={12} />
           </button>
           <button
             type="button"
@@ -131,7 +139,7 @@ const CodePreview: React.FC<CodePreviewProps> = ({
             className="rounded p-1 text-text-4 transition-colors hover:bg-fill-3 hover:text-text-2"
             title={t("codePreview.close")}
           >
-            <X size={12} />
+            <HugeiconsIcon icon={X} size={12} />
           </button>
         </div>
       </div>

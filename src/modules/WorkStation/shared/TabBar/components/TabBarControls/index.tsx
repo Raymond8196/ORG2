@@ -1,4 +1,6 @@
-import { MoreHorizontal, Plus } from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -49,7 +51,7 @@ export const TabBarControls: React.FC<TabBarControlsProps> = ({
           shortcutId={onNewTabShortcutId}
           onClick={onNewTab}
         >
-          <Plus size={18} strokeWidth={2} />
+          <HugeiconsIcon icon={Plus} size={18} strokeWidth={2} />
         </TabBarTrailingIconButton>
       )}
 
@@ -59,7 +61,11 @@ export const TabBarControls: React.FC<TabBarControlsProps> = ({
           title={t("tooltips.moreOptions")}
           onClick={onMoreOptions}
         >
-          <MoreHorizontal size={HEADER_ICON_SIZE.md} strokeWidth={1.75} />
+          <HugeiconsIcon
+            icon={MoreHorizontal}
+            size={HEADER_ICON_SIZE.md}
+            strokeWidth={1.75}
+          />
         </TabBarTrailingIconButton>
       )}
 

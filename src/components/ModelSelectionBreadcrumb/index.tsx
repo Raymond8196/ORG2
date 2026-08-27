@@ -4,7 +4,8 @@
  * Spotlight-style account › model breadcrumb used in model palette rows
  * and model-pill hover tooltips.
  */
-import { Brain } from "lucide-react";
+import Brain from "@hugeicons/core-free-icons/BrainIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import type { ModelType } from "@src/api/tauri/rpc/schemas/validation";
@@ -77,7 +78,9 @@ export const ModelSelectionBreadcrumb: React.FC<ModelSelectionBreadcrumbProps> =
         </span>
         {(thinking || variantInfo) && (
           <span className="inline-flex shrink-0 items-center gap-0.5 text-[11px] font-medium text-text-3">
-            {thinking && <Brain size={11} strokeWidth={1.8} />}
+            {thinking && (
+              <HugeiconsIcon icon={Brain} size={11} strokeWidth={1.8} />
+            )}
             {variantInfo && <span>{variantInfo}</span>}
           </span>
         )}

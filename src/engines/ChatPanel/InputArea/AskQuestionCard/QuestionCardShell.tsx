@@ -8,7 +8,10 @@
  *
  * Used by AskQuestionCard, AskQuestionPreview, and QuestionBubble.
  */
-import { ChevronDown, ChevronUp, CircleHelp } from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import CircleHelp from "@hugeicons/core-free-icons/HelpCircleIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -119,7 +122,7 @@ export function QuestionCardShell({
   return (
     <div className={COMPOSER_CARD_SHELL_CLASSES}>
       <ComposerStackHeader
-        icon={<CircleHelp size={14} />}
+        icon={<HugeiconsIcon icon={CircleHelp} size={14} />}
         label={t("chat.questionsPrompt")}
         labelVariant="primary"
         expanded={expanded}
@@ -140,7 +143,7 @@ export function QuestionCardShell({
                 onClick={handlePrevQuestion}
                 disabled={focusedQuestion === 0}
               >
-                <ChevronUp size={12} />
+                <HugeiconsIcon icon={ChevronUp} size={12} />
               </IconButton>
               <span className="min-w-[44px] text-center text-[10px] text-text-1">
                 {t("chat.xOfY", {
@@ -153,7 +156,7 @@ export function QuestionCardShell({
                 onClick={handleNextQuestion}
                 disabled={focusedQuestion >= questions.length - 1}
               >
-                <ChevronDown size={12} />
+                <HugeiconsIcon icon={ChevronDown} size={12} />
               </IconButton>
             </div>
           ) : undefined

@@ -15,8 +15,9 @@
  * <LanguageSelector size="small" appearance="ghost" />
  * ```
  */
+import Globe from "@hugeicons/core-free-icons/GlobeIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom } from "jotai";
-import { Globe } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -119,7 +120,11 @@ export function LanguageSelector({
       onChange={handleChange}
       size={size}
       appearance={appearance}
-      prefix={showIcon ? <Globe className="h-4 w-4" /> : undefined}
+      prefix={
+        showIcon ? (
+          <HugeiconsIcon icon={Globe} className="h-4 w-4" />
+        ) : undefined
+      }
       className={className}
       ariaLabel={ariaLabel}
       dropdownWidthMode="auto"

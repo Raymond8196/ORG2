@@ -1,4 +1,8 @@
-import { ChevronDown, ChevronUp, Plus, RefreshCw } from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useCallback, useMemo, useState } from "react";
 
 import { ORGII_ORCHESTRATOR } from "@src/assets/providers/types";
@@ -195,7 +199,11 @@ export default function ModelsTableSection({
           onClick={() => setHideOlder((prev) => !prev)}
           className="flex items-center gap-1.5 text-[13px] text-primary-6 hover:text-primary-5"
         >
-          {hideOlder ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+          {hideOlder ? (
+            <HugeiconsIcon icon={ChevronDown} size={14} />
+          ) : (
+            <HugeiconsIcon icon={ChevronUp} size={14} />
+          )}
           {hideOlder
             ? t("modelsTable.showMoreOlder")
             : t("modelsTable.showLessOlder")}
@@ -339,7 +347,13 @@ export default function ModelsTableSection({
     <Button
       variant="secondary"
       size="default"
-      icon={<RefreshCw size={14} className={refreshSpinClass} />}
+      icon={
+        <HugeiconsIcon
+          icon={RefreshCw}
+          size={14}
+          className={refreshSpinClass}
+        />
+      }
       iconOnly
       onClick={handleRefreshModelsClick}
       disabled={refreshingAllModels}
@@ -353,7 +367,7 @@ export default function ModelsTableSection({
     <Button
       variant="secondary"
       size="default"
-      icon={<Plus size={14} />}
+      icon={<HugeiconsIcon icon={Plus} size={14} />}
       iconOnly
       onClick={onAdd}
       aria-label={t("keyVault.addAccount")}

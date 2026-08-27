@@ -1,8 +1,10 @@
 /**
  * ActionCard Types
  */
-import type { LucideIcon } from "lucide-react";
+import { type IconSvgElement } from "@hugeicons/react";
 import type { ReactNode } from "react";
+
+type LucideIcon = IconSvgElement;
 
 export type ActionCardVariant = "default" | "primary" | "secondary" | "subtle";
 export type ActionCardLayout = "inline" | "stacked";

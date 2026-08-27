@@ -4,7 +4,9 @@
  * A simple collapsible section for the DesignPanel.
  * Follows the same styling as PanelSectionHeader.
  */
-import { ChevronDown, ChevronRight } from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useEffect } from "react";
 
 import { useCollapsible } from "@src/hooks/ui/useCollapsible";
@@ -101,9 +103,17 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = memo(
             className="flex flex-1 items-center gap-1.5 text-left"
           >
             {isExpanded ? (
-              <ChevronDown size={14} className="flex-shrink-0 text-text-3" />
+              <HugeiconsIcon
+                icon={ChevronDown}
+                size={14}
+                className="flex-shrink-0 text-text-3"
+              />
             ) : (
-              <ChevronRight size={14} className="flex-shrink-0 text-text-3" />
+              <HugeiconsIcon
+                icon={ChevronRight}
+                size={14}
+                className="flex-shrink-0 text-text-3"
+              />
             )}
             <span className="flex-1 text-[12px] font-medium uppercase text-text-2">
               {title}

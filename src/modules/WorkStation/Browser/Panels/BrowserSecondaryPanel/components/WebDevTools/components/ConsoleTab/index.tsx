@@ -3,7 +3,10 @@
  *
  * Displays console log entries with filtering and search capabilities.
  */
-import { BrushCleaning, Check, Copy } from "lucide-react";
+import BrushCleaning from "@hugeicons/core-free-icons/BrushCleaningIcon";
+import Copy from "@hugeicons/core-free-icons/Copy01Icon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   memo,
   useCallback,
@@ -136,9 +139,13 @@ function ConsoleLogEntryRow({
             size="mini"
             icon={
               copiedId === entry.id ? (
-                <Check size={12} className="text-success-6" />
+                <HugeiconsIcon
+                  icon={Check}
+                  size={12}
+                  className="text-success-6"
+                />
               ) : (
-                <Copy size={12} />
+                <HugeiconsIcon icon={Copy} size={12} />
               )
             }
             iconOnly
@@ -409,7 +416,7 @@ export const ConsoleTab: React.FC<ConsoleTabProps> = memo(
               className={HEADER_BUTTON.actionTreeRow}
               aria-label={t("tooltips.clearConsole")}
             >
-              <BrushCleaning size={HEADER_ICON_SIZE.sm} />
+              <HugeiconsIcon icon={BrushCleaning} size={HEADER_ICON_SIZE.sm} />
             </button>
           </ToolbarTooltip>
         </div>

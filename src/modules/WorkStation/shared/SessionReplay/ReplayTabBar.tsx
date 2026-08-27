@@ -20,7 +20,12 @@
  *     MAX_REPLAY_TABS
  *   );
  */
-import { FileText, Globe, Search, Terminal, Wrench } from "lucide-react";
+import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import FileText from "@hugeicons/core-free-icons/File02Icon";
+import Globe from "@hugeicons/core-free-icons/GlobeIcon";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import Wrench from "@hugeicons/core-free-icons/Wrench01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { Fragment, memo, useEffect, useRef } from "react";
 
 import FileTypeIcon from "@src/components/FileTypeIcon";
@@ -117,20 +122,44 @@ function defaultIconForKind(
       return <FileTypeIcon fileName={label} size="small" />;
     case "explore":
     case "web_search":
-      return <Search size={ICON_SIZE} className={lucideClass} />;
+      return (
+        <HugeiconsIcon icon={Search} size={ICON_SIZE} className={lucideClass} />
+      );
     case "terminal":
-      return <Terminal size={ICON_SIZE} className={lucideClass} />;
+      return (
+        <HugeiconsIcon
+          icon={Terminal}
+          size={ICON_SIZE}
+          className={lucideClass}
+        />
+      );
     case "tool":
-      return <Wrench size={ICON_SIZE} className={lucideClass} />;
+      return (
+        <HugeiconsIcon icon={Wrench} size={ICON_SIZE} className={lucideClass} />
+      );
     case "browser":
     case "internal_browser":
-      return <Globe size={ICON_SIZE} className={lucideClass} />;
+      return (
+        <HugeiconsIcon icon={Globe} size={ICON_SIZE} className={lucideClass} />
+      );
     case "web_fetch":
-      return <FileText size={ICON_SIZE} className={lucideClass} />;
+      return (
+        <HugeiconsIcon
+          icon={FileText}
+          size={ICON_SIZE}
+          className={lucideClass}
+        />
+      );
     default:
       // Generic text-document glyph for unknown kinds — callers are expected
       // to supply `icon` in this case, so this is just a safety net.
-      return <FileText size={ICON_SIZE} className={lucideClass} />;
+      return (
+        <HugeiconsIcon
+          icon={FileText}
+          size={ICON_SIZE}
+          className={lucideClass}
+        />
+      );
   }
 }
 

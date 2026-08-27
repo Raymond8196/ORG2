@@ -4,9 +4,13 @@
  * Simple spotlight for adding database connections.
  * Uses useSelectorKernel + SpotlightShell/PaletteBody for unified UI composition.
  */
+import Database from "@hugeicons/core-free-icons/DatabaseIcon";
+import FileText from "@hugeicons/core-free-icons/File02Icon";
+import FolderSearch from "@hugeicons/core-free-icons/FolderSearchIcon";
+import Link from "@hugeicons/core-free-icons/Link01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { homeDir } from "@tauri-apps/api/path";
 import { open } from "@tauri-apps/plugin-dialog";
-import { Database, FileText, FolderSearch, Link } from "lucide-react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 

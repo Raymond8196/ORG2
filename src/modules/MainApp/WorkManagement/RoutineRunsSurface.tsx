@@ -8,7 +8,11 @@
  * cached copy — a run whose items moved since the row was written shows
  * its recomputed status once expanded.
  */
-import { ChevronDown, ChevronRight, PlayCircle, RefreshCw } from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import PlayCircle from "@hugeicons/core-free-icons/PlayCircleIcon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { Suspense, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -198,7 +202,12 @@ const RoutineRunsSurface: React.FC = () => {
       <div className="flex h-[40px] shrink-0 items-center justify-between border-b border-border-1 px-4">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 text-[13px] font-medium text-text-1">
-            <PlayCircle size={14} strokeWidth={1.75} className="text-text-3" />
+            <HugeiconsIcon
+              icon={PlayCircle}
+              size={14}
+              strokeWidth={1.75}
+              className="text-text-3"
+            />
             {t("kanban.sidebar.runs", { defaultValue: "Runs" })}
           </div>
           <TabPill
@@ -226,7 +235,9 @@ const RoutineRunsSurface: React.FC = () => {
             variant="tertiary"
             size="small"
             iconOnly
-            icon={<RefreshCw size={13} strokeWidth={1.75} />}
+            icon={
+              <HugeiconsIcon icon={RefreshCw} size={13} strokeWidth={1.75} />
+            }
             onClick={load}
             data-testid="routine-runs-refresh"
           />

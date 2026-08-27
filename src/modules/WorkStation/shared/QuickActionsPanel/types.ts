@@ -3,7 +3,9 @@
  *
  * Shared types for the quick actions panel used across work station.
  */
-import type { LucideIcon } from "lucide-react";
+import { type IconSvgElement } from "@hugeicons/react";
+
+type LucideIcon = IconSvgElement;
 
 /**
  * A single quick action item

@@ -5,21 +5,20 @@
  * Uses PrimarySidebarLayoutWithSections with hidden tabs so the top ReplayTabBar
  * owns category switching.
  */
-import {
-  CheckCircle2,
-  Chrome,
-  Compass,
-  FileSymlink,
-  Keyboard,
-  List,
-  ListTree,
-  MousePointerClick,
-  MoveVertical,
-  Search,
-  Shield,
-  ShieldOff,
-  Trash2,
-} from "lucide-react";
+import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import Chrome from "@hugeicons/core-free-icons/ChromeIcon";
+import Compass from "@hugeicons/core-free-icons/CompassIcon";
+import MousePointerClick from "@hugeicons/core-free-icons/CursorPointer02Icon";
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import FileSymlink from "@hugeicons/core-free-icons/FileSymlinkIcon";
+import ListTree from "@hugeicons/core-free-icons/HierarchyFilesIcon";
+import Keyboard from "@hugeicons/core-free-icons/KeyboardIcon";
+import List from "@hugeicons/core-free-icons/ListViewIcon";
+import MoveVertical from "@hugeicons/core-free-icons/MoveTopIcon";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import Shield from "@hugeicons/core-free-icons/Shield01Icon";
+import ShieldOff from "@hugeicons/core-free-icons/Shield02Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -91,33 +90,104 @@ function getNativeActionIcon(
 
   switch (action) {
     case "list":
-      return <ListTree size={size} strokeWidth={stroke} className={color} />;
+      return (
+        <HugeiconsIcon
+          icon={ListTree}
+          size={size}
+          strokeWidth={stroke}
+          className={color}
+        />
+      );
     case "is_ready":
       return (
-        <CheckCircle2 size={size} strokeWidth={stroke} className={color} />
+        <HugeiconsIcon
+          icon={CheckCircle2}
+          size={size}
+          strokeWidth={stroke}
+          className={color}
+        />
       );
     case "get_state":
-      return <ListTree size={size} strokeWidth={stroke} className={color} />;
+      return (
+        <HugeiconsIcon
+          icon={ListTree}
+          size={size}
+          strokeWidth={stroke}
+          className={color}
+        />
+      );
     case "click":
       return (
-        <MousePointerClick size={size} strokeWidth={stroke} className={color} />
+        <HugeiconsIcon
+          icon={MousePointerClick}
+          size={size}
+          strokeWidth={stroke}
+          className={color}
+        />
       );
     case "input":
-      return <Keyboard size={size} strokeWidth={stroke} className={color} />;
+      return (
+        <HugeiconsIcon
+          icon={Keyboard}
+          size={size}
+          strokeWidth={stroke}
+          className={color}
+        />
+      );
     case "select":
-      return <List size={size} strokeWidth={stroke} className={color} />;
+      return (
+        <HugeiconsIcon
+          icon={List}
+          size={size}
+          strokeWidth={stroke}
+          className={color}
+        />
+      );
     case "scroll":
       return (
-        <MoveVertical size={size} strokeWidth={stroke} className={color} />
+        <HugeiconsIcon
+          icon={MoveVertical}
+          size={size}
+          strokeWidth={stroke}
+          className={color}
+        />
       );
     case "show_mask":
-      return <Shield size={size} strokeWidth={stroke} className={color} />;
+      return (
+        <HugeiconsIcon
+          icon={Shield}
+          size={size}
+          strokeWidth={stroke}
+          className={color}
+        />
+      );
     case "hide_mask":
-      return <ShieldOff size={size} strokeWidth={stroke} className={color} />;
+      return (
+        <HugeiconsIcon
+          icon={ShieldOff}
+          size={size}
+          strokeWidth={stroke}
+          className={color}
+        />
+      );
     case "clean_up":
-      return <Trash2 size={size} strokeWidth={stroke} className={color} />;
+      return (
+        <HugeiconsIcon
+          icon={Trash2}
+          size={size}
+          strokeWidth={stroke}
+          className={color}
+        />
+      );
     default:
-      return <ListTree size={size} strokeWidth={stroke} className={color} />;
+      return (
+        <HugeiconsIcon
+          icon={ListTree}
+          size={size}
+          strokeWidth={stroke}
+          className={color}
+        />
+      );
   }
 }
 
@@ -128,7 +198,14 @@ function getCategoryIcon(
 ): React.ReactNode {
   const color = isActive ? "text-primary-6" : "text-text-3";
   if (category === "web_search")
-    return <Search size={14} strokeWidth={1.75} className={color} />;
+    return (
+      <HugeiconsIcon
+        icon={Search}
+        size={14}
+        strokeWidth={1.75}
+        className={color}
+      />
+    );
   if (category === "browser" && entry) {
     const action = deriveToolAction(
       entry.event.functionName,
@@ -141,8 +218,22 @@ function getCategoryIcon(
     });
   }
   if (category === "browser")
-    return <Chrome size={14} strokeWidth={1.75} className={color} />;
-  return <FileSymlink size={14} strokeWidth={1.75} className={color} />;
+    return (
+      <HugeiconsIcon
+        icon={Chrome}
+        size={14}
+        strokeWidth={1.75}
+        className={color}
+      />
+    );
+  return (
+    <HugeiconsIcon
+      icon={FileSymlink}
+      size={14}
+      strokeWidth={1.75}
+      className={color}
+    />
+  );
 }
 
 interface EntryListProps {
@@ -368,7 +459,12 @@ const BrowserSidebarComponent: React.FC<BrowserSidebarProps> = ({
         {
           key: "agent_browser",
           label: t("simulator.replay.browser.tabs.agentBrowser"),
-          icon: <Compass size={PANEL_CONSTANTS.TAB_ICON_SIZE} />,
+          icon: (
+            <HugeiconsIcon
+              icon={Compass}
+              size={PANEL_CONSTANTS.TAB_ICON_SIZE}
+            />
+          ),
           sections: [
             {
               key: "browser-entries",
@@ -412,7 +508,9 @@ const BrowserSidebarComponent: React.FC<BrowserSidebarProps> = ({
       {
         key: "search_fetch",
         label: t("simulator.replay.browser.tabs.searchFetch"),
-        icon: <Search size={PANEL_CONSTANTS.TAB_ICON_SIZE} />,
+        icon: (
+          <HugeiconsIcon icon={Search} size={PANEL_CONSTANTS.TAB_ICON_SIZE} />
+        ),
         sections: [
           {
             key: "search-entries",

@@ -12,7 +12,8 @@
  * Renders via design-system `Button` (not a raw `<button>`). Select SCSS
  * classes provide the compact trigger dimensions and text-state styling.
  */
-import { ChevronDown } from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { forwardRef } from "react";
 
 import Button from "@src/components/Button";
@@ -102,7 +103,8 @@ const SelectGhostTrigger = forwardRef<
       <div className={`select-selector ${radiusClass} ${selectorClassName}`}>
         <span className="select-value">{value}</span>
         <div className="select-suffix">
-          <ChevronDown
+          <HugeiconsIcon
+            icon={ChevronDown}
             size={12}
             className={`select-arrow shrink-0 text-text-3 transition-transform ${
               open ? "rotate-180" : ""

@@ -12,17 +12,16 @@
  * Menu entries are always rendered for stable discoverability. Entries whose
  * backing action is not available in the current context are disabled.
  */
-import {
-  Copy,
-  Ellipsis,
-  FolderOpen,
-  Hash,
-  RefreshCw,
-  Save,
-  Search,
-  Settings,
-  Undo2,
-} from "lucide-react";
+import Copy from "@hugeicons/core-free-icons/Copy01Icon";
+import Save from "@hugeicons/core-free-icons/FloppyDiskIcon";
+import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
+import Hash from "@hugeicons/core-free-icons/HashtagIcon";
+import Ellipsis from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import Settings from "@hugeicons/core-free-icons/Settings01Icon";
+import Undo2 from "@hugeicons/core-free-icons/Undo02Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -202,7 +201,7 @@ export const FileHeaderMoreMenu: React.FC<FileHeaderMoreMenuProps> = ({
           className={`${DROPDOWN_CLASSES.menuPanelBase} ${DROPDOWN_WIDTHS.wideMenuClass}`}
         >
           <DropdownItem
-            icon={<Save size={HEADER_ICON_SIZE.sm} />}
+            icon={<HugeiconsIcon icon={Save} size={HEADER_ICON_SIZE.sm} />}
             disabled={saveDisabled}
             suffix={
               saveShortcut ? (
@@ -218,7 +217,7 @@ export const FileHeaderMoreMenu: React.FC<FileHeaderMoreMenuProps> = ({
           </DropdownItem>
 
           <DropdownItem
-            icon={<Undo2 size={HEADER_ICON_SIZE.sm} />}
+            icon={<HugeiconsIcon icon={Undo2} size={HEADER_ICON_SIZE.sm} />}
             disabled={discardDisabled}
             onClick={onDiscardClick}
           >
@@ -228,7 +227,7 @@ export const FileHeaderMoreMenu: React.FC<FileHeaderMoreMenuProps> = ({
           <div className={DROPDOWN_CLASSES.menuSeparatorInset} />
 
           <DropdownItem
-            icon={<Search size={HEADER_ICON_SIZE.sm} />}
+            icon={<HugeiconsIcon icon={Search} size={HEADER_ICON_SIZE.sm} />}
             disabled={searchDisabled}
             suffix={
               searchShortcut ? (
@@ -244,7 +243,7 @@ export const FileHeaderMoreMenu: React.FC<FileHeaderMoreMenuProps> = ({
           </DropdownItem>
 
           <DropdownItem
-            icon={<Hash size={HEADER_ICON_SIZE.sm} />}
+            icon={<HugeiconsIcon icon={Hash} size={HEADER_ICON_SIZE.sm} />}
             disabled={goToLineDisabled}
             suffix={
               goToLineShortcut ? (
@@ -260,7 +259,7 @@ export const FileHeaderMoreMenu: React.FC<FileHeaderMoreMenuProps> = ({
           </DropdownItem>
 
           <DropdownItem
-            icon={<Copy size={HEADER_ICON_SIZE.sm} />}
+            icon={<HugeiconsIcon icon={Copy} size={HEADER_ICON_SIZE.sm} />}
             disabled={copyRelativePathDisabled}
             onClick={onCopyRelativePathClick}
           >
@@ -268,7 +267,9 @@ export const FileHeaderMoreMenu: React.FC<FileHeaderMoreMenuProps> = ({
           </DropdownItem>
 
           <DropdownItem
-            icon={<FolderOpen size={HEADER_ICON_SIZE.sm} />}
+            icon={
+              <HugeiconsIcon icon={FolderOpen} size={HEADER_ICON_SIZE.sm} />
+            }
             disabled={revealInFileManagerDisabled}
             onClick={onRevealInFileManagerClick}
           >
@@ -277,7 +278,8 @@ export const FileHeaderMoreMenu: React.FC<FileHeaderMoreMenuProps> = ({
 
           <DropdownItem
             icon={
-              <RefreshCw
+              <HugeiconsIcon
+                icon={RefreshCw}
                 size={HEADER_ICON_SIZE.sm}
                 className={reloadSpinClass}
               />
@@ -328,7 +330,7 @@ export const FileHeaderMoreMenu: React.FC<FileHeaderMoreMenuProps> = ({
           <div className={DROPDOWN_CLASSES.menuSeparatorInset} />
 
           <DropdownItem
-            icon={<Settings size={HEADER_ICON_SIZE.sm} />}
+            icon={<HugeiconsIcon icon={Settings} size={HEADER_ICON_SIZE.sm} />}
             disabled={!showMoreSettingsAction}
             onClick={onMoreSettingsClick}
           >
@@ -357,7 +359,11 @@ export const FileHeaderMoreMenu: React.FC<FileHeaderMoreMenuProps> = ({
             nativeTitle={false}
             className="flex-shrink-0"
           >
-            <Ellipsis size={HEADER_ICON_SIZE.sm} strokeWidth={1.75} />
+            <HugeiconsIcon
+              icon={Ellipsis}
+              size={HEADER_ICON_SIZE.sm}
+              strokeWidth={1.75}
+            />
           </TabBarTrailingIconButton>
         </span>
       </Tooltip>

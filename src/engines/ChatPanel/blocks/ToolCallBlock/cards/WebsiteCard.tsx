@@ -1,4 +1,6 @@
-import { Chromium, Globe } from "lucide-react";
+import Chromium from "@hugeicons/core-free-icons/ChromeIcon";
+import Globe from "@hugeicons/core-free-icons/GlobeIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -60,7 +62,9 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({ card }) => {
             }
           />
         )}
-        {!showFavicon && <Globe size={18} className="text-text-4" />}
+        {!showFavicon && (
+          <HugeiconsIcon icon={Globe} size={18} className="text-text-4" />
+        )}
       </div>
 
       <div className="min-w-0 flex-1">
@@ -81,7 +85,12 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({ card }) => {
         title={t("cards.openLink")}
         aria-label={t("cards.openLink")}
       >
-        <Chromium size={14} strokeWidth={1.75} aria-hidden />
+        <HugeiconsIcon
+          icon={Chromium}
+          size={14}
+          strokeWidth={1.75}
+          aria-hidden
+        />
       </button>
     </div>
   );

@@ -5,7 +5,10 @@
  * Messages are grouped by date and displayed in a chronological stream.
  * Bottom composer matches session/chat input styling; floating scroll-to-bottom when not at end.
  */
-import { CheckCheck, Search, Trash2 } from "lucide-react";
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import CheckCheck from "@hugeicons/core-free-icons/TickDouble01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
   useEffect,
@@ -85,7 +88,8 @@ const ChannelFeedPanel: React.FC<ChannelFeedPanelProps> = ({
             <Button
               {...PANEL_HEADER_TOKENS.actionButton}
               icon={
-                <CheckCheck
+                <HugeiconsIcon
+                  icon={CheckCheck}
                   size={PANEL_HEADER_TOKENS.buttonIconSize}
                   strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
                 />
@@ -97,7 +101,9 @@ const ChannelFeedPanel: React.FC<ChannelFeedPanelProps> = ({
           )}
           <div className="w-48">
             <Input
-              prefix={<Search size={13} strokeWidth={1.75} />}
+              prefix={
+                <HugeiconsIcon icon={Search} size={13} strokeWidth={1.75} />
+              }
               placeholder={t("inbox.searchPlaceholder")}
               value={searchQuery}
               onChange={onSearchChange}
@@ -386,7 +392,7 @@ const FeedMessageWithActions: React.FC<FeedMessageWithActionsProps> = ({
         variant="secondary"
         shape="square"
         iconOnly
-        icon={<Trash2 size={14} />}
+        icon={<HugeiconsIcon icon={Trash2} size={14} />}
         title={t("common:actions.delete")}
         aria-label={t("common:actions.delete")}
         onClick={handleDelete}

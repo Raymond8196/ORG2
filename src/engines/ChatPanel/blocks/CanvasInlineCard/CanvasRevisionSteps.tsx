@@ -1,4 +1,8 @@
-import { CheckCircle2, Circle, CircleX, LoaderCircle } from "lucide-react";
+import CircleX from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import Circle from "@hugeicons/core-free-icons/CircleIcon";
+import LoaderCircle from "@hugeicons/core-free-icons/Loading03Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -19,11 +23,19 @@ interface CanvasRevisionStepsProps {
 const StepIcon: React.FC<{ state: CanvasRevisionStepState }> = ({ state }) => {
   const size = SESSION_UI_TOKENS.ICON.SIZE_XS;
   if (state === "complete") {
-    return <CheckCircle2 size={size} className="text-success-6" aria-hidden />;
+    return (
+      <HugeiconsIcon
+        icon={CheckCircle2}
+        size={size}
+        className="text-success-6"
+        aria-hidden
+      />
+    );
   }
   if (state === "active") {
     return (
-      <LoaderCircle
+      <HugeiconsIcon
+        icon={LoaderCircle}
         size={size}
         className="animate-spin text-primary-6 motion-reduce:animate-none"
         aria-hidden
@@ -31,9 +43,23 @@ const StepIcon: React.FC<{ state: CanvasRevisionStepState }> = ({ state }) => {
     );
   }
   if (state === "failed") {
-    return <CircleX size={size} className="text-danger-6" aria-hidden />;
+    return (
+      <HugeiconsIcon
+        icon={CircleX}
+        size={size}
+        className="text-danger-6"
+        aria-hidden
+      />
+    );
   }
-  return <Circle size={size} className="text-text-4" aria-hidden />;
+  return (
+    <HugeiconsIcon
+      icon={Circle}
+      size={size}
+      className="text-text-4"
+      aria-hidden
+    />
+  );
 };
 
 const CanvasRevisionSteps: React.FC<CanvasRevisionStepsProps> = ({

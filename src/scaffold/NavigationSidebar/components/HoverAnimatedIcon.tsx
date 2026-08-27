@@ -1,7 +1,9 @@
-import type { LucideIcon } from "lucide-react";
+import { type IconSvgElement } from "@hugeicons/react";
 import React, { useCallback, useEffect, useRef } from "react";
 
 import { CODEMIRROR_STYLE_NONCE } from "@src/features/CodeMirror/config/nonce";
+
+type LucideIcon = IconSvgElement;
 
 type AnimationStrategy =
   | "stroke-draw"

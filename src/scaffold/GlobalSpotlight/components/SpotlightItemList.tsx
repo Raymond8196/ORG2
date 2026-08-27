@@ -8,7 +8,8 @@
  *
  * Row rendering is delegated to SpotlightItemRow.
  */
-import { ChevronDown } from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
   useEffect,
@@ -262,7 +263,11 @@ export const SpotlightItemList: React.FC<SpotlightItemListProps> = ({
 
         {hasMore && !isLoadingMore && (
           <div className="flex items-center justify-center gap-1 py-3">
-            <ChevronDown className="text-text-4" size={14} />
+            <HugeiconsIcon
+              icon={ChevronDown}
+              className="text-text-4"
+              size={14}
+            />
             <span className="text-[11px] text-text-4">
               {t("placeholders.scrollForMore")}
             </span>
@@ -321,7 +326,7 @@ export const SpotlightItemList: React.FC<SpotlightItemListProps> = ({
 
       {hasMore && !isLoadingMore && (
         <div className="flex items-center justify-center gap-1 py-3">
-          <ChevronDown className="text-text-4" size={14} />
+          <HugeiconsIcon icon={ChevronDown} className="text-text-4" size={14} />
           <span className="text-[11px] text-text-4">
             {t("placeholders.scrollForMore")}
           </span>

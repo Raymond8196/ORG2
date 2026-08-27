@@ -1,4 +1,8 @@
-import { Boxes, FolderGit2, ListChecks, MessageSquare } from "lucide-react";
+import ListChecks from "@hugeicons/core-free-icons/CheckListIcon";
+import FolderGit2 from "@hugeicons/core-free-icons/FolderGitTwoIcon";
+import MessageSquare from "@hugeicons/core-free-icons/Message01Icon";
+import Boxes from "@hugeicons/core-free-icons/Package01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -50,7 +54,13 @@ export const WorkModelStep: React.FC<StepProps> = () => {
       </SectionContainer>
       <InlineAlert
         type="info"
-        icon={<FolderGit2 size={14} className="flex-shrink-0" />}
+        icon={
+          <HugeiconsIcon
+            icon={FolderGit2}
+            size={14}
+            className="flex-shrink-0"
+          />
+        }
       >
         {t("readiness.model.relationship")}
       </InlineAlert>

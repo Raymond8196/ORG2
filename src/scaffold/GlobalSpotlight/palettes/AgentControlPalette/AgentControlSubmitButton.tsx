@@ -1,5 +1,6 @@
+import ArrowUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
-import { ArrowUp } from "lucide-react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -33,7 +34,11 @@ export const AgentControlSubmitButton: React.FC<
       style={{ lineHeight: 0 }}
       aria-label={t("adeManager.submit")}
     >
-      <ArrowUp size={INPUT_AREA_BUTTONS.iconSize} strokeWidth={2} />
+      <HugeiconsIcon
+        icon={ArrowUp}
+        size={INPUT_AREA_BUTTONS.iconSize}
+        strokeWidth={2}
+      />
     </button>
   );
 

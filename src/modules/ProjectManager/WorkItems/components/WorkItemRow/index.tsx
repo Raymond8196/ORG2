@@ -1,4 +1,5 @@
-import { RotateCcw } from "lucide-react";
+import RotateCcw from "@hugeicons/core-free-icons/RotateLeft01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -391,7 +392,7 @@ const WorkItemRow: React.FC<WorkItemRowProps> = React.memo(
               className="ml-2 inline-flex h-7 items-center gap-1 rounded-md px-2 text-xs font-medium text-primary-6 transition-colors hover:bg-primary-1"
               onClick={handleRestore}
             >
-              <RotateCcw size={13} />
+              <HugeiconsIcon icon={RotateCcw} size={13} />
               {t("workItems.restore")}
             </button>
           )}

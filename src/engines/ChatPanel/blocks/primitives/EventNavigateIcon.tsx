@@ -8,7 +8,9 @@
  *   Uses `fill-3` hover because it sits inside a `fill-2` container.
  * - "footer": always visible, same token-button styling.
  */
-import { ArrowUpRight, CircleArrowOutUpRight } from "lucide-react";
+import ArrowUpRight from "@hugeicons/core-free-icons/ArrowUpRight01Icon";
+import CircleArrowOutUpRight from "@hugeicons/core-free-icons/CircleArrowOutUpRightIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
 const BASE_CLASSES =

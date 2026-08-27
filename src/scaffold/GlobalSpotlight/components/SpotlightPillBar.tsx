@@ -5,7 +5,8 @@
  * own content (e.g. SessionCreatorPalette) and only need the back-chevron
  * pill for navigation context.
  */
-import { ChevronLeft } from "lucide-react";
+import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import { SPOTLIGHT_CLASSES, SPOTLIGHT_TOKENS } from "../constants";
@@ -52,7 +53,12 @@ export const SpotlightPillBar: React.FC<SpotlightPillBarProps> = ({
               title={segment.label}
             >
               {canRemove && (
-                <ChevronLeft size={13} strokeWidth={2.5} className="shrink-0" />
+                <HugeiconsIcon
+                  icon={ChevronLeft}
+                  size={13}
+                  strokeWidth={2.5}
+                  className="shrink-0"
+                />
               )}
               <span
                 className={`max-w-[220px] truncate ${SPOTLIGHT_TOKENS.inputFontSize}`}

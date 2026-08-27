@@ -10,7 +10,8 @@
  * pulls the message off screen before it can be read. Pair this with
  * {@link useDismissibleMessage} so the strip stays until the reader closes it.
  */
-import { X } from "lucide-react";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -61,7 +62,7 @@ export const InlineBanner: React.FC<InlineBannerProps> = ({
           data-testid={dataTestId ? `${dataTestId}-dismiss` : undefined}
           className="-mr-1 mt-px flex h-4 w-4 shrink-0 items-center justify-center rounded transition-colors hover:bg-fill-2"
         >
-          <X size={12} strokeWidth={2} aria-hidden />
+          <HugeiconsIcon icon={X} size={12} strokeWidth={2} aria-hidden />
         </button>
       ) : null}
     </div>

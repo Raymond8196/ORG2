@@ -1,4 +1,6 @@
-import { LogIn, ScanSearch } from "lucide-react";
+import LogIn from "@hugeicons/core-free-icons/Login01Icon";
+import ScanSearch from "@hugeicons/core-free-icons/SearchAreaIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 

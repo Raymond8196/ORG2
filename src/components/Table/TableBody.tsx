@@ -1,5 +1,8 @@
+import ChevronsUpDown from "@hugeicons/core-free-icons/ArrowUpDownIcon";
+import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
+import Inbox from "@hugeicons/core-free-icons/InboxIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { Cell, Row, flexRender } from "@tanstack/react-table";
-import { ChevronsDownUp, ChevronsUpDown, Inbox } from "lucide-react";
 import React, { useState } from "react";
 
 import type { ColumnMeta, TableColumn, TableProps } from "./types";
@@ -153,7 +156,11 @@ export function TableBody<T>({
             <div className="table-empty">
               {noDataElement || (
                 <>
-                  <Inbox size={48} className="opacity-40" />
+                  <HugeiconsIcon
+                    icon={Inbox}
+                    size={48}
+                    className="opacity-40"
+                  />
                   <span>No Data</span>
                 </>
               )}
@@ -225,9 +232,17 @@ export function TableBody<T>({
                         aria-expanded={isExpanded}
                       >
                         {isExpanded ? (
-                          <ChevronsDownUp size={14} className="shrink-0" />
+                          <HugeiconsIcon
+                            icon={ChevronsDownUp}
+                            size={14}
+                            className="shrink-0"
+                          />
                         ) : (
-                          <ChevronsUpDown size={14} className="shrink-0" />
+                          <HugeiconsIcon
+                            icon={ChevronsUpDown}
+                            size={14}
+                            className="shrink-0"
+                          />
                         )}
                       </button>
                     ) : (

@@ -1,13 +1,12 @@
-import {
-  ArrowUpRight,
-  CheckCheck,
-  FolderInput,
-  FolderOutput,
-  ListChevronsDownUp,
-  ListFilter,
-  RefreshCw,
-  SlidersHorizontal,
-} from "lucide-react";
+import ArrowUpRight from "@hugeicons/core-free-icons/ArrowUpRight01Icon";
+import ListFilter from "@hugeicons/core-free-icons/FilterIcon";
+import FolderInput from "@hugeicons/core-free-icons/FolderInputIcon";
+import FolderOutput from "@hugeicons/core-free-icons/FolderOutputIcon";
+import ListChevronsDownUp from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import SlidersHorizontal from "@hugeicons/core-free-icons/SlidersHorizontalIcon";
+import CheckCheck from "@hugeicons/core-free-icons/TickDouble01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { type FC, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -216,7 +215,8 @@ export const SessionFilterButton: FC<SessionFilterButtonProps> = React.memo(
                       <DropdownItem
                         dataTestId="sidebar-refresh-sessions"
                         icon={
-                          <RefreshCw
+                          <HugeiconsIcon
+                            icon={RefreshCw}
                             size={DROPDOWN_ITEM.iconSize}
                             strokeWidth={2}
                           />
@@ -229,7 +229,8 @@ export const SessionFilterButton: FC<SessionFilterButtonProps> = React.memo(
                     {onExportSessionJson && (
                       <DropdownItem
                         icon={
-                          <FolderOutput
+                          <HugeiconsIcon
+                            icon={FolderOutput}
                             size={DROPDOWN_ITEM.iconSize}
                             strokeWidth={2}
                           />
@@ -243,7 +244,8 @@ export const SessionFilterButton: FC<SessionFilterButtonProps> = React.memo(
                     {onImportSessionJson && (
                       <DropdownItem
                         icon={
-                          <FolderInput
+                          <HugeiconsIcon
+                            icon={FolderInput}
                             size={DROPDOWN_ITEM.iconSize}
                             strokeWidth={2}
                           />
@@ -256,7 +258,8 @@ export const SessionFilterButton: FC<SessionFilterButtonProps> = React.memo(
                     {onCollapseAll && (
                       <DropdownItem
                         icon={
-                          <ListChevronsDownUp
+                          <HugeiconsIcon
+                            icon={ListChevronsDownUp}
                             size={DROPDOWN_ITEM.iconSize}
                             strokeWidth={2}
                           />
@@ -269,7 +272,8 @@ export const SessionFilterButton: FC<SessionFilterButtonProps> = React.memo(
                     {onMarkAllRead && (
                       <DropdownItem
                         icon={
-                          <CheckCheck
+                          <HugeiconsIcon
+                            icon={CheckCheck}
                             size={DROPDOWN_ITEM.iconSize}
                             strokeWidth={2}
                           />
@@ -290,13 +294,15 @@ export const SessionFilterButton: FC<SessionFilterButtonProps> = React.memo(
                     <DropdownItem
                       dataTestId="sidebar-configure-external-sources"
                       icon={
-                        <SlidersHorizontal
+                        <HugeiconsIcon
+                          icon={SlidersHorizontal}
                           size={DROPDOWN_ITEM.iconSize}
                           strokeWidth={2}
                         />
                       }
                       suffix={
-                        <ArrowUpRight
+                        <HugeiconsIcon
+                          icon={ArrowUpRight}
                           size={DROPDOWN_ITEM.iconSize}
                           strokeWidth={2}
                           className="text-text-3"

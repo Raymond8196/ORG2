@@ -1,4 +1,7 @@
-import { AtSign, Network, User } from "lucide-react";
+import Network from "@hugeicons/core-free-icons/AiNetworkIcon";
+import AtSign from "@hugeicons/core-free-icons/AtIcon";
+import User from "@hugeicons/core-free-icons/UserIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useState } from "react";
 
 import Avatar from "@src/components/Avatar";
@@ -84,12 +87,25 @@ function getAssigneeAvatarSrc(workItem: WorkItemExtended): string | undefined {
 }
 
 function renderAssigneeIcon(workItem: WorkItemExtended) {
-  if (!workItem.assignee) return <User size={DROPDOWN_ITEM.iconSize} />;
+  if (!workItem.assignee)
+    return <HugeiconsIcon icon={User} size={DROPDOWN_ITEM.iconSize} />;
   if (workItem.assigneeType === "agent") {
-    return <AtSign size={DROPDOWN_ITEM.iconSize} className="text-primary-6" />;
+    return (
+      <HugeiconsIcon
+        icon={AtSign}
+        size={DROPDOWN_ITEM.iconSize}
+        className="text-primary-6"
+      />
+    );
   }
   if (workItem.assigneeType === "org") {
-    return <Network size={DROPDOWN_ITEM.iconSize} className="text-primary-6" />;
+    return (
+      <HugeiconsIcon
+        icon={Network}
+        size={DROPDOWN_ITEM.iconSize}
+        className="text-primary-6"
+      />
+    );
   }
   return (
     <Avatar
@@ -109,7 +125,8 @@ function renderAssigneeIcon(workItem: WorkItemExtended) {
 function renderExternalAssigneeIcon(
   option: WorkItemExternalAssigneeOption | undefined
 ) {
-  if (!option) return <User size={DROPDOWN_ITEM.iconSize} />;
+  if (!option)
+    return <HugeiconsIcon icon={User} size={DROPDOWN_ITEM.iconSize} />;
   return (
     <Avatar size={DROPDOWN_ITEM.iconSize} src={option.avatar}>
       {option.label.charAt(0).toUpperCase()}
@@ -223,7 +240,9 @@ export function AssigneePropertyField({
             return (
               <>
                 <Option
-                  icon={<User size={DROPDOWN_ITEM.iconSize} />}
+                  icon={
+                    <HugeiconsIcon icon={User} size={DROPDOWN_ITEM.iconSize} />
+                  }
                   label={t("workItems.properties.noAssignee")}
                   isSelected={externalConfig.currentAssigneeIds.length === 0}
                   onClick={() => void handleExternalChange([], close)}
@@ -305,7 +324,7 @@ export function AssigneePropertyField({
         return (
           <>
             <Option
-              icon={<User size={DROPDOWN_ITEM.iconSize} />}
+              icon={<HugeiconsIcon icon={User} size={DROPDOWN_ITEM.iconSize} />}
               label={t("workItems.properties.noAssignee")}
               isSelected={!workItem.assignee}
               onClick={() => select(null)}
@@ -353,7 +372,8 @@ export function AssigneePropertyField({
                   select({ id: agent.id, name: agent.name }, "agent")
                 }
               >
-                <AtSign
+                <HugeiconsIcon
+                  icon={AtSign}
                   size={DROPDOWN_ITEM.iconSize}
                   className="text-primary-6"
                 />
@@ -375,7 +395,8 @@ export function AssigneePropertyField({
                 label={org.name}
                 onClick={() => select({ id: org.id, name: org.name }, "org")}
               >
-                <Network
+                <HugeiconsIcon
+                  icon={Network}
                   size={DROPDOWN_ITEM.iconSize}
                   className="text-primary-6"
                 />

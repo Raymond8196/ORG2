@@ -7,7 +7,12 @@
  * - Collapsible
  * - Positioned in bottom-right corner by default
  */
-import { GripVertical, Minus, Palette, Plus, X } from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Palette from "@hugeicons/core-free-icons/ColorPickerIcon";
+import GripVertical from "@hugeicons/core-free-icons/Drag01Icon";
+import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useRef, useState } from "react";
 
 import Select from "@src/components/Select";
@@ -156,8 +161,12 @@ export function TokenOverridePanel({
         style={{ cursor: isDragging ? "grabbing" : "grab" }}
       >
         <div className="flex items-center gap-2">
-          <GripVertical size={14} className="text-text-3" />
-          <Palette size={14} className="text-primary-6" />
+          <HugeiconsIcon
+            icon={GripVertical}
+            size={14}
+            className="text-text-3"
+          />
+          <HugeiconsIcon icon={Palette} size={14} className="text-primary-6" />
           <span className="text-[12px] font-medium text-text-1">
             Token Override
           </span>
@@ -171,14 +180,18 @@ export function TokenOverridePanel({
             onClick={() => setIsMinimized(!isMinimized)}
             title={isMinimized ? "Expand" : "Minimize"}
           >
-            {isMinimized ? <Plus size={12} /> : <Minus size={12} />}
+            {isMinimized ? (
+              <HugeiconsIcon icon={Plus} size={12} />
+            ) : (
+              <HugeiconsIcon icon={Minus} size={12} />
+            )}
           </button>
           <button
             className="flex h-5 w-5 items-center justify-center rounded text-text-3 hover:bg-fill-2 hover:text-text-1"
             onClick={onClose}
             title="Close"
           >
-            <X size={12} />
+            <HugeiconsIcon icon={X} size={12} />
           </button>
         </div>
       </div>

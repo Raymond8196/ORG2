@@ -8,11 +8,13 @@
  * Returns an array of length 0 or 1 so callers can spread directly into the
  * `path` prop without conditional branching.
  */
-import type { LucideIcon } from "lucide-react";
+import { type IconSvgElement } from "@hugeicons/react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { type PathConfig, buildPathSegment } from "../palettes/config";
+
+type LucideIcon = IconSvgElement;
 
 export interface UsePathSegmentOptions {
   /** Force a specific label string, bypassing config + i18n. */

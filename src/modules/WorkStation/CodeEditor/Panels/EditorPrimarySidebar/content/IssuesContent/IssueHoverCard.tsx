@@ -1,12 +1,11 @@
 /** Hover-card presentation owned by the WorkStation issues panel. */
-import {
-  CircleDot,
-  Clock,
-  MessageSquare,
-  Tags,
-  User,
-  XCircle,
-} from "lucide-react";
+import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
+import Clock from "@hugeicons/core-free-icons/Clock01Icon";
+import MessageSquare from "@hugeicons/core-free-icons/Message01Icon";
+import Tags from "@hugeicons/core-free-icons/TagsIcon";
+import User from "@hugeicons/core-free-icons/UserIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -55,9 +54,9 @@ const IssueHoverCardContent: React.FC<IssueHoverCardContentProps> = memo(
         <HoverCardRow
           icon={
             isOpen ? (
-              <CircleDot size={13} strokeWidth={1.75} />
+              <HugeiconsIcon icon={CircleDot} size={13} strokeWidth={1.75} />
             ) : (
-              <XCircle size={13} strokeWidth={1.75} />
+              <HugeiconsIcon icon={XCircle} size={13} strokeWidth={1.75} />
             )
           }
           iconClassName={isOpen ? "text-success-6" : "text-text-3"}
@@ -71,7 +70,9 @@ const IssueHoverCardContent: React.FC<IssueHoverCardContentProps> = memo(
 
         {issue.html_url && <HoverCardUrlRow url={issue.html_url} />}
 
-        <HoverCardRow icon={<User size={13} strokeWidth={1.75} />}>
+        <HoverCardRow
+          icon={<HugeiconsIcon icon={User} size={13} strokeWidth={1.75} />}
+        >
           <div className="truncate text-text-2">
             <span>{issue.user.login}</span>
             <span className="mx-1 text-text-4">·</span>
@@ -81,7 +82,9 @@ const IssueHoverCardContent: React.FC<IssueHoverCardContentProps> = memo(
           </div>
         </HoverCardRow>
 
-        <HoverCardRow icon={<Clock size={13} strokeWidth={1.75} />}>
+        <HoverCardRow
+          icon={<HugeiconsIcon icon={Clock} size={13} strokeWidth={1.75} />}
+        >
           <div className="truncate text-text-2">
             <span className="text-text-3">
               {wasUpdated
@@ -102,7 +105,9 @@ const IssueHoverCardContent: React.FC<IssueHoverCardContentProps> = memo(
         </HoverCardRow>
 
         {issue.labels.length > 0 && (
-          <HoverCardRow icon={<Tags size={13} strokeWidth={1.75} />}>
+          <HoverCardRow
+            icon={<HugeiconsIcon icon={Tags} size={13} strokeWidth={1.75} />}
+          >
             <div
               className="relative top-[2px] flex min-w-0 flex-wrap items-center gap-1"
               title={labelsTitle}
@@ -123,7 +128,9 @@ const IssueHoverCardContent: React.FC<IssueHoverCardContentProps> = memo(
         )}
 
         {issue.assignees.length > 0 && (
-          <HoverCardRow icon={<User size={13} strokeWidth={1.75} />}>
+          <HoverCardRow
+            icon={<HugeiconsIcon icon={User} size={13} strokeWidth={1.75} />}
+          >
             <div className="truncate text-text-2" title={assigneesTitle}>
               {t("git.issues.assignedTo", {
                 defaultValue: "Assigned to {{assignees}}",
@@ -134,7 +141,15 @@ const IssueHoverCardContent: React.FC<IssueHoverCardContentProps> = memo(
         )}
 
         {issue.comments > 0 && (
-          <HoverCardRow icon={<MessageSquare size={13} strokeWidth={1.75} />}>
+          <HoverCardRow
+            icon={
+              <HugeiconsIcon
+                icon={MessageSquare}
+                size={13}
+                strokeWidth={1.75}
+              />
+            }
+          >
             <div className="truncate text-text-2">
               {t("git.issues.commentCount", {
                 count: issue.comments,

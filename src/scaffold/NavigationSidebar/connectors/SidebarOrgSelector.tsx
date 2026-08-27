@@ -1,4 +1,8 @@
-import { CircleCheck, LogIn, Plus, Settings2 } from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import CircleCheck from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import LogIn from "@hugeicons/core-free-icons/Login01Icon";
+import Settings2 from "@hugeicons/core-free-icons/Settings02Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -75,7 +79,12 @@ const SidebarOrgSelector: React.FC<SidebarOrgSelectorProps> = React.memo(
               onClick={handleManageOrg}
               data-testid="sidebar-org-manage"
             >
-              <Settings2 size={13} strokeWidth={2} className="shrink-0" />
+              <HugeiconsIcon
+                icon={Settings2}
+                size={13}
+                strokeWidth={2}
+                className="shrink-0"
+              />
               <span className="min-w-0 truncate">{manageLabel}</span>
             </button>
             <button
@@ -84,7 +93,12 @@ const SidebarOrgSelector: React.FC<SidebarOrgSelectorProps> = React.memo(
               onClick={handleAddOrg}
               data-testid="sidebar-add-org"
             >
-              <Plus size={13} strokeWidth={2} className="shrink-0" />
+              <HugeiconsIcon
+                icon={Plus}
+                size={13}
+                strokeWidth={2}
+                className="shrink-0"
+              />
               <span className="min-w-0 truncate">{addOrgLabel}</span>
             </button>
             {cloudSignedInIdentity !== null ? (
@@ -92,7 +106,8 @@ const SidebarOrgSelector: React.FC<SidebarOrgSelectorProps> = React.memo(
                 className={`${DROPDOWN_CLASSES.item} !cursor-default !text-text-2`}
                 data-testid="sidebar-cloud-signed-in"
               >
-                <CircleCheck
+                <HugeiconsIcon
+                  icon={CircleCheck}
                   size={13}
                   strokeWidth={2}
                   className="shrink-0 text-success-6"
@@ -113,7 +128,12 @@ const SidebarOrgSelector: React.FC<SidebarOrgSelectorProps> = React.memo(
                 onClick={handleCloudSignIn}
                 data-testid="sidebar-cloud-sign-in"
               >
-                <LogIn size={13} strokeWidth={2} className="shrink-0" />
+                <HugeiconsIcon
+                  icon={LogIn}
+                  size={13}
+                  strokeWidth={2}
+                  className="shrink-0"
+                />
                 <span className="min-w-0 truncate">{t("cloud.signIn")}</span>
               </button>
             )}

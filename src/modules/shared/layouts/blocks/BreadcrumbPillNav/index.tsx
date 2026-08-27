@@ -5,7 +5,9 @@
  * (tab-pill geometry: h-[28px], rounded-[100px]). Use BreadcrumbPillNavTrigger
  * for transparent ghost select triggers with consistent open state styling.
  */
-import { ChevronDown, ChevronRight } from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { forwardRef } from "react";
 
 import { classNames } from "@src/util/ui/classNames";
@@ -44,7 +46,8 @@ export const BreadcrumbPillNav: React.FC<BreadcrumbPillNavProps> = ({
 }) => (
   <div className={classNames(BREADCRUMB_PILL_NAV_TOKENS.row, className)}>
     <span className={BREADCRUMB_PILL_NAV_TOKENS.leading}>{leading}</span>
-    <ChevronRight
+    <HugeiconsIcon
+      icon={ChevronRight}
       size={14}
       strokeWidth={1.75}
       className={BREADCRUMB_PILL_NAV_TOKENS.chevron}
@@ -111,7 +114,8 @@ export const BreadcrumbPillNavTrigger = forwardRef<
         {...rest}
       >
         {children}
-        <ChevronDown
+        <HugeiconsIcon
+          icon={ChevronDown}
           size={12}
           strokeWidth={2.25}
           className={classNames(

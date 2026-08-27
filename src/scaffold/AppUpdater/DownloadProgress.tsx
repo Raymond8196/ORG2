@@ -1,4 +1,5 @@
-import { Download } from "lucide-react";
+import Download from "@hugeicons/core-free-icons/Download01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { CSSProperties, FC } from "react";
 
 import ProgressBar from "@src/components/ProgressBar";
@@ -110,7 +111,7 @@ export const DownloadProgressOrb: FC<DownloadProgressOrbProps> = ({
         <span className="app-update-download-orb__wave" />
       </span>
       <span className="app-update-download-orb__icon" aria-hidden>
-        <Download size={18} strokeWidth={2.2} />
+        <HugeiconsIcon icon={Download} size={18} strokeWidth={2.2} />
       </span>
     </button>
   );

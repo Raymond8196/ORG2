@@ -6,7 +6,10 @@
  *
  * Uses SectionContainer + SectionRow + SECTION_GAP_CLASSES.
  */
-import { Globe, Keyboard, ScanSearch } from "lucide-react";
+import Globe from "@hugeicons/core-free-icons/GlobeIcon";
+import Keyboard from "@hugeicons/core-free-icons/KeyboardIcon";
+import ScanSearch from "@hugeicons/core-free-icons/SearchAreaIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 

@@ -1,4 +1,5 @@
-import { ExternalLink } from "lucide-react";
+import ExternalLink from "@hugeicons/core-free-icons/ArrowUpRight01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -133,7 +134,7 @@ const RoutineFireHistory: React.FC<{ routine: RoutineDefinition }> = ({
               }}
             >
               {t("routineFields.openSession")}
-              <ExternalLink size={11} />
+              <HugeiconsIcon icon={ExternalLink} size={11} />
             </button>
           )}
           {fire.workItemId && (
@@ -155,7 +156,7 @@ const RoutineFireHistory: React.FC<{ routine: RoutineDefinition }> = ({
               }}
             >
               {t("routineFields.openWorkItem")}
-              <ExternalLink size={11} />
+              <HugeiconsIcon icon={ExternalLink} size={11} />
             </button>
           )}
           {fire.error && (

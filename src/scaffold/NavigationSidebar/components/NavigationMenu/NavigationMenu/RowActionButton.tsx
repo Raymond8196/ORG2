@@ -1,4 +1,5 @@
-import { MoreHorizontal } from "lucide-react";
+import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import type { NavigationMenuItem } from "../config";

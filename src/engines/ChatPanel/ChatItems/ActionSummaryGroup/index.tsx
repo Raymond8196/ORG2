@@ -9,7 +9,8 @@
  * construction. Loading / failed / completed states are handled by
  * each event component natively.
  */
-import { Waypoints } from "lucide-react";
+import Waypoints from "@hugeicons/core-free-icons/WaypointsIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { Suspense, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -222,7 +223,9 @@ const ActionSummaryGroup: React.FC<ActionSummaryGroupProps> = ({
     >
       <StackedBlock
         items={orderedItems}
-        icon={<Waypoints size={14} className="text-text-2" />}
+        icon={
+          <HugeiconsIcon icon={Waypoints} size={14} className="text-text-2" />
+        }
         label={t("tools.explore")}
         groupSummary={groupSummary}
         defaultCollapsed={closedByBoundary}

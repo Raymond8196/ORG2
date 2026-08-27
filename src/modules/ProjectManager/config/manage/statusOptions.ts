@@ -3,14 +3,13 @@
  *
  * Status configurations for work items and projects.
  */
-import {
-  CheckCircle2,
-  Circle,
-  CircleDashed,
-  Clock,
-  Layers,
-  XCircle,
-} from "lucide-react";
+import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import Circle from "@hugeicons/core-free-icons/CircleIcon";
+import CircleDashed from "@hugeicons/core-free-icons/CircleIcon";
+import Clock from "@hugeicons/core-free-icons/Clock01Icon";
+import Layers from "@hugeicons/core-free-icons/Layers01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import { DROPDOWN_ITEM } from "@src/components/Dropdown/tokens";

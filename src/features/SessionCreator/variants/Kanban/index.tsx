@@ -1,4 +1,5 @@
-import { X } from "lucide-react";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -31,7 +32,7 @@ const SessionCreatorKanban: React.FC<SessionCreatorKanbanProps> = ({
       size="small"
       shape="round"
       iconOnly
-      icon={<X size={14} strokeWidth={1.75} />}
+      icon={<HugeiconsIcon icon={X} size={14} strokeWidth={1.75} />}
       title={t("tooltips.hidePanel")}
       aria-label={t("tooltips.hidePanel")}
       onClick={onClose}

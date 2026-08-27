@@ -1,4 +1,5 @@
-import { CircleDot } from "lucide-react";
+import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";

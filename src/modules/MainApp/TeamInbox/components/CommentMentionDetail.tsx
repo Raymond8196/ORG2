@@ -1,4 +1,6 @@
-import { AtSign, MessageSquare } from "lucide-react";
+import AtSign from "@hugeicons/core-free-icons/AtIcon";
+import MessageSquare from "@hugeicons/core-free-icons/Message01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -40,7 +42,7 @@ const CommentMentionDetail: React.FC<CommentMentionDetailProps> = ({
           ? "teamInbox.actions.openWorkItem"
           : "teamInbox.actions.openSession"
       )}
-      openIcon={<MessageSquare size={14} aria-hidden />}
+      openIcon={<HugeiconsIcon icon={MessageSquare} size={14} aria-hidden />}
       onMarkRead={onMarkRead ? () => onMarkRead(item) : undefined}
       onMarkUnread={onMarkUnread ? () => onMarkUnread(item) : undefined}
       onOpen={

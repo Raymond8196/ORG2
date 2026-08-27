@@ -1,4 +1,8 @@
-import { Archive, ListChevronsUpDown, Plus, X } from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import Archive from "@hugeicons/core-free-icons/ArchiveIcon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import ListChevronsUpDown from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -304,7 +308,8 @@ const CustomPropertiesSection: React.FC<CustomPropertiesSectionProps> = ({
     <WorkItemThreadSection
       testId="work-item-custom-properties"
       icon={
-        <ListChevronsUpDown
+        <HugeiconsIcon
+          icon={ListChevronsUpDown}
           size={14}
           strokeWidth={1.8}
           className="shrink-0 text-text-3"
@@ -321,7 +326,13 @@ const CustomPropertiesSection: React.FC<CustomPropertiesSectionProps> = ({
       action={
         editable ? (
           <ActivityHeaderActionButton
-            icon={showCreate ? <X size={12} /> : <Plus size={12} />}
+            icon={
+              showCreate ? (
+                <HugeiconsIcon icon={X} size={12} />
+              ) : (
+                <HugeiconsIcon icon={Plus} size={12} />
+              )
+            }
             label={
               showCreate
                 ? t("common:actions.cancel", { defaultValue: "Cancel" })
@@ -441,7 +452,7 @@ const CustomPropertiesSection: React.FC<CustomPropertiesSectionProps> = ({
                     size="mini"
                     shape="circle"
                     iconOnly
-                    icon={<Archive size={13} />}
+                    icon={<HugeiconsIcon icon={Archive} size={13} />}
                     title={t("workItems.properties.archive", {
                       defaultValue: "Archive property",
                     })}

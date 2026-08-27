@@ -1,4 +1,7 @@
-import { Filter, Info, Search } from "lucide-react";
+import Filter from "@hugeicons/core-free-icons/FilterIcon";
+import Info from "@hugeicons/core-free-icons/InformationCircleIcon";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   type ReactNode,
   useEffect,
@@ -253,7 +256,8 @@ function SettingsTableToolbar({
       iconOnly
       onClick={filterConfig.onToggle}
       icon={
-        <Filter
+        <HugeiconsIcon
+          icon={Filter}
           size={14}
           className={filterConfig.active ? "text-primary-6" : ""}
         />
@@ -326,7 +330,12 @@ function SettingsTableToolbar({
                 value={searchBar.searchValue ?? ""}
                 placeholder={searchBar.searchPlaceholder}
                 prefix={
-                  <Search size={14} className="text-text-3" aria-hidden />
+                  <HugeiconsIcon
+                    icon={Search}
+                    size={14}
+                    className="text-text-3"
+                    aria-hidden
+                  />
                 }
                 onChange={(value) => searchBar.onSearchChange?.(value)}
                 allowClear={searchBar.allowSearchClear ?? true}
@@ -469,7 +478,11 @@ export default function SettingsTable<RowData>({
                 showArrow={false}
               >
                 <span className="flex cursor-help items-center p-1">
-                  <Info size={14} className="text-text-3" />
+                  <HugeiconsIcon
+                    icon={Info}
+                    size={14}
+                    className="text-text-3"
+                  />
                 </span>
               </Tooltip>
             </div>

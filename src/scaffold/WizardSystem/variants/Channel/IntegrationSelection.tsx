@@ -1,4 +1,5 @@
-import { Search } from "lucide-react";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -277,7 +278,7 @@ const IntegrationSelection: React.FC<IntegrationSelectionProps> = ({
                   autoComplete="off"
                   autoCorrect="off"
                   spellCheck={false}
-                  prefix={<Search size={14} />}
+                  prefix={<HugeiconsIcon icon={Search} size={14} />}
                   style={{ width: "100%" }}
                 />
                 <div className="flex flex-col gap-3">

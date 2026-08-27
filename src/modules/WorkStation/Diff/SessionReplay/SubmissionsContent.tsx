@@ -1,4 +1,6 @@
-import { GitBranch, SquareArrowOutUpRight } from "lucide-react";
+import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -207,7 +209,7 @@ const PullRequestSubmissionRow: React.FC<{
             aria-label={t("actions.openOnGitHub", "Open on GitHub")}
             title={t("actions.openOnGitHub", "Open on GitHub")}
           >
-            <SquareArrowOutUpRight size={14} />
+            <HugeiconsIcon icon={SquareArrowOutUpRight} size={14} />
           </a>
         )}
       </div>
@@ -219,7 +221,7 @@ const PullRequestSubmissionRow: React.FC<{
       </div>
       {(branchLabel || pullRequest.repoFullName) && (
         <div className="mt-1 flex min-w-0 items-center gap-1 text-[11px] text-text-3">
-          <GitBranch size={12} className="shrink-0" />
+          <HugeiconsIcon icon={GitBranch} size={12} className="shrink-0" />
           <span className="truncate">
             {branchLabel
               ? truncateBranchLabel(branchLabel)

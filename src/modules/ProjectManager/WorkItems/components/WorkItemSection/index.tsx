@@ -1,4 +1,6 @@
-import { ChevronRight, Plus } from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -99,7 +101,7 @@ const WorkItemSection: React.FC<WorkItemSectionProps> = ({
           <div
             className={`${HEADER_BUTTON.actionMdTreeRow} [&>svg]:transition-transform [&>svg]:duration-150 ${isExpanded ? "[&>svg]:rotate-90" : ""}`}
           >
-            <ChevronRight size={HEADER_ICON_SIZE.sm} />
+            <HugeiconsIcon icon={ChevronRight} size={HEADER_ICON_SIZE.sm} />
           </div>
         </div>
 
@@ -140,7 +142,7 @@ const WorkItemSection: React.FC<WorkItemSectionProps> = ({
                 onAddItem();
               }}
             >
-              <Plus size={HEADER_ICON_SIZE.sm} />
+              <HugeiconsIcon icon={Plus} size={HEADER_ICON_SIZE.sm} />
             </button>
           </Tooltip>
         )}

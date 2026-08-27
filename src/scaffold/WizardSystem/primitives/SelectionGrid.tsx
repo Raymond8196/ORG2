@@ -32,7 +32,7 @@
  * />
  * ```
  */
-import type { LucideIcon } from "lucide-react";
+import { type IconSvgElement } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -43,6 +43,8 @@ import type {
 } from "@src/components/ActionCard/types";
 import Button from "@src/components/Button";
 import { TYPOGRAPHY } from "@src/config/workstation/tokens";
+
+type LucideIcon = IconSvgElement;
 
 // ============================================
 // Types

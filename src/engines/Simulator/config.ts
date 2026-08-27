@@ -3,49 +3,49 @@
  *
  * Configuration for the activity simulator grid layout and icons
  */
-import type { LucideIcon } from "lucide-react";
-import {
-  Activity,
-  ArrowLeft,
-  ArrowRight,
-  Bug,
-  ChevronDown,
-  Clock,
-  Code,
-  Database,
-  Eye,
-  File,
-  FileEdit,
-  FilePlus,
-  FolderSearch,
-  Globe,
-  LayoutGrid,
-  LayoutList,
-  Link,
-  Lock,
-  MapPin,
-  MessageSquare,
-  Monitor,
-  Pause,
-  Phone,
-  Play,
-  PlayCircle,
-  Rewind,
-  Save,
-  Search,
-  Server,
-  Settings,
-  SkipBack,
-  SkipForward,
-  Square,
-  SquareStack,
-  StopCircle,
-  Terminal,
-  Wrench,
-  Zap,
-} from "lucide-react";
+import Activity from "@hugeicons/core-free-icons/Activity01Icon";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ArrowRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import Rewind from "@hugeicons/core-free-icons/Backward01Icon";
+import SkipBack from "@hugeicons/core-free-icons/Backward01Icon";
+import Bug from "@hugeicons/core-free-icons/Bug01Icon";
+import Clock from "@hugeicons/core-free-icons/Clock01Icon";
+import Code from "@hugeicons/core-free-icons/CodeIcon";
+import Monitor from "@hugeicons/core-free-icons/ComputerIcon";
+import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import Database from "@hugeicons/core-free-icons/DatabaseIcon";
+import File from "@hugeicons/core-free-icons/File01Icon";
+import FilePlus from "@hugeicons/core-free-icons/FileAddIcon";
+import FileEdit from "@hugeicons/core-free-icons/FileEditIcon";
+import Zap from "@hugeicons/core-free-icons/FlashIcon";
+import Save from "@hugeicons/core-free-icons/FloppyDiskIcon";
+import FolderSearch from "@hugeicons/core-free-icons/FolderSearchIcon";
+import SkipForward from "@hugeicons/core-free-icons/Forward01Icon";
+import Globe from "@hugeicons/core-free-icons/GlobeIcon";
+import LayoutGrid from "@hugeicons/core-free-icons/LayoutGridIcon";
+import Link from "@hugeicons/core-free-icons/Link01Icon";
+import LayoutList from "@hugeicons/core-free-icons/ListViewIcon";
+import MapPin from "@hugeicons/core-free-icons/Location01Icon";
+import Lock from "@hugeicons/core-free-icons/LockIcon";
+import MessageSquare from "@hugeicons/core-free-icons/Message01Icon";
+import Pause from "@hugeicons/core-free-icons/PauseIcon";
+import PlayCircle from "@hugeicons/core-free-icons/PlayCircleIcon";
+import Play from "@hugeicons/core-free-icons/PlayIcon";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import Server from "@hugeicons/core-free-icons/ServerStack01Icon";
+import Settings from "@hugeicons/core-free-icons/Settings01Icon";
+import Phone from "@hugeicons/core-free-icons/SmartPhone01Icon";
+import Square from "@hugeicons/core-free-icons/SquareIcon";
+import SquareStack from "@hugeicons/core-free-icons/SquareStackIcon";
+import StopCircle from "@hugeicons/core-free-icons/StopCircleIcon";
+import Eye from "@hugeicons/core-free-icons/ViewIcon";
+import Wrench from "@hugeicons/core-free-icons/Wrench01Icon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 
 import { SimulatorGridLayout } from "@src/store/ui/simulatorAtom";
+
+type LucideIcon = IconSvgElement;
 
 // Layout configuration
 export interface LayoutConfig {

@@ -4,7 +4,8 @@
  * Renders a text button with Plus icon.  Pass as the `footer` prop of
  * SettingsTable, or use the `addFooter` shorthand prop (see SettingsTable).
  */
-import { Plus } from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 import Button from "@src/components/Button";
 
@@ -34,7 +35,7 @@ export function SettingsTableAddFooter({
       <Button
         variant="tertiary"
         size="default"
-        icon={<Plus size={14} />}
+        icon={<HugeiconsIcon icon={Plus} size={14} />}
         onClick={onClick}
         disabled={disabled}
         className={ADD_BUTTON_CLASS}

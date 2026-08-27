@@ -5,8 +5,10 @@
  * the "Load more" pagination row, and the empty/loading/error placeholder
  * row.
  */
+import ListFilter from "@hugeicons/core-free-icons/FilterIcon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
-import { ListFilter, RefreshCw } from "lucide-react";
 import React, { useMemo } from "react";
 
 import type { CloudSessionFilter } from "@src/features/Org2Cloud/cloudSessionFilter";

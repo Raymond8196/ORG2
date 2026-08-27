@@ -1,5 +1,7 @@
+import Pencil from "@hugeicons/core-free-icons/PencilIcon";
+import Repeat from "@hugeicons/core-free-icons/RepeatIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
-import { Pencil, Repeat } from "lucide-react";
 import React, { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -231,7 +233,7 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
   const descriptionActions =
     isThread && canEditDescription && !isEditingThreadDescription ? (
       <ActivityHeaderActionButton
-        icon={<Pencil size={12} aria-hidden />}
+        icon={<HugeiconsIcon icon={Pencil} size={12} aria-hidden />}
         label={t("common:actions.edit")}
         onClick={beginDescriptionEdit}
         data-testid="work-item-description-edit"
@@ -330,7 +332,7 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
               data-testid="work-item-routine-source-chip"
               title={workItem.routineSource.firedAt}
             >
-              <Repeat size={11} className="shrink-0" />
+              <HugeiconsIcon icon={Repeat} size={11} className="shrink-0" />
               <span className="truncate">
                 {t("workItems.fromRoutine", {
                   name: workItem.routineSource.routineName,

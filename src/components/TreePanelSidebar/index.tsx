@@ -30,7 +30,10 @@
  * />
  * ```
  */
-import { ChevronDown, ChevronRight, Search as SearchIcon } from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import SearchIcon from "@hugeicons/core-free-icons/Search01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Virtuoso } from "react-virtuoso";
@@ -90,9 +93,17 @@ const DefaultTreeNode: React.FC<TreeNodeProps> = memo(
         {isDirectory && (
           <div className="flex h-4 w-4 flex-shrink-0 items-center justify-center">
             {isExpanded ? (
-              <ChevronDown size={14} className="text-text-3" />
+              <HugeiconsIcon
+                icon={ChevronDown}
+                size={14}
+                className="text-text-3"
+              />
             ) : (
-              <ChevronRight size={14} className="text-text-3" />
+              <HugeiconsIcon
+                icon={ChevronRight}
+                size={14}
+                className="text-text-3"
+              />
             )}
           </div>
         )}
@@ -256,13 +267,15 @@ export function TreePanelSidebar<TTab extends string = string>({
             {/* Collapse chevron */}
             {sectionCollapsible &&
               (sectionExpanded ? (
-                <ChevronDown
+                <HugeiconsIcon
+                  icon={ChevronDown}
                   size={12}
                   strokeWidth={2}
                   className="text-text-3"
                 />
               ) : (
-                <ChevronRight
+                <HugeiconsIcon
+                  icon={ChevronRight}
                   size={12}
                   strokeWidth={2}
                   className="text-text-3"
@@ -304,7 +317,9 @@ export function TreePanelSidebar<TTab extends string = string>({
       {/* Filter Input */}
       <div className="flex-shrink-0 px-3 pb-2">
         <Input
-          prefix={<SearchIcon size={14} strokeWidth={1.75} />}
+          prefix={
+            <HugeiconsIcon icon={SearchIcon} size={14} strokeWidth={1.75} />
+          }
           placeholder={filterPlaceholder}
           value={filterQuery}
           onChange={onFilterChange}

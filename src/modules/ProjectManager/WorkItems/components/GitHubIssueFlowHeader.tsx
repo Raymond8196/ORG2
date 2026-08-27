@@ -5,7 +5,9 @@
  * by the pull-request detail: the large title with its muted #number, then a
  * status pill and the "{author} opened this issue · N comments" sentence.
  */
-import { CheckCircle2, CircleDot } from "lucide-react";
+import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -33,9 +35,9 @@ export function GitHubIssueFlowHeader({
           }`}
         >
           {isOpen ? (
-            <CircleDot size={10} aria-hidden />
+            <HugeiconsIcon icon={CircleDot} size={10} aria-hidden />
           ) : (
-            <CheckCircle2 size={10} aria-hidden />
+            <HugeiconsIcon icon={CheckCircle2} size={10} aria-hidden />
           )}
           {isOpen
             ? t("git.issues.status.open", "Open")

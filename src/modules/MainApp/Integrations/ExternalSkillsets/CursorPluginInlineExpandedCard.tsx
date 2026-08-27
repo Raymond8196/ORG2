@@ -1,11 +1,10 @@
+import Clipboard from "@hugeicons/core-free-icons/ClipboardIcon";
+import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
+import Layers from "@hugeicons/core-free-icons/Layers01Icon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { readTextFile } from "@tauri-apps/plugin-fs";
-import {
-  Check,
-  Clipboard,
-  GitBranch,
-  Layers,
-  SquareArrowOutUpRight,
-} from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -168,13 +167,18 @@ const CursorPluginInlineExpandedCard: React.FC<
           }
           className="flex min-w-0 items-center gap-2 overflow-hidden rounded-md px-3 py-2 text-left hover:bg-fill-1"
         >
-          <Layers size={12} className="shrink-0 text-text-3" />
+          <HugeiconsIcon
+            icon={Layers}
+            size={12}
+            className="shrink-0 text-text-3"
+          />
           <div className="min-w-0 flex-1 overflow-hidden">
             <div className="flex items-center justify-between gap-2">
               <span className="truncate text-[12px] font-medium text-text-1">
                 {skill.name}
               </span>
-              <SquareArrowOutUpRight
+              <HugeiconsIcon
+                icon={SquareArrowOutUpRight}
                 size={11}
                 className="shrink-0 text-text-3"
               />
@@ -210,13 +214,18 @@ const CursorPluginInlineExpandedCard: React.FC<
           }
           className="flex min-w-0 items-center gap-2 overflow-hidden rounded-md px-3 py-2 text-left hover:bg-fill-1"
         >
-          <GitBranch size={12} className="shrink-0 text-text-3" />
+          <HugeiconsIcon
+            icon={GitBranch}
+            size={12}
+            className="shrink-0 text-text-3"
+          />
           <div className="min-w-0 flex-1 overflow-hidden">
             <div className="flex items-center justify-between gap-2">
               <span className="truncate text-[12px] font-medium text-text-1">
                 {hook.label}
               </span>
-              <SquareArrowOutUpRight
+              <HugeiconsIcon
+                icon={SquareArrowOutUpRight}
                 size={11}
                 className="shrink-0 text-text-3"
               />
@@ -257,7 +266,11 @@ const CursorPluginInlineExpandedCard: React.FC<
               onClick={handleCopyMcp}
               className="inline-flex items-center gap-1.5 rounded border border-border-2 px-3 py-1.5 text-[12px] text-text-2 transition-colors hover:bg-fill-3 hover:text-text-1"
             >
-              {mcpCopied ? <Check size={12} /> : <Clipboard size={12} />}
+              {mcpCopied ? (
+                <HugeiconsIcon icon={Check} size={12} />
+              ) : (
+                <HugeiconsIcon icon={Clipboard} size={12} />
+              )}
               {mcpCopied
                 ? t("common:status.copied")
                 : t("cursorPlugins.copyMcpConfig")}

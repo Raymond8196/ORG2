@@ -5,17 +5,16 @@
  * Handles both section headers and file/directory items.
  * Uses TreeRowBase for file items to maintain consistency.
  */
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import Archive from "@hugeicons/core-free-icons/ArchiveIcon";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import FileDiff from "@hugeicons/core-free-icons/FileDiffIcon";
+import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import Undo2 from "@hugeicons/core-free-icons/Undo02Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
-import {
-  Archive,
-  Check,
-  ChevronDown,
-  ChevronRight,
-  FileDiff,
-  Minus,
-  Plus,
-  Undo2,
-} from "lucide-react";
 import React, { memo, useCallback, useMemo, useRef, useState } from "react";
 
 import { useActionSystemOptional } from "@src/ActionSystem";
@@ -148,7 +147,7 @@ const SectionHeaderRow: React.FC<SectionHeaderRowProps> = memo(
             }}
             title={GIT_LABELS.discardAllChanges}
           >
-            <Undo2 size={14} strokeWidth={1.75} />
+            <HugeiconsIcon icon={Undo2} size={14} strokeWidth={1.75} />
           </button>
           {onStashPush && hasChangesToStash && (
             <button
@@ -160,7 +159,7 @@ const SectionHeaderRow: React.FC<SectionHeaderRowProps> = memo(
               disabled={stashOperationLoading}
               title={GIT_LABELS.stashAllChanges}
             >
-              <Archive size={14} strokeWidth={1.75} />
+              <HugeiconsIcon icon={Archive} size={14} strokeWidth={1.75} />
             </button>
           )}
           <button
@@ -171,7 +170,7 @@ const SectionHeaderRow: React.FC<SectionHeaderRowProps> = memo(
             }}
             title={GIT_LABELS.stageChanges}
           >
-            <Plus size={14} strokeWidth={1.75} />
+            <HugeiconsIcon icon={Plus} size={14} strokeWidth={1.75} />
           </button>
         </>
       );
@@ -186,7 +185,7 @@ const SectionHeaderRow: React.FC<SectionHeaderRowProps> = memo(
             }}
             title={`Unstage All Changes\n\nShortcut: ${SHORTCUTS.unstageAll}`}
           >
-            <Minus size={14} strokeWidth={1.75} />
+            <HugeiconsIcon icon={Minus} size={14} strokeWidth={1.75} />
           </button>
           <button
             className={`${HEADER_BUTTON.actionTreeRow} opacity-0 group-hover/header:opacity-100`}
@@ -196,7 +195,7 @@ const SectionHeaderRow: React.FC<SectionHeaderRowProps> = memo(
             }}
             title={GIT_LABELS.openStagedChanges}
           >
-            <FileDiff size={14} strokeWidth={1.75} />
+            <HugeiconsIcon icon={FileDiff} size={14} strokeWidth={1.75} />
           </button>
         </>
       );
@@ -213,9 +212,13 @@ const SectionHeaderRow: React.FC<SectionHeaderRowProps> = memo(
       >
         {/* Chevron */}
         {node.expanded ? (
-          <ChevronDown size={14} className="text-text-3" />
+          <HugeiconsIcon icon={ChevronDown} size={14} className="text-text-3" />
         ) : (
-          <ChevronRight size={14} className="text-text-3" />
+          <HugeiconsIcon
+            icon={ChevronRight}
+            size={14}
+            className="text-text-3"
+          />
         )}
 
         {/* Title */}

@@ -1,13 +1,12 @@
-import {
-  BriefcaseBusiness,
-  Building2,
-  Check,
-  Eye,
-  FolderGit2,
-  Inbox,
-  KeyRound,
-  Play,
-} from "lucide-react";
+import BriefcaseBusiness from "@hugeicons/core-free-icons/Briefcase02Icon";
+import Building2 from "@hugeicons/core-free-icons/Building02Icon";
+import FolderGit2 from "@hugeicons/core-free-icons/FolderGitTwoIcon";
+import Inbox from "@hugeicons/core-free-icons/InboxIcon";
+import KeyRound from "@hugeicons/core-free-icons/Key02Icon";
+import Play from "@hugeicons/core-free-icons/PlayIcon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import Eye from "@hugeicons/core-free-icons/ViewIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -87,7 +86,8 @@ export const ReadyStep: React.FC<StepProps> = ({ controller }) => {
               >
                 {label}
               </span>
-              <Check
+              <HugeiconsIcon
+                icon={Check}
                 size={14}
                 className="flex-shrink-0 text-success-6"
                 aria-hidden

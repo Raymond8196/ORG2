@@ -3,8 +3,10 @@
  *
  * Renders the My Station / Agent's Station icon segmented toggle.
  */
+import Infinity from "@hugeicons/core-free-icons/Infinity01Icon";
+import Laptop from "@hugeicons/core-free-icons/LaptopIcon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import { useAtom } from "jotai";
-import { Infinity, Laptop, type LucideIcon } from "lucide-react";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -13,6 +15,8 @@ import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip"
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
 import { GENERAL_LAYOUT_TOUR_TARGETS } from "@src/scaffold/Tutorials/generalLayoutTourConfig";
 import { type StationMode, stationModeAtom } from "@src/store/ui/simulatorAtom";
+
+type LucideIcon = IconSvgElement;
 
 const MY_STATION_SHORTCUT_ID = "open_my_station";
 const AGENT_STATION_SHORTCUT_ID = "open_agent_station";

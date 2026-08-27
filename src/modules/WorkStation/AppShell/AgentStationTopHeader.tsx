@@ -5,15 +5,14 @@
  * Contains: station mode chip, chat panel toggle, caption toggle,
  * layout settings dropdown, and a separate caption row below the top bar.
  */
+import MessageCircle from "@hugeicons/core-free-icons/BubbleChatIcon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Captions from "@hugeicons/core-free-icons/CaptionsIcon";
+import Maximize2 from "@hugeicons/core-free-icons/Maximize02Icon";
+import Minimize2 from "@hugeicons/core-free-icons/Minimize02Icon";
+import PanelRight from "@hugeicons/core-free-icons/PanelRightIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import {
-  Captions,
-  Maximize2,
-  MessageCircle,
-  Minimize2,
-  PanelRight,
-  X,
-} from "lucide-react";
 import React, { memo, startTransition, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
@@ -169,7 +168,7 @@ const AgentStationTopHeader: React.FC = memo(() => {
             aria-pressed={captionEnabled}
             onClick={handleToggleCaption}
           >
-            <Captions size={16} strokeWidth={2} />
+            <HugeiconsIcon icon={Captions} size={16} strokeWidth={2} />
           </TabBarTrailingIconButton>
           {!isSettingsRoute && !isChatPanelVisible && (
             <TabBarTrailingIconButton
@@ -177,7 +176,7 @@ const AgentStationTopHeader: React.FC = memo(() => {
               shortcutId="maximize_work_station"
               onClick={handleToggleChatPanel}
             >
-              <Minimize2 size={14} strokeWidth={2} />
+              <HugeiconsIcon icon={Minimize2} size={14} strokeWidth={2} />
             </TabBarTrailingIconButton>
           )}
           {!isSettingsRoute && (
@@ -187,9 +186,9 @@ const AgentStationTopHeader: React.FC = memo(() => {
               onClick={handleToggleChatPanel}
             >
               {isChatPanelVisible ? (
-                <Maximize2 size={14} strokeWidth={2} />
+                <HugeiconsIcon icon={Maximize2} size={14} strokeWidth={2} />
               ) : (
-                <MessageCircle size={14} strokeWidth={2} />
+                <HugeiconsIcon icon={MessageCircle} size={14} strokeWidth={2} />
               )}
             </TabBarTrailingIconButton>
           )}
@@ -200,9 +199,17 @@ const AgentStationTopHeader: React.FC = memo(() => {
               onClick={handleToggleChatPanelMaximized}
             >
               {sessionChatPosition === "left" ? (
-                <PanelRight size={HEADER_ICON_SIZE.md} strokeWidth={2} />
+                <HugeiconsIcon
+                  icon={PanelRight}
+                  size={HEADER_ICON_SIZE.md}
+                  strokeWidth={2}
+                />
               ) : (
-                <X size={HEADER_ICON_SIZE.md} strokeWidth={1.75} />
+                <HugeiconsIcon
+                  icon={X}
+                  size={HEADER_ICON_SIZE.md}
+                  strokeWidth={1.75}
+                />
               )}
             </TabBarTrailingIconButton>
           )}

@@ -8,17 +8,16 @@
  * - Reload button
  * - Loading indicator
  */
-import {
-  ArrowLeft,
-  ArrowRight,
-  Camera,
-  Code,
-  Loader2,
-  PenTool,
-  PencilRuler,
-  RefreshCw,
-  X,
-} from "lucide-react";
+import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ArrowRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import Camera from "@hugeicons/core-free-icons/Camera01Icon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Code from "@hugeicons/core-free-icons/CodeIcon";
+import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import PenTool from "@hugeicons/core-free-icons/PenTool01Icon";
+import PencilRuler from "@hugeicons/core-free-icons/PencilRulerIcon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -337,7 +336,9 @@ export const WebUrlBar: React.FC<WebUrlBarProps> = memo(
               onClick={onBack}
               disabled={!canGoBack}
               aria-label={t("tooltips.goBack")}
-              icon={<ArrowLeft size={HEADER_ICON_SIZE.md} />}
+              icon={
+                <HugeiconsIcon icon={ArrowLeft} size={HEADER_ICON_SIZE.md} />
+              }
             />
           </ToolbarTooltip>
           <ToolbarTooltip label={t("tooltips.goForward")}>
@@ -349,7 +350,9 @@ export const WebUrlBar: React.FC<WebUrlBarProps> = memo(
               onClick={onForward}
               disabled={!canGoForward}
               aria-label={t("tooltips.goForward")}
-              icon={<ArrowRight size={HEADER_ICON_SIZE.md} />}
+              icon={
+                <HugeiconsIcon icon={ArrowRight} size={HEADER_ICON_SIZE.md} />
+              }
             />
           </ToolbarTooltip>
           <ToolbarTooltip label={reloadControlLabel}>
@@ -362,9 +365,9 @@ export const WebUrlBar: React.FC<WebUrlBarProps> = memo(
               aria-label={reloadControlLabel}
               icon={
                 isLoading ? (
-                  <X size={HEADER_ICON_SIZE.sm} />
+                  <HugeiconsIcon icon={X} size={HEADER_ICON_SIZE.sm} />
                 ) : (
-                  <RefreshCw size={HEADER_ICON_SIZE.sm} />
+                  <HugeiconsIcon icon={RefreshCw} size={HEADER_ICON_SIZE.sm} />
                 )
               }
             />
@@ -434,7 +437,9 @@ export const WebUrlBar: React.FC<WebUrlBarProps> = memo(
                       : "tooltips.enableInspectMode"
                   )}
                   className={isInspectMode ? "!bg-fill-2 !text-primary-6" : ""}
-                  icon={<PenTool size={HEADER_ICON_SIZE.sm} />}
+                  icon={
+                    <HugeiconsIcon icon={PenTool} size={HEADER_ICON_SIZE.sm} />
+                  }
                 />
               </ToolbarTooltip>
             )}
@@ -451,12 +456,13 @@ export const WebUrlBar: React.FC<WebUrlBarProps> = memo(
                   aria-label={t("tooltips.captureScreenshot")}
                   icon={
                     isCapturingScreenshot ? (
-                      <Loader2
+                      <HugeiconsIcon
+                        icon={Loader2}
                         size={HEADER_ICON_SIZE.md}
                         className="animate-spin"
                       />
                     ) : (
-                      <Camera size={HEADER_ICON_SIZE.md} />
+                      <HugeiconsIcon icon={Camera} size={HEADER_ICON_SIZE.md} />
                     )
                   }
                 />
@@ -472,7 +478,9 @@ export const WebUrlBar: React.FC<WebUrlBarProps> = memo(
                   iconOnly
                   onClick={onOpenNativeDevTools}
                   aria-label={t("tooltips.openNativeDevTools")}
-                  icon={<Code size={HEADER_ICON_SIZE.md} />}
+                  icon={
+                    <HugeiconsIcon icon={Code} size={HEADER_ICON_SIZE.md} />
+                  }
                 />
               </ToolbarTooltip>
             )}
@@ -501,7 +509,8 @@ export const WebUrlBar: React.FC<WebUrlBarProps> = memo(
                       : t("sessions:titleBar.hideDevTools")
                   }
                   icon={
-                    <PencilRuler
+                    <HugeiconsIcon
+                      icon={PencilRuler}
                       size={HEADER_ICON_SIZE.sm}
                       strokeWidth={1.75}
                     />

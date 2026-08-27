@@ -1,4 +1,6 @@
-import { Code, Computer } from "lucide-react";
+import Code from "@hugeicons/core-free-icons/CodeIcon";
+import Computer from "@hugeicons/core-free-icons/ComputerIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 import { SETTINGS_SECTION_SLOT_IDS } from "@src/config/settingsUiManifest/slotIds";
 import type { SettingsSectionDefinition } from "@src/config/settingsUiManifest/types";

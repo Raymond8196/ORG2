@@ -1,4 +1,5 @@
-import { Loader2 } from "lucide-react";
+import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 
 export type ButtonVariant =
@@ -227,7 +228,11 @@ export function useButtonPresentation({
         <span
           className={`pointer-events-none inline-flex shrink-0 items-center justify-center leading-none ${iconSpacingClass}`}
         >
-          <Loader2 size={sizeConfig.iconSize} className="animate-spin" />
+          <HugeiconsIcon
+            icon={Loader2}
+            size={sizeConfig.iconSize}
+            className="animate-spin"
+          />
         </span>
       );
     }

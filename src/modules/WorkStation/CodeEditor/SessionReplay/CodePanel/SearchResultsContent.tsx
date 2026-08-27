@@ -1,7 +1,10 @@
 /**
  * Search / list_dir / cat / grep result bodies for session replay CodePanel.
  */
-import { ChevronsUpDown, Code2, X } from "lucide-react";
+import ChevronsUpDown from "@hugeicons/core-free-icons/ArrowUpDownIcon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Code2 from "@hugeicons/core-free-icons/CodeIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -53,7 +56,7 @@ function LoadMoreResultsButton({
         variant="tertiary"
         appearance="ghost"
         size="small"
-        icon={<ChevronsUpDown size={14} />}
+        icon={<HugeiconsIcon icon={ChevronsUpDown} size={14} />}
         onClick={onClick}
       >
         {t("actions.loadMore")} ({hiddenCount})
@@ -158,7 +161,11 @@ export const SearchResultsContent: React.FC<{
         {directoryNotFoundMessage ? (
           <div className="flex w-full min-w-0 flex-col gap-0.5 p-2">
             <div className="flex w-full min-w-0 max-w-full items-center gap-2 rounded px-2 py-1.5 text-[13px] hover:bg-fill-2">
-              <X size={14} className="shrink-0 text-danger-6" />
+              <HugeiconsIcon
+                icon={X}
+                size={14}
+                className="shrink-0 text-danger-6"
+              />
               <span
                 className="min-w-0 flex-1 truncate text-text-1"
                 title={directoryNotFoundMessage}
@@ -332,7 +339,11 @@ export const SearchResultsContent: React.FC<{
               className="flex w-full min-w-0 max-w-full items-center gap-2 rounded px-2 py-1.5 text-[13px] hover:bg-fill-2"
             >
               {isGit ? (
-                <Code2 size={14} className="flex-shrink-0 text-primary-6" />
+                <HugeiconsIcon
+                  icon={Code2}
+                  size={14}
+                  className="flex-shrink-0 text-primary-6"
+                />
               ) : (
                 <FileTypeIcon
                   fileName={name.trim()}

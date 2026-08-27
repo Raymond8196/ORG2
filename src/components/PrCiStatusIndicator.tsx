@@ -1,14 +1,13 @@
-import {
-  Check,
-  CheckCircle2,
-  CircleDashed,
-  CircleSlash,
-  Ellipsis,
-  LoaderCircle,
-  Minus,
-  X,
-  XCircle,
-} from "lucide-react";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import CircleDashed from "@hugeicons/core-free-icons/CircleIcon";
+import CircleSlash from "@hugeicons/core-free-icons/CircleSlashIcon";
+import LoaderCircle from "@hugeicons/core-free-icons/Loading03Icon";
+import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
+import Ellipsis from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import type { PullRequestCiStatus } from "@src/api/tauri/github";
@@ -36,26 +35,30 @@ const PrCiStatusIndicator: React.FC<PrCiStatusIndicatorProps> = ({
   const icon =
     appearance === "simple" ? (
       status === "success" ? (
-        <Check {...iconProps} />
+        <HugeiconsIcon icon={Check} {...iconProps} />
       ) : status === "failure" ? (
-        <X {...iconProps} />
+        <HugeiconsIcon icon={X} {...iconProps} />
       ) : status === "pending" ? (
         <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-warning-6" />
       ) : status === "none" ? (
-        <Minus {...iconProps} />
+        <HugeiconsIcon icon={Minus} {...iconProps} />
       ) : (
-        <Ellipsis {...iconProps} />
+        <HugeiconsIcon icon={Ellipsis} {...iconProps} />
       )
     ) : status === "success" ? (
-      <CheckCircle2 {...iconProps} />
+      <HugeiconsIcon icon={CheckCircle2} {...iconProps} />
     ) : status === "failure" ? (
-      <XCircle {...iconProps} />
+      <HugeiconsIcon icon={XCircle} {...iconProps} />
     ) : status === "pending" ? (
-      <LoaderCircle {...iconProps} className="animate-spin" />
+      <HugeiconsIcon
+        icon={LoaderCircle}
+        {...iconProps}
+        className="animate-spin"
+      />
     ) : status === "none" ? (
-      <CircleSlash {...iconProps} />
+      <HugeiconsIcon icon={CircleSlash} {...iconProps} />
     ) : (
-      <CircleDashed {...iconProps} />
+      <HugeiconsIcon icon={CircleDashed} {...iconProps} />
     );
   const colorClass =
     status === "success"

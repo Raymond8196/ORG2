@@ -1,4 +1,6 @@
-import { Check, RefreshCw } from "lucide-react";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -89,7 +91,7 @@ function SelectorError({
       <Button
         variant="secondary"
         size="small"
-        icon={<RefreshCw size={14} strokeWidth={1.8} />}
+        icon={<HugeiconsIcon icon={RefreshCw} size={14} strokeWidth={1.8} />}
         onClick={onRetry}
       >
         {retryLabel}
@@ -291,7 +293,8 @@ function WorktreeSourceDropdownRow({
         </span>
       )}
       {selected && (
-        <Check
+        <HugeiconsIcon
+          icon={Check}
           size={DROPDOWN_ITEM.iconSize}
           strokeWidth={2.25}
           className="shrink-0 text-primary-6"

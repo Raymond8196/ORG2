@@ -1,4 +1,7 @@
-import { Chrome, ClipboardList, SquareArrowOutUpRight } from "lucide-react";
+import ClipboardList from "@hugeicons/core-free-icons/CheckListIcon";
+import Chrome from "@hugeicons/core-free-icons/ChromeIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -358,13 +361,25 @@ const AssignedWorkItemDetail: React.FC<AssignedWorkItemDetailProps> = ({
       markUnreadLabel={t("teamInbox.actions.markUnread")}
       openLabel={t("teamInbox.actions.openWorkItem")}
       openIcon={
-        <SquareArrowOutUpRight size={14} strokeWidth={1.75} aria-hidden />
+        <HugeiconsIcon
+          icon={SquareArrowOutUpRight}
+          size={14}
+          strokeWidth={1.75}
+          aria-hidden
+        />
       }
       headerAuxiliaryAction={
         githubIssueUrl
           ? {
               label: t("previews.openInExternalBrowser"),
-              icon: <Chrome size={14} strokeWidth={1.75} aria-hidden />,
+              icon: (
+                <HugeiconsIcon
+                  icon={Chrome}
+                  size={14}
+                  strokeWidth={1.75}
+                  aria-hidden
+                />
+              ),
               onClick: () => void openExternalLink(githubIssueUrl),
               testId: "team-inbox-open-github",
             }

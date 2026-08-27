@@ -11,16 +11,15 @@
  *
  * Shared between ChatView and PlaygroundChatPanel.
  */
-import {
-  ArrowLeftRight,
-  BellRing,
-  CircleHelp,
-  ClipboardList,
-  Diff,
-  GitCommitHorizontal,
-  MessageCircleMore,
-  Terminal,
-} from "lucide-react";
+import ArrowLeftRight from "@hugeicons/core-free-icons/ArrowLeftRightIcon";
+import ClipboardList from "@hugeicons/core-free-icons/CheckListIcon";
+import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import Diff from "@hugeicons/core-free-icons/DiffIcon";
+import GitCommitHorizontal from "@hugeicons/core-free-icons/GitCommitIcon";
+import CircleHelp from "@hugeicons/core-free-icons/HelpCircleIcon";
+import MessageCircleMore from "@hugeicons/core-free-icons/MessageCircleMoreIcon";
+import BellRing from "@hugeicons/core-free-icons/NotificationBubbleIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 
 import type { InlineSection } from "../components/CollapsedInlineRow";

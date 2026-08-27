@@ -6,7 +6,11 @@
  * the user pin or unpin them. Renders via a React portal so it's never
  * clipped by the parent's overflow.
  */
-import { ArrowUp, Pin, PinOff, Search } from "lucide-react";
+import ArrowUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import Pin from "@hugeicons/core-free-icons/PinIcon";
+import PinOff from "@hugeicons/core-free-icons/PinOffIcon";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -251,7 +255,11 @@ const PinActionsPanel: React.FC<PinActionsPanelProps> = memo(
                 handleInsert(item);
               }}
             >
-              <ArrowUp size={DROPDOWN_ITEM.iconSize} strokeWidth={2} />
+              <HugeiconsIcon
+                icon={ArrowUp}
+                size={DROPDOWN_ITEM.iconSize}
+                strokeWidth={2}
+              />
             </span>
             <span
               className={`transition-colors duration-150 ${
@@ -259,9 +267,17 @@ const PinActionsPanel: React.FC<PinActionsPanelProps> = memo(
               }`}
             >
               {isPinned ? (
-                <PinOff size={DROPDOWN_ITEM.iconSize} strokeWidth={1.75} />
+                <HugeiconsIcon
+                  icon={PinOff}
+                  size={DROPDOWN_ITEM.iconSize}
+                  strokeWidth={1.75}
+                />
               ) : (
-                <Pin size={DROPDOWN_ITEM.iconSize} strokeWidth={1.75} />
+                <HugeiconsIcon
+                  icon={Pin}
+                  size={DROPDOWN_ITEM.iconSize}
+                  strokeWidth={1.75}
+                />
               )}
             </span>
           </span>
@@ -303,7 +319,8 @@ const PinActionsPanel: React.FC<PinActionsPanelProps> = memo(
 
         {/* Search header */}
         <div className={DROPDOWN_CLASSES.searchContainer}>
-          <Search
+          <HugeiconsIcon
+            icon={Search}
             size={DROPDOWN_ITEM.iconSize}
             className="shrink-0 text-text-3"
           />

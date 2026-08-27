@@ -4,7 +4,8 @@
  * VSCode-style search filters for include/exclude patterns.
  * Uses searchControlSingleLineInputStyle so line-height matches row height.
  */
-import { BookOpen } from "lucide-react";
+import BookOpen from "@hugeicons/core-free-icons/BookOpen01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -99,7 +100,7 @@ export const SearchFilters: React.FC<SearchFiltersProps> = memo(
                 className={`${HEADER_BUTTON.action} shrink-0 self-center ${onlyOpenFiles ? "text-primary-6" : ""}`}
                 title={t("tooltips.searchInOpenEditors")}
               >
-                <BookOpen size={14} />
+                <HugeiconsIcon icon={BookOpen} size={14} />
               </button>
             )}
           </div>

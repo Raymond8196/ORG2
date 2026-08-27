@@ -1,4 +1,5 @@
-import { GitBranch } from "lucide-react";
+import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { ReactNode } from "react";
 
 interface OrgTaskDependencyBadgeProps {
@@ -10,7 +11,7 @@ export function OrgTaskDependencyBadge({ count }: OrgTaskDependencyBadgeProps) {
 
   return (
     <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-fill-4 px-1.5 py-0.5 text-[10px] text-text-4">
-      <GitBranch size={10} /> {count} deps
+      <HugeiconsIcon icon={GitBranch} size={10} /> {count} deps
     </span>
   );
 }

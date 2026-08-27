@@ -1,5 +1,6 @@
-import type { LucideIcon } from "lucide-react";
-import { Check, Mail } from "lucide-react";
+import Mail from "@hugeicons/core-free-icons/Mail01Icon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React from "react";
 
 import Button from "@src/components/Button";
@@ -15,6 +16,8 @@ import type { InfoCardRow } from "@src/modules/shared/layouts/blocks";
 
 import TeamInboxHeaderIconAction from "./TeamInboxHeaderIconAction";
 import type { TeamInboxHeaderIconActionProps } from "./TeamInboxHeaderIconAction";
+
+type LucideIcon = IconSvgElement;
 
 export interface TeamInboxDetailLayoutProps {
   title: string;
@@ -68,7 +71,9 @@ const TeamInboxDetailLayout: React.FC<TeamInboxDetailLayoutProps> = ({
           variant="tertiary"
           size="small"
           iconOnly
-          icon={<Check size={14} strokeWidth={2} aria-hidden />}
+          icon={
+            <HugeiconsIcon icon={Check} size={14} strokeWidth={2} aria-hidden />
+          }
           aria-label={markReadLabel}
           onClick={onMarkRead}
         />
@@ -81,7 +86,9 @@ const TeamInboxDetailLayout: React.FC<TeamInboxDetailLayoutProps> = ({
         variant="tertiary"
         size="small"
         iconOnly
-        icon={<Mail size={14} strokeWidth={2} aria-hidden />}
+        icon={
+          <HugeiconsIcon icon={Mail} size={14} strokeWidth={2} aria-hidden />
+        }
         aria-label={markUnreadLabel}
         onClick={onMarkUnread}
       />

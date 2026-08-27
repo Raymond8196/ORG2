@@ -1,9 +1,8 @@
-import {
-  ChevronsDownUp,
-  ChevronsUpDown,
-  Lock,
-  MessageCircle,
-} from "lucide-react";
+import ChevronsUpDown from "@hugeicons/core-free-icons/ArrowUpDownIcon";
+import MessageCircle from "@hugeicons/core-free-icons/BubbleChatIcon";
+import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
+import Lock from "@hugeicons/core-free-icons/LockIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -173,13 +172,15 @@ function AgentOrgTaskSubject({
         {text}
       </span>
       {expanded ? (
-        <ChevronsDownUp
+        <HugeiconsIcon
+          icon={ChevronsDownUp}
           size={11}
           strokeWidth={2}
           className="mt-0.5 shrink-0 text-text-3"
         />
       ) : (
-        <ChevronsUpDown
+        <HugeiconsIcon
+          icon={ChevronsUpDown}
           size={11}
           strokeWidth={2}
           className="mt-0.5 shrink-0 text-text-3"
@@ -269,7 +270,11 @@ export const AgentOrgTaskList: React.FC<AgentOrgTaskListProps> = memo(
                                 "planner.agentOrgIntervention.teammateBusy"
                               )}
                             >
-                              <MessageCircle size={8} strokeWidth={2} />
+                              <HugeiconsIcon
+                                icon={MessageCircle}
+                                size={8}
+                                strokeWidth={2}
+                              />
                               <span>
                                 {t("planner.agentOrgIntervention.busyShort")}
                               </span>
@@ -279,7 +284,7 @@ export const AgentOrgTaskList: React.FC<AgentOrgTaskListProps> = memo(
                       )}
                       {blocked && (
                         <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-warning-6/10 px-2 py-0.5 text-warning-6">
-                          <Lock size={8} strokeWidth={2} />
+                          <HugeiconsIcon icon={Lock} size={8} strokeWidth={2} />
                           {task.blockedBy.length}
                         </span>
                       )}

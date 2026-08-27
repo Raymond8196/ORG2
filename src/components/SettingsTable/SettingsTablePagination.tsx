@@ -9,12 +9,11 @@
  * `openEndedPageCount`: jumps stay enabled across loaded pages and the total
  * renders as "N+" while more remote pages exist.
  */
-import {
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-} from "lucide-react";
+import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ChevronsLeft from "@hugeicons/core-free-icons/ArrowLeftDoubleIcon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ChevronsRight from "@hugeicons/core-free-icons/ArrowRightDoubleIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { type ReactNode, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -102,7 +101,7 @@ export function SettingsTablePagination({
             aria-label={t("pagination.firstPage")}
             title={t("pagination.firstPage")}
           >
-            <ChevronsLeft size={14} />
+            <HugeiconsIcon icon={ChevronsLeft} size={14} />
           </button>
         ) : null}
         <button
@@ -112,7 +111,7 @@ export function SettingsTablePagination({
           aria-label={t("pagination.previousPage")}
           title={t("pagination.previousPage")}
         >
-          <ChevronLeft size={14} />
+          <HugeiconsIcon icon={ChevronLeft} size={14} />
         </button>
         {canJump ? (
           <Select
@@ -134,7 +133,7 @@ export function SettingsTablePagination({
           aria-label={t("pagination.nextPage")}
           title={t("pagination.nextPage")}
         >
-          <ChevronRight size={14} />
+          <HugeiconsIcon icon={ChevronRight} size={14} />
         </button>
         {canJump ? (
           <button
@@ -144,7 +143,7 @@ export function SettingsTablePagination({
             aria-label={t("pagination.lastPage")}
             title={t("pagination.lastPage")}
           >
-            <ChevronsRight size={14} />
+            <HugeiconsIcon icon={ChevronsRight} size={14} />
           </button>
         ) : null}
       </div>

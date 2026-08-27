@@ -5,7 +5,8 @@
  * sidebar + chat/simulator layout as SingleEventPreview, including
  * single / multiple selection for the tool list.
  */
-import { Search } from "lucide-react";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -419,7 +420,13 @@ export function ToolDefinitionPreview({
                 placeholder={t("devTools.toolTypeFilterPlaceholder")}
                 size="small"
                 allowClear
-                prefix={<Search size={14} className="text-text-3" />}
+                prefix={
+                  <HugeiconsIcon
+                    icon={Search}
+                    size={14}
+                    className="text-text-3"
+                  />
+                }
                 aria-label={t("devTools.toolTypeFilterPlaceholder")}
               />
             }

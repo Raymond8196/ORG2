@@ -4,7 +4,7 @@
  * (`itemHover` → fill-2, `itemSelected` → primary-1) with callers supplying
  * selection semantics only.
  */
-import type { LucideIcon } from "lucide-react";
+import { type IconSvgElement } from "@hugeicons/react";
 import React, { memo } from "react";
 import { createPortal } from "react-dom";
 
@@ -15,6 +15,8 @@ import {
   DROPDOWN_PANEL,
 } from "@src/components/Dropdown/tokens";
 import type { DropdownEnginePosition } from "@src/hooks/dropdown/useDropdownEngine";
+
+type LucideIcon = IconSvgElement;
 
 export interface AppSwitcherMenuItem {
   id: string;

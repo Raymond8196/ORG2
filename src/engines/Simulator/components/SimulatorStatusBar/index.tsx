@@ -7,14 +7,13 @@
  *
  * Similar to Zoom's status bar at the bottom of meetings
  */
+import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import MousePointer2 from "@hugeicons/core-free-icons/Cursor02Icon";
+import Pause from "@hugeicons/core-free-icons/PauseIcon";
+import Play from "@hugeicons/core-free-icons/PlayIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import {
-  ChevronLeft,
-  ChevronRight,
-  MousePointer2,
-  Pause,
-  Play,
-} from "lucide-react";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 

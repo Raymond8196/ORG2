@@ -1,5 +1,7 @@
-import type { LucideIcon } from "lucide-react";
+import { type IconSvgElement } from "@hugeicons/react";
 import React from "react";
+
+type LucideIcon = IconSvgElement;
 
 interface SidebarHeaderNavButtonProps {
   icon: LucideIcon;

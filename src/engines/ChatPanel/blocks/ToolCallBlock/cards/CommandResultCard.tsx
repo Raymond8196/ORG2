@@ -1,4 +1,7 @@
-import { CheckCircle2, Terminal, XCircle } from "lucide-react";
+import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import type { CommandResultData } from "../types";
@@ -19,14 +22,22 @@ const CommandResultCard: React.FC<CommandResultCardProps> = ({ card }) => {
     >
       {/* Header row: command + exit status */}
       <div className="flex items-center gap-2 border-b border-fill-4 px-3 py-2">
-        <Terminal size={12} className="shrink-0 text-text-4" />
+        <HugeiconsIcon
+          icon={Terminal}
+          size={12}
+          className="shrink-0 text-text-4"
+        />
         <code className="min-w-0 flex-1 truncate text-xs text-text-2">
           {card.command}
         </code>
         <span
           className={`inline-flex shrink-0 items-center gap-1 text-xs ${isSuccess ? "text-success-6" : "text-danger-6"}`}
         >
-          {isSuccess ? <CheckCircle2 size={11} /> : <XCircle size={11} />}
+          {isSuccess ? (
+            <HugeiconsIcon icon={CheckCircle2} size={11} />
+          ) : (
+            <HugeiconsIcon icon={XCircle} size={11} />
+          )}
           {isSuccess ? "0" : String(card.exitCode)}
         </span>
       </div>

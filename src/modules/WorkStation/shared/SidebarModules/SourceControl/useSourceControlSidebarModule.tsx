@@ -10,8 +10,12 @@
  * Returns a `PrimarySidebarTab` ready to be passed to
  * `PrimarySidebarLayoutWithSections`.
  */
+import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import RotateCcw from "@hugeicons/core-free-icons/RotateLeft01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
-import { ArrowLeft, CircleDot, RefreshCw, RotateCcw } from "lucide-react";
 import React, {
   useCallback,
   useEffect,
@@ -255,7 +259,8 @@ export function useSourceControlSidebarModule({
     () => ({
       key: "undo-all-changes",
       icon: (
-        <RotateCcw
+        <HugeiconsIcon
+          icon={RotateCcw}
           size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
           strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
         />
@@ -306,7 +311,8 @@ export function useSourceControlSidebarModule({
       {
         key: "refresh-issues",
         icon: (
-          <RefreshCw
+          <HugeiconsIcon
+            icon={RefreshCw}
             size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
             strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
             className={issuesRefreshSpinClass}
@@ -318,7 +324,8 @@ export function useSourceControlSidebarModule({
       {
         key: "new-issue",
         icon: (
-          <CircleDot
+          <HugeiconsIcon
+            icon={CircleDot}
             size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
             strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
           />
@@ -358,7 +365,8 @@ export function useSourceControlSidebarModule({
       {
         key: "refresh-prs",
         icon: (
-          <RefreshCw
+          <HugeiconsIcon
+            icon={RefreshCw}
             size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
             strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
             className={prRefreshSpinClass}
@@ -402,7 +410,7 @@ export function useSourceControlSidebarModule({
       title={t("tabs.sourceControl")}
     >
       <span className="flex h-5 w-5 shrink-0 items-center justify-center">
-        <ArrowLeft size={14} className="text-text-3" />
+        <HugeiconsIcon icon={ArrowLeft} size={14} className="text-text-3" />
       </span>
       <span className="truncate uppercase">{sectionLabel}</span>
     </button>

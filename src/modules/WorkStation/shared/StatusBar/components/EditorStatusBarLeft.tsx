@@ -5,16 +5,15 @@
  * branch + working diff, CI, git sync, session-repo hint, ports and the
  * indexing indicator. Presentational only — every value is passed in.
  */
+import ArrowRightLeft from "@hugeicons/core-free-icons/ArrowLeftRightIcon";
+import Code from "@hugeicons/core-free-icons/CodeIcon";
+import Folder from "@hugeicons/core-free-icons/Folder01Icon";
+import FolderTree from "@hugeicons/core-free-icons/FolderTreeIcon";
+import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
+import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import type { ExtractAtomValue } from "jotai";
-import {
-  ArrowRightLeft,
-  Code,
-  Folder,
-  FolderTree,
-  GitBranch,
-  Loader2,
-} from "lucide-react";
 import React from "react";
 
 import DiffStatsBadge from "@src/components/DiffStatsBadge";
@@ -121,9 +120,17 @@ export const EditorStatusBarLeft: React.FC<EditorStatusBarLeftProps> = ({
           dataTestId="status-bar-repo-name"
         >
           {isMultiRoot ? (
-            <FolderTree size={13} className="shrink-0 text-text-1" />
+            <HugeiconsIcon
+              icon={FolderTree}
+              size={13}
+              className="shrink-0 text-text-1"
+            />
           ) : (
-            <Code size={13} className="shrink-0 text-text-1" />
+            <HugeiconsIcon
+              icon={Code}
+              size={13}
+              className="shrink-0 text-text-1"
+            />
           )}
           <StatusBarLabel emphasis className="min-w-0 truncate text-text-1">
             {workspaceLabel}
@@ -136,7 +143,7 @@ export const EditorStatusBarLeft: React.FC<EditorStatusBarLeftProps> = ({
         title={t("actions.openWorkspace")}
         dataTestId="status-bar-no-repo"
       >
-        <Code size={13} className="text-primary-6" />
+        <HugeiconsIcon icon={Code} size={13} className="text-primary-6" />
         <StatusBarLabel emphasis className="text-primary-6">
           {t("actions.addWorkspace")}
         </StatusBarLabel>
@@ -148,7 +155,7 @@ export const EditorStatusBarLeft: React.FC<EditorStatusBarLeftProps> = ({
         className="text-text-2"
         title={t("workstation.notGitInitializedTooltip")}
       >
-        <GitBranch size={13} className="text-text-2" />
+        <HugeiconsIcon icon={GitBranch} size={13} className="text-text-2" />
         <StatusBarLabel emphasis className="text-text-2">
           {t("workstation.notGitInitialized")}
         </StatusBarLabel>
@@ -165,7 +172,11 @@ export const EditorStatusBarLeft: React.FC<EditorStatusBarLeftProps> = ({
           className="min-w-0 max-w-56"
           dataTestId="status-bar-worktree"
         >
-          <Folder size={13} className="shrink-0 text-text-1" />
+          <HugeiconsIcon
+            icon={Folder}
+            size={13}
+            className="shrink-0 text-text-1"
+          />
           <StatusBarLabel emphasis className="min-w-0 truncate text-text-1">
             {activeWorktree && !activeWorktree.isMain
               ? activeWorktree.path.split("/").pop() ||
@@ -200,12 +211,17 @@ export const EditorStatusBarLeft: React.FC<EditorStatusBarLeftProps> = ({
           }
         >
           {checkoutLoading ? (
-            <Loader2
+            <HugeiconsIcon
+              icon={Loader2}
               size={SPINNER_TOKENS.small}
               className="shrink-0 animate-spin text-text-1"
             />
           ) : (
-            <GitBranch size={13} className="shrink-0 text-text-1" />
+            <HugeiconsIcon
+              icon={GitBranch}
+              size={13}
+              className="shrink-0 text-text-1"
+            />
           )}
           <StatusBarLabel emphasis className="min-w-0 truncate text-text-1">
             {branchName}
@@ -259,7 +275,7 @@ export const EditorStatusBarLeft: React.FC<EditorStatusBarLeftProps> = ({
         className="pl-2 text-primary-6"
         dataTestId="status-bar-switch-to-session-repo"
       >
-        <ArrowRightLeft size={13} />
+        <HugeiconsIcon icon={ArrowRightLeft} size={13} />
         <StatusBarLabel emphasis>
           {t("workstation.switchToSessionRepo", {
             name:
@@ -302,7 +318,8 @@ export const EditorStatusBarLeft: React.FC<EditorStatusBarLeftProps> = ({
               : t("workstation.scanningFiles")
         }
       >
-        <FolderTree
+        <HugeiconsIcon
+          icon={FolderTree}
           size={13}
           className={isIndexingActive ? "animate-pulse" : ""}
         />

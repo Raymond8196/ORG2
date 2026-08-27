@@ -11,8 +11,11 @@
  */
 import { SQLite, sql } from "@codemirror/lang-sql";
 import { EditorView, keymap } from "@codemirror/view";
+import Play from "@hugeicons/core-free-icons/PlayIcon";
+import AlignLeft from "@hugeicons/core-free-icons/TextAlignLeftIcon";
+import History from "@hugeicons/core-free-icons/WorkHistoryIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import CodeMirror from "@uiw/react-codemirror";
-import { AlignLeft, History, Play } from "lucide-react";
 import React, { memo, useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -162,7 +165,7 @@ export const SqlQueryEditor: React.FC<SqlQueryEditorProps> = memo(
               title={t("tooltips.formatSql")}
               className="sql-query-editor__btn"
             >
-              <AlignLeft size={14} strokeWidth={1.75} />
+              <HugeiconsIcon icon={AlignLeft} size={14} strokeWidth={1.75} />
               <span>{t("sqlEditor.format")}</span>
             </button>
 
@@ -174,7 +177,7 @@ export const SqlQueryEditor: React.FC<SqlQueryEditorProps> = memo(
                   title={t("tooltips.queryHistory")}
                   className="sql-query-editor__btn"
                 >
-                  <History size={14} strokeWidth={1.75} />
+                  <HugeiconsIcon icon={History} size={14} strokeWidth={1.75} />
                   <span>{t("labels.history")}</span>
                 </button>
 
@@ -212,7 +215,7 @@ export const SqlQueryEditor: React.FC<SqlQueryEditorProps> = memo(
               title={t("tooltips.executeQuery")}
               className="sql-query-editor__btn sql-query-editor__btn--primary"
             >
-              <Play size={14} strokeWidth={1.75} />
+              <HugeiconsIcon icon={Play} size={14} strokeWidth={1.75} />
               <span>{loading ? t("status.running") : t("actions.run")}</span>
             </button>
           </div>

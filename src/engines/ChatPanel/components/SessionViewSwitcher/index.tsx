@@ -11,7 +11,9 @@
  *   in play, so neither the raw document nor the turn index is held while the
  *   reader is back in the transcript.
  */
-import { Clipboard, RefreshCw } from "lucide-react";
+import Clipboard from "@hugeicons/core-free-icons/ClipboardIcon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -123,7 +125,13 @@ export const SessionRawToolbarActions: React.FC<SessionRawToolbarActionsProps> =
         <Button
           size="small"
           variant="tertiary"
-          icon={<RefreshCw size={RAW_ACTION_ICON_SIZE} strokeWidth={2} />}
+          icon={
+            <HugeiconsIcon
+              icon={RefreshCw}
+              size={RAW_ACTION_ICON_SIZE}
+              strokeWidth={2}
+            />
+          }
           iconOnly
           loading={transcript.loading}
           aria-label={refreshLabel}
@@ -134,7 +142,13 @@ export const SessionRawToolbarActions: React.FC<SessionRawToolbarActionsProps> =
         <Button
           size="small"
           variant="tertiary"
-          icon={<Clipboard size={RAW_ACTION_ICON_SIZE} strokeWidth={2} />}
+          icon={
+            <HugeiconsIcon
+              icon={Clipboard}
+              size={RAW_ACTION_ICON_SIZE}
+              strokeWidth={2}
+            />
+          }
           iconOnly
           disabled={!transcript.snapshot || transcript.loading}
           aria-label={copyLabel}

@@ -1,7 +1,8 @@
 /**
  * StyleEditsFooter — Pending style edits summary and actions (Design / CSS panels).
  */
-import { Undo2 } from "lucide-react";
+import Undo2 from "@hugeicons/core-free-icons/Undo02Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -42,7 +43,7 @@ export const StyleEditsFooter: React.FC<StyleEditsFooterProps> = memo(
               size="small"
               shape="square"
               iconOnly
-              icon={<Undo2 size={14} strokeWidth={1.75} />}
+              icon={<HugeiconsIcon icon={Undo2} size={14} strokeWidth={1.75} />}
               disabled={disabled || editCount <= 0}
               onClick={onUndo}
               aria-label={t("actions.undo")}

@@ -1,4 +1,5 @@
-import { SquareArrowOutUpRight } from "lucide-react";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -59,7 +60,7 @@ const FileCard: React.FC<FileCardProps> = ({ card }) => {
         className="shrink-0 rounded p-1 text-text-4 transition-colors hover:bg-fill-4 hover:text-text-2"
         title={t("cards.openFile")}
       >
-        <SquareArrowOutUpRight size={13} />
+        <HugeiconsIcon icon={SquareArrowOutUpRight} size={13} />
       </button>
     </ToolResultCardFrame>
   );

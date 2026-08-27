@@ -3,11 +3,13 @@
  *
  * Shared types for the reusable KanbanBoard component.
  */
-import type { LucideIcon } from "lucide-react";
+import { type IconSvgElement } from "@hugeicons/react";
 
 import type { CliAgentType } from "@src/api/types/keys";
 import type { Label } from "@src/types/core/shared";
 import type { WorkItemStatus } from "@src/types/core/workItem";
+
+type LucideIcon = IconSvgElement;
 
 // ============================================
 // Task Types

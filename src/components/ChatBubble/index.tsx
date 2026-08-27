@@ -9,7 +9,8 @@
  * - ChatBubbleHeader: sender name + timestamp + optional extras
  * - ChatBubbleBody: rounded card with variant-based background
  */
-import { Copy } from "lucide-react";
+import Copy from "@hugeicons/core-free-icons/Copy01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -139,7 +140,7 @@ const ChatBubbleCopyButtonComponent: React.FC<ChatBubbleCopyButtonProps> = ({
         className={`${CHAT_BUBBLE_TOOLBAR_BUTTON_CLASS} text-text-3 hover:text-text-1`}
         onClick={handleCopy}
       >
-        <Copy size={14} strokeWidth={1.75} />
+        <HugeiconsIcon icon={Copy} size={14} strokeWidth={1.75} />
       </button>
     );
   }
@@ -157,7 +158,7 @@ const ChatBubbleCopyButtonComponent: React.FC<ChatBubbleCopyButtonProps> = ({
       className={`${cornerClass} inline-flex h-6 w-6 cursor-pointer items-center justify-center rounded-md border-0 bg-transparent p-0 text-text-3 opacity-0 transition-[opacity,background-color,color] hover:bg-fill-2 hover:text-text-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-6/30 ${hoverGroupClass}`}
       onClick={handleCopy}
     >
-      <Copy size={14} strokeWidth={1.75} />
+      <HugeiconsIcon icon={Copy} size={14} strokeWidth={1.75} />
     </button>
   );
 };

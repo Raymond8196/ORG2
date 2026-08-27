@@ -1,4 +1,5 @@
-import { X } from "lucide-react";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import { PILL_CONTROL_IDLE_SURFACE_CLASS } from "@src/components/CompoundPill/config";
@@ -38,7 +39,8 @@ export default function UserActionButton({
           }}
         >
           {rightIcon || (
-            <X
+            <HugeiconsIcon
+              icon={X}
               size={12}
               strokeWidth={1.75}
               className="text-text-2 hover:text-text-1"

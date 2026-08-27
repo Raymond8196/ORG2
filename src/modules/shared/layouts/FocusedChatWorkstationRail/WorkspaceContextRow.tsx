@@ -2,9 +2,11 @@
  * WorkspaceContextRow — a read-only (or click-through) scope row in the rail:
  * repo, branch, worktree, or the linked work item.
  */
-import type { LucideIcon } from "lucide-react";
+import { type IconSvgElement } from "@hugeicons/react";
 
 import { WORKSTATION_TRAIL_CONTENT } from "@src/config/workstation/tokens";
+
+type LucideIcon = IconSvgElement;
 
 export function WorkspaceContextRow({
   compact = false,

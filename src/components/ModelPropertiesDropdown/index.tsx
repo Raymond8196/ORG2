@@ -19,7 +19,9 @@
  * selection from `value` when it opens, and only calls `onApply` when
  * the user confirms.
  */
-import { Brain, Zap } from "lucide-react";
+import Brain from "@hugeicons/core-free-icons/BrainIcon";
+import Zap from "@hugeicons/core-free-icons/FlashIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -478,7 +480,11 @@ export const ModelPropertiesDropdown: React.FC<
           {showThinkingRow && (
             <SwitchRow
               icon={
-                <Brain size={DROPDOWN_ITEM.iconSize} className="text-text-2" />
+                <HugeiconsIcon
+                  icon={Brain}
+                  size={DROPDOWN_ITEM.iconSize}
+                  className="text-text-2"
+                />
               }
               label="Thinking"
               checked={draft.thinking}
@@ -488,7 +494,11 @@ export const ModelPropertiesDropdown: React.FC<
           {showFastRow && (
             <SwitchRow
               icon={
-                <Zap size={DROPDOWN_ITEM.iconSize} className="text-text-2" />
+                <HugeiconsIcon
+                  icon={Zap}
+                  size={DROPDOWN_ITEM.iconSize}
+                  className="text-text-2"
+                />
               }
               label="Fast"
               checked={draft.fast}

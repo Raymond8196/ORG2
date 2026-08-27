@@ -12,7 +12,10 @@
  *   - CreateProjectView (create)
  *   - CreateWorkItemView (create)
  */
-import { ChevronDown, ChevronRight, ChevronUp } from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ChevronUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -128,7 +131,8 @@ const DetailSplitLayout: React.FC<DetailSplitLayoutProps> = ({
         return (
           <React.Fragment key={index}>
             {index > 0 && (
-              <ChevronRight
+              <HugeiconsIcon
+                icon={ChevronRight}
                 size={14}
                 strokeWidth={1.75}
                 className="mx-1 flex-shrink-0 text-fill-4"
@@ -171,7 +175,7 @@ const DetailSplitLayout: React.FC<DetailSplitLayoutProps> = ({
             onClick={() => onNavigate("prev")}
             disabled={!hasPrev}
             title={t("actions.previous")}
-            icon={<ChevronUp size={HEADER_ICON_SIZE.sm} />}
+            icon={<HugeiconsIcon icon={ChevronUp} size={HEADER_ICON_SIZE.sm} />}
           />
           <Button
             htmlType="button"
@@ -181,7 +185,9 @@ const DetailSplitLayout: React.FC<DetailSplitLayoutProps> = ({
             onClick={() => onNavigate("next")}
             disabled={!hasNext}
             title={t("actions.next")}
-            icon={<ChevronDown size={HEADER_ICON_SIZE.sm} />}
+            icon={
+              <HugeiconsIcon icon={ChevronDown} size={HEADER_ICON_SIZE.sm} />
+            }
           />
         </>
       )}

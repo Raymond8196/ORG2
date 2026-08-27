@@ -4,7 +4,9 @@
  * Main navigation sidebar with tabs and menu items.
  * Used by Settings and Workstation navigation surfaces.
  */
-import { ChevronDown, ChevronRight, type LucideIcon } from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, {
   type ReactNode,
   useCallback,
@@ -28,6 +30,8 @@ import type {
   NavigationMenuRowAction,
 } from "../components/NavigationMenu/config";
 import type { SidebarTab } from "../types";
+
+type LucideIcon = IconSvgElement;
 
 // ============================================
 // Types

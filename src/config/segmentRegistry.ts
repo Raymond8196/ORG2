@@ -5,44 +5,44 @@
  * All consumers should import from mainAppPaths.ts (which re-exports everything
  * here) so import paths are stable.
  */
-import {
-  Infinity as InfinityIcon,
-  Activity,
-  AppWindow,
-  BadgeCent,
-  Braces,
-  CalendarArrowUp,
-  Chromium,
-  ClipboardList,
-  Cloud,
-  Code,
-  CreditCard,
-  Database,
-  FileText,
-  FolderGit2,
-  FolderOpen,
-  Hammer,
-  Inbox,
-  Key,
-  Network,
-  Package,
-  PackageCheck,
-  Paintbrush,
-  Palette,
-  Rocket,
-  RulerDimensionLine,
-  Settings2,
-  Settings as SettingsIcon,
-  ShieldCheck,
-  Sparkles,
-  Toolbox,
-  Unplug,
-  UserRoundCog,
-  Wallet,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import Activity from "@hugeicons/core-free-icons/Activity01Icon";
+import Network from "@hugeicons/core-free-icons/AiNetworkIcon";
+import AppWindow from "@hugeicons/core-free-icons/AppWindowIcon";
+import BadgeCent from "@hugeicons/core-free-icons/BadgeCentIcon";
+import CalendarArrowUp from "@hugeicons/core-free-icons/CalendarArrowUpIcon";
+import ClipboardList from "@hugeicons/core-free-icons/CheckListIcon";
+import Chromium from "@hugeicons/core-free-icons/ChromeIcon";
+import Cloud from "@hugeicons/core-free-icons/CloudIcon";
+import Code from "@hugeicons/core-free-icons/CodeIcon";
+import Palette from "@hugeicons/core-free-icons/ColorPickerIcon";
+import CreditCard from "@hugeicons/core-free-icons/CreditCardIcon";
+import Database from "@hugeicons/core-free-icons/DatabaseIcon";
+import FileText from "@hugeicons/core-free-icons/File02Icon";
+import Braces from "@hugeicons/core-free-icons/FirstBracketIcon";
+import FolderGit2 from "@hugeicons/core-free-icons/FolderGitTwoIcon";
+import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
+import Inbox from "@hugeicons/core-free-icons/InboxIcon";
+import InfinityIcon from "@hugeicons/core-free-icons/Infinity01Icon";
+import Key from "@hugeicons/core-free-icons/Key01Icon";
+import Hammer from "@hugeicons/core-free-icons/LegalHammerIcon";
+import PackageCheck from "@hugeicons/core-free-icons/PackageDeliveredIcon";
+import Package from "@hugeicons/core-free-icons/PackageIcon";
+import Paintbrush from "@hugeicons/core-free-icons/PaintBrush01Icon";
+import Rocket from "@hugeicons/core-free-icons/RocketIcon";
+import RulerDimensionLine from "@hugeicons/core-free-icons/RulerDimensionLineIcon";
+import ShieldCheck from "@hugeicons/core-free-icons/SecurityCheckIcon";
+import SettingsIcon from "@hugeicons/core-free-icons/Settings01Icon";
+import Settings2 from "@hugeicons/core-free-icons/Settings02Icon";
+import Sparkles from "@hugeicons/core-free-icons/SparklesIcon";
+import Toolbox from "@hugeicons/core-free-icons/ToolboxIcon";
+import Unplug from "@hugeicons/core-free-icons/UnplugIcon";
+import UserRoundCog from "@hugeicons/core-free-icons/UserRoundCogIcon";
+import Wallet from "@hugeicons/core-free-icons/Wallet01Icon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 
 import { McpLogoIcon } from "@src/assets/channelIcons/McpLogoIcon";
+
+type LucideIcon = IconSvgElement;
 
 // ============================================================================
 // Registry Entry Type

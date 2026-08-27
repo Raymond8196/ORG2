@@ -9,7 +9,8 @@
  * - Result count and up/down navigation
  * - Escape to close
  */
-import { X } from "lucide-react";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
   type RefObject,
   forwardRef,
@@ -154,7 +155,7 @@ export const ChatSearchBar = forwardRef<
           className="flex h-5 w-5 items-center justify-center rounded text-text-3 transition-colors hover:bg-fill-3 hover:text-text-1"
           title={t("chat.closeEsc")}
         >
-          <X size={14} />
+          <HugeiconsIcon icon={X} size={14} />
         </button>
       </div>
     </div>

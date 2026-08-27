@@ -1,14 +1,13 @@
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import ArrowRightLeft from "@hugeicons/core-free-icons/ArrowLeftRightIcon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import Bot from "@hugeicons/core-free-icons/BotIcon";
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import MessageSquare from "@hugeicons/core-free-icons/Message01Icon";
+import Pencil from "@hugeicons/core-free-icons/PencilIcon";
+import RotateCcw from "@hugeicons/core-free-icons/RotateLeft01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
-import {
-  ArrowRightLeft,
-  Bot,
-  ChevronRight,
-  MessageSquare,
-  Pencil,
-  Plus,
-  RotateCcw,
-  Trash2,
-} from "lucide-react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -42,12 +41,18 @@ import type { TimelineEntry } from "./types";
 const MAX_VISIBLE_FIELD_LABELS = 2;
 
 const TIMELINE_ICONS: Record<TimelineEntry["type"], React.ReactNode> = {
-  [WORK_ITEM_HISTORY_ACTION.CREATED]: <Plus size={12} />,
-  [WORK_ITEM_HISTORY_ACTION.UPDATED]: <Pencil size={12} />,
-  [WORK_ITEM_HISTORY_ACTION.COMMENTED]: <MessageSquare size={12} />,
-  [WORK_ITEM_HISTORY_ACTION.DELETED]: <Trash2 size={12} />,
-  [WORK_ITEM_HISTORY_ACTION.RESTORED]: <RotateCcw size={12} />,
-  [WORK_ITEM_HISTORY_ACTION.MOVED]: <ArrowRightLeft size={12} />,
+  [WORK_ITEM_HISTORY_ACTION.CREATED]: <HugeiconsIcon icon={Plus} size={12} />,
+  [WORK_ITEM_HISTORY_ACTION.UPDATED]: <HugeiconsIcon icon={Pencil} size={12} />,
+  [WORK_ITEM_HISTORY_ACTION.COMMENTED]: (
+    <HugeiconsIcon icon={MessageSquare} size={12} />
+  ),
+  [WORK_ITEM_HISTORY_ACTION.DELETED]: <HugeiconsIcon icon={Trash2} size={12} />,
+  [WORK_ITEM_HISTORY_ACTION.RESTORED]: (
+    <HugeiconsIcon icon={RotateCcw} size={12} />
+  ),
+  [WORK_ITEM_HISTORY_ACTION.MOVED]: (
+    <HugeiconsIcon icon={ArrowRightLeft} size={12} />
+  ),
 };
 
 interface WorkItemActivityTimelineProps {
@@ -175,7 +180,7 @@ function SingleTimelineEntry({
     <TimelineEventCard
       icon={
         isDelegationComment ? (
-          <Bot size={12} className="text-primary-6" />
+          <HugeiconsIcon icon={Bot} size={12} className="text-primary-6" />
         ) : (
           TIMELINE_ICONS[entry.type]
         )
@@ -216,7 +221,7 @@ function GroupedChangeEvent({
   const hiddenFieldCount = item.fieldLabels.length - visibleFields.length;
 
   return (
-    <TimelineEventCard icon={<Pencil size={12} />}>
+    <TimelineEventCard icon={<HugeiconsIcon icon={Pencil} size={12} />}>
       <details
         className="group min-w-0"
         data-testid="work-item-activity-change-group"
@@ -266,7 +271,8 @@ function GroupedChangeEvent({
               )}
             />
           </span>
-          <ChevronRight
+          <HugeiconsIcon
+            icon={ChevronRight}
             size={14}
             aria-hidden
             className="shrink-0 text-text-4 transition-transform group-open:rotate-90"

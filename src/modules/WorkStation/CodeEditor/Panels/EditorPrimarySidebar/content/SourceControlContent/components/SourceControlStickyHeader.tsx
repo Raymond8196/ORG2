@@ -12,7 +12,9 @@
  * Extracted from SourceControlContent to keep that component under the
  * line limit.
  */
-import { ChevronDown, ChevronRight } from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -62,12 +64,14 @@ export const SourceControlStickyHeader: React.FC<
       >
         <div className={STICKY_ROW.chevronBox}>
           {node.expanded ? (
-            <ChevronDown
+            <HugeiconsIcon
+              icon={ChevronDown}
               size={CHEVRON_SIZE}
               className={STICKY_ROW.chevronIcon}
             />
           ) : (
-            <ChevronRight
+            <HugeiconsIcon
+              icon={ChevronRight}
               size={CHEVRON_SIZE}
               className={STICKY_ROW.chevronIcon}
             />
@@ -104,9 +108,14 @@ export const SourceControlStickyHeader: React.FC<
     >
       <div className={STICKY_ROW.chevronBox}>
         {isExpanded ? (
-          <ChevronDown size={CHEVRON_SIZE} className={STICKY_ROW.chevronIcon} />
+          <HugeiconsIcon
+            icon={ChevronDown}
+            size={CHEVRON_SIZE}
+            className={STICKY_ROW.chevronIcon}
+          />
         ) : (
-          <ChevronRight
+          <HugeiconsIcon
+            icon={ChevronRight}
             size={CHEVRON_SIZE}
             className={STICKY_ROW.chevronIcon}
           />

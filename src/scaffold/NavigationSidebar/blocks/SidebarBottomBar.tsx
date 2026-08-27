@@ -13,8 +13,11 @@
  * URL stays deeplinkable while the layout matches the slot affordance.
  * Extra actions can be supplied by the caller (e.g. session group-by).
  */
+import Circle from "@hugeicons/core-free-icons/CircleIcon";
+import HatGlasses from "@hugeicons/core-free-icons/HatGlassesIcon";
+import Moon from "@hugeicons/core-free-icons/MoonIcon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import { useAtom, useAtomValue } from "jotai";
-import { Circle, HatGlasses, type LucideIcon, Moon } from "lucide-react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -44,6 +47,8 @@ import {
 
 import SidebarUpdateButton from "./SidebarUpdateButton";
 import { resolveCustomRoleIcon } from "./customRoleIcons";
+
+type LucideIcon = IconSvgElement;
 
 interface SidebarBottomBarProps {
   /** Content rendered in the footer's left-side slot. */

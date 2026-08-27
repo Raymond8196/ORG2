@@ -1,9 +1,11 @@
-import type { LucideIcon } from "lucide-react";
+import { type IconSvgElement } from "@hugeicons/react";
 
 import { getSegmentIcon } from "@src/config/mainAppPaths";
 import { type SettingsKey, getSettingsKeys } from "@src/config/settingsSchema";
 import { SETTINGS_SECTION_SLOT_IDS } from "@src/config/settingsUiManifest/slotIds";
 import type { SettingsSectionDefinition } from "@src/config/settingsUiManifest/types";
+
+type LucideIcon = IconSvgElement;
 
 /**
  * All app-settings sidebar icons come from the central

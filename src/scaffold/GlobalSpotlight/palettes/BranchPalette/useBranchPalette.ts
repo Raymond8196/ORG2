@@ -4,13 +4,12 @@
  * Main hook that orchestrates branch palette state and behavior.
  * Uses useSelector for common patterns while adding branch-specific logic.
  */
-import {
-  Check,
-  GitBranchMinus,
-  GitBranchPlus,
-  Split,
-  Trash2,
-} from "lucide-react";
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import GitBranchPlus from "@hugeicons/core-free-icons/GitBranchIcon";
+import GitBranchMinus from "@hugeicons/core-free-icons/GitBranchMinusIcon";
+import Split from "@hugeicons/core-free-icons/SplitIcon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
   type Dispatch,
   type KeyboardEvent,

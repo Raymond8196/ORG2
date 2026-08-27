@@ -5,7 +5,10 @@
  * renders it as an editable "Properties" panel matching Cursor's native UI,
  * and serializes changes back into the full file content via onContentChange.
  */
-import { Check, Plus, X } from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect, useRef, useState } from "react";
 
 import Button from "@src/components/Button";
@@ -187,7 +190,7 @@ function AddPropertyRow({ onAdd }: AddPropertyRowProps) {
         <Button
           variant="tertiary"
           size="small"
-          icon={<Plus size={14} />}
+          icon={<HugeiconsIcon icon={Plus} size={14} />}
           onClick={() => setActive(true)}
           className="w-full justify-start"
         >
@@ -238,7 +241,7 @@ function AddPropertyRow({ onAdd }: AddPropertyRowProps) {
             <Button
               variant="secondary"
               size="small"
-              icon={<X size={14} />}
+              icon={<HugeiconsIcon icon={X} size={14} />}
               iconOnly
               aria-label="Cancel new property"
               onClick={handleCancel}
@@ -247,7 +250,7 @@ function AddPropertyRow({ onAdd }: AddPropertyRowProps) {
             <Button
               variant="primary"
               size="small"
-              icon={<Check size={14} />}
+              icon={<HugeiconsIcon icon={Check} size={14} />}
               iconOnly
               aria-label="Save new property"
               onClick={handleCommit}

@@ -2,7 +2,9 @@
  * Status, Health, and Priority field rows for ProjectPropertyFields.
  * Extracted to keep the parent component under the UI line limit.
  */
-import { Circle, Flag } from "lucide-react";
+import Circle from "@hugeicons/core-free-icons/CircleIcon";
+import Flag from "@hugeicons/core-free-icons/Flag01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import { DROPDOWN_ITEM } from "@src/components/Dropdown/tokens";
@@ -66,7 +68,7 @@ const StatusHealthPriorityFields: React.FC<StatusHealthPriorityFieldsProps> = ({
         }
       >
         <FieldRow
-          icon={<Circle size={DROPDOWN_ITEM.iconSize} />}
+          icon={<HugeiconsIcon icon={Circle} size={DROPDOWN_ITEM.iconSize} />}
           iconColor={currentStatus?.color}
           label={showLabels ? t("properties.status") : undefined}
           value={
@@ -94,7 +96,12 @@ const StatusHealthPriorityFields: React.FC<StatusHealthPriorityFieldsProps> = ({
               return filtered.map((option) => (
                 <Option
                   key={option.value}
-                  icon={<Circle size={DROPDOWN_ITEM.iconSize} />}
+                  icon={
+                    <HugeiconsIcon
+                      icon={Circle}
+                      size={DROPDOWN_ITEM.iconSize}
+                    />
+                  }
                   iconColor={option.color}
                   label={t(option.labelKey)}
                   isSelected={project.status === option.value}
@@ -117,7 +124,7 @@ const StatusHealthPriorityFields: React.FC<StatusHealthPriorityFieldsProps> = ({
         }
       >
         <FieldRow
-          icon={<Circle size={DROPDOWN_ITEM.iconSize} />}
+          icon={<HugeiconsIcon icon={Circle} size={DROPDOWN_ITEM.iconSize} />}
           iconColor={currentHealth?.color}
           label={showLabels ? t("properties.health") : undefined}
           value={
@@ -147,7 +154,12 @@ const StatusHealthPriorityFields: React.FC<StatusHealthPriorityFieldsProps> = ({
               return filtered.map((option) => (
                 <Option
                   key={option.value}
-                  icon={<Circle size={DROPDOWN_ITEM.iconSize} />}
+                  icon={
+                    <HugeiconsIcon
+                      icon={Circle}
+                      size={DROPDOWN_ITEM.iconSize}
+                    />
+                  }
                   iconColor={option.color}
                   label={t(option.labelKey)}
                   isSelected={project.health === option.value}
@@ -170,7 +182,7 @@ const StatusHealthPriorityFields: React.FC<StatusHealthPriorityFieldsProps> = ({
         }
       >
         <FieldRow
-          icon={<Flag size={DROPDOWN_ITEM.iconSize} />}
+          icon={<HugeiconsIcon icon={Flag} size={DROPDOWN_ITEM.iconSize} />}
           iconColor={currentPriority?.color}
           label={showLabels ? t("properties.priority") : undefined}
           value={

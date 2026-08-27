@@ -7,15 +7,14 @@
  * in a `useMemo` so `usePublishWorkstationTabHeader` keeps a stable `content`
  * identity and does not re-publish on every render.
  */
+import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ArrowRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
+import ListChevronsDownUp from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
-import {
-  ArrowLeft,
-  ArrowRight,
-  CircleDot,
-  ListChevronsDownUp,
-  RefreshCw,
-  SquareArrowOutUpRight,
-} from "lucide-react";
 import React from "react";
 import type { ReactNode } from "react";
 
@@ -114,7 +113,11 @@ export const SourceControlHeaderContent: React.FC<
           <span
             className={`shrink-0 ${selectedIssue.state === "open" ? "text-success-6" : "text-text-3"}`}
           >
-            <CircleDot size={HEADER_ICON_SIZE.sm} strokeWidth={2} />
+            <HugeiconsIcon
+              icon={CircleDot}
+              size={HEADER_ICON_SIZE.sm}
+              strokeWidth={2}
+            />
           </span>
           <span className="shrink-0 font-mono text-[11px] text-text-3">
             #{selectedIssue.number}
@@ -168,7 +171,12 @@ export const SourceControlHeaderContent: React.FC<
               className="flex-shrink-0"
               onClick={() => onOpenHistoryInNewTab(historySelection)}
               title={t("common:actions.openInNewTab")}
-              icon={<SquareArrowOutUpRight size={HEADER_ICON_SIZE.sm} />}
+              icon={
+                <HugeiconsIcon
+                  icon={SquareArrowOutUpRight}
+                  size={HEADER_ICON_SIZE.sm}
+                />
+              }
             />
           )}
 
@@ -183,7 +191,13 @@ export const SourceControlHeaderContent: React.FC<
               title={t("common:actions.reviewPreviousFile")}
               aria-label={t("common:actions.reviewPreviousFile")}
               className="shrink-0"
-              icon={<ArrowLeft size={HEADER_ICON_SIZE.sm} strokeWidth={1.75} />}
+              icon={
+                <HugeiconsIcon
+                  icon={ArrowLeft}
+                  size={HEADER_ICON_SIZE.sm}
+                  strokeWidth={1.75}
+                />
+              }
             />
             <Button
               htmlType="button"
@@ -195,7 +209,11 @@ export const SourceControlHeaderContent: React.FC<
               aria-label={t("common:actions.reviewNextFile")}
               className="shrink-0"
               icon={
-                <ArrowRight size={HEADER_ICON_SIZE.sm} strokeWidth={1.75} />
+                <HugeiconsIcon
+                  icon={ArrowRight}
+                  size={HEADER_ICON_SIZE.sm}
+                  strokeWidth={1.75}
+                />
               }
             />
           </>
@@ -228,7 +246,12 @@ export const SourceControlHeaderContent: React.FC<
               className="flex-shrink-0"
               onClick={onCollapseAll}
               title={t("actions.collapseAll")}
-              icon={<ListChevronsDownUp size={HEADER_ICON_SIZE.md} />}
+              icon={
+                <HugeiconsIcon
+                  icon={ListChevronsDownUp}
+                  size={HEADER_ICON_SIZE.md}
+                />
+              }
             />
           </>
         )}
@@ -242,7 +265,8 @@ export const SourceControlHeaderContent: React.FC<
           title={t("common:actions.refresh")}
           aria-label={t("common:actions.refresh")}
           icon={
-            <RefreshCw
+            <HugeiconsIcon
+              icon={RefreshCw}
               size={HEADER_ICON_SIZE.sm}
               className={sourceControlRefreshSpinClass}
             />

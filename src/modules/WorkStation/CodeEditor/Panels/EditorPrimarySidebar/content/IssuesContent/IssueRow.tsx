@@ -1,10 +1,9 @@
-import {
-  CheckCircle2,
-  CircleDot,
-  Copy,
-  MessageSquare,
-  XCircle,
-} from "lucide-react";
+import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
+import Copy from "@hugeicons/core-free-icons/Copy01Icon";
+import MessageSquare from "@hugeicons/core-free-icons/Message01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo } from "react";
 
 import type { GitHubIssue } from "@src/api/tauri/github";
@@ -71,13 +70,13 @@ export const IssueRow: React.FC<IssueRowProps> = memo(
     const treeRowNode: TreeRowNode = useMemo(() => {
       const iconClassName = isOpen ? "text-success-6" : "text-text-3";
       const icon = isOpen ? (
-        <CircleDot size={14} strokeWidth={1.75} />
+        <HugeiconsIcon icon={CircleDot} size={14} strokeWidth={1.75} />
       ) : isDuplicate ? (
-        <Copy size={14} strokeWidth={1.75} />
+        <HugeiconsIcon icon={Copy} size={14} strokeWidth={1.75} />
       ) : isCompleted ? (
-        <CheckCircle2 size={14} strokeWidth={1.75} />
+        <HugeiconsIcon icon={CheckCircle2} size={14} strokeWidth={1.75} />
       ) : (
-        <XCircle size={14} strokeWidth={1.75} />
+        <HugeiconsIcon icon={XCircle} size={14} strokeWidth={1.75} />
       );
 
       return {
@@ -114,7 +113,11 @@ export const IssueRow: React.FC<IssueRowProps> = memo(
                 <span
                   className={`flex items-center gap-0.5 ${TYPOGRAPHY.secondary} text-text-3`}
                 >
-                  <MessageSquare size={11} strokeWidth={1.75} />
+                  <HugeiconsIcon
+                    icon={MessageSquare}
+                    size={11}
+                    strokeWidth={1.75}
+                  />
                   <span>{issue.comments}</span>
                 </span>
               )}

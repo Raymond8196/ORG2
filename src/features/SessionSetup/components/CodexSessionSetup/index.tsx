@@ -1,12 +1,11 @@
-import {
-  AlertCircle,
-  CheckCircle,
-  ChevronRight,
-  Loader2,
-  LogIn,
-  RefreshCw,
-  X,
-} from "lucide-react";
+import AlertCircle from "@hugeicons/core-free-icons/AlertCircleIcon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import CheckCircle from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import LogIn from "@hugeicons/core-free-icons/Login01Icon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -166,14 +165,14 @@ const CodexSessionSetup: React.FC<CodexSessionSetupProps> = ({
             <Button
               variant="tertiary"
               size="mini"
-              icon={<RefreshCw size={12} />}
+              icon={<HugeiconsIcon icon={RefreshCw} size={12} />}
               iconOnly
               onClick={handleRetry}
             />
             <Button
               variant="tertiary"
               size="mini"
-              icon={<X size={14} />}
+              icon={<HugeiconsIcon icon={X} size={14} />}
               iconOnly
               onClick={handleCloseBrowser}
               data-testid="codex-oauth-browser-close"
@@ -188,7 +187,11 @@ const CodexSessionSetup: React.FC<CodexSessionSetupProps> = ({
                 label={t("keyVault.loginStep")}
                 completed={hasToken}
               />
-              <ChevronRight size={14} className="text-text-3" />
+              <HugeiconsIcon
+                icon={ChevronRight}
+                size={14}
+                className="text-text-3"
+              />
               <SessionSetupStepIndicator
                 step={2}
                 currentStep={currentStep}
@@ -210,7 +213,8 @@ const CodexSessionSetup: React.FC<CodexSessionSetupProps> = ({
           >
             {(isSigningIn || isWebviewLoading) && (
               <div className="absolute inset-0 flex items-center justify-center bg-bg-1">
-                <Loader2
+                <HugeiconsIcon
+                  icon={Loader2}
                   size={SPINNER_TOKENS.default}
                   className="animate-spin text-primary-6"
                 />
@@ -221,7 +225,11 @@ const CodexSessionSetup: React.FC<CodexSessionSetupProps> = ({
             )}
             {displayError && (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-bg-1 p-6 text-center">
-                <AlertCircle size={32} className="mb-3 text-danger-6" />
+                <HugeiconsIcon
+                  icon={AlertCircle}
+                  size={32}
+                  className="mb-3 text-danger-6"
+                />
                 <div className="mb-2 text-[14px] text-text-2">
                   {t("keyVault.failedToLoadBrowser")}
                 </div>
@@ -236,9 +244,17 @@ const CodexSessionSetup: React.FC<CodexSessionSetupProps> = ({
             {!isWebviewOpen && !isSigningIn && !displayError && (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-bg-1 p-6 text-center">
                 {hasToken ? (
-                  <CheckCircle size={32} className="mb-3 text-success-6" />
+                  <HugeiconsIcon
+                    icon={CheckCircle}
+                    size={32}
+                    className="mb-3 text-success-6"
+                  />
                 ) : (
-                  <LogIn size={32} className="mb-3 text-text-3" />
+                  <HugeiconsIcon
+                    icon={LogIn}
+                    size={32}
+                    className="mb-3 text-text-3"
+                  />
                 )}
                 <div className="mb-2 text-[14px] font-medium text-text-1">
                   {hasToken

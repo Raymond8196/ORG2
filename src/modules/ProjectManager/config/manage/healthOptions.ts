@@ -3,7 +3,11 @@
  *
  * Health status configurations for projects.
  */
-import { AlertTriangle, CheckCircle2, Clock, XCircle } from "lucide-react";
+import AlertTriangle from "@hugeicons/core-free-icons/Alert01Icon";
+import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import Clock from "@hugeicons/core-free-icons/Clock01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import { DROPDOWN_ITEM } from "@src/components/Dropdown/tokens";

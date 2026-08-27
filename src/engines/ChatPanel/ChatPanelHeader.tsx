@@ -1,11 +1,10 @@
+import MonitorPlay from "@hugeicons/core-free-icons/ComputerVideoIcon";
+import Maximize2 from "@hugeicons/core-free-icons/Maximize02Icon";
+import PanelRight from "@hugeicons/core-free-icons/PanelRightIcon";
+import TerminalSquare from "@hugeicons/core-free-icons/SquareTerminalIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import { useAtomValue } from "jotai";
-import {
-  Maximize2,
-  MonitorPlay,
-  PanelRight,
-  TerminalSquare,
-} from "lucide-react";
 import React from "react";
 
 import Button from "@src/components/Button";
@@ -175,12 +174,14 @@ export function ChatPanelHeader({
                 className={tuiMode ? "!text-primary-6" : ""}
                 icon={
                   tuiMode ? (
-                    <MonitorPlay
+                    <HugeiconsIcon
+                      icon={MonitorPlay}
                       size={CHAT_PANEL_HEADER_ICON_SIZE}
                       strokeWidth={2}
                     />
                   ) : (
-                    <TerminalSquare
+                    <HugeiconsIcon
+                      icon={TerminalSquare}
                       size={CHAT_PANEL_HEADER_ICON_SIZE}
                       strokeWidth={2}
                     />
@@ -272,9 +273,17 @@ export function ChatPanelHeader({
           disabled={!stationAvailable}
         >
           {isChatFocus ? (
-            <PanelRight size={HEADER_ICON_SIZE.md} strokeWidth={1.75} />
+            <HugeiconsIcon
+              icon={PanelRight}
+              size={HEADER_ICON_SIZE.md}
+              strokeWidth={1.75}
+            />
           ) : (
-            <Maximize2 size={HEADER_ICON_SIZE.md} strokeWidth={1.75} />
+            <HugeiconsIcon
+              icon={Maximize2}
+              size={HEADER_ICON_SIZE.md}
+              strokeWidth={1.75}
+            />
           )}
         </TabBarTrailingIconButton>
       </span>

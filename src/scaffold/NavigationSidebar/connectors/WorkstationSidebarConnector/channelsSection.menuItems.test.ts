@@ -1,5 +1,7 @@
+import Hash from "@hugeicons/core-free-icons/HashtagIcon";
+import Lock from "@hugeicons/core-free-icons/LockIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
-import { Hash, Lock } from "lucide-react";
 import { describe, expect, it, vi } from "vitest";
 
 import type { CloudChannel } from "@src/features/Org2Cloud/channels/types";

@@ -1,4 +1,5 @@
-import { Tag } from "lucide-react";
+import Tag from "@hugeicons/core-free-icons/Tag01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 import { DROPDOWN_ITEM } from "@src/components/Dropdown/tokens";
 import {
@@ -80,7 +81,7 @@ export function LabelsSection({
       }
     >
       <FieldRow
-        icon={<Tag size={DROPDOWN_ITEM.iconSize} />}
+        icon={<HugeiconsIcon icon={Tag} size={DROPDOWN_ITEM.iconSize} />}
         value={
           workItem.labels && workItem.labels.length > 0
             ? workItem.labels.map((label) => label.name).join(", ")

@@ -8,7 +8,10 @@
  * - BundledFileEntry: path input + CodeMirror editor for a bundled file
  * - DescriptionQualityIndicator: quality badge based on description length
  */
-import { AlertTriangle, Check, Trash2 } from "lucide-react";
+import AlertTriangle from "@hugeicons/core-free-icons/Alert01Icon";
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -144,7 +147,7 @@ export const BundledFileEntry: React.FC<{
         />
         <Button
           size="small"
-          icon={<Trash2 size={14} />}
+          icon={<HugeiconsIcon icon={Trash2} size={14} />}
           iconOnly
           onClick={onRemove}
           title={t("skillsHub.removeFile")}
@@ -177,7 +180,7 @@ export const DescriptionQualityIndicator: React.FC<{
   if (quality === DESCRIPTION_QUALITY.GOOD) {
     return (
       <span className="flex items-center gap-1 text-xs text-success-6">
-        <Check size={12} />
+        <HugeiconsIcon icon={Check} size={12} />
         {t("skillsHub.descriptionQualityGood")}
       </span>
     );
@@ -185,14 +188,14 @@ export const DescriptionQualityIndicator: React.FC<{
   if (quality === DESCRIPTION_QUALITY.SHORT) {
     return (
       <span className="flex items-center gap-1 text-xs text-warning-6">
-        <AlertTriangle size={12} />
+        <HugeiconsIcon icon={AlertTriangle} size={12} />
         {t("skillsHub.descriptionQualityShort")}
       </span>
     );
   }
   return (
     <span className="flex items-center gap-1 text-xs text-danger-6">
-      <AlertTriangle size={12} />
+      <HugeiconsIcon icon={AlertTriangle} size={12} />
       {t("skillsHub.descriptionQualityMissing")}
     </span>
   );

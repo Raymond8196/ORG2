@@ -4,8 +4,10 @@
  * Right pane of the Team Inbox split view: a selected pull request, the
  * load/empty placeholders, or the detail for the selected Inbox row.
  */
+import Chrome from "@hugeicons/core-free-icons/ChromeIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
-import { Chrome, SquareArrowOutUpRight } from "lucide-react";
 import React from "react";
 
 import { Placeholder } from "@src/components/Placeholder";
@@ -76,7 +78,14 @@ export const TeamInboxDetailPane: React.FC<TeamInboxDetailPaneProps> = ({
             >
               <TeamInboxHeaderIconAction
                 label={t("previews.openInExternalBrowser")}
-                icon={<Chrome size={14} strokeWidth={1.75} aria-hidden />}
+                icon={
+                  <HugeiconsIcon
+                    icon={Chrome}
+                    size={14}
+                    strokeWidth={1.75}
+                    aria-hidden
+                  />
+                }
                 onClick={() =>
                   void openExternalLink(selectedPullRequestIdentity.url)
                 }
@@ -89,7 +98,8 @@ export const TeamInboxDetailPane: React.FC<TeamInboxDetailPaneProps> = ({
                     "Open pull request"
                   )}
                   icon={
-                    <SquareArrowOutUpRight
+                    <HugeiconsIcon
+                      icon={SquareArrowOutUpRight}
                       size={14}
                       strokeWidth={1.75}
                       aria-hidden

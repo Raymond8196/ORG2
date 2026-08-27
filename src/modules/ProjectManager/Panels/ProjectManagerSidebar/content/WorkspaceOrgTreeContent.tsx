@@ -6,7 +6,11 @@
  *
  * Extracted from OrgSidebarTreeContent.tsx to reduce file size.
  */
-import { Box, Layers, ListChecks, MoreHorizontal } from "lucide-react";
+import ListChecks from "@hugeicons/core-free-icons/CheckListIcon";
+import Layers from "@hugeicons/core-free-icons/Layers01Icon";
+import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import Box from "@hugeicons/core-free-icons/PackageIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import type { VirtuosoHandle } from "react-virtuoso";
@@ -53,7 +57,8 @@ export const WorkspaceOrgTreeContent: React.FC<WorkspaceOrgTreeContentProps> =
               path: "project-sidebar:workspace:work-items",
               type: "file",
               icon: (
-                <ListChecks
+                <HugeiconsIcon
+                  icon={ListChecks}
                   size={ROW_ICON_SIZE}
                   strokeWidth={ROW_ICON_STROKE}
                 />
@@ -68,7 +73,13 @@ export const WorkspaceOrgTreeContent: React.FC<WorkspaceOrgTreeContentProps> =
               name: t("workspace.projects"),
               path: "project-sidebar:workspace:projects",
               type: "file",
-              icon: <Box size={ROW_ICON_SIZE} strokeWidth={ROW_ICON_STROKE} />,
+              icon: (
+                <HugeiconsIcon
+                  icon={Box}
+                  size={ROW_ICON_SIZE}
+                  strokeWidth={ROW_ICON_STROKE}
+                />
+              ),
               kind: "workspace-projects",
             },
           },
@@ -80,7 +91,11 @@ export const WorkspaceOrgTreeContent: React.FC<WorkspaceOrgTreeContentProps> =
               path: "project-sidebar:workspace:views",
               type: "file",
               icon: (
-                <Layers size={ROW_ICON_SIZE} strokeWidth={ROW_ICON_STROKE} />
+                <HugeiconsIcon
+                  icon={Layers}
+                  size={ROW_ICON_SIZE}
+                  strokeWidth={ROW_ICON_STROKE}
+                />
               ),
               isIgnored: true,
               kind: "workspace-views",
@@ -94,7 +109,8 @@ export const WorkspaceOrgTreeContent: React.FC<WorkspaceOrgTreeContentProps> =
               path: "project-sidebar:workspace:more",
               type: "file",
               icon: (
-                <MoreHorizontal
+                <HugeiconsIcon
+                  icon={MoreHorizontal}
                   size={ROW_ICON_SIZE}
                   strokeWidth={ROW_ICON_STROKE}
                 />

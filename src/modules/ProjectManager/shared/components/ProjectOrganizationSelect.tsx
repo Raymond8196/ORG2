@@ -1,4 +1,5 @@
-import { Network } from "lucide-react";
+import Network from "@hugeicons/core-free-icons/AiNetworkIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { FC, ReactNode } from "react";
 
 import Select from "@src/components/Select";
@@ -39,7 +40,7 @@ const ProjectOrganizationSelect: FC<ProjectOrganizationSelectProps> = ({
     loading={loading}
     size="small"
     radius="pill"
-    prefix={<Network size={14} strokeWidth={1.75} />}
+    prefix={<HugeiconsIcon icon={Network} size={14} strokeWidth={1.75} />}
     showSearch
     dropdownWidthMode="min-match"
     dropdownMinWidth={220}

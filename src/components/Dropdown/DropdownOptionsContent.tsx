@@ -1,4 +1,5 @@
-import { Search } from "lucide-react";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -57,7 +58,8 @@ const DropdownOptionsContent: React.FC<DropdownOptionsContentProps> = ({
     <>
       {showSearch && (
         <div className={DROPDOWN_CLASSES.searchContainer}>
-          <Search
+          <HugeiconsIcon
+            icon={Search}
             size={DROPDOWN_ITEM.iconSize}
             className="shrink-0 text-text-3"
           />

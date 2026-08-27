@@ -14,7 +14,8 @@
  * </WizardProgressCard>
  * ```
  */
-import { Loader2 } from "lucide-react";
+import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import { SPINNER_TOKENS } from "@src/config/spinnerTokens";
@@ -39,7 +40,8 @@ const WizardProgressCard: React.FC<WizardProgressCardProps> = ({
 
   return (
     <div className={classes}>
-      <Loader2
+      <HugeiconsIcon
+        icon={Loader2}
         size={SPINNER_TOKENS.default}
         className="shrink-0 animate-spin text-primary-6"
       />

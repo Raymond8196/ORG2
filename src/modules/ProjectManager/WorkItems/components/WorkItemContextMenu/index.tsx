@@ -1,4 +1,5 @@
-import { ChevronRight } from "lucide-react";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
   useEffect,
@@ -374,7 +375,8 @@ const WorkItemContextMenu: React.FC<WorkItemContextMenuProps> = ({
                 />
               )}
               {hasSubmenu && (
-                <ChevronRight
+                <HugeiconsIcon
+                  icon={ChevronRight}
                   size={DROPDOWN_ITEM.iconSize}
                   className="work-item-context-menu__arrow"
                 />

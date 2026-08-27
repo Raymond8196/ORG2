@@ -4,7 +4,10 @@
  * Displays a single row in the split diff view
  * Shows old content on left, new content on right, with line numbers in center
  */
-import { Check, Minus, Plus } from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import { codeMirrorPrismTheme } from "@src/features/CodeMirror/themes/prism";
@@ -86,9 +89,13 @@ export const SplitRow = React.memo<SplitRowProps>(
     const newContent = line.newLine?.content || "";
 
     const oldIcon =
-      oldType === "remove" ? <Minus size={12} strokeWidth={2.5} /> : null;
+      oldType === "remove" ? (
+        <HugeiconsIcon icon={Minus} size={12} strokeWidth={2.5} />
+      ) : null;
     const newIcon =
-      newType === "add" ? <Plus size={12} strokeWidth={2.5} /> : null;
+      newType === "add" ? (
+        <HugeiconsIcon icon={Plus} size={12} strokeWidth={2.5} />
+      ) : null;
 
     const hasChange = oldType === "remove" || newType === "add";
 
@@ -166,11 +173,13 @@ export const SplitRow = React.memo<SplitRowProps>(
                 }}
               >
                 {isRangeStart && rangeFullySelected && (
-                  <Check size={14} strokeWidth={2.5} />
+                  <HugeiconsIcon icon={Check} size={14} strokeWidth={2.5} />
                 )}
                 {isRangeStart &&
                   rangePartiallySelected &&
-                  !rangeFullySelected && <Minus size={14} strokeWidth={2.5} />}
+                  !rangeFullySelected && (
+                    <HugeiconsIcon icon={Minus} size={14} strokeWidth={2.5} />
+                  )}
               </div>
 
               {/* Right per-line checkbox (for new/addition side) */}

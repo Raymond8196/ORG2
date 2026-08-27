@@ -1,4 +1,5 @@
-import { Terminal } from "lucide-react";
+import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import ModelIcon, { type IconProvider } from "@src/components/ModelIcon";
@@ -13,7 +14,9 @@ const SessionProvenanceSourceIcon: React.FC<
   <ModelIcon
     provider={iconId}
     size={16}
-    fallback={<Terminal size={16} className="text-text-3" />}
+    fallback={
+      <HugeiconsIcon icon={Terminal} size={16} className="text-text-3" />
+    }
   />
 );
 

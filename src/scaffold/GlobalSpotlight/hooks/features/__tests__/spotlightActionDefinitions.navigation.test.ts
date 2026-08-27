@@ -1,4 +1,5 @@
-import { Search } from "lucide-react";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { describe, expect, it } from "vitest";
 
 import {

@@ -13,8 +13,12 @@
  * `TurnMetadataFooter` "Review"/file click still scrolls the cumulative list to
  * the clicked file, but never filters it down to a single round.
  */
+import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
+import ListChevronsDownUp from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
+import Send from "@hugeicons/core-free-icons/MailSend01Icon";
+import RotateCcw from "@hugeicons/core-free-icons/RotateLeft01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { GitBranch, ListChevronsDownUp, RotateCcw, Send } from "lucide-react";
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -240,7 +244,7 @@ const SessionReplayDiff: React.FC<SimulatorAppProps> = ({
                 className="flex-shrink-0"
                 onClick={handleUndoAll}
                 title={tCommon("actions.undoAll")}
-                icon={<RotateCcw size={14} />}
+                icon={<HugeiconsIcon icon={RotateCcw} size={14} />}
               />
             ) : null}
             {canUndoAll ? <div className="mx-2 h-5 w-px bg-border-2" /> : null}
@@ -252,7 +256,7 @@ const SessionReplayDiff: React.FC<SimulatorAppProps> = ({
               className="flex-shrink-0"
               onClick={handleCollapseAll}
               title={tCommon("actions.collapseAll")}
-              icon={<ListChevronsDownUp size={14} />}
+              icon={<HugeiconsIcon icon={ListChevronsDownUp} size={14} />}
             />
           </div>
         ) : undefined,
@@ -285,7 +289,7 @@ const SessionReplayDiff: React.FC<SimulatorAppProps> = ({
           finalDiffCount
         ),
         title: t("simulator.replay.diffApp.tabLabel"),
-        icon: <GitBranch size={14} className="shrink-0" />,
+        icon: <HugeiconsIcon icon={GitBranch} size={14} className="shrink-0" />,
       },
       {
         eventId: TAB_IDS.submissions,
@@ -295,7 +299,7 @@ const SessionReplayDiff: React.FC<SimulatorAppProps> = ({
           submissionCount
         ),
         title: t("simulator.replay.diffApp.submissions.tabLabel"),
-        icon: <Send size={14} className="shrink-0" />,
+        icon: <HugeiconsIcon icon={Send} size={14} className="shrink-0" />,
       },
     ];
   }, [

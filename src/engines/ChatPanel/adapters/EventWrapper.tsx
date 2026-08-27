@@ -9,7 +9,10 @@
  * - Memoized component with chunk_id-based comparison
  * - Separate rendering paths for different modes
  */
-import { ChevronRight, Maximize2, Wrench } from "lucide-react";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import Maximize2 from "@hugeicons/core-free-icons/Maximize02Icon";
+import Wrench from "@hugeicons/core-free-icons/Wrench01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useState } from "react";
 
 import Collapse from "@src/components/Collapse";
@@ -48,7 +51,7 @@ function renderFallbackHeader(
 
   return (
     <div className="flex w-full items-center gap-3 truncate">
-      <Wrench size={16} className="text-text-2" />
+      <HugeiconsIcon icon={Wrench} size={16} className="text-text-2" />
       <span className="text-[14px] font-normal text-text-2">{label}</span>
     </div>
   );
@@ -88,7 +91,8 @@ const EventCollapseWrapper: React.FC<EventCollapseWrapperProps> = ({
         <Collapse.Item
           key="1"
           expandIcon={
-            <ChevronRight
+            <HugeiconsIcon
+              icon={ChevronRight}
               size={16}
               strokeWidth={1.75}
               className="text-text-2"
@@ -96,7 +100,12 @@ const EventCollapseWrapper: React.FC<EventCollapseWrapperProps> = ({
           }
           header={header}
           extra={
-            <Maximize2 size={16} strokeWidth={1.75} className="text-text-2" />
+            <HugeiconsIcon
+              icon={Maximize2}
+              size={16}
+              strokeWidth={1.75}
+              className="text-text-2"
+            />
           }
         >
           {children}

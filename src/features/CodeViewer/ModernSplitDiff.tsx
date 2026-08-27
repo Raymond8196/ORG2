@@ -10,7 +10,8 @@
  * - Syntax highlighting
  */
 // Syntax highlighting is handled by react-syntax-highlighter in SplitRow
-import { Check } from "lucide-react";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useRef } from "react";
 
 import DiffStatsBadge from "@src/components/DiffStatsBadge";
@@ -96,7 +97,9 @@ const ModernSplitDiffComponent: React.FC<ModernSplitDiffProps> = ({
                   allSelected ? "Deselect all changes" : "Select all changes"
                 }
               >
-                {allSelected && <Check size={12} strokeWidth={3} />}
+                {allSelected && (
+                  <HugeiconsIcon icon={Check} size={12} strokeWidth={3} />
+                )}
               </div>
             )}
           </div>

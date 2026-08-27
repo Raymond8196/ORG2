@@ -10,7 +10,9 @@
  * No second-level sidebar: this table replaces the agent navigation that
  * previously lived under "Agent Teams → Agents" in `SettingsSidebar`.
  */
-import { Plus, Trash2 } from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -196,7 +198,7 @@ const AgentsTable: React.FC<AgentsTableProps> = ({
                 variant="danger"
                 appearance="outline"
                 size="small"
-                icon={<Trash2 size={14} />}
+                icon={<HugeiconsIcon icon={Trash2} size={14} />}
                 iconOnly
                 onClick={() => void handleDeleteRow(row)}
                 aria-label={t("common:actions.delete", {
@@ -247,7 +249,7 @@ const AgentsTable: React.FC<AgentsTableProps> = ({
     <Button
       variant="secondary"
       size="default"
-      icon={<Plus size={14} />}
+      icon={<HugeiconsIcon icon={Plus} size={14} />}
       iconOnly
       aria-label={addAgentLabel}
       title={addAgentLabel}

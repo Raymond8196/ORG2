@@ -4,7 +4,9 @@
  * Centralized reducer managing all spotlight state.
  * Eliminates cascading re-renders by using a single state tree.
  */
-import { Folder, GitBranch } from "lucide-react";
+import Folder from "@hugeicons/core-free-icons/Folder01Icon";
+import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 import {
   LANGUAGE_NAMES,

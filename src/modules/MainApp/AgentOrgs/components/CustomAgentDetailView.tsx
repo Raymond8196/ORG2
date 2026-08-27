@@ -13,8 +13,10 @@
  * `useCustomAgentConfig`, which projects the typed `AgentDefinition`
  * onto the section-shape the OS / SDE editors expect.
  */
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue } from "jotai";
-import { Trash2, X } from "lucide-react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -205,7 +207,8 @@ const CustomAgentDetailView: React.FC<CustomAgentDetailViewProps> = ({
           <Button
             {...PANEL_HEADER_TOKENS.actionButton}
             icon={
-              <X
+              <HugeiconsIcon
+                icon={X}
                 size={PANEL_HEADER_TOKENS.buttonIconSize}
                 strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
               />
@@ -222,7 +225,8 @@ const CustomAgentDetailView: React.FC<CustomAgentDetailViewProps> = ({
       <Button
         {...PANEL_HEADER_TOKENS.dangerButton}
         icon={
-          <Trash2
+          <HugeiconsIcon
+            icon={Trash2}
             size={PANEL_HEADER_TOKENS.buttonIconSize}
             strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
           />

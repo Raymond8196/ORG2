@@ -1,5 +1,8 @@
 // @vitest-environment jsdom
-import { ClipboardList, Globe, SquareArrowOutUpRight } from "lucide-react";
+import ClipboardList from "@hugeicons/core-free-icons/CheckListIcon";
+import Globe from "@hugeicons/core-free-icons/GlobeIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { act, createElement } from "react";
 import { type Root, createRoot } from "react-dom/client";
 import {

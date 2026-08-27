@@ -1,4 +1,5 @@
-import { Play } from "lucide-react";
+import Play from "@hugeicons/core-free-icons/PlayIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -76,7 +77,7 @@ const AgentOrgInterventionPinBar: React.FC<AgentOrgInterventionPinBarProps> =
                 loading={returning}
                 loadingSpinIcon
                 onClick={() => void onReturnToWork()}
-                icon={<Play size={12} strokeWidth={2} />}
+                icon={<HugeiconsIcon icon={Play} size={12} strokeWidth={2} />}
               >
                 {returning
                   ? t("planner.agentOrgIntervention.returning")

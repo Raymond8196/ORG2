@@ -3,8 +3,9 @@
  *
  * Shared between RepoMembersSection and MyProfileSection.
  */
+import Mail from "@hugeicons/core-free-icons/Mail01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
-import { Mail } from "lucide-react";
 import React from "react";
 
 import type { MemberEntry } from "@src/api/http/project";
@@ -44,7 +45,7 @@ const ClaimIdentityModal: React.FC<ClaimIdentityModalProps> = ({
             {t("settings.claimIdentityYoureClaming")}
           </div>
           <div className="mt-1 flex items-center gap-2">
-            <Mail size={16} className="text-text-3" />
+            <HugeiconsIcon icon={Mail} size={16} className="text-text-3" />
             <span className="text-[14px] font-medium text-text-1">
               {member.email}
             </span>

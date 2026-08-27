@@ -1,4 +1,5 @@
-import { RefreshCw } from "lucide-react";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -131,7 +132,9 @@ const ContainerEnginesSection: React.FC<ContainerEnginesSectionProps> = ({
         <Button
           variant="tertiary"
           size="mini"
-          icon={<RefreshCw size={13} className={spinClass} />}
+          icon={
+            <HugeiconsIcon icon={RefreshCw} size={13} className={spinClass} />
+          }
           onClick={handleRefreshClick}
           aria-label={t("common:actions.refresh")}
         />

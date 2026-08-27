@@ -2,12 +2,18 @@
  * Dock-aligned title bar center: icon + label for Workstation and simulator AppType.
  * Icons match Dock (My Station) and DockReplayControl / getAppById (Chat).
  */
+import ListTodo from "@hugeicons/core-free-icons/CheckListIcon";
+import Chromium from "@hugeicons/core-free-icons/ChromeIcon";
+import Code from "@hugeicons/core-free-icons/CodeIcon";
+import MonitorDot from "@hugeicons/core-free-icons/ComputerIcon";
+import Package2 from "@hugeicons/core-free-icons/Package01Icon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import type { TFunction } from "i18next";
-import type { LucideIcon } from "lucide-react";
-import { Chromium, Code, ListTodo, MonitorDot, Package2 } from "lucide-react";
 
 import { APP_TYPE_PROJECT, AppType } from "../../types/appTypes";
 import { BACKGROUND_TASKS_DOCK_APP, getAppById } from "./config";
+
+type LucideIcon = IconSvgElement;
 
 export function getWorkStationStationTitleCenter(
   appMode: string,

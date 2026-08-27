@@ -1,4 +1,5 @@
-import { Plus } from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -53,7 +54,7 @@ export const IssueForm: React.FC<IssueFormProps> = ({
           size="small"
           variant="primary"
           appearance="solid"
-          icon={<Plus size={14} />}
+          icon={<HugeiconsIcon icon={Plus} size={14} />}
           loading={saving}
           disabled={!draft.title.trim()}
           onClick={onSubmit}

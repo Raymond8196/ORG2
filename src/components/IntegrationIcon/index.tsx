@@ -13,7 +13,9 @@
  * <IntegrationIcon type="email" size={16} className="text-text-2" />
  * ```
  */
-import { Mail, Network } from "lucide-react";
+import Network from "@hugeicons/core-free-icons/AiNetworkIcon";
+import Mail from "@hugeicons/core-free-icons/Mail01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import { type BrandIntegrationType, INTEGRATION_ICON_MAP } from "./config";
@@ -42,17 +44,23 @@ const IntegrationIcon: React.FC<IntegrationIconProps> = memo(
   ({ type, size = 16, className = "" }) => {
     // Lucide fallbacks for non-brand types
     if (type === "email") {
-      return <Mail size={size} className={className} />;
+      return <HugeiconsIcon icon={Mail} size={size} className={className} />;
     }
     if (type === "nodes") {
-      return <Network size={size} className={className} />;
+      return <HugeiconsIcon icon={Network} size={size} className={className} />;
     }
 
     const Icon = INTEGRATION_ICON_MAP[type as BrandIntegrationType];
 
     // Fallback for unknown types
     if (!Icon) {
-      return <Network size={size} className={`text-text-2 ${className}`} />;
+      return (
+        <HugeiconsIcon
+          icon={Network}
+          size={size}
+          className={`text-text-2 ${className}`}
+        />
+      );
     }
 
     return <Icon width={size} height={size} className={className} />;

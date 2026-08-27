@@ -1,5 +1,7 @@
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Info from "@hugeicons/core-free-icons/InformationCircleIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { emit } from "@tauri-apps/api/event";
-import { Info, X } from "lucide-react";
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -304,7 +306,8 @@ const CreateWorkItemView: React.FC<CreateWorkItemViewProps> = ({
                     : CREATE_WORK_ITEM_HEADER_ACTION_CLASS
                 }
                 icon={
-                  <Info
+                  <HugeiconsIcon
+                    icon={Info}
                     size={PANEL_HEADER_TOKENS.buttonIconSize}
                     strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
                   />
@@ -326,7 +329,8 @@ const CreateWorkItemView: React.FC<CreateWorkItemViewProps> = ({
                 {...PANEL_HEADER_TOKENS.actionButton}
                 className={CREATE_WORK_ITEM_HEADER_ACTION_CLASS}
                 icon={
-                  <X
+                  <HugeiconsIcon
+                    icon={X}
                     size={PANEL_HEADER_TOKENS.buttonIconSize}
                     strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
                   />

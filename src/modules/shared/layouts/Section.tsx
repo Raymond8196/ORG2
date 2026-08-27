@@ -20,7 +20,9 @@
  *      <SectionContainer>...</SectionContainer>
  *    </Section>
  */
-import { ChevronDown, ChevronRight } from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useState } from "react";
 
 import {
@@ -97,9 +99,13 @@ const Section: React.FC<SectionProps> = memo(
                 className={`flex flex-1 items-center gap-2 text-left ${titleClassName} transition-colors hover:text-text-2`}
               >
                 {isCollapsed ? (
-                  <ChevronRight size={16} strokeWidth={2} />
+                  <HugeiconsIcon
+                    icon={ChevronRight}
+                    size={16}
+                    strokeWidth={2}
+                  />
                 ) : (
-                  <ChevronDown size={16} strokeWidth={2} />
+                  <HugeiconsIcon icon={ChevronDown} size={16} strokeWidth={2} />
                 )}
                 <span>{title}</span>
               </button>

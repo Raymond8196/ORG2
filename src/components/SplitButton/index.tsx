@@ -1,4 +1,5 @@
-import { ChevronDown } from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { forwardRef } from "react";
 
 import type { ButtonProps } from "@src/components/Button";
@@ -262,7 +263,7 @@ const SplitButton = forwardRef<HTMLButtonElement, SplitButtonProps>(
             }}
             onClick={onMenuButtonClick}
           >
-            <ChevronDown size={12} aria-hidden />
+            <HugeiconsIcon icon={ChevronDown} size={12} aria-hidden />
           </button>
         </div>
 

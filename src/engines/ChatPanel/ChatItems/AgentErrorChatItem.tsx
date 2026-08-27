@@ -10,8 +10,10 @@
  * Subscribing here creates a nested Jotai listener chain that overflows the
  * call stack when the session snapshot changes (e.g. on tab switch).
  */
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
-import { ChevronDown, ChevronRight } from "lucide-react";
 import React, { memo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -73,9 +75,17 @@ const AgentErrorChatItem: React.FC<AgentErrorChatItemProps> = memo(
                 className="mt-2 flex select-none items-center gap-1 text-text-3 transition-colors hover:text-text-1"
               >
                 {detailsExpanded ? (
-                  <ChevronDown size={12} className="shrink-0" />
+                  <HugeiconsIcon
+                    icon={ChevronDown}
+                    size={12}
+                    className="shrink-0"
+                  />
                 ) : (
-                  <ChevronRight size={12} className="shrink-0" />
+                  <HugeiconsIcon
+                    icon={ChevronRight}
+                    size={12}
+                    className="shrink-0"
+                  />
                 )}
                 <span>{t("errors.technicalDetails")}</span>
               </button>

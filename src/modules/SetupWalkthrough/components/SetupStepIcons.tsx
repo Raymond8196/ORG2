@@ -1,4 +1,5 @@
-import { SlidersHorizontal } from "lucide-react";
+import SlidersHorizontal from "@hugeicons/core-free-icons/SlidersHorizontalIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 import workModelIcon from "@src/assets/fileTypeIcons/flow.svg";
 import organizationIcon from "@src/assets/fileTypeIcons/folder-cluster.svg";

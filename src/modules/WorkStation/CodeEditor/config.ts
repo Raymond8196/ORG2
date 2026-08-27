@@ -3,7 +3,10 @@
  *
  * Configuration constants and icons for the CodeEditor component.
  */
-import { FileCode, FolderOpen, Search } from "lucide-react";
+import FileCode from "@hugeicons/core-free-icons/FileScriptIcon";
+import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 // ============================================
 // Icon Configuration

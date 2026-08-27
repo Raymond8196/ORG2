@@ -7,7 +7,11 @@
  * Categories: Repo | Session | Projects | Work items
  * Scope varies based on category (multi-select supported)
  */
-import { Box, Folder, GitBranch, Layers } from "lucide-react";
+import Folder from "@hugeicons/core-free-icons/Folder01Icon";
+import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
+import Layers from "@hugeicons/core-free-icons/Layers01Icon";
+import Box from "@hugeicons/core-free-icons/PackageIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -164,7 +168,9 @@ const ScopeInfoLine: React.FC<ScopeInfoLineProps> = ({
           ...repos.map((repo) => ({
             value: repo.id,
             label: repo.name,
-            icon: <Folder size={14} className="shrink-0" />,
+            icon: (
+              <HugeiconsIcon icon={Folder} size={14} className="shrink-0" />
+            ),
           })),
         ];
       case "session":
@@ -173,7 +179,9 @@ const ScopeInfoLine: React.FC<ScopeInfoLineProps> = ({
           ...sessions.map((session) => ({
             value: session.id,
             label: session.name,
-            icon: <GitBranch size={14} className="shrink-0" />,
+            icon: (
+              <HugeiconsIcon icon={GitBranch} size={14} className="shrink-0" />
+            ),
           })),
         ];
       case "project":
@@ -182,7 +190,7 @@ const ScopeInfoLine: React.FC<ScopeInfoLineProps> = ({
           ...projects.map((project) => ({
             value: project.id,
             label: project.name,
-            icon: <Box size={14} className="shrink-0" />,
+            icon: <HugeiconsIcon icon={Box} size={14} className="shrink-0" />,
           })),
         ];
       case "workitem":
@@ -191,7 +199,9 @@ const ScopeInfoLine: React.FC<ScopeInfoLineProps> = ({
           ...workItems.map((item) => ({
             value: item.id,
             label: item.name,
-            icon: <Layers size={14} className="shrink-0" />,
+            icon: (
+              <HugeiconsIcon icon={Layers} size={14} className="shrink-0" />
+            ),
           })),
         ];
       default:

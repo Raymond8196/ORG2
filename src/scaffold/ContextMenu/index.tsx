@@ -11,7 +11,8 @@
  * - Fuzzy matching for files and folders
  * - File type specific icons
  */
-import { AtSign } from "lucide-react";
+import AtSign from "@hugeicons/core-free-icons/AtIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 

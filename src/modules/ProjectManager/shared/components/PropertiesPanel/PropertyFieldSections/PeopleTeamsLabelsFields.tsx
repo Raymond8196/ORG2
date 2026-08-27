@@ -2,7 +2,12 @@
  * Lead, Members, Teams, Labels, and Linked Repos field rows.
  * Extracted to keep ProjectPropertyFields under the UI line limit.
  */
-import { Code2, Plane, Tag, User, Users } from "lucide-react";
+import Plane from "@hugeicons/core-free-icons/Airplane01Icon";
+import Code2 from "@hugeicons/core-free-icons/CodeIcon";
+import Tag from "@hugeicons/core-free-icons/Tag01Icon";
+import User from "@hugeicons/core-free-icons/UserIcon";
+import Users from "@hugeicons/core-free-icons/UserMultipleIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import Avatar from "@src/components/Avatar";
@@ -93,7 +98,7 @@ const PeopleTeamsLabelsFields: React.FC<PeopleTeamsLabelsFieldsProps> = ({
                 {project.lead.name.charAt(0).toUpperCase()}
               </Avatar>
             ) : (
-              <User size={DROPDOWN_ITEM.iconSize} />
+              <HugeiconsIcon icon={User} size={DROPDOWN_ITEM.iconSize} />
             )
           }
           label={showLabels ? t("properties.lead") : undefined}
@@ -121,7 +126,12 @@ const PeopleTeamsLabelsFields: React.FC<PeopleTeamsLabelsFieldsProps> = ({
                 <>
                   {!searchQuery && (
                     <Option
-                      icon={<User size={DROPDOWN_ITEM.iconSize} />}
+                      icon={
+                        <HugeiconsIcon
+                          icon={User}
+                          size={DROPDOWN_ITEM.iconSize}
+                        />
+                      }
                       label={t("properties.noLead")}
                       onClick={() => handleLeadChange(undefined)}
                     />
@@ -166,7 +176,7 @@ const PeopleTeamsLabelsFields: React.FC<PeopleTeamsLabelsFieldsProps> = ({
         }
       >
         <FieldRow
-          icon={<Users size={DROPDOWN_ITEM.iconSize} />}
+          icon={<HugeiconsIcon icon={Users} size={DROPDOWN_ITEM.iconSize} />}
           label={showLabels ? t("properties.members") : undefined}
           value={
             project.members && project.members.length > 0
@@ -235,7 +245,7 @@ const PeopleTeamsLabelsFields: React.FC<PeopleTeamsLabelsFieldsProps> = ({
         }
       >
         <FieldRow
-          icon={<Plane size={DROPDOWN_ITEM.iconSize} />}
+          icon={<HugeiconsIcon icon={Plane} size={DROPDOWN_ITEM.iconSize} />}
           label={showLabels ? t("properties.teams") : undefined}
           value={
             project.teams && project.teams.length > 0
@@ -277,7 +287,8 @@ const PeopleTeamsLabelsFields: React.FC<PeopleTeamsLabelsFieldsProps> = ({
                     isSelected={isSelected}
                     onClick={() => handleTeamToggle(team)}
                   >
-                    <Plane
+                    <HugeiconsIcon
+                      icon={Plane}
                       size={DROPDOWN_ITEM.iconSize}
                       style={{ color: team.color }}
                     />
@@ -301,7 +312,7 @@ const PeopleTeamsLabelsFields: React.FC<PeopleTeamsLabelsFieldsProps> = ({
         }
       >
         <FieldRow
-          icon={<Tag size={DROPDOWN_ITEM.iconSize} />}
+          icon={<HugeiconsIcon icon={Tag} size={DROPDOWN_ITEM.iconSize} />}
           label={showLabels ? t("properties.labels") : undefined}
           value={
             project.labels && project.labels.length > 0
@@ -361,7 +372,7 @@ const PeopleTeamsLabelsFields: React.FC<PeopleTeamsLabelsFieldsProps> = ({
           }
         >
           <FieldRow
-            icon={<Code2 size={DROPDOWN_ITEM.iconSize} />}
+            icon={<HugeiconsIcon icon={Code2} size={DROPDOWN_ITEM.iconSize} />}
             label={showLabels ? t("properties.repos") : undefined}
             value={linkedRepoLabel}
             isSelected={linkedRepoCount > 0}
@@ -402,7 +413,8 @@ const PeopleTeamsLabelsFields: React.FC<PeopleTeamsLabelsFieldsProps> = ({
                       isSelected={isSelected}
                       onClick={() => handleLinkedRepoToggle(repo)}
                     >
-                      <Code2
+                      <HugeiconsIcon
+                        icon={Code2}
                         size={DROPDOWN_ITEM.iconSize}
                         className="text-text-3"
                       />

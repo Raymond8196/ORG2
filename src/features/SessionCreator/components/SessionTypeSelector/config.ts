@@ -1,4 +1,5 @@
-import { Zap } from "lucide-react";
+import Zap from "@hugeicons/core-free-icons/FlashIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 import {
   AGENT_EXEC_MODES,

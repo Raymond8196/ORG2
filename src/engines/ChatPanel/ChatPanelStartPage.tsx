@@ -1,5 +1,9 @@
+import Download from "@hugeicons/core-free-icons/Download01Icon";
+import Gauge from "@hugeicons/core-free-icons/GaugeIcon";
+import Import from "@hugeicons/core-free-icons/ImportIcon";
+import KeyRound from "@hugeicons/core-free-icons/Key02Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
-import { Download, Gauge, Import, KeyRound } from "lucide-react";
 import React, { useCallback, useState } from "react";
 
 import SegmentedTextPill from "@src/components/SegmentedTextPill";
@@ -99,21 +103,21 @@ export function ChatPanelStartPage({
   const importSessionAction: LaunchpadAction = {
     id: "import-session",
     title: t("navigation:cloud.share.importEntry"),
-    icon: <Import size={16} strokeWidth={1.8} />,
+    icon: <HugeiconsIcon icon={Import} size={16} strokeWidth={1.8} />,
     onClick: () => setIsImportSessionDialogOpen(true),
     tone: "neutral",
   };
   const addApiKeyAction: LaunchpadAction = {
     id: "add-api-key",
     title: t("chat.startPage.addApiKey.title"),
-    icon: <KeyRound size={16} strokeWidth={1.8} />,
+    icon: <HugeiconsIcon icon={KeyRound} size={16} strokeWidth={1.8} />,
     onClick: onAddApiKey,
     tone: "neutral",
   };
   const showRuntimeAction: LaunchpadAction = {
     id: "show-runtime",
     title: t("chat.startPage.showRuntime.title"),
-    icon: <Gauge size={16} strokeWidth={1.8} />,
+    icon: <HugeiconsIcon icon={Gauge} size={16} strokeWidth={1.8} />,
     onClick: onShowRuntime,
     tone: "neutral",
   };
@@ -122,7 +126,7 @@ export function ChatPanelStartPage({
         {
           id: "install-latest-update",
           title: t("chat.startPage.installLatestUpdate.title"),
-          icon: <Download size={16} strokeWidth={1.8} />,
+          icon: <HugeiconsIcon icon={Download} size={16} strokeWidth={1.8} />,
           onClick: onInstallLatestUpdate,
           tone: "warning",
         },

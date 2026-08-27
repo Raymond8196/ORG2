@@ -1,19 +1,18 @@
-import {
-  Calendar,
-  Circle,
-  CircleDot,
-  Code2,
-  Copy,
-  Flag,
-  HeartPulse,
-  Link2Off,
-  ListChevronsUpDown,
-  SquareArrowOutUpRight,
-  Tag,
-  Trash2,
-  User,
-  Users,
-} from "lucide-react";
+import Calendar from "@hugeicons/core-free-icons/Calendar01Icon";
+import HeartPulse from "@hugeicons/core-free-icons/Cardiogram01Icon";
+import Circle from "@hugeicons/core-free-icons/CircleIcon";
+import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
+import Code2 from "@hugeicons/core-free-icons/CodeIcon";
+import Copy from "@hugeicons/core-free-icons/Copy01Icon";
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import Flag from "@hugeicons/core-free-icons/Flag01Icon";
+import ListChevronsUpDown from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import Tag from "@hugeicons/core-free-icons/Tag01Icon";
+import Link2Off from "@hugeicons/core-free-icons/Unlink02Icon";
+import User from "@hugeicons/core-free-icons/UserIcon";
+import Users from "@hugeicons/core-free-icons/UserMultipleIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { createElement } from "react";
 
 import { DROPDOWN_ITEM } from "@src/components/Dropdown/tokens";

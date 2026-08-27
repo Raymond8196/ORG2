@@ -1,6 +1,10 @@
+import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ArrowRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useSetAtom } from "jotai";
-import { ArrowLeft, ArrowRight, Check, X } from "lucide-react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -384,7 +388,7 @@ const CodeEditorTour: React.FC<CodeEditorTourProps> = ({ open, onClose }) => {
               aria-label={t("tutorials.chrome.close")}
               onClick={onClose}
             >
-              <X size={14} />
+              <HugeiconsIcon icon={X} size={14} />
             </button>
           </div>
 
@@ -413,7 +417,7 @@ const CodeEditorTour: React.FC<CodeEditorTourProps> = ({ open, onClose }) => {
               appearance="ghost"
               shape="circle"
               iconOnly
-              icon={<ArrowLeft size={13} />}
+              icon={<HugeiconsIcon icon={ArrowLeft} size={13} />}
               disabled={isFirstStep}
               aria-label={t("tutorials.chrome.previous")}
               title={t("tutorials.chrome.previous")}
@@ -427,7 +431,13 @@ const CodeEditorTour: React.FC<CodeEditorTourProps> = ({ open, onClose }) => {
               variant="primary"
               shape="circle"
               iconOnly
-              icon={isLastStep ? <Check size={13} /> : <ArrowRight size={13} />}
+              icon={
+                isLastStep ? (
+                  <HugeiconsIcon icon={Check} size={13} />
+                ) : (
+                  <HugeiconsIcon icon={ArrowRight} size={13} />
+                )
+              }
               aria-label={
                 isLastStep
                   ? t("tutorials.chrome.finish")

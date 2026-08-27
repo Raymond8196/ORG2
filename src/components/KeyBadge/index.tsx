@@ -4,19 +4,18 @@
  * Used in: Toolbar search bar, Settings Shortcuts page
  * Replaces text symbols (⌘, ⌥, etc.) with Lucide icons for consistency.
  */
-import {
-  ArrowBigUp,
-  ArrowDown,
-  ArrowLeft,
-  ArrowRight,
-  ArrowUp,
-  ChevronUp,
-  Command,
-  CornerDownLeft,
-  Delete,
-  Option,
-  Space,
-} from "lucide-react";
+import ArrowDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ArrowRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import CornerDownLeft from "@hugeicons/core-free-icons/ArrowTurnDownIcon";
+import ArrowUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import ChevronUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import ArrowBigUp from "@hugeicons/core-free-icons/ArrowUpBigIcon";
+import Command from "@hugeicons/core-free-icons/CommandIcon";
+import Delete from "@hugeicons/core-free-icons/Delete01Icon";
+import Option from "@hugeicons/core-free-icons/OptionIcon";
+import Space from "@hugeicons/core-free-icons/SaturnIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 const MAC_MODIFIERS = new Set(["⌘", "⌥", "⇧", "⌃"]);
@@ -71,37 +70,37 @@ export function renderKeyContent(
   switch (normalizedKey) {
     case "↑":
     case "arrowup":
-      return <ArrowUp size={iconSize} />;
+      return <HugeiconsIcon icon={ArrowUp} size={iconSize} />;
     case "↓":
     case "arrowdown":
-      return <ArrowDown size={iconSize} />;
+      return <HugeiconsIcon icon={ArrowDown} size={iconSize} />;
     case "←":
     case "arrowleft":
-      return <ArrowLeft size={iconSize} />;
+      return <HugeiconsIcon icon={ArrowLeft} size={iconSize} />;
     case "→":
     case "arrowright":
-      return <ArrowRight size={iconSize} />;
+      return <HugeiconsIcon icon={ArrowRight} size={iconSize} />;
     case "enter":
     case "return":
     case "↵":
     case "⏎":
     case "⮐":
-      return <CornerDownLeft size={iconSize} />;
+      return <HugeiconsIcon icon={CornerDownLeft} size={iconSize} />;
     case "⌫":
     case "backspace":
     case "delete":
-      return <Delete size={iconSize} />;
+      return <HugeiconsIcon icon={Delete} size={iconSize} />;
     case "space":
-      return <Space size={iconSize} />;
+      return <HugeiconsIcon icon={Space} size={iconSize} />;
     case "⌘":
     case "command":
     case "cmd":
-      return <Command size={iconSize} />;
+      return <HugeiconsIcon icon={Command} size={iconSize} />;
     case "⌥":
     case "option":
     case "opt":
     case "alt":
-      return <Option size={iconSize} />;
+      return <HugeiconsIcon icon={Option} size={iconSize} />;
     case "esc":
     case "escape":
       return "Esc";
@@ -109,11 +108,11 @@ export function renderKeyContent(
       return "Tab";
     case "⇧":
     case "shift":
-      return <ArrowBigUp size={iconSize} />;
+      return <HugeiconsIcon icon={ArrowBigUp} size={iconSize} />;
     case "⌃":
     case "control":
     case "ctrl":
-      return <ChevronUp size={iconSize} />;
+      return <HugeiconsIcon icon={ChevronUp} size={iconSize} />;
     default:
       return key;
   }

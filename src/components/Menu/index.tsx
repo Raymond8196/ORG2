@@ -28,7 +28,9 @@
  * </Menu>
  * ```
  */
-import { ChevronDown, ChevronRight } from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   createContext,
   useCallback,
@@ -268,9 +270,17 @@ const SubMenu: React.FC<SubMenuProps> = ({
       >
         <span>{title}</span>
         {isOpen ? (
-          <ChevronDown size={16} className="menu-submenu-arrow" />
+          <HugeiconsIcon
+            icon={ChevronDown}
+            size={16}
+            className="menu-submenu-arrow"
+          />
         ) : (
-          <ChevronRight size={16} className="menu-submenu-arrow" />
+          <HugeiconsIcon
+            icon={ChevronRight}
+            size={16}
+            className="menu-submenu-arrow"
+          />
         )}
       </div>
       {isOpen && <div className="menu-submenu-content">{children}</div>}

@@ -7,7 +7,11 @@
  * detail-view preview tabs, where editing happens via the Edit tab's
  * table, not the chart).
  */
-import { Pencil, Plus, Trash2, Users } from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import Pencil from "@hugeicons/core-free-icons/PencilIcon";
+import Users from "@hugeicons/core-free-icons/UserMultipleIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -60,7 +64,11 @@ const OrgNodeCard: React.FC<OrgNodeCardProps> = ({
     >
       {/* Icon + Name */}
       <div className="flex items-center gap-2">
-        <Users size={16} className="shrink-0 text-primary-6" />
+        <HugeiconsIcon
+          icon={Users}
+          size={16}
+          className="shrink-0 text-primary-6"
+        />
         <span className="truncate text-[14px] font-medium text-text-1">
           {node.name}
         </span>
@@ -87,7 +95,7 @@ const OrgNodeCard: React.FC<OrgNodeCardProps> = ({
               }}
               title={t("org.addChild")}
             >
-              <Plus size={12} className="text-text-2" />
+              <HugeiconsIcon icon={Plus} size={12} className="text-text-2" />
             </button>
           )}
           <button
@@ -98,7 +106,7 @@ const OrgNodeCard: React.FC<OrgNodeCardProps> = ({
             }}
             title={t("common:actions.edit")}
           >
-            <Pencil size={12} className="text-text-2" />
+            <HugeiconsIcon icon={Pencil} size={12} className="text-text-2" />
           </button>
           {!isRoot && (
             <button
@@ -109,7 +117,11 @@ const OrgNodeCard: React.FC<OrgNodeCardProps> = ({
               }}
               title={t("common:actions.delete")}
             >
-              <Trash2 size={12} className="text-danger-6" />
+              <HugeiconsIcon
+                icon={Trash2}
+                size={12}
+                className="text-danger-6"
+              />
             </button>
           )}
         </div>

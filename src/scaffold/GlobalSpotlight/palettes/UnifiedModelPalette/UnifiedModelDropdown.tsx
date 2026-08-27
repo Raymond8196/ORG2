@@ -10,7 +10,10 @@
  * active variant is chosen by the `general.modelPickerStyle` setting and
  * dispatched in `ModelPill`.
  */
-import { Check, ChevronRight, Search } from "lucide-react";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
   useEffect,
@@ -82,7 +85,8 @@ const DropdownRow: React.FC<DropdownRowProps> = ({
   const renderedIcon = useMemo(() => {
     if (isCurrent) {
       return (
-        <Check
+        <HugeiconsIcon
+          icon={Check}
           size={DROPDOWN_ITEM.iconSize}
           strokeWidth={2.25}
           className="text-primary-6"
@@ -149,7 +153,8 @@ const DropdownRow: React.FC<DropdownRowProps> = ({
         )
       )}
       {submenuSide && (
-        <ChevronRight
+        <HugeiconsIcon
+          icon={ChevronRight}
           size={DROPDOWN_ITEM.iconSize}
           className="shrink-0 text-text-3"
         />
@@ -477,7 +482,8 @@ export const UnifiedModelDropdown: React.FC<UnifiedModelDropdownProps> = ({
         }}
       >
         <div className={DROPDOWN_CLASSES.searchContainer}>
-          <Search
+          <HugeiconsIcon
+            icon={Search}
             size={DROPDOWN_ITEM.iconSize}
             className="shrink-0 text-text-3"
           />

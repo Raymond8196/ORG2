@@ -1,4 +1,5 @@
-import { FilePenLine } from "lucide-react";
+import FilePenLine from "@hugeicons/core-free-icons/FilePenLineIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -98,7 +99,11 @@ const AgentOrgPlanApprovalCard: React.FC<AgentOrgPlanApprovalCardProps> = memo(
         data-approval-id={approval.approvalId}
       >
         <div className="mb-2 flex items-start gap-2">
-          <FilePenLine className="mt-0.5 shrink-0 text-text-3" size={14} />
+          <HugeiconsIcon
+            icon={FilePenLine}
+            className="mt-0.5 shrink-0 text-text-3"
+            size={14}
+          />
           <div className="min-w-0 flex-1">
             <div className="truncate text-xs font-medium text-text-1">
               {approval.planTitle}

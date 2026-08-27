@@ -1,13 +1,12 @@
-import {
-  ArrowUp,
-  CheckCircle2,
-  Circle,
-  Inbox,
-  LayoutGrid,
-  ListTodo,
-  PanelRight,
-  Plus,
-} from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import ArrowUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import ListTodo from "@hugeicons/core-free-icons/CheckListIcon";
+import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import Circle from "@hugeicons/core-free-icons/CircleIcon";
+import Inbox from "@hugeicons/core-free-icons/InboxIcon";
+import LayoutGrid from "@hugeicons/core-free-icons/LayoutGridIcon";
+import PanelRight from "@hugeicons/core-free-icons/PanelRightIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -178,7 +177,11 @@ const SetupApplicationPreview: React.FC = memo(() => {
             data-testid="setup-preview-files-toggle"
             onClick={() => setFileContentOpen((current) => !current)}
           >
-            <PanelRight size={HEADER_ICON_SIZE.sm} strokeWidth={2} />
+            <HugeiconsIcon
+              icon={PanelRight}
+              size={HEADER_ICON_SIZE.sm}
+              strokeWidth={2}
+            />
           </IconButton>
         </Tooltip>
       </header>
@@ -197,21 +200,25 @@ const SetupApplicationPreview: React.FC = memo(() => {
             })}
           >
             <PreviewNavigationButton
-              icon={<LayoutGrid size={HEADER_ICON_SIZE.sm} />}
+              icon={
+                <HugeiconsIcon icon={LayoutGrid} size={HEADER_ICON_SIZE.sm} />
+              }
               label={sdeLabel}
               section={PREVIEW_SECTION.SDE}
               selected={activeSection === PREVIEW_SECTION.SDE}
               onSelect={setActiveSection}
             />
             <PreviewNavigationButton
-              icon={<Inbox size={HEADER_ICON_SIZE.sm} />}
+              icon={<HugeiconsIcon icon={Inbox} size={HEADER_ICON_SIZE.sm} />}
               label={teamInboxLabel}
               section={PREVIEW_SECTION.TEAM_INBOX}
               selected={activeSection === PREVIEW_SECTION.TEAM_INBOX}
               onSelect={setActiveSection}
             />
             <PreviewNavigationButton
-              icon={<ListTodo size={HEADER_ICON_SIZE.sm} />}
+              icon={
+                <HugeiconsIcon icon={ListTodo} size={HEADER_ICON_SIZE.sm} />
+              }
               label={workItemsLabel}
               section={PREVIEW_SECTION.WORK_ITEMS}
               selected={activeSection === PREVIEW_SECTION.WORK_ITEMS}
@@ -263,14 +270,19 @@ const SetupApplicationPreview: React.FC = memo(() => {
                         defaultValue: "Add",
                       })}
                     >
-                      <Plus size={HEADER_ICON_SIZE.sm} />
+                      <HugeiconsIcon icon={Plus} size={HEADER_ICON_SIZE.sm} />
                     </IconButton>
                     <Button
                       variant="primary"
                       size="mini"
                       shape="circle"
                       iconOnly
-                      icon={<ArrowUp size={HEADER_ICON_SIZE.sm} />}
+                      icon={
+                        <HugeiconsIcon
+                          icon={ArrowUp}
+                          size={HEADER_ICON_SIZE.sm}
+                        />
+                      }
                       tabIndex={-1}
                       aria-label={t("navigation:labels.startSession", {
                         defaultValue: "Start a session",
@@ -291,7 +303,7 @@ const SetupApplicationPreview: React.FC = memo(() => {
                   className={SETUP_APPLICATION_PREVIEW_TOKENS.summaryHeading}
                 >
                   <Avatar size={28}>
-                    <Inbox size={HEADER_ICON_SIZE.sm} />
+                    <HugeiconsIcon icon={Inbox} size={HEADER_ICON_SIZE.sm} />
                   </Avatar>
                   <strong>{teamInboxLabel}</strong>
                 </div>
@@ -327,14 +339,15 @@ const SetupApplicationPreview: React.FC = memo(() => {
                   className={SETUP_APPLICATION_PREVIEW_TOKENS.summaryHeading}
                 >
                   <Avatar size={28}>
-                    <ListTodo size={HEADER_ICON_SIZE.sm} />
+                    <HugeiconsIcon icon={ListTodo} size={HEADER_ICON_SIZE.sm} />
                   </Avatar>
                   <strong>{workItemsLabel}</strong>
                 </div>
                 <div className={SETUP_APPLICATION_PREVIEW_TOKENS.summaryList}>
                   <PreviewSummaryRow
                     icon={
-                      <Circle
+                      <HugeiconsIcon
+                        icon={Circle}
                         size={HEADER_ICON_SIZE.md}
                         className="shrink-0 text-primary-6"
                       />
@@ -346,7 +359,8 @@ const SetupApplicationPreview: React.FC = memo(() => {
                   />
                   <PreviewSummaryRow
                     icon={
-                      <CheckCircle2
+                      <HugeiconsIcon
+                        icon={CheckCircle2}
                         size={HEADER_ICON_SIZE.md}
                         className="shrink-0 text-success-6"
                       />

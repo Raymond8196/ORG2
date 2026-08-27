@@ -11,17 +11,15 @@
  * row's discussion-channel tab, and the row takes the ordinary selected state
  * while that tab is active.
  */
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import ArchiveRestore from "@hugeicons/core-free-icons/ArchiveArrowUpIcon";
+import Archive from "@hugeicons/core-free-icons/ArchiveIcon";
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import Hash from "@hugeicons/core-free-icons/HashtagIcon";
+import Lock from "@hugeicons/core-free-icons/LockIcon";
+import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import type { TFunction } from "i18next";
-import {
-  Archive,
-  ArchiveRestore,
-  Hash,
-  Lock,
-  type LucideIcon,
-  MoreHorizontal,
-  Plus,
-  Trash2,
-} from "lucide-react";
 import type { MouseEvent } from "react";
 
 import type { CloudChannel } from "@src/features/Org2Cloud/channels/types";
@@ -32,6 +30,8 @@ import type {
 } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
 
 import { separator } from "../useSessionMenuItems/menuItemBuilders";
+
+type LucideIcon = IconSvgElement;
 
 export const CLOUD_CHANNELS_SECTION_ID = "cloud-channels";
 /** Empty/loading/error funnel row; clickable "Create a channel" when ready. */

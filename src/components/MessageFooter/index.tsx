@@ -5,7 +5,8 @@
  * message body. The primitive is deliberately conversation-agnostic so chat,
  * replay, and inbox surfaces can share it without importing turn state.
  */
-import { Copy } from "lucide-react";
+import Copy from "@hugeicons/core-free-icons/Copy01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback } from "react";
 
 import Message from "@src/components/Message";
@@ -67,7 +68,12 @@ export const MessageFooterCopyButton: React.FC<MessageFooterCopyButtonProps> =
         className="inline-flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-md border-0 bg-transparent p-0 text-text-3 opacity-0 transition-[opacity,background-color,color] hover:bg-fill-2 hover:text-text-1 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-6/30 group-focus-within/agent-message:opacity-100 group-hover/agent-message:opacity-100"
         onClick={handleCopy}
       >
-        <Copy size={13} strokeWidth={1.75} aria-hidden="true" />
+        <HugeiconsIcon
+          icon={Copy}
+          size={13}
+          strokeWidth={1.75}
+          aria-hidden="true"
+        />
       </button>
     );
   });

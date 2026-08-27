@@ -1,4 +1,6 @@
-import { ChevronDown, Plus } from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -151,7 +153,8 @@ const TerminalNewSessionSplitButtonComponent: React.FC<
           }}
           title={terminalTitle}
         >
-          <Plus
+          <HugeiconsIcon
+            icon={Plus}
             size={DROPDOWN_ITEM.iconSize}
             strokeWidth={SIDEBAR_ICON_STROKE_WIDTH}
           />
@@ -172,7 +175,8 @@ const TerminalNewSessionSplitButtonComponent: React.FC<
           }}
           title={terminalTitle}
         >
-          <Plus
+          <HugeiconsIcon
+            icon={Plus}
             size={DROPDOWN_ITEM.iconSize}
             strokeWidth={SIDEBAR_ICON_STROKE_WIDTH}
           />
@@ -187,7 +191,8 @@ const TerminalNewSessionSplitButtonComponent: React.FC<
           }}
           title={terminalTitle}
         >
-          <ChevronDown
+          <HugeiconsIcon
+            icon={ChevronDown}
             size={DROPDOWN_ITEM.iconSize}
             strokeWidth={SIDEBAR_ICON_STROKE_WIDTH}
           />
@@ -209,7 +214,13 @@ const TerminalNewSessionSplitButtonComponent: React.FC<
           onNewTerminal();
         }}
         title={terminalTitle}
-        icon={<Plus size={DROPDOWN_ITEM.iconSize} strokeWidth={2} />}
+        icon={
+          <HugeiconsIcon
+            icon={Plus}
+            size={DROPDOWN_ITEM.iconSize}
+            strokeWidth={2}
+          />
+        }
       />
     );
   }
@@ -228,7 +239,13 @@ const TerminalNewSessionSplitButtonComponent: React.FC<
       }}
       aria-label={terminalTitle}
       title={terminalTitle}
-      icon={<Plus size={DROPDOWN_ITEM.iconSize} strokeWidth={2} />}
+      icon={
+        <HugeiconsIcon
+          icon={Plus}
+          size={DROPDOWN_ITEM.iconSize}
+          strokeWidth={2}
+        />
+      }
       menu={shellPickerMenu ?? <div />}
       onMenuButtonClick={(event) => {
         event.stopPropagation();

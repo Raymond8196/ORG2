@@ -15,7 +15,9 @@
  * line. The line duplicated the pill it sat under ("Pick a harness" twice),
  * and on a narrow panel it had no width left and rendered as a bare triangle.
  */
-import { Infinity as InfinityIcon, X } from "lucide-react";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import InfinityIcon from "@hugeicons/core-free-icons/Infinity01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import Button from "@src/components/Button";
@@ -160,7 +162,14 @@ const RunnerRow: React.FC<RunnerRowProps> = memo(
               variant="tertiary"
               size="small"
               shape="round"
-              icon={<X size={14} strokeWidth={1.85} className="block" />}
+              icon={
+                <HugeiconsIcon
+                  icon={X}
+                  size={14}
+                  strokeWidth={1.85}
+                  className="block"
+                />
+              }
               iconOnly
               title={removeLabel}
               aria-label={removeLabel}

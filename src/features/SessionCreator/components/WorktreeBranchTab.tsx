@@ -1,4 +1,9 @@
-import { Cloud, Folder, GitBranch, Loader2, RefreshCw } from "lucide-react";
+import Cloud from "@hugeicons/core-free-icons/CloudIcon";
+import Folder from "@hugeicons/core-free-icons/Folder01Icon";
+import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
+import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -29,9 +34,11 @@ const BRANCH_GROUP_LABEL_FALLBACK = {
 } as const;
 
 function branchRowIcon(option: WorktreeBranchOption): ReactNode {
-  if (option.worktreePath) return <Folder size={14} strokeWidth={1.75} />;
-  if (option.isRemote) return <Cloud size={14} strokeWidth={1.75} />;
-  return <GitBranch size={14} strokeWidth={1.75} />;
+  if (option.worktreePath)
+    return <HugeiconsIcon icon={Folder} size={14} strokeWidth={1.75} />;
+  if (option.isRemote)
+    return <HugeiconsIcon icon={Cloud} size={14} strokeWidth={1.75} />;
+  return <HugeiconsIcon icon={GitBranch} size={14} strokeWidth={1.75} />;
 }
 
 export function WorktreeBranchTab({
@@ -84,7 +91,8 @@ export function WorktreeBranchTab({
           variant="secondary"
           size="small"
           icon={
-            <RefreshCw
+            <HugeiconsIcon
+              icon={RefreshCw}
               size={14}
               strokeWidth={1.8}
               className={refreshing ? "animate-spin" : undefined}
@@ -105,7 +113,7 @@ export function WorktreeBranchTab({
       <WorktreeSourceList>
         {state === "loading" && branchOptionCount === 0 && (
           <div className="flex h-[180px] items-center justify-center text-text-3">
-            <Loader2 size={16} className="animate-spin" />
+            <HugeiconsIcon icon={Loader2} size={16} className="animate-spin" />
           </div>
         )}
         {state === "error" && (

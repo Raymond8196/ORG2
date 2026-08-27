@@ -8,7 +8,10 @@
  * When onTestModel is provided, each model is tested via a lightweight
  * completion request before being added to the list.
  */
-import { Plus, RefreshCw, X } from "lucide-react";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -117,7 +120,7 @@ const DeploymentModelInput: React.FC<DeploymentModelInputProps> = ({
                   onClick={() => handleRemove(index)}
                   className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded text-text-3 transition-colors hover:bg-fill-2 hover:text-danger-6"
                 >
-                  <X size={12} />
+                  <HugeiconsIcon icon={X} size={12} />
                 </button>
               </div>
             ))}
@@ -139,7 +142,7 @@ const DeploymentModelInput: React.FC<DeploymentModelInputProps> = ({
             onClick={handleAdd}
             disabled={!draft.trim() || testing}
             loading={testing}
-            icon={<Plus size={14} />}
+            icon={<HugeiconsIcon icon={Plus} size={14} />}
           >
             {t("keyVault.deploymentModels.addModel")}
           </Button>
@@ -160,7 +163,7 @@ const DeploymentModelInput: React.FC<DeploymentModelInputProps> = ({
           onClick={onRevalidate}
           loading={revalidating}
           disabled={revalidating}
-          icon={<RefreshCw size={14} />}
+          icon={<HugeiconsIcon icon={RefreshCw} size={14} />}
         >
           {t("keyVault.revalidate")}
         </Button>

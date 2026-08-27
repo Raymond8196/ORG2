@@ -4,8 +4,10 @@
  * Window header bar for the background-tasks dock app.
  * Contains task count and close button.
  */
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Minimize2 from "@hugeicons/core-free-icons/Minimize02Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
-import { Minimize2, X } from "lucide-react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -53,7 +55,7 @@ const MultiTaskHeader: React.FC<MultiTaskHeaderProps> = ({
             className={`flex h-6 w-6 items-center justify-center rounded text-text-3 transition-all ${SURFACE_TOKENS.hover} hover:text-text-1`}
             title={t("simulator.multiTask.minimizePanel")}
           >
-            <Minimize2 size={14} />
+            <HugeiconsIcon icon={Minimize2} size={14} />
           </button>
         )}
         {onClose && (
@@ -63,7 +65,7 @@ const MultiTaskHeader: React.FC<MultiTaskHeaderProps> = ({
             className={`flex h-6 w-6 items-center justify-center rounded text-text-3 transition-all ${SURFACE_TOKENS.hover} hover:text-text-1`}
             title={t("simulator.multiTask.closePanel")}
           >
-            <X size={14} />
+            <HugeiconsIcon icon={X} size={14} />
           </button>
         )}
       </div>

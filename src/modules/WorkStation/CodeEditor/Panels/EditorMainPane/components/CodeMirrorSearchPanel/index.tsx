@@ -24,7 +24,10 @@ import {
 } from "@codemirror/search";
 import { Extension, StateEffect, StateField } from "@codemirror/state";
 import { EditorView, Panel } from "@codemirror/view";
-import { ChevronDown, ChevronRight, X } from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { useTranslation } from "react-i18next";
@@ -296,9 +299,9 @@ const SearchPanel: React.FC<SearchPanelProps> = ({
         title={localReplaceMode ? "Collapse replace" : "Expand replace"}
       >
         {localReplaceMode ? (
-          <ChevronDown size={14} />
+          <HugeiconsIcon icon={ChevronDown} size={14} />
         ) : (
-          <ChevronRight size={14} />
+          <HugeiconsIcon icon={ChevronRight} size={14} />
         )}
       </button>
 
@@ -358,7 +361,7 @@ const SearchPanel: React.FC<SearchPanelProps> = ({
             className={HEADER_BUTTON.action}
             title={t("tooltips.closeEsc")}
           >
-            <X size={HEADER_ICON_SIZE.sm} />
+            <HugeiconsIcon icon={X} size={HEADER_ICON_SIZE.sm} />
           </button>
         </div>
       </div>

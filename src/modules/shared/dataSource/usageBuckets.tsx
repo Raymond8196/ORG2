@@ -1,4 +1,5 @@
-import { Boxes } from "lucide-react";
+import Boxes from "@hugeicons/core-free-icons/Package01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import type { UsageBucket } from "@src/api/tauri/usageDashboard";
@@ -37,5 +38,5 @@ export const BucketIcon: React.FC<BucketIconProps> = ({
   if (provider) {
     return <ModelIcon provider={provider} size={size} className={className} />;
   }
-  return <Boxes size={size} className={className} />;
+  return <HugeiconsIcon icon={Boxes} size={size} className={className} />;
 };

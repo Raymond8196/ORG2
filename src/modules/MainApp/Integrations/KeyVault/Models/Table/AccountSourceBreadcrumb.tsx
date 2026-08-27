@@ -1,4 +1,5 @@
-import { ChevronRight } from "lucide-react";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import { formatModelAgentType, isApiKeyProvider } from "@src/assets/providers";
@@ -27,7 +28,12 @@ export const AccountSourceBreadcrumb: React.FC<
       <ModelIcon agentType={modelType} size="small" className="shrink-0" />
       <span className="flex min-w-0 items-center gap-1 text-xs">
         <span className="shrink-0 text-text-2">{parent}</span>
-        <ChevronRight size={12} className="shrink-0 text-text-4" aria-hidden />
+        <HugeiconsIcon
+          icon={ChevronRight}
+          size={12}
+          className="shrink-0 text-text-4"
+          aria-hidden
+        />
         <span className="min-w-0 truncate font-medium text-text-1">
           {accountName}
         </span>

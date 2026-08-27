@@ -1,6 +1,7 @@
+import Users from "@hugeicons/core-free-icons/UserMultipleIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { atom, useAtomValue } from "jotai";
 import { selectAtom } from "jotai/utils";
-import { Users } from "lucide-react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 

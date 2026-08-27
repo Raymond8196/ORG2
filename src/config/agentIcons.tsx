@@ -18,25 +18,23 @@
  * at the right pixel size. Brand SVGs use `viewBox` + `currentColor` and
  * ignore `strokeWidth` (they're filled, not stroked).
  */
-import type { LucideIcon } from "lucide-react";
-import {
-  Bot,
-  Brain,
-  ChartColumn,
-  ClipboardList,
-  Code,
-  DraftingCompass,
-  FlaskConical,
-  HandMetal,
-  Monitor,
-  MousePointerClick,
-  Network,
-  Omega,
-  Sprout,
-  Terminal,
-  User,
-  Users,
-} from "lucide-react";
+import Network from "@hugeicons/core-free-icons/AiNetworkIcon";
+import ChartColumn from "@hugeicons/core-free-icons/BarChartIcon";
+import Bot from "@hugeicons/core-free-icons/BotIcon";
+import Brain from "@hugeicons/core-free-icons/BrainIcon";
+import ClipboardList from "@hugeicons/core-free-icons/CheckListIcon";
+import Code from "@hugeicons/core-free-icons/CodeIcon";
+import Monitor from "@hugeicons/core-free-icons/ComputerIcon";
+import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import MousePointerClick from "@hugeicons/core-free-icons/CursorPointer02Icon";
+import DraftingCompass from "@hugeicons/core-free-icons/DraftingCompassIcon";
+import Omega from "@hugeicons/core-free-icons/OmegaIcon";
+import Sprout from "@hugeicons/core-free-icons/Plant01Icon";
+import HandMetal from "@hugeicons/core-free-icons/Shaka01Icon";
+import FlaskConical from "@hugeicons/core-free-icons/TestTubeIcon";
+import User from "@hugeicons/core-free-icons/UserIcon";
+import Users from "@hugeicons/core-free-icons/UserMultipleIcon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { forwardRef } from "react";
 
 import {
@@ -45,6 +43,8 @@ import {
   getIconProviderFromType,
   isIconProvider,
 } from "@src/components/ModelIcon/config";
+
+type LucideIcon = IconSvgElement;
 
 /**
  * Wrap a brand `<svg>` (React.FC<SVGProps>) so it satisfies the

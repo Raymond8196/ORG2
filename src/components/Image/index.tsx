@@ -34,7 +34,9 @@
  * />
  * ```
  */
-import { Image as ImageIcon, X } from "lucide-react";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import ImageIcon from "@hugeicons/core-free-icons/Image01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect, useState } from "react";
 
 import "./index.scss";
@@ -168,7 +170,7 @@ const Image: React.FC<ImageProps> = ({
       <div className={`image-wrapper ${className}`} style={{ width, height }}>
         {loader || (
           <div className="image-loader">
-            <ImageIcon size={24} />
+            <HugeiconsIcon icon={ImageIcon} size={24} />
           </div>
         )}
       </div>
@@ -181,7 +183,7 @@ const Image: React.FC<ImageProps> = ({
       <div className={`image-wrapper ${className}`} style={{ width, height }}>
         {errorNode || (
           <div className="image-error">
-            <ImageIcon size={24} />
+            <HugeiconsIcon icon={ImageIcon} size={24} />
             <span>Failed to load</span>
           </div>
         )}
@@ -207,7 +209,8 @@ const Image: React.FC<ImageProps> = ({
         <div className="image-preview-overlay" onClick={handleClosePreview}>
           <div className="image-preview-content">
             <img src={src} alt={alt} />
-            <X
+            <HugeiconsIcon
+              icon={X}
               className="image-preview-close"
               size={24}
               onClick={handleClosePreview}

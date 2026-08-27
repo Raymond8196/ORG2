@@ -1,11 +1,10 @@
-import {
-  ChevronsDownUp,
-  ChevronsUpDown,
-  MoreHorizontal,
-  Pin,
-  PinOff,
-  X,
-} from "lucide-react";
+import ChevronsUpDown from "@hugeicons/core-free-icons/ArrowUpDownIcon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
+import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import Pin from "@hugeicons/core-free-icons/PinIcon";
+import PinOff from "@hugeicons/core-free-icons/PinOffIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback } from "react";
 
 import type {

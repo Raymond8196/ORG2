@@ -1,4 +1,5 @@
-import { Calendar } from "lucide-react";
+import Calendar from "@hugeicons/core-free-icons/Calendar01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useCallback } from "react";
 
 import { useDropdownEngine } from "@src/hooks/dropdown";
@@ -60,7 +61,7 @@ export function DueDateCell({
         if (canEdit) toggle();
       }}
     >
-      <Calendar size={14} strokeWidth={1.75} />
+      <HugeiconsIcon icon={Calendar} size={14} strokeWidth={1.75} />
     </button>
   ) : (
     <button

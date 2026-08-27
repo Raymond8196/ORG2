@@ -1,5 +1,7 @@
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { Plus, RefreshCw } from "lucide-react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -389,7 +391,9 @@ const CliClientsTable: React.FC<CliClientsTableProps> = ({
       <Button
         variant="secondary"
         size="default"
-        icon={<RefreshCw size={14} className={spinClass} />}
+        icon={
+          <HugeiconsIcon icon={RefreshCw} size={14} className={spinClass} />
+        }
         iconOnly
         aria-label={refreshButtonLabel}
         title={refreshButtonLabel}
@@ -399,7 +403,7 @@ const CliClientsTable: React.FC<CliClientsTableProps> = ({
         <Button
           variant="secondary"
           size="default"
-          icon={<Plus size={14} />}
+          icon={<HugeiconsIcon icon={Plus} size={14} />}
           iconOnly
           aria-label={addButtonLabel}
           title={addButtonLabel}

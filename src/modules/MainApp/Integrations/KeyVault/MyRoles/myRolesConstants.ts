@@ -4,7 +4,10 @@
  * Shared tab identifiers, presence-guidance defaults and profile-preset
  * scaffolding for the My Roles section.
  */
-import { Circle, HatGlasses, Moon } from "lucide-react";
+import Circle from "@hugeicons/core-free-icons/CircleIcon";
+import HatGlasses from "@hugeicons/core-free-icons/HatGlassesIcon";
+import Moon from "@hugeicons/core-free-icons/MoonIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 import type {
   FamiliarLanguageTechStack,

@@ -4,7 +4,8 @@
  * VS Code-like breadcrumb navigation with dropdowns.
  * Each path segment is clickable and shows files/folders in that directory.
  */
-import { ChevronRight } from "lucide-react";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useRef, useState } from "react";
 
 import FileDropdown from "./FileDropdown";
@@ -275,7 +276,8 @@ const BreadcrumbFileHeader: React.FC<BreadcrumbFileHeaderProps> = ({
             </span>
 
             {!isLast && (
-              <ChevronRight
+              <HugeiconsIcon
+                icon={ChevronRight}
                 size={14}
                 strokeWidth={1.75}
                 className="mx-0 flex-shrink-0 text-fill-4"

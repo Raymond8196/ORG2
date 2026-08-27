@@ -21,8 +21,10 @@
  *   onAddToContext={handleAddToContext}
  * />
  */
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import History from "@hugeicons/core-free-icons/WorkHistoryIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
-import { History, Plus } from "lucide-react";
 import React, {
   memo,
   useCallback,
@@ -167,7 +169,11 @@ const SessionSelectorPanel: React.FC<SessionSelectorPanelProps> = memo(
             onMouseEnter={() => onHover(0)}
             onMouseLeave={onHoverEnd}
           >
-            <Plus size={DROPDOWN_ITEM.iconSize} className="text-text-2" />
+            <HugeiconsIcon
+              icon={Plus}
+              size={DROPDOWN_ITEM.iconSize}
+              className="text-text-2"
+            />
             <span className="text-[13px] text-text-1">New Session</span>
           </div>
 
@@ -195,7 +201,8 @@ const SessionSelectorPanel: React.FC<SessionSelectorPanelProps> = memo(
                 onMouseEnter={() => onHover(itemIndex)}
                 onMouseLeave={onHoverEnd}
               >
-                <History
+                <HugeiconsIcon
+                  icon={History}
                   size={DROPDOWN_ITEM.iconSize}
                   className="flex-shrink-0 text-text-2"
                 />

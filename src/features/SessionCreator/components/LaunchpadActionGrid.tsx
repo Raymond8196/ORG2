@@ -1,4 +1,7 @@
-import { ChevronRight, ChevronUp, Ellipsis } from "lucide-react";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ChevronUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import Ellipsis from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { Children, forwardRef, useId, useState } from "react";
 
 import Button from "@src/components/Button";
@@ -99,7 +102,8 @@ export const LaunchpadActionCard = forwardRef<
       <span className="block min-w-0 flex-1 truncate text-[13px] font-semibold text-text-1">
         {action.title}
       </span>
-      <ChevronRight
+      <HugeiconsIcon
+        icon={ChevronRight}
         size={14}
         strokeWidth={1.8}
         className="shrink-0 text-text-3 opacity-0 transition-opacity group-hover:opacity-100"
@@ -186,7 +190,9 @@ export function LaunchpadActionGrid({
               variant="tertiary"
               size="mini"
               shape="circle"
-              icon={<Ellipsis size={14} strokeWidth={1.8} />}
+              icon={
+                <HugeiconsIcon icon={Ellipsis} size={14} strokeWidth={1.8} />
+              }
               iconOnly
               aria-label={expandLabel}
               aria-controls={contentId}
@@ -204,7 +210,9 @@ export function LaunchpadActionGrid({
               variant="tertiary"
               size="mini"
               shape="circle"
-              icon={<ChevronUp size={14} strokeWidth={1.8} />}
+              icon={
+                <HugeiconsIcon icon={ChevronUp} size={14} strokeWidth={1.8} />
+              }
               iconOnly
               aria-label={collapseLabel}
               aria-controls={contentId}

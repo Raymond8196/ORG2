@@ -1,8 +1,10 @@
-import type { LucideIcon } from "lucide-react";
+import { type IconSvgElement } from "@hugeicons/react";
 import type { ComponentType } from "react";
 
 import type { SettingsKey } from "@src/config/settingsSchema";
 import type { SettingsSectionSlotId } from "@src/config/settingsUiManifest/slotIds";
+
+type LucideIcon = IconSvgElement;
 
 /**
  * Tab discriminator for {@link SETTINGS_UI_SECTIONS}. The Settings page

@@ -4,8 +4,9 @@
  * Left sidebar showing task list with titles and assignees.
  * Uses Tailwind for all styling.
  */
+import GitCommitHorizontal from "@hugeicons/core-free-icons/GitCommitIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { VirtualItem } from "@tanstack/react-virtual";
-import { GitCommitHorizontal } from "lucide-react";
 import React, { RefObject } from "react";
 
 import { CLI_AGENT } from "@src/api/types/keys";
@@ -115,7 +116,11 @@ const GanttSidebar: React.FC<GanttSidebarProps> = ({
                 >
                   <div className="flex h-8 min-w-0 flex-1 items-center rounded-lg px-2">
                     <span className="mr-2 flex h-4 w-4 shrink-0 items-center justify-center text-text-3">
-                      <GitCommitHorizontal size={13} strokeWidth={1.75} />
+                      <HugeiconsIcon
+                        icon={GitCommitHorizontal}
+                        size={13}
+                        strokeWidth={1.75}
+                      />
                     </span>
                     <span className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap text-[13px] text-text-1">
                       {markerRow.title}

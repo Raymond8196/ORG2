@@ -6,8 +6,11 @@
  * - Integrations category atom (for per-tab + button behavior)
  * - Integrations add action atom (callback to dispatch add actions)
  */
+import Network from "@hugeicons/core-free-icons/AiNetworkIcon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import UserPlus from "@hugeicons/core-free-icons/UserAdd01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { Network, RefreshCw, UserPlus } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";

@@ -1,4 +1,6 @@
-import { BookDashed, BookOpen } from "lucide-react";
+import BookDashed from "@hugeicons/core-free-icons/Book02Icon";
+import BookOpen from "@hugeicons/core-free-icons/BookOpen01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 import {
   DROPDOWN_CLASSES,
@@ -33,9 +35,9 @@ export function ProjectCell({
       label={label}
       icon={
         project ? (
-          <BookOpen size={DROPDOWN_ITEM.iconSize} />
+          <HugeiconsIcon icon={BookOpen} size={DROPDOWN_ITEM.iconSize} />
         ) : (
-          <BookDashed size={DROPDOWN_ITEM.iconSize} />
+          <HugeiconsIcon icon={BookDashed} size={DROPDOWN_ITEM.iconSize} />
         )
       }
       iconColor={project?.color}
@@ -65,7 +67,12 @@ export function ProjectCell({
             {!searchQuery && (
               <Option
                 label={t("workItems.properties.noProject")}
-                icon={<BookDashed size={DROPDOWN_ITEM.iconSize} />}
+                icon={
+                  <HugeiconsIcon
+                    icon={BookDashed}
+                    size={DROPDOWN_ITEM.iconSize}
+                  />
+                }
                 isSelected={!project}
                 onClick={() => select(null)}
               />
@@ -78,7 +85,12 @@ export function ProjectCell({
             {filtered.map((projectItem) => (
               <Option
                 key={projectItem.id}
-                icon={<BookOpen size={DROPDOWN_ITEM.iconSize} />}
+                icon={
+                  <HugeiconsIcon
+                    icon={BookOpen}
+                    size={DROPDOWN_ITEM.iconSize}
+                  />
+                }
                 iconColor={projectItem.color}
                 label={projectItem.name}
                 isSelected={project?.id === projectItem.id}

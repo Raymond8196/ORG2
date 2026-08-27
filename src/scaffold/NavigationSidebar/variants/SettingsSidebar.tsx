@@ -6,13 +6,12 @@
  * Agents / Teams / CLIs switcher lives inside the page, not in a drill-down
  * sidebar level.
  */
+import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import InfinityIcon from "@hugeicons/core-free-icons/Infinity01Icon";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import Settings from "@hugeicons/core-free-icons/Settings01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
-import {
-  Infinity as InfinityIcon,
-  ChevronLeft,
-  Search,
-  Settings,
-} from "lucide-react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";

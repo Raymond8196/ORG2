@@ -4,7 +4,7 @@
  * Pure macOS-style dock bar — Glass pill with app icons.
  * Used by both My Station and Agent Station with different app lists.
  */
-import type { LucideIcon } from "lucide-react";
+import { type IconSvgElement } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import { GENERAL_LAYOUT_TOUR_TARGETS } from "@src/scaffold/Tutorials/generalLayoutTourConfig";
@@ -17,6 +17,8 @@ import {
   StationDockRow,
   dockIconHitAreaClassName,
 } from "./dockLayout";
+
+type LucideIcon = IconSvgElement;
 
 // ============================================
 // Types

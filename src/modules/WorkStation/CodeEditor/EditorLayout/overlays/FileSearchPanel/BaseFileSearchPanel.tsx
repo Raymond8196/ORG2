@@ -9,7 +9,9 @@
  * - FileSearchPanel (sidebar variant)
  * - SingleFileSearchPanel (with spinner and close button)
  */
-import { Loader2, X } from "lucide-react";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
@@ -209,7 +211,8 @@ export const BaseFileSearchPanel: React.FC<BaseFileSearchPanelProps> = memo(
               </div>
               {showLoadingSpinner && loading && (
                 <div className="px-2">
-                  <Loader2
+                  <HugeiconsIcon
+                    icon={Loader2}
                     size={SPINNER_TOKENS.default}
                     className="animate-spin text-text-3"
                   />
@@ -221,7 +224,7 @@ export const BaseFileSearchPanel: React.FC<BaseFileSearchPanelProps> = memo(
                   className="flex items-center justify-center rounded p-1 text-text-3 transition-colors hover:bg-fill-3"
                   title={t("tooltips.closeEsc")}
                 >
-                  <X size={14} />
+                  <HugeiconsIcon icon={X} size={14} />
                 </button>
               )}
             </div>

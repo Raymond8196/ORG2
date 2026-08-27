@@ -6,7 +6,11 @@
  * for cloud, `LocalChannelSettingsDialog` for local); this header only raises
  * the request — the owning view mounts whichever dialog matches the scope.
  */
-import { Hash, Lock, Settings2, Users } from "lucide-react";
+import Hash from "@hugeicons/core-free-icons/HashtagIcon";
+import Lock from "@hugeicons/core-free-icons/LockIcon";
+import Settings2 from "@hugeicons/core-free-icons/Settings02Icon";
+import Users from "@hugeicons/core-free-icons/UserMultipleIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -81,7 +85,12 @@ const ChannelPanelHeader: React.FC<ChannelPanelHeaderProps> = ({
                   className="inline-flex items-center gap-1 text-[11px] text-text-3"
                   data-testid="channel-panel-member-count"
                 >
-                  <Users size={12} strokeWidth={1.75} aria-hidden />
+                  <HugeiconsIcon
+                    icon={Users}
+                    size={12}
+                    strokeWidth={1.75}
+                    aria-hidden
+                  />
                   {memberCount}
                 </span>
               )}
@@ -91,7 +100,8 @@ const ChannelPanelHeader: React.FC<ChannelPanelHeaderProps> = ({
                 size="small"
                 iconOnly
                 icon={
-                  <Settings2
+                  <HugeiconsIcon
+                    icon={Settings2}
                     size={PANEL_HEADER_TOKENS.iconSize}
                     strokeWidth={2}
                   />

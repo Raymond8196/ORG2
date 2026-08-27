@@ -6,16 +6,15 @@
  *
  * Extracted from SessionReplay/index.tsx to keep it under 600 lines.
  */
-import {
-  AlertCircle,
-  CheckCircle2,
-  Chrome,
-  FileSymlink,
-  Globe,
-  Monitor,
-  MonitorSmartphone,
-  Search,
-} from "lucide-react";
+import AlertCircle from "@hugeicons/core-free-icons/AlertCircleIcon";
+import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import Chrome from "@hugeicons/core-free-icons/ChromeIcon";
+import Monitor from "@hugeicons/core-free-icons/ComputerIcon";
+import MonitorSmartphone from "@hugeicons/core-free-icons/ComputerPhoneSyncIcon";
+import FileSymlink from "@hugeicons/core-free-icons/FileSymlinkIcon";
+import Globe from "@hugeicons/core-free-icons/GlobeIcon";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -199,7 +198,13 @@ export function useBrowserReplayDisplay({
       !url.startsWith("search://") &&
       !url.startsWith("browser://")
     ) {
-      detailIcon = <Globe size={14} className="flex-shrink-0 text-text-3" />;
+      detailIcon = (
+        <HugeiconsIcon
+          icon={Globe}
+          size={14}
+          className="flex-shrink-0 text-text-3"
+        />
+      );
       detailText = url.replace(/^https?:\/\//, "");
     } else if (!detailText && displayData.action) {
       detailText = displayData.action;
@@ -230,11 +235,19 @@ export function useBrowserReplayDisplay({
     let resultIcon: React.ReactNode | null = null;
     if (activeInternalEntry.success === true) {
       resultIcon = (
-        <CheckCircle2 size={14} className="flex-shrink-0 text-success-6" />
+        <HugeiconsIcon
+          icon={CheckCircle2}
+          size={14}
+          className="flex-shrink-0 text-success-6"
+        />
       );
     } else if (activeInternalEntry.success === false) {
       resultIcon = (
-        <AlertCircle size={14} className="text-error-6 flex-shrink-0" />
+        <HugeiconsIcon
+          icon={AlertCircle}
+          size={14}
+          className="text-error-6 flex-shrink-0"
+        />
       );
     }
 
@@ -257,7 +270,11 @@ export function useBrowserReplayDisplay({
 
     return {
       categoryIcon: (
-        <MonitorSmartphone size={14} className={`flex-shrink-0 ${iconColor}`} />
+        <HugeiconsIcon
+          icon={MonitorSmartphone}
+          size={14}
+          className={`flex-shrink-0 ${iconColor}`}
+        />
       ),
       categoryLabel: actionTitle,
       detailIcon: resultIcon,
@@ -287,11 +304,23 @@ export function useBrowserReplayDisplay({
       <div className="flex h-full flex-col items-center justify-center gap-4 p-8">
         <div className="flex flex-col items-center gap-2">
           {activeInternalEntry.success === true ? (
-            <CheckCircle2 size={48} className="text-success-6" />
+            <HugeiconsIcon
+              icon={CheckCircle2}
+              size={48}
+              className="text-success-6"
+            />
           ) : activeInternalEntry.success === false ? (
-            <AlertCircle size={48} className="text-error-6" />
+            <HugeiconsIcon
+              icon={AlertCircle}
+              size={48}
+              className="text-error-6"
+            />
           ) : (
-            <MonitorSmartphone size={48} className="text-text-3" />
+            <HugeiconsIcon
+              icon={MonitorSmartphone}
+              size={48}
+              className="text-text-3"
+            />
           )}
           <h3 className="text-lg font-medium text-text-1">
             {getInternalBrowserActionTitle(activeInternalEntry.action)}

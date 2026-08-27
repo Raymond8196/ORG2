@@ -1,5 +1,9 @@
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import GitMerge from "@hugeicons/core-free-icons/GitMergeIcon";
+import Play from "@hugeicons/core-free-icons/PlayIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
-import { ChevronDown, GitMerge, Play, Trash2 } from "lucide-react";
 import React from "react";
 
 import Button from "@src/components/Button";
@@ -50,7 +54,14 @@ const TaskDetailHeaderActions: React.FC<TaskDetailHeaderActionsProps> = ({
         variant="tertiary"
         onClick={onReplay}
         title={t("kanban.replay.replaySession")}
-        icon={<Play size={14} fill="currentColor" strokeWidth={0} />}
+        icon={
+          <HugeiconsIcon
+            icon={Play}
+            size={14}
+            fill="currentColor"
+            strokeWidth={0}
+          />
+        }
       >
         {t("kanban.replay.replaySession")}
       </Button>
@@ -67,7 +78,9 @@ const TaskDetailHeaderActions: React.FC<TaskDetailHeaderActionsProps> = ({
             disabled={mergeLoading || discardLoading}
             title={mergeButtonTitle}
             aria-label={mergeButtonTitle}
-            icon={<GitMerge size={14} strokeWidth={1.75} />}
+            icon={
+              <HugeiconsIcon icon={GitMerge} size={14} strokeWidth={1.75} />
+            }
           />
           <Button
             size="small"
@@ -77,7 +90,9 @@ const TaskDetailHeaderActions: React.FC<TaskDetailHeaderActionsProps> = ({
             disabled={mergeLoading || discardLoading}
             title={t("kanban.merge.strategyLabel")}
             aria-label={t("kanban.merge.strategyLabel")}
-            icon={<ChevronDown size={14} strokeWidth={1.75} />}
+            icon={
+              <HugeiconsIcon icon={ChevronDown} size={14} strokeWidth={1.75} />
+            }
           />
           {strategyOpen && (
             <div className="absolute right-0 top-full z-50 mt-1 min-w-[140px] rounded-md border border-border-1 bg-bg-1 py-1 shadow-lg">
@@ -106,7 +121,7 @@ const TaskDetailHeaderActions: React.FC<TaskDetailHeaderActionsProps> = ({
           disabled={mergeLoading || discardLoading}
           title={t("common:actions.delete")}
           aria-label={t("common:actions.delete")}
-          icon={<Trash2 size={14} strokeWidth={1.75} />}
+          icon={<HugeiconsIcon icon={Trash2} size={14} strokeWidth={1.75} />}
         />
       </>
     )}

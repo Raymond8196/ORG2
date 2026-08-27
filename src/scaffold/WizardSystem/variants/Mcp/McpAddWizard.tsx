@@ -7,7 +7,11 @@
  * Uses WizardShell, WizardStepLayout, SectionContainer, SectionRow, SelectionGrid.
  * State and handlers live in useMcpAddWizard.ts.
  */
-import { CheckCircle2, Globe, Terminal, XCircle } from "lucide-react";
+import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import Globe from "@hugeicons/core-free-icons/GlobeIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -365,12 +369,12 @@ const McpAddWizard: React.FC<McpAddWizardProps> = ({
             >
               {w.testResult.success ? (
                 <span className="flex items-center gap-1.5">
-                  <CheckCircle2 size={14} />
+                  <HugeiconsIcon icon={CheckCircle2} size={14} />
                   {w.testResult.toolCount} {t("mcp.toolsDiscovered")}
                 </span>
               ) : (
                 <span className="flex items-center gap-1.5">
-                  <XCircle size={14} />
+                  <HugeiconsIcon icon={XCircle} size={14} />
                   {w.testResult.error ?? t("mcp.connectionFailed")}
                 </span>
               )}

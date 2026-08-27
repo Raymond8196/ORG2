@@ -3,7 +3,11 @@
  *
  * Display type selector (block, flex, grid, inline) as full-width TabPill.
  */
-import { LayoutGrid, Minus, Rows2, Square } from "lucide-react";
+import LayoutGrid from "@hugeicons/core-free-icons/LayoutGridIcon";
+import Rows2 from "@hugeicons/core-free-icons/LayoutTwoRowIcon";
+import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
+import Square from "@hugeicons/core-free-icons/SquareIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo } from "react";
 
 import TabPill, { type TabPillItem } from "@src/components/TabPill";

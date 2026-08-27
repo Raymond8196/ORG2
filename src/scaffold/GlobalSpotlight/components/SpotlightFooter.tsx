@@ -5,7 +5,9 @@
  * - `spotlight` (default): below the main panel — simple bg-bg-2 pill.
  * - `dropdown`: same hints with `DROPDOWN_CLASSES.panel` (e.g. @-mention menu).
  */
-import { ArrowDown, ArrowUp } from "lucide-react";
+import ArrowDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -68,8 +70,8 @@ export const SpotlightFooter: React.FC<SpotlightFooterProps> = ({
             single pill. Background/height match the spotlightFooter
             variant so the look is consistent. */}
         <kbd className="flex h-[18px] items-center gap-0.5 rounded bg-fill-3 px-1.5 font-medium leading-none text-text-2">
-          <ArrowUp size={10} strokeWidth={2} />
-          <ArrowDown size={10} strokeWidth={2} />
+          <HugeiconsIcon icon={ArrowUp} size={10} strokeWidth={2} />
+          <HugeiconsIcon icon={ArrowDown} size={10} strokeWidth={2} />
         </kbd>
         <span>{t("selectors.spotlightFooter.navigate")}</span>
       </span>

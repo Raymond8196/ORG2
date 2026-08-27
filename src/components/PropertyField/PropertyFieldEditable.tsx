@@ -5,7 +5,9 @@
  * Extracted from WorkItem/Project PropertiesPanel pattern
  * Uses DROPDOWN_CLASSES and DropdownSearch for consistency with settings.
  */
-import { ChevronDown, Pencil } from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import Pencil from "@hugeicons/core-free-icons/PencilIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 

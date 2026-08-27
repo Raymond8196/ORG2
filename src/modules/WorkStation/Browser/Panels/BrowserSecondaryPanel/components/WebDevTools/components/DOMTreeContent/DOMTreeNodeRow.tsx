@@ -4,7 +4,9 @@
  * Renders a single row in the DOM tree with syntax highlighting.
  * Shows: tag name (primary), #id (warning), .classes (text-2)
  */
-import { ChevronDown, ChevronRight } from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback } from "react";
 
 import { TREE_INDENT_PX, TREE_PADDING_X } from "@src/components/TreeRow/config";
@@ -119,9 +121,17 @@ export const DOMTreeNodeRow: React.FC<DOMTreeNodeRowProps> = memo(
           >
             {hasChildren &&
               (isExpanded ? (
-                <ChevronDown size={CHEVRON_SIZE} className="text-text-3" />
+                <HugeiconsIcon
+                  icon={ChevronDown}
+                  size={CHEVRON_SIZE}
+                  className="text-text-3"
+                />
               ) : (
-                <ChevronRight size={CHEVRON_SIZE} className="text-text-3" />
+                <HugeiconsIcon
+                  icon={ChevronRight}
+                  size={CHEVRON_SIZE}
+                  className="text-text-3"
+                />
               ))}
           </span>
           <span className="flex min-w-0 flex-1 items-baseline gap-x-1 leading-relaxed">
@@ -156,9 +166,17 @@ export const DOMTreeNodeRow: React.FC<DOMTreeNodeRowProps> = memo(
         >
           {hasChildren &&
             (isExpanded ? (
-              <ChevronDown size={CHEVRON_SIZE} className="text-text-3" />
+              <HugeiconsIcon
+                icon={ChevronDown}
+                size={CHEVRON_SIZE}
+                className="text-text-3"
+              />
             ) : (
-              <ChevronRight size={CHEVRON_SIZE} className="text-text-3" />
+              <HugeiconsIcon
+                icon={ChevronRight}
+                size={CHEVRON_SIZE}
+                className="text-text-3"
+              />
             ))}
         </span>
 

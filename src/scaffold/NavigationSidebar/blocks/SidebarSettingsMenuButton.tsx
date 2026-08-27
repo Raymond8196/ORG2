@@ -1,17 +1,16 @@
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import MessageCircle from "@hugeicons/core-free-icons/BubbleChatIcon";
+import Circle from "@hugeicons/core-free-icons/CircleIcon";
+import ClipboardCheck from "@hugeicons/core-free-icons/ClipboardIcon";
+import Contrast from "@hugeicons/core-free-icons/ContrastIcon";
+import MousePointer2 from "@hugeicons/core-free-icons/Cursor02Icon";
+import Gauge from "@hugeicons/core-free-icons/GaugeIcon";
+import HelpCircle from "@hugeicons/core-free-icons/HelpCircleIcon";
+import Laptop from "@hugeicons/core-free-icons/LaptopIcon";
+import Settings from "@hugeicons/core-free-icons/Settings01Icon";
+import FlaskConical from "@hugeicons/core-free-icons/TestTubeIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
-import {
-  ChevronRight,
-  Circle,
-  ClipboardCheck,
-  Contrast,
-  FlaskConical,
-  Gauge,
-  HelpCircle,
-  Laptop,
-  MessageCircle,
-  MousePointer2,
-  Settings,
-} from "lucide-react";
 import React, {
   useCallback,
   useEffect,
@@ -312,7 +311,8 @@ const SidebarSettingsMenuButton: React.FC = React.memo(() => {
                 onClick={handleOpenGuiControl}
               >
                 <span className="flex min-w-0 items-center gap-2">
-                  <MousePointer2
+                  <HugeiconsIcon
+                    icon={MousePointer2}
                     size={DROPDOWN_ITEM.iconSize}
                     className={MENU_ICON_CLASS_NAME}
                   />
@@ -335,7 +335,8 @@ const SidebarSettingsMenuButton: React.FC = React.memo(() => {
                     onFocus={() => setActiveSubmenu(null)}
                     onClick={handleViewRam}
                   >
-                    <Gauge
+                    <HugeiconsIcon
+                      icon={Gauge}
                       size={DROPDOWN_ITEM.iconSize}
                       className={MENU_ICON_CLASS_NAME}
                     />
@@ -350,7 +351,8 @@ const SidebarSettingsMenuButton: React.FC = React.memo(() => {
                       onClick={handleOpenDeveloperTests}
                       data-testid="sidebar-open-developer-test-panel"
                     >
-                      <FlaskConical
+                      <HugeiconsIcon
+                        icon={FlaskConical}
                         size={DROPDOWN_ITEM.iconSize}
                         className={MENU_ICON_CLASS_NAME}
                       />
@@ -371,7 +373,8 @@ const SidebarSettingsMenuButton: React.FC = React.memo(() => {
                 onClick={handleOpenSetupChecklist}
                 data-testid="sidebar-open-setup-checklist"
               >
-                <ClipboardCheck
+                <HugeiconsIcon
+                  icon={ClipboardCheck}
                   size={DROPDOWN_ITEM.iconSize}
                   className={MENU_ICON_CLASS_NAME}
                 />
@@ -388,7 +391,8 @@ const SidebarSettingsMenuButton: React.FC = React.memo(() => {
                 onFocus={() => setActiveSubmenu(null)}
                 onClick={handleOpenTutorials}
               >
-                <HelpCircle
+                <HugeiconsIcon
+                  icon={HelpCircle}
                   size={DROPDOWN_ITEM.iconSize}
                   className={MENU_ICON_CLASS_NAME}
                 />
@@ -406,7 +410,8 @@ const SidebarSettingsMenuButton: React.FC = React.memo(() => {
                 }
               >
                 <span className="flex min-w-0 items-center gap-2">
-                  <Circle
+                  <HugeiconsIcon
+                    icon={Circle}
                     size={DROPDOWN_ITEM.iconSize}
                     className="shrink-0 text-success-6"
                   />
@@ -414,7 +419,8 @@ const SidebarSettingsMenuButton: React.FC = React.memo(() => {
                     {tSettings("myRoles.tabs.presence")}
                   </span>
                 </span>
-                <ChevronRight
+                <HugeiconsIcon
+                  icon={ChevronRight}
                   size={DROPDOWN_ITEM.iconSize}
                   className={MENU_ARROW_CLASS_NAME}
                 />
@@ -430,7 +436,8 @@ const SidebarSettingsMenuButton: React.FC = React.memo(() => {
                 }
               >
                 <span className="flex min-w-0 items-center gap-2">
-                  <Contrast
+                  <HugeiconsIcon
+                    icon={Contrast}
                     size={DROPDOWN_ITEM.iconSize}
                     className={MENU_ICON_CLASS_NAME}
                   />
@@ -438,7 +445,8 @@ const SidebarSettingsMenuButton: React.FC = React.memo(() => {
                     {t("sidebar.settingsMenu.appearance")}
                   </span>
                 </span>
-                <ChevronRight
+                <HugeiconsIcon
+                  icon={ChevronRight}
                   size={DROPDOWN_ITEM.iconSize}
                   className={MENU_ARROW_CLASS_NAME}
                 />
@@ -454,7 +462,8 @@ const SidebarSettingsMenuButton: React.FC = React.memo(() => {
                 }
               >
                 <span className="flex min-w-0 items-center gap-2">
-                  <MessageCircle
+                  <HugeiconsIcon
+                    icon={MessageCircle}
                     size={DROPDOWN_ITEM.iconSize}
                     className={MENU_ICON_CLASS_NAME}
                   />
@@ -462,7 +471,8 @@ const SidebarSettingsMenuButton: React.FC = React.memo(() => {
                     {t("common:layoutSettings.newChatPanel")}
                   </span>
                 </span>
-                <ChevronRight
+                <HugeiconsIcon
+                  icon={ChevronRight}
                   size={DROPDOWN_ITEM.iconSize}
                   className={MENU_ARROW_CLASS_NAME}
                 />
@@ -478,7 +488,8 @@ const SidebarSettingsMenuButton: React.FC = React.memo(() => {
                 }
               >
                 <span className="flex min-w-0 items-center gap-2">
-                  <Laptop
+                  <HugeiconsIcon
+                    icon={Laptop}
                     size={DROPDOWN_ITEM.iconSize}
                     className={MENU_ICON_CLASS_NAME}
                   />
@@ -486,7 +497,8 @@ const SidebarSettingsMenuButton: React.FC = React.memo(() => {
                     {t("sidebar.settingsMenu.workstation")}
                   </span>
                 </span>
-                <ChevronRight
+                <HugeiconsIcon
+                  icon={ChevronRight}
                   size={DROPDOWN_ITEM.iconSize}
                   className={MENU_ARROW_CLASS_NAME}
                 />
@@ -500,7 +512,8 @@ const SidebarSettingsMenuButton: React.FC = React.memo(() => {
                 onClick={handleOpenSettings}
               >
                 <span className="flex min-w-0 items-center gap-2">
-                  <Settings
+                  <HugeiconsIcon
+                    icon={Settings}
                     size={DROPDOWN_ITEM.iconSize}
                     className={MENU_ICON_CLASS_NAME}
                   />

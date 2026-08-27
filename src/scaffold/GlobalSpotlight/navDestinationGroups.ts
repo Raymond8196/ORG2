@@ -3,7 +3,7 @@
  * Extracted from navDestinations.ts to keep that file under the config line limit.
  * PAGES and SETTINGS stay in navDestinations.ts since they are smaller.
  */
-import type { LucideIcon } from "lucide-react";
+import { type IconSvgElement } from "@hugeicons/react";
 import type { ComponentType } from "react";
 
 import {
@@ -22,6 +22,8 @@ import type {
   NavDestination,
   NavDestinationGroup,
 } from "./navDestinationsTypes";
+
+type LucideIcon = IconSvgElement;
 
 // ============================================================================
 // Local helper copies (mirror the private helpers in navDestinations.ts)

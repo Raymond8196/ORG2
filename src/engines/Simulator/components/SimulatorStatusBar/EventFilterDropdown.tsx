@@ -1,5 +1,6 @@
+import ListFilter from "@hugeicons/core-free-icons/FilterIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom } from "jotai";
-import { ListFilter } from "lucide-react";
 import React, { useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -127,7 +128,12 @@ export const EventFilterDropdown: React.FC<EventFilterDropdownProps> = ({
           iconOnly ? "w-5 px-0" : "max-w-[132px] gap-1 px-1.5"
         } ${triggerToneClass}`}
       >
-        <ListFilter size={12} strokeWidth={2} className="shrink-0" />
+        <HugeiconsIcon
+          icon={ListFilter}
+          size={12}
+          strokeWidth={2}
+          className="shrink-0"
+        />
         {!iconOnly && (
           <span className="truncate text-[11px] font-medium leading-none">
             {triggerLabel}

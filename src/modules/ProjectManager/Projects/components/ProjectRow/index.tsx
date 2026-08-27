@@ -3,12 +3,11 @@
  *
  * Individual row for displaying a project in the list view.
  */
-import {
-  CalendarClock,
-  FolderKanban,
-  Link2Off,
-  ListChecks,
-} from "lucide-react";
+import ListChecks from "@hugeicons/core-free-icons/CheckListIcon";
+import FolderKanban from "@hugeicons/core-free-icons/FolderKanbanIcon";
+import CalendarClock from "@hugeicons/core-free-icons/TimeScheduleIcon";
+import Link2Off from "@hugeicons/core-free-icons/Unlink02Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -179,7 +178,7 @@ const ProjectRow: React.FC<ProjectRowProps> = ({
                 className="text-text-2"
               />
             ) : (
-              <FolderKanban size={14} strokeWidth={1.75} />
+              <HugeiconsIcon icon={FolderKanban} size={14} strokeWidth={1.75} />
             )}
           </div>
         </div>
@@ -201,7 +200,9 @@ const ProjectRow: React.FC<ProjectRowProps> = ({
               variant="tertiary"
               appearance="ghost"
               size="mini"
-              icon={<Link2Off size={13} strokeWidth={1.75} />}
+              icon={
+                <HugeiconsIcon icon={Link2Off} size={13} strokeWidth={1.75} />
+              }
               iconOnly
               loading={unlinkingSource}
               aria-label={t("settings.sync.adapterPicker.detachProjectAction", {
@@ -218,12 +219,16 @@ const ProjectRow: React.FC<ProjectRowProps> = ({
             />
           )}
           <span className="inline-flex items-center gap-1 whitespace-nowrap">
-            <ListChecks size={13} strokeWidth={1.75} />
+            <HugeiconsIcon icon={ListChecks} size={13} strokeWidth={1.75} />
             {project.workItemCount ?? 0}
           </span>
           {project.targetDate && (
             <span className="inline-flex items-center gap-1 whitespace-nowrap">
-              <CalendarClock size={13} strokeWidth={1.75} />
+              <HugeiconsIcon
+                icon={CalendarClock}
+                size={13}
+                strokeWidth={1.75}
+              />
               {formatDate(project.targetDate)}
             </span>
           )}

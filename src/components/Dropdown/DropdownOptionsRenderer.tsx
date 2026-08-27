@@ -6,7 +6,8 @@
  *
  * Used internally by Dropdown (options mode) and Select.
  */
-import { Loader2 } from "lucide-react";
+import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -52,7 +53,11 @@ const DropdownOptionsRenderer: React.FC<DropdownOptionsRendererProps> = ({
   if (loading) {
     content = (
       <div className={DROPDOWN_CLASSES.listMessage}>
-        <Loader2 size={DROPDOWN_ITEM.iconSize} className="animate-spin" />
+        <HugeiconsIcon
+          icon={Loader2}
+          size={DROPDOWN_ITEM.iconSize}
+          className="animate-spin"
+        />
         <span>{t("actions.loading")}</span>
       </div>
     );

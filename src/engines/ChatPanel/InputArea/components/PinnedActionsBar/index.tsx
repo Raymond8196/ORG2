@@ -9,8 +9,10 @@
  *
  * Design: uses shared secondary buttons so pinned actions match other composer controls.
  */
+import Layout from "@hugeicons/core-free-icons/Layout01Icon";
+import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue } from "jotai";
-import { Layout, MoreHorizontal } from "lucide-react";
 import React, {
   memo,
   useCallback,
@@ -358,7 +360,9 @@ const PinnedActionsBar: React.FC<PinnedActionsBarProps> = memo(
         appearance="outline"
         size="small"
         shape="round"
-        icon={<MoreHorizontal size={14} strokeWidth={1.75} />}
+        icon={
+          <HugeiconsIcon icon={MoreHorizontal} size={14} strokeWidth={1.75} />
+        }
         iconOnly
         title={t("input.pinnedActions.manage")}
         aria-label={t("input.pinnedActions.manage")}
@@ -372,7 +376,9 @@ const PinnedActionsBar: React.FC<PinnedActionsBarProps> = memo(
         {showCanvasAction && (
           <div className="shrink-0">
             <UserActionButton
-              leftIcon={<Layout size={12} strokeWidth={1.75} />}
+              leftIcon={
+                <HugeiconsIcon icon={Layout} size={12} strokeWidth={1.75} />
+              }
               title="Canvas"
               onClick={handleOpenCanvas}
               onClose={handleClearCanvas}

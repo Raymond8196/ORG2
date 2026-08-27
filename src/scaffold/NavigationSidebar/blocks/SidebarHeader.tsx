@@ -3,7 +3,8 @@
  *
  * Header component for sidebars with optional title, tabs, and actions.
  */
-import { Loader2, type LucideIcon } from "lucide-react";
+import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 
 import TabPill from "@src/components/TabPill";
@@ -11,6 +12,8 @@ import { SPINNER_TOKENS } from "@src/config/spinnerTokens";
 
 import type { SidebarHeaderProps } from "../types";
 import { renderSidebarIcon } from "../utils/renderIcon";
+
+type LucideIcon = IconSvgElement;
 
 // ============================================
 // SidebarHeader Component
@@ -138,7 +141,8 @@ const SidebarHeader: React.FC<SidebarHeaderProps> = React.memo(
               title={action.tooltip}
             >
               {action.loading ? (
-                <Loader2
+                <HugeiconsIcon
+                  icon={Loader2}
                   size={SPINNER_TOKENS.default}
                   strokeWidth={2}
                   className="animate-spin"

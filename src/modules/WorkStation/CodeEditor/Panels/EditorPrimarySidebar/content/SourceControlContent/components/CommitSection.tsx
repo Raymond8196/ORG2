@@ -6,13 +6,12 @@
  * - Sync Changes button (when have commits to sync)
  * - Commit button with dropdown for advanced actions
  */
-import {
-  ArrowDown,
-  ArrowUp,
-  Check,
-  CloudUpload,
-  RefreshCw,
-} from "lucide-react";
+import ArrowDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import CloudUpload from "@hugeicons/core-free-icons/CloudUploadIcon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -172,25 +171,46 @@ export const CommitSection: React.FC<CommitSectionProps> = memo(
       const parts: React.ReactNode[] = [];
 
       if (hasBothDirections) {
-        parts.push(<RefreshCw size={14} className="mr-1.5" key="icon" />);
+        parts.push(
+          <HugeiconsIcon
+            icon={RefreshCw}
+            size={14}
+            className="mr-1.5"
+            key="icon"
+          />
+        );
         parts.push(<span key="text">{GIT_LABELS.syncChanges}</span>);
         parts.push(
           <span key="behind" className="ml-1.5 flex items-center">
             {behind}
-            <ArrowDown size={12} className="ml-0.5" />
+            <HugeiconsIcon icon={ArrowDown} size={12} className="ml-0.5" />
           </span>
         );
         parts.push(
           <span key="ahead" className="ml-1.5 flex items-center">
             {ahead}
-            <ArrowUp size={12} className="ml-0.5" />
+            <HugeiconsIcon icon={ArrowUp} size={12} className="ml-0.5" />
           </span>
         );
       } else if (ahead > 0) {
-        parts.push(<ArrowUp size={14} className="mr-1.5" key="icon" />);
+        parts.push(
+          <HugeiconsIcon
+            icon={ArrowUp}
+            size={14}
+            className="mr-1.5"
+            key="icon"
+          />
+        );
         parts.push(<span key="text">{formatCommitCount("Push", ahead)}</span>);
       } else if (behind > 0) {
-        parts.push(<ArrowDown size={14} className="mr-1.5" key="icon" />);
+        parts.push(
+          <HugeiconsIcon
+            icon={ArrowDown}
+            size={14}
+            className="mr-1.5"
+            key="icon"
+          />
+        );
         parts.push(<span key="text">{formatCommitCount("Pull", behind)}</span>);
       }
 
@@ -232,7 +252,11 @@ export const CommitSection: React.FC<CommitSectionProps> = memo(
             data-action="git.publish"
             icon={
               publishLoading ? undefined : (
-                <CloudUpload size={14} className="mr-1.5" />
+                <HugeiconsIcon
+                  icon={CloudUpload}
+                  size={14}
+                  className="mr-1.5"
+                />
               )
             }
           >
@@ -284,7 +308,7 @@ export const CommitSection: React.FC<CommitSectionProps> = memo(
                 : "Commit changes and publish the branch"
             }
             data-action="git.commit.publish"
-            icon={<CloudUpload size={14} />}
+            icon={<HugeiconsIcon icon={CloudUpload} size={14} />}
           >
             {commitAndPublishButtonText}
           </Button>
@@ -343,7 +367,11 @@ export const CommitSection: React.FC<CommitSectionProps> = memo(
                           {behind > 0 && (
                             <span className="ml-1.5 text-text-3">
                               {behind}
-                              <ArrowDown size={10} className="ml-0.5 inline" />
+                              <HugeiconsIcon
+                                icon={ArrowDown}
+                                size={10}
+                                className="ml-0.5 inline"
+                              />
                             </span>
                           )}
                         </Menu.Item>
@@ -357,7 +385,11 @@ export const CommitSection: React.FC<CommitSectionProps> = memo(
                           {ahead > 0 && (
                             <span className="ml-1.5 text-text-3">
                               {ahead}
-                              <ArrowUp size={10} className="ml-0.5 inline" />
+                              <HugeiconsIcon
+                                icon={ArrowUp}
+                                size={10}
+                                className="ml-0.5 inline"
+                              />
                             </span>
                           )}
                         </Menu.Item>
@@ -446,7 +478,7 @@ export const CommitSection: React.FC<CommitSectionProps> = memo(
                 : "Complete merge"
             }
             data-action="git.commit"
-            icon={<Check size={14} />}
+            icon={<HugeiconsIcon icon={Check} size={14} />}
           >
             {commitButtonText}
           </Button>

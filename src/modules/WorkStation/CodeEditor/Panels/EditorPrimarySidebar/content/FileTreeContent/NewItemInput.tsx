@@ -8,7 +8,8 @@
  * - Click outside to cancel (unlike rename which confirms)
  * - Dynamic file type icon based on typed extension
  */
-import { ChevronDown } from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import FileTypeIcon from "@src/components/FileTypeIcon";
@@ -124,7 +125,11 @@ export function NewItemInput({
     >
       {isFolder ? (
         <div className="flex h-4 w-4 flex-shrink-0 items-center justify-center">
-          <ChevronDown size={CHEVRON_SIZE} className="text-text-3" />
+          <HugeiconsIcon
+            icon={ChevronDown}
+            size={CHEVRON_SIZE}
+            className="text-text-3"
+          />
         </div>
       ) : (
         <FileTypeIcon

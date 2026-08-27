@@ -1,12 +1,11 @@
-import {
-  CaseSensitive,
-  CircleDot,
-  GitBranch,
-  GitPullRequest,
-  Hash,
-  Loader2,
-  Sparkles,
-} from "lucide-react";
+import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
+import GitBranch from "@hugeicons/core-free-icons/GitBranchIcon";
+import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import Hash from "@hugeicons/core-free-icons/HashtagIcon";
+import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import Sparkles from "@hugeicons/core-free-icons/SparklesIcon";
+import CaseSensitive from "@hugeicons/core-free-icons/TextIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -27,17 +26,21 @@ import type {
 function smartIcon(kind: SmartSuggestionKind): ReactNode {
   switch (kind) {
     case "pr":
-      return <GitPullRequest size={14} strokeWidth={1.75} />;
+      return (
+        <HugeiconsIcon icon={GitPullRequest} size={14} strokeWidth={1.75} />
+      );
     case "issue":
-      return <CircleDot size={14} strokeWidth={1.75} />;
+      return <HugeiconsIcon icon={CircleDot} size={14} strokeWidth={1.75} />;
     case "branch":
-      return <GitBranch size={14} strokeWidth={1.75} />;
+      return <HugeiconsIcon icon={GitBranch} size={14} strokeWidth={1.75} />;
     case "customRef":
-      return <Hash size={14} strokeWidth={1.75} />;
+      return <HugeiconsIcon icon={Hash} size={14} strokeWidth={1.75} />;
     case "name":
-      return <CaseSensitive size={14} strokeWidth={1.75} />;
+      return (
+        <HugeiconsIcon icon={CaseSensitive} size={14} strokeWidth={1.75} />
+      );
     default:
-      return <Sparkles size={14} strokeWidth={1.75} />;
+      return <HugeiconsIcon icon={Sparkles} size={14} strokeWidth={1.75} />;
   }
 }
 
@@ -78,7 +81,7 @@ export function WorktreeSmartTab({
       <WorktreeSourceList>
         {loading && (
           <div className="flex h-[180px] items-center justify-center text-text-3">
-            <Loader2 size={16} className="animate-spin" />
+            <HugeiconsIcon icon={Loader2} size={16} className="animate-spin" />
           </div>
         )}
         {!loading && suggestions.length === 0 && (

@@ -3,14 +3,13 @@
  *
  * Form for cloning a repo from GitHub
  */
-import {
-  Code,
-  Filter,
-  Folder,
-  FolderOpen,
-  Lock,
-  SquareArrowOutUpRight,
-} from "lucide-react";
+import Code from "@hugeicons/core-free-icons/CodeIcon";
+import Filter from "@hugeicons/core-free-icons/FilterIcon";
+import Folder from "@hugeicons/core-free-icons/Folder01Icon";
+import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
+import Lock from "@hugeicons/core-free-icons/LockIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -151,7 +150,12 @@ const CloneRepoForm: React.FC<CloneRepoFormProps> = ({
                   value={filterText}
                   onChange={onFilterTextChange}
                   className="h-[32px] rounded-lg bg-fill-1 text-[14px]"
-                  prefix={<Filter className="text-[16px] text-text-2" />}
+                  prefix={
+                    <HugeiconsIcon
+                      icon={Filter}
+                      className="text-[16px] text-text-2"
+                    />
+                  }
                 />
               </div>
               <div className="spotlight-scrollable mb-3 max-h-[150px] overflow-y-auto">
@@ -179,7 +183,10 @@ const CloneRepoForm: React.FC<CloneRepoFormProps> = ({
                             />
                             <div className="flex items-center gap-2">
                               {repo.is_private && (
-                                <Lock className="text-[12px] text-text-2" />
+                                <HugeiconsIcon
+                                  icon={Lock}
+                                  className="text-[12px] text-text-2"
+                                />
                               )}
                               <span className="text-[14px] text-text-1">
                                 {repo.full_name}
@@ -222,7 +229,12 @@ const CloneRepoForm: React.FC<CloneRepoFormProps> = ({
                 value={repoUrl}
                 onChange={onRepoUrlChange}
                 className="h-[32px] rounded-lg bg-fill-1 text-[14px]"
-                prefix={<Code className="text-[16px] text-text-2" />}
+                prefix={
+                  <HugeiconsIcon
+                    icon={Code}
+                    className="text-[16px] text-text-2"
+                  />
+                }
               />
             </div>
           )}
@@ -240,14 +252,19 @@ const CloneRepoForm: React.FC<CloneRepoFormProps> = ({
                   placeholder={t("cloneForm.parentFolderPlaceholder")}
                   readOnly
                   className="h-[32px] rounded-lg bg-fill-1 text-[14px]"
-                  prefix={<Folder className="text-[16px] text-text-2" />}
+                  prefix={
+                    <HugeiconsIcon
+                      icon={Folder}
+                      className="text-[16px] text-text-2"
+                    />
+                  }
                 />
               </div>
               <Button
                 variant="secondary"
                 size="default"
                 iconOnly
-                icon={<FolderOpen size={16} />}
+                icon={<HugeiconsIcon icon={FolderOpen} size={16} />}
                 title={t("cloneForm.chooseFolder")}
                 onClick={async () => {
                   const path = await onChoosePath();
@@ -286,7 +303,7 @@ const CloneRepoForm: React.FC<CloneRepoFormProps> = ({
               <Button
                 variant="secondary"
                 size="default"
-                icon={<SquareArrowOutUpRight size={14} />}
+                icon={<HugeiconsIcon icon={SquareArrowOutUpRight} size={14} />}
                 iconPosition="right"
                 onClick={handleGoToSettings}
               >

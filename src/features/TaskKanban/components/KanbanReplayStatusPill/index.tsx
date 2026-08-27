@@ -23,14 +23,13 @@
  * stepping the cursor through `kanbanReplayEventsAtom` until the last
  * event is reached.
  */
+import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import MousePointer2 from "@hugeicons/core-free-icons/Cursor02Icon";
+import Pause from "@hugeicons/core-free-icons/PauseIcon";
+import Play from "@hugeicons/core-free-icons/PlayIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import {
-  ChevronLeft,
-  ChevronRight,
-  MousePointer2,
-  Pause,
-  Play,
-} from "lucide-react";
 import React, { memo, useCallback, useEffect, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";

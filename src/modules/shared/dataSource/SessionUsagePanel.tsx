@@ -1,4 +1,6 @@
-import { RefreshCw, X } from "lucide-react";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import RefreshCw from "@hugeicons/core-free-icons/RefreshIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Suspense,
   lazy,
@@ -440,7 +442,9 @@ export default function SessionUsagePanel() {
           aria-label={t("usage.refresh")}
           title={t("usage.refresh")}
           onClick={handleUsageRefreshClick}
-          icon={<RefreshCw size={14} className={spinClass} />}
+          icon={
+            <HugeiconsIcon icon={RefreshCw} size={14} className={spinClass} />
+          }
           data-testid="usage-refresh"
         >
           {t("usage.refresh")}
@@ -459,7 +463,7 @@ export default function SessionUsagePanel() {
         >
           <span className="text-text-3">{t("usage.roundsTable.session")}:</span>
           <span className="max-w-[260px] truncate">{session.name}</span>
-          <X size={12} />
+          <HugeiconsIcon icon={X} size={12} />
         </button>
       )}
 

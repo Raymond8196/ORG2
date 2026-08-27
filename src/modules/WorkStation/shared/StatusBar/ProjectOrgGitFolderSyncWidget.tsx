@@ -1,5 +1,9 @@
+import CloudAlert from "@hugeicons/core-free-icons/CloudAlertIcon";
+import Cloud from "@hugeicons/core-free-icons/CloudIcon";
+import CloudUpload from "@hugeicons/core-free-icons/CloudUploadIcon";
+import GitMerge from "@hugeicons/core-free-icons/GitMergeIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
-import { Cloud, CloudAlert, CloudUpload, GitMerge } from "lucide-react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -90,21 +94,39 @@ const ProjectOrgGitFolderSyncWidget: React.FC<ProjectOrgGitFolderSyncWidgetProps
       if (!enabled || !orgId) return null;
       if (syncing) {
         return {
-          icon: <CloudUpload size={13} className="text-text-1" />,
+          icon: (
+            <HugeiconsIcon
+              icon={CloudUpload}
+              size={13}
+              className="text-text-1"
+            />
+          ),
           label: t("statusBar.gitFolderSync.syncing"),
           title: t("statusBar.gitFolderSync.syncingTitle", { org: orgName }),
         };
       }
       if (lastError) {
         return {
-          icon: <CloudAlert size={13} className="text-warning-6" />,
+          icon: (
+            <HugeiconsIcon
+              icon={CloudAlert}
+              size={13}
+              className="text-warning-6"
+            />
+          ),
           label: t("statusBar.gitFolderSync.retry"),
           title: t("statusBar.gitFolderSync.failed", { message: lastError }),
         };
       }
       if (conflictCount > 0) {
         return {
-          icon: <GitMerge size={13} className="text-warning-6" />,
+          icon: (
+            <HugeiconsIcon
+              icon={GitMerge}
+              size={13}
+              className="text-warning-6"
+            />
+          ),
           label: t("statusBar.gitFolderSync.conflicts", {
             count: conflictCount,
           }),
@@ -114,7 +136,7 @@ const ProjectOrgGitFolderSyncWidget: React.FC<ProjectOrgGitFolderSyncWidgetProps
         };
       }
       return {
-        icon: <Cloud size={13} className="text-text-1" />,
+        icon: <HugeiconsIcon icon={Cloud} size={13} className="text-text-1" />,
         label: t("statusBar.gitFolderSync.syncNow"),
         title:
           lastResultLabel ??

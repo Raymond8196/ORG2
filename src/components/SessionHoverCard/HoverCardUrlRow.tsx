@@ -1,4 +1,5 @@
-import { Globe } from "lucide-react";
+import Globe from "@hugeicons/core-free-icons/GlobeIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import { createLogger } from "@src/hooks/logger";
@@ -42,7 +43,9 @@ export const HoverCardUrlRow: React.FC<HoverCardUrlRowProps> = ({ url }) => {
   const label = formatCompactUrl(url);
 
   return (
-    <HoverCardRow icon={<Globe size={13} strokeWidth={1.75} />}>
+    <HoverCardRow
+      icon={<HugeiconsIcon icon={Globe} size={13} strokeWidth={1.75} />}
+    >
       <button
         type="button"
         className={HOVER_CARD_LINK_ROW_CLASS_NAME}

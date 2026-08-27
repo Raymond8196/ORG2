@@ -4,65 +4,65 @@
  * Maps icon names (lowercase-hyphen format) to Lucide icon components
  * This file has no dependencies to avoid circular imports
  */
-import {
-  Infinity as InfinityIcon,
-  Activity,
-  Airplay,
-  BadgeCent,
-  BarChart,
-  BarChart3,
-  Blocks,
-  BookMarked,
-  BookOpen,
-  Bot,
-  Box,
-  ChartGantt,
-  ChevronsLeftRightEllipsis,
-  CircleDollarSign,
-  CirclePile,
-  Code,
-  Coins,
-  Command,
-  Compass,
-  Database,
-  Diff,
-  Folder,
-  FolderCode,
-  FolderKanban,
-  Fuel,
-  Globe,
-  History,
-  Home,
-  IdCard,
-  Inbox,
-  KeyRound,
-  LayoutList,
-  Lightbulb,
-  ListTodo,
-  MapPin,
-  MessageSquare,
-  Network,
-  PackageCheck,
-  Play,
-  PlayCircle,
-  Plug,
-  Plus,
-  Radar,
-  Rocket,
-  Search,
-  SearchCode,
-  Server,
-  Settings,
-  Sparkles,
-  Store,
-  Terminal,
-  Ticket,
-  Users,
-  Wallet,
-  Wand2,
-  Workflow,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import Activity from "@hugeicons/core-free-icons/Activity01Icon";
+import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import Network from "@hugeicons/core-free-icons/AiNetworkIcon";
+import BadgeCent from "@hugeicons/core-free-icons/BadgeCentIcon";
+import BarChart from "@hugeicons/core-free-icons/BarChartIcon";
+import BarChart3 from "@hugeicons/core-free-icons/BarChartIcon";
+import Blocks from "@hugeicons/core-free-icons/BlocksIcon";
+import BookMarked from "@hugeicons/core-free-icons/BookBookmark01Icon";
+import BookOpen from "@hugeicons/core-free-icons/BookOpen01Icon";
+import Bot from "@hugeicons/core-free-icons/BotIcon";
+import Lightbulb from "@hugeicons/core-free-icons/BulbIcon";
+import ChartGantt from "@hugeicons/core-free-icons/ChartGanttIcon";
+import ListTodo from "@hugeicons/core-free-icons/CheckListIcon";
+import ChevronsLeftRightEllipsis from "@hugeicons/core-free-icons/ChevronsLeftRightEllipsisIcon";
+import CircleDollarSign from "@hugeicons/core-free-icons/CircleDollarSignIcon";
+import CirclePile from "@hugeicons/core-free-icons/CirclePileIcon";
+import Code from "@hugeicons/core-free-icons/CodeIcon";
+import Coins from "@hugeicons/core-free-icons/Coins01Icon";
+import Command from "@hugeicons/core-free-icons/CommandIcon";
+import Compass from "@hugeicons/core-free-icons/CompassIcon";
+import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import Database from "@hugeicons/core-free-icons/DatabaseIcon";
+import Diff from "@hugeicons/core-free-icons/DiffIcon";
+import Folder from "@hugeicons/core-free-icons/Folder01Icon";
+import FolderCode from "@hugeicons/core-free-icons/FolderCodeIcon";
+import FolderKanban from "@hugeicons/core-free-icons/FolderKanbanIcon";
+import Fuel from "@hugeicons/core-free-icons/FuelIcon";
+import Globe from "@hugeicons/core-free-icons/GlobeIcon";
+import Home from "@hugeicons/core-free-icons/Home01Icon";
+import IdCard from "@hugeicons/core-free-icons/IdCardIcon";
+import Inbox from "@hugeicons/core-free-icons/InboxIcon";
+import InfinityIcon from "@hugeicons/core-free-icons/Infinity01Icon";
+import KeyRound from "@hugeicons/core-free-icons/Key02Icon";
+import LayoutList from "@hugeicons/core-free-icons/ListViewIcon";
+import MapPin from "@hugeicons/core-free-icons/Location01Icon";
+import Wand2 from "@hugeicons/core-free-icons/MagicWand02Icon";
+import MessageSquare from "@hugeicons/core-free-icons/Message01Icon";
+import PackageCheck from "@hugeicons/core-free-icons/PackageDeliveredIcon";
+import Box from "@hugeicons/core-free-icons/PackageIcon";
+import PlayCircle from "@hugeicons/core-free-icons/PlayCircleIcon";
+import Play from "@hugeicons/core-free-icons/PlayIcon";
+import Plug from "@hugeicons/core-free-icons/Plug01Icon";
+import Radar from "@hugeicons/core-free-icons/Radar01Icon";
+import Rocket from "@hugeicons/core-free-icons/RocketIcon";
+import Airplay from "@hugeicons/core-free-icons/ScreenRotationIcon";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import SearchCode from "@hugeicons/core-free-icons/Search02Icon";
+import Server from "@hugeicons/core-free-icons/ServerStack01Icon";
+import Settings from "@hugeicons/core-free-icons/Settings01Icon";
+import Sparkles from "@hugeicons/core-free-icons/SparklesIcon";
+import Store from "@hugeicons/core-free-icons/Store01Icon";
+import Ticket from "@hugeicons/core-free-icons/Ticket01Icon";
+import Users from "@hugeicons/core-free-icons/UserMultipleIcon";
+import Wallet from "@hugeicons/core-free-icons/Wallet01Icon";
+import History from "@hugeicons/core-free-icons/WorkHistoryIcon";
+import Workflow from "@hugeicons/core-free-icons/WorkflowCircle01Icon";
+import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+
+type LucideIcon = IconSvgElement;
 
 /**
  * Maps icon names to their corresponding Lucide components

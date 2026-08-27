@@ -7,7 +7,10 @@
  *   - Load all projects (and all issues when surface === "work-items")
  *   - Expose groupMode state and derived Project groupings for the projects list
  */
-import { CalendarClock, Circle, Flag } from "lucide-react";
+import Circle from "@hugeicons/core-free-icons/CircleIcon";
+import Flag from "@hugeicons/core-free-icons/Flag01Icon";
+import CalendarClock from "@hugeicons/core-free-icons/TimeScheduleIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -364,7 +367,7 @@ export function useLinearIndexData({
         value: "status",
         label: (
           <span className="flex items-center gap-2 whitespace-nowrap">
-            <Circle size={13} strokeWidth={1.75} />
+            <HugeiconsIcon icon={Circle} size={13} strokeWidth={1.75} />
             <span>{t("projects.groupBy.status")}</span>
           </span>
         ),
@@ -374,7 +377,7 @@ export function useLinearIndexData({
         value: "priority",
         label: (
           <span className="flex items-center gap-2 whitespace-nowrap">
-            <Flag size={13} strokeWidth={1.75} />
+            <HugeiconsIcon icon={Flag} size={13} strokeWidth={1.75} />
             <span>{t("projects.groupBy.priority")}</span>
           </span>
         ),
@@ -384,7 +387,7 @@ export function useLinearIndexData({
         value: "targetDate",
         label: (
           <span className="flex items-center gap-2 whitespace-nowrap">
-            <CalendarClock size={13} strokeWidth={1.75} />
+            <HugeiconsIcon icon={CalendarClock} size={13} strokeWidth={1.75} />
             <span>{t("projects.groupBy.targetDate")}</span>
           </span>
         ),
@@ -450,7 +453,9 @@ export function useLinearIndexData({
       return TARGET_DATE_GROUPS.map((group) => ({
         key: group,
         label: t(`projects.targetDateGroups.${group}`),
-        icon: <CalendarClock size={14} strokeWidth={1.75} />,
+        icon: (
+          <HugeiconsIcon icon={CalendarClock} size={14} strokeWidth={1.75} />
+        ),
         color: SECTION_BASE_CONFIG.color,
         projects: groups.get(group) ?? [],
       }));

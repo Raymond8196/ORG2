@@ -31,7 +31,8 @@
  * </DropdownItem>
  * ```
  */
-import { Check } from "lucide-react";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { forwardRef, memo } from "react";
 
 import DropdownSelectedCheck from "./DropdownSelectedCheck";
@@ -232,7 +233,8 @@ const DropdownItemInner = forwardRef<HTMLDivElement, DropdownItemProps>(
             className={`flex-shrink-0 ${selected ? "text-primary-6" : "text-text-2"}`}
           >
             {showCheckmark && selected && selectedCheckPlacement === "icon" ? (
-              <Check
+              <HugeiconsIcon
+                icon={Check}
                 size={DROPDOWN_ITEM.iconSize}
                 strokeWidth={2.25}
                 className="shrink-0 text-primary-6"

@@ -31,7 +31,9 @@
  * />
  * ```
  */
-import { Calendar, X } from "lucide-react";
+import Calendar from "@hugeicons/core-free-icons/Calendar01Icon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -240,7 +242,7 @@ const DatePicker: React.FC<DatePickerProps> & {
 
   return (
     <div className={pickerClasses} style={style}>
-      <Calendar size={16} className="datepicker-icon" />
+      <HugeiconsIcon icon={Calendar} size={16} className="datepicker-icon" />
       <input
         ref={inputRef}
         type="date"
@@ -253,7 +255,8 @@ const DatePicker: React.FC<DatePickerProps> & {
         className="datepicker-input"
       />
       {allowClear && value && !disabled && (
-        <X
+        <HugeiconsIcon
+          icon={X}
           size={14}
           className="datepicker-clear cursor-pointer"
           onClick={handleClear}
@@ -332,7 +335,7 @@ const RangePicker: React.FC<RangePickerProps> = ({
 
   return (
     <div className={pickerClasses} style={style}>
-      <Calendar size={16} className="datepicker-icon" />
+      <HugeiconsIcon icon={Calendar} size={16} className="datepicker-icon" />
       <input
         type="date"
         value={value[0] ? formatDate(value[0], "YYYY-MM-DD") : ""}
@@ -351,7 +354,8 @@ const RangePicker: React.FC<RangePickerProps> = ({
         className="datepicker-input"
       />
       {allowClear && hasValue && !disabled && (
-        <X
+        <HugeiconsIcon
+          icon={X}
           size={14}
           className="datepicker-clear cursor-pointer"
           onClick={handleClear}

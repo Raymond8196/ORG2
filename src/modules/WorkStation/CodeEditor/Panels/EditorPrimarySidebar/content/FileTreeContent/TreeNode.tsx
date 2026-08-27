@@ -6,7 +6,9 @@
  *
  * Supports inline rename mode when isRenaming prop is true.
  */
-import { ChevronDown, ChevronRight } from "lucide-react";
+import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   memo,
   useCallback,
@@ -157,9 +159,17 @@ const TreeNodeInner: React.FC<TreeNodeProps> = ({
         ) : isDirectory ? (
           <div className="flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center">
             {isExpanded ? (
-              <ChevronDown size={CHEVRON_SIZE} className="text-text-3" />
+              <HugeiconsIcon
+                icon={ChevronDown}
+                size={CHEVRON_SIZE}
+                className="text-text-3"
+              />
             ) : (
-              <ChevronRight size={CHEVRON_SIZE} className="text-text-3" />
+              <HugeiconsIcon
+                icon={ChevronRight}
+                size={CHEVRON_SIZE}
+                className="text-text-3"
+              />
             )}
           </div>
         ) : (

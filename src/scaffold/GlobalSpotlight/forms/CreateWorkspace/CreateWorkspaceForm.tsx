@@ -5,7 +5,10 @@
  * User selects 2+ repos from a checklist; on submit, the selected
  * repos become workspace folders via setWorkspaceFoldersAtom.
  */
-import { Check, Folder, Search } from "lucide-react";
+import Folder from "@hugeicons/core-free-icons/Folder01Icon";
+import Search from "@hugeicons/core-free-icons/Search01Icon";
+import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -199,7 +202,13 @@ const CreateWorkspaceForm: React.FC<CreateWorkspaceFormProps> = ({
               onChange={setRepoSearchQuery}
               allowClear
               className="h-[32px] rounded-lg bg-fill-1 text-[14px]"
-              prefix={<Search size={16} className="text-text-2" />}
+              prefix={
+                <HugeiconsIcon
+                  icon={Search}
+                  size={16}
+                  className="text-text-2"
+                />
+              }
             />
           </div>
 
@@ -236,7 +245,11 @@ const CreateWorkspaceForm: React.FC<CreateWorkspaceFormProps> = ({
                       />
                       <div className="flex min-w-0 flex-1 items-center gap-2">
                         {repo.kind === REPO_KIND.FOLDER ? (
-                          <Folder size={13} className="shrink-0 text-text-3" />
+                          <HugeiconsIcon
+                            icon={Folder}
+                            size={13}
+                            className="shrink-0 text-text-3"
+                          />
                         ) : (
                           <ICONS.repo
                             size={13}
@@ -248,7 +261,7 @@ const CreateWorkspaceForm: React.FC<CreateWorkspaceFormProps> = ({
                         </span>
                         {isCurrent && (
                           <span className="flex items-center gap-0.5 text-[11px] text-primary-6">
-                            <Check size={10} />
+                            <HugeiconsIcon icon={Check} size={10} />
                             {t("workspaceForm.current", "current")}
                           </span>
                         )}

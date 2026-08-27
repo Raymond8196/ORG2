@@ -10,7 +10,8 @@
  * matching how BrowserLayout passes data to WebInspector).
  * Width and resize are handled by WorkStationShell, not this component.
  */
-import { PanelRightOpen } from "lucide-react";
+import PanelRightOpen from "@hugeicons/core-free-icons/PanelRightOpenIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -76,7 +77,7 @@ const ProjectPropertiesPanel: React.FC<ProjectPropertiesPanelProps> = memo(
             onClick={onToggleCollapse}
             title={t("workItems.showProperties")}
           >
-            <PanelRightOpen size={16} />
+            <HugeiconsIcon icon={PanelRightOpen} size={16} />
           </button>
         </div>
       );

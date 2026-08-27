@@ -12,7 +12,9 @@
  *
  * Hover color change is scoped to the header row only (not the expanded body).
  */
-import { ChevronsDownUp, ChevronsUpDown } from "lucide-react";
+import ChevronsUpDown from "@hugeicons/core-free-icons/ArrowUpDownIcon";
+import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useState } from "react";
 
 export interface ComposerStackHeaderProps {
@@ -76,9 +78,9 @@ const ComposerStackHeader: React.FC<ComposerStackHeaderProps> = memo(
     const colors = COLOR[labelVariant];
 
     const chevronNode = expanded ? (
-      <ChevronsDownUp size={ICON_SIZE} />
+      <HugeiconsIcon icon={ChevronsDownUp} size={ICON_SIZE} />
     ) : (
-      <ChevronsUpDown size={ICON_SIZE} />
+      <HugeiconsIcon icon={ChevronsUpDown} size={ICON_SIZE} />
     );
 
     const iconSlot = (
