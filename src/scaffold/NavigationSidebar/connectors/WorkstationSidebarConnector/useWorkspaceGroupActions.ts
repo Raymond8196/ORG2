@@ -14,16 +14,22 @@
  * collapsed-section ids, which is what actually folds the group: a workspace
  * group's section id IS its workspace key.
  */
+import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
+import { repoApi } from "@src/api/tauri/repo";
 import { createLogger } from "@src/hooks/logger";
 import { reposAtom } from "@src/store/repo";
 import {
   SESSION_SOURCE_TYPE,
   sessionSourceAtom,
 } from "@src/store/session/creatorStateAtom";
-import { popupNativeMenu } from "@src/util/platform/tauri/nativeMenuPopup";
+import { showNativeMessageSafely } from "@src/util/dialogs/nativeDialog";
+import {
+  type NativeMenuItemOptions,
+  popupNativeMenu,
+} from "@src/util/platform/tauri/nativeMenuPopup";
 
 import {
   sidebarHiddenWorkspacesAtom,
@@ -42,11 +48,68 @@ interface UseWorkspaceGroupActionsParams {
   unpinLabel: string;
   hideLabel: string;
   unhideLabel: string;
+  revealLabel: string;
+  unavailableTitle: string;
+  unavailableMessage: string;
   /** The sidebar's own "new session" entry point (`openNewChatFromSidebar`). */
   openNewSession: () => void;
   setCollapsedSectionIds: (
     updater: (previous: Set<string>) => Set<string>
   ) => void;
+}
+
+async function showWorkspaceUnavailableDialog(
+  workspaceKey: string,
+  title: string,
+  dialogMessage: string
+): Promise<void> {
+  try {
+    await showNativeMessageSafely(`${dialogMessage}\n\n${workspaceKey}`, {
+      title,
+      kind: "warning",
+    });
+  } catch (error) {
+    logger.warn("failed to show workspace unavailable dialog:", error);
+  }
+}
+
+async function revealWorkspaceInFileManager(
+  workspaceKey: string,
+  unavailableTitle: string,
+  unavailableMessage: string
+): Promise<void> {
+  let validatedWorkspacePath: string;
+  try {
+    // Backend validation is authoritative for workspace paths. Unlike the
+    // frontend fs plugin, it can inspect valid folders outside $HOME (common
+    // on Windows) without mistaking a missing runtime scope for a missing path.
+    validatedWorkspacePath = await repoApi.validateWorkspacePath(workspaceKey);
+  } catch (error) {
+    logger.warn("workspace is unavailable:", error);
+    await showWorkspaceUnavailableDialog(
+      workspaceKey,
+      unavailableTitle,
+      unavailableMessage
+    );
+    return;
+  }
+
+  try {
+    await revealItemInDir(validatedWorkspacePath);
+  } catch (error) {
+    logger.warn("failed to reveal workspace in file manager:", error);
+    // Cover the narrow race where the folder disappears after the first
+    // availability check but before the file manager handles the request.
+    try {
+      await repoApi.validateWorkspacePath(workspaceKey);
+    } catch {
+      await showWorkspaceUnavailableDialog(
+        workspaceKey,
+        unavailableTitle,
+        unavailableMessage
+      );
+    }
+  }
 }
 
 export function useWorkspaceGroupActions({
@@ -56,6 +119,9 @@ export function useWorkspaceGroupActions({
   unpinLabel,
   hideLabel,
   unhideLabel,
+  revealLabel,
+  unavailableTitle,
+  unavailableMessage,
   openNewSession,
   setCollapsedSectionIds,
 }: UseWorkspaceGroupActionsParams): WorkspaceGroupActions {
@@ -154,8 +220,24 @@ export function useWorkspaceGroupActions({
       const isHidden = hiddenWorkspaceKeys.has(workspaceKey);
       void popupNativeMenu({
         source: "sidebar-workspace-group",
-        buildItems: () => [
-          {
+        buildItems: () => {
+          const items: NativeMenuItemOptions[] = [];
+          if (workspaceKey !== NO_WORKSPACE_KEY) {
+            items.push(
+              {
+                text: revealLabel,
+                action: () => {
+                  void revealWorkspaceInFileManager(
+                    workspaceKey,
+                    unavailableTitle,
+                    unavailableMessage
+                  );
+                },
+              },
+              { item: "Separator" }
+            );
+          }
+          items.push({
             text: isPinned ? unpinLabel : pinLabel,
             action: () => {
               toggleKey(setPinnedWorkspaces, workspaceKey, isPinned);
@@ -165,16 +247,17 @@ export function useWorkspaceGroupActions({
               toggleKey(setHiddenWorkspaces, workspaceKey, true);
               setSectionCollapsed(workspaceKey, false);
             },
-          },
-          {
+          });
+          items.push({
             text: isHidden ? unhideLabel : hideLabel,
             action: () => {
               toggleKey(setHiddenWorkspaces, workspaceKey, isHidden);
               setSectionCollapsed(workspaceKey, !isHidden);
               if (!isHidden) toggleKey(setPinnedWorkspaces, workspaceKey, true);
             },
-          },
-        ],
+          });
+          return items;
+        },
       }).catch((error: unknown) => {
         logger.warn("workspace group menu failed to open:", error);
       });
@@ -184,10 +267,13 @@ export function useWorkspaceGroupActions({
       hideLabel,
       pinLabel,
       pinnedWorkspaceKeys,
+      revealLabel,
       setHiddenWorkspaces,
       setPinnedWorkspaces,
       setSectionCollapsed,
       toggleKey,
+      unavailableMessage,
+      unavailableTitle,
       unhideLabel,
       unpinLabel,
     ]

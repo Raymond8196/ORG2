@@ -5,6 +5,8 @@
  */
 import type { TFunction } from "i18next";
 
+import { getFileManagerRevealLabelKey } from "@src/util/platform/fileManagerLabels";
+
 type TCommon = (key: string, defaultValue?: string) => string;
 
 interface BuildWorkstationSidebarLabelsParams {
@@ -49,6 +51,11 @@ export function buildWorkstationSidebarLabels({
     "sessions:chat.unhideWorkspaceGroup",
     "Unhide workspace"
   );
+  const revealWorkspaceLabel = tCommon(getFileManagerRevealLabelKey());
+  const workspaceUnavailableTitle = tSessions("chat.workspaceUnavailableTitle");
+  const workspaceUnavailableMessage = tSessions(
+    "chat.workspaceUnavailableMessage"
+  );
   const searchPlaceholder = tCommon("common.searchPlaceholder", "Search...");
   const noSearchResultsTitle = t("sidebar.empty.noSearchResults");
 
@@ -70,6 +77,9 @@ export function buildWorkstationSidebarLabels({
     unpinWorkspaceLabel,
     hideWorkspaceLabel,
     unhideWorkspaceLabel,
+    revealWorkspaceLabel,
+    workspaceUnavailableTitle,
+    workspaceUnavailableMessage,
     searchPlaceholder,
     noSearchResultsTitle,
   };

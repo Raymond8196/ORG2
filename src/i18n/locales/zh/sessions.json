@@ -1105,6 +1105,8 @@
     "unpinWorkspaceGroup": "取消置顶工作区",
     "hideWorkspaceGroup": "隐藏工作区",
     "unhideWorkspaceGroup": "显示工作区",
+    "workspaceUnavailableTitle": "Workspace 已不可用",
+    "workspaceUnavailableMessage": "此 Workspace 可能已被移动或删除。",
     "historyRefresh": "刷新",
     "historyLastUsedModel": "上次使用的模型",
     "historyUntitled": "未命名会话",

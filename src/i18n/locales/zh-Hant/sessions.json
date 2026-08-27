@@ -1069,6 +1069,8 @@
     "unpinWorkspaceGroup": "取消置頂工作區",
     "hideWorkspaceGroup": "隱藏工作區",
     "unhideWorkspaceGroup": "顯示工作區",
+    "workspaceUnavailableTitle": "Workspace 已無法使用",
+    "workspaceUnavailableMessage": "此 Workspace 可能已被移動或刪除。",
     "historyRefresh": "刷新",
     "historyLastUsedModel": "上次使用的模型",
     "historyUntitled": "未命名會話",
