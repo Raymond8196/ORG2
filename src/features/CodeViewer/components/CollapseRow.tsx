@@ -5,11 +5,11 @@
  */
 import React from "react";
 
-import AnyIcon from "@src/components/AnyIcon";
 import {
   ArrowDownFromLineIcon,
   ArrowUpFromLineIcon,
   FoldVerticalIcon,
+  HugeiconsIcon,
 } from "@src/icons";
 
 import type { CollapsedSection } from "../types";
@@ -43,7 +43,11 @@ export const CollapseRow: React.FC<CollapseRowProps> = ({
       {/* Center gutter */}
       <div className="split-row-center">
         <div className="split-row-gutter split-row-gutter-old">
-          <AnyIcon icon={CollapseIcon} size={14} className="collapse-icon" />
+          <HugeiconsIcon
+            icon={CollapseIcon}
+            size={14}
+            className="collapse-icon"
+          />
         </div>
 
         {cherrypicking && (
