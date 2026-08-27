@@ -108,6 +108,10 @@ export interface ResizeHandleProps {
   noAccent?: boolean;
   /** Right-click context menu handler */
   onContextMenu?: (event: MouseEvent) => void;
+  /** Contextual action shown after hovering the handle for one second */
+  tooltipLabel?: ReactNode;
+  /** Keyboard shortcut displayed beside the contextual tooltip label */
+  tooltipShortcut?: string;
   /** Additional class name */
   className?: string;
 }

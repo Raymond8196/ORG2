@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import { projectApi } from "@src/api/http/project";
+import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
 import {
   WIZARD_IDS,
   buildIntegrationsPath,
@@ -730,6 +731,8 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
           isTerminalTabActive={isTerminalTabActive}
           onResizeMouseDown={handleMouseDown}
           panelRef={panelRef}
+          resizeTooltipLabel={t("chat.hideWorkstation")}
+          resizeTooltipShortcut={getShortcutKeys("maximize_chat")}
           sessionModals={sessionModals}
           showResizeHandle={showResizeHandle}
           terminalTabs={terminalTabs}

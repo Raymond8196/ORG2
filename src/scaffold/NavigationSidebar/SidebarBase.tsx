@@ -456,6 +456,8 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
           noAccent={IS_WINDOWS_HOST}
           onMouseDown={handleMouseDown}
           onContextMenu={handleResizeContextMenu}
+          tooltipLabel={i18next.t("common:tooltips.hideSidebar")}
+          tooltipShortcut={hideSidebarShortcut}
           variant={IS_WINDOWS_HOST ? "transparent" : "border"}
         />
       </div>
