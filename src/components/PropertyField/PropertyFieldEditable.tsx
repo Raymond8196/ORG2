@@ -160,7 +160,7 @@ export const FieldRow: React.FC<FieldRowProps> = ({
             disabled={disabled}
             className={`mr-1 flex h-6 w-5 shrink-0 items-center justify-center rounded-md border-none bg-transparent text-text-3 ${isActive ? "flex" : "hidden group-hover/field:flex"}`}
           >
-            <EditIcon size={DROPDOWN_ITEM.iconSize} />
+            <HugeiconsIcon icon={EditIcon} size={DROPDOWN_ITEM.iconSize} />
           </button>
         )}
       </div>

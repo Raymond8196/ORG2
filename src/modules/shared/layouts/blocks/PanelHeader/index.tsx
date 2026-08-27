@@ -351,7 +351,8 @@ const PanelHeader: React.FC<PanelHeaderProps> = memo(
             </span>
           )}
           {!displayIconElement && IconComponent && (
-            <IconComponent
+            <HugeiconsIcon
+              icon={IconComponent}
               size={PANEL_HEADER_TOKENS.iconSize}
               className="flex-shrink-0 text-text-2"
             />

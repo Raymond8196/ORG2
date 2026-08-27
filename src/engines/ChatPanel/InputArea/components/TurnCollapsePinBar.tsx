@@ -161,7 +161,8 @@ const TurnCollapsePinBar: React.FC<TurnCollapsePinBarProps> = memo(
             void handleToggle();
           }}
         >
-          <ChevronIcon
+          <HugeiconsIcon
+            icon={ChevronIcon}
             size={CHEVRON_SIZE}
             strokeWidth={1.75}
             className="shrink-0 text-text-2 transition-colors group-hover/turn-collapse:text-text-1"

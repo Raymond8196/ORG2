@@ -136,7 +136,8 @@ const RunningLocationPill: React.FC<RunningLocationPillProps> = memo(
         <SelectorPill
           ref={triggerRef}
           icon={
-            <CurrentIcon
+            <HugeiconsIcon
+              icon={CurrentIcon}
               size={14}
               strokeWidth={1.75}
               className={`text-text-1 ${currentOption.iconClassName ?? ""}`}

@@ -231,7 +231,8 @@ export const TabPill = memo(function TabPill({
         ? Lock
         : Hash;
     icon = (
-      <ChannelIcon
+      <HugeiconsIcon
+        icon={ChannelIcon}
         size={16}
         strokeWidth={1.75}
         className={`shrink-0 ${iconColorClass}`}

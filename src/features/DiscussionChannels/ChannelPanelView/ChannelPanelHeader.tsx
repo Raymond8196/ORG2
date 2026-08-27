@@ -52,7 +52,8 @@ const ChannelPanelHeader: React.FC<ChannelPanelHeaderProps> = ({
                   className="mr-1.5 inline-flex h-4 w-4 shrink-0 items-center justify-center text-text-2"
                   aria-hidden
                 >
-                  <NameIcon
+                  <HugeiconsIcon
+                    icon={NameIcon}
                     size={PANEL_HEADER_TOKENS.iconSize}
                     strokeWidth={2}
                     className="shrink-0"

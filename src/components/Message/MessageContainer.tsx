@@ -96,7 +96,7 @@ const MessageItem = ({
 
   const IconComponent = ICONS[type];
   const typeStyle = TYPE_STYLES[type];
-  const iconNode = icon || <IconComponent size={18} />;
+  const iconNode = icon || <HugeiconsIcon icon={IconComponent} size={18} />;
   const hasDescription = Boolean(title || download || cancel || action);
   const handleDownload = useCallback(() => {
     const blob =

@@ -24,7 +24,9 @@ export function PrStatusIcon({ status }: { status: string }): React.ReactNode {
           ? GitPullRequestClosed
           : GitPullRequest;
 
-  return <StatusIcon size={14} strokeWidth={1.75} aria-hidden />;
+  return (
+    <HugeiconsIcon icon={StatusIcon} size={14} strokeWidth={1.75} aria-hidden />
+  );
 }
 
 /** Shared status, number, and title content for every PR detail host header. */

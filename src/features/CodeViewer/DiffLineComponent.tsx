@@ -180,7 +180,11 @@ export const DiffLineComponent = React.memo<DiffLineComponentProps>(
           {showLineNumbers && (
             <>
               <div className="diff-line-gutter diff-gutter-old">
-                <CollapseIcon size={14} className="collapse-icon" />
+                <HugeiconsIcon
+                  icon={CollapseIcon}
+                  size={14}
+                  className="collapse-icon"
+                />
               </div>
               <div className="diff-line-gutter diff-gutter-new" />
             </>

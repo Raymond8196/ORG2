@@ -472,7 +472,8 @@ function renderLeadingIcon({
           action.onClick(event);
         }}
       >
-        <ActionIcon
+        <HugeiconsIcon
+          icon={ActionIcon}
           size={14}
           strokeWidth={2}
           className={action.iconClassName}

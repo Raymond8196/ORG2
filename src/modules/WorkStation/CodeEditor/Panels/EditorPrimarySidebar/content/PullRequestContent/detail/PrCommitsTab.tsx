@@ -159,7 +159,7 @@ function CommitCheckStatus({
             : "text-warning-6"
       }`}
     >
-      <Icon size={13} strokeWidth={1.9} aria-hidden />
+      <HugeiconsIcon icon={Icon} size={13} strokeWidth={1.9} aria-hidden />
       {checks.complete} / {checks.total}
     </span>
   );

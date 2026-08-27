@@ -65,12 +65,80 @@ function glyphPropsOf(typeNode) {
 
 const findings = [];
 
+/**
+ * Resolve what a JSX tag identifier is actually BOUND to, regardless of how it
+ * was declared — import, const, destructured prop, function parameter. Earlier
+ * versions of this script enumerated declaration forms and kept missing one
+ * (variable-assigned arrows but not `function` declarations, and so on).
+ * Going through the symbol makes the declaration form irrelevant.
+ */
+function glyphViaSymbol(tag) {
+  const sym = checker.getSymbolAtLocation(tag);
+  if (!sym) return false;
+  const decls = sym.declarations ?? [];
+  for (const decl of decls) {
+    // declared type of the binding itself
+    try {
+      const t = checker.getTypeOfSymbolAtLocation(sym, decl);
+      if (isGlyphType(t)) return true;
+    } catch {
+      /* checker can throw on some synthetic symbols; fall through */
+    }
+    // import default from a glyph module
+    if (
+      ts.isImportClause(decl) &&
+      ts.isImportDeclaration(decl.parent) &&
+      ts.isStringLiteral(decl.parent.moduleSpecifier) &&
+      decl.parent.moduleSpecifier.text.startsWith(GLYPH_MODULE)
+    ) {
+      return true;
+    }
+    // destructured binding whose default value is a glyph
+    if (ts.isBindingElement(decl) && decl.initializer) {
+      const init = decl.initializer;
+      if (ts.isIdentifier(init)) {
+        const isym = checker.getSymbolAtLocation(init);
+        const idecl = isym?.declarations?.[0];
+        if (
+          idecl &&
+          ts.isImportClause(idecl) &&
+          ts.isImportDeclaration(idecl.parent) &&
+          ts.isStringLiteral(idecl.parent.moduleSpecifier) &&
+          idecl.parent.moduleSpecifier.text.startsWith(GLYPH_MODULE)
+        ) {
+          return true;
+        }
+      }
+    }
+    // `const X = <glyph>`
+    if (ts.isVariableDeclaration(decl) && decl.initializer && ts.isIdentifier(decl.initializer)) {
+      const isym = checker.getSymbolAtLocation(decl.initializer);
+      const idecl = isym?.declarations?.[0];
+      if (
+        idecl &&
+        ts.isImportClause(idecl) &&
+        ts.isImportDeclaration(idecl.parent) &&
+        ts.isStringLiteral(idecl.parent.moduleSpecifier) &&
+        idecl.parent.moduleSpecifier.text.startsWith(GLYPH_MODULE)
+      ) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 for (const sf of program.getSourceFiles()) {
   if (sf.isDeclarationFile) continue;
   if (!sf.fileName.startsWith(path.join(cwd, "src"))) continue;
 
-  // --- names bound to glyph data, by syntax ---------------------------------
-  const glyphNames = new Set();
+  // --- purely syntactic pass -----------------------------------------------
+  // The checker reports `any` for some destructured params even when the
+  // annotation is present and correct, so type queries cannot be the only
+  // signal. Read the declared type TEXT instead: a member typed
+  // `IconSvgElement`, `IconSvgObject`, or `typeof <glyphImport>` is glyph data,
+  // and any binding of that member name is too.
+  const glyphImports = new Set();
   for (const st of sf.statements) {
     if (
       ts.isImportDeclaration(st) &&
@@ -78,66 +146,65 @@ for (const sf of program.getSourceFiles()) {
       st.moduleSpecifier.text.startsWith(GLYPH_MODULE) &&
       st.importClause?.name
     ) {
-      glyphNames.add(st.importClause.name.text);
+      glyphImports.add(st.importClause.name.text);
     }
   }
-
-  const collect = (node) => {
-    // const C: React.FC<Props> = ... ({ icon: Icon = Glyph, other: O })
-    if (ts.isVariableDeclaration(node) && node.initializer) {
-      let propsGlyphs = new Set();
-      if (node.type && ts.isTypeReferenceNode(node.type) && node.type.typeArguments?.[0]) {
-        propsGlyphs = glyphPropsOf(node.type.typeArguments[0]);
-      }
-      const scanParams = (fn) => {
-        for (const p of fn.parameters ?? []) {
-          if (!p.name || !ts.isObjectBindingPattern(p.name)) continue;
-          for (const el of p.name.elements) {
-            if (!ts.isBindingElement(el) || !ts.isIdentifier(el.name)) continue;
-            const local = el.name.text;
-            const declared = el.propertyName?.getText(sf) ?? local;
-            const defaultIsGlyph =
-              el.initializer &&
-              ts.isIdentifier(el.initializer) &&
-              glyphNames.has(el.initializer.text);
-            if (defaultIsGlyph || propsGlyphs.has(declared)) glyphNames.add(local);
-          }
-        }
-      };
-      const init = node.initializer;
-      const inner =
-        ts.isCallExpression(init) && init.arguments[0] ? init.arguments[0] : init;
-      if (ts.isArrowFunction(inner) || ts.isFunctionExpression(inner)) scanParams(inner);
-    }
-    // const X = <glyph>   |   const { a: X } = <obj>  — handled loosely
-    if (
-      ts.isVariableDeclaration(node) &&
-      node.name &&
-      ts.isIdentifier(node.name) &&
-      node.initializer &&
-      ts.isIdentifier(node.initializer) &&
-      glyphNames.has(node.initializer.text)
-    ) {
-      glyphNames.add(node.name.text);
-    }
-    ts.forEachChild(node, collect);
+  const typeTextIsGlyph = (node) => {
+    if (!node) return false;
+    const text = node.getText(sf);
+    if (/\bIconSvg(Element|Object)\b/.test(text)) return true;
+    return [...glyphImports].some((g) =>
+      new RegExp(`\\btypeof\\s+${g}\\b`).test(text),
+    );
   };
-  collect(sf);
+  const glyphMembers = new Set();
+  const scanMembers = (node) => {
+    if (
+      (ts.isInterfaceDeclaration(node) || ts.isTypeLiteralNode(node)) &&
+      node.members
+    ) {
+      for (const m of node.members) {
+        if (ts.isPropertySignature(m) && m.name && typeTextIsGlyph(m.type)) {
+          glyphMembers.add(m.name.getText(sf));
+        }
+      }
+    }
+    if (ts.isTypeAliasDeclaration(node) && node.type) scanMembers(node.type);
+    ts.forEachChild(node, scanMembers);
+  };
+  scanMembers(sf);
 
-  // --- flag JSX tags ---------------------------------------------------------
+  const syntacticGlyphNames = new Set(glyphImports);
+  const scanBindings = (node) => {
+    if (ts.isBindingElement(node) && ts.isIdentifier(node.name)) {
+      const declared = node.propertyName?.getText(sf) ?? node.name.text;
+      const defIsGlyph =
+        node.initializer &&
+        ts.isIdentifier(node.initializer) &&
+        glyphImports.has(node.initializer.text);
+      if (defIsGlyph || glyphMembers.has(declared)) {
+        syntacticGlyphNames.add(node.name.text);
+      }
+    }
+    ts.forEachChild(node, scanBindings);
+  };
+  scanBindings(sf);
+
   const visit = (node) => {
     if (ts.isJsxSelfClosingElement(node) || ts.isJsxOpeningElement(node)) {
       const tag = node.tagName;
       if (ts.isIdentifier(tag) && /^[A-Z]/.test(tag.text) && tag.text !== "HugeiconsIcon") {
         const byType = isGlyphType(checker.getTypeAtLocation(tag));
-        const bySyntax = glyphNames.has(tag.text);
-        if (byType || bySyntax) {
+        const bySymbol = byType ? false : glyphViaSymbol(tag);
+        const bySyntax =
+          byType || bySymbol ? false : syntacticGlyphNames.has(tag.text);
+        if (byType || bySymbol || bySyntax) {
           const { line } = sf.getLineAndCharacterOfPosition(node.getStart(sf));
           findings.push({
             file: path.relative(cwd, sf.fileName),
             line: line + 1,
             tag: tag.text,
-            how: byType ? "type" : "syntax",
+            how: byType ? "type" : bySymbol ? "symbol" : "syntax",
           });
         }
       }

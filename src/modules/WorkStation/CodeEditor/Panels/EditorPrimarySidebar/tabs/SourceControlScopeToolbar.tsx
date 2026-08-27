@@ -149,7 +149,13 @@ function ScopePickerItem({
         selected={selected}
         showCheckmark={false}
         onClick={onSelect}
-        icon={<ScopeIcon size={DROPDOWN_ITEM.iconSize} strokeWidth={1.75} />}
+        icon={
+          <HugeiconsIcon
+            icon={ScopeIcon}
+            size={DROPDOWN_ITEM.iconSize}
+            strokeWidth={1.75}
+          />
+        }
         className="w-full"
         suffix={
           selected || hasDiffStats ? (

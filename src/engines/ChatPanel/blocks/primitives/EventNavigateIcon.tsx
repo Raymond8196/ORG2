@@ -55,7 +55,10 @@ const EventNavigateIcon: React.FC<EventNavigateIconProps> = memo(
         onClick={handleClick}
         tabIndex={-1}
       >
-        <Icon size={variant === "footer-hover" ? 16 : 14} />
+        <HugeiconsIcon
+          icon={Icon}
+          size={variant === "footer-hover" ? 16 : 14}
+        />
       </button>
     );
   }

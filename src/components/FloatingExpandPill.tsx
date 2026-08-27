@@ -46,7 +46,7 @@ const FloatingExpandPill: React.FC<FloatingExpandPillProps> = ({
       size="mini"
       shape={showLabel ? "round" : "circle"}
       iconOnly={!showLabel}
-      icon={<Icon size={16} strokeWidth={2.25} />}
+      icon={<HugeiconsIcon icon={Icon} size={16} strokeWidth={2.25} />}
       className="pointer-events-auto shadow-sm backdrop-blur-sm"
       onClick={onClick}
       aria-label={text}

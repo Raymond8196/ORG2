@@ -134,7 +134,8 @@ export const SpotlightSearchBar: React.FC<SpotlightSearchBarProps> = ({
         ) : !hasPills ? (
           <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center">
             {IconComponent ? (
-              <IconComponent
+              <HugeiconsIcon
+                icon={IconComponent}
                 size={SPOTLIGHT_TOKENS.iconSize}
                 className="text-text-2"
               />

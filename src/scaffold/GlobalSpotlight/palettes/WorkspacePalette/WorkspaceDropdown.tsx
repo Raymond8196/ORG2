@@ -138,7 +138,7 @@ const RepoRow: React.FC<RepoRowProps> = ({
             className="text-primary-6"
           />
         ) : (
-          <Icon size={DROPDOWN_ITEM.iconSize} />
+          <HugeiconsIcon icon={Icon} size={DROPDOWN_ITEM.iconSize} />
         )}
       </span>
       <div className="flex min-w-0 flex-1 flex-col items-start">
@@ -198,7 +198,7 @@ const OpenPathRow: React.FC<OpenPathRowProps> = ({ item, keyboardProps }) => {
       className={`${DROPDOWN_CLASSES.item} ${DROPDOWN_CLASSES.itemHover} w-full justify-start`}
     >
       <span className="flex h-5 w-5 shrink-0 items-center justify-center">
-        {Icon && <Icon size={DROPDOWN_ITEM.iconSize} />}
+        {Icon && <HugeiconsIcon icon={Icon} size={DROPDOWN_ITEM.iconSize} />}
       </span>
       <div className="flex min-w-0 flex-1 flex-col items-start">
         <span className="truncate">{item.label}</span>

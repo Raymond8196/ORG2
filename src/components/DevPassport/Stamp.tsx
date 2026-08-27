@@ -215,7 +215,11 @@ const Stamp: React.FC<StampProps> = ({ data }) => {
                 className="flex items-center gap-1.5 border-b border-dashed pb-1.5 opacity-80"
                 style={{ borderColor: `${data.color}40` }}
               >
-                <IconComponent size={14} className="opacity-90" />
+                <HugeiconsIcon
+                  icon={IconComponent}
+                  size={14}
+                  className="opacity-90"
+                />
                 <div className="text-[10px] font-bold uppercase tracking-wider">
                   {data.location}
                 </div>
@@ -282,7 +286,8 @@ const Stamp: React.FC<StampProps> = ({ data }) => {
               </div>
 
               <div className="flex flex-col items-center justify-center gap-1 py-1">
-                <IconComponent
+                <HugeiconsIcon
+                  icon={IconComponent}
                   size={26}
                   strokeWidth={1.5}
                   className="opacity-90"
@@ -373,7 +378,7 @@ const Stamp: React.FC<StampProps> = ({ data }) => {
                     className="h-0.5 w-0.5 rounded-full"
                     style={{ backgroundColor: data.color }}
                   ></div>
-                  <IconComponent size={18} />
+                  <HugeiconsIcon icon={IconComponent} size={18} />
                   <div
                     className="h-0.5 w-0.5 rounded-full"
                     style={{ backgroundColor: data.color }}
@@ -444,7 +449,11 @@ const Stamp: React.FC<StampProps> = ({ data }) => {
               </div>
 
               <div className="flex flex-col items-center justify-center gap-0.5">
-                <IconComponent size={20} className="mt-1 opacity-90" />
+                <HugeiconsIcon
+                  icon={IconComponent}
+                  size={20}
+                  className="mt-1 opacity-90"
+                />
                 <div className="max-w-[80px] text-center text-[9px] font-bold uppercase leading-tight tracking-wide">
                   {data.title}
                 </div>
@@ -497,7 +506,8 @@ const Stamp: React.FC<StampProps> = ({ data }) => {
 
             <div className="flex flex-1 flex-col items-center justify-center gap-1.5">
               <div className="flex items-center gap-2">
-                <IconComponent
+                <HugeiconsIcon
+                  icon={IconComponent}
                   size={22}
                   strokeWidth={2}
                   className="opacity-90"

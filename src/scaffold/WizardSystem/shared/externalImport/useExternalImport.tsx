@@ -464,7 +464,12 @@ export function useExternalImport({
             <span
               className={`${SETTINGS_TABLE_CELL.muted} inline-flex items-center gap-2 whitespace-nowrap`}
             >
-              <Icon size={14} className="shrink-0" aria-hidden />
+              <HugeiconsIcon
+                icon={Icon}
+                size={14}
+                className="shrink-0"
+                aria-hidden
+              />
               <span>
                 {row.targetRepoPath
                   ? row.repoName || row.targetRepoPath

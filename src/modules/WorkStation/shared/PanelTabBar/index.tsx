@@ -79,7 +79,9 @@ function renderPanelTabIcon(
 ): React.ReactNode {
   if (!name) return null;
   const IconComponent = PANEL_TAB_ICONS[name];
-  return <IconComponent size={ICON_SIZE} strokeWidth={1.75} />;
+  return (
+    <HugeiconsIcon icon={IconComponent} size={ICON_SIZE} strokeWidth={1.75} />
+  );
 }
 
 interface IconTabStripProps {

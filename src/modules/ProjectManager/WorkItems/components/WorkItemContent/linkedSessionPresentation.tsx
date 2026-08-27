@@ -62,7 +62,8 @@ export function renderSessionAgentIcon(
 
   const AgentIcon = sessionType === "cli" ? Terminal : Bot;
   return (
-    <AgentIcon
+    <HugeiconsIcon
+      icon={AgentIcon}
       size={14}
       strokeWidth={1.75}
       className="shrink-0 text-text-3"

@@ -136,7 +136,7 @@ const PrRow: React.FC<PrRowProps> = memo(
         type: "file",
         icon: (
           <span className={statusVariant.dotClass.replace("bg-", "text-")}>
-            <PrIcon size={14} strokeWidth={1.75} />
+            <HugeiconsIcon icon={PrIcon} size={14} strokeWidth={1.75} />
           </span>
         ),
       };

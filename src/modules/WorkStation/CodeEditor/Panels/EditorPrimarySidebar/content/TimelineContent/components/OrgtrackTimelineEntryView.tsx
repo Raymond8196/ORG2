@@ -1,3 +1,4 @@
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import { PRIMARY_SIDEBAR_HOVER } from "@src/modules/WorkStation/shared/tokens";
@@ -47,7 +48,7 @@ export const OrgtrackTimelineEntryView: React.FC<OrgtrackTimelineEntryProps> =
         }}
       >
         <div className="flex h-4 w-4 flex-shrink-0 items-center justify-center">
-          <Icon size={14} className="text-text-1" />
+          <HugeiconsIcon icon={Icon} size={14} className="text-text-1" />
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-0.5">
           <div className="truncate text-[13px] text-text-2" title={title}>

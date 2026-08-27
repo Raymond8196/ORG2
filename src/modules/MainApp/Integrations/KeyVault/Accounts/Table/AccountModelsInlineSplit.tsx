@@ -200,7 +200,7 @@ const AccountModelsInlineSplit: React.FC<AccountModelsInlineSplitProps> = ({
                   )
                 }
               >
-                <SortModeIcon size={14} strokeWidth={2} />
+                <HugeiconsIcon icon={SortModeIcon} size={14} strokeWidth={2} />
               </button>
             </Tooltip>
             <Switch

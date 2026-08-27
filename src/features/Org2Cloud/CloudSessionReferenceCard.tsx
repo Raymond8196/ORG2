@@ -40,7 +40,7 @@ export interface CloudSessionReferenceCardProps {
 
 function renderAgentIcon(iconId: string | undefined) {
   const AgentIcon = iconId ? resolveAgentIcon(iconId) : Users;
-  return <AgentIcon size={12} strokeWidth={1.75} />;
+  return <HugeiconsIcon icon={AgentIcon} size={12} strokeWidth={1.75} />;
 }
 
 const CloudSessionReferenceCard: React.FC<CloudSessionReferenceCardProps> = ({

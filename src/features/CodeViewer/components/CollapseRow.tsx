@@ -40,7 +40,11 @@ export const CollapseRow: React.FC<CollapseRowProps> = ({
       {/* Center gutter */}
       <div className="split-row-center">
         <div className="split-row-gutter split-row-gutter-old">
-          <CollapseIcon size={14} className="collapse-icon" />
+          <HugeiconsIcon
+            icon={CollapseIcon}
+            size={14}
+            className="collapse-icon"
+          />
         </div>
 
         {cherrypicking && (

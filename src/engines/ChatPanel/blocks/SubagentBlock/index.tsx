@@ -198,7 +198,8 @@ const SubagentBlock: React.FC<SubagentBlockProps> = memo(
           <ChatBubbleAvatar
             className="h-7 w-7 bg-fill-2"
             icon={
-              <AgentIcon
+              <HugeiconsIcon
+                icon={AgentIcon}
                 size={15}
                 strokeWidth={1.75}
                 className={isFailure ? "text-text-3" : "text-text-2"}
