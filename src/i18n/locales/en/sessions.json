@@ -1308,7 +1308,8 @@
       "fileCount_other": "{{count}} files",
       "turnCount_one": "{{count}} turn",
       "turnCount_other": "{{count}} turns"
-    }
+    },
+    "parentAgentSender": "Parent agent"
   },
   "chatStatus": {
     "approved": "Approved",
