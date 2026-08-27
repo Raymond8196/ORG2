@@ -5,8 +5,10 @@ import { describe, expect, it } from "vitest";
 import WorkstationTrailSurface, {
   WORKSTATION_TRAIL_WIDTH,
   WorkstationTrailBody,
+  WorkstationTrailEmptyText,
   WorkstationTrailHeader,
   WorkstationTrailIconButton,
+  WorkstationTrailSection,
 } from "./WorkstationTrailSurface";
 
 describe("WorkstationTrailSurface", () => {
@@ -52,6 +54,34 @@ describe("WorkstationTrailSurface", () => {
     expect(markup).toContain("uppercase tracking-wide");
     expect(markup).toContain("h-[26px] w-[26px]");
     expect(markup).toContain("rounded-lg");
+  });
+
+  it("shares the labelled trail section used by property and detail rails", () => {
+    const markup = renderToStaticMarkup(
+      createElement(
+        WorkstationTrailSection,
+        {
+          title: "Reviewers",
+          dataTestId: "section",
+          action: createElement("button", { type: "button" }, "Edit"),
+        },
+        createElement(WorkstationTrailEmptyText, null, "No reviews")
+      )
+    );
+
+    expect(markup).toContain('data-testid="section"');
+    expect(markup).toContain("<h3");
+    expect(markup).toContain("uppercase tracking-wide");
+    expect(markup).toContain("justify-between");
+    expect(markup).toContain(">Edit</button>");
+    expect(markup).toContain("text-text-3");
+    expect(markup).toContain("No reviews");
+
+    const noActionMarkup = renderToStaticMarkup(
+      createElement(WorkstationTrailSection, { title: "Labels" }, "Chips")
+    );
+    expect(noActionMarkup).toContain("<h3");
+    expect(noActionMarkup).not.toContain("justify-between");
   });
 
   it("shares one direct scroll body below trail headers", () => {

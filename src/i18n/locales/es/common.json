@@ -1448,17 +1448,27 @@
         "reviewed": "revisó"
       },
       "summary": {
-        "label": "Resumen de la pull request",
-        "branch": "Rama",
+        "label": "Resumen de la pull request"
+      },
+      "flow": {
+        "wantsToMergeCommitsInto_one": "quiere fusionar {{count}} commit en",
+        "wantsToMergeCommitsInto_other": "quiere fusionar {{count}} commits en",
+        "mergedCommitsInto_one": "fusionó {{count}} commit en",
+        "mergedCommitsInto_other": "fusionó {{count}} commits en",
+        "from": "desde",
+        "copyHeadBranch": "Copiar nombre de la rama",
+        "branchCopied": "Nombre de la rama copiado"
+      },
+      "sidebar": {
         "reviewers": "Revisores",
-        "noReviewers": "Sin revisores",
-        "comments": "Comentarios",
-        "commentCount_one": "{{count}} comentario",
-        "commentCount_other": "{{count}} comentarios",
-        "checks": "Comprobaciones",
-        "noChecks": "Sin comprobaciones de CI",
-        "checksFailed": "Las comprobaciones fallaron",
-        "status": "Estado"
+        "requestReviewers": "Solicitar revisores",
+        "awaitingReview": "Revisión pendiente",
+        "noReviews": "Sin revisiones",
+        "assignees": "Asignados",
+        "noAssignees": "Nadie asignado",
+        "labels": "Etiquetas",
+        "noLabels": "Ninguna todavía",
+        "actions": "Acciones"
       },
       "tabs": {
         "conversation": "Conversación",
@@ -1509,6 +1519,8 @@
         "removedFromQueue": "Eliminado de la cola de fusión",
         "autoMergeEnabled": "Fusión automática activada",
         "autoMergeDisabled": "Fusión automática desactivada",
+        "convertToDraft": "Convertir en borrador",
+        "convertedToDraft": "Pull request convertido en borrador",
         "confirmCloseTitle": "¿Cerrar el pull request?",
         "confirmCloseMessage": "El pull request seguirá disponible y podrá reabrirse más adelante.",
         "closeSuccess": "Pull request cerrado",
@@ -1531,9 +1543,6 @@
         "reviewersLoadFailed": "No se pudieron cargar los revisores",
         "noReviewers": "No hay revisores disponibles",
         "reviewersUpdated": "Revisores actualizados",
-        "reviewersCount_one": "{{count}} revisor",
-        "reviewersCount_other": "{{count}} revisores",
-        "reviewers": "Revisores",
         "tooltips": {
           "merge": "Fusionar este pull request en GitHub",
           "alreadyMerged": "Este pull request ya está fusionado",
