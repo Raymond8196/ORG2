@@ -125,7 +125,8 @@ describe("UserChatItem parent-agent attribution", () => {
     parentAgentSender: {
       parentSessionId: string;
       parentSession: Session | undefined;
-    } | null
+    } | null,
+    result?: Record<string, unknown>
   ): string {
     return renderToStaticMarkup(
       createElement(
@@ -141,6 +142,7 @@ describe("UserChatItem parent-agent attribution", () => {
               functionName: "user_message",
               displayText: "Translate UI strings into ko, de and es.",
               displayVariant: "message",
+              ...(result ? { result } : {}),
             })
           ),
         })
@@ -173,6 +175,22 @@ describe("UserChatItem parent-agent attribution", () => {
 
   it("keeps a turn in an ordinary session on the viewer's side", () => {
     const markup = renderTurn("agentsession-solo", null);
+
+    expect(markup).toContain('data-message-side="right"');
+    expect(markup).not.toContain("parent-agent-sender-avatar");
+  });
+
+  it("leaves a message the viewer typed into a subagent session as theirs", () => {
+    // Composer sends carry a turn-intent id; the parent's dispatch does not.
+    const markup = renderTurn(
+      "agentsession-root:subagent:translator",
+      { parentSessionId: "agentsession-root", parentSession },
+      {
+        type: "user",
+        message: { role: "user", content: "Also do fr" },
+        turnIntentId: "tii-typed-by-hand",
+      }
+    );
 
     expect(markup).toContain('data-message-side="right"');
     expect(markup).not.toContain("parent-agent-sender-avatar");

@@ -49,6 +49,7 @@ import { useParentAgentSender } from "./ParentAgentSenderContext";
 import RawPromptToggle from "./RawPromptToggle";
 import { useSharedConversationSender } from "./SharedConversationSenderContext";
 import { normalizeUserMessageText } from "./normalizeUserMessageText";
+import { wasSubmittedByViewer } from "./parentAgentSender";
 import { resolveRawUserPrompt } from "./rawUserPrompt";
 import { resolveUserMessageSide } from "./userMessageSide";
 
@@ -395,10 +396,15 @@ const UserChatItem = ({
       ? "right"
       : "left"
     : resolveUserMessageSide(event);
-  // Only turns that would otherwise read as the viewer's own are reattributed.
-  // A teammate's shared message already names its own sender and keeps it.
+  // Only turns that would otherwise read as the viewer's own are reattributed
+  // — a teammate's shared message already names its own sender and keeps it —
+  // and only those the viewer did not actually submit. Someone can open a
+  // subagent session and type into it; that message carries a turn-intent id
+  // and stays theirs, while the parent's dispatch carries none.
   const isParentAgentMessage =
-    Boolean(parentAgentSender) && ownerSide === "right";
+    Boolean(parentAgentSender) &&
+    ownerSide === "right" &&
+    !wasSubmittedByViewer(event);
   const messageSide = isParentAgentMessage ? "left" : ownerSide;
   const isRemoteSharedMessage = messageSide === "left";
   const senderName = isParentAgentMessage
