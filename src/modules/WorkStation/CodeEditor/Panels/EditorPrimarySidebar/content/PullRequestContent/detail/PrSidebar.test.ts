@@ -199,6 +199,30 @@ describe("PrSidebar", () => {
     ).not.toBeNull();
   });
 
+  it("keeps every picker available on a draft pull request", () => {
+    act(() => {
+      root.render(
+        createElement(PrSidebar, {
+          ...baseProps,
+          identity: { ...baseProps.identity, status: "draft" },
+          // A draft is still open on GitHub, which accepts all three edits.
+          detail: { state: "open", draft: true },
+          reviews: [],
+        })
+      );
+    });
+
+    expect(
+      container.querySelector("[data-testid='pr-reviewer-action']")
+    ).not.toBeNull();
+    expect(
+      container.querySelector("[data-testid='pr-assignee-action']")
+    ).not.toBeNull();
+    expect(
+      container.querySelector("[data-testid='pr-label-action']")
+    ).not.toBeNull();
+  });
+
   it("hides the reviewer picker when the PR is not open and shows empty states", () => {
     act(() => {
       root.render(

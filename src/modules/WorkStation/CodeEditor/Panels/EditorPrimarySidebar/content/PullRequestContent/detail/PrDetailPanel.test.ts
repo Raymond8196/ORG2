@@ -499,7 +499,7 @@ describe("PrDetailPanel tabs", () => {
     ).not.toBeNull();
   });
 
-  it("uses a neutral fill for drafts and omits unavailable reviewer controls", async () => {
+  it("uses a neutral fill for drafts and keeps their rail editors", async () => {
     const store = createStore();
     const scopeKey = workstationPrScopeKey(undefined, "/repo", 42);
     store.set(workstationSelectedPrAtomFamily(scopeKey), {
@@ -556,9 +556,16 @@ describe("PrDetailPanel tabs", () => {
     expect(
       document.body.querySelector('[data-testid="pr-mark-ready-action"]')
     ).not.toBeNull();
+    // A draft is still an open pull request, so its rail keeps every editor.
     expect(
       container.querySelector('[data-testid="pr-reviewer-action"]')
-    ).toBeNull();
+    ).not.toBeNull();
+    expect(
+      container.querySelector('[data-testid="pr-assignee-action"]')
+    ).not.toBeNull();
+    expect(
+      container.querySelector('[data-testid="pr-label-action"]')
+    ).not.toBeNull();
   });
 
   it("offers converting an open pull request to draft as its own button", async () => {

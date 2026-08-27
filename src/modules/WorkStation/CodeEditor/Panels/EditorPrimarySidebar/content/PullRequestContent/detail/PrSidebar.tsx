@@ -349,7 +349,11 @@ export const PrSidebar: React.FC<PrSidebarProps> = ({
     }));
   }, [labels, labelCandidates]);
 
-  const canEdit = presentation.status === "open" && !disabled;
+  // A draft is still an open pull request: GitHub accepts reviewer, assignee,
+  // and label changes on it. Only merged and closed PRs are read-only here.
+  const canEdit =
+    (presentation.status === "open" || presentation.status === "draft") &&
+    !disabled;
 
   /**
    * One trigger + panel for every rail picker, so reviewers, assignees, and
