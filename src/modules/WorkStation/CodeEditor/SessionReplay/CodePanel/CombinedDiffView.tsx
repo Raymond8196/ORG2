@@ -1,8 +1,8 @@
 /**
  * Combined diff view for multiple edits on the same file in session replay.
  */
-import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
+import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   memo,

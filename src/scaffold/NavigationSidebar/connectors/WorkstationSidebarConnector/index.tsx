@@ -11,12 +11,10 @@ import { useAppNavigation } from "@src/hooks/navigation/useAppNavigation";
 import { useSessionView } from "@src/hooks/ui/tabs/useSessionView";
 import { teamInboxUnreadCountAtom } from "@src/modules/MainApp/TeamInbox/store";
 import { useTeamInboxDataSource } from "@src/modules/MainApp/TeamInbox/useTeamInboxDataSource";
-import { isDeveloperTestPanelEnabled } from "@src/scaffold/DeveloperTestPanel";
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
 import {
   activeSessionCreatorDraftIdAtom,
   deleteSessionCreatorDraftAtom,
-  loadSessionRoster,
   promoteActiveSessionCreatorDraftAtom,
   sessionCreatorDraftListAtom,
   sessionLoadingAtom,
@@ -40,19 +38,15 @@ import {
 import { showGuideHighlightAtom } from "@src/store/ui/guideHighlightAtom";
 import { runtimeNavigationIntentAtom } from "@src/store/ui/runtimeNavigationAtom";
 import {
-  SETUP_GUIDE_DEV_SCENARIO,
-  resolveSetupGuideDevCloudOrg,
-  setupGuideDevScenarioAtom,
-} from "@src/store/ui/setupGuideDevScenarioAtom";
-import {
   clearSessionSidebarRevealAtom,
   sessionSidebarRevealRequestAtom,
   sidebarCollapsedAtom,
 } from "@src/store/ui/sidebarAtom";
 
-import { SidebarBottomBar, SidebarMenuSearchInput } from "../../blocks";
+import { SidebarBottomBar } from "../../blocks";
 import SidebarSettingsMenuButton from "../../blocks/SidebarSettingsMenuButton";
 import NavigationSidebar from "../../variants/NavigationSidebar";
+import SidebarAccountButton from "../SidebarAccountButton";
 import SidebarGuideButton from "../SidebarGuideButton";
 import {
   SIDEBAR_GUIDE_MILESTONE,
@@ -85,10 +79,7 @@ import { resolveSidebarGuideOrganizationNavigation } from "./sidebarGuideOrganiz
 import { startSidebarGuideProductTour } from "./sidebarGuideProductTour";
 import { resolveSidebarGuideTeamUsageNavigation } from "./sidebarGuideTeamUsageNavigation";
 import { SidebarSearchShortcutTooltip } from "./sidebarTabs";
-import type {
-  WorkstationSidebarKey,
-  WorkstationSidebarSearchKey,
-} from "./types";
+import type { WorkstationSidebarKey } from "./types";
 import { useWorkspaceGroupActions } from "./useWorkspaceGroupActions";
 
 const logger = createLogger("WorkstationSidebarGuide");
@@ -119,11 +110,6 @@ export const WorkstationSidebarConnector: React.FC = () => {
   const saveSetupGuideProgress = useSetAtom(saveSetupGuideProgressAtom);
   const showGuideHighlight = useSetAtom(showGuideHighlightAtom);
   const setRuntimeNavigationIntent = useSetAtom(runtimeNavigationIntentAtom);
-  const setupGuideDevScenario = useAtomValue(setupGuideDevScenarioAtom);
-  const setupGuideDevToolsEnabled = isDeveloperTestPanelEnabled();
-  const activeSetupGuideDevScenario = setupGuideDevToolsEnabled
-    ? setupGuideDevScenario
-    : SETUP_GUIDE_DEV_SCENARIO.LIVE;
   const guideNavigationRequestId = useRef(0);
   useTeamInboxDataSource();
   const teamInboxUnreadCount = useAtomValue(teamInboxUnreadCountAtom);
@@ -183,15 +169,6 @@ export const WorkstationSidebarConnector: React.FC = () => {
     activeSidebarKey === "workstation" && workItemsOpen;
   const channelSidebarVisible =
     activeSidebarKey === "workstation" && channelsOpen;
-  const activeSidebarSearchKey: WorkstationSidebarSearchKey =
-    workItemsContentVisible
-      ? "projects"
-      : channelSidebarVisible
-        ? "channels"
-        : activeSidebarKey;
-  const [sidebarSearchQueries, setSidebarSearchQueries] = useState<
-    Record<WorkstationSidebarSearchKey, string>
-  >({ workstation: "", projects: "", channels: "" });
   const handleViewChange = useCallback((key: WorkstationSidebarViewKey) => {
     setActiveSidebarKey("workstation");
     setChannelsOpen(key === "channels");
@@ -203,19 +180,6 @@ export const WorkstationSidebarConnector: React.FC = () => {
       : channelSidebarVisible
         ? "channels"
         : "sessions";
-
-  const handleSidebarSearchChange = useCallback(
-    (value: string) => {
-      setSidebarSearchQueries((currentQueries) => ({
-        ...currentQueries,
-        [activeSidebarSearchKey]: value,
-      }));
-      if (activeSidebarSearchKey === "workstation") {
-        void loadSessionRoster();
-      }
-    },
-    [activeSidebarSearchKey]
-  );
 
   const {
     sortedSessions,
@@ -240,20 +204,11 @@ export const WorkstationSidebarConnector: React.FC = () => {
     cloudMySessionsVisibleCount,
     setCloudMyPagination,
     resetCloudMyPagination,
+    cloudSignedInAvatarUrl,
     cloudSignedInIdentity,
     handleCloudSignIn,
-  } = useWorkstationSidebarScopeAndPagination({
-    sessions,
-    workstationSearchQuery: sidebarSearchQueries.workstation,
-  });
-  const guideCloudOrg = useMemo(
-    () =>
-      resolveSetupGuideDevCloudOrg(
-        manageableCloudOrg,
-        activeSetupGuideDevScenario
-      ),
-    [activeSetupGuideDevScenario, manageableCloudOrg]
-  );
+  } = useWorkstationSidebarScopeAndPagination({ sessions });
+  const guideCloudOrg = manageableCloudOrg;
 
   const [groupVisibleCounts, setGroupVisibleCounts] = useState<
     Map<string, number>
@@ -297,8 +252,6 @@ export const WorkstationSidebarConnector: React.FC = () => {
     revealWorkspaceLabel,
     workspaceUnavailableTitle,
     workspaceUnavailableMessage,
-    searchPlaceholder,
-    noSearchResultsTitle,
   } = buildWorkstationSidebarLabels({ t, tProjects, tSessions, tCommon });
 
   // Same entry point as the sidebar's own "+ New session", so a workspace
@@ -403,7 +356,6 @@ export const WorkstationSidebarConnector: React.FC = () => {
     repoPathToName,
     groupByMode,
     untitledSession,
-    workstationSearchQuery: sidebarSearchQueries.workstation,
     sessionFilterOrgIds,
     cloudScopedExtraSessionIds,
     sessionListExcludedIds,
@@ -416,7 +368,6 @@ export const WorkstationSidebarConnector: React.FC = () => {
     activeSidebarKey,
     workItemsContentVisible,
     projectsGroupVisibleCounts,
-    projectsSearchQuery: sidebarSearchQueries.projects,
     activeProjectOrgId,
   });
 
@@ -452,7 +403,6 @@ export const WorkstationSidebarConnector: React.FC = () => {
     setWorkItemsOpen,
     setChannelsOpen,
     setSelectedOrgId,
-    setSidebarSearchQueries,
     setExpandedSubagentParentIds,
     activeSessionSidebarRevealRequest,
     revealCandidateMenuItems,
@@ -835,26 +785,22 @@ export const WorkstationSidebarConnector: React.FC = () => {
             searchLabel={tCommon("actions.search")}
           />
         }
-        search={{
-          value: sidebarSearchQueries[activeSidebarSearchKey],
-          filterValue:
-            activeSidebarSearchKey === "workstation"
-              ? ""
-              : sidebarSearchQueries[activeSidebarSearchKey],
-          onChange: handleSidebarSearchChange,
-          placeholder: searchPlaceholder,
-          noResultsTitle: noSearchResultsTitle,
-          showInput: false,
-        }}
         listTopPadding
         bottomContent={
           <SidebarBottomBar
             leftContent={
-              <SidebarMenuSearchInput
-                value={sidebarSearchQueries[activeSidebarSearchKey]}
-                onChange={handleSidebarSearchChange}
-                placeholder={searchPlaceholder}
-                compact
+              <SidebarSettingsMenuButton
+                onSignIn={
+                  cloudSignedInIdentity === null ? handleCloudSignIn : undefined
+                }
+                renderTrigger={({ isOpen, onClick }) => (
+                  <SidebarAccountButton
+                    identity={cloudSignedInIdentity}
+                    avatarUrl={cloudSignedInAvatarUrl}
+                    menuOpen={isOpen}
+                    onClick={onClick}
+                  />
+                )}
               />
             }
             rightActions={
@@ -873,7 +819,6 @@ export const WorkstationSidebarConnector: React.FC = () => {
                 {sidebarBottomRightActions}
               </>
             }
-            settingsAction={<SidebarSettingsMenuButton />}
           />
         }
         isLoading={isLoading}

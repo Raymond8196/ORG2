@@ -10,9 +10,9 @@
  *   - Categories with no live data are hidden, no mock/placeholder values.
  */
 import Archive from "@hugeicons/core-free-icons/ArchiveIcon";
-import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import X from "@hugeicons/core-free-icons/Cancel01Icon";
 import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
+import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { memo, useCallback, useMemo, useState } from "react";

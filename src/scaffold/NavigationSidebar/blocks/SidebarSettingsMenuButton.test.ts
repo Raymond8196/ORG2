@@ -75,7 +75,6 @@ describe("SidebarSettingsMenuButton", () => {
   });
 
   beforeEach(async () => {
-    vi.stubEnv("NODE_ENV", "development");
     store = createStore();
     store.set(devModeEnabledAtom, true);
     container = document.createElement("div");
@@ -97,7 +96,6 @@ describe("SidebarSettingsMenuButton", () => {
     act(() => root.unmount());
     container.remove();
     vi.clearAllMocks();
-    vi.unstubAllEnvs();
   });
 
   afterAll(() => {
@@ -127,29 +125,48 @@ describe("SidebarSettingsMenuButton", () => {
     expect(setupButton).toBeUndefined();
   });
 
-  it("moves the onboarding test panel into the Dev Mode menu list", () => {
-    expect(
-      document.querySelector('[data-testid="developer-test-panel-trigger"]')
-    ).toBeNull();
+  it("supports an account trigger with a signed-out login action", async () => {
+    const onSignIn = vi.fn();
 
-    const developerTestsButton = document.querySelector<HTMLButtonElement>(
-      '[data-testid="sidebar-open-developer-test-panel"]'
-    );
-    expect(developerTestsButton).not.toBeNull();
-
-    act(() => developerTestsButton?.click());
-
-    expect(mocks.closeDropdown).toHaveBeenCalled();
-    expect(
-      document.querySelector('[data-testid="developer-test-panel"]')
-    ).not.toBeNull();
-  });
-
-  it("hides the onboarding test panel entry when Dev Mode is off", async () => {
     await act(async () => {
-      store.set(devModeEnabledAtom, false);
+      root.render(
+        React.createElement(
+          Provider,
+          { store },
+          React.createElement(SidebarSettingsMenuButton, {
+            onSignIn,
+            renderTrigger: ({ isOpen, onClick }) =>
+              React.createElement(
+                "button",
+                {
+                  type: "button",
+                  onClick,
+                  "aria-expanded": isOpen,
+                  "data-testid": "account-menu-trigger",
+                },
+                "Account"
+              ),
+          })
+        )
+      );
     });
 
+    const trigger = document.querySelector<HTMLButtonElement>(
+      '[data-testid="account-menu-trigger"]'
+    );
+    expect(trigger?.getAttribute("aria-expanded")).toBe("true");
+
+    const signIn = document.querySelector<HTMLButtonElement>(
+      '[data-testid="sidebar-menu-sign-in"]'
+    );
+    expect(signIn?.textContent).toBe("cloud.signIn");
+
+    act(() => signIn?.click());
+    expect(mocks.closeDropdown).toHaveBeenCalledOnce();
+    expect(onSignIn).toHaveBeenCalledOnce();
+  });
+
+  it("does not expose onboarding development simulations", () => {
     expect(
       document.querySelector(
         '[data-testid="sidebar-open-developer-test-panel"]'

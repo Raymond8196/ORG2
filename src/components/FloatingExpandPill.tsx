@@ -12,8 +12,8 @@
  * Visibility is driven by a parent with the Tailwind `group` class
  * (opacity-0 → group-hover:opacity-100).
  */
-import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
+import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";

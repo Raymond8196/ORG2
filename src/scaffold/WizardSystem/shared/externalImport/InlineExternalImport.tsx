@@ -1,6 +1,6 @@
-import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
 import Download from "@hugeicons/core-free-icons/Download01Icon";
+import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";

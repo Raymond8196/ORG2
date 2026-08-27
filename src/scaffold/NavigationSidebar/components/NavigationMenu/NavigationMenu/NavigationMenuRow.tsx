@@ -1,7 +1,7 @@
 import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
 import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
+import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback } from "react";
 

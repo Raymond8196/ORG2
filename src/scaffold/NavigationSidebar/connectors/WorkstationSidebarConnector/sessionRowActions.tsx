@@ -1,9 +1,9 @@
-import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import X from "@hugeicons/core-free-icons/Cancel01Icon";
 import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
 import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
 import Pin from "@hugeicons/core-free-icons/PinIcon";
 import PinOff from "@hugeicons/core-free-icons/PinOffIcon";
+import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback } from "react";
 

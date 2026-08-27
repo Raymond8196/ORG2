@@ -21,8 +21,8 @@
  * records explicit user toggles. The currently active (tail) turn is
  * never collapsed while the agent is still streaming.
  */
-import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
+import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback, useState } from "react";

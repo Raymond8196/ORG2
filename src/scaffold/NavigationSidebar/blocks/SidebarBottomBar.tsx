@@ -6,12 +6,7 @@
  * organization selector. User presence remains available as a reusable menu
  * for the Settings dropdown and roomier composer/header surfaces.
  *
- * Right side hosts compact action buttons, including the Settings gear
- * that opens quick settings actions and links to the app settings route.
- * `AppShell` detects that route and renders Settings inside the
- * chat-panel slot with the WorkStation kept visible underneath, so the
- * URL stays deeplinkable while the layout matches the slot affordance.
- * Extra actions can be supplied by the caller (e.g. session group-by).
+ * Right side hosts compact contextual actions and the update control.
  */
 import Circle from "@hugeicons/core-free-icons/CircleIcon";
 import HatGlasses from "@hugeicons/core-free-icons/HatGlassesIcon";
@@ -52,10 +47,8 @@ import { resolveCustomRoleIcon } from "./customRoleIcons";
 interface SidebarBottomBarProps {
   /** Content rendered in the footer's left-side slot. */
   leftContent?: React.ReactNode;
-  /** Extra action buttons rendered to the left of the Settings gear. */
+  /** Extra action buttons rendered to the left of the update control. */
   rightActions?: React.ReactNode;
-  /** Settings menu trigger supplied by sidebar variants that expose it. */
-  settingsAction?: React.ReactNode;
 }
 
 const PRESENCE_ICON: Record<BuiltInPresenceMode, IconSvgElement> = {
@@ -381,17 +374,14 @@ export const PresenceMenuButton: React.FC<PresenceMenuButtonProps> = ({
 };
 
 const SidebarBottomBar: React.FC<SidebarBottomBarProps> = React.memo(
-  ({ leftContent, rightActions, settingsAction }) => {
+  ({ leftContent, rightActions }) => {
     return (
       <div className="flex h-[52px] flex-shrink-0 items-center justify-between gap-2 px-3">
         <div className="flex min-w-0 flex-1 items-center gap-1">
           {leftContent}
         </div>
         <div className="flex items-center gap-1">
-          <div className="flex items-center gap-1">
-            {rightActions}
-            {settingsAction}
-          </div>
+          <div className="flex items-center gap-1">{rightActions}</div>
           <SidebarUpdateButton />
         </div>
       </div>

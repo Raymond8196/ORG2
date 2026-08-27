@@ -1,6 +1,6 @@
+import History from "@hugeicons/core-free-icons/BubbleChatIcon";
 import ListTodo from "@hugeicons/core-free-icons/CheckListIcon";
 import Hash from "@hugeicons/core-free-icons/HashtagIcon";
-import History from "@hugeicons/core-free-icons/BubbleChatIcon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";

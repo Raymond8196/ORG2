@@ -1,6 +1,6 @@
-import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
 import Inbox from "@hugeicons/core-free-icons/InboxIcon";
+import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Cell, Row, flexRender } from "@tanstack/react-table";
 import React, { useState } from "react";
