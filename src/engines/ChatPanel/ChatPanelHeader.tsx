@@ -308,8 +308,11 @@ export function ChatPanelHeader({
             : CHAT_PANEL_TAB_HEADER_HEIGHT_PX,
         }}
       />
+      {/* pl-1 (4px) + separator slot (5px) + pill px-2.5 (10px) = 19px, so the
+          first tab's icon lines up with the published header's icon below
+          (HEADER_CONTENT_LEFT_PADDING_CLASS 15px + breadcrumb px-1 4px). */}
       <div
-        className={`workspace-header header-tab-group z-40 flex h-11 min-h-11 items-center gap-1.5 pl-2 pr-[7px] pt-2 ${
+        className={`workspace-header header-tab-group z-40 flex h-11 min-h-11 items-center gap-1.5 pl-1 pr-[7px] pt-2 ${
           overlayPublishedHeader
             ? "absolute left-0 right-0 top-0"
             : "relative flex-shrink-0"
