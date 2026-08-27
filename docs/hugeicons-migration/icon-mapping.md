@@ -203,7 +203,7 @@ Resolved from hugeicons' own barrel re-exports. Listed most-used first.
 | `GitPullRequest` | 26 | `GitPullRequestIcon` |  |
 | `Globe` | 26 | `GlobeIcon` |  |
 | `Clock` | 23 | `Clock01Icon` |  |
-| `Pencil` | 23 | `PencilIcon` |  |
+| `Pencil` | 23 | `Pen01Icon` |  |
 | `ChevronLeft` | 22 | `ArrowLeft01Icon` |  |
 | `Box` | 21 | `PackageIcon` |  |
 | `ChevronsUpDown` | 21 | `ArrowUpDownIcon` |  |
@@ -298,7 +298,7 @@ Resolved from hugeicons' own barrel re-exports. Listed most-used first.
 | `FolderTree` | 6 | `FolderTreeIcon` |  |
 | `ListTree` | 6 | `HierarchyFilesIcon` |  |
 | `Pause` | 6 | `PauseIcon` |  |
-| `SquarePen` | 6 | `Pen01Icon` |  |
+| `SquarePen` | 6 | `PencilEdit02Icon` |  |
 | `Activity` | 5 | `Activity01Icon` |  |
 | `Boxes` | 5 | `Package01Icon` |  |
 | `Building2` | 5 | `Building02Icon` |  |

@@ -9,7 +9,7 @@
  */
 import Plus from "@hugeicons/core-free-icons/Add01Icon";
 import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import Pencil from "@hugeicons/core-free-icons/PencilIcon";
+import Pencil from "@hugeicons/core-free-icons/Pen01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";

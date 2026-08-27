@@ -6,7 +6,7 @@
  * Uses DROPDOWN_CLASSES and DropdownSearch for consistency with settings.
  */
 import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import Pencil from "@hugeicons/core-free-icons/PencilIcon";
+import Pencil from "@hugeicons/core-free-icons/Pen01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";

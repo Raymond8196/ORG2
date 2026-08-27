@@ -21,7 +21,7 @@ import FolderTree from "@hugeicons/core-free-icons/FolderTreeIcon";
 import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
 import Columns3 from "@hugeicons/core-free-icons/LayoutThreeColumnIcon";
 import Box from "@hugeicons/core-free-icons/PackageIcon";
-import SquarePen from "@hugeicons/core-free-icons/Pen01Icon";
+import SquarePen from "@hugeicons/core-free-icons/PencilEdit02Icon";
 import Play from "@hugeicons/core-free-icons/PlayIcon";
 import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import Search from "@hugeicons/core-free-icons/Search01Icon";

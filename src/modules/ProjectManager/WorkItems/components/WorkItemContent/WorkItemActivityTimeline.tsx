@@ -4,7 +4,7 @@ import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
 import Bot from "@hugeicons/core-free-icons/BotIcon";
 import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
 import MessageSquare from "@hugeicons/core-free-icons/Message01Icon";
-import Pencil from "@hugeicons/core-free-icons/PencilIcon";
+import Pencil from "@hugeicons/core-free-icons/Pen01Icon";
 import RotateCcw from "@hugeicons/core-free-icons/RotateLeft01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";

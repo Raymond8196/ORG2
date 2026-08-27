@@ -12,7 +12,7 @@
  * direct `agentDef.updatePatch` pipeline both receive the edit.
  */
 import Copy from "@hugeicons/core-free-icons/Copy01Icon";
-import Pencil from "@hugeicons/core-free-icons/PencilIcon";
+import Pencil from "@hugeicons/core-free-icons/Pen01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";

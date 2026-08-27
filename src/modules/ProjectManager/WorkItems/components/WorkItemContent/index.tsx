@@ -1,4 +1,4 @@
-import Pencil from "@hugeicons/core-free-icons/PencilIcon";
+import Pencil from "@hugeicons/core-free-icons/Pen01Icon";
 import Repeat from "@hugeicons/core-free-icons/RepeatIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";

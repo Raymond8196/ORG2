@@ -29,7 +29,7 @@
  *                  background launch adopts the new session in place.
  */
 import MessageCircle from "@hugeicons/core-free-icons/BubbleChatIcon";
-import SquarePen from "@hugeicons/core-free-icons/Pen01Icon";
+import SquarePen from "@hugeicons/core-free-icons/PencilEdit02Icon";
 import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";

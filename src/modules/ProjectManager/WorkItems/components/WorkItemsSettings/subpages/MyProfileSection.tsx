@@ -12,7 +12,7 @@
 import X from "@hugeicons/core-free-icons/Cancel01Icon";
 import Copy from "@hugeicons/core-free-icons/Copy01Icon";
 import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
-import Pencil from "@hugeicons/core-free-icons/PencilIcon";
+import Pencil from "@hugeicons/core-free-icons/Pen01Icon";
 import Check from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";

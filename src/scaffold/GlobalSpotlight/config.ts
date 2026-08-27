@@ -24,7 +24,7 @@ import Layout from "@hugeicons/core-free-icons/Layout01Icon";
 import Link2 from "@hugeicons/core-free-icons/Link02Icon";
 import Lock from "@hugeicons/core-free-icons/LockIcon";
 import MessageSquare from "@hugeicons/core-free-icons/Message01Icon";
-import Pencil from "@hugeicons/core-free-icons/PencilIcon";
+import Pencil from "@hugeicons/core-free-icons/Pen01Icon";
 import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import Rocket from "@hugeicons/core-free-icons/RocketIcon";
 import Search from "@hugeicons/core-free-icons/Search01Icon";

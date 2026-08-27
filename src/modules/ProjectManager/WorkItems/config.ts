@@ -11,7 +11,7 @@ import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
 import Diamond from "@hugeicons/core-free-icons/DiamondIcon";
 import Flag from "@hugeicons/core-free-icons/Flag01Icon";
 import ListChevronsUpDown from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
-import Pencil from "@hugeicons/core-free-icons/PencilIcon";
+import Pencil from "@hugeicons/core-free-icons/Pen01Icon";
 import SignalHigh from "@hugeicons/core-free-icons/SignalFull01Icon";
 import Tag from "@hugeicons/core-free-icons/Tag01Icon";
 import User from "@hugeicons/core-free-icons/UserIcon";

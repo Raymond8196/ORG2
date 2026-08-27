@@ -6,7 +6,7 @@
  * that opens a full-screen modal with an inline MarkdownEditor.
  */
 import Copy from "@hugeicons/core-free-icons/Copy01Icon";
-import Pencil from "@hugeicons/core-free-icons/PencilIcon";
+import Pencil from "@hugeicons/core-free-icons/Pen01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";

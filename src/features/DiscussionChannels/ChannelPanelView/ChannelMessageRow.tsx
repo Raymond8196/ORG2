@@ -23,7 +23,7 @@
  */
 import X from "@hugeicons/core-free-icons/Cancel01Icon";
 import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import Pencil from "@hugeicons/core-free-icons/PencilIcon";
+import Pencil from "@hugeicons/core-free-icons/Pen01Icon";
 import Check from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useSetAtom, useStore } from "jotai";

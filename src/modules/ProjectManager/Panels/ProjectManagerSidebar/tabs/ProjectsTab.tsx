@@ -7,7 +7,7 @@ import FolderKanban from "@hugeicons/core-free-icons/FolderKanbanIcon";
 import Github from "@hugeicons/core-free-icons/GithubIcon";
 import Import from "@hugeicons/core-free-icons/ImportIcon";
 import Box from "@hugeicons/core-free-icons/PackageIcon";
-import SquarePen from "@hugeicons/core-free-icons/Pen01Icon";
+import SquarePen from "@hugeicons/core-free-icons/PencilEdit02Icon";
 import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import Settings from "@hugeicons/core-free-icons/Settings01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";

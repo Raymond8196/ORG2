@@ -1,6 +1,6 @@
 import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
 import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
-import SquarePen from "@hugeicons/core-free-icons/Pen01Icon";
+import SquarePen from "@hugeicons/core-free-icons/PencilEdit02Icon";
 import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { ReactNode } from "react";

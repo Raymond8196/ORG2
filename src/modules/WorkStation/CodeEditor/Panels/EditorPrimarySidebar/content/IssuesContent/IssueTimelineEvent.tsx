@@ -18,7 +18,7 @@ import MessageSquare from "@hugeicons/core-free-icons/Message01Icon";
 import MessagesSquare from "@hugeicons/core-free-icons/MessageMultiple01Icon";
 import Bell from "@hugeicons/core-free-icons/Notification01Icon";
 import BellOff from "@hugeicons/core-free-icons/NotificationOff01Icon";
-import Pencil from "@hugeicons/core-free-icons/PencilIcon";
+import Pencil from "@hugeicons/core-free-icons/Pen01Icon";
 import Pin from "@hugeicons/core-free-icons/PinIcon";
 import PinOff from "@hugeicons/core-free-icons/PinOffIcon";
 import Rocket from "@hugeicons/core-free-icons/RocketIcon";

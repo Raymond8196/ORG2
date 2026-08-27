@@ -12,7 +12,7 @@
  * caller wires to `saveKey` with `default_variants`).
  */
 import Brain from "@hugeicons/core-free-icons/BrainIcon";
-import Pencil from "@hugeicons/core-free-icons/PencilIcon";
+import Pencil from "@hugeicons/core-free-icons/Pen01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 

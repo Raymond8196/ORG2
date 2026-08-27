@@ -1,7 +1,7 @@
 import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
 import MessageCircle from "@hugeicons/core-free-icons/BubbleChatIcon";
 import Circle from "@hugeicons/core-free-icons/CircleIcon";
-import Contrast from "@hugeicons/core-free-icons/ContrastIcon";
+import Sun from "@hugeicons/core-free-icons/Sun01Icon";
 import MousePointer2 from "@hugeicons/core-free-icons/Cursor02Icon";
 import Gauge from "@hugeicons/core-free-icons/GaugeIcon";
 import HelpCircle from "@hugeicons/core-free-icons/HelpCircleIcon";
@@ -436,8 +436,8 @@ const SidebarSettingsMenuButton: React.FC<SidebarSettingsMenuButtonProps> = ({
               >
                 <span className="flex min-w-0 items-center gap-2">
                   <HugeiconsIcon
-                    icon={Contrast}
-                    data-icon="contrast"
+                    icon={Sun}
+                    data-icon="sun"
                     size={DROPDOWN_ITEM.iconSize}
                     className={MENU_ICON_CLASS_NAME}
                   />

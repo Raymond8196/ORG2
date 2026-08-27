@@ -2,7 +2,7 @@ import Plus from "@hugeicons/core-free-icons/Add01Icon";
 import X from "@hugeicons/core-free-icons/Cancel01Icon";
 import Circle from "@hugeicons/core-free-icons/CircleIcon";
 import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import Pencil from "@hugeicons/core-free-icons/PencilIcon";
+import Pencil from "@hugeicons/core-free-icons/Pen01Icon";
 import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import Check from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";

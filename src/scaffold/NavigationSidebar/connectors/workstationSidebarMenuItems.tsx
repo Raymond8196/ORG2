@@ -5,7 +5,7 @@ import Inbox from "@hugeicons/core-free-icons/InboxIcon";
 import Columns3 from "@hugeicons/core-free-icons/LayoutThreeColumnIcon";
 import NewSession from "@hugeicons/core-free-icons/MessageAdd02Icon";
 import Box from "@hugeicons/core-free-icons/PackageIcon";
-import SquarePen from "@hugeicons/core-free-icons/Pen01Icon";
+import SquarePen from "@hugeicons/core-free-icons/PencilEdit02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 

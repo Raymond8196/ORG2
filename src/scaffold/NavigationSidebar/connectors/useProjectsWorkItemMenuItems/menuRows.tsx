@@ -5,7 +5,7 @@ import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
 import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
 import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
 import Box from "@hugeicons/core-free-icons/PackageIcon";
-import SquarePen from "@hugeicons/core-free-icons/Pen01Icon";
+import SquarePen from "@hugeicons/core-free-icons/PencilEdit02Icon";
 import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
