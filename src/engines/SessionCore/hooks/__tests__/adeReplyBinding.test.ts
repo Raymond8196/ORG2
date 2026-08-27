@@ -5,7 +5,7 @@ import { ACTION_ID } from "@src/ActionSystem/actionIds";
 import {
   extractInvokingSessionId,
   resolveTrustedDispatchParams,
-} from "./adeReplyBinding";
+} from "../adeReplyBinding";
 
 describe("extractInvokingSessionId", () => {
   it("reads a string invokingSessionId from the envelope", () => {
