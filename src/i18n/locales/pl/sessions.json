@@ -1056,6 +1056,8 @@
     "unpinWorkspaceGroup": "Odepnij workspace",
     "hideWorkspaceGroup": "Ukryj workspace",
     "unhideWorkspaceGroup": "Pokaż workspace",
+    "workspaceUnavailableTitle": "Workspace jest niedostępny",
+    "workspaceUnavailableMessage": "Ten Workspace mógł zostać przeniesiony lub usunięty.",
     "historyRefresh": "Odśwież",
     "historyLastUsedModel": "Ostatnio używany model",
     "historyUntitled": "Sesja bez tytułu",
@@ -1255,7 +1257,8 @@
       "fileCount_other": "{{count}} plików",
       "turnCount_one": "{{count}} runda",
       "turnCount_other": "{{count}} rund"
-    }
+    },
+    "parentAgentSender": "Agent nadrzędny"
   },
   "chatStatus": {
     "approved": "Zatwierdzone",
@@ -2873,5 +2876,8 @@
       "skipped": "Pominięte",
       "pending": "Uruchamianie"
     }
+  },
+  "sessionBadge": {
+    "subagent": "Subagent"
   }
 }

@@ -17,14 +17,15 @@
  * every consumer.
  */
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { List } from "lucide-react";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
+import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
 import { PanelLeftIcon, PanelRightIcon } from "@src/components/PanelIcons";
 import type { TooltipProps } from "@src/components/Tooltip";
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
+import { HugeiconsIcon, LeftToRightListBulletIcon } from "@src/icons";
 import {
   simulatorPrimarySidebarCollapsedAtom,
   simulatorPrimarySidebarPositionAtom,
@@ -39,7 +40,6 @@ import {
   activeStatusBarCallbacksAtom,
 } from "@src/store/ui/workStationLayout/statusBarAtoms";
 
-import { WorkstationToolbarTooltip } from "./WorkstationToolbarTooltip";
 import { HEADER_ICON_SIZE } from "./tokens";
 
 // ============================================
@@ -87,7 +87,7 @@ const SidebarToggleButtonComponent: React.FC<SidebarToggleButtonProps> = ({
     ? getShortcutKeys("toggle_workstation_sidebar")
     : undefined;
   return (
-    <WorkstationToolbarTooltip
+    <ToolbarTooltip
       label={label}
       shortcut={shortcut}
       position={tooltipPosition}
@@ -103,7 +103,12 @@ const SidebarToggleButtonComponent: React.FC<SidebarToggleButtonProps> = ({
           aria-label={label}
           icon={
             stableListIcon ? (
-              <List size={iconSize} strokeWidth={2.25} />
+              <HugeiconsIcon
+                icon={LeftToRightListBulletIcon}
+                data-icon="list"
+                size={iconSize}
+                strokeWidth={2.25}
+              />
             ) : (
               <Icon
                 size={iconSize}
@@ -114,7 +119,7 @@ const SidebarToggleButtonComponent: React.FC<SidebarToggleButtonProps> = ({
           }
         />
       </span>
-    </WorkstationToolbarTooltip>
+    </ToolbarTooltip>
   );
 };
 

@@ -3,11 +3,12 @@
  *
  * Reusable search input for spotlight interfaces
  */
-import { Search, X } from "lucide-react";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon, { type AnyIconSource } from "@src/components/AnyIcon";
 import { useTauriSelectAllShortcut } from "@src/hooks/keyboard";
+import { Cancel01Icon, HugeiconsIcon, Search01Icon } from "@src/icons";
 
 import { SPOTLIGHT_TOKENS } from "../constants";
 
@@ -27,7 +28,7 @@ export interface SpotlightInputProps {
   /** Loading state */
   isLoading?: boolean;
   /** Icon to display (defaults to Search) */
-  icon?: React.ComponentType<{ size?: number; className?: string }>;
+  icon?: AnyIconSource;
   /** Custom icon element (overrides icon prop) */
   iconElement?: React.ReactNode;
   /** Renders at the end of the search row (e.g. mode badge); stays in the 56px bar */
@@ -44,7 +45,7 @@ export const SpotlightInput: React.FC<SpotlightInputProps> = ({
   onKeyDown,
   placeholder = "Search...",
   isLoading: _isLoading = false,
-  icon: IconComponent = Search,
+  icon: IconComponent = Search01Icon,
   iconElement,
   trailingSlot,
   autoFocus = true,
@@ -72,7 +73,8 @@ export const SpotlightInput: React.FC<SpotlightInputProps> = ({
           {iconElement ? (
             iconElement
           ) : (
-            <IconComponent
+            <AnyIcon
+              icon={IconComponent}
               size={SPOTLIGHT_TOKENS.iconSize}
               className="text-text-2"
             />
@@ -106,7 +108,7 @@ export const SpotlightInput: React.FC<SpotlightInputProps> = ({
             aria-label={t("common:actions.clearSearch")}
             onClick={handleResetSearch}
           >
-            <X size={14} />
+            <HugeiconsIcon icon={Cancel01Icon} data-icon="x" size={14} />
           </button>
         ) : null}
       </div>

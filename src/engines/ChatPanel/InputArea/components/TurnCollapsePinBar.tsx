@@ -25,15 +25,16 @@
  * Hidden inside the Simulator Messages replay surface (no-op jump).
  */
 import { useAtomValue, useSetAtom } from "jotai";
-import { ChevronsDownUp, ChevronsUpDown } from "lucide-react";
 import React, { memo, useCallback, useContext, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import { getTurnTimingLabels } from "@src/engines/ChatPanel/ChatHistory/utils/turnTimingFormatting";
 import EventNavigateIcon from "@src/engines/ChatPanel/blocks/primitives/EventNavigateIcon";
 import { InSimulatorReplayContext } from "@src/engines/ChatPanel/blocks/primitives/inSimulatorReplayContext";
 import { useChatEventReplay } from "@src/engines/ChatPanel/hooks/useChatEventReplay";
 import { createLogger } from "@src/hooks/logger";
+import { ChevronsDownUpIcon, UnfoldMoreIcon } from "@src/icons";
 import {
   collapseAllCommandAtom,
   setTurnCollapseOverrideAtom,
@@ -157,7 +158,7 @@ const TurnCollapsePinBar: React.FC<TurnCollapsePinBarProps> = memo(
 
     // Static chevron: ChevronsUpDown → "click to expand" (collapsed state),
     // ChevronsDownUp → "click to collapse" (expanded state). No hover swap.
-    const ChevronIcon = expanded ? ChevronsDownUp : ChevronsUpDown;
+    const ChevronIcon = expanded ? ChevronsDownUpIcon : UnfoldMoreIcon;
 
     return (
       <div className="mt-1">
@@ -173,7 +174,8 @@ const TurnCollapsePinBar: React.FC<TurnCollapsePinBarProps> = memo(
               void handleToggle();
             }}
           >
-            <ChevronIcon
+            <AnyIcon
+              icon={ChevronIcon}
               size={CHEVRON_SIZE}
               strokeWidth={1.75}
               className="shrink-0 text-text-2 transition-colors group-hover/turn-collapse:text-text-1"

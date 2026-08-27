@@ -4,7 +4,6 @@
  * Main navigation sidebar with tabs and menu items.
  * Used by Settings and Workstation navigation surfaces.
  */
-import { ChevronDown, ChevronRight, type LucideIcon } from "lucide-react";
 import React, {
   type ReactNode,
   useCallback,
@@ -14,8 +13,14 @@ import React, {
   useState,
 } from "react";
 
+import { Placeholder } from "@src/components/Placeholder";
 import TabPill from "@src/components/TabPill";
-import { Placeholder } from "@src/modules/shared/layouts/blocks";
+import {
+  ArrowDown01Icon,
+  ArrowRight01Icon,
+  HugeiconsIcon,
+  type IconSvgElement,
+} from "@src/icons";
 
 import SidebarBase from "../SidebarBase";
 import { SidebarList, SidebarMenuSearchInput } from "../blocks";
@@ -67,7 +72,7 @@ export interface NavigationSidebarProps {
   /** Add-new button in the traffic lights area (passed to SidebarBase) */
   onAddNew?: () => void;
   /** Icon for the add-new button */
-  addIcon?: LucideIcon;
+  addIcon?: IconSvgElement;
   /** Tooltip for the add-new button */
   addLabel?: string;
   /** Optional rich tooltip content for the add-new button */
@@ -398,9 +403,11 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = React.memo(
                     className: "h-[14px] w-[14px]",
                     strokeWidth: 2,
                   })
-                : React.createElement(tab.icon, {
-                    className: "h-[14px] w-[14px]",
+                : React.createElement(HugeiconsIcon, {
+                    icon: tab.icon,
+                    size: 14,
                     strokeWidth: 2,
+                    className: "h-[14px] w-[14px]",
                   })
               : undefined,
         })),
@@ -491,7 +498,9 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = React.memo(
                         <span className="hidden flex-shrink-0 items-center leading-none text-text-2 group-hover/section-title:inline-flex">
                           <NavigationMenuRowActionButton
                             icon={
-                              isSectionCollapsed ? ChevronRight : ChevronDown
+                              isSectionCollapsed
+                                ? ArrowRight01Icon
+                                : ArrowDown01Icon
                             }
                             label={section.title}
                             onClick={() => {
@@ -577,7 +586,9 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = React.memo(
                         <span className="hidden flex-shrink-0 items-center leading-none text-text-2 group-hover/section-title:inline-flex">
                           <NavigationMenuRowActionButton
                             icon={
-                              isSectionCollapsed ? ChevronRight : ChevronDown
+                              isSectionCollapsed
+                                ? ArrowRight01Icon
+                                : ArrowDown01Icon
                             }
                             label={section.title ?? section.id}
                             onClick={() => {

@@ -336,6 +336,7 @@
       "noDueDay": "Không có ngày hạn",
       "noStartDate": "Không có ngày bắt đầu",
       "noLabels": "Không có nhãn",
+      "labels": "Nhãn",
       "today": "Hôm nay",
       "tomorrow": "Ngày mai",
       "thisFriday": "Thứ Sáu tuần này",
@@ -357,9 +358,7 @@
       "hoursAgo": "{{count}} giờ trước",
       "inDays": "trong {{count}} ngày",
       "inHours": "trong {{count}} giờ",
-      "membersGroup": "Thành viên",
-      "agentsGroup": "Agents",
-      "orgsGroup": "Tổ chức"
+      "membersGroup": "Thành viên"
     },
     "history": {
       "noHistory": "Chưa có lịch sử"

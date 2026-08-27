@@ -1,5 +1,4 @@
 import { useAtomValue } from "jotai";
-import { BookOpen } from "lucide-react";
 import React, {
   useCallback,
   useEffect,
@@ -23,12 +22,7 @@ import {
   workItemDraftToStubWorkItem,
 } from "@src/hooks/project";
 import { useUndoStackWithRestore } from "@src/hooks/ui";
-import { useAgentDefinitions } from "@src/modules/MainApp/AgentOrgs/hooks/useAgentDefinitions";
-import { useAgentOrgs } from "@src/modules/MainApp/AgentOrgs/hooks/useAgentOrgs";
-import type {
-  AgentDefinition,
-  OrgMember,
-} from "@src/modules/MainApp/AgentOrgs/types";
+import { BookOpen01Icon, HugeiconsIcon } from "@src/icons";
 import {
   CreateComposerTitleInput,
   ProjectContentEditor,
@@ -83,8 +77,6 @@ export interface InlineCreateWorkItemFieldsState {
   editorRef: React.RefObject<ProjectContentEditorRef | null>;
   editorMode: MarkdownEditorMode;
   setEditorMode: React.Dispatch<React.SetStateAction<MarkdownEditorMode>>;
-  availableAgents: AgentDefinition[];
-  availableOrgs: OrgMember[];
   handlePropertyUpdate: (updates: Partial<WorkItemExtended>) => void;
   inlinePropertyPills?: React.ReactNode;
   resetDraftForCreateMore: () => void;
@@ -142,8 +134,6 @@ export function useInlineCreateWorkItemFields({
   const { t: tSessions } = useTranslation("sessions");
   const [editorResetKey, setEditorResetKey] = useState(0);
   const [editorMode, setEditorMode] = useState<MarkdownEditorMode>("write");
-  const { agents: customAgents } = useAgentDefinitions();
-  const { orgs: availableOrgs } = useAgentOrgs();
   const cloudOrgs = useAtomValue(org2CloudOrgsAtom);
   const [loadedMembers, setLoadedMembers] = useState<Person[]>([]);
   const [loadedProjects, setLoadedProjects] = useState<
@@ -344,7 +334,13 @@ export function useInlineCreateWorkItemFields({
       resolvedProjects.map((project) => ({
         value: project.id,
         label: project.name,
-        icon: <BookOpen size={CREATE_WORK_ITEM_BREADCRUMB_ICON_SIZE} />,
+        icon: (
+          <HugeiconsIcon
+            icon={BookOpen01Icon}
+            data-icon="book-open"
+            size={CREATE_WORK_ITEM_BREADCRUMB_ICON_SIZE}
+          />
+        ),
         iconColor: project.color,
       })),
     [resolvedProjects]
@@ -429,8 +425,6 @@ export function useInlineCreateWorkItemFields({
         availableMilestones={availableMilestones}
         availableLabels={resolvedLabels}
         availableMembers={resolvedMembers}
-        availableAgents={customAgents}
-        availableOrgs={availableOrgs}
         visibleFields={CREATE_WORK_ITEM_INLINE_FIELDS}
         fieldVariant="pill"
         showMoreMenu
@@ -484,8 +478,6 @@ export function useInlineCreateWorkItemFields({
   }, [defaultProjectId, resetDraft]);
 
   return {
-    availableAgents: customAgents,
-    availableOrgs,
     clearDraft,
     descriptionSection,
     draft,

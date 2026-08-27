@@ -1,8 +1,8 @@
-import { ChevronRight, Folder, GitBranch, Search, Trash2 } from "lucide-react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { GitWorktreeDiffSummary } from "@src/api/http/git/types";
+import AnyIcon from "@src/components/AnyIcon";
 import DiffStatsBadge from "@src/components/DiffStatsBadge";
 import Dropdown from "@src/components/Dropdown";
 import DropdownItem from "@src/components/Dropdown/DropdownItem";
@@ -14,6 +14,14 @@ import {
 } from "@src/components/Dropdown/tokens";
 import IconButton from "@src/components/IconButton";
 import SelectGhostTrigger from "@src/components/Select/SelectGhostTrigger";
+import {
+  ArrowRight01Icon,
+  Delete02Icon,
+  FolderClosedIcon,
+  HugeiconsIcon,
+  Search01Icon,
+  WorkflowCircle05Icon,
+} from "@src/icons";
 import {
   formatCompactStatNumber,
   formatDiffStatsLabel,
@@ -135,7 +143,8 @@ function ScopePickerItem({
   ]
     .filter(Boolean)
     .join("\n");
-  const ScopeIcon = kind === "worktree" ? Folder : GitBranch;
+  const ScopeIcon =
+    kind === "worktree" ? FolderClosedIcon : WorkflowCircle05Icon;
   const hasDiffStats = diffStatsFromSummary(summary) !== null;
 
   return (
@@ -144,7 +153,13 @@ function ScopePickerItem({
         selected={selected}
         showCheckmark={false}
         onClick={onSelect}
-        icon={<ScopeIcon size={DROPDOWN_ITEM.iconSize} strokeWidth={1.75} />}
+        icon={
+          <AnyIcon
+            icon={ScopeIcon}
+            size={DROPDOWN_ITEM.iconSize}
+            strokeWidth={1.75}
+          />
+        }
         className="w-full"
         suffix={
           selected || hasDiffStats ? (
@@ -168,7 +183,11 @@ function ScopePickerItem({
             onRemove();
           }}
         >
-          <Trash2 size={DROPDOWN_ITEM.iconSize} />
+          <HugeiconsIcon
+            icon={Delete02Icon}
+            data-icon="trash-2"
+            size={DROPDOWN_ITEM.iconSize}
+          />
         </IconButton>
       ) : null}
     </div>
@@ -262,7 +281,9 @@ export function SourceControlScopeToolbar({
     >
       {showSearch ? (
         <div className={DROPDOWN_CLASSES.searchContainer}>
-          <Search
+          <HugeiconsIcon
+            icon={Search01Icon}
+            data-icon="search"
             size={DROPDOWN_ITEM.iconSize}
             className="shrink-0 text-text-3"
           />
@@ -358,7 +379,12 @@ export function SourceControlScopeToolbar({
             {breadcrumbSegments.map((segment, index) => (
               <React.Fragment key={`${segment.label}-${index}`}>
                 {index > 0 ? (
-                  <ChevronRight size={10} className="shrink-0 text-text-4" />
+                  <HugeiconsIcon
+                    icon={ArrowRight01Icon}
+                    data-icon="chevron-right"
+                    size={10}
+                    className="shrink-0 text-text-4"
+                  />
                 ) : null}
                 <span
                   className={`truncate ${segment.tone === "primary" ? "min-w-0" : "shrink-0"} ${BREADCRUMB_TONE_CLASS[segment.tone]}`}

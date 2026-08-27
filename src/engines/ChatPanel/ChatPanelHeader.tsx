@@ -1,20 +1,21 @@
 import type { TFunction } from "i18next";
 import { useAtomValue } from "jotai";
-import {
-  Maximize2,
-  MonitorPlay,
-  PanelRight,
-  TerminalSquare,
-} from "lucide-react";
 import React from "react";
 
 import Button from "@src/components/Button";
 import { KeyboardShortcutTooltipContent } from "@src/components/KeyboardShortcut";
 import RegionNoticeButton from "@src/components/RegionNoticeButton";
+import { TabBarTrailingIconButton } from "@src/components/TabPill/TabBarTrailingIconButton";
 import Tooltip from "@src/components/Tooltip";
 import type { DropdownEnginePosition } from "@src/hooks/dropdown";
 import { getCollapsedSidebarChromeOffset } from "@src/hooks/ui/sidebar/useCollapsedSidebarChromeOffset";
-import { TabBarTrailingIconButton } from "@src/modules/WorkStation/shared/TabBar/components/TabBarTrailingIconButton";
+import {
+  ArrowExpand01Icon,
+  ComputerVideoIcon,
+  HugeiconsIcon,
+  PanelRightIcon,
+  SquareTerminalIcon,
+} from "@src/icons";
 import { HEADER_ICON_SIZE } from "@src/modules/WorkStation/shared/tokens";
 import { CollapsedSidebarButton } from "@src/scaffold/NavigationSidebar/CollapsedSidebarButton";
 import type { ChatHistoryDisplayMode } from "@src/store/ui/chatPanelAtom";
@@ -175,12 +176,16 @@ export function ChatPanelHeader({
                 className={tuiMode ? "!text-primary-6" : ""}
                 icon={
                   tuiMode ? (
-                    <MonitorPlay
+                    <HugeiconsIcon
+                      icon={ComputerVideoIcon}
+                      data-icon="monitor-play"
                       size={CHAT_PANEL_HEADER_ICON_SIZE}
                       strokeWidth={2}
                     />
                   ) : (
-                    <TerminalSquare
+                    <HugeiconsIcon
+                      icon={SquareTerminalIcon}
+                      data-icon="terminal-square"
                       size={CHAT_PANEL_HEADER_ICON_SIZE}
                       strokeWidth={2}
                     />
@@ -272,9 +277,19 @@ export function ChatPanelHeader({
           disabled={!stationAvailable}
         >
           {isChatFocus ? (
-            <PanelRight size={HEADER_ICON_SIZE.md} strokeWidth={1.75} />
+            <HugeiconsIcon
+              icon={PanelRightIcon}
+              data-icon="panel-right"
+              size={HEADER_ICON_SIZE.md}
+              strokeWidth={1.75}
+            />
           ) : (
-            <Maximize2 size={HEADER_ICON_SIZE.md} strokeWidth={1.75} />
+            <HugeiconsIcon
+              icon={ArrowExpand01Icon}
+              data-icon="maximize-2"
+              size={HEADER_ICON_SIZE.md}
+              strokeWidth={1.75}
+            />
           )}
         </TabBarTrailingIconButton>
       </span>

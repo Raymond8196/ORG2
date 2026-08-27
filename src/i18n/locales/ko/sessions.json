@@ -1054,6 +1054,8 @@
     "unpinWorkspaceGroup": "워크스페이스 고정 해제",
     "hideWorkspaceGroup": "워크스페이스 숨기기",
     "unhideWorkspaceGroup": "워크스페이스 표시",
+    "workspaceUnavailableTitle": "Workspace를 사용할 수 없음",
+    "workspaceUnavailableMessage": "이 Workspace는 이동되었거나 삭제되었을 수 있습니다.",
     "historyRefresh": "새로고침",
     "historyLastUsedModel": "마지막 사용 모델",
     "historyUntitled": "제목 없는 세션",
@@ -1241,7 +1243,8 @@
       "fileCount_other": "파일 {{count}}개",
       "turnCount_one": "턴 {{count}}개",
       "turnCount_other": "턴 {{count}}개"
-    }
+    },
+    "parentAgentSender": "상위 에이전트"
   },
   "chatStatus": {
     "approved": "승인됨",
@@ -2836,5 +2839,8 @@
       "skipped": "건너뜀",
       "pending": "시작 중"
     }
+  },
+  "sessionBadge": {
+    "subagent": "Sub Agent"
   }
 }

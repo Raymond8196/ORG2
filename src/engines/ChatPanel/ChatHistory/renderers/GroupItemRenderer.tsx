@@ -1,4 +1,3 @@
-import { MailOpen } from "lucide-react";
 import React, { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -18,6 +17,7 @@ import {
   type SessionEvent,
   TOOL_USAGE_ARGS_KEY,
 } from "@src/engines/SessionCore/core/types";
+import { HugeiconsIcon, MailOpen01Icon } from "@src/icons";
 
 import {
   AgentTurnContext,
@@ -41,7 +41,11 @@ import ChatItemWrap from "./ChatItemWrap";
 
 const GROUP_CHAT_CONTINUATION_WINDOW_MS = 60_000;
 const INBOX_TRANSCRIPT_ICON = (
-  <MailOpen size={SESSION_UI_TOKENS.ICON.SIZE_SM} />
+  <HugeiconsIcon
+    icon={MailOpen01Icon}
+    data-icon="mail-open"
+    size={SESSION_UI_TOKENS.ICON.SIZE_SM}
+  />
 );
 
 // ============================================

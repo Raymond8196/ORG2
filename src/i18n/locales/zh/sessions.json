@@ -1105,6 +1105,8 @@
     "unpinWorkspaceGroup": "取消置顶工作区",
     "hideWorkspaceGroup": "隐藏工作区",
     "unhideWorkspaceGroup": "显示工作区",
+    "workspaceUnavailableTitle": "Workspace 已不可用",
+    "workspaceUnavailableMessage": "此 Workspace 可能已被移动或删除。",
     "historyRefresh": "刷新",
     "historyLastUsedModel": "上次使用的模型",
     "historyUntitled": "未命名会话",
@@ -1292,7 +1294,8 @@
       "fileCount_other": "{{count}} 个文件",
       "turnCount_one": "{{count}} 轮",
       "turnCount_other": "{{count}} 轮"
-    }
+    },
+    "parentAgentSender": "上级 Agent"
   },
   "chatStatus": {
     "approved": "已批准",
@@ -3048,5 +3051,8 @@
     "imagesUnsupported": "团队讨论暂不支持图片",
     "participantsTooltip": "对话参与者与讨论消息数",
     "mentionGroup": "队友"
+  },
+  "sessionBadge": {
+    "subagent": "Sub Agent"
   }
 }

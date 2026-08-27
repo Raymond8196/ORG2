@@ -1059,6 +1059,8 @@
     "unpinWorkspaceGroup": "Открепить рабочую область",
     "hideWorkspaceGroup": "Скрыть рабочую область",
     "unhideWorkspaceGroup": "Показать рабочую область",
+    "workspaceUnavailableTitle": "Workspace недоступен",
+    "workspaceUnavailableMessage": "Возможно, этот Workspace был перемещён или удалён.",
     "historyRefresh": "Обновить",
     "historyLastUsedModel": "Последняя использованная модель",
     "historyUntitled": "Сессия без названия",
@@ -1258,7 +1260,8 @@
       "fileCount_other": "{{count}} файлов",
       "turnCount_one": "{{count}} раунд",
       "turnCount_other": "{{count}} раундов"
-    }
+    },
+    "parentAgentSender": "Родительский агент"
   },
   "chatStatus": {
     "approved": "Одобрено",
@@ -2880,5 +2883,8 @@
       "skipped": "Пропущен",
       "pending": "Запускается"
     }
+  },
+  "sessionBadge": {
+    "subagent": "Sub Agent"
   }
 }

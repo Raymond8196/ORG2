@@ -336,6 +336,7 @@
       "noDueDay": "無截止日",
       "noStartDate": "無開始日期",
       "noLabels": "無標籤",
+      "labels": "標籤",
       "today": "今天",
       "tomorrow": "明天",
       "thisFriday": "本週五",
@@ -357,9 +358,7 @@
       "hoursAgo": "{{count}} 小時前",
       "inDays": "{{count}} 天后",
       "inHours": "{{count}} 小時後",
-      "membersGroup": "成員",
-      "agentsGroup": "Agents",
-      "orgsGroup": "組織"
+      "membersGroup": "成員"
     },
     "history": {
       "noHistory": "暫無歷史記錄"

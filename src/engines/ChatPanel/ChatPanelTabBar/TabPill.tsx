@@ -2,40 +2,42 @@
  * TabPill — one pill in the chat-panel tab strip.
  *
  * Uses the same primitives as the Workstation tab bar
- * (WorkStationTabPillSurface / TabPillCloseButton / TabLabelRowScrim) and
+ * (TabPillSurface / TabPillCloseButton / TabLabelRowScrim) and
  * resolves its own icon and title from the tab type plus store data.
  */
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useAtomValue } from "jotai";
-import {
-  Box,
-  CircleDot,
-  Columns3,
-  Gauge,
-  GitPullRequest,
-  Hash,
-  Inbox,
-  Info,
-  LayoutGrid,
-  ListChecks,
-  ListTodo,
-  Lock,
-  MessageSquarePlus,
-  Settings2,
-  TerminalSquare,
-} from "lucide-react";
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { STORY_SYNC_ADAPTER } from "@src/api/http/integrations/syncConnections";
+import AnyIcon from "@src/components/AnyIcon";
 import IntegrationIcon from "@src/components/IntegrationIcon";
+import { TabLabelRowScrim } from "@src/components/TabPill/TabLabelRowScrim";
+import { TabPillCloseButton } from "@src/components/TabPill/TabPillCloseButton";
+import { TabPillSurface } from "@src/components/TabPill/TabPillSurface";
 import { SURFACE_TOKENS } from "@src/config/surfaceTokens";
 import { TERMINAL_AGENT_STATUS } from "@src/engines/TerminalCore/types";
+import {
+  BoxIcon,
+  CircleDotIcon,
+  DashboardSquare01Icon,
+  GaugeIcon,
+  GitPullRequestIcon,
+  HashtagIcon,
+  HugeiconsIcon,
+  InboxIcon,
+  InformationCircleIcon,
+  LayoutThreeColumnIcon,
+  ListChecksIcon,
+  ListTodoIcon,
+  LockIcon,
+  MessageAdd01Icon,
+  Settings02Icon,
+  SquareTerminalIcon,
+} from "@src/icons";
 import { isGitHubIssueStatus } from "@src/modules/ProjectManager/WorkItems/workItemIdentity";
-import { TabLabelRowScrim } from "@src/modules/WorkStation/shared/TabBar/components/TabLabelRowScrim";
-import { TabPillCloseButton } from "@src/modules/WorkStation/shared/TabBar/components/TabPillCloseButton";
-import { WorkStationTabPillSurface } from "@src/modules/WorkStation/shared/TabBar/components/WorkStationTabPillSurface";
 import type { ChatPanelTab } from "@src/store/chatPanel/chatPanelTabsAtom";
 import { terminalSessionsAtom } from "@src/store/chatPanel/chatPanelTerminalAtom";
 import { sessionByIdAtom } from "@src/store/session";
@@ -145,7 +147,7 @@ export const TabPill = memo(function TabPill({
                 ? t("sessions:creator.createTarget.manageAgents")
                 : defaultDisplayTitle;
 
-  const iconColorClass = isActive ? "text-primary-6" : "text-text-2";
+  const iconColorClass = isActive ? "text-text-1" : "text-text-2";
   const isGitHubIssueTab =
     tab.type === "work-item" &&
     isGitHubIssueStatus(
@@ -155,7 +157,9 @@ export const TabPill = memo(function TabPill({
   let icon: React.ReactNode;
   if (tab.type === "terminal") {
     icon = (
-      <TerminalSquare
+      <HugeiconsIcon
+        icon={SquareTerminalIcon}
+        data-icon="terminal-square"
         size={16}
         strokeWidth={1.75}
         className={`shrink-0 ${iconColorClass}`}
@@ -164,7 +168,9 @@ export const TabPill = memo(function TabPill({
   } else if (tab.type === "start-page") {
     if (createTarget === CHAT_PANEL_CREATE_TARGET.PROJECT) {
       icon = (
-        <Box
+        <HugeiconsIcon
+          icon={BoxIcon}
+          data-icon="box"
           size={16}
           strokeWidth={1.75}
           className={`shrink-0 ${iconColorClass}`}
@@ -172,7 +178,9 @@ export const TabPill = memo(function TabPill({
       );
     } else if (createTarget === CHAT_PANEL_CREATE_TARGET.WORK_ITEM) {
       icon = (
-        <ListChecks
+        <HugeiconsIcon
+          icon={ListChecksIcon}
+          data-icon="list-checks"
           size={16}
           strokeWidth={1.75}
           className={`shrink-0 ${iconColorClass}`}
@@ -190,7 +198,9 @@ export const TabPill = memo(function TabPill({
       );
     } else {
       icon = (
-        <LayoutGrid
+        <HugeiconsIcon
+          icon={DashboardSquare01Icon}
+          data-icon="layout-grid"
           size={16}
           strokeWidth={1.75}
           className={`shrink-0 ${iconColorClass}`}
@@ -199,7 +209,9 @@ export const TabPill = memo(function TabPill({
     }
   } else if (tab.type === "runtime") {
     icon = (
-      <Gauge
+      <HugeiconsIcon
+        icon={GaugeIcon}
+        data-icon="gauge"
         size={16}
         strokeWidth={1.75}
         className={`shrink-0 ${iconColorClass}`}
@@ -207,7 +219,9 @@ export const TabPill = memo(function TabPill({
     );
   } else if (tab.type === "team-inbox") {
     icon = (
-      <Inbox
+      <HugeiconsIcon
+        icon={InboxIcon}
+        data-icon="inbox"
         size={16}
         strokeWidth={1.75}
         className={`shrink-0 ${iconColorClass}`}
@@ -217,10 +231,11 @@ export const TabPill = memo(function TabPill({
     // Private cloud channels carry the same lock the sidebar row uses.
     const ChannelIcon =
       tab.channel?.scope === "cloud" && tab.channel.visibility === "private"
-        ? Lock
-        : Hash;
+        ? LockIcon
+        : HashtagIcon;
     icon = (
-      <ChannelIcon
+      <AnyIcon
+        icon={ChannelIcon}
         size={16}
         strokeWidth={1.75}
         className={`shrink-0 ${iconColorClass}`}
@@ -228,7 +243,9 @@ export const TabPill = memo(function TabPill({
     );
   } else if (tab.type === "workspace") {
     icon = (
-      <Info
+      <HugeiconsIcon
+        icon={InformationCircleIcon}
+        data-icon="info"
         size={16}
         strokeWidth={1.75}
         className={`shrink-0 ${iconColorClass}`}
@@ -236,7 +253,9 @@ export const TabPill = memo(function TabPill({
     );
   } else if (tab.type === "organization") {
     icon = (
-      <Settings2
+      <HugeiconsIcon
+        icon={Settings02Icon}
+        data-icon="settings-2"
         size={16}
         strokeWidth={1.75}
         className={`shrink-0 ${iconColorClass}`}
@@ -245,16 +264,19 @@ export const TabPill = memo(function TabPill({
   } else if (tab.type === "work-management") {
     const WorkManagementIcon =
       tab.managementSection === WORK_MANAGEMENT_SECTION.KANBAN
-        ? Columns3
-        : ListTodo;
-    icon = React.createElement(WorkManagementIcon, {
+        ? LayoutThreeColumnIcon
+        : ListTodoIcon;
+    icon = React.createElement(HugeiconsIcon, {
+      icon: WorkManagementIcon,
       size: 16,
       strokeWidth: 1.75,
       className: `shrink-0 ${iconColorClass}`,
     });
   } else if (tab.type === "github-issue") {
     icon = (
-      <CircleDot
+      <HugeiconsIcon
+        icon={CircleDotIcon}
+        data-icon="circle-dot"
         size={16}
         strokeWidth={1.75}
         className={`shrink-0 ${iconColorClass}`}
@@ -262,7 +284,9 @@ export const TabPill = memo(function TabPill({
     );
   } else if (tab.type === "github-pr") {
     icon = (
-      <GitPullRequest
+      <HugeiconsIcon
+        icon={GitPullRequestIcon}
+        data-icon="git-pull-request"
         size={16}
         strokeWidth={1.75}
         className={`shrink-0 ${iconColorClass}`}
@@ -289,7 +313,9 @@ export const TabPill = memo(function TabPill({
     );
   } else if (tab.type === "project") {
     icon = (
-      <Box
+      <HugeiconsIcon
+        icon={BoxIcon}
+        data-icon="box"
         size={16}
         strokeWidth={1.75}
         className={`shrink-0 ${iconColorClass}`}
@@ -297,7 +323,9 @@ export const TabPill = memo(function TabPill({
     );
   } else if (tab.type === "work-item") {
     icon = (
-      <ListChecks
+      <HugeiconsIcon
+        icon={ListChecksIcon}
+        data-icon="list-checks"
         size={16}
         strokeWidth={1.75}
         className={`shrink-0 ${iconColorClass}`}
@@ -313,7 +341,9 @@ export const TabPill = memo(function TabPill({
     );
   } else {
     icon = (
-      <MessageSquarePlus
+      <HugeiconsIcon
+        icon={MessageAdd01Icon}
+        data-icon="message-square-plus"
         size={16}
         strokeWidth={1.75}
         className={`shrink-0 ${iconColorClass}`}
@@ -322,7 +352,7 @@ export const TabPill = memo(function TabPill({
   }
 
   const pill = (
-    <WorkStationTabPillSurface
+    <TabPillSurface
       ref={setPillRef}
       {...attributes}
       {...listeners}
@@ -349,7 +379,7 @@ export const TabPill = memo(function TabPill({
       <div className="relative flex min-w-0 flex-1 items-center overflow-hidden">
         <span
           className={`min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-[13px] ${
-            isActive ? "text-primary-6" : "text-text-2"
+            isActive ? "text-text-1" : "text-text-2"
           }`}
         >
           {displayTitle}
@@ -376,7 +406,7 @@ export const TabPill = memo(function TabPill({
             : "pointer-events-none opacity-0"
         }`}
       />
-    </WorkStationTabPillSurface>
+    </TabPillSurface>
   );
 
   return <TabPillHoverCard tab={tab}>{pill}</TabPillHoverCard>;

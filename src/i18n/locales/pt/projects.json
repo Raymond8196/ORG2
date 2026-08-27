@@ -336,6 +336,7 @@
       "noDueDay": "Sem dia de prazo",
       "noStartDate": "Sem data de início",
       "noLabels": "Sem etiquetas",
+      "labels": "Etiquetas",
       "today": "Hoje",
       "tomorrow": "Amanhã",
       "thisFriday": "Esta sexta-feira",
@@ -357,9 +358,7 @@
       "hoursAgo": "há {{count}} horas",
       "inDays": "em {{count}} dias",
       "inHours": "em {{count}} horas",
-      "membersGroup": "Membros",
-      "agentsGroup": "Agents",
-      "orgsGroup": "Organizações"
+      "membersGroup": "Membros"
     },
     "history": {
       "noHistory": "Nenhum histórico ainda"

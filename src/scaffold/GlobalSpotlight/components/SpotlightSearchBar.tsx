@@ -4,9 +4,11 @@
  * Search bar with action/value pills and a contextual input placeholder.
  * Backspace removes segments.
  */
-import { ChevronLeft, Search } from "lucide-react";
 import React from "react";
 import { useTranslation } from "react-i18next";
+
+import AnyIcon from "@src/components/AnyIcon";
+import { ArrowLeft01Icon, HugeiconsIcon, Search01Icon } from "@src/icons";
 
 import { ICONS } from "../config";
 import { SPOTLIGHT_CLASSES, SPOTLIGHT_TOKENS } from "../constants";
@@ -94,7 +96,13 @@ export const SpotlightSearchBar: React.FC<SpotlightSearchBarProps> = ({
   };
 
   const renderBackChevron = () => (
-    <ChevronLeft size={13} strokeWidth={2.5} className="shrink-0" />
+    <HugeiconsIcon
+      icon={ArrowLeft01Icon}
+      data-icon="chevron-left"
+      size={13}
+      strokeWidth={2.5}
+      className="shrink-0"
+    />
   );
 
   const renderPillIcon = (segment: PathSegment) => {
@@ -126,7 +134,8 @@ export const SpotlightSearchBar: React.FC<SpotlightSearchBarProps> = ({
         ) : !hasPills ? (
           <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center">
             {IconComponent ? (
-              <IconComponent
+              <AnyIcon
+                icon={IconComponent}
                 size={SPOTLIGHT_TOKENS.iconSize}
                 className="text-text-2"
               />
@@ -135,7 +144,9 @@ export const SpotlightSearchBar: React.FC<SpotlightSearchBarProps> = ({
                 className={`${displayIcon} text-[${SPOTLIGHT_TOKENS.iconSize}px] text-text-2`}
               />
             ) : (
-              <Search
+              <HugeiconsIcon
+                icon={Search01Icon}
+                data-icon="search"
                 className="text-text-2"
                 size={SPOTLIGHT_TOKENS.iconSize}
               />
@@ -201,7 +212,10 @@ export const SpotlightSearchBar: React.FC<SpotlightSearchBarProps> = ({
             aria-label={t("common:actions.clearSearch")}
             onClick={handleResetSearch}
           >
-            {React.createElement(ICONS.close, { size: 14 })}
+            {React.createElement(HugeiconsIcon, {
+              icon: ICONS.close,
+              size: 14,
+            })}
           </button>
         )}
 

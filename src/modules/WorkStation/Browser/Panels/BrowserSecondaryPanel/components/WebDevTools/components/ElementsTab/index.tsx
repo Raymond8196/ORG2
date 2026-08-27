@@ -3,14 +3,19 @@
  *
  * Displays selected element details with copy functionality.
  */
-import { Check, Copy, X } from "lucide-react";
 import React, { memo, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
+import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
+import { Placeholder } from "@src/components/Placeholder";
+import {
+  Cancel01Icon,
+  Copy01Icon,
+  HugeiconsIcon,
+  Tick01Icon,
+} from "@src/icons";
 import type { ElementInfo } from "@src/modules/WorkStation/Browser/hooks/useWebviewInspector";
-import { WorkstationToolbarTooltip } from "@src/modules/WorkStation/shared";
-import { Placeholder } from "@src/modules/shared/layouts/blocks";
 import { copyText } from "@src/util/data/clipboard";
 
 // ============================================
@@ -50,15 +55,20 @@ export const ElementsTab: React.FC<ElementsTabProps> = memo(
     }
 
     const renderCopyButton = (text: string, field: string) => (
-      <WorkstationToolbarTooltip label={t("tooltips.copy")}>
+      <ToolbarTooltip label={t("tooltips.copy")}>
         <Button
           variant="tertiary"
           size="mini"
           icon={
             copiedField === field ? (
-              <Check size={10} className="text-success-6" />
+              <HugeiconsIcon
+                icon={Tick01Icon}
+                data-icon="check"
+                size={10}
+                className="text-success-6"
+              />
             ) : (
-              <Copy size={10} />
+              <HugeiconsIcon icon={Copy01Icon} data-icon="copy" size={10} />
             )
           }
           iconOnly
@@ -66,7 +76,7 @@ export const ElementsTab: React.FC<ElementsTabProps> = memo(
           aria-label={t("tooltips.copy")}
           className="ml-1"
         />
-      </WorkstationToolbarTooltip>
+      </ToolbarTooltip>
     );
 
     return (
@@ -77,16 +87,18 @@ export const ElementsTab: React.FC<ElementsTabProps> = memo(
             {element.selector}
           </span>
           {onClear && (
-            <WorkstationToolbarTooltip label={t("tooltips.clearSelection")}>
+            <ToolbarTooltip label={t("tooltips.clearSelection")}>
               <Button
                 variant="tertiary"
                 size="mini"
-                icon={<X size={12} />}
+                icon={
+                  <HugeiconsIcon icon={Cancel01Icon} data-icon="x" size={12} />
+                }
                 iconOnly
                 onClick={onClear}
                 aria-label={t("tooltips.clearSelection")}
               />
-            </WorkstationToolbarTooltip>
+            </ToolbarTooltip>
           )}
         </div>
 

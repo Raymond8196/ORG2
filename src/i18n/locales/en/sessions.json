@@ -1114,6 +1114,8 @@
     "unpinWorkspaceGroup": "Unpin workspace",
     "hideWorkspaceGroup": "Hide workspace",
     "unhideWorkspaceGroup": "Unhide workspace",
+    "workspaceUnavailableTitle": "Workspace no longer available",
+    "workspaceUnavailableMessage": "This Workspace may have been moved or deleted.",
     "historyRefresh": "Refresh",
     "historyLastUsedModel": "Last used model",
     "historyUntitled": "Untitled session",
@@ -1306,7 +1308,8 @@
       "fileCount_other": "{{count}} files",
       "turnCount_one": "{{count}} turn",
       "turnCount_other": "{{count}} turns"
-    }
+    },
+    "parentAgentSender": "Parent agent"
   },
   "chatStatus": {
     "approved": "Approved",
@@ -3059,5 +3062,8 @@
     "imagesUnsupported": "Team chat messages cannot include images",
     "participantsTooltip": "Conversation participants and discussion messages",
     "mentionGroup": "Teammates"
+  },
+  "sessionBadge": {
+    "subagent": "Subagent"
   }
 }

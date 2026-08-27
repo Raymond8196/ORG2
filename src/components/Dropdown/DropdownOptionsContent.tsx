@@ -1,8 +1,8 @@
-import { Search } from "lucide-react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import { useTauriSelectAllShortcut } from "@src/hooks/keyboard";
+import { HugeiconsIcon, Search01Icon } from "@src/icons";
 
 import DropdownOptionsRenderer from "./DropdownOptionsRenderer";
 import { DROPDOWN_CLASSES, DROPDOWN_ITEM } from "./tokens";
@@ -57,7 +57,9 @@ const DropdownOptionsContent: React.FC<DropdownOptionsContentProps> = ({
     <>
       {showSearch && (
         <div className={DROPDOWN_CLASSES.searchContainer}>
-          <Search
+          <HugeiconsIcon
+            icon={Search01Icon}
+            data-icon="search"
             size={DROPDOWN_ITEM.iconSize}
             className="shrink-0 text-text-3"
           />

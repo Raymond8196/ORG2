@@ -143,8 +143,7 @@
       "workstation": "工作站",
       "viewRam": "查看 RAM",
       "tutorials": "教程",
-      "openSettings": "打开设置",
-      "setupChecklist": "快速设置"
+      "openSettings": "打开设置"
     },
     "empty": {
       "noItems": "暂无内容",
@@ -172,32 +171,18 @@
       "trigger": "打开使用引导",
       "title": "开始使用 ORGII",
       "startSession": "创建第一个会话",
-      "quickSetup": "语言与外观",
       "close": "关闭引导",
-      "progressLabel": "已完成 {{completed}}/{{total}} 项设置",
       "localWorkspace": "本地工作区",
       "connectOrganization": "连接或创建组织",
       "createOrganizationHint": "输入组织名称，然后点击“创建”。云端组织创建成功后，引导会进入下一步。",
       "inviteTeammate": "邀请一位团队成员",
       "inviteTeammateHint": "在这里创建邀请链接，然后发送给你的团队成员。",
       "invitePermissionHint": "你可以在这里查看成员列表；邀请需要由组织管理员或 Owner 创建。",
-      "devPanelTitle": "Onboarding 测试状态",
-      "devPanelHint": "仅在当前进程预览邀请流程，不会修改后端组织数据。",
-      "devScenarioLive": "真实数据",
-      "devScenarioNoOrganization": "无组织",
-      "devScenarioMember": "普通成员 · 无邀请权限",
-      "devScenarioAdmin": "管理员 · 有邀请权限",
-      "devScenarioOwner": "Owner · 有邀请权限",
-      "devScenarioRequiresOrganization": "角色预览至少需要一个真实云组织。",
-      "devSimulationActive": "开发模拟已启用",
-      "devSimulationReadOnly": "成员页仅用于预览，组织管理操作已禁用。",
       "viewTeamActivity": "查看团队用量",
       "viewTeamActivityHint": "已打开“运行时 > 成员”。选择一位团队成员即可查看 Codex、Claude 和 Cursor 用量；暂无数据时请先启用团队运行时同步。",
       "exploreProduct": "了解主要页面",
-      "nextStep": "下一步"
-    },
-    "developerTestPanel": {
-      "title": "开发测试面板"
+      "nextStep": "下一步",
+      "dismiss": "关闭指南"
     }
   },
   "appLauncher": {

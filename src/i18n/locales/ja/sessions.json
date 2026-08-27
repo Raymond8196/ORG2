@@ -1054,6 +1054,8 @@
     "unpinWorkspaceGroup": "ワークスペースのピン留めを解除",
     "hideWorkspaceGroup": "ワークスペースを非表示",
     "unhideWorkspaceGroup": "ワークスペースを表示",
+    "workspaceUnavailableTitle": "Workspace を利用できません",
+    "workspaceUnavailableMessage": "この Workspace は移動または削除された可能性があります。",
     "historyRefresh": "更新",
     "historyLastUsedModel": "最後に使用したモデル",
     "historyUntitled": "無題のセッション",
@@ -1241,7 +1243,8 @@
       "fileCount_other": "{{count}} ファイル",
       "turnCount_one": "{{count}} ラウンド",
       "turnCount_other": "{{count}} ラウンド"
-    }
+    },
+    "parentAgentSender": "親エージェント"
   },
   "chatStatus": {
     "approved": "承認済み",
@@ -2835,5 +2838,8 @@
       "skipped": "スキップ",
       "pending": "開始中"
     }
+  },
+  "sessionBadge": {
+    "subagent": "Sub Agent"
   }
 }

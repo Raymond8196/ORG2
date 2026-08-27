@@ -17,7 +17,6 @@
  * <Select mode="multiple" showSearch options={options} onChange={handleChange} />
  * ```
  */
-import { ChevronDown, Loader2, Search, X } from "lucide-react";
 import React, {
   forwardRef,
   useCallback,
@@ -41,6 +40,13 @@ import { SPINNER_TOKENS } from "@src/config/spinnerTokens";
 import { getDropdownPanelStyle } from "@src/hooks/dropdown/dropdownPanelStyle";
 import { useDropdownEngine } from "@src/hooks/dropdown/useDropdownEngine";
 import { useTauriSelectAllShortcut } from "@src/hooks/keyboard";
+import {
+  ArrowDown01Icon,
+  Cancel01Icon,
+  HugeiconsIcon,
+  Loading03Icon,
+  Search01Icon,
+} from "@src/icons";
 import { useCurrentTheme } from "@src/util/ui/theme/themeUtils";
 
 import { RADIUS_CLASS_MAP, SELECT_DEFAULTS } from "./config";
@@ -254,7 +260,9 @@ const Select = forwardRef<HTMLDivElement, SelectProps>(
             {visibleTags.map((opt) => (
               <span key={opt.value} className="select-tag">
                 {opt.label}
-                <X
+                <HugeiconsIcon
+                  icon={Cancel01Icon}
+                  data-icon="x"
                   size={DROPDOWN_ITEM.iconSize}
                   onClick={(event) => {
                     event.stopPropagation();
@@ -374,19 +382,25 @@ const Select = forwardRef<HTMLDivElement, SelectProps>(
             {renderValue()}
             <div className="select-suffix">
               {loading && (
-                <Loader2
+                <HugeiconsIcon
+                  icon={Loading03Icon}
+                  data-icon="loader-2"
                   size={SPINNER_TOKENS.default}
                   className="animate-spin"
                 />
               )}
               {showClearButton && !loading && (
-                <X
+                <HugeiconsIcon
+                  icon={Cancel01Icon}
+                  data-icon="x"
                   size={DROPDOWN_ITEM.iconSize}
                   className="select-clear cursor-pointer"
                   onClick={handleClear}
                 />
               )}
-              <ChevronDown
+              <HugeiconsIcon
+                icon={ArrowDown01Icon}
+                data-icon="chevron-down"
                 size={appearance === "ghost" ? 12 : 16}
                 className={`select-arrow shrink-0 transition-transform ${
                   appearance === "ghost" ? "text-text-3" : ""
@@ -405,7 +419,9 @@ const Select = forwardRef<HTMLDivElement, SelectProps>(
             >
               {showSearch && (
                 <div className={DROPDOWN_CLASSES.searchContainer}>
-                  <Search
+                  <HugeiconsIcon
+                    icon={Search01Icon}
+                    data-icon="search"
                     size={DROPDOWN_ITEM.iconSize}
                     className="shrink-0 text-text-3"
                   />

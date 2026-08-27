@@ -1052,6 +1052,8 @@
     "unpinWorkspaceGroup": "Bỏ ghim không gian làm việc",
     "hideWorkspaceGroup": "Ẩn không gian làm việc",
     "unhideWorkspaceGroup": "Hiện không gian làm việc",
+    "workspaceUnavailableTitle": "Workspace không khả dụng",
+    "workspaceUnavailableMessage": "Workspace này có thể đã bị di chuyển hoặc xóa.",
     "historyRefresh": "Làm mới",
     "historyLastUsedModel": "Model lần cuối dùng",
     "historyUntitled": "Phiên không có tên",
@@ -1239,7 +1241,8 @@
       "fileCount_other": "{{count}} tệp",
       "turnCount_one": "{{count}} lượt",
       "turnCount_other": "{{count}} lượt"
-    }
+    },
+    "parentAgentSender": "Tác nhân cha"
   },
   "chatStatus": {
     "approved": "Đã phê duyệt",
@@ -2833,5 +2836,8 @@
       "skipped": "Đã bỏ qua",
       "pending": "Đang khởi động"
     }
+  },
+  "sessionBadge": {
+    "subagent": "Subagent"
   }
 }

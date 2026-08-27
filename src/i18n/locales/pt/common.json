@@ -217,8 +217,8 @@
     "questionIgnored": "Pergunta ignorada",
     "addedAsContext": "{{name}} adicionado como contexto",
     "addedFilesAsContext": "{{count}} arquivo(s) adicionado(s) como contexto",
-    "chooseAgentAssigneeAi": "Escolha um agente responsável antes de criar com IA.",
-    "autoExecuteRequiresAgent": "A execução automática requer um agente responsável.",
+    "chooseExecutionAgentAi": "Escolha um agente responsável antes de criar com IA.",
+    "autoExecuteRequiresExecutionAgent": "A execução automática requer um agente responsável.",
     "openSessionBeforeLinking": "Abra uma sessão antes de vincular um item de trabalho.",
     "sessionLinkedToWorkItem": "Sessão vinculada ao item de trabalho.",
     "sessionLinkFailed": "Falha ao vincular a sessão: {{message}}",
@@ -1282,11 +1282,11 @@
       "unknownProcess": "Processo desconhecido",
       "pidLabel": "PID {{pid}}",
       "openInBrowser": "Abrir no navegador",
-      "openAddress": "Abrir {{address}}",
       "copyAddress": "Copiar endereço",
       "stopProcess": "Parar processo",
       "searchPlaceholder": "Pesquisar portas…",
-      "noSearchResults": "Nenhuma porta correspondente"
+      "noSearchResults": "Nenhuma porta correspondente",
+      "openAddress": "Abrir {{address}}"
     },
     "noLanguageServicesActive": "Nenhum serviço de linguagem ativo",
     "linesSelected": "{{count}} linhas selecionadas",
@@ -1448,17 +1448,7 @@
         "reviewed": "revisou"
       },
       "summary": {
-        "label": "Resumo do pull request",
-        "branch": "Branch",
-        "reviewers": "Revisores",
-        "noReviewers": "Sem revisores",
-        "comments": "Comentários",
-        "commentCount_one": "{{count}} comentário",
-        "commentCount_other": "{{count}} comentários",
-        "checks": "Verificações",
-        "noChecks": "Sem verificações de CI",
-        "checksFailed": "Falha nas verificações",
-        "status": "Status"
+        "label": "Resumo do pull request"
       },
       "tabs": {
         "conversation": "Conversa",
@@ -1531,9 +1521,6 @@
         "reviewersLoadFailed": "Não foi possível carregar os revisores",
         "noReviewers": "Nenhum revisor disponível",
         "reviewersUpdated": "Revisores atualizados",
-        "reviewersCount_one": "{{count}} revisor",
-        "reviewersCount_other": "{{count}} revisores",
-        "reviewers": "Revisores",
         "tooltips": {
           "merge": "Mesclar este pull request no GitHub",
           "alreadyMerged": "Este pull request já foi mesclado",
@@ -1546,7 +1533,39 @@
           "checksFailed": "As verificações obrigatórias devem passar antes da mesclagem",
           "checksPending": "Aguarde as verificações obrigatórias ou ative a mesclagem automática",
           "mergeBlocked": "O GitHub informa requisitos de mesclagem não atendidos"
-        }
+        },
+        "convertToDraft": "Converter em rascunho",
+        "convertedToDraft": "Pull request convertido em rascunho"
+      },
+      "flow": {
+        "wantsToMergeCommitsInto_one": "quer fazer merge de {{count}} commit em",
+        "wantsToMergeCommitsInto_other": "quer fazer merge de {{count}} commits em",
+        "mergedCommitsInto_one": "fez merge de {{count}} commit em",
+        "mergedCommitsInto_other": "fez merge de {{count}} commits em",
+        "from": "a partir de",
+        "copyHeadBranch": "Copiar nome do branch",
+        "branchCopied": "Nome do branch copiado"
+      },
+      "sidebar": {
+        "reviewers": "Revisores",
+        "requestReviewers": "Solicitar revisores",
+        "awaitingReview": "Aguardando revisão",
+        "noReviews": "Sem revisões",
+        "assignees": "Responsáveis",
+        "noAssignees": "Ninguém atribuído",
+        "labels": "Rótulos",
+        "noLabels": "Nenhum ainda",
+        "actions": "Ações",
+        "editAssignees": "Editar responsáveis",
+        "searchAssignees": "Pesquisar pessoas",
+        "noAssigneeCandidates": "Nenhuma pessoa disponível",
+        "assigneesLoadFailed": "Não foi possível carregar as pessoas",
+        "assigneesUpdated": "Responsáveis atualizados",
+        "editLabels": "Editar rótulos",
+        "searchLabels": "Pesquisar rótulos",
+        "noLabelCandidates": "Nenhum rótulo disponível",
+        "labelsLoadFailed": "Não foi possível carregar os rótulos",
+        "labelsUpdated": "Rótulos atualizados"
       }
     },
     "messages": {
@@ -1727,7 +1746,9 @@
         "repo": "Repositórios",
         "systemPaths": "Caminhos do sistema",
         "usedElsewhere": "Usado em outros lugares",
-        "workspace": "Workspace"
+        "workspace": "Workspace",
+        "thisOrg": "Esta organização",
+        "outsideOrg": "Fora desta organização"
       },
       "tabs": {
         "repositories": "Repos",

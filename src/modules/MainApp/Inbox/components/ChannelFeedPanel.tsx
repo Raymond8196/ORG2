@@ -5,7 +5,6 @@
  * Messages are grouped by date and displayed in a chronological stream.
  * Bottom composer matches session/chat input styling; floating scroll-to-bottom when not at end.
  */
-import { CheckCheck, Search, Trash2 } from "lucide-react";
 import React, {
   useCallback,
   useEffect,
@@ -19,15 +18,19 @@ import { useTranslation } from "react-i18next";
 import Button from "@src/components/Button";
 import FloatingScrollNav from "@src/components/FloatingScrollNav";
 import Input from "@src/components/Input";
+import { Placeholder } from "@src/components/Placeholder";
 import {
   CHAT_INPUT_CONTAINER_STYLE,
   INPUT_AREA,
   INPUT_AREA_CLASSES,
 } from "@src/config/inputAreaTokens";
 import {
-  PANEL_HEADER_TOKENS,
-  Placeholder,
-} from "@src/modules/shared/layouts/blocks";
+  Delete02Icon,
+  HugeiconsIcon,
+  Search01Icon,
+  TickDouble01Icon,
+} from "@src/icons";
+import { PANEL_HEADER_TOKENS } from "@src/modules/shared/layouts/blocks";
 
 import type { InboxCategory, InboxChannelConfig } from "../config";
 import type { DateGroup, InboxMessage } from "../types";
@@ -87,7 +90,9 @@ const ChannelFeedPanel: React.FC<ChannelFeedPanelProps> = ({
             <Button
               {...PANEL_HEADER_TOKENS.actionButton}
               icon={
-                <CheckCheck
+                <HugeiconsIcon
+                  icon={TickDouble01Icon}
+                  data-icon="check-check"
                   size={PANEL_HEADER_TOKENS.buttonIconSize}
                   strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
                 />
@@ -99,7 +104,14 @@ const ChannelFeedPanel: React.FC<ChannelFeedPanelProps> = ({
           )}
           <div className="w-48">
             <Input
-              prefix={<Search size={13} strokeWidth={1.75} />}
+              prefix={
+                <HugeiconsIcon
+                  icon={Search01Icon}
+                  data-icon="search"
+                  size={13}
+                  strokeWidth={1.75}
+                />
+              }
               placeholder={t("inbox.searchPlaceholder")}
               value={searchQuery}
               onChange={onSearchChange}
@@ -388,7 +400,9 @@ const FeedMessageWithActions: React.FC<FeedMessageWithActionsProps> = ({
         variant="secondary"
         shape="square"
         iconOnly
-        icon={<Trash2 size={14} />}
+        icon={
+          <HugeiconsIcon icon={Delete02Icon} data-icon="trash-2" size={14} />
+        }
         title={t("common:actions.delete")}
         aria-label={t("common:actions.delete")}
         onClick={handleDelete}

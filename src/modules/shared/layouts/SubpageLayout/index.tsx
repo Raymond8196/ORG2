@@ -40,8 +40,8 @@ import {
   getListIconClasses,
   getListItemClasses,
 } from "@src/components/ListPanel";
-import ResizableSplitPanel from "@src/components/ResizableSplitPanel";
 import { ResponsiveContainer } from "@src/modules/shared/layouts/NarrowPlaceholder";
+import { ResizableSplitPanel } from "@src/scaffold/Resize";
 
 import {
   PanelHeader,
@@ -62,7 +62,7 @@ export interface SubpageAnchor {
   id: string;
   /** Display label for the anchor link */
   label: string;
-  /** Optional Lucide icon component */
+  /** Optional icon glyph */
   icon?: React.FC<{ size?: number; strokeWidth?: number; className?: string }>;
 }
 

@@ -1,4 +1,3 @@
-import { ChevronsUpDown } from "lucide-react";
 import React, {
   useCallback,
   useEffect,
@@ -17,6 +16,7 @@ import {
   isPlanDisplayEvent,
 } from "@src/engines/SessionCore/derived/planDisplayEvents";
 import { usePendingPlanApproval } from "@src/hooks/session/usePendingPlanApproval";
+import { HugeiconsIcon, UnfoldMoreIcon } from "@src/icons";
 import type { SessionReplayPlaceholderMode } from "@src/modules/WorkStation/shared";
 
 import { isEmailBubbleEvent } from "./EmailMessageBubble";
@@ -374,7 +374,13 @@ export const MessageViewer: React.FC<MessageViewerProps> = ({
                 variant="tertiary"
                 appearance="ghost"
                 size="small"
-                icon={<ChevronsUpDown size={14} />}
+                icon={
+                  <HugeiconsIcon
+                    icon={UnfoldMoreIcon}
+                    data-icon="chevrons-up-down"
+                    size={14}
+                  />
+                }
                 data-testid="communication-load-more-messages"
                 onClick={handleLoadMoreMessages}
               >

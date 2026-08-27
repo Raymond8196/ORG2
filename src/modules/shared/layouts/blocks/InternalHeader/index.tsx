@@ -7,8 +7,10 @@
  *
  * Standard: no border, wide padding (px-6), solid panel background.
  */
-import type { LucideIcon } from "lucide-react";
 import React, { memo } from "react";
+
+import AnyIcon from "@src/components/AnyIcon";
+import type { IconSvgElement } from "@src/icons";
 
 // ============================================
 // Tokens
@@ -34,10 +36,10 @@ export interface InternalHeaderProps {
   /** Title text */
   title?: string;
 
-  /** Lucide icon component (size=14 applied automatically) */
-  icon?: LucideIcon;
+  /** Hugeicons icon data (size=14 applied automatically) */
+  icon?: IconSvgElement;
 
-  /** Custom icon element for non-Lucide icons */
+  /** Custom icon element for non-glyph icons */
   iconElement?: React.ReactNode;
 
   /** Right-side actions (buttons, etc.) */
@@ -122,7 +124,8 @@ const InternalHeader: React.FC<InternalHeaderProps> = memo(
               <span className="flex-shrink-0 text-text-2">{iconElement}</span>
             )}
             {!iconElement && Icon && (
-              <Icon
+              <AnyIcon
+                icon={Icon}
                 size={INTERNAL_HEADER_TOKENS.iconSize}
                 className="flex-shrink-0 text-text-2"
               />

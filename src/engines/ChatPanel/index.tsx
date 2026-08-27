@@ -479,7 +479,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       setWorkstationActiveSessionId,
     });
     const {
-      defaultAiWorkItemAssignee,
+      defaultAiWorkItemExecutionTarget,
       handleAiWorkItemSessionStart,
       resolveAiWorkItemContext,
     } = useAiWorkItemCreator({
@@ -527,7 +527,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
         createTargetOptions={createTargetOptions}
         creatorClassName={creatorClassName}
         creatorVariant={creatorVariant}
-        defaultAiWorkItemAssignee={defaultAiWorkItemAssignee}
+        defaultAiWorkItemExecutionTarget={defaultAiWorkItemExecutionTarget}
         handleAiWorkItemSessionStart={handleAiWorkItemSessionStart}
         handleCancelWorkItemCreate={handleCancelWorkItemCreate}
         handleCancelCollabOrgCreate={handleCancelCollabOrgCreate}

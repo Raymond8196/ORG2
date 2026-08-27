@@ -1,4 +1,3 @@
-import { AtSign, Network, User } from "lucide-react";
 import { useState } from "react";
 
 import Avatar from "@src/components/Avatar";
@@ -11,10 +10,12 @@ import {
   type FieldRowVariant,
   Option,
 } from "@src/components/PropertyField/PropertyFieldEditable";
-import type {
-  AgentDefinition,
-  OrgMember,
-} from "@src/modules/MainApp/AgentOrgs/types";
+import {
+  AtIcon,
+  HierarchyCircle01Icon,
+  HugeiconsIcon,
+  UserIcon,
+} from "@src/icons";
 import type { Person } from "@src/types/core/shared";
 import {
   GITHUB_ISSUE_STATUS,
@@ -29,10 +30,7 @@ import type {
 interface AssigneePropertyFieldProps {
   workItem: WorkItemExtended;
   availableMembers: Person[];
-  availableAgents?: AgentDefinition[];
-  availableOrgs?: OrgMember[];
-  allAgentList?: { id: string; name: string }[];
-  onAssigneeChange: (person: Person | null, assigneeType?: string) => void;
+  onAssigneeChange: (person: Person | null) => void;
   t: (key: string) => string;
   fieldVariant?: FieldRowVariant;
   placement?: "inline" | "portal";
@@ -84,12 +82,33 @@ function getAssigneeAvatarSrc(workItem: WorkItemExtended): string | undefined {
 }
 
 function renderAssigneeIcon(workItem: WorkItemExtended) {
-  if (!workItem.assignee) return <User size={DROPDOWN_ITEM.iconSize} />;
+  if (!workItem.assignee)
+    return (
+      <HugeiconsIcon
+        icon={UserIcon}
+        data-icon="user"
+        size={DROPDOWN_ITEM.iconSize}
+      />
+    );
   if (workItem.assigneeType === "agent") {
-    return <AtSign size={DROPDOWN_ITEM.iconSize} className="text-primary-6" />;
+    return (
+      <HugeiconsIcon
+        icon={AtIcon}
+        data-icon="at-sign"
+        size={DROPDOWN_ITEM.iconSize}
+        className="text-primary-6"
+      />
+    );
   }
   if (workItem.assigneeType === "org") {
-    return <Network size={DROPDOWN_ITEM.iconSize} className="text-primary-6" />;
+    return (
+      <HugeiconsIcon
+        icon={HierarchyCircle01Icon}
+        data-icon="network"
+        size={DROPDOWN_ITEM.iconSize}
+        className="text-primary-6"
+      />
+    );
   }
   return (
     <Avatar
@@ -109,7 +128,14 @@ function renderAssigneeIcon(workItem: WorkItemExtended) {
 function renderExternalAssigneeIcon(
   option: WorkItemExternalAssigneeOption | undefined
 ) {
-  if (!option) return <User size={DROPDOWN_ITEM.iconSize} />;
+  if (!option)
+    return (
+      <HugeiconsIcon
+        icon={UserIcon}
+        data-icon="user"
+        size={DROPDOWN_ITEM.iconSize}
+      />
+    );
   return (
     <Avatar size={DROPDOWN_ITEM.iconSize} src={option.avatar}>
       {option.label.charAt(0).toUpperCase()}
@@ -120,8 +146,6 @@ function renderExternalAssigneeIcon(
 export function AssigneePropertyField({
   workItem,
   availableMembers,
-  availableOrgs = [],
-  allAgentList = [],
   onAssigneeChange,
   t,
   fieldVariant = "row",
@@ -223,7 +247,13 @@ export function AssigneePropertyField({
             return (
               <>
                 <Option
-                  icon={<User size={DROPDOWN_ITEM.iconSize} />}
+                  icon={
+                    <HugeiconsIcon
+                      icon={UserIcon}
+                      data-icon="user"
+                      size={DROPDOWN_ITEM.iconSize}
+                    />
+                  }
                   label={t("workItems.properties.noAssignee")}
                   isSelected={externalConfig.currentAssigneeIds.length === 0}
                   onClick={() => void handleExternalChange([], close)}
@@ -286,26 +316,21 @@ export function AssigneePropertyField({
               person.name.toLowerCase().includes(query)
             )
           : availableMembers;
-        const filteredAgents = query
-          ? allAgentList.filter((agent) =>
-              agent.name.toLowerCase().includes(query)
-            )
-          : allAgentList;
-        const filteredOrgs = query
-          ? availableOrgs.filter((org) =>
-              org.name.toLowerCase().includes(query)
-            )
-          : availableOrgs;
-
-        const select = (person: Person | null, assigneeType?: string) => {
-          onAssigneeChange(person, assigneeType);
+        const select = (person: Person | null) => {
+          onAssigneeChange(person);
           close();
         };
 
         return (
           <>
             <Option
-              icon={<User size={DROPDOWN_ITEM.iconSize} />}
+              icon={
+                <HugeiconsIcon
+                  icon={UserIcon}
+                  data-icon="user"
+                  size={DROPDOWN_ITEM.iconSize}
+                />
+              }
               label={t("workItems.properties.noAssignee")}
               isSelected={!workItem.assignee}
               onClick={() => select(null)}
@@ -334,52 +359,6 @@ export function AssigneePropertyField({
                   {person.name.charAt(0).toUpperCase()}
                 </Avatar>
                 <span className="flex-1 truncate">{person.name}</span>
-              </Option>
-            ))}
-            {filteredAgents.length > 0 && (
-              <div className={DROPDOWN_CLASSES.sectionLabel}>
-                {t("workItems.properties.agentsGroup")}
-              </div>
-            )}
-            {filteredAgents.map((agent) => (
-              <Option
-                key={`agent-${agent.id}`}
-                isSelected={
-                  workItem.assignee?.id === agent.id &&
-                  workItem.assigneeType === "agent"
-                }
-                label={agent.name}
-                onClick={() =>
-                  select({ id: agent.id, name: agent.name }, "agent")
-                }
-              >
-                <AtSign
-                  size={DROPDOWN_ITEM.iconSize}
-                  className="text-primary-6"
-                />
-                <span className="flex-1 truncate">{agent.name}</span>
-              </Option>
-            ))}
-            {filteredOrgs.length > 0 && (
-              <div className={DROPDOWN_CLASSES.sectionLabel}>
-                {t("workItems.properties.orgsGroup")}
-              </div>
-            )}
-            {filteredOrgs.map((org) => (
-              <Option
-                key={`org-${org.id}`}
-                isSelected={
-                  workItem.assignee?.id === org.id &&
-                  workItem.assigneeType === "org"
-                }
-                label={org.name}
-                onClick={() => select({ id: org.id, name: org.name }, "org")}
-              >
-                <Network
-                  size={DROPDOWN_ITEM.iconSize}
-                  className="text-primary-6"
-                />
-                <span className="flex-1 truncate">{org.name}</span>
               </Option>
             ))}
           </>
