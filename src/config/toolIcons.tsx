@@ -3,17 +3,16 @@
  *
  * **Authoritative icon ids** for built-in tools come from Rust `ToolInfo.icon_id`
  * (`list_all_tools`). `ICON_BY_ID` maps those kebab-case ids to hugeicons
- * glyph data — plus brand marks (the MCP logo) as components, which is why
- * the value type is `RenderableIcon` and every render path goes through
- * `AnyIcon`, never `HugeiconsIcon` directly.
+ * glyph data. `mcp-logo` maps to the vendor's `McpServerIcon`, which draws
+ * the actual MCP logo mark; other brand marks are hand-authored SVG
+ * components handled outside this registry.
  *
  * NOTE: Terminal tool detection uses normalizeFunctionName() (Rust source of truth
  * via cli_agents/alias_map.rs) instead of hardcoded tool names.
  */
 import React from "react";
 
-import { McpLogoIcon } from "@src/assets/channelIcons/McpLogoIcon";
-import AnyIcon, { type RenderableIcon } from "@src/components/AnyIcon";
+import AnyIcon from "@src/components/AnyIcon";
 import {
   getBuiltinToolActionIconId,
   getBuiltinToolIconId,
@@ -79,6 +78,7 @@ import {
   Mail01Icon as Mail,
   MailWarningIcon as MailWarning,
   MapsIcon as Map,
+  McpServerIcon as McpLogo,
   BubbleChatIcon as MessageCircle,
   MessageCircleQuestionMarkIcon as MessageCircleQuestionMark,
   MessageSquareReplyIcon as MessageSquareReply,
@@ -118,11 +118,11 @@ export const DEFAULT_TOOL_ICON_CLASS = "text-text-2";
 
 /**
  * Maps Rust `icon_id` strings (kebab-case, lucide-era vocabulary) to
- * hugeicons glyph data (plus the MCP brand mark component).
+ * hugeicons glyph data.
  * Keep in sync with the `ToolEntry` tables in
  * `src-tauri/crates/agent-core/src/core/tools/builtin_tools/table/*.rs`.
  */
-const ICON_BY_ID: Record<string, RenderableIcon> = {
+const ICON_BY_ID: Record<string, IconSvgElement> = {
   activity: Activity,
   "arrow-big-right-dash": ArrowBigRightDash,
   "arrow-right-left": ArrowRightLeft,
@@ -179,7 +179,7 @@ const ICON_BY_ID: Record<string, RenderableIcon> = {
   mail: Mail,
   "mail-warning": MailWarning,
   map: Map,
-  "mcp-logo": McpLogoIcon,
+  "mcp-logo": McpLogo,
   "message-circle": MessageCircle,
   "message-circle-question-mark": MessageCircleQuestionMark,
   "message-square-reply": MessageSquareReply,
@@ -342,7 +342,7 @@ export function getToolIconComponent(
   toolName: string,
   iconId?: string | null,
   action?: string | null
-): RenderableIcon {
+): IconSvgElement {
   const uiCanonical = getCliUiCanonical(toolName);
 
   // 1. Explicit icon id takes precedence
@@ -446,7 +446,7 @@ export function getEventIconComponent(
   eventType: string,
   status?: string | null,
   action?: string | null
-): RenderableIcon {
+): IconSvgElement {
   const uiCanonical = getCliUiCanonical(eventType);
 
   if (status) {

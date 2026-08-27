@@ -5,7 +5,6 @@
  */
 import type { ComponentType, LazyExoticComponent } from "react";
 
-import type { RenderableIcon } from "@src/components/AnyIcon";
 import { getToolIconComponent } from "@src/config/toolIcons";
 import { resolveToolName } from "@src/engines/SessionCore/rendering/registry/toolAliases";
 import {
@@ -82,7 +81,7 @@ const TRAJECTORY_CHAT_ALIGNED_ICON: Record<string, IconSvgElement> = {
 export function getTrajectoryTimelineIcon(
   groupType: string,
   toolNameForRust?: string
-): RenderableIcon {
+): IconSvgElement {
   const chatAligned = TRAJECTORY_CHAT_ALIGNED_ICON[groupType];
   if (chatAligned) {
     return chatAligned;
