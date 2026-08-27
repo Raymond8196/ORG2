@@ -210,6 +210,205 @@ describe("TeamInboxView split layout", () => {
     expect(componentProps.list?.loading).toBe(true);
   });
 
+  it("keeps the initial gate closed for a source loading snapshot", async () => {
+    let emitSnapshot: (() => void) | undefined;
+    let page = {
+      items: [] as AssignedWorkItem[],
+      nextCursor: null,
+      loading: true,
+    };
+    const dataSource = {
+      getSnapshot: () => page,
+      listPage: vi.fn(async () => page),
+      subscribe: (listener: () => void) => {
+        emitSnapshot = listener;
+        return vi.fn();
+      },
+    };
+
+    await act(async () => {
+      root.render(
+        createElement(TeamInboxView, {
+          dataSource,
+          pullRequests: [createPullRequest()],
+        })
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(componentProps.list?.items).toEqual([]);
+    expect(componentProps.list?.pullRequests).toEqual([]);
+    expect(componentProps.list?.loading).toBe(true);
+
+    page = { items: [partialLoadItem], nextCursor: null, loading: false };
+    await act(async () => {
+      emitSnapshot?.();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(componentProps.list?.items).toEqual([partialLoadItem]);
+    expect(componentProps.list?.pullRequests).toEqual([createPullRequest()]);
+    expect(componentProps.list?.loading).toBe(false);
+  });
+
+  it("holds the first Inbox snapshot until pull requests finish loading", async () => {
+    const listPage = vi.fn(async () => ({
+      items: [partialLoadItem],
+      nextCursor: null,
+      unreadCounts: { all: 1, mentions: 0, assigned: 1 },
+    }));
+
+    await act(async () => {
+      root.render(
+        createElement(TeamInboxView, {
+          dataSource: { listPage },
+          pullRequestsLoading: true,
+          pullRequestsInitialLoading: true,
+        })
+      );
+      await Promise.resolve();
+    });
+
+    expect(componentProps.list?.items).toEqual([]);
+    expect(componentProps.list?.pullRequests).toEqual([]);
+    expect(componentProps.list?.unreadCounts).toEqual({
+      all: 0,
+      mentions: 0,
+      assigned: 0,
+    });
+    expect(componentProps.list?.loading).toBe(true);
+
+    await act(async () => {
+      root.render(
+        createElement(TeamInboxView, {
+          dataSource: { listPage },
+          pullRequestsLoading: false,
+          pullRequests: [createPullRequest()],
+        })
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(componentProps.list?.items).toEqual([partialLoadItem]);
+    expect(componentProps.list?.pullRequests).toEqual([createPullRequest()]);
+    expect(componentProps.list?.unreadCounts).toEqual({
+      all: 1,
+      mentions: 0,
+      assigned: 1,
+    });
+    expect(componentProps.list?.loading).toBe(false);
+  });
+
+  it("keeps loaded content visible during later pull-request refreshes", async () => {
+    const listPage = vi.fn(async () => ({
+      items: [partialLoadItem],
+      nextCursor: null,
+    }));
+
+    await act(async () => {
+      root.render(
+        createElement(TeamInboxView, {
+          dataSource: { listPage },
+          pullRequests: [createPullRequest()],
+          pullRequestsLoading: true,
+          pullRequestsInitialLoading: false,
+        })
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(componentProps.list?.items).toEqual([partialLoadItem]);
+    expect(componentProps.list?.pullRequests).toEqual([createPullRequest()]);
+    expect(componentProps.list?.loading).toBe(true);
+  });
+
+  it("keeps loaded Inbox content visible during explicit refresh", async () => {
+    let resolveRefresh!: (value: {
+      items: AssignedWorkItem[];
+      nextCursor: null;
+    }) => void;
+    let requestCount = 0;
+    const listPage = vi.fn(() => {
+      requestCount += 1;
+      if (requestCount === 1) {
+        return Promise.resolve({ items: [partialLoadItem], nextCursor: null });
+      }
+      return new Promise<{ items: AssignedWorkItem[]; nextCursor: null }>(
+        (resolve) => {
+          resolveRefresh = resolve;
+        }
+      );
+    });
+
+    await act(async () => {
+      root.render(createElement(TeamInboxView, { dataSource: { listPage } }));
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(componentProps.list?.items).toEqual([partialLoadItem]);
+
+    await act(async () => {
+      const onRefresh = componentProps.list?.onRefresh as
+        | (() => void)
+        | undefined;
+      onRefresh?.();
+      await Promise.resolve();
+    });
+
+    expect(componentProps.list?.items).toEqual([partialLoadItem]);
+    expect(componentProps.list?.loading).toBe(true);
+
+    await act(async () => {
+      resolveRefresh({ items: [partialLoadItem], nextCursor: null });
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+  });
+
+  it("holds the first pull-request snapshot until Inbox loading finishes", async () => {
+    let resolveInbox!: (value: {
+      items: AssignedWorkItem[];
+      nextCursor: null;
+    }) => void;
+    const listPage = vi.fn(
+      () =>
+        new Promise<{ items: AssignedWorkItem[]; nextCursor: null }>(
+          (resolve) => {
+            resolveInbox = resolve;
+          }
+        )
+    );
+
+    await act(async () => {
+      root.render(
+        createElement(TeamInboxView, {
+          dataSource: { listPage },
+          pullRequests: [createPullRequest()],
+          pullRequestsLoading: false,
+        })
+      );
+      await Promise.resolve();
+    });
+
+    expect(componentProps.list?.items).toEqual([]);
+    expect(componentProps.list?.pullRequests).toEqual([]);
+    expect(componentProps.list?.loading).toBe(true);
+
+    await act(async () => {
+      resolveInbox({ items: [partialLoadItem], nextCursor: null });
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(componentProps.list?.items).toEqual([partialLoadItem]);
+    expect(componentProps.list?.pullRequests).toEqual([createPullRequest()]);
+    expect(componentProps.list?.loading).toBe(false);
+  });
+
   it("paints a retained list snapshot before revalidation settles", () => {
     const listPage = vi.fn(() => new Promise<never>(() => undefined));
 
