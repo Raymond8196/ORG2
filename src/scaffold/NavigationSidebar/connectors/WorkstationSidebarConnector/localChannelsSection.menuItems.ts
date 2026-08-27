@@ -15,7 +15,6 @@ import ArchiveRestore from "@hugeicons/core-free-icons/ArchiveArrowUpIcon";
 import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
 import Hash from "@hugeicons/core-free-icons/HashtagIcon";
 import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import type { MouseEvent } from "react";
 

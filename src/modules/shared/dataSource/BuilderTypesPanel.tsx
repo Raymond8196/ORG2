@@ -1,4 +1,4 @@
-import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";

@@ -10,7 +10,7 @@
  */
 import Button from "@/src/components/Button";
 import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft02Icon";
 import Search from "@hugeicons/core-free-icons/Search01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";

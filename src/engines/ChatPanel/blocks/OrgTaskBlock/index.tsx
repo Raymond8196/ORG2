@@ -7,7 +7,7 @@
  * consistency with the Kanban board.
  */
 import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
+import CircleDot from "@hugeicons/core-free-icons/CircleDotIcon";
 import PlayCircle from "@hugeicons/core-free-icons/PlayCircleIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";

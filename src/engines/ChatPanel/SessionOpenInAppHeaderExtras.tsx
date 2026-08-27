@@ -1,4 +1,4 @@
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";

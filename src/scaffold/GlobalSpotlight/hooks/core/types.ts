@@ -3,7 +3,7 @@
  *
  * Centralized type definitions for the new reducer-based spotlight system.
  */
-import { type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 import type { ComponentType } from "react";
 
 import type { LanguagePreference } from "@src/i18n";

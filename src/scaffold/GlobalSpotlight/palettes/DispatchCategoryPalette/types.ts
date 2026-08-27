@@ -1,3 +1,5 @@
+import type { IconSvgElement } from "@hugeicons/react";
+
 import type { CliAgentType } from "@src/api/tauri/rpc/schemas/validation";
 import type { DispatchCategory } from "@src/api/tauri/session";
 import type { CliLaunchMode } from "@src/store/session";
@@ -58,7 +60,7 @@ export interface DispatchCategoryPaletteProps extends BasePaletteProps {
    */
   titleLabel?: string;
   /** Icon paired with `titleLabel`. Defaults to no icon when omitted. */
-  titleIcon?: React.ComponentType<Record<string, unknown>>;
+  titleIcon?: React.ComponentType<Record<string, unknown>> | IconSvgElement;
   /** Optional placeholder override for contextual picker copy. */
   placeholderLabel?: string;
 }

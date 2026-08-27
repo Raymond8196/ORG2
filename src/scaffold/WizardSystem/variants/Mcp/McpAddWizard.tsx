@@ -10,7 +10,7 @@
 import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
 import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
 import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import Globe from "@hugeicons/core-free-icons/GlobeIcon";
+import Globe from "@hugeicons/core-free-icons/InternetIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";

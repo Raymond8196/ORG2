@@ -6,7 +6,7 @@
  * the user pin or unpin them. Renders via a React portal so it's never
  * clipped by the parent's overflow.
  */
-import ArrowUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import ArrowUp from "@hugeicons/core-free-icons/ArrowUp02Icon";
 import Pin from "@hugeicons/core-free-icons/PinIcon";
 import PinOff from "@hugeicons/core-free-icons/PinOffIcon";
 import Search from "@hugeicons/core-free-icons/Search01Icon";

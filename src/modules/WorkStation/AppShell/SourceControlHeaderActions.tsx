@@ -1,4 +1,4 @@
-import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
+import CircleDot from "@hugeicons/core-free-icons/CircleDotIcon";
 import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
 import History from "@hugeicons/core-free-icons/WorkHistoryIcon";
 import { HugeiconsIcon } from "@hugeicons/react";

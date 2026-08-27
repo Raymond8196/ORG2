@@ -15,7 +15,7 @@
  * <LanguageSelector size="small" appearance="ghost" />
  * ```
  */
-import Globe from "@hugeicons/core-free-icons/GlobeIcon";
+import Globe from "@hugeicons/core-free-icons/InternetIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom } from "jotai";
 import { useCallback, useMemo } from "react";

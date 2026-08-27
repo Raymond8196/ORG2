@@ -2,9 +2,9 @@
  * WorkstationItemRow — one actionable rail row (open tab, terminal session,
  * Review, PR link, …) with its optional diff stats, CI status and close button.
  */
-import ArrowUpRight from "@hugeicons/core-free-icons/ArrowUpRight01Icon";
 import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import ArrowUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 
 import AnyIcon from "@src/components/AnyIcon";
 import DiffStatsBadge from "@src/components/DiffStatsBadge";

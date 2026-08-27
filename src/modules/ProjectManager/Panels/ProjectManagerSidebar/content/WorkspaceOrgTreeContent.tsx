@@ -6,10 +6,10 @@
  *
  * Extracted from OrgSidebarTreeContent.tsx to reduce file size.
  */
-import ListChecks from "@hugeicons/core-free-icons/CheckListIcon";
+import Box from "@hugeicons/core-free-icons/BoxIcon";
 import Layers from "@hugeicons/core-free-icons/Layers01Icon";
+import ListChecks from "@hugeicons/core-free-icons/ListChecksIcon";
 import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
-import Box from "@hugeicons/core-free-icons/PackageIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
@@ -114,7 +114,7 @@ export const WorkspaceOrgTreeContent: React.FC<WorkspaceOrgTreeContentProps> =
               icon: (
                 <HugeiconsIcon
                   icon={MoreHorizontal}
-                  data-icon="more-horizontal"
+                  data-icon="ellipsis"
                   size={ROW_ICON_SIZE}
                   strokeWidth={ROW_ICON_STROKE}
                 />

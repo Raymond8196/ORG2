@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
-import ClipboardList from "@hugeicons/core-free-icons/CheckListIcon";
-import Globe from "@hugeicons/core-free-icons/GlobeIcon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import ClipboardList from "@hugeicons/core-free-icons/ClipboardListIcon";
+import Globe from "@hugeicons/core-free-icons/InternetIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { act, createElement } from "react";
 import { type Root, createRoot } from "react-dom/client";

@@ -1,5 +1,4 @@
 import TerminalSquare from "@hugeicons/core-free-icons/SquareTerminalIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import { useAtomValue } from "jotai";
 import { useMemo } from "react";

@@ -1,6 +1,5 @@
 import GitFork from "@hugeicons/core-free-icons/GitForkIcon";
 import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";

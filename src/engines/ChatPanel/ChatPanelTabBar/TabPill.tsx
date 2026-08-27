@@ -7,19 +7,19 @@
  */
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import ListChecks from "@hugeicons/core-free-icons/CheckListIcon";
-import ListTodo from "@hugeicons/core-free-icons/CheckListIcon";
-import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
+import Box from "@hugeicons/core-free-icons/BoxIcon";
+import CircleDot from "@hugeicons/core-free-icons/CircleDotIcon";
+import LayoutGrid from "@hugeicons/core-free-icons/DashboardSquare01Icon";
 import Gauge from "@hugeicons/core-free-icons/GaugeIcon";
 import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
 import Hash from "@hugeicons/core-free-icons/HashtagIcon";
 import Inbox from "@hugeicons/core-free-icons/InboxIcon";
 import Info from "@hugeicons/core-free-icons/InformationCircleIcon";
-import LayoutGrid from "@hugeicons/core-free-icons/LayoutGridIcon";
 import Columns3 from "@hugeicons/core-free-icons/LayoutThreeColumnIcon";
+import ListChecks from "@hugeicons/core-free-icons/ListChecksIcon";
+import ListTodo from "@hugeicons/core-free-icons/ListTodoIcon";
 import Lock from "@hugeicons/core-free-icons/LockIcon";
 import MessageSquarePlus from "@hugeicons/core-free-icons/MessageAdd01Icon";
-import Box from "@hugeicons/core-free-icons/PackageIcon";
 import Settings2 from "@hugeicons/core-free-icons/Settings02Icon";
 import TerminalSquare from "@hugeicons/core-free-icons/SquareTerminalIcon";
 import { HugeiconsIcon } from "@hugeicons/react";

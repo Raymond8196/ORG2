@@ -10,7 +10,7 @@
  */
 import Calendar from "@hugeicons/core-free-icons/Calendar01Icon";
 import Download from "@hugeicons/core-free-icons/Download01Icon";
-import GitCommitHorizontal from "@hugeicons/core-free-icons/GitCommitIcon";
+import GitCommitHorizontal from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
 import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import Star from "@hugeicons/core-free-icons/StarIcon";
 import User from "@hugeicons/core-free-icons/UserIcon";

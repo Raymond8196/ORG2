@@ -9,14 +9,14 @@ vi.mock("../config", () => ({
 
 // Hugeicons ships one module per glyph, so each deep import is mocked
 // individually — there is no single package module to intercept the way
-// `vi.mock("lucide-react")` used to do.
-vi.mock("@hugeicons/core-free-icons/ChromeIcon", () => ({
+// a single package module could be intercepted.
+vi.mock("@hugeicons/core-free-icons/InternetIcon", () => ({
   default: "ChromiumIcon",
 }));
 vi.mock("@hugeicons/core-free-icons/CodeIcon", () => ({
   default: "CodeIcon",
 }));
-vi.mock("@hugeicons/core-free-icons/CheckListIcon", () => ({
+vi.mock("@hugeicons/core-free-icons/ListTodoIcon", () => ({
   default: "ListTodoIcon",
 }));
 

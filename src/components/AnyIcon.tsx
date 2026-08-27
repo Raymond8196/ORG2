@@ -26,12 +26,18 @@
  */
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { type ComponentType } from "react";
-import { isValidElementType } from "react-is";
 
-export type AnyIconSource =
-  | string
+/**
+ * An icon that is either hugeicons glyph data or a component (brand mark,
+ * hand-authored SVG). Use this for registry values and props that can hold
+ * both shapes — and render them through `AnyIcon`, never `HugeiconsIcon`
+ * directly (a component crashes its internal `[...icon]` spread).
+ */
+export type RenderableIcon =
   | IconSvgElement
   | ComponentType<Record<string, unknown>>;
+
+export type AnyIconSource = string | RenderableIcon;
 
 export interface AnyIconProps {
   icon: AnyIconSource | undefined | null;
@@ -43,6 +49,22 @@ export interface AnyIconProps {
 
 const warned = new Set<string>();
 
+/**
+ * True for anything React can render as a component.
+ *
+ * `typeof v === "function"` is NOT enough: `forwardRef()` and `memo()` return
+ * OBJECTS carrying a `$$typeof` symbol, and `config/agentIcons.tsx` wraps every
+ * brand mark in `forwardRef` before casting it to IconSvgElement. Testing only
+ * for a function silently dropped every model icon in the sidebar.
+ *
+ * `react-is` exports exactly this predicate but ships no type declarations, so
+ * it is inlined rather than adding a `@types/react-is` dependency for one check.
+ */
+function isComponentLike(value: unknown): boolean {
+  if (typeof value === "function") return true;
+  return typeof value === "object" && value !== null && "$$typeof" in value;
+}
+
 const AnyIcon: React.FC<AnyIconProps> = ({
   icon,
   size,
@@ -50,12 +72,20 @@ const AnyIcon: React.FC<AnyIconProps> = ({
   className,
   ...rest
 }) => {
+  // An empty string is how several call sites (notably the spotlight item
+  // model) spell "no icon". Treat it as absent rather than as an icon-font
+  // class name, which would render an empty <i> that still takes layout space
+  // and knocks the row's alignment out.
+  // `""` is deliberate ("no icon here"), so it is silent; a missing icon is a
+  // mistake worth surfacing.
+  if (icon === "") return null;
+
   if (icon === undefined || icon === null) {
     if (process.env.NODE_ENV !== "production") {
       const key = String(rest["data-icon"] ?? "unknown");
       if (!warned.has(key)) {
         warned.add(key);
-        // eslint-disable-next-line no-console
+
         console.warn(
           `[AnyIcon] no icon resolved (data-icon="${key}"). Rendering nothing ` +
             `instead of throwing. Check the registry or prop feeding this site.`
@@ -84,10 +114,6 @@ const AnyIcon: React.FC<AnyIconProps> = ({
         size={size}
         strokeWidth={strokeWidth}
         className={className}
-        // Dynamic icons have no name to stamp, but the attribute still has to
-        // be present for the global `svg[data-icon] { display: block }` rule
-        // that keeps icons out of inline flow (see index.scss).
-        data-icon=""
         {...rest}
       />
     );
@@ -98,7 +124,7 @@ const AnyIcon: React.FC<AnyIconProps> = ({
   // `memo()` return OBJECTS, and `config/agentIcons.tsx` wraps every brand mark
   // in `forwardRef` before casting it to IconSvgElement. Testing for a function
   // silently dropped every model icon in the sidebar.
-  if (isValidElementType(icon)) {
+  if (isComponentLike(icon)) {
     return React.createElement(icon as ComponentType<Record<string, unknown>>, {
       size,
       strokeWidth,
@@ -107,17 +133,9 @@ const AnyIcon: React.FC<AnyIconProps> = ({
     });
   }
 
-  {
-    if (process.env.NODE_ENV !== "production") {
-      // eslint-disable-next-line no-console
-      console.warn(
-        "[AnyIcon] icon is neither glyph data nor a component",
-        icon
-      );
-    }
-    return null;
+  if (process.env.NODE_ENV !== "production") {
+    console.warn("[AnyIcon] icon is neither glyph data nor a component", icon);
   }
-
   return null;
 };
 

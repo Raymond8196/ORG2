@@ -19,7 +19,7 @@
  * <ModelIcon modelName="claude-3-sonnet" />
  * ```
  */
-import Box from "@hugeicons/core-free-icons/PackageIcon";
+import Box from "@hugeicons/core-free-icons/BoxIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo } from "react";
 

@@ -5,8 +5,7 @@
  * the shared {@link AppSwitcherChip} view. Use these directly at call sites —
  * they hide the data hook plumbing behind a zero-prop component.
  */
-import Monitor from "@hugeicons/core-free-icons/ComputerIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
+import Monitor from "@hugeicons/core-free-icons/MonitorIcon";
 import { useAtomValue } from "jotai";
 import React, { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";

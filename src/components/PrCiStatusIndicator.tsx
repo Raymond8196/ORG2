@@ -1,11 +1,11 @@
 import X from "@hugeicons/core-free-icons/Cancel01Icon";
 import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
 import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleDashed from "@hugeicons/core-free-icons/CircleIcon";
+import CircleDashed from "@hugeicons/core-free-icons/CircleDashedIcon";
 import CircleSlash from "@hugeicons/core-free-icons/CircleSlashIcon";
-import LoaderCircle from "@hugeicons/core-free-icons/Loading03Icon";
+import Ellipsis from "@hugeicons/core-free-icons/EllipsisIcon";
+import LoaderCircle from "@hugeicons/core-free-icons/LoaderCircleIcon";
 import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
-import Ellipsis from "@hugeicons/core-free-icons/MoreHorizontalIcon";
 import Check from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";

@@ -5,7 +5,6 @@
  * Extracted from `useExplorerActions` so the Source Control sidebar module
  * can be reused outside the Code Editor (e.g. Control Tower peek).
  */
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 

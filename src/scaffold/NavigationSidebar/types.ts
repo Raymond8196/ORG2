@@ -4,7 +4,7 @@
  * Centralized type definitions for the unified sidebar system.
  * All sidebar components should use these types for consistency.
  */
-import { type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 import type { MouseEvent, ReactNode, Ref } from "react";
 
 // ============================================

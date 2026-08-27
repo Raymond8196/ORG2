@@ -12,7 +12,7 @@
  */
 import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
 import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import CornerDownRight from "@hugeicons/core-free-icons/ArrowTurnDownIcon";
+import CornerDownRight from "@hugeicons/core-free-icons/CornerDownRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { forwardRef, useCallback } from "react";

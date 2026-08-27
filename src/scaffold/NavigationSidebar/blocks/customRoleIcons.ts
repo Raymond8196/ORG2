@@ -4,7 +4,7 @@
  * Stored as a string id (`CustomRoleIconId`) in user data so the
  * persisted shape doesn't carry a component reference. Every visual
  * surface that needs to render the icon (presence pill, dropdown menu,
- * Settings → My Role list, role editor) resolves the lucide component
+ * Settings → My Role list, role editor) resolves the glyph
  * through `resolveCustomRoleIcon`.
  */
 import Book from "@hugeicons/core-free-icons/Book01Icon";
@@ -19,7 +19,7 @@ import Rocket from "@hugeicons/core-free-icons/RocketIcon";
 import Shield from "@hugeicons/core-free-icons/Shield01Icon";
 import Sparkles from "@hugeicons/core-free-icons/SparklesIcon";
 import User from "@hugeicons/core-free-icons/UserIcon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 
 import type { CustomRoleIconId } from "@src/types/userPresence";
 

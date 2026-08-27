@@ -8,7 +8,6 @@
  * Uses useSelectedFile hook for single source of truth - selectedFilePath
  * comes from active editor tab, not from props.
  */
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 

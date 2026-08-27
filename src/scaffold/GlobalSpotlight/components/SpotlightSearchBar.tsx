@@ -214,7 +214,10 @@ export const SpotlightSearchBar: React.FC<SpotlightSearchBarProps> = ({
             aria-label={t("common:actions.clearSearch")}
             onClick={handleResetSearch}
           >
-            {React.createElement(ICONS.close, { size: 14 })}
+            {React.createElement(HugeiconsIcon, {
+              icon: ICONS.close,
+              size: 14,
+            })}
           </button>
         )}
 

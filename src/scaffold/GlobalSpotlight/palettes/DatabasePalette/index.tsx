@@ -8,7 +8,6 @@ import Database from "@hugeicons/core-free-icons/DatabaseIcon";
 import FileText from "@hugeicons/core-free-icons/File02Icon";
 import FolderSearch from "@hugeicons/core-free-icons/FolderSearchIcon";
 import Link from "@hugeicons/core-free-icons/Link01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { homeDir } from "@tauri-apps/api/path";
 import { open } from "@tauri-apps/plugin-dialog";
 import React, { useCallback, useMemo, useState } from "react";
@@ -213,12 +212,7 @@ export const DatabasePalette: React.FC<DatabasePaletteProps> = ({
         items={items}
         placeholder={placeholder}
         inputVariant="simple"
-        inputIcon={
-          Database as React.ComponentType<{
-            size?: number;
-            className?: string;
-          }>
-        }
+        inputIcon={Database}
         isLoading={isLoading}
         containerHeight={180}
         hintSlot={errorDisplay}

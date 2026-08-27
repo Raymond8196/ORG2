@@ -8,8 +8,8 @@
  * - Reload button
  * - Loading indicator
  */
-import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import ArrowRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft02Icon";
+import ArrowRight from "@hugeicons/core-free-icons/ArrowRight02Icon";
 import Camera from "@hugeicons/core-free-icons/Camera01Icon";
 import X from "@hugeicons/core-free-icons/Cancel01Icon";
 import Code from "@hugeicons/core-free-icons/CodeIcon";

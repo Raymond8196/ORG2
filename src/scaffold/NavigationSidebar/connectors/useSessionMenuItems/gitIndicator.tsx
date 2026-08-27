@@ -3,7 +3,7 @@ import GitPullRequestClosed from "@hugeicons/core-free-icons/GitPullRequestClose
 import GitPullRequestDraft from "@hugeicons/core-free-icons/GitPullRequestDraftIcon";
 import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
 import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 import type { ReactNode } from "react";
 
 import AnyIcon from "@src/components/AnyIcon";

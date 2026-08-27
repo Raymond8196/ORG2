@@ -1,6 +1,6 @@
 /** Hover-card presentation owned by the WorkStation issues panel. */
 import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
+import CircleDot from "@hugeicons/core-free-icons/CircleDotIcon";
 import Clock from "@hugeicons/core-free-icons/Clock01Icon";
 import MessageSquare from "@hugeicons/core-free-icons/Message01Icon";
 import Tags from "@hugeicons/core-free-icons/TagsIcon";

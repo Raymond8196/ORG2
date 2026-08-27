@@ -1,5 +1,5 @@
 import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
+import CircleDot from "@hugeicons/core-free-icons/CircleDotIcon";
 import CircleSlash from "@hugeicons/core-free-icons/CircleSlashIcon";
 import Copy from "@hugeicons/core-free-icons/Copy01Icon";
 import GitMerge from "@hugeicons/core-free-icons/GitMergeIcon";

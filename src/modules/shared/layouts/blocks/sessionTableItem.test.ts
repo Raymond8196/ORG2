@@ -165,7 +165,7 @@ describe("mapKanbanTaskToSessionTableItem", () => {
     });
 
     expect(isValidElement(item.agentIcon)).toBe(true);
-    if (!isValidElement(item.agentIcon)) {
+    if (!isValidElement<{ icon?: unknown }>(item.agentIcon)) {
       throw new Error("missing agent icon");
     }
     // The icon renders through AnyIcon, so the glyph is a prop rather

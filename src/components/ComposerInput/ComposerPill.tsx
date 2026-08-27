@@ -11,14 +11,14 @@
  */
 import AtSign from "@hugeicons/core-free-icons/AtIcon";
 import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import ListChecks from "@hugeicons/core-free-icons/CheckListIcon";
 import Code from "@hugeicons/core-free-icons/CodeIcon";
 import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
 import MousePointer2 from "@hugeicons/core-free-icons/Cursor02Icon";
 import FolderKanban from "@hugeicons/core-free-icons/FolderKanbanIcon";
 import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import Globe from "@hugeicons/core-free-icons/GlobeIcon";
+import Globe from "@hugeicons/core-free-icons/InternetIcon";
 import Link from "@hugeicons/core-free-icons/Link01Icon";
+import ListChecks from "@hugeicons/core-free-icons/ListChecksIcon";
 import SquareMousePointer from "@hugeicons/core-free-icons/SquareMousePointerIcon";
 import Toolbox from "@hugeicons/core-free-icons/ToolboxIcon";
 import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";

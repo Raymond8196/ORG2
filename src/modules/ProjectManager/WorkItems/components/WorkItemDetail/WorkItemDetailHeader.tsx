@@ -1,9 +1,9 @@
-import ArrowDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
-import ListChecks from "@hugeicons/core-free-icons/CheckListIcon";
+import ArrowDown from "@hugeicons/core-free-icons/ArrowDown02Icon";
+import ArrowUp from "@hugeicons/core-free-icons/ArrowUp02Icon";
+import Box from "@hugeicons/core-free-icons/BoxIcon";
 import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
 import Info from "@hugeicons/core-free-icons/InformationCircleIcon";
-import Box from "@hugeicons/core-free-icons/PackageIcon";
+import ListChecks from "@hugeicons/core-free-icons/ListChecksIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { type ReactNode, useRef, useState } from "react";
 

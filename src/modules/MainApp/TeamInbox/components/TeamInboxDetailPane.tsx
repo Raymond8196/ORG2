@@ -4,8 +4,8 @@
  * Right pane of the Team Inbox split view: a selected pull request, the
  * load/empty placeholders, or the detail for the selected Inbox row.
  */
-import Chrome from "@hugeicons/core-free-icons/ChromeIcon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import Chrome from "@hugeicons/core-free-icons/InternetIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React from "react";

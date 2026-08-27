@@ -5,7 +5,6 @@
  * Manages modal stages, form hooks, and provides shared add workspace menu items.
  */
 import FolderPlus from "@hugeicons/core-free-icons/FolderAddIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 

@@ -11,9 +11,9 @@
  *
  * Used by ChatHistory and Inbox feed panels.
  */
-import ArrowDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
-import Crosshair from "@hugeicons/core-free-icons/Target01Icon";
+import ArrowDown from "@hugeicons/core-free-icons/ArrowDown02Icon";
+import ArrowUp from "@hugeicons/core-free-icons/ArrowUp02Icon";
+import Crosshair from "@hugeicons/core-free-icons/CrosshairIcon";
 import CheckCheck from "@hugeicons/core-free-icons/TickDouble01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";

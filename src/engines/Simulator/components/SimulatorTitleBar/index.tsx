@@ -8,7 +8,7 @@
  *
  * Used by: SimulatorContentArea, SimulatorFrame, ResizableSplitView
  */
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 

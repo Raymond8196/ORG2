@@ -6,8 +6,8 @@
  * - Sync Changes button (when have commits to sync)
  * - Commit button with dropdown for advanced actions
  */
-import ArrowDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import ArrowDown from "@hugeicons/core-free-icons/ArrowDown02Icon";
+import ArrowUp from "@hugeicons/core-free-icons/ArrowUp02Icon";
 import CloudUpload from "@hugeicons/core-free-icons/CloudUploadIcon";
 import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import Check from "@hugeicons/core-free-icons/Tick01Icon";

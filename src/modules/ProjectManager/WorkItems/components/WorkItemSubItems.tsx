@@ -2,7 +2,7 @@ import Plus from "@hugeicons/core-free-icons/Add01Icon";
 import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
 import X from "@hugeicons/core-free-icons/Cancel01Icon";
 import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
+import CircleDot from "@hugeicons/core-free-icons/CircleDotIcon";
 import CircleSlash2 from "@hugeicons/core-free-icons/CircleSlashTwoIcon";
 import ListTree from "@hugeicons/core-free-icons/HierarchyFilesIcon";
 import { HugeiconsIcon } from "@hugeicons/react";

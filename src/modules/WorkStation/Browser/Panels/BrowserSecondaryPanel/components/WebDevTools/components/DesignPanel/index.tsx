@@ -105,11 +105,7 @@ export const DesignPanel: React.FC<DesignPanelProps> = memo(
         }`}
         title={isLinked ? "Unlink values" : "Link values"}
       >
-        <HugeiconsIcon
-          icon={MoreHorizontal}
-          data-icon="more-horizontal"
-          size={12}
-        />
+        <HugeiconsIcon icon={MoreHorizontal} data-icon="ellipsis" size={12} />
       </button>
     );
 
@@ -278,7 +274,7 @@ export const DesignPanel: React.FC<DesignPanelProps> = memo(
                 >
                   <HugeiconsIcon
                     icon={MoreHorizontal}
-                    data-icon="more-horizontal"
+                    data-icon="ellipsis"
                     size={12}
                   />
                 </button>

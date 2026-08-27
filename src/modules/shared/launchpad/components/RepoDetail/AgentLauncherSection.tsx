@@ -6,7 +6,7 @@
  * Uses creatorDefaultModelSelectionAtom for model persistence (same as main session creator).
  */
 import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import Grip from "@hugeicons/core-free-icons/Drag01Icon";
+import Grip from "@hugeicons/core-free-icons/GripIcon";
 import Sparkles from "@hugeicons/core-free-icons/SparklesIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useSetAtom } from "jotai";

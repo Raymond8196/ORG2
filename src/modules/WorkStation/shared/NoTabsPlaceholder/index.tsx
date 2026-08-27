@@ -11,13 +11,13 @@ import MessageCircle from "@hugeicons/core-free-icons/BubbleChatIcon";
 import ChartNoAxesGantt from "@hugeicons/core-free-icons/ChartNoAxesGanttIcon";
 import Code from "@hugeicons/core-free-icons/CodeIcon";
 import Database from "@hugeicons/core-free-icons/DatabaseIcon";
-import Globe from "@hugeicons/core-free-icons/GlobeIcon";
+import Globe from "@hugeicons/core-free-icons/InternetIcon";
 import Layout from "@hugeicons/core-free-icons/Layout01Icon";
 import MessagesSquare from "@hugeicons/core-free-icons/MessageMultiple01Icon";
 import Power from "@hugeicons/core-free-icons/PowerServiceIcon";
 import Phone from "@hugeicons/core-free-icons/SmartPhone01Icon";
 import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import AnyIcon from "@src/components/AnyIcon";

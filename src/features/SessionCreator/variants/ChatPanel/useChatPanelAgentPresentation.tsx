@@ -1,4 +1,3 @@
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useSetAtom } from "jotai";
 import React, { useCallback, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -6,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import type { ModelType } from "@src/api/tauri/rpc/schemas/validation";
 import type { DispatchCategory } from "@src/api/tauri/session";
 import type { CliAgentType } from "@src/api/types/keys";
+import AnyIcon from "@src/components/AnyIcon";
 import ModelIcon from "@src/components/ModelIcon";
 import { resolveAgentIcon } from "@src/config/agentIcons";
 import { isRegionSanctioned } from "@src/config/providerRegions";
@@ -121,7 +121,7 @@ export function useChatPanelAgentPresentation({
         return <ModelIcon agentType="cursor_cli" size={size} />;
       }
       if (dispatchCategory === "human_session") {
-        return React.createElement(HugeiconsIcon, {
+        return React.createElement(AnyIcon, {
           icon: resolveAgentIcon(resolvedAgentIconId || "clipboard-list"),
           size,
           className: "text-text-1",
@@ -129,7 +129,7 @@ export function useChatPanelAgentPresentation({
       }
       if (isRustMode) {
         const iconId = resolvedAgentIconId || "code";
-        return React.createElement(HugeiconsIcon, {
+        return React.createElement(AnyIcon, {
           icon: resolveAgentIcon(iconId),
           size,
           className: hasAgentSelected ? "text-text-1" : "text-primary-6",

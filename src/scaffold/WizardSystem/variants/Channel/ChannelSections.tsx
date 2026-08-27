@@ -1,8 +1,7 @@
-import Globe from "@hugeicons/core-free-icons/GlobeIcon";
+import Globe from "@hugeicons/core-free-icons/InternetIcon";
 import KeyRound from "@hugeicons/core-free-icons/Key02Icon";
 import Keyboard from "@hugeicons/core-free-icons/KeyboardIcon";
 import ScanSearch from "@hugeicons/core-free-icons/SearchAreaIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 

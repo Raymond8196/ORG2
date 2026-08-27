@@ -8,7 +8,7 @@
  * All interaction state is passed in via props so each consumer can wire its
  * own submission / selection logic.
  */
-import PenLine from "@hugeicons/core-free-icons/PenTool01Icon";
+import PenLine from "@hugeicons/core-free-icons/PenLineIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useTranslation } from "react-i18next";
 

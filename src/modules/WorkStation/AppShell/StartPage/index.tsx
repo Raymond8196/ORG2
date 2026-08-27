@@ -9,7 +9,7 @@
  * Rendered as a compact quick-action list: icon, label, and keyboard hint.
  */
 import InfinityIcon from "@hugeicons/core-free-icons/Infinity01Icon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";

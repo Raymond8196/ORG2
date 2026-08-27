@@ -12,12 +12,12 @@
  */
 import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
 import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleDashed from "@hugeicons/core-free-icons/CircleIcon";
+import CircleDashed from "@hugeicons/core-free-icons/CircleDashedIcon";
 import CircleSlash from "@hugeicons/core-free-icons/CircleSlashIcon";
 import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
 import Loader from "@hugeicons/core-free-icons/Loading01Icon";
 import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";

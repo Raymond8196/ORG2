@@ -29,7 +29,6 @@ import {
   arrayMove,
   horizontalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
   useLayoutEffect,

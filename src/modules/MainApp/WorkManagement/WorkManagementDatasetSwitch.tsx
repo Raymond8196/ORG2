@@ -1,7 +1,7 @@
-import ListTodo from "@hugeicons/core-free-icons/CheckListIcon";
-import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
+import Boxes from "@hugeicons/core-free-icons/BoxesIcon";
+import CircleDot from "@hugeicons/core-free-icons/CircleDotIcon";
 import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import Boxes from "@hugeicons/core-free-icons/Package01Icon";
+import ListTodo from "@hugeicons/core-free-icons/ListTodoIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";

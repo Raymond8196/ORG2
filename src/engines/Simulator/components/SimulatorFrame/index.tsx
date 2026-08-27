@@ -11,7 +11,7 @@
  * - Static content (Kanban, Changes) - direct use
  * - Dynamic content (Follow) - building block for SimulatorContentArea
  */
-import { type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import type { StationMode } from "@src/store/ui/simulatorAtom";

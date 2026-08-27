@@ -8,7 +8,6 @@
  * - @ - Symbols
  */
 import File from "@hugeicons/core-free-icons/File01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 

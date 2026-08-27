@@ -18,7 +18,7 @@
  *     actions={EDITOR_QUICK_ACTIONS}
  *   />
  */
-import Box from "@hugeicons/core-free-icons/PackageIcon";
+import Box from "@hugeicons/core-free-icons/BoxIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AnimatePresence, motion } from "framer-motion";
 import React, { memo, useCallback, useEffect } from "react";

@@ -8,9 +8,8 @@
  *   Uses `fill-3` hover because it sits inside a `fill-2` container.
  * - "footer": always visible, same token-button styling.
  */
-import ArrowUpRight from "@hugeicons/core-free-icons/ArrowUpRight01Icon";
 import CircleArrowOutUpRight from "@hugeicons/core-free-icons/CircleArrowOutUpRightIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
+import ArrowUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import React, { memo } from "react";
 
 import AnyIcon from "@src/components/AnyIcon";

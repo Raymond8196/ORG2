@@ -1,4 +1,3 @@
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import AnyIcon from "@src/components/AnyIcon";

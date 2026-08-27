@@ -1,5 +1,4 @@
 import ListChevronsUpDown from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { isValidElement } from "react";
 import { describe, expect, it, vi } from "vitest";
 
@@ -46,7 +45,7 @@ describe("getProjectContextMenuItems", () => {
     const moreProperties = items.find((item) => item.id === "more-properties");
 
     expect(isValidElement(moreProperties?.icon)).toBe(true);
-    if (!isValidElement(moreProperties?.icon)) return;
+    if (!isValidElement<{ icon?: unknown }>(moreProperties?.icon)) return;
     expect(moreProperties.icon.props.icon).toBe(ListChevronsUpDown);
   });
 });

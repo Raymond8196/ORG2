@@ -4,7 +4,7 @@
  * Orchestrates all spotlight functionality with the new reducer architecture.
  * This is the single hook that components use to access all spotlight features.
  */
-import { type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import {
   type ComponentType,

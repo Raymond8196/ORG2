@@ -1,5 +1,5 @@
-import Grip from "@hugeicons/core-free-icons/Drag01Icon";
 import FolderGit2 from "@hugeicons/core-free-icons/FolderGitTwoIcon";
+import Grip from "@hugeicons/core-free-icons/GripIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";

@@ -33,7 +33,7 @@
  * />
  * ```
  */
-import ArrowRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ArrowRight from "@hugeicons/core-free-icons/ArrowRight02Icon";
 import Info from "@hugeicons/core-free-icons/InformationCircleIcon";
 import Check from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";

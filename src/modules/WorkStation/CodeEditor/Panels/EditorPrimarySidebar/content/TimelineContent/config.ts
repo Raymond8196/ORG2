@@ -5,7 +5,6 @@ import Diff from "@hugeicons/core-free-icons/DiffIcon";
 import GitCommit from "@hugeicons/core-free-icons/GitCommitIcon";
 import Pin from "@hugeicons/core-free-icons/PinIcon";
 import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 
 // Icon configuration
 export const TIMELINE_ICONS = {

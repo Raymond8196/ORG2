@@ -436,7 +436,7 @@ export const WorkspacePalette: React.FC<WorkspacePaletteProps> = ({
         className="flex items-center justify-center rounded-md p-1 text-danger-6 transition-colors hover:bg-danger-6/10"
         title={t("actions.removeFromOrgii", "Remove from ORGII")}
       >
-        <ICONS.removeRepo size={14} />
+        <HugeiconsIcon icon={ICONS.removeRepo} size={14} />
       </button>
     ),
     [handleRemoveRepo, t]

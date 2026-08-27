@@ -19,7 +19,7 @@ import ScrollText from "@hugeicons/core-free-icons/ScrollIcon";
 import SquareChevronRight from "@hugeicons/core-free-icons/SquareChevronRightIcon";
 import FlaskConical from "@hugeicons/core-free-icons/TestTubeIcon";
 import TriangleAlert from "@hugeicons/core-free-icons/TriangleAlertIcon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 import type { ReactNode } from "react";
 import React, { memo, useCallback } from "react";
 

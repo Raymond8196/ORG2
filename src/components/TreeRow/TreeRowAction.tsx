@@ -17,7 +17,7 @@
  *   primary — bg-fill-3 on hover, icon turns text-primary-6
  *   success — bg-success-1 on hover, icon stays text-success-6 (static)
  */
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import AnyIcon from "@src/components/AnyIcon";

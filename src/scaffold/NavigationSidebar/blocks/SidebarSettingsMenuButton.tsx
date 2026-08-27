@@ -1,13 +1,13 @@
 import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
 import MessageCircle from "@hugeicons/core-free-icons/BubbleChatIcon";
 import Circle from "@hugeicons/core-free-icons/CircleIcon";
-import Sun from "@hugeicons/core-free-icons/Sun01Icon";
 import MousePointer2 from "@hugeicons/core-free-icons/Cursor02Icon";
 import Gauge from "@hugeicons/core-free-icons/GaugeIcon";
 import HelpCircle from "@hugeicons/core-free-icons/HelpCircleIcon";
 import Laptop from "@hugeicons/core-free-icons/LaptopIcon";
 import LogIn from "@hugeicons/core-free-icons/Login01Icon";
 import Settings from "@hugeicons/core-free-icons/Settings01Icon";
+import Sun from "@hugeicons/core-free-icons/Sun01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, {

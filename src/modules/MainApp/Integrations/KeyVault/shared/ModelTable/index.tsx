@@ -22,7 +22,7 @@
 import Plus from "@hugeicons/core-free-icons/Add01Icon";
 import ListChevronsDownUp from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
 import ListChevronsUpDown from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
-import List from "@hugeicons/core-free-icons/ListViewIcon";
+import List from "@hugeicons/core-free-icons/ListIcon";
 import TableProperties from "@hugeicons/core-free-icons/TablePropertiesIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";

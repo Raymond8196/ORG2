@@ -9,7 +9,6 @@
  *
  * Callers are responsible for positioning and portal-rendering this panel.
  */
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 

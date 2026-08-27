@@ -12,7 +12,7 @@
  * without a plan from leaving a hover hot-zone that points at nothing.
  */
 import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import ListTodo from "@hugeicons/core-free-icons/CheckListIcon";
+import ListTodo from "@hugeicons/core-free-icons/ListTodoIcon";
 import Lock from "@hugeicons/core-free-icons/LockIcon";
 import Check from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";

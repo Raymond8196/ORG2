@@ -16,7 +16,7 @@ import {
   HEADER_ICON_SIZE,
 } from "@/src/modules/WorkStation/shared/tokens";
 import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import CopyPlus from "@hugeicons/core-free-icons/Copy01Icon";
+import CopyPlus from "@hugeicons/core-free-icons/CopyPlusIcon";
 import ListChevronsDownUp from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
 import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
 import CircleMinus from "@hugeicons/core-free-icons/MinusSignCircleIcon";

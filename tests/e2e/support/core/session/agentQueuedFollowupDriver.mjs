@@ -1809,7 +1809,7 @@ async function readCurrentModeFromMenu(label) {
     '[data-testid="composer-skills-tools-button"]';
   // The slash menu renders mode entries as flat ModeRow items (the Mode
   // flyout trigger was removed in ddcbdbdd); the current mode row carries
-  // a lucide Check icon via DropdownSelectedCheck.
+  // a Check glyph via DropdownSelectedCheck.
   const modeOptionSelector = '[data-testid^="slash-command-mode-option-"]';
   const readCurrentModeRow = `
     const rows = Array.from(document.querySelectorAll('[data-testid^="slash-command-mode-option-"]'));

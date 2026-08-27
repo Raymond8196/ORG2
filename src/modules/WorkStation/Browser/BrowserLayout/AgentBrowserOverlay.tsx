@@ -6,10 +6,10 @@
  * and the overlay displays a live screencast stream. On "Take Over",
  * Chrome window is shown on-screen for direct user interaction.
  */
-import Monitor from "@hugeicons/core-free-icons/ComputerIcon";
+import Monitor from "@hugeicons/core-free-icons/MonitorIcon";
 import Pause from "@hugeicons/core-free-icons/PauseIcon";
 import Play from "@hugeicons/core-free-icons/PlayIcon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";

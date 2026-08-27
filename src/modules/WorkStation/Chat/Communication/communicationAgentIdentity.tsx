@@ -1,5 +1,5 @@
 import Bot from "@hugeicons/core-free-icons/BotIcon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";

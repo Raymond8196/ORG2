@@ -228,7 +228,7 @@ export function ManagedIssueActionsCell({
           icon={
             <HugeiconsIcon
               icon={MoreHorizontal}
-              data-icon="more-horizontal"
+              data-icon="ellipsis"
               size={13}
             />
           }

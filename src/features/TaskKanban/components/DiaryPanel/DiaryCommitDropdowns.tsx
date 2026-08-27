@@ -3,7 +3,7 @@
  * Extracted to keep DiaryPanel/index.tsx under the 600-line limit.
  */
 import Clock from "@hugeicons/core-free-icons/Clock01Icon";
-import GitCommitHorizontal from "@hugeicons/core-free-icons/GitCommitIcon";
+import GitCommitHorizontal from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
 import Hash from "@hugeicons/core-free-icons/HashtagIcon";
 import UserRound from "@hugeicons/core-free-icons/UserCircleIcon";
 import { HugeiconsIcon } from "@hugeicons/react";

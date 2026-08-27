@@ -5,7 +5,7 @@
  * channels (Git, Work Items, Promotions). Selecting one shows the
  * classic message feed in the right pane via `ChannelFeedPanel`.
  */
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 

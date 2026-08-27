@@ -7,7 +7,6 @@
  *
  * Note: Replay bar is now handled by SimulatorContentArea component.
  */
-import { HugeiconsIcon } from "@hugeicons/react";
 import {
   type FC,
   Fragment,

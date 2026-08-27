@@ -7,7 +7,7 @@
  * reviewer management lives in the sidebar's Reviewers section.
  */
 import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
+import CircleDot from "@hugeicons/core-free-icons/CircleDotIcon";
 import GitMerge from "@hugeicons/core-free-icons/GitMergeIcon";
 import GitPullRequestClosed from "@hugeicons/core-free-icons/GitPullRequestClosedIcon";
 import GitPullRequestDraft from "@hugeicons/core-free-icons/GitPullRequestDraftIcon";

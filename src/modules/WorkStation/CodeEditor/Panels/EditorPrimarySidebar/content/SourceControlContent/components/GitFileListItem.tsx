@@ -9,7 +9,6 @@ import Plus from "@hugeicons/core-free-icons/Add01Icon";
 import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
 import Check from "@hugeicons/core-free-icons/Tick01Icon";
 import Undo2 from "@hugeicons/core-free-icons/Undo02Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 

@@ -1,5 +1,5 @@
 import Layout from "@hugeicons/core-free-icons/Layout01Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   Suspense,

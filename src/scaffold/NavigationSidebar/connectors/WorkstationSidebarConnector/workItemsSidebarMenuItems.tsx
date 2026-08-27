@@ -1,9 +1,8 @@
-import ListTodo from "@hugeicons/core-free-icons/CheckListIcon";
-import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
+import Boxes from "@hugeicons/core-free-icons/BoxesIcon";
+import CircleDot from "@hugeicons/core-free-icons/CircleDotIcon";
 import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import Boxes from "@hugeicons/core-free-icons/Package01Icon";
+import ListTodo from "@hugeicons/core-free-icons/ListTodoIcon";
 import PlayCircle from "@hugeicons/core-free-icons/PlayCircleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
 import {

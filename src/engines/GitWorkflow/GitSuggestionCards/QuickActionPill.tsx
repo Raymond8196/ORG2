@@ -11,7 +11,7 @@
  *  - With `button` prop: outer shell is a non-interactive div; the
  *    provided button node is rendered on the right, always visible.
  */
-import ArrowRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ArrowRight from "@hugeicons/core-free-icons/ArrowRight02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 

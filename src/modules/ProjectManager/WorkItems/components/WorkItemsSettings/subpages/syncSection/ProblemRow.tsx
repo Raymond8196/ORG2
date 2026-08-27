@@ -28,7 +28,7 @@ import { SECTION_ACTION_GAP_CLASSES } from "@src/modules/shared/layouts/SectionL
 import { formatRelativeTime } from "@src/util/time/formatRelativeTime";
 
 /**
- * Render a 16-px lucide icon for an entity type. Mapping is fixed
+ * Render a 16-px glyph for an entity type. Mapping is fixed
  * (entity → icon); changing it should require a follow-up design
  * pass since the icons set the visual hierarchy of the panel.
  *

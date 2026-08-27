@@ -7,7 +7,7 @@
  *
  * Standard: no border, wide padding (px-6), solid panel background.
  */
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import AnyIcon from "@src/components/AnyIcon";

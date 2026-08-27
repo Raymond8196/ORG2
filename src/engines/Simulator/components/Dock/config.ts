@@ -4,13 +4,13 @@
  * Centralized configuration for the simulator dock apps.
  */
 import MessageCircle from "@hugeicons/core-free-icons/BubbleChatIcon";
-import ListTodo from "@hugeicons/core-free-icons/CheckListIcon";
-import Chromium from "@hugeicons/core-free-icons/ChromeIcon";
 import Code from "@hugeicons/core-free-icons/CodeIcon";
 import Infinity from "@hugeicons/core-free-icons/Infinity01Icon";
+import Chromium from "@hugeicons/core-free-icons/InternetIcon";
 import Layout from "@hugeicons/core-free-icons/Layout01Icon";
+import ListTodo from "@hugeicons/core-free-icons/ListTodoIcon";
 import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 
 export interface DockApp {
   id: string;

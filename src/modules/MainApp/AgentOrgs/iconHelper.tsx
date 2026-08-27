@@ -5,16 +5,16 @@
  */
 import AppWindow from "@hugeicons/core-free-icons/AppWindowIcon";
 import ArrowLeftRight from "@hugeicons/core-free-icons/ArrowLeftRightIcon";
-import ArrowRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import ListTodo from "@hugeicons/core-free-icons/CheckListIcon";
+import ArrowRight from "@hugeicons/core-free-icons/ArrowRight02Icon";
 import CheckCircle from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
 import Clock from "@hugeicons/core-free-icons/Clock01Icon";
 import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import FileEdit from "@hugeicons/core-free-icons/Edit04Icon";
 import FileText from "@hugeicons/core-free-icons/File02Icon";
-import FileEdit from "@hugeicons/core-free-icons/FileEditIcon";
 import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
 import GitMerge from "@hugeicons/core-free-icons/GitMergeIcon";
 import Inbox from "@hugeicons/core-free-icons/InboxIcon";
+import ListTodo from "@hugeicons/core-free-icons/ListTodoIcon";
 import PlayCircle from "@hugeicons/core-free-icons/PlayCircleIcon";
 import Play from "@hugeicons/core-free-icons/PlayIcon";
 import Repeat from "@hugeicons/core-free-icons/RepeatIcon";
@@ -22,11 +22,11 @@ import Milestone from "@hugeicons/core-free-icons/RoadLocation01Icon";
 import Rocket from "@hugeicons/core-free-icons/RocketIcon";
 import Settings2 from "@hugeicons/core-free-icons/Settings02Icon";
 import Split from "@hugeicons/core-free-icons/SplitIcon";
-import Type from "@hugeicons/core-free-icons/TextIcon";
 import Timer from "@hugeicons/core-free-icons/Timer01Icon";
+import Type from "@hugeicons/core-free-icons/TypeIcon";
 import Eye from "@hugeicons/core-free-icons/ViewIcon";
 import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 import React from "react";
 
 import AnyIcon from "@src/components/AnyIcon";

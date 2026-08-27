@@ -1,9 +1,9 @@
 /**
  * Ports status-bar menu: workspace vs external listening ports.
  */
-import Chromium from "@hugeicons/core-free-icons/ChromeIcon";
 import Copy from "@hugeicons/core-free-icons/Copy01Icon";
 import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import Chromium from "@hugeicons/core-free-icons/InternetIcon";
 import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
 import Search from "@hugeicons/core-free-icons/Search01Icon";
 import Unplug from "@hugeicons/core-free-icons/UnplugIcon";
@@ -133,7 +133,7 @@ const PortRow: React.FC<PortRowProps> = memo(
           >
             <HugeiconsIcon
               icon={Chromium}
-              data-icon="chromium"
+              data-icon="chrome"
               size={MENU_ICON_SIZE}
               aria-hidden
             />

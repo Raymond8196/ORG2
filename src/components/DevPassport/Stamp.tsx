@@ -12,8 +12,8 @@ import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
 import Cpu from "@hugeicons/core-free-icons/CpuIcon";
 import Database from "@hugeicons/core-free-icons/DatabaseIcon";
 import Zap from "@hugeicons/core-free-icons/FlashIcon";
-import Globe from "@hugeicons/core-free-icons/GlobeIcon";
 import Hexagon from "@hugeicons/core-free-icons/HexagonIcon";
+import Globe from "@hugeicons/core-free-icons/InternetIcon";
 import Key from "@hugeicons/core-free-icons/Key01Icon";
 import Laptop from "@hugeicons/core-free-icons/LaptopIcon";
 import Layers from "@hugeicons/core-free-icons/Layers01Icon";
@@ -25,7 +25,7 @@ import Server from "@hugeicons/core-free-icons/ServerStack01Icon";
 import Shield from "@hugeicons/core-free-icons/Shield01Icon";
 import Wifi from "@hugeicons/core-free-icons/Wifi01Icon";
 import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
+import { type IconSvgElement } from "@hugeicons/react";
 import React from "react";
 
 import AnyIcon from "@src/components/AnyIcon";
@@ -147,7 +147,7 @@ const getShapeConfig = (
 };
 
 const Stamp: React.FC<StampProps> = ({ data }) => {
-  const iconMap: Record<string, React.ElementType> = {
+  const iconMap: Record<string, IconSvgElement> = {
     code: Code,
     bug: Bug,
     coffee: Coffee,

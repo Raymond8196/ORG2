@@ -1,6 +1,5 @@
 import Plus from "@hugeicons/core-free-icons/Add01Icon";
 import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 
 import {
   SESSION_GROUP_LABELS,

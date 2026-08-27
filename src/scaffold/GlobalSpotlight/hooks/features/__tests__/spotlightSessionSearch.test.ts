@@ -1,5 +1,4 @@
 import Users from "@hugeicons/core-free-icons/UserMultipleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { resolveAgentIcon } from "@src/config/agentIcons";

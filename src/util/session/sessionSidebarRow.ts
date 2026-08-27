@@ -1,8 +1,7 @@
 /**
  * Thin row-rendering adapters over the canonical session display projection.
  */
-import { type IconSvgElement } from "@hugeicons/react";
-
+import { type RenderableIcon } from "@src/components/AnyIcon";
 import { resolveAgentIcon } from "@src/config/agentIcons";
 import {
   type SessionDisplayMetadataSource,
@@ -30,12 +29,13 @@ type SessionRowIconInput =
  */
 export function resolveSessionRowIcon(
   input: SessionRowIconInput
-): IconSvgElement {
+): RenderableIcon {
   return resolveSessionRowIconPresentation(input).Icon;
 }
 
 export interface SessionRowIconPresentation {
-  Icon: IconSvgElement;
+  /** Glyph data or a brand component — render via `AnyIcon`. */
+  Icon: RenderableIcon;
   isMonochromeBrandIcon: boolean;
 }
 

@@ -59,7 +59,7 @@ const SymbolTreeNode: React.FC<SymbolTreeNodeProps> = memo(
             )}
           </div>
         ) : (
-          <Icon size={16} className={colorClass} />
+          <HugeiconsIcon icon={Icon} size={16} className={colorClass} />
         ),
       }),
       [symbol, hasChildren, colorClass, Icon]
@@ -73,7 +73,11 @@ const SymbolTreeNode: React.FC<SymbolTreeNodeProps> = memo(
         onClick={handleClick}
       >
         {hasChildren && (
-          <Icon size={14} className={`flex-shrink-0 ${colorClass}`} />
+          <HugeiconsIcon
+            icon={Icon}
+            size={14}
+            className={`flex-shrink-0 ${colorClass}`}
+          />
         )}
         <span className="ml-auto flex-shrink-0 text-[11px] text-text-4">
           {symbol.line}

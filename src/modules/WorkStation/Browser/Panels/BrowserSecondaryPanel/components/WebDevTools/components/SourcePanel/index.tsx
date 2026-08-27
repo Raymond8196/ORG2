@@ -13,7 +13,7 @@ import FileCode from "@hugeicons/core-free-icons/FileScriptIcon";
 import Layers from "@hugeicons/core-free-icons/Layers01Icon";
 import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
 import Search from "@hugeicons/core-free-icons/Search01Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";

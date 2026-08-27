@@ -8,7 +8,7 @@
  * native webviews that bypass X-Frame-Options restrictions.
  */
 import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";

@@ -3,7 +3,7 @@ import Building2 from "@hugeicons/core-free-icons/Building02Icon";
 import Clock from "@hugeicons/core-free-icons/Clock01Icon";
 import Flag from "@hugeicons/core-free-icons/Flag01Icon";
 import FolderKanban from "@hugeicons/core-free-icons/FolderKanbanIcon";
-import GitCommitVertical from "@hugeicons/core-free-icons/GitCommitIcon";
+import GitCommitVertical from "@hugeicons/core-free-icons/GitCommitVerticalIcon";
 import Tags from "@hugeicons/core-free-icons/TagsIcon";
 import User from "@hugeicons/core-free-icons/UserIcon";
 import { HugeiconsIcon } from "@hugeicons/react";

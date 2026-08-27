@@ -6,28 +6,28 @@
  */
 import { useSortable } from "@dnd-kit/sortable";
 import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import Box from "@hugeicons/core-free-icons/BoxIcon";
 import MessageCircle from "@hugeicons/core-free-icons/BubbleChatIcon";
 import Building2 from "@hugeicons/core-free-icons/Building02Icon";
-import ListChecks from "@hugeicons/core-free-icons/CheckListIcon";
-import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
+import CircleDot from "@hugeicons/core-free-icons/CircleDotIcon";
 import Code from "@hugeicons/core-free-icons/CodeIcon";
 import Code2 from "@hugeicons/core-free-icons/CodeIcon";
 import Palette from "@hugeicons/core-free-icons/ColorPickerIcon";
 import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import LayoutGrid from "@hugeicons/core-free-icons/DashboardSquare01Icon";
 import FileDiff from "@hugeicons/core-free-icons/FileDiffIcon";
 import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
-import GitCommitHorizontal from "@hugeicons/core-free-icons/GitCommitIcon";
+import GitCommitHorizontal from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
 import GitMerge from "@hugeicons/core-free-icons/GitMergeIcon";
 import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import Globe from "@hugeicons/core-free-icons/GlobeIcon";
 import Infinity from "@hugeicons/core-free-icons/Infinity01Icon";
+import Globe from "@hugeicons/core-free-icons/InternetIcon";
 import Layout from "@hugeicons/core-free-icons/Layout01Icon";
-import LayoutGrid from "@hugeicons/core-free-icons/LayoutGridIcon";
-import LayoutList from "@hugeicons/core-free-icons/ListViewIcon";
+import LayoutList from "@hugeicons/core-free-icons/LayoutListIcon";
+import ListChecks from "@hugeicons/core-free-icons/ListChecksIcon";
 import Lock from "@hugeicons/core-free-icons/LockIcon";
 import MessageSquare from "@hugeicons/core-free-icons/Message01Icon";
 import MoveHorizontal from "@hugeicons/core-free-icons/MoveLeftIcon";
-import Box from "@hugeicons/core-free-icons/PackageIcon";
 import Package from "@hugeicons/core-free-icons/PackageIcon";
 import Radar from "@hugeicons/core-free-icons/Radar01Icon";
 import Search from "@hugeicons/core-free-icons/Search01Icon";
@@ -249,6 +249,9 @@ export const SortableTab: React.FC<SortableTabProps> = memo(
           return (
             <AnyIcon
               icon={icon}
+              data-icon={tab.icon
+                .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
+                .toLowerCase()}
               size={16}
               strokeWidth={1.75}
               className={isActive ? "text-text-1" : "text-text-2"}

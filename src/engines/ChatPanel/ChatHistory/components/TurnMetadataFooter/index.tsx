@@ -1,6 +1,6 @@
-import Chromium from "@hugeicons/core-free-icons/ChromeIcon";
-import GitCommitHorizontal from "@hugeicons/core-free-icons/GitCommitIcon";
+import GitCommitHorizontal from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
 import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import Chromium from "@hugeicons/core-free-icons/InternetIcon";
 import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useSetAtom } from "jotai";
@@ -330,7 +330,7 @@ const TurnMetadataFooter: React.FC<TurnMetadataFooterProps> = memo(
                     </span>
                     <HugeiconsIcon
                       icon={Chromium}
-                      data-icon="chromium"
+                      data-icon="chrome"
                       size={14}
                       strokeWidth={1.75}
                       className="shrink-0 text-text-3"
@@ -393,7 +393,7 @@ const TurnMetadataFooter: React.FC<TurnMetadataFooterProps> = memo(
                 >
                   <HugeiconsIcon
                     icon={MoreHorizontal}
-                    data-icon="more-horizontal"
+                    data-icon="ellipsis"
                     size={16}
                     className="shrink-0"
                   />

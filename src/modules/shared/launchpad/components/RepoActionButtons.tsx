@@ -1,7 +1,7 @@
-import Expand from "@hugeicons/core-free-icons/ArrowExpand01Icon";
 import MessageCircle from "@hugeicons/core-free-icons/BubbleChatIcon";
 import X from "@hugeicons/core-free-icons/Cancel01Icon";
 import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import Expand from "@hugeicons/core-free-icons/ExpandIcon";
 import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
 import FolderSearch from "@hugeicons/core-free-icons/FolderSearchIcon";
 import { HugeiconsIcon } from "@hugeicons/react";

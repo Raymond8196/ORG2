@@ -1,4 +1,4 @@
-import Boxes from "@hugeicons/core-free-icons/Package01Icon";
+import Boxes from "@hugeicons/core-free-icons/BoxesIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -8,7 +8,7 @@ import ModelIcon, { type IconProvider } from "@src/components/ModelIcon";
 /**
  * Visual metadata for the four source buckets the Usage dashboard scopes to —
  * each reuses a shared brand icon (`org2` = the ORGII mark). Unknown buckets
- * fall back to a neutral lucide glyph.
+ * fall back to a neutral glyph.
  */
 const BUCKET_ICON_PROVIDER: Partial<Record<UsageBucket, IconProvider>> = {
   claude: "claude",

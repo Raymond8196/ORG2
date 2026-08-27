@@ -6,7 +6,6 @@
  */
 import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
 import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 
 import {
   LANGUAGE_NAMES,

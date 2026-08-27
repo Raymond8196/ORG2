@@ -6,7 +6,6 @@
  * the palette (no navigation to Agent Station).
  */
 import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 
 import type { SessionLaunchSuccessInfo } from "@src/engines/SessionCore/hooks/session/useSessionCreator/useSessionLaunch/types";

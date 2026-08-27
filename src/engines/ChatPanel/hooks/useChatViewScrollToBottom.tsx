@@ -6,7 +6,7 @@
  * away from the latest turn (used by the external-history overlay and, via
  * `scrollNav`, ChatFloatingComposer).
  */
-import ArrowDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowDown from "@hugeicons/core-free-icons/ArrowDown02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";

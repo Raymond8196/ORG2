@@ -10,7 +10,7 @@
 import Plus from "@hugeicons/core-free-icons/Add01Icon";
 import X from "@hugeicons/core-free-icons/Cancel01Icon";
 import Palette from "@hugeicons/core-free-icons/ColorPickerIcon";
-import GripVertical from "@hugeicons/core-free-icons/Drag01Icon";
+import GripVertical from "@hugeicons/core-free-icons/GripVerticalIcon";
 import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useRef, useState } from "react";

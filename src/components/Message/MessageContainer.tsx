@@ -1,6 +1,6 @@
 /**
  * Toast renderer for `Message` — split out of `index.tsx` so framer-motion
- * (and lucide icons) load lazily on the first toast instead of sitting in
+ * (and its icons) load lazily on the first toast instead of sitting in
  * the startup graph of every module that imports the `Message` API.
  */
 import AlertTriangle from "@hugeicons/core-free-icons/Alert01Icon";

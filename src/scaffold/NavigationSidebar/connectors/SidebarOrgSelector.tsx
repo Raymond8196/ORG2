@@ -1,5 +1,5 @@
 import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import CircleCheck from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import CircleCheck from "@hugeicons/core-free-icons/CircleCheckIcon";
 import LogIn from "@hugeicons/core-free-icons/Login01Icon";
 import Settings2 from "@hugeicons/core-free-icons/Settings02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";

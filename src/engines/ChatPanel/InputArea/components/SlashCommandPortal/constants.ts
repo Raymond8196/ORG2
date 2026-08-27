@@ -3,9 +3,7 @@ import Cpu from "@hugeicons/core-free-icons/CpuIcon";
 import Zap from "@hugeicons/core-free-icons/FlashIcon";
 import Toolbox from "@hugeicons/core-free-icons/ToolboxIcon";
 import Wrench from "@hugeicons/core-free-icons/Wrench01Icon";
-import { type IconSvgElement } from "@hugeicons/react";
-import { HugeiconsIcon } from "@hugeicons/react";
-import React from "react";
+import type { IconSvgElement } from "@hugeicons/react";
 
 import type { SlashItemCategory } from "@src/types/extensions";
 

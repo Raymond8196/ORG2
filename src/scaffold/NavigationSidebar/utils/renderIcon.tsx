@@ -4,7 +4,6 @@
  * Renders a SidebarIcon (hugeicons glyph data or string icon name)
  * with optional favicon and loading spinner support.
  */
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import AnyIcon from "@src/components/AnyIcon";
@@ -58,7 +57,7 @@ export function renderSidebarIcon(
   }
 
   // Hugeicons glyph data, rendered through the shared wrapper.
-  // strokeWidth is pinned to 2 to preserve the weight lucide rendered at;
+  // strokeWidth is pinned to 2 to preserve the weight lucide rendered at (kept deliberately);
   // hugeicons path data defaults to 1.5.
   const animationClass = isLoading ? "animate-spin" : "";
   const combinedClassName = `${className} ${animationClass}`.trim();

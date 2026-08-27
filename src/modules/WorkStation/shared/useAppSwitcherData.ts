@@ -9,7 +9,7 @@
  * layer.
  */
 import Code from "@hugeicons/core-free-icons/CodeIcon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";

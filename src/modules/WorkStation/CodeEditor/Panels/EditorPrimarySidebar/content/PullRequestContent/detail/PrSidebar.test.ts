@@ -163,7 +163,7 @@ describe("PrSidebar", () => {
       rowByLogin.get("carol")?.querySelector('[data-icon="check"]')
     ).not.toBeNull();
     expect(
-      rowByLogin.get("dave")?.querySelector('[data-icon="circle-x"]')
+      rowByLogin.get("dave")?.querySelector('[data-icon="xcircle"]')
     ).not.toBeNull();
     expect(
       rowByLogin.get("alice")?.querySelector(".bg-warning-6")

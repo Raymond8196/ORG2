@@ -8,7 +8,7 @@ import Maximize2 from "@hugeicons/core-free-icons/ArrowExpand01Icon";
 import ArrowLeftRight from "@hugeicons/core-free-icons/ArrowLeftRightIcon";
 import X from "@hugeicons/core-free-icons/Cancel01Icon";
 import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 
 import { AppType } from "./appTypes";
 

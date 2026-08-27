@@ -1,4 +1,4 @@
-import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft02Icon";
 import Clock3 from "@hugeicons/core-free-icons/Clock03Icon";
 import Check from "@hugeicons/core-free-icons/Tick01Icon";
 import UserRoundCheck from "@hugeicons/core-free-icons/UserRoundCheckIcon";

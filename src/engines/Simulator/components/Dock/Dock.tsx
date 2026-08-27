@@ -4,7 +4,7 @@
  * Pure macOS-style dock bar — Glass pill with app icons.
  * Used by both My Station and Agent Station with different app lists.
  */
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import AnyIcon from "@src/components/AnyIcon";

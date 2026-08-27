@@ -8,11 +8,11 @@
  * Button shows primary-6 selected state while dropdown is open.
  * Dropdown is right-aligned to the trigger button.
  */
-import ArrowDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import ArrowDown from "@hugeicons/core-free-icons/ArrowDown02Icon";
+import ArrowUp from "@hugeicons/core-free-icons/ArrowUp02Icon";
 import ArrowUpDown from "@hugeicons/core-free-icons/ArrowUpDownIcon";
 import CloudUpload from "@hugeicons/core-free-icons/CloudUploadIcon";
-import Ellipsis from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import Ellipsis from "@hugeicons/core-free-icons/EllipsisIcon";
 import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect } from "react";

@@ -13,9 +13,9 @@
  * otherwise stacked under the flow title above the description. Reuses
  * commit-history + issue-timeline formatting throughout.
  */
-import ListChecks from "@hugeicons/core-free-icons/CheckListIcon";
 import FileDiff from "@hugeicons/core-free-icons/FileDiffIcon";
-import GitCommitHorizontal from "@hugeicons/core-free-icons/GitCommitIcon";
+import GitCommitHorizontal from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
+import ListChecks from "@hugeicons/core-free-icons/ListChecksIcon";
 import MessagesSquare from "@hugeicons/core-free-icons/MessageMultiple01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom } from "jotai";

@@ -4,7 +4,7 @@
  * Shared types for the unified event rendering system.
  * Supports multiple contexts: chat, simulator, trajectory
  */
-import { type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 import type React from "react";
 
 // ============================================

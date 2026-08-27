@@ -5,8 +5,8 @@
  * dropdown is open. Each row is `#N` + preview text + start/end clock range.
  */
 import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import ClockArrowDown from "@hugeicons/core-free-icons/Time02Icon";
-import ClockArrowUp from "@hugeicons/core-free-icons/Time02Icon";
+import ClockArrowDown from "@hugeicons/core-free-icons/ClockArrowDownIcon";
+import ClockArrowUp from "@hugeicons/core-free-icons/ClockArrowUpIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import React, { memo, useMemo, useRef } from "react";

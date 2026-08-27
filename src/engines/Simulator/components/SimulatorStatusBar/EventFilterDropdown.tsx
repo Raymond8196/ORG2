@@ -1,4 +1,4 @@
-import ListFilter from "@hugeicons/core-free-icons/FilterIcon";
+import ListFilter from "@hugeicons/core-free-icons/ListFilterIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom } from "jotai";
 import React, { useCallback, useMemo } from "react";

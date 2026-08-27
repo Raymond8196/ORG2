@@ -1,4 +1,4 @@
-import CaseSensitive from "@hugeicons/core-free-icons/TextIcon";
+import CaseSensitive from "@hugeicons/core-free-icons/CaseSensitiveIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useTranslation } from "react-i18next";
 

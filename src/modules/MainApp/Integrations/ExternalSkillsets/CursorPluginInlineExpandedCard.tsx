@@ -1,6 +1,6 @@
 import Clipboard from "@hugeicons/core-free-icons/ClipboardIcon";
 import Layers from "@hugeicons/core-free-icons/Layers01Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import Check from "@hugeicons/core-free-icons/Tick01Icon";
 import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";

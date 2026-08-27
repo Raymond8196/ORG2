@@ -1,6 +1,6 @@
-import Chromium from "@hugeicons/core-free-icons/ChromeIcon";
 import Copy from "@hugeicons/core-free-icons/Copy01Icon";
 import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import Chromium from "@hugeicons/core-free-icons/InternetIcon";
 import PanelsTopLeft from "@hugeicons/core-free-icons/PanelsTopLeftIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { openUrl } from "@tauri-apps/plugin-opener";
@@ -151,7 +151,7 @@ const LinkHoverCardContent: React.FC<LinkHoverCardContentProps> = ({
           icon={
             <HugeiconsIcon
               icon={Chromium}
-              data-icon="chromium"
+              data-icon="chrome"
               size={13}
               strokeWidth={1.75}
             />

@@ -1,4 +1,3 @@
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";

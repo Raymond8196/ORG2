@@ -1,6 +1,6 @@
 import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
 import ChevronUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
-import Ellipsis from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import Ellipsis from "@hugeicons/core-free-icons/EllipsisIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { Children, forwardRef, useId, useState } from "react";
 

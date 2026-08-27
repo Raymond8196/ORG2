@@ -1,5 +1,5 @@
-import Chromium from "@hugeicons/core-free-icons/ChromeIcon";
-import Globe from "@hugeicons/core-free-icons/GlobeIcon";
+import Chromium from "@hugeicons/core-free-icons/InternetIcon";
+import Globe from "@hugeicons/core-free-icons/InternetIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -92,7 +92,7 @@ const WebsiteCard: React.FC<WebsiteCardProps> = ({ card }) => {
       >
         <HugeiconsIcon
           icon={Chromium}
-          data-icon="chromium"
+          data-icon="chrome"
           size={14}
           strokeWidth={1.75}
           aria-hidden

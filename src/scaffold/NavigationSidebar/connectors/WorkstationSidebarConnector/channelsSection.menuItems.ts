@@ -18,7 +18,7 @@ import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
 import Hash from "@hugeicons/core-free-icons/HashtagIcon";
 import Lock from "@hugeicons/core-free-icons/LockIcon";
 import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import type { MouseEvent } from "react";
 

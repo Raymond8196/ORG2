@@ -82,7 +82,7 @@ These apply repo-wide and are **not** captured per-row.
    fifty assertions across the unit suite plus four e2e selectors came to rely
    on it. `HugeiconsIcon` stamps nothing. Rather than delete those assertions,
    every static call site now carries `data-icon="<kebab-name>"`, applied by
-   `scripts/hugeicons/stamp-data-icon.mjs`. It is one attribute where lucide
+   a one-shot codemod (since removed). It is one attribute where lucide
    wrote two classes, so the rendered DOM is lighter than before.
 
    **Keep new call sites consistent**: when you add an icon that a test needs to
@@ -106,482 +106,465 @@ These apply repo-wide and are **not** captured per-row.
    `config/agentIcons.tsx`, `components/PanelIcons.tsx`,
    `NavigationSidebar/utils/renderIcon.tsx`) and all of its consumers change.
 
-## Deliberate design overrides
+## Current bindings
 
-Chosen by eye after seeing them rendered, overriding what the vendor alias
-table produced.
+Regenerated from the imports themselves, so it cannot drift from the code.
+Each row is the local name a call site uses and the hugeicons glyph it resolves
+to. Local names are inherited from lucide and deliberately kept — they are what
+`data-icon` is derived from, and what the tests assert on.
 
-| concept | lucide name | hugeicons | scope |
-|---|---|---|---:|
-| Branch | `GitBranch` | `WorkflowCircle05Icon` | 38 sites |
-| Refresh | `RefreshCw` | `Refresh04Icon` | 85 sites |
-| Maximize | `Maximize2`, `Maximize` | `ArrowExpand01Icon` | 14 sites |
-| Minimize | `Minimize2` | `ArrowShrink01Icon` | 7 sites |
-| Folder | `Folder` | `FolderClosedIcon` | 27 sites |
-| Sidebar filter | `ListFilter` | `FilterMailIcon` | 2 sites (sidebar only) |
-| New session | (was `Plus`) | `MessageAdd02Icon` | 1 site |
-| Composer send | (was `ArrowUp01Icon`) | `MoveUpIcon` | 1 site |
+Many bindings were changed by eye after seeing them rendered, overriding what
+the vendor alias table produced. The notable ones:
 
-Deliberately NOT swept with the above, to avoid collateral changes:
+- **Arrows vs chevrons.** Hugeicons aliases *both* `ChevronUp` and `ArrowUp`
+  onto `ArrowUp01Icon`, a single curved path with no shaft. 66 sites meaning
+  "arrow" were drawing carets. `Arrow*` now uses the `02` glyphs (real shaft);
+  `Chevron*` keeps the `01` glyphs.
+- **Collapsed aliases restored.** 45 mappings had several distinct lucide names
+  flattened onto one target while hugeicons shipped a same-named glyph —
+  `CircleDot` became a plain circle (the dot vanished), and `ListTodo` /
+  `ListChecks` / `ClipboardList` all became one `CheckListIcon`. Each now uses
+  its exact-name glyph.
+- **Corner/return direction.** `CornerDownLeft` and `CornerDownRight` both
+  mapped to a generic U-turn; the directional glyphs exist and are now used.
+- Branch, refresh, folder, browser, external-link, dashboard, edit, send and the
+  sidebar filter were all retargeted to specific requested glyphs.
 
-- `GitBranchPlus` / `GitBranchMinus` keep the git-branch family — they mean
-  add/remove-branch and the workflow mark has no compound variant.
-- `Plus` (83 sites) and `ArrowUp` (19 sites) keep their generic glyphs; only
-  the new-session entry and the composer send button were retargeted.
-- `Filter` / `FilterIcon` outside the sidebar (15 sites) keep `FilterIcon`.
-
-## Rows flagged REVIEW
-
-| lucide | uses | hugeicons | note |
-|---|---:|---|---|
-| `Chromium` | 7 | `ChromeIcon` | REVIEW: brand substitution, Chromium has no distinct glyph |
-| `ListChevronsUpDown` | 7 | `ListChevronsDownUpIcon` | REVIEW: only list-chevron variant; vertical order is inverted |
-| `ArrowRightLeft` | 4 | `ArrowLeftRightIcon` | REVIEW: arrow order differs from lucide |
-| `FileJson` | 1 | `FileCodeIcon` | REVIEW: no JSON-specific glyph in free set |
-| `PictureInPicture2` | 1 | `PictureInPicture01Icon` | REVIEW: no '02' variant exists |
-
-## Hand-port
-
-| lucide | uses | hugeicons | note |
-|---|---:|---|---|
-| `createLucideIcon` | 1 | `—` | custom icon factory - hand-port to a raw IconSvgElement array |
-
-Defined at `src/scaffold/GlobalSpotlight/hooks/features/spotlightActionDefinitions.navigation.ts:47`
-as `ALL_SESSIONS_SEARCH_ICON`. Port the path data into a raw `IconSvgElement`
-array — the same `[[tag, attrs], ...]` shape hugeicons uses.
-
-## Manual mappings (no vendor alias)
-
-| lucide | uses | hugeicons | note |
-|---|---:|---|---|
-| `Loader2` | 52 | `Loading03Icon` | vendor maps LoaderCircle->Loading03Icon; lucide renamed Loader2->LoaderCircle upstream |
-| `CheckCircle2` | 42 | `CheckmarkCircle01Icon` | vendor maps CircleCheck/CheckCircle here; lucide renamed CheckCircle2->CircleCheck |
-| `Code2` | 9 | `CodeIcon` | vendor maps Code and CodeXml both here |
-| `FolderGit2` | 8 | `FolderGitTwoIcon` | direct '2' analogue exists |
-| `Chromium` | 7 | `ChromeIcon` | REVIEW: brand substitution, Chromium has no distinct glyph |
-| `ListChevronsUpDown` | 7 | `ListChevronsDownUpIcon` | REVIEW: only list-chevron variant; vertical order is inverted |
-| `CircleHelp` | 5 | `HelpCircleIcon` | file exists; not aliased in barrel |
-| `ArrowRightLeft` | 4 | `ArrowLeftRightIcon` | REVIEW: arrow order differs from lucide |
-| `TerminalSquare` | 4 | `SquareTerminalIcon` | file exists; not aliased in barrel |
-| `Link2Off` | 3 | `Unlink02Icon` | consistent with Link2->Link02Icon numbering |
-| `BarChart3` | 2 | `BarChartIcon` | vendor maps BarChart and ChartBar both here |
-| `ArrowUpRightFromSquare` | 1 | `SquareArrowOutUpRightIcon` | file exists; not aliased in barrel |
-| `CircleSlash2` | 1 | `CircleSlashTwoIcon` | direct '2' analogue |
-| `Edit2` | 1 | `Edit02Icon` | direct numbered analogue |
-| `FileCode2` | 1 | `FileCodeIcon` | direct match |
-| `FileJson` | 1 | `FileCodeIcon` | REVIEW: no JSON-specific glyph in free set |
-| `FilePlus2` | 1 | `FileAddIcon` | vendor maps FilePlus->FileAddIcon |
-| `GanttChart` | 1 | `ChartGanttIcon` | exact semantic match |
-| `Globe2` | 1 | `Globe02Icon` | direct numbered analogue |
-| `MessageCircleQuestion` | 1 | `MessageCircleQuestionMarkIcon` | exact semantic match |
-| `PictureInPicture2` | 1 | `PictureInPicture01Icon` | REVIEW: no '02' variant exists |
-| `Wand2` | 1 | `MagicWand02Icon` | vendor maps Wand->MagicWand01Icon; '2' analogue |
-
-## Vendor-alias mappings
-
-Resolved from hugeicons' own barrel re-exports. Listed most-used first.
-
-| lucide | uses | hugeicons | note |
-|---|---:|---|---|
-| `X` | 101 | `Cancel01Icon` |  |
-| `ChevronRight` | 93 | `ArrowRight01Icon` |  |
-| `RefreshCw` | 87 | `RefreshIcon` |  |
-| `Plus` | 83 | `Add01Icon` |  |
-| `Check` | 77 | `Tick01Icon` |  |
-| `ChevronDown` | 70 | `ArrowDown01Icon` |  |
-| `Search` | 67 | `Search01Icon` |  |
-| `Trash2` | 55 | `Delete02Icon` |  |
-| `SquareArrowOutUpRight` | 43 | `SquareArrowOutUpRightIcon` |  |
-| `Copy` | 39 | `Copy01Icon` |  |
-| `GitBranch` | 38 | `GitBranchIcon` |  |
-| `Code` | 29 | `CodeIcon` |  |
-| `XCircle` | 29 | `CancelCircleIcon` |  |
-| `Circle` | 27 | `CircleIcon` |  |
-| `Folder` | 27 | `Folder01Icon` |  |
-| `Terminal` | 27 | `ComputerTerminal01Icon` |  |
-| `CircleDot` | 26 | `CircleIcon` |  |
-| `GitPullRequest` | 26 | `GitPullRequestIcon` |  |
-| `Globe` | 26 | `GlobeIcon` |  |
-| `Clock` | 23 | `Clock01Icon` |  |
-| `Pencil` | 23 | `Pen01Icon` |  |
-| `ChevronLeft` | 22 | `ArrowLeft01Icon` |  |
-| `Box` | 21 | `PackageIcon` |  |
-| `ChevronsUpDown` | 21 | `ArrowUpDownIcon` |  |
-| `ListChecks` | 21 | `CheckListIcon` |  |
-| `ArrowLeft` | 20 | `ArrowLeft01Icon` |  |
-| `MoreHorizontal` | 20 | `MoreHorizontalIcon` |  |
-| `User` | 20 | `UserIcon` |  |
-| `Users` | 20 | `UserMultipleIcon` |  |
-| `ArrowUp` | 19 | `ArrowUp01Icon` |  |
-| `Info` | 19 | `InformationCircleIcon` |  |
-| `ListTodo` | 19 | `CheckListIcon` |  |
-| `Lock` | 19 | `LockIcon` |  |
-| `Minus` | 19 | `MinusSignIcon` |  |
-| `Play` | 19 | `PlayIcon` |  |
-| `AlertCircle` | 18 | `AlertCircleIcon` |  |
-| `ChevronsDownUp` | 18 | `ChevronsDownUpIcon` |  |
-| `FolderOpen` | 18 | `FolderOpenIcon` |  |
-| `AlertTriangle` | 17 | `Alert01Icon` |  |
-| `ArrowRight` | 17 | `ArrowRight01Icon` |  |
-| `Sparkles` | 17 | `SparklesIcon` |  |
-| `Network` | 16 | `AiNetworkIcon` |  |
-| `Bot` | 15 | `BotIcon` |  |
-| `Cloud` | 15 | `CloudIcon` |  |
-| `Hash` | 15 | `HashtagIcon` |  |
-| `Infinity` | 15 | `Infinity01Icon` |  |
-| `MessageSquare` | 15 | `Message01Icon` |  |
-| `FileText` | 14 | `File02Icon` |  |
-| `GitMerge` | 14 | `GitMergeIcon` |  |
-| `Inbox` | 14 | `InboxIcon` |  |
-| `Layout` | 14 | `Layout01Icon` |  |
-| `MessageCircle` | 14 | `BubbleChatIcon` |  |
-| `RotateCcw` | 14 | `RotateLeft01Icon` |  |
-| `Settings` | 14 | `Settings01Icon` |  |
-| `ArrowDown` | 13 | `ArrowDown01Icon` |  |
-| `BookOpen` | 13 | `BookOpen01Icon` |  |
-| `Eye` | 13 | `ViewIcon` |  |
-| `Filter` | 13 | `FilterIcon` |  |
-| `Layers` | 13 | `Layers01Icon` |  |
-| `Maximize2` | 13 | `Maximize02Icon` |  |
-| `Calendar` | 11 | `Calendar01Icon` |  |
-| `Download` | 11 | `Download01Icon` |  |
-| `GitCommitHorizontal` | 11 | `GitCommitIcon` |  |
-| `Laptop` | 11 | `LaptopIcon` |  |
-| `List` | 11 | `ListViewIcon` |  |
-| `LogIn` | 11 | `Login01Icon` |  |
-| `Zap` | 11 | `FlashIcon` |  |
-| `ChevronUp` | 10 | `ArrowUp01Icon` |  |
-| `FileDiff` | 10 | `FileDiffIcon` |  |
-| `FolderKanban` | 10 | `FolderKanbanIcon` |  |
-| `History` | 10 | `WorkHistoryIcon` |  |
-| `Keyboard` | 10 | `KeyboardIcon` |  |
-| `Link2` | 10 | `Link02Icon` |  |
-| `ListChevronsDownUp` | 10 | `ListChevronsDownUpIcon` |  |
-| `MessagesSquare` | 10 | `MessageMultiple01Icon` |  |
-| `Archive` | 9 | `ArchiveIcon` |  |
-| `Brain` | 9 | `BrainIcon` |  |
-| `Chrome` | 9 | `ChromeIcon` |  |
-| `Database` | 9 | `DatabaseIcon` |  |
-| `KeyRound` | 9 | `Key02Icon` |  |
-| `ScanSearch` | 9 | `SearchAreaIcon` |  |
-| `CheckCircle` | 8 | `CheckmarkCircle01Icon` |  |
-| `Ellipsis` | 8 | `MoreHorizontalIcon` |  |
-| `GitFork` | 8 | `GitForkIcon` |  |
-| `GitPullRequestDraft` | 8 | `GitPullRequestDraftIcon` |  |
-| `Grip` | 8 | `Drag01Icon` |  |
-| `Monitor` | 8 | `ComputerIcon` |  |
-| `Square` | 8 | `SquareIcon` |  |
-| `Undo2` | 8 | `Undo02Icon` |  |
-| `Wrench` | 8 | `Wrench01Icon` |  |
-| `AtSign` | 7 | `AtIcon` |  |
-| `Braces` | 7 | `FirstBracketIcon` |  |
-| `CircleSlash` | 7 | `CircleSlashIcon` |  |
-| `Diff` | 7 | `DiffIcon` |  |
-| `File` | 7 | `File01Icon` |  |
-| `Flag` | 7 | `Flag01Icon` |  |
-| `Gauge` | 7 | `GaugeIcon` |  |
-| `GitPullRequestClosed` | 7 | `GitPullRequestClosedIcon` |  |
-| `LayoutGrid` | 7 | `LayoutGridIcon` |  |
-| `LayoutList` | 7 | `ListViewIcon` |  |
-| `Minimize2` | 7 | `Minimize02Icon` |  |
-| `MousePointer2` | 7 | `Cursor02Icon` |  |
-| `Pin` | 7 | `PinIcon` |  |
-| `PlayCircle` | 7 | `PlayCircleIcon` |  |
-| `Rocket` | 7 | `RocketIcon` |  |
-| `Tag` | 7 | `Tag01Icon` |  |
-| `ArrowLeftRight` | 6 | `ArrowLeftRightIcon` |  |
-| `CalendarClock` | 6 | `TimeScheduleIcon` |  |
-| `ChevronsRight` | 6 | `ArrowRightDoubleIcon` |  |
-| `Clipboard` | 6 | `ClipboardIcon` |  |
-| `ClipboardList` | 6 | `CheckListIcon` |  |
-| `FolderPlus` | 6 | `FolderAddIcon` |  |
-| `FolderTree` | 6 | `FolderTreeIcon` |  |
-| `ListTree` | 6 | `HierarchyFilesIcon` |  |
-| `Pause` | 6 | `PauseIcon` |  |
-| `SquarePen` | 6 | `PencilEdit02Icon` |  |
-| `Activity` | 5 | `Activity01Icon` |  |
-| `Boxes` | 5 | `Package01Icon` |  |
-| `Building2` | 5 | `Building02Icon` |  |
-| `CloudUpload` | 5 | `CloudUploadIcon` |  |
-| `Columns3` | 5 | `LayoutThreeColumnIcon` |  |
-| `Compass` | 5 | `CompassIcon` |  |
-| `FileCode` | 5 | `FileScriptIcon` |  |
-| `FileSymlink` | 5 | `FileSymlinkIcon` |  |
-| `FolderSearch` | 5 | `FolderSearchIcon` |  |
-| `Image` | 5 | `Image01Icon` |  |
-| `Key` | 5 | `Key01Icon` |  |
-| `Link` | 5 | `Link01Icon` |  |
-| `Mail` | 5 | `Mail01Icon` |  |
-| `Palette` | 5 | `ColorPickerIcon` |  |
-| `PanelLeft` | 5 | `PanelLeftIcon` |  |
-| `PanelRight` | 5 | `PanelRightIcon` |  |
-| `Repeat` | 5 | `RepeatIcon` |  |
-| `Save` | 5 | `FloppyDiskIcon` |  |
-| `Server` | 5 | `ServerStack01Icon` |  |
-| `Settings2` | 5 | `Settings02Icon` |  |
-| `Shield` | 5 | `Shield01Icon` |  |
-| `ShieldCheck` | 5 | `SecurityCheckIcon` |  |
-| `Split` | 5 | `SplitIcon` |  |
-| `SquareTerminal` | 5 | `SquareTerminalIcon` |  |
-| `UserRound` | 5 | `UserCircleIcon` |  |
-| `ArchiveRestore` | 4 | `ArchiveArrowUpIcon` |  |
-| `ArrowUpFromLine` | 4 | `ArrowUpFromLineIcon` |  |
-| `ArrowUpRight` | 4 | `ArrowUpRight01Icon` |  |
-| `BellOff` | 4 | `NotificationOff01Icon` |  |
-| `BrushCleaning` | 4 | `BrushCleaningIcon` |  |
-| `CaseSensitive` | 4 | `TextIcon` |  |
-| `CheckCheck` | 4 | `TickDouble01Icon` |  |
-| `ChevronsLeftRightEllipsis` | 4 | `ChevronsLeftRightEllipsisIcon` |  |
-| `CircleDashed` | 4 | `CircleIcon` |  |
-| `Command` | 4 | `CommandIcon` |  |
-| `DraftingCompass` | 4 | `DraftingCompassIcon` |  |
-| `Github` | 4 | `GithubIcon` |  |
-| `HatGlasses` | 4 | `HatGlassesIcon` |  |
-| `Home` | 4 | `Home01Icon` |  |
-| `ListFilter` | 4 | `FilterIcon` |  |
-| `LoaderCircle` | 4 | `Loading03Icon` |  |
-| `Moon` | 4 | `MoonIcon` |  |
-| `MousePointerClick` | 4 | `CursorPointer02Icon` |  |
-| `PenTool` | 4 | `PenTool01Icon` |  |
-| `PinOff` | 4 | `PinOffIcon` |  |
-| `Tags` | 4 | `TagsIcon` |  |
-| `TriangleAlert` | 4 | `TriangleAlertIcon` |  |
-| `UserPlus` | 4 | `UserAdd01Icon` |  |
-| `Airplay` | 3 | `ScreenRotationIcon` |  |
-| `AppWindow` | 3 | `AppWindowIcon` |  |
-| `ArrowDownToLine` | 3 | `ArrowDownToLineIcon` |  |
-| `BellRing` | 3 | `NotificationBubbleIcon` |  |
-| `Briefcase` | 3 | `Briefcase01Icon` |  |
-| `BriefcaseBusiness` | 3 | `Briefcase02Icon` |  |
-| `ClipboardCopy` | 3 | `Copy01Icon` |  |
-| `CornerDownRight` | 3 | `ArrowTurnDownIcon` |  |
-| `Cpu` | 3 | `CpuIcon` |  |
-| `EyeOff` | 3 | `ViewOffIcon` |  |
-| `Fingerprint` | 3 | `FingerPrintIcon` |  |
-| `FlaskConical` | 3 | `TestTubeIcon` |  |
-| `FolderOutput` | 3 | `FolderOutputIcon` |  |
-| `GitCommit` | 3 | `GitCommitIcon` |  |
-| `HelpCircle` | 3 | `HelpCircleIcon` |  |
-| `ImageIcon` | 3 | `Image01Icon` |  |
-| `Import` | 3 | `ImportIcon` |  |
-| `Milestone` | 3 | `RoadLocation01Icon` |  |
-| `Package` | 3 | `PackageIcon` |  |
-| `Power` | 3 | `PowerServiceIcon` |  |
-| `Send` | 3 | `MailSend01Icon` |  |
-| `Share2` | 3 | `Share02Icon` |  |
-| `ShieldOff` | 3 | `Shield02Icon` |  |
-| `Timer` | 3 | `Timer01Icon` |  |
-| `Toolbox` | 3 | `ToolboxIcon` |  |
-| `Unplug` | 3 | `UnplugIcon` |  |
-| `ZoomIn` | 3 | `ZoomInAreaIcon` |  |
-| `ZoomOut` | 3 | `ZoomOutAreaIcon` |  |
-| `ArrowBigUp` | 2 | `ArrowUpBigIcon` |  |
-| `ArrowDownFromLine` | 2 | `ArrowDownFromLineIcon` |  |
-| `ArrowUpDown` | 2 | `ArrowUpDownIcon` |  |
-| `BadgeCent` | 2 | `BadgeCentIcon` |  |
-| `Bell` | 2 | `Notification01Icon` |  |
-| `Blocks` | 2 | `BlocksIcon` |  |
-| `Book` | 2 | `Book01Icon` |  |
-| `BookDashed` | 2 | `Book02Icon` |  |
-| `Bug` | 2 | `Bug01Icon` |  |
-| `CalendarArrowUp` | 2 | `CalendarArrowUpIcon` |  |
-| `CalendarDays` | 2 | `Calendar02Icon` |  |
-| `ChevronsLeft` | 2 | `ArrowLeftDoubleIcon` |  |
-| `ClipboardCheck` | 2 | `ClipboardIcon` |  |
-| `ClockArrowDown` | 2 | `Time02Icon` |  |
-| `ClockArrowUp` | 2 | `Time02Icon` |  |
-| `CloudAlert` | 2 | `CloudAlertIcon` |  |
-| `CloudOff` | 2 | `CloudLoadingIcon` |  |
-| `Coffee` | 2 | `Coffee01Icon` |  |
-| `Cog` | 2 | `Settings01Icon` |  |
-| `Contrast` | 2 | `ContrastIcon` |  |
-| `CornerDownLeft` | 2 | `ArrowTurnDownIcon` |  |
-| `Delete` | 2 | `Delete01Icon` |  |
-| `Diamond` | 2 | `DiamondIcon` |  |
-| `Dock` | 2 | `DockIcon` |  |
-| `Expand` | 2 | `ArrowExpand01Icon` |  |
-| `FileEdit` | 2 | `FileEditIcon` |  |
-| `FilePenLine` | 2 | `FilePenLineIcon` |  |
-| `FilePlus` | 2 | `FileAddIcon` |  |
-| `FileSearch` | 2 | `FileSearchIcon` |  |
-| `Focus` | 2 | `CenterFocusIcon` |  |
-| `FoldVertical` | 2 | `FoldVerticalIcon` |  |
-| `FolderCog` | 2 | `FolderCogIcon` |  |
-| `FolderInput` | 2 | `FolderInputIcon` |  |
-| `FunctionSquare` | 2 | `FunctionSquareIcon` |  |
-| `Funnel` | 2 | `FunnelIcon` |  |
-| `GitBranchMinus` | 2 | `GitBranchMinusIcon` |  |
-| `GitBranchPlus` | 2 | `GitBranchIcon` |  |
-| `GitCommitVertical` | 2 | `GitCommitIcon` |  |
-| `GitCompareArrows` | 2 | `GitCompareIcon` |  |
-| `GripVertical` | 2 | `Drag01Icon` |  |
-| `ImageOff` | 2 | `ImageNotFound01Icon` |  |
-| `LayoutDashboard` | 2 | `DashboardSquare01Icon` |  |
-| `Lightbulb` | 2 | `BulbIcon` |  |
-| `Loader` | 2 | `Loading01Icon` |  |
-| `Map` | 2 | `MapsIcon` |  |
-| `MapPin` | 2 | `Location01Icon` |  |
-| `MessageCircleMore` | 2 | `MessageCircleMoreIcon` |  |
-| `MessageCircleQuestionMark` | 2 | `MessageCircleQuestionMarkIcon` |  |
-| `MessageSquareMore` | 2 | `MessageSquareMoreIcon` |  |
-| `MessageSquarePlus` | 2 | `MessageAdd01Icon` |  |
-| `MessageSquareText` | 2 | `Message02Icon` |  |
-| `MonitorCog` | 2 | `ComputerSettingsIcon` |  |
-| `MoveVertical` | 2 | `MoveTopIcon` |  |
-| `Option` | 2 | `OptionIcon` |  |
-| `PackageCheck` | 2 | `PackageDeliveredIcon` |  |
-| `PanelBottom` | 2 | `SidebarBottomIcon` |  |
-| `PanelRightOpen` | 2 | `PanelRightOpenIcon` |  |
-| `PencilRuler` | 2 | `PencilRulerIcon` |  |
-| `Phone` | 2 | `SmartPhone01Icon` |  |
-| `Plug` | 2 | `Plug01Icon` |  |
-| `Radar` | 2 | `Radar01Icon` |  |
-| `Regex` | 2 | `TextIcon` |  |
-| `SlidersHorizontal` | 2 | `SlidersHorizontalIcon` |  |
-| `SquareArrowRight` | 2 | `SquareArrowRight01Icon` |  |
-| `Star` | 2 | `StarIcon` |  |
-| `Store` | 2 | `Store01Icon` |  |
-| `Type` | 2 | `TextIcon` |  |
-| `UserRoundCog` | 2 | `UserRoundCogIcon` |  |
-| `Variable` | 2 | `VariableIcon` |  |
-| `Wallet` | 2 | `Wallet01Icon` |  |
-| `WholeWord` | 2 | `TextIcon` |  |
-| `Wifi` | 2 | `Wifi01Icon` |  |
-| `Workflow` | 2 | `WorkflowCircle01Icon` |  |
-| `AlignHorizontalSpaceAround` | 1 | `AlignHorizontalSpaceAroundIcon` |  |
-| `AlignLeft` | 1 | `TextAlignLeftIcon` |  |
-| `AlignVerticalSpaceAround` | 1 | `AlignVerticalSpaceAroundIcon` |  |
-| `Anchor` | 1 | `AnchorIcon` |  |
-| `ArrowBigLeft` | 1 | `ArrowLeftBigIcon` |  |
-| `ArrowBigRight` | 1 | `ArrowRightBigIcon` |  |
-| `ArrowBigRightDash` | 1 | `ArrowBigRightDashIcon` |  |
-| `ArrowDown10` | 1 | `ArrangeByNumbersOneNineIcon` |  |
-| `ArrowDownAZ` | 1 | `ArrangeByLettersZAIcon` |  |
-| `ArrowDownToDot` | 1 | `ArrowDownToDotIcon` |  |
-| `ArrowUpFromDot` | 1 | `ArrowUpFromDotIcon` |  |
-| `Award` | 1 | `Award01Icon` |  |
-| `Ban` | 1 | `BanIcon` |  |
-| `BarChart` | 1 | `BarChartIcon` |  |
-| `Blend` | 1 | `BlendIcon` |  |
-| `Bold` | 1 | `TextBoldIcon` |  |
-| `BookMarked` | 1 | `BookBookmark01Icon` |  |
-| `BookSearch` | 1 | `Book01Icon` |  |
-| `BotMessageSquare` | 1 | `ChatBotIcon` |  |
-| `BotOff` | 1 | `BotOffIcon` |  |
-| `Cable` | 1 | `UsbIcon` |  |
-| `CalendarOff` | 1 | `CalendarBlock01Icon` |  |
-| `CalendarX` | 1 | `CalendarRemove01Icon` |  |
-| `Camera` | 1 | `Camera01Icon` |  |
-| `Captions` | 1 | `CaptionsIcon` |  |
-| `ChartColumn` | 1 | `BarChartIcon` |  |
-| `ChartGantt` | 1 | `ChartGanttIcon` |  |
-| `ChartNoAxesGantt` | 1 | `ChartNoAxesGanttIcon` |  |
-| `CheckSquare` | 1 | `CheckmarkSquare01Icon` |  |
-| `CircleArrowOutUpRight` | 1 | `CircleArrowOutUpRightIcon` |  |
-| `CircleArrowUp` | 1 | `CircleArrowUp01Icon` |  |
-| `CircleCheck` | 1 | `CheckmarkCircle01Icon` |  |
-| `CircleDollarSign` | 1 | `CircleDollarSignIcon` |  |
-| `CircleDotDashed` | 1 | `CircleDotDashedIcon` |  |
-| `CircleMinus` | 1 | `MinusSignCircleIcon` |  |
-| `CirclePile` | 1 | `CirclePileIcon` |  |
-| `CircleX` | 1 | `CancelCircleIcon` |  |
-| `ClipboardPen` | 1 | `ClipboardPenIcon` |  |
-| `Clock3` | 1 | `Clock03Icon` |  |
-| `CloudDownload` | 1 | `CloudDownloadIcon` |  |
-| `Coins` | 1 | `Coins01Icon` |  |
-| `Computer` | 1 | `ComputerIcon` |  |
-| `CopyCheck` | 1 | `Copy02Icon` |  |
-| `CopyPlus` | 1 | `Copy01Icon` |  |
-| `CopyX` | 1 | `Copy01Icon` |  |
-| `CornerUpLeft` | 1 | `ArrowTurnUpIcon` |  |
-| `CreditCard` | 1 | `CreditCardIcon` |  |
-| `Crosshair` | 1 | `Target01Icon` |  |
-| `Eclipse` | 1 | `EclipseIcon` |  |
-| `Edit` | 1 | `Edit01Icon` |  |
-| `ExternalLink` | 1 | `ArrowUpRight01Icon` |  |
-| `Feather` | 1 | `FeatherIcon` |  |
-| `FileBox` | 1 | `FileBoxIcon` |  |
-| `FilePen` | 1 | `FilePenIcon` |  |
-| `Files` | 1 | `Files01Icon` |  |
-| `Flame` | 1 | `FireIcon` |  |
-| `FolderCode` | 1 | `FolderCodeIcon` |  |
-| `FolderMinus` | 1 | `FolderMinusIcon` |  |
-| `FolderSymlink` | 1 | `FolderSymlinkIcon` |  |
-| `Fuel` | 1 | `FuelIcon` |  |
-| `Fullscreen` | 1 | `FullScreenIcon` |  |
-| `GalleryThumbnails` | 1 | `GalleryThumbnailsIcon` |  |
-| `Hammer` | 1 | `LegalHammerIcon` |  |
-| `HandMetal` | 1 | `Shaka01Icon` |  |
-| `Heading2` | 1 | `Heading02Icon` |  |
-| `Headphones` | 1 | `HeadphonesIcon` |  |
-| `Heart` | 1 | `FavouriteIcon` |  |
-| `HeartPulse` | 1 | `Cardiogram01Icon` |  |
-| `Hexagon` | 1 | `HexagonIcon` |  |
-| `IdCard` | 1 | `IdCardIcon` |  |
-| `Italic` | 1 | `TextItalicIcon` |  |
-| `Languages` | 1 | `LanguageCircleIcon` |  |
-| `LaptopMinimal` | 1 | `LaptopMinimalIcon` |  |
-| `LayoutPanelTop` | 1 | `LayoutTopIcon` |  |
-| `ListOrdered` | 1 | `LeftToRightListNumberIcon` |  |
-| `Logs` | 1 | `LogsIcon` |  |
-| `MailOpen` | 1 | `MailOpen01Icon` |  |
-| `Maximize` | 1 | `Maximize01Icon` |  |
-| `Menu` | 1 | `Menu01Icon` |  |
-| `MessageCircleWarning` | 1 | `MessageCircleWarningIcon` |  |
-| `Mic` | 1 | `Mic01Icon` |  |
-| `MonitorDot` | 1 | `ComputerIcon` |  |
-| `MonitorPlay` | 1 | `ComputerVideoIcon` |  |
-| `MonitorSmartphone` | 1 | `ComputerPhoneSyncIcon` |  |
-| `MoveHorizontal` | 1 | `MoveLeftIcon` |  |
-| `Omega` | 1 | `OmegaIcon` |  |
-| `Package2` | 1 | `Package01Icon` |  |
-| `Paintbrush` | 1 | `PaintBrush01Icon` |  |
-| `PanelsTopLeft` | 1 | `PanelsTopLeftIcon` |  |
-| `Paperclip` | 1 | `AttachmentIcon` |  |
-| `PenLine` | 1 | `PenTool01Icon` |  |
-| `PencilLine` | 1 | `PencilEdit01Icon` |  |
-| `Plane` | 1 | `Airplane01Icon` |  |
-| `Puzzle` | 1 | `PuzzleIcon` |  |
-| `Quote` | 1 | `QuoteUpIcon` |  |
-| `Radio` | 1 | `RadioIcon` |  |
-| `Replace` | 1 | `ReplaceIcon` |  |
-| `ReplaceAll` | 1 | `ReplaceAllIcon` |  |
-| `Reply` | 1 | `MailReply01Icon` |  |
-| `Rewind` | 1 | `Backward01Icon` |  |
-| `RotateCw` | 1 | `RotateClockwiseIcon` |  |
-| `Rows2` | 1 | `LayoutTwoRowIcon` |  |
-| `RulerDimensionLine` | 1 | `RulerDimensionLineIcon` |  |
-| `ScrollText` | 1 | `ScrollIcon` |  |
-| `SearchCode` | 1 | `Search02Icon` |  |
-| `SearchX` | 1 | `SearchMinusIcon` |  |
-| `Sheet` | 1 | `SheetIcon` |  |
-| `ShieldAlert` | 1 | `Shield01Icon` |  |
-| `ShieldBan` | 1 | `SecurityBlockIcon` |  |
-| `SignalHigh` | 1 | `SignalFull01Icon` |  |
-| `SkipBack` | 1 | `Backward01Icon` |  |
-| `SkipForward` | 1 | `Forward01Icon` |  |
-| `Slash` | 1 | `SlashIcon` |  |
-| `Space` | 1 | `SaturnIcon` |  |
-| `Sparkle` | 1 | `SparklesIcon` |  |
-| `Sprout` | 1 | `Plant01Icon` |  |
-| `SquareChevronRight` | 1 | `SquareChevronRightIcon` |  |
-| `SquareKanban` | 1 | `KanbanIcon` |  |
-| `SquareMousePointer` | 1 | `SquareMousePointerIcon` |  |
-| `SquareRoundCorner` | 1 | `SquareRoundCornerIcon` |  |
-| `SquareStack` | 1 | `SquareStackIcon` |  |
-| `StopCircle` | 1 | `StopCircleIcon` |  |
-| `Strikethrough` | 1 | `TextStrikethroughIcon` |  |
-| `Sun` | 1 | `Sun01Icon` |  |
-| `TableProperties` | 1 | `TablePropertiesIcon` |  |
-| `Target` | 1 | `Target01Icon` |  |
-| `TextQuote` | 1 | `QuoteUpIcon` |  |
-| `ThumbsUp` | 1 | `ThumbsUpIcon` |  |
-| `Ticket` | 1 | `Ticket01Icon` |  |
-| `TrendingDown` | 1 | `AnalyticsDownIcon` |  |
-| `TrendingUp` | 1 | `AnalyticsUpIcon` |  |
-| `Unlink2` | 1 | `Unlink02Icon` |  |
-| `Unlock` | 1 | `SquareUnlock01Icon` |  |
-| `UserMinus` | 1 | `UserMinus01Icon` |  |
-| `UserRoundCheck` | 1 | `UserRoundCheckIcon` |  |
-| `UsersRound` | 1 | `UsersRoundIcon` |  |
-| `Waypoints` | 1 | `WaypointsIcon` |  |
+| local name | hugeicons glyph | imports |
+|---|---|---:|
+| `X` | `Cancel01Icon` | 101 |
+| `ChevronRight` | `ArrowRight01Icon` | 92 |
+| `RefreshCw` | `Refresh04Icon` | 85 |
+| `Plus` | `Add01Icon` | 80 |
+| `Check` | `Tick01Icon` | 75 |
+| `ChevronDown` | `ArrowDown01Icon` | 69 |
+| `Search` | `Search01Icon` | 64 |
+| `Trash2` | `Delete02Icon` | 55 |
+| `Loader2` | `Loading03Icon` | 52 |
+| `SquareArrowOutUpRight` | `SquareArrowUpRightIcon` | 43 |
+| `CheckCircle2` | `CheckmarkCircle01Icon` | 41 |
+| `Copy` | `CopyIcon` | 39 |
+| `GitBranch` | `WorkflowCircle05Icon` | 38 |
+| `Code` | `CodeIcon` | 29 |
+| `XCircle` | `CancelCircleIcon` | 29 |
+| `Folder` | `FolderClosedIcon` | 27 |
+| `Terminal` | `ComputerTerminal01Icon` | 27 |
+| `Circle` | `CircleIcon` | 26 |
+| `CircleDot` | `CircleDotIcon` | 26 |
+| `GitPullRequest` | `GitPullRequestIcon` | 26 |
+| `Globe` | `InternetIcon` | 26 |
+| `Clock` | `Clock01Icon` | 23 |
+| `Pencil` | `Pen01Icon` | 23 |
+| `ChevronLeft` | `ArrowLeft01Icon` | 22 |
+| `Box` | `BoxIcon` | 21 |
+| `ChevronsUpDown` | `UnfoldMoreIcon` | 21 |
+| `ArrowLeft` | `ArrowLeft02Icon` | 20 |
+| `Info` | `InformationCircleIcon` | 19 |
+| `Lock` | `LockIcon` | 19 |
+| `Minus` | `MinusSignIcon` | 19 |
+| `MoreHorizontal` | `MoreHorizontalIcon` | 19 |
+| `User` | `UserIcon` | 19 |
+| `Users` | `UserMultipleIcon` | 19 |
+| `AlertCircle` | `AlertCircleIcon` | 18 |
+| `ArrowUp` | `ArrowUp02Icon` | 18 |
+| `ChevronsDownUp` | `ChevronsDownUpIcon` | 18 |
+| `FolderOpen` | `FolderOpenIcon` | 18 |
+| `ListChecks` | `ListChecksIcon` | 18 |
+| `ListTodo` | `ListTodoIcon` | 18 |
+| `Play` | `PlayIcon` | 18 |
+| `AlertTriangle` | `Alert01Icon` | 17 |
+| `Sparkles` | `SparklesIcon` | 17 |
+| `ArrowRight` | `ArrowRight02Icon` | 16 |
+| `Network` | `AiNetworkIcon` | 16 |
+| `Bot` | `BotIcon` | 15 |
+| `Hash` | `HashtagIcon` | 15 |
+| `Cloud` | `CloudIcon` | 14 |
+| `FileText` | `File02Icon` | 14 |
+| `GitMerge` | `GitMergeIcon` | 14 |
+| `Layout` | `Layout01Icon` | 14 |
+| `MessageCircle` | `BubbleChatIcon` | 14 |
+| `MessageSquare` | `Message01Icon` | 14 |
+| `RotateCcw` | `RotateLeft01Icon` | 14 |
+| `ArrowDown` | `ArrowDown02Icon` | 13 |
+| `BookOpen` | `BookOpen01Icon` | 13 |
+| `Layers` | `Layers01Icon` | 13 |
+| `Maximize2` | `ArrowExpand01Icon` | 13 |
+| `Settings` | `Settings01Icon` | 13 |
+| `Eye` | `ViewIcon` | 12 |
+| `Inbox` | `InboxIcon` | 12 |
+| `Calendar` | `Calendar01Icon` | 11 |
+| `Download` | `Download01Icon` | 11 |
+| `GitCommitHorizontal` | `GitCommitHorizontalIcon` | 11 |
+| `Laptop` | `LaptopIcon` | 11 |
+| `LogIn` | `Login01Icon` | 11 |
+| `Zap` | `FlashIcon` | 11 |
+| `ChevronUp` | `ArrowUp01Icon` | 10 |
+| `FileDiff` | `FileDiffIcon` | 10 |
+| `FolderKanban` | `FolderKanbanIcon` | 10 |
+| `Keyboard` | `KeyboardIcon` | 10 |
+| `List` | `ListIcon` | 10 |
+| `ListChevronsDownUp` | `ListChevronsDownUpIcon` | 10 |
+| `MessagesSquare` | `MessageMultiple01Icon` | 10 |
+| `Archive` | `ArchiveIcon` | 9 |
+| `Brain` | `BrainIcon` | 9 |
+| `Chrome` | `InternetIcon` | 9 |
+| `Code2` | `CodeIcon` | 9 |
+| `Database` | `DatabaseIcon` | 9 |
+| `History` | `WorkHistoryIcon` | 9 |
+| `ScanSearch` | `SearchAreaIcon` | 9 |
+| `CheckCircle` | `CheckmarkCircle01Icon` | 8 |
+| `Ellipsis` | `EllipsisIcon` | 8 |
+| `File` | `File01Icon` | 8 |
+| `Filter` | `FilterIcon` | 8 |
+| `GitFork` | `GitForkIcon` | 8 |
+| `GitPullRequestDraft` | `GitPullRequestDraftIcon` | 8 |
+| `Grip` | `GripIcon` | 8 |
+| `Infinity` | `Infinity01Icon` | 8 |
+| `Link2` | `Link02Icon` | 8 |
+| `Monitor` | `MonitorIcon` | 8 |
+| `Rocket` | `RocketIcon` | 8 |
+| `Square` | `SquareIcon` | 8 |
+| `Undo2` | `Undo02Icon` | 8 |
+| `Wrench` | `Wrench01Icon` | 8 |
+| `AtSign` | `AtIcon` | 7 |
+| `Braces` | `FirstBracketIcon` | 7 |
+| `Chromium` | `InternetIcon` | 7 |
+| `CircleSlash` | `CircleSlashIcon` | 7 |
+| `Diff` | `DiffIcon` | 7 |
+| `Flag` | `Flag01Icon` | 7 |
+| `Gauge` | `DashboardSquare01Icon` | 7 |
+| `GitPullRequestClosed` | `GitPullRequestClosedIcon` | 7 |
+| `InfinityIcon` | `Infinity01Icon` | 7 |
+| `KeyRound` | `Key02Icon` | 7 |
+| `LayoutList` | `LayoutListIcon` | 7 |
+| `ListChevronsUpDown` | `ListChevronsDownUpIcon` | 7 |
+| `Minimize2` | `ArrowShrink01Icon` | 7 |
+| `MousePointer2` | `Cursor02Icon` | 7 |
+| `Pin` | `PinIcon` | 7 |
+| `PlayCircle` | `PlayCircleIcon` | 7 |
+| `ArrowLeftRight` | `ArrowLeftRightIcon` | 6 |
+| `CalendarClock` | `TimeScheduleIcon` | 6 |
+| `ChevronsRight` | `ArrowRightDoubleIcon` | 6 |
+| `ClipboardList` | `ClipboardListIcon` | 6 |
+| `FolderPlus` | `FolderAddIcon` | 6 |
+| `FolderTree` | `FolderTreeIcon` | 6 |
+| `LayoutGrid` | `DashboardSquare01Icon` | 6 |
+| `ListTree` | `HierarchyFilesIcon` | 6 |
+| `Pause` | `PauseIcon` | 6 |
+| `SquarePen` | `PencilEdit02Icon` | 6 |
+| `Tag` | `Tag01Icon` | 6 |
+| `Activity` | `Activity01Icon` | 5 |
+| `CircleHelp` | `HelpCircleIcon` | 5 |
+| `Clipboard` | `ClipboardIcon` | 5 |
+| `CloudUpload` | `CloudUploadIcon` | 5 |
+| `Columns3` | `LayoutThreeColumnIcon` | 5 |
+| `Compass` | `CompassIcon` | 5 |
+| `FileCode` | `FileScriptIcon` | 5 |
+| `FileSymlink` | `FileSymlinkIcon` | 5 |
+| `FilterIcon` | `FilterIcon` | 5 |
+| `FolderSearch` | `FolderSearchIcon` | 5 |
+| `ImageIcon` | `Image01Icon` | 5 |
+| `Key` | `Key01Icon` | 5 |
+| `Mail` | `Mail01Icon` | 5 |
+| `Palette` | `ColorPickerIcon` | 5 |
+| `PanelLeft` | `PanelLeftIcon` | 5 |
+| `Repeat` | `RepeatIcon` | 5 |
+| `Save` | `FloppyDiskIcon` | 5 |
+| `Server` | `ServerStack01Icon` | 5 |
+| `Settings2` | `Settings02Icon` | 5 |
+| `Shield` | `Shield01Icon` | 5 |
+| `Split` | `SplitIcon` | 5 |
+| `SquareTerminal` | `SquareTerminalIcon` | 5 |
+| `UserRound` | `UserCircleIcon` | 5 |
+| `ArchiveRestore` | `ArchiveArrowUpIcon` | 4 |
+| `ArrowRightLeft` | `ArrowLeftRightIcon` | 4 |
+| `ArrowUpFromLine` | `ArrowUpFromLineIcon` | 4 |
+| `ArrowUpRight` | `SquareArrowUpRightIcon` | 4 |
+| `BellOff` | `NotificationOff01Icon` | 4 |
+| `Boxes` | `BoxesIcon` | 4 |
+| `BrushCleaning` | `BrushCleaningIcon` | 4 |
+| `CaseSensitive` | `CaseSensitiveIcon` | 4 |
+| `CheckCheck` | `TickDouble01Icon` | 4 |
+| `ChevronsLeftRightEllipsis` | `ChevronsLeftRightEllipsisIcon` | 4 |
+| `CircleDashed` | `CircleDashedIcon` | 4 |
+| `Command` | `CommandIcon` | 4 |
+| `DraftingCompass` | `DraftingCompassIcon` | 4 |
+| `FolderGit2` | `FolderGitTwoIcon` | 4 |
+| `Github` | `GithubIcon` | 4 |
+| `HatGlasses` | `HatGlassesIcon` | 4 |
+| `Home` | `Home01Icon` | 4 |
+| `Link` | `Link01Icon` | 4 |
+| `LoaderCircle` | `LoaderCircleIcon` | 4 |
+| `Moon` | `MoonIcon` | 4 |
+| `MousePointerClick` | `CursorPointer02Icon` | 4 |
+| `PanelRight` | `PanelRightIcon` | 4 |
+| `PenTool` | `PenTool01Icon` | 4 |
+| `PinOff` | `PinOffIcon` | 4 |
+| `ShieldCheck` | `SecurityCheckIcon` | 4 |
+| `Tags` | `TagsIcon` | 4 |
+| `TerminalSquare` | `SquareTerminalIcon` | 4 |
+| `TriangleAlert` | `TriangleAlertIcon` | 4 |
+| `Airplay` | `ScreenRotationIcon` | 3 |
+| `AppWindow` | `AppWindowIcon` | 3 |
+| `ArrowDownToLine` | `ArrowDownToLineIcon` | 3 |
+| `BellRing` | `NotificationBubbleIcon` | 3 |
+| `Briefcase` | `Briefcase01Icon` | 3 |
+| `Building2` | `Building02Icon` | 3 |
+| `ClipboardCopy` | `ClipboardCopyIcon` | 3 |
+| `CornerDownRight` | `CornerDownRightIcon` | 3 |
+| `Cpu` | `CpuIcon` | 3 |
+| `EyeOff` | `ViewOffIcon` | 3 |
+| `Fingerprint` | `FingerPrintIcon` | 3 |
+| `FolderOutput` | `FolderOutputIcon` | 3 |
+| `GitCommit` | `GitCommitIcon` | 3 |
+| `HelpCircle` | `HelpCircleIcon` | 3 |
+| `Image` | `Image01Icon` | 3 |
+| `Import` | `ImportIcon` | 3 |
+| `Link2Off` | `Unlink02Icon` | 3 |
+| `Package` | `PackageIcon` | 3 |
+| `Power` | `PowerServiceIcon` | 3 |
+| `SearchIcon` | `Search01Icon` | 3 |
+| `Send` | `MailSend01Icon` | 3 |
+| `Share2` | `Share02Icon` | 3 |
+| `ShieldOff` | `Shield02Icon` | 3 |
+| `Timer` | `Timer01Icon` | 3 |
+| `Toolbox` | `ToolboxIcon` | 3 |
+| `Unplug` | `UnplugIcon` | 3 |
+| `UserPlus` | `UserAdd01Icon` | 3 |
+| `ZoomIn` | `ZoomInAreaIcon` | 3 |
+| `ZoomOut` | `ZoomOutAreaIcon` | 3 |
+| `ArrowBigUp` | `ArrowUpBigIcon` | 2 |
+| `ArrowDownFromLine` | `ArrowDownFromLineIcon` | 2 |
+| `ArrowUpDown` | `ArrowUpDownIcon` | 2 |
+| `BadgeCent` | `BadgeCentIcon` | 2 |
+| `Bell` | `Notification01Icon` | 2 |
+| `Blocks` | `BlocksIcon` | 2 |
+| `Book` | `Book01Icon` | 2 |
+| `BookDashed` | `Book02Icon` | 2 |
+| `Bug` | `Bug01Icon` | 2 |
+| `CalendarArrowUp` | `CalendarArrowUpIcon` | 2 |
+| `CalendarDays` | `Calendar02Icon` | 2 |
+| `ChevronsLeft` | `ArrowLeftDoubleIcon` | 2 |
+| `ClipboardCheck` | `ClipboardCheckIcon` | 2 |
+| `ClockArrowDown` | `ClockArrowDownIcon` | 2 |
+| `ClockArrowUp` | `ClockArrowUpIcon` | 2 |
+| `CloudAlert` | `CloudAlertIcon` | 2 |
+| `CloudOff` | `CloudLoadingIcon` | 2 |
+| `Coffee` | `Coffee01Icon` | 2 |
+| `Cog` | `CogIcon` | 2 |
+| `Contrast` | `ContrastIcon` | 2 |
+| `CornerDownLeft` | `CornerDownLeftIcon` | 2 |
+| `Delete` | `Delete01Icon` | 2 |
+| `Diamond` | `DiamondIcon` | 2 |
+| `Dock` | `DockIcon` | 2 |
+| `Expand` | `ExpandIcon` | 2 |
+| `FileEdit` | `Edit04Icon` | 2 |
+| `FilePenLine` | `Edit04Icon` | 2 |
+| `FilePlus` | `FilePlusIcon` | 2 |
+| `FileSearch` | `FileSearchIcon` | 2 |
+| `FlaskConical` | `TestTubeIcon` | 2 |
+| `Focus` | `CenterFocusIcon` | 2 |
+| `FoldVertical` | `FoldVerticalIcon` | 2 |
+| `FolderCog` | `FolderCogIcon` | 2 |
+| `FolderInput` | `FolderInputIcon` | 2 |
+| `FunctionSquare` | `FunctionSquareIcon` | 2 |
+| `Funnel` | `FunnelIcon` | 2 |
+| `GitBranchMinus` | `GitBranchMinusIcon` | 2 |
+| `GitBranchPlus` | `GitBranchIcon` | 2 |
+| `GitCommitVertical` | `GitCommitVerticalIcon` | 2 |
+| `GitCompareArrows` | `GitCompareIcon` | 2 |
+| `GripVertical` | `GripVerticalIcon` | 2 |
+| `ImageOff` | `ImageNotFound01Icon` | 2 |
+| `Lightbulb` | `BulbIcon` | 2 |
+| `ListFilter` | `ListFilterIcon` | 2 |
+| `ListFilter` | `FilterMailIcon` | 2 |
+| `Loader` | `Loading01Icon` | 2 |
+| `MapPin` | `Location01Icon` | 2 |
+| `MessageCircleMore` | `MessageCircleMoreIcon` | 2 |
+| `MessageCircleQuestionMark` | `MessageCircleQuestionMarkIcon` | 2 |
+| `MessageSquareMore` | `MessageSquareMoreIcon` | 2 |
+| `MessageSquarePlus` | `MessageAdd01Icon` | 2 |
+| `MessageSquareText` | `Message02Icon` | 2 |
+| `MilestoneIcon` | `RoadLocation01Icon` | 2 |
+| `MoveVertical` | `MoveTopIcon` | 2 |
+| `Option` | `OptionIcon` | 2 |
+| `PackageCheck` | `PackageDeliveredIcon` | 2 |
+| `PanelBottom` | `SidebarBottomIcon` | 2 |
+| `PanelRightOpen` | `PanelRightOpenIcon` | 2 |
+| `PencilRuler` | `PencilRulerIcon` | 2 |
+| `Phone` | `SmartPhone01Icon` | 2 |
+| `Plug` | `Plug01Icon` | 2 |
+| `Radar` | `Radar01Icon` | 2 |
+| `Regex` | `RegexIcon` | 2 |
+| `SquareArrowRight` | `SquareArrowRight01Icon` | 2 |
+| `Star` | `StarIcon` | 2 |
+| `Store` | `Store01Icon` | 2 |
+| `Type` | `TypeIcon` | 2 |
+| `UserRoundCog` | `UserRoundCogIcon` | 2 |
+| `Variable` | `VariableIcon` | 2 |
+| `Wallet` | `Wallet01Icon` | 2 |
+| `WholeWord` | `WholeWordIcon` | 2 |
+| `Wifi` | `Wifi01Icon` | 2 |
+| `Workflow` | `WorkflowCircle01Icon` | 2 |
+| `AlignHorizontalSpaceAround` | `AlignHorizontalSpaceAroundIcon` | 1 |
+| `AlignLeft` | `TextAlignLeftIcon` | 1 |
+| `AlignVerticalSpaceAround` | `AlignVerticalSpaceAroundIcon` | 1 |
+| `Anchor` | `AnchorIcon` | 1 |
+| `ArrowBigLeft` | `ArrowLeftBigIcon` | 1 |
+| `ArrowBigRight` | `ArrowRightBigIcon` | 1 |
+| `ArrowBigRightDash` | `ArrowBigRightDashIcon` | 1 |
+| `ArrowDown10` | `ArrangeByNumbersOneNineIcon` | 1 |
+| `ArrowDownAZ` | `ArrangeByLettersZAIcon` | 1 |
+| `ArrowDownToDot` | `ArrowDownToDotIcon` | 1 |
+| `ArrowUpFromDot` | `ArrowUpFromDotIcon` | 1 |
+| `ArrowUpRightFromSquare` | `SquareArrowUpRightIcon` | 1 |
+| `Award` | `Award01Icon` | 1 |
+| `Ban` | `BanIcon` | 1 |
+| `BarChart` | `BarChartIcon` | 1 |
+| `BarChart3` | `BarChartIcon` | 1 |
+| `Blend` | `BlendIcon` | 1 |
+| `Bold` | `TextBoldIcon` | 1 |
+| `BookMarked` | `BookBookmark01Icon` | 1 |
+| `BookSearch` | `BookSearchIcon` | 1 |
+| `BotMessageSquare` | `ChatBotIcon` | 1 |
+| `BotOff` | `BotOffIcon` | 1 |
+| `BriefcaseBusiness` | `Briefcase02Icon` | 1 |
+| `Cable` | `UsbIcon` | 1 |
+| `CalendarOff` | `CalendarBlock01Icon` | 1 |
+| `CalendarX` | `CalendarRemove01Icon` | 1 |
+| `Camera` | `Camera01Icon` | 1 |
+| `Captions` | `CaptionsIcon` | 1 |
+| `ChartColumn` | `ChartColumnIcon` | 1 |
+| `ChartGantt` | `ChartGanttIcon` | 1 |
+| `ChartNoAxesGantt` | `ChartNoAxesGanttIcon` | 1 |
+| `CheckSquare` | `CheckmarkSquare01Icon` | 1 |
+| `CircleArrowOutUpRight` | `CircleArrowOutUpRightIcon` | 1 |
+| `CircleArrowUp` | `CircleArrowUp01Icon` | 1 |
+| `CircleCheck` | `CircleCheckIcon` | 1 |
+| `CircleDollarSign` | `CircleDollarSignIcon` | 1 |
+| `CircleDotDashed` | `CircleDotDashedIcon` | 1 |
+| `CircleMinus` | `MinusSignCircleIcon` | 1 |
+| `CirclePile` | `CirclePileIcon` | 1 |
+| `CircleSlash2` | `CircleSlashTwoIcon` | 1 |
+| `CircleX` | `CircleXIcon` | 1 |
+| `ClipboardPen` | `ClipboardPenIcon` | 1 |
+| `Clock3` | `Clock03Icon` | 1 |
+| `CloudDownload` | `CloudDownloadIcon` | 1 |
+| `Coins` | `Coins01Icon` | 1 |
+| `Computer` | `ComputerIcon` | 1 |
+| `ComputerUse` | `CursorMagicSelection04Icon` | 1 |
+| `CopyCheck` | `Copy02Icon` | 1 |
+| `CopyPlus` | `CopyPlusIcon` | 1 |
+| `CopyX` | `CopyXIcon` | 1 |
+| `CornerUpLeft` | `CornerUpLeftIcon` | 1 |
+| `CreditCard` | `CreditCardIcon` | 1 |
+| `Crosshair` | `CrosshairIcon` | 1 |
+| `Eclipse` | `EclipseIcon` | 1 |
+| `Edit` | `Edit01Icon` | 1 |
+| `Edit2` | `Edit02Icon` | 1 |
+| `ExternalLink` | `SquareArrowUpRightIcon` | 1 |
+| `Feather` | `FeatherIcon` | 1 |
+| `FileBox` | `FileBoxIcon` | 1 |
+| `FileCode2` | `FileCodeIcon` | 1 |
+| `FileJson` | `FileCodeIcon` | 1 |
+| `FilePen` | `Edit04Icon` | 1 |
+| `FilePlus2` | `FileAddIcon` | 1 |
+| `Files` | `Files01Icon` | 1 |
+| `Flame` | `FireIcon` | 1 |
+| `FolderCode` | `FolderCodeIcon` | 1 |
+| `FolderMinus` | `FolderMinusIcon` | 1 |
+| `FolderSymlink` | `FolderSymlinkIcon` | 1 |
+| `Fuel` | `FuelIcon` | 1 |
+| `Fullscreen` | `FullScreenIcon` | 1 |
+| `GalleryThumbnails` | `GalleryThumbnailsIcon` | 1 |
+| `GanttChart` | `ChartGanttIcon` | 1 |
+| `Globe2` | `InternetIcon` | 1 |
+| `Hammer` | `LegalHammerIcon` | 1 |
+| `HandMetal` | `Shaka01Icon` | 1 |
+| `Heading2` | `Heading02Icon` | 1 |
+| `Headphones` | `HeadphonesIcon` | 1 |
+| `Heart` | `FavouriteIcon` | 1 |
+| `HeartPulse` | `Cardiogram01Icon` | 1 |
+| `Hexagon` | `HexagonIcon` | 1 |
+| `History` | `BubbleChatIcon` | 1 |
+| `IdCard` | `IdCardIcon` | 1 |
+| `Italic` | `TextItalicIcon` | 1 |
+| `Languages` | `LanguageCircleIcon` | 1 |
+| `LaptopMinimal` | `LaptopMinimalIcon` | 1 |
+| `LayoutDashboard` | `DashboardSquare01Icon` | 1 |
+| `LayoutPanelTop` | `LayoutTopIcon` | 1 |
+| `LinkIcon` | `Link01Icon` | 1 |
+| `List` | `LeftToRightListBulletIcon` | 1 |
+| `ListOrdered` | `LeftToRightListNumberIcon` | 1 |
+| `Logs` | `LogsIcon` | 1 |
+| `MailOpen` | `MailOpen01Icon` | 1 |
+| `Map` | `MapsIcon` | 1 |
+| `Maximize` | `ArrowExpand01Icon` | 1 |
+| `Menu` | `Menu01Icon` | 1 |
+| `MessageCircleQuestion` | `MessageCircleQuestionMarkIcon` | 1 |
+| `MessageCircleWarning` | `MessageCircleWarningIcon` | 1 |
+| `Mic` | `Mic01Icon` | 1 |
+| `Milestone` | `RoadLocation01Icon` | 1 |
+| `MonitorCog` | `ComputerSettingsIcon` | 1 |
+| `MonitorDot` | `MonitorDotIcon` | 1 |
+| `MonitorPlay` | `ComputerVideoIcon` | 1 |
+| `MonitorSmartphone` | `ComputerPhoneSyncIcon` | 1 |
+| `MoveHorizontal` | `MoveLeftIcon` | 1 |
+| `NewSession` | `MessageAdd02Icon` | 1 |
+| `Omega` | `OmegaIcon` | 1 |
+| `Package2` | `Package01Icon` | 1 |
+| `Paintbrush` | `PaintBrush01Icon` | 1 |
+| `PanelsTopLeft` | `PanelsTopLeftIcon` | 1 |
+| `Paperclip` | `AttachmentIcon` | 1 |
+| `PenLine` | `PenLineIcon` | 1 |
+| `PencilLine` | `PencilEdit01Icon` | 1 |
+| `PictureInPicture2` | `PictureInPicture01Icon` | 1 |
+| `Plane` | `Airplane01Icon` | 1 |
+| `Puzzle` | `PuzzleIcon` | 1 |
+| `Quote` | `QuoteIcon` | 1 |
+| `Radio` | `RadioIcon` | 1 |
+| `Replace` | `ReplaceIcon` | 1 |
+| `ReplaceAll` | `ReplaceAllIcon` | 1 |
+| `Reply` | `MailReply01Icon` | 1 |
+| `Rewind` | `RewindIcon` | 1 |
+| `RotateCw` | `RotateClockwiseIcon` | 1 |
+| `Rows2` | `LayoutTwoRowIcon` | 1 |
+| `RulerDimensionLine` | `RulerDimensionLineIcon` | 1 |
+| `ScrollText` | `ScrollIcon` | 1 |
+| `SearchCode` | `Search02Icon` | 1 |
+| `SearchX` | `SearchMinusIcon` | 1 |
+| `SettingsIcon` | `Settings01Icon` | 1 |
+| `Sheet` | `SheetIcon` | 1 |
+| `ShieldAlert` | `ShieldAlertIcon` | 1 |
+| `ShieldBan` | `SecurityBlockIcon` | 1 |
+| `SignalHigh` | `SignalFull01Icon` | 1 |
+| `SkipBack` | `SkipBackIcon` | 1 |
+| `SkipForward` | `Forward01Icon` | 1 |
+| `Slash` | `SlashIcon` | 1 |
+| `SlidersHorizontal` | `SlidersHorizontalIcon` | 1 |
+| `Space` | `SaturnIcon` | 1 |
+| `Sparkle` | `SparkleIcon` | 1 |
+| `Sprout` | `Plant01Icon` | 1 |
+| `SquareChevronRight` | `SquareChevronRightIcon` | 1 |
+| `SquareKanban` | `KanbanIcon` | 1 |
+| `SquareMousePointer` | `SquareMousePointerIcon` | 1 |
+| `SquareRoundCorner` | `SquareRoundCornerIcon` | 1 |
+| `SquareStack` | `SquareStackIcon` | 1 |
+| `StopCircle` | `StopCircleIcon` | 1 |
+| `Strikethrough` | `TextStrikethroughIcon` | 1 |
+| `Sun` | `Sun01Icon` | 1 |
+| `TableProperties` | `TablePropertiesIcon` | 1 |
+| `TagIcon` | `Tag01Icon` | 1 |
+| `Target` | `Target01Icon` | 1 |
+| `TextQuote` | `TextQuoteIcon` | 1 |
+| `ThumbsUp` | `ThumbsUpIcon` | 1 |
+| `Ticket` | `Ticket01Icon` | 1 |
+| `TrendingDown` | `AnalyticsDownIcon` | 1 |
+| `TrendingUp` | `AnalyticsUpIcon` | 1 |
+| `Unlink2` | `Unlink02Icon` | 1 |
+| `Unlock` | `SquareUnlock01Icon` | 1 |
+| `UserMinus` | `UserMinus01Icon` | 1 |
+| `UserRoundCheck` | `UserRoundCheckIcon` | 1 |
+| `UsersRound` | `UsersRoundIcon` | 1 |
+| `Wand2` | `MagicWand02Icon` | 1 |
+| `Waypoints` | `WaypointsIcon` | 1 |

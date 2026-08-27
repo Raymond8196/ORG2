@@ -1078,12 +1078,3 @@ body.drag-over::after {
     }
   }
 }
-
-// Icon SVGs are inline elements by default, so they sit on the text baseline
-// and inherit the inline descender. Any surrounding re-layout — hover, focus
-// ring, tooltip mount — then nudges them by a sub-pixel amount and the icon
-// visibly "shakes". Making them block removes them from inline flow.
-// (`InputActions` previously worked around this per-site with `lineHeight: 0`.)
-svg[data-icon] {
-  display: block;
-}

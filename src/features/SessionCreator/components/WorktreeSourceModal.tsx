@@ -1,4 +1,4 @@
-import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
+import CircleDot from "@hugeicons/core-free-icons/CircleDotIcon";
 import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
 import Hash from "@hugeicons/core-free-icons/HashtagIcon";
 import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";

@@ -5,7 +5,7 @@
  * Uses the same INPUT_AREA_BUTTONS tokens as InputActions
  * so both submit buttons are visually identical.
  */
-import ArrowUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import ArrowUp from "@hugeicons/core-free-icons/ArrowUp02Icon";
 import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
@@ -66,7 +66,7 @@ const LaunchButton: React.FC<LaunchButtonProps> = ({
   const ariaLabel = customAriaLabel ?? t("common:actions.send");
 
   // `leading-none` + explicit `block` on the SVG kill the baseline gap
-  // that `lucide-react` icons inherit from their default inline-block
+  // that icon SVGs inherit from their default inline-block
   // display. Without these, the button's inline formatting context
   // reserves space below the SVG for the imagined text descender, and
   // any tiny re-layout in the surrounding toolbar (hover, focus-ring,

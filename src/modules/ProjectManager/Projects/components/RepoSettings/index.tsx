@@ -11,7 +11,7 @@
 import Tags from "@hugeicons/core-free-icons/TagsIcon";
 import User from "@hugeicons/core-free-icons/UserIcon";
 import Users from "@hugeicons/core-free-icons/UserMultipleIcon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 

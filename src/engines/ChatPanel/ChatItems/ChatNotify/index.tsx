@@ -1,5 +1,5 @@
 import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import Eye from "@hugeicons/core-free-icons/ViewIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useState } from "react";

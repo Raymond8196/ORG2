@@ -3,11 +3,11 @@
  * panel header toolbar (left of the "..." menu).
  */
 import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import Box from "@hugeicons/core-free-icons/BoxIcon";
 import BriefcaseBusiness from "@hugeicons/core-free-icons/Briefcase02Icon";
+import LayoutGrid from "@hugeicons/core-free-icons/DashboardSquare01Icon";
 import Gauge from "@hugeicons/core-free-icons/GaugeIcon";
-import LayoutGrid from "@hugeicons/core-free-icons/LayoutGridIcon";
 import Columns3 from "@hugeicons/core-free-icons/LayoutThreeColumnIcon";
-import Box from "@hugeicons/core-free-icons/PackageIcon";
 import PictureInPicture2 from "@hugeicons/core-free-icons/PictureInPicture01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useState } from "react";

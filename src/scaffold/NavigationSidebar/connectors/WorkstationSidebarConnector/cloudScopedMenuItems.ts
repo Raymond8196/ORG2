@@ -1,5 +1,4 @@
 import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { ReactNode } from "react";
 
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";

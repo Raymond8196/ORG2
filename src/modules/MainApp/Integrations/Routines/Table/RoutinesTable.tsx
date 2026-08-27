@@ -1,4 +1,4 @@
-import ExternalLink from "@hugeicons/core-free-icons/ArrowUpRight01Icon";
+import ExternalLink from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";

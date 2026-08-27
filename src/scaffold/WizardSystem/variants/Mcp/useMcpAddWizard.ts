@@ -4,8 +4,8 @@
  */
 import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
 import Zap from "@hugeicons/core-free-icons/FlashIcon";
-import Globe from "@hugeicons/core-free-icons/GlobeIcon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import Globe from "@hugeicons/core-free-icons/InternetIcon";
+import type { IconSvgElement } from "@hugeicons/react";
 import {
   type Dispatch,
   type SetStateAction,

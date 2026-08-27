@@ -1,4 +1,4 @@
-import List from "@hugeicons/core-free-icons/ListViewIcon";
+import List from "@hugeicons/core-free-icons/ListIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";

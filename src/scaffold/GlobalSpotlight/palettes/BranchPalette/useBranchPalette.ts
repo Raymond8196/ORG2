@@ -355,7 +355,8 @@ export function useBranchPalette(options: UseBranchPaletteOptions) {
     }
 
     const RefreshIcon = (props: { size?: number; className?: string }) =>
-      createElement(ICONS.refresh, {
+      createElement(HugeiconsIcon, {
+        icon: ICONS.refresh,
         ...props,
         className:
           `${props.className ?? ""} ${isRefreshSpinning ? "spotlight-refresh-spin" : ""}`.trim(),

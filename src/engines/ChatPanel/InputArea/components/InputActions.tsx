@@ -15,7 +15,7 @@
  *   5. Terminal + can resume  → Retry (orange, CLI sessions only)
  *   6. Otherwise              → Submit (arrow up, inactive color, noop)
  */
-import ArrowUp from "@hugeicons/core-free-icons/MoveUpIcon";
+import ArrowUp from "@hugeicons/core-free-icons/ArrowUp02Icon";
 import RotateCcw from "@hugeicons/core-free-icons/RotateLeft01Icon";
 import Square from "@hugeicons/core-free-icons/SquareIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -193,7 +193,7 @@ const InputActions: React.FC<InputActionsProps> = memo(
           : "submit";
 
     // `lineHeight: 0` + `block` SVGs eliminate the inline-flow descender
-    // that lucide icons inherit by default. Without this, surrounding
+    // that icon SVGs inherit by default. Without this, surrounding
     // toolbar re-layout (hover, tooltip mount, focus ring) nudges the
     // icon by a sub-pixel amount and the ArrowUp visually "shakes".
     const buttonNode = (

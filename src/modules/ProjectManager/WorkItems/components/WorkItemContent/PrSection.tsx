@@ -1,6 +1,6 @@
 import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
 import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";

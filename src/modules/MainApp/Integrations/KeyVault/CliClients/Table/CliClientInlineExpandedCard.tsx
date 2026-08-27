@@ -1,6 +1,6 @@
 import Plus from "@hugeicons/core-free-icons/Add01Icon";
 import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";

@@ -1,4 +1,4 @@
-import Chrome from "@hugeicons/core-free-icons/ChromeIcon";
+import Chrome from "@hugeicons/core-free-icons/InternetIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";

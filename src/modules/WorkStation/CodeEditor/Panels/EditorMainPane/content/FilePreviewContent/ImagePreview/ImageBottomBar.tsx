@@ -7,7 +7,7 @@
  *   - "diff": shows old → new file info with color-coded sizes
  */
 import Maximize from "@hugeicons/core-free-icons/ArrowExpand01Icon";
-import ArrowRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ArrowRight from "@hugeicons/core-free-icons/ArrowRight02Icon";
 import ZoomIn from "@hugeicons/core-free-icons/ZoomInAreaIcon";
 import ZoomOut from "@hugeicons/core-free-icons/ZoomOutAreaIcon";
 import { HugeiconsIcon } from "@hugeicons/react";

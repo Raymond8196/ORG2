@@ -3,7 +3,7 @@
  *
  * Shared types for the reusable KanbanBoard component.
  */
-import { type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 
 import type { CliAgentType } from "@src/api/types/keys";
 import type { Label } from "@src/types/core/shared";

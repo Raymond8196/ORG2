@@ -11,7 +11,7 @@
 import Compass from "@hugeicons/core-free-icons/CompassIcon";
 import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
 import ListTree from "@hugeicons/core-free-icons/HierarchyFilesIcon";
-import List from "@hugeicons/core-free-icons/ListViewIcon";
+import List from "@hugeicons/core-free-icons/ListIcon";
 import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";

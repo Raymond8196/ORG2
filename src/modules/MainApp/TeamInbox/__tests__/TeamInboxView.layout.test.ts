@@ -1,7 +1,6 @@
 // @vitest-environment jsdom
-import Chrome from "@hugeicons/core-free-icons/ChromeIcon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
+import Chrome from "@hugeicons/core-free-icons/InternetIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import React, { act, createElement } from "react";
 import { type Root, createRoot } from "react-dom/client";
 import {
@@ -481,16 +480,18 @@ describe("TeamInboxView split layout", () => {
     ) as Array<
       React.ReactElement<{
         label: string;
-        icon: React.ReactElement;
+        // The pane wraps glyph data in <HugeiconsIcon icon={…}/>, so the
+        // identity to assert on is the element's `icon` prop, not its type.
+        icon: React.ReactElement<{ icon: unknown }>;
         onClick: () => void;
         testId: string;
       }>
     >;
     expect(browserAction.props.label).toBe("previews.openInExternalBrowser");
-    expect(browserAction.props.icon.type).toBe(Chrome);
+    expect(browserAction.props.icon.props.icon).toBe(Chrome);
     expect(browserAction.props.testId).toBe("team-inbox-open-github-pr");
     expect(tabAction.props.label).toBe("teamInbox.actions.openPullRequest");
-    expect(tabAction.props.icon.type).toBe(SquareArrowOutUpRight);
+    expect(tabAction.props.icon.props.icon).toBe(SquareArrowOutUpRight);
     expect(tabAction.props.testId).toBe("team-inbox-open-pr-tab");
     act(() => browserAction.props.onClick());
     expect(openExternalLink).toHaveBeenCalledWith(

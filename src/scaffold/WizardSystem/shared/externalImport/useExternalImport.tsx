@@ -12,7 +12,7 @@
  * without collapsing them into a single import destination.
  */
 import Code2 from "@hugeicons/core-free-icons/CodeIcon";
-import ShieldAlert from "@hugeicons/core-free-icons/Shield01Icon";
+import ShieldAlert from "@hugeicons/core-free-icons/ShieldAlertIcon";
 import User from "@hugeicons/core-free-icons/UserIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { invoke } from "@tauri-apps/api/core";

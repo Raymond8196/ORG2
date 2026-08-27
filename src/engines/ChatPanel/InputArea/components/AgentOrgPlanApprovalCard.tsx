@@ -1,4 +1,4 @@
-import FilePenLine from "@hugeicons/core-free-icons/FilePenLineIcon";
+import FilePenLine from "@hugeicons/core-free-icons/Edit04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";

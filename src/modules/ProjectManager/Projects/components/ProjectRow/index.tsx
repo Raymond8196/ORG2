@@ -3,8 +3,8 @@
  *
  * Individual row for displaying a project in the list view.
  */
-import ListChecks from "@hugeicons/core-free-icons/CheckListIcon";
 import FolderKanban from "@hugeicons/core-free-icons/FolderKanbanIcon";
+import ListChecks from "@hugeicons/core-free-icons/ListChecksIcon";
 import CalendarClock from "@hugeicons/core-free-icons/TimeScheduleIcon";
 import Link2Off from "@hugeicons/core-free-icons/Unlink02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";

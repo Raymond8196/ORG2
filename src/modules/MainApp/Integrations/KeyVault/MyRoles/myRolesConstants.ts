@@ -7,7 +7,6 @@
 import Circle from "@hugeicons/core-free-icons/CircleIcon";
 import HatGlasses from "@hugeicons/core-free-icons/HatGlassesIcon";
 import Moon from "@hugeicons/core-free-icons/MoonIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 
 import type {
   FamiliarLanguageTechStack,

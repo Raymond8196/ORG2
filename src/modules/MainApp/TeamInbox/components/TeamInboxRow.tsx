@@ -1,4 +1,4 @@
-import ListChecks from "@hugeicons/core-free-icons/CheckListIcon";
+import ListChecks from "@hugeicons/core-free-icons/ListChecksIcon";
 import MessageSquareMore from "@hugeicons/core-free-icons/MessageSquareMoreIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { forwardRef, useMemo } from "react";

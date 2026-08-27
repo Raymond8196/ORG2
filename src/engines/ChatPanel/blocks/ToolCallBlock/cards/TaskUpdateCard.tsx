@@ -6,9 +6,9 @@
  * for collapse state. Body padding follows `EVENT_SNIPPET_INNER_PADDING_CLASS`
  * (`px-3 py-1.5`) to match every other tool block.
  */
-import ListChecks from "@hugeicons/core-free-icons/CheckListIcon";
 import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
+import CircleDot from "@hugeicons/core-free-icons/CircleDotIcon";
+import ListChecks from "@hugeicons/core-free-icons/ListChecksIcon";
 import PlayCircle from "@hugeicons/core-free-icons/PlayCircleIcon";
 import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";

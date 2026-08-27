@@ -22,14 +22,14 @@
 import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
 import Search from "@hugeicons/core-free-icons/Search01Icon";
 import Check from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import AnyIcon from "@src/components/AnyIcon";
+import AnyIcon, { type RenderableIcon } from "@src/components/AnyIcon";
 import {
   DROPDOWN_CLASSES,
   DROPDOWN_ITEM,
@@ -82,7 +82,7 @@ interface SettingsSelectorItem {
   readonly id: SettingsSelectorItemId;
   readonly label: string;
   readonly path: string;
-  readonly icon: IconSvgElement | null;
+  readonly icon: RenderableIcon | null;
   readonly groupId: string;
 }
 

@@ -9,7 +9,7 @@
  */
 import FileCode2 from "@hugeicons/core-free-icons/FileCodeIcon";
 import FunctionSquare from "@hugeicons/core-free-icons/FunctionSquareIcon";
-import GitCommitHorizontal from "@hugeicons/core-free-icons/GitCommitIcon";
+import GitCommitHorizontal from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
 import Hash from "@hugeicons/core-free-icons/HashtagIcon";
 import Sparkles from "@hugeicons/core-free-icons/SparklesIcon";
 import { HugeiconsIcon } from "@hugeicons/react";

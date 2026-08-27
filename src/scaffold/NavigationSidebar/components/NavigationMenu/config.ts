@@ -1,13 +1,16 @@
 // ============================================
 // NavigationMenu Configuration
 // ============================================
-import { type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 import type { MouseEvent, ReactNode } from "react";
 
+import type { AnyIconSource } from "@src/components/AnyIcon";
 import type { TabDragPillPayload } from "@src/modules/WorkStation/shared/TabBar/tabDragTypes";
 
 export interface NavigationMenuRowAction {
   icon?: IconSvgElement;
+  /** Stable `data-icon` hook stamped on the rendered glyph (tests/debugging). */
+  dataIcon?: string;
   /** Optional class applied to the rendered Lucide icon (for example refresh spin). */
   iconClassName?: string;
   label: string;
@@ -35,7 +38,8 @@ export interface NavigationMenuItem {
   searchText?: string;
   /** Optional secondary line rendered below the label (e.g. branch name). */
   subtitle?: ReactNode;
-  icon?: IconSvgElement | string;
+  /** Glyph data, a brand component, or an icon-font class — rendered via `AnyIcon`. */
+  icon?: AnyIconSource;
   iconName?: string;
   /** Arbitrary rendered icon — takes precedence over `icon` when set. */
   iconElement?: ReactNode;

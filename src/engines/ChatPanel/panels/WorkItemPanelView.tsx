@@ -1,7 +1,7 @@
 import ChevronsRight from "@hugeicons/core-free-icons/ArrowRightDoubleIcon";
-import ListChecks from "@hugeicons/core-free-icons/CheckListIcon";
 import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
 import Info from "@hugeicons/core-free-icons/InformationCircleIcon";
+import ListChecks from "@hugeicons/core-free-icons/ListChecksIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { emit } from "@tauri-apps/api/event";
 import { useAtomValue, useSetAtom } from "jotai";

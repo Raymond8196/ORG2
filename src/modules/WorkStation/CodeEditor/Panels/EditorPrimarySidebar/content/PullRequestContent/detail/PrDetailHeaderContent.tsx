@@ -2,7 +2,6 @@ import GitMerge from "@hugeicons/core-free-icons/GitMergeIcon";
 import GitPullRequestClosed from "@hugeicons/core-free-icons/GitPullRequestClosedIcon";
 import GitPullRequestDraft from "@hugeicons/core-free-icons/GitPullRequestDraftIcon";
 import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import AnyIcon from "@src/components/AnyIcon";
@@ -16,16 +15,24 @@ import type { PrIdentity } from "@src/store/workstation/codeEditor/workstationSe
 /** Semantic pull-request icon shared by compact and expanded status surfaces. */
 export function PrStatusIcon({ status }: { status: string }): React.ReactNode {
   const iconName = getPrStatusIconName(status);
-  const StatusIcon =
+  const [StatusIcon, dataIcon] =
     iconName === "draft"
-      ? GitPullRequestDraft
+      ? [GitPullRequestDraft, "git-pull-request-draft"]
       : iconName === "merge"
-        ? GitMerge
+        ? [GitMerge, "git-merge"]
         : iconName === "closed"
-          ? GitPullRequestClosed
-          : GitPullRequest;
+          ? [GitPullRequestClosed, "git-pull-request-closed"]
+          : [GitPullRequest, "git-pull-request"];
 
-  return <AnyIcon icon={StatusIcon} size={14} strokeWidth={1.75} aria-hidden />;
+  return (
+    <AnyIcon
+      icon={StatusIcon}
+      data-icon={dataIcon}
+      size={14}
+      strokeWidth={1.75}
+      aria-hidden
+    />
+  );
 }
 
 /** Shared status, number, and title content for every PR detail host header. */

@@ -1,12 +1,12 @@
-import ArrowDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
 import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowDown from "@hugeicons/core-free-icons/ArrowDown02Icon";
 import ArrowDownToLine from "@hugeicons/core-free-icons/ArrowDownToLineIcon";
-import ArrowUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import ArrowUp from "@hugeicons/core-free-icons/ArrowUp02Icon";
 import ArrowUpFromLine from "@hugeicons/core-free-icons/ArrowUpFromLineIcon";
 import CloudDownload from "@hugeicons/core-free-icons/CloudDownloadIcon";
 import CloudUpload from "@hugeicons/core-free-icons/CloudUploadIcon";
+import Ellipsis from "@hugeicons/core-free-icons/EllipsisIcon";
 import GitCompareArrows from "@hugeicons/core-free-icons/GitCompareIcon";
-import Ellipsis from "@hugeicons/core-free-icons/MoreHorizontalIcon";
 import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";

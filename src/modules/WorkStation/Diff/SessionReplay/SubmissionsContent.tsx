@@ -1,4 +1,4 @@
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo } from "react";

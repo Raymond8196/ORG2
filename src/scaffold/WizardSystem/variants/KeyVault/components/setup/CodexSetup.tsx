@@ -1,7 +1,6 @@
 import Keyboard from "@hugeicons/core-free-icons/KeyboardIcon";
 import LogIn from "@hugeicons/core-free-icons/Login01Icon";
 import ScanSearch from "@hugeicons/core-free-icons/SearchAreaIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 

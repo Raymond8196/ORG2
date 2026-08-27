@@ -3,11 +3,10 @@
  *
  * Display type selector (block, flex, grid, inline) as full-width TabPill.
  */
-import LayoutGrid from "@hugeicons/core-free-icons/LayoutGridIcon";
+import LayoutGrid from "@hugeicons/core-free-icons/DashboardSquare01Icon";
 import Rows2 from "@hugeicons/core-free-icons/LayoutTwoRowIcon";
 import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
 import Square from "@hugeicons/core-free-icons/SquareIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo } from "react";
 
 import AnyIcon from "@src/components/AnyIcon";

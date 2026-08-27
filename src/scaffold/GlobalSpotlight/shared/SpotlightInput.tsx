@@ -9,7 +9,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
-import AnyIcon from "@src/components/AnyIcon";
+import AnyIcon, { type AnyIconSource } from "@src/components/AnyIcon";
 import { useTauriSelectAllShortcut } from "@src/hooks/keyboard";
 
 import { SPOTLIGHT_TOKENS } from "../constants";
@@ -30,7 +30,7 @@ export interface SpotlightInputProps {
   /** Loading state */
   isLoading?: boolean;
   /** Icon to display (defaults to Search) */
-  icon?: React.ComponentType<{ size?: number; className?: string }>;
+  icon?: AnyIconSource;
   /** Custom icon element (overrides icon prop) */
   iconElement?: React.ReactNode;
   /** Renders at the end of the search row (e.g. mode badge); stays in the 56px bar */

@@ -5,7 +5,7 @@
  * Handles icons, labels, status indicators, git badges, and keyboard shortcuts.
  */
 import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import CornerDownRight from "@hugeicons/core-free-icons/ArrowTurnDownIcon";
+import CornerDownRight from "@hugeicons/core-free-icons/CornerDownRightIcon";
 import Diff from "@hugeicons/core-free-icons/DiffIcon";
 import Info from "@hugeicons/core-free-icons/InformationCircleIcon";
 import Lock from "@hugeicons/core-free-icons/LockIcon";

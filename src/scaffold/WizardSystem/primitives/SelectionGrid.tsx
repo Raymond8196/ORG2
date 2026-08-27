@@ -32,7 +32,7 @@
  * />
  * ```
  */
-import { type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 

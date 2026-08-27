@@ -1,4 +1,3 @@
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { memo } from "react";
 

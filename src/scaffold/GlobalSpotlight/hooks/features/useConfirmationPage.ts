@@ -4,7 +4,7 @@
  * Manages the confirmation stage where users review and confirm their action.
  * Replaces the countdown system with an expanded confirmation page.
  */
-import { type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 import { type ComponentType, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 

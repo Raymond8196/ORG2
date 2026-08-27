@@ -6,7 +6,6 @@
 import ArrowDownFromLine from "@hugeicons/core-free-icons/ArrowDownFromLineIcon";
 import ArrowUpFromLine from "@hugeicons/core-free-icons/ArrowUpFromLineIcon";
 import FoldVertical from "@hugeicons/core-free-icons/FoldVerticalIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import AnyIcon from "@src/components/AnyIcon";

@@ -22,7 +22,7 @@
  */
 import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
 import FileText from "@hugeicons/core-free-icons/File02Icon";
-import Globe from "@hugeicons/core-free-icons/GlobeIcon";
+import Globe from "@hugeicons/core-free-icons/InternetIcon";
 import Search from "@hugeicons/core-free-icons/Search01Icon";
 import Wrench from "@hugeicons/core-free-icons/Wrench01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";

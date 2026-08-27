@@ -5,7 +5,7 @@
  */
 import Infinity from "@hugeicons/core-free-icons/Infinity01Icon";
 import Laptop from "@hugeicons/core-free-icons/LaptopIcon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 import { useAtom } from "jotai";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";

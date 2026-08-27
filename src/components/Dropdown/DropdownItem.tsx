@@ -15,7 +15,7 @@
  *
  * // With icon and selected state
  * <DropdownItem
- *   icon={<Settings size={DROPDOWN_ITEM.iconSize} />}
+ *   icon={<HugeiconsIcon icon={Settings} size={DROPDOWN_ITEM.iconSize} />}
  *   selected={currentValue === "settings"}
  *   onClick={() => handleSelect("settings")}
  * >
@@ -24,7 +24,7 @@
  *
  * // With suffix (e.g., checkmark, shortcut)
  * <DropdownItem
- *   suffix={<Check size={DROPDOWN_ITEM.iconSize} />}
+ *   suffix={<HugeiconsIcon icon={Check} size={DROPDOWN_ITEM.iconSize} />}
  *   selected
  * >
  *   Selected Option

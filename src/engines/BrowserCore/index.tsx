@@ -13,9 +13,9 @@
  * - Native webview rendering
  */
 import CloudOff from "@hugeicons/core-free-icons/CloudLoadingIcon";
-import Monitor from "@hugeicons/core-free-icons/ComputerIcon";
+import Monitor from "@hugeicons/core-free-icons/MonitorIcon";
 import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";

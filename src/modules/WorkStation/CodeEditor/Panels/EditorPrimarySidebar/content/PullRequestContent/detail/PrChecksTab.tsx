@@ -8,7 +8,7 @@ import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
 import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
 import CircleSlash from "@hugeicons/core-free-icons/CircleSlashIcon";
 import Loader from "@hugeicons/core-free-icons/Loading01Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";

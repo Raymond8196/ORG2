@@ -169,7 +169,7 @@ export const SessionHeaderActionsMenu: React.FC<
         icon={
           <HugeiconsIcon
             icon={MoreHorizontal}
-            data-icon="more-horizontal"
+            data-icon="ellipsis"
             size={HEADER_ICON_SIZE}
             strokeWidth={2}
           />

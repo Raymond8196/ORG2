@@ -1,10 +1,10 @@
 import Network from "@hugeicons/core-free-icons/AiNetworkIcon";
 import Bot from "@hugeicons/core-free-icons/BotIcon";
+import Box from "@hugeicons/core-free-icons/BoxIcon";
 import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
 import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
 import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
 import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
-import Box from "@hugeicons/core-free-icons/PackageIcon";
 import SquarePen from "@hugeicons/core-free-icons/PencilEdit02Icon";
 import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import { HugeiconsIcon } from "@hugeicons/react";

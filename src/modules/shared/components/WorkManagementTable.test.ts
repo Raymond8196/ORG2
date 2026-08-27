@@ -1,4 +1,4 @@
-import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
+import CircleDot from "@hugeicons/core-free-icons/CircleDotIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";

@@ -4,7 +4,7 @@
  *
  * Extracted from LaunchpadDashboard.tsx to keep it under 600 lines.
  */
-import Expand from "@hugeicons/core-free-icons/ArrowExpand01Icon";
+import Expand from "@hugeicons/core-free-icons/ExpandIcon";
 import Play from "@hugeicons/core-free-icons/PlayIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";

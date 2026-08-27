@@ -14,13 +14,13 @@
  * - `EDITOR_ACTIONS`           — editor palette modes (file / command / symbol).
  * - `QUICK_NAVIGATION_ACTIONS` — work-station tab switchers (terminal, SCM).
  */
+import DraftingCompass from "@hugeicons/core-free-icons/AiGenerativeIcon";
+import Box from "@hugeicons/core-free-icons/BoxIcon";
 import Dock from "@hugeicons/core-free-icons/DockIcon";
-import DraftingCompass from "@hugeicons/core-free-icons/DraftingCompassIcon";
 import FolderPlus from "@hugeicons/core-free-icons/FolderAddIcon";
 import FolderTree from "@hugeicons/core-free-icons/FolderTreeIcon";
 import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
 import Columns3 from "@hugeicons/core-free-icons/LayoutThreeColumnIcon";
-import Box from "@hugeicons/core-free-icons/PackageIcon";
 import SquarePen from "@hugeicons/core-free-icons/PencilEdit02Icon";
 import Play from "@hugeicons/core-free-icons/PlayIcon";
 import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
@@ -28,7 +28,7 @@ import Search from "@hugeicons/core-free-icons/Search01Icon";
 import Sparkles from "@hugeicons/core-free-icons/SparklesIcon";
 import SquareTerminal from "@hugeicons/core-free-icons/SquareTerminalIcon";
 import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import { type IconSvgElement } from "@hugeicons/react";
 
 import { ACTION_ID } from "@src/ActionSystem";
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";

@@ -1,6 +1,5 @@
 import Code from "@hugeicons/core-free-icons/CodeIcon";
 import Split from "@hugeicons/core-free-icons/SplitIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React from "react";
 import { describe, expect, it, vi } from "vitest";
@@ -15,6 +14,7 @@ const t = ((key: string) => key) as TFunction;
 describe("buildSessionInfoSegments", () => {
   it("uses a clockwise split icon for New Worktree", () => {
     const icon = LOCATION_ICONS.worktree as React.ReactElement<{
+      icon?: unknown;
       className?: string;
     }>;
 

@@ -1,6 +1,6 @@
 import BookOpen from "@hugeicons/core-free-icons/BookOpen01Icon";
-import ListChecks from "@hugeicons/core-free-icons/CheckListIcon";
-import Box from "@hugeicons/core-free-icons/PackageIcon";
+import Box from "@hugeicons/core-free-icons/BoxIcon";
+import ListChecks from "@hugeicons/core-free-icons/ListChecksIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";

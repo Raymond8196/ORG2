@@ -30,7 +30,7 @@
  */
 import MessageCircle from "@hugeicons/core-free-icons/BubbleChatIcon";
 import SquarePen from "@hugeicons/core-free-icons/PencilEdit02Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import React, { useCallback } from "react";

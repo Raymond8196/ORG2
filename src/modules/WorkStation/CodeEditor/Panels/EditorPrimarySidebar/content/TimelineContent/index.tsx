@@ -4,7 +4,6 @@
  * Displays Git commit history and repo-shareable `.orgtrack` session lineage
  * for the currently selected file.
  */
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useSetAtom } from "jotai";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";

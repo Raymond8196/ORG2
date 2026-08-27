@@ -1,4 +1,4 @@
-import ArrowRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ArrowRight from "@hugeicons/core-free-icons/ArrowRight02Icon";
 import CheckSquare from "@hugeicons/core-free-icons/CheckmarkSquare01Icon";
 import FolderKanban from "@hugeicons/core-free-icons/FolderKanbanIcon";
 import { HugeiconsIcon } from "@hugeicons/react";

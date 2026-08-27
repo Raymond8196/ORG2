@@ -12,7 +12,7 @@
  * - Virtual scrolling for large code blocks (>100 lines)
  */
 import Copy from "@hugeicons/core-free-icons/Copy01Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import Check from "@hugeicons/core-free-icons/Tick01Icon";
 import Eye from "@hugeicons/core-free-icons/ViewIcon";
 import EyeOff from "@hugeicons/core-free-icons/ViewOffIcon";

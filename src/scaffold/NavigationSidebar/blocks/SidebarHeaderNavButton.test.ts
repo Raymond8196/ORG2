@@ -1,5 +1,4 @@
 import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";

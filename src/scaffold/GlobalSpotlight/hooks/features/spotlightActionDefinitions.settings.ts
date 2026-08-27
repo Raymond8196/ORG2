@@ -20,7 +20,6 @@ import Moon from "@hugeicons/core-free-icons/MoonIcon";
 import PanelLeft from "@hugeicons/core-free-icons/PanelLeftIcon";
 import Sparkles from "@hugeicons/core-free-icons/SparklesIcon";
 import Sun from "@hugeicons/core-free-icons/Sun01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 
 import { ACTION_ID } from "@src/ActionSystem";
 

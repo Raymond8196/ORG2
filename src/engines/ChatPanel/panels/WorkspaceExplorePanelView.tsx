@@ -15,7 +15,7 @@
 import Download from "@hugeicons/core-free-icons/Download01Icon";
 import GitFork from "@hugeicons/core-free-icons/GitForkIcon";
 import Search from "@hugeicons/core-free-icons/Search01Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import Star from "@hugeicons/core-free-icons/StarIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { open as openExternal } from "@tauri-apps/plugin-shell";

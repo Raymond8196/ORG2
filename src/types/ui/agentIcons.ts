@@ -10,12 +10,12 @@ import MousePointer2 from "@hugeicons/core-free-icons/Cursor02Icon";
 import Zap from "@hugeicons/core-free-icons/FlashIcon";
 import Github from "@hugeicons/core-free-icons/GithubIcon";
 import HelpCircle from "@hugeicons/core-free-icons/HelpCircleIcon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 
 import type {
   StreamingAgentType,
   ToolKind,
 } from "@src/api/realtime/websocket/types";
+import type { RenderableIcon } from "@src/components/AnyIcon";
 import { resolveAgentIcon } from "@src/config/agentIcons";
 
 // ============================================
@@ -41,8 +41,8 @@ export const TOOL_KIND_ICONS: Record<ToolKind, string> = {
 // Icon Mapping for Agent Types
 // ============================================
 
-/** Map agent types to Lucide icon components */
-export const AGENT_TYPE_ICONS: Record<StreamingAgentType, IconSvgElement> = {
+/** Map agent types to icons — glyph data or brand components; render via `AnyIcon`. */
+export const AGENT_TYPE_ICONS: Record<StreamingAgentType, RenderableIcon> = {
   claude: Bot,
   amp: Zap,
   cursor: MousePointer2,

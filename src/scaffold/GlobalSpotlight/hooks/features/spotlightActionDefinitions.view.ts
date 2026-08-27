@@ -8,13 +8,12 @@
  */
 import MessageCircle from "@hugeicons/core-free-icons/BubbleChatIcon";
 import Dock from "@hugeicons/core-free-icons/DockIcon";
-import List from "@hugeicons/core-free-icons/ListViewIcon";
+import List from "@hugeicons/core-free-icons/ListIcon";
 import PanelLeft from "@hugeicons/core-free-icons/PanelLeftIcon";
 import RotateCcw from "@hugeicons/core-free-icons/RotateLeft01Icon";
 import PanelBottom from "@hugeicons/core-free-icons/SidebarBottomIcon";
 import ZoomIn from "@hugeicons/core-free-icons/ZoomInAreaIcon";
 import ZoomOut from "@hugeicons/core-free-icons/ZoomOutAreaIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 
 import { ACTION_ID } from "@src/ActionSystem";
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";

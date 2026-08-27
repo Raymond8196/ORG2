@@ -7,12 +7,12 @@
  * in a `useMemo` so `usePublishWorkstationTabHeader` keeps a stable `content`
  * identity and does not re-publish on every render.
  */
-import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import ArrowRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
+import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft02Icon";
+import ArrowRight from "@hugeicons/core-free-icons/ArrowRight02Icon";
+import CircleDot from "@hugeicons/core-free-icons/CircleDotIcon";
 import ListChevronsDownUp from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
 import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React from "react";

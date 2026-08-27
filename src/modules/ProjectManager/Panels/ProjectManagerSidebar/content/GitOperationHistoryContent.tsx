@@ -10,7 +10,7 @@ import ArrowDownToLine from "@hugeicons/core-free-icons/ArrowDownToLineIcon";
 import ArrowUpFromLine from "@hugeicons/core-free-icons/ArrowUpFromLineIcon";
 import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
 import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import GitCommitHorizontal from "@hugeicons/core-free-icons/GitCommitIcon";
+import GitCommitHorizontal from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
 import GitMerge from "@hugeicons/core-free-icons/GitMergeIcon";
 import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
 import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";

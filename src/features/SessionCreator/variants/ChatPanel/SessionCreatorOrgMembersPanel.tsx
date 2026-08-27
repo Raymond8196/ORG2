@@ -1,4 +1,4 @@
-import Grip from "@hugeicons/core-free-icons/Drag01Icon";
+import Grip from "@hugeicons/core-free-icons/GripIcon";
 import Users from "@hugeicons/core-free-icons/UserMultipleIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";

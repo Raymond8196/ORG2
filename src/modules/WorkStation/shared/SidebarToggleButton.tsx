@@ -16,7 +16,7 @@
  * styling unified across products without forcing a single atom shape on
  * every consumer.
  */
-import List from "@hugeicons/core-free-icons/ListViewIcon";
+import List from "@hugeicons/core-free-icons/LeftToRightListBulletIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback } from "react";

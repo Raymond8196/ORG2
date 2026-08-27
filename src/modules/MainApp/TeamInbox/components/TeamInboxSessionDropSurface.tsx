@@ -2,7 +2,7 @@ import X from "@hugeicons/core-free-icons/Cancel01Icon";
 import Inbox from "@hugeicons/core-free-icons/InboxIcon";
 import Link2 from "@hugeicons/core-free-icons/Link02Icon";
 import RotateCcw from "@hugeicons/core-free-icons/RotateLeft01Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { useCallback, useEffect, useRef, useState } from "react";

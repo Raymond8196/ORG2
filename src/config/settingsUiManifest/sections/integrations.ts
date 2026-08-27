@@ -1,7 +1,6 @@
 import AppWindow from "@hugeicons/core-free-icons/AppWindowIcon";
 import Sparkles from "@hugeicons/core-free-icons/SparklesIcon";
 import UserRoundCog from "@hugeicons/core-free-icons/UserRoundCogIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 
 import type { SettingsKey } from "@src/config/settingsSchema";
 import { AGENT_BROWSER_SETTING_KEYS } from "@src/config/settingsSchema/registry/agentBrowser";

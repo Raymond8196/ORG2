@@ -7,22 +7,22 @@
  */
 import Activity from "@hugeicons/core-free-icons/Activity01Icon";
 import Network from "@hugeicons/core-free-icons/AiNetworkIcon";
-import AppWindow from "@hugeicons/core-free-icons/AppWindowIcon";
 import BadgeCent from "@hugeicons/core-free-icons/BadgeCentIcon";
 import CalendarArrowUp from "@hugeicons/core-free-icons/CalendarArrowUpIcon";
-import ClipboardList from "@hugeicons/core-free-icons/CheckListIcon";
-import Chromium from "@hugeicons/core-free-icons/ChromeIcon";
+import ClipboardList from "@hugeicons/core-free-icons/ClipboardListIcon";
 import Cloud from "@hugeicons/core-free-icons/CloudIcon";
 import Code from "@hugeicons/core-free-icons/CodeIcon";
 import Palette from "@hugeicons/core-free-icons/ColorPickerIcon";
 import CreditCard from "@hugeicons/core-free-icons/CreditCardIcon";
+import ComputerUse from "@hugeicons/core-free-icons/CursorMagicSelection04Icon";
 import Database from "@hugeicons/core-free-icons/DatabaseIcon";
 import FileText from "@hugeicons/core-free-icons/File02Icon";
 import Braces from "@hugeicons/core-free-icons/FirstBracketIcon";
 import FolderGit2 from "@hugeicons/core-free-icons/FolderGitTwoIcon";
 import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
+import AgentTeams from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
 import Inbox from "@hugeicons/core-free-icons/InboxIcon";
-import InfinityIcon from "@hugeicons/core-free-icons/Infinity01Icon";
+import Chromium from "@hugeicons/core-free-icons/InternetIcon";
 import Key from "@hugeicons/core-free-icons/Key01Icon";
 import Hammer from "@hugeicons/core-free-icons/LegalHammerIcon";
 import PackageCheck from "@hugeicons/core-free-icons/PackageDeliveredIcon";
@@ -38,9 +38,10 @@ import Toolbox from "@hugeicons/core-free-icons/ToolboxIcon";
 import Unplug from "@hugeicons/core-free-icons/UnplugIcon";
 import UserRoundCog from "@hugeicons/core-free-icons/UserRoundCogIcon";
 import Wallet from "@hugeicons/core-free-icons/Wallet01Icon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import { type ComponentType } from "react";
 
 import { McpLogoIcon } from "@src/assets/channelIcons/McpLogoIcon";
+import { type RenderableIcon } from "@src/components/AnyIcon";
 
 // ============================================================================
 // Registry Entry Type
@@ -54,7 +55,11 @@ import { McpLogoIcon } from "@src/assets/channelIcons/McpLogoIcon";
  */
 export interface SegmentRegistryEntry {
   labelKey: string;
-  icon: IconSvgElement;
+  /**
+   * Either hugeicons glyph data or a brand component (e.g. the MCP logo).
+   * Render through `AnyIcon` — never `HugeiconsIcon` directly.
+   */
+  icon: RenderableIcon;
 }
 
 // ============================================================================
@@ -69,7 +74,7 @@ export const SEGMENT_REGISTRY: Record<string, SegmentRegistryEntry> = {
     labelKey: "navigation:labels.coreSettings",
     icon: SettingsIcon,
   },
-  agents: { labelKey: "navigation:labels.agentOrgs", icon: InfinityIcon },
+  agents: { labelKey: "navigation:labels.agentOrgs", icon: AgentTeams },
   org: { labelKey: "settings:sections.agentOrg", icon: Network },
   orgs: { labelKey: "settings:sections.agentOrg", icon: Network },
   clis: { labelKey: "integrations:agentOrgs.tableTabs.clis", icon: Code },
@@ -91,7 +96,7 @@ export const SEGMENT_REGISTRY: Record<string, SegmentRegistryEntry> = {
   tools: { labelKey: "integrations:categories.tools", icon: Hammer },
   computerUse: {
     labelKey: "integrations:categories.computerUse",
-    icon: AppWindow,
+    icon: ComputerUse,
   },
   connections: {
     labelKey: "integrations:categories.connections",
@@ -128,7 +133,9 @@ export const SEGMENT_REGISTRY: Record<string, SegmentRegistryEntry> = {
   // mcp / skills (legacy segment keys + per-agent labels)
   mcp: {
     labelKey: "integrations:toolsArea.mcp",
-    icon: McpLogoIcon as unknown as IconSvgElement,
+    // Cast narrows only the prop bag — the value stays a component, which
+    // `RenderableIcon` admits and `AnyIcon` dispatches on at runtime.
+    icon: McpLogoIcon as unknown as ComponentType<Record<string, unknown>>,
   },
   skills: { labelKey: "integrations:categories.skills", icon: Toolbox },
   // settings root — the unified surface header
@@ -196,7 +203,7 @@ const BREADCRUMB_HIDDEN_SEGMENTS = new Set<string>([
 ]);
 
 /** Returns the icon for a given URL segment, or `null`. */
-export function getSegmentIcon(segment: string): IconSvgElement | null {
+export function getSegmentIcon(segment: string): RenderableIcon | null {
   return SEGMENT_REGISTRY[segment]?.icon ?? null;
 }
 
@@ -209,7 +216,7 @@ export function getSegmentLabelKey(segment: string): string | null {
  * Derive the icon for a full pathname — returns the icon of the deepest
  * visible segment (Spotlight uses this so entries match sidebar glyphs).
  */
-export function getPathIcon(pathname: string): IconSvgElement | null {
+export function getPathIcon(pathname: string): RenderableIcon | null {
   const cleaned = pathname.split("?")[0].split("#")[0];
   const parts = cleaned.split("/").filter((s) => s.length > 0);
   for (let i = parts.length - 1; i >= 0; i--) {

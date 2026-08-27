@@ -39,7 +39,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import GripVertical from "@hugeicons/core-free-icons/Drag01Icon";
+import GripVertical from "@hugeicons/core-free-icons/GripVerticalIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { type ReactNode, useCallback, useMemo } from "react";
 

@@ -3,7 +3,7 @@
  *
  * Maps Lucide icon slugs (from backend `iconId`) to React components.
  * Backend stores standard Lucide kebab-case names (e.g. "omega", "code", "brain")
- * matching lucide.dev slugs — same convention as the tools system.
+ * kebab-case slugs — same convention as the tools system.
  *
  * Only icons actually used by agents need to be registered here.
  * When adding a new agent in Rust, use an existing Lucide slug for icon_id
@@ -18,25 +18,26 @@
  * at the right pixel size. Brand SVGs use `viewBox` + `currentColor` and
  * ignore `strokeWidth` (they're filled, not stroked).
  */
+import DraftingCompass from "@hugeicons/core-free-icons/AiGenerativeIcon";
 import Network from "@hugeicons/core-free-icons/AiNetworkIcon";
-import ChartColumn from "@hugeicons/core-free-icons/BarChartIcon";
+import ClipboardList from "@hugeicons/core-free-icons/BookEditIcon";
 import Bot from "@hugeicons/core-free-icons/BotIcon";
 import Brain from "@hugeicons/core-free-icons/BrainIcon";
-import ClipboardList from "@hugeicons/core-free-icons/CheckListIcon";
+import ChartColumn from "@hugeicons/core-free-icons/ChartColumnIcon";
 import Code from "@hugeicons/core-free-icons/CodeIcon";
-import Monitor from "@hugeicons/core-free-icons/ComputerIcon";
 import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
 import MousePointerClick from "@hugeicons/core-free-icons/CursorPointer02Icon";
-import DraftingCompass from "@hugeicons/core-free-icons/DraftingCompassIcon";
-import Omega from "@hugeicons/core-free-icons/OmegaIcon";
+import Monitor from "@hugeicons/core-free-icons/MonitorIcon";
 import Sprout from "@hugeicons/core-free-icons/Plant01Icon";
+import Omega from "@hugeicons/core-free-icons/RecordIcon";
 import HandMetal from "@hugeicons/core-free-icons/Shaka01Icon";
 import FlaskConical from "@hugeicons/core-free-icons/TestTubeIcon";
 import User from "@hugeicons/core-free-icons/UserIcon";
 import Users from "@hugeicons/core-free-icons/UserMultipleIcon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 import React, { forwardRef } from "react";
 
+import { type RenderableIcon } from "@src/components/AnyIcon";
 import {
   type IconProvider,
   getIconComponent,
@@ -45,17 +46,28 @@ import {
 } from "@src/components/ModelIcon/config";
 
 /**
- * Wrap a brand `<svg>` (React.FC<SVGProps>) so it satisfies the
- * `IconSvgElement` shape expected by `HoverAnimatedIcon`. We only need to
- * translate Lucide's `size` prop into raw SVG `width` / `height`; brand
- * SVGs use `currentColor` so `color` and `className` flow through
- * unchanged. `strokeWidth` is intentionally ignored — brand marks are
- * filled, not stroked, and applying it would be a no-op at best.
+ * What the agent-icon registry actually hands out: hugeicons glyph data
+ * for slug ids, or a brand-mark COMPONENT for provider ids (claude,
+ * codex, …). The two shapes are NOT interchangeable — glyph data must be
+ * rendered via `HugeiconsIcon`, components via JSX — so consumers must
+ * render through `AnyIcon`, which dispatches on the runtime shape.
+ * Never pass this union to `<HugeiconsIcon icon={…}>` directly: a brand
+ * component crashes its internal `[...icon]` spread.
+ */
+export type AgentIconSource = RenderableIcon;
+
+/**
+ * Wrap a brand `<svg>` (React.FC<SVGProps>) into a size-aware component.
+ * We only need to translate the icon-style `size` prop into raw SVG
+ * `width` / `height`; brand SVGs use `currentColor` so `color` and
+ * `className` flow through unchanged. `strokeWidth` is intentionally
+ * ignored — brand marks are filled, not stroked, and applying it would
+ * be a no-op at best.
  */
 function brandIcon(
   Brand: React.FC<React.SVGProps<SVGSVGElement>>,
   displayName: string
-): IconSvgElement {
+): React.ComponentType<Record<string, unknown>> {
   const Wrapped = forwardRef<
     SVGSVGElement,
     React.SVGProps<SVGSVGElement> & { size?: number | string }
@@ -63,12 +75,19 @@ function brandIcon(
     <Brand width={size} height={size} ref={ref} {...rest} />
   ));
   Wrapped.displayName = displayName;
-  return Wrapped as unknown as IconSvgElement;
+  // The wrapper spreads arbitrary props onto the SVG at runtime; the cast
+  // narrows only the prop bag, never the data-vs-component distinction.
+  return Wrapped as unknown as React.ComponentType<Record<string, unknown>>;
 }
 
-const canonicalBrandIconCache = new Map<IconProvider, IconSvgElement>();
+const canonicalBrandIconCache = new Map<
+  IconProvider,
+  React.ComponentType<Record<string, unknown>>
+>();
 
-function resolveCanonicalBrandIcon(iconId: string): IconSvgElement | undefined {
+function resolveCanonicalBrandIcon(
+  iconId: string
+): React.ComponentType<Record<string, unknown>> | undefined {
   const iconProvider = isIconProvider(iconId)
     ? iconId
     : getIconProviderFromType(iconId);
@@ -108,7 +127,7 @@ const DEFAULT_ICON: IconSvgElement = Bot;
 
 export function resolveAgentIcon(
   iconId: string | undefined | null
-): IconSvgElement {
+): AgentIconSource {
   if (!iconId) return DEFAULT_ICON;
 
   const canonicalBrandIcon = resolveCanonicalBrandIcon(iconId);

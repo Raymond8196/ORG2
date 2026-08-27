@@ -1,5 +1,5 @@
 import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import Ellipsis from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import Ellipsis from "@hugeicons/core-free-icons/EllipsisIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback } from "react";
 import { createPortal } from "react-dom";

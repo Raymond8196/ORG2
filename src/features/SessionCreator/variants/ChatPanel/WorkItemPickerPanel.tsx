@@ -1,11 +1,11 @@
-import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import ListTodo from "@hugeicons/core-free-icons/CheckListIcon";
-import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
-import ListFilter from "@hugeicons/core-free-icons/FilterIcon";
+import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft02Icon";
+import CircleDot from "@hugeicons/core-free-icons/CircleDotIcon";
 import GitMerge from "@hugeicons/core-free-icons/GitMergeIcon";
 import GitPullRequestClosed from "@hugeicons/core-free-icons/GitPullRequestClosedIcon";
 import GitPullRequestDraft from "@hugeicons/core-free-icons/GitPullRequestDraftIcon";
 import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import ListFilter from "@hugeicons/core-free-icons/ListFilterIcon";
+import ListTodo from "@hugeicons/core-free-icons/ListTodoIcon";
 import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect, useRef } from "react";

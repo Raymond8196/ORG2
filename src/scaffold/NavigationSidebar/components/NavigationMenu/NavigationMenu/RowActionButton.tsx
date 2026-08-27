@@ -1,5 +1,4 @@
 import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import AnyIcon from "@src/components/AnyIcon";
@@ -8,6 +7,7 @@ import type { NavigationMenuItem } from "../config";
 
 interface NavigationMenuRowActionButtonProps {
   icon?: NavigationMenuItem["rowActionIcon"];
+  dataIcon?: string;
   iconClassName?: string;
   label: string;
   active?: boolean;
@@ -17,6 +17,7 @@ interface NavigationMenuRowActionButtonProps {
 
 export function NavigationMenuRowActionButton({
   icon,
+  dataIcon,
   iconClassName,
   label,
   active,
@@ -41,6 +42,7 @@ export function NavigationMenuRowActionButton({
     >
       <AnyIcon
         icon={RowActionIcon}
+        data-icon={dataIcon ?? (icon ? undefined : "ellipsis")}
         size={14}
         strokeWidth={icon ? 2 : 1.75}
         className={iconClassName}

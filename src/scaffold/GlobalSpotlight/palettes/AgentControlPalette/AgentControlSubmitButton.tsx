@@ -1,4 +1,4 @@
-import ArrowUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import ArrowUp from "@hugeicons/core-free-icons/ArrowUp02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React from "react";

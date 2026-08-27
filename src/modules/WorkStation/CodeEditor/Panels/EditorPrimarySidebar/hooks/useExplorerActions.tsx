@@ -3,7 +3,6 @@
  *
  * Manages action button configurations for EditorPrimarySidebar tabs.
  */
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useMemo } from "react";
 
 import AnyIcon from "@src/components/AnyIcon";

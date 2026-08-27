@@ -23,7 +23,6 @@
  */
 import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
 import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";

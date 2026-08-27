@@ -44,7 +44,7 @@ import { formatRelativeTime } from "@src/util/time/formatRelativeTime";
 const ENTITY_ICON_CLASS = "mt-0.5 flex-none text-text-3";
 
 /**
- * Render a 16-px lucide icon for an entity type — same mapping as
+ * Render a 16-px glyph for an entity type — same mapping as
  * `ProblemRow.EntityIcon`, kept duplicated rather than extracted so
  * the two row components stay independent (a future redesign of one
  * shouldn't drag the other).

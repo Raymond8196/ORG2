@@ -15,7 +15,7 @@ import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
 import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
 import Filter from "@hugeicons/core-free-icons/FilterIcon";
 import ListTree from "@hugeicons/core-free-icons/HierarchyFilesIcon";
-import List from "@hugeicons/core-free-icons/ListViewIcon";
+import List from "@hugeicons/core-free-icons/ListIcon";
 import SearchIcon from "@hugeicons/core-free-icons/Search01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";

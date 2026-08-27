@@ -4,17 +4,19 @@
  * App settings sections. Labels use i18n keys under settings.sections.
  */
 import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import { HugeiconsIcon } from "@hugeicons/react";
 import { createElement } from "react";
 
+import { type RenderableIcon } from "@src/components/AnyIcon";
 import { getSettingsSectionsByTab } from "@src/config/settingsUiManifest";
 
 export interface SettingsSectionConfig {
   id: string;
   /** Translation key for the label (e.g., "general" -> t("sections.general")) */
   labelKey: string;
-  icon: IconSvgElement;
+  /** Glyph data or a brand component — render via `AnyIcon`. */
+  icon: RenderableIcon;
 }
 
 // ============================================

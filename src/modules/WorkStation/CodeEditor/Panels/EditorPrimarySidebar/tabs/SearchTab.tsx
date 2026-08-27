@@ -7,7 +7,7 @@
  * Contains SearchPanelContent component that encapsulates useOpenEditorFiles hook.
  * This hook only runs when the Search tab is first visited (lazy mounting).
  */
-import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   forwardRef,

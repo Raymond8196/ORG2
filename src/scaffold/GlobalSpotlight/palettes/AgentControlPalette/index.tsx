@@ -1,5 +1,4 @@
-import DraftingCompass from "@hugeicons/core-free-icons/DraftingCompassIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
+import DraftingCompass from "@hugeicons/core-free-icons/AiGenerativeIcon";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 

@@ -7,9 +7,9 @@
  * Categories: Repo | Session | Projects | Work items
  * Scope varies based on category (multi-select supported)
  */
+import Box from "@hugeicons/core-free-icons/BoxIcon";
 import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
 import Layers from "@hugeicons/core-free-icons/Layers01Icon";
-import Box from "@hugeicons/core-free-icons/PackageIcon";
 import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";

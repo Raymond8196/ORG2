@@ -10,7 +10,7 @@
 import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
 import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
 import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useState } from "react";
 
@@ -206,7 +206,12 @@ const CommitFilesBlock: React.FC<{ messageId: string }> = ({ messageId }) => {
         onClick={() => setExpanded((prev) => !prev)}
         className="flex cursor-pointer items-center gap-2 text-[13px] text-text-3 transition-colors hover:text-text-2"
       >
-        <Chevron size={14} className="shrink-0" strokeWidth={2} />
+        <HugeiconsIcon
+          icon={Chevron}
+          size={14}
+          className="shrink-0"
+          strokeWidth={2}
+        />
         <span>
           {commitFiles.length} file{commitFiles.length !== 1 ? "s" : ""}
         </span>

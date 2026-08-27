@@ -1,6 +1,6 @@
 import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import ListChecks from "@hugeicons/core-free-icons/CheckListIcon";
-import Box from "@hugeicons/core-free-icons/PackageIcon";
+import Box from "@hugeicons/core-free-icons/BoxIcon";
+import ListChecks from "@hugeicons/core-free-icons/ListChecksIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useCallback } from "react";
 import { createPortal } from "react-dom";

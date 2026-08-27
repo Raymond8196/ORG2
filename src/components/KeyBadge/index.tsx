@@ -4,14 +4,14 @@
  * Used in: Toolbar search bar, Settings Shortcuts page
  * Replaces text symbols (⌘, ⌥, etc.) with Lucide icons for consistency.
  */
-import ArrowDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import ArrowRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import CornerDownLeft from "@hugeicons/core-free-icons/ArrowTurnDownIcon";
-import ArrowUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import ArrowDown from "@hugeicons/core-free-icons/ArrowDown02Icon";
+import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft02Icon";
+import ArrowRight from "@hugeicons/core-free-icons/ArrowRight02Icon";
 import ChevronUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import ArrowUp from "@hugeicons/core-free-icons/ArrowUp02Icon";
 import ArrowBigUp from "@hugeicons/core-free-icons/ArrowUpBigIcon";
 import Command from "@hugeicons/core-free-icons/CommandIcon";
+import CornerDownLeft from "@hugeicons/core-free-icons/CornerDownLeftIcon";
 import Delete from "@hugeicons/core-free-icons/Delete01Icon";
 import Option from "@hugeicons/core-free-icons/OptionIcon";
 import Space from "@hugeicons/core-free-icons/SaturnIcon";

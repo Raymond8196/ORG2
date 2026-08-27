@@ -192,7 +192,8 @@ export const SimulatorStatusBar: React.FC<SimulatorStatusBarProps> = memo(
                     : t("simulator.replay.play")
                 }
               >
-                {React.createElement(isReplaying ? Pause : Play, {
+                {React.createElement(HugeiconsIcon, {
+                  icon: isReplaying ? Pause : Play,
                   size: 12,
                   fill: "currentColor",
                   strokeWidth: 0,

@@ -11,7 +11,7 @@
  *
  * Thin UI wrapper — business logic lives in useUnifiedModelPalette.
  */
-import Grip from "@hugeicons/core-free-icons/Drag01Icon";
+import Grip from "@hugeicons/core-free-icons/GripIcon";
 import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";

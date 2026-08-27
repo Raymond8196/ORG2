@@ -6,9 +6,9 @@
 import Filter from "@hugeicons/core-free-icons/FilterIcon";
 import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
 import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
-import Globe from "@hugeicons/core-free-icons/GlobeIcon";
+import Globe from "@hugeicons/core-free-icons/InternetIcon";
 import Lock from "@hugeicons/core-free-icons/LockIcon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";

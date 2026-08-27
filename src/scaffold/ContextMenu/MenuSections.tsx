@@ -4,6 +4,7 @@
  * Higher-level panel components: recent files, search results,
  * and second layer panels (files, terminals, sessions, browser).
  */
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -394,7 +395,8 @@ export const SecondLayerPanel: React.FC<SecondLayerPanelProps> = memo(
               className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md text-text-2 transition-colors hover:text-text-1 ${DROPDOWN_CLASSES.itemHover}`}
               aria-label={t("creator.contextMenu.back")}
             >
-              <ICON_CONFIG.arrowBack
+              <HugeiconsIcon
+                icon={ICON_CONFIG.arrowBack}
                 size={DROPDOWN_ITEM.iconSize}
                 strokeWidth={1.75}
               />

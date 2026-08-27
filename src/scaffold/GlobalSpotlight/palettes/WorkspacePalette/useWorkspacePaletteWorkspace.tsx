@@ -376,7 +376,7 @@ export function useWorkspacePaletteWorkspace({
             className="flex items-center justify-center rounded-md p-1 text-text-2 transition-colors hover:bg-fill-3 hover:text-text-1"
             title={t("actions.edit", "Edit")}
           >
-            <ICONS.editRepo size={14} />
+            <HugeiconsIcon icon={ICONS.editRepo} size={14} />
           </button>
           <button
             type="button"
@@ -387,7 +387,7 @@ export function useWorkspacePaletteWorkspace({
             className="hover:text-error-6 flex items-center justify-center rounded-md p-1 text-text-2 transition-colors hover:bg-fill-3"
             title={t("actions.delete", "Delete")}
           >
-            <ICONS.removeRepo size={14} />
+            <HugeiconsIcon icon={ICONS.removeRepo} size={14} />
           </button>
         </div>
       );

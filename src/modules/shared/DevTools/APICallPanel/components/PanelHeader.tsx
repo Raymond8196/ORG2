@@ -1,6 +1,7 @@
 // ============================================
 // PanelHeader Component
 // ============================================
+import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import Button from "@src/components/Button";
@@ -42,7 +43,8 @@ const PanelHeader: React.FC<PanelHeaderProps> = ({
       <Button
         {...PANEL_HEADER_TOKENS.actionButton}
         icon={
-          <ICON_CONFIG.delete
+          <HugeiconsIcon
+            icon={ICON_CONFIG.delete}
             size={PANEL_HEADER_TOKENS.buttonIconSize}
             strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
           />
@@ -54,7 +56,8 @@ const PanelHeader: React.FC<PanelHeaderProps> = ({
       <Button
         {...PANEL_HEADER_TOKENS.actionButton}
         icon={
-          <ICON_CONFIG.close
+          <HugeiconsIcon
+            icon={ICON_CONFIG.close}
             size={PANEL_HEADER_TOKENS.buttonIconSize}
             strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
           />

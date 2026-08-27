@@ -178,7 +178,7 @@ const WorkspaceRow: React.FC<WorkspaceRowProps> = ({
             className="text-primary-6"
           />
         ) : (
-          <ICONS.workspace size={DROPDOWN_ITEM.iconSize} />
+          <HugeiconsIcon icon={ICONS.workspace} size={DROPDOWN_ITEM.iconSize} />
         )}
       </span>
       <span className="min-w-0 flex-1 truncate text-left">

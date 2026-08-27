@@ -4,7 +4,7 @@
  * (`itemHover` → fill-2, `itemSelected` → primary-1) with callers supplying
  * selection semantics only.
  */
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 import React, { memo } from "react";
 import { createPortal } from "react-dom";
 

@@ -7,7 +7,7 @@
  *
  * Used by: Integrations, Dev Records, Wallet, Creator Studio, Settings, etc.
  */
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 import React from "react";
 
 import AnyIcon from "@src/components/AnyIcon";

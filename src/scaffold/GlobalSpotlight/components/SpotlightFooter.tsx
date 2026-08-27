@@ -5,8 +5,8 @@
  * - `spotlight` (default): below the main panel — simple bg-bg-2 pill.
  * - `dropdown`: same hints with `DROPDOWN_CLASSES.panel` (e.g. @-mention menu).
  */
-import ArrowDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import ArrowDown from "@hugeicons/core-free-icons/ArrowDown02Icon";
+import ArrowUp from "@hugeicons/core-free-icons/ArrowUp02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";

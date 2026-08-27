@@ -1,5 +1,5 @@
 import Search from "@hugeicons/core-free-icons/Search01Icon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";

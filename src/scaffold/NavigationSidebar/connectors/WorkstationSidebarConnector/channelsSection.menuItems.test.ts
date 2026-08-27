@@ -1,6 +1,5 @@
 import Hash from "@hugeicons/core-free-icons/HashtagIcon";
 import Lock from "@hugeicons/core-free-icons/LockIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import { describe, expect, it, vi } from "vitest";
 

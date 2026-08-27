@@ -1,4 +1,4 @@
-import ArrowDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowDown from "@hugeicons/core-free-icons/ArrowDown02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";

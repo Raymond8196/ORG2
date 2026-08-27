@@ -7,7 +7,7 @@ import Brain from "@hugeicons/core-free-icons/BrainIcon";
 import HelpCircle from "@hugeicons/core-free-icons/HelpCircleIcon";
 import MessageSquare from "@hugeicons/core-free-icons/Message01Icon";
 import User from "@hugeicons/core-free-icons/UserIcon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 import type { ComponentType, LazyExoticComponent } from "react";
 
 import { getToolIconComponent } from "@src/config/toolIcons";

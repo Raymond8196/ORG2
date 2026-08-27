@@ -1,7 +1,7 @@
-import CircleX from "@hugeicons/core-free-icons/CancelCircleIcon";
 import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
 import Circle from "@hugeicons/core-free-icons/CircleIcon";
-import LoaderCircle from "@hugeicons/core-free-icons/Loading03Icon";
+import CircleX from "@hugeicons/core-free-icons/CircleXIcon";
+import LoaderCircle from "@hugeicons/core-free-icons/LoaderCircleIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";

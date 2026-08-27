@@ -68,7 +68,7 @@ export const TabBarControls: React.FC<TabBarControlsProps> = ({
         >
           <HugeiconsIcon
             icon={MoreHorizontal}
-            data-icon="more-horizontal"
+            data-icon="ellipsis"
             size={HEADER_ICON_SIZE.md}
             strokeWidth={1.75}
           />

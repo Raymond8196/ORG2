@@ -5,8 +5,8 @@
  */
 import BookOpen from "@hugeicons/core-free-icons/BookOpen01Icon";
 import Calendar from "@hugeicons/core-free-icons/Calendar01Icon";
+import CircleDot from "@hugeicons/core-free-icons/CircleDotIcon";
 import Circle from "@hugeicons/core-free-icons/CircleIcon";
-import CircleDot from "@hugeicons/core-free-icons/CircleIcon";
 import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
 import Diamond from "@hugeicons/core-free-icons/DiamondIcon";
 import Flag from "@hugeicons/core-free-icons/Flag01Icon";

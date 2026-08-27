@@ -13,7 +13,7 @@ import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
 import CircleDotDashed from "@hugeicons/core-free-icons/CircleDotDashedIcon";
 import Code2 from "@hugeicons/core-free-icons/CodeIcon";
 import Copy from "@hugeicons/core-free-icons/Copy01Icon";
-import GitCommitHorizontal from "@hugeicons/core-free-icons/GitCommitIcon";
+import GitCommitHorizontal from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
 import ShieldCheck from "@hugeicons/core-free-icons/SecurityCheckIcon";
 import Check from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";

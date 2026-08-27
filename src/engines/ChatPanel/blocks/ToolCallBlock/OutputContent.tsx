@@ -7,7 +7,7 @@ import Code2 from "@hugeicons/core-free-icons/CodeIcon";
 import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
 import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
 import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
-import LayoutList from "@hugeicons/core-free-icons/ListViewIcon";
+import LayoutList from "@hugeicons/core-free-icons/LayoutListIcon";
 import Pencil from "@hugeicons/core-free-icons/Pen01Icon";
 import SearchX from "@hugeicons/core-free-icons/SearchMinusIcon";
 import { HugeiconsIcon } from "@hugeicons/react";

@@ -2,12 +2,12 @@
  * Dock-aligned title bar center: icon + label for Workstation and simulator AppType.
  * Icons match Dock (My Station) and DockReplayControl / getAppById (Chat).
  */
-import ListTodo from "@hugeicons/core-free-icons/CheckListIcon";
-import Chromium from "@hugeicons/core-free-icons/ChromeIcon";
 import Code from "@hugeicons/core-free-icons/CodeIcon";
-import MonitorDot from "@hugeicons/core-free-icons/ComputerIcon";
+import Chromium from "@hugeicons/core-free-icons/InternetIcon";
+import ListTodo from "@hugeicons/core-free-icons/ListTodoIcon";
+import MonitorDot from "@hugeicons/core-free-icons/MonitorDotIcon";
 import Package2 from "@hugeicons/core-free-icons/Package01Icon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 
 import { APP_TYPE_PROJECT, AppType } from "../../types/appTypes";

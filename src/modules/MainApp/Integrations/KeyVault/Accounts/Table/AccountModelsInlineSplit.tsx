@@ -1,6 +1,5 @@
 import ArrowDownAZ from "@hugeicons/core-free-icons/ArrangeByLettersZAIcon";
 import ArrowDown10 from "@hugeicons/core-free-icons/ArrangeByNumbersOneNineIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 

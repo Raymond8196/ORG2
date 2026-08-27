@@ -1,9 +1,9 @@
 import ChevronsRight from "@hugeicons/core-free-icons/ArrowRightDoubleIcon";
+import Box from "@hugeicons/core-free-icons/BoxIcon";
 import LayoutDashboard from "@hugeicons/core-free-icons/DashboardSquare01Icon";
 import Info from "@hugeicons/core-free-icons/InformationCircleIcon";
 import Columns3 from "@hugeicons/core-free-icons/LayoutThreeColumnIcon";
-import List from "@hugeicons/core-free-icons/ListViewIcon";
-import Box from "@hugeicons/core-free-icons/PackageIcon";
+import List from "@hugeicons/core-free-icons/ListIcon";
 import Search from "@hugeicons/core-free-icons/Search01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";

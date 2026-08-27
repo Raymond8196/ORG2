@@ -14,8 +14,8 @@
  *
  * URL change resets stale error state so a new domain re-attempts the fetch.
  */
-import Globe from "@hugeicons/core-free-icons/GlobeIcon";
 import HatGlasses from "@hugeicons/core-free-icons/HatGlassesIcon";
+import Globe from "@hugeicons/core-free-icons/InternetIcon";
 import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useEffect, useState } from "react";

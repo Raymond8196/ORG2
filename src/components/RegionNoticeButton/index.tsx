@@ -1,4 +1,4 @@
-import Globe2 from "@hugeicons/core-free-icons/Globe02Icon";
+import Globe2 from "@hugeicons/core-free-icons/InternetIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useState } from "react";
 

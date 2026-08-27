@@ -4,7 +4,7 @@
  * Header component for sidebars with optional title, tabs, and actions.
  */
 import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 
 import AnyIcon from "@src/components/AnyIcon";

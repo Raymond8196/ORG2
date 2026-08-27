@@ -11,7 +11,7 @@
  * never arrives, the fence still shows its code.
  */
 import Copy from "@hugeicons/core-free-icons/Copy01Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import Check from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { Suspense, lazy, memo, useCallback } from "react";

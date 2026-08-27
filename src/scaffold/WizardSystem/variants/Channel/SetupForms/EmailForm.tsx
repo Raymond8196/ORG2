@@ -1,6 +1,5 @@
 import Mail from "@hugeicons/core-free-icons/Mail01Icon";
 import Send from "@hugeicons/core-free-icons/MailSend01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 

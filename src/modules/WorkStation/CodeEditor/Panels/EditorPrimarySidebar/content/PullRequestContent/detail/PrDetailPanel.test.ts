@@ -494,7 +494,7 @@ describe("PrDetailPanel tabs", () => {
     expect(conflictAction?.disabled).toBe(false);
     expect(conflictAction?.className).toContain("text-danger-6");
     expect(
-      conflictAction?.querySelector('[data-icon="circle-x"]')
+      conflictAction?.querySelector('[data-icon="xcircle"]')
     ).not.toBeNull();
     expect(
       conflictAction?.parentElement?.querySelector('[data-icon="chevron-down"]')

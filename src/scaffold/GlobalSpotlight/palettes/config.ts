@@ -11,17 +11,17 @@
 import Plus from "@hugeicons/core-free-icons/Add01Icon";
 import Command from "@hugeicons/core-free-icons/CommandIcon";
 import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import Grip from "@hugeicons/core-free-icons/Drag01Icon";
 import File from "@hugeicons/core-free-icons/File01Icon";
 import FolderPlus from "@hugeicons/core-free-icons/FolderAddIcon";
 import FolderTree from "@hugeicons/core-free-icons/FolderTreeIcon";
 import GitBranchPlus from "@hugeicons/core-free-icons/GitBranchIcon";
 import GitBranchMinus from "@hugeicons/core-free-icons/GitBranchMinusIcon";
 import GitFork from "@hugeicons/core-free-icons/GitForkIcon";
+import Grip from "@hugeicons/core-free-icons/GripIcon";
 import Link2Off from "@hugeicons/core-free-icons/Unlink02Icon";
 import Variable from "@hugeicons/core-free-icons/VariableIcon";
 import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
 

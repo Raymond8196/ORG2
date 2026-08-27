@@ -2,11 +2,11 @@
  * ProjectsTab Configuration
  */
 import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import ListChecks from "@hugeicons/core-free-icons/CheckListIcon";
+import Box from "@hugeicons/core-free-icons/BoxIcon";
 import FolderKanban from "@hugeicons/core-free-icons/FolderKanbanIcon";
 import Github from "@hugeicons/core-free-icons/GithubIcon";
 import Import from "@hugeicons/core-free-icons/ImportIcon";
-import Box from "@hugeicons/core-free-icons/PackageIcon";
+import ListChecks from "@hugeicons/core-free-icons/ListChecksIcon";
 import SquarePen from "@hugeicons/core-free-icons/PencilEdit02Icon";
 import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import Settings from "@hugeicons/core-free-icons/Settings01Icon";

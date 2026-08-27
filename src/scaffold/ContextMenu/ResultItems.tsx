@@ -4,11 +4,11 @@
  * Reusable item-level components for rendering menu items,
  * search result icons, and empty/loading states.
  */
-import ListChecks from "@hugeicons/core-free-icons/CheckListIcon";
 import Code from "@hugeicons/core-free-icons/CodeIcon";
 import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
 import FolderKanban from "@hugeicons/core-free-icons/FolderKanbanIcon";
-import Globe from "@hugeicons/core-free-icons/GlobeIcon";
+import Globe from "@hugeicons/core-free-icons/InternetIcon";
+import ListChecks from "@hugeicons/core-free-icons/ListChecksIcon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";

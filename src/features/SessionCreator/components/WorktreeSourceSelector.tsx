@@ -3,7 +3,6 @@ import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
 import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
 import Hash from "@hugeicons/core-free-icons/HashtagIcon";
 import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
   useEffect,

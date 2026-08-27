@@ -4,7 +4,7 @@
 import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
 import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
 import CircleSlash from "@hugeicons/core-free-icons/CircleSlashIcon";
-import LoaderCircle from "@hugeicons/core-free-icons/Loading03Icon";
+import LoaderCircle from "@hugeicons/core-free-icons/LoaderCircleIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 
 import type { FocusedChatRailItem } from "./types";

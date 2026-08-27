@@ -175,7 +175,8 @@ const WebhookRow: React.FC<WebhookRowProps> = ({ routine }) => {
         data-testid={`routine-webhook-row-${routine.name}`}
         className="flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-fill-1"
       >
-        <Chevron
+        <HugeiconsIcon
+          icon={Chevron}
           size={14}
           strokeWidth={1.75}
           className="shrink-0 text-text-3"

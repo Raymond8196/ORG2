@@ -6,7 +6,7 @@
  * surfaces as the Project Manager where those components are safe to reuse.
  */
 import FileText from "@hugeicons/core-free-icons/File02Icon";
-import LayoutList from "@hugeicons/core-free-icons/ListViewIcon";
+import LayoutList from "@hugeicons/core-free-icons/LayoutListIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";

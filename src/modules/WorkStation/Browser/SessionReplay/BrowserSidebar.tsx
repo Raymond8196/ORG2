@@ -6,14 +6,14 @@
  * owns category switching.
  */
 import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import Chrome from "@hugeicons/core-free-icons/ChromeIcon";
 import Compass from "@hugeicons/core-free-icons/CompassIcon";
 import MousePointerClick from "@hugeicons/core-free-icons/CursorPointer02Icon";
 import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
 import FileSymlink from "@hugeicons/core-free-icons/FileSymlinkIcon";
 import ListTree from "@hugeicons/core-free-icons/HierarchyFilesIcon";
+import Chrome from "@hugeicons/core-free-icons/InternetIcon";
 import Keyboard from "@hugeicons/core-free-icons/KeyboardIcon";
-import List from "@hugeicons/core-free-icons/ListViewIcon";
+import List from "@hugeicons/core-free-icons/ListIcon";
 import MoveVertical from "@hugeicons/core-free-icons/MoveTopIcon";
 import Search from "@hugeicons/core-free-icons/Search01Icon";
 import Shield from "@hugeicons/core-free-icons/Shield01Icon";

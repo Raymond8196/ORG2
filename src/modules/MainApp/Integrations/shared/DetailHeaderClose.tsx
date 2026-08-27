@@ -1,6 +1,6 @@
-import ArrowDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowDown from "@hugeicons/core-free-icons/ArrowDown02Icon";
 import Maximize2 from "@hugeicons/core-free-icons/ArrowExpand01Icon";
-import ArrowUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import ArrowUp from "@hugeicons/core-free-icons/ArrowUp02Icon";
 import X from "@hugeicons/core-free-icons/Cancel01Icon";
 import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";

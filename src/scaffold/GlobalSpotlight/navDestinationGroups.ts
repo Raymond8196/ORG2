@@ -3,9 +3,7 @@
  * Extracted from navDestinations.ts to keep that file under the config line limit.
  * PAGES and SETTINGS stay in navDestinations.ts since they are smaller.
  */
-import { type IconSvgElement } from "@hugeicons/react";
-import type { ComponentType } from "react";
-
+import type { RenderableIcon } from "@src/components/AnyIcon";
 import {
   WIZARD_IDS,
   type WizardId,
@@ -29,8 +27,8 @@ import type {
 
 function resolveIcon(
   path: string,
-  overrideIcon?: IconSvgElement
-): IconSvgElement {
+  overrideIcon?: RenderableIcon
+): RenderableIcon {
   if (overrideIcon) return overrideIcon;
   const icon = getPathIcon(path);
   if (!icon) {
@@ -47,7 +45,7 @@ function dest(
   path: string,
   group: NavDestinationGroup,
   opts: {
-    overrideIcon?: IconSvgElement;
+    overrideIcon?: RenderableIcon;
     keywords?: string[];
     labelKey?: string;
     descriptionSuffixKey?: string;
@@ -58,9 +56,7 @@ function dest(
   return {
     id,
     path,
-    icon: resolveIcon(path, opts.overrideIcon) as unknown as ComponentType<
-      Record<string, unknown>
-    >,
+    icon: resolveIcon(path, opts.overrideIcon),
     keywords: opts.keywords,
     group,
     labelKey: opts.labelKey,
@@ -76,7 +72,7 @@ function wizardDest(
   wizardId: WizardId,
   opts: {
     labelKey: string;
-    overrideIcon?: IconSvgElement;
+    overrideIcon?: RenderableIcon;
     keywords?: string[];
   }
 ): NavDestination {

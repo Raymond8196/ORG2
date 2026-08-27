@@ -154,7 +154,8 @@ export const FollowModeDropdown: React.FC = () => {
                     : DROPDOWN_CLASSES.itemHover
                 } w-full justify-between gap-2 disabled:cursor-not-allowed disabled:opacity-40`}
               >
-                {React.createElement(getActiveAppIcon(activeApp) ?? Layers, {
+                {React.createElement(HugeiconsIcon, {
+                  icon: getActiveAppIcon(activeApp) ?? Layers,
                   size: 12,
                   strokeWidth: 2,
                 })}

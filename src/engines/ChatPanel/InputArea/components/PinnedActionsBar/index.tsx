@@ -363,7 +363,7 @@ const PinnedActionsBar: React.FC<PinnedActionsBarProps> = memo(
         icon={
           <HugeiconsIcon
             icon={MoreHorizontal}
-            data-icon="more-horizontal"
+            data-icon="ellipsis"
             size={14}
             strokeWidth={1.75}
           />

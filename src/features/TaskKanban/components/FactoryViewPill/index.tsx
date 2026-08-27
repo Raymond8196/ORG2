@@ -8,7 +8,7 @@
  * View is stored in the URL search param `?view=kanban|list|diary` so it
  * survives navigation and can be bookmarked/shared. Defaults to "kanban".
  */
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useSetAtom } from "jotai";
 import React, { useCallback, useMemo } from "react";

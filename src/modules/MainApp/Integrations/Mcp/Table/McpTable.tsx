@@ -439,7 +439,7 @@ export const McpTable: React.FC<McpTableProps> = ({
                   >
                     <HugeiconsIcon
                       icon={MoreHorizontal}
-                      data-icon="more-horizontal"
+                      data-icon="ellipsis"
                       size={14}
                     />
                   </button>

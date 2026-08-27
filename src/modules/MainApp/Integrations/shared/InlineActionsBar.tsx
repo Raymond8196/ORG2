@@ -10,7 +10,7 @@
  * conditionally include actions inline without wrapping each in `{cond && (...)}`.
  *
  * Convenience props (`onEdit`, `onDelete`) build the most common Edit/Delete
- * pair with i18n labels + lucide icons + the standard
+ * pair with i18n labels + icons + the standard
  * `variant="danger" appearance="outline"` delete styling.
  *
  * @example Convenience form (Skills, MCP, KeyVault inline cards)

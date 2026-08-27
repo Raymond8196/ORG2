@@ -1,4 +1,4 @@
-import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft02Icon";
 import MessageSquare from "@hugeicons/core-free-icons/Message01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";

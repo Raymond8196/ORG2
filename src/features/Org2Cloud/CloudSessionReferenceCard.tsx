@@ -1,5 +1,4 @@
 import Users from "@hugeicons/core-free-icons/UserMultipleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { atom, useAtomValue } from "jotai";
 import { selectAtom } from "jotai/utils";
 import React, { useCallback, useMemo } from "react";

@@ -4,12 +4,11 @@
 import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
 import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
 import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import CaseSensitive from "@hugeicons/core-free-icons/CaseSensitiveIcon";
 import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import Regex from "@hugeicons/core-free-icons/RegexIcon";
 import Search from "@hugeicons/core-free-icons/Search01Icon";
-import CaseSensitive from "@hugeicons/core-free-icons/TextIcon";
-import Regex from "@hugeicons/core-free-icons/TextIcon";
-import WholeWord from "@hugeicons/core-free-icons/TextIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
+import WholeWord from "@hugeicons/core-free-icons/WholeWordIcon";
 
 export const ICON_CONFIG = {
   search: Search,

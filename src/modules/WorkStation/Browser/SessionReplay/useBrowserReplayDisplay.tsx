@@ -8,11 +8,11 @@
  */
 import AlertCircle from "@hugeicons/core-free-icons/AlertCircleIcon";
 import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import Chrome from "@hugeicons/core-free-icons/ChromeIcon";
-import Monitor from "@hugeicons/core-free-icons/ComputerIcon";
 import MonitorSmartphone from "@hugeicons/core-free-icons/ComputerPhoneSyncIcon";
 import FileSymlink from "@hugeicons/core-free-icons/FileSymlinkIcon";
-import Globe from "@hugeicons/core-free-icons/GlobeIcon";
+import Chrome from "@hugeicons/core-free-icons/InternetIcon";
+import Globe from "@hugeicons/core-free-icons/InternetIcon";
+import Monitor from "@hugeicons/core-free-icons/MonitorIcon";
 import Search from "@hugeicons/core-free-icons/Search01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";

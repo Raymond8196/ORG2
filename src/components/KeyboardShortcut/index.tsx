@@ -1,9 +1,9 @@
-import ArrowDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import CornerDownLeft from "@hugeicons/core-free-icons/ArrowTurnDownIcon";
-import ArrowUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import ArrowDown from "@hugeicons/core-free-icons/ArrowDown02Icon";
 import ChevronUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import ArrowUp from "@hugeicons/core-free-icons/ArrowUp02Icon";
 import ArrowBigUp from "@hugeicons/core-free-icons/ArrowUpBigIcon";
 import Command from "@hugeicons/core-free-icons/CommandIcon";
+import CornerDownLeft from "@hugeicons/core-free-icons/CornerDownLeftIcon";
 import Delete from "@hugeicons/core-free-icons/Delete01Icon";
 import Option from "@hugeicons/core-free-icons/OptionIcon";
 import { HugeiconsIcon } from "@hugeicons/react";

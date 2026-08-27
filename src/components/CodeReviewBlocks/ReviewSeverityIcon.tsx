@@ -2,7 +2,7 @@ import AlertTriangle from "@hugeicons/core-free-icons/Alert01Icon";
 import Lightbulb from "@hugeicons/core-free-icons/BulbIcon";
 import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
 import ThumbsUp from "@hugeicons/core-free-icons/ThumbsUpIcon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 import React from "react";
 
 import type { ReviewCommentSeverity } from "@src/api/http/project";

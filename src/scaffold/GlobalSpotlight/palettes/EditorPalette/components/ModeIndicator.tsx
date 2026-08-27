@@ -3,7 +3,6 @@
  *
  * Shows current mode badge in the spotlight input
  */
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 

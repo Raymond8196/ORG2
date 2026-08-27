@@ -8,7 +8,7 @@
  * Returns an array of length 0 or 1 so callers can spread directly into the
  * `path` prop without conditional branching.
  */
-import { type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 

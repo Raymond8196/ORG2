@@ -3,26 +3,22 @@
  *
  * Icons and constants for the outline view
  */
+import Box from "@hugeicons/core-free-icons/BoxIcon";
 import Code from "@hugeicons/core-free-icons/CodeIcon";
 import FileCode from "@hugeicons/core-free-icons/FileScriptIcon";
 import Braces from "@hugeicons/core-free-icons/FirstBracketIcon";
 import FunctionSquare from "@hugeicons/core-free-icons/FunctionSquareIcon";
 import Hash from "@hugeicons/core-free-icons/HashtagIcon";
-import Box from "@hugeicons/core-free-icons/PackageIcon";
-import Type from "@hugeicons/core-free-icons/TextIcon";
+import Type from "@hugeicons/core-free-icons/TypeIcon";
 import Variable from "@hugeicons/core-free-icons/VariableIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
-import type { ComponentType } from "react";
+import type { IconSvgElement } from "@hugeicons/react";
 
 import type { SymbolKind } from "./types";
 
 /**
  * Icon configuration for different symbol kinds
  */
-export const SYMBOL_ICONS: Record<
-  SymbolKind,
-  ComponentType<{ size?: string | number; className?: string }>
-> = {
+export const SYMBOL_ICONS: Record<SymbolKind, IconSvgElement> = {
   function: FunctionSquare,
   class: Box,
   interface: Braces,

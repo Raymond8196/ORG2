@@ -12,7 +12,7 @@
 import X from "@hugeicons/core-free-icons/Cancel01Icon";
 import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
 import Pencil from "@hugeicons/core-free-icons/Pen01Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";

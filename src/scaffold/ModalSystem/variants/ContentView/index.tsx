@@ -1,6 +1,6 @@
 import Modal from "@/src/scaffold/ModalSystem";
-import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import ArrowRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft02Icon";
+import ArrowRight from "@hugeicons/core-free-icons/ArrowRight02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React from "react";

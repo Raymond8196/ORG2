@@ -1,7 +1,7 @@
 /**
  * ActionCard Types
  */
-import { type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 import type { ReactNode } from "react";
 
 export type ActionCardVariant = "default" | "primary" | "secondary" | "subtle";

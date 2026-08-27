@@ -18,7 +18,7 @@ import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
 import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
 import Circle from "@hugeicons/core-free-icons/CircleIcon";
 import Clock from "@hugeicons/core-free-icons/Clock01Icon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 

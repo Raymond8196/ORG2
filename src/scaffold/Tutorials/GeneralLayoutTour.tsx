@@ -1,8 +1,8 @@
-import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import ArrowRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft02Icon";
+import ArrowRight from "@hugeicons/core-free-icons/ArrowRight02Icon";
 import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import Monitor from "@hugeicons/core-free-icons/ComputerIcon";
 import Infinity from "@hugeicons/core-free-icons/Infinity01Icon";
+import Monitor from "@hugeicons/core-free-icons/MonitorIcon";
 import Check from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AnimatePresence, motion } from "framer-motion";

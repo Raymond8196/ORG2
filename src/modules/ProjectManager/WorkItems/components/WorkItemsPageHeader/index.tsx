@@ -1,4 +1,4 @@
-import Box from "@hugeicons/core-free-icons/PackageIcon";
+import Box from "@hugeicons/core-free-icons/BoxIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";

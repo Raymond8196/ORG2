@@ -1,6 +1,6 @@
-import CornerDownRight from "@hugeicons/core-free-icons/ArrowTurnDownIcon";
+import Box from "@hugeicons/core-free-icons/BoxIcon";
+import CornerDownRight from "@hugeicons/core-free-icons/CornerDownRightIcon";
 import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import Box from "@hugeicons/core-free-icons/PackageIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 

@@ -1,4 +1,4 @@
-import LoaderCircle from "@hugeicons/core-free-icons/Loading03Icon";
+import LoaderCircle from "@hugeicons/core-free-icons/LoaderCircleIcon";
 import PenTool from "@hugeicons/core-free-icons/PenTool01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";

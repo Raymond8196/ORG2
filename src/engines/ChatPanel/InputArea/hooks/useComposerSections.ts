@@ -12,10 +12,10 @@
  * Shared between ChatView and PlaygroundChatPanel.
  */
 import ArrowLeftRight from "@hugeicons/core-free-icons/ArrowLeftRightIcon";
-import ClipboardList from "@hugeicons/core-free-icons/CheckListIcon";
+import ClipboardList from "@hugeicons/core-free-icons/ClipboardListIcon";
 import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
 import Diff from "@hugeicons/core-free-icons/DiffIcon";
-import GitCommitHorizontal from "@hugeicons/core-free-icons/GitCommitIcon";
+import GitCommitHorizontal from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
 import CircleHelp from "@hugeicons/core-free-icons/HelpCircleIcon";
 import MessageCircleMore from "@hugeicons/core-free-icons/MessageCircleMoreIcon";
 import BellRing from "@hugeicons/core-free-icons/NotificationBubbleIcon";

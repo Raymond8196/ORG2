@@ -332,7 +332,7 @@ export const PresenceMenuButton: React.FC<PresenceMenuButtonProps> = ({
   // `react-hooks/static-components` lint rule happy: the rule flags
   // any PascalCase variable used as a JSX tag inside a hook callback
   // as a "component created during render", which we aren't actually
-  // doing — `Icon` is just a stable lucide component reference.
+  // doing — `Icon` is just a stable glyph reference.
   const segments: PillGroupSegment[] = useMemo(
     () => [
       {

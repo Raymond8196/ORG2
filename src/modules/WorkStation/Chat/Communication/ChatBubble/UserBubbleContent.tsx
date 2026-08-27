@@ -1,4 +1,4 @@
-import ClipboardCheck from "@hugeicons/core-free-icons/ClipboardIcon";
+import ClipboardCheck from "@hugeicons/core-free-icons/ClipboardCheckIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";

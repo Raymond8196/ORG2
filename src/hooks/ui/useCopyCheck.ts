@@ -11,6 +11,7 @@
  * ```tsx
  * import Check from "@hugeicons/core-free-icons/Tick01Icon";
  * import Copy from "@hugeicons/core-free-icons/Copy01Icon";
+ * import { HugeiconsIcon } from "@hugeicons/react";
  * import { useCopyCheck } from "@src/hooks/ui";
  *
  * const { copied, handleCopy } = useCopyCheck(async () => {
@@ -19,7 +20,7 @@
  * });
  *
  * <button onClick={handleCopy}>
- *   {copied ? <Check size={13} /> : <Copy size={13} />}
+ *   <HugeiconsIcon icon={copied ? Check : Copy} size={13} />
  * </button>
  * ```
  */

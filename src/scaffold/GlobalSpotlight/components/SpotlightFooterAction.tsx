@@ -3,7 +3,7 @@
  *
  * Small clickable pill rendered alongside the keyboard-shortcuts footer.
  */
-import ArrowUpRight from "@hugeicons/core-free-icons/ArrowUpRight01Icon";
+import ArrowUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 

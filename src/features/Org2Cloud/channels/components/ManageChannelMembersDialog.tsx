@@ -369,7 +369,7 @@ const ManageChannelMembersDialog: React.FC<ManageChannelMembersDialogProps> = ({
                         icon={
                           <HugeiconsIcon
                             icon={MoreHorizontal}
-                            data-icon="more-horizontal"
+                            data-icon="ellipsis"
                             size={14}
                           />
                         }

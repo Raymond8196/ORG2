@@ -4,16 +4,16 @@
  * Centralized configuration for the unified context menu.
  * Includes icon definitions, menu items, and keyboard shortcuts.
  */
-import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import ArrowRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import ListChecks from "@hugeicons/core-free-icons/CheckListIcon";
+import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft02Icon";
+import ArrowRight from "@hugeicons/core-free-icons/ArrowRight02Icon";
 import Clock from "@hugeicons/core-free-icons/Clock01Icon";
 import File from "@hugeicons/core-free-icons/File01Icon";
 import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
+import ListChecks from "@hugeicons/core-free-icons/ListChecksIcon";
 import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
 import Search from "@hugeicons/core-free-icons/Search01Icon";
 import History from "@hugeicons/core-free-icons/WorkHistoryIcon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 
 // ============================================
 // Types

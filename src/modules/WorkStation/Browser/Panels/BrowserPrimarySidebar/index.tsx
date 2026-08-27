@@ -17,7 +17,7 @@ import {
 import Plus from "@hugeicons/core-free-icons/Add01Icon";
 import Code2 from "@hugeicons/core-free-icons/CodeIcon";
 import FilterIcon from "@hugeicons/core-free-icons/FilterIcon";
-import Globe from "@hugeicons/core-free-icons/GlobeIcon";
+import Globe from "@hugeicons/core-free-icons/InternetIcon";
 import Pencil from "@hugeicons/core-free-icons/Pen01Icon";
 import History from "@hugeicons/core-free-icons/WorkHistoryIcon";
 import { HugeiconsIcon } from "@hugeicons/react";

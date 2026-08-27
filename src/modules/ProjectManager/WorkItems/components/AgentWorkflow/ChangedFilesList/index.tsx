@@ -1,6 +1,6 @@
 import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
 import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";

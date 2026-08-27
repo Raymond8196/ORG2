@@ -2,10 +2,10 @@ import AlertCircle from "@hugeicons/core-free-icons/AlertCircleIcon";
 import Ban from "@hugeicons/core-free-icons/BanIcon";
 import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
 import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import FilePen from "@hugeicons/core-free-icons/FilePenIcon";
+import FilePen from "@hugeicons/core-free-icons/Edit04Icon";
 import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
 import Wrench from "@hugeicons/core-free-icons/Wrench01Icon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 
 export interface SessionFileChange {
   path: string;

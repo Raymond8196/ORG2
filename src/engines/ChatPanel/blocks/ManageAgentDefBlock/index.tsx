@@ -66,7 +66,7 @@ export interface ManageAgentDefBlockProps {
 //
 // Icons are resolved from Rust `action_icons` on the `manage_agent_def`
 // tool entry — see `core/tools/builtin_tools/table/agent.rs`. The Rust
-// table is the single source of truth for which lucide glyph maps to
+// table is the single source of truth for which glyph maps to
 // which CRUD action.
 
 function getActionIcon(action: ManageAgentDefAction) {

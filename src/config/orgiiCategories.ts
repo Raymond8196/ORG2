@@ -9,7 +9,7 @@
  * frontend renders whatever it receives. No hardcoded tier names.
  */
 import Zap from "@hugeicons/core-free-icons/FlashIcon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 
 import type { ORGIIPoolCategory, ORGIIPoolConfig } from "@src/types/model/pool";
 import { formatModelNameFull } from "@src/util/formatModelName";

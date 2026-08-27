@@ -10,7 +10,6 @@ import Keyboard from "@hugeicons/core-free-icons/KeyboardIcon";
 import Search from "@hugeicons/core-free-icons/Search01Icon";
 import Target from "@hugeicons/core-free-icons/Target01Icon";
 import Eye from "@hugeicons/core-free-icons/ViewIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 
 export const ICON_CONFIG = {
   // Action icons

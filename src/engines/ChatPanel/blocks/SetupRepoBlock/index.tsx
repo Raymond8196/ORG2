@@ -1,7 +1,7 @@
 import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
 import FolderCog from "@hugeicons/core-free-icons/FolderCogIcon";
 import KeyRound from "@hugeicons/core-free-icons/Key02Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 

@@ -8,7 +8,7 @@
  */
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import ArrowUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import ArrowUp from "@hugeicons/core-free-icons/ArrowUp02Icon";
 import Clock from "@hugeicons/core-free-icons/Clock01Icon";
 import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
 import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";

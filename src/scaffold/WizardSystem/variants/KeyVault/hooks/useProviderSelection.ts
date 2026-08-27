@@ -7,12 +7,11 @@
  *
  * Extracted from ApiSetup.tsx to keep it under 600 lines.
  */
-import Globe from "@hugeicons/core-free-icons/GlobeIcon";
+import Globe from "@hugeicons/core-free-icons/InternetIcon";
 import Key from "@hugeicons/core-free-icons/Key01Icon";
 import Keyboard from "@hugeicons/core-free-icons/KeyboardIcon";
 import LogIn from "@hugeicons/core-free-icons/Login01Icon";
 import ScanSearch from "@hugeicons/core-free-icons/SearchAreaIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 

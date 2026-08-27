@@ -25,7 +25,7 @@ describe("GitHubWorkItemToolbarActions", () => {
     expect(markup.indexOf('aria-label="Refresh"')).toBeLessThan(
       markup.indexOf('aria-label="Create issue"')
     );
-    expect(markup).toContain('data-icon="square-pen""');
+    expect(markup).toContain('data-icon="square-pen"');
     expect(markup).toContain('width="14"');
     expect(markup).toContain('height="14"');
     expect(markup.match(/border-border-2 bg-bg-2/g)).toHaveLength(2);

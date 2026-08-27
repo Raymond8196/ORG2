@@ -335,7 +335,8 @@ const KanbanReplayStatusPill: React.FC = memo(() => {
                   : t("simulator.replay.play")
               }
             >
-              {React.createElement(isPlaying ? Pause : Play, {
+              {React.createElement(HugeiconsIcon, {
+                icon: isPlaying ? Pause : Play,
                 size: 12,
                 fill: "currentColor",
                 strokeWidth: 0,

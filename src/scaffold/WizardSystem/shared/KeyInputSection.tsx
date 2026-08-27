@@ -4,10 +4,9 @@
  * Extracted from GenericSetup for reuse across KeyVaultAccount and Listing wizards.
  * Supports three methods: Autodetect, Enter Key, Extract Config.
  */
-import ClipboardCopy from "@hugeicons/core-free-icons/Copy01Icon";
+import ClipboardCopy from "@hugeicons/core-free-icons/ClipboardCopyIcon";
 import Keyboard from "@hugeicons/core-free-icons/KeyboardIcon";
 import ScanSearch from "@hugeicons/core-free-icons/SearchAreaIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 

@@ -590,6 +590,7 @@ function renderRowActions({
       <NavigationMenuRowActionButton
         key={`${action.label}:${actionIndex}`}
         icon={action.icon}
+        dataIcon={action.dataIcon}
         iconClassName={action.iconClassName}
         label={action.label}
         active={action.active}

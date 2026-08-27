@@ -7,9 +7,9 @@
  *
  * Extracted from ChatItemRenderer for modularity.
  */
-import Chrome from "@hugeicons/core-free-icons/ChromeIcon";
 import FileSymlink from "@hugeicons/core-free-icons/FileSymlinkIcon";
-import Globe from "@hugeicons/core-free-icons/GlobeIcon";
+import Chrome from "@hugeicons/core-free-icons/InternetIcon";
+import Globe from "@hugeicons/core-free-icons/InternetIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import i18next from "i18next";
 import { useAtomValue } from "jotai";

@@ -1,4 +1,4 @@
-import ListTodo from "@hugeicons/core-free-icons/CheckListIcon";
+import ListTodo from "@hugeicons/core-free-icons/ListTodoIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";

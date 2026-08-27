@@ -1,6 +1,6 @@
-import ClipboardList from "@hugeicons/core-free-icons/CheckListIcon";
-import Chrome from "@hugeicons/core-free-icons/ChromeIcon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowOutUpRightIcon";
+import ClipboardList from "@hugeicons/core-free-icons/ClipboardListIcon";
+import Chrome from "@hugeicons/core-free-icons/InternetIcon";
+import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";

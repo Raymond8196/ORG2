@@ -6,7 +6,6 @@ import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
 import FolderKanban from "@hugeicons/core-free-icons/FolderKanbanIcon";
 import GitFork from "@hugeicons/core-free-icons/GitForkIcon";
 import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 
 import { WORKSTATION_TRAIL_CONTENT } from "@src/config/workstation/tokens";
 

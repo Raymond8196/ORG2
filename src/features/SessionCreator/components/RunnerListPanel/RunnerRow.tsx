@@ -20,6 +20,7 @@ import InfinityIcon from "@hugeicons/core-free-icons/Infinity01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
+import AnyIcon from "@src/components/AnyIcon";
 import Button from "@src/components/Button";
 import { PILL_SM_ICON_SIZE } from "@src/components/CompoundPill/config";
 import ModelIcon from "@src/components/ModelIcon";
@@ -90,9 +91,9 @@ const RunnerRow: React.FC<RunnerRowProps> = memo(
     // danger — so only harness-side blockers colour the harness pill.
     const harnessBlocked =
       blocker !== null && blocker !== RUNNER_BLOCKER.NO_MODEL;
-    // `resolveAgentIcon` is a registry lookup returning a stable component
-    // reference; createElement keeps the lint rule that guards against
-    // components *constructed* during render from firing on it.
+    // `resolveAgentIcon` returns glyph data for slug ids but a brand
+    // COMPONENT for provider ids (claude, codex, …), so the row must render
+    // through `AnyIcon`, which dispatches on the runtime shape.
     //
     // `block` is load-bearing: an inline SVG sits on the text baseline and its
     // line box reserves descender space, so the pill's hover icon→chevron swap
@@ -102,7 +103,7 @@ const RunnerRow: React.FC<RunnerRowProps> = memo(
     // jump sideways the moment a harness was chosen; the placeholder holds the
     // width and reads as "anything could go here".
     const agentPillIcon = agentDisplay.iconId
-      ? React.createElement(HugeiconsIcon, {
+      ? React.createElement(AnyIcon, {
           icon: resolveAgentIcon(agentDisplay.iconId),
           size: PILL_SM_ICON_SIZE,
           className: "block text-text-1",

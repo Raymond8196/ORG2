@@ -2,7 +2,7 @@
  * WorkspaceContextRow — a read-only (or click-through) scope row in the rail:
  * repo, branch, worktree, or the linked work item.
  */
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 
 import AnyIcon from "@src/components/AnyIcon";
 import { WORKSTATION_TRAIL_CONTENT } from "@src/config/workstation/tokens";

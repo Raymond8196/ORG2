@@ -10,7 +10,7 @@ import AlertTriangle from "@hugeicons/core-free-icons/Alert01Icon";
 import AlertCircle from "@hugeicons/core-free-icons/AlertCircleIcon";
 import Info from "@hugeicons/core-free-icons/InformationCircleIcon";
 import Check from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import AnyIcon from "@src/components/AnyIcon";

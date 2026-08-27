@@ -13,10 +13,10 @@
  * backing action is not available in the current context are disabled.
  */
 import Copy from "@hugeicons/core-free-icons/Copy01Icon";
+import Ellipsis from "@hugeicons/core-free-icons/EllipsisIcon";
 import Save from "@hugeicons/core-free-icons/FloppyDiskIcon";
 import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
 import Hash from "@hugeicons/core-free-icons/HashtagIcon";
-import Ellipsis from "@hugeicons/core-free-icons/MoreHorizontalIcon";
 import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import Search from "@hugeicons/core-free-icons/Search01Icon";
 import Settings from "@hugeicons/core-free-icons/Settings01Icon";

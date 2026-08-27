@@ -9,7 +9,6 @@
 import Network from "@hugeicons/core-free-icons/AiNetworkIcon";
 import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
 import UserPlus from "@hugeicons/core-free-icons/UserAdd01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";

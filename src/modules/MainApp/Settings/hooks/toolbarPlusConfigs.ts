@@ -12,7 +12,6 @@ import FileText from "@hugeicons/core-free-icons/File02Icon";
 import Key from "@hugeicons/core-free-icons/Key01Icon";
 import Unplug from "@hugeicons/core-free-icons/UnplugIcon";
 import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 
 import type {
   AddAction,

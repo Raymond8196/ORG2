@@ -1,6 +1,5 @@
 import Code from "@hugeicons/core-free-icons/CodeIcon";
-import Computer from "@hugeicons/core-free-icons/ComputerIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
+import OsAgent from "@hugeicons/core-free-icons/RecordIcon";
 
 import { SETTINGS_SECTION_SLOT_IDS } from "@src/config/settingsUiManifest/slotIds";
 import type { SettingsSectionDefinition } from "@src/config/settingsUiManifest/types";
@@ -24,7 +23,7 @@ export const AGENT_SETTINGS_UI_SECTIONS: SettingsSectionDefinition[] = [
     tab: "agent",
     labelKey: "osAgentConfig",
     headingTitleKey: "sections.osAgentConfig",
-    icon: Computer,
+    icon: OsAgent,
     customSectionSlotId: SETTINGS_SECTION_SLOT_IDS.AGENT_OS_CONFIG,
     coveredKeys: [],
   },

@@ -7,7 +7,7 @@
  * previously and was removed alongside the per-event tab fan-out in
  * useReplayTabs).
  */
-import ListTodo from "@hugeicons/core-free-icons/CheckListIcon";
+import ListTodo from "@hugeicons/core-free-icons/ListTodoIcon";
 import MessageCircleQuestionMark from "@hugeicons/core-free-icons/MessageCircleQuestionMarkIcon";
 import MessagesSquare from "@hugeicons/core-free-icons/MessageMultiple01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";

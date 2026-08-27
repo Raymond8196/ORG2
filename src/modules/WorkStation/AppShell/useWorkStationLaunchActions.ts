@@ -11,16 +11,16 @@
  * request a session (the Browser host is pre-mounted via `visitedModes`
  * seeding) instead of adding a `mainPane` tab.
  */
-import ListTodo from "@hugeicons/core-free-icons/CheckListIcon";
+import Box from "@hugeicons/core-free-icons/BoxIcon";
+import LayoutGrid from "@hugeicons/core-free-icons/DashboardSquare01Icon";
 import FileDiff from "@hugeicons/core-free-icons/FileDiffIcon";
 import FileSearch from "@hugeicons/core-free-icons/FileSearchIcon";
 import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
-import Globe from "@hugeicons/core-free-icons/GlobeIcon";
-import LayoutGrid from "@hugeicons/core-free-icons/LayoutGridIcon";
-import Box from "@hugeicons/core-free-icons/PackageIcon";
+import Globe from "@hugeicons/core-free-icons/InternetIcon";
+import ListTodo from "@hugeicons/core-free-icons/ListTodoIcon";
 import ShieldOff from "@hugeicons/core-free-icons/Shield02Icon";
 import SquareTerminal from "@hugeicons/core-free-icons/SquareTerminalIcon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@hugeicons/react";
 import { useSetAtom } from "jotai";
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";

@@ -5,8 +5,8 @@
  * They do NOT fetch data themselves — the caller must provide the data.
  */
 import Calendar from "@hugeicons/core-free-icons/Calendar01Icon";
+import Cog from "@hugeicons/core-free-icons/CogIcon";
 import KeyRound from "@hugeicons/core-free-icons/Key02Icon";
-import Cog from "@hugeicons/core-free-icons/Settings01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React from "react";

@@ -1,4 +1,4 @@
-import ClipboardCheck from "@hugeicons/core-free-icons/ClipboardIcon";
+import ClipboardCheck from "@hugeicons/core-free-icons/ClipboardCheckIcon";
 import File from "@hugeicons/core-free-icons/File01Icon";
 import Image from "@hugeicons/core-free-icons/Image01Icon";
 import PencilLine from "@hugeicons/core-free-icons/PencilEdit01Icon";

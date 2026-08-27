@@ -11,15 +11,15 @@
  *
  * [chevron] [Search icon] [input] [Aa] [ab] [o*] [book] [↑] [↓]
  */
-import ArrowDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
 import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowDown from "@hugeicons/core-free-icons/ArrowDown02Icon";
 import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import ArrowUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import ArrowUp from "@hugeicons/core-free-icons/ArrowUp02Icon";
 import BookOpen from "@hugeicons/core-free-icons/BookOpen01Icon";
 import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import CaseSensitive from "@hugeicons/core-free-icons/TextIcon";
-import Regex from "@hugeicons/core-free-icons/TextIcon";
-import WholeWord from "@hugeicons/core-free-icons/TextIcon";
+import CaseSensitive from "@hugeicons/core-free-icons/CaseSensitiveIcon";
+import Regex from "@hugeicons/core-free-icons/RegexIcon";
+import WholeWord from "@hugeicons/core-free-icons/WholeWordIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";

@@ -183,7 +183,8 @@ const CreateWorkspaceForm: React.FC<CreateWorkspaceFormProps> = ({
               }}
               className="h-[32px] rounded-lg bg-fill-1 text-[14px]"
               prefix={
-                <ICONS.workspace
+                <HugeiconsIcon
+                  icon={ICONS.workspace}
                   className="text-[16px] text-text-2"
                   size={16}
                 />
@@ -253,7 +254,8 @@ const CreateWorkspaceForm: React.FC<CreateWorkspaceFormProps> = ({
                             className="shrink-0 text-text-3"
                           />
                         ) : (
-                          <ICONS.repo
+                          <HugeiconsIcon
+                            icon={ICONS.repo}
                             size={13}
                             className="shrink-0 text-text-3"
                           />
