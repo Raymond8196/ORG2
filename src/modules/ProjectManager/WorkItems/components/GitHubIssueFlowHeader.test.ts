@@ -89,7 +89,7 @@ describe("GitHubIssueFlowHeader", () => {
     const status = container.querySelector("[data-testid='issue-flow-status']");
     expect(status?.textContent).toContain("Closed");
     expect(status?.firstElementChild?.className).toContain("bg-purple-1");
-    expect(status?.querySelector('[data-icon="circle-check"]')).not.toBeNull();
+    expect(status?.querySelector('[data-icon="check-circle-2"]')).not.toBeNull();
     expect(
       container.querySelector("[data-testid='issue-flow-subline']")?.textContent
     ).toContain("1 comment");

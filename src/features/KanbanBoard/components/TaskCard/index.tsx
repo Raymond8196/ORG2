@@ -43,10 +43,14 @@ const KANBAN_MONOCHROME_ICON_CLASS = "text-text-1";
 function renderAgentIcon(task: KanbanTask) {
   // Session tasks already carry the canonical projection's final icon id.
   // `cliAgentType` remains a compatibility fallback for non-session tasks.
-  const AgentIcon = resolveAgentIcon(task.agentIconId ?? task.cliAgentType);
+  const agentIconId = task.agentIconId ?? task.cliAgentType;
+  const AgentIcon = resolveAgentIcon(agentIconId);
   return (
     <AnyIcon
       icon={AgentIcon}
+      // Dynamic icons carry no name of their own; the registry key is the
+      // stable identity, and what tests assert on.
+      data-icon={agentIconId}
       size={12}
       className={KANBAN_MONOCHROME_ICON_CLASS}
     />

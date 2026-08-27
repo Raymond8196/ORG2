@@ -18,7 +18,9 @@ describe("buildSessionInfoSegments", () => {
       className?: string;
     }>;
 
-    expect(icon.type).toBe(Split);
+    // Icons render through HugeiconsIcon now, so the glyph is a prop
+    // rather than the element type.
+    expect(icon.props.icon).toBe(Split);
     expect(icon.props.className).toContain("rotate-90");
 
     const dropdownEntry = RUNNING_LOCATIONS.find(

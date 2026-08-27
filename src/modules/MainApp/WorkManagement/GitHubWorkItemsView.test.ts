@@ -170,7 +170,7 @@ describe("GitHubWorkItemsView pull requests", () => {
     expect(markup).not.toContain("https://example.com/avatar.png");
     expect(markup).toContain('data-testid="github-pr-status-1"');
     expect(markup).toContain('data-testid="github-pr-ci-1"');
-    expect(markup).toContain('data-icon="circle-check"');
+    expect(markup).toContain('data-icon="check-circle-2"');
     expect(markup).toContain("text-success-6");
     expect(markup).toContain('data-icon="circle-dot"');
     expect(markup).not.toContain("github-pr-review-requested");

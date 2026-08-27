@@ -287,7 +287,9 @@ describe("AssignedWorkItemDetail navigation actions", () => {
     );
     const openIcon = mocks.detailLayoutProps?.openIcon;
     expect(React.isValidElement(openIcon)).toBe(true);
-    expect((openIcon as React.ReactElement).type).toBe(SquareArrowOutUpRight);
+    expect((openIcon as React.ReactElement).props.icon).toBe(
+      SquareArrowOutUpRight
+    );
     const browserAction = mocks.detailLayoutProps?.headerAuxiliaryAction as
       | {
           label: string;
@@ -297,7 +299,7 @@ describe("AssignedWorkItemDetail navigation actions", () => {
         }
       | undefined;
     expect(browserAction?.label).toBe("previews.openInExternalBrowser");
-    expect(browserAction?.icon.type).toBe(Chrome);
+    expect(browserAction?.icon.props.icon).toBe(Chrome);
     expect(browserAction?.testId).toBe("team-inbox-open-github");
     const headerContent = mocks.detailLayoutProps?.headerContent;
     expect(React.isValidElement(headerContent)).toBe(true);
@@ -476,7 +478,9 @@ describe("AssignedWorkItemDetail navigation actions", () => {
     expect(mocks.detailLayoutProps?.headerAuxiliaryAction).toBeUndefined();
     const openIcon = mocks.detailLayoutProps?.openIcon;
     expect(React.isValidElement(openIcon)).toBe(true);
-    expect((openIcon as React.ReactElement).type).toBe(SquareArrowOutUpRight);
+    expect((openIcon as React.ReactElement).props.icon).toBe(
+      SquareArrowOutUpRight
+    );
     act(() => {
       (mocks.detailLayoutProps?.onOpen as (() => void) | undefined)?.();
     });

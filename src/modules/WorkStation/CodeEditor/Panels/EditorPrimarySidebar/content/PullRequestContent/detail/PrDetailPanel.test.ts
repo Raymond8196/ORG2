@@ -755,7 +755,7 @@ describe("PrDetailPanel tabs", () => {
     expect(externalLink?.getAttribute("type")).toBe("button");
     expect(externalLink?.getAttribute("style")).toContain("height: 28px");
     expect(
-      externalLink?.querySelector('[data-icon="chromium"]')
+      externalLink?.querySelector('[data-icon="chrome"]')
     ).not.toBeNull();
     expect(
       container.querySelectorAll(

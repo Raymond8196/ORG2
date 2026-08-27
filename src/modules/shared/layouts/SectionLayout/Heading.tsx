@@ -18,6 +18,8 @@ import React, {
   useId,
 } from "react";
 
+import AnyIcon from "@src/components/AnyIcon";
+
 import {
   SECTION_GAP_CLASSES,
   SECTION_HEADING_CLASSES,
@@ -76,7 +78,8 @@ const SectionHeading: React.FC<SectionHeadingProps> = memo(
         >
           <header className={SECTION_INTRO_TOKENS.header}>
             {Icon && (
-              <Icon
+              <AnyIcon
+                icon={Icon}
                 size={SECTION_INTRO_TOKENS.iconSize}
                 strokeWidth={1.7}
                 className={SECTION_INTRO_TOKENS.icon}

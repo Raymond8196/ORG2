@@ -47,6 +47,6 @@ describe("getProjectContextMenuItems", () => {
 
     expect(isValidElement(moreProperties?.icon)).toBe(true);
     if (!isValidElement(moreProperties?.icon)) return;
-    expect(moreProperties.icon.type).toBe(ListChevronsUpDown);
+    expect(moreProperties.icon.props.icon).toBe(ListChevronsUpDown);
   });
 });

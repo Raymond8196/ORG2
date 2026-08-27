@@ -15,6 +15,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import Select, { type SelectOption } from "@src/components/Select";
 
 // ============================================
@@ -152,7 +153,8 @@ const ScopeInfoLine: React.FC<ScopeInfoLineProps> = ({
     (opt) => ({
       value: opt.value,
       label: t(opt.i18nKey),
-      icon: React.createElement(opt.icon, {
+      icon: React.createElement(AnyIcon, {
+        icon: opt.icon,
         size: 14,
         className: "shrink-0",
       }),

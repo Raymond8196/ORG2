@@ -55,7 +55,7 @@ describe("GitHubWorkItemStateTabs", () => {
     expect(markup).toContain('data-testid="github-work-items-state-open"');
     expect(markup).toContain('data-testid="github-work-items-state-closed"');
     expect(markup).toContain('data-icon="circle-dot"');
-    expect(markup).toContain('data-icon="circle-check"');
+    expect(markup).toContain('data-icon="check-circle-2"');
     expect(markup).toContain("text-success-6");
     expect(markup).toContain("text-purple-6");
     expect(markup).toContain(">Open</span>");

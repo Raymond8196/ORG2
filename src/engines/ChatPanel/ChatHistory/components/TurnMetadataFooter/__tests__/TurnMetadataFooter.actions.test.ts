@@ -65,7 +65,7 @@ describe("TurnMetadataFooter PR row", () => {
     );
     expect(row).not.toBeNull();
     expect(row?.disabled).toBe(false);
-    expect(row?.querySelector('[data-icon="chromium"]')).not.toBeNull();
+    expect(row?.querySelector('[data-icon="chrome"]')).not.toBeNull();
     expect(
       row?.querySelector('[data-icon="square-arrow-out-up-right"]')
     ).toBeNull();
