@@ -10,7 +10,8 @@
  * @example
  * ```tsx
  * import ActionCard from "@src/components/ActionCard";
- * import { Search, Zap } from "lucide-react";
+ * import Search from "@hugeicons/core-free-icons/Search01Icon";
+ * import Zap from "@hugeicons/core-free-icons/FlashIcon";
  *
  * // With Lucide icon (clickable card)
  * <ActionCard

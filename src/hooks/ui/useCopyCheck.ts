@@ -9,7 +9,8 @@
  *
  * @example
  * ```tsx
- * import { Check, Copy } from "lucide-react";
+ * import Check from "@hugeicons/core-free-icons/Tick01Icon";
+ * import Copy from "@hugeicons/core-free-icons/Copy01Icon";
  * import { useCopyCheck } from "@src/hooks/ui";
  *
  * const { copied, handleCopy } = useCopyCheck(async () => {

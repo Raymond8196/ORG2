@@ -1,13 +1,10 @@
 import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import BarChart3 from "@hugeicons/core-free-icons/BarChartIcon";
-import ListChecks from "@hugeicons/core-free-icons/CheckListIcon";
+import X from "@hugeicons/core-free-icons/Cancel01Icon";
 import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
 import Circle from "@hugeicons/core-free-icons/CircleIcon";
-import Map from "@hugeicons/core-free-icons/MapsIcon";
-import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
-import UserPlus from "@hugeicons/core-free-icons/UserAdd01Icon";
+import Rocket from "@hugeicons/core-free-icons/RocketIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
-import React, { type FC, useCallback, useEffect, useMemo, useRef } from "react";
+import React, { type FC, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
@@ -21,39 +18,31 @@ import {
 } from "@src/components/Dropdown/tokens";
 import IconButton from "@src/components/IconButton";
 import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
-import ProgressBar from "@src/components/ProgressBar";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
 import { useDropdownEngine } from "@src/hooks/dropdown";
-import {
-  OrganizationStepIcon,
-  ReadyStepIcon,
-} from "@src/modules/SetupWalkthrough/components/SetupStepIcons";
-import type { WizardStepIcon } from "@src/scaffold/WizardSystem/primitives/WizardStepNavigation";
 
 import {
   SIDEBAR_GUIDE_MILESTONE,
   type SidebarGuideCompletion,
   type SidebarGuideMilestone,
-  getSidebarGuideProgress,
+  getNextSidebarGuideMilestone,
 } from "./sidebarGuideProgress";
 
 interface SidebarGuideButtonProps {
   completion: SidebarGuideCompletion;
+  dismissed: boolean;
   scopeLabel: string;
-  autoOpenRequested: boolean;
-  onAutoOpenConsumed: () => void;
+  onDismiss: () => void;
   onStartSession: () => void;
   onConnectOrganization: () => void;
   onInviteTeammate: () => void;
   onViewTeamUsage: () => void;
   onExploreProduct: () => void;
-  onOpenQuickSetup: () => void;
 }
 
 interface GuideTaskRowProps {
   completed: boolean;
   current: boolean;
-  icon: WizardStepIcon;
   label: string;
   nextStepLabel: string;
   testId: string;
@@ -63,7 +52,6 @@ interface GuideTaskRowProps {
 const GuideTaskRow: FC<GuideTaskRowProps> = ({
   completed,
   current,
-  icon: TaskIcon,
   label,
   nextStepLabel,
   testId,
@@ -82,14 +70,11 @@ const GuideTaskRow: FC<GuideTaskRowProps> = ({
       )
     }
     suffix={
-      <span className="flex items-center gap-1.5">
-        {current && (
-          <span className="rounded-full bg-primary-1 px-1.5 py-0.5 text-[10px] font-medium leading-none text-primary-6">
-            {nextStepLabel}
-          </span>
-        )}
-        <TaskIcon size={DROPDOWN_ITEM.iconSize} />
-      </span>
+      current ? (
+        <span className="rounded-full bg-primary-1 px-1.5 py-0.5 text-[10px] font-medium leading-none text-primary-6">
+          {nextStepLabel}
+        </span>
+      ) : undefined
     }
     className={current ? "bg-primary-6/5" : undefined}
     role="menuitem"
@@ -111,21 +96,19 @@ const GuideTaskRow: FC<GuideTaskRowProps> = ({
  */
 const SidebarGuideButton: FC<SidebarGuideButtonProps> = ({
   completion,
+  dismissed,
   scopeLabel,
-  autoOpenRequested,
-  onAutoOpenConsumed,
+  onDismiss,
   onStartSession,
   onConnectOrganization,
   onInviteTeammate,
   onViewTeamUsage,
   onExploreProduct,
-  onOpenQuickSetup,
 }) => {
   const { t } = useTranslation("navigation");
   const {
     isOpen,
     isPositioned,
-    setIsOpen,
     toggle,
     close,
     triggerRef,
@@ -138,20 +121,12 @@ const SidebarGuideButton: FC<SidebarGuideButtonProps> = ({
     gap: DROPDOWN_PANEL.triggerGap,
     captureKeyboardFocus: true,
   });
-  const progress = useMemo(
-    () => getSidebarGuideProgress(completion),
+  const nextMilestone = useMemo(
+    () => getNextSidebarGuideMilestone(completion),
     [completion]
   );
-  const guideCompleted = progress.nextMilestone === null;
-  const autoOpenedRef = useRef(false);
+  const guideCompleted = nextMilestone === null;
   const scopeInitial = scopeLabel.trim().charAt(0).toLocaleUpperCase();
-
-  useEffect(() => {
-    if (guideCompleted || !autoOpenRequested || autoOpenedRef.current) return;
-    autoOpenedRef.current = true;
-    setIsOpen(true);
-    onAutoOpenConsumed();
-  }, [autoOpenRequested, guideCompleted, onAutoOpenConsumed, setIsOpen]);
 
   const runAction = useCallback(
     (action: () => void) => {
@@ -163,49 +138,43 @@ const SidebarGuideButton: FC<SidebarGuideButtonProps> = ({
 
   const milestoneRows: readonly {
     milestone: SidebarGuideMilestone;
-    icon: WizardStepIcon;
     label: string;
     testId: string;
     action: () => void;
   }[] = [
     {
       milestone: SIDEBAR_GUIDE_MILESTONE.SESSION,
-      icon: ReadyStepIcon,
       label: t("sidebar.guide.startSession"),
       testId: "sidebar-guide-task-session",
       action: onStartSession,
     },
     {
       milestone: SIDEBAR_GUIDE_MILESTONE.ORGANIZATION,
-      icon: OrganizationStepIcon,
       label: t("sidebar.guide.connectOrganization"),
       testId: "sidebar-guide-task-organization",
       action: onConnectOrganization,
     },
     {
       milestone: SIDEBAR_GUIDE_MILESTONE.TEAMMATE,
-      icon: UserPlus,
       label: t("sidebar.guide.inviteTeammate"),
       testId: "sidebar-guide-task-teammate",
       action: onInviteTeammate,
     },
     {
       milestone: SIDEBAR_GUIDE_MILESTONE.TEAM_USAGE,
-      icon: BarChart3,
       label: t("sidebar.guide.viewTeamActivity"),
       testId: "sidebar-guide-task-team-usage",
       action: onViewTeamUsage,
     },
     {
       milestone: SIDEBAR_GUIDE_MILESTONE.PRODUCT_TOUR,
-      icon: Map,
       label: t("sidebar.guide.exploreProduct"),
       testId: "sidebar-guide-task-product-tour",
       action: onExploreProduct,
     },
   ];
 
-  if (guideCompleted) return null;
+  if (dismissed || guideCompleted) return null;
 
   return (
     <>
@@ -226,7 +195,7 @@ const SidebarGuideButton: FC<SidebarGuideButtonProps> = ({
             onClick={toggle}
           >
             <HugeiconsIcon
-              icon={ListChecks}
+              icon={Rocket}
               size={HEADER_ICON_SIZE.md}
               strokeWidth={2}
             />
@@ -261,22 +230,14 @@ const SidebarGuideButton: FC<SidebarGuideButtonProps> = ({
                 <span className="min-w-0 flex-1 truncate text-sm font-semibold text-text-1">
                   {t("sidebar.guide.title")}
                 </span>
-                <ToolbarTooltip
-                  label={t("sidebar.guide.quickSetup")}
-                  position="top"
+                <IconButton
+                  aria-label={t("sidebar.guide.dismiss")}
+                  size="sm"
+                  variant="default"
+                  onClick={() => runAction(onDismiss)}
                 >
-                  <IconButton
-                    aria-label={t("sidebar.guide.quickSetup")}
-                    size="sm"
-                    variant="default"
-                    onClick={() => runAction(onOpenQuickSetup)}
-                  >
-                    <HugeiconsIcon
-                      icon={MoreHorizontal}
-                      size={HEADER_ICON_SIZE.sm}
-                    />
-                  </IconButton>
-                </ToolbarTooltip>
+                  <HugeiconsIcon icon={X} size={HEADER_ICON_SIZE.sm} />
+                </IconButton>
                 <IconButton
                   aria-label={t("sidebar.guide.close")}
                   size="sm"
@@ -289,19 +250,6 @@ const SidebarGuideButton: FC<SidebarGuideButtonProps> = ({
                   />
                 </IconButton>
               </div>
-              <div className="mt-2 flex items-center gap-2">
-                <ProgressBar
-                  percent={progress.percent}
-                  height="h-1"
-                  ariaLabel={t("sidebar.guide.progressLabel", {
-                    completed: progress.completedCount,
-                    total: progress.totalCount,
-                  })}
-                />
-                <span className="shrink-0 text-xs tabular-nums text-text-3">
-                  {progress.completedCount}/{progress.totalCount}
-                </span>
-              </div>
             </div>
 
             <div className={DROPDOWN_CLASSES.itemsColumnPadded}>
@@ -309,8 +257,7 @@ const SidebarGuideButton: FC<SidebarGuideButtonProps> = ({
                 <GuideTaskRow
                   key={task.milestone}
                   completed={completion[task.milestone]}
-                  current={progress.nextMilestone === task.milestone}
-                  icon={task.icon}
+                  current={nextMilestone === task.milestone}
                   label={task.label}
                   nextStepLabel={t("sidebar.guide.nextStep")}
                   testId={task.testId}

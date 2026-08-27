@@ -14,10 +14,6 @@ import {
   type FieldRowVariant,
   Option,
 } from "@src/components/PropertyField/PropertyFieldEditable";
-import type {
-  AgentDefinition,
-  OrgMember,
-} from "@src/modules/MainApp/AgentOrgs/types";
 import type { Person } from "@src/types/core/shared";
 import {
   GITHUB_ISSUE_STATUS,
@@ -32,10 +28,7 @@ import type {
 interface AssigneePropertyFieldProps {
   workItem: WorkItemExtended;
   availableMembers: Person[];
-  availableAgents?: AgentDefinition[];
-  availableOrgs?: OrgMember[];
-  allAgentList?: { id: string; name: string }[];
-  onAssigneeChange: (person: Person | null, assigneeType?: string) => void;
+  onAssigneeChange: (person: Person | null) => void;
   t: (key: string) => string;
   fieldVariant?: FieldRowVariant;
   placement?: "inline" | "portal";
@@ -137,8 +130,6 @@ function renderExternalAssigneeIcon(
 export function AssigneePropertyField({
   workItem,
   availableMembers,
-  availableOrgs = [],
-  allAgentList = [],
   onAssigneeChange,
   t,
   fieldVariant = "row",
@@ -305,19 +296,8 @@ export function AssigneePropertyField({
               person.name.toLowerCase().includes(query)
             )
           : availableMembers;
-        const filteredAgents = query
-          ? allAgentList.filter((agent) =>
-              agent.name.toLowerCase().includes(query)
-            )
-          : allAgentList;
-        const filteredOrgs = query
-          ? availableOrgs.filter((org) =>
-              org.name.toLowerCase().includes(query)
-            )
-          : availableOrgs;
-
-        const select = (person: Person | null, assigneeType?: string) => {
-          onAssigneeChange(person, assigneeType);
+        const select = (person: Person | null) => {
+          onAssigneeChange(person);
           close();
         };
 
@@ -353,54 +333,6 @@ export function AssigneePropertyField({
                   {person.name.charAt(0).toUpperCase()}
                 </Avatar>
                 <span className="flex-1 truncate">{person.name}</span>
-              </Option>
-            ))}
-            {filteredAgents.length > 0 && (
-              <div className={DROPDOWN_CLASSES.sectionLabel}>
-                {t("workItems.properties.agentsGroup")}
-              </div>
-            )}
-            {filteredAgents.map((agent) => (
-              <Option
-                key={`agent-${agent.id}`}
-                isSelected={
-                  workItem.assignee?.id === agent.id &&
-                  workItem.assigneeType === "agent"
-                }
-                label={agent.name}
-                onClick={() =>
-                  select({ id: agent.id, name: agent.name }, "agent")
-                }
-              >
-                <HugeiconsIcon
-                  icon={AtSign}
-                  size={DROPDOWN_ITEM.iconSize}
-                  className="text-primary-6"
-                />
-                <span className="flex-1 truncate">{agent.name}</span>
-              </Option>
-            ))}
-            {filteredOrgs.length > 0 && (
-              <div className={DROPDOWN_CLASSES.sectionLabel}>
-                {t("workItems.properties.orgsGroup")}
-              </div>
-            )}
-            {filteredOrgs.map((org) => (
-              <Option
-                key={`org-${org.id}`}
-                isSelected={
-                  workItem.assignee?.id === org.id &&
-                  workItem.assigneeType === "org"
-                }
-                label={org.name}
-                onClick={() => select({ id: org.id, name: org.name }, "org")}
-              >
-                <HugeiconsIcon
-                  icon={Network}
-                  size={DROPDOWN_ITEM.iconSize}
-                  className="text-primary-6"
-                />
-                <span className="flex-1 truncate">{org.name}</span>
               </Option>
             ))}
           </>

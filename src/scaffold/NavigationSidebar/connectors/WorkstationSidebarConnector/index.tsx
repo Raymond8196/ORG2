@@ -5,8 +5,7 @@ import React, { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import { ROUTES } from "@src/config/routes";
-import { normalizeSetupWalkthroughProgress } from "@src/config/settingsSchema/setupWalkthroughProgress";
+import { normalizeSidebarGuideProgress } from "@src/config/settingsSchema/sidebarGuideProgress";
 import { createLogger } from "@src/hooks/logger";
 import { useAppNavigation } from "@src/hooks/navigation/useAppNavigation";
 import { useSessionView } from "@src/hooks/ui/tabs/useSessionView";
@@ -30,7 +29,7 @@ import { settingsAtom } from "@src/store/settings/settingsAtom";
 import {
   SETUP_GUIDE_PERSISTED_MILESTONE,
   completeSetupGuideMilestone,
-  consumeSetupGuideHandoff,
+  dismissSetupGuide,
   hasCompletedSetupGuideMilestone,
 } from "@src/store/settings/setupGuideProgress";
 import { saveSetupGuideProgressAtom } from "@src/store/settings/setupGuideProgressAtom";
@@ -114,7 +113,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const sessions = useAtomValue(sessionsAtom);
-  const setupGuideProgress = normalizeSetupWalkthroughProgress(
+  const setupGuideProgress = normalizeSidebarGuideProgress(
     useAtomValue(settingsAtom)["general.setupWalkthroughProgress"]
   );
   const saveSetupGuideProgress = useSetAtom(saveSetupGuideProgressAtom);
@@ -732,6 +731,12 @@ export const WorkstationSidebarConnector: React.FC = () => {
     });
   }, [saveSetupGuideProgress]);
 
+  const handleGuideDismiss = useCallback(() => {
+    void saveSetupGuideProgress(dismissSetupGuide).catch((error: unknown) => {
+      logger.warn("failed to persist setup guide dismissal", error);
+    });
+  }, [saveSetupGuideProgress]);
+
   const handleGuideViewTeamUsage = useCallback(() => {
     guideNavigationRequestId.current = Math.max(
       guideNavigationRequestId.current + 1,
@@ -770,18 +775,6 @@ export const WorkstationSidebarConnector: React.FC = () => {
     showGuideHighlight,
     t,
   ]);
-
-  const handleGuideAutoOpenConsumed = useCallback(() => {
-    void saveSetupGuideProgress(consumeSetupGuideHandoff).catch(
-      (error: unknown) => {
-        logger.warn("failed to persist setup guide handoff", error);
-      }
-    );
-  }, [saveSetupGuideProgress]);
-
-  const handleGuideOpenQuickSetup = useCallback(() => {
-    navigateTo(ROUTES.auth.setup.path);
-  }, [navigateTo]);
 
   const guideCompletion = useMemo<SidebarGuideCompletion>(
     () => ({
@@ -868,17 +861,14 @@ export const WorkstationSidebarConnector: React.FC = () => {
               <>
                 <SidebarGuideButton
                   completion={guideCompletion}
+                  dismissed={setupGuideProgress.dismissed}
                   scopeLabel={guideScopeLabel}
-                  autoOpenRequested={
-                    setupGuideProgress.guideHandoff === "pending"
-                  }
-                  onAutoOpenConsumed={handleGuideAutoOpenConsumed}
+                  onDismiss={handleGuideDismiss}
                   onStartSession={handleGoToNewSession}
                   onConnectOrganization={handleGuideConnectOrganization}
                   onInviteTeammate={handleGuideInviteTeammate}
                   onViewTeamUsage={handleGuideViewTeamUsage}
                   onExploreProduct={handleGuideExploreProduct}
-                  onOpenQuickSetup={handleGuideOpenQuickSetup}
                 />
                 {sidebarBottomRightActions}
               </>

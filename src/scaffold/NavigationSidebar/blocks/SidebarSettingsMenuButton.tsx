@@ -1,7 +1,6 @@
 import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
 import MessageCircle from "@hugeicons/core-free-icons/BubbleChatIcon";
 import Circle from "@hugeicons/core-free-icons/CircleIcon";
-import ClipboardCheck from "@hugeicons/core-free-icons/ClipboardIcon";
 import Contrast from "@hugeicons/core-free-icons/ContrastIcon";
 import MousePointer2 from "@hugeicons/core-free-icons/Cursor02Icon";
 import Gauge from "@hugeicons/core-free-icons/GaugeIcon";
@@ -34,7 +33,6 @@ import {
 import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
 import type { AppearanceMode } from "@src/config/appearance/globalThemes";
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
-import { ROUTES } from "@src/config/routes";
 import {
   type DropdownEnginePosition,
   useDropdownEngine,
@@ -88,7 +86,7 @@ function getSubmenuPosition(
 const SidebarSettingsMenuButton: React.FC = React.memo(() => {
   const { t } = useTranslation("navigation");
   const { t: tSettings } = useTranslation("settings");
-  const { goToSettings, navigateTo } = useAppNavigation();
+  const { goToSettings } = useAppNavigation();
   const devModeEnabled = useAtomValue(devModeEnabledAtom);
   const developerTestPanelEnabled =
     devModeEnabled && isDeveloperTestPanelEnabled();
@@ -218,11 +216,6 @@ const SidebarSettingsMenuButton: React.FC = React.memo(() => {
     window.dispatchEvent(new CustomEvent(TUTORIALS_OPEN_EVENT));
     closeAll();
   }, [closeAll]);
-
-  const handleOpenSetupChecklist = useCallback(() => {
-    closeAll();
-    navigateTo(ROUTES.auth.setup.path);
-  }, [closeAll, navigateTo]);
 
   const handleOpenGuiControl = useCallback(() => {
     openAgentControlSpotlight();
@@ -365,25 +358,6 @@ const SidebarSettingsMenuButton: React.FC = React.memo(() => {
                 TODO(changelog-web): Restore the Changelog item here, directly
                 above Tutorials, once the maintained web destination is ready.
               */}
-              <button
-                type="button"
-                className={`${DROPDOWN_CLASSES.menuActionItem} gap-2`}
-                onMouseEnter={() => setActiveSubmenu(null)}
-                onFocus={() => setActiveSubmenu(null)}
-                onClick={handleOpenSetupChecklist}
-                data-testid="sidebar-open-setup-checklist"
-              >
-                <HugeiconsIcon
-                  icon={ClipboardCheck}
-                  size={DROPDOWN_ITEM.iconSize}
-                  className={MENU_ICON_CLASS_NAME}
-                />
-                <span>
-                  {t("sidebar.settingsMenu.setupChecklist", {
-                    defaultValue: "Setup checklist",
-                  })}
-                </span>
-              </button>
               <button
                 type="button"
                 className={`${DROPDOWN_CLASSES.menuActionItem} gap-2`}

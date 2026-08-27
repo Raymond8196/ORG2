@@ -114,7 +114,7 @@ function defaultIconForKind(
   label: string,
   isActive: boolean
 ): React.ReactNode {
-  const lucideClass = isActive
+  const iconClass = isActive
     ? "shrink-0 text-text-1"
     : "shrink-0 text-text-3";
   switch (kind) {
@@ -123,7 +123,7 @@ function defaultIconForKind(
     case "explore":
     case "web_search":
       return (
-        <HugeiconsIcon icon={Search} size={ICON_SIZE} className={lucideClass} />
+        <HugeiconsIcon icon={Search} size={ICON_SIZE} className={iconClass} />
       );
     case "terminal":
       return (
