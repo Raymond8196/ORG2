@@ -254,7 +254,17 @@ export function useWorkstationPrMutations({
   );
 
   const runPrMutation = useCallback(
-    async (mutation: () => Promise<unknown>): Promise<void> => {
+    async (
+      mutation: () => Promise<unknown>,
+      /**
+       * Detail fields to apply the moment the mutation resolves. The
+       * reconciling fetch below is a network round-trip, so without this the
+       * rail keeps rendering the pre-mutation reviewers, status, and action
+       * labels until it returns. The fetch still corrects anything GitHub
+       * resolved differently.
+       */
+      optimisticDetail?: Record<string, unknown>
+    ): Promise<void> => {
       if (!repoFullName || !pr) {
         throw new Error("GitHub repository context is unavailable");
       }
@@ -266,6 +276,16 @@ export function useWorkstationPrMutations({
       setSelectedPr((current) => ({ ...current, error: null }));
       try {
         await mutation();
+        if (optimisticDetail) {
+          setSelectedPr((current) =>
+            current.detail
+              ? {
+                  ...current,
+                  detail: { ...current.detail, ...optimisticDetail },
+                }
+              : current
+          );
+        }
         loadDetail(pr, { reconcile: true });
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
@@ -320,8 +340,9 @@ export function useWorkstationPrMutations({
       if (!repoFullName || !pr) {
         throw new Error("GitHub repository context is unavailable");
       }
-      await runPrMutation(() =>
-        updatePRStateLocal(repoFullName, pr.number, state)
+      await runPrMutation(
+        () => updatePRStateLocal(repoFullName, pr.number, state),
+        { state }
       );
     },
     [repoFullName, pr, runPrMutation]
@@ -332,8 +353,9 @@ export function useWorkstationPrMutations({
       if (!repoFullName || !pr) {
         throw new Error("GitHub repository context is unavailable");
       }
-      await runPrMutation(() =>
-        updatePRDraftStateLocal(repoFullName, pr.number, draft)
+      await runPrMutation(
+        () => updatePRDraftStateLocal(repoFullName, pr.number, draft),
+        { draft }
       );
     },
     [repoFullName, pr, runPrMutation]
@@ -361,20 +383,27 @@ export function useWorkstationPrMutations({
         .map(([, login]) => login);
       if (added.length === 0 && removed.length === 0) return;
 
-      await runPrMutation(async () => {
-        if (added.length > 0) {
-          await requestPRReviewersLocal(repoFullName, pr.number, added);
-        }
-        if (removed.length > 0) {
-          await removePRReviewersLocal(repoFullName, pr.number, removed);
-        }
-        latestRequestedReviewersRef.current = reviewers.map((login) => {
-          const candidate = reviewerCandidates.find(
-            (reviewer) => reviewer.login.toLowerCase() === login.toLowerCase()
-          );
-          return candidate ?? { login, avatar_url: "" };
-        });
+      // Resolved up front so the same list seeds both the ref and the
+      // optimistic patch that repaints the rail before the refetch lands.
+      const nextReviewers = reviewers.map((login) => {
+        const candidate = reviewerCandidates.find(
+          (reviewer) => reviewer.login.toLowerCase() === login.toLowerCase()
+        );
+        return candidate ?? { login, avatar_url: "" };
       });
+
+      await runPrMutation(
+        async () => {
+          if (added.length > 0) {
+            await requestPRReviewersLocal(repoFullName, pr.number, added);
+          }
+          if (removed.length > 0) {
+            await removePRReviewersLocal(repoFullName, pr.number, removed);
+          }
+          latestRequestedReviewersRef.current = nextReviewers;
+        },
+        { requested_reviewers: nextReviewers }
+      );
     },
     [
       repoFullName,

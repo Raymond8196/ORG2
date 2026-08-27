@@ -230,7 +230,8 @@ describe("PrDetailPanel tabs", () => {
     expect(sidebar?.compareDocumentPosition(navigationRail as Node)).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING
     );
-    expect(sidebar?.textContent).toContain("Details");
+    // The rail opens straight into its sections — no panel title above them.
+    expect(sidebar?.textContent).not.toContain("Details");
     expect(sidebar?.textContent).toContain("Reviewers");
     expect(sidebar?.textContent).toContain("Assignees");
     expect(sidebar?.textContent).toContain("No one assigned");

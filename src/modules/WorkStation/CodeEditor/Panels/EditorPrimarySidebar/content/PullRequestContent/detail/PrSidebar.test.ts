@@ -127,11 +127,20 @@ describe("PrSidebar", () => {
     expect(surface?.className).toContain("border-border-1");
     // Exact trail-surface shadow, so it reads the same as the Work Item rail.
     expect(surface?.className).toContain("shadow-dropdown");
-    expect(surface?.textContent).toContain("Details");
-    // The rail is permanent — it carries no collapse control.
+    // No panel title above the sections, and no collapse control — the rail is
+    // permanent and opens straight into Reviewers.
+    expect(surface?.textContent).not.toContain("Details");
     expect(
       surface?.querySelector("[data-testid='pr-sidebar-collapse']")
     ).toBeNull();
+    // The reviewer trigger reuses the trail icon button, exactly like the
+    // trail's own collapse control.
+    const reviewerTrigger = surface?.querySelector(
+      "[data-testid='pr-reviewer-action']"
+    );
+    expect(reviewerTrigger?.className).toContain("h-[26px]");
+    expect(reviewerTrigger?.className).toContain("w-[26px]");
+    expect(reviewerTrigger?.className).toContain("rounded-lg");
     const reviewers = container.querySelector(
       "[data-testid='pr-sidebar-reviewers']"
     );

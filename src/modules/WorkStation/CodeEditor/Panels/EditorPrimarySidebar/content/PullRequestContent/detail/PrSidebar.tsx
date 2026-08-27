@@ -20,7 +20,6 @@ import type {
   PullRequestMergeMethod,
 } from "@src/api/tauri/github";
 import Avatar from "@src/components/Avatar";
-import Button from "@src/components/Button";
 import Dropdown from "@src/components/Dropdown";
 import {
   DROPDOWN_CLASSES,
@@ -30,7 +29,7 @@ import { WORKSTATION_TRAIL_CONTENT } from "@src/config/workstation/tokens";
 import {
   WorkstationTrailBody,
   WorkstationTrailEmptyText,
-  WorkstationTrailHeader,
+  WorkstationTrailIconButton,
   WorkstationTrailSection,
   WorkstationTrailSurface,
 } from "@src/modules/shared/layouts/blocks";
@@ -304,6 +303,9 @@ export const PrSidebar: React.FC<PrSidebarProps> = ({
       }}
       getPopupContainer={() => document.body}
       avoidViewportOverflow
+      // The trigger sits at the section's right edge, so the panel hangs from
+      // that edge rather than running off the rail.
+      position="bottom-end"
       className={`${DROPDOWN_CLASSES.panelAnimated} ${DROPDOWN_WIDTHS.fileTreeClass}`}
       onSelect={(value) => {
         const next = Array.isArray(value) ? value.map(String) : [String(value)];
@@ -314,19 +316,14 @@ export const PrSidebar: React.FC<PrSidebarProps> = ({
         );
       }}
     >
-      <Button
-        htmlType="button"
-        variant="tertiary"
-        size="mini"
-        shape="circle"
-        iconOnly
-        icon={<Settings size={13} strokeWidth={1.75} aria-hidden />}
+      <WorkstationTrailIconButton
         disabled={pending}
         aria-label={t("git.pr.sidebar.requestReviewers", "Request reviewers")}
         title={t("git.pr.sidebar.requestReviewers", "Request reviewers")}
-        className="hover:!bg-surface-selected"
         data-testid="pr-reviewer-action"
-      />
+      >
+        <Settings size={14} strokeWidth={1.75} aria-hidden />
+      </WorkstationTrailIconButton>
     </Dropdown>
   ) : undefined;
 
@@ -335,9 +332,8 @@ export const PrSidebar: React.FC<PrSidebarProps> = ({
       className="flex self-start"
       data-testid="pr-sidebar"
     >
-      <WorkstationTrailHeader title={t("git.pr.details", "Details")} />
       <WorkstationTrailBody
-        className={`${WORKSTATION_TRAIL_CONTENT.sectionList} pb-1`}
+        className={`${WORKSTATION_TRAIL_CONTENT.sectionList} py-1`}
       >
         <WorkstationTrailSection
           title={t("git.pr.sidebar.reviewers", "Reviewers")}
